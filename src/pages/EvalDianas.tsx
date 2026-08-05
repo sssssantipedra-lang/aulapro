@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck } from 'lucide-react';
-import type { EvalDiana, DianaItem, Evaluation, Class, Student } from '../types';
+import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy } from 'lucide-react';
+import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
+import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { isoDate } from '../lib/utils';
@@ -12,6 +13,7 @@ interface Props {
   evaluations: Evaluation[];
   classes: Class[];
   students: Student[];
+  gradeCategories: GradeCategory[];
   lawDocument: InlineFile | null;
   onAddDiana: (d: EvalDiana) => void;
   onUpdateDiana: (d: EvalDiana) => void;
@@ -33,12 +35,13 @@ interface DianaModalProps {
   open: boolean;
   editing: EvalDiana | null;
   classes: Class[];
+  gradeCategories: GradeCategory[];
   lawDocument: InlineFile | null;
   onClose: () => void;
   onSave: (d: EvalDiana) => void;
 }
 
-function DianaModal({ open, editing, classes, lawDocument, onClose, onSave }: DianaModalProps) {
+function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave }: DianaModalProps) {
   const { toast } = useToast();
   const [mode, setMode] = useState<'ia' | 'manual'>('ia');
 
@@ -50,6 +53,9 @@ function DianaModal({ open, editing, classes, lawDocument, onClose, onSave }: Di
   const [name, setName]   = useState('');
   const [items, setItems] = useState<DianaItem[]>([blankItem()]);
 
+  /* A qué clase pertenece y dónde caen sus notas */
+  const [target, setTarget] = useState<GradeTarget>({});
+
   useEffect(() => {
     if (!open) return;
     if (editing) {
@@ -57,7 +63,11 @@ function DianaModal({ open, editing, classes, lawDocument, onClose, onSave }: Di
       setName(editing.name);
       setItems(editing.items.map(i => ({ ...i })));
       setAiContext(editing.context ?? '');
+      setTarget({
+        class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
+      });
     } else {
+      setTarget({});
       setMode('ia');
       setName('');
       setItems([blankItem()]);
@@ -114,6 +124,7 @@ function DianaModal({ open, editing, classes, lawDocument, onClose, onSave }: Di
       name: n,
       context: aiContext.trim() || undefined,
       items: valid.map(i => ({ ...i, name: i.name.trim(), weight: i.weight > 0 ? i.weight : 1 })),
+      ...target,
     });
     onClose();
   }
@@ -141,6 +152,13 @@ function DianaModal({ open, editing, classes, lawDocument, onClose, onSave }: Di
             Manual
           </button>
         </div>
+
+        <GradeTargetPicker
+          value={target}
+          onChange={setTarget}
+          classes={classes}
+          gradeCategories={gradeCategories}
+        />
 
         {mode === 'ia' ? (
           <div>
@@ -421,7 +439,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
 /* ═══════════════════ Pestaña de dianas ═══════════════════ */
 
 export function DianasTab({
-  dianas, evaluations, classes, students, lawDocument,
+  dianas, evaluations, classes, students, gradeCategories, lawDocument,
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
 }: Props) {
   const { toast } = useToast();
@@ -434,6 +452,21 @@ export function DianasTab({
   function openNew()  { setEditing(null); setModalOpen(true); }
   function openEdit(d: EvalDiana) { setEditing(d); setModalOpen(true); }
   function openEval(d: EvalDiana) { setEvalDiana(d); setEvalOpen(true); }
+
+  /**
+   * Copia con id nuevo, y por tanto con columna propia en el cuaderno.
+   * Es la forma de reutilizar los mismos ítems en otro trimestre sin que la
+   * evaluación nueva sobrescriba la anterior.
+   */
+  function duplicate(d: EvalDiana) {
+    onAddDiana({
+      ...d,
+      id: 'dia' + Date.now(),
+      name: `${d.name} (copia)`,
+      items: d.items.map(i => ({ ...i, id: uid() })),
+    });
+    toast('✅ Diana duplicada, con su propia columna en el cuaderno');
+  }
 
   return (
     <>
@@ -477,6 +510,7 @@ export function DianasTab({
                   </div>
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
                     <button className="ico-btn" onClick={() => openEdit(d)} title="Editar diana"><Pencil size={14} /></button>
+                    <button className="ico-btn" onClick={() => duplicate(d)} title="Duplicar diana"><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setConfirmDelete(d.id)} title="Eliminar diana"><Trash2 size={14} color="var(--danger)" /></button>
                   </div>
                 </div>
@@ -508,6 +542,7 @@ export function DianasTab({
         open={modalOpen}
         editing={editing}
         classes={classes}
+        gradeCategories={gradeCategories}
         lawDocument={lawDocument}
         onClose={() => setModalOpen(false)}
         onSave={d => {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown,
+  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy,
 } from 'lucide-react';
 import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget } from '../types';
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
@@ -747,6 +747,7 @@ export function Rubrics({
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
   onEvalOpened,
 }: Props) {
+  const { toast } = useToast();
   const [tab, setTab] = useState<'rubrics' | 'dianas'>('rubrics');
   const [rubricModalOpen, setRubricModalOpen] = useState(false);
   const [editingRubric, setEditingRubric] = useState<Rubric | null>(null);
@@ -804,6 +805,21 @@ export function Rubrics({
     setConfirmDeleteId(null);
   }
 
+  /**
+   * Copia con id nuevo, y por tanto con columna propia en el cuaderno.
+   * Es la forma de reutilizar los mismos criterios en otro trimestre sin que
+   * la evaluación nueva sobrescriba la anterior.
+   */
+  function duplicateRubric(r: Rubric) {
+    onAddRubric({
+      ...r,
+      id: 'rub' + Date.now(),
+      name: `${r.name} (copia)`,
+      criteria: r.criteria.map(c => ({ ...c, id: 'cr' + Math.random().toString(36).slice(2, 9) })),
+    });
+    toast('✅ Rúbrica duplicada, con su propia columna en el cuaderno');
+  }
+
   return (
     <section className="sec active">
       {/* Page header */}
@@ -830,6 +846,7 @@ export function Rubrics({
           evaluations={evaluations}
           classes={classes}
           students={students}
+          gradeCategories={gradeCategories}
           lawDocument={lawDocument}
           onAddDiana={onAddDiana}
           onUpdateDiana={onUpdateDiana}
@@ -880,6 +897,9 @@ export function Rubrics({
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
                     <button className="ico-btn" onClick={() => openEditRubric(r)} title="Editar rúbrica">
                       <Pencil size={14} />
+                    </button>
+                    <button className="ico-btn" onClick={() => duplicateRubric(r)} title="Duplicar rúbrica">
+                      <Copy size={14} />
                     </button>
                     <button
                       className="ico-btn"
