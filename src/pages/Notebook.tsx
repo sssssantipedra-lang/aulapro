@@ -326,7 +326,7 @@ function GradesTab({
               className="btn-accent"
               onClick={() => {
                 DEFAULT_CATEGORIES.forEach((c, i) =>
-                  onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight }));
+                  onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
                 toast('✅ Categorías creadas: Exámenes 60% · Tareas 30% · Participación 10%');
               }}
             >
