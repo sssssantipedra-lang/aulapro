@@ -79,17 +79,36 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
-  registerClassroomIpc();
-  registerStorageIpc();
-  createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+/**
+ * Una sola copia abierta a la vez.
+ *
+ * Sin esto, dos ventanas de Aula Pro cargan el mismo perfil y las dos guardan
+ * `datos.json` cada 700 ms: la última en escribir se lleva por delante el
+ * trabajo de la otra, en silencio y con las notas dentro. Es fácil que pase
+ * sin querer, con un doble clic de más en el acceso directo.
+ */
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  // Si intentan abrirla de nuevo, traemos al frente la ventana que ya existe.
+  app.on('second-instance', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
   });
-});
+
+  app.whenReady().then(() => {
+    registerClassroomIpc();
+    registerStorageIpc();
+    createWindow();
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  });
+}
 
 app.on('window-all-closed', () => {
   // La sala nunca queda abierta después de cerrar la app

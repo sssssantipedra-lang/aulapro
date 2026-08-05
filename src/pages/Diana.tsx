@@ -82,6 +82,13 @@ interface DianaChartProps {
 
 function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: DianaChartProps) {
   const ringRadii = Array.from({ length: RINGS }, (_, i) => ((i + 1) / RINGS) * MAX_RADIUS);
+  const filled = SECTOR_IDS.filter(id => scores[id] > 0);
+
+  /** El color de la figura lo marca el nivel medio, para que se lea de un vistazo. */
+  const avg = filled.length
+    ? filled.reduce((a, id) => a + scores[id], 0) / filled.length
+    : 0;
+  const shade = LEVEL_COLORS[Math.max(1, Math.round(avg))] ?? LEVEL_COLORS[3];
 
   return (
     <svg
@@ -90,7 +97,17 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
       viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
       style={{ overflow: 'visible', userSelect: 'none' }}
     >
-      {/* Concentric hexagonal rings */}
+      <defs>
+        <radialGradient id="diana-fill" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor={shade.text} stopOpacity={0.34} />
+          <stop offset="100%" stopColor={shade.text} stopOpacity={0.13} />
+        </radialGradient>
+      </defs>
+
+      {/* Fondo: da cuerpo al gráfico sin competir con los datos */}
+      <polygon points={hexagonPoints(MAX_RADIUS)} fill="var(--surface)" fillOpacity={0.55} />
+
+      {/* Anillos, muy tenues: son referencia, no protagonistas */}
       {ringRadii.map((r, ri) => (
         <polygon
           key={`ring-${ri}`}
@@ -98,87 +115,84 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
           fill="none"
           stroke="var(--border)"
           strokeWidth={ri === RINGS - 1 ? 1.5 : 1}
-          strokeDasharray={ri === RINGS - 1 ? undefined : '4 3'}
+          strokeOpacity={ri === RINGS - 1 ? 0.9 : 0.45}
         />
       ))}
 
-      {/* Ring level hit areas — clicking sets score for selected sector */}
-      {selectedSector &&
-        ringRadii.map((r, ri) => {
-          const level = ri + 1;
-          const prevR = ri === 0 ? 0 : ringRadii[ri - 1];
-          const midR = (prevR + r) / 2;
-          const angle = angleForIndex(SECTOR_IDS.indexOf(selectedSector));
-          const [hx, hy] = polarToCart(angle, midR);
-          return (
-            <circle
-              key={`hit-${ri}`}
-              cx={hx}
-              cy={hy}
-              r={12}
-              fill="var(--accent-d)"
-              fillOpacity={scores[selectedSector] === level ? 0.35 : 0.1}
-              stroke="var(--accent-d)"
-              strokeWidth={1}
-              strokeOpacity={0.4}
-              style={{ cursor: 'pointer' }}
-              onClick={() => onSetScore(selectedSector, level)}
-            />
-          );
-        })}
-
-      {/* Axis lines */}
+      {/* Ejes */}
       {DIANA_SECTORS.map((s, i) => {
         const [x, y] = polarToCart(angleForIndex(i), MAX_RADIUS);
         return (
           <line
             key={`axis-${s.id}`}
-            x1={CENTER}
-            y1={CENTER}
-            x2={x}
-            y2={y}
+            x1={CENTER} y1={CENTER} x2={x} y2={y}
             stroke="var(--border)"
-            strokeWidth={1.5}
+            strokeWidth={1}
+            strokeOpacity={selectedSector === s.id ? 1 : 0.5}
           />
         );
       })}
 
-      {/* Clickable ring intersections on each axis */}
+      {/* La figura */}
+      {filled.length > 0 && (
+        <polygon
+          points={scorePolygonPoints(scores)}
+          fill="url(#diana-fill)"
+          stroke={shade.text}
+          strokeWidth={2.5}
+          strokeLinejoin="round"
+          style={{ transition: 'all 0.25s ease' }}
+        />
+      )}
+
+      {/*
+        Zonas de clic invisibles: un tramo por nivel a lo largo de cada eje.
+        Así se puntúa haciendo clic donde quieras del eje, sin necesidad de
+        dibujar veinticuatro puntos que ensucian el gráfico.
+      */}
       {DIANA_SECTORS.map((s, i) =>
         ringRadii.map((r, ri) => {
-          const level = ri + 1;
-          const [cx, cy] = polarToCart(angleForIndex(i), r);
-          const active = scores[s.id as SectorId] >= level;
+          const prevR = ri === 0 ? 0 : ringRadii[ri - 1];
+          const angle = angleForIndex(i);
+          const [x1, y1] = polarToCart(angle, prevR);
+          const [x2, y2] = polarToCart(angle, r);
           return (
-            <circle
-              key={`pt-${s.id}-${ri}`}
-              cx={cx}
-              cy={cy}
-              r={5}
-              fill={active ? 'var(--accent-d)' : 'white'}
-              stroke="var(--border)"
-              strokeWidth={1}
+            <line
+              key={`hit-${s.id}-${ri}`}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke="transparent"
+              strokeWidth={30}
+              strokeLinecap="round"
               style={{ cursor: 'pointer' }}
               onClick={() => {
                 onSelectSector(s.id as SectorId);
-                onSetScore(s.id as SectorId, level);
+                onSetScore(s.id as SectorId, ri + 1);
               }}
-            />
+            >
+              <title>{`${s.label}: ${LEVEL_LABELS[ri + 1]}`}</title>
+            </line>
           );
         })
       )}
 
-      {/* Filled score polygon */}
-      {SECTOR_IDS.some(id => scores[id] > 0) && (
-        <polygon
-          points={scorePolygonPoints(scores)}
-          fill="var(--accent-d)"
-          fillOpacity={0.18}
-          stroke="var(--accent-d)"
-          strokeWidth={2}
-          strokeLinejoin="round"
-        />
-      )}
+      {/* Un punto por competencia, solo en su nivel actual */}
+      {DIANA_SECTORS.map((s, i) => {
+        const val = scores[s.id as SectorId] ?? 0;
+        if (val === 0) return null;
+        const [cx, cy] = polarToCart(angleForIndex(i), (val / RINGS) * MAX_RADIUS);
+        const c = LEVEL_COLORS[val];
+        return (
+          <circle
+            key={`v-${s.id}`}
+            cx={cx} cy={cy}
+            r={selectedSector === s.id ? 7 : 5.5}
+            fill={c.text}
+            stroke="#fff"
+            strokeWidth={2.5}
+            style={{ pointerEvents: 'none', transition: 'r 0.15s ease' }}
+          />
+        );
+      })}
 
       {/* Sector labels */}
       {DIANA_SECTORS.map((s, i) => {
@@ -238,8 +252,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
         );
       })}
 
-      {/* Center dot */}
-      <circle cx={CENTER} cy={CENTER} r={4} fill="var(--accent-d)" />
+      <circle cx={CENTER} cy={CENTER} r={2.5} fill="var(--border)" />
     </svg>
   );
 }
@@ -518,7 +531,7 @@ Formato JSON:
             {/* SVG Radar Chart */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 20px' }}>
               <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16, textAlign: 'center' }}>
-                Haz clic en un eje para seleccionar la competencia, luego ajusta el nivel
+                Haz clic sobre un eje, a la altura del nivel que quieras darle
               </div>
               <DianaChart
                 scores={scores}
