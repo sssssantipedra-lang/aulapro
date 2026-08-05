@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Instaladores generados por `npm run dist`
+release
+
+# Iconos generados por `npm run icons` desde public/favicon.svg
+build/icon.ico
+build/icon.png
+electron/icon.ico
+public/favicon.ico
+
+# Datos de docentes: no deben acabar nunca en el repositorio
+copias/
+*.aulapro.json
+.env
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

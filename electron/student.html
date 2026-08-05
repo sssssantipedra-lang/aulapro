@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c2340">
+<title>Aula Pro · Actividad</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0c2340; --card:#fff; --text:#0f172a; --text2:#475569; --text3:#94a3b8;
+    --accent:#0ea5e9; --accent-l:#e0f2fe; --border:#e2e8f0;
+    --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  }
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:18px 16px 40px;min-height:100%}
+  .card{background:var(--card);border-radius:18px;padding:22px 20px;box-shadow:0 10px 32px rgba(0,0,0,.28)}
+  .logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:18px}
+  .logo-box{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo-name{color:#fff;font-weight:800;font-size:17px;letter-spacing:-.3px}
+  h1{font-size:19px;font-weight:800;line-height:1.3;margin-bottom:6px}
+  h2{font-size:16px;font-weight:800;margin-bottom:10px}
+  p.sub{font-size:14px;color:var(--text2);line-height:1.55}
+  label{display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:7px}
+  input,textarea,select{
+    width:100%;padding:14px;border:1.5px solid var(--border);border-radius:12px;
+    font-family:inherit;font-size:16px;color:var(--text);outline:none;background:#fff
+  }
+  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(14,165,233,.14)}
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:15px;border:none;border-radius:12px;font-family:inherit;font-size:16px;
+    font-weight:700;cursor:pointer;background:linear-gradient(135deg,#0284c7,#0ea5e9);color:#fff;
+    box-shadow:0 5px 16px rgba(14,165,233,.34)
+  }
+  .btn:disabled{opacity:.5;box-shadow:none}
+  .btn.ghost{background:#f1f5f9;color:var(--text2);box-shadow:none}
+  .num-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+  .num-pad button{
+    padding:17px 0;border:none;border-radius:12px;background:#f1f5f9;color:var(--text);
+    font-family:inherit;font-size:21px;font-weight:800;cursor:pointer
+  }
+  .num-pad button:active{background:#e2e8f0}
+  .num-display{
+    text-align:center;font-size:40px;font-weight:800;letter-spacing:.1em;
+    padding:12px;background:var(--accent-l);border-radius:12px;color:#0369a1;min-height:66px
+  }
+  .name-list{max-height:270px;overflow-y:auto;margin-top:6px;border:1px solid var(--border);border-radius:12px}
+  .name-list button{
+    display:flex;align-items:center;gap:11px;width:100%;padding:13px 14px;border:none;
+    background:#fff;border-bottom:1px solid var(--border);font-family:inherit;font-size:15px;
+    text-align:left;cursor:pointer;color:var(--text)
+  }
+  .name-list button:last-child{border-bottom:none}
+  .name-list button:active{background:var(--accent-l)}
+  .name-n{
+    flex-shrink:0;width:27px;height:27px;border-radius:8px;background:var(--accent-l);
+    color:#0369a1;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center
+  }
+  .tabs{display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:16px}
+  .tabs button{
+    flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-size:14px;
+    font-weight:600;color:var(--text2);background:transparent;cursor:pointer
+  }
+  .tabs button.on{background:#fff;color:var(--text);font-weight:800;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+  .item{border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:11px}
+  .item-name{font-size:15px;font-weight:700;margin-bottom:11px;line-height:1.35}
+  .levels{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  .levels button{
+    padding:12px 3px;border:2px solid var(--border);border-radius:11px;background:#fff;
+    font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text2);cursor:pointer;line-height:1.25
+  }
+  .levels button b{display:block;font-size:17px;margin-bottom:2px}
+  .levels button.on{color:#fff}
+  .levels button.on[data-l="1"]{background:#ef4444;border-color:#ef4444}
+  .levels button.on[data-l="2"]{background:#f59e0b;border-color:#f59e0b}
+  .levels button.on[data-l="3"]{background:#3b82f6;border-color:#3b82f6}
+  .levels button.on[data-l="4"]{background:#10b981;border-color:#10b981}
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;padding:16px;margin-bottom:10px;
+    border:2px solid var(--border);border-radius:13px;background:#fff;font-family:inherit;
+    font-size:16px;font-weight:600;text-align:left;cursor:pointer;color:var(--text)
+  }
+  .opt.on{border-color:var(--accent);background:var(--accent-l);color:#0369a1;font-weight:800}
+  .opt-k{
+    flex-shrink:0;width:30px;height:30px;border-radius:50%;background:#f1f5f9;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800
+  }
+  .opt.on .opt-k{background:var(--accent);color:#fff}
+  .chip{display:inline-block;background:var(--accent-l);color:#0369a1;border-radius:99px;
+    padding:5px 13px;font-size:13px;font-weight:700;margin:0 5px 6px 0}
+  .room{
+    display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;
+    background:var(--accent-l);color:#0369a1;border-radius:11px;
+    padding:11px 14px;font-size:13.5px;line-height:1.45;margin-bottom:16px
+  }
+  .room b{font-weight:800}
+  .msg{padding:13px 15px;border-radius:11px;font-size:14px;line-height:1.5;margin-bottom:14px}
+  .msg.err{background:#fee2e2;color:#b91c1c}
+  .msg.wait{background:#f1f5f9;color:var(--text2);text-align:center}
+  .done{text-align:center;padding:26px 10px}
+  .done-mark{
+    width:66px;height:66px;border-radius:50%;background:#dcfce7;color:#15803d;
+    display:flex;align-items:center;justify-content:center;font-size:33px;margin:0 auto 16px
+  }
+  .foot{text-align:center;color:rgba(255,255,255,.45);font-size:12px;margin-top:16px;line-height:1.5}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(14,165,233,.3);
+    border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-box">
+      <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-name">Aula Pro</span>
+  </div>
+  <div id="app" class="card"></div>
+  <p class="foot">Tus respuestas van solo al ordenador de tu profesor/a,<br>por la wifi del centro.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var app = document.getElementById('app');
+  var state = {
+    code: '',
+    roomLabel: null,   // de qué clase es esta sala (se pide sin código)
+    me: null,          // { n, name }
+    activity: null,
+    roster: [],
+    answered: [],
+    sent: false,
+    error: '',
+    mode: 'num',       // 'num' | 'list'
+    draftNum: '',
+    scores: {},
+    choice: null,
+    ideas: [],
+    draft: '',         // lo que se está escribiendo, para que un repintado no lo borre
+    ideaFocused: false,
+    busy: false
+  };
+
+  /* ── Utilidades ── */
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function codeFromUrl() {
+    var m = location.pathname.match(/\/r\/([A-Za-z0-9]{6})/);
+    if (m) return m[1].toUpperCase();
+    var q = new URLSearchParams(location.search).get('c');
+    return q ? q.toUpperCase() : '';
+  }
+  function api(path, opts) {
+    return fetch(path + (path.indexOf('?') < 0 ? '?' : '&') + 'c=' + encodeURIComponent(state.code), opts)
+      .then(function (r) {
+        if (r.status === 403) throw new Error('codigo');
+        if (!r.ok) throw new Error('red');
+        return r.json();
+      });
+  }
+
+  /**
+   * De qué clase es esta sala. No necesita código, así que se puede enseñar
+   * antes de pedirlo: si un alumno tecleó mal la dirección y ha aterrizado en
+   * el portátil de otro profesor, lo ve al momento en vez de pelearse con un
+   * código que aquí nunca va a funcionar.
+   */
+  function fetchRoomLabel() {
+    fetch('/api/room').then(function (r) { return r.json(); }).then(function (d) {
+      var label = (d && d.label) || null;
+      if (label === state.roomLabel) return;
+      state.roomLabel = label;
+      // El nombre solo se ve antes de identificarse, y nunca repintamos si ya
+      // está escribiendo el código: se lo borraríamos.
+      var input = document.getElementById('code');
+      if (!state.me && (!input || !input.value)) render();
+    }).catch(function () { /* sin respuesta: ya lo dirá el sondeo */ });
+  }
+
+  /* ── Sondeo del estado ── */
+  var timer = null;
+  var firstPoll = true;
+  function poll() {
+    api('/api/state').then(function (s) {
+      var newRoster = s.roster || [];
+      var actChanged = JSON.stringify(s.activity) !== JSON.stringify(state.activity);
+      var rosterChanged = JSON.stringify(newRoster) !== JSON.stringify(state.roster);
+      var hadError = !!state.error;
+
+      state.activity = s.activity;
+      state.roster = newRoster;
+      state.answered = s.answered || [];
+      state.error = '';
+      if (actChanged) {
+        state.sent = false; state.scores = {}; state.choice = null;
+        state.ideas = []; state.draft = ''; state.ideaFocused = false;
+      }
+
+      // Repintamos SOLO si cambia algo que se vea: `app.innerHTML` rehace el DOM
+      // y borraría lo que el alumno esté escribiendo. La lista de quién ha
+      // respondido cambia constantemente y aquí no se muestra, así que se ignora.
+      if (firstPoll || actChanged || hadError || (rosterChanged && !state.me)) {
+        firstPoll = false;
+        render();
+      }
+    }).catch(function (e) {
+      if (e.message === 'codigo') {
+        state.error = state.roomLabel
+          ? 'Ese código no es el de «' + state.roomLabel + '». Comprueba el código y, sobre todo, ' +
+            'que la dirección que has escrito sea la de tu clase.'
+          : 'El código no es correcto, o la dirección no es la de tu clase. Míralos otra vez en la pizarra.';
+      } else {
+        state.error = 'Se ha perdido la conexión con el ordenador del profesor/a.';
+      }
+      render();
+    });
+  }
+  function startPolling() {
+    if (timer) clearInterval(timer);
+    firstPoll = true;
+    poll();
+    timer = setInterval(poll, 2000);
+  }
+
+  /* ── Envío ── */
+  function submit(data, onOk) {
+    state.busy = true; render();
+    api('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ n: state.me.n, name: state.me.name, data: data })
+    }).then(function () {
+      state.busy = false;
+      if (onOk) onOk();
+      state.sent = true;
+      render();
+    }).catch(function () {
+      state.busy = false;
+      state.error = 'No se pudo enviar. Inténtalo otra vez.';
+      render();
+    });
+  }
+
+  /* ── Pantallas ── */
+
+  function viewCode() {
+    app.innerHTML =
+      (state.roomLabel ? '<div class="room">Vas a entrar en <b>' + esc(state.roomLabel) + '</b></div>' : '') +
+      '<h1>Entrar en la actividad</h1>' +
+      '<p class="sub" style="margin-bottom:18px">Escribe el código que aparece en la pizarra.' +
+      (state.roomLabel ? ' Si ahí arriba no pone tu clase, te has equivocado de ordenador.' : '') + '</p>' +
+      (state.error ? '<div class="msg err">' + esc(state.error) + '</div>' : '') +
+      '<label>Código de la sala</label>' +
+      '<input id="code" maxlength="6" autocapitalize="characters" autocomplete="off" ' +
+      'style="text-align:center;font-size:30px;font-weight:800;letter-spacing:.16em;text-transform:uppercase" placeholder="ABC123">' +
+      '<button class="btn" id="go" style="margin-top:14px">Entrar</button>';
+
+    var input = document.getElementById('code');
+    input.focus();
+    document.getElementById('go').onclick = function () {
+      var v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (v.length !== 6) { state.error = 'El código tiene 6 caracteres.'; render(); return; }
+      state.code = v;
+      state.error = '';
+      startPolling();
+    };
+    input.onkeydown = function (e) { if (e.key === 'Enter') document.getElementById('go').click(); };
+  }
+
+  function viewIdentify() {
+    var byNum = state.mode === 'num';
+    var html =
+      (state.roomLabel ? '<div class="room"><b>' + esc(state.roomLabel) + '</b></div>' : '') +
+      '<h1>¿Quién eres?</h1>' +
+      '<p class="sub" style="margin-bottom:16px">Así tu profesor/a sabrá que la respuesta es tuya.</p>' +
+      '<div class="tabs">' +
+        '<button class="' + (byNum ? 'on' : '') + '" data-m="num">Mi número</button>' +
+        '<button class="' + (!byNum ? 'on' : '') + '" data-m="list">Mi nombre</button>' +
+      '</div>';
+
+    if (byNum) {
+      var found = state.roster.filter(function (s) { return String(s.n) === state.draftNum; })[0];
+      html += '<div class="num-display">' + (state.draftNum || '·') + '</div>';
+      if (state.draftNum && found) {
+        html += '<p class="sub" style="text-align:center;margin-top:10px"><b>' + esc(found.name) + '</b></p>';
+      } else if (state.draftNum) {
+        html += '<p class="sub" style="text-align:center;margin-top:10px;color:var(--danger)">No hay nadie con ese número</p>';
+      }
+      html += '<div class="num-pad">';
+      ['1','2','3','4','5','6','7','8','9','←','0','OK'].forEach(function (k) {
+        html += '<button data-k="' + k + '">' + k + '</button>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="name-list">';
+      if (state.roster.length === 0) {
+        html += '<div style="padding:20px;text-align:center;color:var(--text3);font-size:14px">La lista aún no está disponible.</div>';
+      }
+      state.roster.forEach(function (s) {
+        html += '<button data-n="' + s.n + '"><span class="name-n">' + s.n + '</span>' + esc(s.name) + '</button>';
+      });
+      html += '</div>';
+    }
+    app.innerHTML = html;
+
+    [].forEach.call(app.querySelectorAll('.tabs button'), function (b) {
+      b.onclick = function () { state.mode = b.dataset.m; render(); };
+    });
+
+    if (byNum) {
+      [].forEach.call(app.querySelectorAll('.num-pad button'), function (b) {
+        b.onclick = function () {
+          var k = b.dataset.k;
+          if (k === '←') state.draftNum = state.draftNum.slice(0, -1);
+          else if (k === 'OK') {
+            var m = state.roster.filter(function (s) { return String(s.n) === state.draftNum; })[0];
+            if (m) { state.me = m; render(); return; }
+          } else if (state.draftNum.length < 3) state.draftNum += k;
+          render();
+        };
+      });
+    } else {
+      [].forEach.call(app.querySelectorAll('.name-list button'), function (b) {
+        b.onclick = function () {
+          var m = state.roster.filter(function (s) { return String(s.n) === b.dataset.n; })[0];
+          if (m) { state.me = m; render(); }
+        };
+      });
+    }
+  }
+
+  function viewWaiting() {
+    app.innerHTML =
+      '<div class="done">' +
+      '<p class="sub"><span class="spin"></span></p>' +
+      '<h2 style="margin-top:14px">Hola, ' + esc(state.me.name.split(' ')[0]) + '</h2>' +
+      '<p class="sub">Espera a que tu profesor/a empiece la actividad.</p>' +
+      '</div>';
+  }
+
+  function viewDone() {
+    var a = state.activity;
+    var again = a && a.type === 'brainstorm';
+    app.innerHTML =
+      '<div class="done">' +
+      '<div class="done-mark">✓</div>' +
+      '<h2>¡Enviado!</h2>' +
+      '<p class="sub">Gracias, ' + esc(state.me.name.split(' ')[0]) + '.</p>' +
+      (again ? '<button class="btn" id="more" style="margin-top:20px">Enviar otra idea</button>' : '') +
+      '</div>';
+    if (again) {
+      document.getElementById('more').onclick = function () {
+        state.sent = false; state.ideaFocused = false; render();
+      };
+    }
+  }
+
+  function viewRubric() {
+    var a = state.activity;
+    var LV = ['Aún no', 'A veces', 'Casi siempre', 'Siempre'];
+    var html = '<h1>' + esc(a.title) + '</h1>';
+    if (a.prompt) html += '<p class="sub" style="margin-bottom:16px">' + esc(a.prompt) + '</p>';
+    else html += '<p class="sub" style="margin-bottom:16px">Marca cómo crees que lo has hecho.</p>';
+
+    a.items.forEach(function (it) {
+      html += '<div class="item"><div class="item-name">' + esc(it.name) + '</div><div class="levels">';
+      [1, 2, 3, 4].forEach(function (l) {
+        var on = state.scores[it.id] === l ? ' on' : '';
+        html += '<button class="lv' + on + '" data-l="' + l + '" data-i="' + esc(it.id) + '"><b>' + l + '</b>' + LV[l - 1] + '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    var total = a.items.length;
+    var done = Object.keys(state.scores).length;
+    html += '<button class="btn" id="send"' + (done < total || state.busy ? ' disabled' : '') + ' style="margin-top:8px">' +
+      (state.busy ? 'Enviando…' : done < total ? 'Te faltan ' + (total - done) : 'Enviar mis respuestas') + '</button>';
+    app.innerHTML = html;
+
+    [].forEach.call(app.querySelectorAll('.lv'), function (b) {
+      b.onclick = function () { state.scores[b.dataset.i] = Number(b.dataset.l); render(); };
+    });
+    document.getElementById('send').onclick = function () { submit({ scores: state.scores }); };
+  }
+
+  function viewPoll() {
+    var a = state.activity;
+    var html = '<h1>' + esc(a.title) + '</h1>';
+    if (a.prompt) html += '<p class="sub" style="margin-bottom:16px">' + esc(a.prompt) + '</p>';
+    a.options.forEach(function (o, i) {
+      var on = state.choice === i ? ' on' : '';
+      html += '<button class="opt' + on + '" data-i="' + i + '">' +
+        '<span class="opt-k">' + String.fromCharCode(65 + i) + '</span>' + esc(o) + '</button>';
+    });
+    html += '<button class="btn" id="send"' + (state.choice === null || state.busy ? ' disabled' : '') + ' style="margin-top:8px">' +
+      (state.busy ? 'Enviando…' : 'Enviar respuesta') + '</button>';
+    app.innerHTML = html;
+
+    [].forEach.call(app.querySelectorAll('.opt'), function (b) {
+      b.onclick = function () { state.choice = Number(b.dataset.i); render(); };
+    });
+    document.getElementById('send').onclick = function () { submit({ choice: state.choice }); };
+  }
+
+  function viewBrainstorm() {
+    var a = state.activity;
+
+    // Si esta pantalla se repinta mientras se escribe, recordamos dónde estaba
+    // el cursor para devolverlo a su sitio y no interrumpir al alumno.
+    var prev = document.getElementById('idea');
+    var wasFocused = !!prev && document.activeElement === prev;
+    var caret = wasFocused ? prev.selectionStart : null;
+
+    var html = '<h1>' + esc(a.title) + '</h1>';
+    if (a.prompt) html += '<p class="sub" style="margin-bottom:16px">' + esc(a.prompt) + '</p>';
+    html += '<label>Tu idea</label>' +
+      '<textarea id="idea" rows="3" maxlength="180" placeholder="Escribe aquí…"></textarea>' +
+      '<button class="btn" id="send" style="margin-top:12px"' + (state.busy ? ' disabled' : '') + '>' +
+      (state.busy ? 'Enviando…' : 'Enviar idea') + '</button>';
+    if (state.ideas.length) {
+      html += '<p class="sub" style="margin-top:16px;font-weight:700;font-size:13px">Ya has enviado</p><div style="margin-top:7px">';
+      state.ideas.forEach(function (i) { html += '<span class="chip">' + esc(i) + '</span>'; });
+      html += '</div>';
+    }
+    app.innerHTML = html;
+
+    var ta = document.getElementById('idea');
+    // El borrador vive en el estado, no solo en el DOM: así sobrevive a un repintado.
+    ta.value = state.draft;
+    ta.oninput = function () { state.draft = ta.value; };
+
+    if (wasFocused) {
+      ta.focus();
+      if (caret !== null) { try { ta.setSelectionRange(caret, caret); } catch (e) {} }
+    } else if (!state.ideaFocused) {
+      // Solo al entrar: enfocar en cada repintado reabriría el teclado del móvil.
+      ta.focus();
+      state.ideaFocused = true;
+    }
+
+    document.getElementById('send').onclick = function () {
+      var v = ta.value.trim();
+      if (!v) return;
+      submit({ ideas: [v] }, function () {
+        state.ideas.push(v);   // solo cuando el envío ha ido bien de verdad
+        state.draft = '';
+      });
+    };
+  }
+
+  /* ── Enrutado ── */
+  function render() {
+    if (!state.code) return viewCode();
+    if (state.error) {
+      app.innerHTML = '<div class="msg err">' + esc(state.error) + '</div>' +
+        '<button class="btn ghost" id="retry">Reintentar</button>';
+      document.getElementById('retry').onclick = function () { state.error = ''; poll(); };
+      return;
+    }
+    if (!state.me) return viewIdentify();
+    if (!state.activity) return viewWaiting();
+    if (state.sent) return viewDone();
+
+    if (state.activity.type === 'rubric') return viewRubric();
+    if (state.activity.type === 'poll') return viewPoll();
+    if (state.activity.type === 'brainstorm') return viewBrainstorm();
+    return viewWaiting();
+  }
+
+  /* ── Arranque ── */
+  fetchRoomLabel();
+  var initial = codeFromUrl();
+  if (initial) { state.code = initial; startPolling(); }
+  else render();
+})();
+</script>
+</body>
+</html>
