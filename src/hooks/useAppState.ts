@@ -4,7 +4,8 @@ import type {
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport,
 } from '../types';
-import { normalizeClass } from '../types';
+import { normalizeClass, gradeItemIdFor } from '../types';
+import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
 import * as store from '../services/storage';
@@ -260,10 +261,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, classes, grades, attendance, rubrics, dianas, reports });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, classes, grades, attendance, rubrics, dianas, reports };
-  }, [students, gradeItems, classes, grades, attendance, rubrics, dianas, reports]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -397,11 +398,61 @@ export function useAppState() {
     log('delete', 'diana', id, `Diana «${goneName}»`);
   }, [markDeleted, log, dianaName]);
 
+  /**
+   * Lleva al cuaderno la nota que sale de evaluar con una rúbrica o una diana.
+   *
+   * Solo actúa si el instrumento declara clase y categoría. Si no las tiene
+   * —los creados antes de esto, o los que se usan solo para el Historial— la
+   * evaluación se guarda como siempre y el cuaderno no se toca.
+   */
+  const routeToNotebook = useCallback((ev: Evaluation) => {
+    if (typeof ev.grade !== 'number' || !ev.student_id) return;
+
+    const m = mirrorRef.current;
+    const inst = m.rubrics.find(r => r.id === ev.rubric_id)
+              ?? m.dianas.find(d => d.id === ev.rubric_id);
+    if (!inst?.class_id || !inst.category_id) return;
+
+    // La categoría pudo borrarse después de crear el instrumento: sin ella la
+    // nota no contaría para ninguna media, así que es mejor no escribirla y
+    // dejar constancia de por qué.
+    if (!m.gradeCategories.some(c => c.id === inst.category_id)) {
+      log('update', 'system', inst.id,
+        `No se pudo llevar al cuaderno la nota de ${ev.student_name}`,
+        `la categoría de «${inst.name}» ya no existe`);
+      return;
+    }
+
+    const itemId = gradeItemIdFor(inst.id);
+    const isNew = !m.gradeItems.some(i => i.id === itemId);
+
+    // El updater comprueba de nuevo la existencia: así evaluar a dos alumnos
+    // seguidos no puede duplicar la columna.
+    setGradeItems(prev => prev.some(i => i.id === itemId) ? prev : [...prev, {
+      id: itemId,
+      class_id: inst.class_id as string,
+      category_id: inst.category_id as string,
+      name: inst.name,
+      date: isoDate(),
+    }]);
+
+    const value = ev.grade;
+    setGrades(prev => ({ ...prev, [itemId]: { ...(prev[itemId] ?? {}), [ev.student_id]: value } }));
+
+    if (isNew) {
+      log('create', 'gradeItem', itemId, `Columna «${inst.name}» en el cuaderno`, 'creada al evaluar');
+    }
+    log('update', 'grade', `${itemId}:${ev.student_id}`,
+      `Nota de ${ev.student_name} en «${inst.name}»`,
+      `${formatGrade(value)} · desde la evaluación`);
+  }, [log]);
+
   const addEvaluation = useCallback((ev: Evaluation) => {
     setEvaluations(prev => [ev, ...prev]);
     log('create', 'evaluation', ev.id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
       typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : undefined);
-  }, [log]);
+    routeToNotebook(ev);
+  }, [log, routeToNotebook]);
 
   /* ── Cuaderno ── */
   const addGradeCategory = useCallback((c: GradeCategory) => {

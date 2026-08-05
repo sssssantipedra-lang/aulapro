@@ -126,7 +126,34 @@ export interface RubricCriterion {
   descriptors: Partial<RubricDescriptors>;
 }
 
-export interface Rubric {
+/**
+ * A dónde va la nota que sale de evaluar con una rúbrica o una diana.
+ *
+ * Los instrumentos siguen siendo globales —se ven todos juntos— pero cada uno
+ * declara a qué clase y asignatura pertenece y en qué categoría del cuaderno
+ * cae su nota. Sin estos datos el instrumento funciona como siempre: la
+ * evaluación se guarda en el Historial y no toca el cuaderno.
+ */
+export interface GradeTarget {
+  class_id?: string;
+  subject?: string;
+  /** Categoría del cuaderno (Exámenes, Trabajos…) donde vive su columna. */
+  category_id?: string;
+}
+
+/**
+ * Columna del cuaderno que corresponde a un instrumento.
+ *
+ * Se deriva del id en vez de guardarse aparte: así no hay dos fuentes de
+ * verdad y evaluar a varios alumnos seguidos no puede crear dos columnas
+ * para la misma rúbrica. Al ser fija, volver a evaluar a un alumno
+ * sobrescribe su nota anterior.
+ */
+export function gradeItemIdFor(instrumentId: string): string {
+  return 'gi-' + instrumentId;
+}
+
+export interface Rubric extends GradeTarget {
   id: string;
   name: string;
   context?: string;
@@ -158,7 +185,7 @@ export interface DianaItem {
   descriptors?: Partial<RubricDescriptors>;
 }
 
-export interface EvalDiana {
+export interface EvalDiana extends GradeTarget {
   id: string;
   name: string;
   context?: string;

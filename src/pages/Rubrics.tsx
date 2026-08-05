@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown,
 } from 'lucide-react';
-import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana } from '../types';
+import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget } from '../types';
+import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { fileToBase64, isoDate, LEVELS, plural } from '../lib/utils';
@@ -16,6 +17,7 @@ interface Props {
   evaluations: Evaluation[];
   classes: Class[];
   students: Student[];
+  gradeCategories: GradeCategory[];
   lawDocument: InlineFile | null;
   onAddRubric: (r: Rubric) => void;
   onUpdateRubric: (r: Rubric) => void;
@@ -84,12 +86,13 @@ interface RubricModalProps {
   open: boolean;
   editing: Rubric | null;
   classes: Class[];
+  gradeCategories: GradeCategory[];
   lawDocument: InlineFile | null;
   onClose: () => void;
   onSave: (r: Rubric) => void;
 }
 
-function RubricModal({ open, editing, classes, lawDocument, onClose, onSave }: RubricModalProps) {
+function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave }: RubricModalProps) {
   const { toast } = useToast();
   const [mode, setMode] = useState<RubricMode>('ia');
 
@@ -104,6 +107,9 @@ function RubricModal({ open, editing, classes, lawDocument, onClose, onSave }: R
   const [manualName, setManualName] = useState('');
   const [manualCriteria, setManualCriteria] = useState<CriterionDraft[]>([blankCriterion()]);
 
+  /* A qué clase pertenece y dónde caen sus notas */
+  const [target, setTarget] = useState<GradeTarget>({});
+
   /* Populate when editing */
   useEffect(() => {
     if (editing) {
@@ -112,6 +118,9 @@ function RubricModal({ open, editing, classes, lawDocument, onClose, onSave }: R
       setManualCriteria(editing.criteria.map(criterionFromRubric));
       setAiContext(editing.context ?? '');
       setAiPreview(null);
+      setTarget({
+        class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
+      });
     } else {
       setMode('ia');
       setManualName('');
@@ -120,6 +129,7 @@ function RubricModal({ open, editing, classes, lawDocument, onClose, onSave }: R
       setAiClassId('');
       setAiCount(4);
       setAiPreview(null);
+      setTarget({});
     }
   }, [editing, open]);
 
@@ -181,6 +191,7 @@ function RubricModal({ open, editing, classes, lawDocument, onClose, onSave }: R
       name,
       context: aiContext.trim() || undefined,
       criteria,
+      ...target,
     };
     onSave(rubric);
     onClose();
@@ -219,6 +230,13 @@ function RubricModal({ open, editing, classes, lawDocument, onClose, onSave }: R
             Manual
           </button>
         </div>
+
+        <GradeTargetPicker
+          value={target}
+          onChange={setTarget}
+          classes={classes}
+          gradeCategories={gradeCategories}
+        />
 
         {/* ── AI MODE ── */}
         {mode === 'ia' && (
@@ -723,7 +741,7 @@ function EvalModal({
    MAIN PAGE
 ═══════════════════════════════════════════════════════════════════════════ */
 export function Rubrics({
-  rubrics, dianas, evaluations, classes, students, lawDocument,
+  rubrics, dianas, evaluations, classes, students, gradeCategories, lawDocument,
   onAddRubric, onUpdateRubric, onDeleteRubric,
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
@@ -970,6 +988,7 @@ export function Rubrics({
         open={rubricModalOpen}
         editing={editingRubric}
         classes={classes}
+        gradeCategories={gradeCategories}
         lawDocument={lawDocument}
         onClose={() => setRubricModalOpen(false)}
         onSave={handleSaveRubric}

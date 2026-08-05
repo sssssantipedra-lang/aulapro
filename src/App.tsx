@@ -185,6 +185,7 @@ function AppInner() {
                 onUpdateDiana={st.updateDiana}
                 onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={st.addEvaluation}
+                gradeCategories={st.gradeCategories}
               />
             )}
             {section === 'diana' && (
