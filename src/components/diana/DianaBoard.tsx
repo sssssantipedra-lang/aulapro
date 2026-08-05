@@ -14,11 +14,12 @@ const CENTER = SIZE / 2;
 const MAX_R = 116;
 const RINGS = 4;
 
+/** Mismos colores que la Diana Competencial, para que se lean como lo mismo. */
 export const LEVEL_COLORS: Record<number, { fill: string; solid: string; label: string }> = {
-  1: { fill: 'rgba(239,68,68,0.75)',  solid: '#dc2626', label: 'Insuficiente' },
-  2: { fill: 'rgba(245,158,11,0.75)', solid: '#d97706', label: 'Suficiente' },
-  3: { fill: 'rgba(59,130,246,0.75)', solid: '#2563eb', label: 'Bien' },
-  4: { fill: 'rgba(16,185,129,0.78)', solid: '#059669', label: 'Excelente' },
+  1: { fill: 'rgba(220,38,38,0.82)',  solid: '#dc2626', label: 'Insuficiente' },
+  2: { fill: 'rgba(217,119,6,0.82)',  solid: '#d97706', label: 'Suficiente' },
+  3: { fill: 'rgba(37,99,235,0.82)',  solid: '#2563eb', label: 'Bien' },
+  4: { fill: 'rgba(22,163,74,0.82)',  solid: '#16a34a', label: 'Excelente' },
 };
 
 function polar(angle: number, radius: number): [number, number] {
@@ -54,6 +55,9 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
   if (n === 0) return null;
 
   const step = (2 * Math.PI) / n;
+  const ringR = Array.from({ length: RINGS }, (_, r) => ((r + 1) / RINGS) * MAX_R);
+  /** Separación entre pétalos: hace que cada ítem se lea como una pieza propia. */
+  const gap = Math.min(step * 0.05, 0.035);
 
   return (
     <svg
@@ -64,46 +68,73 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
       role="img"
       aria-label="Diana de evaluación"
     >
+      {/* Lo que se puede llegar a llenar. Lo no alcanzado NO se pinta: si cada
+          celda vacía fuese un bloque gris, la rejilla taparía el dato. */}
+      <circle cx={CENTER} cy={CENTER} r={MAX_R} fill="var(--surface)" fillOpacity={0.5} />
+
+      {/* Un pétalo por ítem, de una pieza desde el centro hasta su nivel */}
       {items.map((item, i) => {
-        // Empieza arriba y avanza en sentido horario
-        const a0 = i * step - Math.PI / 2;
-        const a1 = a0 + step;
         const current = scores[item.id] ?? 0;
-
+        if (!current) return null;
+        const a0 = i * step - Math.PI / 2;
         return (
-          <g key={item.id}>
-            {Array.from({ length: RINGS }, (_, r) => {
-              const level = r + 1;
-              const rIn = (r / RINGS) * MAX_R;
-              const rOut = ((r + 1) / RINGS) * MAX_R;
-              const reached = current >= level;
-              const isHover = hover?.itemId === item.id && hover.level === level;
-
-              return (
-                <path
-                  key={level}
-                  d={sectorPath(a0, a1, rIn, rOut)}
-                  fill={reached ? LEVEL_COLORS[current].fill : isHover ? 'rgba(var(--accent-rgb),0.16)' : 'var(--surface)'}
-                  stroke="white"
-                  strokeWidth={1.5}
-                  style={{ cursor: readOnly ? 'default' : 'pointer', transition: 'fill 0.15s' }}
-                  onClick={readOnly ? undefined : () => onSetScore(item.id, level)}
-                  onMouseEnter={readOnly ? undefined : () => setHover({ itemId: item.id, level })}
-                  onMouseLeave={readOnly ? undefined : () => setHover(null)}
-                >
-                  {!readOnly && <title>{`${item.name} — ${LEVEL_COLORS[level].label}`}</title>}
-                </path>
-              );
-            })}
-          </g>
+          <path
+            key={`fill-${item.id}`}
+            d={sectorPath(a0 + gap, a0 + step - gap, 0, ringR[current - 1])}
+            fill={LEVEL_COLORS[current].fill}
+            style={{ transition: 'd 0.2s ease, fill 0.2s ease' }}
+          />
         );
       })}
 
-      {/* Separadores radiales */}
+      {/* Nivel que se marcaría al soltar el clic */}
+      {hover && !readOnly && (() => {
+        const i = items.findIndex(x => x.id === hover.itemId);
+        if (i < 0) return null;
+        const a0 = i * step - Math.PI / 2;
+        return (
+          <path
+            d={sectorPath(a0 + gap, a0 + step - gap, 0, ringR[hover.level - 1])}
+            fill={LEVEL_COLORS[hover.level].solid}
+            fillOpacity={0.22}
+            pointerEvents="none"
+          />
+        );
+      })()}
+
+      {/* Anillos de referencia, por encima y tenues: dejan contar el nivel
+          sin partir el pétalo en cuatro bloques. */}
+      {ringR.slice(0, RINGS - 1).map((r, ri) => (
+        <circle key={`ring-${ri}`} cx={CENTER} cy={CENTER} r={r}
+          fill="none" stroke="white" strokeWidth={1} strokeOpacity={0.5} pointerEvents="none" />
+      ))}
+      <circle cx={CENTER} cy={CENTER} r={MAX_R} fill="none"
+        stroke="var(--border)" strokeWidth={1.5} pointerEvents="none" />
+
+      {/* Separadores: marcan cuántos ítems hay aunque no haya ninguna nota */}
       {items.map((item, i) => {
         const a = i * step - Math.PI / 2;
         const [x, y] = polar(a, MAX_R);
-        return <line key={`sep-${item.id}`} x1={CENTER} y1={CENTER} x2={x} y2={y} stroke="white" strokeWidth={1.5} />;
+        return <line key={`sep-${item.id}`} x1={CENTER} y1={CENTER} x2={x} y2={y}
+          stroke="var(--border)" strokeWidth={1} strokeOpacity={0.55} pointerEvents="none" />;
+      })}
+
+      {/* Zonas de clic, invisibles y por encima de todo */}
+      {!readOnly && items.map((item, i) => {
+        const a0 = i * step - Math.PI / 2;
+        return Array.from({ length: RINGS }, (_, r) => (
+          <path
+            key={`hit-${item.id}-${r}`}
+            d={sectorPath(a0, a0 + step, (r / RINGS) * MAX_R, ringR[r])}
+            fill="transparent"
+            style={{ cursor: 'pointer' }}
+            onClick={() => onSetScore(item.id, r + 1)}
+            onMouseEnter={() => setHover({ itemId: item.id, level: r + 1 })}
+            onMouseLeave={() => setHover(null)}
+          >
+            <title>{`${item.name} — ${LEVEL_COLORS[r + 1].label}`}</title>
+          </path>
+        ));
       })}
 
       {/* Etiquetas de los ítems */}
