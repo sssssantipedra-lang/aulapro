@@ -8,7 +8,7 @@ import type { Class, Student, GradeCategory, GradeItem, Rubric, Evaluation } fro
 /* ── Ayudas para montar datos de prueba sin ruido ── */
 
 const cls = (id: string, name = id): Class =>
-  ({ id, name, subject: 'Mates', room: 'A1', color: '#000' });
+  ({ id, name, subject: 'Mates', subjects: ['Mates'], room: 'A1', color: '#000' });
 
 const stu = (id: string, class_id: string, name = id): Student =>
   ({ id, class_id, name, email: '', photo: null, alerts: [], notes: '' });

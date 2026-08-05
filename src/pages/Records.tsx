@@ -57,9 +57,20 @@ export function Records({
     [students, clsId],
   );
 
+  /** Un acta es siempre de UNA asignatura: es como se entregan. */
+  const subjects = useMemo(
+    () => (cls?.subjects?.length ? cls.subjects : cls ? [cls.subject] : []),
+    [cls],
+  );
+  const [subject, setSubject] = useState('');
+  const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
+
   const cats = useMemo(
-    () => gradeCategories.filter(c => c.class_id === clsId),
-    [gradeCategories, clsId],
+    () => gradeCategories.filter(c =>
+      c.class_id === clsId &&
+      // Sin asignatura = creada antes de que hubiera varias: es de la principal
+      (c.subject ?? subjects[0] ?? '') === activeSubject),
+    [gradeCategories, clsId, activeSubject, subjects],
   );
 
   /** Media de un alumno dentro de una categoría (media simple de sus pruebas). */
@@ -130,7 +141,8 @@ export function Records({
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `acta-${(cls?.name ?? 'clase').replace(/\s+/g, '-')}-${period.replace(/\s+/g, '-')}.csv`;
+    const slug = (s: string) => s.replace(/\s+/g, '-');
+    a.download = `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast('✅ Datos descargados');
@@ -172,7 +184,7 @@ export function Records({
           <h1 className="pg-title">Actas de calificaciones</h1>
           <p className="pg-sub">
             {rows.length > 0
-              ? `${cls?.name} · ${period} · ${stats.graded}/${stats.total} calificados`
+              ? `${cls?.name}${activeSubject ? ` · ${activeSubject}` : ''} · ${period} · ${stats.graded}/${stats.total} calificados`
               : 'Documento oficial listo para imprimir o firmar'}
           </p>
         </div>
@@ -217,6 +229,32 @@ export function Records({
           </select>
         </div>
 
+        {subjects.length > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginRight: 2 }}>
+              Acta de
+            </span>
+            {subjects.map(s => {
+              const on = s === activeSubject;
+              return (
+                <button
+                  key={s}
+                  onClick={() => setSubject(s)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
+                    fontSize: 12.5, fontWeight: on ? 800 : 500,
+                    background: on ? 'var(--accent-l)' : 'transparent',
+                    border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
+                    color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                  }}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
           <Toggle label="Desglose por categorías" on={showCategories} onChange={setShowCategories} />
           <Toggle label="Calificación en palabras" on={showLabel} onChange={setShowLabel} />
@@ -251,7 +289,7 @@ export function Records({
 
             <dl className="acta-meta">
               <div><dt>Grupo</dt><dd>{cls?.name}</dd></div>
-              <div><dt>Materia</dt><dd>{cls?.subject || '—'}</dd></div>
+              <div><dt>Materia</dt><dd>{activeSubject || '—'}</dd></div>
               <div><dt>Periodo</dt><dd>{period}</dd></div>
               <div><dt>Docente</dt><dd>{teacherName || '—'}</dd></div>
             </dl>

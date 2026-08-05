@@ -23,9 +23,16 @@ const DEMO_TASKS: Task[] = [
 ];
 
 const DEMO_CLASSES: Class[] = [
-  { id: 'c1', name: '3º ESO A',  subject: 'Matemáticas', room: 'Aula 12', color: '#0284c7' },
-  { id: 'c2', name: '4º ESO B',  subject: 'Matemáticas', room: 'Aula 7',  color: '#10b981' },
-  { id: 'c3', name: '1º Bach A', subject: 'Matemáticas I', room: 'Aula 8', color: '#8b5cf6' },
+  // La primera es una tutoría con varias asignaturas, para que se vea de qué
+  // va eso nada más cargar los datos de ejemplo.
+  {
+    id: 'c1', name: '3º ESO A', room: 'Aula 12', color: '#0284c7',
+    isTutoria: true,
+    subject: 'Matemáticas',
+    subjects: ['Matemáticas', 'Biología y Geología', 'Tutoría'],
+  },
+  { id: 'c2', name: '4º ESO B',  subject: 'Matemáticas',   subjects: ['Matemáticas'],   room: 'Aula 7', color: '#10b981' },
+  { id: 'c3', name: '1º Bach A', subject: 'Matemáticas I', subjects: ['Matemáticas I'], room: 'Aula 8', color: '#8b5cf6' },
 ];
 
 const DEMO_STUDENTS: Student[] = [

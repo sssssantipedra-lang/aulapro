@@ -10,9 +10,35 @@ export interface User {
 export interface Class {
   id: string;
   name: string;
+  /**
+   * Asignatura principal. Se mantiene siempre igual a `subjects[0]` para que
+   * todo lo escrito antes de que existieran varias asignaturas siga leyendo
+   * algo con sentido.
+   */
   subject: string;
+  /**
+   * Todas las asignaturas que este docente da a este grupo. En primaria lo
+   * normal es que sean varias: un mismo 5ºA con Mates, Lengua, Sociales…
+   * Nunca está vacío: `normalizeClass()` garantiza al menos una.
+   */
+  subjects: string[];
+  /** Es el grupo del que este docente es tutor. */
+  isTutoria?: boolean;
   room: string;
   color: string;
+}
+
+/**
+ * Completa una clase que venga del formato antiguo (una sola asignatura) o de
+ * una copia de seguridad vieja. Se aplica al cargar, así que el resto del
+ * código puede dar por hecho que `subjects` existe y tiene al menos un valor.
+ */
+export function normalizeClass(c: Class): Class {
+  const list = Array.isArray(c.subjects) && c.subjects.length > 0
+    ? c.subjects.filter(s => typeof s === 'string' && s.trim() !== '')
+    : [];
+  const subjects = list.length > 0 ? list : [c.subject || 'Sin asignatura'];
+  return { ...c, subjects, subject: subjects[0] };
 }
 
 export interface Alert {
@@ -66,6 +92,14 @@ export interface GradeCategory {
   class_id: string;
   name: string;
   weight: number; // porcentaje 0-100
+  /**
+   * Asignatura a la que pertenece dentro de la clase. Ausente en las
+   * categorías creadas antes de que una clase pudiera tener varias: se
+   * entienden como de la asignatura principal.
+   *
+   * Los pesos suman 100% *por asignatura*, no por clase.
+   */
+  subject?: string;
 }
 
 export interface GradeItem {

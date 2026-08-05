@@ -58,7 +58,7 @@ interface Props {
 
 // ─── blank factories ──────────────────────────────────────────────────────────
 function blankClass(): Omit<Class, 'id'> {
-  return { name: '', subject: '', room: '', color: PALETTE[0] };
+  return { name: '', subject: '', subjects: [''], isTutoria: false, room: '', color: PALETTE[0] };
 }
 
 function blankAlert(): Omit<Alert, 'id'> {
@@ -171,12 +171,25 @@ export function ClassesManager({
 
   function saveClass() {
     if (!editClass.name.trim()) { notify('El nombre de la clase es obligatorio'); return; }
-    const newClass: Class = { id: newId(), ...editClass };
+    const subjects = editClass.subjects.map(s => s.trim()).filter(Boolean);
+    if (subjects.length === 0) { notify('Pon al menos una asignatura'); return; }
+
+    // `subject` se mantiene sincronizado con la primera: todo lo escrito antes
+    // de que existieran varias asignaturas sigue leyendo de ahí.
+    const newClass: Class = { id: newId(), ...editClass, subjects, subject: subjects[0] };
     onAddClass(newClass);
     setActiveClassId(newClass.id);
     setClassModal(false);
-    notify('Clase creada');
+    notify(subjects.length > 1 ? `Clase creada con ${subjects.length} asignaturas` : 'Clase creada');
   }
+
+  /** Editores de la lista de asignaturas del formulario. */
+  const setSubjectAt = (i: number, value: string) =>
+    setEditClass(c => ({ ...c, subjects: c.subjects.map((s, j) => (j === i ? value : s)) }));
+  const addSubject = () =>
+    setEditClass(c => ({ ...c, subjects: [...c.subjects, ''] }));
+  const removeSubjectAt = (i: number) =>
+    setEditClass(c => ({ ...c, subjects: c.subjects.filter((_, j) => j !== i) }));
 
   // ─── csv import ─────────────────────────────────────────────────────────────
   function importCsv() {
@@ -288,9 +301,20 @@ export function ClassesManager({
           <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'center' }}>
             <div style={{ width: 4, height: 44, borderRadius: 2, background: activeClass.color, flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>{activeClass.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>{activeClass.name}</span>
+                {activeClass.isTutoria && (
+                  <span style={{
+                    fontSize: 10.5, fontWeight: 800, padding: '3px 9px', borderRadius: 99,
+                    background: 'var(--accent-l)', color: 'var(--accent-d)', letterSpacing: '0.03em',
+                  }}>
+                    MI TUTORÍA
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2 }}>
-                {activeClass.subject}{activeClass.room ? ` · Aula ${activeClass.room}` : ''}
+                {(activeClass.subjects ?? [activeClass.subject]).join(' · ')}
+                {activeClass.room ? ` · Aula ${activeClass.room}` : ''}
               </div>
             </div>
             <button
@@ -539,20 +563,59 @@ export function ClassesManager({
           <div className="frow">
             <div className="fgroup">
               <label className="flabel">Nombre</label>
-              <input className="finput" placeholder="Ej. 3º A" value={editClass.name}
+              <input className="finput" placeholder="Ej. 5º A" value={editClass.name}
                 onChange={e => setEditClass({ ...editClass, name: e.target.value })} />
             </div>
             <div className="fgroup">
-              <label className="flabel">Asignatura</label>
-              <input className="finput" placeholder="Ej. Matemáticas" value={editClass.subject}
-                onChange={e => setEditClass({ ...editClass, subject: e.target.value })} />
+              <label className="flabel">Aula</label>
+              <input className="finput" placeholder="Ej. A102" value={editClass.room}
+                onChange={e => setEditClass({ ...editClass, room: e.target.value })} />
             </div>
           </div>
 
+          <label style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
+            padding: '12px 14px', borderRadius: 11, background: 'var(--surface)', marginBottom: 16,
+          }}>
+            <input
+              type="checkbox" checked={!!editClass.isTutoria}
+              onChange={e => setEditClass({ ...editClass, isTutoria: e.target.checked })}
+              style={{ width: 16, height: 16, marginTop: 1, cursor: 'pointer', flexShrink: 0 }}
+            />
+            <span style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>
+              <strong>Soy el tutor o la tutora de este grupo</strong>
+              <span style={{ display: 'block', fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
+                Aparecerá marcado en los listados y en los informes.
+              </span>
+            </span>
+          </label>
+
           <div className="fgroup">
-            <label className="flabel">Aula</label>
-            <input className="finput" placeholder="Ej. A102" value={editClass.room}
-              onChange={e => setEditClass({ ...editClass, room: e.target.value })} />
+            <label className="flabel">Asignaturas que le das</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {editClass.subjects.map((s, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    className="finput" style={{ flex: 1 }}
+                    placeholder={i === 0 ? 'Ej. Matemáticas' : 'Ej. Lengua'}
+                    value={s}
+                    onChange={e => setSubjectAt(i, e.target.value)}
+                  />
+                  {editClass.subjects.length > 1 && (
+                    <button className="ico-btn" title="Quitar" onClick={() => removeSubjectAt(i)}>
+                      <Trash2 size={14} color="var(--danger)" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addSubject}>
+              <Plus size={13} />Añadir otra asignatura
+            </button>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
+              Si le das varias, no crees una clase por cada una: pon aquí todas y luego
+              elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.
+            </p>
           </div>
 
           <div className="fgroup">

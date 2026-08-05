@@ -4,6 +4,7 @@ import type {
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport,
 } from '../types';
+import { normalizeClass } from '../types';
 import { buildDemoData } from '../lib/demoData';
 import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
 import * as store from '../services/storage';
@@ -115,7 +116,10 @@ export function useAppState() {
   const hydrate = useCallback((d: Partial<ProfileSnapshot>) => {
     const s = { ...emptySnapshot(), ...d };
     setTasks(s.tasks);
-    setClasses(s.classes);
+    // Migración: las clases guardadas antes de que pudieran tener varias
+    // asignaturas llegan sin `subjects`. Aquí se les rellena, de modo que el
+    // resto del código no tiene que preocuparse por el formato antiguo.
+    setClasses(s.classes.map(normalizeClass));
     setStudents(s.students);
     setScheduleBlocks(s.blocks);
     setCalEvents(s.events);
@@ -521,7 +525,8 @@ export function useAppState() {
       { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones },
       remote, mode,
     );
-    setClasses(merged.classes);
+    // El compañero puede tener una versión anterior de la aplicación
+    setClasses(merged.classes.map(normalizeClass));
     setStudents(merged.students);
     setGradeCategories(merged.gradeCategories);
     setGradeItems(merged.gradeItems);
@@ -549,7 +554,7 @@ export function useAppState() {
   const loadDemoData = useCallback(() => {
     const d = buildDemoData();
     setTasks(d.tasks);
-    setClasses(d.classes);
+    setClasses(d.classes.map(normalizeClass));
     setStudents(d.students);
     setScheduleBlocks(d.scheduleBlocks);
     setCalEvents(d.calEvents);

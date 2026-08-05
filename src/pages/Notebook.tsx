@@ -128,18 +128,32 @@ function GradesTab({
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
 
+  /** Asignaturas de esta clase. Casi siempre una: entonces no se ve el selector. */
+  const subjects = useMemo(
+    () => (cls?.subjects?.length ? cls.subjects : cls ? [cls.subject] : []),
+    [cls],
+  );
+  const [subject, setSubject] = useState('');
+  // Al cambiar de clase, la asignatura elegida puede no existir en la nueva
+  const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
+
   const myStudents = useMemo(
     () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
     [students, clsId],
   );
   const myCategories = useMemo(
-    () => gradeCategories.filter(c => c.class_id === clsId),
-    [gradeCategories, clsId],
+    () => gradeCategories.filter(c =>
+      c.class_id === clsId &&
+      // Las categorías creadas antes de que hubiera varias asignaturas no
+      // llevan ninguna: son de la principal, la primera de la lista.
+      (c.subject ?? subjects[0] ?? '') === activeSubject),
+    [gradeCategories, clsId, activeSubject, subjects],
   );
-  const myItems = useMemo(
-    () => gradeItems.filter(i => i.class_id === clsId),
-    [gradeItems, clsId],
-  );
+  const myItems = useMemo(() => {
+    const mine = new Set(myCategories.map(c => c.id));
+    return gradeItems.filter(i => i.class_id === clsId && mine.has(i.category_id));
+  }, [gradeItems, clsId, myCategories]);
+  // El peso suma 100% por asignatura, no por clase
   const weightSum = myCategories.reduce((a, c) => a + c.weight, 0);
 
   /* ── Modales: abrir ── */
@@ -165,7 +179,7 @@ function GradesTab({
     if (!name) { toast('Escribe un nombre para la categoría'); return; }
     if (Number.isNaN(weight) || weight <= 0 || weight > 100) { toast('El peso debe ser un número entre 1 y 100'); return; }
     if (catModal === 'new') {
-      onAddCategory({ id: 'gc' + Date.now(), class_id: clsId, name, weight });
+      onAddCategory({ id: 'gc' + Date.now(), class_id: clsId, name, weight, subject: activeSubject });
       toast('✅ Categoría creada');
     } else if (catModal) {
       onUpdateCategory({ ...catModal, name, weight });
@@ -256,6 +270,36 @@ function GradesTab({
           <Download size={13} />Exportar a Excel
         </button>
       </div>
+
+      {/* Selector de asignatura: solo aparece si le das más de una a esta clase */}
+      {subjects.length > 1 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16,
+          padding: '11px 14px', background: 'var(--surface)', borderRadius: 12,
+        }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginRight: 2 }}>
+            Estás evaluando
+          </span>
+          {subjects.map(s => {
+            const on = s === activeSubject;
+            return (
+              <button
+                key={s}
+                onClick={() => setSubject(s)}
+                style={{
+                  padding: '6px 14px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
+                  fontSize: 12.5, fontWeight: on ? 800 : 500,
+                  background: on ? 'white' : 'transparent',
+                  border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
+                  color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                }}
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {myStudents.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '36px 24px' }}>
