@@ -4,8 +4,9 @@ import {
   Users, ArrowRight, Download, CalendarDays,
 } from 'lucide-react';
 import type { Class, Student, AttendanceMap, AttendanceStatus } from '../types';
-import { isoDate, fromIsoDate, plural } from '../lib/utils';
+import { isoDate, fromIsoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { useI18n } from '../i18n';
 
 interface Props {
   classes: Class[];
@@ -16,14 +17,14 @@ interface Props {
   onNav: (s: string) => void;
 }
 
-const STATUS: { id: AttendanceStatus; label: string; short: string; color: string; icon: React.ReactNode }[] = [
-  { id: 'present',   label: 'Presente',   short: 'P', color: '#10b981', icon: <Check size={15} /> },
-  { id: 'absent',    label: 'Falta',      short: 'F', color: '#ef4444', icon: <X size={15} /> },
-  { id: 'late',      label: 'Retraso',    short: 'R', color: '#f59e0b', icon: <Clock size={15} /> },
-  { id: 'justified', label: 'Justificada', short: 'J', color: '#3b82f6', icon: <FileCheck2 size={15} /> },
-];
-
-const STATUS_BY_ID = Object.fromEntries(STATUS.map(s => [s.id, s])) as Record<AttendanceStatus, typeof STATUS[number]>;
+function statusList(t: (k: string) => string): { id: AttendanceStatus; label: string; short: string; color: string; icon: React.ReactNode }[] {
+  return [
+    { id: 'present',   label: t('Presente'),   short: 'P', color: '#10b981', icon: <Check size={15} /> },
+    { id: 'absent',    label: t('Falta'),      short: 'F', color: '#ef4444', icon: <X size={15} /> },
+    { id: 'late',      label: t('Retraso'),    short: 'R', color: '#f59e0b', icon: <Clock size={15} /> },
+    { id: 'justified', label: t('Justificada'), short: 'J', color: '#3b82f6', icon: <FileCheck2 size={15} /> },
+  ];
+}
 
 /** Siguiente estado al tocar repetidamente sobre un alumno. */
 const NEXT: Record<AttendanceStatus, AttendanceStatus> = {
@@ -36,14 +37,20 @@ function shiftDate(iso: string, days: number): string {
   return isoDate(d);
 }
 
-function prettyDate(iso: string): string {
-  return fromIsoDate(iso).toLocaleDateString('es-ES', {
+function prettyDate(iso: string, locale: string): string {
+  return fromIsoDate(iso).toLocaleDateString(locale, {
     weekday: 'long', day: 'numeric', month: 'long',
   });
 }
 
 export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav }: Props) {
   const { toast } = useToast();
+  const { t, locale } = useI18n();
+  const STATUS = useMemo(() => statusList(t), [t]);
+  const STATUS_BY_ID = useMemo(
+    () => Object.fromEntries(STATUS.map(s => [s.id, s])) as Record<AttendanceStatus, typeof STATUS[number]>,
+    [STATUS],
+  );
   const [classId, setClassId] = useState(classes[0]?.id ?? '');
   const [date, setDate]       = useState(isoDate());
   const [tab, setTab]         = useState<'day' | 'summary'>('day');
@@ -83,12 +90,12 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     roster.forEach(s => { next[s.id] = today[s.id] ?? 'present'; });
     void map;
     onSetDay(clsId, date, next);
-    toast('✅ Todos presentes');
+    toast(t('✅ Todos presentes'));
   }
 
   function exportCsv() {
-    if (days.length === 0) { toast('Todavía no hay días registrados'); return; }
-    const header = ['Alumno', ...days.slice().reverse(), '% asistencia'];
+    if (days.length === 0) { toast(t('Todavía no hay días registrados')); return; }
+    const header = [t('Alumno'), ...days.slice().reverse(), t('% asistencia')];
     const rows = roster.map(s => {
       const cells = days.slice().reverse().map(d => {
         const st = attendance[clsId]?.[d]?.[s.id];
@@ -106,7 +113,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     a.download = `asistencia-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast('✅ Asistencia exportada');
+    toast(t('✅ Asistencia exportada'));
   }
 
   if (classes.length === 0) {
@@ -114,18 +121,18 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">Asistencia</h1>
-            <p className="pg-sub">Pasa lista en unos segundos</p>
+            <h1 className="pg-title">{t('Asistencia')}</h1>
+            <p className="pg-sub">{t('Pasa lista en unos segundos')}</p>
           </div>
         </div>
         <div className="card" style={{ maxWidth: 540, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Users size={36} color="var(--text-3)" style={{ margin: '0 auto 14px' }} />
-          <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Aún no tienes clases</h3>
+          <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>{t('Aún no tienes clases')}</h3>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
-            Para pasar lista, primero crea una clase con sus alumnos.
+            {t('Para pasar lista, primero crea una clase con sus alumnos.')}
           </p>
           <button className="btn-accent" onClick={() => onNav('classes')}>
-            Ir a Mis Clases <ArrowRight size={14} />
+            {t('Ir a Mis Clases')} <ArrowRight size={14} />
           </button>
         </div>
       </section>
@@ -136,17 +143,19 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Asistencia</h1>
+          <h1 className="pg-title">{t('Asistencia')}</h1>
           <p className="pg-sub">
-            {days.length > 0 ? `${plural(days.length, 'día registrado', 'días registrados')} en ${cls?.name}` : 'Pasa lista en unos segundos'}
+            {days.length > 0
+              ? `${t(days.length === 1 ? '{n} día registrado' : '{n} días registrados', { n: days.length })} ${t('en {name}', { name: cls?.name ?? '' })}`
+              : t('Pasa lista en unos segundos')}
           </p>
         </div>
         <div className="tab-bar" style={{ marginBottom: 0, width: 'auto' }}>
           <button className={`tab-btn${tab === 'day' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('day')}>
-            Pasar lista
+            {t('Pasar lista')}
           </button>
           <button className={`tab-btn${tab === 'summary' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('summary')}>
-            Resumen
+            {t('Resumen')}
           </button>
         </div>
       </div>
@@ -176,7 +185,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
         <div style={{ flex: 1 }} />
         {tab === 'summary' && (
           <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={exportCsv} disabled={days.length === 0}>
-            <Download size={13} />Exportar a Excel
+            <Download size={13} />{t('Exportar a Excel')}
           </button>
         )}
       </div>
@@ -184,10 +193,10 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
       {roster.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '36px 24px' }}>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 16 }}>
-            La clase <strong>{cls?.name}</strong> todavía no tiene alumnos.
+            {t('La clase')} <strong>{cls?.name}</strong> {t('todavía no tiene alumnos.')}
           </p>
           <button className="btn-accent" onClick={() => onNav('classes')}>
-            Añadir alumnos <ArrowRight size={14} />
+            {t('Añadir alumnos')} <ArrowRight size={14} />
           </button>
         </div>
       ) : tab === 'day' ? (
@@ -195,19 +204,19 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
           {/* Fecha */}
           <div className="card" style={{ padding: '12px 16px', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <button className="ico-btn" onClick={() => setDate(d => shiftDate(d, -1))} title="Día anterior">
+              <button className="ico-btn" onClick={() => setDate(d => shiftDate(d, -1))} title={t('Día anterior')}>
                 <ChevronLeft size={17} />
               </button>
               <div style={{ flex: 1, minWidth: 160 }}>
                 <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)', textTransform: 'capitalize' }}>
-                  {prettyDate(date)}
+                  {prettyDate(date, locale)}
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
-                  {marked}/{roster.length} marcados
-                  {date === isoDate() && ' · hoy'}
+                  {t('{marked}/{total} marcados', { marked, total: roster.length })}
+                  {date === isoDate() && t(' · hoy')}
                 </div>
               </div>
-              <button className="ico-btn" onClick={() => setDate(d => shiftDate(d, 1))} title="Día siguiente">
+              <button className="ico-btn" onClick={() => setDate(d => shiftDate(d, 1))} title={t('Día siguiente')}>
                 <ChevronRight size={17} />
               </button>
               <input
@@ -215,10 +224,10 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                 style={{ width: 160, flex: 'none', height: 38 }}
               />
               <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={() => setDate(isoDate())}>
-                <CalendarDays size={13} />Hoy
+                <CalendarDays size={13} />{t('Hoy')}
               </button>
               <button className="btn-accent" style={{ fontSize: 12.5 }} onClick={markAllPresent}>
-                <Check size={14} />Todos presentes
+                <Check size={14} />{t('Todos presentes')}
               </button>
             </div>
           </div>
@@ -248,7 +257,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
 
                   <button
                     onClick={() => onSet(clsId, date, s.id, st ? NEXT[st] : 'absent')}
-                    title="Toca para cambiar el estado"
+                    title={t('Toca para cambiar el estado')}
                     style={{
                       flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none',
                       cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 14,
@@ -287,7 +296,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                     fontSize: 12, fontWeight: 700,
                     color: info ? info.color : 'var(--text-3)',
                   }}>
-                    {info ? info.label : 'Sin marcar'}
+                    {info ? info.label : t('Sin marcar')}
                   </span>
                 </div>
               );
@@ -295,7 +304,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
           </div>
 
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 12, lineHeight: 1.5 }}>
-            Toca el nombre para ir cambiando el estado, o usa los botones. Se guarda solo.
+            {t('Toca el nombre para ir cambiando el estado, o usa los botones. Se guarda solo.')}
           </p>
         </>
       ) : (
@@ -304,7 +313,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
           <div className="card" style={{ textAlign: 'center', padding: '40px 24px' }}>
             <ClipboardList size={34} color="var(--text-3)" style={{ margin: '0 auto 12px' }} />
             <p style={{ fontSize: 13.5, color: 'var(--text-2)' }}>
-              Todavía no has pasado lista en {cls?.name}.
+              {t('Todavía no has pasado lista en {name}.', { name: cls?.name ?? '' })}
             </p>
           </div>
         ) : (
@@ -313,9 +322,9 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
               <table className="rtable">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', paddingLeft: 16 }}>Alumno</th>
+                    <th style={{ textAlign: 'left', paddingLeft: 16 }}>{t('Alumno')}</th>
                     {STATUS.map(s => <th key={s.id} style={{ minWidth: 76 }}>{s.label}</th>)}
-                    <th style={{ minWidth: 92 }}>Asistencia</th>
+                    <th style={{ minWidth: 92 }}>{t('Asistencia')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -355,7 +364,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
               </table>
             </div>
             <div style={{ padding: '10px 16px', borderTop: '0.5px solid var(--border)', background: 'var(--surface)', fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-              El porcentaje cuenta como asistencia los retrasos y las faltas justificadas.
+              {t('El porcentaje cuenta como asistencia los retrasos y las faltas justificadas.')}
             </div>
           </div>
         )

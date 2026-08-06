@@ -397,6 +397,36 @@ const EN: Record<string, string> = {
   'Si vuelves a evaluar al mismo alumno, su nota anterior se sustituye.':
     'If you assess the same student again, their previous grade is replaced.',
 
+  /* ── Asistencia ── */
+  'Presente': 'Present',
+  'Falta': 'Absent',
+  'Retraso': 'Late',
+  'Justificada': 'Excused',
+  '✅ Todos presentes': '✅ Everyone present',
+  'Todavía no hay días registrados': 'No days recorded yet',
+  '✅ Asistencia exportada': '✅ Attendance exported',
+  '% asistencia': '% attendance',
+  'Pasa lista en unos segundos': 'Take the register in seconds',
+  '{n} día registrado': '{n} day recorded',
+  '{n} días registrados': '{n} days recorded',
+  'en {name}': 'in {name}',
+  'Pasar lista': 'Take register',
+  'Resumen': 'Summary',
+  'Para pasar lista, primero crea una clase con sus alumnos.': 'To take the register, first create a class with its students.',
+  'Día anterior': 'Previous day',
+  'Día siguiente': 'Next day',
+  '{marked}/{total} marcados': '{marked}/{total} marked',
+  ' · hoy': ' · today',
+  'Hoy': 'Today',
+  'Todos presentes': 'Mark all present',
+  'Toca para cambiar el estado': 'Tap to change status',
+  'Sin marcar': 'Not marked',
+  'Toca el nombre para ir cambiando el estado, o usa los botones. Se guarda solo.':
+    'Tap the name to cycle through statuses, or use the buttons. It saves automatically.',
+  'Todavía no has pasado lista en {name}.': 'You haven’t taken the register in {name} yet.',
+  'El porcentaje cuenta como asistencia los retrasos y las faltas justificadas.':
+    'The percentage counts lateness and excused absences as attendance.',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',
