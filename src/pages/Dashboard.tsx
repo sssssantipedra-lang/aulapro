@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertTriangle, CheckSquare2, Plus, Target, ClipboardCheck, Sparkles, ArrowRight } from 'lucide-react';
-import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation } from '../types';
+import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
+  GradeCategory, GradeItem, GradeMap } from '../types';
+import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
 import { isoDate } from '../lib/utils';
 
 const DAY_NAMES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -8,6 +10,9 @@ const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','a
 
 interface Props {
   user: User | null;
+  gradeCategories: GradeCategory[];
+  gradeItems: GradeItem[];
+  grades: GradeMap;
   tasks: Task[];
   scheduleBlocks: ScheduleBlock[];
   calEvents: CalEvent[];
@@ -20,7 +25,8 @@ interface Props {
   onLoadDemo: () => void;
 }
 
-export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes, evaluations, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
+export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes, evaluations,
+  gradeCategories, gradeItems, grades, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
   const [time, setTime] = useState(() => {
     const n = new Date();
     return n.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -198,6 +204,16 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                 </button>
               </div>
             </div>
+
+            {/* Rendimiento, rotando por clase y asignatura */}
+            <PerformanceCarousel
+              classes={classes}
+              students={students}
+              gradeCategories={gradeCategories}
+              gradeItems={gradeItems}
+              grades={grades}
+              onNav={onNav}
+            />
 
             {/* Tareas */}
             <div className="card">

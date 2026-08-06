@@ -135,6 +135,9 @@ function AppInner() {
                 students={st.students}
                 classes={st.classes}
                 evaluations={st.evaluations}
+                gradeCategories={st.gradeCategories}
+                gradeItems={st.gradeItems}
+                grades={st.grades}
                 onNav={s => setSection(s as Section)}
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
