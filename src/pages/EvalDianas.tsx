@@ -8,6 +8,7 @@ import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { DianaBoard, dianaGrade } from '../components/diana/DianaBoard';
 import { levelsOf, levelColor, DEFAULT_LEVELS, type AchievementLevel } from '../types';
+import { useI18n } from '../i18n';
 
 interface Props {
   dianas: EvalDiana[];
@@ -44,6 +45,7 @@ interface DianaModalProps {
 
 function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave }: DianaModalProps) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [mode, setMode] = useState<'ia' | 'manual'>('ia');
 
   const [aiClassId, setAiClassId] = useState('');
@@ -90,31 +92,45 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
   }, [editing, open]);
 
   async function handleGenerate() {
-    if (!aiContext.trim()) { toast('Describe la actividad que quieres evaluar'); return; }
+    if (!aiContext.trim()) { toast(t('Describe la actividad que quieres evaluar')); return; }
     const cls = classes.find(c => c.id === aiClassId);
-    const className = cls ? `${cls.name} – ${cls.subject}` : 'sin clase concreta';
+    const className = cls ? `${cls.name} – ${cls.subject}` : t('sin clase concreta');
 
     // Un descriptor por nivel de los que haya definido el docente, no cuatro fijos
-    const scale = levels.map(l => `${l.value}=${l.label || `Nivel ${l.value}`}`).join(', ');
+    const scale = levels.map(l => `${l.value}=${l.label || t('Nivel {n}', { n: l.value })}`).join(', ');
     const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
-    const peor = levels[0]?.label || 'el más bajo';
-    const mejor = levels[levels.length - 1]?.label || 'el más alto';
+    const peor = levels[0]?.label || (lang === 'en' ? 'the lowest' : 'el más bajo');
+    const mejor = levels[levels.length - 1]?.label || (lang === 'en' ? 'the highest' : 'el más alto');
 
-    const systemPrompt =
-      'Eres un experto en evaluación competencial en secundaria (LOMLOE, España). Responde SOLO con JSON válido, sin texto adicional.';
-    const userPrompt =
-      `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
-      `Genera exactamente ${aiCount} ítems observables y evaluables. Cada ítem lleva ` +
-      `un "weight" (peso relativo, normalmente 1; usa 2 si el ítem es claramente más ` +
-      `importante) y un descriptor para LOS ${levels.length} NIVELES, sin dejar ` +
-      `ninguno vacío: ${scale}.\n\n` +
-      `Los descriptores de un mismo ítem forman una gradación ascendente: describen ` +
-      `el mismo aspecto con una exigencia que crece paso a paso, desde «${peor}» ` +
-      `hasta «${mejor}». Cada nivel debe suponer una mejora clara respecto al ` +
-      `anterior, sin saltos bruscos ni dos niveles que digan casi lo mismo. Redacta ` +
-      `en positivo lo que el alumno SÍ hace en cada nivel, de forma observable.\n\n` +
-      `Los nombres de los ítems, breves (máximo 5 palabras). Todo en español de España.\n\n` +
-      `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}}}]}`;
+    const systemPrompt = lang === 'en'
+      ? 'You are an expert in competency-based secondary education assessment. Reply ONLY with valid JSON, no extra text.'
+      : 'Eres un experto en evaluación competencial en secundaria (LOMLOE, España). Responde SOLO con JSON válido, sin texto adicional.';
+    const userPrompt = lang === 'en'
+      ? `Create an assessment target for: ${aiContext.trim()}. Class: ${className}.\n\n` +
+        `Generate exactly ${aiCount} observable, assessable items. Each item has ` +
+        `a "weight" (relative weight, usually 1; use 2 if the item is clearly more ` +
+        `important) and a descriptor for ALL ${levels.length} LEVELS, none left ` +
+        `blank: ${scale}.\n\n` +
+        `The descriptors within an item form an ascending progression: they describe ` +
+        `the same aspect with growing demand, step by step, from "${peor}" to ` +
+        `"${mejor}". Each level must be a clear improvement over the previous one, ` +
+        `with no abrupt jumps and no two levels that say almost the same thing. ` +
+        `Write, in positive terms, what the student DOES do at each level, in ` +
+        `observable language.\n\n` +
+        `Item names should be short (5 words max). Everything in English.\n\n` +
+        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}}}]}`
+      : `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
+        `Genera exactamente ${aiCount} ítems observables y evaluables. Cada ítem lleva ` +
+        `un "weight" (peso relativo, normalmente 1; usa 2 si el ítem es claramente más ` +
+        `importante) y un descriptor para LOS ${levels.length} NIVELES, sin dejar ` +
+        `ninguno vacío: ${scale}.\n\n` +
+        `Los descriptores de un mismo ítem forman una gradación ascendente: describen ` +
+        `el mismo aspecto con una exigencia que crece paso a paso, desde «${peor}» ` +
+        `hasta «${mejor}». Cada nivel debe suponer una mejora clara respecto al ` +
+        `anterior, sin saltos bruscos ni dos niveles que digan casi lo mismo. Redacta ` +
+        `en positivo lo que el alumno SÍ hace en cada nivel, de forma observable.\n\n` +
+        `Los nombres de los ítems, breves (máximo 5 palabras). Todo en español de España.\n\n` +
+        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}}}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
@@ -125,7 +141,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     if (!raw) return;
 
     const parsed = parseGeminiJson<{ name: string; items: DianaItem[] }>(raw);
-    if (!parsed?.items?.length) { toast('La IA no devolvió una diana válida. Vuelve a intentarlo.'); return; }
+    if (!parsed?.items?.length) { toast(t('La IA no devolvió una diana válida. Vuelve a intentarlo.')); return; }
 
     setName(parsed.name || aiContext.trim());
     setItems(parsed.items.map(i => ({
@@ -135,14 +151,14 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       descriptors: i.descriptors,
     })));
     setMode('manual');
-    toast('✅ Diana generada — revísala antes de guardar');
+    toast(t('✅ Diana generada — revísala antes de guardar'));
   }
 
   function handleSave() {
     const n = name.trim();
-    if (!n) { toast('Ponle un nombre a la diana'); return; }
+    if (!n) { toast(t('Ponle un nombre a la diana')); return; }
     const valid = items.filter(i => i.name.trim());
-    if (valid.length < 3) { toast('La diana necesita al menos 3 ítems'); return; }
+    if (valid.length < 3) { toast(t('La diana necesita al menos 3 ítems')); return; }
 
     // Los niveles sin nombre se descartan; con menos de dos no hay escala
     const named = levels.filter(l => l.label.trim());
@@ -167,9 +183,9 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       <div className="modal wide" style={{ maxHeight: '92vh' }}>
         <div className="modal-hd">
           <div>
-            <div className="modal-title">{editing ? 'Editar diana' : 'Nueva diana de evaluación'}</div>
+            <div className="modal-title">{t(editing ? 'Editar diana' : 'Nueva diana de evaluación')}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              {mode === 'ia' ? 'Describe la actividad y la IA propone los ítems' : 'Ajusta los ítems y su peso en la nota'}
+              {t(mode === 'ia' ? 'Describe la actividad y la IA propone los ítems' : 'Ajusta los ítems y su peso en la nota')}
             </p>
           </div>
           <button className="ico-btn" onClick={onClose}><X size={18} /></button>
@@ -177,10 +193,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
           <button className={mode === 'ia' ? 'btn-ia' : 'btn-ghost'} style={{ fontSize: 13, padding: '7px 14px' }} onClick={() => setMode('ia')}>
-            <Sparkles size={13} />✨ Con IA
+            <Sparkles size={13} />{t('✨ Con IA')}
           </button>
           <button className={mode === 'manual' ? 'btn-accent' : 'btn-ghost'} style={{ fontSize: 13, padding: '7px 14px' }} onClick={() => setMode('manual')}>
-            Manual
+            {t('Manual')}
           </button>
         </div>
 
@@ -192,7 +208,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         />
 
         <div className="fgroup">
-          <label className="flabel">Niveles de logro</label>
+          <label className="flabel">{t('Niveles de logro')}</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {levels.map((lv, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -208,10 +224,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                   className="finput" style={{ flex: 1 }}
                   value={lv.label}
                   onChange={e => setLevelLabel(i, e.target.value)}
-                  placeholder={i === levels.length - 1 ? 'El mejor nivel' : 'Nombre del nivel'}
+                  placeholder={t(i === levels.length - 1 ? 'El mejor nivel' : 'Nombre del nivel')}
                 />
                 {levels.length > 2 && (
-                  <button className="ico-btn" title="Quitar nivel" onClick={() => removeLevel(i)}>
+                  <button className="ico-btn" title={t('Quitar nivel')} onClick={() => removeLevel(i)}>
                     <Trash2 size={14} color="var(--danger)" />
                   </button>
                 )}
@@ -219,38 +235,37 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
             ))}
           </div>
           <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addLevel}>
-            <Plus size={13} />Añadir nivel
+            <Plus size={13} />{t('Añadir nivel')}
           </button>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
-            Cada nivel es un anillo de la diana. El último es el más alto y
-            equivale a un 10.
+            {t('Cada nivel es un anillo de la diana. El último es el más alto y equivale a un 10.')}
           </p>
         </div>
 
         {mode === 'ia' ? (
           <div>
             <div className="fgroup">
-              <label className="flabel">Clase (opcional)</label>
+              <label className="flabel">{t('Clase (opcional)')}</label>
               <select className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)} style={{ cursor: 'pointer' }}>
-                <option value="">Sin clase concreta</option>
+                <option value="">{t('Sin clase concreta')}</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">¿Qué quieres evaluar? *</label>
+              <label className="flabel">{t('¿Qué quieres evaluar? *')}</label>
               <textarea
                 className="finput"
                 rows={3}
-                placeholder="Ej: Trabajo cooperativo en el proyecto de ecosistemas, 2º ESO"
+                placeholder={t('Ej: Trabajo cooperativo en el proyecto de ecosistemas, 2º ESO')}
                 value={aiContext}
                 onChange={e => setAiContext(e.target.value)}
                 style={{ resize: 'vertical' }}
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">Número de ítems</label>
+              <label className="flabel">{t('Número de ítems')}</label>
               <select className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))} style={{ cursor: 'pointer' }}>
-                {[4, 5, 6, 8].map(n => <option key={n} value={n}>{n} ítems</option>)}
+                {[4, 5, 6, 8].map(n => <option key={n} value={n}>{t('{n} ítems', { n })}</option>)}
               </select>
             </div>
             <button
@@ -259,25 +274,25 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
               onClick={handleGenerate}
               style={{ width: '100%', justifyContent: 'center' }}
             >
-              {generating ? <><span className="spin" />Generando diana…</> : <><Sparkles size={14} />✨ Generar diana</>}
+              {generating ? <><span className="spin" />{t('Generando diana…')}</> : <><Sparkles size={14} />{t('✨ Generar diana')}</>}
             </button>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 18, alignItems: 'start' }}>
             <div>
               <div className="fgroup">
-                <label className="flabel">Nombre de la diana *</label>
-                <input className="finput" placeholder="Ej: Trabajo cooperativo" value={name} onChange={e => setName(e.target.value)} />
+                <label className="flabel">{t('Nombre de la diana *')}</label>
+                <input className="finput" placeholder={t('Ej: Trabajo cooperativo')} value={name} onChange={e => setName(e.target.value)} />
               </div>
 
-              <label className="flabel">Ítems a evaluar</label>
+              <label className="flabel">{t('Ítems a evaluar')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
                 {items.map((item, idx) => (
                   <div key={item.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', width: 18, flexShrink: 0 }}>{idx + 1}</span>
                     <input
                       className="finput"
-                      placeholder="Nombre del ítem"
+                      placeholder={t('Nombre del ítem')}
                       value={item.name}
                       onChange={e => setItems(prev => prev.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))}
                       style={{ flex: 1 }}
@@ -287,14 +302,14 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                       value={item.weight}
                       onChange={e => setItems(prev => prev.map((x, i) => i === idx ? { ...x, weight: Number(e.target.value) } : x))}
                       style={{ width: 104, flex: 'none', cursor: 'pointer' }}
-                      title="Peso del ítem en la nota"
+                      title={t('Peso del ítem en la nota')}
                     >
-                      <option value={1}>Peso ×1</option>
-                      <option value={2}>Peso ×2</option>
-                      <option value={3}>Peso ×3</option>
+                      <option value={1}>{t('Peso ×1')}</option>
+                      <option value={2}>{t('Peso ×2')}</option>
+                      <option value={3}>{t('Peso ×3')}</option>
                     </select>
                     {items.length > 1 && (
-                      <button className="ico-btn" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))} title="Quitar ítem">
+                      <button className="ico-btn" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))} title={t('Quitar ítem')}>
                         <Trash2 size={14} color="var(--danger)" />
                       </button>
                     )}
@@ -311,20 +326,20 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                   fontSize: 12.5, color: 'var(--text-3)', fontFamily: 'var(--font)',
                 }}
               >
-                <Plus size={14} />Añadir ítem
+                <Plus size={14} />{t('Añadir ítem')}
               </button>
             </div>
 
             {/* Vista previa */}
             <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '16px 12px', textAlign: 'center' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                Vista previa
+                {t('Vista previa')}
               </div>
               {preview.length >= 3 ? (
                 <DianaBoard items={preview} scores={{}} onSetScore={() => {}} readOnly />
               ) : (
                 <p style={{ fontSize: 12.5, color: 'var(--text-3)', padding: '30px 10px', lineHeight: 1.5 }}>
-                  Añade al menos 3 ítems para ver la diana
+                  {t('Añade al menos 3 ítems para ver la diana')}
                 </p>
               )}
             </div>
@@ -333,8 +348,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
 
         {mode === 'manual' && (
           <div style={{ display: 'flex', gap: 10, marginTop: 18, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
-            <button className="btn-accent" onClick={handleSave}>{editing ? 'Guardar cambios' : 'Crear diana'}</button>
-            <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+            <button className="btn-accent" onClick={handleSave}>{t(editing ? 'Guardar cambios' : 'Crear diana')}</button>
+            <button className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
           </div>
         )}
       </div>
@@ -355,6 +370,7 @@ interface DianaEvalProps {
 
 function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: DianaEvalProps) {
   const { toast } = useToast();
+  const { t, locale } = useI18n();
   const [classId, setClassId]   = useState('');
   const [studentId, setStudentId] = useState('');
   const [scores, setScores]     = useState<Record<string, number>>({});
@@ -376,8 +392,8 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
   const done = diana.items.filter(i => scores[i.id]).length;
 
   function handleSave() {
-    if (!studentId) { toast('Elige el alumno al que evalúas'); return; }
-    if (done === 0) { toast('Marca al menos un ítem en la diana'); return; }
+    if (!studentId) { toast(t('Elige el alumno al que evalúas')); return; }
+    if (done === 0) { toast(t('Marca al menos un ítem en la diana')); return; }
     const student = students.find(s => s.id === studentId);
     onSave({
       id: 'ev' + Date.now(),
@@ -403,7 +419,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
           <div>
             <div className="modal-title">{diana.name}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              Haz clic en cada sector para marcar el nivel de logro
+              {t('Haz clic en cada sector para marcar el nivel de logro')}
             </p>
           </div>
           <button className="ico-btn" onClick={onClose}><X size={18} /></button>
@@ -411,16 +427,16 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
 
         <div className="frow" style={{ marginBottom: 16 }}>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Clase</label>
+            <label className="flabel">{t('Clase')}</label>
             <select className="finput" value={classId} onChange={e => { setClassId(e.target.value); setStudentId(''); }} style={{ cursor: 'pointer' }}>
-              <option value="">Selecciona clase…</option>
+              <option value="">{t('Selecciona clase…')}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Alumno</label>
+            <label className="flabel">{t('Alumno')}</label>
             <select className="finput" value={studentId} onChange={e => setStudentId(e.target.value)} disabled={!classId} style={{ cursor: 'pointer' }}>
-              <option value="">Selecciona alumno…</option>
+              <option value="">{t('Selecciona alumno…')}</option>
               {classStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
@@ -437,7 +453,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
                   padding: '3px 10px', borderRadius: 99, color: 'white',
                   background: levelColor(lv.value, scale.length),
                 }}>
-                  {lv.value} · {lv.label}
+                  {lv.value} · {t(lv.label)}
                 </span>
               ))}
             </div>
@@ -447,23 +463,23 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
             {/* Nota calculada */}
             <div className="card" style={{ padding: '16px 18px', textAlign: 'center' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Nota calculada
+                {t('Nota calculada')}
               </div>
               <div style={{
                 fontSize: 40, fontWeight: 800, lineHeight: 1.15, margin: '4px 0 2px',
                 color: grade === null ? 'var(--text-3)' : grade < 5 ? '#dc2626' : grade < 7 ? '#d97706' : '#047857',
               }}>
-                {grade === null ? '—' : grade.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                {grade === null ? '—' : grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
               </div>
               <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
-                {done}/{diana.items.length} ítems marcados
+                {t('{n}/{total} ítems marcados', { n: done, total: diana.items.length })}
               </div>
             </div>
 
             {/* Detalle por ítem */}
             <div className="card" style={{ padding: '14px 16px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                Ítems
+                {t('Ítems')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 190, overflowY: 'auto' }}>
                 {diana.items.map(item => {
@@ -478,7 +494,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
                         background: lv ? levelColor(lv, scale.length) : 'var(--surface)',
                         color: lv ? 'white' : 'var(--text-3)',
                       }}>
-                        {lv ? (scale[lv - 1]?.label ?? '') : 'Sin marcar'}
+                        {lv ? t(scale[lv - 1]?.label ?? '') : t('Sin marcar')}
                       </span>
                     </div>
                   );
@@ -489,17 +505,17 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
         </div>
 
         <div className="fgroup" style={{ marginTop: 16 }}>
-          <label className="flabel">Observaciones</label>
+          <label className="flabel">{t('Observaciones')}</label>
           <textarea
-            className="finput" rows={2} placeholder="Comentarios para el alumno o la familia…"
+            className="finput" rows={2} placeholder={t('Comentarios para el alumno o la familia…')}
             value={notes} onChange={e => setNotes(e.target.value)} style={{ resize: 'vertical' }}
           />
         </div>
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 12, borderTop: '0.5px solid var(--border)' }}>
-          <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
           <button className="btn-accent" onClick={handleSave}>
-            <ClipboardCheck size={14} />Guardar evaluación
+            <ClipboardCheck size={14} />{t('Guardar evaluación')}
           </button>
         </div>
       </div>
@@ -514,6 +530,7 @@ export function DianasTab({
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
 }: Props) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing]     = useState<EvalDiana | null>(null);
   const [evalOpen, setEvalOpen]   = useState(false);
@@ -536,30 +553,29 @@ export function DianasTab({
       name: `${d.name} (copia)`,
       items: d.items.map(i => ({ ...i, id: uid() })),
     });
-    toast('✅ Diana duplicada, con su propia columna en el cuaderno');
+    toast(t('✅ Diana duplicada, con su propia columna en el cuaderno'));
   }
 
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', flex: 1, lineHeight: 1.5 }}>
-          Marca el nivel de logro de cada ítem y la nota sobre 10 se calcula sola.
+          {t('Marca el nivel de logro de cada ítem y la nota sobre 10 se calcula sola.')}
         </p>
         <button className="btn-accent" onClick={openNew}>
-          <Plus size={15} />Nueva diana
+          <Plus size={15} />{t('Nueva diana')}
         </button>
       </div>
 
       {dianas.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
           <Target size={40} style={{ margin: '0 auto 14px', opacity: 0.3 }} />
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: 'var(--text)' }}>Sin dianas todavía</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6, color: 'var(--text)' }}>{t('Sin dianas todavía')}</div>
           <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 18, maxWidth: 420, margin: '0 auto 18px', lineHeight: 1.6 }}>
-            Una diana es una forma visual y rápida de evaluar: describe la actividad,
-            la IA propone los ítems y tú solo marcas el nivel alcanzado.
+            {t('Una diana es una forma visual y rápida de evaluar: describe la actividad, la IA propone los ítems y tú solo marcas el nivel alcanzado.')}
           </p>
           <button className="btn-ia" onClick={openNew} style={{ margin: '0 auto' }}>
-            <Sparkles size={14} />✨ Crear mi primera diana
+            <Sparkles size={14} />{t('✨ Crear mi primera diana')}
           </button>
         </div>
       ) : (
@@ -580,18 +596,18 @@ export function DianasTab({
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
-                    <button className="ico-btn" onClick={() => openEdit(d)} title="Editar diana"><Pencil size={14} /></button>
-                    <button className="ico-btn" onClick={() => duplicate(d)} title="Duplicar diana"><Copy size={14} /></button>
-                    <button className="ico-btn" onClick={() => setConfirmDelete(d.id)} title="Eliminar diana"><Trash2 size={14} color="var(--danger)" /></button>
+                    <button className="ico-btn" onClick={() => openEdit(d)} title={t('Editar diana')}><Pencil size={14} /></button>
+                    <button className="ico-btn" onClick={() => duplicate(d)} title={t('Duplicar diana')}><Copy size={14} /></button>
+                    <button className="ico-btn" onClick={() => setConfirmDelete(d.id)} title={t('Eliminar diana')}><Trash2 size={14} color="var(--danger)" /></button>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                   <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-l)', color: 'var(--accent-d)', fontWeight: 700 }}>
-                    {d.items.length} ítems
+                    {t('{n} ítems', { n: d.items.length })}
                   </span>
                   <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: count > 0 ? '#dcfce7' : 'var(--surface)', color: count > 0 ? '#15803d' : 'var(--text-3)', fontWeight: 700 }}>
-                    {count} {count === 1 ? 'evaluación' : 'evaluaciones'}
+                    {t(count === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: count })}
                   </span>
                 </div>
 
@@ -601,7 +617,7 @@ export function DianasTab({
                 </div>
 
                 <button className="btn-accent" onClick={() => openEval(d)} style={{ justifyContent: 'center', width: '100%' }}>
-                  <Target size={14} />Evaluar alumno
+                  <Target size={14} />{t('Evaluar alumno')}
                 </button>
               </div>
             );
@@ -617,8 +633,8 @@ export function DianasTab({
         lawDocument={lawDocument}
         onClose={() => setModalOpen(false)}
         onSave={d => {
-          if (editing) { onUpdateDiana(d); toast('✅ Diana actualizada'); }
-          else { onAddDiana(d); toast('✅ Diana creada'); }
+          if (editing) { onUpdateDiana(d); toast(t('✅ Diana actualizada')); }
+          else { onAddDiana(d); toast(t('✅ Diana creada')); }
         }}
       />
 
@@ -628,28 +644,34 @@ export function DianasTab({
         classes={classes}
         students={students}
         onClose={() => setEvalOpen(false)}
-        onSave={ev => { onAddEvaluation(ev); toast(`✅ Evaluación guardada — nota ${ev.grade?.toFixed(1).replace('.', ',')}`); }}
+        onSave={ev => {
+          onAddEvaluation(ev);
+          const gradeStr = typeof ev.grade === 'number'
+            ? ev.grade.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+            : '—';
+          toast(t('✅ Evaluación guardada — nota {grade}', { grade: gradeStr }));
+        }}
       />
 
       {/* Confirmar borrado */}
       <div className={`modal-overlay${confirmDelete ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) setConfirmDelete(null); }}>
         <div className="modal">
           <div className="modal-hd">
-            <div className="modal-title">Eliminar diana</div>
+            <div className="modal-title">{t('Eliminar diana')}</div>
             <button className="ico-btn" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20, lineHeight: 1.6 }}>
-            ¿Seguro que quieres eliminar esta diana? Las evaluaciones ya guardadas se conservan en el Historial.
+            {t('¿Seguro que quieres eliminar esta diana? Las evaluaciones ya guardadas se conservan en el Historial.')}
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button
               className="btn-accent"
               style={{ background: 'var(--danger)' }}
-              onClick={() => { if (confirmDelete) { onDeleteDiana(confirmDelete); toast('Diana eliminada'); } setConfirmDelete(null); }}
+              onClick={() => { if (confirmDelete) { onDeleteDiana(confirmDelete); toast(t('Diana eliminada')); } setConfirmDelete(null); }}
             >
-              Eliminar
+              {t('Eliminar')}
             </button>
-            <button className="btn-ghost" onClick={() => setConfirmDelete(null)}>Cancelar</button>
+            <button className="btn-ghost" onClick={() => setConfirmDelete(null)}>{t('Cancelar')}</button>
           </div>
         </div>
       </div>
