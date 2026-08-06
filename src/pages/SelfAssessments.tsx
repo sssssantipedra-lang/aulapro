@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { Smartphone, Check, Trash2, ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
 import type { SelfAssessmentSession } from '../types';
 import { useToast } from '../components/ui/Toast';
-import { plural } from '../lib/utils';
 import { formatDay, formatTime } from '../services/audit';
+import { useI18n } from '../i18n';
 
 interface Props {
   sessions: SelfAssessmentSession[];
@@ -16,13 +16,14 @@ interface Props {
 const LEVEL_LABEL = ['Aún no', 'A veces', 'Casi siempre', 'Siempre'];
 const LEVEL_COLOR = ['#dc2626', '#d97706', '#2563eb', '#047857'];
 
-function fmt(n: number | null): string {
+function fmt(n: number | null, locale = 'es-ES'): string {
   if (n === null) return '—';
-  return n.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
 export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props) {
   const { toast } = useToast();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
 
   const ordered = useMemo(
@@ -32,16 +33,18 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
 
   function include(s: SelfAssessmentSession) {
     onInclude(s.id);
-    toast(`✅ ${plural(s.rows.length, 'autoevaluación pasada', 'autoevaluaciones pasadas')} al historial`);
+    toast(t(s.rows.length === 1 ? '✅ {n} autoevaluación pasada al historial' : '✅ {n} autoevaluaciones pasadas al historial', { n: s.rows.length }));
   }
 
   function remove(s: SelfAssessmentSession) {
     if (!confirm(
-      `Se borrarán las respuestas de ${plural(s.rows.length, 'alumno', 'alumnos')} ` +
-      `de «${s.title}».\n\nEsto no se puede deshacer.`,
+      t(s.rows.length === 1
+        ? 'Se borrarán las respuestas de {n} alumno de «{title}».\n\nEsto no se puede deshacer.'
+        : 'Se borrarán las respuestas de {n} alumnos de «{title}».\n\nEsto no se puede deshacer.',
+        { n: s.rows.length, title: s.title }),
     )) return;
     onDelete(s.id);
-    toast('Autoevaluación descartada');
+    toast(t('Autoevaluación descartada'));
   }
 
   if (sessions.length === 0) {
@@ -49,22 +52,20 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">Autoevaluaciones</h1>
-            <p className="pg-sub">Lo que responden los alumnos desde su móvil</p>
+            <h1 className="pg-title">{t('Autoevaluaciones')}</h1>
+            <p className="pg-sub">{t('Lo que responden los alumnos desde su móvil')}</p>
           </div>
         </div>
         <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Smartphone size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
           <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            Todavía no hay ninguna
+            {t('Todavía no hay ninguna')}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65, marginBottom: 20 }}>
-            Cuando abras una sala con una rúbrica o una diana, lo que contesten
-            tus alumnos se guardará aquí automáticamente. Después decides si lo
-            pasas al historial de evaluaciones o lo descartas.
+            {t('Cuando abras una sala con una rúbrica o una diana, lo que contesten tus alumnos se guardará aquí automáticamente. Después decides si lo pasas al historial de evaluaciones o lo descartas.')}
           </p>
           <button className="btn-accent" onClick={() => onNav('classroom-live')}>
-            Ir a la Sala de alumnos <ArrowRight size={14} />
+            {t('Ir a la Sala de alumnos')} <ArrowRight size={14} />
           </button>
         </div>
       </section>
@@ -75,10 +76,10 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Autoevaluaciones</h1>
+          <h1 className="pg-title">{t('Autoevaluaciones')}</h1>
           <p className="pg-sub">
-            {plural(sessions.length, 'sesión guardada', 'sesiones guardadas')} ·
-            {' '}{sessions.filter(s => !s.included).length} sin decidir
+            {t(sessions.length === 1 ? '{n} sesión guardada' : '{n} sesiones guardadas', { n: sessions.length })} ·
+            {' '}{t('{n} sin decidir', { n: sessions.filter(s => !s.included).length })}
           </p>
         </div>
       </div>
@@ -90,9 +91,7 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
       }}>
         <Smartphone size={15} style={{ flexShrink: 0, marginTop: 2 }} />
         <span>
-          Esto es lo que <strong style={{ color: 'var(--text)' }}>dicen los alumnos de sí mismos</strong>,
-          no una calificación tuya. Por eso se guarda aparte y nunca entra en el
-          cuaderno: si la pasas al historial, queda marcada como autoevaluación.
+          {t('Esto es lo que dicen los alumnos de sí mismos, no una calificación tuya. Por eso se guarda aparte y nunca entra en el cuaderno: si la pasas al historial, queda marcada como autoevaluación.')}
         </span>
       </div>
 
@@ -110,7 +109,7 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
                 <button
                   className="ico-btn"
                   onClick={() => setOpen(isOpen ? null : s.id)}
-                  title={isOpen ? 'Plegar' : 'Ver respuestas'}
+                  title={t(isOpen ? 'Plegar' : 'Ver respuestas')}
                 >
                   {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </button>
@@ -123,31 +122,31 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
                         fontSize: 10.5, fontWeight: 800, padding: '2px 9px', borderRadius: 99,
                         background: 'rgba(16,185,129,0.14)', color: '#047857',
                       }}>
-                        EN EL HISTORIAL
+                        {t('EN EL HISTORIAL')}
                       </span>
                     ) : (
                       <span style={{
                         fontSize: 10.5, fontWeight: 800, padding: '2px 9px', borderRadius: 99,
                         background: 'var(--accent-l)', color: 'var(--accent-d)',
                       }}>
-                        SIN DECIDIR
+                        {t('SIN DECIDIR')}
                       </span>
                     )}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>
-                    {s.class_name} · {formatDay(s.date)} a las {formatTime(s.at)} ·{' '}
-                    {plural(s.rows.length, 'respuesta', 'respuestas')}
-                    {media !== null && ` · media ${fmt(media)}`}
+                    {s.class_name} · {formatDay(s.date)} {t('a las {time}', { time: formatTime(s.at, locale) })} ·{' '}
+                    {t(s.rows.length === 1 ? '{n} respuesta' : '{n} respuestas', { n: s.rows.length })}
+                    {media !== null && t(' · media {avg}', { avg: fmt(media, locale) })}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                   {!s.included && (
                     <button className="btn-accent" style={{ fontSize: 12.5 }} onClick={() => include(s)}>
-                      <Check size={14} />Pasar al historial
+                      <Check size={14} />{t('Pasar al historial')}
                     </button>
                   )}
-                  <button className="ico-btn" title="Descartar" onClick={() => remove(s)}>
+                  <button className="ico-btn" title={t('Descartar')} onClick={() => remove(s)}>
                     <Trash2 size={15} color="var(--danger)" />
                   </button>
                 </div>
@@ -158,13 +157,13 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
                   <table className="rtable" style={{ minWidth: 520 }}>
                     <thead>
                       <tr>
-                        <th style={{ textAlign: 'left', minWidth: 150 }}>Alumno</th>
+                        <th style={{ textAlign: 'left', minWidth: 150 }}>{t('Alumno')}</th>
                         {s.items.map(it => (
                           <th key={it.id} style={{ minWidth: 78, fontSize: 10 }}>
                             {it.name.length > 18 ? it.name.slice(0, 17) + '…' : it.name}
                           </th>
                         ))}
-                        <th style={{ minWidth: 60 }}>Media</th>
+                        <th style={{ minWidth: 60 }}>{t('Media')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -177,7 +176,7 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
                               <td key={it.id} style={{ textAlign: 'center' }}>
                                 {v ? (
                                   <span
-                                    title={LEVEL_LABEL[v - 1]}
+                                    title={t(LEVEL_LABEL[v - 1])}
                                     style={{
                                       display: 'inline-block', minWidth: 24, padding: '3px 7px',
                                       borderRadius: 7, fontSize: 12.5, fontWeight: 800,
@@ -191,7 +190,7 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
                             );
                           })}
                           <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 13 }}>
-                            {fmt(r.grade)}
+                            {fmt(r.grade, locale)}
                           </td>
                         </tr>
                       ))}

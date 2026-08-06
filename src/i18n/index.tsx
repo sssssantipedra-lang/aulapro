@@ -683,6 +683,39 @@ const EN: Record<string, string> = {
   '{n} resultado': '{n} result',
   '{n} resultados': '{n} results',
 
+  /* ── Autoevaluaciones ── */
+  'Aún no': 'Not yet',
+  'A veces': 'Sometimes',
+  'Casi siempre': 'Usually',
+  'Siempre': 'Always',
+  'Lo que responden los alumnos desde su móvil': 'What students answer from their phone',
+  'Todavía no hay ninguna': 'There aren’t any yet',
+  'Cuando abras una sala con una rúbrica o una diana, lo que contesten tus alumnos se guardará aquí automáticamente. Después decides si lo pasas al historial de evaluaciones o lo descartas.':
+    'When you open a room with a rubric or a target, what your students answer will be saved here automatically. Afterwards you decide whether to move it to the assessment history or discard it.',
+  'Ir a la Sala de alumnos': 'Go to the Student Room',
+  '{n} sesión guardada': '{n} session saved',
+  '{n} sesiones guardadas': '{n} sessions saved',
+  '{n} sin decidir': '{n} undecided',
+  'a las {time}': 'at {time}',
+  'Esto es lo que dicen los alumnos de sí mismos, no una calificación tuya. Por eso se guarda aparte y nunca entra en el cuaderno: si la pasas al historial, queda marcada como autoevaluación.':
+    'This is what students say about themselves, not a grade from you. That’s why it’s kept separate and never goes into the gradebook: if you move it to the history, it’s marked as a self-assessment.',
+  'Plegar': 'Collapse',
+  'Ver respuestas': 'View answers',
+  'EN EL HISTORIAL': 'IN THE HISTORY',
+  'SIN DECIDIR': 'UNDECIDED',
+  '{n} respuesta': '{n} response',
+  '{n} respuestas': '{n} responses',
+  ' · media {avg}': ' · average {avg}',
+  'Pasar al historial': 'Move to history',
+  'Descartar': 'Discard',
+  '✅ {n} autoevaluación pasada al historial': '✅ {n} self-assessment moved to the history',
+  '✅ {n} autoevaluaciones pasadas al historial': '✅ {n} self-assessments moved to the history',
+  'Se borrarán las respuestas de {n} alumno de «{title}».\n\nEsto no se puede deshacer.':
+    'The answers of {n} student in "{title}" will be deleted.\n\nThis can’t be undone.',
+  'Se borrarán las respuestas de {n} alumnos de «{title}».\n\nEsto no se puede deshacer.':
+    'The answers of {n} students in "{title}" will be deleted.\n\nThis can’t be undone.',
+  'Autoevaluación descartada': 'Self-assessment discarded',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',

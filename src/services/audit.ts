@@ -113,9 +113,9 @@ export function formatDay(iso: string): string {
 }
 
 /** Nota con coma decimal, o una raya si no hay nota. */
-export function formatGrade(v: number | null | undefined): string {
+export function formatGrade(v: number | null | undefined, locale = 'es-ES'): string {
   if (typeof v !== 'number') return '—';
-  return v.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return v.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 /** Día natural de una marca de tiempo, en hora local. */
@@ -127,21 +127,21 @@ export function dayKeyOf(at: string): string {
 }
 
 /** «hoy», «ayer» o la fecha, para las cabeceras del registro. */
-export function friendlyDay(dayKey: string): string {
+export function friendlyDay(dayKey: string, lang: 'es' | 'en' = 'es'): string {
   const now = new Date();
   const p = (n: number) => String(n).padStart(2, '0');
   const today = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
   const y = new Date(now.getTime() - 86400000);
   const yesterday = `${y.getFullYear()}-${p(y.getMonth() + 1)}-${p(y.getDate())}`;
-  if (dayKey === today) return 'Hoy';
-  if (dayKey === yesterday) return 'Ayer';
+  if (dayKey === today) return lang === 'en' ? 'Today' : 'Hoy';
+  if (dayKey === yesterday) return lang === 'en' ? 'Yesterday' : 'Ayer';
   return formatDay(dayKey);
 }
 
-export function formatTime(at: string): string {
+export function formatTime(at: string, locale = 'es-ES'): string {
   const d = new Date(at);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }
 
 /** Registro a CSV para Excel español (BOM + punto y coma). */
