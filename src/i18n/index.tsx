@@ -147,6 +147,35 @@ const EN: Record<string, string> = {
   'Calificación': 'Grade',
   'Nota': 'Score',
 
+  /* ── Mi Perfil ── */
+  'Datos personales, IA y copia de seguridad': 'Personal data, AI and backup',
+  'Datos personales': 'Personal data',
+  'Curso': 'Year',
+  'Perfil local · datos en este equipo': 'Local profile · data stored on this computer',
+  'Editar datos': 'Edit details',
+  'Apellidos': 'Surname',
+  'Ej: IES Ejemplo': 'e.g. Greenfield School',
+  'Ej: Matemáticas': 'e.g. Mathematics',
+  'Guardar cambios': 'Save changes',
+  'Preferencias': 'Preferences',
+  'Idioma · Language': 'Language',
+  'En inglés se usa terminología internacional (Units of Inquiry, Learning Outcomes, Formative Assessment), no una traducción literal. Los datos que tú escribes no se traducen.':
+    'English uses international terminology (Units of Inquiry, Learning Outcomes, Formative Assessment), not a literal translation. Anything you type in yourself is never translated.',
+  'Color de la interfaz': 'Interface colour',
+  'Azul cielo': 'Sky blue',
+  'Esmeralda': 'Emerald',
+  'Violeta': 'Violet',
+  'Rosa': 'Rose',
+  'Ámbar': 'Amber',
+  'Pizarra': 'Slate',
+  'Asistente de IA': 'AI assistant',
+  'Datos y copia de seguridad': 'Data & backup',
+  'Llevar a otro equipo': 'Move to another computer',
+  'Descarga un archivo con todo tu trabajo para pasarlo a otro ordenador o guardarlo aparte.':
+    'Download a file with all your work to move it to another computer or keep a copy elsewhere.',
+  'Descargar mis datos': 'Download my data',
+  'Cargar desde archivo': 'Load from file',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',
@@ -190,9 +219,13 @@ interface Ctx {
   setLang: (l: Lang) => void;
   /** Traduce. Si no hay traducción devuelve el original, nunca una clave. */
   t: (key: string, vars?: Record<string, string | number>) => string;
+  /** Locale para Intl / toLocaleDateString / toLocaleString, según el idioma activo. */
+  locale: string;
 }
 
-const I18nContext = createContext<Ctx>({ lang: 'es', setLang: () => {}, t: k => k });
+const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB' };
+
+const I18nContext = createContext<Ctx>({ lang: 'es', setLang: () => {}, t: k => k, locale: 'es-ES' });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
@@ -209,6 +242,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     lang,
     setLang: setLangState,
     t: (key, vars) => translate(lang, key, vars),
+    locale: LOCALES[lang],
   }), [lang]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

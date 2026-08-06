@@ -137,6 +137,8 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 /* ─── PROFILE ─── */
 .profile-grid { display:grid; grid-template-columns:220px 1fr; gap:16px; align-items:start; }
 @media(max-width:700px) { .profile-grid { grid-template-columns:1fr; } }
+.profile-prefs-grid { align-items:start; }
+@media(max-width:700px) { .profile-prefs-grid { grid-template-columns:1fr !important; } }
 
 /* ─── CUADERNO DE NOTAS ─── */
 .gb-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }

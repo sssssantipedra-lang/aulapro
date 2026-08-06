@@ -1,12 +1,30 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
+import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
 import { DataFolder } from '../components/DataFolder';
 import { THEMES, applyTheme, isoDate, type ThemeKey } from '../lib/utils';
 import type { User } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { useI18n, LANGS } from '../i18n';
+
+/** Cabecera de sección: agrupa varias tarjetas bajo un mismo epígrafe. */
+function SectionLabel({ icon, children, first }: { icon: React.ReactNode; children: React.ReactNode; first?: boolean }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      margin: first ? '0 0 12px' : '30px 0 12px',
+      paddingTop: first ? 0 : 22,
+      borderTop: first ? 'none' : '0.5px solid var(--border)',
+    }}>
+      <span style={{ display: 'flex', color: 'var(--accent-d)' }}>{icon}</span>
+      <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-2)' }}>
+        {children}
+      </span>
+    </div>
+  );
+}
 
 interface Props {
   user: User | null;
@@ -20,7 +38,7 @@ interface Props {
 
 export function Profile({ user, profileId, course, onUpdateUser, onExportData, onImportData, onClearSchoolYear }: Props) {
   const { toast } = useToast();
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const [nombre, setNombre] = useState(user?.full_name.split(' ')[0] ?? '');
   const [apell,  setApell]  = useState(user?.full_name.split(' ').slice(1).join(' ') ?? '');
   const [centro, setCentro] = useState(user?.school ?? '');
@@ -67,11 +85,13 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Mi Perfil</h1>
-          <p className="pg-sub">Datos personales, IA y copia de seguridad</p>
+          <h1 className="pg-title">{t('Mi Perfil')}</h1>
+          <p className="pg-sub">{t('Datos personales, IA y copia de seguridad')}</p>
         </div>
       </div>
 
+      {/* ── Datos personales ── */}
+      <SectionLabel icon={<UserCircle size={15} />} first>{t('Datos personales')}</SectionLabel>
       <div className="profile-grid">
         {/* Tarjeta de avatar */}
         <div className="card" style={{ textAlign: 'center', padding: '28px 20px' }}>
@@ -80,16 +100,36 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
           {user?.subject && <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 3 }}>{user.subject}</div>}
           {user?.school && <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{user.school}</div>}
           <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--border)' }}>
-            {course && <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>Curso {course}</div>}
-            <div style={{ fontSize: 11.5, color: 'var(--ok)', fontWeight: 700 }}>Perfil local · datos en este equipo</div>
+            {course && <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>{t('Curso')} {course}</div>}
+            <div style={{ fontSize: 11.5, color: 'var(--ok)', fontWeight: 700 }}>{t('Perfil local · datos en este equipo')}</div>
           </div>
         </div>
 
-        {/* Selector de tema */}
+        {/* Editar datos */}
+        <div className="card">
+          <div className="card-hd">
+            <div className="card-ttl"><Pencil size={14} color="var(--accent-d)" />{t('Editar datos')}</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="fgroup"><label className="flabel">{t('Nombre')}</label><input className="finput" value={nombre} onChange={e => setNombre(e.target.value)} /></div>
+            <div className="fgroup"><label className="flabel">{t('Apellidos')}</label><input className="finput" value={apell} onChange={e => setApell(e.target.value)} /></div>
+            <div className="fgroup"><label className="flabel">{t('Centro educativo')}</label><input className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder={t('Ej: IES Ejemplo')} /></div>
+            <div className="fgroup"><label className="flabel">{t('Especialidad')}</label><input className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder={t('Ej: Matemáticas')} /></div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel">{t('Curso escolar')}</label><input className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
+          </div>
+          <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
+            <button className="btn-accent" onClick={saveProfile}>{t('Guardar cambios')}</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Preferencias ── */}
+      <SectionLabel icon={<SlidersHorizontal size={15} />}>{t('Preferencias')}</SectionLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="profile-prefs-grid">
         {/* Idioma de la interfaz */}
         <div className="card">
           <div className="card-hd">
-            <div className="card-ttl"><Languages size={14} color="var(--accent-d)" />Idioma · Language</div>
+            <div className="card-ttl"><Languages size={14} color="var(--accent-d)" />{t('Idioma · Language')}</div>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {LANGS.map(l => {
@@ -99,7 +139,7 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
                   key={l.id}
                   onClick={() => setLang(l.id)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px',
+                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 16px',
                     borderRadius: 11, cursor: 'pointer', fontFamily: 'var(--font)',
                     fontSize: 13.5, fontWeight: on ? 800 : 500,
                     background: on ? 'var(--accent-l)' : 'transparent',
@@ -107,88 +147,88 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
                     color: on ? 'var(--accent-d)' : 'var(--text-2)',
                   }}
                 >
-                  <span style={{ fontSize: 16 }}>{l.flag}</span>{l.label}
+                  <Flag lang={l.id} size={20} />{l.label}
                 </button>
               );
             })}
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.5 }}>
-            En inglés se usa terminología internacional (Units of Inquiry, Learning
-            Outcomes, Formative Assessment), no una traducción literal. Los datos
-            que tú escribes no se traducen.
+            {t('En inglés se usa terminología internacional (Units of Inquiry, Learning Outcomes, Formative Assessment), no una traducción literal. Los datos que tú escribes no se traducen.')}
           </p>
         </div>
 
+        {/* Selector de tema */}
         <div className="card">
           <div className="card-hd">
-            <div className="card-ttl"><Palette size={14} color="var(--accent-d)" />Color de la interfaz</div>
+            <div className="card-ttl"><Palette size={14} color="var(--accent-d)" />{t('Color de la interfaz')}</div>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            {(Object.entries(THEMES) as [ThemeKey, typeof THEMES[ThemeKey]][]).map(([key, t]) => {
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(78px, 1fr))', gap: 10 }}>
+            {(Object.entries(THEMES) as [ThemeKey, typeof THEMES[ThemeKey]][]).map(([key, th]) => {
               const active = currentTheme === key;
               return (
                 <button
                   key={key}
                   onClick={() => handleTheme(key)}
+                  title={th.label}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 16px',
-                    background: 'white', border: `1.5px solid ${active ? t.accentD : 'var(--border)'}`,
-                    borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13,
-                    fontWeight: 600, color: 'var(--text)', transition: 'all 0.18s',
-                    boxShadow: active ? `0 2px 10px rgba(${t.accentRgb},0.25)` : 'none',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
+                    padding: '10px 6px 8px', background: active ? 'var(--surface)' : 'transparent',
+                    border: `1.5px solid ${active ? th.accentD : 'var(--border)'}`,
+                    borderRadius: 13, cursor: 'pointer', fontFamily: 'var(--font)',
+                    transition: 'all 0.18s',
+                    boxShadow: active ? `0 3px 12px rgba(${th.accentRgb},0.28)` : 'none',
                   }}
                 >
-                  <span style={{ width: 16, height: 16, borderRadius: '50%', background: `linear-gradient(135deg,${t.accent},${t.accentD})`, flexShrink: 0 }} />
-                  {t.label}
-                  {active && <span style={{ marginLeft: 4, color: t.accentD }}>✓</span>}
+                  <span style={{
+                    position: 'relative', width: 34, height: 34, borderRadius: '50%',
+                    background: `linear-gradient(135deg,${th.accent},${th.accentD})`,
+                    boxShadow: `0 2px 8px rgba(${th.accentRgb},0.45), inset 0 0 0 2px rgba(255,255,255,0.35)`,
+                  }}>
+                    {active && (
+                      <span style={{
+                        position: 'absolute', inset: -4, borderRadius: '50%',
+                        border: `2px solid ${th.accentD}`,
+                      }} />
+                    )}
+                  </span>
+                  <span style={{ fontSize: 11.5, fontWeight: active ? 800 : 600, color: active ? th.accentD : 'var(--text-2)', textAlign: 'center', lineHeight: 1.2 }}>
+                    {t(th.label)}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
-
-        {/* Editar datos */}
-        <div className="card" style={{ gridColumn: '1 / -1' }}>
-          <div className="card-hd">
-            <div className="card-ttl"><Pencil size={14} color="var(--accent-d)" />Editar datos</div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div className="fgroup"><label className="flabel">Nombre</label><input className="finput" value={nombre} onChange={e => setNombre(e.target.value)} /></div>
-            <div className="fgroup"><label className="flabel">Apellidos</label><input className="finput" value={apell} onChange={e => setApell(e.target.value)} /></div>
-            <div className="fgroup"><label className="flabel">Centro educativo</label><input className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder="IES Ejemplo" /></div>
-            <div className="fgroup"><label className="flabel">Especialidad</label><input className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder="Matemáticas" /></div>
-            <div className="fgroup"><label className="flabel">Curso escolar</label><input className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
-          </div>
-          <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
-            <button className="btn-accent" onClick={saveProfile}>Guardar cambios</button>
-          </div>
-        </div>
-
-        {/* Asistente IA */}
-        <ApiKeySettings />
-
-        {/* Archivo para llevar a otro equipo */}
-        <div className="card" style={{ gridColumn: '1 / -1' }}>
-          <div className="card-hd">
-            <div className="card-ttl"><Database size={14} color="var(--accent-d)" />Llevar a otro equipo</div>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
-            Descarga un archivo con todo tu trabajo para pasarlo a otro ordenador o guardarlo aparte.
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="btn-accent" onClick={handleExport}>
-              <Download size={14} />Descargar mis datos
-            </button>
-            <button className="btn-ghost" onClick={() => importRef.current?.click()}>
-              <Upload size={14} />Cargar desde archivo
-            </button>
-            <input ref={importRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleImportFile} />
-          </div>
-        </div>
-
-        {/* Carpeta de datos, copias y fin de curso */}
-        <DataFolder profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} />
       </div>
+
+      {/* ── Asistente IA ── */}
+      <div style={{ margin: '30px 0 12px', paddingTop: 22, borderTop: '0.5px solid var(--border)' }} />
+      <ApiKeySettings />
+
+      {/* ── Datos y copia de seguridad ── */}
+      <SectionLabel icon={<Database size={15} />}>{t('Datos y copia de seguridad')}</SectionLabel>
+
+      {/* Archivo para llevar a otro equipo */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-hd">
+          <div className="card-ttl"><Database size={14} color="var(--accent-d)" />{t('Llevar a otro equipo')}</div>
+        </div>
+        <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
+          {t('Descarga un archivo con todo tu trabajo para pasarlo a otro ordenador o guardarlo aparte.')}
+        </p>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn-accent" onClick={handleExport}>
+            <Download size={14} />{t('Descargar mis datos')}
+          </button>
+          <button className="btn-ghost" onClick={() => importRef.current?.click()}>
+            <Upload size={14} />{t('Cargar desde archivo')}
+          </button>
+          <input ref={importRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleImportFile} />
+        </div>
+      </div>
+
+      {/* Carpeta de datos, copias y fin de curso */}
+      <DataFolder profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} />
     </section>
   );
 }
