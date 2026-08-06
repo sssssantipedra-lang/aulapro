@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardList,
   Target, History, BookOpen, User, ChevronLeft, ChevronRight, Presentation, Users2, Smartphone,
-  UserCheck, FileText, LogOut, Check, ScrollText, Stamp,
+  UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import type { User as UserType } from '../../types';
@@ -31,6 +31,7 @@ const NAV: { sect: string; items: NavEntry[] }[] = [
       { id: 'diana',     label: 'Diana Competencial', icon: <Target size={18} /> },
       { id: 'reports',   label: 'Informes',           icon: <FileText size={18} /> },
       { id: 'records',   label: 'Actas',              icon: <Stamp size={18} /> },
+      { id: 'selfassess', label: 'Autoevaluaciones',  icon: <Phone size={18} /> },
       { id: 'history',   label: 'Historial',          icon: <History size={18} /> },
     ],
   },
@@ -129,6 +130,17 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
           <span className="ni-icon"><LogOut size={18} /></span>
           <span className="ni-label">Cerrar sesión</span>
         </button>
+
+        {/* Sobre qué currículo está construida la aplicación. Importa para
+            quien la use fuera de España, o en otra etapa educativa. */}
+        {!mini && (
+          <p style={{
+            fontSize: 10.5, lineHeight: 1.45, color: 'rgba(255,255,255,0.38)',
+            margin: '10px 4px 0', textAlign: 'center',
+          }}>
+            Diseñada sobre el currículo educativo español (LOMLOE)
+          </p>
+        )}
       </div>
     </aside>
   );

@@ -75,6 +75,15 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
       <div className="auth-orb" style={{ width: 500, height: 500, background: 'rgba(var(--accent-rgb),0.07)', top: -120, right: -80 }} />
       <div className="auth-orb" style={{ width: 300, height: 300, background: 'rgba(var(--accent-rgb),0.05)', bottom: -60, left: -40 }} />
       <div className="auth-card">{children}</div>
+      {/* Sobre qué currículo está construida: importa saberlo antes de
+          empezar a usarla, sobre todo fuera de España. */}
+      <p style={{
+        fontSize: 11.5, color: 'rgba(255,255,255,0.4)', marginTop: 18,
+        textAlign: 'center', lineHeight: 1.5, maxWidth: 380,
+      }}>
+        Diseñada sobre el currículo educativo español (LOMLOE): competencias
+        clave, criterios de evaluación y niveles de logro.
+      </p>
     </div>
   );
 

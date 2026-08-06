@@ -317,6 +317,38 @@ export type AttendanceStatus = 'present' | 'absent' | 'late' | 'justified';
 /** asistencia[claseId][fecha ISO][alumnoId] = estado */
 export type AttendanceMap = Record<string, Record<string, Record<string, AttendanceStatus>>>;
 
+/* ── Autoevaluaciones de la Sala de alumnos ── */
+
+/**
+ * Lo que respondieron los alumnos desde su móvil en una sesión.
+ *
+ * Se guarda siempre, en cuanto hay respuestas: antes vivía solo en la memoria
+ * del servidor de la sala y se perdía al cerrarla. Que pase o no al Historial
+ * es una decisión posterior del docente, porque una autoevaluación no es una
+ * calificación suya y puede querer descartarla.
+ */
+export interface SelfAssessmentSession {
+  id: string;
+  /** Instante en que se guardó. Para el día usar `date`. */
+  at: string;
+  date: string;
+  class_id: string;
+  class_name: string;
+  /** Rúbrica o diana de la que salió, si aún existe. */
+  source_id?: string;
+  title: string;
+  /** Ítems evaluados, con el nombre congelado por si luego se editan. */
+  items: { id: string; name: string }[];
+  rows: {
+    student_id: string | null;
+    student_name: string;
+    scores: Record<string, number>;
+    grade: number | null;
+  }[];
+  /** Ya volcada al Historial. Se conserva para no duplicarla. */
+  included?: boolean;
+}
+
 /* ── Informes competenciales ── */
 export interface CompetencyReport {
   id: string;
@@ -333,4 +365,4 @@ export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
-  | 'attendance' | 'reports' | 'audit' | 'records';
+  | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records';

@@ -6,7 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
 import { useP2PSync } from './hooks/useP2PSync';
-import { applyTheme, isoDate, type ThemeKey } from './lib/utils';
+import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
 import type { Section } from './types';
 import { X } from 'lucide-react';
@@ -17,6 +17,7 @@ const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default:
 const Rubrics        = lazy(() => import('./pages/Rubrics').then(m => ({ default: m.Rubrics })));
 const Diana          = lazy(() => import('./pages/Diana').then(m => ({ default: m.Diana })));
 const History        = lazy(() => import('./pages/History').then(m => ({ default: m.History })));
+const SelfAssessments = lazy(() => import('./pages/SelfAssessments').then(m => ({ default: m.SelfAssessments })));
 const AuditLog       = lazy(() => import('./pages/AuditLog').then(m => ({ default: m.AuditLog })));
 const Records        = lazy(() => import('./pages/Records').then(m => ({ default: m.Records })));
 const Notebook       = lazy(() => import('./pages/Notebook').then(m => ({ default: m.Notebook })));
@@ -199,6 +200,14 @@ function AppInner() {
                 onSaveDiana={st.saveDianaProfile}
               />
             )}
+            {section === 'selfassess' && (
+              <SelfAssessments
+                sessions={st.selfAssessments}
+                onInclude={st.includeSelfAssessment}
+                onDelete={st.deleteSelfAssessment}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
             {section === 'audit' && (
               <AuditLog auditLog={st.auditLog} onClear={st.clearAuditLog} />
             )}
@@ -253,24 +262,9 @@ function AppInner() {
                 rubrics={st.rubrics}
                 dianas={st.dianas}
                 onNav={s => setSection(s as Section)}
-                onSaveSelfAssessment={({ classId, activityTitle, rows }) => {
-                  rows.forEach(row => {
-                    st.addEvaluation({
-                      id: 'ev' + Date.now() + Math.random().toString(36).slice(2, 7),
-                      rubric_id: 'autoeval',
-                      rubric_name: `${activityTitle} (autoevaluación)`,
-                      student_id: row.studentId ?? '',
-                      student_name: row.studentName,
-                      class_id: classId,
-                      date: isoDate(),
-                      scores: row.scores,
-                      notes: 'Respuesta del propio alumno desde su móvil',
-                      instrument: 'diana',
-                      grade: row.grade ?? undefined,
-                    });
-                  });
-                  toast(`✅ ${rows.length} autoevaluaciones guardadas en el Historial`);
-                }}
+                // Solo guarda la sesión. Pasarla al Historial es una decisión
+                // posterior, desde la pantalla de Autoevaluaciones.
+                onSaveSelfAssessment={st.saveSelfAssessment}
               />
             )}
             {section === 'share' && (

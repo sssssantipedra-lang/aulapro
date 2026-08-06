@@ -3,7 +3,8 @@ import {
   Smartphone, Play, Square, Users, MessageSquareText, BarChart3,
   ClipboardCheck, Plus, Trash2, Monitor, Wifi, ArrowRight, Save, Target,
 } from 'lucide-react';
-import type { Class, Student, Rubric, EvalDiana } from '../types';
+import type { Class, Student, Rubric, EvalDiana, SelfAssessmentSession } from '../types';
+import { isoDate } from '../lib/utils';
 import type { ClassroomActivity, ClassroomSnapshot } from '../types/electron';
 import { SessionQR } from '../components/share/SessionQR';
 import { useToast } from '../components/ui/Toast';
@@ -15,11 +16,8 @@ interface Props {
   rubrics: Rubric[];
   dianas: EvalDiana[];
   onNav: (s: string) => void;
-  onSaveSelfAssessment: (payload: {
-    classId: string;
-    activityTitle: string;
-    rows: { studentName: string; studentId: string | null; scores: Record<string, number>; grade: number | null }[];
-  }) => void;
+  /** Guarda lo respondido. Se llama solo, en cuanto hay respuestas. */
+  onSaveSelfAssessment: (session: SelfAssessmentSession) => void;
 }
 
 type ActivityKind = 'rubric' | 'brainstorm' | 'poll';
@@ -166,6 +164,53 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
       </section>
     );
   }
+
+  /**
+   * Guarda lo respondido en cuanto llega, sin pedir permiso.
+   *
+   * Antes las respuestas vivían solo en la memoria del servidor de la sala:
+   * cerrarla, o que se cayera la aplicación, las borraba. Ahora se conservan
+   * siempre y el docente decide después si las incluye en el Historial.
+   *
+   * El id se deriva del código de sala y de la actividad, así que ir
+   * recibiendo respuestas actualiza la misma sesión en vez de crear una por
+   * cada alumno que contesta.
+   */
+  useEffect(() => {
+    const act = snap?.activity;
+    if (!snap?.running || act?.type !== 'rubric') return;
+    const answers = (snap.responses ?? []).filter(r => r.data?.scores);
+    if (answers.length === 0) return;
+
+    const items = act.items ?? [];
+    const cls = classes.find(c => c.id === classId);
+
+    onSaveSelfAssessment({
+      id: `sa-${snap.code}-${act.id}`,
+      at: new Date().toISOString(),
+      date: isoDate(),
+      class_id: classId,
+      class_name: cls?.name ?? '',
+      source_id: act.id,
+      title: act.title,
+      items: items.map(i => ({ id: i.id, name: i.name })),
+      rows: answers.map(r => {
+        const scores = r.data?.scores ?? {};
+        const vals = items.map(i => scores[i.id]).filter((v): v is number => typeof v === 'number');
+        // La página del alumno ofrece cuatro niveles fijos
+        const grade = vals.length
+          ? Math.round((vals.reduce((a, b) => a + b, 0) / (vals.length * 4)) * 10 * 10) / 10
+          : null;
+        return {
+          student_id: roster.find(x => x.n === r.n)?.id ?? null,
+          student_name: r.name,
+          scores,
+          grade,
+        };
+      }),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snap?.responses, snap?.activity, snap?.code, snap?.running]);
 
   const running = snap?.running === true;
   const address = snap?.addresses?.[0];
@@ -353,15 +398,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
 
           {/* Resultados */}
           {running && (
-            <ResultsPanel
-              snap={snap!}
-              roster={roster}
-              onSave={rows => onSaveSelfAssessment({
-                classId,
-                activityTitle: snap!.activity?.title ?? 'Autoevaluación',
-                rows,
-              })}
-            />
+            <ResultsPanel snap={snap!} roster={roster} onNav={onNav} />
           )}
         </div>
 
@@ -433,11 +470,11 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
 /* ══════════════ Resultados en vivo ══════════════ */
 
 function ResultsPanel({
-  snap, roster, onSave,
+  snap, roster, onNav,
 }: {
   snap: ClassroomSnapshot;
   roster: { n: number; name: string; id: string }[];
-  onSave: (rows: { studentName: string; studentId: string | null; scores: Record<string, number>; grade: number | null }[]) => void;
+  onNav: (s: string) => void;
 }) {
   const activity = snap.activity;
   const responses = snap.responses;
@@ -463,7 +500,7 @@ function ResultsPanel({
       ) : activity.type === 'brainstorm' ? (
         <BrainstormResults responses={responses} />
       ) : (
-        <RubricResults activity={activity} responses={responses} roster={roster} onSave={onSave} />
+        <RubricResults activity={activity} responses={responses} roster={roster} onNav={onNav} />
       )}
 
       {pending.length > 0 && responses.length > 0 && (
@@ -526,12 +563,12 @@ function BrainstormResults({ responses }: { responses: ClassroomSnapshot['respon
 }
 
 function RubricResults({
-  activity, responses, roster, onSave,
+  activity, responses, roster, onNav,
 }: {
   activity: ClassroomActivity;
   responses: ClassroomSnapshot['responses'];
   roster: { n: number; name: string; id: string }[];
-  onSave: (rows: { studentName: string; studentId: string | null; scores: Record<string, number>; grade: number | null }[]) => void;
+  onNav: (s: string) => void;
 }) {
   const items = activity.items ?? [];
 
@@ -581,13 +618,20 @@ function RubricResults({
         </table>
       </div>
 
-      <button
-        className="btn-accent"
-        style={{ marginTop: 14 }}
-        onClick={() => onSave(rows.map(({ studentName, studentId, scores, grade }) => ({ studentName, studentId, scores, grade })))}
-      >
-        <Save size={14} />Guardar en el historial
-      </button>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10, marginTop: 14,
+        padding: '11px 14px', background: 'var(--surface)', borderRadius: 11,
+      }}>
+        <Save size={15} color="var(--ok)" style={{ flexShrink: 0 }} />
+        <span style={{ flex: 1, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5 }}>
+          Se guarda solo, aunque cierres la sala. Decides después si lo pasas
+          al historial de evaluaciones.
+        </span>
+        <button className="btn-ghost" style={{ fontSize: 12.5, flexShrink: 0 }}
+          onClick={() => onNav('selfassess')}>
+          Ver autoevaluaciones
+        </button>
+      </div>
     </>
   );
 }

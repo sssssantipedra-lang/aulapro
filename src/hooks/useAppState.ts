@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
-  AttendanceMap, AttendanceStatus, CompetencyReport,
+  AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
@@ -41,6 +41,7 @@ interface ProfileSnapshot {
   dianaProfiles: Record<string, DianaProfile>;
   attendance: AttendanceMap;
   reports: CompetencyReport[];
+  selfAssessments: SelfAssessmentSession[];
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -51,7 +52,7 @@ function emptySnapshot(): ProfileSnapshot {
     tasks: [], classes: [], students: [], blocks: [], events: [],
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
-    dianaProfiles: {}, attendance: {}, reports: [],
+    dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [],
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -107,6 +108,7 @@ export function useAppState() {
   const [dianaProfiles, setDianaProfiles]     = useState<Record<string, DianaProfile>>({});
   const [attendance, setAttendance]           = useState<AttendanceMap>({});
   const [reports, setReports]                 = useState<CompetencyReport[]>([]);
+  const [selfAssessments, setSelfAssessments] = useState<SelfAssessmentSession[]>([]);
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -133,6 +135,7 @@ export function useAppState() {
     setDianaProfiles(s.dianaProfiles);
     setAttendance(s.attendance);
     setReports(s.reports);
+    setSelfAssessments(s.selfAssessments);
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -169,10 +172,10 @@ export function useAppState() {
   const snapshot = useMemo<ProfileSnapshot>(() => ({
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
-    dianaProfiles, attendance, reports, tombstones, shareScope, auditLog,
+    dianaProfiles, attendance, reports, selfAssessments, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
-      attendance, reports, tombstones, shareScope, auditLog]);
+      attendance, reports, selfAssessments, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -261,10 +264,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports };
-  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -578,6 +581,66 @@ export function useAppState() {
     log('delete', 'report', id, `Informe de ${gone?.student_name ?? 'un alumno'}`, gone?.period);
   }, [log]);
 
+  /* ── Autoevaluaciones de la Sala de alumnos ── */
+
+  /**
+   * Guarda lo que respondieron los alumnos. Se llama en cuanto hay
+   * respuestas, sin preguntar: antes vivían en la memoria del servidor de la
+   * sala y cerrarla las borraba. Si la sesión ya estaba guardada se
+   * actualiza, para que ir recibiendo respuestas no cree una copia por cada
+   * alumno que contesta.
+   */
+  const saveSelfAssessment = useCallback((session: SelfAssessmentSession) => {
+    let esNueva = false;
+    setSelfAssessments(prev => {
+      const i = prev.findIndex(s => s.id === session.id);
+      if (i < 0) { esNueva = true; return [session, ...prev]; }
+      // No se pisa `included`: la decisión del docente manda sobre el volcado
+      return prev.map((s, j) => (j === i ? { ...session, included: s.included } : s));
+    });
+    if (esNueva) {
+      log('create', 'evaluation', session.id,
+        `Autoevaluación «${session.title}» en ${session.class_name}`,
+        `${session.rows.length} alumnos`);
+    }
+  }, [log]);
+
+  const deleteSelfAssessment = useCallback((id: string) => {
+    const gone = mirrorRef.current.selfAssessments.find(s => s.id === id);
+    setSelfAssessments(prev => prev.filter(s => s.id !== id));
+    log('delete', 'evaluation', id,
+      `Autoevaluación «${gone?.title ?? id}»`, 'descartada sin incluirla');
+  }, [log]);
+
+  /**
+   * Pasa una sesión al Historial como evaluaciones.
+   *
+   * Se marcan con `rubric_id: 'autoeval'`, así que no escriben en el cuaderno:
+   * lo que dice un alumno de sí mismo no es una calificación del docente.
+   */
+  const includeSelfAssessment = useCallback((id: string) => {
+    const session = mirrorRef.current.selfAssessments.find(s => s.id === id);
+    if (!session || session.included) return;
+
+    session.rows.forEach(row => {
+      addEvaluation({
+        id: 'ev' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        rubric_id: 'autoeval',
+        rubric_name: `${session.title} (autoevaluación)`,
+        student_id: row.student_id ?? '',
+        student_name: row.student_name,
+        class_id: session.class_id,
+        date: session.date,
+        scores: row.scores,
+        notes: 'Respuesta del propio alumno desde su móvil',
+        instrument: 'diana',
+        grade: row.grade ?? undefined,
+      });
+    });
+
+    setSelfAssessments(prev => prev.map(s => (s.id === id ? { ...s, included: true } : s)));
+  }, [addEvaluation]);
+
   /* ── Sincronización entre docentes ── */
   const syncSource = {
     classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones,
@@ -679,6 +742,7 @@ export function useAppState() {
     setDianaProfiles({});
     setAttendance({});
     setReports([]);
+    setSelfAssessments([]);
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
@@ -712,6 +776,7 @@ export function useAppState() {
     dianaProfiles, saveDianaProfile,
     setAttendanceFor, setAttendanceDay, deleteAttendanceDay,
     addReport, updateReport, deleteReport,
+    selfAssessments, saveSelfAssessment, deleteSelfAssessment, includeSelfAssessment,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,
