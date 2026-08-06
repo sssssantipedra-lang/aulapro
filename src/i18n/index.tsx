@@ -716,6 +716,42 @@ const EN: Record<string, string> = {
     'The answers of {n} students in "{title}" will be deleted.\n\nThis can’t be undone.',
   'Autoevaluación descartada': 'Self-assessment discarded',
 
+  /* ── Registro de cambios ── */
+  'Creó': 'Created',
+  'Cambió': 'Changed',
+  'Borró': 'Deleted',
+  'Prueba': 'Item',
+  'Informe': 'Report',
+  'Rúbrica': 'Rubric',
+  'Sincronización': 'Sync',
+  'Sistema': 'System',
+  'Notas': 'Grades',
+  'Clases': 'Classes',
+  'Compartido': 'Shared',
+  'Todo': 'All',
+  'Todos los docentes': 'All teachers',
+  'No hay nada que exportar con estos filtros': 'There’s nothing to export with these filters',
+  '✅ Registro descargado': '✅ Log downloaded',
+  'Se borrará todo el registro de cambios.\n\nLos datos (notas, alumnos, evaluaciones) NO se tocan: solo desaparece el historial de quién cambió qué. Esta acción no se puede deshacer.':
+    'The entire change log will be deleted.\n\nThe data (grades, students, assessments) is NOT touched: only the record of who changed what disappears. This can’t be undone.',
+  'Registro vaciado': 'Log cleared',
+  'Quién cambió qué, y cuándo': 'Who changed what, and when',
+  'Descargar CSV': 'Download CSV',
+  'Vaciar': 'Clear',
+  'Todavía no hay nada anotado': 'Nothing recorded yet',
+  'A partir de ahora, cada nota que pongas, cada alumno que añadas y cada evaluación que guardes dejará constancia aquí: qué era antes, qué es ahora y quién lo hizo.':
+    'From now on, every grade you enter, every student you add and every assessment you save will leave a trace here: what it was before, what it is now, and who did it.',
+  'Buscar un alumno, una prueba…': 'Search a student, an item…',
+  'Ningún cambio coincide con lo que buscas.': 'No change matches your search.',
+  '{n} cambio': '{n} change',
+  '{n} cambios': '{n} changes',
+  '{n} cambio registrado': '{n} change recorded',
+  '{n} cambios registrados': '{n} changes recorded',
+  'El registro se guarda con tus datos y entra en las copias de seguridad. Se conservan los':
+    'The log is saved with your data and included in backups. The most recent',
+  'cambios más recientes; a partir de ahí los más antiguos se van descartando. Si compartes trabajo con otro docente, aquí verás también lo que llega de su equipo.':
+    'changes are kept; older ones are discarded from there on. If you share work with another teacher, you’ll also see what comes in from their side here.',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',

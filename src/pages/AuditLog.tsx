@@ -6,7 +6,7 @@ import {
   type AuditEntry,
 } from '../services/audit';
 import { useToast } from '../components/ui/Toast';
-import { plural } from '../lib/utils';
+import { useI18n } from '../i18n';
 
 interface Props {
   auditLog: AuditEntry[];
@@ -15,6 +15,7 @@ interface Props {
 
 export function AuditLog({ auditLog, onClear }: Props) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [group, setGroup] = useState<string>('all');
   const [who, setWho]     = useState<string>('all');
   const [query, setQuery] = useState('');
@@ -51,43 +52,41 @@ export function AuditLog({ auditLog, onClear }: Props) {
   }, [filtered]);
 
   function exportCsv() {
-    if (filtered.length === 0) { toast('No hay nada que exportar con estos filtros'); return; }
+    if (filtered.length === 0) { toast(t('No hay nada que exportar con estos filtros')); return; }
     const url = URL.createObjectURL(new Blob([auditToCsv(filtered)], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
     a.download = `registro-de-cambios-${dayKeyOf(new Date().toISOString())}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast('✅ Registro descargado');
+    toast(t('✅ Registro descargado'));
   }
 
   function askClear() {
     if (!confirm(
-      'Se borrará todo el registro de cambios.\n\n' +
-      'Los datos (notas, alumnos, evaluaciones) NO se tocan: solo desaparece el ' +
-      'historial de quién cambió qué. Esta acción no se puede deshacer.',
+      t('Se borrará todo el registro de cambios.\n\nLos datos (notas, alumnos, evaluaciones) NO se tocan: solo desaparece el historial de quién cambió qué. Esta acción no se puede deshacer.'),
     )) return;
     onClear();
-    toast('Registro vaciado');
+    toast(t('Registro vaciado'));
   }
 
   return (
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Registro de cambios</h1>
+          <h1 className="pg-title">{t('Registro de cambios')}</h1>
           <p className="pg-sub">
             {auditLog.length > 0
-              ? `${plural(auditLog.length, 'cambio registrado', 'cambios registrados')}`
-              : 'Quién cambió qué, y cuándo'}
+              ? t(auditLog.length === 1 ? '{n} cambio registrado' : '{n} cambios registrados', { n: auditLog.length })
+              : t('Quién cambió qué, y cuándo')}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn-ghost" onClick={exportCsv} disabled={filtered.length === 0}>
-            <Download size={14} />Descargar CSV
+            <Download size={14} />{t('Descargar CSV')}
           </button>
           <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={askClear} disabled={auditLog.length === 0}>
-            <Trash2 size={14} />Vaciar
+            <Trash2 size={14} />{t('Vaciar')}
           </button>
         </div>
       </div>
@@ -96,20 +95,19 @@ export function AuditLog({ auditLog, onClear }: Props) {
         <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <ScrollText size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
           <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            Todavía no hay nada anotado
+            {t('Todavía no hay nada anotado')}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            A partir de ahora, cada nota que pongas, cada alumno que añadas y cada evaluación
-            que guardes dejará constancia aquí: qué era antes, qué es ahora y quién lo hizo.
+            {t('A partir de ahora, cada nota que pongas, cada alumno que añadas y cada evaluación que guardes dejará constancia aquí: qué era antes, qué es ahora y quién lo hizo.')}
           </p>
         </div>
       ) : (
         <>
           {/* Filtros */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            <FilterChip label="Todo" on={group === 'all'} onClick={() => setGroup('all')} />
+            <FilterChip label={t('Todo')} on={group === 'all'} onClick={() => setGroup('all')} />
             {ENTITY_GROUPS.map(g => (
-              <FilterChip key={g.id} label={g.label} on={group === g.id} onClick={() => setGroup(g.id)} />
+              <FilterChip key={g.id} label={t(g.label)} on={group === g.id} onClick={() => setGroup(g.id)} />
             ))}
 
             <div style={{ flex: 1, minWidth: 12 }} />
@@ -119,7 +117,7 @@ export function AuditLog({ auditLog, onClear }: Props) {
                 className="finput" value={who} onChange={e => setWho(e.target.value)}
                 style={{ width: 170, height: 38, cursor: 'pointer' }}
               >
-                <option value="all">Todos los docentes</option>
+                <option value="all">{t('Todos los docentes')}</option>
                 {people.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             )}
@@ -128,7 +126,7 @@ export function AuditLog({ auditLog, onClear }: Props) {
               <Search size={14} color="var(--text-3)" style={{ position: 'absolute', left: 11, top: 12 }} />
               <input
                 className="finput" value={query} onChange={e => setQuery(e.target.value)}
-                placeholder="Buscar un alumno, una prueba…"
+                placeholder={t('Buscar un alumno, una prueba…')}
                 style={{ height: 38, paddingLeft: 32 }}
               />
             </div>
@@ -137,7 +135,7 @@ export function AuditLog({ auditLog, onClear }: Props) {
           {filtered.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '36px 24px' }}>
               <p style={{ fontSize: 13.5, color: 'var(--text-2)' }}>
-                Ningún cambio coincide con lo que buscas.
+                {t('Ningún cambio coincide con lo que buscas.')}
               </p>
             </div>
           ) : (
@@ -150,9 +148,9 @@ export function AuditLog({ auditLog, onClear }: Props) {
                     color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em',
                     display: 'flex', justifyContent: 'space-between',
                   }}>
-                    <span>{friendlyDay(day)}</span>
+                    <span>{friendlyDay(day, lang)}</span>
                     <span style={{ color: 'var(--text-3)', letterSpacing: 0 }}>
-                      {plural(entries.length, 'cambio', 'cambios')}
+                      {t(entries.length === 1 ? '{n} cambio' : '{n} cambios', { n: entries.length })}
                     </span>
                   </div>
                   {entries.map((e, i) => <Row key={e.id} entry={e} first={i === 0} />)}
@@ -168,10 +166,9 @@ export function AuditLog({ auditLog, onClear }: Props) {
           }}>
             <ShieldCheck size={15} style={{ flexShrink: 0, marginTop: 2 }} />
             <span>
-              El registro se guarda con tus datos y entra en las copias de seguridad. Se conservan
-              los <strong style={{ color: 'var(--text)' }}>{MAX_ENTRIES}</strong> cambios más recientes;
-              a partir de ahí los más antiguos se van descartando. Si compartes trabajo con otro docente,
-              aquí verás también lo que llega de su equipo.
+              {t('El registro se guarda con tus datos y entra en las copias de seguridad. Se conservan los')}{' '}
+              <strong style={{ color: 'var(--text)' }}>{MAX_ENTRIES}</strong>{' '}
+              {t('cambios más recientes; a partir de ahí los más antiguos se van descartando. Si compartes trabajo con otro docente, aquí verás también lo que llega de su equipo.')}
             </span>
           </div>
         </>
@@ -198,6 +195,7 @@ function FilterChip({ label, on, onClick }: { label: string; on: boolean; onClic
 }
 
 function Row({ entry, first }: { entry: AuditEntry; first: boolean }) {
+  const { t, locale } = useI18n();
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 18px',
@@ -207,14 +205,14 @@ function Row({ entry, first }: { entry: AuditEntry; first: boolean }) {
         flexShrink: 0, width: 44, fontSize: 12, fontWeight: 700,
         color: 'var(--text-3)', fontFamily: 'ui-monospace, Menlo, monospace', paddingTop: 1,
       }}>
-        {formatTime(entry.at)}
+        {formatTime(entry.at, locale)}
       </span>
 
       <span style={{
         flexShrink: 0, padding: '2px 9px', borderRadius: 7, fontSize: 11, fontWeight: 800,
         background: `${ACTION_COLOR[entry.action]}18`, color: ACTION_COLOR[entry.action],
       }}>
-        {ACTION_LABEL[entry.action]}
+        {t(ACTION_LABEL[entry.action])}
       </span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -233,7 +231,7 @@ function Row({ entry, first }: { entry: AuditEntry; first: boolean }) {
 
       <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-3)', textAlign: 'right', paddingTop: 2 }}>
         <span style={{ display: 'block', fontWeight: 600, color: 'var(--text-2)' }}>{entry.who}</span>
-        {ENTITY_LABEL[entry.entity]}
+        {t(ENTITY_LABEL[entry.entity])}
       </span>
     </div>
   );
