@@ -6,9 +6,10 @@ import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, Gr
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { fileToBase64, isoDate, plural } from '../lib/utils';
+import { fileToBase64, isoDate } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, DEFAULT_LEVELS, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
+import { useI18n } from '../i18n';
 import { DianasTab } from './EvalDianas';
 
 /* ─── Props ─── */
@@ -81,6 +82,7 @@ interface RubricModalProps {
 
 function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave }: RubricModalProps) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [mode, setMode] = useState<RubricMode>('ia');
 
   /* AI state */
@@ -139,29 +141,41 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
   async function handleGenerate() {
     if (!aiContext.trim()) return;
     const cls = classes.find(c => c.id === aiClassId);
-    const className = cls ? `${cls.name} – ${cls.subject}` : 'Clase no especificada';
+    const className = cls ? `${cls.name} – ${cls.subject}` : t('Clase no especificada');
     // Los niveles los pone el docente, así que la IA tiene que escribir un
     // descriptor para CADA uno. Antes se le pedían cuatro fijos y el quinto
     // se quedaba siempre en blanco.
     const scale = levels
-      .map(l => `${l.value}=${l.label || `Nivel ${l.value}`}`)
+      .map(l => `${l.value}=${l.label || t('Nivel {n}', { n: l.value })}`)
       .join(', ');
     const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
-    const peor = levels[0]?.label || 'el más bajo';
-    const mejor = levels[levels.length - 1]?.label || 'el más alto';
+    const peor = levels[0]?.label || (lang === 'en' ? 'the lowest' : 'el más bajo');
+    const mejor = levels[levels.length - 1]?.label || (lang === 'en' ? 'the highest' : 'el más alto');
 
-    const systemPrompt = 'Eres un experto en evaluación educativa. Responde SOLO con JSON válido.';
-    const userPrompt =
-      `Crea una rúbrica para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
-      `Genera ${aiCount} criterios. Cada criterio debe llevar un descriptor para ` +
-      `LOS ${levels.length} NIVELES, sin dejar ninguno vacío: ${scale}.\n\n` +
-      `Los descriptores de un mismo criterio forman una gradación ascendente: ` +
-      `describen el mismo aspecto con una exigencia que crece paso a paso, desde ` +
-      `«${peor}» hasta «${mejor}». Cada nivel debe suponer una mejora clara y ` +
-      `apreciable respecto al anterior, sin saltos bruscos ni dos niveles que ` +
-      `digan casi lo mismo. Redacta en positivo lo que el alumno SÍ hace en cada ` +
-      `nivel, de forma observable, y en español de España.\n\n` +
-      `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}}}]}`;
+    const systemPrompt = lang === 'en'
+      ? 'You are an expert in educational assessment. Reply ONLY with valid JSON.'
+      : 'Eres un experto en evaluación educativa. Responde SOLO con JSON válido.';
+    const userPrompt = lang === 'en'
+      ? `Create a rubric for: ${aiContext.trim()}. Class: ${className}.\n\n` +
+        `Generate ${aiCount} criteria. Each criterion must have a descriptor for ` +
+        `ALL ${levels.length} LEVELS, none left blank: ${scale}.\n\n` +
+        `The descriptors within a criterion form an ascending progression: they ` +
+        `describe the same aspect with growing demand, step by step, from ` +
+        `"${peor}" to "${mejor}". Each level must be a clear, noticeable ` +
+        `improvement over the previous one, with no abrupt jumps and no two levels ` +
+        `that say almost the same thing. Write, in positive terms, what the student ` +
+        `DOES do at each level, in observable language, in English.\n\n` +
+        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}}}]}`
+      : `Crea una rúbrica para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
+        `Genera ${aiCount} criterios. Cada criterio debe llevar un descriptor para ` +
+        `LOS ${levels.length} NIVELES, sin dejar ninguno vacío: ${scale}.\n\n` +
+        `Los descriptores de un mismo criterio forman una gradación ascendente: ` +
+        `describen el mismo aspecto con una exigencia que crece paso a paso, desde ` +
+        `«${peor}» hasta «${mejor}». Cada nivel debe suponer una mejora clara y ` +
+        `apreciable respecto al anterior, sin saltos bruscos ni dos niveles que ` +
+        `digan casi lo mismo. Redacta en positivo lo que el alumno SÍ hace en cada ` +
+        `nivel, de forma observable, y en español de España.\n\n` +
+        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}}}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
@@ -172,7 +186,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
     if (!raw) return;
     const parsed = parseGeminiJson<{ name: string; criteria: RubricCriterion[] }>(raw);
     if (parsed) setAiPreview(parsed);
-    else toast('La IA no devolvió una rúbrica válida. Vuelve a intentarlo.');
+    else toast(t('La IA no devolvió una rúbrica válida. Vuelve a intentarlo.'));
   }
 
   function applyPreview() {
@@ -237,9 +251,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {/* Header */}
         <div className="modal-hd">
           <div>
-            <div className="modal-title">{editing ? 'Editar rúbrica' : 'Nueva rúbrica'}</div>
+            <div className="modal-title">{t(editing ? 'Editar rúbrica' : 'Nueva rúbrica')}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              {mode === 'ia' ? 'Genera criterios con IA' : 'Define los criterios manualmente'}
+              {t(mode === 'ia' ? 'Genera criterios con IA' : 'Define los criterios manualmente')}
             </p>
           </div>
           <button className="ico-btn" onClick={onClose}><X size={18} /></button>
@@ -259,7 +273,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
             style={{ fontSize: 13, padding: '7px 14px' }}
             onClick={() => setMode('manual')}
           >
-            Manual
+            {t('Manual')}
           </button>
         </div>
 
@@ -272,7 +286,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
 
         {/* ── Niveles de logro ── */}
         <div className="fgroup">
-          <label className="flabel">Niveles de logro</label>
+          <label className="flabel">{t('Niveles de logro')}</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {levels.map((lv, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -288,10 +302,10 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                   className="finput" style={{ flex: 1 }}
                   value={lv.label}
                   onChange={e => setLevelLabel(i, e.target.value)}
-                  placeholder={i === levels.length - 1 ? 'El mejor nivel' : 'Nombre del nivel'}
+                  placeholder={t(i === levels.length - 1 ? 'El mejor nivel' : 'Nombre del nivel')}
                 />
                 {levels.length > 2 && (
-                  <button className="ico-btn" title="Quitar nivel" onClick={() => removeLevel(i)}>
+                  <button className="ico-btn" title={t('Quitar nivel')} onClick={() => removeLevel(i)}>
                     <Trash2 size={14} color="var(--danger)" />
                   </button>
                 )}
@@ -299,14 +313,12 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
             ))}
           </div>
           <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addLevel}>
-            <Plus size={13} />Añadir nivel
+            <Plus size={13} />{t('Añadir nivel')}
           </button>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
-            El último es el más alto y equivale a un 10; el resto reparte
-            proporcionalmente. {editing && (
+            {t('El último es el más alto y equivale a un 10; el resto reparte proporcionalmente.')} {editing && (
               <strong style={{ color: 'var(--warn)' }}>
-                Si cambias el número de niveles de una rúbrica ya usada, las
-                evaluaciones anteriores se recalcularán sobre la escala nueva.
+                {t('Si cambias el número de niveles de una rúbrica ya usada, las evaluaciones anteriores se recalcularán sobre la escala nueva.')}
               </strong>
             )}
           </p>
@@ -316,20 +328,20 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'ia' && (
           <div>
             <div className="fgroup">
-              <label className="flabel">Clase (opcional)</label>
+              <label className="flabel">{t('Clase (opcional)')}</label>
               <select className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)}>
-                <option value="">Sin clase específica</option>
+                <option value="">{t('Sin clase específica')}</option>
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>
                 ))}
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">Contexto de la actividad *</label>
+              <label className="flabel">{t('Contexto de la actividad *')}</label>
               <textarea
                 className="finput"
                 rows={3}
-                placeholder="Ej: Presentación oral sobre la Revolución Francesa, 2º ESO..."
+                placeholder={t('Ej: Presentación oral sobre la Revolución Francesa, 2º ESO...')}
                 value={aiContext}
                 onChange={e => setAiContext(e.target.value)}
                 style={{ resize: 'vertical' }}
@@ -337,9 +349,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
             </div>
             <div className="frow" style={{ marginBottom: 16 }}>
               <div className="fgroup" style={{ marginBottom: 0 }}>
-                <label className="flabel">Número de criterios</label>
+                <label className="flabel">{t('Número de criterios')}</label>
                 <select className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))}>
-                  {[3, 4, 5, 6].map(n => <option key={n} value={n}>{n} criterios</option>)}
+                  {[3, 4, 5, 6].map(n => <option key={n} value={n}>{t('{n} criterios', { n })}</option>)}
                 </select>
               </div>
             </div>
@@ -349,14 +361,14 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               onClick={handleGenerate}
               style={{ width: '100%', justifyContent: 'center', marginBottom: 16 }}
             >
-              {aiGenerating ? <><span className="spin" />Generando...</> : <><Sparkles size={14} />✨ Generar rúbrica</>}
+              {aiGenerating ? <><span className="spin" />{t('Generando...')}</> : <><Sparkles size={14} />{t('✨ Generar rúbrica')}</>}
             </button>
 
             {/* Preview */}
             {aiPreview && (
               <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 14, background: 'var(--surface)' }}>
                 <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10, color: 'var(--text)' }}>
-                  Vista previa: {aiPreview.name}
+                  {t('Vista previa: {name}', { name: aiPreview.name })}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {aiPreview.criteria.map((cr, i) => (
@@ -374,7 +386,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                   ))}
                 </div>
                 <button className="btn-accent" onClick={applyPreview} style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>
-                  Aplicar y editar
+                  {t('Aplicar y editar')}
                 </button>
               </div>
             )}
@@ -385,10 +397,10 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'manual' && (
           <div>
             <div className="fgroup">
-              <label className="flabel">Nombre de la rúbrica *</label>
+              <label className="flabel">{t('Nombre de la rúbrica *')}</label>
               <input
                 className="finput"
-                placeholder="Ej: Exposición oral"
+                placeholder={t('Ej: Exposición oral')}
                 value={manualName}
                 onChange={e => setManualName(e.target.value)}
               />
@@ -401,13 +413,13 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', flexShrink: 0 }}>#{idx + 1}</span>
                     <input
                       className="finput"
-                      placeholder="Nombre del criterio"
+                      placeholder={t('Nombre del criterio')}
                       value={cr.name}
                       onChange={e => updateCriterion(idx, 'name', e.target.value)}
                       style={{ flex: 1 }}
                     />
                     {manualCriteria.length > 1 && (
-                      <button className="ico-btn" onClick={() => removeCriterion(idx)} title="Eliminar criterio">
+                      <button className="ico-btn" onClick={() => removeCriterion(idx)} title={t('Eliminar criterio')}>
                         <Trash2 size={14} color="var(--danger)" />
                       </button>
                     )}
@@ -420,12 +432,12 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                           fontSize: 10.5, fontWeight: 700, marginBottom: 4,
                           color: levelColor(lv.value, levels.length),
                         }}>
-                          {lv.label || `Nivel ${lv.value}`}
+                          {lv.label || t('Nivel {n}', { n: lv.value })}
                         </div>
                         <textarea
                           className="finput"
                           rows={2}
-                          placeholder="Descriptor…"
+                          placeholder={t('Descriptor…')}
                           value={cr.descs[lv.value] ?? ''}
                           onChange={e => updateCriterionDesc(idx, lv.value, e.target.value)}
                           style={{ resize: 'none', fontSize: 12, padding: '7px 10px' }}
@@ -446,7 +458,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               }}
               onClick={addCriterion}
             >
-              <Plus size={14} />Añadir criterio
+              <Plus size={14} />{t('Añadir criterio')}
             </button>
           </div>
         )}
@@ -455,9 +467,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'manual' && (
           <div style={{ display: 'flex', gap: 10, marginTop: 18, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
             <button className="btn-accent" disabled={!canSave} onClick={handleSave}>
-              {editing ? 'Guardar cambios' : 'Crear rúbrica'}
+              {t(editing ? 'Guardar cambios' : 'Crear rúbrica')}
             </button>
-            <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+            <button className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
           </div>
         )}
       </div>
@@ -486,6 +498,7 @@ function EvalModal({
   onClose, onSave,
 }: EvalModalProps) {
   const { toast } = useToast();
+  const { t, lang, locale } = useI18n();
   const [classId, setClassId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -527,7 +540,7 @@ function EvalModal({
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_FILE_BYTES) {
-      setWorkFileErr('El archivo supera el límite de 19 MB.');
+      setWorkFileErr(t('El archivo supera el límite de 19 MB.'));
       return;
     }
     setWorkFileErr('');
@@ -542,20 +555,28 @@ function EvalModal({
     const criteriaText = rubric.criteria
       .map(cr => {
         const descs = levels
-          .map(lv => `${lv.label}: ${cr.descriptors[lv.value] ?? '(sin descriptor)'}`)
+          .map(lv => `${lv.label}: ${cr.descriptors[lv.value] ?? (lang === 'en' ? '(no descriptor)' : '(sin descriptor)')}`)
           .join('; ');
-        return `- id:"${cr.id}" nombre:"${cr.name}" → ${descs}`;
+        return lang === 'en' ? `- id:"${cr.id}" name:"${cr.name}" → ${descs}` : `- id:"${cr.id}" nombre:"${cr.name}" → ${descs}`;
       })
       .join('\n');
 
-    const systemPrompt = 'Eres un experto en evaluación educativa. Responde SOLO con JSON válido.';
-    const userPrompt =
-      `Evalúa el siguiente trabajo de un alumno usando esta rúbrica.\n\n` +
-      `CRITERIOS:\n${criteriaText}\n\n` +
-      `DESCRIPCIÓN DEL TRABAJO:\n${workDesc || '(sin descripción)'}\n\n` +
-      (workFile ? 'Se adjunta el archivo del trabajo.\n\n' : '') +
-      `Devuelve un JSON con este formato exacto:\n` +
-      `{"scores":{"<id_criterio>": <número_1_a_4>, ...},"observation":"<texto de observación general>"}`;
+    const systemPrompt = lang === 'en'
+      ? 'You are an expert in educational assessment. Reply ONLY with valid JSON.'
+      : 'Eres un experto en evaluación educativa. Responde SOLO con JSON válido.';
+    const userPrompt = lang === 'en'
+      ? `Assess the following student work using this rubric.\n\n` +
+        `CRITERIA:\n${criteriaText}\n\n` +
+        `WORK DESCRIPTION:\n${workDesc || '(no description)'}\n\n` +
+        (workFile ? 'The work file is attached.\n\n' : '') +
+        `Return a JSON with this exact format:\n` +
+        `{"scores":{"<criterion_id>": <number_1_to_4>, ...},"observation":"<general observation text, in English>"}`
+      : `Evalúa el siguiente trabajo de un alumno usando esta rúbrica.\n\n` +
+        `CRITERIOS:\n${criteriaText}\n\n` +
+        `DESCRIPCIÓN DEL TRABAJO:\n${workDesc || '(sin descripción)'}\n\n` +
+        (workFile ? 'Se adjunta el archivo del trabajo.\n\n' : '') +
+        `Devuelve un JSON con este formato exacto:\n` +
+        `{"scores":{"<id_criterio>": <número_1_a_4>, ...},"observation":"<texto de observación general>"}`;
 
     const files: InlineFile[] = [workFile, lawDocument].filter((f): f is InlineFile => f !== null);
 
@@ -567,7 +588,7 @@ function EvalModal({
     if (!raw) return;
 
     const parsed = parseGeminiJson<{ scores: Record<string, number>; observation: string }>(raw);
-    if (!parsed) { toast('La IA no devolvió una evaluación válida. Vuelve a intentarlo.'); return; }
+    if (!parsed) { toast(t('La IA no devolvió una evaluación válida. Vuelve a intentarlo.')); return; }
 
     // Apply scores, clamped to 1–4
     const newScores: Record<string, number> = {};
@@ -586,13 +607,16 @@ function EvalModal({
       .map(cr => {
         const sc = scores[cr.id];
         const lv = levels.find(l => l.value === sc);
-        return `- ${cr.name}: ${lv ? lv.label : 'No evaluado'}`;
+        return `- ${cr.name}: ${lv ? lv.label : (lang === 'en' ? 'Not assessed' : 'No evaluado')}`;
       })
       .join('\n');
 
-    const systemPrompt = 'Eres un experto en evaluación educativa. Responde SOLO con texto de observación, sin JSON.';
-    const userPrompt =
-      `Genera una observación breve (2-3 frases) para un alumno con estos resultados en la rúbrica "${rubric.name}":\n${scoreLines}\n\nSé constructivo y específico.`;
+    const systemPrompt = lang === 'en'
+      ? 'You are an expert in educational assessment. Reply ONLY with observation text, no JSON.'
+      : 'Eres un experto en evaluación educativa. Responde SOLO con texto de observación, sin JSON.';
+    const userPrompt = lang === 'en'
+      ? `Generate a brief observation (2-3 sentences), in English, for a student with these results on the rubric "${rubric.name}":\n${scoreLines}\n\nBe constructive and specific.`
+      : `Genera una observación breve (2-3 frases) para un alumno con estos resultados en la rúbrica "${rubric.name}":\n${scoreLines}\n\nSé constructivo y específico.`;
 
     const raw = await callGemini(systemPrompt, userPrompt, [], {
       onStart: () => setObsGenerating(true),
@@ -638,7 +662,7 @@ function EvalModal({
           <div>
             <div className="modal-title">{rubric.name}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              Haz clic en el nivel para cada criterio
+              {t('Haz clic en el nivel para cada criterio')}
             </p>
           </div>
           <button className="ico-btn" onClick={onClose}><X size={18} /></button>
@@ -647,25 +671,25 @@ function EvalModal({
         {/* Class + Student selectors */}
         <div className="frow" style={{ marginBottom: 16 }}>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Clase</label>
+            <label className="flabel">{t('Clase')}</label>
             <select
               className="finput"
               value={classId}
               onChange={e => { setClassId(e.target.value); setStudentId(''); }}
             >
-              <option value="">Selecciona clase...</option>
+              <option value="">{t('Selecciona clase...')}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Alumno</label>
+            <label className="flabel">{t('Alumno')}</label>
             <select
               className="finput"
               value={studentId}
               onChange={e => setStudentId(e.target.value)}
               disabled={!classId}
             >
-              <option value="">Selecciona alumno...</option>
+              <option value="">{t('Selecciona alumno...')}</option>
               {classStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
@@ -676,7 +700,7 @@ function EvalModal({
           <table className="rtable">
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', minWidth: 140 }}>Criterio</th>
+                <th style={{ textAlign: 'left', minWidth: 140 }}>{t('Criterio')}</th>
                 {levels.map(lv => (
                   <th key={lv.value} style={{ width: `${Math.floor(72 / levels.length)}%` }}>{lv.label}</th>
                 ))}
@@ -720,15 +744,15 @@ function EvalModal({
         {/* AI work evaluation section */}
         <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '14px 16px', marginBottom: 14, border: '0.5px solid var(--border)' }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Sparkles size={14} color="var(--accent-d)" />✨ Evaluar trabajo con IA
+            <Sparkles size={14} color="var(--accent-d)" />{t('✨ Evaluar trabajo con IA')}
           </div>
           <div className="fgroup" style={{ marginBottom: 10 }}>
-            <label className="flabel">Descripción del trabajo</label>
+            <label className="flabel">{t('Descripción del trabajo')}</label>
             <textarea
               id="em-work-desc"
               className="finput"
               rows={2}
-              placeholder="Describe brevemente el trabajo del alumno..."
+              placeholder={t('Describe brevemente el trabajo del alumno...')}
               value={workDesc}
               onChange={e => setWorkDesc(e.target.value)}
               style={{ resize: 'vertical' }}
@@ -742,7 +766,7 @@ function EvalModal({
               style={{ fontSize: 12.5, padding: '6px 12px' }}
               onClick={() => fileInputRef.current?.click()}
             >
-              <Paperclip size={13} />Adjuntar archivo
+              <Paperclip size={13} />{t('Adjuntar archivo')}
             </button>
             <input
               ref={fileInputRef}
@@ -776,29 +800,29 @@ function EvalModal({
             style={{ fontSize: 12.5 }}
           >
             {evalGenerating
-              ? <><span className="spin" />Evaluando...</>
-              : <><Sparkles size={13} />✨ Evaluar con IA</>}
+              ? <><span className="spin" />{t('Evaluando...')}</>
+              : <><Sparkles size={13} />{t('✨ Evaluar con IA')}</>}
           </button>
         </div>
 
         {/* Observations */}
         <div className="fgroup">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <label className="flabel" style={{ marginBottom: 0 }}>Observaciones</label>
+            <label className="flabel" style={{ marginBottom: 0 }}>{t('Observaciones')}</label>
             <button
               className="btn-ia btn-ia-sm"
               disabled={Object.keys(scores).length === 0 || obsGenerating}
               onClick={handleGenerateObs}
             >
               {obsGenerating
-                ? <><span className="spin" />Generando...</>
-                : <><Sparkles size={11} />✨ Generar con IA</>}
+                ? <><span className="spin" />{t('Generando...')}</>
+                : <><Sparkles size={11} />{t('✨ Generar con IA')}</>}
             </button>
           </div>
           <textarea
             className="finput"
             rows={3}
-            placeholder="Escribe observaciones sobre el alumno..."
+            placeholder={t('Escribe observaciones sobre el alumno...')}
             value={notes}
             onChange={e => setNotes(e.target.value)}
             style={{ resize: 'vertical' }}
@@ -808,7 +832,7 @@ function EvalModal({
         {/* Total + Save */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>Puntuación total:</span>
+            <span style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>{t('Puntuación total:')}</span>
             <span className="score-pill">{totalScore} / {maxScore}</span>
             {maxScore > 0 && (
               <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
@@ -817,9 +841,9 @@ function EvalModal({
             )}
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn-ghost" onClick={onClose}>Cancelar</button>
+            <button className="btn-ghost" onClick={onClose}>{t('Cancelar')}</button>
             <button className="btn-accent" disabled={!canSave} onClick={handleSave}>
-              <ClipboardCheck size={14} />Guardar evaluación
+              <ClipboardCheck size={14} />{t('Guardar evaluación')}
             </button>
           </div>
         </div>
@@ -839,6 +863,7 @@ export function Rubrics({
   onEvalOpened,
 }: Props) {
   const { toast } = useToast();
+  const { t, locale } = useI18n();
   const [tab, setTab] = useState<'rubrics' | 'dianas'>('rubrics');
   const [rubricModalOpen, setRubricModalOpen] = useState(false);
   const [editingRubric, setEditingRubric] = useState<Rubric | null>(null);
@@ -908,7 +933,7 @@ export function Rubrics({
       name: `${r.name} (copia)`,
       criteria: r.criteria.map(c => ({ ...c, id: 'cr' + Math.random().toString(36).slice(2, 9) })),
     });
-    toast('✅ Rúbrica duplicada, con su propia columna en el cuaderno');
+    toast(t('✅ Rúbrica duplicada, con su propia columna en el cuaderno'));
   }
 
   return (
@@ -916,17 +941,19 @@ export function Rubrics({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Evaluación</h1>
+          <h1 className="pg-title">{t('Evaluación')}</h1>
           <p className="pg-sub">
-            {plural(rubrics.length, 'rúbrica', 'rúbricas')} · {plural(dianas.length, 'diana', 'dianas')} · {plural(evaluations.length, 'evaluación', 'evaluaciones')}
+            {t(rubrics.length === 1 ? '{n} rúbrica' : '{n} rúbricas', { n: rubrics.length })} ·{' '}
+            {t(dianas.length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.length })} ·{' '}
+            {t(evaluations.length === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: evaluations.length })}
           </p>
         </div>
         <div className="tab-bar" style={{ marginBottom: 0, width: 'auto' }}>
           <button className={`tab-btn${tab === 'rubrics' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('rubrics')}>
-            Rúbricas
+            {t('Rúbricas')}
           </button>
           <button className={`tab-btn${tab === 'dianas' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('dianas')}>
-            Dianas
+            {t('Dianas')}
           </button>
         </div>
       </div>
@@ -948,10 +975,10 @@ export function Rubrics({
       <>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', flex: 1, lineHeight: 1.5 }}>
-          Define criterios con descriptores por nivel y evalúa marcando la casilla que corresponda.
+          {t('Define criterios con descriptores por nivel y evalúa marcando la casilla que corresponda.')}
         </p>
         <button className="btn-accent" onClick={openNewRubric}>
-          <Plus size={15} />Nueva rúbrica
+          <Plus size={15} />{t('Nueva rúbrica')}
         </button>
       </div>
 
@@ -959,12 +986,12 @@ export function Rubrics({
       {rubrics.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-3)' }}>
           <ClipboardCheck size={40} style={{ margin: '0 auto 14px', opacity: 0.3 }} />
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Sin rúbricas todavía</div>
+          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{t('Sin rúbricas todavía')}</div>
           <p style={{ fontSize: 13, marginBottom: 18 }}>
-            Crea tu primera rúbrica manualmente o con ayuda de la IA.
+            {t('Crea tu primera rúbrica manualmente o con ayuda de la IA.')}
           </p>
           <button className="btn-ia" onClick={openNewRubric} style={{ margin: '0 auto' }}>
-            <Sparkles size={14} />✨ Crear rúbrica
+            <Sparkles size={14} />{t('✨ Crear rúbrica')}
           </button>
         </div>
       ) : (
@@ -986,16 +1013,16 @@ export function Rubrics({
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
-                    <button className="ico-btn" onClick={() => openEditRubric(r)} title="Editar rúbrica">
+                    <button className="ico-btn" onClick={() => openEditRubric(r)} title={t('Editar rúbrica')}>
                       <Pencil size={14} />
                     </button>
-                    <button className="ico-btn" onClick={() => duplicateRubric(r)} title="Duplicar rúbrica">
+                    <button className="ico-btn" onClick={() => duplicateRubric(r)} title={t('Duplicar rúbrica')}>
                       <Copy size={14} />
                     </button>
                     <button
                       className="ico-btn"
                       onClick={() => setConfirmDeleteId(r.id)}
-                      title="Eliminar rúbrica"
+                      title={t('Eliminar rúbrica')}
                     >
                       <Trash2 size={14} color="var(--danger)" />
                     </button>
@@ -1005,10 +1032,10 @@ export function Rubrics({
                 {/* Stats chips */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: 'var(--accent-l)', color: 'var(--accent-d)', fontWeight: 700 }}>
-                    {r.criteria.length} criterio{r.criteria.length !== 1 ? 's' : ''}
+                    {t(r.criteria.length === 1 ? '{n} criterio' : '{n} criterios', { n: r.criteria.length })}
                   </span>
                   <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, background: evCount > 0 ? '#dcfce7' : 'var(--surface)', color: evCount > 0 ? '#15803d' : 'var(--text-3)', fontWeight: 700 }}>
-                    {plural(evCount, 'evaluación', 'evaluaciones')}
+                    {t(evCount === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: evCount })}
                   </span>
                 </div>
 
@@ -1022,14 +1049,14 @@ export function Rubrics({
                   ))}
                   {r.criteria.length > 3 && (
                     <div style={{ fontSize: 11.5, color: 'var(--text-3)', paddingLeft: 18 }}>
-                      +{r.criteria.length - 3} más
+                      {t('+{n} más', { n: r.criteria.length - 3 })}
                     </div>
                   )}
                 </div>
 
                 {/* Evaluar button */}
                 <button className="btn-accent" onClick={() => openEval(r)} style={{ justifyContent: 'center', width: '100%' }}>
-                  <ClipboardCheck size={14} />Evaluar alumno
+                  <ClipboardCheck size={14} />{t('Evaluar alumno')}
                 </button>
               </div>
             );
@@ -1041,18 +1068,18 @@ export function Rubrics({
       {evaluations.length > 0 && (
         <div className="card" style={{ marginTop: 20 }}>
           <div className="card-hd">
-            <div className="card-ttl"><ClipboardCheck size={14} color="var(--accent-d)" />Evaluaciones recientes</div>
-            <span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600 }}>{evaluations.length} total</span>
+            <div className="card-ttl"><ClipboardCheck size={14} color="var(--accent-d)" />{t('Evaluaciones recientes')}</div>
+            <span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600 }}>{t('{n} total', { n: evaluations.length })}</span>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="rtable">
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'left' }}>Alumno</th>
-                  <th style={{ textAlign: 'left' }}>Rúbrica</th>
-                  <th>Fecha</th>
-                  <th>Puntuación</th>
-                  <th>Observaciones</th>
+                  <th style={{ textAlign: 'left' }}>{t('Alumno')}</th>
+                  <th style={{ textAlign: 'left' }}>{t('Rúbrica')}</th>
+                  <th>{t('Fecha')}</th>
+                  <th>{t('Puntuación')}</th>
+                  <th>{t('Observaciones')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1070,7 +1097,7 @@ export function Rubrics({
                         {ev.rubric_name}
                         {isDiana && (
                           <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: 'var(--accent-l)', color: 'var(--accent-d)' }}>
-                            DIANA
+                            {t('DIANA')}
                           </span>
                         )}
                       </td>
@@ -1078,7 +1105,7 @@ export function Rubrics({
                       <td style={{ textAlign: 'center' }}>
                         <span className="score-pill">
                           {isDiana && typeof ev.grade === 'number'
-                            ? `${ev.grade.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/10`
+                            ? `${ev.grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/10`
                             : `${total}/${maxPts}`}
                         </span>
                       </td>
@@ -1124,11 +1151,11 @@ export function Rubrics({
       <div className={`modal-overlay${confirmDeleteId ? ' open' : ''}`} onClick={() => setConfirmDeleteId(null)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
-            <div className="modal-title">Eliminar rúbrica</div>
+            <div className="modal-title">{t('Eliminar rúbrica')}</div>
             <button className="ico-btn" onClick={() => setConfirmDeleteId(null)}><X size={18} /></button>
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20 }}>
-            ¿Seguro que quieres eliminar esta rúbrica? Las evaluaciones asociadas no se borrarán.
+            {t('¿Seguro que quieres eliminar esta rúbrica? Las evaluaciones asociadas no se borrarán.')}
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button
@@ -1136,9 +1163,9 @@ export function Rubrics({
               style={{ background: 'var(--danger)' }}
               onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}
             >
-              Eliminar
+              {t('Eliminar')}
             </button>
-            <button className="btn-ghost" onClick={() => setConfirmDeleteId(null)}>Cancelar</button>
+            <button className="btn-ghost" onClick={() => setConfirmDeleteId(null)}>{t('Cancelar')}</button>
           </div>
         </div>
       </div>
