@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronUp, Search, ClipboardList } from 'lucide-react';
-import type { Evaluation, Class, Student, Rubric } from '../types';
+import type { Evaluation, Class, Student, Rubric, EvalDiana } from '../types';
 import { plural } from '../lib/utils';
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   classes: Class[];
   students: Student[];
   rubrics: Rubric[];
+  dianas: EvalDiana[];
   onOpenEval: (rubricId: string, studentId: string, classId: string) => void;
 }
 
@@ -36,8 +37,13 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
   );
 }
 
-function ExpandedRow({ evaluation, rubric }: { evaluation: Evaluation; rubric: Rubric | undefined }) {
-  const criteria = rubric?.criteria ?? [];
+function ExpandedRow({ evaluation, rubric, diana }: {
+  evaluation: Evaluation; rubric: Rubric | undefined; diana: EvalDiana | undefined;
+}) {
+  // Los ítems de una diana cumplen aquí el papel de los criterios: los dos
+  // tienen id, nombre y descriptores por nivel.
+  const criteria: { id: string; name: string; descriptors?: Record<number, string> }[] =
+    rubric?.criteria ?? diana?.items.map(i => ({ id: i.id, name: i.name, descriptors: i.descriptors })) ?? [];
 
   return (
     <tr>
@@ -100,7 +106,7 @@ function ExpandedRow({ evaluation, rubric }: { evaluation: Evaluation; rubric: R
   );
 }
 
-export function History({ evaluations, classes, students, rubrics, onOpenEval }: Props) {
+export function History({ evaluations, classes, students, rubrics, dianas, onOpenEval }: Props) {
   const [filterClassId, setFilterClassId] = useState('');
   const [filterStudentId, setFilterStudentId] = useState('');
   const [filterRubricId, setFilterRubricId] = useState('');
@@ -232,7 +238,7 @@ export function History({ evaluations, classes, students, rubrics, onOpenEval }:
           </div>
 
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Rúbrica</label>
+            <label className="flabel">Instrumento</label>
             <div style={{ position: 'relative' }}>
               <select
                 className="finput"
@@ -240,10 +246,21 @@ export function History({ evaluations, classes, students, rubrics, onOpenEval }:
                 onChange={e => { setFilterRubricId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
-                <option value="">Todas las rúbricas</option>
-                {rubrics.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
+                <option value="">Todos los instrumentos</option>
+                {rubrics.length > 0 && (
+                  <optgroup label="Rúbricas">
+                    {rubrics.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </optgroup>
+                )}
+                {dianas.length > 0 && (
+                  <optgroup label="Dianas">
+                    {dianas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </optgroup>
+                )}
+                {/* Las autoevaluaciones no salen de ningún instrumento guardado */}
+                {evaluations.some(e => e.rubric_id === 'autoeval') && (
+                  <option value="autoeval">Autoevaluaciones de la Sala</option>
+                )}
               </select>
               <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
             </div>
@@ -336,6 +353,7 @@ export function History({ evaluations, classes, students, rubrics, onOpenEval }:
                   const { sum, max } = evalTotalScore(ev);
                   const cls = classes.find(c => c.id === ev.class_id);
                   const rubric = rubrics.find(r => r.id === ev.rubric_id);
+                  const diana = dianas.find(d => d.id === ev.rubric_id);
                   const isExpanded = expandedId === ev.id;
                   const pct = max > 0 ? (sum / max) * 100 : 0;
                   const scoreColor = pct >= 75 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--danger)';
@@ -419,7 +437,7 @@ export function History({ evaluations, classes, students, rubrics, onOpenEval }:
                         </td>
                       </tr>
                       {isExpanded && (
-                        <ExpandedRow key={`exp-${ev.id}`} evaluation={ev} rubric={rubric} />
+                        <ExpandedRow key={`exp-${ev.id}`} evaluation={ev} rubric={rubric} diana={diana} />
                       )}
                     </>
                   );

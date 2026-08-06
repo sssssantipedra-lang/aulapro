@@ -282,7 +282,8 @@ export interface DianaItem {
   name: string;
   /** Peso relativo del ítem en la nota final. 1 = peso normal. */
   weight: number;
-  descriptors?: Partial<RubricDescriptors>;
+  /** Descripción de cada nivel, indexada por su `value`. Ver `RubricCriterion`. */
+  descriptors?: Record<number, string>;
 }
 
 export interface EvalDiana extends GradeTarget {

@@ -220,6 +220,7 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 rubrics={st.rubrics}
+                dianas={st.dianas}
                 onOpenEval={() => setSection('rubrics')}
               />
             )}

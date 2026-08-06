@@ -25,6 +25,46 @@ export const LEVEL_COLORS: Record<number, { fill: string; solid: string; label: 
   4: { fill: 'rgba(22,163,74,0.82)',  solid: '#16a34a', label: 'Excelente' },
 };
 
+/**
+ * Parte un nombre largo en varias líneas.
+ *
+ * SVG no ajusta el texto solo, así que antes se recortaba a 22 caracteres y
+ * los ítems largos quedaban a medias. Se reparte por palabras, y solo si una
+ * palabra sola no cabe se corta por dentro.
+ */
+function wrapLabel(text: string, maxChars = 17, maxLines = 3): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let cur = '';
+
+  for (const word of words) {
+    // Palabra más larga que la línea entera: se trocea
+    let w = word;
+    while (w.length > maxChars) {
+      if (cur) { lines.push(cur); cur = ''; }
+      if (lines.length >= maxLines) break;
+      lines.push(w.slice(0, maxChars - 1) + '-');
+      w = w.slice(maxChars - 1);
+    }
+    if (lines.length >= maxLines) break;
+
+    const next = cur ? `${cur} ${w}` : w;
+    if (next.length <= maxChars) { cur = next; continue; }
+    lines.push(cur);
+    cur = w;
+    if (lines.length >= maxLines) break;
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+
+  // Si aún sobra texto, se avisa del corte en la última línea
+  const usado = lines.join(' ').replace(/-\s/g, '');
+  if (usado.length < text.replace(/\s+/g, ' ').trim().length) {
+    const last = lines[lines.length - 1] ?? '';
+    lines[lines.length - 1] = last.slice(0, Math.max(0, maxChars - 1)) + '…';
+  }
+  return lines;
+}
+
 function polar(angle: number, radius: number): [number, number] {
   return [CENTER + radius * Math.cos(angle), CENTER + radius * Math.sin(angle)];
 }
@@ -69,10 +109,13 @@ export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Prop
 
   return (
     <svg
-      width={SIZE}
-      height={SIZE}
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
-      style={{ overflow: 'visible', userSelect: 'none', maxWidth: '100%' }}
+      // El lienzo se amplía a los lados para que quepan las etiquetas de
+      // varias líneas sin depender de `overflow`, que un contenedor con
+      // scroll recortaría.
+      width={SIZE + 170}
+      height={SIZE + 60}
+      viewBox={`-85 -30 ${SIZE + 170} ${SIZE + 60}`}
+      style={{ userSelect: 'none', maxWidth: '100%', height: 'auto' }}
       role="img"
       aria-label="Diana de evaluación"
     >
@@ -153,20 +196,28 @@ export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Prop
         const cos = Math.cos(mid);
         const anchor: 'start' | 'middle' | 'end' = cos > 0.25 ? 'start' : cos < -0.25 ? 'end' : 'middle';
         const current = scores[item.id] ?? 0;
-        const short = item.name.length > 22 ? item.name.slice(0, 21) + '…' : item.name;
+        const lines = wrapLabel(item.name);
+        const LINE_H = 11.5;
+        // El bloque se centra sobre el punto de la etiqueta, para que crecer
+        // hacia abajo no lo despegue de su sector.
+        const top = ly - ((lines.length - 1) * LINE_H) / 2;
 
         return (
           <g key={`lbl-${item.id}`}>
             <text
-              x={lx} y={ly} textAnchor={anchor}
+              x={lx} y={top} textAnchor={anchor}
               fontSize={11} fontWeight={700} fontFamily="var(--font)"
               fill={current > 0 ? 'var(--text)' : 'var(--text-3)'}
             >
-              {short}
+              {lines.map((ln, k) => (
+                <tspan key={k} x={lx} dy={k === 0 ? 0 : LINE_H}>{ln}</tspan>
+              ))}
+              {/* Por si aun así hubiera que recortar algo */}
+              <title>{item.name}</title>
             </text>
             {current > 0 && (
               <text
-                x={lx} y={ly + 13} textAnchor={anchor}
+                x={lx} y={top + (lines.length - 1) * LINE_H + 13} textAnchor={anchor}
                 fontSize={10} fontWeight={800} fontFamily="var(--font)"
                 fill={levelColor(current, rings)}
               >

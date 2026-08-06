@@ -156,6 +156,23 @@ function GradesTab({
   // El peso suma 100% por asignatura, no por clase
   const weightSum = myCategories.reduce((a, c) => a + c.weight, 0);
 
+  /**
+   * Las pruebas agrupadas por categoría, en el orden en que se muestran.
+   * Dentro de cada grupo van por fecha: así «todos los exámenes juntos» y
+   * además en el orden en que se hicieron. Se calcula una sola vez y lo usan
+   * la cabecera, las filas de alumnos y la media del grupo, que antes
+   * repetían el mismo filtrado tres veces y podían descuadrarse.
+   */
+  const grouped = useMemo(
+    () => myCategories.map(cat => ({
+      cat,
+      items: myItems
+        .filter(i => i.category_id === cat.id)
+        .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es')),
+    })),
+    [myCategories, myItems],
+  );
+
   /* ── Modales: abrir ── */
   function openCatModal(cat: GradeCategory | 'new') {
     setCatName(cat === 'new' ? '' : cat.name);
@@ -389,19 +406,38 @@ function GradesTab({
               <div style={{ overflowX: 'auto' }}>
                 <table className="gb-table">
                   <thead>
+                    {/* Fila de grupos: una celda por categoría, abarcando sus
+                        pruebas. Antes la agrupación existía pero no se veía. */}
                     <tr>
-                      <th className="gb-sticky" style={{ zIndex: 3 }}>Alumno</th>
-                      {myCategories.map(cat =>
-                        myItems.filter(i => i.category_id === cat.id).map(item => (
-                          <th key={item.id}>
+                      <th className="gb-sticky" style={{ zIndex: 3 }} rowSpan={2}>Alumno</th>
+                      {grouped.map(({ cat, items }) => (
+                        <th
+                          key={`grp-${cat.id}`}
+                          colSpan={items.length}
+                          style={{
+                            borderLeft: '2px solid var(--border)',
+                            background: 'var(--surface)',
+                            fontSize: 11, fontWeight: 800, letterSpacing: '0.04em',
+                            textTransform: 'uppercase', color: 'var(--text-2)',
+                            padding: '7px 8px', whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {cat.name} · {cat.weight}%
+                        </th>
+                      ))}
+                      <th style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>Media</th>
+                    </tr>
+                    <tr>
+                      {grouped.map(({ cat, items }) =>
+                        items.map((item, k) => (
+                          <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
                             <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — clic para editar`}>
                               <span className="gb-item-name">{item.name}</span>
-                              <span className="gb-item-cat">{cat.name}</span>
+                              <span className="gb-item-cat">{item.date}</span>
                             </button>
                           </th>
                         )),
                       )}
-                      <th style={{ minWidth: 76 }}>Media</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -410,9 +446,12 @@ function GradesTab({
                       return (
                         <tr key={s.id}>
                           <td className="gb-sticky gb-student">{s.name}</td>
-                          {myCategories.map(cat =>
-                            myItems.filter(i => i.category_id === cat.id).map(item => (
-                              <td key={item.id} style={{ textAlign: 'center' }}>
+                          {grouped.map(({ items }) =>
+                            items.map((item, k) => (
+                              <td key={item.id} style={{
+                                textAlign: 'center',
+                                ...(k === 0 ? { borderLeft: '2px solid var(--border)' } : {}),
+                              }}>
                                 <GradeCell
                                   value={grades[item.id]?.[s.id] ?? null}
                                   onCommit={v => onSetGrade(item.id, s.id, v)}
@@ -420,7 +459,7 @@ function GradesTab({
                               </td>
                             )),
                           )}
-                          <td style={{ textAlign: 'center' }}>
+                          <td style={{ textAlign: 'center', borderLeft: '2px solid var(--border)' }}>
                             <span style={{ fontSize: 13.5, fontWeight: 800, color: notaColor(avg) }}>{fmtNota(avg)}</span>
                           </td>
                         </tr>
@@ -429,20 +468,23 @@ function GradesTab({
                     {/* Media del grupo */}
                     <tr className="gb-footer">
                       <td className="gb-sticky" style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-2)' }}>Media del grupo</td>
-                      {myCategories.map(cat =>
-                        myItems.filter(i => i.category_id === cat.id).map(item => {
+                      {grouped.map(({ items }) =>
+                        items.map((item, k) => {
                           const vals = myStudents
                             .map(s => grades[item.id]?.[s.id])
                             .filter((v): v is number => typeof v === 'number');
                           const m = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
                           return (
-                            <td key={item.id} style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: notaColor(m) }}>
+                            <td key={item.id} style={{
+                              textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: notaColor(m),
+                              ...(k === 0 ? { borderLeft: '2px solid var(--border)' } : {}),
+                            }}>
                               {fmtNota(m)}
                             </td>
                           );
                         }),
                       )}
-                      <td style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)' }}>
+                      <td style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)', borderLeft: '2px solid var(--border)' }}>
                         {(() => {
                           const avgs = myStudents
                             .map(s => weightedAverage(s.id, myCategories, myItems, grades))
