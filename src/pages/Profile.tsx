@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { ApiKeySettings } from '../components/ApiKeySettings';
 import { DataFolder } from '../components/DataFolder';
 import { THEMES, applyTheme, isoDate, type ThemeKey } from '../lib/utils';
 import type { User } from '../types';
 import { useToast } from '../components/ui/Toast';
+import { useI18n, LANGS } from '../i18n';
 
 interface Props {
   user: User | null;
@@ -19,6 +20,7 @@ interface Props {
 
 export function Profile({ user, profileId, course, onUpdateUser, onExportData, onImportData, onClearSchoolYear }: Props) {
   const { toast } = useToast();
+  const { lang, setLang } = useI18n();
   const [nombre, setNombre] = useState(user?.full_name.split(' ')[0] ?? '');
   const [apell,  setApell]  = useState(user?.full_name.split(' ').slice(1).join(' ') ?? '');
   const [centro, setCentro] = useState(user?.school ?? '');
@@ -84,6 +86,39 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
         </div>
 
         {/* Selector de tema */}
+        {/* Idioma de la interfaz */}
+        <div className="card">
+          <div className="card-hd">
+            <div className="card-ttl"><Languages size={14} color="var(--accent-d)" />Idioma · Language</div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {LANGS.map(l => {
+              const on = l.id === lang;
+              return (
+                <button
+                  key={l.id}
+                  onClick={() => setLang(l.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px',
+                    borderRadius: 11, cursor: 'pointer', fontFamily: 'var(--font)',
+                    fontSize: 13.5, fontWeight: on ? 800 : 500,
+                    background: on ? 'var(--accent-l)' : 'transparent',
+                    border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
+                    color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>{l.flag}</span>{l.label}
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 10, lineHeight: 1.5 }}>
+            En inglés se usa terminología internacional (Units of Inquiry, Learning
+            Outcomes, Formative Assessment), no una traducción literal. Los datos
+            que tú escribes no se traducen.
+          </p>
+        </div>
+
         <div className="card">
           <div className="card-hd">
             <div className="card-ttl"><Palette size={14} color="var(--accent-d)" />Color de la interfaz</div>

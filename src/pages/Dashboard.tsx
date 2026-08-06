@@ -3,6 +3,7 @@ import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertT
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap } from '../types';
 import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
+import { useI18n } from '../i18n';
 import { isoDate } from '../lib/utils';
 
 const DAY_NAMES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
@@ -27,6 +28,7 @@ interface Props {
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes, evaluations,
   gradeCategories, gradeItems, grades, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
+  const { t } = useI18n();
   const [time, setTime] = useState(() => {
     const n = new Date();
     return n.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -40,7 +42,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   }, []);
 
   const now = new Date();
-  const greeting = now.getHours() < 13 ? 'Buenos días' : now.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const greeting = t(now.getHours() < 13 ? 'Buenos días' : now.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches');
   const firstName = user?.full_name.split(' ')[0] ?? '';
   const dateLabel = `${DAY_NAMES[now.getDay()]}, ${now.getDate()} de ${MONTH_NAMES[now.getMonth()]} de ${now.getFullYear()}`;
 
@@ -100,10 +102,10 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           {/* Resumen */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
             {[
-              { label: 'Clases hoy', val: todayBlocks.length, hint: todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy', icon: <Book size={17} color="var(--accent-d)" />, bg: 'var(--accent-l)', nav: 'agenda' },
-              { label: 'Alumnos', val: students.length, hint: `en ${classes.length} ${classes.length === 1 ? 'grupo' : 'grupos'}`, icon: <Users size={17} color="var(--info)" />, bg: '#dbeafe', nav: 'classes' },
-              { label: 'Tareas pendientes', val: pendingTasks.length, hint: pendingTasks.length ? 'por completar' : 'Al día ✓', icon: <ClipboardList size={17} color="var(--warn)" />, bg: '#fef3c7', nav: null },
-              { label: 'Evaluaciones', val: evaluations.length, hint: evaluations.length ? 'registradas con rúbrica' : 'Ninguna todavía', icon: <BarChart3 size={17} color="var(--ok)" />, bg: '#dcfce7', nav: 'history' },
+              { label: t('Clases hoy'), val: todayBlocks.length, hint: todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy', icon: <Book size={17} color="var(--accent-d)" />, bg: 'var(--accent-l)', nav: 'agenda' },
+              { label: t('Alumnos'), val: students.length, hint: `en ${classes.length} ${classes.length === 1 ? 'grupo' : 'grupos'}`, icon: <Users size={17} color="var(--info)" />, bg: '#dbeafe', nav: 'classes' },
+              { label: t('Tareas pendientes'), val: pendingTasks.length, hint: pendingTasks.length ? 'por completar' : 'Al día ✓', icon: <ClipboardList size={17} color="var(--warn)" />, bg: '#fef3c7', nav: null },
+              { label: t('Evaluaciones'), val: evaluations.length, hint: evaluations.length ? 'registradas con rúbrica' : 'Ninguna todavía', icon: <BarChart3 size={17} color="var(--ok)" />, bg: '#dcfce7', nav: 'history' },
             ].map(s => (
               <div
                 key={s.label}
@@ -218,7 +220,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             {/* Tareas */}
             <div className="card">
               <div className="card-hd">
-                <div className="card-ttl"><CheckSquare2 size={14} color="var(--accent-d)" />Tareas</div>
+                <div className="card-ttl"><CheckSquare2 size={14} color="var(--accent-d)" />{t('Tareas')}</div>
                 {tasks.length > 0 && (
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>{tasks.filter(t=>t.done).length}/{tasks.length}</span>
                 )}

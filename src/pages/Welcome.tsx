@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Sparkles, Plus, ArrowRight, Trash2, HardDrive } from 'lucide-react';
 import { listProfiles, deleteProfile, isDesktop, type TeacherProfile } from '../services/storage';
@@ -31,6 +32,7 @@ function hasLegacyData(): boolean {
 }
 
 export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props) {
+  const { t } = useI18n();
   const [profiles, setProfiles] = useState<TeacherProfile[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -81,8 +83,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         fontSize: 11.5, color: 'rgba(255,255,255,0.4)', marginTop: 18,
         textAlign: 'center', lineHeight: 1.5, maxWidth: 380,
       }}>
-        Diseñada sobre el currículo educativo español (LOMLOE): competencias
-        clave, criterios de evaluación y niveles de logro.
+        {t('Diseñada sobre el currículo educativo español (LOMLOE): competencias clave, criterios de evaluación y niveles de logro.')}
       </p>
     </div>
   );
@@ -102,7 +103,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   if (profiles === null) {
     return shell(
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', padding: '30px 0', color: 'var(--text-2)', fontSize: 14 }}>
-        <span className="spin" />Cargando perfiles…
+        <span className="spin" />{t('Cargando perfiles…')}
       </div>
     );
   }
@@ -111,12 +112,12 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   if (creating) {
     return shell(
       <>
-        {header(profiles.length === 0 ? 'Bienvenido/a a Aula Pro' : 'Nuevo perfil', 'Tu cuaderno docente, en tu ordenador')}
+        {header(profiles.length === 0 ? t('Bienvenido/a a Aula Pro') : t('Nuevo perfil'), t('Tu cuaderno docente, en tu ordenador'))}
 
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
           {isDesktop()
-            ? 'Cada perfil guarda su propio trabajo en una carpeta separada de este equipo. Sin cuentas ni contraseñas.'
-            : 'Los datos se guardan en este navegador. Sin cuentas ni contraseñas.'}
+            ? t('Cada perfil guarda su propio trabajo en una carpeta separada de este equipo. Sin cuentas ni contraseñas.')
+            : t('Los datos se guardan en este navegador. Sin cuentas ni contraseñas.')}
         </p>
 
         {error && (
@@ -158,7 +159,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
           )}
 
           <button className="btn-primary" type="submit" disabled={busy}>
-            {busy ? <><span className="spin" />&nbsp;Creando…</> : 'Empezar a usar Aula Pro'}
+            {busy ? <><span className="spin" />&nbsp;Creando…</> : t('Empezar a usar Aula Pro')}
           </button>
         </form>
 
@@ -173,7 +174,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
               fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600, color: 'var(--text-2)',
             }}
           >
-            <Sparkles size={14} color="var(--accent-d)" />Explorar con datos de ejemplo
+            <Sparkles size={14} color="var(--accent-d)" />{t('Explorar con datos de ejemplo')}
           </button>
         ) : (
           <button className="btn-ghost" style={{ width: '100%', marginTop: 12, justifyContent: 'center' }}

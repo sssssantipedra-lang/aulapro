@@ -4,6 +4,7 @@ import {
   UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
+import { useI18n } from '../../i18n';
 import type { User as UserType } from '../../types';
 import type { Section } from '../../types';
 
@@ -61,6 +62,7 @@ interface Props {
 }
 
 export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving, onLogout }: Props) {
+  const { t } = useI18n();
   return (
     <aside className={`sidebar${mini ? ' mini' : ''}`}>
       <div className="sb-logo">
@@ -93,7 +95,7 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
       <nav className="sb-nav">
         {NAV.map(({ sect, items }) => (
           <div key={sect}>
-            <div className="sb-sect">{sect}</div>
+            <div className="sb-sect">{t(sect)}</div>
             {items.map(item => (
               <button
                 key={item.id}
@@ -101,7 +103,7 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
                 onClick={() => onNav(item.id)}
               >
                 <span className="ni-icon">{item.icon}</span>
-                <span className="ni-label">{item.label}</span>
+                <span className="ni-label">{t(item.label)}</span>
                 {item.id === 'share' && sharing && (
                   <span className="ni-live" title="Sesión compartida activa" />
                 )}
@@ -123,12 +125,12 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
           }}
         >
           {saving
-            ? <><span className="spin" style={{ width: 10, height: 10, borderWidth: 1.5 }} />Guardando…</>
-            : <><Check size={11} />Todo guardado</>}
+            ? <><span className="spin" style={{ width: 10, height: 10, borderWidth: 1.5 }} />{t('Guardando…')}</>
+            : <><Check size={11} />{t('Todo guardado')}</>}
         </div>
         <button className="nav-item" style={{ color: '#64748b', width: '100%' }} onClick={onLogout}>
           <span className="ni-icon"><LogOut size={18} /></span>
-          <span className="ni-label">Cerrar sesión</span>
+          <span className="ni-label">{t('Cerrar sesión')}</span>
         </button>
 
         {/* Sobre qué currículo está construida la aplicación. Importa para
@@ -138,7 +140,7 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
             fontSize: 10.5, lineHeight: 1.45, color: 'rgba(255,255,255,0.38)',
             margin: '10px 4px 0', textAlign: 'center',
           }}>
-            Diseñada sobre el currículo educativo español (LOMLOE)
+            {t('Diseñada sobre el currículo educativo español (LOMLOE)')}
           </p>
         )}
       </div>
