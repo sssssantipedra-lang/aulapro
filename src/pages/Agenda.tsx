@@ -5,6 +5,7 @@ import type { ScheduleBlock, CalEvent, Class } from '../types';
 import { PALETTE } from '../lib/demoData';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { useI18n, monthLabel, weekdayLabel, eventTypeLabel, urgencyLabel } from '../i18n';
 
 // --------------- helpers ---------------
 function uid() {
@@ -13,28 +14,8 @@ function uid() {
 
 // La fecha se calcula en lib/utils para que toda la app use el mismo criterio
 
-const MONTH_NAMES = [
-  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
-];
-
-const SHORT_DAY_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-const WEEK_DAY_LABELS = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
-
 // time slots 08:00 – 14:00 (1 h each)
 const TIME_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00'];
-
-const TYPE_LABELS: Record<CalEvent['type'], string> = {
-  deadline: 'Entrega',
-  meeting: 'Reunión',
-  event: 'Evento',
-};
-
-const URGENCY_LABELS: Record<CalEvent['urgency'], string> = {
-  alta: 'Alta',
-  media: 'Media',
-  baja: 'Baja',
-};
 
 // Build a calendar grid for a given month (always 6 rows × 7 cols, Mon first)
 function buildCalGrid(year: number, month: number): Date[] {
@@ -150,8 +131,11 @@ export function Agenda({
   onNav,
 }: Props) {
   const { toast } = useToast();
+  const { t, locale, lang } = useI18n();
   const today = useMemo(() => new Date(), []);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const shortDayLabels = useMemo(() => Array.from({ length: 7 }, (_, i) => weekdayLabel(i, locale, 'short')), [locale]);
+  const weekDayLabels = useMemo(() => Array.from({ length: 5 }, (_, i) => weekdayLabel(i, locale)), [locale]);
 
   // ---- view state ----
   const [view, setView] = useState<'mensual' | 'semanal'>('mensual');
@@ -233,8 +217,8 @@ export function Agenda({
   }
 
   function submitBlock() {
-    if (!blockForm.subject.trim()) { toast('Escribe el nombre de la asignatura'); return; }
-    if (blockForm.time_end <= blockForm.time_start) { toast('La hora de fin debe ser posterior a la de inicio'); return; }
+    if (!blockForm.subject.trim()) { toast(t('Escribe el nombre de la asignatura')); return; }
+    if (blockForm.time_end <= blockForm.time_start) { toast(t('La hora de fin debe ser posterior a la de inicio')); return; }
     if (editingBlockId) {
       onUpdateBlock({ ...blockForm, id: editingBlockId });
     } else {
@@ -262,7 +246,7 @@ export function Agenda({
   function closeEventModal() { setEventModalOpen(false); }
 
   function submitEvent() {
-    if (!eventForm.name.trim()) { toast('Escribe un nombre para el evento'); return; }
+    if (!eventForm.name.trim()) { toast(t('Escribe un nombre para el evento')); return; }
     if (editingEventId) {
       onUpdateCalEvent({ ...eventForm, id: editingEventId });
     } else {
@@ -282,18 +266,18 @@ export function Agenda({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Agenda</h1>
-          <p className="pg-sub">Horario semanal y calendario de eventos</p>
+          <h1 className="pg-title">{t('Agenda')}</h1>
+          <p className="pg-sub">{t('Horario semanal y calendario de eventos')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn-ia" onClick={() => setScannerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <ScanLine size={15} /> Escanear horario
+            <ScanLine size={15} /> {t('Escanear horario')}
           </button>
           <button className="btn-ghost" onClick={openNewBlock} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus size={15} /> Nuevo bloque
+            <Plus size={15} /> {t('Nuevo bloque')}
           </button>
           <button className="btn-accent" onClick={() => openNewEvent()} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus size={15} /> Nuevo evento
+            <Plus size={15} /> {t('Nuevo evento')}
           </button>
         </div>
       </div>
@@ -304,13 +288,13 @@ export function Agenda({
           className={view === 'mensual' ? 'btn-accent' : 'btn-ghost'}
           onClick={() => setView('mensual')}
         >
-          Mensual
+          {t('Mensual')}
         </button>
         <button
           className={view === 'semanal' ? 'btn-accent' : 'btn-ghost'}
           onClick={() => setView('semanal')}
         >
-          Semanal
+          {t('Semanal')}
         </button>
       </div>
 
@@ -321,14 +305,14 @@ export function Agenda({
             <div className="card-hd" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <button className="ico-btn" onClick={prevMonth}><ChevronLeft size={18} /></button>
               <span className="card-ttl" style={{ margin: 0 }}>
-                {MONTH_NAMES[calMonth]} {calYear}
+                {monthLabel(calMonth, locale)} {calYear}
               </span>
               <button className="ico-btn" onClick={nextMonth}><ChevronRight size={18} /></button>
             </div>
 
             {/* Day names header */}
             <div className="cal-grid" style={{ marginBottom: 4 }}>
-              {SHORT_DAY_NAMES.map(d => (
+              {shortDayLabels.map(d => (
                 <div
                   key={d}
                   style={{
@@ -390,21 +374,21 @@ export function Agenda({
             <div className="card-hd" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span className="card-ttl" style={{ margin: 0 }}>
                 {selectedDate
-                  ? fromIsoDate(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
-                  : 'Selecciona un día'}
+                  ? fromIsoDate(selectedDate).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+                  : t('Selecciona un día')}
               </span>
               <button
                 className="btn-ghost"
                 onClick={() => openNewEvent(selectedDate)}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}
               >
-                <Plus size={14} /> Evento
+                <Plus size={14} /> {t('Evento')}
               </button>
             </div>
 
             {selectedDayEvents.length === 0 ? (
               <p style={{ color: 'var(--text-2, #9ca3af)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>
-                Sin eventos para este día
+                {t('Sin eventos para este día')}
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -429,7 +413,7 @@ export function Agenda({
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{ev.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-2, #6b7280)', marginTop: 2 }}>
-                        {TYPE_LABELS[ev.type]} · Urgencia {URGENCY_LABELS[ev.urgency]}
+                        {eventTypeLabel(ev.type, lang)} · {t('Urgencia')} {urgencyLabel(ev.urgency, lang)}
                       </div>
                       {ev.desc && (
                         <div style={{ fontSize: 12, color: 'var(--text-2, #6b7280)', marginTop: 3 }}>{ev.desc}</div>
@@ -450,9 +434,9 @@ export function Agenda({
           <div className="card-hd" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <button className="ico-btn" onClick={prevWeek}><ChevronLeft size={18} /></button>
             <span className="card-ttl" style={{ margin: 0 }}>
-              {currentWeekDates[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+              {currentWeekDates[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
               {' – '}
-              {currentWeekDates[4].toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+              {currentWeekDates[4].toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
             <button className="ico-btn" onClick={nextWeek}><ChevronRight size={18} /></button>
           </div>
@@ -484,7 +468,7 @@ export function Agenda({
                   }}
                 >
                   <div style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 10, opacity: 0.7 }}>
-                    {WEEK_DAY_LABELS[di]}
+                    {weekDayLabels[di]}
                   </div>
                   <div style={{ fontSize: 18, lineHeight: 1.2 }}>{d.getDate()}</div>
                 </div>
@@ -546,7 +530,7 @@ export function Agenda({
         onClose={() => setScannerOpen(false)}
         onImport={blocks => {
           blocks.forEach(onAddBlock);
-          toast(`✅ ${blocks.length} sesiones añadidas al horario`);
+          toast(t(blocks.length === 1 ? '✅ {n} sesión añadida al horario' : '✅ {n} sesiones añadidas al horario', { n: blocks.length }));
           setView('semanal');
         }}
         onNav={onNav}
@@ -556,18 +540,18 @@ export function Agenda({
       <div className={`modal-overlay${blockModalOpen ? ' open' : ''}`} onClick={closeBlockModal}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
-            <span className="modal-title">{editingBlockId ? 'Editar bloque' : 'Nuevo bloque'}</span>
+            <span className="modal-title">{t(editingBlockId ? 'Editar bloque' : 'Nuevo bloque')}</span>
             <button className="ico-btn" onClick={closeBlockModal}><X size={18} /></button>
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Día</label>
+            <label className="flabel">{t('Día')}</label>
             <select
               className="finput"
               value={blockForm.day}
               onChange={e => setBlockForm(f => ({ ...f, day: Number(e.target.value) }))}
             >
-              {WEEK_DAY_LABELS.map((name, i) => (
+              {weekDayLabels.map((name, i) => (
                 <option key={i + 1} value={i + 1}>{name}</option>
               ))}
             </select>
@@ -575,7 +559,7 @@ export function Agenda({
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">Hora inicio</label>
+              <label className="flabel">{t('Hora inicio')}</label>
               <input
                 type="time"
                 className="finput"
@@ -584,7 +568,7 @@ export function Agenda({
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">Hora fin</label>
+              <label className="flabel">{t('Hora fin')}</label>
               <input
                 type="time"
                 className="finput"
@@ -595,22 +579,22 @@ export function Agenda({
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Asignatura</label>
+            <label className="flabel">{t('Asignatura')}</label>
             <input
               type="text"
               className="finput"
-              placeholder="Nombre de la asignatura"
+              placeholder={t('Nombre de la asignatura')}
               value={blockForm.subject}
               onChange={e => setBlockForm(f => ({ ...f, subject: e.target.value }))}
             />
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Aula</label>
+            <label className="flabel">{t('Aula')}</label>
             <input
               type="text"
               className="finput"
-              placeholder="Ej: Aula 301"
+              placeholder={t('Ej: Aula 301')}
               value={blockForm.room}
               onChange={e => setBlockForm(f => ({ ...f, room: e.target.value }))}
             />
@@ -618,7 +602,7 @@ export function Agenda({
 
           {classes.length > 0 && (
             <div className="fgroup">
-              <label className="flabel">Clase</label>
+              <label className="flabel">{t('Clase')}</label>
               <select
                 className="finput"
                 value={blockForm.class_id}
@@ -632,7 +616,7 @@ export function Agenda({
           )}
 
           <div className="fgroup">
-            <label className="flabel">Color</label>
+            <label className="flabel">{t('Color')}</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {PALETTE.map(color => (
                 <button
@@ -655,11 +639,11 @@ export function Agenda({
           <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
             {editingBlockId && (
               <button className="btn-ghost" onClick={deleteBlock} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#ef4444' }}>
-                <Trash2 size={15} /> Eliminar
+                <Trash2 size={15} /> {t('Eliminar')}
               </button>
             )}
             <button className="btn-accent" onClick={submitBlock} style={{ marginLeft: 'auto' }}>
-              {editingBlockId ? 'Guardar' : 'Añadir'}
+              {t(editingBlockId ? 'Guardar' : 'Añadir')}
             </button>
           </div>
         </div>
@@ -669,16 +653,16 @@ export function Agenda({
       <div className={`modal-overlay${eventModalOpen ? ' open' : ''}`} onClick={closeEventModal}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
-            <span className="modal-title">{editingEventId ? 'Editar evento' : 'Nuevo evento'}</span>
+            <span className="modal-title">{t(editingEventId ? 'Editar evento' : 'Nuevo evento')}</span>
             <button className="ico-btn" onClick={closeEventModal}><X size={18} /></button>
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Nombre</label>
+            <label className="flabel">{t('Nombre')}</label>
             <input
               type="text"
               className="finput"
-              placeholder="Nombre del evento"
+              placeholder={t('Nombre del evento')}
               value={eventForm.name}
               onChange={e => setEventForm(f => ({ ...f, name: e.target.value }))}
             />
@@ -686,7 +670,7 @@ export function Agenda({
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">Fecha</label>
+              <label className="flabel">{t('Fecha')}</label>
               <input
                 type="date"
                 className="finput"
@@ -695,7 +679,7 @@ export function Agenda({
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">Hora</label>
+              <label className="flabel">{t('Hora')}</label>
               <input
                 type="time"
                 className="finput"
@@ -707,33 +691,33 @@ export function Agenda({
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">Tipo</label>
+              <label className="flabel">{t('Tipo')}</label>
               <select
                 className="finput"
                 value={eventForm.type}
                 onChange={e => setEventForm(f => ({ ...f, type: e.target.value as CalEvent['type'] }))}
               >
-                <option value="event">Evento</option>
-                <option value="deadline">Entrega</option>
-                <option value="meeting">Reunión</option>
+                <option value="event">{eventTypeLabel('event', lang)}</option>
+                <option value="deadline">{eventTypeLabel('deadline', lang)}</option>
+                <option value="meeting">{eventTypeLabel('meeting', lang)}</option>
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">Urgencia</label>
+              <label className="flabel">{t('Urgencia')}</label>
               <select
                 className="finput"
                 value={eventForm.urgency}
                 onChange={e => setEventForm(f => ({ ...f, urgency: e.target.value as CalEvent['urgency'] }))}
               >
-                <option value="alta">Alta</option>
-                <option value="media">Media</option>
-                <option value="baja">Baja</option>
+                <option value="alta">{urgencyLabel('alta', lang)}</option>
+                <option value="media">{urgencyLabel('media', lang)}</option>
+                <option value="baja">{urgencyLabel('baja', lang)}</option>
               </select>
             </div>
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Color</label>
+            <label className="flabel">{t('Color')}</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {PALETTE.map(color => (
                 <button
@@ -754,10 +738,10 @@ export function Agenda({
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Descripción</label>
+            <label className="flabel">{t('Descripción')}</label>
             <textarea
               className="finput"
-              placeholder="Descripción opcional…"
+              placeholder={t('Descripción opcional…')}
               rows={3}
               value={eventForm.desc}
               onChange={e => setEventForm(f => ({ ...f, desc: e.target.value }))}
@@ -768,11 +752,11 @@ export function Agenda({
           <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
             {editingEventId && (
               <button className="btn-ghost" onClick={deleteEvent} style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#ef4444' }}>
-                <Trash2 size={15} /> Eliminar
+                <Trash2 size={15} /> {t('Eliminar')}
               </button>
             )}
             <button className="btn-accent" onClick={submitEvent} style={{ marginLeft: 'auto' }}>
-              {editingEventId ? 'Guardar' : 'Añadir'}
+              {t(editingEventId ? 'Guardar' : 'Añadir')}
             </button>
           </div>
         </div>

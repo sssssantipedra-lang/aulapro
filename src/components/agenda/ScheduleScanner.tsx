@@ -8,6 +8,7 @@ import { callGemini, parseGeminiJson, hasApiKey, type InlineFile } from '../../s
 import { fileToBase64 } from '../../lib/utils';
 import { PALETTE } from '../../lib/demoData';
 import { useToast } from '../ui/Toast';
+import { useI18n, weekdayLabel } from '../../i18n';
 
 interface Props {
   open: boolean;
@@ -27,7 +28,6 @@ interface DetectedBlock {
   className?: string;
 }
 
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 const MAX_FILE_BYTES = 19 * 1024 * 1024;
 
 const SYSTEM_PROMPT =
@@ -47,6 +47,7 @@ function normalizeTime(raw: unknown): string | null {
 
 export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Props) {
   const { toast } = useToast();
+  const { t, locale } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [fileName, setFileName] = useState('');
@@ -78,7 +79,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (file.size > MAX_FILE_BYTES) { setError('El archivo supera el límite de 19 MB.'); return; }
+    if (file.size > MAX_FILE_BYTES) { setError(t('El archivo supera el límite de 19 MB.')); return; }
 
     reset();
     setFileName(file.name);
@@ -99,7 +100,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
       }
     } catch {
       setReading(false);
-      setError('No se pudo leer el archivo. Prueba a guardarlo como CSV o hacerle una foto.');
+      setError(t('No se pudo leer el archivo. Prueba a guardarlo como CSV o hacerle una foto.'));
       return;
     }
     setReading(false);
@@ -150,7 +151,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
       .sort((a, b) => a.day - b.day || a.time_start.localeCompare(b.time_start));
 
     if (rows.length === 0) {
-      setError('No se ha reconocido ningún horario. Prueba con una foto más nítida o con el archivo en CSV.');
+      setError(t('No se ha reconocido ningún horario. Prueba con una foto más nítida o con el archivo en CSV.'));
       return;
     }
     setDetected(rows);
@@ -165,7 +166,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
   function confirm() {
     if (!detected) return;
     const rows = detected.filter((_, i) => !skipped.has(i));
-    if (rows.length === 0) { toast('No has dejado ninguna sesión marcada'); return; }
+    if (rows.length === 0) { toast(t('No has dejado ninguna sesión marcada')); return; }
 
     const blocks: ScheduleBlock[] = rows.map((b, i) => {
       // Se intenta encajar con un grupo que ya exista para heredar su color
@@ -195,9 +196,9 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
       <div className="modal wide" style={{ maxHeight: '92vh' }}>
         <div className="modal-hd">
           <div>
-            <div className="modal-title">Escanear mi horario</div>
+            <div className="modal-title">{t('Escanear mi horario')}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              La IA lee tu horario y crea los bloques por ti
+              {t('La IA lee tu horario y crea los bloques por ti')}
             </p>
           </div>
           <button className="ico-btn" onClick={() => { if (!busy) { reset(); onClose(); } }}><X size={18} /></button>
@@ -207,10 +208,10 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
           <div style={{ textAlign: 'center', padding: '26px 20px' }}>
             <Sparkles size={30} color="var(--warn)" style={{ margin: '0 auto 14px' }} />
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
-              Para leer el horario hace falta la clave gratuita de Google que se configura en Mi Perfil.
+              {t('Para leer el horario hace falta la clave gratuita de Google que se configura en Mi Perfil.')}
             </p>
             <button className="btn-accent" onClick={() => { onClose(); onNav('profile'); }}>
-              Configurar la IA
+              {t('Configurar la IA')}
             </button>
           </div>
         ) : detected ? (
@@ -222,8 +223,8 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
             }}>
               <Check size={15} style={{ flexShrink: 0 }} />
               <span style={{ flex: 1, lineHeight: 1.5 }}>
-                Se han detectado {detected.length} sesiones. <strong>Revísalas antes de añadirlas</strong> y
-                desmarca las que no sean tuyas.
+                {t('Se han detectado {n} sesiones.', { n: detected.length })} <strong>{t('Revísalas antes de añadirlas')}</strong>{' '}
+                {t('y desmarca las que no sean tuyas.')}
               </span>
             </div>
 
@@ -232,11 +233,11 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
                 <thead>
                   <tr>
                     <th style={{ width: 40 }} />
-                    <th style={{ textAlign: 'left' }}>Día</th>
-                    <th style={{ textAlign: 'left' }}>Hora</th>
-                    <th style={{ textAlign: 'left' }}>Asignatura</th>
-                    <th style={{ textAlign: 'left' }}>Grupo</th>
-                    <th style={{ textAlign: 'left' }}>Aula</th>
+                    <th style={{ textAlign: 'left' }}>{t('Día')}</th>
+                    <th style={{ textAlign: 'left' }}>{t('Hora')}</th>
+                    <th style={{ textAlign: 'left' }}>{t('Asignatura')}</th>
+                    <th style={{ textAlign: 'left' }}>{t('Grupo')}</th>
+                    <th style={{ textAlign: 'left' }}>{t('Aula')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,7 +257,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
                             style={{ cursor: 'pointer', accentColor: 'var(--accent-d)', width: 15, height: 15 }}
                           />
                         </td>
-                        <td style={{ fontSize: 12.5, fontWeight: 600 }}>{DAY_NAMES[b.day]}</td>
+                        <td style={{ fontSize: 12.5, fontWeight: 600 }}>{weekdayLabel(b.day - 1, locale)}</td>
                         <td style={{ fontSize: 12.5, fontFamily: 'ui-monospace, Menlo, monospace' }}>
                           {b.time_start}–{b.time_end}
                         </td>
@@ -272,13 +273,14 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
 
             <div style={{ display: 'flex', gap: 10, marginTop: 16, alignItems: 'center' }}>
               <button className="btn-accent" onClick={confirm}>
-                <Check size={14} />Añadir {detected.length - skipped.size} sesiones
+                <Check size={14} />
+                {t(detected.length - skipped.size === 1 ? 'Añadir {n} sesión' : 'Añadir {n} sesiones', { n: detected.length - skipped.size })}
               </button>
               <button className="btn-ghost" onClick={() => { reset(); fileRef.current?.click(); }}>
-                Probar con otro archivo
+                {t('Probar con otro archivo')}
               </button>
               <div style={{ flex: 1 }} />
-              <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>Se añaden a tu horario actual</p>
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{t('Se añaden a tu horario actual')}</p>
             </div>
           </>
         ) : (
@@ -298,7 +300,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
                 <>
                   <span className="spin" />
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
-                    {reading ? 'Leyendo el archivo…' : 'La IA está interpretando tu horario…'}
+                    {t(reading ? 'Leyendo el archivo…' : 'La IA está interpretando tu horario…')}
                   </span>
                   {fileName && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{fileName}</span>}
                 </>
@@ -306,10 +308,10 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
                 <>
                   <Upload size={28} color="var(--accent-d)" />
                   <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)' }}>
-                    Elige tu horario
+                    {t('Elige tu horario')}
                   </span>
                   <span style={{ fontSize: 12.5, color: 'var(--text-2)', textAlign: 'center', lineHeight: 1.55, maxWidth: 380 }}>
-                    Vale una foto del papel, una captura, un PDF, un Excel o un CSV.
+                    {t('Vale una foto del papel, una captura, un PDF, un Excel o un CSV.')}
                   </span>
                 </>
               )}
@@ -325,9 +327,9 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
 
             <div style={{ display: 'flex', gap: 16, marginTop: 18, flexWrap: 'wrap' }}>
               {[
-                { icon: <ImageIcon size={15} />, label: 'Foto o captura', desc: 'Del horario en papel' },
-                { icon: <FileSpreadsheet size={15} />, label: 'Excel o CSV', desc: 'El del centro' },
-                { icon: <Table2 size={15} />, label: 'PDF', desc: 'Tal cual te lo dieron' },
+                { icon: <ImageIcon size={15} />, label: t('Foto o captura'), desc: t('Del horario en papel') },
+                { icon: <FileSpreadsheet size={15} />, label: t('Excel o CSV'), desc: t('El del centro') },
+                { icon: <Table2 size={15} />, label: 'PDF', desc: t('Tal cual te lo dieron') },
               ].map(x => (
                 <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 9, flex: '1 1 150px' }}>
                   <span style={{
@@ -357,7 +359,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
             )}
 
             <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 16, lineHeight: 1.55 }}>
-              El archivo se envía a Google para interpretarlo. Podrás revisar todo antes de que se añada nada.
+              {t('El archivo se envía a Google para interpretarlo. Podrás revisar todo antes de que se añada nada.')}
             </p>
           </>
         )}

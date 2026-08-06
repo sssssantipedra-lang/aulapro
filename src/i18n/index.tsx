@@ -261,6 +261,69 @@ const EN: Record<string, string> = {
   '¿Eliminar la clase "{name}"? Se perderán todos sus datos.': 'Delete the class "{name}"? All its data will be lost.',
   'Clase eliminada': 'Class deleted',
 
+  /* ── Agenda ── */
+  'Horario semanal y calendario de eventos': 'Weekly timetable and events calendar',
+  'Escanear horario': 'Scan timetable',
+  'Nuevo bloque': 'New session',
+  'Nuevo evento': 'New event',
+  'Mensual': 'Monthly',
+  'Semanal': 'Weekly',
+  'Selecciona un día': 'Select a day',
+  'Evento': 'Event',
+  'Sin eventos para este día': 'No events for this day',
+  'Urgencia': 'Urgency',
+  'Escribe el nombre de la asignatura': 'Enter the subject name',
+  'La hora de fin debe ser posterior a la de inicio': 'The end time must be later than the start time',
+  'Escribe un nombre para el evento': 'Enter a name for the event',
+  '✅ {n} sesión añadida al horario': '✅ {n} session added to the timetable',
+  '✅ {n} sesiones añadidas al horario': '✅ {n} sessions added to the timetable',
+  'Editar bloque': 'Edit session',
+  'Día': 'Day',
+  'Hora inicio': 'Start time',
+  'Hora fin': 'End time',
+  'Asignatura': 'Subject',
+  'Nombre de la asignatura': 'Subject name',
+  'Ej: Aula 301': 'e.g. Room 301',
+  'Clase': 'Class',
+  'Añadir': 'Add',
+  'Editar evento': 'Edit event',
+  'Nombre del evento': 'Event name',
+  'Hora': 'Time',
+  'Tipo': 'Type',
+  'Descripción': 'Description',
+  'Descripción opcional…': 'Optional description…',
+  'Escanear mi horario': 'Scan my timetable',
+  'La IA lee tu horario y crea los bloques por ti': 'The AI reads your timetable and creates the sessions for you',
+  'Para leer el horario hace falta la clave gratuita de Google que se configura en Mi Perfil.':
+    'Reading the timetable needs the free Google key set up in My Profile.',
+  'Configurar la IA': 'Set up AI',
+  'Se han detectado {n} sesiones.': 'Detected {n} sessions.',
+  'Revísalas antes de añadirlas': 'Review them before adding',
+  'y desmarca las que no sean tuyas.': 'and untick any that aren’t yours.',
+  'Grupo': 'Class',
+  'Añadir {n} sesión': 'Add {n} session',
+  'Añadir {n} sesiones': 'Add {n} sessions',
+  'Probar con otro archivo': 'Try another file',
+  'Se añaden a tu horario actual': 'These are added to your current timetable',
+  'Leyendo el archivo…': 'Reading the file…',
+  'La IA está interpretando tu horario…': 'The AI is reading your timetable…',
+  'Elige tu horario': 'Choose your timetable',
+  'Vale una foto del papel, una captura, un PDF, un Excel o un CSV.':
+    'A photo of the paper copy, a screenshot, a PDF, an Excel file or a CSV all work.',
+  'Foto o captura': 'Photo or screenshot',
+  'Del horario en papel': 'Of the paper timetable',
+  'Excel o CSV': 'Excel or CSV',
+  'El del centro': 'The one from your school',
+  'Tal cual te lo dieron': 'Exactly as you were given it',
+  'El archivo se envía a Google para interpretarlo. Podrás revisar todo antes de que se añada nada.':
+    'The file is sent to Google to read it. You’ll be able to review everything before anything is added.',
+  'El archivo supera el límite de 19 MB.': 'The file is over the 19 MB limit.',
+  'No se pudo leer el archivo. Prueba a guardarlo como CSV o hacerle una foto.':
+    'Couldn’t read the file. Try saving it as a CSV or taking a photo of it.',
+  'No se ha reconocido ningún horario. Prueba con una foto más nítida o con el archivo en CSV.':
+    'No timetable was recognised. Try a sharper photo or the file as a CSV.',
+  'No has dejado ninguna sesión marcada': 'You haven’t left any session ticked',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',
@@ -323,6 +386,37 @@ const PRIORITY_LABELS: Record<'high' | 'medium' | 'low', Record<Lang, string>> =
 };
 export function priorityLabel(p: 'high' | 'medium' | 'low', lang: Lang): string {
   return PRIORITY_LABELS[p][lang];
+}
+
+/** Urgencia de un evento de agenda: mismas tres palabras que la prioridad, con sus propias claves. */
+const URGENCY_LABELS: Record<'alta' | 'media' | 'baja', Record<Lang, string>> = {
+  alta:  { es: 'Alta', en: 'High' },
+  media: { es: 'Media', en: 'Medium' },
+  baja:  { es: 'Baja', en: 'Low' },
+};
+export function urgencyLabel(u: 'alta' | 'media' | 'baja', lang: Lang): string {
+  return URGENCY_LABELS[u][lang];
+}
+
+/** Tipo de evento de agenda. */
+const EVENT_TYPE_LABELS: Record<'deadline' | 'meeting' | 'event', Record<Lang, string>> = {
+  deadline: { es: 'Entrega', en: 'Deadline' },
+  meeting:  { es: 'Reunión', en: 'Meeting' },
+  event:    { es: 'Evento', en: 'Event' },
+};
+export function eventTypeLabel(t: 'deadline' | 'meeting' | 'event', lang: Lang): string {
+  return EVENT_TYPE_LABELS[t][lang];
+}
+
+/** Nombre de mes o de día de la semana, localizado y con mayúscula inicial. */
+export function monthLabel(monthIndex0: number, locale: string): string {
+  const s = new Date(2024, monthIndex0, 1).toLocaleDateString(locale, { month: 'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+/** dayIndex0Mon: 0 = lunes … 6 = domingo (2024-01-01 fue lunes). */
+export function weekdayLabel(dayIndex0Mon: number, locale: string, style: 'short' | 'long' = 'long'): string {
+  const s = new Date(2024, 0, 1 + dayIndex0Mon).toLocaleDateString(locale, { weekday: style });
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 const I18nContext = createContext<Ctx>({ lang: 'es', setLang: () => {}, t: k => k, locale: 'es-ES' });
