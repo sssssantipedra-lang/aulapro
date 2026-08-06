@@ -4,6 +4,7 @@ import { callGemini, hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
+import { useI18n } from '../i18n';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 
 interface Props {
@@ -49,9 +50,9 @@ function weightedAverage(
   return sum / weightUsed;
 }
 
-function fmtNota(n: number | null): string {
+function fmtNota(n: number | null, locale = 'es-ES'): string {
   if (n === null) return '—';
-  return n.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
 function notaColor(n: number | null): string {
@@ -101,10 +102,15 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
 
 /* ══════════════════ Pestaña de calificaciones ══════════════════ */
 
-const DEFAULT_CATEGORIES: { name: string; weight: number }[] = [
+const DEFAULT_CATEGORIES_ES: { name: string; weight: number }[] = [
   { name: 'Exámenes', weight: 60 },
   { name: 'Tareas', weight: 30 },
   { name: 'Participación', weight: 10 },
+];
+const DEFAULT_CATEGORIES_EN: { name: string; weight: number }[] = [
+  { name: 'Tests', weight: 60 },
+  { name: 'Homework', weight: 30 },
+  { name: 'Participation', weight: 10 },
 ];
 
 function GradesTab({
@@ -113,6 +119,7 @@ function GradesTab({
   onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav,
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
   const { toast } = useToast();
+  const { t, locale, lang } = useI18n();
   const [classId, setClassId] = useState(classes[0]?.id ?? '');
   const [catModal, setCatModal]   = useState<GradeCategory | 'new' | null>(null);
   const [itemModal, setItemModal] = useState<GradeItem | 'new' | null>(null);
@@ -193,37 +200,37 @@ function GradesTab({
   function saveCategory() {
     const name = catName.trim();
     const weight = Number(catWeight.replace(',', '.'));
-    if (!name) { toast('Escribe un nombre para la categoría'); return; }
-    if (Number.isNaN(weight) || weight <= 0 || weight > 100) { toast('El peso debe ser un número entre 1 y 100'); return; }
+    if (!name) { toast(t('Escribe un nombre para la categoría')); return; }
+    if (Number.isNaN(weight) || weight <= 0 || weight > 100) { toast(t('El peso debe ser un número entre 1 y 100')); return; }
     if (catModal === 'new') {
       onAddCategory({ id: 'gc' + Date.now(), class_id: clsId, name, weight, subject: activeSubject });
-      toast('✅ Categoría creada');
+      toast(t('✅ Categoría creada'));
     } else if (catModal) {
       onUpdateCategory({ ...catModal, name, weight });
-      toast('✅ Categoría actualizada');
+      toast(t('✅ Categoría actualizada'));
     }
     setCatModal(null);
   }
 
   function saveItem() {
     const name = itemName.trim();
-    if (!name) { toast('Escribe un nombre (ej: Examen Tema 3)'); return; }
-    if (!itemCat) { toast('Elige una categoría'); return; }
+    if (!name) { toast(t('Escribe un nombre (ej: Examen Tema 3)')); return; }
+    if (!itemCat) { toast(t('Elige una categoría')); return; }
     if (itemModal === 'new') {
       onAddItem({ id: 'gi' + Date.now(), class_id: clsId, category_id: itemCat, name, date: itemDate });
-      toast('✅ Columna de nota añadida');
+      toast(t('✅ Columna de nota añadida'));
     } else if (itemModal) {
       onUpdateItem({ ...itemModal, name, category_id: itemCat, date: itemDate });
-      toast('✅ Actualizada');
+      toast(t('✅ Actualizada'));
     }
     setItemModal(null);
   }
 
   /* ── Exportar CSV (compatible con Excel en español) ── */
   function exportCsv() {
-    if (myStudents.length === 0) { toast('No hay alumnos en esta clase'); return; }
+    if (myStudents.length === 0) { toast(t('No hay alumnos en esta clase')); return; }
     const cols = myCategories.flatMap(cat => myItems.filter(i => i.category_id === cat.id).map(i => ({ cat, item: i })));
-    const header = ['Alumno', ...cols.map(c => `${c.cat.name} - ${c.item.name}`), 'Media ponderada'];
+    const header = [t('Alumno'), ...cols.map(c => `${c.cat.name} - ${c.item.name}`), t('Media ponderada')];
     const rows = myStudents.map(s => {
       const cells = cols.map(({ item }) => {
         const v = grades[item.id]?.[s.id];
@@ -242,7 +249,7 @@ function GradesTab({
     a.download = `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast('✅ Notas exportadas (ábrelas con Excel)');
+    toast(t('✅ Notas exportadas (ábrelas con Excel)'));
   }
 
   /* ── Estados vacíos ── */
@@ -250,12 +257,12 @@ function GradesTab({
     return (
       <div className="card" style={{ maxWidth: 560, margin: '30px auto', textAlign: 'center', padding: '40px 36px' }}>
         <Users size={36} color="var(--text-3)" style={{ margin: '0 auto 14px' }} />
-        <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Aún no tienes clases</h3>
+        <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>{t('Aún no tienes clases')}</h3>
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
-          Para usar el cuaderno de notas, primero crea una clase con sus alumnos.
+          {t('Para usar el cuaderno de notas, primero crea una clase con sus alumnos.')}
         </p>
         <button className="btn-accent" onClick={() => onNav('classes')}>
-          Ir a Mis Clases <ArrowRight size={14} />
+          {t('Ir a Mis Clases')} <ArrowRight size={14} />
         </button>
       </div>
     );
@@ -284,7 +291,7 @@ function GradesTab({
         ))}
         <div style={{ flex: 1 }} />
         <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={exportCsv} disabled={myItems.length === 0}>
-          <Download size={13} />Exportar a Excel
+          <Download size={13} />{t('Exportar a Excel')}
         </button>
       </div>
 
@@ -295,7 +302,7 @@ function GradesTab({
           padding: '11px 14px', background: 'var(--surface)', borderRadius: 12,
         }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginRight: 2 }}>
-            Estás evaluando
+            {t('Estás evaluando')}
           </span>
           {subjects.map(s => {
             const on = s === activeSubject;
@@ -321,10 +328,10 @@ function GradesTab({
       {myStudents.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '36px 24px' }}>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 16 }}>
-            La clase <strong>{cls?.name}</strong> todavía no tiene alumnos.
+            {t('La clase')} <strong>{cls?.name}</strong> {t('todavía no tiene alumnos.')}
           </p>
           <button className="btn-accent" onClick={() => onNav('classes')}>
-            Añadir alumnos <ArrowRight size={14} />
+            {t('Añadir alumnos')} <ArrowRight size={14} />
           </button>
         </div>
       ) : myCategories.length === 0 ? (
@@ -332,25 +339,25 @@ function GradesTab({
         <div className="card" style={{ maxWidth: 620, margin: '20px auto', textAlign: 'center', padding: '36px 32px' }}>
           <Settings2 size={32} color="var(--accent-d)" style={{ margin: '0 auto 12px' }} />
           <h3 style={{ fontSize: 16.5, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
-            ¿Cómo evalúas en {cls?.name}?
+            {t('¿Cómo evalúas en {name}?', { name: cls?.name ?? '' })}
           </h3>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 440, margin: '0 auto 22px' }}>
-            Define las categorías de nota y cuánto pesa cada una en la media.
-            Puedes empezar con la configuración más habitual y ajustarla después.
+            {t('Define las categorías de nota y cuánto pesa cada una en la media. Puedes empezar con la configuración más habitual y ajustarla después.')}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               className="btn-accent"
               onClick={() => {
-                DEFAULT_CATEGORIES.forEach((c, i) =>
+                const defaults = lang === 'en' ? DEFAULT_CATEGORIES_EN : DEFAULT_CATEGORIES_ES;
+                defaults.forEach((c, i) =>
                   onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
-                toast('✅ Categorías creadas: Exámenes 60% · Tareas 30% · Participación 10%');
+                toast(`✅ ${lang === 'en' ? 'Categories created' : 'Categorías creadas'}: ${defaults.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
               }}
             >
-              Usar configuración típica (60/30/10)
+              {t('Usar configuración típica (60/30/10)')}
             </button>
             <button className="btn-ghost" onClick={() => openCatModal('new')}>
-              <Plus size={14} />Crear a mi manera
+              <Plus size={14} />{t('Crear a mi manera')}
             </button>
           </div>
         </div>
@@ -362,7 +369,7 @@ function GradesTab({
               <button
                 key={cat.id}
                 onClick={() => openCatModal(cat)}
-                title="Editar categoría"
+                title={t('Editar categoría')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
                   background: 'var(--accent-l)', border: 'none', borderRadius: 8,
@@ -375,16 +382,16 @@ function GradesTab({
               </button>
             ))}
             <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openCatModal('new')}>
-              <Plus size={13} />Categoría
+              <Plus size={13} />{t('Categoría')}
             </button>
             {weightSum !== 100 && (
               <span style={{ fontSize: 12, fontWeight: 700, color: '#b45309', background: 'rgba(245,158,11,0.12)', padding: '5px 12px', borderRadius: 8 }}>
-                ⚠ Los pesos suman {weightSum}% (lo ideal es 100%)
+                ⚠ {t('Los pesos suman {n}% (lo ideal es 100%)', { n: weightSum })}
               </span>
             )}
             <div style={{ flex: 1 }} />
             <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => openItemModal('new')}>
-              <Plus size={14} />Añadir nota
+              <Plus size={14} />{t('Añadir nota')}
             </button>
           </div>
 
@@ -392,13 +399,13 @@ function GradesTab({
           {myItems.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '32px 24px' }}>
               <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 6 }}>
-                Ya casi está. Añade tu primera columna de notas.
+                {t('Ya casi está. Añade tu primera columna de notas.')}
               </p>
               <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 18 }}>
-                Por ejemplo: «Examen Tema 1» en Exámenes, o «Cuaderno» en Tareas.
+                {t('Por ejemplo: «Examen Tema 1» en Exámenes, o «Cuaderno» en Tareas.')}
               </p>
               <button className="btn-accent" onClick={() => openItemModal('new')}>
-                <Plus size={14} />Añadir nota
+                <Plus size={14} />{t('Añadir nota')}
               </button>
             </div>
           ) : (
@@ -409,7 +416,7 @@ function GradesTab({
                     {/* Fila de grupos: una celda por categoría, abarcando sus
                         pruebas. Antes la agrupación existía pero no se veía. */}
                     <tr>
-                      <th className="gb-sticky" style={{ zIndex: 3 }} rowSpan={2}>Alumno</th>
+                      <th className="gb-sticky" style={{ zIndex: 3 }} rowSpan={2}>{t('Alumno')}</th>
                       {grouped.map(({ cat, items }) => (
                         <th
                           key={`grp-${cat.id}`}
@@ -425,13 +432,13 @@ function GradesTab({
                           {cat.name} · {cat.weight}%
                         </th>
                       ))}
-                      <th style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>Media</th>
+                      <th style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>{t('Media')}</th>
                     </tr>
                     <tr>
                       {grouped.map(({ cat, items }) =>
                         items.map((item, k) => (
                           <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
-                            <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — clic para editar`}>
+                            <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — ${t('clic para editar')}`}>
                               <span className="gb-item-name">{item.name}</span>
                               <span className="gb-item-cat">{item.date}</span>
                             </button>
@@ -460,14 +467,14 @@ function GradesTab({
                             )),
                           )}
                           <td style={{ textAlign: 'center', borderLeft: '2px solid var(--border)' }}>
-                            <span style={{ fontSize: 13.5, fontWeight: 800, color: notaColor(avg) }}>{fmtNota(avg)}</span>
+                            <span style={{ fontSize: 13.5, fontWeight: 800, color: notaColor(avg) }}>{fmtNota(avg, locale)}</span>
                           </td>
                         </tr>
                       );
                     })}
                     {/* Media del grupo */}
                     <tr className="gb-footer">
-                      <td className="gb-sticky" style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-2)' }}>Media del grupo</td>
+                      <td className="gb-sticky" style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-2)' }}>{t('Media del grupo')}</td>
                       {grouped.map(({ items }) =>
                         items.map((item, k) => {
                           const vals = myStudents
@@ -479,7 +486,7 @@ function GradesTab({
                               textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: notaColor(m),
                               ...(k === 0 ? { borderLeft: '2px solid var(--border)' } : {}),
                             }}>
-                              {fmtNota(m)}
+                              {fmtNota(m, locale)}
                             </td>
                           );
                         }),
@@ -490,7 +497,7 @@ function GradesTab({
                             .map(s => weightedAverage(s.id, myCategories, myItems, grades))
                             .filter((v): v is number => v !== null);
                           const m = avgs.length ? avgs.reduce((a, b) => a + b, 0) / avgs.length : null;
-                          return fmtNota(m);
+                          return fmtNota(m, locale);
                         })()}
                       </td>
                     </tr>
@@ -506,29 +513,29 @@ function GradesTab({
       <Modal
         open={catModal !== null}
         onClose={() => setCatModal(null)}
-        title={catModal === 'new' ? 'Nueva categoría' : 'Editar categoría'}
+        title={t(catModal === 'new' ? 'Nueva categoría' : 'Editar categoría')}
       >
         <div className="fgroup">
-          <label className="flabel">Nombre</label>
-          <input className="finput" value={catName} onChange={e => setCatName(e.target.value)} placeholder="Ej: Exámenes" autoFocus />
+          <label className="flabel">{t('Nombre')}</label>
+          <input className="finput" value={catName} onChange={e => setCatName(e.target.value)} placeholder={t('Ej: Exámenes')} autoFocus />
         </div>
         <div className="fgroup">
-          <label className="flabel">Peso en la media (%)</label>
-          <input className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder="Ej: 60" inputMode="numeric" />
+          <label className="flabel">{t('Peso en la media (%)')}</label>
+          <input className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-          <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>Guardar</button>
+          <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>{t('Guardar')}</button>
           {catModal !== 'new' && catModal !== null && (
             confirmDel ? (
               <button
                 className="btn-ghost"
                 style={{ color: 'white', background: 'var(--danger)', border: 'none' }}
-                onClick={() => { onDeleteCategory(catModal.id); setCatModal(null); toast('Categoría eliminada'); }}
+                onClick={() => { onDeleteCategory(catModal.id); setCatModal(null); toast(t('Categoría eliminada')); }}
               >
-                ¿Eliminar con sus notas?
+                {t('¿Eliminar con sus notas?')}
               </button>
             ) : (
-              <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => setConfirmDel(true)}>Eliminar</button>
+              <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => setConfirmDel(true)}>{t('Eliminar')}</button>
             )
           )}
         </div>
@@ -538,37 +545,37 @@ function GradesTab({
       <Modal
         open={itemModal !== null}
         onClose={() => setItemModal(null)}
-        title={itemModal === 'new' ? 'Añadir nota' : 'Editar nota'}
+        title={t(itemModal === 'new' ? 'Añadir nota' : 'Editar nota')}
       >
         <div className="fgroup">
-          <label className="flabel">Nombre</label>
-          <input className="finput" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="Ej: Examen Tema 3" autoFocus />
+          <label className="flabel">{t('Nombre')}</label>
+          <input className="finput" value={itemName} onChange={e => setItemName(e.target.value)} placeholder={t('Ej: Examen Tema 3')} autoFocus />
         </div>
         <div className="frow fgroup">
           <div>
-            <label className="flabel">Categoría</label>
+            <label className="flabel">{t('Categoría')}</label>
             <select className="finput" value={itemCat} onChange={e => setItemCat(e.target.value)} style={{ cursor: 'pointer' }}>
               {myCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
             </select>
           </div>
           <div>
-            <label className="flabel">Fecha</label>
+            <label className="flabel">{t('Fecha')}</label>
             <input className="finput" type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} />
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-          <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveItem}>Guardar</button>
+          <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveItem}>{t('Guardar')}</button>
           {itemModal !== 'new' && itemModal !== null && (
             confirmDel ? (
               <button
                 className="btn-ghost"
                 style={{ color: 'white', background: 'var(--danger)', border: 'none' }}
-                onClick={() => { onDeleteItem(itemModal.id); setItemModal(null); toast('Columna eliminada'); }}
+                onClick={() => { onDeleteItem(itemModal.id); setItemModal(null); toast(t('Columna eliminada')); }}
               >
-                ¿Eliminar con sus notas?
+                {t('¿Eliminar con sus notas?')}
               </button>
             ) : (
-              <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => setConfirmDel(true)}>Eliminar</button>
+              <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={() => setConfirmDel(true)}>{t('Eliminar')}</button>
             )
           )}
         </div>
@@ -586,13 +593,16 @@ interface HistoryEntry {
   timestamp: string;
 }
 
-const SYSTEM_PROMPT =
+const SYSTEM_PROMPT_ES =
   'Eres un asistente pedagógico experto para docentes españoles de secundaria (sistema LOMLOE). Respondes en español de España, de forma clara, estructurada y útil.';
+const SYSTEM_PROMPT_EN =
+  'You are an expert teaching assistant for secondary school teachers. You answer in clear, well-structured, useful English.';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
 function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocument' | 'onLawDocumentChange' | 'onNav'>) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [question, setQuestion] = useState('');
   const [attachedFile, setAttachedFile] = useState<InlineFile | null>(null);
   const [answer, setAnswer] = useState<string | null>(null);
@@ -605,23 +615,23 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (file.size > MAX_FILE_BYTES) { toast('El archivo supera el límite de 19 MB'); return; }
+    if (file.size > MAX_FILE_BYTES) { toast(t('El archivo supera el límite de 19 MB')); return; }
     try {
       const inlineFile = await fileToBase64(file);
-      if (forLaw) { onLawDocumentChange(inlineFile); toast('✅ Normativa adjuntada'); }
+      if (forLaw) { onLawDocumentChange(inlineFile); toast(t('✅ Normativa adjuntada')); }
       else setAttachedFile(inlineFile);
     } catch {
-      toast('No se pudo leer el archivo');
+      toast(t('No se pudo leer el archivo'));
     }
   }
 
   async function handleAsk() {
-    if (!question.trim()) { toast('Escribe una pregunta antes de consultar'); return; }
+    if (!question.trim()) { toast(t('Escribe una pregunta antes de consultar')); return; }
     const files: InlineFile[] = [];
     if (attachedFile) files.push(attachedFile);
     if (lawDocument) files.push(lawDocument);
 
-    const result = await callGemini(SYSTEM_PROMPT, question.trim(), files, {
+    const result = await callGemini(lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_ES, question.trim(), files, {
       onStart: () => setLoading(true),
       onEnd: () => setLoading(false),
       onError: msg => toast(msg),
@@ -633,7 +643,7 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
       id: crypto.randomUUID(),
       question: question.trim(),
       answer: result,
-      timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString(lang === 'en' ? 'en-GB' : 'es-ES', { hour: '2-digit', minute: '2-digit' }),
     }, ...prev].slice(0, 5));
   }
 
@@ -649,24 +659,24 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
           }}>
             <Sparkles size={17} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, lineHeight: 1.5 }}>
-              Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).
+              {t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')}
             </span>
             <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => onNav('profile')}>
-              Configurar ahora
+              {t('Configurar ahora')}
             </button>
           </div>
         )}
 
         <div className="card">
           <div className="card-hd">
-            <div className="card-ttl"><Brain size={15} color="var(--accent-d)" />Consulta pedagógica</div>
+            <div className="card-ttl"><Brain size={15} color="var(--accent-d)" />{t('Consulta pedagógica')}</div>
           </div>
           <div className="fgroup">
-            <label className="flabel">Pregunta o contexto</label>
+            <label className="flabel">{t('Pregunta o contexto')}</label>
             <textarea
               className="finput"
               rows={5}
-              placeholder="Escribe tu pregunta pedagógica, describe una situación del aula, pide ideas de actividades…"
+              placeholder={t('Escribe tu pregunta pedagógica, describe una situación del aula, pide ideas de actividades…')}
               value={question}
               onChange={e => setQuestion(e.target.value)}
               style={{ resize: 'vertical', minHeight: 110 }}
@@ -674,7 +684,7 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
             <button className="btn-ghost" style={{ fontSize: 12.5, gap: 6 }} onClick={() => attachRef.current?.click()} type="button">
-              <Paperclip size={13} />Adjuntar documento
+              <Paperclip size={13} />{t('Adjuntar documento')}
             </button>
             {attachedFile && (
               <div style={{
@@ -683,7 +693,7 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
               }}>
                 <FileText size={12} style={{ flexShrink: 0 }} />
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedFile.name}</span>
-                <button type="button" onClick={() => setAttachedFile(null)} aria-label="Quitar archivo adjunto"
+                <button type="button" onClick={() => setAttachedFile(null)} aria-label={t('Quitar archivo adjunto')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, marginLeft: 2, color: 'var(--accent-d)' }}>
                   <X size={12} />
                 </button>
@@ -698,18 +708,18 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
             disabled={loading}
             type="button"
           >
-            {loading ? <><span className="spin" /><span className="ia-generating">Consultando…</span></> : <>✨ Preguntar a la IA</>}
+            {loading ? <><span className="spin" /><span className="ia-generating">{t('Consultando…')}</span></> : <>✨ {t('Preguntar a la IA')}</>}
           </button>
         </div>
 
         {(answer !== null || loading) && (
           <div className="card">
             <div className="card-hd">
-              <div className="card-ttl"><BookOpen size={14} color="var(--accent-d)" />Respuesta</div>
+              <div className="card-ttl"><BookOpen size={14} color="var(--accent-d)" />{t('Respuesta')}</div>
             </div>
             {loading && !answer ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0', color: 'var(--text-2)', fontSize: 13 }}>
-                <span className="spin" /><span className="ia-generating">Generando respuesta…</span>
+                <span className="spin" /><span className="ia-generating">{t('Generando respuesta…')}</span>
               </div>
             ) : (
               <div style={{
@@ -728,10 +738,10 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
         {/* Normativa de referencia */}
         <div className="card">
           <div className="card-hd">
-            <div className="card-ttl"><BookOpen size={14} color="var(--accent-d)" />Normativa de referencia</div>
+            <div className="card-ttl"><BookOpen size={14} color="var(--accent-d)" />{t('Normativa de referencia')}</div>
           </div>
           <p style={{ fontSize: 12.5, color: 'var(--text-2)', marginBottom: 12, lineHeight: 1.55 }}>
-            Adjunta el BOE o el currículo de tu comunidad y la IA lo tendrá en cuenta en todas sus respuestas.
+            {t('Adjunta el BOE o el currículo de tu comunidad y la IA lo tendrá en cuenta en todas sus respuestas.')}
           </p>
           {lawDocument ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -742,13 +752,13 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
                 <FileText size={14} style={{ flexShrink: 0 }} />
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lawDocument.name}</span>
               </div>
-              <button className="btn-ghost" style={{ padding: '7px 10px', flexShrink: 0 }} onClick={() => onLawDocumentChange(null)} type="button" aria-label="Quitar normativa">
+              <button className="btn-ghost" style={{ padding: '7px 10px', flexShrink: 0 }} onClick={() => onLawDocumentChange(null)} type="button" aria-label={t('Quitar normativa')}>
                 <X size={14} />
               </button>
             </div>
           ) : (
             <button className="btn-ghost" style={{ width: '100%', justifyContent: 'center', gap: 7, fontSize: 13 }} onClick={() => lawRef.current?.click()} type="button">
-              <Paperclip size={14} />Adjuntar normativa (PDF…)
+              <Paperclip size={14} />{t('Adjuntar normativa (PDF…)')}
             </button>
           )}
           <input
@@ -760,11 +770,11 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
         {/* Historial de consultas */}
         <div className="card">
           <div className="card-hd">
-            <div className="card-ttl"><FileText size={14} color="var(--accent-d)" />Últimas consultas</div>
+            <div className="card-ttl"><FileText size={14} color="var(--accent-d)" />{t('Últimas consultas')}</div>
           </div>
           {history.length === 0 ? (
             <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '14px 0' }}>
-              Tus últimas 5 consultas aparecerán aquí
+              {t('Tus últimas 5 consultas aparecerán aquí')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -776,7 +786,7 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
                     textAlign: 'left', padding: '10px 12px', borderRadius: 9, background: 'var(--surface)',
                     border: '0.5px solid var(--border)', cursor: 'pointer', fontFamily: 'var(--font)', width: '100%',
                   }}
-                  title="Ver esta consulta"
+                  title={t('Ver esta consulta')}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 8 }}>
                     <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
@@ -804,20 +814,21 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
 
 export function Notebook(props: Props) {
   const [tab, setTab] = useState<'grades' | 'ai'>('grades');
+  const { t } = useI18n();
 
   return (
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Cuaderno de Notas</h1>
-          <p className="pg-sub">Calificaciones con media ponderada y asistente pedagógico</p>
+          <h1 className="pg-title">{t('Cuaderno de Notas')}</h1>
+          <p className="pg-sub">{t('Calificaciones con media ponderada y asistente pedagógico')}</p>
         </div>
         <div className="tab-bar" style={{ marginBottom: 0, width: 'auto' }}>
           <button className={`tab-btn${tab === 'grades' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('grades')}>
-            Calificaciones
+            {t('Calificaciones')}
           </button>
           <button className={`tab-btn${tab === 'ai' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('ai')}>
-            ✨ Consulta IA
+            ✨ {t('Consulta IA')}
           </button>
         </div>
       </div>
