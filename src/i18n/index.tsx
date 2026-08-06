@@ -592,6 +592,50 @@ const EN: Record<string, string> = {
   'Ponle un nombre a la diana': 'Give the target a name',
   'La diana necesita al menos 3 ítems': 'The target needs at least 3 items',
 
+  /* ── Informes ── */
+  'no tiene evaluaciones ni notas todavía': 'has no assessments or grades yet',
+  'Ya están todos generados para este periodo': 'They’re all already generated for this period',
+  '{n} informe generado': '{n} report generated',
+  '{n} informes generados': '{n} reports generated',
+  'No se pudo generar ningún informe': 'Couldn’t generate any report',
+  'No hay informes de este periodo': 'There are no reports for this period',
+  'No se pudo generar el PDF: {error}': 'Couldn’t generate the PDF: {error}',
+  '✅ Informe guardado en PDF': '✅ Report saved as PDF',
+  '✅ {n} informe guardado en PDF': '✅ {n} report saved as PDF',
+  '✅ {n} informes guardados en PDF': '✅ {n} reports saved as PDF',
+  '✅ Informes descargados': '✅ Reports downloaded',
+  'Redactados por la IA con tus propias evaluaciones': 'Written by AI from your own assessments',
+  'Los informes se redactan a partir de las evaluaciones y notas de tus alumnos.': 'Reports are written from your students’ assessments and grades.',
+  '{n}/{total} generados · {period}': '{n}/{total} generated · {period}',
+  'Copia en texto plano, para pegar en otro sitio': 'Plain-text copy, to paste elsewhere',
+  'Texto': 'Text',
+  'Generando…': 'Generating…',
+  'Generar los que faltan': 'Generate the missing ones',
+  'Los informes los redacta la IA. Necesitas configurar tu clave gratuita de Google.':
+    'Reports are written by AI. You need to set up your free Google key.',
+  'Configurar': 'Set up',
+  '· generado el {date}': '· generated on {date}',
+  'Eliminar informe': 'Delete report',
+  'Informe eliminado': 'Report deleted',
+  'Redactando el informe…': 'Writing the report…',
+  '✅ Informe actualizado': '✅ Report updated',
+  'Revísalo siempre antes de entregarlo. La IA se equivoca.': 'Always review it before handing it out. The AI makes mistakes.',
+  'La IA redacta el informe a partir de sus evaluaciones, sus notas del cuaderno y su asistencia, centrado en las competencias clave de la LOMLOE que ha desarrollado.':
+    'The AI writes the report from their assessments, gradebook marks and attendance, focused on the key competencies they’ve developed.',
+  '{name} no tiene todavía evaluaciones ni notas en el cuaderno. Un informe sin datos serían solo frases genéricas, así que es mejor evaluarle antes.':
+    '{name} doesn’t have any assessments or gradebook marks yet. A report with no data would just be generic phrases, so it’s best to assess them first.',
+  'Ir a Evaluación': 'Go to Assessment',
+  'Ir al Cuaderno': 'Go to the Gradebook',
+  'Se usarán sus evaluaciones, su media del cuaderno y su asistencia para redactar el informe.':
+    'Their assessments, gradebook average and attendance will be used to write the report.',
+  'Informe de evaluación competencial': 'Competency assessment report',
+  'Informe redactado con asistencia de inteligencia artificial a partir de las evaluaciones, calificaciones y asistencia registradas, y revisado por el docente. Competencias clave según el currículo educativo español (LOMLOE).':
+    'Report written with AI assistance from the assessments, grades and attendance on record, and reviewed by the teacher. Key competencies per the Spanish national curriculum (LOMLOE).',
+  '1ª evaluación': 'Term 1',
+  '2ª evaluación': 'Term 2',
+  '3ª evaluación': 'Term 3',
+  'Final de curso': 'End of year',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',
