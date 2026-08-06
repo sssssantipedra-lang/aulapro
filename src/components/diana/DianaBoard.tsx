@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { DianaItem, AchievementLevel } from '../../types';
 import { levelsOf, levelColor, gradeFromLevels } from '../../types';
+import { useI18n } from '../../i18n';
 
 /**
  * Diana de evaluación interactiva.
@@ -95,6 +96,7 @@ interface Props {
 }
 
 export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Props) {
+  const { t } = useI18n();
   const [hover, setHover] = useState<{ itemId: string; level: number } | null>(null);
   const n = items.length;
   if (n === 0) return null;
@@ -117,7 +119,7 @@ export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Prop
       viewBox={`-85 -30 ${SIZE + 170} ${SIZE + 60}`}
       style={{ userSelect: 'none', maxWidth: '100%', height: 'auto' }}
       role="img"
-      aria-label="Diana de evaluación"
+      aria-label={t('Diana de evaluación')}
     >
       {/* Lo que se puede llegar a llenar. Lo no alcanzado NO se pinta: si cada
           celda vacía fuese un bloque gris, la rejilla taparía el dato. */}
@@ -184,7 +186,7 @@ export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Prop
             onMouseEnter={() => setHover({ itemId: item.id, level: r + 1 })}
             onMouseLeave={() => setHover(null)}
           >
-            <title>{`${item.name} — ${scale[r].label}`}</title>
+            <title>{`${item.name} — ${t(scale[r].label)}`}</title>
           </path>
         ));
       })}
@@ -221,7 +223,7 @@ export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Prop
                 fontSize={10} fontWeight={800} fontFamily="var(--font)"
                 fill={levelColor(current, rings)}
               >
-                {scale[current - 1]?.label ?? ''}
+                {t(scale[current - 1]?.label ?? '')}
               </text>
             )}
           </g>

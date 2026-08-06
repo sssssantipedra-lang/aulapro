@@ -2,9 +2,10 @@ import { useState, useMemo, useCallback } from 'react';
 import { Sparkles, RotateCcw, Save, ChevronDown } from 'lucide-react';
 import type { Class, Student, Evaluation, DianaProfile } from '../types';
 import type { InlineFile } from '../services/gemini';
-import { DIANA_SECTORS, isoDate, plural } from '../lib/utils';
+import { DIANA_SECTORS, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
+import { useI18n } from '../i18n';
 
 interface Props {
   classes: Class[];
@@ -81,6 +82,7 @@ interface DianaChartProps {
 }
 
 function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: DianaChartProps) {
+  const { t } = useI18n();
   const ringRadii = Array.from({ length: RINGS }, (_, i) => ((i + 1) / RINGS) * MAX_RADIUS);
   const filled = SECTOR_IDS.filter(id => scores[id] > 0);
 
@@ -169,7 +171,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
                 onSetScore(s.id as SectorId, ri + 1);
               }}
             >
-              <title>{`${s.label}: ${LEVEL_LABELS[ri + 1]}`}</title>
+              <title>{`${t(s.label)}: ${t(LEVEL_LABELS[ri + 1])}`}</title>
             </line>
           );
         })
@@ -233,7 +235,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
               fontWeight={isSelected ? 800 : 600}
               fontFamily="var(--font)"
             >
-              {s.label}
+              {t(s.label)}
             </text>
             {scores[s.id as SectorId] > 0 && (
               <text
@@ -245,7 +247,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
                 fontWeight={800}
                 fontFamily="var(--font)"
               >
-                Nv.{scores[s.id as SectorId]}
+                {t('Nv.{n}', { n: scores[s.id as SectorId] })}
               </text>
             )}
           </g>
@@ -259,6 +261,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
 
 export function Diana({ classes, students, evaluations, lawDocument, dianaProfiles, onSaveDiana }: Props) {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [classId, setClassId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [scores, setScores] = useState<ScoreMap>(emptyScores());
@@ -317,9 +320,9 @@ export function Diana({ classes, students, evaluations, lawDocument, dianaProfil
     if (!studentId) return;
     onSaveDiana(studentId, { scores, descriptors, updated: isoDate() });
     setSaved(true);
-    toast('✅ Diana guardada');
+    toast(t('✅ Diana guardada'));
     setTimeout(() => setSaved(false), 2000);
-  }, [studentId, scores, descriptors, onSaveDiana, toast]);
+  }, [studentId, scores, descriptors, onSaveDiana, toast, t]);
 
   const handleAiSuggest = useCallback(async () => {
     if (!student) return;
@@ -327,17 +330,47 @@ export function Diana({ classes, students, evaluations, lawDocument, dianaProfil
     const cls = classes.find(c => c.id === classId);
 
     const evalSummary = studentEvals.length === 0
-      ? 'Sin evaluaciones previas registradas.'
+      ? (lang === 'en' ? 'No previous assessments recorded.' : 'Sin evaluaciones previas registradas.')
       : studentEvals.map(e => {
           const criteriaLines = Object.entries(e.scores)
-            .map(([k, v]) => `  - ${k}: nivel ${v}/4`)
+            .map(([k, v]) => lang === 'en' ? `  - ${k}: level ${v}/4` : `  - ${k}: nivel ${v}/4`)
             .join('\n');
-          return `Rúbrica "${e.rubric_name}" (${e.date}):\n${criteriaLines}${e.notes ? `\n  Notas: ${e.notes}` : ''}`;
+          return lang === 'en'
+            ? `Rubric "${e.rubric_name}" (${e.date}):\n${criteriaLines}${e.notes ? `\n  Notes: ${e.notes}` : ''}`
+            : `Rúbrica "${e.rubric_name}" (${e.date}):\n${criteriaLines}${e.notes ? `\n  Notas: ${e.notes}` : ''}`;
         }).join('\n\n');
 
-    const systemPrompt = `Eres un experto en educación competencial. Analiza el historial de evaluaciones de un alumno y genera puntuaciones para la Diana Competencial con 6 competencias clave (escala 1-4) y descriptores breves y concretos para cada una. Responde ÚNICAMENTE con JSON válido, sin texto adicional.`;
+    const systemPrompt = lang === 'en'
+      ? `You are an expert in competency-based education. Analyse a student's assessment history and generate scores for the Learner Profile with 6 key competencies (1-4 scale) and short, concrete descriptors for each. Reply ONLY with valid JSON, no extra text.`
+      : `Eres un experto en educación competencial. Analiza el historial de evaluaciones de un alumno y genera puntuaciones para la Diana Competencial con 6 competencias clave (escala 1-4) y descriptores breves y concretos para cada una. Responde ÚNICAMENTE con JSON válido, sin texto adicional.`;
 
-    const userPrompt = `Alumno: ${student.name}
+    const userPrompt = lang === 'en' ? `Student: ${student.name}
+Class: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
+Teacher's notes: ${student.notes || 'None'}
+
+Assessment history:
+${evalSummary}
+
+Generate the Learner Profile with scores (1=Below expectations, 2=Approaching expectations, 3=Meeting expectations, 4=Exceeding expectations) and descriptors, in English, for:
+- ds1: Communication
+- ds2: Mathematics
+- ds3: Digital
+- ds4: Social
+- ds5: Learning to learn
+- ds6: Enterprise
+
+JSON format:
+{
+  "scores": {"ds1": 3, "ds2": 2, "ds3": 3, "ds4": 4, "ds5": 3, "ds6": 2},
+  "descriptors": {
+    "ds1": "Short descriptor about Communication...",
+    "ds2": "Short descriptor about Mathematics...",
+    "ds3": "Short descriptor about Digital...",
+    "ds4": "Short descriptor about Social...",
+    "ds5": "Short descriptor about Learning to learn...",
+    "ds6": "Short descriptor about Enterprise..."
+  }
+}` : `Alumno: ${student.name}
 Clase: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
 Notas del profesor: ${student.notes || 'Ninguna'}
 
@@ -376,7 +409,7 @@ Formato JSON:
     if (!raw) return;
 
     const parsed = parseGeminiJson<{ scores: ScoreMap; descriptors: DescriptorMap }>(raw);
-    if (!parsed) { toast('La IA no devolvió un perfil válido. Vuelve a intentarlo.'); return; }
+    if (!parsed) { toast(t('La IA no devolvió un perfil válido. Vuelve a intentarlo.')); return; }
 
     if (parsed.scores) {
       const newScores = { ...emptyScores() };
@@ -396,7 +429,7 @@ Formato JSON:
     }
 
     setSaved(false);
-  }, [student, studentEvals, classes, classId, lawDocument, toast]);
+  }, [student, studentEvals, classes, classId, lawDocument, toast, lang, t]);
 
   const totalScore = SECTOR_IDS.reduce((acc, id) => acc + (scores[id] ?? 0), 0);
   const maxScore = SECTOR_IDS.length * RINGS;
@@ -406,8 +439,8 @@ Formato JSON:
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Diana Competencial</h1>
-          <p className="pg-sub">Perfil de competencias clave por alumno</p>
+          <h1 className="pg-title">{t('Diana Competencial')}</h1>
+          <p className="pg-sub">{t('Perfil de competencias clave por alumno')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {studentId && (
@@ -418,7 +451,7 @@ Formato JSON:
                 style={{ gap: 6 }}
               >
                 <RotateCcw size={14} />
-                Reiniciar
+                {t('Reiniciar')}
               </button>
               <button
                 className="btn-accent"
@@ -426,7 +459,7 @@ Formato JSON:
                 style={{ gap: 6 }}
               >
                 <Save size={14} />
-                {saved ? 'Guardado ✓' : 'Guardar'}
+                {t(saved ? 'Guardado ✓' : 'Guardar')}
               </button>
             </>
           )}
@@ -436,7 +469,7 @@ Formato JSON:
       {/* Selectors */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel">Clase</label>
+          <label className="flabel">{t('Clase')}</label>
           <div style={{ position: 'relative' }}>
             <select
               className="finput"
@@ -444,7 +477,7 @@ Formato JSON:
               onChange={e => handleClassChange(e.target.value)}
               style={{ appearance: 'none', paddingRight: 36 }}
             >
-              <option value="">— Selecciona una clase —</option>
+              <option value="">{t('— Selecciona una clase —')}</option>
               {classes.map(c => (
                 <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
               ))}
@@ -454,7 +487,7 @@ Formato JSON:
         </div>
 
         <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel">Alumno</label>
+          <label className="flabel">{t('Alumno')}</label>
           <div style={{ position: 'relative' }}>
             <select
               className="finput"
@@ -463,7 +496,7 @@ Formato JSON:
               disabled={!classId}
               style={{ appearance: 'none', paddingRight: 36 }}
             >
-              <option value="">— Selecciona un alumno —</option>
+              <option value="">{t('— Selecciona un alumno —')}</option>
               {classStudents.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -476,8 +509,8 @@ Formato JSON:
       {!studentId ? (
         <div className="card" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-3)' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>Selecciona un alumno</div>
-          <div style={{ fontSize: 13 }}>Elige una clase y un alumno para ver su Diana Competencial</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>{t('Selecciona un alumno')}</div>
+          <div style={{ fontSize: 13 }}>{t('Elige una clase y un alumno para ver su Diana Competencial')}</div>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, alignItems: 'start' }}>
@@ -501,8 +534,8 @@ Formato JSON:
                   <div>
                     <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)' }}>{student?.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                      {completedSectors}/{SECTOR_IDS.length} competencias evaluadas
-                      {completedSectors > 0 && ` · ${totalScore}/${maxScore} pts`}
+                      {t('{n}/{total} competencias evaluadas', { n: completedSectors, total: SECTOR_IDS.length })}
+                      {completedSectors > 0 && ` · ${t('{n}/{max} pts', { n: totalScore, max: maxScore })}`}
                     </div>
                   </div>
                 </div>
@@ -514,16 +547,16 @@ Formato JSON:
                   {generating ? (
                     <span className="ia-generating">
                       <span className="spin" />
-                      Generando...
+                      {t('Generando...')}
                     </span>
                   ) : (
-                    <><Sparkles size={14} />Sugerir perfil con IA</>
+                    <><Sparkles size={14} />{t('Sugerir perfil con IA')}</>
                   )}
                 </button>
               </div>
               {studentEvals.length > 0 && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid var(--border)', fontSize: 12, color: 'var(--text-3)' }}>
-                  {plural(studentEvals.length, 'evaluación disponible', 'evaluaciones disponibles')} para análisis
+                  {t(studentEvals.length === 1 ? '{n} evaluación disponible' : '{n} evaluaciones disponibles', { n: studentEvals.length })} {t('para análisis')}
                 </div>
               )}
             </div>
@@ -531,7 +564,7 @@ Formato JSON:
             {/* SVG Radar Chart */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 20px' }}>
               <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16, textAlign: 'center' }}>
-                Haz clic sobre un eje, a la altura del nivel que quieras darle
+                {t('Haz clic sobre un eje, a la altura del nivel que quieras darle')}
               </div>
               <DianaChart
                 scores={scores}
@@ -549,7 +582,7 @@ Formato JSON:
                     padding: '3px 10px', borderRadius: 99, fontWeight: 700,
                     border: `1px solid ${LEVEL_COLORS[lvl].border}`
                   }}>
-                    <span style={{ fontWeight: 900 }}>{lvl}</span> {LEVEL_LABELS[lvl]}
+                    <span style={{ fontWeight: 900 }}>{lvl}</span> {t(LEVEL_LABELS[lvl])}
                   </div>
                 ))}
               </div>
@@ -558,10 +591,10 @@ Formato JSON:
             {/* Per-sector level buttons */}
             <div className="card">
               <div className="card-hd">
-                <div className="card-ttl">Ajuste por competencia</div>
+                <div className="card-ttl">{t('Ajuste por competencia')}</div>
                 {selectedSector && (
                   <span style={{ fontSize: 12, color: 'var(--accent-d)', fontWeight: 700 }}>
-                    Editando: {DIANA_SECTORS.find(s => s.id === selectedSector)?.label}
+                    {t('Editando: {name}', { name: t(DIANA_SECTORS.find(s => s.id === selectedSector)?.label ?? '') })}
                   </span>
                 )}
               </div>
@@ -584,7 +617,7 @@ Formato JSON:
                     >
                       <span style={{ fontSize: 18, flexShrink: 0 }}>{s.icon}</span>
                       <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--text)', minWidth: 0 }}>
-                        {s.label}
+                        {t(s.label)}
                       </span>
                       <div style={{ display: 'flex', gap: 4 }}>
                         {[1, 2, 3, 4].map(lvl => (
@@ -613,7 +646,7 @@ Formato JSON:
                           border: `1px solid ${LEVEL_COLORS[current].border}`,
                           flexShrink: 0, minWidth: 60, textAlign: 'center',
                         }}>
-                          {LEVEL_LABELS[current]}
+                          {t(LEVEL_LABELS[current])}
                         </span>
                       )}
                     </div>
@@ -627,7 +660,7 @@ Formato JSON:
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
             <div className="card">
               <div className="card-hd">
-                <div className="card-ttl">Descriptores</div>
+                <div className="card-ttl">{t('Descriptores')}</div>
                 {Object.values(descriptors).some(d => d) && (
                   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 99, background: 'var(--accent-l)', color: 'var(--accent-d)', fontWeight: 700 }}>
                     IA
@@ -637,7 +670,7 @@ Formato JSON:
               {generating ? (
                 <div className="ia-generating" style={{ padding: '20px 0', justifyContent: 'center' }}>
                   <span className="spin" />
-                  Analizando perfil competencial...
+                  {t('Analizando perfil competencial...')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -659,7 +692,7 @@ Formato JSON:
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: desc ? 8 : 0 }}>
                           <span style={{ fontSize: 15 }}>{s.icon}</span>
-                          <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text)', flex: 1 }}>{s.label}</span>
+                          <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text)', flex: 1 }}>{t(s.label)}</span>
                           {score > 0 && (
                             <span style={{
                               fontSize: 10, fontWeight: 900, padding: '2px 8px',
@@ -668,7 +701,7 @@ Formato JSON:
                               color: LEVEL_COLORS[score].text,
                               border: `1px solid ${LEVEL_COLORS[score].border}`,
                             }}>
-                              Nv.{score} · {LEVEL_LABELS[score]}
+                              {t('Nv.{n}', { n: score })} · {t(LEVEL_LABELS[score])}
                             </span>
                           )}
                         </div>
@@ -676,7 +709,7 @@ Formato JSON:
                           <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55, margin: 0 }}>{desc}</p>
                         ) : (
                           <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: 0, fontStyle: 'italic' }}>
-                            Sin descriptor. Usa "Sugerir con IA" para generarlo.
+                            {t('Sin descriptor. Usa "Sugerir con IA" para generarlo.')}
                           </p>
                         )}
                         {/* Editable descriptor textarea */}
@@ -684,7 +717,7 @@ Formato JSON:
                           <textarea
                             className="finput"
                             value={desc}
-                            placeholder="Escribe un descriptor para esta competencia..."
+                            placeholder={t('Escribe un descriptor para esta competencia...')}
                             onChange={e => setDescriptors(prev => ({ ...prev, [sid]: e.target.value }))}
                             onClick={e => e.stopPropagation()}
                             rows={3}
@@ -702,7 +735,7 @@ Formato JSON:
             {completedSectors > 0 && (
               <div className="card" style={{ padding: '14px 16px' }}>
                 <div className="card-hd" style={{ marginBottom: 10 }}>
-                  <div className="card-ttl">Resumen</div>
+                  <div className="card-ttl">{t('Resumen')}</div>
                   <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-d)' }}>
                     {totalScore}/{maxScore}
                   </span>
@@ -716,7 +749,7 @@ Formato JSON:
                       <div key={sid} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 12, width: 12 }}>{s.icon}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-2)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {s.label}
+                          {t(s.label)}
                         </span>
                         <div style={{ width: 60, height: 5, borderRadius: 3, background: 'var(--border)', overflow: 'hidden' }}>
                           <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: LEVEL_COLORS[score].text }} />
@@ -728,7 +761,7 @@ Formato JSON:
                 </div>
                 {completedSectors < SECTOR_IDS.length && (
                   <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-3)', textAlign: 'center' }}>
-                    {SECTOR_IDS.length - completedSectors} competencia{SECTOR_IDS.length - completedSectors !== 1 ? 's' : ''} pendiente{SECTOR_IDS.length - completedSectors !== 1 ? 's' : ''}
+                    {t((SECTOR_IDS.length - completedSectors) === 1 ? '{n} competencia pendiente' : '{n} competencias pendientes', { n: SECTOR_IDS.length - completedSectors })}
                   </div>
                 )}
               </div>
