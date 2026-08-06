@@ -85,3 +85,19 @@ de un trimestre por desinstalar un programa.
 Windows 10 u 11 de 64 bits y unos 300 MB libres. Para la Sala de alumnos, que
 tu ordenador y los móviles estén en la misma wifi; la primera vez Windows
 pedirá permiso en el cortafuegos y hay que aceptarlo.
+
+---
+
+## Condiciones de uso
+
+Copyright © 2026 Santiago Pedra. Todos los derechos reservados.
+
+**Puedes** usarlo gratis en tu labor docente, en todos los equipos que
+necesites, y recomendarlo a otros compañeros enviándoles a esta página de
+descarga.
+
+**No puedes**, sin permiso escrito, redistribuirlo por tu cuenta, cobrar por él
+ni modificarlo.
+
+Se ofrece sin garantía: revisa siempre las calificaciones antes de darlas por
+definitivas. Condiciones completas en [LICENSE](LICENSE).

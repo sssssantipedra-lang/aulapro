@@ -1,8 +1,12 @@
 # Aula Pro
 
-Gestión de aula para docentes de secundaria: cuaderno de notas, evaluación por
-rúbricas y dianas, asistencia, informes competenciales LOMLOE, actas y
-actividades en directo con los móviles de los alumnos.
+Copyright © 2026 Santiago Pedra. Todos los derechos reservados.
+Uso gratuito para docentes; **no se permite redistribuir, vender ni modificar**
+sin permiso escrito. Ver [LICENSE](LICENSE).
+
+Gestión de aula para docentes: cuaderno de notas, evaluación por rúbricas y
+dianas, asistencia, informes competenciales LOMLOE, actas y actividades en
+directo con los móviles de los alumnos.
 
 **Todo funciona en el ordenador del docente.** No hay cuentas, no hay servidor y
 los datos de los alumnos no salen del equipo.
