@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { Camera, CameraOff, X } from 'lucide-react';
 import { parseScannedCode } from '../../services/p2p';
+import { useI18n } from '../../i18n';
 
 type ScanState = 'asking' | 'scanning' | 'denied' | 'unsupported';
 
@@ -15,6 +16,7 @@ interface Props {
  * Solo analiza fotogramas en memoria: no graba ni envía nada.
  */
 export function QRScanner({ onDetected, onCancel }: Props) {
+  const { t } = useI18n();
   const videoRef  = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [state, setState] = useState<ScanState>('asking');
@@ -72,7 +74,7 @@ export function QRScanner({ onDetected, onCancel }: Props) {
                     onDetected(code);
                     return;
                   }
-                  setHint('Ese QR no es de una sesión de Aula Pro.');
+                  setHint(t('Ese QR no es de una sesión de Aula Pro.'));
                 }
               }
             }
@@ -104,12 +106,12 @@ export function QRScanner({ onDetected, onCancel }: Props) {
       <div style={{ textAlign: 'center', padding: '20px 10px' }}>
         <CameraOff size={30} color="var(--text-3)" style={{ margin: '0 auto 12px' }} />
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 16 }}>
-          {state === 'unsupported'
+          {t(state === 'unsupported'
             ? 'Este equipo no tiene cámara disponible.'
-            : 'No se pudo usar la cámara. Permite el acceso en el navegador o escribe el código a mano.'}
+            : 'No se pudo usar la cámara. Permite el acceso en el navegador o escribe el código a mano.')}
         </p>
         <button className="btn-ghost" onClick={() => { stop(); onCancel(); }}>
-          Escribir el código a mano
+          {t('Escribir el código a mano')}
         </button>
       </div>
     );
@@ -141,7 +143,7 @@ export function QRScanner({ onDetected, onCancel }: Props) {
         />
         {state === 'asking' && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 13, gap: 8 }}>
-            <span className="spin" />Pidiendo permiso…
+            <span className="spin" />{t('Pidiendo permiso…')}
           </div>
         )}
       </div>
@@ -150,7 +152,7 @@ export function QRScanner({ onDetected, onCancel }: Props) {
 
       <p style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 10, lineHeight: 1.5 }}>
         <Camera size={13} style={{ display: 'inline', verticalAlign: -2, marginRight: 5 }} />
-        Apunta al código QR de tu compañero/a
+        {t('Apunta al código QR de tu compañero/a')}
       </p>
       {hint && (
         <p style={{ fontSize: 12, color: 'var(--warn)', marginTop: 4 }}>{hint}</p>
@@ -161,7 +163,7 @@ export function QRScanner({ onDetected, onCancel }: Props) {
         style={{ marginTop: 12, fontSize: 12.5 }}
         onClick={() => { stop(); onCancel(); }}
       >
-        <X size={13} />Escribir el código a mano
+        <X size={13} />{t('Escribir el código a mano')}
       </button>
     </div>
   );

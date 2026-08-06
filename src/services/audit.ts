@@ -93,7 +93,7 @@ export const ENTITY_LABEL: Record<AuditEntity, string> = {
 
 /** Grupos del filtro, para no acabar con doce casillas. */
 export const ENTITY_GROUPS: { id: string; label: string; entities: AuditEntity[] }[] = [
-  { id: 'grades',  label: 'Notas',        entities: ['grade', 'gradeItem', 'gradeCategory'] },
+  { id: 'grades',  label: 'Calificaciones', entities: ['grade', 'gradeItem', 'gradeCategory'] },
   { id: 'evals',   label: 'Evaluación',   entities: ['evaluation', 'rubric', 'diana', 'report'] },
   { id: 'people',  label: 'Clases',       entities: ['class', 'student'] },
   { id: 'attend',  label: 'Asistencia',   entities: ['attendance'] },
