@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, FileSpreadsheet, ArrowRight, Users } from 'lucide-react';
+import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 import { PERIODS } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -122,6 +122,53 @@ export function Records({
 
   const totalWeight = cats.reduce((a, c) => a + c.weight, 0);
 
+  const docs = window.electronAPI?.docs;
+  const [working, setWorking] = useState<'pdf' | 'print' | null>(null);
+
+  const fileBase = () => {
+    const slug = (s: string) => s.replace(/\s+/g, '-');
+    return `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}`;
+  };
+
+  /**
+   * El acta como documento independiente.
+   *
+   * Se serializa el nodo ya pintado en vez de reconstruirlo, para que el PDF
+   * sea exactamente lo que se está viendo. Las hojas de estilo de la
+   * aplicación no viajan, así que se acompañan las reglas del documento.
+   */
+  function buildActaHtml(): string | null {
+    const node = document.getElementById('acta');
+    if (!node) return null;
+    const title = `${cls?.name ?? ''} · ${activeSubject} · ${period}`.trim();
+    const esc = (s: string) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+    return `<!doctype html><html lang="es"><head><meta charset="utf-8">` +
+      `<title>${esc(title)}</title>` +
+      `<style>${DOC_STANDALONE}${DOC_STYLE}</style>` +
+      `</head><body>${node.outerHTML}</body></html>`;
+  }
+
+  async function savePdf() {
+    const html = buildActaHtml();
+    if (!html || !docs) return;
+    setWorking('pdf');
+    const res = await docs.savePdf(html, fileBase() + '.pdf');
+    setWorking(null);
+    if (res.canceled) return;
+    if (res.error) { toast('No se pudo generar el PDF: ' + res.error); return; }
+    toast('✅ Acta guardada en PDF');
+    if (res.path) docs.reveal(res.path);
+  }
+
+  async function printActa() {
+    const html = buildActaHtml();
+    if (!html || !docs) return;
+    setWorking('print');
+    const res = await docs.print(html);
+    setWorking(null);
+    if (res.error) toast('No se pudo imprimir: ' + res.error);
+  }
+
   function downloadCsv() {
     if (rows.length === 0) { toast('Esta clase no tiene alumnos'); return; }
     const esc = (s: string | number) => `"${String(s ?? '').replace(/"/g, '""')}"`;
@@ -177,7 +224,7 @@ export function Records({
 
   return (
     <section className="sec active">
-      <style>{ACTA_CSS}</style>
+      <style>{DOC_STYLE + SCREEN_STYLE + PRINT_FALLBACK_STYLE}</style>
 
       <div className="pg-hd no-print">
         <div>
@@ -192,9 +239,27 @@ export function Records({
           <button className="btn-ghost" onClick={downloadCsv} disabled={rows.length === 0}>
             <FileSpreadsheet size={14} />Datos en CSV
           </button>
-          <button className="btn-accent" onClick={() => window.print()} disabled={rows.length === 0}>
-            <Printer size={15} />Imprimir o guardar en PDF
-          </button>
+
+          {docs ? (
+            <>
+              <button className="btn-ghost" onClick={printActa} disabled={rows.length === 0 || working !== null}>
+                {working === 'print'
+                  ? <><span className="spin" />Preparando…</>
+                  : <><Printer size={15} />Imprimir</>}
+              </button>
+              <button className="btn-accent" onClick={savePdf} disabled={rows.length === 0 || working !== null}>
+                {working === 'pdf'
+                  ? <><span className="spin" />Generando…</>
+                  : <><FileDown size={15} />Guardar en PDF</>}
+              </button>
+            </>
+          ) : (
+            // En el navegador no hay proceso que genere el PDF: solo queda el
+            // diálogo del sistema, que ya permite «Guardar como PDF».
+            <button className="btn-accent" onClick={() => window.print()} disabled={rows.length === 0}>
+              <Printer size={15} />Imprimir o guardar en PDF
+            </button>
+          )}
         </div>
       </div>
 
@@ -368,16 +433,12 @@ function Toggle({ label, on, onChange }: { label: string; on: boolean; onChange:
 }
 
 /**
- * Estilos del acta. Van aquí y no en la hoja global porque solo los usa esta
- * pantalla y porque las reglas de impresión son agresivas: al imprimir se
- * oculta TODO menos el documento.
+ * Aspecto del documento. Se usa igual en pantalla y en el archivo que se
+ * exporta, para que lo que ves sea exactamente lo que sale impreso.
  */
-const ACTA_CSS = `
-.acta-wrap { display: flex; justify-content: center; }
+const DOC_STYLE = `
 .acta {
-  width: 100%; max-width: 210mm; background: #fff; color: #111827;
-  padding: 16mm 15mm; border-radius: 4px;
-  border: 0.5px solid var(--border); box-shadow: 0 6px 26px rgba(0,0,0,0.09);
+  width: 100%; background: #fff; color: #111827;
   font-family: Georgia, 'Times New Roman', serif;
 }
 .acta-hd { text-align: center; border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 4px; }
@@ -423,8 +484,32 @@ const ACTA_CSS = `
 .acta-sign-line { border-bottom: 1px solid #111827; margin-bottom: 6px; }
 .acta-sign-name { font-size: 12px; }
 
+/* Reparto entre páginas: vale tanto en el PDF como en la impresora. */
+.acta-table thead { display: table-header-group; }
+.acta-table tr { break-inside: avoid; page-break-inside: avoid; }
+.acta-foot { break-inside: avoid; page-break-inside: avoid; }
+.acta-table tbody tr:nth-child(even) {
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+`;
+
+/** Solo en pantalla: la hoja se presenta como una tarjeta centrada. */
+const SCREEN_STYLE = `
+.acta-wrap { display: flex; justify-content: center; }
+.acta {
+  max-width: 210mm; padding: 16mm 15mm; border-radius: 4px;
+  border: 0.5px solid var(--border); box-shadow: 0 6px 26px rgba(0,0,0,0.09);
+}
+`;
+
+/**
+ * Respaldo para el navegador, donde no existe el proceso de Electron que abre
+ * el documento aparte: hay que ocultar la aplicación con `visibility`. Es el
+ * truco que dejaba la previsualización en blanco, así que en el escritorio ya
+ * no se usa.
+ */
+const PRINT_FALLBACK_STYLE = `
 @media print {
-  /* Se oculta la aplicación entera y solo queda el documento. */
   body * { visibility: hidden; }
   #acta, #acta * { visibility: visible; }
   #acta {
@@ -432,11 +517,21 @@ const ACTA_CSS = `
     padding: 0; border: none; box-shadow: none; border-radius: 0;
   }
   .no-print { display: none !important; }
-  /* La cabecera de la tabla se repite en cada hoja y no se parte ningún alumno. */
-  .acta-table thead { display: table-header-group; }
-  .acta-table tr { break-inside: avoid; page-break-inside: avoid; }
-  .acta-table tbody tr:nth-child(even) { background: #f4f4f4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .acta-foot { break-inside: avoid; page-break-inside: avoid; }
   @page { size: A4 portrait; margin: 14mm; }
 }
+`;
+
+/**
+ * Lo que necesita el documento cuando viaja solo, fuera de la aplicación:
+ * las variables de color que usa y el tamaño de página. Los márgenes los pone
+ * la propia impresión, por eso aquí el cuerpo va sin relleno.
+ */
+const DOC_STANDALONE = `
+:root {
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --border: #e2e8f0;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; }
+@page { size: A4 portrait; margin: 14mm; }
 `;

@@ -1,5 +1,7 @@
-const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
+const fsp = require('fs/promises');
+const os = require('os');
 const { ClassroomServer } = require('./classroom.cjs');
 const { Storage } = require('./storage.cjs');
 
@@ -31,6 +33,79 @@ function registerStorageIpc() {
 classroom.onChange = snapshot => {
   mainWindow?.webContents.send('classroom:update', snapshot);
 };
+
+/**
+ * Documentos imprimibles (las actas).
+ *
+ * El documento se abre en una ventana oculta que contiene SOLO el acta, sin
+ * la aplicación alrededor. Eso permite dos cosas que desde la propia interfaz
+ * no se podían: guardar el PDF sin pasar por el diálogo de impresora, y que
+ * la vista previa de impresión deje de salir en blanco (salía así porque el
+ * truco de ocultar el resto de la página con `visibility` confunde al
+ * renderizador de la previsualización).
+ */
+async function withDocumentWindow(html, fn) {
+  // Archivo temporal en vez de data: URL: no depende del límite de longitud
+  // y un acta de treinta alumnos puede ocupar bastante.
+  const file = path.join(os.tmpdir(), `aulapro-doc-${Date.now()}.html`);
+  await fsp.writeFile(file, html, 'utf8');
+
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: { javascript: false, sandbox: true },
+  });
+  try {
+    await win.loadFile(file);
+    return await fn(win);
+  } finally {
+    if (!win.isDestroyed()) win.destroy();
+    fsp.unlink(file).catch(() => { /* da igual si ya no está */ });
+  }
+}
+
+function registerDocumentIpc() {
+  ipcMain.handle('docs:savePdf', async (_e, { html, suggestedName }) => {
+    try {
+      return await withDocumentWindow(html, async win => {
+        const pdf = await win.webContents.printToPDF({
+          pageSize: 'A4',
+          landscape: false,
+          printBackground: true,
+          margins: { top: 0.55, bottom: 0.55, left: 0.55, right: 0.55 },
+        });
+
+        const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+          title: 'Guardar acta en PDF',
+          defaultPath: suggestedName || 'acta.pdf',
+          filters: [{ name: 'Documento PDF', extensions: ['pdf'] }],
+        });
+        if (canceled || !filePath) return { canceled: true };
+
+        await fsp.writeFile(filePath, pdf);
+        return { ok: true, path: filePath };
+      });
+    } catch (err) {
+      return { error: err.message };
+    }
+  });
+
+  ipcMain.handle('docs:print', async (_e, { html }) => {
+    try {
+      return await withDocumentWindow(html, win => new Promise(resolve => {
+        win.webContents.print({ printBackground: true }, (success, reason) => {
+          // `reason` es 'cancelled' si el docente cierra el diálogo
+          resolve(success ? { ok: true } : { canceled: reason === 'cancelled', reason });
+        });
+      }));
+    } catch (err) {
+      return { error: err.message };
+    }
+  });
+
+  ipcMain.handle('docs:reveal', (_e, filePath) => {
+    if (filePath) shell.showItemInFolder(filePath);
+  });
+}
 
 function registerClassroomIpc() {
   ipcMain.handle('classroom:start', async (_e, opts) => {
@@ -100,6 +175,7 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     registerClassroomIpc();
     registerStorageIpc();
+    registerDocumentIpc();
     createWindow();
 
     app.on('activate', () => {

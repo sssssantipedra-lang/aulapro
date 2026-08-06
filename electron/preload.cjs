@@ -22,6 +22,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openFolder:    id             => ipcRenderer.invoke('store:openFolder', id),
   },
 
+  /** Documentos imprimibles: se abren en una ventana aparte, solo el documento. */
+  docs: {
+    savePdf: (html, suggestedName) => ipcRenderer.invoke('docs:savePdf', { html, suggestedName }),
+    print:   html                   => ipcRenderer.invoke('docs:print', { html }),
+    reveal:  filePath               => ipcRenderer.invoke('docs:reveal', filePath),
+  },
+
   /** Sala de alumnos: servidor local para que se conecten desde el móvil. */
   classroom: {
     start:       opts     => ipcRenderer.invoke('classroom:start', opts),
