@@ -303,9 +303,16 @@ export function useAppState() {
 
   /* ── Clases y alumnos ── */
   const addClass = useCallback((cls: Class) => {
-    setClasses(prev => [...prev, cls]);
-    log('create', 'class', cls.id, `Clase «${cls.name}»`);
-  }, [log]);
+    // El creador queda como dueño de la lista: al compartir con un compañero,
+    // su versión será la que mande.
+    const owned: Class = {
+      ...cls,
+      owner: cls.owner ?? profileId ?? undefined,
+      owner_name: cls.owner_name ?? profile?.name,
+    };
+    setClasses(prev => [...prev, owned]);
+    log('create', 'class', owned.id, `Clase «${owned.name}»`);
+  }, [log, profileId, profile]);
   const updateClass = useCallback((cls: Class) => {
     setClasses(prev => prev.map(c => c.id === cls.id ? cls : c));
     log('update', 'class', cls.id, `Clase «${cls.name}»`);
@@ -345,9 +352,14 @@ export function useAppState() {
   }, [students, gradeCategories, gradeItems, evaluations, markDeleted, log, className]);
 
   const addStudent = useCallback((s: Student) => {
-    setStudents(prev => [...prev, s]);
-    log('create', 'student', s.id, `Alumno ${s.name} en ${className(s.class_id)}`);
-  }, [log, className]);
+    // La ficha hereda el dueño de su clase: quien manda en la lista es quien
+    // manda en cada alumno de esa lista.
+    const owner = mirrorRef.current.classes.find(c => c.id === s.class_id)?.owner
+              ?? profileId ?? undefined;
+    const owned: Student = { ...s, owner: s.owner ?? owner };
+    setStudents(prev => [...prev, owned]);
+    log('create', 'student', owned.id, `Alumno ${owned.name} en ${className(owned.class_id)}`);
+  }, [log, className, profileId]);
   const updateStudent = useCallback((s: Student) => {
     setStudents(prev => prev.map(x => x.id === s.id ? s : x));
     log('update', 'student', s.id, `Alumno ${s.name}`);
@@ -569,12 +581,16 @@ export function useAppState() {
   /* ── Sincronización entre docentes ── */
   const syncSource = {
     classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones,
+    me: profileId ?? undefined,
   };
 
   const applyBundle = useCallback((remote: SharedBundle, mode: MergeMode) => {
     const merged = mergeBundle(
       { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones },
       remote, mode,
+      // Sin saber quién soy, la fusión no puede distinguir lo propio y el
+      // compañero acabaría sobrescribiendo la lista de la que soy dueño.
+      profileId ?? undefined,
     );
     // El compañero puede tener una versión anterior de la aplicación
     setClasses(merged.classes.map(normalizeClass));
@@ -599,7 +615,7 @@ export function useAppState() {
     log('update', 'sync', mode,
       mode === 'reconcile' ? 'Conectó con otro docente' : 'Recibió un cambio de otro docente',
       changes.length ? changes.join(', ') : 'sin cambios');
-  }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones, log]);
+  }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones, log, profileId]);
 
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback(() => {

@@ -64,6 +64,82 @@ describe('mergeBundle: quién gana ante el mismo id', () => {
 });
 
 /* ══════════════════════════════════════════════════════════
+   Dueños: dos docentes compartiendo el mismo grupo
+   ══════════════════════════════════════════════════════════ */
+
+describe('mergeBundle: el dueño manda sobre lo suyo', () => {
+  const TUTOR = 'perfil-tutor';
+  const ESPECIALISTA = 'perfil-especialista';
+
+  const alumnoDe = (owner: string, name: string): Student =>
+    ({ ...stu('s1', 'c1', name), owner });
+
+  it('la lista del tutor gana aunque el especialista sincronice después', () => {
+    // Caso real: el tutor corrige el nombre de un alumno; el especialista
+    // todavía tiene el viejo y su paquete llega en modo live, donde el
+    // remoto ganaría siempre.
+    const local  = bundle({ students: [alumnoDe(TUTOR, 'Ana Ruiz Gómez')] });
+    const remote = bundle({ students: [alumnoDe(TUTOR, 'Ana Ruiz')], from: ESPECIALISTA });
+
+    const out = mergeBundle(local, remote, 'live', TUTOR);
+    expect(out.students[0].name).toBe('Ana Ruiz Gómez');
+  });
+
+  it('lo del compañero llega aunque yo tenga otra versión (reconcile)', () => {
+    // El reverso: si la ficha es suya, su cambio entra aunque en reconcile
+    // normalmente ganara lo local.
+    const local  = bundle({ students: [alumnoDe(ESPECIALISTA, 'copia vieja')] });
+    const remote = bundle({ students: [alumnoDe(ESPECIALISTA, 'al día')], from: ESPECIALISTA });
+
+    const out = mergeBundle(local, remote, 'reconcile', TUTOR);
+    expect(out.students[0].name).toBe('al día');
+  });
+
+  it('sin dueño se comporta como antes: manda el modo', () => {
+    const local  = bundle({ students: [stu('s1', 'c1', 'LOCAL')] });
+    const remote = bundle({ students: [stu('s1', 'c1', 'REMOTO')], from: ESPECIALISTA });
+
+    expect(mergeBundle(local, remote, 'reconcile', TUTOR).students[0].name).toBe('LOCAL');
+    expect(mergeBundle(local, remote, 'live', TUTOR).students[0].name).toBe('REMOTO');
+  });
+
+  it('sin saber quién soy, tampoco cambia el comportamiento anterior', () => {
+    // `me` puede faltar (perfil aún sin cargar): no debe romper nada.
+    const local  = bundle({ students: [alumnoDe(TUTOR, 'LOCAL')] });
+    const remote = bundle({ students: [alumnoDe(TUTOR, 'REMOTO')], from: ESPECIALISTA });
+
+    expect(mergeBundle(local, remote, 'reconcile').students[0].name).toBe('LOCAL');
+  });
+
+  it('un borrado sigue ganando al dueño', () => {
+    // La lápida no se negocia: si alguien borró, se borra, sea de quien sea.
+    const local  = bundle({ tombstones: { ...emptyTombstones(), students: ['s1'] } });
+    const remote = bundle({ students: [alumnoDe(ESPECIALISTA, 'Ana')], from: ESPECIALISTA });
+
+    expect(mergeBundle(local, remote, 'live', TUTOR).students).toHaveLength(0);
+  });
+
+  it('las clases se rigen por la misma regla', () => {
+    const mia   = { ...cls('c1', 'MI VERSION'), owner: TUTOR };
+    const suya  = { ...cls('c1', 'SU VERSION'), owner: TUTOR };
+    const out = mergeBundle(
+      bundle({ classes: [mia] }),
+      bundle({ classes: [suya], from: ESPECIALISTA }),
+      'live', TUTOR,
+    );
+    expect(out.classes[0].name).toBe('MI VERSION');
+  });
+
+  it('lo que solo tiene uno se añade, tenga dueño o no', () => {
+    const local  = bundle({ students: [alumnoDe(TUTOR, 'Ana')] });
+    const remote = bundle({ students: [{ ...stu('s2', 'c1', 'Luis'), owner: ESPECIALISTA }], from: ESPECIALISTA });
+
+    const out = mergeBundle(local, remote, 'live', TUTOR);
+    expect(out.students.map(s => s.name).sort()).toEqual(['Ana', 'Luis']);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════
    Lápidas: un borrado no puede resucitar
    ══════════════════════════════════════════════════════════ */
 

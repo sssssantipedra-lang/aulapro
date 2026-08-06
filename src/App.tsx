@@ -154,6 +154,7 @@ function AppInner() {
                 onDeleteStudent={st.deleteStudent}
                 onAddStudents={(ss: any[]) => ss.forEach(st.addStudent)}
                 onOpenEval={() => setSection('rubrics')}
+                profileId={st.profileId}
               />
             )}
             {section === 'agenda' && (

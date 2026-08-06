@@ -42,6 +42,8 @@ export interface SharedBundle {
   dianas: EvalDiana[];
   evaluations: Evaluation[];
   tombstones: Tombstones;
+  /** Perfil que envía este paquete. Permite saber qué es suyo al fusionar. */
+  from?: string;
 }
 
 export interface SyncSource {
@@ -54,6 +56,8 @@ export interface SyncSource {
   dianas: EvalDiana[];
   evaluations: Evaluation[];
   tombstones: Tombstones;
+  /** Id del perfil de quien comparte. */
+  me?: string;
 }
 
 export function emptyBundle(): SharedBundle {
@@ -93,6 +97,7 @@ export function buildBundle(src: SyncSource, scope: ShareScope): SharedBundle {
     // y hace falta el registro completo para que un borrado llegue aunque
     // la clase afectada ya no esté marcada para compartir.
     tombstones: src.tombstones,
+    from: src.me,
   };
 }
 
@@ -111,6 +116,39 @@ function mergeById<T extends { id: string }>(local: T[], remote: T[], remoteWins
   remote.forEach(x => {
     if (!out.has(x.id) || remoteWins) out.set(x.id, x);
   });
+  dead.forEach(id => out.delete(id));
+  return [...out.values()];
+}
+
+/**
+ * Une listas cuyos elementos tienen dueño: la lista de alumnos y las clases.
+ *
+ * El dueño manda sobre lo suyo **en cualquier modo**. Es lo que permite que
+ * dos docentes compartan un grupo sin pisarse: si eres el tutor, tu lista de
+ * alumnos es la buena aunque el especialista sincronice después; y si un
+ * compañero te comparte su clase, sus cambios llegan sin que los tuyos la
+ * sobrescriban.
+ *
+ * Lo que no tiene dueño (creado antes de esto) se comporta como siempre.
+ */
+function mergeOwned<T extends { id: string; owner?: string }>(
+  local: T[], remote: T[], remoteWins: boolean, dead: Set<string>,
+  me: string | undefined, peer: string | undefined,
+): T[] {
+  const out = new Map<string, T>();
+  local.forEach(x => out.set(x.id, x));
+
+  remote.forEach(x => {
+    const mine = out.get(x.id);
+    if (!mine) { out.set(x.id, x); return; }
+
+    // Si las dos copias declaran dueño y no coinciden, vale la del propio dato
+    const owner = mine.owner ?? x.owner;
+    if (owner && me && owner === me) return;                 // es mío: no se toca
+    if (owner && peer && owner === peer) { out.set(x.id, x); return; }  // es suyo: manda él
+    if (remoteWins) out.set(x.id, x);                        // sin dueño: como antes
+  });
+
   dead.forEach(id => out.delete(id));
   return [...out.values()];
 }
@@ -149,14 +187,23 @@ function mergeTombstones(a: Tombstones, b: Tombstones): Tombstones {
 
 export type MergeMode = 'reconcile' | 'live';
 
-export function mergeBundle(local: SharedBundle, remote: SharedBundle, mode: MergeMode): SharedBundle {
+/**
+ * @param me Id del perfil local. Sin él no se puede saber qué es propio, y la
+ *           fusión se comporta como antes de que existieran los dueños.
+ */
+export function mergeBundle(
+  local: SharedBundle, remote: SharedBundle, mode: MergeMode, me?: string,
+): SharedBundle {
   const rw = mode === 'live';
   const tombstones = mergeTombstones(local.tombstones, remote.tombstones);
   const deadGradeItems = new Set(tombstones.gradeItems);
+  const peer = remote.from;
 
   return {
-    classes:         mergeById(local.classes, remote.classes, rw, new Set(tombstones.classes)),
-    students:        mergeById(local.students, remote.students, rw, new Set(tombstones.students)),
+    // La clase y su lista de alumnos son lo único que los dos docentes tienen
+    // de verdad en común, así que son lo único que necesita un dueño.
+    classes:         mergeOwned(local.classes, remote.classes, rw, new Set(tombstones.classes), me, peer),
+    students:        mergeOwned(local.students, remote.students, rw, new Set(tombstones.students), me, peer),
     gradeCategories: mergeById(local.gradeCategories, remote.gradeCategories, rw, new Set(tombstones.gradeCategories)),
     gradeItems:      mergeById(local.gradeItems, remote.gradeItems, rw, deadGradeItems),
     grades:          mergeGrades(local.grades, remote.grades, rw, deadGradeItems),
@@ -164,12 +211,18 @@ export function mergeBundle(local: SharedBundle, remote: SharedBundle, mode: Mer
     dianas:          mergeById(local.dianas, remote.dianas, rw, new Set(tombstones.dianas)),
     evaluations:     mergeById(local.evaluations, remote.evaluations, rw, new Set(tombstones.evaluations)),
     tombstones,
+    from: local.from,
   };
 }
 
-/** Huella del contenido, para detectar cambios sin comparar objeto a objeto. */
+/**
+ * Huella del contenido, para detectar cambios sin comparar objeto a objeto.
+ * `from` se excluye: identifica al emisor, no a los datos, y si contara
+ * bastaría con cambiar de perfil para que pareciera que hay novedades.
+ */
 export function hashBundle(b: SharedBundle): string {
-  const json = JSON.stringify(b);
+  const { from: _ignored, ...content } = b;
+  const json = JSON.stringify(content);
   let h = 5381;
   for (let i = 0; i < json.length; i++) h = ((h << 5) + h + json.charCodeAt(i)) | 0;
   return `${json.length}:${h}`;

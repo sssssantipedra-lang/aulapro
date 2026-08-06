@@ -54,6 +54,8 @@ interface Props {
   onDeleteStudent: (id: string) => void;
   onAddStudents: (students: Student[]) => void;
   onOpenEval: (rubricId: string, studentId: string, classId: string) => void;
+  /** Perfil activo, para distinguir las clases propias de las compartidas. */
+  profileId?: string | null;
 }
 
 // ─── blank factories ──────────────────────────────────────────────────────────
@@ -70,7 +72,7 @@ export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval,
+  onAddStudents, onOpenEval, profileId,
 }: Props) {
   const { toast: notify } = useToast();
 
@@ -309,6 +311,19 @@ export function ClassesManager({
                     background: 'var(--accent-l)', color: 'var(--accent-d)', letterSpacing: '0.03em',
                   }}>
                     MI TUTORÍA
+                  </span>
+                )}
+                {/* Clase de otro docente: su lista manda al sincronizar */}
+                {activeClass.owner && profileId && activeClass.owner !== profileId && (
+                  <span
+                    title="La lista de alumnos la mantiene quien comparte la clase. Tus cambios en ella se sustituirán al sincronizar."
+                    style={{
+                      fontSize: 10.5, fontWeight: 800, padding: '3px 9px', borderRadius: 99,
+                      background: 'var(--surface)', color: 'var(--text-2)',
+                      border: '1px solid var(--border)', letterSpacing: '0.03em',
+                    }}
+                  >
+                    LISTA DE {(activeClass.owner_name ?? 'OTRO DOCENTE').toUpperCase()}
                   </span>
                 )}
               </div>

@@ -26,6 +26,17 @@ export interface Class {
   isTutoria?: boolean;
   room: string;
   color: string;
+  /**
+   * Docente al que pertenece la lista de alumnos (id de su perfil).
+   *
+   * Al sincronizar con un compañero, su versión de la clase y de los alumnos
+   * gana siempre, en cualquier modo de fusión. Sin esto, el último en
+   * conectarse machacaba el trabajo del otro. Ausente en las clases creadas
+   * antes de que existiera la sincronización por dueño.
+   */
+  owner?: string;
+  /** Nombre del dueño, solo para poder decirlo en la interfaz. */
+  owner_name?: string;
 }
 
 /**
@@ -55,6 +66,8 @@ export interface Student {
   photo: string | null;
   alerts: Alert[];
   notes: string;
+  /** Docente dueño de la ficha. Ver `Class.owner`. */
+  owner?: string;
 }
 
 export interface ScheduleBlock {
