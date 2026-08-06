@@ -140,11 +140,28 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
     if (!aiContext.trim()) return;
     const cls = classes.find(c => c.id === aiClassId);
     const className = cls ? `${cls.name} – ${cls.subject}` : 'Clase no especificada';
+    // Los niveles los pone el docente, así que la IA tiene que escribir un
+    // descriptor para CADA uno. Antes se le pedían cuatro fijos y el quinto
+    // se quedaba siempre en blanco.
+    const scale = levels
+      .map(l => `${l.value}=${l.label || `Nivel ${l.value}`}`)
+      .join(', ');
+    const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
+    const peor = levels[0]?.label || 'el más bajo';
+    const mejor = levels[levels.length - 1]?.label || 'el más alto';
+
     const systemPrompt = 'Eres un experto en evaluación educativa. Responde SOLO con JSON válido.';
     const userPrompt =
-      `Crea una rúbrica para: ${aiContext.trim()}. Clase: ${className}. ` +
-      `Genera ${aiCount} criterios con descriptores para cada nivel (1=Insuficiente, 2=Suficiente, 3=Bien, 4=Excelente). ` +
-      `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{"1":"...","2":"...","3":"...","4":"..."}}]}`;
+      `Crea una rúbrica para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
+      `Genera ${aiCount} criterios. Cada criterio debe llevar un descriptor para ` +
+      `LOS ${levels.length} NIVELES, sin dejar ninguno vacío: ${scale}.\n\n` +
+      `Los descriptores de un mismo criterio forman una gradación ascendente: ` +
+      `describen el mismo aspecto con una exigencia que crece paso a paso, desde ` +
+      `«${peor}» hasta «${mejor}». Cada nivel debe suponer una mejora clara y ` +
+      `apreciable respecto al anterior, sin saltos bruscos ni dos niveles que ` +
+      `digan casi lo mismo. Redacta en positivo lo que el alumno SÍ hace en cada ` +
+      `nivel, de forma observable, y en español de España.\n\n` +
+      `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}}}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {

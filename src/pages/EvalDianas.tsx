@@ -94,15 +94,27 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     const cls = classes.find(c => c.id === aiClassId);
     const className = cls ? `${cls.name} – ${cls.subject}` : 'sin clase concreta';
 
+    // Un descriptor por nivel de los que haya definido el docente, no cuatro fijos
+    const scale = levels.map(l => `${l.value}=${l.label || `Nivel ${l.value}`}`).join(', ');
+    const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
+    const peor = levels[0]?.label || 'el más bajo';
+    const mejor = levels[levels.length - 1]?.label || 'el más alto';
+
     const systemPrompt =
       'Eres un experto en evaluación competencial en secundaria (LOMLOE, España). Responde SOLO con JSON válido, sin texto adicional.';
     const userPrompt =
-      `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}. ` +
-      `Genera exactamente ${aiCount} ítems observables y evaluables. ` +
-      `Cada ítem lleva un "weight" (peso relativo, normalmente 1; usa 2 si el ítem es claramente más importante) ` +
-      `y descriptores para los 4 niveles de logro (1=Insuficiente, 2=Suficiente, 3=Bien, 4=Excelente). ` +
-      `Los nombres de los ítems deben ser breves (máximo 5 palabras). Todo en español de España. ` +
-      `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{"1":"...","2":"...","3":"...","4":"..."}}]}`;
+      `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
+      `Genera exactamente ${aiCount} ítems observables y evaluables. Cada ítem lleva ` +
+      `un "weight" (peso relativo, normalmente 1; usa 2 si el ítem es claramente más ` +
+      `importante) y un descriptor para LOS ${levels.length} NIVELES, sin dejar ` +
+      `ninguno vacío: ${scale}.\n\n` +
+      `Los descriptores de un mismo ítem forman una gradación ascendente: describen ` +
+      `el mismo aspecto con una exigencia que crece paso a paso, desde «${peor}» ` +
+      `hasta «${mejor}». Cada nivel debe suponer una mejora clara respecto al ` +
+      `anterior, sin saltos bruscos ni dos niveles que digan casi lo mismo. Redacta ` +
+      `en positivo lo que el alumno SÍ hace en cada nivel, de forma observable.\n\n` +
+      `Los nombres de los ítems, breves (máximo 5 palabras). Todo en español de España.\n\n` +
+      `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}}}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
