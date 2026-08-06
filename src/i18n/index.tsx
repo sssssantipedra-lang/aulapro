@@ -478,7 +478,7 @@ const EN: Record<string, string> = {
   '{n} dianas': '{n} learner-profile targets',
   '{n} evaluación': '{n} assessment',
   '{n} evaluaciones': '{n} assessments',
-  'Dianas': 'Learner Profile',
+  'Dianas': 'Assessment Bullseye',
   'Define criterios con descriptores por nivel y evalúa marcando la casilla que corresponda.':
     'Define criteria with descriptors per level and assess by ticking the matching box.',
   'Sin rúbricas todavía': 'No rubrics yet',
