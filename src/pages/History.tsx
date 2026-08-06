@@ -19,7 +19,9 @@ function formatDate(iso: string): string {
 
 function evalTotalScore(e: Evaluation): { sum: number; max: number } {
   const values = Object.values(e.scores);
-  return { sum: values.reduce((a, v) => a + v, 0), max: values.length * 4 };
+  // El tope lo guarda la propia evaluación: la escala del instrumento pudo
+  // cambiar después. Sin `max_level` son las evaluaciones de cuatro niveles.
+  return { sum: values.reduce((a, v) => a + v, 0), max: values.length * (e.max_level ?? 4) };
 }
 
 function ScoreBar({ score, max }: { score: number; max: number }) {
@@ -45,8 +47,8 @@ function ExpandedRow({ evaluation, rubric }: { evaluation: Evaluation; rubric: R
             {Object.entries(evaluation.scores).map(([key, val]) => {
               const criterion = criteria.find(c => c.id === key);
               const name = criterion?.name ?? key;
-              const descriptor = criterion?.descriptors?.[val as 1 | 2 | 3 | 4] ?? '';
-              const pct = (val / 4) * 100;
+              const descriptor = criterion?.descriptors?.[val] ?? '';
+              const pct = (val / (evaluation.max_level ?? 4)) * 100;
               const scoreColor = pct >= 75 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--danger)';
               return (
                 <div

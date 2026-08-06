@@ -520,7 +520,7 @@ function EvalModal({
   const totalScore = rubric
     ? rubric.criteria.reduce((sum, cr) => sum + (scores[cr.id] ?? 0), 0)
     : 0;
-  const maxScore = (rubric?.criteria.length ?? 0) * 4;
+  const maxScore = (rubric?.criteria.length ?? 0) * Math.max(...levels.map(l => l.value));
 
   /* ── File attach ── */
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -620,6 +620,7 @@ function EvalModal({
       // Sin nota no hay nada que llevar al cuaderno: la evaluación se quedaba
       // solo en el Historial y había que copiar la calificación a mano.
       grade: gradeFromLevels(scores, rubric.criteria.map(c => c.id), levels) ?? undefined,
+      max_level: Math.max(...levels.map(l => l.value)),
     };
     onSave(ev);
     onClose();
@@ -1057,7 +1058,9 @@ export function Rubrics({
               <tbody>
                 {evaluations.slice(0, 10).map(ev => {
                   const rubric = rubrics.find(r => r.id === ev.rubric_id);
-                  const maxPts = (rubric?.criteria.length ?? Object.keys(ev.scores).length) * 4;
+                  // El tope viene de la evaluación, no de la rúbrica actual: su escala
+                  // pudo cambiar después de haber evaluado.
+                  const maxPts = (rubric?.criteria.length ?? Object.keys(ev.scores).length) * (ev.max_level ?? 4);
                   const total = Object.values(ev.scores).reduce((a, b) => a + b, 0);
                   const isDiana = ev.instrument === 'diana';
                   return (

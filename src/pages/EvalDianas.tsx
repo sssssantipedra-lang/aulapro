@@ -390,6 +390,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
       scores,
       notes,
       instrument: 'diana',
+      max_level: Math.max(...levelsOf(diana).map(l => l.value)),
       grade: grade ?? undefined,
     });
     onClose();

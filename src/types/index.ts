@@ -266,6 +266,14 @@ export interface Evaluation {
   instrument?: 'rubric' | 'diana';
   /** Nota sobre 10 calculada a partir de los niveles de logro. */
   grade?: number;
+  /**
+   * Nivel más alto de la escala con la que se evaluó.
+   *
+   * Se guarda aquí y no se deduce del instrumento porque su escala puede
+   * cambiar después: sin esto, añadir un nivel a una rúbrica alteraría cómo
+   * se leen las evaluaciones ya hechas. Ausente = los cuatro de siempre.
+   */
+  max_level?: number;
 }
 
 /* ── Diana de evaluación (instrumento con niveles de logro) ── */
