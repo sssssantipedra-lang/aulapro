@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  FileText, Sparkles, Download, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle,
+  FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle,
 } from 'lucide-react';
 import type {
   Class, Student, Evaluation, Rubric, EvalDiana, GradeCategory, GradeItem,
@@ -50,6 +50,29 @@ function notebookAverage(
   }
   return weight ? sum / weight : null;
 }
+
+/** Estilos del informe cuando viaja solo, fuera de la aplicación. */
+const REPORT_DOC_STYLE = `
+:root { --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; }
+@page { size: A4 portrait; margin: 20mm 18mm; }
+.rep { font-family: Georgia, 'Times New Roman', serif; color: #111827; }
+.rep h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+.rep .sub { font-family: var(--font); font-size: 12px; color: #6b7280; margin-bottom: 16px; }
+.rep .hd { border-bottom: 2px solid #111827; padding-bottom: 11px; margin-bottom: 18px; }
+.rep dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  border-bottom: 1px solid #d1d5db; margin: 0 0 20px; }
+.rep dl > div { padding: 10px 12px 10px 0; }
+.rep dt { font-family: var(--font); font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: #6b7280; font-weight: 700; margin-bottom: 3px; }
+.rep dd { font-size: 13.5px; font-weight: 700; margin: 0; }
+.rep .cuerpo { font-size: 13.5px; line-height: 1.85; text-align: justify; white-space: pre-wrap; }
+.rep .pie { margin-top: 34px; font-family: var(--font); font-size: 10.5px;
+  color: #6b7280; border-top: 1px solid #d1d5db; padding-top: 10px; line-height: 1.5; }
+.rep .alumno { break-inside: avoid; page-break-inside: avoid; }
+.rep .salto { page-break-after: always; break-after: page; }
+`;
 
 export function Reports(props: Props) {
   const {
@@ -187,6 +210,66 @@ export function Reports(props: Props) {
     toast(ok > 0 ? `✅ ${plural(ok, 'informe generado', 'informes generados')}` : 'No se pudo generar ningún informe');
   }
 
+  const docs = window.electronAPI?.docs;
+  const [working, setWorking] = useState<'one' | 'all' | null>(null);
+
+  const esc = (t: string) =>
+    t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+  const slug = (t: string) => t.replace(/\s+/g, '-');
+
+  /** Un informe como bloque del documento, con su cabecera y su pie. */
+  function reportBlock(r: CompetencyReport, salto: boolean): string {
+    return `<section class="alumno${salto ? ' salto' : ''}">
+<div class="hd"><h1>${esc(r.student_name)}</h1>
+<div class="sub">Informe de evaluación competencial</div></div>
+<dl>
+<div><dt>Grupo</dt><dd>${esc(cls?.name ?? '')}</dd></div>
+<div><dt>Periodo</dt><dd>${esc(r.period)}</dd></div>
+<div><dt>Fecha</dt><dd>${esc(r.date)}</dd></div>
+</dl>
+<div class="cuerpo">${esc(r.text)}</div>
+<div class="pie">Informe redactado con asistencia de inteligencia artificial a partir de las
+evaluaciones, calificaciones y asistencia registradas, y revisado por el docente.
+Competencias clave según el currículo educativo español (LOMLOE).</div>
+</section>`;
+  }
+
+  function buildDoc(list: CompetencyReport[], title: string): string {
+    // Cada alumno en su propia página: un informe es un documento que se
+    // entrega a una familia, no una lista corrida.
+    const bloques = list.map((r, i) => reportBlock(r, i < list.length - 1)).join('\n');
+    return `<!doctype html><html lang="es"><head><meta charset="utf-8">` +
+      `<title>${esc(title)}</title><style>${REPORT_DOC_STYLE}</style></head>` +
+      `<body class="rep">${bloques}</body></html>`;
+  }
+
+  async function savePdf(list: CompetencyReport[], nombre: string, modo: 'one' | 'all') {
+    if (list.length === 0) { toast('No hay informes de este periodo'); return; }
+    if (!docs) { window.print(); return; }
+    setWorking(modo);
+    const res = await docs.savePdf(buildDoc(list, nombre), nombre + '.pdf');
+    setWorking(null);
+    if (res.canceled) return;
+    if (res.error) { toast('No se pudo generar el PDF: ' + res.error); return; }
+    toast(list.length === 1
+      ? '✅ Informe guardado en PDF'
+      : `✅ ${plural(list.length, 'informe guardado', 'informes guardados')} en PDF`);
+    if (res.path) docs.reveal(res.path);
+  }
+
+  const savePdfOne = (r: CompetencyReport) =>
+    savePdf([r], `informe-${slug(r.student_name)}-${slug(r.period)}`, 'one');
+
+  const savePdfAll = () =>
+    savePdf(
+      reports
+        .filter(r => r.class_id === clsId && r.period === period)
+        .sort((a, b) => a.student_name.localeCompare(b.student_name, 'es')),
+      `informes-${slug(cls?.name ?? 'clase')}-${slug(period)}`,
+      'all',
+    );
+
+  /** Copia en texto plano, por si quiere pegarlo en otro sitio. */
   function exportAll() {
     const list = reports.filter(r => r.class_id === clsId && r.period === period);
     if (list.length === 0) { toast('No hay informes de este periodo'); return; }
@@ -243,8 +326,15 @@ export function Reports(props: Props) {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={exportAll} disabled={generatedCount === 0}>
-            <Download size={14} />Descargar todos
+          <button className="btn-ghost" onClick={exportAll} disabled={generatedCount === 0}
+            title="Copia en texto plano, para pegar en otro sitio">
+            <Download size={14} />Texto
+          </button>
+          <button className="btn-ghost" onClick={savePdfAll}
+            disabled={generatedCount === 0 || working !== null}>
+            {working === 'all'
+              ? <><span className="spin" />Generando…</>
+              : <><FileDown size={14} />Todos en PDF</>}
           </button>
           <button className="btn-ia" onClick={generateAll} disabled={batch !== null || roster.length === 0}>
             {batch
@@ -423,6 +513,12 @@ export function Reports(props: Props) {
                   <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center' }}>
                     <button className="btn-ia" onClick={() => generateFor(current)}>
                       <Sparkles size={13} />Volver a generar
+                    </button>
+                    <button className="btn-ghost" onClick={() => savePdfOne(currentReport)}
+                      disabled={working !== null}>
+                      {working === 'one'
+                        ? <><span className="spin" />Generando…</>
+                        : <><FileDown size={13} />Guardar en PDF</>}
                     </button>
                     <p style={{ fontSize: 11.5, color: 'var(--text-3)', flex: 1, lineHeight: 1.5 }}>
                       Revísalo siempre antes de entregarlo. La IA se equivoca.
