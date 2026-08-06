@@ -133,10 +133,87 @@ export interface RubricDescriptors {
   4: string;
 }
 
+/**
+ * Un nivel de logro. `value` empieza en 1 y va subiendo; el más alto es el
+ * mejor, y es el que sirve de tope para calcular la nota.
+ */
+export interface AchievementLevel {
+  value: number;
+  label: string;
+}
+
+/** Los cuatro de siempre. Se usan cuando el instrumento no define los suyos. */
+export const DEFAULT_LEVELS: AchievementLevel[] = [
+  { value: 1, label: 'Insuficiente' },
+  { value: 2, label: 'Suficiente' },
+  { value: 3, label: 'Bien' },
+  { value: 4, label: 'Excelente' },
+];
+
+/**
+ * Niveles de un instrumento. Los creados antes de que se pudieran configurar
+ * no llevan ninguno, así que se entienden como los cuatro clásicos.
+ */
+export function levelsOf(inst: { levels?: AchievementLevel[] } | null | undefined): AchievementLevel[] {
+  return inst?.levels?.length ? inst.levels : DEFAULT_LEVELS;
+}
+
+/**
+ * Color de un nivel.
+ *
+ * Con cuatro niveles devuelve exactamente los colores de siempre, que es lo
+ * que los docentes ya reconocen. Con otro número recorre el mismo camino
+ * rojo → verde repartiendo el tono, para que «más a la derecha» siga
+ * significando «mejor» sea cual sea el número de niveles.
+ */
+export function levelColor(value: number, total: number): string {
+  const CLASSIC = ['#dc2626', '#d97706', '#2563eb', '#16a34a'];
+  if (total === 4) return CLASSIC[Math.min(3, Math.max(0, value - 1))];
+  if (total <= 1) return CLASSIC[3];
+  const t = (Math.min(total, Math.max(1, value)) - 1) / (total - 1);
+  const hue = Math.round(0 + t * 140);          // 0 rojo → 140 verde
+  const sat = 70 - Math.round(t * 12);
+  const light = 42 + Math.round(t * 4);
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
+
+/**
+ * Nota sobre 10 a partir de los niveles marcados.
+ *
+ * El tope lo pone el nivel más alto del instrumento, no un 4 fijo: con seis
+ * niveles, un 6 es la nota máxima. `weights` es opcional (las rúbricas no
+ * ponderan sus criterios; las dianas sí).
+ */
+export function gradeFromLevels(
+  scores: Record<string, number>,
+  ids: string[],
+  levels: AchievementLevel[],
+  weights?: Record<string, number>,
+): number | null {
+  const max = Math.max(...levels.map(l => l.value));
+  if (!Number.isFinite(max) || max <= 0) return null;
+
+  let sum = 0, weight = 0;
+  for (const id of ids) {
+    const v = scores[id];
+    if (typeof v !== 'number' || v <= 0) continue;
+    const w = weights?.[id] && weights[id] > 0 ? weights[id] : 1;
+    sum += (v / max) * w;
+    weight += w;
+  }
+  if (weight === 0) return null;
+  return Math.round((sum / weight) * 10 * 10) / 10;
+}
+
 export interface RubricCriterion {
   id: string;
   name: string;
-  descriptors: Partial<RubricDescriptors>;
+  /**
+   * Descripción de cada nivel, indexada por su `value`. Es un mapa abierto y
+   * no una forma fija de cuatro claves, porque el docente puede definir
+   * cuantos niveles quiera.
+   */
+  descriptors: Record<number, string>;
 }
 
 /**
@@ -171,6 +248,8 @@ export interface Rubric extends GradeTarget {
   name: string;
   context?: string;
   criteria: RubricCriterion[];
+  /** Niveles de logro propios. Ausente = los cuatro clásicos. */
+  levels?: AchievementLevel[];
 }
 
 export interface Evaluation {
@@ -203,6 +282,8 @@ export interface EvalDiana extends GradeTarget {
   name: string;
   context?: string;
   items: DianaItem[];
+  /** Niveles de logro propios. Ausente = los cuatro clásicos. */
+  levels?: AchievementLevel[];
 }
 
 export interface DianaScore {

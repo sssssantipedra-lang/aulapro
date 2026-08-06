@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import type { DianaItem } from '../../types';
+import type { DianaItem, AchievementLevel } from '../../types';
+import { levelsOf, levelColor, gradeFromLevels } from '../../types';
 
 /**
  * Diana de evaluación interactiva.
  *
- * Cada sector es un ítem y cada anillo un nivel de logro (1 dentro → 4 fuera).
- * Al hacer clic en un anillo se asigna ese nivel al ítem: cuanto más llena
- * queda la diana, mejor es el resultado.
+ * Cada sector es un ítem y cada anillo un nivel de logro: el peor dentro y el
+ * mejor fuera. Al hacer clic en un anillo se asigna ese nivel al ítem, así que
+ * cuanto más llena queda la diana, mejor es el resultado.
+ *
+ * El número de anillos lo marca la escala del instrumento, que el docente
+ * puede configurar: no son necesariamente cuatro.
  */
 
 const SIZE = 340;
 const CENTER = SIZE / 2;
 const MAX_R = 116;
-const RINGS = 4;
 
 /** Mismos colores que la Diana Competencial, para que se lean como lo mismo. */
 export const LEVEL_COLORS: Record<number, { fill: string; solid: string; label: string }> = {
@@ -45,17 +48,22 @@ interface Props {
   items: DianaItem[];
   scores: Record<string, number>;
   onSetScore: (itemId: string, level: number) => void;
+  /** Niveles de logro de esta diana. Ausente = los cuatro clásicos. */
+  levels?: AchievementLevel[];
   /** Solo lectura: sin interacción ni cursor de clic. */
   readOnly?: boolean;
 }
 
-export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
+export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Props) {
   const [hover, setHover] = useState<{ itemId: string; level: number } | null>(null);
   const n = items.length;
   if (n === 0) return null;
 
+  // Un anillo por nivel: la diana se adapta a la escala del instrumento.
+  const scale = levelsOf({ levels });
+  const rings = scale.length;
   const step = (2 * Math.PI) / n;
-  const ringR = Array.from({ length: RINGS }, (_, r) => ((r + 1) / RINGS) * MAX_R);
+  const ringR = Array.from({ length: rings }, (_, r) => ((r + 1) / rings) * MAX_R);
   /** Separación entre pétalos: hace que cada ítem se lea como una pieza propia. */
   const gap = Math.min(step * 0.05, 0.035);
 
@@ -81,7 +89,8 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
           <path
             key={`fill-${item.id}`}
             d={sectorPath(a0 + gap, a0 + step - gap, 0, ringR[current - 1])}
-            fill={LEVEL_COLORS[current].fill}
+            fill={levelColor(current, rings)}
+            fillOpacity={0.82}
             style={{ transition: 'd 0.2s ease, fill 0.2s ease' }}
           />
         );
@@ -95,7 +104,7 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
         return (
           <path
             d={sectorPath(a0 + gap, a0 + step - gap, 0, ringR[hover.level - 1])}
-            fill={LEVEL_COLORS[hover.level].solid}
+            fill={levelColor(hover.level, rings)}
             fillOpacity={0.22}
             pointerEvents="none"
           />
@@ -104,7 +113,7 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
 
       {/* Anillos de referencia, por encima y tenues: dejan contar el nivel
           sin partir el pétalo en cuatro bloques. */}
-      {ringR.slice(0, RINGS - 1).map((r, ri) => (
+      {ringR.slice(0, rings - 1).map((r, ri) => (
         <circle key={`ring-${ri}`} cx={CENTER} cy={CENTER} r={r}
           fill="none" stroke="white" strokeWidth={1} strokeOpacity={0.5} pointerEvents="none" />
       ))}
@@ -122,17 +131,17 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
       {/* Zonas de clic, invisibles y por encima de todo */}
       {!readOnly && items.map((item, i) => {
         const a0 = i * step - Math.PI / 2;
-        return Array.from({ length: RINGS }, (_, r) => (
+        return Array.from({ length: rings }, (_, r) => (
           <path
             key={`hit-${item.id}-${r}`}
-            d={sectorPath(a0, a0 + step, (r / RINGS) * MAX_R, ringR[r])}
+            d={sectorPath(a0, a0 + step, (r / rings) * MAX_R, ringR[r])}
             fill="transparent"
             style={{ cursor: 'pointer' }}
             onClick={() => onSetScore(item.id, r + 1)}
             onMouseEnter={() => setHover({ itemId: item.id, level: r + 1 })}
             onMouseLeave={() => setHover(null)}
           >
-            <title>{`${item.name} — ${LEVEL_COLORS[r + 1].label}`}</title>
+            <title>{`${item.name} — ${scale[r].label}`}</title>
           </path>
         ));
       })}
@@ -159,9 +168,9 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
               <text
                 x={lx} y={ly + 13} textAnchor={anchor}
                 fontSize={10} fontWeight={800} fontFamily="var(--font)"
-                fill={LEVEL_COLORS[current].solid}
+                fill={levelColor(current, rings)}
               >
-                {LEVEL_COLORS[current].label}
+                {scale[current - 1]?.label ?? ''}
               </text>
             )}
           </g>
@@ -177,16 +186,12 @@ export function DianaBoard({ items, scores, onSetScore, readOnly }: Props) {
  * Nota sobre 10 a partir de los niveles de logro, ponderada por el peso
  * de cada ítem. Solo cuentan los ítems ya evaluados.
  */
-export function dianaGrade(items: DianaItem[], scores: Record<string, number>): number | null {
-  let sum = 0;
-  let weight = 0;
-  for (const item of items) {
-    const level = scores[item.id];
-    if (!level) continue;
-    const w = item.weight > 0 ? item.weight : 1;
-    sum += (level / RINGS) * w;
-    weight += w;
-  }
-  if (weight === 0) return null;
-  return Math.round((sum / weight) * 10 * 10) / 10;
+export function dianaGrade(
+  items: DianaItem[],
+  scores: Record<string, number>,
+  levels?: AchievementLevel[],
+): number | null {
+  const weights: Record<string, number> = {};
+  items.forEach(i => { weights[i.id] = i.weight > 0 ? i.weight : 1; });
+  return gradeFromLevels(scores, items.map(i => i.id), levelsOf({ levels }), weights);
 }

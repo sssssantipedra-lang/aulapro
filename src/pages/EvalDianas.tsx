@@ -6,7 +6,8 @@ import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
-import { DianaBoard, dianaGrade, LEVEL_COLORS } from '../components/diana/DianaBoard';
+import { DianaBoard, dianaGrade } from '../components/diana/DianaBoard';
+import { levelsOf, levelColor, DEFAULT_LEVELS, type AchievementLevel } from '../types';
 
 interface Props {
   dianas: EvalDiana[];
@@ -56,6 +57,15 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
   /* A qué clase pertenece y dónde caen sus notas */
   const [target, setTarget] = useState<GradeTarget>({});
 
+  /* Niveles de logro. Se renumeran solos para que siempre vayan 1..N. */
+  const [levels, setLevels] = useState<AchievementLevel[]>(DEFAULT_LEVELS);
+  const renumber = (list: { label: string }[]): AchievementLevel[] =>
+    list.map((l, i) => ({ value: i + 1, label: l.label }));
+  const setLevelLabel = (i: number, label: string) =>
+    setLevels(prev => prev.map((l, j) => (j === i ? { ...l, label } : l)));
+  const addLevel = () => setLevels(prev => renumber([...prev, { label: '' }]));
+  const removeLevel = (i: number) => setLevels(prev => renumber(prev.filter((_, j) => j !== i)));
+
   useEffect(() => {
     if (!open) return;
     if (editing) {
@@ -66,8 +76,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       setTarget({
         class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
       });
+      setLevels(levelsOf(editing));
     } else {
       setTarget({});
+      setLevels(DEFAULT_LEVELS);
       setMode('ia');
       setName('');
       setItems([blankItem()]);
@@ -119,11 +131,18 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     if (!n) { toast('Ponle un nombre a la diana'); return; }
     const valid = items.filter(i => i.name.trim());
     if (valid.length < 3) { toast('La diana necesita al menos 3 ítems'); return; }
+
+    // Los niveles sin nombre se descartan; con menos de dos no hay escala
+    const named = levels.filter(l => l.label.trim());
+    const cleanLevels: AchievementLevel[] = named.length < 2
+      ? DEFAULT_LEVELS
+      : named.map((l, i) => ({ value: i + 1, label: l.label.trim() }));
     onSave({
       id: editing?.id ?? 'dia' + Date.now(),
       name: n,
       context: aiContext.trim() || undefined,
       items: valid.map(i => ({ ...i, name: i.name.trim(), weight: i.weight > 0 ? i.weight : 1 })),
+      levels: cleanLevels,
       ...target,
     });
     onClose();
@@ -159,6 +178,42 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
           classes={classes}
           gradeCategories={gradeCategories}
         />
+
+        <div className="fgroup">
+          <label className="flabel">Niveles de logro</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {levels.map((lv, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{
+                  width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                  background: levelColor(lv.value, levels.length), color: '#fff',
+                  fontSize: 12, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {lv.value}
+                </span>
+                <input
+                  className="finput" style={{ flex: 1 }}
+                  value={lv.label}
+                  onChange={e => setLevelLabel(i, e.target.value)}
+                  placeholder={i === levels.length - 1 ? 'El mejor nivel' : 'Nombre del nivel'}
+                />
+                {levels.length > 2 && (
+                  <button className="ico-btn" title="Quitar nivel" onClick={() => removeLevel(i)}>
+                    <Trash2 size={14} color="var(--danger)" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addLevel}>
+            <Plus size={13} />Añadir nivel
+          </button>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
+            Cada nivel es un anillo de la diana. El último es el más alto y
+            equivale a un 10.
+          </p>
+        </div>
 
         {mode === 'ia' ? (
           <div>
@@ -304,7 +359,8 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
   if (!diana) return null;
 
   const classStudents = students.filter(s => s.class_id === classId);
-  const grade = dianaGrade(diana.items, scores);
+  const scale = levelsOf(diana);
+  const grade = dianaGrade(diana.items, scores, diana.levels);
   const done = diana.items.filter(i => scores[i.id]).length;
 
   function handleSave() {
@@ -359,14 +415,16 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 18, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--surface)', borderRadius: 12, padding: '18px 12px' }}>
-            <DianaBoard items={diana.items} scores={scores} onSetScore={(id, lv) => setScores(p => ({ ...p, [id]: p[id] === lv ? 0 : lv }))} />
+            <DianaBoard items={diana.items} scores={scores} levels={diana.levels}
+              onSetScore={(id, lv) => setScores(p => ({ ...p, [id]: p[id] === lv ? 0 : lv }))} />
             <div style={{ display: 'flex', gap: 6, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
-              {[1, 2, 3, 4].map(lv => (
-                <span key={lv} style={{
+              {scale.map(lv => (
+                <span key={lv.value} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700,
-                  padding: '3px 10px', borderRadius: 99, color: 'white', background: LEVEL_COLORS[lv].solid,
+                  padding: '3px 10px', borderRadius: 99, color: 'white',
+                  background: levelColor(lv.value, scale.length),
                 }}>
-                  {lv} · {LEVEL_COLORS[lv].label}
+                  {lv.value} · {lv.label}
                 </span>
               ))}
             </div>
@@ -404,10 +462,10 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
                       </span>
                       <span style={{
                         fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 99, flexShrink: 0,
-                        background: lv ? LEVEL_COLORS[lv].solid : 'var(--surface)',
+                        background: lv ? levelColor(lv, scale.length) : 'var(--surface)',
                         color: lv ? 'white' : 'var(--text-3)',
                       }}>
-                        {lv ? LEVEL_COLORS[lv].label : 'Sin marcar'}
+                        {lv ? (scale[lv - 1]?.label ?? '') : 'Sin marcar'}
                       </span>
                     </div>
                   );
@@ -526,7 +584,7 @@ export function DianasTab({
 
                 {/* Miniatura */}
                 <div style={{ display: 'flex', justifyContent: 'center', flex: 1, alignItems: 'center', marginBottom: 12, transform: 'scale(0.62)', transformOrigin: 'center', height: 150 }}>
-                  <DianaBoard items={d.items} scores={{}} onSetScore={() => {}} readOnly />
+                  <DianaBoard items={d.items} scores={{}} levels={d.levels} onSetScore={() => {}} readOnly />
                 </div>
 
                 <button className="btn-accent" onClick={() => openEval(d)} style={{ justifyContent: 'center', width: '100%' }}>

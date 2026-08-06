@@ -6,7 +6,8 @@ import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, Gr
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { fileToBase64, isoDate, LEVELS, plural } from '../lib/utils';
+import { fileToBase64, isoDate, plural } from '../lib/utils';
+import { levelsOf, levelColor, gradeFromLevels, DEFAULT_LEVELS, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { DianasTab } from './EvalDianas';
 
@@ -38,10 +39,8 @@ type RubricMode = 'ia' | 'manual';
 interface CriterionDraft {
   id: string;
   name: string;
-  d1: string;
-  d2: string;
-  d3: string;
-  d4: string;
+  /** Descriptor de cada nivel, indexado por su número. */
+  descs: Record<number, string>;
 }
 
 /* ─── Helpers ─── */
@@ -50,31 +49,19 @@ function uid(): string {
 }
 
 function blankCriterion(): CriterionDraft {
-  return { id: uid(), name: '', d1: '', d2: '', d3: '', d4: '' };
+  return { id: uid(), name: '', descs: {} };
 }
 
 function criterionToDescriptors(c: CriterionDraft): RubricCriterion {
-  return {
-    id: c.id,
-    name: c.name,
-    descriptors: {
-      ...(c.d1 ? { 1: c.d1 } : {}),
-      ...(c.d2 ? { 2: c.d2 } : {}),
-      ...(c.d3 ? { 3: c.d3 } : {}),
-      ...(c.d4 ? { 4: c.d4 } : {}),
-    },
-  };
+  const descriptors: Record<number, string> = {};
+  for (const [k, v] of Object.entries(c.descs)) {
+    if (v && v.trim()) descriptors[Number(k)] = v.trim();
+  }
+  return { id: c.id, name: c.name, descriptors };
 }
 
 function criterionFromRubric(c: RubricCriterion): CriterionDraft {
-  return {
-    id: c.id,
-    name: c.name,
-    d1: c.descriptors[1] ?? '',
-    d2: c.descriptors[2] ?? '',
-    d3: c.descriptors[3] ?? '',
-    d4: c.descriptors[4] ?? '',
-  };
+  return { id: c.id, name: c.name, descs: { ...c.descriptors } };
 }
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
@@ -110,6 +97,19 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
   /* A qué clase pertenece y dónde caen sus notas */
   const [target, setTarget] = useState<GradeTarget>({});
 
+  /* Niveles de logro. Se renumeran solos para que siempre vayan 1..N. */
+  const [levels, setLevels] = useState<AchievementLevel[]>(DEFAULT_LEVELS);
+  const previewLevels = levels;
+
+  const renumber = (list: { label: string }[]): AchievementLevel[] =>
+    list.map((l, i) => ({ value: i + 1, label: l.label }));
+  const setLevelLabel = (i: number, label: string) =>
+    setLevels(prev => prev.map((l, j) => (j === i ? { ...l, label } : l)));
+  const addLevel = () =>
+    setLevels(prev => renumber([...prev, { label: '' }]));
+  const removeLevel = (i: number) =>
+    setLevels(prev => renumber(prev.filter((_, j) => j !== i)));
+
   /* Populate when editing */
   useEffect(() => {
     if (editing) {
@@ -121,7 +121,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       setTarget({
         class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
       });
+      setLevels(levelsOf(editing));
     } else {
+      setLevels(DEFAULT_LEVELS);
       setMode('ia');
       setManualName('');
       setManualCriteria([blankCriterion()]);
@@ -165,8 +167,13 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
   }
 
   /* ── Manual helpers ── */
-  function updateCriterion(idx: number, field: keyof CriterionDraft, value: string) {
+  function updateCriterion(idx: number, field: 'name', value: string) {
     setManualCriteria(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value } : c));
+  }
+
+  function updateCriterionDesc(idx: number, level: number, value: string) {
+    setManualCriteria(prev => prev.map((c, i) =>
+      i === idx ? { ...c, descs: { ...c.descs, [level]: value } } : c));
   }
 
   function addCriterion() {
@@ -186,11 +193,19 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       .map(criterionToDescriptors);
     if (criteria.length === 0) return;
 
+    // Los niveles sin nombre se descartan; con menos de dos no hay escala
+    const cleanLevels = ((): AchievementLevel[] => {
+      const named = levels.filter(l => l.label.trim());
+      if (named.length < 2) return DEFAULT_LEVELS;
+      return named.map((l, i) => ({ value: i + 1, label: l.label.trim() }));
+    })();
+
     const rubric: Rubric = {
       id: editing?.id ?? 'rub' + Date.now(),
       name,
       context: aiContext.trim() || undefined,
       criteria,
+      levels: cleanLevels,
       ...target,
     };
     onSave(rubric);
@@ -237,6 +252,48 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
           classes={classes}
           gradeCategories={gradeCategories}
         />
+
+        {/* ── Niveles de logro ── */}
+        <div className="fgroup">
+          <label className="flabel">Niveles de logro</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {levels.map((lv, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{
+                  width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                  background: levelColor(lv.value, levels.length), color: '#fff',
+                  fontSize: 12, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {lv.value}
+                </span>
+                <input
+                  className="finput" style={{ flex: 1 }}
+                  value={lv.label}
+                  onChange={e => setLevelLabel(i, e.target.value)}
+                  placeholder={i === levels.length - 1 ? 'El mejor nivel' : 'Nombre del nivel'}
+                />
+                {levels.length > 2 && (
+                  <button className="ico-btn" title="Quitar nivel" onClick={() => removeLevel(i)}>
+                    <Trash2 size={14} color="var(--danger)" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addLevel}>
+            <Plus size={13} />Añadir nivel
+          </button>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
+            El último es el más alto y equivale a un 10; el resto reparte
+            proporcionalmente. {editing && (
+              <strong style={{ color: 'var(--warn)' }}>
+                Si cambias el número de niveles de una rúbrica ya usada, las
+                evaluaciones anteriores se recalcularán sobre la escala nueva.
+              </strong>
+            )}
+          </p>
+        </div>
 
         {/* ── AI MODE ── */}
         {mode === 'ia' && (
@@ -288,11 +345,11 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                   {aiPreview.criteria.map((cr, i) => (
                     <div key={cr.id} style={{ background: 'white', borderRadius: 8, padding: '10px 12px', border: '0.5px solid var(--border)' }}>
                       <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>{i + 1}. {cr.name}</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-                        {LEVELS.map(lv => (
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${previewLevels.length}, 1fr)`, gap: 6 }}>
+                        {previewLevels.map(lv => (
                           <div key={lv.value} style={{ fontSize: 11, color: 'var(--text-2)', padding: '4px 6px', background: 'var(--surface)', borderRadius: 5 }}>
                             <span style={{ fontWeight: 700, display: 'block', marginBottom: 2, color: 'var(--text)' }}>{lv.label}</span>
-                            {cr.descriptors[lv.value as 1 | 2 | 3 | 4] ?? '—'}
+                            {cr.descriptors[lv.value] ?? '—'}
                           </div>
                         ))}
                       </div>
@@ -338,21 +395,22 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                       </button>
                     )}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                    {[
-                      { field: 'd1' as const, label: 'Insuficiente', color: '#ef4444' },
-                      { field: 'd2' as const, label: 'Suficiente', color: '#f59e0b' },
-                      { field: 'd3' as const, label: 'Bien', color: '#3b82f6' },
-                      { field: 'd4' as const, label: 'Excelente', color: '#10b981' },
-                    ].map(({ field, label, color }) => (
-                      <div key={field}>
-                        <div style={{ fontSize: 10.5, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
+                  {/* Un descriptor por nivel: los que haya definido el docente */}
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(levels.length, 4)}, 1fr)`, gap: 8 }}>
+                    {levels.map(lv => (
+                      <div key={lv.value}>
+                        <div style={{
+                          fontSize: 10.5, fontWeight: 700, marginBottom: 4,
+                          color: levelColor(lv.value, levels.length),
+                        }}>
+                          {lv.label || `Nivel ${lv.value}`}
+                        </div>
                         <textarea
                           className="finput"
                           rows={2}
-                          placeholder="Descriptor..."
-                          value={cr[field]}
-                          onChange={e => updateCriterion(idx, field, e.target.value)}
+                          placeholder="Descriptor…"
+                          value={cr.descs[lv.value] ?? ''}
+                          onChange={e => updateCriterionDesc(idx, lv.value, e.target.value)}
                           style={{ resize: 'none', fontSize: 12, padding: '7px 10px' }}
                         />
                       </div>
@@ -416,6 +474,9 @@ function EvalModal({
   const [scores, setScores] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
 
+  /** Los niveles de esta rúbrica: los suyos, o los cuatro clásicos. */
+  const levels = levelsOf(rubric);
+
   /* AI work evaluation */
   const [workDesc, setWorkDesc] = useState('');
   const [workFile, setWorkFile] = useState<InlineFile | null>(null);
@@ -463,8 +524,8 @@ function EvalModal({
     if (!rubric) return;
     const criteriaText = rubric.criteria
       .map(cr => {
-        const descs = LEVELS
-          .map(lv => `${lv.label}: ${cr.descriptors[lv.value as 1 | 2 | 3 | 4] ?? '(sin descriptor)'}`)
+        const descs = levels
+          .map(lv => `${lv.label}: ${cr.descriptors[lv.value] ?? '(sin descriptor)'}`)
           .join('; ');
         return `- id:"${cr.id}" nombre:"${cr.name}" → ${descs}`;
       })
@@ -507,7 +568,7 @@ function EvalModal({
     const scoreLines = rubric.criteria
       .map(cr => {
         const sc = scores[cr.id];
-        const lv = LEVELS.find(l => l.value === sc);
+        const lv = levels.find(l => l.value === sc);
         return `- ${cr.name}: ${lv ? lv.label : 'No evaluado'}`;
       })
       .join('\n');
@@ -538,6 +599,10 @@ function EvalModal({
       date: isoDate(),
       scores,
       notes,
+      instrument: 'rubric',
+      // Sin nota no hay nada que llevar al cuaderno: la evaluación se quedaba
+      // solo en el Historial y había que copiar la calificación a mano.
+      grade: gradeFromLevels(scores, rubric.criteria.map(c => c.id), levels) ?? undefined,
     };
     onSave(ev);
     onClose();
@@ -594,8 +659,8 @@ function EvalModal({
             <thead>
               <tr>
                 <th style={{ textAlign: 'left', minWidth: 140 }}>Criterio</th>
-                {LEVELS.map(lv => (
-                  <th key={lv.value} style={{ width: '18%' }}>{lv.label}</th>
+                {levels.map(lv => (
+                  <th key={lv.value} style={{ width: `${Math.floor(72 / levels.length)}%` }}>{lv.label}</th>
                 ))}
               </tr>
             </thead>
@@ -605,16 +670,24 @@ function EvalModal({
                   <td style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)', verticalAlign: 'top', paddingTop: 10 }}>
                     {cr.name}
                   </td>
-                  {LEVELS.map(lv => {
+                  {levels.map(lv => {
                     const selected = scores[cr.id] === lv.value;
-                    const desc = cr.descriptors[lv.value as 1 | 2 | 3 | 4];
+                    const desc = cr.descriptors[lv.value];
+                    // El color sale del nivel, no de una clase fija: así vale
+                    // para cualquier número de niveles.
+                    const color = levelColor(lv.value, levels.length);
                     return (
                       <td key={lv.value} style={{ verticalAlign: 'top' }}>
                         <div
-                          className={`level-cell ${lv.key}${selected ? ' selected' : ''}`}
+                          className={`level-cell${selected ? ' selected' : ''}`}
                           onClick={() => setScores(prev => ({ ...prev, [cr.id]: lv.value }))}
+                          style={{
+                            borderColor: selected ? color : undefined,
+                            background: selected ? `${color}1a` : undefined,
+                            color: selected ? color : undefined,
+                          }}
                         >
-                          <div style={{ fontWeight: 700, fontSize: 13 }}>{lv.value}</div>
+                          <div style={{ fontWeight: 700, fontSize: 13, color }}>{lv.value}</div>
                           {desc && <div className="level-cell-desc">{desc}</div>}
                         </div>
                       </td>
