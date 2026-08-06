@@ -57,7 +57,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) { setError('Escribe tu nombre para empezar.'); return; }
+    if (!name.trim()) { setError(t('Escribe tu nombre para empezar.')); return; }
     setBusy(true);
     await onCreateProfile(
       { name: name.trim(), school: school.trim(), subject: subject.trim(), course: course.trim() },
@@ -128,22 +128,22 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
 
         <form onSubmit={submit}>
           <div className="fgroup">
-            <label className="flabel">Tu nombre *</label>
+            <label className="flabel">{t('Tu nombre *')}</label>
             <input className="finput" value={name} autoFocus placeholder="Ana García Ruiz"
               onChange={e => { setName(e.target.value); if (error) setError(''); }} />
           </div>
           <div className="frow fgroup">
             <div>
-              <label className="flabel">Centro educativo</label>
+              <label className="flabel">{t('Centro educativo')}</label>
               <input className="finput" value={school} placeholder="IES Ejemplo" onChange={e => setSchool(e.target.value)} />
             </div>
             <div>
-              <label className="flabel">Especialidad</label>
+              <label className="flabel">{t('Especialidad')}</label>
               <input className="finput" value={subject} placeholder="Matemáticas" onChange={e => setSubject(e.target.value)} />
             </div>
           </div>
           <div className="fgroup">
-            <label className="flabel">Curso escolar</label>
+            <label className="flabel">{t('Curso escolar')}</label>
             <input className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
           </div>
 
@@ -152,14 +152,13 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
               <input type="checkbox" checked={importLegacy} onChange={e => setImportLegacy(e.target.checked)}
                 style={{ cursor: 'pointer', accentColor: 'var(--accent-d)', width: 16, height: 16, marginTop: 2, flexShrink: 0 }} />
               <span style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.55 }}>
-                <strong style={{ color: 'var(--text)' }}>Traer mis datos anteriores.</strong> Hemos
-                encontrado trabajo guardado por una versión anterior. Se copiará a este perfil.
+                <strong style={{ color: 'var(--text)' }}>{t('Traer mis datos anteriores.')}</strong>{t(' Hemos encontrado trabajo guardado por una versión anterior. Se copiará a este perfil.')}
               </span>
             </label>
           )}
 
           <button className="btn-primary" type="submit" disabled={busy}>
-            {busy ? <><span className="spin" />&nbsp;Creando…</> : t('Empezar a usar Aula Pro')}
+            {busy ? <><span className="spin" />&nbsp;{t('Creando…')}</> : t('Empezar a usar Aula Pro')}
           </button>
         </form>
 
@@ -179,7 +178,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         ) : (
           <button className="btn-ghost" style={{ width: '100%', marginTop: 12, justifyContent: 'center' }}
             onClick={() => setCreating(false)}>
-            Volver a la lista
+            {t('Volver a la lista')}
           </button>
         )}
       </>
@@ -189,7 +188,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   /* ── Elegir perfil ── */
   return shell(
     <>
-      {header('¿Quién va a trabajar?', 'Elige tu perfil para continuar')}
+      {header(t('¿Quién va a trabajar?'), t('Elige tu perfil para continuar'))}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 16 }}>
         {profiles.map(p => (
@@ -218,14 +217,14 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
                   {p.name}
                 </span>
                 <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {[p.subject, p.school, p.course].filter(Boolean).join(' · ') || 'Sin datos adicionales'}
+                  {[p.subject, p.school, p.course].filter(Boolean).join(' · ') || t('Sin datos adicionales')}
                 </span>
               </span>
               <ArrowRight size={16} color="var(--text-3)" />
             </button>
             <button
               className="ico-btn"
-              title="Eliminar este perfil"
+              title={t('Eliminar este perfil')}
               onClick={() => setConfirmDelete(p.id)}
               style={{ flexShrink: 0 }}
             >
@@ -238,9 +237,8 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
       {confirmDelete && (
         <div style={{ background: 'rgba(239,68,68,0.07)', border: '0.5px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '13px 15px', marginBottom: 16 }}>
           <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.55, marginBottom: 12 }}>
-            Se borrará <strong>toda la carpeta</strong> de{' '}
-            <strong>{profiles.find(p => p.id === confirmDelete)?.name}</strong>: clases, notas,
-            evaluaciones y copias de seguridad. No se puede deshacer.
+            {t('Se borrará')} <strong>{t(' toda la carpeta')}</strong>{t(' de')}{' '}
+            <strong>{profiles.find(p => p.id === confirmDelete)?.name}</strong>{t(': clases, notas, evaluaciones y copias de seguridad. No se puede deshacer.')}
           </p>
           <div style={{ display: 'flex', gap: 9 }}>
             <button
@@ -248,10 +246,10 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
               style={{ color: 'white', background: 'var(--danger)', border: 'none', fontSize: 12.5 }}
               onClick={async () => { await deleteProfile(confirmDelete); setConfirmDelete(null); refresh(); }}
             >
-              Sí, borrar el perfil
+              {t('Sí, borrar el perfil')}
             </button>
             <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={() => setConfirmDelete(null)}>
-              Cancelar
+              {t('Cancelar')}
             </button>
           </div>
         </div>
@@ -259,13 +257,13 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
 
       <button className="btn-primary" onClick={() => { setCreating(true); setName(''); setSchool(''); setSubject(''); setError(''); }}>
         <Plus size={16} style={{ display: 'inline', verticalAlign: -3, marginRight: 6 }} />
-        Añadir otro perfil
+        {t('Añadir otro perfil')}
       </button>
 
       {isDesktop() && (
         <p style={{ fontSize: 11.5, color: 'var(--text-3)', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
           <HardDrive size={12} style={{ display: 'inline', verticalAlign: -2, marginRight: 4 }} />
-          Cada perfil guarda sus datos en su propia carpeta de este equipo.
+          {t('Cada perfil guarda sus datos en su propia carpeta de este equipo.')}
         </p>
       )}
     </>

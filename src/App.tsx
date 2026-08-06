@@ -11,6 +11,7 @@ import { buildBundle, bundleCounts } from './services/sync';
 import type { Section } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
+import { useI18n, priorityLabel } from './i18n';
 
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
@@ -28,15 +29,17 @@ const Attendance     = lazy(() => import('./pages/Attendance').then(m => ({ defa
 const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 
 function Loading() {
+  const { t } = useI18n();
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--text-3)', fontSize: 14 }}>
-      <span className="spin" style={{ marginRight: 10 }} />Cargando…
+      <span className="spin" style={{ marginRight: 10 }} />{t('Cargando…')}
     </div>
   );
 }
 
 function AppInner() {
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const st = useAppState();
 
   const [section, setSection]         = useState<Section>('dashboard');
@@ -77,7 +80,7 @@ function AppInner() {
   if (!st.ready) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--sb-bg)', color: 'rgba(255,255,255,0.6)', fontSize: 14, gap: 10 }}>
-        <span className="spin" />Abriendo tu cuaderno…
+        <span className="spin" />{t('Abriendo tu cuaderno…')}
       </div>
     );
   }
@@ -88,7 +91,7 @@ function AppInner() {
         onOpenProfile={st.openProfile}
         onCreateProfile={async (input, options) => {
           await st.createAndOpenProfile(input, options);
-          toast(`✅ ¡Bienvenido/a, ${input.name.split(' ')[0]}!`);
+          toast(t('✅ ¡Bienvenido/a, {name}!', { name: input.name.split(' ')[0] }));
         }}
         onExploreDemo={async () => {
           await st.createAndOpenProfile({
@@ -96,18 +99,18 @@ function AppInner() {
             subject: DEMO_USER.subject, course: '2025-2026',
           });
           st.loadDemoData();
-          toast('✅ Datos de ejemplo cargados');
+          toast(t('✅ Datos de ejemplo cargados'));
         }}
       />
     );
   }
 
   function submitTask() {
-    if (!taskText.trim()) { toast('Escribe una descripción'); return; }
+    if (!taskText.trim()) { toast(t('Escribe una descripción')); return; }
     st.addTask(taskText.trim(), taskPri);
     setTaskText('');
     setShowAddTask(false);
-    toast('✅ Tarea añadida');
+    toast(t('✅ Tarea añadida'));
   }
 
   return (
@@ -120,7 +123,7 @@ function AppInner() {
         user={st.currentUser}
         sharing={session.connected}
         saving={st.saving}
-        onLogout={async () => { await st.logout(); toast('Sesión cerrada'); }}
+        onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -141,7 +144,7 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
-                onLoadDemo={() => { st.loadDemoData(); toast('✅ Datos de ejemplo cargados'); }}
+                onLoadDemo={() => { st.loadDemoData(); toast(t('✅ Datos de ejemplo cargados')); }}
               />
             )}
             {section === 'classes' && (
@@ -166,12 +169,12 @@ function AppInner() {
                 classes={st.classes}
                 scheduleBlocks={st.scheduleBlocks}
                 calEvents={st.calEvents}
-                onAddBlock={(b: any) => { st.addBlock(b); toast('✅ Bloque añadido'); }}
-                onUpdateBlock={(b: any) => { st.updateBlock(b); toast('✅ Actualizado'); }}
-                onDeleteBlock={(id: string) => { st.deleteBlock(id); toast('Bloque eliminado'); }}
-                onAddCalEvent={(ev: any) => { st.addCalEvent(ev); toast('✅ Evento añadido'); }}
-                onUpdateCalEvent={(ev: any) => { st.updateCalEvent(ev); toast('✅ Actualizado'); }}
-                onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast('Evento eliminado'); }}
+                onAddBlock={(b: any) => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
+                onUpdateBlock={(b: any) => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
+                onDeleteBlock={(id: string) => { st.deleteBlock(id); toast(t('Bloque eliminado')); }}
+                onAddCalEvent={(ev: any) => { st.addCalEvent(ev); toast(t('✅ Evento añadido')); }}
+                onUpdateCalEvent={(ev: any) => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
+                onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}
                 onNav={s => setSection(s as Section)}
               />
             )}
@@ -183,9 +186,9 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 lawDocument={st.lawDocument}
-                onAddRubric={(r: any) => { st.addRubric(r); toast('✅ Rúbrica creada'); }}
-                onUpdateRubric={(r: any) => { st.updateRubric(r); toast('✅ Actualizada'); }}
-                onDeleteRubric={(id: string) => { st.deleteRubric(id); toast('Rúbrica eliminada'); }}
+                onAddRubric={(r: any) => { st.addRubric(r); toast(t('✅ Rúbrica creada')); }}
+                onUpdateRubric={(r: any) => { st.updateRubric(r); toast(t('✅ Actualizada')); }}
+                onDeleteRubric={(id: string) => { st.deleteRubric(id); toast(t('Rúbrica eliminada')); }}
                 onAddDiana={st.addDiana}
                 onUpdateDiana={st.updateDiana}
                 onDeleteDiana={st.deleteDiana}
@@ -331,26 +334,26 @@ function AppInner() {
       <div className={`modal-overlay${showAddTask ? ' open' : ''}`} onClick={e => e.target === e.currentTarget && setShowAddTask(false)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
-            <div className="modal-title">Nueva tarea</div>
+            <div className="modal-title">{t('Nueva tarea')}</div>
             <button className="ico-btn" onClick={() => setShowAddTask(false)}><X size={17} /></button>
           </div>
           <div className="fgroup">
-            <label className="flabel">Descripción</label>
-            <input className="finput" value={taskText} onChange={e => setTaskText(e.target.value)} placeholder="Ej: Corregir exámenes 3º ESO A"
+            <label className="flabel">{t('Descripción')}</label>
+            <input className="finput" value={taskText} onChange={e => setTaskText(e.target.value)} placeholder={t('Ej: Corregir exámenes 3º ESO A')}
               onKeyDown={e => { if (e.key === 'Enter') submitTask(); }}
             />
           </div>
           <div className="fgroup">
-            <label className="flabel">Prioridad</label>
+            <label className="flabel">{t('Prioridad')}</label>
             <select className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as any)} style={{ cursor: 'pointer' }}>
-              <option value="high">Alta</option>
-              <option value="medium">Media</option>
-              <option value="low">Baja</option>
+              <option value="high">{priorityLabel('high', lang)}</option>
+              <option value="medium">{priorityLabel('medium', lang)}</option>
+              <option value="low">{priorityLabel('low', lang)}</option>
             </select>
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-            <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={submitTask}>Añadir tarea</button>
-            <button className="btn-ghost" onClick={() => setShowAddTask(false)}>Cancelar</button>
+            <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={submitTask}>{t('Añadir tarea')}</button>
+            <button className="btn-ghost" onClick={() => setShowAddTask(false)}>{t('Cancelar')}</button>
           </div>
         </div>
       </div>

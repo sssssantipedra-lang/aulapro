@@ -943,6 +943,105 @@ const EN: Record<string, string> = {
   'Cerrar {title}': 'Close {title}',
   'Abrir {title}': 'Open {title}',
 
+  /* ── Asistente de IA (clave) ── */
+  'Abre Google AI Studio': 'Open Google AI Studio',
+  'Entra en aistudio.google.com/apikey con tu cuenta de Google (la misma del correo Gmail sirve).':
+    'Go to aistudio.google.com/apikey with your Google account (the same one as your Gmail works).',
+  'Pulsa «Crear clave de API»': 'Click "Create API key"',
+  'Es un botón azul en la parte superior. Si te pide elegir un proyecto, selecciona «Crear proyecto nuevo».':
+    'It’s a blue button at the top. If it asks you to choose a project, select "Create new project".',
+  'Copia la clave': 'Copy the key',
+  'Verás un código largo que empieza por «AIza…». Pulsa el icono de copiar.':
+    'You’ll see a long code starting with "AIza…". Click the copy icon.',
+  'Pégala aquí y prueba': 'Paste it here and test it',
+  'Pega la clave en el campo de abajo, pulsa «Guardar» y luego «Probar conexión» para confirmar que funciona.':
+    'Paste the key in the field below, click "Save" and then "Test connection" to confirm it works.',
+  'Asistente de IA (Google Gemini)': 'AI assistant (Google Gemini)',
+  'Configurada ✓': 'Set up ✓',
+  'Sin configurar': 'Not set up',
+  'La IA (generar rúbricas, consultas pedagógicas…) funciona con una clave': 'The AI (generating rubrics, teaching questions…) runs on a',
+  'gratuita': 'free',
+  ' de Google. Se guarda solo en este equipo y nunca se comparte.': ' key from Google. It’s stored only on this computer and never shared.',
+  '¿Cómo consigo mi clave gratuita? (2 minutos)': 'How do I get my free key? (2 minutes)',
+  'Abrir Google AI Studio': 'Open Google AI Studio',
+  'Pega aquí tu clave (AIza…)': 'Paste your key here (AIza…)',
+  'Ocultar clave': 'Hide key',
+  'Mostrar clave': 'Show key',
+  'Probando…': 'Testing…',
+  'Probar conexión': 'Test connection',
+  '✅ Clave guardada en este equipo': '✅ Key saved on this computer',
+  'Clave eliminada': 'Key removed',
+  'Conexión correcta (modelo {model})': 'Connection successful (model {model})',
+  '✅ Clave verificada y guardada': '✅ Key verified and saved',
+  'No se pudo conectar.': 'Couldn’t connect.',
+
+  /* ── Carpeta de datos ── */
+  'Mis datos': 'My data',
+  'Todo tu trabajo se guarda en una carpeta de este equipo, solo para este perfil. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.':
+    'All your work is stored in a folder on this computer, just for this profile. Aula Pro makes an automatic backup every ten minutes while you work.',
+  'En el navegador los datos se guardan dentro del propio navegador. Para que se guarden en carpetas de tu ordenador, con copias automáticas, usa la aplicación de escritorio (AulaPro.exe).':
+    'In the browser, data is stored inside the browser itself. To have it saved in folders on your computer, with automatic backups, use the desktop application (AulaPro.exe).',
+  'Abrir carpeta': 'Open folder',
+  'Crear copia ahora': 'Create backup now',
+  'Copias de seguridad ({n})': 'Backups ({n})',
+  'Restaurar': 'Restore',
+  'Borrar todas las copias': 'Delete all backups',
+  '✅ Copia de seguridad creada': '✅ Backup created',
+  'No hay datos que copiar todavía': 'There’s no data to back up yet',
+  '✅ Copia restaurada. Se recarga la aplicación…': '✅ Backup restored. The app will reload…',
+  'No se pudo restaurar esa copia': 'Couldn’t restore that backup',
+  'Copias de seguridad borradas': 'Backups deleted',
+  'Final de curso': 'End of year',
+  'Cuando termine la tercera evaluación puedes vaciar el curso: se borran clases, alumnos, notas, evaluaciones, asistencia e informes.':
+    'Once the third term is over you can clear out the year: classes, students, grades, assessments, attendance and reports are deleted.',
+  'Se conservan tus rúbricas y dianas': 'Your rubrics and targets are kept',
+  ', que te servirán el año que viene.': ', ready for you to reuse next year.',
+  ' Antes de borrar se guarda una copia de seguridad.': ' A backup is saved before deleting anything.',
+  '¿Seguro? Se borrará el trabajo de este curso. Podrás recuperarlo desde las copias de seguridad de arriba si te arrepientes.':
+    'Are you sure? This year’s work will be deleted. You can recover it from the backups above if you change your mind.',
+  'Sí, vaciar el curso': 'Yes, clear out the year',
+  '✅ Curso vaciado. Tus rúbricas siguen ahí.': '✅ Year cleared out. Your rubrics are still there.',
+  'Vaciar el curso': 'Clear out the year',
+
+  /* ── App: toasts globales y modal de tarea ── */
+  '✅ ¡Bienvenido/a, {name}!': '✅ Welcome, {name}!',
+  '✅ Datos de ejemplo cargados': '✅ Sample data loaded',
+  'Escribe una descripción': 'Write a description',
+  '✅ Tarea añadida': '✅ Task added',
+  'Sesión cerrada': 'Signed out',
+  '✅ Bloque añadido': '✅ Session added',
+  '✅ Actualizado': '✅ Updated',
+  'Bloque eliminado': 'Session deleted',
+  '✅ Evento añadido': '✅ Event added',
+  'Evento eliminado': 'Event deleted',
+  '✅ Rúbrica creada': '✅ Rubric created',
+  'Rúbrica eliminada': 'Rubric deleted',
+  'Nueva tarea': 'New task',
+  'Descripción': 'Description',
+  'Ej: Corregir exámenes 3º ESO A': 'e.g. Mark Year 10A tests',
+  'Prioridad': 'Priority',
+
+  /* ── Bienvenida: crear/elegir perfil ── */
+  'Escribe tu nombre para empezar.': 'Enter your name to get started.',
+  'Tu nombre *': 'Your name *',
+  'Traer mis datos anteriores.': 'Bring in my previous data.',
+  ' Hemos encontrado trabajo guardado por una versión anterior. Se copiará a este perfil.':
+    ' We found work saved by an earlier version. It will be copied into this profile.',
+  'Creando…': 'Creating…',
+  'Volver a la lista': 'Back to the list',
+  '¿Quién va a trabajar?': 'Who’s working today?',
+  'Elige tu perfil para continuar': 'Choose your profile to continue',
+  'Sin datos adicionales': 'No extra details',
+  'Eliminar este perfil': 'Delete this profile',
+  'Se borrará': 'This will delete',
+  ' toda la carpeta': ' the entire folder',
+  ' de': ' for',
+  ': clases, notas, evaluaciones y copias de seguridad. No se puede deshacer.':
+    ': classes, grades, assessments and backups. This can’t be undone.',
+  'Sí, borrar el perfil': 'Yes, delete the profile',
+  'Añadir otro perfil': 'Add another profile',
+  'Cada perfil guarda sus datos en su propia carpeta de este equipo.': 'Each profile keeps its data in its own folder on this computer.',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',
