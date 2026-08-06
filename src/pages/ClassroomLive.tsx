@@ -8,7 +8,7 @@ import { isoDate } from '../lib/utils';
 import type { ClassroomActivity, ClassroomSnapshot } from '../types/electron';
 import { SessionQR } from '../components/share/SessionQR';
 import { useToast } from '../components/ui/Toast';
-import { plural } from '../lib/utils';
+import { useI18n } from '../i18n';
 
 interface Props {
   classes: Class[];
@@ -33,6 +33,7 @@ const LEVEL_COLOR = ['#dc2626', '#d97706', '#2563eb', '#047857'];
 
 export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSaveSelfAssessment }: Props) {
   const { toast } = useToast();
+  const { t, lang, locale } = useI18n();
   const bridge = window.electronAPI?.classroom;
 
   const [snap, setSnap] = useState<ClassroomSnapshot | null>(null);
@@ -103,41 +104,41 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
    * Se enseña siempre: un botón gris sin explicación deja al docente atascado.
    */
   function whatIsMissing(): string | null {
-    if (classes.length === 0) return 'Crea antes una clase con sus alumnos en «Mis Clases».';
-    if (roster.length === 0) return 'Esa clase todavía no tiene alumnos.';
+    if (classes.length === 0) return t('Crea antes una clase con sus alumnos en «Mis Clases».');
+    if (roster.length === 0) return t('Esa clase todavía no tiene alumnos.');
     if (kind === 'rubric' && rubrics.length === 0 && dianas.length === 0) {
-      return 'Necesitas crear antes una rúbrica o una diana en Evaluación.';
+      return t('Necesitas crear antes una rúbrica o una diana en Evaluación.');
     }
-    if (kind === 'rubric' && !sourceId) return 'Elige arriba la rúbrica o la diana con la que se autoevaluarán.';
-    if (kind === 'brainstorm' && !title.trim()) return 'Escribe el tema de la lluvia de ideas.';
-    if (kind === 'poll' && !title.trim()) return 'Escribe la pregunta de la votación.';
-    if (kind === 'poll' && options.filter(o => o.trim()).length < 2) return 'La votación necesita dos opciones como mínimo.';
-    if (!activity) return 'Revisa la configuración de la actividad.';
+    if (kind === 'rubric' && !sourceId) return t('Elige arriba la rúbrica o la diana con la que se autoevaluarán.');
+    if (kind === 'brainstorm' && !title.trim()) return t('Escribe el tema de la lluvia de ideas.');
+    if (kind === 'poll' && !title.trim()) return t('Escribe la pregunta de la votación.');
+    if (kind === 'poll' && options.filter(o => o.trim()).length < 2) return t('La votación necesita dos opciones como mínimo.');
+    if (!activity) return t('Revisa la configuración de la actividad.');
     return null;
   }
   const missing = whatIsMissing();
 
   async function openRoom() {
     if (!bridge) return;
-    if (missing || !activity) { toast(missing ?? 'Configura antes la actividad'); return; }
+    if (missing || !activity) { toast(missing ?? t('Configura antes la actividad')); return; }
     setBusy(true);
     const s = await bridge.start({ roster, activity, label: roomLabel });
     setBusy(false);
     if (s.error) { toast(s.error); return; }
     setSnap(s);
-    toast('✅ Sala abierta');
+    toast(t('✅ Sala abierta'));
   }
 
   async function closeRoom() {
     if (!bridge) return;
     setSnap(await bridge.stop());
-    toast('Sala cerrada');
+    toast(t('Sala cerrada'));
   }
 
   async function pushActivity() {
-    if (!bridge || !activity) { toast('Configura antes la actividad'); return; }
+    if (!bridge || !activity) { toast(t('Configura antes la actividad')); return; }
     setSnap(await bridge.setActivity(activity));
-    toast('✅ Nueva actividad enviada a los móviles');
+    toast(t('✅ Nueva actividad enviada a los móviles'));
   }
 
   /* ── Fuera de la app de escritorio ── */
@@ -146,19 +147,17 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">Sala de alumnos</h1>
-            <p className="pg-sub">Actividades desde el móvil, sin instalar nada</p>
+            <h1 className="pg-title">{t('Sala de alumnos')}</h1>
+            <p className="pg-sub">{t('Actividades desde el móvil, sin instalar nada')}</p>
           </div>
         </div>
         <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
           <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            Solo desde la aplicación de escritorio
+            {t('Solo desde la aplicación de escritorio')}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio
-            ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe),
-            no la versión de navegador.
+            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
           </p>
         </div>
       </section>
@@ -221,21 +220,21 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Sala de alumnos</h1>
+          <h1 className="pg-title">{t('Sala de alumnos')}</h1>
           <p className="pg-sub">
             {running
-              ? `Sala abierta · ${plural(responses.length, 'respuesta recibida', 'respuestas recibidas')}`
-              : 'Actividades desde el móvil, sin instalar nada'}
+              ? t(responses.length === 1 ? 'Sala abierta · {n} respuesta recibida' : 'Sala abierta · {n} respuestas recibidas', { n: responses.length })
+              : t('Actividades desde el móvil, sin instalar nada')}
           </p>
         </div>
         {running ? (
           <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={closeRoom}>
-            <Square size={14} />Cerrar sala
+            <Square size={14} />{t('Cerrar sala')}
           </button>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
             <button className="btn-accent" onClick={openRoom} disabled={busy}>
-              {busy ? <><span className="spin" />Abriendo…</> : <><Play size={15} />Abrir sala</>}
+              {busy ? <><span className="spin" />{t('Abriendo…')}</> : <><Play size={15} />{t('Abrir sala')}</>}
             </button>
             {missing && (
               <span style={{ fontSize: 11.5, color: 'var(--text-3)', maxWidth: 272, textAlign: 'right', lineHeight: 1.45 }}>
@@ -251,11 +250,11 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
           {/* Clase */}
           <div className="card">
             <div className="card-hd">
-              <div className="card-ttl"><Users size={14} color="var(--accent-d)" />Clase</div>
+              <div className="card-ttl"><Users size={14} color="var(--accent-d)" />{t('Clase')}</div>
             </div>
             {classes.length === 0 ? (
               <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                Crea antes una clase con sus alumnos en «Mis Clases».
+                {t('Crea antes una clase con sus alumnos en «Mis Clases».')}
               </p>
             ) : (
               <>
@@ -280,8 +279,8 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                   })}
                 </div>
                 <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 10 }}>
-                  {plural(roster.length, 'alumno numerado', 'alumnos numerados')} por orden alfabético.
-                  Entrarán con su número de lista o su nombre.
+                  {t(roster.length === 1 ? '{n} alumno numerado' : '{n} alumnos numerados', { n: roster.length })}{' '}
+                  {t('por orden alfabético. Entrarán con su número de lista o su nombre.')}
                 </p>
               </>
             )}
@@ -290,10 +289,10 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
           {/* Actividad */}
           <div className="card">
             <div className="card-hd">
-              <div className="card-ttl">Actividad</div>
+              <div className="card-ttl">{t('Actividad')}</div>
               {running && (
                 <button className="btn-accent" style={{ fontSize: 12, padding: '6px 12px' }} onClick={pushActivity}>
-                  Enviar a los móviles <ArrowRight size={13} />
+                  {t('Enviar a los móviles')} <ArrowRight size={13} />
                 </button>
               )}
             </div>
@@ -314,8 +313,8 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                     }}
                   >
                     <span style={{ color: on ? 'var(--accent-d)' : 'var(--text-3)' }}>{k.icon}</span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{k.label}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{k.desc}</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{t(k.label)}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{t(k.desc)}</span>
                   </button>
                 );
               })}
@@ -324,16 +323,16 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
             {kind === 'rubric' ? (
               <>
                 <div className="fgroup">
-                  <label className="flabel">¿Con qué se autoevalúan?</label>
+                  <label className="flabel">{t('¿Con qué se autoevalúan?')}</label>
                   <select className="finput" value={sourceId} onChange={e => setSourceId(e.target.value)} style={{ cursor: 'pointer' }}>
-                    <option value="">Elige una rúbrica o diana…</option>
+                    <option value="">{t('Elige una rúbrica o diana…')}</option>
                     {rubrics.length > 0 && (
-                      <optgroup label="Rúbricas">
+                      <optgroup label={t('Rúbricas')}>
                         {rubrics.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                       </optgroup>
                     )}
                     {dianas.length > 0 && (
-                      <optgroup label="Dianas">
+                      <optgroup label={t('Dianas')}>
                         {dianas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                       </optgroup>
                     )}
@@ -342,33 +341,33 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                 {rubrics.length === 0 && dianas.length === 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 9, background: 'var(--surface)', fontSize: 12.5, color: 'var(--text-2)' }}>
                     <Target size={15} style={{ flexShrink: 0 }} />
-                    <span style={{ flex: 1 }}>Necesitas al menos una rúbrica o diana.</span>
+                    <span style={{ flex: 1 }}>{t('Necesitas al menos una rúbrica o diana.')}</span>
                     <button className="btn-ghost" style={{ fontSize: 12, padding: '5px 11px' }} onClick={() => onNav('rubrics')}>
-                      Crear
+                      {t('Crear')}
                     </button>
                   </div>
                 )}
                 <div className="fgroup">
-                  <label className="flabel">Instrucción para el alumno (opcional)</label>
+                  <label className="flabel">{t('Instrucción para el alumno (opcional)')}</label>
                   <input className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
-                    placeholder="Ej: Piensa en cómo has trabajado hoy con tu grupo." />
+                    placeholder={t('Ej: Piensa en cómo has trabajado hoy con tu grupo.')} />
                 </div>
               </>
             ) : (
               <>
                 <div className="fgroup">
-                  <label className="flabel">{kind === 'poll' ? 'Pregunta' : 'Tema'}</label>
+                  <label className="flabel">{t(kind === 'poll' ? 'Pregunta' : 'Tema')}</label>
                   <input className="finput" value={title} onChange={e => setTitle(e.target.value)}
-                    placeholder={kind === 'poll' ? 'Ej: ¿Qué hemos entendido mejor?' : 'Ej: ¿Qué sabemos sobre los ecosistemas?'} />
+                    placeholder={t(kind === 'poll' ? 'Ej: ¿Qué hemos entendido mejor?' : 'Ej: ¿Qué sabemos sobre los ecosistemas?')} />
                 </div>
                 <div className="fgroup">
-                  <label className="flabel">Aclaración (opcional)</label>
+                  <label className="flabel">{t('Aclaración (opcional)')}</label>
                   <input className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
-                    placeholder="Una frase que les oriente" />
+                    placeholder={t('Una frase que les oriente')} />
                 </div>
                 {kind === 'poll' && (
                   <div className="fgroup">
-                    <label className="flabel">Opciones</label>
+                    <label className="flabel">{t('Opciones')}</label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {options.map((o, i) => (
                         <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -387,7 +386,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                     </div>
                     {options.length < 6 && (
                       <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={() => setOptions(p => [...p, ''])}>
-                        <Plus size={13} />Añadir opción
+                        <Plus size={13} />{t('Añadir opción')}
                       </button>
                     )}
                   </div>
@@ -407,12 +406,12 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
           {running && joinUrl ? (
             <div className="card" style={{ textAlign: 'center', borderLeft: '3px solid var(--ok)' }}>
               <div className="card-hd" style={{ justifyContent: 'center' }}>
-                <div className="card-ttl"><Smartphone size={14} color="var(--ok)" />Para proyectar</div>
+                <div className="card-ttl"><Smartphone size={14} color="var(--ok)" />{t('Para proyectar')}</div>
               </div>
               <SessionQR code={joinUrl} size={186} />
               <div style={{ marginTop: 14 }}>
                 <div style={{ fontSize: 11.5, color: 'var(--text-2)', fontWeight: 600, marginBottom: 4 }}>
-                  O escribid en el navegador
+                  {t('O escribid en el navegador')}
                 </div>
                 <div style={{
                   fontSize: 15, fontWeight: 800, color: 'var(--text)',
@@ -420,7 +419,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                 }}>
                   {address!.ip}:{snap!.port}
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-2)', marginTop: 8, fontWeight: 600 }}>Código</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-2)', marginTop: 8, fontWeight: 600 }}>{t('Código')}</div>
                 <div style={{
                   display: 'inline-block', marginTop: 3, padding: '6px 16px', borderRadius: 10,
                   background: 'var(--accent-l)', color: 'var(--accent-d)',
@@ -432,21 +431,21 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
               </div>
               {snap!.addresses.length > 1 && (
                 <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 12, lineHeight: 1.5 }}>
-                  Si no conecta, prueba con {snap!.addresses.slice(1).map(a => `${a.ip}:${snap!.port}`).join(' o ')}
+                  {t('Si no conecta, prueba con {addresses}', { addresses: snap!.addresses.slice(1).map(a => `${a.ip}:${snap!.port}`).join(lang === 'en' ? ' or ' : ' o ') })}
                 </p>
               )}
             </div>
           ) : (
             <div className="card">
               <div className="card-hd">
-                <div className="card-ttl"><Smartphone size={14} color="var(--accent-d)" />Cómo funciona</div>
+                <div className="card-ttl"><Smartphone size={14} color="var(--accent-d)" />{t('Cómo funciona')}</div>
               </div>
               <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
-                <li>Eliges la clase y la actividad.</li>
-                <li>Abres la sala y proyectas el QR.</li>
-                <li>Los alumnos lo escanean con el móvil.</li>
-                <li>Entran con su número de lista.</li>
-                <li>Ves sus respuestas aquí en directo.</li>
+                <li>{t('Eliges la clase y la actividad.')}</li>
+                <li>{t('Abres la sala y proyectas el QR.')}</li>
+                <li>{t('Los alumnos lo escanean con el móvil.')}</li>
+                <li>{t('Entran con su número de lista.')}</li>
+                <li>{t('Ves sus respuestas aquí en directo.')}</li>
               </ol>
             </div>
           )}
@@ -455,9 +454,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
               <Wifi size={15} style={{ flexShrink: 0, marginTop: 2 }} />
               <span>
-                <strong style={{ color: 'var(--text)' }}>Todos en la misma wifi.</strong> No hace falta internet:
-                los móviles hablan solo con tu ordenador. Si no conectan, puede que la red del centro
-                aísle los dispositivos; entonces comparte datos desde tu móvil y conectaos a esa red.
+                <strong style={{ color: 'var(--text)' }}>{t('Todos en la misma wifi.')}</strong>{t(' No hace falta internet: los móviles hablan solo con tu ordenador. Si no conectan, puede que la red del centro aísle los dispositivos; entonces comparte datos desde tu móvil y conectaos a esa red.')}
               </span>
             </div>
           </div>
@@ -476,6 +473,7 @@ function ResultsPanel({
   roster: { n: number; name: string; id: string }[];
   onNav: (s: string) => void;
 }) {
+  const { t } = useI18n();
   const activity = snap.activity;
   const responses = snap.responses;
   if (!activity) return null;
@@ -485,7 +483,7 @@ function ResultsPanel({
   return (
     <div className="card">
       <div className="card-hd">
-        <div className="card-ttl">Respuestas en directo</div>
+        <div className="card-ttl">{t('Respuestas en directo')}</div>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)' }}>
           {responses.length}/{roster.length}
         </span>
@@ -493,7 +491,7 @@ function ResultsPanel({
 
       {responses.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '22px 0' }}>
-          Aún no ha contestado nadie. Las respuestas aparecerán aquí solas.
+          {t('Aún no ha contestado nadie. Las respuestas aparecerán aquí solas.')}
         </p>
       ) : activity.type === 'poll' ? (
         <PollResults activity={activity} responses={responses} />
@@ -505,8 +503,8 @@ function ResultsPanel({
 
       {pending.length > 0 && responses.length > 0 && (
         <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--border)', lineHeight: 1.5 }}>
-          <strong>Faltan:</strong> {pending.slice(0, 12).map(p => `${p.n}. ${p.name.split(' ')[0]}`).join(' · ')}
-          {pending.length > 12 && ` y ${pending.length - 12} más`}
+          <strong>{t('Faltan:')}</strong> {pending.slice(0, 12).map(p => `${p.n}. ${p.name.split(' ')[0]}`).join(' · ')}
+          {pending.length > 12 && t(' y {n} más', { n: pending.length - 12 })}
         </p>
       )}
     </div>
@@ -570,6 +568,7 @@ function RubricResults({
   roster: { n: number; name: string; id: string }[];
   onNav: (s: string) => void;
 }) {
+  const { t, locale } = useI18n();
   const items = activity.items ?? [];
 
   const rows = responses.map(r => {
@@ -586,9 +585,9 @@ function RubricResults({
         <table className="rtable">
           <thead>
             <tr>
-              <th style={{ textAlign: 'left' }}>Alumno</th>
+              <th style={{ textAlign: 'left' }}>{t('Alumno')}</th>
               {items.map(i => <th key={i.id} style={{ minWidth: 74, fontSize: 10 }}>{i.name.length > 16 ? i.name.slice(0, 15) + '…' : i.name}</th>)}
-              <th style={{ minWidth: 62 }}>Media</th>
+              <th style={{ minWidth: 62 }}>{t('Media')}</th>
             </tr>
           </thead>
           <tbody>
@@ -600,7 +599,7 @@ function RubricResults({
                   return (
                     <td key={i.id} style={{ textAlign: 'center' }}>
                       {v ? (
-                        <span title={LEVEL_LABEL[v - 1]} style={{
+                        <span title={t(LEVEL_LABEL[v - 1])} style={{
                           display: 'inline-block', minWidth: 24, padding: '3px 7px', borderRadius: 7,
                           background: `${LEVEL_COLOR[v - 1]}18`, color: LEVEL_COLOR[v - 1],
                           fontSize: 12.5, fontWeight: 800,
@@ -610,7 +609,7 @@ function RubricResults({
                   );
                 })}
                 <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 13, color: 'var(--text)' }}>
-                  {row.grade !== null ? row.grade.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}
+                  {row.grade !== null ? row.grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'}
                 </td>
               </tr>
             ))}
@@ -624,12 +623,11 @@ function RubricResults({
       }}>
         <Save size={15} color="var(--ok)" style={{ flexShrink: 0 }} />
         <span style={{ flex: 1, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5 }}>
-          Se guarda solo, aunque cierres la sala. Decides después si lo pasas
-          al historial de evaluaciones.
+          {t('Se guarda solo, aunque cierres la sala. Decides después si lo pasas al historial de evaluaciones.')}
         </span>
         <button className="btn-ghost" style={{ fontSize: 12.5, flexShrink: 0 }}
           onClick={() => onNav('selfassess')}>
-          Ver autoevaluaciones
+          {t('Ver autoevaluaciones')}
         </button>
       </div>
     </>
