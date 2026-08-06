@@ -18,6 +18,8 @@ release
 # Iconos generados por `npm run icons` desde public/favicon.svg
 build/icon.ico
 build/icon.png
+build/icon.icns
+build/icon.iconset/
 electron/icon.ico
 public/favicon.ico
 

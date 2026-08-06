@@ -1,0 +1,44 @@
+name: Build macOS
+
+# Se lanza a mano desde la pestaña "Actions" de GitHub (botón "Run workflow").
+# No hay cuenta de Apple Developer, así que la build sale sin firmar: la
+# primera vez que se abra en un Mac, Gatekeeper pedirá clic derecho → "Abrir"
+# en vez de doble clic normal. Es solo la primera vez.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar los iconos (PNG del .iconset incluidos)
+        run: npm run icons
+
+      - name: Convertir el .iconset a .icns (solo posible en macOS)
+        run: iconutil -c icns build/icon.iconset -o build/icon.icns
+
+      - name: Compilar la aplicación web
+        run: npm run build
+
+      - name: Empaquetar la app de Mac (.dmg y .zip, universal)
+        run: npx electron-builder --mac --publish never
+
+      - name: Subir la build como artefacto descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaPro-mac
+          path: |
+            release/*.dmg
+            release/*.zip
+          if-no-files-found: error

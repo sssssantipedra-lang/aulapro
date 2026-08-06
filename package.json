@@ -16,7 +16,8 @@
     "preview": "vite preview",
     "icons": "node scripts/make-icons.cjs",
     "electron": "electron .",
-    "dist": "npm run icons && npm run build && electron-builder --win --publish never"
+    "dist": "npm run icons && npm run build && electron-builder --win --publish never",
+    "dist:mac": "npm run icons && npm run build && electron-builder --mac --publish never"
   },
   "build": {
     "appId": "es.aulapro.escritorio",
@@ -43,6 +44,21 @@
     },
     "portable": {
       "artifactName": "AulaPro-${version}-portable.${ext}"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["universal"] },
+        { "target": "zip", "arch": ["universal"] }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.education",
+      "artifactName": "AulaPro-${version}-mac.${ext}",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "Aula Pro ${version}"
     }
   },
   "dependencies": {

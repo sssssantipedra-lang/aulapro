@@ -5,7 +5,7 @@ necesita internet para funcionar y tus datos no salen de tu equipo.
 
 ---
 
-## Cuál de los dos archivos descargo
+## Cuál de los dos archivos descargo (Windows)
 
 | | **Instalador** | **Portable** |
 |---|---|---|
@@ -17,6 +17,12 @@ necesita internet para funcionar y tus datos no salen de tu equipo.
 Si dudas, coge el **instalador**. Se instala en tu carpeta de usuario, así que no
 necesita que nadie te dé permisos de administrador: funciona igual en los
 ordenadores bloqueados de un centro.
+
+## En Mac
+
+Descarga `AulaPro-1.0.0-mac.dmg`, ábrelo y arrastra el icono de Aula Pro a la
+carpeta **Aplicaciones**. Es una build **universal**: funciona igual en Mac con
+chip Intel o Apple Silicon (M1/M2/M3…), no hay que elegir versión.
 
 ---
 
@@ -52,12 +58,33 @@ unos setenta antivirus distintos a la vez y te da el resultado en un minuto.
 
 ---
 
+## En Mac dice que no se puede abrir «porque es de un desarrollador no identificado». ¿Qué hago?
+
+Es el equivalente en Mac del aviso de Windows de arriba: significa que la app no
+lleva la firma digital de pago de Apple, no que tenga nada malo. Se resuelve
+así, **solo la primera vez**:
+
+1. En **Finder**, haz **clic derecho (o Ctrl+clic)** sobre Aula Pro, en vez de
+   doble clic.
+2. Elige **Abrir** en el menú.
+3. Saldrá el mismo aviso, pero esta vez con un botón **Abrir** — púlsalo.
+
+Las veces siguientes se abre con doble clic normal, como cualquier otra app.
+
+---
+
 ## Dónde se guardan mis datos
 
-En tu propio equipo, dentro de tu carpeta de usuario:
+En tu propio equipo, dentro de tu carpeta de usuario.
 
+**Windows:**
 ```
 C:\Users\<tu usuario>\AppData\Roaming\Aula Pro\AulaPro\
+```
+
+**Mac:**
+```
+~/Library/Application Support/Aula Pro/AulaPro/
 ```
 
 Ahí dentro hay una carpeta por cada perfil de docente, con sus datos y sus copias
@@ -83,8 +110,16 @@ quieras.
 
 ## Requisitos
 
+**Windows:**
 - Windows 10 o Windows 11, de 64 bits.
 - Unos 300 MB de espacio libre.
 - Para la **Sala de alumnos**: que tu ordenador y los móviles estén en la misma
   wifi. La primera vez que la abras, Windows pedirá permiso en el cortafuegos:
   hay que aceptarlo, o los móviles no podrán conectarse.
+
+**Mac:**
+- macOS reciente, Intel o Apple Silicon (build universal, no hay que elegir).
+- Unos 300 MB de espacio libre.
+- Para la **Sala de alumnos**: igual que en Windows, ordenador y móviles en la
+  misma wifi. macOS también puede pedir permiso de red local la primera vez;
+  hay que aceptarlo.

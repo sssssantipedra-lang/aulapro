@@ -46,7 +46,22 @@ npm run electron     # aplicación de escritorio
 npm test             # tests de las funciones críticas
 npm run build        # compila la interfaz
 npm run dist         # genera el instalador y el portable de Windows
+npm run dist:mac     # genera el .dmg y el .zip de Mac (solo funciona en macOS)
 ```
+
+### Build de Mac
+
+`electron-builder` no puede firmar ni empaquetar un `.dmg` real desde Windows,
+así que la build de Mac se genera en un runner de macOS mediante el workflow
+[`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml): en la
+pestaña **Actions** de GitHub, «Build macOS» → **Run workflow**. Al terminar,
+el `.dmg` y el `.zip` (build universal, Intel + Apple Silicon) quedan como
+artefacto descargable de esa ejecución.
+
+No hay cuenta de Apple Developer, así que la app sale **sin firmar**: la
+primera vez que un docente la abra en su Mac, Gatekeeper bloqueará el doble
+clic normal y hará falta clic derecho → «Abrir» → «Abrir» para confirmar que
+se confía en ella. Es solo la primera vez.
 
 ### Si el empaquetado falla en Windows
 
