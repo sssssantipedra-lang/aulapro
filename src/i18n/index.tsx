@@ -91,6 +91,27 @@ const EN: Record<string, string> = {
   'Siguiente': 'Next',
   'Detener el paso automático': 'Pause auto-rotation',
   'Reanudar el paso automático': 'Resume auto-rotation',
+  'Sin clases hoy': 'No classes today',
+  'sesiones programadas': 'sessions scheduled',
+  'en {n} grupo': 'in {n} class',
+  'en {n} grupos': 'in {n} classes',
+  'por completar': 'to do',
+  'Al día ✓': 'All caught up ✓',
+  'registradas con rúbrica': 'recorded with a rubric',
+  'Ninguna todavía': 'None yet',
+  'Empieza creando tu primera clase': 'Start by creating your first class',
+  'Añade un grupo (por ejemplo «3º ESO A») con su lista de alumnos. A partir de ahí podrás poner notas en el cuaderno, evaluar con rúbricas y organizar tu agenda.':
+    'Add a class group (e.g. "Year 10A") with its student list. From there you can enter grades in the gradebook, assess with rubrics and organise your planner.',
+  'Crear mi primera clase': 'Create my first class',
+  'Cargar datos de ejemplo': 'Load sample data',
+  'Horario de hoy': 'Today’s schedule',
+  'Sin clases programadas para hoy.': 'No classes scheduled for today.',
+  'Configura tu horario semanal en la Agenda.': 'Set up your weekly timetable in the Planner.',
+  'Próximos eventos': 'Upcoming events',
+  'Sin eventos próximos. Añádelos desde la Agenda.': 'No upcoming events. Add them from the Planner.',
+  'Alertas de alumnos': 'Student alerts',
+  'Sin alertas activas': 'No active alerts',
+  'Apunta aquí tus recordatorios: corregir, preparar material…': 'Jot down your reminders here: marking, prepping materials…',
 
   /* ── Cuaderno ── */
   'Calificaciones': 'Grades',
@@ -224,6 +245,21 @@ interface Ctx {
 }
 
 const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB' };
+
+/**
+ * Etiquetas de prioridad (Alta/Media/Baja) fuera del diccionario general:
+ * «Media» también significa «Average» en el cuaderno de notas, y el
+ * diccionario traduce por texto en castellano, no por contexto. Con una
+ * clave propia evitamos que una traducción se pise con la otra.
+ */
+const PRIORITY_LABELS: Record<'high' | 'medium' | 'low', Record<Lang, string>> = {
+  high:   { es: 'Alta', en: 'High' },
+  medium: { es: 'Media', en: 'Medium' },
+  low:    { es: 'Baja', en: 'Low' },
+};
+export function priorityLabel(p: 'high' | 'medium' | 'low', lang: Lang): string {
+  return PRIORITY_LABELS[p][lang];
+}
 
 const I18nContext = createContext<Ctx>({ lang: 'es', setLang: () => {}, t: k => k, locale: 'es-ES' });
 

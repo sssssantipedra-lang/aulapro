@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { TrendingUp, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../../types';
+import { useI18n } from '../../i18n';
 
 interface Props {
   classes: Class[];
@@ -59,6 +60,7 @@ function colorFor(n: number): string {
 export function PerformanceCarousel({
   classes, students, gradeCategories, gradeItems, grades, onNav,
 }: Props) {
+  const { t, locale } = useI18n();
   const panels = useMemo<Panel[]>(() => {
     const out: Panel[] = [];
     for (const cls of classes) {
@@ -141,22 +143,22 @@ export function PerformanceCarousel({
 
       <div className="card-hd">
         <div className="card-ttl">
-          <TrendingUp size={14} color="var(--accent-d)" />Rendimiento
+          <TrendingUp size={14} color="var(--accent-d)" />{t('Rendimiento')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {panels.length > 1 && (
             <>
-              <button className="ico-btn" title="Anterior" onClick={() => goTo(safeIndex - 1)}>
+              <button className="ico-btn" title={t('Anterior')} onClick={() => goTo(safeIndex - 1)}>
                 <ChevronLeft size={15} />
               </button>
               <button
                 className="ico-btn"
-                title={paused ? 'Reanudar el paso automático' : 'Detener el paso automático'}
+                title={t(paused ? 'Reanudar el paso automático' : 'Detener el paso automático')}
                 onClick={() => setPaused(p => !p)}
               >
                 {paused ? <Play size={14} /> : <Pause size={14} />}
               </button>
-              <button className="ico-btn" title="Siguiente" onClick={() => goTo(safeIndex + 1)}>
+              <button className="ico-btn" title={t('Siguiente')} onClick={() => goTo(safeIndex + 1)}>
                 <ChevronRight size={15} />
               </button>
             </>
@@ -172,7 +174,7 @@ export function PerformanceCarousel({
           <div style={{ flex: 1 }} />
           {panel.groupAverage !== null && (
             <span style={{ fontSize: 19, fontWeight: 800, color: colorFor(panel.groupAverage) }}>
-              {panel.groupAverage.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+              {panel.groupAverage.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
             </span>
           )}
         </div>
@@ -200,7 +202,7 @@ export function PerformanceCarousel({
                 width: 30, textAlign: 'right', fontSize: 12, fontWeight: 800,
                 color: colorFor(a.value), flexShrink: 0,
               }}>
-                {a.value.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                {a.value.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
               </span>
             </div>
           ))}
@@ -208,7 +210,7 @@ export function PerformanceCarousel({
 
         {panel.averages.length > top.length && (
           <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 10 }}>
-            y {panel.averages.length - top.length} alumnos más
+            {t('y {n} alumnos más', { n: panel.averages.length - top.length })}
           </p>
         )}
       </div>
@@ -236,7 +238,7 @@ export function PerformanceCarousel({
         style={{ width: '100%', justifyContent: 'center', marginTop: 12, fontSize: 12.5 }}
         onClick={() => onNav('notebook')}
       >
-        Abrir el cuaderno
+        {t('Abrir el cuaderno')}
       </button>
     </div>
   );

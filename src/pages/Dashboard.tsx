@@ -3,11 +3,8 @@ import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertT
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap } from '../types';
 import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
-import { useI18n } from '../i18n';
+import { useI18n, priorityLabel } from '../i18n';
 import { isoDate } from '../lib/utils';
-
-const DAY_NAMES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
 interface Props {
   user: User | null;
@@ -28,23 +25,23 @@ interface Props {
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes, evaluations,
   gradeCategories, gradeItems, grades, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
-  const { t } = useI18n();
+  const { t, locale, lang } = useI18n();
   const [time, setTime] = useState(() => {
     const n = new Date();
-    return n.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return n.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   });
 
   useEffect(() => {
     const id = setInterval(() => {
-      setTime(new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }));
+      setTime(new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }));
     }, 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [locale]);
 
   const now = new Date();
   const greeting = t(now.getHours() < 13 ? 'Buenos días' : now.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches');
   const firstName = user?.full_name.split(' ')[0] ?? '';
-  const dateLabel = `${DAY_NAMES[now.getDay()]}, ${now.getDate()} de ${MONTH_NAMES[now.getMonth()]} de ${now.getFullYear()}`;
+  const dateLabel = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const todayDay = now.getDay() === 0 ? 7 : now.getDay();
   const todayBlocks = scheduleBlocks.filter(b => b.day === todayDay).sort((a, b) => a.time_start.localeCompare(b.time_start));
@@ -79,21 +76,19 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             <Users size={28} color="white" />
           </div>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            Empieza creando tu primera clase
+            {t('Empieza creando tu primera clase')}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65, maxWidth: 420, margin: '0 auto 26px' }}>
-            Añade un grupo (por ejemplo «3º ESO A») con su lista de alumnos.
-            A partir de ahí podrás poner notas en el cuaderno, evaluar con rúbricas
-            y organizar tu agenda.
+            {t('Añade un grupo (por ejemplo «3º ESO A») con su lista de alumnos. A partir de ahí podrás poner notas en el cuaderno, evaluar con rúbricas y organizar tu agenda.')}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn-accent" style={{ fontSize: 14, padding: '11px 22px' }} onClick={() => onNav('classes')}>
-              Crear mi primera clase
+              {t('Crear mi primera clase')}
               <ArrowRight size={15} />
             </button>
             <button className="btn-ghost" style={{ fontSize: 13.5 }} onClick={onLoadDemo}>
               <Sparkles size={14} color="var(--accent-d)" />
-              Cargar datos de ejemplo
+              {t('Cargar datos de ejemplo')}
             </button>
           </div>
         </div>
@@ -102,10 +97,10 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           {/* Resumen */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
             {[
-              { label: t('Clases hoy'), val: todayBlocks.length, hint: todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy', icon: <Book size={17} color="var(--accent-d)" />, bg: 'var(--accent-l)', nav: 'agenda' },
-              { label: t('Alumnos'), val: students.length, hint: `en ${classes.length} ${classes.length === 1 ? 'grupo' : 'grupos'}`, icon: <Users size={17} color="var(--info)" />, bg: '#dbeafe', nav: 'classes' },
-              { label: t('Tareas pendientes'), val: pendingTasks.length, hint: pendingTasks.length ? 'por completar' : 'Al día ✓', icon: <ClipboardList size={17} color="var(--warn)" />, bg: '#fef3c7', nav: null },
-              { label: t('Evaluaciones'), val: evaluations.length, hint: evaluations.length ? 'registradas con rúbrica' : 'Ninguna todavía', icon: <BarChart3 size={17} color="var(--ok)" />, bg: '#dcfce7', nav: 'history' },
+              { label: t('Clases hoy'), val: todayBlocks.length, hint: t(todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy'), icon: <Book size={17} color="var(--accent-d)" />, bg: 'var(--accent-l)', nav: 'agenda' },
+              { label: t('Alumnos'), val: students.length, hint: t(classes.length === 1 ? 'en {n} grupo' : 'en {n} grupos', { n: classes.length }), icon: <Users size={17} color="var(--info)" />, bg: '#dbeafe', nav: 'classes' },
+              { label: t('Tareas pendientes'), val: pendingTasks.length, hint: t(pendingTasks.length ? 'por completar' : 'Al día ✓'), icon: <ClipboardList size={17} color="var(--warn)" />, bg: '#fef3c7', nav: null },
+              { label: t('Evaluaciones'), val: evaluations.length, hint: t(evaluations.length ? 'registradas con rúbrica' : 'Ninguna todavía'), icon: <BarChart3 size={17} color="var(--ok)" />, bg: '#dcfce7', nav: 'history' },
             ].map(s => (
               <div
                 key={s.label}
@@ -125,13 +120,13 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             {/* Horario de hoy */}
             <div className="card">
               <div className="card-hd">
-                <div className="card-ttl"><CalendarDays size={14} color="var(--accent-d)" />Horario de hoy</div>
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>Ver agenda</button>
+                <div className="card-ttl"><CalendarDays size={14} color="var(--accent-d)" />{t('Horario de hoy')}</div>
+                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>{t('Ver agenda')}</button>
               </div>
               {todayBlocks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-3)', fontSize: 13 }}>
-                  Sin clases programadas para hoy.
-                  <div style={{ marginTop: 6, fontSize: 12 }}>Configura tu horario semanal en la Agenda.</div>
+                  {t('Sin clases programadas para hoy.')}
+                  <div style={{ marginTop: 6, fontSize: 12 }}>{t('Configura tu horario semanal en la Agenda.')}</div>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -148,10 +143,10 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               )}
               <div style={{ display: 'flex', gap: 8, marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--border)' }}>
                 <button className="btn-accent" style={{ flex: 1, justifyContent: 'center', fontSize: 13 }} onClick={() => onNav('rubrics')}>
-                  <ClipboardCheck size={14} />Evaluar
+                  <ClipboardCheck size={14} />{t('Evaluar')}
                 </button>
                 <button className="btn-ghost" style={{ flex: 1, justifyContent: 'center', fontSize: 13 }} onClick={() => onNav('diana')}>
-                  <Target size={14} />Diana
+                  <Target size={14} />{t('Diana')}
                 </button>
               </div>
             </div>
@@ -161,12 +156,12 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               {/* Próximos eventos */}
               <div className="card">
                 <div className="card-hd">
-                  <div className="card-ttl"><Zap size={14} color="var(--warn)" />Próximos eventos</div>
-                  <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>Ver todo</button>
+                  <div className="card-ttl"><Zap size={14} color="var(--warn)" />{t('Próximos eventos')}</div>
+                  <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>{t('Ver todo')}</button>
                 </div>
                 {upcomingEvents.length === 0 ? (
                   <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>
-                    Sin eventos próximos. Añádelos desde la Agenda.
+                    {t('Sin eventos próximos. Añádelos desde la Agenda.')}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -186,11 +181,11 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               {/* Alertas */}
               <div className="card">
                 <div className="card-hd">
-                  <div className="card-ttl"><AlertTriangle size={14} color="var(--warn)" />Alertas de alumnos</div>
+                  <div className="card-ttl"><AlertTriangle size={14} color="var(--warn)" />{t('Alertas de alumnos')}</div>
                   {alerts.length > 0 && <span style={{ background: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>{alerts.length}</span>}
                 </div>
                 {alerts.length === 0 ? (
-                  <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>Sin alertas activas</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>{t('Sin alertas activas')}</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                     {alerts.slice(0, 4).map(s => (
@@ -202,7 +197,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                   </div>
                 )}
                 <button className="btn-ghost" style={{ marginTop: 10, width: '100%', justifyContent: 'center', fontSize: 12 }} onClick={() => onNav('classes')}>
-                  Ver todos los alumnos
+                  {t('Ver todos los alumnos')}
                 </button>
               </div>
             </div>
@@ -227,23 +222,23 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               </div>
               {tasks.length === 0 ? (
                 <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>
-                  Apunta aquí tus recordatorios: corregir, preparar material…
+                  {t('Apunta aquí tus recordatorios: corregir, preparar material…')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {tasks.slice(0, 8).map(t => (
-                    <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '0.5px solid var(--border)' }}>
-                      <input type="checkbox" checked={t.done} onChange={() => onToggleTask(t.id)} style={{ cursor: 'pointer', accentColor: 'var(--accent-d)' }} />
-                      <span style={{ flex: 1, fontSize: 12.5, color: t.done ? 'var(--text-3)' : 'var(--text)', textDecoration: t.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.text}</span>
-                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: t.priority === 'high' ? '#fee2e2' : t.priority === 'medium' ? '#fef3c7' : '#f1f5f9', color: t.priority === 'high' ? '#dc2626' : t.priority === 'medium' ? '#d97706' : 'var(--text-3)', fontWeight: 700 }}>
-                        {t.priority === 'high' ? 'Alta' : t.priority === 'medium' ? 'Media' : 'Baja'}
+                  {tasks.slice(0, 8).map(tk => (
+                    <div key={tk.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '0.5px solid var(--border)' }}>
+                      <input type="checkbox" checked={tk.done} onChange={() => onToggleTask(tk.id)} style={{ cursor: 'pointer', accentColor: 'var(--accent-d)' }} />
+                      <span style={{ flex: 1, fontSize: 12.5, color: tk.done ? 'var(--text-3)' : 'var(--text)', textDecoration: tk.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tk.text}</span>
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: tk.priority === 'high' ? '#fee2e2' : tk.priority === 'medium' ? '#fef3c7' : '#f1f5f9', color: tk.priority === 'high' ? '#dc2626' : tk.priority === 'medium' ? '#d97706' : 'var(--text-3)', fontWeight: 700 }}>
+                        {priorityLabel(tk.priority, lang)}
                       </span>
                     </div>
                   ))}
                 </div>
               )}
               <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', marginTop: 10, padding: '8px 0', background: 'none', border: '1px dashed var(--border)', borderRadius: 8, cursor: 'pointer', justifyContent: 'center', fontSize: 12.5, color: 'var(--text-3)', fontFamily: 'var(--font)' }} onClick={onAddTask}>
-                <Plus size={14} />Añadir tarea
+                <Plus size={14} />{t('Añadir tarea')}
               </button>
             </div>
           </div>
