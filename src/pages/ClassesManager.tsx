@@ -5,6 +5,7 @@ import {
 import type { Class, Student, Alert, Evaluation, Rubric } from '../types';
 import { initials } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { useI18n } from '../i18n';
 
 // ─── palette ─────────────────────────────────────────────────────────────────
 const PALETTE = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6'] as const;
@@ -75,6 +76,7 @@ export function ClassesManager({
   onAddStudents, onOpenEval, profileId,
 }: Props) {
   const { toast: notify } = useToast();
+  const { t } = useI18n();
 
   const uid = useId();
   const newId = () => `${uid}-${Math.random().toString(36).slice(2, 9)}`;
@@ -125,22 +127,22 @@ export function ClassesManager({
 
   function saveStudent() {
     if (!editStudent) return;
-    if (!editStudent.name.trim()) { notify('El nombre es obligatorio'); return; }
+    if (!editStudent.name.trim()) { notify(t('El nombre es obligatorio')); return; }
     if (studentModal?.id === '__new__') {
       onAddStudent({ ...editStudent, id: newId() });
-      notify('Alumno añadido');
+      notify(t('Alumno añadido'));
     } else {
       onUpdateStudent(editStudent);
-      notify('Alumno actualizado');
+      notify(t('Alumno actualizado'));
     }
     closeStudentModal();
   }
 
   function deleteStudentConfirm() {
     if (!editStudent) return;
-    if (!window.confirm(`¿Eliminar a ${editStudent.name}?`)) return;
+    if (!window.confirm(t('¿Eliminar a {name}?', { name: editStudent.name }))) return;
     onDeleteStudent(editStudent.id);
-    notify('Alumno eliminado');
+    notify(t('Alumno eliminado'));
     closeStudentModal();
   }
 
@@ -172,9 +174,9 @@ export function ClassesManager({
   }
 
   function saveClass() {
-    if (!editClass.name.trim()) { notify('El nombre de la clase es obligatorio'); return; }
+    if (!editClass.name.trim()) { notify(t('El nombre de la clase es obligatorio')); return; }
     const subjects = editClass.subjects.map(s => s.trim()).filter(Boolean);
-    if (subjects.length === 0) { notify('Pon al menos una asignatura'); return; }
+    if (subjects.length === 0) { notify(t('Pon al menos una asignatura')); return; }
 
     // `subject` se mantiene sincronizado con la primera: todo lo escrito antes
     // de que existieran varias asignaturas sigue leyendo de ahí.
@@ -182,7 +184,7 @@ export function ClassesManager({
     onAddClass(newClass);
     setActiveClassId(newClass.id);
     setClassModal(false);
-    notify(subjects.length > 1 ? `Clase creada con ${subjects.length} asignaturas` : 'Clase creada');
+    notify(subjects.length > 1 ? t('Clase creada con {n} asignaturas', { n: subjects.length }) : t('Clase creada'));
   }
 
   /** Editores de la lista de asignaturas del formulario. */
@@ -202,18 +204,18 @@ export function ClassesManager({
       const name = parts[0]?.trim();
       const email = parts[1]?.trim() ?? '';
       if (!name) continue;
-      // Salta la fila de cabecera («Nombre,Email»)
-      if (/^nombre$/i.test(name) || /^email$/i.test(name) || /^correo$/i.test(name)) continue;
+      // Salta la fila de cabecera («Nombre,Email» o «Name,Email»)
+      if (/^(nombre|name)$/i.test(name) || /^email$/i.test(name) || /^correo$/i.test(name)) continue;
       parsed.push({
         id: newId(), class_id: activeClassId,
         name, email, photo: null, alerts: [], notes: '',
       });
     }
-    if (parsed.length === 0) { notify('No se encontraron filas válidas'); return; }
+    if (parsed.length === 0) { notify(t('No se encontraron filas válidas')); return; }
     onAddStudents(parsed);
     setCsvModal(false);
     setCsvText('');
-    notify(`${parsed.length} alumno${parsed.length !== 1 ? 's' : ''} importado${parsed.length !== 1 ? 's' : ''}`);
+    notify(t(parsed.length === 1 ? '{n} alumno importado' : '{n} alumnos importados', { n: parsed.length }));
   }
 
   // ─── student evaluations ─────────────────────────────────────────────────────
@@ -230,8 +232,12 @@ export function ClassesManager({
       {/* ── page header ── */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Mis clases</h1>
-          <p className="pg-sub">{classes.length} clase{classes.length !== 1 ? 's' : ''} · {students.length} alumnos en total</p>
+          <h1 className="pg-title">{t('Mis Clases')}</h1>
+          <p className="pg-sub">
+            {t(classes.length === 1 ? '{n} clase' : '{n} clases', { n: classes.length })}
+            {' · '}
+            {t(students.length === 1 ? '{n} alumno en total' : '{n} alumnos en total', { n: students.length })}
+          </p>
         </div>
       </div>
 
@@ -272,7 +278,7 @@ export function ClassesManager({
           style={{ borderRadius: 99, padding: '8px 16px', fontSize: 13.5 }}
           onClick={openClassModal}
         >
-          <Plus size={14} />Nueva clase
+          <Plus size={14} />{t('Nueva clase')}
         </button>
       </div>
 
@@ -285,17 +291,17 @@ export function ClassesManager({
               <Search size={14} color="var(--text-3)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <input
                 className="finput"
-                placeholder="Buscar alumno…"
+                placeholder={t('Buscar alumno…')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 style={{ paddingLeft: 34, height: 38 }}
               />
             </div>
             <button className="btn-ghost" style={{ fontSize: 13, padding: '8px 14px' }} onClick={() => setCsvModal(true)}>
-              <Upload size={14} />Importar CSV
+              <Upload size={14} />{t('Importar CSV')}
             </button>
             <button className="btn-accent" style={{ fontSize: 13, padding: '8px 16px' }} onClick={openNewStudent}>
-              <Plus size={14} />Nuevo alumno
+              <Plus size={14} />{t('Nuevo alumno')}
             </button>
           </div>
 
@@ -310,37 +316,37 @@ export function ClassesManager({
                     fontSize: 10.5, fontWeight: 800, padding: '3px 9px', borderRadius: 99,
                     background: 'var(--accent-l)', color: 'var(--accent-d)', letterSpacing: '0.03em',
                   }}>
-                    MI TUTORÍA
+                    {t('MI TUTORÍA')}
                   </span>
                 )}
                 {/* Clase de otro docente: su lista manda al sincronizar */}
                 {activeClass.owner && profileId && activeClass.owner !== profileId && (
                   <span
-                    title="La lista de alumnos la mantiene quien comparte la clase. Tus cambios en ella se sustituirán al sincronizar."
+                    title={t('La lista de alumnos la mantiene quien comparte la clase. Tus cambios en ella se sustituirán al sincronizar.')}
                     style={{
                       fontSize: 10.5, fontWeight: 800, padding: '3px 9px', borderRadius: 99,
                       background: 'var(--surface)', color: 'var(--text-2)',
                       border: '1px solid var(--border)', letterSpacing: '0.03em',
                     }}
                   >
-                    LISTA DE {(activeClass.owner_name ?? 'OTRO DOCENTE').toUpperCase()}
+                    {t('LISTA DE {owner}', { owner: (activeClass.owner_name ?? t('Otro docente')).toUpperCase() })}
                   </span>
                 )}
               </div>
               <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2 }}>
                 {(activeClass.subjects ?? [activeClass.subject]).join(' · ')}
-                {activeClass.room ? ` · Aula ${activeClass.room}` : ''}
+                {activeClass.room ? ` · ${t('Aula')} ${activeClass.room}` : ''}
               </div>
             </div>
             <button
               className="ico-btn"
               style={{ marginLeft: 'auto' }}
-              title="Eliminar clase"
+              title={t('Eliminar clase')}
               onClick={() => {
-                if (!window.confirm(`¿Eliminar la clase "${activeClass.name}"? Se perderán todos sus datos.`)) return;
+                if (!window.confirm(t('¿Eliminar la clase "{name}"? Se perderán todos sus datos.', { name: activeClass.name }))) return;
                 onDeleteClass(activeClass.id);
                 setActiveClassId(classes.find(c => c.id !== activeClassId)?.id ?? '');
-                notify('Clase eliminada');
+                notify(t('Clase eliminada'));
               }}
             >
               <Trash2 size={15} color="var(--danger)" />
@@ -351,7 +357,7 @@ export function ClassesManager({
           {visible.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-3)' }}>
               <Users size={32} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.4 }} />
-              {search ? 'Sin resultados para esa búsqueda' : 'Esta clase no tiene alumnos aún'}
+              {t(search ? 'Sin resultados para esa búsqueda' : 'Esta clase no tiene alumnos aún')}
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
@@ -381,7 +387,7 @@ export function ClassesManager({
                         background: 'white', borderRadius: 99, padding: '6px 16px',
                         fontSize: 12.5, fontWeight: 700, color: 'var(--text)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                      }}>Ver ficha</span>
+                      }}>{t('Ver ficha')}</span>
                     </div>
                   )}
 
@@ -419,9 +425,9 @@ export function ClassesManager({
       ) : (
         <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
           <Users size={36} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.3 }} />
-          <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Crea una clase para empezar</p>
+          <p style={{ color: 'var(--text-3)', fontSize: 14 }}>{t('Crea una clase para empezar')}</p>
           <button className="btn-accent" style={{ marginTop: 16 }} onClick={openClassModal}>
-            <Plus size={14} />Nueva clase
+            <Plus size={14} />{t('Nueva clase')}
           </button>
         </div>
       )}
@@ -435,7 +441,7 @@ export function ClassesManager({
             <div className="modal-hd">
               <div>
                 <div className="modal-title">
-                  {studentModal?.id === '__new__' ? 'Nuevo alumno' : 'Ficha del alumno'}
+                  {t(studentModal?.id === '__new__' ? 'Nuevo alumno' : 'Ficha del alumno')}
                 </div>
                 {editStudent.id !== '__new__' && (
                   <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>{activeClass?.name}</div>
@@ -447,10 +453,10 @@ export function ClassesManager({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {/* name */}
               <div className="fgroup">
-                <label className="flabel">Nombre</label>
+                <label className="flabel">{t('Nombre')}</label>
                 <input className="finput" value={editStudent.name}
                   onChange={e => setEditStudent({ ...editStudent, name: e.target.value })}
-                  placeholder="Nombre completo" />
+                  placeholder={t('Nombre completo')} />
               </div>
               {/* email */}
               <div className="fgroup">
@@ -463,19 +469,19 @@ export function ClassesManager({
 
             {/* notes */}
             <div className="fgroup">
-              <label className="flabel">Notas</label>
+              <label className="flabel">{t('Notas')}</label>
               <textarea className="finput" rows={3} value={editStudent.notes}
                 onChange={e => setEditStudent({ ...editStudent, notes: e.target.value })}
-                placeholder="Observaciones, adaptaciones, etc."
+                placeholder={t('Observaciones, adaptaciones, etc.')}
                 style={{ resize: 'vertical' }} />
             </div>
 
             {/* alerts */}
             <div className="fgroup">
-              <label className="flabel">Alertas</label>
+              <label className="flabel">{t('Alertas')}</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                 {editStudent.alerts.length === 0 && (
-                  <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Sin alertas</span>
+                  <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{t('Sin alertas')}</span>
                 )}
                 {editStudent.alerts.map(a => (
                   <span key={a.id} style={{
@@ -493,7 +499,7 @@ export function ClassesManager({
               </div>
               {/* add alert row */}
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input className="finput" placeholder="Texto de la alerta"
+                <input className="finput" placeholder={t('Texto de la alerta')}
                   value={alertDraft.text}
                   onChange={e => setAlertDraft({ ...alertDraft, text: e.target.value })}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAlertToEdit(); } }}
@@ -502,8 +508,8 @@ export function ClassesManager({
                   value={alertDraft.level}
                   onChange={e => setAlertDraft({ ...alertDraft, level: e.target.value as Alert['level'] })}>
                   <option value="info">Info</option>
-                  <option value="warn">Aviso</option>
-                  <option value="danger">Alerta</option>
+                  <option value="warn">{t('Aviso')}</option>
+                  <option value="danger">{t('Alerta')}</option>
                 </select>
                 <button className="btn-ghost" style={{ padding: '9px 12px', flexShrink: 0 }} onClick={addAlertToEdit}>
                   <Plus size={14} />
@@ -515,18 +521,18 @@ export function ClassesManager({
             {editStudent.id !== '__new__' && (
               <div className="fgroup">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <label className="flabel" style={{ margin: 0 }}>Últimas evaluaciones</label>
+                  <label className="flabel" style={{ margin: 0 }}>{t('Últimas evaluaciones')}</label>
                   <button className="btn-accent" style={{ fontSize: 12, padding: '5px 12px' }}
                     onClick={() => {
                       const rubricId = rubrics[0]?.id ?? '';
                       onOpenEval(rubricId, editStudent.id, editStudent.class_id);
                       closeStudentModal();
                     }}>
-                    <Plus size={12} />Nueva evaluación
+                    <Plus size={12} />{t('Nueva evaluación')}
                   </button>
                 </div>
                 {studentEvals(editStudent.id).length === 0 ? (
-                  <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Sin evaluaciones registradas</p>
+                  <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{t('Sin evaluaciones registradas')}</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {studentEvals(editStudent.id).map(ev => {
@@ -555,11 +561,11 @@ export function ClassesManager({
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 6, borderTop: '0.5px solid var(--border)' }}>
               {editStudent.id !== '__new__' && (
                 <button className="btn-ghost" style={{ color: 'var(--danger)', borderColor: '#fca5a5' }} onClick={deleteStudentConfirm}>
-                  <Trash2 size={14} />Eliminar
+                  <Trash2 size={14} />{t('Eliminar')}
                 </button>
               )}
-              <button className="btn-ghost" onClick={closeStudentModal}>Cancelar</button>
-              <button className="btn-accent" onClick={saveStudent}>Guardar</button>
+              <button className="btn-ghost" onClick={closeStudentModal}>{t('Cancelar')}</button>
+              <button className="btn-accent" onClick={saveStudent}>{t('Guardar')}</button>
             </div>
           </div>
         )}
@@ -571,19 +577,19 @@ export function ClassesManager({
       <div className={`modal-overlay${classModal ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) setClassModal(false); }}>
         <div className="modal">
           <div className="modal-hd">
-            <span className="modal-title">Nueva clase</span>
+            <span className="modal-title">{t('Nueva clase')}</span>
             <button className="ico-btn" onClick={() => setClassModal(false)}><X size={18} /></button>
           </div>
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">Nombre</label>
-              <input className="finput" placeholder="Ej. 5º A" value={editClass.name}
+              <label className="flabel">{t('Nombre')}</label>
+              <input className="finput" placeholder={t('Ej. 5º A')} value={editClass.name}
                 onChange={e => setEditClass({ ...editClass, name: e.target.value })} />
             </div>
             <div className="fgroup">
-              <label className="flabel">Aula</label>
-              <input className="finput" placeholder="Ej. A102" value={editClass.room}
+              <label className="flabel">{t('Aula')}</label>
+              <input className="finput" placeholder={t('Ej. A102')} value={editClass.room}
                 onChange={e => setEditClass({ ...editClass, room: e.target.value })} />
             </div>
           </div>
@@ -598,26 +604,26 @@ export function ClassesManager({
               style={{ width: 16, height: 16, marginTop: 1, cursor: 'pointer', flexShrink: 0 }}
             />
             <span style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>
-              <strong>Soy el tutor o la tutora de este grupo</strong>
+              <strong>{t('Soy el tutor o la tutora de este grupo')}</strong>
               <span style={{ display: 'block', fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
-                Aparecerá marcado en los listados y en los informes.
+                {t('Aparecerá marcado en los listados y en los informes.')}
               </span>
             </span>
           </label>
 
           <div className="fgroup">
-            <label className="flabel">Asignaturas que le das</label>
+            <label className="flabel">{t('Asignaturas que le das')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {editClass.subjects.map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
                     className="finput" style={{ flex: 1 }}
-                    placeholder={i === 0 ? 'Ej. Matemáticas' : 'Ej. Lengua'}
+                    placeholder={t(i === 0 ? 'Ej. Matemáticas' : 'Ej. Lengua')}
                     value={s}
                     onChange={e => setSubjectAt(i, e.target.value)}
                   />
                   {editClass.subjects.length > 1 && (
-                    <button className="ico-btn" title="Quitar" onClick={() => removeSubjectAt(i)}>
+                    <button className="ico-btn" title={t('Quitar')} onClick={() => removeSubjectAt(i)}>
                       <Trash2 size={14} color="var(--danger)" />
                     </button>
                   )}
@@ -625,16 +631,15 @@ export function ClassesManager({
               ))}
             </div>
             <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addSubject}>
-              <Plus size={13} />Añadir otra asignatura
+              <Plus size={13} />{t('Añadir otra asignatura')}
             </button>
             <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
-              Si le das varias, no crees una clase por cada una: pon aquí todas y luego
-              elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.
+              {t('Si le das varias, no crees una clase por cada una: pon aquí todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.')}
             </p>
           </div>
 
           <div className="fgroup">
-            <label className="flabel">Color</label>
+            <label className="flabel">{t('Color')}</label>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {PALETTE.map(col => (
                 <button key={col} onClick={() => setEditClass({ ...editClass, color: col })}
@@ -648,8 +653,8 @@ export function ClassesManager({
           </div>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button className="btn-ghost" onClick={() => setClassModal(false)}>Cancelar</button>
-            <button className="btn-accent" onClick={saveClass}>Crear clase</button>
+            <button className="btn-ghost" onClick={() => setClassModal(false)}>{t('Cancelar')}</button>
+            <button className="btn-accent" onClick={saveClass}>{t('Crear clase')}</button>
           </div>
         </div>
       </div>
@@ -660,16 +665,16 @@ export function ClassesManager({
       <div className={`modal-overlay${csvModal ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setCsvModal(false); setCsvText(''); } }}>
         <div className="modal">
           <div className="modal-hd">
-            <span className="modal-title">Importar alumnos (CSV)</span>
+            <span className="modal-title">{t('Importar alumnos (CSV)')}</span>
             <button className="ico-btn" onClick={() => { setCsvModal(false); setCsvText(''); }}><X size={18} /></button>
           </div>
 
           <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
-            Pega las filas en formato <strong>Nombre,Email</strong> (una por línea). La primera fila puede ser una cabecera.
+            {t('Pega las filas en formato')} <strong>{t('Nombre,Email')}</strong> {t('(una por línea). La primera fila puede ser una cabecera.')}
           </p>
 
           <div className="fgroup">
-            <label className="flabel">Datos CSV</label>
+            <label className="flabel">{t('Datos CSV')}</label>
             <textarea className="finput" rows={8} value={csvText}
               onChange={e => setCsvText(e.target.value)}
               placeholder={'Nombre,Email\nAna García,ana@ejemplo.com\nLuis Pérez,luis@ejemplo.com'}
@@ -677,9 +682,9 @@ export function ClassesManager({
           </div>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button className="btn-ghost" onClick={() => { setCsvModal(false); setCsvText(''); }}>Cancelar</button>
+            <button className="btn-ghost" onClick={() => { setCsvModal(false); setCsvText(''); }}>{t('Cancelar')}</button>
             <button className="btn-accent" onClick={importCsv}>
-              <Upload size={14} />Importar
+              <Upload size={14} />{t('Importar')}
             </button>
           </div>
         </div>
