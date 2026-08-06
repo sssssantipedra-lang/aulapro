@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronUp, Search, ClipboardList } from 'lucide-react';
 import type { Evaluation, Class, Student, Rubric, EvalDiana } from '../types';
-import { plural } from '../lib/utils';
+import { useI18n } from '../i18n';
 
 interface Props {
   evaluations: Evaluation[];
@@ -40,6 +40,7 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
 function ExpandedRow({ evaluation, rubric, diana }: {
   evaluation: Evaluation; rubric: Rubric | undefined; diana: EvalDiana | undefined;
 }) {
+  const { t } = useI18n();
   // Los ítems de una diana cumplen aquí el papel de los criterios: los dos
   // tienen id, nombre y descriptores por nivel.
   const criteria: { id: string; name: string; descriptors?: Record<number, string> }[] =
@@ -97,7 +98,7 @@ function ExpandedRow({ evaluation, rubric, diana }: {
               background: '#fffbeb', border: '0.5px solid #fcd34d',
               fontSize: 12.5, color: '#92400e', lineHeight: 1.5,
             }}>
-              <strong style={{ fontWeight: 700 }}>Notas: </strong>{evaluation.notes}
+              <strong style={{ fontWeight: 700 }}>{t('Notas:')} </strong>{evaluation.notes}
             </div>
           )}
         </div>
@@ -107,6 +108,7 @@ function ExpandedRow({ evaluation, rubric, diana }: {
 }
 
 export function History({ evaluations, classes, students, rubrics, dianas, onOpenEval }: Props) {
+  const { t, locale } = useI18n();
   const [filterClassId, setFilterClassId] = useState('');
   const [filterStudentId, setFilterStudentId] = useState('');
   const [filterRubricId, setFilterRubricId] = useState('');
@@ -182,10 +184,10 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">Historial de evaluaciones</h1>
+          <h1 className="pg-title">{t('Historial')}</h1>
           <p className="pg-sub">
-            {plural(filtered.length, 'evaluación', 'evaluaciones')}
-            {evaluations.length !== filtered.length ? ` de ${evaluations.length} totales` : ' en total'}
+            {t(filtered.length === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: filtered.length })}
+            {evaluations.length !== filtered.length ? ` ${t('de {n} totales', { n: evaluations.length })}` : ` ${t('en total')}`}
           </p>
         </div>
         <button
@@ -194,7 +196,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
           style={{ gap: 6 }}
         >
           <Plus size={14} />
-          Nueva evaluación
+          {t('Nueva evaluación')}
         </button>
       </div>
 
@@ -202,7 +204,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
       <div className="card" style={{ padding: '14px 16px', marginBottom: 16 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: 10, alignItems: 'end' }}>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Clase</label>
+            <label className="flabel">{t('Clase')}</label>
             <div style={{ position: 'relative' }}>
               <select
                 className="finput"
@@ -210,7 +212,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                 onChange={e => handleClassFilter(e.target.value)}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
-                <option value="">Todas las clases</option>
+                <option value="">{t('Todas las clases')}</option>
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
                 ))}
@@ -220,7 +222,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
           </div>
 
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Alumno</label>
+            <label className="flabel">{t('Alumno')}</label>
             <div style={{ position: 'relative' }}>
               <select
                 className="finput"
@@ -228,7 +230,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                 onChange={e => { setFilterStudentId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
-                <option value="">Todos los alumnos</option>
+                <option value="">{t('Todos los alumnos')}</option>
                 {classStudents.map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -238,7 +240,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
           </div>
 
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Instrumento</label>
+            <label className="flabel">{t('Instrumento')}</label>
             <div style={{ position: 'relative' }}>
               <select
                 className="finput"
@@ -246,20 +248,20 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                 onChange={e => { setFilterRubricId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
-                <option value="">Todos los instrumentos</option>
+                <option value="">{t('Todos los instrumentos')}</option>
                 {rubrics.length > 0 && (
-                  <optgroup label="Rúbricas">
+                  <optgroup label={t('Rúbricas')}>
                     {rubrics.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </optgroup>
                 )}
                 {dianas.length > 0 && (
-                  <optgroup label="Dianas">
+                  <optgroup label={t('Dianas')}>
                     {dianas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </optgroup>
                 )}
                 {/* Las autoevaluaciones no salen de ningún instrumento guardado */}
                 {evaluations.some(e => e.rubric_id === 'autoeval') && (
-                  <option value="autoeval">Autoevaluaciones de la Sala</option>
+                  <option value="autoeval">{t('Autoevaluaciones de la Sala')}</option>
                 )}
               </select>
               <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
@@ -267,13 +269,13 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
           </div>
 
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">Buscar</label>
+            <label className="flabel">{t('Buscar')}</label>
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
               <input
                 type="text"
                 className="finput"
-                placeholder="Alumno, rúbrica, notas..."
+                placeholder={t('Alumno, rúbrica, notas...')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ paddingLeft: 34 }}
@@ -290,19 +292,19 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
             <ClipboardList size={40} color="var(--border)" />
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>
-            Sin evaluaciones
+            {t('Sin evaluaciones')}
           </div>
           <div style={{ fontSize: 13, marginBottom: 16 }}>
-            {evaluations.length === 0
+            {t(evaluations.length === 0
               ? 'Todavía no hay evaluaciones registradas'
-              : 'No hay resultados con los filtros actuales'}
+              : 'No hay resultados con los filtros actuales')}
           </div>
           <button
             className="btn-accent"
             onClick={() => onOpenEval('', '', filterClassId)}
             style={{ margin: '0 auto', gap: 6 }}
           >
-            <Plus size={14} />Nueva evaluación
+            <Plus size={14} />{t('Nueva evaluación')}
           </button>
         </div>
       ) : (
@@ -316,7 +318,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('date')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      Fecha <SortIcon field="date" />
+                      {t('Fecha')} <SortIcon field="date" />
                     </span>
                   </th>
                   <th
@@ -324,7 +326,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('student')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      Alumno <SortIcon field="student" />
+                      {t('Alumno')} <SortIcon field="student" />
                     </span>
                   </th>
                   <th
@@ -332,19 +334,19 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('rubric')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      Rúbrica <SortIcon field="rubric" />
+                      {t('Rúbrica')} <SortIcon field="rubric" />
                     </span>
                   </th>
-                  <th style={{ textAlign: 'left' }}>Clase</th>
+                  <th style={{ textAlign: 'left' }}>{t('Clase')}</th>
                   <th
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('score')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      Puntuación <SortIcon field="score" />
+                      {t('Puntuación')} <SortIcon field="score" />
                     </span>
                   </th>
-                  <th style={{ textAlign: 'left' }}>Notas</th>
+                  <th style={{ textAlign: 'left' }}>{t('Notas')}</th>
                   <th style={{ width: 40 }} />
                 </tr>
               </thead>
@@ -382,7 +384,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                             {ev.rubric_name}
                             {ev.instrument === 'diana' && (
                               <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: 'var(--accent-l)', color: 'var(--accent-d)' }}>
-                                DIANA
+                                {t('DIANA')}
                               </span>
                             )}
                           </div>
@@ -405,7 +407,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                                 style={{ background: `${scoreColor}18`, color: scoreColor }}
                               >
                                 {ev.instrument === 'diana' && typeof ev.grade === 'number'
-                                  ? `${ev.grade.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/10`
+                                  ? `${ev.grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/10`
                                   : `${sum}/${max}`}
                               </span>
                               <ScoreBar score={sum} max={max} />
@@ -453,7 +455,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
             background: 'var(--surface)',
           }}>
             <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-              {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
+              {t(filtered.length === 1 ? '{n} resultado' : '{n} resultados', { n: filtered.length })}
             </span>
             <button
               className="btn-accent"
@@ -461,7 +463,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               style={{ gap: 6, padding: '7px 14px', fontSize: 12.5 }}
             >
               <Plus size={13} />
-              Nueva evaluación
+              {t('Nueva evaluación')}
             </button>
           </div>
         </div>

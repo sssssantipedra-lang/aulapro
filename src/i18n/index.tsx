@@ -667,6 +667,22 @@ const EN: Record<string, string> = {
   '✅ Datos descargados': '✅ Data downloaded',
   'Nota final': 'Final grade',
 
+  /* ── Historial ── */
+  'de {n} totales': 'of {n} total',
+  'en total': 'in total',
+  'Instrumento': 'Instrument',
+  'Todas las clases': 'All classes',
+  'Todos los alumnos': 'All students',
+  'Todos los instrumentos': 'All instruments',
+  'Autoevaluaciones de la Sala': 'Student-room self-assessments',
+  'Alumno, rúbrica, notas...': 'Student, rubric, notes...',
+  'Sin evaluaciones': 'No assessments',
+  'Todavía no hay evaluaciones registradas': 'No assessments recorded yet',
+  'No hay resultados con los filtros actuales': 'No results with the current filters',
+  'Notas:': 'Notes:',
+  '{n} resultado': '{n} result',
+  '{n} resultados': '{n} results',
+
   /* ── Comunes ── */
   'Cancelar': 'Cancel',
   'Guardar': 'Save',
