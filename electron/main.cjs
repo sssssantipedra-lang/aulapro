@@ -67,11 +67,13 @@ function registerDocumentIpc() {
   ipcMain.handle('docs:savePdf', async (_e, { html, suggestedName }) => {
     try {
       return await withDocumentWindow(html, async win => {
+        // Horizontal: el acta lleva una columna por categoría y en vertical se
+        // queda estrecha en cuanto hay tres o cuatro.
         const pdf = await win.webContents.printToPDF({
           pageSize: 'A4',
-          landscape: false,
+          landscape: true,
           printBackground: true,
-          margins: { top: 0.55, bottom: 0.55, left: 0.55, right: 0.55 },
+          margins: { top: 0.5, bottom: 0.5, left: 0.55, right: 0.55 },
         });
 
         const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
@@ -92,7 +94,7 @@ function registerDocumentIpc() {
   ipcMain.handle('docs:print', async (_e, { html }) => {
     try {
       return await withDocumentWindow(html, win => new Promise(resolve => {
-        win.webContents.print({ printBackground: true }, (success, reason) => {
+        win.webContents.print({ printBackground: true, landscape: true }, (success, reason) => {
           // `reason` es 'cancelled' si el docente cierra el diálogo
           resolve(success ? { ok: true } : { canceled: reason === 'cancelled', reason });
         });

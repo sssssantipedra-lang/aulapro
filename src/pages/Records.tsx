@@ -493,11 +493,14 @@ const DOC_STYLE = `
 }
 `;
 
-/** Solo en pantalla: la hoja se presenta como una tarjeta centrada. */
+/**
+ * Solo en pantalla: la hoja se presenta como una tarjeta centrada, con el
+ * ancho de un A4 apaisado para que la previsualización sea fiel al PDF.
+ */
 const SCREEN_STYLE = `
 .acta-wrap { display: flex; justify-content: center; }
 .acta {
-  max-width: 210mm; padding: 16mm 15mm; border-radius: 4px;
+  max-width: 297mm; padding: 13mm 14mm; border-radius: 4px;
   border: 0.5px solid var(--border); box-shadow: 0 6px 26px rgba(0,0,0,0.09);
 }
 `;
@@ -517,7 +520,7 @@ const PRINT_FALLBACK_STYLE = `
     padding: 0; border: none; box-shadow: none; border-radius: 0;
   }
   .no-print { display: none !important; }
-  @page { size: A4 portrait; margin: 14mm; }
+  @page { size: A4 landscape; margin: 13mm 14mm; }
 }
 `;
 
@@ -533,5 +536,5 @@ const DOC_STANDALONE = `
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #fff; }
-@page { size: A4 portrait; margin: 14mm; }
+@page { size: A4 landscape; margin: 13mm 14mm; }
 `;
