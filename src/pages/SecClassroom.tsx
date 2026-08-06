@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { useI18n } from '../i18n';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
@@ -84,6 +85,7 @@ function WidgetShell({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <div
       className="w-full h-full overflow-hidden rounded-[26px] flex flex-col"
@@ -110,7 +112,7 @@ function WidgetShell({
         </h2>
         <button
           onClick={onClose}
-          title="Cerrar"
+          title={t('Cerrar')}
           className="flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
           style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.55)' }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
@@ -140,6 +142,7 @@ const PRESETS: { label: string; secs: number }[] = [
 const MAX_SECONDS = 99 * 60 + 59;
 
 function TimerWidget() {
+  const { t } = useI18n();
   const [total, setTotal]     = useState(300);  // duración configurada
   const [seconds, setSeconds] = useState(300);  // restante
   const [running, setRunning] = useState(false);
@@ -246,8 +249,8 @@ function TimerWidget() {
           {editing ? (
             <div className="flex items-center gap-0.5">
               {[
-                { ref: minRef, value: draftMin, set: setDraftMin, label: 'min' },
-                { ref: undefined, value: draftSec, set: setDraftSec, label: 'seg' },
+                { ref: minRef, value: draftMin, set: setDraftMin, label: t('min') },
+                { ref: undefined, value: draftSec, set: setDraftSec, label: t('seg') },
               ].map((f, i) => (
                 <React.Fragment key={f.label}>
                   {i === 1 && <span className="text-white/50 font-black" style={{ fontSize: 38 }}>:</span>}
@@ -280,7 +283,7 @@ function TimerWidget() {
               <button
                 onClick={startEditing}
                 disabled={running}
-                title={running ? undefined : 'Haz clic para escribir el tiempo'}
+                title={running ? undefined : t('Haz clic para escribir el tiempo')}
                 className="font-black text-white leading-none rounded-xl transition-colors"
                 style={{
                   fontSize: 46, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
@@ -293,9 +296,9 @@ function TimerWidget() {
                 {mins}:{secs}
               </button>
               {finished ? (
-                <div className="text-[13px] font-bold mt-1" style={{ color: '#fb7185' }}>¡Tiempo!</div>
+                <div className="text-[13px] font-bold mt-1" style={{ color: '#fb7185' }}>{t('¡Tiempo!')}</div>
               ) : !running && (
-                <div className="text-[10px] font-semibold mt-0.5 text-white/25">toca para editar</div>
+                <div className="text-[10px] font-semibold mt-0.5 text-white/25">{t('toca para editar')}</div>
               )}
             </>
           )}
@@ -309,14 +312,14 @@ function TimerWidget() {
             className="rounded-lg font-bold text-[12.5px]"
             style={{ padding: '6px 18px', background: 'rgba(34,211,238,0.22)', color: '#67e8f9' }}
           >
-            Aceptar
+            {t('Aceptar')}
           </button>
           <button
             onClick={() => setEditing(false)}
             className="rounded-lg font-bold text-[12.5px] text-white/50"
             style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.06)' }}
           >
-            Cancelar
+            {t('Cancelar')}
           </button>
         </div>
       )}
@@ -326,7 +329,7 @@ function TimerWidget() {
         <div className="flex gap-2 items-center justify-center">
           <button
             onClick={() => setDuration(total - 60)}
-            title="Un minuto menos"
+            title={t('Un minuto menos')}
             className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors"
             style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.07)' }}
           >
@@ -345,12 +348,12 @@ function TimerWidget() {
               boxShadow: `0 6px 20px ${running ? 'rgba(245,158,11,0.4)' : 'rgba(34,211,238,0.35)'}`,
             }}
           >
-            {running ? <><Pause size={17} />Pausa</> : <><Play size={17} />Iniciar</>}
+            {running ? <><Pause size={17} />{t('Pausa')}</> : <><Play size={17} />{t('Iniciar')}</>}
           </button>
 
           <button
             onClick={() => setDuration(total + 60)}
-            title="Un minuto más"
+            title={t('Un minuto más')}
             className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors"
             style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.07)' }}
           >
@@ -362,7 +365,7 @@ function TimerWidget() {
           onClick={() => setDuration(total)}
           className="flex items-center gap-1.5 text-[12px] font-semibold text-white/45 hover:text-white/80 transition-colors"
         >
-          <TimerReset size={13} />Reiniciar
+          <TimerReset size={13} />{t('Reiniciar')}
         </button>
       </div>
     </div>
@@ -378,6 +381,7 @@ type MicState = 'idle' | 'asking' | 'on' | 'denied';
 const BAR_COUNT = 22;
 
 function NoiseWidget() {
+  const { t } = useI18n();
   const [micState, setMicState] = useState<MicState>('idle');
   const [level, setLevel]       = useState(0);      // 0-100 suavizado
   const [spectrum, setSpectrum] = useState<number[]>(() => new Array(BAR_COUNT).fill(0));
@@ -462,7 +466,7 @@ function NoiseWidget() {
 
   const face = overLimit ? '🤫' : level > limit * 0.7 ? '😐' : level > 12 ? '🙂' : '😴';
   const stateColor = overLimit ? '#f43f5e' : level > limit * 0.7 ? '#fbbf24' : '#34d399';
-  const stateLabel = overLimit ? 'Demasiado ruido' : level > limit * 0.7 ? 'Va subiendo' : level > 12 ? 'Buen ambiente' : 'En silencio';
+  const stateLabel = t(overLimit ? 'Demasiado ruido' : level > limit * 0.7 ? 'Va subiendo' : level > 12 ? 'Buen ambiente' : 'En silencio');
 
   if (micState !== 'on') {
     return (
@@ -475,12 +479,12 @@ function NoiseWidget() {
         </div>
         <div>
           <div className="text-white font-bold text-[15px]">
-            {micState === 'denied' ? 'Sin acceso al micrófono' : 'Medidor de ruido'}
+            {t(micState === 'denied' ? 'Sin acceso al micrófono' : 'Medidor de ruido')}
           </div>
           <p className="text-white/50 text-[12.5px] mt-1.5 leading-relaxed" style={{ maxWidth: 230 }}>
-            {micState === 'denied'
+            {t(micState === 'denied'
               ? 'Permite el micrófono en el navegador y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.'
-              : 'Mide el nivel de ruido de la clase en tiempo real. El sonido no se graba ni se envía a ningún sitio.'}
+              : 'Mide el nivel de ruido de la clase en tiempo real. El sonido no se graba ni se envía a ningún sitio.')}
           </p>
         </div>
         <button
@@ -489,7 +493,7 @@ function NoiseWidget() {
           className="rounded-xl font-bold text-[13.5px] disabled:opacity-50"
           style={{ padding: '10px 22px', background: 'linear-gradient(135deg,#34d399,#10b981)', color: '#04231a' }}
         >
-          {micState === 'asking' ? 'Pidiendo permiso…' : 'Activar micrófono'}
+          {t(micState === 'asking' ? 'Pidiendo permiso…' : 'Activar micrófono')}
         </button>
       </div>
     );
@@ -508,7 +512,7 @@ function NoiseWidget() {
         </motion.span>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-[14px]" style={{ color: stateColor }}>{stateLabel}</div>
-          <div className="text-white/40 text-[11.5px]">Límite: {limit}</div>
+          <div className="text-white/40 text-[11.5px]">{t('Límite: {n}', { n: limit })}</div>
         </div>
         <div
           className="font-black text-white leading-none"
@@ -548,11 +552,11 @@ function NoiseWidget() {
           onChange={e => setLimit(Number(e.target.value))}
           className="flex-1 cursor-pointer"
           style={{ accentColor: stateColor }}
-          title="Ajusta a partir de qué nivel avisa"
+          title={t('Ajusta a partir de qué nivel avisa')}
         />
         <button
           onClick={stop}
-          title="Apagar micrófono"
+          title={t('Apagar micrófono')}
           className="flex items-center justify-center rounded-lg text-white/50 hover:text-white transition-colors flex-shrink-0"
           style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.07)' }}
         >
@@ -568,6 +572,7 @@ function NoiseWidget() {
    ════════════════════════════════════════════════════════════ */
 
 function WheelWidget({ names }: { names: string[] }) {
+  const { t } = useI18n();
   const [pool, setPool]         = useState<string[]>(names);
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
@@ -639,14 +644,14 @@ function WheelWidget({ names }: { names: string[] }) {
       <div className="flex flex-col items-center justify-center h-full text-center gap-4">
         <Trophy size={34} color="rgba(255,255,255,0.25)" />
         <p className="text-white/50 text-[13px] leading-relaxed" style={{ maxWidth: 210 }}>
-          Ya han salido todos. Reinicia para volver a empezar.
+          {t('Ya han salido todos. Reinicia para volver a empezar.')}
         </p>
         <button
           onClick={() => { setPool(names); setWinner(null); }}
           className="rounded-xl font-bold text-[13px]"
           style={{ padding: '9px 20px', background: 'rgba(167,139,250,0.2)', color: '#c4b5fd' }}
         >
-          <RefreshCw size={13} className="inline mr-1.5" />Reiniciar lista
+          <RefreshCw size={13} className="inline mr-1.5" />{t('Reiniciar lista')}
         </button>
       </div>
     );
@@ -708,7 +713,7 @@ function WheelWidget({ names }: { names: string[] }) {
         >
           {spinning
             ? <RotateCcw size={22} className="animate-spin" />
-            : 'GIRAR'}
+            : t('GIRAR')}
         </button>
       </div>
 
@@ -737,7 +742,7 @@ function WheelWidget({ names }: { names: string[] }) {
                 onClick={removeWinner}
                 className="text-[11.5px] font-semibold text-white/45 hover:text-white/80 transition-colors"
               >
-                Quitar del sorteo ({n - 1 === 1 ? 'queda 1' : `quedan ${n - 1}`})
+                {n - 1 === 1 ? t('Quitar del sorteo (queda 1)') : t('Quitar del sorteo (quedan {n})', { n: n - 1 })}
               </button>
             </motion.div>
           ) : (
@@ -746,7 +751,7 @@ function WheelWidget({ names }: { names: string[] }) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="text-white/35 text-[12.5px] pt-4"
             >
-              {spinning ? 'Girando…' : n === 1 ? '1 participante' : `${n} participantes`}
+              {spinning ? t('Girando…') : n === 1 ? t('1 participante') : t('{n} participantes', { n })}
             </motion.p>
           )}
         </AnimatePresence>
@@ -824,10 +829,10 @@ function evaluateExpression(expr: string): number | null {
  * Se usa toPrecision y no un redondeo con multiplicaciones, porque con
  * números grandes ese cálculo se sale del entero seguro y falsea el resultado.
  */
-function formatResult(n: number): string {
+function formatResult(n: number, locale = 'es-ES'): string {
   if (!Number.isFinite(n)) return 'Error';
   const clean = parseFloat(n.toPrecision(12));
-  return clean.toLocaleString('es-ES', { maximumFractionDigits: 10 });
+  return clean.toLocaleString(locale, { maximumFractionDigits: 10 });
 }
 
 /** Muestra la expresión con los símbolos que espera ver el alumnado. */
@@ -837,30 +842,34 @@ function prettyExpr(expr: string): string {
              .replace(/\s+/g, ' ').trim();
 }
 
-const CALC_KEYS: { label: string; value: string; kind: 'num' | 'op' | 'eq' | 'fn' }[] = [
-  { label: 'C',  value: 'clear', kind: 'fn' },
-  { label: '( )', value: 'paren', kind: 'fn' },
-  { label: '%',  value: 'pct',   kind: 'fn' },
-  { label: '÷',  value: '/',     kind: 'op' },
-  { label: '7',  value: '7', kind: 'num' },
-  { label: '8',  value: '8', kind: 'num' },
-  { label: '9',  value: '9', kind: 'num' },
-  { label: '×',  value: '*', kind: 'op' },
-  { label: '4',  value: '4', kind: 'num' },
-  { label: '5',  value: '5', kind: 'num' },
-  { label: '6',  value: '6', kind: 'num' },
-  { label: '−',  value: '-', kind: 'op' },
-  { label: '1',  value: '1', kind: 'num' },
-  { label: '2',  value: '2', kind: 'num' },
-  { label: '3',  value: '3', kind: 'num' },
-  { label: '+',  value: '+', kind: 'op' },
-  { label: '0',  value: '0', kind: 'num' },
-  { label: ',',  value: '.', kind: 'num' },
-  { label: '⌫',  value: 'back', kind: 'fn' },
-  { label: '=',  value: 'eq',   kind: 'eq' },
-];
+function calcKeys(lang: 'es' | 'en'): { label: string; value: string; kind: 'num' | 'op' | 'eq' | 'fn' }[] {
+  return [
+    { label: 'C',  value: 'clear', kind: 'fn' },
+    { label: '( )', value: 'paren', kind: 'fn' },
+    { label: '%',  value: 'pct',   kind: 'fn' },
+    { label: '÷',  value: '/',     kind: 'op' },
+    { label: '7',  value: '7', kind: 'num' },
+    { label: '8',  value: '8', kind: 'num' },
+    { label: '9',  value: '9', kind: 'num' },
+    { label: '×',  value: '*', kind: 'op' },
+    { label: '4',  value: '4', kind: 'num' },
+    { label: '5',  value: '5', kind: 'num' },
+    { label: '6',  value: '6', kind: 'num' },
+    { label: '−',  value: '-', kind: 'op' },
+    { label: '1',  value: '1', kind: 'num' },
+    { label: '2',  value: '2', kind: 'num' },
+    { label: '3',  value: '3', kind: 'num' },
+    { label: '+',  value: '+', kind: 'op' },
+    { label: '0',  value: '0', kind: 'num' },
+    { label: lang === 'en' ? '.' : ',', value: '.', kind: 'num' },
+    { label: '⌫',  value: 'back', kind: 'fn' },
+    { label: '=',  value: 'eq',   kind: 'eq' },
+  ];
+}
 
 function CalcWidget() {
+  const { t, lang, locale } = useI18n();
+  const CALC_KEYS = useMemo(() => calcKeys(lang), [lang]);
   const [expr, setExpr]       = useState('');
   const [result, setResult]   = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
@@ -868,8 +877,8 @@ function CalcWidget() {
   const live = useMemo(() => {
     if (!expr) return null;
     const v = evaluateExpression(expr);
-    return v === null ? null : formatResult(v);
-  }, [expr]);
+    return v === null ? null : formatResult(v, locale);
+  }, [expr, locale]);
 
   /** Lo que se ve en grande: el resultado si lo hay, si no la expresión. */
   const shown = result === 'error' ? 'Error' : (result ?? (expr ? prettyExpr(expr) : '0'));
@@ -881,7 +890,7 @@ function CalcWidget() {
     if (value === 'eq') {
       const v = evaluateExpression(expr);
       if (v === null) { setResult(expr ? 'error' : null); return; }
-      const out = formatResult(v);
+      const out = formatResult(v, locale);
       setResult(out);
       setHistory(h => [`${prettyExpr(expr)} = ${out}`, ...h].slice(0, 4));
       setExpr(String(v));
@@ -949,7 +958,7 @@ function CalcWidget() {
       className="flex flex-col h-full gap-2.5 outline-none"
       tabIndex={0}
       onKeyDown={onKeyDown}
-      title="Puedes usar el teclado"
+      title={t('Puedes usar el teclado')}
     >
       {/* Pantalla */}
       <div
@@ -1033,6 +1042,7 @@ function normalizeUrl(raw: string): string {
 }
 
 function EmbedWidget() {
+  const { t } = useI18n();
   const [url, setUrl]             = useState('');
   const [activeUrl, setActiveUrl] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
@@ -1055,7 +1065,7 @@ function EmbedWidget() {
             value={url}
             onChange={e => setUrl(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') open(); }}
-            placeholder="Pega un enlace de YouTube o una web…"
+            placeholder={t('Pega un enlace de YouTube o una web…')}
             className="w-full rounded-xl text-white text-[13px] outline-none transition-colors"
             style={{
               padding: '10px 14px 10px 34px',
@@ -1072,13 +1082,13 @@ function EmbedWidget() {
           className="rounded-xl font-bold text-[13px] disabled:opacity-40 flex-shrink-0"
           style={{ padding: '0 20px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#2a1a00' }}
         >
-          Abrir
+          {t('Abrir')}
         </button>
         {activeUrl && (
           <>
             <button
               onClick={() => setReloadKey(k => k + 1)}
-              title="Recargar"
+              title={t('Recargar')}
               className="flex items-center justify-center rounded-xl text-white/55 hover:text-white transition-colors flex-shrink-0"
               style={{ width: 40, background: 'rgba(255,255,255,0.07)' }}
             >
@@ -1086,7 +1096,7 @@ function EmbedWidget() {
             </button>
             <button
               onClick={() => window.open(activeUrl, '_blank', 'noopener')}
-              title="Abrir en el navegador"
+              title={t('Abrir en el navegador')}
               className="flex items-center justify-center rounded-xl text-white/55 hover:text-white transition-colors flex-shrink-0"
               style={{ width: 40, background: 'rgba(255,255,255,0.07)' }}
             >
@@ -1113,10 +1123,10 @@ function EmbedWidget() {
           <div className="h-full flex flex-col items-center justify-center gap-2.5 px-8 text-center">
             <ExternalLink size={26} color="rgba(255,255,255,0.2)" />
             <p className="text-white/40 text-[12.5px] leading-relaxed">
-              Proyecta un vídeo o una web sin salir de Aula Pro.
+              {t('Proyecta un vídeo o una web sin salir de Aula Pro.')}
             </p>
             <p className="text-white/25 text-[11.5px] leading-relaxed">
-              Algunas webs no permiten incrustarse; en ese caso usa el botón de abrir en el navegador.
+              {t('Algunas webs no permiten incrustarse; en ese caso usa el botón de abrir en el navegador.')}
             </p>
           </div>
         )}
@@ -1143,6 +1153,7 @@ const DEFAULTS: Record<WidgetType, { x: number; y: number; width: number; height
 };
 
 export default function SecClassroom({ studentNames = [] }: { studentNames?: string[] }) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // El trazo se guarda en una referencia, no en estado: React agrupa las
   // actualizaciones y los primeros movimientos del ratón se perderían.
@@ -1263,7 +1274,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
         dragHandleClassName="drag-handle"
         style={{ zIndex: 30 }}
       >
-        <WidgetShell title={cfg.title} icon={cfg.icon} accent={cfg.accent} onClose={() => toggle(cfg.id)}>
+        <WidgetShell title={t(cfg.title)} icon={cfg.icon} accent={cfg.accent} onClose={() => toggle(cfg.id)}>
           {body}
         </WidgetShell>
       </Rnd>
@@ -1321,7 +1332,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
       >
         <button
           onClick={() => setPenOn(v => !v)}
-          title={penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla'}
+          title={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')}
           className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
           style={{
             padding: '6px 12px',
@@ -1329,7 +1340,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
             color: penOn ? '#7dd3fc' : 'rgba(255,255,255,0.6)',
           }}
         >
-          <PenLine size={15} />{penOn ? 'Dibujando' : 'Lápiz'}
+          <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Lápiz')}
         </button>
 
         {penOn && (
@@ -1340,7 +1351,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
               <button
                 key={c}
                 onClick={() => setColor(c)}
-                title="Color del lápiz"
+                title={t('Color del lápiz')}
                 className="rounded-full transition-transform"
                 style={{
                   width: 21, height: 21, background: c,
@@ -1351,7 +1362,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
             ))}
             <button
               onClick={clearBoard}
-              title="Borrar todo"
+              title={t('Borrar todo')}
               className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors"
               style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
             >
@@ -1383,7 +1394,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.94 }}
                 onClick={() => toggle(app.id)}
-                title={on ? `Cerrar ${app.title}` : `Abrir ${app.title}`}
+                title={t(on ? 'Cerrar {title}' : 'Abrir {title}', { title: t(app.title) })}
                 className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors"
                 style={{
                   padding: '9px 15px',
@@ -1392,7 +1403,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
                 }}
               >
                 {app.icon}
-                <span className="text-[10.5px] font-bold tracking-tight">{app.title}</span>
+                <span className="text-[10.5px] font-bold tracking-tight">{t(app.title)}</span>
                 {on && (
                   <motion.div
                     layoutId={`dot-${app.id}`}
