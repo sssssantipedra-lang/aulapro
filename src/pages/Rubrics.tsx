@@ -498,7 +498,7 @@ function EvalModal({
   onClose, onSave,
 }: EvalModalProps) {
   const { toast } = useToast();
-  const { t, lang, locale } = useI18n();
+  const { t, lang } = useI18n();
   const [classId, setClassId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});

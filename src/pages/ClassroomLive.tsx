@@ -33,7 +33,7 @@ const LEVEL_COLOR = ['#dc2626', '#d97706', '#2563eb', '#047857'];
 
 export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSaveSelfAssessment }: Props) {
   const { toast } = useToast();
-  const { t, lang, locale } = useI18n();
+  const { t, lang } = useI18n();
   const bridge = window.electronAPI?.classroom;
 
   const [snap, setSnap] = useState<ClassroomSnapshot | null>(null);
