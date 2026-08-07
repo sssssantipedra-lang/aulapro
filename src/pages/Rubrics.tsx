@@ -7,7 +7,7 @@ import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
-import { levelsOf, levelColor, gradeFromLevels, DEFAULT_LEVELS, type AchievementLevel } from '../types';
+import { levelsOf, levelColor, gradeFromLevels, defaultLevels, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { DianasTab } from './EvalDianas';
@@ -100,7 +100,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
   const [target, setTarget] = useState<GradeTarget>({});
 
   /* Niveles de logro. Se renumeran solos para que siempre vayan 1..N. */
-  const [levels, setLevels] = useState<AchievementLevel[]>(DEFAULT_LEVELS);
+  const [levels, setLevels] = useState<AchievementLevel[]>(() => defaultLevels(lang));
   const previewLevels = levels;
 
   const renumber = (list: { label: string }[]): AchievementLevel[] =>
@@ -125,7 +125,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       });
       setLevels(levelsOf(editing));
     } else {
-      setLevels(DEFAULT_LEVELS);
+      setLevels(defaultLevels(lang));
       setMode('ia');
       setManualName('');
       setManualCriteria([blankCriterion()]);
@@ -227,7 +227,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
     // Los niveles sin nombre se descartan; con menos de dos no hay escala
     const cleanLevels = ((): AchievementLevel[] => {
       const named = levels.filter(l => l.label.trim());
-      if (named.length < 2) return DEFAULT_LEVELS;
+      if (named.length < 2) return defaultLevels(lang);
       return named.map((l, i) => ({ value: i + 1, label: l.label.trim() }));
     })();
 

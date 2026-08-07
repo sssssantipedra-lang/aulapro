@@ -70,9 +70,11 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sidebar { width:var(--sb-w); min-height:100vh; background:var(--sb-bg); display:flex; flex-direction:column; flex-shrink:0; transition:width var(--t); overflow:hidden; position:sticky; top:0; height:100vh; }
 .sidebar.mini { width:var(--sb-w-min); }
 .sb-logo { display:flex; align-items:center; gap:11px; padding:18px 14px 12px; flex-shrink:0; }
+.sidebar.mini .sb-logo { justify-content:center; padding:18px 0 12px; }
 .sb-logo-box { width:34px; height:34px; background:linear-gradient(135deg,var(--accent-d),var(--accent)); border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(var(--accent-rgb),0.3); }
+.sidebar.mini .sb-logo-box { display:none; }
 .sb-title { font-size:16px; font-weight:800; color:white; letter-spacing:-0.4px; white-space:nowrap; transition:opacity var(--t); }
-.sidebar.mini .sb-title { opacity:0; pointer-events:none; }
+.sidebar.mini .sb-title { display:none; }
 .sb-teacher { margin:0 10px 10px; padding:10px 11px; background:rgba(255,255,255,0.045); border:0.5px solid var(--sb-border); border-radius:10px; display:flex; align-items:center; gap:9px; cursor:pointer; transition:background var(--t); overflow:hidden; }
 .sb-teacher:hover { background:rgba(255,255,255,0.075); }
 .sb-teacher-info { min-width:0; transition:opacity var(--t); }

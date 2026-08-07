@@ -46,6 +46,7 @@ const EN: Record<string, string> = {
   'Mi Perfil': 'My Profile',
   'Cerrar sesión': 'Sign out',
   'Colapsar': 'Collapse',
+  'Expandir': 'Expand',
   'Todo guardado': 'All saved',
   'Guardando…': 'Saving…',
   'Diseñada sobre el currículo educativo español (LOMLOE)':

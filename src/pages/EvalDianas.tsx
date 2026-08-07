@@ -7,7 +7,7 @@ import { callGemini, parseGeminiJson } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { DianaBoard, dianaGrade } from '../components/diana/DianaBoard';
-import { levelsOf, levelColor, DEFAULT_LEVELS, type AchievementLevel } from '../types';
+import { levelsOf, levelColor, defaultLevels, type AchievementLevel } from '../types';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -60,7 +60,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
   const [target, setTarget] = useState<GradeTarget>({});
 
   /* Niveles de logro. Se renumeran solos para que siempre vayan 1..N. */
-  const [levels, setLevels] = useState<AchievementLevel[]>(DEFAULT_LEVELS);
+  const [levels, setLevels] = useState<AchievementLevel[]>(() => defaultLevels(lang));
   const renumber = (list: { label: string }[]): AchievementLevel[] =>
     list.map((l, i) => ({ value: i + 1, label: l.label }));
   const setLevelLabel = (i: number, label: string) =>
@@ -81,7 +81,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       setLevels(levelsOf(editing));
     } else {
       setTarget({});
-      setLevels(DEFAULT_LEVELS);
+      setLevels(defaultLevels(lang));
       setMode('ia');
       setName('');
       setItems([blankItem()]);
@@ -163,7 +163,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     // Los niveles sin nombre se descartan; con menos de dos no hay escala
     const named = levels.filter(l => l.label.trim());
     const cleanLevels: AchievementLevel[] = named.length < 2
-      ? DEFAULT_LEVELS
+      ? defaultLevels(lang)
       : named.map((l, i) => ({ value: i + 1, label: l.label.trim() }));
     onSave({
       id: editing?.id ?? 'dia' + Date.now(),

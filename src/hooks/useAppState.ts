@@ -182,10 +182,14 @@ export function useAppState() {
 
   useEffect(() => {
     if (!ready || !profileId) return;
-    const json = JSON.stringify(snapshot);
-    if (json === lastSavedRef.current) return;
 
+    // Serializar es lo caro de todo esto: recorre el curso entero. Va DENTRO
+    // del temporizador a propósito, para que se pague una vez por pausa de
+    // escritura y no en cada tecla; hacerlo fuera ponía todo el cuaderno en el
+    // camino de cada pulsación y se notaba al escribir.
     const timer = setTimeout(async () => {
+      const json = JSON.stringify(snapshot);
+      if (json === lastSavedRef.current) return;
       setSaving(true);
       await store.saveData(profileId, snapshot as unknown as store.ProfileData);
       lastSavedRef.current = json;

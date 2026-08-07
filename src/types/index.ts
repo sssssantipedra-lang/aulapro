@@ -150,6 +150,23 @@ export const DEFAULT_LEVELS: AchievementLevel[] = [
   { value: 4, label: 'Excelente' },
 ];
 
+const DEFAULT_LEVELS_EN: AchievementLevel[] = [
+  { value: 1, label: 'Below expectations' },
+  { value: 2, label: 'Approaching expectations' },
+  { value: 3, label: 'Meeting expectations' },
+  { value: 4, label: 'Exceeding expectations' },
+];
+
+/**
+ * Niveles de partida para un instrumento nuevo, en el idioma en que se está
+ * trabajando. Las etiquetas son datos del instrumento, no interfaz: se guardan
+ * tal cual se crean y luego el docente puede reescribirlas, así que se eligen
+ * aquí una sola vez en vez de traducirse al pintarlas.
+ */
+export function defaultLevels(lang: 'es' | 'en'): AchievementLevel[] {
+  return lang === 'en' ? DEFAULT_LEVELS_EN : DEFAULT_LEVELS;
+}
+
 /**
  * Niveles de un instrumento. Los creados antes de que se pudieran configurar
  * no llevan ninguno, así que se entienden como los cuatro clásicos.

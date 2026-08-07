@@ -40,3 +40,4 @@ copias/
 *.njsproj
 *.sln
 *.sw?
+.claude/

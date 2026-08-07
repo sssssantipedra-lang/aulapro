@@ -72,9 +72,9 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
         <span className="sb-title">Aula Pro</span>
         <button
           className="ico-btn"
-          style={{ marginLeft: 'auto', color: '#475569' }}
+          style={{ marginLeft: mini ? 0 : 'auto', color: '#475569' }}
           onClick={onToggle}
-          title={mini ? 'Expandir' : 'Colapsar'}
+          title={mini ? t('Expandir') : t('Colapsar')}
         >
           {mini ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>

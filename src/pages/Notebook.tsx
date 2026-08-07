@@ -65,8 +65,11 @@ function notaColor(n: number | null): string {
 /* ══════════════════ Celda de nota editable ══════════════════ */
 
 function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: number | null) => void }) {
+  const { lang } = useI18n();
   const [text, setText] = useState<string | null>(null); // null = sin editar
-  const shown = text !== null ? text : (value !== null ? String(value).replace('.', ',') : '');
+  // El separador decimal sigue al idioma; escribir admite los dos igualmente.
+  const formatted = value !== null ? (lang === 'es' ? String(value).replace('.', ',') : String(value)) : '';
+  const shown = text !== null ? text : formatted;
 
   function commit() {
     if (text === null) return;
@@ -170,13 +173,18 @@ function GradesTab({
    * la cabecera, las filas de alumnos y la media del grupo, que antes
    * repetían el mismo filtrado tres veces y podían descuadrarse.
    */
+  // Solo entran las categorías que tienen columnas: una cabecera de grupo con
+  // cero pruebas saldría con `colSpan={0}`, que HTML no admite, y el navegador
+  // la dibujaría como una columna suelta desplazando toda la tabla.
   const grouped = useMemo(
-    () => myCategories.map(cat => ({
-      cat,
-      items: myItems
-        .filter(i => i.category_id === cat.id)
-        .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es')),
-    })),
+    () => myCategories
+      .map(cat => ({
+        cat,
+        items: myItems
+          .filter(i => i.category_id === cat.id)
+          .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es')),
+      }))
+      .filter(g => g.items.length > 0),
     [myCategories, myItems],
   );
 
