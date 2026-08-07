@@ -3,6 +3,7 @@ import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertT
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap } from '../types';
 import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
+import { useCarousel, CarouselControls, CarouselDots, paginate } from '../components/dashboard/carousel';
 import { useI18n, priorityLabel } from '../i18n';
 import { isoDate } from '../lib/utils';
 
@@ -49,10 +50,22 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   const pendingTasks = tasks.filter(t => !t.done);
   const alerts = students.filter(s => s.alerts.length > 0);
 
+  // Ya no se recortan las listas: lo que no cabe en una página pasa a la
+  // siguiente y la tarjeta las va rotando. Antes, el quinto evento o la quinta
+  // alerta sencillamente no existían para quien miraba el inicio.
   const upcomingEvents = [...calEvents]
     .filter(ev => ev.date >= isoDate())
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 4);
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const schedulePages = paginate(todayBlocks, 3);
+  const eventPages    = paginate(upcomingEvents, 3);
+  const alertPages    = paginate(alerts, 4);
+  const taskPages     = paginate(tasks, 8);
+
+  const scheduleCar = useCarousel(schedulePages.length);
+  const eventCar    = useCarousel(eventPages.length);
+  const alertCar    = useCarousel(alertPages.length);
+  const taskCar     = useCarousel(taskPages.length);
 
   const emptyWorkspace = classes.length === 0;
 
@@ -118,10 +131,19 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 280px', gap: 16 }}>
             {/* Horario de hoy */}
-            <div className="card">
+            <div className="card" {...scheduleCar.hoverProps}>
               <div className="card-hd">
                 <div className="card-ttl"><CalendarDays size={14} color="var(--accent-d)" />{t('Horario de hoy')}</div>
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>{t('Ver agenda')}</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CarouselControls
+                    pages={schedulePages.length}
+                    paused={scheduleCar.paused}
+                    onPause={() => scheduleCar.setPaused(p => !p)}
+                    onPrev={() => scheduleCar.goTo(scheduleCar.index - 1)}
+                    onNext={() => scheduleCar.goTo(scheduleCar.index + 1)}
+                  />
+                  <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>{t('Ver agenda')}</button>
+                </div>
               </div>
               {todayBlocks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-3)', fontSize: 13 }}>
@@ -129,17 +151,20 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                   <div style={{ marginTop: 6, fontSize: 12 }}>{t('Configura tu horario semanal en la Agenda.')}</div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {todayBlocks.map(b => (
-                    <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, background: 'var(--surface)', border: `0.5px solid ${b.color}33` }}>
-                      <div style={{ width: 3, height: 36, borderRadius: 2, background: b.color, flexShrink: 0 }} />
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{b.subject}</div>
-                        <div style={{ fontSize: 11.5, color: 'var(--text-2)' }}>{b.time_start}–{b.time_end} · {b.room}</div>
+                <>
+                  <div className={`dash-panel${scheduleCar.visible ? ' on' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {(schedulePages[scheduleCar.index] ?? []).map(b => (
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, background: 'var(--surface)', border: `0.5px solid ${b.color}33` }}>
+                        <div style={{ width: 3, height: 36, borderRadius: 2, background: b.color, flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{b.subject}</div>
+                          <div style={{ fontSize: 11.5, color: 'var(--text-2)' }}>{b.time_start}–{b.time_end} · {b.room}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                  <CarouselDots pages={schedulePages.length} index={scheduleCar.index} onGo={scheduleCar.goTo} />
+                </>
               )}
               <div style={{ display: 'flex', gap: 8, marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--border)' }}>
                 <button className="btn-accent" style={{ flex: 1, justifyContent: 'center', fontSize: 13 }} onClick={() => onNav('rubrics')}>
@@ -154,47 +179,71 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             {/* Columna central */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {/* Próximos eventos */}
-              <div className="card">
+              <div className="card" {...eventCar.hoverProps}>
                 <div className="card-hd">
                   <div className="card-ttl"><Zap size={14} color="var(--warn)" />{t('Próximos eventos')}</div>
-                  <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>{t('Ver todo')}</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <CarouselControls
+                      pages={eventPages.length}
+                      paused={eventCar.paused}
+                      onPause={() => eventCar.setPaused(p => !p)}
+                      onPrev={() => eventCar.goTo(eventCar.index - 1)}
+                      onNext={() => eventCar.goTo(eventCar.index + 1)}
+                    />
+                    <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => onNav('agenda')}>{t('Ver todo')}</button>
+                  </div>
                 </div>
                 {upcomingEvents.length === 0 ? (
                   <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>
                     {t('Sin eventos próximos. Añádelos desde la Agenda.')}
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {upcomingEvents.map(ev => (
-                      <div key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: ev.color, flexShrink: 0 }} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{ev.date} · {ev.time}</div>
+                  <>
+                    <div className={`dash-panel${eventCar.visible ? ' on' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {(eventPages[eventCar.index] ?? []).map(ev => (
+                        <div key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: ev.color, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.name}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{ev.date} · {ev.time}</div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <CarouselDots pages={eventPages.length} index={eventCar.index} onGo={eventCar.goTo} />
+                  </>
                 )}
               </div>
 
               {/* Alertas */}
-              <div className="card">
+              <div className="card" {...alertCar.hoverProps}>
                 <div className="card-hd">
                   <div className="card-ttl"><AlertTriangle size={14} color="var(--warn)" />{t('Alertas de alumnos')}</div>
-                  {alerts.length > 0 && <span style={{ background: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>{alerts.length}</span>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <CarouselControls
+                      pages={alertPages.length}
+                      paused={alertCar.paused}
+                      onPause={() => alertCar.setPaused(p => !p)}
+                      onPrev={() => alertCar.goTo(alertCar.index - 1)}
+                      onNext={() => alertCar.goTo(alertCar.index + 1)}
+                    />
+                    {alerts.length > 0 && <span style={{ background: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>{alerts.length}</span>}
+                  </div>
                 </div>
                 {alerts.length === 0 ? (
                   <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>{t('Sin alertas activas')}</div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                    {alerts.slice(0, 4).map(s => (
-                      <div key={s.id} style={{ fontSize: 12.5, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <div style={{ fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>{s.name.split(' ')[0]}:</div>
-                        <div style={{ color: 'var(--text-2)' }}>{s.alerts[0]?.text}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    <div className={`dash-panel${alertCar.visible ? ' on' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                      {(alertPages[alertCar.index] ?? []).map(s => (
+                        <div key={s.id} style={{ fontSize: 12.5, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                          <div style={{ fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>{s.name.split(' ')[0]}:</div>
+                          <div style={{ color: 'var(--text-2)' }}>{s.alerts[0]?.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <CarouselDots pages={alertPages.length} index={alertCar.index} onGo={alertCar.goTo} />
+                  </>
                 )}
                 <button className="btn-ghost" style={{ marginTop: 10, width: '100%', justifyContent: 'center', fontSize: 12 }} onClick={() => onNav('classes')}>
                   {t('Ver todos los alumnos')}
@@ -213,20 +262,29 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             />
 
             {/* Tareas */}
-            <div className="card">
+            <div className="card" {...taskCar.hoverProps}>
               <div className="card-hd">
                 <div className="card-ttl"><CheckSquare2 size={14} color="var(--accent-d)" />{t('Tareas')}</div>
-                {tasks.length > 0 && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>{tasks.filter(t=>t.done).length}/{tasks.length}</span>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CarouselControls
+                    pages={taskPages.length}
+                    paused={taskCar.paused}
+                    onPause={() => taskCar.setPaused(p => !p)}
+                    onPrev={() => taskCar.goTo(taskCar.index - 1)}
+                    onNext={() => taskCar.goTo(taskCar.index + 1)}
+                  />
+                  {tasks.length > 0 && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)' }}>{tasks.filter(t=>t.done).length}/{tasks.length}</span>
+                  )}
+                </div>
               </div>
               {tasks.length === 0 ? (
                 <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '12px 0' }}>
                   {t('Apunta aquí tus recordatorios: corregir, preparar material…')}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {tasks.slice(0, 8).map(tk => (
+                <div className={`dash-panel${taskCar.visible ? ' on' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {(taskPages[taskCar.index] ?? []).map(tk => (
                     <div key={tk.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '0.5px solid var(--border)' }}>
                       <input type="checkbox" checked={tk.done} onChange={() => onToggleTask(tk.id)} style={{ cursor: 'pointer', accentColor: 'var(--accent-d)' }} />
                       <span style={{ flex: 1, fontSize: 12.5, color: tk.done ? 'var(--text-3)' : 'var(--text)', textDecoration: tk.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tk.text}</span>
@@ -237,6 +295,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                   ))}
                 </div>
               )}
+              <CarouselDots pages={taskPages.length} index={taskCar.index} onGo={taskCar.goTo} />
               <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', marginTop: 10, padding: '8px 0', background: 'none', border: '1px dashed var(--border)', borderRadius: 8, cursor: 'pointer', justifyContent: 'center', fontSize: 12.5, color: 'var(--text-3)', fontFamily: 'var(--font)' }} onClick={onAddTask}>
                 <Plus size={14} />{t('Añadir tarea')}
               </button>

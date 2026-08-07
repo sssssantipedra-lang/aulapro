@@ -524,11 +524,26 @@ function EvalModal({
     setWorkDesc('');
     setWorkFile(null);
     setWorkFileErr('');
-    setClassId(defaultClassId ?? '');
+    // La rúbrica ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
+    setClassId(defaultClassId ?? rubric.class_id ?? '');
     setStudentId(defaultStudentId ?? '');
   }, [open, rubric, defaultClassId, defaultStudentId]);
 
   const classStudents = students.filter(s => s.class_id === classId);
+
+  /**
+   * Qué clases se pueden elegir al evaluar.
+   *
+   * Si la rúbrica declara dónde se recoge la nota, esa es la única opción: dejar
+   * elegir otra llevaría la calificación a un cuaderno que no es el suyo. Y la
+   * asignatura que se muestra es la de la rúbrica, no la principal de la clase,
+   * que puede ser distinta —una clase de varias asignaturas— y hacer creer que
+   * se está evaluando otra cosa.
+   */
+  const evalClasses = rubric?.class_id
+    ? classes.filter(c => c.id === rubric.class_id)
+    : classes;
+  const subjectLabel = (c: { subject: string }) => rubric?.subject || c.subject;
 
   const totalScore = rubric
     ? rubric.criteria.reduce((sum, cr) => sum + (scores[cr.id] ?? 0), 0)
@@ -678,7 +693,7 @@ function EvalModal({
               onChange={e => { setClassId(e.target.value); setStudentId(''); }}
             >
               <option value="">{t('Selecciona clase...')}</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
+              {evalClasses.map(c => <option key={c.id} value={c.id}>{c.name} – {subjectLabel(c)}</option>)}
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>

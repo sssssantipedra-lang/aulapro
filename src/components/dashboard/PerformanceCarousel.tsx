@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { TrendingUp, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { useMemo } from 'react';
+import { TrendingUp } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../../types';
 import { useI18n } from '../../i18n';
+import { useCarousel, CarouselControls, CarouselDots } from './carousel';
 
 interface Props {
   classes: Class[];
@@ -11,11 +12,6 @@ interface Props {
   grades: GradeMap;
   onNav: (s: string) => void;
 }
-
-/** Cada cuánto pasa al siguiente panel. */
-const ROTATE_MS = 10_000;
-/** Duración de la transición. Debe cuadrar con la del CSS. */
-const FADE_MS = 420;
 
 interface Panel {
   key: string;
@@ -98,39 +94,8 @@ export function PerformanceCarousel({
     return out;
   }, [classes, students, gradeCategories, gradeItems, grades]);
 
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-  const [paused, setPaused] = useState(false);
-  const timers = useRef<number[]>([]);
-
-  // Si desaparecen paneles (se borra una clase), el índice puede quedar fuera
-  const safeIndex = panels.length ? index % panels.length : 0;
+  const { index: safeIndex, visible, paused, setPaused, goTo, hoverProps } = useCarousel(panels.length);
   const panel = panels[safeIndex];
-
-  /** Cambia de panel con un fundido: primero se apaga, luego se sustituye. */
-  function goTo(next: number) {
-    timers.current.forEach(clearTimeout);
-    setVisible(false);
-    const t = window.setTimeout(() => {
-      setIndex(((next % panels.length) + panels.length) % panels.length);
-      setVisible(true);
-    }, FADE_MS);
-    timers.current = [t];
-  }
-
-  // El intervalo se crea una sola vez, así que debe leer el índice actual y no
-  // el que hubiera cuando se creó.
-  const indexRef = useRef(safeIndex);
-  indexRef.current = safeIndex;
-
-  useEffect(() => {
-    if (paused || panels.length < 2) return;
-    const id = window.setInterval(() => goTo(indexRef.current + 1), ROTATE_MS);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paused, panels.length]);
-
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   if (panels.length === 0) return null;
 
@@ -138,35 +103,23 @@ export function PerformanceCarousel({
   const maxima = 10;
 
   return (
-    <div className="card" style={{ overflow: 'hidden' }}>
+    <div className="card" style={{ overflow: 'hidden' }} {...hoverProps}>
       <style>{CAROUSEL_CSS}</style>
 
       <div className="card-hd">
         <div className="card-ttl">
           <TrendingUp size={14} color="var(--accent-d)" />{t('Rendimiento')}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {panels.length > 1 && (
-            <>
-              <button className="ico-btn" title={t('Anterior')} onClick={() => goTo(safeIndex - 1)}>
-                <ChevronLeft size={15} />
-              </button>
-              <button
-                className="ico-btn"
-                title={t(paused ? 'Reanudar el paso automático' : 'Detener el paso automático')}
-                onClick={() => setPaused(p => !p)}
-              >
-                {paused ? <Play size={14} /> : <Pause size={14} />}
-              </button>
-              <button className="ico-btn" title={t('Siguiente')} onClick={() => goTo(safeIndex + 1)}>
-                <ChevronRight size={15} />
-              </button>
-            </>
-          )}
-        </div>
+        <CarouselControls
+          pages={panels.length}
+          paused={paused}
+          onPause={() => setPaused(p => !p)}
+          onPrev={() => goTo(safeIndex - 1)}
+          onNext={() => goTo(safeIndex + 1)}
+        />
       </div>
 
-      <div className={`perf-panel${visible ? ' on' : ''}`}>
+      <div className={`dash-panel${visible ? ' on' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
           <span style={{ width: 9, height: 9, borderRadius: '50%', background: panel.color, flexShrink: 0 }} />
           <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)' }}>{panel.className}</span>
@@ -215,23 +168,12 @@ export function PerformanceCarousel({
         )}
       </div>
 
-      {panels.length > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 12 }}>
-          {panels.map((p, i) => (
-            <button
-              key={p.key}
-              onClick={() => goTo(i)}
-              title={`${p.className} · ${p.subject}`}
-              style={{
-                width: i === safeIndex ? 18 : 6, height: 6, borderRadius: 99, border: 'none',
-                cursor: 'pointer', padding: 0,
-                background: i === safeIndex ? 'var(--accent-d)' : 'var(--border)',
-                transition: 'width 0.3s ease, background 0.3s ease',
-              }}
-            />
-          ))}
-        </div>
-      )}
+      <CarouselDots
+        pages={panels.length}
+        index={safeIndex}
+        onGo={goTo}
+        titleFor={i => `${panels[i].className} · ${panels[i].subject}`}
+      />
 
       <button
         className="btn-ghost"
@@ -244,18 +186,14 @@ export function PerformanceCarousel({
   );
 }
 
+// El fundido del panel vive en index.css (.dash-panel), compartido con las
+// demás tarjetas del inicio. Aquí queda solo lo propio de las barras.
 const CAROUSEL_CSS = `
-.perf-panel {
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.42s ease, transform 0.42s ease;
-}
-.perf-panel.on { opacity: 1; transform: translateY(0); }
 .perf-bar {
-  height: 100%; border-radius: 5;
+  height: 100%; border-radius: 5px;
   transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .perf-panel, .perf-bar { transition: none; }
+  .perf-bar { transition: none; }
 }
 `;

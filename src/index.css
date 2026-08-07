@@ -94,6 +94,11 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .ni-live { margin-left:auto; width:8px; height:8px; border-radius:50%; background:var(--ok); flex-shrink:0; animation:livePulse 1.8s ease-in-out infinite; }
 @keyframes livePulse { 0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(16,185,129,0.5); } 50% { opacity:0.65; box-shadow:0 0 0 4px rgba(16,185,129,0); } }
 
+/* ─── TARJETAS QUE ROTAN EN EL INICIO ─── */
+.dash-panel { opacity:0; transform:translateY(6px); transition:opacity 0.42s ease, transform 0.42s ease; }
+.dash-panel.on { opacity:1; transform:translateY(0); }
+@media (prefers-reduced-motion: reduce) { .dash-panel { transition:none; } }
+
 /* ─── AVATAR ─── */
 .av { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent-d),var(--accent)); color:white; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; transition:box-shadow var(--t); }
 .av:hover { box-shadow:0 0 0 2px white,0 0 0 4.5px rgba(var(--accent-rgb),0.5); }

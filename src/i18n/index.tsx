@@ -91,6 +91,7 @@ const EN: Record<string, string> = {
   'Siguiente': 'Next',
   'Detener el paso automático': 'Pause auto-rotation',
   'Reanudar el paso automático': 'Resume auto-rotation',
+  'Página {n}': 'Page {n}',
   'Sin clases hoy': 'No classes today',
   'sesiones programadas': 'sessions scheduled',
   'en {n} grupo': 'in {n} class',

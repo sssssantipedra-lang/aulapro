@@ -378,7 +378,8 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
 
   useEffect(() => {
     if (!open) return;
-    setClassId('');
+    // La diana ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
+    setClassId(diana?.class_id ?? '');
     setStudentId('');
     setScores({});
     setNotes('');
@@ -387,6 +388,11 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
   if (!diana) return null;
 
   const classStudents = students.filter(s => s.class_id === classId);
+
+  // Igual que en las rúbricas: atada a una clase, esa es la única; y se muestra
+  // la asignatura de la diana, no la principal de la clase, que puede ser otra.
+  const evalClasses = diana.class_id ? classes.filter(c => c.id === diana.class_id) : classes;
+  const subjectLabel = (c: { subject: string }) => diana.subject || c.subject;
   const scale = levelsOf(diana);
   const grade = dianaGrade(diana.items, scores, diana.levels);
   const done = diana.items.filter(i => scores[i.id]).length;
@@ -430,7 +436,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
             <label className="flabel">{t('Clase')}</label>
             <select className="finput" value={classId} onChange={e => { setClassId(e.target.value); setStudentId(''); }} style={{ cursor: 'pointer' }}>
               <option value="">{t('Selecciona clase…')}</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
+              {evalClasses.map(c => <option key={c.id} value={c.id}>{c.name} – {subjectLabel(c)}</option>)}
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>
