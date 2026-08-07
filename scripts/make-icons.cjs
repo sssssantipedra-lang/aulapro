@@ -21,7 +21,16 @@ const pngToIco = require('png-to-ico').default;
 
 const ROOT = path.join(__dirname, '..');
 const SVG = path.join(ROOT, 'public', 'favicon.svg');
+// A partir de 64px el "AULAPRO" bajo la lista se lee bien; por debajo queda
+// como una mancha, así que ahí usamos una variante sin texto (checklist más
+// grande, centrada) para que el icono siga siendo reconocible.
+const SVG_MINI = path.join(ROOT, 'public', 'favicon-mini.svg');
+const MINI_THRESHOLD = 64;
 const OUT = path.join(ROOT, 'build');
+
+function svgFor(size) {
+  return fs.readFileSync(size < MINI_THRESHOLD ? SVG_MINI : SVG);
+}
 
 /** Tamaños que Windows espera dentro de un .ico. */
 const ICO_SIZES = [16, 24, 32, 48, 64, 128, 256];
@@ -43,17 +52,15 @@ const ICONSET_FILES = {
 };
 
 async function main() {
-  if (!fs.existsSync(SVG)) {
-    console.error('No se encontró ' + SVG);
+  if (!fs.existsSync(SVG) || !fs.existsSync(SVG_MINI)) {
+    console.error('No se encontró ' + SVG + ' o ' + SVG_MINI);
     process.exit(1);
   }
   fs.mkdirSync(OUT, { recursive: true });
 
-  const svg = fs.readFileSync(SVG);
-
   // PNG grande: es el que usa electron-builder para Linux y como respaldo.
   const png512 = path.join(OUT, 'icon.png');
-  await sharp(svg, { density: 384 }).resize(512, 512, {
+  await sharp(svgFor(512), { density: 384 }).resize(512, 512, {
     fit: 'contain',
     background: { r: 0, g: 0, b: 0, alpha: 0 },
   }).png().toFile(png512);
@@ -62,7 +69,7 @@ async function main() {
   // Un PNG por tamaño, que es lo que png-to-ico junta en el .ico
   const buffers = [];
   for (const size of ICO_SIZES) {
-    buffers.push(await sharp(svg, { density: 384 }).resize(size, size, {
+    buffers.push(await sharp(svgFor(size), { density: 384 }).resize(size, size, {
       fit: 'contain',
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     }).png().toBuffer());
@@ -85,7 +92,7 @@ async function main() {
   fs.rmSync(iconsetDir, { recursive: true, force: true });
   fs.mkdirSync(iconsetDir, { recursive: true });
   for (const [size, names] of Object.entries(ICONSET_FILES)) {
-    const buf = await sharp(svg, { density: 384 }).resize(Number(size), Number(size), {
+    const buf = await sharp(svgFor(Number(size)), { density: 384 }).resize(Number(size), Number(size), {
       fit: 'contain',
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     }).png().toBuffer();
