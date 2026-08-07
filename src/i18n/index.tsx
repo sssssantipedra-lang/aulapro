@@ -1069,6 +1069,11 @@ const EN: Record<string, string> = {
   'Contraseña cambiada': 'Password changed',
   'Contraseña fijada': 'Password set',
   'Contraseña quitada': 'Password removed',
+
+  /* ── Contenido incrustado (Aula Live) ── */
+  '{sitio} no permite verse dentro de otra aplicación.': '{sitio} doesn’t allow itself to be shown inside another app.',
+  'Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.':
+    'The service itself blocks it, not Aula Pro. Open it in your browser and share it from there.',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

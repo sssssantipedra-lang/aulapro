@@ -1009,7 +1009,23 @@ function CalcWidget() {
    CONTENIDO EMBEBIDO
    ════════════════════════════════════════════════════════════ */
 
-/** Convierte enlaces de YouTube a su forma incrustable. */
+/** Segundos que admite YouTube en `start`, venga «90», «1m30s» o «1h2m3s». */
+function parseStart(raw: string | null): number | null {
+  if (!raw) return null;
+  if (/^\d+$/.test(raw)) return parseInt(raw, 10);
+  const m = raw.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
+  if (!m || !m.slice(1).some(Boolean)) return null;
+  return (+(m[1] || 0)) * 3600 + (+(m[2] || 0)) * 60 + (+(m[3] || 0));
+}
+
+/**
+ * Convierte un enlace normal en su forma incrustable.
+ *
+ * Muchos servicios sirven una página pensada para verse suelta, que se niega
+ * a cargar dentro de un marco, y otra distinta pensada para incrustar. Pegar
+ * el enlace de la barra del navegador es lo natural, así que la traducción se
+ * hace aquí en vez de pedirle al docente que busque el «código de inserción».
+ */
 function normalizeUrl(raw: string): string {
   let value = raw.trim();
   if (!value) return '';
@@ -1018,26 +1034,79 @@ function normalizeUrl(raw: string): string {
   try {
     const u = new URL(value);
     const host = u.hostname.replace(/^www\./, '');
+    const yt = (id: string, start: number | null) =>
+      `https://www.youtube.com/embed/${id}${start ? `?start=${start}` : ''}`;
 
+    /* ── YouTube ── */
     if (host === 'youtu.be') {
-      const id = u.pathname.slice(1);
-      const t = u.searchParams.get('t');
-      return `https://www.youtube.com/embed/${id}${t ? `?start=${parseInt(t)}` : ''}`;
+      return yt(u.pathname.slice(1), parseStart(u.searchParams.get('t')));
     }
-    if (host.endsWith('youtube.com')) {
+    if (host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
       if (u.pathname.startsWith('/embed/')) return u.toString();
-      if (u.pathname.startsWith('/shorts/')) {
-        return `https://www.youtube.com/embed/${u.pathname.split('/')[2]}`;
-      }
+      // Vídeos sueltos: /watch?v=, /shorts/ID, /live/ID, /v/ID
+      const porRuta = u.pathname.match(/^\/(?:shorts|live|v)\/([^/?#]+)/);
+      if (porRuta) return yt(porRuta[1], parseStart(u.searchParams.get('t')));
       const id = u.searchParams.get('v');
-      if (id) {
-        const t = u.searchParams.get('t');
-        return `https://www.youtube.com/embed/${id}${t ? `?start=${parseInt(t)}` : ''}`;
+      if (id) return yt(id, parseStart(u.searchParams.get('t')));
+      // Listas de reproducción completas
+      const lista = u.searchParams.get('list');
+      if (lista) return `https://www.youtube.com/embed/videoseries?list=${lista}`;
+    }
+
+    /* ── Vimeo ── */
+    if (host === 'vimeo.com') {
+      const id = u.pathname.match(/^\/(\d+)/);
+      if (id) return `https://player.vimeo.com/video/${id[1]}`;
+    }
+
+    /* ── Google Drive: vista previa incrustable ── */
+    if (host === 'drive.google.com') {
+      const id = u.pathname.match(/\/file\/d\/([^/]+)/);
+      if (id) return `https://drive.google.com/file/d/${id[1]}/preview`;
+    }
+
+    /* ── Documentos de Google: /edit no se incrusta, /preview sí ── */
+    if (host === 'docs.google.com') {
+      if (/\/(edit|view)\b/.test(u.pathname)) {
+        // Las presentaciones tienen su propio modo incrustado
+        if (u.pathname.includes('/presentation/')) {
+          return u.toString().replace(/\/(edit|view)\b.*$/, '/embed?start=false&loop=false');
+        }
+        return u.toString().replace(/\/(edit|view)\b.*$/, '/preview');
       }
     }
+
     return u.toString();
   } catch {
     return value;
+  }
+}
+
+/**
+ * Servicios que rechazan de plano ser incrustados.
+ *
+ * No es una limitación de Aula Pro: lo impide el propio servicio con las
+ * cabeceras `X-Frame-Options` o `Content-Security-Policy`, y el navegador
+ * obedece. No hay forma de saltárselo, así que más vale avisar antes de
+ * enseñar un marco en negro que parece un fallo de la aplicación.
+ */
+const NO_SE_DEJAN = [
+  'google.com', 'gemini.google.com', 'accounts.google.com',
+  'chatgpt.com', 'openai.com', 'claude.ai',
+  'instagram.com', 'facebook.com', 'x.com', 'twitter.com',
+  'moodle.org', 'outlook.com', 'office.com', 'linkedin.com',
+];
+
+function rechazaIncrustarse(url: string): string | null {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    // El buscador de Google no, pero sus documentos y Drive sí se incrustan
+    if (host === 'docs.google.com' || host === 'drive.google.com') return null;
+    // Se devuelve el dominio tal cual lo pegó el docente («gemini.google.com»),
+    // no el de la lista («google.com»): reconoce antes lo que acaba de escribir.
+    return NO_SE_DEJAN.some(d => host === d || host.endsWith('.' + d)) ? host : null;
+  } catch {
+    return null;
   }
 }
 
@@ -1046,10 +1115,14 @@ function EmbedWidget() {
   const [url, setUrl]             = useState('');
   const [activeUrl, setActiveUrl] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [bloqueado, setBloqueado] = useState<string | null>(null);
 
   function open() {
     const normalized = normalizeUrl(url);
-    if (normalized) { setActiveUrl(normalized); setReloadKey(k => k + 1); }
+    if (!normalized) return;
+    setBloqueado(rechazaIncrustarse(normalized));
+    setActiveUrl(normalized);
+    setReloadKey(k => k + 1);
   }
 
   return (
@@ -1110,7 +1183,24 @@ function EmbedWidget() {
         className="flex-1 min-h-0 rounded-2xl overflow-hidden"
         style={{ background: '#000', border: '1px solid rgba(255,255,255,0.1)' }}
       >
-        {activeUrl ? (
+        {activeUrl && bloqueado ? (
+          <div className="h-full flex flex-col items-center justify-center gap-3 px-8 text-center">
+            <ExternalLink size={26} color="rgba(251,191,36,0.6)" />
+            <p className="text-white/70 text-[13px] leading-relaxed">
+              {t('{sitio} no permite verse dentro de otra aplicación.', { sitio: bloqueado })}
+            </p>
+            <p className="text-white/40 text-[11.5px] leading-relaxed" style={{ maxWidth: 340 }}>
+              {t('Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.')}
+            </p>
+            <button
+              onClick={() => window.open(activeUrl, '_blank', 'noopener')}
+              className="rounded-xl font-bold text-[12.5px]"
+              style={{ padding: '9px 18px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#2a1a00' }}
+            >
+              {t('Abrir en el navegador')}
+            </button>
+          </div>
+        ) : activeUrl ? (
           <iframe
             key={reloadKey}
             src={activeUrl}

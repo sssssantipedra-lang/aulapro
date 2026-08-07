@@ -4,10 +4,12 @@ const fsp = require('fs/promises');
 const os = require('os');
 const { ClassroomServer } = require('./classroom.cjs');
 const { Storage } = require('./storage.cjs');
+const { AppServer } = require('./appserver.cjs');
 
 let mainWindow = null;
 const classroom = new ClassroomServer();
 const storage = new Storage(app.getPath('userData'));
+const appServer = new AppServer(path.join(__dirname, '../dist'));
 
 function registerStorageIpc() {
   ipcMain.handle('store:listProfiles',  () => storage.listProfiles());
@@ -123,7 +125,7 @@ function registerClassroomIpc() {
   ipcMain.handle('classroom:setRoster', (_e, roster, label) => classroom.setRoster(roster, label));
 }
 
-function createWindow() {
+async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 830,
@@ -148,7 +150,17 @@ function createWindow() {
   if (isDev && process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // Por http y no con `file://`: ver el porqué en electron/appserver.cjs.
+    // Si el servidor no llegara a arrancar, se abre el archivo directamente
+    // antes que dejar al docente con una ventana en blanco: la aplicación
+    // funciona igual y lo único que se pierde son los vídeos incrustados.
+    try {
+      await appServer.start();
+      await mainWindow.loadURL(appServer.url);
+    } catch (err) {
+      console.error('No se pudo servir la aplicación por http:', err);
+      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    }
   }
 
   mainWindow.on('closed', () => {
@@ -191,9 +203,10 @@ if (!app.requestSingleInstanceLock()) {
 app.on('window-all-closed', () => {
   // La sala nunca queda abierta después de cerrar la app
   classroom.stop();
+  appServer.stop();
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-app.on('before-quit', () => classroom.stop());
+app.on('before-quit', () => { classroom.stop(); appServer.stop(); });

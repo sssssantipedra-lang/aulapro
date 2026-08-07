@@ -9,4 +9,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    // Respeta PORT si viene del entorno; si no, Vite usa su puerto de siempre.
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+    watch: {
+      // `release/` son los instaladores compilados, cientos de MB. Sin esto,
+      // empaquetar con el servidor de desarrollo abierto lo mete en un bucle
+      // de recargas que lo deja inservible.
+      ignored: ['**/release/**', '**/dist/**'],
+    },
+  },
 })
