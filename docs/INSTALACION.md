@@ -9,7 +9,7 @@ necesita internet para funcionar y tus datos no salen de tu equipo.
 
 | | **Instalador** | **Portable** |
 |---|---|---|
-| Archivo | `AulaPro-1.0.1-instalador.exe` | `AulaPro-1.0.1-portable.exe` |
+| Archivo | `AulaPro-1.0.2-instalador.exe` | `AulaPro-1.0.2-portable.exe` |
 | Qué hace | Se instala y crea acceso directo | Se ejecuta sin instalar nada |
 | ¿Pide permisos de administrador? | **No** | **No** |
 | Para quién | Tu ordenador de casa o del centro | Ordenadores muy restringidos, o para llevarlo en un pendrive |
@@ -20,7 +20,7 @@ ordenadores bloqueados de un centro.
 
 ## En Mac
 
-Descarga `AulaPro-1.0.1-mac.dmg`, ábrelo y arrastra el icono de Aula Pro a la
+Descarga `AulaPro-1.0.2-mac.dmg`, ábrelo y arrastra el icono de Aula Pro a la
 carpeta **Aplicaciones**. Es una build **universal**: funciona igual en Mac con
 chip Intel o Apple Silicon (M1/M2/M3…), no hay que elegir versión.
 
