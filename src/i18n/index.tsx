@@ -1038,6 +1038,37 @@ const EN: Record<string, string> = {
   'Observaciones': 'Comments',
   'Cargando…': 'Loading…',
   'Abriendo tu cuaderno…': 'Opening your gradebook…',
+
+  /* ── Contraseña de perfil ── */
+  'Perfil protegido': 'Protected profile',
+  'Introduce la contraseña de {name} para continuar.': 'Enter {name}’s password to continue.',
+  'Contraseña': 'Password',
+  'Contraseña incorrecta.': 'Incorrect password.',
+  'Comprobando…': 'Checking…',
+  'Entrar': 'Continue',
+  'Seguridad': 'Security',
+  'Perfil protegido con contraseña': 'Profile protected with a password',
+  'Sin contraseña': 'No password',
+  'Se pedirá al elegir este perfil desde la pantalla de inicio. Es una cortina para que quien comparta el equipo no vea tus datos de un vistazo: no cifra el archivo en disco.':
+    'It will be asked for when this profile is chosen on the start screen. It’s a curtain so whoever shares the computer can’t see your data at a glance — it doesn’t encrypt the file on disk.',
+  'Opcional. Útil si compartes el ordenador con otros docentes: sin ella, cualquiera que abra la app puede elegir este perfil.':
+    'Optional. Useful if you share the computer with other teachers: without it, anyone who opens the app can choose this profile.',
+  'Cambiar contraseña': 'Change password',
+  'Quitar contraseña': 'Remove password',
+  'Fijar contraseña': 'Set password',
+  'Contraseña actual': 'Current password',
+  'Contraseña nueva': 'New password',
+  'Repite la contraseña': 'Repeat the password',
+  'La contraseña actual no es correcta.': 'The current password isn’t correct.',
+  'La contraseña debe tener al menos 4 caracteres.': 'The password must be at least 4 characters.',
+  'Las dos contraseñas no coinciden.': 'The two passwords don’t match.',
+  'Quitando…': 'Removing…',
+  'A partir de ahora cualquiera podrá elegir este perfil desde la pantalla de inicio sin que se le pida nada.':
+    'From now on, anyone will be able to choose this profile from the start screen without being asked anything.',
+  'Sí, quitar la contraseña': 'Yes, remove the password',
+  'Contraseña cambiada': 'Password changed',
+  'Contraseña fijada': 'Password set',
+  'Contraseña quitada': 'Password removed',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

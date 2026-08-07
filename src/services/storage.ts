@@ -15,6 +15,13 @@ export interface TeacherProfile {
   course: string;
   createdAt: string;
   lastOpenedAt: string;
+  /**
+   * Contraseña opcional del perfil (ver src/lib/password.ts). Sin ella, el
+   * perfil se abre igual que siempre. Solo se guarda el hash, nunca la
+   * contraseña en claro.
+   */
+  passwordSalt?: string;
+  passwordHash?: string;
 }
 
 export interface BackupInfo {

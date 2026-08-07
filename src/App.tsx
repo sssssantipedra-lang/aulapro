@@ -313,6 +313,7 @@ function AppInner() {
             {section === 'profile' && (
               <Profile
                 user={st.currentUser}
+                profile={st.profile}
                 profileId={st.profileId}
                 course={st.profile?.course ?? ''}
                 onUpdateUser={u => {
@@ -321,6 +322,7 @@ function AppInner() {
                     subject: u.subject, course: u.course,
                   });
                 }}
+                onUpdateSecurity={st.updateUser}
                 onExportData={st.exportData}
                 onImportData={st.importData}
                 onClearSchoolYear={st.clearSchoolYear}

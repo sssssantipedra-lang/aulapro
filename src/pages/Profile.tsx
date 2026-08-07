@@ -1,11 +1,13 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
 import { DataFolder } from '../components/DataFolder';
 import { THEMES, applyTheme, isoDate, type ThemeKey } from '../lib/utils';
 import type { User } from '../types';
+import type { TeacherProfile } from '../services/storage';
+import { createPasswordFields, verifyPassword } from '../lib/password';
 import { useToast } from '../components/ui/Toast';
 import { useI18n, LANGS } from '../i18n';
 
@@ -28,15 +30,17 @@ function SectionLabel({ icon, children, first }: { icon: React.ReactNode; childr
 
 interface Props {
   user: User | null;
+  profile: TeacherProfile | null;
   profileId: string | null;
   course: string;
   onUpdateUser: (u: { full_name?: string; school?: string; subject?: string; course?: string }) => void;
+  onUpdateSecurity: (patch: { passwordHash?: string; passwordSalt?: string }) => void;
   onExportData: () => Record<string, unknown>;
   onImportData: (raw: string) => string | null;
   onClearSchoolYear: () => Promise<void>;
 }
 
-export function Profile({ user, profileId, course, onUpdateUser, onExportData, onImportData, onClearSchoolYear }: Props) {
+export function Profile({ user, profile, profileId, course, onUpdateUser, onUpdateSecurity, onExportData, onImportData, onClearSchoolYear }: Props) {
   const { toast } = useToast();
   const { lang, setLang, t } = useI18n();
   const [nombre, setNombre] = useState(user?.full_name.split(' ')[0] ?? '');
@@ -48,6 +52,50 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
   const importRef = useRef<HTMLInputElement>(null);
+
+  /* ── Contraseña del perfil ── */
+  const hasPassword = !!profile?.passwordHash;
+  const [secMode, setSecMode] = useState<'view' | 'set' | 'change' | 'remove'>('view');
+  const [secCurrent, setSecCurrent] = useState('');
+  const [secNew, setSecNew] = useState('');
+  const [secRepeat, setSecRepeat] = useState('');
+  const [secError, setSecError] = useState('');
+  const [secBusy, setSecBusy] = useState(false);
+
+  function resetSecForm() {
+    setSecMode('view');
+    setSecCurrent(''); setSecNew(''); setSecRepeat(''); setSecError('');
+  }
+
+  /** La contraseña actual solo se pide si ya había una que proteger. */
+  async function currentPasswordOk(): Promise<boolean> {
+    if (!hasPassword) return true;
+    if (!profile?.passwordSalt || !profile.passwordHash) return true;
+    return verifyPassword(secCurrent, profile.passwordSalt, profile.passwordHash);
+  }
+
+  async function submitSetOrChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!(await currentPasswordOk())) { setSecError(t('La contraseña actual no es correcta.')); return; }
+    if (secNew.length < 4) { setSecError(t('La contraseña debe tener al menos 4 caracteres.')); return; }
+    if (secNew !== secRepeat) { setSecError(t('Las dos contraseñas no coinciden.')); return; }
+    setSecBusy(true);
+    const fields = await createPasswordFields(secNew);
+    onUpdateSecurity(fields);
+    setSecBusy(false);
+    resetSecForm();
+    toast(t(hasPassword ? 'Contraseña cambiada' : 'Contraseña fijada'));
+  }
+
+  async function submitRemovePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!(await currentPasswordOk())) { setSecError(t('La contraseña actual no es correcta.')); return; }
+    setSecBusy(true);
+    onUpdateSecurity({ passwordHash: undefined, passwordSalt: undefined });
+    setSecBusy(false);
+    resetSecForm();
+    toast(t('Contraseña quitada'));
+  }
 
   function saveProfile() {
     if (!nombre.trim()) { toast('El nombre no puede quedar vacío'); return; }
@@ -199,6 +247,87 @@ export function Profile({ user, profileId, course, onUpdateUser, onExportData, o
             })}
           </div>
         </div>
+      </div>
+
+      {/* ── Seguridad ── */}
+      <SectionLabel icon={<Lock size={15} />}>{t('Seguridad')}</SectionLabel>
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-hd">
+          <div className="card-ttl">
+            {hasPassword
+              ? <><ShieldCheck size={14} color="var(--ok)" />{t('Perfil protegido con contraseña')}</>
+              : <><ShieldOff size={14} color="var(--text-3)" />{t('Sin contraseña')}</>}
+          </div>
+        </div>
+
+        {secMode === 'view' && (
+          <>
+            <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
+              {hasPassword
+                ? t('Se pedirá al elegir este perfil desde la pantalla de inicio. Es una cortina para que quien comparta el equipo no vea tus datos de un vistazo: no cifra el archivo en disco.')
+                : t('Opcional. Útil si compartes el ordenador con otros docentes: sin ella, cualquiera que abra la app puede elegir este perfil.')}
+            </p>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {hasPassword ? (
+                <>
+                  <button className="btn-ghost" onClick={() => setSecMode('change')}>{t('Cambiar contraseña')}</button>
+                  <button className="btn-ghost" style={{ color: 'var(--danger)', borderColor: '#fca5a5' }} onClick={() => setSecMode('remove')}>{t('Quitar contraseña')}</button>
+                </>
+              ) : (
+                <button className="btn-accent" onClick={() => setSecMode('set')}><Lock size={14} />{t('Fijar contraseña')}</button>
+              )}
+            </div>
+          </>
+        )}
+
+        {(secMode === 'set' || secMode === 'change') && (
+          <form onSubmit={submitSetOrChangePassword} style={{ maxWidth: 360 }}>
+            {hasPassword && (
+              <div className="fgroup">
+                <label className="flabel">{t('Contraseña actual')}</label>
+                <input className="finput" type="password" autoFocus value={secCurrent}
+                  onChange={e => { setSecCurrent(e.target.value); if (secError) setSecError(''); }} />
+              </div>
+            )}
+            <div className="fgroup">
+              <label className="flabel">{t('Contraseña nueva')}</label>
+              <input className="finput" type="password" autoFocus={!hasPassword} value={secNew}
+                onChange={e => { setSecNew(e.target.value); if (secError) setSecError(''); }} />
+            </div>
+            <div className="fgroup">
+              <label className="flabel">{t('Repite la contraseña')}</label>
+              <input className="finput" type="password" value={secRepeat}
+                onChange={e => { setSecRepeat(e.target.value); if (secError) setSecError(''); }} />
+            </div>
+            {secError && <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{secError}</div>}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn-accent" type="submit" disabled={secBusy}>
+                {secBusy ? <><span className="spin" />&nbsp;{t('Guardando…')}</> : t(hasPassword ? 'Cambiar contraseña' : 'Fijar contraseña')}
+              </button>
+              <button className="btn-ghost" type="button" onClick={resetSecForm}>{t('Cancelar')}</button>
+            </div>
+          </form>
+        )}
+
+        {secMode === 'remove' && (
+          <form onSubmit={submitRemovePassword} style={{ maxWidth: 360 }}>
+            <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
+              {t('A partir de ahora cualquiera podrá elegir este perfil desde la pantalla de inicio sin que se le pida nada.')}
+            </p>
+            <div className="fgroup">
+              <label className="flabel">{t('Contraseña actual')}</label>
+              <input className="finput" type="password" autoFocus value={secCurrent}
+                onChange={e => { setSecCurrent(e.target.value); if (secError) setSecError(''); }} />
+            </div>
+            {secError && <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{secError}</div>}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn-ghost" type="submit" style={{ color: 'var(--danger)', borderColor: '#fca5a5' }} disabled={secBusy}>
+                {secBusy ? <><span className="spin" />&nbsp;{t('Quitando…')}</> : t('Sí, quitar la contraseña')}
+              </button>
+              <button className="btn-ghost" type="button" onClick={resetSecForm}>{t('Cancelar')}</button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* ── Asistente IA ── */}

@@ -1,8 +1,10 @@
 import { useI18n } from '../i18n';
 import { useEffect, useState } from 'react';
-import { Sparkles, Plus, ArrowRight, Trash2, HardDrive } from 'lucide-react';
+import { Sparkles, Plus, ArrowRight, Trash2, HardDrive, Lock } from 'lucide-react';
 import { listProfiles, deleteProfile, isDesktop, type TeacherProfile } from '../services/storage';
 import { initials } from '../lib/utils';
+import { verifyPassword } from '../lib/password';
+import { Modal } from '../components/ui/Modal';
 
 interface Props {
   onOpenProfile: (id: string) => void;
@@ -37,6 +39,31 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  /* ── Desbloquear un perfil con contraseña ── */
+  const [unlocking, setUnlocking] = useState<TeacherProfile | null>(null);
+  const [unlockPassword, setUnlockPassword] = useState('');
+  const [unlockError, setUnlockError] = useState('');
+  const [unlockBusy, setUnlockBusy] = useState(false);
+
+  function openOrUnlock(p: TeacherProfile) {
+    if (!p.passwordHash || !p.passwordSalt) { onOpenProfile(p.id); return; }
+    setUnlocking(p);
+    setUnlockPassword('');
+    setUnlockError('');
+  }
+
+  async function submitUnlock(e: React.FormEvent) {
+    e.preventDefault();
+    if (!unlocking?.passwordHash || !unlocking.passwordSalt) return;
+    setUnlockBusy(true);
+    const ok = await verifyPassword(unlockPassword, unlocking.passwordSalt, unlocking.passwordHash);
+    setUnlockBusy(false);
+    if (!ok) { setUnlockError(t('Contraseña incorrecta.')); return; }
+    const id = unlocking.id;
+    setUnlocking(null);
+    onOpenProfile(id);
+  }
 
   const [name, setName]       = useState('');
   const [school, setSchool]   = useState('');
@@ -194,7 +221,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         {profiles.map(p => (
           <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
-              onClick={() => onOpenProfile(p.id)}
+              onClick={() => openOrUnlock(p)}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px',
                 background: 'white', border: '1.5px solid var(--border)', borderRadius: 12,
@@ -213,8 +240,9 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
                 {initials(p.name)}
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {p.name}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 800, color: 'var(--text)', overflow: 'hidden' }}>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                  {p.passwordHash && <Lock size={11} color="var(--text-3)" style={{ flexShrink: 0 }} />}
                 </span>
                 <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {[p.subject, p.school, p.course].filter(Boolean).join(' · ') || t('Sin datos adicionales')}
@@ -266,6 +294,36 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
           {t('Cada perfil guarda sus datos en su propia carpeta de este equipo.')}
         </p>
       )}
+
+      {/* Contraseña del perfil, si tiene una fijada en Mi Perfil → Seguridad */}
+      <Modal open={!!unlocking} onClose={() => setUnlocking(null)} title={
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Lock size={16} color="var(--accent-d)" />{t('Perfil protegido')}
+        </span>
+      }>
+        <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 16 }}>
+          {t('Introduce la contraseña de {name} para continuar.', { name: unlocking?.name ?? '' })}
+        </p>
+        <form onSubmit={submitUnlock}>
+          <div className="fgroup">
+            <input
+              className="finput" type="password" autoFocus
+              value={unlockPassword}
+              onChange={e => { setUnlockPassword(e.target.value); if (unlockError) setUnlockError(''); }}
+              placeholder={t('Contraseña')}
+            />
+          </div>
+          {unlockError && (
+            <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{unlockError}</div>
+          )}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+            <button type="button" className="btn-ghost" onClick={() => setUnlocking(null)}>{t('Cancelar')}</button>
+            <button type="submit" className="btn-accent" disabled={unlockBusy || !unlockPassword}>
+              {unlockBusy ? <><span className="spin" />&nbsp;{t('Comprobando…')}</> : t('Entrar')}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }
