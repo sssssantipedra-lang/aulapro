@@ -144,6 +144,17 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
             {t('Diseñada sobre el currículo educativo español (LOMLOE)')}
           </p>
         )}
+
+        {/* Versión instalada — útil sobre todo para saber si hace falta
+            actualizar a mano (Mac, o si la auto-actualización aún no llegó). */}
+        {!mini && (
+          <p style={{
+            fontSize: 10, color: 'rgba(255,255,255,0.28)',
+            margin: '4px 4px 0', textAlign: 'center',
+          }}>
+            Aula Pro v{__APP_VERSION__}
+          </p>
+        )}
       </div>
     </aside>
   );
