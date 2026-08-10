@@ -350,7 +350,9 @@ export async function generateFicha(
     if (!content) return null;
 
     if (req.incluirImagen) {
-      const img = await generateImage(buildImagePrompt(req.tema, req.area));
+      const img = await generateImage(buildImagePrompt(req.tema, req.area), imageErrorMsg => {
+        callbacks.onError?.(`La ficha se generó bien, pero la ilustración no: ${imageErrorMsg}`);
+      });
       if (img) content.imagen = img;
     }
     return content;
@@ -384,7 +386,9 @@ export async function generateFichaFromSda(
     if (!content) return null;
 
     if (opts.incluirImagen) {
-      const img = await generateImage(buildImagePrompt(sda.titulo, areaData?.area ?? area));
+      const img = await generateImage(buildImagePrompt(sda.titulo, areaData?.area ?? area), imageErrorMsg => {
+        callbacks.onError?.(`La ficha se generó bien, pero la ilustración no: ${imageErrorMsg}`);
+      });
       if (img) content.imagen = img;
     }
     return content;

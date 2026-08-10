@@ -224,18 +224,25 @@ const IMAGE_MODEL = 'gemini-2.5-flash-image';
 /**
  * Genera una ilustración con IA a partir de una descripción. Pensada para un
  * uso decorativo, no crítico (una imagen de cabecera en una ficha, por
- * ejemplo): si falla por lo que sea —cuota agotada, el modelo no está
- * disponible con esta clave, sin conexión, la forma de la respuesta cambia—
- * devuelve `null` en silencio. Quien la llama debe seguir funcionando
- * perfectamente sin imagen; nunca debe depender de que esto funcione.
+ * ejemplo): pase lo que pase, quien la llama sigue funcionando
+ * perfectamente sin imagen — nunca debe depender de que esto funcione, así
+ * que un fallo nunca lanza ni bloquea nada, solo devuelve `null`.
  *
- * Implementada a partir de la documentación pública de la API, sin haber
- * podido probarla contra el servicio real de Google en este equipo.
+ * Eso sí, el motivo del fallo SÍ se avisa por `onError` (a diferencia de un
+ * primer intento que lo tragaba en silencio): sin eso, un fallo real contra
+ * el servicio —cuota, el modelo no disponible con esta clave, la forma de
+ * la respuesta cambia— era indistinguible de "no lo pediste", y no había
+ * forma de saber qué ajustar.
+ *
+ * Implementada a partir de la documentación pública de la API; la primera
+ * vez que se usó de verdad (fuera de este equipo, donde no hay clave para
+ * probarla) no llegó a generar ninguna imagen — con este aviso puesto ya se
+ * puede ver el motivo exacto en vez de tener que adivinarlo.
  */
-export async function generateImage(prompt: string): Promise<GeneratedImage | null> {
+export async function generateImage(prompt: string, onError?: (message: string) => void): Promise<GeneratedImage | null> {
   try {
     const key = getApiKey();
-    if (!key) return null;
+    if (!key) { onError?.('Configura tu clave API gratuita de Google en Mi Perfil para generar ilustraciones.'); return null; }
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${key}`,
@@ -248,17 +255,25 @@ export async function generateImage(prompt: string): Promise<GeneratedImage | nu
         }),
       },
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: { message?: string } };
+      onError?.(friendlyError(res.status, err?.error?.message ?? ''));
+      return null;
+    }
 
     const data = await res.json() as {
       candidates?: { content?: { parts?: { inlineData?: { data?: string; mimeType?: string } }[] } }[];
     };
     const part = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data);
     const inline = part?.inlineData;
-    if (!inline?.data || !inline?.mimeType) return null;
+    if (!inline?.data || !inline?.mimeType) {
+      onError?.('El modelo de imagen no devolvió ninguna ilustración.');
+      return null;
+    }
 
     return { base64: inline.data, mimeType: inline.mimeType };
   } catch {
+    onError?.('No se pudo generar la ilustración: sin conexión o el servicio no responde.');
     return null;
   }
 }
