@@ -3,7 +3,7 @@ import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
-  LearningSituation,
+  LearningSituation, Ficha,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
@@ -44,6 +44,7 @@ interface ProfileSnapshot {
   reports: CompetencyReport[];
   selfAssessments: SelfAssessmentSession[];
   learningSituations: LearningSituation[];
+  fichas: Ficha[];
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -55,6 +56,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
+    fichas: [],
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -112,6 +114,7 @@ export function useAppState() {
   const [reports, setReports]                 = useState<CompetencyReport[]>([]);
   const [selfAssessments, setSelfAssessments] = useState<SelfAssessmentSession[]>([]);
   const [learningSituations, setLearningSituations] = useState<LearningSituation[]>([]);
+  const [fichas, setFichas]                   = useState<Ficha[]>([]);
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -140,6 +143,7 @@ export function useAppState() {
     setReports(s.reports);
     setSelfAssessments(s.selfAssessments);
     setLearningSituations(s.learningSituations);
+    setFichas(s.fichas);
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -176,11 +180,11 @@ export function useAppState() {
   const snapshot = useMemo<ProfileSnapshot>(() => ({
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
-    dianaProfiles, attendance, reports, selfAssessments, learningSituations,
+    dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
     tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
-      attendance, reports, selfAssessments, learningSituations,
+      attendance, reports, selfAssessments, learningSituations, fichas,
       tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
@@ -274,10 +278,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations };
-  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -643,6 +647,25 @@ export function useAppState() {
       `Situación de aprendizaje «${gone?.title ?? id}»`);
   }, [log]);
 
+  /* ── Recursos: fichas de trabajo ── */
+
+  const saveFicha = useCallback((f: Ficha) => {
+    let esNueva = false;
+    setFichas(prev => {
+      const i = prev.findIndex(x => x.id === f.id);
+      if (i < 0) { esNueva = true; return [f, ...prev]; }
+      return prev.map((x, j) => (j === i ? f : x));
+    });
+    log(esNueva ? 'create' : 'update', 'ficha', f.id,
+      `Ficha «${f.title}»`, f.class_name ? `para ${f.class_name}` : undefined);
+  }, [log]);
+
+  const deleteFicha = useCallback((id: string) => {
+    const gone = mirrorRef.current.fichas.find(f => f.id === id);
+    setFichas(prev => prev.filter(f => f.id !== id));
+    log('delete', 'ficha', id, `Ficha «${gone?.title ?? id}»`);
+  }, [log]);
+
   /**
    * Pasa una sesión al Historial como evaluaciones.
    *
@@ -809,6 +832,7 @@ export function useAppState() {
     addReport, updateReport, deleteReport,
     selfAssessments, saveSelfAssessment, deleteSelfAssessment, includeSelfAssessment,
     learningSituations, saveLearningSituation, deleteLearningSituation,
+    fichas, saveFicha, deleteFicha,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

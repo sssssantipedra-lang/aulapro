@@ -467,9 +467,36 @@ export interface LearningSituation {
   content: import('../services/learningSituations').SdaContent;
 }
 
+/**
+ * Una ficha de trabajo guardada — el primer tipo de recurso del motor de
+ * materiales pedagógicos. `sda_id`/`sda_title` solo están cuando la ficha se
+ * generó anclada a una Situación de Aprendizaje (ver `generateFichaFromSda`
+ * en `services/resources.ts`); las sueltas los dejan sin definir.
+ */
+export interface Ficha {
+  id: string;
+  at: string;
+  date: string;
+  class_id?: string;
+  class_name?: string;
+  sda_id?: string;
+  sda_title?: string;
+  title: string;
+  request: {
+    tema: string;
+    area: string;
+    nivel: string;
+    numEjercicios: number;
+    /** Si se pidieron variantes de apoyo/ampliación por ejercicio. */
+    niveles: boolean;
+    contextoClase: string;
+  };
+  content: import('../services/resources').FichaContent;
+}
+
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
-  | 'learning-situations';
+  | 'learning-situations' | 'resources';

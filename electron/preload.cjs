@@ -24,7 +24,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   /** Documentos imprimibles: se abren en una ventana aparte, solo el documento. */
   docs: {
-    savePdf: (html, suggestedName) => ipcRenderer.invoke('docs:savePdf', { html, suggestedName }),
+    // `landscape` es opcional: sin indicarlo, sale horizontal (como las actas
+    // y la SdA); una ficha de trabajo pide `{ landscape: false }`.
+    savePdf: (html, suggestedName, opts) => ipcRenderer.invoke('docs:savePdf', { html, suggestedName, landscape: opts?.landscape }),
     print:   html                   => ipcRenderer.invoke('docs:print', { html }),
     reveal:  filePath               => ipcRenderer.invoke('docs:reveal', filePath),
   },

@@ -29,6 +29,7 @@ const ClassroomLive  = lazy(() => import('./pages/ClassroomLive').then(m => ({ d
 const Attendance     = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
 const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 const LearningSituations = lazy(() => import('./pages/LearningSituations').then(m => ({ default: m.LearningSituations })));
+const Resources      = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
 
 function Loading() {
   const { t } = useI18n();
@@ -324,6 +325,16 @@ function AppInner() {
                 onDelete={id => { st.deleteLearningSituation(id); toast(t('Situación de aprendizaje eliminada')); }}
                 onAddRubric={r => { st.addRubric(r); }}
                 onAddDiana={d => { st.addDiana(d); }}
+                onAddFicha={f => { st.saveFicha(f); }}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
+            {section === 'resources' && (
+              <Resources
+                classes={st.classes}
+                fichas={st.fichas}
+                onSave={f => { st.saveFicha(f); }}
+                onDelete={id => { st.deleteFicha(id); toast(t('Ficha eliminada')); }}
                 onNav={s => setSection(s as Section)}
               />
             )}

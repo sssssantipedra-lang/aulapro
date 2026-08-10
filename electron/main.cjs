@@ -67,14 +67,16 @@ async function withDocumentWindow(html, fn) {
 }
 
 function registerDocumentIpc() {
-  ipcMain.handle('docs:savePdf', async (_e, { html, suggestedName }) => {
+  ipcMain.handle('docs:savePdf', async (_e, { html, suggestedName, landscape }) => {
     try {
       return await withDocumentWindow(html, async win => {
-        // Horizontal: el acta lleva una columna por categoría y en vertical se
-        // queda estrecha en cuanto hay tres o cuatro.
+        // Horizontal por defecto: el acta lleva una columna por categoría y
+        // en vertical se queda estrecha en cuanto hay tres o cuatro (igual
+        // que la ficha de la SdA). Quien llame puede pedir vertical —una
+        // ficha de trabajo, por ejemplo— pasando `landscape: false`.
         const pdf = await win.webContents.printToPDF({
           pageSize: 'A4',
-          landscape: true,
+          landscape: landscape ?? true,
           printBackground: true,
           margins: { top: 0.5, bottom: 0.5, left: 0.55, right: 0.55 },
         });

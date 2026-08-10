@@ -1192,6 +1192,44 @@ const EN: Record<string, string> = {
   'Descargando la actualización {version}…': 'Downloading update {version}…',
   'Hay una versión nueva ({version}) lista para instalar': 'A new version ({version}) is ready to install',
   'Reiniciar y actualizar': 'Restart and update',
+
+  /* ── Recursos: fichas de trabajo ── */
+  'Genera fichas de trabajo con ayuda de la IA': 'Generate worksheets with AI help',
+  'Para generar recursos hace falta la clave gratuita de Google que se configura en Mi Perfil.':
+    'Generating resources needs the free Google key set up in My Profile.',
+  'Qué ficha quieres generar': 'What worksheet you want to generate',
+  'Tema de la ficha': 'Worksheet topic',
+  'Ej: las fracciones equivalentes': 'e.g. equivalent fractions',
+  'Área o asignatura': 'Subject / area',
+  'Nº de ejercicios': 'No. of exercises',
+  'Cómo es el grupo (opcional)': 'What the group is like (optional)',
+  'Incluir variantes de apoyo y ampliación por ejercicio': 'Include support and extension variants per exercise',
+  'Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.':
+    'Useful as a reference for different paces; they aren’t exported in the printed worksheet, only shown here.',
+  'Generando la ficha…': 'Generating the worksheet…',
+  'Generar ficha': 'Generate worksheet',
+  'Escribe el tema de la ficha': 'Write the worksheet topic',
+  'La IA no devolvió una ficha válida. Vuelve a intentarlo.': 'The AI didn’t return a valid worksheet. Try again.',
+  'Ficha de trabajo': 'Worksheet',
+  'Instrucciones': 'Instructions',
+  'Ejercicios': 'Exercises',
+  'Solución': 'Answer',
+  'Apoyo': 'Support',
+  'Ampliación': 'Extension',
+  'Respuesta abierta': 'Open answer',
+  'Completar': 'Fill in the blank',
+  'Opción múltiple': 'Multiple choice',
+  'Problema': 'Problem',
+  'Ficha guardada': 'Worksheet saved',
+  'Mis fichas': 'My worksheets',
+  'desde «{title}»': 'from «{title}»',
+  'Ficha eliminada': 'Worksheet deleted',
+  'Ficha de esta SdA': 'Worksheet for this unit',
+  'Genera una ficha de ejercicios a partir de los saberes básicos de un área. Se guarda en Recursos, lista para imprimir.':
+    'Generate a worksheet of exercises from an area’s core content. It’s saved in Resources, ready to print.',
+  'Llevar a Recursos': 'Send to Resources',
+  'Ficha creada en Recursos': 'Worksheet created in Resources',
+  'Título': 'Title',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

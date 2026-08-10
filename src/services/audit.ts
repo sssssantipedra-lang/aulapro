@@ -16,7 +16,7 @@ export type AuditEntity =
   | 'class' | 'student'
   | 'grade' | 'gradeItem' | 'gradeCategory'
   | 'evaluation' | 'attendance' | 'report'
-  | 'rubric' | 'diana' | 'learningSituation'
+  | 'rubric' | 'diana' | 'learningSituation' | 'ficha'
   | 'sync' | 'system';
 
 export interface AuditEntry {
@@ -88,6 +88,7 @@ export const ENTITY_LABEL: Record<AuditEntity, string> = {
   rubric: 'Rúbrica',
   diana: 'Diana',
   learningSituation: 'Situación de aprendizaje',
+  ficha: 'Ficha de trabajo',
   sync: 'Sincronización',
   system: 'Sistema',
 };
@@ -95,7 +96,7 @@ export const ENTITY_LABEL: Record<AuditEntity, string> = {
 /** Grupos del filtro, para no acabar con doce casillas. */
 export const ENTITY_GROUPS: { id: string; label: string; entities: AuditEntity[] }[] = [
   { id: 'grades',  label: 'Calificaciones', entities: ['grade', 'gradeItem', 'gradeCategory'] },
-  { id: 'evals',   label: 'Evaluación',   entities: ['evaluation', 'rubric', 'diana', 'report', 'learningSituation'] },
+  { id: 'evals',   label: 'Evaluación',   entities: ['evaluation', 'rubric', 'diana', 'report', 'learningSituation', 'ficha'] },
   { id: 'people',  label: 'Clases',       entities: ['class', 'student'] },
   { id: 'attend',  label: 'Asistencia',   entities: ['attendance'] },
   { id: 'sync',    label: 'Compartido',   entities: ['sync', 'system'] },

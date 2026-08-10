@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
-  FileDown, FileType2, Target,
+  FileDown, FileType2, Target, Layers,
 } from 'lucide-react';
-import type { Class, LearningSituation, Rubric, EvalDiana, GradeCategory } from '../types';
+import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
 } from '../services/learningSituations';
+import { generateFichaFromSda, type FichaContent } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
@@ -28,6 +29,7 @@ interface Props {
   onDelete: (id: string) => void;
   onAddRubric: (r: Rubric) => void;
   onAddDiana: (d: EvalDiana) => void;
+  onAddFicha: (f: Ficha) => void;
   onNav: (s: string) => void;
 }
 
@@ -60,7 +62,7 @@ function Field({
 
 export function LearningSituations({
   classes, gradeCategories, learningSituations, teacherName,
-  onSave, onDelete, onAddRubric, onAddDiana, onNav,
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -104,6 +106,14 @@ export function LearningSituations({
   const [dianaClassId, setDianaClassId] = useState('');
   const [dianaSubject, setDianaSubject] = useState('');
   const [dianaCategory, setDianaCategory] = useState('');
+
+  /* ── Ficha ── */
+  const [fichaContent, setFichaContent] = useState<FichaContent | null>(null);
+  const [fichaArea, setFichaArea] = useState('');
+  const [fichaNumEjercicios, setFichaNumEjercicios] = useState(6);
+  const [fichaNiveles, setFichaNiveles] = useState(false);
+  const [fichaDetails, setFichaDetails] = useState('');
+  const [fichaBusy, setFichaBusy] = useState(false);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
@@ -159,6 +169,8 @@ export function LearningSituations({
     setEditingId(null);
     setRubricRows(null);
     setDianaRows(null);
+    setFichaContent(null);
+    setFichaArea(result.areas[0]?.area ?? '');
   }
 
   function patch(k: keyof SdaContent, v: string) {
@@ -245,11 +257,14 @@ export function LearningSituations({
     setMetodologia(s.request.metodologia);
     setRubricRows(null);
     setDianaRows(null);
+    setFichaContent(null);
+    setFichaArea(s.content.areas[0]?.area ?? '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function resetAll() {
     setContent(null); setEditingId(null); setRubricRows(null); setDianaRows(null);
+    setFichaContent(null);
     setIdea(''); setDocs([]);
   }
 
@@ -337,6 +352,47 @@ export function LearningSituations({
   const dianaCategories = gradeCategories.filter(
     c => c.class_id === dianaClassId && (!dianaSubject || (c.subject ?? dianaSubjects[0]) === dianaSubject),
   );
+
+  /* ── Ficha ── */
+  async function handleFicha() {
+    if (!content) return;
+    const result = await generateFichaFromSda(
+      content, fichaArea || content.areas[0]?.area || '',
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails },
+      lang,
+      { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
+    );
+    if (!result?.ejercicios.length) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    setFichaContent(result);
+  }
+
+  /**
+   * Lleva la ficha generada a Recursos. A diferencia de la rúbrica y la
+   * diana, una ficha no reparte nota: no hace falta preguntar dónde se
+   * guarda, se crea directamente con la clase de la SdA (si tenía) y queda
+   * en el historial de Recursos.
+   */
+  function createFicha() {
+    if (!fichaContent || !content) return;
+    const ficha: Ficha = {
+      id: 'fic' + Date.now().toString(36),
+      at: new Date().toISOString(),
+      date: isoDate(),
+      class_id: classId || undefined,
+      class_name: activeClass?.name,
+      sda_id: editingId ?? undefined,
+      sda_title: content.titulo,
+      title: fichaContent.titulo || content.titulo || t('Ficha de trabajo'),
+      request: {
+        tema: content.titulo, area: fichaArea || content.areas[0]?.area || '',
+        nivel, numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, contextoClase,
+      },
+      content: fichaContent,
+    };
+    onAddFicha(ficha);
+    setFichaContent(null);
+    toast(t('Ficha creada en Recursos'));
+  }
 
   const sinClave = !hasApiKey();
 
@@ -758,6 +814,65 @@ export function LearningSituations({
                 onClick={() => { setDianaClassId(classId); setDianaSubject(areas[0] ?? ''); setDianaModal(true); }}
               >
                 <ArrowRight size={14} />{t('Llevar a Dianas')}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ══ Ficha ══ */}
+      {content && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card-hd">
+            <div className="card-ttl"><Layers size={14} color="var(--accent-d)" />{t('Ficha de esta SdA')}</div>
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
+            {t('Genera una ficha de ejercicios a partir de los saberes básicos de un área. Se guarda en Recursos, lista para imprimir.')}
+          </p>
+          {content.areas.length > 1 && (
+            <div className="fgroup">
+              <label className="flabel">{t('Área')}</label>
+              <select className="finput" value={fichaArea} onChange={e => setFichaArea(e.target.value)}>
+                {content.areas.map(a => <option key={a.area} value={a.area}>{a.area}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="frow">
+            <div className="fgroup">
+              <label className="flabel">{t('Nº de ejercicios')}</label>
+              <input
+                className="finput" type="number" min={1} max={20} value={fichaNumEjercicios}
+                onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+              />
+            </div>
+            <div className="fgroup">
+              <label className="flabel">{t('Algo más que quieras que valore (opcional)')}</label>
+              <input className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
+            </div>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 14 }}>
+            <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
+            {t('Incluir variantes de apoyo y ampliación por ejercicio')}
+          </label>
+          <button className="btn-ghost" disabled={fichaBusy || sinClave} onClick={handleFicha}>
+            {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar ficha')}</>}
+          </button>
+
+          {fichaContent && (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
+                {fichaContent.ejercicios.map((ex, i) => (
+                  <div key={i} style={{
+                    padding: '10px 13px', borderRadius: 9,
+                    background: 'var(--surface)', border: '0.5px solid var(--border)',
+                    fontSize: 12.5, color: 'var(--text)', lineHeight: 1.55,
+                  }}>
+                    <strong>{i + 1}.</strong> {ex.enunciado}
+                  </div>
+                ))}
+              </div>
+              <button className="btn-accent" style={{ marginTop: 14 }} onClick={createFicha}>
+                <ArrowRight size={14} />{t('Llevar a Recursos')}
               </button>
             </>
           )}

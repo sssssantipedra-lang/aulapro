@@ -44,17 +44,6 @@ export interface ClassroomBridge {
   onUpdate: (cb: (snapshot: ClassroomSnapshot) => void) => () => void;
 }
 
-export interface DocsBridge {
-  /** Genera el PDF y abre el diálogo de guardar. */
-  savePdf: (html: string, suggestedName?: string) =>
-    Promise<{ ok?: boolean; path?: string; canceled?: boolean; error?: string }>;
-  /** Abre el diálogo de impresión del sistema con el documento solo. */
-  print: (html: string) =>
-    Promise<{ ok?: boolean; canceled?: boolean; reason?: string; error?: string }>;
-  /** Muestra el archivo recién guardado en el explorador. */
-  reveal: (filePath: string) => Promise<void>;
-}
-
 /** Resultado de guardar o imprimir un documento. */
 export interface DocsResult {
   ok?: boolean;
@@ -67,8 +56,12 @@ export interface DocsResult {
 }
 
 export interface DocsBridge {
-  /** Genera el PDF y pregunta dónde guardarlo. Sin diálogo de impresora. */
-  savePdf: (html: string, suggestedName?: string) => Promise<DocsResult>;
+  /**
+   * Genera el PDF y pregunta dónde guardarlo. Sin diálogo de impresora.
+   * `landscape` por defecto es `true` (como las actas y la SdA); pásalo en
+   * `false` para un documento vertical, como una ficha de trabajo.
+   */
+  savePdf: (html: string, suggestedName?: string, opts?: { landscape?: boolean }) => Promise<DocsResult>;
   /** Abre el diálogo de impresión del sistema con el documento solo. */
   print: (html: string) => Promise<DocsResult>;
   /** Muestra el archivo en el explorador. */
