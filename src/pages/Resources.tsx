@@ -127,6 +127,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [generating, setGenerating] = useState(false);
   const [content, setContent] = useState<FichaContent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  /**
+   * Motivo del fallo de la ilustración, si lo hubo — aparte del toast (que
+   * desaparece a los pocos segundos y es fácil no llegar a verlo), esto se
+   * queda escrito junto a la ficha hasta la próxima generación.
+   */
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
 
@@ -139,6 +145,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   /* ── Generar ── */
   async function handleGenerate() {
     if (!tema.trim()) { toast(t('Escribe el tema de la ficha')); return; }
+    setImageError(null);
 
     const result = await generateFicha({
       tema: tema.trim(), area, nivel, numEjercicios, niveles, contextoClase, incluirImagen,
@@ -146,6 +153,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
       onError: m => toast(m),
+      onImageError: m => { setImageError(m); toast(m); },
     });
 
     if (!result) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
@@ -219,11 +227,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     setNiveles(f.request.niveles);
     setContextoClase(f.request.contextoClase);
     setIncluirImagen(!!f.content.imagen);
+    setImageError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function resetAll() {
-    setContent(null); setEditingId(null); setTema('');
+    setContent(null); setEditingId(null); setTema(''); setImageError(null);
   }
 
   const sinClave = !hasApiKey();
@@ -371,6 +380,16 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
               src={`data:${content.imagen.mimeType};base64,${content.imagen.base64}`} alt=""
               style={{ width: 96, height: 96, objectFit: 'contain', borderRadius: 12, float: 'right', marginLeft: 12 }}
             />
+          )}
+          {!content.imagen && imageError && (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, lineHeight: 1.5,
+              color: '#b45309', background: '#fef3c7',
+              border: '1px solid #f59e0b', borderRadius: 8, padding: '8px 12px', marginBottom: 14,
+            }}>
+              <ImagePlus size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>{imageError}</span>
+            </div>
           )}
 
           <div className="fgroup">
