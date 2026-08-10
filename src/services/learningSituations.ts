@@ -89,6 +89,49 @@ const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
 
 const S = (d: string) => ({ type: 'STRING', description: d });
 
+/**
+ * Sin `required`, el modelo trata cada campo del esquema como opcional y, con
+ * uno tan grande como este (17 campos más dos listas anidadas), tiende a
+ * rellenar solo el primero y dar el resto por completado con una cadena
+ * vacía: el JSON sale válido —por eso no salta ningún error— pero disperso.
+ * Se marca aquí, en cada nivel, qué campos son obligatorios, y también el
+ * orden en que deben escribirse (`propertyOrdering`): sin orden explícito el
+ * modelo puede escribirlos en cualquiera, y algunos —como las sesiones,
+ * mejor las últimas— rinden peor si se piden antes de tener ya decidido todo
+ * lo anterior.
+ */
+const SDA_AREA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    area: S('Nombre del área o asignatura'),
+    competenciasEspecificas: S('De 2 a 4, no más'),
+    criteriosEvaluacion: S('Criterios de evaluación asociados'),
+    saberesBasicos: S('De 2 a 4, no más'),
+  },
+  required: ['area', 'competenciasEspecificas', 'criteriosEvaluacion', 'saberesBasicos'],
+  propertyOrdering: ['area', 'competenciasEspecificas', 'criteriosEvaluacion', 'saberesBasicos'],
+} as const;
+
+const SDA_SESSION_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    fase: S('Activación, Desarrollo, Consolidación o Producto final'),
+    titulo: S('Título corto de la sesión'),
+    descripcion: S('Qué se hace, en dos o tres frases'),
+  },
+  required: ['fase', 'titulo', 'descripcion'],
+  propertyOrdering: ['fase', 'titulo', 'descripcion'],
+} as const;
+
+const SDA_FIELDS = [
+  'titulo', 'justificacion', 'ods', 'objetivosEtapa', 'competenciasClave',
+  'explicacionCurricular', 'areas',
+  'inclusionUniversal', 'inclusionAdicional', 'inclusionIndividualizada',
+  'metodologia', 'agrupamiento', 'recursos', 'productoFinal',
+  'evaluacionTecnicas', 'evaluacionInstrumentos',
+  'sesiones',
+] as const;
+
 const SDA_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -98,58 +141,42 @@ const SDA_SCHEMA = {
     objetivosEtapa: S('Objetivos de etapa que se trabajan'),
     competenciasClave: S('Competencias clave LOMLOE implicadas, con su abreviatura'),
     explicacionCurricular: S('Lista enumerada que justifica al docente cada elección curricular'),
-    areas: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          area: S('Nombre del área o asignatura'),
-          competenciasEspecificas: S('De 2 a 4, no más'),
-          criteriosEvaluacion: S('Criterios de evaluación asociados'),
-          saberesBasicos: S('De 2 a 4, no más'),
-        },
-      },
-    },
+    areas: { type: 'ARRAY', items: SDA_AREA_SCHEMA },
     inclusionUniversal: S('Medidas para todo el grupo (DUA)'),
     inclusionAdicional: S('Medidas para quien necesite apoyo puntual'),
     inclusionIndividualizada: S('Medidas para necesidades específicas'),
-    sesiones: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          fase: S('Activación, Desarrollo, Consolidación o Producto final'),
-          titulo: S('Título corto de la sesión'),
-          descripcion: S('Qué se hace, en dos o tres frases'),
-        },
-      },
-    },
     metodologia: S('Metodologías activas empleadas'),
     agrupamiento: S('Cómo se agrupa al alumnado'),
     recursos: S('Materiales y recursos necesarios'),
     productoFinal: S('Producto o desempeño final'),
     evaluacionTecnicas: S('Técnicas de evaluación'),
     evaluacionInstrumentos: S('Instrumentos de evaluación'),
+    // Al final: son la parte más larga, mejor una vez decidido todo lo demás.
+    sesiones: { type: 'ARRAY', items: SDA_SESSION_SCHEMA },
   },
+  required: SDA_FIELDS,
+  propertyOrdering: SDA_FIELDS,
+} as const;
+
+const RUBRIC_ROW_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    criterio: S('Criterio de desempeño, citando la competencia específica'),
+    nivel1: S('Descriptor del nivel más bajo'),
+    nivel2: S('Descriptor del segundo nivel'),
+    nivel3: S('Descriptor del tercer nivel'),
+    nivel4: S('Descriptor del nivel más alto'),
+  },
+  required: ['criterio', 'nivel1', 'nivel2', 'nivel3', 'nivel4'],
+  propertyOrdering: ['criterio', 'nivel1', 'nivel2', 'nivel3', 'nivel4'],
 } as const;
 
 const RUBRIC_SCHEMA = {
   type: 'OBJECT',
   properties: {
-    rubrica: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          criterio: S('Criterio de desempeño, citando la competencia específica'),
-          nivel1: S('Descriptor del nivel más bajo'),
-          nivel2: S('Descriptor del segundo nivel'),
-          nivel3: S('Descriptor del tercer nivel'),
-          nivel4: S('Descriptor del nivel más alto'),
-        },
-      },
-    },
+    rubrica: { type: 'ARRAY', items: RUBRIC_ROW_SCHEMA },
   },
+  required: ['rubrica'],
 } as const;
 
 /* ── Análisis de documentos de apoyo ── */
