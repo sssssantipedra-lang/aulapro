@@ -20,23 +20,6 @@ const MODELS = [
   'gemini-2.0-flash',
 ] as const;
 
-/**
- * Para las peticiones que de verdad piensan, no solo redactan.
- *
- * Una situación de aprendizaje entera —justificación curricular, competencias,
- * saberes y todas las sesiones— es la petición más exigente de la aplicación, y
- * ahí un modelo ligero se nota. Empieza por el mejor y, si la clave gratuita del
- * docente no lo admite o agota su cuota, cae por la escalera de siempre: mejor
- * una SdA correcta de un modelo más sencillo que un error.
- *
- * No se usa en el resto de la aplicación: gasta bastante más por llamada y para
- * traducir una rúbrica o leer un horario los ligeros van sobrados.
- */
-export const DEEP_MODELS = [
-  'gemini-3.1-pro-preview',
-  ...MODELS,
-] as const;
-
 export function getApiKey(): string {
   try { return (localStorage.getItem(KEY_STORAGE) ?? '').trim(); } catch { return ''; }
 }
@@ -164,11 +147,10 @@ export async function callGemini(
         if ('text' in result) return result.text;
 
         lastError = friendlyError(result.status, result.message);
-        // Solo un 400 (clave con formato inválido) para toda la cadena: eso
-        // fallaría igual en cualquier modelo. Un 403 aquí no siempre significa
-        // que la clave esté mal — con DEEP_MODELS puede ser que la clave
-        // gratuita simplemente no tenga acceso a un modelo concreto en vista
-        // previa, y el siguiente de la lista sí funcione.
+        // Solo un 400 (clave con formato inválido) detiene toda la cadena: eso
+        // fallaría igual en cualquier modelo. Un 403 aquí no tiene por qué
+        // significar que la clave esté mal en general, solo que le falta
+        // acceso a ese modelo concreto — se prueba con el siguiente.
         if (result.status === 400) break;
         // 403 (sin acceso a ESTE modelo), 404 (no disponible) o 429 (cuota):
         // probar el siguiente.

@@ -13,7 +13,7 @@
  * enumerada dirigida al docente, no al alumnado.
  */
 
-import { callGemini, parseGeminiJson, DEEP_MODELS, type InlineFile } from './gemini';
+import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 
 /* ── Lo que devuelve la IA ── */
@@ -216,7 +216,6 @@ export async function generateSda(
     `Rellena todos los campos del JSON de salida.`;
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
-    models: DEEP_MODELS,
     // Una SdA entera no cabe en el tope de siempre: se cortaría a media frase
     // y el JSON llegaría roto.
     maxOutputTokens: 16384,
@@ -263,7 +262,6 @@ export async function generateSdaRubric(
     `\nGenera de 3 a 5 criterios de rúbrica.`;
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
-    models: DEEP_MODELS,
     maxOutputTokens: 8192,
     responseSchema: RUBRIC_SCHEMA,
   });
