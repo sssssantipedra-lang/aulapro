@@ -269,6 +269,7 @@ export function LearningSituations({
         id: `c${Date.now().toString(36)}${i}`,
         name: r.criterio,
         descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
+        competencies: r.competencias,
       })),
       class_id: rubricClassId || undefined,
       subject: rubricSubject || undefined,
@@ -608,7 +609,19 @@ export function LearningSituations({
                   <tbody>
                     {rubricRows.map((r, i) => (
                       <tr key={i}>
-                        <td style={{ fontWeight: 700 }}>{r.criterio}</td>
+                        <td style={{ fontWeight: 700 }}>
+                          {r.criterio}
+                          {r.competencias?.length > 0 && (
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 5 }}>
+                              {r.competencias.map(code => (
+                                <span key={code} style={{
+                                  fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
+                                  background: 'var(--accent-l)', color: 'var(--accent-d)',
+                                }}>{code}</span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
                         <td>{r.nivel1}</td>
                         <td>{r.nivel2}</td>
                         <td>{r.nivel3}</td>

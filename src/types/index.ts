@@ -222,6 +222,43 @@ export function gradeFromLevels(
   return Math.round((sum / weight) * 10 * 10) / 10;
 }
 
+/**
+ * Nota por competencia, a partir de los criterios de una rúbrica.
+ *
+ * Un criterio puede evaluar varias competencias a la vez (o ninguna, si la
+ * rúbrica es de las de siempre y no las trae). La nota de cada competencia es
+ * la media de los criterios que la mencionan, en la escala 1-4 de siempre:
+ * las únicas rúbricas que hoy traen `competencies` son las que genera una
+ * Situación de Aprendizaje, y esas usan siempre los cuatro niveles clásicos.
+ *
+ * Devuelve `undefined` —no un objeto vacío— cuando ningún criterio tiene
+ * competencias, para no ensuciar con un campo inútil las evaluaciones de
+ * rúbricas normales.
+ */
+export function competencyScoresFor(
+  criteria: RubricCriterion[],
+  scores: Record<string, number>,
+): Record<string, number> | undefined {
+  const sums: Record<string, number> = {};
+  const counts: Record<string, number> = {};
+
+  for (const cr of criteria) {
+    const v = scores[cr.id];
+    if (typeof v !== 'number' || v <= 0 || !cr.competencies?.length) continue;
+    for (const code of cr.competencies) {
+      sums[code] = (sums[code] ?? 0) + v;
+      counts[code] = (counts[code] ?? 0) + 1;
+    }
+  }
+
+  const codes = Object.keys(counts);
+  if (codes.length === 0) return undefined;
+
+  const out: Record<string, number> = {};
+  for (const code of codes) out[code] = Math.round((sums[code] / counts[code]) * 10) / 10;
+  return out;
+}
+
 export interface RubricCriterion {
   id: string;
   name: string;
@@ -231,6 +268,13 @@ export interface RubricCriterion {
    * cuantos niveles quiera.
    */
   descriptors: Record<number, string>;
+  /**
+   * Competencias clave LOMLOE que evalúa este criterio (códigos de
+   * `LOMLOE_COMPETENCES`: CCL, CP, STEM…). Ausente o vacío en la mayoría de
+   * rúbricas, hechas a mano: solo las que genera una Situación de Aprendizaje
+   * las trae, porque ahí es donde el docente ya las eligió al diseñarla.
+   */
+  competencies?: string[];
 }
 
 /**
@@ -291,6 +335,14 @@ export interface Evaluation {
    * se leen las evaluaciones ya hechas. Ausente = los cuatro de siempre.
    */
   max_level?: number;
+  /**
+   * Nota por competencia clave LOMLOE, calculada con `competencyScoresFor` en
+   * el momento de guardar. Solo la traen las evaluaciones con una rúbrica que
+   * etiqueta sus criterios con competencias (las que vienen de una Situación
+   * de Aprendizaje). Se congela aquí, como `rubric_name`: si la rúbrica
+   * cambia después, esta evaluación sigue contando lo que contó entonces.
+   */
+  competencyScores?: Record<string, number>;
 }
 
 /* ── Diana de evaluación (instrumento con niveles de logro) ── */

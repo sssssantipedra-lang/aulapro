@@ -7,7 +7,7 @@ import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
-import { levelsOf, levelColor, gradeFromLevels, defaultLevels, type AchievementLevel } from '../types';
+import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { DianasTab } from './EvalDianas';
@@ -660,6 +660,7 @@ function EvalModal({
       // solo en el Historial y había que copiar la calificación a mano.
       grade: gradeFromLevels(scores, rubric.criteria.map(c => c.id), levels) ?? undefined,
       max_level: Math.max(...levels.map(l => l.value)),
+      competencyScores: competencyScoresFor(rubric.criteria, scores),
     };
     onSave(ev);
     onClose();

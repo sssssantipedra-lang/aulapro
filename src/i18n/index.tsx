@@ -1151,6 +1151,14 @@ const EN: Record<string, string> = {
   '✅ Word descargado': '✅ Word downloaded',
   'No se pudo generar el documento Word.': 'Couldn’t generate the Word document.',
   'Guardar en PDF solo está disponible en la aplicación de escritorio.': 'Saving as PDF is only available in the desktop app.',
+
+  /* ── Diana Competencial desde evaluaciones con competencias ── */
+  'Rellenar desde evaluaciones': 'Fill from assessments',
+  '{n} evaluaciones con competencias asociadas': '{n} assessments with competencies attached',
+  'Este alumno no tiene evaluaciones con competencias asociadas. Se generan al evaluar con una rúbrica creada desde una Situación de Aprendizaje.':
+    'This student has no assessments with competencies attached. These are created by assessing with a rubric generated from a Learning Situation.',
+  'Calculado a partir de {n} evaluaciones: {resumen}': 'Calculated from {n} assessments: {resumen}',
+  '{n} competencias rellenadas desde {m} evaluaciones': '{n} competencies filled in from {m} assessments',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

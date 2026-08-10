@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Sparkles, RotateCcw, Save, ChevronDown } from 'lucide-react';
+import { Sparkles, RotateCcw, Save, ChevronDown, ListChecks } from 'lucide-react';
 import type { Class, Student, Evaluation, DianaProfile } from '../types';
 import type { InlineFile } from '../services/gemini';
-import { DIANA_SECTORS, isoDate } from '../lib/utils';
+import { DIANA_SECTORS, LOMLOE_TO_DIANA, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -285,6 +285,17 @@ export function Diana({ classes, students, evaluations, lawDocument, dianaProfil
     [evaluations, studentId]
   );
 
+  /**
+   * Evaluaciones que traen nota por competencia: las que se hicieron con una
+   * rúbrica cuyos criterios llevan competencias LOMLOE asociadas (hoy, solo
+   * las que genera una Situación de Aprendizaje). El resto de evaluaciones no
+   * aportan nada aquí, aunque sí cuentan para «Sugerir perfil con IA».
+   */
+  const competencyEvals = useMemo(
+    () => studentEvals.filter(e => e.competencyScores && Object.keys(e.competencyScores).length > 0),
+    [studentEvals]
+  );
+
   const handleClassChange = useCallback((id: string) => {
     setClassId(id);
     setStudentId('');
@@ -431,6 +442,54 @@ Formato JSON:
     setSaved(false);
   }, [student, studentEvals, classes, classId, lawDocument, toast, lang, t]);
 
+  /**
+   * Rellena desde las evaluaciones con competencias asociadas, en vez de
+   * pedírselo a la IA. No es una sugerencia: es la nota que ya salió de
+   * evaluar con esas rúbricas, agregada por competencia y llevada al sector
+   * que le corresponde (ver `LOMLOE_TO_DIANA` en lib/utils.ts).
+   *
+   * Solo toca los sectores para los que hay datos: un sector sin ninguna
+   * evaluación con competencias no se borra, se deja como estuviera.
+   */
+  const handleFillFromEvaluations = useCallback(() => {
+    if (competencyEvals.length === 0) {
+      toast(t('Este alumno no tiene evaluaciones con competencias asociadas. Se generan al evaluar con una rúbrica creada desde una Situación de Aprendizaje.'));
+      return;
+    }
+
+    const bySector: Record<SectorId, { value: number; code: string; rubric_name: string }[]> = {
+      ds1: [], ds2: [], ds3: [], ds4: [], ds5: [], ds6: [],
+    };
+    for (const ev of competencyEvals) {
+      for (const [code, value] of Object.entries(ev.competencyScores ?? {})) {
+        for (const sid of LOMLOE_TO_DIANA[code] ?? []) {
+          bySector[sid as SectorId].push({ value, code, rubric_name: ev.rubric_name });
+        }
+      }
+    }
+
+    const newScores = { ...scores };
+    const newDescriptors = { ...descriptors };
+    let filled = 0;
+
+    for (const sid of SECTOR_IDS) {
+      const entries = bySector[sid];
+      if (entries.length === 0) continue;
+      filled++;
+      const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
+      newScores[sid] = Math.max(1, Math.min(4, Math.round(avg)));
+      const resumen = entries
+        .map(e => `${e.code} ${e.value.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { maximumFractionDigits: 1 })} («${e.rubric_name}»)`)
+        .join(', ');
+      newDescriptors[sid] = t('Calculado a partir de {n} evaluaciones: {resumen}', { n: entries.length, resumen });
+    }
+
+    setScores(newScores);
+    setDescriptors(newDescriptors);
+    setSaved(false);
+    toast(t('{n} competencias rellenadas desde {m} evaluaciones', { n: filled, m: competencyEvals.length }));
+  }, [competencyEvals, scores, descriptors, lang, toast, t]);
+
   const totalScore = SECTOR_IDS.reduce((acc, id) => acc + (scores[id] ?? 0), 0);
   const maxScore = SECTOR_IDS.length * RINGS;
   const completedSectors = SECTOR_IDS.filter(id => scores[id] > 0).length;
@@ -539,20 +598,32 @@ Formato JSON:
                     </div>
                   </div>
                 </div>
-                <button
-                  className="btn-ia"
-                  onClick={handleAiSuggest}
-                  disabled={generating}
-                >
-                  {generating ? (
-                    <span className="ia-generating">
-                      <span className="spin" />
-                      {t('Generando...')}
-                    </span>
-                  ) : (
-                    <><Sparkles size={14} />{t('Sugerir perfil con IA')}</>
-                  )}
-                </button>
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <button
+                    className="btn-ghost"
+                    onClick={handleFillFromEvaluations}
+                    disabled={generating}
+                    title={competencyEvals.length > 0
+                      ? t('{n} evaluaciones con competencias asociadas', { n: competencyEvals.length })
+                      : t('Este alumno no tiene evaluaciones con competencias asociadas. Se generan al evaluar con una rúbrica creada desde una Situación de Aprendizaje.')}
+                  >
+                    <ListChecks size={14} />{t('Rellenar desde evaluaciones')}
+                  </button>
+                  <button
+                    className="btn-ia"
+                    onClick={handleAiSuggest}
+                    disabled={generating}
+                  >
+                    {generating ? (
+                      <span className="ia-generating">
+                        <span className="spin" />
+                        {t('Generando...')}
+                      </span>
+                    ) : (
+                      <><Sparkles size={14} />{t('Sugerir perfil con IA')}</>
+                    )}
+                  </button>
+                </div>
               </div>
               {studentEvals.length > 0 && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid var(--border)', fontSize: 12, color: 'var(--text-3)' }}>

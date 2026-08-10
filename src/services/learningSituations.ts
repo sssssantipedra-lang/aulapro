@@ -15,6 +15,7 @@
 
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
+import { LOMLOE_COMPETENCES } from '../lib/utils';
 
 /* ── Lo que devuelve la IA ── */
 
@@ -60,6 +61,12 @@ export interface SdaRubricRow {
   nivel2: string;
   nivel3: string;
   nivel4: string;
+  /**
+   * Códigos de `LOMLOE_COMPETENCES` que evalúa este criterio (p. ej. ["STEM",
+   * "CD"]). Es lo que luego permite que la Diana Competencial tome estas
+   * evaluaciones como referencia: ver `competencyScoresFor` en types/index.ts.
+   */
+  competencias: string[];
 }
 
 /* ── Contexto que aporta el docente ── */
@@ -158,6 +165,9 @@ const SDA_SCHEMA = {
   propertyOrdering: SDA_FIELDS,
 } as const;
 
+/** Los ocho códigos oficiales, para que Gemini no se invente uno nuevo. */
+const LOMLOE_CODES = LOMLOE_COMPETENCES.map(c => c.key);
+
 const RUBRIC_ROW_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -166,9 +176,14 @@ const RUBRIC_ROW_SCHEMA = {
     nivel2: S('Descriptor del segundo nivel'),
     nivel3: S('Descriptor del tercer nivel'),
     nivel4: S('Descriptor del nivel más alto'),
+    competencias: {
+      type: 'ARRAY',
+      description: `De 1 a 3 códigos de esta lista cerrada, los que de verdad evalúe este criterio: ${LOMLOE_CODES.join(', ')}.`,
+      items: { type: 'STRING', enum: LOMLOE_CODES },
+    },
   },
-  required: ['criterio', 'nivel1', 'nivel2', 'nivel3', 'nivel4'],
-  propertyOrdering: ['criterio', 'nivel1', 'nivel2', 'nivel3', 'nivel4'],
+  required: ['criterio', 'nivel1', 'nivel2', 'nivel3', 'nivel4', 'competencias'],
+  propertyOrdering: ['criterio', 'competencias', 'nivel1', 'nivel2', 'nivel3', 'nivel4'],
 } as const;
 
 const RUBRIC_SCHEMA = {
@@ -269,6 +284,10 @@ export async function generateSdaRubric(
     `Eres un experto en evaluación competencial. Tu tarea exclusiva es generar los criterios de ` +
     `una rúbrica de desempeño.\n` +
     `Cada criterio DEBE mencionar explícitamente la competencia específica que evalúa.\n` +
+    `COMPETENCIAS: además, en el campo "competencias" de cada criterio, marca de 1 a 3 códigos de ` +
+    `las ocho competencias clave LOMLOE (${LOMLOE_CODES.join(', ')}) que ese criterio evalúa de verdad ` +
+    `— las que ya aparecen en las "Competencias específicas por área" de más abajo son buena guía. ` +
+    `No es un adorno: con esos códigos se calculará luego la nota de cada competencia.\n` +
     `Los cuatro niveles, de menor a mayor, se llaman: ${niveles.join(', ')}. Redacta un descriptor ` +
     `observable y distinto para cada uno.\n` +
     `Genera de 3 a 5 criterios, adaptados a las características del grupo.\n` +

@@ -105,3 +105,29 @@ export const DIANA_SECTORS = [
   { id: 'ds5', label: 'Aprender a aprender',icon: '🧠' },
   { id: 'ds6', label: 'Emprendimiento',     icon: '🚀' },
 ] as const;
+
+/**
+ * Qué sector de la Diana Competencial recoge cada competencia clave LOMLOE.
+ *
+ * Son taxonomías distintas —8 competencias oficiales contra 6 sectores
+ * pensados para verse de un vistazo en un hexágono— así que el encaje es
+ * aproximado, no una traducción exacta:
+ *
+ * - CPSAA junta en una sola competencia oficial lo que la Diana separa en dos
+ *   sectores (Social y Aprender a aprender), así que alimenta a los dos.
+ * - CCEC (conciencia y expresión culturales) es la que peor encaja de las
+ *   ocho: se cuenta junto a Comunicación, por el lado de la «expresión».
+ *
+ * Si no encaja con cómo lo ves, es la aproximación que hay que ajustar aquí,
+ * no cada evaluación por separado.
+ */
+export const LOMLOE_TO_DIANA: Record<string, readonly (typeof DIANA_SECTORS)[number]['id'][]> = {
+  CCL:   ['ds1'],
+  CP:    ['ds1'],
+  STEM:  ['ds2'],
+  CD:    ['ds3'],
+  CPSAA: ['ds4', 'ds5'],
+  CC:    ['ds4'],
+  CE:    ['ds6'],
+  CCEC:  ['ds1'],
+};
