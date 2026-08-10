@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardList,
   Target, History, BookOpen, User, ChevronLeft, ChevronRight, Presentation, Users2, Smartphone,
-  UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone,
+  UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone, BookMarked,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
@@ -28,6 +28,7 @@ const NAV: { sect: string; items: NavEntry[] }[] = [
   {
     sect: 'Evaluación',
     items: [
+      { id: 'learning-situations', label: 'Situaciones de aprendizaje', icon: <BookMarked size={18} /> },
       { id: 'rubrics',   label: 'Rúbricas',           icon: <ClipboardList size={18} /> },
       { id: 'diana',     label: 'Diana Competencial', icon: <Target size={18} /> },
       { id: 'reports',   label: 'Informes',           icon: <FileText size={18} /> },

@@ -20,6 +20,23 @@ const MODELS = [
   'gemini-2.0-flash',
 ] as const;
 
+/**
+ * Para las peticiones que de verdad piensan, no solo redactan.
+ *
+ * Una situación de aprendizaje entera —justificación curricular, competencias,
+ * saberes y todas las sesiones— es la petición más exigente de la aplicación, y
+ * ahí un modelo ligero se nota. Empieza por el mejor y, si la clave gratuita del
+ * docente no lo admite o agota su cuota, cae por la escalera de siempre: mejor
+ * una SdA correcta de un modelo más sencillo que un error.
+ *
+ * No se usa en el resto de la aplicación: gasta bastante más por llamada y para
+ * traducir una rúbrica o leer un horario los ligeros van sobrados.
+ */
+export const DEEP_MODELS = [
+  'gemini-3.1-pro-preview',
+  ...MODELS,
+] as const;
+
 export function getApiKey(): string {
   try { return (localStorage.getItem(KEY_STORAGE) ?? '').trim(); } catch { return ''; }
 }
@@ -55,12 +72,40 @@ function friendlyError(status: number, apiMessage: string): string {
   return apiMessage || `Error ${status} al llamar a la IA.`;
 }
 
+/** Ajustes opcionales de una llamada. Sin ellos, todo sigue como siempre. */
+export interface GeminiOptions {
+  /** Modelos a probar en orden. Por defecto, los ligeros de `MODELS`. */
+  models?: readonly string[];
+  /**
+   * Tope de la respuesta. El de por defecto vale para lo que escribe la IA en
+   * casi toda la aplicación, pero una situación de aprendizaje entera no cabe:
+   * se cortaría a media frase y el JSON llegaría roto.
+   */
+  maxOutputTokens?: number;
+  /**
+   * Forma exacta del JSON que debe devolver. Es mucho más fiable que pedirlo
+   * por escrito en el prompt y confiar en que lo respete.
+   */
+  responseSchema?: object;
+}
+
+const DEFAULT_MAX_TOKENS = 4096;
+
 async function callModel(
   model: string,
   key: string,
   systemPrompt: string,
   userParts: object[],
+  options: GeminiOptions = {},
 ): Promise<{ text: string } | { status: number; message: string }> {
+  const generationConfig: Record<string, unknown> = {
+    maxOutputTokens: options.maxOutputTokens ?? DEFAULT_MAX_TOKENS,
+  };
+  if (options.responseSchema) {
+    generationConfig.responseMimeType = 'application/json';
+    generationConfig.responseSchema = options.responseSchema;
+  }
+
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
     {
@@ -69,7 +114,7 @@ async function callModel(
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ parts: userParts }],
-        generationConfig: { maxOutputTokens: 4096 },
+        generationConfig,
       }),
     },
   );
@@ -95,6 +140,7 @@ export async function callGemini(
   userPrompt: string,
   files: InlineFile[] = [],
   callbacks: GeminiCallbacks = {},
+  options: GeminiOptions = {},
 ): Promise<string | null> {
   callbacks.onStart?.();
   try {
@@ -112,9 +158,9 @@ export async function callGemini(
     });
 
     let lastError = '';
-    for (const model of MODELS) {
+    for (const model of options.models ?? MODELS) {
       try {
-        const result = await callModel(model, key, systemPrompt, userParts);
+        const result = await callModel(model, key, systemPrompt, userParts, options);
         if ('text' in result) return result.text;
 
         lastError = friendlyError(result.status, result.message);

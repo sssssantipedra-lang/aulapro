@@ -1074,6 +1074,76 @@ const EN: Record<string, string> = {
   '{sitio} no permite verse dentro de otra aplicación.': '{sitio} doesn’t allow itself to be shown inside another app.',
   'Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.':
     'The service itself blocks it, not Aula Pro. Open it in your browser and share it from there.',
+
+  /* ── Situaciones de aprendizaje ── */
+  'Situaciones de aprendizaje': 'Learning Situations',
+  'Situación de aprendizaje': 'Learning situation',
+  'Diseña una SdA competencial con ayuda de la IA': 'Design a competency-based unit with AI',
+  'Empezar otra': 'Start another',
+  'Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.':
+    'Writing learning situations needs the free Google key set up in My Profile.',
+  'Qué quieres diseñar': 'What you want to design',
+  'Idea de la situación de aprendizaje': 'The idea behind it',
+  'Ej: un mercado sostenible en el patio para trabajar los residuos del centro':
+    'e.g. a sustainable market in the playground to explore the school’s waste',
+  'Nivel o curso': 'Year group',
+  'Ej: 5º de Primaria': 'e.g. Year 5',
+  'Áreas implicadas': 'Subjects involved',
+  'Se trabajarán de 2 a 4 competencias y saberes por área, para que dé tiempo a desarrollarlos.':
+    'Between 2 and 4 competencies and content items per subject, so there’s time to develop them properly.',
+  'Nº de la SdA': 'Unit no.',
+  'Nº de sesiones': 'Number of lessons',
+  'Temporalización': 'Timing',
+  'Ej: 1ª evaluación': 'e.g. Autumn term',
+  'Meses': 'Months',
+  'Ej: octubre y noviembre': 'e.g. October and November',
+  'Cómo es el grupo': 'What the group is like',
+  'Metodología habitual': 'Your usual approach',
+  'Documentos de apoyo (opcional)': 'Supporting documents (optional)',
+  'Normativa, programación o cualquier documento en el que quieras que se apoye. La IA lo resume y lo tiene en cuenta.':
+    'Curriculum documents, your scheme of work, anything you want it to build on. The AI summarises it and takes it into account.',
+  'Documento analizado': 'Document analysed',
+  'Añadir documento': 'Add document',
+  'Analizando…': 'Analysing…',
+  'Generar situación de aprendizaje': 'Generate learning situation',
+  'Redactando la situación de aprendizaje…': 'Writing the learning situation…',
+  'Es la petición más larga de la aplicación: puede tardar cerca de un minuto.':
+    'This is the longest request in the app: it can take up to a minute.',
+  'Escribe la idea de la situación de aprendizaje': 'Write the idea for the learning situation',
+  'Elige al menos un área': 'Choose at least one subject',
+  'La IA no devolvió una situación de aprendizaje válida. Vuelve a intentarlo.':
+    'The AI didn’t return a valid learning situation. Try again.',
+  'Situación de aprendizaje guardada': 'Learning situation saved',
+  'Situación de aprendizaje eliminada': 'Learning situation deleted',
+  'Justificación': 'Rationale',
+  'Explicación curricular (para ti)': 'Curriculum rationale (for you)',
+  'Objetivos de etapa': 'Stage objectives',
+  'Por áreas': 'By subject',
+  'Competencias específicas': 'Subject competencies',
+  'Criterios de evaluación': 'Assessment criteria',
+  'Saberes básicos': 'Core content',
+  'Sesiones': 'Lessons',
+  'Agrupamiento': 'Grouping',
+  'Producto final': 'Final product',
+  'Medidas de inclusión': 'Inclusion measures',
+  'Para todo el grupo': 'For the whole group',
+  'Apoyo puntual': 'Targeted support',
+  'Necesidades específicas': 'Specific needs',
+  'Técnicas de evaluación': 'Assessment techniques',
+  'Instrumentos de evaluación': 'Assessment tools',
+  'ODS relacionados': 'Related SDGs',
+  'Rúbrica de esta SdA': 'Rubric for this unit',
+  'Genera una rúbrica a partir de sus competencias y su producto final. Podrás llevarla a Rúbricas y evaluar con ella: la nota entrará sola en el cuaderno.':
+    'Build a rubric from its competencies and final product. You can send it to Rubrics and assess with it — the grade lands in the gradebook by itself.',
+  'Algo más que quieras que valore (opcional)': 'Anything else it should assess (optional)',
+  'Generar rúbrica': 'Generate rubric',
+  'Llevar a Rúbricas': 'Send to Rubrics',
+  'Rúbrica creada en Rúbricas': 'Rubric created in Rubrics',
+  'Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta rúbrica aparecerá al instante en el cuaderno, en una columna propia.':
+    'If you set a class, subject and category, every student you assess with this rubric appears instantly in the gradebook, in a column of its own.',
+  'Mis situaciones de aprendizaje': 'My learning situations',
+  'Todavía no has guardado ninguna.': 'You haven’t saved any yet.',
+  '¿Eliminar «{name}»?': 'Delete “{name}”?',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

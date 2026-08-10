@@ -378,8 +378,42 @@ export interface CompetencyReport {
   text: string;
 }
 
+/* ── Situaciones de aprendizaje ── */
+
+/**
+ * Una situación de aprendizaje guardada.
+ *
+ * `content` llega tal cual de la IA (ver `services/learningSituations.ts`) y el
+ * docente puede editarlo a mano después: lo que se guarda es siempre lo que él
+ * dio por bueno, no lo que propuso la máquina.
+ */
+export interface LearningSituation {
+  id: string;
+  /** Instante en que se guardó por última vez. */
+  at: string;
+  date: string;
+  /** Clase para la que se diseñó, si se eligió una. */
+  class_id?: string;
+  class_name?: string;
+  title: string;
+  /** Lo que pidió el docente, para poder volver a generarla o ajustarla. */
+  request: {
+    idea: string;
+    numero: string;
+    temporalizacion: string;
+    meses: string;
+    areas: string[];
+    numSesiones: number;
+    nivel: string;
+    contextoClase: string;
+    metodologia: string;
+  };
+  content: import('../services/learningSituations').SdaContent;
+}
+
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
-  | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records';
+  | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
+  | 'learning-situations';
