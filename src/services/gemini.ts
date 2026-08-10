@@ -164,9 +164,14 @@ export async function callGemini(
         if ('text' in result) return result.text;
 
         lastError = friendlyError(result.status, result.message);
-        // Clave inválida o sin permisos: probar otro modelo no ayuda.
-        if (result.status === 400 || result.status === 403) break;
-        // 404 (modelo no disponible) o 429 (cuota): probar el siguiente.
+        // Solo un 400 (clave con formato inválido) para toda la cadena: eso
+        // fallaría igual en cualquier modelo. Un 403 aquí no siempre significa
+        // que la clave esté mal — con DEEP_MODELS puede ser que la clave
+        // gratuita simplemente no tenga acceso a un modelo concreto en vista
+        // previa, y el siguiente de la lista sí funcione.
+        if (result.status === 400) break;
+        // 403 (sin acceso a ESTE modelo), 404 (no disponible) o 429 (cuota):
+        // probar el siguiente.
       } catch {
         lastError = 'No hay conexión a internet o el servicio no responde.';
       }
