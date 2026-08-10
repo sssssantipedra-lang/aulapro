@@ -1159,6 +1159,18 @@ const EN: Record<string, string> = {
     'This student has no assessments with competencies attached. These are created by assessing with a rubric generated from a Learning Situation.',
   'Calculado a partir de {n} evaluaciones: {resumen}': 'Calculated from {n} assessments: {resumen}',
   '{n} competencias rellenadas desde {m} evaluaciones': '{n} competencies filled in from {m} assessments',
+
+  /* ── Diana desde una Situación de Aprendizaje ── */
+  'Diana de esta SdA': 'Target for this unit',
+  'Genera una diana en vez de una rúbrica: mejor para lo que se observa en el momento —una exposición, un trabajo en grupo— que para corregir en casa. También podrás llevarla a Dianas y evaluar con ella.':
+    'Generate a target instead of a rubric: better for what you observe in the moment — a presentation, group work — than for marking at home. You can also send it to Targets and assess with it.',
+  'Generar diana': 'Generate target',
+  'Ítem': 'Item',
+  'Peso ×{n}': 'Weight ×{n}',
+  'Llevar a Dianas': 'Send to Assessment Bullseye',
+  'Diana creada en Dianas': 'Target created in Assessment Bullseye',
+  'Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta diana aparecerá al instante en el cuaderno, en una columna propia.':
+    'If you set a class, subject and category, every student you assess with this target appears instantly in the gradebook, in a column of its own.',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

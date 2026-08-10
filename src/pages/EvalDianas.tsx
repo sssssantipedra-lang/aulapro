@@ -4,10 +4,10 @@ import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, G
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { isoDate } from '../lib/utils';
+import { isoDate, LOMLOE_COMPETENCES } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { DianaBoard, dianaGrade } from '../components/diana/DianaBoard';
-import { levelsOf, levelColor, defaultLevels, type AchievementLevel } from '../types';
+import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -101,6 +101,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
     const peor = levels[0]?.label || (lang === 'en' ? 'the lowest' : 'el más bajo');
     const mejor = levels[levels.length - 1]?.label || (lang === 'en' ? 'the highest' : 'el más alto');
+    const lomloeCodes = LOMLOE_COMPETENCES.map(c => c.key);
 
     const systemPrompt = lang === 'en'
       ? 'You are an expert in competency-based secondary education assessment. Reply ONLY with valid JSON, no extra text.'
@@ -118,7 +119,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         `Write, in positive terms, what the student DOES do at each level, in ` +
         `observable language.\n\n` +
         `Item names should be short (5 words max). Everything in English.\n\n` +
-        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}}}]}`
+        `COMPETENCIES: for each item, in "competencias", mark 1 to 3 codes from this closed ` +
+        `list — only the ones that item truly assesses: ${lomloeCodes.join(', ')}. This is not ` +
+        `decoration: it is used later to work out a grade per competency.\n\n` +
+        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]}]}`
       : `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
         `Genera exactamente ${aiCount} ítems observables y evaluables. Cada ítem lleva ` +
         `un "weight" (peso relativo, normalmente 1; usa 2 si el ítem es claramente más ` +
@@ -130,7 +134,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         `anterior, sin saltos bruscos ni dos niveles que digan casi lo mismo. Redacta ` +
         `en positivo lo que el alumno SÍ hace en cada nivel, de forma observable.\n\n` +
         `Los nombres de los ítems, breves (máximo 5 palabras). Todo en español de España.\n\n` +
-        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}}}]}`;
+        `COMPETENCIAS: en cada ítem, en "competencias", marca de 1 a 3 códigos de esta lista ` +
+        `cerrada —solo los que ese ítem evalúe de verdad—: ${lomloeCodes.join(', ')}. No es un ` +
+        `adorno: con esos códigos se calculará luego la nota de cada competencia.\n\n` +
+        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
@@ -140,7 +147,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     });
     if (!raw) return;
 
-    const parsed = parseGeminiJson<{ name: string; items: DianaItem[] }>(raw);
+    const parsed = parseGeminiJson<{ name: string; items: (DianaItem & { competencias?: string[] })[] }>(raw);
     if (!parsed?.items?.length) { toast(t('La IA no devolvió una diana válida. Vuelve a intentarlo.')); return; }
 
     setName(parsed.name || aiContext.trim());
@@ -149,6 +156,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       name: i.name ?? '',
       weight: typeof i.weight === 'number' && i.weight > 0 ? i.weight : 1,
       descriptors: i.descriptors,
+      competencies: i.competencias,
     })));
     setMode('manual');
     toast(t('✅ Diana generada — revísala antes de guardar'));
@@ -288,30 +296,42 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
               <label className="flabel">{t('Ítems a evaluar')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
                 {items.map((item, idx) => (
-                  <div key={item.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', width: 18, flexShrink: 0 }}>{idx + 1}</span>
-                    <input
-                      className="finput"
-                      placeholder={t('Nombre del ítem')}
-                      value={item.name}
-                      onChange={e => setItems(prev => prev.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))}
-                      style={{ flex: 1 }}
-                    />
-                    <select
-                      className="finput"
-                      value={item.weight}
-                      onChange={e => setItems(prev => prev.map((x, i) => i === idx ? { ...x, weight: Number(e.target.value) } : x))}
-                      style={{ width: 104, flex: 'none', cursor: 'pointer' }}
-                      title={t('Peso del ítem en la nota')}
-                    >
-                      <option value={1}>{t('Peso ×1')}</option>
-                      <option value={2}>{t('Peso ×2')}</option>
-                      <option value={3}>{t('Peso ×3')}</option>
-                    </select>
-                    {items.length > 1 && (
-                      <button className="ico-btn" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))} title={t('Quitar ítem')}>
-                        <Trash2 size={14} color="var(--danger)" />
-                      </button>
+                  <div key={item.id}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)', width: 18, flexShrink: 0 }}>{idx + 1}</span>
+                      <input
+                        className="finput"
+                        placeholder={t('Nombre del ítem')}
+                        value={item.name}
+                        onChange={e => setItems(prev => prev.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))}
+                        style={{ flex: 1 }}
+                      />
+                      <select
+                        className="finput"
+                        value={item.weight}
+                        onChange={e => setItems(prev => prev.map((x, i) => i === idx ? { ...x, weight: Number(e.target.value) } : x))}
+                        style={{ width: 104, flex: 'none', cursor: 'pointer' }}
+                        title={t('Peso del ítem en la nota')}
+                      >
+                        <option value={1}>{t('Peso ×1')}</option>
+                        <option value={2}>{t('Peso ×2')}</option>
+                        <option value={3}>{t('Peso ×3')}</option>
+                      </select>
+                      {items.length > 1 && (
+                        <button className="ico-btn" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))} title={t('Quitar ítem')}>
+                          <Trash2 size={14} color="var(--danger)" />
+                        </button>
+                      )}
+                    </div>
+                    {item.competencies && item.competencies.length > 0 && (
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', margin: '4px 0 0 26px' }}>
+                        {item.competencies.map(code => (
+                          <span key={code} style={{
+                            fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
+                            background: 'var(--accent-l)', color: 'var(--accent-d)',
+                          }}>{code}</span>
+                        ))}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -414,6 +434,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
       instrument: 'diana',
       max_level: Math.max(...levelsOf(diana).map(l => l.value)),
       grade: grade ?? undefined,
+      competencyScores: competencyScoresFor(diana!.items, scores),
     });
     onClose();
   }

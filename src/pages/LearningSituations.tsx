@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
-  FileDown, FileType2,
+  FileDown, FileType2, Target,
 } from 'lucide-react';
-import type { Class, LearningSituation, Rubric, GradeCategory } from '../types';
+import type { Class, LearningSituation, Rubric, EvalDiana, GradeCategory } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
-  analyzeDocument, generateSda, generateSdaRubric,
-  type SdaContent, type SdaRubricRow,
+  analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
+  type SdaContent, type SdaRubricRow, type SdaDianaItem,
 } from '../services/learningSituations';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { hasApiKey, type InlineFile } from '../services/gemini';
@@ -27,6 +27,7 @@ interface Props {
   onSave: (s: LearningSituation) => void;
   onDelete: (id: string) => void;
   onAddRubric: (r: Rubric) => void;
+  onAddDiana: (d: EvalDiana) => void;
   onNav: (s: string) => void;
 }
 
@@ -59,7 +60,7 @@ function Field({
 
 export function LearningSituations({
   classes, gradeCategories, learningSituations, teacherName,
-  onSave, onDelete, onAddRubric, onNav,
+  onSave, onDelete, onAddRubric, onAddDiana, onNav,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -94,6 +95,15 @@ export function LearningSituations({
   const [rubricClassId, setRubricClassId] = useState('');
   const [rubricSubject, setRubricSubject] = useState('');
   const [rubricCategory, setRubricCategory] = useState('');
+
+  /* ── Diana ── */
+  const [dianaRows, setDianaRows] = useState<SdaDianaItem[] | null>(null);
+  const [dianaDetails, setDianaDetails] = useState('');
+  const [dianaBusy, setDianaBusy] = useState(false);
+  const [dianaModal, setDianaModal] = useState(false);
+  const [dianaClassId, setDianaClassId] = useState('');
+  const [dianaSubject, setDianaSubject] = useState('');
+  const [dianaCategory, setDianaCategory] = useState('');
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
@@ -148,6 +158,7 @@ export function LearningSituations({
     setContent(result);
     setEditingId(null);
     setRubricRows(null);
+    setDianaRows(null);
   }
 
   function patch(k: keyof SdaContent, v: string) {
@@ -233,11 +244,12 @@ export function LearningSituations({
     setContextoClase(s.request.contextoClase);
     setMetodologia(s.request.metodologia);
     setRubricRows(null);
+    setDianaRows(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function resetAll() {
-    setContent(null); setEditingId(null); setRubricRows(null);
+    setContent(null); setEditingId(null); setRubricRows(null); setDianaRows(null);
     setIdea(''); setDocs([]);
   }
 
@@ -284,6 +296,46 @@ export function LearningSituations({
   const rubricSubjects = rubricClass ? (rubricClass.subjects ?? [rubricClass.subject]).filter(Boolean) : [];
   const rubricCategories = gradeCategories.filter(
     c => c.class_id === rubricClassId && (!rubricSubject || (c.subject ?? rubricSubjects[0]) === rubricSubject),
+  );
+
+  /* ── Diana ── */
+  async function handleDiana() {
+    if (!content) return;
+    const rows = await generateSdaDiana(
+      content, dianaDetails, DEFAULT_LEVELS.map(l => t(l.label)), lang,
+      { onStart: () => setDianaBusy(true), onEnd: () => setDianaBusy(false), onError: m => toast(m) },
+    );
+    if (!rows?.length) { toast(t('La IA no devolvió una diana válida. Vuelve a intentarlo.')); return; }
+    setDianaRows(rows);
+  }
+
+  /** Igual que `createRubric`, pero para Dianas. */
+  function createDiana() {
+    if (!dianaRows || !content) return;
+    const diana: EvalDiana = {
+      id: 'dia' + Date.now().toString(36),
+      name: content.titulo || t('Situación de aprendizaje'),
+      context: content.justificacion,
+      items: dianaRows.map((r, i) => ({
+        id: `it${Date.now().toString(36)}${i}`,
+        name: r.item,
+        weight: r.peso > 0 ? r.peso : 1,
+        descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
+        competencies: r.competencias,
+      })),
+      class_id: dianaClassId || undefined,
+      subject: dianaSubject || undefined,
+      category_id: dianaCategory || undefined,
+    };
+    onAddDiana(diana);
+    setDianaModal(false);
+    toast(t('Diana creada en Dianas'));
+  }
+
+  const dianaClass = classes.find(c => c.id === dianaClassId) ?? null;
+  const dianaSubjects = dianaClass ? (dianaClass.subjects ?? [dianaClass.subject]).filter(Boolean) : [];
+  const dianaCategories = gradeCategories.filter(
+    c => c.class_id === dianaClassId && (!dianaSubject || (c.subject ?? dianaSubjects[0]) === dianaSubject),
   );
 
   const sinClave = !hasApiKey();
@@ -642,6 +694,76 @@ export function LearningSituations({
         </div>
       )}
 
+      {/* ══ Diana ══ */}
+      {content && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card-hd">
+            <div className="card-ttl"><Target size={14} color="var(--accent-d)" />{t('Diana de esta SdA')}</div>
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
+            {t('Genera una diana en vez de una rúbrica: mejor para lo que se observa en el momento —una exposición, un trabajo en grupo— que para corregir en casa. También podrás llevarla a Dianas y evaluar con ella.')}
+          </p>
+          <div className="fgroup">
+            <input
+              className="finput" value={dianaDetails} onChange={e => setDianaDetails(e.target.value)}
+              placeholder={t('Algo más que quieras que valore (opcional)')}
+            />
+          </div>
+          <button className="btn-ghost" disabled={dianaBusy || sinClave} onClick={handleDiana}>
+            {dianaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar diana')}</>}
+          </button>
+
+          {dianaRows && (
+            <>
+              <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                <table className="rtable">
+                  <thead>
+                    <tr>
+                      <th>{t('Ítem')}</th>
+                      {DEFAULT_LEVELS.map(l => <th key={l.value}>{t(l.label)}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dianaRows.map((r, i) => (
+                      <tr key={i}>
+                        <td style={{ fontWeight: 700 }}>
+                          {r.item}
+                          {r.peso > 1 && (
+                            <span style={{ marginLeft: 6, fontSize: 10.5, color: 'var(--text-3)', fontWeight: 600 }}>
+                              {t('Peso ×{n}', { n: r.peso })}
+                            </span>
+                          )}
+                          {r.competencias?.length > 0 && (
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 5 }}>
+                              {r.competencias.map(code => (
+                                <span key={code} style={{
+                                  fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
+                                  background: 'var(--accent-l)', color: 'var(--accent-d)',
+                                }}>{code}</span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td>{r.nivel1}</td>
+                        <td>{r.nivel2}</td>
+                        <td>{r.nivel3}</td>
+                        <td>{r.nivel4}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button
+                className="btn-accent" style={{ marginTop: 14 }}
+                onClick={() => { setDianaClassId(classId); setDianaSubject(areas[0] ?? ''); setDianaModal(true); }}
+              >
+                <ArrowRight size={14} />{t('Llevar a Dianas')}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* ══ Guardadas ══ */}
       <div className="card">
         <div className="card-hd">
@@ -736,6 +858,41 @@ export function LearningSituations({
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button className="btn-ghost" onClick={() => setRubricModal(false)}>{t('Cancelar')}</button>
           <button className="btn-accent" onClick={createRubric}>{t('Crear rúbrica')}</button>
+        </div>
+      </Modal>
+
+      {/* ══ Dónde se guarda la nota de la diana ══ */}
+      <Modal open={dianaModal} onClose={() => setDianaModal(false)} title={t('Dónde se guarda la nota')}>
+        <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
+          {t('Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta diana aparecerá al instante en el cuaderno, en una columna propia.')}
+        </p>
+        <div className="fgroup">
+          <label className="flabel">{t('Clase')}</label>
+          <select className="finput" value={dianaClassId} onChange={e => { setDianaClassId(e.target.value); setDianaSubject(''); setDianaCategory(''); }}>
+            <option value="">{t('Sin clase (solo historial)')}</option>
+            {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        {dianaSubjects.length > 0 && (
+          <div className="fgroup">
+            <label className="flabel">{t('Asignatura')}</label>
+            <select className="finput" value={dianaSubject} onChange={e => { setDianaSubject(e.target.value); setDianaCategory(''); }}>
+              {dianaSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        )}
+        {dianaClassId && (
+          <div className="fgroup">
+            <label className="flabel">{t('Categoría del cuaderno')}</label>
+            <select className="finput" value={dianaCategory} onChange={e => setDianaCategory(e.target.value)}>
+              <option value="">{t('Solo el historial, no el cuaderno')}</option>
+              {dianaCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
+            </select>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button className="btn-ghost" onClick={() => setDianaModal(false)}>{t('Cancelar')}</button>
+          <button className="btn-accent" onClick={createDiana}>{t('Crear diana')}</button>
         </div>
       </Modal>
     </section>

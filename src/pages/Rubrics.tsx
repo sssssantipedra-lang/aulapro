@@ -6,7 +6,7 @@ import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, Gr
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { fileToBase64, isoDate } from '../lib/utils';
+import { fileToBase64, isoDate, LOMLOE_COMPETENCES } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -42,6 +42,8 @@ interface CriterionDraft {
   name: string;
   /** Descriptor de cada nivel, indexado por su número. */
   descs: Record<number, string>;
+  /** Competencias LOMLOE, si las trae (solo lo generado con IA). */
+  competencies?: string[];
 }
 
 /* ─── Helpers ─── */
@@ -58,11 +60,11 @@ function criterionToDescriptors(c: CriterionDraft): RubricCriterion {
   for (const [k, v] of Object.entries(c.descs)) {
     if (v && v.trim()) descriptors[Number(k)] = v.trim();
   }
-  return { id: c.id, name: c.name, descriptors };
+  return { id: c.id, name: c.name, descriptors, competencies: c.competencies };
 }
 
 function criterionFromRubric(c: RubricCriterion): CriterionDraft {
-  return { id: c.id, name: c.name, descs: { ...c.descriptors } };
+  return { id: c.id, name: c.name, descs: { ...c.descriptors }, competencies: c.competencies };
 }
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
@@ -151,6 +153,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
     const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
     const peor = levels[0]?.label || (lang === 'en' ? 'the lowest' : 'el más bajo');
     const mejor = levels[levels.length - 1]?.label || (lang === 'en' ? 'the highest' : 'el más alto');
+    const lomloeCodes = LOMLOE_COMPETENCES.map(c => c.key);
 
     const systemPrompt = lang === 'en'
       ? 'You are an expert in educational assessment. Reply ONLY with valid JSON.'
@@ -165,7 +168,10 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         `improvement over the previous one, with no abrupt jumps and no two levels ` +
         `that say almost the same thing. Write, in positive terms, what the student ` +
         `DOES do at each level, in observable language, in English.\n\n` +
-        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}}}]}`
+        `COMPETENCIES: for each criterion, in "competencias", mark 1 to 3 codes from this closed ` +
+        `list — only the ones that criterion truly assesses: ${lomloeCodes.join(', ')}. This is not ` +
+        `decoration: it is used later to work out a grade per competency.\n\n` +
+        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}},"competencias":["..."]}]}`
       : `Crea una rúbrica para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
         `Genera ${aiCount} criterios. Cada criterio debe llevar un descriptor para ` +
         `LOS ${levels.length} NIVELES, sin dejar ninguno vacío: ${scale}.\n\n` +
@@ -175,7 +181,10 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         `apreciable respecto al anterior, sin saltos bruscos ni dos niveles que ` +
         `digan casi lo mismo. Redacta en positivo lo que el alumno SÍ hace en cada ` +
         `nivel, de forma observable, y en español de España.\n\n` +
-        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}}}]}`;
+        `COMPETENCIAS: en cada criterio, en "competencias", marca de 1 a 3 códigos de esta lista ` +
+        `cerrada —solo los que ese criterio evalúe de verdad—: ${lomloeCodes.join(', ')}. No es un ` +
+        `adorno: con esos códigos se calculará luego la nota de cada competencia.\n\n` +
+        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}},"competencias":["..."]}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
@@ -184,9 +193,15 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       onError: msg => toast(msg),
     });
     if (!raw) return;
-    const parsed = parseGeminiJson<{ name: string; criteria: RubricCriterion[] }>(raw);
-    if (parsed) setAiPreview(parsed);
-    else toast(t('La IA no devolvió una rúbrica válida. Vuelve a intentarlo.'));
+    const parsed = parseGeminiJson<{ name: string; criteria: (RubricCriterion & { competencias?: string[] })[] }>(raw);
+    if (parsed) {
+      setAiPreview({
+        name: parsed.name,
+        criteria: parsed.criteria.map(c => ({ ...c, competencies: c.competencias })),
+      });
+    } else {
+      toast(t('La IA no devolvió una rúbrica válida. Vuelve a intentarlo.'));
+    }
   }
 
   function applyPreview() {
@@ -424,6 +439,16 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                       </button>
                     )}
                   </div>
+                  {cr.competencies && cr.competencies.length > 0 && (
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', margin: '0 0 10px 20px' }}>
+                      {cr.competencies.map(code => (
+                        <span key={code} style={{
+                          fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
+                          background: 'var(--accent-l)', color: 'var(--accent-d)',
+                        }}>{code}</span>
+                      ))}
+                    </div>
+                  )}
                   {/* Un descriptor por nivel: los que haya definido el docente */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(levels.length, 4)}, 1fr)`, gap: 8 }}>
                     {levels.map(lv => (

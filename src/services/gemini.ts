@@ -110,7 +110,19 @@ async function callModel(
   const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) return { status: 0, message: 'La IA devolvió una respuesta vacía.' };
-  return { text };
+  return { text: fixStrayPercentU(text) };
+}
+
+/**
+ * A veces el modelo devuelve alguna letra acentuada como «%u00e1» en vez de
+ * «á»: una secuencia de escape que nadie pidió, que no es válida en ningún
+ * sitio del JSON (así que `JSON.parse` la deja pasar tal cual, como texto
+ * suelto) y que se nota sobre todo con `responseSchema` en peticiones largas.
+ * Se repara aquí, en el único punto por el que pasa todo el texto que
+ * devuelve la IA, en vez de en cada pantalla que luego lo muestra.
+ */
+function fixStrayPercentU(text: string): string {
+  return text.replace(/%u([0-9a-fA-F]{4})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
 }
 
 /**

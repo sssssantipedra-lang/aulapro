@@ -223,29 +223,31 @@ export function gradeFromLevels(
 }
 
 /**
- * Nota por competencia, a partir de los criterios de una rúbrica.
+ * Nota por competencia, a partir de los criterios de una rúbrica o los ítems
+ * de una diana: a efectos de esta cuenta son lo mismo, algo con un id, una
+ * nota puesta y (a veces) una lista de competencias.
  *
- * Un criterio puede evaluar varias competencias a la vez (o ninguna, si la
- * rúbrica es de las de siempre y no las trae). La nota de cada competencia es
- * la media de los criterios que la mencionan, en la escala 1-4 de siempre:
- * las únicas rúbricas que hoy traen `competencies` son las que genera una
- * Situación de Aprendizaje, y esas usan siempre los cuatro niveles clásicos.
+ * Un criterio o ítem puede evaluar varias competencias a la vez (o ninguna,
+ * si el instrumento es de los de siempre y no las trae). La nota de cada
+ * competencia es la media de los que la mencionan, en la escala 1-4 de
+ * siempre: lo único que hoy trae `competencies` es lo generado por IA —una
+ * Situación de Aprendizaje, o el generador propio de Rúbricas y Dianas— y
+ * eso usa siempre los cuatro niveles clásicos.
  *
- * Devuelve `undefined` —no un objeto vacío— cuando ningún criterio tiene
- * competencias, para no ensuciar con un campo inútil las evaluaciones de
- * rúbricas normales.
+ * Devuelve `undefined` —no un objeto vacío— cuando nada tiene competencias,
+ * para no ensuciar con un campo inútil las evaluaciones de siempre.
  */
 export function competencyScoresFor(
-  criteria: RubricCriterion[],
+  items: { id: string; competencies?: string[] }[],
   scores: Record<string, number>,
 ): Record<string, number> | undefined {
   const sums: Record<string, number> = {};
   const counts: Record<string, number> = {};
 
-  for (const cr of criteria) {
-    const v = scores[cr.id];
-    if (typeof v !== 'number' || v <= 0 || !cr.competencies?.length) continue;
-    for (const code of cr.competencies) {
+  for (const it of items) {
+    const v = scores[it.id];
+    if (typeof v !== 'number' || v <= 0 || !it.competencies?.length) continue;
+    for (const code of it.competencies) {
       sums[code] = (sums[code] ?? 0) + v;
       counts[code] = (counts[code] ?? 0) + 1;
     }
@@ -353,6 +355,8 @@ export interface DianaItem {
   weight: number;
   /** Descripción de cada nivel, indexada por su `value`. Ver `RubricCriterion`. */
   descriptors?: Record<number, string>;
+  /** Competencias LOMLOE que evalúa. Ver `RubricCriterion.competencies`. */
+  competencies?: string[];
 }
 
 export interface EvalDiana extends GradeTarget {

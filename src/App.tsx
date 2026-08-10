@@ -320,6 +320,7 @@ function AppInner() {
                 onSave={s => { st.saveLearningSituation(s); }}
                 onDelete={id => { st.deleteLearningSituation(id); toast(t('Situación de aprendizaje eliminada')); }}
                 onAddRubric={r => { st.addRubric(r); }}
+                onAddDiana={d => { st.addDiana(d); }}
                 onNav={s => setSection(s as Section)}
               />
             )}

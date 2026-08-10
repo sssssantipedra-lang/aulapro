@@ -69,6 +69,17 @@ export interface SdaRubricRow {
   competencias: string[];
 }
 
+export interface SdaDianaItem {
+  item: string;
+  peso: number;
+  nivel1: string;
+  nivel2: string;
+  nivel3: string;
+  nivel4: string;
+  /** Igual que en `SdaRubricRow.competencias`. */
+  competencias: string[];
+}
+
 /* ── Contexto que aporta el docente ── */
 
 export interface SdaRequest {
@@ -194,6 +205,33 @@ const RUBRIC_SCHEMA = {
   required: ['rubrica'],
 } as const;
 
+const DIANA_ITEM_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    item: S('Nombre del ítem, breve (máximo 5 palabras)'),
+    peso: { type: 'INTEGER', description: 'Peso relativo en la nota: 1 normalmente, 2 si es claramente más importante' },
+    nivel1: S('Descriptor del nivel más bajo'),
+    nivel2: S('Descriptor del segundo nivel'),
+    nivel3: S('Descriptor del tercer nivel'),
+    nivel4: S('Descriptor del nivel más alto'),
+    competencias: {
+      type: 'ARRAY',
+      description: `De 1 a 3 códigos de esta lista cerrada, los que de verdad evalúe este ítem: ${LOMLOE_CODES.join(', ')}.`,
+      items: { type: 'STRING', enum: LOMLOE_CODES },
+    },
+  },
+  required: ['item', 'peso', 'nivel1', 'nivel2', 'nivel3', 'nivel4', 'competencias'],
+  propertyOrdering: ['item', 'competencias', 'peso', 'nivel1', 'nivel2', 'nivel3', 'nivel4'],
+} as const;
+
+const DIANA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    diana: { type: 'ARRAY', items: DIANA_ITEM_SCHEMA },
+  },
+  required: ['diana'],
+} as const;
+
 /* ── Análisis de documentos de apoyo ── */
 
 /**
@@ -315,4 +353,58 @@ export async function generateSdaRubric(
 
   const parsed = parseGeminiJson<{ rubrica: SdaRubricRow[] }>(raw);
   return parsed?.rubrica ?? null;
+}
+
+/* ── Diana a partir de la situación de aprendizaje ── */
+
+/**
+ * Genera una diana de evaluación en vez de una rúbrica. Mismo origen —la
+ * misma SdA— pero pensada para lo observable en el momento (una exposición,
+ * un trabajo en grupo), donde una diana rinde mejor que una tabla de
+ * criterios: ver `EvalDianas.tsx`, que es donde vive el instrumento.
+ */
+export async function generateSdaDiana(
+  sda: SdaContent,
+  detalles: string,
+  niveles: string[],
+  lang: Lang,
+  callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
+): Promise<SdaDianaItem[] | null> {
+  const systemPrompt =
+    `Eres un experto en evaluación competencial. Tu tarea exclusiva es generar los ítems de ` +
+    `una diana de evaluación (un instrumento de observación directa, no una rúbrica de tabla).\n` +
+    `Cada ítem DEBE ser observable en el momento: algo que el docente pueda ver y puntuar mientras ` +
+    `ocurre, no algo que solo se aprecie corrigiendo en casa.\n` +
+    `COMPETENCIAS: además, en el campo "competencias" de cada ítem, marca de 1 a 3 códigos de ` +
+    `las ocho competencias clave LOMLOE (${LOMLOE_CODES.join(', ')}) que ese ítem evalúa de verdad ` +
+    `— las que ya aparecen en las "Competencias específicas por área" de más abajo son buena guía. ` +
+    `No es un adorno: con esos códigos se calculará luego la nota de cada competencia.\n` +
+    `PESO: normalmente 1; usa 2 solo si el ítem es claramente más importante que el resto.\n` +
+    `Los cuatro niveles, de menor a mayor, se llaman: ${niveles.join(', ')}. Redacta un descriptor ` +
+    `observable y distinto para cada uno.\n` +
+    `Genera de 4 a 6 ítems, adaptados a las características del grupo.\n` +
+    `El idioma de salida DEBE SER ${idioma(lang)}.`;
+
+  const areas = sda.areas
+    .map(a => `- ${a.area}: ${a.competenciasEspecificas}`)
+    .join('\n');
+
+  const userPrompt =
+    `Situación de aprendizaje: ${sda.titulo}\n` +
+    `Justificación: ${sda.justificacion}\n` +
+    `Competencias específicas por área:\n${areas}\n` +
+    `Producto final: ${sda.productoFinal}\n` +
+    `Técnicas de evaluación: ${sda.evaluacionTecnicas}\n` +
+    `Instrumentos: ${sda.evaluacionInstrumentos}\n` +
+    (detalles ? `Además, valora especialmente: "${detalles}"\n` : '') +
+    `\nGenera de 4 a 6 ítems de diana.`;
+
+  const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
+    maxOutputTokens: 8192,
+    responseSchema: DIANA_SCHEMA,
+  });
+  if (!raw) return null;
+
+  const parsed = parseGeminiJson<{ diana: SdaDianaItem[] }>(raw);
+  return parsed?.diana ?? null;
 }
