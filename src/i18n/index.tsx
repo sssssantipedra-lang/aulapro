@@ -1211,6 +1211,7 @@ const EN: Record<string, string> = {
   'Escribe el tema de la ficha': 'Write the worksheet topic',
   'La IA no devolvió una ficha válida. Vuelve a intentarlo.': 'The AI didn’t return a valid worksheet. Try again.',
   'Ficha de trabajo': 'Worksheet',
+  'Antes de empezar': 'Before you start',
   'Instrucciones': 'Instructions',
   'Ejercicios': 'Exercises',
   'Solución': 'Answer',

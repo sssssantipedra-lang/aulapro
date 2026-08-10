@@ -11,6 +11,7 @@
 
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
+  Table, TableRow, TableCell, WidthType, BorderStyle,
 } from 'docx';
 import type { Ficha } from '../types';
 import type { FichaExerciseType } from './resources';
@@ -33,6 +34,7 @@ function espacioTipo(tipo: FichaExerciseType): EspacioTipo {
 /* ── PDF (HTML independiente, impreso por Electron en vertical) ── */
 
 const esc = (s: string) => (s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+const nl2br = (s: string) => esc(s).replace(/\n/g, '<br>');
 
 export function buildFichaHtml(f: Ficha, lang: Lang): string {
   const t = (k: string, vars?: Record<string, string | number>) => translate(lang, k, vars);
@@ -53,12 +55,17 @@ export function buildFichaHtml(f: Ficha, lang: Lang): string {
 
   const datos = `${t('Nombre')}: ______________________________&nbsp;&nbsp;&nbsp; ${t('Fecha')}: ____________&nbsp;&nbsp;&nbsp; ${t('Clase')}: __________`;
 
+  const explicacionHtml = c.explicacion
+    ? `<div class="ficha-explicacion"><div class="lbl">💡 ${esc(t('Antes de empezar'))}</div><div class="txt">${nl2br(c.explicacion)}</div></div>`
+    : '';
+
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(c.titulo || f.title)}</title>` +
     `<style>${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}</style>` +
     `</head><body><article class="ficha-doc">` +
     `<h1>${esc(c.titulo || f.title)}</h1>` +
     `<div class="ficha-datos">${datos}</div>` +
+    explicacionHtml +
     (c.instrucciones ? `<p class="ficha-instr">${esc(c.instrucciones)}</p>` : '') +
     `<ol class="ficha-ejercicios">${ejerciciosHtml}</ol>` +
     `</article></body></html>`;
@@ -77,6 +84,11 @@ const FICHA_DOC_STYLE = `
 .ficha-doc { max-width: 100%; margin: 0 auto; padding: 4mm 6mm; background: #fff; color: #1e293b; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .ficha-doc h1 { font-size: 18px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.01em; }
 .ficha-datos { font-size: 12.5px; color: #334155; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #cbd5e1; }
+
+.ficha-explicacion { background: linear-gradient(135deg, #eff6ff, #f0f9ff); border: 1.25px solid #7dd3fc; border-left: 5px solid #0ea5e9; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+.ficha-explicacion .lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #0369a1; margin-bottom: 6px; }
+.ficha-explicacion .txt { font-size: 13px; line-height: 1.6; color: #0c4a6e; }
+
 .ficha-instr { font-size: 12.5px; color: #475569; line-height: 1.6; margin: 0 0 18px; font-style: italic; }
 
 .ficha-ejercicios { list-style: none; counter-reset: ej; margin: 0; padding: 0; }
@@ -109,7 +121,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const c = f.content;
   const letra = (i: number) => String.fromCharCode(97 + i);
 
-  const children: Paragraph[] = [
+  const children: (Paragraph | Table)[] = [
     new Paragraph({ text: c.titulo || f.title, heading: HeadingLevel.TITLE, spacing: { after: 120 } }),
     new Paragraph({
       children: [new TextRun({
@@ -120,6 +132,28 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
       border: { bottom: { style: 'single', size: 4, color: 'CBD5E1', space: 8 } },
     }),
   ];
+
+  if (c.explicacion) {
+    const EXPL_BORDER = { style: BorderStyle.SINGLE, size: 4, color: '7DD3FC' };
+    children.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: { top: EXPL_BORDER, bottom: EXPL_BORDER, left: EXPL_BORDER, right: EXPL_BORDER, insideHorizontal: EXPL_BORDER, insideVertical: EXPL_BORDER },
+      rows: [new TableRow({
+        children: [new TableCell({
+          shading: { fill: 'EFF6FF' },
+          margins: { top: 140, bottom: 140, left: 160, right: 160 },
+          children: [
+            new Paragraph({
+              children: [new TextRun({ text: `💡 ${t('Antes de empezar')}`, bold: true, color: '0369A1', size: 18 })],
+              spacing: { after: 60 },
+            }),
+            new Paragraph({ children: [new TextRun({ text: c.explicacion, color: '0C4A6E' })] }),
+          ],
+        })],
+      })],
+    }));
+    children.push(new Paragraph({ text: '', spacing: { after: 160 } }));
+  }
 
   if (c.instrucciones) {
     children.push(new Paragraph({

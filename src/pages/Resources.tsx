@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2,
+  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2, Lightbulb,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import { generateFicha, type FichaContent, type FichaExerciseType } from '../services/resources';
@@ -273,6 +273,28 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             <label className="flabel">{t('Título')}</label>
             <input className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
           </div>
+
+          <div style={{
+            background: 'linear-gradient(135deg, var(--accent-l), rgba(14,165,233,0.05))',
+            border: '1.5px solid rgba(14,165,233,0.35)', borderLeft: '4px solid var(--accent-d)',
+            borderRadius: 10, padding: '12px 14px 14px', marginBottom: 16,
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800,
+              textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--accent-d)', marginBottom: 6,
+            }}>
+              <Lightbulb size={13} />{t('Antes de empezar')}
+            </div>
+            <textarea
+              rows={3} value={content.explicacion ?? ''}
+              onChange={e => patch('explicacion', e.target.value)}
+              style={{
+                width: '100%', resize: 'vertical', background: 'transparent', border: 'none', padding: 0,
+                fontFamily: 'var(--font)', fontSize: 13, lineHeight: 1.6, color: 'var(--text)', outline: 'none',
+              }}
+            />
+          </div>
+
           <div className="fgroup">
             <label className="flabel">{t('Instrucciones')}</label>
             <textarea
