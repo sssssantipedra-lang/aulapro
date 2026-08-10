@@ -15,7 +15,7 @@
 
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
-  Table, TableRow, TableCell, WidthType, VerticalAlign, BorderStyle,
+  Table, TableRow, TableCell, WidthType, VerticalAlign, BorderStyle, PageOrientation,
 } from 'docx';
 import type { LearningSituation } from '../types';
 import { translate, type Lang } from '../i18n';
@@ -131,7 +131,10 @@ export async function saveSdaPdf(sda: LearningSituation, lang: Lang) {
 }
 
 const SDA_DOC_STYLE = `
-.sda-doc { max-width: 210mm; margin: 0 auto; padding: 16mm 18mm; background: #fff; color: #1e293b; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+/* Documento horizontal: docs.savePdf ya imprime en landscape (ver electron/main.cjs),
+   así que aquí hace falta usar el ancho de página que eso da, no el de un A4 vertical
+   —si no, la rejilla se queda encogida en el centro con media página en blanco. */
+.sda-doc { max-width: 100%; margin: 0 auto; padding: 4mm 6mm; background: #fff; color: #1e293b; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .sda-doc h1 { font-size: 15px; font-weight: 700; margin: 0 0 2px; letter-spacing: -0.01em; }
 .sda-sub { font-size: 12px; color: #64748b; margin: 0 0 12px; }
 
@@ -145,7 +148,7 @@ const SDA_DOC_STYLE = `
 
 /* Reparto entre páginas: vale tanto en el PDF como en la impresora */
 .sda-grid tr { break-inside: avoid; page-break-inside: avoid; }
-@media print { @page { size: A4 portrait; margin: 14mm 16mm; } }
+@media print { @page { size: A4 landscape; margin: 12mm 14mm; } }
 `;
 
 const SDA_DOC_STANDALONE = `
@@ -258,7 +261,21 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
   children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: TABLE_BORDERS, rows }));
 
   const doc = new Document({
-    sections: [{ children, properties: { page: { margin: { top: 1000, bottom: 1000, left: 1200, right: 1200 } } } }],
+    sections: [{
+      children,
+      properties: {
+        // Horizontal, a juego con el PDF: la rejilla tiene 6 columnas y en
+        // vertical se queda apretada mucho antes de llenar la página.
+        page: {
+          // docx espera las medidas en su orden "vertical" (ancho corto,
+          // alto largo) y las intercambia él solo al ver orientation:
+          // LANDSCAPE — pasarlas ya intercambiadas produce el efecto
+          // contrario y el documento sale vertical con la etiqueta cambiada.
+          size: { width: 11906, height: 16838, orientation: PageOrientation.LANDSCAPE },
+          margin: { top: 700, bottom: 700, left: 700, right: 700 },
+        },
+      },
+    }],
     styles: { default: { document: { run: { font: 'Calibri', size: 22 } } } },
   });
 
