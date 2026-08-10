@@ -1144,6 +1144,13 @@ const EN: Record<string, string> = {
   'Mis situaciones de aprendizaje': 'My learning situations',
   'Todavía no has guardado ninguna.': 'You haven’t saved any yet.',
   '¿Eliminar «{name}»?': 'Delete “{name}”?',
+  'PDF': 'PDF',
+  'Word': 'Word',
+  'Descargar en Word': 'Download as Word',
+  '✅ PDF guardado': '✅ PDF saved',
+  '✅ Word descargado': '✅ Word downloaded',
+  'No se pudo generar el documento Word.': 'Couldn’t generate the Word document.',
+  'Guardar en PDF solo está disponible en la aplicación de escritorio.': 'Saving as PDF is only available in the desktop app.',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

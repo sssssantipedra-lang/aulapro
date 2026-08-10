@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
+  FileDown, FileType2,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, GradeCategory } from '../types';
 import { DEFAULT_LEVELS } from '../types';
@@ -8,11 +9,13 @@ import {
   analyzeDocument, generateSda, generateSdaRubric,
   type SdaContent, type SdaRubricRow,
 } from '../services/learningSituations';
+import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
+import { isDesktop } from '../services/storage';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
@@ -151,12 +154,17 @@ export function LearningSituations({
     setContent(c => (c ? { ...c, [k]: v } : c));
   }
 
-  /* ── Guardar ── */
-  function handleSave() {
-    if (!content) return;
-    const id = editingId ?? newId();
-    onSave({
-      id,
+  /**
+   * El objeto tal y como se guardaría ahora mismo.
+   *
+   * Se usa tanto al guardar como al exportar: exportar no exige haber
+   * guardado antes, así que necesita esta misma forma sin pasar por
+   * `onSave`.
+   */
+  function currentSda(): LearningSituation | null {
+    if (!content) return null;
+    return {
+      id: editingId ?? newId(),
       at: new Date().toISOString(),
       date: isoDate(),
       class_id: classId || undefined,
@@ -167,9 +175,48 @@ export function LearningSituations({
         numSesiones, nivel, contextoClase, metodologia,
       },
       content,
-    });
-    setEditingId(id);
+    };
+  }
+
+  /* ── Guardar ── */
+  function handleSave() {
+    const sda = currentSda();
+    if (!sda) return;
+    onSave(sda);
+    setEditingId(sda.id);
     toast(t('Situación de aprendizaje guardada'));
+  }
+
+  /* ── Exportar ── */
+  // `key` identifica QUIÉN pidió la exportación (el formulario abierto, o una
+  // fila concreta de la lista guardada), no el id de la SdA en sí: mientras no
+  // se guarda, cada llamada a currentSda() saca un id nuevo, así que no sirve
+  // para saber si el botón que se pulsó sigue siendo el que está cargando.
+  const CURRENT_KEY = '__current__';
+  const [exporting, setExporting] = useState<{ key: string; kind: 'pdf' | 'docx' } | null>(null);
+
+  async function handleExportPdf(sda: LearningSituation | null, key: string) {
+    if (!sda) return;
+    setExporting({ key, kind: 'pdf' });
+    const res = await saveSdaPdf(sda, lang);
+    setExporting(null);
+    if (res.error === 'not-desktop') { toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.')); return; }
+    if (res.canceled) return;
+    if (res.error) { toast(t('No se pudo generar el PDF: {error}', { error: res.error })); return; }
+    toast(t('✅ PDF guardado'));
+  }
+
+  async function handleExportDocx(sda: LearningSituation | null, key: string) {
+    if (!sda) return;
+    setExporting({ key, kind: 'docx' });
+    try {
+      await saveSdaDocx(sda, lang);
+      toast(t('✅ Word descargado'));
+    } catch {
+      toast(t('No se pudo generar el documento Word.'));
+    } finally {
+      setExporting(null);
+    }
   }
 
   function openSaved(s: LearningSituation) {
@@ -416,7 +463,21 @@ export function LearningSituations({
         <div className="card" style={{ marginBottom: 16 }}>
           <div className="card-hd">
             <div className="card-ttl"><BookMarked size={14} color="var(--accent-d)" />{t('Situación de aprendizaje')}</div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {isDesktop() && (
+                <button
+                  className="btn-ghost" disabled={exporting !== null}
+                  onClick={() => handleExportPdf(currentSda(), CURRENT_KEY)} title={t('Guardar en PDF')}
+                >
+                  {exporting?.key === CURRENT_KEY && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={14} />}{t('PDF')}
+                </button>
+              )}
+              <button
+                className="btn-ghost" disabled={exporting !== null}
+                onClick={() => handleExportDocx(currentSda(), CURRENT_KEY)} title={t('Descargar en Word')}
+              >
+                {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
+              </button>
               <button className="btn-accent" onClick={handleSave}>
                 <Check size={14} />{t('Guardar')}
               </button>
@@ -597,6 +658,20 @@ export function LearningSituations({
                       .filter(Boolean).join(' · ')}
                   </div>
                 </div>
+                {isDesktop() && (
+                  <button
+                    className="ico-btn" title={t('Guardar en PDF')} disabled={exporting !== null}
+                    onClick={() => handleExportPdf(s, s.id)}
+                  >
+                    {exporting?.key === s.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
+                  </button>
+                )}
+                <button
+                  className="ico-btn" title={t('Descargar en Word')} disabled={exporting !== null}
+                  onClick={() => handleExportDocx(s, s.id)}
+                >
+                  {exporting?.key === s.id && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={15} />}
+                </button>
                 <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openSaved(s)}>
                   {t('Abrir')}
                 </button>
