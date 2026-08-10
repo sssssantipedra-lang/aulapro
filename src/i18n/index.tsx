@@ -1171,6 +1171,13 @@ const EN: Record<string, string> = {
   'Diana creada en Dianas': 'Target created in Assessment Bullseye',
   'Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta diana aparecerá al instante en el cuaderno, en una columna propia.':
     'If you set a class, subject and category, every student you assess with this target appears instantly in the gradebook, in a column of its own.',
+
+  /* ── Exportación de la SdA en formato tabla ── */
+  'Área': 'Subject',
+  'Fase': 'Phase',
+  'Inclusión — para todo el grupo': 'Inclusion — for the whole group',
+  'Inclusión — apoyo puntual': 'Inclusion — targeted support',
+  'Inclusión — necesidades específicas': 'Inclusion — specific needs',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

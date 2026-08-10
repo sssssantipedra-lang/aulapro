@@ -202,6 +202,8 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 evaluations={st.evaluations}
+                rubrics={st.rubrics}
+                dianas={st.dianas}
                 lawDocument={st.lawDocument}
                 dianaProfiles={st.dianaProfiles}
                 onSaveDiana={st.saveDianaProfile}

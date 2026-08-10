@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Sparkles, RotateCcw, Save, ChevronDown, ListChecks } from 'lucide-react';
-import type { Class, Student, Evaluation, DianaProfile } from '../types';
+import type { Class, Student, Evaluation, DianaProfile, Rubric, EvalDiana } from '../types';
 import type { InlineFile } from '../services/gemini';
 import { DIANA_SECTORS, LOMLOE_TO_DIANA, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
@@ -11,6 +11,8 @@ interface Props {
   classes: Class[];
   students: Student[];
   evaluations: Evaluation[];
+  rubrics: Rubric[];
+  dianas: EvalDiana[];
   lawDocument: InlineFile | null;
   dianaProfiles: Record<string, DianaProfile>;
   onSaveDiana: (studentId: string, profile: DianaProfile) => void;
@@ -72,6 +74,41 @@ function emptyScores(): ScoreMap {
 
 function emptyDescriptors(): DescriptorMap {
   return { ds1: '', ds2: '', ds3: '', ds4: '', ds5: '', ds6: '' };
+}
+
+interface SectorEntry { value: number; code: string; rubric_name: string }
+
+/**
+ * Reparte las notas por competencia de un grupo de evaluaciones entre los
+ * seis sectores de la Diana, vía `LOMLOE_TO_DIANA`. La usan tanto el relleno
+ * directo (`handleFillFromEvaluations`) como la sugerencia con IA: los dos
+ * necesitan lo mismo, cuánta evidencia real hay por sector y de dónde sale.
+ */
+function bySectorFromEvals(evals: Evaluation[]): Record<SectorId, SectorEntry[]> {
+  const out: Record<SectorId, SectorEntry[]> = { ds1: [], ds2: [], ds3: [], ds4: [], ds5: [], ds6: [] };
+  for (const ev of evals) {
+    for (const [code, value] of Object.entries(ev.competencyScores ?? {})) {
+      for (const sid of LOMLOE_TO_DIANA[code] ?? []) {
+        out[sid as SectorId].push({ value, code, rubric_name: ev.rubric_name });
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Nombre legible de lo que se evaluó en `key` (un id de criterio o de ítem),
+ * buscando en la rúbrica o diana de la que salió la evaluación. Sin esto, el
+ * resumen que se le manda a la IA está lleno de ids como «c1a2b3»: no aporta
+ * nada y la obliga a adivinar en vez de razonar sobre lo que de verdad se
+ * evaluó. Si el instrumento ya no existe (se borró después), se devuelve el
+ * id tal cual: mejor eso que romper la generación.
+ */
+function resolveItemName(ev: Evaluation, key: string, rubrics: Rubric[], dianas: EvalDiana[]): string {
+  if (ev.instrument === 'diana') {
+    return dianas.find(d => d.id === ev.rubric_id)?.items.find(i => i.id === key)?.name ?? key;
+  }
+  return rubrics.find(r => r.id === ev.rubric_id)?.criteria.find(c => c.id === key)?.name ?? key;
 }
 
 interface DianaChartProps {
@@ -259,7 +296,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
   );
 }
 
-export function Diana({ classes, students, evaluations, lawDocument, dianaProfiles, onSaveDiana }: Props) {
+export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocument, dianaProfiles, onSaveDiana }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [classId, setClassId] = useState('');
@@ -335,79 +372,80 @@ export function Diana({ classes, students, evaluations, lawDocument, dianaProfil
     setTimeout(() => setSaved(false), 2000);
   }, [studentId, scores, descriptors, onSaveDiana, toast, t]);
 
+  /**
+   * Sugiere el perfil con IA, pero ya no le deja adivinar lo que se puede
+   * calcular. Los sectores con evaluaciones etiquetadas por competencia
+   * tienen un valor real (el mismo que calcula `handleFillFromEvaluations`):
+   * a la IA solo se le pide que redacte su descriptor citando esa evidencia
+   * concreta, nunca que invente un número distinto. Solo para los sectores
+   * SIN ninguna evaluación etiquetada se le pide que infiera una puntuación,
+   * y ahí a partir de un historial legible —con el nombre de cada criterio o
+   * ítem, no su id— en vez del resumen casi opaco de antes.
+   */
   const handleAiSuggest = useCallback(async () => {
     if (!student) return;
 
     const cls = classes.find(c => c.id === classId);
+    const sectorLabel = (sid: SectorId) => t(DIANA_SECTORS.find(s => s.id === sid)!.label);
+    const numFmt = (n: number) => n.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { maximumFractionDigits: 1 });
+
+    const bySector = bySectorFromEvals(competencyEvals);
+    const sectoresConDatos = SECTOR_IDS.filter(sid => bySector[sid].length > 0);
+    const sectoresSinDatos = SECTOR_IDS.filter(sid => bySector[sid].length === 0);
+
+    const objectiveBlock = sectoresConDatos.length === 0 ? '' : sectoresConDatos.map(sid => {
+      const entries = bySector[sid];
+      const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
+      const detalle = entries.map(e => `${e.code} ${numFmt(e.value)} («${e.rubric_name}»)`).join(', ');
+      return lang === 'en'
+        ? `- ${sectorLabel(sid)} (${sid}): REAL calculated value ${avg.toFixed(1)}/4, from: ${detalle}`
+        : `- ${sectorLabel(sid)} (${sid}): valor REAL ya calculado ${avg.toFixed(1)}/4, a partir de: ${detalle}`;
+    }).join('\n');
 
     const evalSummary = studentEvals.length === 0
       ? (lang === 'en' ? 'No previous assessments recorded.' : 'Sin evaluaciones previas registradas.')
       : studentEvals.map(e => {
-          const criteriaLines = Object.entries(e.scores)
-            .map(([k, v]) => lang === 'en' ? `  - ${k}: level ${v}/4` : `  - ${k}: nivel ${v}/4`)
+          const lines = Object.entries(e.scores)
+            .map(([k, v]) => `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/4`)
             .join('\n');
+          const kind = e.instrument === 'diana' ? (lang === 'en' ? 'Target' : 'Diana') : (lang === 'en' ? 'Rubric' : 'Rúbrica');
           return lang === 'en'
-            ? `Rubric "${e.rubric_name}" (${e.date}):\n${criteriaLines}${e.notes ? `\n  Notes: ${e.notes}` : ''}`
-            : `Rúbrica "${e.rubric_name}" (${e.date}):\n${criteriaLines}${e.notes ? `\n  Notas: ${e.notes}` : ''}`;
+            ? `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notes: ${e.notes}` : ''}`
+            : `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notas: ${e.notes}` : ''}`;
         }).join('\n\n');
 
     const systemPrompt = lang === 'en'
-      ? `You are an expert in competency-based education. Analyse a student's assessment history and generate scores for the Learner Profile with 6 key competencies (1-4 scale) and short, concrete descriptors for each. Reply ONLY with valid JSON, no extra text.`
-      : `Eres un experto en educación competencial. Analiza el historial de evaluaciones de un alumno y genera puntuaciones para la Diana Competencial con 6 competencias clave (escala 1-4) y descriptores breves y concretos para cada una. Responde ÚNICAMENTE con JSON válido, sin texto adicional.`;
+      ? `You are an expert in competency-based education, helping a teacher complete a student's Learner Profile (6 competency sectors, 1-4 scale). Some sectors already have a REAL value calculated from tagged assessments, listed below: never invent a different number for those, only write a descriptor that cites that concrete evidence (name the assessment and the competency code). For sectors with no data at all, infer a score from the qualitative history and the teacher's notes — be conservative: with weak or contradictory evidence, prefer a middle score (2 or 3) over guessing an extreme. Reply ONLY with valid JSON, no extra text.`
+      : `Eres un experto en educación competencial, ayudando a un docente a completar la Diana Competencial de un alumno (6 sectores, escala 1-4). Algunos sectores ya tienen un valor REAL calculado a partir de evaluaciones etiquetadas, listado más abajo: no inventes un número distinto para esos, limítate a redactar su descriptor citando esa evidencia concreta (nombra la evaluación y el código de competencia). Para los sectores sin ningún dato, infiere una puntuación a partir del historial cualitativo y las notas del docente — sé conservador: con evidencia débil o contradictoria, prefiere una puntuación intermedia (2 o 3) antes que adivinar un extremo. Responde ÚNICAMENTE con JSON válido, sin texto adicional.`;
 
     const userPrompt = lang === 'en' ? `Student: ${student.name}
 Class: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
 Teacher's notes: ${student.notes || 'None'}
-
-Assessment history:
+${objectiveBlock ? `\nREAL data already calculated, per sector:\n${objectiveBlock}\n` : ''}
+Qualitative assessment history:
 ${evalSummary}
 
-Generate the Learner Profile with scores (1=Below expectations, 2=Approaching expectations, 3=Meeting expectations, 4=Exceeding expectations) and descriptors, in English, for:
-- ds1: Communication
-- ds2: Mathematics
-- ds3: Digital
-- ds4: Social
-- ds5: Learning to learn
-- ds6: Enterprise
-
-JSON format:
-{
-  "scores": {"ds1": 3, "ds2": 2, "ds3": 3, "ds4": 4, "ds5": 3, "ds6": 2},
-  "descriptors": {
-    "ds1": "Short descriptor about Communication...",
-    "ds2": "Short descriptor about Mathematics...",
-    "ds3": "Short descriptor about Digital...",
-    "ds4": "Short descriptor about Social...",
-    "ds5": "Short descriptor about Learning to learn...",
-    "ds6": "Short descriptor about Enterprise..."
-  }
-}` : `Alumno: ${student.name}
+${sectoresSinDatos.length > 0 ? `Infer a score (1=Below expectations, 2=Approaching expectations, 3=Meeting expectations, 4=Exceeding expectations) for these sectors with no real data yet: ${sectoresSinDatos.map(sid => `${sectorLabel(sid)} (${sid})`).join(', ')}.\n\n` : ''}Write a descriptor, in English, for ALL 6 sectors (ds1 Communication, ds2 Mathematics, ds3 Digital, ds4 Social, ds5 Learning to learn, ds6 Enterprise) — for the ones with real data, ground it in that evidence; for the rest, in the qualitative history.` : `Alumno: ${student.name}
 Clase: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
 Notas del profesor: ${student.notes || 'Ninguna'}
-
-Historial de evaluaciones:
+${objectiveBlock ? `\nDatos REALES ya calculados, por sector:\n${objectiveBlock}\n` : ''}
+Historial cualitativo de evaluaciones:
 ${evalSummary}
 
-Genera la Diana Competencial con puntuaciones (1=Insuficiente, 2=Suficiente, 3=Bien, 4=Excelente) y descriptores para:
-- ds1: Comunicación
-- ds2: Matemática
-- ds3: Digital
-- ds4: Social
-- ds5: Aprender a aprender
-- ds6: Emprendimiento
+${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Suficiente, 3=Bien, 4=Excelente) para estos sectores que todavía no tienen dato real: ${sectoresSinDatos.map(sid => `${sectorLabel(sid)} (${sid})`).join(', ')}.\n\n` : ''}Redacta un descriptor, en español de España, para LOS 6 SECTORES (ds1 Comunicación, ds2 Matemática, ds3 Digital, ds4 Social, ds5 Aprender a aprender, ds6 Emprendimiento) — en los que tienen dato real, apóyalo en esa evidencia; en el resto, en el historial cualitativo.`;
 
-Formato JSON:
-{
-  "scores": {"ds1": 3, "ds2": 2, "ds3": 3, "ds4": 4, "ds5": 3, "ds6": 2},
-  "descriptors": {
-    "ds1": "Descriptor breve sobre Comunicación...",
-    "ds2": "Descriptor breve sobre Matemática...",
-    "ds3": "Descriptor breve sobre Digital...",
-    "ds4": "Descriptor breve sobre Social...",
-    "ds5": "Descriptor breve sobre Aprender a aprender...",
-    "ds6": "Descriptor breve sobre Emprendimiento..."
-  }
-}`;
+    const scoreProps = Object.fromEntries(
+      sectoresSinDatos.map(sid => [sid, { type: 'INTEGER', description: '1 a 4' }]),
+    );
+    const descProps = Object.fromEntries(SECTOR_IDS.map(sid => [sid, { type: 'STRING' }]));
+    const responseSchema = {
+      type: 'OBJECT',
+      properties: {
+        ...(sectoresSinDatos.length > 0 ? { scores: { type: 'OBJECT', properties: scoreProps, required: sectoresSinDatos } } : {}),
+        descriptors: { type: 'OBJECT', properties: descProps, required: SECTOR_IDS },
+      },
+      required: sectoresSinDatos.length > 0 ? ['scores', 'descriptors'] : ['descriptors'],
+    };
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
 
@@ -415,29 +453,33 @@ Formato JSON:
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
       onError: msg => toast(msg),
-    });
+    }, { responseSchema, maxOutputTokens: 4096 });
 
     if (!raw) return;
 
-    const parsed = parseGeminiJson<{ scores: ScoreMap; descriptors: DescriptorMap }>(raw);
-    if (!parsed) { toast(t('La IA no devolvió un perfil válido. Vuelve a intentarlo.')); return; }
+    const parsed = parseGeminiJson<{ scores?: Partial<ScoreMap>; descriptors: DescriptorMap }>(raw);
+    if (!parsed?.descriptors) { toast(t('La IA no devolvió un perfil válido. Vuelve a intentarlo.')); return; }
 
-    if (parsed.scores) {
-      const newScores = { ...emptyScores() };
-      for (const id of SECTOR_IDS) {
-        const v = parsed.scores[id];
-        if (typeof v === 'number' && v >= 1 && v <= 4) newScores[id] = v;
+    // Los sectores con dato real se quedan con ESE valor pase lo que pase en
+    // la respuesta: no es una sugerencia, es lo que ya salió de evaluar.
+    const newScores = { ...emptyScores() };
+    for (const sid of SECTOR_IDS) {
+      const entries = bySector[sid];
+      if (entries.length > 0) {
+        const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
+        newScores[sid] = Math.max(1, Math.min(4, Math.round(avg)));
+      } else {
+        const v = parsed.scores?.[sid];
+        if (typeof v === 'number' && v >= 1 && v <= 4) newScores[sid] = v;
       }
-      setScores(newScores);
     }
+    setScores(newScores);
 
-    if (parsed.descriptors) {
-      const newDesc = { ...emptyDescriptors() };
-      for (const id of SECTOR_IDS) {
-        if (typeof parsed.descriptors[id] === 'string') newDesc[id] = parsed.descriptors[id];
-      }
-      setDescriptors(newDesc);
+    const newDesc = { ...emptyDescriptors() };
+    for (const sid of SECTOR_IDS) {
+      if (typeof parsed.descriptors[sid] === 'string') newDesc[sid] = parsed.descriptors[sid];
     }
+    setDescriptors(newDesc);
 
     setSaved(false);
   }, [student, studentEvals, classes, classId, lawDocument, toast, lang, t]);
@@ -457,16 +499,7 @@ Formato JSON:
       return;
     }
 
-    const bySector: Record<SectorId, { value: number; code: string; rubric_name: string }[]> = {
-      ds1: [], ds2: [], ds3: [], ds4: [], ds5: [], ds6: [],
-    };
-    for (const ev of competencyEvals) {
-      for (const [code, value] of Object.entries(ev.competencyScores ?? {})) {
-        for (const sid of LOMLOE_TO_DIANA[code] ?? []) {
-          bySector[sid as SectorId].push({ value, code, rubric_name: ev.rubric_name });
-        }
-      }
-    }
+    const bySector = bySectorFromEvals(competencyEvals);
 
     const newScores = { ...scores };
     const newDescriptors = { ...descriptors };
