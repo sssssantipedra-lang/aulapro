@@ -215,11 +215,17 @@ export interface GeneratedImage {
 
 /**
  * Modelo aparte de `MODELS`: esos son de texto, este genera imagen de
- * verdad (gemini-2.5-flash-image), con su propia cuota gratuita y su propio
- * formato de petición/respuesta — no tiene sentido meterlo en la cadena de
+ * verdad, con su propia cuota gratuita y su propio formato de
+ * petición/respuesta — no tiene sentido meterlo en la cadena de
  * `callModel`, que da por hecho que la respuesta es texto.
+ *
+ * La "lite" es la variante barata y rápida, pensada precisamente para esto
+ * —una ilustración decorativa, no crítica—, igual que `MODELS` ya prioriza
+ * los "-flash-lite" de texto sobre los más caros. La primera prueba de
+ * verdad con `gemini-2.5-flash-image` agotó enseguida el límite gratuito
+ * (HTTP 429); con la "lite" el margen debería dar más de sí.
  */
-const IMAGE_MODEL = 'gemini-2.5-flash-image';
+const IMAGE_MODEL = 'gemini-3.1-flash-lite-image';
 
 /**
  * Genera una ilustración con IA a partir de una descripción. Pensada para un
