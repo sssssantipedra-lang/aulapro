@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
-  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2, Lightbulb,
+  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2, Lightbulb, ImagePlus, PenLine,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
-import { generateFicha, type FichaContent, type FichaExerciseType } from '../services/resources';
+import { generateFicha, type FichaContent, type FichaExercise, type FichaExerciseType } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx } from '../services/exportFicha';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
@@ -28,7 +28,86 @@ const TIPO_LABEL: Record<FichaExerciseType, string> = {
   completar: 'Completar',
   opcion_multiple: 'Opción múltiple',
   problema: 'Problema',
+  tabla_rellenar: 'Tabla para rellenar',
+  relacionar: 'Relacionar',
+  colorear: 'Colorear según el resultado',
 };
+
+/** Vista previa de solo lectura de un ejercicio, adaptada a su tipo. */
+function ExercisePreview({ ex, i, t }: { ex: FichaExercise; i: number; t: (k: string, v?: Record<string, string | number>) => string }) {
+  return (
+    <div style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--surface)', border: '0.5px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <span style={{
+          width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+          background: 'var(--accent-l)', color: 'var(--accent-d)', fontSize: 11, fontWeight: 800,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>{i + 1}</span>
+        <span style={{
+          fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 99,
+          background: 'var(--card)', color: 'var(--text-2)', border: '1px solid var(--border)',
+        }}>{t(TIPO_LABEL[ex.tipo])}</span>
+      </div>
+
+      <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{ex.enunciado}</div>
+
+      {!!ex.opciones?.length && (
+        <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 12.5, color: 'var(--text-2)' }}>
+          {ex.opciones.map((o, j) => <li key={j}>{String.fromCharCode(97 + j)}) {o}</li>)}
+        </ul>
+      )}
+
+      {ex.tipo === 'tabla_rellenar' && !!ex.columnas?.length && !!ex.filas?.length && (
+        <div style={{ overflowX: 'auto', marginTop: 8 }}>
+          <table className="rtable" style={{ fontSize: 12 }}>
+            <thead><tr>{ex.columnas.map((col, j) => <th key={j}>{col}</th>)}</tr></thead>
+            <tbody>
+              {ex.filas.map((fila, fi) => (
+                <tr key={fi}>{fila.map((celda, ci) => <td key={ci} style={{ color: celda ? undefined : 'var(--text-3)' }}>{celda || '—'}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {ex.tipo === 'relacionar' && !!ex.izquierda?.length && !!ex.derecha?.length && (
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12.5, color: 'var(--text-2)' }}>
+          <div style={{ flex: 1 }}>{ex.izquierda.map((it, j) => <div key={j}>{j + 1}. {it}</div>)}</div>
+          <div style={{ flex: 1 }}>{ex.derecha.map((it, j) => <div key={j}>{String.fromCharCode(65 + j)}. {it}</div>)}</div>
+        </div>
+      )}
+
+      {ex.tipo === 'colorear' && (
+        <div style={{ marginTop: 8 }}>
+          {!!ex.leyenda?.length && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+              {ex.leyenda.map((l, j) => (
+                <span key={j} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text-2)' }}>
+                  {l.color}: {l.criterio}
+                </span>
+              ))}
+            </div>
+          )}
+          {!!ex.itemsColorear?.length && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 12.5, color: 'var(--text-2)' }}>
+              {ex.itemsColorear.map((it, j) => <span key={j}>{it}</span>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
+        <strong>{t('Solución')}:</strong> {ex.solucion}
+      </div>
+      {(ex.apoyo || ex.ampliacion) && (
+        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
+          {ex.apoyo && <div><strong>{t('Apoyo')}:</strong> {ex.apoyo}</div>}
+          {ex.ampliacion && <div><strong>{t('Ampliación')}:</strong> {ex.ampliacion}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const { toast } = useToast();
@@ -42,6 +121,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [numEjercicios, setNumEjercicios] = useState(6);
   const [niveles, setNiveles] = useState(false);
   const [contextoClase, setContextoClase] = useState('');
+  const [incluirImagen, setIncluirImagen] = useState(false);
 
   /* ── Resultado ── */
   const [generating, setGenerating] = useState(false);
@@ -61,7 +141,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     if (!tema.trim()) { toast(t('Escribe el tema de la ficha')); return; }
 
     const result = await generateFicha({
-      tema: tema.trim(), area, nivel, numEjercicios, niveles, contextoClase,
+      tema: tema.trim(), area, nivel, numEjercicios, niveles, contextoClase, incluirImagen,
     }, lang, {
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
@@ -73,7 +153,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     setEditingId(null);
   }
 
-  function patch(k: keyof FichaContent, v: string) {
+  function patch(k: 'titulo' | 'explicacion' | 'instrucciones', v: string) {
     setContent(c => (c ? { ...c, [k]: v } : c));
   }
 
@@ -138,6 +218,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     setNumEjercicios(f.request.numEjercicios);
     setNiveles(f.request.niveles);
     setContextoClase(f.request.contextoClase);
+    setIncluirImagen(!!f.content.imagen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -146,6 +227,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   }
 
   const sinClave = !hasApiKey();
+  /** Fichas guardadas antes de que existieran los bloques de actividad. */
+  const actividades = content
+    ? (content.actividades?.length ? content.actividades : (
+      (content as unknown as { ejercicios?: FichaExercise[] }).ejercicios?.length
+        ? [{ titulo: '', ejercicios: (content as unknown as { ejercicios: FichaExercise[] }).ejercicios }]
+        : []
+    ))
+    : [];
 
   return (
     <section className="sec active">
@@ -230,8 +319,16 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
           <input type="checkbox" checked={niveles} onChange={e => setNiveles(e.target.checked)} />
           {t('Incluir variantes de apoyo y ampliación por ejercicio')}
         </label>
-        <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 14 }}>
+        <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 12 }}>
           {t('Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.')}
+        </p>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 4 }}>
+          <input type="checkbox" checked={incluirImagen} onChange={e => setIncluirImagen(e.target.checked)} />
+          <ImagePlus size={14} />{t('Incluir una ilustración generada por IA')}
+        </label>
+        <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 14 }}>
+          {t('Tarda un poco más y usa aparte tu cuota gratuita de imágenes. Si falla por lo que sea, la ficha se genera igual, solo que sin ilustración.')}
         </p>
 
         <div style={{ paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
@@ -269,6 +366,13 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             </div>
           </div>
 
+          {content.imagen && (
+            <img
+              src={`data:${content.imagen.mimeType};base64,${content.imagen.base64}`} alt=""
+              style={{ width: 96, height: 96, objectFit: 'contain', borderRadius: 12, float: 'right', marginLeft: 12 }}
+            />
+          )}
+
           <div className="fgroup">
             <label className="flabel">{t('Título')}</label>
             <input className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
@@ -304,46 +408,16 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             />
           </div>
 
-          <div className="fgroup">
-            <label className="flabel">{t('Ejercicios')} ({content.ejercicios.length})</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {content.ejercicios.map((ex, i) => (
-                <div key={i} style={{
-                  padding: '12px 14px', borderRadius: 10,
-                  background: 'var(--surface)', border: '0.5px solid var(--border)',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span style={{
-                      width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                      background: 'var(--accent-l)', color: 'var(--accent-d)',
-                      fontSize: 11, fontWeight: 800,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>{i + 1}</span>
-                    <span style={{
-                      fontSize: 10.5, fontWeight: 800, padding: '2px 8px',
-                      borderRadius: 99, background: 'var(--card)', color: 'var(--text-2)',
-                      border: '1px solid var(--border)',
-                    }}>{t(TIPO_LABEL[ex.tipo])}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{ex.enunciado}</div>
-                  {!!ex.opciones?.length && (
-                    <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 12.5, color: 'var(--text-2)' }}>
-                      {ex.opciones.map((o, j) => <li key={j}>{String.fromCharCode(97 + j)}) {o}</li>)}
-                    </ul>
-                  )}
-                  <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
-                    <strong>{t('Solución')}:</strong> {ex.solucion}
-                  </div>
-                  {(ex.apoyo || ex.ampliacion) && (
-                    <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-                      {ex.apoyo && <div><strong>{t('Apoyo')}:</strong> {ex.apoyo}</div>}
-                      {ex.ampliacion && <div><strong>{t('Ampliación')}:</strong> {ex.ampliacion}</div>}
-                    </div>
-                  )}
-                </div>
-              ))}
+          {actividades.map((act, ai) => (
+            <div key={ai} className="fgroup">
+              <label className="flabel" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {act.titulo ? <><PenLine size={12} />{t('Actividad {n}', { n: ai + 1 })}: {act.titulo}</> : t('Ejercicios')}
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {act.ejercicios.map((ex, i) => <ExercisePreview key={i} ex={ex} i={i} t={t} />)}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       )}
 

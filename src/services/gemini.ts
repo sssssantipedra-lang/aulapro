@@ -205,3 +205,60 @@ export function parseGeminiJson<T>(raw: string): T | null {
     return null;
   }
 }
+
+/* ── Generación de imagen ── */
+
+export interface GeneratedImage {
+  base64: string;
+  mimeType: string;
+}
+
+/**
+ * Modelo aparte de `MODELS`: esos son de texto, este genera imagen de
+ * verdad (gemini-2.5-flash-image), con su propia cuota gratuita y su propio
+ * formato de petición/respuesta — no tiene sentido meterlo en la cadena de
+ * `callModel`, que da por hecho que la respuesta es texto.
+ */
+const IMAGE_MODEL = 'gemini-2.5-flash-image';
+
+/**
+ * Genera una ilustración con IA a partir de una descripción. Pensada para un
+ * uso decorativo, no crítico (una imagen de cabecera en una ficha, por
+ * ejemplo): si falla por lo que sea —cuota agotada, el modelo no está
+ * disponible con esta clave, sin conexión, la forma de la respuesta cambia—
+ * devuelve `null` en silencio. Quien la llama debe seguir funcionando
+ * perfectamente sin imagen; nunca debe depender de que esto funcione.
+ *
+ * Implementada a partir de la documentación pública de la API, sin haber
+ * podido probarla contra el servicio real de Google en este equipo.
+ */
+export async function generateImage(prompt: string): Promise<GeneratedImage | null> {
+  try {
+    const key = getApiKey();
+    if (!key) return null;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseModalities: ['IMAGE'] },
+        }),
+      },
+    );
+    if (!res.ok) return null;
+
+    const data = await res.json() as {
+      candidates?: { content?: { parts?: { inlineData?: { data?: string; mimeType?: string } }[] } }[];
+    };
+    const part = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data);
+    const inline = part?.inlineData;
+    if (!inline?.data || !inline?.mimeType) return null;
+
+    return { base64: inline.data, mimeType: inline.mimeType };
+  } catch {
+    return null;
+  }
+}

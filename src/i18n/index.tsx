@@ -1231,6 +1231,13 @@ const EN: Record<string, string> = {
   'Llevar a Recursos': 'Send to Resources',
   'Ficha creada en Recursos': 'Worksheet created in Resources',
   'Título': 'Title',
+  'Actividad {n}': 'Activity {n}',
+  'Tabla para rellenar': 'Table to complete',
+  'Relacionar': 'Matching',
+  'Colorear según el resultado': 'Color by result',
+  'Incluir una ilustración generada por IA': 'Include an AI-generated illustration',
+  'Tarda un poco más y usa aparte tu cuota gratuita de imágenes. Si falla por lo que sea, la ficha se genera igual, solo que sin ilustración.':
+    'Takes a little longer and uses your free image quota separately. If it fails for any reason, the worksheet is still generated, just without an illustration.',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

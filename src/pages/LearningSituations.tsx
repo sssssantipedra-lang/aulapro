@@ -358,11 +358,13 @@ export function LearningSituations({
     if (!content) return;
     const result = await generateFichaFromSda(
       content, fichaArea || content.areas[0]?.area || '',
-      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails },
+      // Sin ilustración desde aquí: es un atajo rápido dentro de la SdA, la
+      // casilla completa vive en Recursos.
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, incluirImagen: false },
       lang,
       { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
     );
-    if (!result?.ejercicios.length) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    if (!result?.actividades.some(a => a.ejercicios.length)) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
     setFichaContent(result);
   }
 
@@ -861,13 +863,24 @@ export function LearningSituations({
           {fichaContent && (
             <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-                {fichaContent.ejercicios.map((ex, i) => (
-                  <div key={i} style={{
-                    padding: '10px 13px', borderRadius: 9,
-                    background: 'var(--surface)', border: '0.5px solid var(--border)',
-                    fontSize: 12.5, color: 'var(--text)', lineHeight: 1.55,
-                  }}>
-                    <strong>{i + 1}.</strong> {ex.enunciado}
+                {fichaContent.actividades.map((act, ai) => (
+                  <div key={ai}>
+                    {act.titulo && (
+                      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--accent-d)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '10px 0 6px' }}>
+                        {t('Actividad {n}', { n: ai + 1 })}: {act.titulo}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {act.ejercicios.map((ex, i) => (
+                        <div key={i} style={{
+                          padding: '10px 13px', borderRadius: 9,
+                          background: 'var(--surface)', border: '0.5px solid var(--border)',
+                          fontSize: 12.5, color: 'var(--text)', lineHeight: 1.55,
+                        }}>
+                          <strong>{i + 1}.</strong> {ex.enunciado}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
