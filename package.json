@@ -26,11 +26,17 @@
       "output": "release",
       "buildResources": "build"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "sssssantipedra-lang",
+        "repo": "aulapro"
+      }
+    ],
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "package.json",
-      "!node_modules/**/*"
+      "package.json"
     ],
     "win": {
       "target": [
@@ -48,7 +54,7 @@
         }
       ],
       "icon": "build/icon.ico",
-      "artifactName": "AulaPro-${version}-instalador.${ext}"
+      "artifactName": "AulaPro-${version}-instalador-windows.${ext}"
     },
     "nsis": {
       "perMachine": false,
@@ -63,7 +69,7 @@
       "deleteAppDataOnUninstall": false
     },
     "portable": {
-      "artifactName": "AulaPro-${version}-portable.${ext}"
+      "artifactName": "AulaPro-${version}-portable-windows.${ext}"
     },
     "mac": {
       "target": [
@@ -92,41 +98,42 @@
     }
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "autoprefixer": "^10.5.0",
-    "canvas-confetti": "^1.9.4",
-    "docx": "^9.7.1",
-    "framer-motion": "^12.38.0",
-    "jsqr": "^1.4.0",
-    "lucide-react": "^1.16.0",
-    "peerjs": "^1.5.5",
-    "postcss": "^8.5.14",
-    "qrcode": "^1.5.4",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-rnd": "^10.5.3",
-    "tailwindcss": "^4.3.0",
-    "xlsx": "^0.18.5"
+    "electron-updater": "^6.8.9"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.12.3",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.5.0",
+    "canvas-confetti": "^1.9.4",
+    "docx": "^9.7.1",
     "electron": "^43.3.0",
     "electron-builder": "^26.15.3",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "framer-motion": "^12.38.0",
     "globals": "^17.6.0",
+    "jsqr": "^1.4.0",
+    "lucide-react": "^1.16.0",
+    "peerjs": "^1.5.5",
     "png-to-ico": "^3.0.2",
+    "postcss": "^8.5.14",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-rnd": "^10.5.3",
     "sharp": "^0.35.3",
+    "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "xlsx": "^0.18.5"
   }
 }

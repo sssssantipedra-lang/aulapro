@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ToastProvider, useToast } from './components/ui/Toast';
+import { UpdateBanner } from './components/UpdateBanner';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
 import { Dashboard } from './pages/Dashboard';
@@ -383,6 +384,7 @@ export default function App() {
   return (
     <ToastProvider>
       <AppInner />
+      <UpdateBanner />
     </ToastProvider>
   );
 }

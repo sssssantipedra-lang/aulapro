@@ -1187,6 +1187,11 @@ const EN: Record<string, string> = {
   'Inclusión — para todo el grupo': 'Inclusion — for the whole group',
   'Inclusión — apoyo puntual': 'Inclusion — targeted support',
   'Inclusión — necesidades específicas': 'Inclusion — specific needs',
+
+  /* ── Actualización automática (solo Windows) ── */
+  'Descargando la actualización {version}…': 'Downloading update {version}…',
+  'Hay una versión nueva ({version}) lista para instalar': 'A new version ({version}) is ready to install',
+  'Reiniciar y actualizar': 'Restart and update',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

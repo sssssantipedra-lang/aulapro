@@ -75,6 +75,18 @@ export interface DocsBridge {
   reveal: (filePath: string) => Promise<void>;
 }
 
+export interface UpdateStatus {
+  state: 'downloading' | 'ready' | 'error';
+  version?: string;
+  message?: string;
+}
+
+export interface UpdateBridge {
+  /** Avisa cuando hay una actualización descargándose o lista. Devuelve una función para dejar de escuchar. */
+  onStatus: (cb: (status: UpdateStatus) => void) => () => void;
+  installNow: () => Promise<void>;
+}
+
 export interface StoreBridge {
   listProfiles: () => Promise<unknown>;
   createProfile: (p: unknown) => Promise<unknown>;
@@ -100,6 +112,7 @@ declare global {
       store?: StoreBridge;
       classroom?: ClassroomBridge;
       docs?: DocsBridge;
+      update?: UpdateBridge;
     };
   }
 }

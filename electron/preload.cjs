@@ -44,4 +44,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
       return () => ipcRenderer.removeListener('classroom:update', handler);
     },
   },
+
+  /** Actualización automática (solo Windows: ver electron/updater.cjs). */
+  update: {
+    /** Avisa cuando hay una descargándose o lista. Devuelve una función para dejar de escuchar. */
+    onStatus: callback => {
+      const handler = (_event, status) => callback(status);
+      ipcRenderer.on('update:status', handler);
+      return () => ipcRenderer.removeListener('update:status', handler);
+    },
+    installNow: () => ipcRenderer.invoke('update:installNow'),
+  },
 });

@@ -5,6 +5,7 @@ const os = require('os');
 const { ClassroomServer } = require('./classroom.cjs');
 const { Storage } = require('./storage.cjs');
 const { AppServer } = require('./appserver.cjs');
+const updater = require('./updater.cjs');
 
 let mainWindow = null;
 const classroom = new ClassroomServer();
@@ -125,6 +126,10 @@ function registerClassroomIpc() {
   ipcMain.handle('classroom:setRoster', (_e, roster, label) => classroom.setRoster(roster, label));
 }
 
+function registerUpdateIpc() {
+  ipcMain.handle('update:installNow', () => updater.installNow());
+}
+
 async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -190,7 +195,13 @@ if (!app.requestSingleInstanceLock()) {
     registerClassroomIpc();
     registerStorageIpc();
     registerDocumentIpc();
+    registerUpdateIpc();
     createWindow();
+
+    // Con un pequeño margen para no competir con el arranque de la ventana.
+    setTimeout(() => {
+      updater.setup(app, status => mainWindow?.webContents.send('update:status', status));
+    }, 3000);
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
