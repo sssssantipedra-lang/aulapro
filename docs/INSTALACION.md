@@ -9,7 +9,7 @@ necesita internet para funcionar y tus datos no salen de tu equipo.
 
 | | **Instalador** | **Portable** |
 |---|---|---|
-| Archivo | `AulaPro-1.0.5-instalador.exe` | `AulaPro-1.0.5-portable.exe` |
+| Archivo | `AulaPro-1.0.6-instalador-windows.exe` | `AulaPro-1.0.6-portable-windows.exe` |
 | Qué hace | Se instala y crea acceso directo | Se ejecuta sin instalar nada |
 | ¿Pide permisos de administrador? | **No** | **No** |
 | Para quién | Tu ordenador de casa o del centro | Ordenadores muy restringidos, o para llevarlo en un pendrive |
@@ -20,7 +20,7 @@ ordenadores bloqueados de un centro.
 
 ## En Mac
 
-Descarga `AulaPro-1.0.5-mac.dmg`, ábrelo y arrastra el icono de Aula Pro a la
+Descarga `AulaPro-1.0.6-mac.dmg`, ábrelo y arrastra el icono de Aula Pro a la
 carpeta **Aplicaciones**. Es una build **universal**: funciona igual en Mac con
 chip Intel o Apple Silicon (M1/M2/M3…), no hay que elegir versión.
 
@@ -99,12 +99,19 @@ borrarlas del todo, hazlo a mano desde esa ruta.
 
 ## Actualizar a una versión nueva
 
-Descarga el instalador nuevo y ejecútalo encima del anterior. Tus datos se
-conservan: viven en la carpeta de arriba, aparte del programa.
+**En Windows, la app se actualiza sola.** Al abrirla comprueba si hay una
+versión más nueva y, si la hay, la descarga en segundo plano; cuando termina,
+aparece un aviso abajo a la derecha con un botón para reiniciar e instalar.
+Si lo cierras sin pulsarlo, se instala igualmente la próxima vez que cierres
+la aplicación.
 
-Antes de una actualización grande, si quieres dormir tranquilo, entra en
-**Mi Perfil → Copia de seguridad → Descargar** y guarda ese archivo donde
-quieras.
+**En Mac**, por ahora, sigue siendo manual: descarga el instalador nuevo y
+ejecútalo encima del anterior.
+
+En cualquier caso, tus datos se conservan siempre: viven en la carpeta de
+arriba, aparte del programa. Antes de una actualización grande, si quieres
+dormir tranquilo, entra en **Mi Perfil → Copia de seguridad → Descargar** y
+guarda ese archivo donde quieras.
 
 ---
 
