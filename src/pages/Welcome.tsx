@@ -1,10 +1,46 @@
-import { useI18n } from '../i18n';
+import { useI18n, LANGS } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Sparkles, Plus, ArrowRight, Trash2, HardDrive, Lock } from 'lucide-react';
 import { listProfiles, deleteProfile, isDesktop, type TeacherProfile } from '../services/storage';
 import { initials } from '../lib/utils';
 import { verifyPassword } from '../lib/password';
 import { Modal } from '../components/ui/Modal';
+import { Flag } from '../components/ui/Flag';
+
+/**
+ * Selector de idioma flotante, visible en las tres pantallas de este
+ * componente (cargando, elegir perfil, crear perfil) — es lo primero que
+ * hay que poder cambiar nada más entrar, antes incluso de leer el
+ * formulario, no algo escondido dentro de un perfil ya creado en Mi Perfil.
+ */
+function LangSwitch() {
+  const { lang, setLang } = useI18n();
+  return (
+    <div style={{ position: 'absolute', top: 18, right: 18, display: 'flex', gap: 6, zIndex: 2 }}>
+      {LANGS.map(l => {
+        const on = l.id === lang;
+        return (
+          <button
+            key={l.id}
+            type="button"
+            onClick={() => setLang(l.id)}
+            title={l.label}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px',
+              borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
+              fontSize: 12, fontWeight: on ? 800 : 600,
+              background: on ? 'rgba(255,255,255,0.16)' : 'transparent',
+              border: `1.5px solid rgba(255,255,255,${on ? 0.5 : 0.18})`,
+              color: on ? '#fff' : 'rgba(255,255,255,0.62)',
+            }}
+          >
+            <Flag lang={l.id} size={15} />{l.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 interface Props {
   onOpenProfile: (id: string) => void;
@@ -103,6 +139,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
     >
       <div className="auth-orb" style={{ width: 500, height: 500, background: 'rgba(var(--accent-rgb),0.07)', top: -120, right: -80 }} />
       <div className="auth-orb" style={{ width: 300, height: 300, background: 'rgba(var(--accent-rgb),0.05)', bottom: -60, left: -40 }} />
+      <LangSwitch />
       <div className="auth-card">{children}</div>
       {/* Sobre qué currículo está construida: importa saberlo antes de
           empezar a usarla, sobre todo fuera de España. */}
