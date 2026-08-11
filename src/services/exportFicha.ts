@@ -6,8 +6,10 @@
  *
  * Los ejercicios se agrupan en bloques de actividad con su propio color de
  * cabecera (rotando entre una paleta fija), con iconos reales —los mismos
- * trazados de Lucide que usa el resto de la app, ver `fichaIcons.ts`— y, si
- * se generó, una ilustración de IA incrustada junto al título.
+ * trazados de Lucide que usa el resto de la app, ver `fichaIcons.ts`— y un
+ * motivo decorativo junto al título, elegido por palabras clave del tema y
+ * el área (ver `fichaMotifs.ts`): no hay ilustración de IA porque los
+ * modelos de imagen de Gemini no están en el nivel gratuito de la API.
  *
  * Mismo patrón que `exportSda.ts`: el PDF es un documento HTML impreso por
  * Electron (`docs.savePdf`, con `landscape: false`); el Word lo genera la
@@ -15,13 +17,14 @@
  */
 
 import {
-  Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun,
-  Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType,
+  Document, Packer, Paragraph, TextRun,
+  Table, TableRow, TableCell, WidthType, BorderStyle,
 } from 'docx';
 import type { Ficha } from '../types';
 import type { FichaExercise, FichaExerciseType, FichaActivity } from './resources';
 import { translate, type Lang } from '../i18n';
 import { svgLightbulb, svgPencil } from './fichaIcons';
+import { pickMotifKey, MOTIF_COLORS, MOTIF_ICON } from './fichaMotifs';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -74,20 +77,6 @@ const COLOR_MAP: Record<string, string> = {
 function colorHex(name: string): string {
   const key = name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   return COLOR_MAP[key] ?? '94A3B8';
-}
-
-function docxImageType(mimeType: string): 'jpg' | 'png' | 'gif' | 'bmp' {
-  if (mimeType.includes('png')) return 'png';
-  if (mimeType.includes('gif')) return 'gif';
-  if (mimeType.includes('bmp')) return 'bmp';
-  return 'jpg';
-}
-
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
 }
 
 /* ── PDF (HTML independiente, impreso por Electron en vertical) ── */
@@ -148,15 +137,15 @@ export function buildFichaHtml(f: Ficha, lang: Lang): string {
     ? `<div class="ficha-explicacion"><div class="lbl">${svgLightbulb('#0369a1', 15)}${esc(t('Antes de empezar'))}</div><div class="txt">${nl2br(c.explicacion)}</div></div>`
     : '';
 
-  const imagenHtml = c.imagen
-    ? `<img class="ficha-imagen" src="data:${esc(c.imagen.mimeType)};base64,${c.imagen.base64}" alt=""/>`
-    : '';
+  const motifKey = pickMotifKey(f.request.tema, f.request.area);
+  const motif = MOTIF_COLORS[motifKey];
+  const motivoHtml = `<div class="ficha-motivo" style="background:#${motif.bg}">${MOTIF_ICON[motifKey]('#' + motif.accent, 34)}</div>`;
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(c.titulo || f.title)}</title>` +
     `<style>${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}</style>` +
     `</head><body><article class="ficha-doc">` +
-    `<div class="ficha-header"><h1>${esc(c.titulo || f.title)}</h1>${imagenHtml}</div>` +
+    `<div class="ficha-header"><h1>${esc(c.titulo || f.title)}</h1>${motivoHtml}</div>` +
     `<div class="ficha-datos">${datos}</div>` +
     explicacionHtml +
     (c.instrucciones ? `<p class="ficha-instr">${esc(c.instrucciones)}</p>` : '') +
@@ -177,7 +166,7 @@ const FICHA_DOC_STYLE = `
 .ficha-doc { max-width: 100%; margin: 0 auto; padding: 4mm 6mm; background: #fff; color: #1e293b; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .ficha-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 2px; }
 .ficha-header h1 { font-size: 18px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
-.ficha-imagen { width: 76px; height: 76px; object-fit: contain; border-radius: 10px; flex-shrink: 0; }
+.ficha-motivo { width: 76px; height: 76px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .ficha-datos { font-size: 12.5px; color: #334155; margin: 10px 0 14px; padding-bottom: 10px; border-bottom: 1px solid #cbd5e1; }
 
 .ficha-explicacion { background: linear-gradient(135deg, #eff6ff, #f0f9ff); border: 1.25px solid #7dd3fc; border-left: 5px solid #0ea5e9; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
@@ -335,21 +324,27 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const c = f.content;
   const actividades = getActividades(c);
 
+  // Sin imagen de IA (los modelos de imagen de Gemini no están en el nivel
+  // gratuito), el título lleva el mismo color de motivo que usaría la
+  // ilustración, a modo de cabecera con identidad — igual que las
+  // cabeceras de actividad más abajo, sin necesitar rasterizar nada.
+  const motif = MOTIF_COLORS[pickMotifKey(f.request.tema, f.request.area)];
   const children: (Paragraph | Table)[] = [
-    new Paragraph({ text: c.titulo || f.title, heading: HeadingLevel.TITLE, spacing: { after: c.imagen ? 100 : 120 } }),
-  ];
-
-  if (c.imagen) {
-    children.push(new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 160 },
-      children: [new ImageRun({
-        type: docxImageType(c.imagen.mimeType),
-        data: base64ToUint8Array(c.imagen.base64),
-        transformation: { width: 130, height: 130 },
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: CELL_BORDERS,
+      rows: [new TableRow({
+        children: [new TableCell({
+          shading: { fill: motif.bg },
+          margins: { top: 160, bottom: 160, left: 180, right: 180 },
+          children: [new Paragraph({
+            children: [new TextRun({ text: c.titulo || f.title, bold: true, color: motif.accent, size: 32 })],
+          })],
+        })],
       })],
-    }));
-  }
+    }),
+    new Paragraph({ text: '', spacing: { after: 160 } }),
+  ];
 
   children.push(new Paragraph({
     children: [new TextRun({

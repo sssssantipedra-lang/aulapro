@@ -1,15 +1,31 @@
 import { useState } from 'react';
 import {
-  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2, Lightbulb, ImagePlus, PenLine,
+  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2, Lightbulb, PenLine,
+  Calculator, BookOpen, Languages, FlaskConical, Landmark, Music2, Dumbbell, Palette, Scale,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import { generateFicha, type FichaContent, type FichaExercise, type FichaExerciseType } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx } from '../services/exportFicha';
+import { pickMotifKey, MOTIF_COLORS, type FichaMotifKey } from '../services/fichaMotifs';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { isDesktop } from '../services/storage';
+
+/** Mismo motivo que `fichaMotifs.ts`, pero con el componente React del icono en vez de su SVG crudo. */
+const MOTIF_ICON_COMPONENT: Record<FichaMotifKey, typeof Sparkles> = {
+  matematicas: Calculator,
+  lengua: BookOpen,
+  ingles: Languages,
+  cienciasNaturales: FlaskConical,
+  cienciasSociales: Landmark,
+  musica: Music2,
+  educacionFisica: Dumbbell,
+  plastica: Palette,
+  valores: Scale,
+  general: Sparkles,
+};
 
 interface Props {
   classes: Class[];
@@ -121,18 +137,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [numEjercicios, setNumEjercicios] = useState(6);
   const [niveles, setNiveles] = useState(false);
   const [contextoClase, setContextoClase] = useState('');
-  const [incluirImagen, setIncluirImagen] = useState(false);
 
   /* ── Resultado ── */
   const [generating, setGenerating] = useState(false);
   const [content, setContent] = useState<FichaContent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  /**
-   * Motivo del fallo de la ilustración, si lo hubo — aparte del toast (que
-   * desaparece a los pocos segundos y es fácil no llegar a verlo), esto se
-   * queda escrito junto a la ficha hasta la próxima generación.
-   */
-  const [imageError, setImageError] = useState<string | null>(null);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
 
@@ -145,15 +154,13 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   /* ── Generar ── */
   async function handleGenerate() {
     if (!tema.trim()) { toast(t('Escribe el tema de la ficha')); return; }
-    setImageError(null);
 
     const result = await generateFicha({
-      tema: tema.trim(), area, nivel, numEjercicios, niveles, contextoClase, incluirImagen,
+      tema: tema.trim(), area, nivel, numEjercicios, niveles, contextoClase,
     }, lang, {
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
       onError: m => toast(m),
-      onImageError: m => { setImageError(m); toast(m); },
     });
 
     if (!result) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
@@ -226,13 +233,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     setNumEjercicios(f.request.numEjercicios);
     setNiveles(f.request.niveles);
     setContextoClase(f.request.contextoClase);
-    setIncluirImagen(!!f.content.imagen);
-    setImageError(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function resetAll() {
-    setContent(null); setEditingId(null); setTema(''); setImageError(null);
+    setContent(null); setEditingId(null); setTema('');
   }
 
   const sinClave = !hasApiKey();
@@ -332,14 +337,6 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
           {t('Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.')}
         </p>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 4 }}>
-          <input type="checkbox" checked={incluirImagen} onChange={e => setIncluirImagen(e.target.checked)} />
-          <ImagePlus size={14} />{t('Incluir una ilustración generada por IA')}
-        </label>
-        <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 14 }}>
-          {t('Tarda un poco más y usa aparte tu cuota gratuita de imágenes. Si falla por lo que sea, la ficha se genera igual, solo que sin ilustración.')}
-        </p>
-
         <div style={{ paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
           <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
@@ -375,22 +372,20 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             </div>
           </div>
 
-          {content.imagen && (
-            <img
-              src={`data:${content.imagen.mimeType};base64,${content.imagen.base64}`} alt=""
-              style={{ width: 96, height: 96, objectFit: 'contain', borderRadius: 12, float: 'right', marginLeft: 12 }}
-            />
-          )}
-          {!content.imagen && imageError && (
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, lineHeight: 1.5,
-              color: '#b45309', background: '#fef3c7',
-              border: '1px solid #f59e0b', borderRadius: 8, padding: '8px 12px', marginBottom: 14,
-            }}>
-              <ImagePlus size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{imageError}</span>
-            </div>
-          )}
+          {(() => {
+            const motifKey = pickMotifKey(tema, area);
+            const motif = MOTIF_COLORS[motifKey];
+            const MotifIcon = MOTIF_ICON_COMPONENT[motifKey];
+            return (
+              <div style={{
+                width: 76, height: 76, borderRadius: 16, background: `#${motif.bg}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                float: 'right', marginLeft: 12,
+              }}>
+                <MotifIcon size={34} color={`#${motif.accent}`} />
+              </div>
+            );
+          })()}
 
           <div className="fgroup">
             <label className="flabel">{t('Título')}</label>

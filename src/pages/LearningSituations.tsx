@@ -358,9 +358,7 @@ export function LearningSituations({
     if (!content) return;
     const result = await generateFichaFromSda(
       content, fichaArea || content.areas[0]?.area || '',
-      // Sin ilustración desde aquí: es un atajo rápido dentro de la SdA, la
-      // casilla completa vive en Recursos.
-      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, incluirImagen: false },
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails },
       lang,
       { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
     );

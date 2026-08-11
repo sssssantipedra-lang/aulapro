@@ -16,7 +16,7 @@
  * espacio y la leyenda.
  */
 
-import { callGemini, generateImage, parseGeminiJson, type GeneratedImage } from './gemini';
+import { callGemini, parseGeminiJson } from './gemini';
 import type { Lang } from '../i18n';
 import type { SdaContent } from './learningSituations';
 
@@ -63,8 +63,6 @@ export interface FichaContent {
   explicacion: string;
   instrucciones: string;
   actividades: FichaActivity[];
-  /** Ilustración generada con IA, si se pidió y la petición funcionó. */
-  imagen?: GeneratedImage;
 }
 
 /* ── Lo que pide el docente ── */
@@ -77,8 +75,6 @@ export interface FichaRequest {
   /** Pedir a la IA una variante de apoyo y otra de ampliación por ejercicio. */
   niveles: boolean;
   contextoClase: string;
-  /** Generar también una ilustración de cabecera con IA (gemini-2.5-flash-image). */
-  incluirImagen: boolean;
 }
 
 const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
@@ -305,31 +301,7 @@ function cleanFichaContent(c: FichaContent): FichaContent {
   };
 }
 
-/* ── Imagen de cabecera (opcional) ── */
-
-function buildImagePrompt(tema: string, area: string): string {
-  return (
-    `Ilustración plana y sencilla, estilo dibujo infantil educativo, colorida y alegre, sobre "${tema}"` +
-    (area ? ` (asignatura: ${area})` : '') +
-    `. Fondo blanco liso. MUY IMPORTANTE: sin ningún texto, letra, número ni palabra escrita en la ` +
-    `imagen, sin marcas de agua. Composición simple y centrada, apta como cabecera de una ficha de ` +
-    `trabajo escolar imprimible.`
-  );
-}
-
-type Callbacks = {
-  onStart?: () => void;
-  onEnd?: () => void;
-  onError?: (m: string) => void;
-  /**
-   * Fallo de la ilustración, aparte de `onError`: la ficha en sí puede
-   * salir perfectamente bien aunque esto falle, así que no tiene sentido
-   * mezclarlo con el error "de verdad". Separado también para que la
-   * interfaz pueda dejarlo escrito de forma permanente junto a la ficha, en
-   * vez de solo un aviso pasajero que es fácil no llegar a ver.
-   */
-  onImageError?: (m: string) => void;
-};
+type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void };
 
 async function callFichaText(system: string, user: string, niveles: boolean, onError?: (m: string) => void): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
@@ -358,19 +330,7 @@ export async function generateFicha(
       `Genera una ficha de trabajo con un total de EXACTAMENTE ${req.numEjercicios} ejercicios sobre ` +
       `este tema, repartidos en sus bloques de actividad.`;
 
-    // El texto y la imagen no dependen el uno del otro —la imagen solo
-    // necesita el tema, no el resultado de la IA— así que van a la vez en
-    // vez de uno detrás del otro: la espera total es la de la más lenta de
-    // las dos, no la suma.
-    const [content, img] = await Promise.all([
-      callFichaText(systemPrompt(req.niveles, lang), userPrompt, req.niveles, callbacks.onError),
-      req.incluirImagen
-        ? generateImage(buildImagePrompt(req.tema, req.area), m => callbacks.onImageError?.(m))
-        : Promise.resolve(null),
-    ]);
-    if (!content) return null;
-    if (img) content.imagen = img;
-    return content;
+    return await callFichaText(systemPrompt(req.niveles, lang), userPrompt, req.niveles, callbacks.onError);
   } finally {
     callbacks.onEnd?.();
   }
@@ -380,7 +340,7 @@ export async function generateFicha(
 
 export async function generateFichaFromSda(
   sda: SdaContent, area: string,
-  opts: { numEjercicios: number; niveles: boolean; detalles: string; incluirImagen: boolean },
+  opts: { numEjercicios: number; niveles: boolean; detalles: string },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
@@ -397,15 +357,7 @@ export async function generateFichaFromSda(
       `Genera una ficha de trabajo con un total de EXACTAMENTE ${opts.numEjercicios} ejercicios que ` +
       `trabajen estos saberes básicos, repartidos en sus bloques de actividad.`;
 
-    const [content, img] = await Promise.all([
-      callFichaText(systemPrompt(opts.niveles, lang), userPrompt, opts.niveles, callbacks.onError),
-      opts.incluirImagen
-        ? generateImage(buildImagePrompt(sda.titulo, areaData?.area ?? area), m => callbacks.onImageError?.(m))
-        : Promise.resolve(null),
-    ]);
-    if (!content) return null;
-    if (img) content.imagen = img;
-    return content;
+    return await callFichaText(systemPrompt(opts.niveles, lang), userPrompt, opts.niveles, callbacks.onError);
   } finally {
     callbacks.onEnd?.();
   }
