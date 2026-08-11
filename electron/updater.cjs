@@ -1,4 +1,18 @@
-const { autoUpdater } = require('electron-updater');
+/**
+ * `electron-updater` es una dependencia de producción normal (viene en el
+ * instalador de verdad, generado por electron-builder), pero cualquier copia
+ * empaquetada a mano sin su propio `node_modules` —por ejemplo, una carpeta
+ * reubicada manualmente para probar cambios sin pasar por el instalador— no
+ * la tiene. Antes esto tumbaba TODA la aplicación al arrancar con un error
+ * de JavaScript ("Cannot find module 'electron-updater'"), que es justo lo
+ * que este archivo dice evitar más abajo para cualquier otro fallo: si no
+ * está disponible, la app sigue funcionando igual, solo sin comprobar
+ * actualizaciones.
+ */
+let autoUpdater = null;
+try {
+  ({ autoUpdater } = require('electron-updater'));
+} catch { /* no instalado en este empaquetado; ver comentario arriba */ }
 
 /**
  * Actualización automática — solo Windows por ahora.
@@ -20,6 +34,7 @@ const { autoUpdater } = require('electron-updater');
  * detectó la 1.0.5, la descargó y llegó a `update-downloaded`.
  */
 function setup(app, sendStatus) {
+  if (!autoUpdater) return;
   if (process.platform !== 'win32') return;
   // Sin `app-update.yml` (solo existe en la app empaquetada) esto fallaría
   // sin aportar nada; en desarrollo simplemente no se comprueba.
@@ -38,7 +53,7 @@ function setup(app, sendStatus) {
 }
 
 function installNow() {
-  autoUpdater.quitAndInstall();
+  autoUpdater?.quitAndInstall();
 }
 
 module.exports = { setup, installNow };
