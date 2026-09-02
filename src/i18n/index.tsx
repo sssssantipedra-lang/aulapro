@@ -1349,6 +1349,27 @@ const EN: Record<string, string> = {
   'El PDF solo está disponible en la aplicación de escritorio. Puedes exportar a Word.':
     'PDF export is only available in the desktop app. You can export to Word instead.',
   'Reuniones y formaciones': 'Meetings and training',
+
+  /* ── Asistente de ayuda (botón flotante) ── */
+  'Ayuda de Aula Pro': 'Aula Pro help',
+  'Para poder responderte hace falta una clave': 'I need a key before I can answer',
+  'Es gratuita, de Google, y se guarda solo en este ordenador. Se consigue en un par de minutos.':
+    'It’s free, from Google, and stays on this computer only. Takes a couple of minutes to get.',
+  'Conseguir mi clave gratuita': 'Get my free key',
+  'Guardar y empezar': 'Save and start',
+  'Ver la guía paso a paso': 'See the step-by-step guide',
+  'Ahora no': 'Not now',
+  'Pega la clave antes de guardar': 'Paste the key before saving',
+  '¿Qué necesitas saber?': 'What do you need to know?',
+  'Pregúntame cómo funciona cualquier parte de Aula Pro.': 'Ask me how any part of Aula Pro works.',
+  '¿Por dónde empiezo?': 'Where do I start?',
+  '¿Cómo pongo las notas?': 'How do I enter marks?',
+  '¿Cómo hago copia de seguridad?': 'How do I back up my data?',
+  'Escribe tu duda…': 'Type your question…',
+  'Buscando…': 'Looking it up…',
+  'Ir a {seccion}': 'Go to {seccion}',
+  /* «Plegar» ya está más arriba (Autoevaluaciones), con el mismo significado. */
+  'Desplegar': 'Expand',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

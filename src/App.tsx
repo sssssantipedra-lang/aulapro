@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
+import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
 import { Dashboard } from './pages/Dashboard';
@@ -402,6 +403,11 @@ function AppInner() {
           </Suspense>
         </main>
       </div>
+
+      {/* Ayuda sobre la aplicación: botón flotante en todas las pantallas.
+          Va aquí dentro y no junto a UpdateBanner porque necesita saber en qué
+          sección está el docente y poder llevarle a otra. */}
+      <HelpChat section={section} onNav={s => setSection(s as Section)} />
 
       {/* Modal nueva tarea */}
       <div className={`modal-overlay${showAddTask ? ' open' : ''}`} onClick={e => e.target === e.currentTarget && setShowAddTask(false)}>

@@ -4,7 +4,7 @@
   "description": "Gestión de aula para docentes: cuaderno, evaluación, asistencia e informes. Todo en tu ordenador.",
   "author": "Aula Pro",
   "private": true,
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {

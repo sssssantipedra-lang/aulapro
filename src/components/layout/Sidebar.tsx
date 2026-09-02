@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardList,
   Target, History, BookOpen, User, ChevronLeft, ChevronRight, Presentation, Users2, Smartphone,
   UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone, BookMarked, Layers,
-  GraduationCap,
+  GraduationCap, ChevronDown,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
@@ -29,7 +30,6 @@ const NAV: { sect: string; items: NavEntry[] }[] = [
   {
     sect: 'Evaluación',
     items: [
-      { id: 'learning-situations', label: 'Situaciones de aprendizaje', icon: <BookMarked size={18} /> },
       { id: 'rubrics',   label: 'Rúbricas',           icon: <ClipboardList size={18} /> },
       { id: 'diana',     label: 'Diana Competencial', icon: <Target size={18} /> },
       { id: 'reports',   label: 'Informes',           icon: <FileText size={18} /> },
@@ -41,7 +41,8 @@ const NAV: { sect: string; items: NavEntry[] }[] = [
   {
     sect: 'Recursos',
     items: [
-      { id: 'resources', label: 'Recursos', icon: <Layers size={18} /> },
+      { id: 'learning-situations', label: 'Situaciones de aprendizaje', icon: <BookMarked size={18} /> },
+      { id: 'resources',           label: 'Recursos',                   icon: <Layers size={18} /> },
     ],
   },
   {
@@ -76,8 +77,19 @@ interface Props {
   onLogout: () => void;
 }
 
+/** Qué grupos ha plegado el docente. Se recuerda entre sesiones. */
+const COLLAPSED_KEY = 'aulapro_nav_collapsed';
+
 export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving, onLogout }: Props) {
   const { t } = useI18n();
+
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? '{}'); } catch { return {}; }
+  });
+  useEffect(() => {
+    localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed));
+  }, [collapsed]);
+
   return (
     <aside className={`sidebar${mini ? ' mini' : ''}`}>
       <div className="sb-logo">
@@ -108,24 +120,41 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
       <div className="sb-div" />
 
       <nav className="sb-nav">
-        {NAV.map(({ sect, items }) => (
-          <div key={sect}>
-            <div className="sb-sect">{t(sect)}</div>
-            {items.map(item => (
+        {NAV.map(({ sect, items }) => {
+          // Con la barra plegada no se ven las cabeceras, así que plegar un
+          // grupo ahí escondería sus entradas sin dejar forma de recuperarlas.
+          const isCollapsed = !mini && !!collapsed[sect];
+          const holdsCurrent = items.some(i => i.id === current);
+
+          return (
+            <div key={sect}>
               <button
-                key={item.id}
-                className={`nav-item${current === item.id ? ' active' : ''}`}
-                onClick={() => onNav(item.id)}
+                className={`sb-sect-btn${isCollapsed && holdsCurrent ? ' has-current' : ''}`}
+                onClick={() => setCollapsed(c => ({ ...c, [sect]: !c[sect] }))}
+                aria-expanded={!isCollapsed}
+                title={t(isCollapsed ? 'Desplegar' : 'Plegar')}
+                type="button"
               >
-                <span className="ni-icon">{item.icon}</span>
-                <span className="ni-label">{t(item.label)}</span>
-                {item.id === 'share' && sharing && (
-                  <span className="ni-live" title="Sesión compartida activa" />
-                )}
+                <span className="sb-sect">{t(sect)}</span>
+                <ChevronDown className="sb-sect-chev" size={12} style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none' }} />
               </button>
-            ))}
-          </div>
-        ))}
+
+              {!isCollapsed && items.map(item => (
+                <button
+                  key={item.id}
+                  className={`nav-item${current === item.id ? ' active' : ''}`}
+                  onClick={() => onNav(item.id)}
+                >
+                  <span className="ni-icon">{item.icon}</span>
+                  <span className="ni-label">{t(item.label)}</span>
+                  {item.id === 'share' && sharing && (
+                    <span className="ni-live" title="Sesión compartida activa" />
+                  )}
+                </button>
+              ))}
+            </div>
+          );
+        })}
       </nav>
 
       <div className="sb-div" />
