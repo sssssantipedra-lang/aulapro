@@ -144,7 +144,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
       onError: msg => toast(msg),
-    });
+    }, { thinkingLevel: 'high' });
     if (!raw) return;
 
     const parsed = parseGeminiJson<{ name: string; items: (DianaItem & { competencias?: string[] })[] }>(raw);

@@ -453,7 +453,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
       onError: msg => toast(msg),
-    }, { responseSchema, maxOutputTokens: 4096 });
+    }, { responseSchema, maxOutputTokens: 4096, thinkingLevel: 'high' });
 
     if (!raw) return;
 

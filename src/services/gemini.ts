@@ -65,6 +65,24 @@ function friendlyError(status: number, apiMessage: string): string {
   return apiMessage || `Error ${status} al llamar a la IA.`;
 }
 
+/**
+ * Cuánto razona el modelo antes de responder. Solo lo entiende la familia
+ * Gemini 3; en los modelos 2.x del respaldo no se manda (ver `callModel`).
+ */
+export type ThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
+
+/**
+ * Nivel por defecto. Se pone explícitamente en vez de dejar el de fábrica
+ * porque el de `gemini-3.5-flash-lite` es `minimal`, que se queda corto en
+ * cuanto hay que razonar un poco; `low` cuesta apenas nada más.
+ */
+const DEFAULT_THINKING: ThinkingLevel = 'low';
+
+/** `thinking_level` es de la familia Gemini 3; los 2.x usan otro mecanismo. */
+function supportsThinkingLevel(model: string): boolean {
+  return /^gemini-3/.test(model);
+}
+
 /** Ajustes opcionales de una llamada. Sin ellos, todo sigue como siempre. */
 export interface GeminiOptions {
   /** Modelos a probar en orden. Por defecto, los ligeros de `MODELS`. */
@@ -95,6 +113,13 @@ export interface GeminiOptions {
    * repreguntar («¿y para 2ºB?»), que es justo lo que se espera de un chat.
    */
   history?: readonly ChatTurn[];
+  /**
+   * Cuánto debe razonar antes de responder. Por defecto `low`, que vale para
+   * generar una ficha o transcribir un horario. Las tareas que cruzan datos de
+   * verdad —informes, rúbricas, dianas, el asistente del cuaderno— piden
+   * `high`: tardan más, pero es donde se nota el razonamiento pedagógico.
+   */
+  thinkingLevel?: ThinkingLevel;
 }
 
 const DEFAULT_MAX_TOKENS = 4096;
@@ -105,6 +130,12 @@ async function callModel(
   systemPrompt: string,
   userParts: object[],
   options: GeminiOptions = {},
+  /**
+   * Reintento sin tocar el razonamiento. No basta con quitar `thinkingLevel`
+   * de las opciones: entonces se aplicaría el valor por defecto y el campo
+   * seguiría viajando, que es justo lo que el reintento quiere evitar.
+   */
+  omitirRazonamiento = false,
 ): Promise<{ text: string } | { status: number; message: string }> {
   const contents = [
     ...(options.history ?? []).map(turn => ({ role: turn.role, parts: [{ text: turn.text }] })),
@@ -115,6 +146,9 @@ async function callModel(
     maxOutputTokens: options.maxOutputTokens ?? DEFAULT_MAX_TOKENS,
   };
   if (options.temperature !== undefined) generationConfig.temperature = options.temperature;
+  if (!omitirRazonamiento && supportsThinkingLevel(model)) {
+    generationConfig.thinkingLevel = options.thinkingLevel ?? DEFAULT_THINKING;
+  }
   if (options.responseSchema) {
     generationConfig.responseMimeType = 'application/json';
     generationConfig.responseSchema = options.responseSchema;
@@ -191,7 +225,19 @@ export async function callGemini(
     let lastError = '';
     for (const model of options.models ?? MODELS) {
       try {
-        const result = await callModel(model, key, systemPrompt, userParts, options);
+        let result = await callModel(model, key, systemPrompt, userParts, options);
+
+        /**
+         * Si el modelo rechaza el nivel de razonamiento —porque no acepta ese
+         * valor concreto, o porque Google renombra el campo algún día— se
+         * reintenta sin él antes que dejar al docente sin IA. Un 400 corta la
+         * cascada entera (ver abajo), así que sin este reintento un detalle de
+         * la API tumbaría todas las funciones de golpe.
+         */
+        if ('status' in result && result.status === 400 && /thinking/i.test(result.message)) {
+          result = await callModel(model, key, systemPrompt, userParts, options, true);
+        }
+
         if ('text' in result) return result.text;
 
         lastError = friendlyError(result.status, result.message);

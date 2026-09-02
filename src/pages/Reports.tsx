@@ -231,7 +231,7 @@ export function Reports(props: Props) {
       onStart: () => setGenerating(student.id),
       onEnd: () => setGenerating(null),
       onError: msg => toast(msg),
-    });
+    }, { thinkingLevel: 'high' });
     if (!raw) return false;
 
     onAddReport({

@@ -191,7 +191,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       onStart: () => setAiGenerating(true),
       onEnd: () => setAiGenerating(false),
       onError: msg => toast(msg),
-    });
+    }, { thinkingLevel: 'high' });
     if (!raw) return;
     const parsed = parseGeminiJson<{ name: string; criteria: (RubricCriterion & { competencias?: string[] })[] }>(raw);
     if (parsed) {
@@ -624,7 +624,7 @@ function EvalModal({
       onStart: () => setEvalGenerating(true),
       onEnd: () => setEvalGenerating(false),
       onError: msg => toast(msg),
-    });
+    }, { thinkingLevel: 'high' });
     if (!raw) return;
 
     const parsed = parseGeminiJson<{ scores: Record<string, number>; observation: string }>(raw);
@@ -662,7 +662,7 @@ function EvalModal({
       onStart: () => setObsGenerating(true),
       onEnd: () => setObsGenerating(false),
       onError: msg => toast(msg),
-    });
+    }, { thinkingLevel: 'high' });
     if (raw) setNotes(raw.trim());
   }
 
