@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircleQuestion, X, Send, Sparkles, ExternalLink, ArrowRight, Trash2 } from 'lucide-react';
 import { callGemini, hasApiKey, setApiKey, type ChatTurn } from '../services/gemini';
-import { helpSystemPrompt, splitJump, HELP_TARGETS } from '../services/appHelp';
+import { helpSystemPrompt, splitJump, targetLabel } from '../services/appHelp';
 import { RichText } from './ui/RichText';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
@@ -64,7 +64,7 @@ export function HelpChat({ section, onNav }: Props) {
     if (open) endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, loading, open]);
 
-  const sectionLabel = HELP_TARGETS[section]?.[lang] ?? section;
+  const sectionLabel = targetLabel(section, lang);
 
   async function ask(raw: string) {
     const text = raw.trim();
@@ -213,7 +213,7 @@ export function HelpChat({ section, onNav }: Props) {
                         onClick={() => { onNav(m.target as string); setOpen(false); }}
                         type="button"
                       >
-                        {t('Ir a {seccion}', { seccion: HELP_TARGETS[m.target]?.[lang] ?? m.target })}
+                        {t('Ir a {seccion}', { seccion: targetLabel(m.target, lang) })}
                         <ArrowRight size={13} />
                       </button>
                     )}

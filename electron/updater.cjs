@@ -51,6 +51,8 @@ function setLanguage(next) {
 
 /** Avisos aún en pantalla, para que no se los lleve el recolector de basura. */
 const vivos = new Set();
+/** Cada cuánto se vuelve a mirar si hay versión nueva con la app abierta. */
+const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;
 /** Cuánto se sostiene un aviso como mucho, si nunca llega su «close». */
 const RELEASE_MS = 5 * 60 * 1000;
 
@@ -131,8 +133,17 @@ function setup(app, { onStatus, onActivate } = {}) {
   const send = status => onStatus?.(status);
   const T = () => TEXTS[lang];
 
+  // De qué versión se ha avisado ya, para no repetir el globo cada vez que se
+  // vuelve a comprobar: sin esto, quien deje la aplicación abierta recibiría
+  // el mismo aviso cada pocas horas hasta que le hiciera caso.
+  let anunciada = null;
+  let descargada = false;
+  let comprobando = false;
+
   autoUpdater.on('update-available', info => {
     send({ state: 'downloading', version: info.version });
+    if (anunciada === info.version) return;
+    anunciada = info.version;
     notify({
       title: T().availableTitle,
       body: T().availableBody(info.version),
@@ -146,6 +157,8 @@ function setup(app, { onStatus, onActivate } = {}) {
 
   autoUpdater.on('update-downloaded', info => {
     send({ state: 'ready', version: info.version });
+    if (descargada) return;
+    descargada = true;
     notify({
       title: T().readyTitle(info.version),
       body: T().readyBody,
@@ -158,9 +171,28 @@ function setup(app, { onStatus, onActivate } = {}) {
   // queda en el estado que consume la interfaz, que tampoco lo muestra.
   autoUpdater.on('error', err => send({ state: 'error', message: err?.message || String(err) }));
 
-  // Si falla (sin internet, GitHub caído, repo inaccesible…) la app sigue
-  // funcionando exactamente igual, solo que sin avisar de una versión nueva.
-  autoUpdater.checkForUpdates().catch(() => { /* no pasa nada, se reintenta en el próximo arranque */ });
+  /**
+   * Si falla (sin internet, GitHub caído, repo inaccesible…) la app sigue
+   * funcionando exactamente igual, solo que sin avisar de una versión nueva.
+   */
+  function comprobar() {
+    // Ya hay una esperando a instalarse: no hay nada mejor que encontrar.
+    if (descargada || comprobando) return;
+    comprobando = true;
+    autoUpdater.checkForUpdates()
+      .catch(() => { /* se reintenta en la siguiente vuelta */ })
+      .finally(() => { comprobando = false; });
+  }
+
+  comprobar();
+
+  /**
+   * Y se sigue comprobando cada pocas horas mientras la aplicación esté
+   * abierta. Solo al arrancar no basta: un portátil de clase se queda días
+   * con la sesión abierta y la tapa cerrada, así que el docente no se
+   * enteraría de una versión nueva hasta reiniciar el ordenador.
+   */
+  setInterval(comprobar, CHECK_EVERY_MS);
 }
 
 function installNow() {

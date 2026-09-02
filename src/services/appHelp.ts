@@ -12,6 +12,7 @@
  */
 
 import type { Lang } from '../i18n';
+import type { Section } from '../types';
 
 /**
  * Secciones a las que el asistente puede llevar de un salto. Son los mismos
@@ -19,7 +20,7 @@ import type { Lang } from '../i18n';
  * lista antes de pintar el botón, para que un identificador inventado por la
  * IA no deje un botón que no lleva a ninguna parte.
  */
-export const HELP_TARGETS: Record<string, { es: string; en: string }> = {
+export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   dashboard:             { es: 'Inicio', en: 'Home' },
   classes:               { es: 'Mis Clases', en: 'My Classes' },
   agenda:                { es: 'Agenda', en: 'Planner' },
@@ -43,11 +44,26 @@ export const HELP_TARGETS: Record<string, { es: string; en: string }> = {
 };
 
 /**
+ * ¿Es este identificador una pantalla de verdad? Estrecha `string` a
+ * `Section`, que es lo que hace falta para leer HELP_TARGETS sin castings:
+ * los identificadores que se comprueban vienen de fuera del tipo —de lo que
+ * escribe la IA o de la sección abierta— y podrían ser cualquier cosa.
+ */
+export function isHelpTarget(id: string): id is Section {
+  return Object.prototype.hasOwnProperty.call(HELP_TARGETS, id);
+}
+
+/** Nombre de la pantalla en el idioma de la interfaz; el propio id si no lo es. */
+export function targetLabel(id: string, lang: Lang): string {
+  return isHelpTarget(id) ? HELP_TARGETS[id][lang] : id;
+}
+
+/**
  * El manual. Se escribe en castellano aunque la interfaz esté en inglés: el
  * modelo traduce sin problema al responder, y mantener una sola versión evita
  * que las dos se desincronicen (que es como se cuela la información falsa).
  */
-const MANUAL = `
+export const MANUAL = `
 === QUÉ ES AULA PRO ===
 Aplicación de escritorio para el profesorado español (currículo LOMLOE). Todo se
 guarda en el ordenador del docente: no hay cuentas, ni servidor, ni nube. Cada
@@ -238,7 +254,7 @@ export function splitJump(raw: string): { text: string; target?: string } {
   let target: string | undefined;
   for (const m of raw.matchAll(JUMP_RE)) {
     const id = m[1].toLowerCase();
-    if (!target && HELP_TARGETS[id]) target = id;
+    if (!target && isHelpTarget(id)) target = id;
   }
   return { text: raw.replace(JUMP_RE, '').replace(/[ \t]+\n/g, '\n').trim(), target };
 }
