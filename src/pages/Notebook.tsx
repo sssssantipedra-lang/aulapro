@@ -689,7 +689,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
       prompt,
       files,
       { onStart: () => setLoading(true), onEnd: () => setLoading(false), onError: msg => toast(msg) },
-      { history, maxOutputTokens: CHAT_MAX_TOKENS, thinkingLevel: 'high' },
+      { history, maxOutputTokens: CHAT_MAX_TOKENS, thinkingLevel: 'low' },
     );
     if (result === null) return;
 

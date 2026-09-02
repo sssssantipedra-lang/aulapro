@@ -662,7 +662,7 @@ function EvalModal({
       onStart: () => setObsGenerating(true),
       onEnd: () => setObsGenerating(false),
       onError: msg => toast(msg),
-    }, { thinkingLevel: 'high' });
+    }, { thinkingLevel: 'minimal' });
     if (raw) setNotes(raw.trim());
   }
 
