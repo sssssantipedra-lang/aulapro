@@ -409,6 +409,7 @@ async function callFichaText(system: string, user: string, niveles: boolean, onE
   const raw = await callGemini(system, user, [], { onError }, {
     maxOutputTokens: 12288,
     responseSchema: fichaSchema(niveles),
+    thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
     // (mismos números de siempre en figuras/tablas) incluso a temperatura
     // normal — un poco más de temperatura, más la instrucción explícita del

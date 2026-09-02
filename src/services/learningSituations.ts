@@ -300,6 +300,7 @@ export async function generateSda(
     // y el JSON llegaría roto.
     maxOutputTokens: 16384,
     responseSchema: SDA_SCHEMA,
+    thinkingLevel: 'medium',
   });
   if (!raw) return null;
 
@@ -348,6 +349,7 @@ export async function generateSdaRubric(
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
     maxOutputTokens: 8192,
     responseSchema: RUBRIC_SCHEMA,
+    thinkingLevel: 'high',
   });
   if (!raw) return null;
 
@@ -402,6 +404,7 @@ export async function generateSdaDiana(
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
     maxOutputTokens: 8192,
     responseSchema: DIANA_SCHEMA,
+    thinkingLevel: 'high',
   });
   if (!raw) return null;
 
