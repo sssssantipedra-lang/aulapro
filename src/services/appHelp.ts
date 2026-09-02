@@ -77,7 +77,9 @@ ejemplo» (datos ficticios para trastear sin miedo).
 [classes] MIS CLASES
 El punto de partida de todo. Se crea una clase con nombre, una o varias
 asignaturas, aula y color; se puede marcar como tutoría. Dentro de cada clase se
-añaden los alumnos, uno a uno o pegando una lista. De cada alumno se guardan
+añaden los alumnos uno a uno, o de golpe con el botón «Importar CSV»: se pegan
+las filas en formato «Nombre,Email», una por línea (la primera puede ser la
+cabecera). De cada alumno se guardan
 avisos (por ejemplo «faltas reiteradas») y anotaciones del docente, que luego
 aparecen en los informes y en el asistente del cuaderno.
 SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes.
@@ -85,8 +87,9 @@ SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes
 [agenda] AGENDA
 Dos cosas: el horario semanal (bloques de día, hora de inicio y fin, asignatura,
 aula y clase) y el calendario de eventos (entregas, reuniones y eventos, con
-urgencia alta/media/baja). Tiene «Escanear horario»: se sube una foto o PDF del
-horario del centro y la IA lo transcribe a bloques.
+urgencia alta/media/baja). Tiene «Escanear horario»: se sube el horario del
+centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA lo
+transcribe a bloques.
 
 [notebook] CUADERNO DE NOTAS
 Tiene DOS PESTAÑAS arriba:
