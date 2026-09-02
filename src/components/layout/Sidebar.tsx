@@ -2,6 +2,7 @@ import {
   LayoutDashboard, Users, CalendarDays, ClipboardList,
   Target, History, BookOpen, User, ChevronLeft, ChevronRight, Presentation, Users2, Smartphone,
   UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone, BookMarked, Layers,
+  GraduationCap,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
@@ -41,6 +42,13 @@ const NAV: { sect: string; items: NavEntry[] }[] = [
     sect: 'Recursos',
     items: [
       { id: 'resources', label: 'Recursos', icon: <Layers size={18} /> },
+    ],
+  },
+  {
+    sect: 'Mi actividad docente',
+    items: [
+      { id: 'meetings',  label: 'Reuniones',   icon: <Users2 size={18} /> },
+      { id: 'trainings', label: 'Formaciones', icon: <GraduationCap size={18} /> },
     ],
   },
   {

@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
-import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles } from 'lucide-react';
-import { callGemini, hasApiKey, type InlineFile } from '../services/gemini';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database } from 'lucide-react';
+import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
+import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
@@ -23,6 +24,10 @@ interface Props {
   lawDocument: InlineFile | null;
   onLawDocumentChange: (doc: InlineFile | null) => void;
   onNav: (s: string) => void;
+  /** Todo el cuaderno, para que el asistente responda con datos reales. */
+  aiData: TeacherData;
+  chat: ChatMessage[];
+  onChatChange: (next: ChatMessage[]) => void;
 }
 
 /* ══════════════════ Utilidades de cálculo ══════════════════ */
@@ -592,32 +597,97 @@ function GradesTab({
   );
 }
 
-/* ══════════════════ Pestaña de consulta IA ══════════════════ */
-
-interface HistoryEntry {
-  id: string;
-  question: string;
-  answer: string;
-  timestamp: string;
-}
-
-const SYSTEM_PROMPT_ES =
-  'Eres un asistente pedagógico experto para docentes españoles de secundaria (sistema LOMLOE). Respondes en español de España, de forma clara, estructurada y útil.';
-const SYSTEM_PROMPT_EN =
-  'You are an expert teaching assistant for secondary school teachers. You answer in clear, well-structured, useful English.';
+/* ══════════════════ Pestaña de asistente IA ══════════════════ */
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
-function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocument' | 'onLawDocumentChange' | 'onNav'>) {
+/**
+ * Tope de la respuesta, más alto que el de por defecto: aquí se piden
+ * resúmenes de un grupo entero o comparativas entre clases, y con 4096 se
+ * cortaban a media frase.
+ */
+const CHAT_MAX_TOKENS = 8192;
+
+/**
+ * Turnos que se reenvían como memoria de la conversación. Se cuentan mensajes
+ * (no pares), así que 12 son unas seis preguntas con sus respuestas: bastante
+ * para repreguntar sin que la petición crezca sin freno.
+ */
+const MEMORY_TURNS = 12;
+
+interface AiTabProps {
+  data: TeacherData;
+  chat: ChatMessage[];
+  onChatChange: (next: ChatMessage[]) => void;
+  lawDocument: InlineFile | null;
+  onLawDocumentChange: (doc: InlineFile | null) => void;
+  onNav: (s: string) => void;
+}
+
+/**
+ * Da formato al texto que devuelve la IA: negritas, encabezados y viñetas.
+ * Antes salía en crudo con los asteriscos a la vista, lo que hacía difícil
+ * leer justo las respuestas largas que ahora se piden.
+ */
+function RichText({ text }: { text: string }) {
+  const bold = (s: string) =>
+    s.split(/(\*\*[^*]+\*\*)/g).map((chunk, i) =>
+      chunk.startsWith('**') && chunk.endsWith('**')
+        ? <strong key={i}>{chunk.slice(2, -2)}</strong>
+        : <span key={i}>{chunk}</span>);
+
+  const lines = text.split('\n');
+  const out: React.ReactNode[] = [];
+  let bullets: string[] = [];
+
+  const flush = () => {
+    if (bullets.length === 0) return;
+    out.push(
+      <ul key={`ul${out.length}`} style={{ margin: '6px 0 10px', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {bullets.map((b, i) => <li key={i}>{bold(b)}</li>)}
+      </ul>,
+    );
+    bullets = [];
+  };
+
+  lines.forEach((raw, idx) => {
+    const line = raw.trimEnd();
+    const bullet = /^\s*[-*•]\s+(.*)$/.exec(line);
+    if (bullet) { bullets.push(bullet[1]); return; }
+    flush();
+
+    const heading = /^\s*#{1,4}\s+(.*)$/.exec(line);
+    if (heading) {
+      out.push(<div key={idx} style={{ fontWeight: 700, fontSize: 14, margin: '12px 0 4px' }}>{bold(heading[1])}</div>);
+      return;
+    }
+    if (line.trim() === '') { out.push(<div key={idx} style={{ height: 6 }} />); return; }
+    out.push(<p key={idx} style={{ margin: '0 0 6px' }}>{bold(line)}</p>);
+  });
+  flush();
+
+  return <>{out}</>;
+}
+
+function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onNav }: AiTabProps) {
   const { toast } = useToast();
-  const { t, lang } = useI18n();
+  const { t, lang, locale } = useI18n();
   const [question, setQuestion] = useState('');
   const [attachedFile, setAttachedFile] = useState<InlineFile | null>(null);
-  const [answer, setAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [useData, setUseData] = useState(true);
+  const [classId, setClassId] = useState<string>('');
   const attachRef = useRef<HTMLInputElement>(null);
   const lawRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  // La conversación crece hacia abajo: sin esto, cada respuesta nueva queda
+  // fuera de la vista y hay que bajar a mano.
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [chat, loading]);
+
+  const scopedStudents = classId
+    ? data.students.filter(s => s.class_id === classId)
+    : data.students;
 
   async function handleAttach(e: React.ChangeEvent<HTMLInputElement>, forLaw: boolean) {
     const file = e.target.files?.[0];
@@ -633,31 +703,61 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
     }
   }
 
-  async function handleAsk() {
-    if (!question.trim()) { toast(t('Escribe una pregunta antes de consultar')); return; }
+  async function ask(rawText: string) {
+    const text = rawText.trim();
+    if (!text) { toast(t('Escribe una pregunta antes de consultar')); return; }
+    if (loading) return;
+
     const files: InlineFile[] = [];
     if (attachedFile) files.push(attachedFile);
     if (lawDocument) files.push(lawDocument);
 
-    const result = await callGemini(lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_ES, question.trim(), files, {
-      onStart: () => setLoading(true),
-      onEnd: () => setLoading(false),
-      onError: msg => toast(msg),
-    });
+    // El historial guarda la pregunta limpia; la ficha de datos se añade solo
+    // al mensaje que se manda ahora. Si se guardara dentro, cada turno
+    // arrastraría una copia del cuaderno entero.
+    const history: ChatTurn[] = chat.slice(-MEMORY_TURNS).map(m => ({ role: m.role, text: m.text }));
+    const context = useData ? buildTeacherContext(data, { classId: classId || undefined, locale }) : '';
+    const prompt = context
+      ? `${context}\n\n=== PREGUNTA DEL DOCENTE ===\n${text}`
+      : text;
+
+    const afterUser: ChatMessage[] = [...chat, {
+      id: crypto.randomUUID(), role: 'user', text, at: new Date().toISOString(),
+    }];
+    onChatChange(afterUser);
+    setQuestion('');
+    setAttachedFile(null);
+
+    const result = await callGemini(
+      chatSystemPrompt(lang, useData),
+      prompt,
+      files,
+      { onStart: () => setLoading(true), onEnd: () => setLoading(false), onError: msg => toast(msg) },
+      { history, maxOutputTokens: CHAT_MAX_TOKENS },
+    );
     if (result === null) return;
 
-    setAnswer(result);
-    setHistory(prev => [{
-      id: crypto.randomUUID(),
-      question: question.trim(),
-      answer: result,
-      timestamp: new Date().toLocaleTimeString(lang === 'en' ? 'en-GB' : 'es-ES', { hour: '2-digit', minute: '2-digit' }),
-    }, ...prev].slice(0, 5));
+    onChatChange([...afterUser, {
+      id: crypto.randomUUID(), role: 'model', text: result, at: new Date().toISOString(),
+    }]);
   }
 
+  /** Preguntas de ejemplo hechas con los datos que el docente tiene de verdad. */
+  const suggestions = (() => {
+    const cls = classId ? data.classes.find(c => c.id === classId) : data.classes[0];
+    if (!cls) return [t('¿Por dónde empiezo a montar mi cuaderno de notas?')];
+    const alumno = data.students.find(s => s.class_id === cls.id)?.name.split(' ')[0];
+    return [
+      t('¿Cómo va {clase} en general?', { clase: cls.name }),
+      t('¿Qué alumnos de {clase} van justos y qué haría con ellos?', { clase: cls.name }),
+      alumno ? t('Resúmeme cómo va {alumno}', { alumno }) : t('¿Quién tiene más faltas?'),
+      t('Propón actividades de refuerzo de {asignatura}', { asignatura: cls.subjects[0] }),
+    ];
+  })();
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 18, alignItems: 'start' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="ai-layout">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Aviso de clave sin configurar */}
         {!hasApiKey() && (
           <div style={{
@@ -675,74 +775,149 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
           </div>
         )}
 
-        <div className="card">
-          <div className="card-hd">
-            <div className="card-ttl"><Brain size={15} color="var(--accent-d)" />{t('Consulta pedagógica')}</div>
-          </div>
-          <div className="fgroup">
-            <label className="flabel">{t('Pregunta o contexto')}</label>
-            <textarea
+        {/* Alcance de la consulta */}
+        <div className="card" style={{ padding: '12px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', color: 'var(--text)' }}>
+              <input type="checkbox" checked={useData} onChange={e => setUseData(e.target.checked)} style={{ cursor: 'pointer' }} />
+              <Database size={13} color="var(--accent-d)" />{t('Responder con mis datos')}
+            </label>
+            <select
               className="finput"
-              rows={5}
-              placeholder={t('Escribe tu pregunta pedagógica, describe una situación del aula, pide ideas de actividades…')}
-              value={question}
-              onChange={e => setQuestion(e.target.value)}
-              style={{ resize: 'vertical', minHeight: 110 }}
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
-            <button className="btn-ghost" style={{ fontSize: 12.5, gap: 6 }} onClick={() => attachRef.current?.click()} type="button">
-              <Paperclip size={13} />{t('Adjuntar documento')}
-            </button>
-            {attachedFile && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6, background: 'var(--accent-l)', borderRadius: 99,
-                padding: '3px 10px 3px 8px', fontSize: 12, color: 'var(--accent-d)', fontWeight: 600, maxWidth: 240, overflow: 'hidden',
-              }}>
-                <FileText size={12} style={{ flexShrink: 0 }} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedFile.name}</span>
-                <button type="button" onClick={() => setAttachedFile(null)} aria-label={t('Quitar archivo adjunto')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, marginLeft: 2, color: 'var(--accent-d)' }}>
-                  <X size={12} />
-                </button>
-              </div>
+              value={classId}
+              onChange={e => setClassId(e.target.value)}
+              disabled={!useData}
+              style={{ width: 'auto', minWidth: 190, padding: '6px 10px', fontSize: 12.5, cursor: 'pointer', opacity: useData ? 1 : 0.5 }}
+            >
+              <option value="">{t('Todas mis clases')}</option>
+              {data.classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <span style={{ fontSize: 11.5, color: 'var(--text-3)', flex: 1, minWidth: 140 }}>
+              {useData
+                ? t('{clases} clases · {alumnos} alumnos a la vista', { clases: classId ? 1 : data.classes.length, alumnos: scopedStudents.length })
+                : t('La IA no verá tu cuaderno')}
+            </span>
+            {chat.length > 0 && (
+              <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 11px', gap: 6 }} onClick={() => onChatChange([])} type="button">
+                <Trash2 size={12} />{t('Nueva conversación')}
+              </button>
             )}
-            <input ref={attachRef} type="file" style={{ display: 'none' }} onChange={e => handleAttach(e, false)} accept="*/*" />
           </div>
-          <button
-            className="btn-ia"
-            style={{ marginTop: 14, width: '100%', justifyContent: 'center', fontSize: 14, gap: 8 }}
-            onClick={handleAsk}
-            disabled={loading}
-            type="button"
-          >
-            {loading ? <><span className="spin" /><span className="ia-generating">{t('Consultando…')}</span></> : <>✨ {t('Preguntar a la IA')}</>}
-          </button>
         </div>
 
-        {(answer !== null || loading) && (
-          <div className="card">
-            <div className="card-hd">
-              <div className="card-ttl"><BookOpen size={14} color="var(--accent-d)" />{t('Respuesta')}</div>
-            </div>
-            {loading && !answer ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0', color: 'var(--text-2)', fontSize: 13 }}>
-                <span className="spin" /><span className="ia-generating">{t('Generando respuesta…')}</span>
-              </div>
-            ) : (
-              <div style={{
-                maxHeight: 420, overflowY: 'auto', fontSize: 13.5, lineHeight: 1.7, color: 'var(--text)',
-                whiteSpace: 'pre-wrap', background: 'var(--surface)', borderRadius: 10, padding: '14px 16px',
-                border: '0.5px solid var(--border)',
-              }}>
-                {answer}
+        {/* Conversación */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+          <div style={{ flex: 1, maxHeight: 480, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, paddingRight: 4 }}>
+            {chat.length === 0 && !loading && (
+              <div style={{ margin: 'auto 0', textAlign: 'center', padding: '20px 10px' }}>
+                <Brain size={30} color="var(--accent-d)" style={{ opacity: 0.5 }} />
+                <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: '10px 0 4px', fontWeight: 600 }}>
+                  {t('Pregúntame sobre tu cuaderno')}
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '0 0 16px', lineHeight: 1.5 }}>
+                  {t('Con «Responder con mis datos» activado veo tus clases, notas y asistencia reales.')}
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                  {suggestions.map(s => (
+                    <button key={s} className="btn-ghost" style={{ fontSize: 12, padding: '7px 12px' }} onClick={() => ask(s)} type="button">
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
+
+            {chat.map(m => (
+              <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{
+                  maxWidth: m.role === 'user' ? '80%' : '100%',
+                  background: m.role === 'user' ? 'var(--accent-l)' : 'var(--surface)',
+                  border: '0.5px solid var(--border)',
+                  borderRadius: 12,
+                  padding: '10px 14px',
+                  fontSize: 13.5,
+                  lineHeight: 1.65,
+                  color: 'var(--text)',
+                }}>
+                  {m.role === 'user'
+                    ? <span style={{ whiteSpace: 'pre-wrap' }}>{m.text}</span>
+                    : <RichText text={m.text} />}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-2)', fontSize: 13 }}>
+                <span className="spin" /><span className="ia-generating">{t('Generando respuesta…')}</span>
+              </div>
+            )}
+            <div ref={endRef} />
           </div>
-        )}
+
+          {/* Escribir */}
+          <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: 12, marginTop: 12 }}>
+            <textarea
+              className="finput"
+              rows={2}
+              placeholder={t('Escribe tu pregunta… (Intro envía, Mayús+Intro salta de línea)')}
+              value={question}
+              onChange={e => setQuestion(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(question); }
+              }}
+              style={{ resize: 'vertical', minHeight: 62 }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+              <button className="btn-ghost" style={{ fontSize: 12.5, gap: 6 }} onClick={() => attachRef.current?.click()} type="button">
+                <Paperclip size={13} />{t('Adjuntar documento')}
+              </button>
+              {attachedFile && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6, background: 'var(--accent-l)', borderRadius: 99,
+                  padding: '3px 10px 3px 8px', fontSize: 12, color: 'var(--accent-d)', fontWeight: 600, maxWidth: 220, overflow: 'hidden',
+                }}>
+                  <FileText size={12} style={{ flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedFile.name}</span>
+                  <button type="button" onClick={() => setAttachedFile(null)} aria-label={t('Quitar archivo adjunto')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, marginLeft: 2, color: 'var(--accent-d)' }}>
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+              <div style={{ flex: 1 }} />
+              <button className="btn-ia" style={{ gap: 7, fontSize: 13.5 }} onClick={() => ask(question)} disabled={loading} type="button">
+                {loading ? <><span className="spin" />{t('Consultando…')}</> : <><Send size={14} />{t('Enviar')}</>}
+              </button>
+            </div>
+            <input ref={attachRef} type="file" style={{ display: 'none' }} onChange={e => handleAttach(e, false)} accept="*/*" />
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Qué está viendo la IA */}
+        <div className="card">
+          <div className="card-hd">
+            <div className="card-ttl"><Database size={14} color="var(--accent-d)" />{t('Lo que puede consultar')}</div>
+          </div>
+          {useData ? (
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.75 }}>
+              <li>{t('{n} clases', { n: classId ? 1 : data.classes.length })}</li>
+              <li>{t('{n} alumnos con su media ponderada', { n: scopedStudents.length })}</li>
+              <li>{t('{n} pruebas del cuaderno', { n: data.gradeItems.length })}</li>
+              <li>{t('{n} evaluaciones con rúbrica o diana', { n: data.evaluations.length })}</li>
+              <li>{t('Asistencia, agenda y tareas pendientes')}</li>
+            </ul>
+          ) : (
+            <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>
+              {t('Ahora mismo responde solo con conocimiento general, sin mirar tu cuaderno.')}
+            </p>
+          )}
+          <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '12px 0 0', lineHeight: 1.55 }}>
+            {t('Estos datos se envían a Google solo al hacer una pregunta, y no se guardan en ningún servidor de Aula Pro.')}
+          </p>
+        </div>
+
         {/* Normativa de referencia */}
         <div className="card">
           <div className="card-hd">
@@ -774,45 +949,6 @@ function AiTab({ lawDocument, onLawDocumentChange, onNav }: Pick<Props, 'lawDocu
             accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
           />
         </div>
-
-        {/* Historial de consultas */}
-        <div className="card">
-          <div className="card-hd">
-            <div className="card-ttl"><FileText size={14} color="var(--accent-d)" />{t('Últimas consultas')}</div>
-          </div>
-          {history.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '14px 0' }}>
-              {t('Tus últimas 5 consultas aparecerán aquí')}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {history.map(entry => (
-                <button
-                  key={entry.id}
-                  onClick={() => { setQuestion(entry.question); setAnswer(entry.answer); }}
-                  style={{
-                    textAlign: 'left', padding: '10px 12px', borderRadius: 9, background: 'var(--surface)',
-                    border: '0.5px solid var(--border)', cursor: 'pointer', fontFamily: 'var(--font)', width: '100%',
-                  }}
-                  title={t('Ver esta consulta')}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 8 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                      {entry.question.length > 60 ? entry.question.slice(0, 60) + '…' : entry.question}
-                    </span>
-                    <span style={{ fontSize: 10.5, color: 'var(--text-3)', flexShrink: 0 }}>{entry.timestamp}</span>
-                  </div>
-                  <p style={{
-                    fontSize: 11.5, color: 'var(--text-2)', margin: 0, lineHeight: 1.5, overflow: 'hidden',
-                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                  }}>
-                    {entry.answer.slice(0, 100)}{entry.answer.length > 100 ? '…' : ''}
-                  </p>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -841,7 +977,16 @@ export function Notebook(props: Props) {
         </div>
       </div>
 
-      {tab === 'grades' ? <GradesTab {...props} /> : <AiTab lawDocument={props.lawDocument} onLawDocumentChange={props.onLawDocumentChange} onNav={props.onNav} />}
+      {tab === 'grades' ? <GradesTab {...props} /> : (
+        <AiTab
+          data={props.aiData}
+          chat={props.chat}
+          onChatChange={props.onChatChange}
+          lawDocument={props.lawDocument}
+          onLawDocumentChange={props.onLawDocumentChange}
+          onNav={props.onNav}
+        />
+      )}
     </section>
   );
 }

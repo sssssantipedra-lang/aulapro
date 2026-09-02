@@ -18,13 +18,14 @@
 
 import {
   Document, Packer, Paragraph, TextRun,
-  Table, TableRow, TableCell, WidthType, BorderStyle,
+  Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, ImageRun,
 } from 'docx';
 import type { Ficha } from '../types';
 import type { FichaExercise, FichaExerciseType, FichaActivity } from './resources';
 import { translate, type Lang } from '../i18n';
 import { svgLightbulb, svgPencil } from './fichaIcons';
 import { pickMotifKey, MOTIF_COLORS, MOTIF_ICON } from './fichaMotifs';
+import { buildFigureSvg, FIGURE_W, FIGURE_H } from '../lib/geometryFigures';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -88,6 +89,11 @@ function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string 
   const letra = (i: number) => String.fromCharCode(97 + i);
   let body = `<div class="ficha-enunciado">${esc(ex.enunciado)}</div>`;
 
+  // Independiente del tipo: cualquier ejercicio puede llevar un diagrama, aunque en la práctica solo lo pidan los "problema".
+  if (ex.figura) {
+    body += `<div class="ficha-figura">${buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#' + color.bg)}</div>`;
+  }
+
   if (ex.tipo === 'opcion_multiple' && ex.opciones?.length) {
     body += `<ol class="ficha-opciones">${ex.opciones.map((o, j) => `<li><span class="op-letra">${letra(j)})</span> ${esc(o)}</li>`).join('')}</ol>`;
   } else if (ex.tipo === 'tabla_rellenar' && ex.columnas?.length && ex.filas?.length) {
@@ -106,6 +112,15 @@ function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string 
     }
     if (ex.itemsColorear?.length) {
       body += `<div class="ficha-colorear-items">${ex.itemsColorear.map(it => `<span class="item-box">${esc(it)}</span>`).join('')}</div>`;
+    }
+  } else if (ex.tipo === 'sopa_letras' && ex.rejilla?.length) {
+    // Solo la rejilla en blanco: la solución (`posiciones`) es para el profesorado y no se exporta.
+    const cols = ex.rejilla[0].length;
+    body += `<div class="ficha-sopa" style="grid-template-columns:repeat(${cols},1fr)">` +
+      ex.rejilla.flat().map(letra => `<span>${esc(letra)}</span>`).join('') +
+      `</div>`;
+    if (ex.palabras?.length) {
+      body += `<div class="ficha-colorear-items">${ex.palabras.map(p => `<span class="item-box">${esc(p)}</span>`).join('')}</div>`;
     }
   } else {
     const espacio = espacioTipo(ex.tipo);
@@ -205,6 +220,12 @@ const FICHA_DOC_STYLE = `
 .ficha-relacionar .col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
 .ficha-relacionar .item { font-size: 12.5px; padding: 7px 10px; border: 0.75px solid #cbd5e1; border-radius: 6px; background: #f8fafc; }
 
+.ficha-sopa { display: grid; gap: 1px; background: #cbd5e1; border: 1px solid #cbd5e1; margin: 10px 0 0; max-width: 78mm; }
+.ficha-sopa span { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #fff; font-family: "Courier New", monospace; font-weight: 700; font-size: 11px; }
+
+.ficha-figura { margin-top: 8px; }
+.ficha-figura svg { display: block; max-width: 46mm; height: auto; }
+
 .ficha-leyenda { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 10px; }
 .ficha-leyenda .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 4px 10px; border-radius: 99px; background: #f1f5f9; border: 0.75px solid #e2e8f0; }
 .ficha-leyenda .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -224,7 +245,48 @@ html, body { margin: 0; padding: 0; background: #fff; }
 const CELL_BORDER = { style: BorderStyle.SINGLE, size: 2, color: 'CBD5E1' };
 const CELL_BORDERS = { top: CELL_BORDER, bottom: CELL_BORDER, left: CELL_BORDER, right: CELL_BORDER, insideHorizontal: CELL_BORDER, insideVertical: CELL_BORDER };
 
-function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number) {
+/**
+ * `docx` no admite SVG en un `ImageRun`, solo mapas de bits — así que el
+ * diagrama se pinta en un `<canvas>` (a 2x para que no salga borroso al
+ * imprimir) y se saca como PNG. Todo esto es DOM/navegador, por eso
+ * `buildFichaDocxBlob` — que ya era async por `Packer.toBlob` — es el único
+ * sitio donde se llama. Si algo falla (por lo que sea, un SVG raro), se
+ * devuelve null y el ejercicio se exporta sin el dibujo antes que reventar
+ * la ficha entera.
+ */
+async function figureToImageRun(ex: FichaExercise, colorHexNoHash: string): Promise<ImageRun | null> {
+  if (!ex.figura) return null;
+  try {
+    const svg = buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#' + colorHexNoHash);
+    const svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('No se pudo cargar el SVG de la figura'));
+        el.src = svgUrl;
+      });
+      const scale = 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = FIGURE_W * scale;
+      canvas.height = FIGURE_H * scale;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, FIGURE_W, FIGURE_H);
+      const pngBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!pngBlob) return null;
+      const bytes = new Uint8Array(await pngBlob.arrayBuffer());
+      return new ImageRun({ type: 'png', data: bytes, transformation: { width: FIGURE_W, height: FIGURE_H } });
+    } finally {
+      URL.revokeObjectURL(svgUrl);
+    }
+  } catch {
+    return null;
+  }
+}
+
+async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string) {
   const letra = (n: number) => String.fromCharCode(97 + n);
 
   children.push(new Paragraph({
@@ -234,6 +296,11 @@ function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i:
     ],
     spacing: { before: i === 0 ? 0 : 220, after: 60 },
   }));
+
+  const figureImage = await figureToImageRun(ex, colorHexNoHash);
+  if (figureImage) {
+    children.push(new Paragraph({ children: [figureImage], spacing: { after: 100 } }));
+  }
 
   if (ex.tipo === 'opcion_multiple' && ex.opciones?.length) {
     ex.opciones.forEach((o, j) => {
@@ -281,6 +348,33 @@ function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i:
     }));
     children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: CELL_BORDERS, rows }));
     children.push(new Paragraph({ text: '', spacing: { after: 200 } }));
+    return;
+  }
+
+  if (ex.tipo === 'sopa_letras' && ex.rejilla?.length) {
+    // Solo la rejilla en blanco: la solución (`posiciones`) es para el profesorado y no se exporta.
+    const CELL_DXA = 380;
+    children.push(new Table({
+      width: { size: CELL_DXA * ex.rejilla[0].length, type: WidthType.DXA },
+      borders: CELL_BORDERS,
+      rows: ex.rejilla.map(fila => new TableRow({
+        children: fila.map(letra => new TableCell({
+          width: { size: CELL_DXA, type: WidthType.DXA },
+          margins: { top: 40, bottom: 40, left: 0, right: 0 },
+          children: [new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: letra, font: 'Courier New', bold: true, size: 18 })],
+          })],
+        })),
+      })),
+    }));
+    children.push(new Paragraph({ text: '', spacing: { after: 160 } }));
+    if (ex.palabras?.length) {
+      children.push(new Paragraph({
+        children: ex.palabras.map((p, pi) => new TextRun({ text: (pi > 0 ? '     ' : '') + `[ ${p} ]`, bold: true })),
+        spacing: { after: 200 },
+      }));
+    }
     return;
   }
 
@@ -384,7 +478,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     }));
   }
 
-  actividades.forEach((act, actIdx) => {
+  for (const [actIdx, act] of actividades.entries()) {
     const color = ACTIVITY_COLORS[actIdx % ACTIVITY_COLORS.length];
     if (act.titulo) {
       children.push(new Table({
@@ -402,9 +496,9 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
       }));
       children.push(new Paragraph({ text: '', spacing: { after: 100 } }));
     }
-    act.ejercicios.forEach((ex, i) => pushExerciseDocx(children, ex, i));
+    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg);
     children.push(new Paragraph({ text: '', spacing: { after: 120 } }));
-  });
+  }
 
   const doc = new Document({
     sections: [{ children, properties: { page: { margin: { top: 1000, bottom: 1000, left: 1200, right: 1200 } } } }],

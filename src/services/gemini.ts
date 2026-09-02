@@ -40,6 +40,16 @@ export interface InlineFile {
   base64: string;
 }
 
+/**
+ * Un turno de conversación ya cerrado. Se manda entero en cada pregunta
+ * nueva: la API de Gemini no guarda nada entre llamadas, así que la «memoria»
+ * del chat consiste literalmente en volver a enviarle lo anterior.
+ */
+export interface ChatTurn {
+  role: 'user' | 'model';
+  text: string;
+}
+
 interface GeminiCallbacks {
   onStart?: () => void;
   onEnd?: () => void;
@@ -70,6 +80,21 @@ export interface GeminiOptions {
    * por escrito en el prompt y confiar en que lo respete.
    */
   responseSchema?: object;
+  /**
+   * 0-2, cuánto varía la respuesta entre llamadas idénticas. Sin especificar,
+   * la API usa su propio valor por defecto (en torno a 1). Subirlo un poco
+   * ayuda cuando la salida tiende a repetirse (p. ej. las mismas medidas de
+   * siempre en las figuras geométricas de las fichas): con `responseSchema`
+   * puesto, el modelo ya tiende a converger en respuestas "típicas" incluso
+   * a temperatura normal.
+   */
+  temperature?: number;
+  /**
+   * Turnos anteriores de la conversación, del más antiguo al más reciente.
+   * Sin esto cada pregunta llega como si fuera la primera y no se puede
+   * repreguntar («¿y para 2ºB?»), que es justo lo que se espera de un chat.
+   */
+  history?: readonly ChatTurn[];
 }
 
 const DEFAULT_MAX_TOKENS = 4096;
@@ -81,9 +106,15 @@ async function callModel(
   userParts: object[],
   options: GeminiOptions = {},
 ): Promise<{ text: string } | { status: number; message: string }> {
+  const contents = [
+    ...(options.history ?? []).map(turn => ({ role: turn.role, parts: [{ text: turn.text }] })),
+    { role: 'user', parts: userParts },
+  ];
+
   const generationConfig: Record<string, unknown> = {
     maxOutputTokens: options.maxOutputTokens ?? DEFAULT_MAX_TOKENS,
   };
+  if (options.temperature !== undefined) generationConfig.temperature = options.temperature;
   if (options.responseSchema) {
     generationConfig.responseMimeType = 'application/json';
     generationConfig.responseSchema = options.responseSchema;
@@ -96,7 +127,7 @@ async function callModel(
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ parts: userParts }],
+        contents,
         generationConfig,
       }),
     },
@@ -108,7 +139,12 @@ async function callModel(
   }
 
   const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  // Todas las partes, no solo la primera: una respuesta larga puede llegar
+  // repartida en varias y quedarse a medias si se lee únicamente `parts[0]`.
+  const text = (data.candidates?.[0]?.content?.parts ?? [])
+    .map(p => p.text ?? '')
+    .join('')
+    .trim();
   if (!text) return { status: 0, message: 'La IA devolvió una respuesta vacía.' };
   return { text: fixStrayPercentU(text) };
 }

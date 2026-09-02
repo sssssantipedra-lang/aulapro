@@ -130,6 +130,17 @@ function registerClassroomIpc() {
 
 function registerUpdateIpc() {
   ipcMain.handle('update:installNow', () => updater.installNow());
+  // La interfaz dice en qué idioma está para que el aviso del sistema salga
+  // igual que el resto de la aplicación (ver electron/updater.cjs).
+  ipcMain.handle('update:setLanguage', (_e, lang) => updater.setLanguage(lang));
+}
+
+/** Trae la ventana al frente. Es lo que hace pulsar el aviso del sistema. */
+function focusMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
 }
 
 async function createWindow() {
@@ -186,6 +197,16 @@ async function createWindow() {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
+  /**
+   * Identidad de la aplicación ante Windows. Tiene que ser exactamente el
+   * mismo `appId` que declara electron-builder en package.json: es la etiqueta
+   * con la que Windows relaciona los avisos del sistema con el acceso directo
+   * de Aula Pro. Sin esto, los avisos de actualización se descartan en
+   * silencio, sin error ninguno. Se llama lo antes posible, antes incluso de
+   * que la aplicación esté lista.
+   */
+  app.setAppUserModelId('es.aulapro.escritorio');
+
   // Si intentan abrirla de nuevo, traemos al frente la ventana que ya existe.
   app.on('second-instance', () => {
     if (!mainWindow) return;
@@ -202,7 +223,10 @@ if (!app.requestSingleInstanceLock()) {
 
     // Con un pequeño margen para no competir con el arranque de la ventana.
     setTimeout(() => {
-      updater.setup(app, status => mainWindow?.webContents.send('update:status', status));
+      updater.setup(app, {
+        onStatus: status => mainWindow?.webContents.send('update:status', status),
+        onActivate: focusMainWindow,
+      });
     }, 3000);
 
     app.on('activate', () => {

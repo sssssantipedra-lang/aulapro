@@ -30,6 +30,7 @@ const Attendance     = lazy(() => import('./pages/Attendance').then(m => ({ defa
 const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 const LearningSituations = lazy(() => import('./pages/LearningSituations').then(m => ({ default: m.LearningSituations })));
 const Resources      = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
+const WorkSessions   = lazy(() => import('./pages/WorkSessions').then(m => ({ default: m.WorkSessions })));
 
 function Loading() {
   const { t } = useI18n();
@@ -57,6 +58,32 @@ function AppInner() {
     () => st.students.map(s => s.name.split(' ')[0]),
     [st.students],
   );
+
+  /**
+   * Lo que el asistente del cuaderno puede consultar. Se arma aquí, donde
+   * está todo el estado junto, y no dentro de la página: el chat necesita ver
+   * clases, notas, asistencia y agenda a la vez, y el Cuaderno solo recibía
+   * calificaciones.
+   */
+  const aiData = useMemo(() => ({
+    profile: st.profile
+      ? { name: st.profile.name, school: st.profile.school, subject: st.profile.subject, course: st.profile.course }
+      : null,
+    classes: st.classes,
+    students: st.students,
+    gradeCategories: st.gradeCategories,
+    gradeItems: st.gradeItems,
+    grades: st.grades,
+    evaluations: st.evaluations,
+    attendance: st.attendance,
+    reports: st.reports,
+    calEvents: st.calEvents,
+    scheduleBlocks: st.scheduleBlocks,
+    tasks: st.tasks,
+    learningSituations: st.learningSituations,
+  }), [st.profile, st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades,
+      st.evaluations, st.attendance, st.reports, st.calEvents, st.scheduleBlocks,
+      st.tasks, st.learningSituations]);
 
   const session = useP2PSync({
     source: st.syncSource,
@@ -261,6 +288,9 @@ function AppInner() {
                 lawDocument={st.lawDocument}
                 onLawDocumentChange={st.setLawDocument}
                 onNav={s => setSection(s as Section)}
+                aiData={aiData}
+                chat={st.chat}
+                onChatChange={st.setChat}
               />
             )}
             {section === 'sec-classroom' && (
@@ -335,6 +365,19 @@ function AppInner() {
                 fichas={st.fichas}
                 onSave={f => { st.saveFicha(f); }}
                 onDelete={id => { st.deleteFicha(id); toast(t('Ficha eliminada')); }}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
+            {(section === 'meetings' || section === 'trainings') && (
+              <WorkSessions
+                // La clave fuerza a React a montar la pantalla de nuevo al
+                // pasar de Reuniones a Formaciones: es el mismo componente y,
+                // sin esto, se quedaría abierto el detalle de la otra lista.
+                key={section}
+                kind={section === 'meetings' ? 'meeting' : 'training'}
+                sessions={st.workSessions}
+                onSave={st.saveWorkSession}
+                onDelete={id => { st.deleteWorkSession(id); toast(t('Eliminado')); }}
                 onNav={s => setSection(s as Section)}
               />
             )}

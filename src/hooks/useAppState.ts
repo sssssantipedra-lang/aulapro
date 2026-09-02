@@ -3,12 +3,13 @@ import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
-  LearningSituation, Ficha,
+  LearningSituation, Ficha, WorkSession,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
+import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
 import type { TeacherProfile } from '../services/storage';
 import {
@@ -45,6 +46,7 @@ interface ProfileSnapshot {
   selfAssessments: SelfAssessmentSession[];
   learningSituations: LearningSituation[];
   fichas: Ficha[];
+  workSessions: WorkSession[];
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -56,7 +58,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
-    fichas: [],
+    fichas: [], workSessions: [],
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -115,12 +117,18 @@ export function useAppState() {
   const [selfAssessments, setSelfAssessments] = useState<SelfAssessmentSession[]>([]);
   const [learningSituations, setLearningSituations] = useState<LearningSituation[]>([]);
   const [fichas, setFichas]                   = useState<Ficha[]>([]);
+  const [workSessions, setWorkSessions]       = useState<WorkSession[]>([]);
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
 
   // El documento de normativa (base64, puede ser enorme) solo vive en memoria
   const [lawDocument, setLawDocument] = useState<{ name: string; mimeType: string; base64: string } | null>(null);
+
+  // La conversación con el asistente, también solo en memoria. Vive aquí y no
+  // dentro de la página del cuaderno para que no se pierda al ir a mirar otra
+  // sección y volver, que es justo lo que se hace mientras se pregunta.
+  const [chat, setChat] = useState<ChatMessage[]>([]);
 
   const hydrate = useCallback((d: Partial<ProfileSnapshot>) => {
     const s = { ...emptySnapshot(), ...d };
@@ -144,9 +152,13 @@ export function useAppState() {
     setSelfAssessments(s.selfAssessments);
     setLearningSituations(s.learningSituations);
     setFichas(s.fichas);
+    setWorkSessions(s.workSessions);
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
+    // La conversación con el asistente habla de los alumnos del perfil que se
+    // acaba de dejar atrás: no puede seguir abierta en el siguiente.
+    setChat([]);
   }, []);
 
   /* ── Carga al entrar en un perfil ── */
@@ -181,11 +193,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    tombstones, shareScope, auditLog,
+    workSessions, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      tombstones, shareScope, auditLog]);
+      workSessions, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -278,10 +290,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas };
-  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -666,6 +678,30 @@ export function useAppState() {
     log('delete', 'ficha', id, `Ficha «${gone?.title ?? id}»`);
   }, [log]);
 
+  /* ── Reuniones y formaciones ── */
+
+  const saveWorkSession = useCallback((s: WorkSession) => {
+    const previa = mirrorRef.current.workSessions.find(x => x.id === s.id);
+    setWorkSessions(prev => {
+      const i = prev.findIndex(x => x.id === s.id);
+      return i < 0 ? [s, ...prev] : prev.map((x, j) => (j === i ? s : x));
+    });
+    const que = s.kind === 'meeting' ? 'Reunión' : 'Formación';
+    // El salto de «sin documento» a «con documento» es el hito que interesa
+    // ver en el registro; los retoques posteriores son un cambio más.
+    const detalle = !previa?.document && s.document
+      ? (s.kind === 'meeting' ? 'acta redactada por la IA' : 'memoria redactada por la IA')
+      : undefined;
+    log(previa ? 'update' : 'create', 'workSession', s.id, `${que} «${s.title}»`, detalle);
+  }, [log]);
+
+  const deleteWorkSession = useCallback((id: string) => {
+    const gone = mirrorRef.current.workSessions.find(s => s.id === id);
+    setWorkSessions(prev => prev.filter(s => s.id !== id));
+    log('delete', 'workSession', id,
+      `${gone?.kind === 'training' ? 'Formación' : 'Reunión'} «${gone?.title ?? id}»`);
+  }, [log]);
+
   /**
    * Pasa una sesión al Historial como evaluaciones.
    *
@@ -781,6 +817,11 @@ export function useAppState() {
    * Vaciado de fin de curso: se borra el trabajo del año (clases, alumnos,
    * notas, evaluaciones, asistencia e informes) y se conservan las rúbricas y
    * dianas, que sirven para el curso siguiente.
+   *
+   * Las reuniones y formaciones tampoco se tocan: las formaciones son el
+   * historial de méritos del docente —se justifican años después— y las actas
+   * de reunión son documentos del centro, no material de aula. Se borran una a
+   * una desde su propia pantalla si sobran.
    */
   const clearSchoolYear = useCallback(async () => {
     if (profileId) await store.backup(profileId);
@@ -815,6 +856,7 @@ export function useAppState() {
     gradeCategories, gradeItems, grades,
     attendance, reports,
     lawDocument, setLawDocument,
+    chat, setChat,
 
     addTask, toggleTask, deleteTask,
     addClass, updateClass, deleteClass,
@@ -833,6 +875,7 @@ export function useAppState() {
     selfAssessments, saveSelfAssessment, deleteSelfAssessment, includeSelfAssessment,
     learningSituations, saveLearningSituation, deleteLearningSituation,
     fichas, saveFicha, deleteFicha,
+    workSessions, saveWorkSession, deleteWorkSession,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

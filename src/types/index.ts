@@ -494,9 +494,70 @@ export interface Ficha {
   content: import('../services/resources').FichaContent;
 }
 
+/* ── Reuniones y formaciones ── */
+
+/**
+ * Los dos módulos comparten estructura porque el trabajo es el mismo: se toman
+ * anotaciones sueltas durante el acto y luego la IA las convierte en un
+ * documento presentable. Lo que cambia es el papel que juega cada campo
+ * (`organizer` es el órgano convocante en una reunión y la entidad formadora
+ * en un curso) y qué apartados tiene el documento final.
+ */
+export type WorkSessionKind = 'meeting' | 'training';
+
+/** El documento redactado por la IA a partir de las anotaciones. */
+export interface WorkSessionDoc {
+  /** Instante en que se redactó. */
+  at: string;
+  titulo: string;
+  /** Dos o tres frases con lo esencial. */
+  resumen: string;
+  /** Puntos del orden del día, o bloques de contenido de la formación. */
+  apartados: { titulo: string; contenido: string }[];
+  /** Reuniones: acuerdos adoptados. Formaciones: ideas clave. */
+  acuerdos: string[];
+  /** Lo que queda por hacer, con responsable y plazo si se dijeron. */
+  tareas: { tarea: string; responsable: string; plazo: string }[];
+  /** Solo formaciones: cómo llevarlo al aula. */
+  aplicacionAula: string[];
+  /** Cierre: próxima convocatoria, o valoración del curso. */
+  cierre: string;
+}
+
+/**
+ * Una reunión o una formación, con las anotaciones del docente y —si ya se ha
+ * generado— su documento final.
+ *
+ * No van atadas a una clase: un claustro o un curso del CEFIRE no pertenecen a
+ * ningún grupo concreto.
+ */
+export interface WorkSession {
+  id: string;
+  kind: WorkSessionKind;
+  /** Instante del último guardado. Para el día, `date`. */
+  at: string;
+  /** Día del acto, AAAA-MM-DD. */
+  date: string;
+  timeStart?: string;
+  timeEnd?: string;
+  title: string;
+  /** Reuniones: órgano o quien convoca. Formaciones: entidad y ponente. */
+  organizer?: string;
+  place?: string;
+  /** Reuniones: quiénes asistieron, en texto libre. */
+  attendees?: string;
+  /** Formaciones: horas certificadas. */
+  hours?: number;
+  /** Las anotaciones en bruto: el material de partida del documento. */
+  notes: string;
+  /** Lo que redactó la IA, editable después a mano. */
+  document?: WorkSessionDoc;
+}
+
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
-  | 'learning-situations' | 'resources';
+  | 'learning-situations' | 'resources'
+  | 'meetings' | 'trainings';

@@ -56,5 +56,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       return () => ipcRenderer.removeListener('update:status', handler);
     },
     installNow: () => ipcRenderer.invoke('update:installNow'),
+    /** En qué idioma escribir el aviso del sistema ('es' | 'en'). */
+    setLanguage: lang => ipcRenderer.invoke('update:setLanguage', lang),
   },
 });

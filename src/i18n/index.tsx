@@ -371,6 +371,36 @@ const EN: Record<string, string> = {
   'Últimas consultas': 'Recent questions',
   'Tus últimas 5 consultas aparecerán aquí': 'Your last 5 questions will appear here',
   'Ver esta consulta': 'View this question',
+
+  /* Asistente del cuaderno (conversación con los datos reales) */
+  'Responder con mis datos': 'Answer using my data',
+  'Todas mis clases': 'All my classes',
+  '{clases} clases · {alumnos} alumnos a la vista': '{clases} classes · {alumnos} students in view',
+  'La IA no verá tu cuaderno': 'The AI won’t see your gradebook',
+  'Nueva conversación': 'New conversation',
+  'Pregúntame sobre tu cuaderno': 'Ask me about your gradebook',
+  'Con «Responder con mis datos» activado veo tus clases, notas y asistencia reales.':
+    'With “Answer using my data” switched on I can see your real classes, marks and attendance.',
+  'Escribe tu pregunta… (Intro envía, Mayús+Intro salta de línea)':
+    'Type your question… (Enter sends, Shift+Enter adds a line)',
+  'Enviar': 'Send',
+  'Lo que puede consultar': 'What it can look at',
+  '{n} alumnos con su media ponderada': '{n} students with their weighted average',
+  '{n} pruebas del cuaderno': '{n} gradebook assessments',
+  '{n} evaluaciones con rúbrica o diana': '{n} rubric or tracking assessments',
+  'Asistencia, agenda y tareas pendientes': 'Attendance, planner and open tasks',
+  'Ahora mismo responde solo con conocimiento general, sin mirar tu cuaderno.':
+    'Right now it answers from general knowledge only, without looking at your gradebook.',
+  'Estos datos se envían a Google solo al hacer una pregunta, y no se guardan en ningún servidor de Aula Pro.':
+    'This data is sent to Google only when you ask a question, and is never stored on any Aula Pro server.',
+  '¿Por dónde empiezo a montar mi cuaderno de notas?': 'Where do I start setting up my gradebook?',
+  '¿Cómo va {clase} en general?': 'How is {clase} doing overall?',
+  '¿Qué alumnos de {clase} van justos y qué haría con ellos?':
+    'Which students in {clase} are struggling, and what would you do with them?',
+  'Resúmeme cómo va {alumno}': 'Give me a summary of how {alumno} is doing',
+  '¿Quién tiene más faltas?': 'Who has the most absences?',
+  'Propón actividades de refuerzo de {asignatura}': 'Suggest catch-up activities for {asignatura}',
+
   'El archivo supera el límite de 19 MB': 'The file is over the 19 MB limit',
   '✅ Normativa adjuntada': '✅ Regulations attached',
   'No se pudo leer el archivo': 'Couldn’t read the file',
@@ -1235,9 +1265,90 @@ const EN: Record<string, string> = {
   'Tabla para rellenar': 'Table to complete',
   'Relacionar': 'Matching',
   'Colorear según el resultado': 'Color by result',
+  'Sopa de letras': 'Word search',
+  'Resaltado: solo lo ves tú, es la solución. En la ficha exportada sale la rejilla en blanco.':
+    "Highlighted: only you see this, it's the solution. The exported worksheet has a blank grid.",
   'Incluir una ilustración generada por IA': 'Include an AI-generated illustration',
   'Tarda un poco más y usa aparte tu cuota gratuita de imágenes. Si falla por lo que sea, la ficha se genera igual, solo que sin ilustración.':
     'Takes a little longer and uses your free image quota separately. If it fails for any reason, the worksheet is still generated, just without an illustration.',
+
+  /* ── Reuniones y formaciones ── */
+  'Mi actividad docente': 'My professional activity',
+  'Reuniones': 'Meetings',
+  'Formaciones': 'Training',
+  'Anota lo que se dice y la IA te redacta el acta lista para exportar':
+    'Jot down what is said and the AI writes up the minutes, ready to export',
+  'Anota lo que aprendes y la IA te redacta la memoria lista para exportar':
+    'Jot down what you learn and the AI writes up the report, ready to export',
+  'Nueva reunión': 'New meeting',
+  'Nueva formación': 'New training',
+  'Todavía no has anotado ninguna reunión': 'You haven’t recorded any meetings yet',
+  'Todavía no has anotado ninguna formación': 'You haven’t recorded any training yet',
+  'Claustros, departamento, evaluación, tutorías con familias… apunta lo que se diga y luego pide el acta.':
+    'Staff meetings, department, assessment boards, parent meetings… note what is said, then ask for the minutes.',
+  'Cursos, jornadas, seminarios… apunta lo que te llevas y luego pide la memoria.':
+    'Courses, conferences, seminars… note what you take away, then ask for the report.',
+  'Sin anotaciones todavía': 'No notes yet',
+  'Acta generada': 'Minutes ready',
+  'Memoria generada': 'Report ready',
+  'Sin documento': 'No document',
+  'Editar anotaciones': 'Edit notes',
+  'Asunto de la reunión': 'Meeting subject',
+  'Nombre de la formación': 'Training title',
+  'Ej: Claustro de octubre': 'e.g. October staff meeting',
+  'Ej: Evaluación competencial en secundaria': 'e.g. Competency-based assessment in secondary',
+  'Hora de inicio': 'Start time',
+  'Hora de fin': 'End time',
+  'Horas certificadas': 'Certified hours',
+  'Convoca': 'Called by',
+  'Entidad y ponente': 'Provider and trainer',
+  'Ej: Jefatura de estudios': 'e.g. Head of studies',
+  'Ej: CEFIRE · Marta Ruiz': 'e.g. Teacher training centre · Marta Ruiz',
+  'Lugar': 'Place',
+  'Ej: Sala de profesores': 'e.g. Staff room',
+  'Ej: En línea': 'e.g. Online',
+  'Asistentes': 'Attendees',
+  'Ej: equipo docente de 1º ESO, orientación': 'e.g. Year 7 teaching team, student support',
+  'Anotaciones': 'Notes',
+  'Escribe como te salga: frases sueltas, nombres, acuerdos, quién se encarga de qué… La IA lo ordenará después.':
+    'Write however it comes out: loose phrases, names, decisions, who does what… The AI will tidy it up afterwards.',
+  'Escribe como te salga: ideas del ponente, ejemplos, cosas que quieres probar en clase… La IA lo ordenará después.':
+    'Write however it comes out: the trainer’s ideas, examples, things you want to try in class… The AI will tidy it up afterwards.',
+  'Cuanto más apuntes, mejor será el documento. La IA no añade nada que no esté aquí.':
+    'The more you jot down, the better the document. The AI adds nothing that isn’t here.',
+  'Ponle un título antes de guardar': 'Give it a title before saving',
+  '✅ Guardado': '✅ Saved',
+  'Eliminado': 'Deleted',
+  '{n} h': '{n} h',
+  'Añade anotaciones antes de pedir el documento': 'Add some notes before asking for the document',
+  'Generar acta con IA': 'Generate minutes with AI',
+  'Generar memoria con IA': 'Generate report with AI',
+  'Redactando…': 'Writing…',
+  '✅ Acta generada': '✅ Minutes generated',
+  '✅ Memoria generada': '✅ Report generated',
+  'Retocar el documento': 'Tweak the document',
+  'Acta de reunión': 'Meeting minutes',
+  'Memoria de formación': 'Training report',
+  'Cuando tengas las anotaciones, pide el acta y la tendrás lista para exportar.':
+    'Once you have your notes, ask for the minutes and they’ll be ready to export.',
+  'Cuando tengas las anotaciones, pide la memoria y la tendrás lista para exportar.':
+    'Once you have your notes, ask for the report and it’ll be ready to export.',
+  '¿Seguro? Se borra': 'Sure? This deletes it',
+  'Puntos tratados': 'Items discussed',
+  'Contenidos trabajados': 'Content covered',
+  'Título del punto': 'Item title',
+  'Acuerdos': 'Decisions',
+  'Ideas clave': 'Key takeaways',
+  'Tarea': 'Task',
+  'Responsable': 'Owner',
+  'Plazo': 'Due',
+  'Aplicación en el aula': 'Putting it into practice',
+  'Cierre': 'Closing',
+  'Valoración': 'Evaluation',
+  'Documento generado con Aula Pro': 'Document generated with Aula Pro',
+  'El PDF solo está disponible en la aplicación de escritorio. Puedes exportar a Word.':
+    'PDF export is only available in the desktop app. You can export to Word instead.',
+  'Reuniones y formaciones': 'Meetings and training',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };
@@ -1330,6 +1441,9 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, lang);
     document.documentElement.lang = lang;
+    // El aviso de actualización lo escribe el proceso de Electron, que no ve
+    // este diccionario: hay que decirle en qué idioma está la aplicación.
+    window.electronAPI?.update?.setLanguage?.(lang);
   }, [lang]);
 
   const value = useMemo<Ctx>(() => ({

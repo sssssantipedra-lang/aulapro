@@ -14,6 +14,8 @@ dist-ssr
 
 # Instaladores generados por `npm run dist`
 release
+# Builds de macOS descargadas del workflow de GitHub Actions
+release-mac
 
 # Iconos generados por `npm run icons` desde public/favicon.svg
 build/icon.ico

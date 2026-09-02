@@ -78,6 +78,11 @@ export interface UpdateBridge {
   /** Avisa cuando hay una actualización descargándose o lista. Devuelve una función para dejar de escuchar. */
   onStatus: (cb: (status: UpdateStatus) => void) => () => void;
   installNow: () => Promise<void>;
+  /**
+   * Idioma en el que escribir el aviso del sistema. El proceso principal no
+   * puede leer el diccionario de la interfaz, así que se lo decimos nosotros.
+   */
+  setLanguage: (lang: 'es' | 'en') => Promise<void>;
 }
 
 export interface StoreBridge {

@@ -174,6 +174,13 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .gb-footer td { background:var(--surface); border-top:1px solid var(--border); }
 .gb-footer td.gb-sticky { background:var(--surface); }
 
+/* Asistente del cuaderno: conversación a la izquierda, fichas de apoyo a la
+   derecha. Con la ventana en su tamaño mínimo (1024 px menos la barra lateral)
+   las dos columnas no caben y el texto se parte palabra a palabra, así que
+   por debajo de ese ancho las fichas pasan a colocarse debajo. */
+.ai-layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:18px; align-items:start; }
+@media(max-width:1000px) { .ai-layout { grid-template-columns:minmax(0,1fr); } }
+
 /* ─── AUTH ─── */
 .auth-orb { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; }
 .auth-card { background:#fff; border-radius:20px; padding:38px 40px 42px; width:430px; max-width:100%; z-index:1; box-shadow:0 32px 64px rgba(0,0,0,0.28),0 0 0 0.5px rgba(255,255,255,0.06); }

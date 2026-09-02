@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import { generateFicha, type FichaContent, type FichaExercise, type FichaExerciseType } from '../services/resources';
+import { buildFigureSvg } from '../lib/geometryFigures';
 import { saveFichaPdf, saveFichaDocx } from '../services/exportFicha';
 import { pickMotifKey, MOTIF_COLORS, type FichaMotifKey } from '../services/fichaMotifs';
 import { hasApiKey } from '../services/gemini';
@@ -47,6 +48,7 @@ const TIPO_LABEL: Record<FichaExerciseType, string> = {
   tabla_rellenar: 'Tabla para rellenar',
   relacionar: 'Relacionar',
   colorear: 'Colorear según el resultado',
+  sopa_letras: 'Sopa de letras',
 };
 
 /** Vista previa de solo lectura de un ejercicio, adaptada a su tipo. */
@@ -66,6 +68,13 @@ function ExercisePreview({ ex, i, t }: { ex: FichaExercise; i: number; t: (k: st
       </div>
 
       <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{ex.enunciado}</div>
+
+      {ex.figura && (
+        <div
+          style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}
+          dangerouslySetInnerHTML={{ __html: buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#0369A1') }}
+        />
+      )}
 
       {!!ex.opciones?.length && (
         <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 12.5, color: 'var(--text-2)' }}>
@@ -107,6 +116,43 @@ function ExercisePreview({ ex, i, t }: { ex: FichaExercise; i: number; t: (k: st
           {!!ex.itemsColorear?.length && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 12.5, color: 'var(--text-2)' }}>
               {ex.itemsColorear.map((it, j) => <span key={j}>{it}</span>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {ex.tipo === 'sopa_letras' && !!ex.rejilla?.length && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{
+            display: 'inline-grid',
+            gridTemplateColumns: `repeat(${ex.rejilla[0].length}, 1.7em)`,
+            gap: 1, background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 4,
+          }}>
+            {ex.rejilla.flatMap((fila, r) => fila.map((letra, c) => {
+              const solved = ex.posiciones?.some(p => {
+                for (let i = 0; i < p.palabra.length; i++) {
+                  if (p.fila + p.dir[0] * i === r && p.columna + p.dir[1] * i === c) return true;
+                }
+                return false;
+              });
+              return (
+                <span key={`${r}-${c}`} style={{
+                  width: '1.7em', height: '1.7em', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'ui-monospace, monospace', fontSize: 11.5, fontWeight: 800,
+                  background: solved ? 'var(--accent-l)' : 'var(--card)',
+                  color: solved ? 'var(--accent-d)' : 'var(--text-2)',
+                }}>{letra}</span>
+              );
+            }))}
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '6px 0 0' }}>
+            {t('Resaltado: solo lo ves tú, es la solución. En la ficha exportada sale la rejilla en blanco.')}
+          </p>
+          {!!ex.palabras?.length && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, fontSize: 12.5, color: 'var(--text-2)' }}>
+              {ex.palabras.map((p, j) => (
+                <span key={j} style={{ padding: '2px 8px', borderRadius: 99, background: 'var(--card)', border: '1px solid var(--border)' }}>{p}</span>
+              ))}
             </div>
           )}
         </div>
