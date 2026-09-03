@@ -1370,6 +1370,21 @@ const EN: Record<string, string> = {
   'Ir a {seccion}': 'Go to {seccion}',
   /* «Plegar» ya está más arriba (Autoevaluaciones), con el mismo significado. */
   'Desplegar': 'Expand',
+
+  /* ── Currículo real en Situaciones de aprendizaje ── */
+  'Etapa (currículo oficial)': 'Stage (official curriculum)',
+  'Sin especificar': 'Not specified',
+  'Primaria': 'Primary',
+  'ESO': 'Lower secondary',
+  '{curso}º de Primaria': 'Year {curso} of Primary',
+  '{curso}º de ESO': 'Year {curso} of Lower Secondary',
+  'Matemáticas de 4º: ¿opción A o B?': 'Year 4 Maths: option A or B?',
+  'Matemáticas {opcion}': 'Maths {opcion}',
+  'El Real Decreto separa Matemáticas en dos opciones a partir de 4º de la ESO, con criterios y saberes propios de cada una.':
+    'From Year 4 of lower secondary, the law splits Maths into two options, each with its own assessment criteria and content.',
+  'Las áreas marcadas con currículo real usan las competencias específicas y los saberes básicos oficiales de {curso}; el resto sigue en modo libre.':
+    'Areas marked with the real curriculum use the official specific competences and content for {curso}; the rest stay in free-text mode.',
+  'Usa el currículo oficial real de esta materia': 'Uses the real official curriculum for this subject',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };

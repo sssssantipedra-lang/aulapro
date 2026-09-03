@@ -9,6 +9,8 @@ import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
 } from '../services/learningSituations';
+import { emparejarMateria } from '../lib/curriculum/mapeoMaterias';
+import { resolverGrupo, type Etapa } from '../lib/curriculum';
 import { generateFichaFromSda, type FichaContent } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { hasApiKey, type InlineFile } from '../services/gemini';
@@ -74,6 +76,13 @@ export function LearningSituations({
   const [temporalizacion, setTemporalizacion] = useState('');
   const [meses, setMeses] = useState('');
   const [nivel, setNivel] = useState('');
+  // Si el docente escribe el nivel a mano, deja de autorrellenarse al tocar
+  // etapa o curso: no tiene sentido pisar algo que ya ha escrito él mismo.
+  const [nivelAuto, setNivelAuto] = useState(true);
+  const [etapa, setEtapa] = useState<Etapa | ''>('');
+  const [curso, setCurso] = useState<number | ''>('');
+  /** Solo se usa si `etapa==='eso' && curso===4` y hay un área de Matemáticas. */
+  const [opcionMatematicas, setOpcionMatematicas] = useState<'A' | 'B'>('A');
   const [contextoClase, setContextoClase] = useState('');
   const [metodologia, setMetodologia] = useState('');
   const [numSesiones, setNumSesiones] = useState(6);
@@ -129,6 +138,42 @@ export function LearningSituations({
     setAreas(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
   }
 
+  /** «5º de Primaria», «3º de ESO»… El docente puede seguir escribiéndolo a mano. */
+  function nivelTexto(e: Etapa, c: number): string {
+    return e === 'primaria' ? t('{curso}º de Primaria', { curso: c }) : t('{curso}º de ESO', { curso: c });
+  }
+
+  function onEtapaChange(e: Etapa | '') {
+    setEtapa(e);
+    setCurso('');
+    if (nivelAuto) setNivel('');
+  }
+
+  function onCursoChange(c: number | '') {
+    setCurso(c);
+    if (nivelAuto && etapa && c !== '') setNivel(nivelTexto(etapa, c));
+  }
+
+  /**
+   * Si alguna de las áreas elegidas empareja con Matemáticas y estamos en 4º
+   * de la ESO, hace falta que el docente diga cuál de las dos opciones: el
+   * RD 217/2022 les da criterios y saberes propios a partir de ahí.
+   */
+  const necesitaOpcionMatematicas =
+    etapa === 'eso' && curso === 4 && areas.some(a => emparejarMateria(a, 'eso') === 'Matemáticas');
+
+  /**
+   * De cada área elegida, si empareja con el currículo real (para mostrar el
+   * aviso junto a su chip, no para decidir nada: la decisión de verdad la
+   * toma `generateSda` con la misma función).
+   */
+  function tieneCurriculoReal(area: string): boolean {
+    if (!etapa || curso === '') return false;
+    const materia = emparejarMateria(area, etapa);
+    if (!materia) return false;
+    return !!resolverGrupo(etapa, materia, curso, opcionMatematicas);
+  }
+
   /* ── Documentos ── */
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -155,6 +200,9 @@ export function LearningSituations({
     const result = await generateSda({
       idea: idea.trim(), numero, temporalizacion, meses,
       areas, numSesiones, nivel,
+      etapa: etapa || undefined,
+      curso: curso === '' ? undefined : curso,
+      opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
       contextoClase, metodologia,
       docente: teacherName,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
@@ -196,6 +244,9 @@ export function LearningSituations({
       request: {
         idea, numero, temporalizacion, meses, areas,
         numSesiones, nivel, contextoClase, metodologia,
+        etapa: etapa || undefined,
+        curso: curso === '' ? undefined : curso,
+        opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
       },
       content,
     };
@@ -253,6 +304,10 @@ export function LearningSituations({
     setAreas(s.request.areas);
     setNumSesiones(s.request.numSesiones);
     setNivel(s.request.nivel);
+    setNivelAuto(false); // ya trae un nivel propio; no hay que autorrellenarlo
+    setEtapa(s.request.etapa ?? '');
+    setCurso(s.request.curso ?? '');
+    setOpcionMatematicas(s.request.opcionMatematicas ?? 'A');
     setContextoClase(s.request.contextoClase);
     setMetodologia(s.request.metodologia);
     setRubricRows(null);
@@ -448,11 +503,70 @@ export function LearningSituations({
           <div className="fgroup">
             <label className="flabel">{t('Nivel o curso')}</label>
             <input
-              className="finput" value={nivel} onChange={e => setNivel(e.target.value)}
+              className="finput" value={nivel}
+              onChange={e => { setNivel(e.target.value); setNivelAuto(false); }}
               placeholder={t('Ej: 5º de Primaria')}
             />
           </div>
         </div>
+
+        {/*
+          Etapa y curso: además de alimentar el texto libre de arriba, es lo
+          que permite saber qué decreto y qué grupo de cursos mirar en
+          `lib/curriculum`. Sin esto, las áreas siguen en modo libre como
+          hasta ahora — no es obligatorio rellenarlo.
+        */}
+        <div className="frow">
+          <div className="fgroup">
+            <label className="flabel">{t('Etapa (currículo oficial)')}</label>
+            <select className="finput" value={etapa} onChange={e => onEtapaChange(e.target.value as Etapa | '')}>
+              <option value="">{t('Sin especificar')}</option>
+              <option value="primaria">{t('Primaria')}</option>
+              <option value="eso">{t('ESO')}</option>
+            </select>
+          </div>
+          {etapa && (
+            <div className="fgroup">
+              <label className="flabel">{t('Curso')}</label>
+              <select
+                className="finput" value={curso}
+                onChange={e => onCursoChange(e.target.value ? Number(e.target.value) : '')}
+              >
+                <option value="">{t('Sin especificar')}</option>
+                {Array.from({ length: etapa === 'primaria' ? 6 : 4 }, (_, i) => i + 1).map(c => (
+                  <option key={c} value={c}>{nivelTexto(etapa, c)}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {necesitaOpcionMatematicas && (
+          <div className="fgroup">
+            <label className="flabel">{t('Matemáticas de 4º: ¿opción A o B?')}</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(['A', 'B'] as const).map(op => (
+                <button
+                  key={op} type="button" onClick={() => setOpcionMatematicas(op)}
+                  className={opcionMatematicas === op ? 'btn-accent' : 'btn-ghost'}
+                  style={{ minWidth: 80, justifyContent: 'center' }}
+                >
+                  {t('Matemáticas {opcion}', { opcion: op })}
+                </button>
+              ))}
+            </div>
+            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 6 }}>
+              {t('El Real Decreto separa Matemáticas en dos opciones a partir de 4º de la ESO, con criterios y saberes propios de cada una.')}
+            </p>
+          </div>
+        )}
+
+        {etapa && curso !== '' && (
+          <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: -6, marginBottom: 14 }}>
+            <Check size={11} style={{ display: 'inline', verticalAlign: -1, marginRight: 4, color: 'var(--ok)' }} />
+            {t('Las áreas marcadas con currículo real usan las competencias específicas y los saberes básicos oficiales de {curso}; el resto sigue en modo libre.', { curso: nivelTexto(etapa, curso) })}
+          </p>
+        )}
 
         {classSubjects.length > 0 && (
           <div className="fgroup">
@@ -460,19 +574,23 @@ export function LearningSituations({
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {classSubjects.map(s => {
                 const on = areas.includes(s);
+                const real = tieneCurriculoReal(s);
                 return (
                   <button
                     key={s} onClick={() => toggleArea(s)}
+                    title={real ? t('Usa el currículo oficial real de esta materia') : undefined}
                     style={{
                       padding: '7px 14px', borderRadius: 99, cursor: 'pointer',
                       fontFamily: 'var(--font)', fontSize: 12.5, fontWeight: on ? 800 : 600,
                       background: on ? 'var(--accent-l)' : 'transparent',
                       border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
                       color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
                     }}
                   >
-                    {on && <Check size={12} style={{ display: 'inline', verticalAlign: -2, marginRight: 5 }} />}
+                    {on && <Check size={12} style={{ flexShrink: 0 }} />}
                     {s}
+                    {real && <BookMarked size={11} style={{ flexShrink: 0, color: 'var(--ok)' }} />}
                   </button>
                 );
               })}

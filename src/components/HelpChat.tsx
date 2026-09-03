@@ -80,7 +80,15 @@ export function HelpChat({ section, onNav }: Props) {
       text,
       [],
       { onStart: () => setLoading(true), onEnd: () => setLoading(false), onError: msg => toast(msg) },
-      { history, maxOutputTokens: 2048 },
+      {
+        history,
+        maxOutputTokens: 2048,
+        // No hay nada que razonar: la respuesta está en el manual que va en el
+        // propio prompt. Lo que se le pide es localizarla y resumirla, y para
+        // una duda de «¿dónde está tal botón?» lo que se agradece es que
+        // conteste ya.
+        thinkingLevel: 'minimal',
+      },
     );
     if (answer === null) return;
 

@@ -461,6 +461,15 @@ export interface LearningSituation {
     areas: string[];
     numSesiones: number;
     nivel: string;
+    /**
+     * Etapa, curso y —si hacía falta— la opción de Matemáticas con los que se
+     * generó, para poder reabrirla con el mismo currículo real que se usó
+     * entonces (ver `lib/curriculum`). Ausentes en las SdA guardadas antes de
+     * que existiera esto: siguen abriendo en modo libre, como siempre.
+     */
+    etapa?: import('../lib/curriculum').Etapa;
+    curso?: number;
+    opcionMatematicas?: 'A' | 'B';
     contextoClase: string;
     metodologia: string;
   };

@@ -11,11 +11,24 @@
  * competencias y saberes bien trabajados en vez de una lista interminable, un
  * número exacto de sesiones con sus fases, y una explicación curricular
  * enumerada dirigida al docente, no al alumnado.
+ *
+ * **Competencias específicas y saberes básicos, sin inventar** (añadido
+ * 2026-09-03): antes se le pedía a la IA que los REDACTASE, y con miles de
+ * códigos repartidos en decenas de materias, lo que hacía era aproximarlos —
+ * plausibles, pero no el texto real del decreto. Cuando la etapa, el curso y
+ * el área encajan con `lib/curriculum` (enseñanzas mínimas estatales, RD
+ * 157/2022 y RD 217/2022), la IA ya no redacta esos dos campos: ELIGE de la
+ * lista real que se le pasa en el prompt, y el texto final lo pinta esta
+ * función desde los datos, no la IA (ver `finalizarArea`). Si el área no
+ * tiene un emparejamiento claro —o no se indicó etapa y curso—, sigue
+ * funcionando exactamente como antes, en texto libre.
  */
 
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
+import { resolverGrupo, type CurriculumEntry, type Etapa } from '../lib/curriculum';
+import { emparejarMateria } from '../lib/curriculum/mapeoMaterias';
 
 /* ── Lo que devuelve la IA ── */
 
@@ -93,12 +106,48 @@ export interface SdaRequest {
   numSesiones: number;
   /** Etapa y nivel («5º de Primaria», «3º ESO»), para ajustar el currículo. */
   nivel: string;
+  /**
+   * Etapa y curso estructurados, además del texto libre de `nivel`. Sin
+   * ellos no hay forma de saber a qué decreto ni a qué grupo de cursos mirar,
+   * así que las competencias y saberes de todas las áreas siguen en texto
+   * libre, como antes de que existiera `lib/curriculum`.
+   */
+  etapa?: Etapa;
+  curso?: number;
+  /**
+   * Solo hace falta si `curso` es 4º de la ESO y una de las `areas` empareja
+   * con Matemáticas: el RD 217/2022 separa esa materia en dos opciones con
+   * criterios y saberes propios a partir de ahí. En cualquier otro caso, se
+   * ignora.
+   */
+  opcionMatematicas?: 'A' | 'B';
   /** Cómo es el grupo: ritmos, apoyos, lo que convenga tener en cuenta. */
   contextoClase: string;
   metodologia: string;
   docente: string;
   /** Resúmenes de los documentos que haya subido (normativa, programación…). */
   documentos: { nombre: string; resumen: string }[];
+}
+
+/** Una entrada de `req.areas` que sí encaja con el currículo oficial. */
+interface AreaResuelta {
+  entry: CurriculumEntry;
+  grupo: string;
+}
+
+/**
+ * Intenta emparejar cada área de la petición con una materia real del
+ * currículo, en el orden de `req.areas`. Sin `etapa` y `curso` no hay nada
+ * que resolver: todo el array sale a `null`, y cada área se genera en texto
+ * libre como siempre.
+ */
+function resolverAreas(req: SdaRequest): (AreaResuelta | null)[] {
+  if (!req.etapa || !req.curso) return req.areas.map(() => null);
+  const { etapa, curso, opcionMatematicas } = req;
+  return req.areas.map(area => {
+    const materia = emparejarMateria(area, etapa);
+    return materia ? resolverGrupo(etapa, materia, curso, opcionMatematicas) : null;
+  });
 }
 
 const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
@@ -122,12 +171,40 @@ const SDA_AREA_SCHEMA = {
   type: 'OBJECT',
   properties: {
     area: S('Nombre del área o asignatura'),
+    // Cuando el prompt trae una lista real de competencias/saberes para esta
+    // área (ver `bloqueCurriculoReal`), estos dos campos de texto se ignoran
+    // después: el texto final lo pinta la aplicación desde `competencias
+    // Seleccionadas`/`saberesSeleccionados`, no lo que se escriba aquí. Por
+    // eso siguen siendo obligatorios y de texto libre — para las áreas SIN
+    // lista real, que es como ha funcionado esto siempre.
     competenciasEspecificas: S('De 2 a 4, no más'),
     criteriosEvaluacion: S('Criterios de evaluación asociados'),
     saberesBasicos: S('De 2 a 4, no más'),
+    // No van en `required`: solo tienen sentido cuando el prompt trae una
+    // lista real para esta área. Para el resto, se quedan vacíos sin más —
+    // exigirlos forzaría al modelo a inventar números donde no hay ninguna
+    // lista de la que elegir.
+    competenciasSeleccionadas: {
+      type: 'ARRAY',
+      description:
+        'SOLO si el prompt trae, para esta área, una lista de "Competencias específicas disponibles": ' +
+        'de 2 a 4 números de ESA lista, los que mejor encajen con la idea de partida. ' +
+        'Si el prompt no trae esa lista para esta área, deja el array vacío.',
+      items: { type: 'INTEGER' },
+    },
+    saberesSeleccionados: {
+      type: 'ARRAY',
+      description:
+        'SOLO si el prompt trae, para esta área, una lista de "Saberes básicos disponibles": ' +
+        'de 2 a 4 letras de ESA lista. Si el prompt no trae esa lista para esta área, deja el array vacío.',
+      items: { type: 'STRING' },
+    },
   },
   required: ['area', 'competenciasEspecificas', 'criteriosEvaluacion', 'saberesBasicos'],
-  propertyOrdering: ['area', 'competenciasEspecificas', 'criteriosEvaluacion', 'saberesBasicos'],
+  propertyOrdering: [
+    'area', 'competenciasSeleccionadas', 'saberesSeleccionados',
+    'competenciasEspecificas', 'criteriosEvaluacion', 'saberesBasicos',
+  ],
 } as const;
 
 const SDA_SESSION_SCHEMA = {
@@ -253,6 +330,73 @@ export async function analyzeDocument(
   return callGemini(systemPrompt, `Analiza este documento: ${file.name}`, [file], callbacks);
 }
 
+/* ── Generación de la situación de aprendizaje: currículo real ── */
+
+/**
+ * El bloque que se añade al prompt para un área que sí empareja con el
+ * currículo: la lista real de competencias y saberes de esa materia y ese
+ * grupo de cursos, para que el modelo ELIJA de ahí en vez de redactar. Se
+ * dan solo los títulos de los bloques de saberes, no sus ítems completos —
+ * decenas por bloque en algunas materias—, que es información de sobra para
+ * elegir cuál encaja con la idea de partida.
+ */
+function bloqueCurriculoReal(area: string, r: AreaResuelta): string {
+  const competencias = r.entry.competencias.map(c => `${c.n}. ${c.texto}`).join('\n');
+  const saberes = r.entry.saberes[r.grupo].map(b => `${b.bloque}. ${b.tituloBloque}`).join('\n');
+  return (
+    `\nÁREA "${area}" — CURRÍCULO OFICIAL REAL (enseñanzas mínimas estatales). ` +
+    `NO redactes competencias ni saberes por tu cuenta para esta área: ELIGE de estas listas, ` +
+    `por su número o letra, en "competenciasSeleccionadas" y "saberesSeleccionados".\n` +
+    `Competencias específicas disponibles:\n${competencias}\n` +
+    `Saberes básicos disponibles:\n${saberes}\n`
+  );
+}
+
+/** `SdaArea` tal y como lo devuelve la IA, con los dos campos de selección. */
+interface RawSdaArea extends SdaArea {
+  competenciasSeleccionadas?: number[];
+  saberesSeleccionados?: string[];
+}
+
+/**
+ * Sustituye, para un área emparejada con el currículo real, lo que haya
+ * escrito la IA en `competenciasEspecificas`, `criteriosEvaluacion` y
+ * `saberesBasicos` por texto construido aquí a partir de los códigos que
+ * ELIGIÓ y de los datos verificados de `lib/curriculum` — nunca a partir de
+ * lo que la IA haya escrito en esos tres campos, que se descarta sin mirar.
+ *
+ * Si los códigos elegidos no encajan con esta área (ninguno válido, o el
+ * modelo no eligió ninguno), se deja el texto libre de la IA tal cual: un
+ * campo con contenido aproximado es mejor que uno vacío.
+ */
+function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): SdaArea {
+  const { competenciasSeleccionadas, saberesSeleccionados, ...libre } = a;
+  if (!r) return libre;
+
+  const competenciasElegidas = r.entry.competencias.filter(
+    c => competenciasSeleccionadas?.includes(c.n),
+  );
+  const saberesElegidos = r.entry.saberes[r.grupo].filter(
+    b => saberesSeleccionados?.includes(b.bloque),
+  );
+  if (competenciasElegidas.length === 0 || saberesElegidos.length === 0) return libre;
+
+  const numerosElegidos = new Set(competenciasElegidas.map(c => c.n));
+  const criteriosElegidos = r.entry.criterios[r.grupo].filter(c => numerosElegidos.has(c.competencia));
+
+  return {
+    ...libre,
+    competenciasEspecificas: competenciasElegidas.map(c => `${c.n}. ${c.texto}`).join('\n'),
+    criteriosEvaluacion: criteriosElegidos.map(c => `${c.codigo} ${c.texto}`).join('\n'),
+    saberesBasicos: saberesElegidos
+      .map(b => {
+        const epigrafes = b.epigrafes.filter(e => e.titulo).map(e => e.titulo).join(', ');
+        return epigrafes ? `${b.bloque}. ${b.tituloBloque} (${epigrafes})` : `${b.bloque}. ${b.tituloBloque}`;
+      })
+      .join('\n'),
+  };
+}
+
 /* ── Generación de la situación de aprendizaje ── */
 
 export async function generateSda(
@@ -260,6 +404,8 @@ export async function generateSda(
   lang: Lang,
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<SdaContent | null> {
+  const resoluciones = resolverAreas(req);
+
   const systemPrompt =
     `Eres un experto en educación y en la legislación educativa LOMLOE, y evalúas con el rigor ` +
     `de un tribunal de oposición. Tu tarea exclusiva es redactar los apartados de una situación ` +
@@ -269,6 +415,12 @@ export async function generateSda(
     `POR ÁREA. Lo que se trabaja debe desarrollarse con profundidad; una lista larga y superficial ` +
     `es un error.\n` +
     `ÁREAS: crea una entrada del array "areas" por cada área indicada, y solo por esas.\n` +
+    `CURRÍCULO REAL: si el prompt trae, para un área, una lista de "Competencias específicas ` +
+    `disponibles" y "Saberes básicos disponibles", esa área tiene currículo oficial verificado — ` +
+    `ELIGE de esas listas (por número o letra) en vez de redactar "competenciasEspecificas" o ` +
+    `"saberesBasicos" por tu cuenta para esa área: se ignorará lo que escribas ahí y se sustituirá ` +
+    `por el texto oficial de lo que elijas. Para las áreas SIN esa lista, sigue como siempre, ` +
+    `redactando esos dos campos en texto libre.\n` +
     `EXPLICACIÓN CURRICULAR: el campo "explicacionCurricular" se dirige EXCLUSIVAMENTE AL DOCENTE ` +
     `y debe ser una lista enumerada que justifique cada elemento elegido.\n` +
     `SESIONES: crea EXACTAMENTE ${req.numSesiones} sesiones en "sesiones", ni una más ni una menos. ` +
@@ -281,6 +433,11 @@ export async function generateSda(
     ? 'DOCUMENTOS APORTADOS:\n' + req.documentos.map(d => `- ${d.nombre}:\n${d.resumen}`).join('\n\n') + '\n\n'
     : '';
 
+  // Una por cada área que sí empareja con el currículo; para las demás, nada.
+  const curriculoReal = req.areas
+    .map((area, i) => (resoluciones[i] ? bloqueCurriculoReal(area, resoluciones[i]!) : ''))
+    .join('');
+
   const userPrompt =
     `Docente: ${req.docente}\n` +
     `Nivel: ${req.nivel}\n` +
@@ -292,8 +449,9 @@ export async function generateSda(
     `Temporalización: ${req.temporalizacion}\n` +
     `Meses: ${req.meses}\n` +
     `Áreas implicadas: ${req.areas.join(', ')}\n` +
-    `Número total de sesiones: ${req.numSesiones}\n\n` +
-    `Rellena todos los campos del JSON de salida.`;
+    `Número total de sesiones: ${req.numSesiones}\n` +
+    curriculoReal +
+    `\nRellena todos los campos del JSON de salida.`;
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
     // Una SdA entera no cabe en el tope de siempre: se cortaría a media frase
@@ -304,10 +462,11 @@ export async function generateSda(
   });
   if (!raw) return null;
 
-  const parsed = parseGeminiJson<SdaContent>(raw);
+  const parsed = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[] }>(raw);
   if (!parsed) return null;
   // Un modelo de reserva puede devolver el array vacío o ausente
-  return { ...parsed, areas: parsed.areas ?? [], sesiones: parsed.sesiones ?? [] };
+  const areas = (parsed.areas ?? []).map((a, i) => finalizarArea(a, resoluciones[i] ?? null));
+  return { ...parsed, areas, sesiones: parsed.sesiones ?? [] };
 }
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */
