@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Sparkles, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { getApiKey, setApiKey, testApiKey } from '../services/gemini';
+import { Eye, EyeOff, Sparkles, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { getApiKey, setApiKey } from '../services/gemini';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 
@@ -8,12 +8,17 @@ const GUIDE_STEPS = [
   { title: 'Abre Google AI Studio', body: 'Entra en aistudio.google.com/apikey con tu cuenta de Google (la misma del correo Gmail sirve).' },
   { title: 'Pulsa «Crear clave de API»', body: 'Es un botón azul en la parte superior. Si te pide elegir un proyecto, selecciona «Crear proyecto nuevo».' },
   { title: 'Copia la clave', body: 'Verás un código largo que empieza por «AIza…». Pulsa el icono de copiar.' },
-  { title: 'Pégala aquí y prueba', body: 'Pega la clave en el campo de abajo, pulsa «Guardar» y luego «Probar conexión» para confirmar que funciona.' },
+  { title: 'Pégala aquí y guarda', body: 'Pega la clave en el campo de abajo y pulsa «Guardar». Ya puedes usar la IA en cualquier parte de la aplicación.' },
 ];
 
 /**
- * Tarjeta de configuración de la clave API de Gemini:
- * guía paso a paso, campo con visibilidad conmutable y prueba de conexión.
+ * Tarjeta de configuración de la clave API de Gemini: guía paso a paso y
+ * campo con visibilidad conmutable.
+ *
+ * Sin botón de «Probar conexión»: si la clave falla, se entera en cuanto la
+ * use de verdad (rúbrica, informe, chat…), con el mismo mensaje de error
+ * legible que ya da cualquier llamada fallida — no hace falta una prueba
+ * aparte antes de dejarle usar la aplicación.
  */
 export function ApiKeySettings() {
   const { toast } = useToast();
@@ -21,29 +26,13 @@ export function ApiKeySettings() {
   const [key, setKey]           = useState(getApiKey());
   const [visible, setVisible]   = useState(false);
   const [guideOpen, setGuideOpen] = useState(!getApiKey());
-  const [testing, setTesting]   = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const saved = getApiKey();
   const dirty = key.trim() !== saved;
 
   function handleSave() {
     setApiKey(key);
-    setTestResult(null);
     toast(t(key.trim() ? '✅ Clave guardada en este equipo' : 'Clave eliminada'));
-  }
-
-  async function handleTest() {
-    setTesting(true);
-    setTestResult(null);
-    const res = await testApiKey(key);
-    setTesting(false);
-    if (res.ok) {
-      setTestResult({ ok: true, msg: t('Conexión correcta (modelo {model})', { model: res.model ?? '' }) });
-      if (dirty) { setApiKey(key); toast(t('✅ Clave verificada y guardada')); }
-    } else {
-      setTestResult({ ok: false, msg: res.error ?? t('No se pudo conectar.') });
-    }
   }
 
   return (
@@ -109,7 +98,7 @@ export function ApiKeySettings() {
             type={visible ? 'text' : 'password'}
             placeholder={t('Pega aquí tu clave (AIza…)')}
             value={key}
-            onChange={e => { setKey(e.target.value); setTestResult(null); }}
+            onChange={e => setKey(e.target.value)}
             style={{ paddingRight: 42 }}
             autoComplete="off"
             spellCheck={false}
@@ -127,22 +116,7 @@ export function ApiKeySettings() {
         <button className="btn-accent" onClick={handleSave} disabled={!dirty} style={{ height: 44 }}>
           {t('Guardar')}
         </button>
-        <button className="btn-ghost" onClick={handleTest} disabled={testing || !key.trim()} style={{ height: 44 }}>
-          {testing ? <><span className="spin" />&nbsp;{t('Probando…')}</> : t('Probar conexión')}
-        </button>
       </div>
-
-      {testResult && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, marginTop: 12,
-          padding: '10px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-          background: testResult.ok ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.08)',
-          color: testResult.ok ? '#047857' : '#dc2626',
-        }}>
-          {testResult.ok ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-          {testResult.msg}
-        </div>
-      )}
     </div>
   );
 }

@@ -212,7 +212,12 @@ const SDA_SESSION_SCHEMA = {
   properties: {
     fase: S('Activación, Desarrollo, Consolidación o Producto final'),
     titulo: S('Título corto de la sesión'),
-    descripcion: S('Qué se hace, en dos o tres frases'),
+    descripcion: S(
+      'De 5 a 8 frases que desarrollen la sesión de principio a fin, no un resumen de una línea: ' +
+      'qué hace el docente, qué hace el alumnado (individual, en parejas o en grupo), con qué ' +
+      'materiales o recursos concretos, y cómo se cierra o se comprueba lo trabajado. Nada de ' +
+      'generalidades — algo que el docente pueda seguir en clase sin tener que improvisar el resto.',
+    ),
   },
   required: ['fase', 'titulo', 'descripcion'],
   propertyOrdering: ['fase', 'titulo', 'descripcion'],
@@ -424,7 +429,9 @@ export async function generateSda(
     `EXPLICACIÓN CURRICULAR: el campo "explicacionCurricular" se dirige EXCLUSIVAMENTE AL DOCENTE ` +
     `y debe ser una lista enumerada que justifique cada elemento elegido.\n` +
     `SESIONES: crea EXACTAMENTE ${req.numSesiones} sesiones en "sesiones", ni una más ni una menos. ` +
-    `Deben aparecer al menos las fases Activación, Desarrollo, Consolidación y Producto final.\n` +
+    `Deben aparecer al menos las fases Activación, Desarrollo, Consolidación y Producto final. ` +
+    `Cada "descripcion" desarrolla la sesión de principio a fin —qué hace el docente, qué hace el ` +
+    `alumnado, con qué recursos, cómo se cierra—, no un titular de una frase.\n` +
     `NIVEL: ajusta el currículo, el vocabulario y la exigencia a ${req.nivel || 'el nivel indicado'}.\n` +
     `FORMATO: todo muy resumido, claro y directo, en frases cortas o listas.\n` +
     `El idioma de salida DEBE SER ${idioma(lang)}.`;
@@ -455,8 +462,10 @@ export async function generateSda(
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
     // Una SdA entera no cabe en el tope de siempre: se cortaría a media frase
-    // y el JSON llegaría roto.
-    maxOutputTokens: 16384,
+    // y el JSON llegaría roto. Con sesiones más desarrolladas (de 5 a 8
+    // frases cada una, no 2 o 3) hace falta más margen que antes, sobre todo
+    // con muchas sesiones pedidas.
+    maxOutputTokens: 24576,
     responseSchema: SDA_SCHEMA,
     thinkingLevel: 'medium',
   });

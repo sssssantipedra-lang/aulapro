@@ -216,8 +216,8 @@ para justificar un cambio de nota.
 
 [profile] MI PERFIL
 Datos del docente, idioma y tema de color. Aquí se pega la CLAVE API GRATUITA DE
-GOOGLE que activa toda la IA, con una guía de dos minutos y un botón de probar
-conexión. También: copia de seguridad (exportar e importar un archivo con todo),
+GOOGLE que activa toda la IA, con una guía de dos minutos; basta con pegarla y
+pulsar «Guardar». También: copia de seguridad (exportar e importar un archivo con todo),
 ver la carpeta donde se guardan los datos, contraseña opcional para el perfil, y
 el VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
 asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
@@ -228,8 +228,10 @@ asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
   perfil. Se ve y se abre desde Mi Perfil. Nunca salen a ningún servidor.
 - «¿Cómo hago copia de seguridad?»: Mi Perfil → exportar. Da un archivo que se
   guarda donde se quiera y se puede volver a importar.
-- «No me funciona la IA»: casi siempre es la clave API. Mi Perfil → probar
-  conexión. Si dice que se ha alcanzado el límite, es la cuota gratuita de
+- «No me funciona la IA»: casi siempre es la clave API. Revisar en Mi Perfil
+  que esté pegada y guardada, y probar de nuevo con cualquier función de IA:
+  el error que salga (clave inválida, sin permiso, límite alcanzado…) dice
+  qué pasa. Si dice que se ha alcanzado el límite, es la cuota gratuita de
   Google: esperar un minuto.
 - «¿Por qué no puedo guardar en PDF?»: el PDF solo funciona en la aplicación de
   escritorio. Word funciona siempre.

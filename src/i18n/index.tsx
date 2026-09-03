@@ -965,9 +965,9 @@ const EN: Record<string, string> = {
   'Copia la clave': 'Copy the key',
   'Verás un código largo que empieza por «AIza…». Pulsa el icono de copiar.':
     'You’ll see a long code starting with "AIza…". Click the copy icon.',
-  'Pégala aquí y prueba': 'Paste it here and test it',
-  'Pega la clave en el campo de abajo, pulsa «Guardar» y luego «Probar conexión» para confirmar que funciona.':
-    'Paste the key in the field below, click "Save" and then "Test connection" to confirm it works.',
+  'Pégala aquí y guarda': 'Paste it here and save',
+  'Pega la clave en el campo de abajo y pulsa «Guardar». Ya puedes usar la IA en cualquier parte de la aplicación.':
+    'Paste the key in the field below and click "Save". You can now use the AI anywhere in the app.',
   'Asistente de IA (Google Gemini)': 'AI assistant (Google Gemini)',
   'Configurada ✓': 'Set up ✓',
   'Sin configurar': 'Not set up',
@@ -979,13 +979,8 @@ const EN: Record<string, string> = {
   'Pega aquí tu clave (AIza…)': 'Paste your key here (AIza…)',
   'Ocultar clave': 'Hide key',
   'Mostrar clave': 'Show key',
-  'Probando…': 'Testing…',
-  'Probar conexión': 'Test connection',
   '✅ Clave guardada en este equipo': '✅ Key saved on this computer',
   'Clave eliminada': 'Key removed',
-  'Conexión correcta (modelo {model})': 'Connection successful (model {model})',
-  '✅ Clave verificada y guardada': '✅ Key verified and saved',
-  'No se pudo conectar.': 'Couldn’t connect.',
 
   /* ── Carpeta de datos ── */
   'Mis datos': 'My data',

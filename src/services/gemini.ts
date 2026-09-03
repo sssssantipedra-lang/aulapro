@@ -260,25 +260,6 @@ export async function callGemini(
   }
 }
 
-/** Prueba una clave API con una petición mínima. */
-export async function testApiKey(key: string): Promise<{ ok: boolean; model?: string; error?: string }> {
-  const k = key.trim();
-  if (!k) return { ok: false, error: 'Introduce una clave antes de probar.' };
-
-  let lastError = '';
-  for (const model of MODELS) {
-    try {
-      const result = await callModel(model, k, 'Responde únicamente la palabra: OK', [{ text: 'OK' }]);
-      if ('text' in result) return { ok: true, model };
-      lastError = friendlyError(result.status, result.message);
-      if (result.status === 400 || result.status === 403) break;
-    } catch {
-      lastError = 'No hay conexión a internet o el servicio no responde.';
-    }
-  }
-  return { ok: false, error: lastError };
-}
-
 /** Extrae JSON de una respuesta de Gemini (elimina las vallas markdown). */
 export function parseGeminiJson<T>(raw: string): T | null {
   try {
