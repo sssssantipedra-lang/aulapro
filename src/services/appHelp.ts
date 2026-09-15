@@ -26,6 +26,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   agenda:                { es: 'Agenda', en: 'Planner' },
   notebook:              { es: 'Cuaderno de Notas', en: 'Gradebook' },
   attendance:            { es: 'Asistencia', en: 'Attendance' },
+  seating:               { es: 'Distribución de aula', en: 'Classroom Layout' },
   'learning-situations': { es: 'Situaciones de aprendizaje', en: 'Learning Situations' },
   rubrics:               { es: 'Rúbricas', en: 'Rubrics' },
   diana:                 { es: 'Diana Competencial', en: 'Learner Profile Tracking' },
@@ -125,6 +126,21 @@ Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
 justificada. Hay botón de «Todos presentes» para marcar la clase entera de
 golpe. El porcentaje de asistencia cuenta el retraso y la falta justificada como
 asistencia. Se exporta a CSV.
+
+[seating] DISTRIBUCIÓN DE AULA
+Grupos cooperativos, con mesas dibujadas en abanico como pupitres reales.
+Configura cuántas mesas hay y cuántos alumnos caben en cada una (por defecto,
+5 mesas de 4). Cada mesa tiene los mismos cuatro roles cooperativos
+—Portavoz, Secretario/a, Responsable del material, Responsable del tiempo—,
+editables por si el docente usa otros nombres. «Generar grupos con IA»
+reparte al alumnado real de la clase en mesas EQUILIBRADAS y MULTINIVEL: la
+IA ve la media ponderada real, la asistencia y los avisos de cada alumno —no
+inventa ninguno— y evita juntar a todos los de nivel alto en una mesa y a
+todos los de nivel bajo en otra. Se le pueden dar instrucciones propias
+(«Marco y Lucía no deben ir juntos»). Los asientos también se pueden
+rellenar a mano, uno a uno. «Semana siguiente» rota los roles dentro de cada
+mesa sin cambiar quién está con quién; «Semana anterior» deshace la rotación.
+Se exporta a PDF (el plano visual) y a Word (el listado por mesas).
 
 === EVALUACIÓN ===
 

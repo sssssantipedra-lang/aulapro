@@ -48,6 +48,7 @@ function datos(): TeacherData {
     scheduleBlocks: [],
     tasks: [{ id: 't1', text: 'Corregir exámenes', priority: 'high', done: false }],
     learningSituations: [],
+    seatingPlans: {},
   };
 }
 
@@ -104,6 +105,33 @@ describe('buildTeacherContext', () => {
     const ctx = buildTeacherContext(d);
     expect(ctx).toContain('avisos: Faltas reiteradas');
     expect(ctx).toContain('anotación del docente: Trabaja mejor en grupo');
+  });
+
+  it('dice quién está en cada mesa y su rol de la semana, no de la semana en que se formaron los grupos', () => {
+    const d = datos();
+    d.seatingPlans = {
+      c1: {
+        class_id: 'c1',
+        numGroups: 1,
+        groupSize: 2,
+        roles: [
+          { id: 'r1', name: 'Portavoz', description: '' },
+          { id: 'r2', name: 'Secretario/a', description: '' },
+        ],
+        groups: [{ id: 'g1', label: 'Mesa 1', studentIds: ['s1', 's2'] }],
+        // Con un asiento de por medio (weekOffset 1), a s1 le toca el rol que
+        // originalmente era de s2, y viceversa — justo lo que hay que ver.
+        weekOffset: 1,
+        updatedAt: '2026-09-01T00:00:00.000Z',
+      },
+    };
+    const ctx = buildTeacherContext(d);
+    expect(ctx).toContain('Mesa 1: Carmen López — Secretario/a; Elena Castro — Portavoz');
+  });
+
+  it('sin distribución de aula guardada, no menciona ninguna mesa', () => {
+    const ctx = buildTeacherContext(datos());
+    expect(ctx).not.toContain('GRUPOS COOPERATIVOS');
   });
 });
 

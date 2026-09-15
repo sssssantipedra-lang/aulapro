@@ -3,7 +3,7 @@ import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
-  LearningSituation, Ficha, WorkSession,
+  LearningSituation, Ficha, WorkSession, SeatingPlan,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
@@ -47,6 +47,8 @@ interface ProfileSnapshot {
   learningSituations: LearningSituation[];
   fichas: Ficha[];
   workSessions: WorkSession[];
+  /** Distribución de aula de cada clase, indexada por `class_id`. */
+  seatingPlans: Record<string, SeatingPlan>;
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -58,7 +60,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
-    fichas: [], workSessions: [],
+    fichas: [], workSessions: [], seatingPlans: {},
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -118,6 +120,7 @@ export function useAppState() {
   const [learningSituations, setLearningSituations] = useState<LearningSituation[]>([]);
   const [fichas, setFichas]                   = useState<Ficha[]>([]);
   const [workSessions, setWorkSessions]       = useState<WorkSession[]>([]);
+  const [seatingPlans, setSeatingPlans]       = useState<Record<string, SeatingPlan>>({});
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -153,6 +156,7 @@ export function useAppState() {
     setLearningSituations(s.learningSituations);
     setFichas(s.fichas);
     setWorkSessions(s.workSessions);
+    setSeatingPlans(s.seatingPlans);
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -193,11 +197,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    workSessions, tombstones, shareScope, auditLog,
+    workSessions, seatingPlans, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      workSessions, tombstones, shareScope, auditLog]);
+      workSessions, seatingPlans, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -290,10 +294,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions };
-  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -703,6 +707,19 @@ export function useAppState() {
   }, [log]);
 
   /**
+   * Distribución de aula: sustituye entera la de una clase. No hay CRUD de
+   * ítems sueltos —añadir un alumno a una mesa, rotar los roles, regenerar
+   * con la IA— todo pasa por aquí con el objeto ya actualizado, igual que
+   * `setAttendanceDay` reemplaza el día entero en vez de alumno a alumno.
+   */
+  const setSeatingPlan = useCallback((classId: string, plan: SeatingPlan) => {
+    const existed = !!mirrorRef.current.seatingPlans[classId];
+    setSeatingPlans(prev => ({ ...prev, [classId]: plan }));
+    log(existed ? 'update' : 'create', 'seating', classId,
+      `Distribución de aula de ${className(classId)}`);
+  }, [log, className]);
+
+  /**
    * Pasa una sesión al Historial como evaluaciones.
    *
    * Se marcan con `rubric_id: 'autoeval'`, así que no escriben en el cuaderno:
@@ -838,6 +855,10 @@ export function useAppState() {
     setAttendance({});
     setReports([]);
     setSelfAssessments([]);
+    // Referencia alumnos y mesas concretas de este curso: sin ellos ya no
+    // significa nada, a diferencia de rúbricas y dianas, que son plantillas
+    // reutilizables sin datos de alumnado incrustados.
+    setSeatingPlans({});
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
@@ -876,6 +897,7 @@ export function useAppState() {
     learningSituations, saveLearningSituation, deleteLearningSituation,
     fichas, saveFicha, deleteFicha,
     workSessions, saveWorkSession, deleteWorkSession,
+    seatingPlans, setSeatingPlan,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

@@ -28,6 +28,7 @@ const ClassRoom      = lazy(() => import('./pages/SecClassroom'));
 const Share          = lazy(() => import('./pages/Share').then(m => ({ default: m.Share })));
 const ClassroomLive  = lazy(() => import('./pages/ClassroomLive').then(m => ({ default: m.ClassroomLive })));
 const Attendance     = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
+const SeatingPlan    = lazy(() => import('./pages/SeatingPlan').then(m => ({ default: m.SeatingPlan })));
 const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 const LearningSituations = lazy(() => import('./pages/LearningSituations').then(m => ({ default: m.LearningSituations })));
 const Resources      = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
@@ -82,9 +83,10 @@ function AppInner() {
     scheduleBlocks: st.scheduleBlocks,
     tasks: st.tasks,
     learningSituations: st.learningSituations,
+    seatingPlans: st.seatingPlans,
   }), [st.profile, st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades,
       st.evaluations, st.attendance, st.reports, st.calEvents, st.scheduleBlocks,
-      st.tasks, st.learningSituations]);
+      st.tasks, st.learningSituations, st.seatingPlans]);
 
   const session = useP2PSync({
     source: st.syncSource,
@@ -325,6 +327,19 @@ function AppInner() {
                 attendance={st.attendance}
                 onSet={st.setAttendanceFor}
                 onSetDay={st.setAttendanceDay}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
+            {section === 'seating' && (
+              <SeatingPlan
+                classes={st.classes}
+                students={st.students}
+                gradeCategories={st.gradeCategories}
+                gradeItems={st.gradeItems}
+                grades={st.grades}
+                attendance={st.attendance}
+                seatingPlans={st.seatingPlans}
+                onSave={st.setSeatingPlan}
                 onNav={s => setSection(s as Section)}
               />
             )}

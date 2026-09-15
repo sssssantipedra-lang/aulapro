@@ -22,8 +22,9 @@
 import type {
   Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation,
   AttendanceMap, AttendanceStatus, CompetencyReport, CalEvent, ScheduleBlock,
-  Task, LearningSituation,
+  Task, LearningSituation, SeatingPlan,
 } from '../types';
+import { seatStudentId } from '../types';
 import type { Lang } from '../i18n';
 
 /**
@@ -53,6 +54,8 @@ export interface TeacherData {
   scheduleBlocks: ScheduleBlock[];
   tasks: Task[];
   learningSituations: LearningSituation[];
+  /** Distribución de aula de cada clase, indexada por `class_id`. */
+  seatingPlans: Record<string, SeatingPlan>;
 }
 
 /** Media ponderada de un alumno: media de cada categoría × su peso. */
@@ -83,7 +86,7 @@ export function weightedAverage(
  * como asistencia, igual que en la pantalla de Asistencia: si ahí el docente
  * ve un 92%, la IA tiene que decir 92%.
  */
-function attendanceRate(
+export function attendanceRate(
   classId: string,
   studentId: string,
   attendance: AttendanceMap,
@@ -218,6 +221,23 @@ export function buildTeacherContext(
     }
     if (alumnos.length > mostrados.length) {
       L.push(`   · (…y ${alumnos.length - mostrados.length} alumnos más no listados aquí por espacio)`);
+    }
+
+    /* ── Distribución de aula: quién está en cada mesa, con su rol de esta semana ── */
+    const plan = d.seatingPlans[cls.id];
+    const mesasConGente = plan?.groups.filter(g => g.studentIds.length > 0) ?? [];
+    if (mesasConGente.length) {
+      L.push(`   GRUPOS COOPERATIVOS (roles rotados ${plan!.weekOffset} vez/veces desde que se formaron):`);
+      for (const g of mesasConGente) {
+        const asientos = Array.from({ length: plan!.groupSize }, (_, i) => {
+          const sid = seatStudentId(g, i);
+          if (!sid) return null; // asiento libre: no aporta nada que decir
+          const alumno = alumnos.find(a => a.id === sid);
+          const rol = plan!.roles[(i + plan!.weekOffset) % plan!.groupSize];
+          return `${alumno?.name ?? '(alumno ya no está en la clase)'} — ${rol?.name ?? 'sin rol asignado'}`;
+        }).filter((x): x is string => x !== null).join('; ');
+        L.push(`   · ${g.label}: ${asientos}`);
+      }
     }
   }
 

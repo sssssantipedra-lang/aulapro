@@ -563,10 +563,67 @@ export interface WorkSession {
   document?: WorkSessionDoc;
 }
 
+/* ── Distribución de aula: grupos cooperativos ── */
+
+/**
+ * Un rol dentro del grupo (portavoz, secretario/a...). Hay tantos como
+ * `SeatingPlan.groupSize` — uno por asiento —, y son los mismos cuatro para
+ * todos los grupos de la clase: lo que cambia semana a semana es quién ocupa
+ * cada asiento, no la lista de roles en sí.
+ */
+export interface CooperativeRole {
+  id: string;
+  name: string;
+  description: string;
+}
+
+/**
+ * Un grupo (una mesa). `studentIds[i]` es quien ocupa el asiento i; una
+ * cadena vacía (o una posición que ni siquiera existe en el array, si el
+ * hueco está al final) es un asiento libre. Se usa `seatStudentId()` para
+ * leerlo, en vez de indexar el array a mano, para que un asiento vacío en
+ * mitad de la mesa no se confunda nunca con «no hay más gente».
+ */
+export interface SeatGroup {
+  id: string;
+  label: string;
+  studentIds: string[];
+  /** Por qué la IA formó este grupo así, si se generó con ella. Editable a mano, no se borra. */
+  justificacion?: string;
+}
+
+/** Quién ocupa el asiento `i` de este grupo, o `null` si está libre. */
+export function seatStudentId(g: SeatGroup, i: number): string | null {
+  return g.studentIds[i] || null;
+}
+
+/**
+ * La distribución de aula de una clase: una por clase, no una lista — es la
+ * disposición física de ahora mismo (qué mesas hay, quién se sienta en cada
+ * asiento), no un histórico de versiones pasadas.
+ *
+ * Los roles rotan sin reescribir nada: el rol de quien esté en el asiento i
+ * de cualquier mesa es siempre `roles[(i + weekOffset) % groupSize]`. Avanzar
+ * o retroceder una semana es solo sumar o restar 1 a `weekOffset` (módulo
+ * `groupSize`), así que nunca hay nada que deshacer ni que se pueda perder.
+ */
+export interface SeatingPlan {
+  class_id: string;
+  numGroups: number;
+  groupSize: number;
+  roles: CooperativeRole[];
+  groups: SeatGroup[];
+  weekOffset: number;
+  /** Última vez que se generaron o editaron los grupos. */
+  updatedAt: string;
+  /** Notas del docente que se usaron la última vez que la IA generó los grupos. */
+  lastNotes?: string;
+}
+
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
-  | 'meetings' | 'trainings';
+  | 'meetings' | 'trainings' | 'seating';

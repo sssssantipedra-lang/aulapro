@@ -17,7 +17,7 @@ export type AuditEntity =
   | 'grade' | 'gradeItem' | 'gradeCategory'
   | 'evaluation' | 'attendance' | 'report'
   | 'rubric' | 'diana' | 'learningSituation' | 'ficha'
-  | 'workSession'
+  | 'workSession' | 'seating'
   | 'sync' | 'system';
 
 export interface AuditEntry {
@@ -91,6 +91,7 @@ export const ENTITY_LABEL: Record<AuditEntity, string> = {
   learningSituation: 'Situación de aprendizaje',
   ficha: 'Ficha de trabajo',
   workSession: 'Reunión o formación',
+  seating: 'Distribución de aula',
   sync: 'Sincronización',
   system: 'Sistema',
 };
@@ -102,6 +103,7 @@ export const ENTITY_GROUPS: { id: string; label: string; entities: AuditEntity[]
   { id: 'people',  label: 'Clases',       entities: ['class', 'student'] },
   { id: 'attend',  label: 'Asistencia',   entities: ['attendance'] },
   { id: 'sessions', label: 'Reuniones y formaciones', entities: ['workSession'] },
+  { id: 'seating', label: 'Distribución de aula', entities: ['seating'] },
   { id: 'sync',    label: 'Compartido',   entities: ['sync', 'system'] },
 ];
 
