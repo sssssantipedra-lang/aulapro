@@ -130,8 +130,7 @@ function AppInner() {
           await st.createAndOpenProfile({
             name: DEMO_USER.full_name, school: DEMO_USER.school,
             subject: DEMO_USER.subject, course: '2025-2026',
-          });
-          st.loadDemoData();
+          }, { demo: true });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
       />

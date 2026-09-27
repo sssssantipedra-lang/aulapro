@@ -66,6 +66,28 @@ function emptySnapshot(): ProfileSnapshot {
 }
 
 /**
+ * Los datos de ejemplo con la forma de un perfil guardado. Es lo que se
+ * escribe en disco al «Explorar con datos de ejemplo», ANTES de abrir el
+ * perfil: si se cargaran en memoria después de abrirlo, la lectura del disco
+ * (asíncrona, y todavía vacía) terminaría más tarde y los borraría.
+ */
+export function demoSnapshot(): ProfileSnapshot {
+  const d = buildDemoData();
+  return {
+    ...emptySnapshot(),
+    tasks: d.tasks,
+    classes: d.classes,
+    students: d.students,
+    blocks: d.scheduleBlocks,
+    events: d.calEvents,
+    rubrics: d.rubrics,
+    gradeCategories: d.gradeCategories,
+    gradeItems: d.gradeItems,
+    grades: d.grades,
+  };
+}
+
+/**
  * Recupera el trabajo guardado por versiones anteriores, que usaban
  * localStorage sin perfiles. Así nadie pierde su curso al actualizar.
  */
@@ -239,10 +261,12 @@ export function useAppState() {
 
   const createAndOpenProfile = useCallback(async (
     input: { name: string; school: string; subject: string; course: string },
-    options: { importLegacy?: boolean } = {},
+    options: { importLegacy?: boolean; demo?: boolean } = {},
   ) => {
     const created = await store.createProfile(input);
-    if (options.importLegacy) {
+    if (options.demo) {
+      await store.saveData(created.id, demoSnapshot() as unknown as store.ProfileData);
+    } else if (options.importLegacy) {
       const legacy = readLegacyData();
       if (legacy) {
         await store.saveData(created.id, { ...emptySnapshot(), ...legacy } as unknown as store.ProfileData);
@@ -789,12 +813,12 @@ export function useAppState() {
 
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback(() => {
-    const d = buildDemoData();
+    const d = demoSnapshot();
     setTasks(d.tasks);
     setClasses(d.classes.map(normalizeClass));
     setStudents(d.students);
-    setScheduleBlocks(d.scheduleBlocks);
-    setCalEvents(d.calEvents);
+    setScheduleBlocks(d.blocks);
+    setCalEvents(d.events);
     setRubrics(d.rubrics);
     setGradeCategories(d.gradeCategories);
     setGradeItems(d.gradeItems);
