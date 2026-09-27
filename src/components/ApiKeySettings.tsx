@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Sparkles, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Eye, EyeOff, Sparkles, ChevronDown, ChevronUp, ExternalLink, ShieldCheck } from 'lucide-react';
 import { getApiKey, setApiKey } from '../services/gemini';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
@@ -50,6 +50,11 @@ export function ApiKeySettings() {
 
       <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
         {t('La IA (generar rúbricas, consultas pedagógicas…) funciona con una clave')} <strong>{t('gratuita')}</strong>{t(' de Google. Se guarda solo en este equipo y nunca se comparte.')}
+      </p>
+
+      <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+        <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+        <span>{t('Los nombres de tu alumnado nunca salen de este equipo: antes de enviar nada a Google se cambian por códigos, y al recibir la respuesta se vuelven a poner. Solo se envían tal cual los archivos que adjuntes tú.')}</span>
       </p>
 
       {/* Guía paso a paso plegable */}

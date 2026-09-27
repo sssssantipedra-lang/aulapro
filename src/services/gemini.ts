@@ -6,6 +6,8 @@
  * se prueba automáticamente con el siguiente de la lista.
  */
 
+import { currentPseudonymizer, privacyInstruction } from './privacy';
+
 const KEY_STORAGE = 'aulapro_gemini_key';
 
 /**
@@ -215,7 +217,17 @@ export async function callGemini(
       return null;
     }
 
-    const userParts: object[] = [{ text: userPrompt }];
+    // Ningún nombre del alumnado sale del equipo: ver services/privacy.ts.
+    const privacy = currentPseudonymizer();
+    const maskedUser = privacy.mask(userPrompt);
+    const maskedHistory = options.history?.map(turn => ({ ...turn, text: privacy.mask(turn.text) }));
+    let maskedSystem = privacy.mask(systemPrompt);
+    if ([maskedSystem, maskedUser, ...(maskedHistory ?? []).map(h => h.text)].some(t => privacy.hasCodes(t))) {
+      maskedSystem += privacyInstruction();
+    }
+    const callOptions: GeminiOptions = maskedHistory ? { ...options, history: maskedHistory } : options;
+
+    const userParts: object[] = [{ text: maskedUser }];
     files.forEach(f => {
       if (f?.base64 && f?.mimeType) {
         userParts.push({ inline_data: { mime_type: f.mimeType, data: f.base64 } });
@@ -225,7 +237,7 @@ export async function callGemini(
     let lastError = '';
     for (const model of options.models ?? MODELS) {
       try {
-        let result = await callModel(model, key, systemPrompt, userParts, options);
+        let result = await callModel(model, key, maskedSystem, userParts, callOptions);
 
         /**
          * Si el modelo rechaza el nivel de razonamiento —porque no acepta ese
@@ -235,10 +247,10 @@ export async function callGemini(
          * la API tumbaría todas las funciones de golpe.
          */
         if ('status' in result && result.status === 400 && /thinking/i.test(result.message)) {
-          result = await callModel(model, key, systemPrompt, userParts, options, true);
+          result = await callModel(model, key, maskedSystem, userParts, callOptions, true);
         }
 
-        if ('text' in result) return result.text;
+        if ('text' in result) return privacy.unmask(result.text);
 
         lastError = friendlyError(result.status, result.message);
         // Solo un 400 (clave con formato inválido) detiene toda la cadena: eso

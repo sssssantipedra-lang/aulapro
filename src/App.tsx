@@ -10,6 +10,7 @@ import { useAppState } from './hooks/useAppState';
 import { useP2PSync } from './hooks/useP2PSync';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
+import { setPrivacyRoster } from './services/privacy';
 import type { Section } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
@@ -101,6 +102,9 @@ function AppInner() {
 
   // Al cambiar de perfil se vuelve al inicio, no a la sección del docente anterior
   useEffect(() => { setSection('dashboard'); }, [st.profileId]);
+
+  // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts
+  useEffect(() => { setPrivacyRoster(st.students, lang); }, [st.students, lang]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
