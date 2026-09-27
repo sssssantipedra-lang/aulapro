@@ -282,18 +282,12 @@ export function Agenda({
         </div>
       </div>
 
-      {/* View toggle */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        <button
-          className={view === 'mensual' ? 'btn-accent' : 'btn-ghost'}
-          onClick={() => setView('mensual')}
-        >
+      {/* Vista: interruptor segmentado, como las pestañas del resto de la app */}
+      <div className="tab-bar" role="tablist" aria-label={t('Vista')} style={{ width: 'fit-content', marginBottom: 16 }}>
+        <button role="tab" aria-selected={view === 'mensual'} className={`tab-btn${view === 'mensual' ? ' active' : ''}`} style={{ padding: '7px 18px' }} onClick={() => setView('mensual')}>
           {t('Mensual')}
         </button>
-        <button
-          className={view === 'semanal' ? 'btn-accent' : 'btn-ghost'}
-          onClick={() => setView('semanal')}
-        >
+        <button role="tab" aria-selected={view === 'semanal'} className={`tab-btn${view === 'semanal' ? ' active' : ''}`} style={{ padding: '7px 18px' }} onClick={() => setView('semanal')}>
           {t('Semanal')}
         </button>
       </div>
