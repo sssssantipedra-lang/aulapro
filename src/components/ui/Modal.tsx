@@ -20,7 +20,7 @@ export function Modal({ open, onClose, title, wide, children, stickyHeader }: Pr
         {title !== undefined && (
           <div
             className="modal-hd"
-            style={stickyHeader ? { position: 'sticky', top: 0, background: 'white', zIndex: 1, paddingBottom: 14, borderBottom: '0.5px solid var(--border)', marginBottom: 14 } : undefined}
+            style={stickyHeader ? { position: 'sticky', top: 0, background: 'var(--card)', zIndex: 1, paddingBottom: 14, borderBottom: '0.5px solid var(--border)', marginBottom: 14 } : undefined}
           >
             <div className="modal-title">{title}</div>
             <button className="ico-btn" onClick={onClose}><X size={17} /></button>

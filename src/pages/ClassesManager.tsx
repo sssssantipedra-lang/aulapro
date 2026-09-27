@@ -251,7 +251,7 @@ export function ClassesManager({
               display: 'inline-flex', alignItems: 'center', gap: 7,
               padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer',
               fontFamily: 'var(--font)', fontSize: 13.5, fontWeight: 700,
-              background: activeClassId === c.id ? c.color : 'white',
+              background: activeClassId === c.id ? c.color : 'var(--card)',
               color: activeClassId === c.id ? 'white' : 'var(--text-2)',
               boxShadow: activeClassId === c.id
                 ? `0 2px 10px ${c.color}55`
@@ -384,7 +384,7 @@ export function ClassesManager({
                       borderRadius: 12,
                     }}>
                       <span style={{
-                        background: 'white', borderRadius: 99, padding: '6px 16px',
+                        background: 'var(--card)', borderRadius: 99, padding: '6px 16px',
                         fontSize: 12.5, fontWeight: 700, color: 'var(--text)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                       }}>{t('Ver ficha')}</span>

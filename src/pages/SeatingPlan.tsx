@@ -409,7 +409,7 @@ export function SeatingPlan({
           return (
             <div key={g.id} className={`seat-table${vacia ? ' empty' : ''}`}>
               <div className="seat-table-hd">
-                <span className="seat-dot" style={{ background: vacia ? '#cbd5e1' : color }} />
+                <span className="seat-dot" style={{ background: vacia ? 'var(--border-strong)' : color }} />
                 <span className="seat-table-name">{g.label}</span>
                 <span className="seat-table-count">{ocupados}/{plan.groupSize}</span>
               </div>

@@ -77,12 +77,35 @@ export function applyTheme(key: ThemeKey) {
   const r = document.documentElement;
   r.style.setProperty('--accent',     t.accent);
   r.style.setProperty('--accent-d',   t.accentD);
-  r.style.setProperty('--accent-l',   t.accentL);
+  // Base clara del tinte: en modo oscuro index.css usa otra (ver --accent-l)
+  r.style.setProperty('--accent-l-base', t.accentL);
   r.style.setProperty('--accent-rgb', t.accentRgb);
   r.style.setProperty('--sb-bg',      t.sbBg);
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (meta) meta.content = t.sbBg;
   localStorage.setItem('aulapro_theme', key);
+}
+
+/** Apariencia: seguir al sistema, o forzar claro u oscuro. */
+export type Appearance = 'auto' | 'light' | 'dark';
+const APPEARANCE_KEY = 'aulapro_appearance';
+
+export function getAppearance(): Appearance {
+  try {
+    const v = localStorage.getItem(APPEARANCE_KEY);
+    return v === 'light' || v === 'dark' ? v : 'auto';
+  } catch { return 'auto'; }
+}
+
+/**
+ * «Automático» no pone nada y deja que index.css siga a
+ * `prefers-color-scheme`; los otros dos lo fuerzan con `data-theme`.
+ */
+export function applyAppearance(mode: Appearance) {
+  const r = document.documentElement;
+  if (mode === 'auto') r.removeAttribute('data-theme');
+  else r.setAttribute('data-theme', mode);
+  try { localStorage.setItem(APPEARANCE_KEY, mode); } catch { /* sin almacenamiento */ }
 }
 
 export const LEVELS = [

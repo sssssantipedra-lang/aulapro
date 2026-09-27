@@ -732,7 +732,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                               width: 30, height: 30, borderRadius: 7, border: 'none',
                               cursor: 'pointer', fontSize: 12, fontWeight: 800,
                               transition: 'all 0.15s',
-                              background: current === lvl ? LEVEL_COLORS[lvl].bg : 'white',
+                              background: current === lvl ? LEVEL_COLORS[lvl].bg : 'var(--card)',
                               color: current === lvl ? LEVEL_COLORS[lvl].text : 'var(--text-3)',
                               boxShadow: current === lvl
                                 ? `0 0 0 2px ${LEVEL_COLORS[lvl].border}`

@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
 import { DataFolder } from '../components/DataFolder';
-import { THEMES, applyTheme, isoDate, type ThemeKey } from '../lib/utils';
+import { THEMES, applyTheme, isoDate, applyAppearance, getAppearance, type ThemeKey, type Appearance } from '../lib/utils';
 import type { User } from '../types';
 import type { TeacherProfile } from '../services/storage';
 import { createPasswordFields, verifyPassword } from '../lib/password';
@@ -51,6 +51,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>(
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
+  const [appearance, setAppearance] = useState<Appearance>(getAppearance);
   const importRef = useRef<HTMLInputElement>(null);
 
   /* ── Contraseña del perfil ── */
@@ -101,6 +102,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     if (!nombre.trim()) { toast('El nombre no puede quedar vacío'); return; }
     onUpdateUser({ full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso });
     toast('✅ Perfil actualizado');
+  }
+
+  function handleAppearance(mode: Appearance) {
+    applyAppearance(mode);
+    setAppearance(mode);
   }
 
   function handleTheme(key: ThemeKey) {
@@ -245,6 +251,38 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
                 </button>
               );
             })}
+          </div>
+
+          <div style={{ marginTop: 18 }}>
+            <div className="flabel" id="appearance-label">{t('Apariencia')}</div>
+            <div role="radiogroup" aria-labelledby="appearance-label" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {([
+                { id: 'auto', label: t('Automática'), icon: <Monitor size={14} aria-hidden="true" /> },
+                { id: 'light', label: t('Clara'), icon: <Sun size={14} aria-hidden="true" /> },
+                { id: 'dark', label: t('Oscura'), icon: <Moon size={14} aria-hidden="true" /> },
+              ] as const).map(opt => {
+                const on = appearance === opt.id;
+                return (
+                  <button
+                    key={opt.id} type="button" role="radio" aria-checked={on}
+                    onClick={() => handleAppearance(opt.id)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+                      borderRadius: 10, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13,
+                      fontWeight: on ? 700 : 600,
+                      background: on ? 'var(--accent-l)' : 'var(--card)',
+                      color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                      border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
+                    }}
+                  >
+                    {opt.icon}{opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 8 }}>
+              {t('«Automática» sigue el modo claro u oscuro de tu sistema.')}
+            </p>
           </div>
         </div>
       </div>

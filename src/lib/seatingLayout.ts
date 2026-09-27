@@ -80,8 +80,12 @@ export interface TableSvgOptions {
 }
 
 /** Tonos neutros de un asiento libre: gris suave, sin discontinuas chillonas. */
-const VACIO_RELLENO = '#f8fafc';
-const VACIO_BORDE = '#cbd5e1';
+// Con variable CSS y color de respaldo: en la app siguen al modo oscuro; en el
+// póster exportado (sin esas variables) salen los grises claros de siempre.
+const VACIO_RELLENO = 'var(--surface-2, #f8fafc)';
+const VACIO_BORDE = 'var(--border-strong, #cbd5e1)';
+const VACIO_SILLA = 'var(--border, #e2e8f0)';
+const VACIO_NUMERO = 'var(--text-3, #94a3b8)';
 
 export function buildTableSvg(
   seats: SeatVisual[], color: string, label: string,
@@ -120,13 +124,13 @@ export function buildTableSvg(
     asiento.push(
       `<rect x="${f(chair.x - sw / 2)}" y="${f(chair.y - 4.5)}" width="${f(sw)}" height="9" rx="4.5" ` +
       `transform="rotate(${f(mid)} ${f(chair.x)} ${f(chair.y)})" ` +
-      (ocupado ? `fill="${color}" fill-opacity="0.45" />` : `fill="#e2e8f0" />`),
+      (ocupado ? `fill="${color}" fill-opacity="0.45" />` : `fill="${VACIO_SILLA}" />`),
     );
 
     if (!labels) {
       // Solo el número del asiento: casa con la lista de asientos de la pantalla.
       const p = polar(CX, CY, (R1 + R2) / 2 + 4, mid);
-      asiento.push(`<text x="${f(p.x)}" y="${f(p.y + 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="${ocupado ? '#ffffff' : '#94a3b8'}">${i + 1}</text>`);
+      asiento.push(`<text x="${f(p.x)}" y="${f(p.y + 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="${ocupado ? '#ffffff' : VACIO_NUMERO}">${i + 1}</text>`);
     } else if (seat.studentName) {
       const texto = polar(CX, CY, (R1 + R2) / 2 + 4, mid);
       const lineas = envolver(seat.studentName, 11);

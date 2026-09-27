@@ -197,7 +197,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
                         onClick={() => toggleClass(c.id)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 8, padding: '8px 15px',
-                          background: on ? c.color : 'white',
+                          background: on ? c.color : 'var(--card)',
                           color: on ? 'white' : 'var(--text-2)',
                           border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                           borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',

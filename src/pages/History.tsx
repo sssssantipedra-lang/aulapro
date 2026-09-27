@@ -62,7 +62,7 @@ function ExpandedRow({ evaluation, rubric, diana }: {
                   key={key}
                   style={{
                     padding: '10px 12px', borderRadius: 10,
-                    background: 'white', border: '0.5px solid var(--border)',
+                    background: 'var(--card)', border: '0.5px solid var(--border)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>

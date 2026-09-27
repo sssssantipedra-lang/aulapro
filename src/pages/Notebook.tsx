@@ -292,7 +292,7 @@ function GradesTab({
             onClick={() => setClassId(c.id)}
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-              background: c.id === clsId ? 'white' : 'transparent',
+              background: c.id === clsId ? 'var(--card)' : 'transparent',
               border: `1.5px solid ${c.id === clsId ? c.color : 'var(--border)'}`,
               borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
               fontSize: 13, fontWeight: c.id === clsId ? 700 : 500, color: 'var(--text)',
@@ -327,7 +327,7 @@ function GradesTab({
                 style={{
                   padding: '6px 14px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                   fontSize: 12.5, fontWeight: on ? 800 : 500,
-                  background: on ? 'white' : 'transparent',
+                  background: on ? 'var(--card)' : 'transparent',
                   border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
                   color: on ? 'var(--accent-d)' : 'var(--text-2)',
                 }}

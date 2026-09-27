@@ -261,7 +261,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
               onClick={() => openOrUnlock(p)}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px',
-                background: 'white', border: '1.5px solid var(--border)', borderRadius: 12,
+                background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: 12,
                 cursor: 'pointer', fontFamily: 'var(--font)', textAlign: 'left', minWidth: 0,
                 transition: 'border-color 0.18s',
               }}

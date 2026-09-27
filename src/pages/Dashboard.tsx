@@ -77,7 +77,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           <h1 className="pg-title">{greeting}, {firstName}</h1>
           <p className="pg-sub" style={{ textTransform: 'capitalize' }}>{dateLabel}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', border: '0.5px solid var(--border)', borderRadius: 10, padding: '9px 16px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: '9px 16px', flexShrink: 0 }}>
           <Clock size={15} color="var(--accent-d)" />
           <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>{time}</span>
         </div>

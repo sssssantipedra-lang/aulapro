@@ -388,7 +388,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {aiPreview.criteria.map((cr, i) => (
-                    <div key={cr.id} style={{ background: 'white', borderRadius: 8, padding: '10px 12px', border: '0.5px solid var(--border)' }}>
+                    <div key={cr.id} style={{ background: 'var(--card)', borderRadius: 8, padding: '10px 12px', border: '0.5px solid var(--border)' }}>
                       <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>{i + 1}. {cr.name}</div>
                       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${previewLevels.length}, 1fr)`, gap: 6 }}>
                         {previewLevels.map(lv => (

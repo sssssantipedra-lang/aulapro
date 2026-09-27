@@ -267,7 +267,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                         onClick={() => setClassId(c.id)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 7, padding: '8px 15px',
-                          background: on ? c.color : 'white', color: on ? 'white' : 'var(--text-2)',
+                          background: on ? c.color : 'var(--card)', color: on ? 'white' : 'var(--text-2)',
                           border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                           borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                           fontSize: 13, fontWeight: on ? 700 : 500, transition: 'all 0.18s',
