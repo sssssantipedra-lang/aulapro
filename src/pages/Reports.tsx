@@ -10,6 +10,7 @@ import { callGemini, hasApiKey } from '../services/gemini';
 import { isoDate, PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { useI18n } from '../i18n';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
@@ -397,19 +398,7 @@ export function Reports(props: Props) {
       </div>
 
       {!hasApiKey() && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', marginBottom: 16,
-          background: 'rgba(245,158,11,0.09)', border: '0.5px solid rgba(245,158,11,0.35)',
-          borderRadius: 12, fontSize: 13, color: '#92400e',
-        }}>
-          <Sparkles size={17} style={{ flexShrink: 0 }} />
-          <span style={{ flex: 1, lineHeight: 1.5 }}>
-            {t('Los informes los redacta la IA. Necesitas configurar tu clave gratuita de Google.')}
-          </span>
-          <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => onNav('profile')}>
-            {t('Configurar')}
-          </button>
-        </div>
+        <AiKeyNotice message={t('Los informes los redacta la IA. Necesitas configurar tu clave gratuita de Google.')} action={t('Configurar')} onAction={() => onNav('profile')} />
       )}
 
       {/* Barra de controles: clase, periodo y progreso */}

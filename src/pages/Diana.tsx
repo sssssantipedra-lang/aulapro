@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Sparkles, RotateCcw, Save, ChevronDown, ListChecks } from 'lucide-react';
+import {
+  Sparkles, RotateCcw, Save, ListChecks, Target,
+} from 'lucide-react';
 import type { Class, Student, Evaluation, DianaProfile, Rubric, EvalDiana } from '../types';
 import type { InlineFile } from '../services/gemini';
 import { DIANA_SECTORS, LOMLOE_TO_DIANA, isoDate } from '../lib/utils';
@@ -558,51 +560,28 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
         </div>
       </div>
 
-      {/* Selectors */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-        <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel" htmlFor="diana-clase">{t('Clase')}</label>
-          <div style={{ position: 'relative' }}>
-            <select
-              id="diana-clase"
-              className="finput"
-              value={classId}
-              onChange={e => handleClassChange(e.target.value)}
-              style={{ appearance: 'none', paddingRight: 36 }}
-            >
-              <option value="">{t('— Selecciona una clase —')}</option>
-              {classes.map(c => (
-                <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
-              ))}
-            </select>
-            <ChevronDown size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
-          </div>
-        </div>
-
-        <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel" htmlFor="diana-alumno">{t('Alumno')}</label>
-          <div style={{ position: 'relative' }}>
-            <select
-              id="diana-alumno"
-              className="finput"
-              value={studentId}
-              onChange={e => handleStudentChange(e.target.value)}
-              disabled={!classId}
-              style={{ appearance: 'none', paddingRight: 36 }}
-            >
-              <option value="">{t('— Selecciona un alumno —')}</option>
-              {classStudents.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-            <ChevronDown size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
-          </div>
-        </div>
+      {/* Barra: clase y alumno */}
+      <div className="toolbar">
+        <select id="diana-clase" className="tb-select" value={classId} aria-label={t('Clase')} onChange={e => handleClassChange(e.target.value)}>
+          <option value="">{t('— Selecciona una clase —')}</option>
+          {classes.map(c => (
+            <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
+          ))}
+        </select>
+        <select
+          id="diana-alumno" className="tb-select" value={studentId} aria-label={t('Alumno')}
+          onChange={e => handleStudentChange(e.target.value)} disabled={!classId}
+        >
+          <option value="">{t('— Selecciona un alumno —')}</option>
+          {classStudents.map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
       </div>
 
       {!studentId ? (
         <div className="card" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-3)' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
+          <Target size={40} color="var(--border-strong)" style={{ margin: '0 auto 12px', display: 'block' }} aria-hidden="true" />
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>{t('Selecciona un alumno')}</div>
           <div style={{ fontSize: 13 }}>{t('Elige una clase y un alumno para ver su Diana Competencial')}</div>
         </div>
