@@ -5,6 +5,9 @@ import {
 } from 'lucide-react';
 import type { Class, ScheduleBlock } from '../../types';
 import { callGemini, parseGeminiJson, hasApiKey, type InlineFile } from '../../services/gemini';
+import {
+  gridToBlocks, fillMergedCells, SCHEDULE_GRID_SCHEMA, type DetectedBlock, type ScheduleGrid,
+} from '../../services/scheduleGrid';
 import { fileToBase64 } from '../../lib/utils';
 import { PALETTE } from '../../lib/demoData';
 import { useToast } from '../ui/Toast';
@@ -18,32 +21,11 @@ interface Props {
   onNav: (s: string) => void;
 }
 
-/** Fila que devuelve la IA antes de que el docente la revise. */
-interface DetectedBlock {
-  day: number;
-  time_start: string;
-  time_end: string;
-  subject: string;
-  room?: string;
-  className?: string;
-}
-
 const MAX_FILE_BYTES = 19 * 1024 * 1024;
 
 const SYSTEM_PROMPT =
-  'Eres un asistente que lee horarios escolares españoles y los convierte en datos estructurados. ' +
-  'Respondes SOLO con JSON válido, sin explicaciones ni marcas de código.';
-
-/** Normaliza «9», «9:5», «09.30» a formato HH:MM. */
-function normalizeTime(raw: unknown): string | null {
-  const s = String(raw ?? '').trim().replace(/[.h]/g, ':');
-  const m = s.match(/^(\d{1,2}):?(\d{2})?$/);
-  if (!m) return null;
-  const h = Number(m[1]);
-  const min = Number(m[2] ?? 0);
-  if (h < 0 || h > 23 || min < 0 || min > 59) return null;
-  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-}
+  'Eres un asistente que transcribe horarios escolares españoles a datos estructurados, ' +
+  'copiando la tabla tal cual, celda a celda, sin reordenar ni resumir nada.';
 
 export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Props) {
   const { toast } = useToast();
@@ -70,6 +52,10 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
     const buffer = await file.arrayBuffer();
     const book = XLSX.read(buffer, { type: 'array' });
     return book.SheetNames.map(name => {
+      // Las celdas combinadas solo guardan el texto en su esquina: sin
+      // rellenarlas, una clase de dos horas o el recreo dejarían huecos y la
+      // tabla llegaría descuadrada.
+      fillMergedCells(book.Sheets[name] as never, XLSX.utils.encode_cell);
       const csv = XLSX.utils.sheet_to_csv(book.Sheets[name], { blankrows: false });
       return `--- Hoja: ${name} ---\n${csv}`;
     }).join('\n\n').slice(0, 24000);
@@ -110,57 +96,39 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
   async function scan(textContent: string, inline: InlineFile | null) {
     const known = classes.map(c => c.name).join(', ');
     const userPrompt =
-      'Extrae el horario semanal de un docente a partir de lo que te paso.\n\n' +
-      (textContent ? `CONTENIDO:\n${textContent}\n\n` : 'El horario está en el archivo adjunto.\n\n') +
-      (known ? `GRUPOS QUE YA EXISTEN en la aplicación: ${known}. Usa exactamente estos nombres cuando coincidan.\n\n` : '') +
-      'REGLAS:\n' +
-      '- Devuelve una fila por cada sesión de clase del docente.\n' +
-      '- "day": 1=lunes, 2=martes, 3=miércoles, 4=jueves, 5=viernes.\n' +
-      '- "time_start" y "time_end" en formato HH:MM de 24 horas.\n' +
-      '- "subject": la asignatura. "className": el grupo (ej. «3º ESO A») si aparece. "room": el aula si aparece.\n' +
-      '- Ignora recreos, guardias, reuniones y horas libres.\n' +
-      '- Si una celda junta grupo y asignatura (ej. «3ºA Matemáticas»), sepáralos.\n' +
-      '- Si no puedes deducir la hora de fin, calcula una sesión de 55 minutos.\n\n' +
-      'Formato exacto:\n' +
-      '{"blocks":[{"day":1,"time_start":"08:30","time_end":"09:25","subject":"Matemáticas","className":"3º ESO A","room":"Aula 12"}]}';
+      'Transcribe el horario semanal de un docente que te paso.\n\n' +
+      (textContent ? `CONTENIDO (hoja de cálculo en CSV):\n${textContent}\n\n` : 'El horario está en el archivo adjunto.\n\n') +
+      (known ? `GRUPOS QUE YA EXISTEN en la aplicación: ${known}. Si un grupo del horario es uno de estos, escríbelo exactamente así.\n\n` : '') +
+      'NO calcules tú en qué día u hora cae cada clase: limítate a copiar la tabla y la aplicación lo calcula por la posición de cada celda. Por eso es imprescindible que ninguna celda cambie de sitio.\n\n' +
+      'CÓMO TRANSCRIBIR:\n' +
+      '- "dayHeaders": las cabeceras de las columnas de días, de izquierda a derecha, tal como aparecen. No incluyas la columna de las horas.\n' +
+      '- "rows": una fila por cada franja horaria, de arriba abajo, en el mismo orden que en el horario. Incluye también las filas de recreo (con "isBreak": true) y las franjas en las que el docente no tiene clase ningún día.\n' +
+      '- "start" y "end": la hora de inicio y de fin de esa fila (HH:MM, 24 horas). Léelas de la columna de horas de ESA fila; si solo aparece una hora, déjala en "start" y "end" vacío.\n' +
+      '- "cells": EXACTAMENTE una celda por cabecera de "dayHeaders", en el mismo orden. Si la celda está vacía, pon todos sus campos a "". Nunca te saltes una celda vacía ni juntes dos.\n' +
+      '- Si una celda combinada ocupa varias filas (una clase de dos horas), repite su contenido en cada una de esas filas.\n' +
+      '- Si el horario pone los días en filas y las horas en columnas, gíralo: cada franja horaria sigue siendo una entrada de "rows".\n' +
+      '- En cada celda separa "subject" (la asignatura), "group" (el grupo o curso, p. ej. «3º ESO A») y "room" (el aula). Si una celda junta grupo y asignatura (p. ej. «3ºA MAT»), sepáralos. Copia las guardias, reuniones y horas libres como "subject"; ya se descartan después.\n' +
+      '- Si el archivo trae varios horarios, transcribe solo el del docente (el que tiene sus clases).';
 
     const raw = await callGemini(SYSTEM_PROMPT, userPrompt, inline ? [inline] : [], {
       onStart: () => setScanning(true),
       onEnd: () => setScanning(false),
       onError: msg => setError(msg),
+    }, {
+      responseSchema: SCHEDULE_GRID_SCHEMA,
+      // Leer bien una tabla de una foto es justo donde razonar compensa: un
+      // horario mal colocado cuesta más que unos segundos de espera.
+      thinkingLevel: 'high',
+      maxOutputTokens: 16384,
     });
     if (!raw) return;
 
-    const parsed = parseGeminiJson<{ blocks: DetectedBlock[] }>(raw);
-    const rows = (parsed?.blocks ?? [])
-      .map(b => {
-        const start = normalizeTime(b.time_start);
-        const end = normalizeTime(b.time_end);
-        const day = Number(b.day);
-        if (!start || !String(b.subject ?? '').trim() || day < 1 || day > 5) return null;
-        return {
-          day,
-          time_start: start,
-          time_end: end && end > start ? end : addMinutes(start, 55),
-          subject: String(b.subject).trim().slice(0, 60),
-          room: String(b.room ?? '').trim().slice(0, 30),
-          className: String(b.className ?? '').trim().slice(0, 40),
-        } as DetectedBlock;
-      })
-      .filter((b): b is DetectedBlock => b !== null)
-      .sort((a, b) => a.day - b.day || a.time_start.localeCompare(b.time_start));
-
+    const rows = gridToBlocks(parseGeminiJson<ScheduleGrid>(raw));
     if (rows.length === 0) {
       setError(t('No se ha reconocido ningún horario. Prueba con una foto más nítida o con el archivo en CSV.'));
       return;
     }
     setDetected(rows);
-  }
-
-  function addMinutes(hhmm: string, mins: number): string {
-    const [h, m] = hhmm.split(':').map(Number);
-    const total = h * 60 + m + mins;
-    return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
   }
 
   function confirm() {
@@ -190,6 +158,13 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
   }
 
   const busy = reading || scanning;
+
+  // Franjas y días que aparecen en lo detectado, para pintar la semana.
+  const weekDays = [1, 2, 3, 4, 5];
+  const slots = detected
+    ? [...new Map(detected.map(b => [`${b.time_start}-${b.time_end}`, { key: `${b.time_start}-${b.time_end}`, start: b.time_start, end: b.time_end }])).values()]
+        .sort((x, y) => x.start.localeCompare(y.start) || x.end.localeCompare(y.end))
+    : [];
 
   return (
     <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget && !busy) { reset(); onClose(); } }}>
@@ -224,54 +199,46 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
               <Check size={15} style={{ flexShrink: 0 }} />
               <span style={{ flex: 1, lineHeight: 1.5 }}>
                 {t('Se han detectado {n} sesiones.', { n: detected.length })} <strong>{t('Revísalas antes de añadirlas')}</strong>{' '}
-                {t('y desmarca las que no sean tuyas.')}
+                {t('Pulsa una sesión para quitarla si no es tuya.')}
               </span>
             </div>
 
-            <div style={{ maxHeight: 360, overflowY: 'auto', border: '0.5px solid var(--border)', borderRadius: 10 }}>
-              <table className="rtable" style={{ margin: 0 }}>
-                <thead>
-                  <tr>
-                    <th style={{ width: 40 }} />
-                    <th style={{ textAlign: 'left' }}>{t('Día')}</th>
-                    <th style={{ textAlign: 'left' }}>{t('Hora')}</th>
-                    <th style={{ textAlign: 'left' }}>{t('Asignatura')}</th>
-                    <th style={{ textAlign: 'left' }}>{t('Grupo')}</th>
-                    <th style={{ textAlign: 'left' }}>{t('Aula')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detected.map((b, i) => {
-                    const off = skipped.has(i);
-                    return (
-                      <tr key={i} style={{ opacity: off ? 0.4 : 1 }}>
-                        <td style={{ textAlign: 'center' }}>
-                          <input
-                            type="checkbox"
-                            checked={!off}
-                            onChange={() => setSkipped(prev => {
-                              const next = new Set(prev);
-                              if (next.has(i)) next.delete(i); else next.add(i);
-                              return next;
-                            })}
-                            style={{ cursor: 'pointer', accentColor: 'var(--accent-d)', width: 15, height: 15 }}
-                          />
-                        </td>
-                        <td style={{ fontSize: 12.5, fontWeight: 600 }}>{weekdayLabel(b.day - 1, locale)}</td>
-                        <td style={{ fontSize: 12.5, fontFamily: 'ui-monospace, Menlo, monospace' }}>
-                          {b.time_start}–{b.time_end}
-                        </td>
-                        <td style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{b.subject}</td>
-                        <td style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{b.className || '—'}</td>
-                        <td style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{b.room || '—'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            {/* La semana como en el papel: así salta a la vista si algo cae en otra hora u otro día */}
+            <div className="scan-week" role="grid" aria-label={t('Horario detectado')}>
+              <div className="scan-week-row scan-week-hd" role="row">
+                <span role="columnheader" />
+                {weekDays.map(d => <span key={d} role="columnheader">{weekdayLabel(d - 1, locale)}</span>)}
+              </div>
+              {slots.map(slot => (
+                <div key={slot.key} className="scan-week-row" role="row">
+                  <span className="scan-week-time" role="rowheader">{slot.start}<br />{slot.end}</span>
+                  {weekDays.map(d => (
+                    <span key={d} className="scan-week-cell" role="gridcell">
+                      {detected.map((b, i) => (b.day === d && `${b.time_start}-${b.time_end}` === slot.key) ? (
+                        <button
+                          key={i} type="button"
+                          className={`scan-block${skipped.has(i) ? ' off' : ''}`}
+                          aria-pressed={!skipped.has(i)}
+                          title={skipped.has(i) ? t('No se añadirá. Pulsa para recuperarla.') : t('Pulsa para no añadirla')}
+                          onClick={() => setSkipped(prev => {
+                            const next = new Set(prev);
+                            if (next.has(i)) next.delete(i); else next.add(i);
+                            return next;
+                          })}
+                        >
+                          <strong>{b.subject}</strong>
+                          {(b.className || b.room) && (
+                            <small>{[b.className, b.room].filter(Boolean).join(' · ')}</small>
+                          )}
+                        </button>
+                      ) : null)}
+                    </span>
+                  ))}
+                </div>
+              ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 16, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="btn-accent" onClick={confirm}>
                 <Check size={14} />
                 {t(detected.length - skipped.size === 1 ? 'Añadir {n} sesión' : 'Añadir {n} sesiones', { n: detected.length - skipped.size })}
@@ -351,7 +318,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
               <div style={{
                 display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 16,
                 padding: '11px 14px', borderRadius: 9, background: 'rgba(239,68,68,0.08)',
-                border: '0.5px solid rgba(239,68,68,0.3)', fontSize: 12.5, color: '#dc2626', lineHeight: 1.5,
+                border: '0.5px solid rgba(239,68,68,0.3)', fontSize: 12.5, color: 'var(--danger)', lineHeight: 1.5,
               }}>
                 <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
                 {error}
