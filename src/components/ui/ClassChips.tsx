@@ -4,6 +4,8 @@ interface Props {
   classes: Pick<Class, 'id' | 'name' | 'color'>[];
   value: string;
   onChange: (id: string) => void;
+  /** Número a mostrar junto a cada clase (p. ej. cuántos alumnos tiene). */
+  counts?: Record<string, number>;
 }
 
 /**
@@ -11,7 +13,7 @@ interface Props {
  * pantallas que trabajan clase a clase (cuaderno, asistencia…), para que se
  * lea y se use igual en todas.
  */
-export function ClassChips({ classes, value, onChange }: Props) {
+export function ClassChips({ classes, value, onChange, counts }: Props) {
   return (
     <div className="chip-row">
       {classes.map(c => {
@@ -27,6 +29,7 @@ export function ClassChips({ classes, value, onChange }: Props) {
           >
             <span className="chip-dot" style={{ background: c.color }} aria-hidden="true" />
             {c.name}
+            {counts && <span className="chip-count">{counts[c.id] ?? 0}</span>}
           </button>
         );
       })}

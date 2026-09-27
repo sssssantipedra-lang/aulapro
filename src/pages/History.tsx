@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronUp, Search, ClipboardList } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Search, ClipboardList, X } from 'lucide-react';
 import type { Evaluation, Class, Student, Rubric, EvalDiana } from '../types';
 import { useI18n } from '../i18n';
 
@@ -95,8 +95,8 @@ function ExpandedRow({ evaluation, rubric, diana }: {
           {evaluation.notes && (
             <div style={{
               padding: '10px 14px', borderRadius: 8,
-              background: '#fffbeb', border: '0.5px solid #fcd34d',
-              fontSize: 12.5, color: '#92400e', lineHeight: 1.5,
+              background: 'var(--warn-bg)', border: '1px solid rgba(245,158,11,0.35)',
+              fontSize: 12.5, color: 'var(--warn-fg)', lineHeight: 1.5,
             }}>
               <strong style={{ fontWeight: 700 }}>{t('Notas:')} </strong>{evaluation.notes}
             </div>
@@ -200,92 +200,61 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="card" style={{ padding: '14px 16px', marginBottom: 16 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: 10, alignItems: 'end' }}>
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Clase')}</label>
-            <div style={{ position: 'relative' }}>
-              <select
-                className="finput"
-                value={filterClassId}
-                aria-label={t('Clase')}
-                onChange={e => handleClassFilter(e.target.value)}
-                style={{ appearance: 'none', paddingRight: 32 }}
-              >
-                <option value="">{t('Todas las clases')}</option>
-                {classes.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
-            </div>
-          </div>
-
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Alumno')}</label>
-            <div style={{ position: 'relative' }}>
-              <select
-                className="finput"
-                value={filterStudentId}
-                aria-label={t('Alumno')}
-                onChange={e => { setFilterStudentId(e.target.value); setExpandedId(null); }}
-                style={{ appearance: 'none', paddingRight: 32 }}
-              >
-                <option value="">{t('Todos los alumnos')}</option>
-                {classStudents.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
-            </div>
-          </div>
-
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Instrumento')}</label>
-            <div style={{ position: 'relative' }}>
-              <select
-                className="finput"
-                value={filterRubricId}
-                aria-label={t('Instrumento')}
-                onChange={e => { setFilterRubricId(e.target.value); setExpandedId(null); }}
-                style={{ appearance: 'none', paddingRight: 32 }}
-              >
-                <option value="">{t('Todos los instrumentos')}</option>
-                {rubrics.length > 0 && (
-                  <optgroup label={t('Rúbricas')}>
-                    {rubrics.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                  </optgroup>
-                )}
-                {dianas.length > 0 && (
-                  <optgroup label={t('Dianas')}>
-                    {dianas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </optgroup>
-                )}
-                {/* Las autoevaluaciones no salen de ningún instrumento guardado */}
-                {evaluations.some(e => e.rubric_id === 'autoeval') && (
-                  <option value="autoeval">{t('Autoevaluaciones de la Sala')}</option>
-                )}
-              </select>
-              <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
-            </div>
-          </div>
-
-          <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Buscar')}</label>
-            <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
-              <input
-                type="text"
-                className="finput"
-                placeholder={t('Alumno, rúbrica, notas...')}
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{ paddingLeft: 34 }}
-              />
-            </div>
-          </div>
+      {/* Filtros: una sola barra compacta */}
+      <div className="toolbar">
+        <div className="tb-search">
+          <Search size={14} aria-hidden="true" />
+          <input
+            type="search"
+            placeholder={t('Alumno, rúbrica, notas...')}
+            aria-label={t('Buscar')}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
         </div>
+        <select className="tb-select" value={filterClassId} aria-label={t('Clase')} onChange={e => handleClassFilter(e.target.value)}>
+          <option value="">{t('Todas las clases')}</option>
+          {classes.map(c => (
+            <option key={c.id} value={c.id}>{c.name} · {c.subject}</option>
+          ))}
+        </select>
+        <select
+          className="tb-select" value={filterStudentId} aria-label={t('Alumno')}
+          onChange={e => { setFilterStudentId(e.target.value); setExpandedId(null); }}
+        >
+          <option value="">{t('Todos los alumnos')}</option>
+          {classStudents.map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+        <select
+          className="tb-select" value={filterRubricId} aria-label={t('Instrumento')}
+          onChange={e => { setFilterRubricId(e.target.value); setExpandedId(null); }}
+        >
+          <option value="">{t('Todos los instrumentos')}</option>
+          {rubrics.length > 0 && (
+            <optgroup label={t('Rúbricas')}>
+              {rubrics.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </optgroup>
+          )}
+          {dianas.length > 0 && (
+            <optgroup label={t('Dianas')}>
+              {dianas.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </optgroup>
+          )}
+          {/* Las autoevaluaciones no salen de ningún instrumento guardado */}
+          {evaluations.some(e => e.rubric_id === 'autoeval') && (
+            <option value="autoeval">{t('Autoevaluaciones de la Sala')}</option>
+          )}
+        </select>
+        {(filterClassId || filterStudentId || filterRubricId || searchQuery) && (
+          <button
+            className="tb-btn" type="button"
+            onClick={() => { handleClassFilter(''); setFilterRubricId(''); setSearchQuery(''); }}
+          >
+            <X size={14} />{t('Quitar filtros')}
+          </button>
+        )}
       </div>
 
       {/* Table */}

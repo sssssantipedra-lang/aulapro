@@ -5,6 +5,7 @@ import {
 import type { Class, Student, Alert, Evaluation, Rubric } from '../types';
 import { initials } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 
 // ─── palette ─────────────────────────────────────────────────────────────────
@@ -69,6 +70,12 @@ function blankAlert(): Omit<Alert, 'id'> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+/** «12» → «Aula 12», pero «Aula 12» se queda igual (antes salía «Aula Aula 12»). */
+function roomLabel(room: string, word: string): string {
+  const r = room.trim();
+  return r.toLocaleLowerCase('es').startsWith(word.toLocaleLowerCase('es')) ? r : `${word} ${r}`;
+}
+
 export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onDeleteClass,
@@ -241,43 +248,16 @@ export function ClassesManager({
         </div>
       </div>
 
-      {/* ── class tabs ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {classes.map(c => (
-          <button
-            key={c.id}
-            onClick={() => { setActiveClassId(c.id); setSearch(''); }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer',
-              fontFamily: 'var(--font)', fontSize: 13.5, fontWeight: 700,
-              background: activeClassId === c.id ? c.color : 'var(--card)',
-              color: activeClassId === c.id ? 'white' : 'var(--text-2)',
-              boxShadow: activeClassId === c.id
-                ? `0 2px 10px ${c.color}55`
-                : '0 0 0 1px var(--border)',
-              transition: 'all 0.18s',
-            }}
-          >
-            <span style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: activeClassId === c.id ? 'rgba(255,255,255,0.6)' : c.color,
-              flexShrink: 0,
-            }} />
-            {c.name}
-            <span style={{
-              fontSize: 11, background: activeClassId === c.id ? 'rgba(255,255,255,0.22)' : 'var(--surface)',
-              borderRadius: 99, padding: '1px 7px', fontWeight: 800,
-            }}>
-              {students.filter(s => s.class_id === c.id).length}
-            </span>
-          </button>
-        ))}
-        <button
-          className="btn-ghost"
-          style={{ borderRadius: 99, padding: '8px 16px', fontSize: 13.5 }}
-          onClick={openClassModal}
-        >
+      {/* ── Barra: clases (con su número de alumnos) y crear clase ── */}
+      <div className="toolbar">
+        <ClassChips
+          classes={classes}
+          value={activeClassId ?? ''}
+          onChange={id => { setActiveClassId(id); setSearch(''); }}
+          counts={Object.fromEntries(classes.map(c => [c.id, students.filter(s => s.class_id === c.id).length]))}
+        />
+        <span className="toolbar-spacer" />
+        <button className="tb-btn" onClick={openClassModal}>
           <Plus size={14} />{t('Nueva clase')}
         </button>
       </div>
@@ -287,20 +267,21 @@ export function ClassesManager({
         <div className="card">
           {/* toolbar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: 180, maxWidth: 320 }}>
-              <Search size={14} color="var(--text-3)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            <div className="tb-search">
+              <Search size={14} aria-hidden="true" />
               <input
-                className="finput"
+                type="search"
                 placeholder={t('Buscar alumno…')}
+                aria-label={t('Buscar alumno')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{ paddingLeft: 34, height: 38 }}
               />
             </div>
-            <button className="btn-ghost" style={{ fontSize: 13, padding: '8px 14px' }} onClick={() => setCsvModal(true)}>
+            <span className="toolbar-spacer" />
+            <button className="tb-btn" onClick={() => setCsvModal(true)}>
               <Upload size={14} />{t('Importar CSV')}
             </button>
-            <button className="btn-accent" style={{ fontSize: 13, padding: '8px 16px' }} onClick={openNewStudent}>
+            <button className="btn-accent" style={{ height: 36 }} onClick={openNewStudent}>
               <Plus size={14} />{t('Nuevo alumno')}
             </button>
           </div>
@@ -335,7 +316,7 @@ export function ClassesManager({
               </div>
               <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2 }}>
                 {(activeClass.subjects ?? [activeClass.subject]).join(' · ')}
-                {activeClass.room ? ` · ${t('Aula')} ${activeClass.room}` : ''}
+                {activeClass.room ? ` · ${roomLabel(activeClass.room, t('Aula'))}` : ''}
               </div>
             </div>
             <button
