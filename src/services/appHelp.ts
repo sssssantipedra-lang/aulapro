@@ -73,6 +73,11 @@ docente tiene su perfil, con su propia carpeta de datos y copia automática cada
 
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Mi Perfil. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
+PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
+petición a la IA se cambian por códigos y, al llegar la respuesta, la aplicación
+vuelve a poner los nombres reales; el docente ve siempre los nombres. Lo único
+que se envía tal cual son los archivos que el propio docente adjunta. En la
+aplicación de escritorio la clave de Google se guarda cifrada por el sistema.
 
 Las notas van sobre 10 y el aprobado está en 5. La aplicación está en español e
 inglés (se cambia en la pantalla de bienvenida y en Mi Perfil).
@@ -80,7 +85,10 @@ inglés (se cambia en la pantalla de bienvenida y en Mi Perfil).
 === CÓMO SE NAVEGA ===
 Barra lateral a la izquierda, con cinco grupos: Principal, Evaluación, Recursos,
 Mi actividad docente y Herramientas. Cada grupo se pliega y despliega pulsando
-su cabecera, y la barra entera se estrecha con la flecha de arriba.
+su cabecera, y la barra entera se estrecha con la flecha de arriba. En ventanas
+estrechas (portátil pequeño, media pantalla) la barra se queda sola en iconos;
+la flecha la abre por encima del contenido y se cierra al elegir una sección,
+con Escape o pulsando fuera. Las ventanas emergentes se cierran con Escape.
 
 === PRINCIPAL ===
 
@@ -128,19 +136,31 @@ golpe. El porcentaje de asistencia cuenta el retraso y la falta justificada como
 asistencia. Se exporta a CSV.
 
 [seating] DISTRIBUCIÓN DE AULA
-Grupos cooperativos, con mesas dibujadas en abanico como pupitres reales.
-Configura cuántas mesas hay y cuántos alumnos caben en cada una (por defecto,
-5 mesas de 4). Cada mesa tiene los mismos cuatro roles cooperativos
-—Portavoz, Secretario/a, Responsable del material, Responsable del tiempo—,
-editables por si el docente usa otros nombres. «Generar grupos con IA»
-reparte al alumnado real de la clase en mesas EQUILIBRADAS y MULTINIVEL: la
-IA ve la media ponderada real, la asistencia y los avisos de cada alumno —no
-inventa ninguno— y evita juntar a todos los de nivel alto en una mesa y a
-todos los de nivel bajo en otra. Se le pueden dar instrucciones propias
-(«Marco y Lucía no deben ir juntos»). Los asientos también se pueden
-rellenar a mano, uno a uno. «Semana siguiente» rota los roles dentro de cada
-mesa sin cambiar quién está con quién; «Semana anterior» deshace la rotación.
-Se exporta a PDF (el plano visual) y a Word (el listado por mesas).
+Grupos cooperativos por mesas. Arriba hay UNA SOLA BARRA con: el selector de
+clase, la rotación de roles (flechas ↺ y ↻ a los lados de «Roles como se
+formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
+«N sin mesa»), el botón «Mesas y roles» y el botón «✨ Repartir con IA».
+- «Mesas y roles» abre una ventana para decidir cuántas mesas hay y cuántos
+  alumnos caben en cada una (por defecto, 5 mesas de 4) y para renombrar los
+  roles cooperativos (Portavoz, Secretario/a, Responsable del material,
+  Responsable del tiempo) y su responsabilidad.
+- «✨ Repartir con IA» abre una ventana donde se escriben, si se quiere,
+  aspectos a tener en cuenta («Marco y Lucía no deben ir juntos») y se pulsa
+  «Generar grupos con IA». La IA reparte al alumnado real en mesas EQUILIBRADAS
+  y MULTINIVEL usando la media ponderada, la asistencia y los avisos de cada
+  alumno, sin inventar ninguno. Sustituye la distribución que hubiera.
+- Cada mesa se dibuja como un semicírculo con los asientos numerados y, debajo,
+  la lista de asientos con el nombre y el rol de cada alumno.
+- Sentar a mano: si hay alumnos sin mesa aparece abajo la bandeja «Sin mesa
+  asignada». Se ARRASTRA un alumno hasta un asiento (en la lista o en el
+  dibujo), o se toca el alumno y después «Sentar aquí». También se puede
+  arrastrar a un alumno de un asiento a otro (si estaba ocupado, se
+  intercambian) o devolverlo a la bandeja. Para quitar a alguien de su asiento
+  se usa la × de su fila. Con todo el alumnado sentado la bandeja desaparece.
+- Las flechas de rotación cambian los roles dentro de cada mesa cada semana
+  sin cambiar quién se sienta con quién; la otra flecha deshace la rotación.
+Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
+botones de arriba a la derecha.
 
 === EVALUACIÓN ===
 
@@ -204,6 +224,12 @@ de las formaciones (contenidos, ideas clave, aplicación en el aula, valoración
 Se puede retocar a mano y exportar a PDF y Word. La IA no añade nada que no esté
 en las anotaciones. No van atadas a ninguna clase, y el vaciado de fin de curso
 no las borra.
+AUTOGUARDADO: mientras el formulario de anotaciones está abierto, se guarda una
+copia sola cada minuto (y también al cerrar la ventana); cada copia sustituye a
+la anterior y se ve «Autoguardado a las HH:MM» bajo las anotaciones. Si la
+ventana o la aplicación se cierran sin guardar, al volver a Reuniones o
+Formaciones aparece un aviso con «Recuperar» (reabre lo escrito) o «Descartar».
+Al pulsar «Guardar» la copia se borra.
 
 === HERRAMIENTAS ===
 
@@ -231,7 +257,8 @@ y buscador, y se exporta a CSV. Útil cuando dos docentes comparten trabajo o
 para justificar un cambio de nota.
 
 [profile] MI PERFIL
-Datos del docente, idioma y tema de color. Aquí se pega la CLAVE API GRATUITA DE
+Datos del docente, idioma, color de la interfaz y APARIENCIA: «Automática»
+(sigue el modo claro u oscuro del sistema), «Clara» u «Oscura» (modo oscuro). Aquí se pega la CLAVE API GRATUITA DE
 GOOGLE que activa toda la IA, con una guía de dos minutos; basta con pegarla y
 pulsar «Guardar». También: copia de seguridad (exportar e importar un archivo con todo),
 ver la carpeta donde se guardan los datos, contraseña opcional para el perfil, y
@@ -255,6 +282,15 @@ asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
   nueva, avisa con una notificación y la descarga en segundo plano; se instala
   al pulsar «Reiniciar y actualizar» o al cerrar la aplicación. En Mac hay que
   descargarla a mano.
+- «¿La IA ve los nombres de mis alumnos?»: no. Se cambian por códigos antes de
+  enviar nada a Google y se vuelven a poner al recibir la respuesta. Solo
+  viajan tal cual los archivos que el docente adjunte.
+- «¿Hay modo oscuro?»: sí, en Mi Perfil → Apariencia (Automática, Clara u
+  Oscura).
+- «Se me cerró la reunión sin guardar»: al volver a Reuniones (o Formaciones)
+  sale un aviso para Recuperar lo escrito; se autoguarda cada minuto.
+- «Quiero probar sin meter datos reales»: en la pantalla de bienvenida,
+  «Explorar con datos de ejemplo»; o en Inicio, «Cargar datos de ejemplo».
 - «Empiezo de cero, ¿por dónde?»: Mis Clases (crear la clase y sus alumnos) →
   Cuaderno de Notas (categorías con sus pesos) → ya se pueden poner notas, pasar
   lista y sacar actas e informes.
