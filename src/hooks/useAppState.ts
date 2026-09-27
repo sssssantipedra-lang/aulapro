@@ -122,7 +122,8 @@ function readLegacyData(): Partial<ProfileSnapshot> | null {
 export function useAppState() {
   const [profileId, setProfileId] = useState<string | null>(() => store.getActiveProfileId());
   const [profile, setProfile]     = useState<TeacherProfile | null>(null);
-  const [ready, setReady]         = useState(false);
+  // Sin perfil activo no hay nada que cargar: la app está lista desde el principio.
+  const [ready, setReady]         = useState(() => store.getActiveProfileId() === null);
 
   const [tasks, setTasks]                     = useState<Task[]>([]);
   const [classes, setClasses]                 = useState<Class[]>([]);
@@ -189,10 +190,10 @@ export function useAppState() {
 
   /* ── Carga al entrar en un perfil ── */
   useEffect(() => {
+    // Cerrar el perfil (sin id) ya limpia el estado en `closeProfile`, y
+    // `ready` se pone a false al abrir uno: aquí solo queda la carga en sí.
+    if (!profileId) return;
     let cancelled = false;
-    if (!profileId) { setProfile(null); hydrate({}); setReady(true); return; }
-
-    setReady(false);
     (async () => {
       const [list, data] = await Promise.all([store.listProfiles(), store.loadData(profileId)]);
       if (cancelled) return;
@@ -202,6 +203,8 @@ export function useAppState() {
         // El perfil ya no existe (borrado desde otro sitio)
         store.setActiveProfileId(null);
         setProfileId(null);
+        setProfile(null);
+        hydrate({});
         setReady(true);
         return;
       }
@@ -256,8 +259,10 @@ export function useAppState() {
   /* ── Perfiles ── */
   const openProfile = useCallback((id: string) => {
     store.setActiveProfileId(id);
+    if (id === profileId) return;
+    setReady(false);
     setProfileId(id);
-  }, []);
+  }, [profileId]);
 
   const createAndOpenProfile = useCallback(async (
     input: { name: string; school: string; subject: string; course: string },
@@ -281,7 +286,9 @@ export function useAppState() {
     store.setActiveProfileId(null);
     setProfileId(null);
     setProfile(null);
-  }, [profileId]);
+    hydrate({});
+    setReady(true);
+  }, [profileId, hydrate]);
 
   const updateUser = useCallback(async (patch: Partial<TeacherProfile>) => {
     if (!profileId) return;

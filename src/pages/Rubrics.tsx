@@ -6,10 +6,11 @@ import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, Gr
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { fileToBase64, isoDate, LOMLOE_COMPETENCES } from '../lib/utils';
+import { fileToBase64, isoDate, LOMLOE_COMPETENCES, newId } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { useResetOnChange } from '../lib/useResetOnChange';
 import { DianasTab } from './EvalDianas';
 
 /* ─── Props ─── */
@@ -115,7 +116,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
     setLevels(prev => renumber(prev.filter((_, j) => j !== i)));
 
   /* Populate when editing */
-  useEffect(() => {
+  useResetOnChange(`${open}:${editing?.id ?? ''}`, () => {
     if (editing) {
       setMode('manual');
       setManualName(editing.name);
@@ -137,7 +138,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       setAiPreview(null);
       setTarget({});
     }
-  }, [editing, open]);
+  });
 
   /* ── AI generate ── */
   async function handleGenerate() {
@@ -542,7 +543,7 @@ function EvalModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* Reset when rubric/modal changes */
-  useEffect(() => {
+  useResetOnChange(`${open}:${rubric?.id ?? ''}:${defaultClassId ?? ''}:${defaultStudentId ?? ''}`, () => {
     if (!open || !rubric) return;
     setScores({});
     setNotes('');
@@ -552,7 +553,7 @@ function EvalModal({
     // La rúbrica ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
     setClassId(defaultClassId ?? rubric.class_id ?? '');
     setStudentId(defaultStudentId ?? '');
-  }, [open, rubric, defaultClassId, defaultStudentId]);
+  });
 
   const classStudents = students.filter(s => s.class_id === classId);
 
@@ -671,7 +672,7 @@ function EvalModal({
     if (!rubric || !studentId) return;
     const student = students.find(s => s.id === studentId);
     const ev: Evaluation = {
-      id: 'ev' + Date.now(),
+      id: newId('ev'),
       rubric_id: rubric.id,
       rubric_name: rubric.name,
       student_id: studentId,
@@ -917,17 +918,17 @@ export function Rubrics({
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   /* Open eval modal from defaults (e.g. navigated from Dashboard) */
+  const openFromDefaults = defaultOpenEvalRubricId ? rubrics.find(r => r.id === defaultOpenEvalRubricId) : undefined;
+  useResetOnChange(defaultOpenEvalRubricId ?? '', () => {
+    if (!openFromDefaults) return;
+    setEvalRubric(openFromDefaults);
+    setEvalDefaultClassId(defaultOpenEvalClassId);
+    setEvalDefaultStudentId(defaultOpenEvalStudentId);
+    setEvalModalOpen(true);
+  });
+  // Avisar al padre de que ya se ha usado es cambiar SU estado: eso sí va en un efecto.
   useEffect(() => {
-    if (defaultOpenEvalRubricId) {
-      const r = rubrics.find(r => r.id === defaultOpenEvalRubricId);
-      if (r) {
-        setEvalRubric(r);
-        setEvalDefaultClassId(defaultOpenEvalClassId);
-        setEvalDefaultStudentId(defaultOpenEvalStudentId);
-        setEvalModalOpen(true);
-        onEvalOpened?.();
-      }
-    }
+    if (openFromDefaults) onEvalOpened?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultOpenEvalRubricId]);
 

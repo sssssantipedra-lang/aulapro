@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
 
 /* ════════════════════════════════════════════════════════════
@@ -390,6 +391,9 @@ function NoiseWidget() {
 
   const cleanupRef = useRef<(() => void) | null>(null);
   const overSinceRef = useRef<number | null>(null);
+  // El bucle de audio se crea una vez: lee el límite actual por esta copia.
+  const limitRef = useRef(limit);
+  useEffect(() => { limitRef.current = limit; }, [limit]);
 
   const stop = useCallback(() => {
     cleanupRef.current?.();
@@ -424,6 +428,16 @@ function NoiseWidget() {
         smooth = smooth * 0.82 + raw * 0.18;
         setLevel(smooth);
 
+        // Alerta solo si se mantiene por encima del límite un rato
+        if (smooth > limitRef.current) {
+          const now = performance.now();
+          if (overSinceRef.current === null) overSinceRef.current = now;
+          else if (now - overSinceRef.current > 1200) setOverLimit(true);
+        } else {
+          overSinceRef.current = null;
+          setOverLimit(false);
+        }
+
         // Reparte el espectro en barras
         const step = Math.floor(data.length / BAR_COUNT);
         const bars: number[] = [];
@@ -452,17 +466,6 @@ function NoiseWidget() {
   // Apaga el micrófono al cerrar el widget
   useEffect(() => () => { cleanupRef.current?.(); }, []);
 
-  // Alerta solo si se mantiene por encima del límite un rato
-  useEffect(() => {
-    if (micState !== 'on') return;
-    if (level > limit) {
-      if (overSinceRef.current === null) overSinceRef.current = Date.now();
-      else if (Date.now() - overSinceRef.current > 1200) setOverLimit(true);
-    } else {
-      overSinceRef.current = null;
-      setOverLimit(false);
-    }
-  }, [level, limit, micState]);
 
   const face = overLimit ? '🤫' : level > limit * 0.7 ? '😐' : level > 12 ? '🙂' : '😴';
   const stateColor = overLimit ? '#f43f5e' : level > limit * 0.7 ? '#fbbf24' : '#34d399';
@@ -581,11 +584,11 @@ function WheelWidget({ names }: { names: string[] }) {
   // Se compara el contenido, no la identidad del array: el padre crea una lista
   // nueva en cada render y depender de ella reiniciaría el giro a mitad de vuelta.
   const namesKey = names.join('\u0000');
-  useEffect(() => {
+  useResetOnChange(namesKey, () => {
     setPool(namesKey ? namesKey.split('\u0000') : []);
     setWinner(null);
     setRotation(0);
-  }, [namesKey]);
+  });
 
   const n = pool.length;
   const step = n > 0 ? 360 / n : 360;
@@ -932,7 +935,7 @@ function CalcWidget() {
 
     setExpr(e => e + value);
     setResult(null);
-  }, [expr]);
+  }, [expr, locale]);
 
   // Teclado físico (solo cuando la calculadora tiene el foco)
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {

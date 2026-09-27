@@ -46,6 +46,10 @@ function newId() {
   return 'sda' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+function fichaId() {
+  return 'fic' + Date.now().toString(36);
+}
+
 /** Campo de texto largo, editable, con su etiqueta. */
 function Field({
   label, value, onChange, rows = 3,
@@ -430,7 +434,7 @@ export function LearningSituations({
   function createFicha() {
     if (!fichaContent || !content) return;
     const ficha: Ficha = {
-      id: 'fic' + Date.now().toString(36),
+      id: fichaId(),
       at: new Date().toISOString(),
       date: isoDate(),
       class_id: classId || undefined,

@@ -1,9 +1,5 @@
-import { useRef, useState, createContext, useContext, useCallback, type ReactNode } from 'react';
-
-interface ToastCtx {
-  toast: (msg: string) => void;
-}
-const Ctx = createContext<ToastCtx>({ toast: () => {} });
+import { useRef, useState, useCallback, type ReactNode } from 'react';
+import { ToastContext as Ctx } from './toastContext';
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [msg, setMsg] = useState('');
@@ -22,11 +18,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ toast }}>
       {children}
-      <div className={`toast${show ? ' show' : ''}`}>{msg}</div>
+      <div className={`toast${show ? ' show' : ''}`} role="status" aria-live="polite">{msg}</div>
     </Ctx.Provider>
   );
-}
-
-export function useToast() {
-  return useContext(Ctx);
 }

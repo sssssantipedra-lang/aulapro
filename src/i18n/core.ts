@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext } from 'react';
 
 /**
  * Idiomas de la aplicación.
@@ -16,7 +16,7 @@ export const LANGS: { id: Lang; label: string; flag: string }[] = [
   { id: 'en', label: 'English', flag: '🇬🇧' },
 ];
 
-const STORAGE_KEY = 'aulapro_lang';
+export const STORAGE_KEY = 'aulapro_lang';
 
 /**
  * Diccionario. La clave es el texto en castellano, que es el idioma en el que
@@ -1461,7 +1461,7 @@ export function translate(
   return out;
 }
 
-interface Ctx {
+export interface Ctx {
   lang: Lang;
   setLang: (l: Lang) => void;
   /** Traduce. Si no hay traducción devuelve el original, nunca una clave. */
@@ -1470,7 +1470,7 @@ interface Ctx {
   locale: string;
 }
 
-const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB' };
+export const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB' };
 
 /**
  * Etiquetas de prioridad (Alta/Media/Baja) fuera del diccionario general:
@@ -1518,31 +1518,7 @@ export function weekdayLabel(dayIndex0Mon: number, locale: string, style: 'short
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-const I18nContext = createContext<Ctx>({ lang: 'es', setLang: () => {}, t: k => k, locale: 'es-ES' });
-
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved === 'en' ? 'en' : 'es';
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, lang);
-    document.documentElement.lang = lang;
-    // El aviso de actualización lo escribe el proceso de Electron, que no ve
-    // este diccionario: hay que decirle en qué idioma está la aplicación.
-    window.electronAPI?.update?.setLanguage?.(lang);
-  }, [lang]);
-
-  const value = useMemo<Ctx>(() => ({
-    lang,
-    setLang: setLangState,
-    t: (key, vars) => translate(lang, key, vars),
-    locale: LOCALES[lang],
-  }), [lang]);
-
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
-}
+export const I18nContext = createContext<Ctx>({ lang: 'es', setLang: () => {}, t: k => k, locale: 'es-ES' });
 
 export function useI18n(): Ctx {
   return useContext(I18nContext);

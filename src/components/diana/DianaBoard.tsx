@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { DianaItem, AchievementLevel } from '../../types';
-import { levelsOf, levelColor, gradeFromLevels } from '../../types';
+import { levelsOf, levelColor } from '../../types';
 import { useI18n } from '../../i18n';
 
 /**
@@ -17,14 +17,6 @@ import { useI18n } from '../../i18n';
 const SIZE = 340;
 const CENTER = SIZE / 2;
 const MAX_R = 116;
-
-/** Mismos colores que la Diana Competencial, para que se lean como lo mismo. */
-export const LEVEL_COLORS: Record<number, { fill: string; solid: string; label: string }> = {
-  1: { fill: 'rgba(220,38,38,0.82)',  solid: '#dc2626', label: 'Insuficiente' },
-  2: { fill: 'rgba(217,119,6,0.82)',  solid: '#d97706', label: 'Suficiente' },
-  3: { fill: 'rgba(37,99,235,0.82)',  solid: '#2563eb', label: 'Bien' },
-  4: { fill: 'rgba(22,163,74,0.82)',  solid: '#16a34a', label: 'Excelente' },
-};
 
 /**
  * Parte un nombre largo en varias líneas.
@@ -233,18 +225,4 @@ export function DianaBoard({ items, scores, onSetScore, levels, readOnly }: Prop
       <circle cx={CENTER} cy={CENTER} r={3} fill="white" />
     </svg>
   );
-}
-
-/**
- * Nota sobre 10 a partir de los niveles de logro, ponderada por el peso
- * de cada ítem. Solo cuentan los ítems ya evaluados.
- */
-export function dianaGrade(
-  items: DianaItem[],
-  scores: Record<string, number>,
-  levels?: AchievementLevel[],
-): number | null {
-  const weights: Record<string, number> = {};
-  items.forEach(i => { weights[i.id] = i.weight > 0 ? i.weight : 1; });
-  return gradeFromLevels(scores, items.map(i => i.id), levelsOf({ levels }), weights);
 }

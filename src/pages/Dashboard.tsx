@@ -3,7 +3,8 @@ import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertT
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap } from '../types';
 import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
-import { useCarousel, CarouselControls, CarouselDots, paginate } from '../components/dashboard/carousel';
+import { CarouselControls, CarouselDots } from '../components/dashboard/carousel';
+import { useCarousel, paginate } from '../components/dashboard/useCarousel';
 import { useI18n, priorityLabel } from '../i18n';
 import { isoDate } from '../lib/utils';
 

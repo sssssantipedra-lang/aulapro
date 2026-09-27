@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy } from 'lucide-react';
 import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { isoDate, LOMLOE_COMPETENCES } from '../lib/utils';
+import { isoDate, LOMLOE_COMPETENCES, newId } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
-import { DianaBoard, dianaGrade } from '../components/diana/DianaBoard';
+import { DianaBoard } from '../components/diana/DianaBoard';
+import { dianaGrade } from '../components/diana/dianaGrade';
 import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
+import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -68,7 +70,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
   const addLevel = () => setLevels(prev => renumber([...prev, { label: '' }]));
   const removeLevel = (i: number) => setLevels(prev => renumber(prev.filter((_, j) => j !== i)));
 
-  useEffect(() => {
+  // Al abrir (o cambiar lo que se edita), el formulario empieza de cero
+  useResetOnChange(`${open}:${editing?.id ?? ''}`, () => {
     if (!open) return;
     if (editing) {
       setMode('manual');
@@ -89,7 +92,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       setAiClassId('');
       setAiCount(5);
     }
-  }, [editing, open]);
+  });
 
   async function handleGenerate() {
     if (!aiContext.trim()) { toast(t('Describe la actividad que quieres evaluar')); return; }
@@ -396,14 +399,14 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
   const [scores, setScores]     = useState<Record<string, number>>({});
   const [notes, setNotes]       = useState('');
 
-  useEffect(() => {
+  useResetOnChange(`${open}:${diana?.id ?? ''}`, () => {
     if (!open) return;
     // La diana ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
     setClassId(diana?.class_id ?? '');
     setStudentId('');
     setScores({});
     setNotes('');
-  }, [open, diana]);
+  });
 
   if (!diana) return null;
 
@@ -422,7 +425,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
     if (done === 0) { toast(t('Marca al menos un ítem en la diana')); return; }
     const student = students.find(s => s.id === studentId);
     onSave({
-      id: 'ev' + Date.now(),
+      id: newId('ev'),
       rubric_id: diana!.id,
       rubric_name: diana!.name,
       student_id: studentId,

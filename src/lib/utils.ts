@@ -18,6 +18,16 @@ export function plural(n: number, singular: string, plural: string): string {
  * UTC, así que el 12 de agosto a las 00:00 se convertía en «2026-08-11» y todo
  * lo guardado aparecía un día antes de lo que tocaba.
  */
+/**
+ * Id nuevo con prefijo y la hora actual («ev1727450000000»). Es el formato
+ * que ya usaban las evaluaciones y las fichas guardadas: no cambia nada en
+ * los datos. Vive aquí para llamarlo desde los manejadores de clic sin que
+ * el compilador de React lo confunda con código que corre al pintar.
+ */
+export function newId(prefix: string, radix = 10): string {
+  return prefix + Date.now().toString(radix);
+}
+
 export function isoDate(d: Date = new Date()): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');

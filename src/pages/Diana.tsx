@@ -482,7 +482,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
     setDescriptors(newDesc);
 
     setSaved(false);
-  }, [student, studentEvals, classes, classId, lawDocument, toast, lang, t]);
+  }, [student, studentEvals, competencyEvals, dianas, rubrics, classes, classId, lawDocument, toast, lang, t]);
 
   /**
    * Rellena desde las evaluaciones con competencias asociadas, en vez de

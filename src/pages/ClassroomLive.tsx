@@ -141,29 +141,6 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
     toast(t('✅ Nueva actividad enviada a los móviles'));
   }
 
-  /* ── Fuera de la app de escritorio ── */
-  if (!bridge) {
-    return (
-      <section className="sec active">
-        <div className="pg-hd">
-          <div>
-            <h1 className="pg-title">{t('Sala de alumnos')}</h1>
-            <p className="pg-sub">{t('Actividades desde el móvil, sin instalar nada')}</p>
-          </div>
-        </div>
-        <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
-          <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
-          <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            {t('Solo desde la aplicación de escritorio')}
-          </h2>
-          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
-          </p>
-        </div>
-      </section>
-    );
-  }
-
   /**
    * Guarda lo respondido en cuanto llega, sin pedir permiso.
    *
@@ -210,6 +187,29 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snap?.responses, snap?.activity, snap?.code, snap?.running]);
+
+  /* ── Fuera de la app de escritorio ── */
+  if (!bridge) {
+    return (
+      <section className="sec active">
+        <div className="pg-hd">
+          <div>
+            <h1 className="pg-title">{t('Sala de alumnos')}</h1>
+            <p className="pg-sub">{t('Actividades desde el móvil, sin instalar nada')}</p>
+          </div>
+        </div>
+        <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
+          <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
+          <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
+            {t('Solo desde la aplicación de escritorio')}
+          </h2>
+          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const running = snap?.running === true;
   const address = snap?.addresses?.[0];

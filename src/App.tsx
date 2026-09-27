@@ -100,8 +100,15 @@ function AppInner() {
     applyTheme((localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky');
   }, []);
 
-  // Al cambiar de perfil se vuelve al inicio, no a la sección del docente anterior
-  useEffect(() => { setSection('dashboard'); }, [st.profileId]);
+  // Al cambiar de perfil se vuelve al inicio, no a la sección del docente
+  // anterior. Se ajusta durante el render (patrón recomendado por React para
+  // «reiniciar estado cuando cambia un valor»), no en un efecto: así no se
+  // pinta ni un instante la sección del perfil anterior.
+  const [sectionOwner, setSectionOwner] = useState(st.profileId);
+  if (sectionOwner !== st.profileId) {
+    setSectionOwner(st.profileId);
+    setSection('dashboard');
+  }
 
   // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts
   useEffect(() => { setPrivacyRoster(st.students, lang); }, [st.students, lang]);
@@ -195,7 +202,7 @@ function AppInner() {
                 onAddStudent={st.addStudent}
                 onUpdateStudent={st.updateStudent}
                 onDeleteStudent={st.deleteStudent}
-                onAddStudents={(ss: any[]) => ss.forEach(st.addStudent)}
+                onAddStudents={ss => ss.forEach(st.addStudent)}
                 onOpenEval={() => setSection('rubrics')}
                 profileId={st.profileId}
               />
@@ -205,11 +212,11 @@ function AppInner() {
                 classes={st.classes}
                 scheduleBlocks={st.scheduleBlocks}
                 calEvents={st.calEvents}
-                onAddBlock={(b: any) => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
-                onUpdateBlock={(b: any) => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
+                onAddBlock={b => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
+                onUpdateBlock={b => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
                 onDeleteBlock={(id: string) => { st.deleteBlock(id); toast(t('Bloque eliminado')); }}
-                onAddCalEvent={(ev: any) => { st.addCalEvent(ev); toast(t('✅ Evento añadido')); }}
-                onUpdateCalEvent={(ev: any) => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
+                onAddCalEvent={ev => { st.addCalEvent(ev); toast(t('✅ Evento añadido')); }}
+                onUpdateCalEvent={ev => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
                 onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}
                 onNav={s => setSection(s as Section)}
               />
@@ -222,8 +229,8 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 lawDocument={st.lawDocument}
-                onAddRubric={(r: any) => { st.addRubric(r); toast(t('✅ Rúbrica creada')); }}
-                onUpdateRubric={(r: any) => { st.updateRubric(r); toast(t('✅ Actualizada')); }}
+                onAddRubric={r => { st.addRubric(r); toast(t('✅ Rúbrica creada')); }}
+                onUpdateRubric={r => { st.updateRubric(r); toast(t('✅ Actualizada')); }}
                 onDeleteRubric={(id: string) => { st.deleteRubric(id); toast(t('Rúbrica eliminada')); }}
                 onAddDiana={st.addDiana}
                 onUpdateDiana={st.updateDiana}
@@ -442,7 +449,7 @@ function AppInner() {
           </div>
           <div className="fgroup">
             <label className="flabel">{t('Prioridad')}</label>
-            <select className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as any)} style={{ cursor: 'pointer' }}>
+            <select className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as 'high' | 'medium' | 'low')} style={{ cursor: 'pointer' }}>
               <option value="high">{priorityLabel('high', lang)}</option>
               <option value="medium">{priorityLabel('medium', lang)}</option>
               <option value="low">{priorityLabel('low', lang)}</option>
