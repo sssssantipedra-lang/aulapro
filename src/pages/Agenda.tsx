@@ -303,11 +303,11 @@ export function Agenda({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="card">
             <div className="card-hd" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <button className="ico-btn" onClick={prevMonth}><ChevronLeft size={18} /></button>
+              <button className="ico-btn" onClick={prevMonth} aria-label={t('Anterior')} title={t('Anterior')}><ChevronLeft size={18} /></button>
               <span className="card-ttl" style={{ margin: 0 }}>
                 {monthLabel(calMonth, locale)} {calYear}
               </span>
-              <button className="ico-btn" onClick={nextMonth}><ChevronRight size={18} /></button>
+              <button className="ico-btn" onClick={nextMonth} aria-label={t('Siguiente')} title={t('Siguiente')}><ChevronRight size={18} /></button>
             </div>
 
             {/* Day names header */}
@@ -432,13 +432,13 @@ export function Agenda({
         <div className="card" style={{ overflowX: 'auto' }}>
           {/* Week navigation */}
           <div className="card-hd" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <button className="ico-btn" onClick={prevWeek}><ChevronLeft size={18} /></button>
+            <button className="ico-btn" onClick={prevWeek} aria-label={t('Anterior')} title={t('Anterior')}><ChevronLeft size={18} /></button>
             <span className="card-ttl" style={{ margin: 0 }}>
               {currentWeekDates[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
               {' – '}
               {currentWeekDates[4].toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
-            <button className="ico-btn" onClick={nextWeek}><ChevronRight size={18} /></button>
+            <button className="ico-btn" onClick={nextWeek} aria-label={t('Siguiente')} title={t('Siguiente')}><ChevronRight size={18} /></button>
           </div>
 
           {/* Grid */}
@@ -464,7 +464,7 @@ export function Agenda({
                     fontWeight: 700,
                     fontSize: 12,
                     borderBottom: '1px solid var(--border, #e5e7eb)',
-                    color: isToday ? 'var(--accent, #0284c7)' : 'var(--text-1, #111)',
+                    color: isToday ? 'var(--accent, #0284c7)' : 'var(--text)',
                   }}
                 >
                   <div style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 10, opacity: 0.7 }}>
@@ -541,12 +541,13 @@ export function Agenda({
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
             <span className="modal-title">{t(editingBlockId ? 'Editar bloque' : 'Nuevo bloque')}</span>
-            <button className="ico-btn" onClick={closeBlockModal}><X size={18} /></button>
+            <button className="ico-btn" onClick={closeBlockModal} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Día')}</label>
+            <label className="flabel" htmlFor="agenda-f1">{t('Día')}</label>
             <select
+              id="agenda-f1"
               className="finput"
               value={blockForm.day}
               onChange={e => setBlockForm(f => ({ ...f, day: Number(e.target.value) }))}
@@ -559,8 +560,9 @@ export function Agenda({
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">{t('Hora inicio')}</label>
+              <label className="flabel" htmlFor="agenda-f2">{t('Hora inicio')}</label>
               <input
+                id="agenda-f2"
                 type="time"
                 className="finput"
                 value={blockForm.time_start}
@@ -568,8 +570,9 @@ export function Agenda({
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Hora fin')}</label>
+              <label className="flabel" htmlFor="agenda-f3">{t('Hora fin')}</label>
               <input
+                id="agenda-f3"
                 type="time"
                 className="finput"
                 value={blockForm.time_end}
@@ -579,8 +582,9 @@ export function Agenda({
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Asignatura')}</label>
+            <label className="flabel" htmlFor="agenda-f4">{t('Asignatura')}</label>
             <input
+              id="agenda-f4"
               type="text"
               className="finput"
               placeholder={t('Nombre de la asignatura')}
@@ -590,8 +594,9 @@ export function Agenda({
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Aula')}</label>
+            <label className="flabel" htmlFor="agenda-f5">{t('Aula')}</label>
             <input
+              id="agenda-f5"
               type="text"
               className="finput"
               placeholder={t('Ej: Aula 301')}
@@ -602,8 +607,9 @@ export function Agenda({
 
           {classes.length > 0 && (
             <div className="fgroup">
-              <label className="flabel">{t('Clase')}</label>
+              <label className="flabel" htmlFor="agenda-f6">{t('Clase')}</label>
               <select
+                id="agenda-f6"
                 className="finput"
                 value={blockForm.class_id}
                 onChange={e => handleBlockClassChange(e.target.value)}
@@ -618,16 +624,19 @@ export function Agenda({
           <div className="fgroup">
             <label className="flabel">{t('Color')}</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {PALETTE.map(color => (
+              {PALETTE.map((color, i) => (
                 <button
                   key={color}
+                  type="button"
+                  aria-label={t('Color {n}', { n: i + 1 })}
+                  aria-pressed={blockForm.color === color}
                   onClick={() => setBlockForm(f => ({ ...f, color }))}
                   style={{
                     width: 28,
                     height: 28,
                     borderRadius: '50%',
                     background: color,
-                    border: blockForm.color === color ? '3px solid var(--text-1, #111)' : '3px solid transparent',
+                    border: blockForm.color === color ? '3px solid var(--text)' : '3px solid transparent',
                     cursor: 'pointer',
                     padding: 0,
                   }}
@@ -654,12 +663,13 @@ export function Agenda({
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
             <span className="modal-title">{t(editingEventId ? 'Editar evento' : 'Nuevo evento')}</span>
-            <button className="ico-btn" onClick={closeEventModal}><X size={18} /></button>
+            <button className="ico-btn" onClick={closeEventModal} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Nombre')}</label>
+            <label className="flabel" htmlFor="agenda-f7">{t('Nombre')}</label>
             <input
+              id="agenda-f7"
               type="text"
               className="finput"
               placeholder={t('Nombre del evento')}
@@ -670,8 +680,9 @@ export function Agenda({
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">{t('Fecha')}</label>
+              <label className="flabel" htmlFor="agenda-f8">{t('Fecha')}</label>
               <input
+                id="agenda-f8"
                 type="date"
                 className="finput"
                 value={eventForm.date}
@@ -679,8 +690,9 @@ export function Agenda({
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Hora')}</label>
+              <label className="flabel" htmlFor="agenda-f9">{t('Hora')}</label>
               <input
+                id="agenda-f9"
                 type="time"
                 className="finput"
                 value={eventForm.time}
@@ -691,8 +703,9 @@ export function Agenda({
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">{t('Tipo')}</label>
+              <label className="flabel" htmlFor="agenda-f10">{t('Tipo')}</label>
               <select
+                id="agenda-f10"
                 className="finput"
                 value={eventForm.type}
                 onChange={e => setEventForm(f => ({ ...f, type: e.target.value as CalEvent['type'] }))}
@@ -703,8 +716,9 @@ export function Agenda({
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Urgencia')}</label>
+              <label className="flabel" htmlFor="agenda-f11">{t('Urgencia')}</label>
               <select
+                id="agenda-f11"
                 className="finput"
                 value={eventForm.urgency}
                 onChange={e => setEventForm(f => ({ ...f, urgency: e.target.value as CalEvent['urgency'] }))}
@@ -719,16 +733,19 @@ export function Agenda({
           <div className="fgroup">
             <label className="flabel">{t('Color')}</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {PALETTE.map(color => (
+              {PALETTE.map((color, i) => (
                 <button
                   key={color}
+                  type="button"
+                  aria-label={t('Color {n}', { n: i + 1 })}
+                  aria-pressed={eventForm.color === color}
                   onClick={() => setEventForm(f => ({ ...f, color }))}
                   style={{
                     width: 28,
                     height: 28,
                     borderRadius: '50%',
                     background: color,
-                    border: eventForm.color === color ? '3px solid var(--text-1, #111)' : '3px solid transparent',
+                    border: eventForm.color === color ? '3px solid var(--text)' : '3px solid transparent',
                     cursor: 'pointer',
                     padding: 0,
                   }}
@@ -738,8 +755,9 @@ export function Agenda({
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Descripción')}</label>
+            <label className="flabel" htmlFor="agenda-f12">{t('Descripción')}</label>
             <textarea
+              id="agenda-f12"
               className="finput"
               placeholder={t('Descripción opcional…')}
               rows={3}

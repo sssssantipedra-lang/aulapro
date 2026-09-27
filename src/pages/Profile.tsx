@@ -165,11 +165,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             <div className="card-ttl"><Pencil size={14} color="var(--accent-d)" />{t('Editar datos')}</div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div className="fgroup"><label className="flabel">{t('Nombre')}</label><input className="finput" value={nombre} onChange={e => setNombre(e.target.value)} /></div>
-            <div className="fgroup"><label className="flabel">{t('Apellidos')}</label><input className="finput" value={apell} onChange={e => setApell(e.target.value)} /></div>
-            <div className="fgroup"><label className="flabel">{t('Centro educativo')}</label><input className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder={t('Ej: IES Ejemplo')} /></div>
-            <div className="fgroup"><label className="flabel">{t('Especialidad')}</label><input className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder={t('Ej: Matemáticas')} /></div>
-            <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel">{t('Curso escolar')}</label><input className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f1">{t('Nombre')}</label><input id="profile-f1" className="finput" value={nombre} onChange={e => setNombre(e.target.value)} /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f2">{t('Apellidos')}</label><input id="profile-f2" className="finput" value={apell} onChange={e => setApell(e.target.value)} /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f3">{t('Centro educativo')}</label><input id="profile-f3" className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder={t('Ej: IES Ejemplo')} /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f4">{t('Especialidad')}</label><input id="profile-f4" className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder={t('Ej: Matemáticas')} /></div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="profile-f5">{t('Curso escolar')}</label><input id="profile-f5" className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
           </div>
           <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
             <button className="btn-accent" onClick={saveProfile}>{t('Guardar cambios')}</button>
@@ -322,19 +322,19 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           <form onSubmit={submitSetOrChangePassword} style={{ maxWidth: 360 }}>
             {hasPassword && (
               <div className="fgroup">
-                <label className="flabel">{t('Contraseña actual')}</label>
-                <input className="finput" type="password" autoFocus value={secCurrent}
+                <label className="flabel" htmlFor="profile-f6">{t('Contraseña actual')}</label>
+                <input id="profile-f6" className="finput" type="password" autoFocus value={secCurrent}
                   onChange={e => { setSecCurrent(e.target.value); if (secError) setSecError(''); }} />
               </div>
             )}
             <div className="fgroup">
-              <label className="flabel">{t('Contraseña nueva')}</label>
-              <input className="finput" type="password" autoFocus={!hasPassword} value={secNew}
+              <label className="flabel" htmlFor="profile-f7">{t('Contraseña nueva')}</label>
+              <input id="profile-f7" className="finput" type="password" autoFocus={!hasPassword} value={secNew}
                 onChange={e => { setSecNew(e.target.value); if (secError) setSecError(''); }} />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Repite la contraseña')}</label>
-              <input className="finput" type="password" value={secRepeat}
+              <label className="flabel" htmlFor="profile-f8">{t('Repite la contraseña')}</label>
+              <input id="profile-f8" className="finput" type="password" value={secRepeat}
                 onChange={e => { setSecRepeat(e.target.value); if (secError) setSecError(''); }} />
             </div>
             {secError && <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{secError}</div>}
@@ -353,8 +353,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
               {t('A partir de ahora cualquiera podrá elegir este perfil desde la pantalla de inicio sin que se le pida nada.')}
             </p>
             <div className="fgroup">
-              <label className="flabel">{t('Contraseña actual')}</label>
-              <input className="finput" type="password" autoFocus value={secCurrent}
+              <label className="flabel" htmlFor="profile-f9">{t('Contraseña actual')}</label>
+              <input id="profile-f9" className="finput" type="password" autoFocus value={secCurrent}
                 onChange={e => { setSecCurrent(e.target.value); if (secError) setSecError(''); }} />
             </div>
             {secError && <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{secError}</div>}

@@ -113,6 +113,9 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 /* ─── SIDEBAR ─── */
 .sidebar { width:var(--sb-w); min-height:100vh; background:var(--sb-bg); display:flex; flex-direction:column; flex-shrink:0; transition:width var(--t); overflow:hidden; position:sticky; top:0; height:100vh; }
 .sidebar.mini { width:var(--sb-w-min); }
+/* Pantallas estrechas: el menú abierto flota sobre el contenido */
+.sidebar.overlay { position:fixed; left:0; top:0; z-index:60; box-shadow:8px 0 32px rgba(0,0,0,0.35); }
+.sb-backdrop { position:fixed; inset:0; z-index:55; background:rgba(15,23,42,0.35); }
 .sb-logo { display:flex; align-items:center; gap:11px; padding:18px 14px 12px; flex-shrink:0; }
 .sidebar.mini .sb-logo { justify-content:center; padding:18px 0 12px; }
 .sb-logo-box { width:34px; height:34px; background:linear-gradient(135deg,var(--accent-d),var(--accent)); border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 12px rgba(var(--accent-rgb),0.3); }
@@ -149,6 +152,12 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 @keyframes livePulse { 0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(16,185,129,0.5); } 50% { opacity:0.65; box-shadow:0 0 0 4px rgba(16,185,129,0); } }
 
 /* ─── TARJETAS QUE ROTAN EN EL INICIO ─── */
+/* Inicio: se reordena solo en ventanas estrechas en vez de desbordarse */
+.dash-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.dash-main { display:grid; grid-template-columns:1fr 1fr 280px; gap:16px; }
+@media (max-width:1180px) { .dash-main { grid-template-columns:1fr 1fr; } }
+@media (max-width:860px) { .dash-stats { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:700px) { .dash-main { grid-template-columns:1fr; } }
 .dash-panel { opacity:0; transform:translateY(6px); transition:opacity 0.42s ease, transform 0.42s ease; }
 .dash-panel.on { opacity:1; transform:translateY(0); }
 @media (prefers-reduced-motion: reduce) { .dash-panel { transition:none; } }

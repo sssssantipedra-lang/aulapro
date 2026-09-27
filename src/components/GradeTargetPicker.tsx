@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { BookOpen } from 'lucide-react';
 import type { Class, GradeCategory, GradeTarget } from '../types';
 import { useI18n } from '../i18n';
@@ -19,6 +20,7 @@ interface Props {
  */
 export function GradeTargetPicker({ value, onChange, classes, gradeCategories }: Props) {
   const { t } = useI18n();
+  const uid = useId();
   const cls = classes.find(c => c.id === value.class_id);
   const subjects = cls?.subjects?.length ? cls.subjects : cls ? [cls.subject] : [];
   const subject = value.subject && subjects.includes(value.subject) ? value.subject : subjects[0];
@@ -49,8 +51,8 @@ export function GradeTargetPicker({ value, onChange, classes, gradeCategories }:
 
       <div className="frow">
         <div className="fgroup">
-          <label className="flabel">{t('Clase')}</label>
-          <select className="finput" value={value.class_id ?? ''} style={{ cursor: 'pointer' }}
+          <label className="flabel" htmlFor={`${uid}-clase`}>{t('Clase')}</label>
+          <select id={`${uid}-clase`} className="finput" value={value.class_id ?? ''} style={{ cursor: 'pointer' }}
             onChange={e => pickClass(e.target.value)}>
             <option value="">{t('Sin clase (solo historial)')}</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -59,8 +61,8 @@ export function GradeTargetPicker({ value, onChange, classes, gradeCategories }:
 
         {subjects.length > 1 && (
           <div className="fgroup">
-            <label className="flabel">{t('Asignatura')}</label>
-            <select className="finput" value={subject ?? ''} style={{ cursor: 'pointer' }}
+            <label className="flabel" htmlFor={`${uid}-asig`}>{t('Asignatura')}</label>
+            <select id={`${uid}-asig`} className="finput" value={subject ?? ''} style={{ cursor: 'pointer' }}
               onChange={e => onChange({ ...value, subject: e.target.value, category_id: undefined })}>
               {subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -70,13 +72,13 @@ export function GradeTargetPicker({ value, onChange, classes, gradeCategories }:
 
       {value.class_id && (
         <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel">{t('Categoría del cuaderno')}</label>
+          <label className="flabel" htmlFor={`${uid}-cat`}>{t('Categoría del cuaderno')}</label>
           {cats.length === 0 ? (
             <p style={{ fontSize: 12.5, color: 'var(--warn)', lineHeight: 1.5, margin: 0 }}>
               {t('Esta asignatura todavía no tiene categorías en el cuaderno. Crea una (Exámenes, Trabajos…) y vuelve aquí; mientras tanto la evaluación se guardará solo en el historial.')}
             </p>
           ) : (
-            <select className="finput" value={value.category_id ?? ''} style={{ cursor: 'pointer' }}
+            <select id={`${uid}-cat`} className="finput" value={value.category_id ?? ''} style={{ cursor: 'pointer' }}
               onChange={e => onChange({ ...value, subject, category_id: e.target.value || undefined })}>
               <option value="">{t('Solo el historial, no el cuaderno')}</option>
               {cats.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}

@@ -201,7 +201,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
               {t('La IA lee tu horario y crea los bloques por ti')}
             </p>
           </div>
-          <button className="ico-btn" onClick={() => { if (!busy) { reset(); onClose(); } }}><X size={18} /></button>
+          <button className="ico-btn" onClick={() => { if (!busy) { reset(); onClose(); } }} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         {!hasApiKey() ? (

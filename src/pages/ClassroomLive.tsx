@@ -323,8 +323,8 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
             {kind === 'rubric' ? (
               <>
                 <div className="fgroup">
-                  <label className="flabel">{t('¿Con qué se autoevalúan?')}</label>
-                  <select className="finput" value={sourceId} onChange={e => setSourceId(e.target.value)} style={{ cursor: 'pointer' }}>
+                  <label className="flabel" htmlFor="classroomlive-f1">{t('¿Con qué se autoevalúan?')}</label>
+                  <select id="classroomlive-f1" className="finput" value={sourceId} onChange={e => setSourceId(e.target.value)} style={{ cursor: 'pointer' }}>
                     <option value="">{t('Elige una rúbrica o diana…')}</option>
                     {rubrics.length > 0 && (
                       <optgroup label={t('Rúbricas')}>
@@ -348,21 +348,21 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                   </div>
                 )}
                 <div className="fgroup">
-                  <label className="flabel">{t('Instrucción para el alumno (opcional)')}</label>
-                  <input className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
+                  <label className="flabel" htmlFor="classroomlive-f2">{t('Instrucción para el alumno (opcional)')}</label>
+                  <input id="classroomlive-f2" className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
                     placeholder={t('Ej: Piensa en cómo has trabajado hoy con tu grupo.')} />
                 </div>
               </>
             ) : (
               <>
                 <div className="fgroup">
-                  <label className="flabel">{t(kind === 'poll' ? 'Pregunta' : 'Tema')}</label>
-                  <input className="finput" value={title} onChange={e => setTitle(e.target.value)}
+                  <label className="flabel" htmlFor="classroomlive-f3">{t(kind === 'poll' ? 'Pregunta' : 'Tema')}</label>
+                  <input id="classroomlive-f3" className="finput" value={title} onChange={e => setTitle(e.target.value)}
                     placeholder={t(kind === 'poll' ? 'Ej: ¿Qué hemos entendido mejor?' : 'Ej: ¿Qué sabemos sobre los ecosistemas?')} />
                 </div>
                 <div className="fgroup">
-                  <label className="flabel">{t('Aclaración (opcional)')}</label>
-                  <input className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
+                  <label className="flabel" htmlFor="classroomlive-f4">{t('Aclaración (opcional)')}</label>
+                  <input id="classroomlive-f4" className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
                     placeholder={t('Una frase que les oriente')} />
                 </div>
                 {kind === 'poll' && (
@@ -377,7 +377,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                           <input className="finput" value={o} style={{ flex: 1 }}
                             onChange={e => setOptions(prev => prev.map((x, j) => j === i ? e.target.value : x))} />
                           {options.length > 2 && (
-                            <button className="ico-btn" onClick={() => setOptions(prev => prev.filter((_, j) => j !== i))}>
+                            <button className="ico-btn" onClick={() => setOptions(prev => prev.filter((_, j) => j !== i))} aria-label={t('Quitar opción')} title={t('Quitar opción')}>
                               <Trash2 size={14} color="var(--danger)" />
                             </button>
                           )}

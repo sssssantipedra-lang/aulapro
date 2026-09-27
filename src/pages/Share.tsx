@@ -306,8 +306,9 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
               />
             ) : (
               <div>
-                <label className="flabel">{t('Escribe el código que te han dado')}</label>
+                <label className="flabel" htmlFor="share-f1">{t('Escribe el código que te han dado')}</label>
                 <input
+                  id="share-f1"
                   className="finput"
                   value={codeInput}
                   onChange={e => setCodeInput(normalizeCode(e.target.value))}

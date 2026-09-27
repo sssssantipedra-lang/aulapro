@@ -328,8 +328,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
         </div>
 
         <div className="fgroup">
-          <label className="flabel">{t('Tema de la ficha')} *</label>
+          <label className="flabel" htmlFor="resources-f1">{t('Tema de la ficha')} *</label>
           <input
+            id="resources-f1"
             className="finput" value={tema} onChange={e => setTema(e.target.value)}
             placeholder={t('Ej: las fracciones equivalentes')}
           />
@@ -337,29 +338,31 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
 
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Clase')}</label>
-            <select className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
+            <label className="flabel" htmlFor="resources-f2">{t('Clase')}</label>
+            <select id="resources-f2" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
               <option value="">{t('Sin clase concreta')}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Área o asignatura')}</label>
-            <input className="finput" value={area} onChange={e => setArea(e.target.value)} />
+            <label className="flabel" htmlFor="resources-f3">{t('Área o asignatura')}</label>
+            <input id="resources-f3" className="finput" value={area} onChange={e => setArea(e.target.value)} />
           </div>
         </div>
 
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Nivel o curso')}</label>
+            <label className="flabel" htmlFor="resources-f4">{t('Nivel o curso')}</label>
             <input
+              id="resources-f4"
               className="finput" value={nivel} onChange={e => setNivel(e.target.value)}
               placeholder={t('Ej: 5º de Primaria')}
             />
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Nº de ejercicios')}</label>
+            <label className="flabel" htmlFor="resources-f5">{t('Nº de ejercicios')}</label>
             <input
+              id="resources-f5"
               className="finput" type="number" min={1} max={20} value={numEjercicios}
               onChange={e => setNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
             />
@@ -367,8 +370,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
         </div>
 
         <div className="fgroup">
-          <label className="flabel">{t('Cómo es el grupo (opcional)')}</label>
+          <label className="flabel" htmlFor="resources-f6">{t('Cómo es el grupo (opcional)')}</label>
           <textarea
+            id="resources-f6"
             className="finput" rows={2} value={contextoClase}
             onChange={e => setContextoClase(e.target.value)}
             style={{ resize: 'vertical' }}
@@ -434,8 +438,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
           })()}
 
           <div className="fgroup">
-            <label className="flabel">{t('Título')}</label>
-            <input className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
+            <label className="flabel" htmlFor="resources-f7">{t('Título')}</label>
+            <input id="resources-f7" className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
           </div>
 
           <div style={{
@@ -460,8 +464,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Instrucciones')}</label>
+            <label className="flabel" htmlFor="resources-f8">{t('Instrucciones')}</label>
             <textarea
+              id="resources-f8"
               className="finput" rows={2} value={content.instrucciones ?? ''}
               onChange={e => patch('instrucciones', e.target.value)}
               style={{ resize: 'vertical' }}

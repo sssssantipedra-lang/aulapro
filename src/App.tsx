@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
 import { useP2PSync } from './hooks/useP2PSync';
+import { useNarrowScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
@@ -51,6 +52,11 @@ function AppInner() {
 
   const [section, setSection]         = useState<Section>('dashboard');
   const [sidebarMini, setSidebarMini] = useState(false);
+  // En pantallas estrechas el menú va plegado a iconos y se abre por encima
+  const narrow = useNarrowScreen();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuOverlay = narrow && menuOpen;
+  const menuMini = narrow ? !menuOpen : sidebarMini;
   const [showAddTask, setShowAddTask] = useState(false);
   const [taskText, setTaskText]       = useState('');
   const [taskPri, setTaskPri]         = useState<'high'|'medium'|'low'>('medium');
@@ -115,7 +121,7 @@ function AppInner() {
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowAddTask(false);
+      if (e.key === 'Escape') { setShowAddTask(false); setMenuOpen(false); }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
@@ -159,15 +165,24 @@ function AppInner() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar
-        mini={sidebarMini}
-        onToggle={() => setSidebarMini(v => !v)}
+        mini={menuMini}
+        overlay={menuOverlay}
+        onToggle={() => (narrow ? setMenuOpen(v => !v) : setSidebarMini(v => !v))}
         current={section}
-        onNav={setSection}
+        onNav={s => { setSection(s); setMenuOpen(false); }}
         user={st.currentUser}
         sharing={session.connected}
         saving={st.saving}
         onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
       />
+
+      {menuOverlay && (
+        <>
+          {/* Ocupa el hueco del menú plegado para que el contenido no salte */}
+          <div style={{ width: 'var(--sb-w-min)', flexShrink: 0 }} />
+          <div className="sb-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+        </>
+      )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <main style={{ flex: 1, overflow: 'auto' }}>
@@ -439,17 +454,17 @@ function AppInner() {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
             <div className="modal-title">{t('Nueva tarea')}</div>
-            <button className="ico-btn" onClick={() => setShowAddTask(false)}><X size={17} /></button>
+            <button className="ico-btn" onClick={() => setShowAddTask(false)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={17} /></button>
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Descripción')}</label>
-            <input className="finput" value={taskText} onChange={e => setTaskText(e.target.value)} placeholder={t('Ej: Corregir exámenes 3º ESO A')}
+            <label className="flabel" htmlFor="app-f1">{t('Descripción')}</label>
+            <input id="app-f1" className="finput" value={taskText} onChange={e => setTaskText(e.target.value)} placeholder={t('Ej: Corregir exámenes 3º ESO A')}
               onKeyDown={e => { if (e.key === 'Enter') submitTask(); }}
             />
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Prioridad')}</label>
-            <select className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as 'high' | 'medium' | 'low')} style={{ cursor: 'pointer' }}>
+            <label className="flabel" htmlFor="app-f2">{t('Prioridad')}</label>
+            <select id="app-f2" className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as 'high' | 'medium' | 'low')} style={{ cursor: 'pointer' }}>
               <option value="high">{priorityLabel('high', lang)}</option>
               <option value="medium">{priorityLabel('medium', lang)}</option>
               <option value="low">{priorityLabel('low', lang)}</option>

@@ -185,8 +185,9 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
         {draft && (
           <>
             <div className="fgroup">
-              <label className="flabel">{esReunion ? t('Asunto de la reunión') : t('Nombre de la formación')}</label>
+              <label className="flabel" htmlFor="worksessions-f1">{esReunion ? t('Asunto de la reunión') : t('Nombre de la formación')}</label>
               <input
+                id="worksessions-f1"
                 className="finput" value={draft.title} autoFocus
                 onChange={e => patch({ title: e.target.value })}
                 placeholder={esReunion ? t('Ej: Claustro de octubre') : t('Ej: Evaluación competencial en secundaria')}
@@ -195,21 +196,22 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
               <div className="fgroup">
-                <label className="flabel">{t('Fecha')}</label>
-                <input className="finput" type="date" value={draft.date} onChange={e => patch({ date: e.target.value })} />
+                <label className="flabel" htmlFor="worksessions-f2">{t('Fecha')}</label>
+                <input id="worksessions-f2" className="finput" type="date" value={draft.date} onChange={e => patch({ date: e.target.value })} />
               </div>
               <div className="fgroup">
-                <label className="flabel">{t('Hora de inicio')}</label>
-                <input className="finput" type="time" value={draft.timeStart ?? ''} onChange={e => patch({ timeStart: e.target.value })} />
+                <label className="flabel" htmlFor="worksessions-f3">{t('Hora de inicio')}</label>
+                <input id="worksessions-f3" className="finput" type="time" value={draft.timeStart ?? ''} onChange={e => patch({ timeStart: e.target.value })} />
               </div>
               <div className="fgroup">
-                <label className="flabel">{t('Hora de fin')}</label>
-                <input className="finput" type="time" value={draft.timeEnd ?? ''} onChange={e => patch({ timeEnd: e.target.value })} />
+                <label className="flabel" htmlFor="worksessions-f4">{t('Hora de fin')}</label>
+                <input id="worksessions-f4" className="finput" type="time" value={draft.timeEnd ?? ''} onChange={e => patch({ timeEnd: e.target.value })} />
               </div>
               {!esReunion && (
                 <div className="fgroup">
-                  <label className="flabel">{t('Horas certificadas')}</label>
+                  <label className="flabel" htmlFor="worksessions-f5">{t('Horas certificadas')}</label>
                   <input
+                    id="worksessions-f5"
                     className="finput" type="number" min={0} step={1} value={draft.hours ?? ''}
                     onChange={e => patch({ hours: e.target.value === '' ? undefined : Number(e.target.value) })}
                   />
@@ -219,16 +221,18 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               <div className="fgroup">
-                <label className="flabel">{esReunion ? t('Convoca') : t('Entidad y ponente')}</label>
+                <label className="flabel" htmlFor="worksessions-f6">{esReunion ? t('Convoca') : t('Entidad y ponente')}</label>
                 <input
+                  id="worksessions-f6"
                   className="finput" value={draft.organizer ?? ''}
                   onChange={e => patch({ organizer: e.target.value })}
                   placeholder={esReunion ? t('Ej: Jefatura de estudios') : t('Ej: CEFIRE · Marta Ruiz')}
                 />
               </div>
               <div className="fgroup">
-                <label className="flabel">{t('Lugar')}</label>
+                <label className="flabel" htmlFor="worksessions-f7">{t('Lugar')}</label>
                 <input
+                  id="worksessions-f7"
                   className="finput" value={draft.place ?? ''}
                   onChange={e => patch({ place: e.target.value })}
                   placeholder={esReunion ? t('Ej: Sala de profesores') : t('Ej: En línea')}
@@ -238,8 +242,9 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
 
             {esReunion && (
               <div className="fgroup">
-                <label className="flabel">{t('Asistentes')}</label>
+                <label className="flabel" htmlFor="worksessions-f8">{t('Asistentes')}</label>
                 <input
+                  id="worksessions-f8"
                   className="finput" value={draft.attendees ?? ''}
                   onChange={e => patch({ attendees: e.target.value })}
                   placeholder={t('Ej: equipo docente de 1º ESO, orientación')}
@@ -248,8 +253,9 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
             )}
 
             <div className="fgroup">
-              <label className="flabel">{t('Anotaciones')}</label>
+              <label className="flabel" htmlFor="worksessions-f9">{t('Anotaciones')}</label>
               <textarea
+                id="worksessions-f9"
                 className="finput" rows={10} value={draft.notes}
                 onChange={e => patch({ notes: e.target.value })}
                 placeholder={esReunion
@@ -412,12 +418,12 @@ function SessionDetail({ session, onClose, onEdit, onSave, onDelete }: {
         {editing && (
           <>
             <div className="fgroup">
-              <label className="flabel">{t('Título')}</label>
-              <input className="finput" value={editing.titulo} onChange={e => patchDoc({ titulo: e.target.value })} />
+              <label className="flabel" htmlFor="worksessions-f10">{t('Título')}</label>
+              <input id="worksessions-f10" className="finput" value={editing.titulo} onChange={e => patchDoc({ titulo: e.target.value })} />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Resumen')}</label>
-              <textarea className="finput" rows={3} value={editing.resumen}
+              <label className="flabel" htmlFor="worksessions-f11">{t('Resumen')}</label>
+              <textarea id="worksessions-f11" className="finput" rows={3} value={editing.resumen}
                 onChange={e => patchDoc({ resumen: e.target.value })} style={{ resize: 'vertical' }} />
             </div>
 
@@ -456,8 +462,8 @@ function SessionDetail({ session, onClose, onEdit, onSave, onDelete }: {
             )}
 
             <div className="fgroup">
-              <label className="flabel">{esReunion ? t('Cierre') : t('Valoración')}</label>
-              <textarea className="finput" rows={3} value={editing.cierre}
+              <label className="flabel" htmlFor="worksessions-f12">{esReunion ? t('Cierre') : t('Valoración')}</label>
+              <textarea id="worksessions-f12" className="finput" rows={3} value={editing.cierre}
                 onChange={e => patchDoc({ cierre: e.target.value })} style={{ resize: 'vertical' }} />
             </div>
 

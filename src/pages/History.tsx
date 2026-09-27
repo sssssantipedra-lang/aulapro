@@ -209,6 +209,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               <select
                 className="finput"
                 value={filterClassId}
+                aria-label={t('Clase')}
                 onChange={e => handleClassFilter(e.target.value)}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
@@ -227,6 +228,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               <select
                 className="finput"
                 value={filterStudentId}
+                aria-label={t('Alumno')}
                 onChange={e => { setFilterStudentId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
@@ -245,6 +247,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               <select
                 className="finput"
                 value={filterRubricId}
+                aria-label={t('Instrumento')}
                 onChange={e => { setFilterRubricId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >

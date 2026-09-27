@@ -221,6 +221,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
               </button>
               <input
                 className="finput" type="date" value={date} onChange={e => setDate(e.target.value)}
+                aria-label={t('Fecha')}
                 style={{ width: 160, flex: 'none', height: 38 }}
               />
               <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={() => setDate(isoDate())}>

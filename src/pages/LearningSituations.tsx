@@ -56,8 +56,9 @@ function Field({
 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
   return (
     <div className="fgroup">
-      <label className="flabel">{label}</label>
+      <label className="flabel" htmlFor="learningsituations-f1">{label}</label>
       <textarea
+        id="learningsituations-f1"
         className="finput" rows={rows} value={value ?? ''}
         onChange={e => onChange(e.target.value)}
         style={{ resize: 'vertical' }}
@@ -487,8 +488,9 @@ export function LearningSituations({
         </div>
 
         <div className="fgroup">
-          <label className="flabel">{t('Idea de la situación de aprendizaje')} *</label>
+          <label className="flabel" htmlFor="learningsituations-f2">{t('Idea de la situación de aprendizaje')} *</label>
           <textarea
+            id="learningsituations-f2"
             className="finput" rows={3} value={idea}
             onChange={e => setIdea(e.target.value)}
             placeholder={t('Ej: un mercado sostenible en el patio para trabajar los residuos del centro')}
@@ -498,15 +500,16 @@ export function LearningSituations({
 
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Clase')}</label>
-            <select className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
+            <label className="flabel" htmlFor="learningsituations-f3">{t('Clase')}</label>
+            <select id="learningsituations-f3" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
               <option value="">{t('Sin clase concreta')}</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Nivel o curso')}</label>
+            <label className="flabel" htmlFor="learningsituations-f4">{t('Nivel o curso')}</label>
             <input
+              id="learningsituations-f4"
               className="finput" value={nivel}
               onChange={e => { setNivel(e.target.value); setNivelAuto(false); }}
               placeholder={t('Ej: 5º de Primaria')}
@@ -522,8 +525,8 @@ export function LearningSituations({
         */}
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Etapa (currículo oficial)')}</label>
-            <select className="finput" value={etapa} onChange={e => onEtapaChange(e.target.value as Etapa | '')}>
+            <label className="flabel" htmlFor="learningsituations-f5">{t('Etapa (currículo oficial)')}</label>
+            <select id="learningsituations-f5" className="finput" value={etapa} onChange={e => onEtapaChange(e.target.value as Etapa | '')}>
               <option value="">{t('Sin especificar')}</option>
               <option value="primaria">{t('Primaria')}</option>
               <option value="eso">{t('ESO')}</option>
@@ -531,8 +534,9 @@ export function LearningSituations({
           </div>
           {etapa && (
             <div className="fgroup">
-              <label className="flabel">{t('Curso')}</label>
+              <label className="flabel" htmlFor="learningsituations-f6">{t('Curso')}</label>
               <select
+                id="learningsituations-f6"
                 className="finput" value={curso}
                 onChange={e => onCursoChange(e.target.value ? Number(e.target.value) : '')}
               >
@@ -607,12 +611,13 @@ export function LearningSituations({
 
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Nº de la SdA')}</label>
-            <input className="finput" value={numero} onChange={e => setNumero(e.target.value)} />
+            <label className="flabel" htmlFor="learningsituations-f7">{t('Nº de la SdA')}</label>
+            <input id="learningsituations-f7" className="finput" value={numero} onChange={e => setNumero(e.target.value)} />
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Nº de sesiones')}</label>
+            <label className="flabel" htmlFor="learningsituations-f8">{t('Nº de sesiones')}</label>
             <input
+              id="learningsituations-f8"
               className="finput" type="number" min={1} max={40} value={numSesiones}
               onChange={e => setNumSesiones(Math.max(1, Math.min(40, Number(e.target.value) || 1)))}
             />
@@ -621,15 +626,17 @@ export function LearningSituations({
 
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Temporalización')}</label>
+            <label className="flabel" htmlFor="learningsituations-f9">{t('Temporalización')}</label>
             <input
+              id="learningsituations-f9"
               className="finput" value={temporalizacion} onChange={e => setTemporalizacion(e.target.value)}
               placeholder={t('Ej: 1ª evaluación')}
             />
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Meses')}</label>
+            <label className="flabel" htmlFor="learningsituations-f10">{t('Meses')}</label>
             <input
+              id="learningsituations-f10"
               className="finput" value={meses} onChange={e => setMeses(e.target.value)}
               placeholder={t('Ej: octubre y noviembre')}
             />
@@ -716,8 +723,8 @@ export function LearningSituations({
           </div>
 
           <div className="fgroup">
-            <label className="flabel">{t('Título')}</label>
-            <input className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
+            <label className="flabel" htmlFor="learningsituations-f11">{t('Título')}</label>
+            <input id="learningsituations-f11" className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
           </div>
 
           <Field label={t('Justificación')} value={content.justificacion} onChange={v => patch('justificacion', v)} />
@@ -953,23 +960,24 @@ export function LearningSituations({
           </p>
           {content.areas.length > 1 && (
             <div className="fgroup">
-              <label className="flabel">{t('Área')}</label>
-              <select className="finput" value={fichaArea} onChange={e => setFichaArea(e.target.value)}>
+              <label className="flabel" htmlFor="learningsituations-f12">{t('Área')}</label>
+              <select id="learningsituations-f12" className="finput" value={fichaArea} onChange={e => setFichaArea(e.target.value)}>
                 {content.areas.map(a => <option key={a.area} value={a.area}>{a.area}</option>)}
               </select>
             </div>
           )}
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">{t('Nº de ejercicios')}</label>
+              <label className="flabel" htmlFor="learningsituations-f13">{t('Nº de ejercicios')}</label>
               <input
+                id="learningsituations-f13"
                 className="finput" type="number" min={1} max={20} value={fichaNumEjercicios}
                 onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Algo más que quieras que valore (opcional)')}</label>
-              <input className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
+              <label className="flabel" htmlFor="learningsituations-f14">{t('Algo más que quieras que valore (opcional)')}</label>
+              <input id="learningsituations-f14" className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
             </div>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 14 }}>
@@ -1080,24 +1088,24 @@ export function LearningSituations({
           {t('Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta rúbrica aparecerá al instante en el cuaderno, en una columna propia.')}
         </p>
         <div className="fgroup">
-          <label className="flabel">{t('Clase')}</label>
-          <select className="finput" value={rubricClassId} onChange={e => { setRubricClassId(e.target.value); setRubricSubject(''); setRubricCategory(''); }}>
+          <label className="flabel" htmlFor="learningsituations-f15">{t('Clase')}</label>
+          <select id="learningsituations-f15" className="finput" value={rubricClassId} onChange={e => { setRubricClassId(e.target.value); setRubricSubject(''); setRubricCategory(''); }}>
             <option value="">{t('Sin clase (solo historial)')}</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         {rubricSubjects.length > 0 && (
           <div className="fgroup">
-            <label className="flabel">{t('Asignatura')}</label>
-            <select className="finput" value={rubricSubject} onChange={e => { setRubricSubject(e.target.value); setRubricCategory(''); }}>
+            <label className="flabel" htmlFor="learningsituations-f16">{t('Asignatura')}</label>
+            <select id="learningsituations-f16" className="finput" value={rubricSubject} onChange={e => { setRubricSubject(e.target.value); setRubricCategory(''); }}>
               {rubricSubjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
         )}
         {rubricClassId && (
           <div className="fgroup">
-            <label className="flabel">{t('Categoría del cuaderno')}</label>
-            <select className="finput" value={rubricCategory} onChange={e => setRubricCategory(e.target.value)}>
+            <label className="flabel" htmlFor="learningsituations-f17">{t('Categoría del cuaderno')}</label>
+            <select id="learningsituations-f17" className="finput" value={rubricCategory} onChange={e => setRubricCategory(e.target.value)}>
               <option value="">{t('Solo el historial, no el cuaderno')}</option>
               {rubricCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
             </select>
@@ -1115,24 +1123,24 @@ export function LearningSituations({
           {t('Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta diana aparecerá al instante en el cuaderno, en una columna propia.')}
         </p>
         <div className="fgroup">
-          <label className="flabel">{t('Clase')}</label>
-          <select className="finput" value={dianaClassId} onChange={e => { setDianaClassId(e.target.value); setDianaSubject(''); setDianaCategory(''); }}>
+          <label className="flabel" htmlFor="learningsituations-f18">{t('Clase')}</label>
+          <select id="learningsituations-f18" className="finput" value={dianaClassId} onChange={e => { setDianaClassId(e.target.value); setDianaSubject(''); setDianaCategory(''); }}>
             <option value="">{t('Sin clase (solo historial)')}</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         {dianaSubjects.length > 0 && (
           <div className="fgroup">
-            <label className="flabel">{t('Asignatura')}</label>
-            <select className="finput" value={dianaSubject} onChange={e => { setDianaSubject(e.target.value); setDianaCategory(''); }}>
+            <label className="flabel" htmlFor="learningsituations-f19">{t('Asignatura')}</label>
+            <select id="learningsituations-f19" className="finput" value={dianaSubject} onChange={e => { setDianaSubject(e.target.value); setDianaCategory(''); }}>
               {dianaSubjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
         )}
         {dianaClassId && (
           <div className="fgroup">
-            <label className="flabel">{t('Categoría del cuaderno')}</label>
-            <select className="finput" value={dianaCategory} onChange={e => setDianaCategory(e.target.value)}>
+            <label className="flabel" htmlFor="learningsituations-f20">{t('Categoría del cuaderno')}</label>
+            <select id="learningsituations-f20" className="finput" value={dianaCategory} onChange={e => setDianaCategory(e.target.value)}>
               <option value="">{t('Solo el historial, no el cuaderno')}</option>
               {dianaCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
             </select>

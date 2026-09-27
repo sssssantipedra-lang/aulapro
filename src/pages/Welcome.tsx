@@ -192,23 +192,23 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
 
         <form onSubmit={submit}>
           <div className="fgroup">
-            <label className="flabel">{t('Tu nombre *')}</label>
-            <input className="finput" value={name} autoFocus placeholder="Ana García Ruiz"
+            <label className="flabel" htmlFor="welcome-f1">{t('Tu nombre *')}</label>
+            <input id="welcome-f1" className="finput" value={name} autoFocus placeholder="Ana García Ruiz"
               onChange={e => { setName(e.target.value); if (error) setError(''); }} />
           </div>
           <div className="frow fgroup">
             <div>
-              <label className="flabel">{t('Centro educativo')}</label>
-              <input className="finput" value={school} placeholder="IES Ejemplo" onChange={e => setSchool(e.target.value)} />
+              <label className="flabel" htmlFor="welcome-f2">{t('Centro educativo')}</label>
+              <input id="welcome-f2" className="finput" value={school} placeholder="IES Ejemplo" onChange={e => setSchool(e.target.value)} />
             </div>
             <div>
-              <label className="flabel">{t('Especialidad')}</label>
-              <input className="finput" value={subject} placeholder="Matemáticas" onChange={e => setSubject(e.target.value)} />
+              <label className="flabel" htmlFor="welcome-f3">{t('Especialidad')}</label>
+              <input id="welcome-f3" className="finput" value={subject} placeholder="Matemáticas" onChange={e => setSubject(e.target.value)} />
             </div>
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Curso escolar')}</label>
-            <input className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
+            <label className="flabel" htmlFor="welcome-f4">{t('Curso escolar')}</label>
+            <input id="welcome-f4" className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
           </div>
 
           {legacy && profiles.length === 0 && (

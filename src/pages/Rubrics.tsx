@@ -272,7 +272,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               {t(mode === 'ia' ? 'Genera criterios con IA' : 'Define los criterios manualmente')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose}><X size={18} /></button>
+          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         {/* Mode toggle */}
@@ -344,8 +344,8 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'ia' && (
           <div>
             <div className="fgroup">
-              <label className="flabel">{t('Clase (opcional)')}</label>
-              <select className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)}>
+              <label className="flabel" htmlFor="rubrics-f1">{t('Clase (opcional)')}</label>
+              <select id="rubrics-f1" className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)}>
                 <option value="">{t('Sin clase específica')}</option>
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>
@@ -353,8 +353,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Contexto de la actividad *')}</label>
+              <label className="flabel" htmlFor="rubrics-f2">{t('Contexto de la actividad *')}</label>
               <textarea
+                id="rubrics-f2"
                 className="finput"
                 rows={3}
                 placeholder={t('Ej: Presentación oral sobre la Revolución Francesa, 2º ESO...')}
@@ -365,8 +366,8 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
             </div>
             <div className="frow" style={{ marginBottom: 16 }}>
               <div className="fgroup" style={{ marginBottom: 0 }}>
-                <label className="flabel">{t('Número de criterios')}</label>
-                <select className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))}>
+                <label className="flabel" htmlFor="rubrics-f3">{t('Número de criterios')}</label>
+                <select id="rubrics-f3" className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))}>
                   {[3, 4, 5, 6].map(n => <option key={n} value={n}>{t('{n} criterios', { n })}</option>)}
                 </select>
               </div>
@@ -413,8 +414,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'manual' && (
           <div>
             <div className="fgroup">
-              <label className="flabel">{t('Nombre de la rúbrica *')}</label>
+              <label className="flabel" htmlFor="rubrics-f4">{t('Nombre de la rúbrica *')}</label>
               <input
+                id="rubrics-f4"
                 className="finput"
                 placeholder={t('Ej: Exposición oral')}
                 value={manualName}
@@ -707,14 +709,15 @@ function EvalModal({
               {t('Haz clic en el nivel para cada criterio')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose}><X size={18} /></button>
+          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         {/* Class + Student selectors */}
         <div className="frow" style={{ marginBottom: 16 }}>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Clase')}</label>
+            <label className="flabel" htmlFor="rubrics-f5">{t('Clase')}</label>
             <select
+              id="rubrics-f5"
               className="finput"
               value={classId}
               onChange={e => { setClassId(e.target.value); setStudentId(''); }}
@@ -724,8 +727,9 @@ function EvalModal({
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Alumno')}</label>
+            <label className="flabel" htmlFor="rubrics-f6">{t('Alumno')}</label>
             <select
+              id="rubrics-f6"
               className="finput"
               value={studentId}
               onChange={e => setStudentId(e.target.value)}
@@ -1194,7 +1198,7 @@ export function Rubrics({
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
             <div className="modal-title">{t('Eliminar rúbrica')}</div>
-            <button className="ico-btn" onClick={() => setConfirmDeleteId(null)}><X size={18} /></button>
+            <button className="ico-btn" onClick={() => setConfirmDeleteId(null)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20 }}>
             {t('¿Seguro que quieres eliminar esta rúbrica? Las evaluaciones asociadas no se borrarán.')}

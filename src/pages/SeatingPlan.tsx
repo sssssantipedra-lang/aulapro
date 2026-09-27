@@ -523,8 +523,9 @@ export function SeatingPlan({
             {sentados > 0 && (
               <p className="seat-modal-warn">{t('Se sustituirá la distribución actual de {clase}.', { clase: cls?.name ?? '' })}</p>
             )}
-            <label className="flabel">{t('Aspectos a tener en cuenta (opcional)')}</label>
+            <label className="flabel" htmlFor="seatingplan-f1">{t('Aspectos a tener en cuenta (opcional)')}</label>
             <textarea
+              id="seatingplan-f1"
               className="finput" rows={3} style={{ marginBottom: 14, resize: 'vertical' }}
               placeholder={t('p. ej. «Marco y Lucía no deben ir juntos»')}
               value={notasDocente} onChange={e => setNotasDocente(e.target.value)}
@@ -543,15 +544,17 @@ export function SeatingPlan({
       <Modal open={configOpen} onClose={() => setConfigOpen(false)} title={t('Configuración de mesas y roles')} wide>
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel">{t('Nº de mesas')}</label>
+            <label className="flabel" htmlFor="seatingplan-f2">{t('Nº de mesas')}</label>
             <input
+              id="seatingplan-f2"
               className="finput" type="number" min={1} max={12} value={plan.numGroups}
               onChange={e => applyStructure(Number(e.target.value), plan.groupSize)}
             />
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Alumnos por mesa')}</label>
+            <label className="flabel" htmlFor="seatingplan-f3">{t('Alumnos por mesa')}</label>
             <input
+              id="seatingplan-f3"
               className="finput" type="number" min={1} max={8} value={plan.groupSize}
               onChange={e => applyStructure(plan.numGroups, Number(e.target.value))}
             />
@@ -563,12 +566,14 @@ export function SeatingPlan({
             <div key={r.id} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <input
                 className="finput" style={{ maxWidth: 200 }} value={r.name}
+                aria-label={t('Rol {n}', { n: i + 1 })}
                 onChange={e => updateRole(i, { name: e.target.value })}
               />
               <input
                 className="finput" style={{ flex: 1, minWidth: 200 }} value={r.description}
                 onChange={e => updateRole(i, { description: e.target.value })}
                 placeholder={t('Responsabilidad de este rol')}
+                aria-label={t('Responsabilidad de este rol')}
               />
             </div>
           ))}

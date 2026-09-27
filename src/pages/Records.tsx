@@ -296,6 +296,7 @@ export function Records({
           <div style={{ flex: 1 }} />
           <select
             className="finput" value={period} onChange={e => setPeriod(e.target.value)}
+            aria-label={t('Evaluación')}
             style={{ width: 176, height: 38, cursor: 'pointer' }}
           >
             {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}

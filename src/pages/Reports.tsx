@@ -436,6 +436,7 @@ export function Reports(props: Props) {
         <select
           className="finput"
           value={period}
+          aria-label={t('Evaluación')}
           onChange={e => { setPeriod(e.target.value); setSelected(null); }}
           style={{ width: 176, height: 38, cursor: 'pointer' }}
         >
