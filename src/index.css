@@ -363,3 +363,6 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
   .seat-toolbar-spacer { display:none; }
   .seat-select { flex:1; max-width:none; }
 }
+
+/* Aviso de anotaciones recuperables (Reuniones y Formaciones) */
+.autosave-banner { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:13px 16px; margin-bottom:16px; background:var(--accent-l); border:1px solid rgba(var(--accent-rgb),0.35); border-radius:12px; font-size:13px; color:var(--text); }

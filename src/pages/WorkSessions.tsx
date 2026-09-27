@@ -11,10 +11,10 @@
  * máquina (mismo criterio que en las situaciones de aprendizaje).
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Plus, Users2, GraduationCap, Sparkles, FileText, Download, Trash2, Pencil,
-  Calendar, MapPin, Clock, X, Save, ChevronRight, ListChecks,
+  Calendar, MapPin, Clock, X, Save, ChevronRight, ListChecks, History,
 } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
@@ -23,6 +23,10 @@ import { isoDate } from '../lib/utils';
 import { hasApiKey } from '../services/gemini';
 import { generateWorkSessionDoc } from '../services/workSessions';
 import { saveWorkSessionPdf, saveWorkSessionDocx } from '../services/exportWorkSession';
+import { getActiveProfileId } from '../services/storage';
+import {
+  AUTOSAVE_EVERY_MS, writeAutosave, readAutosave, clearAutosave, isWorthRecovering, type Autosave,
+} from '../services/draftAutosave';
 import type { WorkSession, WorkSessionDoc, WorkSessionKind } from '../types';
 
 interface Props {
@@ -74,14 +78,60 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
     setDraft(base ? { ...base } : emptySession(kind));
     setEditando(!!base);
     setFormOpen(true);
+    setAutoSavedAt(null);
   }
 
   function guardarBorrador() {
     if (!draft) return;
     if (!draft.title.trim()) { toast(t('Ponle un título antes de guardar')); return; }
     onSave({ ...draft, title: draft.title.trim(), at: new Date().toISOString() });
+    clearAutosave(profileId, kind);
+    setRecuperable(null);
     toast(t('✅ Guardado'));
     setFormOpen(false);
+  }
+
+  /* ── Autoguardado: una copia cada minuto, que sustituye a la anterior ── */
+  const profileId = getActiveProfileId();
+  const [autoSavedAt, setAutoSavedAt] = useState<string | null>(null);
+  // Lo que había sin guardar la última vez (ventana cerrada sin querer)
+  const [recuperable, setRecuperable] = useState<Autosave | null>(() => {
+    const a = readAutosave(profileId, kind);
+    return a && isWorthRecovering(a, sessions) ? a : null;
+  });
+  // El temporizador y el cierre de ventana leen siempre el borrador actual
+  const latest = useRef({ draft, editando });
+  useEffect(() => { latest.current = { draft, editando }; }, [draft, editando]);
+
+  useEffect(() => {
+    if (!formOpen) return;
+    const guardarCopia = () => {
+      const { draft: d, editando: e } = latest.current;
+      if (!d) return;
+      const at = writeAutosave(profileId, kind, d, e);
+      if (at) setAutoSavedAt(at);
+    };
+    const id = window.setInterval(guardarCopia, AUTOSAVE_EVERY_MS);
+    // Y una última copia si se cierra la ventana o la aplicación a medias
+    window.addEventListener('pagehide', guardarCopia);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('pagehide', guardarCopia);
+    };
+  }, [formOpen, profileId, kind]);
+
+  function recuperar() {
+    if (!recuperable) return;
+    setDraft({ ...recuperable.draft });
+    setEditando(recuperable.editing);
+    setAutoSavedAt(recuperable.savedAt);
+    setFormOpen(true);
+    setRecuperable(null);
+  }
+
+  function descartarCopia() {
+    clearAutosave(profileId, kind);
+    setRecuperable(null);
   }
 
   return (
@@ -112,6 +162,24 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
           </span>
           <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => onNav('profile')}>
             {t('Configurar ahora')}
+          </button>
+        </div>
+      )}
+
+      {recuperable && (
+        <div className="autosave-banner" role="status">
+          <History size={17} style={{ flexShrink: 0 }} aria-hidden="true" />
+          <span style={{ flex: 1, lineHeight: 1.5 }}>
+            {t('Tienes anotaciones sin guardar de «{titulo}» (autoguardado a las {hora}).', {
+              titulo: recuperable.draft.title.trim() || t('sin título'),
+              hora: new Date(recuperable.savedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+            })}
+          </span>
+          <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={recuperar}>
+            {t('Recuperar')}
+          </button>
+          <button className="btn-ghost" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={descartarCopia}>
+            {t('Descartar')}
           </button>
         </div>
       )}
@@ -265,6 +333,11 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
               />
               <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '6px 0 0', lineHeight: 1.5 }}>
                 {t('Cuanto más apuntes, mejor será el documento. La IA no añade nada que no esté aquí.')}
+              </p>
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '4px 0 0' }} aria-live="polite">
+                {autoSavedAt
+                  ? t('Autoguardado a las {hora}', { hora: new Date(autoSavedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })
+                  : t('Se autoguarda cada minuto mientras escribes.')}
               </p>
             </div>
 
