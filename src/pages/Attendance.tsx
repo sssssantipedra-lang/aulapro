@@ -6,6 +6,7 @@ import {
 import type { Class, Student, AttendanceMap, AttendanceStatus } from '../types';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -160,32 +161,18 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
         </div>
       </div>
 
-      {/* Selector de clase */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {classes.map(c => {
-          const on = c.id === clsId;
-          return (
-            <button
-              key={c.id}
-              onClick={() => setClassId(c.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-                background: on ? 'var(--card)' : 'transparent',
-                border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
-                borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-                fontSize: 13, fontWeight: on ? 700 : 500, color: 'var(--text)',
-                transition: 'all 0.18s',
-              }}
-            >
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: c.color }} />
-              {c.name}
-            </button>
-          );
-        })}
-        <div style={{ flex: 1 }} />
+      {/* Barra de controles */}
+      <div className="toolbar">
+        <ClassChips classes={classes} value={clsId} onChange={setClassId} />
+        <span className="toolbar-spacer" />
+        {tab === 'day' && roster.length > 0 && (
+          marked === roster.length
+            ? <span className="seat-pill ok"><Check size={13} aria-hidden="true" />{t('Lista completa')}</span>
+            : <span className="seat-pill warn">{t('{marked}/{total} marcados', { marked, total: roster.length })}</span>
+        )}
         {tab === 'summary' && (
-          <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={exportCsv} disabled={days.length === 0}>
-            <Download size={13} />{t('Exportar a Excel')}
+          <button className="tb-btn" onClick={exportCsv} disabled={days.length === 0}>
+            <Download size={14} />{t('Exportar a Excel')}
           </button>
         )}
       </div>
@@ -201,9 +188,9 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
         </div>
       ) : tab === 'day' ? (
         <>
-          {/* Fecha */}
-          <div className="card" style={{ padding: '12px 16px', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {/* Lista, con la fecha como cabecera */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="card-bar">
               <button className="ico-btn" onClick={() => setDate(d => shiftDate(d, -1))} title={t('Día anterior')}>
                 <ChevronLeft size={17} />
               </button>
@@ -211,10 +198,9 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                 <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)', textTransform: 'capitalize' }}>
                   {prettyDate(date, locale)}
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
-                  {t('{marked}/{total} marcados', { marked, total: roster.length })}
-                  {date === isoDate() && t(' · hoy')}
-                </div>
+                {date === isoDate() && (
+                  <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{t('Hoy')}</div>
+                )}
               </div>
               <button className="ico-btn" onClick={() => setDate(d => shiftDate(d, 1))} title={t('Día siguiente')}>
                 <ChevronRight size={17} />
@@ -231,10 +217,6 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                 <Check size={14} />{t('Todos presentes')}
               </button>
             </div>
-          </div>
-
-          {/* Lista */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             {roster.map((s, i) => {
               const st = today[s.id];
               const info = st ? STATUS_BY_ID[st] : null;

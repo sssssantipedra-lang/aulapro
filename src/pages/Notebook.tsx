@@ -7,6 +7,7 @@ import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
 import { useI18n } from '../i18n';
+import { ClassChips } from '../components/ui/ClassChips';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 
 interface Props {
@@ -63,9 +64,9 @@ function fmtNota(n: number | null, locale = 'es-ES'): string {
 
 function notaColor(n: number | null): string {
   if (n === null) return 'var(--text-3)';
-  if (n < 5) return '#dc2626';
-  if (n < 7) return '#d97706';
-  return '#047857';
+  if (n < 5) return 'var(--grade-bad)';
+  if (n < 7) return 'var(--grade-mid)';
+  return 'var(--grade-good)';
 }
 
 /* ══════════════════ Celda de nota editable ══════════════════ */
@@ -284,60 +285,31 @@ function GradesTab({
 
   return (
     <>
-      {/* Selector de clase + acciones */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {classes.map(c => (
-          <button
-            key={c.id}
-            onClick={() => setClassId(c.id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-              background: c.id === clsId ? 'var(--card)' : 'transparent',
-              border: `1.5px solid ${c.id === clsId ? c.color : 'var(--border)'}`,
-              borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-              fontSize: 13, fontWeight: c.id === clsId ? 700 : 500, color: 'var(--text)',
-              transition: 'all 0.18s',
-            }}
-          >
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: c.color }} />
-            {c.name}
-          </button>
-        ))}
-        <div style={{ flex: 1 }} />
-        <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={exportCsv} disabled={myItems.length === 0}>
-          <Download size={13} />{t('Exportar a Excel')}
+      {/* Barra de controles: clase, asignatura y exportar, en una sola fila */}
+      <div className="toolbar">
+        <ClassChips classes={classes} value={clsId} onChange={setClassId} />
+        {/* La asignatura solo aparece si esta clase tiene más de una */}
+        {subjects.length > 1 && (
+          <>
+            <span className="toolbar-sep" aria-hidden="true" />
+            <span className="toolbar-label" id="nb-subject-label">{t('Estás evaluando')}</span>
+            <div className="chip-row" role="group" aria-labelledby="nb-subject-label">
+              {subjects.map(s => {
+                const on = s === activeSubject;
+                return (
+                  <button key={s} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setSubject(s)}>
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+        <span className="toolbar-spacer" />
+        <button className="tb-btn" onClick={exportCsv} disabled={myItems.length === 0}>
+          <Download size={14} />{t('Exportar a Excel')}
         </button>
       </div>
-
-      {/* Selector de asignatura: solo aparece si le das más de una a esta clase */}
-      {subjects.length > 1 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16,
-          padding: '11px 14px', background: 'var(--surface)', borderRadius: 12,
-        }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginRight: 2 }}>
-            {t('Estás evaluando')}
-          </span>
-          {subjects.map(s => {
-            const on = s === activeSubject;
-            return (
-              <button
-                key={s}
-                onClick={() => setSubject(s)}
-                style={{
-                  padding: '6px 14px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-                  fontSize: 12.5, fontWeight: on ? 800 : 500,
-                  background: on ? 'var(--card)' : 'transparent',
-                  border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
-                  color: on ? 'var(--accent-d)' : 'var(--text-2)',
-                }}
-              >
-                {s}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {myStudents.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '36px 24px' }}>

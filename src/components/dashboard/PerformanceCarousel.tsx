@@ -42,9 +42,9 @@ function studentAverage(
 }
 
 function colorFor(n: number): string {
-  if (n < 5) return '#dc2626';
-  if (n < 7) return '#d97706';
-  return '#047857';
+  if (n < 5) return 'var(--grade-bad)';
+  if (n < 7) return 'var(--grade-mid)';
+  return 'var(--grade-good)';
 }
 
 /**
