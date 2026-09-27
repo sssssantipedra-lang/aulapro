@@ -64,7 +64,26 @@ const HUECO = 5;        // grados de separación entre pupitres contiguos
  * sepa a qué asiento corresponde el clic, sin tener que reconstruir el SVG
  * como elementos React uno a uno.
  */
-export function buildTableSvg(seats: SeatVisual[], color: string, label: string): string {
+export interface TableSvgOptions {
+  /**
+   * `true` (por defecto, el póster exportado): nombre y rol dentro de cada
+   * pupitre. `false` (la pantalla): solo el número del asiento, porque los
+   * nombres ya se leen en la lista de asientos que acompaña al dibujo y
+   * dentro del abanico no caben sin montarse unos encima de otros.
+   */
+  labels?: boolean;
+  /** Pinta la etiqueta de la mesa bajo el dibujo (la pantalla ya la muestra en la cabecera). */
+  showLabel?: boolean;
+}
+
+/** Tonos neutros de un asiento libre: gris suave, sin discontinuas chillonas. */
+const VACIO_RELLENO = '#f8fafc';
+const VACIO_BORDE = '#cbd5e1';
+
+export function buildTableSvg(
+  seats: SeatVisual[], color: string, label: string,
+  { labels = true, showLabel = true }: TableSvgOptions = {},
+): string {
   const n = Math.max(1, seats.length);
   const segAngle = ARCO_TOTAL / n;
   const piezas: string[] = [];
@@ -84,17 +103,22 @@ export function buildTableSvg(seats: SeatVisual[], color: string, label: string)
       `L ${pOut1.x.toFixed(1)},${pOut1.y.toFixed(1)} ` +
       `L ${pIn1.x.toFixed(1)},${pIn1.y.toFixed(1)} Z`;
 
-    const relleno = seat.studentName ? color : 'var(--surface, #f1f5f9)';
-    const opacidad = seat.studentName ? '0.85' : '0.35';
-    asiento.push(
-      `<path d="${d}" fill="${relleno}" fill-opacity="${opacidad}" stroke="${color}" stroke-width="1.5" stroke-dasharray="${seat.studentName ? 'none' : '4 3'}" />`,
-    );
+    const ocupado = !!seat.studentName;
+    asiento.push(ocupado
+      ? `<path d="${d}" fill="${color}" fill-opacity="0.85" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" />`
+      : `<path d="${d}" fill="${VACIO_RELLENO}" stroke="${VACIO_BORDE}" stroke-width="1.2" stroke-linejoin="round" />`);
 
     // Silla: un círculo justo fuera del borde de la mesa.
     const chair = polar(CX, CY, R2 + 15, mid);
-    asiento.push(`<circle cx="${chair.x.toFixed(1)}" cy="${chair.y.toFixed(1)}" r="9" fill="${color}" fill-opacity="${seat.studentName ? '0.9' : '0.25'}" />`);
+    asiento.push(ocupado
+      ? `<circle cx="${chair.x.toFixed(1)}" cy="${chair.y.toFixed(1)}" r="9" fill="${color}" fill-opacity="0.9" />`
+      : `<circle cx="${chair.x.toFixed(1)}" cy="${chair.y.toFixed(1)}" r="9" fill="#e2e8f0" />`);
 
-    if (seat.studentName) {
+    if (!labels) {
+      // Solo el número del asiento: casa con la lista de asientos de la pantalla.
+      const p = polar(CX, CY, (R1 + R2) / 2 + 14, mid);
+      asiento.push(`<text x="${p.x.toFixed(1)}" y="${(p.y + 5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${ocupado ? '#ffffff' : '#94a3b8'}">${i + 1}</text>`);
+    } else if (seat.studentName) {
       const texto = polar(CX, CY, (R1 + R2) / 2 + 8, mid);
       const lineas = envolver(seat.studentName, 11);
       const nombreY = texto.y - (seat.roleName ? 6 : 0);
@@ -112,7 +136,7 @@ export function buildTableSvg(seats: SeatVisual[], color: string, label: string)
   return (
     `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">` +
     piezas.join('') +
-    `<text x="${CX}" y="${HEIGHT - 2}" text-anchor="middle" font-size="10" font-weight="800" fill="${color}">${esc(label)}</text>` +
+    (showLabel ? `<text x="${CX}" y="${HEIGHT - 2}" text-anchor="middle" font-size="10" font-weight="800" fill="${color}">${esc(label)}</text>` : '') +
     `</svg>`
   );
 }

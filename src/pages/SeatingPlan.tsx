@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from 'react';
 import {
-  Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight,
+  Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical,
 } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap, SeatingPlan, CooperativeRole } from '../types';
 import { seatStudentId } from '../types';
@@ -23,6 +23,7 @@ import { saveSeatingPdf, saveSeatingDocx, roleForSeat, vecesLabel } from '../ser
 import { PALETTE } from '../lib/demoData';
 import { isDesktop } from '../services/storage';
 import { useToast } from '../components/ui/Toast';
+import { Modal } from '../components/ui/Modal';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -82,6 +83,9 @@ export function SeatingPlan({
   const [notasDocente, setNotasDocente] = useState('');
   const [generating, setGenerating] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  /** Asiento (`groupId:índice`) o bandeja (`'tray'`) sobre el que se arrastra ahora mismo. */
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
   /** Alumno elegido en la bandeja de «sin mesa», a la espera de un asiento. */
   const [selected, setSelected] = useState<string | null>(null);
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
@@ -125,19 +129,42 @@ export function SeatingPlan({
     guardar({ ...plan, roles: plan.roles.map((r, i) => (i === index ? { ...r, ...patch } : r)) });
   }
 
-  /* ── Asientos: sentar, quitar o intercambiar con un clic ── */
-  function seatClick(groupId: string, seatIndex: number) {
+  /* ── Asientos: sentar, quitar o intercambiar (clic o arrastrar) ── */
+
+  /**
+   * Sienta a `studentId` en el asiento destino. Si venía de otro asiento y el
+   * destino estaba ocupado, los dos se intercambian; si venía de la bandeja,
+   * quien ocupaba el destino vuelve a la bandeja. Con `to = null` lo levanta.
+   */
+  function moveStudent(studentId: string, to: { groupId: string; seat: number } | null) {
+    let from: { groupId: string; seat: number } | null = null;
+    for (const g of plan.groups) {
+      const i = g.studentIds.indexOf(studentId);
+      if (i >= 0) { from = { groupId: g.id, seat: i }; break; }
+    }
+    if (!from && !to) return;
+    if (from && to && from.groupId === to.groupId && from.seat === to.seat) return;
+    const destGroup = to ? plan.groups.find(g => g.id === to.groupId) : null;
+    const ocupante = destGroup && to ? seatStudentId(destGroup, to.seat) : null;
+
     const groups = plan.groups.map(g => {
-      if (g.id !== groupId) return g;
+      const tocaOrigen = from?.groupId === g.id;
+      const tocaDestino = to?.groupId === g.id;
+      if (!tocaOrigen && !tocaDestino) return g;
       const arr = [...g.studentIds];
-      while (arr.length <= seatIndex) arr.push('');
-      const ocupante = arr[seatIndex] || null;
-      if (selected) arr[seatIndex] = selected; // sentar al elegido (si había alguien, vuelve a la bandeja)
-      else if (ocupante) arr[seatIndex] = '';   // quitar a quien esté
-      else return g;                            // vacío y nada elegido: no hace nada
+      const need = Math.max(tocaDestino && to ? to.seat : 0, tocaOrigen && from ? from.seat : 0);
+      while (arr.length <= need) arr.push('');
+      if (tocaOrigen && from) arr[from.seat] = ocupante ?? '';
+      if (tocaDestino && to) arr[to.seat] = studentId;
       return { ...g, studentIds: arr };
     });
     guardar({ ...plan, groups });
+  }
+
+  /** Con un alumno elegido en la bandeja, sentarlo en ese asiento. */
+  function seatClick(groupId: string, seatIndex: number) {
+    if (!selected) return;
+    moveStudent(selected, { groupId, seat: seatIndex });
     setSelected(null);
   }
 
@@ -145,6 +172,60 @@ export function SeatingPlan({
     const seat = (e.target as HTMLElement).closest('[data-seat-index]');
     if (!seat) return;
     seatClick(groupId, Number(seat.getAttribute('data-seat-index')));
+  }
+
+  /* ── Arrastrar y soltar ── */
+  const DRAG_TYPE = 'text/x-aulapro-student';
+
+  function onDragStart(e: React.DragEvent, studentId: string) {
+    e.dataTransfer.setData(DRAG_TYPE, studentId);
+    e.dataTransfer.effectAllowed = 'move';
+    setSelected(null);
+  }
+
+  function dropProps(key: string, onDropId: (studentId: string) => void) {
+    return {
+      onDragOver: (e: React.DragEvent) => {
+        if (!e.dataTransfer.types.includes(DRAG_TYPE)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dropTarget !== key) setDropTarget(key);
+      },
+      onDragLeave: (e: React.DragEvent) => {
+        if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) setDropTarget(null);
+      },
+      onDrop: (e: React.DragEvent) => {
+        e.preventDefault();
+        setDropTarget(null);
+        const id = e.dataTransfer.getData(DRAG_TYPE);
+        if (id) onDropId(id);
+      },
+    };
+  }
+
+  /** Soltar sobre el dibujo: el asiento lo da la pieza del abanico bajo el puntero. */
+  function svgDropProps(groupId: string) {
+    return {
+      onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
+        if (!e.dataTransfer.types.includes(DRAG_TYPE)) return;
+        const seat = (e.target as Element).closest('[data-seat-index]');
+        if (!seat) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const key = `${groupId}:${seat.getAttribute('data-seat-index')}`;
+        if (dropTarget !== key) setDropTarget(key);
+      },
+      onDragLeave: (e: React.DragEvent<HTMLDivElement>) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropTarget(null);
+      },
+      onDrop: (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setDropTarget(null);
+        const seat = (e.target as Element).closest('[data-seat-index]');
+        const id = e.dataTransfer.getData(DRAG_TYPE);
+        if (seat && id) moveStudent(id, { groupId, seat: Number(seat.getAttribute('data-seat-index')) });
+      },
+    };
   }
 
   /* ── Rotación semanal de roles: solo avanza un contador, nunca reescribe ── */
@@ -175,6 +256,7 @@ export function SeatingPlan({
       { onStart: () => setGenerating(true), onEnd: () => setGenerating(false), onError: m => toast(m) },
     );
     if (!res) return;
+    setAiOpen(false);
 
     const groups = plan.groups.map((g, i) => ({
       ...g,
@@ -246,8 +328,11 @@ export function SeatingPlan({
     );
   }
 
+  const sentados = asignados.size;
+  const nadieSentado = sentados === 0 && roster.length > 0;
+
   return (
-    <section className="sec active">
+    <section className="sec active seat-page">
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Distribución de aula')}</h1>
@@ -265,165 +350,230 @@ export function SeatingPlan({
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="frow">
-          <div className="fgroup">
-            <label className="flabel">{t('Clase')}</label>
-            <select className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="fgroup">
-            <label className="flabel">{t('Rotación de roles')}</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 44 }}>
-              <button className="btn-ghost" onClick={() => rotar(-1)} title={t('Semana anterior')} type="button">
-                <RotateCcw size={14} />
-              </button>
-              <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1, textAlign: 'center' }}>
-                {vecesLabel(plan.weekOffset, t)}
-              </span>
-              <button className="btn-ghost" onClick={() => rotar(1)} title={t('Semana siguiente')} type="button">
-                <RotateCw size={14} />
-              </button>
-            </div>
-          </div>
+      {/* ── Barra de controles: una sola fila compacta ── */}
+      <div className="seat-toolbar">
+        <select
+          className="seat-select" value={classId} onChange={e => pickClass(e.target.value)}
+          aria-label={t('Clase')}
+        >
+          {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+
+        <div className="seat-rotation" role="group" aria-label={t('Rotación de roles')}>
+          <button type="button" onClick={() => rotar(-1)} title={t('Semana anterior')} aria-label={t('Semana anterior')}>
+            <RotateCcw size={14} />
+          </button>
+          <span title={t('Rotación de roles')}>{vecesLabel(plan.weekOffset, t)}</span>
+          <button type="button" onClick={() => rotar(1)} title={t('Semana siguiente')} aria-label={t('Semana siguiente')}>
+            <RotateCw size={14} />
+          </button>
         </div>
 
-        <button
-          className="btn-ghost" type="button" style={{ fontSize: 12.5, gap: 6 }}
-          onClick={() => setConfigOpen(v => !v)}
-        >
-          <Settings2 size={13} />{t('Configuración de mesas y roles')}
-        </button>
+        <div className="seat-toolbar-spacer" />
 
-        {configOpen && (
-          <div style={{ marginTop: 14 }}>
-            <div className="frow">
-              <div className="fgroup">
-                <label className="flabel">{t('Nº de mesas')}</label>
-                <input
-                  className="finput" type="number" min={1} max={12} value={plan.numGroups}
-                  onChange={e => applyStructure(Number(e.target.value), plan.groupSize)}
-                />
-              </div>
-              <div className="fgroup">
-                <label className="flabel">{t('Alumnos por mesa')}</label>
-                <input
-                  className="finput" type="number" min={1} max={8} value={plan.groupSize}
-                  onChange={e => applyStructure(plan.numGroups, Number(e.target.value))}
-                />
-              </div>
-            </div>
-            <label className="flabel">{t('Roles cooperativos')}</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {plan.roles.map((r, i) => (
-                <div key={r.id} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <input
-                    className="finput" style={{ maxWidth: 200 }} value={r.name}
-                    onChange={e => updateRole(i, { name: e.target.value })}
-                  />
-                  <input
-                    className="finput" style={{ flex: 1, minWidth: 200 }} value={r.description}
-                    onChange={e => updateRole(i, { description: e.target.value })}
-                    placeholder={t('Responsabilidad de este rol')}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {sinAsignar.length === 0 && roster.length > 0 ? (
+          <span className="seat-pill ok"><CheckCircle2 size={13} />{t('Todos sentados')}</span>
+        ) : sinAsignar.length > 0 ? (
+          <span className="seat-pill warn"><Users size={13} />{t('{n} sin mesa', { n: sinAsignar.length })}</span>
+        ) : null}
+
+        <button className="seat-tb-btn" type="button" onClick={() => setConfigOpen(true)}>
+          <Settings2 size={14} />{t('Mesas y roles')}
+        </button>
+        <button className="btn-ia" type="button" onClick={() => setAiOpen(true)} disabled={generating}>
+          {generating ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Repartir con IA')}</>}
+        </button>
       </div>
 
-      {!hasApiKey() ? (
-        <div className="card" style={{ marginBottom: 16, borderLeft: '3px solid var(--warn)' }}>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
-            {t('Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Mi Perfil. También puedes sentar al alumnado a mano, sin IA.')}
-          </p>
-          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => onNav('profile')}>
-            {t('Configurar la IA')}
-          </button>
-        </div>
-      ) : (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-hd">
-            <div className="card-ttl"><Sparkles size={14} color="var(--accent-d)" />{t('Generar grupos equilibrados con IA')}</div>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--text-2)', marginBottom: 10, lineHeight: 1.55 }}>
-            {t('La IA reparte al alumnado real de esta clase en mesas multinivel: mezcla niveles según la media ponderada, la asistencia y los avisos de cada alumno, sin inventar ninguno.')}
-          </p>
-          <textarea
-            className="finput" rows={2} style={{ marginBottom: 10, resize: 'vertical' }}
-            placeholder={t('Aspectos a tener en cuenta (opcional): p. ej. «Marco y Lucía no deben ir juntos»')}
-            value={notasDocente} onChange={e => setNotasDocente(e.target.value)}
-          />
-          <button className="btn-ia" onClick={handleGenerate} disabled={generating} type="button">
-            {generating ? <><span className="spin" />{t('Generando…')}</> : <>✨ {t('Generar grupos con IA')}</>}
-          </button>
-        </div>
+      {nadieSentado && (
+        <p className="seat-hint">
+          {t('Aún no hay nadie sentado. Reparte con IA o arrastra a cada alumno desde la bandeja inferior hasta un asiento.')}
+        </p>
       )}
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-hd">
-          <div className="card-ttl"><Users size={14} color="var(--accent-d)" />{t('Sin mesa asignada')} ({sinAsignar.length})</div>
-        </div>
-        {sinAsignar.length === 0 ? (
-          <p style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{t('Todo el alumnado tiene mesa asignada.')}</p>
-        ) : (
-          <>
-            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 8, lineHeight: 1.5 }}>
-              {t('Toca a un alumno y después un asiento libre para sentarlo. Toca un asiento ocupado para quitar a quien esté ahí.')}
-            </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {sinAsignar.map(s => {
-                const on = selected === s.id;
-                return (
-                  <button
-                    key={s.id} type="button"
-                    onClick={() => setSelected(v => (v === s.id ? null : s.id))}
-                    style={{
-                      padding: '6px 12px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-                      fontSize: 12.5, fontWeight: on ? 800 : 600,
-                      background: on ? 'var(--accent-l)' : 'transparent',
-                      border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
-                      color: on ? 'var(--accent-d)' : 'var(--text-2)',
-                    }}
-                  >
-                    {s.name}
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+      {/* ── Mesas ── */}
+      <div className="seat-grid">
         {plan.groups.map((g, gi) => {
           const seats = Array.from({ length: plan.groupSize }, (_, i) => {
             const sid = seatStudentId(g, i);
-            const student = sid ? roster.find(s => s.id === sid) : null;
+            const student = sid ? roster.find(s => s.id === sid) ?? null : null;
             return {
+              student,
               studentName: student?.name ?? null,
               roleName: student ? roleForSeat(plan, i)?.name ?? null : null,
             };
           });
           const color = PALETTE[gi % PALETTE.length];
+          const ocupados = seats.filter(x => x.student).length;
+          const vacia = ocupados === 0;
           return (
-            <div key={g.id} className="card" style={{ padding: 12 }}>
+            <div key={g.id} className={`seat-table${vacia ? ' empty' : ''}`}>
+              <div className="seat-table-hd">
+                <span className="seat-dot" style={{ background: vacia ? '#cbd5e1' : color }} />
+                <span className="seat-table-name">{g.label}</span>
+                <span className="seat-table-count">{ocupados}/{plan.groupSize}</span>
+              </div>
+
               <div
+                className="seat-svg"
                 onClick={e => handleMesaClick(g.id, e)}
-                style={{ cursor: 'pointer' }}
-                dangerouslySetInnerHTML={{ __html: buildTableSvg(seats, color, g.label) }}
+                {...svgDropProps(g.id)}
+                dangerouslySetInnerHTML={{ __html: buildTableSvg(seats, color, g.label, { labels: false, showLabel: false }) }}
               />
-              {g.justificacion && (
-                <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5, fontStyle: 'italic' }}>
-                  {g.justificacion}
-                </p>
-              )}
+
+              <ol className="seat-list">
+                {seats.map((seat, i) => {
+                  const key = `${g.id}:${i}`;
+                  const over = dropTarget === key;
+                  if (!seat.student) {
+                    return (
+                      <li
+                        key={i}
+                        className={`seat-row free${over ? ' over' : ''}${selected ? ' armed' : ''}`}
+                        onClick={() => selected && seatClick(g.id, i)}
+                        {...dropProps(key, id => moveStudent(id, { groupId: g.id, seat: i }))}
+                      >
+                        <span className="seat-num">{i + 1}</span>
+                        <span className="seat-free-txt">{selected ? t('Sentar aquí') : t('Asiento libre')}</span>
+                      </li>
+                    );
+                  }
+                  const st = seat.student;
+                  return (
+                    <li
+                      key={i}
+                      className={`seat-row${over ? ' over' : ''}${selected ? ' armed' : ''}`}
+                      draggable
+                      onDragStart={e => onDragStart(e, st.id)}
+                      onDragEnd={() => setDropTarget(null)}
+                      onClick={() => selected && seatClick(g.id, i)}
+                      {...dropProps(key, id => moveStudent(id, { groupId: g.id, seat: i }))}
+                      title={t('Arrastra para cambiar de asiento')}
+                    >
+                      <span className="seat-num filled" style={{ background: color }}>{i + 1}</span>
+                      <span className="seat-who">
+                        <span className="seat-name">{st.name}</span>
+                        {seat.roleName && <span className="seat-role">{seat.roleName}</span>}
+                      </span>
+                      <button
+                        type="button" className="seat-x"
+                        onClick={e => { e.stopPropagation(); moveStudent(st.id, null); }}
+                        title={t('Quitar de la mesa')} aria-label={t('Quitar de la mesa')}
+                      >
+                        <X size={12} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {g.justificacion && <p className="seat-why">{g.justificacion}</p>}
             </div>
           );
         })}
       </div>
+
+      {/* ── Bandeja de «sin mesa»: solo existe si hay alguien sin sentar ── */}
+      {sinAsignar.length > 0 && (
+        <div
+          className={`seat-dock${dropTarget === 'tray' ? ' over' : ''}`}
+          {...dropProps('tray', id => moveStudent(id, null))}
+        >
+          <div className="seat-dock-hd">
+            <span className="seat-dock-ttl"><Users size={14} />{t('Sin mesa asignada')} <b>{sinAsignar.length}</b></span>
+            <span className="seat-dock-help">
+              {t('Arrastra a un alumno hasta un asiento, o tócalo y después toca el asiento.')}
+            </span>
+          </div>
+          <div className="seat-dock-chips">
+            {sinAsignar.map(s => {
+              const on = selected === s.id;
+              return (
+                <button
+                  key={s.id} type="button" draggable
+                  className={`seat-chip${on ? ' on' : ''}`}
+                  onDragStart={e => onDragStart(e, s.id)}
+                  onDragEnd={() => setDropTarget(null)}
+                  onClick={() => setSelected(v => (v === s.id ? null : s.id))}
+                >
+                  <GripVertical size={12} className="seat-chip-grip" />{s.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Repartir con IA ── */}
+      <Modal open={aiOpen} onClose={() => setAiOpen(false)} title={<span className="seat-modal-ttl"><Sparkles size={16} color="var(--accent-d)" />{t('Repartir con IA')}</span>}>
+        {!hasApiKey() ? (
+          <>
+            <p className="seat-modal-p">
+              {t('Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Mi Perfil. También puedes sentar al alumnado a mano, sin IA.')}
+            </p>
+            <button className="btn-accent" onClick={() => { setAiOpen(false); onNav('profile'); }}>
+              {t('Configurar la IA')}
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="seat-modal-p">
+              {t('La IA reparte al alumnado real de esta clase en mesas multinivel: mezcla niveles según la media ponderada, la asistencia y los avisos de cada alumno, sin inventar ninguno.')}
+            </p>
+            {sentados > 0 && (
+              <p className="seat-modal-warn">{t('Se sustituirá la distribución actual de {clase}.', { clase: cls?.name ?? '' })}</p>
+            )}
+            <label className="flabel">{t('Aspectos a tener en cuenta (opcional)')}</label>
+            <textarea
+              className="finput" rows={3} style={{ marginBottom: 14, resize: 'vertical' }}
+              placeholder={t('p. ej. «Marco y Lucía no deben ir juntos»')}
+              value={notasDocente} onChange={e => setNotasDocente(e.target.value)}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button className="btn-ghost" type="button" onClick={() => setAiOpen(false)}>{t('Cancelar')}</button>
+              <button className="btn-ia" onClick={handleGenerate} disabled={generating} type="button">
+                {generating ? <><span className="spin" />{t('Generando…')}</> : <>✨ {t('Generar grupos con IA')}</>}
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
+
+      {/* ── Configuración de mesas y roles ── */}
+      <Modal open={configOpen} onClose={() => setConfigOpen(false)} title={t('Configuración de mesas y roles')} wide>
+        <div className="frow">
+          <div className="fgroup">
+            <label className="flabel">{t('Nº de mesas')}</label>
+            <input
+              className="finput" type="number" min={1} max={12} value={plan.numGroups}
+              onChange={e => applyStructure(Number(e.target.value), plan.groupSize)}
+            />
+          </div>
+          <div className="fgroup">
+            <label className="flabel">{t('Alumnos por mesa')}</label>
+            <input
+              className="finput" type="number" min={1} max={8} value={plan.groupSize}
+              onChange={e => applyStructure(plan.numGroups, Number(e.target.value))}
+            />
+          </div>
+        </div>
+        <label className="flabel">{t('Roles cooperativos')}</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {plan.roles.map((r, i) => (
+            <div key={r.id} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input
+                className="finput" style={{ maxWidth: 200 }} value={r.name}
+                onChange={e => updateRole(i, { name: e.target.value })}
+              />
+              <input
+                className="finput" style={{ flex: 1, minWidth: 200 }} value={r.description}
+                onChange={e => updateRole(i, { description: e.target.value })}
+                placeholder={t('Responsabilidad de este rol')}
+              />
+            </div>
+          ))}
+        </div>
+      </Modal>
     </section>
   );
 }

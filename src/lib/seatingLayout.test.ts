@@ -55,4 +55,17 @@ describe('buildTableSvg', () => {
     expect(svg).toContain('<svg');
     expect(svg).not.toContain('NaN');
   });
+
+  it('en modo esquema (pantalla) solo numera los asientos: sin nombres, sin roles, sin discontinuas', () => {
+    const svg = buildTableSvg(
+      [{ studentName: 'Ana García', roleName: 'Portavoz' }, { studentName: null, roleName: null }],
+      '#0284c7', 'Mesa 7', { labels: false, showLabel: false },
+    );
+    expect(svg).not.toContain('Ana');
+    expect(svg).not.toContain('Portavoz');
+    expect(svg).not.toContain('Mesa 7');
+    expect(svg).not.toContain('stroke-dasharray');
+    expect(svg).toContain('>1</text>');
+    expect(svg).toContain('>2</text>');
+  });
 });
