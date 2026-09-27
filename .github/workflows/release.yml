@@ -1,0 +1,108 @@
+name: Publicar versión
+
+# Se lanza a mano desde la pestaña "Actions" (botón "Run workflow") cuando
+# `package.json` ya tiene la versión nueva en `master`. Compila Windows,
+# publica el release `v<versión>` con los instaladores y `latest.yml` (lo que
+# lee la actualización automática de Windows) y después añade la build de Mac
+# al mismo release.
+#
+# Las notas salen de `docs/releases/v<versión>.md`. Si ese archivo no existe,
+# GitHub las genera a partir de los commits.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Leer la versión
+        id: version
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar los iconos
+        run: npm run icons
+
+      - name: Compilar la aplicación web
+        run: npm run build
+
+      - name: Empaquetar la app de Windows (instalador y portable)
+        run: npx electron-builder --win --publish never
+
+      - name: Crear o actualizar el release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          VERSION="${TAG#v}"
+          ASSETS=(
+            "release/AulaPro-${VERSION}-instalador-windows.exe"
+            "release/AulaPro-${VERSION}-instalador-windows.exe.blockmap"
+            "release/AulaPro-${VERSION}-portable-windows.exe"
+            "release/latest.yml"
+          )
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+          else
+            NOTES="docs/releases/${TAG}.md"
+            if [ -f "$NOTES" ]; then NOTES_ARGS=(--notes-file "$NOTES"); else NOTES_ARGS=(--generate-notes); fi
+            gh release create "$TAG" "${ASSETS[@]}" \
+              --target "$GITHUB_SHA" \
+              --title "Aula Pro ${VERSION}" \
+              "${NOTES_ARGS[@]}"
+          fi
+
+  mac:
+    needs: windows
+    runs-on: macos-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar los iconos (PNG del .iconset incluidos)
+        run: npm run icons
+
+      - name: Convertir el .iconset a .icns (solo posible en macOS)
+        run: iconutil -c icns build/icon.iconset -o build/icon.icns
+
+      - name: Compilar la aplicación web
+        run: npm run build
+
+      - name: Empaquetar la app de Mac (.dmg y .zip, universal)
+        run: npx electron-builder --mac --publish never
+
+      - name: Añadir la build de Mac al release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.windows.outputs.tag }}
+        run: gh release upload "$TAG" release/*.dmg release/*.zip --clobber
