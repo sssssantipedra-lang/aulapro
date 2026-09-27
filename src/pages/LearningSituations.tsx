@@ -18,6 +18,7 @@ import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
@@ -471,14 +472,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <div className="card" style={{ marginBottom: 16, borderLeft: '3px solid var(--warn)' }}>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
-            {t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')}
-          </p>
-          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => onNav('profile')}>
-            {t('Configurar la IA')}
-          </button>
-        </div>
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
       )}
 
       {/* ══ Formulario ══ */}

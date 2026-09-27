@@ -1424,6 +1424,7 @@ const EN: Record<string, string> = {
   '{n} alumnos se han quedado sin mesa: no caben todos en {groups} mesas de {size}': '{n} students were left without a table: they don\'t all fit in {groups} tables of {size}',
   '✅ Grupos generados': '✅ Groups generated',
   'Apariencia': 'Appearance',
+  'Inteligencia artificial': 'Artificial intelligence',
   'Quitar filtros': 'Clear filters',
   'Vista': 'View',
   'Buscar alumno': 'Search students',

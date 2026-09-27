@@ -12,6 +12,7 @@ import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 
 /** Mismo motivo que `fichaMotifs.ts`, pero con el componente React del icono en vez de su SVG crudo. */
@@ -311,14 +312,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
       </div>
 
       {sinClave && (
-        <div className="card" style={{ marginBottom: 16, borderLeft: '3px solid var(--warn)' }}>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
-            {t('Para generar recursos hace falta la clave gratuita de Google que se configura en Mi Perfil.')}
-          </p>
-          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => onNav('profile')}>
-            {t('Configurar la IA')}
-          </button>
-        </div>
+        <AiKeyNotice message={t('Para generar recursos hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
       )}
 
       {/* ══ Formulario ══ */}

@@ -27,6 +27,7 @@ import { getActiveProfileId } from '../services/storage';
 import {
   AUTOSAVE_EVERY_MS, writeAutosave, readAutosave, clearAutosave, isWorthRecovering, type Autosave,
 } from '../services/draftAutosave';
+import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import type { WorkSession, WorkSessionDoc, WorkSessionKind } from '../types';
 
 interface Props {
@@ -151,19 +152,7 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
       </div>
 
       {!hasApiKey() && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', marginBottom: 16,
-          background: 'rgba(245,158,11,0.09)', border: '0.5px solid rgba(245,158,11,0.35)',
-          borderRadius: 12, fontSize: 13, color: '#92400e',
-        }}>
-          <Sparkles size={17} style={{ flexShrink: 0 }} />
-          <span style={{ flex: 1, lineHeight: 1.5 }}>
-            {t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')}
-          </span>
-          <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => onNav('profile')}>
-            {t('Configurar ahora')}
-          </button>
-        </div>
+        <AiKeyNotice message={t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
       )}
 
       {recuperable && (
@@ -186,8 +175,8 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
 
       {mias.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '46px 20px' }}>
-          {esReunion ? <Users2 size={32} color="var(--accent-d)" style={{ opacity: 0.5 }} />
-            : <GraduationCap size={32} color="var(--accent-d)" style={{ opacity: 0.5 }} />}
+          {esReunion ? <Users2 size={32} color="var(--accent-d)" style={{ opacity: 0.5, margin: '0 auto' }} />
+            : <GraduationCap size={32} color="var(--accent-d)" style={{ opacity: 0.5, margin: '0 auto' }} />}
           <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: '12px 0 4px' }}>
             {esReunion ? t('Todavía no has anotado ninguna reunión') : t('Todavía no has anotado ninguna formación')}
           </p>

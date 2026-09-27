@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
@@ -369,7 +369,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
       </div>
 
       {/* ── Asistente IA ── */}
-      <div style={{ margin: '30px 0 12px', paddingTop: 22, borderTop: '0.5px solid var(--border)' }} />
+      <SectionLabel icon={<Sparkles size={15} />}>{t('Inteligencia artificial')}</SectionLabel>
       <ApiKeySettings />
 
       {/* ── Datos y copia de seguridad ── */}
