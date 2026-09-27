@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy } from 'lucide-react';
 import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { isoDate, LOMLOE_COMPETENCES } from '../lib/utils';
+import { isoDate, LOMLOE_COMPETENCES, newId } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
-import { DianaBoard, dianaGrade } from '../components/diana/DianaBoard';
+import { DianaBoard } from '../components/diana/DianaBoard';
+import { dianaGrade } from '../components/diana/dianaGrade';
 import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
+import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -68,7 +70,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
   const addLevel = () => setLevels(prev => renumber([...prev, { label: '' }]));
   const removeLevel = (i: number) => setLevels(prev => renumber(prev.filter((_, j) => j !== i)));
 
-  useEffect(() => {
+  // Al abrir (o cambiar lo que se edita), el formulario empieza de cero
+  useResetOnChange(`${open}:${editing?.id ?? ''}`, () => {
     if (!open) return;
     if (editing) {
       setMode('manual');
@@ -89,7 +92,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       setAiClassId('');
       setAiCount(5);
     }
-  }, [editing, open]);
+  });
 
   async function handleGenerate() {
     if (!aiContext.trim()) { toast(t('Describe la actividad que quieres evaluar')); return; }
@@ -196,7 +199,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
               {t(mode === 'ia' ? 'Describe la actividad y la IA propone los ítems' : 'Ajusta los ítems y su peso en la nota')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose}><X size={18} /></button>
+          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
@@ -253,15 +256,16 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         {mode === 'ia' ? (
           <div>
             <div className="fgroup">
-              <label className="flabel">{t('Clase (opcional)')}</label>
-              <select className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)} style={{ cursor: 'pointer' }}>
+              <label className="flabel" htmlFor="evaldianas-f1">{t('Clase (opcional)')}</label>
+              <select id="evaldianas-f1" className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)} style={{ cursor: 'pointer' }}>
                 <option value="">{t('Sin clase concreta')}</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('¿Qué quieres evaluar? *')}</label>
+              <label className="flabel" htmlFor="evaldianas-f2">{t('¿Qué quieres evaluar? *')}</label>
               <textarea
+                id="evaldianas-f2"
                 className="finput"
                 rows={3}
                 placeholder={t('Ej: Trabajo cooperativo en el proyecto de ecosistemas, 2º ESO')}
@@ -271,8 +275,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
               />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Número de ítems')}</label>
-              <select className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))} style={{ cursor: 'pointer' }}>
+              <label className="flabel" htmlFor="evaldianas-f3">{t('Número de ítems')}</label>
+              <select id="evaldianas-f3" className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))} style={{ cursor: 'pointer' }}>
                 {[4, 5, 6, 8].map(n => <option key={n} value={n}>{t('{n} ítems', { n })}</option>)}
               </select>
             </div>
@@ -289,8 +293,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 18, alignItems: 'start' }}>
             <div>
               <div className="fgroup">
-                <label className="flabel">{t('Nombre de la diana *')}</label>
-                <input className="finput" placeholder={t('Ej: Trabajo cooperativo')} value={name} onChange={e => setName(e.target.value)} />
+                <label className="flabel" htmlFor="evaldianas-f4">{t('Nombre de la diana *')}</label>
+                <input id="evaldianas-f4" className="finput" placeholder={t('Ej: Trabajo cooperativo')} value={name} onChange={e => setName(e.target.value)} />
               </div>
 
               <label className="flabel">{t('Ítems a evaluar')}</label>
@@ -396,14 +400,14 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
   const [scores, setScores]     = useState<Record<string, number>>({});
   const [notes, setNotes]       = useState('');
 
-  useEffect(() => {
+  useResetOnChange(`${open}:${diana?.id ?? ''}`, () => {
     if (!open) return;
     // La diana ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
     setClassId(diana?.class_id ?? '');
     setStudentId('');
     setScores({});
     setNotes('');
-  }, [open, diana]);
+  });
 
   if (!diana) return null;
 
@@ -422,7 +426,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
     if (done === 0) { toast(t('Marca al menos un ítem en la diana')); return; }
     const student = students.find(s => s.id === studentId);
     onSave({
-      id: 'ev' + Date.now(),
+      id: newId('ev'),
       rubric_id: diana!.id,
       rubric_name: diana!.name,
       student_id: studentId,
@@ -449,20 +453,20 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
               {t('Haz clic en cada sector para marcar el nivel de logro')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose}><X size={18} /></button>
+          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         <div className="frow" style={{ marginBottom: 16 }}>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Clase')}</label>
-            <select className="finput" value={classId} onChange={e => { setClassId(e.target.value); setStudentId(''); }} style={{ cursor: 'pointer' }}>
+            <label className="flabel" htmlFor="evaldianas-f5">{t('Clase')}</label>
+            <select id="evaldianas-f5" className="finput" value={classId} onChange={e => { setClassId(e.target.value); setStudentId(''); }} style={{ cursor: 'pointer' }}>
               <option value="">{t('Selecciona clase…')}</option>
               {evalClasses.map(c => <option key={c.id} value={c.id}>{c.name} – {subjectLabel(c)}</option>)}
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Alumno')}</label>
-            <select className="finput" value={studentId} onChange={e => setStudentId(e.target.value)} disabled={!classId} style={{ cursor: 'pointer' }}>
+            <label className="flabel" htmlFor="evaldianas-f6">{t('Alumno')}</label>
+            <select id="evaldianas-f6" className="finput" value={studentId} onChange={e => setStudentId(e.target.value)} disabled={!classId} style={{ cursor: 'pointer' }}>
               <option value="">{t('Selecciona alumno…')}</option>
               {classStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -532,8 +536,9 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
         </div>
 
         <div className="fgroup" style={{ marginTop: 16 }}>
-          <label className="flabel">{t('Observaciones')}</label>
+          <label className="flabel" htmlFor="evaldianas-f7">{t('Observaciones')}</label>
           <textarea
+            id="evaldianas-f7"
             className="finput" rows={2} placeholder={t('Comentarios para el alumno o la familia…')}
             value={notes} onChange={e => setNotes(e.target.value)} style={{ resize: 'vertical' }}
           />
@@ -685,7 +690,7 @@ export function DianasTab({
         <div className="modal">
           <div className="modal-hd">
             <div className="modal-title">{t('Eliminar diana')}</div>
-            <button className="ico-btn" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
+            <button className="ico-btn" onClick={() => setConfirmDelete(null)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20, lineHeight: 1.6 }}>
             {t('¿Seguro que quieres eliminar esta diana? Las evaluaciones ya guardadas se conservan en el Historial.')}

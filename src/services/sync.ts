@@ -221,7 +221,8 @@ export function mergeBundle(
  * bastaría con cambiar de perfil para que pareciera que hay novedades.
  */
 export function hashBundle(b: SharedBundle): string {
-  const { from: _ignored, ...content } = b;
+  const { from, ...content } = b;
+  void from;
   const json = JSON.stringify(content);
   let h = 5381;
   for (let i = 0; i < json.length; i++) h = ((h << 5) + h + json.charCodeAt(i)) | 0;

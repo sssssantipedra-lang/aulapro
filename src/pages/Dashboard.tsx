@@ -3,7 +3,8 @@ import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertT
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap } from '../types';
 import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
-import { useCarousel, CarouselControls, CarouselDots, paginate } from '../components/dashboard/carousel';
+import { CarouselControls, CarouselDots } from '../components/dashboard/carousel';
+import { useCarousel, paginate } from '../components/dashboard/useCarousel';
 import { useI18n, priorityLabel } from '../i18n';
 import { isoDate } from '../lib/utils';
 
@@ -76,7 +77,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           <h1 className="pg-title">{greeting}, {firstName}</h1>
           <p className="pg-sub" style={{ textTransform: 'capitalize' }}>{dateLabel}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', border: '0.5px solid var(--border)', borderRadius: 10, padding: '9px 16px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: '9px 16px', flexShrink: 0 }}>
           <Clock size={15} color="var(--accent-d)" />
           <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>{time}</span>
         </div>
@@ -108,7 +109,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
       ) : (
         <>
           {/* Resumen */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
+          <div className="dash-stats">
             {[
               { label: t('Clases hoy'), val: todayBlocks.length, hint: t(todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy'), icon: <Book size={17} color="var(--accent-d)" />, bg: 'var(--accent-l)', nav: 'agenda' },
               { label: t('Alumnos'), val: students.length, hint: t(classes.length === 1 ? 'en {n} grupo' : 'en {n} grupos', { n: classes.length }), icon: <Users size={17} color="var(--info)" />, bg: '#dbeafe', nav: 'classes' },
@@ -129,7 +130,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 280px', gap: 16 }}>
+          <div className="dash-main">
             {/* Horario de hoy */}
             <div className="card" {...scheduleCar.hoverProps}>
               <div className="card-hd">
@@ -286,7 +287,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
                 <div className={`dash-panel${taskCar.visible ? ' on' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {(taskPages[taskCar.index] ?? []).map(tk => (
                     <div key={tk.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '0.5px solid var(--border)' }}>
-                      <input type="checkbox" checked={tk.done} onChange={() => onToggleTask(tk.id)} style={{ cursor: 'pointer', accentColor: 'var(--accent-d)' }} />
+                      <input type="checkbox" checked={tk.done} onChange={() => onToggleTask(tk.id)} aria-label={tk.text} style={{ cursor: 'pointer', accentColor: 'var(--accent-d)' }} />
                       <span style={{ flex: 1, fontSize: 12.5, color: tk.done ? 'var(--text-3)' : 'var(--text)', textDecoration: tk.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tk.text}</span>
                       <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: tk.priority === 'high' ? '#fee2e2' : tk.priority === 'medium' ? '#fef3c7' : '#f1f5f9', color: tk.priority === 'high' ? '#dc2626' : tk.priority === 'medium' ? '#d97706' : 'var(--text-3)', fontWeight: 700 }}>
                         {priorityLabel(tk.priority, lang)}

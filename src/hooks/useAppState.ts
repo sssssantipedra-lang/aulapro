@@ -66,6 +66,28 @@ function emptySnapshot(): ProfileSnapshot {
 }
 
 /**
+ * Los datos de ejemplo con la forma de un perfil guardado. Es lo que se
+ * escribe en disco al «Explorar con datos de ejemplo», ANTES de abrir el
+ * perfil: si se cargaran en memoria después de abrirlo, la lectura del disco
+ * (asíncrona, y todavía vacía) terminaría más tarde y los borraría.
+ */
+export function demoSnapshot(): ProfileSnapshot {
+  const d = buildDemoData();
+  return {
+    ...emptySnapshot(),
+    tasks: d.tasks,
+    classes: d.classes,
+    students: d.students,
+    blocks: d.scheduleBlocks,
+    events: d.calEvents,
+    rubrics: d.rubrics,
+    gradeCategories: d.gradeCategories,
+    gradeItems: d.gradeItems,
+    grades: d.grades,
+  };
+}
+
+/**
  * Recupera el trabajo guardado por versiones anteriores, que usaban
  * localStorage sin perfiles. Así nadie pierde su curso al actualizar.
  */
@@ -100,7 +122,8 @@ function readLegacyData(): Partial<ProfileSnapshot> | null {
 export function useAppState() {
   const [profileId, setProfileId] = useState<string | null>(() => store.getActiveProfileId());
   const [profile, setProfile]     = useState<TeacherProfile | null>(null);
-  const [ready, setReady]         = useState(false);
+  // Sin perfil activo no hay nada que cargar: la app está lista desde el principio.
+  const [ready, setReady]         = useState(() => store.getActiveProfileId() === null);
 
   const [tasks, setTasks]                     = useState<Task[]>([]);
   const [classes, setClasses]                 = useState<Class[]>([]);
@@ -167,10 +190,10 @@ export function useAppState() {
 
   /* ── Carga al entrar en un perfil ── */
   useEffect(() => {
+    // Cerrar el perfil (sin id) ya limpia el estado en `closeProfile`, y
+    // `ready` se pone a false al abrir uno: aquí solo queda la carga en sí.
+    if (!profileId) return;
     let cancelled = false;
-    if (!profileId) { setProfile(null); hydrate({}); setReady(true); return; }
-
-    setReady(false);
     (async () => {
       const [list, data] = await Promise.all([store.listProfiles(), store.loadData(profileId)]);
       if (cancelled) return;
@@ -180,6 +203,8 @@ export function useAppState() {
         // El perfil ya no existe (borrado desde otro sitio)
         store.setActiveProfileId(null);
         setProfileId(null);
+        setProfile(null);
+        hydrate({});
         setReady(true);
         return;
       }
@@ -234,15 +259,19 @@ export function useAppState() {
   /* ── Perfiles ── */
   const openProfile = useCallback((id: string) => {
     store.setActiveProfileId(id);
+    if (id === profileId) return;
+    setReady(false);
     setProfileId(id);
-  }, []);
+  }, [profileId]);
 
   const createAndOpenProfile = useCallback(async (
     input: { name: string; school: string; subject: string; course: string },
-    options: { importLegacy?: boolean } = {},
+    options: { importLegacy?: boolean; demo?: boolean } = {},
   ) => {
     const created = await store.createProfile(input);
-    if (options.importLegacy) {
+    if (options.demo) {
+      await store.saveData(created.id, demoSnapshot() as unknown as store.ProfileData);
+    } else if (options.importLegacy) {
       const legacy = readLegacyData();
       if (legacy) {
         await store.saveData(created.id, { ...emptySnapshot(), ...legacy } as unknown as store.ProfileData);
@@ -257,7 +286,9 @@ export function useAppState() {
     store.setActiveProfileId(null);
     setProfileId(null);
     setProfile(null);
-  }, [profileId]);
+    hydrate({});
+    setReady(true);
+  }, [profileId, hydrate]);
 
   const updateUser = useCallback(async (patch: Partial<TeacherProfile>) => {
     if (!profileId) return;
@@ -789,12 +820,12 @@ export function useAppState() {
 
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback(() => {
-    const d = buildDemoData();
+    const d = demoSnapshot();
     setTasks(d.tasks);
     setClasses(d.classes.map(normalizeClass));
     setStudents(d.students);
-    setScheduleBlocks(d.scheduleBlocks);
-    setCalEvents(d.calEvents);
+    setScheduleBlocks(d.blocks);
+    setCalEvents(d.events);
     setRubrics(d.rubrics);
     setGradeCategories(d.gradeCategories);
     setGradeItems(d.gradeItems);

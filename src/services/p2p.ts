@@ -179,7 +179,7 @@ export class PeerLink {
         handlers.onState?.('error');
         throw new Error(err instanceof Error && err.message === 'timeout'
           ? 'El servicio de conexión no responde. Comprueba tu conexión a internet.'
-          : friendlyError(type));
+          : friendlyError(type), { cause: err });
       }
     }
 
@@ -202,7 +202,7 @@ export class PeerLink {
       handlers.onState?.('error');
       throw new Error(err instanceof Error && err.message === 'timeout'
         ? 'El servicio de conexión no responde. Comprueba tu conexión a internet.'
-        : friendlyError((err as { type?: string }).type ?? ''));
+        : friendlyError((err as { type?: string }).type ?? ''), { cause: err });
     }
 
     const link = new PeerLink(peer, handlers);

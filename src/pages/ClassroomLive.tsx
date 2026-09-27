@@ -141,29 +141,6 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
     toast(t('✅ Nueva actividad enviada a los móviles'));
   }
 
-  /* ── Fuera de la app de escritorio ── */
-  if (!bridge) {
-    return (
-      <section className="sec active">
-        <div className="pg-hd">
-          <div>
-            <h1 className="pg-title">{t('Sala de alumnos')}</h1>
-            <p className="pg-sub">{t('Actividades desde el móvil, sin instalar nada')}</p>
-          </div>
-        </div>
-        <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
-          <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
-          <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            {t('Solo desde la aplicación de escritorio')}
-          </h2>
-          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
-          </p>
-        </div>
-      </section>
-    );
-  }
-
   /**
    * Guarda lo respondido en cuanto llega, sin pedir permiso.
    *
@@ -210,6 +187,29 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snap?.responses, snap?.activity, snap?.code, snap?.running]);
+
+  /* ── Fuera de la app de escritorio ── */
+  if (!bridge) {
+    return (
+      <section className="sec active">
+        <div className="pg-hd">
+          <div>
+            <h1 className="pg-title">{t('Sala de alumnos')}</h1>
+            <p className="pg-sub">{t('Actividades desde el móvil, sin instalar nada')}</p>
+          </div>
+        </div>
+        <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
+          <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
+          <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
+            {t('Solo desde la aplicación de escritorio')}
+          </h2>
+          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const running = snap?.running === true;
   const address = snap?.addresses?.[0];
@@ -267,7 +267,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                         onClick={() => setClassId(c.id)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 7, padding: '8px 15px',
-                          background: on ? c.color : 'white', color: on ? 'white' : 'var(--text-2)',
+                          background: on ? c.color : 'var(--card)', color: on ? 'white' : 'var(--text-2)',
                           border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                           borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                           fontSize: 13, fontWeight: on ? 700 : 500, transition: 'all 0.18s',
@@ -323,8 +323,8 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
             {kind === 'rubric' ? (
               <>
                 <div className="fgroup">
-                  <label className="flabel">{t('¿Con qué se autoevalúan?')}</label>
-                  <select className="finput" value={sourceId} onChange={e => setSourceId(e.target.value)} style={{ cursor: 'pointer' }}>
+                  <label className="flabel" htmlFor="classroomlive-f1">{t('¿Con qué se autoevalúan?')}</label>
+                  <select id="classroomlive-f1" className="finput" value={sourceId} onChange={e => setSourceId(e.target.value)} style={{ cursor: 'pointer' }}>
                     <option value="">{t('Elige una rúbrica o diana…')}</option>
                     {rubrics.length > 0 && (
                       <optgroup label={t('Rúbricas')}>
@@ -348,21 +348,21 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                   </div>
                 )}
                 <div className="fgroup">
-                  <label className="flabel">{t('Instrucción para el alumno (opcional)')}</label>
-                  <input className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
+                  <label className="flabel" htmlFor="classroomlive-f2">{t('Instrucción para el alumno (opcional)')}</label>
+                  <input id="classroomlive-f2" className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
                     placeholder={t('Ej: Piensa en cómo has trabajado hoy con tu grupo.')} />
                 </div>
               </>
             ) : (
               <>
                 <div className="fgroup">
-                  <label className="flabel">{t(kind === 'poll' ? 'Pregunta' : 'Tema')}</label>
-                  <input className="finput" value={title} onChange={e => setTitle(e.target.value)}
+                  <label className="flabel" htmlFor="classroomlive-f3">{t(kind === 'poll' ? 'Pregunta' : 'Tema')}</label>
+                  <input id="classroomlive-f3" className="finput" value={title} onChange={e => setTitle(e.target.value)}
                     placeholder={t(kind === 'poll' ? 'Ej: ¿Qué hemos entendido mejor?' : 'Ej: ¿Qué sabemos sobre los ecosistemas?')} />
                 </div>
                 <div className="fgroup">
-                  <label className="flabel">{t('Aclaración (opcional)')}</label>
-                  <input className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
+                  <label className="flabel" htmlFor="classroomlive-f4">{t('Aclaración (opcional)')}</label>
+                  <input id="classroomlive-f4" className="finput" value={prompt} onChange={e => setPrompt(e.target.value)}
                     placeholder={t('Una frase que les oriente')} />
                 </div>
                 {kind === 'poll' && (
@@ -377,7 +377,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
                           <input className="finput" value={o} style={{ flex: 1 }}
                             onChange={e => setOptions(prev => prev.map((x, j) => j === i ? e.target.value : x))} />
                           {options.length > 2 && (
-                            <button className="ico-btn" onClick={() => setOptions(prev => prev.filter((_, j) => j !== i))}>
+                            <button className="ico-btn" onClick={() => setOptions(prev => prev.filter((_, j) => j !== i))} aria-label={t('Quitar opción')} title={t('Quitar opción')}>
                               <Trash2 size={14} color="var(--danger)" />
                             </button>
                           )}

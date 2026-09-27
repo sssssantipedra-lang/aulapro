@@ -62,7 +62,7 @@ function ExpandedRow({ evaluation, rubric, diana }: {
                   key={key}
                   style={{
                     padding: '10px 12px', borderRadius: 10,
-                    background: 'white', border: '0.5px solid var(--border)',
+                    background: 'var(--card)', border: '0.5px solid var(--border)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -167,7 +167,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
     }
   }
 
-  function SortIcon({ field }: { field: typeof sortField }) {
+  function sortIcon(field: typeof sortField) {
     if (sortField !== field) return <ChevronDown size={11} style={{ opacity: 0.3 }} />;
     return sortDir === 'asc'
       ? <ChevronUp size={11} style={{ color: 'var(--accent-d)' }} />
@@ -209,6 +209,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               <select
                 className="finput"
                 value={filterClassId}
+                aria-label={t('Clase')}
                 onChange={e => handleClassFilter(e.target.value)}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
@@ -227,6 +228,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               <select
                 className="finput"
                 value={filterStudentId}
+                aria-label={t('Alumno')}
                 onChange={e => { setFilterStudentId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
@@ -245,6 +247,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
               <select
                 className="finput"
                 value={filterRubricId}
+                aria-label={t('Instrumento')}
                 onChange={e => { setFilterRubricId(e.target.value); setExpandedId(null); }}
                 style={{ appearance: 'none', paddingRight: 32 }}
               >
@@ -318,7 +321,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('date')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {t('Fecha')} <SortIcon field="date" />
+                      {t('Fecha')} {sortIcon('date')}
                     </span>
                   </th>
                   <th
@@ -326,7 +329,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('student')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {t('Alumno')} <SortIcon field="student" />
+                      {t('Alumno')} {sortIcon('student')}
                     </span>
                   </th>
                   <th
@@ -334,7 +337,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('rubric')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {t('Rúbrica')} <SortIcon field="rubric" />
+                      {t('Rúbrica')} {sortIcon('rubric')}
                     </span>
                   </th>
                   <th style={{ textAlign: 'left' }}>{t('Clase')}</th>
@@ -343,7 +346,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                     onClick={() => handleSort('score')}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {t('Puntuación')} <SortIcon field="score" />
+                      {t('Puntuación')} {sortIcon('score')}
                     </span>
                   </th>
                   <th style={{ textAlign: 'left' }}>{t('Notas')}</th>

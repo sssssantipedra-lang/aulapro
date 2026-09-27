@@ -6,6 +6,7 @@ const { ClassroomServer } = require('./classroom.cjs');
 const { Storage } = require('./storage.cjs');
 const { AppServer } = require('./appserver.cjs');
 const updater = require('./updater.cjs');
+const secrets = require('./secrets.cjs');
 
 let mainWindow = null;
 const classroom = new ClassroomServer();
@@ -128,6 +129,11 @@ function registerClassroomIpc() {
   ipcMain.handle('classroom:setRoster', (_e, roster, label) => classroom.setRoster(roster, label));
 }
 
+function registerSecretsIpc() {
+  ipcMain.handle('secrets:get', (_e, name) => secrets.get(name));
+  ipcMain.handle('secrets:set', (_e, name, value) => secrets.set(name, value));
+}
+
 function registerUpdateIpc() {
   ipcMain.handle('update:installNow', () => updater.installNow());
   // La interfaz dice en qué idioma está para que el aviso del sistema salga
@@ -219,6 +225,7 @@ if (!app.requestSingleInstanceLock()) {
     registerStorageIpc();
     registerDocumentIpc();
     registerUpdateIpc();
+    registerSecretsIpc();
     createWindow();
 
     // Con un pequeño margen para no competir con el arranque de la ventana.

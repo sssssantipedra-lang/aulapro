@@ -292,7 +292,7 @@ function GradesTab({
             onClick={() => setClassId(c.id)}
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-              background: c.id === clsId ? 'white' : 'transparent',
+              background: c.id === clsId ? 'var(--card)' : 'transparent',
               border: `1.5px solid ${c.id === clsId ? c.color : 'var(--border)'}`,
               borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
               fontSize: 13, fontWeight: c.id === clsId ? 700 : 500, color: 'var(--text)',
@@ -327,7 +327,7 @@ function GradesTab({
                 style={{
                   padding: '6px 14px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                   fontSize: 12.5, fontWeight: on ? 800 : 500,
-                  background: on ? 'white' : 'transparent',
+                  background: on ? 'var(--card)' : 'transparent',
                   border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
                   color: on ? 'var(--accent-d)' : 'var(--text-2)',
                 }}
@@ -530,12 +530,12 @@ function GradesTab({
         title={t(catModal === 'new' ? 'Nueva categoría' : 'Editar categoría')}
       >
         <div className="fgroup">
-          <label className="flabel">{t('Nombre')}</label>
-          <input className="finput" value={catName} onChange={e => setCatName(e.target.value)} placeholder={t('Ej: Exámenes')} autoFocus />
+          <label className="flabel" htmlFor="notebook-f1">{t('Nombre')}</label>
+          <input id="notebook-f1" className="finput" value={catName} onChange={e => setCatName(e.target.value)} placeholder={t('Ej: Exámenes')} autoFocus />
         </div>
         <div className="fgroup">
-          <label className="flabel">{t('Peso en la media (%)')}</label>
-          <input className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
+          <label className="flabel" htmlFor="notebook-f2">{t('Peso en la media (%)')}</label>
+          <input id="notebook-f2" className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>{t('Guardar')}</button>
@@ -562,19 +562,19 @@ function GradesTab({
         title={t(itemModal === 'new' ? 'Añadir nota' : 'Editar nota')}
       >
         <div className="fgroup">
-          <label className="flabel">{t('Nombre')}</label>
-          <input className="finput" value={itemName} onChange={e => setItemName(e.target.value)} placeholder={t('Ej: Examen Tema 3')} autoFocus />
+          <label className="flabel" htmlFor="notebook-f3">{t('Nombre')}</label>
+          <input id="notebook-f3" className="finput" value={itemName} onChange={e => setItemName(e.target.value)} placeholder={t('Ej: Examen Tema 3')} autoFocus />
         </div>
         <div className="frow fgroup">
           <div>
-            <label className="flabel">{t('Categoría')}</label>
-            <select className="finput" value={itemCat} onChange={e => setItemCat(e.target.value)} style={{ cursor: 'pointer' }}>
+            <label className="flabel" htmlFor="notebook-f4">{t('Categoría')}</label>
+            <select id="notebook-f4" className="finput" value={itemCat} onChange={e => setItemCat(e.target.value)} style={{ cursor: 'pointer' }}>
               {myCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
             </select>
           </div>
           <div>
-            <label className="flabel">{t('Fecha')}</label>
-            <input className="finput" type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} />
+            <label className="flabel" htmlFor="notebook-f5">{t('Fecha')}</label>
+            <input id="notebook-f5" className="finput" type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} />
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>

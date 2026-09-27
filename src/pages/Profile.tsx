@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
 import { DataFolder } from '../components/DataFolder';
-import { THEMES, applyTheme, isoDate, type ThemeKey } from '../lib/utils';
+import { THEMES, applyTheme, isoDate, applyAppearance, getAppearance, type ThemeKey, type Appearance } from '../lib/utils';
 import type { User } from '../types';
 import type { TeacherProfile } from '../services/storage';
 import { createPasswordFields, verifyPassword } from '../lib/password';
@@ -51,6 +51,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>(
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
+  const [appearance, setAppearance] = useState<Appearance>(getAppearance);
   const importRef = useRef<HTMLInputElement>(null);
 
   /* ── Contraseña del perfil ── */
@@ -101,6 +102,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     if (!nombre.trim()) { toast('El nombre no puede quedar vacío'); return; }
     onUpdateUser({ full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso });
     toast('✅ Perfil actualizado');
+  }
+
+  function handleAppearance(mode: Appearance) {
+    applyAppearance(mode);
+    setAppearance(mode);
   }
 
   function handleTheme(key: ThemeKey) {
@@ -159,11 +165,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             <div className="card-ttl"><Pencil size={14} color="var(--accent-d)" />{t('Editar datos')}</div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div className="fgroup"><label className="flabel">{t('Nombre')}</label><input className="finput" value={nombre} onChange={e => setNombre(e.target.value)} /></div>
-            <div className="fgroup"><label className="flabel">{t('Apellidos')}</label><input className="finput" value={apell} onChange={e => setApell(e.target.value)} /></div>
-            <div className="fgroup"><label className="flabel">{t('Centro educativo')}</label><input className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder={t('Ej: IES Ejemplo')} /></div>
-            <div className="fgroup"><label className="flabel">{t('Especialidad')}</label><input className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder={t('Ej: Matemáticas')} /></div>
-            <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel">{t('Curso escolar')}</label><input className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f1">{t('Nombre')}</label><input id="profile-f1" className="finput" value={nombre} onChange={e => setNombre(e.target.value)} /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f2">{t('Apellidos')}</label><input id="profile-f2" className="finput" value={apell} onChange={e => setApell(e.target.value)} /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f3">{t('Centro educativo')}</label><input id="profile-f3" className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder={t('Ej: IES Ejemplo')} /></div>
+            <div className="fgroup"><label className="flabel" htmlFor="profile-f4">{t('Especialidad')}</label><input id="profile-f4" className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder={t('Ej: Matemáticas')} /></div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="profile-f5">{t('Curso escolar')}</label><input id="profile-f5" className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
           </div>
           <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
             <button className="btn-accent" onClick={saveProfile}>{t('Guardar cambios')}</button>
@@ -246,6 +252,38 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
               );
             })}
           </div>
+
+          <div style={{ marginTop: 18 }}>
+            <div className="flabel" id="appearance-label">{t('Apariencia')}</div>
+            <div role="radiogroup" aria-labelledby="appearance-label" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {([
+                { id: 'auto', label: t('Automática'), icon: <Monitor size={14} aria-hidden="true" /> },
+                { id: 'light', label: t('Clara'), icon: <Sun size={14} aria-hidden="true" /> },
+                { id: 'dark', label: t('Oscura'), icon: <Moon size={14} aria-hidden="true" /> },
+              ] as const).map(opt => {
+                const on = appearance === opt.id;
+                return (
+                  <button
+                    key={opt.id} type="button" role="radio" aria-checked={on}
+                    onClick={() => handleAppearance(opt.id)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+                      borderRadius: 10, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13,
+                      fontWeight: on ? 700 : 600,
+                      background: on ? 'var(--accent-l)' : 'var(--card)',
+                      color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                      border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
+                    }}
+                  >
+                    {opt.icon}{opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 8 }}>
+              {t('«Automática» sigue el modo claro u oscuro de tu sistema.')}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -284,19 +322,19 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           <form onSubmit={submitSetOrChangePassword} style={{ maxWidth: 360 }}>
             {hasPassword && (
               <div className="fgroup">
-                <label className="flabel">{t('Contraseña actual')}</label>
-                <input className="finput" type="password" autoFocus value={secCurrent}
+                <label className="flabel" htmlFor="profile-f6">{t('Contraseña actual')}</label>
+                <input id="profile-f6" className="finput" type="password" autoFocus value={secCurrent}
                   onChange={e => { setSecCurrent(e.target.value); if (secError) setSecError(''); }} />
               </div>
             )}
             <div className="fgroup">
-              <label className="flabel">{t('Contraseña nueva')}</label>
-              <input className="finput" type="password" autoFocus={!hasPassword} value={secNew}
+              <label className="flabel" htmlFor="profile-f7">{t('Contraseña nueva')}</label>
+              <input id="profile-f7" className="finput" type="password" autoFocus={!hasPassword} value={secNew}
                 onChange={e => { setSecNew(e.target.value); if (secError) setSecError(''); }} />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Repite la contraseña')}</label>
-              <input className="finput" type="password" value={secRepeat}
+              <label className="flabel" htmlFor="profile-f8">{t('Repite la contraseña')}</label>
+              <input id="profile-f8" className="finput" type="password" value={secRepeat}
                 onChange={e => { setSecRepeat(e.target.value); if (secError) setSecError(''); }} />
             </div>
             {secError && <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{secError}</div>}
@@ -315,8 +353,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
               {t('A partir de ahora cualquiera podrá elegir este perfil desde la pantalla de inicio sin que se le pida nada.')}
             </p>
             <div className="fgroup">
-              <label className="flabel">{t('Contraseña actual')}</label>
-              <input className="finput" type="password" autoFocus value={secCurrent}
+              <label className="flabel" htmlFor="profile-f9">{t('Contraseña actual')}</label>
+              <input id="profile-f9" className="finput" type="password" autoFocus value={secCurrent}
                 onChange={e => { setSecCurrent(e.target.value); if (secError) setSecError(''); }} />
             </div>
             {secError && <div style={{ fontSize: 12.5, color: '#ef4444', marginBottom: 12 }}>{secError}</div>}

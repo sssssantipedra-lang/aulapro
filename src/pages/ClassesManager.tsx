@@ -251,7 +251,7 @@ export function ClassesManager({
               display: 'inline-flex', alignItems: 'center', gap: 7,
               padding: '8px 16px', borderRadius: 99, border: 'none', cursor: 'pointer',
               fontFamily: 'var(--font)', fontSize: 13.5, fontWeight: 700,
-              background: activeClassId === c.id ? c.color : 'white',
+              background: activeClassId === c.id ? c.color : 'var(--card)',
               color: activeClassId === c.id ? 'white' : 'var(--text-2)',
               boxShadow: activeClassId === c.id
                 ? `0 2px 10px ${c.color}55`
@@ -384,7 +384,7 @@ export function ClassesManager({
                       borderRadius: 12,
                     }}>
                       <span style={{
-                        background: 'white', borderRadius: 99, padding: '6px 16px',
+                        background: 'var(--card)', borderRadius: 99, padding: '6px 16px',
                         fontSize: 12.5, fontWeight: 700, color: 'var(--text)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                       }}>{t('Ver ficha')}</span>
@@ -447,21 +447,21 @@ export function ClassesManager({
                   <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>{activeClass?.name}</div>
                 )}
               </div>
-              <button className="ico-btn" onClick={closeStudentModal}><X size={18} /></button>
+              <button className="ico-btn" onClick={closeStudentModal} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {/* name */}
               <div className="fgroup">
-                <label className="flabel">{t('Nombre')}</label>
-                <input className="finput" value={editStudent.name}
+                <label className="flabel" htmlFor="classesmanager-f1">{t('Nombre')}</label>
+                <input id="classesmanager-f1" className="finput" value={editStudent.name}
                   onChange={e => setEditStudent({ ...editStudent, name: e.target.value })}
                   placeholder={t('Nombre completo')} />
               </div>
               {/* email */}
               <div className="fgroup">
-                <label className="flabel">Email</label>
-                <input className="finput" type="email" value={editStudent.email}
+                <label className="flabel" htmlFor="classesmanager-f2">Email</label>
+                <input id="classesmanager-f2" className="finput" type="email" value={editStudent.email}
                   onChange={e => setEditStudent({ ...editStudent, email: e.target.value })}
                   placeholder="correo@ejemplo.com" />
               </div>
@@ -469,8 +469,8 @@ export function ClassesManager({
 
             {/* notes */}
             <div className="fgroup">
-              <label className="flabel">{t('Notas')}</label>
-              <textarea className="finput" rows={3} value={editStudent.notes}
+              <label className="flabel" htmlFor="classesmanager-f3">{t('Notas')}</label>
+              <textarea id="classesmanager-f3" className="finput" rows={3} value={editStudent.notes}
                 onChange={e => setEditStudent({ ...editStudent, notes: e.target.value })}
                 placeholder={t('Observaciones, adaptaciones, etc.')}
                 style={{ resize: 'vertical' }} />
@@ -578,18 +578,18 @@ export function ClassesManager({
         <div className="modal">
           <div className="modal-hd">
             <span className="modal-title">{t('Nueva clase')}</span>
-            <button className="ico-btn" onClick={() => setClassModal(false)}><X size={18} /></button>
+            <button className="ico-btn" onClick={() => setClassModal(false)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
 
           <div className="frow">
             <div className="fgroup">
-              <label className="flabel">{t('Nombre')}</label>
-              <input className="finput" placeholder={t('Ej. 5º A')} value={editClass.name}
+              <label className="flabel" htmlFor="classesmanager-f4">{t('Nombre')}</label>
+              <input id="classesmanager-f4" className="finput" placeholder={t('Ej. 5º A')} value={editClass.name}
                 onChange={e => setEditClass({ ...editClass, name: e.target.value })} />
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Aula')}</label>
-              <input className="finput" placeholder={t('Ej. A102')} value={editClass.room}
+              <label className="flabel" htmlFor="classesmanager-f5">{t('Aula')}</label>
+              <input id="classesmanager-f5" className="finput" placeholder={t('Ej. A102')} value={editClass.room}
                 onChange={e => setEditClass({ ...editClass, room: e.target.value })} />
             </div>
           </div>
@@ -641,11 +641,13 @@ export function ClassesManager({
           <div className="fgroup">
             <label className="flabel">{t('Color')}</label>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {PALETTE.map(col => (
-                <button key={col} onClick={() => setEditClass({ ...editClass, color: col })}
+              {PALETTE.map((col, i) => (
+                <button key={col} type="button" onClick={() => setEditClass({ ...editClass, color: col })}
+                  aria-label={t('Color {n}', { n: i + 1 })}
+                  aria-pressed={editClass.color === col}
                   style={{
                     width: 32, height: 32, borderRadius: '50%', background: col, border: 'none', cursor: 'pointer',
-                    boxShadow: editClass.color === col ? `0 0 0 3px white, 0 0 0 5px ${col}` : `0 0 0 2px transparent`,
+                    boxShadow: editClass.color === col ? `0 0 0 3px var(--card), 0 0 0 5px ${col}` : `0 0 0 2px transparent`,
                     transition: 'box-shadow 0.15s',
                   }} />
               ))}
@@ -666,7 +668,7 @@ export function ClassesManager({
         <div className="modal">
           <div className="modal-hd">
             <span className="modal-title">{t('Importar alumnos (CSV)')}</span>
-            <button className="ico-btn" onClick={() => { setCsvModal(false); setCsvText(''); }}><X size={18} /></button>
+            <button className="ico-btn" onClick={() => { setCsvModal(false); setCsvText(''); }} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
 
           <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 12 }}>
@@ -674,8 +676,8 @@ export function ClassesManager({
           </p>
 
           <div className="fgroup">
-            <label className="flabel">{t('Datos CSV')}</label>
-            <textarea className="finput" rows={8} value={csvText}
+            <label className="flabel" htmlFor="classesmanager-f6">{t('Datos CSV')}</label>
+            <textarea id="classesmanager-f6" className="finput" rows={8} value={csvText}
               onChange={e => setCsvText(e.target.value)}
               placeholder={'Nombre,Email\nAna García,ana@ejemplo.com\nLuis Pérez,luis@ejemplo.com'}
               style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 13 }} />

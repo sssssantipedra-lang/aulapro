@@ -197,7 +197,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
                         onClick={() => toggleClass(c.id)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 8, padding: '8px 15px',
-                          background: on ? c.color : 'white',
+                          background: on ? c.color : 'var(--card)',
                           color: on ? 'white' : 'var(--text-2)',
                           border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                           borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
@@ -306,8 +306,9 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
               />
             ) : (
               <div>
-                <label className="flabel">{t('Escribe el código que te han dado')}</label>
+                <label className="flabel" htmlFor="share-f1">{t('Escribe el código que te han dado')}</label>
                 <input
+                  id="share-f1"
                   className="finput"
                   value={codeInput}
                   onChange={e => setCodeInput(normalizeCode(e.target.value))}

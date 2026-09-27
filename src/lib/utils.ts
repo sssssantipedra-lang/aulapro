@@ -18,6 +18,16 @@ export function plural(n: number, singular: string, plural: string): string {
  * UTC, así que el 12 de agosto a las 00:00 se convertía en «2026-08-11» y todo
  * lo guardado aparecía un día antes de lo que tocaba.
  */
+/**
+ * Id nuevo con prefijo y la hora actual («ev1727450000000»). Es el formato
+ * que ya usaban las evaluaciones y las fichas guardadas: no cambia nada en
+ * los datos. Vive aquí para llamarlo desde los manejadores de clic sin que
+ * el compilador de React lo confunda con código que corre al pintar.
+ */
+export function newId(prefix: string, radix = 10): string {
+  return prefix + Date.now().toString(radix);
+}
+
 export function isoDate(d: Date = new Date()): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -67,12 +77,35 @@ export function applyTheme(key: ThemeKey) {
   const r = document.documentElement;
   r.style.setProperty('--accent',     t.accent);
   r.style.setProperty('--accent-d',   t.accentD);
-  r.style.setProperty('--accent-l',   t.accentL);
+  // Base clara del tinte: en modo oscuro index.css usa otra (ver --accent-l)
+  r.style.setProperty('--accent-l-base', t.accentL);
   r.style.setProperty('--accent-rgb', t.accentRgb);
   r.style.setProperty('--sb-bg',      t.sbBg);
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (meta) meta.content = t.sbBg;
   localStorage.setItem('aulapro_theme', key);
+}
+
+/** Apariencia: seguir al sistema, o forzar claro u oscuro. */
+export type Appearance = 'auto' | 'light' | 'dark';
+const APPEARANCE_KEY = 'aulapro_appearance';
+
+export function getAppearance(): Appearance {
+  try {
+    const v = localStorage.getItem(APPEARANCE_KEY);
+    return v === 'light' || v === 'dark' ? v : 'auto';
+  } catch { return 'auto'; }
+}
+
+/**
+ * «Automático» no pone nada y deja que index.css siga a
+ * `prefers-color-scheme`; los otros dos lo fuerzan con `data-theme`.
+ */
+export function applyAppearance(mode: Appearance) {
+  const r = document.documentElement;
+  if (mode === 'auto') r.removeAttribute('data-theme');
+  else r.setAttribute('data-theme', mode);
+  try { localStorage.setItem(APPEARANCE_KEY, mode); } catch { /* sin almacenamiento */ }
 }
 
 export const LEVELS = [

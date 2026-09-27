@@ -8,8 +8,10 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
 import { useP2PSync } from './hooks/useP2PSync';
+import { useNarrowScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
+import { setPrivacyRoster } from './services/privacy';
 import type { Section } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
@@ -50,6 +52,11 @@ function AppInner() {
 
   const [section, setSection]         = useState<Section>('dashboard');
   const [sidebarMini, setSidebarMini] = useState(false);
+  // En pantallas estrechas el menú va plegado a iconos y se abre por encima
+  const narrow = useNarrowScreen();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuOverlay = narrow && menuOpen;
+  const menuMini = narrow ? !menuOpen : sidebarMini;
   const [showAddTask, setShowAddTask] = useState(false);
   const [taskText, setTaskText]       = useState('');
   const [taskPri, setTaskPri]         = useState<'high'|'medium'|'low'>('medium');
@@ -99,12 +106,22 @@ function AppInner() {
     applyTheme((localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky');
   }, []);
 
-  // Al cambiar de perfil se vuelve al inicio, no a la sección del docente anterior
-  useEffect(() => { setSection('dashboard'); }, [st.profileId]);
+  // Al cambiar de perfil se vuelve al inicio, no a la sección del docente
+  // anterior. Se ajusta durante el render (patrón recomendado por React para
+  // «reiniciar estado cuando cambia un valor»), no en un efecto: así no se
+  // pinta ni un instante la sección del perfil anterior.
+  const [sectionOwner, setSectionOwner] = useState(st.profileId);
+  if (sectionOwner !== st.profileId) {
+    setSectionOwner(st.profileId);
+    setSection('dashboard');
+  }
+
+  // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts
+  useEffect(() => { setPrivacyRoster(st.students, lang); }, [st.students, lang]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowAddTask(false);
+      if (e.key === 'Escape') { setShowAddTask(false); setMenuOpen(false); }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
@@ -130,8 +147,7 @@ function AppInner() {
           await st.createAndOpenProfile({
             name: DEMO_USER.full_name, school: DEMO_USER.school,
             subject: DEMO_USER.subject, course: '2025-2026',
-          });
-          st.loadDemoData();
+          }, { demo: true });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
       />
@@ -149,15 +165,24 @@ function AppInner() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar
-        mini={sidebarMini}
-        onToggle={() => setSidebarMini(v => !v)}
+        mini={menuMini}
+        overlay={menuOverlay}
+        onToggle={() => (narrow ? setMenuOpen(v => !v) : setSidebarMini(v => !v))}
         current={section}
-        onNav={setSection}
+        onNav={s => { setSection(s); setMenuOpen(false); }}
         user={st.currentUser}
         sharing={session.connected}
         saving={st.saving}
         onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
       />
+
+      {menuOverlay && (
+        <>
+          {/* Ocupa el hueco del menú plegado para que el contenido no salte */}
+          <div style={{ width: 'var(--sb-w-min)', flexShrink: 0 }} />
+          <div className="sb-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+        </>
+      )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <main style={{ flex: 1, overflow: 'auto' }}>
@@ -192,7 +217,7 @@ function AppInner() {
                 onAddStudent={st.addStudent}
                 onUpdateStudent={st.updateStudent}
                 onDeleteStudent={st.deleteStudent}
-                onAddStudents={(ss: any[]) => ss.forEach(st.addStudent)}
+                onAddStudents={ss => ss.forEach(st.addStudent)}
                 onOpenEval={() => setSection('rubrics')}
                 profileId={st.profileId}
               />
@@ -202,11 +227,11 @@ function AppInner() {
                 classes={st.classes}
                 scheduleBlocks={st.scheduleBlocks}
                 calEvents={st.calEvents}
-                onAddBlock={(b: any) => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
-                onUpdateBlock={(b: any) => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
+                onAddBlock={b => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
+                onUpdateBlock={b => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
                 onDeleteBlock={(id: string) => { st.deleteBlock(id); toast(t('Bloque eliminado')); }}
-                onAddCalEvent={(ev: any) => { st.addCalEvent(ev); toast(t('✅ Evento añadido')); }}
-                onUpdateCalEvent={(ev: any) => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
+                onAddCalEvent={ev => { st.addCalEvent(ev); toast(t('✅ Evento añadido')); }}
+                onUpdateCalEvent={ev => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
                 onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}
                 onNav={s => setSection(s as Section)}
               />
@@ -219,8 +244,8 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 lawDocument={st.lawDocument}
-                onAddRubric={(r: any) => { st.addRubric(r); toast(t('✅ Rúbrica creada')); }}
-                onUpdateRubric={(r: any) => { st.updateRubric(r); toast(t('✅ Actualizada')); }}
+                onAddRubric={r => { st.addRubric(r); toast(t('✅ Rúbrica creada')); }}
+                onUpdateRubric={r => { st.updateRubric(r); toast(t('✅ Actualizada')); }}
                 onDeleteRubric={(id: string) => { st.deleteRubric(id); toast(t('Rúbrica eliminada')); }}
                 onAddDiana={st.addDiana}
                 onUpdateDiana={st.updateDiana}
@@ -429,17 +454,17 @@ function AppInner() {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
             <div className="modal-title">{t('Nueva tarea')}</div>
-            <button className="ico-btn" onClick={() => setShowAddTask(false)}><X size={17} /></button>
+            <button className="ico-btn" onClick={() => setShowAddTask(false)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={17} /></button>
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Descripción')}</label>
-            <input className="finput" value={taskText} onChange={e => setTaskText(e.target.value)} placeholder={t('Ej: Corregir exámenes 3º ESO A')}
+            <label className="flabel" htmlFor="app-f1">{t('Descripción')}</label>
+            <input id="app-f1" className="finput" value={taskText} onChange={e => setTaskText(e.target.value)} placeholder={t('Ej: Corregir exámenes 3º ESO A')}
               onKeyDown={e => { if (e.key === 'Enter') submitTask(); }}
             />
           </div>
           <div className="fgroup">
-            <label className="flabel">{t('Prioridad')}</label>
-            <select className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as any)} style={{ cursor: 'pointer' }}>
+            <label className="flabel" htmlFor="app-f2">{t('Prioridad')}</label>
+            <select id="app-f2" className="finput" value={taskPri} onChange={e => setTaskPri(e.target.value as 'high' | 'medium' | 'low')} style={{ cursor: 'pointer' }}>
               <option value="high">{priorityLabel('high', lang)}</option>
               <option value="medium">{priorityLabel('medium', lang)}</option>
               <option value="low">{priorityLabel('low', lang)}</option>

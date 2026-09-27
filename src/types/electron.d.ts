@@ -111,6 +111,11 @@ declare global {
       classroom?: ClassroomBridge;
       docs?: DocsBridge;
       update?: UpdateBridge;
+      secrets?: {
+        get: (name: 'gemini') => Promise<string>;
+        /** `false` si el sistema no ofrece cifrado: entonces no se ha guardado. */
+        set: (name: 'gemini', value: string) => Promise<boolean>;
+      };
     };
   }
 }

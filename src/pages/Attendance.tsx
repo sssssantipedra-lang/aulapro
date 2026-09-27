@@ -170,7 +170,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
               onClick={() => setClassId(c.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-                background: on ? 'white' : 'transparent',
+                background: on ? 'var(--card)' : 'transparent',
                 border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                 borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                 fontSize: 13, fontWeight: on ? 700 : 500, color: 'var(--text)',
@@ -221,6 +221,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
               </button>
               <input
                 className="finput" type="date" value={date} onChange={e => setDate(e.target.value)}
+                aria-label={t('Fecha')}
                 style={{ width: 160, flex: 'none', height: 38 }}
               />
               <button className="btn-ghost" style={{ fontSize: 12.5 }} onClick={() => setDate(isoDate())}>
@@ -280,7 +281,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                             width: 34, height: 32, borderRadius: 9, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             border: `1.5px solid ${on ? opt.color : 'var(--border)'}`,
-                            background: on ? opt.color : 'white',
+                            background: on ? opt.color : 'var(--card)',
                             color: on ? 'white' : 'var(--text-3)',
                             transition: 'all 0.15s',
                           }}

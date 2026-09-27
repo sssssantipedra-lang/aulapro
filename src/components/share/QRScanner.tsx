@@ -99,7 +99,7 @@ export function QRScanner({ onDetected, onCancel }: Props) {
       cleanupRef.current?.();
       cleanupRef.current = null;
     };
-  }, [onDetected]);
+  }, [onDetected, t]);
 
   if (state === 'denied' || state === 'unsupported') {
     return (

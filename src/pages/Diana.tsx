@@ -482,7 +482,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
     setDescriptors(newDesc);
 
     setSaved(false);
-  }, [student, studentEvals, classes, classId, lawDocument, toast, lang, t]);
+  }, [student, studentEvals, competencyEvals, dianas, rubrics, classes, classId, lawDocument, toast, lang, t]);
 
   /**
    * Rellena desde las evaluaciones con competencias asociadas, en vez de
@@ -561,9 +561,10 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
       {/* Selectors */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel">{t('Clase')}</label>
+          <label className="flabel" htmlFor="diana-clase">{t('Clase')}</label>
           <div style={{ position: 'relative' }}>
             <select
+              id="diana-clase"
               className="finput"
               value={classId}
               onChange={e => handleClassChange(e.target.value)}
@@ -579,9 +580,10 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
         </div>
 
         <div className="fgroup" style={{ marginBottom: 0 }}>
-          <label className="flabel">{t('Alumno')}</label>
+          <label className="flabel" htmlFor="diana-alumno">{t('Alumno')}</label>
           <div style={{ position: 'relative' }}>
             <select
+              id="diana-alumno"
               className="finput"
               value={studentId}
               onChange={e => handleStudentChange(e.target.value)}
@@ -732,7 +734,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                               width: 30, height: 30, borderRadius: 7, border: 'none',
                               cursor: 'pointer', fontSize: 12, fontWeight: 800,
                               transition: 'all 0.15s',
-                              background: current === lvl ? LEVEL_COLORS[lvl].bg : 'white',
+                              background: current === lvl ? LEVEL_COLORS[lvl].bg : 'var(--card)',
                               color: current === lvl ? LEVEL_COLORS[lvl].text : 'var(--text-3)',
                               boxShadow: current === lvl
                                 ? `0 0 0 2px ${LEVEL_COLORS[lvl].border}`

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { PeerLink, type LinkState } from '../services/p2p';
 import {
   buildBundle, hashBundle, isSyncMessage,
@@ -43,10 +43,14 @@ export function useP2PSync({ source, scope, userName, applyBundle }: Options) {
   const scopeRef  = useRef(scope);
   const nameRef   = useRef(userName);
   const applyRef  = useRef(applyBundle);
-  sourceRef.current = source;
-  scopeRef.current  = scope;
-  nameRef.current   = userName;
-  applyRef.current  = applyBundle;
+  // Se actualizan tras cada render (no durante: React no garantiza que un
+  // render llegue a pintarse), antes de que ningún evento pueda leerlas.
+  useLayoutEffect(() => {
+    sourceRef.current = source;
+    scopeRef.current  = scope;
+    nameRef.current   = userName;
+    applyRef.current  = applyBundle;
+  });
 
   const sendSnapshot = useCallback(() => {
     const link = linkRef.current;

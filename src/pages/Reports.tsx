@@ -421,7 +421,7 @@ export function Reports(props: Props) {
               onClick={() => { setClassId(c.id); setSelected(null); }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-                background: on ? 'white' : 'transparent',
+                background: on ? 'var(--card)' : 'transparent',
                 border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                 borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                 fontSize: 13, fontWeight: on ? 700 : 500, color: 'var(--text)',
@@ -436,6 +436,7 @@ export function Reports(props: Props) {
         <select
           className="finput"
           value={period}
+          aria-label={t('Evaluación')}
           onChange={e => { setPeriod(e.target.value); setSelected(null); }}
           style={{ width: 176, height: 38, cursor: 'pointer' }}
         >
@@ -471,7 +472,7 @@ export function Reports(props: Props) {
                       display: 'flex', alignItems: 'center', gap: 10, width: '100%',
                       padding: '11px 16px', border: 'none', cursor: 'pointer',
                       borderTop: i === 0 ? 'none' : '0.5px solid var(--border)',
-                      background: on ? 'var(--accent-l)' : 'white',
+                      background: on ? 'var(--accent-l)' : 'var(--card)',
                       fontFamily: 'var(--font)', textAlign: 'left',
                     }}
                   >

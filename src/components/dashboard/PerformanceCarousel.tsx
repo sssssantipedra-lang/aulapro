@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../../types';
 import { useI18n } from '../../i18n';
-import { useCarousel, CarouselControls, CarouselDots } from './carousel';
+import { CarouselControls, CarouselDots } from './carousel';
+import { useCarousel } from './useCarousel';
 
 interface Props {
   classes: Class[];

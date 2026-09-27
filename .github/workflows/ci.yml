@@ -1,0 +1,41 @@
+name: Comprobaciones
+
+# En cada pull request y en cada cambio que llega a master: que compile, que
+# pase el lint y que pasen todas las pruebas. Así nada se fusiona sin
+# verificar, y si master se rompe se ve en el momento.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tipos (TypeScript)
+        run: npx tsc -b
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Compilar
+        run: npx vite build

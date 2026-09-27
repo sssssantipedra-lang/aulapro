@@ -67,6 +67,8 @@ const NAV: { sect: string; items: NavEntry[] }[] = [
 
 interface Props {
   mini: boolean;
+  /** Abierto por encima del contenido (pantallas estrechas). */
+  overlay?: boolean;
   onToggle: () => void;
   current: Section;
   onNav: (s: Section) => void;
@@ -81,7 +83,7 @@ interface Props {
 /** Qué grupos ha plegado el docente. Se recuerda entre sesiones. */
 const COLLAPSED_KEY = 'aulapro_nav_collapsed';
 
-export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving, onLogout }: Props) {
+export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing, saving, onLogout }: Props) {
   const { t } = useI18n();
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
@@ -92,7 +94,7 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
   }, [collapsed]);
 
   return (
-    <aside className={`sidebar${mini ? ' mini' : ''}`}>
+    <aside className={`sidebar${mini ? ' mini' : ''}${overlay ? ' overlay' : ''}`} aria-label={t('Menú principal')}>
       <div className="sb-logo">
         <div className="sb-logo-box">
           <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -103,6 +105,8 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
           style={{ marginLeft: mini ? 0 : 'auto', color: '#475569' }}
           onClick={onToggle}
           title={mini ? t('Expandir') : t('Colapsar')}
+          aria-label={mini ? t('Expandir el menú') : t('Plegar el menú')}
+          aria-expanded={!mini}
         >
           {mini ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
@@ -145,6 +149,10 @@ export function Sidebar({ mini, onToggle, current, onNav, user, sharing, saving,
                   key={item.id}
                   className={`nav-item${current === item.id ? ' active' : ''}`}
                   onClick={() => onNav(item.id)}
+                  aria-current={current === item.id ? 'page' : undefined}
+                  // Plegado solo se ve el icono: el nombre va en la etiqueta y el tooltip
+                  aria-label={mini ? t(item.label) : undefined}
+                  title={mini ? t(item.label) : undefined}
                 >
                   <span className="ni-icon">{item.icon}</span>
                   <span className="ni-label">{t(item.label)}</span>

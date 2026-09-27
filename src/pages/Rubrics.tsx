@@ -6,10 +6,11 @@ import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, Gr
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { fileToBase64, isoDate, LOMLOE_COMPETENCES } from '../lib/utils';
+import { fileToBase64, isoDate, LOMLOE_COMPETENCES, newId } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { useResetOnChange } from '../lib/useResetOnChange';
 import { DianasTab } from './EvalDianas';
 
 /* ─── Props ─── */
@@ -115,7 +116,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
     setLevels(prev => renumber(prev.filter((_, j) => j !== i)));
 
   /* Populate when editing */
-  useEffect(() => {
+  useResetOnChange(`${open}:${editing?.id ?? ''}`, () => {
     if (editing) {
       setMode('manual');
       setManualName(editing.name);
@@ -137,7 +138,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       setAiPreview(null);
       setTarget({});
     }
-  }, [editing, open]);
+  });
 
   /* ── AI generate ── */
   async function handleGenerate() {
@@ -271,7 +272,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               {t(mode === 'ia' ? 'Genera criterios con IA' : 'Define los criterios manualmente')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose}><X size={18} /></button>
+          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         {/* Mode toggle */}
@@ -343,8 +344,8 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'ia' && (
           <div>
             <div className="fgroup">
-              <label className="flabel">{t('Clase (opcional)')}</label>
-              <select className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)}>
+              <label className="flabel" htmlFor="rubrics-f1">{t('Clase (opcional)')}</label>
+              <select id="rubrics-f1" className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)}>
                 <option value="">{t('Sin clase específica')}</option>
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>
@@ -352,8 +353,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               </select>
             </div>
             <div className="fgroup">
-              <label className="flabel">{t('Contexto de la actividad *')}</label>
+              <label className="flabel" htmlFor="rubrics-f2">{t('Contexto de la actividad *')}</label>
               <textarea
+                id="rubrics-f2"
                 className="finput"
                 rows={3}
                 placeholder={t('Ej: Presentación oral sobre la Revolución Francesa, 2º ESO...')}
@@ -364,8 +366,8 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
             </div>
             <div className="frow" style={{ marginBottom: 16 }}>
               <div className="fgroup" style={{ marginBottom: 0 }}>
-                <label className="flabel">{t('Número de criterios')}</label>
-                <select className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))}>
+                <label className="flabel" htmlFor="rubrics-f3">{t('Número de criterios')}</label>
+                <select id="rubrics-f3" className="finput" value={aiCount} onChange={e => setAiCount(Number(e.target.value))}>
                   {[3, 4, 5, 6].map(n => <option key={n} value={n}>{t('{n} criterios', { n })}</option>)}
                 </select>
               </div>
@@ -387,7 +389,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {aiPreview.criteria.map((cr, i) => (
-                    <div key={cr.id} style={{ background: 'white', borderRadius: 8, padding: '10px 12px', border: '0.5px solid var(--border)' }}>
+                    <div key={cr.id} style={{ background: 'var(--card)', borderRadius: 8, padding: '10px 12px', border: '0.5px solid var(--border)' }}>
                       <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>{i + 1}. {cr.name}</div>
                       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${previewLevels.length}, 1fr)`, gap: 6 }}>
                         {previewLevels.map(lv => (
@@ -412,8 +414,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'manual' && (
           <div>
             <div className="fgroup">
-              <label className="flabel">{t('Nombre de la rúbrica *')}</label>
+              <label className="flabel" htmlFor="rubrics-f4">{t('Nombre de la rúbrica *')}</label>
               <input
+                id="rubrics-f4"
                 className="finput"
                 placeholder={t('Ej: Exposición oral')}
                 value={manualName}
@@ -542,7 +545,7 @@ function EvalModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* Reset when rubric/modal changes */
-  useEffect(() => {
+  useResetOnChange(`${open}:${rubric?.id ?? ''}:${defaultClassId ?? ''}:${defaultStudentId ?? ''}`, () => {
     if (!open || !rubric) return;
     setScores({});
     setNotes('');
@@ -552,7 +555,7 @@ function EvalModal({
     // La rúbrica ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
     setClassId(defaultClassId ?? rubric.class_id ?? '');
     setStudentId(defaultStudentId ?? '');
-  }, [open, rubric, defaultClassId, defaultStudentId]);
+  });
 
   const classStudents = students.filter(s => s.class_id === classId);
 
@@ -671,7 +674,7 @@ function EvalModal({
     if (!rubric || !studentId) return;
     const student = students.find(s => s.id === studentId);
     const ev: Evaluation = {
-      id: 'ev' + Date.now(),
+      id: newId('ev'),
       rubric_id: rubric.id,
       rubric_name: rubric.name,
       student_id: studentId,
@@ -706,14 +709,15 @@ function EvalModal({
               {t('Haz clic en el nivel para cada criterio')}
             </p>
           </div>
-          <button className="ico-btn" onClick={onClose}><X size={18} /></button>
+          <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
         {/* Class + Student selectors */}
         <div className="frow" style={{ marginBottom: 16 }}>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Clase')}</label>
+            <label className="flabel" htmlFor="rubrics-f5">{t('Clase')}</label>
             <select
+              id="rubrics-f5"
               className="finput"
               value={classId}
               onChange={e => { setClassId(e.target.value); setStudentId(''); }}
@@ -723,8 +727,9 @@ function EvalModal({
             </select>
           </div>
           <div className="fgroup" style={{ marginBottom: 0 }}>
-            <label className="flabel">{t('Alumno')}</label>
+            <label className="flabel" htmlFor="rubrics-f6">{t('Alumno')}</label>
             <select
+              id="rubrics-f6"
               className="finput"
               value={studentId}
               onChange={e => setStudentId(e.target.value)}
@@ -917,17 +922,17 @@ export function Rubrics({
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   /* Open eval modal from defaults (e.g. navigated from Dashboard) */
+  const openFromDefaults = defaultOpenEvalRubricId ? rubrics.find(r => r.id === defaultOpenEvalRubricId) : undefined;
+  useResetOnChange(defaultOpenEvalRubricId ?? '', () => {
+    if (!openFromDefaults) return;
+    setEvalRubric(openFromDefaults);
+    setEvalDefaultClassId(defaultOpenEvalClassId);
+    setEvalDefaultStudentId(defaultOpenEvalStudentId);
+    setEvalModalOpen(true);
+  });
+  // Avisar al padre de que ya se ha usado es cambiar SU estado: eso sí va en un efecto.
   useEffect(() => {
-    if (defaultOpenEvalRubricId) {
-      const r = rubrics.find(r => r.id === defaultOpenEvalRubricId);
-      if (r) {
-        setEvalRubric(r);
-        setEvalDefaultClassId(defaultOpenEvalClassId);
-        setEvalDefaultStudentId(defaultOpenEvalStudentId);
-        setEvalModalOpen(true);
-        onEvalOpened?.();
-      }
-    }
+    if (openFromDefaults) onEvalOpened?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultOpenEvalRubricId]);
 
@@ -1193,7 +1198,7 @@ export function Rubrics({
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-hd">
             <div className="modal-title">{t('Eliminar rúbrica')}</div>
-            <button className="ico-btn" onClick={() => setConfirmDeleteId(null)}><X size={18} /></button>
+            <button className="ico-btn" onClick={() => setConfirmDeleteId(null)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20 }}>
             {t('¿Seguro que quieres eliminar esta rúbrica? Las evaluaciones asociadas no se borrarán.')}

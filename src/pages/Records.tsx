@@ -282,7 +282,7 @@ export function Records({
                 onClick={() => setClassId(c.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-                  background: on ? 'white' : 'transparent',
+                  background: on ? 'var(--card)' : 'transparent',
                   border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
                   borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
                   fontSize: 13, fontWeight: on ? 700 : 500, color: 'var(--text)',
@@ -296,6 +296,7 @@ export function Records({
           <div style={{ flex: 1 }} />
           <select
             className="finput" value={period} onChange={e => setPeriod(e.target.value)}
+            aria-label={t('Evaluación')}
             style={{ width: 176, height: 38, cursor: 'pointer' }}
           >
             {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}

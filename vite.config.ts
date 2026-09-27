@@ -18,6 +18,23 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rolldownOptions: {
+      output: {
+        // Bloques aparte para lo que pesa y casi nunca cambia: así ninguno
+        // pasa de 500 KB y una actualización no obliga a recargar React ni el
+        // currículo oficial (cientos de KB de JSON) si no han cambiado.
+        codeSplitting: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: 'iconos', test: /node_modules[\\/]lucide-react[\\/]/ },
+            { name: 'curriculo-primaria', test: /src[\\/]lib[\\/]curriculum[\\/]data[\\/]primaria\.json/ },
+            { name: 'curriculo-eso', test: /src[\\/]lib[\\/]curriculum[\\/]data[\\/]eso\.json/ },
+          ],
+        },
+      },
+    },
+  },
   server: {
     // Respeta PORT si viene del entorno; si no, Vite usa su puerto de siempre.
     port: process.env.PORT ? Number(process.env.PORT) : undefined,

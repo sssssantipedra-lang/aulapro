@@ -47,6 +47,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
   },
 
+  /** Secretos cifrados por el sistema operativo (ver electron/secrets.cjs). */
+  secrets: {
+    get: name          => ipcRenderer.invoke('secrets:get', name),
+    set: (name, value) => ipcRenderer.invoke('secrets:set', name, value),
+  },
+
   /** Actualización automática (solo Windows: ver electron/updater.cjs). */
   update: {
     /** Avisa cuando hay una descargándose o lista. Devuelve una función para dejar de escuchar. */
