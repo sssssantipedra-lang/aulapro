@@ -9,6 +9,7 @@ import type {
 import { callGemini, hasApiKey } from '../services/gemini';
 import { isoDate, PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
@@ -411,34 +412,20 @@ export function Reports(props: Props) {
         </div>
       )}
 
-      {/* Clase y periodo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {classes.map(c => {
-          const on = c.id === clsId;
-          return (
-            <button
-              key={c.id}
-              onClick={() => { setClassId(c.id); setSelected(null); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-                background: on ? 'var(--card)' : 'transparent',
-                border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
-                borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-                fontSize: 13, fontWeight: on ? 700 : 500, color: 'var(--text)',
-              }}
-            >
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: c.color }} />
-              {c.name}
-            </button>
-          );
-        })}
-        <div style={{ flex: 1 }} />
+      {/* Barra de controles: clase, periodo y progreso */}
+      <div className="toolbar">
+        <ClassChips classes={classes} value={clsId} onChange={id => { setClassId(id); setSelected(null); }} />
+        <span className="toolbar-spacer" />
+        {roster.length > 0 && (
+          generatedCount === roster.length
+            ? <span className="seat-pill ok"><Check size={13} aria-hidden="true" />{t('Todos con informe')}</span>
+            : <span className="seat-pill warn">{t('{n}/{total} con informe', { n: generatedCount, total: roster.length })}</span>
+        )}
         <select
-          className="finput"
+          className="tb-select"
           value={period}
           aria-label={t('Evaluación')}
           onChange={e => { setPeriod(e.target.value); setSelected(null); }}
-          style={{ width: 176, height: 38, cursor: 'pointer' }}
         >
           {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}
         </select>
@@ -454,7 +441,7 @@ export function Reports(props: Props) {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '292px minmax(0,1fr)', gap: 18, alignItems: 'start' }}>
+        <div className="split-list">
           {/* Lista de alumnos */}
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '13px 16px', borderBottom: '0.5px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -479,8 +466,8 @@ export function Reports(props: Props) {
                     <span style={{
                       width: 22, height: 22, borderRadius: 6, flexShrink: 0, fontSize: 11, fontWeight: 800,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: rep ? 'rgba(16,185,129,0.14)' : 'var(--surface)',
-                      color: rep ? '#047857' : 'var(--text-3)',
+                      background: rep ? 'var(--ok-bg)' : 'var(--surface)',
+                      color: rep ? 'var(--ok-fg)' : 'var(--text-3)',
                     }}>
                       {rep ? <Check size={12} /> : i + 1}
                     </span>
