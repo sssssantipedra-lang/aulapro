@@ -2,7 +2,8 @@
  * Servicio de IA (Google Gemini).
  *
  * La clave API la introduce el usuario en «Mi Perfil» y se guarda en este
- * equipo (localStorage). Si un modelo no está disponible o se agota su cuota,
+ * equipo: cifrada por el sistema en la aplicación de escritorio, en
+ * localStorage en el navegador. Si un modelo no está disponible o se agota su cuota,
  * se prueba automáticamente con el siguiente de la lista.
  */
 
@@ -22,14 +23,65 @@ const MODELS = [
   'gemini-2.0-flash',
 ] as const;
 
-export function getApiKey(): string {
+/**
+ * La clave, ya descifrada, en memoria. En la aplicación de escritorio vive
+ * cifrada por el sistema operativo (electron/secrets.cjs) y se lee una vez al
+ * arrancar con `initApiKey`; así `getApiKey` sigue siendo síncrona para las
+ * pantallas. En el navegador no hay cifrado posible y se usa localStorage.
+ */
+let cachedKey: string | null = null;
+
+const secretsBridge = () => (typeof window !== 'undefined' ? window.electronAPI?.secrets : undefined);
+
+function readLocal(): string {
   try { return (localStorage.getItem(KEY_STORAGE) ?? '').trim(); } catch { return ''; }
+}
+
+function writeLocal(k: string) {
+  try {
+    if (k) localStorage.setItem(KEY_STORAGE, k);
+    else localStorage.removeItem(KEY_STORAGE);
+  } catch { /* almacenamiento no disponible */ }
+}
+
+/**
+ * Carga la clave antes de pintar la aplicación. Si venía de una versión
+ * anterior (en claro, en localStorage), la pasa al almacén cifrado y borra la
+ * copia en claro.
+ */
+export async function initApiKey(): Promise<void> {
+  const bridge = secretsBridge();
+  if (!bridge) { cachedKey = readLocal(); return; }
+  try {
+    const stored = (await bridge.get('gemini')).trim();
+    const legacy = readLocal();
+    if (stored) {
+      cachedKey = stored;
+      if (legacy) writeLocal('');
+    } else if (legacy) {
+      cachedKey = legacy;
+      if (await bridge.set('gemini', legacy)) writeLocal('');
+    } else {
+      cachedKey = '';
+    }
+  } catch {
+    cachedKey = readLocal();
+  }
+}
+
+export function getApiKey(): string {
+  return cachedKey ?? readLocal();
 }
 
 export function setApiKey(key: string) {
   const k = key.trim();
-  if (k) localStorage.setItem(KEY_STORAGE, k);
-  else localStorage.removeItem(KEY_STORAGE);
+  cachedKey = k;
+  const bridge = secretsBridge();
+  if (!bridge) { writeLocal(k); return; }
+  // Cifrada si el sistema lo permite; si no, como hasta ahora.
+  bridge.set('gemini', k)
+    .then(ok => writeLocal(ok ? '' : k))
+    .catch(() => writeLocal(k));
 }
 
 export function hasApiKey(): boolean {
