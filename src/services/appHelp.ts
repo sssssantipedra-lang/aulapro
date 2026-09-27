@@ -113,8 +113,12 @@ SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes
 Dos cosas: el horario semanal (bloques de día, hora de inicio y fin, asignatura,
 aula y clase) y el calendario de eventos (entregas, reuniones y eventos, con
 urgencia alta/media/baja). Tiene «Escanear horario»: se sube el horario del
-centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA lo
-transcribe a bloques.
+centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia
+la tabla celda a celda; la propia aplicación calcula el día y la hora de cada
+sesión por su posición, así que las celdas vacías o el recreo no descolocan
+nada. Antes de añadir, se muestra la semana tal como quedará: pulsando una
+sesión se quita si no es tuya. Consejo: una foto recta y nítida, o mejor el
+Excel del centro, da el mejor resultado.
 
 [notebook] CUADERNO DE NOTAS
 Tiene DOS PESTAÑAS arriba:
