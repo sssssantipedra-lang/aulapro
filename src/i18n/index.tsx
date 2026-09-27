@@ -1423,6 +1423,19 @@ const EN: Record<string, string> = {
   'Todo el alumnado tiene mesa asignada.': 'Every student has a table.',
   '{n} alumnos se han quedado sin mesa: no caben todos en {groups} mesas de {size}': '{n} students were left without a table: they don\'t all fit in {groups} tables of {size}',
   '✅ Grupos generados': '✅ Groups generated',
+  'Todos sentados': 'Everyone seated',
+  '{n} sin mesa': '{n} not seated',
+  'Mesas y roles': 'Tables & roles',
+  'Repartir con IA': 'Arrange with AI',
+  'Aún no hay nadie sentado. Reparte con IA o arrastra a cada alumno desde la bandeja inferior hasta un asiento.': 'Nobody is seated yet. Arrange with AI or drag each student from the tray below onto a seat.',
+  'Sentar aquí': 'Seat here',
+  'Asiento libre': 'Empty seat',
+  'Arrastra para cambiar de asiento': 'Drag to change seat',
+  'Quitar de la mesa': 'Remove from table',
+  'Arrastra a un alumno hasta un asiento, o tócalo y después toca el asiento.': 'Drag a student onto a seat, or tap them and then tap the seat.',
+  'Se sustituirá la distribución actual de {clase}.': 'This will replace the current layout for {clase}.',
+  'Aspectos a tener en cuenta (opcional)': 'Anything to bear in mind (optional)',
+  'p. ej. «Marco y Lucía no deben ir juntos»': 'e.g. “Marco and Lucía shouldn\'t be together”',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };
