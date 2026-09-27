@@ -151,8 +151,8 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   alumno, sin inventar ninguno. Sustituye la distribución que hubiera.
 - Cada mesa se dibuja como un semicírculo con los asientos numerados y, debajo,
   la lista de asientos con el nombre y el rol de cada alumno.
-- Sentar a mano: si hay alumnos sin mesa aparece abajo la bandeja «Sin mesa
-  asignada». Se ARRASTRA un alumno hasta un asiento (en la lista o en el
+- Sentar a mano: si hay alumnos sin mesa aparece abajo la bandeja
+  «Sin mesa asignada». Se ARRASTRA un alumno hasta un asiento (en la lista o en el
   dibujo), o se toca el alumno y después «Sentar aquí». También se puede
   arrastrar a un alumno de un asiento a otro (si estaba ocupado, se
   intercambian) o devolverlo a la bandeja. Para quitar a alguien de su asiento
