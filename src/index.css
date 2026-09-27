@@ -390,3 +390,10 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .tb-search { display:flex; align-items:center; gap:8px; height:36px; padding:0 12px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text-3); flex:1 1 220px; max-width:360px; }
 .tb-search:focus-within { border-color:var(--accent-d); box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.1); }
 .tb-search input { border:none; outline:none; background:transparent; font-family:var(--font); font-size:13.5px; color:var(--text); width:100%; }
+.toolbar.stack { flex-direction:column; align-items:stretch; gap:12px; }
+.toolbar-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.tb-select { height:36px; min-width:150px; padding:0 30px 0 12px; border:1px solid var(--border); border-radius:8px; font-family:var(--font); font-size:13.5px; font-weight:600; color:var(--text); background:var(--card); cursor:pointer; outline:none; }
+.tb-select:focus { border-color:var(--accent-d); box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.1); }
+/* Lista a la izquierda y detalle a la derecha; apilados en ventanas estrechas */
+.split-list { display:grid; grid-template-columns:292px minmax(0,1fr); gap:18px; align-items:start; }
+@media (max-width:860px) { .split-list { grid-template-columns:1fr; } }

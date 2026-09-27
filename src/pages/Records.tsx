@@ -3,6 +3,7 @@ import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users } from 'lucide-re
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 import { PERIODS } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
 
 interface Props {
@@ -271,65 +272,33 @@ export function Records({
         </div>
       </div>
 
-      {/* ── Controles ── */}
-      <div className="card no-print" style={{ marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-          {classes.map(c => {
-            const on = c.id === clsId;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setClassId(c.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 7, padding: '8px 16px',
-                  background: on ? 'var(--card)' : 'transparent',
-                  border: `1.5px solid ${on ? c.color : 'var(--border)'}`,
-                  borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-                  fontSize: 13, fontWeight: on ? 700 : 500, color: 'var(--text)',
-                }}
-              >
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: c.color }} />
-                {c.name}
-              </button>
-            );
-          })}
-          <div style={{ flex: 1 }} />
-          <select
-            className="finput" value={period} onChange={e => setPeriod(e.target.value)}
-            aria-label={t('Evaluación')}
-            style={{ width: 176, height: 38, cursor: 'pointer' }}
-          >
+      {/* ── Controles: una barra (clase, materia, periodo) y las opciones del documento ── */}
+      <div className="toolbar stack no-print">
+        <div className="toolbar-row">
+          <ClassChips classes={classes} value={clsId} onChange={setClassId} />
+          {subjects.length > 1 && (
+            <>
+              <span className="toolbar-sep" aria-hidden="true" />
+              <span className="toolbar-label" id="rec-subject-label">{t('Acta de')}</span>
+              <div className="chip-row" role="group" aria-labelledby="rec-subject-label">
+                {subjects.map(s => {
+                  const on = s === activeSubject;
+                  return (
+                    <button key={s} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setSubject(s)}>
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          <span className="toolbar-spacer" />
+          <select className="tb-select" value={period} onChange={e => setPeriod(e.target.value)} aria-label={t('Evaluación')}>
             {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}
           </select>
         </div>
 
-        {subjects.length > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginRight: 2 }}>
-              {t('Acta de')}
-            </span>
-            {subjects.map(s => {
-              const on = s === activeSubject;
-              return (
-                <button
-                  key={s}
-                  onClick={() => setSubject(s)}
-                  style={{
-                    padding: '6px 14px', borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
-                    fontSize: 12.5, fontWeight: on ? 800 : 500,
-                    background: on ? 'var(--accent-l)' : 'transparent',
-                    border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
-                    color: on ? 'var(--accent-d)' : 'var(--text-2)',
-                  }}
-                >
-                  {s}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+        <div className="toolbar-row" style={{ gap: 18 }}>
           <Toggle label={t('Desglose por categorías')} on={showCategories} onChange={setShowCategories} />
           <Toggle label={t('Calificación en palabras')} on={showLabel} onChange={setShowLabel} />
           <Toggle label={t('Pie de firma')} on={showSignature} onChange={setShowSignature} />

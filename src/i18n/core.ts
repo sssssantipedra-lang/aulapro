@@ -1424,6 +1424,8 @@ const EN: Record<string, string> = {
   '{n} alumnos se han quedado sin mesa: no caben todos en {groups} mesas de {size}': '{n} students were left without a table: they don\'t all fit in {groups} tables of {size}',
   '✅ Grupos generados': '✅ Groups generated',
   'Apariencia': 'Appearance',
+  'Todos con informe': 'All reports done',
+  '{n}/{total} con informe': '{n}/{total} reports done',
   'Ninguna rúbrica coincide con «{q}».': 'No rubric matches “{q}”.',
   'Buscar rúbrica…': 'Search rubrics…',
   'Buscar rúbrica': 'Search rubrics',
