@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy,
+  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search,
 } from 'lucide-react';
 import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget } from '../types';
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
@@ -911,6 +911,11 @@ export function Rubrics({
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const [tab, setTab] = useState<'rubrics' | 'dianas'>('rubrics');
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLocaleLowerCase('es');
+  const visibleRubrics = q
+    ? rubrics.filter(r => `${r.name} ${r.context ?? ''} ${r.criteria.map(c => c.name).join(' ')}`.toLocaleLowerCase('es').includes(q))
+    : rubrics;
   const [rubricModalOpen, setRubricModalOpen] = useState(false);
   const [editingRubric, setEditingRubric] = useState<Rubric | null>(null);
 
@@ -1019,11 +1024,22 @@ export function Rubrics({
         />
       ) : (
       <>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-        <p style={{ fontSize: 12.5, color: 'var(--text-2)', flex: 1, lineHeight: 1.5 }}>
-          {t('Define criterios con descriptores por nivel y evalúa marcando la casilla que corresponda.')}
-        </p>
-        <button className="btn-accent" onClick={openNewRubric}>
+      <div className="toolbar">
+        {rubrics.length > 3 ? (
+          <div className="tb-search">
+            <Search size={14} aria-hidden="true" />
+            <input
+              type="search" value={query} onChange={e => setQuery(e.target.value)}
+              placeholder={t('Buscar rúbrica…')} aria-label={t('Buscar rúbrica')}
+            />
+          </div>
+        ) : (
+          <span style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5, flex: '1 1 260px' }}>
+            {t('Define criterios con descriptores por nivel y evalúa marcando la casilla que corresponda.')}
+          </span>
+        )}
+        <span className="toolbar-spacer" />
+        <button className="btn-accent" style={{ height: 36 }} onClick={openNewRubric}>
           <Plus size={15} />{t('Nueva rúbrica')}
         </button>
       </div>
@@ -1040,9 +1056,11 @@ export function Rubrics({
             <Sparkles size={14} />{t('✨ Crear rúbrica')}
           </button>
         </div>
+      ) : visibleRubrics.length === 0 ? (
+        <p className="seat-hint">{t('Ninguna rúbrica coincide con «{q}».', { q: query.trim() })}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
-          {rubrics.map(r => {
+          {visibleRubrics.map(r => {
             const evCount = evaluations.filter(e => e.rubric_id === r.id).length;
             return (
               <div key={r.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>

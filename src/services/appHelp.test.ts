@@ -73,4 +73,15 @@ describe('targetLabel', () => {
   it('devuelve el identificador tal cual si no es una pantalla', () => {
     expect(targetLabel('welcome', 'es')).toBe('welcome');
   });
+
+  it('explica las funciones nuevas de la 1.4 con los nombres de sus botones', () => {
+    for (const texto of [
+      'Repartir con IA', 'Mesas y roles', 'Sentar aquí', 'Sin mesa asignada', // Distribución de aula
+      'AUTOGUARDADO', 'Recuperar', 'Descartar',                              // Reuniones y Formaciones
+      'Apariencia', 'Oscura',                                                // modo oscuro
+      'NUNCA se envían a Google',                                            // privacidad de la IA
+    ]) expect(MANUAL, texto).toContain(texto);
+    // Lo que ya no existe no debe seguir en el manual
+    expect(MANUAL).not.toMatch(/en abanico|uno a uno, en la mesa/);
+  });
 });
