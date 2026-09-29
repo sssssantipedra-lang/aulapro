@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { prepareExercise, shuffleApart } from './resources';
+import { prepareExercise, shuffleApart, cleanCode } from './resources';
 import { cleanEmoji } from '../lib/fichaThemes';
 
 describe('prepareExercise', () => {
@@ -33,5 +33,12 @@ describe('cleanEmoji', () => {
     expect(cleanEmoji('👩‍🚀', '⭐')).toBe('👩‍🚀');
     expect(cleanEmoji('cohete', '⭐')).toBe('⭐');
     expect(cleanEmoji(undefined, '⭐')).toBe('⭐');
+  });
+});
+
+describe('cleanCode', () => {
+  it('deja solo cifras y letras en mayúsculas, sin tildes', () => {
+    expect(cleanCode(' 4-7 2 ')).toBe('472');
+    expect(cleanCode('sól')).toBe('SOL');
   });
 });

@@ -23,7 +23,7 @@ import {
   Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, ImageRun,
 } from 'docx';
 import type { Ficha } from '../types';
-import type { FichaExercise, FichaExerciseType, FichaActivity } from './resources';
+import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaTarjeta, FichaVariante } from './resources';
 import { crosswordCells, type Crossword } from '../lib/crossword';
 import { fichaTheme } from '../lib/fichaThemes';
 import { translate, type Lang } from '../i18n';
@@ -186,11 +186,13 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const classic = theme.id === 'clasico';
   const historia = classic ? undefined : c.historia;
   const mark = (attr: string) => (opts.preview ? ` ${attr}` : '');
+  const formato = c.formato ?? 'ficha';
+  const escape = formato === 'escape';
 
   const actividadesHtml = actividades.map((act, actIdx) => {
     const color = theme.bloques[actIdx % theme.bloques.length];
     const emoji = act.emoji || theme.iconos[actIdx % theme.iconos.length];
-    const label = `${t(theme.paso)} ${actIdx + 1}`;
+    const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
     const header = act.titulo
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
@@ -204,11 +206,14 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
       return `<li${mark(`data-ex="${id}"`)}${opts.selected === id ? ' class="is-selected"' : ''}>${exerciseBodyHtml(ex, color, t)}</li>`;
     }).join('');
     const sel = opts.selected === String(actIdx) ? ' is-selected' : '';
+    const candado = escape && act.candado ? candadoHtml(act.candado, actIdx, actividades.length, color, t) : '';
     return `<section class="ficha-actividad${sel}"${mark(`data-act="${actIdx}"`)}>${header}${narr}` +
-      `<ol class="ficha-ejercicios" style="border-color:#${color.bg};--num:#${color.bg}">${ejerciciosHtml}</ol></section>`;
+      `<ol class="ficha-ejercicios" style="border-color:#${color.bg};--num:#${color.bg}">${ejerciciosHtml}</ol>${candado}</section>`;
   }).join('');
 
-  const datos = `${t('Nombre')}: ______________________________&nbsp;&nbsp;&nbsp; ${t('Fecha')}: ____________&nbsp;&nbsp;&nbsp; ${t('Clase')}: __________`;
+  // La versión adaptada lleva una marca discreta para que el docente las distinga al repartir
+  const marca = c.variante ? `<span class="var-mark" title="${esc(t(VARIANTE_LABEL[c.variante]))}">${VARIANTE_MARK[c.variante]}</span>` : '';
+  const datos = `${t('Nombre')}: ______________________________&nbsp;&nbsp;&nbsp; ${t('Fecha')}: ____________&nbsp;&nbsp;&nbsp; ${t('Clase')}: __________${marca}`;
 
   const explicacionHtml = c.explicacion
     ? `<div class="ficha-explicacion"${mark('data-part="explicacion"')}><div class="lbl">${svgLightbulb('#' + theme.color, 15)}${esc(t('Antes de empezar'))}</div><div class="txt">${nl2br(c.explicacion)}</div></div>`
@@ -235,7 +240,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const cierreHtml = historia
     ? `<section class="ficha-cierre"${mark('data-part="cierre"')}>` +
       `<div class="badge"><div class="badge-ring"><span>${esc(historia.emoji)}</span></div><div class="badge-name">${esc(historia.insignia)}</div></div>` +
-      `<div class="cierre-body"><div class="cierre-ttl">${esc(t('¡Misión cumplida!'))}</div>` +
+      `<div class="cierre-body"><div class="cierre-ttl">${esc(t(escape ? '¡Habéis escapado!' : '¡Misión cumplida!'))}</div>` +
       (historia.cierre ? `<p>${nl2br(historia.cierre)}</p>` : '') +
       `<div class="selfeval"><span class="se-lbl">${esc(t('¿Cómo te ha ido?'))}</span>${['😃', '🙂', '😐', '😟'].map(e => `<span class="se">${e}</span>`).join('')}</div>` +
       `</div></section>`
@@ -244,18 +249,58 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const vars = `--c:#${theme.color};--cd:#${theme.oscuro};--cl:#${theme.claro};--paper:#${theme.papel};` +
     `--font:${theme.fuente};--font-t:${theme.fuenteTitulo};--r:${theme.radio}px;--bs:${theme.borde}`;
 
+  const body = formato === 'tarjetas'
+    ? tarjetasHtml(c.tarjetas ?? [], theme, mark, t)
+    : actividadesHtml + cierreHtml;
+  const docCls = `ficha-doc th-${theme.id}${c.variante === 'lectura_facil' ? ' lf' : ''}${formato === 'tarjetas' ? ' fmt-tarjetas' : ''}`;
+
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(c.titulo || f.title)}</title>` +
     `<style>${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}${opts.preview ? FICHA_PREVIEW_STYLE : ''}</style>` +
-    `</head><body><article class="ficha-doc th-${theme.id}" style='${vars}'>` +
+    `</head><body><article class="${docCls}" style='${vars}'>` +
     headerHtml +
-    `<div class="ficha-datos">${datos}</div>` +
+    (formato === 'tarjetas' ? '' : `<div class="ficha-datos">${datos}</div>`) +
     misionHtml +
     explicacionHtml +
-    (c.instrucciones ? `<p class="ficha-instr"${mark('data-part="instrucciones"')}>${esc(c.instrucciones)}</p>` : '') +
-    actividadesHtml +
-    cierreHtml +
+    (c.instrucciones ? `<p class="ficha-instr"${mark('data-part="instrucciones"')}>${formato === 'tarjetas' ? `<b>${esc(t('Cómo se juega'))}:</b> ` : ''}${esc(c.instrucciones)}</p>` : '') +
+    body +
     `</article></body></html>`;
+}
+
+export const VARIANTE_LABEL: Record<FichaVariante, string> = {
+  apoyo: 'Versión de apoyo',
+  ampliacion: 'Versión de ampliación',
+  lectura_facil: 'Lectura fácil',
+};
+const VARIANTE_MARK: Record<FichaVariante, string> = { apoyo: '◆', ampliacion: '▲', lectura_facil: '●' };
+
+/** El candado al final de cada sala: una casilla por carácter del código, que el alumnado rellena. */
+function candadoHtml(k: FichaCandado, idx: number, total: number, color: { bg: string; light: string }, t: Tr): string {
+  const n = Math.max(3, k.codigo.length);
+  const next = idx + 1 < total ? t('Abre la sala {n}', { n: idx + 2 }) : t('Abre el cofre final');
+  return `<div class="ficha-candado" style="border-color:#${color.bg};background:#${color.light}">` +
+    `<span class="lock">🔒</span>` +
+    `<div class="lock-body"><div class="lock-ttl">${esc(t('Candado'))} · ${esc(next)}</div>` +
+    (k.pista ? `<div class="lock-hint">${esc(k.pista)}</div>` : '') + `</div>` +
+    `<div class="lock-boxes">${Array.from({ length: n }, () => `<span style="border-color:#${color.bg}"></span>`).join('')}</div>` +
+    `</div>`;
+}
+
+/**
+ * Tarjetas para recortar por la línea discontinua y doblar por la de puntos:
+ * la pregunta queda delante y la respuesta, impresa del revés, detrás. Así se
+ * imprimen a una sola cara.
+ */
+function tarjetasHtml(cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme>, mark: (a: string) => string, t: Tr): string {
+  return `<div class="tj-grid">${cards.map((tj, i) => {
+    const color = theme.bloques[i % theme.bloques.length];
+    return `<div class="tj"${mark(`data-card="${i}"`)} style="--tj:#${color.bg};--tjl:#${color.light}">` +
+      `<div class="tj-front"><span class="tj-n">${i + 1}</span><span class="tj-emoji">${esc(theme.iconos[i % theme.iconos.length])}</span>` +
+      `<div class="tj-q">${esc(tj.pregunta)}</div></div>` +
+      `<div class="tj-fold"><span>${esc(t('doblar'))}</span></div>` +
+      `<div class="tj-back"><div class="tj-a"><span class="tj-albl">${esc(t('Respuesta'))}</span>${esc(tj.respuesta)}</div></div>` +
+      `</div>`;
+  }).join('')}</div><p class="tj-cut">✂️ ${esc(t('Recorta por la línea discontinua y dobla cada tarjeta por la mitad.'))}</p>`;
 }
 
 export async function saveFichaPdf(f: Ficha, lang: Lang) {
@@ -382,6 +427,38 @@ const FICHA_DOC_STYLE = `
 .selfeval .se-lbl { font-weight: 700; margin-right: 4px; }
 .selfeval .se { width: 30px; height: 30px; border-radius: 50%; border: 1.25px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 17px; }
 
+.var-mark { float: right; font-size: 11px; color: #94a3b8; }
+
+.ficha-candado { display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 10px 14px; border: 2px dashed; border-radius: var(--r); break-inside: avoid; page-break-inside: avoid; }
+.ficha-candado .lock { font-size: 28px; line-height: 1; }
+.ficha-candado .lock-body { flex: 1; min-width: 0; }
+.ficha-candado .lock-ttl { font-family: var(--font-t); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #1e293b; }
+.ficha-candado .lock-hint { font-size: 11.5px; color: #475569; margin-top: 2px; line-height: 1.4; }
+.ficha-candado .lock-boxes { display: flex; gap: 5px; }
+.ficha-candado .lock-boxes span { width: 28px; height: 34px; border: 2px solid; border-radius: 6px; background: #fff; }
+.ficha-actividad:has(.ficha-candado) .ficha-ejercicios { margin-bottom: 0; }
+
+.fmt-tarjetas .ficha-instr { font-style: normal; background: var(--cl); border-radius: var(--r); padding: 8px 12px; margin-top: 12px; }
+.tj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1.5px dashed #94a3b8; border-left: 1.5px dashed #94a3b8; }
+.tj { display: flex; flex-direction: column; height: 62mm; border-right: 1.5px dashed #94a3b8; border-bottom: 1.5px dashed #94a3b8; break-inside: avoid; page-break-inside: avoid; }
+.tj-front, .tj-back { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; padding: 6mm 7mm; text-align: center; }
+.tj-front { background: linear-gradient(180deg, var(--tjl), #fff); }
+.tj-n { position: absolute; top: 3mm; left: 4mm; font-size: 10px; font-weight: 800; color: var(--tj); }
+.tj-emoji { position: absolute; top: 2mm; right: 3mm; font-size: 16px; }
+.tj-q { font-family: var(--font-t); font-size: 13px; font-weight: 700; line-height: 1.35; color: #1e293b; }
+.tj-fold { position: relative; border-top: 1.25px dotted #94a3b8; height: 0; }
+.tj-fold span { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); background: #fff; padding: 0 6px; font-size: 8px; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; }
+.tj-back .tj-a { transform: rotate(180deg); font-size: 12.5px; line-height: 1.35; color: #334155; }
+.tj-albl { display: block; font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--tj); margin-bottom: 2px; }
+.tj-cut { font-size: 11px; color: #64748b; margin: 8px 0 0; }
+
+.lf { font-family: Verdana, Arial, sans-serif !important; }
+.lf .ficha-enunciado, .lf .ficha-explicacion .txt, .lf .ficha-mision .bubble { font-size: 15px; line-height: 1.8; }
+.lf .ficha-instr { font-size: 14px; font-style: normal; line-height: 1.8; }
+.lf .ficha-opciones li, .lf .vf-row, .lf .ord-item, .lf .ficha-relacionar .item, .lf .cw-clue { font-size: 14px; }
+.lf .ficha-ejercicios > li { margin-bottom: 24px; }
+.lf .act-narr { font-style: normal; font-size: 13px; }
+
 @media print { @page { size: A4 portrait; margin: 14mm 16mm; } }
 `;
 
@@ -395,8 +472,8 @@ const FICHA_PREVIEW_STYLE = `
 html, body { background: #e2e8f0; }
 body { padding: 18px 0 28px; }
 .ficha-doc { width: 210mm; min-height: 297mm; max-width: none; padding: 14mm 16mm; box-shadow: 0 2px 14px rgba(15,23,42,.18); border-radius: 2px; }
-[data-ex], [data-act], [data-part] { cursor: pointer; transition: outline-color .15s; outline: 2px solid transparent; outline-offset: 3px; border-radius: 4px; }
-[data-ex]:hover, [data-part]:hover { outline-color: rgba(99,102,241,.35); }
+[data-ex], [data-act], [data-part], [data-card] { cursor: pointer; transition: outline-color .15s; outline: 2px solid transparent; outline-offset: 3px; border-radius: 4px; }
+[data-ex]:hover, [data-part]:hover, [data-card]:hover { outline-color: rgba(99,102,241,.35); }
 .is-selected { outline: 2.5px solid #6366f1 !important; outline-offset: 3px; }
 `;
 
@@ -666,6 +743,38 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
   }
 }
 
+/** Tarjetas en Word: tabla de 2 columnas con bordes discontinuos; la respuesta va debajo de la línea de doblar. */
+function tarjetasDocx(children: (Paragraph | Table)[], cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme>, t: Tr) {
+  const CUT = { style: BorderStyle.DASHED, size: 8, color: '94A3B8' };
+  const rows: TableRow[] = [];
+  for (let i = 0; i < cards.length; i += 2) {
+    rows.push(new TableRow({
+      cantSplit: true,
+      children: [0, 1].map(k => {
+        const tj = cards[i + k];
+        const color = theme.bloques[(i + k) % theme.bloques.length];
+        return new TableCell({
+          width: { size: 50, type: WidthType.PERCENTAGE },
+          margins: { top: 200, bottom: 200, left: 200, right: 200 },
+          children: tj ? [
+            new Paragraph({ children: [new TextRun({ text: `${i + k + 1}`, bold: true, size: 16, color: color.bg })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: tj.pregunta, bold: true, size: 22 })], spacing: { after: 360 } }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `· · · · · ${t('doblar')} · · · · ·`, size: 14, color: '94A3B8' })], spacing: { after: 200 } }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${t('Respuesta')}: `, bold: true, size: 16, color: color.bg }), new TextRun({ text: tj.respuesta, size: 20 })] }),
+          ] : [new Paragraph({ text: '' })],
+        });
+      }),
+    }));
+  }
+  if (!rows.length) return;
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { top: CUT, bottom: CUT, left: CUT, right: CUT, insideHorizontal: CUT, insideVertical: CUT },
+    rows,
+  }));
+  children.push(new Paragraph({ children: [new TextRun({ text: `✂  ${t('Recorta por la línea discontinua y dobla cada tarjeta por la mitad.')}`, size: 18, color: '64748B' })], spacing: { before: 120 } }));
+}
+
 /** Construye el .docx. Separado de `saveFichaDocx` para poder probarlo sin DOM. */
 export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const t = (k: string, vars?: Record<string, string | number>) => translate(lang, k, vars);
@@ -710,7 +819,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
   children.push(new Paragraph({
     children: [new TextRun({
-      text: `${t('Nombre')}: ______________________________     ${t('Fecha')}: ____________     ${t('Clase')}: __________`,
+      text: `${t('Nombre')}: ______________________________     ${t('Fecha')}: ____________     ${t('Clase')}: __________${c.variante ? `     ${VARIANTE_MARK[c.variante]}` : ''}`,
       size: 20,
     })],
     spacing: { after: 200 },
@@ -771,9 +880,13 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     }));
   }
 
-  for (const [actIdx, act] of actividades.entries()) {
+  const formato = c.formato ?? 'ficha';
+  const escape = formato === 'escape';
+  if (formato === 'tarjetas') tarjetasDocx(children, c.tarjetas ?? [], theme, t);
+
+  for (const [actIdx, act] of (formato === 'tarjetas' ? [] : actividades).entries()) {
     const color = theme.bloques[actIdx % theme.bloques.length];
-    const label = `${t(theme.paso)} ${actIdx + 1}: ${act.titulo}`;
+    const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}: ${act.titulo}`;
     if (act.titulo) {
       children.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
@@ -801,10 +914,33 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
       children.push(new Paragraph({ text: '', spacing: { after: 100 } }));
     }
     for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t);
+    if (escape && act.candado) {
+      const next = actIdx + 1 < actividades.length ? t('Abre la sala {n}', { n: actIdx + 2 }) : t('Abre el cofre final');
+      const B = { style: BorderStyle.DASHED, size: 12, color: color.bg };
+      const n = Math.max(3, act.candado.codigo.length);
+      children.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: { top: B, bottom: B, left: B, right: B, insideHorizontal: NO_BORDER, insideVertical: NO_BORDER },
+        rows: [new TableRow({
+          children: [new TableCell({
+            shading: { fill: color.light },
+            margins: { top: 100, bottom: 100, left: 160, right: 160 },
+            children: [
+              new Paragraph({ children: [
+                new TextRun({ text: '🔒  ', font: EMOJI_FONT, size: 28 }),
+                new TextRun({ text: `${t('Candado')} · ${next}`.toUpperCase(), bold: true, size: 18 }),
+              ] }),
+              ...(act.candado.pista ? [new Paragraph({ children: [new TextRun({ text: act.candado.pista, size: 19, color: '475569' })], spacing: { after: 80 } })] : []),
+              new Paragraph({ children: [new TextRun({ text: Array.from({ length: n }, () => '[   ]').join('  '), bold: true, size: 28, color: color.bg })] }),
+            ],
+          })],
+        })],
+      }));
+    }
     children.push(new Paragraph({ text: '', spacing: { after: 120 } }));
   }
 
-  if (historia) {
+  if (historia && formato !== 'tarjetas') {
     const B = { style: BorderStyle.DASHED, size: 12, color: theme.color };
     children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
@@ -822,7 +958,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
           new TableCell({
             margins: { top: 160, bottom: 160, left: 200, right: 160 },
             children: [
-              new Paragraph({ children: [new TextRun({ text: t('¡Misión cumplida!'), bold: true, color: theme.oscuro, size: 30 })], spacing: { after: 60 } }),
+              new Paragraph({ children: [new TextRun({ text: t(escape ? '¡Habéis escapado!' : '¡Misión cumplida!'), bold: true, color: theme.oscuro, size: 30 })], spacing: { after: 60 } }),
               ...(historia.cierre ? [new Paragraph({ text: historia.cierre, spacing: { after: 120 } })] : []),
               new Paragraph({
                 children: [
@@ -839,7 +975,8 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
   const doc = new Document({
     sections: [{ children, properties: { page: { margin: { top: 1000, bottom: 1000, left: 1200, right: 1200 } } } }],
-    styles: { default: { document: { run: { font: 'Calibri', size: 22 } } } },
+    // Lectura fácil: letra sin adornos y más grande
+    styles: { default: { document: { run: c.variante === 'lectura_facil' ? { font: 'Verdana', size: 26 } : { font: 'Calibri', size: 22 } } } },
   });
 
   return Packer.toBlob(doc);

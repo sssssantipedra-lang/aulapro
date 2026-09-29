@@ -307,6 +307,17 @@ baja, se borra o se «Rehace» con IA («Más fácil», «Más difícil», «Otr
 distinto», cambiar de tipo o una indicación libre). Al hacer clic en la hoja se
 selecciona ese bloque. El tema se cambia arriba con un clic sin volver a
 generar; «Adaptar la historia a este tema» reescribe solo la historia.
+QUÉ QUIERES CREAR: «Ficha» (ejercicios por bloques), «Escape room» (cada
+bloque es una sala; las respuestas forman el código del candado que abre la
+siguiente, y al final se abre el cofre; el código no se imprime, se ve en el
+editor) o «Tarjetas recortables» (pregunta delante y respuesta detrás, se
+recortan por la línea discontinua y se doblan por la mitad; incluyen cómo
+jugar).
+ADAPTAR (botón arriba en el editor): crea otra versión de la misma ficha, con
+la misma historia: «Versión de apoyo», «Versión de ampliación» o «Lectura
+fácil» (frases cortas y letra más grande). Se abre como ficha nueva; en la
+hoja solo lleva una marca discreta en la esquina (◆ apoyo, ▲ ampliación,
+● lectura fácil) y en «Mis fichas» aparece con su etiqueta.
 Se exportan a PDF (vertical) y a Word. Las soluciones son solo para el
 docente: no salen en la ficha exportada.
 

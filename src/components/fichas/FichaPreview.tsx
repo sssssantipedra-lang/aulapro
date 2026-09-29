@@ -50,9 +50,11 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
       doc.write(html);
       doc.close();
       doc.addEventListener('click', e => {
-        const target = (e.target as Element | null)?.closest?.('[data-ex],[data-act],[data-part]');
+        const target = (e.target as Element | null)?.closest?.('[data-ex],[data-act],[data-part],[data-card]');
         if (!target) return;
-        onSelectRef.current(target.getAttribute('data-ex') ?? target.getAttribute('data-part') ?? `act-${target.getAttribute('data-act')}`);
+        const card = target.getAttribute('data-card');
+        onSelectRef.current(card !== null ? `card-${card}`
+          : target.getAttribute('data-ex') ?? target.getAttribute('data-part') ?? `act-${target.getAttribute('data-act')}`);
       });
       const measure = () => setHeight(doc.documentElement?.scrollHeight || 1200);
       measure();
@@ -70,6 +72,7 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
     if (!selected) return;
     const sel = selected.startsWith('act-')
       ? `[data-act="${selected.slice(4)}"]`
+      : selected.startsWith('card-') ? `[data-card="${selected.slice(5)}"]`
       : /^\d+-\d+$/.test(selected) ? `[data-ex="${selected}"]` : `[data-part="${selected}"]`;
     const node = doc.querySelector(sel);
     if (!node) return;
