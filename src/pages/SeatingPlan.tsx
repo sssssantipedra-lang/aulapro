@@ -11,9 +11,9 @@
 
 import { useMemo, useState } from 'react';
 import {
-  Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical,
+  Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical, Flag,
 } from 'lucide-react';
-import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap, SeatingPlan, CooperativeRole } from '../types';
+import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap, SeatingPlan, CooperativeRole, ClassMark } from '../types';
 import { seatStudentId } from '../types';
 import { weightedAverage, attendanceRate } from '../services/aiContext';
 import { generateBalancedGroups, type StudentForGrouping } from '../services/classGroups';
@@ -25,6 +25,9 @@ import { isDesktop } from '../services/storage';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useI18n } from '../i18n';
+import { ClassMarksModal } from '../components/seating/ClassMarksModal';
+import { markTypeInfo } from '../services/classMarks';
+import { isoDate } from '../lib/utils';
 
 interface Props {
   classes: Class[];
@@ -35,6 +38,10 @@ interface Props {
   attendance: AttendanceMap;
   seatingPlans: Record<string, SeatingPlan>;
   onSave: (classId: string, plan: SeatingPlan) => void;
+  /** Anotaciones del aula (sin tarea, comportamiento…), que cuentan en el cuaderno. */
+  classMarks: ClassMark[];
+  onAddMark: (m: ClassMark, label: string) => void;
+  onDeleteMark: (id: string, label: string) => void;
   onNav: (s: string) => void;
 }
 
@@ -76,6 +83,7 @@ function resizeRoles(roles: CooperativeRole[], groupSize: number, t: (k: string,
 
 export function SeatingPlan({
   classes, students, gradeCategories, gradeItems, grades, attendance, seatingPlans, onSave, onNav,
+  classMarks, onAddMark, onDeleteMark,
 }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
@@ -89,6 +97,8 @@ export function SeatingPlan({
   /** Alumno elegido en la bandeja de «sin mesa», a la espera de un asiento. */
   const [selected, setSelected] = useState<string | null>(null);
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
+  /** Alumno al que se está anotando algo (sin tarea, comportamiento…). */
+  const [marking, setMarking] = useState<Student | null>(null);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -104,6 +114,19 @@ export function SeatingPlan({
     () => new Set(plan.groups.flatMap(g => g.studentIds.filter(Boolean))),
     [plan],
   );
+  /** Anotaciones de hoy por alumno, para verlas de un vistazo en cada asiento. */
+  const todayMarks = useMemo(() => {
+    const today = isoDate();
+    const out = new Map<string, { pos: number; neg: number }>();
+    for (const m of classMarks) {
+      if (m.class_id !== clsId || m.date !== today) continue;
+      const e = out.get(m.student_id) ?? { pos: 0, neg: 0 };
+      if (markTypeInfo(m.type)?.positive) e.pos++; else e.neg++;
+      out.set(m.student_id, e);
+    }
+    return out;
+  }, [classMarks, clsId]);
+
   const sinAsignar = useMemo(() => roster.filter(s => !asignados.has(s.id)), [roster, asignados]);
 
   function guardar(next: SeatingPlan) {
@@ -455,6 +478,24 @@ export function SeatingPlan({
                         <span className="seat-name">{st.name}</span>
                         {seat.roleName && <span className="seat-role">{seat.roleName}</span>}
                       </span>
+                      {(() => {
+                        const tm = todayMarks.get(st.id);
+                        return (
+                          <button
+                            type="button" className={`seat-mark${tm ? ' has' : ''}`}
+                            onClick={e => { e.stopPropagation(); setMarking(st); }}
+                            title={t('Anotar: sin tarea, comportamiento, participación…')}
+                            aria-label={t('Anotar a {name}', { name: st.name })}
+                          >
+                            {tm ? (
+                              <>
+                                {tm.neg > 0 && <b className="neg">−{tm.neg}</b>}
+                                {tm.pos > 0 && <b className="pos">+{tm.pos}</b>}
+                              </>
+                            ) : <Flag size={13} />}
+                          </button>
+                        );
+                      })()}
                       <button
                         type="button" className="seat-x"
                         onClick={e => { e.stopPropagation(); moveStudent(st.id, null); }}
@@ -579,6 +620,18 @@ export function SeatingPlan({
           ))}
         </div>
       </Modal>
+      {marking && cls && (
+        <ClassMarksModal
+          student={marking}
+          cls={cls}
+          gradeCategories={gradeCategories}
+          classMarks={classMarks}
+          onAdd={onAddMark}
+          onDelete={onDeleteMark}
+          onClose={() => setMarking(null)}
+          onNav={onNav}
+        />
+      )}
     </section>
   );
 }

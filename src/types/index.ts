@@ -113,6 +113,13 @@ export interface GradeCategory {
    * Los pesos suman 100% *por asignatura*, no por clase.
    */
   subject?: string;
+  /**
+   * Anotaciones del aula (ver `ClassMark`) que cuentan en esta categoría:
+   * nota de partida de cada alumno y cuánto suma o resta cada anotación.
+   * Ausentes = los valores por defecto de `services/classMarks.ts`.
+   */
+  marksBase?: number;
+  marksStep?: number;
 }
 
 export interface GradeItem {
@@ -618,6 +625,26 @@ export interface SeatingPlan {
   updatedAt: string;
   /** Notas del docente que se usaron la última vez que la IA generó los grupos. */
   lastNotes?: string;
+}
+
+/**
+ * Anotación rápida del día a día («no ha traído la tarea», «buen
+ * comportamiento»…), hecha desde la Distribución de aula. No es una nota:
+ * el cuaderno las convierte en una columna automática de la categoría
+ * correspondiente (Tareas, Comportamiento, Participación). Ver
+ * `services/classMarks.ts`.
+ */
+export type ClassMarkType = 'homework' | 'material' | 'behavior-bad' | 'behavior-good' | 'participation';
+
+export interface ClassMark {
+  id: string;
+  class_id: string;
+  student_id: string;
+  type: ClassMarkType;
+  /** Día, YYYY-MM-DD. */
+  date: string;
+  /** Asignatura, si la clase tiene varias. Ausente = la principal. */
+  subject?: string;
 }
 
 export type Section =

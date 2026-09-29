@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { SeatingPlan } from './SeatingPlan';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
-import type { Class, Student, SeatingPlan as Plan } from '../types';
+import type { Class, Student, SeatingPlan as Plan, ClassMark } from '../types';
 
 afterEach(cleanup);
 
@@ -19,8 +19,10 @@ const alumno = (id: string, name: string) =>
   ({ id, class_id: 'c1', name, email: '', photo: null, alerts: [], notes: '' }) as Student;
 const students = [alumno('s1', 'Ana López'), alumno('s2', 'Bruno Ruiz'), alumno('s3', 'Clara Soto')];
 
-function Harness({ onPlan }: { onPlan?: (p: Plan) => void }) {
+function Harness({ onPlan, onMarks }: { onPlan?: (p: Plan) => void; onMarks?: (m: ClassMark[]) => void }) {
   const [plans, setPlans] = useState<Record<string, Plan>>({});
+  const [marks, setMarks] = useState<ClassMark[]>([]);
+  const updateMarks = (next: ClassMark[]) => { setMarks(next); onMarks?.(next); };
   return (
     <I18nProvider>
       <ToastProvider>
@@ -30,6 +32,9 @@ function Harness({ onPlan }: { onPlan?: (p: Plan) => void }) {
           seatingPlans={plans}
           onSave={(id, p) => { setPlans(prev => ({ ...prev, [id]: p })); onPlan?.(p); }}
           onNav={() => {}}
+          classMarks={marks}
+          onAddMark={m => updateMarks([...marks, m])}
+          onDeleteMark={id => updateMarks(marks.filter(m => m.id !== id))}
         />
       </ToastProvider>
     </I18nProvider>
@@ -95,5 +100,23 @@ describe('Distribución de aula', () => {
 
     expect(last?.groups[0].studentIds[0]).toBe('s3');
     expect(screen.getByRole('button', { name: /Ana López/ })).toBeTruthy();
+  });
+
+  it('desde un asiento se anota «Sin tarea» y se ve en la mesa', async () => {
+    const user = userEvent.setup();
+    let marks: ClassMark[] = [];
+    render(<Harness onMarks={m => { marks = m; }} />);
+
+    await user.click(screen.getByRole('button', { name: /Ana López/ }));
+    await user.click(within(mesa(1)).getAllByText('Sentar aquí')[0]);
+    await user.click(within(mesa(1)).getByRole('button', { name: 'Anotar a Ana López' }));
+    await user.click(screen.getByRole('button', { name: /Sin tarea/ }));
+
+    expect(marks).toHaveLength(1);
+    expect(marks[0]).toMatchObject({ student_id: 's1', class_id: 'c1', type: 'homework' });
+    expect(within(mesa(1)).getByText('−1')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'Quitar esta anotación' }));
+    expect(marks).toHaveLength(0);
   });
 });

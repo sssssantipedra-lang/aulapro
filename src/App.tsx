@@ -12,6 +12,7 @@ import { useNarrowScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
+import { applyClassMarks } from './services/classMarks';
 import type { Section } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
@@ -69,6 +70,17 @@ function AppInner() {
   );
 
   /**
+   * El cuaderno tal como cuenta para las medias: lo guardado más una columna
+   * automática por categoría con las anotaciones del aula (ver
+   * services/classMarks.ts). Todas las pantallas que calculan medias leen de
+   * aquí; lo que se guarda en disco sigue siendo solo `st.gradeItems/grades`.
+   */
+  const gradeView = useMemo(() => applyClassMarks({
+    classes: st.classes, students: st.students, gradeCategories: st.gradeCategories,
+    gradeItems: st.gradeItems, grades: st.grades, classMarks: st.classMarks,
+  }), [st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades, st.classMarks]);
+
+  /**
    * Lo que el asistente del cuaderno puede consultar. Se arma aquí, donde
    * está todo el estado junto, y no dentro de la página: el chat necesita ver
    * clases, notas, asistencia y agenda a la vez, y el Cuaderno solo recibía
@@ -81,8 +93,8 @@ function AppInner() {
     classes: st.classes,
     students: st.students,
     gradeCategories: st.gradeCategories,
-    gradeItems: st.gradeItems,
-    grades: st.grades,
+    gradeItems: gradeView.gradeItems,
+    grades: gradeView.grades,
     evaluations: st.evaluations,
     attendance: st.attendance,
     reports: st.reports,
@@ -91,7 +103,7 @@ function AppInner() {
     tasks: st.tasks,
     learningSituations: st.learningSituations,
     seatingPlans: st.seatingPlans,
-  }), [st.profile, st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades,
+  }), [st.profile, st.classes, st.students, st.gradeCategories, gradeView,
       st.evaluations, st.attendance, st.reports, st.calEvents, st.scheduleBlocks,
       st.tasks, st.learningSituations, st.seatingPlans]);
 
@@ -197,8 +209,8 @@ function AppInner() {
                 classes={st.classes}
                 evaluations={st.evaluations}
                 gradeCategories={st.gradeCategories}
-                gradeItems={st.gradeItems}
-                grades={st.grades}
+                gradeItems={gradeView.gradeItems}
+                grades={gradeView.grades}
                 onNav={s => setSection(s as Section)}
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
@@ -282,8 +294,8 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 gradeCategories={st.gradeCategories}
-                gradeItems={st.gradeItems}
-                grades={st.grades}
+                gradeItems={gradeView.gradeItems}
+                grades={gradeView.grades}
                 teacherName={st.profile?.name ?? ''}
                 course={st.profile?.course ?? ''}
                 onNav={s => setSection(s as Section)}
@@ -304,8 +316,9 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 gradeCategories={st.gradeCategories}
-                gradeItems={st.gradeItems}
-                grades={st.grades}
+                gradeItems={gradeView.gradeItems}
+                grades={gradeView.grades}
+                classMarks={st.classMarks}
                 onAddCategory={st.addGradeCategory}
                 onUpdateCategory={st.updateGradeCategory}
                 onDeleteCategory={st.deleteGradeCategory}
@@ -360,11 +373,14 @@ function AppInner() {
                 classes={st.classes}
                 students={st.students}
                 gradeCategories={st.gradeCategories}
-                gradeItems={st.gradeItems}
-                grades={st.grades}
+                gradeItems={gradeView.gradeItems}
+                grades={gradeView.grades}
                 attendance={st.attendance}
                 seatingPlans={st.seatingPlans}
                 onSave={st.setSeatingPlan}
+                classMarks={st.classMarks}
+                onAddMark={st.addClassMark}
+                onDeleteMark={st.deleteClassMark}
                 onNav={s => setSection(s as Section)}
               />
             )}
@@ -376,8 +392,8 @@ function AppInner() {
                 rubrics={st.rubrics}
                 dianas={st.dianas}
                 gradeCategories={st.gradeCategories}
-                gradeItems={st.gradeItems}
-                grades={st.grades}
+                gradeItems={gradeView.gradeItems}
+                grades={gradeView.grades}
                 attendance={st.attendance}
                 reports={st.reports}
                 onAddReport={st.addReport}

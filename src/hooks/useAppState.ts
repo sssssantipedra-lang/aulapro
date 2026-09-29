@@ -3,7 +3,7 @@ import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
-  LearningSituation, Ficha, WorkSession, SeatingPlan,
+  LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
@@ -49,6 +49,8 @@ interface ProfileSnapshot {
   workSessions: WorkSession[];
   /** Distribución de aula de cada clase, indexada por `class_id`. */
   seatingPlans: Record<string, SeatingPlan>;
+  /** Anotaciones rápidas del aula (sin tarea, comportamiento…). */
+  classMarks: ClassMark[];
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -60,7 +62,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
-    fichas: [], workSessions: [], seatingPlans: {},
+    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [],
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -84,6 +86,7 @@ export function demoSnapshot(): ProfileSnapshot {
     gradeCategories: d.gradeCategories,
     gradeItems: d.gradeItems,
     grades: d.grades,
+    classMarks: d.classMarks,
   };
 }
 
@@ -144,6 +147,7 @@ export function useAppState() {
   const [fichas, setFichas]                   = useState<Ficha[]>([]);
   const [workSessions, setWorkSessions]       = useState<WorkSession[]>([]);
   const [seatingPlans, setSeatingPlans]       = useState<Record<string, SeatingPlan>>({});
+  const [classMarks, setClassMarks]           = useState<ClassMark[]>([]);
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -180,6 +184,7 @@ export function useAppState() {
     setFichas(s.fichas);
     setWorkSessions(s.workSessions);
     setSeatingPlans(s.seatingPlans);
+    setClassMarks(s.classMarks);
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -222,11 +227,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    workSessions, seatingPlans, tombstones, shareScope, auditLog,
+    workSessions, seatingPlans, classMarks, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      workSessions, seatingPlans, tombstones, shareScope, auditLog]);
+      workSessions, seatingPlans, classMarks, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -325,10 +330,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans };
-  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -396,6 +401,7 @@ export function useAppState() {
     setEvaluations(prev => prev.filter(e => e.class_id !== id));
     setReports(prev => prev.filter(r => r.class_id !== id));
     setAttendance(prev => { const n = { ...prev }; delete n[id]; return n; });
+    setClassMarks(prev => prev.filter(m => m.class_id !== id));
     if (cascadeItemIds.length) {
       const removed = new Set(cascadeItemIds);
       setGrades(g => {
@@ -431,6 +437,7 @@ export function useAppState() {
   const deleteStudent = useCallback((id: string) => {
     const goneName = studentName(id);
     setStudents(prev => prev.filter(s => s.id !== id));
+    setClassMarks(prev => prev.filter(m => m.student_id !== id));
     markDeleted({ students: [id] });
     log('delete', 'student', id, `Alumno ${goneName}`);
   }, [markDeleted, log, studentName]);
@@ -750,6 +757,19 @@ export function useAppState() {
       `Distribución de aula de ${className(classId)}`);
   }, [log, className]);
 
+  /* ── Anotaciones del aula ── */
+
+  const addClassMark = useCallback((m: ClassMark, label: string) => {
+    setClassMarks(prev => [...prev, m]);
+    log('create', 'classMark', m.id, `${label}: ${studentName(m.student_id)}`, `en ${className(m.class_id)}`);
+  }, [log, studentName, className]);
+
+  const deleteClassMark = useCallback((id: string, label: string) => {
+    const gone = mirrorRef.current.classMarks.find(m => m.id === id);
+    setClassMarks(prev => prev.filter(m => m.id !== id));
+    if (gone) log('delete', 'classMark', id, `${label}: ${studentName(gone.student_id)}`);
+  }, [log, studentName]);
+
   /**
    * Pasa una sesión al Historial como evaluaciones.
    *
@@ -830,6 +850,7 @@ export function useAppState() {
     setGradeCategories(d.gradeCategories);
     setGradeItems(d.gradeItems);
     setGrades(d.grades);
+    setClassMarks(d.classMarks);
   }, []);
 
   /** Copia de seguridad descargable como archivo. */
@@ -890,6 +911,7 @@ export function useAppState() {
     // significa nada, a diferencia de rúbricas y dianas, que son plantillas
     // reutilizables sin datos de alumnado incrustados.
     setSeatingPlans({});
+    setClassMarks([]);
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
@@ -929,6 +951,7 @@ export function useAppState() {
     fichas, saveFicha, deleteFicha,
     workSessions, saveWorkSession, deleteWorkSession,
     seatingPlans, setSeatingPlan,
+    classMarks, addClassMark, deleteClassMark,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

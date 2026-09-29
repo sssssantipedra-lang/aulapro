@@ -132,6 +132,17 @@ Tiene DOS PESTAÑAS arriba:
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
    «¿cómo va Marta?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
+Columna automática «Anotaciones»: si se han hecho anotaciones del aula desde
+la Distribución de aula, cada categoría que las recoge (Tareas,
+Comportamiento/Actitud, Participación) muestra al final una columna
+«Anotaciones · automática» de solo lectura, que cuenta como una nota más en
+la media. Todo el grupo parte de la misma nota (10 si la categoría recibe
+anotaciones negativas, 5 si solo positivas) y cada anotación suma o resta
+0,5, entre 0 y 10. Ambos valores se cambian al editar la categoría (lápiz de
+la categoría o clic en la cabecera de la columna): «Nota de partida» y «Cada
+anotación vale». Si hay anotaciones pero falta su categoría (por ejemplo
+Comportamiento), sale un aviso con un botón para crearla (con un 10%; luego
+hay que ajustar los pesos para que sumen 100%).
 
 [attendance] ASISTENCIA
 Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
@@ -163,6 +174,14 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   se usa la × de su fila. Con todo el alumnado sentado la bandeja desaparece.
 - Las flechas de rotación cambian los roles dentro de cada mesa cada semana
   sin cambiar quién se sienta con quién; la otra flecha deshace la rotación.
+- ANOTACIONES DEL AULA: cada alumno sentado tiene a la derecha de su fila un
+  banderín. Al tocarlo se abre «Anotar a …» con cinco botones de un toque:
+  «Sin tarea», «Sin material», «Mal comportamiento», «Buen comportamiento» y
+  «Participa» (si la clase tiene varias asignaturas, se elige antes cuál). En
+  la fila se ven las anotaciones de hoy (−2, +1) y desde la ventana se puede
+  quitar una hecha por error. Cuentan solas en el CUADERNO DE NOTAS: «Sin
+  tarea» en la categoría Tareas; sin material y comportamiento en
+  Comportamiento (o Actitud/Conducta); «Participa» en Participación.
 Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
 
@@ -241,6 +260,10 @@ Al pulsar «Guardar» la copia se borra.
 Herramientas para proyectar en clase: temporizador, sorteo de alumnos (se puede
 ir sacando sin repetir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel.
+Tiene una pizarra para dibujar encima («Lápiz»). La pizarra es BLANCA por
+defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
+oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
+próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
 
 [classroom-live] SALA DE ALUMNOS
 Levanta un servidor en el propio ordenador para que los alumnos entren desde el
