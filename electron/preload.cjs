@@ -53,6 +53,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     set: (name, value) => ipcRenderer.invoke('secrets:set', name, value),
   },
 
+  /** Licencia de este equipo (ver electron/license.cjs). */
+  license: {
+    state:      ()  => ipcRenderer.invoke('license:state'),
+    activate:   key => ipcRenderer.invoke('license:activate', key),
+    deactivate: ()  => ipcRenderer.invoke('license:deactivate'),
+    recheck:    ()  => ipcRenderer.invoke('license:recheck'),
+  },
+
   /** Actualización automática (solo Windows: ver electron/updater.cjs). */
   update: {
     /** Avisa cuando hay una descargándose o lista. Devuelve una función para dejar de escuchar. */

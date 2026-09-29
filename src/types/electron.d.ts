@@ -85,6 +85,33 @@ export interface UpdateBridge {
   setLanguage: (lang: 'es' | 'en' | 'ca') => Promise<void>;
 }
 
+export type LicenseStatus = 'fundador' | 'activa' | 'sin-licencia' | 'otro-equipo' | 'caducada';
+export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
+
+export interface LicenseState {
+  /** Hay que enseñar la pantalla de activación antes de nada. */
+  required: boolean;
+  status: LicenseStatus;
+  /** Si la venta ya ha empezado (antes, todo equipo queda como fundador). */
+  enforced: boolean;
+  /** Final de la clave (••••ABCD), nunca entera. */
+  keyHint: string;
+  since: string;
+  /** Página donde se compra; vacía mientras no haya tienda. */
+  buyUrl: string;
+}
+
+export interface LicenseResult { ok: boolean; error?: LicenseError; state: LicenseState }
+
+export interface LicenseBridge {
+  state: () => Promise<LicenseState>;
+  activate: (key: string) => Promise<LicenseResult>;
+  /** Libera este equipo para poder activar la clave en otro. */
+  deactivate: () => Promise<LicenseResult>;
+  /** Vuelve a comprobar la clave con la tienda ahora mismo. */
+  recheck: () => Promise<LicenseState>;
+}
+
 export interface StoreBridge {
   listProfiles: () => Promise<unknown>;
   createProfile: (p: unknown) => Promise<unknown>;
@@ -111,6 +138,7 @@ declare global {
       classroom?: ClassroomBridge;
       docs?: DocsBridge;
       update?: UpdateBridge;
+      license?: LicenseBridge;
       secrets?: {
         get: (name: 'gemini') => Promise<string>;
         /** `false` si el sistema no ofrece cifrado: entonces no se ha guardado. */

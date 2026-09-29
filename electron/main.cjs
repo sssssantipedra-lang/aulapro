@@ -7,6 +7,7 @@ const { Storage } = require('./storage.cjs');
 const { AppServer } = require('./appserver.cjs');
 const updater = require('./updater.cjs');
 const secrets = require('./secrets.cjs');
+const license = require('./license.cjs');
 
 let mainWindow = null;
 const classroom = new ClassroomServer();
@@ -134,6 +135,14 @@ function registerSecretsIpc() {
   ipcMain.handle('secrets:set', (_e, name, value) => secrets.set(name, value));
 }
 
+function registerLicenseIpc() {
+  const listProfiles = () => storage.listProfiles();
+  ipcMain.handle('license:state', async () => { await license.whenReady(listProfiles); return license.publicState(); });
+  ipcMain.handle('license:activate', async (_e, key) => { await license.whenReady(listProfiles); return license.activate(key); });
+  ipcMain.handle('license:deactivate', async () => { await license.whenReady(listProfiles); return license.deactivate(); });
+  ipcMain.handle('license:recheck', async () => { await license.whenReady(listProfiles); return license.recheck(); });
+}
+
 function registerUpdateIpc() {
   ipcMain.handle('update:installNow', () => updater.installNow());
   // La interfaz dice en qué idioma está para que el aviso del sistema salga
@@ -233,6 +242,9 @@ if (!app.requestSingleInstanceLock()) {
     registerDocumentIpc();
     registerUpdateIpc();
     registerSecretsIpc();
+    registerLicenseIpc();
+    // La licencia se lee (y, si toca, se comprueba) mientras se abre la ventana
+    license.whenReady(() => storage.listProfiles());
     createWindow();
 
     // Con un pequeño margen para no competir con el arranque de la ventana.

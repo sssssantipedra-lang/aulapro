@@ -3,7 +3,7 @@
  * de «Configurar la IA» repartidos por la aplicación: en vez de dejar al
  * docente en la cuadrícula de Configuración, lo llevan directos a la clave.
  */
-export type SettingsPanel = 'perfil' | 'ia' | 'idioma' | 'apariencia' | 'seguridad' | 'datos';
+export type SettingsPanel = 'perfil' | 'ia' | 'idioma' | 'apariencia' | 'seguridad' | 'datos' | 'licencia';
 
 let pending: SettingsPanel | null = null;
 

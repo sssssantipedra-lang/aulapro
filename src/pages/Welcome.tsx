@@ -13,7 +13,7 @@ import { Flag } from '../components/ui/Flag';
  * hay que poder cambiar nada más entrar, antes incluso de leer el
  * formulario, no algo escondido dentro de un perfil ya creado en Configuración.
  */
-function LangSwitch() {
+export function LangSwitch() {
   const { lang, setLang } = useI18n();
   return (
     <div style={{ position: 'absolute', top: 18, right: 18, display: 'flex', gap: 6, zIndex: 2 }}>

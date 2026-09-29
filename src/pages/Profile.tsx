@@ -1,11 +1,14 @@
-import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles, ArrowLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles, ArrowLeft, ChevronRight, KeyRound } from 'lucide-react';
 import { getApiKey } from '../services/gemini';
 import { takeSettingsPanel, type SettingsPanel } from '../lib/settingsNav';
 import { Avatar } from '../components/ui/Avatar';
 import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
 import { DataFolder } from '../components/DataFolder';
+import { LicenseSettings } from '../components/LicenseSettings';
+import { getLicenseState } from '../services/license';
+import type { LicenseState } from '../types/electron';
 import { THEMES, applyTheme, isoDate, applyAppearance, getAppearance, type ThemeKey, type Appearance } from '../lib/utils';
 import type { User } from '../types';
 import type { TeacherProfile } from '../services/storage';
@@ -41,6 +44,10 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   /** Apartado abierto; sin ninguno se ve la cuadrícula de tarjetas. */
   const [panel, setPanel] = useState<SettingsPanel | null>(() => takeSettingsPanel());
   const open = (p: SettingsPanel | null) => { setPanel(p); window.scrollTo?.({ top: 0 }); };
+
+  /** Licencia de este equipo (solo en escritorio). */
+  const [license, setLicense] = useState<LicenseState | null>(null);
+  useEffect(() => { getLicenseState().then(setLicense); }, []);
 
   /* ── Contraseña del perfil ── */
   const hasPassword = !!profile?.passwordHash;
@@ -132,6 +139,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     { id: 'apariencia', icon: <Palette size={22} />, title: 'Apariencia', desc: 'Color de la aplicación y modo claro u oscuro.', status: `${t(themeLabel)} · ${t(appearanceLabel)}` },
     { id: 'seguridad', icon: <Lock size={22} />, title: 'Seguridad', desc: 'Contraseña para abrir tu perfil.', status: t(hasPassword ? 'Con contraseña' : 'Sin contraseña'), ok: hasPassword },
     { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },
+    ...(license ? [{
+      id: 'licencia' as const, icon: <KeyRound size={22} />, title: 'Licencia', desc: 'Tu licencia de Aula Pro en este ordenador.',
+      status: t(license.status === 'fundador' ? 'Docente fundador/a' : license.status === 'activa' ? 'Licencia activa' : 'Sin activar'),
+      ok: license.status === 'fundador' || license.status === 'activa',
+    }] : []),
   ];
   const current = TILES.find(x => x.id === panel);
 
@@ -395,6 +407,9 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
 
       {/* ── Clave de la IA ── */}
       {panel === 'ia' && <ApiKeySettings />}
+
+      {/* ── Licencia ── */}
+      {panel === 'licencia' && license && <LicenseSettings state={license} onChange={setLicense} />}
 
       {/* ── Datos y copias ── */}
       {panel === 'datos' && (<>
