@@ -116,9 +116,8 @@ const DEMO_GRADES: GradeMap = {
 };
 
 /**
- * Unas anotaciones del aula para que se vea cómo cuentan en el cuaderno. La
- * de comportamiento no tiene categoría en la demo a propósito: así aparece el
- * aviso que ofrece crearla.
+ * Unas anotaciones del aula para que se vea en el cuaderno el bloque
+ * «Trabajo diario y actitud» que forman.
  */
 function buildDemoMarks(): ClassMark[] {
   const m = (id: string, student_id: string, type: ClassMark['type'], days: number): ClassMark =>

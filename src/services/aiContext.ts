@@ -25,6 +25,7 @@ import type {
   Task, LearningSituation, SeatingPlan,
 } from '../types';
 import { seatStudentId } from '../types';
+import { isMarksCategory } from './classMarks';
 import type { Lang } from '../i18n';
 
 /**
@@ -178,7 +179,7 @@ export function buildTeacherContext(
       `${cls.room ? ` · aula ${cls.room}` : ''} · ${alumnos.length} alumnos`);
 
     L.push(cats.length
-      ? `   Categorías de nota: ${cats.map(c => `${c.name} ${c.weight}%`).join(', ')}`
+      ? `   Categorías de nota: ${cats.map(c => (isMarksCategory(c.id) ? `${c.name} (anotaciones del aula de Tareas, Comportamiento y Participación; ${Math.round((c.weight / cats.reduce((a, x) => a + x.weight, 0)) * 100) / 10} punto(s) de la nota)` : `${c.name} ${c.weight}%`)).join(', ')}`
       : '   Categorías de nota: ninguna definida todavía (no se puede calcular media ponderada).');
 
     if (items.length) {

@@ -132,17 +132,20 @@ Tiene DOS PESTAÑAS arriba:
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
    «¿cómo va Marta?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
-Columna automática «Anotaciones»: si se han hecho anotaciones del aula desde
-la Distribución de aula, cada categoría que las recoge (Tareas,
-Comportamiento/Actitud, Participación) muestra al final una columna
-«Anotaciones · automática» de solo lectura, que cuenta como una nota más en
-la media. Todo el grupo parte de la misma nota (10 si la categoría recibe
-anotaciones negativas, 5 si solo positivas) y cada anotación suma o resta
-0,5, entre 0 y 10. Ambos valores se cambian al editar la categoría (lápiz de
-la categoría o clic en la cabecera de la columna): «Nota de partida» y «Cada
-anotación vale». Si hay anotaciones pero falta su categoría (por ejemplo
-Comportamiento), sale un aviso con un botón para crearla (con un 10%; luego
-hay que ajustar los pesos para que sumen 100%).
+Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
+aula desde la Distribución de aula, el cuaderno añade este bloque, que vale
+1 PUNTO de la nota final (la nota final queda en un 90% la media de las
+categorías del docente y un 10% el bloque). Tiene tres partes que ponderan
+un 33,33% cada una: Tareas, Comportamiento y Participación. Cada parte es una
+nota de 0 a 10: se parte de 10 en Tareas y Comportamiento y de 5 en
+Participación (que solo suma), y cada anotación suma o resta 0,5. En la
+tabla se ven como columnas de solo lectura (con −/+ de cada alumno) y la
+«Nota» del bloque. Todo se ajusta pulsando el botón del bloque junto a las
+categorías o su cabecera en la tabla: si cuenta o no en la nota, los puntos
+que vale (hasta 5), el peso de cada parte (deben sumar 100%), la nota de
+partida de cada parte y lo que suma o resta cada anotación. El bloque no
+entra en el aviso de «los pesos suman 100%». Cuenta también en informes,
+actas (donde aparece en puntos), el inicio y la IA.
 
 [attendance] ASISTENCIA
 Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
@@ -179,9 +182,10 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   «Sin tarea», «Sin material», «Mal comportamiento», «Buen comportamiento» y
   «Participa» (si la clase tiene varias asignaturas, se elige antes cuál). En
   la fila se ven las anotaciones de hoy (−2, +1) y desde la ventana se puede
-  quitar una hecha por error. Cuentan solas en el CUADERNO DE NOTAS: «Sin
-  tarea» en la categoría Tareas; sin material y comportamiento en
-  Comportamiento (o Actitud/Conducta); «Participa» en Participación.
+  quitar una hecha por error. Cuentan solas en el CUADERNO DE NOTAS, en el
+  bloque «Trabajo diario y actitud» (ver Cuaderno de notas): «Sin tarea» en
+  Tareas; «Sin material», «Mal/Buen comportamiento» en Comportamiento;
+  «Participa» en Participación.
 Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
 

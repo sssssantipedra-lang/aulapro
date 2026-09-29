@@ -3,7 +3,7 @@ import type {
   Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
-  LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark,
+  LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark, MarksBlockConfig,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
@@ -51,6 +51,8 @@ interface ProfileSnapshot {
   seatingPlans: Record<string, SeatingPlan>;
   /** Anotaciones rápidas del aula (sin tarea, comportamiento…). */
   classMarks: ClassMark[];
+  /** Cómo cuenta ese bloque en cada clase y asignatura, por `classId|asignatura`. */
+  marksConfigs: Record<string, MarksBlockConfig>;
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -62,7 +64,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
-    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [],
+    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [], marksConfigs: {},
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -148,6 +150,7 @@ export function useAppState() {
   const [workSessions, setWorkSessions]       = useState<WorkSession[]>([]);
   const [seatingPlans, setSeatingPlans]       = useState<Record<string, SeatingPlan>>({});
   const [classMarks, setClassMarks]           = useState<ClassMark[]>([]);
+  const [marksConfigs, setMarksConfigs]       = useState<Record<string, MarksBlockConfig>>({});
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -185,6 +188,7 @@ export function useAppState() {
     setWorkSessions(s.workSessions);
     setSeatingPlans(s.seatingPlans);
     setClassMarks(s.classMarks);
+    setMarksConfigs(s.marksConfigs);
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -227,11 +231,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    workSessions, seatingPlans, classMarks, tombstones, shareScope, auditLog,
+    workSessions, seatingPlans, classMarks, marksConfigs, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      workSessions, seatingPlans, classMarks, tombstones, shareScope, auditLog]);
+      workSessions, seatingPlans, classMarks, marksConfigs, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -402,6 +406,7 @@ export function useAppState() {
     setReports(prev => prev.filter(r => r.class_id !== id));
     setAttendance(prev => { const n = { ...prev }; delete n[id]; return n; });
     setClassMarks(prev => prev.filter(m => m.class_id !== id));
+    setMarksConfigs(prev => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(id + '|'))));
     if (cascadeItemIds.length) {
       const removed = new Set(cascadeItemIds);
       setGrades(g => {
@@ -770,6 +775,13 @@ export function useAppState() {
     if (gone) log('delete', 'classMark', id, `${label}: ${studentName(gone.student_id)}`);
   }, [log, studentName]);
 
+  const setMarksConfig = useCallback((classId: string, subject: string, cfg: MarksBlockConfig) => {
+    setMarksConfigs(prev => ({ ...prev, [`${classId}|${subject}`]: cfg }));
+    log('update', 'gradeCategory', `${classId}|${subject}`,
+      `Bloque «Trabajo diario y actitud» de ${className(classId)}`,
+      cfg.enabled === false ? 'no cuenta en la nota' : `${String(cfg.points).replace('.', ',')} punto(s) de la nota`);
+  }, [log, className]);
+
   /**
    * Pasa una sesión al Historial como evaluaciones.
    *
@@ -912,6 +924,7 @@ export function useAppState() {
     // reutilizables sin datos de alumnado incrustados.
     setSeatingPlans({});
     setClassMarks([]);
+    setMarksConfigs({});
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
@@ -952,6 +965,7 @@ export function useAppState() {
     workSessions, saveWorkSession, deleteWorkSession,
     seatingPlans, setSeatingPlan,
     classMarks, addClassMark, deleteClassMark,
+    marksConfigs, setMarksConfig,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

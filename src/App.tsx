@@ -70,15 +70,15 @@ function AppInner() {
   );
 
   /**
-   * El cuaderno tal como cuenta para las medias: lo guardado más una columna
-   * automática por categoría con las anotaciones del aula (ver
+   * El cuaderno tal como cuenta para las medias: lo guardado más el bloque
+   * «Trabajo diario y actitud» que sale de las anotaciones del aula (ver
    * services/classMarks.ts). Todas las pantallas que calculan medias leen de
-   * aquí; lo que se guarda en disco sigue siendo solo `st.gradeItems/grades`.
+   * aquí; lo que se guarda en disco sigue siendo solo lo de `st`.
    */
   const gradeView = useMemo(() => applyClassMarks({
     classes: st.classes, students: st.students, gradeCategories: st.gradeCategories,
-    gradeItems: st.gradeItems, grades: st.grades, classMarks: st.classMarks,
-  }), [st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades, st.classMarks]);
+    gradeItems: st.gradeItems, grades: st.grades, classMarks: st.classMarks, marksConfigs: st.marksConfigs,
+  }), [st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades, st.classMarks, st.marksConfigs]);
 
   /**
    * Lo que el asistente del cuaderno puede consultar. Se arma aquí, donde
@@ -92,7 +92,7 @@ function AppInner() {
       : null,
     classes: st.classes,
     students: st.students,
-    gradeCategories: st.gradeCategories,
+    gradeCategories: gradeView.gradeCategories,
     gradeItems: gradeView.gradeItems,
     grades: gradeView.grades,
     evaluations: st.evaluations,
@@ -103,7 +103,7 @@ function AppInner() {
     tasks: st.tasks,
     learningSituations: st.learningSituations,
     seatingPlans: st.seatingPlans,
-  }), [st.profile, st.classes, st.students, st.gradeCategories, gradeView,
+  }), [st.profile, st.classes, st.students, gradeView,
       st.evaluations, st.attendance, st.reports, st.calEvents, st.scheduleBlocks,
       st.tasks, st.learningSituations, st.seatingPlans]);
 
@@ -208,7 +208,7 @@ function AppInner() {
                 students={st.students}
                 classes={st.classes}
                 evaluations={st.evaluations}
-                gradeCategories={st.gradeCategories}
+                gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
                 onNav={s => setSection(s as Section)}
@@ -293,7 +293,7 @@ function AppInner() {
               <Records
                 classes={st.classes}
                 students={st.students}
-                gradeCategories={st.gradeCategories}
+                gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
                 teacherName={st.profile?.name ?? ''}
@@ -315,10 +315,12 @@ function AppInner() {
               <Notebook
                 classes={st.classes}
                 students={st.students}
-                gradeCategories={st.gradeCategories}
+                gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
                 classMarks={st.classMarks}
+                marksConfigs={st.marksConfigs}
+                onSaveMarksConfig={st.setMarksConfig}
                 onAddCategory={st.addGradeCategory}
                 onUpdateCategory={st.updateGradeCategory}
                 onDeleteCategory={st.deleteGradeCategory}
@@ -372,13 +374,14 @@ function AppInner() {
               <SeatingPlan
                 classes={st.classes}
                 students={st.students}
-                gradeCategories={st.gradeCategories}
+                gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
                 attendance={st.attendance}
                 seatingPlans={st.seatingPlans}
                 onSave={st.setSeatingPlan}
                 classMarks={st.classMarks}
+                marksConfigs={st.marksConfigs}
                 onAddMark={st.addClassMark}
                 onDeleteMark={st.deleteClassMark}
                 onNav={s => setSection(s as Section)}
@@ -391,7 +394,7 @@ function AppInner() {
                 evaluations={st.evaluations}
                 rubrics={st.rubrics}
                 dianas={st.dianas}
-                gradeCategories={st.gradeCategories}
+                gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
                 attendance={st.attendance}

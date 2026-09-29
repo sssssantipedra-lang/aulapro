@@ -33,6 +33,7 @@ function Harness({ onPlan, onMarks }: { onPlan?: (p: Plan) => void; onMarks?: (m
           onSave={(id, p) => { setPlans(prev => ({ ...prev, [id]: p })); onPlan?.(p); }}
           onNav={() => {}}
           classMarks={marks}
+          marksConfigs={{}}
           onAddMark={m => updateMarks([...marks, m])}
           onDeleteMark={id => updateMarks(marks.filter(m => m.id !== id))}
         />

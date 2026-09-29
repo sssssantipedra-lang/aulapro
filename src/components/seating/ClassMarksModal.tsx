@@ -1,12 +1,12 @@
 /**
  * Anotar a un alumno desde la Distribución de aula: un toque por anotación
- * («Sin tarea», «Buen comportamiento»…). Cada una cuenta en la categoría del
- * cuaderno que le corresponde (ver services/classMarks.ts).
+ * («Sin tarea», «Buen comportamiento»…). Todas cuentan en el bloque
+ * «Trabajo diario y actitud» del cuaderno (ver services/classMarks.ts).
  */
 import { useState } from 'react';
 import { Flag, X, BookX, PackageX, ThumbsDown, ThumbsUp, Hand, ArrowRight } from 'lucide-react';
-import type { Class, ClassMark, ClassMarkType, GradeCategory, Student } from '../../types';
-import { MARK_TYPES, markTypeInfo, linkTargets, TARGET_CATEGORY } from '../../services/classMarks';
+import type { Class, ClassMark, ClassMarkType, MarksBlockConfig, Student } from '../../types';
+import { MARK_TYPES, markTypeInfo, TARGET_LABEL, BLOCK_NAME, blockConfig } from '../../services/classMarks';
 import { isoDate } from '../../lib/utils';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
@@ -23,7 +23,7 @@ const ICONS: Record<ClassMarkType, React.ReactNode> = {
 interface Props {
   student: Student | null;
   cls: Class;
-  gradeCategories: GradeCategory[];
+  marksConfigs: Record<string, MarksBlockConfig>;
   classMarks: ClassMark[];
   onAdd: (m: ClassMark, label: string) => void;
   onDelete: (id: string, label: string) => void;
@@ -31,8 +31,8 @@ interface Props {
   onNav: (s: string) => void;
 }
 
-export function ClassMarksModal({ student, cls, gradeCategories, classMarks, onAdd, onDelete, onClose, onNav }: Props) {
-  const { t, lang } = useI18n();
+export function ClassMarksModal({ student, cls, marksConfigs, classMarks, onAdd, onDelete, onClose, onNav }: Props) {
+  const { t, locale } = useI18n();
   const { toast } = useToast();
   const subjects = cls.subjects?.length ? cls.subjects : [cls.subject];
   const [subjectPick, setSubject] = useState(subjects[0] ?? '');
@@ -42,8 +42,7 @@ export function ClassMarksModal({ student, cls, gradeCategories, classMarks, onA
   if (!student) return null;
 
   const mainSubject = subjects[0] ?? '';
-  const cats = gradeCategories.filter(c => c.class_id === cls.id && (c.subject ?? mainSubject) === subject);
-  const links = linkTargets(cats);
+  const cfg = blockConfig(marksConfigs, cls.id, subject);
   const mine = classMarks.filter(m => m.student_id === student.id && m.class_id === cls.id
     && (m.subject ?? mainSubject) === subject);
   const todays = mine.filter(m => m.date === today);
@@ -84,7 +83,6 @@ export function ClassMarksModal({ student, cls, gradeCategories, classMarks, onA
 
       <div className="mk-grid">
         {MARK_TYPES.map(m => {
-          const cat = links.get(m.target);
           const n = countOf(m.id);
           return (
             <button
@@ -95,9 +93,7 @@ export function ClassMarksModal({ student, cls, gradeCategories, classMarks, onA
               <span className="mk-ico">{ICONS[m.id]}</span>
               <span className="mk-lbl">{t(m.label)}</span>
               <span className="mk-where">
-                {cat
-                  ? t('{sign} en {cat}', { sign: m.positive ? '+' : '−', cat: cat.name })
-                  : t('Falta la categoría «{cat}»', { cat: TARGET_CATEGORY[m.target][lang === 'en' ? 'en' : 'es'] })}
+                {t('{sign} en {cat}', { sign: m.positive ? '+' : '−', cat: t(TARGET_LABEL[m.target]) })}
               </span>
               {n > 0 && <span className="mk-count" aria-label={t('{n} hoy', { n })}>{n}</span>}
             </button>
@@ -105,14 +101,14 @@ export function ClassMarksModal({ student, cls, gradeCategories, classMarks, onA
         })}
       </div>
 
-      {[...links.keys()].length < 3 && (
-        <p className="mk-hint">
-          {t('Las anotaciones sin categoría se guardan igualmente y empiezan a contar en cuanto la crees en el Cuaderno de notas.')}{' '}
-          <button type="button" className="mk-link" onClick={() => { onClose(); onNav('notebook'); }}>
-            {t('Ir al cuaderno')} <ArrowRight size={12} />
-          </button>
-        </p>
-      )}
+      <p className="mk-hint">
+        {cfg.enabled === false
+          ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: t(BLOCK_NAME) })
+          : t('Cuentan en el bloque «{name}» del cuaderno, que vale {n} pto. de la nota final.', { name: t(BLOCK_NAME), n: cfg.points.toLocaleString(locale) })}{' '}
+        <button type="button" className="mk-link" onClick={() => { onClose(); onNav('notebook'); }}>
+          {t('Ir al cuaderno')} <ArrowRight size={12} />
+        </button>
+      </p>
 
       <div className="mk-today">
         <p className="mk-today-ttl">

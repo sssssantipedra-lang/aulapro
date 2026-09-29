@@ -13,7 +13,7 @@ import { useMemo, useState } from 'react';
 import {
   Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical, Flag,
 } from 'lucide-react';
-import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap, SeatingPlan, CooperativeRole, ClassMark } from '../types';
+import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap, SeatingPlan, CooperativeRole, ClassMark, MarksBlockConfig } from '../types';
 import { seatStudentId } from '../types';
 import { weightedAverage, attendanceRate } from '../services/aiContext';
 import { generateBalancedGroups, type StudentForGrouping } from '../services/classGroups';
@@ -40,6 +40,7 @@ interface Props {
   onSave: (classId: string, plan: SeatingPlan) => void;
   /** Anotaciones del aula (sin tarea, comportamiento…), que cuentan en el cuaderno. */
   classMarks: ClassMark[];
+  marksConfigs: Record<string, MarksBlockConfig>;
   onAddMark: (m: ClassMark, label: string) => void;
   onDeleteMark: (id: string, label: string) => void;
   onNav: (s: string) => void;
@@ -83,7 +84,7 @@ function resizeRoles(roles: CooperativeRole[], groupSize: number, t: (k: string,
 
 export function SeatingPlan({
   classes, students, gradeCategories, gradeItems, grades, attendance, seatingPlans, onSave, onNav,
-  classMarks, onAddMark, onDeleteMark,
+  classMarks, marksConfigs, onAddMark, onDeleteMark,
 }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
@@ -624,7 +625,7 @@ export function SeatingPlan({
         <ClassMarksModal
           student={marking}
           cls={cls}
-          gradeCategories={gradeCategories}
+          marksConfigs={marksConfigs}
           classMarks={classMarks}
           onAdd={onAddMark}
           onDelete={onDeleteMark}

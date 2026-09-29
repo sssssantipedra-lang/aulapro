@@ -3,26 +3,30 @@
  *
  * Desde la Distribución de aula el docente apunta en un toque cosas del día a
  * día («no ha traído la tarea», «buen comportamiento», «participa»). Aquí se
- * convierten en una columna automática, de solo lectura, dentro de la
- * categoría del cuaderno que les corresponde:
+ * convierten en un BLOQUE de la nota final —por defecto, 1 punto de 10— con
+ * tres partes que ponderan un tercio cada una:
  *
- *   - «Sin tarea»            → Tareas
- *   - «Sin material», «Mal comportamiento», «Buen comportamiento» → Comportamiento
- *   - «Participa»            → Participación
+ *   - Tareas          ← «Sin tarea»
+ *   - Comportamiento  ← «Sin material», «Mal comportamiento», «Buen comportamiento»
+ *   - Participación   ← «Participa»
  *
- * Todos los alumnos de la clase parten de la misma nota (10 si la categoría
- * recibe anotaciones negativas; 5 si solo positivas) y cada anotación suma o
- * resta 0,5, siempre entre 0 y 10. El docente puede cambiar ambos valores al
- * editar la categoría.
+ * Cada parte es una nota de 0 a 10: todos parten de la misma (10 en Tareas y
+ * Comportamiento, 5 en Participación, que solo suma) y cada anotación suma o
+ * resta 0,5. El docente puede cambiar los puntos del bloque, el peso de cada
+ * parte, las notas de partida y lo que vale cada anotación.
  *
- * La columna se añade como un `GradeItem` «virtual» más las notas que le
- * tocan, sin guardarse nunca: así cuenta igual en la media del cuaderno, en
+ * El bloque se añade como una categoría «virtual» con una columna y sus
+ * notas, sin guardarse nunca: así cuenta igual en la media del cuaderno, en
  * los informes, las actas, el inicio y lo que ve la IA, sin que cada pantalla
- * tenga que saber que existen las anotaciones.
+ * tenga que saber que existen las anotaciones. Su peso se calcula para que
+ * valga exactamente esos puntos sobre la nota final, sumen lo que sumen las
+ * demás categorías.
  */
-import type { Class, ClassMark, ClassMarkType, GradeCategory, GradeItem, GradeMap, Student } from '../types';
+import type {
+  Class, ClassMark, ClassMarkType, GradeCategory, GradeItem, GradeMap, Student, MarksBlockConfig, MarkTarget,
+} from '../types';
 
-export type MarkTarget = 'homework' | 'behavior' | 'participation';
+export type { MarkTarget, MarksBlockConfig };
 
 export interface MarkTypeInfo {
   id: ClassMarkType;
@@ -42,70 +46,101 @@ export const MARK_TYPES: readonly MarkTypeInfo[] = [
 export const markTypeInfo = (id: ClassMarkType): MarkTypeInfo | undefined =>
   MARK_TYPES.find(m => m.id === id);
 
-/** Nombre con el que se crea la categoría si el docente aún no la tiene. */
-export const TARGET_CATEGORY: Record<MarkTarget, { es: string; en: string }> = {
-  homework:      { es: 'Tareas',         en: 'Homework' },
-  behavior:      { es: 'Comportamiento', en: 'Behaviour' },
-  participation: { es: 'Participación',  en: 'Participation' },
+export const TARGETS: readonly MarkTarget[] = ['homework', 'behavior', 'participation'];
+
+export const TARGET_LABEL: Record<MarkTarget, string> = {
+  homework: 'Tareas',
+  behavior: 'Comportamiento',
+  participation: 'Participación',
 };
 
-/** Palabras que, dentro del nombre de una categoría, la ligan a cada tipo. */
-const TARGET_WORDS: Record<MarkTarget, string[]> = {
-  homework:      ['tarea', 'deberes', 'homework'],
-  behavior:      ['comportamiento', 'actitud', 'conducta', 'convivencia', 'behaviour', 'behavior', 'attitude', 'conduct'],
-  participation: ['participacion', 'participation'],
+export const BLOCK_NAME = 'Trabajo diario y actitud';
+
+export const DEFAULT_BLOCK: MarksBlockConfig = {
+  points: 1,
+  weights: { homework: 33.33, behavior: 33.33, participation: 33.34 },
+  bases: { homework: 10, behavior: 10, participation: 5 },
+  step: 0.5,
 };
 
-export const DEFAULT_MARK_STEP = 0.5;
-export const MARKS_ITEM_PREFIX = 'marks:';
-export const MARKS_ITEM_NAME = 'Anotaciones del aula';
+/** Tope de puntos del bloque: por encima dejaría de ser un complemento de la nota. */
+export const MAX_BLOCK_POINTS = 5;
 
-export const isMarksItem = (itemId: string) => itemId.startsWith(MARKS_ITEM_PREFIX);
+export const BLOCK_CATEGORY_PREFIX = 'marksblock:';
+export const BLOCK_ITEM_PREFIX = 'marks:';
+export const isMarksCategory = (id: string) => id.startsWith(BLOCK_CATEGORY_PREFIX);
+export const isMarksItem = (id: string) => id.startsWith(BLOCK_ITEM_PREFIX);
 
-const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+export const blockKey = (classId: string, subject: string) => `${classId}|${subject}`;
 
-/** Qué tipos de anotación recoge una categoría por su nombre («Actitud y participación» recoge dos). */
-export function targetsOfCategory(name: string): MarkTarget[] {
-  const n = plain(name);
-  return (Object.keys(TARGET_WORDS) as MarkTarget[]).filter(t => TARGET_WORDS[t].some(w => n.includes(w)));
+/** La configuración del bloque de una clase y asignatura, con los valores por defecto donde falten. */
+export function blockConfig(
+  configs: Record<string, MarksBlockConfig> | undefined, classId: string, subject: string,
+): MarksBlockConfig {
+  const c = configs?.[blockKey(classId, subject)];
+  return {
+    ...DEFAULT_BLOCK,
+    ...c,
+    weights: { ...DEFAULT_BLOCK.weights, ...c?.weights },
+    bases: { ...DEFAULT_BLOCK.bases, ...c?.bases },
+  };
 }
 
 /**
- * A qué categoría va cada tipo. Si dos categorías encajan con el mismo tipo,
- * gana la primera: una anotación nunca cuenta dos veces.
+ * Si el bloque cuenta en la nota. Sin decisión del docente, cuenta en cuanto
+ * hay alguna anotación: así nadie ve cambiar las medias por una función que
+ * no usa.
  */
-export function linkTargets(categories: readonly GradeCategory[]): Map<MarkTarget, GradeCategory> {
-  const out = new Map<MarkTarget, GradeCategory>();
-  for (const cat of categories) {
-    for (const t of targetsOfCategory(cat.name)) if (!out.has(t)) out.set(t, cat);
+export function blockActive(cfg: MarksBlockConfig, marksCount: number): boolean {
+  if (cfg.enabled === false) return false;
+  return cfg.enabled === true || marksCount > 0;
+}
+
+const clamp10 = (v: number) => Math.min(10, Math.max(0, Math.round(v * 100) / 100));
+
+export interface PartScore { score: number; pos: number; neg: number }
+export interface StudentBlock { parts: Record<MarkTarget, PartScore>; total: number }
+
+/** Nota de cada parte y del bloque para un alumno, a partir de sus anotaciones. */
+export function studentBlock(marks: readonly ClassMark[], cfg: MarksBlockConfig): StudentBlock {
+  const count = { homework: { pos: 0, neg: 0 }, behavior: { pos: 0, neg: 0 }, participation: { pos: 0, neg: 0 } };
+  for (const m of marks) {
+    const info = markTypeInfo(m.type);
+    if (!info) continue;
+    if (info.positive) count[info.target].pos++; else count[info.target].neg++;
   }
-  return out;
+  const parts = Object.fromEntries(TARGETS.map(t => [t, {
+    ...count[t],
+    score: clamp10(cfg.bases[t] + cfg.step * (count[t].pos - count[t].neg)),
+  }])) as Record<MarkTarget, PartScore>;
+
+  const wSum = TARGETS.reduce((a, t) => a + Math.max(0, cfg.weights[t]), 0);
+  const total = wSum > 0
+    ? TARGETS.reduce((a, t) => a + parts[t].score * Math.max(0, cfg.weights[t]), 0) / wSum
+    : TARGETS.reduce((a, t) => a + parts[t].score, 0) / TARGETS.length;
+  return { parts, total: clamp10(total) };
 }
 
-/** Nota de partida por defecto: 10 si la categoría recibe algo negativo; 5 si solo positivo. */
-export function defaultMarksBase(cat: Pick<GradeCategory, 'name'>): number {
-  const targets = targetsOfCategory(cat.name);
-  const anyNegative = MARK_TYPES.some(m => !m.positive && targets.includes(m.target));
-  return anyNegative ? 10 : 5;
-}
-
-export function marksBaseOf(cat: GradeCategory): number {
-  return typeof cat.marksBase === 'number' ? cat.marksBase : defaultMarksBase(cat);
-}
-export function marksStepOf(cat: GradeCategory): number {
-  return typeof cat.marksStep === 'number' ? cat.marksStep : DEFAULT_MARK_STEP;
-}
-
-export function marksScore(positives: number, negatives: number, base: number, step: number): number {
-  const v = base + step * (positives - negatives);
-  return Math.min(10, Math.max(0, Math.round(v * 100) / 100));
+/**
+ * Peso que ha de tener la categoría del bloque para valer `points` sobre 10,
+ * dadas las demás. Con las demás sumando 100 y 1 punto, pesa 11,11: la media
+ * queda en 0,9 × resto + 0,1 × bloque.
+ */
+export function blockCategoryWeight(otherWeightsSum: number, points: number): number {
+  const share = Math.min(MAX_BLOCK_POINTS, Math.max(0, points)) / 10;
+  if (share <= 0) return 0;
+  if (otherWeightsSum <= 0) return 100;
+  return Math.round((otherWeightsSum * share / (1 - share)) * 10000) / 10000;
 }
 
 const subjectsOf = (c: Class) => (c.subjects?.length ? c.subjects : [c.subject]);
+const mainSubject = (c: Class) => subjectsOf(c)[0] ?? '';
 
-/** Asignatura efectiva de una anotación: la suya o, si no lleva, la principal de la clase. */
-const markSubject = (m: ClassMark, cls: Class) => m.subject ?? subjectsOf(cls)[0] ?? '';
-const catSubject = (c: GradeCategory, cls: Class) => c.subject ?? subjectsOf(cls)[0] ?? '';
+/** Anotaciones de una clase y asignatura (las que no llevan asignatura son de la principal). */
+export function marksFor(marks: readonly ClassMark[], cls: Class, subject: string): ClassMark[] {
+  const main = mainSubject(cls);
+  return marks.filter(m => m.class_id === cls.id && (m.subject ?? main) === subject);
+}
 
 export interface MarksInput {
   classes: readonly Class[];
@@ -114,70 +149,46 @@ export interface MarksInput {
   gradeItems: readonly GradeItem[];
   grades: GradeMap;
   classMarks: readonly ClassMark[];
+  marksConfigs: Record<string, MarksBlockConfig>;
 }
 
-/** Las columnas y notas del cuaderno con las anotaciones del aula ya incluidas. */
-export function applyClassMarks(d: MarksInput): { gradeItems: GradeItem[]; grades: GradeMap } {
-  if (d.classMarks.length === 0) return { gradeItems: [...d.gradeItems], grades: d.grades };
-
+/** Categorías, columnas y notas del cuaderno con el bloque de anotaciones ya incluido. */
+export function applyClassMarks(d: MarksInput): {
+  gradeCategories: GradeCategory[]; gradeItems: GradeItem[]; grades: GradeMap;
+} {
+  const cats: GradeCategory[] = [...d.gradeCategories];
   const items: GradeItem[] = [...d.gradeItems];
   const grades: GradeMap = { ...d.grades };
 
   for (const cls of d.classes) {
-    const marksOfClass = d.classMarks.filter(m => m.class_id === cls.id);
-    if (marksOfClass.length === 0) continue;
-    const roster = d.students.filter(s => s.class_id === cls.id);
-
     for (const subject of subjectsOf(cls)) {
-      const cats = d.gradeCategories.filter(c => c.class_id === cls.id && catSubject(c, cls) === subject);
-      const links = linkTargets(cats);
+      const cfg = blockConfig(d.marksConfigs, cls.id, subject);
+      const marks = marksFor(d.classMarks, cls, subject);
+      if (!blockActive(cfg, marks.length)) continue;
 
-      // Anotaciones de cada categoría, contadas por alumno
-      const byCat = new Map<string, { cat: GradeCategory; pos: Map<string, number>; neg: Map<string, number>; last: string }>();
-      for (const m of marksOfClass) {
-        if (markSubject(m, cls) !== subject) continue;
-        const info = markTypeInfo(m.type);
-        const cat = info && links.get(info.target);
-        if (!info || !cat) continue;
-        let entry = byCat.get(cat.id);
-        if (!entry) { entry = { cat, pos: new Map(), neg: new Map(), last: '' }; byCat.set(cat.id, entry); }
-        const bucket = info.positive ? entry.pos : entry.neg;
-        bucket.set(m.student_id, (bucket.get(m.student_id) ?? 0) + 1);
-        if (m.date > entry.last) entry.last = m.date;
-      }
+      const main = mainSubject(cls);
+      const others = d.gradeCategories
+        .filter(c => c.class_id === cls.id && (c.subject ?? main) === subject)
+        .reduce((a, c) => a + c.weight, 0);
+      const weight = blockCategoryWeight(others, cfg.points);
+      if (weight <= 0) continue;
 
-      for (const { cat, pos, neg, last } of byCat.values()) {
-        const id = MARKS_ITEM_PREFIX + cat.id;
-        items.push({ id, class_id: cls.id, category_id: cat.id, name: MARKS_ITEM_NAME, date: last });
-        const base = marksBaseOf(cat);
-        const step = marksStepOf(cat);
-        // Todos los de la clase tienen nota, no solo los anotados: quien no
-        // tiene ninguna anotación se queda con la nota de partida.
-        grades[id] = Object.fromEntries(
-          roster.map(s => [s.id, marksScore(pos.get(s.id) ?? 0, neg.get(s.id) ?? 0, base, step)]),
-        );
-      }
+      const key = blockKey(cls.id, subject);
+      const catId = BLOCK_CATEGORY_PREFIX + key;
+      const itemId = BLOCK_ITEM_PREFIX + key;
+      cats.push({ id: catId, class_id: cls.id, name: BLOCK_NAME, weight, subject });
+      items.push({
+        id: itemId, class_id: cls.id, category_id: catId, name: BLOCK_NAME,
+        date: marks.reduce((a, m) => (m.date > a ? m.date : a), ''),
+      });
+      // Todos los de la clase tienen nota, no solo los anotados: quien no
+      // tiene ninguna anotación se queda con las notas de partida.
+      grades[itemId] = Object.fromEntries(
+        d.students
+          .filter(s => s.class_id === cls.id)
+          .map(s => [s.id, studentBlock(marks.filter(m => m.student_id === s.id), cfg).total]),
+      );
     }
   }
-  return { gradeItems: items, grades };
-}
-
-/**
- * Tipos con anotaciones en esta clase y asignatura que no cuentan en ningún
- * sitio porque no hay categoría que las recoja. El cuaderno lo avisa y ofrece
- * crearla.
- */
-export function orphanTargets(
-  cls: Class, subject: string,
-  gradeCategories: readonly GradeCategory[], classMarks: readonly ClassMark[],
-): MarkTarget[] {
-  const cats = gradeCategories.filter(c => c.class_id === cls.id && catSubject(c, cls) === subject);
-  const links = linkTargets(cats);
-  const found = new Set<MarkTarget>();
-  for (const m of classMarks) {
-    if (m.class_id !== cls.id || markSubject(m, cls) !== subject) continue;
-    const info = markTypeInfo(m.type);
-    if (info && !links.has(info.target)) found.add(info.target);
-  }
-  return [...found];
+  return { gradeCategories: cats, gradeItems: items, grades };
 }

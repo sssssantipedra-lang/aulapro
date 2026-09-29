@@ -8,21 +8,26 @@ import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
 import { useI18n } from '../i18n';
 import { ClassChips } from '../components/ui/ClassChips';
-import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark } from '../types';
+import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig } from '../types';
 import {
-  isMarksItem, orphanTargets, targetsOfCategory, defaultMarksBase, markTypeInfo,
-  TARGET_CATEGORY, DEFAULT_MARK_STEP, type MarkTarget,
+  isMarksCategory, blockConfig, blockActive, marksFor, studentBlock,
+  TARGETS, TARGET_LABEL, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 
 interface Props {
   classes: Class[];
   students: Student[];
+  /**
+   * Incluyen el bloque «Trabajo diario y actitud» de las anotaciones del aula
+   * (categoría y columna virtuales, de solo lectura; ver services/classMarks.ts).
+   */
   gradeCategories: GradeCategory[];
-  /** Incluye las columnas automáticas de anotaciones del aula (de solo lectura). */
   gradeItems: GradeItem[];
   grades: GradeMap;
-  /** Anotaciones del aula, para el detalle de cada alumno y el aviso de categorías que faltan. */
+  /** Anotaciones del aula, para el desglose del bloque por alumno. */
   classMarks: ClassMark[];
+  marksConfigs: Record<string, MarksBlockConfig>;
+  onSaveMarksConfig: (classId: string, subject: string, cfg: MarksBlockConfig) => void;
   onAddCategory: (c: GradeCategory) => void;
   onUpdateCategory: (c: GradeCategory) => void;
   onDeleteCategory: (id: string) => void;
@@ -131,7 +136,7 @@ const DEFAULT_CATEGORIES_EN: { name: string; weight: number }[] = [
 ];
 
 function GradesTab({
-  classes, students, gradeCategories, gradeItems, grades, classMarks,
+  classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
   onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav,
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
@@ -144,8 +149,9 @@ function GradesTab({
   // Formularios de los modales
   const [catName, setCatName]     = useState('');
   const [catWeight, setCatWeight] = useState('');
-  const [catBase, setCatBase]     = useState('');
-  const [catStep, setCatStep]     = useState('');
+  const [blockOpen, setBlockOpen] = useState(false);
+  /** Formulario del bloque, en texto para que se pueda escribir «33,33». */
+  const [bf, setBf] = useState<{ enabled: boolean; points: string; step: string; weights: Record<MarkTarget, string>; bases: Record<MarkTarget, string> } | null>(null);
   const [itemName, setItemName]   = useState('');
   const [itemCat, setItemCat]     = useState('');
   const [itemDate, setItemDate]   = useState(isoDate());
@@ -179,8 +185,23 @@ function GradesTab({
     const mine = new Set(myCategories.map(c => c.id));
     return gradeItems.filter(i => i.class_id === clsId && mine.has(i.category_id));
   }, [gradeItems, clsId, myCategories]);
+  /**
+   * Las categorías del docente, sin el bloque de anotaciones: ese no se edita
+   * como las demás ni entra en «los pesos suman 100%», porque su peso se
+   * calcula solo para valer sus puntos.
+   */
+  const ownCategories = useMemo(() => myCategories.filter(c => !isMarksCategory(c.id)), [myCategories]);
   // El peso suma 100% por asignatura, no por clase
-  const weightSum = myCategories.reduce((a, c) => a + c.weight, 0);
+  const weightSum = ownCategories.reduce((a, c) => a + c.weight, 0);
+
+  /** Bloque de anotaciones de esta clase y asignatura: configuración y desglose por alumno. */
+  const block = useMemo(() => {
+    if (!cls) return null;
+    const cfg = blockConfig(marksConfigs, cls.id, activeSubject);
+    const marks = marksFor(classMarks, cls, activeSubject);
+    const perStudent = new Map(myStudents.map(s => [s.id, studentBlock(marks.filter(m => m.student_id === s.id), cfg)]));
+    return { cfg, active: blockActive(cfg, marks.length), count: marks.length, perStudent };
+  }, [cls, activeSubject, marksConfigs, classMarks, myStudents]);
 
   /**
    * Las pruebas agrupadas por categoría, en el orden en que se muestran.
@@ -198,57 +219,56 @@ function GradesTab({
         cat,
         items: myItems
           .filter(i => i.category_id === cat.id)
-          // La columna automática de anotaciones va siempre al final de su grupo
-          .sort((a, b) => Number(isMarksItem(a.id)) - Number(isMarksItem(b.id))
-            || (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es')),
+          .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es')),
       }))
       .filter(g => g.items.length > 0),
     [myCategories, myItems],
   );
 
-  /** Anotaciones del aula que no cuentan porque falta su categoría. */
-  const orphans = useMemo(
-    () => (cls ? orphanTargets(cls, activeSubject, gradeCategories, classMarks) : []),
-    [cls, activeSubject, gradeCategories, classMarks],
-  );
+  const dec = (n: number) => (lang === 'es' ? String(n).replace('.', ',') : String(n));
+  const parseDec = (v: string) => Number(v.trim().replace(',', '.'));
 
-  /** Anotaciones de cada alumno por categoría, para el detalle al pasar el ratón. */
-  const markCounts = useMemo(() => {
-    const out = new Map<string, { pos: number; neg: number }>();
-    const mainSubject = subjects[0] ?? '';
-    for (const m of classMarks) {
-      if (m.class_id !== clsId || (m.subject ?? mainSubject) !== activeSubject) continue;
-      const info = markTypeInfo(m.type);
-      if (!info) continue;
-      const cat = myCategories.find(c => targetsOfCategory(c.name).includes(info.target));
-      if (!cat) continue;
-      const key = `${cat.id}|${m.student_id}`;
-      const e = out.get(key) ?? { pos: 0, neg: 0 };
-      if (info.positive) e.pos++; else e.neg++;
-      out.set(key, e);
-    }
-    return out;
-  }, [classMarks, clsId, activeSubject, subjects, myCategories]);
+  function openBlock() {
+    if (!block) return;
+    const { cfg } = block;
+    setBf({
+      enabled: block.active,
+      points: dec(cfg.points),
+      step: dec(cfg.step),
+      weights: Object.fromEntries(TARGETS.map(tg => [tg, dec(cfg.weights[tg])])) as Record<MarkTarget, string>,
+      bases: Object.fromEntries(TARGETS.map(tg => [tg, dec(cfg.bases[tg])])) as Record<MarkTarget, string>,
+    });
+    setBlockOpen(true);
+  }
 
-  function createTargetCategory(target: MarkTarget) {
-    const name = TARGET_CATEGORY[target][lang === 'en' ? 'en' : 'es'];
-    onAddCategory({ id: 'gc' + crypto.randomUUID(), class_id: clsId, name, weight: 10, subject: activeSubject });
-    toast(t('✅ Categoría «{name}» creada con un 10%. Ajusta los pesos para que sumen 100%.', { name }));
+  function saveBlock() {
+    if (!bf || !cls) return;
+    const points = parseDec(bf.points);
+    const step = parseDec(bf.step);
+    const weights = Object.fromEntries(TARGETS.map(tg => [tg, parseDec(bf.weights[tg])])) as Record<MarkTarget, number>;
+    const bases = Object.fromEntries(TARGETS.map(tg => [tg, parseDec(bf.bases[tg])])) as Record<MarkTarget, number>;
+    if (!(points > 0 && points <= MAX_BLOCK_POINTS)) { toast(t('Los puntos del bloque deben estar entre 0,1 y {max}', { max: MAX_BLOCK_POINTS })); return; }
+    if (!(step > 0 && step <= 10)) { toast(t('Lo que vale cada anotación debe estar entre 0 y 10')); return; }
+    if (TARGETS.some(tg => !(weights[tg] >= 0 && weights[tg] <= 100))) { toast(t('Cada peso debe estar entre 0 y 100')); return; }
+    if (TARGETS.some(tg => !(bases[tg] >= 0 && bases[tg] <= 10))) { toast(t('La nota de partida debe estar entre 0 y 10')); return; }
+    const wSum = TARGETS.reduce((a, tg) => a + weights[tg], 0);
+    if (Math.abs(wSum - 100) > 0.05) { toast(t('Los pesos del bloque deben sumar 100% (ahora suman {n}%)', { n: dec(Math.round(wSum * 100) / 100) })); return; }
+    onSaveMarksConfig(cls.id, activeSubject, { enabled: bf.enabled, points, step, weights, bases });
+    setBlockOpen(false);
+    toast(t('✅ Bloque actualizado'));
   }
 
   /* ── Modales: abrir ── */
   function openCatModal(cat: GradeCategory | 'new') {
     setCatName(cat === 'new' ? '' : cat.name);
     setCatWeight(cat === 'new' ? '' : String(cat.weight));
-    setCatBase(cat === 'new' || cat.marksBase === undefined ? '' : String(cat.marksBase));
-    setCatStep(cat === 'new' || cat.marksStep === undefined ? '' : String(cat.marksStep));
     setConfirmDel(false);
     setCatModal(cat);
   }
 
   function openItemModal(item: GradeItem | 'new') {
     setItemName(item === 'new' ? '' : item.name);
-    setItemCat(item === 'new' ? (myCategories[0]?.id ?? '') : item.category_id);
+    setItemCat(item === 'new' ? (ownCategories[0]?.id ?? '') : item.category_id);
     setItemDate(item === 'new' ? isoDate() : item.date);
     setConfirmDel(false);
     setItemModal(item);
@@ -260,17 +280,11 @@ function GradesTab({
     const weight = Number(catWeight.replace(',', '.'));
     if (!name) { toast(t('Escribe un nombre para la categoría')); return; }
     if (Number.isNaN(weight) || weight <= 0 || weight > 100) { toast(t('El peso debe ser un número entre 1 y 100')); return; }
-    // Ajustes de las anotaciones del aula: vacío = valor por defecto
-    const num = (v: string) => (v.trim() === '' ? undefined : Number(v.replace(',', '.')));
-    const marksBase = num(catBase);
-    const marksStep = num(catStep);
-    if (marksBase !== undefined && (Number.isNaN(marksBase) || marksBase < 0 || marksBase > 10)) { toast(t('La nota de partida debe estar entre 0 y 10')); return; }
-    if (marksStep !== undefined && (Number.isNaN(marksStep) || marksStep <= 0 || marksStep > 10)) { toast(t('Lo que vale cada anotación debe estar entre 0 y 10')); return; }
     if (catModal === 'new') {
-      onAddCategory({ id: 'gc' + Date.now(), class_id: clsId, name, weight, subject: activeSubject, marksBase, marksStep });
+      onAddCategory({ id: 'gc' + Date.now(), class_id: clsId, name, weight, subject: activeSubject });
       toast(t('✅ Categoría creada'));
     } else if (catModal) {
-      onUpdateCategory({ ...catModal, name, weight, marksBase, marksStep });
+      onUpdateCategory({ ...catModal, name, weight });
       toast(t('✅ Categoría actualizada'));
     }
     setCatModal(null);
@@ -369,7 +383,7 @@ function GradesTab({
             {t('Añadir alumnos')} <ArrowRight size={14} />
           </button>
         </div>
-      ) : myCategories.length === 0 ? (
+      ) : ownCategories.length === 0 ? (
         /* Primera vez en esta clase: configurar categorías */
         <div className="card" style={{ maxWidth: 620, margin: '20px auto', textAlign: 'center', padding: '36px 32px' }}>
           <Settings2 size={32} color="var(--accent-d)" style={{ margin: '0 auto 12px' }} />
@@ -400,7 +414,7 @@ function GradesTab({
         <>
           {/* Categorías */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-            {myCategories.map(cat => (
+            {ownCategories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => openCatModal(cat)}
@@ -419,6 +433,20 @@ function GradesTab({
             <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openCatModal('new')}>
               <Plus size={13} />{t('Categoría')}
             </button>
+            {block && (
+              <button
+                type="button"
+                className={`gb-block-chip${block.active ? ' on' : ''}`}
+                onClick={openBlock}
+                title={t('Tareas, comportamiento y participación, con lo que anotas en la Distribución de aula')}
+              >
+                <Flag size={12} />
+                {t(BLOCK_NAME)} · {block.active
+                  ? t('{n} pto.', { n: block.cfg.points.toLocaleString(locale) })
+                  : t('no cuenta')}
+                <Pencil size={11} />
+              </button>
+            )}
             {weightSum !== 100 && (
               <span style={{ fontSize: 12, fontWeight: 700, color: '#b45309', background: 'rgba(245,158,11,0.12)', padding: '5px 12px', borderRadius: 8 }}>
                 ⚠ {t('Los pesos suman {n}% (lo ideal es 100%)', { n: weightSum })}
@@ -429,20 +457,6 @@ function GradesTab({
               <Plus size={14} />{t('Añadir nota')}
             </button>
           </div>
-
-          {orphans.length > 0 && (
-            <div className="notice" style={{ marginBottom: 14 }}>
-              <span style={{ flex: 1 }}>
-                {t('Hay anotaciones del aula que todavía no cuentan porque esta asignatura no tiene su categoría:')}{' '}
-                <strong>{orphans.map(o => TARGET_CATEGORY[o][lang === 'en' ? 'en' : 'es']).join(', ')}</strong>.
-              </span>
-              {orphans.map(o => (
-                <button key={o} type="button" className="tb-btn" onClick={() => createTargetCategory(o)}>
-                  <Plus size={13} />{t('Crear «{name}»', { name: TARGET_CATEGORY[o][lang === 'en' ? 'en' : 'es'] })}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Tabla de notas */}
           {myItems.length === 0 ? (
@@ -469,7 +483,7 @@ function GradesTab({
                       {grouped.map(({ cat, items }) => (
                         <th
                           key={`grp-${cat.id}`}
-                          colSpan={items.length}
+                          colSpan={isMarksCategory(cat.id) ? TARGETS.length + 1 : items.length}
                           style={{
                             borderLeft: '2px solid var(--border)',
                             background: 'var(--surface)',
@@ -478,30 +492,40 @@ function GradesTab({
                             padding: '7px 8px', whiteSpace: 'nowrap',
                           }}
                         >
-                          {cat.name} · {cat.weight}%
+                          {isMarksCategory(cat.id) && block
+                            ? `${t(BLOCK_NAME)} · ${t('{n} pto.', { n: block.cfg.points.toLocaleString(locale) })}`
+                            : `${cat.name} · ${cat.weight}%`}
                         </th>
                       ))}
                       <th style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>{t('Media')}</th>
                     </tr>
                     <tr>
                       {grouped.map(({ cat, items }) =>
-                        items.map((item, k) => (
-                          <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
-                            {isMarksItem(item.id) ? (
+                        isMarksCategory(cat.id) && block ? (
+                          [...TARGETS.map((tg, k) => (
+                            <th key={`${cat.id}-${tg}`} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
                               <button
                                 className="gb-item-hd gb-marks-hd"
-                                onClick={() => openCatModal(cat)}
-                                title={t('Se calcula sola con las anotaciones de la Distribución de aula. Clic para ajustar cuánto vale cada una.')}
+                                onClick={openBlock}
+                                title={t('Sale sola de lo que anotas en la Distribución de aula. Clic para ajustar el bloque.')}
                               >
-                                <span className="gb-item-name"><Flag size={11} /> {t('Anotaciones')}</span>
-                                <span className="gb-item-cat">{t('automática')}</span>
+                                <span className="gb-item-name">{t(TARGET_LABEL[tg])}</span>
+                                <span className="gb-item-cat">{block.cfg.weights[tg].toLocaleString(locale)}%</span>
                               </button>
-                            ) : (
-                              <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — ${t('clic para editar')}`}>
-                                <span className="gb-item-name">{item.name}</span>
-                                <span className="gb-item-cat">{item.date}</span>
-                              </button>
-                            )}
+                            </th>
+                          )),
+                          <th key={`${cat.id}-total`}>
+                            <button className="gb-item-hd gb-marks-hd" onClick={openBlock} title={t('Nota del bloque, de 0 a 10')}>
+                              <span className="gb-item-name"><Flag size={11} /> {t('Nota')}</span>
+                              <span className="gb-item-cat">{t('automática')}</span>
+                            </button>
+                          </th>]
+                        ) : items.map((item, k) => (
+                          <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
+                            <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — ${t('clic para editar')}`}>
+                              <span className="gb-item-name">{item.name}</span>
+                              <span className="gb-item-cat">{item.date}</span>
+                            </button>
                           </th>
                         )),
                       )}
@@ -513,41 +537,48 @@ function GradesTab({
                       return (
                         <tr key={s.id}>
                           <td className="gb-sticky gb-student">{s.name}</td>
-                          {grouped.map(({ items }) =>
-                            items.map((item, k) => (
+                          {grouped.map(({ cat, items }) => {
+                            const sb = isMarksCategory(cat.id) ? block?.perStudent.get(s.id) : undefined;
+                            if (sb) {
+                              return [
+                                ...TARGETS.map((tg, k) => {
+                                  const p = sb.parts[tg];
+                                  return (
+                                    <td key={`${cat.id}-${tg}`} style={{ textAlign: 'center', ...(k === 0 ? { borderLeft: '2px solid var(--border)' } : {}) }}>
+                                      <span
+                                        className="gb-marks-cell" style={{ color: notaColor(p.score) }}
+                                        title={p.pos + p.neg > 0
+                                          ? t('{neg} negativas · {pos} positivas', { neg: p.neg, pos: p.pos })
+                                          : t('Sin anotaciones: nota de partida')}
+                                      >
+                                        {fmtNota(p.score, locale)}
+                                        {p.pos + p.neg > 0 && (
+                                          <small>
+                                            {p.neg > 0 && <b className="neg">−{p.neg}</b>}
+                                            {p.pos > 0 && <b className="pos">+{p.pos}</b>}
+                                          </small>
+                                        )}
+                                      </span>
+                                    </td>
+                                  );
+                                }),
+                                <td key={`${cat.id}-total`} style={{ textAlign: 'center' }}>
+                                  <span className="gb-marks-cell total" style={{ color: notaColor(sb.total) }}>{fmtNota(sb.total, locale)}</span>
+                                </td>,
+                              ];
+                            }
+                            return items.map((item, k) => (
                               <td key={item.id} style={{
                                 textAlign: 'center',
                                 ...(k === 0 ? { borderLeft: '2px solid var(--border)' } : {}),
                               }}>
-                                {isMarksItem(item.id) ? (() => {
-                                  const v = grades[item.id]?.[s.id] ?? null;
-                                  const c = markCounts.get(`${item.category_id}|${s.id}`);
-                                  return (
-                                    <span
-                                      className="gb-marks-cell"
-                                      style={{ color: notaColor(v) }}
-                                      title={c
-                                        ? t('{neg} negativas · {pos} positivas', { neg: c.neg, pos: c.pos })
-                                        : t('Sin anotaciones: nota de partida')}
-                                    >
-                                      {fmtNota(v, locale)}
-                                      {c && (
-                                        <small>
-                                          {c.neg > 0 && <b className="neg">−{c.neg}</b>}
-                                          {c.pos > 0 && <b className="pos">+{c.pos}</b>}
-                                        </small>
-                                      )}
-                                    </span>
-                                  );
-                                })() : (
-                                  <GradeCell
-                                    value={grades[item.id]?.[s.id] ?? null}
-                                    onCommit={v => onSetGrade(item.id, s.id, v)}
-                                  />
-                                )}
+                                <GradeCell
+                                  value={grades[item.id]?.[s.id] ?? null}
+                                  onCommit={v => onSetGrade(item.id, s.id, v)}
+                                />
                               </td>
-                            )),
-                          )}
+                            ));
+                          })}
                           <td style={{ textAlign: 'center', borderLeft: '2px solid var(--border)' }}>
                             <span style={{ fontSize: 13.5, fontWeight: 800, color: notaColor(avg) }}>{fmtNota(avg, locale)}</span>
                           </td>
@@ -557,22 +588,29 @@ function GradesTab({
                     {/* Media del grupo */}
                     <tr className="gb-footer">
                       <td className="gb-sticky" style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-2)' }}>{t('Media del grupo')}</td>
-                      {grouped.map(({ items }) =>
-                        items.map((item, k) => {
-                          const vals = myStudents
-                            .map(s => grades[item.id]?.[s.id])
-                            .filter((v): v is number => typeof v === 'number');
-                          const m = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-                          return (
-                            <td key={item.id} style={{
-                              textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: notaColor(m),
-                              ...(k === 0 ? { borderLeft: '2px solid var(--border)' } : {}),
-                            }}>
-                              {fmtNota(m, locale)}
-                            </td>
-                          );
-                        }),
-                      )}
+                      {grouped.map(({ cat, items }) => {
+                        const mean = (vals: number[]) => (vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null);
+                        const cell = (key: string, m: number | null, first: boolean) => (
+                          <td key={key} style={{
+                            textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: notaColor(m),
+                            ...(first ? { borderLeft: '2px solid var(--border)' } : {}),
+                          }}>
+                            {fmtNota(m, locale)}
+                          </td>
+                        );
+                        if (isMarksCategory(cat.id) && block) {
+                          const all = myStudents.map(st => block.perStudent.get(st.id)).filter(Boolean) as NonNullable<ReturnType<typeof block.perStudent.get>>[];
+                          return [
+                            ...TARGETS.map((tg, k) => cell(`${cat.id}-${tg}`, mean(all.map(b => b.parts[tg].score)), k === 0)),
+                            cell(`${cat.id}-total`, mean(all.map(b => b.total)), false),
+                          ];
+                        }
+                        return items.map((item, k) => cell(
+                          item.id,
+                          mean(myStudents.map(st => grades[item.id]?.[st.id]).filter((v): v is number => typeof v === 'number')),
+                          k === 0,
+                        ));
+                      })}
                       <td style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)', borderLeft: '2px solid var(--border)' }}>
                         {(() => {
                           const avgs = myStudents
@@ -591,6 +629,71 @@ function GradesTab({
         </>
       )}
 
+      {/* Modal del bloque de anotaciones del aula */}
+      <Modal
+        open={blockOpen && bf !== null}
+        onClose={() => setBlockOpen(false)}
+        title={<span className="mk-ttl"><Flag size={16} color="var(--accent-d)" />{t(BLOCK_NAME)}</span>}
+      >
+        {bf && (
+          <>
+            <p className="gb-marks-cfg-help">
+              {t('Sale solo de lo que anotas en la Distribución de aula: «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
+            </p>
+            <label className="gb-block-toggle">
+              <input type="checkbox" checked={bf.enabled} onChange={e => setBf({ ...bf, enabled: e.target.checked })} />
+              {t('Cuenta en la nota de {name}', { name: activeSubject || cls?.name || '' })}
+            </label>
+            <div className="frow fgroup">
+              <div>
+                <label className="flabel" htmlFor="blk-points">{t('Puntos de la nota final')}</label>
+                <input id="blk-points" className="finput" inputMode="decimal" value={bf.points} disabled={!bf.enabled}
+                  onChange={e => setBf({ ...bf, points: e.target.value })} />
+              </div>
+              <div>
+                <label className="flabel" htmlFor="blk-step">{t('Cada anotación suma o resta')}</label>
+                <input id="blk-step" className="finput" inputMode="decimal" value={bf.step} disabled={!bf.enabled}
+                  onChange={e => setBf({ ...bf, step: e.target.value })} />
+              </div>
+            </div>
+            <table className="gb-block-parts">
+              <thead>
+                <tr><th />{TARGETS.map(tg => <th key={tg}>{t(TARGET_LABEL[tg])}</th>)}</tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">{t('Peso en el bloque (%)')}</th>
+                  {TARGETS.map(tg => (
+                    <td key={tg}>
+                      <input className="finput" inputMode="decimal" aria-label={`${t('Peso en el bloque (%)')} · ${t(TARGET_LABEL[tg])}`}
+                        value={bf.weights[tg]} disabled={!bf.enabled}
+                        onChange={e => setBf({ ...bf, weights: { ...bf.weights, [tg]: e.target.value } })} />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <th scope="row">{t('Nota de partida')}</th>
+                  {TARGETS.map(tg => (
+                    <td key={tg}>
+                      <input className="finput" inputMode="decimal" aria-label={`${t('Nota de partida')} · ${t(TARGET_LABEL[tg])}`}
+                        value={bf.bases[tg]} disabled={!bf.enabled}
+                        onChange={e => setBf({ ...bf, bases: { ...bf.bases, [tg]: e.target.value } })} />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+            <p className="gb-marks-cfg-help" style={{ marginTop: 10 }}>
+              {t('Ejemplo: con 1 punto, la nota final es un 90% la media de tus categorías y un 10% la de este bloque.')}
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+              <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveBlock}>{t('Guardar')}</button>
+              <button className="btn-ghost" onClick={() => setBlockOpen(false)}>{t('Cancelar')}</button>
+            </div>
+          </>
+        )}
+      </Modal>
+
       {/* Modal categoría */}
       <Modal
         open={catModal !== null}
@@ -605,26 +708,6 @@ function GradesTab({
           <label className="flabel" htmlFor="notebook-f2">{t('Peso en la media (%)')}</label>
           <input id="notebook-f2" className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
         </div>
-        {targetsOfCategory(catName).length > 0 && (
-          <div className="fgroup gb-marks-cfg">
-            <p className="gb-marks-cfg-ttl"><Flag size={13} />{t('Anotaciones del aula')}</p>
-            <p className="gb-marks-cfg-help">
-              {t('Lo que anotas en la Distribución de aula cuenta aquí como una nota más. Todo el grupo parte de la misma nota y cada anotación suma o resta.')}
-            </p>
-            <div className="frow">
-              <div>
-                <label className="flabel" htmlFor="notebook-mb">{t('Nota de partida')}</label>
-                <input id="notebook-mb" className="finput" inputMode="decimal" value={catBase} onChange={e => setCatBase(e.target.value)}
-                  placeholder={String(defaultMarksBase({ name: catName }))} />
-              </div>
-              <div>
-                <label className="flabel" htmlFor="notebook-ms">{t('Cada anotación vale')}</label>
-                <input id="notebook-ms" className="finput" inputMode="decimal" value={catStep} onChange={e => setCatStep(e.target.value)}
-                  placeholder={String(DEFAULT_MARK_STEP).replace('.', lang === 'es' ? ',' : '.')} />
-              </div>
-            </div>
-          </div>
-        )}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>{t('Guardar')}</button>
           {catModal !== 'new' && catModal !== null && (
@@ -657,7 +740,7 @@ function GradesTab({
           <div>
             <label className="flabel" htmlFor="notebook-f4">{t('Categoría')}</label>
             <select id="notebook-f4" className="finput" value={itemCat} onChange={e => setItemCat(e.target.value)} style={{ cursor: 'pointer' }}>
-              {myCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
+              {ownCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
             </select>
           </div>
           <div>

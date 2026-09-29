@@ -278,9 +278,16 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .gb-marks-cell small { display:flex; gap:4px; font-size:10px; font-weight:800; line-height:1; }
 .gb-marks-cell .neg { color:var(--grade-bad); }
 .gb-marks-cell .pos { color:var(--grade-good); }
-.gb-marks-cfg { background:var(--surface); border:0.5px solid var(--border); border-radius:10px; padding:12px 14px; }
-.gb-marks-cfg-ttl { display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:var(--text); margin-bottom:4px; }
 .gb-marks-cfg-help { font-size:12px; color:var(--text-2); line-height:1.5; margin-bottom:10px; }
+.gb-marks-cell.total { font-size:13.5px; font-weight:800; cursor:default; }
+.gb-block-chip { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; border:1px dashed var(--border-strong); background:transparent; cursor:pointer; font-family:var(--font); font-size:12.5px; font-weight:700; color:var(--text-2); }
+.gb-block-chip.on { border-style:solid; border-color:transparent; background:var(--accent-l); color:var(--accent-d); }
+.gb-block-toggle { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; cursor:pointer; }
+.gb-block-toggle input { width:16px; height:16px; accent-color:var(--accent-d); }
+.gb-block-parts { width:100%; border-collapse:separate; border-spacing:6px 6px; margin:0 -6px; }
+.gb-block-parts th { font-size:11.5px; font-weight:700; color:var(--text-2); text-align:left; }
+.gb-block-parts thead th { text-align:center; }
+.gb-block-parts td .finput { text-align:center; padding-left:6px; padding-right:6px; }
 .gb-footer td { background:var(--surface); border-top:1px solid var(--border); }
 .gb-footer td.gb-sticky { background:var(--surface); }
 
