@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
-  RefreshCw, Lightbulb,
+  RefreshCw, Lightbulb, Search,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory } from '../types';
 import { DEFAULT_LEVELS } from '../types';
@@ -21,6 +21,7 @@ import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
+import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
@@ -68,6 +69,9 @@ function Field({
     </div>
   );
 }
+
+const LIB_GROUP_KEY = 'aulapro_sda_group';
+const LIB_FOLD_KEY = 'aulapro_sda_folded';
 
 /** Competencias clave de la LOMLOE, para mostrarlas como etiquetas. */
 const KEY_COMPETENCES = ['CCL', 'CP', 'STEM', 'CD', 'CPSAA', 'CC', 'CE', 'CCEC'];
@@ -163,6 +167,28 @@ export function LearningSituations({
   const [moreOpts, setMoreOpts] = useState(false);
   const [matTab, setMatTab] = useState<'rubrica' | 'diana' | 'ficha'>('rubrica');
   const [activeSec, setActiveSec] = useState('resumen');
+
+  /* ── Biblioteca: agrupación, filtro y búsqueda (se recuerdan) ── */
+  const [groupBy, setGroupByState] = useState<SdaGroupBy>(() => {
+    try { const v = localStorage.getItem(LIB_GROUP_KEY); return v === 'area' || v === 'none' ? v : 'class'; } catch { return 'class'; }
+  });
+  const [areaFilter, setAreaFilter] = useState('');
+  const [query, setQuery] = useState('');
+  const [folded, setFolded] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(LIB_FOLD_KEY) ?? '[]') as string[]); } catch { return new Set(); }
+  });
+  function setGroupBy(v: SdaGroupBy) {
+    setGroupByState(v);
+    try { localStorage.setItem(LIB_GROUP_KEY, v); } catch { /* solo esta sesión */ }
+  }
+  function toggleFold(key: string) {
+    setFolded(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      try { localStorage.setItem(LIB_FOLD_KEY, JSON.stringify([...next])); } catch { /* solo esta sesión */ }
+      return next;
+    });
+  }
 
   /* ── Resultado ── */
   const [generating, setGenerating] = useState(false);
@@ -800,31 +826,15 @@ export function LearningSituations({
   );
 
   /* ════════════════ Biblioteca ════════════════ */
-  const library = (
-    <>
-      <div className="pg-hd">
-        <div>
-          <h1 className="pg-title">{t('Situaciones de aprendizaje')}</h1>
-          <p className="pg-sub">{t('Diseña una SdA competencial con ayuda de la IA')}</p>
-        </div>
-        <button className="btn-accent" onClick={startNew}><Plus size={15} />{t('Nueva situación de aprendizaje')}</button>
-      </div>
+  const libAreas = sdaAreas(learningSituations);
+  const libGroups = groupSituations(
+    filterSituations(learningSituations, areaFilter, query), classes, groupBy,
+    { noClass: t('Sin clase'), noArea: t('Sin área') },
+  );
 
-      {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
-      )}
-
-      {learningSituations.length === 0 ? (
-        <div className="card sda-empty-lib">
-          <span className="sda-empty-ico"><Lightbulb size={24} /></span>
-          <h2>{t('Todavía no tienes ninguna situación de aprendizaje')}</h2>
-          <p>{t('Escribe una idea —«un mercado sostenible en el patio»— y la IA redacta la SdA entera: currículo, sesiones, inclusión y evaluación. Después puedes sacar su rúbrica, su diana y una ficha de ejercicios.')}</p>
-          <button className="btn-accent" onClick={startNew}><Sparkles size={14} />{t('Crear la primera')}</button>
-        </div>
-      ) : (
-        <div className="sda-grid">
-          {learningSituations.map(sda => (
-            <article key={sda.id} className="card sda-card" style={{ ['--sda-c' as string]: classColor(sda.class_id) }}>
+  function renderCard(sda: LearningSituation, sharedWith: string[], key: string) {
+    return (
+    <article key={key} className="card sda-card" style={{ ['--sda-c' as string]: classColor(sda.class_id) }}>
               <button type="button" className="sda-card-main" onClick={() => openSaved(sda)}>
                 <span className="sda-card-kicker">
                   {sda.request.numero ? t('SdA {n}', { n: sda.request.numero }) : t('Situación de aprendizaje')}
@@ -834,6 +844,11 @@ export function LearningSituations({
                 <p className="sda-card-desc">{sda.content.justificacion}</p>
                 <span className="sda-card-chips">
                   {sda.request.areas.slice(0, 3).map(a => <span key={a} className="sda-chip">{a}</span>)}
+                  {sharedWith.length > 0 && (
+                    <span className="sda-chip shared" title={t('También está en: {areas}', { areas: sharedWith.join(', ') })}>
+                      {t('Compartida')}
+                    </span>
+                  )}
                 </span>
               </button>
               <footer className="sda-card-ft">
@@ -865,11 +880,94 @@ export function LearningSituations({
                 </span>
               </footer>
             </article>
-          ))}
-          <button type="button" className="sda-card-new" onClick={startNew}>
-            <Plus size={22} />{t('Nueva situación de aprendizaje')}
-          </button>
+    );
+  }
+
+  const library = (
+    <>
+      <div className="pg-hd">
+        <div>
+          <h1 className="pg-title">{t('Situaciones de aprendizaje')}</h1>
+          <p className="pg-sub">{t('Diseña una SdA competencial con ayuda de la IA')}</p>
         </div>
+        <button className="btn-accent" onClick={startNew}><Plus size={15} />{t('Nueva situación de aprendizaje')}</button>
+      </div>
+
+      {sinClave && (
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
+      )}
+
+      {learningSituations.length === 0 ? (
+        <div className="card sda-empty-lib">
+          <span className="sda-empty-ico"><Lightbulb size={24} /></span>
+          <h2>{t('Todavía no tienes ninguna situación de aprendizaje')}</h2>
+          <p>{t('Escribe una idea —«un mercado sostenible en el patio»— y la IA redacta la SdA entera: currículo, sesiones, inclusión y evaluación. Después puedes sacar su rúbrica, su diana y una ficha de ejercicios.')}</p>
+          <button className="btn-accent" onClick={startNew}><Sparkles size={14} />{t('Crear la primera')}</button>
+        </div>
+      ) : (
+        <>
+          <div className="toolbar stack sda-lib-bar">
+            <div className="toolbar-row">
+              <label className="tb-search sda-search">
+                <Search size={14} />
+                <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Buscar por título o idea')} aria-label={t('Buscar')} />
+              </label>
+              <span className="toolbar-spacer" />
+              <span className="toolbar-label" id="sda-group-label">{t('Agrupar por')}</span>
+              <div className="chip-row" role="group" aria-labelledby="sda-group-label">
+                {([['class', t('Clase')], ['area', t('Área')], ['none', t('Nada')]] as const).map(([id, label]) => (
+                  <button key={id} type="button" className={`chip sm${groupBy === id ? ' on' : ''}`} aria-pressed={groupBy === id} onClick={() => setGroupBy(id)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {libAreas.length > 1 && (
+              <div className="toolbar-row">
+                <span className="toolbar-label" id="sda-area-label">{t('Área')}</span>
+                <div className="chip-row" role="group" aria-labelledby="sda-area-label">
+                  <button type="button" className={`chip sm${areaFilter === '' ? ' on' : ''}`} aria-pressed={areaFilter === ''} onClick={() => setAreaFilter('')}>
+                    {t('Todas')}
+                  </button>
+                  {libAreas.map(a => (
+                    <button key={a} type="button" className={`chip sm${areaFilter === a ? ' on' : ''}`} aria-pressed={areaFilter === a} onClick={() => setAreaFilter(v => (v === a ? '' : a))}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {libGroups.every(g => g.items.length === 0) ? (
+            <p className="sda-no-match">{t('Ninguna situación de aprendizaje coincide con la búsqueda.')}</p>
+          ) : libGroups.map(g => {
+            const foldKey = `${groupBy}:${g.key}`;
+            const isFolded = groupBy !== 'none' && folded.has(foldKey);
+            return (
+              <section key={g.key} className="sda-group">
+                {groupBy !== 'none' && (
+                  <button type="button" className="sda-group-hd" onClick={() => toggleFold(foldKey)} aria-expanded={!isFolded}>
+                    <ChevronDown size={16} style={{ transform: isFolded ? 'rotate(-90deg)' : 'none' }} />
+                    {g.color && <span className="sda-group-dot" style={{ background: g.color }} />}
+                    <span className="sda-group-name">{g.label}</span>
+                    <span className="sda-count">{g.items.length}</span>
+                  </button>
+                )}
+                {!isFolded && (
+                  <div className="sda-grid">
+                    {g.items.map(({ sda, sharedWith }) => renderCard(sda, sharedWith, `${g.key}-${sda.id}`))}
+                    {groupBy === 'none' && (
+                      <button type="button" className="sda-card-new" onClick={startNew}>
+                        <Plus size={22} />{t('Nueva situación de aprendizaje')}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </>
       )}
     </>
   );

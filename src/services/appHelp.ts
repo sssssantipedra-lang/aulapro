@@ -263,7 +263,13 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
 - BIBLIOTECA (al entrar): las SdA guardadas como tarjetas (con el color de la
   clase, título, resumen, áreas, nº de sesiones y fecha), con botones para PDF,
   Word y eliminar. Se abre una pulsando la tarjeta. Botón «Nueva situación de
-  aprendizaje».
+  aprendizaje». Por defecto van AGRUPADAS POR CLASE (un bloque por clase, en el
+  orden de Mis Clases, ordenadas por nº de SdA; las que no tienen clase, al
+  final en «Sin clase»). «Agrupar por» permite cambiar a Área (una SdA de
+  varias áreas sale en cada una, marcada «Compartida») o a Nada. Debajo hay
+  un filtro de ÁREA («Todas» o una concreta) y arriba un BUSCADOR por título o
+  idea. Cada bloque se pliega pulsando su cabecera; la app recuerda la
+  agrupación y los bloques plegados.
 - CREAR: formulario en dos pasos: «La idea» (qué se quiere trabajar) y «Para
   quién» (clase, nivel, etapa y curso del currículo oficial, áreas, nº de
   sesiones y temporalización). En «Más opciones» (plegado) están el nº de la
