@@ -117,8 +117,13 @@ centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia
 la tabla celda a celda; la propia aplicación calcula el día y la hora de cada
 sesión por su posición, así que las celdas vacías o el recreo no descolocan
 nada. Antes de añadir, se muestra la semana tal como quedará: pulsando una
-sesión se quita si no es tuya. Consejo: una foto recta y nítida, o mejor el
-Excel del centro, da el mejor resultado.
+sesión se quita si no es tuya. Si ya había horario, se puede marcar
+«Sustituir mi horario actual» para que el escaneado lo reemplace en vez de
+sumarse. Consejo: una foto recta y nítida, o mejor el Excel del centro, da el
+mejor resultado.
+Para empezar de cero, el botón «Borrar horario» (arriba, junto a «Nuevo
+bloque») quita todas las sesiones del horario semanal tras pedir
+confirmación; los eventos del calendario no se tocan.
 
 [notebook] CUADERNO DE NOTAS
 Tiene DOS PESTAÑAS arriba:

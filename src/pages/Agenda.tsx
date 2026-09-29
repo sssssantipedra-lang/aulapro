@@ -5,6 +5,7 @@ import type { ScheduleBlock, CalEvent, Class } from '../types';
 import { PALETTE } from '../lib/demoData';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
+import { Modal } from '../components/ui/Modal';
 import { useI18n, monthLabel, weekdayLabel, eventTypeLabel, urgencyLabel } from '../i18n';
 
 // --------------- helpers ---------------
@@ -111,6 +112,8 @@ interface Props {
   onAddBlock: (b: ScheduleBlock) => void;
   onUpdateBlock: (b: ScheduleBlock) => void;
   onDeleteBlock: (id: string) => void;
+  /** Sustituye el horario entero (vacío = borrarlo). */
+  onReplaceBlocks: (blocks: ScheduleBlock[]) => void;
   onAddCalEvent: (ev: CalEvent) => void;
   onUpdateCalEvent: (ev: CalEvent) => void;
   onDeleteCalEvent: (id: string) => void;
@@ -125,6 +128,7 @@ export function Agenda({
   onAddBlock,
   onUpdateBlock,
   onDeleteBlock,
+  onReplaceBlocks,
   onAddCalEvent,
   onUpdateCalEvent,
   onDeleteCalEvent,
@@ -134,6 +138,7 @@ export function Agenda({
   const { t, locale, lang } = useI18n();
   const today = useMemo(() => new Date(), []);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const shortDayLabels = useMemo(() => Array.from({ length: 7 }, (_, i) => weekdayLabel(i, locale, 'short')), [locale]);
   const weekDayLabels = useMemo(() => Array.from({ length: 5 }, (_, i) => weekdayLabel(i, locale)), [locale]);
 
@@ -276,6 +281,11 @@ export function Agenda({
           <button className="btn-ghost" onClick={openNewBlock} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={15} /> {t('Nuevo bloque')}
           </button>
+          {scheduleBlocks.length > 0 && (
+            <button className="btn-ghost danger" onClick={() => setConfirmClear(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Trash2 size={15} /> {t('Borrar horario')}
+            </button>
+          )}
           <button className="btn-accent" onClick={() => openNewEvent()} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={15} /> {t('Nuevo evento')}
           </button>
@@ -522,8 +532,9 @@ export function Agenda({
         open={scannerOpen}
         classes={classes}
         onClose={() => setScannerOpen(false)}
-        onImport={blocks => {
-          blocks.forEach(onAddBlock);
+        existingCount={scheduleBlocks.length}
+        onImport={(blocks, replace) => {
+          if (replace) onReplaceBlocks(blocks); else blocks.forEach(onAddBlock);
           toast(t(blocks.length === 1 ? '✅ {n} sesión añadida al horario' : '✅ {n} sesiones añadidas al horario', { n: blocks.length }));
           setView('semanal');
         }}
@@ -773,6 +784,24 @@ export function Agenda({
           </div>
         </div>
       </div>
+      {/* Borrar el horario entero */}
+      <Modal open={confirmClear} onClose={() => setConfirmClear(false)} title={t('¿Borrar tu horario?')}>
+        <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 18 }}>
+          {t(scheduleBlocks.length === 1
+            ? 'Se quitará la {n} sesión de tu horario semanal. Los eventos del calendario no se tocan.'
+            : 'Se quitarán las {n} sesiones de tu horario semanal. Los eventos del calendario no se tocan.', { n: scheduleBlocks.length })}
+        </p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button className="btn-ghost" onClick={() => setConfirmClear(false)}>{t('Cancelar')}</button>
+          <button
+            className="btn-ghost"
+            style={{ color: 'white', background: 'var(--danger)', border: 'none' }}
+            onClick={() => { onReplaceBlocks([]); setConfirmClear(false); toast(t('Horario borrado')); }}
+          >
+            <Trash2 size={14} /> {t('Borrar horario')}
+          </button>
+        </div>
+      </Modal>
     </section>
   );
 }
