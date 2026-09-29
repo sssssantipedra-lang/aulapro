@@ -8,6 +8,7 @@ import { Check, ArrowRight, Sparkles, Rocket, ChevronDown, ChevronUp } from 'luc
 import type { Section } from '../../types';
 import { firstStepsComplete, type FirstStep, type FirstStepId } from '../../lib/firstSteps';
 import { useI18n } from '../../i18n';
+import { requestSettingsPanel } from '../../lib/settingsNav';
 
 const TEXT: Record<FirstStepId, { title: string; desc: string; action: string }> = {
   classes: {
@@ -70,6 +71,8 @@ export function FirstSteps({ steps, hero, profileId, onNav, onLoadDemo }: Props)
   const doneCount = required.filter(s => s.done).length;
   const next = steps.find(s => !s.done);
   const toggle = (min: boolean) => { writeMin(profileId, min); setMinimized(min); };
+  /** El paso de la IA lleva directo a la clave, no a la portada de Configuración. */
+  const go = (s: FirstStep) => { if (s.id === 'ai') requestSettingsPanel('ia'); onNav(s.target); };
 
   // Minimizada: una sola línea con el progreso y el paso que toca
   if (!hero && minimized) {
@@ -83,7 +86,7 @@ export function FirstSteps({ steps, hero, profileId, onNav, onLoadDemo }: Props)
           {next && <span className="fs-mini-next">{t('Siguiente: {step}', { step: t(TEXT[next.id].title) })}</span>}
         </button>
         {next && (
-          <button type="button" className="btn-accent fs-go" onClick={() => onNav(next.target)}>
+          <button type="button" className="btn-accent fs-go" onClick={() => go(next)}>
             {t(TEXT[next.id].action)} <ArrowRight size={13} />
           </button>
         )}
@@ -131,7 +134,7 @@ export function FirstSteps({ steps, hero, profileId, onNav, onLoadDemo }: Props)
                 <button
                   type="button"
                   className={isNext ? 'btn-accent fs-go' : 'btn-ghost fs-go'}
-                  onClick={() => onNav(s.target)}
+                  onClick={() => go(s)}
                 >
                   {t(txt.action)} <ArrowRight size={13} />
                 </button>

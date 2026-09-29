@@ -1,7 +1,7 @@
 /**
  * Servicio de IA (Google Gemini).
  *
- * La clave API la introduce el usuario en «Mi Perfil» y se guarda en este
+ * La clave API la introduce el usuario en «Configuración» y se guarda en este
  * equipo: cifrada por el sistema en la aplicación de escritorio, en
  * localStorage en el navegador. Si un modelo no está disponible o se agota su cuota,
  * se prueba automáticamente con el siguiente de la lista.
@@ -79,7 +79,7 @@ function isCoolingDown(model: string, now = Date.now()): boolean {
   return !!until && until > now;
 }
 
-/** Para Mi Perfil: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
+/** Para Configuración: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
 export function mainModelPausedUntil(): number | null {
   const until = readCooldowns()[MAIN_MODEL];
   return until && until > Date.now() + 60_000 ? until : null;
@@ -174,7 +174,7 @@ interface GeminiCallbacks {
 }
 
 function friendlyError(status: number, apiMessage: string): string {
-  if (status === 400 && /api key/i.test(apiMessage)) return 'La clave API no es válida. Revísala en Mi Perfil.';
+  if (status === 400 && /api key/i.test(apiMessage)) return 'La clave API no es válida. Revísala en Configuración.';
   if (status === 403) return 'La clave API no tiene permiso para usar Gemini. Genera una nueva en Google AI Studio.';
   if (status === 429) {
     return /per ?day|PerDay|daily/i.test(apiMessage)
@@ -331,7 +331,7 @@ export async function callGemini(
   try {
     const key = getApiKey();
     if (!key) {
-      callbacks.onError?.('Configura tu clave API gratuita de Google en Mi Perfil para usar la IA.');
+      callbacks.onError?.('Configura tu clave API gratuita de Google en Configuración para usar la IA.');
       return null;
     }
 

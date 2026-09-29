@@ -13,6 +13,7 @@ import {
   isMarksCategory, blockConfig, blockActive, marksFor, studentBlock,
   TARGETS, TARGET_LABEL, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
+import { requestSettingsPanel } from '../lib/settingsNav';
 
 interface Props {
   classes: Class[];
@@ -896,7 +897,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
             <span style={{ flex: 1, lineHeight: 1.5 }}>
               {t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')}
             </span>
-            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => onNav('profile')}>
+            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => { requestSettingsPanel('ia'); onNav('profile'); }}>
               {t('Configurar ahora')}
             </button>
           </div>

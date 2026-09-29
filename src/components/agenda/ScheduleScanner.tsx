@@ -12,6 +12,7 @@ import { fileToBase64 } from '../../lib/utils';
 import { PALETTE } from '../../lib/demoData';
 import { useToast } from '../ui/Toast';
 import { useI18n, weekdayLabel } from '../../i18n';
+import { requestSettingsPanel } from '../../lib/settingsNav';
 
 interface Props {
   open: boolean;
@@ -187,9 +188,9 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
           <div style={{ textAlign: 'center', padding: '26px 20px' }}>
             <Sparkles size={30} color="var(--warn)" style={{ margin: '0 auto 14px' }} />
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
-              {t('Para leer el horario hace falta la clave gratuita de Google que se configura en Mi Perfil.')}
+              {t('Para leer el horario hace falta la clave gratuita de Google que se configura en Configuración.')}
             </p>
-            <button className="btn-accent" onClick={() => { onClose(); onNav('profile'); }}>
+            <button className="btn-accent" onClick={() => { onClose(); requestSettingsPanel('ia'); onNav('profile'); }}>
               {t('Configurar la IA')}
             </button>
           </div>

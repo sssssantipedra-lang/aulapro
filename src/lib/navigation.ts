@@ -94,7 +94,7 @@ export const NAV_GROUPS: readonly { sect: string; items: NavEntry[]; collapsedBy
       link('trainings', 'Formaciones',         'trainings'),
       link('share',     'Trabajo compartido',  'share'),
       link('audit',     'Registro de cambios', 'audit'),
-      link('profile',   'Mi Perfil',           'profile'),
+      link('profile',   'Configuración',           'profile'),
     ],
   },
 ];

@@ -20,6 +20,7 @@ import { helpSystemPrompt, splitJump, targetLabel } from '../services/appHelp';
 import { RichText } from './ui/RichText';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
+import { requestSettingsPanel } from '../lib/settingsNav';
 
 interface HelpMessage {
   id: string;
@@ -50,7 +51,7 @@ export function HelpChat({ section, onNav }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   /**
-   * Al abrir se vuelve a mirar si hay clave: puede haberse puesto en Mi Perfil
+   * Al abrir se vuelve a mirar si hay clave: puede haberse puesto en Configuración
    * mientras el panel estaba cerrado. Se hace aquí, al pulsar, y no en un
    * efecto sobre `open`, que provocaría un render de más en cada apertura.
    */
@@ -182,7 +183,7 @@ export function HelpChat({ section, onNav }: Props) {
               <div style={{ display: 'flex', gap: 10, marginTop: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   className="help-link"
-                  onClick={() => { onNav('profile'); setOpen(false); }}
+                  onClick={() => { requestSettingsPanel('ia'); onNav('profile'); setOpen(false); }}
                   type="button"
                 >
                   {t('Ver la guía paso a paso')}

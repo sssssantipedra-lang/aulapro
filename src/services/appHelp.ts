@@ -41,7 +41,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'classroom-live':      { es: 'Sala de alumnos', en: 'Student Room' },
   share:                 { es: 'Trabajo compartido', en: 'Shared Workspace' },
   audit:                 { es: 'Registro de cambios', en: 'Change Log' },
-  profile:               { es: 'Mi Perfil', en: 'My Profile' },
+  profile:               { es: 'Configuración', en: 'Settings' },
 };
 
 /**
@@ -72,7 +72,7 @@ docente tiene su perfil, con su propia carpeta de datos y copia automática cada
 10 minutos. Puede haber varios perfiles en el mismo ordenador.
 
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
-en Mi Perfil. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
+en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
 petición a la IA se cambian por códigos y, al llegar la respuesta, la aplicación
 vuelve a poner los nombres reales; el docente ve siempre los nombres. Lo único
@@ -80,7 +80,7 @@ que se envía tal cual son los archivos que el propio docente adjunta. En la
 aplicación de escritorio la clave de Google se guarda cifrada por el sistema.
 
 Las notas van sobre 10 y el aprobado está en 5. La aplicación está en español e
-inglés (se cambia en la pantalla de bienvenida y en Mi Perfil).
+inglés (se cambia en la pantalla de bienvenida y en Configuración).
 
 === CÓMO SE NAVEGA ===
 Barra lateral a la izquierda, organizada por tareas, con tres grupos:
@@ -94,7 +94,7 @@ Barra lateral a la izquierda, organizada por tareas, con tres grupos:
   de pestañas parpadea dos veces del color de la app para que se vea dónde
   elegir (no lo hace si el sistema tiene activado «reducir movimiento»).
 - «Más» (plegado al principio; se abre pulsando «Más»): Reuniones,
-  Formaciones, Trabajo compartido, Registro de cambios y Mi Perfil. A Mi Perfil
+  Formaciones, Trabajo compartido, Registro de cambios y Configuración. A Configuración
   también se llega pulsando el nombre del docente, arriba del todo.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
@@ -383,26 +383,39 @@ Quién cambió qué y cuándo: notas, alumnos, asistencia, evaluaciones… Con f
 y buscador, y se exporta a CSV. Útil cuando dos docentes comparten trabajo o
 para justificar un cambio de nota.
 
-[profile] MI PERFIL
-Datos del docente, idioma, color de la interfaz y APARIENCIA: «Automática»
-(sigue el modo claro u oscuro del sistema), «Clara» u «Oscura» (modo oscuro). Aquí se pega la CLAVE API GRATUITA DE
-GOOGLE que activa toda la IA, con una guía de dos minutos; basta con pegarla y
-pulsar «Guardar». También: copia de seguridad (exportar e importar un archivo con todo),
-ver la carpeta donde se guardan los datos, contraseña opcional para el perfil, y
-el VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
-asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
-(hace una copia antes).
+[profile] CONFIGURACIÓN
+Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
+izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
+vuelve con «← Configuración»:
+- PERFIL: nombre, apellidos, centro, especialidad y curso escolar.
+- CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
+  pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
+  «Pegar mi clave», que la guarda y comprueba que funciona. También explica el
+  plan gratuito: las tareas grandes (SdA, fichas, informes, rúbricas, dianas)
+  usan Gemini 3.8 Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas
+  500 al día. Si se gastan las 20, sigue sola con Flash-Lite hasta las 9:00.
+- IDIOMA: castellano o inglés.
+- APARIENCIA: color de la interfaz y modo «Automática» (sigue el sistema),
+  «Clara» u «Oscura».
+- SEGURIDAD: contraseña opcional para abrir el perfil.
+- DATOS Y COPIAS: descargar o cargar un archivo con todo (copia de seguridad o
+  para llevar a otro equipo), ver la carpeta donde se guardan los datos y el
+  VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
+  asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
+  (hace una copia antes).
+Los avisos de «Configurar la IA» de otras pantallas llevan directos a la
+tarjeta «Clave de la IA».
 
 === PREGUNTAS FRECUENTES ===
 - «¿Dónde se guardan mis datos?»: en una carpeta de este ordenador, una por
-  perfil. Se ve y se abre desde Mi Perfil. Nunca salen a ningún servidor.
-- «¿Cómo hago copia de seguridad?»: Mi Perfil → exportar. Da un archivo que se
+  perfil. Se ve y se abre desde Configuración → Datos y copias. Nunca salen a ningún servidor.
+- «¿Cómo hago copia de seguridad?»: Configuración → Datos y copias → «Descargar mis datos». Da un archivo que se
   guarda donde se quiera y se puede volver a importar.
-- «No me funciona la IA»: casi siempre es la clave API. Revisar en Mi Perfil
-  que esté pegada y guardada, y probar de nuevo con cualquier función de IA:
+- «No me funciona la IA»: casi siempre es la clave API. Revisar en Configuración →
+  Clave de la IA que esté pegada (con «Pegar mi clave» se comprueba sola), y probar de nuevo con cualquier función de IA:
   el error que salga (clave inválida, sin permiso, límite alcanzado…) dice
   qué pasa. Si dice que se ha alcanzado el límite, es la cuota gratuita de
-  Google: esperar un minuto.
+  Google: si es por minuto, esperar un minuto; si es el cupo del día, se renueva a las 9:00.
 - «¿Por qué no puedo guardar en PDF?»: el PDF solo funciona en la aplicación de
   escritorio. Word funciona siempre.
 - «¿Se actualiza sola?»: en Windows sí. Al arrancar comprueba si hay versión
@@ -412,7 +425,7 @@ asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
 - «¿La IA ve los nombres de mis alumnos?»: no. Se cambian por códigos antes de
   enviar nada a Google y se vuelven a poner al recibir la respuesta. Solo
   viajan tal cual los archivos que el docente adjunte.
-- «¿Hay modo oscuro?»: sí, en Mi Perfil → Apariencia (Automática, Clara u
+- «¿Hay modo oscuro?»: sí, en Configuración → Apariencia (Automática, Clara u
   Oscura).
 - «Se me cerró la reunión sin guardar»: al volver a Reuniones (o Formaciones)
   sale un aviso para Recuperar lo escrito; se autoguarda cada minuto.

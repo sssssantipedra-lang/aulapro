@@ -74,7 +74,7 @@ describe('Aula Pro', () => {
 
     // «Más» empieza plegado
     await user.click(screen.getByRole('button', { name: /^Más/ }));
-    for (const nombre of ['Reuniones', 'Formaciones', 'Trabajo compartido', 'Registro de cambios', 'Mi Perfil']) {
+    for (const nombre of ['Reuniones', 'Formaciones', 'Trabajo compartido', 'Registro de cambios', 'Configuración']) {
       await menu(nombre);
       await h1(nombre);
     }

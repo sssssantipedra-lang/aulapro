@@ -43,7 +43,7 @@ const EN: Record<string, string> = {
   'Sala de alumnos': 'Student Room',
   'Trabajo compartido': 'Shared Workspace',
   'Registro de cambios': 'Change Log',
-  'Mi Perfil': 'My Profile',
+  'Configuración': 'Settings',
   'Cerrar sesión': 'Sign out',
   'Colapsar': 'Collapse',
   'Expandir': 'Expand',
@@ -157,7 +157,7 @@ const EN: Record<string, string> = {
   'Materia': 'Subject',
   'Docente': 'Teacher',
 
-  /* ── Mi Perfil ── */
+  /* ── Configuración ── */
   'Datos personales, IA y copia de seguridad': 'Personal data, AI and backup',
   'Datos personales': 'Personal data',
   'Curso': 'Year',
@@ -282,8 +282,8 @@ const EN: Record<string, string> = {
   'Descripción opcional…': 'Optional description…',
   'Escanear mi horario': 'Scan my timetable',
   'La IA lee tu horario y crea los bloques por ti': 'The AI reads your timetable and creates the sessions for you',
-  'Para leer el horario hace falta la clave gratuita de Google que se configura en Mi Perfil.':
-    'Reading the timetable needs the free Google key set up in My Profile.',
+  'Para leer el horario hace falta la clave gratuita de Google que se configura en Configuración.':
+    'Reading the timetable needs the free Google key set up in Settings.',
   'Configurar la IA': 'Set up AI',
   'Se han detectado {n} sesiones.': 'Detected {n} sessions.',
   'Revísalas antes de añadirlas': 'Review them before adding',
@@ -964,8 +964,8 @@ const EN: Record<string, string> = {
   'Compartes datos de alumnos: hazlo solo con docentes del centro que deban acceder a ellos.':
     'You’re sharing student data: only do it with school staff who should have access to it.',
   '¿No conecta?': 'Not connecting?',
-  'Hacen falta internet en los dos equipos y que la red del centro no bloquee las conexiones directas. Si no hay manera, usa la copia de seguridad de «Mi Perfil» para pasar los datos.':
-    'Both computers need internet, and the school network must not block direct connections. If it just won’t work, use the backup in "My Profile" to move the data across.',
+  'Hacen falta internet en los dos equipos y que la red del centro no bloquee las conexiones directas. Si no hay manera, usa la copia de seguridad de «Configuración» para pasar los datos.':
+    'Both computers need internet, and the school network must not block direct connections. If it just won’t work, use the backup in "Settings" to move the data across.',
 
   /* ── Escáner QR de sesión ── */
   'Ese QR no es de una sesión de Aula Pro.': 'That QR code isn’t from an Aula Pro session.',
@@ -1248,8 +1248,8 @@ const EN: Record<string, string> = {
   'Situación de aprendizaje': 'Learning situation',
   'Diseña una SdA competencial con ayuda de la IA': 'Design a competency-based unit with AI',
   'Empezar otra': 'Start another',
-  'Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.':
-    'Writing learning situations needs the free Google key set up in My Profile.',
+  'Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.':
+    'Writing learning situations needs the free Google key set up in Settings.',
   'Qué quieres diseñar': 'What you want to design',
   'Idea de la situación de aprendizaje': 'The idea behind it',
   'Ej: un mercado sostenible en el patio para trabajar los residuos del centro':
@@ -1363,8 +1363,8 @@ const EN: Record<string, string> = {
 
   /* ── Recursos: fichas de trabajo ── */
   'Genera fichas de trabajo con ayuda de la IA': 'Generate worksheets with AI help',
-  'Para generar recursos hace falta la clave gratuita de Google que se configura en Mi Perfil.':
-    'Generating resources needs the free Google key set up in My Profile.',
+  'Para generar recursos hace falta la clave gratuita de Google que se configura en Configuración.':
+    'Generating resources needs the free Google key set up in Settings.',
   'Qué ficha quieres generar': 'What worksheet you want to generate',
   'Tema de la ficha': 'Worksheet topic',
   'Ej: las fracciones equivalentes': 'e.g. equivalent fractions',
@@ -1404,6 +1404,19 @@ const EN: Record<string, string> = {
   'Relacionar': 'Matching',
   'Colorear según el resultado': 'Color by result',
   'Sopa de letras': 'Word search',
+  'Perfil': 'Profile',
+  'Tu nombre, centro, especialidad y curso escolar.': 'Your name, school, subject and school year.',
+  'Clave de la IA': 'AI key',
+  'La clave gratuita de Google y cuánto da de sí.': 'The free Google key and how far it goes.',
+  'Idioma': 'Language',
+  'Castellano o inglés internacional.': 'Spanish or international English.',
+  'Color de la aplicación y modo claro u oscuro.': 'App colour and light or dark mode.',
+  'Contraseña para abrir tu perfil.': 'Password to open your profile.',
+  'Con contraseña': 'With password',
+  'Datos y copias': 'Data and backups',
+  'Copias de seguridad, llevar a otro equipo y fin de curso.': 'Backups, moving to another computer and end of year.',
+  'En este equipo': 'On this computer',
+  'Elige qué quieres cambiar': 'Choose what you want to change',
   'Google no acepta esta clave. Cópiala de nuevo desde AI Studio.': 'Google does not accept this key. Copy it again from AI Studio.',
   'Google no responde ahora mismo. La clave se ha guardado; vuelve a probar en un rato.': 'Google is not responding right now. The key is saved; try again later.',
   'Sin conexión a internet. La clave se ha guardado; se probará al usarla.': 'No internet connection. The key is saved; it will be checked when used.',
@@ -1757,7 +1770,7 @@ const EN: Record<string, string> = {
   'Mesa {n}': 'Table {n}',
   'No se pudo generar el PDF.': 'Couldn\'t generate the PDF.',
   'Nº de mesas': 'Number of tables',
-  'Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Mi Perfil. También puedes sentar al alumnado a mano, sin IA.': 'Generating balanced groups with AI needs the free Google key set up in My Profile. You can also seat students by hand, without AI.',
+  'Para generar grupos equilibrados con IA hace falta la clave gratuita de Google que se configura en Configuración. También puedes sentar al alumnado a mano, sin IA.': 'Generating balanced groups with AI needs the free Google key set up in Settings. You can also seat students by hand, without AI.',
   'Para repartir grupos, primero crea una clase con sus alumnos.': 'To arrange groups, first create a class with its students.',
   'Portavoz': 'Spokesperson',
   'Reparte, cuida y recoge el material del grupo.': 'Hands out, looks after and collects the group\'s materials.',

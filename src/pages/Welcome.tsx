@@ -11,7 +11,7 @@ import { Flag } from '../components/ui/Flag';
  * Selector de idioma flotante, visible en las tres pantallas de este
  * componente (cargando, elegir perfil, crear perfil) — es lo primero que
  * hay que poder cambiar nada más entrar, antes incluso de leer el
- * formulario, no algo escondido dentro de un perfil ya creado en Mi Perfil.
+ * formulario, no algo escondido dentro de un perfil ya creado en Configuración.
  */
 function LangSwitch() {
   const { lang, setLang } = useI18n();
@@ -332,7 +332,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         </p>
       )}
 
-      {/* Contraseña del perfil, si tiene una fijada en Mi Perfil → Seguridad */}
+      {/* Contraseña del perfil, si tiene una fijada en Configuración → Seguridad */}
       <Modal open={!!unlocking} onClose={() => setUnlocking(null)} title={
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Lock size={16} color="var(--accent-d)" />{t('Perfil protegido')}

@@ -64,7 +64,7 @@ describe('diccionario', () => {
     // que verlo sin traducir.
     const claves = [
       'Inicio', 'Mis Clases', 'Agenda', 'Cuaderno de Notas', 'Asistencia',
-      'Rúbricas', 'Informes', 'Actas', 'Historial', 'Mi Perfil',
+      'Rúbricas', 'Informes', 'Actas', 'Historial', 'Configuración',
       'Cerrar sesión', 'Guardar', 'Cancelar', 'Eliminar',
     ];
     for (const c of claves) {
