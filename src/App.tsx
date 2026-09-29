@@ -15,7 +15,7 @@ import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { hubOf, rememberTab } from './lib/navigation';
-import type { Section } from './types';
+import type { Section, Ficha } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
@@ -54,6 +54,8 @@ function AppInner() {
   const st = useAppState();
 
   const [section, setSection]         = useState<Section>('dashboard');
+  /** Ficha que Recursos manda proyectar en Aula Live. */
+  const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
   useEffect(() => { rememberTab(section); }, [section]);
   const [sidebarMini, setSidebarMini] = useState(false);
@@ -351,7 +353,12 @@ function AppInner() {
               />
             )}
             {section === 'sec-classroom' && (
-              <ClassRoom studentNames={studentFirstNames} />
+              <ClassRoom
+                studentNames={studentFirstNames}
+                fichas={st.fichas}
+                projectFicha={liveFicha}
+                onProjectDone={() => setLiveFicha(null)}
+              />
             )}
             {section === 'classroom-live' && (
               <ClassroomLive
@@ -439,6 +446,7 @@ function AppInner() {
                 fichas={st.fichas}
                 onSave={f => { st.saveFicha(f); }}
                 onDelete={id => { st.deleteFicha(id); toast(t('Ficha eliminada')); }}
+                onProject={f => { setLiveFicha(f); setSection('sec-classroom'); }}
                 onNav={s => setSection(s as Section)}
               />
             )}

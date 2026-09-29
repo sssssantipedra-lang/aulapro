@@ -3,11 +3,14 @@ import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
   Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
-  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete,
+  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete, Flag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useResetOnChange } from '../lib/useResetOnChange';
+import type { Ficha } from '../types';
+import { ChallengePresenter } from '../components/live/ChallengePresenter';
+import { fichaTheme } from '../lib/fichaThemes';
 import { useI18n } from '../i18n';
 
 /* ════════════════════════════════════════════════════════════
@@ -1289,8 +1292,56 @@ const DEFAULTS: Record<WidgetType, { x: number; y: number; width: number; height
   embed: { x: 110, y: 286, width: 600, height: 378 },
 };
 
-export default function SecClassroom({ studentNames = [] }: { studentNames?: string[] }) {
+interface ClassroomProps {
+  studentNames?: string[];
+  /** Fichas guardadas, para proyectarlas como reto. */
+  fichas?: Ficha[];
+  /** Ficha que se pidió proyectar desde Recursos: se abre al entrar. */
+  projectFicha?: Ficha | null;
+  onProjectDone?: () => void;
+}
+
+/** Ventana para elegir qué ficha proyectar como reto. */
+function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick: (f: Ficha) => void; onClose: () => void }) {
   const { t } = useI18n();
+  return (
+    <div className="cp-picker" role="dialog" aria-modal="true" aria-label={t('Proyectar un reto')} onClick={onClose}>
+      <div className="cp-picker-box" onClick={e => e.stopPropagation()}>
+        <div className="cp-picker-hd">
+          <Flag size={18} color="var(--accent-d)" />
+          <h2>{t('Proyectar un reto')}</h2>
+          <button type="button" className="ico-btn" onClick={onClose} aria-label={t('Cerrar')}><X size={16} /></button>
+        </div>
+        {fichas.length === 0 ? (
+          <p style={{ fontSize: 13.5, color: 'var(--text-3)', padding: '10px 0 16px' }}>
+            {t('Todavía no tienes fichas guardadas. Crea una en Documentos › Recursos (una misión, un escape room o unas tarjetas) y vuelve aquí para proyectarla.')}
+          </p>
+        ) : (
+          <div className="cp-picker-list">
+            {fichas.map(f => {
+              const th = fichaTheme(f.content.estilo);
+              const kind = f.content.formato === 'escape' ? t('Escape room') : f.content.formato === 'tarjetas' ? t('Tarjetas') : t(th.nombre);
+              return (
+                <button key={f.id} type="button" className="cp-pick" onClick={() => onPick(f)}>
+                  <span className="cp-pick-art" style={{ background: th.id === 'clasico' ? `#${th.claro}` : `linear-gradient(135deg, #${th.color}, #${th.oscuro})` }}>
+                    {f.content.historia?.emoji || th.personaje}
+                  </span>
+                  <span><strong>{f.title}</strong><em>{kind}</em></span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function SecClassroom({ studentNames = [], fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
+  const { t } = useI18n();
+  const [picking, setPicking] = useState(false);
+  const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
+  const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // El trazo se guarda en una referencia, no en estado: React agrupa las
   // actualizaciones y los primeros movimientos del ratón se perderían.
@@ -1540,6 +1591,9 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
       {/* Widgets */}
       {APPS.map(renderWidget)}
 
+      {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
+      {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
+
       {/* Dock */}
       <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 20, zIndex: 60 }}>
         <div
@@ -1579,6 +1633,18 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
               </motion.button>
             );
           })}
+          <div style={{ width: 1, alignSelf: 'stretch', margin: '4px 2px', background: 'rgba(255,255,255,0.12)' }} />
+          <motion.button
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={() => setPicking(true)}
+            title={t('Proyectar una ficha, un escape room o unas tarjetas')}
+            className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors"
+            style={{ padding: '9px 15px', color: '#fb923c' }}
+          >
+            <Flag size={19} />
+            <span className="text-[10.5px] font-bold tracking-tight">{t('Reto')}</span>
+          </motion.button>
         </div>
       </div>
     </div>

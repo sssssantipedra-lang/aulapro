@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
@@ -36,6 +36,8 @@ interface Props {
   onSave: (f: Ficha) => void;
   onDelete: (id: string) => void;
   onNav: (s: string) => void;
+  /** Abre la ficha a pantalla completa en Aula Live. */
+  onProject?: (f: Ficha) => void;
 }
 
 function newId() {
@@ -107,7 +109,7 @@ function ThemeGrid({ value, onChange, withAuto, compact, t }: {
   );
 }
 
-export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
+export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
 
@@ -374,6 +376,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             {dirty && <span className="sda-unsaved">{t('Sin guardar')}</span>}
           </div>
           <div className="fe-top-actions">
+            {onProject && (
+              <button type="button" className="btn-ghost" onClick={() => onProject(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
+                <MonitorPlay size={14} />{t('Proyectar')}
+              </button>
+            )}
             <div className="fe-adapt">
               <button type="button" className="btn-ghost" disabled={sinClave || adapting !== null} aria-expanded={adaptOpen} onClick={() => setAdaptOpen(o => !o)}>
                 {adapting ? <><span className="spin" />{t('Adaptando…')}</> : <><Wand2 size={14} />{t('Adaptar')}<ChevronDown size={13} /></>}
