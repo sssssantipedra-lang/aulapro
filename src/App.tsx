@@ -201,7 +201,11 @@ function AppInner() {
       )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <main style={{ flex: 1, overflow: 'auto' }} className={hubOf(section) ? 'with-hub' : undefined}>
+        {/* La página se desplaza con la ventana, no dentro de <main>. `clip`
+            recorta lo que se salga a lo ancho sin convertir <main> en zona de
+            desplazamiento propia: si lo fuera, nada de dentro podría quedarse
+            fijo (position: sticky), ni la barra de pestañas ni los índices. */}
+        <main style={{ flex: 1, overflowX: 'clip' }} className={hubOf(section) ? 'with-hub' : undefined}>
           {/* La clave cambia al entrar en otro apartado: la barra se monta de
               nuevo y su animación de aviso (parpadeo) vuelve a sonar. Al
               cambiar de pestaña dentro del mismo apartado no parpadea. */}

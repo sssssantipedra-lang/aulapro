@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
-  FileDown, FileType2, Target, Layers,
+  FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
+  RefreshCw, Lightbulb,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory } from '../types';
 import { DEFAULT_LEVELS } from '../types';
@@ -68,6 +69,63 @@ function Field({
   );
 }
 
+/** Competencias clave de la LOMLOE, para mostrarlas como etiquetas. */
+const KEY_COMPETENCES = ['CCL', 'CP', 'STEM', 'CD', 'CPSAA', 'CC', 'CE', 'CCEC'];
+
+function competenceCodes(text: string): string[] {
+  return KEY_COMPETENCES.filter(c => new RegExp(`(^|[^A-Z])${c}([^A-Z]|$)`).test(text ?? ''));
+}
+
+/** Color de cada fase de la SdA en la línea de tiempo de sesiones. */
+function phaseTone(fase: string): string {
+  const f = (fase ?? '').toLowerCase();
+  if (/activ|inicio|motiva/.test(f)) return 'var(--info)';
+  if (/consolid|refuerzo|aplica/.test(f)) return 'var(--warn)';
+  if (/producto|final|cierre|evalua/.test(f)) return 'var(--ok)';
+  return 'var(--accent-d)';
+}
+
+/**
+ * Un apartado de la SdA como texto de documento. Se lee como un párrafo; el
+ * lápiz lo convierte en un cuadro de texto solo mientras se edita. Así la SdA
+ * se lee como lo que es —un documento— y no como veinte cuadros abiertos.
+ */
+function DocText({
+  label, value, onChange, rows = 4, hint,
+}: { label: string; value: string; onChange: (v: string) => void; rows?: number; hint?: string }) {
+  const { t } = useI18n();
+  const [editing, setEditing] = useState(false);
+  const empty = !(value ?? '').trim();
+  return (
+    <div className={`sda-text${editing ? ' editing' : ''}`}>
+      <div className="sda-text-hd">
+        <h4>{label}</h4>
+        {!editing && (
+          <button type="button" className="sda-edit" onClick={() => setEditing(true)} aria-label={t('Editar «{name}»', { name: label })} title={t('Editar')}>
+            <Pencil size={13} />
+          </button>
+        )}
+      </div>
+      {hint && !editing && <p className="sda-hint">{hint}</p>}
+      {editing ? (
+        <>
+          <textarea
+            className="finput" rows={rows} value={value ?? ''} autoFocus
+            onChange={e => onChange(e.target.value)} style={{ resize: 'vertical' }} aria-label={label}
+          />
+          <button type="button" className="btn-ghost sda-done" onClick={() => setEditing(false)}>
+            <Check size={13} />{t('Hecho')}
+          </button>
+        </>
+      ) : empty ? (
+        <button type="button" className="sda-empty" onClick={() => setEditing(true)}>{t('Sin rellenar · Añadir')}</button>
+      ) : (
+        <p className="sda-p">{value}</p>
+      )}
+    </div>
+  );
+}
+
 export function LearningSituations({
   classes, gradeCategories, learningSituations, teacherName,
   onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav,
@@ -98,6 +156,13 @@ export function LearningSituations({
   const [docs, setDocs] = useState<DocSummary[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  /* ── Vista ── */
+  /** Formulario de creación abierto (o de ajustes, si ya hay una SdA abierta). */
+  const [formOpen, setFormOpen] = useState(false);
+  const [moreOpts, setMoreOpts] = useState(false);
+  const [matTab, setMatTab] = useState<'rubrica' | 'diana' | 'ficha'>('rubrica');
+  const [activeSec, setActiveSec] = useState('resumen');
 
   /* ── Resultado ── */
   const [generating, setGenerating] = useState(false);
@@ -220,6 +285,8 @@ export function LearningSituations({
 
     if (!result) { toast(t('La IA no devolvió una situación de aprendizaje válida. Vuelve a intentarlo.')); return; }
     setContent(result);
+    setFormOpen(false);
+    scrollTop();
     setEditingId(null);
     setRubricRows(null);
     setDianaRows(null);
@@ -320,13 +387,30 @@ export function LearningSituations({
     setDianaRows(null);
     setFichaContent(null);
     setFichaArea(s.content.areas[0]?.area ?? '');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setFormOpen(false);
+    scrollTop();
   }
 
+  /** Vuelve a la biblioteca, sin nada abierto. */
   function resetAll() {
     setContent(null); setEditingId(null); setRubricRows(null); setDianaRows(null);
     setFichaContent(null);
     setIdea(''); setDocs([]);
+    setFormOpen(false);
+    scrollTop();
+  }
+
+  /** Empieza una SdA nueva desde cero. */
+  function startNew() {
+    resetAll();
+    setClassId(''); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
+    setNumero('1'); setTemporalizacion(''); setMeses(''); setContextoClase(''); setMetodologia('');
+    setNumSesiones(6); setMoreOpts(false);
+    setFormOpen(true);
+  }
+
+  function scrollTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /* ── Rúbrica ── */
@@ -457,30 +541,64 @@ export function LearningSituations({
 
   const sinClave = !hasApiKey();
 
-  return (
-    <section className="sec active">
+  /* ── Índice del documento: qué apartado se está leyendo ── */
+  const SECTIONS = [
+    { id: 'resumen', label: t('Resumen') },
+    { id: 'curriculo', label: t('Currículo') },
+    { id: 'sesiones', label: t('Sesiones') },
+    { id: 'desarrollo', label: t('Metodología') },
+    { id: 'inclusion', label: t('Inclusión') },
+    { id: 'evaluacion', label: t('Evaluación') },
+    { id: 'materiales', label: t('Materiales') },
+  ];
+  const showDoc = !!content && !formOpen;
+  useEffect(() => {
+    if (!showDoc) return;
+    const els = SECTIONS.map(x => document.getElementById(`sda-${x.id}`)).filter((e): e is HTMLElement => !!e);
+    const io = new IntersectionObserver(entries => {
+      const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible[0]) setActiveSec(visible[0].target.id.replace('sda-', ''));
+    }, { rootMargin: '-15% 0px -70% 0px' });
+    els.forEach(e => io.observe(e));
+    // El último apartado nunca llega arriba del todo: al tocar el final de la
+    // página se marca él, que es el que se está leyendo.
+    const onScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+        setActiveSec(SECTIONS[SECTIONS.length - 1].id);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); };
+    // Las secciones son fijas: solo hace falta volver a observar al abrir otra SdA
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDoc, editingId]);
+
+  function goTo(id: string) {
+    setActiveSec(id);
+    document.getElementById(`sda-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const classColor = (id?: string) => classes.find(c => c.id === id)?.color ?? 'var(--accent)';
+
+  /* ════════════════ Formulario (crear o ajustar) ════════════════ */
+  const form = (
+    <>
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Situaciones de aprendizaje')}</h1>
-          <p className="pg-sub">{t('Diseña una SdA competencial con ayuda de la IA')}</p>
-        </div>
-        {content && (
-          <button className="btn-ghost" onClick={resetAll}>
-            <Plus size={14} />{t('Empezar otra')}
+          <button type="button" className="sda-back" onClick={() => (content ? setFormOpen(false) : resetAll())}>
+            <ArrowLeft size={14} />{content ? t('Volver a la situación de aprendizaje') : t('Mis situaciones de aprendizaje')}
           </button>
-        )}
+          <h1 className="pg-title">{content ? t('Ajustar y volver a generar') : t('Nueva situación de aprendizaje')}</h1>
+          <p className="pg-sub">{t('Cuéntale a la IA qué quieres trabajar; ella redacta la SdA completa con el currículo oficial.')}</p>
+        </div>
       </div>
 
       {sinClave && (
         <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
       )}
 
-      {/* ══ Formulario ══ */}
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-hd">
-          <div className="card-ttl"><Sparkles size={14} color="var(--accent-d)" />{t('Qué quieres diseñar')}</div>
-        </div>
-
+      <div className="card sda-form">
+        <div className="sda-step"><span>1</span>{t('La idea')}</div>
         <div className="fgroup">
           <label className="flabel" htmlFor="learningsituations-f2">{t('Idea de la situación de aprendizaje')} *</label>
           <textarea
@@ -492,6 +610,7 @@ export function LearningSituations({
           />
         </div>
 
+        <div className="sda-step"><span>2</span>{t('Para quién')}</div>
         <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="learningsituations-f3">{t('Clase')}</label>
@@ -557,14 +676,14 @@ export function LearningSituations({
                 </button>
               ))}
             </div>
-            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 6 }}>
+            <p className="sda-note">
               {t('El Real Decreto separa Matemáticas en dos opciones a partir de 4º de la ESO, con criterios y saberes propios de cada una.')}
             </p>
           </div>
         )}
 
         {etapa && curso !== '' && (
-          <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: -6, marginBottom: 14 }}>
+          <p className="sda-note" style={{ marginTop: -6, marginBottom: 14 }}>
             <Check size={11} style={{ display: 'inline', verticalAlign: -1, marginRight: 4, color: 'var(--ok)' }} />
             {t('Las áreas marcadas con currículo real usan las competencias específicas y los saberes básicos oficiales de {curso}; el resto sigue en modo libre.', { curso: nivelTexto(etapa, curso) })}
           </p>
@@ -574,40 +693,29 @@ export function LearningSituations({
           <div className="fgroup">
             <label className="flabel">{t('Áreas implicadas')}</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {classSubjects.map(s => {
-                const on = areas.includes(s);
-                const real = tieneCurriculoReal(s);
+              {classSubjects.map(sub => {
+                const on = areas.includes(sub);
+                const real = tieneCurriculoReal(sub);
                 return (
                   <button
-                    key={s} onClick={() => toggleArea(s)}
+                    key={sub} type="button" onClick={() => toggleArea(sub)} aria-pressed={on}
                     title={real ? t('Usa el currículo oficial real de esta materia') : undefined}
-                    style={{
-                      padding: '7px 14px', borderRadius: 99, cursor: 'pointer',
-                      fontFamily: 'var(--font)', fontSize: 12.5, fontWeight: on ? 800 : 600,
-                      background: on ? 'var(--accent-l)' : 'transparent',
-                      border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
-                      color: on ? 'var(--accent-d)' : 'var(--text-2)',
-                      display: 'inline-flex', alignItems: 'center', gap: 5,
-                    }}
+                    className={`chip${on ? ' on' : ''}`}
                   >
                     {on && <Check size={12} style={{ flexShrink: 0 }} />}
-                    {s}
+                    {sub}
                     {real && <BookMarked size={11} style={{ flexShrink: 0, color: 'var(--ok)' }} />}
                   </button>
                 );
               })}
             </div>
-            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 8 }}>
+            <p className="sda-note">
               {t('Se trabajarán de 2 a 4 competencias y saberes por área, para que dé tiempo a desarrollarlos.')}
             </p>
           </div>
         )}
 
         <div className="frow">
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f7">{t('Nº de la SdA')}</label>
-            <input id="learningsituations-f7" className="finput" value={numero} onChange={e => setNumero(e.target.value)} />
-          </div>
           <div className="fgroup">
             <label className="flabel" htmlFor="learningsituations-f8">{t('Nº de sesiones')}</label>
             <input
@@ -616,9 +724,6 @@ export function LearningSituations({
               onChange={e => setNumSesiones(Math.max(1, Math.min(40, Number(e.target.value) || 1)))}
             />
           </div>
-        </div>
-
-        <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="learningsituations-f9">{t('Temporalización')}</label>
             <input
@@ -627,454 +732,435 @@ export function LearningSituations({
               placeholder={t('Ej: 1ª evaluación')}
             />
           </div>
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f10">{t('Meses')}</label>
-            <input
-              id="learningsituations-f10"
-              className="finput" value={meses} onChange={e => setMeses(e.target.value)}
-              placeholder={t('Ej: octubre y noviembre')}
-            />
-          </div>
         </div>
 
-        <Field label={t('Cómo es el grupo')} value={contextoClase} onChange={setContextoClase} rows={2} />
-        <Field label={t('Metodología habitual')} value={metodologia} onChange={setMetodologia} rows={2} />
+        {/* Lo que casi nadie cambia, plegado para que el formulario no asuste */}
+        <button type="button" className="sda-more" onClick={() => setMoreOpts(v => !v)} aria-expanded={moreOpts}>
+          <ChevronDown size={14} style={{ transform: moreOpts ? 'rotate(180deg)' : 'none' }} />
+          {t('Más opciones')}
+          <span>{t('nº de la SdA, meses, cómo es el grupo, metodología y documentos de apoyo')}</span>
+        </button>
 
-        {/* Documentos de apoyo */}
-        <div className="fgroup">
-          <label className="flabel">{t('Documentos de apoyo (opcional)')}</label>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 10, lineHeight: 1.5 }}>
-            {t('Normativa, programación o cualquier documento en el que quieras que se apoye. La IA lo resume y lo tiene en cuenta.')}
-          </p>
-          {docs.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-              {docs.map(d => (
-                <div key={d.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
-                  borderRadius: 8, background: 'var(--surface)', border: '0.5px solid var(--border)',
-                }}>
-                  <FileText size={14} color="var(--accent-d)" style={{ flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: 12.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {d.nombre}
-                  </span>
-                  <button
-                    className="ico-btn" title={t('Quitar')}
-                    onClick={() => setDocs(prev => prev.filter(x => x.id !== d.id))}
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              ))}
+        {moreOpts && (
+          <div className="sda-more-body">
+            <div className="frow">
+              <div className="fgroup">
+                <label className="flabel" htmlFor="learningsituations-f7">{t('Nº de la SdA')}</label>
+                <input id="learningsituations-f7" className="finput" value={numero} onChange={e => setNumero(e.target.value)} />
+              </div>
+              <div className="fgroup">
+                <label className="flabel" htmlFor="learningsituations-f10">{t('Meses')}</label>
+                <input
+                  id="learningsituations-f10"
+                  className="finput" value={meses} onChange={e => setMeses(e.target.value)}
+                  placeholder={t('Ej: octubre y noviembre')}
+                />
+              </div>
             </div>
-          )}
-          <button className="btn-ghost" disabled={analyzing || sinClave} onClick={() => fileRef.current?.click()}>
-            {analyzing ? <><span className="spin" />{t('Analizando…')}</> : <><Paperclip size={14} />{t('Añadir documento')}</>}
-          </button>
-          <input
-            ref={fileRef} type="file" accept=".pdf,.txt,.md,image/*"
-            style={{ display: 'none' }} onChange={handleFile}
-          />
-        </div>
 
-        <div style={{ paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
+            <Field label={t('Cómo es el grupo')} value={contextoClase} onChange={setContextoClase} rows={2} />
+            <Field label={t('Metodología habitual')} value={metodologia} onChange={setMetodologia} rows={2} />
+
+            <div className="fgroup">
+              <label className="flabel">{t('Documentos de apoyo (opcional)')}</label>
+              <p className="sda-note" style={{ marginTop: 0, marginBottom: 10 }}>
+                {t('Normativa, programación o cualquier documento en el que quieras que se apoye. La IA lo resume y lo tiene en cuenta.')}
+              </p>
+              {docs.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                  {docs.map(d => (
+                    <div key={d.id} className="sda-doc">
+                      <FileText size={14} color="var(--accent-d)" style={{ flexShrink: 0 }} />
+                      <span>{d.nombre}</span>
+                      <button className="ico-btn" title={t('Quitar')} aria-label={t('Quitar')} onClick={() => setDocs(prev => prev.filter(x => x.id !== d.id))}>
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button className="btn-ghost" disabled={analyzing || sinClave} onClick={() => fileRef.current?.click()}>
+                {analyzing ? <><span className="spin" />{t('Analizando…')}</> : <><Paperclip size={14} />{t('Añadir documento')}</>}
+              </button>
+              <input ref={fileRef} type="file" accept=".pdf,.txt,.md,image/*" style={{ display: 'none' }} onChange={handleFile} />
+            </div>
+          </div>
+        )}
+
+        <div className="sda-form-ft">
           <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
               ? <><span className="spin" />{t('Redactando la situación de aprendizaje…')}</>
-              : <><Sparkles size={14} />{t('Generar situación de aprendizaje')}</>}
+              : <><Sparkles size={14} />{t(content ? 'Volver a generar' : 'Generar situación de aprendizaje')}</>}
           </button>
-          {generating && (
-            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 10 }}>
-              {t('Es la petición más larga de la aplicación: puede tardar cerca de un minuto.')}
-            </p>
-          )}
+          {generating && <p className="sda-note">{t('Es la petición más larga de la aplicación: puede tardar cerca de un minuto.')}</p>}
+        </div>
+      </div>
+    </>
+  );
+
+  /* ════════════════ Biblioteca ════════════════ */
+  const library = (
+    <>
+      <div className="pg-hd">
+        <div>
+          <h1 className="pg-title">{t('Situaciones de aprendizaje')}</h1>
+          <p className="pg-sub">{t('Diseña una SdA competencial con ayuda de la IA')}</p>
+        </div>
+        <button className="btn-accent" onClick={startNew}><Plus size={15} />{t('Nueva situación de aprendizaje')}</button>
+      </div>
+
+      {sinClave && (
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
+      )}
+
+      {learningSituations.length === 0 ? (
+        <div className="card sda-empty-lib">
+          <span className="sda-empty-ico"><Lightbulb size={24} /></span>
+          <h2>{t('Todavía no tienes ninguna situación de aprendizaje')}</h2>
+          <p>{t('Escribe una idea —«un mercado sostenible en el patio»— y la IA redacta la SdA entera: currículo, sesiones, inclusión y evaluación. Después puedes sacar su rúbrica, su diana y una ficha de ejercicios.')}</p>
+          <button className="btn-accent" onClick={startNew}><Sparkles size={14} />{t('Crear la primera')}</button>
+        </div>
+      ) : (
+        <div className="sda-grid">
+          {learningSituations.map(sda => (
+            <article key={sda.id} className="card sda-card" style={{ ['--sda-c' as string]: classColor(sda.class_id) }}>
+              <button type="button" className="sda-card-main" onClick={() => openSaved(sda)}>
+                <span className="sda-card-kicker">
+                  {sda.request.numero ? t('SdA {n}', { n: sda.request.numero }) : t('Situación de aprendizaje')}
+                  {sda.class_name ? ` · ${sda.class_name}` : ''}
+                </span>
+                <h3 className="sda-card-ttl">{sda.title}</h3>
+                <p className="sda-card-desc">{sda.content.justificacion}</p>
+                <span className="sda-card-chips">
+                  {sda.request.areas.slice(0, 3).map(a => <span key={a} className="sda-chip">{a}</span>)}
+                </span>
+              </button>
+              <footer className="sda-card-ft">
+                <span className="sda-card-meta">
+                  <CalendarRange size={13} />
+                  {t('{n} sesiones', { n: sda.content.sesiones.length })}
+                  {sda.request.temporalizacion ? ` · ${sda.request.temporalizacion}` : ''}
+                  {` · ${new Date(sda.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`}
+                </span>
+                <span className="sda-card-actions">
+                  {isDesktop() && (
+                    <button className="ico-btn" title={t('Guardar en PDF')} aria-label={t('Guardar en PDF')} disabled={exporting !== null} onClick={() => handleExportPdf(sda, sda.id)}>
+                      {exporting?.key === sda.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
+                    </button>
+                  )}
+                  <button className="ico-btn" title={t('Descargar en Word')} aria-label={t('Descargar en Word')} disabled={exporting !== null} onClick={() => handleExportDocx(sda, sda.id)}>
+                    {exporting?.key === sda.id && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={15} />}
+                  </button>
+                  <button
+                    className="ico-btn" title={t('Eliminar')} aria-label={t('Eliminar')}
+                    onClick={() => {
+                      if (!window.confirm(t('¿Eliminar «{name}»?', { name: sda.title }))) return;
+                      onDelete(sda.id);
+                      if (editingId === sda.id) resetAll();
+                    }}
+                  >
+                    <Trash2 size={14} color="var(--danger)" />
+                  </button>
+                </span>
+              </footer>
+            </article>
+          ))}
+          <button type="button" className="sda-card-new" onClick={startNew}>
+            <Plus size={22} />{t('Nueva situación de aprendizaje')}
+          </button>
+        </div>
+      )}
+    </>
+  );
+
+  /* ════════════════ Documento ════════════════ */
+  const levelsTable = (rows: { name: string; extra?: React.ReactNode; codes: string[]; n: string[] }[], first: string) => (
+    <div style={{ overflowX: 'auto' }}>
+      <table className="sda-levels">
+        <thead>
+          <tr>
+            <th>{first}</th>
+            {DEFAULT_LEVELS.map((l, i) => <th key={l.value} className={`lv${i + 1}`}>{t(l.label)}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td className="sda-lv-name">
+                {r.name}{r.extra}
+                {r.codes.length > 0 && (
+                  <span className="sda-card-chips" style={{ marginTop: 5 }}>
+                    {r.codes.map(code => <span key={code} className="sda-chip accent">{code}</span>)}
+                  </span>
+                )}
+              </td>
+              {r.n.map((d, k) => <td key={k} className={`lv${k + 1}`}>{d}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  // Las sesiones, agrupadas en fases consecutivas (Activación → Desarrollo → …)
+  const phases: { fase: string; items: { n: number; s: SdaContent['sesiones'][number] }[] }[] = [];
+  content?.sesiones.forEach((ses, i) => {
+    const last = phases[phases.length - 1];
+    if (last && last.fase === ses.fase) last.items.push({ n: i + 1, s: ses });
+    else phases.push({ fase: ses.fase, items: [{ n: i + 1, s: ses }] });
+  });
+  const codes = content ? competenceCodes(content.competenciasClave) : [];
+
+  const doc = content && (
+    <>
+      <div className="sda-doc-hd">
+        <button type="button" className="sda-back" onClick={resetAll}>
+          <ArrowLeft size={14} />{t('Mis situaciones de aprendizaje')}
+        </button>
+        <div className="sda-doc-top">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span className="sda-card-kicker">
+              {t('SdA {n}', { n: numero || '1' })}{activeClass ? ` · ${activeClass.name}` : ''}{nivel ? ` · ${nivel}` : ''}
+              {!editingId && <span className="sda-unsaved">{t('Sin guardar')}</span>}
+            </span>
+            <input
+              className="sda-title-input" value={content.titulo ?? ''}
+              onChange={e => patch('titulo', e.target.value)} aria-label={t('Título')}
+            />
+            <div className="sda-facts">
+              <span><CalendarRange size={13} />{t('{n} sesiones', { n: content.sesiones.length })}{temporalizacion ? ` · ${temporalizacion}` : ''}{meses ? ` (${meses})` : ''}</span>
+              {areas.length > 0 && <span><BookMarked size={13} />{areas.join(' · ')}</span>}
+              {activeClass && <span><Users size={13} />{activeClass.name}</span>}
+            </div>
+          </div>
+          <div className="sda-doc-actions">
+            <button className="btn-ghost" onClick={() => setFormOpen(true)} title={t('Cambiar la idea o los datos y volver a generarla')}>
+              <RefreshCw size={14} />{t('Ajustar')}
+            </button>
+            {isDesktop() && (
+              <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportPdf(currentSda(), CURRENT_KEY)} title={t('Guardar en PDF')}>
+                {exporting?.key === CURRENT_KEY && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={14} />}{t('PDF')}
+              </button>
+            )}
+            <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportDocx(currentSda(), CURRENT_KEY)} title={t('Descargar en Word')}>
+              {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
+            </button>
+            <button className="btn-accent" onClick={handleSave}><Check size={14} />{t('Guardar')}</button>
+          </div>
         </div>
       </div>
 
-      {/* ══ Resultado ══ */}
-      {content && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-hd">
-            <div className="card-ttl"><BookMarked size={14} color="var(--accent-d)" />{t('Situación de aprendizaje')}</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {isDesktop() && (
-                <button
-                  className="btn-ghost" disabled={exporting !== null}
-                  onClick={() => handleExportPdf(currentSda(), CURRENT_KEY)} title={t('Guardar en PDF')}
-                >
-                  {exporting?.key === CURRENT_KEY && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={14} />}{t('PDF')}
-                </button>
-              )}
-              <button
-                className="btn-ghost" disabled={exporting !== null}
-                onClick={() => handleExportDocx(currentSda(), CURRENT_KEY)} title={t('Descargar en Word')}
-              >
-                {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
-              </button>
-              <button className="btn-accent" onClick={handleSave}>
-                <Check size={14} />{t('Guardar')}
-              </button>
-            </div>
-          </div>
+      <div className="sda-layout">
+        <nav className="sda-toc" aria-label={t('Apartados')}>
+          {SECTIONS.map(x => (
+            <button key={x.id} type="button" className={activeSec === x.id ? 'on' : ''} aria-current={activeSec === x.id ? 'true' : undefined} onClick={() => goTo(x.id)}>
+              {x.label}
+            </button>
+          ))}
+        </nav>
 
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f11">{t('Título')}</label>
-            <input id="learningsituations-f11" className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
-          </div>
-
-          <Field label={t('Justificación')} value={content.justificacion} onChange={v => patch('justificacion', v)} />
-          <Field label={t('Explicación curricular (para ti)')} value={content.explicacionCurricular} onChange={v => patch('explicacionCurricular', v)} rows={5} />
-
-          <div className="frow">
-            <Field label={t('Objetivos de etapa')} value={content.objetivosEtapa} onChange={v => patch('objetivosEtapa', v)} />
-            <Field label={t('Competencias clave')} value={content.competenciasClave} onChange={v => patch('competenciasClave', v)} />
-          </div>
-
-          {/* Áreas */}
-          {content.areas.length > 0 && (
-            <div className="fgroup">
-              <label className="flabel">{t('Por áreas')}</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {content.areas.map((a, i) => (
-                  <div key={i} style={{
-                    padding: '12px 14px', borderRadius: 10,
-                    background: 'var(--surface)', border: '0.5px solid var(--border)',
-                  }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>{a.area}</div>
-                    <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                      <div><strong>{t('Competencias específicas')}:</strong> {a.competenciasEspecificas}</div>
-                      <div style={{ marginTop: 5 }}><strong>{t('Criterios de evaluación')}:</strong> {a.criteriosEvaluacion}</div>
-                      <div style={{ marginTop: 5 }}><strong>{t('Saberes básicos')}:</strong> {a.saberesBasicos}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Sesiones */}
-          {content.sesiones.length > 0 && (
-            <div className="fgroup">
-              <label className="flabel">
-                {t('Sesiones')} ({content.sesiones.length})
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {content.sesiones.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <span style={{
-                      width: 26, height: 26, borderRadius: 8, flexShrink: 0,
-                      background: 'var(--accent-l)', color: 'var(--accent-d)',
-                      fontSize: 12, fontWeight: 800,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>{i + 1}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
-                        {s.titulo}
-                        <span style={{
-                          marginLeft: 8, fontSize: 10.5, fontWeight: 800, padding: '2px 8px',
-                          borderRadius: 99, background: 'var(--surface)', color: 'var(--text-2)',
-                          border: '1px solid var(--border)',
-                        }}>{s.fase}</span>
-                      </div>
-                      <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2, lineHeight: 1.55 }}>{s.descripcion}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="frow">
-            <Field label={t('Metodología')} value={content.metodologia} onChange={v => patch('metodologia', v)} rows={2} />
-            <Field label={t('Agrupamiento')} value={content.agrupamiento} onChange={v => patch('agrupamiento', v)} rows={2} />
-          </div>
-          <div className="frow">
-            <Field label={t('Recursos')} value={content.recursos} onChange={v => patch('recursos', v)} rows={2} />
-            <Field label={t('Producto final')} value={content.productoFinal} onChange={v => patch('productoFinal', v)} rows={2} />
-          </div>
-
-          <div className="fgroup">
-            <label className="flabel">{t('Medidas de inclusión')}</label>
-            <Field label={t('Para todo el grupo')} value={content.inclusionUniversal} onChange={v => patch('inclusionUniversal', v)} rows={2} />
-            <Field label={t('Apoyo puntual')} value={content.inclusionAdicional} onChange={v => patch('inclusionAdicional', v)} rows={2} />
-            <Field label={t('Necesidades específicas')} value={content.inclusionIndividualizada} onChange={v => patch('inclusionIndividualizada', v)} rows={2} />
-          </div>
-
-          <div className="frow">
-            <Field label={t('Técnicas de evaluación')} value={content.evaluacionTecnicas} onChange={v => patch('evaluacionTecnicas', v)} rows={2} />
-            <Field label={t('Instrumentos de evaluación')} value={content.evaluacionInstrumentos} onChange={v => patch('evaluacionInstrumentos', v)} rows={2} />
-          </div>
-
-          <Field label={t('ODS relacionados')} value={content.ods} onChange={v => patch('ods', v)} rows={2} />
-        </div>
-      )}
-
-      {/* ══ Rúbrica ══ */}
-      {content && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-hd">
-            <div className="card-ttl"><ClipboardList size={14} color="var(--accent-d)" />{t('Rúbrica de esta SdA')}</div>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-            {t('Genera una rúbrica a partir de sus competencias y su producto final. Podrás llevarla a Rúbricas y evaluar con ella: la nota entrará sola en el cuaderno.')}
-          </p>
-          <div className="fgroup">
-            <input
-              className="finput" value={rubricDetails} onChange={e => setRubricDetails(e.target.value)}
-              placeholder={t('Algo más que quieras que valore (opcional)')}
-            />
-          </div>
-          <button className="btn-ghost" disabled={rubricBusy || sinClave} onClick={handleRubric}>
-            {rubricBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar rúbrica')}</>}
-          </button>
-
-          {rubricRows && (
-            <>
-              <div style={{ overflowX: 'auto', marginTop: 16 }}>
-                <table className="rtable">
-                  <thead>
-                    <tr>
-                      <th>{t('Criterio')}</th>
-                      {DEFAULT_LEVELS.map(l => <th key={l.value}>{t(l.label)}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rubricRows.map((r, i) => (
-                      <tr key={i}>
-                        <td style={{ fontWeight: 700 }}>
-                          {r.criterio}
-                          {r.competencias?.length > 0 && (
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 5 }}>
-                              {r.competencias.map(code => (
-                                <span key={code} style={{
-                                  fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
-                                  background: 'var(--accent-l)', color: 'var(--accent-d)',
-                                }}>{code}</span>
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        <td>{r.nivel1}</td>
-                        <td>{r.nivel2}</td>
-                        <td>{r.nivel3}</td>
-                        <td>{r.nivel4}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <button
-                className="btn-accent" style={{ marginTop: 14 }}
-                onClick={() => { setRubricClassId(classId); setRubricSubject(areas[0] ?? ''); setRubricModal(true); }}
-              >
-                <ArrowRight size={14} />{t('Llevar a Rúbricas')}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ══ Diana ══ */}
-      {content && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-hd">
-            <div className="card-ttl"><Target size={14} color="var(--accent-d)" />{t('Diana de esta SdA')}</div>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-            {t('Genera una diana en vez de una rúbrica: mejor para lo que se observa en el momento —una exposición, un trabajo en grupo— que para corregir en casa. También podrás llevarla a Dianas y evaluar con ella.')}
-          </p>
-          <div className="fgroup">
-            <input
-              className="finput" value={dianaDetails} onChange={e => setDianaDetails(e.target.value)}
-              placeholder={t('Algo más que quieras que valore (opcional)')}
-            />
-          </div>
-          <button className="btn-ghost" disabled={dianaBusy || sinClave} onClick={handleDiana}>
-            {dianaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar diana')}</>}
-          </button>
-
-          {dianaRows && (
-            <>
-              <div style={{ overflowX: 'auto', marginTop: 16 }}>
-                <table className="rtable">
-                  <thead>
-                    <tr>
-                      <th>{t('Ítem')}</th>
-                      {DEFAULT_LEVELS.map(l => <th key={l.value}>{t(l.label)}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dianaRows.map((r, i) => (
-                      <tr key={i}>
-                        <td style={{ fontWeight: 700 }}>
-                          {r.item}
-                          {r.peso > 1 && (
-                            <span style={{ marginLeft: 6, fontSize: 10.5, color: 'var(--text-3)', fontWeight: 600 }}>
-                              {t('Peso ×{n}', { n: r.peso })}
-                            </span>
-                          )}
-                          {r.competencias?.length > 0 && (
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 5 }}>
-                              {r.competencias.map(code => (
-                                <span key={code} style={{
-                                  fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
-                                  background: 'var(--accent-l)', color: 'var(--accent-d)',
-                                }}>{code}</span>
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        <td>{r.nivel1}</td>
-                        <td>{r.nivel2}</td>
-                        <td>{r.nivel3}</td>
-                        <td>{r.nivel4}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <button
-                className="btn-accent" style={{ marginTop: 14 }}
-                onClick={() => { setDianaClassId(classId); setDianaSubject(areas[0] ?? ''); setDianaModal(true); }}
-              >
-                <ArrowRight size={14} />{t('Llevar a Dianas')}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ══ Ficha ══ */}
-      {content && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-hd">
-            <div className="card-ttl"><Layers size={14} color="var(--accent-d)" />{t('Ficha de esta SdA')}</div>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-            {t('Genera una ficha de ejercicios a partir de los saberes básicos de un área. Se guarda en Recursos, lista para imprimir.')}
-          </p>
-          {content.areas.length > 1 && (
-            <div className="fgroup">
-              <label className="flabel" htmlFor="learningsituations-f12">{t('Área')}</label>
-              <select id="learningsituations-f12" className="finput" value={fichaArea} onChange={e => setFichaArea(e.target.value)}>
-                {content.areas.map(a => <option key={a.area} value={a.area}>{a.area}</option>)}
-              </select>
-            </div>
-          )}
-          <div className="frow">
-            <div className="fgroup">
-              <label className="flabel" htmlFor="learningsituations-f13">{t('Nº de ejercicios')}</label>
-              <input
-                id="learningsituations-f13"
-                className="finput" type="number" min={1} max={20} value={fichaNumEjercicios}
-                onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+        <div className="sda-body">
+          <section id="sda-resumen" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Resumen')}</h3>
+            <DocText label={t('Justificación')} value={content.justificacion} onChange={v => patch('justificacion', v)} />
+            <DocText label={t('Producto final')} value={content.productoFinal} onChange={v => patch('productoFinal', v)} rows={2} />
+            <div className="sda-callout">
+              <DocText
+                label={t('Explicación curricular (para ti)')}
+                hint={t('Por qué se han elegido estas competencias y saberes, explicado para ti.')}
+                value={content.explicacionCurricular} onChange={v => patch('explicacionCurricular', v)} rows={5}
               />
             </div>
-            <div className="fgroup">
-              <label className="flabel" htmlFor="learningsituations-f14">{t('Algo más que quieras que valore (opcional)')}</label>
-              <input id="learningsituations-f14" className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
-            </div>
-          </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 14 }}>
-            <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
-            {t('Incluir variantes de apoyo y ampliación por ejercicio')}
-          </label>
-          <button className="btn-ghost" disabled={fichaBusy || sinClave} onClick={handleFicha}>
-            {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar ficha')}</>}
-          </button>
+          </section>
 
-          {fichaContent && (
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-                {fichaContent.actividades.map((act, ai) => (
-                  <div key={ai}>
-                    {act.titulo && (
-                      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--accent-d)', textTransform: 'uppercase', letterSpacing: '0.03em', margin: '10px 0 6px' }}>
-                        {t('Actividad {n}', { n: ai + 1 })}: {act.titulo}
+          <section id="sda-curriculo" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Currículo')}</h3>
+            {codes.length > 0 && (
+              <div className="sda-card-chips" style={{ marginBottom: 10 }}>
+                {codes.map(code => <span key={code} className="sda-chip accent big">{code}</span>)}
+              </div>
+            )}
+            <div className="sda-two">
+              <DocText label={t('Competencias clave')} value={content.competenciasClave} onChange={v => patch('competenciasClave', v)} />
+              <DocText label={t('Objetivos de etapa')} value={content.objetivosEtapa} onChange={v => patch('objetivosEtapa', v)} />
+            </div>
+            {content.areas.map((a, i) => (
+              <details key={i} className="sda-area" open={i === 0}>
+                <summary>{a.area}<ChevronDown size={15} /></summary>
+                <div className="sda-area-cols">
+                  <div><h5>{t('Competencias específicas')}</h5><p className="sda-p">{a.competenciasEspecificas}</p></div>
+                  <div><h5>{t('Criterios de evaluación')}</h5><p className="sda-p">{a.criteriosEvaluacion}</p></div>
+                  <div><h5>{t('Saberes básicos')}</h5><p className="sda-p">{a.saberesBasicos}</p></div>
+                </div>
+              </details>
+            ))}
+          </section>
+
+          <section id="sda-sesiones" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Sesiones')} <span className="sda-count">{content.sesiones.length}</span></h3>
+            <div className="sda-timeline">
+              {phases.map((ph, pi) => (
+                <div key={pi} className="sda-phase" style={{ ['--ph' as string]: phaseTone(ph.fase) }}>
+                  <div className="sda-phase-ttl">{ph.fase}</div>
+                  {ph.items.map(({ n, s: ses }) => (
+                    <div key={n} className="sda-session">
+                      <span className="sda-session-n">{n}</span>
+                      <div>
+                        <div className="sda-session-ttl">{ses.titulo}</div>
+                        <p className="sda-p">{ses.descripcion}</p>
                       </div>
-                    )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {act.ejercicios.map((ex, i) => (
-                        <div key={i} style={{
-                          padding: '10px 13px', borderRadius: 9,
-                          background: 'var(--surface)', border: '0.5px solid var(--border)',
-                          fontSize: 12.5, color: 'var(--text)', lineHeight: 1.55,
-                        }}>
-                          <strong>{i + 1}.</strong> {ex.enunciado}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section id="sda-desarrollo" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Metodología')}</h3>
+            <div className="sda-two">
+              <DocText label={t('Metodología')} value={content.metodologia} onChange={v => patch('metodologia', v)} />
+              <DocText label={t('Agrupamiento')} value={content.agrupamiento} onChange={v => patch('agrupamiento', v)} />
+            </div>
+            <DocText label={t('Recursos')} value={content.recursos} onChange={v => patch('recursos', v)} />
+          </section>
+
+          <section id="sda-inclusion" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Medidas de inclusión')}</h3>
+            <div className="sda-steps3">
+              <div className="sda-lvl l1"><DocText label={t('Para todo el grupo')} value={content.inclusionUniversal} onChange={v => patch('inclusionUniversal', v)} /></div>
+              <div className="sda-lvl l2"><DocText label={t('Apoyo puntual')} value={content.inclusionAdicional} onChange={v => patch('inclusionAdicional', v)} /></div>
+              <div className="sda-lvl l3"><DocText label={t('Necesidades específicas')} value={content.inclusionIndividualizada} onChange={v => patch('inclusionIndividualizada', v)} /></div>
+            </div>
+          </section>
+
+          <section id="sda-evaluacion" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Evaluación')}</h3>
+            <div className="sda-two">
+              <DocText label={t('Técnicas de evaluación')} value={content.evaluacionTecnicas} onChange={v => patch('evaluacionTecnicas', v)} />
+              <DocText label={t('Instrumentos de evaluación')} value={content.evaluacionInstrumentos} onChange={v => patch('evaluacionInstrumentos', v)} />
+            </div>
+            <DocText label={t('ODS relacionados')} value={content.ods} onChange={v => patch('ods', v)} rows={2} />
+          </section>
+
+          <section id="sda-materiales" className="card sda-sec">
+            <h3 className="sda-sec-ttl">{t('Materiales de esta SdA')}</h3>
+            <div className="tab-bar sda-mat-tabs" role="tablist">
+              {([
+                ['rubrica', t('Rúbrica'), <ClipboardList key="r" size={14} />],
+                ['diana', t('Diana'), <Target key="d" size={14} />],
+                ['ficha', t('Ficha de ejercicios'), <Layers key="f" size={14} />],
+              ] as const).map(([id, label, icon]) => (
+                <button key={id} role="tab" aria-selected={matTab === id} className={`tab-btn${matTab === id ? ' active' : ''}`} onClick={() => setMatTab(id)}>
+                  {icon}{label}
+                </button>
+              ))}
+            </div>
+
+            {matTab === 'rubrica' && (
+              <div>
+                <p className="sda-mat-help">{t('Genera una rúbrica a partir de sus competencias y su producto final. Podrás llevarla a Rúbricas y evaluar con ella: la nota entrará sola en el cuaderno.')}</p>
+                <div className="sda-mat-row">
+                  <input className="finput" value={rubricDetails} onChange={e => setRubricDetails(e.target.value)} placeholder={t('Algo más que quieras que valore (opcional)')} />
+                  <button className="btn-ghost" disabled={rubricBusy || sinClave} onClick={handleRubric}>
+                    {rubricBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t(rubricRows ? 'Volver a generar' : 'Generar rúbrica')}</>}
+                  </button>
+                </div>
+                {rubricRows && (
+                  <>
+                    {levelsTable(rubricRows.map(r => ({ name: r.criterio, codes: r.competencias ?? [], n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4] })), t('Criterio'))}
+                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setRubricClassId(classId); setRubricSubject(areas[0] ?? ''); setRubricModal(true); }}>
+                      <ArrowRight size={14} />{t('Llevar a Rúbricas')}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {matTab === 'diana' && (
+              <div>
+                <p className="sda-mat-help">{t('Genera una diana en vez de una rúbrica: mejor para lo que se observa en el momento —una exposición, un trabajo en grupo— que para corregir en casa. También podrás llevarla a Dianas y evaluar con ella.')}</p>
+                <div className="sda-mat-row">
+                  <input className="finput" value={dianaDetails} onChange={e => setDianaDetails(e.target.value)} placeholder={t('Algo más que quieras que valore (opcional)')} />
+                  <button className="btn-ghost" disabled={dianaBusy || sinClave} onClick={handleDiana}>
+                    {dianaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t(dianaRows ? 'Volver a generar' : 'Generar diana')}</>}
+                  </button>
+                </div>
+                {dianaRows && (
+                  <>
+                    {levelsTable(dianaRows.map(r => ({
+                      name: r.item, codes: r.competencias ?? [], n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4],
+                      extra: r.peso > 1 ? <span className="sda-weight">{t('Peso ×{n}', { n: r.peso })}</span> : undefined,
+                    })), t('Ítem'))}
+                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setDianaClassId(classId); setDianaSubject(areas[0] ?? ''); setDianaModal(true); }}>
+                      <ArrowRight size={14} />{t('Llevar a Dianas')}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {matTab === 'ficha' && (
+              <div>
+                <p className="sda-mat-help">{t('Genera una ficha de ejercicios a partir de los saberes básicos de un área. Se guarda en Recursos, lista para imprimir.')}</p>
+                <div className="frow">
+                  {content.areas.length > 1 && (
+                    <div className="fgroup">
+                      <label className="flabel" htmlFor="learningsituations-f12">{t('Área')}</label>
+                      <select id="learningsituations-f12" className="finput" value={fichaArea} onChange={e => setFichaArea(e.target.value)}>
+                        {content.areas.map(a => <option key={a.area} value={a.area}>{a.area}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div className="fgroup">
+                    <label className="flabel" htmlFor="learningsituations-f13">{t('Nº de ejercicios')}</label>
+                    <input
+                      id="learningsituations-f13"
+                      className="finput" type="number" min={1} max={20} value={fichaNumEjercicios}
+                      onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                    />
+                  </div>
+                </div>
+                <div className="fgroup">
+                  <label className="flabel" htmlFor="learningsituations-f14">{t('Algo más que quieras que valore (opcional)')}</label>
+                  <input id="learningsituations-f14" className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
+                </div>
+                <label className="sda-check">
+                  <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
+                  {t('Incluir variantes de apoyo y ampliación por ejercicio')}
+                </label>
+                <button className="btn-ghost" disabled={fichaBusy || sinClave} onClick={handleFicha}>
+                  {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar ficha')}</>}
+                </button>
+                {fichaContent && (
+                  <>
+                    <div className="sda-ficha">
+                      {fichaContent.actividades.map((act, ai) => (
+                        <div key={ai}>
+                          {act.titulo && <div className="sda-ficha-act">{t('Actividad {n}', { n: ai + 1 })}: {act.titulo}</div>}
+                          <ol>
+                            {act.ejercicios.map((ex, i) => <li key={i}>{ex.enunciado}</li>)}
+                          </ol>
                         </div>
                       ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-              <button className="btn-accent" style={{ marginTop: 14 }} onClick={createFicha}>
-                <ArrowRight size={14} />{t('Llevar a Recursos')}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ══ Guardadas ══ */}
-      <div className="card">
-        <div className="card-hd">
-          <div className="card-ttl"><BookMarked size={14} color="var(--accent-d)" />{t('Mis situaciones de aprendizaje')}</div>
-          {learningSituations.length > 0 && (
-            <span style={{ fontSize: 11.5, color: 'var(--text-3)', fontWeight: 700 }}>{learningSituations.length}</span>
-          )}
-        </div>
-        {learningSituations.length === 0 ? (
-          <p style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '20px 0' }}>
-            {t('Todavía no has guardado ninguna.')}
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {learningSituations.map(s => (
-              <div key={s.id} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px',
-                borderRadius: 10, background: 'var(--surface)', border: '0.5px solid var(--border)',
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {s.title}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
-                    {[s.class_name, s.request.areas.join(' · '),
-                      new Date(s.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })]
-                      .filter(Boolean).join(' · ')}
-                  </div>
-                </div>
-                {isDesktop() && (
-                  <button
-                    className="ico-btn" title={t('Guardar en PDF')} disabled={exporting !== null}
-                    onClick={() => handleExportPdf(s, s.id)}
-                  >
-                    {exporting?.key === s.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
-                  </button>
+                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={createFicha}>
+                      <ArrowRight size={14} />{t('Llevar a Recursos')}
+                    </button>
+                  </>
                 )}
-                <button
-                  className="ico-btn" title={t('Descargar en Word')} disabled={exporting !== null}
-                  onClick={() => handleExportDocx(s, s.id)}
-                >
-                  {exporting?.key === s.id && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={15} />}
-                </button>
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openSaved(s)}>
-                  {t('Abrir')}
-                </button>
-                <button
-                  className="ico-btn" title={t('Eliminar')}
-                  onClick={() => {
-                    if (!window.confirm(t('¿Eliminar «{name}»?', { name: s.title }))) return;
-                    onDelete(s.id);
-                    if (editingId === s.id) resetAll();
-                  }}
-                >
-                  <Trash2 size={14} color="var(--danger)" />
-                </button>
               </div>
-            ))}
-          </div>
-        )}
+            )}
+          </section>
+        </div>
       </div>
+    </>
+  );
+
+  return (
+    <section className="sec active sda-page">
+      {showDoc ? doc : (formOpen || content) ? form : library}
 
       {/* ══ Dónde se guarda la nota de la rúbrica ══ */}
       <Modal open={rubricModal} onClose={() => setRubricModal(false)} title={t('Dónde se guarda la nota')}>
