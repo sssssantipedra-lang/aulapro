@@ -259,11 +259,35 @@ alumno e instrumento, y buscador.
 === DOCUMENTOS: SITUACIONES DE APRENDIZAJE Y RECURSOS ===
 
 [learning-situations] SITUACIONES DE APRENDIZAJE
-Diseña una SdA competencial LOMLOE con la IA a partir de una idea, las áreas, el
-nivel y el número de sesiones. Se puede adjuntar normativa o programación para
-que la tenga en cuenta. Sale con justificación, competencias, criterios, saberes,
-medidas de inclusión, sesiones y evaluación. Se exporta a PDF y Word, y desde
-ella se generan la rúbrica, la diana y las fichas de trabajo.
+Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
+- BIBLIOTECA (al entrar): las SdA guardadas como tarjetas (con el color de la
+  clase, título, resumen, áreas, nº de sesiones y fecha), con botones para PDF,
+  Word y eliminar. Se abre una pulsando la tarjeta. Botón «Nueva situación de
+  aprendizaje». Por defecto van AGRUPADAS POR CLASE (un bloque por clase, en el
+  orden de Mis Clases, ordenadas por nº de SdA; las que no tienen clase, al
+  final en «Sin clase»). «Agrupar por» permite cambiar a Área (una SdA de
+  varias áreas sale en cada una, marcada «Compartida») o a Nada. Debajo hay
+  un filtro de ÁREA («Todas» o una concreta) y arriba un BUSCADOR por título o
+  idea. Cada bloque se pliega pulsando su cabecera; la app recuerda la
+  agrupación y los bloques plegados.
+- CREAR: formulario en dos pasos: «La idea» (qué se quiere trabajar) y «Para
+  quién» (clase, nivel, etapa y curso del currículo oficial, áreas, nº de
+  sesiones y temporalización). En «Más opciones» (plegado) están el nº de la
+  SdA, los meses, cómo es el grupo, la metodología habitual y los documentos de
+  apoyo (normativa o programación que la IA resume y tiene en cuenta). «Generar
+  situación de aprendizaje» tarda cerca de un minuto.
+- DOCUMENTO: la SdA se lee como un documento, con el título editable arriba y
+  un ÍNDICE a la izquierda (Resumen, Currículo, Sesiones, Metodología,
+  Inclusión, Evaluación, Materiales) que salta a cada apartado. Cada texto se
+  edita pulsando el lápiz que aparece al pasar el ratón. Las competencias clave
+  salen como etiquetas (CCL, STEM…); cada área, en una tarjeta plegable con sus
+  competencias específicas, criterios y saberes; las sesiones, en una línea de
+  tiempo por fases (Activación, Desarrollo, Consolidación, Producto final); la
+  inclusión, en tres niveles. En «Materiales» hay pestañas para generar la
+  RÚBRICA (tabla de colores por nivel, «Llevar a Rúbricas»), la DIANA («Llevar
+  a Dianas») y una FICHA de ejercicios («Llevar a Recursos»). Arriba: «Ajustar»
+  (cambiar los datos y volver a generarla), PDF, Word y «Guardar» (mientras no
+  se guarda aparece «Sin guardar»).
 
 [resources] RECURSOS
 Fichas de trabajo generadas con la IA a partir de un tema, el área y el nivel:
