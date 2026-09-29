@@ -395,7 +395,7 @@ export function Records({
                 <p className="acta-place">
                   {t('A día {day} de {month} del año {year}', {
                     day: today.getDate(),
-                    month: lang === 'es' ? monthLabel(today.getMonth(), locale).toLowerCase() : monthLabel(today.getMonth(), locale),
+                    month: lang !== 'en' ? monthLabel(today.getMonth(), locale).toLowerCase() : monthLabel(today.getMonth(), locale),
                     year: today.getFullYear(),
                   })}
                 </p>

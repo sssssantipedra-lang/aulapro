@@ -13,6 +13,7 @@ import {
   isMarksCategory, blockConfig, blockActive, marksFor, studentBlock,
   TARGETS, TARGET_LABEL, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
+import { requestSettingsPanel } from '../lib/settingsNav';
 
 interface Props {
   classes: Class[];
@@ -87,7 +88,7 @@ function GradeCell({ value, onCommit }: { value: number | null; onCommit: (v: nu
   const { lang } = useI18n();
   const [text, setText] = useState<string | null>(null); // null = sin editar
   // El separador decimal sigue al idioma; escribir admite los dos igualmente.
-  const formatted = value !== null ? (lang === 'es' ? String(value).replace('.', ',') : String(value)) : '';
+  const formatted = value !== null ? (lang !== 'en' ? String(value).replace('.', ',') : String(value)) : '';
   const shown = text !== null ? text : formatted;
 
   function commit() {
@@ -128,6 +129,11 @@ const DEFAULT_CATEGORIES_ES: { name: string; weight: number }[] = [
   { name: 'Exámenes', weight: 60 },
   { name: 'Tareas', weight: 30 },
   { name: 'Participación', weight: 10 },
+];
+const DEFAULT_CATEGORIES_CA: { name: string; weight: number }[] = [
+  { name: 'Exàmens', weight: 60 },
+  { name: 'Tasques', weight: 30 },
+  { name: 'Participació', weight: 10 },
 ];
 const DEFAULT_CATEGORIES_EN: { name: string; weight: number }[] = [
   { name: 'Tests', weight: 60 },
@@ -225,7 +231,7 @@ function GradesTab({
     [myCategories, myItems],
   );
 
-  const dec = (n: number) => (lang === 'es' ? String(n).replace('.', ',') : String(n));
+  const dec = (n: number) => (lang !== 'en' ? String(n).replace('.', ',') : String(n));
   const parseDec = (v: string) => Number(v.trim().replace(',', '.'));
 
   function openBlock() {
@@ -397,10 +403,10 @@ function GradesTab({
             <button
               className="btn-accent"
               onClick={() => {
-                const defaults = lang === 'en' ? DEFAULT_CATEGORIES_EN : DEFAULT_CATEGORIES_ES;
+                const defaults = lang === 'en' ? DEFAULT_CATEGORIES_EN : lang === 'ca' ? DEFAULT_CATEGORIES_CA : DEFAULT_CATEGORIES_ES;
                 defaults.forEach((c, i) =>
                   onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
-                toast(`✅ ${lang === 'en' ? 'Categories created' : 'Categorías creadas'}: ${defaults.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
+                toast(`✅ ${lang === 'en' ? 'Categories created' : lang === 'ca' ? 'Categories creades' : 'Categorías creadas'}: ${defaults.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
               }}
             >
               {t('Usar configuración típica (60/30/10)')}
@@ -896,7 +902,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
             <span style={{ flex: 1, lineHeight: 1.5 }}>
               {t('Para usar la IA necesitas una clave gratuita de Google (se configura en 2 minutos).')}
             </span>
-            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => onNav('profile')}>
+            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px', flexShrink: 0 }} onClick={() => { requestSettingsPanel('ia'); onNav('profile'); }}>
               {t('Configurar ahora')}
             </button>
           </div>

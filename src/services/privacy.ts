@@ -104,9 +104,9 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
  * `callGemini` sin que cada pantalla tenga que pasárselo.
  */
 let current: Pseudonymizer = buildPseudonymizer([]);
-let currentLang: 'es' | 'en' = 'es';
+let currentLang: 'es' | 'en' | 'ca' = 'es';
 
-export function setPrivacyRoster(roster: readonly RosterEntry[], lang: 'es' | 'en' = 'es'): void {
+export function setPrivacyRoster(roster: readonly RosterEntry[], lang: 'es' | 'en' | 'ca' = 'es'): void {
   current = buildPseudonymizer(roster);
   currentLang = lang;
 }
@@ -116,7 +116,7 @@ export function currentPseudonymizer(): Pseudonymizer {
 }
 
 /** Lo que se le explica a la IA cuando el texto lleva códigos de alumno. */
-export function privacyInstruction(lang: 'es' | 'en' = currentLang): string {
+export function privacyInstruction(lang: 'es' | 'en' | 'ca' = currentLang): string {
   return lang === 'en'
     ? '\n\nPRIVACY: students\' names have been replaced by codes such as [ALU-3]. Whenever you refer to a student, write their code exactly like that, brackets included: the app swaps it back for the real name. You do not know their gender, so use gender-neutral wording.'
     : '\n\nPRIVACIDAD: los nombres del alumnado se han sustituido por códigos como [ALU-3]. Cuando te refieras a un alumno, escribe su código exactamente así, con los corchetes: la aplicación lo cambia por el nombre real. No sabes su género, así que redacta con formas neutras («el alumnado», «ha mostrado», «muestra interés»…) en lugar de «el alumno» o «la alumna».';

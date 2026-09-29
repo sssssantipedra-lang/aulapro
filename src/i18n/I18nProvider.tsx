@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { I18nContext, LOCALES, STORAGE_KEY, translate, type Ctx, type Lang } from './core';
+import { setAiLanguage } from '../services/gemini';
 
 /**
  * Proveedor del idioma. Vive aparte del diccionario (`core.ts`) para que este
@@ -9,7 +10,7 @@ import { I18nContext, LOCALES, STORAGE_KEY, translate, type Ctx, type Lang } fro
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved === 'en' ? 'en' : 'es';
+    return saved === 'en' || saved === 'ca' ? saved : 'es';
   });
 
   useEffect(() => {
@@ -18,6 +19,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     // El aviso de actualización lo escribe el proceso de Electron, que no ve
     // este diccionario: hay que decirle en qué idioma está la aplicación.
     window.electronAPI?.update?.setLanguage?.(lang);
+    // La IA también redacta en el idioma de la interfaz
+    setAiLanguage(lang);
   }, [lang]);
 
   const value = useMemo<Ctx>(() => ({

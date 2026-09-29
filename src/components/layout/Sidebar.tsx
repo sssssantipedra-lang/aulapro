@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, User, ChevronLeft, ChevronRight,
+  LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, Settings, ChevronLeft, ChevronRight,
   Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, ChevronDown, Share2,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
@@ -22,7 +22,7 @@ const ICONS: Record<NavIcon, React.ReactNode> = {
   trainings: <GraduationCap size={18} />,
   share: <Share2 size={18} />,
   audit: <ScrollText size={18} />,
-  profile: <User size={18} />,
+  profile: <Settings size={18} />,
 };
 
 interface Props {

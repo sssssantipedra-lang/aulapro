@@ -24,6 +24,7 @@ import { Modal } from '../components/ui/Modal';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
+import { requestSettingsPanel } from '../lib/settingsNav';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
@@ -641,7 +642,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
       )}
 
       <div className="card sda-form">
@@ -915,7 +916,7 @@ export function LearningSituations({
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
       )}
 
       {learningSituations.length === 0 ? (

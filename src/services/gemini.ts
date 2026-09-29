@@ -1,7 +1,7 @@
 /**
  * Servicio de IA (Google Gemini).
  *
- * La clave API la introduce el usuario en «Mi Perfil» y se guarda en este
+ * La clave API la introduce el usuario en «Configuración» y se guarda en este
  * equipo: cifrada por el sistema en la aplicación de escritorio, en
  * localStorage en el navegador. Si un modelo no está disponible o se agota su cuota,
  * se prueba automáticamente con el siguiente de la lista.
@@ -41,6 +41,24 @@ export function modelsFor(options: Pick<GeminiOptions, 'thinkingLevel' | 'maxOut
     : [...LITE_MODELS, MAIN_MODEL, ...LEGACY_MODELS];
 }
 
+/* ── Idioma de las respuestas ── */
+
+/**
+ * Idioma de la interfaz. Muchas instrucciones a la IA están escritas en
+ * castellano o en inglés; en catalán se añade una orden explícita para que
+ * todo lo que redacta salga en catalán (ver `callGemini`).
+ */
+let outputLang: 'es' | 'en' | 'ca' = 'es';
+export function setAiLanguage(lang: 'es' | 'en' | 'ca') {
+  outputLang = lang;
+}
+
+const CATALAN_INSTRUCTION =
+  '\n\nIDIOMA DE SALIDA: el docente usa la aplicación en CATALÁN. Todo el texto que redactes para ' +
+  'personas (títulos, enunciados, explicaciones, informes, respuestas) debe estar en catalán correcto ' +
+  '(català), aunque estas instrucciones estén en castellano. No traduzcas los nombres de campo ni los ' +
+  'valores fijos de las listas del esquema JSON, ni los códigos de alumno como [ALU-3].';
+
 /* ── Cupo agotado: no volver a llamar a un modelo hasta que se renueve ── */
 
 const COOLDOWN_KEY = 'aulapro_model_cooldown';
@@ -79,7 +97,7 @@ function isCoolingDown(model: string, now = Date.now()): boolean {
   return !!until && until > now;
 }
 
-/** Para Mi Perfil: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
+/** Para Configuración: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
 export function mainModelPausedUntil(): number | null {
   const until = readCooldowns()[MAIN_MODEL];
   return until && until > Date.now() + 60_000 ? until : null;
@@ -174,7 +192,7 @@ interface GeminiCallbacks {
 }
 
 function friendlyError(status: number, apiMessage: string): string {
-  if (status === 400 && /api key/i.test(apiMessage)) return 'La clave API no es válida. Revísala en Mi Perfil.';
+  if (status === 400 && /api key/i.test(apiMessage)) return 'La clave API no es válida. Revísala en Configuración.';
   if (status === 403) return 'La clave API no tiene permiso para usar Gemini. Genera una nueva en Google AI Studio.';
   if (status === 429) {
     return /per ?day|PerDay|daily/i.test(apiMessage)
@@ -331,7 +349,7 @@ export async function callGemini(
   try {
     const key = getApiKey();
     if (!key) {
-      callbacks.onError?.('Configura tu clave API gratuita de Google en Mi Perfil para usar la IA.');
+      callbacks.onError?.('Configura tu clave API gratuita de Google en Configuración para usar la IA.');
       return null;
     }
 
@@ -343,6 +361,7 @@ export async function callGemini(
     if ([maskedSystem, maskedUser, ...(maskedHistory ?? []).map(h => h.text)].some(t => privacy.hasCodes(t))) {
       maskedSystem += privacyInstruction();
     }
+    if (outputLang === 'ca') maskedSystem += CATALAN_INSTRUCTION;
     const callOptions: GeminiOptions = maskedHistory ? { ...options, history: maskedHistory } : options;
 
     const userParts: object[] = [{ text: maskedUser }];

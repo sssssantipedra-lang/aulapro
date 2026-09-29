@@ -29,6 +29,7 @@ import { isDesktop } from '../services/storage';
 import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
+import { requestSettingsPanel } from '../lib/settingsNav';
 
 interface Props {
   classes: Class[];
@@ -612,7 +613,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject 
       </div>
 
       {sinClave && (
-        <AiKeyNotice message={t('Para generar recursos hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
+        <AiKeyNotice message={t('Para generar recursos hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
       )}
 
       <div className="card fe-create" style={{ marginBottom: 16 }}>

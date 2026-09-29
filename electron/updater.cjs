@@ -31,6 +31,12 @@ const TEXTS = {
     readyTitle: v => `Aula Pro ${v} lista para instalar`,
     readyBody: 'Abre Aula Pro y pulsa «Reiniciar y actualizar», o simplemente ciérrala: se instalará sola.',
   },
+  ca: {
+    availableTitle: 'Hi ha una versió nova d\'Aula Pro',
+    availableBody: v => `La ${v} s'està baixant en segon pla. T'avisarem quan estigui a punt.`,
+    readyTitle: v => `Aula Pro ${v} a punt per instal·lar`,
+    readyBody: 'Obre Aula Pro i prem «Reiniciar i actualitzar», o simplement tanca-la: s\'instal·larà sola.',
+  },
   en: {
     availableTitle: 'A new version of Aula Pro is available',
     availableBody: v => `Version ${v} is downloading in the background. We'll let you know when it's ready.`,
@@ -46,7 +52,7 @@ const TEXTS = {
  */
 let lang = 'es';
 function setLanguage(next) {
-  if (next === 'es' || next === 'en') lang = next;
+  if (next === 'es' || next === 'en' || next === 'ca') lang = next;
 }
 
 /** Avisos aún en pantalla, para que no se los lleve el recolector de basura. */

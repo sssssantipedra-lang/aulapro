@@ -892,7 +892,7 @@ function prettyExpr(expr: string): string {
              .replace(/\s+/g, ' ').trim();
 }
 
-function calcKeys(lang: 'es' | 'en'): { label: string; value: string; kind: 'num' | 'op' | 'eq' | 'fn' }[] {
+function calcKeys(lang: 'es' | 'en' | 'ca'): { label: string; value: string; kind: 'num' | 'op' | 'eq' | 'fn' }[] {
   return [
     { label: 'C',  value: 'clear', kind: 'fn' },
     { label: '( )', value: 'paren', kind: 'fn' },

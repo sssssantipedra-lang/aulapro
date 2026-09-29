@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, SlidersHorizontal, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles, ArrowLeft, ChevronRight } from 'lucide-react';
+import { getApiKey } from '../services/gemini';
+import { takeSettingsPanel, type SettingsPanel } from '../lib/settingsNav';
 import { Avatar } from '../components/ui/Avatar';
 import { Flag } from '../components/ui/Flag';
 import { ApiKeySettings } from '../components/ApiKeySettings';
@@ -10,23 +12,6 @@ import type { TeacherProfile } from '../services/storage';
 import { createPasswordFields, verifyPassword } from '../lib/password';
 import { useToast } from '../components/ui/Toast';
 import { useI18n, LANGS } from '../i18n';
-
-/** Cabecera de sección: agrupa varias tarjetas bajo un mismo epígrafe. */
-function SectionLabel({ icon, children, first }: { icon: React.ReactNode; children: React.ReactNode; first?: boolean }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      margin: first ? '0 0 12px' : '30px 0 12px',
-      paddingTop: first ? 0 : 22,
-      borderTop: first ? 'none' : '0.5px solid var(--border)',
-    }}>
-      <span style={{ display: 'flex', color: 'var(--accent-d)' }}>{icon}</span>
-      <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-2)' }}>
-        {children}
-      </span>
-    </div>
-  );
-}
 
 interface Props {
   user: User | null;
@@ -53,6 +38,9 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   );
   const [appearance, setAppearance] = useState<Appearance>(getAppearance);
   const importRef = useRef<HTMLInputElement>(null);
+  /** Apartado abierto; sin ninguno se ve la cuadrícula de tarjetas. */
+  const [panel, setPanel] = useState<SettingsPanel | null>(() => takeSettingsPanel());
+  const open = (p: SettingsPanel | null) => { setPanel(p); window.scrollTo?.({ top: 0 }); };
 
   /* ── Contraseña del perfil ── */
   const hasPassword = !!profile?.passwordHash;
@@ -135,17 +123,52 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     toast(err ?? '✅ Datos cargados');
   }
 
+  const themeLabel = THEMES[currentTheme]?.label ?? '';
+  const appearanceLabel = appearance === 'auto' ? 'Automática' : appearance === 'light' ? 'Clara' : 'Oscura';
+  const TILES: { id: SettingsPanel; icon: React.ReactNode; title: string; desc: string; status: string; ok?: boolean }[] = [
+    { id: 'perfil', icon: <UserCircle size={22} />, title: 'Perfil', desc: 'Tu nombre, centro, especialidad y curso escolar.', status: [user?.full_name, user?.school].filter(Boolean).join(' · ') },
+    { id: 'ia', icon: <Sparkles size={22} />, title: 'Clave de la IA', desc: 'La clave gratuita de Google y cuánto da de sí.', status: t(getApiKey() ? 'Configurada ✓' : 'Sin configurar'), ok: !!getApiKey() },
+    { id: 'idioma', icon: <Languages size={22} />, title: 'Idioma', desc: 'Castellano, catalán o inglés internacional.', status: LANGS.find(l => l.id === lang)?.label ?? '' },
+    { id: 'apariencia', icon: <Palette size={22} />, title: 'Apariencia', desc: 'Color de la aplicación y modo claro u oscuro.', status: `${t(themeLabel)} · ${t(appearanceLabel)}` },
+    { id: 'seguridad', icon: <Lock size={22} />, title: 'Seguridad', desc: 'Contraseña para abrir tu perfil.', status: t(hasPassword ? 'Con contraseña' : 'Sin contraseña'), ok: hasPassword },
+    { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },
+  ];
+  const current = TILES.find(x => x.id === panel);
+
   return (
     <section className="sec active">
       <div className="pg-hd">
-        <div>
-          <h1 className="pg-title">{t('Mi Perfil')}</h1>
-          <p className="pg-sub">{t('Datos personales, IA y copia de seguridad')}</p>
-        </div>
+        {current ? (
+          <div className="st-hd">
+            <button type="button" className="btn-ghost sm" onClick={() => open(null)}><ArrowLeft size={14} />{t('Configuración')}</button>
+            <h1 className="pg-title"><span className="st-hd-ico">{current.icon}</span>{t(current.title)}</h1>
+          </div>
+        ) : (
+          <div>
+            <h1 className="pg-title">{t('Configuración')}</h1>
+            <p className="pg-sub">{t('Elige qué quieres cambiar')}</p>
+          </div>
+        )}
       </div>
 
-      {/* ── Datos personales ── */}
-      <SectionLabel icon={<UserCircle size={15} />} first>{t('Datos personales')}</SectionLabel>
+      {!current && (
+        <div className="st-grid">
+          {TILES.map(tile => (
+            <button key={tile.id} type="button" className="st-tile" onClick={() => open(tile.id)}>
+              <span className="st-ico">{tile.icon}</span>
+              <span className="st-body">
+                <span className="st-ttl">{t(tile.title)}</span>
+                <span className="st-desc">{t(tile.desc)}</span>
+                {tile.status && <span className={`st-status${tile.ok ? ' ok' : ''}`}>{tile.status}</span>}
+              </span>
+              <ChevronRight size={18} className="st-chev" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Perfil ── */}
+      {panel === 'perfil' && (
       <div className="profile-grid">
         {/* Tarjeta de avatar */}
         <div className="card" style={{ textAlign: 'center', padding: '28px 20px' }}>
@@ -176,12 +199,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           </div>
         </div>
       </div>
+      )}
 
-      {/* ── Preferencias ── */}
-      <SectionLabel icon={<SlidersHorizontal size={15} />}>{t('Preferencias')}</SectionLabel>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="profile-prefs-grid">
-        {/* Idioma de la interfaz */}
-        <div className="card">
+      {/* ── Idioma ── */}
+      {panel === 'idioma' && (
+        <div className="card st-panel">
           <div className="card-hd">
             <div className="card-ttl"><Languages size={14} color="var(--accent-d)" />{t('Idioma · Language')}</div>
           </div>
@@ -210,9 +232,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             {t('En inglés se usa terminología internacional (Units of Inquiry, Learning Outcomes, Formative Assessment), no una traducción literal. Los datos que tú escribes no se traducen.')}
           </p>
         </div>
+      )}
 
-        {/* Selector de tema */}
-        <div className="card">
+      {/* ── Apariencia ── */}
+      {panel === 'apariencia' && (
+        <div className="card st-panel">
           <div className="card-hd">
             <div className="card-ttl"><Palette size={14} color="var(--accent-d)" />{t('Color de la interfaz')}</div>
           </div>
@@ -285,11 +309,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             </p>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Seguridad ── */}
-      <SectionLabel icon={<Lock size={15} />}>{t('Seguridad')}</SectionLabel>
-      <div className="card" style={{ marginBottom: 16 }}>
+      {panel === 'seguridad' && (
+      <div className="card st-panel">
         <div className="card-hd">
           <div className="card-ttl">
             {hasPassword
@@ -367,15 +391,13 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           </form>
         )}
       </div>
+      )}
 
-      {/* ── Asistente IA ── */}
-      <SectionLabel icon={<Sparkles size={15} />}>{t('Inteligencia artificial')}</SectionLabel>
-      <ApiKeySettings />
+      {/* ── Clave de la IA ── */}
+      {panel === 'ia' && <ApiKeySettings />}
 
-      {/* ── Datos y copia de seguridad ── */}
-      <SectionLabel icon={<Database size={15} />}>{t('Datos y copia de seguridad')}</SectionLabel>
-
-      {/* Archivo para llevar a otro equipo */}
+      {/* ── Datos y copias ── */}
+      {panel === 'datos' && (<>
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-hd">
           <div className="card-ttl"><Database size={14} color="var(--accent-d)" />{t('Llevar a otro equipo')}</div>
@@ -396,6 +418,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
 
       {/* Carpeta de datos, copias y fin de curso */}
       <DataFolder profileId={profileId} courseLabel={course} onClearSchoolYear={onClearSchoolYear} />
+      </>)}
     </section>
   );
 }

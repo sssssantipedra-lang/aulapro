@@ -562,7 +562,7 @@ export function DianasTab({
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
 }: Props) {
   const { toast } = useToast();
-  const { t, lang } = useI18n();
+  const { t, locale } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing]     = useState<EvalDiana | null>(null);
   const [evalOpen, setEvalOpen]   = useState(false);
@@ -679,7 +679,7 @@ export function DianasTab({
         onSave={ev => {
           onAddEvaluation(ev);
           const gradeStr = typeof ev.grade === 'number'
-            ? ev.grade.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+            ? ev.grade.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
             : '—';
           toast(t('✅ Evaluación guardada — nota {grade}', { grade: gradeStr }));
         }}

@@ -18,7 +18,7 @@
 import { callGemini, parseGeminiJson } from './gemini';
 import type { Lang } from '../i18n';
 
-const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
+const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : lang === 'ca' ? 'CATALÁN (català)' : 'ESPAÑOL');
 const S = (d: string) => ({ type: 'STRING', description: d });
 
 /** Lo que se sabe de un alumno a la hora de repartir grupos. */

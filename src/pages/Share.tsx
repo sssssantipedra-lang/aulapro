@@ -388,7 +388,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
 
           <div className="card" style={{ background: 'var(--surface)' }}>
             <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
-              <strong style={{ color: 'var(--text)' }}>{t('¿No conecta?')}</strong> {t('Hacen falta internet en los dos equipos y que la red del centro no bloquee las conexiones directas. Si no hay manera, usa la copia de seguridad de «Mi Perfil» para pasar los datos.')}
+              <strong style={{ color: 'var(--text)' }}>{t('¿No conecta?')}</strong> {t('Hacen falta internet en los dos equipos y que la red del centro no bloquee las conexiones directas. Si no hay manera, usa la copia de seguridad de «Configuración» para pasar los datos.')}
             </div>
           </div>
         </div>
