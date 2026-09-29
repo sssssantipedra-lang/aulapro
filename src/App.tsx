@@ -202,7 +202,10 @@ function AppInner() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <main style={{ flex: 1, overflow: 'auto' }} className={hubOf(section) ? 'with-hub' : undefined}>
-          <HubTabs section={section} onNav={setSection} />
+          {/* La clave cambia al entrar en otro apartado: la barra se monta de
+              nuevo y su animación de aviso (parpadeo) vuelve a sonar. Al
+              cambiar de pestaña dentro del mismo apartado no parpadea. */}
+          <HubTabs key={hubOf(section)?.id ?? 'none'} section={section} onNav={setSection} />
           <Suspense fallback={<Loading />}>
             {section === 'dashboard' && (
               <Dashboard
