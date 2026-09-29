@@ -1,7 +1,8 @@
 /**
  * Pestañas de un apartado del menú (Evaluar, Documentos, En clase): se ven
  * encima de la pantalla y permiten saltar entre sus pantallas hermanas sin
- * volver al menú. Ver lib/navigation.ts.
+ * volver al menú. Al entrar en el apartado parpadea dos veces del color de la
+ * app (ver App.tsx e index.css). Ver lib/navigation.ts.
  */
 import { ClipboardCheck, FileText, Presentation } from 'lucide-react';
 import type { Section } from '../../types';

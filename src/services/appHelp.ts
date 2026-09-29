@@ -90,7 +90,9 @@ Barra lateral a la izquierda, organizada por tareas, con tres grupos:
     · Evaluar → Rúbricas, Diana competencial, Autoevaluaciones e Historial.
     · Documentos → Informes, Actas, Situaciones de aprendizaje y Recursos.
     · En clase → Distribución de aula, Aula Live y Sala de alumnos.
-  Cada apartado recuerda la última pestaña usada.
+  Cada apartado recuerda la última pestaña usada. Al entrar en uno, la barra
+  de pestañas parpadea dos veces del color de la app para que se vea dónde
+  elegir (no lo hace si el sistema tiene activado «reducir movimiento»).
 - «Más» (plegado al principio; se abre pulsando «Más»): Reuniones,
   Formaciones, Trabajo compartido, Registro de cambios y Mi Perfil. A Mi Perfil
   también se llega pulsando el nombre del docente, arriba del todo.
@@ -105,15 +107,22 @@ Escape.
 === PANTALLAS (dónde está cada una: ver CÓMO SE NAVEGA) ===
 
 [dashboard] INICIO
-Resumen del día: clases de hoy, número de alumnos, tareas pendientes y
-evaluaciones. Muestra el horario de hoy, los próximos eventos, las alertas de
-alumnos y el rendimiento por clase. Desde aquí se añaden tareas rápidas.
+Dice «qué toca ahora». Arriba, el saludo con un resumen (clases de hoy, tareas
+pendientes, alumnos con avisos). Debajo, una tarjeta grande con la clase de
+AHORA (o la siguiente, «Siguiente, a las 11:00») y tres botones: «Pasar lista»,
+«Anotar en el aula» (lleva a la Distribución de aula) y «Cuaderno»; a su lado,
+«Tu día» con todas las clases de hoy (las pasadas, atenuadas). Si ya no quedan
+clases, lo dice y propone ir al Cuaderno. Más abajo, cuatro tarjetas quietas:
+Tareas (se marcan y se añaden desde aquí), Próximos eventos, «Necesitan
+atención» (alumnos con avisos) y «Cómo van tus clases» (media de cada clase y
+cuántos están por debajo de 5).
 PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
 al hacerlos: 1) crear la primera clase con su alumnado, 2) añadir el horario
 (mejor escaneándolo en la Agenda), 3) decidir cómo se evalúa (categorías del
 Cuaderno), 4) pasar lista por primera vez y 5) conectar la IA (opcional). Cada
-paso tiene un botón que lleva a la pantalla. La guía se oculta con la × o
-desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
+paso tiene un botón que lleva a la pantalla. Con la flecha de la esquina la
+guía se minimiza a una sola línea (progreso, paso siguiente y su botón) y se
+vuelve a abrir pulsándola; desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
 la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
