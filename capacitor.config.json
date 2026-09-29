@@ -1,0 +1,15 @@
+{
+  "appId": "es.aulapro.app",
+  "appName": "Aula Pro",
+  "webDir": "dist",
+  "backgroundColor": "#0c2340",
+  "android": {
+    "backgroundColor": "#0c2340"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "native",
+      "style": "DARK"
+    }
+  }
+}

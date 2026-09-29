@@ -12,6 +12,7 @@ import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { useI18n } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -331,12 +332,7 @@ export function Reports(props: Props) {
       .sort((a, b) => a.student_name.localeCompare(b.student_name, 'es'))
       .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}\n\n${'—'.repeat(40)}\n`)
       .join('\n');
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`);
     toast(t('✅ Informes descargados'));
   }
 

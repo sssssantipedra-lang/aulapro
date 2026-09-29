@@ -4,7 +4,7 @@ name: Publicar versión
 # `package.json` ya tiene la versión nueva en `master`. Compila Windows,
 # publica el release `v<versión>` con los instaladores y `latest.yml` (lo que
 # lee la actualización automática de Windows) y después añade la build de Mac
-# al mismo release.
+# y el APK de Android al mismo release.
 #
 # Las notas salen de `docs/releases/v<versión>.md`. Si ese archivo no existe,
 # GitHub las genera a partir de los commits.
@@ -106,3 +106,45 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.windows.outputs.tag }}
         run: gh release upload "$TAG" release/*.dmg release/*.zip --clobber
+
+  android:
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar la aplicación web
+        run: npx vite build
+
+      - name: Copiar la web al proyecto Android
+        run: npx cap sync android
+
+      # Firmado con la llave de pruebas del repositorio (ver android/app/build.gradle):
+      # siempre la misma, para que el APK se actualice encima sin perder datos.
+      - name: Compilar el APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Añadir el APK al release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.windows.outputs.tag }}
+        run: |
+          VERSION="${TAG#v}"
+          cp android/app/build/outputs/apk/release/app-release.apk "AulaPro-${VERSION}-android.apk"
+          gh release upload "$TAG" "AulaPro-${VERSION}-android.apk" --clobber

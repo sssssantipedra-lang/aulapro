@@ -1656,4 +1656,8 @@ export const CA: Record<string, string> = {
   "Licencia": "Llicència",
   "Tu licencia de Aula Pro en este ordenador.": "La teva llicència d'Aula Pro en aquest ordinador.",
   "Sin activar": "Sense activar",
+  // Android
+  "Muy pronto en la tableta": "Molt aviat a la tauleta",
+  "La sala de alumnos todavía no está en la versión de Android. De momento, ábrela desde Aula Pro en el ordenador: tus alumnos se conectan igual desde el móvil.": "La sala d'alumnes encara no és a la versió d'Android. De moment, obre-la des d'Aula Pro a l'ordinador: els teus alumnes s'hi connecten igual des del mòbil.",
+  "Todo tu trabajo se guarda dentro de Aula Pro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "Tota la teva feina es desa dins d'Aula Pro en aquest dispositiu, només per a aquest perfil, i no es puja a cap núvol. Aula Pro fa una còpia de seguretat automàtica cada deu minuts mentre treballes.",
 };

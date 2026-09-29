@@ -19,6 +19,7 @@ import {
 } from 'docx';
 import type { LearningSituation } from '../types';
 import { translate, type Lang } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 function fileBase(sda: LearningSituation): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -284,10 +285,5 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
 
 export async function saveSdaDocx(sda: LearningSituation, lang: Lang) {
   const blob = await buildSdaDocxBlob(sda, lang);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileBase(sda) + '.docx';
-  a.click();
-  URL.revokeObjectURL(url);
+  await downloadFile(blob, fileBase(sda) + '.docx');
 }

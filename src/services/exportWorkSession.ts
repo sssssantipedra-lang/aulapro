@@ -15,6 +15,7 @@ import {
 } from 'docx';
 import type { WorkSession } from '../types';
 import { translate, type Lang } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
 
@@ -240,10 +241,5 @@ export async function buildWorkSessionDocxBlob(s: WorkSession, lang: Lang): Prom
 
 export async function saveWorkSessionDocx(s: WorkSession, lang: Lang) {
   const blob = await buildWorkSessionDocxBlob(s, lang);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileBase(s) + '.docx';
-  a.click();
-  URL.revokeObjectURL(url);
+  await downloadFile(blob, fileBase(s) + '.docx');
 }

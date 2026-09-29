@@ -14,6 +14,7 @@ import {
   TARGETS, TARGET_LABEL, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { downloadFile } from '../lib/download';
 
 interface Props {
   classes: Class[];
@@ -327,12 +328,7 @@ function GradesTab({
       .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    void downloadFile(blob, `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`);
     toast(t('✅ Notas exportadas (ábrelas con Excel)'));
   }
 

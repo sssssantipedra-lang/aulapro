@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { HelpChat } from './components/HelpChat';
@@ -22,6 +22,7 @@ import type { Section, Ficha } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
+import { isAndroidApp } from './lib/platform';
 
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
@@ -140,6 +141,29 @@ function AppInner() {
   // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts
   useEffect(() => { setPrivacyRoster(st.students, lang); }, [st.students, lang]);
 
+  // Android: el botón «atrás» cierra lo que esté abierto o vuelve al Inicio
+  // antes de salir, en vez de cerrar la aplicación de golpe.
+  const backState = useRef({ section, open: menuOpen || showAddTask });
+  useEffect(() => { backState.current = { section, open: menuOpen || showAddTask }; }, [section, menuOpen, showAddTask]);
+  useEffect(() => {
+    if (!isAndroidApp()) return;
+    let remove: (() => void) | undefined;
+    let cancelled = false;
+    import('@capacitor/app').then(({ App: CapApp }) => CapApp.addListener('backButton', () => {
+      const { section: current, open } = backState.current;
+      if (open || document.querySelector('.modal-overlay.open, .cp, .cp-picker')) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      } else if (current !== 'dashboard') {
+        setSection('dashboard');
+      } else {
+        CapApp.minimizeApp();
+      }
+    })).then(handle => {
+      if (cancelled) handle.remove();
+      else remove = () => { handle.remove(); };
+    });
+    return () => { cancelled = true; remove?.(); };
+  }, []);
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setShowAddTask(false); setMenuOpen(false); }

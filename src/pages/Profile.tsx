@@ -15,6 +15,7 @@ import type { TeacherProfile } from '../services/storage';
 import { createPasswordFields, verifyPassword } from '../lib/password';
 import { useToast } from '../components/ui/Toast';
 import { useI18n, LANGS } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 interface Props {
   user: User | null;
@@ -112,12 +113,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   function handleExport() {
     const data = onExportData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aulapro-copia-${isoDate()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    void downloadFile(blob, `aulapro-copia-${isoDate()}.json`);
     toast('✅ Copia de seguridad descargada');
   }
 
