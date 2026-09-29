@@ -1,33 +1,32 @@
+/**
+ * Recursos: el creador de fichas.
+ *
+ * Dos vistas. En la primera se pide la ficha (tema, curso, cuántos
+ * ejercicios y el mundo de la historia) y se ven las fichas guardadas. Al
+ * generarla se pasa al editor: a la izquierda cada parte de la ficha es un
+ * bloque que se edita, se mueve, se borra o se rehace con IA; a la derecha,
+ * la hoja A4 tal cual se imprimirá, en vivo. El tema visual se cambia con un
+ * clic sin volver a generar nada.
+ */
 import { useState } from 'react';
 import {
-  Layers, Sparkles, Plus, Trash2, Check, FileDown, FileType2, Lightbulb, PenLine,
-  Calculator, BookOpen, Languages, FlaskConical, Landmark, Music2, Dumbbell, Palette, Scale,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
-import { generateFicha, type FichaContent, type FichaExercise, type FichaExerciseType } from '../services/resources';
-import { buildFigureSvg } from '../lib/geometryFigures';
+import {
+  generateFicha, regenerateExercise, rewriteStory,
+  type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
+} from '../services/resources';
 import { saveFichaPdf, saveFichaDocx } from '../services/exportFicha';
-import { pickMotifKey, MOTIF_COLORS, type FichaMotifKey } from '../services/fichaMotifs';
+import { FICHA_THEMES, fichaTheme, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
-
-/** Mismo motivo que `fichaMotifs.ts`, pero con el componente React del icono en vez de su SVG crudo. */
-const MOTIF_ICON_COMPONENT: Record<FichaMotifKey, typeof Sparkles> = {
-  matematicas: Calculator,
-  lengua: BookOpen,
-  ingles: Languages,
-  cienciasNaturales: FlaskConical,
-  cienciasSociales: Landmark,
-  musica: Music2,
-  educacionFisica: Dumbbell,
-  plastica: Palette,
-  valores: Scale,
-  general: Sparkles,
-};
+import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
+import { FichaPreview } from '../components/fichas/FichaPreview';
 
 interface Props {
   classes: Class[];
@@ -38,136 +37,54 @@ interface Props {
 }
 
 function newId() {
-  return 'fic' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  return 'fic' + crypto.randomUUID().replace(/-/g, '').slice(0, 12);
 }
 
-const TIPO_LABEL: Record<FichaExerciseType, string> = {
-  abierta: 'Respuesta abierta',
-  completar: 'Completar',
-  opcion_multiple: 'Opción múltiple',
-  problema: 'Problema',
-  tabla_rellenar: 'Tabla para rellenar',
-  relacionar: 'Relacionar',
-  colorear: 'Colorear según el resultado',
-  sopa_letras: 'Sopa de letras',
+/** Fichas guardadas antes de que existieran los bloques de actividad tenían `ejercicios` plano. */
+function normalizeContent(c: FichaContent): FichaContent {
+  if (c.actividades?.length) return c;
+  const legacy = (c as unknown as { ejercicios?: FichaExercise[] }).ejercicios;
+  return { ...c, actividades: legacy?.length ? [{ titulo: '', ejercicios: legacy }] : [] };
+}
+
+const move = <X,>(list: X[], i: number, dir: -1 | 1): X[] => {
+  const j = i + dir;
+  if (j < 0 || j >= list.length) return list;
+  const out = [...list];
+  [out[i], out[j]] = [out[j], out[i]];
+  return out;
 };
 
-/** Vista previa de solo lectura de un ejercicio, adaptada a su tipo. */
-function ExercisePreview({ ex, i, t }: { ex: FichaExercise; i: number; t: (k: string, v?: Record<string, string | number>) => string }) {
+type T = (k: string, v?: Record<string, string | number>) => string;
+
+/** Rejilla de temas para elegir el mundo de la ficha. */
+function ThemeGrid({ value, onChange, withAuto, compact, t }: {
+  value: FichaThemeChoice; onChange: (v: FichaThemeId | 'auto') => void; withAuto?: boolean; compact?: boolean; t: T;
+}) {
   return (
-    <div style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--surface)', border: '0.5px solid var(--border)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={{
-          width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-          background: 'var(--accent-l)', color: 'var(--accent-d)', fontSize: 11, fontWeight: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>{i + 1}</span>
-        <span style={{
-          fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 99,
-          background: 'var(--card)', color: 'var(--text-2)', border: '1px solid var(--border)',
-        }}>{t(TIPO_LABEL[ex.tipo])}</span>
-      </div>
-
-      <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{ex.enunciado}</div>
-
-      {ex.figura && (
-        <div
-          style={{ marginTop: 8, display: 'flex', justifyContent: 'center' }}
-          dangerouslySetInnerHTML={{ __html: buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#0369A1') }}
-        />
+    <div className={`fe-themes${compact ? ' compact' : ''}`} role="radiogroup" aria-label={t('Tema de la ficha')}>
+      {withAuto && (
+        <button
+          type="button" role="radio" aria-checked={value === 'auto'}
+          className={`fe-theme auto${value === 'auto' ? ' on' : ''}`} onClick={() => onChange('auto')}
+        >
+          <span className="fe-theme-art"><span className="big">✨</span></span>
+          <span className="fe-theme-name">{t('Que elija la IA')}</span>
+        </button>
       )}
-
-      {!!ex.opciones?.length && (
-        <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 12.5, color: 'var(--text-2)' }}>
-          {ex.opciones.map((o, j) => <li key={j}>{String.fromCharCode(97 + j)}) {o}</li>)}
-        </ul>
-      )}
-
-      {ex.tipo === 'tabla_rellenar' && !!ex.columnas?.length && !!ex.filas?.length && (
-        <div style={{ overflowX: 'auto', marginTop: 8 }}>
-          <table className="rtable" style={{ fontSize: 12 }}>
-            <thead><tr>{ex.columnas.map((col, j) => <th key={j}>{col}</th>)}</tr></thead>
-            <tbody>
-              {ex.filas.map((fila, fi) => (
-                <tr key={fi}>{fila.map((celda, ci) => <td key={ci} style={{ color: celda ? undefined : 'var(--text-3)' }}>{celda || '—'}</td>)}</tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {ex.tipo === 'relacionar' && !!ex.izquierda?.length && !!ex.derecha?.length && (
-        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12.5, color: 'var(--text-2)' }}>
-          <div style={{ flex: 1 }}>{ex.izquierda.map((it, j) => <div key={j}>{j + 1}. {it}</div>)}</div>
-          <div style={{ flex: 1 }}>{ex.derecha.map((it, j) => <div key={j}>{String.fromCharCode(65 + j)}. {it}</div>)}</div>
-        </div>
-      )}
-
-      {ex.tipo === 'colorear' && (
-        <div style={{ marginTop: 8 }}>
-          {!!ex.leyenda?.length && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
-              {ex.leyenda.map((l, j) => (
-                <span key={j} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text-2)' }}>
-                  {l.color}: {l.criterio}
-                </span>
-              ))}
-            </div>
-          )}
-          {!!ex.itemsColorear?.length && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 12.5, color: 'var(--text-2)' }}>
-              {ex.itemsColorear.map((it, j) => <span key={j}>{it}</span>)}
-            </div>
-          )}
-        </div>
-      )}
-
-      {ex.tipo === 'sopa_letras' && !!ex.rejilla?.length && (
-        <div style={{ marginTop: 8 }}>
-          <div style={{
-            display: 'inline-grid',
-            gridTemplateColumns: `repeat(${ex.rejilla[0].length}, 1.7em)`,
-            gap: 1, background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 4,
-          }}>
-            {ex.rejilla.flatMap((fila, r) => fila.map((letra, c) => {
-              const solved = ex.posiciones?.some(p => {
-                for (let i = 0; i < p.palabra.length; i++) {
-                  if (p.fila + p.dir[0] * i === r && p.columna + p.dir[1] * i === c) return true;
-                }
-                return false;
-              });
-              return (
-                <span key={`${r}-${c}`} style={{
-                  width: '1.7em', height: '1.7em', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'ui-monospace, monospace', fontSize: 11.5, fontWeight: 800,
-                  background: solved ? 'var(--accent-l)' : 'var(--card)',
-                  color: solved ? 'var(--accent-d)' : 'var(--text-2)',
-                }}>{letra}</span>
-              );
-            }))}
-          </div>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '6px 0 0' }}>
-            {t('Resaltado: solo lo ves tú, es la solución. En la ficha exportada sale la rejilla en blanco.')}
-          </p>
-          {!!ex.palabras?.length && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, fontSize: 12.5, color: 'var(--text-2)' }}>
-              {ex.palabras.map((p, j) => (
-                <span key={j} style={{ padding: '2px 8px', borderRadius: 99, background: 'var(--card)', border: '1px solid var(--border)' }}>{p}</span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
-        <strong>{t('Solución')}:</strong> {ex.solucion}
-      </div>
-      {(ex.apoyo || ex.ampliacion) && (
-        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-          {ex.apoyo && <div><strong>{t('Apoyo')}:</strong> {ex.apoyo}</div>}
-          {ex.ampliacion && <div><strong>{t('Ampliación')}:</strong> {ex.ampliacion}</div>}
-        </div>
-      )}
+      {FICHA_THEMES.map(th => (
+        <button
+          key={th.id} type="button" role="radio" aria-checked={value === th.id}
+          className={`fe-theme${value === th.id ? ' on' : ''}`} onClick={() => onChange(th.id)}
+          style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}`, '--thl': `#${th.claro}` } as React.CSSProperties}
+        >
+          <span className={`fe-theme-art${th.id === 'clasico' ? ' plain' : ''}`}>
+            <span className="big">{th.personaje}</span>
+            {!compact && th.adornos.slice(0, 2).map((a, i) => <span key={i} className={`dec d${i}`}>{a}</span>)}
+          </span>
+          <span className="fe-theme-name">{t(th.nombre)}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -184,13 +101,19 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [numEjercicios, setNumEjercicios] = useState(6);
   const [niveles, setNiveles] = useState(false);
   const [contextoClase, setContextoClase] = useState('');
+  const [estilo, setEstilo] = useState<FichaThemeChoice>('auto');
 
-  /* ── Resultado ── */
+  /* ── Editor ── */
   const [generating, setGenerating] = useState(false);
   const [content, setContent] = useState<FichaContent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [busyEx, setBusyEx] = useState<string | null>(null);
+  const [storyBusy, setStoryBusy] = useState(false);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
+  const sinClave = !hasApiKey();
 
   function pickClass(id: string) {
     setClassId(id);
@@ -198,25 +121,27 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     if (cls) setArea(cls.subject);
   }
 
+  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo });
+
+  function edit(fn: (c: FichaContent) => FichaContent) {
+    setContent(c => (c ? fn(c) : c));
+    setDirty(true);
+  }
+
   /* ── Generar ── */
   async function handleGenerate() {
     if (!tema.trim()) { toast(t('Escribe el tema de la ficha')); return; }
-
-    const result = await generateFicha({
-      tema: tema.trim(), area, nivel, numEjercicios, niveles, contextoClase,
-    }, lang, {
+    const result = await generateFicha({ ...request(), tema: tema.trim() }, lang, {
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
       onError: m => toast(m),
     });
-
-    if (!result) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    if (!result?.actividades.some(a => a.ejercicios.length)) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
     setContent(result);
     setEditingId(null);
-  }
-
-  function patch(k: 'titulo' | 'explicacion' | 'instrucciones', v: string) {
-    setContent(c => (c ? { ...c, [k]: v } : c));
+    setDirty(true);
+    setSelected(null);
+    window.scrollTo({ top: 0 });
   }
 
   function currentFicha(): Ficha | null {
@@ -233,12 +158,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     };
   }
 
-  /* ── Guardar ── */
   function handleSave() {
     const f = currentFicha();
     if (!f) return;
     onSave(f);
     setEditingId(f.id);
+    setDirty(false);
     toast(t('Ficha guardada'));
   }
 
@@ -272,7 +197,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
 
   function openSaved(f: Ficha) {
     setEditingId(f.id);
-    setContent(f.content);
+    setContent(normalizeContent(f.content));
     setClassId(f.class_id ?? '');
     setTema(f.request.tema);
     setArea(f.request.area);
@@ -280,53 +205,257 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     setNumEjercicios(f.request.numEjercicios);
     setNiveles(f.request.niveles);
     setContextoClase(f.request.contextoClase);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setDirty(false);
+    setSelected(null);
+    window.scrollTo({ top: 0 });
   }
 
-  function resetAll() {
-    setContent(null); setEditingId(null); setTema('');
+  function backToLibrary() {
+    if (dirty && !window.confirm(t('La ficha tiene cambios sin guardar. ¿Salir sin guardar?'))) return;
+    setContent(null); setEditingId(null); setDirty(false); setSelected(null);
   }
 
-  const sinClave = !hasApiKey();
-  /** Fichas guardadas antes de que existieran los bloques de actividad. */
-  const actividades = content
-    ? (content.actividades?.length ? content.actividades : (
-      (content as unknown as { ejercicios?: FichaExercise[] }).ejercicios?.length
-        ? [{ titulo: '', ejercicios: (content as unknown as { ejercicios: FichaExercise[] }).ejercicios }]
-        : []
-    ))
-    : [];
+  /* ── Edición por bloques ── */
+  const patchEx = (a: number, i: number, ex: FichaExercise) => edit(c => ({
+    ...c, actividades: c.actividades.map((act, ai) => (ai === a ? { ...act, ejercicios: act.ejercicios.map((x, xi) => (xi === i ? ex : x)) } : act)),
+  }));
+  const moveEx = (a: number, i: number, dir: -1 | 1) => {
+    edit(c => ({ ...c, actividades: c.actividades.map((act, ai) => (ai === a ? { ...act, ejercicios: move(act.ejercicios, i, dir) } : act)) }));
+    setSelected(`${a}-${i + dir}`);
+  };
+  const deleteEx = (a: number, i: number) => {
+    edit(c => ({ ...c, actividades: c.actividades.map((act, ai) => (ai === a ? { ...act, ejercicios: act.ejercicios.filter((_, xi) => xi !== i) } : act)) }));
+    setSelected(null);
+  };
+  const patchAct = (a: number, p: Partial<FichaContent['actividades'][number]>) =>
+    edit(c => ({ ...c, actividades: c.actividades.map((act, ai) => (ai === a ? { ...act, ...p } : act)) }));
+  const moveAct = (a: number, dir: -1 | 1) => { edit(c => ({ ...c, actividades: move(c.actividades, a, dir) })); setSelected(`act-${a + dir}`); };
+  const deleteAct = (a: number) => {
+    if (!window.confirm(t('¿Eliminar este bloque y sus ejercicios?'))) return;
+    edit(c => ({ ...c, actividades: c.actividades.filter((_, ai) => ai !== a) }));
+    setSelected(null);
+  };
 
+  async function handleRegenerate(a: number, i: number, instruccion: string, tipo?: FichaExerciseType) {
+    if (!content) return;
+    const id = `${a}-${i}`;
+    const ex = await regenerateExercise(content, request(), a, i, { instruccion, tipo }, lang, {
+      onStart: () => setBusyEx(id),
+      onEnd: () => setBusyEx(null),
+      onError: m => toast(m),
+    });
+    if (!ex) { toast(t('La IA no devolvió un ejercicio válido. Vuelve a intentarlo.')); return; }
+    patchEx(a, i, ex);
+    toast(t('Ejercicio rehecho'));
+  }
+
+  function changeTheme(id: FichaThemeId) {
+    edit(c => ({ ...c, estilo: id }));
+  }
+
+  async function handleRewriteStory() {
+    if (!content?.estilo || content.estilo === 'clasico') return;
+    const res = await rewriteStory(content, request(), content.estilo, lang, {
+      onStart: () => setStoryBusy(true),
+      onEnd: () => setStoryBusy(false),
+      onError: m => toast(m),
+    });
+    if (!res) { toast(t('La IA no devolvió una historia válida. Vuelve a intentarlo.')); return; }
+    edit(c => ({ ...c, historia: res.historia, actividades: res.actividades }));
+    toast(t('Historia reescrita'));
+  }
+
+  /** Clic en la hoja: selecciona el bloque y lo trae a la vista en el editor. */
+  function selectFromPreview(id: string) {
+    setSelected(id);
+    document.querySelector(`[data-block="${id}"]`)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ══ Editor ══ */
+  if (content) {
+    const theme = fichaTheme(content.estilo);
+    const story = theme.id !== 'clasico';
+    const historia = content.historia;
+    const ficha = currentFicha()!;
+    const blockCls = (id: string) => `fe-sec${selected === id ? ' sel' : ''}`;
+    const selectOn = (id: string) => ({ 'data-block': id, onFocusCapture: () => setSelected(id), onClick: () => setSelected(id) });
+
+    return (
+      <section className="sec active fe">
+        <div className="fe-top">
+          <button type="button" className="btn-ghost" onClick={backToLibrary}><ArrowLeft size={14} />{t('Mis fichas')}</button>
+          <div className="fe-top-ttl">
+            <span className="fe-top-emoji" aria-hidden="true">{historia && story ? historia.emoji : theme.personaje}</span>
+            <strong>{content.titulo || t('Ficha de trabajo')}</strong>
+            {dirty && <span className="sda-unsaved">{t('Sin guardar')}</span>}
+          </div>
+          <div className="fe-top-actions">
+            {isDesktop() && (
+              <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportPdf(ficha, CURRENT_KEY)} title={t('Guardar en PDF')}>
+                {exporting?.key === CURRENT_KEY && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={14} />}{t('PDF')}
+              </button>
+            )}
+            <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportDocx(ficha, CURRENT_KEY)} title={t('Descargar en Word')}>
+              {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
+            </button>
+            <button className="btn-accent" onClick={handleSave}><Check size={14} />{t('Guardar')}</button>
+          </div>
+        </div>
+
+        <div className="card fe-theme-bar">
+          <div className="fe-theme-bar-hd">
+            <span className="fe-lbl">{t('Tema')}</span>
+            <span className="fe-hint">{t('Cambia el aspecto al instante, sin volver a generar.')}</span>
+            <span style={{ flex: 1 }} />
+            {story && (
+              <button type="button" className="btn-ghost sm" disabled={storyBusy || sinClave} onClick={handleRewriteStory}>
+                {storyBusy ? <span className="spin" /> : <Wand2 size={13} />}
+                {historia ? t('Adaptar la historia a este tema') : t('Crear la historia')}
+              </button>
+            )}
+          </div>
+          <ThemeGrid value={theme.id} onChange={v => v !== 'auto' && changeTheme(v)} compact t={t} />
+        </div>
+
+        <div className="fe-grid">
+          <div className="fe-panel">
+            <div className={blockCls('titulo')} {...selectOn('titulo')}>
+              <label className="fe-field">
+                <span className="fe-lbl">{t('Título')}</span>
+                <input className="finput fe-title" value={content.titulo ?? ''} onChange={e => edit(c => ({ ...c, titulo: e.target.value }))} />
+              </label>
+            </div>
+
+            {story && historia && (
+              <div className={`${blockCls('historia')} fe-story`} {...selectOn('historia')}>
+                <div className="fe-sec-hd">📖 {t('La historia')}</div>
+                <div className="fe-row">
+                  <input
+                    className="finput fe-emoji" value={historia.emoji} aria-label={t('Emoji del personaje')}
+                    onChange={e => edit(c => ({ ...c, historia: { ...c.historia!, emoji: e.target.value } }))}
+                  />
+                  <input
+                    className="finput" value={historia.personaje} aria-label={t('Personaje')} placeholder={t('Personaje')}
+                    onChange={e => edit(c => ({ ...c, historia: { ...c.historia!, personaje: e.target.value } }))}
+                  />
+                </div>
+                <label className="fe-field">
+                  <span className="fe-lbl">{t('La misión')}</span>
+                  <textarea className="finput" rows={3} value={historia.mision} onChange={e => edit(c => ({ ...c, historia: { ...c.historia!, mision: e.target.value } }))} />
+                </label>
+              </div>
+            )}
+
+            <div className={blockCls('explicacion')} {...selectOn('explicacion')}>
+              <label className="fe-field">
+                <span className="fe-lbl">💡 {t('Antes de empezar')}</span>
+                <textarea className="finput" rows={3} value={content.explicacion ?? ''} onChange={e => edit(c => ({ ...c, explicacion: e.target.value }))} />
+              </label>
+            </div>
+            <div className={blockCls('instrucciones')} {...selectOn('instrucciones')}>
+              <label className="fe-field">
+                <span className="fe-lbl">{t('Instrucciones')}</span>
+                <textarea className="finput" rows={2} value={content.instrucciones ?? ''} onChange={e => edit(c => ({ ...c, instrucciones: e.target.value }))} />
+              </label>
+            </div>
+
+            {content.actividades.map((act, a) => {
+              const color = theme.bloques[a % theme.bloques.length];
+              return (
+                <div
+                  key={a} className={`fe-act${selected === `act-${a}` ? ' sel' : ''}`} data-block={`act-${a}`}
+                  style={{ '--blk': `#${color.bg}`, '--blk-l': `#${color.light}` } as React.CSSProperties}
+                >
+                  <div className="fe-act-hd" onClick={() => setSelected(`act-${a}`)}>
+                    {story && (
+                      <input
+                        className="fe-act-emoji" value={act.emoji ?? theme.iconos[a % theme.iconos.length]} aria-label={t('Emoji')}
+                        onChange={e => patchAct(a, { emoji: e.target.value })}
+                      />
+                    )}
+                    <span className="fe-act-lbl">{t(theme.paso)} {a + 1}</span>
+                    <input className="fe-act-ttl" value={act.titulo} aria-label={t('Título del bloque')} onChange={e => patchAct(a, { titulo: e.target.value })} />
+                    <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir bloque')} disabled={a === 0} onClick={() => moveAct(a, -1)}><ArrowUp size={14} /></button>
+                    <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar bloque')} disabled={a === content.actividades.length - 1} onClick={() => moveAct(a, 1)}><ArrowDown size={14} /></button>
+                    <button type="button" className="ico-btn sm" title={t('Eliminar')} aria-label={t('Eliminar bloque')} onClick={() => deleteAct(a)}><Trash2 size={14} /></button>
+                  </div>
+                  {story && (
+                    <input
+                      className="finput fe-act-narr" value={act.narrativa ?? ''} placeholder={t('Qué pasa en la historia en este paso')}
+                      aria-label={t('Narrativa')} onChange={e => patchAct(a, { narrativa: e.target.value })}
+                    />
+                  )}
+                  <div className="fe-act-body">
+                    {act.ejercicios.map((ex, i) => (
+                      <ExerciseEditor
+                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t}
+                        selected={selected === `${a}-${i}`} first={i === 0} last={i === act.ejercicios.length - 1}
+                        busy={busyEx === `${a}-${i}`} aiDisabled={sinClave || (busyEx !== null && busyEx !== `${a}-${i}`)}
+                        onSelect={() => setSelected(`${a}-${i}`)}
+                        onChange={x => patchEx(a, i, x)}
+                        onMove={dir => moveEx(a, i, dir)}
+                        onDelete={() => deleteEx(a, i)}
+                        onRegenerate={(ins, tipo) => handleRegenerate(a, i, ins, tipo)}
+                      />
+                    ))}
+                    {!act.ejercicios.length && <p className="fe-empty">{t('Este bloque se ha quedado sin ejercicios.')}</p>}
+                  </div>
+                </div>
+              );
+            })}
+
+            {story && historia && (
+              <div className={`${blockCls('cierre')} fe-story`} {...selectOn('cierre')}>
+                <div className="fe-sec-hd">🏅 {t('El final y la insignia')}</div>
+                <label className="fe-field">
+                  <span className="fe-lbl">{t('Insignia')}</span>
+                  <input className="finput" value={historia.insignia} onChange={e => edit(c => ({ ...c, historia: { ...c.historia!, insignia: e.target.value } }))} />
+                </label>
+                <label className="fe-field">
+                  <span className="fe-lbl">{t('Mensaje final')}</span>
+                  <textarea className="finput" rows={2} value={historia.cierre} onChange={e => edit(c => ({ ...c, historia: { ...c.historia!, cierre: e.target.value } }))} />
+                </label>
+              </div>
+            )}
+          </div>
+
+          <aside className="fe-preview" aria-label={t('Vista previa')}>
+            <div className="fe-preview-hd"><Eye size={13} />{t('Vista previa · así se imprime')}</div>
+            <div className="fe-preview-scroll">
+              <FichaPreview ficha={ficha} lang={lang} selected={selected} onSelect={selectFromPreview} />
+            </div>
+          </aside>
+        </div>
+      </section>
+    );
+  }
+
+  /* ══ Crear + biblioteca ══ */
   return (
     <section className="sec active">
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Recursos')}</h1>
-          <p className="pg-sub">{t('Genera fichas de trabajo con ayuda de la IA')}</p>
+          <p className="pg-sub">{t('Fichas con historia, listas para imprimir: la IA las crea y tú las retocas.')}</p>
         </div>
-        {content && (
-          <button className="btn-ghost" onClick={resetAll}>
-            <Plus size={14} />{t('Empezar otra')}
-          </button>
-        )}
       </div>
 
       {sinClave && (
         <AiKeyNotice message={t('Para generar recursos hace falta la clave gratuita de Google que se configura en Mi Perfil.')} action={t('Configurar la IA')} onAction={() => onNav('profile')} />
       )}
 
-      {/* ══ Formulario ══ */}
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card fe-create" style={{ marginBottom: 16 }}>
         <div className="card-hd">
-          <div className="card-ttl"><Sparkles size={14} color="var(--accent-d)" />{t('Qué ficha quieres generar')}</div>
+          <div className="card-ttl"><Sparkles size={14} color="var(--accent-d)" />{t('Nueva ficha')}</div>
         </div>
 
         <div className="fgroup">
-          <label className="flabel" htmlFor="resources-f1">{t('Tema de la ficha')} *</label>
+          <label className="flabel" htmlFor="resources-f1">{t('¿De qué va la ficha?')} *</label>
           <input
             id="resources-f1"
-            className="finput" value={tema} onChange={e => setTema(e.target.value)}
+            className="finput fe-big" value={tema} onChange={e => setTema(e.target.value)}
             placeholder={t('Ej: las fracciones equivalentes')}
+            onKeyDown={e => { if (e.key === 'Enter' && !generating && !sinClave) handleGenerate(); }}
           />
         </div>
 
@@ -342,18 +471,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             <label className="flabel" htmlFor="resources-f3">{t('Área o asignatura')}</label>
             <input id="resources-f3" className="finput" value={area} onChange={e => setArea(e.target.value)} />
           </div>
-        </div>
-
-        <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="resources-f4">{t('Nivel o curso')}</label>
-            <input
-              id="resources-f4"
-              className="finput" value={nivel} onChange={e => setNivel(e.target.value)}
-              placeholder={t('Ej: 5º de Primaria')}
-            />
+            <input id="resources-f4" className="finput" value={nivel} onChange={e => setNivel(e.target.value)} placeholder={t('Ej: 5º de Primaria')} />
           </div>
-          <div className="fgroup">
+          <div className="fgroup" style={{ maxWidth: 140 }}>
             <label className="flabel" htmlFor="resources-f5">{t('Nº de ejercicios')}</label>
             <input
               id="resources-f5"
@@ -364,180 +486,94 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
         </div>
 
         <div className="fgroup">
-          <label className="flabel" htmlFor="resources-f6">{t('Cómo es el grupo (opcional)')}</label>
-          <textarea
-            id="resources-f6"
-            className="finput" rows={2} value={contextoClase}
-            onChange={e => setContextoClase(e.target.value)}
-            style={{ resize: 'vertical' }}
-          />
+          <span className="flabel">{t('El mundo de la historia')}</span>
+          <ThemeGrid value={estilo} onChange={setEstilo} withAuto t={t} />
+          <p className="fe-hint" style={{ marginTop: 6 }}>
+            {estilo === 'clasico'
+              ? t('Sin historia: una ficha sobria de las de siempre.')
+              : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
+          </p>
         </div>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 4 }}>
-          <input type="checkbox" checked={niveles} onChange={e => setNiveles(e.target.checked)} />
-          {t('Incluir variantes de apoyo y ampliación por ejercicio')}
-        </label>
-        <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 12 }}>
-          {t('Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.')}
-        </p>
+        <details className="fe-more">
+          <summary>{t('Más opciones')}</summary>
+          <div className="fgroup" style={{ marginTop: 10 }}>
+            <label className="flabel" htmlFor="resources-f6">{t('Cómo es el grupo (opcional)')}</label>
+            <textarea id="resources-f6" className="finput" rows={2} value={contextoClase} onChange={e => setContextoClase(e.target.value)} style={{ resize: 'vertical' }} />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 4 }}>
+            <input type="checkbox" checked={niveles} onChange={e => setNiveles(e.target.checked)} />
+            {t('Incluir variantes de apoyo y ampliación por ejercicio')}
+          </label>
+          <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 4 }}>
+            {t('Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.')}
+          </p>
+        </details>
 
-        <div style={{ paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
+        <div style={{ paddingTop: 14, marginTop: 10, borderTop: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
-              ? <><span className="spin" />{t('Generando la ficha…')}</>
-              : <><Sparkles size={14} />{t('Generar ficha')}</>}
+              ? <><span className="spin" />{t('Creando la ficha…')}</>
+              : <><Sparkles size={14} />{t('Crear ficha')}</>}
           </button>
+          {generating && <span className="fe-hint">{t('La IA está escribiendo la historia y los ejercicios. Tarda unos segundos.')}</span>}
         </div>
       </div>
 
-      {/* ══ Resultado ══ */}
-      {content && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-hd">
-            <div className="card-ttl"><Layers size={14} color="var(--accent-d)" />{t('Ficha de trabajo')}</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {isDesktop() && (
-                <button
-                  className="btn-ghost" disabled={exporting !== null}
-                  onClick={() => handleExportPdf(currentFicha(), CURRENT_KEY)} title={t('Guardar en PDF')}
-                >
-                  {exporting?.key === CURRENT_KEY && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={14} />}{t('PDF')}
-                </button>
-              )}
-              <button
-                className="btn-ghost" disabled={exporting !== null}
-                onClick={() => handleExportDocx(currentFicha(), CURRENT_KEY)} title={t('Descargar en Word')}
-              >
-                {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
-              </button>
-              <button className="btn-accent" onClick={handleSave}>
-                <Check size={14} />{t('Guardar')}
-              </button>
-            </div>
-          </div>
-
-          {(() => {
-            const motifKey = pickMotifKey(tema, area);
-            const motif = MOTIF_COLORS[motifKey];
-            const MotifIcon = MOTIF_ICON_COMPONENT[motifKey];
-            return (
-              <div style={{
-                width: 76, height: 76, borderRadius: 16, background: `#${motif.bg}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                float: 'right', marginLeft: 12,
-              }}>
-                <MotifIcon size={34} color={`#${motif.accent}`} />
-              </div>
-            );
-          })()}
-
-          <div className="fgroup">
-            <label className="flabel" htmlFor="resources-f7">{t('Título')}</label>
-            <input id="resources-f7" className="finput" value={content.titulo ?? ''} onChange={e => patch('titulo', e.target.value)} />
-          </div>
-
-          <div style={{
-            background: 'linear-gradient(135deg, var(--accent-l), rgba(14,165,233,0.05))',
-            border: '1.5px solid rgba(14,165,233,0.35)', borderLeft: '4px solid var(--accent-d)',
-            borderRadius: 10, padding: '12px 14px 14px', marginBottom: 16,
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800,
-              textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--accent-d)', marginBottom: 6,
-            }}>
-              <Lightbulb size={13} />{t('Antes de empezar')}
-            </div>
-            <textarea
-              rows={3} value={content.explicacion ?? ''}
-              onChange={e => patch('explicacion', e.target.value)}
-              style={{
-                width: '100%', resize: 'vertical', background: 'transparent', border: 'none', padding: 0,
-                fontFamily: 'var(--font)', fontSize: 13, lineHeight: 1.6, color: 'var(--text)', outline: 'none',
-              }}
-            />
-          </div>
-
-          <div className="fgroup">
-            <label className="flabel" htmlFor="resources-f8">{t('Instrucciones')}</label>
-            <textarea
-              id="resources-f8"
-              className="finput" rows={2} value={content.instrucciones ?? ''}
-              onChange={e => patch('instrucciones', e.target.value)}
-              style={{ resize: 'vertical' }}
-            />
-          </div>
-
-          {actividades.map((act, ai) => (
-            <div key={ai} className="fgroup">
-              <label className="flabel" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {act.titulo ? <><PenLine size={12} />{t('Actividad {n}', { n: ai + 1 })}: {act.titulo}</> : t('Ejercicios')}
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {act.ejercicios.map((ex, i) => <ExercisePreview key={i} ex={ex} i={i} t={t} />)}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ══ Guardadas ══ */}
       <div className="card">
         <div className="card-hd">
           <div className="card-ttl"><Layers size={14} color="var(--accent-d)" />{t('Mis fichas')}</div>
-          {fichas.length > 0 && (
-            <span style={{ fontSize: 11.5, color: 'var(--text-3)', fontWeight: 700 }}>{fichas.length}</span>
-          )}
+          {fichas.length > 0 && <span style={{ fontSize: 11.5, color: 'var(--text-3)', fontWeight: 700 }}>{fichas.length}</span>}
         </div>
         {fichas.length === 0 ? (
           <p style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center', padding: '20px 0' }}>
             {t('Todavía no has guardado ninguna.')}
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {fichas.map(f => (
-              <div key={f.id} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px',
-                borderRadius: 10, background: 'var(--surface)', border: '0.5px solid var(--border)',
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {f.title}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>
-                    {[f.class_name, f.sda_title ? t('desde «{title}»', { title: f.sda_title }) : f.request.area,
-                      new Date(f.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })]
-                      .filter(Boolean).join(' · ')}
+          <div className="fe-lib">
+            {fichas.map(f => {
+              const th = fichaTheme(f.content.estilo);
+              const nEj = (f.content.actividades ?? []).reduce((s, a) => s + a.ejercicios.length, 0);
+              return (
+                <div key={f.id} className="fe-card" style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}` } as React.CSSProperties}>
+                  <button type="button" className="fe-card-main" onClick={() => openSaved(f)}>
+                    <span className={`fe-card-art${th.id === 'clasico' ? ' plain' : ''}`}>{f.content.historia?.emoji || th.personaje}</span>
+                    <span className="fe-card-body">
+                      <span className="fe-card-ttl">{f.title}</span>
+                      <span className="fe-card-meta">
+                        {[f.class_name, f.sda_title ? t('desde «{title}»', { title: f.sda_title }) : f.request.area,
+                          nEj ? t('{n} ejercicios', { n: nEj }) : '',
+                          new Date(f.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })]
+                          .filter(Boolean).join(' · ')}
+                      </span>
+                      <span className="fe-card-theme">{t(th.nombre)}</span>
+                    </span>
+                  </button>
+                  <div className="fe-card-actions">
+                    {isDesktop() && (
+                      <button className="ico-btn" title={t('Guardar en PDF')} aria-label={t('Guardar en PDF')} disabled={exporting !== null} onClick={() => handleExportPdf(f, f.id)}>
+                        {exporting?.key === f.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
+                      </button>
+                    )}
+                    <button className="ico-btn" title={t('Descargar en Word')} aria-label={t('Descargar en Word')} disabled={exporting !== null} onClick={() => handleExportDocx(f, f.id)}>
+                      {exporting?.key === f.id && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={15} />}
+                    </button>
+                    <button
+                      className="ico-btn" title={t('Eliminar')} aria-label={t('Eliminar')}
+                      onClick={() => {
+                        if (!window.confirm(t('¿Eliminar «{name}»?', { name: f.title }))) return;
+                        onDelete(f.id);
+                      }}
+                    >
+                      <Trash2 size={14} color="var(--danger)" />
+                    </button>
                   </div>
                 </div>
-                {isDesktop() && (
-                  <button
-                    className="ico-btn" title={t('Guardar en PDF')} disabled={exporting !== null}
-                    onClick={() => handleExportPdf(f, f.id)}
-                  >
-                    {exporting?.key === f.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
-                  </button>
-                )}
-                <button
-                  className="ico-btn" title={t('Descargar en Word')} disabled={exporting !== null}
-                  onClick={() => handleExportDocx(f, f.id)}
-                >
-                  {exporting?.key === f.id && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={15} />}
-                </button>
-                <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openSaved(f)}>
-                  {t('Abrir')}
-                </button>
-                <button
-                  className="ico-btn" title={t('Eliminar')}
-                  onClick={() => {
-                    if (!window.confirm(t('¿Eliminar «{name}»?', { name: f.title }))) return;
-                    onDelete(f.id);
-                    if (editingId === f.id) resetAll();
-                  }}
-                >
-                  <Trash2 size={14} color="var(--danger)" />
-                </button>
-              </div>
-            ))}
+              );
+            })}
+            <button type="button" className="fe-card fe-card-new" onClick={() => document.getElementById('resources-f1')?.focus()}>
+              <Plus size={18} />{t('Nueva ficha')}
+            </button>
           </div>
         )}
       </div>

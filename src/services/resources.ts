@@ -27,12 +27,15 @@ import type { Lang } from '../i18n';
 import type { SdaContent } from './learningSituations';
 import { buildWordSearchGrid, type WordSearchPlacement } from '../lib/wordSearch';
 import { FIGURE_SHAPES, FIGURE_SLOTS, FIGURE_LABEL, type Figure } from '../lib/geometryFigures';
+import { buildCrossword, type Crossword } from '../lib/crossword';
+import { fichaTheme, cleanEmoji, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
 
 /* ── Lo que devuelve la IA ── */
 
 export type FichaExerciseType =
   | 'abierta' | 'completar' | 'opcion_multiple' | 'problema'
-  | 'tabla_rellenar' | 'relacionar' | 'colorear' | 'sopa_letras';
+  | 'tabla_rellenar' | 'relacionar' | 'colorear' | 'sopa_letras'
+  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic';
 
 export interface FichaExercise {
   tipo: FichaExerciseType;
@@ -62,6 +65,22 @@ export interface FichaExercise {
   rejilla?: string[][];
   /** Solo 'sopa_letras': dónde queda cada palabra de `palabras` en `rejilla`, para la vista del profesorado. */
   posiciones?: WordSearchPlacement[];
+  /** Solo 'verdadero_falso': frases que el alumnado marca como V o F. */
+  afirmaciones?: string[];
+  /**
+   * Solo 'ordenar': los pasos o elementos tal como se muestran, ya
+   * desordenados. La IA los da en el orden correcto y el código los baraja
+   * (ver `prepareExercise`); el orden bueno queda en `ordenCorrecto`.
+   */
+  elementos?: string[];
+  /** Solo 'ordenar': el orden correcto, para el profesorado. */
+  ordenCorrecto?: string[];
+  /** Solo 'crucigrama': las palabras con su pista, tal como las propone la IA. */
+  pistas?: { palabra: string; pista: string }[];
+  /** Solo 'crucigrama': la cuadrícula, calculada por código (`lib/crossword.ts`). */
+  crucigrama?: Crossword;
+  /** Solo 'comic': de 2 a 4 viñetas; un `texto` vacío es un bocadillo para rellenar. */
+  vinetas?: { personaje: string; texto: string }[];
   /**
    * Diagrama geométrico opcional (cualquier tipo, pero pensado sobre todo
    * para "problema" de área/perímetro/volumen). El dibujo en sí lo hace
@@ -80,6 +99,22 @@ export interface FichaExercise {
 export interface FichaActivity {
   titulo: string;
   ejercicios: FichaExercise[];
+  /** Solo con historia: emoji de la misión y una frase que la une al relato. */
+  emoji?: string;
+  narrativa?: string;
+}
+
+/** El hilo narrativo que envuelve la ficha: quién habla, qué hay que conseguir y el premio. */
+export interface FichaHistoria {
+  /** Nombre del personaje, ej. «Capitana Nova». */
+  personaje: string;
+  emoji: string;
+  /** Presentación de la misión, en segunda persona, al empezar. */
+  mision: string;
+  /** Mensaje al terminar. */
+  cierre: string;
+  /** Nombre de la insignia que se gana, ej. «Piloto de las fracciones». */
+  insignia: string;
 }
 
 export interface FichaContent {
@@ -88,6 +123,9 @@ export interface FichaContent {
   explicacion: string;
   instrucciones: string;
   actividades: FichaActivity[];
+  /** Tema visual. Sin él, la ficha se ve «Clásica» (así están las guardadas antes de los temas). */
+  estilo?: FichaThemeId;
+  historia?: FichaHistoria;
 }
 
 /* ── Lo que pide el docente ── */
@@ -100,7 +138,11 @@ export interface FichaRequest {
   /** Pedir a la IA una variante de apoyo y otra de ampliación por ejercicio. */
   niveles: boolean;
   contextoClase: string;
+  /** 'auto': la IA elige el tema que mejor encaja; 'clasico': sin historia. */
+  estilo?: FichaThemeChoice;
 }
+
+export type FichaThemeChoice = FichaThemeId | 'auto';
 
 const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
 
@@ -108,9 +150,27 @@ const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
 
 const S = (d: string) => ({ type: 'STRING', description: d });
 
-const TIPOS: FichaExerciseType[] = [
+export const TIPOS: FichaExerciseType[] = [
   'abierta', 'completar', 'opcion_multiple', 'problema', 'tabla_rellenar', 'relacionar', 'colorear', 'sopa_letras',
+  'verdadero_falso', 'ordenar', 'crucigrama', 'comic',
 ];
+
+const PISTA_ITEM_SCHEMA = {
+  type: 'OBJECT',
+  properties: { palabra: S('Una sola palabra, sin espacios'), pista: S('Definición o pista breve para adivinarla') },
+  required: ['palabra', 'pista'],
+  propertyOrdering: ['palabra', 'pista'],
+} as const;
+
+const VINETA_ITEM_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    personaje: S('UN emoji que representa a quien habla (ej. 👧, 🧑‍🔬, 🐱)'),
+    texto: S('Lo que dice en su bocadillo. Cadena vacía "" si es el bocadillo que escribe el alumnado'),
+  },
+  required: ['personaje', 'texto'],
+  propertyOrdering: ['personaje', 'texto'],
+} as const;
 
 const LEYENDA_ITEM_SCHEMA = {
   type: 'OBJECT',
@@ -168,7 +228,9 @@ function fichaExerciseSchema(niveles: boolean) {
           '"abierta" respuesta libre, "completar" huecos, "opcion_multiple" varias opciones, ' +
           '"problema" cálculo o razonamiento con pasos, "tabla_rellenar" tabla con celdas en blanco, ' +
           '"relacionar" dos columnas para unir a mano, "colorear" leyenda de colores + elementos a colorear, ' +
-          '"sopa_letras" lista de palabras para buscar en una rejilla',
+          '"sopa_letras" lista de palabras para buscar en una rejilla, "verdadero_falso" frases para marcar V o F, ' +
+          '"ordenar" pasos o elementos para numerar en orden, "crucigrama" palabras con pistas, ' +
+          '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado',
       },
       enunciado: S('El texto del ejercicio o la pregunta, autocontenido'),
       opciones: {
@@ -209,6 +271,26 @@ function fichaExerciseSchema(niveles: boolean) {
           'Solo si tipo es "sopa_letras": de 6 a 10 palabras SUELTAS (sin espacios, una sola palabra cada ' +
           'una) relacionadas con el tema, apropiadas al nivel, en mayúsculas',
       },
+      afirmaciones: {
+        type: 'ARRAY', items: { type: 'STRING' },
+        description: 'Solo si tipo es "verdadero_falso": de 4 a 8 frases, mezclando verdaderas y falsas',
+      },
+      elementos: {
+        type: 'ARRAY', items: { type: 'STRING' },
+        description:
+          'Solo si tipo es "ordenar": de 4 a 7 pasos, hechos o elementos EN SU ORDEN CORRECTO — la ' +
+          'aplicación los desordena antes de mostrarlos',
+      },
+      pistas: {
+        type: 'ARRAY', items: PISTA_ITEM_SCHEMA,
+        description: 'Solo si tipo es "crucigrama": de 5 a 8 palabras sueltas del tema, cada una con su pista',
+      },
+      vinetas: {
+        type: 'ARRAY', items: VINETA_ITEM_SCHEMA,
+        description:
+          'Solo si tipo es "comic": de 3 a 4 viñetas de una conversación sobre el tema; la última (o alguna) ' +
+          'con "texto" vacío para que el alumnado escriba lo que dice el personaje',
+      },
       figura: {
         ...FIGURA_SCHEMA,
         description:
@@ -219,7 +301,9 @@ function fichaExerciseSchema(niveles: boolean) {
       solucion: S(
         'La respuesta correcta, para el profesorado: en "tabla_rellenar" los valores que faltan, en ' +
         '"relacionar" qué elemento de la izquierda va con cuál de la derecha, en "colorear" qué color ' +
-        'lleva cada elemento, en "sopa_letras" basta con repetir la lista de palabras',
+        'lleva cada elemento, en "sopa_letras" basta con repetir la lista de palabras, en "verdadero_falso" ' +
+        'V o F para cada frase (y la corrección de las falsas), en "ordenar" el orden correcto, en ' +
+        '"crucigrama" las palabras, en "comic" un ejemplo de lo que podría decir el bocadillo vacío',
       ),
       ...(niveles ? {
         apoyo: S('Versión simplificada o con más pistas del MISMO ejercicio, para quien necesite refuerzo'),
@@ -229,44 +313,99 @@ function fichaExerciseSchema(niveles: boolean) {
     required: niveles ? [...base, 'apoyo', 'ampliacion'] : [...base],
     propertyOrdering: [
       'tipo', 'enunciado', 'opciones', 'columnas', 'filas', 'izquierda', 'derecha',
-      'leyenda', 'itemsColorear', 'palabras', 'figura', 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
+      'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
+      'figura', 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
     ],
   } as const;
 }
 
-function fichaActivitySchema(niveles: boolean) {
+/** Qué partes opcionales se piden a la IA: solo las que se van a usar, igual que con los niveles. */
+interface SchemaOpts {
+  niveles: boolean;
+  /** Envolver la ficha en una historia (todo tema menos «Clásica»). */
+  historia: boolean;
+  /** Que la IA elija el tema visual. */
+  elegirEstilo: boolean;
+}
+
+function fichaActivitySchema(o: SchemaOpts) {
+  const story = o.historia ? {
+    emoji: S('UN emoji que represente esta misión dentro de la historia'),
+    narrativa: S('Una frase que conecta este bloque con la historia, ej. "El motor de la nave se ha roto: resuelve estas potencias para repararlo"'),
+  } : {};
   return {
     type: 'OBJECT',
     properties: {
       titulo: S('Título breve del bloque de actividad, ej. "Escribe como potencia"'),
-      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(niveles) },
+      ...story,
+      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles) },
     },
-    required: ['titulo', 'ejercicios'],
-    propertyOrdering: ['titulo', 'ejercicios'],
+    required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), 'ejercicios'],
+    propertyOrdering: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), 'ejercicios'],
   } as const;
 }
 
-function fichaSchema(niveles: boolean) {
+const HISTORIA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    personaje: S('Nombre del personaje que guía la aventura, ej. "Capitana Nova"'),
+    emoji: S('UN emoji que represente al personaje'),
+    mision: S('Presentación de la misión, 2-3 frases en segunda persona dirigidas al alumnado, con emoción y un objetivo claro'),
+    cierre: S('Mensaje final de 1-2 frases felicitando al alumnado por completar la misión'),
+    insignia: S('Nombre corto y motivador de la insignia que se gana, relacionado con el tema, ej. "Piloto de las potencias"'),
+  },
+  required: ['personaje', 'emoji', 'mision', 'cierre', 'insignia'],
+  propertyOrdering: ['personaje', 'emoji', 'mision', 'cierre', 'insignia'],
+} as const;
+
+function fichaSchema(o: SchemaOpts) {
+  const head = [...(o.elegirEstilo ? ['estilo'] : []), 'titulo', ...(o.historia ? ['historia'] : [])];
   return {
     type: 'OBJECT',
     properties: {
+      ...(o.elegirEstilo ? {
+        estilo: {
+          type: 'STRING', enum: STORY_THEME_IDS,
+          description: 'El mundo de la historia que mejor encaja con el tema y la edad (ver ESTILOS en las instrucciones)',
+        },
+      } : {}),
       titulo: S('Título breve de la ficha'),
+      ...(o.historia ? { historia: HISTORIA_SCHEMA } : {}),
       explicacion: S(
         'Repaso breve (3-5 frases) del concepto antes de los ejercicios: qué es, por qué sirve, ' +
         'y a ser posible un ejemplo resuelto sencillo. Se muestra destacado, antes de las instrucciones.',
       ),
       instrucciones: S('Instrucciones generales para el alumnado, dos o tres frases'),
       actividades: {
-        type: 'ARRAY', items: fichaActivitySchema(niveles),
+        type: 'ARRAY', items: fichaActivitySchema(o),
         description: 'De 2 a 4 bloques de actividad, cada uno con su título y sus propios ejercicios',
       },
     },
-    required: ['titulo', 'explicacion', 'instrucciones', 'actividades'],
-    propertyOrdering: ['titulo', 'explicacion', 'instrucciones', 'actividades'],
+    required: [...head, 'explicacion', 'instrucciones', 'actividades'],
+    propertyOrdering: [...head, 'explicacion', 'instrucciones', 'actividades'],
   } as const;
 }
 
-function systemPrompt(niveles: boolean, lang: Lang): string {
+const ESTILOS_DOC = STORY_THEME_IDS.map(id => `"${id}": ${fichaTheme(id).ambiente}`).join(' · ');
+
+/** La parte del prompt que convierte la ficha en una aventura. */
+function storyPrompt(estilo: FichaThemeChoice): string {
+  const mundo = estilo === 'auto'
+    ? `Elige en "estilo" el mundo que mejor encaje con el tema y la edad del alumnado. ESTILOS: ${ESTILOS_DOC}.\n`
+    : `El mundo de la historia es ${fichaTheme(estilo).ambiente}.\n`;
+  return (
+    `HISTORIA: la ficha es una aventura. ${mundo}` +
+    `En "historia" crea un personaje que guía al alumnado, presenta la misión en "mision" (segunda persona, ` +
+    `con emoción, un objetivo claro), escribe un "cierre" que felicita al terminar y el nombre de la ` +
+    `"insignia" que se gana. Cada bloque de actividad es un paso de la aventura: su "narrativa" dice en una ` +
+    `frase por qué hay que resolverlo dentro de la historia. Los enunciados pueden usar personajes y ` +
+    `objetos de ese mundo (planetas, animales, pistas…) siempre que el contenido académico sea el mismo y ` +
+    `riguroso: la historia motiva, no sustituye al aprendizaje. Tono cercano, sin infantilizar en ` +
+    `Secundaria.\n`
+  );
+}
+
+function systemPrompt(niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico'): string {
   return (
     `Eres un experto en didáctica y creación de materiales educativos. Tu tarea exclusiva es ` +
     `redactar una ficha de trabajo imprimible para el alumnado: una breve explicación del concepto ` +
@@ -289,6 +428,16 @@ function systemPrompt(niveles: boolean, lang: Lang): string {
     `- "sopa_letras": de 6 a 10 "palabras" sueltas (una palabra cada una, sin espacios ni frases) sobre ` +
     `el tema, apropiadas al nivel — la rejilla donde buscarlas la dibuja la propia aplicación, tú solo ` +
     `aportas la lista. Como mucho un bloque de actividad de este tipo por ficha.\n` +
+    `- "verdadero_falso": de 4 a 8 "afirmaciones", unas verdaderas y otras falsas; las falsas, con un ` +
+    `error concreto que se pueda razonar.\n` +
+    `- "ordenar": de 4 a 7 "elementos" (pasos de un proceso, fechas, números, fases…) EN SU ORDEN ` +
+    `CORRECTO; la aplicación los desordena.\n` +
+    `- "crucigrama": de 5 a 8 "pistas", cada una una palabra suelta del tema con su definición; la ` +
+    `cuadrícula la monta la aplicación. Como mucho uno por ficha.\n` +
+    `- "comic": de 3 a 4 "vinetas" con un emoji de personaje y lo que dice; deja al menos un bocadillo ` +
+    `vacío ("") para que el alumnado escriba la respuesta o la explicación. Como mucho uno por ficha.\n` +
+    `VARIEDAD: usa al menos tres tipos distintos en la ficha y prefiere los más visuales y manipulativos ` +
+    `(relacionar, ordenar, verdadero o falso, crucigrama, cómic…) cuando encajen con el contenido.\n` +
     `FIGURA: cuando un ejercicio (normalmente "problema") pida calcular área, perímetro, superficie o ` +
     `volumen de una forma geométrica concreta, añade el campo "figura" con "forma" (una de esta lista, ` +
     `EXACTAMENTE con ese nombre) y "medidas" (un {etiqueta, valor} por cada medida de esa forma, EN ESTE ` +
@@ -315,6 +464,7 @@ function systemPrompt(niveles: boolean, lang: Lang): string {
     `número simple, escríbelo con palabras ("tres elevado a x").\n` +
     `El enunciado de cada ejercicio debe poder leerse y trabajarse solo, sin depender de un libro ` +
     `de texto que la IA no ha visto.\n` +
+    (estilo !== 'clasico' ? storyPrompt(estilo) : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -365,6 +515,10 @@ function cleanExercise(ex: FichaExercise): FichaExercise {
     derecha: ex.derecha?.map(cleanMathNotation),
     leyenda: ex.leyenda?.map(l => ({ color: l.color, criterio: cleanMathNotation(l.criterio) })),
     itemsColorear: ex.itemsColorear?.map(cleanMathNotation),
+    afirmaciones: ex.afirmaciones?.map(cleanMathNotation),
+    elementos: ex.elementos?.map(cleanMathNotation),
+    pistas: ex.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
+    vinetas: ex.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
     solucion: cleanMathNotation(ex.solucion),
     apoyo: ex.apoyo ? cleanMathNotation(ex.apoyo) : ex.apoyo,
     ampliacion: ex.ampliacion ? cleanMathNotation(ex.ampliacion) : ex.ampliacion,
@@ -390,25 +544,76 @@ function attachWordSearchGrid(ex: FichaExercise): FichaExercise {
   return { ...ex, palabras, rejilla, posiciones };
 }
 
-function cleanFichaContent(c: FichaContent): FichaContent {
+/** Baraja sin dejar nunca el orden original (si no, no habría nada que ordenar). */
+export function shuffleApart<T>(list: T[], rand: () => number = Math.random): T[] {
+  if (list.length < 2) return [...list];
+  for (let tries = 0; tries < 10; tries++) {
+    const out = [...list];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    if (out.some((x, i) => x !== list[i])) return out;
+  }
+  return [...list.slice(1), list[0]];
+}
+
+/**
+ * Lo que calcula el código y no la IA: la rejilla de la sopa de letras, la
+ * cuadrícula del crucigrama y el desorden de «ordenar». Se hace al recibir el
+ * ejercicio y cuando el docente cambia sus palabras en el editor.
+ */
+export function prepareExercise(ex: FichaExercise): FichaExercise {
+  if (ex.tipo === 'sopa_letras') return attachWordSearchGrid(ex);
+  if (ex.tipo === 'crucigrama' && ex.pistas?.length) {
+    const crucigrama = buildCrossword(ex.pistas);
+    return { ...ex, crucigrama };
+  }
+  if (ex.tipo === 'ordenar' && ex.elementos?.length && !ex.ordenCorrecto?.length) {
+    return { ...ex, ordenCorrecto: ex.elementos, elementos: shuffleApart(ex.elementos) };
+  }
+  return ex;
+}
+
+function cleanFichaContent(c: FichaContent, estilo: FichaThemeChoice = 'clasico'): FichaContent {
+  const finalEstilo: FichaThemeId = estilo === 'auto'
+    ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
+    : estilo;
+  const theme = fichaTheme(finalEstilo);
+  const historia = c.historia && finalEstilo !== 'clasico'
+    ? {
+      ...c.historia,
+      emoji: cleanEmoji(c.historia.emoji, theme.personaje),
+      mision: cleanMathNotation(c.historia.mision),
+      cierre: cleanMathNotation(c.historia.cierre),
+    }
+    : undefined;
   return {
     ...c,
+    estilo: finalEstilo,
+    historia,
     titulo: cleanMathNotation(c.titulo),
     explicacion: cleanMathNotation(c.explicacion),
     instrucciones: cleanMathNotation(c.instrucciones),
-    actividades: c.actividades.map(act => ({
+    actividades: c.actividades.map((act, i) => ({
       titulo: cleanMathNotation(act.titulo),
-      ejercicios: act.ejercicios.map(cleanExercise).map(attachWordSearchGrid),
+      ...(historia ? {
+        emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
+        narrativa: cleanMathNotation(act.narrativa ?? ''),
+      } : {}),
+      ejercicios: (act.ejercicios ?? []).map(cleanExercise).map(prepareExercise),
     })),
   };
 }
 
 type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void };
 
-async function callFichaText(system: string, user: string, niveles: boolean, onError?: (m: string) => void): Promise<FichaContent | null> {
+async function callFichaText(
+  system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, onError?: (m: string) => void,
+): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
-    maxOutputTokens: 12288,
-    responseSchema: fichaSchema(niveles),
+    maxOutputTokens: 16384,
+    responseSchema: fichaSchema({ niveles, historia: estilo !== 'clasico', elegirEstilo: estilo === 'auto' }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
     // (mismos números de siempre en figuras/tablas) incluso a temperatura
@@ -419,7 +624,7 @@ async function callFichaText(system: string, user: string, niveles: boolean, onE
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] });
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo);
 }
 
 /**
@@ -459,7 +664,8 @@ export async function generateFicha(
       `Genera una ficha de trabajo con un total de EXACTAMENTE ${req.numEjercicios} ejercicios sobre ` +
       `este tema, repartidos en sus bloques de actividad.\n\n${numberVarietyHint()}`;
 
-    return await callFichaText(systemPrompt(req.niveles, lang), userPrompt, req.niveles, callbacks.onError);
+    const estilo = req.estilo ?? 'auto';
+    return await callFichaText(systemPrompt(req.niveles, lang, estilo), userPrompt, req.niveles, estilo, callbacks.onError);
   } finally {
     callbacks.onEnd?.();
   }
@@ -469,7 +675,7 @@ export async function generateFicha(
 
 export async function generateFichaFromSda(
   sda: SdaContent, area: string,
-  opts: { numEjercicios: number; niveles: boolean; detalles: string },
+  opts: { numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
@@ -486,7 +692,126 @@ export async function generateFichaFromSda(
       `Genera una ficha de trabajo con un total de EXACTAMENTE ${opts.numEjercicios} ejercicios que ` +
       `trabajen estos saberes básicos, repartidos en sus bloques de actividad.\n\n${numberVarietyHint()}`;
 
-    return await callFichaText(systemPrompt(opts.niveles, lang), userPrompt, opts.niveles, callbacks.onError);
+    const estilo = opts.estilo ?? 'auto';
+    return await callFichaText(systemPrompt(opts.niveles, lang, estilo), userPrompt, opts.niveles, estilo, callbacks.onError);
+  } finally {
+    callbacks.onEnd?.();
+  }
+}
+
+/* ── Editor: rehacer un solo ejercicio o solo la historia ── */
+
+/** Lo que la IA necesita ver de un ejercicio: sin lo que calcula el código. */
+function exerciseForPrompt(ex: FichaExercise): Partial<FichaExercise> {
+  const rest: Partial<FichaExercise> = { ...ex };
+  delete rest.rejilla; delete rest.posiciones; delete rest.crucigrama;
+  return ex.tipo === 'ordenar' && ex.ordenCorrecto?.length ? { ...rest, elementos: ex.ordenCorrecto, ordenCorrecto: undefined } : rest;
+}
+
+function fichaContextForPrompt(c: FichaContent, req: FichaRequest): string {
+  return (
+    `Ficha: ${c.titulo}\n` +
+    `Tema: ${req.tema}\n` +
+    `Área o asignatura: ${req.area || '(no indicada)'}\n` +
+    `Curso o nivel: ${req.nivel || '(no indicado)'}\n` +
+    (c.historia ? `Historia de la ficha: ${c.historia.personaje} — ${c.historia.mision}\n` : '')
+  );
+}
+
+/**
+ * Rehace un único ejercicio siguiendo la indicación del docente («hazlo más
+ * fácil», «cámbialo por un crucigrama»…) sin tocar el resto de la ficha.
+ */
+export async function regenerateExercise(
+  content: FichaContent, req: FichaRequest, actIdx: number, exIdx: number,
+  opts: { instruccion: string; tipo?: FichaExerciseType },
+  lang: Lang, callbacks: Callbacks = {},
+): Promise<FichaExercise | null> {
+  const act = content.actividades[actIdx];
+  const ex = act?.ejercicios[exIdx];
+  if (!ex) return null;
+  callbacks.onStart?.();
+  try {
+    const niveles = !!(ex.apoyo || ex.ampliacion);
+    const userPrompt =
+      fichaContextForPrompt(content, req) +
+      `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n\n` +
+      `Ejercicio actual (JSON):\n${JSON.stringify(exerciseForPrompt(ex))}\n\n` +
+      `Rehaz SOLO este ejercicio. Indicación del docente: ${opts.instruccion || 'haz una versión distinta'}.\n` +
+      (opts.tipo ? `El nuevo ejercicio debe ser de tipo "${opts.tipo}".\n` : 'Mantén el mismo tipo salvo que la indicación pida otro.\n') +
+      `Debe seguir encajando en la ficha y en su historia.\n\n${numberVarietyHint()}`;
+    const raw = await callGemini(systemPrompt(niveles, lang), userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: 4096,
+      responseSchema: fichaExerciseSchema(niveles),
+      thinkingLevel: 'low',
+      temperature: 1.1,
+    });
+    if (!raw) return null;
+    const parsed = parseGeminiJson<FichaExercise>(raw);
+    if (!parsed?.tipo || !parsed.enunciado) return null;
+    return prepareExercise(cleanExercise(parsed));
+  } finally {
+    callbacks.onEnd?.();
+  }
+}
+
+/**
+ * Tras cambiar de tema visual, reescribe solo la historia (personaje,
+ * misión, cierre, insignia y la frase de cada bloque) para el nuevo mundo.
+ * Los ejercicios no se tocan.
+ */
+export async function rewriteStory(
+  content: FichaContent, req: FichaRequest, estilo: FichaThemeId, lang: Lang, callbacks: Callbacks = {},
+): Promise<Pick<FichaContent, 'historia' | 'actividades'> | null> {
+  if (estilo === 'clasico') return null;
+  callbacks.onStart?.();
+  try {
+    const n = content.actividades.length;
+    const schema = {
+      type: 'OBJECT',
+      properties: {
+        historia: HISTORIA_SCHEMA,
+        misiones: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              emoji: S('UN emoji para esta misión'),
+              narrativa: S('Una frase que une este bloque con la historia'),
+            },
+            required: ['emoji', 'narrativa'],
+            propertyOrdering: ['emoji', 'narrativa'],
+          },
+          description: `Exactamente ${n}, una por bloque y en el mismo orden`,
+        },
+      },
+      required: ['historia', 'misiones'],
+      propertyOrdering: ['historia', 'misiones'],
+    } as const;
+    const userPrompt =
+      fichaContextForPrompt({ ...content, historia: undefined }, req) +
+      `Bloques de actividad, en orden:\n${content.actividades.map((a, i) => `${i + 1}. ${a.titulo}`).join('\n')}\n\n` +
+      `Escribe la historia de esta ficha y una frase para cada bloque. ` +
+      `El mundo de la historia es ${fichaTheme(estilo).ambiente}. ` +
+      `Presenta la misión en segunda persona, con emoción y un objetivo claro; tono cercano, sin infantilizar en Secundaria. ` +
+      `El idioma de salida DEBE SER ${idioma(lang)}.`;
+    const raw = await callGemini(
+      'Eres un experto en gamificación educativa y escribes historias breves que motivan al alumnado.',
+      userPrompt, [], { onError: callbacks.onError },
+      { maxOutputTokens: 2048, responseSchema: schema, thinkingLevel: 'low', temperature: 1.1 },
+    );
+    if (!raw) return null;
+    const parsed = parseGeminiJson<{ historia: FichaHistoria; misiones: { emoji: string; narrativa: string }[] }>(raw);
+    if (!parsed?.historia) return null;
+    const theme = fichaTheme(estilo);
+    return {
+      historia: { ...parsed.historia, emoji: cleanEmoji(parsed.historia.emoji, theme.personaje) },
+      actividades: content.actividades.map((a, i) => ({
+        ...a,
+        emoji: cleanEmoji(parsed.misiones?.[i]?.emoji, theme.iconos[i % theme.iconos.length]),
+        narrativa: parsed.misiones?.[i]?.narrativa ?? a.narrativa ?? '',
+      })),
+    };
   } finally {
     callbacks.onEnd?.();
   }
