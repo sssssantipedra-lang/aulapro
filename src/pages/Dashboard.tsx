@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertTriangle, CheckSquare2, Plus, Target, ClipboardCheck, Sparkles, ArrowRight } from 'lucide-react';
+import { Clock, Book, Users, ClipboardList, BarChart3, CalendarDays, Zap, AlertTriangle, CheckSquare2, Plus, Target, ClipboardCheck } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
-  GradeCategory, GradeItem, GradeMap } from '../types';
+  GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
+import { FirstSteps } from '../components/dashboard/FirstSteps';
+import { firstSteps } from '../lib/firstSteps';
+import { hasApiKey } from '../services/gemini';
+import { isMarksCategory } from '../services/classMarks';
 import { PerformanceCarousel } from '../components/dashboard/PerformanceCarousel';
 import { CarouselControls, CarouselDots } from '../components/dashboard/carousel';
 import { useCarousel, paginate } from '../components/dashboard/useCarousel';
@@ -19,6 +23,7 @@ interface Props {
   students: Student[];
   classes: Class[];
   evaluations: Evaluation[];
+  attendance: AttendanceMap;
   onNav: (s: string) => void;
   onAddTask: () => void;
   onToggleTask: (id: string) => void;
@@ -26,7 +31,7 @@ interface Props {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes, evaluations,
-  gradeCategories, gradeItems, grades, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
   const { t, locale, lang } = useI18n();
   const [time, setTime] = useState(() => {
     const n = new Date();
@@ -69,6 +74,11 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   const taskCar     = useCarousel(taskPages.length);
 
   const emptyWorkspace = classes.length === 0;
+  const steps = firstSteps({
+    classes, students, scheduleBlocks, attendance, hasAi: hasApiKey(),
+    // Solo las categorías del docente, no el bloque automático de anotaciones
+    gradeCategories: gradeCategories.filter(c => !isMarksCategory(c.id)),
+  });
 
   return (
     <section className="sec active">
@@ -84,30 +94,12 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
       </div>
 
       {emptyWorkspace ? (
-        /* ── Primer uso: guía de arranque ── */
-        <div className="card" style={{ maxWidth: 640, margin: '40px auto', textAlign: 'center', padding: '44px 40px' }}>
-          <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,var(--accent-d),var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(var(--accent-rgb),0.35)' }}>
-            <Users size={28} color="white" />
-          </div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            {t('Empieza creando tu primera clase')}
-          </h2>
-          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65, maxWidth: 420, margin: '0 auto 26px' }}>
-            {t('Añade un grupo (por ejemplo «3º ESO A») con su lista de alumnos. A partir de ahí podrás poner notas en el cuaderno, evaluar con rúbricas y organizar tu agenda.')}
-          </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn-accent" style={{ fontSize: 14, padding: '11px 22px' }} onClick={() => onNav('classes')}>
-              {t('Crear mi primera clase')}
-              <ArrowRight size={15} />
-            </button>
-            <button className="btn-ghost" style={{ fontSize: 13.5 }} onClick={onLoadDemo}>
-              <Sparkles size={14} color="var(--accent-d)" />
-              {t('Cargar datos de ejemplo')}
-            </button>
-          </div>
-        </div>
+        /* ── Primer uso: la guía de primeros pasos es todo el Inicio ── */
+        <FirstSteps steps={steps} hero profileId={user?.id ?? ''} onNav={s => onNav(s)} onLoadDemo={onLoadDemo} />
       ) : (
         <>
+          <FirstSteps steps={steps} hero={false} profileId={user?.id ?? ''} onNav={(s: Section) => onNav(s)} onLoadDemo={onLoadDemo} />
+
           {/* Resumen */}
           <div className="dash-stats">
             {[

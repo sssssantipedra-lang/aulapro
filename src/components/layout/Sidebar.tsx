@@ -1,69 +1,29 @@
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, Users, CalendarDays, ClipboardList,
-  Target, History, BookOpen, User, ChevronLeft, ChevronRight, Presentation, Users2, Smartphone,
-  UserCheck, FileText, LogOut, Check, ScrollText, Stamp, Smartphone as Phone, BookMarked, Layers,
-  GraduationCap, ChevronDown, LayoutGrid,
+  LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, User, ChevronLeft, ChevronRight,
+  Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, ChevronDown, Share2,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
 import type { User as UserType } from '../../types';
 import type { Section } from '../../types';
+import { NAV_GROUPS, isCurrent, hubTarget, type NavIcon } from '../../lib/navigation';
 
-interface NavEntry {
-  id: Section;
-  label: string;
-  icon: React.ReactNode;
-}
-
-const NAV: { sect: string; items: NavEntry[] }[] = [
-  {
-    sect: 'Principal',
-    items: [
-      { id: 'dashboard', label: 'Inicio',            icon: <LayoutDashboard size={18} /> },
-      { id: 'classes',   label: 'Mis Clases',        icon: <Users size={18} /> },
-      { id: 'agenda',    label: 'Agenda',            icon: <CalendarDays size={18} /> },
-      { id: 'notebook',   label: 'Cuaderno de Notas', icon: <BookOpen size={18} /> },
-      { id: 'attendance', label: 'Asistencia',        icon: <UserCheck size={18} /> },
-      { id: 'seating',   label: 'Distribución de aula', icon: <LayoutGrid size={18} /> },
-    ],
-  },
-  {
-    sect: 'Evaluación',
-    items: [
-      { id: 'rubrics',   label: 'Rúbricas',           icon: <ClipboardList size={18} /> },
-      { id: 'diana',     label: 'Diana Competencial', icon: <Target size={18} /> },
-      { id: 'reports',   label: 'Informes',           icon: <FileText size={18} /> },
-      { id: 'records',   label: 'Actas',              icon: <Stamp size={18} /> },
-      { id: 'selfassess', label: 'Autoevaluaciones',  icon: <Phone size={18} /> },
-      { id: 'history',   label: 'Historial',          icon: <History size={18} /> },
-    ],
-  },
-  {
-    sect: 'Recursos',
-    items: [
-      { id: 'learning-situations', label: 'Situaciones de aprendizaje', icon: <BookMarked size={18} /> },
-      { id: 'resources',           label: 'Recursos',                   icon: <Layers size={18} /> },
-    ],
-  },
-  {
-    sect: 'Mi actividad docente',
-    items: [
-      { id: 'meetings',  label: 'Reuniones',   icon: <Users2 size={18} /> },
-      { id: 'trainings', label: 'Formaciones', icon: <GraduationCap size={18} /> },
-    ],
-  },
-  {
-    sect: 'Herramientas',
-    items: [
-      { id: 'sec-classroom',  label: 'Aula Live',          icon: <Presentation size={18} /> },
-      { id: 'classroom-live', label: 'Sala de alumnos',    icon: <Smartphone size={18} /> },
-      { id: 'share',          label: 'Trabajo compartido', icon: <Users2 size={18} /> },
-      { id: 'audit',          label: 'Registro de cambios', icon: <ScrollText size={18} /> },
-      { id: 'profile',        label: 'Mi Perfil',          icon: <User size={18} /> },
-    ],
-  },
-];
+const ICONS: Record<NavIcon, React.ReactNode> = {
+  home: <LayoutDashboard size={18} />,
+  classes: <Users size={18} />,
+  agenda: <CalendarDays size={18} />,
+  notebook: <BookOpen size={18} />,
+  attendance: <UserCheck size={18} />,
+  evaluate: <ClipboardCheck size={18} />,
+  documents: <FileText size={18} />,
+  inclass: <Presentation size={18} />,
+  meetings: <Users2 size={18} />,
+  trainings: <GraduationCap size={18} />,
+  share: <Share2 size={18} />,
+  audit: <ScrollText size={18} />,
+  profile: <User size={18} />,
+};
 
 interface Props {
   mini: boolean;
@@ -125,17 +85,18 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
       <div className="sb-div" />
 
       <nav className="sb-nav">
-        {NAV.map(({ sect, items }) => {
+        {NAV_GROUPS.map(({ sect, items, collapsedByDefault }) => {
+          const holdsCurrent = items.some(i => isCurrent(i, current));
           // Con la barra plegada no se ven las cabeceras, así que plegar un
           // grupo ahí escondería sus entradas sin dejar forma de recuperarlas.
-          const isCollapsed = !mini && !!collapsed[sect];
-          const holdsCurrent = items.some(i => i.id === current);
+          // «Más» empieza plegado, salvo que la pantalla abierta esté dentro.
+          const isCollapsed = !mini && (collapsed[sect] ?? (!!collapsedByDefault && !holdsCurrent));
 
           return (
             <div key={sect}>
               <button
                 className={`sb-sect-btn${isCollapsed && holdsCurrent ? ' has-current' : ''}`}
-                onClick={() => setCollapsed(c => ({ ...c, [sect]: !c[sect] }))}
+                onClick={() => setCollapsed(c => ({ ...c, [sect]: !isCollapsed }))}
                 aria-expanded={!isCollapsed}
                 title={t(isCollapsed ? 'Desplegar' : 'Plegar')}
                 type="button"
@@ -144,23 +105,29 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
                 <ChevronDown className="sb-sect-chev" size={12} style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'none' }} />
               </button>
 
-              {!isCollapsed && items.map(item => (
-                <button
-                  key={item.id}
-                  className={`nav-item${current === item.id ? ' active' : ''}`}
-                  onClick={() => onNav(item.id)}
-                  aria-current={current === item.id ? 'page' : undefined}
-                  // Plegado solo se ve el icono: el nombre va en la etiqueta y el tooltip
-                  aria-label={mini ? t(item.label) : undefined}
-                  title={mini ? t(item.label) : undefined}
-                >
-                  <span className="ni-icon">{item.icon}</span>
-                  <span className="ni-label">{t(item.label)}</span>
-                  {item.id === 'share' && sharing && (
-                    <span className="ni-live" title="Sesión compartida activa" />
-                  )}
-                </button>
-              ))}
+              {!isCollapsed && items.map(item => {
+                const on = isCurrent(item, current);
+                const tip = item.kind === 'hub'
+                  ? `${t(item.label)}: ${item.tabs.map(tb => t(tb.label)).join(' · ')}`
+                  : t(item.label);
+                return (
+                  <button
+                    key={item.id}
+                    className={`nav-item${on ? ' active' : ''}`}
+                    onClick={() => onNav(item.kind === 'hub' ? hubTarget(item) : item.id)}
+                    aria-current={on ? 'page' : undefined}
+                    // Plegado solo se ve el icono: el nombre va en la etiqueta y el tooltip
+                    aria-label={mini ? t(item.label) : undefined}
+                    title={mini || item.kind === 'hub' ? tip : undefined}
+                  >
+                    <span className="ni-icon">{ICONS[item.icon]}</span>
+                    <span className="ni-label">{t(item.label)}</span>
+                    {item.id === 'share' && sharing && (
+                      <span className="ni-live" title="Sesión compartida activa" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           );
         })}

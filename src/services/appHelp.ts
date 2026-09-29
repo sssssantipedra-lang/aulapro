@@ -83,21 +83,39 @@ Las notas van sobre 10 y el aprobado está en 5. La aplicación está en españo
 inglés (se cambia en la pantalla de bienvenida y en Mi Perfil).
 
 === CÓMO SE NAVEGA ===
-Barra lateral a la izquierda, con cinco grupos: Principal, Evaluación, Recursos,
-Mi actividad docente y Herramientas. Cada grupo se pliega y despliega pulsando
-su cabecera, y la barra entera se estrecha con la flecha de arriba. En ventanas
-estrechas (portátil pequeño, media pantalla) la barra se queda sola en iconos;
-la flecha la abre por encima del contenido y se cierra al elegir una sección,
-con Escape o pulsando fuera. Las ventanas emergentes se cierran con Escape.
+Barra lateral a la izquierda, organizada por tareas, con tres grupos:
+- «Tu día a día»: Inicio, Mis Clases, Agenda, Cuaderno de Notas y Asistencia.
+- «Trabajo docente»: tres APARTADOS que reúnen pantallas hermanas. Al entrar
+  en uno aparecen PESTAÑAS arriba para pasar de una a otra:
+    · Evaluar → Rúbricas, Diana competencial, Autoevaluaciones e Historial.
+    · Documentos → Informes, Actas, Situaciones de aprendizaje y Recursos.
+    · En clase → Distribución de aula, Aula Live y Sala de alumnos.
+  Cada apartado recuerda la última pestaña usada.
+- «Más» (plegado al principio; se abre pulsando «Más»): Reuniones,
+  Formaciones, Trabajo compartido, Registro de cambios y Mi Perfil. A Mi Perfil
+  también se llega pulsando el nombre del docente, arriba del todo.
+Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
+aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
+pulsando su cabecera, y la barra entera se estrecha con la flecha de arriba. En
+ventanas estrechas (portátil pequeño, media pantalla) la barra se queda sola en
+iconos; la flecha la abre por encima del contenido y se cierra al elegir una
+sección, con Escape o pulsando fuera. Las ventanas emergentes se cierran con
+Escape.
 
-=== PRINCIPAL ===
+=== PANTALLAS (dónde está cada una: ver CÓMO SE NAVEGA) ===
 
 [dashboard] INICIO
 Resumen del día: clases de hoy, número de alumnos, tareas pendientes y
 evaluaciones. Muestra el horario de hoy, los próximos eventos, las alertas de
 alumnos y el rendimiento por clase. Desde aquí se añaden tareas rápidas.
-Si no hay nada creado, ofrece «Crear mi primera clase» y «Cargar datos de
-ejemplo» (datos ficticios para trastear sin miedo).
+PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
+al hacerlos: 1) crear la primera clase con su alumnado, 2) añadir el horario
+(mejor escaneándolo en la Agenda), 3) decidir cómo se evalúa (categorías del
+Cuaderno), 4) pasar lista por primera vez y 5) conectar la IA (opcional). Cada
+paso tiene un botón que lleva a la pantalla. La guía se oculta con la × o
+desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
+la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
+ficticios para trastear sin miedo).
 
 [classes] MIS CLASES
 El punto de partida de todo. Se crea una clase con nombre, una o varias
@@ -194,7 +212,7 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
 Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
 
-=== EVALUACIÓN ===
+=== EVALUAR Y DOCUMENTOS ===
 
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y
@@ -229,7 +247,7 @@ cuaderno.
 Todas las evaluaciones hechas con rúbricas y dianas, con filtros por clase,
 alumno e instrumento, y buscador.
 
-=== RECURSOS ===
+=== DOCUMENTOS: SITUACIONES DE APRENDIZAJE Y RECURSOS ===
 
 [learning-situations] SITUACIONES DE APRENDIZAJE
 Diseña una SdA competencial LOMLOE con la IA a partir de una idea, las áreas, el
@@ -245,7 +263,7 @@ dibuja la propia aplicación. Se exportan a PDF (vertical, para repartir en
 clase) y a Word. Las soluciones son solo para el docente: no salen en la ficha
 exportada.
 
-=== MI ACTIVIDAD DOCENTE ===
+=== REUNIONES Y FORMACIONES (grupo «Más») ===
 
 [meetings] REUNIONES y [trainings] FORMACIONES
 Funcionan igual. Se apuntan anotaciones en bruto durante un claustro, una
@@ -263,7 +281,7 @@ ventana o la aplicación se cierran sin guardar, al volver a Reuniones o
 Formaciones aparece un aviso con «Recuperar» (reabre lo escrito) o «Descartar».
 Al pulsar «Guardar» la copia se borra.
 
-=== HERRAMIENTAS ===
+=== EN CLASE Y OTRAS HERRAMIENTAS ===
 
 [sec-classroom] AULA LIVE
 Herramientas para proyectar en clase: temporizador, sorteo de alumnos (se puede
@@ -367,7 +385,7 @@ export function helpSystemPrompt(lang: Lang, section: string): string {
         : '1. Responde SOLO con lo que dice el manual de abajo. Si algo no está, di con naturalidad que no lo sabes seguro en vez de suponerlo: un botón inventado manda al docente a dar vueltas para nada.',
       lang === 'en'
         ? '2. Be brief and practical: the exact route (“Sidebar → My Classes → New class”) and the steps in order. Two or three short paragraphs at most, or a short list.'
-        : '2. Sé breve y práctico: la ruta exacta («barra lateral → Mis Clases → Nueva clase») y los pasos en orden. Dos o tres párrafos cortos como mucho, o una lista breve.',
+        : '2. Sé breve y práctico: la ruta exacta («barra lateral → Mis Clases → Nueva clase», o «Documentos → Actas» para las pantallas agrupadas) y los pasos en orden. Dos o tres párrafos cortos como mucho, o una lista breve.',
       lang === 'en'
         ? '3. You do NOT see the teacher\'s classes, students or marks. If they ask about their own data (“how is Marta doing?”), point them to the Gradebook’s “Consulta IA” tab, which does.'
         : '3. TÚ NO VES las clases, los alumnos ni las notas de este docente. Si te preguntan por sus datos («¿cómo va Marta?»), mándalos a la pestaña «Consulta IA» del Cuaderno de Notas, que es la que sí los ve.',

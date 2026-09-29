@@ -1432,7 +1432,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
   };
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: '100vh', background: light ? '#ffffff' : '#080f21' }}>
+    <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - var(--hub-h, 0px))', background: light ? '#ffffff' : '#080f21' }}>
       {/* Fondo */}
       {!light && (
         <div
