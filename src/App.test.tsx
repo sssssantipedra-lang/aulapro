@@ -48,15 +48,35 @@ describe('Aula Pro', () => {
     await user.click(await screen.findByText('Explorar con datos de ejemplo'));
     await screen.findByRole('button', { name: /Mis Clases/ });
 
-    const secciones = [
-      'Mis Clases', 'Agenda', 'Cuaderno de Notas', 'Asistencia', 'Distribución de aula',
-      'Rúbricas', 'Diana Competencial', 'Informes', 'Actas', 'Autoevaluaciones', 'Historial',
-      'Reuniones', 'Formaciones', 'Sala de alumnos', 'Trabajo compartido', 'Registro de cambios', 'Mi Perfil',
-    ];
-    for (const nombre of secciones) {
-      await user.click(screen.getByRole('button', { name: new RegExp(`^${nombre}$`) }));
-      // Cada sección se carga aparte (lazy): se espera a que pinte su título
+    // El menú va por tareas: unas pantallas son entradas directas y otras
+    // pestañas dentro de un apartado (Evaluar, Documentos, En clase).
+    const h1 = async (nombre: string) =>
       expect((await screen.findAllByRole('heading', { level: 1 })).length, nombre).toBeGreaterThan(0);
+    const menu = (nombre: string) => user.click(screen.getByRole('button', { name: new RegExp(`^${nombre}$`) }));
+
+    for (const nombre of ['Mis Clases', 'Agenda', 'Cuaderno de Notas', 'Asistencia']) {
+      await menu(nombre);
+      await h1(nombre);
+    }
+
+    const apartados: [string, string[]][] = [
+      ['Evaluar', ['Rúbricas', 'Diana competencial', 'Autoevaluaciones', 'Historial']],
+      ['Documentos', ['Informes', 'Actas']],
+      ['En clase', ['Distribución de aula', 'Sala de alumnos']],
+    ];
+    for (const [apartado, pestañas] of apartados) {
+      await menu(apartado);
+      for (const p of pestañas) {
+        await user.click(await screen.findByRole('tab', { name: p }));
+        await h1(`${apartado} → ${p}`);
+      }
+    }
+
+    // «Más» empieza plegado
+    await user.click(screen.getByRole('button', { name: /^Más/ }));
+    for (const nombre of ['Reuniones', 'Formaciones', 'Trabajo compartido', 'Registro de cambios', 'Mi Perfil']) {
+      await menu(nombre);
+      await h1(nombre);
     }
     window.removeEventListener('error', onError);
     expect(errores).toEqual([]);

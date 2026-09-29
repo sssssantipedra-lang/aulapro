@@ -13,6 +13,8 @@ import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
+import { HubTabs } from './components/layout/HubTabs';
+import { hubOf, rememberTab } from './lib/navigation';
 import type { Section } from './types';
 import { X } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
@@ -52,6 +54,8 @@ function AppInner() {
   const st = useAppState();
 
   const [section, setSection]         = useState<Section>('dashboard');
+  // Volver a un apartado del menú abre la pestaña en la que se estaba
+  useEffect(() => { rememberTab(section); }, [section]);
   const [sidebarMini, setSidebarMini] = useState(false);
   // En pantallas estrechas el menú va plegado a iconos y se abre por encima
   const narrow = useNarrowScreen();
@@ -197,7 +201,8 @@ function AppInner() {
       )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <main style={{ flex: 1, overflow: 'auto' }}>
+        <main style={{ flex: 1, overflow: 'auto' }} className={hubOf(section) ? 'with-hub' : undefined}>
+          <HubTabs section={section} onNav={setSection} />
           <Suspense fallback={<Loading />}>
             {section === 'dashboard' && (
               <Dashboard
@@ -208,6 +213,7 @@ function AppInner() {
                 students={st.students}
                 classes={st.classes}
                 evaluations={st.evaluations}
+                attendance={st.attendance}
                 gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
