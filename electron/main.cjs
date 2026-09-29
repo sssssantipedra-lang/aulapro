@@ -169,6 +169,13 @@ async function createWindow() {
   // Ocultar la barra de menú por defecto para un aspecto moderno
   Menu.setApplicationMenu(null);
 
+  // Los enlaces a webs (p. ej. Google AI Studio para la clave) se abren en el
+  // navegador del sistema, donde el docente ya tiene su sesión de Google.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//.test(url)) { shell.openExternal(url); return { action: 'deny' }; }
+    return { action: 'allow' };
+  });
+
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
   if (isDev && process.env.VITE_DEV_SERVER_URL) {

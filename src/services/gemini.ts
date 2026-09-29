@@ -12,16 +12,78 @@ import { currentPseudonymizer, privacyInstruction } from './privacy';
 const KEY_STORAGE = 'aulapro_gemini_key';
 
 /**
- * Modelos en orden de preferencia. Se prueban de arriba abajo: si uno no está
- * disponible con la clave del usuario o agota su cuota, se pasa al siguiente.
- * Los 2.x del final son la red de seguridad para que la IA nunca deje de funcionar.
+ * El modelo bueno: el más capaz de la familia Flash. En el plan gratuito de
+ * Google solo da para unas 20 peticiones al día (septiembre de 2026), así que
+ * se reserva para lo que de verdad lo nota —situaciones de aprendizaje,
+ * fichas, informes, rúbricas—; ver `modelsFor`.
  */
-const MODELS = [
-  'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-] as const;
+export const MAIN_MODEL = 'gemini-3.8-flash';
+
+/**
+ * Los ligeros: unas 500 peticiones al día gratis y bastante buenos para el
+ * día a día (chat, transcribir un horario, retocar un ejercicio).
+ */
+const LITE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'] as const;
+
+/** Red de seguridad para que la IA nunca deje de funcionar. */
+const LEGACY_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'] as const;
+
+/**
+ * Qué modelos probar, en orden. Las tareas grandes (razonamiento medio o alto,
+ * o respuestas largas) empiezan por el modelo bueno; el resto, por los
+ * ligeros, para no gastar su cupo diario en una pregunta del chat. Si el
+ * primero no responde o se ha quedado sin cupo, se pasa al siguiente.
+ */
+export function modelsFor(options: Pick<GeminiOptions, 'thinkingLevel' | 'maxOutputTokens'> = {}): string[] {
+  const heavy = options.thinkingLevel === 'high' || options.thinkingLevel === 'medium' || (options.maxOutputTokens ?? 0) >= 8192;
+  return heavy
+    ? [MAIN_MODEL, ...LITE_MODELS, ...LEGACY_MODELS]
+    : [...LITE_MODELS, MAIN_MODEL, ...LEGACY_MODELS];
+}
+
+/* ── Cupo agotado: no volver a llamar a un modelo hasta que se renueve ── */
+
+const COOLDOWN_KEY = 'aulapro_model_cooldown';
+
+function readCooldowns(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(COOLDOWN_KEY) ?? '{}') as Record<string, number>; } catch { return {}; }
+}
+
+function writeCooldowns(c: Record<string, number>) {
+  try { localStorage.setItem(COOLDOWN_KEY, JSON.stringify(c)); } catch { /* sin almacenamiento: solo dura esta sesión */ }
+}
+
+/**
+ * El cupo diario de Google se renueva a medianoche de la hora del Pacífico:
+ * las 9:00 en la España peninsular, en verano y en invierno (los dos cambian
+ * de hora, salvo un par de semanas al año en que la diferencia es de una hora).
+ */
+export function nextDailyReset(now: Date = new Date()): number {
+  const pacific = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const offset = now.getTime() - pacific.getTime();
+  const midnight = new Date(pacific);
+  midnight.setHours(24, 0, 0, 0);
+  return midnight.getTime() + offset;
+}
+
+/** Un 429 puede ser «demasiadas por minuto» o «se acabó el cupo de hoy». */
+function markExhausted(model: string, apiMessage: string, now = Date.now()) {
+  const daily = /per ?day|PerDay|daily/i.test(apiMessage);
+  const c = readCooldowns();
+  c[model] = daily ? nextDailyReset(new Date(now)) : now + 60_000;
+  writeCooldowns(c);
+}
+
+function isCoolingDown(model: string, now = Date.now()): boolean {
+  const until = readCooldowns()[model];
+  return !!until && until > now;
+}
+
+/** Para Mi Perfil: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
+export function mainModelPausedUntil(): number | null {
+  const until = readCooldowns()[MAIN_MODEL];
+  return until && until > Date.now() + 60_000 ? until : null;
+}
 
 /**
  * La clave, ya descifrada, en memoria. En la aplicación de escritorio vive
@@ -114,7 +176,11 @@ interface GeminiCallbacks {
 function friendlyError(status: number, apiMessage: string): string {
   if (status === 400 && /api key/i.test(apiMessage)) return 'La clave API no es válida. Revísala en Mi Perfil.';
   if (status === 403) return 'La clave API no tiene permiso para usar Gemini. Genera una nueva en Google AI Studio.';
-  if (status === 429) return 'Se ha alcanzado el límite gratuito de peticiones. Espera un minuto y vuelve a intentarlo.';
+  if (status === 429) {
+    return /per ?day|PerDay|daily/i.test(apiMessage)
+      ? 'Se ha agotado el cupo gratuito de hoy de la IA de Google. Se renueva cada día a las 9:00.'
+      : 'Se ha alcanzado el límite gratuito de peticiones. Espera un minuto y vuelve a intentarlo.';
+  }
   if (status >= 500) return 'El servicio de Google no responde ahora mismo. Inténtalo en unos minutos.';
   return apiMessage || `Error ${status} al llamar a la IA.`;
 }
@@ -139,7 +205,7 @@ function supportsThinkingLevel(model: string): boolean {
 
 /** Ajustes opcionales de una llamada. Sin ellos, todo sigue como siempre. */
 export interface GeminiOptions {
-  /** Modelos a probar en orden. Por defecto, los ligeros de `MODELS`. */
+  /** Modelos a probar en orden. Por defecto, los que elige `modelsFor`. */
   models?: readonly string[];
   /**
    * Tope de la respuesta. El de por defecto vale para lo que escribe la IA en
@@ -287,7 +353,10 @@ export async function callGemini(
     });
 
     let lastError = '';
-    for (const model of options.models ?? MODELS) {
+    const order = options.models ?? modelsFor(options);
+    // Los que se quedaron sin cupo se saltan; si todos lo están, se prueban igualmente
+    const ready = order.filter(m => !isCoolingDown(m));
+    for (const model of ready.length ? ready : order) {
       try {
         let result = await callModel(model, key, maskedSystem, userParts, callOptions);
 
@@ -305,6 +374,7 @@ export async function callGemini(
         if ('text' in result) return privacy.unmask(result.text);
 
         lastError = friendlyError(result.status, result.message);
+        if (result.status === 429) markExhausted(model, result.message);
         // Solo un 400 (clave con formato inválido) detiene toda la cadena: eso
         // fallaría igual en cualquier modelo. Un 403 aquí no tiene por qué
         // significar que la clave esté mal en general, solo que le falta
