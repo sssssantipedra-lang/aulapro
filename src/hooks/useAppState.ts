@@ -451,6 +451,8 @@ export function useAppState() {
   const addBlock       = useCallback((b: ScheduleBlock) => setScheduleBlocks(prev => [...prev, b]), []);
   const updateBlock    = useCallback((b: ScheduleBlock) => setScheduleBlocks(prev => prev.map(x => x.id === b.id ? b : x)), []);
   const deleteBlock    = useCallback((id: string) => setScheduleBlocks(prev => prev.filter(b => b.id !== id)), []);
+  /** Sustituye el horario entero: vacío para borrarlo, o el recién escaneado. */
+  const replaceBlocks  = useCallback((blocks: ScheduleBlock[]) => setScheduleBlocks(blocks), []);
   const addCalEvent    = useCallback((ev: CalEvent) => setCalEvents(prev => [...prev, ev]), []);
   const updateCalEvent = useCallback((ev: CalEvent) => setCalEvents(prev => prev.map(x => x.id === ev.id ? ev : x)), []);
   const deleteCalEvent = useCallback((id: string) => setCalEvents(prev => prev.filter(ev => ev.id !== id)), []);
@@ -948,7 +950,7 @@ export function useAppState() {
     addTask, toggleTask, deleteTask,
     addClass, updateClass, deleteClass,
     addStudent, updateStudent, deleteStudent,
-    addBlock, updateBlock, deleteBlock,
+    addBlock, updateBlock, deleteBlock, replaceBlocks,
     addCalEvent, updateCalEvent, deleteCalEvent,
     addRubric, updateRubric, deleteRubric,
     addDiana, updateDiana, deleteDiana,

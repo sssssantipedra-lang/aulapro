@@ -242,6 +242,7 @@ function AppInner() {
                 onAddBlock={b => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
                 onUpdateBlock={b => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
                 onDeleteBlock={(id: string) => { st.deleteBlock(id); toast(t('Bloque eliminado')); }}
+                onReplaceBlocks={st.replaceBlocks}
                 onAddCalEvent={ev => { st.addCalEvent(ev); toast(t('✅ Evento añadido')); }}
                 onUpdateCalEvent={ev => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
                 onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}

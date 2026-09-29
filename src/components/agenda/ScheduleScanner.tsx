@@ -17,7 +17,10 @@ interface Props {
   open: boolean;
   classes: Class[];
   onClose: () => void;
-  onImport: (blocks: ScheduleBlock[]) => void;
+  /** Sesiones que ya tiene el horario: si hay, se ofrece sustituirlas. */
+  existingCount: number;
+  /** `replace`: el horario escaneado sustituye al actual en vez de sumarse. */
+  onImport: (blocks: ScheduleBlock[], replace: boolean) => void;
   onNav: (s: string) => void;
 }
 
@@ -27,7 +30,7 @@ const SYSTEM_PROMPT =
   'Eres un asistente que transcribe horarios escolares españoles a datos estructurados, ' +
   'copiando la tabla tal cual, celda a celda, sin reordenar ni resumir nada.';
 
-export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Props) {
+export function ScheduleScanner({ open, classes, existingCount, onClose, onImport, onNav }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -38,6 +41,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
   const [detected, setDetected] = useState<DetectedBlock[] | null>(null);
   const [skipped, setSkipped]   = useState<Set<number>>(new Set());
   const [error, setError]       = useState('');
+  const [replace, setReplace]   = useState(false);
 
   function reset() {
     setFileName('');
@@ -152,7 +156,7 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
       };
     });
 
-    onImport(blocks);
+    onImport(blocks, replace && existingCount > 0);
     reset();
     onClose();
   }
@@ -247,7 +251,17 @@ export function ScheduleScanner({ open, classes, onClose, onImport, onNav }: Pro
                 {t('Probar con otro archivo')}
               </button>
               <div style={{ flex: 1 }} />
-              <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{t('Se añaden a tu horario actual')}</p>
+              {existingCount > 0 ? (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 600, color: 'var(--text-2)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox" checked={replace} onChange={e => setReplace(e.target.checked)}
+                    style={{ width: 15, height: 15, accentColor: 'var(--accent-d)' }}
+                  />
+                  {t('Sustituir mi horario actual ({n} sesiones)', { n: existingCount })}
+                </label>
+              ) : (
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)' }}>{t('Se añaden a tu horario actual')}</p>
+              )}
             </div>
           </>
         ) : (
