@@ -17,7 +17,7 @@ import { callGemini, parseGeminiJson } from './gemini';
 import type { WorkSession, WorkSessionDoc, WorkSessionKind } from '../types';
 import type { Lang } from '../i18n';
 
-const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
+const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : lang === 'ca' ? 'CATALÁN (català)' : 'ESPAÑOL');
 
 const S = (d: string) => ({ type: 'STRING', description: d });
 

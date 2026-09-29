@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { translate, LANGS, TRANSLATED_KEYS } from './index';
+import { translate, LANGS, TRANSLATED_KEYS, EN_DICT } from './index';
+import { CA } from './ca';
 
 /**
  * El diccionario usa el texto en castellano como clave. Así, lo que no esté
@@ -8,8 +9,8 @@ import { translate, LANGS, TRANSLATED_KEYS } from './index';
  */
 
 describe('idiomas disponibles', () => {
-  it('ofrece castellano e inglés, con el castellano primero', () => {
-    expect(LANGS.map(l => l.id)).toEqual(['es', 'en']);
+  it('ofrece castellano, inglés y catalán, con el castellano primero', () => {
+    expect(LANGS.map(l => l.id)).toEqual(['es', 'en', 'ca']);
   });
 
   it('cada idioma tiene etiqueta y bandera', () => {
@@ -72,5 +73,22 @@ describe('diccionario', () => {
       expect(en.trim(), `«${c}» sin traducir o vacío`).not.toBe('');
       expect(en, `«${c}» debería estar traducido al inglés`).not.toBe(c);
     }
+  });
+});
+
+describe('català', () => {
+  const vars = (s: string) => (s.match(/\{[a-z_]+\}/gi) ?? []).sort().join(',');
+
+  it('tradueix el menú i els textos de sempre', () => {
+    expect(translate('ca', 'Mis Clases')).toBe('Les meves classes');
+    expect(translate('ca', 'Configuración')).toBe('Configuració');
+    expect(translate('ca', 'y {n} alumnos más', { n: 7 })).toBe('i 7 alumnes més');
+  });
+
+  it('té tots els textos que té l’anglès, amb les mateixes variables', () => {
+    const missing = Object.keys(EN_DICT).filter(k => !(k in CA));
+    expect(missing).toEqual([]);
+    const badVars = Object.entries(CA).filter(([k, v]) => vars(k) !== vars(v)).map(([k]) => k);
+    expect(badVars).toEqual([]);
   });
 });

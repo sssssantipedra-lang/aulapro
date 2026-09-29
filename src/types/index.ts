@@ -150,6 +150,13 @@ export const DEFAULT_LEVELS: AchievementLevel[] = [
   { value: 4, label: 'Excelente' },
 ];
 
+const DEFAULT_LEVELS_CA: AchievementLevel[] = [
+  { value: 1, label: 'Insuficient' },
+  { value: 2, label: 'Suficient' },
+  { value: 3, label: 'Notable' },
+  { value: 4, label: 'Excel·lent' },
+];
+
 const DEFAULT_LEVELS_EN: AchievementLevel[] = [
   { value: 1, label: 'Below expectations' },
   { value: 2, label: 'Approaching expectations' },
@@ -163,8 +170,8 @@ const DEFAULT_LEVELS_EN: AchievementLevel[] = [
  * tal cual se crean y luego el docente puede reescribirlas, así que se eligen
  * aquí una sola vez en vez de traducirse al pintarlas.
  */
-export function defaultLevels(lang: 'es' | 'en'): AchievementLevel[] {
-  return lang === 'en' ? DEFAULT_LEVELS_EN : DEFAULT_LEVELS;
+export function defaultLevels(lang: 'es' | 'en' | 'ca'): AchievementLevel[] {
+  return lang === 'en' ? DEFAULT_LEVELS_EN : lang === 'ca' ? DEFAULT_LEVELS_CA : DEFAULT_LEVELS;
 }
 
 /**

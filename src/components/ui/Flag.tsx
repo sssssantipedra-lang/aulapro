@@ -36,6 +36,18 @@ export function FlagES({ size = 20, style }: FlagProps) {
   );
 }
 
+/** Senyera: cuatro barras rojas sobre fondo amarillo. */
+export function FlagCA({ size = 20, style }: FlagProps) {
+  return (
+    <span style={wrap(size, style)}>
+      <svg viewBox="0 0 36 24" width="100%" height="100%" preserveAspectRatio="none">
+        <rect width="36" height="24" fill="#FCDD09" />
+        {[0, 1, 2, 3].map(i => <rect key={i} y={2.67 + i * 5.33} width="36" height="2.67" fill="#DA121A" />)}
+      </svg>
+    </span>
+  );
+}
+
 /** Bandera del Reino Unido (Union Jack), versión simplificada. */
 export function FlagGB({ size = 20, style }: FlagProps) {
   return (
@@ -60,6 +72,7 @@ export function FlagGB({ size = 20, style }: FlagProps) {
   );
 }
 
-export function Flag({ lang, size, style }: { lang: 'es' | 'en' } & FlagProps) {
+export function Flag({ lang, size, style }: { lang: 'es' | 'en' | 'ca' } & FlagProps) {
+  if (lang === 'ca') return <FlagCA size={size} style={style} />;
   return lang === 'es' ? <FlagES size={size} style={style} /> : <FlagGB size={size} style={style} />;
 }

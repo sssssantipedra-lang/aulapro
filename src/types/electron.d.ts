@@ -82,7 +82,7 @@ export interface UpdateBridge {
    * Idioma en el que escribir el aviso del sistema. El proceso principal no
    * puede leer el diccionario de la interfaz, así que se lo decimos nosotros.
    */
-  setLanguage: (lang: 'es' | 'en') => Promise<void>;
+  setLanguage: (lang: 'es' | 'en' | 'ca') => Promise<void>;
 }
 
 export interface StoreBridge {

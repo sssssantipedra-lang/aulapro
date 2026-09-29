@@ -135,14 +135,14 @@ export function dayKeyOf(at: string): string {
 }
 
 /** «hoy», «ayer» o la fecha, para las cabeceras del registro. */
-export function friendlyDay(dayKey: string, lang: 'es' | 'en' = 'es'): string {
+export function friendlyDay(dayKey: string, lang: 'es' | 'en' | 'ca' = 'es'): string {
   const now = new Date();
   const p = (n: number) => String(n).padStart(2, '0');
   const today = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
   const y = new Date(now.getTime() - 86400000);
   const yesterday = `${y.getFullYear()}-${p(y.getMonth() + 1)}-${p(y.getDate())}`;
-  if (dayKey === today) return lang === 'en' ? 'Today' : 'Hoy';
-  if (dayKey === yesterday) return lang === 'en' ? 'Yesterday' : 'Ayer';
+  if (dayKey === today) return lang === 'en' ? 'Today' : lang === 'ca' ? 'Avui' : 'Hoy';
+  if (dayKey === yesterday) return lang === 'en' ? 'Yesterday' : lang === 'ca' ? 'Ahir' : 'Ayer';
   return formatDay(dayKey);
 }
 

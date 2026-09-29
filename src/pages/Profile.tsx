@@ -128,7 +128,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const TILES: { id: SettingsPanel; icon: React.ReactNode; title: string; desc: string; status: string; ok?: boolean }[] = [
     { id: 'perfil', icon: <UserCircle size={22} />, title: 'Perfil', desc: 'Tu nombre, centro, especialidad y curso escolar.', status: [user?.full_name, user?.school].filter(Boolean).join(' · ') },
     { id: 'ia', icon: <Sparkles size={22} />, title: 'Clave de la IA', desc: 'La clave gratuita de Google y cuánto da de sí.', status: t(getApiKey() ? 'Configurada ✓' : 'Sin configurar'), ok: !!getApiKey() },
-    { id: 'idioma', icon: <Languages size={22} />, title: 'Idioma', desc: 'Castellano o inglés internacional.', status: LANGS.find(l => l.id === lang)?.label ?? '' },
+    { id: 'idioma', icon: <Languages size={22} />, title: 'Idioma', desc: 'Castellano, catalán o inglés internacional.', status: LANGS.find(l => l.id === lang)?.label ?? '' },
     { id: 'apariencia', icon: <Palette size={22} />, title: 'Apariencia', desc: 'Color de la aplicación y modo claro u oscuro.', status: `${t(themeLabel)} · ${t(appearanceLabel)}` },
     { id: 'seguridad', icon: <Lock size={22} />, title: 'Seguridad', desc: 'Contraseña para abrir tu perfil.', status: t(hasPassword ? 'Con contraseña' : 'Sin contraseña'), ok: hasPassword },
     { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },

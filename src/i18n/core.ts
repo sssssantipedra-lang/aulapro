@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import { CA } from './ca';
 
 /**
  * Idiomas de la aplicación.
@@ -9,11 +10,12 @@ import { createContext, useContext } from 'react';
  * traducir «unidad didáctica» palabra por palabra no significa nada fuera de
  * España. Ver `docs/GLOSARIO-EN.md`.
  */
-export type Lang = 'es' | 'en';
+export type Lang = 'es' | 'en' | 'ca';
 
 export const LANGS: { id: Lang; label: string; flag: string }[] = [
   { id: 'es', label: 'Español', flag: '🇪🇸' },
   { id: 'en', label: 'English', flag: '🇬🇧' },
+  { id: 'ca', label: 'Català', flag: '🟨' },
 ];
 
 export const STORAGE_KEY = 'aulapro_lang';
@@ -1409,7 +1411,7 @@ const EN: Record<string, string> = {
   'Clave de la IA': 'AI key',
   'La clave gratuita de Google y cuánto da de sí.': 'The free Google key and how far it goes.',
   'Idioma': 'Language',
-  'Castellano o inglés internacional.': 'Spanish or international English.',
+  'Castellano, catalán o inglés internacional.': 'Spanish, Catalan or international English.',
   'Color de la aplicación y modo claro u oscuro.': 'App colour and light or dark mode.',
   'Contraseña para abrir tu perfil.': 'Password to open your profile.',
   'Con contraseña': 'With password',
@@ -1835,7 +1837,7 @@ const EN: Record<string, string> = {
   'p. ej. «Marco y Lucía no deben ir juntos»': 'e.g. “Marco and Lucía shouldn\'t be together”',
 };
 
-const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN };
+const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };
 
 /**
  * Traduce una cadena. Función pura, aparte del componente, para poder
@@ -1866,7 +1868,7 @@ export interface Ctx {
   locale: string;
 }
 
-export const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB' };
+export const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB', ca: 'ca-ES' };
 
 /**
  * Etiquetas de prioridad (Alta/Media/Baja) fuera del diccionario general:
@@ -1875,9 +1877,9 @@ export const LOCALES: Record<Lang, string> = { es: 'es-ES', en: 'en-GB' };
  * clave propia evitamos que una traducción se pise con la otra.
  */
 const PRIORITY_LABELS: Record<'high' | 'medium' | 'low', Record<Lang, string>> = {
-  high:   { es: 'Alta', en: 'High' },
-  medium: { es: 'Media', en: 'Medium' },
-  low:    { es: 'Baja', en: 'Low' },
+  high:   { es: 'Alta', en: 'High', ca: 'Alta' },
+  medium: { es: 'Media', en: 'Medium', ca: 'Mitjana' },
+  low:    { es: 'Baja', en: 'Low', ca: 'Baixa' },
 };
 export function priorityLabel(p: 'high' | 'medium' | 'low', lang: Lang): string {
   return PRIORITY_LABELS[p][lang];
@@ -1885,9 +1887,9 @@ export function priorityLabel(p: 'high' | 'medium' | 'low', lang: Lang): string 
 
 /** Urgencia de un evento de agenda: mismas tres palabras que la prioridad, con sus propias claves. */
 const URGENCY_LABELS: Record<'alta' | 'media' | 'baja', Record<Lang, string>> = {
-  alta:  { es: 'Alta', en: 'High' },
-  media: { es: 'Media', en: 'Medium' },
-  baja:  { es: 'Baja', en: 'Low' },
+  alta:  { es: 'Alta', en: 'High', ca: 'Alta' },
+  media: { es: 'Media', en: 'Medium', ca: 'Mitjana' },
+  baja:  { es: 'Baja', en: 'Low', ca: 'Baixa' },
 };
 export function urgencyLabel(u: 'alta' | 'media' | 'baja', lang: Lang): string {
   return URGENCY_LABELS[u][lang];
@@ -1895,9 +1897,9 @@ export function urgencyLabel(u: 'alta' | 'media' | 'baja', lang: Lang): string {
 
 /** Tipo de evento de agenda. */
 const EVENT_TYPE_LABELS: Record<'deadline' | 'meeting' | 'event', Record<Lang, string>> = {
-  deadline: { es: 'Entrega', en: 'Deadline' },
-  meeting:  { es: 'Reunión', en: 'Meeting' },
-  event:    { es: 'Evento', en: 'Event' },
+  deadline: { es: 'Entrega', en: 'Deadline', ca: 'Lliurament' },
+  meeting:  { es: 'Reunión', en: 'Meeting', ca: 'Reunió' },
+  event:    { es: 'Evento', en: 'Event', ca: 'Esdeveniment' },
 };
 export function eventTypeLabel(t: 'deadline' | 'meeting' | 'event', lang: Lang): string {
   return EVENT_TYPE_LABELS[t][lang];
@@ -1922,3 +1924,6 @@ export function useI18n(): Ctx {
 
 /** Cuántos textos hay traducidos, para poder medir la cobertura. */
 export const TRANSLATED_KEYS = Object.keys(EN).length;
+
+/** El diccionario inglés, para comprobar en las pruebas que el catalán no se deja ninguno. */
+export const EN_DICT: Readonly<Record<string, string>> = EN;

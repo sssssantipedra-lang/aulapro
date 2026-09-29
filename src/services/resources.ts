@@ -174,7 +174,7 @@ export interface FichaRequest {
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
 
-const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
+const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : lang === 'ca' ? 'CATALÁN (català)' : 'ESPAÑOL');
 
 /* ── Esquema de salida ── */
 

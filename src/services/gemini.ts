@@ -41,6 +41,24 @@ export function modelsFor(options: Pick<GeminiOptions, 'thinkingLevel' | 'maxOut
     : [...LITE_MODELS, MAIN_MODEL, ...LEGACY_MODELS];
 }
 
+/* ── Idioma de las respuestas ── */
+
+/**
+ * Idioma de la interfaz. Muchas instrucciones a la IA están escritas en
+ * castellano o en inglés; en catalán se añade una orden explícita para que
+ * todo lo que redacta salga en catalán (ver `callGemini`).
+ */
+let outputLang: 'es' | 'en' | 'ca' = 'es';
+export function setAiLanguage(lang: 'es' | 'en' | 'ca') {
+  outputLang = lang;
+}
+
+const CATALAN_INSTRUCTION =
+  '\n\nIDIOMA DE SALIDA: el docente usa la aplicación en CATALÁN. Todo el texto que redactes para ' +
+  'personas (títulos, enunciados, explicaciones, informes, respuestas) debe estar en catalán correcto ' +
+  '(català), aunque estas instrucciones estén en castellano. No traduzcas los nombres de campo ni los ' +
+  'valores fijos de las listas del esquema JSON, ni los códigos de alumno como [ALU-3].';
+
 /* ── Cupo agotado: no volver a llamar a un modelo hasta que se renueve ── */
 
 const COOLDOWN_KEY = 'aulapro_model_cooldown';
@@ -343,6 +361,7 @@ export async function callGemini(
     if ([maskedSystem, maskedUser, ...(maskedHistory ?? []).map(h => h.text)].some(t => privacy.hasCodes(t))) {
       maskedSystem += privacyInstruction();
     }
+    if (outputLang === 'ca') maskedSystem += CATALAN_INSTRUCTION;
     const callOptions: GeminiOptions = maskedHistory ? { ...options, history: maskedHistory } : options;
 
     const userParts: object[] = [{ text: maskedUser }];

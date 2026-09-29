@@ -11,7 +11,7 @@
  * ya no existe y le hace perder la confianza en todo lo demás.
  */
 
-import type { Lang } from '../i18n';
+import { translate, type Lang } from '../i18n';
 import type { Section } from '../types';
 
 /**
@@ -56,7 +56,9 @@ export function isHelpTarget(id: string): id is Section {
 
 /** Nombre de la pantalla en el idioma de la interfaz; el propio id si no lo es. */
 export function targetLabel(id: string, lang: Lang): string {
-  return isHelpTarget(id) ? HELP_TARGETS[id][lang] : id;
+  if (!isHelpTarget(id)) return id;
+  // En catalán, el nombre en castellano pasa por el diccionario, como el menú
+  return lang === 'ca' ? translate('ca', HELP_TARGETS[id].es) : HELP_TARGETS[id][lang];
 }
 
 /**
@@ -79,8 +81,9 @@ vuelve a poner los nombres reales; el docente ve siempre los nombres. Lo único
 que se envía tal cual son los archivos que el propio docente adjunta. En la
 aplicación de escritorio la clave de Google se guarda cifrada por el sistema.
 
-Las notas van sobre 10 y el aprobado está en 5. La aplicación está en español e
-inglés (se cambia en la pantalla de bienvenida y en Configuración).
+Las notas van sobre 10 y el aprobado está en 5. La aplicación está en español,
+inglés y catalán (se cambia en la pantalla de bienvenida y en Configuración →
+Idioma). En catalán, también la IA redacta en catalán (fichas, informes, SdA…).
 
 === CÓMO SE NAVEGA ===
 Barra lateral a la izquierda, organizada por tareas, con tres grupos:
@@ -394,7 +397,7 @@ vuelve con «← Configuración»:
   plan gratuito: las tareas grandes (SdA, fichas, informes, rúbricas, dianas)
   usan Gemini 3.8 Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas
   500 al día. Si se gastan las 20, sigue sola con Flash-Lite hasta las 9:00.
-- IDIOMA: castellano o inglés.
+- IDIOMA: castellano, inglés o catalán.
 - APARIENCIA: color de la interfaz y modo «Automática» (sigue el sistema),
   «Clara» u «Oscura».
 - SEGURIDAD: contraseña opcional para abrir el perfil.
@@ -457,7 +460,9 @@ export function splitJump(raw: string): { text: string; target?: string } {
 export function helpSystemPrompt(lang: Lang, section: string): string {
   const idioma = lang === 'en'
     ? 'Answer in clear, friendly English.'
-    : 'Responde en español de España, con tono cercano y directo, de tú.';
+    : lang === 'ca'
+      ? 'Respon SEMPRE en català, amb un to proper i directe, de tu. El manual és en castellà: tradueix al català els noms de pantalles i botons tal com els veu el docent (per exemple «Configuració», «Les meves classes», «Quadern de notes»).'
+      : 'Responde en español de España, con tono cercano y directo, de tú.';
 
   return [
     lang === 'en'

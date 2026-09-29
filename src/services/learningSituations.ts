@@ -150,7 +150,7 @@ function resolverAreas(req: SdaRequest): (AreaResuelta | null)[] {
   });
 }
 
-const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : 'ESPAÑOL');
+const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : lang === 'ca' ? 'CATALÁN (català)' : 'ESPAÑOL');
 
 /* ── Esquemas de salida ── */
 
