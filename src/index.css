@@ -1007,3 +1007,25 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .st-hd .pg-title { display:flex; align-items:center; gap:10px; }
 .st-hd-ico { display:flex; color:var(--accent-d); }
 .st-panel { max-width:760px; }
+
+/* ── Licencia: pantalla de activación y Configuración › Licencia ── */
+.lic-shell { background:var(--sb-bg); min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:24px; position:relative; overflow:hidden; }
+.lic-hd { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.lic-logo { width:46px; height:46px; border-radius:13px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--accent-d),var(--accent)); box-shadow:0 8px 24px rgba(var(--accent-rgb),0.4); }
+.lic-title { font-weight:800; font-size:19px; color:var(--text); letter-spacing:-0.4px; }
+.lic-sub { font-size:12.5px; color:var(--text-2); }
+.lic-text { font-size:13.5px; color:var(--text-2); line-height:1.6; margin:0 0 18px; }
+.lic-input { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.lic-err { background:rgba(239,68,68,0.08); border:0.5px solid rgba(239,68,68,0.3); border-radius:8px; padding:10px 14px; font-size:13px; color:#dc2626; line-height:1.5; margin-bottom:16px; }
+.lic-buy { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:14px; font-size:13px; font-weight:700; color:var(--accent-d); text-decoration:none; }
+.lic-buy:hover { text-decoration:underline; }
+.lic-note { display:flex; gap:8px; margin:20px 0 0; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--text-3); line-height:1.55; }
+.lic-card { max-width:640px; display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+.lic-badge { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:99px; font-size:13px; font-weight:800; background:var(--accent-l); color:var(--accent-d); }
+.lic-badge.ok { background:var(--ok-bg); color:var(--ok-fg); }
+.lic-card-txt { margin:0; font-size:13.5px; color:var(--text-2); line-height:1.6; }
+.lic-card-meta { font-size:12.5px; color:var(--text-3); margin:0; }
+.lic-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.lic-key { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight:700; font-size:14px; color:var(--text); }
+.lic-confirm { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:10px; background:var(--surface); font-size:13px; color:var(--text-2); line-height:1.5; }
+.lic-danger { background:#dc2626; }

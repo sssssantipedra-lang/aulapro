@@ -406,10 +406,21 @@ vuelve con «← Configuración»:
   VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
   asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
   (hace una copia antes).
+- Licencia (solo en la app de escritorio): el estado de Aula Pro en este
+  ordenador. «Docente fundador/a» = la usaba antes de que saliera a la venta y
+  en ese ordenador es gratis para siempre. «Licencia activa» = activada con la
+  clave comprada en la web; se ve el final de la clave y el botón «Desactivar
+  en este equipo» para pasarla a otro ordenador.
 Los avisos de «Configurar la IA» de otras pantallas llevan directos a la
 tarjeta «Clave de la IA».
 
 === PREGUNTAS FRECUENTES ===
+- «Me pide una clave de licencia» / «He cambiado de ordenador»: la clave llega
+  por correo al comprar Aula Pro en la web. Se activa con internet una sola vez
+  y después funciona sin conexión. Cada clave vale para un número limitado de
+  ordenadores: para pasarla a otro, en el viejo Configuración → Licencia →
+  «Desactivar en este equipo». Si dice que se ha alcanzado el máximo y el
+  ordenador viejo ya no existe, que escriba a quien le vendió la licencia.
 - «¿Dónde se guardan mis datos?»: en una carpeta de este ordenador, una por
   perfil. Se ve y se abre desde Configuración → Datos y copias. Nunca salen a ningún servidor.
 - «¿Cómo hago copia de seguridad?»: Configuración → Datos y copias → «Descargar mis datos». Da un archivo que se

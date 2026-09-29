@@ -4,6 +4,9 @@ import { UpdateBanner } from './components/UpdateBanner';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
+import { LicenseGate } from './pages/LicenseGate';
+import { getLicenseState, licenseBridge } from './services/license';
+import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
@@ -521,10 +524,34 @@ function AppInner() {
   );
 }
 
+/**
+ * En escritorio, antes de nada, la licencia (ver `electron/license.cjs`).
+ * Quien ya usaba Aula Pro antes de la venta es fundador y pasa directo; en el
+ * navegador no hay licencia.
+ */
+function LicenseCheck({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
+  const [state, setState] = useState<LicenseState | null | undefined>(licenseBridge() ? undefined : null);
+  useEffect(() => {
+    if (state !== undefined) return;
+    getLicenseState().then(setState);
+  }, [state]);
+
+  if (state === undefined) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--sb-bg)', color: 'rgba(255,255,255,0.6)', fontSize: 14, gap: 10 }}>
+        <span className="spin" />{t('Abriendo tu cuaderno…')}
+      </div>
+    );
+  }
+  if (state?.required) return <LicenseGate state={state} onChange={setState} />;
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <ToastProvider>
-      <AppInner />
+      <LicenseCheck><AppInner /></LicenseCheck>
       <UpdateBanner />
     </ToastProvider>
   );
