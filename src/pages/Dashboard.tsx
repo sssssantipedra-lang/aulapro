@@ -48,7 +48,9 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   const now = new Date();
   const greeting = t(now.getHours() < 13 ? 'Buenos días' : now.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches');
   const firstName = user?.full_name.split(' ')[0] ?? '';
-  const dateLabel = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  // Solo la primera letra en mayúscula: «Martes, 29 de septiembre», no «29 De Septiembre De»
+  const rawDate = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const dateLabel = rawDate.charAt(0).toLocaleUpperCase(locale) + rawDate.slice(1);
 
   const todayDay = now.getDay() === 0 ? 7 : now.getDay();
   const todayBlocks = scheduleBlocks.filter(b => b.day === todayDay).sort((a, b) => a.time_start.localeCompare(b.time_start));
@@ -85,7 +87,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{greeting}, {firstName}</h1>
-          <p className="pg-sub" style={{ textTransform: 'capitalize' }}>{dateLabel}</p>
+          <p className="pg-sub">{dateLabel}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: '9px 16px', flexShrink: 0 }}>
           <Clock size={15} color="var(--accent-d)" />
@@ -103,10 +105,10 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           {/* Resumen */}
           <div className="dash-stats">
             {[
-              { label: t('Clases hoy'), val: todayBlocks.length, hint: t(todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy'), icon: <Book size={17} color="var(--accent-d)" />, bg: 'var(--accent-l)', nav: 'agenda' },
-              { label: t('Alumnos'), val: students.length, hint: t(classes.length === 1 ? 'en {n} grupo' : 'en {n} grupos', { n: classes.length }), icon: <Users size={17} color="var(--info)" />, bg: '#dbeafe', nav: 'classes' },
-              { label: t('Tareas pendientes'), val: pendingTasks.length, hint: t(pendingTasks.length ? 'por completar' : 'Al día ✓'), icon: <ClipboardList size={17} color="var(--warn)" />, bg: '#fef3c7', nav: null },
-              { label: t('Evaluaciones'), val: evaluations.length, hint: t(evaluations.length ? 'registradas con rúbrica' : 'Ninguna todavía'), icon: <BarChart3 size={17} color="var(--ok)" />, bg: '#dcfce7', nav: 'history' },
+              { label: t('Clases hoy'), val: todayBlocks.length, hint: t(todayBlocks.length ? 'sesiones programadas' : 'Sin clases hoy'), icon: <Book size={17} color="var(--accent-d)" />, bg: 'color-mix(in srgb, var(--accent-d) 14%, var(--card))', nav: 'agenda' },
+              { label: t('Alumnos'), val: students.length, hint: t(classes.length === 1 ? 'en {n} grupo' : 'en {n} grupos', { n: classes.length }), icon: <Users size={17} color="var(--info)" />, bg: 'color-mix(in srgb, var(--info) 14%, var(--card))', nav: 'classes' },
+              { label: t('Tareas pendientes'), val: pendingTasks.length, hint: t(pendingTasks.length ? 'por completar' : 'Al día ✓'), icon: <ClipboardList size={17} color="var(--warn)" />, bg: 'color-mix(in srgb, var(--warn) 14%, var(--card))', nav: null },
+              { label: t('Evaluaciones'), val: evaluations.length, hint: t(evaluations.length ? 'registradas con rúbrica' : 'Ninguna todavía'), icon: <BarChart3 size={17} color="var(--ok)" />, bg: 'color-mix(in srgb, var(--ok) 14%, var(--card))', nav: 'history' },
             ].map(s => (
               <div
                 key={s.label}

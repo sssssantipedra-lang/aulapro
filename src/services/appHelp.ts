@@ -112,8 +112,9 @@ PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
 al hacerlos: 1) crear la primera clase con su alumnado, 2) añadir el horario
 (mejor escaneándolo en la Agenda), 3) decidir cómo se evalúa (categorías del
 Cuaderno), 4) pasar lista por primera vez y 5) conectar la IA (opcional). Cada
-paso tiene un botón que lleva a la pantalla. La guía se oculta con la × o
-desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
+paso tiene un botón que lleva a la pantalla. Con la flecha de la esquina la
+guía se minimiza a una sola línea (progreso, paso siguiente y su botón) y se
+vuelve a abrir pulsándola; desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
 la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
