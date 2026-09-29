@@ -54,7 +54,7 @@ const COMBINING_MARKS = /[̀-ͯ]/g;
  * protege con un marcador ASCII antes de quitar tildes, porque NFD también
  * la descompondría en "N" + tilde combinante.
  */
-function normalizeLetters(word: string): string {
+export function normalizeLetters(word: string): string {
   return word
     .toUpperCase()
     .replace(/Ñ/g, '{{N}}')

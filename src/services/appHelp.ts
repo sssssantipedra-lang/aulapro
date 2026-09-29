@@ -290,11 +290,25 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   se guarda aparece «Sin guardar»).
 
 [resources] RECURSOS
-Fichas de trabajo generadas con la IA a partir de un tema, el área y el nivel:
-ejercicios de varios tipos, incluidas sopas de letras y figuras geométricas que
-dibuja la propia aplicación. Se exportan a PDF (vertical, para repartir en
-clase) y a Word. Las soluciones son solo para el docente: no salen en la ficha
-exportada.
+Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
+área y el nivel. Se elige «el mundo de la historia» (Misión espacial, Selva,
+Detectives, Submarina, Superhéroes, La gran final, Jurásico, Piratas, Magia,
+Cocina), «Que elija la IA» o «Clásica» (sin historia). Con historia, un
+personaje presenta la misión, cada bloque es un paso de la aventura («Misión
+1», «Pista 1»…) y al final se gana una insignia con autoevaluación.
+Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
+tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
+crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
+aplicación).
+Al crearla se abre el EDITOR: a la izquierda los bloques (título, historia,
+explicación, instrucciones, cada misión y sus ejercicios, final); a la derecha
+la vista previa A4, igual que se imprime. Cada ejercicio se edita, se sube, se
+baja, se borra o se «Rehace» con IA («Más fácil», «Más difícil», «Otro
+distinto», cambiar de tipo o una indicación libre). Al hacer clic en la hoja se
+selecciona ese bloque. El tema se cambia arriba con un clic sin volver a
+generar; «Adaptar la historia a este tema» reescribe solo la historia.
+Se exportan a PDF (vertical) y a Word. Las soluciones son solo para el
+docente: no salen en la ficha exportada.
 
 === REUNIONES Y FORMACIONES (grupo «Más») ===
 
