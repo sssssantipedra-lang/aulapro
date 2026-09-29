@@ -850,3 +850,5 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .fe-card-fields .finput { padding:7px 10px; font-size:13px; }
 .fe-card-ans { background:var(--surface) !important; }
 .fe-add { align-self:flex-start; }
+.fe-add-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-top:2px; }
+.fe-add-row select.finput { width:auto; min-width:180px; padding:6px 10px; font-size:12.5px; height:30px; }

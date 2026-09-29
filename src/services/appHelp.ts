@@ -313,6 +313,11 @@ siguiente, y al final se abre el cofre; el código no se imprime, se ve en el
 editor) o «Tarjetas recortables» (pregunta delante y respuesta detrás, se
 recortan por la línea discontinua y se doblan por la mitad; incluyen cómo
 jugar).
+AÑADIR: al final de cada bloque, «Añadir ejercicio con IA» (elige el tipo o
+deja que lo elija la IA); en las tarjetas, «4 tarjetas más con IA» o «Añadir
+tarjeta» a mano. En un escape room, revisa después el código del candado.
+DESDE UNA SdA: en Materiales › Ficha se elige también ficha, escape room o
+tarjetas, y se lleva a Recursos para editarla.
 ADAPTAR (botón arriba en el editor): crea otra versión de la misma ficha, con
 la misma historia: «Versión de apoyo», «Versión de ampliación» o «Lectura
 fácil» (frases cortas y letra más grande). Se abre como ficha nueva; en la

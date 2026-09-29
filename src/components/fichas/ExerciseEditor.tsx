@@ -6,27 +6,7 @@
 import { useState } from 'react';
 import { ArrowUp, ArrowDown, Trash2, Wand2, ChevronDown, ChevronRight } from 'lucide-react';
 import { prepareExercise, shuffleApart, TIPOS, type FichaExercise, type FichaExerciseType } from '../../services/resources';
-
-const TIPO_LABEL: Record<FichaExerciseType, string> = {
-  abierta: 'Respuesta abierta',
-  completar: 'Completar',
-  opcion_multiple: 'Opción múltiple',
-  problema: 'Problema',
-  tabla_rellenar: 'Tabla para rellenar',
-  relacionar: 'Relacionar',
-  colorear: 'Colorear según el resultado',
-  sopa_letras: 'Sopa de letras',
-  verdadero_falso: 'Verdadero o falso',
-  ordenar: 'Ordenar',
-  crucigrama: 'Crucigrama',
-  comic: 'Cómic',
-};
-
-const TIPO_EMOJI: Record<FichaExerciseType, string> = {
-  abierta: '✍️', completar: '🔤', opcion_multiple: '🔘', problema: '🧮', tabla_rellenar: '📊',
-  relacionar: '🔗', colorear: '🖍️', sopa_letras: '🔎', verdadero_falso: '✅', ordenar: '🔢',
-  crucigrama: '🧩', comic: '💬',
-};
+import { TIPO_LABEL, TIPO_EMOJI } from './tipos';
 
 const QUICK = ['Más fácil', 'Más difícil', 'Otro distinto', 'Más visual y motivador'];
 

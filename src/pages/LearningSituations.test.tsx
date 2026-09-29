@@ -73,4 +73,17 @@ describe('Situaciones de aprendizaje', () => {
     expect(screen.getAllByRole('button', { name: /Nueva situación de aprendizaje/ }).length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /Mercado sostenible/ })).toBeTruthy();
   });
+
+  it('en Materiales › Ficha se elige ficha, escape room o tarjetas', async () => {
+    const user = userEvent.setup();
+    setup([sda]);
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    await user.click(screen.getByRole('tab', { name: /Ficha/ }));
+    const escape = screen.getByRole('radio', { name: /Escape room/ });
+    await user.click(escape);
+    expect(escape.getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('button', { name: /Crear escape room/ })).toBeTruthy();
+    await user.click(screen.getByRole('radio', { name: /Tarjetas recortables/ }));
+    expect(screen.getByLabelText('Nº de tarjetas')).toBeTruthy();
+  });
 });

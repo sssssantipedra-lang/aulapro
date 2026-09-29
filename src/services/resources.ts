@@ -1007,3 +1007,76 @@ export async function adaptFicha(
     callbacks.onEnd?.();
   }
 }
+
+/* ── Editor: añadir a una ficha ya hecha ── */
+
+/**
+ * Un ejercicio nuevo para un bloque, que no repita los que ya tiene. Si no se
+ * pide un tipo, la IA elige el que mejor complete el bloque.
+ */
+export async function addExercise(
+  content: FichaContent, req: FichaRequest, actIdx: number,
+  opts: { tipo?: FichaExerciseType; instruccion?: string },
+  lang: Lang, callbacks: Callbacks = {},
+): Promise<FichaExercise | null> {
+  const act = content.actividades[actIdx];
+  if (!act) return null;
+  callbacks.onStart?.();
+  try {
+    const niveles = act.ejercicios.some(e => e.apoyo || e.ampliacion);
+    const formato = content.formato ?? 'ficha';
+    const userPrompt =
+      fichaContextForPrompt(content, req) +
+      `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n` +
+      `Ejercicios que ya tiene el bloque (no los repitas):\n` +
+      act.ejercicios.map((e, i) => `${i + 1}. [${e.tipo}] ${e.enunciado}`).join('\n') + '\n\n' +
+      `Crea UN ejercicio nuevo para este bloque, distinto de los anteriores y con el mismo nivel.\n` +
+      (opts.tipo ? `Debe ser de tipo "${opts.tipo}".\n` : 'Elige el tipo que mejor complete el bloque, preferiblemente uno que el bloque aún no tenga.\n') +
+      (opts.instruccion ? `Indicación del docente: ${opts.instruccion}\n` : '') +
+      (formato === 'escape' ? 'Es un escape room: el ejercicio debe tener una respuesta corta y única.\n' : '') +
+      `\n${numberVarietyHint()}`;
+    const raw = await callGemini(systemPrompt(niveles, lang), userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: 4096,
+      responseSchema: fichaExerciseSchema(niveles),
+      thinkingLevel: 'low',
+      temperature: 1.1,
+    });
+    if (!raw) return null;
+    const parsed = parseGeminiJson<FichaExercise>(raw);
+    if (!parsed?.tipo || !parsed.enunciado) return null;
+    return prepareExercise(cleanExercise(parsed));
+  } finally {
+    callbacks.onEnd?.();
+  }
+}
+
+/** Más tarjetas para un juego ya hecho, sin repetir las que tiene. */
+export async function moreCards(
+  content: FichaContent, req: FichaRequest, n: number, lang: Lang, callbacks: Callbacks = {},
+): Promise<FichaTarjeta[] | null> {
+  callbacks.onStart?.();
+  try {
+    const schema = {
+      type: 'OBJECT',
+      properties: { tarjetas: { type: 'ARRAY', items: TARJETA_SCHEMA, description: `Exactamente ${n} tarjetas nuevas` } },
+      required: ['tarjetas'],
+      propertyOrdering: ['tarjetas'],
+    } as const;
+    const userPrompt =
+      `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
+      `Juego: ${content.titulo}\n\nTarjetas que ya hay (no las repitas):\n` +
+      (content.tarjetas ?? []).map((tj, i) => `${i + 1}. ${tj.pregunta}`).join('\n') +
+      `\n\nCrea EXACTAMENTE ${n} tarjetas nuevas, distintas de las anteriores y con el mismo nivel.`;
+    const raw = await callGemini(tarjetasSystemPrompt(lang, 'clasico'), userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: 4096, responseSchema: schema, thinkingLevel: 'low', temperature: 1.1,
+    });
+    if (!raw) return null;
+    const parsed = parseGeminiJson<{ tarjetas: FichaTarjeta[] }>(raw);
+    const list = (parsed?.tarjetas ?? [])
+      .filter(tj => tj?.pregunta?.trim())
+      .map(tj => ({ pregunta: cleanMathNotation(tj.pregunta), respuesta: cleanMathNotation(tj.respuesta ?? '') }));
+    return list.length ? list : null;
+  } finally {
+    callbacks.onEnd?.();
+  }
+}

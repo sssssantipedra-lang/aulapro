@@ -12,7 +12,7 @@ import {
 } from '../services/learningSituations';
 import { emparejarMateria } from '../lib/curriculum/mapeoMaterias';
 import { resolverGrupo, type Etapa } from '../lib/curriculum';
-import { generateFichaFromSda, type FichaContent } from '../services/resources';
+import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
@@ -220,6 +220,7 @@ export function LearningSituations({
   const [fichaNiveles, setFichaNiveles] = useState(false);
   const [fichaDetails, setFichaDetails] = useState('');
   const [fichaBusy, setFichaBusy] = useState(false);
+  const [fichaFormato, setFichaFormato] = useState<FichaFormato>('ficha');
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
@@ -529,11 +530,12 @@ export function LearningSituations({
     if (!content) return;
     const result = await generateFichaFromSda(
       content, fichaArea || content.areas[0]?.area || '',
-      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails },
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, formato: fichaFormato },
       lang,
       { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
     );
-    if (!result?.actividades.some(a => a.ejercicios.length)) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    const ok = result && (result.formato === 'tarjetas' ? !!result.tarjetas?.length : result.actividades.some(a => a.ejercicios.length));
+    if (!ok) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
     setFichaContent(result);
   }
 
@@ -1202,6 +1204,17 @@ export function LearningSituations({
             {matTab === 'ficha' && (
               <div>
                 <p className="sda-mat-help">{t('Genera una ficha de ejercicios a partir de los saberes básicos de un área. Se guarda en Recursos, lista para imprimir.')}</p>
+                <div className="chip-row" role="radiogroup" aria-label={t('Qué quieres crear')} style={{ marginBottom: 12 }}>
+                  {([['ficha', '📝', 'Ficha'], ['escape', '🔐', 'Escape room'], ['tarjetas', '🃏', 'Tarjetas recortables']] as const).map(([id, emoji, label]) => (
+                    <button
+                      key={id} type="button" role="radio" aria-checked={fichaFormato === id}
+                      className={`chip sm${fichaFormato === id ? ' on' : ''}`}
+                      onClick={() => { setFichaFormato(id); setFichaContent(null); if (id === 'tarjetas' && fichaNumEjercicios < 8) setFichaNumEjercicios(12); }}
+                    >
+                      {emoji} {t(label)}
+                    </button>
+                  ))}
+                </div>
                 <div className="frow">
                   {content.areas.length > 1 && (
                     <div className="fgroup">
@@ -1212,11 +1225,11 @@ export function LearningSituations({
                     </div>
                   )}
                   <div className="fgroup">
-                    <label className="flabel" htmlFor="learningsituations-f13">{t('Nº de ejercicios')}</label>
+                    <label className="flabel" htmlFor="learningsituations-f13">{t(fichaFormato === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
                     <input
                       id="learningsituations-f13"
-                      className="finput" type="number" min={1} max={20} value={fichaNumEjercicios}
-                      onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                      className="finput" type="number" min={1} max={fichaFormato === 'tarjetas' ? 32 : 20} value={fichaNumEjercicios}
+                      onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(fichaFormato === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
                     />
                   </div>
                 </div>
@@ -1224,19 +1237,23 @@ export function LearningSituations({
                   <label className="flabel" htmlFor="learningsituations-f14">{t('Algo más que quieras que valore (opcional)')}</label>
                   <input id="learningsituations-f14" className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
                 </div>
-                <label className="sda-check">
-                  <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
-                  {t('Incluir variantes de apoyo y ampliación por ejercicio')}
-                </label>
+                {fichaFormato !== 'tarjetas' && (
+                  <label className="sda-check">
+                    <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
+                    {t('Incluir variantes de apoyo y ampliación por ejercicio')}
+                  </label>
+                )}
                 <button className="btn-ghost" disabled={fichaBusy || sinClave} onClick={handleFicha}>
-                  {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar ficha')}</>}
+                  {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t(fichaFormato === 'escape' ? 'Crear escape room' : fichaFormato === 'tarjetas' ? 'Crear tarjetas' : 'Generar ficha')}</>}
                 </button>
                 {fichaContent && (
                   <>
                     <div className="sda-ficha">
-                      {fichaContent.actividades.map((act, ai) => (
+                      {fichaContent.formato === 'tarjetas' ? (
+                        <ol>{(fichaContent.tarjetas ?? []).map((tj, i) => <li key={i}>{tj.pregunta} <em>→ {tj.respuesta}</em></li>)}</ol>
+                      ) : fichaContent.actividades.map((act, ai) => (
                         <div key={ai}>
-                          {act.titulo && <div className="sda-ficha-act">{t('Actividad {n}', { n: ai + 1 })}: {act.titulo}</div>}
+                          {act.titulo && <div className="sda-ficha-act">{t(fichaContent.formato === 'escape' ? 'Sala' : 'Actividad')} {ai + 1}: {act.titulo}{act.candado ? ` · 🔒 ${act.candado.codigo}` : ''}</div>}
                           <ol>
                             {act.ejercicios.map((ex, i) => <li key={i}>{ex.enunciado}</li>)}
                           </ol>

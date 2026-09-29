@@ -12,6 +12,13 @@ import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
 import type { Ficha } from '../types';
 
+// La IA, simulada: lo que se prueba aquí es que el editor añade lo que devuelve
+vi.mock('../services/resources', async orig => ({
+  ...(await orig<typeof import('../services/resources')>()),
+  addExercise: vi.fn(async () => ({ tipo: 'abierta', enunciado: 'Un reto nuevo', solucion: '—' })),
+  moreCards: vi.fn(async () => [1, 2, 3, 4].map(n => ({ pregunta: `Nueva ${n}`, respuesta: `R${n}` }))),
+}));
+
 afterEach(cleanup);
 beforeAll(() => {
   window.scrollTo = () => {};
@@ -124,6 +131,28 @@ describe('Recursos — editor de fichas', () => {
     expect(screen.getByRole('menuitem', { name: /Versión de apoyo/ })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /Versión de ampliación/ })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /Lectura fácil/ })).toBeTruthy();
+    localStorage.removeItem('aulapro_gemini_key');
+  });
+
+  it('añade un ejercicio con IA al final del bloque', async () => {
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    const onSave = setup();
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: /Añadir ejercicio con IA/ }));
+    expect(await screen.findByDisplayValue('Un reto nuevo')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[0][0].content.actividades[0].ejercicios).toHaveLength(3);
+    localStorage.removeItem('aulapro_gemini_key');
+  });
+
+  it('añade 4 tarjetas más con IA', async () => {
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    const onSave = setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, formato: 'tarjetas', actividades: [], tarjetas: [{ pregunta: '¿1/2 de 8?', respuesta: '4' }] } }]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: /4 tarjetas más con IA/ }));
+    expect(await screen.findByDisplayValue('Nueva 4')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[0][0].content.tarjetas).toHaveLength(5);
     localStorage.removeItem('aulapro_gemini_key');
   });
 });
