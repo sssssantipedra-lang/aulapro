@@ -286,8 +286,10 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   inclusión, en tres niveles. En «Materiales» hay pestañas para generar la
   RÚBRICA (tabla de colores por nivel, «Llevar a Rúbricas»), la DIANA («Llevar
   a Dianas») y una FICHA de ejercicios («Llevar a Recursos»). Arriba: «Ajustar»
-  (cambiar los datos y volver a generarla), PDF, Word y «Guardar» (mientras no
-  se guarda aparece «Sin guardar»).
+  (cambiar los datos y volver a generarla), PDF, Word, «Cartel» (una hoja A4
+  para colgar en el aula con el reto, lo que se va a conseguir, el camino por
+  fases y las competencias, con el tema visual que elijas) y «Guardar»
+  (mientras no se guarda aparece «Sin guardar»).
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
@@ -313,6 +315,19 @@ siguiente, y al final se abre el cofre; el código no se imprime, se ve en el
 editor) o «Tarjetas recortables» (pregunta delante y respuesta detrás, se
 recortan por la línea discontinua y se doblan por la mitad; incluyen cómo
 jugar).
+AÑADIR: al final de cada bloque, «Añadir ejercicio con IA» (elige el tipo o
+deja que lo elija la IA); en las tarjetas, «4 tarjetas más con IA» o «Añadir
+tarjeta» a mano. En un escape room, revisa después el código del candado.
+DESDE UNA SdA: en Materiales › Ficha se elige también ficha, escape room o
+tarjetas, y se lleva a Recursos para editarla.
+PROYECTAR: botón «Proyectar» del editor, o «Reto» en el dock de Aula Live
+para elegir una ficha guardada. Se ve a pantalla completa con su tema:
+portada con el personaje y la misión (y un temporizador opcional), una
+pantalla por bloque y el final con la insignia. En un escape room cada sala
+tiene un candado digital: se teclea el código y solo se abre si es el bueno.
+Abajo, el mapa de la aventura. Teclas: ← → moverse, S ver soluciones,
+F pantalla completa, Esc salir. Las tarjetas se proyectan de una en una y se
+giran con un clic o la barra espaciadora.
 ADAPTAR (botón arriba en el editor): crea otra versión de la misma ficha, con
 la misma historia: «Versión de apoyo», «Versión de ampliación» o «Lectura
 fácil» (frases cortas y letra más grande). Se abre como ficha nueva; en la

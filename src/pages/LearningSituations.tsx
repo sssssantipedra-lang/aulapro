@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
-  RefreshCw, Lightbulb, Search,
+  RefreshCw, Lightbulb, Search, Frame,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory } from '../types';
 import { DEFAULT_LEVELS } from '../types';
@@ -12,8 +12,10 @@ import {
 } from '../services/learningSituations';
 import { emparejarMateria } from '../lib/curriculum/mapeoMaterias';
 import { resolverGrupo, type Etapa } from '../lib/curriculum';
-import { generateFichaFromSda, type FichaContent } from '../services/resources';
+import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
+import { buildSdaPosterHtml, saveSdaPosterPdf } from '../services/exportSdaPoster';
+import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -220,6 +222,7 @@ export function LearningSituations({
   const [fichaNiveles, setFichaNiveles] = useState(false);
   const [fichaDetails, setFichaDetails] = useState('');
   const [fichaBusy, setFichaBusy] = useState(false);
+  const [fichaFormato, setFichaFormato] = useState<FichaFormato>('ficha');
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
@@ -367,6 +370,23 @@ export function LearningSituations({
   // para saber si el botón que se pulsó sigue siendo el que está cargando.
   const CURRENT_KEY = '__current__';
   const [exporting, setExporting] = useState<{ key: string; kind: 'pdf' | 'docx' } | null>(null);
+
+  /* ── Cartel para el aula ── */
+  const [posterOpen, setPosterOpen] = useState(false);
+  const [posterTheme, setPosterTheme] = useState<FichaThemeId>('espacio');
+  const [posterBusy, setPosterBusy] = useState(false);
+
+  async function handlePosterPdf() {
+    const sda = currentSda();
+    if (!sda) return;
+    setPosterBusy(true);
+    const res = await saveSdaPosterPdf(sda, posterTheme, lang);
+    setPosterBusy(false);
+    if (res.error === 'not-desktop') { toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.')); return; }
+    if (res.canceled) return;
+    if (res.error) { toast(t('No se pudo generar el PDF: {error}', { error: res.error })); return; }
+    toast(t('✅ PDF guardado'));
+  }
 
   async function handleExportPdf(sda: LearningSituation | null, key: string) {
     if (!sda) return;
@@ -529,11 +549,12 @@ export function LearningSituations({
     if (!content) return;
     const result = await generateFichaFromSda(
       content, fichaArea || content.areas[0]?.area || '',
-      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails },
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, formato: fichaFormato },
       lang,
       { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
     );
-    if (!result?.actividades.some(a => a.ejercicios.length)) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    const ok = result && (result.formato === 'tarjetas' ? !!result.tarjetas?.length : result.actividades.some(a => a.ejercicios.length));
+    if (!ok) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
     setFichaContent(result);
   }
 
@@ -1044,6 +1065,9 @@ export function LearningSituations({
             <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportDocx(currentSda(), CURRENT_KEY)} title={t('Descargar en Word')}>
               {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
             </button>
+            <button className="btn-ghost" onClick={() => setPosterOpen(true)} title={t('Un cartel con el reto y el camino, para colgar en el aula')}>
+              <Frame size={14} />{t('Cartel')}
+            </button>
             <button className="btn-accent" onClick={handleSave}><Check size={14} />{t('Guardar')}</button>
           </div>
         </div>
@@ -1202,6 +1226,17 @@ export function LearningSituations({
             {matTab === 'ficha' && (
               <div>
                 <p className="sda-mat-help">{t('Genera una ficha de ejercicios a partir de los saberes básicos de un área. Se guarda en Recursos, lista para imprimir.')}</p>
+                <div className="chip-row" role="radiogroup" aria-label={t('Qué quieres crear')} style={{ marginBottom: 12 }}>
+                  {([['ficha', '📝', 'Ficha'], ['escape', '🔐', 'Escape room'], ['tarjetas', '🃏', 'Tarjetas recortables']] as const).map(([id, emoji, label]) => (
+                    <button
+                      key={id} type="button" role="radio" aria-checked={fichaFormato === id}
+                      className={`chip sm${fichaFormato === id ? ' on' : ''}`}
+                      onClick={() => { setFichaFormato(id); setFichaContent(null); if (id === 'tarjetas' && fichaNumEjercicios < 8) setFichaNumEjercicios(12); }}
+                    >
+                      {emoji} {t(label)}
+                    </button>
+                  ))}
+                </div>
                 <div className="frow">
                   {content.areas.length > 1 && (
                     <div className="fgroup">
@@ -1212,11 +1247,11 @@ export function LearningSituations({
                     </div>
                   )}
                   <div className="fgroup">
-                    <label className="flabel" htmlFor="learningsituations-f13">{t('Nº de ejercicios')}</label>
+                    <label className="flabel" htmlFor="learningsituations-f13">{t(fichaFormato === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
                     <input
                       id="learningsituations-f13"
-                      className="finput" type="number" min={1} max={20} value={fichaNumEjercicios}
-                      onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                      className="finput" type="number" min={1} max={fichaFormato === 'tarjetas' ? 32 : 20} value={fichaNumEjercicios}
+                      onChange={e => setFichaNumEjercicios(Math.max(1, Math.min(fichaFormato === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
                     />
                   </div>
                 </div>
@@ -1224,19 +1259,23 @@ export function LearningSituations({
                   <label className="flabel" htmlFor="learningsituations-f14">{t('Algo más que quieras que valore (opcional)')}</label>
                   <input id="learningsituations-f14" className="finput" value={fichaDetails} onChange={e => setFichaDetails(e.target.value)} />
                 </div>
-                <label className="sda-check">
-                  <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
-                  {t('Incluir variantes de apoyo y ampliación por ejercicio')}
-                </label>
+                {fichaFormato !== 'tarjetas' && (
+                  <label className="sda-check">
+                    <input type="checkbox" checked={fichaNiveles} onChange={e => setFichaNiveles(e.target.checked)} />
+                    {t('Incluir variantes de apoyo y ampliación por ejercicio')}
+                  </label>
+                )}
                 <button className="btn-ghost" disabled={fichaBusy || sinClave} onClick={handleFicha}>
-                  {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t('Generar ficha')}</>}
+                  {fichaBusy ? <><span className="spin" />{t('Generando…')}</> : <><Sparkles size={14} />{t(fichaFormato === 'escape' ? 'Crear escape room' : fichaFormato === 'tarjetas' ? 'Crear tarjetas' : 'Generar ficha')}</>}
                 </button>
                 {fichaContent && (
                   <>
                     <div className="sda-ficha">
-                      {fichaContent.actividades.map((act, ai) => (
+                      {fichaContent.formato === 'tarjetas' ? (
+                        <ol>{(fichaContent.tarjetas ?? []).map((tj, i) => <li key={i}>{tj.pregunta} <em>→ {tj.respuesta}</em></li>)}</ol>
+                      ) : fichaContent.actividades.map((act, ai) => (
                         <div key={ai}>
-                          {act.titulo && <div className="sda-ficha-act">{t('Actividad {n}', { n: ai + 1 })}: {act.titulo}</div>}
+                          {act.titulo && <div className="sda-ficha-act">{t(fichaContent.formato === 'escape' ? 'Sala' : 'Actividad')} {ai + 1}: {act.titulo}{act.candado ? ` · 🔒 ${act.candado.codigo}` : ''}</div>}
                           <ol>
                             {act.ejercicios.map((ex, i) => <li key={i}>{ex.enunciado}</li>)}
                           </ol>
@@ -1259,6 +1298,38 @@ export function LearningSituations({
   return (
     <section className="sec active sda-page">
       {showDoc ? doc : (formOpen || content) ? form : library}
+
+      {/* ══ Cartel para el aula ══ */}
+      <Modal open={posterOpen} onClose={() => setPosterOpen(false)} title={t('Cartel para el aula')} wide>
+        <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
+          {t('El reto, lo que se va a conseguir y el camino por fases, en una hoja A4 para colgar. Elige el aspecto:')}
+        </p>
+        <div className="chip-row" role="radiogroup" aria-label={t('Tema del cartel')} style={{ marginBottom: 12 }}>
+          {FICHA_THEMES.filter(th => th.id !== 'clasico').map(th => (
+            <button
+              key={th.id} type="button" role="radio" aria-checked={posterTheme === th.id}
+              className={`chip sm${posterTheme === th.id ? ' on' : ''}`} onClick={() => setPosterTheme(th.id)}
+            >
+              {th.personaje} {t(th.nombre)}
+            </button>
+          ))}
+        </div>
+        {posterOpen && content && (
+          <div className="sda-poster-preview">
+            <iframe
+              title={t('Vista previa del cartel')}
+              srcDoc={buildSdaPosterHtml(currentSda()!, posterTheme, lang, { preview: true })}
+            />
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 14, flexWrap: 'wrap' }}>
+          {!isDesktop() && <span style={{ fontSize: 12, color: 'var(--text-3)', alignSelf: 'center' }}>{t('Guardar en PDF solo está disponible en la aplicación de escritorio.')}</span>}
+          <button className="btn-ghost" onClick={() => setPosterOpen(false)}>{t('Cerrar')}</button>
+          <button className="btn-accent" disabled={posterBusy || !isDesktop()} onClick={handlePosterPdf}>
+            {posterBusy ? <span className="spin" /> : <FileDown size={14} />}{t('Guardar en PDF')}
+          </button>
+        </div>
+      </Modal>
 
       {/* ══ Dónde se guarda la nota de la rúbrica ══ */}
       <Modal open={rubricModal} onClose={() => setRubricModal(false)} title={t('Dónde se guarda la nota')}>

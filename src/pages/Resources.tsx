@@ -10,11 +10,11 @@
  */
 import { useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, TIPOS,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
   type FichaFormato, type FichaVariante,
 } from '../services/resources';
@@ -28,6 +28,7 @@ import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
+import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 
 interface Props {
   classes: Class[];
@@ -35,6 +36,8 @@ interface Props {
   onSave: (f: Ficha) => void;
   onDelete: (id: string) => void;
   onNav: (s: string) => void;
+  /** Abre la ficha a pantalla completa en Aula Live. */
+  onProject?: (f: Ficha) => void;
 }
 
 function newId() {
@@ -106,7 +109,7 @@ function ThemeGrid({ value, onChange, withAuto, compact, t }: {
   );
 }
 
-export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
+export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
 
@@ -131,6 +134,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [storyBusy, setStoryBusy] = useState(false);
   const [adaptOpen, setAdaptOpen] = useState(false);
   const [adapting, setAdapting] = useState<FichaVariante | null>(null);
+  /** Bloque al que se está añadiendo un ejercicio con IA, o -1 para tarjetas. */
+  const [adding, setAdding] = useState<number | null>(null);
+  const [addTipo, setAddTipo] = useState<Record<number, FichaExerciseType | ''>>({});
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const sinClave = !hasApiKey();
@@ -295,6 +301,34 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     toast(t('{name} creada. Guárdala para tenerla en Mis fichas.', { name: t(VARIANTE_LABEL[v]) }));
   }
 
+  async function handleAddExercise(a: number) {
+    if (!content) return;
+    const tipo = addTipo[a] || undefined;
+    const ex = await addExercise(content, request(), a, { tipo }, lang, {
+      onStart: () => setAdding(a),
+      onEnd: () => setAdding(null),
+      onError: m => toast(m),
+    });
+    if (!ex) { toast(t('La IA no devolvió un ejercicio válido. Vuelve a intentarlo.')); return; }
+    const n = content.actividades[a]?.ejercicios.length ?? 0;
+    edit(c => ({ ...c, actividades: c.actividades.map((act, ai) => (ai === a ? { ...act, ejercicios: [...act.ejercicios, ex] } : act)) }));
+    setSelected(`${a}-${n}`);
+    // En un escape room el código del candado sale de las respuestas: hay que revisarlo
+    toast(t(content.formato === 'escape' ? 'Ejercicio añadido. Revisa el código del candado de esta sala.' : 'Ejercicio añadido'));
+  }
+
+  async function handleMoreCards() {
+    if (!content) return;
+    const list = await moreCards(content, request(), 4, lang, {
+      onStart: () => setAdding(-1),
+      onEnd: () => setAdding(null),
+      onError: m => toast(m),
+    });
+    if (!list) { toast(t('La IA no devolvió tarjetas válidas. Vuelve a intentarlo.')); return; }
+    edit(c => ({ ...c, tarjetas: [...(c.tarjetas ?? []), ...list] }));
+    toast(t('{n} tarjetas añadidas', { n: list.length }));
+  }
+
   const patchCard = (i: number, p: Partial<NonNullable<FichaContent['tarjetas']>[number]>) =>
     edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).map((x, xi) => (xi === i ? { ...x, ...p } : x)) }));
 
@@ -342,6 +376,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             {dirty && <span className="sda-unsaved">{t('Sin guardar')}</span>}
           </div>
           <div className="fe-top-actions">
+            {onProject && (
+              <button type="button" className="btn-ghost" onClick={() => onProject(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
+                <MonitorPlay size={14} />{t('Proyectar')}
+              </button>
+            )}
             <div className="fe-adapt">
               <button type="button" className="btn-ghost" disabled={sinClave || adapting !== null} aria-expanded={adaptOpen} onClick={() => setAdaptOpen(o => !o)}>
                 {adapting ? <><span className="spin" />{t('Adaptando…')}</> : <><Wand2 size={14} />{t('Adaptar')}<ChevronDown size={13} /></>}
@@ -449,9 +488,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
                       onClick={() => edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).filter((_, xi) => xi !== i) }))}><Trash2 size={14} color="var(--danger)" /></button>
                   </div>
                 ))}
-                <button type="button" className="btn-ghost sm fe-add" onClick={() => edit(c => ({ ...c, tarjetas: [...(c.tarjetas ?? []), { pregunta: '', respuesta: '' }] }))}>
-                  <Plus size={14} />{t('Añadir tarjeta')}
-                </button>
+                <div className="fe-add-row">
+                  <button type="button" className="btn-ghost sm" onClick={() => edit(c => ({ ...c, tarjetas: [...(c.tarjetas ?? []), { pregunta: '', respuesta: '' }] }))}>
+                    <Plus size={14} />{t('Añadir tarjeta')}
+                  </button>
+                  <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={handleMoreCards}>
+                    {adding === -1 ? <span className="spin" /> : <Sparkles size={13} />}{t('4 tarjetas más con IA')}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -495,6 +539,18 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
                       />
                     ))}
                     {!act.ejercicios.length && <p className="fe-empty">{t('Este bloque se ha quedado sin ejercicios.')}</p>}
+                    <div className="fe-add-row">
+                      <select
+                        className="finput" value={addTipo[a] ?? ''} aria-label={t('Tipo del ejercicio nuevo')}
+                        onChange={e => setAddTipo(m => ({ ...m, [a]: e.target.value as FichaExerciseType | '' }))}
+                      >
+                        <option value="">{t('Que elija la IA')}</option>
+                        {TIPOS.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+                      </select>
+                      <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)}>
+                        {adding === a ? <span className="spin" /> : <Plus size={13} />}{t('Añadir ejercicio con IA')}
+                      </button>
+                    </div>
                   </div>
                   {escape && (
                     <div className="fe-lock">
