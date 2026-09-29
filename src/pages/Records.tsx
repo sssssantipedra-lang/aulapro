@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 import { PERIODS } from '../lib/utils';
+import { isMarksCategory } from '../services/classMarks';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
@@ -132,6 +133,13 @@ export function Records({
   }, [rows]);
 
   const totalWeight = cats.reduce((a, c) => a + c.weight, 0);
+  // El bloque de anotaciones del aula no tiene un % fijo: se le da el peso
+  // justo para valer sus puntos. Por eso no entra en el aviso de «no suman
+  // 100%» y en la cabecera se muestra en puntos.
+  const ownWeight = cats.filter(c => !isMarksCategory(c.id)).reduce((a, c) => a + c.weight, 0);
+  const weightLabel = (c: GradeCategory) => isMarksCategory(c.id)
+    ? t('{n} pto.', { n: (Math.round((c.weight / (totalWeight || 1)) * 100) / 10).toLocaleString(locale) })
+    : `${c.weight}%`;
 
   const docs = window.electronAPI?.docs;
   const [working, setWorking] = useState<'pdf' | 'print' | null>(null);
@@ -183,7 +191,7 @@ export function Records({
   function downloadCsv() {
     if (rows.length === 0) { toast(t('Esta clase no tiene alumnos')); return; }
     const esc = (s: string | number) => `"${String(s ?? '').replace(/"/g, '""')}"`;
-    const header = [t('Nº'), t('Alumno/a'), ...cats.map(c => `${c.name} (${c.weight}%)`), t('Nota final'), t('Calificación')];
+    const header = [t('Nº'), t('Alumno/a'), ...cats.map(c => `${c.name} (${weightLabel(c)})`), t('Nota final'), t('Calificación')];
     const lines = [
       header.map(esc).join(';'),
       ...rows.map(r => [
@@ -304,9 +312,9 @@ export function Records({
           <Toggle label={t('Pie de firma')} on={showSignature} onChange={setShowSignature} />
         </div>
 
-        {totalWeight !== 100 && cats.length > 0 && (
+        {ownWeight !== 100 && cats.length > 0 && (
           <p style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 12, lineHeight: 1.5 }}>
-            <strong>{t('Atención:')}</strong> {t('los pesos de las categorías suman {n}%, no 100%. La nota final se calcula igualmente en proporción, pero revisa el cuaderno antes de firmar el acta.', { n: totalWeight })}
+            <strong>{t('Atención:')}</strong> {t('los pesos de las categorías suman {n}%, no 100%. La nota final se calcula igualmente en proporción, pero revisa el cuaderno antes de firmar el acta.', { n: ownWeight })}
           </p>
         )}
       </div>
@@ -344,7 +352,7 @@ export function Records({
                   {showCategories && cats.map(c => (
                     <th key={c.id} className="c-num">
                       {c.name}
-                      <span className="c-weight">{c.weight}%</span>
+                      <span className="c-weight">{weightLabel(c)}</span>
                     </th>
                   ))}
                   <th className="c-num c-final">{t('Nota')}</th>

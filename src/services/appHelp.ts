@@ -132,6 +132,20 @@ Tiene DOS PESTAÑAS arriba:
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
    «¿cómo va Marta?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
+Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
+aula desde la Distribución de aula, el cuaderno añade este bloque, que vale
+1 PUNTO de la nota final (la nota final queda en un 90% la media de las
+categorías del docente y un 10% el bloque). Tiene tres partes que ponderan
+un 33,33% cada una: Tareas, Comportamiento y Participación. Cada parte es una
+nota de 0 a 10: se parte de 10 en Tareas y Comportamiento y de 5 en
+Participación (que solo suma), y cada anotación suma o resta 0,5. En la
+tabla se ven como columnas de solo lectura (con −/+ de cada alumno) y la
+«Nota» del bloque. Todo se ajusta pulsando el botón del bloque junto a las
+categorías o su cabecera en la tabla: si cuenta o no en la nota, los puntos
+que vale (hasta 5), el peso de cada parte (deben sumar 100%), la nota de
+partida de cada parte y lo que suma o resta cada anotación. El bloque no
+entra en el aviso de «los pesos suman 100%». Cuenta también en informes,
+actas (donde aparece en puntos), el inicio y la IA.
 
 [attendance] ASISTENCIA
 Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
@@ -163,6 +177,15 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   se usa la × de su fila. Con todo el alumnado sentado la bandeja desaparece.
 - Las flechas de rotación cambian los roles dentro de cada mesa cada semana
   sin cambiar quién se sienta con quién; la otra flecha deshace la rotación.
+- ANOTACIONES DEL AULA: cada alumno sentado tiene a la derecha de su fila un
+  banderín. Al tocarlo se abre «Anotar a …» con cinco botones de un toque:
+  «Sin tarea», «Sin material», «Mal comportamiento», «Buen comportamiento» y
+  «Participa» (si la clase tiene varias asignaturas, se elige antes cuál). En
+  la fila se ven las anotaciones de hoy (−2, +1) y desde la ventana se puede
+  quitar una hecha por error. Cuentan solas en el CUADERNO DE NOTAS, en el
+  bloque «Trabajo diario y actitud» (ver Cuaderno de notas): «Sin tarea» en
+  Tareas; «Sin material», «Mal/Buen comportamiento» en Comportamiento;
+  «Participa» en Participación.
 Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
 
@@ -241,6 +264,10 @@ Al pulsar «Guardar» la copia se borra.
 Herramientas para proyectar en clase: temporizador, sorteo de alumnos (se puede
 ir sacando sin repetir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel.
+Tiene una pizarra para dibujar encima («Lápiz»). La pizarra es BLANCA por
+defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
+oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
+próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
 
 [classroom-live] SALA DE ALUMNOS
 Levanta un servidor en el propio ordenador para que los alumnos entren desde el

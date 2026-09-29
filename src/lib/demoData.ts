@@ -1,4 +1,4 @@
-import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, GradeCategory, GradeItem, GradeMap } from '../types';
+import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, GradeCategory, GradeItem, GradeMap, ClassMark } from '../types';
 import { isoDate } from './utils';
 
 /**
@@ -115,6 +115,24 @@ const DEMO_GRADES: GradeMap = {
   gi4: { s01: 7.0, s02: 8.5, s03: 9.5, s04: 6.0, s05: 7.5, s06: 9.0 },
 };
 
+/**
+ * Unas anotaciones del aula para que se vea en el cuaderno el bloque
+ * «Trabajo diario y actitud» que forman.
+ */
+function buildDemoMarks(): ClassMark[] {
+  const m = (id: string, student_id: string, type: ClassMark['type'], days: number): ClassMark =>
+    ({ id, class_id: 'c1', student_id, type, date: daysFromNow(days) });
+  return [
+    m('mk1', 's01', 'homework', -6),
+    m('mk2', 's01', 'homework', -2),
+    m('mk3', 's04', 'homework', -1),
+    m('mk4', 's02', 'participation', -3),
+    m('mk5', 's02', 'participation', -1),
+    m('mk6', 's06', 'participation', -2),
+    m('mk7', 's05', 'behavior-bad', -1),
+  ];
+}
+
 export interface DemoData {
   tasks: Task[];
   classes: Class[];
@@ -125,6 +143,7 @@ export interface DemoData {
   gradeCategories: GradeCategory[];
   gradeItems: GradeItem[];
   grades: GradeMap;
+  classMarks: ClassMark[];
 }
 
 export function buildDemoData(): DemoData {
@@ -138,6 +157,7 @@ export function buildDemoData(): DemoData {
     gradeCategories: DEMO_CATEGORIES,
     gradeItems: buildDemoGradeItems(),
     grades: DEMO_GRADES,
+    classMarks: buildDemoMarks(),
   };
 }
 

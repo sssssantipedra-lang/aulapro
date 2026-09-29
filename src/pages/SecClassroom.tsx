@@ -3,7 +3,7 @@ import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
   Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
-  RefreshCw, Link as LinkIcon, PenLine, Calculator, Delete,
+  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -34,7 +34,51 @@ const APPS: WidgetConfig[] = [
 /** Nombres de relleno cuando aún no hay alumnos creados. */
 const DEFAULT_NAMES = ['Ana', 'Luis', 'Carlos', 'María', 'Jorge', 'Lucía'];
 
-const PEN_COLORS = ['#f8fafc', '#38bdf8', '#f472b6', '#facc15', '#4ade80'];
+/**
+ * Colores del lápiz según el fondo: en una pizarra blanca el blanco y el
+ * amarillo claro no se ven, y en la oscura pasa lo mismo con el negro.
+ */
+const PEN_COLORS = {
+  light: ['#0f172a', '#2563eb', '#dc2626', '#16a34a', '#ea580c'],
+  dark:  ['#f8fafc', '#38bdf8', '#f472b6', '#facc15', '#4ade80'],
+} as const;
+type BoardTheme = keyof typeof PEN_COLORS;
+const BOARD_KEY = 'aulapro_board_theme';
+
+const hexToRgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+
+/**
+ * Pasa lo ya dibujado a los colores equivalentes del otro fondo (el blanco
+ * del lápiz oscuro se vuelve negro, etc.): si no, al cambiar de pizarra los
+ * trazos dejarían de verse. Cada píxel toma el color de la paleta nueva que
+ * corresponde al más parecido de la vieja, conservando su transparencia para
+ * que los bordes suavizados sigan igual.
+ */
+function recolorStrokes(canvas: HTMLCanvasElement | null, from: readonly string[], to: readonly string[]) {
+  const ctx = canvas?.getContext('2d');
+  if (!canvas || !ctx || canvas.width === 0 || canvas.height === 0) return;
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const src = from.map(hexToRgb);
+  const dst = to.map(hexToRgb);
+  const d = img.data;
+  for (let p = 0; p < d.length; p += 4) {
+    if (d[p + 3] === 0) continue;
+    let best = 0;
+    let bestDist = Infinity;
+    for (let k = 0; k < src.length; k++) {
+      const dist = (d[p] - src[k][0]) ** 2 + (d[p + 1] - src[k][1]) ** 2 + (d[p + 2] - src[k][2]) ** 2;
+      if (dist < bestDist) { bestDist = dist; best = k; }
+    }
+    [d[p], d[p + 1], d[p + 2]] = dst[best];
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function readBoardTheme(): BoardTheme {
+  // Blanca por defecto: en la pantalla del aula (proyector o panel) el fondo
+  // oscuro se ve mal con luz ambiente.
+  try { return localStorage.getItem(BOARD_KEY) === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
+}
 
 const WHEEL_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
@@ -1251,8 +1295,21 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
   // El trazo se guarda en una referencia, no en estado: React agrupa las
   // actualizaciones y los primeros movimientos del ratón se perderían.
   const drawingRef = useRef(false);
-  const [color, setColor] = useState(PEN_COLORS[0]);
+  const [board, setBoard] = useState<BoardTheme>(readBoardTheme);
+  const penColors = PEN_COLORS[board];
+  const [color, setColor] = useState<string>(penColors[0]);
   const [penOn, setPenOn] = useState(false);
+  const light = board === 'light';
+
+  function switchBoard() {
+    const next: BoardTheme = light ? 'dark' : 'light';
+    setBoard(next);
+    // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
+    const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
+    setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
+    recolorStrokes(canvasRef.current, PEN_COLORS[board], PEN_COLORS[next]);
+    try { localStorage.setItem(BOARD_KEY, next); } catch { /* sin almacenamiento: solo dura esta sesión */ }
+  }
 
   const wheelNames = useMemo(
     () => (studentNames.length > 0 ? studentNames : DEFAULT_NAMES),
@@ -1375,16 +1432,20 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
   };
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: '100vh', background: '#080f21' }}>
+    <div className="relative w-full overflow-hidden" style={{ height: '100vh', background: light ? '#ffffff' : '#080f21' }}>
       {/* Fondo */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(circle at 20% 0%, rgba(99,102,241,0.22), transparent 45%), radial-gradient(circle at 85% 25%, rgba(236,72,153,0.13), transparent 42%), radial-gradient(circle at 50% 100%, rgba(34,211,238,0.13), transparent 50%)' }}
-      />
+      {!light && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(circle at 20% 0%, rgba(99,102,241,0.22), transparent 45%), radial-gradient(circle at 85% 25%, rgba(236,72,153,0.13), transparent 42%), radial-gradient(circle at 50% 100%, rgba(34,211,238,0.13), transparent 50%)' }}
+        />
+      )}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)',
+          backgroundImage: light
+            ? 'linear-gradient(rgba(15,23,42,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.055) 1px, transparent 1px)'
+            : 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)',
           backgroundSize: '46px 46px',
         }}
       />
@@ -1436,11 +1497,21 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
           <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Lápiz')}
         </button>
 
+        <button
+          onClick={switchBoard}
+          title={t(light ? 'Cambiar a pizarra oscura' : 'Cambiar a pizarra blanca')}
+          aria-label={t(light ? 'Cambiar a pizarra oscura' : 'Cambiar a pizarra blanca')}
+          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
+          style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)' }}
+        >
+          {light ? <Moon size={15} /> : <Sun size={15} />}{t(light ? 'Fondo oscuro' : 'Fondo blanco')}
+        </button>
+
         {penOn && (
           <>
             <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
             <Palette size={15} color="rgba(255,255,255,0.4)" />
-            {PEN_COLORS.map(c => (
+            {penColors.map(c => (
               <button
                 key={c}
                 onClick={() => setColor(c)}
@@ -1449,6 +1520,7 @@ export default function SecClassroom({ studentNames = [] }: { studentNames?: str
                 style={{
                   width: 21, height: 21, background: c,
                   border: color === c ? '2.5px solid white' : '2.5px solid transparent',
+                  boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
                   transform: color === c ? 'scale(1.16)' : 'scale(1)',
                 }}
               />

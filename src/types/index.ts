@@ -620,6 +620,47 @@ export interface SeatingPlan {
   lastNotes?: string;
 }
 
+/**
+ * Anotación rápida del día a día («no ha traído la tarea», «buen
+ * comportamiento»…), hecha desde la Distribución de aula. No es una nota:
+ * el cuaderno las convierte en el bloque «Trabajo diario y actitud»
+ * (Tareas, Comportamiento y Participación), que vale un punto de la nota
+ * final. Ver `services/classMarks.ts`.
+ */
+export type ClassMarkType = 'homework' | 'material' | 'behavior-bad' | 'behavior-good' | 'participation';
+
+/** Las tres partes del bloque de anotaciones. */
+export type MarkTarget = 'homework' | 'behavior' | 'participation';
+
+/**
+ * Cómo cuenta el bloque de anotaciones del aula en la nota de una clase y
+ * asignatura. Se guarda por `classId|asignatura`; lo que falte toma el valor
+ * por defecto de `services/classMarks.ts`.
+ */
+export interface MarksBlockConfig {
+  /** true/false = el docente lo ha decidido; ausente = cuenta si hay anotaciones. */
+  enabled?: boolean;
+  /** Puntos que vale el bloque sobre 10 en la nota final. */
+  points: number;
+  /** Peso de cada parte dentro del bloque, en %. */
+  weights: Record<MarkTarget, number>;
+  /** Nota de partida de cada parte. */
+  bases: Record<MarkTarget, number>;
+  /** Lo que suma o resta cada anotación. */
+  step: number;
+}
+
+export interface ClassMark {
+  id: string;
+  class_id: string;
+  student_id: string;
+  type: ClassMarkType;
+  /** Día, YYYY-MM-DD. */
+  date: string;
+  /** Asignatura, si la clase tiene varias. Ausente = la principal. */
+  subject?: string;
+}
+
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
