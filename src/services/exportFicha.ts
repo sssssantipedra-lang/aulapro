@@ -30,6 +30,7 @@ import { translate, type Lang } from '../i18n';
 import { svgLightbulb, svgPencil } from './fichaIcons';
 import { pickMotifKey, MOTIF_COLORS, MOTIF_ICON } from './fichaMotifs';
 import { buildFigureSvg, FIGURE_W, FIGURE_H } from '../lib/geometryFigures';
+import { downloadFile } from '../lib/download';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -984,10 +985,5 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
 export async function saveFichaDocx(f: Ficha, lang: Lang) {
   const blob = await buildFichaDocxBlob(f, lang);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileBase(f) + '.docx';
-  a.click();
-  URL.revokeObjectURL(url);
+  await downloadFile(blob, fileBase(f) + '.docx');
 }

@@ -8,6 +8,7 @@ import { isoDate, fromIsoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 interface Props {
   classes: Class[];
@@ -108,12 +109,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     const csv = '﻿' + [header, ...rows]
       .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `asistencia-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `asistencia-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`);
     toast(t('✅ Asistencia exportada'));
   }
 

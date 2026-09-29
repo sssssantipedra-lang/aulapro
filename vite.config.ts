@@ -42,7 +42,8 @@ export default defineConfig({
       // `release/` son los instaladores compilados, cientos de MB. Sin esto,
       // empaquetar con el servidor de desarrollo abierto lo mete en un bucle
       // de recargas que lo deja inservible.
-      ignored: ['**/release/**', '**/dist/**'],
+      // `android/` lleva una copia de la web compilada (npx cap sync).
+      ignored: ['**/release/**', '**/dist/**', '**/android/**'],
     },
   },
 })

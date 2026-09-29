@@ -1867,6 +1867,11 @@ const EN: Record<string, string> = {
   "Licencia": "Licence",
   "Tu licencia de Aula Pro en este ordenador.": "Your Aula Pro licence on this computer.",
   "Sin activar": "Not activated",
+
+  /* ── Android ── */
+  "Muy pronto en la tableta": "Coming soon on tablets",
+  "La sala de alumnos todavía no está en la versión de Android. De momento, ábrela desde Aula Pro en el ordenador: tus alumnos se conectan igual desde el móvil.": "The student room isn't in the Android version yet. For now, open it from Aula Pro on your computer: your students connect from their phones just the same.",
+  "Todo tu trabajo se guarda dentro de Aula Pro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "All your work is saved inside Aula Pro on this device, just for this profile, and is never uploaded to any cloud. Aula Pro makes an automatic backup every ten minutes while you work.",
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };

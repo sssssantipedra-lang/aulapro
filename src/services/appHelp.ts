@@ -415,6 +415,14 @@ Los avisos de «Configurar la IA» de otras pantallas llevan directos a la
 tarjeta «Clave de la IA».
 
 === PREGUNTAS FRECUENTES ===
+- «¿Hay Aula Pro para tableta / Android?»: sí, en pruebas y pensada sobre todo
+  para tabletas en horizontal. Funciona igual que en el ordenador, con tres
+  diferencias: «Guardar en PDF» abre el diálogo de impresión de Android, donde
+  se elige «Guardar como PDF» o una impresora; los Word, CSV y copias se
+  comparten (Archivos, Drive, correo…) en vez de descargarse; y la Sala de
+  alumnos aún no está (se abre desde el ordenador). Los datos de la tableta y
+  los del ordenador van por separado: para pasarlos, «Descargar mis datos» en
+  uno y «Cargar desde archivo» en el otro, o «Trabajo compartido».
 - «Me pide una clave de licencia» / «He cambiado de ordenador»: la clave llega
   por correo al comprar Aula Pro en la web. Se activa con internet una sola vez
   y después funciona sin conexión. Cada clave vale para un número limitado de

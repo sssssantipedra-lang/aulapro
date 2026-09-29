@@ -1,0 +1,66 @@
+name: Android
+
+# Compila el APK de Android cuando un pull request toca la parte de Android
+# (el proyecto nativo, la configuración de Capacitor o las dependencias), para
+# que un cambio que lo rompa se vea antes de fusionar. El APK queda como
+# artefacto descargable del run. El de cada versión lo sube release.yml.
+on:
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'src/platform/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar la aplicación web
+        run: npx vite build
+
+      - name: Copiar la web al proyecto Android
+        run: npx cap sync android
+
+      - name: Compilar el APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Nombre del APK
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          mkdir -p release
+          cp android/app/build/outputs/apk/release/app-release.apk "release/AulaPro-${VERSION}-android.apk"
+
+      - name: Subir el APK como artefacto descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaPro-android
+          path: release/*.apk
+          if-no-files-found: error

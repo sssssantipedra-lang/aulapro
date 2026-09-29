@@ -7,6 +7,7 @@ import {
 } from '../services/audit';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 interface Props {
   auditLog: AuditEntry[];
@@ -53,12 +54,7 @@ export function AuditLog({ auditLog, onClear }: Props) {
 
   function exportCsv() {
     if (filtered.length === 0) { toast(t('No hay nada que exportar con estos filtros')); return; }
-    const url = URL.createObjectURL(new Blob([auditToCsv(filtered)], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `registro-de-cambios-${dayKeyOf(new Date().toISOString())}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    void downloadFile(new Blob([auditToCsv(filtered)], { type: 'text/csv;charset=utf-8' }), `registro-de-cambios-${dayKeyOf(new Date().toISOString())}.csv`);
     toast(t('✅ Registro descargado'));
   }
 

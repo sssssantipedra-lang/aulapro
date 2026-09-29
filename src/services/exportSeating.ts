@@ -17,6 +17,7 @@ import { seatStudentId } from '../types';
 import { translate, type Lang } from '../i18n';
 import { buildTableSvg } from '../lib/seatingLayout';
 import { PALETTE } from '../lib/demoData';
+import { downloadFile } from '../lib/download';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
 
@@ -181,10 +182,5 @@ export async function buildSeatingDocxBlob(cls: Class, plan: SeatingPlan, studen
 
 export async function saveSeatingDocx(cls: Class, plan: SeatingPlan, students: Student[], lang: Lang) {
   const blob = await buildSeatingDocxBlob(cls, plan, students, lang);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileBase(cls) + '.docx';
-  a.click();
-  URL.revokeObjectURL(url);
+  await downloadFile(blob, fileBase(cls) + '.docx');
 }

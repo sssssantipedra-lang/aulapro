@@ -1,4 +1,10 @@
-/** Puente que expone el proceso principal de Electron (electron/preload.cjs). */
+/**
+ * Puente con la parte nativa de la aplicación: el proceso principal de
+ * Electron en Windows y Mac (electron/preload.cjs) y, en Android, el mismo
+ * contrato hecho con Capacitor (src/platform/android.ts). Lo que una
+ * plataforma no tiene (la sala de alumnos o las actualizaciones en Android)
+ * simplemente no aparece.
+ */
 
 export interface ClassroomActivity {
   id: string;
@@ -128,10 +134,16 @@ export interface StoreBridge {
   openFolder: (id: string) => Promise<unknown>;
 }
 
+/** Guardar un archivo generado (Word, CSV, copia…) donde el docente elija. */
+export interface FilesBridge {
+  save: (blob: Blob, filename: string) => Promise<void>;
+}
+
 declare global {
   interface Window {
     electronAPI?: {
       isDesktop: boolean;
+      /** `process.platform` en escritorio ('win32', 'darwin'…) o 'android'. */
       platform: string;
       version: string;
       store?: StoreBridge;
@@ -139,6 +151,7 @@ declare global {
       docs?: DocsBridge;
       update?: UpdateBridge;
       license?: LicenseBridge;
+      files?: FilesBridge;
       secrets?: {
         get: (name: 'gemini') => Promise<string>;
         /** `false` si el sistema no ofrece cifrado: entonces no se ha guardado. */

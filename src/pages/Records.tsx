@@ -6,6 +6,7 @@ import { isMarksCategory } from '../services/classMarks';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
+import { downloadFile } from '../lib/download';
 
 interface Props {
   classes: Class[];
@@ -204,13 +205,8 @@ export function Records({
     ];
     // BOM + punto y coma: así Excel en España lo abre en columnas sin tocar nada
     const csv = '﻿' + lines.join('\r\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
     const slug = (s: string) => s.replace(/\s+/g, '-');
-    a.download = `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`);
     toast(t('✅ Datos descargados'));
   }
 

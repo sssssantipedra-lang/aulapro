@@ -9,6 +9,7 @@ import type { ClassroomActivity, ClassroomSnapshot } from '../types/electron';
 import { SessionQR } from '../components/share/SessionQR';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { isAndroidApp } from '../lib/platform';
 
 interface Props {
   classes: Class[];
@@ -201,10 +202,12 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
         <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
           <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            {t('Solo desde la aplicación de escritorio')}
+            {t(isAndroidApp() ? 'Muy pronto en la tableta' : 'Solo desde la aplicación de escritorio')}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
+            {t(isAndroidApp()
+              ? 'La sala de alumnos todavía no está en la versión de Android. De momento, ábrela desde Aula Pro en el ordenador: tus alumnos se conectan igual desde el móvil.'
+              : 'Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
           </p>
         </div>
       </section>
