@@ -10,14 +10,15 @@
  */
 import { useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
+  type FichaFormato, type FichaVariante,
 } from '../services/resources';
-import { saveFichaPdf, saveFichaDocx } from '../services/exportFicha';
+import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
 import { FICHA_THEMES, fichaTheme, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
@@ -56,6 +57,22 @@ const move = <X,>(list: X[], i: number, dir: -1 | 1): X[] => {
 };
 
 type T = (k: string, v?: Record<string, string | number>) => string;
+
+const FORMATOS: { id: FichaFormato; emoji: string; label: string; desc: string }[] = [
+  { id: 'ficha', emoji: '📝', label: 'Ficha', desc: 'Ejercicios por bloques, para trabajar en la hoja.' },
+  { id: 'escape', emoji: '🔐', label: 'Escape room', desc: 'Cada bloque es una sala: sus respuestas forman el código que abre el candado.' },
+  { id: 'tarjetas', emoji: '🃏', label: 'Tarjetas recortables', desc: 'Pregunta delante y respuesta detrás, para jugar en grupo.' },
+];
+
+const FORMATO_LABEL: Record<FichaFormato, string> = { ficha: 'Ficha', escape: 'Escape room', tarjetas: 'Tarjetas' };
+
+const VARIANTES: { id: FichaVariante; emoji: string; desc: string }[] = [
+  { id: 'apoyo', emoji: '🤝', desc: 'Más guiada y con números más sencillos.' },
+  { id: 'ampliacion', emoji: '🚀', desc: 'Más reto: más pasos y justificar.' },
+  { id: 'lectura_facil', emoji: '📖', desc: 'Frases cortas y claras, letra más grande.' },
+];
+
+const VARIANTE_SUFFIX: Record<FichaVariante, string> = { apoyo: 'apoyo', ampliacion: 'ampliación', lectura_facil: 'lectura fácil' };
 
 /** Rejilla de temas para elegir el mundo de la ficha. */
 function ThemeGrid({ value, onChange, withAuto, compact, t }: {
@@ -102,6 +119,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [niveles, setNiveles] = useState(false);
   const [contextoClase, setContextoClase] = useState('');
   const [estilo, setEstilo] = useState<FichaThemeChoice>('auto');
+  const [formato, setFormato] = useState<FichaFormato>('ficha');
 
   /* ── Editor ── */
   const [generating, setGenerating] = useState(false);
@@ -111,6 +129,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [busyEx, setBusyEx] = useState<string | null>(null);
   const [storyBusy, setStoryBusy] = useState(false);
+  const [adaptOpen, setAdaptOpen] = useState(false);
+  const [adapting, setAdapting] = useState<FichaVariante | null>(null);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const sinClave = !hasApiKey();
@@ -121,7 +141,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     if (cls) setArea(cls.subject);
   }
 
-  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo });
+  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato });
+
+  function pickFormato(f: FichaFormato) {
+    setFormato(f);
+    if (f === 'tarjetas' && numEjercicios < 8) setNumEjercicios(12);
+  }
 
   function edit(fn: (c: FichaContent) => FichaContent) {
     setContent(c => (c ? fn(c) : c));
@@ -136,7 +161,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
       onEnd: () => setGenerating(false),
       onError: m => toast(m),
     });
-    if (!result?.actividades.some(a => a.ejercicios.length)) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    const ok = result && (result.formato === 'tarjetas' ? !!result.tarjetas?.length : result.actividades.some(a => a.ejercicios.length));
+    if (!result || !ok) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
     setContent(result);
     setEditingId(null);
     setDirty(true);
@@ -152,7 +178,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
       date: isoDate(),
       class_id: classId || undefined,
       class_name: activeClass?.name,
-      title: content.titulo || t('Ficha de trabajo'),
+      title: (content.titulo || t('Ficha de trabajo')) + (content.variante ? ` (${t(VARIANTE_SUFFIX[content.variante])})` : ''),
       request: { tema, area, nivel, numEjercicios, niveles, contextoClase },
       content,
     };
@@ -249,6 +275,29 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
     toast(t('Ejercicio rehecho'));
   }
 
+  /** Crea la versión adaptada como ficha nueva; la actual se guarda antes para no perderla. */
+  async function handleAdapt(v: FichaVariante) {
+    if (!content) return;
+    setAdaptOpen(false);
+    if (dirty || !editingId) handleSave();
+    const res = await adaptFicha(content, request(), v, lang, {
+      onStart: () => setAdapting(v),
+      onEnd: () => setAdapting(null),
+      onError: m => toast(m),
+    });
+    if (!res) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
+    // El título impreso no dice que es una adaptación (lo vería el alumnado): eso va solo en «Mis fichas»
+    setContent(res);
+    setEditingId(null);
+    setDirty(true);
+    setSelected(null);
+    window.scrollTo({ top: 0 });
+    toast(t('{name} creada. Guárdala para tenerla en Mis fichas.', { name: t(VARIANTE_LABEL[v]) }));
+  }
+
+  const patchCard = (i: number, p: Partial<NonNullable<FichaContent['tarjetas']>[number]>) =>
+    edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).map((x, xi) => (xi === i ? { ...x, ...p } : x)) }));
+
   function changeTheme(id: FichaThemeId) {
     edit(c => ({ ...c, estilo: id }));
   }
@@ -275,6 +324,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
   if (content) {
     const theme = fichaTheme(content.estilo);
     const story = theme.id !== 'clasico';
+    const tarjetas = content.formato === 'tarjetas';
+    const escape = content.formato === 'escape';
     const historia = content.historia;
     const ficha = currentFicha()!;
     const blockCls = (id: string) => `fe-sec${selected === id ? ' sel' : ''}`;
@@ -287,9 +338,26 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
           <div className="fe-top-ttl">
             <span className="fe-top-emoji" aria-hidden="true">{historia && story ? historia.emoji : theme.personaje}</span>
             <strong>{content.titulo || t('Ficha de trabajo')}</strong>
+            {content.variante && <span className="fe-badge">{t(VARIANTE_LABEL[content.variante])}</span>}
             {dirty && <span className="sda-unsaved">{t('Sin guardar')}</span>}
           </div>
           <div className="fe-top-actions">
+            <div className="fe-adapt">
+              <button type="button" className="btn-ghost" disabled={sinClave || adapting !== null} aria-expanded={adaptOpen} onClick={() => setAdaptOpen(o => !o)}>
+                {adapting ? <><span className="spin" />{t('Adaptando…')}</> : <><Wand2 size={14} />{t('Adaptar')}<ChevronDown size={13} /></>}
+              </button>
+              {adaptOpen && (
+                <div className="fe-adapt-menu" role="menu">
+                  <div className="fe-adapt-hd">{t('Crea otra versión de esta ficha, con la misma historia:')}</div>
+                  {VARIANTES.map(v => (
+                    <button key={v.id} type="button" role="menuitem" className="fe-adapt-item" onClick={() => handleAdapt(v.id)}>
+                      <span className="fe-adapt-emoji">{v.emoji}</span>
+                      <span><strong>{t(VARIANTE_LABEL[v.id])}</strong><em>{t(v.desc)}</em></span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {isDesktop() && (
               <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportPdf(ficha, CURRENT_KEY)} title={t('Guardar en PDF')}>
                 {exporting?.key === CURRENT_KEY && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={14} />}{t('PDF')}
@@ -307,7 +375,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             <span className="fe-lbl">{t('Tema')}</span>
             <span className="fe-hint">{t('Cambia el aspecto al instante, sin volver a generar.')}</span>
             <span style={{ flex: 1 }} />
-            {story && (
+            {story && !tarjetas && (
               <button type="button" className="btn-ghost sm" disabled={storyBusy || sinClave} onClick={handleRewriteStory}>
                 {storyBusy ? <span className="spin" /> : <Wand2 size={13} />}
                 {historia ? t('Adaptar la historia a este tema') : t('Crear la historia')}
@@ -326,7 +394,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
               </label>
             </div>
 
-            {story && historia && (
+            {story && historia && !tarjetas && (
               <div className={`${blockCls('historia')} fe-story`} {...selectOn('historia')}>
                 <div className="fe-sec-hd">📖 {t('La historia')}</div>
                 <div className="fe-row">
@@ -346,20 +414,48 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
               </div>
             )}
 
-            <div className={blockCls('explicacion')} {...selectOn('explicacion')}>
-              <label className="fe-field">
-                <span className="fe-lbl">💡 {t('Antes de empezar')}</span>
-                <textarea className="finput" rows={3} value={content.explicacion ?? ''} onChange={e => edit(c => ({ ...c, explicacion: e.target.value }))} />
-              </label>
-            </div>
+            {!tarjetas && (
+              <div className={blockCls('explicacion')} {...selectOn('explicacion')}>
+                <label className="fe-field">
+                  <span className="fe-lbl">💡 {t('Antes de empezar')}</span>
+                  <textarea className="finput" rows={3} value={content.explicacion ?? ''} onChange={e => edit(c => ({ ...c, explicacion: e.target.value }))} />
+                </label>
+              </div>
+            )}
             <div className={blockCls('instrucciones')} {...selectOn('instrucciones')}>
               <label className="fe-field">
-                <span className="fe-lbl">{t('Instrucciones')}</span>
+                <span className="fe-lbl">{t(tarjetas ? 'Cómo se juega' : 'Instrucciones')}</span>
                 <textarea className="finput" rows={2} value={content.instrucciones ?? ''} onChange={e => edit(c => ({ ...c, instrucciones: e.target.value }))} />
               </label>
             </div>
 
-            {content.actividades.map((act, a) => {
+            {tarjetas && (
+              <div className="fe-cards">
+                {(content.tarjetas ?? []).map((tj, i) => (
+                  <div
+                    key={i} className={`fe-card-row${selected === `card-${i}` ? ' sel' : ''}`} data-block={`card-${i}`}
+                    onFocusCapture={() => setSelected(`card-${i}`)} onClick={() => setSelected(`card-${i}`)}
+                  >
+                    <span className="fe-ex-n">{i + 1}</span>
+                    <div className="fe-card-fields">
+                      <input className="finput" value={tj.pregunta} aria-label={t('Pregunta {n}', { n: i + 1 })} placeholder={t('Pregunta')} onChange={e => patchCard(i, { pregunta: e.target.value })} />
+                      <input className="finput fe-card-ans" value={tj.respuesta} aria-label={t('Respuesta {n}', { n: i + 1 })} placeholder={t('Respuesta')} onChange={e => patchCard(i, { respuesta: e.target.value })} />
+                    </div>
+                    <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir')} disabled={i === 0}
+                      onClick={() => edit(c => ({ ...c, tarjetas: move(c.tarjetas ?? [], i, -1) }))}><ArrowUp size={14} /></button>
+                    <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar')} disabled={i === (content.tarjetas?.length ?? 0) - 1}
+                      onClick={() => edit(c => ({ ...c, tarjetas: move(c.tarjetas ?? [], i, 1) }))}><ArrowDown size={14} /></button>
+                    <button type="button" className="ico-btn sm" title={t('Eliminar')} aria-label={t('Eliminar')}
+                      onClick={() => edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).filter((_, xi) => xi !== i) }))}><Trash2 size={14} color="var(--danger)" /></button>
+                  </div>
+                ))}
+                <button type="button" className="btn-ghost sm fe-add" onClick={() => edit(c => ({ ...c, tarjetas: [...(c.tarjetas ?? []), { pregunta: '', respuesta: '' }] }))}>
+                  <Plus size={14} />{t('Añadir tarjeta')}
+                </button>
+              </div>
+            )}
+
+            {!tarjetas && content.actividades.map((act, a) => {
               const color = theme.bloques[a % theme.bloques.length];
               return (
                 <div
@@ -373,7 +469,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
                         onChange={e => patchAct(a, { emoji: e.target.value })}
                       />
                     )}
-                    <span className="fe-act-lbl">{t(theme.paso)} {a + 1}</span>
+                    <span className="fe-act-lbl">{t(escape ? 'Sala' : theme.paso)} {a + 1}</span>
                     <input className="fe-act-ttl" value={act.titulo} aria-label={t('Título del bloque')} onChange={e => patchAct(a, { titulo: e.target.value })} />
                     <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir bloque')} disabled={a === 0} onClick={() => moveAct(a, -1)}><ArrowUp size={14} /></button>
                     <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar bloque')} disabled={a === content.actividades.length - 1} onClick={() => moveAct(a, 1)}><ArrowDown size={14} /></button>
@@ -400,11 +496,30 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
                     ))}
                     {!act.ejercicios.length && <p className="fe-empty">{t('Este bloque se ha quedado sin ejercicios.')}</p>}
                   </div>
+                  {escape && (
+                    <div className="fe-lock">
+                      <span className="fe-lock-ico" aria-hidden="true">🔒</span>
+                      <label className="fe-field fe-lock-code">
+                        <span className="fe-lbl">{t('Código')}</span>
+                        <input
+                          className="finput" value={act.candado?.codigo ?? ''}
+                          onChange={e => patchAct(a, { candado: { pista: act.candado?.pista ?? '', codigo: cleanCode(e.target.value) } })}
+                        />
+                      </label>
+                      <label className="fe-field" style={{ flex: 1 }}>
+                        <span className="fe-lbl">{t('Cómo se forma')} <em>· {t('se imprime; el código no')}</em></span>
+                        <input
+                          className="finput" value={act.candado?.pista ?? ''}
+                          onChange={e => patchAct(a, { candado: { codigo: act.candado?.codigo ?? '', pista: e.target.value } })}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
               );
             })}
 
-            {story && historia && (
+            {story && historia && !tarjetas && (
               <div className={`${blockCls('cierre')} fe-story`} {...selectOn('cierre')}>
                 <div className="fe-sec-hd">🏅 {t('El final y la insignia')}</div>
                 <label className="fe-field">
@@ -476,22 +591,41 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
             <input id="resources-f4" className="finput" value={nivel} onChange={e => setNivel(e.target.value)} placeholder={t('Ej: 5º de Primaria')} />
           </div>
           <div className="fgroup" style={{ maxWidth: 140 }}>
-            <label className="flabel" htmlFor="resources-f5">{t('Nº de ejercicios')}</label>
+            <label className="flabel" htmlFor="resources-f5">{t(formato === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
             <input
               id="resources-f5"
               className="finput" type="number" min={1} max={20} value={numEjercicios}
-              onChange={e => setNumEjercicios(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+              onChange={e => setNumEjercicios(Math.max(1, Math.min(formato === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
             />
           </div>
         </div>
 
         <div className="fgroup">
-          <span className="flabel">{t('El mundo de la historia')}</span>
+          <span className="flabel">{t('Qué quieres crear')}</span>
+          <div className="fe-formats" role="radiogroup" aria-label={t('Qué quieres crear')}>
+            {FORMATOS.map(f => (
+              <button
+                key={f.id} type="button" role="radio" aria-checked={formato === f.id}
+                className={`fe-format${formato === f.id ? ' on' : ''}`} onClick={() => pickFormato(f.id)}
+              >
+                <span className="fe-format-emoji">{f.emoji}</span>
+                <span className="fe-format-txt"><strong>{t(f.label)}</strong><em>{t(f.desc)}</em></span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="fgroup">
+          <span className="flabel">{t(formato === 'tarjetas' ? 'Aspecto de las tarjetas' : 'El mundo de la historia')}</span>
           <ThemeGrid value={estilo} onChange={setEstilo} withAuto t={t} />
           <p className="fe-hint" style={{ marginTop: 6 }}>
-            {estilo === 'clasico'
-              ? t('Sin historia: una ficha sobria de las de siempre.')
-              : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
+            {formato === 'tarjetas'
+              ? t('Solo cambia los colores y los dibujos de las tarjetas.')
+              : formato === 'escape' && estilo === 'clasico'
+                ? t('Un escape room necesita historia: la IA elegirá el mundo que mejor encaje.')
+                : estilo === 'clasico'
+                  ? t('Sin historia: una ficha sobria de las de siempre.')
+                  : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
           </p>
         </div>
 
@@ -513,8 +647,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
         <div style={{ paddingTop: 14, marginTop: 10, borderTop: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
-              ? <><span className="spin" />{t('Creando la ficha…')}</>
-              : <><Sparkles size={14} />{t('Crear ficha')}</>}
+              ? <><span className="spin" />{t('Creando…')}</>
+              : <><Sparkles size={14} />{t(formato === 'escape' ? 'Crear escape room' : formato === 'tarjetas' ? 'Crear tarjetas' : 'Crear ficha')}</>}
           </button>
           {generating && <span className="fe-hint">{t('La IA está escribiendo la historia y los ejercicios. Tarda unos segundos.')}</span>}
         </div>
@@ -533,7 +667,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
           <div className="fe-lib">
             {fichas.map(f => {
               const th = fichaTheme(f.content.estilo);
-              const nEj = (f.content.actividades ?? []).reduce((s, a) => s + a.ejercicios.length, 0);
+              const nEj = f.content.formato === 'tarjetas' ? 0 : (f.content.actividades ?? []).reduce((s, a) => s + a.ejercicios.length, 0);
               return (
                 <div key={f.id} className="fe-card" style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}` } as React.CSSProperties}>
                   <button type="button" className="fe-card-main" onClick={() => openSaved(f)}>
@@ -543,10 +677,15 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav }: Props) {
                       <span className="fe-card-meta">
                         {[f.class_name, f.sda_title ? t('desde «{title}»', { title: f.sda_title }) : f.request.area,
                           nEj ? t('{n} ejercicios', { n: nEj }) : '',
+                          f.content.formato === 'tarjetas' ? t('{n} tarjetas', { n: f.content.tarjetas?.length ?? 0 }) : '',
                           new Date(f.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })]
                           .filter(Boolean).join(' · ')}
                       </span>
-                      <span className="fe-card-theme">{t(th.nombre)}</span>
+                      <span className="fe-card-theme">
+                        {t(th.nombre)}
+                        {f.content.formato && f.content.formato !== 'ficha' && <span className="fe-mini-badge">{t(FORMATO_LABEL[f.content.formato])}</span>}
+                        {f.content.variante && <span className="fe-mini-badge var">{t(VARIANTE_LABEL[f.content.variante])}</span>}
+                      </span>
                     </span>
                   </button>
                   <div className="fe-card-actions">

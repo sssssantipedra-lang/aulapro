@@ -35,11 +35,11 @@ const ficha: Ficha = {
   },
 };
 
-function setup(onSave = vi.fn()) {
+function setup(onSave = vi.fn(), list: Ficha[] = [ficha]) {
   render(
     <I18nProvider>
       <ToastProvider>
-        <Resources classes={[]} fichas={[ficha]} onSave={onSave} onDelete={() => {}} onNav={() => {}} />
+        <Resources classes={[]} fichas={list} onSave={onSave} onDelete={() => {}} onNav={() => {}} />
       </ToastProvider>
     </I18nProvider>,
   );
@@ -95,5 +95,35 @@ describe('Recursos — editor de fichas', () => {
     const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
     await waitFor(() => expect(frame.contentDocument?.body.textContent).toContain('Dibuja tres cuartos.'), { timeout: 2000 });
     expect(frame.contentDocument?.body.textContent).toContain('Piloto de las fracciones');
+  });
+
+  it('escape room: cada bloque es una sala con su código editable', async () => {
+    const onSave = setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, formato: 'escape', actividades: ficha.content.actividades.map(a => ({ ...a, candado: { codigo: '472', pista: 'Resultados en orden' } })) } }]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    expect(screen.getByText('Sala 1')).toBeTruthy();
+    const code = screen.getByDisplayValue('472');
+    fireEvent.change(code, { target: { value: 'a-9 b' } });
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[0][0].content.actividades[0].candado.codigo).toBe('A9B');
+  });
+
+  it('tarjetas: se editan y se añaden en una lista', async () => {
+    const onSave = setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, formato: 'tarjetas', actividades: [], tarjetas: [{ pregunta: '¿1/2 de 8?', respuesta: '4' }] } }]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    expect(screen.getByDisplayValue('¿1/2 de 8?')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /Añadir tarjeta/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[0][0].content.tarjetas).toHaveLength(2);
+  });
+
+  it('el menú «Adaptar» ofrece apoyo, ampliación y lectura fácil', async () => {
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    setup();
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Adaptar' }));
+    expect(screen.getByRole('menuitem', { name: /Versión de apoyo/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /Versión de ampliación/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /Lectura fácil/ })).toBeTruthy();
+    localStorage.removeItem('aulapro_gemini_key');
   });
 });

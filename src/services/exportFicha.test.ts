@@ -157,3 +157,38 @@ describe('exportFicha — temas con historia y tipos nuevos', () => {
     expect(blob.size).toBeGreaterThan(0);
   });
 });
+
+describe('exportFicha — escape room, tarjetas y versiones', () => {
+  it('escape room: cada bloque es una sala con su candado, sin el código impreso', () => {
+    const f = aventuraFixture();
+    f.content.formato = 'escape';
+    f.content.actividades[0].candado = { codigo: 'X7Q9', pista: 'Las respuestas en orden' };
+    const html = buildFichaHtml(f, 'es');
+    expect(html).toContain('Sala 1: Motor');
+    expect(html).toContain('ficha-candado');
+    expect(html).toContain('Las respuestas en orden');
+    expect(html).toContain('¡Habéis escapado!');
+    expect(html).not.toContain('X7Q9');
+  });
+
+  it('tarjetas: pregunta y respuesta para doblar, sin bloques de ejercicios', async () => {
+    const f = aventuraFixture();
+    f.content.formato = 'tarjetas';
+    f.content.tarjetas = [{ pregunta: '¿Cuánto es 1/2 de 10?', respuesta: '5' }, { pregunta: '¿Qué es el denominador?', respuesta: 'El número de abajo' }];
+    const html = buildFichaHtml(f, 'es');
+    expect(html).toContain('tj-grid');
+    expect(html).toContain('¿Cuánto es 1/2 de 10?');
+    expect(html).toContain('El número de abajo');
+    expect(html).not.toContain('Misión 1: Motor');
+    const blob = await buildFichaDocxBlob(f, 'es');
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it('las versiones adaptadas llevan una marca discreta y la de lectura fácil, letra grande', () => {
+    const f = aventuraFixture();
+    f.content.variante = 'lectura_facil';
+    const html = buildFichaHtml(f, 'es');
+    expect(html).toContain('var-mark');
+    expect(html).toContain('ficha-doc th-espacio lf');
+  });
+});

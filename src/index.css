@@ -177,7 +177,7 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
 /* ─── SECTION ANIMATION ─── */
-.sec { display:none; padding:24px; flex:1; min-width:0; }
+.sec { display:none; padding:24px 24px 96px; flex:1; min-width:0; }
 .sec.active { display:block; animation:si 0.3s cubic-bezier(0.4,0,0.2,1); }
 @keyframes si { from { opacity:0; transform:translateY(6px); } }
 
@@ -812,3 +812,41 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .fe-preview-scroll { max-height:calc(100vh - 150px); overflow-y:auto; overflow-x:hidden; }
 .fe-preview-sheet { position:relative; overflow:hidden; }
 .fe-preview-frame { border:none; display:block; transform-origin:0 0; background:#e2e8f0; }
+
+/* Fichas, fase 2: formato, candados, tarjetas y versiones */
+.fe-formats { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+.fe-format { display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border:2px solid var(--border); border-radius:14px; background:var(--card); cursor:pointer; font-family:var(--font); text-align:left; transition:border-color var(--t), box-shadow var(--t); }
+.fe-format:hover { box-shadow:0 6px 16px rgba(15,23,42,.08); }
+.fe-format.on { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.fe-format-emoji { font-size:28px; line-height:1; }
+.fe-format-txt { display:flex; flex-direction:column; gap:3px; }
+.fe-format-txt strong { font-size:14px; color:var(--text); }
+.fe-format-txt em { font-style:normal; font-size:12px; color:var(--text-3); line-height:1.4; }
+
+.fe-badge { font-size:10.5px; font-weight:800; padding:2px 9px; border-radius:99px; background:var(--accent-l); color:var(--accent-d); white-space:nowrap; }
+.fe-mini-badge { display:inline-block; margin-left:6px; font-size:9.5px; padding:1px 6px; border-radius:99px; background:var(--surface-2, var(--surface)); color:var(--text-2); border:1px solid var(--border); }
+.fe-mini-badge.var { background:var(--accent-l); color:var(--accent-d); border-color:transparent; }
+
+.fe-adapt { position:relative; }
+.fe-adapt-menu { position:absolute; right:0; top:calc(100% + 6px); z-index:30; width:300px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:0 14px 36px rgba(15,23,42,.18); padding:8px; display:flex; flex-direction:column; gap:2px; }
+.fe-adapt-hd { font-size:11.5px; color:var(--text-3); padding:4px 8px 6px; }
+.fe-adapt-item { display:flex; align-items:flex-start; gap:10px; padding:9px 10px; border:none; background:none; border-radius:9px; cursor:pointer; font-family:var(--font); text-align:left; }
+.fe-adapt-item:hover { background:var(--surface); }
+.fe-adapt-item strong { display:block; font-size:13px; color:var(--text); }
+.fe-adapt-item em { display:block; font-style:normal; font-size:11.5px; color:var(--text-3); }
+.fe-adapt-emoji { font-size:20px; line-height:1.1; }
+
+.fe-lock { display:flex; align-items:flex-end; gap:10px; padding:10px 12px; margin:0 10px 10px; border:2px dashed var(--blk); border-radius:10px; background:var(--blk-l); }
+.fe-lock .finput { background:var(--card); }
+.fe-lock-ico { font-size:24px; line-height:1; padding-bottom:6px; }
+.fe-lock-code { width:120px; flex-shrink:0; }
+.fe-lock-code .finput { font-family:ui-monospace, monospace; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+.fe-lock .fe-lbl, .fe-lock .fe-lbl em { color:#334155; }
+
+.fe-cards { display:flex; flex-direction:column; gap:8px; }
+.fe-card-row { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--card); transition:border-color var(--t), box-shadow var(--t); }
+.fe-card-row.sel { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.fe-card-fields { flex:1; min-width:0; display:grid; grid-template-columns:1.4fr 1fr; gap:6px; }
+.fe-card-fields .finput { padding:7px 10px; font-size:13px; }
+.fe-card-ans { background:var(--surface) !important; }
+.fe-add { align-self:flex-start; }

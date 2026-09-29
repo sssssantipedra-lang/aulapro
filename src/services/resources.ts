@@ -102,7 +102,31 @@ export interface FichaActivity {
   /** Solo con historia: emoji de la misión y una frase que la une al relato. */
   emoji?: string;
   narrativa?: string;
+  /** Solo en escape room: el código que abre el candado de esta sala y cómo se obtiene. */
+  candado?: FichaCandado;
 }
+
+export interface FichaCandado {
+  /** De 3 a 6 cifras o letras mayúsculas. */
+  codigo: string;
+  /** Cómo se forma el código a partir de las respuestas (se imprime). */
+  pista: string;
+}
+
+/** Una tarjeta recortable: pregunta delante y respuesta detrás (se dobla por la mitad). */
+export interface FichaTarjeta {
+  pregunta: string;
+  respuesta: string;
+}
+
+/**
+ * Qué se imprime: la ficha de siempre, un escape room (cada bloque es una
+ * sala con candado) o tarjetas para recortar y doblar.
+ */
+export type FichaFormato = 'ficha' | 'escape' | 'tarjetas';
+
+/** Versión adaptada de otra ficha. Sin ella, es la versión estándar. */
+export type FichaVariante = 'apoyo' | 'ampliacion' | 'lectura_facil';
 
 /** El hilo narrativo que envuelve la ficha: quién habla, qué hay que conseguir y el premio. */
 export interface FichaHistoria {
@@ -126,6 +150,11 @@ export interface FichaContent {
   /** Tema visual. Sin él, la ficha se ve «Clásica» (así están las guardadas antes de los temas). */
   estilo?: FichaThemeId;
   historia?: FichaHistoria;
+  /** Sin él, 'ficha'. */
+  formato?: FichaFormato;
+  /** Solo en 'tarjetas'. */
+  tarjetas?: FichaTarjeta[];
+  variante?: FichaVariante;
 }
 
 /* ── Lo que pide el docente ── */
@@ -140,6 +169,7 @@ export interface FichaRequest {
   contextoClase: string;
   /** 'auto': la IA elige el tema que mejor encaja; 'clasico': sin historia. */
   estilo?: FichaThemeChoice;
+  formato?: FichaFormato;
 }
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
@@ -326,22 +356,36 @@ interface SchemaOpts {
   historia: boolean;
   /** Que la IA elija el tema visual. */
   elegirEstilo: boolean;
+  formato: FichaFormato;
 }
+
+const CANDADO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    codigo: S('El código que abre el candado de esta sala: de 3 a 5 cifras (o letras mayúsculas), sin espacios'),
+    pista: S('Cómo se forma el código a partir de las respuestas de esta sala, ej. "Las cifras son los resultados de los ejercicios 1, 2 y 3, en orden"'),
+  },
+  required: ['codigo', 'pista'],
+  propertyOrdering: ['codigo', 'pista'],
+} as const;
 
 function fichaActivitySchema(o: SchemaOpts) {
   const story = o.historia ? {
     emoji: S('UN emoji que represente esta misión dentro de la historia'),
     narrativa: S('Una frase que conecta este bloque con la historia, ej. "El motor de la nave se ha roto: resuelve estas potencias para repararlo"'),
   } : {};
+  const escape = o.formato === 'escape';
+  const tail = ['ejercicios', ...(escape ? ['candado'] : [])];
   return {
     type: 'OBJECT',
     properties: {
       titulo: S('Título breve del bloque de actividad, ej. "Escribe como potencia"'),
       ...story,
       ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles) },
+      ...(escape ? { candado: CANDADO_SCHEMA } : {}),
     },
-    required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), 'ejercicios'],
-    propertyOrdering: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), 'ejercicios'],
+    required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
+    propertyOrdering: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
   } as const;
 }
 
@@ -358,7 +402,33 @@ const HISTORIA_SCHEMA = {
   propertyOrdering: ['personaje', 'emoji', 'mision', 'cierre', 'insignia'],
 } as const;
 
+const TARJETA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    pregunta: S('La pregunta o el reto, breve (cabe en media tarjeta)'),
+    respuesta: S('La respuesta correcta, breve'),
+  },
+  required: ['pregunta', 'respuesta'],
+  propertyOrdering: ['pregunta', 'respuesta'],
+} as const;
+
+function tarjetasSchema(o: SchemaOpts) {
+  const head = [...(o.elegirEstilo ? ['estilo'] : []), 'titulo'];
+  return {
+    type: 'OBJECT',
+    properties: {
+      ...(o.elegirEstilo ? { estilo: { type: 'STRING', enum: STORY_THEME_IDS, description: 'El mundo visual que mejor encaja' } } : {}),
+      titulo: S('Título breve del juego de tarjetas'),
+      instrucciones: S('Cómo se juega con las tarjetas, en 2-4 frases dirigidas al alumnado'),
+      tarjetas: { type: 'ARRAY', items: TARJETA_SCHEMA, description: 'Las tarjetas, todas distintas' },
+    },
+    required: [...head, 'instrucciones', 'tarjetas'],
+    propertyOrdering: [...head, 'instrucciones', 'tarjetas'],
+  } as const;
+}
+
 function fichaSchema(o: SchemaOpts) {
+  if (o.formato === 'tarjetas') return tarjetasSchema(o);
   const head = [...(o.elegirEstilo ? ['estilo'] : []), 'titulo', ...(o.historia ? ['historia'] : [])];
   return {
     type: 'OBJECT',
@@ -405,7 +475,33 @@ function storyPrompt(estilo: FichaThemeChoice): string {
   );
 }
 
-function systemPrompt(niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico'): string {
+/** La parte del prompt que convierte la ficha en un escape room. */
+const ESCAPE_PROMPT =
+  `ESCAPE ROOM: la ficha es un escape room imprimible. Cada bloque de actividad es una SALA cerrada con un ` +
+  `candado. En "candado" da el "codigo" que lo abre y la "pista" que explica cómo se forma ese código a ` +
+  `partir de las respuestas de los ejercicios de la sala (por ejemplo, las cifras de los resultados en orden, ` +
+  `o la primera letra de cada respuesta). El código tiene que salir DE VERDAD de las respuestas correctas: ` +
+  `comprueba las cuentas. Usa ejercicios con respuesta corta y única (números, palabras, V/F, opción ` +
+  `múltiple, ordenar, completar) para que el código sea inequívoco; evita "abierta" y "comic" en este ` +
+  `formato. La historia explica por qué hay que escapar o qué se desbloquea al final.\n`;
+
+/** Prompt de sistema del formato «tarjetas recortables». */
+function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
+  return (
+    `Eres un experto en didáctica y gamificación. Tu tarea es crear un juego de tarjetas recortables para ` +
+    `el aula: cada tarjeta tiene una pregunta o reto breve delante y su respuesta detrás (se dobla por la ` +
+    `mitad). Las preguntas deben ser variadas (definiciones, cálculos cortos, ejemplos, verdadero o falso, ` +
+    `completar), apropiadas al nivel, y cada una se tiene que poder responder en pocas palabras. En ` +
+    `"instrucciones" explica un juego sencillo para usarlas en parejas o grupos (por ejemplo, por turnos: ` +
+    `quien acierta se queda la tarjeta).\n` +
+    (estilo === 'auto' ? `Elige en "estilo" el mundo visual que mejor encaje. ESTILOS: ${ESTILOS_DOC}.\n` : '') +
+    `NOTACIÓN MATEMÁTICA: superíndices de verdad (x², 3⁴), nunca LaTeX.\n` +
+    `El idioma de salida DEBE SER ${idioma(lang)}.`
+  );
+}
+
+function systemPrompt(niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha'): string {
+  if (formato === 'tarjetas') return tarjetasSystemPrompt(lang, estilo);
   return (
     `Eres un experto en didáctica y creación de materiales educativos. Tu tarea exclusiva es ` +
     `redactar una ficha de trabajo imprimible para el alumnado: una breve explicación del concepto ` +
@@ -465,6 +561,7 @@ function systemPrompt(niveles: boolean, lang: Lang, estilo: FichaThemeChoice = '
     `El enunciado de cada ejercicio debe poder leerse y trabajarse solo, sin depender de un libro ` +
     `de texto que la IA no ha visto.\n` +
     (estilo !== 'clasico' ? storyPrompt(estilo) : '') +
+    (formato === 'escape' ? ESCAPE_PROMPT : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -575,7 +672,12 @@ export function prepareExercise(ex: FichaExercise): FichaExercise {
   return ex;
 }
 
-function cleanFichaContent(c: FichaContent, estilo: FichaThemeChoice = 'clasico'): FichaContent {
+/** Un código de candado: solo cifras y letras, en mayúsculas y sin tildes. */
+export function cleanCode(raw: string): string {
+  return (raw ?? '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9Ñ]/g, '').slice(0, 8);
+}
+
+function cleanFichaContent(c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha'): FichaContent {
   const finalEstilo: FichaThemeId = estilo === 'auto'
     ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
     : estilo;
@@ -592,28 +694,42 @@ function cleanFichaContent(c: FichaContent, estilo: FichaThemeChoice = 'clasico'
     ...c,
     estilo: finalEstilo,
     historia,
+    formato,
     titulo: cleanMathNotation(c.titulo),
-    explicacion: cleanMathNotation(c.explicacion),
-    instrucciones: cleanMathNotation(c.instrucciones),
-    actividades: c.actividades.map((act, i) => ({
+    explicacion: cleanMathNotation(c.explicacion ?? ''),
+    instrucciones: cleanMathNotation(c.instrucciones ?? ''),
+    actividades: (c.actividades ?? []).map((act, i) => ({
       titulo: cleanMathNotation(act.titulo),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
         narrativa: cleanMathNotation(act.narrativa ?? ''),
       } : {}),
       ejercicios: (act.ejercicios ?? []).map(cleanExercise).map(prepareExercise),
+      ...(formato === 'escape' && act.candado ? {
+        candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
+      } : {}),
     })),
+    ...(formato === 'tarjetas' ? {
+      tarjetas: (c.tarjetas ?? [])
+        .filter(tj => tj?.pregunta?.trim())
+        .map(tj => ({ pregunta: cleanMathNotation(tj.pregunta), respuesta: cleanMathNotation(tj.respuesta ?? '') })),
+    } : {}),
   };
 }
 
 type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void };
 
 async function callFichaText(
-  system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, onError?: (m: string) => void,
+  system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, formato: FichaFormato, onError?: (m: string) => void,
 ): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
     maxOutputTokens: 16384,
-    responseSchema: fichaSchema({ niveles, historia: estilo !== 'clasico', elegirEstilo: estilo === 'auto' }),
+    responseSchema: fichaSchema({
+      niveles: niveles && formato !== 'tarjetas',
+      historia: estilo !== 'clasico' && formato !== 'tarjetas',
+      elegirEstilo: estilo === 'auto',
+      formato,
+    }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
     // (mismos números de siempre en figuras/tablas) incluso a temperatura
@@ -624,7 +740,22 @@ async function callFichaText(
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo);
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato);
+}
+
+/** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
+function effectiveEstilo(estilo: FichaThemeChoice | undefined, formato: FichaFormato): FichaThemeChoice {
+  const e = estilo ?? 'auto';
+  return formato === 'escape' && e === 'clasico' ? 'auto' : e;
+}
+
+/** Qué se pide al final del prompt según el formato. */
+function askFor(formato: FichaFormato, n: number, sobre: string): string {
+  if (formato === 'tarjetas') return `Crea EXACTAMENTE ${n} tarjetas ${sobre}.`;
+  if (formato === 'escape') {
+    return `Crea un escape room con un total de EXACTAMENTE ${n} ejercicios ${sobre}, repartidos en de 2 a 4 salas, cada una con su candado.`;
+  }
+  return `Genera una ficha de trabajo con un total de EXACTAMENTE ${n} ejercicios ${sobre}, repartidos en sus bloques de actividad.`;
 }
 
 /**
@@ -655,17 +786,16 @@ export async function generateFicha(
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
   try {
+    const formato = req.formato ?? 'ficha';
+    const estilo = effectiveEstilo(req.estilo, formato);
     const userPrompt =
       `Tema: ${req.tema}\n` +
       `Área o asignatura: ${req.area || '(no indicada)'}\n` +
       `Curso o nivel: ${req.nivel || '(no indicado)'}\n` +
       (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
-      `Número de ejercicios: ${req.numEjercicios}\n\n` +
-      `Genera una ficha de trabajo con un total de EXACTAMENTE ${req.numEjercicios} ejercicios sobre ` +
-      `este tema, repartidos en sus bloques de actividad.\n\n${numberVarietyHint()}`;
+      `\n${askFor(formato, req.numEjercicios, 'sobre este tema')}\n\n${numberVarietyHint()}`;
 
-    const estilo = req.estilo ?? 'auto';
-    return await callFichaText(systemPrompt(req.niveles, lang, estilo), userPrompt, req.niveles, estilo, callbacks.onError);
+    return await callFichaText(systemPrompt(req.niveles, lang, estilo, formato), userPrompt, req.niveles, estilo, formato, callbacks.onError);
   } finally {
     callbacks.onEnd?.();
   }
@@ -675,12 +805,14 @@ export async function generateFicha(
 
 export async function generateFichaFromSda(
   sda: SdaContent, area: string,
-  opts: { numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice },
+  opts: { numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice; formato?: FichaFormato },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
   try {
     const areaData = sda.areas.find(a => a.area === area) ?? sda.areas[0];
+    const formato = opts.formato ?? 'ficha';
+    const estilo = effectiveEstilo(opts.estilo, formato);
 
     const userPrompt =
       `Situación de aprendizaje: ${sda.titulo}\n` +
@@ -688,12 +820,9 @@ export async function generateFichaFromSda(
       `Saberes básicos de esta área: ${areaData?.saberesBasicos ?? ''}\n` +
       `Criterios de evaluación de esta área: ${areaData?.criteriosEvaluacion ?? ''}\n` +
       (opts.detalles ? `Además, ten en cuenta: ${opts.detalles}\n` : '') +
-      `Número de ejercicios: ${opts.numEjercicios}\n\n` +
-      `Genera una ficha de trabajo con un total de EXACTAMENTE ${opts.numEjercicios} ejercicios que ` +
-      `trabajen estos saberes básicos, repartidos en sus bloques de actividad.\n\n${numberVarietyHint()}`;
+      `\n${askFor(formato, opts.numEjercicios, 'que trabajen estos saberes básicos')}\n\n${numberVarietyHint()}`;
 
-    const estilo = opts.estilo ?? 'auto';
-    return await callFichaText(systemPrompt(opts.niveles, lang, estilo), userPrompt, opts.niveles, estilo, callbacks.onError);
+    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato), userPrompt, opts.niveles, estilo, formato, callbacks.onError);
   } finally {
     callbacks.onEnd?.();
   }
@@ -812,6 +941,68 @@ export async function rewriteStory(
         narrativa: parsed.misiones?.[i]?.narrativa ?? a.narrativa ?? '',
       })),
     };
+  } finally {
+    callbacks.onEnd?.();
+  }
+}
+
+/* ── Versiones adaptadas: apoyo, ampliación y lectura fácil ── */
+
+const VARIANTE_PROMPT: Record<FichaVariante, string> = {
+  apoyo:
+    `Crea la versión de APOYO de esta ficha, para el alumnado que necesita refuerzo. Mismo tema, mismos ` +
+    `bloques, mismos tipos de ejercicio y el mismo número de ejercicios, trabajando los contenidos ` +
+    `básicos: enunciados más cortos y guiados, números más sencillos, una pista o un ejemplo resuelto donde ` +
+    `ayude, problemas con menos pasos y, en opción múltiple, solo 3 opciones.`,
+  ampliacion:
+    `Crea la versión de AMPLIACIÓN de esta ficha, para el alumnado que necesita más exigencia. Mismo tema, ` +
+    `mismos bloques, mismos tipos de ejercicio y el mismo número de ejercicios, pero con más reto: datos ` +
+    `más complejos, más pasos, pedir que justifiquen o generalicen, y alguna conexión con otros contenidos.`,
+  lectura_facil:
+    `Crea la versión en LECTURA FÁCIL de esta ficha, siguiendo las pautas de Lectura Fácil: frases cortas ` +
+    `(como mucho 15-20 palabras), una idea por frase, palabras frecuentes, voz activa, sin metáforas, ` +
+    `ironías ni dobles negaciones, instrucciones paso a paso y numeradas, y las palabras difíciles ` +
+    `explicadas entre paréntesis la primera vez. El contenido académico y el número de ejercicios son los ` +
+    `mismos; solo cambia cómo está escrito.`,
+};
+
+/**
+ * Rehace la ficha entera como versión de apoyo, de ampliación o de lectura
+ * fácil, con el mismo tema, la misma historia y el mismo formato. El
+ * resultado es una ficha nueva: la original no se toca.
+ */
+export async function adaptFicha(
+  content: FichaContent, req: FichaRequest, variante: FichaVariante, lang: Lang, callbacks: Callbacks = {},
+): Promise<FichaContent | null> {
+  callbacks.onStart?.();
+  try {
+    const formato = content.formato ?? 'ficha';
+    const estilo: FichaThemeId = content.estilo ?? 'clasico';
+    const historia = !!content.historia && estilo !== 'clasico' && formato !== 'tarjetas';
+    const original = {
+      ...content,
+      actividades: content.actividades.map(a => ({ ...a, ejercicios: a.ejercicios.map(exerciseForPrompt) })),
+      estilo: undefined, variante: undefined,
+    };
+    const userPrompt =
+      `Tema: ${req.tema}\n` +
+      `Área o asignatura: ${req.area || '(no indicada)'}\n` +
+      `Curso o nivel: ${req.nivel || '(no indicado)'}\n\n` +
+      `Ficha original (JSON):\n${JSON.stringify(original)}\n\n` +
+      `${VARIANTE_PROMPT[variante]}\n` +
+      (historia ? 'Mantén la misma historia y el mismo personaje, adaptando sus textos al mismo criterio.\n' : '') +
+      (formato === 'escape' ? 'Recalcula el código de cada candado para que salga de las nuevas respuestas.\n' : '');
+    const raw = await callGemini(systemPrompt(false, lang, historia ? estilo : 'clasico', formato), userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: 16384,
+      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato }),
+      thinkingLevel: 'medium',
+      temperature: 0.9,
+    });
+    if (!raw) return null;
+    const parsed = parseGeminiJson<FichaContent>(raw);
+    if (!parsed) return null;
+    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, historia ? estilo : 'clasico', formato);
+    return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();
   }
