@@ -6,6 +6,11 @@ name: Publicar versión
 # lee la actualización automática de Windows) y después añade la build de Mac
 # y el APK de Android al mismo release.
 #
+# Al final sube todo a https://descargas.aulapro.app (Cloudflare R2), que es
+# de donde lo descargan la web y la actualización automática: el repositorio
+# es privado. Hacen falta los secretos R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,
+# R2_SECRET_ACCESS_KEY y R2_BUCKET (ver docs/DESCARGAS.md).
+#
 # Las notas salen de `docs/releases/v<versión>.md`. Si ese archivo no existe,
 # GitHub las genera a partir de los commits.
 on:
@@ -148,3 +153,48 @@ jobs:
           VERSION="${TAG#v}"
           cp android/app/build/outputs/apk/release/app-release.apk "AulaPro-${VERSION}-android.apk"
           gh release upload "$TAG" "AulaPro-${VERSION}-android.apk" --clobber
+
+  descargas:
+    needs: [windows, mac, android]
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ needs.windows.outputs.tag }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # R2 no admite todas las sumas de comprobación nuevas de la AWS CLI
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+    steps:
+      - name: Comprobar que están los secretos de Cloudflare R2
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$R2_BUCKET" ]; then
+            echo "::error::Faltan los secretos R2_* del repositorio: la versión está en GitHub pero no en descargas.aulapro.app. Ver docs/DESCARGAS.md."
+            exit 1
+          fi
+
+      - name: Traer los archivos del release
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir out
+
+      # Primero los instaladores y el último, latest.yml: así la actualización
+      # automática nunca ve una versión nueva cuyo instalador aún no está.
+      - name: Subir a descargas.aulapro.app
+        run: |
+          VERSION="${TAG#v}"
+          up() { aws s3 cp "$1" "s3://$R2_BUCKET/$2" --endpoint-url "$R2_ENDPOINT" --only-show-errors "${@:3}"; }
+          for f in out/*; do
+            name=$(basename "$f")
+            [ "$name" = "latest.yml" ] && continue
+            up "$f" "$name" --cache-control "public, max-age=31536000, immutable"
+          done
+          # Nombres fijos para los botones de la web: siempre la última versión
+          for kind in instalador-windows.exe portable-windows.exe mac.dmg mac.zip android.apk; do
+            [ -f "out/AulaPro-${VERSION}-${kind}" ] && up "out/AulaPro-${VERSION}-${kind}" "AulaPro-${kind}" --cache-control "public, max-age=300"
+          done
+          printf '{"version":"%s","fecha":"%s"}\n' "$VERSION" "$(date -u +%Y-%m-%d)" > version.json
+          up version.json version.json --cache-control "no-cache" --content-type "application/json"
+          up out/latest.yml latest.yml --cache-control "no-cache" --content-type "text/yaml"
+          echo "Publicada la $VERSION en descargas.aulapro.app"
