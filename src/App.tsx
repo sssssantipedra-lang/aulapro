@@ -11,7 +11,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
 import { useP2PSync } from './hooks/useP2PSync';
-import { useNarrowScreen } from './hooks/useNarrowScreen';
+import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
@@ -19,7 +19,7 @@ import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { hubOf, rememberTab } from './lib/navigation';
 import type { Section, Ficha } from './types';
-import { X } from 'lucide-react';
+import { X, Menu } from 'lucide-react';
 import { DEMO_USER } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp } from './lib/platform';
@@ -65,6 +65,8 @@ function AppInner() {
   const [sidebarMini, setSidebarMini] = useState(false);
   // En pantallas estrechas el menú va plegado a iconos y se abre por encima
   const narrow = useNarrowScreen();
+  // En el móvil ni siquiera cabe el menú plegado: se abre desde la barra de arriba
+  const phone = usePhoneScreen();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuOverlay = narrow && menuOpen;
   const menuMini = narrow ? !menuOpen : sidebarMini;
@@ -151,7 +153,11 @@ function AppInner() {
     let cancelled = false;
     import('@capacitor/app').then(({ App: CapApp }) => CapApp.addListener('backButton', () => {
       const { section: current, open } = backState.current;
-      if (open || document.querySelector('.modal-overlay.open, .cp, .cp-picker')) {
+      // Las ventanas se cierran tocando fuera (todas lo admiten); Escape, para el resto
+      const overlays = document.querySelectorAll<HTMLElement>('.modal-overlay.open');
+      if (overlays.length) {
+        overlays[overlays.length - 1].click();
+      } else if (open || document.querySelector('.cp, .cp-picker')) {
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       } else if (current !== 'dashboard') {
         setSection('dashboard');
@@ -209,7 +215,7 @@ function AppInner() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar
+      {(!phone || menuOpen) && <Sidebar
         mini={menuMini}
         overlay={menuOverlay}
         onToggle={() => (narrow ? setMenuOpen(v => !v) : setSidebarMini(v => !v))}
@@ -219,17 +225,28 @@ function AppInner() {
         sharing={session.connected}
         saving={st.saving}
         onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
-      />
+      />}
 
       {menuOverlay && (
         <>
           {/* Ocupa el hueco del menú plegado para que el contenido no salte */}
-          <div style={{ width: 'var(--sb-w-min)', flexShrink: 0 }} />
+          {!phone && <div style={{ width: 'var(--sb-w-min)', flexShrink: 0 }} />}
           <div className="sb-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
         </>
       )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {phone && (
+          <header className="m-top">
+            <button type="button" className="m-top-btn" onClick={() => setMenuOpen(true)} aria-label={t('Abrir el menú')} aria-expanded={menuOpen}>
+              <Menu size={22} />
+            </button>
+            <button type="button" className="m-top-brand" onClick={() => setSection('dashboard')}>AULAPRO</button>
+            <button type="button" className="m-top-avatar" onClick={() => setSection('profile')} aria-label={t('Configuración')}>
+              {st.currentUser.full_name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
+            </button>
+          </header>
+        )}
         {/* La página se desplaza con la ventana, no dentro de <main>. `clip`
             recorta lo que se salga a lo ancho sin convertir <main> en zona de
             desplazamiento propia: si lo fuera, nada de dentro podría quedarse

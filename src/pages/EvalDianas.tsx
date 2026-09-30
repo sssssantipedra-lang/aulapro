@@ -290,7 +290,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 18, alignItems: 'start' }}>
+          <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 18, alignItems: 'start' }}>
             <div>
               <div className="fgroup">
                 <label className="flabel" htmlFor="evaldianas-f4">{t('Nombre de la diana *')}</label>
@@ -473,7 +473,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 18, alignItems: 'start' }}>
+        <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 18, alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--surface)', borderRadius: 12, padding: '18px 12px' }}>
             <DianaBoard items={diana.items} scores={scores} levels={diana.levels}
               onSetScore={(id, lv) => setScores(p => ({ ...p, [id]: p[id] === lv ? 0 : lv }))} />

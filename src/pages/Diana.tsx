@@ -586,7 +586,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
           <div style={{ fontSize: 13 }}>{t('Elige una clase y un alumno para ver su Diana Competencial')}</div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, alignItems: 'start' }}>
+        <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, alignItems: 'start' }}>
           {/* Left: chart + sector buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Student header */}

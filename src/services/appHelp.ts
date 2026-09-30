@@ -415,9 +415,11 @@ Los avisos de «Configurar la IA» de otras pantallas llevan directos a la
 tarjeta «Clave de la IA».
 
 === PREGUNTAS FRECUENTES ===
-- «¿Hay Aula Pro para tableta / Android?»: sí, en pruebas y pensada sobre todo
-  para tabletas en horizontal. Funciona igual que en el ordenador, con tres
-  diferencias: «Guardar en PDF» abre el diálogo de impresión de Android, donde
+- «¿Hay Aula Pro para tableta / móvil / Android?»: sí, en pruebas, para
+  tabletas y móviles Android. En el móvil el menú se abre con el botón ☰ de la
+  barra de arriba (el avatar lleva a Configuración) y las tablas anchas, como
+  el cuaderno, se desplazan de lado con el dedo. Funciona igual que en el
+  ordenador, con tres diferencias: «Guardar en PDF» abre el diálogo de impresión de Android, donde
   se elige «Guardar como PDF» o una impresora; los Word, CSV y copias se
   comparten (Archivos, Drive, correo…) en vez de descargarse; y en la Sala de
   alumnos es la tableta la que abre la sala (misma wifi; con la sala abierta

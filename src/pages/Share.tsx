@@ -171,7 +171,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 18, alignItems: 'start' }}>
+      <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 18, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Paso 1 */}
           <div className="card">
