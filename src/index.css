@@ -1032,3 +1032,29 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 
 /* Nombre de la aplicación sobre la tarjeta de bienvenida */
 .wl-brand { position:relative; z-index:1; margin:0 0 22px; font-family:var(--font); font-size:clamp(34px, 6vw, 52px); font-weight:900; letter-spacing:.14em; color:#fff; line-height:1; text-shadow:0 6px 30px rgba(var(--accent-rgb),0.45); }
+
+/* ── Móvil (≤640px): barra superior en lugar del menú lateral ── */
+.m-top { position:sticky; top:0; z-index:45; height:52px; display:flex; align-items:center; gap:10px; padding:0 10px; background:var(--sb-bg); color:#fff; }
+.m-top-btn { width:40px; height:40px; display:flex; align-items:center; justify-content:center; border:none; border-radius:10px; background:transparent; color:#fff; cursor:pointer; }
+.m-top-btn:active { background:rgba(255,255,255,0.12); }
+.m-top-brand { flex:1; text-align:left; background:none; border:none; color:#fff; font-family:var(--font); font-size:17px; font-weight:900; letter-spacing:.14em; cursor:pointer; }
+.m-top-avatar { width:34px; height:34px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--accent-d),var(--accent)); color:#fff; font-family:var(--font); font-size:12.5px; font-weight:800; cursor:pointer; }
+@media (max-width: 640px) {
+  .with-hub .hub-bar, .hub-bar { top:52px; }
+  .sec { padding:16px 14px 96px; }
+  .pg-title { font-size:22px; }
+  .pg-hd > * { max-width:100%; }
+  .sidebar.overlay { width:min(86vw, var(--sb-w)); }
+}
+@media (max-width: 640px) {
+  /* Botones de cabecera: bajan de línea en vez de salirse de la pantalla */
+  .pg-hd > div { flex-wrap:wrap; }
+  /* Primeros pasos: el texto a todo lo ancho y el botón debajo */
+  .fs-step .fs-body { flex-basis:calc(100% - 40px); }
+  /* Asistencia: el color de los botones ya dice el estado; así se lee el nombre */
+  .att-status { display:none; }
+}
+@media (max-width: 640px) {
+  /* Contenido + columna lateral fija: en el móvil, una debajo de otra */
+  .stack-sm { grid-template-columns:minmax(0,1fr) !important; }
+}

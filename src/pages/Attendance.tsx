@@ -270,7 +270,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                     })}
                   </div>
 
-                  <span style={{
+                  <span className="att-status" style={{
                     width: 78, textAlign: 'right', flexShrink: 0,
                     fontSize: 12, fontWeight: 700,
                     color: info ? info.color : 'var(--text-3)',
