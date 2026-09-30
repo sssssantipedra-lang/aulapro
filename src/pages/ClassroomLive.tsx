@@ -202,12 +202,10 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
         <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
           <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            {t(isAndroidApp() ? 'Muy pronto en la tableta' : 'Solo desde la aplicación de escritorio')}
+            {t('Solo desde la aplicación de escritorio')}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            {t(isAndroidApp()
-              ? 'La sala de alumnos todavía no está en la versión de Android. De momento, ábrela desde Aula Pro en el ordenador: tus alumnos se conectan igual desde el móvil.'
-              : 'Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
+            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
           </p>
         </div>
       </section>
@@ -457,7 +455,9 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
               <Wifi size={15} style={{ flexShrink: 0, marginTop: 2 }} />
               <span>
-                <strong style={{ color: 'var(--text)' }}>{t('Todos en la misma wifi.')}</strong>{t(' No hace falta internet: los móviles hablan solo con tu ordenador. Si no conectan, puede que la red del centro aísle los dispositivos; entonces comparte datos desde tu móvil y conectaos a esa red.')}
+                <strong style={{ color: 'var(--text)' }}>{t('Todos en la misma wifi.')}</strong>{t(isAndroidApp()
+                  ? ' No hace falta internet: los móviles hablan solo con tu tableta. Si no conectan, puede que la red del centro aísle los dispositivos; entonces activa la zona wifi de la tableta o de tu móvil y conectaos todos a esa red.'
+                  : ' No hace falta internet: los móviles hablan solo con tu ordenador. Si no conectan, puede que la red del centro aísle los dispositivos; entonces comparte datos desde tu móvil y conectaos a esa red.')}
               </span>
             </div>
           </div>

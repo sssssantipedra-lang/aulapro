@@ -1869,9 +1869,8 @@ const EN: Record<string, string> = {
   "Sin activar": "Not activated",
 
   /* ── Android ── */
-  "Muy pronto en la tableta": "Coming soon on tablets",
-  "La sala de alumnos todavía no está en la versión de Android. De momento, ábrela desde Aula Pro en el ordenador: tus alumnos se conectan igual desde el móvil.": "The student room isn't in the Android version yet. For now, open it from Aula Pro on your computer: your students connect from their phones just the same.",
   "Todo tu trabajo se guarda dentro de Aula Pro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "All your work is saved inside Aula Pro on this device, just for this profile, and is never uploaded to any cloud. Aula Pro makes an automatic backup every ten minutes while you work.",
+  " No hace falta internet: los móviles hablan solo con tu tableta. Si no conectan, puede que la red del centro aísle los dispositivos; entonces activa la zona wifi de la tableta o de tu móvil y conectaos todos a esa red.": " No internet needed: the phones only talk to your tablet. If they can't connect, the school network may be isolating devices; in that case turn on the tablet's or your phone's hotspot and all join that network.",
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };

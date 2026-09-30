@@ -124,7 +124,7 @@
     <span class="logo-name">Aula Pro</span>
   </div>
   <div id="app" class="card"></div>
-  <p class="foot">Tus respuestas van solo al ordenador de tu profesor/a,<br>por la wifi del centro.</p>
+  <p class="foot">Tus respuestas van solo al equipo de tu profesor/a,<br>por la wifi del centro.</p>
 </div>
 
 <script>
@@ -223,7 +223,7 @@
             'que la dirección que has escrito sea la de tu clase.'
           : 'El código no es correcto, o la dirección no es la de tu clase. Míralos otra vez en la pizarra.';
       } else {
-        state.error = 'Se ha perdido la conexión con el ordenador del profesor/a.';
+        state.error = 'Se ha perdido la conexión con el equipo del profesor/a.';
       }
       render();
     });
@@ -261,7 +261,7 @@
       (state.roomLabel ? '<div class="room">Vas a entrar en <b>' + esc(state.roomLabel) + '</b></div>' : '') +
       '<h1>Entrar en la actividad</h1>' +
       '<p class="sub" style="margin-bottom:18px">Escribe el código que aparece en la pizarra.' +
-      (state.roomLabel ? ' Si ahí arriba no pone tu clase, te has equivocado de ordenador.' : '') + '</p>' +
+      (state.roomLabel ? ' Si ahí arriba no pone tu clase, te has equivocado de equipo.' : '') + '</p>' +
       (state.error ? '<div class="msg err">' + esc(state.error) + '</div>' : '') +
       '<label>Código de la sala</label>' +
       '<input id="code" maxlength="6" autocapitalize="characters" autocomplete="off" ' +

@@ -7,6 +7,7 @@ import android.print.PrintManager;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -34,6 +35,8 @@ import javax.crypto.spec.GCMParameterSpec;
  *    equivalente de docs:savePdf / docs:print de electron/main.cjs.
  *  - secretGet / secretSet: la clave de la IA, cifrada con una llave del
  *    Android Keystore que no sale del dispositivo (como electron/secrets.cjs).
+ *  - roomStart / roomStop / roomRespond: la Sala de alumnos (ver RoomServer).
+ *    Cada petición de un móvil llega a la interfaz como evento «roomRequest».
  */
 @CapacitorPlugin(name = "AulaNative")
 public class AulaNativePlugin extends Plugin {
@@ -149,5 +152,76 @@ public class AulaNativePlugin extends Plugin {
             ret.put("ok", false);
         }
         call.resolve(ret);
+    }
+
+    /* ── Sala de alumnos ── */
+
+    private static final int ROOM_PORT = 8080;
+    private static final int ROOM_PORT_TRIES = 12;
+    private RoomServer room;
+
+    private RoomServer room() {
+        if (room == null) {
+            room = new RoomServer((id, method, path, query, body) -> {
+                JSObject req = new JSObject();
+                req.put("id", id);
+                req.put("method", method);
+                req.put("path", path);
+                req.put("query", query);
+                req.put("body", body);
+                notifyListeners("roomRequest", req);
+            });
+        }
+        return room;
+    }
+
+    /** Con la sala abierta la pantalla no se apaga: si se apaga, la wifi se duerme y los móviles pierden la sala. */
+    private void keepScreenOn(boolean on) {
+        getActivity().runOnUiThread(() -> {
+            if (on) getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            else getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        });
+    }
+
+    @PluginMethod
+    public void roomStart(PluginCall call) {
+        try {
+            int port = room().start(ROOM_PORT, ROOM_PORT_TRIES);
+            keepScreenOn(true);
+            JSObject ret = new JSObject();
+            ret.put("port", port);
+            ret.put("addresses", RoomServer.addresses());
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void roomStop(PluginCall call) {
+        if (room != null) room.stop();
+        keepScreenOn(false);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void roomAddresses(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("addresses", RoomServer.addresses());
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void roomRespond(PluginCall call) {
+        if (room != null) {
+            room.respond(call.getString("id", ""), call.getInt("status", 200),
+                call.getString("type", "text/plain; charset=utf-8"), call.getString("body", ""));
+        }
+        call.resolve();
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (room != null) room.stop();
     }
 }
