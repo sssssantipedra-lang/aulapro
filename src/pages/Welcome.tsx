@@ -140,6 +140,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
       <div className="auth-orb" style={{ width: 500, height: 500, background: 'rgba(var(--accent-rgb),0.07)', top: -120, right: -80 }} />
       <div className="auth-orb" style={{ width: 300, height: 300, background: 'rgba(var(--accent-rgb),0.05)', bottom: -60, left: -40 }} />
       <LangSwitch />
+      <h1 className="wl-brand">AULAPRO</h1>
       <div className="auth-card">{children}</div>
       {/* Sobre qué currículo está construida: importa saberlo antes de
           empezar a usarla, sobre todo fuera de España. */}

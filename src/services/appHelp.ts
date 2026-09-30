@@ -419,8 +419,9 @@ tarjeta «Clave de la IA».
   para tabletas en horizontal. Funciona igual que en el ordenador, con tres
   diferencias: «Guardar en PDF» abre el diálogo de impresión de Android, donde
   se elige «Guardar como PDF» o una impresora; los Word, CSV y copias se
-  comparten (Archivos, Drive, correo…) en vez de descargarse; y la Sala de
-  alumnos aún no está (se abre desde el ordenador). Los datos de la tableta y
+  comparten (Archivos, Drive, correo…) en vez de descargarse; y en la Sala de
+  alumnos es la tableta la que abre la sala (misma wifi; con la sala abierta
+  la pantalla no se apaga). Los datos de la tableta y
   los del ordenador van por separado: para pasarlos, «Descargar mis datos» en
   uno y «Cargar desde archivo» en el otro, o «Trabajo compartido».
 - «Me pide una clave de licencia» / «He cambiado de ordenador»: la clave llega

@@ -9,20 +9,29 @@
  *  - secrets: la clave de la IA cifrada con el Android Keystore.
  *  - files:   los Word, CSV y copias se comparten (Drive, correo, Archivos…).
  *
- * Lo nativo está en android/app/src/main/java/es/aulapro/app/AulaNativePlugin.java.
- * La sala de alumnos y las actualizaciones automáticas no están: en Android
- * actualiza Google Play.
+ *  - classroom: la Sala de alumnos, con un servidor en la propia tableta
+ *             (RoomServer.java) y la misma lógica y página que el escritorio.
+ *
+ * Lo nativo está en android/app/src/main/java/es/aulapro/app/. Las
+ * actualizaciones automáticas no están: en Android actualiza Google Play.
  */
-import { registerPlugin } from '@capacitor/core';
+import { registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { createProfileStore, type Fs } from './profileStore';
-import type { DocsBridge, DocsResult, FilesBridge, StoreBridge } from '../types/electron';
+import { createRoom, type RoomRequest } from './classroomRoom';
+import studentPage from '../../electron/student.html?raw';
+import type { ClassroomBridge, ClassroomSnapshot, DocsBridge, DocsResult, FilesBridge, StoreBridge } from '../types/electron';
 
 interface AulaNativePlugin {
   print: (o: { html: string; name: string; landscape: boolean }) => Promise<{ ok: boolean }>;
   secretGet: (o: { name: string }) => Promise<{ value: string }>;
   secretSet: (o: { name: string; value: string }) => Promise<{ ok: boolean }>;
+  roomStart: () => Promise<{ port: number; addresses: { iface: string; ip: string }[] }>;
+  roomStop: () => Promise<void>;
+  roomAddresses: () => Promise<{ addresses: { iface: string; ip: string }[] }>;
+  roomRespond: (o: { id: string; status: number; type: string; body: string }) => Promise<void>;
+  addListener: (event: 'roomRequest', fn: (req: RoomRequest & { id: string }) => void) => Promise<PluginListenerHandle>;
 }
 
 const AulaNative = registerPlugin<AulaNativePlugin>('AulaNative');
@@ -108,6 +117,47 @@ const files: FilesBridge = {
   },
 };
 
+/** Sala de alumnos: el servidor es nativo; qué se contesta, `classroomRoom.ts`. */
+function createClassroom(): ClassroomBridge {
+  const room = createRoom(studentPage);
+  const listeners = new Set<(s: ClassroomSnapshot) => void>();
+  const emit = () => { const s = room.snapshot(); listeners.forEach(fn => fn(s)); };
+
+  AulaNative.addListener('roomRequest', req => {
+    const { changed, ...reply } = room.handle(req);
+    AulaNative.roomRespond({ id: req.id, ...reply }).catch(() => {});
+    if (changed) emit();
+  });
+
+  return {
+    async start(opts) {
+      try {
+        const net = await AulaNative.roomStart();
+        return room.open(opts, net);
+      } catch (err) {
+        return { ...room.snapshot(), error: err instanceof Error ? err.message : String(err) };
+      }
+    },
+    async stop() {
+      await AulaNative.roomStop().catch(() => {});
+      return room.close();
+    },
+    async state() {
+      // La wifi puede haber cambiado desde que se abrió la sala
+      if (room.snapshot().running) {
+        try { room.setAddresses((await AulaNative.roomAddresses()).addresses); } catch { /* se quedan las de antes */ }
+      }
+      return room.snapshot();
+    },
+    async setActivity(activity) { return room.setActivity(activity); },
+    async setRoster(roster, label) { return room.setRoster(roster, label); },
+    onUpdate(cb) {
+      listeners.add(cb);
+      return () => { listeners.delete(cb); };
+    },
+  };
+}
+
 export function installAndroidBridge() {
   window.electronAPI = {
     isDesktop: false,
@@ -116,6 +166,7 @@ export function installAndroidBridge() {
     store: createProfileStore(fs) as unknown as StoreBridge,
     docs,
     files,
+    classroom: createClassroom(),
     secrets: {
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,
