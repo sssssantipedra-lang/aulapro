@@ -1,0 +1,45 @@
+name: Publicar la web
+
+# Publica `web/sitio` en https://aulapro.app (Cloudflare Pages, proyecto
+# `aulapro-app`) cada vez que llega a master un cambio de la web. También se
+# puede lanzar a mano desde la pestaña "Actions".
+#
+# Necesita el secreto CLOUDFLARE_API_TOKEN: un token de Cloudflare con el
+# permiso "Cloudflare Pages: Edit" sobre la cuenta. Sin él, el workflow avisa
+# y no publica nada.
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'web/sitio/**'
+      - '.github/workflows/web.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: web
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: 15cc637555cb2850a712cd9cf9dd60cf
+    steps:
+      - name: Falta el token de Cloudflare
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "::warning::Falta el secreto CLOUDFLARE_API_TOKEN, así que la web no se ha publicado."
+
+      - name: Descargar el código
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Publicar en Cloudflare Pages
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx --yes wrangler@4 pages deploy web/sitio --project-name aulapro-app --branch main --commit-dirty=true

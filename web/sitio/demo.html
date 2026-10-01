@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo de AulaPro · Pruébala por dentro</title>
+<meta name="description" content="Demo interactiva de AulaPro: recorre las pantallas, gira la ruleta, marca una rúbrica y rellena una diana de evaluación antes de comprarla.">
+<meta name="theme-color" content="#171226">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%239b7dff'/%3E%3Cstop offset='1' stop-color='%236a45ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M16 7.5 8 11.6l8 4.1 8-4.1z' fill='%23fff'/%3E%3Cpath d='m8 16 8 4.1 8-4.1M8 20.3l8 4.1 8-4.1' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<!-- Live at https://aulapro.app/demo (Cloudflare Pages project aulapro-app; aulapro-app.pages.dev and www also serve it). -->
+<link rel="canonical" href="https://aulapro.app/demo">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Demo de AulaPro · Pruébala por dentro">
+<meta property="og:description" content="Recorre AulaPro por dentro antes de comprarla. Pago único de 9,99 €.">
+<meta property="og:image" content="https://aulapro.app/assets/og.jpg">
+<meta property="og:url" content="https://aulapro.app/demo">
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preload" href="assets/fonts/lexend-latin-45b4c6.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/bricolage-grotesque-latin-a97232.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+:root{
+  --canvas:#171226;
+  --panel:#221b3a;
+  --paper:#f2e9e0;
+  --ink:#271f36;
+  --accent:#8b6dff;
+  --accent-deep:#6d4ff0;
+  --accent-hover:#5f40e6;
+  --text:#f3ece6;
+  --text-2:#bdb1d2;
+  --line:rgba(189,177,210,.16);
+  --line-strong:rgba(189,177,210,.55);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-io:cubic-bezier(.65,0,.35,1);
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Lexend",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --nav-h:68px;
+  --gutter:clamp(16px,5vw,72px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{overflow-x:hidden;overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;overflow-x:hidden;overflow-x:clip;background:var(--canvas);color:var(--text);font:300 1.0625rem/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(139,109,255,.16),rgba(139,109,255,0) 70%),radial-gradient(ellipse 60% 50% at 100% 100%,rgba(227,169,105,.06),rgba(227,169,105,0) 70%)}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+p,h1,h2,h3,ul{margin:0}
+ul{padding:0;list-style:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:3px;border-radius:6px}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:fixed;left:16px;top:-80px;z-index:100;background:var(--paper);color:var(--ink);padding:.7em 1.1em;border-radius:10px;font-weight:500;text-decoration:none;transition:top .3s var(--ease-out)}
+.skip:focus{top:12px}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:clamp(12px,2.4vw,32px);padding:0 var(--gutter);background:rgba(23,18,38,.82);border-bottom:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}
+.brand svg{width:32px;height:32px;flex:none}
+.brand b{font:800 1.28rem/1 var(--f-display);letter-spacing:-.02em}
+.back{display:inline-flex;align-items:center;gap:.45em;font-size:.93rem;color:var(--text-2);text-decoration:none;transition:color .3s var(--ease-out)}
+.back:hover{color:var(--text)}
+.lang{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;padding:2px}
+.lang button{border:0;background:transparent;cursor:pointer;font:500 .72rem/1 var(--f-mono);letter-spacing:.06em;color:var(--text-2);padding:.62em .7em;border-radius:999px;transition:background-color .3s var(--ease-out),color .3s var(--ease-out)}
+.lang button:hover{color:var(--text)}
+.lang button[aria-pressed="true"]{background:var(--text);color:var(--canvas)}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.55em;padding:.95em 1.5em;border:0;border-radius:999px;background:var(--accent-deep);color:#fff;font:500 1rem/1 var(--f-body);text-decoration:none;cursor:pointer;transition:background-color .35s var(--ease-out),transform .35s var(--ease-out)}
+.btn:hover{background:var(--accent-hover);transform:translateY(-2px)}
+.nav .btn{padding:.72em 1.15em;font-size:.9rem}
+@media (max-width:760px){.back span{display:none}}
+@media (max-width:460px){.nav .brand b{display:none}.nav .btn{padding:.7em .95em}}
+@media (pointer:coarse){.btn{min-height:44px}.lang button{min-height:40px;min-width:38px}}
+
+/* ---------- intro ---------- */
+main{position:relative;z-index:1}
+main:focus{outline:none}
+.intro{max-width:1240px;margin:0 auto;padding:clamp(40px,7vh,72px) var(--gutter) clamp(20px,3vh,28px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:clamp(20px,4vw,64px);align-items:end}
+.kicker{display:inline-flex;align-items:center;gap:.75em;font:500 .76rem/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
+.kicker::before{content:"";width:24px;height:1.5px;background:currentColor;opacity:.7}
+.h1{margin-top:.55em;font:800 clamp(2.2rem,4.6vw,4rem)/1.03 var(--f-display);letter-spacing:-.024em;max-width:14ch;text-wrap:balance}
+.lede{max-width:46ch;font-size:clamp(1.02rem,1.3vw,1.18rem);color:var(--text-2);padding-bottom:.4rem}
+@media (max-width:860px){.intro{grid-template-columns:1fr;align-items:start}}
+
+/* ---------- toolbar above the window ---------- */
+.tools{max-width:1700px;margin:0 auto;padding:0 var(--gutter) 14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.tries{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tries>span{font:500 .74rem/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-right:4px}
+.chip{display:inline-flex;align-items:center;gap:.5em;padding:.55em .95em;border:0;border-radius:999px;background:rgba(243,236,230,.06);box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--text);font:400 .9rem/1.1 var(--f-body);cursor:pointer;transition:background-color .3s var(--ease-out),box-shadow .3s var(--ease-out)}
+.chip:hover{background:rgba(139,109,255,.16);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip svg{width:15px;height:15px;flex:none}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.tool{display:inline-flex;align-items:center;gap:.5em;padding:.55em .9em;border:0;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--text-2);font:400 .88rem/1.1 var(--f-body);cursor:pointer;transition:color .3s var(--ease-out),box-shadow .3s var(--ease-out),background-color .3s var(--ease-out)}
+.tool:hover{color:var(--text);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.tool[aria-pressed="true"]{color:#fff;background:rgba(139,109,255,.22);box-shadow:inset 0 0 0 1px var(--accent)}
+.tool:disabled{opacity:.4;cursor:default}
+.tool svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media (pointer:coarse){.chip,.tool{min-height:42px}}
+
+/* ---------- the stage that holds the scaled app window ---------- */
+.stage-wrap{position:relative;max-width:1700px;margin:0 auto;padding:0 var(--gutter)}
+.stage-scroll{position:relative}
+.stage{position:relative;margin:0 auto;border-radius:12px;overflow:hidden;background:#f1f5f9;box-shadow:0 50px 120px -40px rgba(4,2,10,.95),0 0 0 1px rgba(189,177,210,.24)}
+.phone-note{display:none;margin:0 0 12px;font-size:.9rem;color:var(--text-2)}
+.stage-wrap.narrow .phone-note{display:block}
+.stage-wrap.narrow .stage-scroll{overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:12px}
+.stage-wrap.narrow .stage{margin:0}
+.stage-wrap:fullscreen{max-width:none;padding:0;display:grid;place-items:center;background:#0d0a17}
+.stage-wrap:fullscreen .stage{border-radius:0;box-shadow:none}
+.stage-wrap:fullscreen .phone-note{display:none}
+.stage-wrap:-webkit-full-screen{max-width:none;padding:0;display:grid;place-items:center;background:#0d0a17}
+.below{max-width:1240px;margin:0 auto;padding:clamp(22px,3vw,34px) var(--gutter) clamp(64px,10vh,110px);display:flex;flex-wrap:wrap;gap:18px 40px;align-items:center;justify-content:space-between}
+.below p{max-width:62ch;color:var(--text-2);font-size:.97rem}
+.below .buy{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.below .buy span{font:700 1.15rem/1.2 var(--f-display);color:var(--text)}
+footer{position:relative;z-index:1;padding:28px var(--gutter) 36px;border-top:1px solid var(--line);font:500 .72rem/1.5 var(--f-mono);letter-spacing:.05em;color:var(--text-2)}
+footer div{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+footer a{text-decoration:none}
+footer a:hover{color:var(--text)}
+
+/* ---------- toasts: page-level so they read at any scale ---------- */
+.toasts{position:absolute;left:50%;bottom:22px;z-index:20;width:min(520px,calc(100% - 32px));transform:translateX(-50%);pointer-events:none;display:grid;justify-items:center}
+.toast{display:flex;gap:12px;align-items:flex-start;padding:14px 18px 14px 16px;border-radius:14px;background:rgba(21,16,38,.96);color:var(--text);font:400 .95rem/1.45 var(--f-body);box-shadow:0 24px 50px -18px rgba(0,0,0,.8),inset 0 0 0 1px rgba(139,109,255,.45);opacity:0;transform:translateY(12px);transition:opacity .35s var(--ease-out),transform .45s var(--ease-out)}
+.toast.in{opacity:1;transform:none}
+.toast i{flex:none;width:8px;height:8px;margin-top:.5em;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(139,109,255,.25)}
+.stage-wrap.narrow .toasts{position:fixed;bottom:16px}
+
+/* ================= the app window, drawn at the app's real size (1919 x 1032) ================= */
+.win{position:absolute;left:0;top:0;width:1919px;height:1032px;transform-origin:0 0;overflow:hidden;background:#f1f5f9;color:#0f172a;font:400 12.25px/1.4 var(--f-body);-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.win button{margin:0;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:inherit;cursor:pointer}
+.win svg{display:block;max-width:none}
+.win .ln{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.win :focus-visible{outline:3px solid #8b5cf6;outline-offset:1px;border-radius:8px}
+
+/* title bar */
+.tb{position:absolute;left:0;top:0;right:0;height:23px;display:flex;align-items:center;background:#f3f3f3;color:#1b1b1b;font:400 12px/1 "Segoe UI",system-ui,sans-serif}
+.tb>svg{width:14px;height:14px;margin:0 6px 0 4px}
+.tb-ctl{margin-left:auto;display:flex;height:23px}
+.tb-ctl button{display:grid;place-items:center;width:45px;height:23px;color:#1b1b1b;transition:background-color .15s}
+.tb-ctl button:hover{background:rgba(0,0,0,.07)}
+.tb-ctl button.x:hover{background:#e81123;color:#fff}
+.tb-ctl svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:1}
+
+/* sidebar */
+.sb{position:absolute;left:0;top:23px;bottom:0;width:256px;background:#1e0a3c;color:#64748b}
+.sb-logo{position:absolute;left:14px;top:18px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(90deg,#8952f1,#9c76f7);color:#fff;box-shadow:0 6px 16px -6px rgba(139,92,246,.7)}
+.sb-logo svg{width:18px;height:18px}
+.sb-name{position:absolute;left:59px;top:26px;font:700 14px/18px var(--f-body);letter-spacing:-.01em;color:#fff}
+.sb-col{position:absolute;left:216px;top:25px;width:20px;height:20px;display:grid;place-items:center;color:#475569;border-radius:6px}
+.sb-col svg{width:14px;height:14px}
+.sb-col:hover{color:#94a3b8}
+.win .user{position:absolute;left:10px;top:64px;width:236px;height:57px;border-radius:10px;background:#281544;box-shadow:inset 0 0 0 1px #34224f;transition:box-shadow .2s}
+.win .user:hover{box-shadow:inset 0 0 0 1px #4a3470}
+.user .av{position:absolute;left:12px;top:12px;width:32px;height:32px;border-radius:50%;background:linear-gradient(90deg,#8851f1,#9b74f6);color:#fff;font:700 11px/32px var(--f-body);text-align:center}
+.user .who{position:absolute;left:44px;top:13px;width:84px;text-align:center}
+.user b{display:block;font:700 11.25px/14px var(--f-body);color:#fff;white-space:nowrap}
+.user small{display:block;margin-top:3px;font:400 10px/13px var(--f-body);color:#61718b}
+.sb-rule{position:absolute;left:14px;right:14px;top:137px;height:1px;background:#2b1847}
+.sb-nav{position:absolute;left:0;right:0;top:146px}
+.gh{display:flex!important;align-items:center;justify-content:space-between;width:100%;height:32px;padding:0 12px 0 18px!important;font:600 9px/1 var(--f-body)!important;letter-spacing:1.2px;text-transform:uppercase;color:#334155!important}
+.gh svg{width:12px;height:12px;color:#2d304d;transition:transform .25s var(--ease-out)}
+.grp:not(.open) .gh svg{transform:rotate(-90deg)}
+.gh:hover{color:#475569!important}
+.gi{display:grid;grid-template-rows:1fr;transition:grid-template-rows .32s var(--ease-out)}
+.grp:not(.open) .gi{grid-template-rows:0fr}
+.gi>div{min-height:0;overflow:hidden}
+.it{position:relative;display:block;width:240px;height:39px;margin:0 8px 2.5px!important;border-radius:8px;color:#64748b!important;font:400 12.25px/39px var(--f-body)!important;transition:background-color .2s,color .2s}
+.it svg{position:absolute;left:14px;top:10.5px;width:18px;height:18px;stroke-width:1.75}
+.it span{position:absolute;left:43px;top:0}
+.it:hover{background:rgba(255,255,255,.035);color:#94a3b8!important}
+.it.on{background:#2c1256;color:#a78bfa!important;font-weight:500!important}
+.sb-foot{position:absolute;left:0;right:0;bottom:0;height:144px}
+.sb-foot::before{content:"";position:absolute;left:14px;right:14px;top:0;height:1px;background:#2b1847}
+.saved{position:absolute;left:23px;top:10px;display:flex;align-items:center;gap:9px;font:400 10px/12px var(--f-body);color:#475569}
+.saved svg{width:9px;height:9px;stroke-width:2.4}
+.logout{position:absolute!important;left:23px;top:42px;height:23px;display:flex!important;align-items:center;gap:12px;padding:0 8px!important;border-radius:6px;color:#64748b!important;font:400 12.25px/1 var(--f-body)!important}
+.logout svg{width:17px;height:17px;stroke-width:1.75}
+.logout:hover{color:#94a3b8!important}
+.fine{position:absolute;left:14px;right:14px;top:84px;text-align:center;font:400 9.5px/14.5px var(--f-body);color:#746786}
+.ver{position:absolute;left:0;right:0;top:120px;text-align:center;font:400 8.75px/11px var(--f-body);color:#5d4e72}
+
+/* main area: tab bar + screen */
+.main{position:absolute;left:256px;top:23px;right:0;bottom:0;overflow:hidden}
+.tabs{position:absolute;left:0;right:0;top:0;height:53px;display:flex;align-items:stretch;padding-left:26px;background:#fff;border-bottom:1px solid #e2e8f0}
+.tabs[hidden]{display:none}
+.tabs .sec{display:flex;align-items:center;gap:5px;margin-right:23px;font:700 12.25px/1 var(--f-body);color:#0f172a}
+.tabs .sec svg{width:16px;height:16px;color:#7c3aed}
+.tab{position:relative;display:flex!important;align-items:center;padding:0 3px!important;margin-right:23px!important;font:500 12px/1 var(--f-body)!important;color:#475569!important;transition:color .2s}
+.tab:hover{color:#0f172a!important}
+.tab.on{color:#7c3aed!important}
+.tab.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:2px 2px 0 0;background:#7c3aed}
+.view{position:absolute;left:0;right:0;bottom:0;top:0}
+.view.tabbed{top:53px}
+.scr{position:absolute;inset:0;overflow:hidden}
+.scr>img.shot{position:absolute;left:0;top:0;width:1663px;height:auto;max-width:none;pointer-events:none;-webkit-user-drag:none}
+.dim{position:absolute;left:0;top:23px;bottom:0;width:256px;display:none;background:rgba(0,0,0,.353);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);cursor:pointer}
+.win.modal .dim{display:block}
+
+/* hotspots */
+.spot{position:absolute;border-radius:8px;transition:background-color .2s,box-shadow .25s}
+.spot:hover{background:rgba(15,23,42,.05)}
+.dark .spot:hover{background:rgba(255,255,255,.08)}
+.win.show-spots .spot,.win.hint .spot{background:rgba(139,92,246,.12);box-shadow:0 0 0 2px rgba(139,92,246,.9),0 0 0 7px rgba(139,92,246,.2)}
+.win.hint:not(.show-spots) .spot{animation:spotflash 1s var(--ease-out) both}
+@keyframes spotflash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+.win.show-spots .spot{animation:spotpulse 2.4s var(--ease-io) infinite}
+@keyframes spotpulse{50%{box-shadow:0 0 0 2px rgba(139,92,246,.9),0 0 0 11px rgba(139,92,246,.08)}}
+.spot.big:hover{background:transparent}
+.win.dark .spot.big:hover{background:transparent}
+
+/* ---------- HTML pages inside the app (screens without a screenshot) ---------- */
+.pg{position:absolute;inset:0;padding:26px 25px 0;overflow:hidden;background:#f1f5f9;-webkit-user-select:text;user-select:text}
+.pg.untabbed{padding-top:31px}
+.pg h1{margin:0;font:700 19.5px/1.3 var(--f-body);color:#0f172a}
+.pg .sub{margin-top:5px;font:400 11.75px/1.3 var(--f-body);color:#475569}
+.note{position:relative;margin-top:30px;max-width:1080px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:30px;padding:36px 40px 38px;border-radius:18px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.05),inset 0 0 0 1px #e2e8f0}
+.note .ic{width:66px;height:66px;border-radius:17px;display:grid;place-items:center;background:#f3efff;color:#7c3aed}
+.note .ic svg{width:30px;height:30px}
+.note .pill{display:inline-block;padding:7px 13px;border-radius:999px;background:#f3efff;color:#6d28d9;font:600 13px/1 var(--f-body);letter-spacing:.02em}
+.note h2{margin:14px 0 10px;font:700 30px/1.2 var(--f-body);color:#0f172a;letter-spacing:-.01em}
+.note p{max-width:62ch;font:400 20px/1.55 var(--f-body);color:#475569}
+.note .try{margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;font:500 16px/1 var(--f-body);color:#64748b}
+.note .try button{padding:13px 18px;border-radius:12px;background:#7c3aed;color:#fff;font:600 16px/1 var(--f-body);transition:background-color .2s}
+.note .try button:hover{background:#6d28d9}
+.skel{margin-top:26px;max-width:1500px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;opacity:.75}
+.skel div{height:170px;padding:22px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px #e2e8f0;display:grid;align-content:start;gap:12px}
+.skel i{display:block;height:11px;border-radius:6px;background:#eef2f6}
+.skel i:first-child{width:46%;height:14px;background:#e5e9f0}
+.skel i:nth-child(3){width:82%}
+.skel i:nth-child(4){width:64%}
+.docs{margin-top:28px;max-width:1500px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.docs div{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;padding:26px 28px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px #e2e8f0}
+.docs .ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:#f3efff;color:#7c3aed}
+.docs .ic svg{width:25px;height:25px}
+.docs b{display:block;font:700 21px/1.25 var(--f-body);color:#0f172a}
+.docs p{margin-top:6px;font:400 17px/1.5 var(--f-body);color:#475569}
+.docs .ai{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:6px;background:#7c3aed;color:#fff;font:600 11px/1 var(--f-body);vertical-align:3px}
+
+/* the rubric and target list (Evaluar > Rúbricas) */
+.lhead{display:flex;align-items:flex-start;justify-content:space-between}
+.seg{display:flex;padding:4px;border-radius:12px;background:#e8edf3}
+.seg button{padding:9px 16px!important;border-radius:9px;font:500 12.25px/1 var(--f-body)!important;color:#64748b!important}
+.seg button[aria-pressed="true"]{background:#fff;color:#0f172a!important;font-weight:700!important;box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.lbar{margin-top:22px;display:flex;gap:16px;align-items:stretch}
+.lbar p{flex:1;display:flex;align-items:center;padding:0 18px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px #e2e8f0;font:400 11.75px/1 var(--f-body);color:#64748b}
+.vbtn{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;padding:0 20px!important;height:38px;border-radius:10px;background:#7c3aed!important;color:#fff!important;font:600 12.25px/1 var(--f-body)!important;transition:background-color .2s}
+.vbtn:hover{background:#6d28d9!important}
+.vbtn svg{width:15px;height:15px}
+.lcards{margin-top:20px;display:grid;grid-template-columns:repeat(2,minmax(0,590px));gap:20px}
+.lcard{padding:22px 22px 20px;border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.04),inset 0 0 0 1px #e2e8f0}
+.lcard h3{font:700 14px/1.3 var(--f-body);color:#0f172a}
+.lcard .meta{margin-top:4px;font:400 11px/1.3 var(--f-body);color:#64748b}
+.lcard .tags{margin-top:12px;display:flex;gap:8px}
+.lcard .tags span{padding:5px 9px;border-radius:7px;background:#f3efff;color:#6d28d9;font:500 10.5px/1 var(--f-body)}
+.lcard .tags span+span{background:#ecfdf3;color:#15803d}
+.lcard ul{margin-top:14px;display:grid;gap:8px}
+.lcard li{position:relative;padding-left:14px;font:400 11px/1.45 var(--f-body);color:#475569}
+.lcard li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:#c4b5fd}
+.lcard .row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center;margin-top:14px}
+.lcard .row svg{width:150px;height:150px}
+.lcard .vbtn{width:100%;margin-top:18px;height:40px}
+
+/* ---------- live pieces inside Aula Live ---------- */
+.lv{position:absolute}
+.draw{position:absolute;left:0;top:0;width:1663px;height:956px;touch-action:none;cursor:crosshair}
+.t-digits{display:grid;place-items:center;font:700 47px/1 var(--f-body);letter-spacing:-.5px;color:#fff;font-variant-numeric:tabular-nums;pointer-events:none}
+.t-digits.done{animation:blink .5s steps(2) 6}
+@keyframes blink{50%{opacity:.25}}
+.t-hint{text-align:center;font:400 7.6px/1 var(--f-body);color:#4a5366;pointer-events:none}
+.chipt{display:grid!important;place-items:center;border-radius:999px;background:#2a3246!important;color:#aab3c2!important;font:700 10.5px/1 var(--f-body)!important;transition:background-color .2s,color .2s}
+.chipt:hover{color:#e2e8f0!important}
+.chipt.on{background:#1a475a!important;color:#7de5f7!important;box-shadow:inset 0 0 0 1px #2e7f97}
+.go{display:flex!important;align-items:center;justify-content:center;gap:8px;border-radius:12px;background:linear-gradient(90deg,#30d4aa,#24d4e1)!important;color:#001f1d!important;font:700 13px/1 var(--f-body)!important;box-shadow:0 8px 22px -8px rgba(36,212,225,.6);transition:filter .2s}
+.go:hover{filter:brightness(1.07)}
+.go svg{width:15px;height:15px}
+.calc-d{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:6px;padding:0 4px;pointer-events:none;overflow:hidden}
+.calc-d .ex{min-height:14px;font:400 12px/1 var(--f-body);color:#64748b;white-space:nowrap}
+.calc-d .res{font:700 31px/1 var(--f-body);color:#fff;white-space:nowrap}
+.key{border-radius:10px;transition:background-color .12s,transform .12s}
+.key:hover{background:rgba(255,255,255,.07)}
+.key:active{background:rgba(255,255,255,.14);transform:scale(.97)}
+.disc{position:absolute;width:245px;height:245px;max-width:none;pointer-events:none;will-change:transform}
+.hub{border-radius:50%;background-size:100% 100%!important;box-shadow:0 4px 12px rgba(0,0,0,.35);transition:transform .2s}
+.hub:hover{transform:scale(1.04)}
+.hub:active{transform:scale(.97)}
+.hub.pulse{animation:hubp 1.1s var(--ease-io) 4}
+@keyframes hubp{50%{box-shadow:0 0 0 12px rgba(167,139,250,.5),0 4px 12px rgba(0,0,0,.35)}}
+.pointer{position:absolute;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.winner{display:grid;place-items:center;background:#141a2f;font:600 12.5px/1 var(--f-body);color:#94a3b8;pointer-events:none}
+.winner b{color:#fff;font-weight:700}
+.dot-ring{position:absolute;border-radius:50%;box-shadow:0 0 0 2px #1e2640,0 0 0 4px #a78bfa;pointer-events:none;transition:left .25s var(--ease-out),top .25s var(--ease-out)}
+
+/* ---------- diana and rubric pieces ---------- */
+.reveal{position:absolute;left:0;top:0;width:1663px;height:1009px;background-size:1663px 1009px;opacity:0;pointer-events:none;transition:opacity .45s var(--ease-out),transform .6s cubic-bezier(.34,1.4,.64,1)}
+.reveal.on{opacity:1}
+.reveal.wedge{transform:scale(.55)}
+.reveal.wedge.on{transform:none}
+.counter{text-align:center;font:400 10px/1 var(--f-body);color:#94a3b8;pointer-events:none;transition:opacity .3s}
+.patch{position:absolute;max-width:none;pointer-events:none;opacity:0;transition:opacity .25s}
+.patch.on{opacity:1}
+.pick{position:absolute;border-radius:6px;pointer-events:none;mix-blend-mode:multiply;opacity:0;transform:scale(.96);transition:opacity .25s,transform .3s var(--ease-out)}
+.pick.on{opacity:1;transform:none}
+
+/* ---------- the zoom viewer ---------- */
+.zoom{position:fixed;inset:0;z-index:200;display:grid;grid-template-rows:minmax(0,1fr) auto;background:rgba(10,7,20,.94);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.zoom[hidden]{display:none}
+.zoom-stage{position:relative;overflow:hidden;touch-action:none;cursor:zoom-in}
+.zoom-stage.zoomed{cursor:grab}
+.zoom-stage.dragging{cursor:grabbing}
+.zoom-img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;border-radius:6px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8);-webkit-user-drag:none;user-select:none}
+.zoom-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px var(--gutter) 16px;color:var(--text-2);font-size:.9rem}
+.zoom-cap{flex:1 1 320px;min-width:0}
+.zoom-hint{font:500 .72rem/1.3 var(--f-mono);letter-spacing:.04em}
+.zoom-btns{display:flex;gap:6px}
+.zoom-btns button{display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:10px;background:rgba(243,236,230,.08);color:var(--text);cursor:pointer;font:500 1.1rem/1 var(--f-body);transition:background-color .2s}
+.zoom-btns button:hover{background:rgba(243,236,230,.16)}
+.zoom-btns svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.zoom-btns .zoom-x{background:var(--accent-deep)}
+.zoom-btns .zoom-x:hover{background:var(--accent-hover)}
+html.zoom-open{overflow:hidden}
+@media (max-width:620px){.zoom-hint{display:none}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#demo" data-i18n="demo.skip">Saltar a la demo</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mark-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9b7dff"/><stop offset="1" stop-color="#6a45ee"/></linearGradient>
+    <symbol id="mark" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#mark-g)"/><path d="M16 7.5 8 11.6l8 4.1 8-4.1z" fill="#fff"/><path d="m8 16 8 4.1 8-4.1M8 20.3l8 4.1 8-4.1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" fill="currentColor"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-ucheck" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></symbol>
+    <symbol id="i-eval" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
+    <symbol id="i-class" viewBox="0 0 24 24"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3M7 21l5-5 5 5"/></symbol>
+    <symbol id="i-meet" viewBox="0 0 24 24"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></symbol>
+    <symbol id="i-grad" viewBox="0 0 24 24"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z"/><path d="M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/></symbol>
+    <symbol id="i-log" viewBox="0 0 24 24"><path d="M15 12h-5M15 8h-5M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></symbol>
+    <symbol id="i-cog" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-tick" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24"><path d="M15.39 4.39a1 1 0 0 0 1.68-.47 2.5 2.5 0 1 1 3.01 3.01 1 1 0 0 0-.47 1.68l1.68 1.68a2.4 2.4 0 0 1 0 3.42l-1.61 1.61a.98.98 0 0 1-.84.28.95.95 0 0 1-.8-.68 2.5 2.5 0 1 0-3.21 3.21.95.95 0 0 1 .68.8.98.98 0 0 1-.28.84l-1.61 1.61a2.4 2.4 0 0 1-3.42 0l-1.68-1.68a1 1 0 0 0-1.68.47 2.5 2.5 0 1 1-3.01-3.01 1 1 0 0 0 .47-1.68l-1.68-1.68a2.4 2.4 0 0 1 0-3.42L4.3 8.69a.98.98 0 0 1 .84-.28.95.95 0 0 1 .8.68 2.5 2.5 0 1 0 3.21-3.21.95.95 0 0 1-.68-.8.98.98 0 0 1 .28-.84L10.3 2.6a2.4 2.4 0 0 1 3.42 0z"/></symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <a class="brand" href="index.html" data-home aria-label="AulaPro"><svg aria-hidden="true"><use href="#mark"/></svg><b>AulaPro</b></a>
+  <a class="back" href="index.html" data-home><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span data-i18n="demo.back">Volver a la web</span></a>
+  <div class="lang" role="group" aria-label="Idioma" data-i18n-attr="aria-label:lang.label">
+    <button type="button" data-lang="es" aria-pressed="true" lang="es">ES</button>
+    <button type="button" data-lang="ca" aria-pressed="false" lang="ca">CA</button>
+    <button type="button" data-lang="en" aria-pressed="false" lang="en">EN</button>
+  </div>
+  <a class="btn" href="index.html#precio" data-home="#precio" data-i18n="cta.want">Quiero AulaPro</a>
+</header>
+
+<main id="main" tabindex="-1">
+  <section class="intro">
+    <div>
+      <p class="kicker" data-i18n="demo.kicker">Demo interactiva</p>
+      <h1 class="h1" data-i18n="demo.title">Toca AulaPro por dentro.</h1>
+    </div>
+    <p class="lede" data-i18n="demo.lede">Recorre las pantallas como si la tuvieras instalada. Es una demo: los botones te enseñan dónde está cada cosa, pero no se guarda nada.</p>
+  </section>
+
+  <div class="tools">
+    <div class="tries">
+      <span data-i18n="demo.try">Prueba a</span>
+      <button class="chip" type="button" data-try="live-ruleta" data-i18n="demo.try1">Girar la ruleta</button>
+      <button class="chip" type="button" data-try="dianas" data-i18n="demo.try2">Rellenar una diana</button>
+      <button class="chip" type="button" data-try="rubrica" data-i18n="demo.try3">Marcar una rúbrica</button>
+      <button class="chip" type="button" data-try="live-draw" data-i18n="demo.try4">Dibujar en la pizarra</button>
+    </div>
+    <div class="acts">
+      <button class="tool" type="button" id="t-spots" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9l5 12 1.8-5.2L21 14z"/><path d="M7.2 2.2 8 5.1M5.1 8l-2.9-.8M14 4.1 12 6.2M6.2 12l-2.1 2"/></svg><span data-i18n="demo.spots">Ver zonas activas</span></button>
+      <button class="tool" type="button" id="t-zoom"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v6M8 11h6"/></svg><span data-i18n="demo.zoom">Ampliar pantalla</span></button>
+      <button class="tool" type="button" id="t-full"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg><span data-i18n="demo.full">Pantalla completa</span></button>
+    </div>
+  </div>
+
+  <div class="stage-wrap" id="demo">
+    <p class="phone-note" data-i18n="demo.phone">En el móvil, desliza para moverte por la ventana. Se disfruta más en un ordenador.</p>
+    <div class="stage-scroll">
+      <div class="stage" id="stage">
+        <div class="win" id="win" role="region" aria-label="Demo de AulaPro" data-i18n-attr="aria-label:demo.win">
+          <div class="tb">
+            <svg aria-hidden="true"><use href="#mark"/></svg><span>Aula Pro</span>
+            <div class="tb-ctl">
+              <button type="button" data-act="t:min" aria-label="Minimizar"><svg viewBox="0 0 10 10"><path d="M0 5.5h10"/></svg></button>
+              <button type="button" data-act="fn:full" aria-label="Maximizar"><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9"/></svg></button>
+              <button type="button" class="x" data-act="t:winclose" aria-label="Cerrar"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0 0 10"/></svg></button>
+            </div>
+          </div>
+
+          <aside class="sb">
+            <div class="sb-logo"><svg aria-hidden="true"><use href="#i-layers"/></svg></div>
+            <span class="sb-name">Aula Pro</span>
+            <button class="sb-col" type="button" data-act="t:collapse" aria-label="Plegar el menú"><svg class="ln" aria-hidden="true"><use href="#i-left"/></svg></button>
+            <button class="user" type="button" data-nav="perfil" aria-label="Mi perfil: Santi Pedra, Tutor 5A"><span class="av" aria-hidden="true">SP</span><span class="who"><b>Santi Pedra</b><small>Tutor 5A</small></span></button>
+            <div class="sb-rule"></div>
+            <nav class="sb-nav" aria-label="Menú de AulaPro">
+              <div class="grp open">
+                <button class="gh" type="button" aria-expanded="true">Tu día a día<svg class="ln" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <div class="gi"><div>
+                  <button class="it" type="button" data-nav="inicio"><svg class="ln" aria-hidden="true"><use href="#i-home"/></svg><span>Inicio</span></button>
+                  <button class="it" type="button" data-nav="misclases"><svg class="ln" aria-hidden="true"><use href="#i-users"/></svg><span>Mis Clases</span></button>
+                  <button class="it" type="button" data-nav="agenda"><svg class="ln" aria-hidden="true"><use href="#i-cal"/></svg><span>Agenda</span></button>
+                  <button class="it" type="button" data-nav="cuaderno"><svg class="ln" aria-hidden="true"><use href="#i-book"/></svg><span>Cuaderno de Notas</span></button>
+                  <button class="it" type="button" data-nav="asistencia"><svg class="ln" aria-hidden="true"><use href="#i-ucheck"/></svg><span>Asistencia</span></button>
+                </div></div>
+              </div>
+              <div class="grp open">
+                <button class="gh" type="button" aria-expanded="true">Trabajo docente<svg class="ln" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <div class="gi"><div>
+                  <button class="it" type="button" data-nav="evaluar"><svg class="ln" aria-hidden="true"><use href="#i-eval"/></svg><span>Evaluar</span></button>
+                  <button class="it" type="button" data-nav="documentos"><svg class="ln" aria-hidden="true"><use href="#i-doc"/></svg><span>Documentos</span></button>
+                  <button class="it" type="button" data-nav="enclase"><svg class="ln" aria-hidden="true"><use href="#i-class"/></svg><span>En clase</span></button>
+                </div></div>
+              </div>
+              <div class="grp">
+                <button class="gh" type="button" aria-expanded="false">Más<svg class="ln" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <div class="gi"><div>
+                  <button class="it" type="button" data-nav="reuniones" tabindex="-1"><svg class="ln" aria-hidden="true"><use href="#i-meet"/></svg><span>Reuniones</span></button>
+                  <button class="it" type="button" data-nav="formaciones" tabindex="-1"><svg class="ln" aria-hidden="true"><use href="#i-grad"/></svg><span>Formaciones</span></button>
+                  <button class="it" type="button" data-nav="compartido" tabindex="-1"><svg class="ln" aria-hidden="true"><use href="#i-share"/></svg><span>Trabajo compartido</span></button>
+                  <button class="it" type="button" data-nav="registro" tabindex="-1"><svg class="ln" aria-hidden="true"><use href="#i-log"/></svg><span>Registro de cambios</span></button>
+                  <button class="it" type="button" data-nav="config" tabindex="-1"><svg class="ln" aria-hidden="true"><use href="#i-cog"/></svg><span>Configuración</span></button>
+                </div></div>
+              </div>
+            </nav>
+            <div class="sb-foot">
+              <span class="saved"><svg class="ln" aria-hidden="true"><use href="#i-tick"/></svg>Todo guardado</span>
+              <button class="logout" type="button" data-act="t:logout"><svg class="ln" aria-hidden="true"><use href="#i-out"/></svg>Cerrar sesión</button>
+              <p class="fine">Diseñada sobre el currículo educativo español<br>(LOMLOE)</p>
+              <p class="ver">Aula Pro v1.5.1</p>
+            </div>
+          </aside>
+
+          <section class="main">
+            <div class="tabs" id="tabs" role="tablist" hidden></div>
+            <div class="view" id="view"></div>
+          </section>
+          <div class="dim" data-act="fn:closeModal" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="below">
+    <p data-i18n="demo.note">Los datos que ves son de ejemplo. La demo muestra AulaPro en castellano; la aplicación también funciona en català y en inglés.</p>
+    <div class="buy">
+      <span data-i18n="demo.cta">¿Te convence? Pago único de 9,99&nbsp;€.</span>
+      <a class="btn" href="index.html#precio" data-home="#precio" data-i18n="cta.want">Quiero AulaPro</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div>
+    <span><span data-i18n="foot.made">Diseñada sobre el currículo LOMLOE.</span> © 2026 AulaPro</span>
+    <span>
+      <a href="condiciones.html" data-lang-link="condiciones.html" data-i18n="foot.terms">Condiciones de venta</a> ·
+      <a href="aviso-legal.html" data-lang-link="aviso-legal.html" data-i18n="foot.legal">Aviso legal</a> ·
+      <a href="privacidad.html" data-lang-link="privacidad.html" data-i18n="foot.privacy">Política de privacidad</a> ·
+      <a href="index.html" data-home data-i18n="demo.back">Volver a la web</a>
+    </span>
+  </div>
+</footer>
+
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-label="Imagen ampliada" data-open-label="Ampliar imagen" data-i18n-attr="aria-label:zoom.label;data-open-label:zoom.open">
+  <div class="zoom-stage"><img class="zoom-img" alt=""></div>
+  <div class="zoom-bar">
+    <p class="zoom-cap"></p>
+    <span class="zoom-hint" data-i18n="zoom.hint">Rueda del ratón o pellizca para ampliar. Arrastra para moverte.</span>
+    <div class="zoom-btns">
+      <button type="button" class="zoom-out" aria-label="Alejar" data-i18n-attr="aria-label:zoom.out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <button type="button" class="zoom-in" aria-label="Acercar" data-i18n-attr="aria-label:zoom.in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button type="button" class="zoom-x" aria-label="Cerrar" data-i18n-attr="aria-label:zoom.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/i18n.js"></script>
+<script src="assets/demo-i18n.js"></script>
+<script src="assets/zoom.js"></script>
+<script src="assets/demo.js"></script>
+</body>
+</html>

@@ -2,11 +2,17 @@ name: Comprobaciones
 
 # En cada pull request y en cada cambio que llega a master: que compile, que
 # pase el lint y que pasen todas las pruebas. Así nada se fusiona sin
-# verificar, y si master se rompe se ve en el momento.
+# verificar, y si master se rompe se ve en el momento. Los cambios que solo
+# tocan la web (`web/`) no lanzan estas comprobaciones: la web se publica con
+# web.yml.
 on:
   pull_request:
+    paths-ignore:
+      - 'web/**'
   push:
     branches: [master]
+    paths-ignore:
+      - 'web/**'
 
 concurrency:
   group: ci-${{ github.ref }}
