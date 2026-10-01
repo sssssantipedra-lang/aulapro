@@ -266,3 +266,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - AulaPro se compara con los cuadernos (su IA usa la clave del docente, no hay web ni nube y aún no tiene opiniones): precio justo de unos 15-20 € en pago único o unos 15 €/año.
 - Decisión del usuario, buscando un precio bajo y atractivo: el lanzamiento se queda en 6,99 € de por vida, la anual baja a 11,99 €/año (antes 9,99 €; se recomendó 14,99 €) y los packs se quedan en 22,99 / 39,99 / 69,99 / 89,99 € (se recomendó 29,99 / 54,99 / 99,99 / 139,99 €).
 - Ese mismo día el usuario sube los packs a 24,99 / 44,99 / 79,99 / 99,99 € (5 €, 4,50 €, 4 € y 3,33 € por licencia).
+
+## 23. Captura del cuaderno en castellano (1-10-2026, petición del usuario)
+
+- En la franja de idiomas ("En castellano. En català. In English."), la captura del cuaderno de notas en catalán (`cuaderno-ca.webp`, 1440x900) se sustituye por la del usuario en castellano (`assets/app/cuaderno.webp`, 1586x992). El pie y el texto alternativo dicen ahora "en castellano", en los tres idiomas.
+

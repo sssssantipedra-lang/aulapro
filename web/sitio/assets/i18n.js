@@ -156,8 +156,8 @@ window.AULA_I18N = {
     'strips.label': 'IA i idiomes',
     'strip.ai': "La IA funciona amb la teva pròpia clau gratuïta de Google. La introdueixes a El meu perfil en tres passos i AulaPro comprova que funciona sense consumir quota.",
     'strip.langs': "Tota l'aplicació, en tres idiomes.",
-    'strip.alt': "Quadern de notes d'AulaPro en català.",
-    'strip.cap': 'Quadern de notes, en català.',
+    'strip.alt': "Quadern de notes d'AulaPro en castellà.",
+    'strip.cap': 'Quadern de notes, en castellà.',
 
     's7.kicker': 'Preu de llançament',
     's7.title': '6,99 €. Una vegada, i per sempre.',
@@ -376,8 +376,8 @@ window.AULA_I18N = {
     'strips.label': 'AI and languages',
     'strip.ai': 'The AI runs on your own free Google key. Enter it in My profile in three steps and AulaPro checks it works without using any quota.',
     'strip.langs': 'The whole app, in three languages.',
-    'strip.alt': "AulaPro's gradebook in Catalan.",
-    'strip.cap': 'Gradebook, in Catalan.',
+    'strip.alt': "AulaPro's gradebook in Spanish.",
+    'strip.cap': 'Gradebook, in Spanish.',
 
     's7.kicker': 'Launch price',
     's7.title': '€6.99. Once, and for good.',
