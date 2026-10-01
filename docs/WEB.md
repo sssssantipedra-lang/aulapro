@@ -20,7 +20,7 @@ Contexto compartido entre la app y la web. Actualizado el 1 de octubre de 2026.
 - Oferta de lanzamiento hasta el 15 de abril de 2027 incluido: pago único de 6,99 € con impuestos incluidos y licencia de por vida (no caduca e incluye las actualizaciones, también después de esa fecha).
 - Desde el 16 de abril de 2027, las licencias nuevas son anuales: 11,99 € al año, con impuestos incluidos. La web y las condiciones ya lo anuncian. Las licencias de por vida vendidas antes se respetan siempre.
 - Hasta 2 dispositivos activados a la vez.
-- Packs para grupos, con la misma oferta de lanzamiento: 5, 10, 20 y 30 licencias por 22,99 €, 39,99 €, 69,99 € y 89,99 €. Una licencia (una clave) para cada docente, con sus 2 dispositivos, igual que la individual; quien compra reparte las claves. Más de 30 docentes: por correo a contacto@aulapro.app, con propuesta a medida.
+- Packs para grupos, con la misma oferta de lanzamiento: 5, 10, 20 y 30 licencias por 24,99 €, 44,99 €, 79,99 € y 99,99 €. Una licencia (una clave) para cada docente, con sus 2 dispositivos, igual que la individual; quien compra reparte las claves. Más de 30 docentes: por correo a contacto@aulapro.app, con propuesta a medida.
 - Devolución en 14 días, sin preguntas. Al devolver, la licencia se desactiva.
 - Android: la app se descarga gratis en Google Play y se activa con la misma licencia. Google Play lo permite como app "solo de uso".
 
@@ -60,7 +60,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 4. Tras el pago, redirigir a https://aulapro.app/gracias
 5. Botón del recibo por correo: https://aulapro.app/descargar
 6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria. Oferta de lanzamiento hasta el 15 de abril de 2027: pago único de 6,99 € y licencia de por vida para Windows, Mac y Android, en hasta 2 dispositivos a la vez, con las actualizaciones incluidas. Devolución en 14 días sin preguntas."
-7. Packs de 5, 10, 20 y 30 licencias (22,99 €, 39,99 €, 69,99 € y 89,99 €): cada comprador tiene que recibir una clave por docente, cada una con 2 activaciones y sin caducidad. Según su documentación, Lemon Squeezy genera una clave por compra, así que falta comprobar en modo prueba cómo conseguir varias: comprar 3 unidades de la licencia y mirar cuántas claves llegan. Si llega una sola, hay que decidir otra forma de entregarlas. Los enlaces de pago de los packs van en `packs` de `web/sitio/assets/launch.js`.
+7. Packs de 5, 10, 20 y 30 licencias (24,99 €, 44,99 €, 79,99 € y 99,99 €): cada comprador tiene que recibir una clave por docente, cada una con 2 activaciones y sin caducidad. Según su documentación, Lemon Squeezy genera una clave por compra, así que falta comprobar en modo prueba cómo conseguir varias: comprar 3 unidades de la licencia y mirar cuántas claves llegan. Si llega una sola, hay que decidir otra forma de entregarlas. Los enlaces de pago de los packs van en `packs` de `web/sitio/assets/launch.js`.
 8. Probar primero en modo prueba.
 9. Fin de la oferta, al acabar el 15 de abril de 2027: archivar las variantes de por vida (individual y packs) y crear la licencia anual (suscripción de 11,99 € al año, claves de licencia, 2 activaciones). Poner su enlace en `checkout` de `web/sitio/assets/launch.js` y cambiar los textos de precio de la web y las condiciones de venta, en los tres idiomas. La app tiene que tener lista la licencia anual (apartado 3, punto 13). Los packs anuales, si los hay, se deciden entonces.
 
