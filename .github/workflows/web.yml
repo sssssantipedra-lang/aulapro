@@ -12,6 +12,7 @@ on:
     branches: [master]
     paths:
       - 'web/sitio/**'
+      - 'web/versionar.mjs'
       - '.github/workflows/web.yml'
   workflow_dispatch: {}
 
@@ -39,6 +40,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Sellar los archivos con su huella
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: node web/versionar.mjs web/sitio
 
       - name: Publicar en Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''

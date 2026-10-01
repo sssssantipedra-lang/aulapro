@@ -238,11 +238,19 @@
   let lastY = 0, dir = 0, glideId = null, idleTimer = 0;
   function trackDir() {
     const y = scrollY;
+    if (glideId === null && performance.now() - lastWheel < GESTURE_GAP) {
+      // the rest of a wheel gesture the browser would not let us cancel (it began below the film) cannot move the page
+      if (gestureUsed && restY !== null && Math.abs(y - restY) > 2) { scrollTo(0, restY); return; }
+      // and if it carries the page up into the film, the film's last stop holds it
+      const endY = heroTop + heroRange;
+      if (lastY > endY + 2 && y < endY - 2) { gestureUsed = true; holdAt(endY); lastY = endY; return; }
+    }
     if (y !== lastY && glideId === null) dir = y > lastY ? 1 : -1;
     lastY = y;
     if (!hasScrollEnd) { clearTimeout(idleTimer); idleTimer = setTimeout(settle, 160); }
   }
   function stopGlide() {
+    restY = null;
     if (glideId === null) return;
     cancelAnimationFrame(glideId);
     glideId = null;
@@ -355,18 +363,22 @@
   }
   // Inside the film the page moves stop by stop: any wheel, swipe or scroll key, however long, becomes one
   // step to the next or previous caption, and nothing moves the film while a glide is running. One gesture
-  // is one step: a trackpad flick keeps sending wheel events for a second, so a new step only starts after
-  // the wheel has been quiet for a moment. At the last stop, going down leaves the film as usual.
-  const GESTURE_GAP = 220;
-  let lastWheel = 0, gestureUsed = false, touchY = null, touchInHero = false;
+  // is one step: a trackpad flick keeps sending wheel events for a second, and a hand turning a mouse wheel
+  // lifts its finger for up to a third of a second between strokes, so a new step only starts after the wheel
+  // has been quiet for almost half a second; a wheel that keeps turning through the glide is still the same
+  // gesture. At the last stop, going down leaves the film as usual.
+  const GESTURE_GAP = 450;
+  let lastWheel = 0, gestureUsed = false, restY = null, touchY = null, touchInHero = false;
   function heroP() { return (scrollY - heroTop) / heroRange; }
   function inFilm(d, p) { return d > 0 ? p >= -0.001 && p < 0.998 : p > 0.002 && p <= 1.002; }
+  function holdAt(y) { restY = y; scrollTo(0, y); }
   function step(d) {
     const p = heroP();
     const to = d > 0 ? STOPS.find(s => s > p + 0.004) : STOPS.slice().reverse().find(s => s < p - 0.004);
     if (to === undefined) return;
     dir = d;
-    glideTo(heroTop + to * heroRange);
+    restY = heroTop + to * heroRange;
+    glideTo(restY);
   }
   function onWheel(e) {
     if (e.ctrlKey || !e.deltaY) return;                       // ctrl + wheel is the browser's zoom
@@ -375,10 +387,12 @@
     if (now - lastWheel > GESTURE_GAP) gestureUsed = false;
     lastWheel = now;
     // mid-glide, or the tail of a gesture that already moved one step: nothing moves
-    if (glideId !== null || gestureUsed) { e.preventDefault(); return; }
+    if (glideId !== null || gestureUsed) { gestureUsed = true; e.preventDefault(); return; }
     if (!inFilm(d, heroP())) return;                          // outside the film the page scrolls as usual
-    e.preventDefault();
     gestureUsed = true;
+    // a wheel that began below the film cannot be cancelled: the film's last stop holds the page instead
+    if (!e.cancelable) { holdAt(heroTop + heroRange); return; }
+    e.preventDefault();
     step(d);
   }
   const KEYS_DOWN = ['ArrowDown', 'PageDown', ' '], KEYS_UP = ['ArrowUp', 'PageUp'];
