@@ -55,7 +55,7 @@ window.AULA_I18N = {
     'b4.title': 'Cada cosa al seu <em>lloc</em>.',
     'b5.chip': 'Així és AulaPro per dins.',
     'b4.sub': 'AulaPro per a Windows, Mac i Android. Pagament únic de 9,99 €, i és teva per sempre.',
-    'cue': "Desplaça't a poc a poc",
+    'cue': "Desplaça't cap avall",
     'static.sub': "Situacions d'aprenentatge, rúbriques, informes i avaluació d'Educació Primària i Secundària, preparats amb IA en una sola app per a Windows, Mac i Android. Les dades del teu alumnat es queden al teu equip.",
     'static.price': 'Pagament únic de 9,99 €.',
 
@@ -259,7 +259,7 @@ window.AULA_I18N = {
     'b4.title': 'Everything in its <em>place</em>.',
     'b5.chip': 'This is AulaPro on the inside.',
     'b4.sub': "AulaPro for Windows, Mac and Android. A one-time payment of €9.99, and it's yours for good.",
-    'cue': 'Scroll slowly',
+    'cue': 'Scroll down',
     'static.sub': "Learning situations, rubrics, reports and assessment for primary and secondary school, prepared with AI in one app for Windows, Mac and Android. Your students' data stays on your device.",
     'static.price': 'One-time payment of €9.99.',
 

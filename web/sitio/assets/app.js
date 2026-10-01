@@ -266,7 +266,8 @@
   // gentle start and stop, so no frame of the film is skipped. Going down, the film simply plays (every
   // frame decoded in order) and the page follows it. Going up a film cannot play backwards, so it is
   // sought frame by frame, a little slower, which keeps the seeks in step.
-  const GLIDE_RATE = 1.2, GLIDE_RATE_BACK = 0.8, GLIDE_RAMP = 0.35;
+  // 1.56x plays the longest stretch (3.4 s of footage) in about 2.5 s
+  const GLIDE_RATE = 1.56, GLIDE_RATE_BACK = 1.56, GLIDE_RAMP = 0.35;
   function glideProfile(D, v) {
     // distance D (seconds of footage) at top speed v -> { T: duration in s, at(t): footage covered at time t }
     const ta = GLIDE_RAMP;
@@ -352,8 +353,65 @@
     video.playbackRate = 1;
     target = shown = heroProgress();
   }
-  // the visitor always wins: any wheel, touch or key during a glide hands control back at once
-  const GLIDE_STOPPERS = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+  // Inside the film the page moves stop by stop: any wheel, swipe or scroll key, however long, becomes one
+  // step to the next or previous caption, and nothing moves the film while a glide is running. One gesture
+  // is one step: a trackpad flick keeps sending wheel events for a second, so a new step only starts after
+  // the wheel has been quiet for a moment. At the last stop, going down leaves the film as usual.
+  const GESTURE_GAP = 220;
+  let lastWheel = 0, gestureUsed = false, touchY = null, touchInHero = false;
+  function heroP() { return (scrollY - heroTop) / heroRange; }
+  function inFilm(d, p) { return d > 0 ? p >= -0.001 && p < 0.998 : p > 0.002 && p <= 1.002; }
+  function step(d) {
+    const p = heroP();
+    const to = d > 0 ? STOPS.find(s => s > p + 0.004) : STOPS.slice().reverse().find(s => s < p - 0.004);
+    if (to === undefined) return;
+    dir = d;
+    glideTo(heroTop + to * heroRange);
+  }
+  function onWheel(e) {
+    if (e.ctrlKey || !e.deltaY) return;                       // ctrl + wheel is the browser's zoom
+    const d = e.deltaY > 0 ? 1 : -1;
+    const now = performance.now();
+    if (now - lastWheel > GESTURE_GAP) gestureUsed = false;
+    lastWheel = now;
+    // mid-glide, or the tail of a gesture that already moved one step: nothing moves
+    if (glideId !== null || gestureUsed) { e.preventDefault(); return; }
+    if (!inFilm(d, heroP())) return;                          // outside the film the page scrolls as usual
+    e.preventDefault();
+    gestureUsed = true;
+    step(d);
+  }
+  const KEYS_DOWN = ['ArrowDown', 'PageDown', ' '], KEYS_UP = ['ArrowUp', 'PageUp'];
+  function onKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const el = e.target;
+    if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName))) return;
+    let d = 0;
+    if (KEYS_DOWN.includes(e.key)) d = e.key === ' ' && e.shiftKey ? -1 : 1;
+    else if (KEYS_UP.includes(e.key)) d = -1;
+    if (!d || (glideId === null && !inFilm(d, heroP()))) return;
+    e.preventDefault();
+    if (glideId === null && !e.repeat) step(d);
+  }
+  function onTouchStart(e) {
+    touchY = e.touches.length === 1 ? e.touches[0].clientY : null;
+    touchInHero = glideId !== null || (heroP() >= -0.001 && heroP() <= 1.002);
+  }
+  function onTouchMove(e) {
+    if (touchY === null || !touchInHero) return;
+    const d = touchY - e.touches[0].clientY > 0 ? 1 : -1;
+    if (glideId !== null || inFilm(d, heroP())) e.preventDefault();
+  }
+  function onTouchEnd(e) {
+    if (touchY === null || !touchInHero) return;
+    const dy = touchY - e.changedTouches[0].clientY;
+    touchY = null;
+    if (Math.abs(dy) < 30 || glideId !== null) return;
+    const d = dy > 0 ? 1 : -1;
+    if (inFilm(d, heroP())) step(d);
+  }
+  // a click (a button, a link, the scrollbar) is the one thing that interrupts a glide
+  const GLIDE_STOPPERS = ['mousedown'];
 
   // the video: poster first, then the whole file as a Blob (works on hosts without Range support)
   let heroInit = false, fetchStarted = false;
@@ -418,6 +476,11 @@
     addEventListener('scroll', trackDir, { passive: true });
     if (hasScrollEnd) addEventListener('scrollend', settle);
     GLIDE_STOPPERS.forEach(ev => addEventListener(ev, stopGlide, { passive: true }));
+    addEventListener('wheel', onWheel, { passive: false });
+    addEventListener('keydown', onKey);
+    addEventListener('touchstart', onTouchStart, { passive: true });
+    addEventListener('touchmove', onTouchMove, { passive: false });
+    addEventListener('touchend', onTouchEnd, { passive: true });
     bands.forEach(b => { b.op = -1; b.k = -1; b.lines.forEach(l => { l.s = -1; }); });
     cueOp = -1; endOp = -1;
     target = shown = heroProgress();
@@ -432,6 +495,11 @@
     removeEventListener('scroll', trackDir);
     if (hasScrollEnd) removeEventListener('scrollend', settle);
     GLIDE_STOPPERS.forEach(ev => removeEventListener(ev, stopGlide));
+    removeEventListener('wheel', onWheel);
+    removeEventListener('keydown', onKey);
+    removeEventListener('touchstart', onTouchStart);
+    removeEventListener('touchmove', onTouchMove);
+    removeEventListener('touchend', onTouchEnd);
     clearTimeout(idleTimer);
     stopGlide();
     if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; lastTick = 0; }
