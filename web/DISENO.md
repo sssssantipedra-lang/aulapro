@@ -251,5 +251,10 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 
 - Hasta el 15 de abril de 2027 incluido: 6,99 € una sola vez y licencia de por vida (2 dispositivos, actualizaciones, 14 días de devolución). Desde el 16 de abril de 2027, las licencias nuevas son anuales, 9,99 € al año; las de por vida se respetan siempre.
 - La web lo anuncia con fecha y con el precio posterior ("Después costará 9,99 € al año"), porque es el argumento más fuerte: pagas una vez lo que después costará cada año. Cambia el precio en la portada (bloque 4 del inicio, tarjeta de precio con el título "Precio de lanzamiento", pregunta 7, llamada final, descripciones), la demo, /descargar y las condiciones de venta, que añaden el párrafo "Oferta de lanzamiento", en los tres idiomas.
-- Al acabar la oferta hay que cambiar la web y Lemon Squeezy el mismo día: `docs/WEB.md`, apartado 5, punto 8.
+- Al acabar la oferta hay que cambiar la web y Lemon Squeezy el mismo día: `docs/WEB.md`, apartado 5, punto 9.
 
+## 21. Packs para grupos (1-10-2026, decisión del usuario)
+
+- Packs de 5, 10, 20 y 30 docentes por 22,99 €, 39,99 €, 69,99 € y 89,99 € (4,60 €, 4 €, 3,50 € y 3 € por docente; la individual cuesta 6,99 €), de por vida con la misma oferta de lanzamiento. Más de 30 docentes: "escríbenos" a contacto@aulapro.app.
+- Una sola clave para todo el grupo, con 2 dispositivos por docente (en Lemon Squeezy, una variante por pack con su límite de activaciones). Así funciona con la app tal como está.
+- En la web: bloque "¿Sois varios docentes?" debajo de la tarjeta de precio (`#packs`, cuatro fichas oscuras como los botones de compra, dos columnas en móvil), pregunta 11 de las frecuentes, enlace a los packs en la llamada final, apartado "Packs para grupos" en las condiciones de venta y una línea en /gracias para quien compra un pack. Cada pack dice "Próximamente" hasta que su enlace de pago se pone en `packs` de `assets/launch.js`.

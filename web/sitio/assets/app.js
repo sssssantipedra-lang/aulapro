@@ -641,6 +641,16 @@
       }
     });
     document.documentElement.classList.toggle('store-open', allOpen);
+    // group packs: each has its own checkout; they never decide whether the shop is open
+    const packs = LAUNCH.packs || {};
+    $$('.pack').forEach(a => {
+      const url = packs[a.dataset.pack] || '';
+      const label = $('.pack-cta', a);
+      a.href = url || '#quiero';
+      if (url) { a.target = '_blank'; a.rel = 'noopener'; } else a.removeAttribute('target');
+      a.classList.toggle('ready', !!url);
+      label.dataset.i18n = url ? 'pk.buy' : 'buy.soon';
+    });
   }
 
   /* ================= start ================= */
