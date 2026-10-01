@@ -269,5 +269,5 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 
 ## 23. Captura del cuaderno en castellano (1-10-2026, petición del usuario)
 
-- En la franja de idiomas ("En castellano. En català. In English."), la captura del cuaderno de notas en catalán (`cuaderno-ca.webp`, 1440x900) se sustituye por la del usuario en castellano (`assets/app/cuaderno.webp`, 1586x992). El pie y el texto alternativo dicen ahora "en castellano", en los tres idiomas.
+- En la franja de idiomas ("En castellano. En català. In English."), la captura del cuaderno de notas en catalán (`cuaderno-ca.webp`, 1440x900) se sustituye por la del usuario en castellano (`assets/app/cuaderno.webp`). Ese mismo día pasa a ser la captura oficial de la versión 1.7.1, sin la barra de título de Windows (1919x1008), como las demás capturas. El pie y el texto alternativo dicen ahora "en castellano", en los tres idiomas.
 
