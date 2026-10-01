@@ -5,12 +5,14 @@
   const root = document.documentElement;
   root.classList.toggle('launched', !!L.checkout);
   root.classList.toggle('no-play', !L.play);
+  root.classList.toggle('ms-store', !!L.store);
 
   document.querySelectorAll('[data-dl]').forEach(a => {
     const k = a.dataset.dl;
-    const url = k === 'android' ? L.play : (L.downloads || {})[k];
+    const store = k === 'android' ? L.play : k === 'windows' ? L.store : '';
+    const url = store || (L.downloads || {})[k];
     if (url) a.href = url;
-    if (k === 'android' && url) { a.target = '_blank'; a.rel = 'noopener'; }
+    if (store) { a.target = '_blank'; a.rel = 'noopener'; }
   });
   document.querySelectorAll('[data-buy]').forEach(a => {
     if (!L.checkout) return;

@@ -271,3 +271,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 
 - En la franja de idiomas ("En castellano. En català. In English."), la captura del cuaderno de notas en catalán (`cuaderno-ca.webp`, 1440x900) se sustituye por la del usuario en castellano (`assets/app/cuaderno.webp`). Ese mismo día pasa a ser la captura oficial de la versión 1.7.1, sin la barra de título de Windows (1919x1008), como las demás capturas. El pie y el texto alternativo dicen ahora "en castellano", en los tres idiomas.
 
+## 24. Windows desde Microsoft Store (1-10-2026, decisión del usuario)
+
+- El usuario no quiere pagar firmas de código. Windows se distribuirá gratis en Microsoft Store (Microsoft firma el paquete MSIX), Android en Google Play y Mac en descarga directa sin firmar. La licencia se sigue vendiendo solo en la web. Detalles para la app en `docs/WEB.md`, apartado 4.
+- `launch.js` gana `store` (ficha de Microsoft Store). Con `store` relleno, la tarjeta de Windows de /descargar dice "Microsoft Store" y "Descargar en Microsoft Store", el botón (también el de /gracias) abre la Store y desaparece la ayuda del aviso «Windows protegió tu PC». Vacío, todo sigue como antes, con el instalador .exe.
+

@@ -44,13 +44,17 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 
 ## 4. Descargas
 
+- Decisión del 1-10-2026: el usuario no quiere pagar firmas de código. Por eso:
+  - **Windows: Microsoft Store, gratis.** Se sube como paquete MSIX (en electron-builder, el objetivo `appx`) y Microsoft lo firma gratis tras certificarlo; un .exe o .msi en la Store tendría que ir firmado por nosotros, así que no. La cuenta de desarrollador individual es gratuita (storedeveloper.microsoft.com, verificación con documento de identidad y selfie). La app es gratuita en la Store y se activa con la licencia de la web: Microsoft no cobra comisión a las apps que no son juegos y usan su propio sistema de pago, y en Windows sí se permite un enlace de compra dentro de la app. Las actualizaciones las hace la Store, así que la versión de la Store no usa el actualizador propio. En la ficha, política de privacidad: https://aulapro.app/privacidad. Cuando la ficha exista, su enlace va en `store` de `assets/launch.js` y los botones de Windows de /descargar y /gracias pasan a la Store (y desaparece el aviso de SmartScreen).
+  - **Android: Google Play, gratis** (25 $ de alta, una vez), activada con la misma licencia.
+  - **Mac: descarga directa sin firmar ni notarizar.** /descargar explica "Abrir igualmente". Firmar exigiría Apple Developer (99 $ al año).
 - Enlaces estables que usa la web (`assets/launch.js`):
   - https://descargas.aulapro.app/AulaPro-instalador-windows.exe
   - https://descargas.aulapro.app/AulaPro-mac.dmg
 - Android para el público: Google Play. El APK directo queda para personas de prueba.
 - Caché: ver `docs/DESCARGAS.md`, apartado "Caché de Cloudflare". El 1 de octubre los instaladores de nombre fijo todavía respondían con `max-age=14400`: falta crear la Cache Rule que se describe allí.
 - Pendiente para mostrar la versión en `/descargar`: que `version.json` responda con `Access-Control-Allow-Origin: https://aulapro.app` (regla CORS del bucket de R2). Cuando esté, poner `version: 'https://descargas.aulapro.app/version.json'` en `assets/launch.js`.
-- Antes de vender: firmar el instalador de Windows (hoy no lleva firma y Windows avisa al instalar) y notarizar la app de Mac con Apple Developer (99 $ al año). Mientras tanto, `/descargar` explica cómo saltar esos avisos.
+- El instalador .exe directo (sin firma) sigue en descargas.aulapro.app para pruebas y como alternativa mientras no exista la ficha de la Store.
 
 ## 5. Lemon Squeezy: ajustes del producto
 
