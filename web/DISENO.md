@@ -259,3 +259,10 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - Una sola clave para todo el grupo, con 2 dispositivos por docente (en Lemon Squeezy, una variante por pack con su límite de activaciones). Así funciona con la app tal como está.
 - Corrección del mismo día: el usuario prefiere una licencia por docente (cada una con sus 2 dispositivos). Con una clave compartida, el pack de 30 daría 60 activaciones a cualquiera que tuviera la clave. La web dice ahora "5 licencias", "4,60 € por licencia" y "una licencia para cada docente". Falta comprobar en Lemon Squeezy cómo entregar varias claves en una compra (`docs/WEB.md`, apartado 5, punto 7).
 - En la web: bloque "¿Sois varios docentes?" debajo de la tarjeta de precio (`#packs`, cuatro fichas oscuras como los botones de compra, dos columnas en móvil), pregunta 11 de las frecuentes, enlace a los packs en la llamada final, apartado "Packs para grupos" en las condiciones de venta y una línea en /gracias para quien compra un pack. Cada pack dice "Próximamente" hasta que su enlace de pago se pone en `packs` de `assets/launch.js`.
+
+## 22. Precios frente a la competencia (1-10-2026)
+
+- Competencia por docente, consultada el 1-10-2026: iDoceo 19,99 € pago único (solo Apple, sin IA, sin descuento por volumen); Additio 13,99 €/año sin IA y 29,99 €/año con IA; Prográmalo 79-99 €/año, 4Docentes 90 €/año y KumuPlanner 189 €/año (claustro 80 €/docente/año, mínimo 6), las tres solo IA.
+- AulaPro se compara con los cuadernos (su IA usa la clave del docente, no hay web ni nube y aún no tiene opiniones): precio justo de unos 15-20 € en pago único o unos 15 €/año.
+- Decisión del usuario, buscando un precio bajo y atractivo: el lanzamiento se queda en 6,99 € de por vida, la anual baja a 11,99 €/año (antes 9,99 €; se recomendó 14,99 €) y los packs se quedan en 22,99 / 39,99 / 69,99 / 89,99 € (se recomendó 29,99 / 54,99 / 99,99 / 139,99 €).
+
