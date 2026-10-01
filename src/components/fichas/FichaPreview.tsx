@@ -81,7 +81,8 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
     if (scroller && typeof node.getBoundingClientRect === 'function') {
       const top = node.getBoundingClientRect().top * scale;
       const visible = top >= scroller.scrollTop && top <= scroller.scrollTop + scroller.clientHeight - 80;
-      if (!visible) scroller.scrollTo({ top: Math.max(0, top - 40), behavior: 'smooth' });
+      // `?.`: jsdom (las pruebas) no tiene scrollTo en los elementos
+      if (!visible) scroller.scrollTo?.({ top: Math.max(0, top - 40), behavior: 'smooth' });
     }
   }, [selected, html, scale, height]);
 
