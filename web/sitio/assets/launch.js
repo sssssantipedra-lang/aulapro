@@ -9,6 +9,9 @@ window.AULA_LAUNCH = {
   checkout: '',
   // Google Play listing of the free Android app (it is activated with the licence)
   play: '',
+  // Microsoft Store listing of the free Windows app (Microsoft signs it, so Windows shows no warning).
+  // Once set, the Windows buttons open the Store instead of the direct installer below.
+  store: '',
   // Lemon Squeezy checkout links of the group packs of 5, 10, 20 and 30 licences: one key per teacher,
   // 2 devices each. An empty pack says "Próximamente" and leads to the waitlist.
   packs: { 5: '', 10: '', 20: '', 30: '' },

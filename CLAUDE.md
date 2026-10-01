@@ -16,7 +16,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
 - La web: se publica sola cuando llega a `master` un cambio en `web/sitio/` (`web.yml`, Cloudflare Pages, proyecto `aulapro-app`). Necesita el secreto `CLOUDFLARE_API_TOKEN`. Antes de publicar, `web/versionar.mjs` añade a cada ruta de `assets/` la huella de su contenido (`?v=…`), porque los navegadores guardan esos archivos 4 horas; en el repositorio las rutas van sin huella.
-- Día del lanzamiento: rellenar `checkout` (enlace de pago de Lemon Squeezy) y `play` (ficha de Google Play) en `web/sitio/assets/launch.js`. La web entera pasa de "Próximamente" a "a la venta".
+- Día del lanzamiento: rellenar `checkout` (enlace de pago de Lemon Squeezy), `play` (ficha de Google Play) y `store` (ficha de Microsoft Store) en `web/sitio/assets/launch.js`. La web entera pasa de "Próximamente" a "a la venta".
 - 15 de abril de 2027: termina la oferta de lanzamiento. Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta anunciada con fecha hay que cumplirla.
 
 ## Reglas que no se rompen
