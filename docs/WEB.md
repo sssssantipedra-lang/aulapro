@@ -20,6 +20,7 @@ Contexto compartido entre la app y la web. Actualizado el 1 de octubre de 2026.
 - Oferta de lanzamiento hasta el 15 de abril de 2027 incluido: pago único de 6,99 € con impuestos incluidos y licencia de por vida (no caduca e incluye las actualizaciones, también después de esa fecha).
 - Desde el 16 de abril de 2027, las licencias nuevas son anuales: 9,99 € al año, con impuestos incluidos. La web y las condiciones ya lo anuncian. Las licencias de por vida vendidas antes se respetan siempre.
 - Hasta 2 dispositivos activados a la vez.
+- Packs para grupos, con la misma oferta de lanzamiento: 5, 10, 20 y 30 docentes por 22,99 €, 39,99 €, 69,99 € y 89,99 €. Cada pack es una sola clave que quien compra reparte entre su grupo, con 2 dispositivos por docente (límite de activaciones 10, 20, 40 y 60). Más de 30 docentes: por correo a contacto@aulapro.app, con propuesta a medida.
 - Devolución en 14 días, sin preguntas. Al devolver, la licencia se desactiva.
 - Android: la app se descarga gratis en Google Play y se activa con la misma licencia. Google Play lo permite como app "solo de uso".
 
@@ -28,10 +29,10 @@ Contexto compartido entre la app y la web. Actualizado el 1 de octubre de 2026.
 Estas frases están publicadas en las condiciones de venta y en la política de privacidad. Si la app hace algo distinto, cambia la web en el mismo cambio.
 
 1. Pantalla de licencia en Windows, Mac y Android, donde se introduce la clave recibida por correo.
-2. Activación con la API de licencias de Lemon Squeezy (activar y validar), con un límite de 2 dispositivos.
+2. Activación con la API de licencias de Lemon Squeezy (activar y validar). El límite de dispositivos lo pone Lemon Squeezy en cada clave: 2 en la licencia individual y más en los packs (10, 20, 40 o 60). La app no debe suponer que el límite es 2.
 3. Al activar, la app envía a Lemon Squeezy solo la clave y un identificador del dispositivo. Nunca datos del alumnado.
 4. Hace falta internet solo para activar la primera vez. Después funciona sin conexión, salvo las funciones de IA.
-5. Cambio de dispositivo: hoy se hace escribiendo a contacto@aulapro.app. Un botón "Desactivar este dispositivo" en la app sería una buena mejora.
+5. Cambio de dispositivo: hoy se hace escribiendo a contacto@aulapro.app. Un botón "Desactivar este dispositivo" en la app sería una buena mejora, sobre todo para los packs, donde muchos docentes comparten una clave.
 6. Android y Google Play: dentro de la app no puede haber ningún botón ni enlace que lleve a pagar. Sí se puede escribir "Consigue tu licencia en aulapro.app", como texto sin enlace. Recomendado: sin licencia, un modo de prueba con datos de ejemplo en vez de una pantalla vacía.
 7. Datos del alumnado solo en el equipo. Sin cuentas ni servidores propios.
 8. IA: con la clave gratuita de Google del docente (API de Gemini). Antes de enviar nada, los nombres se sustituyen por códigos. La clave se guarda cifrada. La política avisa de que, en el uso gratuito, Google puede usar los contenidos para mejorar sus servicios.
@@ -59,8 +60,14 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 4. Tras el pago, redirigir a https://aulapro.app/gracias
 5. Botón del recibo por correo: https://aulapro.app/descargar
 6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria. Oferta de lanzamiento hasta el 15 de abril de 2027: pago único de 6,99 € y licencia de por vida para Windows, Mac y Android, en hasta 2 dispositivos a la vez, con las actualizaciones incluidas. Devolución en 14 días sin preguntas."
-7. Probar primero en modo prueba.
-8. Fin de la oferta, al acabar el 15 de abril de 2027: archivar la variante de por vida y crear la licencia anual (suscripción de 9,99 € al año, claves de licencia, 2 activaciones). Poner su enlace en `checkout` de `web/sitio/assets/launch.js` y cambiar los textos de precio de la web y las condiciones de venta, en los tres idiomas. La app tiene que tener lista la licencia anual (apartado 3, punto 13).
+7. Packs: en el mismo producto, una variante por pack, todas de pago único, con claves de licencia y sin caducidad:
+   - "Pack 5 docentes", 22,99 €, límite de 10 activaciones.
+   - "Pack 10 docentes", 39,99 €, límite de 20.
+   - "Pack 20 docentes", 69,99 €, límite de 40.
+   - "Pack 30 docentes", 89,99 €, límite de 60.
+   Sus enlaces de pago van en `packs` de `web/sitio/assets/launch.js`.
+8. Probar primero en modo prueba.
+9. Fin de la oferta, al acabar el 15 de abril de 2027: archivar las variantes de por vida (individual y packs) y crear la licencia anual (suscripción de 9,99 € al año, claves de licencia, 2 activaciones). Poner su enlace en `checkout` de `web/sitio/assets/launch.js` y cambiar los textos de precio de la web y las condiciones de venta, en los tres idiomas. La app tiene que tener lista la licencia anual (apartado 3, punto 13). Los packs anuales, si los hay, se deciden entonces.
 
 ## 6. Páginas legales
 
