@@ -30,8 +30,9 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 
 1. Pantalla de licencia en Windows, Mac y Android, donde se introduce la clave recibida por correo.
 2. Activación con la API de licencias de Lemon Squeezy (activar y validar), con un límite de 2 dispositivos por clave. Las claves de los packs son iguales que las individuales.
-3. Al activar, la app envía a Lemon Squeezy solo la clave y un identificador del dispositivo. Nunca datos del alumnado.
-4. Hace falta internet solo para activar la primera vez. Después funciona sin conexión, salvo las funciones de IA.
+3. Al activar, la app envía a Lemon Squeezy solo la clave y el nombre del equipo (`instance_name`); en las comprobaciones, la clave y el número de activación. Nunca datos del alumnado.
+4. Hace falta internet para activar la primera vez. Después la app comprueba la clave una vez por semana cuando hay conexión, y sin conexión funciona hasta 30 días seguidos (`electron/licenseCore.cjs`: `CHECK_EVERY`, `OFFLINE_GRACE`). La privacidad y las condiciones de venta lo dicen así desde el 1-10-2026; si cambian esos plazos, cambia también la web. Las funciones de IA siempre necesitan conexión.
+   - Estado a 1-10-2026: en escritorio está hecho (`electron/license.cjs`), con `ENFORCED = false` (aún no se pide clave; quien abre la app queda como fundador), `STORE_ID` y `BUY_URL` vacíos y `FOUNDER_CUTOFF` sin fecha. Android todavía no comprueba la licencia: hay que hacerlo antes de vender, con las mismas reglas. `STORE_ID` es el número de la tienda de Lemon Squeezy, para que no valgan claves de otras tiendas.
 5. Cambio de dispositivo: hoy se hace escribiendo a contacto@aulapro.app. Un botón "Desactivar este dispositivo" en la app sería una buena mejora.
 6. Android y Google Play: dentro de la app no puede haber ningún botón ni enlace que lleve a pagar. Sí se puede escribir "Consigue tu licencia en aulapro.app", como texto sin enlace. Recomendado: sin licencia, un modo de prueba con datos de ejemplo en vez de una pantalla vacía.
 7. Datos del alumnado solo en el equipo. Sin cuentas ni servidores propios.
