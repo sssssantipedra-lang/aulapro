@@ -15,10 +15,8 @@
  */
 
 const DAY = 24 * 60 * 60 * 1000;
-/** Cada cuánto se pregunta a la tienda si la clave sigue siendo buena. */
+/** Cada cuánto se pregunta a la tienda (si hay conexión) si la clave sigue siendo buena. */
 const CHECK_EVERY = 7 * DAY;
-/** Cuánto aguanta sin poder preguntar (sin internet) antes de pedir conexión. */
-const OFFLINE_GRACE = 30 * DAY;
 
 /**
  * ¿Puede este equipo quedar como fundador sin pedir clave?
@@ -42,9 +40,9 @@ function canBeFounder({ enforced, founderCutoff, profiles }) {
 /**
  * Estado de la licencia en este equipo.
  *
- * @returns {{ required: boolean, status: 'fundador'|'activa'|'sin-licencia'|'otro-equipo'|'caducada', needsCheck: boolean }}
+ * @returns {{ required: boolean, status: 'fundador'|'activa'|'sin-licencia'|'otro-equipo', needsCheck: boolean }}
  *   `required`: hay que enseñar la pantalla de activación.
- *   `needsCheck`: toca preguntar a la tienda (en segundo plano si aún no ha caducado).
+ *   `needsCheck`: toca preguntar a la tienda, en segundo plano. Nunca bloquea.
  */
 function evaluate(record, { machine, now, enforced }) {
   const gate = status => ({ required: !!enforced, status, needsCheck: false });
@@ -55,7 +53,6 @@ function evaluate(record, { machine, now, enforced }) {
 
   const lastOk = Date.parse(record.lastOkAt || record.activatedAt);
   const age = Number.isFinite(lastOk) ? now - lastOk : Infinity;
-  if (age > OFFLINE_GRACE) return { required: !!enforced, status: 'caducada', needsCheck: true };
   return { required: false, status: 'activa', needsCheck: age > CHECK_EVERY };
 }
 
@@ -81,4 +78,4 @@ function activationError(body, httpStatus, storeId) {
   return 'error-tienda';
 }
 
-module.exports = { canBeFounder, evaluate, keyHint, activationError, CHECK_EVERY, OFFLINE_GRACE, DAY };
+module.exports = { canBeFounder, evaluate, keyHint, activationError, CHECK_EVERY, DAY };

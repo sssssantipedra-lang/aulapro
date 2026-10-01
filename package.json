@@ -4,7 +4,7 @@
   "description": "Gestión de aula para docentes: cuaderno, evaluación, asistencia e informes. Todo en tu ordenador.",
   "author": "Aula Pro",
   "private": true,
-  "version": "1.7.1",
+  "version": "1.8.0",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -52,6 +52,12 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "appx",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.ico",
@@ -71,6 +77,20 @@
     },
     "portable": {
       "artifactName": "AulaPro-${version}-portable-windows.${ext}"
+    },
+    "appx": {
+      "artifactName": "AulaPro-${version}-microsoft-store.${ext}",
+      "identityName": "EdTechLabs.AulaPro",
+      "publisher": "CN=9A7A9138-5354-4236-8D7F-D57E49D851CB",
+      "publisherDisplayName": "EdTech Labs",
+      "applicationId": "AulaPro",
+      "displayName": "AulaPro",
+      "backgroundColor": "#0c2340",
+      "languages": [
+        "es-ES",
+        "ca-ES",
+        "en-GB"
+      ]
     },
     "mac": {
       "target": [

@@ -20,6 +20,7 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { createProfileStore, type Fs } from './profileStore';
 import { createRoom, type RoomRequest } from './classroomRoom';
+import { createAndroidLicense } from './androidLicense';
 import studentPage from '../../electron/student.html?raw';
 import type { ClassroomBridge, ClassroomSnapshot, DocsBridge, DocsResult, FilesBridge, StoreBridge } from '../types/electron';
 
@@ -167,6 +168,10 @@ export function installAndroidBridge() {
     docs,
     files,
     classroom: createClassroom(),
+    license: createAndroidLicense({
+      get: async name => (await AulaNative.secretGet({ name })).value ?? '',
+      set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,
+    }),
     secrets: {
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,

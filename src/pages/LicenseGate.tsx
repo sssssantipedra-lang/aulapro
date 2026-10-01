@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { KeyRound, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-react';
+import { KeyRound, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../services/license';
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
+import { isAndroidApp } from '../lib/platform';
 
 interface Props {
   state: LicenseState;
@@ -20,7 +21,6 @@ export function LicenseGate({ state, onChange }: Props) {
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<LicenseError | null>(null);
-  const expired = state.status === 'caducada';
 
   async function activate(e: React.FormEvent) {
     e.preventDefault();
@@ -32,17 +32,6 @@ export function LicenseGate({ state, onChange }: Props) {
     setBusy(false);
     if (r.ok) onChange(r.state);
     else setError(r.error ?? 'error-tienda');
-  }
-
-  async function recheck() {
-    const bridge = licenseBridge();
-    if (!bridge) return;
-    setBusy(true);
-    setError(null);
-    const s = await bridge.recheck();
-    setBusy(false);
-    if (s.required) setError('sin-conexion');
-    onChange(s);
   }
 
   return (
@@ -63,28 +52,25 @@ export function LicenseGate({ state, onChange }: Props) {
 
         {error && <div className="lic-err" role="alert">{t(LICENSE_ERROR_TEXT[error])}</div>}
 
-        {expired ? (
-          <button type="button" className="btn-primary" onClick={recheck} disabled={busy}>
-            {busy ? <span className="spin" /> : <RefreshCw size={15} />}&nbsp;{t('Volver a comprobar')}
+        <form onSubmit={activate}>
+          <div className="fgroup">
+            <label className="flabel" htmlFor="lic-key">{t('Clave de licencia')}</label>
+            <input
+              id="lic-key" className="finput lic-input" value={key} autoFocus
+              placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+              autoComplete="off" spellCheck={false}
+              onChange={e => { setKey(e.target.value); if (error) setError(null); }}
+            />
+          </div>
+          <button className="btn-primary" type="submit" disabled={busy || !key.trim()}>
+            {busy ? <><span className="spin" />&nbsp;{t('Activando…')}</> : t('Activar')}
           </button>
-        ) : (
-          <form onSubmit={activate}>
-            <div className="fgroup">
-              <label className="flabel" htmlFor="lic-key">{t('Clave de licencia')}</label>
-              <input
-                id="lic-key" className="finput lic-input" value={key} autoFocus
-                placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-                autoComplete="off" spellCheck={false}
-                onChange={e => { setKey(e.target.value); if (error) setError(null); }}
-              />
-            </div>
-            <button className="btn-primary" type="submit" disabled={busy || !key.trim()}>
-              {busy ? <><span className="spin" />&nbsp;{t('Activando…')}</> : t('Activar')}
-            </button>
-          </form>
-        )}
+        </form>
 
-        {state.buyUrl && !expired && (
+        {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace */}
+        {isAndroidApp() ? (
+          <p className="lic-buy">{t('Consigue tu licencia en aulapro.app')}</p>
+        ) : state.buyUrl && (
           <a className="lic-buy" href={state.buyUrl} target="_blank" rel="noreferrer">
             {t('¿Aún no la tienes? Comprar Aula Pro')} <ExternalLink size={13} />
           </a>
@@ -92,7 +78,7 @@ export function LicenseGate({ state, onChange }: Props) {
 
         <p className="lic-note">
           <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
-          <span>{t('Pago único. La activación solo necesita internet una vez; después Aula Pro funciona sin conexión y tus datos no salen de este ordenador.')}</span>
+          <span>{t('La activación solo necesita internet una vez; después Aula Pro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
         </p>
       </div>
     </div>

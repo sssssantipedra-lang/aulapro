@@ -22,6 +22,7 @@ build/icon.ico
 build/icon.png
 build/icon.icns
 build/icon.iconset/
+build/appx/
 electron/icon.ico
 public/favicon.ico
 

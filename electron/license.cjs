@@ -31,7 +31,7 @@ const core = require('./licenseCore.cjs');
 const ENFORCED = false;
 const FOUNDER_CUTOFF = '';
 const STORE_ID = '';
-const BUY_URL = '';
+const BUY_URL = 'https://aulapro.app';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
 
 const file = () => path.join(app.getPath('userData'), 'licencia.dat');
@@ -122,7 +122,7 @@ async function check() {
 
 /**
  * Se llama al arrancar. Marca como fundador a quien corresponda y, si toca,
- * comprueba la clave: esperando solo si ya había caducado.
+ * comprueba la clave en segundo plano (nunca bloquea por falta de conexión).
  */
 async function init(listProfiles) {
   record = await readRecord();
@@ -137,8 +137,8 @@ async function init(listProfiles) {
       await writeRecord(record).catch(() => {});
     }
   } else if (s.needsCheck) {
-    const pending = check().catch(() => {});
-    if (s.status === 'caducada') await pending;
+    // En segundo plano: sin conexión no pasa nada y se vuelve a intentar
+    check().catch(() => {});
   }
 }
 
@@ -150,7 +150,9 @@ function whenReady(listProfiles) {
 async function activate(key) {
   const k = String(key || '').trim();
   if (!k) return { ok: false, error: 'clave-no-valida', state: publicState() };
-  const instanceName = `${os.hostname()} (${os.platform() === 'darwin' ? 'Mac' : os.platform() === 'win32' ? 'Windows' : os.platform()})`;
+  // Solo la clave y un nombre neutro del dispositivo: nada del equipo ni de
+  // quien lo usa (docs/WEB.md, apartado 3, punto 3)
+  const instanceName = `Aula Pro · ${os.platform() === 'darwin' ? 'Mac' : os.platform() === 'win32' ? 'Windows' : 'Linux'}`;
   const r = await store('activate', { license_key: k, instance_name: instanceName });
   if (!r) return { ok: false, error: 'sin-conexion', state: publicState() };
 
@@ -176,10 +178,4 @@ async function deactivate() {
   return { ok: true, state: publicState() };
 }
 
-/** Vuelve a preguntar a la tienda ahora (la pantalla de «sin conexión»). */
-async function recheck() {
-  await check().catch(() => {});
-  return publicState();
-}
-
-module.exports = { whenReady, publicState, activate, deactivate, recheck };
+module.exports = { whenReady, publicState, activate, deactivate };

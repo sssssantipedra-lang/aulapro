@@ -30,10 +30,10 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 
 1. Pantalla de licencia en Windows, Mac y Android, donde se introduce la clave recibida por correo.
 2. Activación con la API de licencias de Lemon Squeezy (activar y validar), con un límite de 2 dispositivos por clave. Las claves de los packs son iguales que las individuales.
-3. Al activar, la app envía a Lemon Squeezy solo la clave y un identificador del dispositivo. Nunca datos del alumnado.
-4. Hace falta internet solo para activar la primera vez. Después funciona sin conexión, salvo las funciones de IA.
-5. Cambio de dispositivo: hoy se hace escribiendo a contacto@aulapro.app. Un botón "Desactivar este dispositivo" en la app sería una buena mejora.
-6. Android y Google Play: dentro de la app no puede haber ningún botón ni enlace que lleve a pagar. Sí se puede escribir "Consigue tu licencia en aulapro.app", como texto sin enlace. Recomendado: sin licencia, un modo de prueba con datos de ejemplo en vez de una pantalla vacía.
+3. Al activar, la app envía a Lemon Squeezy solo la clave y un identificador del dispositivo. Nunca datos del alumnado. El nombre del dispositivo es neutro ("Aula Pro · Windows", "· Mac" o "· Android"), nunca el nombre del equipo. (App 1.8.0.)
+4. Hace falta internet solo para activar la primera vez. Después funciona sin conexión, salvo las funciones de IA. Cuando hay conexión, la app comprueba la clave en segundo plano una vez por semana (así una devolución desactiva la licencia), pero sin conexión nunca se bloquea. (App 1.8.0.)
+5. Cambio de dispositivo: el propio docente lo hace en la app, Configuración › Licencia › «Desactivar en este equipo», y activa la clave en el nuevo. Si ya no tiene el antiguo, escribe a contacto@aulapro.app. (App 1.8.0.)
+6. Android y Google Play: dentro de la app no puede haber ningún botón ni enlace que lleve a pagar. Sí se puede escribir "Consigue tu licencia en aulapro.app", como texto sin enlace. Hecho en la app 1.8.0: en Android la pantalla de licencia solo muestra ese texto; en Windows y Mac, enlace a aulapro.app. Pendiente para el lanzamiento: sin licencia, un modo de prueba con datos de ejemplo en vez de una pantalla vacía.
 7. Datos del alumnado solo en el equipo. Sin cuentas ni servidores propios.
 8. IA: con la clave gratuita de Google del docente (API de Gemini). Antes de enviar nada, los nombres se sustituyen por códigos. La clave se guarda cifrada. La política avisa de que, en el uso gratuito, Google puede usar los contenidos para mejorar sus servicios.
 9. Sala de alumnos: servidor local; el alumnado entra por la wifi del aula con un código QR. No pasa por internet.
@@ -54,6 +54,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
     - Package Family Name: `EdTechLabs.AulaPro_qwnmvyvzyp38g`
     - Store ID: `9N9WJW9C24DN`, ficha: https://apps.microsoft.com/detail/9N9WJW9C24DN (no funciona hasta que la app esté publicada; entonces va en `store` de `web/sitio/assets/launch.js`).
   - Para la app: en `package.json` → `build`, añadir el objetivo `appx` (x64) a `win.target` y un bloque `appx` con `identityName: "EdTechLabs.AulaPro"`, `publisher: "CN=9A7A9138-5354-4236-8D7F-D57E49D851CB"`, `publisherDisplayName: "EdTech Labs"`, `applicationId: "AulaPro"` y `displayName: "AulaPro"` (debe coincidir con el nombre reservado, sin espacio, aunque `productName` sea "Aula Pro"). Poner los iconos de mosaico propios en `build/appx/` (StoreLogo, Square44x44Logo, Square150x150Logo, Wide310x150Logo); si faltan, electron-builder usa unos genéricos. En `electron/updater.cjs`, no buscar actualizaciones cuando `process.windowsStore` sea `true`: en la versión de la Store actualiza la Store. El .msix/.appx se sube a la Store sin firmar; Microsoft lo firma.
+  - **Hecho en la app 1.8.0:** objetivo `appx` con esos datos, mosaicos generados por `npm run icons` en `build/appx/` y el actualizador apagado con `process.windowsStore`. Cada versión adjunta `AulaPro-<versión>-microsoft-store.appx` al release de GitHub (no se sube a descargas.aulapro.app); `store.yml` también lo compila en los pull request y a mano desde Actions.
   - **Mac: descarga directa sin firmar ni notarizar.** /descargar explica "Abrir igualmente". Firmar exigiría Apple Developer (99 $ al año).
 - Enlaces estables que usa la web (`assets/launch.js`):
   - https://descargas.aulapro.app/AulaPro-instalador-windows.exe

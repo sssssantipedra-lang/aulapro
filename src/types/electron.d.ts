@@ -91,7 +91,7 @@ export interface UpdateBridge {
   setLanguage: (lang: 'es' | 'en' | 'ca') => Promise<void>;
 }
 
-export type LicenseStatus = 'fundador' | 'activa' | 'sin-licencia' | 'otro-equipo' | 'caducada';
+export type LicenseStatus = 'fundador' | 'activa' | 'sin-licencia' | 'otro-equipo';
 export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
 
 export interface LicenseState {
@@ -114,8 +114,6 @@ export interface LicenseBridge {
   activate: (key: string) => Promise<LicenseResult>;
   /** Libera este equipo para poder activar la clave en otro. */
   deactivate: () => Promise<LicenseResult>;
-  /** Vuelve a comprobar la clave con la tienda ahora mismo. */
-  recheck: () => Promise<LicenseState>;
 }
 
 export interface StoreBridge {

@@ -130,6 +130,8 @@ function notify({ title, body, silent, onClick }) {
 function setup(app, { onStatus, onActivate } = {}) {
   if (!autoUpdater) return;
   if (process.platform !== 'win32') return;
+  // La versión de Microsoft Store la actualiza la propia Store
+  if (process.windowsStore) return;
   // Sin `app-update.yml` (solo existe en la app empaquetada) esto fallaría
   // sin aportar nada; en desarrollo simplemente no se comprueba.
   if (!app.isPackaged) return;
