@@ -17,8 +17,9 @@ Contexto compartido entre la app y la web. Actualizado el 1 de octubre de 2026.
 ## 2. Modelo de venta
 
 - Una sola licencia para Windows, Mac y Android, vendida en la web con Lemon Squeezy, que actúa como vendedor registrado (cobra, gestiona el IVA y factura).
-- Pago único de 9,99 € con impuestos incluidos. Sin suscripción.
-- Hasta 2 dispositivos activados a la vez. La licencia no caduca e incluye las actualizaciones.
+- Oferta de lanzamiento hasta el 15 de abril de 2027 incluido: pago único de 6,99 € con impuestos incluidos y licencia de por vida (no caduca e incluye las actualizaciones, también después de esa fecha).
+- Desde el 16 de abril de 2027, las licencias nuevas son anuales: 9,99 € al año, con impuestos incluidos. La web y las condiciones ya lo anuncian. Las licencias de por vida vendidas antes se respetan siempre.
+- Hasta 2 dispositivos activados a la vez.
 - Devolución en 14 días, sin preguntas. Al devolver, la licencia se desactiva.
 - Android: la app se descarga gratis en Google Play y se activa con la misma licencia. Google Play lo permite como app "solo de uso".
 
@@ -38,6 +39,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 10. Trabajo compartido entre docentes sin pasar por servidores de AulaPro.
 11. Copia de seguridad automática cada 10 minutos, en el propio equipo.
 12. Actualizaciones: la app comprueba si hay versión nueva sin enviar datos del alumnado. En Windows se actualiza sola; en Mac, a mano.
+13. Licencia anual, lista antes del 16 de abril de 2027: la app distingue las licencias de por vida (sin caducidad) de las anuales (en Lemon Squeezy, la clave de una suscripción caduca si no se renueva), comprueba con conexión de vez en cuando que la anual sigue activa y avisa antes de que caduque. Falta que el usuario confirme qué pasa si no se renueva; la propuesta es que los datos no se bloqueen nunca: la app los sigue abriendo y exportando.
 
 ## 4. Descargas
 
@@ -51,13 +53,14 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 
 ## 5. Lemon Squeezy: ajustes del producto
 
-1. Precios con impuestos incluidos, para que el cliente pague exactamente 9,99 €.
-2. Producto "AulaPro", pago único de 9,99 €.
+1. Precios con impuestos incluidos, para que el cliente pague exactamente 6,99 €.
+2. Producto "AulaPro", variante "Licencia de por vida (oferta de lanzamiento)", pago único de 6,99 €.
 3. Claves de licencia activadas, límite de 2 activaciones, sin caducidad.
 4. Tras el pago, redirigir a https://aulapro.app/gracias
 5. Botón del recibo por correo: https://aulapro.app/descargar
-6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria. Pago único: una licencia para Windows, Mac y Android, en hasta 2 dispositivos a la vez. Sin suscripción y con las actualizaciones incluidas. Devolución en 14 días sin preguntas."
+6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria. Oferta de lanzamiento hasta el 15 de abril de 2027: pago único de 6,99 € y licencia de por vida para Windows, Mac y Android, en hasta 2 dispositivos a la vez, con las actualizaciones incluidas. Devolución en 14 días sin preguntas."
 7. Probar primero en modo prueba.
+8. Fin de la oferta, al acabar el 15 de abril de 2027: archivar la variante de por vida y crear la licencia anual (suscripción de 9,99 € al año, claves de licencia, 2 activaciones). Poner su enlace en `checkout` de `web/sitio/assets/launch.js` y cambiar los textos de precio de la web y las condiciones de venta, en los tres idiomas. La app tiene que tener lista la licencia anual (apartado 3, punto 13).
 
 ## 6. Páginas legales
 

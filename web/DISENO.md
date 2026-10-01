@@ -246,3 +246,10 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
   - Al girar la rueda de un ratón a mano, el dedo se levanta hasta unos 0,3 s entre impulsos, y con 220 ms cada impulso contaba como un gesto nuevo, así que al acabar un deslizamiento empezaba otro. Ahora el gesto termina tras 450 ms sin rueda, y la rueda que sigue girando durante el deslizamiento cuenta como el mismo gesto. Para avanzar otra parada hay que parar y volver a girar.
   - Cloudflare dice a los navegadores que guarden los archivos de `assets/` 4 horas (el HTML no), así que el navegador del usuario seguía con el `app.js` anterior. Ahora `web/versionar.mjs`, que ejecuta `web.yml` antes de publicar, añade a cada referencia de `assets/` una huella de su contenido (`?v=…`): un archivo se vuelve a descargar justo cuando cambia. En el repositorio las rutas siguen limpias. No se sellan las fuentes (ya llevan la huella en el nombre) ni las imágenes de la demo (demo.js las nombra por partes).
 - Si un giro empieza por debajo del vídeo, el navegador no deja cancelarlo; al entrar en el vídeo desde abajo, la página se queda en la última parada y el resto de ese giro no la mueve. El siguiente giro hacia arriba lleva a la parada anterior.
+
+## 20. Oferta de lanzamiento (1-10-2026, decisión del usuario)
+
+- Hasta el 15 de abril de 2027 incluido: 6,99 € una sola vez y licencia de por vida (2 dispositivos, actualizaciones, 14 días de devolución). Desde el 16 de abril de 2027, las licencias nuevas son anuales, 9,99 € al año; las de por vida se respetan siempre.
+- La web lo anuncia con fecha y con el precio posterior ("Después costará 9,99 € al año"), porque es el argumento más fuerte: pagas una vez lo que después costará cada año. Cambia el precio en la portada (bloque 4 del inicio, tarjeta de precio con el título "Precio de lanzamiento", pregunta 7, llamada final, descripciones), la demo, /descargar y las condiciones de venta, que añaden el párrafo "Oferta de lanzamiento", en los tres idiomas.
+- Al acabar la oferta hay que cambiar la web y Lemon Squeezy el mismo día: `docs/WEB.md`, apartado 5, punto 8.
+
