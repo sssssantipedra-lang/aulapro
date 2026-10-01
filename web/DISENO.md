@@ -234,8 +234,15 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 
 ## 18. Inicio paso a paso (1-10-2026, petición del usuario)
 
-- Dentro del vídeo del inicio, cualquier movimiento de rueda, deslizamiento de dedo o tecla de avance (flechas, Av Pág, Re Pág, espacio), sea largo o corto, es un solo paso a la parada siguiente o anterior. Mientras dura el deslizamiento no se puede bajar ni subir más. Un gesto es un paso: el resto de un gesto de trackpad no lanza otro hasta que la rueda se detiene un instante (220 ms). En la última parada, bajar sale al contenido como siempre. Un clic (botón, enlace, barra de desplazamiento) interrumpe el deslizamiento.
+- Dentro del vídeo del inicio, cualquier movimiento de rueda, deslizamiento de dedo o tecla de avance (flechas, Av Pág, Re Pág, espacio), sea largo o corto, es un solo paso a la parada siguiente o anterior. Mientras dura el deslizamiento no se puede bajar ni subir más. Un gesto es un paso: el resto de un gesto de trackpad no lanza otro hasta que la rueda se detiene un instante (220 ms; en la sección 19 pasa a 450 ms). En la última parada, bajar sale al contenido como siempre. Un clic (botón, enlace, barra de desplazamiento) interrumpe el deslizamiento.
 - Velocidad: 1,56 veces la real en las dos direcciones; los tramos largos duran unos 2,5 segundos.
 - Vídeo recodificado con todos los fotogramas clave (`-g 1 -crf 23`, 7,3 MB, antes 4,4 MB) para que también al subir, que busca fotograma a fotograma, no se salte imágenes. Comparación en las mismas condiciones: al subir, imágenes saltadas en el 30 % de los cambios con la versión anterior y en el 4 % con esta; al bajar, 2-3 % con ambas. Calidad frente a la referencia sin pérdida: SSIM 0,976 (antes 0,984), sin diferencia visible a tamaño doble. Archivo: `review/agobio-final-scrub-v3-intra.mp4`.
 - El aviso del inicio pasa de "Desplázate despacio" a "Desplázate hacia abajo".
 - Se sale del estándar del método (un fotograma clave cada 8) porque el deslizamiento automático hacia atrás lo exige.
+
+## 19. Un gesto, un paso, de verdad (1-10-2026, petición del usuario)
+
+- El usuario veía que con un giro grande la página seguía bajando. Dos causas:
+  - Al girar la rueda de un ratón a mano, el dedo se levanta hasta unos 0,3 s entre impulsos, y con 220 ms cada impulso contaba como un gesto nuevo, así que al acabar un deslizamiento empezaba otro. Ahora el gesto termina tras 450 ms sin rueda, y la rueda que sigue girando durante el deslizamiento cuenta como el mismo gesto. Para avanzar otra parada hay que parar y volver a girar.
+  - Cloudflare dice a los navegadores que guarden los archivos de `assets/` 4 horas (el HTML no), así que el navegador del usuario seguía con el `app.js` anterior. Ahora `web/versionar.mjs`, que ejecuta `web.yml` antes de publicar, añade a cada referencia de `assets/` una huella de su contenido (`?v=…`): un archivo se vuelve a descargar justo cuando cambia. En el repositorio las rutas siguen limpias. No se sellan las fuentes (ya llevan la huella en el nombre) ni las imágenes de la demo (demo.js las nombra por partes).
+- Si un giro empieza por debajo del vídeo, el navegador no deja cancelarlo; al entrar en el vídeo desde abajo, la página se queda en la última parada y el resto de ese giro no la mueve. El siguiente giro hacia arriba lleva a la parada anterior.
