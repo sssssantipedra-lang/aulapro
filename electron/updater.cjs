@@ -105,11 +105,12 @@ function notify({ title, body, silent, onClick }) {
  * El build de Mac va sin firmar (`identity: null` en package.json, porque
  * firmar cuesta una cuenta de Apple Developer de pago), y Gatekeeper bloquea
  * la instalación silenciosa de actualizaciones de apps sin firmar. Así que
- * en Mac esto no se activa: se sigue descargando el .dmg/.zip a mano desde
- * la página de releases, como hasta ahora.
+ * en Mac esto no se activa: se descarga el .dmg/.zip a mano desde la web.
  *
- * En Windows: al arrancar, comprueba si hay una versión más nueva en el
- * release de GitHub (según el `publish` de package.json) y, si la hay, avisa
+ * En Windows: al arrancar, comprueba si hay una versión más nueva en
+ * https://descargas.aulapro.app (el `publish` de package.json: el almacén de
+ * archivos de Cloudflare donde release.yml sube cada versión; el código de
+ * GitHub es privado) y, si la hay, avisa
  * con una notificación del sistema y la descarga sola en segundo plano. No
  * instala nada sin que el docente lo pida: se queda esperando a que pulse
  * «Reiniciar y actualizar» en el aviso de la interfaz, o a que cierre la
@@ -178,7 +179,7 @@ function setup(app, { onStatus, onActivate } = {}) {
   autoUpdater.on('error', err => send({ state: 'error', message: err?.message || String(err) }));
 
   /**
-   * Si falla (sin internet, GitHub caído, repo inaccesible…) la app sigue
+   * Si falla (sin internet, la web de descargas caída…) la app sigue
    * funcionando exactamente igual, solo que sin avisar de una versión nueva.
    */
   function comprobar() {
