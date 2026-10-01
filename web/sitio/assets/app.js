@@ -181,9 +181,10 @@
   }
 
   // seeks never overlap: coalesce to the newest target, one follow-up, never deadlock
-  let seekBusy = false, pendingTime = null;
+  // (while a forward glide plays the film, nothing seeks: playback owns the video)
+  let seekBusy = false, pendingTime = null, playing = false;
   function requestSeek(time) {
-    if (!videoReady || !video.duration) return;
+    if (!videoReady || !video.duration || playing) return;
     const tt = clamp(time, 0, video.duration - 0.001);
     if (seekBusy) { pendingTime = tt; return; }
     if (Math.abs(video.currentTime - tt) < 0.004) return;
@@ -203,6 +204,7 @@
   // displayed progress eases toward the scroll target; the loop rests when converged
   let target = 0, shown = 0, rafId = null, lastTick = 0, heroOnScreen = true;
   function tick(now) {
+    if (playing) { rafId = null; lastTick = 0; return; }   // the playing glide draws its own frames
     const dt = Math.min(100, now - (lastTick || now));
     lastTick = now;
     shown += (target - shown) * (1 - Math.pow(1 - 0.14, dt / 16.667));
@@ -227,6 +229,131 @@
     target = heroProgress();
     wake();
   }
+
+  // resting points: when scrolling stops inside the hero, the page glides on to the next caption in the
+  // direction the visitor was going, so the film never rests on a half-finished frame. Each stop is where
+  // a caption is fully assembled (band 2: after its three lines are crossed off).
+  const STOPS = [0, 0.335, 0.49, 0.68, 1];
+  const hasScrollEnd = 'onscrollend' in window;
+  let lastY = 0, dir = 0, glideId = null, idleTimer = 0;
+  function trackDir() {
+    const y = scrollY;
+    if (y !== lastY && glideId === null) dir = y > lastY ? 1 : -1;
+    lastY = y;
+    if (!hasScrollEnd) { clearTimeout(idleTimer); idleTimer = setTimeout(settle, 160); }
+  }
+  function stopGlide() {
+    if (glideId === null) return;
+    cancelAnimationFrame(glideId);
+    glideId = null;
+    endPlay();
+    document.documentElement.style.scrollBehavior = '';
+  }
+  function settle() {
+    if (!scrubOn || glideId !== null || !dir) return;
+    const p = (scrollY - heroTop) / heroRange;
+    if (p <= 0.002 || p >= 0.998) return;
+    let i = 0;
+    while (i < STOPS.length - 2 && STOPS[i + 1] <= p) i++;
+    const prev = STOPS[i], next = STOPS[i + 1];
+    if (p - prev < 0.004 || next - p < 0.004) return;
+    // a tiny accidental nudge goes back; anything more carries on in the same direction
+    const frac = (p - prev) / (next - prev);
+    const to = dir > 0 ? (frac > 0.06 ? next : prev) : (frac < 0.94 ? prev : next);
+    glideTo(heroTop + to * heroRange);
+  }
+  // The glide shows the film at close to its real speed, about 20 ms of footage per screen frame, with a
+  // gentle start and stop, so no frame of the film is skipped. Going down, the film simply plays (every
+  // frame decoded in order) and the page follows it. Going up a film cannot play backwards, so it is
+  // sought frame by frame, a little slower, which keeps the seeks in step.
+  const GLIDE_RATE = 1.2, GLIDE_RATE_BACK = 0.8, GLIDE_RAMP = 0.35;
+  function glideProfile(D, v) {
+    // distance D (seconds of footage) at top speed v -> { T: duration in s, at(t): footage covered at time t }
+    const ta = GLIDE_RAMP;
+    if (D < v * ta) {
+      const T = Math.max(0.3, Math.PI * D / (2 * v));
+      return { T, at: t => D * (1 - Math.cos(Math.PI * Math.min(t, T) / T)) / 2 };
+    }
+    const acc = t => (v / 2) * (t - (ta / Math.PI) * Math.sin(Math.PI * t / ta));
+    const T = ta + D / v;
+    return {
+      T,
+      at: t => {
+        if (t <= 0) return 0;
+        if (t >= T) return D;
+        if (t < ta) return acc(t);
+        if (t > T - ta) return D - acc(T - t);
+        return (v * ta) / 2 + v * (t - ta);
+      }
+    };
+  }
+  function glideTo(y) {
+    const from = scrollY, dist = y - from;
+    if (Math.abs(dist) < 2) return;
+    document.documentElement.style.scrollBehavior = 'auto';
+    if (dist > 0 && playTo((y - heroTop) / heroRange)) return;
+    const secs = video.duration || 10.25;
+    const D = (Math.abs(dist) / heroRange) * secs;
+    const prof = glideProfile(D, dist > 0 ? GLIDE_RATE : GLIDE_RATE_BACK);
+    const t0 = performance.now();
+    const step = now => {
+      const t = (now - t0) / 1000;
+      scrollTo(0, from + Math.sign(dist) * (prof.at(t) / secs) * heroRange);
+      if (t < prof.T) glideId = requestAnimationFrame(step);
+      else { glideId = null; document.documentElement.style.scrollBehavior = ''; }
+    };
+    glideId = requestAnimationFrame(step);
+  }
+
+  // forward glide: play the film from where it is shown to the stop, easing the playback rate in and out
+  let playEnd = 0;
+  function playTo(toP) {
+    if (!videoReady || videoFailed || !video.duration) return false;
+    const secs = video.duration;
+    playEnd = clamp(toP, 0, 1) * secs;
+    const startT = video.currentTime;
+    if (playEnd - startT < 0.08) return false;
+    playing = true;
+    pendingTime = null;
+    const t0 = performance.now();
+    video.playbackRate = GLIDE_RATE * 0.15;
+    const started = video.play();
+    if (started && started.catch) started.catch(() => { if (playing) { stopGlide(); onScroll(); } });
+    const step = now => {
+      if (!playing) return;
+      const ct = video.currentTime;
+      const remaining = playEnd - ct;
+      const reached = remaining <= 0.01 || video.ended;
+      const p = (reached ? playEnd : ct) / secs;
+      scrollTo(0, heroTop + p * heroRange);
+      target = shown = p;
+      updateCaptions(p);
+      if (reached) {
+        glideId = null;
+        endPlay();
+        document.documentElement.style.scrollBehavior = '';
+        requestSeek(playEnd);
+        return;
+      }
+      // ease in over GLIDE_RAMP, cruise, ease out over the last stretch of footage
+      const el = (now - t0) / 1000;
+      const k = clamp(Math.min(0.15 + el / GLIDE_RAMP, remaining / (GLIDE_RATE * GLIDE_RAMP * 0.5)), 0.15, 1);
+      const rate = Math.round(GLIDE_RATE * k * 100) / 100;
+      if (Math.abs(video.playbackRate - rate) >= 0.02) video.playbackRate = rate;
+      glideId = requestAnimationFrame(step);
+    };
+    glideId = requestAnimationFrame(step);
+    return true;
+  }
+  function endPlay() {
+    if (!playing) return;
+    playing = false;
+    video.pause();
+    video.playbackRate = 1;
+    target = shown = heroProgress();
+  }
+  // the visitor always wins: any wheel, touch or key during a glide hands control back at once
+  const GLIDE_STOPPERS = ['wheel', 'touchstart', 'keydown', 'mousedown'];
 
   // the video: poster first, then the whole file as a Blob (works on hosts without Range support)
   let heroInit = false, fetchStarted = false;
@@ -286,6 +413,11 @@
     initHeroOnce();
     if (!loadStart) loadStart = performance.now();
     addEventListener('scroll', onScroll, { passive: true });
+    lastY = scrollY;
+    dir = 0;
+    addEventListener('scroll', trackDir, { passive: true });
+    if (hasScrollEnd) addEventListener('scrollend', settle);
+    GLIDE_STOPPERS.forEach(ev => addEventListener(ev, stopGlide, { passive: true }));
     bands.forEach(b => { b.op = -1; b.k = -1; b.lines.forEach(l => { l.s = -1; }); });
     cueOp = -1; endOp = -1;
     target = shown = heroProgress();
@@ -297,6 +429,11 @@
     if (!scrubOn) return;
     scrubOn = false;
     removeEventListener('scroll', onScroll);
+    removeEventListener('scroll', trackDir);
+    if (hasScrollEnd) removeEventListener('scrollend', settle);
+    GLIDE_STOPPERS.forEach(ev => removeEventListener(ev, stopGlide));
+    clearTimeout(idleTimer);
+    stopGlide();
     if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; lastTick = 0; }
   }
   function applyHeroMode() {
