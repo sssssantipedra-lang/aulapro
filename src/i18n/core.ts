@@ -1838,7 +1838,7 @@ const EN: Record<string, string> = {
 
   /* ── Licencia ── */
   "Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.": "That key doesn't exist. Copy it exactly as it appears in your purchase email.",
-  "Esta clave ya está activada en el máximo de ordenadores. Desactívala en el otro (Configuración › Licencia) y vuelve a probar.": "This key is already activated on the maximum number of computers. Deactivate it on the other one (Settings › Licence) and try again.",
+  "Esta clave ya está activada en dos dispositivos. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.": "This key is already activated on two devices. Deactivate it on one of them (Settings › Licence) and try again.",
   "Esta clave está desactivada. Revisa el correo de la compra o escríbenos.": "This key has been deactivated. Check your purchase email or get in touch.",
   "Esa clave no es de Aula Pro.": "That key isn't for Aula Pro.",
   "Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.": "Activation needs an internet connection (just this once). Connect and try again.",
@@ -1853,14 +1853,14 @@ const EN: Record<string, string> = {
   "Activando…": "Activating…",
   "Activar": "Activate",
   "¿Aún no la tienes? Comprar Aula Pro": "Don't have one yet? Buy Aula Pro",
-  "Pago único. La activación solo necesita internet una vez; después Aula Pro funciona sin conexión y tus datos no salen de este ordenador.": "One-off payment. Activation needs the internet only once; after that Aula Pro works offline and your data never leaves this computer.",
+  "La activación solo necesita internet una vez; después Aula Pro funciona sin conexión y tus datos no salen de este dispositivo.": "Activation needs the internet only once; after that Aula Pro works offline and your data never leaves this device.",
   "Licencia desactivada en este equipo": "Licence deactivated on this computer",
   "Docente fundador/a": "Founding teacher",
   "Usas Aula Pro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!": "You've been using Aula Pro since before it went on sale, so it's free for ever on this computer. Thank you for helping to make it better!",
   "En este equipo desde el {d}": "On this computer since {d}",
   "Licencia activa": "Licence active",
   "activada el {d}": "activated on {d}",
-  "Tu clave sirve para un número limitado de ordenadores. Si cambias de ordenador, desactívala aquí antes y actívala en el nuevo con la misma clave.": "Your key works on a limited number of computers. If you change computer, deactivate it here first and then activate it on the new one with the same key.",
+  "Tu clave sirve para dos dispositivos a la vez. Si cambias de dispositivo, desactívala aquí antes y actívala en el nuevo con la misma clave.": "Your key works on two devices at a time. If you change device, deactivate it here first and then activate it on the new one with the same key.",
   "Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.": "Aula Pro will ask for the key the next time it opens on this computer. Your data is not deleted.",
   "Sí, desactivar": "Yes, deactivate",
   "Desactivar en este equipo": "Deactivate on this computer",
@@ -1872,6 +1872,7 @@ const EN: Record<string, string> = {
   "Todo tu trabajo se guarda dentro de Aula Pro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "All your work is saved inside Aula Pro on this device, just for this profile, and is never uploaded to any cloud. Aula Pro makes an automatic backup every ten minutes while you work.",
   " No hace falta internet: los móviles hablan solo con tu tableta. Si no conectan, puede que la red del centro aísle los dispositivos; entonces activa la zona wifi de la tableta o de tu móvil y conectaos todos a esa red.": " No internet needed: the phones only talk to your tablet. If they can't connect, the school network may be isolating devices; in that case turn on the tablet's or your phone's hotspot and all join that network.",
   "Abrir el menú": "Open the menu",
+  "Consigue tu licencia en aulapro.app": "Get your licence at aulapro.app",
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };

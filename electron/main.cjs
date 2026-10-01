@@ -140,7 +140,6 @@ function registerLicenseIpc() {
   ipcMain.handle('license:state', async () => { await license.whenReady(listProfiles); return license.publicState(); });
   ipcMain.handle('license:activate', async (_e, key) => { await license.whenReady(listProfiles); return license.activate(key); });
   ipcMain.handle('license:deactivate', async () => { await license.whenReady(listProfiles); return license.deactivate(); });
-  ipcMain.handle('license:recheck', async () => { await license.whenReady(listProfiles); return license.recheck(); });
 }
 
 function registerUpdateIpc() {

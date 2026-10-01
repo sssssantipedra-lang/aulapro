@@ -45,7 +45,7 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
         {since && <span className="lic-card-meta">· {t('activada el {d}', { d: since })}</span>}
       </div>
       <p className="lic-card-txt">
-        {t('Tu clave sirve para un número limitado de ordenadores. Si cambias de ordenador, desactívala aquí antes y actívala en el nuevo con la misma clave.')}
+        {t('Tu clave sirve para dos dispositivos a la vez. Si cambias de dispositivo, desactívala aquí antes y actívala en el nuevo con la misma clave.')}
       </p>
       {confirm ? (
         <div className="lic-confirm">

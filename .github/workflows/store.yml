@@ -1,0 +1,53 @@
+name: Microsoft Store
+
+# Compila solo el paquete de Microsoft Store (.appx, sin firmar: lo firma
+# Microsoft al certificarlo) cuando un pull request toca lo que lo forma, y
+# lo deja como artefacto descargable. El de cada versión va en el release
+# (ver release.yml). Datos de la ficha: docs/WEB.md, apartado 4.
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'electron/**'
+      - 'scripts/make-icons.cjs'
+      - '.github/workflows/store.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: store-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  appx:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar los iconos y los mosaicos
+        run: npm run icons
+
+      - name: Compilar la aplicación web
+        run: npx vite build
+
+      - name: Empaquetar para Microsoft Store
+        run: npx electron-builder --win appx --x64 --publish never
+
+      - name: Subir el paquete como artefacto descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaPro-microsoft-store
+          path: release/*.appx
+          if-no-files-found: error

@@ -18,7 +18,7 @@ export async function getLicenseState(): Promise<LicenseState | null> {
 /** Qué decirle al docente cuando la activación no sale. */
 export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
   'clave-no-valida': 'Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.',
-  'limite': 'Esta clave ya está activada en el máximo de ordenadores. Desactívala en el otro (Configuración › Licencia) y vuelve a probar.',
+  'limite': 'Esta clave ya está activada en dos dispositivos. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.',
   'desactivada': 'Esta clave está desactivada. Revisa el correo de la compra o escríbenos.',
   'otra-tienda': 'Esa clave no es de Aula Pro.',
   'sin-conexion': 'Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.',
@@ -30,5 +30,4 @@ export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
 export const LICENSE_STATUS_TEXT: Partial<Record<LicenseState['status'], string>> = {
   'sin-licencia': 'Escribe la clave de licencia que recibiste por correo al comprar Aula Pro.',
   'otro-equipo': 'Esta copia de Aula Pro se activó en otro ordenador. Escribe tu clave para activarla en este.',
-  'caducada': 'Hace más de 30 días que Aula Pro no puede comprobar la licencia. Conéctate a internet y pulsa «Volver a comprobar».',
 };

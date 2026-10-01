@@ -19,7 +19,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.crypto.Cipher;
@@ -45,7 +46,7 @@ public class AulaNativePlugin extends Plugin {
     private static final String PREFS = "aulapro_secretos";
     private static final int IV_BYTES = 12;
     /** Nombres permitidos: la interfaz no puede guardar un secreto cualquiera. */
-    private static final Set<String> ALLOWED = Collections.singleton("gemini");
+    private static final Set<String> ALLOWED = new HashSet<>(Arrays.asList("gemini", "licencia"));
 
     /** El documento que se está imprimiendo: sin una referencia viva, Android lo libera a mitad. */
     private WebView printing;

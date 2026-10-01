@@ -42,8 +42,8 @@ describe('licencia activada con clave', () => {
   it('a la semana se comprueba en segundo plano, sin bloquear', () => {
     expect(evaluate(rec(8), { machine, now, enforced: true })).toEqual({ required: false, status: 'activa', needsCheck: true });
   });
-  it('tras 30 días sin poder comprobar, pide conexión', () => {
-    expect(evaluate(rec(31), { machine, now, enforced: true })).toEqual({ required: true, status: 'caducada', needsCheck: true });
+  it('sin conexión no se bloquea nunca: la web promete internet solo para activar', () => {
+    expect(evaluate(rec(400), { machine, now, enforced: true })).toEqual({ required: false, status: 'activa', needsCheck: true });
   });
 });
 

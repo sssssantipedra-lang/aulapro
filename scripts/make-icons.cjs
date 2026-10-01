@@ -101,6 +101,24 @@ async function main() {
     }
   }
   console.log('icon.iconset  ' + Object.values(ICONSET_FILES).flat().length + ' archivos (para `iconutil -c icns` en macOS)');
+
+  // Mosaicos del paquete de Microsoft Store (objetivo `appx`): electron-builder
+  // los busca en build/appx/ y, si faltan, pone unos genéricos. Fondo
+  // transparente: Windows pone detrás el `backgroundColor` del bloque appx.
+  const appxDir = path.join(OUT, 'appx');
+  fs.rmSync(appxDir, { recursive: true, force: true });
+  fs.mkdirSync(appxDir, { recursive: true });
+  const tile = async (name, w, h, logo) => {
+    const icon = await sharp(svgFor(logo), { density: 384 }).resize(logo, logo).png().toBuffer();
+    await sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: icon, left: Math.round((w - logo) / 2), top: Math.round((h - logo) / 2) }])
+      .png().toFile(path.join(appxDir, name));
+  };
+  await tile('StoreLogo.png', 50, 50, 50);
+  await tile('Square44x44Logo.png', 44, 44, 44);
+  await tile('Square150x150Logo.png', 150, 150, 104);
+  await tile('Wide310x150Logo.png', 310, 150, 104);
+  console.log('appx/  mosaicos de Microsoft Store (50, 44, 150, 310x150)');
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
