@@ -231,3 +231,11 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - Paradas, en progreso del inicio: 0 (texto 1), 0,335 (texto 2, con las tres tareas ya tachadas), 0,49 (texto 3), 0,68 (texto 4, con los botones) y 1 (primer plano de la diana rellena).
 - Suavidad: al bajar, el vídeo se reproduce de verdad a 1,2 veces su velocidad con arranque y frenada suaves, y la página lo sigue; al subir, se busca fotograma a fotograma a 0,8 veces. Medido: unos 20 ms de película por fotograma de pantalla de media, el 95 % por debajo de 27 ms, y ninguna imagen de la película saltada (el salto máximo, unos 45 ms, es una sola imagen a 24 por segundo).
 - Solo en ordenador (modo vídeo). Móviles, tabletas en vertical y movimiento reducido siguen con la imagen fija.
+
+## 18. Inicio paso a paso (1-10-2026, petición del usuario)
+
+- Dentro del vídeo del inicio, cualquier movimiento de rueda, deslizamiento de dedo o tecla de avance (flechas, Av Pág, Re Pág, espacio), sea largo o corto, es un solo paso a la parada siguiente o anterior. Mientras dura el deslizamiento no se puede bajar ni subir más. Un gesto es un paso: el resto de un gesto de trackpad no lanza otro hasta que la rueda se detiene un instante (220 ms). En la última parada, bajar sale al contenido como siempre. Un clic (botón, enlace, barra de desplazamiento) interrumpe el deslizamiento.
+- Velocidad: 1,56 veces la real en las dos direcciones; los tramos largos duran unos 2,5 segundos.
+- Vídeo recodificado con todos los fotogramas clave (`-g 1 -crf 23`, 7,3 MB, antes 4,4 MB) para que también al subir, que busca fotograma a fotograma, no se salte imágenes. Comparación en las mismas condiciones: al subir, imágenes saltadas en el 30 % de los cambios con la versión anterior y en el 4 % con esta; al bajar, 2-3 % con ambas. Calidad frente a la referencia sin pérdida: SSIM 0,976 (antes 0,984), sin diferencia visible a tamaño doble. Archivo: `review/agobio-final-scrub-v3-intra.mp4`.
+- El aviso del inicio pasa de "Desplázate despacio" a "Desplázate hacia abajo".
+- Se sale del estándar del método (un fotograma clave cada 8) porque el deslizamiento automático hacia atrás lo exige.
