@@ -36,3 +36,18 @@ en el último paso, `descargas`, la sube a R2.
 
 Si faltan los secretos, el paso `descargas` falla con un aviso claro y la
 versión se queda solo en GitHub; se arregla volviendo a lanzar ese paso.
+
+## Caché de Cloudflare
+
+Cada archivo se sube con su propio `Cache-Control`: `latest.yml` y
+`version.json` sin caché, los de nombre fijo 5 minutos y los que llevan la
+versión en el nombre un año (nunca cambian). Cloudflare, por defecto, impone
+su *Browser Cache TTL* (4 horas) cuando el archivo pide menos, y entonces la
+web podría dar la versión anterior durante horas tras publicar. Para que
+respete lo de cada archivo hay una **Cache Rule** en la zona `aulapro.app`:
+
+- Nombre: *Descargas respetan su caché*
+- Expresión: `(http.host eq "descargas.aulapro.app")`
+- Cache eligibility: *Eligible for cache*
+- Edge TTL: *Use cache-control header if present, bypass cache if not*
+- Browser TTL: *Respect origin TTL*
