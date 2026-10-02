@@ -116,6 +116,9 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .stage .static-bg{display:none}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateZ(0);will-change:transform;transition:opacity .9s var(--ease-out)}
 .stage.video-ready video{opacity:1}
+/* the reversed film covers the forward one only while a glide plays it, with no fade either way */
+.stage video.atras{opacity:0!important;transition:none}
+.stage.atras-on video.atras{opacity:1!important}
 .stage.video-failed video{display:none}
 .scrim{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(180deg,rgba(14,10,24,.55) 0,rgba(14,10,24,0) 150px),
@@ -140,6 +143,15 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .band.pos-tl{top:calc(var(--nav-h) + 1.5vh);transform:none;width:auto}
 .band.pos-tl::before{display:none}
 .pos-tl .chip{margin:0}
+/* the last stop: a strip along the bottom invites the visitor on into the page; it slides up as it appears */
+.band.band-strip{left:0;right:0;top:auto;bottom:0;width:auto;transform:translateY(calc((1 - var(--k,1))*100%));text-shadow:none}
+.band.band-strip::before{display:none}
+.strip-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px clamp(20px,2.6vw,40px);padding:clamp(14px,2.2vh,22px) var(--gutter);background:rgba(17,12,30,.74);border-top:1px solid rgba(189,177,210,.22);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.strip-t{color:var(--text);font:600 clamp(1rem,1.3vw,1.22rem)/1.2 var(--f-display);letter-spacing:.005em}
+.band-strip .cta-row{margin:0}
+.band-strip .arr{display:inline-block;animation:strip-arr 1.8s var(--ease-io) infinite}
+@keyframes strip-arr{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){.band-strip .arr{animation:none}}
 /* second half: the sheet has landed, the left wall is calm */
 .band.pos-l{left:clamp(16px,11vw,210px);top:45%;transform:translateY(-50%);width:min(37vw,580px)}
 .band::before{content:"";position:absolute;inset:-34% -30% -34% -46%;z-index:-1;pointer-events:none;opacity:calc(.25 + .75*var(--k,1));background:radial-gradient(ellipse 62% 58% at 46% 50%,rgba(12,8,22,var(--pk,.64)) 0%,rgba(12,8,22,calc(var(--pk,.64)*.66)) 46%,rgba(12,8,22,0) 76%)}
@@ -180,7 +192,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .fx-rise .sub{--ks:clamp(0,(var(--k,0) - .62)*4,1);opacity:var(--ks);transform:translateY(calc((1 - var(--ks))*14px))}
 .fx-rise .cta-row{--kb:clamp(0,(var(--k,0) - .78)*5,1);opacity:var(--kb);transform:translateY(calc((1 - var(--kb))*14px))}
 .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:1.6rem}
-.cue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font:500 .72rem/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text);text-shadow:var(--tshadow);opacity:1}
+.cue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px;font:500 .72rem/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text);text-shadow:var(--tshadow);opacity:1}
 .cue i{position:relative;width:1.5px;height:44px;background:rgba(243,236,230,.25);overflow:hidden}
 .cue i::after{content:"";position:absolute;left:0;top:0;width:100%;height:40%;background:var(--text);animation:cue 2.4s var(--ease-io) -.4s infinite}
 @keyframes cue{from{transform:translateY(-100%)}to{transform:translateY(260%)}}
@@ -644,11 +656,11 @@ html.zoom-open{overflow:hidden}
       <div class="poster" aria-hidden="true"></div>
       <div class="poster-end" aria-hidden="true"></div>
       <video id="hero-video" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+      <video id="hero-video-atras" class="atras" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
       <div class="scrim" aria-hidden="true"></div>
 
       <div class="bands">
         <div class="band fx-drift pos-tr" data-a="0" data-b="0.17" data-pk="66">
-          <p class="chip mono" data-i18n="b1.kicker">Martes, 22:14</p>
           <p class="hl" data-split data-i18n="b1.title">Son las diez de la noche.<br>Y el papeleo sigue ahí.</p>
         </div>
         <div class="band fx-strike pos-tr" data-a="0.2" data-b="0.38" data-ramp="0.04" data-pk="66">
@@ -669,13 +681,18 @@ html.zoom-open{overflow:hidden}
         <div class="band fx-rise pos-tr" data-a="0.59" data-b="0.745" data-ramp="0.045" data-pk="86">
           <p class="hl hl-xl" data-split data-i18n="b4.title">Cada cosa en su <em>sitio</em>.</p>
           <p class="sub" data-i18n="b4.sub">AulaPro para Windows y Android. Oferta de lanzamiento: 6,99&nbsp;€ una sola vez, y es tuya para siempre.</p>
-          <div class="cta-row">
-            <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
-            <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span class="arr" aria-hidden="true">↓</span></a>
-          </div>
         </div>
         <div class="band fx-drift pos-tl" data-a="0.8" data-b="1" data-ramp="0.03" data-pk="0">
           <p class="chip mono" data-i18n="b5.chip">Así se ve AulaPro por dentro.</p>
+        </div>
+        <div class="band band-strip" data-a="0.9" data-b="1" data-ramp="0.06">
+          <div class="strip-in">
+            <p class="strip-t" data-i18n="b5.more">Sigue descubriendo AulaPro</p>
+            <div class="cta-row">
+              <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+              <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span class="arr" aria-hidden="true">↓</span></a>
+            </div>
+          </div>
         </div>
       </div>
 
