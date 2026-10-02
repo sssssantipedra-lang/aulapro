@@ -28,6 +28,7 @@ import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
+import { ThemeArt } from '../components/fichas/ThemeArt';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
 
@@ -100,8 +101,7 @@ function ThemeGrid({ value, onChange, withAuto, compact, t }: {
           style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}`, '--thl': `#${th.claro}` } as React.CSSProperties}
         >
           <span className={`fe-theme-art${th.id === 'clasico' ? ' plain' : ''}`}>
-            <span className="big">{th.personaje}</span>
-            {!compact && th.adornos.slice(0, 2).map((a, i) => <span key={i} className={`dec d${i}`}>{a}</span>)}
+            <ThemeArt id={th.id} />
           </span>
           <span className="fe-theme-name">{t(th.nombre)}</span>
         </button>
@@ -371,7 +371,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject 
         <div className="fe-top">
           <button type="button" className="btn-ghost" onClick={backToLibrary}><ArrowLeft size={14} />{t('Mis fichas')}</button>
           <div className="fe-top-ttl">
-            <span className="fe-top-emoji" aria-hidden="true">{historia && story ? historia.emoji : theme.personaje}</span>
+            <ThemeArt id={theme.id} className="fe-top-emoji" />
             <strong>{content.titulo || t('Ficha de trabajo')}</strong>
             {content.variante && <span className="fe-badge">{t(VARIANTE_LABEL[content.variante])}</span>}
             {dirty && <span className="sda-unsaved">{t('Sin guardar')}</span>}
@@ -728,7 +728,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject 
               return (
                 <div key={f.id} className="fe-card" style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}` } as React.CSSProperties}>
                   <button type="button" className="fe-card-main" onClick={() => openSaved(f)}>
-                    <span className={`fe-card-art${th.id === 'clasico' ? ' plain' : ''}`}>{f.content.historia?.emoji || th.personaje}</span>
+                    <ThemeArt id={th.id} className="fe-card-art" />
                     <span className="fe-card-body">
                       <span className="fe-card-ttl">{f.title}</span>
                       <span className="fe-card-meta">

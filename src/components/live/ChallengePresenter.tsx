@@ -20,6 +20,7 @@ import type { Ficha } from '../../types';
 import type { FichaExercise } from '../../services/resources';
 import { cleanCode, shuffleApart } from '../../services/resources';
 import { fichaTheme } from '../../lib/fichaThemes';
+import { ThemeArt } from '../fichas/ThemeArt';
 import { buildFigureSvg } from '../../lib/geometryFigures';
 import { useI18n } from '../../i18n';
 
@@ -280,7 +281,7 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
           {step === 0 && (
             <div className="cp-cover">
               <motion.div className="cp-hero" animate={{ y: [0, -10, 0] }} transition={{ duration: 2.4, repeat: Infinity }}>
-                {story?.emoji || theme.personaje}
+                <ThemeArt id={theme.id} />
               </motion.div>
               <h1 className="cp-h1">{c.titulo}</h1>
               {story?.mision && (

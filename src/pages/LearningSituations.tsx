@@ -16,6 +16,7 @@ import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../s
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { buildSdaPosterHtml, saveSdaPosterPdf } from '../services/exportSdaPoster';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
+import { ThemeArt } from '../components/fichas/ThemeArt';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -1311,7 +1312,7 @@ export function LearningSituations({
               key={th.id} type="button" role="radio" aria-checked={posterTheme === th.id}
               className={`chip sm${posterTheme === th.id ? ' on' : ''}`} onClick={() => setPosterTheme(th.id)}
             >
-              {th.personaje} {t(th.nombre)}
+              <ThemeArt id={th.id} className="chip-art" />{t(th.nombre)}
             </button>
           ))}
         </div>
