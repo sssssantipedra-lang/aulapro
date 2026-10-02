@@ -43,6 +43,12 @@ describe('Primaria (RD 157/2022)', () => {
     expect(valores.criterios['3'].length).toBeGreaterThan(0);
   });
 
+  it('una materia sin criterios en ese ciclo no tiene currículo ahí: resolverGrupo devuelve null', () => {
+    expect(resolverGrupo('primaria', 'Educación en Valores Cívicos y Éticos', 1)).toBeNull();
+    expect(resolverGrupo('primaria', 'Educación en Valores Cívicos y Éticos', 4)).toBeNull();
+    expect(resolverGrupo('primaria', 'Educación en Valores Cívicos y Éticos', 6)?.grupo).toBe('3');
+  });
+
   it('resolverGrupo con 5º devuelve el 3er ciclo de Matemáticas', () => {
     const r = resolverGrupo('primaria', 'Matemáticas', 5);
     expect(r?.grupo).toBe('3');

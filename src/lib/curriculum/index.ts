@@ -103,8 +103,17 @@ export function materiasDe(etapa: Etapa): CurriculumEntry[] {
   return etapa === 'primaria' ? PRIMARIA : ESO;
 }
 
-export function buscarMateria(etapa: Etapa, nombre: string): CurriculumEntry | undefined {
-  return materiasDe(etapa).find(m => m.nombre === nombre);
+/**
+ * `materias` es el currículo en el que buscar; por defecto el estatal. Un
+ * currículo autonómico (ver `./cargar.ts`) lo pasa explícitamente. Ojo: la
+ * agrupación de cursos de `cicloDePrimaria` y `grupoDeEso` es la de los Reales
+ * Decretos; si un decreto autonómico agrupa los cursos de otra manera, esa
+ * lógica tendrá que venir con sus datos en vez de darse por buena.
+ */
+export function buscarMateria(
+  etapa: Etapa, nombre: string, materias: CurriculumEntry[] = materiasDe(etapa),
+): CurriculumEntry | undefined {
+  return materias.find(m => m.nombre === nombre);
 }
 
 /** 1º-2º → 1er ciclo, 3º-4º → 2º ciclo, 5º-6º → 3er ciclo. */
@@ -146,20 +155,25 @@ export function grupoDeEso(entry: CurriculumEntry, curso: number): string | null
  * curso concretos. `opcionMatematicas` solo hace falta para Matemáticas de
  * 4º de la ESO (elige entre "A" y "B"); en cualquier otro caso se ignora.
  * Devuelve `null` si la materia no existe en esta etapa, o si es la
- * Matemáticas de 4º de la ESO sin haber indicado la opción.
+ * Matemáticas de 4º de la ESO sin haber indicado la opción. `materias` es el
+ * currículo en el que buscar (por defecto, el estatal).
  */
 export function resolverGrupo(
   etapa: Etapa,
   nombreMateria: string,
   curso: number,
   opcionMatematicas?: 'A' | 'B',
+  materias: CurriculumEntry[] = materiasDe(etapa),
 ): { entry: CurriculumEntry; grupo: string } | null {
-  const entry = buscarMateria(etapa, nombreMateria);
+  const entry = buscarMateria(etapa, nombreMateria, materias);
   if (!entry) return null;
 
   if (etapa === 'primaria') {
     const grupo = String(cicloDePrimaria(curso));
-    return entry.criterios[grupo] ? { entry, grupo } : null;
+    // Una materia puede figurar en un ciclo sin nada dentro (Educación en
+    // Valores solo se imparte en el tercero): eso es «no hay currículo», no un
+    // currículo vacío, o se anunciaría una lista oficial que no existe.
+    return entry.criterios[grupo]?.length ? { entry, grupo } : null;
   }
 
   if (nombreMateria === 'Matemáticas' && curso === 4) {

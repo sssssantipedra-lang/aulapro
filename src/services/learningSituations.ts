@@ -16,8 +16,9 @@
  * 2026-09-03): antes se le pedía a la IA que los REDACTASE, y con miles de
  * códigos repartidos en decenas de materias, lo que hacía era aproximarlos —
  * plausibles, pero no el texto real del decreto. Cuando la etapa, el curso y
- * el área encajan con `lib/curriculum` (enseñanzas mínimas estatales, RD
- * 157/2022 y RD 217/2022), la IA ya no redacta esos dos campos: ELIGE de la
+ * el área encajan con `lib/curriculum` (el decreto de la comunidad del docente
+ * o, mientras no lo tengamos, las enseñanzas mínimas estatales, RD 157/2022 y
+ * RD 217/2022), la IA ya no redacta esos dos campos: ELIGE de la
  * lista real que se le pasa en el prompt, y el texto final lo pinta esta
  * función desde los datos, no la IA (ver `finalizarArea`). Si el área no
  * tiene un emparejamiento claro —o no se indicó etapa y curso—, sigue
@@ -28,7 +29,9 @@ import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
 import { resolverGrupo, type CurriculumEntry, type Etapa } from '../lib/curriculum';
-import { emparejarMateria } from '../lib/curriculum/mapeoMaterias';
+import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
+import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
+import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 
 /* ── Lo que devuelve la IA ── */
 
@@ -44,6 +47,19 @@ export interface SdaSession {
   fase: string;
   titulo: string;
   descripcion: string;
+}
+
+/**
+ * El currículo del que salen las competencias y saberes de la SdA. Lo pone la
+ * aplicación, nunca la IA, y se guarda con la SdA: cambiar de comunidad en el
+ * perfil no reescribe lo que ya se hizo con otro decreto.
+ */
+export interface SdaNormativa {
+  comunidad: ComunidadId;
+  /** `estatal` si la comunidad aún no tiene su decreto en AulaPro (o es «Fuera de España»). */
+  origen: 'autonomico' | 'estatal';
+  /** La cita, en el idioma de la app al generarla: «Decreto 61/2022, de 13 de julio (BOCM núm. 169…)». */
+  cita: string;
 }
 
 export interface SdaContent {
@@ -66,6 +82,8 @@ export interface SdaContent {
   productoFinal: string;
   evaluacionTecnicas: string;
   evaluacionInstrumentos: string;
+  /** Ausente si ninguna área usó currículo oficial, y en las SdA anteriores a esto. */
+  normativa?: SdaNormativa;
 }
 
 export interface SdaRubricRow {
@@ -121,6 +139,17 @@ export interface SdaRequest {
    * ignora.
    */
   opcionMatematicas?: 'A' | 'B';
+  /**
+   * Comunidad del docente: decide de qué decreto salen las competencias y
+   * saberes. Sin ella (o sin decreto propio todavía) se usa el estatal.
+   */
+  comunidad?: ComunidadId;
+  /**
+   * La materia oficial elegida para cada área, por el nombre que le da el
+   * docente; `null` la deja en modo libre. Lo que no está aquí se empareja
+   * por alias, y si no hay alias seguro queda en modo libre.
+   */
+  materiasOficiales?: Record<string, string | null>;
   /** Cómo es el grupo: ritmos, apoyos, lo que convenga tener en cuenta. */
   contextoClase: string;
   metodologia: string;
@@ -141,12 +170,16 @@ interface AreaResuelta {
  * que resolver: todo el array sale a `null`, y cada área se genera en texto
  * libre como siempre.
  */
-function resolverAreas(req: SdaRequest): (AreaResuelta | null)[] {
-  if (!req.etapa || !req.curso) return req.areas.map(() => null);
+function resolverAreas(req: SdaRequest, curriculo: CurriculoActivo | null): (AreaResuelta | null)[] {
+  if (!req.etapa || !req.curso || !curriculo) return req.areas.map(() => null);
   const { etapa, curso, opcionMatematicas } = req;
   return req.areas.map(area => {
-    const materia = emparejarMateria(area, etapa);
-    return materia ? resolverGrupo(etapa, materia, curso, opcionMatematicas) : null;
+    const estado = estadoDeMateria(
+      area, { etapa, curso, opcionMatematicas, materiasOficiales: req.materiasOficiales }, curriculo.materias,
+    );
+    return estado.tipo === 'oficial'
+      ? resolverGrupo(etapa, estado.materia, curso, opcionMatematicas, curriculo.materias)
+      : null;
   });
 }
 
@@ -345,11 +378,11 @@ export async function analyzeDocument(
  * decenas por bloque en algunas materias—, que es información de sobra para
  * elegir cuál encaja con la idea de partida.
  */
-function bloqueCurriculoReal(area: string, r: AreaResuelta): string {
+function bloqueCurriculoReal(area: string, r: AreaResuelta, cita: string): string {
   const competencias = r.entry.competencias.map(c => `${c.n}. ${c.texto}`).join('\n');
   const saberes = r.entry.saberes[r.grupo].map(b => `${b.bloque}. ${b.tituloBloque}`).join('\n');
   return (
-    `\nÁREA "${area}" — CURRÍCULO OFICIAL REAL (enseñanzas mínimas estatales). ` +
+    `\nÁREA "${area}" — CURRÍCULO OFICIAL REAL (${cita}). ` +
     `NO redactes competencias ni saberes por tu cuenta para esta área: ELIGE de estas listas, ` +
     `por su número o letra, en "competenciasSeleccionadas" y "saberesSeleccionados".\n` +
     `Competencias específicas disponibles:\n${competencias}\n` +
@@ -372,11 +405,12 @@ interface RawSdaArea extends SdaArea {
  *
  * Si los códigos elegidos no encajan con esta área (ninguno válido, o el
  * modelo no eligió ninguno), se deja el texto libre de la IA tal cual: un
- * campo con contenido aproximado es mejor que uno vacío.
+ * campo con contenido aproximado es mejor que uno vacío. `oficial` dice si
+ * al final el texto es el del decreto, que es lo que permite citarlo.
  */
-function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): SdaArea {
+function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): { area: SdaArea; oficial: boolean } {
   const { competenciasSeleccionadas, saberesSeleccionados, ...libre } = a;
-  if (!r) return libre;
+  if (!r) return { area: libre, oficial: false };
 
   const competenciasElegidas = r.entry.competencias.filter(
     c => competenciasSeleccionadas?.includes(c.n),
@@ -384,21 +418,24 @@ function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): SdaArea {
   const saberesElegidos = r.entry.saberes[r.grupo].filter(
     b => saberesSeleccionados?.includes(b.bloque),
   );
-  if (competenciasElegidas.length === 0 || saberesElegidos.length === 0) return libre;
+  if (competenciasElegidas.length === 0 || saberesElegidos.length === 0) return { area: libre, oficial: false };
 
   const numerosElegidos = new Set(competenciasElegidas.map(c => c.n));
   const criteriosElegidos = r.entry.criterios[r.grupo].filter(c => numerosElegidos.has(c.competencia));
 
   return {
-    ...libre,
-    competenciasEspecificas: competenciasElegidas.map(c => `${c.n}. ${c.texto}`).join('\n'),
-    criteriosEvaluacion: criteriosElegidos.map(c => `${c.codigo} ${c.texto}`).join('\n'),
-    saberesBasicos: saberesElegidos
-      .map(b => {
-        const epigrafes = b.epigrafes.filter(e => e.titulo).map(e => e.titulo).join(', ');
-        return epigrafes ? `${b.bloque}. ${b.tituloBloque} (${epigrafes})` : `${b.bloque}. ${b.tituloBloque}`;
-      })
-      .join('\n'),
+    oficial: true,
+    area: {
+      ...libre,
+      competenciasEspecificas: competenciasElegidas.map(c => `${c.n}. ${c.texto}`).join('\n'),
+      criteriosEvaluacion: criteriosElegidos.map(c => `${c.codigo} ${c.texto}`).join('\n'),
+      saberesBasicos: saberesElegidos
+        .map(b => {
+          const epigrafes = b.epigrafes.filter(e => e.titulo).map(e => e.titulo).join(', ');
+          return epigrafes ? `${b.bloque}. ${b.tituloBloque} (${epigrafes})` : `${b.bloque}. ${b.tituloBloque}`;
+        })
+        .join('\n'),
+    },
   };
 }
 
@@ -409,7 +446,11 @@ export async function generateSda(
   lang: Lang,
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<SdaContent | null> {
-  const resoluciones = resolverAreas(req);
+  // El currículo de la comunidad si lo hay y, si no, el estatal: `cargarCurriculo`
+  // nunca falla, y lo que devuelve dice de dónde sale para poder citarlo.
+  const curriculo = req.etapa ? await cargarCurriculo(req.comunidad ?? 'fuera', req.etapa, lang) : null;
+  const resoluciones = resolverAreas(req, curriculo);
+  const cita = curriculo ? citarNormas(curriculo.normas, lang) : '';
 
   const systemPrompt =
     `Eres un experto en educación y en la legislación educativa LOMLOE, y evalúas con el rigor ` +
@@ -442,7 +483,7 @@ export async function generateSda(
 
   // Una por cada área que sí empareja con el currículo; para las demás, nada.
   const curriculoReal = req.areas
-    .map((area, i) => (resoluciones[i] ? bloqueCurriculoReal(area, resoluciones[i]!) : ''))
+    .map((area, i) => (resoluciones[i] ? bloqueCurriculoReal(area, resoluciones[i]!, cita) : ''))
     .join('');
 
   const userPrompt =
@@ -474,8 +515,13 @@ export async function generateSda(
   const parsed = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[] }>(raw);
   if (!parsed) return null;
   // Un modelo de reserva puede devolver el array vacío o ausente
-  const areas = (parsed.areas ?? []).map((a, i) => finalizarArea(a, resoluciones[i] ?? null));
-  return { ...parsed, areas, sesiones: parsed.sesiones ?? [] };
+  const finales = (parsed.areas ?? []).map((a, i) => finalizarArea(a, resoluciones[i] ?? null));
+  // Solo se cita un decreto si de verdad se usó: un área en modo libre, o una
+  // elección inválida de la IA, no puede presumir de currículo oficial.
+  const normativa: SdaNormativa | undefined = curriculo && finales.some(f => f.oficial)
+    ? { comunidad: curriculo.comunidad, origen: curriculo.origen, cita }
+    : undefined;
+  return { ...parsed, areas: finales.map(f => f.area), sesiones: parsed.sesiones ?? [], normativa };
 }
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */

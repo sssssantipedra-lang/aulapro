@@ -24,6 +24,27 @@ export interface Class {
    * Nunca está vacío: `normalizeClass()` garantiza al menos una.
    */
   subjects: string[];
+  /**
+   * Etapa y curso de la clase, para saber qué currículo oficial le toca (ver
+   * `lib/curriculum`). Ausentes hasta que el docente los indica: una clase
+   * anterior a esto sigue funcionando, y se le piden la primera vez que se
+   * genera una situación de aprendizaje.
+   */
+  etapa?: import('../lib/curriculum').Etapa;
+  curso?: number;
+  /**
+   * Solo en Matemáticas de 4º de ESO: el decreto estatal separa la materia en
+   * dos opciones con criterios y saberes propios.
+   */
+  opcionMatematicas?: 'A' | 'B';
+  /**
+   * La materia oficial de cada asignatura de la clase, por el nombre que el
+   * docente le puso («Mates» → «Matemáticas»). `null` quiere decir que el
+   * docente decidió no emparejarla y trabajarla en modo libre; que falte la
+   * asignatura quiere decir que aún no se ha decidido. Un valor que ya no
+   * existe en el currículo de su comunidad (porque la cambió) se ignora.
+   */
+  materiasOficiales?: Record<string, string | null>;
   /** Es el grupo del que este docente es tutor. */
   isTutoria?: boolean;
   room: string;
@@ -479,6 +500,10 @@ export interface LearningSituation {
     etapa?: import('../lib/curriculum').Etapa;
     curso?: number;
     opcionMatematicas?: 'A' | 'B';
+    /** La comunidad con cuyo currículo se generó. Ausente en las anteriores. */
+    comunidad?: import('../lib/curriculum/comunidades').ComunidadId;
+    /** La materia oficial elegida para cada área (ver `Class.materiasOficiales`). */
+    materiasOficiales?: Record<string, string | null>;
     contextoClase: string;
     metodologia: string;
   };

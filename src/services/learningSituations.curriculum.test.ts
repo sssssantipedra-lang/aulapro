@@ -11,6 +11,8 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { generateSda, type SdaRequest } from './learningSituations';
+import { CARGADORES } from '../lib/curriculum/cargar';
+import { materiasDe, type CurriculumEntry } from '../lib/curriculum';
 
 const callGemini = vi.hoisted(() => vi.fn());
 vi.mock('./gemini', async importOriginal => {
@@ -158,3 +160,105 @@ describe('generateSda con currículo real', () => {
     expect(userPrompt).not.toContain('ÁREA "Una optativa de centro"');
   });
 });
+
+describe('generateSda: de qué decreto sale y cómo se cita', () => {
+  const CITA_ESTATAL = 'Real Decreto 157/2022, de 1 de marzo (BOE núm. 52, de 2 de marzo de 2022)';
+
+  it('sin comunidad usa el estatal y lo cita en la propia SdA', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    expect(sda!.normativa).toEqual({ comunidad: 'fuera', origen: 'estatal', cita: CITA_ESTATAL });
+  });
+
+  it('una comunidad que aún no tiene su decreto copiado usa el estatal y lo dice: origen estatal', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'madrid' }, 'es');
+    expect(sda!.normativa).toEqual({ comunidad: 'madrid', origen: 'estatal', cita: CITA_ESTATAL });
+  });
+
+  it('el prompt nombra el decreto del que salen las listas, no «enseñanzas mínimas» a secas', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
+    expect(userPrompt).toContain(`CURRÍCULO OFICIAL REAL (${CITA_ESTATAL})`);
+  });
+
+  it('no cita ningún decreto si ninguna área usó currículo oficial', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda(BASE, 'es'); // sin etapa ni curso
+    expect(sda!.normativa).toBeUndefined();
+  });
+
+  it('tampoco si el área empareja pero la IA eligió códigos que no existen: el texto es el libre', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada({ competenciasSeleccionadas: [999], saberesSeleccionados: ['Z'] }));
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.normativa).toBeUndefined();
+  });
+
+  it('un área que el docente dejó en modo libre no recibe lista, aunque el alias la emparejara', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda({
+      ...BASE, etapa: 'primaria', curso: 5, materiasOficiales: { Matemáticas: null },
+    }, 'es');
+    const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
+    expect(userPrompt).not.toContain('CURRÍCULO OFICIAL REAL');
+    expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.normativa).toBeUndefined();
+  });
+
+  it('la materia que elige el docente manda: «Ciencias» no tiene alias, pero la eligió', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada({ area: 'Ciencias' }));
+    const sda = await generateSda({
+      ...BASE, areas: ['Ciencias'], etapa: 'primaria', curso: 5,
+      materiasOficiales: { Ciencias: 'Conocimiento del Medio Natural, Social y Cultural' },
+    }, 'es');
+    expect(sda!.areas[0].competenciasEspecificas).not.toContain('INVENTADO');
+    expect(sda!.normativa?.origen).toBe('estatal');
+  });
+
+  describe('con el decreto de una comunidad copiado', () => {
+    // Una materia con otro nombre y otro texto, para ver que se usa ESTA lista y no la estatal
+    const CIENCIAS: CurriculumEntry = {
+      ...materiasDe('primaria').find(m => m.nombre === 'Matemáticas')!,
+      nombre: 'Ciencias de la Naturaleza',
+      competencias: [{ n: 1, texto: 'Texto propio de la comunidad sobre la naturaleza.' }, { n: 2, texto: 'Otro texto propio.' }],
+    };
+
+    it('usa su lista, la cita como autonómica y nombra el decreto en el prompt', async () => {
+      CARGADORES.madrid = { primaria: async () => [CIENCIAS] };
+      try {
+        callGemini.mockResolvedValueOnce(respuestaSimulada({ area: 'Ciencias' }));
+        const sda = await generateSda({
+          ...BASE, areas: ['Ciencias'], etapa: 'primaria', curso: 5, comunidad: 'madrid',
+          materiasOficiales: { Ciencias: 'Ciencias de la Naturaleza' },
+        }, 'es');
+
+        expect(sda!.areas[0].competenciasEspecificas).toContain('Texto propio de la comunidad sobre la naturaleza.');
+        expect(sda!.normativa).toEqual({
+          comunidad: 'madrid', origen: 'autonomico',
+          cita: 'Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022)',
+        });
+        const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
+        expect(userPrompt).toContain('CURRÍCULO OFICIAL REAL (Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022))');
+        expect(userPrompt).toContain('Texto propio de la comunidad sobre la naturaleza.');
+      } finally {
+        delete CARGADORES.madrid;
+      }
+    });
+
+    it('una asignatura que solo existe en el estatal no se empareja con la lista de la comunidad', async () => {
+      CARGADORES.madrid = { primaria: async () => [CIENCIAS] };
+      try {
+        callGemini.mockResolvedValueOnce(respuestaSimulada());
+        const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'madrid' }, 'es');
+        // «Matemáticas» no está en esta lista de la comunidad: modo libre, nunca la lista estatal
+        expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+        expect(sda!.normativa).toBeUndefined();
+      } finally {
+        delete CARGADORES.madrid;
+      }
+    });
+  });
+});
+

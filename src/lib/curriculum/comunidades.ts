@@ -250,6 +250,20 @@ export function comunidadesOrdenadas(idioma: IdiomaApp): Comunidad[] {
   return [...normales, comunidadPorId('fuera')];
 }
 
+/**
+ * En qué idioma se muestra el texto oficial del currículo de esta comunidad.
+ * El de la app si la comunidad lo publica en él; si no, el que sí publica:
+ * Cataluña en catalán aunque la app esté en castellano, y Madrid en castellano
+ * aunque esté en catalán. El inglés no existe como idioma oficial y usa el
+ * castellano. Sin decreto registrado (el estatal está en castellano), `es`.
+ */
+export function idiomaDelTexto(id: ComunidadId, idioma: IdiomaApp): IdiomaOficial {
+  const { idiomas } = comunidadPorId(id);
+  const preferido: IdiomaOficial = idioma === 'ca' ? 'ca' : 'es';
+  if (idiomas.includes(preferido)) return preferido;
+  return idiomas[0] ?? 'es';
+}
+
 /** Las normas de una comunidad y etapa, o `null` si todavía no hay ninguna. */
 export function normasDe(id: ComunidadId, etapa: Etapa): Norma[] | null {
   return comunidadPorId(id).normas[etapa] ?? null;

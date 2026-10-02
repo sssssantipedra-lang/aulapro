@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   COMUNIDADES, NORMAS_ESTATALES, comunidadDePerfil, comunidadesOrdenadas, comunidadPorId,
-  citarNormas, esComunidadId, nombreComunidad, normasDe, textoNorma,
+  citarNormas, esComunidadId, idiomaDelTexto, nombreComunidad, normasDe, textoNorma,
 } from './comunidades';
 import { CARGADORES } from './cargar';
 
@@ -177,5 +177,25 @@ describe('citar las normas', () => {
 
   it('comunidadPorId devuelve el mismo registro que la lista', () => {
     expect(comunidadPorId('madrid')).toBe(COMUNIDADES.find(c => c.id === 'madrid'));
+  });
+});
+
+describe('idioma del texto oficial', () => {
+  it('la Comunitat Valenciana sigue el idioma de la app, y el inglés usa el castellano', () => {
+    expect(idiomaDelTexto('comunitat-valenciana', 'ca')).toBe('ca');
+    expect(idiomaDelTexto('comunitat-valenciana', 'es')).toBe('es');
+    expect(idiomaDelTexto('comunitat-valenciana', 'en')).toBe('es');
+  });
+
+  it('Cataluña siempre en catalán y Madrid siempre en castellano, esté como esté la app', () => {
+    for (const idioma of ['es', 'ca', 'en'] as const) {
+      expect(idiomaDelTexto('cataluna', idioma)).toBe('ca');
+      expect(idiomaDelTexto('madrid', idioma)).toBe('es');
+    }
+  });
+
+  it('sin decreto registrado, castellano (es el idioma del estatal)', () => {
+    expect(idiomaDelTexto('andalucia', 'ca')).toBe('es');
+    expect(idiomaDelTexto('fuera', 'en')).toBe('es');
   });
 });

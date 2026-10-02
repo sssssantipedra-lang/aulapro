@@ -10,9 +10,17 @@
  */
 
 import { materiasDe, type CurriculumEntry, type Etapa } from './index';
-import { NORMAS_ESTATALES, normasDe, type ComunidadId, type Norma } from './comunidades';
+import {
+  NORMAS_ESTATALES, idiomaDelTexto, normasDe,
+  type ComunidadId, type IdiomaApp, type IdiomaOficial, type Norma,
+} from './comunidades';
 
-export type Cargador = () => Promise<CurriculumEntry[]>;
+/**
+ * Abre los datos de una comunidad y etapa en un idioma oficial. Cuando la
+ * comunidad publica en dos idiomas hay un archivo por idioma, y se pide el de
+ * la app (ver `idiomaDelTexto`); con uno solo, siempre se pide ese.
+ */
+export type Cargador = (idioma: IdiomaOficial) => Promise<CurriculumEntry[]>;
 export type Cargadores = Partial<Record<ComunidadId, Partial<Record<Etapa, Cargador>>>>;
 
 /**
@@ -34,6 +42,8 @@ export interface CurriculoActivo {
   etapa: Etapa;
   /** `estatal` también cuando la comunidad tiene decreto pero no se pudo abrir. */
   origen: 'autonomico' | 'estatal';
+  /** Idioma del texto oficial de `materias`. */
+  idioma: IdiomaOficial;
   materias: CurriculumEntry[];
   /** Las normas de las que sale este currículo, en el orden en que se aplican. */
   normas: Norma[];
@@ -54,7 +64,10 @@ export function etapasConCurriculoPropio(
 
 /** El currículo estatal, que está siempre disponible sin esperar a nada. */
 export function curriculoEstatal(comunidad: ComunidadId, etapa: Etapa): CurriculoActivo {
-  return { comunidad, etapa, origen: 'estatal', materias: materiasDe(etapa), normas: NORMAS_ESTATALES[etapa] };
+  return {
+    comunidad, etapa, origen: 'estatal', idioma: 'es',
+    materias: materiasDe(etapa), normas: NORMAS_ESTATALES[etapa],
+  };
 }
 
 /**
@@ -69,26 +82,27 @@ export function usaEstatalPorFaltaDeDecreto(c: CurriculoActivo): boolean {
 const memoria = new WeakMap<Cargadores, Map<string, Promise<CurriculoActivo>>>();
 
 /**
- * Abre el currículo de esta comunidad y etapa. Nunca rechaza: si no hay
- * decreto propio, o el archivo no se puede abrir, devuelve el estatal con
- * `origen: 'estatal'` — un docente sin currículo autonómico sigue pudiendo
- * trabajar, y la interfaz lo sabe.
+ * Abre el currículo de esta comunidad y etapa, en el idioma que corresponde a
+ * la app. Nunca rechaza: si no hay decreto propio, o el archivo no se puede
+ * abrir, devuelve el estatal con `origen: 'estatal'` — un docente sin
+ * currículo autonómico sigue pudiendo trabajar, y la interfaz lo sabe.
  */
 export function cargarCurriculo(
-  comunidad: ComunidadId, etapa: Etapa, cargadores: Cargadores = CARGADORES,
+  comunidad: ComunidadId, etapa: Etapa, idiomaApp: IdiomaApp = 'es', cargadores: Cargadores = CARGADORES,
 ): Promise<CurriculoActivo> {
   const cargador = cargadores[comunidad]?.[etapa];
   const normas = normasDe(comunidad, etapa);
   if (!cargador || !normas) return Promise.resolve(curriculoEstatal(comunidad, etapa));
 
+  const idioma = idiomaDelTexto(comunidad, idiomaApp);
   let porClave = memoria.get(cargadores);
   if (!porClave) { porClave = new Map(); memoria.set(cargadores, porClave); }
-  const clave = `${comunidad}/${etapa}`;
+  const clave = `${comunidad}/${etapa}/${idioma}`;
 
   let pendiente = porClave.get(clave);
   if (!pendiente) {
-    pendiente = cargador().then(
-      (materias): CurriculoActivo => ({ comunidad, etapa, origen: 'autonomico', materias, normas }),
+    pendiente = cargador(idioma).then(
+      (materias): CurriculoActivo => ({ comunidad, etapa, origen: 'autonomico', idioma, materias, normas }),
       () => {
         // No se recuerda el fallo: el siguiente intento vuelve a probar.
         porClave!.delete(clave);
