@@ -17,9 +17,9 @@ describe('asignaturas con alias seguro', () => {
     expect(estadoDeMateria('Mates', quinto, PRIMARIA)).toEqual({ tipo: 'oficial', materia: 'Matemáticas', porAlias: true });
   });
 
-  it('el nombre idéntico al del decreto también empareja', () => {
+  it('el nombre idéntico al del decreto empareja sin alias (es lo que guarda una clase al marcar la lista oficial)', () => {
     expect(estadoDeMateria('Educación Física', quinto, PRIMARIA))
-      .toEqual({ tipo: 'oficial', materia: 'Educación Física', porAlias: true });
+      .toEqual({ tipo: 'oficial', materia: 'Educación Física', porAlias: false });
   });
 });
 
@@ -68,7 +68,7 @@ describe('lo que decide el docente', () => {
 describe('Matemáticas de 4º de ESO', () => {
   it('existe aunque falte elegir la opción A o B: es otra pregunta', () => {
     expect(estadoDeMateria('Matemáticas', { etapa: 'eso', curso: 4 }, ESO))
-      .toEqual({ tipo: 'oficial', materia: 'Matemáticas', porAlias: true });
+      .toEqual({ tipo: 'oficial', materia: 'Matemáticas', porAlias: false });
   });
 
   it('con la opción elegida sigue emparejando', () => {
@@ -78,9 +78,9 @@ describe('Matemáticas de 4º de ESO', () => {
 
 describe('con el currículo de una comunidad cuyas materias se llaman distinto', () => {
   const MADRID: CurriculumEntry[] = [
-    { ...PRIMARIA.find(m => m.nombre === 'Matemáticas')!, nombre: 'Matemáticas' },
-    { ...PRIMARIA.find(m => m.nombre === 'Conocimiento del Medio Natural, Social y Cultural')!, nombre: 'Ciencias de la Naturaleza' },
-    { ...PRIMARIA.find(m => m.nombre === 'Conocimiento del Medio Natural, Social y Cultural')!, nombre: 'Ciencias Sociales' },
+    { ...PRIMARIA.find(m => m.nombre === 'Matemáticas')!, id: 'matematicas', nombre: 'Matemáticas' },
+    { ...PRIMARIA.find(m => m.nombre === 'Conocimiento del Medio Natural, Social y Cultural')!, id: 'naturaleza', nombre: 'Ciencias de la Naturaleza' },
+    { ...PRIMARIA.find(m => m.nombre === 'Conocimiento del Medio Natural, Social y Cultural')!, id: 'sociales', nombre: 'Ciencias Sociales' },
   ];
 
   it('«Cono» ya no empareja por alias, porque esa materia no existe allí: se pregunta con las de su comunidad', () => {
@@ -95,5 +95,13 @@ describe('con el currículo de una comunidad cuyas materias se llaman distinto',
 
   it('una materia que sí se llama igual en las dos sigue emparejando', () => {
     expect(estadoDeMateria('Mates', quinto, MADRID)).toEqual({ tipo: 'oficial', materia: 'Matemáticas', porAlias: true });
+  });
+
+  it('se guarda el identificador de la materia: vale aunque el nombre cambie con el idioma', () => {
+    // Una clase creada en castellano y abierta con el currículo en valenciano
+    const VALENCIANO = MADRID.map(m => (m.id === 'sociales' ? { ...m, nombre: 'Ciències Socials' } : m));
+    const ctx = { ...quinto, materiasOficiales: { 'Ciencias Sociales': 'sociales' } };
+    expect(estadoDeMateria('Ciencias Sociales', ctx, VALENCIANO))
+      .toEqual({ tipo: 'oficial', materia: 'Ciències Socials', porAlias: false });
   });
 });

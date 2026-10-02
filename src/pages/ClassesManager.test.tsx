@@ -1,14 +1,16 @@
 // @vitest-environment jsdom
 /**
- * Etapa, curso y materia oficial de la clase: se piden en el formulario de la
- * clase, una vez, y ahí mismo se pueden corregir con «Editar clase».
+ * Crear y editar una clase: se eligen etapa y curso y se marcan las
+ * asignaturas tal y como las llama el currículo de la comunidad del perfil.
+ * Las que no están en la lista se añaden aparte y quedan en modo libre.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ClassesManager } from './ClassesManager';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
+import { materiasDe } from '../lib/curriculum';
 import type { Class } from '../types';
 
 afterEach(cleanup);
@@ -31,71 +33,104 @@ function setup(classes: Class[] = []) {
   return { onAddClass, onUpdateClass };
 }
 
-describe('clase con currículo oficial', () => {
-  it('sin etapa ni curso no pregunta materias: la clase se crea como siempre', async () => {
+const materia = (nombre: string | RegExp) => screen.getByRole('button', { name: nombre });
+
+async function nuevaClase(user: ReturnType<typeof userEvent.setup>, etapa: 'primaria' | 'eso', curso: string) {
+  await user.click(screen.getAllByRole('button', { name: /Nueva clase/ })[0]);
+  await user.type(screen.getByLabelText('Nombre'), '5º A');
+  await user.selectOptions(screen.getByLabelText('Etapa (currículo oficial)'), etapa);
+  await user.selectOptions(screen.getByLabelText('Curso'), curso);
+}
+
+describe('crear una clase', () => {
+  it('sin etapa y curso no se ofrecen asignaturas ni se puede crear', async () => {
     const user = userEvent.setup();
     const { onAddClass } = setup();
     await user.click(screen.getAllByRole('button', { name: /Nueva clase/ })[0]);
     await user.type(screen.getByLabelText('Nombre'), '5º A');
-    await user.type(screen.getByLabelText('Asignatura 1'), 'Mates');
-    expect(screen.queryByLabelText(/Materia oficial/)).toBeNull();
+    expect(screen.getByText(/Elige primero la etapa y el curso/)).toBeTruthy();
+    expect(screen.queryByRole('group', { name: 'Asignaturas del currículo' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Crear clase' }));
-    const creada = onAddClass.mock.calls[0][0] as Class;
-    expect(creada.etapa).toBeUndefined();
-    expect(creada.materiasOficiales).toBeUndefined();
+    expect(onAddClass).not.toHaveBeenCalled();
   });
 
-  it('con etapa y curso: detecta la materia segura, pregunta la dudosa y lo guarda en la clase', async () => {
+  it('ofrece las asignaturas oficiales del curso, con su nombre del currículo', async () => {
     const user = userEvent.setup();
-    const { onAddClass } = setup();
-    await user.click(screen.getAllByRole('button', { name: /Nueva clase/ })[0]);
-    await user.type(screen.getByLabelText('Nombre'), '2º B');
-    await user.selectOptions(screen.getByLabelText('Etapa (currículo oficial)'), 'eso');
-    await user.selectOptions(screen.getByLabelText('Curso'), '2');
-
-    await user.type(screen.getByLabelText('Asignatura 1'), 'Mates');
-    await user.click(screen.getByRole('button', { name: /Añadir otra asignatura/ }));
-    await user.type(screen.getByLabelText('Asignatura 2'), 'Ciencias');
-
-    // «Mates» se detecta sola; «Ciencias» no se adivina
-    const mates = screen.getByLabelText('Materia oficial de «Mates»') as HTMLSelectElement;
-    expect(mates.value).toBe('Matemáticas');
-    expect(screen.getByText('detectada')).toBeTruthy();
-    const ciencias = screen.getByLabelText('Materia oficial de «Ciencias»') as HTMLSelectElement;
-    expect(ciencias.value).toBe('');
-    await user.selectOptions(ciencias, 'Física y Química');
-
-    // Madrid aún no tiene su decreto: se cita el estatal y se avisa en pantalla
-    expect(screen.getByText(/Currículo: Real Decreto 217\/2022/)).toBeTruthy();
+    setup();
+    await nuevaClase(user, 'primaria', '5');
+    const grupo = screen.getByRole('group', { name: 'Asignaturas del currículo' });
+    const nombres = [...grupo.querySelectorAll('button')].map(b => b.textContent);
+    // Madrid aún no está copiada: las 7 áreas del Real Decreto, en su orden
+    expect(nombres).toEqual(materiasDe('primaria').map(m => m.nombre));
+    // Y se cita de dónde salen, avisando de que es el estatal
+    expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
     expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Comunidad de Madrid\)/)).toBeTruthy();
+  });
+
+  it('Educación en Valores solo aparece en el tercer ciclo', async () => {
+    const user = userEvent.setup();
+    setup();
+    await nuevaClase(user, 'primaria', '2');
+    expect(screen.queryByRole('button', { name: 'Educación en Valores Cívicos y Éticos' })).toBeNull();
+    await user.selectOptions(screen.getByLabelText('Curso'), '6');
+    expect(materia('Educación en Valores Cívicos y Éticos')).toBeTruthy();
+  });
+
+  it('guarda las marcadas en el orden del decreto, con su materia oficial, y las de fuera en modo libre', async () => {
+    const user = userEvent.setup();
+    const { onAddClass } = setup();
+    await nuevaClase(user, 'primaria', '5');
+    await user.click(materia('Matemáticas'));
+    await user.click(materia('Conocimiento del Medio Natural, Social y Cultural'));
+    expect(materia(/^Matemáticas$/).getAttribute('aria-pressed')).toBe('true');
+
+    await user.type(screen.getByLabelText('Otra asignatura que no está en el currículo'), 'Religión{Enter}');
+    expect(screen.getByText('Otras asignaturas')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: 'Crear clase' }));
     const creada = onAddClass.mock.calls[0][0] as Class;
-    expect(creada).toMatchObject({ etapa: 'eso', curso: 2, materiasOficiales: { Ciencias: 'Física y Química' } });
+    const orden = materiasDe('primaria').map(m => m.nombre);
+    expect(creada.subjects).toEqual([
+      ...['Matemáticas', 'Conocimiento del Medio Natural, Social y Cultural'].sort((a, b) => orden.indexOf(a) - orden.indexOf(b)),
+      'Religión',
+    ]);
+    expect(creada.subject).toBe(creada.subjects[0]);
+    expect(creada).toMatchObject({
+      etapa: 'primaria', curso: 5,
+      materiasOficiales: {
+        Matemáticas: 'Matemáticas',
+        'Conocimiento del Medio Natural, Social y Cultural': 'Conocimiento del Medio Natural, Social y Cultural',
+        Religión: null,
+      },
+    });
   });
 
-  it('«Ninguna, modo libre» se guarda como null', async () => {
+  it('una de fuera de la lista se puede quitar antes de crear', async () => {
     const user = userEvent.setup();
     const { onAddClass } = setup();
-    await user.click(screen.getAllByRole('button', { name: /Nueva clase/ })[0]);
-    await user.type(screen.getByLabelText('Nombre'), '5º A');
-    await user.selectOptions(screen.getByLabelText('Etapa (currículo oficial)'), 'primaria');
-    await user.selectOptions(screen.getByLabelText('Curso'), '5');
-    await user.type(screen.getByLabelText('Asignatura 1'), 'Mates');
-    await user.selectOptions(screen.getByLabelText('Materia oficial de «Mates»'), 'Ninguna, modo libre');
+    await nuevaClase(user, 'primaria', '5');
+    await user.click(materia('Matemáticas'));
+    await user.type(screen.getByLabelText('Otra asignatura que no está en el currículo'), 'Tutoría');
+    await user.click(screen.getByRole('button', { name: 'Añadir' }));
+    await user.click(screen.getByRole('button', { name: 'Quitar «Tutoría»' }));
     await user.click(screen.getByRole('button', { name: 'Crear clase' }));
-    expect((onAddClass.mock.calls[0][0] as Class).materiasOficiales).toEqual({ Mates: null });
+    expect((onAddClass.mock.calls[0][0] as Class).subjects).toEqual(['Matemáticas']);
+  });
+
+  it('sin ninguna asignatura no se crea', async () => {
+    const user = userEvent.setup();
+    const { onAddClass } = setup();
+    await nuevaClase(user, 'primaria', '5');
+    await user.click(screen.getByRole('button', { name: 'Crear clase' }));
+    expect(onAddClass).not.toHaveBeenCalled();
   });
 
   it('Matemáticas en 4º de ESO pide la opción A o B', async () => {
     const user = userEvent.setup();
     const { onAddClass } = setup();
-    await user.click(screen.getAllByRole('button', { name: /Nueva clase/ })[0]);
-    await user.type(screen.getByLabelText('Nombre'), '4º A');
-    await user.selectOptions(screen.getByLabelText('Etapa (currículo oficial)'), 'eso');
-    await user.selectOptions(screen.getByLabelText('Curso'), '4');
-    await user.type(screen.getByLabelText('Asignatura 1'), 'Matemáticas');
+    await nuevaClase(user, 'eso', '4');
+    await user.click(materia('Matemáticas'));
     await user.click(screen.getByRole('button', { name: 'Matemáticas B' }));
     await user.click(screen.getByRole('button', { name: 'Crear clase' }));
     expect(onAddClass.mock.calls[0][0]).toMatchObject({ curso: 4, opcionMatematicas: 'B' });
@@ -104,8 +139,8 @@ describe('clase con currículo oficial', () => {
 
 describe('editar una clase', () => {
   const clase: Class = {
-    id: 'c1', name: '5º A', subject: 'Mates', subjects: ['Mates', 'Ciencias'], room: '', color: '#0284c7',
-    owner: 'p1', etapa: 'primaria', curso: 5, materiasOficiales: { Ciencias: 'Conocimiento del Medio Natural, Social y Cultural' },
+    id: 'c1', name: '5º A', subject: 'Matemáticas', subjects: ['Matemáticas', 'Religión'], room: '', color: '#0284c7',
+    owner: 'p1', etapa: 'primaria', curso: 5, materiasOficiales: { Matemáticas: 'Matemáticas', Religión: null },
   };
 
   it('el lápiz abre el formulario relleno, y guardar actualiza la misma clase', async () => {
@@ -117,27 +152,36 @@ describe('editar una clase', () => {
     expect(screen.getByText('Editar clase', { selector: '.modal-title' })).toBeTruthy();
     expect((screen.getByLabelText('Nombre') as HTMLInputElement).value).toBe('5º A');
     expect((screen.getByLabelText('Curso') as HTMLSelectElement).value).toBe('5');
-    expect((screen.getByLabelText('Materia oficial de «Ciencias»') as HTMLSelectElement).value)
-      .toBe('Conocimiento del Medio Natural, Social y Cultural');
+    expect(materia(/^Matemáticas$/).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Quitar «Religión»' })).toBeTruthy();
 
     await user.clear(screen.getByLabelText('Nombre'));
     await user.type(screen.getByLabelText('Nombre'), '5º B');
+    await user.click(materia('Educación Física'));
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     expect(onAddClass).not.toHaveBeenCalled();
-    expect(onUpdateClass).toHaveBeenCalledWith(expect.objectContaining({ id: 'c1', name: '5º B', owner: 'p1', curso: 5 }));
+    const guardada = onUpdateClass.mock.calls[0][0] as Class;
+    expect(guardada).toMatchObject({ id: 'c1', name: '5º B', owner: 'p1', curso: 5 });
+    expect(guardada.subjects).toContain('Educación Física');
+    expect(guardada.materiasOficiales?.['Educación Física']).toBe('Educación Física');
   });
 
-  it('quitar una asignatura no deja su materia oficial guardada', async () => {
+  it('una clase anterior, con asignaturas escritas a mano, conserva lo que se sabía de ellas', async () => {
     const user = userEvent.setup();
-    const { onUpdateClass } = setup([clase]);
+    const { onUpdateClass } = setup([{
+      id: 'c2', name: '3º B', subject: 'Mates', subjects: ['Mates', 'Ciencias'], room: '', color: '#10b981',
+    }]);
     await user.click(screen.getByRole('button', { name: 'Editar clase' }));
-    const fila = screen.getByLabelText('Asignatura 2').parentElement!;
-    await user.click(within(fila).getByTitle('Quitar'));
+    // Sin etapa ni curso: hay que indicarlos para guardar
+    await user.selectOptions(screen.getByLabelText('Etapa (currículo oficial)'), 'primaria');
+    await user.selectOptions(screen.getByLabelText('Curso'), '3');
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+
     const guardada = onUpdateClass.mock.calls[0][0] as Class;
-    expect(guardada.subjects).toEqual(['Mates']);
-    expect(guardada.materiasOficiales).toBeUndefined();
+    expect(guardada.subjects).toEqual(['Mates', 'Ciencias']);
+    // «Mates» tiene alias seguro; «Ciencias» no, y queda en modo libre
+    expect(guardada.materiasOficiales).toEqual({ Mates: 'Matemáticas', Ciencias: null });
   });
 
   it('cambiar el curso fuera de 4º de ESO quita la opción de Matemáticas', async () => {

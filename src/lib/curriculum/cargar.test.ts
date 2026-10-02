@@ -11,7 +11,7 @@ import {
 import { materiasDe, type CurriculumEntry } from './index';
 import { NORMAS_ESTATALES, normasDe } from './comunidades';
 
-const MATERIA: CurriculumEntry = { nombre: 'Matemáticas', competencias: [], criterios: {}, saberes: {} };
+const MATERIA: CurriculumEntry = { id: 'Matemáticas', nombre: 'Matemáticas', competencias: [], criterios: {}, saberes: {} };
 
 describe('sin decreto propio', () => {
   it('con los cargadores reales (vacíos todavía), cualquier comunidad usa el estatal', async () => {

@@ -4,8 +4,9 @@ Decisiones tomadas el 2-10-2026 con el dueño.
 
 Estado (2-10-2026):
 
-- Hecho: registro de comunidades y de sus decretos (`src/lib/curriculum/comunidades.ts`), mecanismo de carga con vuelta al estatal (`cargar.ts`), comunidad en el perfil (guardado en escritorio y navegador, selector obligatorio al crear, edición en Perfil), aviso único a los perfiles antiguos e insignia en la barra lateral. La clase guarda etapa, curso, materia oficial de cada asignatura y opción de Matemáticas, con «Editar clase» nuevo. La SdA usa el currículo de la comunidad, pregunta la materia que no está clara, guarda la cita del decreto (`SdaContent.normativa`) y la lleva al PDF y al Word; el aviso de que se usó el estatal sale solo en pantalla.
-- Pendiente: los datos de cada decreto y su alias de materias por comunidad; el calendario.
+- Hecho: registro de comunidades y de sus decretos (`src/lib/curriculum/comunidades.ts`), mecanismo de carga con vuelta al estatal (`cargar.ts`), comunidad en el perfil (guardado en escritorio y navegador, selector obligatorio al crear, edición en Perfil), aviso único a los perfiles antiguos e insignia en la barra lateral. La clase se crea eligiendo etapa y curso y marcando sus asignaturas de la lista oficial del currículo (decisión del dueño, 2-10-2026), con «Editar clase» nuevo. La SdA usa el currículo de la comunidad, pregunta la materia que no está clara, guarda la cita del decreto (`SdaContent.normativa`) y la lleva al PDF y al Word; el aviso de que se usó el estatal sale solo en pantalla.
+- Comunitat Valenciana, Primaria: extraídos y verificados los 507 criterios del Decreto 96/2026 (ver «Comunitat Valenciana» más abajo). Falta el anexo III del 106/2022 (competencias, saberes y criterios de Educación en Valores).
+- Pendiente: el resto de datos de cada decreto; el calendario.
 - Ninguna comunidad tiene todavía su currículo copiado: `CARGADORES` está vacío y todas usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
@@ -42,8 +43,10 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 
 ### Clase
 
-- La clase guarda etapa, curso y la materia oficial de cada asignatura. Se piden una vez, al crear o editar la clase. En las clases ya creadas, la primera vez que se genere una SdA.
-- Si el nombre de una asignatura no encaja con ninguna materia del decreto de la comunidad, la app muestra un desplegable con las materias oficiales de esa comunidad y ese curso. Lo que elija el docente se recuerda para esa clase. El desplegable lleva también una salida «Ninguna, modo libre» (añadido por el diseño, no estaba en la decisión).
+- Al crear o editar una clase se eligen etapa y curso (obligatorios) y se marcan las asignaturas de la lista oficial de ese curso, con el nombre que les da el currículo de la comunidad del perfil (decisión del dueño, 2-10-2026: hay pocos usuarios, así que no hace falta conservar el modo antiguo de escribirlas a mano).
+- Las que no están en la lista (Religión, Tutoría…) se añaden aparte y quedan en modo libre (`materiasOficiales[asignatura] = null`).
+- Cada asignatura oficial guarda el identificador de su materia (`CurriculumEntry.id`), no solo el nombre: así sigue valiendo si el docente cambia el idioma de la app y el currículo se abre en el otro idioma. En el estatal el identificador es el nombre; en la Comunitat Valenciana tendrá que ser el mismo en los dos archivos de idioma.
+- Las clases anteriores, con asignaturas escritas a mano, siguen funcionando: al editarlas se piden etapa y curso, se conserva lo que se sabía de cada asignatura (alias seguro como «Mates») y el resto queda en modo libre. En la SdA, un área sin materia clara pregunta cuál es y se recuerda en la clase.
 - Nunca se mezclan decretos de distintas comunidades dentro de una SdA.
 - Una SdA guardada conserva el decreto con el que se creó (se guarda la cita en la propia SdA). Cambiar de comunidad en el perfil no reescribe las SdA que ya existen.
 
@@ -111,7 +114,33 @@ Pendiente:
   - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022).
   - Madrid, ESO: Decreto 65/2022, de 20 de julio (BOCM núm. 175, de 25 de julio de 2022).
 - En la Comunitat Valenciana el DOGV publica la modificación sin el texto consolidado. El currículo vigente hay que construirlo aplicando la modificación a la matriz, dejar anotado qué se cambió y comprobarlo contra los dos documentos. La cita de la SdA nombra los dos decretos («modificado por»).
-- Los títulos en castellano de las dos modificaciones valencianas todavía no están: se completan al comprobarlos en el DOGV.
+- El título en castellano del 66/2024 todavía no está: se completa al comprobarlo en el DOGV. El del 96/2026 ya está, comprobado con su PDF.
+
+## Comunitat Valenciana
+
+### Fuentes
+
+En `docs/decretos/comunitat-valenciana/`, para poder repetir la extracción en cualquier sesión (desde aquí no se llega al DOGV):
+
+- `decreto-96-2026.es.pdf`: DOGV núm. 10391, de 25-6-2026, en castellano. SHA-256 `05e5cdcdf45c521a4ee6eb3ded5ea402dd16be1c62b3f3d243990413be5d5c18`.
+- Pendiente: los anexos I a III del 106/2022, en castellano y en valenciano; la versión en valenciano del 96/2026; la corrección de errores del 106/2022 publicada el 3-11-2022 (los metadatos del DOGV la citan: hay que ver si toca el anexo III); y para la ESO, el 107/2022 y el 66/2024.
+
+### Qué dice cada decreto (Primaria)
+
+- 106/2022: los metadatos del DOGV (XML que dio el dueño) solo traen el articulado, no los anexos. El currículo de las áreas está en el anexo III, que solo está en el PDF.
+- 96/2026, artículo 9 nuevo: las áreas son Conocimiento del Medio Natural, Social y Cultural; Educación Plástica y Visual; Música y Danza; Educación Física; Valenciano: Lengua y Literatura; Lengua Castellana y Literatura; Lengua Extranjera; Matemáticas; Religión; y Educación en Valores Cívicos y Éticos, solo en el tercer ciclo. Desaparecen los Proyectos Interdisciplinarios.
+- 96/2026, anexo único, puntos 22 a 28: sustituye el apartado 6 (criterios de evaluación) de cada área del anexo III, ahora con criterios para los tres ciclos (el 106/2022 no los tenía para el primero). Las dos lenguas oficiales comparten tabla. Educación en Valores no cambia: sus criterios siguen siendo los del 106/2022. Las competencias específicas y los saberes básicos tampoco cambian.
+
+### Cómo se extrajeron los criterios del 96/2026
+
+- Script: `scripts/curriculo/criterios_dogv_tablas.py`, sobre las páginas 18 a 59. Resultado: `scripts/curriculo/comunitat-valenciana/criterios-96-2026.es.json`.
+- Las tablas están impresas de lado y la extracción de texto normal las desordena. El script endereza las páginas, toma las palabras con sus coordenadas de `pdftotext -bbox-layout` y asigna cada una a su ciclo por la columna en que cae. Algunos separadores de fila están dibujados como curvas: sin tenerlas en cuenta se perdían filas enteras (pasó con los 1.3 al principio).
+- Comprobaciones hechas, todas superadas:
+  - Los códigos de cada competencia son correlativos en los tres ciclos (1.1, 1.2…) y empiezan por el número de la competencia. 7 áreas, 507 criterios.
+  - Cada competencia tiene el mismo número de criterios en los tres ciclos.
+  - Los 507 textos se cruzaron con la extracción de texto normal del PDF sin girar, que es un camino independiente: 500 coinciden letra a letra. Los 7 restantes también son correctos: en 6, el texto normal pierde el guion de una palabra compuesta partida al final de línea («colaboración-oposición», «icónico-manipulativas», «afectivo-sexual», «artístico-expresivas», que aparecen con guion en otras líneas del mismo decreto), y en 1 el justificado deja suelta la palabra «resolver».
+  - La página 51 (Lengua Extranjera, competencia 7) se comparó a ojo con la imagen: cada criterio en su ciclo y palabra por palabra.
+- Literalidad: se conserva lo que pone el decreto aunque parezca una errata. Algunos códigos van sin punto («7.1 Mostrar…», `puntoTrasCodigo: false`) hay frases como «del aula en mediante el uso» en Matemáticas 4.3 de 1er ciclo, y el 6.3 de las lenguas de 3er ciclo acaba sin punto («…a través de la reflexión conjunta»), comprobado en la página 42.
 
 ## Pendiente de decidir
 

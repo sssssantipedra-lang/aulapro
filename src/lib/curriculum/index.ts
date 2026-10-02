@@ -69,6 +69,13 @@ export interface CurriculumBloqueSaberes {
  * la ESO no reparte todas las materias en los mismos bloques de cursos.
  */
 export interface CurriculumEntry {
+  /**
+   * Identificador estable de la materia, el mismo en todos los idiomas en que
+   * se publique el decreto: lo que guarda una clase para saber qué materia
+   * oficial es cada asignatura aunque el docente cambie el idioma de la app.
+   * En el currículo estatal, que solo está en castellano, es el nombre.
+   */
+  id: string;
   nombre: string;
   competencias: CurriculumCompetencia[];
   criterios: Record<string, CurriculumCriterio[]>;
@@ -76,6 +83,7 @@ export interface CurriculumEntry {
 }
 
 export interface RawEntry {
+  id?: string;
   area?: string;
   materia?: string;
   competencias: CurriculumCompetencia[];
@@ -85,6 +93,7 @@ export interface RawEntry {
 
 export function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
   return raw.map(r => ({
+    id: r.id ?? r.area ?? r.materia ?? '',
     nombre: r.area ?? r.materia ?? '',
     competencias: r.competencias,
     criterios: r.criterios,

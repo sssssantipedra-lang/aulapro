@@ -228,8 +228,6 @@ const EN: Record<string, string> = {
   'Ej. Lengua': 'e.g. English',
   'Quitar': 'Remove',
   'Añadir otra asignatura': 'Add another subject',
-  'Si le das varias, no crees una clase por cada una: pon aquí todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.':
-    'If you teach it several subjects, don’t create a separate class for each: list them all here and you’ll choose which one to assess in the gradebook, rubrics and learner-profile tracking.',
   'Crear clase': 'Create class',
   'Importar alumnos (CSV)': 'Import students (CSV)',
   'Pega las filas en formato': 'Paste the rows in the format',
@@ -1897,12 +1895,18 @@ const EN: Record<string, string> = {
   "Se usa el currículo estatal: Aula Pro aún no tiene el decreto de tu comunidad ({comunidad}).": "The national curriculum is used: Aula Pro doesn't have your community's decree yet ({comunidad}).",
   "Editar clase": "Edit class",
   "Clase actualizada": "Class updated",
-  "Asignatura {n}": "Subject {n}",
-  "Materia oficial de «{asignatura}»": "Official subject for “{asignatura}”",
   "Cambiar en la clase": "Change in the class",
   "Se guardarán en la clase «{clase}» para las próximas situaciones de aprendizaje.": "They will be saved in the class “{clase}” for your next learning situations.",
   "«{asignatura}»: ¿qué materia oficial es?": "“{asignatura}”: which official subject is it?",
   "Normativa curricular": "Curriculum regulations",
+  "Elige la etapa y el curso de la clase.": "Choose the stage and year of the class.",
+  "Elige primero la etapa y el curso: aquí aparecerán sus asignaturas tal y como las llama el currículo.": "Choose the stage and year first: their subjects will appear here as the curriculum names them.",
+  "Asignaturas del currículo": "Curriculum subjects",
+  "Otras asignaturas": "Other subjects",
+  "Quitar «{asignatura}»": "Remove “{asignatura}”",
+  "Otra asignatura que no está en el currículo": "Another subject not in the curriculum",
+  "Otra que no esté en la lista, por ejemplo Religión o Tutoría": "Another one not on the list, for example Religion or Tutorial",
+  "Si le das varias, no crees una clase por cada una: márcalas todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.": "If you teach it several subjects, don’t create a separate class for each: tick them all and you’ll choose which one to assess in the gradebook, rubrics and learner-profile tracking.",
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };

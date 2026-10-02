@@ -137,14 +137,15 @@ la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
 [classes] MIS CLASES
-El punto de partida de todo. Se crea una clase con nombre, una o varias
-asignaturas, aula y color; se puede marcar como tutoría. Opcionalmente, ETAPA Y
-CURSO (Primaria 1º-6º o ESO 1º-4º): con ellos, debajo de cada asignatura sale su
-«Materia oficial» del currículo de la comunidad. Si el nombre es claro
-(«Mates» → Matemáticas) se detecta sola; si no («Ciencias»), se elige de la
-lista o se deja en «Ninguna, modo libre». En 4º de ESO con Matemáticas se pide
-la opción A o B. El lápiz junto al nombre de la clase («Editar clase») abre el
-mismo formulario para cambiar cualquier dato. Dentro de cada clase se
+El punto de partida de todo. Se crea una clase con nombre, aula y color; se
+puede marcar como tutoría. Se eligen ETAPA Y CURSO (Primaria 1º-6º o ESO 1º-4º,
+obligatorios) y aparecen las asignaturas de ese curso tal y como las llama el
+currículo de la comunidad del perfil: se marcan las que se dan (una o varias).
+Las que no están en la lista (Religión, Tutoría…) se añaden aparte con
+«Añadir» y se trabajan en modo libre, sin currículo oficial. En 4º de ESO con
+Matemáticas se pide la opción A o B. El lápiz junto al nombre de la clase
+(«Editar clase») abre el mismo formulario para cambiar cualquier dato.
+Dentro de cada clase se
 añaden los alumnos uno a uno, o de golpe con el botón «Importar CSV»: se pegan
 las filas en formato «Nombre,Email», una por línea (la primera puede ser la
 cabecera). De cada alumno se guardan

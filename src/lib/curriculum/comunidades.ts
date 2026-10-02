@@ -99,8 +99,13 @@ export const NORMAS_ESTATALES: Record<Etapa, Norma[]> = {
 /* ── Comunitat Valenciana ──
    Cada etapa tiene su decreto matriz y una modificación posterior: el
    currículo vigente es el de la matriz con la modificación aplicada. El DOGV
-   publica en valenciano y en castellano. Los títulos de las modificaciones en
-   castellano se completan al comprobarlos contra el DOGV. */
+   publica en valenciano y en castellano.
+   - 106/2022: comprobado con los metadatos del DOGV (título en los dos
+     idiomas, núm. 9402, publicado el 10-8-2022).
+   - 96/2026: título en castellano, número y boletín comprobados con el PDF del
+     DOGV (docs/decretos/comunitat-valenciana). Falta cotejar el título en
+     valenciano, que es el que dio el dueño; hasta entonces, sin verificar.
+   - ESO: pendiente de comprobar. */
 
 const VC_PRIMARIA: Norma[] = [
   {
@@ -111,12 +116,13 @@ const VC_PRIMARIA: Norma[] = [
     },
     corto: { ca: 'Decret 106/2022, de 5 d\'agost', es: 'Decreto 106/2022, de 5 de agosto' },
     boletin: { ca: 'DOGV núm. 9402, de 10 d\'agost de 2022', es: 'DOGV núm. 9402, de 10 de agosto de 2022' },
-    verificada: false,
+    verificada: true,
   },
   {
     tipo: 'modificacion',
     titulo: {
       ca: 'Decret 96/2026, de 19 de juny, del Consell, pel qual es modifica el Decret 106/2022, de 5 d\'agost, del Consell, d\'ordenació i currículum de l\'etapa d\'Educació Primària.',
+      es: 'Decreto 96/2026, de 19 de junio, del Consell, por el que se modifica el Decreto 106/2022, de 5 de agosto, del Consell, de ordenación y currículo de la etapa de Educación Primaria.',
     },
     corto: { ca: 'Decret 96/2026, de 19 de juny', es: 'Decreto 96/2026, de 19 de junio' },
     boletin: { ca: 'DOGV núm. 10391, de 25 de juny de 2026', es: 'DOGV núm. 10391, de 25 de junio de 2026' },

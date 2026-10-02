@@ -55,6 +55,10 @@ describe('Primaria (RD 157/2022)', () => {
     expect(r?.entry.competencias).toHaveLength(8);
   });
 
+  it('en el currículo estatal el identificador de cada materia es su nombre', () => {
+    for (const a of areas) expect(a.id).toBe(a.nombre);
+  });
+
   it('una materia inexistente no revienta: devuelve null', () => {
     expect(resolverGrupo('primaria', 'Filosofía', 5)).toBeNull();
   });

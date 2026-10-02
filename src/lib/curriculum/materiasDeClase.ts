@@ -57,8 +57,16 @@ export function estadoDeMateria(
   if (tiene(ctx.materiasOficiales, asignatura)) {
     const guardada = ctx.materiasOficiales![asignatura];
     if (guardada === null) return { tipo: 'libre' };
+    // Se guarda el `id` de la materia; las clases anteriores guardaban el nombre
+    const entry = materias.find(m => m.id === guardada) ?? materias.find(m => m.nombre === guardada);
     // Una elección de otra comunidad o de otro curso ya no vale: se pregunta de nuevo
-    if (aplicaAlCurso(guardada, ctx, materias)) return { tipo: 'oficial', materia: guardada, porAlias: false };
+    if (entry && aplicaAlCurso(entry.nombre, ctx, materias)) return { tipo: 'oficial', materia: entry.nombre, porAlias: false };
+  }
+
+  // La asignatura se llama exactamente como una materia del currículo (es lo
+  // normal al crear la clase marcando las asignaturas de la lista oficial)
+  if (buscarMateria(ctx.etapa, asignatura, materias) && aplicaAlCurso(asignatura, ctx, materias)) {
+    return { tipo: 'oficial', materia: asignatura, porAlias: false };
   }
 
   const alias = emparejarMateria(asignatura, ctx.etapa);

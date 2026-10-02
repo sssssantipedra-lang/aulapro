@@ -221,6 +221,7 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
     // Una materia con otro nombre y otro texto, para ver que se usa ESTA lista y no la estatal
     const CIENCIAS: CurriculumEntry = {
       ...materiasDe('primaria').find(m => m.nombre === 'Matemáticas')!,
+      id: 'ciencias-de-la-naturaleza',
       nombre: 'Ciencias de la Naturaleza',
       competencias: [{ n: 1, texto: 'Texto propio de la comunidad sobre la naturaleza.' }, { n: 2, texto: 'Otro texto propio.' }],
     };
