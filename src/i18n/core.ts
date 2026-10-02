@@ -1838,7 +1838,7 @@ const EN: Record<string, string> = {
 
   /* ── Licencia ── */
   "Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.": "That key doesn't exist. Copy it exactly as it appears in your purchase email.",
-  "Esta clave ya está activada en dos dispositivos. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.": "This key is already activated on two devices. Deactivate it on one of them (Settings › Licence) and try again.",
+  "Esta clave ya está activada en todos los dispositivos que permite. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.": "This key is already activated on all the devices it allows. Deactivate it on one of them (Settings › Licence) and try again.",
   "Esta clave está desactivada. Revisa el correo de la compra o escríbenos.": "This key has been deactivated. Check your purchase email or get in touch.",
   "Esa clave no es de Aula Pro.": "That key isn't for Aula Pro.",
   "Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.": "Activation needs an internet connection (just this once). Connect and try again.",
@@ -1860,7 +1860,7 @@ const EN: Record<string, string> = {
   "En este equipo desde el {d}": "On this computer since {d}",
   "Licencia activa": "Licence active",
   "activada el {d}": "activated on {d}",
-  "Tu clave sirve para dos dispositivos a la vez. Si cambias de dispositivo, desactívala aquí antes y actívala en el nuevo con la misma clave.": "Your key works on two devices at a time. If you change device, deactivate it here first and then activate it on the new one with the same key.",
+  "Si cambias de dispositivo, desactiva la licencia aquí antes y actívala en el nuevo con la misma clave: así no gastas una activación.": "If you change device, deactivate the licence here first and then activate it on the new one with the same key, so you don't use up an activation.",
   "Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.": "Aula Pro will ask for the key the next time it opens on this computer. Your data is not deleted.",
   "Sí, desactivar": "Yes, deactivate",
   "Desactivar en este equipo": "Deactivate on this computer",

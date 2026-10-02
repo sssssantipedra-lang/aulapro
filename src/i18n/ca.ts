@@ -1627,7 +1627,7 @@ export const CA: Record<string, string> = {
   "Castellano, catalán o inglés internacional.": "Castellà, català o anglès internacional.",
   // Llicència
   "Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.": "Aquesta clau no existeix. Copia-la tal com apareix al correu que vas rebre en comprar.",
-  "Esta clave ya está activada en dos dispositivos. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.": "Aquesta clau ja està activada en dos dispositius. Desactiva-la en un d'ells (Configuració › Llicència) i torna-ho a provar.",
+  "Esta clave ya está activada en todos los dispositivos que permite. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.": "Aquesta clau ja està activada en tots els dispositius que permet. Desactiva-la en un d'ells (Configuració › Llicència) i torna-ho a provar.",
   "Esta clave está desactivada. Revisa el correo de la compra o escríbenos.": "Aquesta clau està desactivada. Revisa el correu de la compra o escriu-nos.",
   "Esa clave no es de Aula Pro.": "Aquesta clau no és d'Aula Pro.",
   "Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.": "Per activar cal internet (només aquesta vegada). Connecta't i torna-ho a provar.",
@@ -1649,7 +1649,7 @@ export const CA: Record<string, string> = {
   "En este equipo desde el {d}": "En aquest equip des del {d}",
   "Licencia activa": "Llicència activa",
   "activada el {d}": "activada el {d}",
-  "Tu clave sirve para dos dispositivos a la vez. Si cambias de dispositivo, desactívala aquí antes y actívala en el nuevo con la misma clave.": "La teva clau serveix per a dos dispositius alhora. Si canvies de dispositiu, desactiva-la aquí abans i activa-la al nou amb la mateixa clau.",
+  "Si cambias de dispositivo, desactiva la licencia aquí antes y actívala en el nuevo con la misma clave: así no gastas una activación.": "Si canvies de dispositiu, desactiva la llicència aquí abans i activa-la al nou amb la mateixa clau: així no gastes cap activació.",
   "Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.": "Aula Pro demanarà la clau la pròxima vegada que s'obri en aquest equip. Les teves dades no s'esborren.",
   "Sí, desactivar": "Sí, desactiva",
   "Desactivar en este equipo": "Desactiva en aquest equip",

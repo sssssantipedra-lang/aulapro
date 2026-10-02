@@ -18,7 +18,7 @@ export async function getLicenseState(): Promise<LicenseState | null> {
 /** Qué decirle al docente cuando la activación no sale. */
 export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
   'clave-no-valida': 'Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.',
-  'limite': 'Esta clave ya está activada en dos dispositivos. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.',
+  'limite': 'Esta clave ya está activada en todos los dispositivos que permite. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.',
   'desactivada': 'Esta clave está desactivada. Revisa el correo de la compra o escríbenos.',
   'otra-tienda': 'Esa clave no es de Aula Pro.',
   'sin-conexion': 'Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.',
