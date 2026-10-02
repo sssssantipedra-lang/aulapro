@@ -281,3 +281,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - Prueba en Lemon Squeezy: comprar 3 unidades cobra 20,97 € pero entrega una sola clave de 2 activaciones, y Lemon Squeezy no permite crear claves a mano. "Una clave por docente" no se puede automatizar.
 - Tras ver cómo lo hace Microsoft (claves de volumen MAK: una clave para un número fijo de equipos), el usuario elige una clave por pack con 2 dispositivos por docente (10, 20, 40 y 60). La web vuelve a decir "5 docentes", "5,00 € por docente" y "una sola clave para todo el grupo, con 2 dispositivos por docente"; condiciones, /gracias y el PDF de Lemon Squeezy, igual.
 
+## 26. Logo oficial (2-10-2026, petición del usuario)
+
+- El logo oficial es el de la app: cuadrado con degradado de morado (#863bff) a azul (#47bfff), tarjeta blanca con tres casillas marcadas y "AULAPRO" debajo (`public/favicon.svg`); sin el texto para tamaños pequeños (`public/favicon-mini.svg`). Sustituye a las capas moradas que usaba la web.
+- En la web: favicon `assets/icono.svg` (copia del pequeño), `assets/icono-180.png` para la pantalla de inicio de iPhone y iPad (fondo a sangre, iOS redondea las esquinas) y la marca de la cabecera dibujada en cada página (símbolo `#mark` en la portada y la demo; en línea en las páginas legales, de descargas y de gracias).
+- Para Lemon Squeezy: `aulapro-logo.png` (con texto) y `aulapro-icono.png` (sin texto, mejor para el avatar pequeño de la tienda), y el PDF del comprador lleva el pequeño.

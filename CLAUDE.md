@@ -11,6 +11,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `web/DISENO.md`: decisiones de diseño y de contenido de la web, ronda a ronda.
 - `docs/WEB.md`: contexto compartido entre la app y la web: modelo de venta, lo que la web promete y la app tiene que cumplir, descargas y Lemon Squeezy.
 - `docs/DESCARGAS.md`: el servidor de descargas (descargas.aulapro.app).
+- Logo oficial: `public/favicon.svg` (con "AULAPRO" debajo) y `public/favicon-mini.svg` (sin texto, para tamaños pequeños). `npm run icons` saca de ahí los iconos de la app. La web usa el pequeño: copia en `web/sitio/assets/icono.svg` y dibujado dentro de cada página (marca de la cabecera). Si cambia el logo, cambia también la web.
 
 ## Publicar
 
