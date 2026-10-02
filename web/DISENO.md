@@ -315,3 +315,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - En la web: el segundo `<video class="atras">` va encima del primero y solo se ve mientras suena (`.stage.atras-on`). La imagen hacia delante i es la imagen al revés N-1-i; con tiempos en el centro de cada imagen, el tiempo t hacia delante equivale a duración - t al revés. Al acabar, el vídeo hacia delante busca la misma imagen y el invertido se aparta. Si el invertido no ha cargado o falla, al subir se busca fotograma a fotograma como antes; si se atasca, el paso termina buscando (como el de bajada, sección 28). En las paradas, la imagen de los dos vídeos coincide (PSNR 44 dB).
 - Medido: 47-55 imágenes distintas por segundo en cada paso, en ambos sentidos; ninguna imagen se queda quieta más de 67 ms; cada paso termina en la imagen exacta de su parada. La tolerancia de búsqueda baja de 4 ms a 1 ms (a 60 fps una imagen dura 17 ms).
 
+## 32. Sin hora al empezar y franja final (2-10-2026, petición del usuario)
+
+- Se quita la etiqueta "Martes, 22:14" de la primera parada del vídeo; queda solo "Son las diez de la noche. Y el papeleo sigue ahí." (claves `b1.kicker` borradas).
+- En la última parada (la pantalla), una franja a lo ancho de la parte inferior dice "Sigue descubriendo AulaPro ↓" (`b5.more`; "Continua descobrint AulaPro", "Keep exploring AulaPro"). Es otra `.band` (`band-strip`, de 0,9 a 1): aparece al llegar a la parada y sube desde abajo con `--k`; fondo oscuro translúcido con desenfoque, flecha que baila (quieta con movimiento reducido). Es un enlace a `#funciones`.
+

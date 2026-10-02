@@ -143,6 +143,14 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .band.pos-tl{top:calc(var(--nav-h) + 1.5vh);transform:none;width:auto}
 .band.pos-tl::before{display:none}
 .pos-tl .chip{margin:0}
+/* the last stop: a strip along the bottom invites the visitor on into the page; it slides up as it appears */
+.band.band-strip{left:0;right:0;top:auto;bottom:0;width:auto;transform:translateY(calc((1 - var(--k,1))*100%));text-shadow:none}
+.band.band-strip::before{display:none}
+.strip-link{display:flex;align-items:center;justify-content:center;gap:.7em;padding:clamp(16px,2.6vh,26px) var(--gutter);background:rgba(17,12,30,.74);border-top:1px solid rgba(189,177,210,.22);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:var(--text);font:600 clamp(1rem,1.3vw,1.22rem)/1.2 var(--f-display);letter-spacing:.005em;text-decoration:none;transition:background-color .35s var(--ease-out)}
+.strip-link:hover{background:rgba(32,24,56,.84)}
+.strip-link .arr{display:inline-block;animation:strip-arr 1.8s var(--ease-io) infinite}
+@keyframes strip-arr{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){.strip-link .arr{animation:none}}
 /* second half: the sheet has landed, the left wall is calm */
 .band.pos-l{left:clamp(16px,11vw,210px);top:45%;transform:translateY(-50%);width:min(37vw,580px)}
 .band::before{content:"";position:absolute;inset:-34% -30% -34% -46%;z-index:-1;pointer-events:none;opacity:calc(.25 + .75*var(--k,1));background:radial-gradient(ellipse 62% 58% at 46% 50%,rgba(12,8,22,var(--pk,.64)) 0%,rgba(12,8,22,calc(var(--pk,.64)*.66)) 46%,rgba(12,8,22,0) 76%)}
@@ -652,7 +660,6 @@ html.zoom-open{overflow:hidden}
 
       <div class="bands">
         <div class="band fx-drift pos-tr" data-a="0" data-b="0.17" data-pk="66">
-          <p class="chip mono" data-i18n="b1.kicker">Martes, 22:14</p>
           <p class="hl" data-split data-i18n="b1.title">Son las diez de la noche.<br>Y el papeleo sigue ahí.</p>
         </div>
         <div class="band fx-strike pos-tr" data-a="0.2" data-b="0.38" data-ramp="0.04" data-pk="66">
@@ -680,6 +687,9 @@ html.zoom-open{overflow:hidden}
         </div>
         <div class="band fx-drift pos-tl" data-a="0.8" data-b="1" data-ramp="0.03" data-pk="0">
           <p class="chip mono" data-i18n="b5.chip">Así se ve AulaPro por dentro.</p>
+        </div>
+        <div class="band band-strip" data-a="0.9" data-b="1" data-ramp="0.06">
+          <a class="strip-link" href="#funciones"><span data-i18n="b5.more">Sigue descubriendo AulaPro</span><span class="arr" aria-hidden="true">↓</span></a>
         </div>
       </div>
 
