@@ -26,6 +26,7 @@ import type { Ficha } from '../types';
 import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaTarjeta, FichaVariante } from './resources';
 import { crosswordCells, type Crossword } from '../lib/crossword';
 import { fichaTheme } from '../lib/fichaThemes';
+import { loadThemeArt } from '../lib/themeArtDoc';
 import { translate, type Lang } from '../i18n';
 import { svgLightbulb, svgPencil } from './fichaIcons';
 import { pickMotifKey, MOTIF_COLORS, MOTIF_ICON } from './fichaMotifs';
@@ -168,6 +169,8 @@ export interface FichaHtmlOptions {
   preview?: boolean;
   /** Bloque seleccionado en el editor, «actividad-ejercicio» (ej. "0-2") o «actividad» ("1"). */
   selected?: string;
+  /** Ilustración del tema (`loadThemeArt`) para la cabecera; sin ella va el emoji. */
+  art?: string;
 }
 
 /** Posición «al azar» pero fija de cada adorno, para que la vista previa no baile al editar. */
@@ -229,7 +232,9 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   } else {
     const decor = theme.adornos.map((a, i) => `<span class="deco" style="${DECOR_POS[i % DECOR_POS.length]}">${esc(a)}</span>`).join('');
     headerHtml = `<header class="ficha-banner"${mark('data-part="titulo"')}>${decor}` +
-      `<span class="banner-char">${esc(historia?.emoji || theme.personaje)}</span>` +
+      (opts.art
+        ? `<img class="banner-char art" src="${opts.art}" alt="">`
+        : `<span class="banner-char">${esc(historia?.emoji || theme.personaje)}</span>`) +
       `<div class="banner-txt"><div class="kicker">${esc(t(theme.nombre))}</div><h1>${esc(c.titulo || f.title)}</h1></div></header>`;
   }
 
@@ -307,7 +312,8 @@ function tarjetasHtml(cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme
 export async function saveFichaPdf(f: Ficha, lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
-  const html = buildFichaHtml(f, lang);
+  const art = (await loadThemeArt(fichaTheme(f.content.estilo).id))?.dataUrl;
+  const html = buildFichaHtml(f, lang, { art });
   const res = await docs.savePdf(html, fileBase(f) + '.pdf', { landscape: false });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
@@ -323,6 +329,7 @@ const FICHA_DOC_STYLE = `
 .ficha-banner { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: var(--r); background: linear-gradient(135deg, var(--c), var(--cd)); color: #fff; min-height: 84px; }
 .ficha-banner .deco { position: absolute; opacity: .55; line-height: 1; }
 .ficha-banner .banner-char { font-size: 46px; line-height: 1; flex-shrink: 0; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.45); }
+.ficha-banner .banner-char.art { width: 74px; height: 74px; border-radius: 14px; object-fit: cover; background: #fff; }
 .ficha-banner .banner-txt { position: relative; min-width: 0; padding-right: 150px; }
 .ficha-banner .kicker { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; opacity: .85; margin-bottom: 3px; }
 .ficha-banner h1 { font-family: var(--font-t); font-size: 21px; font-weight: 800; margin: 0; line-height: 1.2; }
@@ -790,6 +797,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   // ilustración, a modo de cabecera con identidad — igual que las
   // cabeceras de actividad más abajo, sin necesitar rasterizar nada. Con un
   // tema, la cabecera es la del tema, con su personaje.
+  const art = classic ? null : await loadThemeArt(theme.id);
   const motif = classic
     ? MOTIF_COLORS[pickMotifKey(f.request.tema, f.request.area)]
     : { bg: theme.color, accent: 'FFFFFF' };
@@ -804,7 +812,10 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
           children: [
             ...(classic ? [] : [new Paragraph({
               children: [
-                new TextRun({ text: `${historia?.emoji || theme.personaje}  `, font: EMOJI_FONT, size: 36 }),
+                art
+                  ? new ImageRun({ type: 'jpg', data: art.bytes, transformation: { width: 56, height: 56 } })
+                  : new TextRun({ text: `${historia?.emoji || theme.personaje}`, font: EMOJI_FONT, size: 36 }),
+                new TextRun({ text: '  ' }),
                 new TextRun({ text: `${t(theme.nombre).toUpperCase()}   ${theme.adornos.slice(0, 3).join(' ')}`, bold: true, color: 'FFFFFF', size: 16 }),
               ],
             })]),

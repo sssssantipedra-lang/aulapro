@@ -116,6 +116,12 @@ function aventuraFixture(): Ficha {
 }
 
 describe('exportFicha — temas con historia y tipos nuevos', () => {
+  it('pone la ilustración del tema en la cabecera si la hay, y si no el emoji', () => {
+    const art = 'data:image/jpeg;base64,AAAA';
+    expect(buildFichaHtml(aventuraFixture(), 'es', { art })).toContain(`<img class="banner-char art" src="${art}"`);
+    expect(buildFichaHtml(aventuraFixture(), 'es')).toContain('<span class="banner-char">');
+  });
+
   it('pinta la cabecera del tema, la misión, los bloques con su nombre y la insignia', () => {
     const html = buildFichaHtml(aventuraFixture(), 'es');
     expect(html).toContain('ficha-banner');
