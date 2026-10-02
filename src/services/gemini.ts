@@ -192,7 +192,7 @@ interface GeminiCallbacks {
 }
 
 function friendlyError(status: number, apiMessage: string): string {
-  if (status === 400 && /api key/i.test(apiMessage)) return 'La clave API no es válida. Revísala en Configuración.';
+  if (status === 401 || (status === 400 && /api key/i.test(apiMessage))) return 'La clave API no es válida. Revísala en Configuración.';
   if (status === 403) return 'La clave API no tiene permiso para usar Gemini. Genera una nueva en Google AI Studio.';
   if (status === 429) {
     return /per ?day|PerDay|daily/i.test(apiMessage)
@@ -293,10 +293,10 @@ async function callModel(
   }
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents,
@@ -394,11 +394,11 @@ export async function callGemini(
 
         lastError = friendlyError(result.status, result.message);
         if (result.status === 429) markExhausted(model, result.message);
-        // Solo un 400 (clave con formato inválido) detiene toda la cadena: eso
+        // Solo un 400 o un 401 (clave no válida) detiene toda la cadena: eso
         // fallaría igual en cualquier modelo. Un 403 aquí no tiene por qué
         // significar que la clave esté mal en general, solo que le falta
         // acceso a ese modelo concreto — se prueba con el siguiente.
-        if (result.status === 400) break;
+        if (result.status === 400 || result.status === 401) break;
         // 403 (sin acceso a ESTE modelo), 404 (no disponible) o 429 (cuota):
         // probar el siguiente.
       } catch {

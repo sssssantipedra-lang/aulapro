@@ -15,7 +15,9 @@ import { resolverGrupo, type Etapa } from '../lib/curriculum';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { buildSdaPosterHtml, saveSdaPosterPdf } from '../services/exportSdaPoster';
+import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
+import { ThemeArt } from '../components/fichas/ThemeArt';
 import { hasApiKey, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -375,6 +377,7 @@ export function LearningSituations({
   /* ── Cartel para el aula ── */
   const [posterOpen, setPosterOpen] = useState(false);
   const [posterTheme, setPosterTheme] = useState<FichaThemeId>('espacio');
+  const posterArt = useThemeArt(posterTheme);
   const [posterBusy, setPosterBusy] = useState(false);
 
   async function handlePosterPdf() {
@@ -1311,7 +1314,7 @@ export function LearningSituations({
               key={th.id} type="button" role="radio" aria-checked={posterTheme === th.id}
               className={`chip sm${posterTheme === th.id ? ' on' : ''}`} onClick={() => setPosterTheme(th.id)}
             >
-              {th.personaje} {t(th.nombre)}
+              <ThemeArt id={th.id} className="chip-art" />{t(th.nombre)}
             </button>
           ))}
         </div>
@@ -1319,7 +1322,7 @@ export function LearningSituations({
           <div className="sda-poster-preview">
             <iframe
               title={t('Vista previa del cartel')}
-              srcDoc={buildSdaPosterHtml(currentSda()!, posterTheme, lang, { preview: true })}
+              srcDoc={buildSdaPosterHtml(currentSda()!, posterTheme, lang, { preview: true, art: posterArt })}
             />
           </div>
         )}

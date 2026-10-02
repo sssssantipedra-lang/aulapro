@@ -11,6 +11,7 @@ import { useResetOnChange } from '../lib/useResetOnChange';
 import type { Ficha } from '../types';
 import { ChallengePresenter } from '../components/live/ChallengePresenter';
 import { fichaTheme } from '../lib/fichaThemes';
+import { ThemeArt } from '../components/fichas/ThemeArt';
 import { useI18n } from '../i18n';
 
 /* ════════════════════════════════════════════════════════════
@@ -1323,9 +1324,7 @@ function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick:
               const kind = f.content.formato === 'escape' ? t('Escape room') : f.content.formato === 'tarjetas' ? t('Tarjetas') : t(th.nombre);
               return (
                 <button key={f.id} type="button" className="cp-pick" onClick={() => onPick(f)}>
-                  <span className="cp-pick-art" style={{ background: th.id === 'clasico' ? `#${th.claro}` : `linear-gradient(135deg, #${th.color}, #${th.oscuro})` }}>
-                    {f.content.historia?.emoji || th.personaje}
-                  </span>
+                  <ThemeArt id={th.id} className="cp-pick-art" />
                   <span><strong>{f.title}</strong><em>{kind}</em></span>
                 </button>
               );

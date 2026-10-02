@@ -10,6 +10,7 @@
 import type { LearningSituation } from '../types';
 import { translate, type Lang } from '../i18n';
 import { fichaTheme, type FichaThemeId } from '../lib/fichaThemes';
+import { loadThemeArt } from '../lib/themeArtDoc';
 
 const esc = (s: string) => (s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
@@ -32,7 +33,7 @@ const COMPETENCE_NAME: Record<string, string> = {
   CPSAA: 'Aprender a aprender', CC: 'Ciudadanía', CE: 'Emprender', CCEC: 'Cultura',
 };
 
-export function buildSdaPosterHtml(sda: LearningSituation, themeId: FichaThemeId, lang: Lang, opts: { preview?: boolean } = {}): string {
+export function buildSdaPosterHtml(sda: LearningSituation, themeId: FichaThemeId, lang: Lang, opts: { preview?: boolean; art?: string } = {}): string {
   const t = (k: string, v?: Record<string, string | number>) => translate(lang, k, v);
   const c = sda.content;
   const theme = fichaTheme(themeId === 'clasico' ? 'espacio' : themeId);
@@ -64,7 +65,7 @@ export function buildSdaPosterHtml(sda: LearningSituation, themeId: FichaThemeId
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><title>${esc(c.titulo)}</title><style>${POSTER_STYLE}${opts.preview ? PREVIEW_STYLE : ''}</style></head>` +
     `<body><article class="poster" style='${vars}'>` +
-    `<header class="banner">${decor}<span class="hero">${esc(theme.personaje)}</span>` +
+    `<header class="banner">${decor}${opts.art ? `<img class="hero art" src="${opts.art}" alt="">` : `<span class="hero">${esc(theme.personaje)}</span>`}` +
     `<div class="banner-txt"><div class="kicker">${esc(t('Situación de aprendizaje'))}${meta ? ` · ${esc(meta)}` : ''}</div><h1>${esc(c.titulo)}</h1></div></header>` +
     `<section class="box reto"><h2>🎯 ${esc(t('Nuestro reto'))}</h2><p>${esc(firstSentences(c.justificacion, 320))}</p></section>` +
     (c.productoFinal ? `<section class="box meta"><h2>🏁 ${esc(t('Lo que vamos a conseguir'))}</h2><p>${esc(firstSentences(c.productoFinal, 220))}</p></section>` : '') +
@@ -111,6 +112,7 @@ h2 { font-family: var(--font-t); font-size: 15px; margin: 0 0 6px; color: var(--
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
 .chip { font-size: 13px; padding: 5px 11px; border-radius: 99px; background: var(--cl); }
 .ph-step { font-size: 12.5px !important; }
+.hero.art { border-radius: 22px; object-fit: cover; background: #fff; }
 .final { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 10px; border-radius: var(--r); background: linear-gradient(135deg, var(--c), var(--cd)); color: #fff; font-family: var(--font-t); font-size: 20px; font-weight: 800; }
 .final span { font-size: 28px; }
 .chip b { color: var(--cd); }
@@ -127,7 +129,8 @@ export async function saveSdaPosterPdf(sda: LearningSituation, themeId: FichaThe
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-  const res = await docs.savePdf(buildSdaPosterHtml(sda, themeId, lang), `cartel-${slug(sda.title || 'sda')}.pdf`, { landscape: false });
+  const art = (await loadThemeArt(themeId === 'clasico' ? 'espacio' : themeId))?.dataUrl;
+  const res = await docs.savePdf(buildSdaPosterHtml(sda, themeId, lang, { art }), `cartel-${slug(sda.title || 'sda')}.pdf`, { landscape: false });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }

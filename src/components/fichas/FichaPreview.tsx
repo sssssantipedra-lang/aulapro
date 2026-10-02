@@ -10,6 +10,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ficha } from '../../types';
 import { buildFichaHtml } from '../../services/exportFicha';
+import { fichaTheme } from '../../lib/fichaThemes';
+import { useThemeArt } from '../../lib/themeArtDoc';
 import type { Lang } from '../../i18n';
 
 /** Ancho del documento de la vista previa: la hoja A4 (210 mm ≈ 794 px) con su margen gris. */
@@ -30,7 +32,8 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
   const onSelectRef = useRef(onSelect);
   useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
 
-  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true }), [ficha, lang]);
+  const art = useThemeArt(fichaTheme(ficha.content.estilo).id);
+  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art }), [ficha, lang, art]);
 
   // Escala al ancho disponible
   useEffect(() => {

@@ -16,6 +16,12 @@ const sda = {
 } as unknown as LearningSituation;
 
 describe('cartel de la SdA', () => {
+  it('pone la ilustración del tema si la hay, y si no el emoji', () => {
+    const art = 'data:image/jpeg;base64,AAAA';
+    expect(buildSdaPosterHtml(sda, 'selva', 'es', { art })).toContain(`<img class="hero art" src="${art}"`);
+    expect(buildSdaPosterHtml(sda, 'selva', 'es')).toContain('<span class="hero">🦁</span>');
+  });
+
   it('lleva el reto, el producto, las fases con sus sesiones y las competencias', () => {
     const html = buildSdaPosterHtml(sda, 'selva', 'es');
     expect(html).toContain('Mercado sostenible');

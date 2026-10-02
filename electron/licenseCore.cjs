@@ -8,7 +8,7 @@
  *   - `fundador`: docentes que ya usaban Aula Pro antes de que se vendiera.
  *     Nunca ven la pantalla de activación en ese ordenador.
  *   - `licencia`: se activó con una clave comprada en la web. Se comprueba con
- *     la tienda cada semana; sin internet sigue funcionando hasta 30 días.
+ *     la tienda cada semana; sin internet sigue funcionando, sin límite de tiempo.
  *
  * Los dos van atados a la huella del equipo: copiar la carpeta de datos (o el
  * pendrive con la versión portable) a otro ordenador no se lleva la licencia.
