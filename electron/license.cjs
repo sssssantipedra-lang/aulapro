@@ -25,12 +25,12 @@ const core = require('./licenseCore.cjs');
  * FOUNDER_CUTOFF: fecha de esa versión (p. ej. '2026-11-01'). Quien tenga un
  *   perfil creado antes también es fundador aunque se salte versiones.
  * STORE_ID: el número de tienda de Lemon Squeezy; así una clave de otra tienda
- *   no vale. Vacío hasta que exista la tienda.
+ *   no vale (487841: aulapro.lemonsqueezy.com).
  * BUY_URL: la página donde se compra.
  */
 const ENFORCED = false;
 const FOUNDER_CUTOFF = '';
-const STORE_ID = '';
+const STORE_ID = '487841';
 const BUY_URL = 'https://aulapro.app';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
 
