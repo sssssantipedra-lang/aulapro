@@ -286,3 +286,9 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - El logo oficial es el de la app: cuadrado con degradado de morado (#863bff) a azul (#47bfff), tarjeta blanca con tres casillas marcadas y "AULAPRO" debajo (`public/favicon.svg`); sin el texto para tamaños pequeños (`public/favicon-mini.svg`). Sustituye a las capas moradas que usaba la web.
 - En la web: favicon `assets/icono.svg` (copia del pequeño), `assets/icono-180.png` para la pantalla de inicio de iPhone y iPad (fondo a sangre, iOS redondea las esquinas) y la marca de la cabecera dibujada en cada página (símbolo `#mark` en la portada y la demo; en línea en las páginas legales, de descargas y de gracias).
 - Para Lemon Squeezy: `aulapro-logo.png` (con texto) y `aulapro-icono.png` (sin texto, mejor para el avatar pequeño de la tienda), y el PDF del comprador lleva el pequeño.
+
+## 27. Mac, más adelante (2-10-2026, decisión del usuario)
+
+- Hasta que haya ganancias para pagar la firma de Apple, AulaPro se vende para Windows y Android. Una app de Mac sin firmar obliga a saltarse un aviso de seguridad al instalarla, y eso genera desconfianza.
+- En la portada, la ficha de Mac pasa a ser un `<span class="store store-soon">` atenuado con "Próximamente": no es un enlace y `app.js` ya no la cuenta para abrir la tienda. Textos: "Windows y Android" y, en la pregunta 8 y bajo los botones, "La versión para Mac llegará más adelante". /descargar: tarjeta de Mac en "Próximamente", sin botón y sin la ayuda del aviso de macOS. /gracias: sin acceso directo a Mac. Condiciones y privacidad: solo Windows y Android. Los detalles para recuperarlo están en `docs/WEB.md`, apartado 4.
+

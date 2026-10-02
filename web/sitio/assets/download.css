@@ -39,3 +39,4 @@ details.help div{padding:0 0 1.2rem;display:grid;gap:.7rem}
 .quick{display:flex;flex-wrap:wrap;gap:10px;margin-top:.8rem}
 @media (max-width:860px){.dl{grid-template-columns:1fr}}
 @media (pointer:coarse){.btn{min-height:46px}}
+.dl-soon{opacity:.62}

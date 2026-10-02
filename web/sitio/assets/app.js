@@ -12,7 +12,6 @@
   const LAUNCH = window.AULA_LAUNCH || {};
   const STORE_LINKS = {
     windows: LAUNCH.checkout || '',
-    mac: LAUNCH.checkout || '',
     android: LAUNCH.checkout || ''
   };
 
@@ -623,7 +622,7 @@
   /* ================= platform buttons ================= */
   function setupStores() {
     let allOpen = true;
-    $$('.store').forEach(a => {
+    $$('a.store').forEach(a => {                 // the Mac tile is a <span>: coming soon, never a link
       const url = STORE_LINKS[a.dataset.store];
       const label = $('small', a);
       if (url) {

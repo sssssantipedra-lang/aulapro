@@ -16,7 +16,7 @@ Contexto compartido entre la app y la web. Actualizado el 1 de octubre de 2026.
 
 ## 2. Modelo de venta
 
-- Una sola licencia para Windows, Mac y Android, vendida en la web con Lemon Squeezy, que actúa como vendedor registrado (cobra, gestiona el IVA y factura).
+- Una sola licencia para Windows y Android, vendida en la web con Lemon Squeezy, que actúa como vendedor registrado (cobra, gestiona el IVA y factura).
 - Oferta de lanzamiento hasta el 15 de abril de 2027 incluido: pago único de 6,99 € con impuestos incluidos y licencia de por vida (no caduca e incluye las actualizaciones, también después de esa fecha).
 - Desde el 16 de abril de 2027, las licencias nuevas son anuales: 11,99 € al año, con impuestos incluidos. La web y las condiciones ya lo anuncian. Las licencias de por vida vendidas antes se respetan siempre.
 - Hasta 2 dispositivos activados a la vez.
@@ -56,7 +56,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
     - Store ID: `9N9WJW9C24DN`, ficha: https://apps.microsoft.com/detail/9N9WJW9C24DN (no funciona hasta que la app esté publicada; entonces va en `store` de `web/sitio/assets/launch.js`).
   - Para la app: en `package.json` → `build`, añadir el objetivo `appx` (x64) a `win.target` y un bloque `appx` con `identityName: "EdTechLabs.AulaPro"`, `publisher: "CN=9A7A9138-5354-4236-8D7F-D57E49D851CB"`, `publisherDisplayName: "EdTech Labs"`, `applicationId: "AulaPro"` y `displayName: "AulaPro"` (debe coincidir con el nombre reservado, sin espacio, aunque `productName` sea "Aula Pro"). Poner los iconos de mosaico propios en `build/appx/` (StoreLogo, Square44x44Logo, Square150x150Logo, Wide310x150Logo); si faltan, electron-builder usa unos genéricos. En `electron/updater.cjs`, no buscar actualizaciones cuando `process.windowsStore` sea `true`: en la versión de la Store actualiza la Store. El .msix/.appx se sube a la Store sin firmar; Microsoft lo firma.
   - **Hecho en la app 1.8.0:** objetivo `appx` con esos datos, mosaicos generados por `npm run icons` en `build/appx/` y el actualizador apagado con `process.windowsStore`. Cada versión adjunta `AulaPro-<versión>-microsoft-store.appx` al release de GitHub (no se sube a descargas.aulapro.app); `store.yml` también lo compila en los pull request y a mano desde Actions.
-  - **Mac: descarga directa sin firmar ni notarizar.** /descargar explica "Abrir igualmente". Firmar exigiría Apple Developer (99 $ al año).
+  - **Mac: pospuesto (2-10-2026).** El usuario no quiere vender una app sin firmar, porque instalarla genera desconfianza, ni pagar Apple Developer (99 $ al año) hasta que haya ganancias. La web no ofrece Mac: la portada lo muestra como «Próximamente» (una ficha que no es enlace), /descargar tiene la tarjeta de Mac en «Próximamente» y sin botón, /gracias no tiene acceso directo a Mac, y las condiciones y la privacidad hablan solo de Windows y Android ("Por ahora no hay versión para Mac"). El .dmg sigue en descargas.aulapro.app y en GitHub para quien ya lo usa. Cuando haya firma: recuperar la tarjeta y el botón, quitar "Por ahora no hay versión para Mac" y volver a "Windows, Mac y Android" en los tres idiomas.
 - Enlaces estables que usa la web (`assets/launch.js`):
   - https://descargas.aulapro.app/AulaPro-instalador-windows.exe
   - https://descargas.aulapro.app/AulaPro-mac.dmg
@@ -72,7 +72,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 3. Claves de licencia activadas, límite de 2 activaciones, sin caducidad.
 4. Tras el pago, redirigir a https://aulapro.app/gracias
 5. Botón del recibo por correo: https://aulapro.app/descargar
-6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria. Oferta de lanzamiento hasta el 15 de abril de 2027: pago único de 6,99 € y licencia de por vida para Windows, Mac y Android, en hasta 2 dispositivos a la vez, con las actualizaciones incluidas. Devolución en 14 días sin preguntas."
+6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria. Oferta de lanzamiento hasta el 15 de abril de 2027: pago único de 6,99 € y licencia de por vida para Windows y Android, en hasta 2 dispositivos a la vez, con las actualizaciones incluidas. Devolución en 14 días sin preguntas."
 Ojo, 1-10-2026: al crear la cuenta, Lemon Squeezy recomienda "Managed Payments" de Stripe (su dueño desde 2024). No se eligió porque Stripe no genera ni valida claves de licencia, y la venta depende de ellas; se siguió con "Continue with Lemon Squeezy". Lemon Squeezy sigue funcionando sin fecha de cierre, pero su plan es pasar a sus usuarios a Managed Payments. Si algún día hay que migrar, la web solo cambia sus enlaces de pago; la app necesitaría otro sistema de licencias (por ejemplo Polar, que también es vendedor registrado y genera claves).
 
 7. Packs: en el mismo producto, una variante por pack, todas de pago único, con claves de licencia y sin caducidad: "Pack 5 docentes" 24,99 € (límite 10 activaciones), "Pack 10 docentes" 44,99 € (20), "Pack 20 docentes" 79,99 € (40) y "Pack 30 docentes" 99,99 € (60). La variante de la licencia individual se llama "Licencia individual (oferta de lanzamiento)", 6,99 €, límite 2. No usar `?quantity=`: cobra por unidad pero entrega una sola clave de 2 activaciones (probado el 2-10-2026). Los enlaces de pago de los packs van en `packs` de `web/sitio/assets/launch.js`.

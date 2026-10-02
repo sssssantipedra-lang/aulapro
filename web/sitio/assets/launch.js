@@ -18,6 +18,7 @@ window.AULA_LAUNCH = {
   // Installers. The release pipeline uploads every new version here under these same names.
   downloads: {
     windows: 'https://descargas.aulapro.app/AulaPro-instalador-windows.exe',
+    // not offered on the site until the Mac app is signed (docs/WEB.md); kept for whoever already uses it
     mac: 'https://descargas.aulapro.app/AulaPro-mac.dmg'
   },
   // {"version":"1.7.1","fecha":"2026-10-01"}, shown on the download page. Leave it empty until the
