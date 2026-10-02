@@ -75,7 +75,7 @@ export interface CurriculumEntry {
   saberes: Record<string, CurriculumBloqueSaberes[]>;
 }
 
-interface RawEntry {
+export interface RawEntry {
   area?: string;
   materia?: string;
   competencias: CurriculumCompetencia[];
@@ -83,7 +83,7 @@ interface RawEntry {
   saberes: Record<string, CurriculumBloqueSaberes[]>;
 }
 
-function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
+export function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
   return raw.map(r => ({
     nombre: r.area ?? r.materia ?? '',
     competencias: r.competencias,

@@ -11,6 +11,7 @@ import { buildDemoData } from '../lib/demoData';
 import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
 import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
+import { comunidadDePerfil } from '../lib/curriculum/comunidades';
 import type { TeacherProfile } from '../services/storage';
 import {
   pushEntry, newEntry, formatGrade, formatDay,
@@ -274,7 +275,7 @@ export function useAppState() {
   }, [profileId]);
 
   const createAndOpenProfile = useCallback(async (
-    input: { name: string; school: string; subject: string; course: string },
+    input: store.NewProfileInput,
     options: { importLegacy?: boolean; demo?: boolean } = {},
   ) => {
     const created = await store.createProfile(input);
@@ -312,6 +313,7 @@ export function useAppState() {
     full_name: profile.name,
     school: profile.school,
     subject: profile.subject,
+    community: comunidadDePerfil(profile.community) ?? undefined,
   } : null), [profile]);
 
   /* ── Lápidas para que los borrados se propaguen ── */

@@ -1,10 +1,14 @@
 import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, GradeCategory, GradeItem, GradeMap, ClassMark } from '../types';
 import { isoDate } from './utils';
+import type { ComunidadId } from './curriculum/comunidades';
 
 /**
  * Datos de ejemplo para explorar la app sin introducir datos reales.
  * Se cargan solo si el usuario pulsa "Cargar datos de ejemplo".
  */
+
+/** La comunidad del perfil de demostración (es solo la de los datos de ejemplo). */
+export const DEMO_COMMUNITY: ComunidadId = 'comunitat-valenciana';
 
 export const DEMO_USER: User = {
   id: 'demo-uid-001',

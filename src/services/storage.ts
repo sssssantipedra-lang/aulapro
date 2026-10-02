@@ -6,6 +6,8 @@
  * que la versión web siga siendo utilizable.
  */
 
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+
 export interface TeacherProfile {
   id: string;
   name: string;
@@ -13,6 +15,19 @@ export interface TeacherProfile {
   subject: string;
   /** Curso escolar, por ejemplo «2025-2026». */
   course: string;
+  /**
+   * Comunidad autónoma del docente: de ella salen el currículo y el calendario
+   * (ver `lib/curriculum/comunidades.ts`). Ausente en los perfiles creados
+   * antes de que existiera; la app se la pide una vez al abrirlos. Leerla
+   * siempre con `comunidadDePerfil`, no directamente: una copia de seguridad
+   * editada a mano puede traer cualquier cosa.
+   */
+  community?: ComunidadId;
+  /**
+   * Cuándo se le preguntó por la comunidad a un perfil que no la tenía. Con
+   * esto el aviso sale una sola vez, la elija o la deje para después.
+   */
+  communityPromptAt?: string;
   createdAt: string;
   lastOpenedAt: string;
   /**
@@ -34,6 +49,15 @@ export interface FolderInfo {
   path: string;
   bytes: number;
   backups: BackupInfo[];
+}
+
+/** Lo que se pide al crear un perfil. */
+export interface NewProfileInput {
+  name: string;
+  school: string;
+  subject: string;
+  course: string;
+  community?: ComunidadId;
 }
 
 export type ProfileData = Record<string, unknown>;
@@ -83,15 +107,14 @@ export async function listProfiles(): Promise<TeacherProfile[]> {
   return webProfiles();
 }
 
-export async function createProfile(
-  input: { name: string; school: string; subject: string; course: string },
-): Promise<TeacherProfile> {
+export async function createProfile(input: NewProfileInput): Promise<TeacherProfile> {
   const b = bridge();
   if (b) return (await b.createProfile(input)) as TeacherProfile;
 
   const profile: TeacherProfile = {
     id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name: input.name, school: input.school, subject: input.subject, course: input.course,
+    ...(input.community ? { community: input.community } : {}),
     createdAt: new Date().toISOString(),
     lastOpenedAt: new Date().toISOString(),
   };

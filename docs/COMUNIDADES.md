@@ -1,6 +1,12 @@
 # Comunidades autónomas: Comunitat Valenciana, Cataluña y Madrid
 
-Decisiones tomadas el 2-10-2026 con el dueño. Estado: diseño aprobado, todavía sin código.
+Decisiones tomadas el 2-10-2026 con el dueño.
+
+Estado (2-10-2026):
+
+- Hecho: registro de comunidades y de sus decretos (`src/lib/curriculum/comunidades.ts`), mecanismo de carga con vuelta al estatal (`cargar.ts`), comunidad en el perfil (guardado en escritorio y navegador, selector obligatorio al crear, edición en Perfil), aviso único a los perfiles antiguos e insignia en la barra lateral.
+- Pendiente: etapa, curso y materia oficial en la clase; la SdA con la cita de la normativa y el aviso de estatal; los datos de cada decreto; el calendario.
+- Ninguna comunidad tiene todavía su currículo copiado: `CARGADORES` está vacío y todas usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
 
@@ -77,19 +83,34 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 
 - Desde dónde vigila la tarea: una Action programada en este repositorio. Hará falta que pueda leer los boletines y, si la extracción usa IA, una clave como secreto del repositorio.
 
-## Estructura técnica prevista
+## Estructura técnica
 
-- `TeacherProfile.community` (identificador de la comunidad). Hay que añadirlo en `src/services/storage.ts` y en `electron/storage.cjs`, que filtra los campos al crear el perfil.
-- Un registro de comunidades en `src/lib/curriculum/` con: identificador, nombre, idiomas, decreto de cada etapa con su cita, y estado (`copiado` o `estatal`).
-- Datos en `src/lib/curriculum/data/<comunidad>/primaria.json` y `eso.json`.
-- `mapeoMaterias.ts` pasa a ser por comunidad: las áreas cambian de nombre y a veces de número, y de ahí sale el desplegable.
+Hecho:
+
+- `TeacherProfile.community` y `communityPromptAt` en `src/services/storage.ts`. El escritorio (`electron/storage.cjs`) guarda `community` al crear el perfil. Se lee siempre con `comunidadDePerfil`, que descarta cualquier valor que no sea de la lista.
+- `src/lib/curriculum/comunidades.ts`: las 20 opciones (17 comunidades, Ceuta, Melilla y «Fuera de España»), sus decretos por etapa con matriz y modificaciones, y las funciones para citarlos en el idioma de la app sin traducir.
+- `src/lib/curriculum/cargar.ts`: `CARGADORES` (vacío hasta que llegue el primer decreto), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`.
+- `src/components/CommunitySelect.tsx` (selector con «próximamente» y una nota de qué currículo se usará), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
+
+Pendiente:
+
+- Datos en `src/lib/curriculum/data/<comunidad>/primaria.json` y `eso.json`, y su entrada en `CARGADORES`.
+- `mapeoMaterias.ts` por comunidad: las áreas cambian de nombre y a veces de número, y de ahí sale el desplegable.
 - La forma de los datos actuales es la del RD estatal. Los decretos autonómicos pueden agrupar los cursos de otra manera o traer campos propios. Se decide con el texto real delante. Hacia fuera, la interfaz de `index.ts` debe seguir siendo la misma.
-- `LearningSituation.request` guarda la cita de la normativa usada.
+- `Class` con etapa, curso y materia oficial; `LearningSituation.request` con la cita de la normativa usada.
 
 ## Bloqueos y pendientes
 
 - Acceso de red del entorno de Claude: `dogv.gva.es`, `portaljuridic.gencat.cat`, `www.bocm.es` y `www.boe.es`. Más adelante, para el calendario: `ceice.gva.es`, `educacio.gencat.cat` y `www.comunidad.madrid`. Sin esto no se puede transcribir ningún decreto.
-- Decretos previstos, de memoria y por comprobar contra la fuente antes de citarlos en la app:
-  - Comunitat Valenciana: Decreto 106/2022 (Primaria) y Decreto 107/2022 (ESO), de 5 de agosto.
-  - Cataluña: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (Primaria y ESO en uno).
-  - Madrid: Decreto 61/2022, de 13 de julio (Primaria) y Decreto 65/2022, de 20 de julio (ESO).
+- Decretos, tal y como los dio el dueño (2-10-2026). En el registro llevan `verificada: false` hasta comprobar título, número y boletín contra la publicación oficial, y una prueba impide que una comunidad con currículo propio cite una norma sin verificar:
+  - Comunitat Valenciana, Primaria: Decret 106/2022, de 5 d'agost (DOGV núm. 9402, de 10 d'agost de 2022), modificado por el Decret 96/2026, de 19 de juny (DOGV núm. 10391, de 25 de juny de 2026).
+  - Comunitat Valenciana, ESO: Decret 107/2022, de 5 d'agost (DOGV núm. 9403, d'11 d'agost de 2022), modificado por el Decret 66/2024, de 21 de juny (DOGV núm. 9879, de 26 de juny de 2024).
+  - Cataluña, Primaria y ESO en uno: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (DOGC núm. 8762, de 29 de setembre de 2022).
+  - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022).
+  - Madrid, ESO: Decreto 65/2022, de 20 de julio (BOCM núm. 175, de 25 de julio de 2022).
+- En la Comunitat Valenciana el DOGV publica la modificación sin el texto consolidado. El currículo vigente hay que construirlo aplicando la modificación a la matriz, dejar anotado qué se cambió y comprobarlo contra los dos documentos. La cita de la SdA nombra los dos decretos («modificado por»).
+- Los títulos en castellano de las dos modificaciones valencianas todavía no están: se completan al comprobarlos en el DOGV.
+
+## Pendiente de decidir
+
+- Entrega del currículo: la decisión actual es llevarlo dentro de la app. El dueño ha propuesto servirlo desde Cloudflare para que la app solo descargue el de su comunidad. Propuesta intermedia: base dentro de la app y actualizaciones por el mismo canal del calendario (JSON estático en R2, sin base de datos), con comprobación de huella y de totales antes de usar lo descargado. Pendiente de confirmar. La mecánica de carga (`cargar.ts`) está hecha para que cualquiera de las dos opciones encaje.

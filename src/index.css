@@ -132,6 +132,14 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sb-teacher:hover { background:rgba(255,255,255,0.075); }
 .sb-teacher-info { min-width:0; transition:opacity var(--t); }
 .sidebar.mini .sb-teacher-info { opacity:0; }
+/* Comunidad autónoma del perfil, justo debajo del nombre del docente. Sin ella, un recordatorio discreto. */
+.sb-community { margin:-4px 10px 10px; padding:6px 11px; width:calc(100% - 20px); display:flex; align-items:center; gap:7px; background:none; border:0.5px solid transparent; border-radius:8px; color:#94a3b8; font-family:var(--font); font-size:11.5px; font-weight:600; text-align:left; cursor:pointer; overflow:hidden; transition:background var(--t),color var(--t); }
+.sb-community:hover { background:rgba(255,255,255,0.06); color:#cbd5e1; }
+.sb-community svg { flex-shrink:0; }
+.sb-community-name { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sb-community.unset { border:0.5px dashed rgba(var(--accent-rgb),0.55); color:var(--accent); }
+.sidebar.mini .sb-community { justify-content:center; padding:6px 0; margin-left:10px; margin-right:10px; }
+.sidebar.mini .sb-community-name { display:none; }
 .sb-div { height:0.5px; background:var(--sb-border); margin:6px 14px; flex-shrink:0; }
 .sb-nav { flex:1; overflow-y:auto; padding:4px 0 8px; scrollbar-width:none; }
 .sb-nav::-webkit-scrollbar { display:none; }

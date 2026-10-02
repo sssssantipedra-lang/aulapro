@@ -1872,6 +1872,22 @@ const EN: Record<string, string> = {
   " No hace falta internet: los móviles hablan solo con tu tableta. Si no conectan, puede que la red del centro aísle los dispositivos; entonces activa la zona wifi de la tableta o de tu móvil y conectaos todos a esa red.": " No internet needed: the phones only talk to your tablet. If they can't connect, the school network may be isolating devices; in that case turn on the tablet's or your phone's hotspot and all join that network.",
   "Abrir el menú": "Open the menu",
   "Consigue tu licencia en aulapro.app": "Get your licence at aulapro.app",
+
+  /* ── Comunidad autónoma ── */
+  "Comunidad autónoma": "Autonomous community",
+  "Comunidad autónoma *": "Autonomous community *",
+  "Elige tu comunidad…": "Choose your community…",
+  "próximamente": "coming soon",
+  "Se usa el currículo estatal (LOMLOE).": "The national curriculum (LOMLOE) is used.",
+  "Currículo oficial de {comunidad} disponible en Primaria y ESO.": "Official curriculum of {comunidad} available for Primary and Lower secondary (ESO).",
+  "Currículo de {comunidad} disponible en {etapa}; en {otra} se usa el estatal por ahora.": "Curriculum of {comunidad} available for {etapa}; for {otra} the national one is used for now.",
+  "Todavía no tenemos el decreto de {comunidad}. Mientras tanto se usa el currículo estatal y la aplicación te lo avisará.": "We don't have the decree of {comunidad} yet. Until then the national curriculum is used, and the app will let you know.",
+  "Elige tu comunidad autónoma.": "Choose your autonomous community.",
+  "Elige tu comunidad autónoma": "Choose your autonomous community",
+  "Aula Pro usa el currículo oficial de tu comunidad en las situaciones de aprendizaje. Hasta que la elijas se usa el currículo estatal. Puedes cambiarla cuando quieras en Configuración.": "Aula Pro uses your community's official curriculum in learning situations. Until you choose one, the national curriculum is used. You can change it any time in Settings.",
+  "✅ Perfil actualizado. Las situaciones de aprendizaje que ya guardaste conservan su decreto.": "✅ Profile updated. The learning situations you already saved keep their decree.",
+  "Tu comunidad autónoma. Púlsala para cambiarla en el perfil.": "Your autonomous community. Click it to change it in your profile.",
+  "Elige tu comunidad": "Choose your community",
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };

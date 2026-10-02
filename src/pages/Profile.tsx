@@ -16,13 +16,15 @@ import { createPasswordFields, verifyPassword } from '../lib/password';
 import { useToast } from '../components/ui/Toast';
 import { useI18n, LANGS } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { CommunitySelect } from '../components/CommunitySelect';
+import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades';
 
 interface Props {
   user: User | null;
   profile: TeacherProfile | null;
   profileId: string | null;
   course: string;
-  onUpdateUser: (u: { full_name?: string; school?: string; subject?: string; course?: string }) => void;
+  onUpdateUser: (u: { full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId }) => void;
   onUpdateSecurity: (patch: { passwordHash?: string; passwordSalt?: string }) => void;
   onExportData: () => Record<string, unknown>;
   onImportData: (raw: string) => string | null;
@@ -37,6 +39,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [centro, setCentro] = useState(user?.school ?? '');
   const [espec,  setEspec]  = useState(user?.subject ?? '');
   const [curso,  setCurso]  = useState(course ?? '');
+  const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>(
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
@@ -96,8 +99,16 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
 
   function saveProfile() {
     if (!nombre.trim()) { toast('El nombre no puede quedar vacío'); return; }
-    onUpdateUser({ full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso });
-    toast('✅ Perfil actualizado');
+    onUpdateUser({
+      full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso,
+      ...(comunidad ? { community: comunidad } : {}),
+    });
+    // Quien ya tenía comunidad y la cambia: las SdA que guardó siguen citando
+    // el decreto con el que se hicieron, no se reescriben.
+    const cambio = !!comunidad && !!user?.community && comunidad !== user.community;
+    toast(cambio
+      ? t('✅ Perfil actualizado. Las situaciones de aprendizaje que ya guardaste conservan su decreto.')
+      : '✅ Perfil actualizado');
   }
 
   function handleAppearance(mode: Appearance) {
@@ -184,6 +195,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>{user?.full_name}</div>
           {user?.subject && <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 3 }}>{user.subject}</div>}
           {user?.school && <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{user.school}</div>}
+          {user?.community && <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{nombreComunidad(user.community, lang)}</div>}
           <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--border)' }}>
             {course && <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>{t('Curso')} {course}</div>}
             <div style={{ fontSize: 11.5, color: 'var(--ok)', fontWeight: 700 }}>{t('Perfil local · datos en este equipo')}</div>
@@ -201,6 +213,10 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             <div className="fgroup"><label className="flabel" htmlFor="profile-f3">{t('Centro educativo')}</label><input id="profile-f3" className="finput" value={centro} onChange={e => setCentro(e.target.value)} placeholder={t('Ej: IES Ejemplo')} /></div>
             <div className="fgroup"><label className="flabel" htmlFor="profile-f4">{t('Especialidad')}</label><input id="profile-f4" className="finput" value={espec} onChange={e => setEspec(e.target.value)} placeholder={t('Ej: Matemáticas')} /></div>
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="profile-f5">{t('Curso escolar')}</label><input id="profile-f5" className="finput" value={curso} onChange={e => setCurso(e.target.value)} placeholder="2025-2026" /></div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
+              <label className="flabel" htmlFor="profile-f6">{t('Comunidad autónoma')}</label>
+              <CommunitySelect id="profile-f6" value={comunidad} onChange={setComunidad} />
+            </div>
           </div>
           <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
             <button className="btn-accent" onClick={saveProfile}>{t('Guardar cambios')}</button>

@@ -1660,4 +1660,20 @@ export const CA: Record<string, string> = {
   " No hace falta internet: los móviles hablan solo con tu tableta. Si no conectan, puede que la red del centro aísle los dispositivos; entonces activa la zona wifi de la tableta o de tu móvil y conectaos todos a esa red.": " No cal internet: els mòbils només parlen amb la teva tauleta. Si no es connecten, potser la xarxa del centre aïlla els dispositius; aleshores activa la zona wifi de la tauleta o del teu mòbil i connecteu-vos tots a aquesta xarxa.",
   "Abrir el menú": "Obre el menú",
   "Consigue tu licencia en aulapro.app": "Aconsegueix la teva llicència a aulapro.app",
+
+  // Comunitat autònoma
+  "Comunidad autónoma": "Comunitat autònoma",
+  "Comunidad autónoma *": "Comunitat autònoma *",
+  "Elige tu comunidad…": "Tria la teva comunitat…",
+  "próximamente": "properament",
+  "Se usa el currículo estatal (LOMLOE).": "S'usa el currículum estatal (LOMLOE).",
+  "Currículo oficial de {comunidad} disponible en Primaria y ESO.": "Currículum oficial de {comunidad} disponible a Primària i ESO.",
+  "Currículo de {comunidad} disponible en {etapa}; en {otra} se usa el estatal por ahora.": "Currículum de {comunidad} disponible a {etapa}; a {otra} s'usa l'estatal per ara.",
+  "Todavía no tenemos el decreto de {comunidad}. Mientras tanto se usa el currículo estatal y la aplicación te lo avisará.": "Encara no tenim el decret de {comunidad}. Mentrestant s'usa el currículum estatal i l'aplicació t'ho avisarà.",
+  "Elige tu comunidad autónoma.": "Tria la teva comunitat autònoma.",
+  "Elige tu comunidad autónoma": "Tria la teva comunitat autònoma",
+  "Aula Pro usa el currículo oficial de tu comunidad en las situaciones de aprendizaje. Hasta que la elijas se usa el currículo estatal. Puedes cambiarla cuando quieras en Configuración.": "Aula Pro usa el currículum oficial de la teva comunitat a les situacions d'aprenentatge. Fins que la triïs s'usa el currículum estatal. Pots canviar-la quan vulguis a Configuració.",
+  "✅ Perfil actualizado. Las situaciones de aprendizaje que ya guardaste conservan su decreto.": "✅ Perfil actualitzat. Les situacions d'aprenentatge que ja has desat conserven el seu decret.",
+  "Tu comunidad autónoma. Púlsala para cambiarla en el perfil.": "La teva comunitat autònoma. Prem-la per canviar-la al perfil.",
+  "Elige tu comunidad": "Tria la teva comunitat",
 };

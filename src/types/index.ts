@@ -5,6 +5,8 @@ export interface User {
   school: string;
   subject: string;
   initials?: string;
+  /** Comunidad autónoma del perfil; ausente si todavía no la ha elegido. */
+  community?: import('../lib/curriculum/comunidades').ComunidadId;
 }
 
 export interface Class {
