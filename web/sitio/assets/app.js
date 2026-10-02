@@ -269,12 +269,20 @@
     const to = dir > 0 ? (frac > 0.06 ? next : prev) : (frac < 0.94 ? prev : next);
     glideTo(heroTop + to * heroRange);
   }
-  // The glide shows the film at close to its real speed, about 20 ms of footage per screen frame, with a
-  // gentle start and stop, so no frame of the film is skipped. Going down, the film simply plays (every
-  // frame decoded in order) and the page follows it. Going up a film cannot play backwards, so it is
-  // sought frame by frame, a little slower, which keeps the seeks in step.
-  // 1.56x plays the longest stretch (3.4 s of footage) in about 2.5 s
-  const GLIDE_RATE = 1.56, GLIDE_RATE_BACK = 1.56, GLIDE_RAMP = 0.35;
+  // Every glide from one stop to the next takes GLIDE_TIME, whatever the length of film between them (1.6 to
+  // 3.4 s of footage, so 1.4x to 3x), with a gentle start and stop. Going down, the film simply plays (every
+  // frame decoded in order) and the page follows it. Going up a film cannot play backwards, so it is sought
+  // frame by frame (the film is all keyframes, so seeks keep up). A glide that starts between two stops
+  // (after the scrollbar, say) keeps the speed of that stretch, so it is just shorter.
+  const GLIDE_TIME = 1.5, GLIDE_RAMP = 0.35;
+  function stretchRate(fromP, toP) {
+    // seconds of footage per second that cross the whole stretch around this glide in GLIDE_TIME
+    const lo = Math.min(fromP, toP), hi = Math.max(fromP, toP);
+    let a = 0, b = 1;
+    STOPS.forEach(s => { if (s <= lo + 0.004) a = s; });
+    STOPS.slice().reverse().forEach(s => { if (s >= hi - 0.004) b = s; });
+    return Math.max(0.5, ((b - a) * (video.duration || 10.25)) / (GLIDE_TIME - GLIDE_RAMP));
+  }
   function glideProfile(D, v) {
     // distance D (seconds of footage) at top speed v -> { T: duration in s, at(t): footage covered at time t }
     const ta = GLIDE_RAMP;
@@ -301,10 +309,11 @@
     if (Math.abs(dist) < 2) return;
     glideTarget = y;
     document.documentElement.style.scrollBehavior = 'auto';
-    if (dist > 0 && !bySeeking && playTo((y - heroTop) / heroRange)) return;
+    const rate = stretchRate((from - heroTop) / heroRange, (y - heroTop) / heroRange);
+    if (dist > 0 && !bySeeking && playTo((y - heroTop) / heroRange, rate)) return;
     const secs = video.duration || 10.25;
     const D = (Math.abs(dist) / heroRange) * secs;
-    const prof = glideProfile(D, dist > 0 ? GLIDE_RATE : GLIDE_RATE_BACK);
+    const prof = glideProfile(D, rate);
     const t0 = performance.now();
     const step = now => {
       const t = (now - t0) / 1000;
@@ -317,7 +326,7 @@
 
   // forward glide: play the film from where it is shown to the stop, easing the playback rate in and out
   let playEnd = 0;
-  function playTo(toP) {
+  function playTo(toP, glideRate) {
     if (!videoReady || videoFailed || !video.duration) return false;
     const secs = video.duration;
     playEnd = clamp(toP, 0, 1) * secs;
@@ -334,7 +343,7 @@
       endPlay();
       glideTo(heroTop + (playEnd / secs) * heroRange, true);
     };
-    video.playbackRate = GLIDE_RATE * 0.15;
+    video.playbackRate = glideRate * 0.15;
     const started = video.play();
     if (started && started.catch) started.catch(() => { if (playing) bail(); });
     const step = now => {
@@ -357,8 +366,8 @@
       }
       // ease in over GLIDE_RAMP, cruise, ease out over the last stretch of footage
       const el = (now - t0) / 1000;
-      const k = clamp(Math.min(0.15 + el / GLIDE_RAMP, remaining / (GLIDE_RATE * GLIDE_RAMP * 0.5)), 0.15, 1);
-      const rate = Math.round(GLIDE_RATE * k * 100) / 100;
+      const k = clamp(Math.min(0.15 + el / GLIDE_RAMP, remaining / (glideRate * GLIDE_RAMP * 0.5)), 0.15, 1);
+      const rate = Math.round(glideRate * k * 100) / 100;
       if (Math.abs(video.playbackRate - rate) >= 0.02) video.playbackRate = rate;
       glideId = requestAnimationFrame(step);
     };
