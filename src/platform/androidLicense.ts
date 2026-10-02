@@ -15,8 +15,8 @@ import type { LicenseBridge, LicenseError, LicenseResult, LicenseState } from '.
 
 /** Mientras sea `false`, todo dispositivo que abra la app queda como fundador. */
 const ENFORCED = false;
-/** Número de tienda de Lemon Squeezy; vacío hasta que exista. */
-const STORE_ID = '';
+/** Número de tienda de Lemon Squeezy (aulapro.lemonsqueezy.com): una clave de otra tienda no vale. */
+const STORE_ID = '487841';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
 const CHECK_EVERY = 7 * 24 * 60 * 60 * 1000;
 /** Nombre neutro: solo la clave y esto salen hacia la tienda (docs/WEB.md, apartado 3, punto 3). */
