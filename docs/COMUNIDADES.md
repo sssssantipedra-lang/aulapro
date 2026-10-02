@@ -120,10 +120,12 @@ Pendiente:
 
 ### Fuentes
 
-En `docs/decretos/comunitat-valenciana/`, para poder repetir la extracción en cualquier sesión (desde aquí no se llega al DOGV):
+En `docs/Normativa Comunitat Valenciana/` (nombre que eligió el dueño), para poder repetir la extracción en cualquier sesión (desde aquí no se llega al DOGV). Los sube el dueño; los nombres siguen su criterio: «ANEXO», «DECRETO» en castellano y «ANNEX», «DECRET» en valenciano.
 
-- `decreto-96-2026.es.pdf`: DOGV núm. 10391, de 25-6-2026, en castellano. SHA-256 `05e5cdcdf45c521a4ee6eb3ded5ea402dd16be1c62b3f3d243990413be5d5c18`.
-- Pendiente: los anexos I a III del 106/2022, en castellano y en valenciano; la versión en valenciano del 96/2026; la corrección de errores del 106/2022 publicada el 3-11-2022 (los metadatos del DOGV la citan: hay que ver si toca el anexo III); y para la ESO, el 107/2022 y el 66/2024.
+- `ANEXO 1-3 106-2022.pdf`: anexos I a III del Decreto 106/2022 en castellano, extraídos del PDF del DOGV núm. 9402, de 10-8-2022 (páginas 41407 y siguientes). 220 páginas. SHA-256 `9950b157a706d3c538881fc7b715dc19fbeb1d474031043b22dacaa140a7b802`.
+- `ANNEX 1-3 106-2022.pdf`: los mismos anexos en valenciano (páginas 41194 y siguientes del mismo DOGV). 211 páginas. SHA-256 `d59ca5745fead760d69e1e7238221d45292e4c5e638f438ece66b27198ec512b`.
+- `DECRETO 96-2026.pdf`: DOGV núm. 10391, de 25-6-2026, en castellano. 94 páginas. SHA-256 `05e5cdcdf45c521a4ee6eb3ded5ea402dd16be1c62b3f3d243990413be5d5c18`.
+- Pendiente: el 96/2026 en valenciano (lo sube el dueño); la corrección de errores del 106/2022 publicada el 3-11-2022 (los metadatos del DOGV la citan: hay que ver si toca el anexo III); y para la ESO, el 107/2022 y el 66/2024.
 
 ### Qué dice cada decreto (Primaria)
 

@@ -103,7 +103,7 @@ export const NORMAS_ESTATALES: Record<Etapa, Norma[]> = {
    - 106/2022: comprobado con los metadatos del DOGV (título en los dos
      idiomas, núm. 9402, publicado el 10-8-2022).
    - 96/2026: título en castellano, número y boletín comprobados con el PDF del
-     DOGV (docs/decretos/comunitat-valenciana). Falta cotejar el título en
+     DOGV (docs/Normativa Comunitat Valenciana). Falta cotejar el título en
      valenciano, que es el que dio el dueño; hasta entonces, sin verificar.
    - ESO: pendiente de comprobar. */
 
