@@ -297,3 +297,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - Fallo encontrado al probar: si el vídeo dejaba de avanzar durante un paso hacia abajo (el decodificador se atasca, el navegador pausa el vídeo para ahorrar energía, la pestaña pasa a segundo plano), el paso no terminaba nunca. La página quedaba clavada en el inicio: la rueda no hacía nada y hasta los saltos del menú volvían atrás.
 - Ahora, si el vídeo no avanza en 0,9 s al empezar o en 0,45 s después, el paso termina buscando fotograma a fotograma, como al subir. Si `play()` falla, igual. Si la pestaña pasa a segundo plano a mitad de un paso, la página salta directamente a la parada. Prueba: con `play()` falseado para que no avance, el paso llega a la parada siguiente en unos 3,5 s y todo vuelve a responder.
 
+## 29. Foto fija del inicio en móvil (2-10-2026, petición del usuario)
+
+- En pantallas verticales (móviles y tabletas en vertical), la foto fija ocupaba toda la pantalla recortada en vertical: solo se veía la cara de la docente y el portátil quedaba fuera.
+- Ahora, en vertical (`max-aspect-ratio:1/1` dentro de las condiciones de la portada fija), la foto va en una franja de proporción 3:2 bajo la barra (`padding-top: var(--nav-h)`), encuadrada al 27 % para que se vean la docente y el portátil enteros, y fundida con el fondo por abajo (`mask-image`). El texto va debajo, sobre el fondo liso. En horizontal no cambia nada.
+

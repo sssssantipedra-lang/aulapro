@@ -203,6 +203,15 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
   .static-copy .hl{font-size:clamp(2.5rem,10.5vw,4.4rem)}
   .static-copy .sub{margin-top:1.1rem;max-width:34ch;font-weight:400;color:#ece4f0}
   .static-copy .price-line{margin:1.2rem 0 1.6rem;font-size:.82rem;letter-spacing:.08em;color:var(--text)}
+  /* upright screens: the whole photo (the teacher and her laptop) in a band under the bar, the copy below it.
+     At 3:2 the cover crop keeps 84% of the width; 27% puts the window from the teacher's shoulder to the
+     laptop's right edge in view. */
+  @media (max-aspect-ratio:1/1){
+    .stage{display:block;min-height:0;padding-top:var(--nav-h)}
+    .stage .static-bg{position:relative;inset:auto;width:100%;aspect-ratio:3/2;background-position:27% 50%;-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent);mask-image:linear-gradient(180deg,#000 70%,transparent)}
+    .stage .scrim{display:none}
+    .static-copy{padding:4px var(--gutter) 9vh}
+  }
 }
 
 /* ---------- shared section furniture ---------- */
