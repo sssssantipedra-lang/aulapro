@@ -1,8 +1,14 @@
 import { useState, useId } from 'react';
 import {
-  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info,
+  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil,
 } from 'lucide-react';
 import type { Class, Student, Alert, Evaluation, Rubric } from '../types';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
+import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
+import {
+  EtapaCursoFields, MateriaOficialSelect, OpcionMatematicas, CurriculoNota,
+} from '../components/curriculum/CurriculumFields';
 import { initials } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
@@ -58,6 +64,8 @@ interface Props {
   onOpenEval: (rubricId: string, studentId: string, classId: string) => void;
   /** Perfil activo, para distinguir las clases propias de las compartidas. */
   profileId?: string | null;
+  /** Comunidad del perfil: de ella salen las materias oficiales que se ofrecen. */
+  comunidad?: ComunidadId;
 }
 
 // ─── blank factories ──────────────────────────────────────────────────────────
@@ -78,12 +86,13 @@ function roomLabel(room: string, word: string): string {
 
 export function ClassesManager({
   classes, students, evaluations, rubrics,
-  onAddClass, onDeleteClass,
+  onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId,
+  onAddStudents, onOpenEval, profileId, comunidad,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
+  const nivelTexto = useNivelTexto();
 
   const uid = useId();
   const newId = () => `${uid}-${Math.random().toString(36).slice(2, 9)}`;
@@ -102,6 +111,24 @@ export function ClassesManager({
   // ── class modal ──
   const [classModal, setClassModal] = useState(false);
   const [editClass, setEditClass] = useState<Omit<Class, 'id'>>(blankClass());
+  /** La clase que se está editando; `null` si el formulario crea una nueva. */
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
+
+  // ── currículo oficial de la clase del formulario ──
+  const curriculo = useCurriculo(comunidad, editClass.etapa);
+  const ctxClase: ContextoClase | null = editClass.etapa && editClass.curso
+    ? {
+        etapa: editClass.etapa, curso: editClass.curso,
+        opcionMatematicas: editClass.opcionMatematicas, materiasOficiales: editClass.materiasOficiales,
+      }
+    : null;
+  const materiasCurso = ctxClase && curriculo ? materiasDelCurso(ctxClase, curriculo.materias) : [];
+  const estadoDe = (asignatura: string) =>
+    (ctxClase && curriculo ? estadoDeMateria(asignatura, ctxClase, curriculo.materias) : null);
+  const necesitaOpcionMat = ctxClase?.etapa === 'eso' && ctxClase.curso === 4 && editClass.subjects.some(s => {
+    const e = estadoDe(s.trim());
+    return e?.tipo === 'oficial' && e.materia === 'Matemáticas';
+  });
 
   // ── csv modal ──
   const [csvModal, setCsvModal] = useState(false);
@@ -177,7 +204,30 @@ export function ClassesManager({
   // ─── class modal ────────────────────────────────────────────────────────────
   function openClassModal() {
     setEditClass(blankClass());
+    setEditingClassId(null);
     setClassModal(true);
+  }
+
+  /** El mismo formulario, con la clase ya rellena. */
+  function openEditClass(c: Class) {
+    const { id, ...rest } = c;
+    setEditClass({ ...rest, subjects: [...(c.subjects ?? [c.subject])] });
+    setEditingClassId(id);
+    setClassModal(true);
+  }
+
+  function setEtapaCurso(etapa: Class['etapa'] | '', curso: number | '') {
+    setEditClass(c => ({
+      ...c,
+      etapa: etapa || undefined,
+      curso: curso === '' ? undefined : curso,
+      // La opción de Matemáticas solo existe en 4º de ESO
+      opcionMatematicas: etapa === 'eso' && curso === 4 ? c.opcionMatematicas : undefined,
+    }));
+  }
+
+  function setMateriaOficial(asignatura: string, materia: string | null) {
+    setEditClass(c => ({ ...c, materiasOficiales: { ...c.materiasOficiales, [asignatura]: materia } }));
   }
 
   function saveClass() {
@@ -185,9 +235,27 @@ export function ClassesManager({
     const subjects = editClass.subjects.map(s => s.trim()).filter(Boolean);
     if (subjects.length === 0) { notify(t('Pon al menos una asignatura')); return; }
 
+    // Solo se guarda la materia oficial de las asignaturas que siguen en la
+    // clase: una asignatura quitada o renombrada no deja restos.
+    const materias = Object.fromEntries(
+      Object.entries(editClass.materiasOficiales ?? {}).filter(([k]) => subjects.includes(k)),
+    );
     // `subject` se mantiene sincronizado con la primera: todo lo escrito antes
     // de que existieran varias asignaturas sigue leyendo de ahí.
-    const newClass: Class = { id: newId(), ...editClass, subjects, subject: subjects[0] };
+    const datos = {
+      ...editClass, subjects, subject: subjects[0],
+      materiasOficiales: Object.keys(materias).length ? materias : undefined,
+    };
+
+    if (editingClassId) {
+      const original = classes.find(c => c.id === editingClassId);
+      if (original) onUpdateClass({ ...original, ...datos, id: original.id });
+      setClassModal(false);
+      notify(t('Clase actualizada'));
+      return;
+    }
+
+    const newClass: Class = { id: newId(), ...datos };
     onAddClass(newClass);
     setActiveClassId(newClass.id);
     setClassModal(false);
@@ -317,11 +385,20 @@ export function ClassesManager({
               <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2 }}>
                 {(activeClass.subjects ?? [activeClass.subject]).join(' · ')}
                 {activeClass.room ? ` · ${roomLabel(activeClass.room, t('Aula'))}` : ''}
+                {activeClass.etapa && activeClass.curso ? ` · ${nivelTexto(activeClass.etapa, activeClass.curso)}` : ''}
               </div>
             </div>
             <button
               className="ico-btn"
               style={{ marginLeft: 'auto' }}
+              title={t('Editar clase')}
+              aria-label={t('Editar clase')}
+              onClick={() => openEditClass(activeClass)}
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              className="ico-btn"
               title={t('Eliminar clase')}
               onClick={() => {
                 if (!window.confirm(t('¿Eliminar la clase "{name}"? Se perderán todos sus datos.', { name: activeClass.name }))) return;
@@ -558,7 +635,7 @@ export function ClassesManager({
       <div className={`modal-overlay${classModal ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) setClassModal(false); }}>
         <div className="modal">
           <div className="modal-hd">
-            <span className="modal-title">{t('Nueva clase')}</span>
+            <span className="modal-title">{t(editingClassId ? 'Editar clase' : 'Nueva clase')}</span>
             <button className="ico-btn" onClick={() => setClassModal(false)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
 
@@ -574,6 +651,16 @@ export function ClassesManager({
                 onChange={e => setEditClass({ ...editClass, room: e.target.value })} />
             </div>
           </div>
+
+          {/* Etapa y curso: deciden qué currículo oficial le toca a la clase.
+              No son obligatorios; sin ellos, las SdA siguen en modo libre. */}
+          <EtapaCursoFields
+            idPrefix="classesmanager-cur" etapa={editClass.etapa ?? ''} curso={editClass.curso ?? ''}
+            onChange={setEtapaCurso}
+          />
+          {ctxClase && curriculo && (
+            <div style={{ marginTop: -6, marginBottom: 14 }}><CurriculoNota curriculo={curriculo} /></div>
+          )}
 
           <label style={{
             display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
@@ -595,21 +682,37 @@ export function ClassesManager({
           <div className="fgroup">
             <label className="flabel">{t('Asignaturas que le das')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {editClass.subjects.map((s, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input
-                    className="finput" style={{ flex: 1 }}
-                    placeholder={t(i === 0 ? 'Ej. Matemáticas' : 'Ej. Lengua')}
-                    value={s}
-                    onChange={e => setSubjectAt(i, e.target.value)}
-                  />
-                  {editClass.subjects.length > 1 && (
-                    <button className="ico-btn" title={t('Quitar')} onClick={() => removeSubjectAt(i)}>
-                      <Trash2 size={14} color="var(--danger)" />
-                    </button>
-                  )}
-                </div>
-              ))}
+              {editClass.subjects.map((s, i) => {
+                const estado = s.trim() ? estadoDe(s.trim()) : null;
+                return (
+                  <div key={i}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input
+                        className="finput" style={{ flex: 1 }}
+                        placeholder={t(i === 0 ? 'Ej. Matemáticas' : 'Ej. Lengua')}
+                        aria-label={t('Asignatura {n}', { n: i + 1 })}
+                        value={s}
+                        onChange={e => setSubjectAt(i, e.target.value)}
+                      />
+                      {editClass.subjects.length > 1 && (
+                        <button className="ico-btn" title={t('Quitar')} onClick={() => removeSubjectAt(i)}>
+                          <Trash2 size={14} color="var(--danger)" />
+                        </button>
+                      )}
+                    </div>
+                    {estado && (
+                      <div style={{ paddingLeft: 12, borderLeft: '2px solid var(--border)', marginLeft: 4 }}>
+                        <MateriaOficialSelect
+                          id={`classesmanager-materia-${i}`}
+                          label={t('Materia oficial de «{asignatura}»', { asignatura: s.trim() })}
+                          estado={estado} opciones={materiasCurso}
+                          onChange={m => setMateriaOficial(s.trim(), m)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addSubject}>
               <Plus size={13} />{t('Añadir otra asignatura')}
@@ -618,6 +721,13 @@ export function ClassesManager({
               {t('Si le das varias, no crees una clase por cada una: pon aquí todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.')}
             </p>
           </div>
+
+          {necesitaOpcionMat && (
+            <OpcionMatematicas
+              value={editClass.opcionMatematicas}
+              onChange={op => setEditClass(c => ({ ...c, opcionMatematicas: op }))}
+            />
+          )}
 
           <div className="fgroup">
             <label className="flabel">{t('Color')}</label>
@@ -637,7 +747,7 @@ export function ClassesManager({
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button className="btn-ghost" onClick={() => setClassModal(false)}>{t('Cancelar')}</button>
-            <button className="btn-accent" onClick={saveClass}>{t('Crear clase')}</button>
+            <button className="btn-accent" onClick={saveClass}>{t(editingClassId ? 'Guardar cambios' : 'Crear clase')}</button>
           </div>
         </div>
       </div>

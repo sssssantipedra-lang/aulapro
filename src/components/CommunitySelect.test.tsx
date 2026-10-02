@@ -52,13 +52,13 @@ describe('selector de comunidad', () => {
     expect(screen.queryByText(/currículo/i)).toBeNull();
 
     await user.selectOptions(select, 'cataluna');
-    expect(screen.getByText('Currículo oficial de Cataluña disponible en Primaria y ESO.')).toBeTruthy();
+    expect(screen.getByText('Cataluña: currículo oficial disponible en Primaria y ESO.')).toBeTruthy();
 
     await user.selectOptions(select, 'madrid');
-    expect(screen.getByText('Currículo de Comunidad de Madrid disponible en Primaria; en ESO se usa el estatal por ahora.')).toBeTruthy();
+    expect(screen.getByText('Comunidad de Madrid: currículo oficial disponible en Primaria; en ESO se usa el estatal por ahora.')).toBeTruthy();
 
     await user.selectOptions(select, 'andalucia');
-    expect(screen.getByText(/Todavía no tenemos el decreto de Andalucía\. Mientras tanto se usa el currículo estatal/)).toBeTruthy();
+    expect(screen.getByText(/Andalucía: todavía no tenemos su decreto\. Mientras tanto se usa el currículo estatal/)).toBeTruthy();
 
     await user.selectOptions(select, 'fuera');
     expect(screen.getByText('Se usa el currículo estatal (LOMLOE).')).toBeTruthy();

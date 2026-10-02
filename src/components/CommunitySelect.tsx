@@ -22,15 +22,15 @@ function useNotaCurriculo(value: ComunidadId | ''): string | null {
 
   const comunidad = comunidadPorId(value).nombre[lang];
   const etapas = etapasConCurriculoPropio(value);
-  if (etapas.length === 2) return t('Currículo oficial de {comunidad} disponible en Primaria y ESO.', { comunidad });
+  if (etapas.length === 2) return t('{comunidad}: currículo oficial disponible en Primaria y ESO.', { comunidad });
   if (etapas.length === 1) {
-    return t('Currículo de {comunidad} disponible en {etapa}; en {otra} se usa el estatal por ahora.', {
+    return t('{comunidad}: currículo oficial disponible en {etapa}; en {otra} se usa el estatal por ahora.', {
       comunidad,
       etapa: t(etapas[0] === 'primaria' ? 'Primaria' : 'ESO'),
       otra: t(etapas[0] === 'primaria' ? 'ESO' : 'Primaria'),
     });
   }
-  return t('Todavía no tenemos el decreto de {comunidad}. Mientras tanto se usa el currículo estatal y la aplicación te lo avisará.', { comunidad });
+  return t('{comunidad}: todavía no tenemos su decreto. Mientras tanto se usa el currículo estatal y la aplicación te lo avisará.', { comunidad });
 }
 
 /**

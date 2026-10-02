@@ -73,6 +73,13 @@ guarda en el ordenador del docente: no hay cuentas, ni servidor, ni nube. Cada
 docente tiene su perfil, con su propia carpeta de datos y copia automática cada
 10 minutos. Puede haber varios perfiles en el mismo ordenador.
 
+COMUNIDAD AUTÓNOMA: cada perfil tiene la suya (se elige al crearlo y se cambia
+en Configuración → Perfil; aparece bajo el nombre del docente en el menú). De
+ella sale el currículo oficial de las situaciones de aprendizaje. Mientras Aula
+Pro no tiene el decreto de una comunidad, usa el currículo estatal (Reales
+Decretos 157/2022 y 217/2022) y lo avisa en pantalla. «Fuera de España / no
+aplica» usa el estatal. Ahora mismo todas las comunidades usan el estatal.
+
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
@@ -131,7 +138,13 @@ ficticios para trastear sin miedo).
 
 [classes] MIS CLASES
 El punto de partida de todo. Se crea una clase con nombre, una o varias
-asignaturas, aula y color; se puede marcar como tutoría. Dentro de cada clase se
+asignaturas, aula y color; se puede marcar como tutoría. Opcionalmente, ETAPA Y
+CURSO (Primaria 1º-6º o ESO 1º-4º): con ellos, debajo de cada asignatura sale su
+«Materia oficial» del currículo de la comunidad. Si el nombre es claro
+(«Mates» → Matemáticas) se detecta sola; si no («Ciencias»), se elige de la
+lista o se deja en «Ninguna, modo libre». En 4º de ESO con Matemáticas se pide
+la opción A o B. El lápiz junto al nombre de la clase («Editar clase») abre el
+mismo formulario para cambiar cualquier dato. Dentro de cada clase se
 añaden los alumnos uno a uno, o de golpe con el botón «Importar CSV»: se pegan
 las filas en formato «Nombre,Email», una por línea (la primera puede ser la
 cabecera). De cada alumno se guardan
@@ -275,14 +288,20 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   agrupación y los bloques plegados.
 - CREAR: formulario en dos pasos: «La idea» (qué se quiere trabajar) y «Para
   quién» (clase, nivel, etapa y curso del currículo oficial, áreas, nº de
-  sesiones y temporalización). En «Más opciones» (plegado) están el nº de la
+  sesiones y temporalización). Si la clase ya tiene etapa y curso, no se
+  preguntan: sale un resumen con el decreto que se usará y «Cambiar en la
+  clase». Si no los tiene, se eligen aquí y se guardan en la clase al generar.
+  Un área sin materia oficial clara pregunta cuál es, y la respuesta se
+  recuerda en la clase. En «Más opciones» (plegado) están el nº de la
   SdA, los meses, cómo es el grupo, la metodología habitual y los documentos de
   apoyo (normativa o programación que la IA resume y tiene en cuenta). «Generar
   situación de aprendizaje» tarda cerca de un minuto.
 - DOCUMENTO: la SdA se lee como un documento, con el título editable arriba y
   un ÍNDICE a la izquierda (Resumen, Currículo, Sesiones, Metodología,
   Inclusión, Evaluación, Materiales) que salta a cada apartado. Cada texto se
-  edita pulsando el lápiz que aparece al pasar el ratón. Las competencias clave
+  edita pulsando el lápiz que aparece al pasar el ratón. «Currículo» empieza por
+  la cita del decreto del que salen competencias y saberes (la misma cita va en
+  el PDF y el Word); se guarda con la SdA. Las competencias clave
   salen como etiquetas (CCL, STEM…); cada área, en una tarjeta plegable con sus
   competencias específicas, criterios y saberes; las sesiones, en una línea de
   tiempo por fases (Activación, Desarrollo, Consolidación, Producto final); la
@@ -390,7 +409,8 @@ para justificar un cambio de nota.
 Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
 izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
 vuelve con «← Configuración»:
-- PERFIL: nombre, apellidos, centro, especialidad y curso escolar.
+- PERFIL: nombre, apellidos, centro, especialidad, curso escolar y comunidad
+  autónoma.
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
   «Pegar mi clave», que la guarda y comprueba que funciona. También explica el

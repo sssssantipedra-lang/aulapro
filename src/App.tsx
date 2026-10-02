@@ -293,6 +293,7 @@ function AppInner() {
                 onAddStudents={ss => ss.forEach(st.addStudent)}
                 onOpenEval={() => setSection('rubrics')}
                 profileId={st.profileId}
+                comunidad={st.currentUser?.community}
               />
             )}
             {section === 'agenda' && (
@@ -478,6 +479,8 @@ function AppInner() {
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}
                 teacherName={st.currentUser?.full_name ?? ''}
+                comunidad={st.currentUser?.community}
+                onUpdateClass={st.updateClass}
                 onSave={s => { st.saveLearningSituation(s); }}
                 onDelete={id => { st.deleteLearningSituation(id); toast(t('Situación de aprendizaje eliminada')); }}
                 onAddRubric={r => { st.addRubric(r); }}
