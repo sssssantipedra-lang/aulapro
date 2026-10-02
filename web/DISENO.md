@@ -319,4 +319,5 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 
 - Se quita la etiqueta "Martes, 22:14" de la primera parada del vídeo; queda solo "Son las diez de la noche. Y el papeleo sigue ahí." (claves `b1.kicker` borradas).
 - En la última parada (la pantalla), una franja a lo ancho de la parte inferior dice "Sigue descubriendo AulaPro ↓" (`b5.more`; "Continua descobrint AulaPro", "Keep exploring AulaPro"). Es otra `.band` (`band-strip`, de 0,9 a 1): aparece al llegar a la parada y sube desde abajo con `--k`; fondo oscuro translúcido con desenfoque, flecha que baila (quieta con movimiento reducido). Es un enlace a `#funciones`.
+- Ese mismo día, a petición del usuario, los botones "Quiero AulaPro" y "Ver cómo funciona ↓" salen de la parada de "Cada cosa en su sitio" y pasan a la franja final: "Sigue descubriendo AulaPro" queda como texto, con los dos botones al lado (`.strip-in`, que salta de línea si no caben).
 
