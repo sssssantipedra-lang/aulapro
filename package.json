@@ -3,6 +3,7 @@
   "productName": "Aula Pro",
   "description": "Gestión de aula para docentes: cuaderno, evaluación, asistencia e informes. Todo en tu ordenador.",
   "author": "Aula Pro",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "version": "1.9.0",
   "type": "module",
@@ -24,6 +25,7 @@
   "build": {
     "appId": "es.aulapro.escritorio",
     "productName": "Aula Pro",
+    "copyright": "Copyright © 2026 Santiago Pedra Calás",
     "directories": {
       "output": "release",
       "buildResources": "build"

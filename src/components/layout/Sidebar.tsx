@@ -161,6 +161,7 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
             margin: '10px 4px 0', textAlign: 'center',
           }}>
             {t('Diseñada sobre el currículo educativo español (LOMLOE)')}
+            <br />© 2026 Santiago Pedra Calás
           </p>
         )}
 
