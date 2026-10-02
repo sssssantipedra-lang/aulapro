@@ -302,3 +302,9 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - En pantallas verticales (móviles y tabletas en vertical), la foto fija ocupaba toda la pantalla recortada en vertical: solo se veía la cara de la docente y el portátil quedaba fuera.
 - Ahora, en vertical (`max-aspect-ratio:1/1` dentro de las condiciones de la portada fija), la foto va en una franja de proporción 3:2 bajo la barra (`padding-top: var(--nav-h)`), encuadrada al 27 % para que se vean la docente y el portátil enteros, y fundida con el fondo por abajo (`mask-image`). El texto va debajo, sobre el fondo liso. En horizontal no cambia nada.
 
+## 30. 1,5 segundos entre paradas (2-10-2026, petición del usuario)
+
+- Cada paso de una parada a la siguiente dura 1,5 s (`GLIDE_TIME`), sea cual sea el trozo de vídeo entre ellas (de 1,6 a 3,4 s de metraje, así que el vídeo va de 1,4x a 3x), con el mismo arranque y frenado suaves (`GLIDE_RAMP` 0,35 s). Antes iba siempre a 1,56x y los tramos largos tardaban unos 2,5 s.
+- Un paso que empieza entre dos paradas (por ejemplo, tras arrastrar la barra) lleva la velocidad de ese tramo, así que simplemente dura menos.
+- Medido con la rueda: hacia abajo 1,54-1,59 s y hacia arriba 1,41-1,46 s en los cuatro tramos (incluye la detección del gesto). La prueba de la rueda y la del vídeo parado dan lo mismo que antes.
+
