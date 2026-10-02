@@ -168,7 +168,7 @@ export function HelpChat({ section, onNav }: Props) {
               <input
                 className="finput"
                 type="password"
-                placeholder={t('Pega aquí tu clave (AIza…)')}
+                placeholder={t('Pega aquí tu clave')}
                 value={keyDraft}
                 onChange={e => setKeyDraft(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') guardarClave(); }}

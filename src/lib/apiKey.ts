@@ -1,4 +1,8 @@
-/** Forma de una clave de Google: «AIza» y 35 caracteres más. */
+/**
+ * ¿Lo copiado puede ser una clave? Google tiene varios formatos y cambian, así
+ * que aquí no se mira cómo empieza: solo que sea una palabra larga, sin
+ * espacios. Si vale o no lo dice la prueba con Google al guardarla.
+ */
 export function looksLikeKey(k: string): boolean {
-  return /^AIza[0-9A-Za-z_-]{35}$/.test(k.trim());
+  return /^\S{20,}$/.test(k.trim());
 }

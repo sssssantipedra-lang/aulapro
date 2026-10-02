@@ -1108,8 +1108,8 @@ const EN: Record<string, string> = {
   'Es un botón azul en la parte superior. Si te pide elegir un proyecto, selecciona «Crear proyecto nuevo».':
     'It’s a blue button at the top. If it asks you to choose a project, select "Create new project".',
   'Copia la clave': 'Copy the key',
-  'Verás un código largo que empieza por «AIza…». Pulsa el icono de copiar.':
-    'You’ll see a long code starting with "AIza…". Click the copy icon.',
+  'Verás un código largo. Pulsa el icono de copiar.':
+    'You’ll see a long code. Click the copy icon.',
   'Pégala aquí y guarda': 'Paste it here and save',
   'Pega la clave en el campo de abajo y pulsa «Guardar». Ya puedes usar la IA en cualquier parte de la aplicación.':
     'Paste the key in the field below and click "Save". You can now use the AI anywhere in the app.',
@@ -1121,7 +1121,7 @@ const EN: Record<string, string> = {
   ' de Google. Se guarda solo en este equipo y nunca se comparte.': ' key from Google. It’s stored only on this computer and never shared.',
   '¿Cómo consigo mi clave gratuita? (2 minutos)': 'How do I get my free key? (2 minutes)',
   'Abrir Google AI Studio': 'Open Google AI Studio',
-  'Pega aquí tu clave (AIza…)': 'Paste your key here (AIza…)',
+  'Pega aquí tu clave': 'Paste your key here',
   'Ocultar clave': 'Hide key',
   'Mostrar clave': 'Show key',
   '✅ Clave guardada en este equipo': '✅ Key saved on this computer',
@@ -1423,11 +1423,11 @@ const EN: Record<string, string> = {
   'Google no responde ahora mismo. La clave se ha guardado; vuelve a probar en un rato.': 'Google is not responding right now. The key is saved; try again later.',
   'Sin conexión a internet. La clave se ha guardado; se probará al usarla.': 'No internet connection. The key is saved; it will be checked when used.',
   '✅ Clave guardada: la IA ya funciona': '✅ Key saved: the AI is working',
-  'Lo que tienes copiado no parece una clave (empiezan por «AIza»). Vuelve a copiarla en AI Studio o pégala abajo.': 'What you copied does not look like a key (they start with “AIza”). Copy it again in AI Studio or paste it below.',
+  'Lo que tienes copiado no parece una clave de Google. Vuelve a copiarla en AI Studio o pégala abajo.': 'What you copied does not look like a Google key. Copy it again in AI Studio or paste it below.',
   'Entra con tu cuenta de Google (la del Gmail sirve). Es gratis y no pide tarjeta.': 'Sign in with your Google account (your Gmail works). It is free and needs no card.',
   'Abrir AI Studio': 'Open AI Studio',
   'Crea y copia la clave': 'Create and copy the key',
-  'Pulsa el botón azul «Create API key» (o «Crear clave de API»). Si te pregunta por un proyecto, acepta el que propone. Después pulsa el icono de copiar junto a la clave, que empieza por «AIza…».': 'Click the blue “Create API key” button. If it asks about a project, accept the suggested one. Then click the copy icon next to the key, which starts with “AIza…”.',
+  'Pulsa el botón azul «Create API key» (o «Crear clave de API»). Si te pregunta por un proyecto, acepta el que propone. Después pulsa el icono de copiar junto a la clave,.': 'Click the blue “Create API key” button. If it asks about a project, accept the suggested one. Then click the copy icon next to the key.',
   'Vuelve aquí y pégala': 'Come back and paste it',
   'Un clic y listo: la aplicación la guarda y comprueba que funciona.': 'One click: the app saves it and checks that it works.',
   'Pegar mi clave': 'Paste my key',
@@ -1436,7 +1436,6 @@ const EN: Record<string, string> = {
   'Cambiar o quitar la clave': 'Change or remove the key',
   'Prefiero escribirla a mano': 'I prefer to type it',
   'Clave de Google': 'Google key',
-  'Las claves de Google empiezan por «AIza» y tienen 39 caracteres. Revisa que la has copiado entera.': 'Google keys start with “AIza” and have 39 characters. Check you copied all of it.',
   '¿Cuánto da de sí el plan gratuito?': 'How far does the free plan go?',
   'Las tareas grandes (situaciones de aprendizaje, fichas, informes, rúbricas y dianas) usan Gemini 3.8 Flash, el mejor, que da para unas 20 al día. Todo lo demás usa Gemini 3.5 Flash-Lite, con unas 500 al día. Si un día se gastan las 20, la aplicación sigue sola con Flash-Lite. El cupo se renueva cada día a las 9:00.': 'Big tasks (learning situations, worksheets, reports, rubrics and profiles) use Gemini 3.8 Flash, the best one, which allows about 20 a day. Everything else uses Gemini 3.5 Flash-Lite, with about 500 a day. If the 20 run out, the app carries on with Flash-Lite. The quota renews every day at 9:00 (Spain).',
   'Hoy ya se han gastado las del modelo grande: hasta las {h} las tareas grandes usan Flash-Lite.': 'Today the big model quota is used up: until {h} big tasks use Flash-Lite.',

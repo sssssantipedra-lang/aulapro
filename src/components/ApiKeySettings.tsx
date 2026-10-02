@@ -15,9 +15,10 @@ type Check = { state: 'idle' | 'checking' | 'ok' | 'bad'; msg?: string };
  */
 async function testKey(key: string): Promise<Check> {
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}&pageSize=1`);
+    // La clave va en la cabecera, que sirve para todos los formatos de clave de Google
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1', { headers: { 'x-goog-api-key': key } });
     if (res.ok) return { state: 'ok' };
-    if (res.status === 400 || res.status === 403) return { state: 'bad', msg: 'Google no acepta esta clave. Cópiala de nuevo desde AI Studio.' };
+    if (res.status === 400 || res.status === 401 || res.status === 403) return { state: 'bad', msg: 'Google no acepta esta clave. Cópiala de nuevo desde AI Studio.' };
     return { state: 'bad', msg: 'Google no responde ahora mismo. La clave se ha guardado; vuelve a probar en un rato.' };
   } catch {
     return { state: 'bad', msg: 'Sin conexión a internet. La clave se ha guardado; se probará al usarla.' };
@@ -56,7 +57,7 @@ export function ApiKeySettings() {
       const text = (await navigator.clipboard.readText()).trim();
       if (!looksLikeKey(text)) {
         setShowManual(true);
-        setCheck({ state: 'bad', msg: 'Lo que tienes copiado no parece una clave (empiezan por «AIza»). Vuelve a copiarla en AI Studio o pégala abajo.' });
+        setCheck({ state: 'bad', msg: 'Lo que tienes copiado no parece una clave de Google. Vuelve a copiarla en AI Studio o pégala abajo.' });
         return;
       }
       await save(text);
@@ -78,7 +79,7 @@ export function ApiKeySettings() {
     },
     {
       title: 'Crea y copia la clave',
-      body: 'Pulsa el botón azul «Create API key» (o «Crear clave de API»). Si te pregunta por un proyecto, acepta el que propone. Después pulsa el icono de copiar junto a la clave, que empieza por «AIza…».',
+      body: 'Pulsa el botón azul «Create API key» (o «Crear clave de API»). Si te pregunta por un proyecto, acepta el que propone. Después pulsa el icono de copiar junto a la clave,.',
     },
     {
       title: 'Vuelve aquí y pégala',
@@ -136,7 +137,7 @@ export function ApiKeySettings() {
             <input
               className="finput"
               type={visible ? 'text' : 'password'}
-              placeholder={t('Pega aquí tu clave (AIza…)')}
+              placeholder={t('Pega aquí tu clave')}
               aria-label={t('Clave de Google')}
               value={key}
               onChange={e => { setKey(e.target.value); setCheck({ state: 'idle' }); }}
@@ -157,9 +158,6 @@ export function ApiKeySettings() {
           <button className="btn-accent" onClick={() => save(key)} disabled={!dirty || check.state === 'checking'} style={{ height: 44 }}>
             {t('Guardar')}
           </button>
-          {key.trim() !== '' && !looksLikeKey(key) && (
-            <span className="ak-hint">{t('Las claves de Google empiezan por «AIza» y tienen 39 caracteres. Revisa que la has copiado entera.')}</span>
-          )}
         </div>
       )}
 
