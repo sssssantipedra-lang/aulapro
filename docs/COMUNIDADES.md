@@ -5,7 +5,7 @@ Decisiones tomadas el 2-10-2026 con el dueño.
 Estado (2-10-2026):
 
 - Hecho: registro de comunidades y de sus decretos (`src/lib/curriculum/comunidades.ts`), mecanismo de carga con vuelta al estatal (`cargar.ts`), comunidad en el perfil (guardado en escritorio y navegador, selector obligatorio al crear, edición en Perfil), aviso único a los perfiles antiguos e insignia en la barra lateral. La clase se crea eligiendo etapa y curso y marcando sus asignaturas de la lista oficial del currículo (decisión del dueño, 2-10-2026), con «Editar clase» nuevo. La SdA usa el currículo de la comunidad, pregunta la materia que no está clara, guarda la cita del decreto (`SdaContent.normativa`) y la lleva al PDF y al Word; el aviso de que se usó el estatal sale solo en pantalla.
-- Comunitat Valenciana, Primaria: extraídos y verificados los 507 criterios del Decreto 96/2026 (ver «Comunitat Valenciana» más abajo). Falta el anexo III del 106/2022 (competencias, saberes y criterios de Educación en Valores).
+- Comunitat Valenciana, Primaria: extraídos y verificados los 507 criterios del Decreto 96/2026 y los enunciados de sus competencias (ver «Comunitat Valenciana» más abajo). En curso: los saberes básicos del anexo III del 106/2022 (`scripts/curriculo/saberes_dogv_tablas.py`) y Educación en Valores.
 - Pendiente: el resto de datos de cada decreto; el calendario.
 - Ninguna comunidad tiene todavía su currículo copiado: `CARGADORES` está vacío y todas usan el estatal, avisando.
 
@@ -131,7 +131,11 @@ En `docs/Normativa Comunitat Valenciana/` (nombre que eligió el dueño), para p
 
 - 106/2022: los metadatos del DOGV (XML que dio el dueño) solo traen el articulado, no los anexos. El currículo de las áreas está en el anexo III, que solo está en el PDF.
 - 96/2026, artículo 9 nuevo: las áreas son Conocimiento del Medio Natural, Social y Cultural; Educación Plástica y Visual; Música y Danza; Educación Física; Valenciano: Lengua y Literatura; Lengua Castellana y Literatura; Lengua Extranjera; Matemáticas; Religión; y Educación en Valores Cívicos y Éticos, solo en el tercer ciclo. Desaparecen los Proyectos Interdisciplinarios.
-- 96/2026, anexo único, puntos 22 a 28: sustituye el apartado 6 (criterios de evaluación) de cada área del anexo III, ahora con criterios para los tres ciclos (el 106/2022 no los tenía para el primero). Las dos lenguas oficiales comparten tabla. Educación en Valores no cambia: sus criterios siguen siendo los del 106/2022. Las competencias específicas y los saberes básicos tampoco cambian.
+- 96/2026, anexo único, puntos 22 a 28: sustituye el apartado 6 (criterios de evaluación) de cada área del anexo III, ahora con criterios para los tres ciclos (el 106/2022 no los tenía para el primero). Las dos lenguas oficiales comparten tabla. Educación en Valores no cambia: sus competencias y criterios siguen siendo los del 106/2022. Los saberes básicos (apartado 4) no los toca.
+- Cada tabla de criterios del 96/2026 va precedida del enunciado de su competencia específica, y esos enunciados no coinciden del todo con el apartado 2 del 106/2022:
+  - Música y Danza pasa de 5 competencias a 4. La 5 del 106/2022 («Utilizar recursos digitales y audiovisuales aplicados a la búsqueda, la escucha, la edición, la interpretación y la creación de producciones musicales…») no tiene tabla ni criterios en el 96/2026.
+  - Cambios de redacción: «Comunidad Valenciana» pasa a «Comunitat Valenciana» (Conocimiento del Medio 7 y 8); «de acuerdo a» pasa a «de acuerdo con» (Plástica 5); «cercano al alumno» pasa a «cercano al alumnado» (lenguas, 9); en Lengua Extranjera 7, «Mediar entre interlocutores» pasa a «Mediar entre el grupo de interlocutores o interlocutoras». En Lengua Extranjera el título de cada competencia («Comprensión oral») va seguido de punto.
+- Decisión del dueño (2-10-2026): ante cualquier diferencia entre el 106/2022 y el 96/2026, manda el 96/2026. Las competencias se copian de los enunciados del 96/2026 (Música y Danza con 4) y del 106/2022 solo lo que el 96/2026 no trae: los saberes básicos de todas las áreas y todo Educación en Valores.
 
 ### Cómo se extrajeron los criterios del 96/2026
 
