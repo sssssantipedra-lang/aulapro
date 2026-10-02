@@ -146,11 +146,12 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 /* the last stop: a strip along the bottom invites the visitor on into the page; it slides up as it appears */
 .band.band-strip{left:0;right:0;top:auto;bottom:0;width:auto;transform:translateY(calc((1 - var(--k,1))*100%));text-shadow:none}
 .band.band-strip::before{display:none}
-.strip-link{display:flex;align-items:center;justify-content:center;gap:.7em;padding:clamp(16px,2.6vh,26px) var(--gutter);background:rgba(17,12,30,.74);border-top:1px solid rgba(189,177,210,.22);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:var(--text);font:600 clamp(1rem,1.3vw,1.22rem)/1.2 var(--f-display);letter-spacing:.005em;text-decoration:none;transition:background-color .35s var(--ease-out)}
-.strip-link:hover{background:rgba(32,24,56,.84)}
-.strip-link .arr{display:inline-block;animation:strip-arr 1.8s var(--ease-io) infinite}
+.strip-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px clamp(20px,2.6vw,40px);padding:clamp(14px,2.2vh,22px) var(--gutter);background:rgba(17,12,30,.74);border-top:1px solid rgba(189,177,210,.22);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.strip-t{color:var(--text);font:600 clamp(1rem,1.3vw,1.22rem)/1.2 var(--f-display);letter-spacing:.005em}
+.band-strip .cta-row{margin:0}
+.band-strip .arr{display:inline-block;animation:strip-arr 1.8s var(--ease-io) infinite}
 @keyframes strip-arr{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
-@media (prefers-reduced-motion:reduce){.strip-link .arr{animation:none}}
+@media (prefers-reduced-motion:reduce){.band-strip .arr{animation:none}}
 /* second half: the sheet has landed, the left wall is calm */
 .band.pos-l{left:clamp(16px,11vw,210px);top:45%;transform:translateY(-50%);width:min(37vw,580px)}
 .band::before{content:"";position:absolute;inset:-34% -30% -34% -46%;z-index:-1;pointer-events:none;opacity:calc(.25 + .75*var(--k,1));background:radial-gradient(ellipse 62% 58% at 46% 50%,rgba(12,8,22,var(--pk,.64)) 0%,rgba(12,8,22,calc(var(--pk,.64)*.66)) 46%,rgba(12,8,22,0) 76%)}
@@ -680,16 +681,18 @@ html.zoom-open{overflow:hidden}
         <div class="band fx-rise pos-tr" data-a="0.59" data-b="0.745" data-ramp="0.045" data-pk="86">
           <p class="hl hl-xl" data-split data-i18n="b4.title">Cada cosa en su <em>sitio</em>.</p>
           <p class="sub" data-i18n="b4.sub">AulaPro para Windows y Android. Oferta de lanzamiento: 6,99&nbsp;€ una sola vez, y es tuya para siempre.</p>
-          <div class="cta-row">
-            <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
-            <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span class="arr" aria-hidden="true">↓</span></a>
-          </div>
         </div>
         <div class="band fx-drift pos-tl" data-a="0.8" data-b="1" data-ramp="0.03" data-pk="0">
           <p class="chip mono" data-i18n="b5.chip">Así se ve AulaPro por dentro.</p>
         </div>
         <div class="band band-strip" data-a="0.9" data-b="1" data-ramp="0.06">
-          <a class="strip-link" href="#funciones"><span data-i18n="b5.more">Sigue descubriendo AulaPro</span><span class="arr" aria-hidden="true">↓</span></a>
+          <div class="strip-in">
+            <p class="strip-t" data-i18n="b5.more">Sigue descubriendo AulaPro</p>
+            <div class="cta-row">
+              <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+              <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span class="arr" aria-hidden="true">↓</span></a>
+            </div>
+          </div>
         </div>
       </div>
 
