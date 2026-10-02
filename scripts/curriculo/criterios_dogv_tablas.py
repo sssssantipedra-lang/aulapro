@@ -3,16 +3,22 @@ Extrae los criterios de evaluación por ciclo de las tablas giradas del DOGV.
 
 El Decreto 96/2026 (que modifica el 106/2022 de Primaria) publica los nuevos
 criterios de cada área en tablas de tres columnas (1º, 2º y 3º ciclo) impresas
-de lado. La extracción de texto normal las desordena, así que aquí:
+de lado, en castellano y en valenciano. La extracción de texto normal las
+desordena, así que aquí:
 
-1. Se enderezan las páginas indicadas (el giro pasa al contenido).
+1. Se enderezan las páginas indicadas (el giro pasa al contenido). En
+   castellano las páginas van marcadas como giradas; en valenciano son
+   verticales con el texto dibujado de lado. El mismo giro endereza las dos.
 2. Se toman las palabras con sus coordenadas de `pdftotext -bbox-layout`, que
    separa bien las palabras en este texto justificado (pdfplumber no).
 3. Se localizan las tablas por sus separadores de columna (con `pdfplumber`,
    incluidas las curvas: algunas filas tienen el separador dibujado así) y se
-   asigna cada palabra a su ciclo por la columna en que cae.
-4. Fuera de las tablas quedan los títulos: el área («apartado 6 del área …») y
-   la competencia («Competencia específica N. …»).
+   asigna cada palabra a su ciclo por la columna en que cae. Las columnas se
+   miden en cada página: en algunas del texto en valenciano la tabla está
+   desplazada.
+4. Fuera de las tablas quedan los títulos: el área («apartado 6 del área …»,
+   «apartat 6 de l’àrea …») y la competencia («Competencia específica N. …»,
+   «Competència específica N. …»).
 5. Un criterio empieza en una línea que comienza por su código («1.3.», o
    «7.1» sin punto, que también aparece así en el texto oficial).
 
@@ -33,9 +39,27 @@ from pathlib import Path
 import pdfplumber
 from pypdf import PdfReader, PdfWriter
 
-# Columnas de la tabla en la página ya enderezada: 1º, 2º y 3º ciclo.
-COLS = [(109, 304), (304, 500), (500, 696)]
-SEPARADOR_X = 304  # separador entre 1º y 2º ciclo: marca dónde hay tabla
+# En la página ya enderezada, la cabecera y el pie del DOGV quedan de lado,
+# fuera de las dos líneas verticales que los separan del texto (x = 33 y 772).
+MARCO = (35, 770)
+
+
+def columnas(p) -> list[tuple[float, float]]:
+    """Las tres columnas de ciclo (1º, 2º y 3º), entre las cuatro líneas
+    verticales de la tabla. Casi siempre empiezan en x = 109, pero en algunas
+    páginas del texto en valenciano la tabla está desplazada."""
+    xs = sorted(e['x0'] for e in p.edges if e['orientation'] == 'v' and (e['bottom'] - e['top']) > 5
+                and MARCO[0] < e['x0'] < MARCO[1])
+    lineas: list[list[float]] = []
+    for x in xs:
+        if lineas and x - lineas[-1][-1] < 3:
+            lineas[-1].append(x)
+        else:
+            lineas.append([x])
+    if len(lineas) != 4:
+        raise SystemExit(f'Página con {len(lineas)} líneas verticales de tabla en vez de 4')
+    xs = [min(g) for g in lineas]
+    return list(zip(xs, xs[1:]))
 
 
 def enderezar(pdf: str, primera: int, ultima: int, salida: Path) -> None:
@@ -65,10 +89,12 @@ def palabras_por_pagina(pdf: Path) -> list[list[dict]]:
     return paginas
 
 
-def tramos_de_tabla(p) -> list[list[float]]:
+def tramos_de_tabla(p, separador: float) -> list[list[float]]:
+    """Las alturas en que hay tabla: donde está dibujado el separador entre
+    las columnas de 1º y 2º ciclo."""
     segs = sorted(
         (e['top'], e['bottom']) for e in p.edges
-        if e['orientation'] == 'v' and abs(e['x0'] - SEPARADOR_X) < 3 and (e['bottom'] - e['top']) > 5
+        if e['orientation'] == 'v' and abs(e['x0'] - separador) < 3 and (e['bottom'] - e['top']) > 5
     )
     tramos: list[list[float]] = []
     for t, b in segs:
@@ -122,8 +148,11 @@ def extraer(pdf: str, primera: int, ultima: int) -> list[dict]:
         eventos = []
         with pdfplumber.open(derecho) as doc:
             for pi, p in enumerate(doc.pages):
-                tramos = tramos_de_tabla(p)
-                ws = [w for w in palabras[pi] if 40 < w['top'] < 560 and 100 < w['x0'] < 700]
+                ws = [w for w in palabras[pi] if 40 < w['top'] < 560 and MARCO[0] < w['x0'] and w['x1'] < MARCO[1]]
+                if not ws:
+                    continue  # página en blanco (la 29 del texto en valenciano)
+                cols = columnas(p)
+                tramos = tramos_de_tabla(p, cols[1][0])
 
                 def en_tabla(w):
                     cy = (w['top'] + w['bottom']) / 2
@@ -131,7 +160,7 @@ def extraer(pdf: str, primera: int, ultima: int) -> list[dict]:
 
                 for top, texto in lineas([w for w in ws if not en_tabla(w)]):
                     eventos.append(('libre', pi + primera, top, None, texto))
-                for ci, (x0, x1) in enumerate(COLS):
+                for ci, (x0, x1) in enumerate(cols):
                     cw = [w for w in ws if en_tabla(w) and x0 <= (w['x0'] + w['x1']) / 2 < x1]
                     for top, texto in lineas(cw):
                         eventos.append(('celda', pi + primera, top, ci, texto))
@@ -157,15 +186,16 @@ def extraer(pdf: str, primera: int, ultima: int) -> list[dict]:
             volcar()
             junto = ' '.join(libres)
             libres = []
-            m_area = re.search(r'apartado 6 de(?:l área| las áreas) (.+?), sobre criterios', junto)
+            m_area = (re.search(r'apartado 6 de(?:l área| las áreas) (.+?), sobre criterios', junto)
+                      or re.search(r"apartat 6,? de (?:l[’']àrea|les àrees) (.+?), sobre criteris", junto))
             if m_area:
                 area = {'area': m_area.group(1), 'competencias': []}
                 areas.append(area)
-            m_comp = re.search(r'Competencia específica (\d+)\.\s*(.+)$', junto)
+            m_comp = re.search(r'Compet(?:encia|ència) específica (\d+)\.\s*(.+)$', junto)
             if m_comp:
                 comp = {'n': int(m_comp.group(1)), 'texto': m_comp.group(2).strip(), 'pagina': pagina}
                 area['competencias'].append(comp)
-        if texto.strip() in ('1º ciclo', '2º ciclo', '3º ciclo'):
+        if texto.strip() in ('1º ciclo', '2º ciclo', '3º ciclo', '1r cicle', '2n cicle', '3r cicle'):
             continue
         celdas[col].append(texto)
     volcar()

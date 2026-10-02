@@ -1,17 +1,17 @@
 /**
- * El currículo de Primaria de la Comunitat Valenciana que lleva la app: el
- * Decreto 106/2022 con el 96/2026 aplicado, generado por
- * `scripts/curriculo/primaria_cv.py`. Los totales son los del texto oficial;
+ * El currículo de Primaria de la Comunitat Valenciana que lleva la app, en
+ * castellano y en valenciano: el Decreto 106/2022 con el 96/2026 aplicado,
+ * generado por `scripts/curriculo/primaria_cv.py`. Los totales son los del texto oficial;
  * si cambian, es que la extracción o los datos han cambiado y hay que volver a
  * comprobarlos (`docs/COMUNIDADES.md`).
  */
 import { describe, it, expect } from 'vitest';
 import { cargarCurriculo } from './cargar';
-import { normasDe } from './comunidades';
+import { citarNormas, normasDe } from './comunidades';
 import { resolverGrupo, type CurriculumEntry } from './index';
 import { materiasDelCurso } from './materiasDeClase';
 
-const abrir = () => cargarCurriculo('comunitat-valenciana', 'primaria', 'es');
+const abrir = (idioma: 'es' | 'ca' = 'es') => cargarCurriculo('comunitat-valenciana', 'primaria', idioma);
 const materia = (materias: CurriculumEntry[], id: string) => materias.find(m => m.id === id)!;
 const saberes = (m: CurriculumEntry, grupo: string) =>
   m.saberes[grupo].flatMap(b => b.epigrafes.flatMap(e => e.items));
@@ -38,10 +38,30 @@ describe('Primaria de la Comunitat Valenciana', () => {
     expect(c.normas.map(n => n.corto.es)).toEqual(['Decreto 106/2022, de 5 de agosto', 'Decreto 96/2026, de 19 de junio']);
   });
 
-  it('con la app en valenciano sirve el castellano mientras no esté el 96/2026 en valenciano', async () => {
-    const c = await cargarCurriculo('comunitat-valenciana', 'primaria', 'ca');
-    expect(c.origen).toBe('autonomico');
-    expect(c.idioma).toBe('es');
+  it('con la app en valenciano sirve el texto en valenciano, y en inglés el castellano', async () => {
+    const ca = await abrir('ca');
+    expect(ca.origen).toBe('autonomico');
+    expect(ca.idioma).toBe('ca');
+    expect(ca.materias.map(m => m.nombre)).toEqual([
+      'Coneixement del Medi Natural, Social i Cultural', 'Educació Plàstica i Visual', 'Música i Dansa',
+      'Educació Física', 'Valencià: Llengua i Literatura', 'Llengua Castellana i Literatura',
+      'Llengua Estrangera', 'Matemàtiques', 'Educació en Valors Cívics i Ètics',
+    ]);
+    expect(citarNormas(ca.normas, 'ca')).toBe(
+      'Decret 106/2022, de 5 d\'agost (DOGV núm. 9402, de 10 d\'agost de 2022), '
+      + 'modificat per Decret 96/2026, de 19 de juny (DOGV núm. 10391, de 25 de juny de 2026)',
+    );
+    expect((await cargarCurriculo('comunitat-valenciana', 'primaria', 'en')).idioma).toBe('es');
+  });
+
+  it('las dos lenguas tienen exactamente la misma forma: áreas, competencias, códigos de criterio y saberes', async () => {
+    const forma = (materias: CurriculumEntry[]) => materias.map(m => ({
+      id: m.id,
+      competencias: m.competencias.map(c => c.n),
+      criterios: Object.fromEntries(Object.entries(m.criterios).map(([g, l]) => [g, l.map(c => c.codigo)])),
+      saberes: m.saberes['3'].map(b => [b.bloque, b.epigrafes.map(e => [e.n, e.items.length])]),
+    }));
+    expect(forma((await abrir('ca')).materias)).toEqual(forma((await abrir('es')).materias));
   });
 
   it('tiene las áreas del artículo 9, en su orden y con sus nombres (Religión no tiene currículo)', async () => {
@@ -125,8 +145,8 @@ describe('Primaria de la Comunitat Valenciana', () => {
     }
   });
 
-  it('no quedan restos de la extracción en ningún texto', async () => {
-    const { materias } = await abrir();
+  it.each(['es', 'ca'] as const)('no quedan restos de la extracción en ningún texto (%s)', async idioma => {
+    const { materias } = await abrir(idioma);
     for (const m of materias) {
       const textos = [
         ...m.competencias.map(c => c.texto),
@@ -134,7 +154,7 @@ describe('Primaria de la Comunitat Valenciana', () => {
         ...saberes(m, '3'),
       ];
       for (const t of textos) {
-        expect(t, m.id).not.toMatch(/­| {2}|^\s|\s$|•|(?:^|\s)[xX](?:\s|$)/);
+        expect(t, m.id).not.toMatch(/\u00ad| {2}|^\s|\s$|•|(?:^|\s)[xX](?:\s|$)|\w- \w/);
         expect(t.length, m.id).toBeGreaterThan(3);
       }
     }
@@ -147,5 +167,11 @@ describe('Primaria de la Comunitat Valenciana', () => {
     expect(saberes(materia(materias, 'conocimiento-del-medio'), '1')).toContain('Identificación de los estados del agua .');
     // Palabra compuesta partida al final de línea: conserva el guion
     expect(saberes(materia(materias, 'educacion-plastica-y-visual'), '1').join(' ')).toContain('figura-fondo');
+    // En valenciano, las palabras partidas al final de línea se unen, y los
+    // pronombres enclíticos conservan el guion
+    const ca = (await abrir('ca')).materias;
+    expect(saberes(materia(ca, 'conocimiento-del-medio'), '1'))
+      .toContain('Ús del temps i de les formes convencionals per a mesurar-lo.');
+    expect(saberes(materia(ca, 'musica-y-danza'), '1')).toContain('Formes simples. .');
   });
 });

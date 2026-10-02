@@ -1,22 +1,24 @@
 """
-Construye el currículo de Primaria de la Comunitat Valenciana que lleva la app:
-`src/lib/curriculum/data/comunitat-valenciana/primaria.es.json`.
+Construye el currículo de Primaria de la Comunitat Valenciana que lleva la app,
+en sus dos lenguas oficiales: `src/lib/curriculum/data/comunitat-valenciana/`
+`primaria.es.json` y `primaria.ca.json` (en la app, el valenciano es «ca»).
 
 Fuentes, en `docs/Normativa Comunitat Valenciana/` (ver `docs/COMUNIDADES.md`):
 
 - Decreto 96/2026: competencias específicas (el enunciado que encabeza cada
   tabla) y criterios de evaluación de los tres ciclos. Se extraen antes con
-  `criterios_dogv_tablas.py` a `comunitat-valenciana/criterios-96-2026.es.json`.
+  `criterios_dogv_tablas.py` a `comunitat-valenciana/criterios-96-2026.es.json`
+  y `.va.json`.
 - Decreto 106/2022, anexo III: los saberes básicos de todas las áreas y lo que
   el 96/2026 no toca, Educación en Valores Cívicos y Éticos entera. Ante
   cualquier diferencia entre los dos decretos, manda el 96/2026 (decisión del
   dueño, 2-10-2026).
 
-Los saberes se leen con `saberes_dogv_tablas.py` en las dos lenguas. La versión
-en valenciano sirve aquí para comprobar la castellana (mismos bloques, mismos
-subbloques, mismo número de saberes) y queda guardada para cuando llegue el
-96/2026 en valenciano. Las X de ciclo no se recogen: cada bloque lleva todos sus
-saberes en los tres ciclos (decisión del dueño, 2-10-2026).
+Los saberes se leen con `saberes_dogv_tablas.py` en las dos lenguas, y cada una
+comprueba a la otra: mismos bloques, subbloques, grupos y número de saberes; lo
+mismo con los códigos de los criterios del 96/2026. Las X de ciclo no se
+recogen: cada bloque lleva todos sus saberes en los tres ciclos (decisión del
+dueño, 2-10-2026).
 
 Uso:
     python3 scripts/curriculo/primaria_cv.py            # escribe los JSON
@@ -40,7 +42,11 @@ RAIZ = Path(__file__).resolve().parents[2]
 NORMATIVA = RAIZ / 'docs' / 'Normativa Comunitat Valenciana'
 PDF = {'es': NORMATIVA / 'ANEXO 1-3 106-2022.pdf', 'va': NORMATIVA / 'ANNEX 1-3 106-2022.pdf'}
 SALIDA_SCRIPTS = Path(__file__).parent / 'comunitat-valenciana'
-CRITERIOS_96 = SALIDA_SCRIPTS / 'criterios-96-2026.es.json'
+# Criterios y competencias del 96/2026, extraídos con `criterios_dogv_tablas.py`
+CRITERIOS_96 = {i: SALIDA_SCRIPTS / f'criterios-96-2026.{i}.json' for i in ('es', 'va')}
+PDF_96 = {'es': (NORMATIVA / 'DECRETO 96-2026.pdf', 18, 59), 'va': (NORMATIVA / 'DECRET 96-2026.pdf', 18, 64)}
+# El valenciano es «ca» en la app (el mismo código que el catalán)
+CODIGO_APP = {'es': 'es', 'va': 'ca'}
 SALIDA_APP = RAIZ / 'src' / 'lib' / 'curriculum' / 'data' / 'comunitat-valenciana'
 PAGINAS_VALORES = ((214, 220), (205, 211))
 
@@ -273,24 +279,41 @@ def resumen(bloques):
                 print(f"      {g['titulo']!s:.70}: {len(g['saberes'])}")
 
 
-# Las áreas de la app, en el orden del artículo 9 (redacción del 96/2026), con
-# su nombre de ese artículo y de dónde salen. Las dos lenguas oficiales
+# Las áreas de la app, en el orden del artículo 9 (redacción del 96/2026):
+# id, de dónde salen sus saberes, su nombre en ese artículo y el nombre con que
+# la encabeza su tabla de criterios en el 96/2026. Las dos lenguas oficiales
 # comparten currículo en el anexo III y tabla de criterios en el 96/2026.
 # Religión no tiene currículo en el decreto y no está aquí.
 APP = [
-    ('conocimiento-del-medio', 'Conocimiento del Medio Natural, Social y Cultural',
-     'conocimiento-del-medio', 'Conocimiento del medio natural, social y cultural'),
-    ('educacion-plastica-y-visual', 'Educación Plástica y Visual',
-     'educacion-plastica-y-visual', 'Educación Plástica y Visual'),
-    ('musica-y-danza', 'Música y Danza', 'musica-y-danza', 'Música y Danza'),
-    ('educacion-fisica', 'Educación Física', 'educacion-fisica', 'Educación Física'),
-    ('valenciano', 'Valenciano: Lengua y Literatura',
-     'lenguas', 'Valenciano: Lengua y Literatura y Lengua Castellana y Literatura'),
-    ('lengua-castellana', 'Lengua Castellana y Literatura',
-     'lenguas', 'Valenciano: Lengua y Literatura y Lengua Castellana y Literatura'),
-    ('lengua-extranjera', 'Lengua Extranjera', 'lengua-extranjera', 'Lengua Extranjera'),
-    ('matematicas', 'Matemáticas', 'matematicas', 'Matemáticas'),
-    ('educacion-en-valores', 'Educación en Valores Cívicos y Éticos', 'valores', None),
+    ('conocimiento-del-medio', 'conocimiento-del-medio',
+     {'es': 'Conocimiento del Medio Natural, Social y Cultural', 'va': 'Coneixement del Medi Natural, Social i Cultural'},
+     {'es': 'Conocimiento del medio natural, social y cultural', 'va': 'Coneixement del Medi Natural, Social i Cultural'}),
+    ('educacion-plastica-y-visual', 'educacion-plastica-y-visual',
+     {'es': 'Educación Plástica y Visual', 'va': 'Educació Plàstica i Visual'},
+     {'es': 'Educación Plástica y Visual', 'va': 'Educació Plàstica i Visual'}),
+    ('musica-y-danza', 'musica-y-danza',
+     {'es': 'Música y Danza', 'va': 'Música i Dansa'},
+     {'es': 'Música y Danza', 'va': 'Música i Dansa'}),
+    ('educacion-fisica', 'educacion-fisica',
+     {'es': 'Educación Física', 'va': 'Educació Física'},
+     {'es': 'Educación Física', 'va': 'Educació Física'}),
+    ('valenciano', 'lenguas',
+     {'es': 'Valenciano: Lengua y Literatura', 'va': 'Valencià: Llengua i Literatura'},
+     {'es': 'Valenciano: Lengua y Literatura y Lengua Castellana y Literatura',
+      'va': 'Valencià: Llengua i Literatura i Llengua Castellana i Literatura'}),
+    ('lengua-castellana', 'lenguas',
+     {'es': 'Lengua Castellana y Literatura', 'va': 'Llengua Castellana i Literatura'},
+     {'es': 'Valenciano: Lengua y Literatura y Lengua Castellana y Literatura',
+      'va': 'Valencià: Llengua i Literatura i Llengua Castellana i Literatura'}),
+    ('lengua-extranjera', 'lengua-extranjera',
+     {'es': 'Lengua Extranjera', 'va': 'Llengua Estrangera'},
+     {'es': 'Lengua Extranjera', 'va': 'Llengua Estrangera'}),
+    ('matematicas', 'matematicas',
+     {'es': 'Matemáticas', 'va': 'Matemàtiques'},
+     {'es': 'Matemáticas', 'va': 'Matemàtiques'}),
+    ('educacion-en-valores', 'valores',
+     {'es': 'Educación en Valores Cívicos y Éticos', 'va': 'Educació en Valors Cívics i Ètics'},
+     None),
 ]
 
 # Saberes que el texto simple de `pdftotext` no reproduce ni siquiera con las
@@ -308,6 +331,8 @@ VISTOS_EN_IMAGEN = {
         'petición e intercambio de información sobre cuestiones cotidianas; rutinas; indicaciones e '
         'instrucciones; expresión de la pertenencia y la cantidad.',
         'Iniciación a convenciones ortográficas elementales.',
+        # 96/2026, Matemáticas, 2º ciclo (página 55)
+        'Aplicar instrucciones secuenciales para resolver problemas mediante el uso de herramientas TIC.',
     },
     'va': {
         "Utilització de materials, eines i objectes d'ús escolar segur.",
@@ -492,60 +517,74 @@ def construir(revisar: bool = False) -> None:
         for d in diferencias(estructuras[(area, 'es')], estructuras[(area, 'va')]):
             raise SystemExit(f'{area}: {d}')
 
-    valores_es, ce_valores, crit_valores = valores('es')
-    valores_va = valores('va')[0]
-    for idioma, bloques in (('es', valores_es), ('va', valores_va)):
+    valores_de = {i: valores(i) for i in ('es', 'va')}
+    forma_valores = {i: [[len(e['items']) for e in b['epigrafes']] for b in v[0]] for i, v in valores_de.items()}
+    if forma_valores['es'] != forma_valores['va']:
+        raise SystemExit('Educación en Valores: distinta forma en castellano y en valenciano')
+    criterios_96 = {i: json.loads(CRITERIOS_96[i].read_text(encoding='utf-8')) for i in ('es', 'va')}
+    if forma_96(criterios_96['es']) != forma_96(criterios_96['va']):
+        raise SystemExit('96/2026: los criterios no tienen los mismos códigos en castellano y en valenciano')
+    for idioma in ('es', 'va'):
+        bloques, ce_valores, crit_valores = valores_de[idioma]
         primera, ultima = PAGINAS_VALORES[0 if idioma == 'es' else 1]
         textos = [t for b in bloques for e in b['epigrafes'] for t in [e['titulo']] + e['items']]
-        if idioma == 'es':
-            textos += [c['texto'] for c in ce_valores] + [c['texto'] for c in crit_valores['3']]
-        informe[idioma]['comprobacion'] = dict(
-            Counter(informe[idioma]['comprobacion']) + comprobar_texto(textos, PDF[idioma], primera, ultima, idioma))
-    if [[len(e['items']) for e in b['epigrafes']] for b in valores_es] != \
-       [[len(e['items']) for e in b['epigrafes']] for b in valores_va]:
-        raise SystemExit('Educación en Valores: distinta forma en castellano y en valenciano')
+        textos += [c['texto'] for c in ce_valores] + [c['texto'] for c in crit_valores['3']]
+        cuenta = comprobar_texto(textos, PDF[idioma], primera, ultima, idioma)
+        pdf96, p1, p2 = PDF_96[idioma]
+        textos96 = [t for a in criterios_96[idioma] for c in a['competencias']
+                    for t in [limpiar_enunciado(c['texto'])] + [x['texto'] for g in '123' for x in c['criterios'][g]]]
+        cuenta += comprobar_texto(textos96, pdf96, p1, p2, idioma)
+        informe[idioma]['comprobacion'] = dict(Counter(informe[idioma]['comprobacion']) + cuenta)
 
     # Lo intermedio, con grupos y en las dos lenguas, para poder revisarlo
     for idioma in ('es', 'va'):
         intermedio = {area: estructuras[(area, idioma)] for area in AREAS}
-        intermedio['valores'] = valores_es if idioma == 'es' else valores_va
+        intermedio['valores'] = valores_de[idioma][0]
         (SALIDA_SCRIPTS / f'saberes-106-2022.{idioma}.json').write_text(
             json.dumps(intermedio, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
 
-    criterios_96 = {a['area']: a for a in json.loads(CRITERIOS_96.read_text(encoding='utf-8'))}
-    entradas = []
-    for id_, nombre, origen, area_96 in APP:
-        if origen == 'valores':
-            competencias = [{'n': c['n'], 'texto': limpiar_enunciado(c['texto'])} for c in ce_valores]
-            criterios = {'1': [], '2': [], '3': crit_valores['3']}
-            for c in criterios['3']:
-                c['texto'] = limpiar_enunciado(c['texto'])
-            saberes = [{'bloque': str(b['n']), 'tituloBloque': b['titulo'],
-                        'epigrafes': [{'n': k + 1, 'titulo': e['titulo'], 'items': e['items']}
-                                      for k, e in enumerate(b['epigrafes'])]} for b in valores_es]
-        else:
-            a96 = criterios_96[area_96]
-            competencias = [{'n': c['n'], 'texto': limpiar_enunciado(c['texto'])} for c in a96['competencias']]
-            criterios = {g: [{'codigo': x['codigo'], 'competencia': c['n'], 'texto': x['texto'], 'codigoLiteral': True}
-                             for c in a96['competencias'] for x in c['criterios'][g]] for g in ('1', '2', '3')}
-            saberes = saberes_para_la_app(origen, estructuras[(origen, 'es')], 'es')
-        entradas.append({'id': id_, 'area': nombre, 'competencias': competencias,
-                         'criterios': criterios, 'saberes': saberes})
-
     SALIDA_APP.mkdir(parents=True, exist_ok=True)
-    (SALIDA_APP / 'primaria.es.json').write_text(json.dumps(entradas, ensure_ascii=False, indent=1) + '\n',
-                                                 encoding='utf-8')
-    for idioma, inf in informe.items():
-        print(f"{idioma}: {inf['comprobacion']}; {len(inf['guiones'])} guiones de fin de línea resueltos")
+    for idioma in ('es', 'va'):
+        entradas = entradas_de(idioma, estructuras, valores_de[idioma], criterios_96[idioma])
+        archivo = SALIDA_APP / f'primaria.{CODIGO_APP[idioma]}.json'
+        archivo.write_text(json.dumps(entradas, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+        inf = informe[idioma]
+        print(f"== {archivo.name}: {inf['comprobacion']}; {len(inf['guiones'])} guiones de fin de línea resueltos")
         if revisar:
             for g in inf['guiones']:
                 print('   ', g)
-    for e in entradas:
-        n_sab = sum(len(ep['items']) for b in e['saberes'] for ep in b['epigrafes'])
-        n_crit = sum(len(v) for v in e['criterios'].values())
-        print(f"{e['area']}: {len(e['competencias'])} competencias, {n_crit} criterios, "
-              f"{len(e['saberes'])} bloques, {n_sab} saberes")
+        for e in entradas:
+            n_sab = sum(len(ep['items']) for b in e['saberes'] for ep in b['epigrafes'])
+            n_crit = sum(len(v) for v in e['criterios'].values())
+            print(f"{e['area']}: {len(e['competencias'])} competencias, {n_crit} criterios, "
+                  f"{len(e['saberes'])} bloques, {n_sab} saberes")
 
+
+def forma_96(areas: list[dict]) -> list:
+    return [[(c['n'], [[x['codigo'] for x in c['criterios'][g]] for g in '123']) for c in a['competencias']]
+            for a in areas]
+
+
+def entradas_de(idioma: str, estructuras: dict, valores_idioma: tuple, criterios_96: list[dict]) -> list[dict]:
+    bloques_valores, ce_valores, crit_valores = valores_idioma
+    por_area = {a['area']: a for a in criterios_96}
+    entradas = []
+    for id_, origen, nombre, area_96 in APP:
+        if origen == 'valores':
+            competencias = [{'n': c['n'], 'texto': limpiar_enunciado(c['texto'])} for c in ce_valores]
+            criterios = {'1': [], '2': [], '3': [{**c, 'texto': limpiar_enunciado(c['texto'])} for c in crit_valores['3']]}
+            saberes = [{'bloque': str(b['n']), 'tituloBloque': b['titulo'],
+                        'epigrafes': [{'n': k + 1, 'titulo': e['titulo'], 'items': e['items']}
+                                      for k, e in enumerate(b['epigrafes'])]} for b in bloques_valores]
+        else:
+            a96 = por_area[area_96[idioma]]
+            competencias = [{'n': c['n'], 'texto': limpiar_enunciado(c['texto'])} for c in a96['competencias']]
+            criterios = {g: [{'codigo': x['codigo'], 'competencia': c['n'], 'texto': x['texto'], 'codigoLiteral': True}
+                             for c in a96['competencias'] for x in c['criterios'][g]] for g in ('1', '2', '3')}
+            saberes = saberes_para_la_app(origen, estructuras[(origen, idioma)], idioma)
+        entradas.append({'id': id_, 'area': nombre[idioma], 'competencias': competencias,
+                         'criterios': criterios, 'saberes': saberes})
+    return entradas
 
 if __name__ == '__main__':
     construir(revisar='--revisar' in sys.argv)

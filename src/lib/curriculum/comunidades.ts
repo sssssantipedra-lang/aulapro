@@ -120,9 +120,9 @@ const VC_PRIMARIA: Norma[] = [
   },
   {
     tipo: 'modificacion',
-    // Comprobado con el PDF del DOGV en castellano. El título en valenciano
-    // se añade cuando esté su PDF (lo sube el dueño): hasta entonces no se cita.
+    // Comprobado con los PDF del DOGV en castellano y en valenciano
     titulo: {
+      ca: 'Decret 96/2026, de 19 de juny, del Consell, pel qual es modifica el Decret 106/2022, de 5 d\'agost, del Consell, d\'ordenació i currículum de l\'etapa d\'Educació Primària.',
       es: 'Decreto 96/2026, de 19 de junio, del Consell, por el que se modifica el Decreto 106/2022, de 5 de agosto, del Consell, de ordenación y currículo de la etapa de Educación Primaria.',
     },
     corto: { ca: 'Decret 96/2026, de 19 de juny', es: 'Decreto 96/2026, de 19 de junio' },

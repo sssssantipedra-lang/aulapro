@@ -53,15 +53,14 @@ export function conLosMismosSaberesEnCadaCiclo(raw: RawEntrySaberesComunes[]): C
  * verificadas en `comunidades.ts`.
  */
 export const CARGADORES: Cargadores = {
-  // Decreto 106/2022 con el 96/2026 aplicado (`scripts/curriculo/primaria_cv.py`).
-  // Solo en castellano hasta tener el 96/2026 en valenciano: si la app está en
-  // valenciano, se sirve el castellano y `idioma` lo dice.
+  // Decreto 106/2022 con el 96/2026 aplicado (`scripts/curriculo/primaria_cv.py`),
+  // en sus dos lenguas oficiales.
   'comunitat-valenciana': {
-    primaria: async () => ({
-      idioma: 'es',
-      materias: conLosMismosSaberesEnCadaCiclo(
-        (await import('./data/comunitat-valenciana/primaria.es.json')).default as unknown as RawEntrySaberesComunes[],
-      ),
+    primaria: async idioma => ({
+      idioma,
+      materias: conLosMismosSaberesEnCadaCiclo((idioma === 'ca'
+        ? (await import('./data/comunitat-valenciana/primaria.ca.json')).default
+        : (await import('./data/comunitat-valenciana/primaria.es.json')).default) as unknown as RawEntrySaberesComunes[]),
     }),
   },
 };

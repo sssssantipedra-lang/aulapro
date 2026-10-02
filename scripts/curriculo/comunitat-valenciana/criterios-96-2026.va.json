@@ -1,0 +1,3196 @@
+[
+ {
+  "area": "Coneixement del Medi Natural, Social i Cultural",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Utilitzar de manera guiada i delimitada dispositius i recursos digitals per a buscar informació, comunicar-se, col·laborar i crear contingut digital senzill amb seguretat i eficàcia.",
+    "pagina": 18,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se, de manera guiada i amb acompanyament del professorat, en la busca d’informació de manera individual o en equip, mitjançant l’ús segur i responsable de recursos digitals i dispositius senzills."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en l’ús de dispositius digitals bàsics, de manera segura i responsable, per a comunicar-se en el context educatiu, amb intenció comunicativa clara i acompanyament del professorat."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Crear un producte digital senzill de manera guiada, seguint passos elementals i amb acompanyament del professorat."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer hàbits que afavorixen un ús adequat i responsable de les tecnologies digitals."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en la identificació de conductes segures en l’ús de les tecnologies digitals."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Usar aplicacions informàtiques senzilles d’ús habitual per a buscar informació en Internet, de manera guiada i segura, sobre temes pròxims i d’interés personal, i iniciar-se en l’ús de ferramentes col·laboratives bàsiques."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Usar dispositius digitals senzills per a comunicar-se mitjançant el correu electrònic en contextos educatius, i aplicar les normes bàsiques de la netiqueta, de manera guiada."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Crear textos digitals senzills seguint pautes d’elaboració, de manera guiada."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar hàbits que afavorixen tindre una relació saludable i adequada amb l’ús de les tecnologies digitals."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar conductes segures i poc segures relacionades amb la informació personal (imatge, dades i contrasenyes) en l’ús de les tecnologies digitals."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar informació en Internet de manera guiada, segura i eficient, utilitzant dispositius, programes i aplicacions informàtiques senzilles, i col·laborar en línia per a compartir i contrastar informació."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar-se utilitzant plataformes i aplicacions en línia, principalment el correu electrònic, fòrums i xats educatius, i aplicar les normes de la netiqueta de manera cada vegada més autònoma."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Crear textos, presentacions i vídeos en format digital utilitzant pautes per a la seua elaboració."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar hàbits de conducta saludable i segura en l’ús de les tecnologies digitals."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar conductes segures i poc segures en l’ús de la tecnologia, relacionades amb les identitats falses i la protecció antivirus."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Desenrotllar projectes cooperatius delimitats i realitzar investigacions senzilles de naturalesa interdisciplinària amb la guia i ajuda del professorat, utilitzant estratègies elementals pròpies del pensament de disseny i computacional .",
+    "pagina": 19,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Oferir respostes a qüestions o problemes plantejats sobre situacions relacionades amb l’entorn natural, social i cultural pròxim d’especial interés i rellevància."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en la utilització de tècniques senzilles de pensament de disseny i pensament computacional en resolució de problemes sobre situacions quotidianes bàsiques."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Elaborar, de manera guiada i en equip, un producte final senzill que done solució a un problema de disseny relacionat amb el seu entorn quotidià, utilitzant ferramentes i dispositius adequats de manera segura."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar, de manera oral o gràfica, el producte final, i explicar de manera guiada els passos seguits en l’elaboració."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar qüestions o problemes relacionats amb l’entorn natural, social i cultural pròxim d’especial interés i rellevància susceptibles de ser abordats mitjançant processos d’investigació senzills."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Proposar possibles solucions a qüestions o problemes relacionats amb l’activitat quotidiana, utilitzant tècniques senzilles de pensament de disseny i pensament computacional."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Elaborar cooperativament un producte final que done solució a un problema senzill de disseny relacionat amb l’entorn natural, social o cultural pròxim, utilitzant de manera segura les ferramentes, els dispositius, les tècniques i els materials habituals en el desenrotllament de projectes."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar el producte final en un o diversos formats senzills, i explicar de manera ordenada els passos seguits en l’elaboració."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Plantejar qüestions o problemes relacionats amb l’entorn natural, social o cultural pròxim i identificar possibles fonts susceptibles de proporcionar informació segura, fiable i útil per a abordar-los."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Proposar diferents solucions a qüestions o problemes relacionats amb l’entorn natural, social o cultural pròxim utilitzant tècniques de pensament de disseny i pensament computacional."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Elaborar cooperativament un producte final que done solució a un problema senzill de disseny relacionat amb l’entorn natural, social o cultural pròxim, establint uns objectius precisos i provant diferents prototips o solucions, utilitzant de manera segura les ferramentes, els dispositius, les tècniques i els materials adequats."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar el producte final d’un projecte senzill, explicar de manera clara els passos seguits en el seu disseny i desenrotllament, i valorar de manera guiada el resultat obtingut per a identificar possibles millores."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Plantejar i respondre preguntes sobre qüestions de la vida quotidiana relatives a l’entorn natural, social i cultural aplicant, amb suport i guia de materials i del professorat, el raonament científic i l’experimentació .",
+    "pagina": 20,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Encuriosir-se per la busca d’informació i recórrer de manera guiada a diferents fonts segures i fiables sobre el medi natural, social i cultural pròxim."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en experiments pautats o guiats, utilitzant tècniques senzilles d’indagació i emprant de manera segura els instruments i materials."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre i explicar, de manera guiada, relacions senzilles i directes entre diferents elements del medi natural, social i cultural, a partir de l’observació, la manipulació i l’experimentació."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre i utilitzar, de manera guiada, la informació obtinguda com a resultat de la realització d’un experiment per a comunicar-ne el resultat."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar els resultats de xicotetes investigacions, de manera oral o gràfica, i explicar els passos seguits amb ajuda d’un guió."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar i recopilar informació, recorrent a diferents fonts segures i fiables, sobre el medi natural, social i cultural pròxim, i formular preguntes a partir de la curiositat que guien el procés d’investigació."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar, de manera guiada, experiments senzills, utilitzant les tècniques d’indagació més adequades i emprant de manera segura els instruments i materials, i registrar la informació obtinguda de manera bàsica."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i explicar relacions bàsiques entre diferents elements del medi natural, social i cultural, a partir de l’observació, la manipulació i l’experimentació, i elaborar explicacions senzilles i coherents."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el resultat obtingut de la realització d’un experiment per a extraure’n conclusions senzilles i útils, amb acompanyament del professorat."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar els resultats de xicotetes investigacions en forma d’esquemes visualment senzills, utilitzant un llenguatge científic bàsic, i explicar els passos seguits en el procés."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar curiositat de manera sostinguda sobre qüestions relacionades amb el medi natural, social o cultural, buscar informació de manera sistemàtica i formular preguntes per a orientar la investigació, amb suport docent quan siga necessari."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar experiments senzills de forma guiada, utilitzant instruments i dispositius adequats amb seguretat, dur a terme observacions i mesuraments precisos, i registrar de manera ordenada els resultats obtinguts."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar algunes interrelacions significatives entre elements del medi natural, social i cultural, a partir de l’observació i l’experimentació, per a explicar canvis, causes i conseqüències de manera raonada."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Plantejar i respondre preguntes sobre el resultat obtingut d’un experiment i contrastar-les amb la conclusió formulada, per a comunicar de manera raonada el procés i el resultat."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar de manera clara i organitzada els resultats d’un projecte senzill de disseny o investigació, utilitzant representacions gràfiques i un llenguatge cientificotècnic bàsic, explicar les fases del procés seguit i valorar si la solució obtinguda o el prototip elaborat respon als objectius inicials."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Adoptar hàbits saludables de consum, alimentació, exercici i descans a partir del coneixement científic del cos, des del punt de vista del benestar físic, mental i emocional.",
+    "pagina": 21,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar hàbits de vida saludables i valorar la importància de la higiene, una alimentació variada, equilibrada i sostenible, l’exercici físic i el descans."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer les emocions pròpies provocades per l’entorn escolar i familiar i aplicar, amb ajuda del professorat, accions senzilles que afavorisquen el benestar emocional i social."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i valorar les diferències entre xiquets i xiquetes (aspecte, gustos, maneres de jugar o de ser), participar en jocs i tasques amb tots per igual i mantindre actituds de cura, ajuda i tracte amable cap a qualsevol company o companya, i rebutjar qualsevol forma de discriminació."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer comportaments igualitaris i no sexistes entre xiquetes i xiquets en situacions habituals de l’aula, el joc i les activitats diàries, amb l’acompanyament del professorat; participar de manera equitativa en tasques i responsabilitats, i evitar associar funcions, jocs o cures a un gènere determinat."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar la pràctica habitual d’hàbits saludables d’alimentació, exercici físic i descans amb el funcionament bàsic del cos humà, i identificar els seus beneficis per a la salut."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar emocions i sentiments propis i aliens i comprendre l’empatia com una actitud que afavorix la convivència i ajuda a relacionar-se amb els altres."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, acceptar i respectar la identitat sexual i de gènere pròpia i aliena a través d’accions quotidianes en l’àmbit escolar que afavorisquen l’eliminació de prejuís, estereotips i qualsevol forma de discriminació cap a qualsevol identitat."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Assumir responsabilitats i tasques en els contextos escolar, familiar i comunitari pròxim, qüestionar estereotips sexistes i participar de manera equitativa en el repartiment de funcions i cures, amb actituds de respecte, col·laboració i corresponsabilitat."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explicar la relació entre els principals òrgans i funcions del cos humà i els hàbits de vida saludable, analitzar els seus efectes sobre la salut física, mental i emocional, i valorar l’adopció de decisions responsables per al benestar personal."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i respectar les emocions i sentiments propis i aliens, i gestionar-los a través d’una actitud empàtica, de manera que contribuïsquen al benestar propi i col·lectiu."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i respectar les diferències individuals com una riquesa, especialment en el que concernix la identitat sexual i de gènere, i valorar la diversitat a través d’actituds de reconeixement, col·laboració, ús de llenguatge inclusiu i rebuig d’estereotips, prejuís i qualsevol forma de discriminació en tots els àmbits."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Assumir, de manera corresponsable, tasques i cures en els contextos escolar, familiar i comunitari; identificar i qüestionar estereotips sexistes, i proposar formes de repartiment equitatiu i just, amb independència del gènere de les persones implicades."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Identificar, analitzar i proposar solucions als problemes generats per l’acció humana en l’entorn, tant a escala local com de manera global, derivats dels factors demogràfics, històrics, econòmics, tecnològics i ambientals.",
+    "pagina": 22,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar les accions que es realitzen en la vida quotidiana i en l’entorn pròxim en el qual viuen, diferenciar entre factors naturals i humans, i reconéixer la seua influència en el medi."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer actuacions humanes rellevants i significatives amb un fort impacte en el medi ambient i el paisatge pròxim."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activament en les propostes d’actuació del centre educatiu orientades a la solució de problemes ecològics presents en l’entorn pròxim."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer els canvis que incidixen en un element del paisatge o d’un ecosistema pròxim amb el pas del temps i organitzar-los des d’un criteri de causa-efecte, amb l’ajuda docent."
+      },
+      {
+       "codigo": "5.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar les accions pròpies realitzades en benefici del consum responsable de materials escolars, aliments, aigua i electricitat."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar les accions que realitzen les persones en la vida quotidiana amb diferents factors naturals i socials, i explicar de manera senzilla com influïxen en el medi en el qual viuen."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar els avantatges i els inconvenients d’una actuació humana rellevant i significativa amb un fort impacte en el medi ambient i el paisatge pròxim."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activament en l’elaboració i formulació de propostes d’actuació orientades a la solució de problemes ecològics presents en l’entorn pròxim."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i establir les causes i les conseqüències dels canvis produïts en un element del paisatge o d’un ecosistema amb el pas del temps i per l’acció de les i dels agents que incidixen en este."
+      },
+      {
+       "codigo": "5.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar les accions realitzades per la societat en benefici del consum responsable de materials escolars, aliments, aigua i electricitat."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar i explicar les relacions que es produïxen entre les accions humanes i els factors naturals en un ecosistema o paisatge significatiu, i valorar-ne els efectes en el medi."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Argumentar críticament l’impacte que suposa l’acció humana en el medi tant a escala local com global i proposar solucions eficients, sostenibles i creatives als problemes generats."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activament en l’elaboració i formulació de propostes d’actuació raonades, viables i sostenibles orientades a la conservació i cura del medi ambient i el paisatge."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar i relacionar els canvis que es produïxen en el paisatge i en un ecosistema amb les causes i conseqüències que es deriven del pas del temps i de l’acció dels factors naturals i humans."
+      },
+      {
+       "codigo": "5.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i justificar les accions quotidianes, locals i globals realitzades habitualment en l’entorn pròxim en benefici del consum responsable de béns i servicis."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Situar cronològicament i espacialment els esdeveniments que marquen l’inici i el final dels grans períodes històrics mitjançant l’ús de diferents fonts històriques i unitats de temps, i identificar i explicar els principals processos de canvi subjacents i la seua interrelació.",
+    "pagina": 23,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i utilitzar les unitats de temps, dècada i segle, per a situar i ordenar cronològicament fets rellevants del passat."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar cronològicament fets significatius de la història de la humanitat i identificar alguna personalitat rellevant relativa al fet històric des de la perspectiva de gènere."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar temporalment i espacialment fets del passat recent, emprant nocions bàsiques de mesura i successió."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en el coneixement d’algunes característiques bàsiques de les formes de vida i de l’organització social en els principals períodes històrics des de la prehistòria fins a l’Edat Antiga, a partir de l’observació guiada de fonts històriques senzilles (imatges, objectes, relats) i mitjançant comparacions elementals amb la vida actual."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i utilitzar les unitats de temps, lustre, dècada i segle, per a situar i ordenar cronològicament fets rellevants del passat."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar cronològicament fets significatius de la història de la humanitat i personalitats rellevants des d’una perspectiva de gènere, utilitzant ferramentes bàsiques de mesura de temps, i classificar-los segons els grans períodes històrics establits."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar temporalment i espacialment alguns els fets especialment rellevants de la història de la Comunitat Valenciana."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Descriure i comparar les característiques principals de les formes de vida i de l’organització social en diferents períodes històrics des de l’Edat Antiga fins a l’Edat Mitjana, i utilitzar de manera progressivament autònoma fonts històriques senzilles, per a identificar canvis i permanències elementals."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i utilitzar les unitats de temps, dècada, lustre, segle i mil·lenni, per a situar i ordenar cronològicament fets rellevants del passat."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Situar espacialment i temporalment els fets socials i les persones rellevants de la història de la Comunitat Valenciana i d’Espanya, mostrar la seua interrelació i incorporar la perspectiva de gènere."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Situar i ordenar cronològicament els canvis de major rellevància en la humanitat, des de l’Edat Mitjana fins a l’actualitat."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar les característiques més rellevants de les formes de vida i de l’organització social des de l’Edat Moderna fins a l’actualitat; utilitzar de manera cada vegada més autònoma fonts històriques diverses, per a establir relacions de causalitat, successió i simultaneïtat, i identificar canvis i permanències al llarg de la història."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Identificar i descriure l’organització i estructura política i territorial municipal de la Comunitat Valenciana, d’Espanya i d’Europa, així com les característiques més destacades de les seues principals institucions i funcions .",
+    "pagina": 24,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar els principals òrgans de govern del municipi i de la província i estructurar-los segons la seua responsabilitat en organigrames senzills amb l’ajuda docent."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer les institucions i els elements bàsics de l’organització territorial del municipi i de la província, identificar les seues funcions més pròximes a l’alumnat i representar-los de manera senzilla mitjançant mapes o esquemes guiats."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer les funcions de les institucions del seu entorn i valorar la importància que tenen com a responsables de la vida de les persones del seu municipi i per a la convivència social a partir d’exemples quotidians."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar els principals òrgans de govern del municipi, de la província i de la Comunitat Valenciana, organitzar-los en organigrames senzills segons les seues responsabilitats i comparar les seues estructures."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Distingir les característiques bàsiques de l’organització territorial i política del municipi, la província i la Comunitat Valenciana, identificar les seues principals institucions i funcions, i localitzar-les en mapes de forma progressivament autònoma."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Explicar les funcions de l’administració del municipi en relació amb la importància de la participació ciutadana i la convivència social."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i descriure els elements i estructures dels principals òrgans de govern del municipi, la província, la Comunitat Valenciana, Espanya i la Unió Europea, i establir relacions entre les institucions."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Distingir les característiques i el funcionament bàsic de l’organització territorial i política del municipi, la Comunitat Valenciana, Espanya i la Unió Europea, localitzar les seues institucions principals en mapes i reconéixer les relacions elementals entre els diferents nivells territorials."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Contrastar les funcions de l’administració del municipi i de la Comunitat Valenciana, i destacar la importància i el valor d’estes per a la convivència social, la participació ciutadana i el desenrotllament dels principis del funcionament democràtic."
+      }
+     ]
+    }
+   },
+   {
+    "n": 8,
+    "texto": "Reconéixer alguns elements destacats del patrimoni natural, històric i cultural de la Comunitat Valenciana i Espanya, i explorar i formular propostes per a promoure el seu reconeixement i protecció .",
+    "pagina": 25,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar alguns elements destacats del patrimoni natural, històric i cultural del seu municipi i descriure les seues característiques més destacades amb ajuda."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar i desenrotllar conductes de respecte, cura i protecció cap al patrimoni natural, històric i cultural de l’entorn pròxim, participar en activitats guiades i proposar accions senzilles per a la seua conservació."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar alguns elements destacats del patrimoni natural, històric i cultural de la Comunitat Valenciana i descriure les seues característiques més destacades, incloent la seua localització geogràfica i el seu origen històric."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar conductes de respecte, cura i manteniment del patrimoni natural, històric i cultural del municipi i de la Comunitat Valenciana, i fer propostes senzilles de conservació i difusió a partir del seu coneixement."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar alguns elements destacats del patrimoni natural, històric i cultural d’Espanya i descriure les seues característiques més destacades, incloent la localització geogràfica i l’origen històric."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar conductes de respecte, cura i conservació del patrimoni natural, històric i cultural d’Espanya, analitzar la seua importància i participar de forma guiada en propostes de conservació i difusió."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Música i Dansa",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Reconéixer i investigar obres de diversos gèneres i els components estructurals i tècnics més destacats en propostes musicals i multidisciplinàries de diferents èpoques i estils a través de l’audició activa i vivencial.",
+    "pagina": 26,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer fragments d’obres musicals i escèniques senzilles de diferents gèneres, estils i èpoques, i identificar alguns dels seus elements bàsics."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Descriure alguns elements bàsics presents en les propostes musicals o multidisciplinàries, expressant amb paraules o gestos les sensacions o emocions que produïxen."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte cap a diferents manifestacions musicals i escèniques de l’entorn i d’altres cultures, i valorar-ne la diversitat."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer gèneres escènics i obres musicals de diferents estils i èpoques, amb els seus elements contrastants tècnics i formals més destacats."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Descriure els elements més destacats que conformen les diferents propostes musicals o multidisciplinàries, utilitzant vocabulari específic."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el patrimoni musical i escènic, i respectar-ne la diversitat."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar propostes musicals i escèniques de diferents èpoques, estils i gèneres, i distingir de manera guiada les seues característiques i elements musicals i expressius més rellevants."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Descriure els components estructurals i tècnics més destacats que conformen les diferents propostes musicals o multidisciplinàries i relacionar-los amb les sensacions produïdes mitjançant l’ús d’un llenguatge específic."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar les diferents manifestacions artístiques, el patrimoni musical i també el de les arts escèniques, conéixer els espais en els quals es desenrotllen i la seua funció social, i respectar-ne la diversitat."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Explorar, distingir i relacionar els paràmetres del so, les seues característiques i representacions gràfiques, el silenci i les agressions acústiques, els instruments i la veu, a partir de l’anàlisi auditiva i visual.",
+    "pagina": 27,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i diferenciar les qualitats bàsiques del so, relacionar-les amb representacions gràfiques senzilles i iniciar-se en l’ús del vocabulari bàsic associat."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer la veu i alguns instruments, diferenciar les seues característiques bàsiques i relacionar-los amb la seua manera de produir el so."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar amb atenció, reconéixer el silenci com a part de la música i valorar els sons de l’entorn, mostrant respecte davant de diferents manifestacions sonores."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i relacionar les qualitats del so amb els elements gràfics associats, utilitzant un vocabulari musical adequat."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar els tipus de veu, els instruments, les famílies instrumentals i agrupacions, i relacionar les seues característiques."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el silenci i les possibilitats sonores de l’entorn, respectant les diferents manifestacions musicals."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar les qualitats del so i les seues característiques, utilitzant elements gràfics i una terminologia adequada."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Classificar els diferents tipus de veu, els instruments i les agrupacions musicals, i relacionar les seues característiques i possibilitats sonores."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el silenci i les possibilitats sonores de l’entorn i identificar agressions acústiques, amb una actitud atenta i respectuosa davant de les diferents manifestacions artístiques."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Interpretar jocs i propostes musicals i escèniques diverses a través de la veu, els instruments, el cos i altres mitjans, i buscar varietat expressiva .",
+    "pagina": 28,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en jocs i propostes musicals i escèniques senzilles, i explorar la veu, el cos, els instruments i diferents sons amb intenció expressiva."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar cançons, jocs musicals i xicotetes escenes utilitzant la veu, el cos, els instruments i diferents elements sonors amb coordinació, atenció i una intenció expressiva."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i esforç en la interpretació individual o col·lectiva, i mantindre una actitud de respecte i col·laboració cap als altres."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar i experimentar, de manera guiada, amb la veu, el cos, els instruments i altres elements sonors, mitjançant jocs musicals, escènics i improvisacions breus, amb una intenció expressiva conscient."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, a través del cos, la veu, els instruments i diferents elements sonors, propostes musicals breus o escèniques amb intencionalitat tècnica."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i valorar l’esforç propi i del grup en la interpretació individual o col·lectiva, i mostrar una actitud responsable i cooperativa."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar i crear propostes musicals i escèniques, amb major autonomia, a través de la veu, el cos, els instruments i diversos recursos sonors, utilitzant elements bàsics del llenguatge musical per a ampliar les possibilitats del fi expressiu."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, a través del cos, de la veu, dels instruments i diferents elements sonors, propostes musicals o escèniques diverses amb les habilitats tècniques bàsiques i introduint varietat expressiva."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar l’esforç, la constància i la col·laboració en la interpretació individual o col·lectiva, i mantindre una actitud de respecte i compromís amb el treball del grup."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Crear propostes musicals i escèniques breus de forma guiada a partir d’un o diversos llenguatges i mitjançant la participació en projectes .",
+    "pagina": 28,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en la creació guiada de xicotetes propostes musicals i escèniques amb una intenció expressiva bàsica."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar amb interés i col·laboració en activitats o propostes artístiques o multidisciplinàries senzilles, respectant el grup."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, amb ajuda, les parts d’una proposta artística o multidisciplinària senzilla, i mostrar interés pel procés i pel resultat final."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Dissenyar, de manera guiada, breus propostes musicals o escèniques utilitzant elements del llenguatge musical o escènic amb una intenció expressiva definida."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar de manera activa en projectes artístics multidisciplinaris, col·laborar amb el grup i respectar els diferents rols."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, de manera guiada, els elements i fases d’un projecte artístic o multidisciplinari, i apreciar tant el procés com el producte final."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Dissenyar propostes musicals i escèniques breus, combinant de manera guiada elements del llenguatge musical i escènic per a reforçar la intenció expressiva."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Col·laborar de manera activa en projectes artístics multidisciplinaris i assumir de manera responsable el rol assignat dins del grup."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i descriure les fases d’un projecte artístic o multidisciplinari, reconéixer les aportacions pròpies i alienes i respectar les diferents contribucions."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Educació Plàstica i Visual",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Explorar propostes artístiques de l’entorn patrimonial i de la cultura visual i audiovisual per mitjà de diferents canals i contextos, per a desenrotllar hàbits de percepció activa.",
+    "pagina": 30,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, de manera guiada i a través dels sentits, diferents manifestacions artístiques de l’entorn pròxim, i mostrar curiositat i interés per les obres del patrimoni i de la cultura visual i audiovisual."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Observar i comentar, de manera guiada i a través d’experiències sensorials, diferents manifestacions artístiques de l’entorn, i identificar els mitjans de percepció sensorial (vista, oïda, tacte...) o de comunicació artística (pintura, escultura, cinema...) pels quals es perceben."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, de manera guiada i a través d’experiències sensorials, elements artístics de l’entorn pròxim, i mostrar interés i respecte per les diferents manifestacions culturals."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, de manera guiada, diferents propostes artístiques de diferents gèneres, estils i èpoques de l’entorn a través dels elements bàsics del llenguatge visual i audiovisual."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Classificar les diferents propostes artístiques tenint en compte els diferents canals per mitjà dels quals les percebem."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar elements bàsics de contingut en propostes artístiques mitjançant l’apreciació de l’entorn patrimonial pròxim i de la cultura visual i audiovisual, i mostrar interés i respecte per les diferents manifestacions culturals."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Distingir diferents propostes artístiques de diferents gèneres, estils i èpoques de l’entorn a través dels elements bàsics del llenguatge visual i audiovisual."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar diferents propostes artístiques del patrimoni i de la cultura visual i audiovisual, tenint en compte els diferents contextos en els quals es generen."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar els elements característics de les propostes artístiques i culturals locals amb altres formes culturals, mostrar una actitud oberta i respectuosa, i valorar la diversitat."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Reconéixer i valorar les característiques fonamentals de la contemporaneïtat artística mitjançant la percepció de diferents obres i l’experimentació directa.",
+    "pagina": 31,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Apreciar, de manera guiada i a través d’experiències sensorials, diferents propostes artístiques contemporànies pròximes, i mostrar curiositat i respecte per la diversitat de formats, materials i estils."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar, de manera guiada, les possibilitats d’incloure diferents formats i materials contemporanis en les seues pròpies creacions, per a fomentar la curiositat i l’experimentació sensorial."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Observar i comentar, de manera guiada, les temàtiques presents en algunes obres contemporànies pròximes, i mostrar curiositat i interés per les idees que transmeten i la seua relació amb la vida quotidiana actual."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Apreciar la diversitat i heterogeneïtat de propostes artístiques contemporànies i mostrar una actitud de respecte per a superar prejuís."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar amb les possibilitats comunicatives dels llenguatges contemporanis en propostes artístiques creatives senzilles en les quals s’establisquen relacions significatives entre idees, materials i formats."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer les diferents temàtiques en les obres artístiques contemporànies a partir del fet d’establir relacions senzilles amb els reptes i circumstàncies del present."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar els formats i materials propis de la contemporaneïtat artística en propostes creatives pròpies i alienes, des d’una perspectiva multicultural i integradora."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar l’ús de diferents formats i materials contemporanis en les seues pròpies creacions artístiques, i establir relacions significatives entre idees, materials i formats."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar la labor de les creadores i creadors en la seua contribució a la societat actual, a partir del fet de relacionar el seu treball i els missatges de la creació artística contemporània amb els reptes i circumstàncies del present."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Emprar de manera adequada la terminologia específica de l’àrea relativa a elements configuratius, formats, tècniques i materials en l’expressió de les experiències d’apreciació i creació artística.",
+    "pagina": 32,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Anomenar, de manera guiada, elements i conceptes senzills de les obres i creacions artístiques utilitzant vocabulari bàsic específic de l’àrea."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i anomenar, de manera guiada, alguns elements bàsics de les obres i creacions artístiques (formats, tècniques i materials) utilitzant vocabulari senzill i respectuós."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en converses guiades sobre obres i produccions artístiques, i mostrar interés i respecte per les opinions dels altres."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar els principals elements i conceptes de les obres i creacions artístiques, utilitzant vocabulari específic de l’àrea, en situacions d’apreciació i creació artística."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Emprar el vocabulari bàsic de l’àrea per a identificar elements configuratius, formats, tècniques i materials en diferents propostes artístiques."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Conversar sobre obres i produccions artístiques, i mostrar una actitud respectuosa amb les diferents opinions emeses."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Descriure les diferents obres i imatges emprant correctament el vocabulari específic de l’àrea en l’experiència d’apreciació i creació artística, i incorporar mitjans orals, textuals i estratègies de pensament visual."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar la terminologia adequada per a descriure les pròpies creacions artístiques i argumentar les decisions adoptades en relació a formats, tècniques i materials."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar de manera assertiva, argumentada i respectuosa opinions derivades de les experiències d’apreciació i creació artística, i mostrar una actitud respectuosa amb les diferents opinions emeses."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Experimentar amb els elements bàsics del llenguatge visual i audiovisual, així com amb diferents tècniques i materials, i expressar idees, sentiments i emocions en l’elaboració de produccions artístiques individuals o col·lectives .",
+    "pagina": 33,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar, de manera guiada i fent-ne un ús adequat, els materials, les ferramentes i els espais de treball, i experimentar lliurement i de manera sensorial en l’elaboració de les seues primeres propostes artístiques."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar, de manera intuïtiva, diferents tècniques i materials, i experimentar amb les seues qualitats expressives en produccions artístiques creatives senzilles."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en el desenrotllament d’hàbits de constància i esforç en els processos de treball per a finalitzar les seues primeres propostes artístiques."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Investigar i analitzar sobre materials, ferramentes i espais de treball utilitzats en produccions artístiques individuals o col·lectives."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Emprar diferents tècniques i materials, i experimentar amb les seues qualitats expressives en produccions artístiques creatives senzilles."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar hàbits de constància i esforç en els processos de treball per a finalitzar les propostes artístiques iniciades."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar els coneixements derivats dels referents explorats com a estímul en les pròpies produccions creatives."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar les tècniques, els materials i els elements de contingut més adequats per a l’expressió d’idees, sentiments i emocions en les diferents produccions artístiques creatives."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Implementar hàbits de constància, esforç i execució dels processos de treball en totes les seues propostes artístiques."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Utilitzar de manera guiada recursos digitals aplicats a la busca d’informació i a la creació artística, i fer-ne un ús responsable d’acord amb la normativa vigent .",
+    "pagina": 34,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar, de manera guiada i amb suport docent, recursos artístics en mitjans digitals, i començar a reconéixer la importància d’un ús segur i respectuós de la informació."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Seguir, de manera guiada i amb suport docent, les indicacions per a explorar informació i recursos digitals relacionats amb propostes artístiques, i identificar les que són útils i adequades per a l’activitat proposada."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se, amb acompanyament del professorat, en l’ús de recursos digitals molt senzills per a observar i realitzar xicotetes produccions artístiques visuals o audiovisuals."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar, de manera guiada i responsable, informació i recursos artístics en mitjans digitals, utilitzar fonts fiables i citar-les de manera correcta."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar informació sobre qüestions artístiques o crear propostes artístiques digitals, de manera responsable i guiada, respectant les indicacions docents."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb acompanyament del professorat, recursos digitals bàsics per a desenrotllar creacions artístiques visuals o audiovisuals senzilles."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar les normes bàsiques de protecció de dades, d’autoria i llicències d’ús en la busca d’informació i en els processos de creació artística digitals."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Contrastar i utilitzar les diferents informacions trobades durant el procés de busca sobre qüestions artístiques i seleccionar les més coherents amb l’activitat proposada."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Emprar, amb autonomia parcial, diferents recursos digitals bàsics de producció gràfica i audiovisual i adequar-se a la intencionalitat representativa i als objectius de l’activitat artística plantejada."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Participar en les diferents fases d’un procés creatiu col·laboratiu amb actitud inclusiva, i assumir diferents rols en el desenrotllament de produccions visuals i audiovisuals senzilles.",
+    "pagina": 35,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, de manera guiada, en produccions artístiques col·lectives i mostrar disposició per a col·laborar i respecte per les aportacions dels altres."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Col·laborar, de forma guiada, en la creació d’una obra artística grupal, acceptar les indicacions i mostrar disposició per a ajudar al grup."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, de manera guiada, en les diferents fases del procés creatiu, mostrant interés i entusiasme, expressant de manera senzilla les seues emocions, dubtes o idees durant la creació d’un producte artístic visual o audiovisual."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, amb ajuda docent, en l’elaboració de propostes creatives senzilles; registrar, amb suport, alguns moments del procés de treball, i compartir el resultat amb el grup."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Assumir sense prejuís diferents rols en el desenrotllament de produccions artístiques col·laboratives i mostrar interés i respecte per les diferents funcions a exercir."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Col·laborar, de manera guiada, en el desenrotllament d’un producte artístic final satisfactori que complisca els objectius mínims establits."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprometre’s en el mateix grau amb les diferents fases del procés creatiu, des de la idea inicial fins a la consecució i difusió d’un producte visual o audiovisual satisfactori."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar, de manera guiada, propostes creatives, registrar els processos de treball i compartir el resultat."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Cooperar en la planificació d’una producció artística col·lectiva proposant objectius, fases, rols, necessitats materials i tècniques i espais de treball."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Contribuir, de manera eficaç, a la consecució d’un producte creatiu comprenent i integrant les funcions assignades i participant en l’objectiu comú."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Posar en pràctica amb compromís, interés i esforç les diferents fases del procés creatiu fins a la consecució d’un producte final satisfactori."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar propostes creatives, registrar els processos de treball de manera textual, gràfica o audiovisual i compartir el resultat."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Educació Física",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Identificar i incorporar hàbits saludables bàsics en la vida quotidiana, i desenrotllar un estil de vida actiu, a través de l’activitat física regular i adequada.",
+    "pagina": 36,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i posar en pràctica, de manera guiada, hàbits bàsics de cura corporal i seguretat durant l’activitat física."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i aplicar, de manera bàsica i guiada, normes d’higiene postural i de seguretat en situacions motrius."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Conéixer les rutines bàsiques d’activació, calfament i tornada a la calma, participar en la seua realització de forma guiada, i reconéixer la seua importància per a iniciar i finalitzar l’activitat física."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activament, de manera guiada, en jocs i rutines senzilles d’activitat física, identificar les sensacions corporals per a l’autoconeixement i mantindre una interacció social harmoniosa i respectuosa."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar hàbits de cura corporal, higiene i seguretat durant la pràctica d’activitat física, i regular l’esforç de manera progressiva."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar progressivament mesures d’higiene postural i de prevenció d’accidents en les situacions motrius."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Executar les fases d’activació i tornada a la calma relacionades amb la condició física, a través de rutines en les activitats físiques quotidianes."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en l’hàbit de practicar activitat física, a través de la realització de rutines bàsiques d’exercicis i jocs que fomenten l’autoconeixement i una interacció harmoniosa."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Adoptar de manera autònoma hàbits de cura corporal, seguretat i regulació de l’esforç durant l’activitat física, i valorar-ne els efectes en el benestar personal."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Adoptar mesures de prevenció, així com aplicar protocols d’actuació davant dels accidents en les situacions motrius."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar autònomament les fases d’activació i tornada a la calma en diferents propostes d’activitat física, relacionar-les amb la condició física i interioritzar estes rutines com un hàbit de pràctica motriu saludable i responsable."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Practicar activitat física de manera regular, a través de la realització de rutines d’exercicis, jocs o pràctiques preesportives en situacions individuals i col·lectives que fomenten una interacció i convivència harmonioses."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Mostrar consciència i control dels elements fonamentals de la corporalitat en la resolució de situacions motrius variades des d’un plantejament crític.",
+    "pagina": 37,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer les parts principals del cos i explorar de forma guiada les seues possibilitats i limitacions motrius en les situacions de joc, i mostrar respecte i acceptació per la diversitat corporal."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar les parts principals de l’esquelet i la musculatura, i localitzar-les a través del moviment en situacions motrius senzilles."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar un control progressiu en l’execució de les accions motrius bàsiques, utilitzant adequadament l’esquema corporal, la lateralitat i l’equilibri."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Prendre consciència de la corporalitat amb les possibilitats i limitacions, en diferents accions motrius individuals i en convivència, i mostrar una disposició positiva cap a la pràctica física."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Anomenar els principals elements anatòmics i funcionals implicats en el moviment, en situacions motrius habituals."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar un progressiu control corporal adequat a diferents contextos i tipus d’accions motrius."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i acceptar la corporalitat, i valorar i respectar les possibilitats i limitacions personals i alienes, a través de la participació i la resolució de reptes i accions motrius individuals i en convivència que impliquen esforç, autoregulació i gestió de les emocions."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Enumerar els principals elements anatòmics i funcionals implicats en el moviment i l’activitat física, en situacions motrius transferibles al seu espai vivencial."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Adquirir un domini i un control corporal adequat, adaptant-se a les demandes de la resolució de problemes en accions motrius variades."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Resoldre reptes i situacions motrius fent ús de les capacitats físiques, perceptivomotrius i les habilitats motrius en diferents contextos de la vida quotidiana a través de l’activitat física i el joc.",
+    "pagina": 38,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Executar habilitats motrius bàsiques, com desplaçaments, salts, girs, maneig d’implements i altres accions motrius bàsiques, de manera coordinada en situacions de joc guiades i senzilles."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en situacions motrius, acceptant les normes bàsiques de convivència, mostrant respecte cap a la diversitat de companys/as i resolent pacíficament conflictes individuals de forma guiada."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar reptes motrius senzills mitjançant jocs, prendre consciència de les capacitats físiques bàsiques d’una forma lúdica i adaptar l’esforç a l’activitat de manera senzilla i guiada."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar de forma guiada gestos tècnics bàsics i estratègies senzilles, com l’ocupació d’espais, en jocs individuals i col·lectius guiats, i adoptar els valors socials i culturals associats als jocs."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Executar desplaçaments, salts, girs i altres accions motrius de manera coordinada, que faciliten el desenrotllament motriu en situacions controlades de joc i activitat física en entorns estables i coneguts, a través d’accions motrius individuals, de cooperació, d’oposició o de col·laboració-oposició."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar habilitats socials inclusives en les pràctiques motrius, identificar els estereotips i resoldre conflictes individuals i col·lectius de forma dialogada i justa."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar reptes motrius que impliquen les capacitats físiques bàsiques a través d’accions motrius individuals, de cooperació, d’oposició o de col·laboració-oposició mitjançant el joc."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar estratègies bàsiques de joc en accions motrius individuals, de cooperació, d’oposició o de col·laboració-oposició, per mitjà de la identificació dels principals valors socials i culturals associats als jocs."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Combinar diferents habilitats motrius bàsiques i específiques a través d’accions motrius individuals, de cooperació, d’oposició o de col·laboració-oposició mitjançant la participació activa en situacions de joc en entorns variats i variables, que fomenten la tolerància i el treball en equip."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Conviure en el context de les pràctiques motrius i mostrar habilitats socials per a la resolució dialogada de conflictes i el respecte davant de la diversitat de gènere, afectivosexual, ètnica, socioeconòmica o de competència motriu, amb una actitud crítica cap als estereotips."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Resoldre desafiaments motrius individuals, de cooperació, d’oposició o de col·laboració-oposició mitjançant exercicis, jocs i accions encaminades a la millora de la condició física, i adaptar l’esforç a l’activitat física de manera conscient."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Integrar fonaments tècnics, tàctics i d’estratègia mitjançant accions motrius individuals, de cooperació, d’oposició o de col·laboració-oposició, i adoptar els valors socials i culturals a través de la participació activa en jocs i activitats preesportives."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Participar en l’execució de propostes artisticoexpressives amb aportacions estètiques i creatives pròpies de la cultura motriu a través de la utilització dels recursos expressius bàsics del cos i el moviment .",
+    "pagina": 39,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar les possibilitats comunicatives del llenguatge corporal i dels recursos expressius bàsics, com gestos o moviments, i participar de manera guiada en dramatitzacions senzilles i dinàmiques de balls i danses."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en activitats rítmiques senzilles, de forma guiada, amb suport musical i sense, mostrant desinhibició i explorant el ritme intern i les possibilitats creatives del moviment."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, de forma guiada, en la realització d’accions artisticoexpressives senzilles i grupals, integrant els recursos expressius del cos i del moviment."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar el llenguatge corporal i els recursos expressius bàsics per a comunicar idees i emocions, i participar en dinàmiques guiades d’iniciació a propostes escèniques, coreogràfiques, balls i danses."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Executar moviments creatius i expressius amb progressiva desinhibició, que enriquisquen la seua identitat emocional i personal, a través de representacions individuals o grupals senzilles."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activament en muntatges artístics senzills i guiats, fent ús dels recursos expressius del cos i del moviment."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar recursos expressius i tècniques del cos comunicatiu en propostes escèniques, coreogràfiques, balls i danses, i desenrotllar la sensibilitat creativa expressiva i artística, així com l’escolta activa."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Crear moviments i composicions expressives amb suport musical i sense, comunicar sensacions, emocions i idees de manera creativa i desinhibida, i desenrotllar l’autoconfiança des de l’ús dels recursos rítmics i expressius de la motricitat."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Organitzar i dissenyar projectes artístics col·lectius aplicant els recursos expressius del cos i del moviment."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Participar activament en l’exploració del patrimoni natural i cultural de l’entorn, a través d’activitats físiques i artisticoexpressives guiades, i adoptar mesures de responsabilitat individuals i col·lectives que afavorisquen la pràctica segura i respectuosa amb el mitjà.",
+    "pagina": 40,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en activitats físiques i artisticoexpressives, de forma guiada, en l’entorn pròxim al centre, natural o urbà."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar protocols bàsics de seguretat en les activitats en l’entorn, i mostrar consciència de la necessitat de conservar-lo i protegir-lo."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i participar en jocs populars i tradicionals, com a part del patrimoni natural i cultural propi."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Dur a terme activitats físiques i artisticoexpressives en el medi natural o entorns no habituals de manera guiada i controlada, i conéixer les tècniques adequades."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i aplicar mesures de seguretat i accions per a la conservació del medi mitjançant la participació en les activitats inclusives en l’entorn."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en activitats físiques i artisticoexpressives per al coneixement del patrimoni natural i cultural pròxim a través d’activitats guiades en l’entorn."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en l’organització i realització d’activitats físiques i artisticoexpressives en el medi natural o entorns no habituals, i aplicar de manera autònoma les tècniques adequades."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar mesures de seguretat i accions per a la conservació del medi i la sostenibilitat en les activitats en l’entorn, mitjançant la col·laboració en la seua organització, amb perspectiva inclusiva."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i valorar el patrimoni natural i cultural pròxim a través d’activitats físiques i artisticoexpressives en l’entorn i des d’una perspectiva comunitària i crítica."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Identificar i explorar recursos tecnològics relacionats amb l’activitat física i la salut, i utilitzar-los de manera responsable i segura, amb la supervisió de l’entorn familiar i escolar.",
+    "pagina": 41,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar amb recursos tecnològics senzills relacionats amb l’activitat física i la salut, en situacions motrius."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se, de forma guiada, en l’ús d’aplicacions TIC relacionades amb la salut i l’activitat física."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Conéixer, de manera bàsica i guiada, recursos tecnològics senzills i els seus possibles riscos relacionats amb l’activitat física i la salut."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Conéixer i utilitzar, de manera guiada i senzilla, recursos tecnològics bàsics que fomenten l’activitat física i la salut."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Fer ús de manera guiada d’algunes aplicacions tecnològiques vinculades a reptes motors, jocs i preesports, i identificar-ne els beneficis i els riscos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en diferents propostes físiques i artisticoexpressives de manera guiada, fent ús de la tecnologia i coneixent els nous escenaris de comunicació i aprenentatge i els seus possibles riscos."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar recursos tecnològics i relacionar-los amb l’activitat física i la salut a través de la resolució de problemes en situacions motrius."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar i explorar amb criteri diferents aplicacions tecnològiques relacionades amb l’activitat física i la salut, vinculades a reptes motors, jocs i preesports, i valorar-ne els beneficis i els riscos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar la tecnologia de manera crítica, responsable i guiada en diferents dispositius, a través de propostes físiques i artisticoexpressives, i integrar les possibilitats dels nous escenaris de comunicació i aprenentatge."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Valencià: Llengua i Literatura i Llengua Castellana i Literatura",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Multilingüisme i interculturalitat. Reconéixer la diversitat lingüística i cultural de la Comunitat Valenciana, d’Espanya i del món, a través del contacte amb les llengües de l’alumnat i de l’entorn; evitar prejuís lingüístics, i valorar esta diversitat com una riquesa cultural .",
+    "pagina": 42,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, amb ajuda docent, les llengües presents en l’entorn."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés per l’ús del valencià i el castellà en situacions comunicatives habituals de l’àmbit personal i educatiu."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte per les llengües i expressions del context pròxim en situacions comunicatives quotidianes i conéixer expressions bàsiques de cortesia."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, amb suport docent i en situacions pròximes, actituds de rebuig o preferència cap a les llengües de l’entorn, i valorar la pluralitat lingüística com a font de riquesa cultural."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar, amb guia docent, aspectes molt bàsics del funcionament de la llengua mitjançant la pràctica i la comparació de paraules i oracions curtes de diferents llengües de l’entorn de l’alumnat."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar les varietats lingüístiques de l’entorn i respectar el seu ús en situacions quotidianes."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i disposició per utilitzar el valencià i el castellà en situacions comunicatives habituals dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte per les varietats lingüístiques del seu entorn immediat, i identificar algunes expressions d’ús habitual."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, en contextos senzills i amb ajuda docent, prejuís i estereotips lingüístics freqüents, i reconéixer la pluralitat lingüística del seu entorn com una font de riquesa cultural."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Reflexionar, amb ajuda docent, sobre aspectes bàsics del funcionament de la llengua a partir de l’observació i la comparació de paraules i oracions de diferents llengües de l’entorn de l’alumnat."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i valorar les varietats lingüístiques de la Comunitat Valenciana, de l’Estat espanyol i del món."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i una actitud positiva cap a l’ús del valencià i el castellà en diferents situacions comunicatives dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte per les varietats lingüístiques del seu entorn, i identificar algunes de les seues característiques bàsiques relacionades amb l’ús en situacions quotidianes."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Detectar, de manera guiada, prejuís i estereotips lingüístics freqüents en contextos pròxims, i valorar la pluralitat lingüística del món com una font de riquesa cultural."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Reflexionar i buscar exemples, de manera guiada i amb acompanyament docent, sobre aspectes del funcionament de la llengua a partir de l’observació, la comparació i la manipulació de paraules, oracions i textos breus de diferents llengües."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Comprensió oral i multimodal. Comprendre, interpretar i valorar, de manera guiada, textos orals i multimodals propis dels àmbits personal, social i educatiu, a través de l’escolta activa, l’aplicació d’estratègies de comprensió oral i la reflexió sobre el contingut i la forma .",
+    "pagina": 43,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb ajuda docent, textos orals i multimodals senzills dels àmbits personal i educatiu."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada, el sentit global i identificar les idees principals de textos orals i multimodals senzills sobre temes pròxims a la seua experiència."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar, amb ajuda docent, textos multimodals senzills en formats digitals pròxims a la seua experiència, i comprendre el missatge a través de suports orals, auditius i visuals."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada, el sentit global i les idees principals de textos multimodals senzills sobre temes pròxims a la seua experiència, i reconéixer alguns elements no verbals elementals que acompanyen al missatge."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb ajuda docent, textos orals i multimodals senzills dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentit global i les idees principals de textos orals i multimodals senzills sobre temes pròxims a l’alumnat, i reconéixer informació explícita amb ajuda docent."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb ajuda docent, textos multimodals senzills en mitjans digitals dels àmbits personal, social i educatiu, i utilitzar suports orals, auditius i visuals per a comprendre el missatge."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentit global i les idees principals de textos multimodals senzills sobre coneixements pròxims a l’alumnat, i reconéixer informació explícita i alguns elements no verbals elementals, amb ajuda docent."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb suport ocasional docent, textos orals i multimodals senzills dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentit global, les idees principals i algunes idees secundàries de textos orals i multimodals senzills sobre temes diversos, amb ajuda ocasional docent."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb ajuda ocasional docent, textos multimodals senzills en mitjans digitals dels àmbits personal, social i educatiu, i utilitzar de forma progressivament autònoma suports orals, auditius i visuals per a comprendre el missatge."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentit global i les idees principals i secundàries de textos multimodals senzills de coneixements diversos; extraure’n informació explícita i implícita; fer deduccions bàsiques i valorar, de manera guiada, el contingut, els elements no verbals i alguns aspectes formals elementals, i expressar una opinió raonada."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Comprensió escrita i multimodal. Comprendre, interpretar i valorar, de manera guiada, textos escrits i multimodals propis dels àmbits personal, social i educatiu, a través de la lectura de textos, l’aplicació d’estratègies de comprensió lectora i la reflexió sobre el contingut i la forma.",
+    "pagina": 44,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir en veu alta, amb ritme i entonació adequats, i interpretar el sentit global de textos escrits i multimodals senzills de l’àmbit personal i educatiu."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar, de manera guiada, estratègies bàsiques de comprensió lectora per a comprendre el sentit global i distingir elements principals de textos escrits senzills i pròxims a la seua experiència."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, de manera guiada, diferents tipus de textos senzills pròxims a la seua experiència."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar i seleccionar informació senzilla en textos multimodals procedents de mitjans digitals, amb acompanyament."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar estratègies elementals de busca, selecció i registre de la informació, extreta d’un o dos textos multimodals, de manera guiada, i indicar d’a on s’ha obtingut la informació de manera bàsica."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir amb bona fluïdesa, de manera silenciosa i en veu alta, i interpretar, amb ajuda del docent, textos escrits i multimodals senzills dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar, de manera guiada, diferents estratègies de comprensió lectora per a comprendre el sentit global i la informació específica de textos escrits, distingir idees principals i secundàries, i iniciar-se en la inferència de significats no explícits, sobre coneixements pròxims a l’alumnat."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tipus de text i l’estructura principal en textos escrits i multimodals senzills; valorar, de manera guiada, el contingut i alguns aspectes formals i no verbals elementals, i iniciar-se en l’avaluació de la seua fiabilitat."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, seleccionar i contrastar informació senzilla procedent d’una o dos fonts dels àmbits personal, social i educatiu, i avaluar la seua utilitat en funció dels objectius de lectura en textos multimodals senzills en mitjans digitals, amb ajuda docent."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar diferents estratègies de busca, selecció i gestió de la informació en diferents textos multimodals, per a ampliar coneixements, de manera guiada; reconéixer que pot no ser fiable, i iniciar-se en algun sistema de citació bibliogràfica reconegut."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir amb bona fluïdesa, de manera silenciosa i en veu alta; interpretar i valorar, de manera guiada, textos escrits i multimodals senzills dels àmbits personal, social i educatiu, i expressar opinions fonamentades sobre el contingut."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar, de manera progressivament autònoma, estratègies de comprensió lectora per a comprendre el sentit global i la informació específica de textos escrits, distingir idees principals i secundàries, i inferir significats no explícits en textos sobre coneixements diversos."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tipus i l’estructura dels textos escrits i multimodals, i avaluar, de manera guiada, la seua qualitat, fiabilitat i idoneïtat en funció de l’objectiu de la lectura i d’algunes característiques lingüístiques específiques de cada tipus de text."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, seleccionar i contrastar informació senzilla procedent de dos o més fonts dels àmbits personal, social i educatiu, i avaluar, de manera guiada, la seua utilitat en funció dels objectius de lectura en diferents textos multimodals senzills en mitjans digitals."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar diferents estratègies de busca, selecció i gestió de la informació, en diversitat de textos multimodals, per a ampliar coneixements seleccionats després de valorar la seua fiabilitat, amb ajuda del o la docent, i citar les referències bibliogràfiques seguint algun sistema de citació bibliogràfica reconegut."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Expressió oral. Produir, de manera guiada, missatges orals senzills amb coherència, cohesió i adequació a través de situacions de comunicació dels àmbits familiar, social i educatiu.",
+    "pagina": 45,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir, amb suport docent, textos orals breus, ajustats a situacions comunicatives pròximes a l’alumnat."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar discursos orals senzills amb pronunciació clara i postura corporal adequada, de manera guiada."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar produccions orals senzilles utilitzant un llenguatge no discriminatori, amb un vocabulari bàsic d’ús freqüent."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir oralment informació obtinguda de textos proporcionats per la persona docent i citar la font de manera bàsica i amb acompanyament."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir, amb ajuda docent, discursos orals senzills, amb sentit, sobre coneixements pròxims a l’alumnat, de tipologia diversa i ajustats a situacions comunicatives habituals."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar els discursos orals amb una pronunciació clara, un volum adequat i una postura corporal correcta, i iniciar-se en l’ús de suports audiovisuals."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar produccions orals utilitzant un llenguatge no discriminatori, adaptat a la situació de comunicació i a l’interlocutor o interlocutora, amb un vocabulari bàsic i unes estructures morfosintàctiques senzilles."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar i seleccionar, amb ajuda, informació en una o dos fonts assequibles, analògiques o digitals; compartir oralment els resultats de forma organitzada, i citar de manera bàsica les fonts."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir diferents tipus de textos orals i multimodals breus, amb una pronunciació, ritme i entonació adequats, a partir de models, amb la guia docent ocasional, utilitzant un repertori d’expressions, lèxic i estructures bàsiques en situacions dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Produir monòlegs breus o altres intervencions orals planificades, amb pronunciació clara, entonació i ritme adequats, controlant el volum de veu i la postura corporal, i utilitzant de manera intencionada suports audiovisuals o multimodals senzills amb la intenció comunicativa de mantindre l’atenció de cada oient."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar produccions orals utilitzant un llenguatge no discriminatori, adaptat a la situació de comunicació i a l’interlocutor o interlocutora, amb un vocabulari adequat i una varietat d’estructures morfosintàctiques, ajustant el registre lingüístic al context comunicatiu."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, seleccionar i contrastar informació en dos o més fonts, analògiques i digitals, de manera autònoma, i compartir oralment els resultats adoptant un punt de vista personal i citant les fonts."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Expressió escrita i multimodal. Produir, de manera guiada, textos escrits i multimodals adequats i coherents amb un vocabulari apropiat, i utilitzar estratègies bàsiques de planificació, textualització, revisió i edició .",
+    "pagina": 46,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir, a partir d’exemples i models i amb ajuda del professorat, textos escrits i multimodals senzills amb una finalitat comunicativa bàsica."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb suport i ajuda del professorat, normes elementals d’ortografia i puntuació en la situació d’aprenentatge."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Planificar i revisar de manera dialogada i acompanyada pel professorat textos escrits senzills."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, seleccionar i usar informació, de manera acompanyada, a partir d’una font senzilla, i citar-la amb ajuda."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir, a partir d’exemples i models i amb ajuda del professorat, textos escrits i multimodals senzills dels àmbits personal, social i educatiu, amb una estructura coherent i utilitzant vocabulari no discriminatori bàsic d’ús freqüent."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb suport i ajuda del professorat, els coneixements elementals d’ortografia i gramàtica necessaris en la situació d’aprenentatge."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Planificar i revisar, de manera dialogada i acompanyada pel professorat, mitjançant instruments i estratègies elementals, com a part explícita del procés d’escriptura."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, seleccionar i gestionar, de manera acompanyada, la informació d’una o dos fonts i incloure les referències al compartir-la."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir, a partir d’exemples i de manera guiada, textos escrits i multimodals de gèneres discursius dels àmbits personal, social i educatiu adequats i coherents, amb vocabulari no discriminatori apropiat i estratègies bàsiques de cohesió."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, de manera acompanyada puntualment i amb reflexió progressiva, els coneixements lingüístics bàsics d’ortografia, puntuació i gramàtica necessaris en la situació d’aprenentatge, i emprar la terminologia elemental quan siga pertinent."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Planificar, textualitzar, revisar i editar, de manera guiada, mitjançant instruments i estratègies bàsiques, com a part explícita del procés d’escriptura."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, seleccionar, gestionar i integrar en el text, de manera puntualment acompanyada, la informació de dos o més fonts i incloure les referències al compartir-la."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Interacció oral, escrita i multimodal. Interactuar de manera oral, escrita i multimodal, a través de textos senzills dels àmbits personal, social i educatiu, utilitzant un llenguatge respectuós i estratègies bàsiques de comprensió, expressió i resolució dialogada de conflictes, de manera síncrona i asíncrona.",
+    "pagina": 47,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar oralment en situacions quotidianes, utilitzant vocabulari bàsic i no discriminatori, escoltant i respectant els torns de paraula."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb ajuda del professorat, estratègies bàsiques de comunicació assertiva i respectuosa per a gestionar conflictes de forma dialogada."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i rebutjar paraules o expressions discriminatòries, amb ajuda del personal docent, a través de la reflexió conjunta."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar en textos escrits senzills, amb ajuda del professorat, mostrant empatia i respecte, fent ús de vocabulari quotidià i no discriminatori."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar oralment, de manera pautada, en situacions comunicatives habituals, utilitzant un vocabulari bàsic i no discriminatori, un ritme pausat i el llenguatge no verbal, i emprar estratègies d’escolta amb la finalitat de mantindre el tema i respectar les convencions establides."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, de manera acompanyada, estratègies bàsiques per a la comunicació assertiva per a progressar en la gestió dialogada de conflictes."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i rebutjar, de manera acompanyada, paraules, expressions o usos lingüístics discriminatoris, a través de la reflexió conjunta."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar en textos escrits i multimodals, de manera asíncrona i guiada, mostrant empatia i respecte, utilitzant estratègies per a expressar missatges senzills estructurats amb un vocabulari bàsic d’ús freqüent i no discriminatori."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar oralment, amb guia ocasional docent, sobre coneixements ajustats a la situació comunicativa, utilitzant un vocabulari apropiat i respectuós i recursos com la cortesia lingüística, l’etiqueta digital, l’entonació, el ritme pausat i el llenguatge no verbal, i emprar estratègies d’escolta activa per a la construcció d’un discurs comú."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb guia ocasional, estratègies bàsiques de deliberació i consens per a la gestió dialogada de conflictes."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i rebutjar, de manera progressivament autònoma, els usos lingüístics discriminatoris a través de la reflexió conjunta"
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar en textos escrits, de manera asíncrona i síncrona, amb guia ocasional, mostrant empatia i respecte per les diferents necessitats, idees i motivacions dels interlocutors o interlocutores, i utilitzant estratègies per a expressar missatges adequats amb un vocabulari apropiat i ètic."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Mediació oral, escrita i multimodal. Mediar entre interlocutors utilitzant estratègies d’adaptació i simplificació del llenguatge per a processar i transmetre informació bàsica i senzilla en situacions comunicatives predictibles dels àmbits personal, social i educatiu.",
+    "pagina": 48,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se, amb acompanyament docent, en la participació per a afavorir la comprensió entre parlants de llengües o varietats lingüístiques diferents, en situacions comunicatives quotidianes i predictibles de l’entorn escolar i familiar."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre un missatge oral breu i senzill en L2 (valencià o castellà) i transmetre informació bàsica en la seua L1 (valencià o castellà o una altra llengua), amb ajuda docent, per a afavorir la comprensió entre el grup d’interlocutors o interlocutores en situacions quotidianes."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, amb ajuda docent, estratègies bàsiques de suport a la comprensió i a l’expressió, com l’ús de gestos, la repetició o la simplificació del missatge, per a facilitar la comprensió entre el grup d’interlocutors o interlocutores en llengües del seu repertori."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés per participar en la solució de problemes de comprensió recíproca entre parlants de llengües o varietats lingüístiques diferents sobre situacions comunicatives predictibles."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar un missatge breu i senzill en L2 (valencià o castellà) i transmetre informació bàsica o explicar conceptes en la seua L1 (valencià o castellà o una altra llengua), de manera oral i guiada, per a facilitar la comprensió entre el grup d’interlocutors o interlocutores sobre assumptes quotidians del seu entorn pròxim."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i utilitzar, de manera acompanyada, estratègies que faciliten la comprensió i l’expressió oral d’informació en diferents llengües del seu repertori (L1–L2 i L2–L1), com l’ús del llenguatge no verbal o la simplificació o adaptació del missatge."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés per participar en la solució de problemes de comprensió recíproca entre parlants de llengües o varietats lingüístiques diferents, en situacions habituals dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre un missatge breu i senzill i comunicar la informació o explicar conceptes, de manera oral o escrita, entre llengües del seu repertori (L1–L2 i L2–L1), en situacions quotidianes diverses que incloguen vocabulari freqüent."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar i utilitzar, de manera guiada, estratègies que faciliten la comprensió i l’expressió oral d’informació en diferents llengües del seu repertori (L1–L2 i L2–L1), com l’ús del llenguatge no verbal o la simplificació o adaptació del missatge."
+      }
+     ]
+    }
+   },
+   {
+    "n": 8,
+    "texto": "Lectura autònoma. Llegir de manera autònoma obres i textos de caràcter divers, seleccionats atenent els seus gustos i interessos, i compartir les experiències de lectura .",
+    "pagina": 49,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir de manera autònoma o guiada textos escrits i multimodals d’àmbits pròxims a la seua experiència, seleccionar els que més s’ajusten als seus gustos i interessos, i iniciar-se així en la construcció de la seua identitat lectora."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir experiències de lectura, amb l’ajuda del professorat, en suports diversos, i participar en comunitats lectores en l’àmbit educatiu."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir de manera autònoma o guiada obres diverses adequades en la seua edat i textos escrits i multimodals dels àmbits personal, social i educatiu; seleccionar amb autonomia creixent els que millor s’ajusten als seus gustos i interessos, i iniciar-se, així, en la construcció de la seua identitat lectora."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir experiències de lectura en suports diversos, expressar opinions i preferències de manera senzilla i participar en comunitats lectores de l’àmbit educatiu."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir de manera autònoma obres diverses adequades a la seua edat i textos escrits i multimodals dels àmbits personal, social i educatiu; ser conscient dels seus gustos i seleccionar les lectures amb criteri propi i amb autonomia progressiva."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir experiències de lectura en suports diversos, expressar i argumentar opinions i valoracions personals de manera guiada, i participar de forma compromesa i respectuosa en comunitats lectores dels àmbits educatiu i social."
+      }
+     ]
+    }
+   },
+   {
+    "n": 9,
+    "texto": "Competència literària. Llegir i produir textos amb intenció literària, senzills, amb llenguatge pròxim a l’alumnat, contextualitzats en la cultura i la tradició, com a font de plaer i de coneixement .",
+    "pagina": 50,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "9.1",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciar-se en la lectura i escolta de textos literaris senzills, propis de la tradició literària, adequats a l’edat, amb ajuda del personal docent."
+      },
+      {
+       "codigo": "9.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada i dialogada, textos senzills de tradició oral i literària, dins d’un context sociocultural pròxim."
+      },
+      {
+       "codigo": "9.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar, de manera dialogada i amb la guia del docent, l’opinió sobre textos de tradició literària, amb paraules pròpies de l’alumnat."
+      },
+      {
+       "codigo": "9.4",
+       "puntoTrasCodigo": true,
+       "texto": "Crear versions de textos literaris senzills i breus (contes i poemes), de manera col·lectiva i amb la guia del docent."
+      },
+      {
+       "codigo": "9.5",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en manifestacions literàries, recitals, representacions teatrals, partint de models i amb el suport i acompanyament del personal docent."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "9.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir i escoltar textos literaris senzills, propis de la tradició literària, adequats a l’edat i amb ajuda del personal docent."
+      },
+      {
+       "codigo": "9.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada, textos senzills de la tradició popular oral i literària, dins d’un context sociocultural pròxim."
+      },
+      {
+       "codigo": "9.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar l’opinió sobre textos de tradició literària, amb paraules pròpies de l’alumnat i amb ajuda del personal docent."
+      },
+      {
+       "codigo": "9.4",
+       "puntoTrasCodigo": true,
+       "texto": "Crear versions de textos literaris senzills i breus (contes, poemes, cançons, dramatitzacions), individualment i col·lectivament."
+      },
+      {
+       "codigo": "9.5",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en manifestacions literàries, recitals, representacions teatrals, partint de models i amb ajuda del personal docent."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "9.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir i escoltar fragments literaris senzills i obres completes, adequades a l’edat i pròximes als interessos de l’alumnat, de manera guiada."
+      },
+      {
+       "codigo": "9.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar i relacionar textos literaris senzills de la literatura popular i d’autoria coneguda, en el marc de la tradició literària i del context sociocultural pròxim."
+      },
+      {
+       "codigo": "9.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar l’opinió sobre textos i obres literàries, de manera guiada, utilitzant recursos expressius bàsics propis dels gèneres."
+      },
+      {
+       "codigo": "9.4",
+       "puntoTrasCodigo": true,
+       "texto": "Crear versions de textos literaris senzills (contes, poemes, cançons i dramatitzacions), de manera individual i col·lectiva, amb guia ocasional."
+      },
+      {
+       "codigo": "9.5",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en manifestacions literàries, recitals, representacions teatrals, partint de models i de manera guiada."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Llengua Estrangera",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Multilingüisme i interculturalitat. Reconéixer i usar els repertoris lingüístics de diverses llengües, reflexionar sobre el seu funcionament i prendre consciència dels coneixements propis, així com identificar la diversitat lingüística i cultural a partir de la llengua estrangera.",
+    "pagina": 51,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar, amb suport i de manera guiada, similituds i diferències bàsiques del repertori lingüístic propi, i mostrar interés per descobrir com s’expressen i comuniquen les persones en diferents llengües."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb ajuda docent i de la resta de l’alumnat, coneixements i estratègies bàsiques del repertori lingüístic propi per a comunicar-se en situacions quotidianes, amb suport de recursos visuals, gestuals, analògics i digitals."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i apreciar la diversitat lingüística i cultural relacionada amb la llengua estrangera, i mostrar interés per conéixer els seus elements culturals i lingüístics elementals."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte per les diferències lingüístiques i culturals de la llengua estrangera, i identificar, de forma guiada, els prejuís i els estereotips més comuns, en situacions quotidianes i habituals."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar les similituds i diferències entre diferents llengües i reflexionar, de manera guiada, sobre aspectes bàsics del seu funcionament."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar i diferenciar, de manera guiada, els coneixements i les estratègies que formen el seu repertori lingüístic per a participar en intercanvis comunicatius, amb suport d’altres participants i de suports analògics i digitals."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i apreciar, amb l’ajuda docent, aspectes socioculturals bàsics de la llengua estrangera, així com alguns elements distintius de la vida quotidiana d’esta cultura respecte a la pròpia."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte per les diferències lingüístiques i culturals de la llengua estrangera; identificar, amb suport docent, alguns prejuís i estereotips presents en situacions quotidianes, i reconéixer la pluralitat lingüística com a font de riquesa cultural."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar les similituds i diferències entre diferents llengües i reflexionar, de manera progressivament autònoma, sobre els aspectes bàsics del seu funcionament."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar i diferenciar, de manera progressivament autònoma, els coneixements i les estratègies que formen el seu repertori lingüístic, per a participar en intercanvis comunicatius, amb suports analògics i digitals."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i comparar, amb ajuda ocasional docent, aspectes socioculturals de la llengua estrangera, i reconéixer els elements distintius d’esta cultura en relació amb la pròpia."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés i respecte per les diferències lingüístiques i culturals de la llengua estrangera; valorar, amb ajuda ocasional docent, els prejuís i estereotips presents, i reconéixer la pluralitat lingüística com a font de riquesa cultural."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Comprensió oral. Interpretar la informació de textos orals i multimodals, breus i senzills, de manera guiada, sobre diversos temes predictibles d’àmbit personal, social i educatiu, per mitjà de l’escolta activa i l’aplicació d’estratègies per a la comprensió oral.",
+    "pagina": 52,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa, amb suport, textos orals i multimodals, breus i senzills, sobre temes previsibles de l’àmbit personal, social i educatiu pròxim a l’alumnat, així com textos literaris adequats al seu nivell."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la idea global de textos orals i multimodals senzills, amb l’ajuda docent, fent ús dels elements lingüístics i extralingüístics del context (gestos, entonació, entorn sonor, signes visuals, emotivitat del missatge)."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i interpretar el vocabulari i les estructures freqüents bàsiques sobre temes de l’àmbit personal, social i educatiu pròxim, expressats de manera clara i senzilla."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb ajuda docent, textos orals i multimodals, breus i senzills, sobre temes previsibles de l’àmbit personal, social i educatiu pròxim, així com textos literaris adequats al seu nivell, expressats de manera clara."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tema principal i discernir les idees secundàries de textos orals i multimodals a partir dels significats explícits de caràcter lingüístic i extralingüístic (gestos, entonació, entorn sonor, signes visuals, emotivitat del missatge)."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el vocabulari i reconéixer estructures freqüents sobre temes de l’àmbit personal, social i educatiu pròxim, expressats de manera clara i senzilla."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escoltar de manera activa i interpretar, amb la guia ocasional del docent, textos orals i multimodals, breus i senzills, sobre temes predictibles d’àmbit quotidià, d’interés personal, social i educatiu, així com textos literaris adequats al seu nivell."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la funció comunicativa, el tema principal i les idees secundàries de textos orals i multimodals a partir dels significats explícits presents en la informació de caràcter lingüístic, i anticipar-ne el significat per mitjà de la informació de caràcter extralingüístic (gestos, entonació, ritme del discurs, dicció, entorn sonor, signes visuals, emotivitat del missatge)."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre el vocabulari i l’ús d’estructures freqüents, així com aplicar estratègies per a deduir el significat del vocabulari poc freqüent de l’àmbit social, personal i educatiu expressat de manera clara i senzilla."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Comprensió escrita. Interpretar la informació expressada per mitjà de textos escrits i multimodals, breus i senzills, de manera guiada, sobre diferents temes predictibles d’àmbit personal, social i educatiu, mitjançant estratègies que permeten desenrotllar la comprensió escrita.",
+    "pagina": 53,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir i interpretar, amb ajuda docent, textos escrits i multimodals molt breus i senzills, sobre temes familiars i del seu entorn pròxim, així com textos literaris adequats al seu nivell i presentats de manera clara i comprensible i amb suport visual."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, amb ajuda constant del personal docent, la idea principal de textos escrits i multimodals molt senzills, i utilitzar suports visuals, així com sonors o imatges, per a comprendre el significat global del text."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer, amb suport docent, paraules i expressions molt freqüents i estructures bàsiques en textos escrits i multimodals sobre temes pròxims a la seua vida quotidiana."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar, amb ajuda docent, informació molt concreta en recursos digitals senzills i en textos multimodals relacionats amb el seu entorn personal, social i educatiu pròxim."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir i interpretar, de manera guiada, textos escrits i multimodals, breus i senzills, sobre temes predictibles del seu àmbit personal, social i educatiu pròxim, així com textos literaris adequats al seu nivell de desenrotllament i expressats de manera comprensible i clara."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tema principal i les idees secundàries de textos escrits i multimodals senzills, de manera guiada, i aplicar estratègies de comprensió escrita en situacions del seu àmbit personal, social i educatiu pròxim, a partir dels significats explícits de caràcter lingüístic i extralingüístic (imatges, icones, disposició de la informació) i els seus coneixements previs."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar vocabulari i reconéixer estructures freqüents sobre temes predictibles de l’àmbit personal, social i educatiu pròxim en textos escrits i multimodals."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar informació en mitjans digitals, amb acompanyament docent, a partir de diferents tipus de textos multimodals senzills de l’àmbit personal, social i educatiu."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llegir i interpretar, amb la guia ocasional docent, textos escrits i multimodals, breus i senzills, sobre temes predictibles d’àmbit personal, social i educatiu pròxim, així com textos literaris adequats al seu nivell i expressats de manera comprensible i clara."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la funció comunicativa, el tema principal i les idees secundàries de textos escrits i multimodals; seleccionar i aplicar, de manera ocasional i amb ajuda del personal docent, estratègies de comprensió escrita, a partir dels significats explícits de caràcter lingüístic, i anticipar el significat mitjançant informació extralingüística (imatges, icones, disposició de la informació, títols, exclamacions, tipus de lletra) i els seus coneixements previs."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el vocabulari i l’ús d’estructures freqüents, i anticipar el significat d’algunes paraules o expressions no conegudes a partir del context, en textos escrits i multimodals de l’àmbit personal, social i educatiu pròxim."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localitzar i seleccionar informació en mitjans digitals, amb suport ocasional del professorat, a partir de diferents tipus de textos multimodals senzills de l’àmbit personal, social i educatiu."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Expressió oral. Produir de manera guiada textos orals i multimodals, comprensibles i estructurats, per a expressar missatges breus i senzills de l’àmbit personal, social i educatiu, aplicant estratègies de planificació i compensació.",
+    "pagina": 54,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reproduir i produir, amb ajuda docent i a partir de models orals, paraules, expressions i frases senzilles, amb una pronunciació i entonació adequades, utilitzant lèxic i estructures bàsiques relacionades amb el seu entorn personal, social i escolar."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar, amb ajuda docent i mitjançant la imitació de models, estratègies molt bàsiques de planificació i producció, i ajudar-se de gestos, imatges o altres recursos visuals, per a realitzar intervencions orals senzilles."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir textos orals i multimodals senzills, incloent monòlegs breus, expressats amb una pronunciació, ritme i entonació adequats, a partir de models treballats prèviament i amb acompanyament docent, utilitzant un repertori d’expressions, lèxic i estructures bàsiques en situacions de l’àmbit personal, social i educatiu pròxim."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar estratègies bàsiques de planificació i producció, de manera guiada, amb el suport del llenguatge corporal, i elements extralingüístics per a produir monòlegs senzills."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir diferents tipus de textos orals i multimodals breus, incloent monòlegs, diàlegs i presentacions breus, amb una pronunciació, ritme i entonació adequats, a partir de models i amb suport ocasional del professorat, utilitzant un repertori d’expressions, lèxic i estructures bàsiques en situacions de l’àmbit personal, social i educatiu."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar estratègies bàsiques de planificació, producció i compensació, amb la guia ocasional del professorat, per a produir monòlegs i diàlegs senzills."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Expressió escrita. Produir, de manera guiada, textos escrits i multimodals, comprensibles i estructurats, per a expressar missatges breus i senzills dels àmbits personal, social i educatiu, aplicant estratègies de planificació, textualització i revisió.",
+    "pagina": 54,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir textos escrits i multimodals senzills, a partir de models i amb una finalitat específica, a través de ferramentes analògiques i digitals, amb l’ajuda docent i usant lèxic i estructures elementals sobre assumptes quotidians i de rellevància personal per a l’alumnat."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Revisar, amb ajuda docent i a partir de models senzills, els textos escrits propis, i realitzar correccions guiades sobre aspectes bàsics com l’orde o les paraules."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir textos escrits i multimodals senzills en suports analògics i digitals sobre temes de l’àmbit personal, social i educatiu, a partir de models i amb ajuda docent, utilitzant un repertori bàsic d’estructures lingüístiques."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Revisar els textos escrits propis, a partir de models i amb ajuda docent, i introduir millores senzilles en l’organització i el contingut."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Produir textos escrits i multimodals senzills i breus de diversos gèneres textuals, en suports analògics i digitals, sobre temes dels àmbits personal, social i educatiu, amb ajuda docent ocasional, utilitzant lèxic i estructures d’ús freqüent."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Revisar els textos escrits propis i dels companys o de les companyes, amb ajuda ocasional docent, identificar errors senzills i realitzar millores per a aclarir el missatge."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Interacció oral i escrita. Interaccionar de manera oral, escrita i multimodal per mitjà de textos senzills, breus i guiats, de manera síncrona i asíncrona, per a respondre a necessitats comunicatives relacionades amb l’àmbit personal, social i educatiu.",
+    "pagina": 55,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, amb suport docent i mitjançant la repetició de models, en xicotets intercanvis orals sobre temes pròxims i quotidians, utilitzant gestos, expressions senzilles i fórmules bàsiques de cortesia pròpies del llenguatge oral."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interaccionar, amb suport docent i mitjançant models senzills, mostrant respecte cap als companys i companyes, utilitzant fórmules bàsiques per a saludar, despedir-se i presentar-se, i per a expressar missatges molt breus o respondre a preguntes senzilles."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en converses i en intercanvis d’informació breus i senzills sobre temes quotidians i de rellevància personal, amb guia docent, en contextos analògics i digitals, utilitzant recursos com la cortesia lingüística i digital, la repetició i el llenguatge no verbal."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interaccionar mostrant respecte i empatia, amb la guia de la persona docent, utilitzant estratègies elementals per a saludar, despedir-se i presentar-se, expressar missatges breus i formular o respondre preguntes senzilles en situacions quotidianes."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en converses i en intercanvis d’informació breus i senzills sobre temes previsibles, quotidians i de rellevància personal, amb escassa ajuda docent, en contextos analògics i digitals, ajustant l’ús del llenguatge verbal i no verbal a la situació comunicativa."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interaccionar mostrant empatia i respecte per les necessitats, idees i motivacions dels interlocutors o interlocutores, amb escassa ajuda docent, utilitzant estratègies elementals per a saludar, despedir-se i presentar-se, expressar missatges, formular i respondre preguntes senzilles, i iniciar i tancar la comunicació en situacions quotidianes."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Mediació oral i escrita. Mediar entre el grup d’interlocutors o interlocutores utilitzant estratègies d’adaptació i simplificació del llenguatge per a processar i transmetre informació bàsica i senzilla en situacions comunicatives predictibles d’àmbit personal, social i educatiu .",
+    "pagina": 56,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés, amb suport docent, per participar en la solució de xicotets problemes de comprensió sobre situacions senzilles de la vida diària i de l’entorn pròxim."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre, amb ajuda docent i mitjançant models senzills, missatges molt breus i clars en l’L2, i comunicar oralment o amb gestos informació bàsica, recorrent al suport dels companys o companyes si és necessari."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i utilitzar, amb ajuda docent i a partir de models senzills, estratègies molt bàsiques que faciliten la comprensió i l’expressió de missatges orals en diferents llengües (de l’L2 a l’L1), amb suport de gestos, dibuixos o altres recursos visuals per a ajudar a comunicar-se."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés per participar en la solució de problemes d’enteniment sobre assumptes quotidians de l’àmbit personal i social."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre missatges breus i senzills en L2, i transmetre oralment la informació bàsica o explicar conceptes en l’L1, de manera guiada, recorrent, si és necessari, a l’ajuda d’altres participants o els suports necessaris."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i utilitzar, de manera guiada, estratègies elementals que faciliten la comprensió i l’expressió oral d’informació en diferents llengües (de l’L2 a l’L1), utilitzant recursos com el llenguatge no verbal o la simplificació del missatge, amb l’ajuda de suports analògics i digitals."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés per participar en la solució de problemes d’enteniment sobre assumptes quotidians dels àmbits personal, social i educatiu."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre missatges breus i senzills en l’L2, i comunicar oralment o per escrit informació bàsica o explicar paraules o idees de l’L2 a l’L1 o de l’L1 a l’L2, amb escassa ajuda docent, utilitzant suports lingüístics i extralingüístics."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar i utilitzar, de manera guiada, estratègies bàsiques que faciliten la comprensió i l’expressió oral i escrita d’informació en diferents llengües (de l’L2 a l’L1 i de l’L1 a l’L2), com el llenguatge no verbal, i simplificar o adaptar el missatge, usant, amb ajuda, recursos o suports analògics i digitals per a crear ponts en la comunicació."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Matemàtiques",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Resoldre problemes relacionats amb situacions reals de l’entorn personal, social i educatiu utilitzant estratègies informals, representacions i conceptes concrets.",
+    "pagina": 57,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer les preguntes o els problemes plantejats en situacions del seu entorn pròxim i identificar amb ajuda docent la informació necessària per a la seua resolució."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar estratègies intuïtives per a obtindre la solució a un problema senzill de l’àmbit personal, manipular materials i ajudar-se de representacions icòniques."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprovar la correcció de la solució obtinguda mitjançant la revisió directa o la manipulació de materials, amb ajuda docent."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Verbalitzar el procés seguit en la resolució d’un problema senzill, explicar oralment les estratègies utilitzades i reconéixer la seua utilitat per a situacions similars."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la informació rellevant i irrellevant d’un problema o situació problemàtica de l’entorn personal i social de l’alumnat que permeta el seu abordatge i resolució."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Desenrotllar estratègies informals per a obtindre la solució correcta en un problema o situació problemàtica i sistematitzar procediments informals de resolució a nivell inicial."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprovar si la solució obtinguda en un problema complix les condicions o exigències de l’enunciat."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Extraure conseqüències de la situació problemàtica plantejada i obtindre ferramentes o estratègies aplicables en l’àmbit personal o educatiu."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la informació de l’enunciat d’un problema o situació plantejada i relacionar-la amb altres situacions anàlogues del seu entorn pròxim i amb els coneixements i procediments adquirits."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar i aplicar estratègies formals bàsiques aplicant els conceptes i procediments que li permeten obtindre la solució correcta en un problema o situació problemàtica."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reflexionar sobre la coherència i l’adequació de la solució obtinguda al problema plantejat."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Connectar la situació problemàtica amb el seu entorn personal, educatiu i social, i extraure conclusions que li permeten plantejar problemes, tant del mateix context com d’altres."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Observar, formular, explorar i comprovar conjectures senzilles sobre propietats i relacions matemàtiques concretes, i reconéixer i connectar procediments, patrons, regularitats i estructures .",
+    "pagina": 58,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Formular preguntes molt senzilles sobre situacions matemàtiques del seu entorn pròxim i explorar possibles respostes mitjançant l’observació i la manipulació."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar relacions senzilles entre elements matemàtics mitjançant la manipulació d’objectes i materials, i verbalitzar el que ha observat."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer patrons i regularitats molt senzilles en seqüències numèriques, figures o situacions quotidianes, amb suport manipulatiu."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar procediments matemàtics molt bàsics en contextos familiars, seguint pautes proporcionades."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comprovar conjectures sobre relacions matemàtiques que permeten desenrotllar de manera intuïtiva nou contingut matemàtic de naturalesa numèrica, mètrica, espacial, geomètrica o estocàstica."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprovar relacions matemàtiques en, i mitjançant, els procediments de raonament matemàtic intuïtiu."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer patrons i regularitats, i construir intuïtivament contingut matemàtic de naturalesa numèrica, mètrica, espacial, geomètrica o estocàstica."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar diferents procediments matemàtics relatius al càlcul, la mesura, el sentit espacial i geomètric, el tractament de dades o els processos aleatoris, i utilitzar-los de manera flexible."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar conjectures matemàtiques a partir de l’observació o experimentació de casos concrets, i formalitzar els conceptes i procediments implicats."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Connectar conceptes i relacions matemàtiques en, i mitjançant, els procediments de raonament matemàtic."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar i justificar patrons o regularitats, i construir contingut matemàtic de naturalesa numèrica, mètrica, espacial, geomètrica o estocàstica."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar i comparar amb fluïdesa i de manera flexible diferents procediments matemàtics relatius al càlcul, la mesura, el sentit espacial i geomètric, el tractament de dades o els processos aleatoris."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Construir models matemàtics concrets i utilitzar conceptes i procediments matemàtics senzills per a abordar i interpretar situacions, fenòmens i problemes rellevants en l’àmbit personal, educatiu o social .",
+    "pagina": 59,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, amb ajuda docent, elements matemàtics molt senzills presents en situacions reals de l’entorn immediat."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Representar mitjançant materials manipulatius, dibuixos o esquemes molt senzills situacions del seu entorn pròxim, i extraure’n conclusions bàsiques."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar de manera elemental representacions matemàtiques de situacions similars del seu entorn pròxim."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comprovar, amb ajuda docent, si la representació o solució obtinguda es correspon amb la situació real plantejada."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el contingut i les ferramentes matemàtiques senzilles que permeten abordar situacions reals pròximes i rellevants, i possibiliten la construcció de models matemàtics bàsics."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Usar models matemàtics bàsics que permeten interpretar una situació real senzilla, i extraure’n conclusions."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar models matemàtics corresponents a situacions reals en contextos similars."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Formular prediccions o comprovacions senzilles sobre una situació real utilitzant representacions i relacions matemàtiques, i verificar si el model s’adequa a la realitat plantejada."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el contingut i les ferramentes matemàtiques senzilles que permeten abordar situacions reals de l’àmbit personal, educatiu i social, i possibiliten la construcció de models matemàtics concrets."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Treballar matemàticament sobre models concrets amb la finalitat d’obtindre solucions que permeten descriure, interpretar i extraure conclusions sobre una situació real."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i justificar diferències i similituds entre models matemàtics corresponents a situacions reals en contextos similars."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Validar la solució obtinguda a partir de models matemàtics i detectar errors bàsics en contrastar-la amb la situació real."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Construir i aplicar algorismes senzills per a afrontar situacions i resoldre problemes rellevants de l’àmbit personal, educatiu o social, organitzant dades, descomponent un problema en parts, reconeixent patrons i emprant ferramentes TIC.",
+    "pagina": 60,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar algorismes senzills mitjançant codis visuals i materials manipulatius per a resoldre situacions problemàtiques."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar seqüències i repeticions molt senzilles en activitats quotidianes, i ordenar-les de manera lògica amb ajuda docent."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar amb ajuda docent instruccions seqüencials molt simples per a resoldre situacions de joc o activitats lúdiques de l’aula mitjançant l’ús de ferramentes TIC molt bàsiques."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en activitats de jocs de lògica molt senzills i explorar solucions amb materials manipulatius."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar algorismes senzills mitjançant codis visuals o ferramentes tecnològiques bàsiques per a resoldre situacions problemàtiques."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar regularitats en una seqüència de dades i predir resultats mitjançant el reconeixement de patrons senzills."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar instruccions seqüencials per a resoldre problemes mitjançant l’ús de ferramentes TIC."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar situacions senzilles per a definir i aconseguir estratègies guanyadores en jocs de lògica o jocs de tauler."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Dissenyar i aplicar algorismes mitjançant codis visuals o ferramentes tecnològiques per a resoldre situacions problemàtiques."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Descompondre patrons d’una certa complexitat en altres de més senzills utilitzant programació per blocs."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar la simbologia bàsica de la programació per blocs per a resoldre problemes."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analitzar situacions d’una certa dificultat, valorar diferents possibilitats i combinacions, per a definir i aconseguir estratègies guanyadores en jocs de lògica o jocs de tauler."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Utilitzar amb correcció el simbolisme matemàtic i fer transformacions i algunes conversions entre representacions iconicomanipulatives, numèriques, geomètriques i gràfiques, per a descriure i analitzar situacions rellevants de l’àmbit personal, educatiu o social.",
+    "pagina": 61,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar de manera bàsica representacions amb materials manipulatius, dibuixos i símbols matemàtics senzills per a expressar situacions del seu entorn."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer representacions numèriques i geomètriques molt simples associades a objectes i quantitats de l’entorn immediat."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar relacions matemàtiques elementals mitjançant dibuixos, símbols numèrics i manipulació d’objectes, amb suport docent."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar correctament les representacions iconicomanipulatives d’objectes i processos matemàtics en situacions pròximes a l’alumnat, respectant les regles bàsiques que els regixen."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer representacions numèriques, geomètriques i gràfiques que descriuen objectes matemàtics elementals en contextos pròxims a l’alumnat."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Usar representacions numèriques, geomètriques i gràfiques d’objectes matemàtics elementals en situacions pròximes a l’alumnat."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Manejar les representacions iconicomanipulatives, numèriques, geomètriques i gràfiques d’objectes matemàtics en situacions reals de l’àmbit personal, educatiu i social, respectant les regles que els regixen."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Realitzar conversions entre les representacions iconicomanipulatives, numèriques, geomètriques i gràfiques d’objectes matemàtics en situacions reals de l’àmbit personal, educatiu i social."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar el simbolisme matemàtic adequat per a descriure matemàticament situacions corresponents a l’àmbit personal, educatiu i social."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Comprendre i produir missatges orals i escrits concrets de manera informal, emprant un llenguatge matemàtic senzill per a comunicar i argumentar sobre característiques, conceptes, procediments i resultats relacionats amb situacions de l’àmbit personal, educatiu o social.",
+    "pagina": 62,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comprendre missatges orals molt senzills que continguen vocabulari matemàtic bàsic de l’entorn quotidià."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar de manera oral i gestual aspectes relacionats amb quantitats, formes i mesures presents en el seu entorn immediat, amb suport si és necessari."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar de manera molt elemental els passos seguits en la resolució d’un problema o activitat matemàtica senzilla."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Expressar idees matemàtiques bàsiques de manera oral, utilitzant vocabulari elemental adequat al seu nivell."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i comprendre missatges orals i escrits senzills que continguen llenguatge matemàtic bàsic."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar aspectes relacionats amb conceptes i procediments matemàtics senzills presents en contextos pròxims a l’alumnat."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Justificar adequadament la validesa dels resultats provinents de situacions problemàtiques de l’entorn personal o educatiu de l’alumnat, a través de comunicacions orals o escrites informals."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilitzar un llenguatge matemàtic adequat per a defendre els seus propis raonaments de forma argumentada."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar correctament missatges orals i escrits que incloguen contingut matemàtic."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar de manera formal aspectes relacionats amb conceptes i procediments matemàtics, emprant alguns elements formals bàsics."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Explicar i donar significat matemàtic a resultats provinents de situacions problemàtiques de l’àmbit personal, educatiu o social."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Argumentar i debatre, contrastant amb els companys i companyes, els seus propis raonaments, amb l’ajuda del llenguatge matemàtic."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Identificar fenòmens i problemes importants des del punt de vista cultural i social en els quals el coneixement matemàtic juga un paper decisiu.",
+    "pagina": 63,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar l’ús de nombres, formes i mesures en situacions molt quotidianes de l’entorn familiar i escolar."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer la utilitat de les matemàtiques per a comptar, ordenar, mesurar i resoldre problemes molt senzills de la vida diària."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer l’ús de les matemàtiques com a ferramenta útil en situacions personals i escolars pròximes."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer el contingut matemàtic present en jocs, activitats socials i productes culturals pròxims a l’experiència de l’alumnat."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar la importància de les matemàtiques per a resoldre problemes de la vida quotidiana que involucren aspectes com el càlcul aritmètic, la incertesa, el raonament lògic, el pensament computacional, l’ús i interpretació de dades o el sentit geomètric i espacial."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Apreciar el caràcter polivalent de les matemàtiques, tant per la seua utilitat per a la resolució de problemes en diferents àrees (instrumentalitat) com per a afavorir el desenrotllament intel·lectual, creatiu i cultural de les persones."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i valorar la importància de les matemàtiques per a la comprensió i el tractament d’algunes situacions o qüestions rellevants en la vida quotidiana de l’alumnat."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i valorar el contingut matemàtic de caràcter numèric, geomètric o espacial present en obres pictòriques, dibuixos animats, còmics, elements arquitectònics, escultures i altres manifestacions artístiques."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconéixer i valorar la importància de la creació de conceptes, idees i ferramentes matemàtics, com a elements necessaris per a l’avanç social i cultural."
+      }
+     ]
+    }
+   },
+   {
+    "n": 8,
+    "texto": "Gestionar les emocions i actituds implicades en els processos matemàtics, acceptar la incertesa, les dificultats i els errors que estos processos comporten, i controlar l’atenció per a aconseguir un aprenentatge significatiu i adaptable a diferents situacions.",
+    "pagina": 64,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar i expressar emocions bàsiques (alegria, frustració, sorpresa) davant d’activitats matemàtiques senzilles."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar una actitud positiva i esforç en la realització de tasques matemàtiques senzilles, i acceptar l’ajuda docent i de la resta d’alumnat."
+      },
+      {
+       "codigo": "8.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en activitats matemàtiques individuals i grupals, respectant les aportacions dels altres."
+      },
+      {
+       "codigo": "8.4",
+       "puntoTrasCodigo": true,
+       "texto": "Acceptar l’error i les dificultats en activitats matemàtiques senzilles, amb el suport docent i el reforç positiu."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Assumir els errors com a part del procés d’aprenentatge, i gestionar i expressar la frustració amb emocions i actituds positives per a la seua superació."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar una actitud positiva, esforç i perseverança en la realització de tasques matemàtiques, tant en el treball individual com en el col·laboratiu."
+      },
+      {
+       "codigo": "8.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar una disposició favorable a la millora personal i del treball en equip en la realització de tasques matemàtiques, respectant les aportacions dels altres."
+      },
+      {
+       "codigo": "8.4",
+       "puntoTrasCodigo": true,
+       "texto": "Començar a desenrotllar estratègies bàsiques d’autoregulació emocional davant de les dificultats en l’aprenentatge matemàtic i identificar quan necessita ajuda."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interioritzar els errors com a part del procés d’aprenentatge i adoptar les mesures pertinents per a la seua superació."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mantindre una actitud positiva i perseverant davant de les tasques matemàtiques, i afrontar les dificultats amb esforç i constància, tant en el treball individual com en el col·laboratiu."
+      },
+      {
+       "codigo": "8.3",
+       "puntoTrasCodigo": true,
+       "texto": "Gestionar els recursos cognitius i emocionals per a reconduir el procés d’aprenentatge en moments de dificultat o incertesa, així com en les situacions de conflicte derivades del treball en equip, amb la finalitat de la superació personal i grupal."
+      },
+      {
+       "codigo": "8.4",
+       "puntoTrasCodigo": true,
+       "texto": "Afrontar reptes i situacions problemàtiques en l’aprenentatge matemàtic amb una actitud oberta i flexible, regular les seues emocions i perseverar davant de la dificultat."
+      }
+     ]
+    }
+   }
+  ]
+ }
+]
