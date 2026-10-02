@@ -5,9 +5,9 @@ Decisiones tomadas el 2-10-2026 con el dueño.
 Estado (2-10-2026):
 
 - Hecho: registro de comunidades y de sus decretos (`src/lib/curriculum/comunidades.ts`), mecanismo de carga con vuelta al estatal (`cargar.ts`), comunidad en el perfil (guardado en escritorio y navegador, selector obligatorio al crear, edición en Perfil), aviso único a los perfiles antiguos e insignia en la barra lateral. La clase se crea eligiendo etapa y curso y marcando sus asignaturas de la lista oficial del currículo (decisión del dueño, 2-10-2026), con «Editar clase» nuevo. La SdA usa el currículo de la comunidad, pregunta la materia que no está clara, guarda la cita del decreto (`SdaContent.normativa`) y la lleva al PDF y al Word; el aviso de que se usó el estatal sale solo en pantalla.
-- Comunitat Valenciana, Primaria: extraídos y verificados los 507 criterios del Decreto 96/2026 y los enunciados de sus competencias (ver «Comunitat Valenciana» más abajo). En curso: los saberes básicos del anexo III del 106/2022 (`scripts/curriculo/saberes_dogv_tablas.py`) y Educación en Valores.
-- Pendiente: el resto de datos de cada decreto; el calendario.
-- Ninguna comunidad tiene todavía su currículo copiado: `CARGADORES` está vacío y todas usan el estatal, avisando.
+- Comunitat Valenciana, Primaria: hecha, en castellano. Las 9 áreas del artículo 9 con sus competencias y criterios del 96/2026, los saberes básicos del 106/2022 y Educación en Valores entera del 106/2022, todo extraído de los PDF oficiales y comprobado (ver «Comunitat Valenciana» más abajo). Está en `CARGADORES`: un perfil de la Comunitat Valenciana ya trabaja con su decreto en Primaria. Con la app en valenciano se sirve el castellano hasta tener el 96/2026 en valenciano.
+- Pendiente: el 96/2026 en valenciano (para `primaria.ca.json`), la ESO valenciana, Cataluña, Madrid y el calendario.
+- El resto de comunidades, y la ESO valenciana, usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
 
@@ -82,7 +82,32 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 - Es una conexión nueva de la app. No envía datos del docente, solo descarga.
 - En el mismo cambio hay que actualizar `web/sitio/privacidad.html` en los tres idiomas, y revisar cualquier frase de la web que diga que la app solo se conecta para la licencia y la IA.
 
-### Pendiente de decidir al llegar a esta parte
+#### Cómo se extrajeron los saberes del 106/2022 (Primaria)
+
+- Scripts: `scripts/curriculo/saberes_dogv_tablas.py` lee las tablas de una página y `scripts/curriculo/primaria_cv.py` monta el currículo entero y escribe `src/lib/curriculum/data/comunitat-valenciana/primaria.es.json`. Para revisar, deja lo intermedio (con los grupos G1, G2…, en las dos lenguas) en `scripts/curriculo/comunitat-valenciana/saberes-106-2022.es.json` y `.va.json`. Se ejecuta con `python3 scripts/curriculo/primaria_cv.py` (`--revisar` imprime la estructura y cada decisión sobre guiones).
+- Decisión del dueño (2-10-2026): no se recoge para qué ciclo es cada saber. Las X del decreto son «a modo orientativo»; en la app cada bloque lleva todos sus saberes en los tres ciclos.
+- Cada área maqueta sus tablas a su manera. Lo que hubo que resolver:
+  - En valenciano, detrás de cada línea de texto hay un rectángulo blanco relleno: solo cuentan como bordes las líneas que se ven.
+  - Algunas cabeceras ocupan varias filas (en las lenguas, el título va en la del medio) o llevan recuadros dentro que se detectan como tablas aparte.
+  - Una tabla que sigue en la página siguiente repite la cabecera, o no: se sigue el mismo subbloque. Una fila partida entre dos páginas no tiene borde inferior; la tabla llega hasta donde llegan sus líneas verticales (así apareció un saber de Lengua Extranjera en valenciano que se perdía).
+  - En el bloque 6 de Matemáticas en valenciano, el propio DOGV pone «1.er ciclo» también encima de la columna de texto.
+  - Los guiones de final de línea: hay 31 uniones (1 en castellano, 30 en valenciano). Se decide con las palabras del propio anexo, sacadas del PDF con pdfplumber y no con `pdftotext`, que quita ese guion por su cuenta (deja «figurafondo» donde el decreto dice «figura-fondo», como confirma «figura-fons» en valenciano). Resultado: «figura-fondo» y «mesurar-lo» conservan el guion; las otras 29 son palabras partidas («instru-mentals»).
+- Comprobaciones, todas superadas (el programa se para si alguna falla):
+  - Castellano y valenciano tienen los mismos bloques, subbloques, grupos y número de saberes en cada grupo, en las 7 áreas con tablas y en Educación en Valores.
+  - Cada saber, título de grupo, competencia y criterio de Educación en Valores se busca en el texto simple de esas páginas (`pdftotext`, camino independiente). En castellano, 788 coinciden letra a letra; 19 coinciden con las palabras desordenadas (en las líneas muy justificadas `pdftotext` cambia el orden de algunas palabras o mete la cabecera de la página en medio); 8 se compararon con la imagen de la página porque el texto simple pierde alguna palabra o separa el «G1» de su título, y están bien. En valenciano, 769, 18 y 3. Los vistos en imagen están en `VISTOS_EN_IMAGEN`.
+  - Las pruebas de `src/lib/curriculum/comunitatValenciana.test.ts` fijan los totales: 9 áreas; competencias 8, 6, 4, 6, 9, 9, 7, 8 y 7; los 507 criterios del 96/2026 más los 18 de Educación en Valores; 722 saberes (contando una vez los de las lenguas oficiales).
+- Literalidad: como en los criterios, se conserva el texto aunque parezca una errata. Por ejemplo, «Identificación de los estados del agua .» (el PDF tiene ese hueco antes del punto, página 38).
+
+### Cómo queda en la app (Primaria)
+
+- Áreas, en el orden y con el nombre del artículo 9 (96/2026): Conocimiento del Medio Natural, Social y Cultural; Educación Plástica y Visual; Música y Danza; Educación Física; Valenciano: Lengua y Literatura; Lengua Castellana y Literatura; Lengua Extranjera; Matemáticas; Educación en Valores Cívicos y Éticos (solo tercer ciclo: sus criterios solo existen ahí). Religión no tiene currículo en el decreto: se añade como «otra asignatura». Las dos lenguas oficiales comparten currículo y criterios, así que son dos áreas con el mismo contenido.
+- Competencias: los enunciados que encabezan las tablas del 96/2026 (Música y Danza con 4). Educación en Valores, del 106/2022.
+- Saberes: bloque (número y título) y epígrafes con sus saberes. Qué es epígrafe depende del área: el subbloque en Conocimiento del Medio, Música, Plástica y las lenguas oficiales; el grupo en Educación Física (un solo subbloque por bloque, que da el título del bloque) y en Lengua Extranjera; cada tabla en Matemáticas. Los títulos van sin código («1.1», «SB2.1 -», «G3.»), sin las competencias vinculadas («CE1, CE2») y sin punto final. Los títulos de grupo de las áreas en que el epígrafe es el subbloque no pasan a la app (están en lo intermedio).
+- Matemáticas no titula sus bloques («4.2. Bloque 1.»): el título sale de la enumeración de sentidos de su apartado 4.1 («numérico y de las operaciones, de la medida, espacial y geométrico, de incertidumbre y probabilidad, de análisis de datos y estadística, y de pensamiento computacional»), como «Sentido numérico y de las operaciones». Los títulos de sus tablas van en mayúsculas en el decreto («NÚMEROS NATURALES») y en la app en minúscula de frase («Números naturales»).
+- Cita: «Decreto 106/2022, de 5 de agosto (DOGV núm. 9402, de 10 de agosto de 2022), modificado por Decreto 96/2026, de 19 de junio (DOGV núm. 10391, de 25 de junio de 2026)». El 96/2026 queda `verificada: true` con su título en castellano, comprobado con su PDF; el título en valenciano se añade cuando esté su PDF.
+- Con la app en valenciano, el texto del currículo sale en castellano hasta tener el 96/2026 en valenciano. Entonces: extraer sus criterios con `criterios_dogv_tablas.py`, generar `primaria.ca.json` con los saberes en valenciano que ya están extraídos y servirlo en el cargador cuando se pida `ca`.
+
+## Pendiente de decidir al llegar a esta parte
 
 - Desde dónde vigila la tarea: una Action programada en este repositorio. Hará falta que pueda leer los boletines y, si la extracción usa IA, una clave como secreto del repositorio.
 
@@ -92,7 +117,7 @@ Hecho:
 
 - `TeacherProfile.community` y `communityPromptAt` en `src/services/storage.ts`. El escritorio (`electron/storage.cjs`) guarda `community` al crear el perfil. Se lee siempre con `comunidadDePerfil`, que descarta cualquier valor que no sea de la lista.
 - `src/lib/curriculum/comunidades.ts`: las 20 opciones (17 comunidades, Ceuta, Melilla y «Fuera de España»), sus decretos por etapa con matriz y modificaciones, y las funciones para citarlos en el idioma de la app sin traducir.
-- `src/lib/curriculum/cargar.ts`: `CARGADORES` (vacío hasta que llegue el primer decreto), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`.
+- `src/lib/curriculum/cargar.ts`: `CARGADORES` (de momento, Primaria de la Comunitat Valenciana), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia.
 - `src/components/CommunitySelect.tsx` (selector con «próximamente» y una nota de qué currículo se usará), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
 - `Class.etapa`, `curso`, `opcionMatematicas` y `materiasOficiales` (asignatura → materia oficial, `null` para modo libre). `src/lib/curriculum/materiasDeClase.ts` decide si una asignatura ya tiene materia (elegida o por alias seguro), está en modo libre o hay que preguntar, y con qué opciones. Una elección que ya no existe en el currículo (por cambiar de comunidad) se ignora y se vuelve a preguntar.
 - `src/hooks/useCurriculo.ts` y `src/components/curriculum/CurriculumFields.tsx`: lo que comparten el formulario de la clase y el de la SdA.
@@ -100,7 +125,7 @@ Hecho:
 
 Pendiente:
 
-- Datos en `src/lib/curriculum/data/<comunidad>/primaria.json` y `eso.json`, y su entrada en `CARGADORES`.
+- Datos del resto: `src/lib/curriculum/data/<comunidad>/primaria.<idioma>.json` y `eso.<idioma>.json`, y su entrada en `CARGADORES`. Cada uno sale en su propio archivo al compilar y solo se descarga al pedirlo (el de Primaria valenciana pesa unos 48 KB comprimido).
 - `mapeoMaterias.ts` por comunidad: las áreas cambian de nombre y a veces de número, y de ahí sale el desplegable.
 - La forma de los datos actuales es la del RD estatal. Los decretos autonómicos pueden agrupar los cursos de otra manera o traer campos propios. Se decide con el texto real delante. Hacia fuera, la interfaz de `index.ts` debe seguir siendo la misma.
 
@@ -108,7 +133,7 @@ Pendiente:
 
 - Acceso de red del entorno de Claude: `dogv.gva.es`, `portaljuridic.gencat.cat`, `www.bocm.es` y `www.boe.es`. Más adelante, para el calendario: `ceice.gva.es`, `educacio.gencat.cat` y `www.comunidad.madrid`. Sin esto no se puede transcribir ningún decreto.
 - Decretos, tal y como los dio el dueño (2-10-2026). En el registro llevan `verificada: false` hasta comprobar título, número y boletín contra la publicación oficial, y una prueba impide que una comunidad con currículo propio cite una norma sin verificar:
-  - Comunitat Valenciana, Primaria: Decret 106/2022, de 5 d'agost (DOGV núm. 9402, de 10 d'agost de 2022), modificado por el Decret 96/2026, de 19 de juny (DOGV núm. 10391, de 25 de juny de 2026).
+  - Comunitat Valenciana, Primaria: Decret 106/2022, de 5 d'agost (DOGV núm. 9402, de 10 d'agost de 2022), modificado por el Decret 96/2026, de 19 de juny (DOGV núm. 10391, de 25 de juny de 2026). Los dos verificados (el 96/2026, en castellano).
   - Comunitat Valenciana, ESO: Decret 107/2022, de 5 d'agost (DOGV núm. 9403, d'11 d'agost de 2022), modificado por el Decret 66/2024, de 21 de juny (DOGV núm. 9879, de 26 de juny de 2024).
   - Cataluña, Primaria y ESO en uno: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (DOGC núm. 8762, de 29 de setembre de 2022).
   - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022).

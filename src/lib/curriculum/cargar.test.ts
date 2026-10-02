@@ -1,7 +1,7 @@
 /**
- * Cuándo se usa el currículo de la comunidad y cuándo el estatal. Con
- * cargadores falsos, porque todavía no hay ninguna comunidad copiada: lo que
- * se prueba es la mecánica que usarán cuando las haya.
+ * Cuándo se usa el currículo de la comunidad y cuándo el estatal. La mecánica
+ * se prueba con cargadores falsos; el currículo valenciano real, en
+ * `comunitatValenciana.test.ts`.
  */
 import { describe, it, expect, vi } from 'vitest';
 import {
@@ -12,15 +12,21 @@ import { materiasDe, type CurriculumEntry } from './index';
 import { NORMAS_ESTATALES, normasDe } from './comunidades';
 
 const MATERIA: CurriculumEntry = { id: 'Matemáticas', nombre: 'Matemáticas', competencias: [], criterios: {}, saberes: {} };
+/** Un cargador que sirve estas materias en el idioma que se le pide. */
+const sirve = (materias: CurriculumEntry[]): Cargador => async idioma => ({ idioma, materias });
 
 describe('sin decreto propio', () => {
-  it('con los cargadores reales (vacíos todavía), cualquier comunidad usa el estatal', async () => {
-    for (const id of ['madrid', 'cataluna', 'comunitat-valenciana', 'andalucia', 'fuera'] as const) {
+  it('con los cargadores reales, una comunidad sin su decreto copiado usa el estatal', async () => {
+    for (const id of ['madrid', 'cataluna', 'andalucia', 'fuera'] as const) {
       const c = await cargarCurriculo(id, 'primaria');
       expect(c.origen).toBe('estatal');
       expect(c.materias).toBe(materiasDe('primaria'));
       expect(c.normas).toBe(NORMAS_ESTATALES.primaria);
     }
+    // La Comunitat Valenciana tiene Primaria, pero todavía no la ESO
+    const eso = await cargarCurriculo('comunitat-valenciana', 'eso');
+    expect(eso.origen).toBe('estatal');
+    expect(eso.normas).toBe(NORMAS_ESTATALES.eso);
   });
 
   it('el estatal se tiene sin esperar a nada', () => {
@@ -37,8 +43,8 @@ describe('sin decreto propio', () => {
 
 describe('con decreto propio', () => {
   it('abre solo el archivo de esa comunidad y etapa, con sus normas', async () => {
-    const madridPrimaria = vi.fn<Cargador>(async () => [MATERIA]);
-    const madridEso = vi.fn<Cargador>(async () => [MATERIA]);
+    const madridPrimaria = vi.fn<Cargador>(sirve([MATERIA]));
+    const madridEso = vi.fn<Cargador>(sirve([MATERIA]));
     const cargadores: Cargadores = { madrid: { primaria: madridPrimaria, eso: madridEso } };
 
     const c = await cargarCurriculo('madrid', 'primaria', 'es', cargadores);
@@ -52,14 +58,14 @@ describe('con decreto propio', () => {
   });
 
   it('una comunidad que tiene decreto en una etapa pero no en la otra usa el estatal en la otra', async () => {
-    const cargadores: Cargadores = { madrid: { primaria: async () => [MATERIA] } };
+    const cargadores: Cargadores = { madrid: { primaria: sirve([MATERIA]) } };
     expect(tieneCurriculoPropio('madrid', 'primaria', cargadores)).toBe(true);
     expect(tieneCurriculoPropio('madrid', 'eso', cargadores)).toBe(false);
     expect((await cargarCurriculo('madrid', 'eso', 'es', cargadores)).origen).toBe('estatal');
   });
 
   it('abrirlo dos veces lee el archivo una sola vez', async () => {
-    const abrir = vi.fn<Cargador>(async () => [MATERIA]);
+    const abrir = vi.fn<Cargador>(sirve([MATERIA]));
     const cargadores: Cargadores = { madrid: { primaria: abrir } };
     await Promise.all([
       cargarCurriculo('madrid', 'primaria', 'es', cargadores),
@@ -71,7 +77,7 @@ describe('con decreto propio', () => {
 
   it('si el archivo no se puede abrir, devuelve el estatal y no se rinde: el siguiente intento vuelve a probar', async () => {
     let falla = true;
-    const abrir = vi.fn<Cargador>(async () => { if (falla) throw new Error('trozo no encontrado'); return [MATERIA]; });
+    const abrir = vi.fn<Cargador>(async idioma => { if (falla) throw new Error('trozo no encontrado'); return { idioma, materias: [MATERIA] }; });
     const cargadores: Cargadores = { madrid: { primaria: abrir } };
 
     const primero = await cargarCurriculo('madrid', 'primaria', 'es', cargadores);
@@ -85,14 +91,14 @@ describe('con decreto propio', () => {
   });
 
   it('un cargador de una comunidad sin normas registradas no se usa: no habría nada que citar', async () => {
-    const abrir = vi.fn<Cargador>(async () => [MATERIA]);
+    const abrir = vi.fn<Cargador>(sirve([MATERIA]));
     const cargadores: Cargadores = { andalucia: { primaria: abrir } };
     expect((await cargarCurriculo('andalucia', 'primaria', 'es', cargadores)).origen).toBe('estatal');
     expect(abrir).not.toHaveBeenCalled();
   });
 
   it('pide el idioma de la app si la comunidad publica en los dos, y lo recuerda por separado', async () => {
-    const abrir = vi.fn(async (idioma: string) => [{ ...MATERIA, nombre: idioma }]);
+    const abrir = vi.fn<Cargador>(async idioma => ({ idioma, materias: [{ ...MATERIA, nombre: idioma }] }));
     const cargadores: Cargadores = { 'comunitat-valenciana': { primaria: abrir } };
 
     const ca = await cargarCurriculo('comunitat-valenciana', 'primaria', 'ca', cargadores);
@@ -106,8 +112,17 @@ describe('con decreto propio', () => {
     expect(abrir.mock.calls.map(c => c[0])).toEqual(['ca', 'es']);
   });
 
+  it('si falta el archivo del idioma pedido, el cargador sirve el otro y el resultado lo dice', async () => {
+    const abrir = vi.fn<Cargador>(async () => ({ idioma: 'es', materias: [MATERIA] }));
+    const cargadores: Cargadores = { 'comunitat-valenciana': { primaria: abrir } };
+    const c = await cargarCurriculo('comunitat-valenciana', 'primaria', 'ca', cargadores);
+    expect(abrir).toHaveBeenCalledWith('ca');
+    expect(c.idioma).toBe('es');
+    expect(c.origen).toBe('autonomico');
+  });
+
   it('con una sola lengua oficial se abre siempre esa, aunque la app esté en otro idioma', async () => {
-    const abrir = vi.fn<Cargador>(async () => [MATERIA]);
+    const abrir = vi.fn<Cargador>(sirve([MATERIA]));
     const cargadores: Cargadores = { cataluna: { primaria: abrir } };
     const c = await cargarCurriculo('cataluna', 'primaria', 'es', cargadores);
     expect(c.idioma).toBe('ca');

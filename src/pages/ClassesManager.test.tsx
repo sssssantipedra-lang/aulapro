@@ -5,17 +5,18 @@
  * Las que no están en la lista se añaden aparte y quedan en modo libre.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ClassesManager } from './ClassesManager';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
 import { materiasDe } from '../lib/curriculum';
 import type { Class } from '../types';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 afterEach(cleanup);
 
-function setup(classes: Class[] = []) {
+function setup(classes: Class[] = [], comunidad: ComunidadId = 'madrid') {
   const onAddClass = vi.fn();
   const onUpdateClass = vi.fn();
   render(
@@ -25,7 +26,7 @@ function setup(classes: Class[] = []) {
           classes={classes} students={[]} evaluations={[]} rubrics={[]}
           onAddClass={onAddClass} onUpdateClass={onUpdateClass} onDeleteClass={() => {}}
           onAddStudent={() => {}} onUpdateStudent={() => {}} onDeleteStudent={() => {}}
-          onAddStudents={() => {}} onOpenEval={() => {}} profileId="p1" comunidad="madrid"
+          onAddStudents={() => {}} onOpenEval={() => {}} profileId="p1" comunidad={comunidad}
         />
       </ToastProvider>
     </I18nProvider>,
@@ -66,6 +67,24 @@ describe('crear una clase', () => {
     // Y se cita de dónde salen, avisando de que es el estatal
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
     expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Comunidad de Madrid\)/)).toBeTruthy();
+  });
+
+  it('con el decreto de la comunidad copiado, ofrece sus áreas y lo cita, sin avisar del estatal', async () => {
+    const user = userEvent.setup();
+    setup([], 'comunitat-valenciana');
+    await nuevaClase(user, 'primaria', '5');
+    await waitFor(() => expect(materia('Música y Danza')).toBeTruthy());
+    const grupo = screen.getByRole('group', { name: 'Asignaturas del currículo' });
+    expect([...grupo.querySelectorAll('button')].map(b => b.textContent)).toEqual([
+      'Conocimiento del Medio Natural, Social y Cultural', 'Educación Plástica y Visual', 'Música y Danza',
+      'Educación Física', 'Valenciano: Lengua y Literatura', 'Lengua Castellana y Literatura',
+      'Lengua Extranjera', 'Matemáticas', 'Educación en Valores Cívicos y Éticos',
+    ]);
+    expect(screen.getByText(
+      'Currículo: Decreto 106/2022, de 5 de agosto (DOGV núm. 9402, de 10 de agosto de 2022), '
+      + 'modificado por Decreto 96/2026, de 19 de junio (DOGV núm. 10391, de 25 de junio de 2026)',
+    )).toBeTruthy();
+    expect(screen.queryByText(/aún no tiene el decreto/)).toBeNull();
   });
 
   it('Educación en Valores solo aparece en el tercer ciclo', async () => {

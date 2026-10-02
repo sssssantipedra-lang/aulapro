@@ -44,3 +44,4 @@ copias/
 *.sln
 *.sw?
 .claude/
+__pycache__/

@@ -1,0 +1,1861 @@
+{
+ "conocimiento-del-medio": [
+  {
+   "n": 1,
+   "titulo": "Cultura científica",
+   "subbloques": [
+    {
+     "cabecera": "1.1 Iniciació a l'activitat científica.",
+     "grupos": [
+      {
+       "titulo": "G1 Fases del raonament científic i de l'experimentació",
+       "saberes": [
+        "Curiositat per objectes, fets i fenòmens pròxims.",
+        "Realització de prediccions senzilles de manera guiada.",
+        "Estratègies d'utilització de la Informació en diferents fonts fiables, pròximes i accessibles",
+        "Ús d'Instruments i dispositius apropiats per a l'observació i mesurament.",
+        "Procediments i mètodes guiats per a l'experimentació",
+        "Registre de les observacions.",
+        "Vocabulari científic bàsic per a comunicar de manera oral o gràfica el resultat de les investigacions.",
+        "Observació de fenòmens que succeeixen en el seu entorn natural, social i cultural pròxim, i realització de prediccions raonades.",
+        "Lèxic i vocabulari científic bàsic i la seua utilització en les investigacions relacionades amb el medi pròxim.",
+        "Realització d'experiments guiats utilitzant diferents tècniques d'indagació i emprant els instrumentis i dispositius adequats.",
+        "Comunicació dels resultats de les investigacions usant eines senzilles usant llenguatge científic bàsic adquirit.",
+        "Estratègies d'utilització del pensament crític, aplicat als diferents resultats obtinguts.",
+        "Presentació i comunicació dels resultats de les investigacions realitzades en diferents formats, utilitzant el llenguatge científic bàsic adquirit."
+       ]
+      },
+      {
+       "titulo": "G2. Professions científiques i tecnològiques amb perspectiva de gènere",
+       "saberes": [
+        "Professions i avanços científics STEM des d'una perspectiva de gènere"
+       ]
+      }
+     ],
+     "pagina": 28
+    },
+    {
+     "cabecera": "1.2 La vida en el nostre planeta.",
+     "grupos": [
+      {
+       "titulo": "G1. Éssers vius",
+       "saberes": [
+        "Els éssers vius i els objectes inerts.",
+        "Les plantes i els animals. Diferències bàsiques.",
+        "L'hàbitat dels éssers vius en relació amb les seues necessitats bàsiques.",
+        "Valoració i respecte per l'hàbitat natural dels éssers vius.",
+        "La classificació dels éssers vius, els grans regnes de la natura.",
+        "Les plantes. Classificació en subgrups segons les seues característiques d'adaptació al medi, obtenció d'energia, relació i reproducció.",
+        "Els animals. Classificació en subgrups segons les seues característiques d'adaptació al mig, obtenció d'energia, relació i reproducció.",
+        "La cèl·lula",
+        "La cadena alimentària"
+       ]
+      },
+      {
+       "titulo": "G2. Paisatges i ecosistemes",
+       "saberes": [
+        "Concepte d'ecologia, la cura i el respecte pels espais naturals, els animals i les plantes.",
+        "Els ecosistemes. Factors biòtics i abiòtics. Equilibri i conservació.",
+        "El paisatge, agents que el transformen, conscienciació sobre l'acció de l'home en el paisatge. Desenvolupament sostenible. La petjada ecològica dels éssers humans en l'entorn natural.",
+        "L'extinció d'algunes espècies, valoració, causes i conseqüències."
+       ]
+      },
+      {
+       "titulo": "G3. Desenvolupament sostenible",
+       "saberes": [
+        "La cistella de la compra a casa i els béns de primera necessitat, hàbits de consum responsable.",
+        "Accions per al Consum responsable de béns i serveis.",
+        "Petjada ecològica i sostenibilitat / no sostenibilitat derivada del consum.",
+        "Reutilització, reducció i reciclatge de materials.",
+        "Corresponsabilitat en la protecció mediambiental",
+        "Equilibri entre el desenvolupament social i econòmic i la defensa del medi ambient.",
+        "Drets, deures i responsabilitats de l'alumnat com a consumidor conscienciat ecològicament.",
+        "La publicitat i l'etiquetatge dels productes que consumeix l'alumnat."
+       ]
+      },
+      {
+       "titulo": "G4. El cos humà",
+       "saberes": [
+        "El cos humà, les seues parts bàsiques: cap, tronc i extremitats. Els sentits.",
+        "Hàbits saludables, alimentació, descans, activitat física i higiene personal relacionats amb el benestar físic.",
+        "La salut i les malalties més comunes.",
+        "Morfologia del cos humà. Esquelet, musculatura i articulacions.",
+        "Parts i òrgans principals del cos humà i les seues funcions.",
+        "Relació entre el benestar i la pràctica de determinats hàbits: alimentació variada, higiene personal, exercici físic regulat sense excessos i descans diari.",
+        "L'organització del cos humà. Sistemes, aparells i funcions. Equilibri i relació entre totes elles. Relació amb l'entorn i amb els altres.",
+        "Hàbits per a la salut física, alimentació i nutrició, descans i activitat física com a elements per a la cura i el respecte per u mateix i per l'entorn. Sostenibilitat.",
+        "L'aparell reproductor i la sexualitat responsable."
+       ]
+      },
+      {
+       "titulo": "G5. Educació emocional",
+       "saberes": [
+        "Estratègies d'identificació i gestió de les emocions pròpies i alienes.",
+        "Acceptació de les diferències i semblances davant la diversitat a l'aula i el seu entorn pròxim.",
+        "Treball de la dimensió afectiu-sexual.",
+        "Diferències i semblances entre les persones, empatia i respecte per les semblances i diferències amb els altres.",
+        "Reconeixement dels sentiments i emocions pròpies i dels companys i companyes per a establir relacions socials adequades.",
+        "Coneixements bàsics sobre la sexualitat humana com a forma de relació i comunicació.",
+        "Establiment d'hàbits per a desenvolupar una salut emocional i mental equilibrades que fomenten l'autoestima i l'autoconcepte, l'empatia i el respecte pels altres.",
+        "Acceptació dels canvis físics i emocionals derivats de l'inici de l'adolescència i la pubertat que condicionen unes relacions socials i afectives sanes. Coneixement i acceptació d'u mateix i dels altres."
+       ]
+      }
+     ],
+     "pagina": 29
+    },
+    {
+     "cabecera": "1.3 Matèries, força i energia.",
+     "grupos": [
+      {
+       "titulo": "G1. Matèria",
+       "saberes": [
+        "Les propietats dels materials en funció de l'ús habitual en la vida quotidiana.",
+        "Les propietats dels materials: duresa, flexibilitat, massa i volum. Materials naturals i artificials.",
+        "La matèria i les seues propietats. Massa, volum i densitat."
+       ]
+      },
+      {
+       "titulo": "G2. Forces i energia",
+       "saberes": [
+        "Formes d'energia pròximes, la llum i el so. Ús responsable en la vida quotidiana.",
+        "Tipus d'energia, el so, la llum i la calor. L'energia elèctrica. Ús i consum responsable.",
+        "Les forces i el moviment. Els efectes que produeixen les forces, deformacions i moviment. La velocitat i la gravetat.",
+        "L'energia. Formes i propietats. La transformació de l'energia. Fonts d'energia renovables i no renovables, sostenibilitat."
+       ]
+      },
+      {
+       "titulo": "G3. Màquines i instruments",
+       "saberes": [
+        "Ús d'objectes de l'entorn amb eficàcia i seguretat.",
+        "Construccions d'estructures a partir de simulacions i jocs de construccions amb materials diversos.",
+        "Màquines simples.",
+        "Aplicacions i usos en la vida quotidiana de màquines, aparells i estructures.",
+        "Ús de balances i pesos com a instruments de mesura.",
+        "Grans fites en la invenció de màquines, aparells o estructures que van canviar la humanitat des d'una perspectiva de gènere.",
+        "El progrés de la ciència i la tecnologia cap a un desenvolupament sostenible.",
+        "Ús d'instruments de mesura i de càlcul.",
+        "Màquines i estructures. Elements que les componen.",
+        "Valoració dels avanços científics i tecnològics i la seua relació amb la societat actual."
+       ]
+      }
+     ],
+     "pagina": 31
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Tecnologia i digitalització",
+   "subbloques": [
+    {
+     "cabecera": "2.1. Digitalització de l'entorn personal d'aprenentatge.",
+     "grupos": [
+      {
+       "titulo": "G1 Presència",
+       "saberes": [
+        "Presència de la ciència i de la tecnologia en la societat, a l'escola, a la llar, en la cultura i l'oci."
+       ]
+      },
+      {
+       "titulo": "G2 Comunicació en la xarxa",
+       "saberes": [
+        "Dispositius, programes i aplicacions informàtiques per a comunicar-se de manera segura.",
+        "Coneixement i utilització de recursos i plataformes digitals restringides i segures per a comunicar-se amb altres persones: el correu electrònic.",
+        "Coneixement i utilització de recursos i plataformes digitals restringides i segures per a comunicar-se amb altres persones en xarxa: el xat i el fòrum.",
+        "Ús de xarxes socials per a la comunicació i construcció de la ciutadania digital.",
+        "La netiqueta: regles bàsiques de cortesia i respecte en els correus electrònics: estructura i contingut del missatge (SPAM), ús de majúscules.",
+        "Netiqueta digital, regles bàsiques de cortesia i respecte en les xarxes socials i estratègies per a resoldre problemes en la comunicació digital a través de xats i fòrums: respecte a la temàtica, ús moderat de les icones, respecte cap a altres opinions, construcció de coneixement en xarxa (ciberètica)."
+       ]
+      },
+      {
+       "titulo": "G3. Dispositius, programes i aplicacions informàtiques",
+       "saberes": [
+        "Cercadors.",
+        "Emmagatzematge de dades (imatges, documents, xifres…)",
+        "Presentació de la informació: document (estructura, diferents tipografies, inserció d'imatges…)",
+        "Presentació de la informació: presentacions i vídeos.",
+        "Estratègies bàsiques de mecanografia.",
+        "Entorn personal d'aprenentatge.",
+        "Problemes tècnics senzills en les aplicacions i dispositius TIC de manera guiada."
+       ]
+      },
+      {
+       "titulo": "G4. Salut i seguretat",
+       "saberes": [
+        "Estratègies per a fer un ús adequat de la tecnologia: benestar digital i salut per a previndre addiccions. Sensibilització cap al ciberassetjament.",
+        "Estratègies per a fer un ús adequat de la tecnologia: ciberassetjament, empremta digital, propietat intel·lectual, protecció de la informació personal en xarxes socials.",
+        "Estratègies per a fer un ús segur de la tecnologia i l'entorn digital personal d'aprenentatge: contrasenyes secretes, cessió d'imatges o informació personal, publicitat i correus no desitjats, phishing.",
+        "Estratègies per a fer un ús segur de la tecnologia i l'entorn digital personal d'aprenentatge: “amics” d'internet, correus electrònics amb enllaços o descarregables dubtosos."
+       ]
+      },
+      {
+       "titulo": "G5. Utilització de la tecnologia de la informació i la comunicació",
+       "saberes": [
+        "Estratègies de cerca d'informació guiades, segures i eficients: valoració, discriminació, selecció, organització, contrast i comparació.",
+        "Estratègies de recollida, emmagatzematge i representació de dades que faciliten la comprensió i l'anàlisi. Citat."
+       ]
+      }
+     ],
+     "pagina": 31
+    },
+    {
+     "cabecera": "2.2. Projectes de disseny i pensament computacional.",
+     "grupos": [
+      {
+       "titulo": "G1. Projectes de disseny",
+       "saberes": [
+        "Observació del medi natural o social; admiració d'un tema concret.",
+        "Identificació d'objectius, necessitats, dubtes o problemes.",
+        "Expressió de diferents solucions o respostes.",
+        "Selecció de l'aspecte a desenvolupar.",
+        "Comprovació, disseny, prototipat i/o prova.",
+        "Avaluació",
+        "Presentació i comunicació."
+       ]
+      },
+      {
+       "titulo": "G2. Pensament computacional",
+       "saberes": [
+        "Abstracció",
+        "Pensament algorítmic",
+        "Descomposició en parts més senzilles",
+        "Identificació de patrons",
+        "Pensament lògic utilitzant variables que contenen dos valors (vertader/fals, sí/no)"
+       ]
+      },
+      {
+       "titulo": "G3. Tecnologia",
+       "saberes": [
+        "Utilització de materials, eines i objectes d'ús escolar segur.",
+        "Dispositius digitals segurs i adequats a la consecució d'un projecte: tauleta, telèfon intel·ligent, ordenador, etc.",
+        "Operadors mecànics i màquines simples (sensors, motors…).",
+        "Recursos digitals: realitat virtual, realitat augmentada, simuladors, impressores 3D…",
+        "Circuits elèctrics bàsics: elements, efectes, ús quotidià."
+       ]
+      },
+      {
+       "titulo": "G4. Iniciació a la programació",
+       "saberes": [
+        "Programació per blocs amb elements manipulatius no tecnològics (activitats desendollades).",
+        "Programació per blocs a través de robots programables senzills.",
+        "Programació per blocs en entorns digitals."
+       ]
+      },
+      {
+       "titulo": "G5. Treball Cooperatiu",
+       "saberes": [
+        "Estratègies bàsiques de treball en equip",
+        "Tècniques cooperatives senzilles per al treball en equip.",
+        "Estratègies per a la gestió de conflictes i promoció de conductes empàtiques i inclusives",
+        "Estratègies en situacions d'incertesa: adaptació i canvi d'estratègia, valoració de l'error com a oportunitat d'aprenentatge"
+       ]
+      }
+     ],
+     "pagina": 32
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Societats i territoris",
+   "subbloques": [
+    {
+     "cabecera": "3.1. Reptes del món actual",
+     "grupos": [
+      {
+       "titulo": "G1. Pensament crític",
+       "saberes": [
+        "Estratègies per a l'emissió d'opinions senzilles.",
+        "Conjectures i planificació de tasques senzilles.",
+        "Estratègies per a la emissió d'opinions senzilles a partir d'una informació donada.",
+        "Estratègies per a l'emissió d'opinions i judicis de valor a partir de diferents tipus de fonts.",
+        "Adquisició d'habilitats per a l’expressió de conclusions a través de textos expositius i elements gràfics.",
+        "Ús de fonts diverses (primàries i secundàries) com a textos, fotografies, mapes, obres d'art, edificis històrics, documents audiovisuals, procedents dels mitjans de comunicació i altres fonts.",
+        "Acceptació d'altres punts de vista, assumpció de diversos rols, aportació d'idees pròpies constructives."
+       ]
+      },
+      {
+       "titulo": "G2. Drets i llibertats",
+       "saberes": [
+        "Noció de desigualtat.",
+        "Noció de desigualtat social i conflicte social.",
+        "Noció de diversitat cultural.",
+        "Noció de drets i llibertats.",
+        "Noció d'obligacions."
+       ]
+      }
+     ],
+     "pagina": 34
+    },
+    {
+     "cabecera": "3.2. Societats en el temps.",
+     "grupos": [
+      {
+       "titulo": "G1. El pas del temps",
+       "saberes": [
+        "Ús del temps i de les formes convencionals per a mesurar-lo.",
+        "Adquisició de nocions bàsiques de temps i unitats de mesura.",
+        "Cronologia històrica. Períodes cronològics i grans edats de la Història. Unitats de mesura (dècada, segle).",
+        "Estratègies per a la representació del temps mitjançant línies del temps i el coneixement dels diferents períodes cronològics."
+       ]
+      },
+      {
+       "titulo": "G2. Educació patrimonial",
+       "saberes": [
+        "Identificació del patrimoni material com a element del municipi.",
+        "Propostes de cura del patrimoni a petita escala.",
+        "Reconeixement de les dones com a subjectes individuals o col·lectius de la història i la seua aportació al patrimoni.",
+        "Reconeixement d'altres tipus de patrimoni (immaterial) i localització d'expressions culturals i històriques (patrimoni) més pròximes a la seua localitat i a nivell nacional.",
+        "Tipologia, paper social i cultural del patrimoni.",
+        "Elements patrimonials aplicant nocions temporals bàsiques.",
+        "Emissió de judicis de valor sobre l'origen del patrimoni i la seua relació amb els esdeveniments històrics."
+       ]
+      },
+      {
+       "titulo": "G3. Societats i diversitat cultural",
+       "saberes": [
+        "Biografia de personatges rellevants des d'una perspectiva coeducativa.",
+        "Identificació dels trets diferencials de les societats a través del temps.",
+        "Reconeixement de les característiques de les societats prehistòriques i de l’Antiguitat, així com els seus elements més destacables.",
+        "Coneixement de les característiques de la cultura grega i la romanització i anàlisi de la seua herència en la societat actual.",
+        "La societat de l'antic règim i revolució liberal, així com els canvis socials i econòmics produïts a Espanya.",
+        "Aproximació a la història recent (Guerra Civil, dictadura i transició) i a la memòria democràtica.",
+        "Societats i cultures de l’Època Medieval i Moderna"
+       ]
+      },
+      {
+       "titulo": "G4. Interpretació històrica",
+       "saberes": [
+        "Nocions de causa, conseqüència i empatia.",
+        "Nocions de causa, conseqüència, empatia, simultaneïtat i interpretació històrica.",
+        "Noció de canvi, continuïtat, simultaneïtat i durada i evidència."
+       ]
+      }
+     ],
+     "pagina": 35
+    },
+    {
+     "cabecera": "3. 3. Alfabetització cívica.",
+     "grupos": [
+      {
+       "titulo": "G1. Organització social",
+       "saberes": [
+        "La família i la relació entre els seus membres: adquisició de responsabilitats domèstiques.",
+        "Economia domèstica: noció de diners, despeses i ingressos, estalvi, compte bancari, moneda i targeta de crèdit.",
+        "La família i la relació entre els seus membres: adquisició de responsabilitats en l'entorn familiar.",
+        "Reconeixement de l'organització social, política i territorial: les comunitats autònomes i Espanya.",
+        "La Constitució Espanyola.",
+        "Identificació de l'organització social d'Espanya.",
+        "Seguretat viària. La ciutat com a espai de convivència. Normes de circulació i mobilitat sostenible."
+       ]
+      },
+      {
+       "titulo": "G2. Estructura política",
+       "saberes": [
+        "Identificació i ús dels equipaments bàsics de l'entorn social: educatius, sanitaris i culturals.",
+        "Característiques del sector privat i del sector públic.",
+        "Organització de l'Administració Pública a través de la Generalitat.",
+        "Institucions de govern municipals, autonòmiques i estatals.",
+        "Aproximació a la Unió Europea: organització territorial, institucions, competències i responsabilitats.",
+        "Reconeixement de l'organització política i territorial d'Espanya.",
+        "La monarquia parlamentària.",
+        "Diferenciació de formes de govern: règims democràtics i autoritaris"
+       ]
+      },
+      {
+       "titulo": "G3. Població",
+       "saberes": [
+        "Medi urbà i rural. El medi urbà i rural de la Comunitat Valenciana.",
+        "Distribució de la població: natalitat i mortalitat,",
+        "Moviments migratoris i riscos naturals.",
+        "Moviments migratoris a la Comunitat Valenciana, Espanya i Europa",
+        "Identificació de les característiques demogràfiques dels països desenvolupats i subdesenvolupats.",
+        "Reconeixement i respecte per la diversitat cultural i lingüística d'Espanya."
+       ]
+      }
+     ],
+     "pagina": 36
+    },
+    {
+     "cabecera": "3.4. Consciència ecosocial.",
+     "grupos": [
+      {
+       "titulo": "G1. Representació",
+       "saberes": [
+        "Ús de plànols i mapes senzills.",
+        "La Terra en plànols i mapes senzills.",
+        "Representació cartogràfica."
+       ]
+      },
+      {
+       "titulo": "G2. El clima",
+       "saberes": [
+        "El canvi estacional.",
+        "Variables meteorològiques. Registre i representació de dades.",
+        "El temps i el clima: característiques i diferències.",
+        "El canvi climàtic: factors desencadenants i impacte sobre l'entorn natural.",
+        "Factors climàtics.",
+        "El canvi climàtic: presa de consciència de l'impacte en l'entorn.",
+        "Factors climàtics: distribució dels climes.",
+        "El canvi climàtic: accions d'afrontament."
+       ]
+      },
+      {
+       "titulo": "G3. Responsabilitat ecosocial",
+       "saberes": [
+        "La Terra en el seu concepte geològic i geogràfic.",
+        "El Sistema Solar.",
+        "L'Univers",
+        "Identificació dels estats de l'aigua.",
+        "L'ús responsable de l'aigua com a recurs escàs i la seua conservació.",
+        "Elements bàsics del relleu.",
+        "Elements del relleu a nivell local i nacional.",
+        "Conservació i cura dels elements paisatgístics de l'entorn.",
+        "Turisme sostenible.",
+        "Elements del relleu a nivell europeu.",
+        "Reconeixement dels paisatges agropecuaris i turístics.",
+        "Xarxes de transport i comunicacions"
+       ]
+      }
+     ],
+     "pagina": 37
+    }
+   ]
+  }
+ ],
+ "musica-y-danza": [
+  {
+   "n": 1,
+   "titulo": "Percepció i anàlisi",
+   "subbloques": [
+    {
+     "cabecera": "SB1.1 - Contextos musicals i culturals.",
+     "grupos": [
+      {
+       "titulo": "G1. Obres",
+       "saberes": [
+        "Peces breus de gèneres diferents: vocals, instrumentals i mixtos.",
+        "Fragments o obres de gèneres, èpoques, estils i autoria diferents. Classificació."
+       ]
+      },
+      {
+       "titulo": "G2. Patrimoni",
+       "saberes": [
+        "El patrimoni musical: iniciació.",
+        "Els espais culturals i artístics. El patrimoni de la Comunitat Valenciana.",
+        "El patrimoni musical i escènic. Les institucions. Funció social."
+       ]
+      },
+      {
+       "titulo": "G3. Gèneres escènics i musicals",
+       "saberes": [
+        "Els gèneres escènics i musicals. Professions vinculades."
+       ]
+      },
+      {
+       "titulo": "G4. Agrupacions vocals i instrumentals",
+       "saberes": [
+        "Les agrupacions vocals, instrumentals i mixtes.",
+        "Agrupacions del folklore, d’estils diversos i gèneres actuals."
+       ]
+      },
+      {
+       "titulo": "G5. La veu",
+       "saberes": [
+        "Veu masculina, veu femenina i veu infantil.",
+        "Registre de les veus i classificació."
+       ]
+      },
+      {
+       "titulo": "G6. Els instruments",
+       "saberes": [
+        "Instruments i objectes sonors més pròxims. Identificació visual i auditiva. Principals famílies.",
+        "Els instruments musicals: classificació per famílies, descripció i usos en agrupacions. Identificació visual i auditiva.",
+        "Els instruments musicals electrònics, acústics i digitals."
+       ]
+      },
+      {
+       "titulo": "G7. Normes de comportament",
+       "saberes": [
+        "Actitud atenta en l’audició i davant de propostes artístiques. El silenci individual.",
+        "Atenció i respecte en l’audició i davant de les propostes artístiques.",
+        "Normes de comportament en l’audició musical i davant de les propostes artístiques. Actitud oberta i valorativa."
+       ]
+      }
+     ],
+     "pagina": 54
+    },
+    {
+     "cabecera": "SB1.2 - Elements i estructura",
+     "grupos": [
+      {
+       "titulo": "G1. So i silenci",
+       "saberes": [
+        "So, silenci i agressions acústiques en l’entorn pròxim.",
+        "Usos del so i del silenci en el món actual.",
+        "Les agressions acústiques. Estratègies d’afrontament, neutralització i millora."
+       ]
+      },
+      {
+       "titulo": "G2. Les qualitats del so",
+       "saberes": [
+        "Contrastos d’altura, intensitat, duració, i timbre: representació gràfica.",
+        "Diferents graus d’altures, duracions, intensitats i timbres: representació gràfica."
+       ]
+      },
+      {
+       "titulo": "G3. Ritme, tempo i caràcter",
+       "saberes": [
+        "La pulsació i l’accent. Els contrastos en el tempo. El caràcter i la sensació.",
+        "La pulsació i l’accent en els compassos simples. Els signes de divisió. El tempo. El caràcter i l’expressió.",
+        "L’accent en compàs compost. La ruptura de l’accent. Els canvis de tempo. El caràcter i els elements musicals que el determinen."
+       ]
+      },
+      {
+       "titulo": "G4. Melodia i harmonia",
+       "saberes": [
+        "Melodia. Direccionalitat.",
+        "Frase i semifrase. Interval i cadència. El mode. Identificació.",
+        "Harmonia i l’acord. Melodia i textura."
+       ]
+      },
+      {
+       "titulo": "G5. Estructura i forma",
+       "saberes": [
+        "Repetició, contrast i variació.",
+        "L’estructura i la forma.",
+        "Formes simples. ."
+       ]
+      },
+      {
+       "titulo": "G6. Elements escènics",
+       "saberes": [
+        "Rols, materials i espais.",
+        "Temps, tema, argument i estructura dramàtica bàsica."
+       ]
+      }
+     ],
+     "pagina": 55
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Interpretació i creació",
+   "subbloques": [
+    {
+     "cabecera": "SB2.1 - Expressió individual i col·lectiva.",
+     "grupos": [
+      {
+       "titulo": "G1. Interpretació i tècnica vocal",
+       "saberes": [
+        "La respiració, la relaxació i la intensitat vocal. Jocs vocals: altures, intensitats i timbres. La imitació vocal.",
+        "Desenvolupament de la capacitat respiratòria. L’emissió vocal en la parla i en el cant. Jocs vocals: combinació d’altures, intensitats, duracions i timbres. L’accent prosòdic i l’accent musical. Reconstrucció de textos a cançons donades.",
+        "El suport i la impostació en la parla i en el cant. Cura i manteniment de la veu: hàbits saludables. Interpretacions variades i introducció a la cançó a dues veus. La creació breu de textos i musicalització.",
+        "Cançó a l’uníson, a cappella i amb acompanyament. La memorització de repertori."
+       ]
+      },
+      {
+       "titulo": "G2. Interpretació i cura instrumental",
+       "saberes": [
+        "Cura i manteniment dels instruments. La reutilització o transformació de materials de l’entorn en la construcció d’instruments senzills.",
+        "La tècnica en la pràctica instrumental.",
+        "Propostes breus i jocs instrumentals .",
+        "Experimentació de registres, intensitats i timbres. L’eco i la pregunta-resposta instrumental. Ostinatos rítmics i ritmicomelòdics breus.",
+        "Combinació de diferents altures, intensitats, duracions i timbres. Polirítmies senzilles. L’ostinato i la improvisació."
+       ]
+      },
+      {
+       "titulo": "G3. Creació",
+       "saberes": [
+        "Moviments, expressions corporals i coreografies senzilles.",
+        "Acompanyaments musicals.",
+        "Propostes musicals i sonoritzacions breus."
+       ]
+      },
+      {
+       "titulo": "G4. La comunicació",
+       "saberes": [
+        "Expressió vocal i expressió corporal.",
+        "El llenguatge escènic."
+       ]
+      },
+      {
+       "titulo": "G5. La notació musical",
+       "saberes": [
+        "Iniciació a la notació musical.",
+        "Els elements de la notació musical en la interpretació i la creació."
+       ]
+      },
+      {
+       "titulo": "G6. Habilitats motrius",
+       "saberes": [
+        "Habilitats motrius bàsiques.",
+        "L’espai en la dansa. Les qualitats del moviment."
+       ]
+      },
+      {
+       "titulo": "G7. El moviment i la dansa",
+       "saberes": [
+        "Moviments en propostes musicals breus: imitació, memorització i expressió. Danses breus: La posició i el desplaçament..",
+        "Moviments en coreografies breus. La coordinació grupal, les figures i l’espai en les danses.",
+        "Coreografies en peces de diferents estils i gèneres. Danses variades de diferents estils, èpoques i cultures."
+       ]
+      }
+     ],
+     "pagina": 56
+    },
+    {
+     "cabecera": "SB2.2 - Propostes artístiques.",
+     "grupos": [
+      {
+       "titulo": "G1. Representació",
+       "saberes": [
+        "Els personatges en propostes artístiques multidisciplinàries.",
+        "Espai i posició. Els segments corporals: expressió i gestualitat.",
+        "El gest. El llenguatge corporal de l’actor. Imitació i improvisació."
+       ]
+      },
+      {
+       "titulo": "G2. Elements escènics",
+       "saberes": [
+        "L’ambientació sonora i l’attrezzo.",
+        "Escenografia, vestuari i il·luminació."
+       ]
+      },
+      {
+       "titulo": "G3. Elements expressius i comunicatius en el llenguatge audiovisual",
+       "saberes": [
+        "Relació imatge, acció i so."
+       ]
+      },
+      {
+       "titulo": "G4. Projectes artístics multidisciplinaris",
+       "saberes": [
+        "Disseny, rols, selecció de materials, informació i criteris de valoració.",
+        "Les fases de projectes artístics: planificació, presa de decisions i avaluació.",
+        "Responsabilitat individual i grupal en la participació i en la creació de propostes senzilles."
+       ]
+      },
+      {
+       "titulo": "G5. Eines digitals",
+       "saberes": [
+        "Ús de banc de sons i selecció d’informació.",
+        "La gestió responsable.",
+        "Enregistrament, interpretació, creació i edició. Normes de protecció de dades i autoria."
+       ]
+      },
+      {
+       "titulo": "G6. Expressió de sensacions i opinions",
+       "saberes": [
+        "Expressió oral de sensacions en l’audició i la interpretació amb la terminologia musical donada.",
+        "Expressió de sensacions i opinions en propostes variades amb ús de la terminologia musical donada. Actitud oberta i respectuosa. Confiança personal."
+       ]
+      }
+     ],
+     "pagina": 58
+    }
+   ]
+  }
+ ],
+ "educacion-plastica-y-visual": [
+  {
+   "n": 1,
+   "titulo": "Percepció i anàlisi",
+   "subbloques": [
+    {
+     "cabecera": "B.1.1. Exploració i interpretació de l’entorn",
+     "grupos": [
+      {
+       "titulo": "G1. Patrimoni historicoartístic i cultura visual contemporània:",
+       "saberes": []
+      },
+      {
+       "titulo": "Patrimoni historicoartístic. Manifestacions artístiques plàstiques, visuals i audiovisuals en entorns físics i virtuals:",
+       "saberes": [
+        "Patrimoni historicoartístic local: exploració i anàlisi.",
+        "Patrimoni historicoartístic autonòmic: exploració i anàlisi.",
+        "Patrimoni historicoartístic universal: exploració i anàlisi."
+       ]
+      },
+      {
+       "titulo": "Elements bàsics del llenguatge visual i audiovisual:",
+       "saberes": [
+        "Els elements bàsics del llenguatge visual en manifestacions artístiques de diferents èpoques i estils.",
+        "Possibilitats expressives i comunicatives dels elements bàsics del llenguatge visual en manifestacions artístiques plàstiques i visuals de diferents èpoques i estils.",
+        "Els elements bàsics del llenguatge audiovisual i les seues possibilitats expressives i comunicatives en imatges fixes i en moviment."
+       ]
+      },
+      {
+       "titulo": "Contemporaneïtat artística:",
+       "saberes": [
+        "Característiques fonamentals dels formats, suports i materials de les pràctiques artístiques contemporànies.",
+        "Qualitats expressives dels formats, suports i materials de les pràctiques artístiques contemporànies.",
+        "Processos de treball: la forma al servei de la idea. La creació artística com a procés d’investigació.",
+        "Professions relacionades amb el món de les arts plàstiques, visuals i audiovisuals."
+       ]
+      },
+      {
+       "titulo": "G2. Actituds:",
+       "saberes": [
+        "Estratègies de recepció activa.",
+        "Estratègies bàsiques d’anàlisi de propostes artístiques des d’una perspectiva de gènere.",
+        "Respecte en l’exploració de manifestacions artístiques plàstiques i visuals en entorns físics i virtuals.",
+        "Atenció i respecte en l’exploració de manifestacions artístiques plàstiques, visuals i audiovisuals en entorns físics i virtuals. El valor del silenci en l’atenció i apreciació.",
+        "Atenció, respecte, interés i participació en l’exploració de manifestacions artístiques plàstiques, visuals i audiovisuals en entorns físics i virtuals. El valor del silenci en l’atenció i apreciació."
+       ]
+      },
+      {
+       "titulo": "G3. Entorns digitals:",
+       "saberes": [
+        "Estratègies de cerca i filtració d’informació.",
+        "Normes bàsiques de protecció de dades i llicències d’ús en suports i recursos digitals.",
+        "Recursos digitals bàsics per a les arts plàstiques, visuals i audiovisuals."
+       ]
+      },
+      {
+       "titulo": "G4. Utilització de la terminologia bàsica per a l’expressió de l’experiència d’apreciació:",
+       "saberes": [
+        "Per a l’expressió de l’experiència d’exploració de propostes culturals i artístiques.",
+        "Per a l’expressió de les idees, emocions i experiències derivades de l’exploració de propostes culturals i artístiques.",
+        "Per a la descripció formal de propostes culturals i artístiques."
+       ]
+      }
+     ],
+     "pagina": 74
+    },
+    {
+     "cabecera": "B1.2. Alfabetització visual i audiovisual",
+     "grupos": [
+      {
+       "titulo": "G1. Percepció visual:",
+       "saberes": [
+        "Tipus de percepció sensorial en l’exploració de l’entorn: òptica, acústica i hàptica.",
+        "Graus d’iconicitat de les imatges: imatge realista, figurativa i abstracta.",
+        "Organització del camp visual. Lleis bàsiques: semblança, figura-fons, proximitat, simetria, continuïtat, direcció comuna, simplicitat, igualtat i tancament.",
+        "Aspectes interpretatius del procés perceptiu: creences, coneixements previs i emocions."
+       ]
+      },
+      {
+       "titulo": "G2. Comunicació visual i audiovisual:",
+       "saberes": [
+        "El procés comunicatiu: emissor, receptor, missatge.",
+        "El procés comunicatiu: codi i canal. La diversitat de canals de comunicació.",
+        "Funcions de la imatge: estètica, informativa, exhortativa, expressiva.",
+        "La imatge fixa: format, enquadraments, composició. La imatge digital: mapa de bits i imatge vectorial. La imatge en moviment: angles i moviments de càmera.",
+        "Cultura visual i audiovisual: la imatge en el món contemporani. Estratègies de lectura i interpretació."
+       ]
+      },
+      {
+       "titulo": "G3. Llenguatge visual i audiovisual: elements configuradors:",
+       "saberes": [
+        "El punt, la línia i el pla com a elements expressius. Formes orgàniques i formes geomètriques. Formes planes i formes volumètriques. Textures. Colors primaris i secundaris.",
+        "Les formes geomètriques bàsiques: quadrat, triangle i cercle. La circumferència. Polígons regulars i sòlids geomètrics bàsics. Textures naturals i artificials, tàctils i visuals. Colors complementaris. Gammes cromàtiques.",
+        "Usos expressius i culturals del color en mitjans visuals i audiovisuals. Esquemes compositius bàsics."
+       ]
+      }
+     ],
+     "pagina": 76
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Experimentació i creació",
+   "subbloques": [
+    {
+     "cabecera": "B2.1. L’experiència artística: tècniques i materials d’expressió graficoplàstica i de creació visual i audiovisual. Àmbits d’aplicació.",
+     "grupos": [
+      {
+       "titulo": "G1. Tècniques i materials:",
+       "saberes": [
+        "Tècniques bidimensionals seques, humides i grasses. Tècniques mixtes i experimentals. Tècniques tridimensionals. Qualitats sensorials, expressives i comunicatives.",
+        "Materials i suports. Material reciclat. Criteris de sostenibilitat.",
+        "Maneig d’eines bàsiques per al traçat del dibuix geomètric.",
+        "Utilització de traçats geomètrics bàsics en l’elaboració de dissenys, composicions creatives i il·lustracions.",
+        "Procediments fotogràfics analògics i digitals bàsics.",
+        "Producció audiovisual: principis bàsics. Animació: eines i tècniques bàsiques. El cinema com a forma de narració. Gèneres i formats. Origen i evolució."
+       ]
+      },
+      {
+       "titulo": "G2. Formats i materials de la contemporaneïtat artística:",
+       "saberes": [
+        "Instal·lació. Art natura.",
+        "Art urbà. Intervenció artística en espais públics.",
+        "Videocreació. Art d’acció.",
+        "Propostes multidisciplinàries i multimodals."
+       ]
+      },
+      {
+       "titulo": "G3. Aplicacions digitals:",
+       "saberes": [
+        "Aplicacions interactives per a l’expressió graficoplàstica.",
+        "Aplicacions interactives per al dibuix geomètric.",
+        "Programes i dispositius bàsics de captura i tractament d’imatges fixes i registre i edició bàsica d’imatges en moviment."
+       ]
+      },
+      {
+       "titulo": "G4. Àmbits d’aplicació:",
+       "saberes": [
+        "Produccions plàstiques i visuals per mitjà del llenguatge de la pintura, l’escultura, el dibuix, i les arts decoratives.",
+        "Produccions plàstiques i visuals per mitjà del llenguatge de l’arquitectura, el disseny, la il·lustració i la publicitat.",
+        "Produccions plàstiques, visuals i audiovisuals per mitjà del llenguatge de la fotografia, el còmic i el cinema. Produccions multidisciplinàries i multimodals."
+       ]
+      }
+     ],
+     "pagina": 77
+    },
+    {
+     "cabecera": "B2.2. L’experiència artística: processos de treball",
+     "grupos": [
+      {
+       "titulo": "G1. Les fases del procés creatiu:",
+       "saberes": [
+        "Generació d’idees i creació.",
+        "Investigació i creació.",
+        "Avaluació"
+       ]
+      },
+      {
+       "titulo": "G2. Documentació gràfica de processos:",
+       "saberes": [
+        "Portafolis d’evidències del procés creatiu.",
+        "Cartografies d’aprenentatge. Mapes visuals (Visual Thinking).",
+        "Infografies senzilles."
+       ]
+      },
+      {
+       "titulo": "G3. Terminologia bàsica per a l’expressió de l’experiència de creació:",
+       "saberes": [
+        "Relativa a tècniques, materials i àmbits d’aplicació de l’expressió graficoplàstica.",
+        "Relativa a tècniques, materials i àmbits d’aplicació del dibuix geomètric.",
+        "Relativa al llenguatge i àmbits d’aplicació de la creació audiovisual."
+       ]
+      },
+      {
+       "titulo": "G4. Actituds:",
+       "saberes": [
+        "Esforç, força de voluntat. Capacitat de concentració. Resiliència, superació d’obstacles i fracassos.",
+        "Respecte per la diversitat d’idees i produccions alienes i utilització d’un vocabulari inclusiu bàsic.",
+        "Tenacitat i constància en la realització i consecució de les diferents tasques.",
+        "Cura d’espais i materials de treball."
+       ]
+      },
+      {
+       "titulo": "G5. La creació artística com a experiència social: projectes artístics col·lectius::",
+       "saberes": [
+        "Generació d’idees: creativitat en l’elaboració d’idees i en la presa de decisions.",
+        "Consens, respecte i empatia a les aportacions de les companyes i companys en el procés de treball col·lectiu. Sensibilitat i comprensió cap als punts de vista aliens.",
+        "Investigació: cerca i anàlisi de referents.",
+        "Distribució de tasques: rols en el desenvolupament d’un projecte artístic col·lectiu. Funcions i comeses.",
+        "Creació: disseny i producció de la proposta. Cooperació i responsabilitat en la part individual per a contribuir a un objectiu comú i a la cohesió del grup.",
+        "Avaluació: resultats en relació als objectius inicials del projecte. Anàlisi i propostes de millora."
+       ]
+      }
+     ],
+     "pagina": 78
+    }
+   ]
+  }
+ ],
+ "educacion-fisica": [
+  {
+   "n": 1,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B1. Vida activa i saludable",
+     "grupos": [
+      {
+       "titulo": "G1. Estil de vida actiu i saludable. Perspectiva física",
+       "saberes": [
+        "Higiene postural i mesures de prevenció d’accidents.",
+        "Respiració i relaxació.",
+        "Hàbits saludables d’higiene corporal i postural, d’alimentació i d’hidratació.",
+        "Beneficis d’un estil vida actiu basat en l’activitat física regular. El valor del descans. Alimentació saludable.",
+        "Efectes negatius del sedentarisme, la mala alimentació i altres comportaments no saludables.",
+        "Factors que influeixen en la cura del cos."
+       ]
+      },
+      {
+       "titulo": "G2. Estil de vida actiu i saludable. Perspectiva psicològica",
+       "saberes": [
+        "Benestar personal. Respecte, consciència i acceptació del cos propi. Gestió de les emocions.",
+        "Autoconcepte i autoregulació. Fortaleses i debilitats.",
+        "Consolidació de l’autoconeixement."
+       ]
+      },
+      {
+       "titulo": "G3. Estil de vida actiu i saludable. Perspectiva social",
+       "saberes": [
+        "Respecte i acceptació de la diversitat de les característiques personals.",
+        "Jocs i activitat fisicoesportiva igualitària com a pràctica social saludable davant d’hàbits nocius.",
+        "Tractament positiu i gestió de la competitivitat. Jocs cooperatius.",
+        "La diversitat corporal i de gènere: visió crítica sobre els estereotips."
+       ]
+      },
+      {
+       "titulo": "G4. Principis generals anatòmics i funcionals del cos en moviment",
+       "saberes": [
+        "Les parts principals del cos: esquelet i musculatura.",
+        "Sistemes implicats en les activitats motrius: muscular i osteoarticular.",
+        "Aparells implicats en l’activitat física i el moviment: aparell locomotor."
+       ]
+      },
+      {
+       "titulo": "G5. Aplicacions digitals i recursos tecnològics per al control de l’activitat física des d’una perspectiva saludable",
+       "saberes": [
+        "Recursos tecnològics relacionats amb la salut.",
+        "Control de paràmetres corporals implicats en l’activitat física."
+       ]
+      }
+     ],
+     "pagina": 96
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B2. Organització i gestió de l’activitat física.",
+     "grupos": [
+      {
+       "titulo": "G1. Gestió i planificació de l’activitat física",
+       "saberes": [
+        "Programes d’activitat física senzills: definició d’objectius, des d’una perspectiva global de l’activitat física i la salut (àmbit físic, psicològic i social).",
+        "Programes d’activitat física: autogestió dels mecanismes per a l’execució (àmbit físic, psicològic i social).",
+        "Programes d’activitat física: seguiment i valoració del procés i efectes (àmbit físic, psicològic i social)."
+       ]
+      },
+      {
+       "titulo": "G2. Organització de l’activitat física",
+       "saberes": [
+        "Elecció de l’activitat basada en criteris saludables segons l’ús i la finalitat.",
+        "Rutines d’activació, calfament i tornada a la calma.",
+        "Programa personal d’activitat física basat en criteris saludables."
+       ]
+      },
+      {
+       "titulo": "G3. Mesures per a la prevenció de lesions i seguretat en la pràctica d’activitat física",
+       "saberes": [
+        "Normes de seguretat bàsiques. Coneixement dels principals riscos.",
+        "Mecanismes de control corporal per a la prevenció de lesions. Equipament adequat.",
+        "Actuacions i protocols bàsics davant d’accidents en les activitats fisicoesportives: protegir, avisar i socórrer (PAS), posicions de seguretat; reanimació cardiopulmonar (RCP).",
+        "Consciència de les possibilitats i limitacions personals."
+       ]
+      }
+     ],
+     "pagina": 98
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B3. Resolució de problemes en situacions motrius.",
+     "grupos": [
+      {
+       "titulo": "G1. La condició física",
+       "saberes": [
+        "Les capacitats físiques bàsiques en l’àmbit lúdic i l’activitat física.",
+        "L’adaptació i autoregulació de l’esforç a la intensitat i duració de l’activitat.",
+        "La freqüència cardíaca i respiratòria com a conseqüència de l’esforç realitzat.",
+        "La freqüència cardíaca i respiratòria com a indicador de la intensitat de l’activitat."
+       ]
+      },
+      {
+       "titulo": "G2. Capacitats perceptivomotrius i habilitats motrius",
+       "saberes": [
+        "Consciència i control de l’esquema corporal i la lateralitat.",
+        "Equilibri estàtic i dinàmic.",
+        "Percepció i estructuració espaitemporal.",
+        "Coordinació oculomanual i oculopèdica.",
+        "Coordinació general i segmentària.",
+        "Combinació d’habilitats i creativitat motriu."
+       ]
+      },
+      {
+       "titulo": "G3. Els jocs",
+       "saberes": [
+        "Jocs individuals i col·lectius, sensorials, simbòlics, psicomotrius i manipulatius.",
+        "Jocs cooperatius. Jocs alternatius. Jocs modificats.",
+        "Grans jocs i trobades."
+       ]
+      },
+      {
+       "titulo": "G4. Presa de decisions en diferents situacions motrius. Fonaments tècnics",
+       "saberes": [
+        "Gestos tècnics bàsics."
+       ]
+      },
+      {
+       "titulo": "G5. Presa de decisions en diferents situacions motrius. Fonaments tàctics",
+       "saberes": [
+        "Ocupació d’espais.",
+        "Estratègies de progressió, cooperació, oposició i col·laboració-oposició."
+       ]
+      }
+     ],
+     "pagina": 99
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B4. Autoregulació emocional i interacció social en situacions motrius.",
+     "grupos": [
+      {
+       "titulo": "G1. Gestió emocional en situacions motrius i jocs",
+       "saberes": [
+        "Identificació i expressió d’emocions i sentiments.",
+        "Regulació i gestió emocional. El cos expressiu i no violent.",
+        "Control de la impulsivitat i de les emocions negatives. La relaxació."
+       ]
+      },
+      {
+       "titulo": "G2. Interacció social en situacions motrius i jocs",
+       "saberes": [
+        "Esportivitat i joc net.",
+        "Normes i regles consensuades en situacions de joc.",
+        "Habilitats socials: escolta activa, treball en equip, estratègies de gestió i resolució dialogada de conflictes.",
+        "Conductes inclusives en les situacions motrius basades en la convivència i la no discriminació per qüestions de gènere, racials, de capacitat física o de competència motriu."
+       ]
+      }
+     ],
+     "pagina": 100
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B5. Manifestacions de la cultura motriu.",
+     "grupos": [
+      {
+       "titulo": "G1. Cos comunicador",
+       "saberes": [
+        "El llenguatge comunicatiu no verbal: el gest, la mímica i la dansa creativa.",
+        "Propostes coreogràfiques individuals i grupals amb intenció estètica i expressiva.",
+        "Propostes performatives interdisciplinàries. Creativitat motriu i escolta activa."
+       ]
+      },
+      {
+       "titulo": "G2. Recursos i manifestacions artisticoexpressives",
+       "saberes": [
+        "Dramatitzacions senzilles guiades.",
+        "Muntatges artisticoexpressius.",
+        "Projectes artisticoexpressius."
+       ]
+      },
+      {
+       "titulo": "G3. Jocs circenses",
+       "saberes": [
+        "Jocs d’equilibri, malabars i habilitats gimnàstiques."
+       ]
+      },
+      {
+       "titulo": "G4. El ritme i el cos en moviment",
+       "saberes": [
+        "Activitats rítmiques expressives amb suport musical i sense.",
+        "El ritme intern."
+       ]
+      },
+      {
+       "titulo": "G5. Balls i danses",
+       "saberes": [
+        "Balls populars infantils, tradicionals i regionals valencians.",
+        "Danses del món i dansa creativa. Danses urbanes."
+       ]
+      },
+      {
+       "titulo": "G6. Jocs i esports inclusius",
+       "saberes": [
+        "Jocs cooperatius i espais coeducatius.",
+        "Estratègies per a la inclusió.",
+        "L’esport adaptat, inclusiu i paralímpic."
+       ]
+      },
+      {
+       "titulo": "G7. Jocs populars i tradicionals",
+       "saberes": [
+        "Principals jocs populars. Els jocs propis del patrimoni cultural valencià.",
+        "Jocs del món."
+       ]
+      },
+      {
+       "titulo": "G8. La pilota valenciana",
+       "saberes": [
+        "Valors de la pilota valenciana. Raspall modificat. Pautes bàsiques. Habilitats motrius bàsiques, coordinació oculomanual i el colpeig.",
+        "Bonhomia. Valor cultural de la pilota (BIC - bé d’interés cultural). Modalitat de raspall i modalitats de pilota a paret: frontó i frare. Pautes bàsiques.",
+        "Pactes i valors del joc. Aproximació històrica a la pilota a mà. Modalitats de joc més complexes: introducció a galotxa, escala i corda, pilota grossa i llargues. Principals referents, fent èmfasi en la figura de la dona."
+       ]
+      },
+      {
+       "titulo": "G9. Els valors en les diferents manifestacions motrius",
+       "saberes": [
+        "Pràctiques lúdiques i participatives. Motivació extrínseca.",
+        "Treball cooperatiu. El valor del diàleg i la reflexió.",
+        "Superació i reptes. Motivació intrínseca.",
+        "Anàlisi crítica dels inputs dels mitjans de comunicació relacionats amb les situacions motrius, en atenció a la diversitat de gènere i visibilitzant els referents femenins i transgènere."
+       ]
+      }
+     ],
+     "pagina": 101
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B6. Interacció eficient i sostenible amb l’entorn.",
+     "grupos": [
+      {
+       "titulo": "G1. Activitats físiques i d’oci actiu adaptades al medi natural",
+       "saberes": [
+        "Itineraris guiats en l’entorn proper al centre.",
+        "Itineraris a peu i en bicicleta.",
+        "Orientació. Activitats nàutiques. Organització i planificació d’itineraris. Cartografia bàsica i ús de la brúixola."
+       ]
+      },
+      {
+       "titulo": "G2. L’entorn i el patrimoni natural, urbà i cultural de la Comunitat Valenciana",
+       "saberes": [
+        "Espais de joc i oci en l’entorn proper al centre.",
+        "Espais naturals i urbans: ús i gaudi.",
+        "Cura i conservació de l’entorn en les activitats fisicoesportives. Col·laboracions amb entitats i organismes."
+       ]
+      },
+      {
+       "titulo": "G3. L’impacte ambiental de les activitats fisicoesportives en l’entorn natural i urbà. Hàbits de mobilitat sostenible",
+       "saberes": [
+        "Consciència de la sostenibilitat mediambiental i valoració de l’impacte de les activitats en el medi natural i urbà.",
+        "Accions encaminades a la conservació i la protecció de l’entorn natural i urbà durant la pràctica d’activitat física.",
+        "Iniciatives i projectes per al foment de la mobilitat respectuosa amb el medi ambient. Mitjans de transport actius i sostenibles: ús de la bicicleta i mitjans no motoritzats."
+       ]
+      },
+      {
+       "titulo": "G4. Mesures bàsiques de seguretat i prevenció d’accidents",
+       "saberes": [
+        "Protocols bàsics de seguretat en les activitats guiades en l’entorn.",
+        "Ús correcte de materials i espais en la pràctica de les activitats físiques en l’entorn.",
+        "Normes d’educació viària per a vianants i circulació en bicicleta en les vies públiques."
+       ]
+      },
+      {
+       "titulo": "G5. Aplicacions tecnològiques en activitats en el medi natural",
+       "saberes": [
+        "Aplicacions i recursos per a la participació activa.",
+        "Seguiment de rutes GPS, ús de mapes i cartografia digital bàsica."
+       ]
+      }
+     ],
+     "pagina": 103
+    }
+   ]
+  }
+ ],
+ "lenguas": [
+  {
+   "n": 1,
+   "titulo": "Llengua i ús",
+   "subbloques": [
+    {
+     "cabecera": "Les llengües i els parlants",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Biografia lingüística personal",
+        "Mapa lingüístic de l’aula",
+        "Mapa lingüístic local i de l’entorn geogràfic",
+        "La variació lingüística",
+        "Prejudici i estereotips lingüístics",
+        "Estratègies d’identificació de prejudicis i estereotips lingüístics",
+        "Llenguatge no discriminatori i respectuós amb les diferències",
+        "Expressions pròpies de la llengua"
+       ]
+      }
+     ],
+     "pagina": 130
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Estratègies comunicatives",
+   "subbloques": [
+    {
+     "cabecera": "Subbloc 2.1. Sabers comuns",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Estratègies per a adaptar el discurs a la intenció comunicativa, als participants i a la situació",
+        "Estratègies per a adaptar el discurs al propòsit comunicatiu i al canal",
+        "Estratègies per a adaptar el discurs al registre",
+        "Adequació textual a la situació comunicativa",
+        "Estructura del discurs: la coherència i la cohesió",
+        "Elements de contingut (tema, fórmules fixes, lèxic) i forma (estructura, format, títol, imatges)",
+        "Elements de contingut (inferències d’informació) i forma (tipografia)",
+        "Tipologies textuals i gèneres discursius",
+        "Elements de detecció i ús d’un llenguatge verbal i icònic no discriminatori",
+        "Estratègies de reflexió sobre el procés d’aprenentatge, autoavaluació i autocorrecció",
+        "Estratègies de gestió de les emocions en la comunicació"
+       ]
+      }
+     ],
+     "pagina": 131
+    },
+    {
+     "cabecera": "Subbloc 2.2. Alfabetització informacional",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Estratègies d’ús i tractament de fonts documentals diverses",
+        "Estratègies de cerca en fonts documentals diverses i amb diferents suports i formats",
+        "Diferenciació entre fets i opinions",
+        "Detecció de la manipulació informativa",
+        "Ús de models per a sintetitzar i reelaborar informació",
+        "Propietat intel·lectual",
+        "Biblioteca de l’aula o del centre i dels recursos digitals",
+        "Eines digitals per al treball col·laboratiu i la comunicació",
+        "Hàbits i conductes per a la comunicació segura en entorns virtuals"
+       ]
+      }
+     ],
+     "pagina": 132
+    },
+    {
+     "cabecera": "Subbloc 2.3. Reflexió sobre la llengua",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Diferències entre llengua oral i llengua escrita",
+        "Consciència fonològica. Fonemes específics del valencià/castellà",
+        "Formulació i comprovació d’hipòtesis",
+        "Generalitzacions sobre aspectes lingüístics",
+        "Generalitzacions sobre normes ortogràfiques i gramaticals bàsiques",
+        "Signes de puntuació",
+        "Relacions de forma i significat entre les paraules",
+        "Relacions sintàctiques de les paraules",
+        "Convencions del codi escrit en el marc de propostes de comprensió o producció de textos",
+        "Estratègies per a la transferència entre les llengües"
+       ]
+      }
+     ],
+     "pagina": 132
+    },
+    {
+     "cabecera": "Subbloc 2.4. Comunicació i interacció oral",
+     "grupos": [
+      {
+       "titulo": "G1. Comprensió oral: C2, C6 i C7",
+       "saberes": [
+        "Estratègies: informació i sentit global del discurs",
+        "Estratègies: reconéixer idees no explícites del discurs"
+       ]
+      },
+      {
+       "titulo": "G2. Expressió oral: C4, C6 i C7",
+       "saberes": [
+        "Estratègies d’expressió oral: pronunciació i entonació adequades",
+        "Estratègies d’expressió oral: interpretació i ús d’elements de la comunicació no verbal",
+        "Planificació i producció de textos orals i multimodals"
+       ]
+      },
+      {
+       "titulo": "G3. Interacció oral: C6 i C7",
+       "saberes": [
+        "Estratègies d’escola activa i assertivitat, tenint en compte la perspectiva de gènere",
+        "Estratègies comunicatives per a la resolució dialogada de conflictes",
+        "Interaccions orals en situacions comunicatives",
+        "Estratègies de cortesia lingüística"
+       ]
+      }
+     ],
+     "pagina": 133
+    },
+    {
+     "cabecera": "Subbloc 2.5. Comprensió escrita",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Lectura mecànica (desxifrar el codi)",
+        "Lectura amb velocitat, fluïdesa i entonació",
+        "Estratègies de comprensió abans de la lectura: activar els coneixements previs, establir objectius de lectura i formular hipòtesis a través d’informació paratextual i gràfica",
+        "Estratègies de comprensió durant la lectura: realitzar inferències a partir dels seus coneixements i experiències prèvies",
+        "Estratègies de comprensió durant la lectura: reformular hipòtesis, interpretar sentits figurats i significats no explícits en els textos",
+        "Estratègies de comprensió després de la lectura: informació del sentit global del text",
+        "Estratègies de comprensió després de la lectura: comprovar hipòtesis i extraure’n conclusions"
+       ]
+      }
+     ],
+     "pagina": 134
+    },
+    {
+     "cabecera": "Subbloc 2.6. Expressió escrita i multimodal",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Aplicació de les normes ortogràfiques",
+        "Presentació acurada de les produccions escrites",
+        "Estratègies del procés d’escriptura: textualització i revisió",
+        "Estratègies del procés d’escriptura: planificació i correcció",
+        "Elements gràfics i paratextuals"
+       ]
+      }
+     ],
+     "pagina": 134
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Lectura i literatura",
+   "subbloques": [
+    {
+     "cabecera": "Subbloc 3.1. Hàbit lector",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Identitat lectora: expressió de gustos i interessos.",
+        "Identitat lectora: valoració crítica dels textos.",
+        "La biblioteca de l’aula o del centre com a punt de trobada d’activitats literàries compartides. Comunitats lectores",
+        "Cura dels llibres i normes de funcionament de la biblioteca"
+       ]
+      }
+     ],
+     "pagina": 135
+    },
+    {
+     "cabecera": "Subbloc 3.2. Literatura",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Obres o fragments variats i diversos de la literatura infantil adequats als seus interessos i organitzats en itineraris lectors",
+        "Elements constitutius essencials de l’obra literària i dels diferents gèneres literaris",
+        "Estratègies per a la interpretació dels textos literaris",
+        "Vincles amb altres manifestacions artístiques i culturals",
+        "Planificació i producció de textos literaris"
+       ]
+      }
+     ],
+     "pagina": 136
+    }
+   ]
+  }
+ ],
+ "lengua-extranjera": [
+  {
+   "n": 1,
+   "titulo": "Llengua i ús",
+   "subbloques": [
+    {
+     "cabecera": "Llengua i ús",
+     "grupos": [
+      {
+       "titulo": "Funcions comunicatives",
+       "saberes": [
+        "Funcions elementals adequades a l’àmbit i al context comunicatiu: salutacions, comiats i presentacions; identificació de característiques de persones, objectes i llocs; respostes concretes sobre qüestions quotidianes; expressió del temps, de la quantitat i de l’espai.",
+        "Funcions bàsiques d’ús comú adequades a l’àmbit i al context comunicatiu: salutacions, comiats i presentacions; descripció de persones, objectes i llocs; petició i intercanvi d’informació sobre qüestions quotidianes; rutines; indicacions; expressió del temps, de la quantitat i de l’espai.",
+        "Funcions comunicatives bàsiques adequades a l’àmbit i al context comunicatiu: salutacions, comiats i presentacions; descripció de persones, objectes i llocs; situar esdeveniments en el temps; petició i intercanvi d’informació sobre qüestions quotidianes; rutines; indicacions i instruccions; expressió de la pertinença i la quantitat.",
+        "Unitats lingüístiques elementals i significats associats a aquestes estructures, com ara expressió de l’entitat i les seues propietats, quantitat i nombre, afirmació, exclamació, negació i interrogació.",
+        "Unitats lingüístiques bàsiques d’ús comú i significats associats a aquestes estructures, com ara expressió de l’entitat i les seues propietats, quantitat i nombre, espai i relacions espacials, afirmació, exclamació, negació i interrogació.",
+        "Unitats lingüístiques bàsiques i significats associats a aquestes unitats, com ara expressió de l’entitat i de les seues propietats, quantitat i nombre, espai i relacions espacials, temps, afirmació, negació, interrogació i exclamació i relacions lògiques elementals."
+       ]
+      },
+      {
+       "titulo": "Models contextuals i gèneres discursius",
+       "saberes": [
+        "Models contextuals elementals en la comprensió i producció de textos orals, escrits i multimodals, breus i senzills, com ara felicitacions, notes, llistes o avisos.",
+        "Models contextuals i gèneres discursius bàsics d’ús comú en la comprensió, producció i coproducció de textos orals, escrits i multimodals, breus i senzills, literaris i no literaris, com ara fullets, instruccions, normes, avisos o converses reguladores de la convivència.",
+        "Models contextuals i gèneres discursius bàsics en la comprensió, producció i coproducció de textos orals, escrits i multimodals, breus i senzills, literaris i no literaris: característiques i reconeixement del context, organització i estructuració segons l’estructura interna."
+       ]
+      },
+      {
+       "titulo": "Expressions i lèxic",
+       "saberes": [
+        "Lèxic bàsic elemental i d’interés per a l’alumnat, relatiu a relacions interpersonals bàsiques, habitatge, llocs i entorns pròxims.",
+        "Lèxic elemental i d’interés per a l’alumnat, relatiu a relacions interpersonals pròximes, habitatge, llocs i entorns pròxims.",
+        "Lèxic bàsic i d’interés per a l’alumnat, relatiu a identificació personal, relacions interpersonals pròximes, llocs i entorns pròxims, oci i temps lliure i vida quotidiana.",
+        "Lèxic i expressions elementals per a comprendre enunciats sobre la comunicació, la llengua i l’aprenentatge (metallenguatge).",
+        "Lèxic i expressions d’ús comú per a comprendre enunciats sobre la comunicació, la llengua, l’aprenentatge i les eines de comunicació i aprenentatge (metallenguatge)."
+       ]
+      },
+      {
+       "titulo": "Patrons sonors, accentuals i d’entonació",
+       "saberes": [
+        "Iniciació a patrons sonors i accentuals elementals.",
+        "Patrons sonors, accentuals i d’entonació bàsics d’ús comú i funcions comunicatives generals associades a aquests patrons.",
+        "Patrons sonors, accentuals, rítmics i d’entonació bàsics i funcions comunicatives generals associades a aquests patrons."
+       ]
+      },
+      {
+       "titulo": "Convencions ortogràfiques",
+       "saberes": [
+        "Iniciació a convencions ortogràfiques elementals.",
+        "Convencions ortogràfiques bàsiques d’ús comú i significats associats als formats i elements gràfics.",
+        "Convencions ortogràfiques bàsiques i significats associats als formats i elements gràfics."
+       ]
+      }
+     ],
+     "pagina": 157
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Estratègies comunicatives",
+   "subbloques": [
+    {
+     "cabecera": "Estratègies comunicatives",
+     "grupos": [
+      {
+       "titulo": "Estratègies de comprensió i expressió",
+       "saberes": [
+        "Iniciació a les estratègies elementals per a la comprensió i la producció de textos orals, escrits i multimodals breus, senzills i contextualitzats.",
+        "Estratègies bàsiques d’ús comú per a la comprensió i la producció de textos orals, escrits i multimodals breus, senzills i contextualitzats.",
+        "Estratègies bàsiques per a la comprensió i la producció de textos orals, escrits i multimodals breus, senzills i contextualitzats."
+       ]
+      },
+      {
+       "titulo": "Estratègies conversacionals",
+       "saberes": [
+        "Convencions i estratègies conversacionals elementals, en format síncron o asíncron, per a iniciar, mantindre i acabar la comunicació, prendre i cedir la paraula, preguntar i respondre.",
+        "Convencions i estratègies conversacionals elementals, en format síncron o asíncron, per a iniciar, mantindre i acabar la comunicació, prendre i cedir la paraula, preguntar i respondre, demanar i donar indicacions.",
+        "Convencions i estratègies conversacionals bàsiques d’ús comú, en format síncron o asíncron, per a iniciar, mantindre i acabar la comunicació, prendre i cedir la paraula, preguntar i respondre, demanar i donar indicacions, demanar i donar aclariments i explicacions, comparar i contrastar, col·laborar, etc.",
+        "Interés en la participació en intercanvis comunicatius planificats, a través de diferents mitjans, amb estudiants de la llengua estrangera.",
+        "Interés i valoració positiva per a establir contactes i comunicar-se a través de diferents mitjans amb parlants o estudiants de la llengua estrangera."
+       ]
+      },
+      {
+       "titulo": "Estratègies de mediació",
+       "saberes": [
+        "Coneixements, destreses i actituds elementals que permeten iniciar-se en activitats de mediació en situacions quotidianes bàsiques."
+       ]
+      },
+      {
+       "titulo": "Estratègies de transferència entre llengües",
+       "saberes": [
+        "Iniciació a les estratègies elementals per a identificar i utilitzar unitats lingüístiques (lèxic, morfosintaxi, patrons sonors, etc.) a partir de la comparació de les llengües i varietats que conformen el repertori lingüístic personal.",
+        "Estratègies bàsiques d’ús comú per a identificar i utilitzar unitats lingüístiques (lèxic, morfosintaxi, patrons sonors, etc.) a partir de la comparació de les llengües i varietats que conformen el repertori lingüístic personal.",
+        "Estratègies bàsiques d’ús comú per a identificar, organitzar, retindre, recuperar i utilitzar unitats lingüístiques (lèxic, morfosintaxi, patrons sonors, etc.) a partir de la comparació de les llengües i varietats que conformen el repertori lingüístic personal.",
+        "Estratègies i tècniques elementals de detecció de les mancances comunicatives i les limitacions derivades del nivell de competència en la llengua estrangera i en les llengües familiars.",
+        "Estratègies i tècniques de compensació de les mancances comunicatives per a respondre eficaçment a una necessitat concreta, malgrat les limitacions derivades del nivell de competència en la llengua estrangera i en les llengües familiars.",
+        "Reconeixement de similituds lèxiques entre llengües.",
+        "Reconeixement de similituds i diferències lèxiques entre llengües."
+       ]
+      },
+      {
+       "titulo": "Reflexió sobre l’aprenentatge i tractament de l’error",
+       "saberes": [
+        "Autoconfiança en l’ús de la llengua estrangera.",
+        "Autoconfiança i reflexió sobre l’aprenentatge. L’error com a part integrant del procés.",
+        "Autoconfiança i reflexió sobre l’aprenentatge. L’error com a instrument de millora."
+       ]
+      },
+      {
+       "titulo": "Estratègies d’autoavaluació i coavaluació",
+       "saberes": [
+        "Iniciació a estratègies i eines bàsiques d’ús comú d’autoavaluació i coavaluació, analògiques i digitals, individuals i cooperatives.",
+        "Estratègies i eines bàsiques d’ús comú d’autoavaluació i coavaluació, analògiques i digitals, individuals i cooperatives."
+       ]
+      },
+      {
+       "titulo": "Eines analògiques i digitals",
+       "saberes": [
+        "Eines analògiques i digitals elementals per a la comprensió i producció oral, escrita i multimodal.",
+        "Eines analògiques i digitals bàsiques d’ús comú per a la comprensió, producció i coproducció oral, escrita i multimodal, i plataformes virtuals d’interacció i col·laboració educativa.",
+        "Eines analògiques i digitals bàsiques d’ús comú per a la comprensió, producció i coproducció oral, escrita i multimodal, i plataformes virtuals d’interacció i col·laboració educativa (aules virtuals, videoconferències, eines digitals col·laboratives...) per a l’aprenentatge, la comunicació i el desenvolupament de projectes amb parlants o estudiants de la llengua estrangera.",
+        "Recursos per a l’aprenentatge i estratègies elementals de cerca guiada d’informació en mitjans analògics i digitals."
+       ]
+      }
+     ],
+     "pagina": 159
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Cultura i societat",
+   "subbloques": [
+    {
+     "cabecera": "Cultura i societat",
+     "grupos": [
+      {
+       "titulo": "Aspectes socioculturals i sociolingüístics",
+       "saberes": [
+        "Patrons culturals elementals propis de la llengua estrangera.",
+        "Patrons culturals bàsics d’ús freqüent propis de la llengua estrangera.",
+        "Aspectes socioculturals i sociolingüístics elementals i més significatius relatius als costums i la vida quotidiana en països on es parla la llengua estrangera.",
+        "Aspectes socioculturals i sociolingüístics elementals relatius als costums, la vida quotidiana i les relacions interpersonals bàsiques en països on es parla la llengua estrangera.",
+        "Aspectes socioculturals i sociolingüístics bàsics i habituals relatius als costums, a la vida quotidiana i a les relacions interpersonals, convencions socials bàsiques d’ús comú, llenguatge no verbal, cortesia lingüística i etiqueta digital, pròpies de països on es parla la llengua estrangera."
+       ]
+      },
+      {
+       "titulo": "Diversitat lingüística i cultural",
+       "saberes": [
+        "Estratègies bàsiques d’ús comú per a apreciar la diversitat lingüística i cultural.",
+        "Estratègies bàsiques d’ús comú per a apreciar la diversitat lingüística, cultural i artística, atenent valors ecosocials i democràtics.",
+        "Diferències en la comunicació no verbal entre les diferents llengües i cultures.",
+        "Diferències i diversitat plurilingüe i intercultural.",
+        "Estereotips d’altres cultures on es parla la llengua estrangera.",
+        "Reconeixement dels diferents contextos socials i culturals en els quals es desenvolupa la comunicació."
+       ]
+      },
+      {
+       "titulo": "Llengua estrangera com a mitjà de comunicació",
+       "saberes": [
+        "La llengua estrangera com a mitjà de comunicació i relació amb persones d’altres països, com a mitjà per a conéixer cultures i maneres de vida diferents.",
+        "La llengua estrangera com a mitjà de comunicació i relació amb persones d’altres països, com a manera d’accedir a nova informació i com a mitjà per a conéixer cultures i maneres de vida diferents."
+       ]
+      }
+     ],
+     "pagina": 161
+    }
+   ]
+  }
+ ],
+ "matematicas": [
+  {
+   "n": 1,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "NOMBRES NATURALS",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Recompte dels elements d'un conjunt. Cardinalitat.",
+        "Introducció a la desena.",
+        "Descomposicions i estructura del nombre, patrons i regularitats (parell, imparell).",
+        "Comprensió del sistema de numeració decimal: composició i descomposició en unitats, desenes, i centenes.",
+        "Lectura, escriptura i representació de numerals superiors al miler.",
+        "Estratègies de representació. Recta numèrica. Comparació i ordenació.",
+        "Múltiples i divisors. Nombres primers i compostos. Propietats i criteris de divisibilitat.",
+        "Introducció al número negatiu: comparació i ordenació.",
+        "Contribució de la humanitat al desenvolupament numèric, entés aquest com una necessitat bàsica. Usos socials del sentit numèric.",
+        "Tècniques cooperatives per a estimular el treball en equip relacionat amb el sentit numèric i l'aritmètica."
+       ]
+      }
+     ],
+     "pagina": 179
+    },
+    {
+     "cabecera": "OPERACIONS AMB NATURALS I LES SEUES PROPIETATS",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Significats, estratègies i representacions per a la suma (afegir, combinar, comparar) i la resta (detracció, diferència, escala ascendent, escala descendent).",
+        "Doble i meitat. Iniciació al significat de la multiplicació (suma reiterada, producte cartesià) i de la divisió (repartiment, agrupació).",
+        "Significats, estratègies i representacions per al producte i el quocient (suma repetida, partició, producte cartesià, diagrama d'arbre).",
+        "Significat i ús de la igualtat i les desigualtats en relacions i expressions aritmètiques senzilles.",
+        "Potències i la seua relació amb el producte. Quadrats, cubs i potències de 10.",
+        "Relacions i propietats de les operacions. Propietat commutativa, associativa i distributiva.",
+        "Càlcul mental. Estimació i aproximació.",
+        "Contribució de la humanitat al desenvolupament numèric incorporant la perspectiva de gènere.",
+        "Autonomia i tolerància a la frustració enfront de dificultats relacionades amb les propietats numèriques."
+       ]
+      }
+     ],
+     "pagina": 180
+    },
+    {
+     "cabecera": "FRACCIONS I DECIMALS",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "La fracció com a mesura i com a relació entre les parts i el tot.",
+        "Fracció decimal. Nombres decimals (dècimes, centèsimes i mil·lèsimes). Operacions bàsiques.",
+        "Aproximació i arredoniment de nombres decimals.",
+        "Càlcul mental: multiplicació i divisió de decimals per 10, 100, 1000.",
+        "Comparació i ordenació de nombres naturals i fraccions.",
+        "Correspondència entre fraccions decimals i percentatges.",
+        "Fraccions equivalents.",
+        "Proporcionalitat directa.",
+        "Introducció a la suma i resta de dues fraccions.",
+        "Valoració de situacions en les quals és útil l'ús de fraccions i decimals.",
+        "Estratègies de millora en la perseverança en la resolució de problemes aritmètics."
+       ]
+      }
+     ],
+     "pagina": 181
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "ESTIMACIÓ I MESURAMENT. MAGNITUDS I UNITATS.",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Unitats no convencionals per a mesurar i estimar les dimensions dels objectes pròxims i del propi cos.",
+        "Estratègies de mesura i estimació de temps, longitud, capacitat, volum i massa mitjançant unitats no convencionals en situacions reals.",
+        "Elecció i utilització dels instruments adequats per a mesurar amb precisió diferents magnituds.",
+        "Experimentació i conceptualització de magnituds: temps, longitud, angles, massa, superfície, capacitat i volum, temperatura i monedes.",
+        "Unitats de magnitud convencionals. Relació, comparació directa, ordenació i conversió entre unitats de la mateixa magnitud. Valoració de resultats en mesuraments i estimacions realitzades.",
+        "Contribució de la humanitat a la unificació de sistemes de mesura i magnituds, i valoració dels seus usos socials i científics.",
+        "Tècniques cooperatives per a estimular el treball en equip relacionat amb la mesura i estimació de magnituds."
+       ]
+      }
+     ],
+     "pagina": 182
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "GEOMETRIA PLANA I ESPACIAL",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Localització i visualització d'objectes. Orientació bàsica en l'espai (dreta, esquerra, davant, darrere, dalt, baix, etc.)",
+        "Localització d'objectes (punts) sobre els eixos, el pla cartesià. Localització en mapes a partir de punts de referència, inclosos els punts cardinals.",
+        "Elements bàsics: vèrtexs i costats. Polígons regulars.",
+        "Poliedres regulars. Vocabulari bàsic. Relació entre vèrtexs, arestes i cares.",
+        "Línies rectes i corbes.",
+        "Intersecció, paral·lelisme i perpendicularitat. Posicions relatives de rectes en el pla.",
+        "Identificació i descripció de diferents polígons. Composició i descomposició.",
+        "Càlcul de perímetres i àrees de polígons.",
+        "La circumferència i el cercle. Elements i propietats.",
+        "Longitud de la circumferència i àrea del cercle. Número pi.",
+        "Angles, mesurament i classificació d'angles. Classificació de triangles.",
+        "Transformacions: girs, translacions i simetries en situacions reals.",
+        "Semblança: identificació i generació a partir de patrons.",
+        "Concavitat i convexitat de figures planes.",
+        "Desenvolupament i classificació de prismes i piràmides.",
+        "Programes informàtics de geometria dinàmica.",
+        "Desenvolupament i usos de la geometria, tant a nivell pràctic com estètic, incorporant la perspectiva de gènere.",
+        "Estratègies d'aprenentatge de conceptes geomètrics i acceptació de dificultats."
+       ]
+      }
+     ],
+     "pagina": 184
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "INCERTESA I PROBABILITAT",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Concepte de situació aleatòria i situació determinista. Incertesa. Contribució de la humanitat al coneixement de les lleis de l'atzar i la incertesa.",
+        "Idea intuïtiva de probabilitat: ocorre sempre, moltes vegades, algunes vegades, poques vegades, mai.",
+        "Concepte de succés i de succés elemental.",
+        "Espai mostral en experiments aleatoris simples senzills: concepte i determinació.",
+        "Ús de taules de contingència i diagrames d'arbre per a obtindre l'espai mostral en experiments compostos senzills.",
+        "Concepte de probabilitat com a mesura de la possibilitat que ocórrega un determinat succés en un experiment aleatori senzill.",
+        "Estimació de probabilitats a partir de l’experimentació i simulació.",
+        "Regla de Laplace en successos equiprobables.",
+        "Relació entre la Regla de Laplace i l'estimació de probabilitats en experiments senzills.",
+        "Gestió de les emocions i utilització d'estratègies que permeten afrontar la incertesa."
+       ]
+      }
+     ],
+     "pagina": 185
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "ANÀLISI DE DADES I CÀLCULS ESTADÍSTICS",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Elaboració de preguntes i enquestes senzilles per a obtindre dades.",
+        "Variables qualitatives i quantitatives discretes: recompte de casos i construcció de taules de freqüència.",
+        "Elaboració de diagrames de barres.",
+        "Representacions (pictogrames, diagrames de sectors, polígons de freqüències…). Ús d’eines tecnològiques per a generar diferents tipus de representacions.",
+        "Interpretació de dades a partir de diferents representacions (taules, gràfiques), i anàlisis en casos senzills.",
+        "Significat i interpretació de les principals mesures centrals (moda, mediana i media aritmètica).",
+        "Significat i interpretació de la idea de dispersió a partir de representacions gràfiques. Rang.",
+        "Diferenciació entre població i mostra. Comparació entre mostres de la mateixa població.",
+        "Introducció a les variables quantitatives contínues. Histogrames.",
+        "Contribució de la humanitat al desenvolupament i evolució de l'estadística i tractament de dades, incorporant la perspectiva de gènere.",
+        "Respecte, sensibilitat i tolerància davant diferents interpretacions sobre resultats estadístics, mostrant rebuig davant actituds discriminatòries."
+       ]
+      }
+     ],
+     "pagina": 187
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "PENSAMENT COMPUTACIONAL",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Identificació de regularitats, interpretació de rutines o instruccions amb passos ordenats. Predicció de termes en seqüències de figures o imatges o nombres.",
+        "Identificació de regularitats i predicció de termes de seqüències numèriques. Creació de patrons.",
+        "Interpretació, modificació i creació d'algorismes senzills.",
+        "Interpretació i disseny d'algorismes senzills en fulls de càlcul i mitjançant programació per blocs.",
+        "Cerca i anàlisi d'estratègies en jocs abstractes sense informació oculta ni presència d'atzar: escacs, dames, etc.",
+        "Simbolització i obtenció de dades senzilles desconegudes en expressions amb igualtats.",
+        "Valoració de l'evolució del pensament computacional i la seua repercussió social, incorporant la perspectiva de gènere.",
+        "Treball cooperatiu en situacions que involucren disseny i aplicació d'algorismes. Estratègies d'aprenentatge específiques del pensament computacional."
+       ]
+      }
+     ],
+     "pagina": 188
+    }
+   ]
+  }
+ ],
+ "valores": [
+  {
+   "n": 1,
+   "titulo": "Persona",
+   "epigrafes": [
+    {
+     "titulo": "El benestar físic i emocional",
+     "items": [
+      "Autoconcepte i autoestima",
+      "Emocions i sentiments",
+      "Educació afectiva i sexual"
+     ]
+    },
+    {
+     "titulo": "La diversitat",
+     "items": [
+      "Diversitat familiar, sexual i de gènere",
+      "Diversitat social i cultural"
+     ]
+    },
+    {
+     "titulo": "La igualtat entre dones i homes",
+     "items": [
+      "Sexisme i estereotips de gènere",
+      "Prevenció de l‘abús sexual i la violència masclista",
+      "Dones i àmbits de coneixement",
+      "Llenguatge igualitari"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Pau",
+   "epigrafes": [
+    {
+     "titulo": "La resolució de conflictes",
+     "items": [
+      "Estratègies per abordar els conflictes de manera positiva: “provenció”",
+      "Conflicte com a oportunitat per a la resiliència, assertivitat i creativitat",
+      "Maltractament, assetjament i exclusió",
+      "Cultura de la pau i la no violència",
+      "Conductes addictives"
+     ]
+    },
+    {
+     "titulo": "Els deures i els drets de les persones",
+     "items": [
+      "Normes de convivència de les esferes escolar, familiar i social",
+      "Marc ètic per a l’ús de dispositius, aplicacions, eines informàtiques i xarxes socials",
+      "Principis bàsics de la Declaració Universal dels Drets Humans",
+      "Convenció sobre els Drets de la Infància",
+      "Valors democràtics"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Prosperitat",
+   "epigrafes": [
+    {
+     "titulo": "Agenda 2030 i Objectius de Desenvolupament Sostenible",
+     "items": [
+      "Fam i pobresa",
+      "Explotació infantil"
+     ]
+    },
+    {
+     "titulo": "La desigualtat",
+     "items": [
+      "Per raó de gènere, origen, creença i cultura",
+      "Estereotips i prejudicis",
+      "Conductes solidàries i altruistes"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "titulo": "Planeta",
+   "epigrafes": [
+    {
+     "titulo": "Agenda 2030 i Objectius de Desenvolupament Sostenible",
+     "items": [
+      "Impacte de l’ésser humà en el planeta",
+      "Límits del planeta i canvi climàtic",
+      "Empatia i cura i respecte dels sers vius i el medi natural",
+      "Accions quotidianes, activisme i emprenedoria escolar"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": "Participació",
+   "epigrafes": [
+    {
+     "titulo": "Habilitats",
+     "items": [
+      "Diàleg i debat",
+      "Pensament crític i creatiu",
+      "Treball en equip"
+     ]
+    },
+    {
+     "titulo": "Àmbits",
+     "items": [
+      "Processos participatius en els àmbits escolar i local",
+      "Activisme en les esferes escolar i local"
+     ]
+    }
+   ]
+  }
+ ]
+}

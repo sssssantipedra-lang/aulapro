@@ -227,7 +227,7 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
     };
 
     it('usa su lista, la cita como autonómica y nombra el decreto en el prompt', async () => {
-      CARGADORES.madrid = { primaria: async () => [CIENCIAS] };
+      CARGADORES.madrid = { primaria: async () => ({ idioma: 'es', materias: [CIENCIAS] }) };
       try {
         callGemini.mockResolvedValueOnce(respuestaSimulada({ area: 'Ciencias' }));
         const sda = await generateSda({
@@ -249,7 +249,7 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
     });
 
     it('una asignatura que solo existe en el estatal no se empareja con la lista de la comunidad', async () => {
-      CARGADORES.madrid = { primaria: async () => [CIENCIAS] };
+      CARGADORES.madrid = { primaria: async () => ({ idioma: 'es', materias: [CIENCIAS] }) };
       try {
         callGemini.mockResolvedValueOnce(respuestaSimulada());
         const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'madrid' }, 'es');

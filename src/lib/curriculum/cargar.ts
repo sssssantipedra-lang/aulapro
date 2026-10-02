@@ -9,7 +9,10 @@
  * que está trabajando con el decreto de su comunidad.
  */
 
-import { materiasDe, type CurriculumEntry, type Etapa } from './index';
+import {
+  materiasDe, normalizarEntradas,
+  type CurriculumBloqueSaberes, type CurriculumEntry, type Etapa, type RawEntry,
+} from './index';
 import {
   NORMAS_ESTATALES, idiomaDelTexto, normasDe,
   type ComunidadId, type IdiomaApp, type IdiomaOficial, type Norma,
@@ -18,31 +21,57 @@ import {
 /**
  * Abre los datos de una comunidad y etapa en un idioma oficial. Cuando la
  * comunidad publica en dos idiomas hay un archivo por idioma, y se pide el de
- * la app (ver `idiomaDelTexto`); con uno solo, siempre se pide ese.
+ * la app (ver `idiomaDelTexto`); con uno solo, siempre se pide ese. Devuelve
+ * también el idioma que ha servido de verdad: mientras falte el archivo de un
+ * idioma, se sirve el del otro.
  */
-export type Cargador = (idioma: IdiomaOficial) => Promise<CurriculumEntry[]>;
+export type Cargador = (idioma: IdiomaOficial) => Promise<{ idioma: IdiomaOficial; materias: CurriculumEntry[] }>;
 export type Cargadores = Partial<Record<ComunidadId, Partial<Record<Etapa, Cargador>>>>;
 
 /**
- * Los currículos autonómicos que AulaPro ya lleva copiados. Cada entrada abre
- * su archivo de datos bajo demanda, así:
- *
- *   'madrid': {
- *     primaria: () => import('./data/madrid/primaria.json')
- *       .then(m => normalizarEntradas(m.default as unknown as RawEntry[])),
- *   }
- *
- * Una comunidad entra aquí solo cuando su decreto está copiado, comprobado con
- * los totales oficiales y con sus normas verificadas en `comunidades.ts`.
+ * Datos de un decreto que no reparte los saberes básicos por ciclo: una sola
+ * lista por materia. En AulaPro cada bloque lleva todos sus saberes en todos
+ * los ciclos (decisión del dueño, 2-10-2026: las X de ciclo del decreto son
+ * orientativas), así que la misma lista sirve para cada grupo de cursos que
+ * tenga criterios.
  */
-export const CARGADORES: Cargadores = {};
+export interface RawEntrySaberesComunes extends Omit<RawEntry, 'saberes'> {
+  saberes: CurriculumBloqueSaberes[];
+}
+
+export function conLosMismosSaberesEnCadaCiclo(raw: RawEntrySaberesComunes[]): CurriculumEntry[] {
+  return normalizarEntradas(raw.map(r => ({
+    ...r,
+    saberes: Object.fromEntries(Object.keys(r.criterios).map(grupo => [grupo, r.saberes])),
+  })));
+}
+
+/**
+ * Los currículos autonómicos que AulaPro ya lleva copiados. Cada entrada abre
+ * su archivo de datos bajo demanda. Una comunidad entra aquí solo cuando su
+ * decreto está copiado, comprobado con los totales oficiales y con sus normas
+ * verificadas en `comunidades.ts`.
+ */
+export const CARGADORES: Cargadores = {
+  // Decreto 106/2022 con el 96/2026 aplicado (`scripts/curriculo/primaria_cv.py`).
+  // Solo en castellano hasta tener el 96/2026 en valenciano: si la app está en
+  // valenciano, se sirve el castellano y `idioma` lo dice.
+  'comunitat-valenciana': {
+    primaria: async () => ({
+      idioma: 'es',
+      materias: conLosMismosSaberesEnCadaCiclo(
+        (await import('./data/comunitat-valenciana/primaria.es.json')).default as unknown as RawEntrySaberesComunes[],
+      ),
+    }),
+  },
+};
 
 export interface CurriculoActivo {
   comunidad: ComunidadId;
   etapa: Etapa;
   /** `estatal` también cuando la comunidad tiene decreto pero no se pudo abrir. */
   origen: 'autonomico' | 'estatal';
-  /** Idioma del texto oficial de `materias`. */
+  /** Idioma del texto oficial de `materias`, el que de verdad se ha servido. */
   idioma: IdiomaOficial;
   materias: CurriculumEntry[];
   /** Las normas de las que sale este currículo, en el orden en que se aplican. */
@@ -102,7 +131,9 @@ export function cargarCurriculo(
   let pendiente = porClave.get(clave);
   if (!pendiente) {
     pendiente = cargador(idioma).then(
-      (materias): CurriculoActivo => ({ comunidad, etapa, origen: 'autonomico', idioma, materias, normas }),
+      (abierto): CurriculoActivo => ({
+        comunidad, etapa, origen: 'autonomico', idioma: abierto.idioma, materias: abierto.materias, normas,
+      }),
       () => {
         // No se recuerda el fallo: el siguiente intento vuelve a probar.
         porClave!.delete(clave);
