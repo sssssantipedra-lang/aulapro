@@ -132,8 +132,25 @@ export function ClassesManager({
     : null;
   /** Nombres de las materias oficiales de este curso, en el orden del decreto. */
   const materiasCurso = ctxClase && curriculo ? materiasDelCurso(ctxClase, curriculo.materias) : [];
+  /**
+   * Qué asignatura de la clase es cada materia oficial del curso: la que se
+   * llama igual o la que ya se sabía que es esa materia por su identificador.
+   * Así una clase creada en castellano tiene marcada «Matemàtiques» con la app
+   * en valenciano, y su asignatura sigue llamándose como se creó: el cuaderno,
+   * las rúbricas y las dianas cuelgan de ese nombre.
+   */
+  const asignaturaDe = new Map<string, string>();
+  if (ctxClase && curriculo) {
+    for (const s of editClass.subjects) {
+      const e = estadoDeMateria(s, ctxClase, curriculo.materias);
+      if (e.tipo === 'oficial' && !e.porAlias && materiasCurso.includes(e.materia) && !asignaturaDe.has(e.materia)) {
+        asignaturaDe.set(e.materia, s);
+      }
+    }
+  }
+  const deLaLista = new Set(asignaturaDe.values());
   /** Asignaturas de la clase que no son de la lista oficial del curso. */
-  const otrasAsignaturas = editClass.subjects.filter(s => s.trim() && !materiasCurso.includes(s));
+  const otrasAsignaturas = editClass.subjects.filter(s => s.trim() && !deLaLista.has(s));
   const [otraAsignatura, setOtraAsignatura] = useState('');
   const necesitaOpcionMat = ctxClase?.etapa === 'eso' && ctxClase.curso === 4 && editClass.subjects.some(s => {
     const e = curriculo ? estadoDeMateria(s, ctxClase, curriculo.materias) : null;
@@ -239,9 +256,10 @@ export function ClassesManager({
   }
 
   function toggleMateria(nombre: string) {
+    const asignatura = asignaturaDe.get(nombre);
     setEditClass(c => ({
       ...c,
-      subjects: c.subjects.includes(nombre) ? c.subjects.filter(x => x !== nombre) : [...c.subjects, nombre],
+      subjects: asignatura ? c.subjects.filter(x => x !== asignatura) : [...c.subjects, nombre],
     }));
   }
 
@@ -260,16 +278,16 @@ export function ClassesManager({
     if (!ctxClase || !curriculo) { notify(t('Elige la etapa y el curso de la clase.')); return; }
 
     // Primero las oficiales, en el orden del decreto; después las demás.
-    const oficiales = materiasCurso.filter(n => editClass.subjects.includes(n));
-    const otras = editClass.subjects.map(s => s.trim()).filter(s => s && !materiasCurso.includes(s));
-    const subjects = [...oficiales, ...otras];
+    const oficiales = materiasCurso.filter(n => asignaturaDe.has(n));
+    const otras = otrasAsignaturas.map(s => s.trim());
+    const subjects = [...oficiales.map(n => asignaturaDe.get(n)!), ...otras];
     if (subjects.length === 0) { notify(t('Pon al menos una asignatura')); return; }
 
     // Cada oficial guarda el identificador de su materia (vale aunque cambie el
     // idioma de la app); una de fuera de la lista queda en modo libre, salvo que
     // ya se supiera qué materia es (una clase anterior con «Mates», por ejemplo).
     const materias: Record<string, string | null> = {};
-    for (const n of oficiales) materias[n] = curriculo.materias.find(m => m.nombre === n)!.id;
+    for (const n of oficiales) materias[asignaturaDe.get(n)!] = curriculo.materias.find(m => m.nombre === n)!.id;
     for (const n of otras) {
       const e = estadoDeMateria(n, ctxClase, curriculo.materias);
       if (e.tipo === 'oficial') materias[n] = curriculo.materias.find(m => m.nombre === e.materia)!.id;
@@ -714,7 +732,7 @@ export function ClassesManager({
             ) : (
               <div role="group" aria-label={t('Asignaturas del currículo')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {materiasCurso.map(n => {
-                  const on = editClass.subjects.includes(n);
+                  const on = asignaturaDe.has(n);
                   return (
                     <button
                       key={n} type="button" aria-pressed={on} onClick={() => toggleMateria(n)}

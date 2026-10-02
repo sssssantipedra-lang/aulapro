@@ -203,6 +203,33 @@ describe('editar una clase', () => {
     expect(guardada.materiasOficiales).toEqual({ Mates: 'Matemáticas', Ciencias: null });
   });
 
+  it('con la app en otro idioma reconoce sus asignaturas oficiales y no les cambia el nombre', async () => {
+    // Creada en castellano con la Comunitat Valenciana; se abre en valenciano
+    localStorage.setItem('aulapro_lang', 'ca');
+    try {
+      const user = userEvent.setup();
+      const { onUpdateClass } = setup([{
+        ...clase, subjects: ['Matemáticas', 'Religión'],
+        materiasOficiales: { Matemáticas: 'matematicas', Religión: null },
+      }], 'comunitat-valenciana');
+      await user.click(screen.getByRole('button', { name: 'Edita la classe' }));
+      await waitFor(() => expect(materia('Matemàtiques').getAttribute('aria-pressed')).toBe('true'));
+      // No sale como «otra asignatura»: solo Religión
+      expect(screen.queryByRole('button', { name: 'Treu «Matemáticas»' })).toBeNull();
+      expect(screen.getByRole('button', { name: 'Treu «Religión»' })).toBeTruthy();
+
+      await user.click(materia('Música i Dansa'));
+      await user.click(screen.getByRole('button', { name: 'Desar els canvis' }));
+      const guardada = onUpdateClass.mock.calls[0][0] as Class;
+      expect(guardada.subjects).toEqual(['Música i Dansa', 'Matemáticas', 'Religión']);
+      expect(guardada.materiasOficiales).toEqual({
+        'Música i Dansa': 'musica-y-danza', Matemáticas: 'matematicas', Religión: null,
+      });
+    } finally {
+      localStorage.removeItem('aulapro_lang');
+    }
+  });
+
   it('cambiar el curso fuera de 4º de ESO quita la opción de Matemáticas', async () => {
     const user = userEvent.setup();
     const { onUpdateClass } = setup([{ ...clase, etapa: 'eso', curso: 4, opcionMatematicas: 'A', subjects: ['Matemáticas'] }]);
