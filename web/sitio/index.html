@@ -192,7 +192,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .fx-rise .sub{--ks:clamp(0,(var(--k,0) - .62)*4,1);opacity:var(--ks);transform:translateY(calc((1 - var(--ks))*14px))}
 .fx-rise .cta-row{--kb:clamp(0,(var(--k,0) - .78)*5,1);opacity:var(--kb);transform:translateY(calc((1 - var(--kb))*14px))}
 .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:1.6rem}
-.cue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font:500 .72rem/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text);text-shadow:var(--tshadow);opacity:1}
+.cue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px;font:500 .72rem/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text);text-shadow:var(--tshadow);opacity:1}
 .cue i{position:relative;width:1.5px;height:44px;background:rgba(243,236,230,.25);overflow:hidden}
 .cue i::after{content:"";position:absolute;left:0;top:0;width:100%;height:40%;background:var(--text);animation:cue 2.4s var(--ease-io) -.4s infinite}
 @keyframes cue{from{transform:translateY(-100%)}to{transform:translateY(260%)}}
