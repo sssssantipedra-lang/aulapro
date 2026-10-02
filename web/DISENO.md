@@ -292,3 +292,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - Hasta que haya ganancias para pagar la firma de Apple, AulaPro se vende para Windows y Android. Una app de Mac sin firmar obliga a saltarse un aviso de seguridad al instalarla, y eso genera desconfianza.
 - En la portada, la ficha de Mac pasa a ser un `<span class="store store-soon">` atenuado con "Próximamente": no es un enlace y `app.js` ya no la cuenta para abrir la tienda. Textos: "Windows y Android" y, en la pregunta 8 y bajo los botones, "La versión para Mac llegará más adelante". /descargar: tarjeta de Mac en "Próximamente", sin botón y sin la ayuda del aviso de macOS. /gracias: sin acceso directo a Mac. Condiciones y privacidad: solo Windows y Android. Los detalles para recuperarlo están en `docs/WEB.md`, apartado 4.
 
+## 28. El paso del inicio nunca se queda atascado (2-10-2026)
+
+- Fallo encontrado al probar: si el vídeo dejaba de avanzar durante un paso hacia abajo (el decodificador se atasca, el navegador pausa el vídeo para ahorrar energía, la pestaña pasa a segundo plano), el paso no terminaba nunca. La página quedaba clavada en el inicio: la rueda no hacía nada y hasta los saltos del menú volvían atrás.
+- Ahora, si el vídeo no avanza en 0,9 s al empezar o en 0,45 s después, el paso termina buscando fotograma a fotograma, como al subir. Si `play()` falla, igual. Si la pestaña pasa a segundo plano a mitad de un paso, la página salta directamente a la parada. Prueba: con `play()` falseado para que no avance, el paso llega a la parada siguiente en unos 3,5 s y todo vuelve a responder.
+

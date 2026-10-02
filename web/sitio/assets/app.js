@@ -295,11 +295,13 @@
       }
     };
   }
-  function glideTo(y) {
+  let glideTarget = null;
+  function glideTo(y, bySeeking) {
     const from = scrollY, dist = y - from;
     if (Math.abs(dist) < 2) return;
+    glideTarget = y;
     document.documentElement.style.scrollBehavior = 'auto';
-    if (dist > 0 && playTo((y - heroTop) / heroRange)) return;
+    if (dist > 0 && !bySeeking && playTo((y - heroTop) / heroRange)) return;
     const secs = video.duration || 10.25;
     const D = (Math.abs(dist) / heroRange) * secs;
     const prof = glideProfile(D, dist > 0 ? GLIDE_RATE : GLIDE_RATE_BACK);
@@ -324,12 +326,22 @@
     playing = true;
     pendingTime = null;
     const t0 = performance.now();
+    // if the film stops moving (a decoder hiccup, a power-saving pause), the stop is reached by seeking
+    // instead, so the page is never left holding a glide that cannot end
+    let lastCt = startT, lastMove = t0;
+    const bail = () => {
+      glideId = null;
+      endPlay();
+      glideTo(heroTop + (playEnd / secs) * heroRange, true);
+    };
     video.playbackRate = GLIDE_RATE * 0.15;
     const started = video.play();
-    if (started && started.catch) started.catch(() => { if (playing) { stopGlide(); onScroll(); } });
+    if (started && started.catch) started.catch(() => { if (playing) bail(); });
     const step = now => {
       if (!playing) return;
       const ct = video.currentTime;
+      if (ct > lastCt + 0.001) { lastCt = ct; lastMove = now; }
+      else if (now - lastMove > (lastCt === startT ? STALL_START_MS : STALL_MS)) { bail(); return; }
       const remaining = playEnd - ct;
       const reached = remaining <= 0.01 || video.ended;
       const p = (reached ? playEnd : ct) / secs;
@@ -353,6 +365,14 @@
     glideId = requestAnimationFrame(step);
     return true;
   }
+  const STALL_START_MS = 900, STALL_MS = 450;
+  // a hidden tab freezes frames and the film: the glide jumps straight to its stop
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden || glideId === null) return;
+    const y = glideTarget;
+    stopGlide();
+    if (y !== null) { scrollTo(0, y); onScroll(); }
+  });
   function endPlay() {
     if (!playing) return;
     playing = false;
