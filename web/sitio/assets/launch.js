@@ -12,8 +12,8 @@ window.AULA_LAUNCH = {
   // Microsoft Store listing of the free Windows app (Microsoft signs it, so Windows shows no warning).
   // Once set, the Windows buttons open the Store instead of the direct installer below.
   store: '',
-  // Lemon Squeezy checkout links of the group packs of 5, 10, 20 and 30 licences: one key per teacher,
-  // 2 devices each. An empty pack says "Próximamente" and leads to the waitlist.
+  // Lemon Squeezy checkout links of the group packs for 5, 10, 20 and 30 teachers: one key for the whole
+  // group, 2 devices per teacher (activation limit 10, 20, 40 and 60). An empty pack says "Próximamente".
   packs: { 5: '', 10: '', 20: '', 30: '' },
   // Installers. The release pipeline uploads every new version here under these same names.
   downloads: {

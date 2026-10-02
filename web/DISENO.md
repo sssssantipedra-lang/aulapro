@@ -276,3 +276,8 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - El usuario no quiere pagar firmas de código. Windows se distribuirá gratis en Microsoft Store (Microsoft firma el paquete MSIX), Android en Google Play y Mac en descarga directa sin firmar. La licencia se sigue vendiendo solo en la web. Detalles para la app en `docs/WEB.md`, apartado 4.
 - `launch.js` gana `store` (ficha de Microsoft Store). Con `store` relleno, la tarjeta de Windows de /descargar dice "Microsoft Store" y "Descargar en Microsoft Store", el botón (también el de /gracias) abre la Store y desaparece la ayuda del aviso «Windows protegió tu PC». Vacío, todo sigue como antes, con el instalador .exe.
 
+## 25. Packs: una clave por grupo (2-10-2026, decisión del usuario)
+
+- Prueba en Lemon Squeezy: comprar 3 unidades cobra 20,97 € pero entrega una sola clave de 2 activaciones, y Lemon Squeezy no permite crear claves a mano. "Una clave por docente" no se puede automatizar.
+- Tras ver cómo lo hace Microsoft (claves de volumen MAK: una clave para un número fijo de equipos), el usuario elige una clave por pack con 2 dispositivos por docente (10, 20, 40 y 60). La web vuelve a decir "5 docentes", "5,00 € por docente" y "una sola clave para todo el grupo, con 2 dispositivos por docente"; condiciones, /gracias y el PDF de Lemon Squeezy, igual.
+
