@@ -157,9 +157,39 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
     for (const [alias, ids] of tablaDeAlias('primaria')) {
       for (const id of ids) expect(todos, `«${alias}» → ${id}`).toContain(id);
     }
-    const eso = materiasDe('eso').map(m => m.id);
+    const eso = [...materiasDe('eso'), ...(await cargarCurriculo('madrid', 'eso')).materias].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('eso')) {
       for (const id of ids) expect(eso, `«${alias}» → ${id}`).toContain(id);
+    }
+  });
+
+  const madridEso = async () => (await cargarCurriculo('madrid', 'eso', 'es')).materias;
+
+  it.each([
+    ['Biología', 'Biología y Geología'],
+    ['Sociales', 'Geografía e Historia'],
+    ['Inglés', 'Lengua Extranjera'],
+    ['Informática', 'Ciencias de la Computación'],
+    ['Cultura Clásica', 'Cultura Clásica'],
+    ['Filosofía', 'Filosofía'],
+    ['Plástica', 'Educación Plástica, Visual y Audiovisual'],
+    // El nombre exacto manda: en Madrid «Tecnología» es la materia de cuarto
+    ['Tecnología', 'Tecnología'],
+    ['Tecnología y Digitalización', 'Tecnología y Digitalización'],
+  ])('Madrid, ESO: "%s" empareja con "%s"', async (asignatura, esperado) => {
+    expect(emparejarMateria(asignatura, 'eso', await madridEso())).toBe(esperado);
+  });
+
+  it('Madrid, ESO: «Francés» sigue sin emparejar (puede ser la primera o la segunda lengua)', async () => {
+    expect(emparejarMateria('Francés', 'eso', await madridEso())).toBeNull();
+  });
+
+  it('ningún alias de la ESO puede caer en dos materias del mismo currículo', async () => {
+    for (const [nombre, materias] of [['estatal', materiasDe('eso')], ['Madrid', await madridEso()]] as const) {
+      for (const [alias, ids] of tablaDeAlias('eso')) {
+        const existen = ids.filter(id => materias.some(m => m.id === id));
+        expect(existen.length, `${nombre}: «${alias}» → ${existen.join(', ')}`).toBeLessThanOrEqual(1);
+      }
     }
   });
 });

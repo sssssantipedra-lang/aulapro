@@ -164,6 +164,9 @@ export function cicloDePrimaria(curso: number): 1 | 2 | 3 {
  * por una coincidencia de patrón que no le corresponde.
  */
 export function cursosDelGrupoEso(nombreGrupo: string): number[] | null {
+  // Los decretos autonómicos que van curso a curso («1º ESO» en Madrid)
+  const curso = /^([1-4])º ESO$/.exec(nombreGrupo);
+  if (curso) return [Number(curso[1])];
   if (/no especificado/i.test(nombreGrupo)) return [1, 2, 3, 4];
   if (/cuarto curso/i.test(nombreGrupo)) return [4];
   if (/primero a tercero/i.test(nombreGrupo)) return [1, 2, 3];

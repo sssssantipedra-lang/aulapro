@@ -63,12 +63,17 @@ export const CARGADORES: Cargadores = {
         : (await import('./data/comunitat-valenciana/primaria.es.json')).default) as unknown as RawEntrySaberesComunes[]),
     }),
   },
-  // Decreto 61/2022 (`scripts/curriculo/madrid_primaria.py`), solo en castellano.
-  // Sus contenidos sí cambian de un ciclo a otro: cada grupo lleva los suyos.
+  // Decretos 61/2022 y 65/2022 con el 59/2024 aplicado (`scripts/curriculo/madrid_primaria.py`
+  // y `madrid_eso.py`), solo en castellano. Sus contenidos cambian de un ciclo o
+  // curso a otro: cada grupo lleva los suyos.
   madrid: {
     primaria: async () => ({
       idioma: 'es',
       materias: normalizarEntradas((await import('./data/madrid/primaria.es.json')).default as unknown as RawEntry[]),
+    }),
+    eso: async () => ({
+      idioma: 'es',
+      materias: normalizarEntradas((await import('./data/madrid/eso.es.json')).default as unknown as RawEntry[]),
     }),
   },
 };
