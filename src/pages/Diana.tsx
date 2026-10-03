@@ -864,6 +864,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
           <CompetenciasEspecificas
             cls={classes.find(c => c.id === classId) ?? null}
             comunidad={comunidad}
+            alumno={student?.name ?? ''}
             evaluaciones={studentEvals}
           />
         </div>

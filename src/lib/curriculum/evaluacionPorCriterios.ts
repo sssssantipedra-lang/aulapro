@@ -98,3 +98,16 @@ export function notasDeMateria(entry: CurriculumEntry, grupo: string, evaluacion
   const evaluadas = competencias.map(c => c.nota).filter((v): v is number => v !== null);
   return { id: entry.id, nombre: entry.nombre, grupo, nota: media(evaluadas), competencias };
 }
+
+/**
+ * Un resumen corto de un criterio o una competencia para las tablas: su
+ * principio, hasta la primera coma si cae pronto o hasta la última palabra que
+ * cabe, con «…» si se ha cortado. El texto entero se ve al pasar el ratón.
+ */
+export function resumir(texto: string, max = 70): string {
+  if (texto.length <= max) return texto;
+  const coma = texto.indexOf(', ');
+  if (coma >= 20 && coma <= max) return `${texto.slice(0, coma)}…`;
+  const corte = texto.lastIndexOf(' ', max);
+  return `${texto.slice(0, corte > 20 ? corte : max).replace(/[,;:.]$/, '')}…`;
+}

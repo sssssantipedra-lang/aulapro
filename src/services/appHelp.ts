@@ -266,6 +266,10 @@ oficial, la nota de cada criterio de evaluación (media de las veces que se ha
 evaluado), de cada competencia específica (media de sus criterios) y del área
 (media de sus competencias). Sale de las evaluaciones con criterios oficiales
 marcados y no cambia la nota del cuaderno. La clase necesita etapa y curso.
+Es una tabla por asignatura con el número de cada competencia (CE1, CE2…) y
+de cada criterio y un resumen de su texto: al pasar el ratón, o al tocarlo en
+el móvil, se lee entero. «Exportar PDF» saca en una página las tablas del
+alumno, solo con los números y las notas, y el decreto del que salen.
 
 [reports] INFORMES
 Informes de evaluación competencial redactados por la IA a partir de las

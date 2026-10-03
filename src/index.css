@@ -661,12 +661,20 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sda-area[open] summary svg { transform:rotate(180deg); }
 .ce-intro { font-size:12.5px; line-height:1.5; color:var(--text-3); margin:0 0 6px; }
 .ce-aviso { font-size:13px; line-height:1.5; color:var(--text-2); margin:10px 0 2px; }
-.ce-lista { list-style:none; margin:0; padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
-.ce-fila { display:flex; align-items:flex-start; gap:10px; }
-.ce-texto { flex:1; min-width:0; font-size:13px; line-height:1.5; color:var(--text); }
-.ce-criterios { list-style:none; margin:6px 0 0 6px; padding:0 0 0 12px; border-left:2px solid var(--border); display:flex; flex-direction:column; gap:6px; }
-.ce-criterios .ce-texto { font-size:12.5px; color:var(--text-2); }
-.ce-veces { font-size:11px; color:var(--text-3); white-space:nowrap; padding-top:2px; }
+.ce-tabla-envoltorio { padding:0 16px 16px; overflow-x:auto; }
+.ce-tabla { width:100%; border-collapse:collapse; font-size:13px; }
+.ce-tabla thead th { text-align:left; font-size:11px; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:0.04em; padding:6px 8px; border-bottom:1px solid var(--border); }
+.ce-tabla thead th:nth-child(3), .ce-tabla thead th:nth-child(4), .ce-tabla td:nth-child(3), .ce-tabla td:nth-child(4) { text-align:right; white-space:nowrap; }
+.ce-pista { text-transform:none; letter-spacing:0; font-weight:600; }
+.ce-tabla tbody th { text-align:left; font-weight:800; color:var(--text); padding:6px 8px; white-space:nowrap; width:1%; }
+.ce-tabla tbody td { padding:6px 8px; color:var(--text-2); }
+.ce-resumen { all:unset; cursor:help; font:inherit; color:inherit; text-align:left; border-radius:4px; }
+.ce-resumen:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.ce-tabla tbody tr { border-bottom:0.5px solid var(--border); }
+.ce-tabla tr.ce-competencia { background:var(--surface-2); }
+.ce-tabla tr.ce-competencia td { color:var(--text); font-weight:700; }
+.ce-veces { font-size:11.5px; color:var(--text-3); }
+.ce-sin { font-size:11px; color:var(--text-3); white-space:nowrap; }
 .ce-nota { font-size:12px; font-weight:800; padding:2px 9px; border-radius:99px; flex-shrink:0; }
 .ce-nota.alta { background:var(--ok-bg); color:var(--ok-fg); }
 .ce-nota.media { background:var(--warn-bg); color:var(--warn-fg); }
