@@ -135,7 +135,8 @@ En `docs/Normativa Comunitat Valenciana/` (nombre que eligió el dueño), para p
 - `DECRETO 96-2026.pdf`: DOGV núm. 10391, de 25-6-2026, en castellano. 94 páginas. SHA-256 `05e5cdcdf45c521a4ee6eb3ded5ea402dd16be1c62b3f3d243990413be5d5c18`.
 - `DECRET 96-2026.pdf`: el mismo DOGV, en valenciano. 99 páginas (la 29 está en blanco en el original). SHA-256 `8fca068aaadd6341fb325196926ee6c9c5889e5b7626d4b226335f5eb0975bdd`.
 - La corrección de errores del 106/2022 publicada el 3-11-2022 no se usa: decisión del dueño (3-10-2026), basta con el decreto original y la modificación del 96/2026.
-- Pendiente para la ESO, que los sube el dueño: el 107/2022 con sus anexos y el 66/2024, en castellano y en valenciano.
+- `DECRETO 107-2022.pdf`: el DOGV núm. 9403, de 11-8-2022, entero, con el texto en valenciano y en castellano en dos columnas (páginas 41752 y siguientes). 1298 páginas. SHA-256 `4c02ac5137f3708eda4f99f901720c4601913133de35a86fba19fbb2b96d0c8d`.
+- `DECRETO 66-2024.pdf`: el DOGV núm. 9878, de 26-6-2024 (no el 9879 que figuraba en el registro), igual, en dos columnas (páginas 31506 y siguientes). 392 páginas. SHA-256 `1485ba332b520f3779b91aaffc78fbebcb43ccce57033b4041f146f0a161c3f8`. Modifica también la Orden 19/2023 y el Decreto 74/2013.
 
 ### Qué dice cada decreto (Primaria)
 
@@ -262,6 +263,14 @@ En `docs/Normativa Comunidad de Madrid/`, descargados del BOCM (desde el entorno
 - Contenidos: bloque con letra y título; los apartados numerados son los epígrafes («1. Conteo» lleva `n: 1`), los de dos niveles van con su número en el título («3.1. Hablar y escuchar»), y en Lengua Extranjera cada idioma es un epígrafe.
 - Alias: los de la ESO estatal sirven también en Madrid, más «Informática» (Ciencias de la Computación), «Cultura Clásica» y «Filosofía». «Tecnología» escrito así es la materia de cuarto; en segundo y tercero se pregunta. «Francés» sigue sin emparejar: puede ser la primera lengua extranjera o la segunda.
 - Cita: «Decreto 65/2022, de 20 de julio (BOCM núm. 176, de 26 de julio de 2022), modificado por Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024)».
+
+## Cataluña
+
+### Fuentes
+
+En `docs/Normativa Cataluña/`, subido por el dueño:
+
+- `DECRET 175-2022.pdf`: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica. DOGC núm. 8762, de 29-9-2022 (CVE-DOGC-A-22270097-2022). Solo en catalán, Primaria y ESO en un mismo decreto. 491 páginas. SHA-256 `ce0c1e9c719d8071029b03c539d742fe0fd24c2a23ea1485db1b57c736939843`.
 
 ## Pendiente de decidir
 

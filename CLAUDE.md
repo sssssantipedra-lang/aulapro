@@ -12,7 +12,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `docs/WEB.md`: contexto compartido entre la app y la web: modelo de venta, lo que la web promete y la app tiene que cumplir, descargas y Lemon Squeezy.
 - `docs/DESCARGAS.md`: el servidor de descargas (descargas.aulapro.app).
 - `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Línea de trabajo aparte: no entra en la versión del lanzamiento.
-- `docs/Normativa Comunitat Valenciana/` y `docs/Normativa Comunidad de Madrid/`: los PDF oficiales de los que se copia el currículo de cada comunidad (los valencianos los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
+- `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
 - Logo oficial: `public/favicon.svg` (con "AULAPRO" debajo) y `public/favicon-mini.svg` (sin texto, para tamaños pequeños). `npm run icons` saca de ahí los iconos de la app. La web usa el pequeño: copia en `web/sitio/assets/icono.svg` y dibujado dentro de cada página (marca de la cabecera). Si cambia el logo, cambia también la web.
 
 ## Publicar
