@@ -9,6 +9,7 @@ import { useToast } from '../components/ui/Toast';
 import { DianaBoard } from '../components/diana/DianaBoard';
 import { dianaGrade } from '../components/diana/dianaGrade';
 import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
+import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
 
@@ -439,6 +440,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
       max_level: Math.max(...levelsOf(diana).map(l => l.value)),
       grade: grade ?? undefined,
       competencyScores: competencyScoresFor(diana!.items, scores),
+      officialCriteriaScores: officialCriteriaScoresFor(diana!.items, scores, Math.max(...levelsOf(diana).map(l => l.value))),
     });
     onClose();
   }

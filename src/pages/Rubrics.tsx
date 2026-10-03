@@ -8,6 +8,7 @@ import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { fileToBase64, isoDate, LOMLOE_COMPETENCES, newId } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
+import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { useResetOnChange } from '../lib/useResetOnChange';
@@ -689,6 +690,7 @@ function EvalModal({
       grade: gradeFromLevels(scores, rubric.criteria.map(c => c.id), levels) ?? undefined,
       max_level: Math.max(...levels.map(l => l.value)),
       competencyScores: competencyScoresFor(rubric.criteria, scores),
+      officialCriteriaScores: officialCriteriaScoresFor(rubric.criteria, scores, Math.max(...levels.map(l => l.value))),
     };
     onSave(ev);
     onClose();

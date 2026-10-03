@@ -291,6 +291,17 @@ export function competencyScoresFor(
   return out;
 }
 
+/**
+ * Un criterio de evaluación oficial: la materia (`CurriculumEntry.id` del
+ * currículo de la clase) y su código («2.1»). Es lo que une un criterio de
+ * rúbrica o un ítem de diana con la evaluación por competencias específicas
+ * (ver `lib/curriculum/evaluacionPorCriterios.ts`).
+ */
+export interface OfficialCriterionRef {
+  materia: string;
+  codigo: string;
+}
+
 export interface RubricCriterion {
   id: string;
   name: string;
@@ -307,6 +318,12 @@ export interface RubricCriterion {
    * las trae, porque ahí es donde el docente ya las eligió al diseñarla.
    */
   competencies?: string[];
+  /**
+   * Criterios de evaluación oficiales que evalúa, de una o varias materias.
+   * Su nota se apunta en todos ellos al evaluar (`officialCriteriaScoresFor`),
+   * además de ir a la asignatura del cuaderno, como siempre.
+   */
+  officialCriteria?: OfficialCriterionRef[];
 }
 
 /**
@@ -375,6 +392,13 @@ export interface Evaluation {
    * cambia después, esta evaluación sigue contando lo que contó entonces.
    */
   competencyScores?: Record<string, number>;
+  /**
+   * Nota sobre 10 por criterio de evaluación oficial («materia|2.1»), calculada
+   * con `officialCriteriaScoresFor` al guardar y congelada aquí por la misma
+   * razón que `competencyScores`. Solo la traen las evaluaciones con un
+   * instrumento cuyos criterios o ítems llevan `officialCriteria`.
+   */
+  officialCriteriaScores?: Record<string, number>;
 }
 
 /* ── Diana de evaluación (instrumento con niveles de logro) ── */
@@ -387,6 +411,8 @@ export interface DianaItem {
   descriptors?: Record<number, string>;
   /** Competencias LOMLOE que evalúa. Ver `RubricCriterion.competencies`. */
   competencies?: string[];
+  /** Criterios de evaluación oficiales que evalúa. Ver `RubricCriterion.officialCriteria`. */
+  officialCriteria?: OfficialCriterionRef[];
 }
 
 export interface EvalDiana extends GradeTarget {
