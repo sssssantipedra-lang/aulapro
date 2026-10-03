@@ -116,8 +116,8 @@ Pendiente:
   - Comunitat Valenciana, Primaria: Decret 106/2022, de 5 d'agost (DOGV núm. 9402, de 10 d'agost de 2022), modificado por el Decret 96/2026, de 19 de juny (DOGV núm. 10391, de 25 de juny de 2026). Los dos verificados, en las dos lenguas.
   - Comunitat Valenciana, ESO: Decret 107/2022, de 5 d'agost (DOGV núm. 9403, d'11 d'agost de 2022), modificado por el Decret 66/2024, de 21 de juny (DOGV núm. 9879, de 26 de juny de 2024).
   - Cataluña, Primaria y ESO en uno: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (DOGC núm. 8762, de 29 de setembre de 2022).
-  - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022).
-  - Madrid, ESO: Decreto 65/2022, de 20 de julio (BOCM núm. 175, de 25 de julio de 2022).
+  - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), modificado por el Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024). Verificados con sus PDF.
+  - Madrid, ESO: Decreto 65/2022, de 20 de julio (BOCM núm. 176, de 26 de julio de 2022; el dueño lo había dado como núm. 175, de 25 de julio, y el PDF lo desmiente), modificado por el mismo Decreto 59/2024. Verificados con sus PDF.
 - En la Comunitat Valenciana el DOGV publica la modificación sin el texto consolidado. El currículo vigente hay que construirlo aplicando la modificación a la matriz, dejar anotado qué se cambió y comprobarlo contra los dos documentos. La cita de la SdA nombra los dos decretos («modificado por»).
 - El título en castellano del 66/2024 todavía no está: se completa al comprobarlo en el DOGV. El del 96/2026 ya está, comprobado con su PDF.
 
@@ -182,6 +182,25 @@ En `docs/Normativa Comunitat Valenciana/` (nombre que eligió el dueño), para p
 - Matemáticas no titula sus bloques («4.2. Bloque 1.»): el título sale de la enumeración de sentidos de su apartado 4.1 («numérico y de las operaciones, de la medida, espacial y geométrico, de incertidumbre y probabilidad, de análisis de datos y estadística, y de pensamiento computacional»), como «Sentido numérico y de las operaciones». Los títulos de sus tablas van en mayúsculas en el decreto («NÚMEROS NATURALES») y en la app en minúscula de frase («Números naturales»).
 - Cita: «Decreto 106/2022, de 5 de agosto (DOGV núm. 9402, de 10 de agosto de 2022), modificado por Decreto 96/2026, de 19 de junio (DOGV núm. 10391, de 25 de junio de 2026)», y en valenciano «Decret 106/2022, de 5 d'agost (…), modificat per Decret 96/2026, de 19 de juny (…)». Los títulos de los dos decretos están comprobados con sus PDF en las dos lenguas.
 - Dos archivos, `primaria.es.json` y `primaria.ca.json` (en la app, el valenciano es «ca»), con los mismos `id` de área: una clase guarda el `id`, así que no pierde sus materias al cambiar el idioma de la app. Los nombres de las áreas en valenciano son los del artículo 9 del 96/2026 en valenciano («Coneixement del Medi Natural, Social i Cultural»…). En inglés se sirve el castellano.
+
+## Comunidad de Madrid
+
+### Fuentes
+
+En `docs/Normativa Comunidad de Madrid/`, descargados del BOCM (desde el entorno de Claude sí se llega):
+
+- `DECRETO 61-2022.pdf`: Primaria. BOCM núm. 169, de 18-7-2022 (BOCM-20220718-1). 112 páginas. SHA-256 `7087c7d8cdd5a172ecb620a8742acb43864b17563984c407b5f4d498e6399343`.
+- `DECRETO 65-2022.pdf`: ESO. BOCM núm. 176, de 26-7-2022 (BOCM-20220726-2). 321 páginas. SHA-256 `fba12d2dd0a19cb11cd670a922213aac5acdfb82db774dea187ed481430ffb53`.
+- `DECRETO 59-2024.pdf`: modifica los dos (y el 64/2022 de Bachillerato). BOCM núm. 140, de 13-6-2024 (BOCM-20240613-2). SHA-256 `b77c3e24041b2e310c6079d895911c1f9e590c9cf42ede621203568ef43d734a`.
+- `CORRECCION ERRORES DECRETO 59-2024.pdf`: BOCM núm. 145, de 19-6-2024 (BOCM-20240619-1). SHA-256 `c51bc48073a3ef6bda28ec94015840aad06d283da7a6f17bd5cac305763197d1`.
+
+### Qué dice cada decreto
+
+- 61/2022, artículo 7: áreas de Primaria en todos los cursos: Ciencias de la Naturaleza, Ciencias Sociales, Educación Artística, Educación Física, Lengua Castellana y Literatura, Lengua Extranjera: Inglés y Matemáticas. En quinto curso, además, Educación en Valores Cívicos y Éticos (solo en quinto, no en todo el tercer ciclo). Los centros pueden añadir Segunda Lengua Extranjera y Tecnología y Robótica. Religión, según el artículo 8.
+- 61/2022, anexo II: por área y por ciclo, una tabla de competencias específicas con sus criterios de evaluación y otra de contenidos (bloque, apartado y conocimientos, destrezas y actitudes). A diferencia de la Comunitat Valenciana, los contenidos cambian de un ciclo a otro.
+- 65/2022, anexo II: por materia, las competencias específicas en texto corrido y, por curso («1º ESO.»), los criterios de evaluación agrupados por competencia y los contenidos en bloques con letra.
+- 59/2024: en Primaria solo cambia el artículo 9.1 (áreas en lengua extranjera). En la ESO cambia articulado y añade un último guion a los contenidos de Geografía e Historia (1º, 2º y 3º, letra B; 4º, letra D). Su corrección de errores solo toca la disposición adicional segunda de la ESO.
+- El Decreto 94/2025 (jornada escolar) cita el artículo 28.1 del 61/2022 pero no lo modifica.
 
 ## Pendiente de decidir
 
