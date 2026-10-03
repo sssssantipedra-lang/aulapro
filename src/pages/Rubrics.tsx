@@ -14,6 +14,10 @@ import { useI18n } from '../i18n';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { DianasTab } from './EvalDianas';
 import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
+import { CompetenciasDelInstrumento } from '../components/curriculum/CompetenciasDelInstrumento';
+import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { promptCriteriosOficiales, refsDesdeIA } from '../lib/curriculum/criteriosParaIA';
+import { marcarCriteriosConIA } from '../services/criteriosOficialesIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 /* ─── Props ─── */
@@ -100,7 +104,6 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
   const [mode, setMode] = useState<RubricMode>('ia');
 
   /* AI state */
-  const [aiClassId, setAiClassId] = useState('');
   const [aiContext, setAiContext] = useState('');
   const [aiCount, setAiCount] = useState(4);
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -112,6 +115,10 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
 
   /* A qué clase pertenece y dónde caen sus notas */
   const [target, setTarget] = useState<GradeTarget>({});
+  /** La clase de la rúbrica: de su currículo salen los criterios oficiales. */
+  const claseDestino = classes.find(c => c.id === target.class_id) ?? null;
+  const { materias: materiasOficiales } = useMateriasOficiales(claseDestino, comunidad);
+  const [marcandoConIA, setMarcandoConIA] = useState(false);
 
   /* Niveles de logro. Se renumeran solos para que siempre vayan 1..N. */
   const [levels, setLevels] = useState<AchievementLevel[]>(() => defaultLevels(lang));
@@ -144,7 +151,6 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       setManualName('');
       setManualCriteria([blankCriterion()]);
       setAiContext('');
-      setAiClassId('');
       setAiCount(4);
       setAiPreview(null);
       setTarget({});
@@ -154,8 +160,9 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
   /* ── AI generate ── */
   async function handleGenerate() {
     if (!aiContext.trim()) return;
-    const cls = classes.find(c => c.id === aiClassId);
-    const className = cls ? `${cls.name} – ${cls.subject}` : t('Clase no especificada');
+    const className = claseDestino ? `${claseDestino.name} – ${target.subject || claseDestino.subject}` : t('Clase no especificada');
+    const oficiales = promptCriteriosOficiales(materiasOficiales, lang, 'criterion', target.subject || claseDestino?.subject);
+    const conOficiales = oficiales ? ',"criteriosOficiales":["..."]' : '';
     // Los niveles los pone el docente, así que la IA tiene que escribir un
     // descriptor para CADA uno. Antes se le pedían cuatro fijos y el quinto
     // se quedaba siempre en blanco.
@@ -182,8 +189,8 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         `DOES do at each level, in observable language, in English.\n\n` +
         `COMPETENCIES: for each criterion, in "competencias", mark 1 to 3 codes from this closed ` +
         `list — only the ones that criterion truly assesses: ${lomloeCodes.join(', ')}. This is not ` +
-        `decoration: it is used later to work out a grade per competency.\n\n` +
-        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}},"competencias":["..."]}]}`
+        `decoration: it is used later to work out a grade per competency.` + oficiales + `\n\n` +
+        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}},"competencias":["..."]${conOficiales}}]}`
       : `Crea una rúbrica para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
         `Genera ${aiCount} criterios. Cada criterio debe llevar un descriptor para ` +
         `LOS ${levels.length} NIVELES, sin dejar ninguno vacío: ${scale}.\n\n` +
@@ -195,8 +202,8 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         `nivel, de forma observable, y en español de España.\n\n` +
         `COMPETENCIAS: en cada criterio, en "competencias", marca de 1 a 3 códigos de esta lista ` +
         `cerrada —solo los que ese criterio evalúe de verdad—: ${lomloeCodes.join(', ')}. No es un ` +
-        `adorno: con esos códigos se calculará luego la nota de cada competencia.\n\n` +
-        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}},"competencias":["..."]}]}`;
+        `adorno: con esos códigos se calculará luego la nota de cada competencia.` + oficiales + `\n\n` +
+        `JSON: {"name":"...","criteria":[{"id":"cr1","name":"...","descriptors":{${jsonKeys}},"competencias":["..."]${conOficiales}}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
@@ -205,11 +212,16 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       onError: msg => toast(msg),
     }, { thinkingLevel: 'high' });
     if (!raw) return;
-    const parsed = parseGeminiJson<{ name: string; criteria: (RubricCriterion & { competencias?: string[] })[] }>(raw);
+    const parsed = parseGeminiJson<{
+      name: string; criteria: (RubricCriterion & { competencias?: string[]; criteriosOficiales?: unknown })[];
+    }>(raw);
     if (parsed) {
       setAiPreview({
         name: parsed.name,
-        criteria: parsed.criteria.map(c => ({ ...c, competencies: c.competencias })),
+        criteria: parsed.criteria.map(({ competencias, criteriosOficiales, ...c }) => {
+          const refs = refsDesdeIA(materiasOficiales, criteriosOficiales);
+          return { ...c, competencies: competencias, ...(refs.length ? { officialCriteria: refs } : {}) };
+        }),
       });
     } else {
       toast(t('La IA no devolvió una rúbrica válida. Vuelve a intentarlo.'));
@@ -240,6 +252,19 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
 
   function removeCriterion(idx: number) {
     setManualCriteria(prev => prev.filter((_, i) => i !== idx));
+  }
+
+  /** Que la IA ponga los criterios oficiales de los criterios que aún no tienen. */
+  async function marcarConIA() {
+    const pendientes = manualCriteria.filter(c => c.name.trim() && !c.officialCriteria?.length);
+    const marcados = await marcarCriteriosConIA(
+      { nombre: manualName, contexto: aiContext, asignaturaDeLaNota: target.subject || claseDestino?.subject },
+      pendientes.map(c => ({ id: c.id, nombre: c.name.trim() })),
+      materiasOficiales, lang,
+      { onStart: () => setMarcandoConIA(true), onEnd: () => setMarcandoConIA(false), onError: m => toast(m) },
+    );
+    if (!marcados) { toast(t('La IA no devolvió criterios válidos. Vuelve a intentarlo.')); return; }
+    setManualCriteria(prev => prev.map(c => (marcados[c.id] ? { ...c, officialCriteria: marcados[c.id] } : c)));
   }
 
   /* ── Save ── */
@@ -355,15 +380,6 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         {mode === 'ia' && (
           <div>
             <div className="fgroup">
-              <label className="flabel" htmlFor="rubrics-f1">{t('Clase (opcional)')}</label>
-              <select id="rubrics-f1" className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)}>
-                <option value="">{t('Sin clase específica')}</option>
-                {classes.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>
-                ))}
-              </select>
-            </div>
-            <div className="fgroup">
               <label className="flabel" htmlFor="rubrics-f2">{t('Contexto de la actividad *')}</label>
               <textarea
                 id="rubrics-f2"
@@ -435,6 +451,20 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
               />
             </div>
 
+            <CompetenciasDelInstrumento
+              cls={claseDestino} comunidad={comunidad}
+              refs={manualCriteria.flatMap(c => c.officialCriteria ?? [])}
+            >
+              <button
+                type="button" className="btn-ia" style={{ fontSize: 12, padding: '5px 10px' }}
+                disabled={marcandoConIA || !manualCriteria.some(c => c.name.trim() && !c.officialCriteria?.length)}
+                title={t('Marca con IA los criterios oficiales de los criterios que aún no tienen.')}
+                onClick={marcarConIA}
+              >
+                {marcandoConIA ? <><span className="spin" />{t('Marcando…')}</> : <><Sparkles size={13} />{t('Marcar con IA')}</>}
+              </button>
+            </CompetenciasDelInstrumento>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 380, overflowY: 'auto', paddingRight: 4 }}>
               {manualCriteria.map((cr, idx) => (
                 <div key={cr.id} style={{ border: '0.5px solid var(--border)', borderRadius: 10, padding: '12px 14px', background: 'var(--surface)' }}>
@@ -465,7 +495,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                   )}
                   <CriteriosOficialesPicker
                     idPrefix={`rub-${cr.id}`}
-                    cls={classes.find(c => c.id === target.class_id) ?? null}
+                    cls={claseDestino}
                     comunidad={comunidad}
                     value={cr.officialCriteria ?? []}
                     onChange={v => setManualCriteria(prev => prev.map((x, i) => (i === idx ? { ...x, officialCriteria: v } : x)))}

@@ -11,6 +11,10 @@ import { dianaGrade } from '../components/diana/dianaGrade';
 import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
+import { CompetenciasDelInstrumento } from '../components/curriculum/CompetenciasDelInstrumento';
+import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { promptCriteriosOficiales, refsDesdeIA } from '../lib/curriculum/criteriosParaIA';
+import { marcarCriteriosConIA } from '../services/criteriosOficialesIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
@@ -56,7 +60,6 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<'ia' | 'manual'>('ia');
 
-  const [aiClassId, setAiClassId] = useState('');
   const [aiContext, setAiContext] = useState('');
   const [aiCount, setAiCount]     = useState(5);
   const [generating, setGenerating] = useState(false);
@@ -66,6 +69,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
 
   /* A qué clase pertenece y dónde caen sus notas */
   const [target, setTarget] = useState<GradeTarget>({});
+  /** La clase de la diana: de su currículo salen los criterios oficiales. */
+  const claseDestino = classes.find(c => c.id === target.class_id) ?? null;
+  const { materias: materiasOficiales } = useMateriasOficiales(claseDestino, comunidad);
+  const [marcandoConIA, setMarcandoConIA] = useState(false);
 
   /* Niveles de logro. Se renumeran solos para que siempre vayan 1..N. */
   const [levels, setLevels] = useState<AchievementLevel[]>(() => defaultLevels(lang));
@@ -95,15 +102,15 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       setName('');
       setItems([blankItem()]);
       setAiContext('');
-      setAiClassId('');
       setAiCount(5);
     }
   });
 
   async function handleGenerate() {
     if (!aiContext.trim()) { toast(t('Describe la actividad que quieres evaluar')); return; }
-    const cls = classes.find(c => c.id === aiClassId);
-    const className = cls ? `${cls.name} – ${cls.subject}` : t('sin clase concreta');
+    const className = claseDestino ? `${claseDestino.name} – ${target.subject || claseDestino.subject}` : t('sin clase concreta');
+    const oficiales = promptCriteriosOficiales(materiasOficiales, lang, 'item', target.subject || claseDestino?.subject);
+    const conOficiales = oficiales ? ',"criteriosOficiales":["..."]' : '';
 
     // Un descriptor por nivel de los que haya definido el docente, no cuatro fijos
     const scale = levels.map(l => `${l.value}=${l.label || t('Nivel {n}', { n: l.value })}`).join(', ');
@@ -130,8 +137,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         `Item names should be short (5 words max). Everything in English.\n\n` +
         `COMPETENCIES: for each item, in "competencias", mark 1 to 3 codes from this closed ` +
         `list — only the ones that item truly assesses: ${lomloeCodes.join(', ')}. This is not ` +
-        `decoration: it is used later to work out a grade per competency.\n\n` +
-        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]}]}`
+        `decoration: it is used later to work out a grade per competency.` + oficiales + `\n\n` +
+        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]${conOficiales}}]}`
       : `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
         `Genera exactamente ${aiCount} ítems observables y evaluables. Cada ítem lleva ` +
         `un "weight" (peso relativo, normalmente 1; usa 2 si el ítem es claramente más ` +
@@ -145,8 +152,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         `Los nombres de los ítems, breves (máximo 5 palabras). Todo en español de España.\n\n` +
         `COMPETENCIAS: en cada ítem, en "competencias", marca de 1 a 3 códigos de esta lista ` +
         `cerrada —solo los que ese ítem evalúe de verdad—: ${lomloeCodes.join(', ')}. No es un ` +
-        `adorno: con esos códigos se calculará luego la nota de cada competencia.\n\n` +
-        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]}]}`;
+        `adorno: con esos códigos se calculará luego la nota de cada competencia.` + oficiales + `\n\n` +
+        `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]${conOficiales}}]}`;
 
     const files: InlineFile[] = lawDocument ? [lawDocument] : [];
     const raw = await callGemini(systemPrompt, userPrompt, files, {
@@ -156,7 +163,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     }, { thinkingLevel: 'high' });
     if (!raw) return;
 
-    const parsed = parseGeminiJson<{ name: string; items: (DianaItem & { competencias?: string[] })[] }>(raw);
+    const parsed = parseGeminiJson<{ name: string; items: (DianaItem & { competencias?: string[]; criteriosOficiales?: unknown })[] }>(raw);
     if (!parsed?.items?.length) { toast(t('La IA no devolvió una diana válida. Vuelve a intentarlo.')); return; }
 
     setName(parsed.name || aiContext.trim());
@@ -166,9 +173,26 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       weight: typeof i.weight === 'number' && i.weight > 0 ? i.weight : 1,
       descriptors: i.descriptors,
       competencies: i.competencias,
+      ...(() => {
+        const refs = refsDesdeIA(materiasOficiales, i.criteriosOficiales);
+        return refs.length ? { officialCriteria: refs } : {};
+      })(),
     })));
     setMode('manual');
     toast(t('✅ Diana generada — revísala antes de guardar'));
+  }
+
+  /** Que la IA ponga los criterios oficiales de los ítems que aún no tienen. */
+  async function marcarConIA() {
+    const pendientes = items.filter(i => i.name.trim() && !i.officialCriteria?.length);
+    const marcados = await marcarCriteriosConIA(
+      { nombre: name, contexto: aiContext, asignaturaDeLaNota: target.subject || claseDestino?.subject },
+      pendientes.map(i => ({ id: i.id, nombre: i.name.trim() })),
+      materiasOficiales, lang,
+      { onStart: () => setMarcandoConIA(true), onEnd: () => setMarcandoConIA(false), onError: m => toast(m) },
+    );
+    if (!marcados) { toast(t('La IA no devolvió criterios válidos. Vuelve a intentarlo.')); return; }
+    setItems(prev => prev.map(i => (marcados[i.id] ? { ...i, officialCriteria: marcados[i.id] } : i)));
   }
 
   function handleSave() {
@@ -262,13 +286,6 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         {mode === 'ia' ? (
           <div>
             <div className="fgroup">
-              <label className="flabel" htmlFor="evaldianas-f1">{t('Clase (opcional)')}</label>
-              <select id="evaldianas-f1" className="finput" value={aiClassId} onChange={e => setAiClassId(e.target.value)} style={{ cursor: 'pointer' }}>
-                <option value="">{t('Sin clase concreta')}</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name} – {c.subject}</option>)}
-              </select>
-            </div>
-            <div className="fgroup">
               <label className="flabel" htmlFor="evaldianas-f2">{t('¿Qué quieres evaluar? *')}</label>
               <textarea
                 id="evaldianas-f2"
@@ -302,6 +319,20 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                 <label className="flabel" htmlFor="evaldianas-f4">{t('Nombre de la diana *')}</label>
                 <input id="evaldianas-f4" className="finput" placeholder={t('Ej: Trabajo cooperativo')} value={name} onChange={e => setName(e.target.value)} />
               </div>
+
+              <CompetenciasDelInstrumento
+                cls={claseDestino} comunidad={comunidad}
+                refs={items.flatMap(i => i.officialCriteria ?? [])}
+              >
+                <button
+                  type="button" className="btn-ia" style={{ fontSize: 12, padding: '5px 10px' }}
+                  disabled={marcandoConIA || !items.some(i => i.name.trim() && !i.officialCriteria?.length)}
+                  title={t('Marca con IA los criterios oficiales de los ítems que aún no tienen.')}
+                  onClick={marcarConIA}
+                >
+                  {marcandoConIA ? <><span className="spin" />{t('Marcando…')}</> : <><Sparkles size={13} />{t('Marcar con IA')}</>}
+                </button>
+              </CompetenciasDelInstrumento>
 
               <label className="flabel">{t('Ítems a evaluar')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
@@ -346,7 +377,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                     <div style={{ marginTop: 4 }}>
                       <CriteriosOficialesPicker
                         idPrefix={`dia-${item.id}`}
-                        cls={classes.find(c => c.id === target.class_id) ?? null}
+                        cls={claseDestino}
                         comunidad={comunidad}
                         value={item.officialCriteria ?? []}
                         onChange={v => setItems(prev => prev.map((x, i) => (i === idx ? { ...x, officialCriteria: v.length ? v : undefined } : x)))}
