@@ -25,7 +25,7 @@ function Selector({ cls, inicial = [] }: { cls: Class | null; inicial?: Official
   const [v, setV] = useState<OfficialCriterionRef[]>(inicial);
   return (
     <>
-      <CompetenciasDelInstrumento cls={cls} comunidad="madrid" refs={v} />
+      <CompetenciasDelInstrumento cls={cls} comunidad="madrid" clave={[]} refs={v} />
       <CriteriosOficialesPicker idPrefix="p" cls={cls} comunidad="madrid" value={v} onChange={n => { ultimo = n; setV(n); }} />
     </>
   );

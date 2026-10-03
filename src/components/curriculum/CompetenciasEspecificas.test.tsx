@@ -57,9 +57,23 @@ describe('competencias específicas del alumno', () => {
     fireEvent.click(resumen);
     expect(resumen.textContent).toBe(entero);
     expect(resumen.getAttribute('aria-expanded')).toBe('true');
-    // Los criterios sin evaluar también están, para ver lo que falta
-    expect(within(within(mates).getByRole('rowheader', { name: '1.2' }).closest('tr')!).getByText('Sin evaluar')).toBeTruthy();
+    // Solo lo evaluado: lo que falta va debajo, solo con su número
+    expect(within(mates).queryByRole('rowheader', { name: '1.2' })).toBeNull();
+    expect(within(mates).queryByRole('rowheader', { name: 'CE3' })).toBeNull();
+    expect(within(mates).getByText('Faltan por evaluar:').parentElement!.textContent)
+      .toMatch(/^Faltan por evaluar: 1\.2, 2\.2, 2\.3, 3\.1, .*8\.2$/);
     expect(screen.getByRole('button', { name: /Exportar PDF/ })).toBeTruthy();
+  });
+
+  it('una asignatura sin nada evaluado lo dice en una línea, sin tabla', async () => {
+    const { materias } = await cargarCurriculo('madrid', 'primaria', 'es');
+    const r = resolverGrupo('primaria', 'Matemáticas', 5, undefined, materias)!;
+    const html = buildCompetenciasHtml({
+      alumno: 'Ana', clase: '5º A', fecha: '2026-10-03',
+      materias: [{ asignatura: 'Matemáticas', notas: notasDeMateria(r.entry, r.grupo, []) }],
+    }, 'es');
+    expect(html).toContain('Aún no hay ningún criterio evaluado.');
+    expect(html).not.toContain('<table>');
   });
 
   it('sin notas todavía, explica cómo conseguirlas', async () => {
@@ -86,7 +100,10 @@ describe('PDF de las competencias específicas', () => {
     expect(html).toContain('Currículo: Decreto 61/2022, de 13 de julio');
     expect(html).toContain('<tr class="ce"><th scope="row">CE2</th><td>7,5</td></tr>');
     expect(html).toContain('<tr><th scope="row">2.1</th><td>7,5</td></tr>');
-    expect(html).toContain('<tr><th scope="row">2.2</th><td>—</td></tr>');
+    // Solo lo evaluado; lo que falta, en una línea, solo con su número
+    expect(html).not.toContain('<th scope="row">2.2</th>');
+    expect(html).not.toContain('<th scope="row">CE1</th>');
+    expect(html).toMatch(/<strong>Faltan por evaluar:<\/strong> 1\.1, 1\.2, 2\.2, 2\.3, 3\.1, [^<]*8\.2<\/p>/);
     expect(html).toContain('Área: 7,5');
     // Solo el número: el texto de los criterios no va
     expect(html).not.toContain(r.entry.criterios[r.grupo][0].texto);

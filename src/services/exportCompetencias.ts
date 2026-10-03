@@ -1,12 +1,13 @@
 /**
  * Las competencias específicas de un alumno en PDF: por asignatura, una tabla
- * con cada competencia y cada criterio (solo su número) y su nota, la del área
- * y de qué decreto sale (petición del dueño, 3-10-2026). Mismo patrón que las
+ * con cada competencia y cada criterio evaluados (solo su número) y su nota,
+ * los números de lo que falta por evaluar, la nota del área y de qué decreto
+ * sale (peticiones del dueño, 3-10-2026). Mismo patrón que las
  * actas: HTML que imprime Electron. Fuera del escritorio se abre la ventana de
  * imprimir del navegador, donde se puede elegir «Guardar como PDF».
  */
 import { translate, type Lang } from '../i18n';
-import type { NotaMateria } from '../lib/curriculum/evaluacionPorCriterios';
+import { sinEvaluar, type NotaMateria } from '../lib/curriculum/evaluacionPorCriterios';
 import { fromIsoDate } from '../lib/utils';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
@@ -28,13 +29,19 @@ export function buildCompetenciasHtml(d: DatosCompetencias, lang: Lang): string 
   const nota = (n: number | null) => (n === null ? '—' : n.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
 
   const tablas = d.materias.map(({ asignatura, notas }) => {
-    const filas = notas.competencias.map(c =>
+    // Solo lo evaluado; lo que falta, solo con su número, debajo
+    const filas = notas.competencias.filter(c => c.nota !== null).map(c =>
       `<tr class="ce"><th scope="row">${esc(t('CE{n}', { n: c.n }))}</th><td>${nota(c.nota)}</td></tr>` +
-      c.criterios.map(cr => `<tr><th scope="row">${esc(cr.codigo)}</th><td>${nota(cr.nota)}</td></tr>`).join(''),
+      c.criterios.filter(cr => cr.nota !== null).map(cr => `<tr><th scope="row">${esc(cr.codigo)}</th><td>${nota(cr.nota)}</td></tr>`).join(''),
     ).join('');
+    const faltan = sinEvaluar(notas);
     return `<section><h2>${esc(asignatura)}${asignatura !== notas.nombre ? ` <small>(${esc(notas.nombre)})</small>` : ''}` +
       `<span class="area">${esc(t('Área'))}: ${nota(notas.nota)}</span></h2>` +
-      `<table><thead><tr><th>${esc(t('Criterio'))}</th><th>${esc(t('Nota'))}</th></tr></thead><tbody>${filas}</tbody></table></section>`;
+      (filas
+        ? `<table><thead><tr><th>${esc(t('Criterio'))}</th><th>${esc(t('Nota'))}</th></tr></thead><tbody>${filas}</tbody></table>` +
+          (faltan.length ? `<p class="faltan"><strong>${esc(t('Faltan por evaluar:'))}</strong> ${esc(faltan.join(', '))}</p>` : '')
+        : `<p class="faltan">${esc(t('Aún no hay ningún criterio evaluado.'))}</p>`) +
+      `</section>`;
   }).join('');
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
@@ -65,6 +72,7 @@ thead th:last-child, td { text-align: right; }
 tbody th, td { padding: 2px 4px; border-bottom: 0.5px solid #e2e8f0; font-weight: 500; }
 tbody th { text-align: left; }
 tr.ce th, tr.ce td { font-weight: 800; background: #f1f5f9; }
+.faltan { margin: 4px 0 0; font-size: 10px; line-height: 1.45; color: #475569; }
 footer { margin-top: 8mm; font-size: 9.5px; color: #64748b; }
 @media print { @page { size: A4; margin: 12mm 14mm; } body { padding: 0; } }
 `;

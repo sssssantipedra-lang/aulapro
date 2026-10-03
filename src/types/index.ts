@@ -313,9 +313,9 @@ export interface RubricCriterion {
   descriptors: Record<number, string>;
   /**
    * Competencias clave LOMLOE que evalúa este criterio (códigos de
-   * `LOMLOE_COMPETENCES`: CCL, CP, STEM…). Ausente o vacío en la mayoría de
-   * rúbricas, hechas a mano: solo las que genera una Situación de Aprendizaje
-   * las trae, porque ahí es donde el docente ya las eligió al diseñarla.
+   * `LOMLOE_COMPETENCES`: CCL, CP, STEM…). Las pone la IA (al generar, con
+   * «Marcar con IA» o desde una Situación de Aprendizaje) y el docente las
+   * cambia en el editor. Ausente en rúbricas antiguas hechas a mano.
    */
   competencies?: string[];
   /**
@@ -386,9 +386,8 @@ export interface Evaluation {
   max_level?: number;
   /**
    * Nota por competencia clave LOMLOE, calculada con `competencyScoresFor` en
-   * el momento de guardar. Solo la traen las evaluaciones con una rúbrica que
-   * etiqueta sus criterios con competencias (las que vienen de una Situación
-   * de Aprendizaje). Se congela aquí, como `rubric_name`: si la rúbrica
+   * el momento de guardar. Solo la traen las evaluaciones con un instrumento
+   * que etiqueta sus criterios o ítems con competencias clave. Se congela aquí, como `rubric_name`: si la rúbrica
    * cambia después, esta evaluación sigue contando lo que contó entonces.
    */
   competencyScores?: Record<string, number>;

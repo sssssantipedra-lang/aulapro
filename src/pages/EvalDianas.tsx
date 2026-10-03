@@ -4,7 +4,7 @@ import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, G
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { isoDate, LOMLOE_COMPETENCES, newId } from '../lib/utils';
+import { competenciasClaveValidas, isoDate, newId } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { DianaBoard } from '../components/diana/DianaBoard';
 import { dianaGrade } from '../components/diana/dianaGrade';
@@ -12,9 +12,10 @@ import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type Achievem
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
 import { CompetenciasDelInstrumento } from '../components/curriculum/CompetenciasDelInstrumento';
+import { CompetenciasClavePicker } from '../components/curriculum/CompetenciasClavePicker';
 import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { promptCriteriosOficiales, refsDesdeIA } from '../lib/curriculum/criteriosParaIA';
-import { marcarCriteriosConIA } from '../services/criteriosOficialesIA';
+import { listaCompetenciasClave, marcarCompetenciasConIA } from '../services/competenciasIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
@@ -117,7 +118,6 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     const jsonKeys = levels.map(l => `"${l.value}":"..."`).join(',');
     const peor = levels[0]?.label || (lang === 'en' ? 'the lowest' : 'el más bajo');
     const mejor = levels[levels.length - 1]?.label || (lang === 'en' ? 'the highest' : 'el más alto');
-    const lomloeCodes = LOMLOE_COMPETENCES.map(c => c.key);
 
     const systemPrompt = lang === 'en'
       ? 'You are an expert in competency-based secondary education assessment. Reply ONLY with valid JSON, no extra text.'
@@ -135,8 +135,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         `Write, in positive terms, what the student DOES do at each level, in ` +
         `observable language.\n\n` +
         `Item names should be short (5 words max). Everything in English.\n\n` +
-        `COMPETENCIES: for each item, in "competencias", mark 1 to 3 codes from this closed ` +
-        `list — only the ones that item truly assesses: ${lomloeCodes.join(', ')}. This is not ` +
+        `KEY COMPETENCIES: for each item, in "competencias", mark 1 to 3 codes from this closed ` +
+        `list, only the ones that item truly assesses: ${listaCompetenciasClave(lang)}. This is not ` +
         `decoration: it is used later to work out a grade per competency.` + oficiales + `\n\n` +
         `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]${conOficiales}}]}`
       : `Crea una diana de evaluación para: ${aiContext.trim()}. Clase: ${className}.\n\n` +
@@ -150,8 +150,8 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         `anterior, sin saltos bruscos ni dos niveles que digan casi lo mismo. Redacta ` +
         `en positivo lo que el alumno SÍ hace en cada nivel, de forma observable.\n\n` +
         `Los nombres de los ítems, breves (máximo 5 palabras). Todo en español de España.\n\n` +
-        `COMPETENCIAS: en cada ítem, en "competencias", marca de 1 a 3 códigos de esta lista ` +
-        `cerrada —solo los que ese ítem evalúe de verdad—: ${lomloeCodes.join(', ')}. No es un ` +
+        `COMPETENCIAS CLAVE: en cada ítem, en "competencias", marca de 1 a 3 códigos de esta lista ` +
+        `cerrada, solo los que ese ítem evalúe de verdad: ${listaCompetenciasClave(lang)}. No es un ` +
         `adorno: con esos códigos se calculará luego la nota de cada competencia.` + oficiales + `\n\n` +
         `JSON: {"name":"...","items":[{"id":"it1","name":"...","weight":1,"descriptors":{${jsonKeys}},"competencias":["..."]${conOficiales}}]}`;
 
@@ -172,7 +172,10 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       name: i.name ?? '',
       weight: typeof i.weight === 'number' && i.weight > 0 ? i.weight : 1,
       descriptors: i.descriptors,
-      competencies: i.competencias,
+      ...(() => {
+        const clave = competenciasClaveValidas(i.competencias);
+        return clave.length ? { competencies: clave } : {};
+      })(),
       ...(() => {
         const refs = refsDesdeIA(materiasOficiales, i.criteriosOficiales);
         return refs.length ? { officialCriteria: refs } : {};
@@ -182,17 +185,31 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
     toast(t('✅ Diana generada — revísala antes de guardar'));
   }
 
-  /** Que la IA ponga los criterios oficiales de los ítems que aún no tienen. */
+  /** Le falta algo que la IA puede poner: competencias clave o, con currículo, criterios oficiales. */
+  const lePuedeMarcarLaIA = (i: DianaItem) =>
+    !!i.name.trim() && (!i.competencies?.length || (materiasOficiales.length > 0 && !i.officialCriteria?.length));
+
+  /** Que la IA ponga lo que falte: no cambia lo que ya tiene cada ítem. */
   async function marcarConIA() {
-    const pendientes = items.filter(i => i.name.trim() && !i.officialCriteria?.length);
-    const marcados = await marcarCriteriosConIA(
+    const pendientes = items.filter(lePuedeMarcarLaIA);
+    const marcados = await marcarCompetenciasConIA(
       { nombre: name, contexto: aiContext, asignaturaDeLaNota: target.subject || claseDestino?.subject },
       pendientes.map(i => ({ id: i.id, nombre: i.name.trim() })),
       materiasOficiales, lang,
       { onStart: () => setMarcandoConIA(true), onEnd: () => setMarcandoConIA(false), onError: m => toast(m) },
     );
     if (!marcados) { toast(t('La IA no devolvió criterios válidos. Vuelve a intentarlo.')); return; }
-    setItems(prev => prev.map(i => (marcados[i.id] ? { ...i, officialCriteria: marcados[i.id] } : i)));
+    setItems(prev => prev.map(i => {
+      const m = marcados[i.id];
+      if (!m) return i;
+      const competencies = i.competencies?.length ? i.competencies : m.clave;
+      const officialCriteria = i.officialCriteria?.length ? i.officialCriteria : m.oficiales;
+      return {
+        ...i,
+        ...(competencies.length ? { competencies } : {}),
+        ...(officialCriteria.length ? { officialCriteria } : {}),
+      };
+    }));
   }
 
   function handleSave() {
@@ -322,12 +339,13 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
 
               <CompetenciasDelInstrumento
                 cls={claseDestino} comunidad={comunidad}
+                clave={items.flatMap(i => i.competencies ?? [])}
                 refs={items.flatMap(i => i.officialCriteria ?? [])}
               >
                 <button
                   type="button" className="btn-ia" style={{ fontSize: 12, padding: '5px 10px' }}
-                  disabled={marcandoConIA || !items.some(i => i.name.trim() && !i.officialCriteria?.length)}
-                  title={t('Marca con IA los criterios oficiales de los ítems que aún no tienen.')}
+                  disabled={marcandoConIA || !items.some(lePuedeMarcarLaIA)}
+                  title={t('Marca con IA las competencias clave y los criterios oficiales de los ítems que aún no tienen.')}
                   onClick={marcarConIA}
                 >
                   {marcandoConIA ? <><span className="spin" />{t('Marcando…')}</> : <><Sparkles size={13} />{t('Marcar con IA')}</>}
@@ -364,16 +382,12 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                         </button>
                       )}
                     </div>
-                    {item.competencies && item.competencies.length > 0 && (
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', margin: '4px 0 0 26px' }}>
-                        {item.competencies.map(code => (
-                          <span key={code} style={{
-                            fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 99,
-                            background: 'var(--accent-l)', color: 'var(--accent-d)',
-                          }}>{code}</span>
-                        ))}
-                      </div>
-                    )}
+                    <div style={{ marginTop: 6 }}>
+                      <CompetenciasClavePicker
+                        value={item.competencies ?? []}
+                        onChange={v => setItems(prev => prev.map((x, i) => (i === idx ? { ...x, competencies: v.length ? v : undefined } : x)))}
+                      />
+                    </div>
                     <div style={{ marginTop: 4 }}>
                       <CriteriosOficialesPicker
                         idPrefix={`dia-${item.id}`}

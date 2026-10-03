@@ -674,6 +674,8 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .ce-tabla tr.ce-competencia { background:var(--surface-2); }
 .ce-tabla tr.ce-competencia td { color:var(--text); font-weight:700; }
 .ce-veces { font-size:11.5px; color:var(--text-3); }
+.ce-faltan { font-size:12.5px; line-height:1.5; color:var(--text-2); margin:10px 8px 0; }
+.ce-faltan strong { color:var(--text); font-weight:700; }
 .ce-sin { font-size:11px; color:var(--text-3); white-space:nowrap; }
 .ce-nota { font-size:12px; font-weight:800; padding:2px 9px; border-radius:99px; flex-shrink:0; }
 .ce-nota.alta { background:var(--ok-bg); color:var(--ok-fg); }
@@ -695,6 +697,14 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .co-resumen { border:0.5px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:12px; background:var(--surface); font-size:12.5px; }
 .co-resumen-hd { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
 .co-resumen li { line-height:1.45; color:var(--text-2); }
+.co-resumen-sub { margin-top:10px; }
+.co-resumen ul.cc-resumen { flex-direction:row; flex-wrap:wrap; gap:4px 12px; }
+.cc-picker { display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin:0 0 8px 20px; }
+.cc-picker .co-ttl { margin-right:4px; font-size:10.5px; }
+.cc-chip { font-family:var(--font); font-size:10px; font-weight:800; padding:2px 7px; border-radius:99px; border:0.5px solid var(--border); background:var(--card); color:var(--text-3); line-height:1.4; }
+button.cc-chip { cursor:pointer; }
+button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
+.cc-chip.on { background:var(--accent-l); color:var(--accent-d); border-color:transparent; }
 .sda-area-cols { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; padding:0 16px 16px; }
 .sda-area-cols > div { background:var(--card); border-radius:10px; padding:12px 14px; border:0.5px solid var(--border); }
 .sda-area-cols h5 { font-size:11.5px; font-weight:800; color:var(--accent-d); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }

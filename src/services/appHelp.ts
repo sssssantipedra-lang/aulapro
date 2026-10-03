@@ -254,10 +254,16 @@ el resto reparte proporcionalmente); se pueden crear a mano o con la IA. Aquí s
 evalúa a cada alumno. IMPORTANTE: si la rúbrica declara clase y categoría del
 cuaderno, la nota entra sola en el cuaderno en una columna propia; si no las
 declara, la evaluación se queda solo en el Historial. Cada criterio de rúbrica
-(o ítem de diana) puede marcar, en «Criterios oficiales que evalúa», criterios
-de evaluación del currículo de la clase, de una o varias asignaturas: al evaluar,
-su nota se apunta también en ellos. Las rúbricas y dianas que se crean desde una
-situación de aprendizaje ya los traen marcados.
+(o ítem de diana) lleva las competencias clave que evalúa (CCL, CP, STEM, CD,
+CPSAA, CC, CE, CCEC) y, si la clase tiene currículo oficial, los criterios de
+evaluación oficiales, de una o varias asignaturas. Los pone la IA: al generar
+la rúbrica o la diana, o con «Marcar con IA» en las hechas a mano, que rellena
+solo lo que falte. Se cambian a mano: las competencias clave, pulsando sus
+botones; los criterios oficiales, quitándolos o con «Añadir otro criterio» y el
+buscador. Arriba se ven las competencias clave y las específicas que trabaja.
+Al evaluar, la nota de cada criterio va a sus competencias clave (Diana
+competencial) y a sus criterios oficiales. Las rúbricas y dianas que se crean
+desde una situación de aprendizaje ya lo traen marcado.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
@@ -266,10 +272,11 @@ oficial, la nota de cada criterio de evaluación (media de las veces que se ha
 evaluado), de cada competencia específica (media de sus criterios) y del área
 (media de sus competencias). Sale de las evaluaciones con criterios oficiales
 marcados y no cambia la nota del cuaderno. La clase necesita etapa y curso.
-Es una tabla por asignatura con el número de cada competencia (CE1, CE2…) y
-de cada criterio y un resumen de su texto: al pasar el ratón, o al tocarlo en
-el móvil, se lee entero. «Exportar PDF» saca en una página las tablas del
-alumno, solo con los números y las notas, y el decreto del que salen.
+Es una tabla por asignatura con lo evaluado: el número de cada competencia
+(CE1, CE2…) y de cada criterio y un resumen de su texto (al pasar el ratón, o
+al tocarlo en el móvil, se lee entero). Debajo, «Faltan por evaluar», solo con
+los números. «Exportar PDF» saca en una página las tablas del alumno, solo con
+los números y las notas, lo que falta y el decreto del que salen.
 
 [reports] INFORMES
 Informes de evaluación competencial redactados por la IA a partir de las

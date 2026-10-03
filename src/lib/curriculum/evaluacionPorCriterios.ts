@@ -99,6 +99,11 @@ export function notasDeMateria(entry: CurriculumEntry, grupo: string, evaluacion
   return { id: entry.id, nombre: entry.nombre, grupo, nota: media(evaluadas), competencias };
 }
 
+/** Los códigos de los criterios de una materia que aún no tienen nota, en orden. */
+export function sinEvaluar(notas: NotaMateria): string[] {
+  return notas.competencias.flatMap(c => c.criterios.filter(cr => cr.nota === null).map(cr => cr.codigo));
+}
+
 /**
  * Un resumen corto de un criterio o una competencia para las tablas: su
  * principio, hasta la primera coma si cae pronto o hasta la última palabra que

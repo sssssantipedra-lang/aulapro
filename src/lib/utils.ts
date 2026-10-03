@@ -127,6 +127,17 @@ export const LOMLOE_COMPETENCES = [
   { key: 'CCEC',  label: 'Conciencia y expresión culturales' },
 ] as const;
 
+/**
+ * Los códigos de competencias clave válidos de una lista que puede venir de la
+ * IA o de datos antiguos: sin repetidos, sin lo que no sea de la LOMLOE y en
+ * el orden oficial (CCL, CP, STEM…).
+ */
+export function competenciasClaveValidas(lista: unknown): string[] {
+  if (!Array.isArray(lista)) return [];
+  const codigos = new Set(lista.filter((x): x is string => typeof x === 'string').map(x => x.trim().toUpperCase()));
+  return LOMLOE_COMPETENCES.map(c => c.key).filter(k => codigos.has(k));
+}
+
 /** Periodos de evaluación del curso escolar español. */
 export const PERIODS = ['1ª evaluación', '2ª evaluación', '3ª evaluación', 'Final de curso'] as const;
 

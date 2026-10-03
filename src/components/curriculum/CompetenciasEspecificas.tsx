@@ -6,16 +6,17 @@
  * evaluaciones con rúbricas y dianas que tienen criterios oficiales marcados;
  * ver `lib/curriculum/evaluacionPorCriterios.ts`.
  *
- * Una tabla por asignatura, con el número de cada competencia y criterio, un
- * resumen corto (el texto entero, al pasar el ratón; en el móvil, al tocarlo)
- * y su nota; y se puede sacar en PDF (petición del dueño, 3-10-2026).
+ * Una tabla por asignatura con lo evaluado: el número de cada competencia y
+ * criterio, un resumen corto (el texto entero, al pasar el ratón; en el móvil,
+ * al tocarlo) y su nota. Debajo, solo los números de lo que falta por evaluar,
+ * para ahorrar espacio. Se puede sacar en PDF (peticiones del dueño, 3-10-2026).
  */
 import { useState } from 'react';
 import { ChevronDown, FileDown } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { useToast } from '../ui/Toast';
 import { useNotasPorCompetencias } from '../../hooks/useNotasPorCompetencias';
-import { resumir } from '../../lib/curriculum/evaluacionPorCriterios';
+import { resumir, sinEvaluar } from '../../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../../lib/curriculum/comunidades';
 import { saveCompetenciasPdf } from '../../services/exportCompetencias';
 import { isoDate } from '../../lib/utils';
@@ -109,36 +110,44 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }
             </span>
           </summary>
           <div className="ce-tabla-envoltorio">
-            <table className="ce-tabla">
-              <thead>
-                <tr>
-                  <th scope="col">{t('Nº')}</th>
-                  <th scope="col">{t('Resumen')} <span className="ce-pista">{t('(pasa el ratón o tócalo para leerlo entero)')}</span></th>
-                  <th scope="col">{t('Evaluado')}</th>
-                  <th scope="col">{t('Nota')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {notas.competencias.map(c => [
-                  <tr key={`ce${c.n}`} className="ce-competencia">
-                    <th scope="row">{t('CE{n}', { n: c.n })}</th>
-                    <td><Resumen texto={c.texto} /></td>
-                    <td />
-                    <td><Nota valor={c.nota} /></td>
-                  </tr>,
-                  ...c.criterios.map(cr => (
-                    <tr key={cr.codigo}>
-                      <th scope="row">{cr.codigo}</th>
-                      <td><Resumen texto={cr.texto} /></td>
-                      <td className="ce-veces">
-                        {cr.veces > 0 ? t(cr.veces === 1 ? '{n} vez' : '{n} veces', { n: cr.veces }) : '—'}
-                      </td>
-                      <td><Nota valor={cr.nota} /></td>
-                    </tr>
-                  )),
-                ])}
-              </tbody>
-            </table>
+            {notas.nota === null ? (
+              <p className="ce-faltan">{t('Aún no hay ningún criterio evaluado.')}</p>
+            ) : (
+              <table className="ce-tabla">
+                <thead>
+                  <tr>
+                    <th scope="col">{t('Nº')}</th>
+                    <th scope="col">{t('Resumen')} <span className="ce-pista">{t('(pasa el ratón o tócalo para leerlo entero)')}</span></th>
+                    <th scope="col">{t('Evaluado')}</th>
+                    <th scope="col">{t('Nota')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Solo lo evaluado; lo que falta, en una línea debajo */}
+                  {notas.competencias.filter(c => c.nota !== null).map(c => [
+                    <tr key={`ce${c.n}`} className="ce-competencia">
+                      <th scope="row">{t('CE{n}', { n: c.n })}</th>
+                      <td><Resumen texto={c.texto} /></td>
+                      <td />
+                      <td><Nota valor={c.nota} /></td>
+                    </tr>,
+                    ...c.criterios.filter(cr => cr.nota !== null).map(cr => (
+                      <tr key={cr.codigo}>
+                        <th scope="row">{cr.codigo}</th>
+                        <td><Resumen texto={cr.texto} /></td>
+                        <td className="ce-veces">{t(cr.veces === 1 ? '{n} vez' : '{n} veces', { n: cr.veces })}</td>
+                        <td><Nota valor={cr.nota} /></td>
+                      </tr>
+                    )),
+                  ])}
+                </tbody>
+              </table>
+            )}
+            {notas.nota !== null && sinEvaluar(notas).length > 0 && (
+              <p className="ce-faltan">
+                <strong>{t('Faltan por evaluar:')}</strong> {sinEvaluar(notas).join(', ')}
+              </p>
+            )}
           </div>
         </details>
       ))}
