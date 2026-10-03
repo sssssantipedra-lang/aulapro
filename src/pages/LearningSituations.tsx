@@ -1180,7 +1180,17 @@ export function LearningSituations({
             </div>
             {content.areas.map((a, i) => (
               <details key={i} className="sda-area" open={i === 0}>
-                <summary>{a.area}<ChevronDown size={15} /></summary>
+                <summary>
+                  <span className="sda-area-ttl">
+                    {a.area}
+                    {a.oficial && (
+                      <span className="sda-chip accent" title={t('Competencias, criterios y saberes copiados tal cual del decreto.')}>
+                        {t('Texto oficial')}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown size={15} />
+                </summary>
                 <div className="sda-area-cols">
                   <div><h5>{t('Competencias específicas')}</h5><p className="sda-p">{a.competenciasEspecificas}</p></div>
                   <div><h5>{t('Criterios de evaluación')}</h5><p className="sda-p">{a.criteriosEvaluacion}</p></div>

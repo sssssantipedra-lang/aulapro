@@ -74,6 +74,27 @@ function figuraFixture(): Ficha {
   };
 }
 
+describe('exportFicha — área', () => {
+  it('imprime el área de la ficha delante de nombre, fecha y clase', () => {
+    const html = buildFichaHtml(fixture(), 'es');
+    expect(html).toMatch(/<div class="ficha-datos"><strong class="ficha-area">Ciencias<\/strong>/);
+  });
+
+  it('sin área, la línea de datos queda como siempre', () => {
+    const f = fixture();
+    const html = buildFichaHtml({ ...f, request: { ...f.request, area: '' } }, 'es');
+    expect(html).not.toContain('ficha-area"');
+    expect(html).toContain('<div class="ficha-datos">Nombre:');
+  });
+
+  it('el Word también la lleva', async () => {
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await (await buildFichaDocxBlob(fixture(), 'es')).arrayBuffer());
+    const xml = await zip.file('word/document.xml')!.async('string');
+    expect(xml).toMatch(/<w:b\/>[\s\S]*?<w:t[^>]*>Ciencias {5}<\/w:t>/);
+  });
+});
+
 describe('exportFicha — figura geométrica', () => {
   it('buildFichaHtml incrusta el SVG del diagrama con las medidas dadas', () => {
     const html = buildFichaHtml(figuraFixture(), 'es');

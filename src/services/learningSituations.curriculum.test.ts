@@ -71,6 +71,8 @@ describe('generateSda con currículo real', () => {
     // El código del criterio debe ser del 3er ciclo (curso 5 → ciclo 3), no de otro.
     expect(area.criteriosEvaluacion).toMatch(/^1\.1 /m);
     expect(area.saberesBasicos).toContain('Sentido numérico');
+    // Y queda marcada como texto oficial, para que la pantalla lo diga
+    expect(area.oficial).toBe(true);
   });
 
   it('no toca el texto libre si el área no empareja con ninguna materia', async () => {
@@ -85,6 +87,7 @@ describe('generateSda con currículo real', () => {
     // Sin materia emparejada, los códigos elegidos no tienen dónde aplicarse:
     // se queda el texto de la IA, exactamente como antes de este cambio.
     expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.areas[0].oficial).toBeUndefined();
   });
 
   it('no toca el texto libre si no se indica etapa y curso', async () => {
@@ -104,6 +107,7 @@ describe('generateSda con currículo real', () => {
     const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
 
     expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.areas[0].oficial).toBeUndefined();
   });
 
   it('no filtra los campos internos de selección al resultado final', async () => {

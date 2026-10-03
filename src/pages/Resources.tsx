@@ -732,7 +732,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject 
                     <span className="fe-card-body">
                       <span className="fe-card-ttl">{f.title}</span>
                       <span className="fe-card-meta">
-                        {[f.class_name, f.sda_title ? t('desde «{title}»', { title: f.sda_title }) : f.request.area,
+                        {[f.class_name, f.request.area, f.sda_title ? t('desde «{title}»', { title: f.sda_title }) : '',
                           nEj ? t('{n} ejercicios', { n: nEj }) : '',
                           f.content.formato === 'tarjetas' ? t('{n} tarjetas', { n: f.content.tarjetas?.length ?? 0 }) : '',
                           new Date(f.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })]

@@ -41,6 +41,12 @@ export interface SdaArea {
   competenciasEspecificas: string;
   criteriosEvaluacion: string;
   saberesBasicos: string;
+  /**
+   * `true` cuando las competencias, los criterios y los saberes son el texto
+   * literal del decreto (la IA eligió de la lista oficial y la app escribió
+   * el texto). Sin él, los redactó la IA. Las SdA anteriores no lo llevan.
+   */
+  oficial?: boolean;
 }
 
 export interface SdaSession {
@@ -521,7 +527,12 @@ export async function generateSda(
   const normativa: SdaNormativa | undefined = curriculo && finales.some(f => f.oficial)
     ? { comunidad: curriculo.comunidad, origen: curriculo.origen, cita }
     : undefined;
-  return { ...parsed, areas: finales.map(f => f.area), sesiones: parsed.sesiones ?? [], normativa };
+  return {
+    ...parsed,
+    areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
+    sesiones: parsed.sesiones ?? [],
+    normativa,
+  };
 }
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */

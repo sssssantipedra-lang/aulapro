@@ -69,7 +69,7 @@ export function estadoDeMateria(
     return { tipo: 'oficial', materia: asignatura, porAlias: false };
   }
 
-  const alias = emparejarMateria(asignatura, ctx.etapa);
+  const alias = emparejarMateria(asignatura, ctx.etapa, materias);
   if (alias && buscarMateria(ctx.etapa, alias, materias) && aplicaAlCurso(alias, ctx, materias)) {
     return { tipo: 'oficial', materia: alias, porAlias: true };
   }

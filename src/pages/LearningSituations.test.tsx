@@ -201,6 +201,18 @@ describe('de qué decreto sale una SdA ya generada', () => {
     expect(screen.queryByText(/aún no tiene el decreto/)).toBeNull();
   });
 
+  it('marca las áreas que llevan el texto oficial del decreto, y no las que redactó la IA', async () => {
+    const user = userEvent.setup();
+    setup([{ ...sda, content: { ...sda.content, areas: [
+      { ...sda.content.areas[0], oficial: true },
+      { area: 'Religión', competenciasEspecificas: 'Libre', criteriosEvaluacion: 'Libre', saberesBasicos: 'Libre' },
+    ] } }]);
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    const marcas = screen.getAllByText('Texto oficial');
+    expect(marcas).toHaveLength(1);
+    expect(marcas[0].closest('summary')?.textContent).toContain('Matemáticas');
+  });
+
   it('una SdA anterior, sin normativa guardada, no cita nada', async () => {
     const user = userEvent.setup();
     setup([sda]);

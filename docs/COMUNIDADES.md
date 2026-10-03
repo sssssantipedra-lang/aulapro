@@ -47,12 +47,14 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 - Las que no están en la lista (Religión, Tutoría…) se añaden aparte y quedan en modo libre (`materiasOficiales[asignatura] = null`).
 - Cada asignatura oficial guarda el identificador de su materia (`CurriculumEntry.id`), no solo el nombre: así sigue valiendo si el docente cambia el idioma de la app y el currículo se abre en el otro idioma. En el estatal el identificador es el nombre; en la Comunitat Valenciana tendrá que ser el mismo en los dos archivos de idioma.
 - Las clases anteriores, con asignaturas escritas a mano, siguen funcionando: al editarlas se piden etapa y curso, se conserva lo que se sabía de cada asignatura (alias seguro como «Mates») y el resto queda en modo libre. En la SdA, un área sin materia clara pregunta cuál es y se recuerda en la clase.
+- Los alias (`mapeoMaterias.ts`) apuntan a identificadores de materia, no a nombres, y cada comunidad tiene los suyos: «Música» es «Educación Artística» en el estatal y «Música y Danza» en la Comunitat Valenciana. Llevan también las formas en valenciano y catalán. Lo que es ambiguo en una comunidad no empareja ahí: «Educación Artística» en la Comunitat Valenciana (son dos áreas) o «Lengua y Literatura» (puede ser cualquiera de las dos lenguas oficiales). Una prueba impide que un alias pueda caer en dos materias del mismo currículo (decisión del dueño, 3-10-2026).
+- El nombre de una asignatura es el que tenía al crearse, aunque la app cambie de idioma: de ese nombre cuelgan el cuaderno, las rúbricas, las dianas y las categorías de nota. El formulario de la clase reconoce cada asignatura oficial por su identificador, así que con la app en valenciano una clase creada en castellano tiene marcada «Matemàtiques» y su asignatura sigue llamándose «Matemáticas» (el dueño lo dejó a criterio de Claude, 3-10-2026).
 - Nunca se mezclan decretos de distintas comunidades dentro de una SdA.
 - Una SdA guardada conserva el decreto con el que se creó (se guarda la cita en la propia SdA). Cambiar de comunidad en el perfil no reescribe las SdA que ya existen.
 
 ### Currículo en la app
 
-- Cada decreto va empaquetado dentro de la app, igual que los estatales. No se descarga.
+- Cada decreto va empaquetado dentro de la app, igual que los estatales. No se descarga. Decidido el 3-10-2026 (el dueño lo dejó a criterio de Claude): los decretos cambian cada pocos años y la app ya se actualiza sola; descargarlos añadiría una conexión y un punto de fallo sin ganar nada. Cuando exista el canal de descarga del calendario, si un decreto cambiara entre dos versiones de la app, la corrección podría llegar por ese canal, con comprobación de huella y de totales.
 - Solo se carga el de la comunidad del perfil (importación dinámica).
 - Cada decreto lleva su test de totales oficiales, como los estatales (`index.test.ts`).
 - Añadir una comunidad implica una versión nueva de la app, con las esperas de Microsoft Store y Google Play.
@@ -61,6 +63,8 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 
 - Insignia con la comunidad en la barra lateral, bajo el nombre del docente, que lleva a Perfil.
 - En cada SdA, una línea de fuente con el decreto y su boletín, por ejemplo «Currículo: Decreto 106/2022, de 5 de agosto (DOGV)». La misma cita va al PDF y al Word.
+- En la SdA, cada área con el texto literal del decreto lleva la marca «Texto oficial» (`SdaArea.oficial`); las que redactó la IA, ninguna. Solo en pantalla: el PDF y el Word llevan la cita, como el aviso del estatal (decisión del dueño, 3-10-2026).
+- La ficha de ejercicios muestra su área en «Mis fichas» y la lleva impresa, en el PDF y en el Word, delante de nombre, fecha y clase (decisión del dueño, 3-10-2026).
 
 ## Calendario escolar
 
@@ -70,6 +74,7 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 
 ### Actualización automática
 
+- Confirmado por el dueño el 3-10-2026: automático.
 - Una tarea programada vigila los boletines oficiales de cada comunidad. Cuando aparece el calendario del curso siguiente, extrae las fechas, las valida y abre un cambio con el enlace al boletín.
 - El dueño aprueba el cambio con un clic. Al aprobarlo se publica, y las apps lo descargan. No se publica nada sin que alguien lo haya visto.
 - Comprobaciones automáticas antes de proponer el cambio: las fechas existen y caen dentro del curso, la cantidad de festivos es razonable y la fuente está enlazada.
@@ -100,8 +105,8 @@ Hecho:
 
 Pendiente:
 
+- Evaluación por criterios de cada área (propuesta del 3-10-2026, pendiente de que el dueño la confirme): la nota de una rúbrica va a una sola asignatura del cuaderno, pero una SdA trabaja competencias específicas de varias áreas. La idea es evaluar cada área por sus criterios de evaluación, que se agregan en sus competencias específicas, y que la misma evaluación de una rúbrica alimente los criterios de todas las áreas que toca.
 - Datos del resto: `src/lib/curriculum/data/<comunidad>/primaria.<idioma>.json` y `eso.<idioma>.json`, y su entrada en `CARGADORES`. Cada uno sale en su propio archivo al compilar y solo se descarga al pedirlo (el de Primaria valenciana pesa unos 48 KB comprimido).
-- `mapeoMaterias.ts` por comunidad: las áreas cambian de nombre y a veces de número, y de ahí sale el desplegable.
 - La forma de los datos actuales es la del RD estatal. Los decretos autonómicos pueden agrupar los cursos de otra manera o traer campos propios. Se decide con el texto real delante. Hacia fuera, la interfaz de `index.ts` debe seguir siendo la misma.
 
 ## Bloqueos y pendientes
@@ -180,4 +185,4 @@ En `docs/Normativa Comunitat Valenciana/` (nombre que eligió el dueño), para p
 
 ## Pendiente de decidir
 
-- Entrega del currículo: la decisión actual es llevarlo dentro de la app. El dueño ha propuesto servirlo desde Cloudflare para que la app solo descargue el de su comunidad. Propuesta intermedia: base dentro de la app y actualizaciones por el mismo canal del calendario (JSON estático en R2, sin base de datos), con comprobación de huella y de totales antes de usar lo descargado. Pendiente de confirmar. La mecánica de carga (`cargar.ts`) está hecha para que cualquiera de las dos opciones encaje.
+- Nada por ahora. La entrega del currículo quedó decidida el 3-10-2026 (ver «Currículo en la app»).

@@ -1681,6 +1681,8 @@ export const CA: Record<string, string> = {
   "Ninguna, modo libre": "Cap, mode lliure",
   "detectada": "detectada",
   "Currículo: {cita}": "Currículum: {cita}",
+  "Texto oficial": "Text oficial",
+  "Competencias, criterios y saberes copiados tal cual del decreto.": "Competències, criteris i sabers copiats tal qual del decret.",
   "Se usa el currículo estatal: Aula Pro aún no tiene el decreto de tu comunidad ({comunidad}).": "S'usa el currículum estatal: Aula Pro encara no té el decret de la teva comunitat ({comunidad}).",
   "Editar clase": "Edita la classe",
   "Clase actualizada": "Classe actualitzada",

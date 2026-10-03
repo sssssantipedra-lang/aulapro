@@ -1892,6 +1892,8 @@ const EN: Record<string, string> = {
   "Ninguna, modo libre": "None, free mode",
   "detectada": "detected",
   "Currículo: {cita}": "Curriculum: {cita}",
+  "Texto oficial": "Official text",
+  "Competencias, criterios y saberes copiados tal cual del decreto.": "Competences, criteria and basic knowledge copied verbatim from the decree.",
   "Se usa el currículo estatal: Aula Pro aún no tiene el decreto de tu comunidad ({comunidad}).": "The national curriculum is used: Aula Pro doesn't have your community's decree yet ({comunidad}).",
   "Editar clase": "Edit class",
   "Clase actualizada": "Class updated",
