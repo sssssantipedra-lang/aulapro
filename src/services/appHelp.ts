@@ -253,11 +253,19 @@ Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 
 el resto reparte proporcionalmente); se pueden crear a mano o con la IA. Aquí se
 evalúa a cada alumno. IMPORTANTE: si la rúbrica declara clase y categoría del
 cuaderno, la nota entra sola en el cuaderno en una columna propia; si no las
-declara, la evaluación se queda solo en el Historial.
+declara, la evaluación se queda solo en el Historial. Cada criterio de rúbrica
+(o ítem de diana) puede marcar, en «Criterios oficiales que evalúa», criterios
+de evaluación del currículo de la clase, de una o varias asignaturas: al evaluar,
+su nota se apunta también en ellos. Las rúbricas y dianas que se crean desde una
+situación de aprendizaje ya los traen marcados.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
-clase y alumno.
+clase y alumno. Debajo, «Competencias específicas»: por asignatura con currículo
+oficial, la nota de cada criterio de evaluación (media de las veces que se ha
+evaluado), de cada competencia específica (media de sus criterios) y del área
+(media de sus competencias). Sale de las evaluaciones con criterios oficiales
+marcados y no cambia la nota del cuaderno. La clase necesita etapa y curso.
 
 [reports] INFORMES
 Informes de evaluación competencial redactados por la IA a partir de las

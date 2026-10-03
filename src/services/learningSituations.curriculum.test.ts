@@ -10,7 +10,9 @@
  * — no la llamada HTTP en sí, que ya cubre `gemini.thinking.test.ts`.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { generateSda, type SdaRequest } from './learningSituations';
+import {
+  generateSda, generateSdaDiana, generateSdaRubric, refsDeSda, type SdaContent, type SdaRequest,
+} from './learningSituations';
 
 const callGemini = vi.hoisted(() => vi.fn());
 vi.mock('./gemini', async importOriginal => {
@@ -238,6 +240,8 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
       expect(competencias).not.toContain('INVENTADO');
       expect(sda!.areas[0].saberesBasicos).toContain('A. Cultura científica (Iniciación en la actividad científica');
       expect(sda!.normativa).toEqual({ comunidad: 'madrid', origen: 'autonomico', cita: CITA_MADRID });
+      // Recuerda de qué materia oficial sale el área, para marcar luego los criterios de sus instrumentos
+      expect(sda!.areas[0].materia).toBe('ciencias-de-la-naturaleza');
       const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
       expect(userPrompt).toContain(`CURRÍCULO OFICIAL REAL (${CITA_MADRID})`);
       expect(userPrompt).toContain('en equipo y en red, y para reelaborar');
@@ -251,5 +255,47 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
       expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
       expect(sda!.normativa).toBeUndefined();
     });
+  });
+});
+
+describe('rúbrica y diana de la SdA: criterios oficiales ya marcados', () => {
+  const SDA = {
+    ...JSON.parse(respuestaSimulada()),
+    areas: [
+      {
+        area: 'Matemáticas', oficial: true, materia: 'matematicas', competenciasEspecificas: '1. …', saberesBasicos: 'A. …',
+        criteriosEvaluacion: '1.1 Interpretar problemas.\n2.1 Comprobar soluciones.',
+      },
+      { area: 'Religión', competenciasEspecificas: 'libre', criteriosEvaluacion: '1.1 Inventado', saberesBasicos: 'libre' },
+    ],
+  } as SdaContent;
+
+  it('solo pasan los criterios que son de verdad de las áreas oficiales de la SdA', () => {
+    expect(refsDeSda(SDA, ['Matemáticas|2.1', 'Matemáticas|9.9', 'Religión|1.1', 'Matemáticas|2.1', 'Otra|1.1']))
+      .toEqual([{ materia: 'matematicas', codigo: '2.1' }]);
+    expect(refsDeSda(SDA, undefined)).toEqual([]);
+  });
+
+  it.each([
+    ['rúbrica', generateSdaRubric, 'rubrica'],
+    ['diana', generateSdaDiana, 'diana'],
+  ] as const)('la %s pide marcarlos, de una lista cerrada', async (_, generar, clave) => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ [clave]: [] }));
+    await generar(SDA, '', ['1', '2', '3', '4'], 'es');
+    const [sistema, usuario, , , opciones] = callGemini.mock.calls.at(-1)!;
+    expect(sistema).toContain('CRITERIOS OFICIALES');
+    expect(usuario).toContain('- Matemáticas|1.1: Interpretar problemas.');
+    expect(usuario).not.toContain('Religión|');
+    const fila = opciones.responseSchema.properties[clave].items;
+    expect(fila.properties.criteriosOficiales.items.enum).toEqual(['Matemáticas|1.1', 'Matemáticas|2.1']);
+  });
+
+  it('una SdA sin áreas oficiales no pide nada de esto', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ rubrica: [] }));
+    await generateSdaRubric({ ...SDA, areas: [SDA.areas[1]] }, '', ['1', '2', '3', '4'], 'es');
+    const [sistema, usuario, , , opciones] = callGemini.mock.calls.at(-1)!;
+    expect(sistema).not.toContain('CRITERIOS OFICIALES');
+    expect(usuario).not.toContain('Criterios de evaluación oficiales disponibles');
+    expect(opciones.responseSchema.properties.rubrica.items.properties.criteriosOficiales).toBeUndefined();
   });
 });

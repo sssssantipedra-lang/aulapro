@@ -32,6 +32,7 @@ import { competenciasDe, resolverGrupo, type CurriculumEntry, type Etapa } from 
 import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
+import type { OfficialCriterionRef } from '../types';
 
 /* ── Lo que devuelve la IA ── */
 
@@ -47,6 +48,12 @@ export interface SdaArea {
    * el texto). Sin él, los redactó la IA. Las SdA anteriores no lo llevan.
    */
   oficial?: boolean;
+  /**
+   * Con `oficial`, la materia del currículo de la que sale (`CurriculumEntry.id`).
+   * Con ella, las rúbricas y dianas que se hagan desde la SdA llevan ya
+   * marcados los criterios oficiales que evalúan (`refsDeSda`).
+   */
+  materia?: string;
 }
 
 export interface SdaSession {
@@ -104,6 +111,11 @@ export interface SdaRubricRow {
    * evaluaciones como referencia: ver `competencyScoresFor` en types/index.ts.
    */
   competencias: string[];
+  /**
+   * Criterios de evaluación oficiales que evalúa, como «Área|código», elegidos
+   * por la IA de los de la SdA. Se comprueban con `refsDeSda` antes de usarse.
+   */
+  criteriosOficiales?: string[];
 }
 
 export interface SdaDianaItem {
@@ -115,6 +127,8 @@ export interface SdaDianaItem {
   nivel4: string;
   /** Igual que en `SdaRubricRow.competencias`. */
   competencias: string[];
+  /** Igual que en `SdaRubricRow.criteriosOficiales`. */
+  criteriosOficiales?: string[];
 }
 
 /* ── Contexto que aporta el docente ── */
@@ -326,6 +340,29 @@ const RUBRIC_SCHEMA = {
   required: ['rubrica'],
 } as const;
 
+/**
+ * El esquema de una fila de rúbrica o de un ítem de diana, con el campo de los
+ * criterios oficiales cerrado a los de la SdA. Sin criterios oficiales, el
+ * esquema de siempre.
+ */
+function conCriteriosOficiales<T extends { properties: object; required: readonly string[] }>(
+  esquema: T, disponibles: string[],
+): T {
+  if (disponibles.length === 0) return esquema;
+  return {
+    ...esquema,
+    properties: {
+      ...esquema.properties,
+      criteriosOficiales: {
+        type: 'ARRAY',
+        description: 'De 1 a 3 criterios de evaluación oficiales de la lista cerrada que de verdad evalúe, tal cual («Área|código»).',
+        items: { type: 'STRING', enum: disponibles },
+      },
+    },
+    required: [...esquema.required, 'criteriosOficiales'],
+  };
+}
+
 const DIANA_ITEM_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -433,6 +470,7 @@ function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): { area: SdaArea; 
     oficial: true,
     area: {
       ...libre,
+      materia: r.entry.id,
       competenciasEspecificas: competenciasElegidas.map(c => `${c.n}. ${c.texto}`).join('\n'),
       criteriosEvaluacion: criteriosElegidos.map(c => `${c.codigo} ${c.texto}`).join('\n'),
       saberesBasicos: saberesElegidos
@@ -537,6 +575,55 @@ export async function generateSda(
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */
 
+/** Los criterios oficiales de la SdA: los de sus áreas con texto del decreto, por área. */
+export function criteriosOficialesDeSda(sda: SdaContent): { area: string; materia: string; criterios: { codigo: string; texto: string }[] }[] {
+  return sda.areas
+    .filter(a => a.oficial && a.materia)
+    .map(a => ({
+      area: a.area,
+      materia: a.materia!,
+      criterios: [...a.criteriosEvaluacion.matchAll(/^(\d+\.\d+) (.+)$/gm)].map(m => ({ codigo: m[1], texto: m[2] })),
+    }))
+    .filter(a => a.criterios.length > 0);
+}
+
+/**
+ * De lo que marca la IA («Matemáticas|2.1») a criterios oficiales. Solo pasan
+ * los que son de verdad de la SdA: un código inventado o de otra área se
+ * descarta en silencio, como cualquier otra elección de la IA que no encaja.
+ */
+export function refsDeSda(sda: SdaContent, marcados: string[] | undefined): OfficialCriterionRef[] {
+  const disponibles = criteriosOficialesDeSda(sda);
+  const out: OfficialCriterionRef[] = [];
+  for (const marcado of marcados ?? []) {
+    const corte = marcado.lastIndexOf('|');
+    const area = marcado.slice(0, corte).trim();
+    const codigo = marcado.slice(corte + 1).trim();
+    const a = disponibles.find(d => d.area === area);
+    if (!a || !a.criterios.some(c => c.codigo === codigo)) continue;
+    if (!out.some(r => r.materia === a.materia && r.codigo === codigo)) out.push({ materia: a.materia, codigo });
+  }
+  return out;
+}
+
+/** El trozo de las instrucciones y del prompt sobre los criterios oficiales, y la lista cerrada. */
+function promptCriteriosOficiales(sda: SdaContent, que: 'criterio' | 'ítem') {
+  const porArea = criteriosOficialesDeSda(sda);
+  const disponibles = porArea.flatMap(a => a.criterios.map(c => `${a.area}|${c.codigo}`));
+  if (disponibles.length === 0) return { sistema: '', usuario: '', disponibles };
+  return {
+    disponibles,
+    sistema:
+      `CRITERIOS OFICIALES: en el campo "criteriosOficiales" de cada ${que}, marca de 1 a 3 criterios de ` +
+      `evaluación oficiales de la lista que se da, los que de verdad evalúe, escritos tal cual ` +
+      `(«Área|código»). Pueden ser de varias áreas. Con ellos se calcula la nota de cada competencia ` +
+      `específica de cada área.\n`,
+    usuario:
+      `Criterios de evaluación oficiales disponibles:\n` +
+      porArea.flatMap(a => a.criterios.map(c => `- ${a.area}|${c.codigo}: ${c.texto}`)).join('\n') + '\n',
+  };
+}
+
 export async function generateSdaRubric(
   sda: SdaContent,
   detalles: string,
@@ -544,6 +631,7 @@ export async function generateSdaRubric(
   lang: Lang,
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<SdaRubricRow[] | null> {
+  const oficiales = promptCriteriosOficiales(sda, 'criterio');
   const systemPrompt =
     `Eres un experto en evaluación competencial. Tu tarea exclusiva es generar los criterios de ` +
     `una rúbrica de desempeño.\n` +
@@ -555,6 +643,7 @@ export async function generateSdaRubric(
     `Los cuatro niveles, de menor a mayor, se llaman: ${niveles.join(', ')}. Redacta un descriptor ` +
     `observable y distinto para cada uno.\n` +
     `Genera de 3 a 5 criterios, adaptados a las características del grupo.\n` +
+    oficiales.sistema +
     `El idioma de salida DEBE SER ${idioma(lang)}.`;
 
   const areas = sda.areas
@@ -565,6 +654,7 @@ export async function generateSdaRubric(
     `Situación de aprendizaje: ${sda.titulo}\n` +
     `Justificación: ${sda.justificacion}\n` +
     `Competencias específicas por área:\n${areas}\n` +
+    oficiales.usuario +
     `Producto final: ${sda.productoFinal}\n` +
     `Técnicas de evaluación: ${sda.evaluacionTecnicas}\n` +
     `Instrumentos: ${sda.evaluacionInstrumentos}\n` +
@@ -573,7 +663,10 @@ export async function generateSdaRubric(
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
     maxOutputTokens: 8192,
-    responseSchema: RUBRIC_SCHEMA,
+    responseSchema: {
+      ...RUBRIC_SCHEMA,
+      properties: { rubrica: { type: 'ARRAY', items: conCriteriosOficiales(RUBRIC_ROW_SCHEMA, oficiales.disponibles) } },
+    },
     thinkingLevel: 'high',
   });
   if (!raw) return null;
@@ -597,6 +690,7 @@ export async function generateSdaDiana(
   lang: Lang,
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<SdaDianaItem[] | null> {
+  const oficiales = promptCriteriosOficiales(sda, 'ítem');
   const systemPrompt =
     `Eres un experto en evaluación competencial. Tu tarea exclusiva es generar los ítems de ` +
     `una diana de evaluación (un instrumento de observación directa, no una rúbrica de tabla).\n` +
@@ -610,6 +704,7 @@ export async function generateSdaDiana(
     `Los cuatro niveles, de menor a mayor, se llaman: ${niveles.join(', ')}. Redacta un descriptor ` +
     `observable y distinto para cada uno.\n` +
     `Genera de 4 a 6 ítems, adaptados a las características del grupo.\n` +
+    oficiales.sistema +
     `El idioma de salida DEBE SER ${idioma(lang)}.`;
 
   const areas = sda.areas
@@ -620,6 +715,7 @@ export async function generateSdaDiana(
     `Situación de aprendizaje: ${sda.titulo}\n` +
     `Justificación: ${sda.justificacion}\n` +
     `Competencias específicas por área:\n${areas}\n` +
+    oficiales.usuario +
     `Producto final: ${sda.productoFinal}\n` +
     `Técnicas de evaluación: ${sda.evaluacionTecnicas}\n` +
     `Instrumentos: ${sda.evaluacionInstrumentos}\n` +
@@ -628,7 +724,10 @@ export async function generateSdaDiana(
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
     maxOutputTokens: 8192,
-    responseSchema: DIANA_SCHEMA,
+    responseSchema: {
+      ...DIANA_SCHEMA,
+      properties: { diana: { type: 'ARRAY', items: conCriteriosOficiales(DIANA_ITEM_SCHEMA, oficiales.disponibles) } },
+    },
     thinkingLevel: 'high',
   });
   if (!raw) return null;

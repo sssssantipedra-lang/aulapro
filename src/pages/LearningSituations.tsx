@@ -4,11 +4,12 @@ import {
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
   RefreshCw, Lightbulb, Search, Frame,
 } from 'lucide-react';
-import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory } from '../types';
+import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
+  refsDeSda,
 } from '../services/learningSituations';
 import { resolverGrupo, type Etapa } from '../lib/curriculum';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
@@ -143,6 +144,13 @@ function DocText({
       )}
     </div>
   );
+}
+
+
+/** Los criterios oficiales que marcó la IA en una fila, comprobados con la SdA; nada si no hay. */
+function conCriteriosOficiales(sda: SdaContent, marcados: string[] | undefined): { officialCriteria?: OfficialCriterionRef[] } {
+  const refs = refsDeSda(sda, marcados);
+  return refs.length ? { officialCriteria: refs } : {};
 }
 
 export function LearningSituations({
@@ -556,6 +564,7 @@ export function LearningSituations({
         name: r.criterio,
         descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
         competencies: r.competencias,
+        ...conCriteriosOficiales(content, r.criteriosOficiales),
       })),
       class_id: rubricClassId || undefined,
       subject: rubricSubject || undefined,
@@ -596,6 +605,7 @@ export function LearningSituations({
         weight: r.peso > 0 ? r.peso : 1,
         descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
         competencies: r.competencias,
+        ...conCriteriosOficiales(content, r.criteriosOficiales),
       })),
       class_id: dianaClassId || undefined,
       subject: dianaSubject || undefined,
