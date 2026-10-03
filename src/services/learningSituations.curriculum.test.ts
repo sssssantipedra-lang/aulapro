@@ -242,10 +242,10 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
         expect(sda!.areas[0].competenciasEspecificas).toContain('Texto propio de la comunidad sobre la naturaleza.');
         expect(sda!.normativa).toEqual({
           comunidad: 'madrid', origen: 'autonomico',
-          cita: 'Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022)',
+          cita: 'Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), modificado por Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024)',
         });
         const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
-        expect(userPrompt).toContain('CURRÍCULO OFICIAL REAL (Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022))');
+        expect(userPrompt).toContain('CURRÍCULO OFICIAL REAL (Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), modificado por Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024))');
         expect(userPrompt).toContain('Texto propio de la comunidad sobre la naturaleza.');
       } finally {
         delete CARGADORES.madrid;

@@ -165,21 +165,39 @@ const CT_EDUCACIO_BASICA: Norma = {
 
 /* ── Comunidad de Madrid ── */
 
-const MD_PRIMARIA: Norma = {
-  tipo: 'matriz',
-  titulo: { es: 'Decreto 61/2022, de 13 de julio, del Consejo de Gobierno, por el que se establece para la Comunidad de Madrid la ordenación y el currículo de la etapa de Educación Primaria.' },
-  corto: { es: 'Decreto 61/2022, de 13 de julio' },
-  boletin: { es: 'BOCM núm. 169, de 18 de julio de 2022' },
-  verificada: false,
+// Comprobados con los PDF del BOCM (docs/Normativa Comunidad de Madrid/).
+// El 59/2024 modifica los dos: en Primaria solo el articulado; en la ESO,
+// también los contenidos de Geografía e Historia.
+const MD_59_2024: Norma = {
+  tipo: 'modificacion',
+  titulo: { es: 'Decreto 59/2024, de 12 de junio, del Consejo de Gobierno, por el que se modifica el Decreto 61/2022, de 13 de julio, del Consejo de Gobierno, por el que se establece para la Comunidad de Madrid la ordenación y el currículo de la etapa de Educación Primaria, el Decreto 65/2022, de 20 de julio, del Consejo de Gobierno, por el que se establecen para la Comunidad de Madrid la ordenación y el currículo de la Educación Secundaria Obligatoria, y el Decreto 64/2022, de 20 de julio, del Consejo de Gobierno, por el que se establecen para la Comunidad de Madrid la ordenación y el currículo del Bachillerato.' },
+  corto: { es: 'Decreto 59/2024, de 12 de junio' },
+  boletin: { es: 'BOCM núm. 140, de 13 de junio de 2024' },
+  verificada: true,
 };
 
-const MD_ESO: Norma = {
-  tipo: 'matriz',
-  titulo: { es: 'Decreto 65/2022, de 20 de julio, del Consejo de Gobierno, por el que se establecen para la Comunidad de Madrid la ordenación y el currículo de la Educación Secundaria Obligatoria.' },
-  corto: { es: 'Decreto 65/2022, de 20 de julio' },
-  boletin: { es: 'BOCM núm. 175, de 25 de julio de 2022' },
-  verificada: false,
-};
+const MD_PRIMARIA: Norma[] = [
+  {
+    tipo: 'matriz',
+    titulo: { es: 'Decreto 61/2022, de 13 de julio, del Consejo de Gobierno, por el que se establece para la Comunidad de Madrid la ordenación y el currículo de la etapa de Educación Primaria.' },
+    corto: { es: 'Decreto 61/2022, de 13 de julio' },
+    boletin: { es: 'BOCM núm. 169, de 18 de julio de 2022' },
+    verificada: true,
+  },
+  MD_59_2024,
+];
+
+const MD_ESO: Norma[] = [
+  {
+    tipo: 'matriz',
+    titulo: { es: 'Decreto 65/2022, de 20 de julio, del Consejo de Gobierno, por el que se establecen para la Comunidad de Madrid la ordenación y el currículo de la Educación Secundaria Obligatoria.' },
+    corto: { es: 'Decreto 65/2022, de 20 de julio' },
+    // El dueño lo dio como BOCM núm. 175, de 25 de julio; el PDF dice 176, de 26 de julio
+    boletin: { es: 'BOCM núm. 176, de 26 de julio de 2022' },
+    verificada: true,
+  },
+  MD_59_2024,
+];
 
 /** Sin decreto registrado todavía: solo el nombre. */
 const sinNormas = (id: ComunidadId, es: string, ca: string, en: string): Comunidad => (
@@ -215,7 +233,7 @@ export const COMUNIDADES: Comunidad[] = [
     id: 'madrid',
     nombre: { es: 'Comunidad de Madrid', ca: 'Comunitat de Madrid', en: 'Community of Madrid' },
     idiomas: ['es'],
-    normas: { primaria: [MD_PRIMARIA], eso: [MD_ESO] },
+    normas: { primaria: MD_PRIMARIA, eso: MD_ESO },
   },
   sinNormas('melilla', 'Melilla', 'Melilla', 'Melilla'),
   sinNormas('murcia', 'Región de Murcia', 'Regió de Múrcia', 'Region of Murcia'),

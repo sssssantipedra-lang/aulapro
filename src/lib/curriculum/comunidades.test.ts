@@ -153,8 +153,8 @@ describe('citar las normas', () => {
   });
 
   it('una cita con un solo decreto no lleva «modificado por»', () => {
-    expect(citarNormas(normasDe('madrid', 'primaria')!, 'es'))
-      .toBe('Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022)');
+    expect(citarNormas(normasDe('cataluna', 'primaria')!, 'ca'))
+      .toBe('Decret 175/2022, de 27 de setembre (DOGC núm. 8762, de 29 de setembre de 2022)');
     expect(citarNormas(NORMAS_ESTATALES.eso, 'es'))
       .toBe('Real Decreto 217/2022, de 29 de marzo (BOE núm. 76, de 30 de marzo de 2022)');
   });

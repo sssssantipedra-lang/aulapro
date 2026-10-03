@@ -195,7 +195,7 @@ describe('de qué decreto sale una SdA ya generada', () => {
 
   it('con el decreto de la comunidad, solo la cita', async () => {
     const user = userEvent.setup();
-    setup([conNormativa({ comunidad: 'madrid', origen: 'autonomico', cita: 'Decreto 65/2022, de 20 de julio (BOCM núm. 175, de 25 de julio de 2022)' })]);
+    setup([conNormativa({ comunidad: 'madrid', origen: 'autonomico', cita: 'Decreto 65/2022, de 20 de julio (BOCM núm. 176, de 26 de julio de 2022)' })]);
     await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
     expect(screen.getByText(/Currículo: Decreto 65\/2022/)).toBeTruthy();
     expect(screen.queryByText(/aún no tiene el decreto/)).toBeNull();
