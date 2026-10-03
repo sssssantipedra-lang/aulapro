@@ -671,6 +671,17 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .ce-nota.alta { background:var(--ok-bg); color:var(--ok-fg); }
 .ce-nota.media { background:var(--warn-bg); color:var(--warn-fg); }
 .ce-nota.baja { background:color-mix(in srgb, var(--danger) 14%, var(--card)); color:var(--danger); }
+.co-picker { margin:0 0 10px 20px; font-size:12.5px; }
+.co-picker summary { cursor:pointer; color:var(--accent-d); font-weight:700; display:flex; align-items:center; gap:6px; }
+.co-marcados { display:flex; flex-wrap:wrap; gap:4px; margin:6px 0; }
+.co-marcados .sda-chip { display:inline-flex; align-items:center; gap:4px; }
+.co-quitar { border:none; background:none; padding:0; cursor:pointer; color:var(--text-3); display:inline-flex; }
+.co-materia { border:0.5px solid var(--border); border-radius:10px; padding:8px 10px; margin:8px 0 0; background:var(--card); }
+.co-materia legend { font-weight:800; font-size:12.5px; padding:0 4px; color:var(--text); }
+.co-competencia { margin-top:6px; }
+.co-ce { font-weight:700; color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.co-criterio { display:flex; gap:8px; align-items:flex-start; padding:3px 0 3px 8px; line-height:1.45; color:var(--text-2); cursor:pointer; }
+.co-criterio input { margin-top:3px; flex-shrink:0; }
 .sda-area-cols { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; padding:0 16px 16px; }
 .sda-area-cols > div { background:var(--card); border-radius:10px; padding:12px 14px; border:0.5px solid var(--border); }
 .sda-area-cols h5 { font-size:11.5px; font-weight:800; color:var(--accent-d); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }

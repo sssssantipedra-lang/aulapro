@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search,
 } from 'lucide-react';
-import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget } from '../types';
+import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget, OfficialCriterionRef } from '../types';
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
@@ -13,6 +13,8 @@ import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { DianasTab } from './EvalDianas';
+import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 /* ─── Props ─── */
 interface Props {
@@ -34,6 +36,8 @@ interface Props {
   defaultOpenEvalStudentId?: string;
   defaultOpenEvalClassId?: string;
   onEvalOpened?: () => void;
+  /** La comunidad del perfil: de su currículo salen los criterios oficiales que se pueden marcar. */
+  comunidad?: ComunidadId;
 }
 
 /* ─── Internal types ─── */
@@ -46,6 +50,8 @@ interface CriterionDraft {
   descs: Record<number, string>;
   /** Competencias LOMLOE, si las trae (solo lo generado con IA). */
   competencies?: string[];
+  /** Criterios de evaluación oficiales que evalúa. */
+  officialCriteria?: OfficialCriterionRef[];
 }
 
 /* ─── Helpers ─── */
@@ -62,11 +68,14 @@ function criterionToDescriptors(c: CriterionDraft): RubricCriterion {
   for (const [k, v] of Object.entries(c.descs)) {
     if (v && v.trim()) descriptors[Number(k)] = v.trim();
   }
-  return { id: c.id, name: c.name, descriptors, competencies: c.competencies };
+  return {
+    id: c.id, name: c.name, descriptors, competencies: c.competencies,
+    ...(c.officialCriteria?.length ? { officialCriteria: c.officialCriteria } : {}),
+  };
 }
 
 function criterionFromRubric(c: RubricCriterion): CriterionDraft {
-  return { id: c.id, name: c.name, descs: { ...c.descriptors }, competencies: c.competencies };
+  return { id: c.id, name: c.name, descs: { ...c.descriptors }, competencies: c.competencies, officialCriteria: c.officialCriteria };
 }
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
@@ -82,9 +91,10 @@ interface RubricModalProps {
   lawDocument: InlineFile | null;
   onClose: () => void;
   onSave: (r: Rubric) => void;
+  comunidad?: ComunidadId;
 }
 
-function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave }: RubricModalProps) {
+function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: RubricModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<RubricMode>('ia');
@@ -453,6 +463,13 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
                       ))}
                     </div>
                   )}
+                  <CriteriosOficialesPicker
+                    idPrefix={`rub-${cr.id}`}
+                    cls={classes.find(c => c.id === target.class_id) ?? null}
+                    comunidad={comunidad}
+                    value={cr.officialCriteria ?? []}
+                    onChange={v => setManualCriteria(prev => prev.map((x, i) => (i === idx ? { ...x, officialCriteria: v } : x)))}
+                  />
                   {/* Un descriptor por nivel: los que haya definido el docente */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(levels.length, 4)}, 1fr)`, gap: 8 }}>
                     {levels.map(lv => (
@@ -908,7 +925,7 @@ export function Rubrics({
   onAddRubric, onUpdateRubric, onDeleteRubric,
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
-  onEvalOpened,
+  onEvalOpened, comunidad,
 }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
@@ -1023,6 +1040,7 @@ export function Rubrics({
           onUpdateDiana={onUpdateDiana}
           onDeleteDiana={onDeleteDiana}
           onAddEvaluation={onAddEvaluation}
+          comunidad={comunidad}
         />
       ) : (
       <>
@@ -1198,6 +1216,7 @@ export function Rubrics({
         lawDocument={lawDocument}
         onClose={() => setRubricModalOpen(false)}
         onSave={handleSaveRubric}
+        comunidad={comunidad}
       />
 
       {/* Eval modal */}

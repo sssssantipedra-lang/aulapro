@@ -10,6 +10,8 @@ import { DianaBoard } from '../components/diana/DianaBoard';
 import { dianaGrade } from '../components/diana/dianaGrade';
 import { levelsOf, levelColor, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
+import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
 
@@ -24,6 +26,8 @@ interface Props {
   onUpdateDiana: (d: EvalDiana) => void;
   onDeleteDiana: (id: string) => void;
   onAddEvaluation: (ev: Evaluation) => void;
+  /** La comunidad del perfil: de su currículo salen los criterios oficiales que se pueden marcar. */
+  comunidad?: ComunidadId;
 }
 
 function uid(): string {
@@ -44,9 +48,10 @@ interface DianaModalProps {
   lawDocument: InlineFile | null;
   onClose: () => void;
   onSave: (d: EvalDiana) => void;
+  comunidad?: ComunidadId;
 }
 
-function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave }: DianaModalProps) {
+function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: DianaModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<'ia' | 'manual'>('ia');
@@ -338,6 +343,15 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
                         ))}
                       </div>
                     )}
+                    <div style={{ marginTop: 4 }}>
+                      <CriteriosOficialesPicker
+                        idPrefix={`dia-${item.id}`}
+                        cls={classes.find(c => c.id === target.class_id) ?? null}
+                        comunidad={comunidad}
+                        value={item.officialCriteria ?? []}
+                        onChange={v => setItems(prev => prev.map((x, i) => (i === idx ? { ...x, officialCriteria: v.length ? v : undefined } : x)))}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -561,7 +575,7 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
 
 export function DianasTab({
   dianas, evaluations, classes, students, gradeCategories, lawDocument,
-  onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
+  onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, comunidad,
 }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
@@ -665,6 +679,7 @@ export function DianasTab({
         classes={classes}
         gradeCategories={gradeCategories}
         lawDocument={lawDocument}
+        comunidad={comunidad}
         onClose={() => setModalOpen(false)}
         onSave={d => {
           if (editing) { onUpdateDiana(d); toast(t('✅ Diana actualizada')); }

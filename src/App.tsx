@@ -327,6 +327,7 @@ function AppInner() {
                 onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={st.addEvaluation}
                 gradeCategories={st.gradeCategories}
+                comunidad={st.currentUser?.community}
               />
             )}
             {section === 'diana' && (
