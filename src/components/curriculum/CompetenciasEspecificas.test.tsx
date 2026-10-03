@@ -5,12 +5,12 @@
  * oficiales llegan a su criterio, su competencia y su área, en una tabla con
  * el número, un resumen (el texto entero al pasar el ratón) y la nota.
  */
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import { CompetenciasEspecificas } from './CompetenciasEspecificas';
 import { I18nProvider } from '../../i18n';
 import { ToastProvider } from '../ui/Toast';
-import { buildCompetenciasHtml } from '../../services/exportCompetencias';
+import { buildCompetenciasHtml, saveCompetenciasPdf } from '../../services/exportCompetencias';
 import { notasDeMateria, resumir } from '../../lib/curriculum/evaluacionPorCriterios';
 import { cargarCurriculo } from '../../lib/curriculum/cargar';
 import { resolverGrupo } from '../../lib/curriculum';
@@ -107,6 +107,17 @@ describe('PDF de las competencias específicas', () => {
     expect(html).toContain('Área: 7,5');
     // Solo el número: el texto de los criterios no va
     expect(html).not.toContain(r.entry.criterios[r.grupo][0].texto);
+  });
+
+  it('en el escritorio y en Android se guarda en vertical, con el nombre del alumno', async () => {
+    const savePdf = vi.fn().mockResolvedValue({ canceled: true });
+    window.electronAPI = { docs: { savePdf, reveal: vi.fn() } } as unknown as typeof window.electronAPI;
+    try {
+      await saveCompetenciasPdf({ alumno: 'Ana López', clase: '5º A', fecha: '2026-10-03', materias: [] }, 'es');
+      expect(savePdf).toHaveBeenCalledWith(expect.stringContaining('<h1>Competencias específicas</h1>'), 'competencias-Ana-Lopez.pdf', { landscape: false });
+    } finally {
+      delete (window as { electronAPI?: unknown }).electronAPI;
+    }
   });
 
   it('el resumen corta en la primera coma si cae pronto, o en la última palabra que cabe', () => {

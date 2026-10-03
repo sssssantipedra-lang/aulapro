@@ -82,8 +82,10 @@ export async function saveCompetenciasPdf(d: DatosCompetencias, lang: Lang): Pro
   const html = buildCompetenciasHtml(d, lang);
   const docs = window.electronAPI?.docs;
   if (docs) {
-    const slug = (x: string) => x.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-    const res = await docs.savePdf(html, `competencias-${slug(d.alumno) || 'alumno'}.pdf`);
+    // «Ana López» → «Ana-Lopez»: sin tildes, que algunos sistemas de archivos llevan mal
+    const slug = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    // Vertical: es una hoja A4 de tablas estrechas (sin indicarlo, sale horizontal)
+    const res = await docs.savePdf(html, `competencias-${slug(d.alumno) || 'alumno'}.pdf`, { landscape: false });
     if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
     return res;
   }
