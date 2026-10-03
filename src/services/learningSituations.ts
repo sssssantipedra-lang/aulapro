@@ -28,7 +28,7 @@
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
-import { resolverGrupo, type CurriculumEntry, type Etapa } from '../lib/curriculum';
+import { competenciasDe, resolverGrupo, type CurriculumEntry, type Etapa } from '../lib/curriculum';
 import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
@@ -385,7 +385,7 @@ export async function analyzeDocument(
  * elegir cuál encaja con la idea de partida.
  */
 function bloqueCurriculoReal(area: string, r: AreaResuelta, cita: string): string {
-  const competencias = r.entry.competencias.map(c => `${c.n}. ${c.texto}`).join('\n');
+  const competencias = competenciasDe(r.entry, r.grupo).map(c => `${c.n}. ${c.texto}`).join('\n');
   const saberes = r.entry.saberes[r.grupo].map(b => `${b.bloque}. ${b.tituloBloque}`).join('\n');
   return (
     `\nÁREA "${area}" — CURRÍCULO OFICIAL REAL (${cita}). ` +
@@ -418,7 +418,7 @@ function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): { area: SdaArea; 
   const { competenciasSeleccionadas, saberesSeleccionados, ...libre } = a;
   if (!r) return { area: libre, oficial: false };
 
-  const competenciasElegidas = r.entry.competencias.filter(
+  const competenciasElegidas = competenciasDe(r.entry, r.grupo).filter(
     c => competenciasSeleccionadas?.includes(c.n),
   );
   const saberesElegidos = r.entry.saberes[r.grupo].filter(

@@ -35,8 +35,10 @@ function normalizar(s: string): string {
  * sus lenguas («matematicas»). Se usa el primero que exista en el currículo
  * activo, así que un mismo alias puede ir a materias distintas según la
  * comunidad: «Música» es «Educación Artística» en el estatal y «Música y
- * Danza» en la Comunitat Valenciana. Un alias nunca debe poder emparejar con
- * dos materias del mismo currículo (lo comprueban las pruebas).
+ * Danza» en la Comunitat Valenciana; «Naturales» es Conocimiento del Medio
+ * en el estatal y Ciencias de la Naturaleza en Madrid. Un alias nunca debe
+ * poder emparejar con dos materias del mismo currículo (lo comprueban las
+ * pruebas).
  *
  * Van también las formas en valenciano y catalán («Matemàtiques»), porque
  * la asignatura la escribe el docente en la lengua en que trabaja.
@@ -59,23 +61,34 @@ const ALIAS_PRIMARIA = tabla([
   [['lengua y literatura'], ['Lengua Castellana y Literatura']],
   [['valenciano', 'valencià', 'valencia', 'llengua valenciana', 'valenciano lengua y literatura',
     'valencià llengua i literatura'], ['valenciano']],
-  [['ingles', 'inglés', 'anglès', 'frances', 'francés', 'francès', 'idioma extranjero', 'lengua extranjera',
-    'llengua estrangera'], ['Lengua Extranjera', 'lengua-extranjera']],
+  [['ingles', 'inglés', 'anglès', 'idioma extranjero', 'lengua extranjera', 'llengua estrangera',
+    'lengua extranjera inglés'], ['Lengua Extranjera', 'lengua-extranjera']],
+  // En Madrid, la primera lengua extranjera es el inglés y el francés es la
+  // segunda; en la Comunitat Valenciana podría ser cualquiera de las dos
+  [['frances', 'francés', 'francès'], ['segunda-lengua-extranjera', 'Lengua Extranjera']],
+  [['segunda lengua extranjera', 'segunda lengua', '2ª lengua extranjera', 'aleman', 'alemán', 'italiano',
+    'portugues', 'portugués'], ['segunda-lengua-extranjera']],
+  // En Madrid son dos áreas: Ciencias de la Naturaleza y Ciencias Sociales
   [['conocimiento del medio', 'cono', 'conocimiento del medio natural social y cultural',
-    'naturales', 'sociales', 'ciencias naturales', 'ciencias sociales', 'cc naturales', 'cc sociales',
-    'coneixement del medi', 'coneixement del medi natural social i cultural', 'medi',
-    'ciències naturals', 'ciències socials'],
+    'coneixement del medi', 'coneixement del medi natural social i cultural', 'medi'],
     ['Conocimiento del Medio Natural, Social y Cultural', 'conocimiento-del-medio']],
+  [['naturales', 'ciencias naturales', 'cc naturales', 'ciències naturals', 'ciencias de la naturaleza'],
+    ['ciencias-de-la-naturaleza', 'Conocimiento del Medio Natural, Social y Cultural', 'conocimiento-del-medio']],
+  [['sociales', 'ciencias sociales', 'cc sociales', 'ciències socials'],
+    ['ciencias-sociales', 'Conocimiento del Medio Natural, Social y Cultural', 'conocimiento-del-medio']],
   [['educacion fisica', 'ed fisica', 'ef', 'educación física', 'educació física'],
     ['Educación Física', 'educacion-fisica']],
-  [['música', 'musica', 'música y danza', 'música i dansa'], ['musica-y-danza', 'Educación Artística']],
+  [['música', 'musica', 'música y danza', 'música i dansa'],
+    ['musica-y-danza', 'Educación Artística', 'educacion-artistica']],
   [['plástica', 'plastica', 'educación plástica', 'educación plástica y visual', 'educació plàstica i visual',
-    'plàstica'], ['educacion-plastica-y-visual', 'Educación Artística']],
-  // Solo en el estatal, que las tiene juntas: donde van por separado, es ambigua
-  [['educacion artistica', 'artistica', 'educación artística', 'plastica y musica'], ['Educación Artística']],
+    'plàstica'], ['educacion-plastica-y-visual', 'Educación Artística', 'educacion-artistica']],
+  // Solo donde van juntas (el estatal y Madrid): donde van por separado, es ambigua
+  [['educacion artistica', 'artistica', 'educación artística', 'plastica y musica'],
+    ['Educación Artística', 'educacion-artistica']],
   [['valores', 'educacion en valores', 'educación en valores cívicos y éticos', 'valores civicos y eticos',
     'valors', 'educació en valors', 'educació en valors cívics i ètics'],
     ['Educación en Valores Cívicos y Éticos', 'educacion-en-valores']],
+  [['tecnologia', 'tecnología', 'robotica', 'robótica', 'tecnologia y robotica'], ['tecnologia-y-robotica']],
 ]);
 
 const ALIAS_ESO = tabla([

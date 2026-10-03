@@ -78,10 +78,13 @@ en Configuración → Perfil; aparece bajo el nombre del docente en el menú). D
 ella sale el currículo oficial de las situaciones de aprendizaje. Mientras Aula
 Pro no tiene el decreto de una comunidad, usa el currículo estatal (Reales
 Decretos 157/2022 y 217/2022) y lo avisa en pantalla. «Fuera de España / no
-aplica» usa el estatal. Ahora mismo solo la Comunitat Valenciana tiene su
-currículo, en Primaria (Decreto 106/2022, modificado por el Decreto 96/2026),
-en castellano o en valenciano según el idioma de la aplicación; su ESO y el
-resto de comunidades usan el estatal.
+aplica» usa el estatal. Ahora mismo tienen su currículo, solo en Primaria, la
+Comunitat Valenciana (Decreto 106/2022, modificado por el Decreto 96/2026, en
+castellano o en valenciano según el idioma de la aplicación) y la Comunidad de
+Madrid (Decreto 61/2022, en castellano, con sus áreas propias: Ciencias de la
+Naturaleza y Ciencias Sociales por separado, Segunda Lengua Extranjera y
+Tecnología y Robótica, y Educación en Valores solo en quinto). La ESO y el resto
+de comunidades usan el estatal.
 
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.

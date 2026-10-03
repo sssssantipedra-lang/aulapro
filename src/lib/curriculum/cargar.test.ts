@@ -17,16 +17,18 @@ const sirve = (materias: CurriculumEntry[]): Cargador => async idioma => ({ idio
 
 describe('sin decreto propio', () => {
   it('con los cargadores reales, una comunidad sin su decreto copiado usa el estatal', async () => {
-    for (const id of ['madrid', 'cataluna', 'andalucia', 'fuera'] as const) {
+    for (const id of ['cataluna', 'andalucia', 'fuera'] as const) {
       const c = await cargarCurriculo(id, 'primaria');
       expect(c.origen).toBe('estatal');
       expect(c.materias).toBe(materiasDe('primaria'));
       expect(c.normas).toBe(NORMAS_ESTATALES.primaria);
     }
-    // La Comunitat Valenciana tiene Primaria, pero todavía no la ESO
-    const eso = await cargarCurriculo('comunitat-valenciana', 'eso');
-    expect(eso.origen).toBe('estatal');
-    expect(eso.normas).toBe(NORMAS_ESTATALES.eso);
+    // La Comunitat Valenciana y Madrid tienen Primaria, pero todavía no la ESO
+    for (const id of ['comunitat-valenciana', 'madrid'] as const) {
+      const eso = await cargarCurriculo(id, 'eso');
+      expect(eso.origen).toBe('estatal');
+      expect(eso.normas).toBe(NORMAS_ESTATALES.eso);
+    }
   });
 
   it('el estatal se tiene sin esperar a nada', () => {

@@ -6,8 +6,9 @@ Estado (2-10-2026):
 
 - Hecho: registro de comunidades y de sus decretos (`src/lib/curriculum/comunidades.ts`), mecanismo de carga con vuelta al estatal (`cargar.ts`), comunidad en el perfil (guardado en escritorio y navegador, selector obligatorio al crear, edición en Perfil), aviso único a los perfiles antiguos e insignia en la barra lateral. La clase se crea eligiendo etapa y curso y marcando sus asignaturas de la lista oficial del currículo (decisión del dueño, 2-10-2026), con «Editar clase» nuevo. La SdA usa el currículo de la comunidad, pregunta la materia que no está clara, guarda la cita del decreto (`SdaContent.normativa`) y la lleva al PDF y al Word; el aviso de que se usó el estatal sale solo en pantalla.
 - Comunitat Valenciana, Primaria: hecha, en castellano y en valenciano. Las 9 áreas del artículo 9 con sus competencias y criterios del 96/2026, los saberes básicos del 106/2022 y Educación en Valores entera del 106/2022, todo extraído de los PDF oficiales y comprobado (ver «Comunitat Valenciana» más abajo). Está en `CARGADORES`: un perfil de la Comunitat Valenciana ya trabaja con su decreto en Primaria, en la lengua de la app (en inglés, el castellano).
-- Pendiente: la ESO valenciana, Cataluña, Madrid y el calendario.
-- El resto de comunidades, y la ESO valenciana, usan el estatal, avisando.
+- Comunidad de Madrid, Primaria: hecha (3-10-2026). Las 7 áreas del artículo 7, Educación en Valores (solo en quinto) y las dos que puede añadir el centro (Segunda Lengua Extranjera y Tecnología y Robótica), extraídas del anexo II del 61/2022 y comprobadas (ver «Comunidad de Madrid» más abajo). Está en `CARGADORES`.
+- Pendiente: la ESO valenciana y la de Madrid, Cataluña y el calendario.
+- El resto de comunidades, y la ESO de la Comunitat Valenciana y de Madrid, usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
 
@@ -97,16 +98,17 @@ Hecho:
 
 - `TeacherProfile.community` y `communityPromptAt` en `src/services/storage.ts`. El escritorio (`electron/storage.cjs`) guarda `community` al crear el perfil. Se lee siempre con `comunidadDePerfil`, que descarta cualquier valor que no sea de la lista.
 - `src/lib/curriculum/comunidades.ts`: las 20 opciones (17 comunidades, Ceuta, Melilla y «Fuera de España»), sus decretos por etapa con matriz y modificaciones, y las funciones para citarlos en el idioma de la app sin traducir.
-- `src/lib/curriculum/cargar.ts`: `CARGADORES` (de momento, Primaria de la Comunitat Valenciana), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia.
+- `src/lib/curriculum/cargar.ts`: `CARGADORES` (de momento, Primaria de la Comunitat Valenciana y de Madrid), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia.
 - `src/components/CommunitySelect.tsx` (selector con «próximamente» y una nota de qué currículo se usará), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
 - `Class.etapa`, `curso`, `opcionMatematicas` y `materiasOficiales` (asignatura → materia oficial, `null` para modo libre). `src/lib/curriculum/materiasDeClase.ts` decide si una asignatura ya tiene materia (elegida o por alias seguro), está en modo libre o hay que preguntar, y con qué opciones. Una elección que ya no existe en el currículo (por cambiar de comunidad) se ignora y se vuelve a preguntar.
 - `src/hooks/useCurriculo.ts` y `src/components/curriculum/CurriculumFields.tsx`: lo que comparten el formulario de la clase y el de la SdA.
 - `generateSda` abre el currículo con `cargarCurriculo` y devuelve `normativa` (comunidad, origen y cita) solo si alguna área acabó con texto oficial.
+- Dos campos opcionales de `CurriculumEntry` que trajo Madrid: `competenciasPorGrupo` (el decreto repite las competencias en cada ciclo y a veces cambia una palabra o una coma; se leen siempre con `competenciasDe(entry, grupo)`) y `cursos` (una materia que no se da en todos los cursos de su grupo: Educación en Valores, solo en quinto; `resolverGrupo` lo respeta).
 
 Pendiente:
 
 - Evaluación por criterios de cada área (propuesta del 3-10-2026, pendiente de que el dueño la confirme): la nota de una rúbrica va a una sola asignatura del cuaderno, pero una SdA trabaja competencias específicas de varias áreas. La idea es evaluar cada área por sus criterios de evaluación, que se agregan en sus competencias específicas, y que la misma evaluación de una rúbrica alimente los criterios de todas las áreas que toca.
-- Datos del resto: `src/lib/curriculum/data/<comunidad>/primaria.<idioma>.json` y `eso.<idioma>.json`, y su entrada en `CARGADORES`. Cada uno sale en su propio archivo al compilar y solo se descarga al pedirlo (el de Primaria valenciana pesa unos 48 KB comprimido).
+- Datos del resto: `src/lib/curriculum/data/<comunidad>/primaria.<idioma>.json` y `eso.<idioma>.json`, y su entrada en `CARGADORES`. Cada uno sale en su propio archivo al compilar y solo se descarga al pedirlo (el de Primaria valenciana pesa unos 48 KB comprimido; el de Madrid, 67 KB, porque sus contenidos cambian de un ciclo a otro).
 - La forma de los datos actuales es la del RD estatal. Los decretos autonómicos pueden agrupar los cursos de otra manera o traer campos propios. Se decide con el texto real delante. Hacia fuera, la interfaz de `index.ts` debe seguir siendo la misma.
 
 ## Bloqueos y pendientes
@@ -201,6 +203,34 @@ En `docs/Normativa Comunidad de Madrid/`, descargados del BOCM (desde el entorno
 - 65/2022, anexo II: por materia, las competencias específicas en texto corrido y, por curso («1º ESO.»), los criterios de evaluación agrupados por competencia y los contenidos en bloques con letra.
 - 59/2024: en Primaria solo cambia el artículo 9.1 (áreas en lengua extranjera). En la ESO cambia articulado y añade un último guion a los contenidos de Geografía e Historia (1º, 2º y 3º, letra B; 4º, letra D). Su corrección de errores solo toca la disposición adicional segunda de la ESO.
 - El Decreto 94/2025 (jornada escolar) cita el artículo 28.1 del 61/2022 pero no lo modifica.
+
+### Cómo se extrajo la Primaria (61/2022)
+
+- Script: `scripts/curriculo/madrid_primaria.py`, sobre el anexo II (páginas 18 a 111). Escribe `src/lib/curriculum/data/madrid/primaria.es.json` y, para revisar, lo intermedio con el nivel de cada viñeta en `scripts/curriculo/comunidad-de-madrid/primaria-61-2022.json`. Con `--revisar` imprime la estructura de cada área y los guiones de final de línea.
+- Cada área empieza con su título en cursiva, centrado. Por ciclo, una tabla de competencias específicas (izquierda) con sus criterios (derecha) y otra de contenidos: bloque con letra, apartado y conocimientos, destrezas y actitudes, con viñetas de tres niveles. Competencias y criterios se reparten por su número; los contenidos, por las filas de la tabla.
+- Lo que hubo que resolver:
+  - Educación Artística reparte sus contenidos en «BLOQUE I. Música y danza» y «BLOQUE II. Educación plástica y visual», cada uno con sus bloques A, B y C, y repite esa cabecera arriba de cada página.
+  - Lengua Castellana tiene bloques sin apartados (A y C) en una celda que ocupa las dos primeras columnas: se mira si hay línea vertical a la altura de cada fila.
+  - El nombre de un apartado puede quedar partido entre dos páginas («Localización y sistemas de» y «representación», Matemáticas, tercer ciclo): se une.
+  - Educación en Valores, Segunda Lengua Extranjera y Tecnología y Robótica tienen una sola tabla, sin ciclos. La de Segunda Lengua trae en el bloque D la gramática de cada lengua (francés, alemán, italiano y portugués) como apartados.
+  - Un subrayado amarillo en la página 93 y unas rayitas sueltas dibujadas como rectángulos parecían líneas de tabla: no cuentan.
+  - Con la fuente como dato de cada palabra, pdfplumber parte las palabras donde cambia la letra («( p hrases» en el francés): las palabras se toman sin ella.
+  - Las tablas de este decreto no parten palabras al final de la línea (el texto va justificado con espacios): el guion que queda ahí es siempre de una palabra compuesta («físico-deportivas», «sintáctico-discursivos», «aditivo-multiplicativa», «co-presentaciones», vistos en la imagen). El programa se para si alguna de esas palabras aparece entera en otra parte del decreto.
+- Comprobaciones, todas superadas (el programa se para si alguna falla):
+  - En cada área y ciclo, competencias numeradas desde 1, cada una con algún criterio; códigos de criterio sin repetir y en orden; bloques con letras seguidas (A, B, C…); cada parte de contenidos empieza por una viñeta de primer nivel.
+  - Cada texto que pasa a la app se busca en el texto simple del PDF (`pdftotext`, sin las cabeceras y pies de página): 1627 coinciden letra a letra, 5 con las palabras desordenadas y 3 en dos o tres trozos. Esos 8 son textos que siguen en la página siguiente, o viñetas de segundo nivel, que `pdftotext` saca con otra cosa en medio; se compararon con la imagen de la página y están bien.
+  - Al revés: todas las palabras de las tablas están en lo extraído, salvo las cabeceras («COMPETENCIAS ESPECÍFICAS», «PRIMER CICLO»…), las viñetas y la cabecera repetida del bloque I o II.
+  - Los criterios de cada área se contaron también en el texto de `pdftotext -layout` por otro camino: 423 en total, los mismos.
+  - Las pruebas de `src/lib/curriculum/madrid.test.ts` fijan los totales de cada área y ciclo.
+- Literalidad: se conserva lo que pone el decreto aunque parezca una errata: «Creencias, actitudes valoración personal» (Matemáticas, primer ciclo), «actitudes de, respeto» (Educación Física, competencia 3, tercer ciclo), «cest» sin apóstrofo en el francés, «Wh- questions» y «verb- ing» en Inglés, criterios sin punto tras el código en Educación en Valores y Segunda Lengua («3.1 Evaluar…»).
+
+### Cómo queda en la app (Primaria)
+
+- Áreas, en el orden del anexo II y con su nombre: Ciencias de la Naturaleza; Ciencias Sociales; Educación Artística; Educación Física; Lengua Castellana y Literatura; Lengua Extranjera: Inglés; Matemáticas; Educación en Valores Cívicos y Éticos (solo quinto, `cursos: [5]`); Segunda Lengua Extranjera y Tecnología y Robótica (las dos, en los tres ciclos con la misma tabla). Religión, como «otra asignatura».
+- Competencias: las de cada ciclo. El decreto las repite en cada tabla y en 6 áreas cambia algo de un ciclo a otro (una coma, «de forma guiada», «de la diversidad de las lenguas»…): esas llevan `competenciasPorGrupo`, y la SdA de quinto cita el texto del tercer ciclo.
+- Contenidos: a diferencia de la Comunitat Valenciana, cada ciclo tiene los suyos. Bloque (letra y título) y, como epígrafes, sus apartados sin número (el decreto no los numera); sin apartados, un epígrafe sin título. En Educación Artística, el bloque es el I o el II y sus epígrafes son los bloques con letra («A. Recepción y análisis»), con la letra tal cual. Las viñetas de segundo y tercer nivel van en la lista de su apartado, detrás de la de primer nivel que las introduce («El reino de los animales. Características y clasificación:»), como en el estatal; el nivel de cada una queda en lo intermedio.
+- Alias de Madrid: «Naturales» y «Sociales» van a Ciencias de la Naturaleza y Ciencias Sociales (en el estatal y en la Comunitat Valenciana, a Conocimiento del Medio); «Conocimiento del Medio» y «Cono» no emparejan, porque aquí son dos áreas; «Música» y «Plástica» van a Educación Artística; «Francés», a Segunda Lengua Extranjera (en Madrid la primera es el inglés; en la Comunitat Valenciana ya no se adivina y se pregunta); «Robótica» y «Tecnología», a Tecnología y Robótica.
+- Cita: «Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), modificado por Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024)». El 59/2024 no toca el anexo II de Primaria, pero sí el decreto: se cita.
 
 ## Pendiente de decidir
 

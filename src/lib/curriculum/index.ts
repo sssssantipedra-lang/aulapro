@@ -77,9 +77,26 @@ export interface CurriculumEntry {
    */
   id: string;
   nombre: string;
+  /**
+   * Las competencias específicas de la materia. Para leerlas en un grupo de
+   * cursos concreto, `competenciasDe`: algún decreto las repite en cada grupo
+   * con cambios de redacción (ver `competenciasPorGrupo`).
+   */
   competencias: CurriculumCompetencia[];
+  /**
+   * Solo cuando el decreto escribe las competencias en cada grupo de cursos y
+   * no todas igual (Madrid, Primaria: una palabra o una coma de un ciclo a
+   * otro): las de cada grupo, tal cual. `competencias` lleva entonces las del
+   * primer grupo.
+   */
+  competenciasPorGrupo?: Record<string, CurriculumCompetencia[]>;
   criterios: Record<string, CurriculumCriterio[]>;
   saberes: Record<string, CurriculumBloqueSaberes[]>;
+  /**
+   * Solo si la materia no se imparte en todos los cursos de sus grupos: en
+   * Madrid, Educación en Valores Cívicos y Éticos va en quinto, no en sexto.
+   */
+  cursos?: number[];
 }
 
 export interface RawEntry {
@@ -87,8 +104,10 @@ export interface RawEntry {
   area?: string;
   materia?: string;
   competencias: CurriculumCompetencia[];
+  competenciasPorGrupo?: Record<string, CurriculumCompetencia[]>;
   criterios: Record<string, CurriculumCriterio[]>;
   saberes: Record<string, CurriculumBloqueSaberes[]>;
+  cursos?: number[];
 }
 
 export function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
@@ -96,9 +115,16 @@ export function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
     id: r.id ?? r.area ?? r.materia ?? '',
     nombre: r.area ?? r.materia ?? '',
     competencias: r.competencias,
+    ...(r.competenciasPorGrupo ? { competenciasPorGrupo: r.competenciasPorGrupo } : {}),
     criterios: r.criterios,
     saberes: r.saberes,
+    ...(r.cursos ? { cursos: r.cursos } : {}),
   }));
+}
+
+/** Las competencias específicas de una materia, con el texto de este grupo de cursos. */
+export function competenciasDe(entry: CurriculumEntry, grupo: string): CurriculumCompetencia[] {
+  return entry.competenciasPorGrupo?.[grupo] ?? entry.competencias;
 }
 
 // TypeScript infiere de cada JSON el tipo exacto de sus claves literales
@@ -176,6 +202,7 @@ export function resolverGrupo(
 ): { entry: CurriculumEntry; grupo: string } | null {
   const entry = buscarMateria(etapa, nombreMateria, materias);
   if (!entry) return null;
+  if (entry.cursos && !entry.cursos.includes(curso)) return null;
 
   if (etapa === 'primaria') {
     const grupo = String(cicloDePrimaria(curso));

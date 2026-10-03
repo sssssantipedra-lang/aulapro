@@ -108,6 +108,30 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
     expect(emparejarMateria('Matemàtiques', 'primaria', await valenciana('es'))).toBe('Matemáticas');
   });
 
+  const madrid = async () => (await cargarCurriculo('madrid', 'primaria', 'es')).materias;
+
+  it.each([
+    ['Naturales', 'Ciencias de la Naturaleza'],
+    ['Sociales', 'Ciencias Sociales'],
+    ['Música', 'Educación Artística'],
+    ['Plástica', 'Educación Artística'],
+    ['Inglés', 'Lengua Extranjera: Inglés'],
+    ['Francés', 'Segunda Lengua Extranjera'],
+    ['Robótica', 'Tecnología y Robótica'],
+    ['Lengua', 'Lengua Castellana y Literatura'],
+    ['Valores', 'Educación en Valores Cívicos y Éticos'],
+  ])('Madrid: "%s" empareja con "%s"', async (asignatura, esperado) => {
+    expect(emparejarMateria(asignatura, 'primaria', await madrid())).toBe(esperado);
+  });
+
+  it.each([
+    // Dos áreas en Madrid: Ciencias de la Naturaleza y Ciencias Sociales
+    'Conocimiento del Medio', 'Cono',
+    'Valenciano', 'Religión',
+  ])('Madrid: "%s" no empareja', async asignatura => {
+    expect(emparejarMateria(asignatura, 'primaria', await madrid())).toBeNull();
+  });
+
   it('el estatal sigue igual: «Música» es Educación Artística y «Valenciano» no existe', () => {
     expect(emparejarMateria('Música', 'primaria')).toBe('Educación Artística');
     expect(emparejarMateria('Valenciano', 'primaria')).toBeNull();
@@ -118,6 +142,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
       ['estatal', materiasDe('primaria')],
       ['valenciana es', await valenciana('es')],
       ['valenciana ca', await valenciana('ca')],
+      ['Madrid', await madrid()],
     ];
     for (const [nombre, materias] of curriculos) {
       for (const [alias, ids] of tablaDeAlias('primaria')) {
@@ -128,7 +153,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
   });
 
   it('cada identificador de la tabla existe en algún currículo', async () => {
-    const todos = [...materiasDe('primaria'), ...await valenciana('es')].map(m => m.id);
+    const todos = [...materiasDe('primaria'), ...await valenciana('es'), ...await madrid()].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('primaria')) {
       for (const id of ids) expect(todos, `«${alias}» → ${id}`).toContain(id);
     }

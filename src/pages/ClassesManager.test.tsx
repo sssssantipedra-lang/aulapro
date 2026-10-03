@@ -16,7 +16,7 @@ import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 afterEach(cleanup);
 
-function setup(classes: Class[] = [], comunidad: ComunidadId = 'madrid') {
+function setup(classes: Class[] = [], comunidad: ComunidadId = 'cataluna') {
   const onAddClass = vi.fn();
   const onUpdateClass = vi.fn();
   render(
@@ -62,11 +62,11 @@ describe('crear una clase', () => {
     await nuevaClase(user, 'primaria', '5');
     const grupo = screen.getByRole('group', { name: 'Asignaturas del currículo' });
     const nombres = [...grupo.querySelectorAll('button')].map(b => b.textContent);
-    // Madrid aún no está copiada: las 7 áreas del Real Decreto, en su orden
+    // Cataluña aún no está copiada: las 7 áreas del Real Decreto, en su orden
     expect(nombres).toEqual(materiasDe('primaria').map(m => m.nombre));
     // Y se cita de dónde salen, avisando de que es el estatal
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
-    expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Comunidad de Madrid\)/)).toBeTruthy();
+    expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Cataluña\)/)).toBeTruthy();
   });
 
   it('con el decreto de la comunidad copiado, ofrece sus áreas y lo cita, sin avisar del estatal', async () => {

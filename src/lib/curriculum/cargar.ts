@@ -63,6 +63,14 @@ export const CARGADORES: Cargadores = {
         : (await import('./data/comunitat-valenciana/primaria.es.json')).default) as unknown as RawEntrySaberesComunes[]),
     }),
   },
+  // Decreto 61/2022 (`scripts/curriculo/madrid_primaria.py`), solo en castellano.
+  // Sus contenidos sí cambian de un ciclo a otro: cada grupo lleva los suyos.
+  madrid: {
+    primaria: async () => ({
+      idioma: 'es',
+      materias: normalizarEntradas((await import('./data/madrid/primaria.es.json')).default as unknown as RawEntry[]),
+    }),
+  },
 };
 
 export interface CurriculoActivo {
