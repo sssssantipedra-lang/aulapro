@@ -4,7 +4,7 @@
  * asignatura, la opción de Matemáticas de 4º de ESO y la línea que dice de qué
  * decreto sale todo. Ver `docs/COMUNIDADES.md`.
  */
-import { Check, AlertTriangle } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import type { Etapa } from '../../lib/curriculum';
 import type { EstadoMateria } from '../../lib/curriculum/materiasDeClase';
@@ -133,12 +133,12 @@ export function CurriculoNota({ curriculo, prefijo }: { curriculo: CurriculoActi
   );
 }
 
+/**
+ * Bajo la cita del currículo, cuando la comunidad del perfil usa el estatal:
+ * lo dice como un hecho, sin «aún no» (decisión del dueño, 3-10-2026). La cita
+ * de encima ya nombra el Real Decreto.
+ */
 export function AvisoEstatal({ comunidad }: { comunidad: string }) {
   const { t } = useI18n();
-  return (
-    <p className="sda-note" style={{ display: 'flex', gap: 5, alignItems: 'flex-start', color: 'var(--warn-fg)' }}>
-      <AlertTriangle size={12} style={{ flexShrink: 0, marginTop: 2 }} />
-      {t('Se usa el currículo estatal: Aula Pro aún no tiene el decreto de tu comunidad ({comunidad}).', { comunidad })}
-    </p>
-  );
+  return <p className="sda-note">{t('{comunidad} sigue el currículo estatal.', { comunidad })}</p>;
 }

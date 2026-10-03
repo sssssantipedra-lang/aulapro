@@ -308,9 +308,10 @@ export function textoNorma(textos: Textos, idioma: IdiomaApp): string {
  * La cita de una serie de normas en una línea: la matriz y, si la tiene, lo
  * que la modifica. «Decreto 106/2022, de 5 de agosto (DOGV núm. 9402, …),
  * modificado por el Decreto 96/2026, de 19 de junio (DOGV núm. 10391, …)».
+ * Sin `boletin`, la versión corta, para el selector de comunidad.
  */
-export function citarNormas(normas: Norma[], idioma: IdiomaApp): string {
-  const una = (n: Norma) => `${textoNorma(n.corto, idioma)} (${textoNorma(n.boletin, idioma)})`;
+export function citarNormas(normas: Norma[], idioma: IdiomaApp, { boletin = true }: { boletin?: boolean } = {}): string {
+  const una = (n: Norma) => (boletin ? `${textoNorma(n.corto, idioma)} (${textoNorma(n.boletin, idioma)})` : textoNorma(n.corto, idioma));
   const [matriz, ...cambios] = normas;
   if (!matriz) return '';
   if (cambios.length === 0) return una(matriz);

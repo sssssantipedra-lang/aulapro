@@ -5,7 +5,7 @@
  * cuáles hay para probar los tres casos: ninguno, solo una etapa y las dos.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { CommunitySelect } from './CommunitySelect';
@@ -38,30 +38,40 @@ describe('selector de comunidad', () => {
     expect(opciones[opciones.length - 1].textContent).toBe('Fuera de España / no aplica');
   });
 
-  it('marca «próximamente» las que aún no tienen su decreto, y no las que sí', () => {
+  it('en dos grupos: con decreto autonómico actualizado (con la etapa si es solo una) y con el estatal', () => {
     render(<I18nProvider><Selector /></I18nProvider>);
-    expect(screen.getByRole('option', { name: 'Andalucía · próximamente' })).toBeTruthy();
-    expect(screen.getByRole('option', { name: 'Cataluña' })).toBeTruthy();
-    expect(screen.getByRole('option', { name: 'Fuera de España / no aplica' })).toBeTruthy();
+    const grupos = screen.getAllByRole('group');
+    expect(grupos.map(g => g.getAttribute('label'))).toEqual([
+      'Decreto autonómico actualizado', 'Decreto estatal (RD 157/2022 y RD 217/2022)',
+    ]);
+    expect(within(grupos[0]).getAllByRole('option').map(o => o.textContent)).toEqual(['Cataluña', 'Comunidad de Madrid (Primaria)']);
+    const estatales = within(grupos[1]).getAllByRole('option').map(o => o.textContent);
+    expect(estatales).toHaveLength(18);
+    expect(estatales[0]).toBe('Andalucía');
+    expect(estatales.at(-1)).toBe('Fuera de España / no aplica');
+    expect(screen.queryByText(/próximamente/)).toBeNull();
   });
 
-  it('sin elegir no dice nada; al elegir cuenta qué currículo se va a usar', async () => {
+  it('sin elegir no dice nada; al elegir cuenta de qué decreto sale cada etapa', async () => {
     const user = userEvent.setup();
     render(<I18nProvider><Selector /></I18nProvider>);
     const select = screen.getByRole('combobox');
-    expect(screen.queryByText(/currículo/i)).toBeNull();
-
-    await user.selectOptions(select, 'cataluna');
-    expect(screen.getByText('Cataluña: currículo oficial disponible en Primaria y ESO.')).toBeTruthy();
+    expect(screen.queryByText(/currículo|Decreto/i)).toBeNull();
 
     await user.selectOptions(select, 'madrid');
-    expect(screen.getByText('Comunidad de Madrid: currículo oficial disponible en Primaria; en ESO se usa el estatal por ahora.')).toBeTruthy();
+    expect(screen.getByText('Comunidad de Madrid: decreto autonómico actualizado en Primaria.')).toBeTruthy();
+    expect(screen.getByText('Primaria: Decreto 61/2022, de 13 de julio, modificado por Decreto 59/2024, de 12 de junio.')).toBeTruthy();
+    expect(screen.getByText('ESO: currículo estatal, Real Decreto 217/2022, de 29 de marzo.')).toBeTruthy();
 
+    // Sin «todavía» ni «más adelante»: sigue el estatal, con sus reales decretos
     await user.selectOptions(select, 'andalucia');
-    expect(screen.getByText(/Andalucía: todavía no tenemos su decreto\. Mientras tanto se usa el currículo estatal/)).toBeTruthy();
+    expect(screen.getByText('Andalucía sigue el currículo estatal.')).toBeTruthy();
+    expect(screen.getByText('Primaria: Real Decreto 157/2022, de 1 de marzo.')).toBeTruthy();
+    expect(screen.getByText('ESO: Real Decreto 217/2022, de 29 de marzo.')).toBeTruthy();
+    expect(screen.queryByText(/todavía|más adelante|por ahora/)).toBeNull();
 
     await user.selectOptions(select, 'fuera');
-    expect(screen.getByText('Se usa el currículo estatal (LOMLOE).')).toBeTruthy();
+    expect(screen.getByText('Currículo estatal.')).toBeTruthy();
   });
 });
 

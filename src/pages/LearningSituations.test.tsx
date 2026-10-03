@@ -133,14 +133,14 @@ describe('currículo de la comunidad en el formulario', () => {
     expect(screen.getAllByText(/5º de Primaria/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022, de 1 de marzo/)).toBeTruthy();
     // Cataluña aún no está copiada: se avisa en pantalla
-    expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Cataluña\)/)).toBeTruthy();
+    expect(screen.getByText('Cataluña sigue el currículo estatal.')).toBeTruthy();
   });
 
   it('«Fuera de España» cita el estatal sin avisar de nada', async () => {
     const { user } = await abrirFormulario([quintoA], 'fuera');
     await user.selectOptions(screen.getByLabelText('Clase', { selector: '#learningsituations-f3' }), 'c1');
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
-    expect(screen.queryByText(/aún no tiene el decreto/)).toBeNull();
+    expect(screen.queryByText(/sigue el currículo estatal/)).toBeNull();
   });
 
   it('pregunta la materia oficial del área que no tiene alias seguro, y lo recuerda en la clase', async () => {
@@ -190,7 +190,7 @@ describe('de qué decreto sale una SdA ya generada', () => {
     setup([conNormativa({ comunidad: 'madrid', origen: 'estatal', cita: 'Real Decreto 217/2022, de 29 de marzo (BOE núm. 76, de 30 de marzo de 2022)' })]);
     await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
     expect(screen.getByText('Currículo: Real Decreto 217/2022, de 29 de marzo (BOE núm. 76, de 30 de marzo de 2022)')).toBeTruthy();
-    expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Comunidad de Madrid\)/)).toBeTruthy();
+    expect(screen.getByText('Comunidad de Madrid sigue el currículo estatal.')).toBeTruthy();
   });
 
   it('con el decreto de la comunidad, solo la cita', async () => {
@@ -198,7 +198,7 @@ describe('de qué decreto sale una SdA ya generada', () => {
     setup([conNormativa({ comunidad: 'madrid', origen: 'autonomico', cita: 'Decreto 65/2022, de 20 de julio (BOCM núm. 176, de 26 de julio de 2022)' })]);
     await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
     expect(screen.getByText(/Currículo: Decreto 65\/2022/)).toBeTruthy();
-    expect(screen.queryByText(/aún no tiene el decreto/)).toBeNull();
+    expect(screen.queryByText(/sigue el currículo estatal/)).toBeNull();
   });
 
   it('marca las áreas que llevan el texto oficial del decreto, y no las que redactó la IA', async () => {

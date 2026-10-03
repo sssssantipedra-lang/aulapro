@@ -28,7 +28,7 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 - En el perfil del docente. Una vez fijada, todo parte de esa decisión. No hay selector de comunidad en cada SdA.
 - Perfil nuevo: obligatoria. La lista incluye «Fuera de España / no aplica», que usa el currículo estatal.
 - Perfiles ya creados, sin comunidad: un aviso al abrir el perfil pide elegirla, una sola vez. Mientras no la elijan, se usa el estatal.
-- La lista trae las 19 (17 comunidades y Ceuta y Melilla). Las que aún no tienen su decreto copiado se muestran como «próximamente» y usan el estatal con un aviso claro.
+- La lista trae las 19 (17 comunidades y Ceuta y Melilla), en dos grupos (decisión del dueño, 3-10-2026): «Decreto autonómico actualizado», las que tienen su decreto copiado (con la etapa entre paréntesis si es solo una), y «Decreto estatal (RD 157/2022 y RD 217/2022)», las demás y «Fuera de España». De las que siguen el estatal se dice eso, que siguen el currículo estatal, sin «próximamente» ni «aún no».
 - Por comprobar en la fuente: si Ceuta y Melilla (gestión del Ministerio) usan el estatal tal cual o una orden propia. Hasta comprobarlo, se tratan como el resto de comunidades sin decreto copiado.
 
 ### Qué se adapta a la comunidad
@@ -100,7 +100,7 @@ Hecho:
 - `TeacherProfile.community` y `communityPromptAt` en `src/services/storage.ts`. El escritorio (`electron/storage.cjs`) guarda `community` al crear el perfil. Se lee siempre con `comunidadDePerfil`, que descarta cualquier valor que no sea de la lista.
 - `src/lib/curriculum/comunidades.ts`: las 20 opciones (17 comunidades, Ceuta, Melilla y «Fuera de España»), sus decretos por etapa con matriz y modificaciones, y las funciones para citarlos en el idioma de la app sin traducir.
 - `src/lib/curriculum/cargar.ts`: `CARGADORES` (de momento, Primaria de la Comunitat Valenciana, y Primaria y ESO de Madrid), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia.
-- `src/components/CommunitySelect.tsx` (selector con «próximamente» y una nota de qué currículo se usará), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
+- `src/components/CommunitySelect.tsx` (selector en dos grupos y una nota con el decreto de cada etapa), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
 - `Class.etapa`, `curso`, `opcionMatematicas` y `materiasOficiales` (asignatura → materia oficial, `null` para modo libre). `src/lib/curriculum/materiasDeClase.ts` decide si una asignatura ya tiene materia (elegida o por alias seguro), está en modo libre o hay que preguntar, y con qué opciones. Una elección que ya no existe en el currículo (por cambiar de comunidad) se ignora y se vuelve a preguntar.
 - `src/hooks/useCurriculo.ts` y `src/components/curriculum/CurriculumFields.tsx`: lo que comparten el formulario de la clase y el de la SdA.
 - `generateSda` abre el currículo con `cargarCurriculo` y devuelve `normativa` (comunidad, origen y cita) solo si alguna área acabó con texto oficial.

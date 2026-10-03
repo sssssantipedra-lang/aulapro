@@ -66,7 +66,7 @@ describe('crear una clase', () => {
     expect(nombres).toEqual(materiasDe('primaria').map(m => m.nombre));
     // Y se cita de dónde salen, avisando de que es el estatal
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
-    expect(screen.getByText(/Aula Pro aún no tiene el decreto de tu comunidad \(Cataluña\)/)).toBeTruthy();
+    expect(screen.getByText('Cataluña sigue el currículo estatal.')).toBeTruthy();
   });
 
   it('con el decreto de la comunidad copiado, ofrece sus áreas y lo cita, sin avisar del estatal', async () => {
@@ -84,7 +84,7 @@ describe('crear una clase', () => {
       'Currículo: Decreto 106/2022, de 5 de agosto (DOGV núm. 9402, de 10 de agosto de 2022), '
       + 'modificado por Decreto 96/2026, de 19 de junio (DOGV núm. 10391, de 25 de junio de 2026)',
     )).toBeTruthy();
-    expect(screen.queryByText(/aún no tiene el decreto/)).toBeNull();
+    expect(screen.queryByText(/sigue el currículo estatal/)).toBeNull();
   });
 
   it('Educación en Valores solo aparece en el tercer ciclo', async () => {
