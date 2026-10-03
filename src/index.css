@@ -659,6 +659,18 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sda-area-ttl { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .sda-area summary svg { color:var(--text-3); transition:transform var(--t); }
 .sda-area[open] summary svg { transform:rotate(180deg); }
+.ce-intro { font-size:12.5px; line-height:1.5; color:var(--text-3); margin:0 0 6px; }
+.ce-aviso { font-size:13px; line-height:1.5; color:var(--text-2); margin:10px 0 2px; }
+.ce-lista { list-style:none; margin:0; padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
+.ce-fila { display:flex; align-items:flex-start; gap:10px; }
+.ce-texto { flex:1; min-width:0; font-size:13px; line-height:1.5; color:var(--text); }
+.ce-criterios { list-style:none; margin:6px 0 0 6px; padding:0 0 0 12px; border-left:2px solid var(--border); display:flex; flex-direction:column; gap:6px; }
+.ce-criterios .ce-texto { font-size:12.5px; color:var(--text-2); }
+.ce-veces { font-size:11px; color:var(--text-3); white-space:nowrap; padding-top:2px; }
+.ce-nota { font-size:12px; font-weight:800; padding:2px 9px; border-radius:99px; flex-shrink:0; }
+.ce-nota.alta { background:var(--ok-bg); color:var(--ok-fg); }
+.ce-nota.media { background:var(--warn-bg); color:var(--warn-fg); }
+.ce-nota.baja { background:color-mix(in srgb, var(--danger) 14%, var(--card)); color:var(--danger); }
 .sda-area-cols { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; padding:0 16px 16px; }
 .sda-area-cols > div { background:var(--card); border-radius:10px; padding:12px 14px; border:0.5px solid var(--border); }
 .sda-area-cols h5 { font-size:11.5px; font-weight:800; color:var(--accent-d); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }

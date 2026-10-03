@@ -339,6 +339,7 @@ function AppInner() {
                 lawDocument={st.lawDocument}
                 dianaProfiles={st.dianaProfiles}
                 onSaveDiana={st.saveDianaProfile}
+                comunidad={st.currentUser?.community}
               />
             )}
             {section === 'selfassess' && (
