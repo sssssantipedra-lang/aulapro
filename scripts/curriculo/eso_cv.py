@@ -78,14 +78,16 @@ MATERIAS = [
     m('musica', 'Música', 'Música', '66', (288, 313), (92, 116), 'tabla', grupos={12: CICLO[2], 3: CURSO[3]}),
     m('lengua-extranjera', 'Lengua Extranjera', 'Llengua Estrangera', '107', (953, 972), (363, 382), 'tabla', por_ciclo=True),
     m('tecnologia', 'Tecnología', 'Tecnologia', '107', (973, 991), (383, 401), 'tabla', curso=4),
-    m('tecnologia-y-digitalizacion', 'Tecnología y Digitalización', 'Tecnologia i Digitalització', '107', (992, 1021), (402, 430), 'tabla'),
+    m('tecnologia-y-digitalizacion', 'Tecnología y Digitalización', 'Tecnologia i Digitalització', '107', (992, 1021), (402, 430), 'tabla',
+      bloques='apartado', saberes='plano'),   # «4.3. Digitalización…», sin «Bloque»; cada celda, un saber
     m('lenguas', None, None, '107', (1022, 1055), (431, 462), 'tabla', por_ciclo=True),
     m('artes-escenicas', 'Artes Escénicas', 'Arts Escèniques', '107', (1056, 1072), (464, 479), 'lista', inicio='codigo', curso=4),
     m('creatividad-musical', 'Creatividad Musical', 'Creativitat Musical', '107', (1073, 1085), (480, 493), 'lista', inicio='codigo', curso=3,
+      saberes='parrafos',
       titulo_ce={'va': r'^\s*6\.(\d{1,2})\.\s+(?!\d)'}),    # en valenciano, «6.1. Identificar…» y «6.1.1.»
     m('cultura-clasica', 'Cultura Clásica', 'Cultura Clàssica', '107', (1086, 1099), (494, 508), 'lista', inicio='vineta', curso=3),
     m('emprendimiento-social-y-sostenible', 'Emprendimiento Social y Sostenible', 'Emprenedoria Social i Sostenible', '107', (1100, 1111), (509, 520), 'tabla', curso=2),
-    m('filosofia', 'Filosofía', 'Filosofia', '107', (1112, 1124), (521, 532), 'tabla', curso=4),
+    m('filosofia', 'Filosofía', 'Filosofia', '107', (1112, 1124), (521, 532), 'tabla', curso=4, saberes='parrafos'),
     m('programacion-ia-y-robotica', 'Inteligencia Artificial, Programación y Robótica', 'Intel·ligència Artificial, Programació i Robòtica', '107', (1125, 1138), (533, 546), 'tabla'),
     m('laboratorio-de-artes-escenicas', 'Laboratorio de Artes Escénicas', 'Laboratori d’Arts Escèniques', '107', (1139, 1153), (547, 562), 'lista',
       inicio={'es': 'numero', 'va': 'codigo'}, curso=1),
@@ -582,18 +584,25 @@ def tablas_cache(fuente: str, idioma: str) -> dict:
     return {int(k): v['tablas'] for k, v in json.loads((CACHE / f'{fuente}{idioma}.json').read_text()).items()}
 
 
-BLOQUE = re.compile(r'^\s*(?:\d\s?\.\s?\d{1,2}\s?\.?\s*)?(?:Bloque|Bloc|BLOQUE|BLOC)\s*(\d{1,2})\s*[:.\-–]?\s*(.*)$')
-SUBBLOQUE = re.compile(r'^\s*(?:Sub-?\s?blo(?:que|c)|SUB-?\s?BLO(?:QUE|C)|SB|GRUPO DE SABERES|GRUP DE SABERS|Grupo de saberes|Grup de sabers)'
-                       r'\s*(\d{1,2}(?:\s?\.\s?\d{1,2})?)\s*[:.\-–]?\s*(.*)$')
-VINETA = re.compile(r'^\s*[•●▪◦⚫□−\-–]\s*')
-CABECERA_SABERES = re.compile(r'^(?:Saberes b[áa]sicos|Sabers b[àa]sics|CURSO|CURS|CICLO|CICLE|Curso|Curs|Ciclo|Cicle)\b', re.I)
+BLOQUE = re.compile(r'^\s*(?:\d(?:\s?\.\s?\d{1,2}){0,2}\s?\.?\s*)?(?:Bloque|Bloc|BLOQUE|BLOC)\s*(\d{1,2})\s*[:.\-–]?\s*(.*)$')
+SUBBLOQUE_SIN_NUMERO = re.compile(r'(?i)^\s*(Sub-?\s?blo(?:que|c)\s+(?:de|del|d’|d\'|dels)\b.*?)(?:\s+cursos?(?:\s+cursos?)*)?\s*$')
+APARTADO = re.compile(r'^\s*4\s?\.\s?(\d{1,2})\s?\.?\s+(?!Introducci)(\S.*)$')
+SUBBLOQUE = re.compile(r'^\s*(?:\d(?:\.\d{1,2}){1,3}\.?\s*)?(?:Sub-?\s?blo(?:que|c)|Sibbloc|Grupo|Grup(?=\s\d)|SUB-?\s?BLO(?:QUE|C)|SB|GRUPO DE SABERES|GRUP DE SABERS|Grupo de saberes|Grup de sabers|G(?=\s?\d)|B(?=\.?\d\.\d))'
+                       r'\.?\s*(\d{1,2}(?:\s?\.\s?\d{1,2})?)\s*[:.\-–]?\s*(.*)$')
+VINETA = re.compile(r'^\s*(?:(?:[•●▪◦⚫□−\-–]|\(cid:486\))\s*)+')      # a veces, dos superpuestas («••»)
+CABECERA_SABERES = re.compile(r'^(?:Saberes b[áa]sicos|Sabers b[àa]sics|CURSO|CURS|CICLO|CICLE|Curso|Curs|Ciclo|Cicle|CONTENIDOS|CONTINGUTS|Contenidos|Continguts)\b\s*$|^(?:Saberes b[áa]sicos|Sabers b[àa]sics)\b', re.I)
 MARCA = re.compile(r'^(?:[xX✓✔]|\d\s?\.?\s?[ºª]|\d(?:er|r|n|t|º|o)?|1\.?er|(?:\(?Cursos?.*\)?))$')
 
 
 def es_marca(t: str) -> bool:
-    """Las celdas de curso: «x», «1º», «(Cursos 1º y 2º)»…"""
+    """Las celdas de curso: «x», «1º», «2º curso», «(Cursos 1º y 2º)»…"""
     t = t.strip()
-    return not t or bool(MARCA.match(t)) or len(t) <= 3 or bool(re.match(r'^[xX\s]+$', t))
+    if re.match(r'(?i)^(?:perfil\s*[12]\s*)+$', t) or re.match(
+            r'(?i)^(?:(?:primer[oa]?|segundo|segon|tercer[oa]?|cuarto|quart|cursos?|curs|eso|[ab])\b\s*)+$', t):
+        return True
+    return (not t or bool(MARCA.match(t)) or len(t) <= 3 or bool(re.match(r'^[xX\s]+$', t))
+            or bool(re.match(r'(?i)^(?:\(?\s*(?:cursos?|curs)?\s*\d\s*\.?\s*(?:º|ª|er|r|n|t|o)?\s*(?:y|i)?\s*'
+                             r'(?:curso|curs|eso|ciclo|cicle)?\s*\)?\s*)+$', t)))
 
 
 @lru_cache(maxsize=8)
@@ -618,24 +627,41 @@ def eventos_saberes(mat: dict, idioma: str):
         for l in lin.get(n, []):
             if l['top'] > CABECERA_PAGINA:
                 ev.append(dict(tipo='linea', pag=n, top=l['top'], x0=l['x0'], x1=l['x1'], texto=l['text'], celda=None))
-        for t in tab.get(n, []):
+        tablas_pag = tab.get(n, [])
+        con_texto = [(i, tuple(c['bbox'])) for i, t in enumerate(tablas_pag) for fila in t['filas'] for c in fila if c['lineas']]
+        repetidas = {(i, b) for i, b in con_texto if any(o != b and contenida(b, o) for _, o in con_texto)}
+        for i_t, t in enumerate(tablas_pag):
+            # una tabla «de viñetas» si al menos un tercio de sus celdas con texto empiezan por una
+            llenas_t = [c for fila in t['filas'] for c in fila if c['lineas'] and not es_marca(' '.join(l['text'] for l in c['lineas']))]
+            vinetas = bool(llenas_t) and sum(1 for c in llenas_t if VINETA.match(c['lineas'][0]['text'])) >= len(llenas_t) / 3
+            # Física y Química marca con la X el curso de cada título, no el de sus saberes
+            def con_x(fila):
+                return any(c['lineas'] and re.match(r'^[xX✓✔](?:\s+[xX✓✔])*$', ' '.join(l['text'] for l in c['lineas']).strip()) for c in fila)
+            def con_vin(fila):
+                return any(VINETA.match(l['text']) for c in fila for l in c['lineas'])
+            x_en_titulos = (any(con_vin(f) for f in t['filas']) and any(con_x(f) for f in t['filas'])
+                            and not any(con_vin(f) and con_x(f) for f in t['filas']))
             for k, fila in enumerate(t['filas']):
                 for c in fila:
                     textos = ' '.join(l['text'] for l in c['lineas'])
-                    if es_marca(textos):
+                    if es_marca(textos) or (i_t, tuple(c['bbox'])) in repetidas:
                         continue
+                    con_vineta = any(VINETA.match(l['text']) for l in c['lineas'])
                     for m, l in enumerate(c['lineas']):
                         ev.append(dict(tipo='celda', pag=n, top=l['top'] + 0.001 * m, x0=l['x0'], x1=l['x1'], texto=l['text'],
-                                       celda=c['bbox'], primera=(m == 0)))
+                                       celda=c['bbox'], primera=(m == 0), lineas_celda=len(c['lineas']),
+                                       celda_con_vineta=con_vineta, tabla_con_vinetas=vinetas,
+                                       titulo_con_x=x_en_titulos and con_x(fila) and not con_vineta))
     ev.sort(key=lambda e: (e['pag'], round(e['top'], 3), e['x0']))
     i0 = next((i for i, e in enumerate(ev) if re.match(r'^\s*4\s?\.?\s*Sab', e['texto'])), None)
     if i0 is None:
         return []
-    i1 = next((i for i in range(i0 + 1, len(ev)) if re.match(r'^\s*[56]\s?\.?\s*(?:Situaci|Criteri)', ev[i]['texto'])), len(ev))
+    i1 = next((i for i in range(i0 + 1, len(ev)) if re.match(r'^\s*[56]\s?\.?\s*[-–]?\s*(?:Situaci|Criteri)', ev[i]['texto'])), len(ev))
     return ev[i0 + 1:i1]
 
 
-REF_CE = re.compile(r'\s*[\(\[]?\s*(?:\bCE\s?\d+(?:\s*(?:,|y|i|e|-|–)\s*(?:CE\s?)?\d+)*)\s*[\)\]]?\s*\.?\s*$')
+MAYUSCULAS = re.compile(r'^[A-ZÁÉÍÓÚÀÈÒÇÏÜ]{3,}\b')    # «CIÈNCIA. CE 3…»: un título
+REF_CE = re.compile(r'\s*[\(\[]?\s*(?:\bCE\s?\d+(?:\s*(?:,|y|i|e|-|–|\+)\s*(?:CE\s?)?\d+)*)\s*[\)\]]?\s*\.?\s*$')
 TRANSVERSAL = re.compile(r'[.:]?\s*[Tt]ransversal a (?:todas las|totes les) (?:CE|competencias|competències)\.?$')
 
 
@@ -663,28 +689,69 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
     ancho = max((e['x1'] for e in libres), default=600)
     bloques, bloque, epigrafe, item = [], None, None, None
     sangria_item = None          # x del texto del saber abierto (tras su viñeta)
+    item_vineta = False          # el saber abierto empezó con una viñeta
+    x_texto_item = None          # x de la segunda línea del saber abierto
+    vineta_pendiente = False     # Física y Química: un guion que el PDF saca fuera de su línea
+    tras_cabecera = False        # la celda anterior era «Saberes básicos»
+    ultima = actual = None       # la última línea de un saber y la que se lee
+    celda_saltada = None
     titulo_abierto = False       # la línea anterior era un título de epígrafe
+    titulo_celda_de = {'caja': None}
+    ultimo_bloque = {'x': None, 'justo': False}
     guiones = [e['x0'] for e in libres if re.match(r'^\s*[-–]\s+', e['texto'])]
     guion_x = min(guiones) if guiones else 0
 
     def nuevo_epigrafe(titulo):
         nonlocal epigrafe, item, titulo_abierto
+        if epigrafe is not None and titulo and epigrafe['titulo'] and sin_tildes(epigrafe['titulo']) == sin_tildes(titulo):
+            item, titulo_abierto = None, False      # la cabecera de la tabla, repetida en la página siguiente
+            return
         epigrafe = dict(titulo=titulo or None, items=[])
         bloque['epigrafes'].append(epigrafe)
         item, titulo_abierto = None, True
 
-    def nuevo_item(texto, x):
-        nonlocal item, sangria_item, titulo_abierto
+    def nuevo_item(texto, x, vineta=False):
+        nonlocal item, sangria_item, titulo_abierto, item_vineta, x_texto_item, vineta_pendiente, ultima
+        ultima = actual
         if epigrafe is None:
             nuevo_epigrafe(None)
-        item, sangria_item, titulo_abierto = [texto], x, False
+        item, sangria_item, titulo_abierto, item_vineta = [texto], x, False, vineta
+        x_texto_item, vineta_pendiente = None, False
         epigrafe['items'].append(item)
 
-    for e in ev:
+    def seguir(texto, x):
+        nonlocal x_texto_item, ultima
+        ultima = actual
+        if x_texto_item is None and len(item) == 1:
+            x_texto_item = x
+        item.append(texto)
+
+    def sigue_con_vineta(i):
+        """Si lo siguiente con texto (no una marca de curso) es una viñeta."""
+        for o in ev[i + 1:]:
+            u = o['texto'].strip()
+            if u and not es_marca(u):
+                mv = VINETA.match(u)
+                return bool(mv) and not re.match(r'^[a-zà-ú]', u[mv.end():])
+        return False
+
+    for i_ev, e in enumerate(ev):
         t = e['texto'].strip()
         if not t:
             continue
+        actual = e
+        if e['celda'] is not None and e['celda'] == celda_saltada:
+            continue             # el resto de la cabecera repetida («L’ART», «CE1, CE2…»)
+        if re.search(r'\S\s*\(cid:486\)', t):
+            # el guion de un saber de debajo, metido en medio de otra línea («Uso ra(cid:486)cional»)
+            t = re.sub(r'(?<=\S)\s*\(cid:486\)\s*', lambda mm: ' ' if mm.group(0)[:1].isspace() or mm.group(0)[-1:].isspace() else '', t).strip()
+            pendiente_aqui = True
+        else:
+            pendiente_aqui = False
         mb = BLOQUE.match(t)
+        if not mb and mat.get('bloques') == 'apartado' and e['tipo'] == 'linea':
+            ma = APARTADO.match(t)       # «4.2.» es el bloque 1: el 4.1 es la introducción
+            mb = ma and type('M', (), {'group': lambda self, i, ma=ma: str(int(ma.group(1)) - 1) if i == 1 else ma.group(2)})()
         if mb:
             # la introducción nombra los bloques antes de que empiecen: el que
             # se repite sustituye al que aún no tenía nada
@@ -692,6 +759,7 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
             bloque = dict(bloque=mb.group(1), titulo=[mb.group(2)], epigrafes=[])
             bloques.append(bloque)
             epigrafe, item, titulo_abierto = None, None, False
+            ultimo_bloque.update(x=e['x0'], justo=True)
             continue
         if bloque is None:
             continue
@@ -704,45 +772,134 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
                 bloques.append(bloque)
             nuevo_epigrafe(ms.group(2))
             continue
-        if CABECERA_SABERES.match(t) and len(t) < 60:
+        msn = SUBBLOQUE_SIN_NUMERO.match(t)
+        if msn and bloque is not None:
+            titulo_nuevo = msn.group(1)
+            vistos, nt = bloque.setdefault('vistos', []), sin_tildes(titulo_nuevo)
+            if any(v.startswith(nt) or nt.startswith(v) for v in vistos):
+                celda_saltada = e['celda']
+                continue         # la cabecera del sub-bloque, repetida arriba de la página siguiente: el saber sigue
+            vistos.append(nt)
+            if not (epigrafe is not None and epigrafe['titulo'] and sin_tildes(epigrafe['titulo']) == sin_tildes(titulo_nuevo)):
+                nuevo_epigrafe(titulo_nuevo)     # la cabecera repetida en otra página sigue el mismo
+            titulo_celda_de['caja'] = e['celda']
+            continue
+        if (CABECERA_SABERES.match(t) and len(t) < 60) or (es_marca(t) and not VINETA.match(t)) or re.match(r'^\(?CE\s?\d+(?:\s*(?:,|y|i|e)\s*CE\s?\d+)*\)?\.?$', t):
+            if CABECERA_SABERES.match(t) and e['tipo'] == 'celda':
+                tras_cabecera = True
+            continue
+        if tras_cabecera:
+            tras_cabecera = False
+            if (mat.get('saberes') != 'plano' and e['tipo'] == 'celda' and e['primera'] and e['lineas_celda'] == 1 and not e['celda_con_vineta'] and len(t) < 70
+                    and not t.endswith('.') and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ]', t) and sigue_con_vineta(i_ev)):
+                nuevo_epigrafe(t)        # el título del grupo, en la primera fila (Física y Química, en valenciano)
+                titulo_celda_de['caja'] = e['celda']
+                continue
+        if (bloque['epigrafes'] == [] and ultimo_bloque.get('justo') and not bloque['titulo'][-1].rstrip().endswith(('.', ':'))
+                and (re.match(r'^[a-zà-ú]', t) or (e['tipo'] == 'linea' and e['x0'] > ultimo_bloque['x'] + 5))):
+            bloque['titulo'].append(t)           # el título del bloque sigue en la línea siguiente
+            continue
+        ultimo_bloque['justo'] = False
+        if item == [''] and not VINETA.match(t):
+            item[0] = t          # el texto de una viñeta que el PDF saca sola en su línea
+            continue
+        if (item is not None and item_vineta and ultima is not None and ultima['celda'] is not None and e['celda'] is not None
+                and ultima['x1'] >= ultima['celda'][2] - 25 and not item[-1].rstrip().endswith(('.', ':', ';'))
+                and not VINETA.match(t) and not MAYUSCULAS.match(t) and e['x0'] > sangria_item + 5):
+            seguir(t, e['x0'])   # la línea de arriba llega al borde sin acabar la frase: sigue («La “Guerra / Fría”…»)
             continue
         caja = e['celda'] or (margen, 0, ancho, 0)
         izq, der = caja[0], caja[2]
-        centrada = e['x0'] > izq + 25 and abs((e['x0'] + e['x1']) / 2 - (izq + der) / 2) < 25
+        centrada = (e['x0'] > izq + 25 and abs((e['x0'] + e['x1']) / 2 - (izq + der) / 2) < 25
+                    and (e['x1'] - e['x0']) < 0.7 * (der - izq) and e.get('lineas_celda', 1) <= 2)
         if mat.get('saberes') == 'guion' and e['tipo'] == 'linea':
             if re.match(r'^\s*[-–]\s+', t):
                 nuevo_epigrafe(re.sub(r'^\s*[-–]\s+', '', t))
             elif epigrafe is not None and (e['x0'] > guion_x + 8 or len(t) < 90):
                 # sangrados; alguno sale sin sangría (Valores, «Los servicios públicos»)
                 if item is not None and re.match(r'^[a-zà-ú(]', t):
-                    item.append(t)
+                    seguir(t, e['x0'])
                 else:
                     nuevo_item(t, e['x0'])
             continue
-        vineta = VINETA.match(t)
-        if vineta:
-            for trozo in re.split(r'(?<=\S)\s+(?=[•●⚫□]\s)', t):
-                nuevo_item(VINETA.sub('', trozo, count=1), e['x0'] + 8)
-            continue
-        if centrada and len(t) < 110 and not re.match(r'^[a-zà-ú]', t):
-            if titulo_abierto and epigrafe is not None and not epigrafe['items']:
-                epigrafe['titulo'] = f"{epigrafe['titulo'] or ''} {t}".strip()
-            else:
-                nuevo_epigrafe(t)
-            continue
-        sigue = item is not None and (re.match(r'^[a-zà-ú(),;]', t) or (sangria_item is not None and e['x0'] >= sangria_item - 2
-                                                                      and not e.get('primera', False)))
-        if e['tipo'] == 'celda':
-            if e['primera'] and not sigue:
+        if mat.get('saberes') == 'parrafos' and e['tipo'] == 'linea' and not VINETA.match(t):
+            # cada saber empieza con sangría y sigue en el margen
+            if e['x0'] > margen + 15:
                 nuevo_item(t, e['x0'])
             elif item is not None:
-                item.append(t)
+                seguir(t, e['x0'])
+            continue
+        vineta = VINETA.match(t)
+        if vineta and item is not None and re.match(r'^[a-zà-ú]', t[vineta.end():]):
+            seguir(t[vineta.end():], e['x0'])     # el guion es del saber de debajo: esta línea sigue el de arriba
+            vineta_pendiente = True
+            continue
+        if vineta:
+            for trozo in re.split(r'(?<=\S)\s+(?=(?:[•●⚫□]|\(cid:486\))\s*)', t):
+                nuevo_item(VINETA.sub('', trozo, count=1), e['x0'] + 8, vineta=True)
+            vineta_pendiente = pendiente_aqui
+            continue
+        if vineta_pendiente and item is not None and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ¿(]', t):
+            nuevo_item(t, e['x0'], vineta=True)
+            continue
+        if (e['tipo'] == 'celda' and not e['primera'] and epigrafe is not None and not epigrafe['items']
+                and e['celda'] == titulo_celda_de.get('caja') and titulo_abierto):
+            epigrafe['titulo'] = f"{epigrafe['titulo'] or ''} {t}".strip()      # el título sigue en su celda
+            continue
+        # un título: centrado, o en una tabla de viñetas, una celda corta sin viñeta,
+        # o una línea suelta corta, bien sangrada y sin puntuación final
+        titulo_celda = ((e['tipo'] == 'celda' and (e['tabla_con_vinetas'] or e['titulo_con_x']) and not e['celda_con_vineta']
+                         and e['lineas_celda'] <= 2 and len(t) < 110
+                         and not (e['primera'] and item is not None and item_vineta and sangria_item is not None and e['x0'] > sangria_item + 5
+                                  and not e['titulo_con_x'] and not centrada and not MAYUSCULAS.match(t)))   # sangrada: sigue el saber de la viñeta
+                        or (e['tipo'] == 'linea' and len(t) < 70 and e['x0'] > margen + 40
+                            and not re.search(r'[.;,:]$', t) and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ]', t)))
+        # Geografía e Historia: «Grecia», «Roma»… sin viñeta, dentro de un sub-bloque y antes de sus viñetas
+        titulo_celda = titulo_celda or (
+            e['tipo'] == 'celda' and e['primera'] and e['lineas_celda'] == 1 and not e['celda_con_vineta'] and len(t) < 70
+            and not re.search(r'[.;,:]$', t) and '. ' not in t and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ]', t) and not MAYUSCULAS.match(t)
+            and (item is None or item[-1].rstrip().endswith(('.', ':'))) and sigue_con_vineta(i_ev))
+        if re.match(r'^[a-zà-ú]', t) and titulo_abierto and epigrafe is not None and epigrafe['titulo'] and not epigrafe['items']:
+            epigrafe['titulo'] = f"{epigrafe['titulo'] or ''} {t}".strip()      # el título sigue, centrado
+            continue
+        if mat.get('saberes') == 'plano':
+            centrada = titulo_celda = False      # sin epígrafes: cada celda es un saber
+        if (centrada or titulo_celda) and len(t) < 110 and not re.match(r'^[a-zà-ú]', t):
+            if titulo_abierto and epigrafe is not None and not epigrafe['items']:
+                if e['celda'] is not None and e['celda'] == titulo_celda_de.get('caja'):
+                    epigrafe['titulo'] = f"{epigrafe['titulo'] or ''} {t}".strip()   # el título sigue en otra línea
+                else:
+                    epigrafe['titulo'] = t      # el de antes era el de la tabla («… CE2»)
+            else:
+                nuevo_epigrafe(t)
+            titulo_celda_de['caja'] = e['celda']
+            continue
+        corta_final = (item is not None and len(t.split()) <= 2 and ',' not in t and t.endswith('.')
+                       and not item[-1].rstrip().endswith(('.', ':', ';')))     # «Valenciana.» partida en otra fila
+        sigue = item is not None and (corta_final or re.match(r'^[a-zà-ú(),;]', t)
+                                      or (sangria_item is not None and e['x0'] >= sangria_item - 2 and not e.get('primera', False))
+                                      # una fila por línea: la que va sangrada sigue el saber de la viñeta
+                                      or (e.get('primera') and item_vineta and not e['celda_con_vineta'] and sangria_item is not None
+                                          and e['x0'] > sangria_item + 5 and not MAYUSCULAS.match(t)))
+        # un saber de segundo nivel cuyo guion no sale: más sangrado que el texto del de arriba
+        subitem = (item is not None and item_vineta and e.get('primera') and x_texto_item is not None
+                   and e['x0'] > x_texto_item + 10 and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ]', t) and item[-1].rstrip().endswith('.'))
+        if e['tipo'] == 'celda':
+            if subitem:
+                nuevo_item(t, e['x0'], vineta=True)
+            elif not e['primera'] and item is not None:
+                seguir(t, e['x0'])               # dentro de la misma celda, sigue el saber
+            elif e['primera'] and not sigue:
+                nuevo_item(t, e['x0'])
+            elif item is not None:
+                seguir(t, e['x0'])
             else:
                 nuevo_item(t, e['x0'])
+            vineta_pendiente = vineta_pendiente or pendiente_aqui
             continue
         # línea fuera de tablas
         if sigue or (item is not None and e['x0'] > margen + 12):
-            item.append(t)
+            seguir(t, e['x0'])
         else:
             item = None          # un párrafo de explicación: no es un saber
     salida = []
