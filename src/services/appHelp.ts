@@ -42,6 +42,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   share:                 { es: 'Trabajo compartido', en: 'Shared Workspace' },
   audit:                 { es: 'Registro de cambios', en: 'Change Log' },
   profile:               { es: 'Configuración', en: 'Settings' },
+  'apoyo-registro':      { es: 'Registro diario', en: 'Session Log' },
   'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
   'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
 };
@@ -445,6 +446,23 @@ Apartado del menú, justo después del Inicio, que solo aparece si en
 Configuración → Perfil está marcada «Pedagogía Terapéutica (PT)» o «Audición y
 Lenguaje (AL)». Es para quien atiende alumnado de muchas clases que no son
 suyas: este alumnado es aparte del de «Mis Clases».
+
+[apoyo-registro] REGISTRO DIARIO
+La primera pestaña de «PT y AL», para usar en la sesión. Arriba, la fecha (con
+flechas para el día anterior y el siguiente, o pulsándola para elegir otra) y
+el trimestre, que sale de la fecha (septiembre a diciembre el 1º, enero a marzo
+el 2º, abril en adelante el 3º). Debajo, los grupos que tienen sesión ese día
+según su horario, por orden de hora, y «Otro grupo…» para registrar uno que no
+toca ese día. En el grupo: «Qué trabaja hoy su clase» y, por cada alumno, «No
+ha venido», sus OBJETIVOS DE ESTE TRIMESTRE (los de sus programas de la
+especialidad del grupo) con tres botones: ✓ conseguido, – en proceso, ✗ no
+conseguido; «CÓMO HA RESPONDIDO»: atención, motivación, conducta y autonomía,
+cada una con tres caras (ha ido bien, regular, mal); y una nota. Volver a
+pulsar un botón lo desmarca. El micrófono explica cómo dictar con el propio
+sistema (Windows + H en Windows, el micrófono del teclado en Android): la app
+no graba ni envía audio. En el móvil o la tableta se ve un alumno por pantalla,
+con flechas para pasar al siguiente; en el ordenador, todo el grupo a la vista.
+Se guarda solo; una sesión sin nada anotado no se guarda.
 
 [apoyo-alumnado] ALUMNADO Y GRUPOS
 Dos listas. GRUPOS DE APOYO («Nuevo grupo»): uno por cada sesión que se da

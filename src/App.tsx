@@ -44,6 +44,7 @@ const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default
 const LearningSituations = lazy(() => import('./pages/LearningSituations').then(m => ({ default: m.LearningSituations })));
 const Resources      = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
 const WorkSessions   = lazy(() => import('./pages/WorkSessions').then(m => ({ default: m.WorkSessions })));
+const RegistroApoyo  = lazy(() => import('./pages/apoyo/RegistroApoyo').then(m => ({ default: m.RegistroApoyo })));
 const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m => ({ default: m.AlumnadoApoyo })));
 const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
 
@@ -518,6 +519,9 @@ function AppInner() {
                 onDelete={id => { st.deleteWorkSession(id); toast(t('Eliminado')); }}
                 onNav={s => setSection(s as Section)}
               />
+            )}
+            {section === 'apoyo-registro' && (
+              <RegistroApoyo data={st.apoyo} onChange={st.setApoyo} onNav={s => setSection(s as Section)} />
             )}
             {section === 'apoyo-alumnado' && (
               <AlumnadoApoyo

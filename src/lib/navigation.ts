@@ -74,6 +74,7 @@ export const HUBS: readonly NavHub[] = [
     id: 'apoyo', label: 'PT y AL', icon: 'apoyo',
     hint: 'Tu alumnado de apoyo: el registro de cada sesión, sus programas personalizados, la programación y los informes.',
     tabs: [
+      { id: 'apoyo-registro',   label: 'Registro diario' },
       { id: 'apoyo-alumnado',   label: 'Alumnado y grupos' },
       { id: 'apoyo-programas',  label: 'Programas' },
     ],

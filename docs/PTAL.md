@@ -57,7 +57,9 @@ La del aula de apoyo sigue lo que da la clase de referencia en cada sesión, as�
   - cada objetivo trabajado, con conseguido, en proceso o no conseguido;
   - atención, motivación, conducta y autonomía, con tres caras;
   - una nota escrita o dictada.
-- En el móvil o la tableta, un alumno por pantalla con botones grandes. En el ordenador, el grupo en una tabla. Se usan los dos por igual.
+- En el móvil o la tableta, un alumno por pantalla con botones grandes. En el ordenador, todo el grupo a la vista, una ficha por alumno. Se usan los dos por igual.
+- Se guarda solo; una sesión sin nada anotado no se guarda. El trimestre sale de la fecha: de septiembre a diciembre el 1º, de enero a marzo el 2º, de abril en adelante el 3º (sin calendario escolar, que sigue pendiente).
+- Dictado: el micrófono explica cómo dictar con el propio sistema (Windows + H, el micrófono del teclado en Android). La app no usa el reconocimiento de voz del navegador, que enviaría el audio a Google y no está en la política de privacidad.
 
 ## Documentos
 
