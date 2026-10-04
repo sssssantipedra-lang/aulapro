@@ -57,7 +57,8 @@ def m(id, es, va, fuente, pag_es, pag_va, crit, **extra):
 MATERIAS = [
     m('biologia-y-geologia', 'Biología y Geología', 'Biologia i Geologia', '66', (203, 245), (16, 53), 'tabla',
       partes=[dict(crit='tabla', es=(233, 239), va=(42, 48)),
-              dict(crit='lista', inicio='vineta', curso=4, es=(242, 245), va=(51, 53))]),   # adenda de 4º
+              dict(crit='lista', inicio='vineta', curso=4, es=(242, 245), va=(51, 53))],   # adenda de 4º
+      saberes_4=dict(es=(240, 242), va=(49, 51), bloques='letra')),     # la adenda trae los suyos: «A. Proyecto científico»
     m('digitalizacion', 'Digitalización', 'Digitalització', '107', (668, 683), (89, 104), 'tabla', curso=4),
     m('economia-y-emprendimiento', 'Economía y Emprendimiento', 'Economia i Emprenedoria', '107', (684, 698), (105, 118), 'lista',
       inicio={'es': 'numero', 'va': 'codigo'}, curso=4),
@@ -68,7 +69,8 @@ MATERIAS = [
     m('expresion-artistica', 'Expresión Artística', 'Expressió Artística', '107', (765, 775), (182, 191), 'lista', inicio='codigo', curso=4),
     m('fisica-y-quimica', 'Física y Química', 'Física i Química', '107', (776, 837), (192, 251), 'tabla', sin_codigo=True,
       partes=[dict(crit='tabla', es=(819, 827), va=(234, 242)),
-              dict(crit='lista', inicio='vineta', curso=4, es=(834, 837), va=(247, 251))]),   # adenda de 4º
+              dict(crit='lista', inicio='vineta', curso=4, es=(834, 837), va=(247, 251))],   # adenda de 4º
+      saberes_4=dict(es=(828, 834), va=(243, 247))),
     m('formacion-y-orientacion', 'Formación y Orientación Personal y Profesional', 'Formació i Orientació Personal i Professional', '107', (838, 852), (252, 266), 'lista', inicio='codigo', curso=4),
     m('geografia-e-historia', 'Geografía e Historia', 'Geografia i Història', '107', (853, 882), (267, 294), 'tabla', por_ciclo=True),
     m('latin', 'Latín', 'Llatí', '107', (883, 894), (295, 305), 'lista', inicio='vineta', curso=4),
@@ -171,21 +173,46 @@ def texto_celda(fuente: str, n: int, bbox) -> str:
 GUION = '⁣'   # marca interna: aquí había un guion al final de una línea
 
 
+# Las páginas de cada lengua en los anexos de cada decreto
+PAGINAS_IDIOMA = {('107', 'va'): (42, 620), ('107', 'es'): (621, 1298), ('66', 'va'): (16, 192), ('66', 'es'): (193, 392)}
+
+
 @lru_cache(maxsize=4)
 def vocabulario(fuente: str, idioma: str) -> Counter:
-    """Las palabras del decreto tal y como están en el PDF, sin las partidas
-    por un guion al final de la línea. Sale de `pdftotext -layout`, que deja
-    ese guion donde está (sin `-layout` lo quita y junta las dos partes)."""
-    texto = subprocess.run(['pdftotext', '-layout', str(PDF[fuente]), '-'], check=True, capture_output=True, text=True).stdout
+    """Las palabras de los anexos del decreto en una lengua, tal y como están
+    en el PDF, sin las partidas por un guion al final de la línea. Sale de
+    `pdftotext -layout`, que deja ese guion donde está (sin `-layout` lo
+    quita y junta las dos partes)."""
+    a, b = PAGINAS_IDIOMA[(fuente, idioma)]
+    texto = subprocess.run(['pdftotext', '-layout', '-f', str(a), '-l', str(b), str(PDF[fuente]), '-'],
+                           check=True, capture_output=True, text=True).stdout
     vocab: Counter = Counter()
+    partida = False
     for linea in texto.splitlines():
         palabras = linea.split()
-        if palabras and palabras[-1].endswith('-'):
+        if partida and palabras:
+            palabras = palabras[1:]          # el final de una palabra partida («mientos»)
+        partida = bool(palabras) and palabras[-1].endswith('-')
+        if partida:
             palabras = palabras[:-1]
         for w in palabras:
             for t in re.findall(r"[\w·-]+", w):
                 vocab[t.lower().strip('-')] += 1
     return vocab
+
+
+@lru_cache(maxsize=4)
+def palabras_enteras(fuente: str, idioma: str) -> Counter:
+    """Las palabras de los anexos en una lengua según `pdftotext` sin
+    opciones, que junta las partidas por un guion: así no cuentan como
+    palabra los trozos («miento» de «procedi-miento»)."""
+    a, b = PAGINAS_IDIOMA[(fuente, idioma)]
+    texto = subprocess.run(['pdftotext', '-f', str(a), '-l', str(b), str(PDF[fuente]), '-'],
+                           check=True, capture_output=True, text=True).stdout
+    return Counter(w.lower() for w in re.findall(r'[\w·]+', texto))
+
+
+COMPUESTAS = {'ácido-base'}     # sale una sola vez en el decreto, partida al final de la línea
 
 
 ENCLITICO = re.compile(r"^(?:lo|la|los|les|li|hi|ho|ne|se|me|te|nos|vos|en|el|ho)\b", re.I)
@@ -216,6 +243,9 @@ def unir(lineas_texto: list[str], fuente: str, idioma: str) -> str:
             r, por = con, 'compuesta en el decreto'
         elif vocab[na + nb]:
             r, por = unida, 'entera en el decreto'
+        elif (len(na) >= 4 and len(nb) >= 4 and min(palabras_enteras(fuente, idioma)[na], palabras_enteras(fuente, idioma)[nb]) >= 2) \
+                or f'{na}-{nb}' in COMPUESTAS:
+            r, por = con, 'dos palabras del decreto'      # «temperatura-escales», «ácido-base»
         elif ENCLITICO.match(b) and idioma == 'va':
             r, por = con, 'pronombre enclítico'
         else:
@@ -384,7 +414,7 @@ def soltar(fuente: str, n: int) -> None:
 INICIO = {
     'codigo': CODIGO,
     'numero': re.compile(r'^\s*(\d{1,2})\s*\.\s+(?=\S)'),
-    'vineta': re.compile(r'^\s*[•●▪-]\s*'),
+    'vineta': re.compile(r'^\s*(?:[•●▪-]\s*)+'),     # a veces, dos superpuestas («• •»)
 }
 
 
@@ -502,16 +532,81 @@ def todos_los_criterios(volcado: Path) -> dict:
 
 SOLO = sys.argv[sys.argv.index('--solo') + 1].split(',') if '--solo' in sys.argv else None
 
-# ── Competencias específicas ─────────────────────────────────────────────────
+# ── Lo que se lee una vez de cada página ─────────────────────────────────────
+#
+# Leer con pdfplumber las 1.100 páginas de las materias tarda: lo leído se
+# guarda en `CACHE` (fuera del repositorio) y las siguientes ejecuciones lo
+# reutilizan. Si cambia la lectura, se borra la carpeta.
+
+CACHE = Path(__file__).parent / '.cache-eso-cv'
+
+
+def _pagina(args):
+    """Una página: sus líneas fuera de las tablas (con la negrita) y sus
+    tablas, fila a fila y, en cada celda, sus líneas con su posición."""
+    ruta, n = args
+    with pdfplumber.open(ruta) as pdf:
+        p = pdf.pages[n - 1]
+        ts = [t for t in p.find_tables() if not es_marco(t.bbox, p)]
+        cajas = [t.bbox for t in ts]
+        def dentro(o):
+            cx, cy = (o['x0'] + o['x1']) / 2, (o['top'] + o['bottom']) / 2
+            return any(b[0] - 1 <= cx <= b[2] + 1 and b[1] - 1 <= cy <= b[3] + 1 for b in cajas)
+        fuera = p.filter(lambda o: o.get('object_type') != 'char' or not dentro(o))
+        lineas_ = []
+        for l in fuera.extract_text_lines(keep_blank_chars=False):
+            chars = [c for c in l['chars'] if c['text'].strip()]
+            negrita = sum('Bold' in c['fontname'] for c in chars) > len(chars) / 2 if chars else False
+            lineas_.append({'top': round(l['top'], 1), 'x0': round(l['x0'], 1), 'x1': round(l['x1'], 1), 'text': l['text'], 'bold': negrita})
+        tablas_ = [{'bbox': [round(x, 1) for x in t.bbox], 'rows': t.extract()} for t in ts]
+        celdas_ = []
+        for t in ts:
+            filas = []
+            for fila in t.rows:
+                cs = []
+                for c in fila.cells:
+                    if not c:
+                        continue
+                    x0, top, x1, bottom = c
+                    sub = p.filter(lambda o: o.get('object_type') != 'char'
+                                   or (x0 <= (o['x0'] + o['x1']) / 2 <= x1 and top <= (o['top'] + o['bottom']) / 2 <= bottom))
+                    ls = [dict(x0=round(l['x0'], 1), x1=round(l['x1'], 1), top=round(l['top'], 1), text=l['text'])
+                          for l in sub.extract_text_lines() if x0 - 1 <= l['x0'] <= x1 + 1 and top - 1 <= l['top'] <= bottom + 1]
+                    cs.append(dict(bbox=[round(v, 1) for v in c], lineas=ls))
+                filas.append(cs)
+            celdas_.append(dict(bbox=[round(v, 1) for v in t.bbox], filas=filas))
+        return n, {'lineas': lineas_, 'tablas': tablas_, 'w': p.width}, celdas_
+
+
+@lru_cache(maxsize=8)
+def paginas_leidas(fuente: str, idioma: str) -> tuple[dict, dict]:
+    """Lo leído de todas las páginas de las materias de un decreto en una lengua."""
+    lin, cel = CACHE / f'{fuente}{idioma}.json', CACHE / f'sab_{fuente}{idioma}.json'
+    if not (lin.exists() and cel.exists()):
+        from concurrent.futures import ProcessPoolExecutor
+        paginas = sorted({n for m in MATERIAS if m['fuente'] == fuente
+                          for n in range(m['paginas'][idioma][0], m['paginas'][idioma][1] + 1)})
+        print(f'Leyendo {len(paginas)} páginas del {fuente} ({idioma}); tarda unos minutos la primera vez…', file=sys.stderr)
+        res_l, res_c = {}, {}
+        with ProcessPoolExecutor(4) as ex:
+            for n, d, c in ex.map(_pagina, [(str(PDF[fuente]), n) for n in paginas], chunksize=8):
+                res_l[n], res_c[n] = d, c
+        CACHE.mkdir(exist_ok=True)
+        lin.write_text(json.dumps(res_l, ensure_ascii=False))
+        cel.write_text(json.dumps(res_c, ensure_ascii=False))
+    return ({int(k): v for k, v in json.loads(lin.read_text()).items()},
+            {int(k): v for k, v in json.loads(cel.read_text()).items()})
+
 
 @lru_cache(maxsize=8)
 def lineas_cache(fuente: str, idioma: str) -> dict:
-    """Las líneas fuera de tablas de cada página de los anexos, guardadas por
-    `cache_paginas` (leer 1.000 páginas con pdfplumber tarda)."""
-    return {int(k): v['lineas'] for k, v in json.loads((CACHE / f'{fuente}{idioma}.json').read_text()).items()}
+    """Las líneas fuera de tablas de cada página."""
+    return {n: v['lineas'] for n, v in paginas_leidas(fuente, idioma)[0].items()}
 
 
-CACHE = Path('/tmp/claude-0/-home-user/6e8a7609-873c-5029-8db6-fb25a70baa95/scratchpad/vc')
+# ── Competencias específicas ─────────────────────────────────────────────────
+
+
 TITULO_CE = re.compile(
     r'^\s*(?:2\s?\.\s?(\d{1,2})\s?\.?\s*)?(?:Compet[eè]ncia(?: espec[ií]fica)?|CE)\s*0?(\d{1,2})\b\s*[.:]?\s*(.*)$', re.I)
 FIN_ENUNCIADO = re.compile(r'^\s*(?:2\s?\.\s?\d{1,2}\s?\.\s?\d|Descripci[óo]|\d\.\s+(?:Conexi|Connexi))', re.I)
@@ -582,7 +677,8 @@ def competencias(mat: dict, idioma: str) -> list[dict]:
 
 @lru_cache(maxsize=8)
 def tablas_cache(fuente: str, idioma: str) -> dict:
-    return {int(k): v['tablas'] for k, v in json.loads((CACHE / f'{fuente}{idioma}.json').read_text()).items()}
+    """Las tablas de cada página, fila a fila."""
+    return {n: v['tablas'] for n, v in paginas_leidas(fuente, idioma)[0].items()}
 
 
 BLOQUE = re.compile(r'^\s*(?:\d(?:\s?\.\s?\d{1,2}){0,2}\s?\.?\s*)?(?:Bloque|Bloc|BLOQUE|BLOC)\s*(\d{1,2})\s*[:.\-–]?\s*(.*)$')
@@ -606,23 +702,26 @@ def es_marca(t: str) -> bool:
                              r'(?:curso|curs|eso|ciclo|cicle)?\s*\)?\s*)+$', t)))
 
 
-@lru_cache(maxsize=8)
 def celdas_cache(fuente: str, idioma: str) -> dict:
-    """Las tablas de las páginas de saberes con cada celda y sus líneas con
-    su posición (`cache_saberes`): hace falta para distinguir un título
-    centrado de una línea que sigue a la anterior."""
-    return {int(k): v for k, v in json.loads((CACHE / f'sab_{fuente}{idioma}.json').read_text()).items()}
+    """Las tablas de cada página con cada celda y sus líneas con su
+    posición: hace falta para distinguir un título centrado de una línea que
+    sigue a la anterior."""
+    return paginas_leidas(fuente, idioma)[1]
 
 
-def eventos_saberes(mat: dict, idioma: str):
-    """Las líneas del apartado 4, fuera y dentro de las tablas, en orden de
-    lectura. Cada línea de una celda lleva la caja de su celda."""
-    ini, fin = mat['paginas'][idioma]
+# Dónde empiezan y acaban los saberes: el apartado 4 del currículo de cada
+# materia, o el 1 de la adenda de cuarto (Física y Química; Biología, sin número)
+SECCION_SABERES = (r'^\s*4\s?\.?\s*Sab', r'^\s*[56]\s?\.?\s*[-–]?\s*(?:Situaci|Criteri)')
+SECCION_ADENDA = (r'(?i)^\s*(?:1\s?\.\s*)?(?:Saberes b[áa]sicos|Sabers b[àa]sics)', r'(?i)^\s*(?:2\s?\.\s*)?Criteri(?:os de evaluaci|s d.avaluaci)')
+
+
+def eventos_saberes(mat: dict, idioma: str, parte: dict | None = None):
+    """Las líneas del apartado de saberes, fuera y dentro de las tablas, en
+    orden de lectura. Cada línea de una celda lleva la caja de su celda."""
+    ini, fin = (parte or mat['paginas'])[idioma]
+    inicio, final = SECCION_ADENDA if parte else SECCION_SABERES
     lin = lineas_cache(mat['fuente'], idioma)
-    try:
-        tab = celdas_cache(mat['fuente'], idioma)
-    except FileNotFoundError:
-        tab = {}
+    tab = celdas_cache(mat['fuente'], idioma)
     ev = []
     for n in range(ini, fin + 1):
         for l in lin.get(n, []):
@@ -654,10 +753,10 @@ def eventos_saberes(mat: dict, idioma: str):
                                        celda_con_vineta=con_vineta, tabla_con_vinetas=vinetas,
                                        titulo_con_x=x_en_titulos and con_x(fila) and not con_vineta))
     ev.sort(key=lambda e: (e['pag'], round(e['top'], 3), e['x0']))
-    i0 = next((i for i, e in enumerate(ev) if re.match(r'^\s*4\s?\.?\s*Sab', e['texto'])), None)
+    i0 = next((i for i, e in enumerate(ev) if re.match(inicio, e['texto'])), None)
     if i0 is None:
         return []
-    i1 = next((i for i in range(i0 + 1, len(ev)) if re.match(r'^\s*[56]\s?\.?\s*[-–]?\s*(?:Situaci|Criteri)', ev[i]['texto'])), len(ev))
+    i1 = next((i for i in range(i0 + 1, len(ev)) if re.match(final, ev[i]['texto'])), len(ev))
     return ev[i0 + 1:i1]
 
 
@@ -700,14 +799,16 @@ def limpiar_titulo(t: str, fuente: str = '107', idioma: str = 'es') -> str:
     return t
 
 
-def saberes(mat: dict, idioma: str) -> list[dict]:
+def saberes(mat: dict, idioma: str, parte: dict | None = None) -> list[dict]:
     """Los saberes básicos por bloques. Cada bloque empieza con su título
     («Bloque 2: …»); dentro, los epígrafes («Sub-bloque 2.1 …», «Grupo de
     saberes 1.1 …» o un título centrado) con sus saberes: viñetas, o celdas
     de una tabla cuya otra columna marca con una X el curso (orientativo: no
     se recoge). Una línea sangrada o en minúscula sigue al saber anterior."""
     fuente = mat['fuente']
-    ev = eventos_saberes(mat, idioma)
+    ev = eventos_saberes(mat, idioma, parte)
+    if parte:
+        mat = {**mat, **{k: v for k, v in parte.items() if k not in IDIOMAS}}
     libres = [e for e in ev if e['tipo'] == 'linea']
     margen = min((e['x0'] for e in libres), default=0)
     ancho = max((e['x1'] for e in libres), default=600)
@@ -775,6 +876,8 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
         else:
             pendiente_aqui = False
         mb = BLOQUE.match(t)
+        if not mb and mat.get('bloques') == 'letra':
+            mb = re.match(r'^\s*([A-F])\.\s+(\S.*)$', t)       # «A. Proyecto científico»
         if not mb and mat.get('bloques') == 'apartado' and e['tipo'] == 'linea':
             ma = APARTADO.match(t)       # «4.2.» es el bloque 1: el 4.1 es la introducción
             mb = ma and type('M', (), {'group': lambda self, i, ma=ma: str(int(ma.group(1)) - 1) if i == 1 else ma.group(2)})()
@@ -963,8 +1066,129 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
     return salida
 
 
+# ── Lo que lleva la app ──────────────────────────────────────────────────────
+
+# Física y Química: el valenciano no trae los mismos criterios que el
+# castellano (uno de más, dos de menos, dos juntos en uno). Para que un código
+# sea el mismo criterio en las dos lenguas, cada criterio valenciano lleva el
+# número del castellano que le corresponde; el que solo está en valenciano,
+# uno nuevo detrás. Ver docs/COMUNIDADES.md.
+ALINEAR = {
+    ('fisica-y-quimica', '3º ESO', 11): [1, 2, 5, 3, 4],     # «Reconéixer les diferents forces…», solo en valenciano
+    ('fisica-y-quimica', '4º ESO', 1): [1, 3, 4, 5, 6, 7, 8],  # sin «Investigar experimentalmente el comportamiento de sustancias orgánicas»
+    ('fisica-y-quimica', '4º ESO', 3): [1, 2, 4],              # «Aportar razones…» y «Explicitar los criterios…», en uno
+    ('fisica-y-quimica', '4º ESO', 8): [1, 3, 4, 5, 6],        # sin «Identificar la potencia…»
+}
+
+# Palabras partidas por un espacio en el PDF
+ESPACIOS = {'Metodo logia': 'Metodologia'}
+
+NOMBRE_LENGUAS = {
+    'valenciano': {'es': 'Valenciano: Lengua y Literatura', 'va': 'Valencià: Llengua i Literatura'},
+    'lengua-castellana': {'es': 'Lengua Castellana y Literatura', 'va': 'Llengua Castellana i Literatura'},
+}
+
+
+def limpiar(t: str) -> str:
+    t = unicodedata.normalize('NFC', t)
+    for mal, bien in ESPACIOS.items():
+        t = t.replace(mal, bien)
+    t = re.sub(r'(?<=[a-zà-ú,]) (?:[xX] )+(?=[a-zà-ú])', ' ', t)     # la X de curso metida en la línea (Lengua Extranjera)
+    return re.sub(r'\s+', ' ', t).strip()
+
+
+def codigos(mat: dict, grupo: str, crudos: dict) -> dict:
+    """El código de cada criterio en cada lengua, el mismo para el mismo
+    criterio. Va el del decreto si lo escribe y es coherente (empieza por el
+    número de su competencia y no se repite); si no, el número de orden
+    dentro de su competencia, con `codigoLiteral` en falso. Una lengua sin
+    códigos toma los de la otra cuando los criterios coinciden uno a uno."""
+    def literal(c, lista):
+        cod = c['codigo']
+        ok = cod and cod.split('.')[0] == str(c['ce']) and sum(
+            1 for o in lista if o['codigo'] == cod and cod.split('.')[0] == str(o['ce'])) == 1
+        return cod if ok else None
+    salida = {}
+    for idioma in IDIOMAS:
+        lista, cuenta, res = crudos[idioma], Counter(), []
+        for c in lista:
+            cuenta[c['ce']] += 1
+            k = cuenta[c['ce']]
+            orden = ALINEAR.get((mat['id'], grupo, c['ce']))
+            if idioma == 'va' and orden:
+                k = orden[k - 1]
+            lit = literal(c, lista)
+            res.append((lit, True) if lit else (f"{c['ce']}.{k}", False))
+        salida[idioma] = res
+    # una lengua sin códigos, la otra con ellos y los mismos criterios: los de la otra
+    for a, b in (('es', 'va'), ('va', 'es')):
+        if (all(not lit for lit in (x[1] for x in salida[a])) and all(x[1] for x in salida[b])
+                and [c['ce'] for c in crudos[a]] == [c['ce'] for c in crudos[b]]):
+            salida[a] = [(cod, False) for cod, _ in salida[b]]
+    return salida
+
+
+def entradas(idioma_salida: str | None = None) -> dict:
+    """Las materias de las dos lenguas, listas para la app."""
+    salida = {i: [] for i in IDIOMAS}
+    for mat in MATERIAS:
+        if SOLO and mat['id'] not in SOLO:
+            continue
+        crit = {i: criterios(mat, i) for i in IDIOMAS}
+        comp = {i: competencias(mat, i) for i in IDIOMAS}
+        sab = {i: saberes(mat, i) for i in IDIOMAS}
+        sab4 = {i: saberes(mat, i, mat['saberes_4']) for i in IDIOMAS} if 'saberes_4' in mat else None
+        grupos = list(grupos_de(mat).values())
+        por_grupo = {}
+        for g in grupos:
+            if g not in crit['es'] and g not in crit['va']:
+                continue
+            crudos = {i: crit[i].get(g, []) for i in IDIOMAS}
+            cods = codigos(mat, g, crudos)
+            por_grupo[g] = {i: [dict(codigo=cod, competencia=c['ce'], texto=limpiar(unir(c['lineas'], mat['fuente'], i)),
+                                     codigoLiteral=lit)
+                                for c, (cod, lit) in zip(crudos[i], cods[i])] for i in IDIOMAS}
+        def bloques(bs):
+            return [dict(bloque=b['bloque'], tituloBloque=limpiar(b['tituloBloque']),
+                         epigrafes=[dict(n=e['n'], titulo=limpiar(e['titulo']) if e['titulo'] else None,
+                                         items=[limpiar(x) for x in e['items']]) for e in b['epigrafes']])
+                    for b in bs]
+        for i in IDIOMAS:
+            entrada = dict(
+                competencias=[dict(n=c['n'], texto=limpiar(c['texto'])) for c in comp[i]],
+                criterios={g: v[i] for g, v in por_grupo.items()},
+                saberes=bloques(sab[i]),
+            )
+            if sab4:
+                entrada['saberesPorGrupo'] = {CURSO[4]: bloques(sab4[i])}     # la adenda de cuarto
+            if mat['id'] == 'lenguas':      # un mismo currículo para las dos materias de lengua
+                for id_, nombre in NOMBRE_LENGUAS.items():
+                    salida[i].append(dict(id=id_, materia=nombre[i], **entrada))
+            else:
+                salida[i].append(dict(id=mat['id'], materia=mat['nombre'][i], **entrada))
+        print(f"{mat['id']:42} " + ' '.join(f"{g}:{len(v['es'])}/{len(v['va'])}" for g, v in por_grupo.items()), file=sys.stderr)
+    return salida
+
+
+def construir() -> None:
+    res = entradas()
+    SALIDA_APP.mkdir(parents=True, exist_ok=True)
+    for idioma in IDIOMAS:
+        archivo = SALIDA_APP / f'eso.{CODIGO_APP[idioma]}.json'
+        archivo.write_text(json.dumps(res[idioma], ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+        print(f'{archivo.relative_to(RAIZ)}: {len(res[idioma])} materias')
+    # los guiones de final de línea, para revisarlos
+    decisiones = sorted({(i, partes.replace('|', '-|'), r, por) for i, partes, r, por in DECISIONES if por != 'entera en el decreto'})
+    SALIDA_SCRIPTS.mkdir(parents=True, exist_ok=True)
+    (SALIDA_SCRIPTS / 'eso-guiones.json').write_text(
+        json.dumps([dict(idioma=i, partes=p_, queda=r, por=por) for i, p_, r, por in decisiones], ensure_ascii=False, indent=1) + '\n',
+        encoding='utf-8')
+
+
 def main() -> None:
-    if '--criterios' in sys.argv:
+    if len(sys.argv) == 1:
+        construir()
+    elif '--criterios' in sys.argv:
         todos_los_criterios(Path(sys.argv[sys.argv.index('--criterios') + 1]))
     elif '--competencias' in sys.argv:
         for mat in MATERIAS:

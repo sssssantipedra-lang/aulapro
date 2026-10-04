@@ -23,8 +23,7 @@ describe('sin decreto propio', () => {
       expect(c.materias).toBe(materiasDe('primaria'));
       expect(c.normas).toBe(NORMAS_ESTATALES.primaria);
     }
-    // La Comunitat Valenciana tiene Primaria, pero todavía no la ESO
-    const eso = await cargarCurriculo('comunitat-valenciana', 'eso');
+    const eso = await cargarCurriculo('andalucia', 'eso');
     expect(eso.origen).toBe('estatal');
     expect(eso.normas).toBe(NORMAS_ESTATALES.eso);
   });

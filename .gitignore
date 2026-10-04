@@ -45,3 +45,4 @@ copias/
 *.sw?
 .claude/
 __pycache__/
+scripts/curriculo/.cache-eso-cv/

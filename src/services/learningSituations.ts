@@ -28,7 +28,7 @@
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
-import { competenciasDe, resolverGrupo, type CurriculumEntry, type Etapa } from '../lib/curriculum';
+import { competenciasDe, resolverGrupo, type CurriculumBloqueSaberes, type CurriculumEntry, type Etapa } from '../lib/curriculum';
 import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
@@ -414,6 +414,15 @@ export async function analyzeDocument(
 /* ── Generación de la situación de aprendizaje: currículo real ── */
 
 /**
+ * El título de un bloque de saberes. Alguno no lo tiene en el decreto
+ * (Filosofía en la Comunitat Valenciana: «Bloque 1:» sin más); entonces, su
+ * primer saber, para que se sepa de qué trata.
+ */
+function tituloDeBloque(b: CurriculumBloqueSaberes): string {
+  return b.tituloBloque || `${b.epigrafes[0]?.items[0] ?? ''}…`;
+}
+
+/**
  * El bloque que se añade al prompt para un área que sí empareja con el
  * currículo: la lista real de competencias y saberes de esa materia y ese
  * grupo de cursos, para que el modelo ELIJA de ahí en vez de redactar. Se
@@ -423,7 +432,7 @@ export async function analyzeDocument(
  */
 function bloqueCurriculoReal(area: string, r: AreaResuelta, cita: string): string {
   const competencias = competenciasDe(r.entry, r.grupo).map(c => `${c.n}. ${c.texto}`).join('\n');
-  const saberes = r.entry.saberes[r.grupo].map(b => `${b.bloque}. ${b.tituloBloque}`).join('\n');
+  const saberes = r.entry.saberes[r.grupo].map(b => `${b.bloque}. ${tituloDeBloque(b)}`).join('\n');
   return (
     `\nÁREA "${area}" — CURRÍCULO OFICIAL REAL (${cita}). ` +
     `NO redactes competencias ni saberes por tu cuenta para esta área: ELIGE de estas listas, ` +
@@ -476,7 +485,7 @@ function finalizarArea(a: RawSdaArea, r: AreaResuelta | null): { area: SdaArea; 
       saberesBasicos: saberesElegidos
         .map(b => {
           const epigrafes = b.epigrafes.filter(e => e.titulo).map(e => e.titulo).join(', ');
-          return epigrafes ? `${b.bloque}. ${b.tituloBloque} (${epigrafes})` : `${b.bloque}. ${b.tituloBloque}`;
+          return epigrafes ? `${b.bloque}. ${tituloDeBloque(b)} (${epigrafes})` : `${b.bloque}. ${tituloDeBloque(b)}`;
         })
         .join('\n'),
     },

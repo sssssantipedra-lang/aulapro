@@ -5,6 +5,7 @@ import {
 import type { Class, Student, Alert, Evaluation, Rubric } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
+import { separaMatematicasAB } from '../lib/curriculum';
 import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
 import {
   EtapaCursoFields, OpcionMatematicas, CurriculoNota,
@@ -154,7 +155,7 @@ export function ClassesManager({
   const [otraAsignatura, setOtraAsignatura] = useState('');
   const necesitaOpcionMat = ctxClase?.etapa === 'eso' && ctxClase.curso === 4 && editClass.subjects.some(s => {
     const e = curriculo ? estadoDeMateria(s, ctxClase, curriculo.materias) : null;
-    return e?.tipo === 'oficial' && e.materia === 'Matemáticas';
+    return e?.tipo === 'oficial' && !!curriculo && separaMatematicasAB(e.materia, curriculo.materias);
   });
 
   // ── csv modal ──

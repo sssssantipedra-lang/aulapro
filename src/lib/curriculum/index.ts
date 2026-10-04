@@ -168,6 +168,11 @@ export function cursosDelGrupoEso(nombreGrupo: string): number[] | null {
   const curso = /^([1-4])º ESO$/.exec(nombreGrupo);
   if (curso) return [Number(curso[1])];
   if (/no especificado/i.test(nombreGrupo)) return [1, 2, 3, 4];
+  // Segunda Lengua Extranjera en la Comunitat Valenciana: dos perfiles de
+  // salida, no cursos. El 2 es el de quien la cursa de primero a cuarto, el
+  // que vale para cualquier curso; el 1 (dos cursos, los que sean) no tiene
+  // curso propio.
+  if (/^Perfil 2 \(de primero a cuarto\)$/.test(nombreGrupo)) return [1, 2, 3, 4];
   if (/cuarto curso/i.test(nombreGrupo)) return [4];
   if (/primero a tercero/i.test(nombreGrupo)) return [1, 2, 3];
   if (/primero y segundo/i.test(nombreGrupo)) return [1, 2];
@@ -186,6 +191,15 @@ export function grupoDeEso(entry: CurriculumEntry, curso: number): string | null
     if (cursos?.includes(curso)) return nombreGrupo;
   }
   return null;
+}
+
+/**
+ * Si la materia separa Matemáticas A y B en cuarto (el estatal, Madrid) y por
+ * eso hay que preguntar la opción. En la Comunitat Valenciana, cuarto es un
+ * curso más y no se pregunta.
+ */
+export function separaMatematicasAB(nombreMateria: string, materias: CurriculumEntry[] = ESO): boolean {
+  return !!materias.find(m => m.nombre === nombreMateria)?.criterios['Matemáticas A'];
 }
 
 /**
@@ -215,7 +229,9 @@ export function resolverGrupo(
     return entry.criterios[grupo]?.length ? { entry, grupo } : null;
   }
 
-  if (nombreMateria === 'Matemáticas' && curso === 4) {
+  // Solo donde el decreto separa Matemáticas A y B (el estatal, Madrid); en la
+  // Comunitat Valenciana, cuarto es un curso más
+  if (nombreMateria === 'Matemáticas' && curso === 4 && entry.criterios['Matemáticas A']) {
     if (!opcionMatematicas) return null;
     const grupo = `Matemáticas ${opcionMatematicas}`;
     return entry.criterios[grupo] ? { entry, grupo } : null;

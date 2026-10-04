@@ -157,7 +157,10 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
     for (const [alias, ids] of tablaDeAlias('primaria')) {
       for (const id of ids) expect(todos, `«${alias}» → ${id}`).toContain(id);
     }
-    const eso = [...materiasDe('eso'), ...(await cargarCurriculo('madrid', 'eso')).materias].map(m => m.id);
+    const eso = [
+      ...materiasDe('eso'), ...(await cargarCurriculo('madrid', 'eso')).materias,
+      ...(await cargarCurriculo('comunitat-valenciana', 'eso')).materias,
+    ].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('eso')) {
       for (const id of ids) expect(eso, `«${alias}» → ${id}`).toContain(id);
     }

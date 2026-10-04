@@ -102,10 +102,10 @@ export const NORMAS_ESTATALES: Record<Etapa, Norma[]> = {
    publica en valenciano y en castellano.
    - 106/2022: comprobado con los metadatos del DOGV (título en los dos
      idiomas, núm. 9402, publicado el 10-8-2022).
-   - 96/2026: título en castellano, número y boletín comprobados con el PDF del
-     DOGV (docs/Normativa Comunitat Valenciana). Falta cotejar el título en
-     valenciano, que es el que dio el dueño; hasta entonces, sin verificar.
-   - ESO: pendiente de comprobar. */
+   - 96/2026: títulos, número y boletín comprobados con los PDF del DOGV en
+     las dos lenguas (docs/Normativa Comunitat Valenciana).
+   - 107/2022 y 66/2024 (ESO): títulos en las dos lenguas, número y fecha,
+     comprobados con sus PDF del DOGV. */
 
 const VC_PRIMARIA: Norma[] = [
   {
@@ -134,22 +134,26 @@ const VC_PRIMARIA: Norma[] = [
 const VC_ESO: Norma[] = [
   {
     tipo: 'matriz',
+    // Comprobado con el PDF del DOGV (docs/Normativa Comunitat Valenciana)
     titulo: {
-      ca: 'Decret 107/2022, de 5 d\'agost, del Consell, pel qual s\'establix l\'ordenació i el currículum de l\'etapa d\'Educació Secundària Obligatòria.',
-      es: 'Decreto 107/2022, de 5 de agosto, del Consell, por el que se establece la ordenación y el currículo de la etapa de Educación Secundaria Obligatoria.',
+      ca: 'Decret 107/2022, de 5 d\'agost, del Consell, pel qual s\'estableix l\'ordenació i el currículum d\'Educació Secundària Obligatòria.',
+      es: 'Decreto 107/2022, de 5 de agosto, del Consell, por el que se establece la ordenación y el currículo de Educación Secundaria Obligatoria.',
     },
     corto: { ca: 'Decret 107/2022, de 5 d\'agost', es: 'Decreto 107/2022, de 5 de agosto' },
     boletin: { ca: 'DOGV núm. 9403, d\'11 d\'agost de 2022', es: 'DOGV núm. 9403, de 11 de agosto de 2022' },
-    verificada: false,
+    verificada: true,
   },
   {
     tipo: 'modificacion',
+    // Comprobado con el PDF del DOGV. Modifica también la Orden 19/2023: su
+    // título lo dice entero.
     titulo: {
-      ca: 'Decret 66/2024, de 21 de juny, del Consell, pel qual es modifica el Decret 107/2022, de 5 d\'agost, del Consell, pel qual s\'establix l\'ordenació i el currículum de l\'etapa d\'Educació Secundària Obligatòria.',
+      ca: 'Decret 66/2024, de 21 de juny, del Consell, pel qual es modifica el Decret 107/2022, de 5 d\'agost, del Consell, pel qual s\'establix l\'ordenació i el currículum d\'Educació Secundària Obligatòria, i l\'Orde 19/2023, de 29 de juny, de la Conselleria d\'Educació, Cultura i Esport, per la qual es regulen els procediments derivats del Decret 107/2022, de 5 d\'agost, del Consell, pel qual s\'establixen l\'ordenació i el currículum d\'Educació Secundària Obligatòria, i del Decret 108/2022, de 5 d\'agost, del Consell, pel qual s\'establixen l\'ordenació i el currículum de Batxillerat, així com l\'organització i el funcionament del Batxillerat nocturn i a distància a la Comunitat Valenciana.',
+      es: 'Decreto 66/2024, de 21 de junio, del Consell, por el que se modifica el Decreto 107/2022, de 5 de agosto, del Consell, por el que se establece la ordenación y el currículo de Educación Secundaria Obligatoria y la Orden 19/2023, de 29 de junio, de la Conselleria de Educación, Cultura y Deporte, por la que se regulan los procedimientos derivados del Decreto 107/2022, de 5 de agosto, del Consell, por el que se establecen la ordenación y el currículo de Educación Secundaria Obligatoria, y del Decreto 108/2022, de 5 de agosto, del Consell, por el que se establecen la ordenación y el currículo de Bachillerato, así como la organización y el funcionamiento del Bachillerato nocturno y a distancia en la Comunitat Valenciana.',
     },
     corto: { ca: 'Decret 66/2024, de 21 de juny', es: 'Decreto 66/2024, de 21 de junio' },
-    boletin: { ca: 'DOGV núm. 9879, de 26 de juny de 2024', es: 'DOGV núm. 9879, de 26 de junio de 2024' },
-    verificada: false,
+    boletin: { ca: 'DOGV núm. 9878, de 26 de juny de 2024', es: 'DOGV núm. 9878, de 26 de junio de 2024' },
+    verificada: true,
   },
 ];
 

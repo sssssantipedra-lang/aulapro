@@ -11,7 +11,7 @@ import {
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
   refsDeSda,
 } from '../services/learningSituations';
-import { resolverGrupo, type Etapa } from '../lib/curriculum';
+import { resolverGrupo, separaMatematicasAB, type Etapa } from '../lib/curriculum';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
 import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
@@ -319,7 +319,7 @@ export function LearningSituations({
    */
   const necesitaOpcionMatematicas = etapa === 'eso' && curso === 4 && areas.some(a => {
     const e = estadoDeArea(a);
-    return e?.tipo === 'oficial' && e.materia === 'Matemáticas';
+    return e?.tipo === 'oficial' && !!curriculo && separaMatematicasAB(e.materia, curriculo.materias);
   });
 
   /**

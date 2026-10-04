@@ -37,12 +37,18 @@ export type Cargadores = Partial<Record<ComunidadId, Partial<Record<Etapa, Carga
  */
 export interface RawEntrySaberesComunes extends Omit<RawEntry, 'saberes'> {
   saberes: CurriculumBloqueSaberes[];
+  /**
+   * Los grupos que traen saberes propios en vez de los comunes: en la ESO
+   * valenciana, la adenda de cuarto de Biología y Geología y de Física y
+   * Química.
+   */
+  saberesPorGrupo?: Record<string, CurriculumBloqueSaberes[]>;
 }
 
 export function conLosMismosSaberesEnCadaCiclo(raw: RawEntrySaberesComunes[]): CurriculumEntry[] {
-  return normalizarEntradas(raw.map(r => ({
+  return normalizarEntradas(raw.map(({ saberesPorGrupo, ...r }) => ({
     ...r,
-    saberes: Object.fromEntries(Object.keys(r.criterios).map(grupo => [grupo, r.saberes])),
+    saberes: Object.fromEntries(Object.keys(r.criterios).map(grupo => [grupo, saberesPorGrupo?.[grupo] ?? r.saberes])),
   })));
 }
 
@@ -61,6 +67,14 @@ export const CARGADORES: Cargadores = {
       materias: conLosMismosSaberesEnCadaCiclo((idioma === 'ca'
         ? (await import('./data/comunitat-valenciana/primaria.ca.json')).default
         : (await import('./data/comunitat-valenciana/primaria.es.json')).default) as unknown as RawEntrySaberesComunes[]),
+    }),
+    // Decreto 107/2022 con el 66/2024 aplicado (`scripts/curriculo/eso_cv.py`).
+    // Como en Primaria, los saberes de cada materia valen para todos sus cursos.
+    eso: async idioma => ({
+      idioma,
+      materias: conLosMismosSaberesEnCadaCiclo((idioma === 'ca'
+        ? (await import('./data/comunitat-valenciana/eso.ca.json')).default
+        : (await import('./data/comunitat-valenciana/eso.es.json')).default) as unknown as RawEntrySaberesComunes[]),
     }),
   },
   // Decretos 61/2022 y 65/2022 con el 59/2024 aplicado (`scripts/curriculo/madrid_primaria.py`
