@@ -43,6 +43,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   audit:                 { es: 'Registro de cambios', en: 'Change Log' },
   profile:               { es: 'Configuración', en: 'Settings' },
   'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
+  'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
 };
 
 /**
@@ -460,6 +461,27 @@ ayuda), notas y sus grupos. El lápiz de cada fila edita; dentro está
 «Eliminar». Eliminar un alumno borra sus programas y sus registros; eliminar
 un grupo borra sus registros, pero no al alumnado. Todo se guarda en el
 equipo y se vacía con el vaciado de fin de curso.
+
+[apoyo-programas] PROGRAMAS
+El plan individual de cada alumno. Arriba se elige el alumno (una fila de
+botones con sus nombres); debajo se ven su clase, su curso y su nivel. «Nuevo
+programa» crea uno por ámbito: en la Comunitat Valenciana, los programas del
+apartado D del PAP (comunicación, lenguaje y habla; lectura y escritura;
+matemáticas; autonomía personal; conducta; ACIS), con su nombre oficial; en el
+resto, ámbitos de partida de PT (lectoescritura, razonamiento
+lógico-matemático, atención y funciones ejecutivas…) y de AL (fonética y
+fonología, morfosintaxis, pragmática…), o «Otro ámbito…» escrito a mano. Cada
+programa tiene la intensidad del apoyo (baja, media, alta) y sus OBJETIVOS:
+cada uno con su texto, los trimestres en que se trabaja (botones 1º, 2º, 3º) y,
+con el icono del enlace, los criterios de evaluación oficiales del curso de su
+NIVEL DE COMPETENCIA (no de su matrícula), que se buscan por código o palabra.
+«Proponer objetivos con IA» añade de 4 a 6 objetivos repartidos por trimestres
+y enlazados con criterios de su nivel (de Lengua en lectoescritura y lenguaje,
+de Matemáticas en matemáticas, de todas en una ACIS, ninguno en atención o
+conducta), apoyándose en la normativa de inclusión de la comunidad y en los
+autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
+del alumno, también el diagnóstico, con el nombre cambiado por un código: si no
+se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
 
 [audit] REGISTRO DE CAMBIOS
 Quién cambió qué y cuándo: notas, alumnos, asistencia, evaluaciones… Con filtros

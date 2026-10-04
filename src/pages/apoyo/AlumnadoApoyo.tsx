@@ -240,7 +240,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
                 </fieldset>
               )}
             </div>
-            <p className="ap-aviso">{t('Todo se guarda en este equipo. El diagnóstico es un dato de salud: guárdalo solo si te hace falta para su respuesta educativa.')}</p>
+            <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe también lo que escribes aquí, incluido el diagnóstico, con el nombre cambiado por un código. El diagnóstico es un dato de salud: si no quieres que llegue a Google, déjalo en blanco.')}</p>
             <div className="ap-acciones">
               <button className="btn-accent" onClick={guardarAlumno}>{t('Guardar')}</button>
               <button className="btn-ghost" onClick={() => setAlumno(null)}>{t('Cancelar')}</button>

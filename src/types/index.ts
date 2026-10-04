@@ -729,4 +729,4 @@ export type Section =
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
   | 'meetings' | 'trainings' | 'seating'
-  | 'apoyo-alumnado';
+  | 'apoyo-alumnado' | 'apoyo-programas';

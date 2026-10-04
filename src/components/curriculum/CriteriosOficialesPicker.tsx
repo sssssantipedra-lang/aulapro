@@ -12,6 +12,8 @@ import { useMateriasOficiales } from '../../hooks/useNotasPorCompetencias';
 import { claveCriterioOficial } from '../../lib/curriculum/evaluacionPorCriterios';
 import { buscarCriterios, describirCriterio } from '../../lib/curriculum/criteriosParaIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
+import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
+import type { EstadoCurriculoClase } from '../../hooks/useNotasPorCompetencias';
 import type { Class, OfficialCriterionRef } from '../../types';
 
 export function CriteriosOficialesPicker({ idPrefix, cls, comunidad, value, onChange }: {
@@ -22,8 +24,24 @@ export function CriteriosOficialesPicker({ idPrefix, cls, comunidad, value, onCh
   value: OfficialCriterionRef[];
   onChange: (v: OfficialCriterionRef[]) => void;
 }) {
-  const { t } = useI18n();
   const { estado, materias } = useMateriasOficiales(cls, comunidad);
+  return <CriteriosPicker idPrefix={idPrefix} estado={estado} materias={materias} value={value} onChange={onChange} />;
+}
+
+/**
+ * La lista y el buscador, con las materias ya resueltas. Lo usa también el
+ * módulo de PT y AL, cuyos criterios salen del curso del nivel del alumno y
+ * no de una clase.
+ */
+export function CriteriosPicker({ idPrefix, estado, materias, value, onChange, titulo }: {
+  idPrefix: string;
+  estado: EstadoCurriculoClase;
+  materias: MateriaDeClase[];
+  value: OfficialCriterionRef[];
+  onChange: (v: OfficialCriterionRef[]) => void;
+  titulo?: string;
+}) {
+  const { t } = useI18n();
   const [buscando, setBuscando] = useState(false);
   const [consulta, setConsulta] = useState('');
   const resultados = useMemo(() => {
@@ -34,7 +52,7 @@ export function CriteriosOficialesPicker({ idPrefix, cls, comunidad, value, onCh
 
   return (
     <div className="co-picker">
-      <div className="co-ttl">{t('Criterios oficiales')}</div>
+      <div className="co-ttl">{titulo ?? t('Criterios oficiales')}</div>
       {estado === 'sin-clase' && <p className="co-vacio">{t('Elige arriba la clase para ver sus criterios oficiales.')}</p>}
       {estado === 'sin-nivel' && (
         <p className="co-vacio">{t('Indica la etapa y el curso de la clase en Mis Clases para ver sus criterios oficiales.')}</p>

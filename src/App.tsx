@@ -45,6 +45,7 @@ const LearningSituations = lazy(() => import('./pages/LearningSituations').then(
 const Resources      = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
 const WorkSessions   = lazy(() => import('./pages/WorkSessions').then(m => ({ default: m.WorkSessions })));
 const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m => ({ default: m.AlumnadoApoyo })));
+const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
 
 function Loading() {
   const { t } = useI18n();
@@ -523,6 +524,15 @@ function AppInner() {
                 data={st.apoyo}
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}
+              />
+            )}
+            {section === 'apoyo-programas' && (
+              <ProgramasApoyo
+                data={st.apoyo}
+                onChange={st.setApoyo}
+                especialidades={st.currentUser.especialidades ?? []}
+                comunidad={st.currentUser.community}
+                onNav={s => setSection(s as Section)}
               />
             )}
             {section === 'profile' && (

@@ -77,7 +77,8 @@ Todos los prepara la IA a partir de los objetivos de los programas y del registr
 
 - El diagnóstico y la categoría NEAE son datos de salud de menores (artículo 9 del RGPD).
 - Decisión del dueño (4-10-2026): la IA los recibe, siempre con el nombre cambiado por un código, como el resto.
-- Por la regla 1 de `CLAUDE.md`, `web/sitio/privacidad.html` y `web/sitio/condiciones.html` lo dicen en los tres idiomas en el mismo cambio en que la app empiece a enviarlo. También `docs/WEB.md`, sección 3.
+- Por la regla 1 de `CLAUDE.md`, `web/sitio/privacidad.html` lo dice en los tres idiomas (apartado 2 de la aplicación), con que si no se quiere enviar el diagnóstico se deja en blanco; `web/sitio/condiciones.html` remite a la privacidad en «Requisitos»; y `docs/WEB.md`, sección 3, punto 8. Hecho en el mismo cambio que los programas, la primera pantalla que lo envía.
+- La ficha del alumno avisa de lo mismo debajo del diagnóstico.
 - Todo se guarda en el equipo del docente, como el resto de la app.
 
 ## Normativa
