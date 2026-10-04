@@ -29,13 +29,14 @@ Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición 
 
 Es el plan individual de cada alumno: por ámbito, objetivos por trimestre.
 
-- En la Comunitat Valenciana, los ámbitos son los programas personalizados del apartado D del PAP (Documento 7), con sus nombres literales:
+- En la Comunitat Valenciana, los ámbitos son las medidas del apartado D del PAP (Documento 7) que lleva el profesorado de PT y AL, con sus nombres literales y en castellano o en valenciano según el idioma de la app:
   - Programa personalizado para la adquisición y uso funcional de la comunicación, el lenguaje y el habla.
   - Programa personalizado para el aprendizaje de la lectura y la escritura.
   - Programa personalizado para el aprendizaje de las matemáticas.
   - Programa personalitzat para el desarrollo de la autonomía personal (así, con «personalitzat», en la versión castellana del modelo).
-  - Programa personalizado para el aprendizaje motor y la movilidad.
   - Programa específico de conducta o plan terapéutico.
+  - Adaptación curricular individual significativa (ACIS).
+  - Se dejan fuera las medidas que no son de PT ni de AL: el programa de aprendizaje motor y movilidad, la accesibilidad personalizada, el enriquecimiento para altas capacidades, el acompañamiento ante violencia y desprotección y el itinerario de FP.
 - En las demás comunidades, ámbitos de partida que cada docente puede editar:
   - **PT:** lectoescritura; razonamiento lógico-matemático; atención, memoria y funciones ejecutivas; autonomía personal; habilidades sociales y regulación emocional.
   - **AL:** fonética y fonología; morfosintaxis; semántica y vocabulario; pragmática; voz y fluidez; discriminación auditiva; conciencia fonológica; comunicación aumentativa y alternativa.

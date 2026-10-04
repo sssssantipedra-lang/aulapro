@@ -1112,3 +1112,28 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   /* Contenido + columna lateral fija: en el móvil, una debajo de otra */
   .stack-sm { grid-template-columns:minmax(0,1fr) !important; }
 }
+
+/* ── PT y AL (ver docs/PTAL.md) ── */
+.ap-page .card + .card { margin-top:16px; }
+.ap-vacio { font-size:13px; color:var(--text-2); line-height:1.55; margin:0; }
+.ap-lista { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.ap-lista > li { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border); }
+.ap-lista > li:first-child { border-top:none; padding-top:0; }
+.ap-lista-txt { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+.ap-lista-txt strong { font-size:14px; color:var(--text); }
+.ap-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:12.5px; color:var(--text-2); }
+.ap-hora { display:inline-flex; align-items:center; gap:4px; }
+.ap-fs { border:0; padding:0; min-width:0; }
+.ap-fs > .flabel { padding:0; }
+.ap-sub { font-size:12px; color:var(--text-3); }
+.ap-form { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+.ap-form textarea.finput { resize:vertical; font-family:var(--font); line-height:1.5; }
+.ap-aviso { font-size:12px; color:var(--text-2); line-height:1.5; margin:4px 0 0; }
+.ap-acciones { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; padding-top:14px; border-top:0.5px solid var(--border); }
+.ap-borrar { margin-left:auto; color:var(--danger, #dc2626); }
+.ap-franja { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto; gap:8px; align-items:center; margin-bottom:8px; }
+.ap-color { width:28px; height:28px; border-radius:50%; border:none; cursor:pointer; outline-offset:2px; }
+@media (max-width: 640px) {
+  .ap-form { grid-template-columns:minmax(0,1fr); }
+  .ap-form > * { grid-column:1 / -1 !important; }
+}

@@ -3,6 +3,8 @@
  * `core.ts`): el que no estigui traduït es veu en castellà, mai com una clau
  * trencada.
  */
+import { APOYO_CA } from './apoyo';
+
 export const CA: Record<string, string> = {
   "Cargando…": "Carregant…",
   "Abriendo tu cuaderno…": "Obrint el teu quadern…",
@@ -1737,4 +1739,5 @@ export const CA: Record<string, string> = {
   "Otra asignatura que no está en el currículo": "Una altra assignatura que no és al currículum",
   "Otra que no esté en la lista, por ejemplo Religión o Tutoría": "Una altra que no sigui a la llista, per exemple Religió o Tutoria",
   "Si le das varias, no crees una clase por cada una: márcalas todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.": "Si n'hi fas diverses, no creïs una classe per a cadascuna: marca-les totes i després triaràs quina avalues al quadern, a les rúbriques i a les dianes.",
+  ...APOYO_CA,
 };
