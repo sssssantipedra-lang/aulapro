@@ -661,18 +661,41 @@ def eventos_saberes(mat: dict, idioma: str):
 
 
 MAYUSCULAS = re.compile(r'^[A-ZÁÉÍÓÚÀÈÒÇÏÜ]{3,}\b')    # «CIÈNCIA. CE 3…»: un título
-REF_CE = re.compile(r'\s*[\(\[]?\s*(?:\bCE\s?\d+(?:\s*(?:,|y|i|e|-|–|\+)\s*(?:CE\s?)?\d+)*)\s*[\)\]]?\s*\.?\s*$')
-TRANSVERSAL = re.compile(r'[.:]?\s*[Tt]ransversal a (?:todas las|totes les) (?:CE|competencias|competències)\.?$')
+REF_CE = re.compile(r'\s*[\(\[]?\s*(?:\bCE?\s?\d+(?:\s*(?:,|y|i|e|Y|I|-|–|\+)\s*(?:CE?\s?)?\d+)*)(?:\s*(?:,|y|i|e|Y|I))?\s*[\)\]]?\s*\.?\s*$')
+TRANSVERSAL = re.compile(r'[.:]?\s*[Tt]\s?ransversal a (?:todas las|totes les) (?:CE|competencias|competències)\.?$')
 
 
-def limpiar_titulo(t: str) -> str:
+@lru_cache(maxsize=2)
+def mayusculas(fuente: str) -> Counter:
+    """Las palabras del decreto tal y como se escriben, con sus mayúsculas."""
+    return Counter(re.findall(r'[\w·’\']+', '\n'.join(paginas_texto(fuente))))
+
+
+def a_frase(t: str, fuente: str) -> str:
+    """«EL PROYECTO EMPRENDEDOR» → «El proyecto emprendedor». Los nombres
+    propios («Grecia», «Roma») siguen en mayúscula: el decreto nunca los
+    escribe en minúscula."""
+    vocab = mayusculas(fuente)
+    def palabra(mm):
+        w = mm.group(0).lower()
+        cap = w[:1].upper() + w[1:]
+        return cap if vocab[cap] and not vocab[w] else w
+    t = re.sub(r'[\w·]+', palabra, t)
+    t = re.sub(r'([.?!]\s+)(\w)', lambda mm: mm.group(1) + mm.group(2).upper(), t)
+    i = next((k for k, c in enumerate(t) if c.isalpha()), None)
+    return t if i is None else t[:i] + t[i].upper() + t[i + 1:]
+
+
+def limpiar_titulo(t: str, fuente: str = '107', idioma: str = 'es') -> str:
     """Los títulos van sin las competencias a las que sirven («(CE 1, CE 2)»)
     ni punto final, como en Primaria."""
     t = re.sub(r'\s+', ' ', t).strip()
+    t = unir(re.split(r'(?<=\w-) (?=\w)', t), fuente, idioma)     # «CONSU- MIDORAS», de dos líneas
     t = TRANSVERSAL.sub('', t)
+    t = re.sub(r'\s*\((?:CE|C\.E\.)[^)]*$', '', t)      # «(CE 5 y» con el resto en otra línea
     t = REF_CE.sub('', t).strip(' .:-–')
     if t and t == t.upper() and re.search(r'[A-ZÁÉÍÓÚÀÈÒÇ]{3}', t):
-        t = t[0] + t[1:].lower()       # «EL PROYECTO EMPRENDEDOR» → «El proyecto emprendedor»
+        t = a_frase(t, fuente)
     return t
 
 
@@ -695,6 +718,7 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
     tras_cabecera = False        # la celda anterior era «Saberes básicos»
     ultima = actual = None       # la última línea de un saber y la que se lee
     celda_saltada = None
+    titulo_e = None              # la línea del último título
     titulo_abierto = False       # la línea anterior era un título de epígrafe
     titulo_celda_de = {'caja': None}
     ultimo_bloque = {'x': None, 'justo': False}
@@ -702,7 +726,8 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
     guion_x = min(guiones) if guiones else 0
 
     def nuevo_epigrafe(titulo):
-        nonlocal epigrafe, item, titulo_abierto
+        nonlocal epigrafe, item, titulo_abierto, titulo_e
+        titulo_e = actual
         if epigrafe is not None and titulo and epigrafe['titulo'] and sin_tildes(epigrafe['titulo']) == sin_tildes(titulo):
             item, titulo_abierto = None, False      # la cabecera de la tabla, repetida en la página siguiente
             return
@@ -771,6 +796,19 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
                 bloque = dict(bloque=num.group(1), titulo=[], epigrafes=[])
                 bloques.append(bloque)
             nuevo_epigrafe(ms.group(2))
+            titulo_celda_de['caja'] = e['celda']
+            continue
+        if (titulo_abierto and epigrafe is not None and epigrafe['titulo'] and not epigrafe['items']
+                and titulo_e is not None and titulo_e['x1'] >= (titulo_e['celda'] or (0, 0, ancho))[2] - 40
+                and (e['x0'] <= (e['celda'] or (margen,))[0] + 10
+                     or re.search(r'\b(?:Y|I|E|O|U|DE|DEL|LA|EL|LOS|LAS|LES|ELS|A|EN|PARA|PER|CON|AMB)$', titulo_e['texto'].strip()))
+                and epigrafe['titulo'] == epigrafe['titulo'].upper() and t == t.upper() and re.search(r'[A-ZÀ-Ú]{3}', t)
+                and not VINETA.match(t) and not es_marca(t) and not REF_CE.fullmatch(t)):
+            epigrafe['titulo'] += ' ' + t        # el título en mayúsculas sigue en la línea de abajo («… EL PROJECTE / EMPRENEDOR»)
+            continue
+        if re.match(r'^\d{1,2}\.\s+[^a-zà-ú]{6,}$', t) and re.search(r'[A-ZÀ-Ú]{4}', t):
+            nuevo_epigrafe(t)            # Matemáticas: «1. NÚMEROS NATURALES, ENTEROS, FRACCIONARIOS Y REALES»
+            titulo_celda_de['caja'] = e['celda']
             continue
         msn = SUBBLOQUE_SIN_NUMERO.match(t)
         if msn and bloque is not None:
@@ -882,8 +920,10 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
                                       or (e.get('primera') and item_vineta and not e['celda_con_vineta'] and sangria_item is not None
                                           and e['x0'] > sangria_item + 5 and not MAYUSCULAS.match(t)))
         # un saber de segundo nivel cuyo guion no sale: más sangrado que el texto del de arriba
-        subitem = (item is not None and item_vineta and e.get('primera') and x_texto_item is not None
-                   and e['x0'] > x_texto_item + 10 and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ]', t) and item[-1].rstrip().endswith('.'))
+        subitem = item is not None and item_vineta and re.match(r'^[A-ZÁÉÍÓÚÀÈÒÇ]', t) and (
+            (e.get('primera') and x_texto_item is not None and e['x0'] > x_texto_item + 10 and item[-1].rstrip().endswith('.'))
+            # tras «Importancia de algunas sustancias compuesto:», la lista de debajo
+            or (len(item) == 1 and item[-1].rstrip().endswith(':') and e['x0'] > sangria_item + 20))
         if e['tipo'] == 'celda':
             if subitem:
                 nuevo_item(t, e['x0'], vineta=True)
@@ -906,9 +946,9 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
     for b in bloques:
         if not any(ep['items'] for ep in b['epigrafes']):
             continue
-        titulo = limpiar_titulo(unir(b['titulo'], fuente, idioma))
-        epigrafes = [dict(n=None, titulo=limpiar_titulo(ep['titulo']) if ep['titulo'] else None,
-                          items=[unir(it, fuente, idioma) for it in ep['items']])
+        titulo = limpiar_titulo(unir(b['titulo'], fuente, idioma), fuente, idioma)
+        epigrafes = [dict(n=None, titulo=(limpiar_titulo(ep['titulo'], fuente, idioma) or None) if ep['titulo'] else None,
+                          items=[x for x in (unir(it, fuente, idioma) for it in ep['items']) if x])
                      for ep in b['epigrafes'] if ep['items']]
         salida.append(dict(bloque=b['bloque'], tituloBloque=titulo, epigrafes=epigrafes))
     return salida
