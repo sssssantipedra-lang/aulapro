@@ -73,6 +73,31 @@ guarda en el ordenador del docente: no hay cuentas, ni servidor, ni nube. Cada
 docente tiene su perfil, con su propia carpeta de datos y copia automática cada
 10 minutos. Puede haber varios perfiles en el mismo ordenador.
 
+COMUNIDAD AUTÓNOMA: cada perfil tiene la suya (se elige al crearlo y se cambia
+en Configuración → Perfil; aparece bajo el nombre del docente en el menú). De
+ella sale el currículo oficial de las situaciones de aprendizaje. El selector
+tiene dos grupos: «Decreto autonómico actualizado», las comunidades cuyo decreto
+lleva Aula Pro (con la etapa entre paréntesis si es solo una), y «Decreto
+estatal», las que siguen el currículo estatal: Real Decreto 157/2022 en
+Primaria y Real Decreto 217/2022 en la ESO. Al elegir una, debajo se ve de qué
+decreto sale cada etapa. «Fuera de España / no aplica» también usa el estatal.
+Tienen su decreto autonómico la Comunitat Valenciana, en castellano o en
+valenciano según el idioma de la aplicación: en Primaria, el Decreto 106/2022,
+modificado por el Decreto 96/2026; en la ESO, el Decreto 107/2022, modificado por
+el Decreto 66/2024, con sus materias propias (Valenciano: Lengua y Literatura,
+Cultura Clásica, Filosofía, Inteligencia Artificial, Programación y Robótica,
+Finanzas y Consumo Responsables, los talleres y laboratorios…), sin opciones A y
+B en las Matemáticas de cuarto. Cataluña, en catalán, la lengua del texto que
+lleva la aplicación: Primaria y ESO con el Decret 175/2022, con sus áreas y
+materias propias (Llengua Catalana i Literatura, Aranès i Literatura a l'Aran,
+Economia Bàsica, Emprenedoria, Robòtica i Programació…). Y la Comunidad de
+Madrid, en castellano: en Primaria, el Decreto 61/2022, con sus áreas propias
+(Ciencias de la Naturaleza y Ciencias Sociales por separado, Segunda Lengua
+Extranjera y Tecnología y Robótica, y Educación en Valores solo en quinto); en la
+ESO, el Decreto 65/2022, curso a curso, con sus materias propias (Ciencias de la
+Computación, Cultura Clásica y Filosofía). Las dos, modificadas por el Decreto
+59/2024. El resto de comunidades siguen el estatal.
+
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
@@ -130,8 +155,15 @@ la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
 [classes] MIS CLASES
-El punto de partida de todo. Se crea una clase con nombre, una o varias
-asignaturas, aula y color; se puede marcar como tutoría. Dentro de cada clase se
+El punto de partida de todo. Se crea una clase con nombre, aula y color; se
+puede marcar como tutoría. Se eligen ETAPA Y CURSO (Primaria 1º-6º o ESO 1º-4º,
+obligatorios) y aparecen las asignaturas de ese curso tal y como las llama el
+currículo de la comunidad del perfil: se marcan las que se dan (una o varias).
+Las que no están en la lista (Religión, Tutoría…) se añaden aparte con
+«Añadir» y se trabajan en modo libre, sin currículo oficial. En 4º de ESO con
+Matemáticas se pide la opción A o B. El lápiz junto al nombre de la clase
+(«Editar clase») abre el mismo formulario para cambiar cualquier dato.
+Dentro de cada clase se
 añaden los alumnos uno a uno, o de golpe con el botón «Importar CSV»: se pegan
 las filas en formato «Nombre,Email», una por línea (la primera puede ser la
 cabecera). De cada alumno se guardan
@@ -231,11 +263,30 @@ Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 
 el resto reparte proporcionalmente); se pueden crear a mano o con la IA. Aquí se
 evalúa a cada alumno. IMPORTANTE: si la rúbrica declara clase y categoría del
 cuaderno, la nota entra sola en el cuaderno en una columna propia; si no las
-declara, la evaluación se queda solo en el Historial.
+declara, la evaluación se queda solo en el Historial. Cada criterio de rúbrica
+(o ítem de diana) lleva las competencias clave que evalúa (CCL, CP, STEM, CD,
+CPSAA, CC, CE, CCEC) y, si la clase tiene currículo oficial, los criterios de
+evaluación oficiales, de una o varias asignaturas. Los pone la IA: al generar
+la rúbrica o la diana, o con «Marcar con IA» en las hechas a mano, que rellena
+solo lo que falte. Se cambian a mano: las competencias clave, pulsando sus
+botones; los criterios oficiales, quitándolos o con «Añadir otro criterio» y el
+buscador. Arriba se ven las competencias clave y las específicas que trabaja.
+Al evaluar, la nota de cada criterio va a sus competencias clave (Diana
+competencial) y a sus criterios oficiales. Las rúbricas y dianas que se crean
+desde una situación de aprendizaje ya lo traen marcado.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
-clase y alumno.
+clase y alumno. Debajo, «Competencias específicas»: por asignatura con currículo
+oficial, la nota de cada criterio de evaluación (media de las veces que se ha
+evaluado), de cada competencia específica (media de sus criterios) y del área
+(media de sus competencias). Sale de las evaluaciones con criterios oficiales
+marcados y no cambia la nota del cuaderno. La clase necesita etapa y curso.
+Es una tabla por asignatura con lo evaluado: el número de cada competencia
+(CE1, CE2…) y de cada criterio y un resumen de su texto (al pasar el ratón, o
+al tocarlo en el móvil, se lee entero). Debajo, «Faltan por evaluar», solo con
+los números. «Exportar PDF» saca en una página las tablas del alumno, solo con
+los números y las notas, lo que falta y el decreto del que salen.
 
 [reports] INFORMES
 Informes de evaluación competencial redactados por la IA a partir de las
@@ -275,14 +326,20 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   agrupación y los bloques plegados.
 - CREAR: formulario en dos pasos: «La idea» (qué se quiere trabajar) y «Para
   quién» (clase, nivel, etapa y curso del currículo oficial, áreas, nº de
-  sesiones y temporalización). En «Más opciones» (plegado) están el nº de la
+  sesiones y temporalización). Si la clase ya tiene etapa y curso, no se
+  preguntan: sale un resumen con el decreto que se usará y «Cambiar en la
+  clase». Si no los tiene, se eligen aquí y se guardan en la clase al generar.
+  Un área sin materia oficial clara pregunta cuál es, y la respuesta se
+  recuerda en la clase. En «Más opciones» (plegado) están el nº de la
   SdA, los meses, cómo es el grupo, la metodología habitual y los documentos de
   apoyo (normativa o programación que la IA resume y tiene en cuenta). «Generar
   situación de aprendizaje» tarda cerca de un minuto.
 - DOCUMENTO: la SdA se lee como un documento, con el título editable arriba y
   un ÍNDICE a la izquierda (Resumen, Currículo, Sesiones, Metodología,
   Inclusión, Evaluación, Materiales) que salta a cada apartado. Cada texto se
-  edita pulsando el lápiz que aparece al pasar el ratón. Las competencias clave
+  edita pulsando el lápiz que aparece al pasar el ratón. «Currículo» empieza por
+  la cita del decreto del que salen competencias y saberes (la misma cita va en
+  el PDF y el Word); se guarda con la SdA. Las competencias clave
   salen como etiquetas (CCL, STEM…); cada área, en una tarjeta plegable con sus
   competencias específicas, criterios y saberes; las sesiones, en una línea de
   tiempo por fases (Activación, Desarrollo, Consolidación, Producto final); la
@@ -390,7 +447,8 @@ para justificar un cambio de nota.
 Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
 izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
 vuelve con «← Configuración»:
-- PERFIL: nombre, apellidos, centro, especialidad y curso escolar.
+- PERFIL: nombre, apellidos, centro, especialidad, curso escolar y comunidad
+  autónoma.
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
   «Pegar mi clave», que la guarda y comprueba que funciona. También explica el

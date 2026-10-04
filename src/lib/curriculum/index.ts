@@ -69,27 +69,62 @@ export interface CurriculumBloqueSaberes {
  * la ESO no reparte todas las materias en los mismos bloques de cursos.
  */
 export interface CurriculumEntry {
+  /**
+   * Identificador estable de la materia, el mismo en todos los idiomas en que
+   * se publique el decreto: lo que guarda una clase para saber qué materia
+   * oficial es cada asignatura aunque el docente cambie el idioma de la app.
+   * En el currículo estatal, que solo está en castellano, es el nombre.
+   */
+  id: string;
   nombre: string;
+  /**
+   * Las competencias específicas de la materia. Para leerlas en un grupo de
+   * cursos concreto, `competenciasDe`: algún decreto las repite en cada grupo
+   * con cambios de redacción (ver `competenciasPorGrupo`).
+   */
   competencias: CurriculumCompetencia[];
+  /**
+   * Solo cuando el decreto escribe las competencias en cada grupo de cursos y
+   * no todas igual (Madrid, Primaria: una palabra o una coma de un ciclo a
+   * otro): las de cada grupo, tal cual. `competencias` lleva entonces las del
+   * primer grupo.
+   */
+  competenciasPorGrupo?: Record<string, CurriculumCompetencia[]>;
   criterios: Record<string, CurriculumCriterio[]>;
   saberes: Record<string, CurriculumBloqueSaberes[]>;
+  /**
+   * Solo si la materia no se imparte en todos los cursos de sus grupos: en
+   * Madrid, Educación en Valores Cívicos y Éticos va en quinto, no en sexto.
+   */
+  cursos?: number[];
 }
 
-interface RawEntry {
+export interface RawEntry {
+  id?: string;
   area?: string;
   materia?: string;
   competencias: CurriculumCompetencia[];
+  competenciasPorGrupo?: Record<string, CurriculumCompetencia[]>;
   criterios: Record<string, CurriculumCriterio[]>;
   saberes: Record<string, CurriculumBloqueSaberes[]>;
+  cursos?: number[];
 }
 
-function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
+export function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
   return raw.map(r => ({
+    id: r.id ?? r.area ?? r.materia ?? '',
     nombre: r.area ?? r.materia ?? '',
     competencias: r.competencias,
+    ...(r.competenciasPorGrupo ? { competenciasPorGrupo: r.competenciasPorGrupo } : {}),
     criterios: r.criterios,
     saberes: r.saberes,
+    ...(r.cursos ? { cursos: r.cursos } : {}),
   }));
+}
+
+/** Las competencias específicas de una materia, con el texto de este grupo de cursos. */
+export function competenciasDe(entry: CurriculumEntry, grupo: string): CurriculumCompetencia[] {
+  return entry.competenciasPorGrupo?.[grupo] ?? entry.competencias;
 }
 
 // TypeScript infiere de cada JSON el tipo exacto de sus claves literales
@@ -103,8 +138,17 @@ export function materiasDe(etapa: Etapa): CurriculumEntry[] {
   return etapa === 'primaria' ? PRIMARIA : ESO;
 }
 
-export function buscarMateria(etapa: Etapa, nombre: string): CurriculumEntry | undefined {
-  return materiasDe(etapa).find(m => m.nombre === nombre);
+/**
+ * `materias` es el currículo en el que buscar; por defecto el estatal. Un
+ * currículo autonómico (ver `./cargar.ts`) lo pasa explícitamente. Ojo: la
+ * agrupación de cursos de `cicloDePrimaria` y `grupoDeEso` es la de los Reales
+ * Decretos; si un decreto autonómico agrupa los cursos de otra manera, esa
+ * lógica tendrá que venir con sus datos en vez de darse por buena.
+ */
+export function buscarMateria(
+  etapa: Etapa, nombre: string, materias: CurriculumEntry[] = materiasDe(etapa),
+): CurriculumEntry | undefined {
+  return materias.find(m => m.nombre === nombre);
 }
 
 /** 1º-2º → 1er ciclo, 3º-4º → 2º ciclo, 5º-6º → 3er ciclo. */
@@ -120,7 +164,15 @@ export function cicloDePrimaria(curso: number): 1 | 2 | 3 {
  * por una coincidencia de patrón que no le corresponde.
  */
 export function cursosDelGrupoEso(nombreGrupo: string): number[] | null {
+  // Los decretos autonómicos que van curso a curso («1º ESO» en Madrid)
+  const curso = /^([1-4])º ESO$/.exec(nombreGrupo);
+  if (curso) return [Number(curso[1])];
   if (/no especificado/i.test(nombreGrupo)) return [1, 2, 3, 4];
+  // Segunda Lengua Extranjera en la Comunitat Valenciana: dos perfiles de
+  // salida, no cursos. El 2 es el de quien la cursa de primero a cuarto, el
+  // que vale para cualquier curso; el 1 (dos cursos, los que sean) no tiene
+  // curso propio.
+  if (/^Perfil 2 \(de primero a cuarto\)$/.test(nombreGrupo)) return [1, 2, 3, 4];
   if (/cuarto curso/i.test(nombreGrupo)) return [4];
   if (/primero a tercero/i.test(nombreGrupo)) return [1, 2, 3];
   if (/primero y segundo/i.test(nombreGrupo)) return [1, 2];
@@ -142,27 +194,44 @@ export function grupoDeEso(entry: CurriculumEntry, curso: number): string | null
 }
 
 /**
+ * Si la materia separa Matemáticas A y B en cuarto (el estatal, Madrid) y por
+ * eso hay que preguntar la opción. En la Comunitat Valenciana, cuarto es un
+ * curso más y no se pregunta.
+ */
+export function separaMatematicasAB(nombreMateria: string, materias: CurriculumEntry[] = ESO): boolean {
+  return !!materias.find(m => m.nombre === nombreMateria)?.criterios['Matemáticas A'];
+}
+
+/**
  * Resuelve una materia y su grupo de cursos correcto para una etapa y un
  * curso concretos. `opcionMatematicas` solo hace falta para Matemáticas de
  * 4º de la ESO (elige entre "A" y "B"); en cualquier otro caso se ignora.
  * Devuelve `null` si la materia no existe en esta etapa, o si es la
- * Matemáticas de 4º de la ESO sin haber indicado la opción.
+ * Matemáticas de 4º de la ESO sin haber indicado la opción. `materias` es el
+ * currículo en el que buscar (por defecto, el estatal).
  */
 export function resolverGrupo(
   etapa: Etapa,
   nombreMateria: string,
   curso: number,
   opcionMatematicas?: 'A' | 'B',
+  materias: CurriculumEntry[] = materiasDe(etapa),
 ): { entry: CurriculumEntry; grupo: string } | null {
-  const entry = buscarMateria(etapa, nombreMateria);
+  const entry = buscarMateria(etapa, nombreMateria, materias);
   if (!entry) return null;
+  if (entry.cursos && !entry.cursos.includes(curso)) return null;
 
   if (etapa === 'primaria') {
     const grupo = String(cicloDePrimaria(curso));
-    return entry.criterios[grupo] ? { entry, grupo } : null;
+    // Una materia puede figurar en un ciclo sin nada dentro (Educación en
+    // Valores solo se imparte en el tercero): eso es «no hay currículo», no un
+    // currículo vacío, o se anunciaría una lista oficial que no existe.
+    return entry.criterios[grupo]?.length ? { entry, grupo } : null;
   }
 
-  if (nombreMateria === 'Matemáticas' && curso === 4) {
+  // Solo donde el decreto separa Matemáticas A y B (el estatal, Madrid); en la
+  // Comunitat Valenciana, cuarto es un curso más
+  if (nombreMateria === 'Matemáticas' && curso === 4 && entry.criterios['Matemáticas A']) {
     if (!opcionMatematicas) return null;
     const grupo = `Matemáticas ${opcionMatematicas}`;
     return entry.criterios[grupo] ? { entry, grupo } : null;

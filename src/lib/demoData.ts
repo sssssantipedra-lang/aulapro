@@ -1,10 +1,14 @@
 import type { User, Class, Student, ScheduleBlock, CalEvent, Task, Rubric, GradeCategory, GradeItem, GradeMap, ClassMark } from '../types';
 import { isoDate } from './utils';
+import type { ComunidadId } from './curriculum/comunidades';
 
 /**
  * Datos de ejemplo para explorar la app sin introducir datos reales.
  * Se cargan solo si el usuario pulsa "Cargar datos de ejemplo".
  */
+
+/** La comunidad del perfil de demostración (es solo la de los datos de ejemplo). */
+export const DEMO_COMMUNITY: ComunidadId = 'comunitat-valenciana';
 
 export const DEMO_USER: User = {
   id: 'demo-uid-001',
@@ -30,8 +34,14 @@ const DEMO_CLASSES: Class[] = [
     isTutoria: true,
     subject: 'Matemáticas',
     subjects: ['Matemáticas', 'Biología y Geología', 'Tutoría'],
+    etapa: 'eso', curso: 3,
+    materiasOficiales: { Matemáticas: 'Matemáticas', 'Biología y Geología': 'Biología y Geología', Tutoría: null },
   },
-  { id: 'c2', name: '4º ESO B',  subject: 'Matemáticas',   subjects: ['Matemáticas'],   room: 'Aula 7', color: '#10b981' },
+  {
+    id: 'c2', name: '4º ESO B',  subject: 'Matemáticas',   subjects: ['Matemáticas'],   room: 'Aula 7', color: '#10b981',
+    etapa: 'eso', curso: 4, opcionMatematicas: 'B', materiasOficiales: { Matemáticas: 'Matemáticas' },
+  },
+  // Bachillerato no es una etapa de la app: se queda sin currículo oficial, como ejemplo de clase libre
   { id: 'c3', name: '1º Bach A', subject: 'Matemáticas I', subjects: ['Matemáticas I'], room: 'Aula 8', color: '#8b5cf6' },
 ];
 

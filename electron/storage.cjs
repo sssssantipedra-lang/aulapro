@@ -68,14 +68,18 @@ class Storage {
     return list;
   }
 
-  async createProfile({ name, school, subject, course }) {
+  async createProfile({ name, school, subject, course, community }) {
     const list = await this.listProfiles();
+    // Solo se comprueba que parezca un identificador (la lista de comunidades
+    // vive en la interfaz); la interfaz descarta al leer lo que no reconozca.
+    const comunidad = typeof community === 'string' && /^[a-z-]{1,40}$/.test(community) ? community : null;
     const profile = {
       id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       name: String(name || 'Docente').slice(0, 80),
       school: String(school || '').slice(0, 120),
       subject: String(subject || '').slice(0, 120),
       course: String(course || '').slice(0, 20),
+      ...(comunidad ? { community: comunidad } : {}),
       createdAt: new Date().toISOString(),
       lastOpenedAt: new Date().toISOString(),
     };

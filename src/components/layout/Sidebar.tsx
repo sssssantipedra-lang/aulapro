@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, Settings, ChevronLeft, ChevronRight,
-  Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, ChevronDown, Share2,
+  Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, ChevronDown, Share2, MapPin,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
+import { nombreComunidad } from '../../lib/curriculum/comunidades';
+import { requestSettingsPanel } from '../../lib/settingsNav';
 import type { User as UserType } from '../../types';
 import type { Section } from '../../types';
 import { NAV_GROUPS, isCurrent, hubTarget, type NavIcon } from '../../lib/navigation';
@@ -44,7 +46,7 @@ interface Props {
 const COLLAPSED_KEY = 'aulapro_nav_collapsed';
 
 export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing, saving, onLogout }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? '{}'); } catch { return {}; }
@@ -79,6 +81,24 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
             <div style={{ fontSize: 12.5, fontWeight: 700, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 148 }}>{user.full_name}</div>
             <div style={{ fontSize: 11, color: '#64748b' }}>{user.subject || user.school}</div>
           </div>
+        </button>
+      )}
+
+      {/* La comunidad lleva directa a su apartado en Perfil. Sin ella, avisa. */}
+      {user && (
+        <button
+          type="button"
+          className={`sb-community${user.community ? '' : ' unset'}`}
+          onClick={() => { requestSettingsPanel('perfil'); onNav('profile'); }}
+          title={user.community ? t('Tu comunidad autónoma. Púlsala para cambiarla en el perfil.') : t('Elige tu comunidad autónoma')}
+          aria-label={user.community
+            ? `${t('Comunidad autónoma')}: ${nombreComunidad(user.community, lang)}`
+            : t('Elige tu comunidad autónoma')}
+        >
+          <MapPin size={12} />
+          <span className="sb-community-name">
+            {user.community ? nombreComunidad(user.community, lang) : t('Elige tu comunidad')}
+          </span>
         </button>
       )}
 

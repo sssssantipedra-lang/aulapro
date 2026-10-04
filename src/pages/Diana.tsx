@@ -8,6 +8,8 @@ import { DIANA_SECTORS, LOMLOE_TO_DIANA, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { CompetenciasEspecificas } from '../components/curriculum/CompetenciasEspecificas';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 interface Props {
   classes: Class[];
@@ -18,6 +20,8 @@ interface Props {
   lawDocument: InlineFile | null;
   dianaProfiles: Record<string, DianaProfile>;
   onSaveDiana: (studentId: string, profile: DianaProfile) => void;
+  /** La comunidad del perfil: de ella sale el currículo de las competencias específicas. */
+  comunidad?: ComunidadId;
 }
 
 type SectorId = 'ds1' | 'ds2' | 'ds3' | 'ds4' | 'ds5' | 'ds6';
@@ -298,7 +302,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
   );
 }
 
-export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocument, dianaProfiles, onSaveDiana }: Props) {
+export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocument, dianaProfiles, onSaveDiana, comunidad }: Props) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [classId, setClassId] = useState('');
@@ -852,6 +856,17 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {studentId && (
+        <div style={{ marginTop: 16 }}>
+          <CompetenciasEspecificas
+            cls={classes.find(c => c.id === classId) ?? null}
+            comunidad={comunidad}
+            alumno={student?.name ?? ''}
+            evaluaciones={studentEvals}
+          />
         </div>
       )}
     </section>

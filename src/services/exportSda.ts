@@ -73,6 +73,8 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
 
   const gridRows =
     rowTriple(t('Temporalización'), temporal, t('Área'), areaVal, t('ODS'), c.ods) +
+    // Solo la cita del decreto usado: nada de avisos sobre la aplicación en un documento oficial
+    rowFull(t('Normativa curricular'), c.normativa?.cita ?? '') +
     rowFull(t('Justificación'), c.justificacion) +
     rowFull(t('Producto final'), c.productoFinal) +
     rowFull(t('Explicación curricular (para ti)'), c.explicacionCurricular) +
@@ -216,6 +218,8 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
   const rows: TableRow[] = [
     gBandTop(bandTitle),
     ...gRowTriple(t('Temporalización'), temporal, t('Área'), areaVal, t('ODS'), c.ods),
+    // Solo la cita del decreto usado: nada de avisos sobre la aplicación en un documento oficial
+    ...gRowFull(t('Normativa curricular'), c.normativa?.cita ?? ''),
     ...gRowFull(t('Justificación'), c.justificacion),
     ...gRowFull(t('Producto final'), c.productoFinal),
     ...gRowFull(t('Explicación curricular (para ti)'), c.explicacionCurricular),

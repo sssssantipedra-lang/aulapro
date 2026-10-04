@@ -1,8 +1,15 @@
 import { useState, useId } from 'react';
 import {
-  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info,
+  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check,
 } from 'lucide-react';
 import type { Class, Student, Alert, Evaluation, Rubric } from '../types';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
+import { separaMatematicasAB } from '../lib/curriculum';
+import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
+import {
+  EtapaCursoFields, OpcionMatematicas, CurriculoNota,
+} from '../components/curriculum/CurriculumFields';
 import { initials } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
@@ -58,11 +65,18 @@ interface Props {
   onOpenEval: (rubricId: string, studentId: string, classId: string) => void;
   /** Perfil activo, para distinguir las clases propias de las compartidas. */
   profileId?: string | null;
+  /** Comunidad del perfil: de ella salen las materias oficiales que se ofrecen. */
+  comunidad?: ComunidadId;
+}
+
+/** Parte aleatoria de los ids nuevos. Fuera del componente: solo se llama al guardar, nunca al pintar. */
+function sufijoAleatorio(): string {
+  return Math.random().toString(36).slice(2, 9);
 }
 
 // ─── blank factories ──────────────────────────────────────────────────────────
 function blankClass(): Omit<Class, 'id'> {
-  return { name: '', subject: '', subjects: [''], isTutoria: false, room: '', color: PALETTE[0] };
+  return { name: '', subject: '', subjects: [], isTutoria: false, room: '', color: PALETTE[0] };
 }
 
 function blankAlert(): Omit<Alert, 'id'> {
@@ -78,15 +92,16 @@ function roomLabel(room: string, word: string): string {
 
 export function ClassesManager({
   classes, students, evaluations, rubrics,
-  onAddClass, onDeleteClass,
+  onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId,
+  onAddStudents, onOpenEval, profileId, comunidad,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
+  const nivelTexto = useNivelTexto();
 
   const uid = useId();
-  const newId = () => `${uid}-${Math.random().toString(36).slice(2, 9)}`;
+  const newId = () => `${uid}-${sufijoAleatorio()}`;
 
   // ── tabs ──
   const [activeClassId, setActiveClassId] = useState<string>(classes[0]?.id ?? '');
@@ -102,6 +117,46 @@ export function ClassesManager({
   // ── class modal ──
   const [classModal, setClassModal] = useState(false);
   const [editClass, setEditClass] = useState<Omit<Class, 'id'>>(blankClass());
+  /** La clase que se está editando; `null` si el formulario crea una nueva. */
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
+
+  // ── currículo oficial de la clase del formulario ──
+  // Las asignaturas se marcan de la lista oficial del curso (el currículo de la
+  // comunidad del perfil); las que no están en ella se añaden aparte, en modo
+  // libre. Así una clase nueva nunca necesita adivinar qué materia es cada una.
+  const curriculo = useCurriculo(comunidad, editClass.etapa);
+  const ctxClase: ContextoClase | null = editClass.etapa && editClass.curso
+    ? {
+        etapa: editClass.etapa, curso: editClass.curso,
+        opcionMatematicas: editClass.opcionMatematicas, materiasOficiales: editClass.materiasOficiales,
+      }
+    : null;
+  /** Nombres de las materias oficiales de este curso, en el orden del decreto. */
+  const materiasCurso = ctxClase && curriculo ? materiasDelCurso(ctxClase, curriculo.materias) : [];
+  /**
+   * Qué asignatura de la clase es cada materia oficial del curso: la que se
+   * llama igual o la que ya se sabía que es esa materia por su identificador.
+   * Así una clase creada en castellano tiene marcada «Matemàtiques» con la app
+   * en valenciano, y su asignatura sigue llamándose como se creó: el cuaderno,
+   * las rúbricas y las dianas cuelgan de ese nombre.
+   */
+  const asignaturaDe = new Map<string, string>();
+  if (ctxClase && curriculo) {
+    for (const s of editClass.subjects) {
+      const e = estadoDeMateria(s, ctxClase, curriculo.materias);
+      if (e.tipo === 'oficial' && !e.porAlias && materiasCurso.includes(e.materia) && !asignaturaDe.has(e.materia)) {
+        asignaturaDe.set(e.materia, s);
+      }
+    }
+  }
+  const deLaLista = new Set(asignaturaDe.values());
+  /** Asignaturas de la clase que no son de la lista oficial del curso. */
+  const otrasAsignaturas = editClass.subjects.filter(s => s.trim() && !deLaLista.has(s));
+  const [otraAsignatura, setOtraAsignatura] = useState('');
+  const necesitaOpcionMat = ctxClase?.etapa === 'eso' && ctxClase.curso === 4 && editClass.subjects.some(s => {
+    const e = curriculo ? estadoDeMateria(s, ctxClase, curriculo.materias) : null;
+    return e?.tipo === 'oficial' && !!curriculo && separaMatematicasAB(e.materia, curriculo.materias);
+  });
 
   // ── csv modal ──
   const [csvModal, setCsvModal] = useState(false);
@@ -177,30 +232,86 @@ export function ClassesManager({
   // ─── class modal ────────────────────────────────────────────────────────────
   function openClassModal() {
     setEditClass(blankClass());
+    setEditingClassId(null);
+    setOtraAsignatura('');
     setClassModal(true);
   }
 
+  /** El mismo formulario, con la clase ya rellena. */
+  function openEditClass(c: Class) {
+    const { id, ...rest } = c;
+    setEditClass({ ...rest, subjects: [...(c.subjects ?? [c.subject])] });
+    setEditingClassId(id);
+    setOtraAsignatura('');
+    setClassModal(true);
+  }
+
+  function setEtapaCurso(etapa: Class['etapa'] | '', curso: number | '') {
+    setEditClass(c => ({
+      ...c,
+      etapa: etapa || undefined,
+      curso: curso === '' ? undefined : curso,
+      // La opción de Matemáticas solo existe en 4º de ESO
+      opcionMatematicas: etapa === 'eso' && curso === 4 ? c.opcionMatematicas : undefined,
+    }));
+  }
+
+  function toggleMateria(nombre: string) {
+    const asignatura = asignaturaDe.get(nombre);
+    setEditClass(c => ({
+      ...c,
+      subjects: asignatura ? c.subjects.filter(x => x !== asignatura) : [...c.subjects, nombre],
+    }));
+  }
+
+  function addOtraAsignatura() {
+    const nombre = otraAsignatura.trim();
+    if (!nombre) return;
+    setEditClass(c => (c.subjects.includes(nombre) ? c : { ...c, subjects: [...c.subjects, nombre] }));
+    setOtraAsignatura('');
+  }
+
+  const quitarAsignatura = (nombre: string) =>
+    setEditClass(c => ({ ...c, subjects: c.subjects.filter(x => x !== nombre) }));
+
   function saveClass() {
     if (!editClass.name.trim()) { notify(t('El nombre de la clase es obligatorio')); return; }
-    const subjects = editClass.subjects.map(s => s.trim()).filter(Boolean);
+    if (!ctxClase || !curriculo) { notify(t('Elige la etapa y el curso de la clase.')); return; }
+
+    // Primero las oficiales, en el orden del decreto; después las demás.
+    const oficiales = materiasCurso.filter(n => asignaturaDe.has(n));
+    const otras = otrasAsignaturas.map(s => s.trim());
+    const subjects = [...oficiales.map(n => asignaturaDe.get(n)!), ...otras];
     if (subjects.length === 0) { notify(t('Pon al menos una asignatura')); return; }
 
+    // Cada oficial guarda el identificador de su materia (vale aunque cambie el
+    // idioma de la app); una de fuera de la lista queda en modo libre, salvo que
+    // ya se supiera qué materia es (una clase anterior con «Mates», por ejemplo).
+    const materias: Record<string, string | null> = {};
+    for (const n of oficiales) materias[asignaturaDe.get(n)!] = curriculo.materias.find(m => m.nombre === n)!.id;
+    for (const n of otras) {
+      const e = estadoDeMateria(n, ctxClase, curriculo.materias);
+      if (e.tipo === 'oficial') materias[n] = curriculo.materias.find(m => m.nombre === e.materia)!.id;
+      else materias[n] = null;
+    }
     // `subject` se mantiene sincronizado con la primera: todo lo escrito antes
     // de que existieran varias asignaturas sigue leyendo de ahí.
-    const newClass: Class = { id: newId(), ...editClass, subjects, subject: subjects[0] };
+    const datos = { ...editClass, subjects, subject: subjects[0], materiasOficiales: materias };
+
+    if (editingClassId) {
+      const original = classes.find(c => c.id === editingClassId);
+      if (original) onUpdateClass({ ...original, ...datos, id: original.id });
+      setClassModal(false);
+      notify(t('Clase actualizada'));
+      return;
+    }
+
+    const newClass: Class = { id: newId(), ...datos };
     onAddClass(newClass);
     setActiveClassId(newClass.id);
     setClassModal(false);
     notify(subjects.length > 1 ? t('Clase creada con {n} asignaturas', { n: subjects.length }) : t('Clase creada'));
   }
-
-  /** Editores de la lista de asignaturas del formulario. */
-  const setSubjectAt = (i: number, value: string) =>
-    setEditClass(c => ({ ...c, subjects: c.subjects.map((s, j) => (j === i ? value : s)) }));
-  const addSubject = () =>
-    setEditClass(c => ({ ...c, subjects: [...c.subjects, ''] }));
-  const removeSubjectAt = (i: number) =>
-    setEditClass(c => ({ ...c, subjects: c.subjects.filter((_, j) => j !== i) }));
 
   // ─── csv import ─────────────────────────────────────────────────────────────
   function importCsv() {
@@ -317,11 +428,20 @@ export function ClassesManager({
               <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 2 }}>
                 {(activeClass.subjects ?? [activeClass.subject]).join(' · ')}
                 {activeClass.room ? ` · ${roomLabel(activeClass.room, t('Aula'))}` : ''}
+                {activeClass.etapa && activeClass.curso ? ` · ${nivelTexto(activeClass.etapa, activeClass.curso)}` : ''}
               </div>
             </div>
             <button
               className="ico-btn"
               style={{ marginLeft: 'auto' }}
+              title={t('Editar clase')}
+              aria-label={t('Editar clase')}
+              onClick={() => openEditClass(activeClass)}
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              className="ico-btn"
               title={t('Eliminar clase')}
               onClick={() => {
                 if (!window.confirm(t('¿Eliminar la clase "{name}"? Se perderán todos sus datos.', { name: activeClass.name }))) return;
@@ -558,7 +678,7 @@ export function ClassesManager({
       <div className={`modal-overlay${classModal ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget) setClassModal(false); }}>
         <div className="modal">
           <div className="modal-hd">
-            <span className="modal-title">{t('Nueva clase')}</span>
+            <span className="modal-title">{t(editingClassId ? 'Editar clase' : 'Nueva clase')}</span>
             <button className="ico-btn" onClick={() => setClassModal(false)} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
           </div>
 
@@ -574,6 +694,16 @@ export function ClassesManager({
                 onChange={e => setEditClass({ ...editClass, room: e.target.value })} />
             </div>
           </div>
+
+          {/* Etapa y curso: deciden qué currículo oficial le toca a la clase y
+              qué asignaturas se ofrecen para marcar. Son obligatorios. */}
+          <EtapaCursoFields
+            idPrefix="classesmanager-cur" etapa={editClass.etapa ?? ''} curso={editClass.curso ?? ''}
+            onChange={setEtapaCurso}
+          />
+          {ctxClase && curriculo && (
+            <div style={{ marginTop: -6, marginBottom: 14 }}><CurriculoNota curriculo={curriculo} /></div>
+          )}
 
           <label style={{
             display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
@@ -594,30 +724,73 @@ export function ClassesManager({
 
           <div className="fgroup">
             <label className="flabel">{t('Asignaturas que le das')}</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {editClass.subjects.map((s, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input
-                    className="finput" style={{ flex: 1 }}
-                    placeholder={t(i === 0 ? 'Ej. Matemáticas' : 'Ej. Lengua')}
-                    value={s}
-                    onChange={e => setSubjectAt(i, e.target.value)}
-                  />
-                  {editClass.subjects.length > 1 && (
-                    <button className="ico-btn" title={t('Quitar')} onClick={() => removeSubjectAt(i)}>
-                      <Trash2 size={14} color="var(--danger)" />
+            {!ctxClase ? (
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5, margin: 0 }}>
+                {t('Elige primero la etapa y el curso: aquí aparecerán sus asignaturas tal y como las llama el currículo.')}
+              </p>
+            ) : !curriculo ? (
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: 0 }}>{t('Cargando…')}</p>
+            ) : (
+              <div role="group" aria-label={t('Asignaturas del currículo')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {materiasCurso.map(n => {
+                  const on = asignaturaDe.has(n);
+                  return (
+                    <button
+                      key={n} type="button" aria-pressed={on} onClick={() => toggleMateria(n)}
+                      className={`chip${on ? ' on' : ''}`}
+                      style={{ whiteSpace: 'normal', height: 'auto', minHeight: 34, padding: '6px 14px', textAlign: 'left' }}
+                    >
+                      {on && <Check size={12} style={{ flexShrink: 0 }} />}
+                      {n}
                     </button>
-                  )}
+                  );
+                })}
+              </div>
+            )}
+
+            {otrasAsignaturas.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>{t('Otras asignaturas')}</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {otrasAsignaturas.map(n => (
+                    <span key={n} className="chip on" style={{ cursor: 'default' }}>
+                      {n}
+                      <button
+                        type="button" className="ico-btn" style={{ width: 20, height: 20 }}
+                        aria-label={t('Quitar «{asignatura}»', { asignatura: n })} onClick={() => quitarAsignatura(n)}
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-              ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <input
+                className="finput" style={{ flex: 1 }}
+                aria-label={t('Otra asignatura que no está en el currículo')}
+                placeholder={t('Otra que no esté en la lista, por ejemplo Religión o Tutoría')}
+                value={otraAsignatura}
+                onChange={e => setOtraAsignatura(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addOtraAsignatura(); } }}
+              />
+              <button type="button" className="btn-ghost" onClick={addOtraAsignatura} disabled={!otraAsignatura.trim()}>
+                <Plus size={13} />{t('Añadir')}
+              </button>
             </div>
-            <button className="btn-ghost" style={{ marginTop: 9, fontSize: 12.5 }} onClick={addSubject}>
-              <Plus size={13} />{t('Añadir otra asignatura')}
-            </button>
             <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 9, lineHeight: 1.5 }}>
-              {t('Si le das varias, no crees una clase por cada una: pon aquí todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.')}
+              {t('Si le das varias, no crees una clase por cada una: márcalas todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.')}
             </p>
           </div>
+
+          {necesitaOpcionMat && (
+            <OpcionMatematicas
+              value={editClass.opcionMatematicas}
+              onChange={op => setEditClass(c => ({ ...c, opcionMatematicas: op }))}
+            />
+          )}
 
           <div className="fgroup">
             <label className="flabel">{t('Color')}</label>
@@ -637,7 +810,7 @@ export function ClassesManager({
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button className="btn-ghost" onClick={() => setClassModal(false)}>{t('Cancelar')}</button>
-            <button className="btn-accent" onClick={saveClass}>{t('Crear clase')}</button>
+            <button className="btn-accent" onClick={saveClass}>{t(editingClassId ? 'Guardar cambios' : 'Crear clase')}</button>
           </div>
         </div>
       </div>

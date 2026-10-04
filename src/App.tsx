@@ -4,6 +4,8 @@ import { UpdateBanner } from './components/UpdateBanner';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
+import { CommunityPrompt } from './components/CommunityPrompt';
+import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
@@ -20,7 +22,7 @@ import { HubTabs } from './components/layout/HubTabs';
 import { hubOf, rememberTab } from './lib/navigation';
 import type { Section, Ficha } from './types';
 import { X, Menu } from 'lucide-react';
-import { DEMO_USER } from './lib/demoData';
+import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp } from './lib/platform';
 
@@ -197,7 +199,7 @@ function AppInner() {
         onExploreDemo={async () => {
           await st.createAndOpenProfile({
             name: DEMO_USER.full_name, school: DEMO_USER.school,
-            subject: DEMO_USER.subject, course: '2025-2026',
+            subject: DEMO_USER.subject, course: '2025-2026', community: DEMO_COMMUNITY,
           }, { demo: true });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
@@ -291,6 +293,7 @@ function AppInner() {
                 onAddStudents={ss => ss.forEach(st.addStudent)}
                 onOpenEval={() => setSection('rubrics')}
                 profileId={st.profileId}
+                comunidad={st.currentUser?.community}
               />
             )}
             {section === 'agenda' && (
@@ -324,6 +327,7 @@ function AppInner() {
                 onDeleteDiana={st.deleteDiana}
                 onAddEvaluation={st.addEvaluation}
                 gradeCategories={st.gradeCategories}
+                comunidad={st.currentUser?.community}
               />
             )}
             {section === 'diana' && (
@@ -336,6 +340,7 @@ function AppInner() {
                 lawDocument={st.lawDocument}
                 dianaProfiles={st.dianaProfiles}
                 onSaveDiana={st.saveDianaProfile}
+                comunidad={st.currentUser?.community}
               />
             )}
             {section === 'selfassess' && (
@@ -476,6 +481,8 @@ function AppInner() {
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}
                 teacherName={st.currentUser?.full_name ?? ''}
+                comunidad={st.currentUser?.community}
+                onUpdateClass={st.updateClass}
                 onSave={s => { st.saveLearningSituation(s); }}
                 onDelete={id => { st.deleteLearningSituation(id); toast(t('Situación de aprendizaje eliminada')); }}
                 onAddRubric={r => { st.addRubric(r); }}
@@ -517,6 +524,7 @@ function AppInner() {
                   st.updateUser({
                     name: u.full_name, school: u.school,
                     subject: u.subject, course: u.course,
+                    ...(u.community ? { community: u.community } : {}),
                   });
                 }}
                 onUpdateSecurity={st.updateUser}
@@ -533,6 +541,15 @@ function AppInner() {
           Va aquí dentro y no junto a UpdateBanner porque necesita saber en qué
           sección está el docente y poder llevarle a otra. */}
       <HelpChat section={section} onNav={s => setSection(s as Section)} />
+
+      {/* A los perfiles anteriores a la comunidad se les pregunta una sola vez,
+          la elijan o la dejen para después (ver `communityPromptAt`). */}
+      {st.profile && !comunidadDePerfil(st.profile.community) && !st.profile.communityPromptAt && (
+        <CommunityPrompt
+          onChoose={community => { void st.updateUser({ community, communityPromptAt: new Date().toISOString() }); }}
+          onLater={() => { void st.updateUser({ communityPromptAt: new Date().toISOString() }); }}
+        />
+      )}
 
       {/* Modal nueva tarea */}
       <div className={`modal-overlay${showAddTask ? ' open' : ''}`} onClick={e => e.target === e.currentTarget && setShowAddTask(false)}>

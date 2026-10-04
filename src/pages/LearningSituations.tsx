@@ -4,14 +4,21 @@ import {
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
   RefreshCw, Lightbulb, Search, Frame,
 } from 'lucide-react';
-import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory } from '../types';
+import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
+  refsDeSda,
 } from '../services/learningSituations';
-import { emparejarMateria } from '../lib/curriculum/mapeoMaterias';
-import { resolverGrupo, type Etapa } from '../lib/curriculum';
+import { resolverGrupo, separaMatematicasAB, type Etapa } from '../lib/curriculum';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
+import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
+import {
+  EtapaCursoFields, MateriaOficialSelect, OpcionMatematicas, CurriculoNota, AvisoEstatal,
+} from '../components/curriculum/CurriculumFields';
+import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
 import { buildSdaPosterHtml, saveSdaPosterPdf } from '../services/exportSdaPoster';
@@ -35,6 +42,10 @@ interface Props {
   gradeCategories: GradeCategory[];
   learningSituations: LearningSituation[];
   teacherName: string;
+  /** Comunidad del perfil: de ella sale el currículo oficial. */
+  comunidad?: ComunidadId;
+  /** Para recordar en la clase la etapa, el curso y las materias que se decidan aquí. */
+  onUpdateClass: (c: Class) => void;
   onSave: (s: LearningSituation) => void;
   onDelete: (id: string) => void;
   onAddRubric: (r: Rubric) => void;
@@ -135,8 +146,15 @@ function DocText({
   );
 }
 
+
+/** Los criterios oficiales que marcó la IA en una fila, comprobados con la SdA; nada si no hay. */
+function conCriteriosOficiales(sda: SdaContent, marcados: string[] | undefined): { officialCriteria?: OfficialCriterionRef[] } {
+  const refs = refsDeSda(sda, marcados);
+  return refs.length ? { officialCriteria: refs } : {};
+}
+
 export function LearningSituations({
-  classes, gradeCategories, learningSituations, teacherName,
+  classes, gradeCategories, learningSituations, teacherName, comunidad, onUpdateClass,
   onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav,
 }: Props) {
   const { toast } = useToast();
@@ -156,6 +174,10 @@ export function LearningSituations({
   const [curso, setCurso] = useState<number | ''>('');
   /** Solo se usa si `etapa==='eso' && curso===4` y hay un área de Matemáticas. */
   const [opcionMatematicas, setOpcionMatematicas] = useState<'A' | 'B'>('A');
+  /** Materia oficial de cada área (ver `Class.materiasOficiales`); sale de la clase. */
+  const [materias, setMaterias] = useState<Record<string, string | null>>({});
+  /** Áreas por las que se ha preguntado aquí: su desplegable sigue a la vista tras elegir. */
+  const [preguntadas, setPreguntadas] = useState<string[]>([]);
   const [contextoClase, setContextoClase] = useState('');
   const [metodologia, setMetodologia] = useState('');
   const [numSesiones, setNumSesiones] = useState(6);
@@ -230,11 +252,28 @@ export function LearningSituations({
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
 
-  /** Al elegir clase se proponen sus asignaturas como áreas de la SdA. */
+  /**
+   * Al elegir clase se proponen sus asignaturas como áreas de la SdA, y se
+   * toman de ella la etapa, el curso y las materias oficiales que ya tenga.
+   */
   function pickClass(id: string) {
     setClassId(id);
     const cls = classes.find(c => c.id === id);
     setAreas(cls ? (cls.subjects ?? [cls.subject]).filter(Boolean) : []);
+    setMaterias(cls?.materiasOficiales ?? {});
+    setPreguntadas([]);
+    if (cls?.etapa && cls.curso) {
+      setEtapa(cls.etapa);
+      setCurso(cls.curso);
+      setOpcionMatematicas(cls.opcionMatematicas ?? 'A');
+      if (nivelAuto) setNivel(nivelTexto(cls.etapa, cls.curso));
+    } else if (cls) {
+      // Una clase sin nivel no hereda el de la clase elegida antes: al generar
+      // se guardaría en ella un curso que no es el suyo.
+      setEtapa('');
+      setCurso('');
+      if (nivelAuto) setNivel('');
+    }
   }
 
   function toggleArea(a: string) {
@@ -242,28 +281,46 @@ export function LearningSituations({
   }
 
   /** «5º de Primaria», «3º de ESO»… El docente puede seguir escribiéndolo a mano. */
-  function nivelTexto(e: Etapa, c: number): string {
-    return e === 'primaria' ? t('{curso}º de Primaria', { curso: c }) : t('{curso}º de ESO', { curso: c });
-  }
+  const nivelTexto = useNivelTexto();
 
-  function onEtapaChange(e: Etapa | '') {
+  function onEtapaCursoChange(e: Etapa | '', c: number | '') {
     setEtapa(e);
-    setCurso('');
-    if (nivelAuto) setNivel('');
+    setCurso(c);
+    if (nivelAuto) setNivel(e && c !== '' ? nivelTexto(e, c) : '');
   }
 
-  function onCursoChange(c: number | '') {
-    setCurso(c);
-    if (nivelAuto && etapa && c !== '') setNivel(nivelTexto(etapa, c));
+  /* ── Currículo oficial ── */
+  const curriculo = useCurriculo(comunidad, etapa);
+  /** La clase ya sabe su etapa y su curso: no se vuelven a preguntar aquí. */
+  const claseConNivel = !!(activeClass?.etapa && activeClass.curso);
+  const ctxCurriculo: ContextoClase | null = etapa && curso !== ''
+    ? { etapa, curso, opcionMatematicas, materiasOficiales: materias }
+    : null;
+  const estadoDeArea = (area: string) =>
+    (ctxCurriculo && curriculo ? estadoDeMateria(area, ctxCurriculo, curriculo.materias) : null);
+
+  /** Lo que se decide aquí se recuerda en la clase, si hay una elegida. */
+  function elegirMateria(area: string, materia: string | null) {
+    const siguiente = { ...materias, [area]: materia };
+    setMaterias(siguiente);
+    setPreguntadas(p => (p.includes(area) ? p : [...p, area]));
+    if (activeClass) onUpdateClass({ ...activeClass, materiasOficiales: { ...activeClass.materiasOficiales, [area]: materia } });
   }
+
+  /** Áreas elegidas que necesitan que el docente diga qué materia oficial son. */
+  const areasPorDecidir = ctxCurriculo && curriculo
+    ? areas.filter(a => preguntadas.includes(a) || estadoDeArea(a)?.tipo === 'sin-decidir')
+    : [];
 
   /**
    * Si alguna de las áreas elegidas empareja con Matemáticas y estamos en 4º
    * de la ESO, hace falta que el docente diga cuál de las dos opciones: el
    * RD 217/2022 les da criterios y saberes propios a partir de ahí.
    */
-  const necesitaOpcionMatematicas =
-    etapa === 'eso' && curso === 4 && areas.some(a => emparejarMateria(a, 'eso') === 'Matemáticas');
+  const necesitaOpcionMatematicas = etapa === 'eso' && curso === 4 && areas.some(a => {
+    const e = estadoDeArea(a);
+    return e?.tipo === 'oficial' && !!curriculo && separaMatematicasAB(e.materia, curriculo.materias);
+  });
 
   /**
    * De cada área elegida, si empareja con el currículo real (para mostrar el
@@ -271,10 +328,9 @@ export function LearningSituations({
    * toma `generateSda` con la misma función).
    */
   function tieneCurriculoReal(area: string): boolean {
-    if (!etapa || curso === '') return false;
-    const materia = emparejarMateria(area, etapa);
-    if (!materia) return false;
-    return !!resolverGrupo(etapa, materia, curso, opcionMatematicas);
+    const e = estadoDeArea(area);
+    if (e?.tipo !== 'oficial' || !etapa || curso === '' || !curriculo) return false;
+    return !!resolverGrupo(etapa, e.materia, curso, opcionMatematicas, curriculo.materias);
   }
 
   /* ── Documentos ── */
@@ -300,12 +356,23 @@ export function LearningSituations({
     if (!idea.trim()) { toast(t('Escribe la idea de la situación de aprendizaje')); return; }
     if (areas.length === 0) { toast(t('Elige al menos un área')); return; }
 
+    // Una clase sin etapa ni curso se queda con los que se han elegido aquí:
+    // la próxima SdA de esta clase ya no los preguntará.
+    if (activeClass && !claseConNivel && etapa && curso !== '') {
+      onUpdateClass({
+        ...activeClass, etapa, curso, materiasOficiales: { ...activeClass.materiasOficiales, ...materias },
+        opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : activeClass.opcionMatematicas,
+      });
+    }
+
     const result = await generateSda({
       idea: idea.trim(), numero, temporalizacion, meses,
       areas, numSesiones, nivel,
       etapa: etapa || undefined,
       curso: curso === '' ? undefined : curso,
       opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
+      comunidad,
+      materiasOficiales: materias,
       contextoClase, metodologia,
       docente: teacherName,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
@@ -352,6 +419,8 @@ export function LearningSituations({
         etapa: etapa || undefined,
         curso: curso === '' ? undefined : curso,
         opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
+        comunidad,
+        materiasOficiales: Object.keys(materias).length ? materias : undefined,
       },
       content,
     };
@@ -431,6 +500,8 @@ export function LearningSituations({
     setEtapa(s.request.etapa ?? '');
     setCurso(s.request.curso ?? '');
     setOpcionMatematicas(s.request.opcionMatematicas ?? 'A');
+    setMaterias(s.request.materiasOficiales ?? {});
+    setPreguntadas([]);
     setContextoClase(s.request.contextoClase);
     setMetodologia(s.request.metodologia);
     setRubricRows(null);
@@ -454,6 +525,7 @@ export function LearningSituations({
   function startNew() {
     resetAll();
     setClassId(''); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
+    setOpcionMatematicas('A'); setMaterias({}); setPreguntadas([]);
     setNumero('1'); setTemporalizacion(''); setMeses(''); setContextoClase(''); setMetodologia('');
     setNumSesiones(6); setMoreOpts(false);
     setFormOpen(true);
@@ -492,6 +564,7 @@ export function LearningSituations({
         name: r.criterio,
         descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
         competencies: r.competencias,
+        ...conCriteriosOficiales(content, r.criteriosOficiales),
       })),
       class_id: rubricClassId || undefined,
       subject: rubricSubject || undefined,
@@ -532,6 +605,7 @@ export function LearningSituations({
         weight: r.peso > 0 ? r.peso : 1,
         descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
         competencies: r.competencias,
+        ...conCriteriosOficiales(content, r.criteriosOficiales),
       })),
       class_id: dianaClassId || undefined,
       subject: dianaSubject || undefined,
@@ -683,54 +757,35 @@ export function LearningSituations({
 
         {/*
           Etapa y curso: además de alimentar el texto libre de arriba, es lo
-          que permite saber qué decreto y qué grupo de cursos mirar en
-          `lib/curriculum`. Sin esto, las áreas siguen en modo libre como
-          hasta ahora — no es obligatorio rellenarlo.
+          que permite saber qué currículo oficial mirar (el de la comunidad
+          del perfil, ver `lib/curriculum`). Si la clase ya los tiene, no se
+          preguntan: se resumen con el decreto y se cambian en la clase. Sin
+          ellos, las áreas siguen en modo libre como hasta ahora.
         */}
-        <div className="frow">
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f5">{t('Etapa (currículo oficial)')}</label>
-            <select id="learningsituations-f5" className="finput" value={etapa} onChange={e => onEtapaChange(e.target.value as Etapa | '')}>
-              <option value="">{t('Sin especificar')}</option>
-              <option value="primaria">{t('Primaria')}</option>
-              <option value="eso">{t('ESO')}</option>
-            </select>
-          </div>
-          {etapa && (
-            <div className="fgroup">
-              <label className="flabel" htmlFor="learningsituations-f6">{t('Curso')}</label>
-              <select
-                id="learningsituations-f6"
-                className="finput" value={curso}
-                onChange={e => onCursoChange(e.target.value ? Number(e.target.value) : '')}
-              >
-                <option value="">{t('Sin especificar')}</option>
-                {Array.from({ length: etapa === 'primaria' ? 6 : 4 }, (_, i) => i + 1).map(c => (
-                  <option key={c} value={c}>{nivelTexto(etapa, c)}</option>
-                ))}
-              </select>
+        {claseConNivel && etapa && curso !== '' ? (
+          <div className="fgroup sda-curriculo-resumen">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>
+              <Check size={13} style={{ color: 'var(--ok)' }} />{nivelTexto(etapa, curso)}
+              <button type="button" className="btn-ghost" style={{ marginLeft: 'auto', padding: '4px 10px', fontSize: 12 }} onClick={() => onNav('classes')}>
+                {t('Cambiar en la clase')}
+              </button>
             </div>
-          )}
-        </div>
+            {curriculo && <CurriculoNota curriculo={curriculo} />}
+          </div>
+        ) : (
+          <>
+            <EtapaCursoFields idPrefix="learningsituations-cur" etapa={etapa} curso={curso} onChange={onEtapaCursoChange} />
+            {activeClass && etapa && curso !== '' && (
+              <p className="sda-note" style={{ marginTop: -6, marginBottom: 10 }}>
+                {t('Se guardarán en la clase «{clase}» para las próximas situaciones de aprendizaje.', { clase: activeClass.name })}
+              </p>
+            )}
+            {curriculo && curso !== '' && <div style={{ marginBottom: 10 }}><CurriculoNota curriculo={curriculo} /></div>}
+          </>
+        )}
 
-        {necesitaOpcionMatematicas && (
-          <div className="fgroup">
-            <label className="flabel">{t('Matemáticas de 4º: ¿opción A o B?')}</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {(['A', 'B'] as const).map(op => (
-                <button
-                  key={op} type="button" onClick={() => setOpcionMatematicas(op)}
-                  className={opcionMatematicas === op ? 'btn-accent' : 'btn-ghost'}
-                  style={{ minWidth: 80, justifyContent: 'center' }}
-                >
-                  {t('Matemáticas {opcion}', { opcion: op })}
-                </button>
-              ))}
-            </div>
-            <p className="sda-note">
-              {t('El Real Decreto separa Matemáticas en dos opciones a partir de 4º de la ESO, con criterios y saberes propios de cada una.')}
-            </p>
-          </div>
+        {necesitaOpcionMatematicas && !(claseConNivel && activeClass?.opcionMatematicas) && (
+          <OpcionMatematicas value={opcionMatematicas} onChange={setOpcionMatematicas} />
         )}
 
         {etapa && curso !== '' && (
@@ -763,6 +818,17 @@ export function LearningSituations({
             <p className="sda-note">
               {t('Se trabajarán de 2 a 4 competencias y saberes por área, para que dé tiempo a desarrollarlos.')}
             </p>
+            {ctxCurriculo && curriculo && areasPorDecidir.map((a, i) => {
+              const estado = estadoDeArea(a);
+              return estado && (
+                <MateriaOficialSelect
+                  key={a} id={`learningsituations-materia-${i}`}
+                  label={t('«{asignatura}»: ¿qué materia oficial es?', { asignatura: a })}
+                  estado={estado} opciones={materiasDelCurso(ctxCurriculo, curriculo.materias)}
+                  onChange={m => elegirMateria(a, m)}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -1102,6 +1168,17 @@ export function LearningSituations({
 
           <section id="sda-curriculo" className="card sda-sec">
             <h3 className="sda-sec-ttl">{t('Currículo')}</h3>
+            {/* De qué decreto salen las competencias y saberes. Se guardó con la
+                SdA: cambiar de comunidad no la reescribe. El aviso del estatal
+                es solo para la pantalla; el PDF y el Word llevan solo la cita. */}
+            {content.normativa && (
+              <div style={{ marginBottom: 12 }}>
+                <p className="sda-note" style={{ marginTop: 0 }}>{t('Currículo: {cita}', { cita: content.normativa.cita })}</p>
+                {content.normativa.origen === 'estatal' && content.normativa.comunidad !== 'fuera' && (
+                  <AvisoEstatal comunidad={nombreComunidad(content.normativa.comunidad, lang)} />
+                )}
+              </div>
+            )}
             {codes.length > 0 && (
               <div className="sda-card-chips" style={{ marginBottom: 10 }}>
                 {codes.map(code => <span key={code} className="sda-chip accent big">{code}</span>)}
@@ -1113,7 +1190,17 @@ export function LearningSituations({
             </div>
             {content.areas.map((a, i) => (
               <details key={i} className="sda-area" open={i === 0}>
-                <summary>{a.area}<ChevronDown size={15} /></summary>
+                <summary>
+                  <span className="sda-area-ttl">
+                    {a.area}
+                    {a.oficial && (
+                      <span className="sda-chip accent" title={t('Competencias, criterios y saberes copiados tal cual del decreto.')}>
+                        {t('Texto oficial')}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown size={15} />
+                </summary>
                 <div className="sda-area-cols">
                   <div><h5>{t('Competencias específicas')}</h5><p className="sda-p">{a.competenciasEspecificas}</p></div>
                   <div><h5>{t('Criterios de evaluación')}</h5><p className="sda-p">{a.criteriosEvaluacion}</p></div>

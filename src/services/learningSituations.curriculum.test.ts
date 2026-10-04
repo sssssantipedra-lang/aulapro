@@ -10,7 +10,9 @@
  * — no la llamada HTTP en sí, que ya cubre `gemini.thinking.test.ts`.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { generateSda, type SdaRequest } from './learningSituations';
+import {
+  generateSda, generateSdaDiana, generateSdaRubric, refsDeSda, type SdaContent, type SdaRequest,
+} from './learningSituations';
 
 const callGemini = vi.hoisted(() => vi.fn());
 vi.mock('./gemini', async importOriginal => {
@@ -69,6 +71,8 @@ describe('generateSda con currículo real', () => {
     // El código del criterio debe ser del 3er ciclo (curso 5 → ciclo 3), no de otro.
     expect(area.criteriosEvaluacion).toMatch(/^1\.1 /m);
     expect(area.saberesBasicos).toContain('Sentido numérico');
+    // Y queda marcada como texto oficial, para que la pantalla lo diga
+    expect(area.oficial).toBe(true);
   });
 
   it('no toca el texto libre si el área no empareja con ninguna materia', async () => {
@@ -83,6 +87,7 @@ describe('generateSda con currículo real', () => {
     // Sin materia emparejada, los códigos elegidos no tienen dónde aplicarse:
     // se queda el texto de la IA, exactamente como antes de este cambio.
     expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.areas[0].oficial).toBeUndefined();
   });
 
   it('no toca el texto libre si no se indica etapa y curso', async () => {
@@ -102,6 +107,7 @@ describe('generateSda con currículo real', () => {
     const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
 
     expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.areas[0].oficial).toBeUndefined();
   });
 
   it('no filtra los campos internos de selección al resultado final', async () => {
@@ -156,5 +162,140 @@ describe('generateSda con currículo real', () => {
     const userPrompt = callGemini.mock.calls[0][1] as string;
     expect(userPrompt).toContain('ÁREA "Matemáticas" — CURRÍCULO OFICIAL REAL');
     expect(userPrompt).not.toContain('ÁREA "Una optativa de centro"');
+  });
+});
+
+describe('generateSda: de qué decreto sale y cómo se cita', () => {
+  const CITA_ESTATAL = 'Real Decreto 157/2022, de 1 de marzo (BOE núm. 52, de 2 de marzo de 2022)';
+
+  it('sin comunidad usa el estatal y lo cita en la propia SdA', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    expect(sda!.normativa).toEqual({ comunidad: 'fuera', origen: 'estatal', cita: CITA_ESTATAL });
+  });
+
+  it('una comunidad que aún no tiene su decreto copiado usa el estatal y lo dice: origen estatal', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'galicia' }, 'es');
+    expect(sda!.normativa).toEqual({ comunidad: 'galicia', origen: 'estatal', cita: CITA_ESTATAL });
+  });
+
+  it('el prompt nombra el decreto del que salen las listas, no «enseñanzas mínimas» a secas', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
+    expect(userPrompt).toContain(`CURRÍCULO OFICIAL REAL (${CITA_ESTATAL})`);
+  });
+
+  it('no cita ningún decreto si ninguna área usó currículo oficial', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda(BASE, 'es'); // sin etapa ni curso
+    expect(sda!.normativa).toBeUndefined();
+  });
+
+  it('tampoco si el área empareja pero la IA eligió códigos que no existen: el texto es el libre', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada({ competenciasSeleccionadas: [999], saberesSeleccionados: ['Z'] }));
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.normativa).toBeUndefined();
+  });
+
+  it('un área que el docente dejó en modo libre no recibe lista, aunque el alias la emparejara', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    const sda = await generateSda({
+      ...BASE, etapa: 'primaria', curso: 5, materiasOficiales: { Matemáticas: null },
+    }, 'es');
+    const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
+    expect(userPrompt).not.toContain('CURRÍCULO OFICIAL REAL');
+    expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+    expect(sda!.normativa).toBeUndefined();
+  });
+
+  it('la materia que elige el docente manda: «Ciencias» no tiene alias, pero la eligió', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada({ area: 'Ciencias' }));
+    const sda = await generateSda({
+      ...BASE, areas: ['Ciencias'], etapa: 'primaria', curso: 5,
+      materiasOficiales: { Ciencias: 'Conocimiento del Medio Natural, Social y Cultural' },
+    }, 'es');
+    expect(sda!.areas[0].competenciasEspecificas).not.toContain('INVENTADO');
+    expect(sda!.normativa?.origen).toBe('estatal');
+  });
+
+  describe('con el decreto de una comunidad copiado (Madrid, Primaria)', () => {
+    const CITA_MADRID = 'Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), '
+      + 'modificado por Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024)';
+
+    it('usa su lista, con el texto del ciclo del curso, la cita como autonómica y nombra el decreto en el prompt', async () => {
+      callGemini.mockResolvedValueOnce(respuestaSimulada({ area: 'Ciencias' }));
+      const sda = await generateSda({
+        ...BASE, areas: ['Ciencias'], etapa: 'primaria', curso: 5, comunidad: 'madrid',
+        materiasOficiales: { Ciencias: 'ciencias-de-la-naturaleza' },
+      }, 'es');
+
+      // Quinto es el tercer ciclo, y el decreto escribe esta competencia un
+      // poco distinta en cada ciclo: va la del tercero
+      const competencias = sda!.areas[0].competenciasEspecificas;
+      expect(competencias).toContain('1. Utilizar dispositivos y recursos digitales');
+      expect(competencias).toContain('en equipo y en red, y para reelaborar y crear contenido digital.');
+      expect(competencias).not.toContain('INVENTADO');
+      expect(sda!.areas[0].saberesBasicos).toContain('A. Cultura científica (Iniciación en la actividad científica');
+      expect(sda!.normativa).toEqual({ comunidad: 'madrid', origen: 'autonomico', cita: CITA_MADRID });
+      // Recuerda de qué materia oficial sale el área, para marcar luego los criterios de sus instrumentos
+      expect(sda!.areas[0].materia).toBe('ciencias-de-la-naturaleza');
+      const userPrompt = callGemini.mock.calls.at(-1)![1] as string;
+      expect(userPrompt).toContain(`CURRÍCULO OFICIAL REAL (${CITA_MADRID})`);
+      expect(userPrompt).toContain('en equipo y en red, y para reelaborar');
+    });
+
+    it('una asignatura que solo existe en el estatal no se empareja con la lista de la comunidad', async () => {
+      const medio = 'Conocimiento del Medio Natural, Social y Cultural';
+      callGemini.mockResolvedValueOnce(respuestaSimulada({ area: medio }));
+      const sda = await generateSda({ ...BASE, areas: [medio], etapa: 'primaria', curso: 5, comunidad: 'madrid' }, 'es');
+      // En Madrid son dos áreas: modo libre, nunca la lista estatal
+      expect(sda!.areas[0].competenciasEspecificas).toContain('INVENTADO');
+      expect(sda!.normativa).toBeUndefined();
+    });
+  });
+});
+
+describe('rúbrica y diana de la SdA: criterios oficiales ya marcados', () => {
+  const SDA = {
+    ...JSON.parse(respuestaSimulada()),
+    areas: [
+      {
+        area: 'Matemáticas', oficial: true, materia: 'matematicas', competenciasEspecificas: '1. …', saberesBasicos: 'A. …',
+        criteriosEvaluacion: '1.1 Interpretar problemas.\n2.1 Comprobar soluciones.',
+      },
+      { area: 'Religión', competenciasEspecificas: 'libre', criteriosEvaluacion: '1.1 Inventado', saberesBasicos: 'libre' },
+    ],
+  } as SdaContent;
+
+  it('solo pasan los criterios que son de verdad de las áreas oficiales de la SdA', () => {
+    expect(refsDeSda(SDA, ['Matemáticas|2.1', 'Matemáticas|9.9', 'Religión|1.1', 'Matemáticas|2.1', 'Otra|1.1']))
+      .toEqual([{ materia: 'matematicas', codigo: '2.1' }]);
+    expect(refsDeSda(SDA, undefined)).toEqual([]);
+  });
+
+  it.each([
+    ['rúbrica', generateSdaRubric, 'rubrica'],
+    ['diana', generateSdaDiana, 'diana'],
+  ] as const)('la %s pide marcarlos, de una lista cerrada', async (_, generar, clave) => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ [clave]: [] }));
+    await generar(SDA, '', ['1', '2', '3', '4'], 'es');
+    const [sistema, usuario, , , opciones] = callGemini.mock.calls.at(-1)!;
+    expect(sistema).toContain('CRITERIOS OFICIALES');
+    expect(usuario).toContain('- Matemáticas|1.1: Interpretar problemas.');
+    expect(usuario).not.toContain('Religión|');
+    const fila = opciones.responseSchema.properties[clave].items;
+    expect(fila.properties.criteriosOficiales.items.enum).toEqual(['Matemáticas|1.1', 'Matemáticas|2.1']);
+  });
+
+  it('una SdA sin áreas oficiales no pide nada de esto', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ rubrica: [] }));
+    await generateSdaRubric({ ...SDA, areas: [SDA.areas[1]] }, '', ['1', '2', '3', '4'], 'es');
+    const [sistema, usuario, , , opciones] = callGemini.mock.calls.at(-1)!;
+    expect(sistema).not.toContain('CRITERIOS OFICIALES');
+    expect(usuario).not.toContain('Criterios de evaluación oficiales disponibles');
+    expect(opciones.responseSchema.properties.rubrica.items.properties.criteriosOficiales).toBeUndefined();
   });
 });

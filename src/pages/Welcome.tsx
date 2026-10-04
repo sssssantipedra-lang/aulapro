@@ -1,7 +1,10 @@
 import { useI18n, LANGS } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Sparkles, Plus, ArrowRight, Trash2, HardDrive, Lock } from 'lucide-react';
-import { listProfiles, deleteProfile, isDesktop, type TeacherProfile } from '../services/storage';
+import { listProfiles, deleteProfile, isDesktop, type TeacherProfile, type NewProfileInput } from '../services/storage';
+import { CommunitySelect } from '../components/CommunitySelect';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { DEMO_COMMUNITY } from '../lib/demoData';
 import { initials } from '../lib/utils';
 import { verifyPassword } from '../lib/password';
 import { Modal } from '../components/ui/Modal';
@@ -44,11 +47,8 @@ export function LangSwitch() {
 
 interface Props {
   onOpenProfile: (id: string) => void;
-  onCreateProfile: (
-    input: { name: string; school: string; subject: string; course: string },
-    options?: { importLegacy?: boolean },
-  ) => Promise<unknown>;
-  onExploreDemo: (input: { name: string; school: string; subject: string; course: string }) => void;
+  onCreateProfile: (input: NewProfileInput, options?: { importLegacy?: boolean }) => Promise<unknown>;
+  onExploreDemo: (input: NewProfileInput) => void;
 }
 
 /** Curso escolar actual: de septiembre a agosto. */
@@ -105,6 +105,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   const [school, setSchool]   = useState('');
   const [subject, setSubject] = useState('');
   const [course, setCourse]   = useState(currentCourse());
+  const [community, setCommunity] = useState<ComunidadId | ''>('');
   const [error, setError]     = useState('');
   const [importLegacy, setImportLegacy] = useState(true);
 
@@ -121,9 +122,10 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setError(t('Escribe tu nombre para empezar.')); return; }
+    if (!community) { setError(t('Elige tu comunidad autónoma.')); return; }
     setBusy(true);
     await onCreateProfile(
-      { name: name.trim(), school: school.trim(), subject: subject.trim(), course: course.trim() },
+      { name: name.trim(), school: school.trim(), subject: subject.trim(), course: course.trim(), community },
       { importLegacy: legacy && importLegacy && profiles?.length === 0 },
     );
     setBusy(false);
@@ -211,6 +213,10 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
             <label className="flabel" htmlFor="welcome-f4">{t('Curso escolar')}</label>
             <input id="welcome-f4" className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
           </div>
+          <div className="fgroup">
+            <label className="flabel" htmlFor="welcome-f5">{t('Comunidad autónoma *')}</label>
+            <CommunitySelect id="welcome-f5" value={community} onChange={c => { setCommunity(c); if (error) setError(''); }} />
+          </div>
 
           {legacy && profiles.length === 0 && (
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 10, background: 'var(--surface)', cursor: 'pointer', marginBottom: 16 }}>
@@ -230,7 +236,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         {profiles.length === 0 ? (
           <button
             type="button"
-            onClick={() => onExploreDemo({ name: 'Ana García Ruiz', school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse() })}
+            onClick={() => onExploreDemo({ name: 'Ana García Ruiz', school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse(), community: DEMO_COMMUNITY })}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
               width: '100%', marginTop: 14, padding: '11px 0', background: 'none',

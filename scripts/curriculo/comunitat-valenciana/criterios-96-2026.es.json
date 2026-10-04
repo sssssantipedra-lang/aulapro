@@ -1,0 +1,3196 @@
+[
+ {
+  "area": "Conocimiento del medio natural, social y cultural",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Utilizar de forma guiada y acotada dispositivos y recursos digitales para buscar información, comunicarse, colaborar y crear contenido digital sencillo con seguridad y eficacia .",
+    "pagina": 18,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse, de manera guiada y con acompañamiento del profesorado, en la búsqueda de información de forma individual o en equipo, mediante el uso seguro y responsable de recursos digitales y dispositivos sencillos."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse en el uso de dispositivos digitales básicos, de manera segura y responsable, para comunicarse en el contexto educativo, con intención comunicativa clara y acompañamiento del profesorado."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Crear un producto digital sencillo de manera guiada, siguiendo pasos elementales y con acompañamiento del profesorado."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer hábitos que favorecen un uso adecuado y responsable de las tecnologías digitales."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse en la identificación de conductas seguras en el uso de las tecnologías digitales."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Usar aplicaciones informáticas sencillas de uso habitual para buscar información en Internet, de forma guiada y segura, sobre temas cercanos y de interés personal, iniciándose en el uso de herramientas colaborativas básicas."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Usar dispositivos digitales sencillos para comunicarse mediante el correo electrónico en contextos educativos, aplicando las normas básicas de la netiqueta, de manera guiada."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Crear textos digitales sencillos siguiendo pautas de elaboración, de manera guiada."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar hábitos que favorecen tener una relación saludable y adecuada con el uso de las tecnologías digitales."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar conductas seguras y poco seguras relacionadas con la información personal (imagen, datos y contraseñas) en el uso de las tecnologías digitales."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar información en Internet de forma guiada, segura y eficiente, utilizando dispositivos, programas y aplicaciones informáticas sencillas, y colaborar en línea para compartir y contrastar información."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicarse utilizando plataformas y aplicaciones en línea, principalmente el correo electrónico, foros y chats educativos, aplicando las normas de la netiqueta de manera cada vez más autónoma."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Crear textos, presentaciones y vídeos en formato digital utilizando pautas para su elaboración."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar hábitos de conducta saludable y segura en el uso de las tecnologías digitales."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar conductas seguras y poco seguras en el uso de la tecnología, relacionadas con las identidades falsas y la protección antivirus."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Desarrollar proyectos cooperativos acotados y realizar investigaciones sencillas de naturaleza interdisciplinar con la guía y ayuda del profesorado, utilizando estrategias elementales propias del pensamiento de diseño y computacional.",
+    "pagina": 19,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Ofrecer respuestas a cuestiones o problemas planteadas sobre situaciones relacionadas con el entorno natural, social y cultural próximo de especial interés y relevancia."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse en la utilización de técnicas sencillas de pensamiento de diseño y pensamiento computacional en resolución de problemas sobre situaciones cotidianas básicas."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Elaborar, de manera guiada y en equipo, un producto final sencillo que dé solución a un problema de diseño relacionado con su entorno cotidiano, utilizando herramientas y dispositivos adecuados de forma segura."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar, de forma oral o gráfica, el producto final, explicando de manera guiada los pasos seguidos en su elaboración."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar cuestiones o problemas relacionados con el entorno natural, social y cultural próximo de especial interés y relevancia susceptibles de ser abordados mediante sencillos procesos de investigación."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Proponer posibles soluciones a cuestiones o problemas relacionados con la actividad cotidiana, utilizando técnicas sencillas de pensamiento de diseño y pensamiento computacional."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Elaborar cooperativamente un producto final que dé solución a un problema sencillo de diseño relacionado con el entorno natural, social o cultural próximo, utilizando de forma segura las herramientas, dispositivos, técnicas y materiales habituales en el desarrollo de proyectos."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar el producto final en uno o varios formatos sencillos, explicando de manera ordenada los pasos seguidos en su elaboración."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Plantear cuestiones o problemas relacionados con el entorno natural, social o cultural próximo e identificar posibles fuentes susceptibles de proporcionar información segura, fiable y útil para abordarlos."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Proponer diferentes soluciones a cuestiones o problemas relacionados con el entorno natural, social o cultural próximo utilizando técnicas de pensamiento de diseño y pensamiento computacional."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Elaborar cooperativamente un producto final que dé solución a un problema sencillo de diseño relacionado con el entorno natural, social o cultural próximo, estableciendo unos objetivos precisos y probando diferentes prototipos o soluciones, utilizando de forma segura las herramientas, dispositivos, técnicas y materiales adecuados."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar el producto final de un proyecto sencillo, explicando de forma clara los pasos seguidos en su diseño y desarrollo, y valorando de manera guiada el resultado obtenido para identificar posibles mejoras."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Plantear y responder preguntas sobre cuestiones de la vida cotidiana relativas al entorno natural, social y cultural aplicando, con apoyo y guía de materiales y del profesorado, el razonamiento científico y la experimentación .",
+    "pagina": 20,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Despertar la curiosidad por la búsqueda de información, recurriendo de manera guiada a diferentes fuentes seguras y fiables sobre el medio natural, social y cultural próximo."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en experimentos pautados o guiados, utilizando técnicas sencillas de indagación y empleando de forma segura los instrumentos y materiales."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender y explicar, de manera guiada, relaciones sencillas y directas entre diferentes elementos del medio natural, social y cultural, a partir de la observación, la manipulación y la experimentación."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender y utilizar, de manera guiada, la información obtenida como resultado de la realización de un experimento para comunicar su resultado."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar los resultados de pequeñas investigaciones, de manera oral o gráfica, explicando los pasos seguidos con ayuda de un guion."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar y recopilar información, recurriendo a diferentes fuentes seguras y fiables, sobre el medio natural, social y cultural próximo, formulando preguntas a partir de la curiosidad que guían el proceso de investigación."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar, de forma guiada, experimentos sencillos, utilizando las técnicas de indagación más adecuadas y empleando de forma segura los instrumentos y materiales, registrando la información obtenida de manera básica."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y explicar relaciones básicas entre distintos elementos del medio natural, social y cultural, a partir de la observación, la manipulación y la experimentación, elaborando explicaciones sencillas y coherentes."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el resultado obtenido de la realización de un experimento para extraer conclusiones sencillas y útiles, con acompañamiento del profesorado."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar los resultados de pequeñas investigaciones en forma de esquemas visualmente sencillos, utilizando un lenguaje científico básico y explicando los pasos seguidos en el proceso."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar curiosidad de manera sostenida sobre cuestiones relacionadas con el medio natural, social o cultural, buscando información de forma sistemática y formulando preguntas para orientar la investigación, con apoyo docente cuando sea necesario."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar experimentos sencillos de forma guiada, utilizando instrumentos y dispositivos adecuados con seguridad, llevando a cabo observaciones y mediciones precisas y registrando de manera ordenada los resultados obtenidos."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar algunas interrelaciones significativas entre elementos del medio natural, social y cultural, a partir de la observación y la experimentación, para explicar cambios, causas y consecuencias de manera razonada."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Plantear y responder preguntas sobre el resultado obtenido de un experimento y contrastarlas con la conclusión formulada, para comunicar de manera razonada el proceso y el resultado."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Presentar de forma clara y organizada los resultados de un proyecto sencillo de diseño o investigación, utilizando representaciones gráficas y un lenguaje científico-técnico básico, explicando las fases del proceso seguido y valorando si la solución obtenida o el prototipo elaborado responde a los objetivos iniciales."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Adoptar hábitos saludables de consumo, alimentación, ejercicio y descanso a partir del conocimiento científico del cuerpo, desde el punto de vista del bienestar físico, mental y emocional.",
+    "pagina": 21,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar hábitos de vida saludables, valorando la importancia de la higiene, una alimentación variada, equilibrada y sostenible, el ejercicio físico y el descanso."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer las emociones propias provocadas por el entorno escolar y familiar y aplicar, con ayuda del profesorado, acciones sencillas que favorezcan el bienestar emocional y social."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y valorar las diferencias entre niños y niñas (aspecto, gustos, formas de jugar o de ser), participando en juegos y tareas con todos por igual y manteniendo actitudes de cuidado, ayuda y trato amable hacia cualquier compañero o compañera, rechazando cualquier forma de discriminación."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer comportamientos igualitarios y no sexistas entre niñas y niños en situaciones habituales del aula, el juego y las actividades diarias, con el acompañamiento del profesorado, participando de forma equitativa en tareas y responsabilidades y evitando asociar funciones, juegos o cuidados a un género determinado."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar la práctica habitual de hábitos saludables de alimentación, ejercicio físico y descanso con el funcionamiento básico del cuerpo humano, identificando sus beneficios para la salud."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar emociones y sentimientos propios y ajenos y comprender la empatía como una actitud que favorece la convivencia y ayuda a relacionarse con los demás."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, aceptar y respetar la identidad sexual y de género propia y ajena a través de acciones cotidianas en el ámbito escolar que favorezcan la eliminación de prejuicios, estereotipos y cualquier forma de discriminación hacia cualquier identidad."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Asumir responsabilidades y tareas en los contextos escolar, familiar y comunitario cercano, cuestionando estereotipos sexistas y participando de manera equitativa en el reparto de funciones y cuidados, con actitudes de respeto, colaboración y corresponsabilidad."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explicar la relación entre los principales órganos y funciones del cuerpo humano y los hábitos de vida saludable, analizando sus efectos sobre la salud física, mental y emocional, y valorando la adopción de decisiones responsables para el bienestar personal."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y respetar las emociones y sentimientos propios y ajenos y gestionarlos a través de una actitud empática, de manera que contribuyan al bienestar propio y colectivo."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y respetar las diferencias individuales como una riqueza, especialmente en lo que concierne a la identidad sexual y de género, valorando la diversidad a través de actitudes de reconocimiento, colaboración, uso de lenguaje inclusivo y rechazo de estereotipos, prejuicios y cualquier forma de discriminación en todos los ámbitos."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Asumir, de forma corresponsable, tareas y cuidados en los contextos escolar, familiar y comunitario, identificando y cuestionando estereotipos sexistas, y proponiendo formas de reparto equitativo y justo, con independencia del género de las personas implicadas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Identificar, analizar y proponer soluciones a los problemas generados por la acción humana en el entorno, tanto a nivel local como de manera global, derivados de los factores demográficos, históricos, económicos, tecnológicos y ambientales.",
+    "pagina": 22,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar las acciones que se realizan en la vida cotidiana y en el entorno próximo en el que viven, diferenciando entre factores naturales y humanos, y reconociendo su influencia en el medio."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer actuaciones humanas relevantes y significativas con un fuerte impacto en el medio ambiente y el paisaje próximo."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activamente en las propuestas de actuación del centro educativo orientadas a la solución de problemas ecológicos presentes en el entorno próximo."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer los cambios que inciden en un elemento del paisaje o de un ecosistema próximo con el paso del tiempo y organizarlos desde un criterio de causa-efecto, con la ayuda docente."
+      },
+      {
+       "codigo": "5.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar las acciones propias realizadas en beneficio del consumo responsable de materiales escolares, alimentos, agua y electricidad."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar las acciones que realizan las personas en la vida cotidiana con distintos factores naturales y sociales, explicando de forma sencilla cómo influyen en el medio en el que viven."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar las ventajas y los inconvenientes de una actuación humana relevante y significativa con un fuerte impacto en el medio ambiente y el paisaje próximo."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activamente en la elaboración y formulación de propuestas de actuación orientadas a la solución de problemas ecológicos presentes en el entorno próximo."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y establecer las causas y las consecuencias de los cambios producidos en un elemento del paisaje o de un ecosistema con el paso del tiempo y por la acción de las y los agentes que inciden en él."
+      },
+      {
+       "codigo": "5.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar las acciones realizadas por la sociedad en beneficio del consumo responsable de materiales escolares, alimentos, agua y electricidad."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar y explicar las relaciones que se producen entre las acciones humanas y los factores naturales en un ecosistema o paisaje significativo, valorando sus efectos en el medio."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Argumentar críticamente el impacto que supone la acción humana en el medio tanto a nivel local como global y proponer soluciones eficientes, sostenibles y creativas a los problemas generados."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activamente en la elaboración y formulación de propuestas de actuación razonadas, viables y sostenibles orientadas a la conservación y cuidado del medio ambiente y el paisaje."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar y relacionar los cambios que se producen en el paisaje y en un ecosistema con las causas y consecuencias que se derivan del paso del tiempo y de la acción de los factores naturales y humanos."
+      },
+      {
+       "codigo": "5.5",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y justificar las acciones cotidianas, locales y globales realizadas habitualmente en el entorno próximo en beneficio del consumo responsable de bienes y servicios."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Situar cronológica y espacialmente los acontecimientos que marcan el inicio y el final de los grandes periodos históricos mediante el uso de diferentes fuentes históricas y unidades de tiempo e identificar y explicar los principales procesos de cambio subyacentes y su interrelación.",
+    "pagina": 23,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y utilizar las unidades de tiempo, década y siglo, para situar y ordenar cronológicamente hechos relevantes del pasado."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar cronológicamente hechos significativos de la historia de la humanidad e identificar alguna personalidad relevante relativo al hecho histórico desde la perspectiva de género."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar temporal y espacialmente hechos del pasado reciente, empleando nociones básicas de medida y sucesión."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": false,
+       "texto": "Iniciarse en el conocimiento de algunas características básicas de las formas de vida y de la organización social en los principales periodos históricos desde la Prehistoria hasta la Edad Antigua, a partir de la observación guiada de fuentes históricas sencillas (imágenes, objetos, relatos) y mediante comparaciones elementales con la vida actual."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y utilizar las unidades de tiempo, lustro, década y siglo, para situar y ordenar cronológicamente hechos relevantes del pasado."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar cronológicamente hechos significativos de la historia de la humanidad y personalidades relevantes desde una perspectiva de género, utilizando herramientas básicas de medida de tiempo y clasificarlos según los grandes periodos históricos establecidos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Ordenar temporal y espacialmente algunos los hechos especialmente relevantes de la historia de la Comunitat Valenciana."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Describir y comparar las características principales de las formas de vida y de la organización social en distintos periodos históricos desde la Edad Antigua hasta la Edad Media, utilizando de manera progresivamente autónoma fuentes históricas sencillas, para identificar cambios y permanencias elementales."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y utilizar las unidades de tiempo, década, lustro, siglo y milenio, para situar y ordenar cronológicamente hechos relevantes del pasado."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Situar espacial y temporalmente los hechos sociales y personas relevantes de la historia de la Comunitat Valenciana y de España mostrando su interrelación e incorporando la perspectiva de género."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Situar y ordenar cronológicamente los cambios de mayor relevancia en la humanidad, desde la Edad Media hasta la actualidad."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar las características más relevantes de las formas de vida y de la organización social desde la Edad Moderna hasta la actualidad, utilizando de manera cada vez más autónoma fuentes históricas diversas, para establecer relaciones de causalidad, sucesión y simultaneidad, identificando cambios y permanencias a lo largo de la Historia."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Identificar y describir la organización y estructura política y territorial municipal, de la Comunitat Valenciana, de España y de Europa, así como las características más destacadas de sus principales instituciones y funciones.",
+    "pagina": 24,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar los principales órganos de gobierno del municipio y de la provincia y estructurarlos según su responsabilidad en organigramas sencillos con la ayuda docente."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": false,
+       "texto": "Reconocer las instituciones y elementos básicos de la organización territorial del municipio y de la provincia, identificando sus funciones más próximas al alumnado y representándolos de forma sencilla mediante mapas o esquemas guiados."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer las funciones de las instituciones de su entorno valorando la importancia que tienen como responsables de la vida de las personas de su municipio y para la convivencia social a partir de ejemplos cotidianos."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar los principales órganos de gobierno del municipio, de la provincia y de la Comunitat Valenciana, organizarlos en organigramas sencillos según sus responsabilidades y comparar sus estructuras."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": false,
+       "texto": "Distinguir las características básicas de la organización territorial y política del municipio, la provincia y la Comunitat Valenciana, identificando sus principales instituciones y funciones, y localizándolas en mapas de forma progresivamente autónoma."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Explicar las funciones de la administración del municipio en relación con la importancia de la participación ciudadana y la convivencia social."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y describir los elementos y estructuras de los principales órganos de gobierno del municipio, la provincia, la Comunitat Valenciana, España y la Unión Europea y establecer relaciones entre las instituciones."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": false,
+       "texto": "Distinguir las características y el funcionamiento básico de la organización territorial y política del municipio, la Comunitat Valenciana, España y la Unión Europea, localizando sus instituciones principales en mapas y reconociendo las relaciones elementales entre los distintos niveles territoriales."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Contrastar las funciones de la administración del municipio y de la Comunitat Valenciana, destacando la importancia y el valor de estas para la convivencia social, la participación ciudadana y el desarrollo de los principios del funcionamiento democrático."
+      }
+     ]
+    }
+   },
+   {
+    "n": 8,
+    "texto": "Reconocer algunos elementos destacados del patrimonio natural, histórico y cultural de la Comunitat Valenciana y España y explorar y formular propuestas para promover su reconocimiento y protección.",
+    "pagina": 24,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar algunos elementos destacados del patrimonio natural, histórico y cultural de su municipio y describir sus características más destacadas con ayuda."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": false,
+       "texto": "Mostrar y desarrollar conductas de respeto, cuidado y protección hacia el patrimonio natural, histórico y cultural del entorno próximo, participando en actividades guiadas y proponiendo acciones sencillas para su conservación."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar algunos elementos destacados del patrimonio natural, histórico y cultural de la Comunitat Valenciana y describir sus características más destacadas, incluyendo su localización geográfica y su origen histórico."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": false,
+       "texto": "Desarrollar conductas de respeto, cuidado y mantenimiento del patrimonio natural, histórico y cultural del municipio y de la Comunitat Valenciana, realizando propuestas sencillas de conservación y difusión a partir de su conocimiento."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar algunos elementos destacados del patrimonio natural, histórico y cultural de España y describir sus características más destacadas, incluyendo su localización geográfica y su origen histórico."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": false,
+       "texto": "Desarrollar conductas de respeto, cuidado y conservación del patrimonio natural, histórico y cultural de España, analizando su importancia y participando de forma guiada en propuestas de conservación y difusión."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Música y Danza",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Reconocer e investigar obras de diversos géneros y los componentes estructurales y técnicos más destacados en propuestas musicales y multidisciplinares de distintas épocas y estilos a través de la audición activa y vivencial .",
+    "pagina": 25,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer fragmentos de obras musicales y escénicas sencillas de distintos géneros, estilos y épocas, identificando algunos de sus elementos básicos."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Describir algunos elementos básicos presentes en las propuestas musicales o multidisciplinares, expresando con palabras o gestos las sensaciones o emociones que producen."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto hacia diferentes manifestaciones musicales y escénicas del entorno y de otras culturas, valorando su diversidad."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer géneros escénicos y obras musicales de diferentes estilos y épocas, con sus elementos contrastantes técnicos y formales más destacados."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Describir los elementos más destacados que conforman las diferentes propuestas musicales o multidisciplinares, utilizando vocabulario específico."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el patrimonio musical y escénico, respetando su diversidad."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar propuestas musicales y escénicas de diferentes épocas, estilos y géneros, distinguiendo de manera guiada sus características y elementos musicales y expresivos más relevantes."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Describir los componentes estructurales y técnicos más destacados que conforman las diferentes propuestas musicales o multidisciplinares relacionándolos con las sensaciones producidas mediante el uso de un lenguaje específico."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar las diferentes manifestaciones artísticas, el patrimonio musical y también el de las artes escénicas, conociendo los espacios en los que se desarrollan y su función social, respetando su diversidad."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Explorar, distinguir y relacionar los parámetros del sonido, sus características y representaciones gráficas, el silencio y las agresiones acústicas, los instrumentos y la voz, a partir del análisis auditivo y visual.",
+    "pagina": 26,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y diferenciar las cualidades básicas del sonido, relacionándolas con representaciones gráficas sencillas e iniciándose en el uso del vocabulario básico asociado."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer la voz y algunos instrumentos, diferenciando sus características básicas y relacionándolos con su forma de producir el sonido."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar con atención, reconociendo el silencio como parte de la música y valorando los sonidos del entorno, mostrando respeto ante diferentes manifestaciones sonoras."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y relacionar las cualidades del sonido con los elementos gráficos asociados, utilizando un vocabulario musical adecuado."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar los tipos de voz, los instrumentos, las familias instrumentales y agrupaciones, relacionando sus características."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el silencio y las posibilidades sonoras del entorno, respetando las diferentes manifestaciones musicales."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar las cualidades del sonido y sus características, utilizando elementos gráficos y una terminología adecuada."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Clasificar los diferentes tipos de voz, los instrumentos y las agrupaciones musicales, relacionando sus características y posibilidades sonoras."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el silencio y las posibilidades sonoras del entorno, identificando agresiones acústicas, con una actitud atenta y respetuosa ante las diferentes manifestaciones artísticas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Interpretar juegos y propuestas musicales y escénicas diversas a través de la voz, los instrumentos, el cuerpo y otros medios, buscando variedad expresiva.",
+    "pagina": 26,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en juegos y propuestas musicales y escénicas sencillas, explorando la voz, el cuerpo, los instrumentos y diferentes sonidos con intención expresiva."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar canciones, juegos musicales y pequeñas escenas utilizando la voz, el cuerpo, los instrumentos y diferentes elementos sonoros con coordinación, atención y una intención expresiva."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y esfuerzo en la interpretación individual o colectiva, manteniendo una actitud de respeto y colaboración hacia los demás."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar y experimentar, de manera guiada, con la voz, el cuerpo, los instrumentos y otros elementos sonoros, mediante juegos musicales, escénicos e improvisaciones breves, con una intención expresiva consciente."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, a través del cuerpo, la voz, los instrumentos y diferentes elementos sonoros, propuestas musicales breves o escénicas con intencionalidad técnica."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y valorar el esfuerzo propio y del grupo en la interpretación individual o colectiva, mostrando una actitud responsable y cooperativa."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar y crear propuestas musicales y escénicas, con mayor autonomía, a través de la voz, el cuerpo, los instrumentos y diversos recursos sonoros, utilizando elementos básicos del lenguaje musical para ampliar las posibilidades del fin expresivo."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, a través del cuerpo, de la voz, de los instrumentos y diferentes elementos sonoros, propuestas musicales o escénicas diversas con las habilidades técnicas básicas introduciendo variedad expresiva."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar el esfuerzo, la constancia y la colaboración en la interpretación individual o colectiva, manteniendo una actitud de respeto y compromiso con el trabajo del grupo."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Crear propuestas musicales y escénicas breves de forma guiada a partir de uno o diversos lenguajes y mediante la participación en proyectos.",
+    "pagina": 27,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en la creación guiada de pequeñas propuestas musicales y escénicas con una intención expresiva básica."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar con interés y colaboración en actividades o propuestas artísticas o multidisciplinares sencillas, respetando al grupo."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, con ayuda, las partes de una propuesta artística o multidisciplinar sencilla, mostrando interés por el proceso y por el resultado final."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Diseñar, de manera guiada, breves propuestas musicales o escénicas utilizando elementos del lenguaje musical o escénico con una intención expresiva definida."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar de forma activa en proyectos artísticos multidisciplinares, colaborando con el grupo y respetando los diferentes roles."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, de manera guiada, los elementos y fases de un proyecto artístico o multidisciplinar, apreciando tanto el proceso como el producto final."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Diseñar propuestas musicales y escénicas breves, combinando de manera guiada elementos del lenguaje musical y escénico para reforzar la intención expresiva."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Colaborar de forma activa en proyectos artísticos multidisciplinares, asumiendo de manera responsable el rol asignado dentro del grupo."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y describir las fases de un proyecto artístico o multidisciplinar, reconociendo las aportaciones propias y ajenas y respetando las diferentes contribuciones."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Educación Plástica y Visual",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Explorar propuestas artísticas del entorno patrimonial y de la cultura visual y audiovisual, a través de diferentes canales y contextos, desarrollando hábitos de percepción activa.",
+    "pagina": 28,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, de manera guiada y a través de los sentidos, diferentes manifestaciones artísticas del entorno próximo, mostrando curiosidad e interés por las obras del patrimonio y de la cultura visual y audiovisual."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Observar y comentar, de manera guiada y a través de experiencias sensoriales, diferentes manifestaciones artísticas del entorno, identificando los medios de percepción sensorial (vista, oído, tacto...) o de comunicación artística (pintura, escultura, cine...) por los que se perciben."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, de manera guiada y a través de experiencias sensoriales, elementos artísticos del entorno cercano, mostrando interés y respeto por las distintas manifestaciones culturales."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, de manera guiada, diferentes propuestas artísticas de diferentes géneros, estilos y épocas del entorno a través de los elementos básicos del lenguaje visual y audiovisual."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Clasificar las distintas propuestas artísticas atendiendo a los diferentes canales a través de los cuales las percibimos."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar elementos básicos de contenido en propuestas artísticas mediante la apreciación del entorno patrimonial cercano y de la cultura visual y audiovisual, mostrando interés y respeto por las distintas manifestaciones culturales."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": false,
+       "texto": "Distinguir diferentes propuestas artísticas de diferentes géneros, estilos y épocas del entorno a través de los elementos básicos del lenguaje visual y audiovisual."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar diferentes propuestas artísticas del patrimonio y de la cultura visual y audiovisual, teniendo en cuenta los distintos contextos en los que se generan."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar los elementos característicos de las propuestas artísticas y culturales locales con otras formas culturales, mostrando una actitud abierta y respetuosa y valorando la diversidad."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Reconocer y valorar las características fundamentales de la contemporaneidad artística mediante la percepción de diferentes obras y la experimentación directa.",
+    "pagina": 29,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Apreciar, de manera guiada y a través de experiencias sensoriales, diferentes propuestas artísticas contemporáneas cercanas, mostrando curiosidad, y respeto por la diversidad de formatos, materiales y estilos."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar, de manera guiada, las posibilidades de incluir distintos formatos y materiales contemporáneos en sus propias creaciones, fomentando la curiosidad y la experimentación sensorial."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Observar y comentar, de manera guiada, las temáticas presentes en algunas obras contemporáneas cercanas, mostrando curiosidad e interés por las ideas que transmiten y su relación con la vida cotidiana actual."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Apreciar la diversidad y heterogeneidad de propuestas artísticas contemporáneas mostrando una actitud de respeto superando prejuicios."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar con las posibilidades comunicativas de los lenguajes contemporáneos en propuestas artísticas creativas sencillas en las que se establezcan relaciones significativas entre ideas, materiales y formatos."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer las distintas temáticas en las obras artísticas contemporáneas estableciendo relaciones sencillas con los retos y circunstancias del presente."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar los formatos y materiales propios de la contemporaneidad artística, en propuestas creativas propias y ajenas, desde una perspectiva multicultural e integradora."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar el uso de distintos formatos y materiales contemporáneos en sus propias creaciones artísticas, estableciendo relaciones significativas entre ideas, materiales y formatos."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar la labor de las creadoras y creadores en su contribución a la sociedad actual, relacionando su trabajo y los mensajes de la creación artística contemporánea con los retos y circunstancias del presente."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Emplear de manera adecuada la terminología específica del área relativa a elementos configurativos, formatos, técnicas y materiales en la expresión de las experiencias de apreciación y creación artística.",
+    "pagina": 29,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Nombrar, de manera guiada, elementos y conceptos sencillos de las obras y creaciones artísticas utilizando vocabulario básico específico del área."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y nombrar, de manera guiada, algunos elementos básicos de las obras y creaciones artísticas (formatos, técnicas y materiales) utilizando vocabulario sencillo y respetuoso."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en conversaciones guiadas sobre obras y producciones artística, mostrando interés y respeto por las opiniones de los demás."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar los principales elementos y conceptos de las obras y creaciones artísticas, utilizando vocabulario específico del área, en situaciones de apreciación y creación artística."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": false,
+       "texto": "Emplear el vocabulario básico del área identificando elementos configurativos, formatos, técnicas y materiales en distintas propuestas artísticas."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Conversar sobre obras y producciones artísticas, mostrando una actitud respetuosa con las diferentes opiniones emitidas."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Describir las diferentes obras e imágenes empleando correctamente el vocabulario específico del área en la experiencia de apreciación y creación artística incorporando medios orales, textuales y estrategias de pensamiento visual."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar la terminología adecuada para describir las propias creaciones artísticas argumentando las decisiones adoptadas con relación a formatos, técnicas y materiales."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar de manera asertiva, argumentada y respetuosa opiniones derivadas de las experiencias de apreciación y creación artística, mostrando una actitud respetuosa con las diferentes opiniones emitidas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Experimentar con los elementos básicos del lenguaje visual y audiovisual, así como con diferentes técnicas y materiales, expresando ideas, sentimientos y emociones en la elaboración de producciones artísticas individuales o colectivas.",
+    "pagina": 30,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar, de manera guiada y haciendo un uso adecuado, los materiales, herramientas y espacios de trabajo, experimentando libremente y de forma sensorial en la elaboración de sus primeras propuestas artísticas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar, de manera intuitiva, diferentes técnicas y materiales, experimentando con sus cualidades expresivas en producciones artísticas creativas sencillas."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse en el desarrollo de hábitos de constancia y esfuerzo en los procesos de trabajo finalizando sus primeras propuestas artísticas."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Investigar y analizar sobre materiales, herramientas y espacios de trabajo utilizados en producciones artísticas individuales o colectivas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Emplear distintas técnicas y materiales experimentando con sus cualidades expresivas en producciones artísticas creativas sencillas."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Desarrollar hábitos de constancia y esfuerzo en los procesos de trabajo finalizando las propuestas artísticas iniciadas."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar los conocimientos derivados de los referentes explorados como estímulo en las propias producciones creativas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar las técnicas, materiales y elementos de contenido más adecuados para la expresión de ideas, sentimientos y emociones en las diferentes producciones artísticas creativas."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Implementar hábitos de constancia, esfuerzo y ejecución de los procesos de trabajo en todas sus propuestas artísticas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Utilizar de manera guiada recursos digitales aplicados a la búsqueda de información y a la creación artística, haciendo un uso responsable de acuerdo con la normativa vigente.",
+    "pagina": 30,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar, de manera guiada y con apoyo docente, recursos artísticos en medios digitales, comenzando a reconocer la importancia de un uso seguro y respetuoso de la información."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Seguir, de manera guiada y con apoyo docente, las indicaciones para explorar información y recursos digitales relacionados con propuestas artísticas, identificando aquellas que son útiles y adecuadas para la actividad propuesta."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse, con acompañamiento del profesorado, en el uso de recursos digitales muy sencillos para observar y realizar pequeñas producciones artísticas visuales o audiovisuales."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar, de manera guiada y responsable, información y recursos artísticos en medios digitales, utilizando fuentes fiables y citándolas de forma correcta."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Buscar información sobre cuestiones artísticas o crear propuestas artísticas digitales, de manera responsable y guiada, respetando las indicaciones docentes."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con acompañamiento del profesorado, recursos digitales básicos para desarrollar creaciones artísticas visuales o audiovisuales sencillas."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar las normas básicas de protección de datos, de autoría y licencias de uso en la búsqueda de información y en los procesos de creación artística digitales."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Contrastar y utilizar las diferentes informaciones halladas durante el proceso de búsqueda sobre cuestiones artísticas seleccionando aquellas más coherentes con la actividad propuesta."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Emplear, con autonomía parcial, diferentes recursos digitales básicos de producción gráfica y audiovisual adecuándose a la intencionalidad representativa y a los objetivos de la actividad artística planteada."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Participar en las diferentes fases de un proceso creativo colaborativo con actitud inclusiva, asumiendo diferentes roles en el desarrollo de producciones visuales y audiovisuales sencillas.",
+    "pagina": 31,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, de manera guiada, en producciones artísticas colectivas mostrando disposición para colaborar y respeto por las aportaciones de los demás."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Colaborar, de forma guiada, en la creación de una obra artística grupal, aceptando las indicaciones y mostrando disposición para ayudar al grupo."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, de manera guiada, en las distintas fases del proceso creativo, mostrando interés y entusiasmo, expresando de forma sencilla sus emociones, dudas o ideas durante la creación de un producto artístico visual o audiovisual."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, con ayuda docente, en la elaboración de propuestas creativas sencillas, registrando, con apoyo, algunos momentos del proceso de trabajo y compartiendo el resultado con el grupo."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Asumir sin prejuicios diferentes roles en el desarrollo de producciones artísticas colaborativas mostrando interés y respeto por las distintas funciones a desempeñar."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Colaborar, de manera guiada, en el desarrollo de un producto artístico final satisfactorio que cumpla con los objetivos mínimos establecidos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprometerse por igual con las distintas fases del proceso creativo desde la idea inicial hasta la consecución y difusión de un producto visual o audiovisual satisfactorio."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Desarrollar, de manera guiada, propuestas creativas, registrando los procesos de trabajo y compartiendo el resultado."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Cooperar en la planificación de una producción artística colectiva proponiendo objetivos, fases, roles, necesidades materiales y técnicas y espacios de trabajo."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Contribuir, de manera eficaz, a la consecución de un producto creativo comprendiendo e integrando las funciones asignadas y participando del objetivo común."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Poner en práctica con compromiso, interés y esfuerzo las distintas fases del proceso creativo hasta la consecución de un producto final satisfactorio."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Desarrollar propuestas creativas, registrando los procesos de trabajo de manera textual, gráfica o audiovisual y compartiendo el resultado."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Educación Física",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Identificar e incorporar hábitos saludables básicos en la vida cotidiana, desarrollando un estilo de vida activo, a través de la actividad física regular y adecuada.",
+    "pagina": 32,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y poner en práctica, de manera guiada, hábitos básicos de cuidado corporal y seguridad durante la actividad física."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y aplicar, de forma básica y guiada, normas de higiene postural y de seguridad en situaciones motrices."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Conocer las rutinas básicas de activación, calentamiento y vuelta a la calma, y participar en su realización de forma guiada, reconociendo su importancia para iniciar y finalizar la actividad física."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activamente, de forma guiada, en juegos y rutinas sencillas de actividad física, identificando las sensaciones corporales para el autoconocimiento, manteniendo una interacción social armoniosa y respetuosa."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar hábitos de cuidado corporal, higiene y seguridad durante la práctica de actividad física, regulando el esfuerzo de manera progresiva."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar progresivamente medidas de higiene postural y de prevención de accidentes en las situaciones motrices."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Ejecutar las fases de activación y vuelta a la calma relacionadas con la condición física, a través de rutinas en las actividades físicas cotidianas."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse en el hábito de practicar actividad física, a través de la realización de rutinas básicas de ejercicios y juegos que fomenten el autoconocimiento y una armoniosa interacción."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Adoptar de forma autónoma hábitos de cuidado corporal, seguridad y regulación del esfuerzo durante la actividad física, valorando sus efectos en el bienestar personal."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Adoptar medidas de prevención, así como aplicar protocolos de actuación ante los accidentes en las situaciones motrices."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Incorporar autónomamente las fases de activación y vuelta a la calma en diferentes propuestas de actividad física, relacionándolas con la condición física e interiorizando estas rutinas como un hábito de práctica motriz saludable y responsable."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Practicar actividad física de manera regular, a través de la realización de rutinas de ejercicios, juegos o prácticas predeportivas en situaciones individuales y colectivas que fomenten una interacción y convivencia armoniosas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Mostrar conciencia y control de los elementos fundamentales de la corporalidad en la resolución de situaciones motrices variadas desde un planteamiento crítico .",
+    "pagina": 33,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer las partes principales del cuerpo y explorar de forma guiada sus posibilidades y limitaciones motrices en las situaciones de juego, mostrando respeto y aceptación por la diversidad corporal."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar las partes principales del esqueleto y la musculatura, localizándolas a través del movimiento en situaciones motrices sencillas."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar un progresivo control en la ejecución de las acciones motrices básicas, utilizando adecuadamente el esquema corporal, la lateralidad y el equilibrio."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Tomar conciencia de la corporalidad con las posibilidades y limitaciones, en diferentes acciones motrices individuales y en convivencia, mostrando una disposición positiva hacia la práctica física."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Nombrar los principales elementos anatómicos y funcionales implicados en el movimiento, en situaciones motrices habituales."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar un progresivo control corporal adecuado a diferentes contextos y tipos de acciones motrices."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y aceptar la corporalidad, valorando y respetando las posibilidades y limitaciones personales y ajenas, a través de la participación y la resolución de retos y acciones motrices individuales y en convivencia que impliquen esfuerzo, autorregulación y gestión de las emociones."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Relacionar los principales elementos anatómicos y funcionales implicados en el movimiento y la actividad física, en situaciones motrices transferibles a su espacio vivencial."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Adquirir un dominio y un control corporal adecuado, adaptándose a las demandas de la resolución de problemas en acciones motrices variadas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Resolver retos y situaciones motrices haciendo uso de las capacidades físicas, perceptivomotrices y las habilidades motrices en diferentes contextos de la vida cotidiana a través de la actividad física y el juego .",
+    "pagina": 34,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Ejecutar habilidades motrices básicas como desplazamientos, saltos, giros, manejo de implementos y otras acciones motrices básicas, de manera coordinada en situaciones de juego guiadas y sencillas."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en situaciones motrices, aceptando las normas básicas de convivencia, mostrando respeto hacia la diversidad de compañeros/as y resolviendo pacíficamente conflictos individuales de forma guiada."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar retos motrices sencillos mediante juegos, tomando conciencia de las capacidades físicas básicas de una forma lúdica y adaptando el esfuerzo a la actividad de forma sencilla y guiada."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar de forma guiada gestos técnicos básicos y estrategias sencillas, como la ocupación de espacios, en juegos individuales y colectivos guiados, adoptando los valores sociales y culturales asociados a los juegos."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Ejecutar desplazamientos, saltos, giros y otras acciones motrices de manera coordinada, facilitando el desarrollo motriz en situaciones controladas de juego y actividad física en entornos estables y conocidos, a través de acciones motrices individuales, de cooperación, de oposición o de colaboración-oposición."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Desarrollar habilidades sociales inclusivas en las prácticas motrices identificando los estereotipos y resolviendo conflictos individuales y colectivos de forma dialogada y justa."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar retos motrices que implican las capacidades físicas básicas a través de acciones motrices individuales, de cooperación, de oposición o de colaboración-oposición mediante el juego."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar estrategias básicas de juego en acciones motrices individuales, de cooperación, de oposición o de colaboración-oposición, por medio de la identificación de los principales valores sociales y culturales asociados a los juegos."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Combinar diferentes habilidades motrices básicas y específicas a través de acciones motrices individuales, de cooperación, de oposición o de colaboración-oposición mediante la participación activa en situaciones de juego en entornos variados y variables, fomentando la tolerancia y el trabajo en equipo."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Convivir en el contexto de las prácticas motrices, mostrando habilidades sociales para la resolución dialogada de conflictos y el respeto ante la diversidad de género, afectivo-sexual, étnica, socioeconómica o de competencia motriz, con una actitud crítica hacia los estereotipos."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Resolver desafíos motrices individuales, de cooperación, de oposición o de colaboración-oposición mediante ejercicios, juegos y acciones encaminadas a la mejora de la condición física y adaptando el esfuerzo a la actividad física de manera consciente."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Integrar fundamentos técnicos, tácticos y de estrategia mediante acciones motrices individuales, de cooperación, de oposición o de colaboración-oposición, adoptando los valores sociales y culturales a través de la participación activa en juegos y actividades predeportivas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Participar en la ejecución de propuestas artístico-expresivas con aportaciones estéticas y creativas propias de la cultura motriz a través de la utilización de los recursos expresivos básicos del cuerpo y el movimiento.",
+    "pagina": 35,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar las posibilidades comunicativas del lenguaje corporal y de los recursos expresivos básicos, como gestos o movimientos, participando de manera guiada en dramatizaciones sencillas y dinámicas de bailes y danzas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en actividades rítmicas sencillas, de forma guiada, con y sin apoyo musical, mostrando desinhibición y explorando el ritmo interno y las posibilidades creativas del movimiento."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, de forma guiada, en la realización de acciones artístico-expresivas sencillas y grupales, integrando los recursos expresivos del cuerpo y del movimiento."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar el lenguaje corporal y los recursos expresivos básicos para comunicar ideas y emociones, participando en dinámicas guiadas de iniciación a propuestas escénicas, coreográficas, bailes y danzas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Ejecutar movimientos creativos y expresivos con progresiva desinhibición, que enriquezcan su identidad emocional y personal, a través de representaciones individuales o grupales sencillas."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar activamente en montajes artísticos sencillos y guiados, en uso de los recursos expresivos del cuerpo y del movimiento."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar recursos expresivos y técnicas del cuerpo comunicativo en propuestas escénicas, coreográficas, bailes y danzas, desarrollando la sensibilidad creativa expresiva y artística, así como la escucha activa."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Crear movimientos y composiciones expresivas con y sin apoyo musical, comunicando sensaciones, emociones e ideas de manera creativa y desinhibida, desarrollando la autoconfianza desde el uso de los recursos rítmicos y expresivos de la motricidad."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Organizar y diseñar proyectos artísticos colectivos aplicando los recursos expresivos del cuerpo y del movimiento."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Participar activamente en la exploración del patrimonio natural y cultural del entorno, a través de actividades físicas y artístico-expresivas guiadas, adoptando medidas de responsabilidad individuales y colectivas que favorezcan la práctica segura y respetuosa con el medio .",
+    "pagina": 35,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en actividades físicas y artístico-expresivas, de forma guiada, en el entorno próximo al centro, natural o urbano."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar protocolos básicos de seguridad en las actividades en el entorno, y mostrar conciencia de la necesidad de conservarlo y protegerlo."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y participar en juegos populares y tradicionales, como parte del patrimonio natural y cultural propio."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Llevar a cabo actividades físicas y artístico-expresivas en el medio natural o entornos no habituales de manera guiada y controlada, conociendo las técnicas adecuadas."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y aplicar medidas de seguridad y acciones para la conservación del medio mediante la participación en las actividades inclusivas en el entorno."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en actividades físicas y artístico-expresivas para el conocimiento del patrimonio natural y cultural próximo a través de actividades guiadas en el entorno."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en la organización y realización de actividades físicas y artístico-expresivas en el medio natural o entornos no habituales, aplicando de manera autónoma las técnicas adecuadas."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar medidas de seguridad y acciones para la conservación del medio y la sostenibilidad en las actividades en el entorno, mediante la colaboración en su organización, con perspectiva inclusiva."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y valorar el patrimonio natural y cultural próximo a través de actividades físicas y artístico-expresivas en el entorno y desde una perspectiva comunitaria y crítica."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Identificar y explorar recursos tecnológicos relacionados con la actividad física y la salud, utilizándolos de manera responsable y segura, bajo la supervisión del entorno familiar y escolar .",
+    "pagina": 36,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar con recursos tecnológicos sencillos relacionados con la actividad física y la salud, en situaciones motrices."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse, de forma guiada, en el uso de aplicaciones TIC relacionadas con la salud y la actividad física."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Conocer, de forma básica y guiada, recursos tecnológicos sencillos y sus posibles riesgos relacionados con la actividad física y la salud."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Conocer y utilizar, de manera guiada y sencilla, recursos tecnológicos básicos que fomenten la actividad física y la salud."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Hacer uso de manera guiada de algunas aplicaciones tecnológicas vinculadas a retos motores, juegos y predeportes, identificando los beneficios y los riesgos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en diferentes propuestas físicas y artístico-expresivas de manera guiada, haciendo uso de la tecnología y conociendo los nuevos escenarios de comunicación y aprendizaje y sus posibles riesgos."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar recursos tecnológicos relacionándolos con la actividad física y la salud a través de la resolución de problemas en situaciones motrices."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar y explorar con criterio diferentes aplicaciones tecnológicas relacionadas con la actividad física y la salud, vinculadas a retos motores, juegos y predeportes, valorando los beneficios y los riesgos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar la tecnología de forma crítica, responsable y guiada en diferentes dispositivos, a través de propuestas físicas y artístico-expresivas, integrando las posibilidades de los nuevos escenarios de comunicación y aprendizaje."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Valenciano: Lengua y Literatura y Lengua Castellana y Literatura",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Multilingüismo e interculturalidad. Reconocer la diversidad lingüística y cultural de la Comunitat Valenciana, de España y del mundo, a través del contacto con las lenguas del alumnado y del entorno; evitar prejuicios lingüísticos, y valorar esta diversidad como una riqueza cultural .",
+    "pagina": 37,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, con ayuda docente, las lenguas presentes en el entorno."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés por el uso del valenciano y el castellano en situaciones comunicativas habituales del ámbito personal y educativo."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto por las lenguas y expresiones del contexto próximo en situaciones comunicativas cotidianas y conocer expresiones básicas de cortesía."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, con apoyo docente y en situaciones próximas, actitudes de rechazo o preferencia hacia las lenguas del entorno, y valorar la pluralidad lingüística como fuente de riqueza cultural."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Experimentar, con guía docente, aspectos muy básicos del funcionamiento de la lengua mediante la práctica y la comparación de palabras y oraciones cortas de diferentes lenguas del entorno del alumnado."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar las variedades lingüísticas del entorno y respetar su uso en situaciones cotidianas."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y disposición por utilizar el valenciano y el castellano en situaciones comunicativas habituales de los ámbitos personal, social y educativo."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto por las variedades lingüísticas de su entorno inmediato, e identificar algunas expresiones de uso habitual."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, en contextos sencillos y con ayuda docente, prejuicios y estereotipos lingüísticos frecuentes, y reconocer la pluralidad lingüística de su entorno como una fuente de riqueza cultural."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Reflexionar, con ayuda docente, sobre aspectos básicos del funcionamiento de la lengua a partir de la observación y la comparación de palabras y oraciones de diferentes lenguas del entorno del alumnado."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y valorar las variedades lingüísticas de la Comunitat Valenciana, del Estado español y del mundo."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y una actitud positiva hacia el uso del valenciano y el castellano en distintas situaciones comunicativas de los ámbitos personal, social y educativo."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto por las variedades lingüísticas de su entorno, e identificar algunas de sus características básicas relacionadas con el uso en situaciones cotidianas."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Detectar, de manera guiada, prejuicios y estereotipos lingüísticos frecuentes en contextos próximos, y valorar la pluralidad lingüística del mundo como una fuente de riqueza cultural."
+      },
+      {
+       "codigo": "1.5",
+       "puntoTrasCodigo": true,
+       "texto": "Reflexionar y buscar ejemplos, de manera guiada y con acompañamiento docente, sobre aspectos del funcionamiento de la lengua a partir de la observación, la comparación y la manipulación de palabras, oraciones y textos breves de diferentes lenguas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Comprensión oral y multimodal. Comprender, interpretar y valorar, de manera guiada, textos orales y multimodales propios de los ámbitos personal, social y educativo, a través de la escucha activa, la aplicación de estrategias de comprensión oral y la reflexión sobre el contenido y la forma.",
+    "pagina": 38,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con ayuda docente, textos orales y multimodales sencillos de los ámbitos personal y educativo."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada, el sentido global e identificar las ideas principales de textos orales y multimodales sencillos sobre temas próximos a su experiencia."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar, con ayuda docente, textos multimodales sencillos en formatos digitales próximos a su experiencia, comprendiendo el mensaje a través de apoyos orales, auditivos y visuales."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada, el sentido global y las ideas principales de textos multimodales sencillos sobre temas próximos a su experiencia, reconociendo algunos elementos no verbales elementales que acompañan al mensaje."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con ayuda docente, textos orales y multimodales sencillos de los ámbitos personal, social y educativo."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentido global y las ideas principales de textos orales y multimodales sencillos sobre temas cercanos al alumnado, reconociendo información explícita con ayuda docente."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con ayuda docente, textos multimodales sencillos en medios digitales de los ámbitos personal, social y educativo, utilizando apoyos orales, auditivos y visuales para comprender el mensaje."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentido global y las ideas principales de textos multimodales sencillos sobre conocimientos cercanos al alumnado, reconociendo información explícita y algunos elementos no verbales elementales, con ayuda docente."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con apoyo ocasional docente, textos orales y multimodales sencillos de los ámbitos personal, social y educativo."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentido global, las ideas principales y algunas ideas secundarias de textos orales y multimodales sencillos sobre temas diversos, con ayuda ocasional docente."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con ayuda ocasional docente, textos multimodales sencillos en medios digitales de los ámbitos personal, social y educativo, utilizando de forma progresivamente autónoma apoyos orales, auditivos y visuales para comprender el mensaje."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el sentido global y las ideas principales y secundarias de textos multimodales sencillos de conocimientos diversos, extrayendo información explícita e implícita y realizando deducciones básicas, y valorar, de manera guiada, el contenido, los elementos no verbales y algunos aspectos formales elementales, expresando una opinión razonada."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Comprensión escrita y multimodal. Comprender, interpretar y valorar, de manera guiada, textos escritos y multimodales propios de los ámbitos personal, social y educativo, a través de la lectura de textos, la aplicación de estrategias de comprensión lectora y la reflexión sobre el contenido y la forma.",
+    "pagina": 39,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer en voz alta, con ritmo y entonación adecuados, e interpretar el sentido global de textos escritos y multimodales sencillos del ámbito personal y educativo."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar, de manera guiada, estrategias básicas de comprensión lectora para comprender el sentido global y distinguir elementos principales de textos escritos sencillos y próximos a su experiencia."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, de manera guiada, diferentes tipos de textos sencillos próximos a su experiencia."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar y seleccionar información sencilla en textos multimodales procedentes de medios digitales, con acompañamiento."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar estrategias elementales de búsqueda, selección y registro de la información, extraída de uno o dos textos multimodales, de manera guiada, indicando de dónde se ha obtenido la información de manera básica."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer con buena fluidez, de manera silenciosa y en voz alta, e interpretar, con ayuda del docente, textos escritos y multimodales sencillos de los ámbitos personal, social y educativo."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar, de manera guiada, diferentes estrategias de comprensión lectora para comprender el sentido global y la información específica de textos escritos, distinguiendo ideas principales y secundarias e iniciándose en la inferencia de significados no explícitos, sobre conocimientos próximos al alumnado."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tipo de texto y su estructura principal en textos escritos y multimodales sencillos, valorando, de manera guiada, el contenido y algunos aspectos formales y no verbales elementales, e iniciándose en la evaluación de su fiabilidad."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, seleccionar y contrastar información sencilla procedente de una o dos fuentes de los ámbitos personal, social y educativo, y evaluar su utilidad en función de los objetivos de lectura en textos multimodales sencillos en medios digitales, con ayuda docente."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar diferentes estrategias de búsqueda, selección y gestión de la información en diferentes textos multimodales, para ampliar conocimientos, de manera guiada, reconociendo que puede no ser fiable, e iniciarse en algún sistema de citación bibliográfica reconocido."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer con buena fluidez, de manera silenciosa y en voz alta, interpretar y valorar, de manera guiada, textos escritos y multimodales sencillos de los ámbitos personal, social y educativo, expresando opiniones fundamentadas sobre su contenido."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar, de manera progresivamente autónoma, estrategias de comprensión lectora para comprender el sentido global y la información específica de textos escritos, distinguir ideas principales y secundarias e inferir significados no explícitos en textos sobre conocimientos diversos."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tipo y la estructura de los textos escritos y multimodales, y evaluar, de manera guiada, su calidad, fiabilidad e idoneidad en función del objetivo de la lectura y de algunas características lingüísticas específicas de cada tipo de texto."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, seleccionar y contrastar información sencilla procedente de dos o más fuentes de los ámbitos personal, social y educativo, y evaluar, de manera guiada, su utilidad en función de los objetivos de lectura en diferentes textos multimodales sencillos en medios digitales."
+      },
+      {
+       "codigo": "3.5",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar diferentes estrategias de búsqueda, selección y gestión de la información, en diversidad de textos multimodales, para ampliar conocimientos seleccionados después de valorar su fiabilidad, con ayuda del y de la docente, y citar las referencias bibliográficas siguiendo algún sistema de citación bibliográfica reconocido."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Expresión oral. Producir, de manera guiada, mensajes orales sencillos con coherencia, cohesión y adecuación a través de situaciones de comunicación de los ámbitos familiar, social y educativo.",
+    "pagina": 40,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir, con apoyo docente, textos orales breves, ajustados a situaciones comunicativas próximas al alumnado."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar discursos orales sencillos con pronunciación clara y postura corporal adecuada, de manera guiada."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar producciones orales sencillas utilizando un lenguaje no discriminatorio, con un vocabulario básico de uso frecuente."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir oralmente información obtenida de textos proporcionados por la persona docente, mencionando la fuente de manera básica y con acompañamiento."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir, con ayuda docente, discursos orales sencillos, con sentido, sobre conocimientos próximos al alumnado, de tipología diversa y ajustados a situaciones comunicativas habituales."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar los discursos orales con una pronunciación clara, un volumen adecuado y una postura corporal correcta, e iniciarse en el uso de apoyos audiovisuales."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar producciones orales utilizando un lenguaje no discriminatorio, adaptado a la situación de comunicación y al interlocutor o interlocutora, con un vocabulario básico y unas estructuras morfosintácticas sencillas."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar y seleccionar, con ayuda, información en una o dos fuentes asequibles, analógicas o digitales, y compartir oralmente los resultados de forma organizada, citando de manera básica las fuentes."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir diferentes tipos de textos orales y multimodales breves, con una pronunciación, ritmo y entonación adecuados, a partir de modelos, con la guía ocasional docente, utilizando un repertorio de expresiones, léxico y estructuras básicas en situaciones del ámbito personal, social y educativo."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Producir monólogos breves. u otras intervenciones orales planificadas, con pronunciación clara, entonación y ritmo adecuados, controlando el volumen de voz y la postura corporal, y utilizando de forma intencionada apoyos audiovisuales o multimodales sencillos con la intención comunicativa de mantener la atención de cada oyente."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar producciones orales utilizando un lenguaje no discriminatorio, adaptado a la situación de comunicación y al interlocutor o interlocutora, con un vocabulario adecuado y una variedad de estructuras morfosintácticas, ajustando el registro lingüístico al contexto comunicativo."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, seleccionar y contrastar información en dos o más fuentes, analógicas y digitales, de manera autónoma, y compartir oralmente los resultados adoptando un punto de vista personal y citando las fuentes."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Expresión escrita y multimodal. Producir, de manera guiada, textos escritos y multimodales adecuados y coherentes con un vocabulario apropiado, utilizando estrategias básicas de planificación, textualización, revisión y edición.",
+    "pagina": 41,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir, a partir de ejemplos y modelos y con ayuda del profesorado, textos escritos y multimodales sencillos con una finalidad comunicativa básica."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con apoyo y ayuda del profesorado, normas elementales de ortografía y puntuación en la situación de aprendizaje."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Planificar y revisar de manera dialogada y acompañada por el profesorado textos escritos sencillos."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, seleccionar y usar información, de manera acompañada, a partir de una fuente sencilla y citándola con ayuda."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir, a partir de ejemplos y modelos y con ayuda del profesorado, textos escritos y multimodales sencillos de los ámbitos personal, social y educativo, con una estructura coherente y utilizando vocabulario no discriminatorio básico de uso frecuente."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con apoyo y ayuda del profesorado, los conocimientos elementales de ortografía y gramática necesarios en la situación de aprendizaje."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Planificar y revisar, de manera dialogada y acompañada por el profesorado, mediante instrumentos y estrategias elementales, como parte explícita del proceso de escritura."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, seleccionar y gestionar, de manera acompañada, la información de una o dos fuentes e incluir sus referencias al compartirla."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir, a partir de ejemplos y de manera guiada, textos escritos y multimodales de géneros discursivos de los ámbitos personal, social y educativo adecuados y coherentes, con vocabulario no discriminatorio apropiado y estrategias básicas de cohesión."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, de manera acompañada puntualmente y con reflexión progresiva, los conocimientos lingüísticos básicos de ortografía, puntuación y gramática necesarios en la situación de aprendizaje, empleando la terminología elemental cuando sea pertinente."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Planificar, textualizar, revisar y editar, de manera guiada, mediante instrumentos y estrategias básicas, como parte explícita del proceso de escritura."
+      },
+      {
+       "codigo": "5.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, seleccionar, gestionar e integrar en el texto, de manera puntualmente acompañada, la información de dos o más fuentes e incluir sus referencias al compartirla."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Interacción oral, escrita y multimodal. Interactuar de forma oral, escrita y multimodal, a través de textos sencillos de los ámbitos personal, social y educativo, utilizando un lenguaje respetuoso y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de manera síncrona y asíncrona.",
+    "pagina": 42,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar oralmente en situaciones cotidianas, utilizando vocabulario básico y no discriminatorio, escuchando y respetando los turnos de palabra."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con ayuda del profesorado, estrategias básicas de comunicación asertiva y respetuosa para gestionar conflictos de forma dialogada."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y rechazar palabras o expresiones discriminatorias, con ayuda del personal docente, a través de la reflexión conjunta."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar en textos escritos sencillos, con ayuda del profesorado, mostrando empatía y respeto, haciendo uso de vocabulario cotidiano y no discriminatorio."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar oralmente, de manera pautada, en situaciones comunicativas habituales, utilizando un vocabulario básico y no discriminatorio, un ritmo pausado y el lenguaje no verbal, empleando estrategias de escucha con el fin de mantener el tema y respetar las convenciones establecidas."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, de manera acompañada, estrategias básicas para la comunicación asertiva para progresar en la gestión dialogada de conflictos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y rechazar, de manera acompañada, palabras, expresiones o usos lingüísticos discriminatorios, a través de la reflexión conjunta."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar en textos escritos y multimodales, de manera asíncrona y guiada, mostrando empatía y respeto, utilizando estrategias para expresar mensajes sencillos estructurados con un vocabulario básico de uso frecuente y no discriminatorio."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar oralmente, con guía ocasional docente, sobre conocimientos ajustados a la situación comunicativa, utilizando un vocabulario apropiado y respetuoso y recursos como la cortesía lingüística, la etiqueta digital, la entonación, el ritmo pausado y el lenguaje no verbal, y empleando estrategias de escucha activa para la construcción de un discurso común."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con guía ocasional, estrategias básicas de deliberación y consenso para la gestión dialogada de conflictos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y rechazar, de manera progresivamente autónoma, los usos lingüísticos discriminatorios a través de la reflexión conjunta"
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Interactuar en textos escritos, de manera asíncrona y síncrona, con guía ocasional, mostrando empatía y respeto por las diferentes necesidades, ideas y motivaciones de los interlocutores o interlocutoras, y utilizando estrategias para expresar mensajes adecuados con un vocabulario apropiado y ético."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Mediación oral, escrita y multimodal. Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de los ámbitos personal, social y educativo.",
+    "pagina": 43,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse, con acompañamiento docente, en la participación para favorecer la comprensión entre hablantes de lenguas o variedades lingüísticas diferentes, en situaciones comunicativas cotidianas y predecibles del entorno escolar y familiar."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender un mensaje oral breve y sencillo en L2 (valenciano o castellano) y transmitir información básica en su L1 (valenciano o castellano u otra lengua), con ayuda docente, para favorecer la comprensión entre el grupo de interlocutores o interlocutoras en situaciones cotidianas."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, con ayuda docente, estrategias básicas de apoyo a la comprensión y a la expresión, como el uso de gestos, la repetición o la simplificación del mensaje, para facilitar la comprensión entre el grupo de interlocutores o interlocutoras en lenguas de su repertorio."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés para participar en la solución de problemas de comprensión recíproca entre hablantes de lenguas o variedades lingüísticas diferentes sobre situaciones comunicativas predecibles."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar un mensaje breve y sencillo en L2 (valenciano o castellano) y transmitir información básica o explicar conceptos en su L1 (valenciano o castellano u otra lengua), de manera oral y guiada, para facilitar la comprensión entre el grupo de interlocutores o interlocutoras sobre asuntos cotidianos de su entorno próximo."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y utilizar, de manera acompañada, estrategias que facilitan la comprensión y la expresión oral de información en diferentes lenguas de su repertorio (L1–L2 y L2–L1), como el uso del lenguaje no verbal o la simplificación o adaptación del mensaje."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés para participar en la solución de problemas de comprensión recíproca entre hablantes de lenguas o variedades lingüísticas diferentes, en situaciones habituales de los ámbitos personal, social y educativo."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender un mensaje breve y sencillo y comunicar la información o explicar conceptos, de manera oral o escrita, entre lenguas de su repertorio (L1–L2 y L2–L1), en situaciones cotidianas diversas que incluyan vocabulario frecuente."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar y utilizar, de manera guiada, estrategias que facilitan la comprensión y la expresión oral de información en diferentes lenguas de su repertorio (L1–L2 y L2–L1), como el uso del lenguaje no verbal o la simplificación o adaptación del mensaje."
+      }
+     ]
+    }
+   },
+   {
+    "n": 8,
+    "texto": "Lectura autónoma. Leer de manera autónoma obras y textos de carácter diverso, seleccionados atendiendo sus gustos e intereses, y compartir las experiencias de lectura.",
+    "pagina": 44,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer de manera autónoma o guiada textos escritos y multimodales de ámbitos próximos a su experiencia, seleccionando los que más se ajustan a sus gustos e intereses e iniciarse así en la construcción de su identidad lectora."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir experiencias de lectura, con la ayuda del profesorado, en soportes diversos, participando en comunidades lectoras en el ámbito educativo."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer de manera autónoma o guiada obras diversas adecuadas en su edad y textos escritos y multimodales de los ámbitos personal, social y educativo seleccionar con autonomía creciente los que mejor se ajustan a sus gustos e intereses e iniciarse, así, en la construcción de su identidad lectora."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir experiencias de lectura en soportes diversos, expresando opiniones y preferencias de manera sencilla y participando en comunidades lectoras del ámbito educativo."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer de manera autónoma obras diversas adecuadas en su edad y textos escritos y multimodales de los ámbitos personal, social y educativo ser consciente de sus gustos y seleccionar las lecturas con criterio propio y con autonomía progresiva."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Compartir experiencias de lectura en soportes diversos, expresando y argumentando opiniones y valoraciones personales de manera guiada, y participando de forma comprometida y respetuosa en comunidades lectoras de los ámbitos educativo y social."
+      }
+     ]
+    }
+   },
+   {
+    "n": 9,
+    "texto": "Competencia literaria. Leer y producir textos con intención literaria, sencillos, con lenguaje cercano al alumnado, contextualizados en la cultura y la tradición, como fuente de placer y de conocimiento.",
+    "pagina": 45,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "9.1",
+       "puntoTrasCodigo": true,
+       "texto": "Iniciarse en la lectura y escucha de textos literarios sencillos, propios de la tradición literaria, adecuados a la edad, con ayuda del personal docente."
+      },
+      {
+       "codigo": "9.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada y dialogada, textos sencillos de tradición oral y literaria, dentro de un contexto sociocultural próximo."
+      },
+      {
+       "codigo": "9.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar, de manera dialogada y con la guía del docente, la opinión sobre textos de tradición literaria, con palabras propias del alumnado."
+      },
+      {
+       "codigo": "9.4",
+       "puntoTrasCodigo": true,
+       "texto": "Crear versiones de textos literarios sencillos y breves (cuentos y poemas), de forma colectiva y con la guía del docente."
+      },
+      {
+       "codigo": "9.5",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en manifestaciones literarias, recitales, representaciones teatrales, partiendo de modelos y con el apoyo y acompañamiento del personal docente."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "9.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer y escuchar textos literarios sencillos, propios de la tradición literaria, adecuados a la edad y con ayuda del personal docente."
+      },
+      {
+       "codigo": "9.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar, de manera guiada, textos sencillos de la tradición popular oral y literaria, dentro de un contexto sociocultural próximo."
+      },
+      {
+       "codigo": "9.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar la opinión sobre textos de tradición literaria, con palabras propias del alumnado y con ayuda del personal docente."
+      },
+      {
+       "codigo": "9.4",
+       "puntoTrasCodigo": true,
+       "texto": "Crear versiones de textos literarios sencillos y breves (cuentos, poemas, canciones, dramatizaciones), individualmente y colectiva."
+      },
+      {
+       "codigo": "9.5",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en manifestaciones literarias, recitales, representaciones teatrales, partiendo de modelos y con ayuda del personal docente."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "9.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer y escuchar fragmentos literarios sencillos y obras completas, adecuadas a la edad y próximas a los intereses del alumnado, de manera guiada."
+      },
+      {
+       "codigo": "9.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar y relacionar textos literarios sencillos de la literatura popular y de autoría conocida, en el marco de la tradición literaria y del contexto sociocultural próximo."
+      },
+      {
+       "codigo": "9.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar la opinión sobre textos y obras literarias, de manera guiada, utilizando recursos expresivos básicos propios de los géneros."
+      },
+      {
+       "codigo": "9.4",
+       "puntoTrasCodigo": true,
+       "texto": "Crear versiones de textos literarios sencillos (cuentos, poemas, canciones y dramatizaciones), de forma individual y colectiva, con guía ocasional."
+      },
+      {
+       "codigo": "9.5",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en manifestaciones literarias, recitales, representaciones teatrales, partiendo de modelos y de manera guiada."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Lengua Extranjera",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Multilingüismo e interculturalidad. Reconocer y usar los repertorios lingüísticos de varias lenguas, reflexionar sobre su funcionamiento y tomar conciencia de los propios conocimientos, así como identificar la diversidad lingüística y cultural a partir de la lengua extranjera.",
+    "pagina": 46,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar, con apoyo y de manera guiada, similitudes y diferencias básicas del repertorio lingüístico propio, mostrando interés por descubrir cómo se expresan y comunican las personas en distintas lenguas."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con ayuda docente y del resto del alumnado, conocimientos y estrategias básicas del repertorio lingüístico propio para comunicarse en situaciones cotidianas, con apoyo de recursos visuales, gestuales, analógicos y digitales."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y apreciar la diversidad lingüística y cultural relacionada con la lengua extranjera, mostrando interés por conocer sus elementos culturales y lingüísticos elementales."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto por las diferencias lingüísticas y culturales de la lengua extranjera, identificando, de forma guiada, los prejuicios y los estereotipos más comunes, en situaciones cotidianas y habituales."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar las similitudes y diferencias entre diferentes lenguas y reflexionar, de manera guiada, sobre aspectos básicos de su funcionamiento."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar y diferenciar, de manera guiada, los conocimientos y las estrategias que forman su repertorio lingüístico para participar en intercambios comunicativos, con apoyo de otros participantes y de soportes analógicos y digitales."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y apreciar, con la ayuda docente, aspectos socioculturales básicos de la lengua extranjera, así como algunos elementos distintivos de la vida cotidiana de esta cultura respecto a la propia."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto por las diferencias lingüísticas y culturales de la lengua extranjera, identificando, con apoyo docente, algunos prejuicios y estereotipos presentes en situaciones cotidianas, y reconociendo la pluralidad lingüística como fuente de riqueza cultural."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar las similitudes y diferencias entre diferentes lenguas y reflexionar, de manera progresivamente autónoma, sobre los aspectos básicos de su funcionamiento."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar y diferenciar, de manera progresivamente autónoma, los conocimientos y las estrategias que forman su repertorio lingüístico, para participar en intercambios comunicativos, con soportes analógicos y digitales."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y comparar, con ayuda ocasional docente, aspectos socioculturales de la lengua extranjera, reconociendo los elementos distintivos de esta cultura en relación con la propia."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés y respeto por las diferencias lingüísticas y culturales de la lengua extranjera, valorando, con ayuda ocasional docente, los prejuicios y estereotipos presentes y reconociendo la pluralidad lingüística como fuente de riqueza cultural."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Comprensión oral. Interpretar la información de textos orales y multimodales, breves y sencillos, de manera guiada, sobre varios temas predecibles de ámbito personal, social y educativo, por medio de la escucha activa y la aplicación de estrategias para la comprensión oral.",
+    "pagina": 47,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa, con apoyo, textos orales y multimodales, breves y sencillos, sobre temas previsibles del ámbito personal, social y educativo próximo al alumnado, así como textos literarios adecuados a su nivel."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la idea global de textos orales y multimodales sencillos, con la ayuda docente, haciendo uso de los elementos lingüísticos y extralingüísticos del contexto (gestos, entonación, entorno sonoro, signos visuales, emotividad del mensaje)."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer e interpretar el vocabulario y las estructuras frecuentes básicas sobre temas del ámbito personal, social y educativo próximo, expresados de manera clara y sencilla."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con ayuda docente, textos orales y multimodales, breves y sencillos, sobre temas previsibles del ámbito personal, social y educativo próximo, así como textos literarios adecuados a su nivel, expresados de manera clara."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tema principal y discernir las ideas secundarias de textos orales y multimodales a partir de los significados explícitos de carácter lingüístico y extralingüístico (gestos, entonación, entorno sonoro, signos visuales, emotividad del mensaje)."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el vocabulario y reconocer estructuras frecuentes sobre temas del ámbito personal, social y educativo próximo, expresados de manera clara y sencilla."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Escuchar de manera activa e interpretar, con la guía ocasional z, textos orales y multimodales, breves y sencillos, sobre temas predecibles de ámbito cotidiano, de interés personal, social y educativo, así como textos literarios adecuados a su nivel."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la función comunicativa, el tema principal y las ideas secundarias de textos orales y multimodales, a partir de los significados explícitos presentes en la información de carácter lingüístico, y anticipar el significado por medio de la información de carácter extralingüístico (gestos, entonación, ritmo del discurso, dicción, entorno sonoro, signos visuales, emotividad del mensaje)."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender el vocabulario y el uso de estructuras frecuentes, así como aplicar estrategias para deducir el significado del vocabulario poco frecuente del ámbito social, personal y educativo expresado de manera clara y sencilla."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Comprensión escrita. Interpretar la información expresada por medio de textos escritos y multimodales, breves y sencillos, de manera guiada, sobre diferentes temas predecibles de ámbito personal, social y educativo, mediante estrategias que permiten desarrollar la comprensión escrita .",
+    "pagina": 48,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer e interpretar, con ayuda docente, textos escritos y multimodales muy breves y sencillos, sobre temas familiares y de su entorno próximo, así como textos literarios adecuados a su nivel y presentados de manera clara y comprensible y con apoyo visual."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, con ayuda constante del personal docente, la idea principal de textos escritos y multimodales muy sencillos, utilizando apoyos visuales, así como sonoros o imágenes, para comprender el significado global del texto."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer, con apoyo docente, palabras y expresiones muy frecuentes y estructuras básicas en textos escritos y multimodales sobre temas cercanos a su vida cotidiana."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar, con ayuda docente, información muy concreta en recursos digitales sencillos y en textos multimodales relacionados con su entorno personal, social y educativo próximo."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer e interpretar, de manera guiada, textos escritos y multimodales, breves y sencillos, sobre temas predecibles de su ámbito personal, social y educativo próximo, así como textos literarios adecuados a su nivel de desarrollo y expresados de manera comprensible y clara."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el tema principal y las ideas secundarias de textos escritos y multimodales sencillos, de manera guiada, aplicando estrategias de comprensión escrita en situaciones de su ámbito personal, social y educativo próximo, a partir de los significados explícitos de carácter lingüístico y extralingüístico (imágenes, iconos, disposición de la información) y sus conocimientos previos."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar vocabulario y reconocer estructuras frecuentes sobre temas predecibles del ámbito personal, social y educativo próximo en textos escritos y multimodales."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar información en medios digitales, con acompañamiento docente, a partir de diferentes tipos de textos multimodales sencillos del ámbito personal, social y educativo."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Leer e interpretar, con la guía ocasional docente, textos escritos y multimodales, breves y sencillos, sobre temas predecibles de ámbito personal, social y educativo próximo, así como textos literarios adecuados a su nivel y expresados de manera comprensible y clara."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la función comunicativa, el tema principal y las ideas secundarias de textos escritos y multimodales, seleccionando y aplicando, de manera ocasional y con ayuda del personal docente, estrategias de comprensión escrita, a partir de los significados explícitos de carácter lingüístico y anticipando el significado mediante información extralingüística (imágenes, iconos, disposición de la información, títulos, exclamaciones, tipos de letra) y sus conocimientos previos."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar el vocabulario y el uso de estructuras frecuentes, y anticipar el significado de algunas palabras o expresiones no conocidas a partir del contexto, en textos escritos y multimodales del ámbito personal, social y educativo próximo."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Localizar y seleccionar información en medios digitales, con apoyo ocasional del profesorado, a partir de diferentes tipos de textos multimodales sencillos del ámbito personal, social y educativo."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Expresión oral. Producir de manera guiada textos orales y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación y compensación.",
+    "pagina": 49,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reproducir y producir, con ayuda docente y a partir de modelos orales, palabras, expresiones y frases sencillas, con una pronunciación y entonación adecuadas, utilizando léxico y estructuras básicas relacionadas con su entorno personal, social y escolar."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar, con ayuda docente y mediante la imitación de modelos, estrategias muy básicas de planificación y producción, apoyándose en gestos, imágenes u otros recursos visuales, para realizar intervenciones orales sencillas."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir textos orales y multimodales sencillos, incluyendo monólogos breves, expresados con una pronunciación, ritmo y entonación adecuados, a partir de modelos trabajados previamente y con acompañamiento docente, utilizando un repertorio de expresiones, léxico y estructuras básicas en situaciones del ámbito personal, social y educativo próximo."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar estrategias básicas de planificación y producción, de manera guiada, con el apoyo del lenguaje corporal, y elementos extralingüísticos para producir monólogos sencillos."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir diferentes tipos de textos orales y multimodales breves, incluyendo monólogos, diálogos y presentaciones breves, con una pronunciación, ritmo y entonación adecuados, a partir de modelos y con apoyo ocasional del profesorado, utilizando un repertorio de expresiones, léxico y estructuras básicas en situaciones del ámbito personal, social y educativo."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar estrategias básicas de planificación, producción y compensación, con la guía ocasional del profesorado, para producir monólogos y diálogos sencillos."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Expresión escrita. Producir, de manera guiada, textos escritos y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación, textualización y revisión.",
+    "pagina": 49,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir textos escritos y multimodales sencillos, a partir de modelos y con una finalidad específica, a través de herramientas analógicas y digitales, con la ayuda docente y usando léxico y estructuras elementales sobre asuntos cotidianos y de relevancia personal para el alumnado."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Revisar, con ayuda docente y a partir de modelos sencillos, los textos escritos propios, realizando correcciones guiadas sobre aspectos básicos como orden o palabras."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir textos escritos y multimodales sencillos en soportes analógicos y digitales sobre temas del ámbito personal, social y educativo, a partir de modelos y con la ayuda del y de la docente, utilizando un repertorio básico de estructuras lingüísticas."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Revisar los textos escritos propios, a partir de modelos y con ayuda docente, introduciendo mejoras sencillas en su organización y contenido."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Producir textos escritos y multimodales sencillos y breves de diversos géneros textuales, en soportes analógicos y digitales, sobre temas del ámbito personal, social y educativo, con ayuda ocasional docente, utilizando léxico y estructuras de uso frecuente."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Revisar los textos escritos propios y de los compañeros o compañeras, con ayuda ocasional docente, identificando errores sencillos y realizando mejoras para clarificar el mensaje."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Interacción oral y escrita. Interaccionar de manera oral, escrita y multimodal por medio de textos sencillos, breves y guiados, de manera síncrona y asíncrona, para responder a necesidades comunicativas relacionadas con el ámbito personal, social y educativo .",
+    "pagina": 50,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar, con apoyo docente y mediante la repetición de modelos, en pequeños intercambios orales sobre temas cercanos y cotidianos, utilizando gestos, expresiones sencillas y fórmulas básicas de cortesía propias del lenguaje oral."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interaccionar, con apoyo docente y mediante modelos sencillos, mostrando respeto hacia los compañeros y compañeras, utilizando fórmulas básicas para saludar, despedirse y presentarse, y para expresar mensajes muy breves o responder a preguntas sencillas."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en conversaciones y en intercambios de información breves y sencillos sobre temas cotidianos y de relevancia personal, con guía docente, en contextos analógicos y digitales, utilizando recursos como la cortesía lingüística y digital, la repetición y el lenguaje no verbal."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interaccionar mostrando respeto y empatía, con la guía de la persona docente, utilizando estrategias elementales para saludar, despedirse y presentarse, expresar mensajes breves y formular o responder preguntas sencillas en situaciones cotidianas."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en conversaciones y en intercambios de información breves y sencillos sobre temas previsibles, cotidianos y de relevancia personal, con escasa ayuda docente, en contextos analógicos y digitales, ajustando el uso del lenguaje verbal y no verbal a la situación comunicativa."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Interaccionar mostrando empatía y respeto por las necesidades, ideas y motivaciones de los interlocutores o interlocutoras, con escasa ayuda docente, utilizando estrategias elementales para saludar, despedirse y presentarse, expresar mensajes, formular y responder preguntas sencillas, e iniciar y cerrar la comunicación en situaciones cotidianas."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Mediación oral y escrita. Mediar entre el grupo de interlocutores o interlocutoras utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de ámbito personal, social y educativo.",
+    "pagina": 51,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": false,
+       "texto": "Mostrar interés, con apoyo docente, por participar en la solución de pequeños problemas de comprensión sobre situaciones sencillas de la vida diaria y del entorno cercano."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender, con ayuda docente y mediante modelos sencillos, mensajes muy breves y claros en la L2, y comunicar oralmente o con gestos información básica, recurriendo al apoyo de los compañeros o compañeras si es necesario."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y utilizar, con ayuda docente y a partir de modelos sencillos, estrategias muy básicas que faciliten la comprensión y la expresión de mensajes orales en diferentes lenguas (de la L2 a la L1), apoyándose en gestos, dibujos u otros recursos visuales para ayudar a comunicarse."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés por participar en la solución de problemas de entendimiento sobre asuntos cotidianos del ámbito personal y social."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender mensajes breves y sencillos en L2, y transmitir oralmente la información básica o explicar conceptos en su L1, de manera guiada, recurriendo, si es necesario, a la ayuda de otros participantes o los soportes necesarios."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y utilizar, de manera guiada, estrategias elementales que faciliten la comprensión y la expresión oral de información en diferentes lenguas (de la L2 a la L1), utilizando recursos como el lenguaje no verbal o la simplificación del mensaje, con apoyo de soportes analógicos y digitales."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar interés por participar en la solución de problemas de entendimiento sobre asuntos cotidianos del ámbito personal, social y educativo."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender mensajes breves y sencillos en la L2, y comunicar oralmente o por escrito información básica o explicar palabras o ideas de la L2 a la L1 o de la L1 a la L2, con escasa ayuda docente, utilizando apoyos lingüísticos y extralingüísticos."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar y utilizar, de manera guiada, estrategias que faciliten la comprensión y la expresión oral y escrita de información en diferentes lenguas (de la L2 a la L1 y de la L1 a la L2), como el lenguaje no verbal, y simplificar o adaptar el mensaje, usando, con ayuda, recursos o soportes analógicos y digitales para crear puentes en la comunicación."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "area": "Matemáticas",
+  "competencias": [
+   {
+    "n": 1,
+    "texto": "Resolver problemas relacionados con situaciones reales del entorno personal, social y educativo utilizando estrategias informales, representaciones y conceptos concretos.",
+    "pagina": 52,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer las preguntas o problemas planteados en situaciones de su entorno próximo, identificando con ayuda docente la información necesaria para su resolución."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar estrategias intuitivas para obtener la solución a un problema sencillo del ámbito personal, manipulando materiales y apoyándose en representaciones icónicas."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprobar la corrección de la solución obtenida mediante la revisión directa o la manipulación de materiales, con ayuda docente."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Verbalizar el proceso seguido en la resolución de un problema sencillo, explicando oralmente las estrategias utilizadas y reconociendo su utilidad para situaciones similares."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la información relevante e irrelevante de un problema o situación problemática del entorno personal y social del alumnado que permita su abordaje y resolución."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Desarrollar estrategias informales para obtener la solución correcta en un problema o situación problemática y sistematizar procedimientos informales de resolución a nivel inicial."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comprobar si la solución obtenida en un problema cumple las condiciones o exigencias del enunciado."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Extraer consecuencias de la situación problemática planteada y obtener herramientas o estrategias aplicables en el ámbito personal o educativo."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "1.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar la información del enunciado de un problema o situación planteada, relacionándola con otras situaciones análogas de su entorno próximo y con los conocimientos y procedimientos adquiridos."
+      },
+      {
+       "codigo": "1.2",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar y aplicar estrategias formales básicas aplicando los conceptos y procedimientos que le permitan obtener la solución correcta en un problema o situación problemática."
+      },
+      {
+       "codigo": "1.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reflexionar sobre la coherencia y la adecuación de la solución obtenida al problema planteado."
+      },
+      {
+       "codigo": "1.4",
+       "puntoTrasCodigo": true,
+       "texto": "Conectar la situación problemática con su entorno personal, educativo y social, y extraer conclusiones que le permitan plantear problemas, tanto del mismo como de otros contextos."
+      }
+     ]
+    }
+   },
+   {
+    "n": 2,
+    "texto": "Observar, formular, explorar y comprobar conjeturas sencillas sobre propiedades y relaciones matemáticas concretas, reconociendo y conectando procedimientos, patrones, regularidades y estructuras .",
+    "pagina": 53,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Formular preguntas muy sencillas sobre situaciones matemáticas de su entorno cercano y explorar posibles respuestas mediante la observación y la manipulación."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar relaciones sencillas entre elementos matemáticos mediante la manipulación de objetos y materiales, verbalizando lo observado."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer patrones y regularidades muy sencillas en secuencias numéricas, figuras o situaciones cotidianas, con apoyo manipulativo."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar procedimientos matemáticos muy básicos en contextos familiares, siguiendo pautas proporcionadas."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comprobar conjeturas sobre relaciones matemáticas que permitan desarrollar de forma intuitiva nuevo contenido matemático de naturaleza numérica, métrica, espacial, geométrica o estocástica."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comprobar relaciones matemáticas en, y mediante, los procedimientos de razonamiento matemático intuitivo."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer patrones y regularidades, construyendo intuitivamente contenido matemático de naturaleza numérica, métrica, espacial, geométrica o estocástica."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar distintos procedimientos matemáticos relativos al cálculo, la medida, el sentido espacial y geométrico, el tratamiento de datos o los procesos aleatorios, y utilizarlos de manera flexible."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "2.1",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar conjeturas matemáticas a partir de la observación o experimentación de casos concretos, y formalizar los conceptos y procedimientos implicados."
+      },
+      {
+       "codigo": "2.2",
+       "puntoTrasCodigo": true,
+       "texto": "Conectar conceptos y relaciones matemáticas en, y mediante, los procedimientos de razonamiento matemático."
+      },
+      {
+       "codigo": "2.3",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar y justificar patrones o regularidades, construyendo contenido matemático de naturaleza numérica, métrica, espacial, geométrica o estocástica."
+      },
+      {
+       "codigo": "2.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar y comparar con fluidez y de manera flexible distintos procedimientos matemáticos relativos al cálculo, la medida, el sentido espacial y geométrico, el tratamiento de datos o los procesos aleatorios."
+      }
+     ]
+    }
+   },
+   {
+    "n": 3,
+    "texto": "Construir modelos matemáticos concretos y utilizar conceptos y procedimientos matemáticos sencillos para abordar e interpretar situaciones, fenómenos y problemas relevantes en el ámbito personal, educativo o social.",
+    "pagina": 54,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar, con ayuda docente, elementos matemáticos muy sencillos presentes en situaciones reales del entorno inmediato."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Representar mediante materiales manipulativos, dibujos o esquemas muy sencillos, situaciones de su entorno cercano, extrayendo conclusiones básicas."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar de forma elemental representaciones matemáticas de situaciones similares de su entorno cercano."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comprobar, con ayuda docente, si la representación o solución obtenida se corresponde con la situación real planteada."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el contenido y las herramientas matemáticas sencillas que permiten abordar situaciones reales cercanas y relevantes, posibilitando la construcción de modelos matemáticos básicos."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Usar modelos matemáticos básicos que permitan interpretar una situación real sencilla, y extraer conclusiones."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comparar modelos matemáticos correspondientes a situaciones reales en contextos similares."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Formular predicciones o comprobaciones sencillas sobre una situación real utilizando representaciones y relaciones matemáticas, verificando si el modelo se adecua a la realidad planteada."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "3.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el contenido y las herramientas matemáticas sencillas que permiten abordar situaciones reales del ámbito personal, educativo y social, posibilitando la construcción de modelos matemáticos concretos."
+      },
+      {
+       "codigo": "3.2",
+       "puntoTrasCodigo": true,
+       "texto": "Trabajar matemáticamente sobre modelos concretos con la finalidad de obtener soluciones que permitan describir, interpretar y extraer conclusiones sobre una situación real."
+      },
+      {
+       "codigo": "3.3",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y justificar diferencias y similitudes entre modelos matemáticos correspondientes a situaciones reales en contextos similares."
+      },
+      {
+       "codigo": "3.4",
+       "puntoTrasCodigo": true,
+       "texto": "Validar la solución obtenida a partir de modelos matemáticos y detectar errores básicos al contrastarla con la situación real."
+      }
+     ]
+    }
+   },
+   {
+    "n": 4,
+    "texto": "Construir y aplicar algoritmos sencillos para afrontar situaciones y resolver problemas relevantes del ámbito personal, educativo o social, organizando datos, descomponiendo un problema en partes, reconociendo patrones y empleando herramientas TIC.",
+    "pagina": 55,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Explorar algoritmos sencillos mediante códigos visuales y materiales manipulativos para resolver situaciones problemáticas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar secuencias y repeticiones muy sencillas en actividades cotidianas, ordenándolas de forma lógica con ayuda docente."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar con ayuda docente instrucciones secuenciales muy simples para resolver situaciones de juego o actividades lúdicas del aula en mediante el uso de herramientas TIC muy básicas."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en actividades de juegos de lógica muy sencillos, explorando soluciones con materiales manipulativos."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar algoritmos sencillos mediante códigos visuales o herramientas tecnológicas básicas para resolver situaciones problemáticas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar regularidades en una secuencia de datos y predecir resultados mediante el reconocimiento de patrones sencillos."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Aplicar instrucciones secuenciales para resolver problemas mediante el uso de herramientas TIC."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar situaciones sencillas para definir y conseguir estrategias ganadoras en juegos de lógica o juegos de tablero."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "4.1",
+       "puntoTrasCodigo": true,
+       "texto": "Diseñar y aplicar algoritmos mediante códigos visuales o herramientas tecnológicas para resolver situaciones problemáticas."
+      },
+      {
+       "codigo": "4.2",
+       "puntoTrasCodigo": true,
+       "texto": "Descomponer patrones de cierta complejidad en otros más sencillos utilizando programación por bloques."
+      },
+      {
+       "codigo": "4.3",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar la simbología básica de la programación por bloques para resolver problemas."
+      },
+      {
+       "codigo": "4.4",
+       "puntoTrasCodigo": true,
+       "texto": "Analizar situaciones de cierta dificultad, valorando distintas posibilidades y combinaciones, para definir y conseguir estrategias ganadoras en juegos de lógica o juegos de tablero."
+      }
+     ]
+    }
+   },
+   {
+    "n": 5,
+    "texto": "Utilizar con corrección el simbolismo matemático, haciendo transformaciones y algunas conversiones entre representaciones icónico-manipulativas, numéricas, geométricas y gráficas, para describir y analizar situaciones relevantes del ámbito personal, educativo o social.",
+    "pagina": 56,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar de forma básica representaciones con materiales manipulativos, dibujos y símbolos matemáticos sencillos para expresar situaciones de su entorno."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer representaciones numéricas y geométricas muy simples asociadas a objetos y cantidades del entorno inmediato."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar relaciones matemáticas elementales mediante dibujos, símbolos numéricos y manipulación de objetos, con apoyo docente."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar correctamente las representaciones icónico-manipulativas de objetos y procesos matemáticos en situaciones cercanas al alumnado, respetando las reglas básicas que los rigen."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer representaciones numéricas, geométricas y gráficas que describen objetos matemáticos elementales en contextos cercanos al alumnado."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Usar representaciones numéricas, geométricas y gráficas de objetos matemáticos elementales en situaciones cercanas al alumnado."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "5.1",
+       "puntoTrasCodigo": true,
+       "texto": "Manejar las representaciones icónicomanipulativas, numéricas, geométricas y gráficas de objetos matemáticos en situaciones reales del ámbito personal, educativo y social, respetando las reglas que los rigen."
+      },
+      {
+       "codigo": "5.2",
+       "puntoTrasCodigo": true,
+       "texto": "Realizar conversiones entre las representaciones icónico-manipulativas, numéricas, geométricas y gráficas de objetos matemáticos en situaciones reales del ámbito personal, educativo y social."
+      },
+      {
+       "codigo": "5.3",
+       "puntoTrasCodigo": true,
+       "texto": "Seleccionar el simbolismo matemático adecuado para describir matemáticamente situaciones correspondientes al ámbito personal, educativo y social."
+      }
+     ]
+    }
+   },
+   {
+    "n": 6,
+    "texto": "Comprender y producir mensajes orales y escritos concretos de manera informal, empleando un lenguaje matemático sencillo para comunicar y argumentar sobre características, conceptos, procedimientos y resultados relacionados con situaciones del ámbito personal, educativo o social.",
+    "pagina": 57,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Comprender mensajes orales muy sencillos que contengan vocabulario matemático básico del entorno cotidiano."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar de forma oral y gestual aspectos relacionados con cantidades, formas y medidas presentes en su entorno inmediato, con apoyo si es necesario."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar de manera muy elemental los pasos seguidos en la resolución de un problema o actividad matemática sencilla."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Expresar ideas matemáticas básicas de forma oral, utilizando vocabulario elemental adecuado a su nivel."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y comprender mensajes orales y escritos sencillos que contengan lenguaje matemático básico."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar aspectos relacionados con conceptos y procedimientos matemáticos sencillos presentes en contextos cercanos al alumnado."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Justificar adecuadamente la validez de los resultados provenientes de situaciones problemáticas del entorno personal o educativo del alumnado, a través de comunicaciones orales o escritas informales."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Utilizar un lenguaje matemático adecuado para defender sus propios razonamientos de forma argumentada."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "6.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interpretar correctamente mensajes orales y escritos que incluyan contenido matemático."
+      },
+      {
+       "codigo": "6.2",
+       "puntoTrasCodigo": true,
+       "texto": "Comunicar de manera formal aspectos relacionados con conceptos y procedimientos matemáticos, empleando algunos elementos formales básicos."
+      },
+      {
+       "codigo": "6.3",
+       "puntoTrasCodigo": true,
+       "texto": "Explicar y dar significado matemático a resultados provenientes de situaciones problemáticas del ámbito personal, educativo o social."
+      },
+      {
+       "codigo": "6.4",
+       "puntoTrasCodigo": true,
+       "texto": "Argumentar y debatir, contrastando con sus compañeros y compañeras, sus propios razonamientos, apoyándose en el lenguaje matemático."
+      }
+     ]
+    }
+   },
+   {
+    "n": 7,
+    "texto": "Identificar fenómenos y problemas importantes desde el punto de vista cultural y social en los que el conocimiento matemático juega un papel decisivo .",
+    "pagina": 58,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar el uso de números, formas y medidas en situaciones muy cotidianas del entorno familiar y escolar."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer la utilidad de las matemáticas para contar, ordenar, medir y resolver problemas muy sencillos de la vida diaria."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": false,
+       "texto": "Reconocer el uso de las matemáticas como herramienta útil en situaciones personales y escolares cercanas."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer el contenido matemático presente en juegos, actividades sociales y productos culturales cercanos a la experiencia del alumnado."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Valorar la importancia de las matemáticas para resolver problemas de la vida cotidiana que involucren aspectos como el cálculo aritmético, la incertidumbre, el razonamiento lógico, el pensamiento computacional, el uso e interpretación de datos o el sentido geométrico y espacial."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Apreciar el carácter polivalente de las matemáticas, tanto por su utilidad para la resolución de problemas en diferentes áreas (instrumentalidad), como para favorecer el desarrollo intelectual, creativo y cultural de las personas."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "7.1",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y valorar la importancia de las matemáticas para la comprensión y el tratamiento de algunas situaciones o cuestiones relevantes en la vida cotidiana del alumnado."
+      },
+      {
+       "codigo": "7.2",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y valorar el contenido matemático de carácter numérico, geométrico o espacial presente en obras pictóricas, dibujos animados, cómics, elementos arquitectónicos, esculturas y demás manifestaciones artísticas."
+      },
+      {
+       "codigo": "7.3",
+       "puntoTrasCodigo": true,
+       "texto": "Reconocer y valorar la importancia de la creación de conceptos, ideas y herramientas matemáticas, como elementos necesarios para el avance social y cultural."
+      }
+     ]
+    }
+   },
+   {
+    "n": 8,
+    "texto": "Gestionar las emociones y actitudes implicadas en los procesos matemáticos, aceptando la incertidumbre, las dificultades y los errores que dichos procesos conllevan, y controlando la atención para lograr un aprendizaje significativo y adaptable a diferentes situaciones.",
+    "pagina": 59,
+    "criterios": {
+     "1": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Identificar y expresar emociones básicas (alegría, frustración, sorpresa) ante actividades matemáticas sencillas."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar actitud positiva y esfuerzo en la realización de tareas matemáticas sencillas, aceptando la ayuda docente y del resto de alumnado."
+      },
+      {
+       "codigo": "8.3",
+       "puntoTrasCodigo": true,
+       "texto": "Participar en actividades matemáticas individuales y grupales, respetando las aportaciones de los demás."
+      },
+      {
+       "codigo": "8.4",
+       "puntoTrasCodigo": true,
+       "texto": "Aceptar el error y las dificultades en actividades matemáticas sencillas, con el apoyo docente y el refuerzo positivo."
+      }
+     ],
+     "2": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Asumir los errores como parte del proceso de aprendizaje, gestionando y expresando la frustración con emociones y actitudes positivas para su superación."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar una actitud positiva, esfuerzo y perseverancia en la realización de tareas matemáticas, tanto en el trabajo individual como en el colaborativo."
+      },
+      {
+       "codigo": "8.3",
+       "puntoTrasCodigo": true,
+       "texto": "Mostrar una disposición favorable a la mejora personal y del trabajo en equipo en la realización de tareas matemáticas, respetando las aportaciones de los demás."
+      },
+      {
+       "codigo": "8.4",
+       "puntoTrasCodigo": true,
+       "texto": "Comenzar a desarrollar estrategias básicas de autorregulación emocional ante las dificultades en el aprendizaje matemático, identificando cuándo necesita ayuda."
+      }
+     ],
+     "3": [
+      {
+       "codigo": "8.1",
+       "puntoTrasCodigo": true,
+       "texto": "Interiorizar los errores como parte del proceso de aprendizaje, adoptando las medidas pertinentes para su superación."
+      },
+      {
+       "codigo": "8.2",
+       "puntoTrasCodigo": true,
+       "texto": "Mantener una actitud positiva y perseverante ante las tareas matemáticas, afrontando las dificultades con esfuerzo y constancia, tanto en el trabajo individual como en el colaborativo."
+      },
+      {
+       "codigo": "8.3",
+       "puntoTrasCodigo": true,
+       "texto": "Gestionar los recursos cognitivos y emocionales para reconducir el proceso de aprendizaje en momentos de dificultad o incertidumbre, así como en las situaciones de conflicto derivadas del trabajo en equipo con la finalidad de la superación personal y grupal."
+      },
+      {
+       "codigo": "8.4",
+       "puntoTrasCodigo": true,
+       "texto": "Afrontar retos y situaciones problemáticas en el aprendizaje matemático con una actitud abierta y flexible, regulando sus emociones y perseverando ante la dificultad."
+      }
+     ]
+    }
+   }
+  ]
+ }
+]

@@ -44,3 +44,6 @@ copias/
 *.sln
 *.sw?
 .claude/
+__pycache__/
+scripts/curriculo/.cache-eso-cv/
+scripts/curriculo/.cache-catalunya/

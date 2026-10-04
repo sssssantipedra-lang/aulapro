@@ -1,0 +1,1861 @@
+{
+ "conocimiento-del-medio": [
+  {
+   "n": 1,
+   "titulo": "Cultura científica",
+   "subbloques": [
+    {
+     "cabecera": "1.1 Iniciación a la actividad científica.",
+     "grupos": [
+      {
+       "titulo": "G1 Fases del razonamiento científico y de la experimentación",
+       "saberes": [
+        "Curiosidad por objetos, hechos y fenómenos cercanos.",
+        "Realización de predicciones sencillas de manera guiada.",
+        "Estrategias de utilización de la Información en diferentes fuentes fiables, cercanas y accesibles",
+        "Uso de Instrumentos y dispositivos apropiados para la observación y medición.",
+        "Procedimientos y métodos guiados para la experimentación",
+        "Registro de las observaciones.",
+        "Vocabulario científico básico para comunicar de manera oral o gráfica el resultado de las investigaciones.",
+        "Observación de fenómenos que suceden en su entorno natural, social y cultural cercano, y realización de predicciones razonadas.",
+        "Léxico y vocabulario científico básico y su utilización en las investigaciones relacionadas con el medio cercano.",
+        "Realización de experimentos guiados utilizando diferentes técnicas de indagación y empleando los instrumentos y dispositivos adecuados.",
+        "Comunicación de los resultados de las investigaciones usando herramientas sencillas usando lenguaje científico básico adquirido.",
+        "Estrategias de utilización del pensamiento crítico, aplicado a los diferentes resultados obtenidos.",
+        "Presentación y comunicación de los resultados de las investigaciones realizadas en diferentes formatos, utilizando el lenguaje científico básico adquirido."
+       ]
+      },
+      {
+       "titulo": "G2. Profesiones científicas y tecnológicas con perspectiva de género",
+       "saberes": [
+        "Profesiones y avances científicos STEM desde una perspectiva de género"
+       ]
+      }
+     ],
+     "pagina": 29
+    },
+    {
+     "cabecera": "1.2 La vida en nuestro planeta.",
+     "grupos": [
+      {
+       "titulo": "G1. Seres vivos",
+       "saberes": [
+        "Los seres vivos y los objetos inertes.",
+        "Las plantas y los animales. Diferencias básicas.",
+        "El hábitat de los seres vivos en relación con sus necesidades básicas.",
+        "Valoración y respeto por el hábitat natural de los seres vivos.",
+        "La clasificación de los seres vivos, los grandes reinos de la naturaleza.",
+        "Las plantas. Clasificación en subgrupos según sus características de adaptación al medio, obtención de energía, relación y reproducción.",
+        "Los animales. Clasificación en subgrupos según sus características de adaptación al medio, obtención de energía, relación y reproducción.",
+        "La célula",
+        "La cadena alimentaria"
+       ]
+      },
+      {
+       "titulo": "G2. Paisajes y ecosistemas",
+       "saberes": [
+        "Concepto de ecología, el cuidado y el respeto por los espacios naturales, los animales y las plantas.",
+        "Los ecosistemas. Factores bióticos y abióticos. Equilibrio y conservación.",
+        "El paisaje, agentes que lo transforman, concienciación sobre la acción del hombre en el paisaje. Desarrollo sostenible. La huella ecológica de los seres humanos en el entorno natural.",
+        "La extinción de algunas especies, valoración, causas y consecuencias."
+       ]
+      },
+      {
+       "titulo": "G3. Desarrollo sostenible",
+       "saberes": [
+        "La cesta de la compra en casa y los bienes de primera necesidad, hábitos de consumo responsable.",
+        "Acciones para el Consumo responsable de bienes y servicios.",
+        "Huella ecológica y sostenibilidad / no sostenibilidad derivada del consumo.",
+        "Reutilización, reducción y reciclaje de materiales.",
+        "Corresponsabilidad en la protección medioambiental",
+        "Equilibrio entre el desarrollo social y económico y la defensa del medio ambiente.",
+        "Derechos, deberes y responsabilidades del alumnado como consumidor concienciado ecológicamente.",
+        "La publicidad y el etiquetado de los productos que consume el alumnado."
+       ]
+      },
+      {
+       "titulo": "G4. El cuerpo humano",
+       "saberes": [
+        "El cuerpo humano, sus partes básicas: cabeza, tronco y extremidades. Los sentidos.",
+        "Hábitos saludables, alimentación, descanso, actividad física e higiene personal relacionados con el bienestar físico.",
+        "La salud y las enfermedades más comunes.",
+        "Morfología del cuerpo humano. Esqueleto, musculatura y articulaciones.",
+        "Partes y órganos principales del cuerpo humano y sus funciones.",
+        "Relación entre el bienestar y la práctica de determinados hábitos: alimentación variada, higiene personal, ejercicio físico regulado sin excesos y descanso diario.",
+        "La organización del cuerpo humano. Sistemas, aparatos y funciones. Equilibrio y relación entre todas ellas. Relación con el entorno y con los demás.",
+        "Hábitos para la salud física, alimentación y nutrición, descanso y actividad física como elementos para el cuidado y el respeto por uno mismo y por el entorno. Sostenibilidad.",
+        "El aparato reproductor y la sexualidad responsable."
+       ]
+      },
+      {
+       "titulo": "G5. Educación emocional",
+       "saberes": [
+        "Estrategias de identificación y gestión de las emociones propias y ajenas.",
+        "Aceptación de las diferencias y semejanzas ante la diversidad en el aula y su entorno próximo.",
+        "Trabajo de la dimensión afectivo-sexual.",
+        "Diferencias y semejanzas entre las personas, empatía y respeto por las semejanzas y diferencias con los demás.",
+        "Reconocimiento de los sentimientos y emociones propias y de los compañeros y compañeras para establecer relaciones sociales adecuadas.",
+        "Conocimientos básicos sobre la sexualidad humana como forma de relación y comunicación.",
+        "Establecimiento de hábitos para desarrollar una salud emocional y mental equilibradas que fomenten la autoestima y el autoconcepto, la empatía y el respeto por los demás.",
+        "Aceptación de los cambios físicos y emocionales derivados del inicio de la adolescencia y la pubertad que condicionan unas relaciones sociales y afectivas sanas. Conocimiento y aceptación de uno mismo y de los demás."
+       ]
+      }
+     ],
+     "pagina": 29
+    },
+    {
+     "cabecera": "1.3 Materias, fuerza y energía.",
+     "grupos": [
+      {
+       "titulo": "G1. Materia",
+       "saberes": [
+        "Las propiedades de los materiales en función del uso habitual en la vida cotidiana.",
+        "Las propiedades de los materiales: dureza, flexibilidad, masa y volumen. Materiales naturales y artificiales.",
+        "La materia y sus propiedades. Masa, volumen y densidad."
+       ]
+      },
+      {
+       "titulo": "G2. Fuerzas y energía",
+       "saberes": [
+        "Formas de energía cercanas, la luz y el sonido. Uso responsable en la vida cotidiana.",
+        "Tipos de energía, el sonido, la luz y el calor. La energía eléctrica. Uso y consumo responsable.",
+        "Las fuerzas y el movimiento. Los efectos que producen las fuerzas, deformaciones y movimiento. La velocidad y la gravedad.",
+        "La energía. Formas y propiedades. La transformación de la energía. Fuentes de energía renovables y no renovables, sostenibilidad."
+       ]
+      },
+      {
+       "titulo": "G3. Máquinas e instrumentos",
+       "saberes": [
+        "Uso de objetos del entorno con eficacia y seguridad.",
+        "Construcciones de estructuras a partir de simulaciones y juegos de construcciones con materiales diversos.",
+        "Máquinas simples.",
+        "Aplicaciones y usos en la vida cotidiana de máquinas, aparatos y estructuras.",
+        "Uso de balanzas y pesos como instrumentos de medida.",
+        "Grandes hitos en la invención de máquinas, aparatos o estructuras que cambiaron la humanidad desde una perspectiva de género.",
+        "El progreso de la ciencia y la tecnología hacia un desarrollo sostenible.",
+        "Uso de instrumentos de medida y de cálculo.",
+        "Máquinas y estructuras. Elementos que las componen.",
+        "Valoración de los avances científicos y tecnológicos y su relación con la sociedad actual."
+       ]
+      }
+     ],
+     "pagina": 31
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Tecnología y digitalización",
+   "subbloques": [
+    {
+     "cabecera": "2.1. Digitalización del entorno personal de aprendizaje.",
+     "grupos": [
+      {
+       "titulo": "G1 Presencia",
+       "saberes": [
+        "Presencia de la ciencia y de la tecnología en la sociedad, en la escuela, en el hogar, en la cultura y el ocio."
+       ]
+      },
+      {
+       "titulo": "G2 Comunicación en la red",
+       "saberes": [
+        "Dispositivos, programas y aplicaciones informáticas para comunicarse de forma segura.",
+        "Conocimiento y utilización de recursos y plataformas digitales restringidas y seguras para comunicarse con otras personas: el correo electrónico.",
+        "Conocimiento y utilización de recursos y plataformas digitales restringidas y seguras para comunicarse con otras personas en red: el chat y el foro.",
+        "Utilización de las redes sociales para la comunicación y la construcción de la ciudadanía digital.",
+        "La netiqueta: reglas básicas de cortesía y respeto en los correos electrónicos: estructura y contenido del mensaje (SPAM), uso de mayúsculas.",
+        "Netiqueta digital, reglas básicas de cortesía y respeto en las redes sociales y estrategias para resolver problemas en la comunicación digital a través de chats y foros: respeto a la temática, uso moderado de los iconos, respeto hacia otras opiniones."
+       ]
+      },
+      {
+       "titulo": "G3. Dispositivos, programas y aplicaciones informáticas",
+       "saberes": [
+        "Buscadores.",
+        "Almacenamiento de datos (imágenes, documentos, cifras…)",
+        "Presentación de la información: documento (estructura, diferentes tipografías, inserción de imágenes…)",
+        "Presentación de la información: presentaciones y vídeos.",
+        "Estrategias básicas de mecanografía.",
+        "Entorno personal de aprendizaje.",
+        "Problemas técnicos sencillos en las aplicaciones y dispositivos TIC de manera guiada."
+       ]
+      },
+      {
+       "titulo": "G4. Salud y seguridad",
+       "saberes": [
+        "Estrategias para hacer un uso adecuado de la tecnología: bienestar digital y salud para prevenir adicciones. Sensibilización hacia el ciberacoso.",
+        "Estrategias para hacer un uso adecuado de la tecnología: ciberacoso, huella digital, propiedad intelectual, protección de la información personal en las redes sociales.",
+        "Estrategias para hacer un uso seguro de la tecnología y el entorno digital personal de aprendizaje: contraseñas secretas, cesión de imágenes o información personal, publicidad y correos no deseados, phishing.",
+        "Estrategias para hacer un uso seguro de la tecnología y el entorno digital personal de aprendizaje: “amigos” de internet, emails con enlaces o descargables dudosos."
+       ]
+      },
+      {
+       "titulo": "G5. Utilización de la tecnología de la información y la comunicación",
+       "saberes": [
+        "Estrategias de búsqueda de información guiadas, seguras y eficientes: valoración, discriminación, selección, organización, contraste y comparación.",
+        "Estrategias de recogida, almacenamiento y representación de datos que facilitan la comprensión y el análisis. Citado."
+       ]
+      }
+     ],
+     "pagina": 32
+    },
+    {
+     "cabecera": "2.2. Proyectos de diseño y pensamiento computacional.",
+     "grupos": [
+      {
+       "titulo": "G1. Proyectos de diseño",
+       "saberes": [
+        "Observación del medio natural o social; admiración de un tema concreto.",
+        "Identificación de objetivos, necesidades, dudas o problemas.",
+        "Expresión de diferentes soluciones o respuestas.",
+        "Selección del aspecto a desarrollar.",
+        "Comprobación, diseño, prototipado y/o prueba.",
+        "Evaluación",
+        "Presentación y comunicación."
+       ]
+      },
+      {
+       "titulo": "G2. Pensamiento computacional",
+       "saberes": [
+        "Abstracción",
+        "Pensamiento algorítmico",
+        "Descomposición en partes más sencillas",
+        "Identificación de patrones",
+        "Pensamiento lógico utilizando variables que contienen dos valores (verdadero/falso, sí/no)"
+       ]
+      },
+      {
+       "titulo": "G3. Tecnología",
+       "saberes": [
+        "Utilización de materiales, herramientas y objetos de uso escolar seguro.",
+        "Dispositivos digitales seguros y adecuados a la consecución de un proyecto: tableta, teléfono inteligente, ordenador, etc.",
+        "Operadores mecánicos y máquinas simples (sensores, motores…).",
+        "Recursos digitales: realidad virtual, realidad aumentada, simuladores, impresoras 3D…",
+        "Circuitos eléctricos básicos: elementos, efectos, uso cotidiano"
+       ]
+      },
+      {
+       "titulo": "G4. Iniciación a la programación",
+       "saberes": [
+        "Programación por bloques con elementos manipulativos no tecnológicos (actividades desenchufadas).",
+        "Programación por bloques a través de robots programables sencillos.",
+        "Programación por bloques en entornos digitales."
+       ]
+      },
+      {
+       "titulo": "G5. Trabajo Cooperativo",
+       "saberes": [
+        "Estrategias básicas de trabajo en equipo",
+        "Técnicas cooperativas sencillas para el trabajo en equipo.",
+        "Estrategias para la gestión de conflictos y promoción de conductas empáticas e inclusivas",
+        "Estrategias en situaciones de incertidumbre: adaptación y cambio de estrategia, valoración del error como oportunidad de aprendizaje"
+       ]
+      }
+     ],
+     "pagina": 33
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Sociedades y territorios",
+   "subbloques": [
+    {
+     "cabecera": "3.1. Retos del mundo actual",
+     "grupos": [
+      {
+       "titulo": "G1. Pensamiento crítico",
+       "saberes": [
+        "Estrategias para la emisión de opiniones sencillas.",
+        "Conjeturas y planificación de tareas sencillas.",
+        "Estrategias para la emisión de opiniones sencillas a partir de una información dada.",
+        "Estrategias para la emisión de opiniones y juicios de valor a partir de diferentes tipos de fuentes.",
+        "Adquisición de habilidades para la expresión de conclusiones a través de textos expositivos y elementos gráficos.",
+        "Uso de fuentes diversas (primarias y secundarias) como textos, fotografías, mapas, obras de arte, edificios históricos, documentos audiovisuales, procedentes de los medios de comunicación y otras fuentes.",
+        "Aceptación de otros puntos de vista, asunción de diversos roles, aportación de ideas propias constructivas."
+       ]
+      },
+      {
+       "titulo": "G2. Derechos y libertades",
+       "saberes": [
+        "Noción de desigualdad.",
+        "Noción de desigualdad social y conflicto social.",
+        "Noción de diversidad cultural.",
+        "Noción de derechos y libertades.",
+        "Noción de obligaciones."
+       ]
+      }
+     ],
+     "pagina": 34
+    },
+    {
+     "cabecera": "3.2. Sociedades en el tiempo.",
+     "grupos": [
+      {
+       "titulo": "G1. El paso del tiempo",
+       "saberes": [
+        "Uso del tiempo y de las formas convencionales para medirlo.",
+        "Adquisición de nociones básicas de tiempo y unidades de medida.",
+        "Cronología histórica. Periodos cronológicos y grandes edades de la Historia. Unidades de medida (década, siglo).",
+        "Estrategias para la representación del tiempo mediante líneas del tiempo y el conocimiento de los diferentes periodos cronológicos."
+       ]
+      },
+      {
+       "titulo": "G2. Educación patrimonial",
+       "saberes": [
+        "Identificación del patrimonio material como elemento del municipio.",
+        "Propuestas de cuidado del patrimonio a pequeña escala.",
+        "Reconocimiento de las mujeres como sujetos individuales o colectivos de la historia y su aportación al patrimonio.",
+        "Reconocimiento de otros tipos de patrimonio (inmaterial) y localización de expresiones culturales e históricas (patrimonio) más próximas a su localidad y a nivel nacional.",
+        "Tipología, papel social y cultural del patrimonio.",
+        "Elementos patrimoniales aplicando nociones temporales básicas.",
+        "Emisión de juicios de valor sobre el origen del patrimonio y su relación con los acontecimientos históricos."
+       ]
+      },
+      {
+       "titulo": "G3. Sociedades y diversidad cultural",
+       "saberes": [
+        "Biografía de personajes relevantes desde una perspectiva coeducativa.",
+        "Identificación de los rasgos diferenciales de las sociedades a través del tiempo.",
+        "Reconocimiento de las características de las sociedades prehistóricas y de la Antigüedad, así como sus elementos más destacables.",
+        "Conocimiento de las características de la cultura griega y la romanización y análisis de su herencia en la sociedad actual.",
+        "La sociedad del antiguo régimen y revolución liberal, así como los cambios sociales y económicos producidos en España.",
+        "Aproximación a la historia reciente (Guerra Civil, dictadura y transición) y a la memoria democrática.",
+        "Sociedades y culturas de la Época Medieval y Moderna."
+       ]
+      },
+      {
+       "titulo": "G4. Interpretación histórica",
+       "saberes": [
+        "Nociones de causa, consecuencia y empatía.",
+        "Nociones de causa, consecuencia, empatía, simultaneidad e interpretación histórica.",
+        "Noción de cambio, continuidad, simultaneidad y duración y evidencia."
+       ]
+      }
+     ],
+     "pagina": 36
+    },
+    {
+     "cabecera": "3. 3. Alfabetización cívica.",
+     "grupos": [
+      {
+       "titulo": "G1. Organización social",
+       "saberes": [
+        "La familia y la relación entre sus miembros: adquisición de responsabilidades domésticas.",
+        "Economía doméstica: noción de dinero, gastos e ingresos, ahorro, cuenta bancaria, moneda y tarjeta de crédito.",
+        "La familia y la relación entre sus miembros: adquisición de responsabilidades en el entorno familiar.",
+        "Reconocimiento de la organización social, política y territorial: las Comunidades Autónomas y España.",
+        "La Constitución Española.",
+        "Identificación de la organización social de España.",
+        "Seguridad vial. La ciudad como espacio de convivencia. Normas de circulación y movilidad sostenible."
+       ]
+      },
+      {
+       "titulo": "G2. Estructura política",
+       "saberes": [
+        "Identificación y uso de los equipamientos básicos del entorno social: educativos, sanitarios y culturales.",
+        "Características del sector privado y del sector público.",
+        "Organización de la Administración Pública a través de la Generalitat.",
+        "Instituciones de gobierno municipales, autonómicas y estatales.",
+        "Aproximación a la Unión Europea: organización territorial, instituciones, competencias y responsabilidades.",
+        "Reconocimiento de la organización política y territorial de España.",
+        "La monarquía parlamentaria.",
+        "Diferenciación de formas de gobierno: regímenes democráticos y autoritarios"
+       ]
+      },
+      {
+       "titulo": "G3. Población",
+       "saberes": [
+        "Medio urbano y rural. El medio urbano y rural de la Comunidad Valenciana.",
+        "Distribución de la población: natalidad y mortalidad,",
+        "Movimientos migratorios y riesgos naturales.",
+        "Movimientos migratorios en la Comunidad Valenciana, España y Europa",
+        "Identificación de las características demográficas de los países desarrollados y subdesarrollados.",
+        "Reconocimiento y respeto por la diversidad cultural y lingüística de España."
+       ]
+      }
+     ],
+     "pagina": 37
+    },
+    {
+     "cabecera": "3.4. Conciencia ecosocial.",
+     "grupos": [
+      {
+       "titulo": "G1. Representación",
+       "saberes": [
+        "Uso de planos y mapas sencillos.",
+        "La Tierra en planos y mapas sencillos.",
+        "Representación cartográfica."
+       ]
+      },
+      {
+       "titulo": "G2. El clima",
+       "saberes": [
+        "El cambio estacional.",
+        "Variables meteorológicas. Registro y representación de datos.",
+        "El tiempo y el clima: características y diferencias.",
+        "El cambio climático: factores desencadenantes e impacto sobre el entorno natural.",
+        "Factores climáticos.",
+        "El cambio climático: toma de conciencia del impacto en el entorno.",
+        "Factores climáticos: distribución de los climas.",
+        "El cambio climático: acciones de afrontamiento."
+       ]
+      },
+      {
+       "titulo": "G3. Responsabilidad ecosocial",
+       "saberes": [
+        "La Tierra en su concepto geológico y geográfico.",
+        "El Sistema Solar.",
+        "El Universo",
+        "Identificación de los estados del agua .",
+        "El uso responsable del agua como recurso escaso y su conservación.",
+        "Elementos básicos del relieve.",
+        "Elementos del relieve a nivel local y nacional.",
+        "Conservación y cuidado de los elementos paisajísticos del entorno.",
+        "Turismo sostenible.",
+        "Elementos del relieve a nivel europeo.",
+        "Reconocimiento de los paisajes agropecuarios y turísticos.",
+        "Redes de transporte y comunicaciones"
+       ]
+      }
+     ],
+     "pagina": 38
+    }
+   ]
+  }
+ ],
+ "musica-y-danza": [
+  {
+   "n": 1,
+   "titulo": "Percepción y análisis",
+   "subbloques": [
+    {
+     "cabecera": "SB1.1 - Contextos musicales y culturales.",
+     "grupos": [
+      {
+       "titulo": "G1 Obras",
+       "saberes": [
+        "Piezas breves de distintos géneros: vocales, instrumentales y mixtos.",
+        "Fragmentos u obras de diferentes géneros, épocas, estilos y autoría. Clasificación."
+       ]
+      },
+      {
+       "titulo": "G2 Patrimonio",
+       "saberes": [
+        "El patrimonio musical: iniciación.",
+        "Los espacios culturales y artísticos. El patrimonio de la Comunidad Valenciana.",
+        "El patrimonio musical y escénico. Las instituciones. Función social."
+       ]
+      },
+      {
+       "titulo": "G3 Géneros escénicos y musicales",
+       "saberes": [
+        "Los géneros escénicos y musicales. Profesiones vinculadas."
+       ]
+      },
+      {
+       "titulo": "G4 Agrupaciones vocales e instrumentales",
+       "saberes": [
+        "Las agrupaciones vocales, instrumentales y mixtas.",
+        "Agrupaciones del folclore, de estilos diversos y géneros actuales."
+       ]
+      },
+      {
+       "titulo": "G5 La voz",
+       "saberes": [
+        "Voz masculina, voz femenina y voz infantil.",
+        "Registro de las voces y clasificación."
+       ]
+      },
+      {
+       "titulo": "G6 Los instrumentos",
+       "saberes": [
+        "Instrumentos y objetos sonoros más próximos. Identificación visual y auditiva. Principales familias.",
+        "Los instrumentos musicales: clasificación por familias, descripción y usos en agrupaciones. Identificación visual y auditiva.",
+        "Los instrumentos musicales electrónicos, acústicos y digitales."
+       ]
+      },
+      {
+       "titulo": "G7 Normas de comportamiento",
+       "saberes": [
+        "Actitud atenta en la audición y ante propuestas artísticas. El silencio individual.",
+        "Atención y respeto en la audición y ante las propuestas artísticas.",
+        "Normas de comportamiento en la audición musical y ante las propuestas artísticas. Actitud abierta y valorativa."
+       ]
+      }
+     ],
+     "pagina": 57
+    },
+    {
+     "cabecera": "SB1.2 - Elementos y estructura",
+     "grupos": [
+      {
+       "titulo": "G1 Sonido y silencio",
+       "saberes": [
+        "Sonido, silencio y agresiones acústicas en el entorno próximo.",
+        "Usos del sonido y del silencio en el mundo actual.",
+        "Las agresiones acústicas. Estrategias de afrontamiento, neutralización y mejora."
+       ]
+      },
+      {
+       "titulo": "G2 Las cualidades del sonido",
+       "saberes": [
+        "Contrastes de altura, intensidad, duración, y timbre: representación gráfica.",
+        "Distintos grados de alturas, duraciones, intensidades y timbres: representación gráfica."
+       ]
+      },
+      {
+       "titulo": "G3 Ritmo, tempo y carácter",
+       "saberes": [
+        "La pulsación y el acento. Los contrastes en el tempo. El carácter y la sensación.",
+        "La pulsación y el acento en los compases simples. Los signos de división. El tempo. El carácter y la expresión.",
+        "El acento en compás compuesto. La ruptura del acento. Los cambios de tempo. El carácter y los elementos musicales que lo determinan."
+       ]
+      },
+      {
+       "titulo": "G4 Melodía y armonía",
+       "saberes": [
+        "Melodía. Direccionalidad.",
+        "Frase y semifrase. Intervalo y cadencia. El modo. Identificación.",
+        "Armonía y el acorde. Melodía y textura."
+       ]
+      },
+      {
+       "titulo": "G5 Estructura y forma",
+       "saberes": [
+        "Repetición, contraste y variación.",
+        "La estructura y la forma",
+        "Formas simples."
+       ]
+      },
+      {
+       "titulo": "G6 Elementos escénicos",
+       "saberes": [
+        "Roles, materiales y espacios.",
+        "Tiempo, tema, argumento y estructura dramática básica."
+       ]
+      }
+     ],
+     "pagina": 58
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Interpretación y creación",
+   "subbloques": [
+    {
+     "cabecera": "SB2-1-Expresión individual y colectiva.",
+     "grupos": [
+      {
+       "titulo": "G1 Interpretación y técnica vocal",
+       "saberes": [
+        "La respiración, la relajación y la intensidad vocal. Juegos vocales: alturas, intensidades y timbres. La imitación vocal.",
+        "Desarrollo de la capacidad respiratoria. La emisión vocal en el habla y en el canto. Juegos vocales: combinación de alturas, intensidades, duraciones y timbres. El acento prosódico y el acento musical. Reconstrucción de textos a canciones dadas.",
+        "El apoyo y la impostación en el habla y en el canto. Cuidado y mantenimiento de la voz: Hábitos saludables. Interpretaciones variadas e introducción a la canción a dos voces. La creación breve de textos y musicalización.",
+        "Canción al unísono, a capella y con acompañamiento. La memorización de repertorio."
+       ]
+      },
+      {
+       "titulo": "G2 Interpretación y cuidado instrumental",
+       "saberes": [
+        "Cuidado y mantenimiento de los instrumentos. La reutilización o transformación de materiales del entorno en la construcción de instrumentos sencillos.",
+        "La técnica en la práctica instrumental.",
+        "Propuestas breves y juegos instrumentales.",
+        "Experimentación de registros, intensidades y timbres. El eco y la pregunta-respuesta instrumental. Ostinatos rítmicos y rítmico-melódicos breves.",
+        "Combinación de distintas alturas, intensidades, duraciones y timbres. Polirritmias sencillas. El ostinato y la improvisación."
+       ]
+      },
+      {
+       "titulo": "G3 Creación",
+       "saberes": [
+        "Movimientos, expresiones corporales y coreografías sencillas.",
+        "Acompañamientos musicales.",
+        "Propuestas musicales y sonorizaciones breves."
+       ]
+      },
+      {
+       "titulo": "G4 La comunicación",
+       "saberes": [
+        "Expresión vocal y expresión corporal.",
+        "El lenguaje escénico."
+       ]
+      },
+      {
+       "titulo": "G5 La notación musical",
+       "saberes": [
+        "Iniciación a la notación musical.",
+        "Los elementos de la notación musical en la interpretación y la creación."
+       ]
+      },
+      {
+       "titulo": "G6 Habilidades motrices",
+       "saberes": [
+        "Habilidades motrices básicas.",
+        "El espacio en la danza. Las cualidades del movimiento."
+       ]
+      },
+      {
+       "titulo": "G7 El movimiento y la danza",
+       "saberes": [
+        "Movimientos en propuestas musicales breves: Imitación, memorización y expresión. Danzas breves: La posición y el desplazamiento.",
+        "Movimientos en coreografías breves. La coordinación grupal, las figuras y el espacio en las danzas.",
+        "Coreografías en piezas de diferentes estilos y géneros. Danzas variadas de diferentes estilos, épocas y culturas."
+       ]
+      }
+     ],
+     "pagina": 59
+    },
+    {
+     "cabecera": "SB2.2-Propuestas artísticas.",
+     "grupos": [
+      {
+       "titulo": "G1 Representación",
+       "saberes": [
+        "Los personajes en propuestas artísticas multidisciplinares.",
+        "Espacio y posición. Los segmentos corporales: expresión y gestualidad.",
+        "El gesto. El lenguaje corporal del actor. Imitación e improvisación."
+       ]
+      },
+      {
+       "titulo": "G2 Elementos escénicos",
+       "saberes": [
+        "La ambientación sonora y el atrezzo.",
+        "Escenografía, vestuario e iluminación."
+       ]
+      },
+      {
+       "titulo": "G3 Elementos expresivos y comunicativos en el lenguaje audiovisual",
+       "saberes": [
+        "Relación imagen, acción y sonido."
+       ]
+      },
+      {
+       "titulo": "G4 Proyectos artísticos multidisciplinares",
+       "saberes": [
+        "Diseño, roles, selección de materiales, información y criterios de valoración.",
+        "Las fases de proyectos artísticos: planificación, toma de decisiones y evaluación.",
+        "Responsabilidad individual y grupal en la participación o en la creación de propuestas sencillas."
+       ]
+      },
+      {
+       "titulo": "G5 Herramientas digitales",
+       "saberes": [
+        "Uso de banco de sonidos y selección de información.",
+        "La gestión responsable.",
+        "Grabación, interpretación, creación y edición. Normas de protección de datos y autoría."
+       ]
+      },
+      {
+       "titulo": "G6 Expresión de sensaciones y opiniones",
+       "saberes": [
+        "Expresión oral de sensaciones en la audición y la interpretación con la terminología musical dada.",
+        "Expresión de sensaciones y opiniones en propuestas variadas con uso de la terminología musical dada. Actitud abierta y respetuosa. Confianza personal."
+       ]
+      }
+     ],
+     "pagina": 60
+    }
+   ]
+  }
+ ],
+ "educacion-plastica-y-visual": [
+  {
+   "n": 1,
+   "titulo": "Percepción y análisis",
+   "subbloques": [
+    {
+     "cabecera": "B.1.1. Exploración e interpretación del entorno",
+     "grupos": [
+      {
+       "titulo": "G1. Patrimonio histórico-artístico y cultura visual contemporánea:",
+       "saberes": []
+      },
+      {
+       "titulo": "Patrimonio histórico-artístico. Manifestaciones artísticas plásticas, visuales y audiovisuales en entornos físicos y virtuales:",
+       "saberes": [
+        "Patrimonio histórico-artístico local: exploración y análisis.",
+        "Patrimonio histórico-artístico autonómico: exploración y análisis.",
+        "Patrimonio histórico-artístico universal: exploración y análisis."
+       ]
+      },
+      {
+       "titulo": "Elementos básicos del lenguaje visual y audiovisual:",
+       "saberes": [
+        "Los elementos básicos del lenguaje visual en manifestaciones artísticas de diferentes épocas y estilos.",
+        "Posibilidades expresivas y comunicativas de los elementos básicos del lenguaje visual en manifestaciones artísticas plásticas y visuales de diferentes épocas y estilos.",
+        "Los elementos básicos del lenguaje audiovisual y sus posibilidades expresivas y comunicativas en imágenes fijas y en movimiento."
+       ]
+      },
+      {
+       "titulo": "Contemporaneidad artística:",
+       "saberes": [
+        "Características fundamentales de los formatos, soportes y materiales de las prácticas artísticas contemporáneas.",
+        "Cualidades expresivas de los formatos, soportes y materiales de las prácticas artísticas contemporáneas.",
+        "Procesos de trabajo: la forma al servicio de la idea. La creación artística como proceso de investigación.",
+        "Profesiones relacionadas con el mundo de las artes plásicas, visuales y audiovisuales."
+       ]
+      },
+      {
+       "titulo": "G2. Actitudes:",
+       "saberes": [
+        "Estrategias de recepción activa.",
+        "Estrategias básicas de análisis de propuestas artísticas desde una perspectiva de género.",
+        "Respeto en la exploración de manifestaciones artísticas plásticas y visuales en entornos físicos y virtuales.",
+        "Atención y respeto en la exploración de manifestaciones artísticas plásticas, visuales y audiovisuales en entornos físicos y virtuales. El valor del silencio en la atención y apreciación.",
+        "Atención, respeto, interés y participación en la exploración de manifestaciones artísticas plásticas, visuales y audiovisuales en entornos físicos y virtuales. El valor del silencio en la atención y apreciación."
+       ]
+      },
+      {
+       "titulo": "G3. Entornos digitales:",
+       "saberes": [
+        "Estrategias de búsqueda y filtrado de información.",
+        "Normas básicas de protección de datos y licencias de uso en soportes y recursos digitales.",
+        "Recursos digitales básicos para las artes plásticas, visuales y audiovisuales."
+       ]
+      },
+      {
+       "titulo": "G4. Utilización de la terminología básica para la expresión de la experiencia de apreciación:",
+       "saberes": [
+        "Para la expresión de la experiencia de exploración de propuestas culturales y artísticas.",
+        "Para la expresión de las ideas, emociones y experiencias derivadas de la exploración de propuestas culturales y artísticas.",
+        "Para la descripción formal de propuestas culturales y artísticas."
+       ]
+      }
+     ],
+     "pagina": 78
+    },
+    {
+     "cabecera": "B1.2. Alfabetización visual y audiovisual",
+     "grupos": [
+      {
+       "titulo": "G1. Percepción visual:",
+       "saberes": [
+        "Tipos de percepción sensorial en la exploración del entorno: óptica, acústica y háptica.",
+        "Grados de iconicidad de las imágenes: imagen realista, figurativa y abstracta.",
+        "Organización del campo visual. Leyes básicas: semejanza, figura-fondo, proximidad, simetría, continuidad, dirección común, simplicidad, igualdad y cierre.",
+        "Aspectos interpretativos del proceso perceptivo: creencias, conocimientos previos y emociones."
+       ]
+      },
+      {
+       "titulo": "G2. Comunicación visual y audiovisual:",
+       "saberes": [
+        "El proceso comunicativo: emisor, receptor, mensaje.",
+        "El proceso comunicativo: código y canal. La diversidad de canales de comunicación.",
+        "Funciones de la imagen: estética, informativa, exhortativa, expresiva.",
+        "La imagen fija: formato, encuadres, composición. La imagen digital: mapa de bits e imagen vectorial. La imagen en movimiento: ángulos y movimientos de cámara.",
+        "Cultura visual y audiovisual: la imagen en el mundo contemporáneo. Estrategias de lectura e interpretación."
+       ]
+      },
+      {
+       "titulo": "G3. Lenguaje visual y audiovisual: elementos configuradores:",
+       "saberes": [
+        "El punto, la línea y el plano como elementos expresivos. Formas orgánicas y formas geométricas. Formas planas y formas volumétricas Texturas. Colores primarios y secundarios.",
+        "Las formas geométricas básicas: cuadrado, triángulo y círculo. La circunferencia. Polígonos regulares y sólidos geométricos básicos. Texturas naturales y artificiales, táctiles y visuales. Colores complementarios. Gamas cromáticas.",
+        "Usos expresivos y culturales del color en medios visuales y audiovisuales. Esquemas compositivos básicos."
+       ]
+      }
+     ],
+     "pagina": 80
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Experimentación y creación",
+   "subbloques": [
+    {
+     "cabecera": "B2.1. La experiencia artística: técnicas y materiales de expresión gráfico-plástica y de creación visual y audiovisual. Ámbitos de aplicación.",
+     "grupos": [
+      {
+       "titulo": "G1. Técnicas y materiales:",
+       "saberes": [
+        "Técnicas bidimensionales secas, húmedas y grasas. Técnicas mixtas y experimentales. Técnicas tridimensionales. Cualidades sensoriales, expresivas y comunicativas.",
+        "Materiales y soportes. Material reciclado. Criterios de sostenibilidad.",
+        "Manejo de herramientas básicas para el trazado del dibujo geométrico.",
+        "Utilización de trazados geométricos básicos en la elaboración de diseños, composiciones creativas e ilustraciones.",
+        "Procedimientos fotográficos analógicos y digitales básicos.",
+        "Producción audiovisual: principios básicos. Animación: herramientas y técnicas básicas. El cine como forma de narración. Géneros y formatos. Origen y evolución."
+       ]
+      },
+      {
+       "titulo": "G2. Formatos y materiales de la contemporaneidad artística:",
+       "saberes": [
+        "Instalación. Land Art.",
+        "Arte urbano. Intervención artística en espacios públicos.",
+        "Videocreación. Arte de acción.",
+        "Propuestas multidisciplinares y multimodales."
+       ]
+      },
+      {
+       "titulo": "G3. Aplicaciones digitales:",
+       "saberes": [
+        "Aplicaciones interactivas para la expresión gráfico-plástica.",
+        "Aplicaciones interactivas para el dibujo geométrico.",
+        "Programas y dispositivos básicos de captura y tratamiento de imágenes fijas y registro y edición básica de imágenes en movimiento."
+       ]
+      },
+      {
+       "titulo": "G4. Ámbitos de aplicación:",
+       "saberes": [
+        "Producciones plásticas y visuales a través del lenguaje de la pintura, la escultura, el dibujo, y las artes decorativas.",
+        "Producciones plásticas y visuales a través del lenguaje de la arquitectura, el diseño, la ilustración, y la publicidad.",
+        "Producciones plásticas, visuales y audiovisuales a través del lenguaje de la fotografía, el cómic, y el cine. Producciones multidisciplinares y multimodales."
+       ]
+      }
+     ],
+     "pagina": 81
+    },
+    {
+     "cabecera": "B2.2. La experiencia artística: procesos de trabajo",
+     "grupos": [
+      {
+       "titulo": "G1. Las fases del proceso creativo:",
+       "saberes": [
+        "Generación de ideas y creación.",
+        "Investigación y creación.",
+        "Evaluación."
+       ]
+      },
+      {
+       "titulo": "G2. Documentación gráfica de procesos:",
+       "saberes": [
+        "Portafolios de evidencias del proceso creativo.",
+        "Cartografías de aprendizaje. Mapas visuales (Visual Thinking).",
+        "Infografías sencillas."
+       ]
+      },
+      {
+       "titulo": "G3. Terminología básica para la expresión de la experiencia de creación:",
+       "saberes": [
+        "Relativa a técnicas, materiales y ámbitos de aplicación de la expresión gráfico-plástica.",
+        "Relativa a técnicas, materiales y ámbitos de aplicación del dibujo geométrico.",
+        "Relativa al lenguaje y ámbitos de aplicación de la creación audiovisual."
+       ]
+      },
+      {
+       "titulo": "G4. Actitudes:",
+       "saberes": [
+        "Esfuerzo, fuerza de voluntad. Capacidad de concentración. Resiliencia, superación de obstáculos y fracasos.",
+        "Respeto por la diversidad de ideas y producciones ajenas y utilización de un vocabulario inclusivo básico.",
+        "Tenacidad y constancia en la realización y consecución de las distintas tareas.",
+        "Cuidado de espacios y materiales de trabajo."
+       ]
+      },
+      {
+       "titulo": "G5. La creación artística como experiencia social: proyectos artísticos colectivos:",
+       "saberes": [
+        "Generación de ideas: creatividad en la elaboración de ideas y en la toma de decisiones.",
+        "Consenso, respeto y empatía a las aportaciones de las compañeras y compañeros en el proceso de trabajo colectivo. Sensibilidad y comprensión hacia los puntos de vista ajenos.",
+        "Investigación: búsqueda y análisis de referentes.",
+        "Distribución de tareas: roles en el desarrollo de un proyecto artístico colectivo. Funciones y cometidos.",
+        "Creación: diseño y producción de la propuesta. Cooperación y responsabilidad en la parte individual para contribuir a un objetivo común y a la cohesión del grupo.",
+        "Evaluación: resultados en relación a los objetivos iniciales del proyecto. Análisis y propuestas de mejora."
+       ]
+      }
+     ],
+     "pagina": 82
+    }
+   ]
+  }
+ ],
+ "educacion-fisica": [
+  {
+   "n": 1,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B1. Vida activa y saludable",
+     "grupos": [
+      {
+       "titulo": "G1. Estilo de vida activo y saludable. Perspectiva física",
+       "saberes": [
+        "Higiene postural y medidas de prevención de accidentes.",
+        "Respiración y relajación.",
+        "Hábitos saludables de higiene corporal y postural, de alimentación y de hidratación.",
+        "Beneficios de un estilo vida activo basado en la actividad física regular. El valor del descanso. Alimentación saludable.",
+        "Efectos negativos del sedentarismo, la mala alimentación y otros comportamientos no saludables.",
+        "Factores que influyen en el cuidado del cuerpo."
+       ]
+      },
+      {
+       "titulo": "G2. Estilo de vida activo y saludable. Perspectiva psicológica",
+       "saberes": [
+        "Bienestar personal. Respeto, conciencia y aceptación del cuerpo propio. Gestión de las emociones.",
+        "Autoconcepto y autorregulación. Fortalezas y debilidades.",
+        "Consolidación del autoconocimiento."
+       ]
+      },
+      {
+       "titulo": "G3. Estilo de vida activo y saludable. Perspectiva social",
+       "saberes": [
+        "Respeto y aceptación de la diversidad de las características personales.",
+        "Juegos y actividad físico-deportiva igualitaria como práctica social saludable frente a hábitos nocivos.",
+        "Tratamiento positivo y gestión de la competitividad. Juegos cooperativos.",
+        "La diversidad corporal y de género: visión crítica sobre los estereotipos."
+       ]
+      },
+      {
+       "titulo": "G4. Principios generales anatómicos y funcionales del cuerpo en movimiento",
+       "saberes": [
+        "Las partes principales del cuerpo: esqueleto y musculatura.",
+        "Sistemas implicados en las actividades motrices: muscular y osteoarticular.",
+        "Aparatos implicados en la actividad física y el movimiento: aparato locomotor."
+       ]
+      },
+      {
+       "titulo": "G5. Aplicaciones digitales y recursos tecnológicos para el control de la actividad física desde una perspectiva saludable",
+       "saberes": [
+        "Recursos tecnológicos relacionados con la salud.",
+        "Control de parámetros corporales implicados en la actividad física."
+       ]
+      }
+     ],
+     "pagina": 102
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B2. Organización y gestión de la actividad física.",
+     "grupos": [
+      {
+       "titulo": "G1. Gestión y planificación de la actividad física",
+       "saberes": [
+        "Programas de actividad física sencillos: definición de objetivos, desde una perspectiva global de la actividad física y la salud (ámbito físico, psicológico y social).",
+        "Programas de actividad física: autogestión de los mecanismos para la ejecución (ámbito físico, psicológico y social).",
+        "Programas de actividad física: seguimiento y valoración del proceso y efectos (ámbito físico, psicológico y social)."
+       ]
+      },
+      {
+       "titulo": "G2. Organización de la actividad física",
+       "saberes": [
+        "Elección de la actividad basada en criterios saludables según el uso y la finalidad.",
+        "Rutinas de activación, calentamiento y vuelta a la calma.",
+        "Programa personal de actividad física basado en criterios saludables."
+       ]
+      },
+      {
+       "titulo": "G3. Medidas para la prevención de lesiones y seguridad en la práctica de actividad física",
+       "saberes": [
+        "Normas de seguridad básicas. Conocimiento de los principales riesgos.",
+        "Mecanismos de control corporal para la prevención de lesiones. Equipación adecuada.",
+        "Actuaciones y protocolos básicos ante accidentes en las actividades físico-deportivas: proteger, avisar y socorrer (PAS), posiciones de seguridad; reanimación cardiopulmonar (RCP).",
+        "Conciencia de las posibilidades y limitaciones personales."
+       ]
+      }
+     ],
+     "pagina": 104
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B3. Resolución de problemas en situaciones motrices.",
+     "grupos": [
+      {
+       "titulo": "G1. La condición física",
+       "saberes": [
+        "Las capacidades físicas básicas en el ámbito lúdico y la actividad física.",
+        "La adaptación y autorregulación del esfuerzo a la intensidad y duración de la actividad.",
+        "La frecuencia cardíaca y respiratoria como consecuencia del esfuerzo realizado.",
+        "La frecuencia cardíaca y respiratoria como indicador de la intensidad de la actividad."
+       ]
+      },
+      {
+       "titulo": "G2. Capacidades perceptivo-motrices y habilidades motrices",
+       "saberes": [
+        "Conciencia y control del esquema corporal y la lateralidad.",
+        "Equilibrio estático y dinámico.",
+        "Percepción y estructuración espaciotemporal.",
+        "Coordinación oculomanual y oculopédica.",
+        "Coordinación general y segmentaria.",
+        "Combinación de habilidades y creatividad motrices."
+       ]
+      },
+      {
+       "titulo": "G3. Los juegos",
+       "saberes": [
+        "Juegos individuales y colectivos, sensoriales, simbólicos, psicomotores y manipulativos.",
+        "Juegos cooperativos. Juegos alternativos. Juegos modificados.",
+        "Grandes juegos y encuentros."
+       ]
+      },
+      {
+       "titulo": "G4. Toma de decisiones en diferentes situaciones motrices. Fundamentos técnicos",
+       "saberes": [
+        "Gestos técnicos básicos."
+       ]
+      },
+      {
+       "titulo": "G5. Toma de decisiones en diferentes situaciones motrices. Fundamentos tácticos",
+       "saberes": [
+        "Ocupación de espacios.",
+        "Estrategias de progresión, cooperación, oposición y colaboración-oposición."
+       ]
+      }
+     ],
+     "pagina": 105
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B4. Autorregulación emocional e interacción social en situaciones motrices.",
+     "grupos": [
+      {
+       "titulo": "G1. Gestión emocional en situaciones motrices y juegos",
+       "saberes": [
+        "Identificación y expresión de emociones y sentimientos.",
+        "Regulación y gestión emocional. El cuerpo expresivo y no violento.",
+        "Control de la impulsividad y de las emociones negativas. La relajación."
+       ]
+      },
+      {
+       "titulo": "G2. Interacción social en situaciones motrices y juegos",
+       "saberes": [
+        "Deportividad y juego limpio.",
+        "Normas y reglas consensuadas en situaciones de juego.",
+        "Habilidades sociales: escucha activa, trabajo en equipo, estrategias de gestión y resolución dialogada de conflictos.",
+        "Conductas inclusivas en las situaciones motrices basadas en la convivencia y la no discriminación por cuestiones de género, raciales, de capacidad física o de competencia motriz."
+       ]
+      }
+     ],
+     "pagina": 107
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B5. Manifestaciones de la cultura motriz.",
+     "grupos": [
+      {
+       "titulo": "G1. Cuerpo comunicador",
+       "saberes": [
+        "El lenguaje comunicativo no verbal: el gesto, la mímica y la danza creativa.",
+        "Propuestas coreográficas individuales y grupales con intención estética y expresiva.",
+        "Propuestas performativas interdisciplinares. Creatividad motriz y escucha activa."
+       ]
+      },
+      {
+       "titulo": "G2. Recursos y manifestaciones artístico-expresivas",
+       "saberes": [
+        "Dramatizaciones sencillas guiadas.",
+        "Montajes artístico-expresivos.",
+        "Proyectos artístico-expresivos."
+       ]
+      },
+      {
+       "titulo": "G3. Juegos circenses",
+       "saberes": [
+        "Juegos de equilibrio, malabares y habilidades gimnásticas."
+       ]
+      },
+      {
+       "titulo": "G4. El ritmo y el cuerpo en movimiento",
+       "saberes": [
+        "Actividades rítmicas expresivas con y sin apoyo musical.",
+        "El ritmo interno."
+       ]
+      },
+      {
+       "titulo": "G5. Bailes y danzas",
+       "saberes": [
+        "Bailes populares infantiles, tradicionales y regionales valencianos.",
+        "Danzas del mundo y danza creativa. Danzas urbanas."
+       ]
+      },
+      {
+       "titulo": "G6. Juegos y deportes inclusivos",
+       "saberes": [
+        "Juegos cooperativos y espacios coeducativos.",
+        "Estrategias para la inclusión.",
+        "El deporte adaptado, inclusivo y paralímpico."
+       ]
+      },
+      {
+       "titulo": "G7. Juegos populares y tradicionales",
+       "saberes": [
+        "Principales juegos populares. Los juegos propios del patrimonio cultural valenciano.",
+        "Juegos del mundo."
+       ]
+      },
+      {
+       "titulo": "G8. La pilota valenciana",
+       "saberes": [
+        "Valores de la pilota valenciana. Raspall modificado. Pautas básicas. Habilidades motrices básicas, coordinación oculomanual y el golpeo.",
+        "Bonhomia. Valor cultural de la pilota (BIC - bien de interés cultural). Modalidad de raspall y modalidades de pilota a pared: frontón y frare. Pautas básicas.",
+        "Pactos y valores del juego. Aproximación histórica a la pilota a mà. Modalidades de juego más complejas: introducción a galotxa, escala i corda, pilota grossa i llargues. Principales referentes, con énfasis en la figura de la mujer."
+       ]
+      },
+      {
+       "titulo": "G9. Los valores en las diferentes manifestaciones motrices",
+       "saberes": [
+        "Prácticas lúdicas y participativas. Motivación extrínseca.",
+        "Trabajo cooperativo. El valor del diálogo y la reflexión.",
+        "Superación y retos. Motivación intrínseca.",
+        "Análisis crítico de los inputs de los medios de comunicación relacionados con las situaciones motrices, en atención a la diversidad de género y visibilizando los referentes femeninos y transgénero."
+       ]
+      }
+     ],
+     "pagina": 108
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "B6. Interacción eficiente y sostenible con el entorno.",
+     "grupos": [
+      {
+       "titulo": "G1. Actividades físicas y de ocio activo adaptadas al medio natural",
+       "saberes": [
+        "Itinerarios guiados en el entorno próximo al centro.",
+        "Itinerarios a pie y en bicicleta.",
+        "Orientación. Actividades náuticas. Organización y planificación de itinerarios. Cartografía básica y uso de la brújula."
+       ]
+      },
+      {
+       "titulo": "G2. El entorno y patrimonio natural, urbano y cultural de la Comunitat Valenciana",
+       "saberes": [
+        "Espacios de juego y ocio en el entorno próximo al centro.",
+        "Espacios naturales y urbanos: uso y disfrute.",
+        "Cuidado y conservación del entorno en las actividades físico-deportivas. Colaboraciones con entidades y organismos."
+       ]
+      },
+      {
+       "titulo": "G3. El impacto ambiental de las actividades físico-deportivas en el entorno natural y urbano. Hábitos de movilidad sostenible",
+       "saberes": [
+        "Conciencia de la sostenibilidad medioambiental y valoración del impacto de las actividades en el medio natural y urbano.",
+        "Acciones encaminadas a la conservación y la protección del entorno natural y urbano durante la práctica de actividad física.",
+        "Iniciativas y proyectos para el fomento de la movilidad respetuosa con el medio ambiente. Medios de transporte activos y sostenibles: uso de la bicicleta y medios no motorizados."
+       ]
+      },
+      {
+       "titulo": "G4. Medidas básicas de seguridad y prevención de accidentes",
+       "saberes": [
+        "Protocolos básicos de seguridad en las actividades guiadas en el entorno.",
+        "Uso correcto de materiales y espacios en la práctica de las actividades físicas en el entorno.",
+        "Normas de educación vial para peatones y circulación en bicicleta en las vías públicas."
+       ]
+      },
+      {
+       "titulo": "G5. Aplicaciones tecnológicas en actividades en el medio natural",
+       "saberes": [
+        "Aplicaciones y recursos para la participación activa.",
+        "Seguimiento de rutas GPS, uso de mapas y cartografía digital básica."
+       ]
+      }
+     ],
+     "pagina": 110
+    }
+   ]
+  }
+ ],
+ "lenguas": [
+  {
+   "n": 1,
+   "titulo": "Lengua y uso",
+   "subbloques": [
+    {
+     "cabecera": "Las lenguas y los hablantes",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Biografía lingüística personal.",
+        "Mapa lingüístico del aula",
+        "Mapa lingüístico local y del entorno geográfico",
+        "La variación lingüística",
+        "Prejuicio y estereotipos lingüísticos",
+        "Estrategias de identificación de prejuicios y estereotipos lingüísticos",
+        "Lenguaje no discriminatorio y respetuoso con las diferencias",
+        "Expresiones propias de la lengua"
+       ]
+      }
+     ],
+     "pagina": 135
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Estrategias comunicativas",
+   "subbloques": [
+    {
+     "cabecera": "Subbloque 2.1. Saberes comunes",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Estrategias para adaptar el discurso a la intención comunicativa, a los participantes y a la situación",
+        "Estrategias para adaptar el discurso al propósito comunicativo y al canal",
+        "Estrategias para adaptar el discurso al registro",
+        "Adecuación textual a la situación comunicativa",
+        "Estructura del discurso: la coherencia y la cohesión",
+        "Elementos de contenido (tema, fórmulas fijas, léxico) y forma (estructura, formato, título, imágenes)",
+        "Elementos de contenido (inferencias de información) y forma (tipografía)",
+        "Tipologías textuales y géneros discursivos",
+        "Elementos de detección y uso de un lenguaje verbal e icónico no discriminatorio",
+        "Estrategias de reflexión sobre el proceso de aprendizaje, autoevaluación y autocorrección",
+        "Estrategias de gestión de las emociones en la comunicación"
+       ]
+      }
+     ],
+     "pagina": 136
+    },
+    {
+     "cabecera": "Subbloque 2.2. Alfabetización informacional",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Estrategias de uso y tratamiento de fuentes documentales diversas",
+        "Estrategias de busca en fuentes documentales diversas y con diferentes soportes y formatos",
+        "Diferenciación entre hechos y opiniones",
+        "Detección de la manipulación informativa",
+        "Uso de modelos para sintetizar y reelaborar información",
+        "Propiedad intelectual",
+        "Biblioteca del aula o del centro y de los recursos digitales",
+        "Herramientas digitales para el trabajo colaborativo y la comunicación",
+        "Hábitos y conductas para la comunicación segura en entornos virtuales"
+       ]
+      }
+     ],
+     "pagina": 137
+    },
+    {
+     "cabecera": "Subbloque 2.3. Reflexión sobre la lengua",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Diferencias entre lengua oral y lengua escrita",
+        "Conciencia fonológica. Fonemas específicos del valenciano/castellano",
+        "Formulación y comprobación de hipótesis",
+        "Generalizaciones sobre aspectos lingüísticos",
+        "Generalizaciones sobre normas ortográficas y gramaticales básicas",
+        "Signos de puntuación",
+        "Relaciones de forma y significado entre las palabras",
+        "Relaciones sintácticas de las palabras",
+        "Convenciones del código escrito en el marco de propuestas de comprensión o producción de textos",
+        "Estrategias para la transferencia entre las lenguas"
+       ]
+      }
+     ],
+     "pagina": 138
+    },
+    {
+     "cabecera": "Subbloque 2.4. Comunicación e interacción oral",
+     "grupos": [
+      {
+       "titulo": "G1. Comprensión oral: C2, C6 y C7",
+       "saberes": [
+        "Estrategias de comprensión oral: información y sentido global del discurso",
+        "Estrategias de comprensión oral: reconocer ideas no explícitas del discurso"
+       ]
+      },
+      {
+       "titulo": "G2. Expresión oral: C4, C6 y C7",
+       "saberes": [
+        "Estrategias de expresión oral: pronunciación y entonación adecuadas",
+        "Estrategias de expresión oral: interpretación y uso de elementos de la comunicación no verbal",
+        "Planificación y producción de textos orales y multimodales"
+       ]
+      },
+      {
+       "titulo": "G3. Interacción oral: C6 y C7",
+       "saberes": [
+        "Estrategias de escuela activa y asertividad, teniendo en cuenta la perspectiva de género",
+        "Estrategias comunicativas para la resolución dialogada de conflictos",
+        "Interacciones orales en situaciones comunicativas",
+        "Estrategias de cortesía lingüística"
+       ]
+      }
+     ],
+     "pagina": 138
+    },
+    {
+     "cabecera": "Subbloque 2.5. Comprensión escrita",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Lectura mecánica (descifrar el código)",
+        "Lectura con velocidad, fluidez y entonación",
+        "Estrategias de comprensión antes de la lectura: activar los conocimientos previos, establecer objetivos de lectura y formular hipótesis a través de información paratextual y gráfica",
+        "Estrategias de comprensión durante la lectura: realizar inferencias a partir de sus conocimientos y experiencias previas",
+        "Estrategias de comprensión durante la lectura: reformular hipótesis, interpretar sentidos figurados y significados no explícitos en los textos",
+        "Estrategias de comprensión después de la lectura: información del sentido global del texto",
+        "Estrategias de comprensión después de la lectura: comprobar hipótesis y extraer conclusiones"
+       ]
+      }
+     ],
+     "pagina": 139
+    },
+    {
+     "cabecera": "Subbloque 2.6. Expresión escrita y multimodal",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Aplicación de las normas ortográficas",
+        "Presentación cuidada de las producciones escritas",
+        "Estrategias del proceso de escritura: textualización y revisión",
+        "Estrategias del proceso de escritura: planificación y corrección",
+        "Elementos gráficos y paratextuales"
+       ]
+      }
+     ],
+     "pagina": 140
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Lectura y literatura",
+   "subbloques": [
+    {
+     "cabecera": "Subbloque 3.1. Hábito lector",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Identidad lectora: expresión de gustos e intereses.",
+        "Identidad lectora: valoración crítica de los textos.",
+        "La biblioteca del aula o del centro como punto de encuentro de actividades literarias compartidas. Comunidades lectoras",
+        "Cuidado de los libros y las normas de funcionamiento de la biblioteca"
+       ]
+      }
+     ],
+     "pagina": 140
+    },
+    {
+     "cabecera": "Subbloque 3.2. Literatura",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Obras o fragmentos variados y diversos de la literatura infantil adecuados a sus intereses y organizados en itinerarios lectores",
+        "Elementos constitutivos esenciales de la obra literaria y de los diferentes géneros literarios",
+        "Estrategias para la interpretación de los textos literarios",
+        "Vínculos con otras manifestaciones artísticas y culturales",
+        "Planificación y producción de textos literarios"
+       ]
+      }
+     ],
+     "pagina": 141
+    }
+   ]
+  }
+ ],
+ "lengua-extranjera": [
+  {
+   "n": 1,
+   "titulo": "Lengua y uso",
+   "subbloques": [
+    {
+     "cabecera": "Lengua y uso",
+     "grupos": [
+      {
+       "titulo": "Funciones comunicativas",
+       "saberes": [
+        "Funciones elementales adecuadas al ámbito y al contexto comunicativo: saludos, despedidas y presentaciones; identificación de características de personas, objetos y lugares; respuestas concretas sobre cuestiones cotidianas; expresión del tiempo, de la cantidad y del espacio.",
+        "Funciones básicas de uso común adecuadas al ámbito y al contexto comunicativo: saludos, despedidas y presentaciones; descripción de personas, objetos y lugares; petición e intercambio de información sobre cuestiones cotidianas; rutinas; indicaciones; expresión del tiempo, de la cantidad y del espacio.",
+        "Funciones comunicativas básicas adecuadas al ámbito y al contexto comunicativo: saludos, despedidas y presentaciones; descripción de personas, objetos y lugares; situar acontecimientos en el tiempo; petición e intercambio de información sobre cuestiones cotidianas; rutinas; indicaciones e instrucciones; expresión de la pertenencia y la cantidad.",
+        "Unidades lingüísticas elementales y significados asociados a estas estructuras, como por ejemplo expresión de la entidad y sus propiedades, cantidad y número, afirmación, exclamación, negación e interrogación.",
+        "Unidades lingüísticas básicas de uso común y significados asociados a estas estructuras, como por ejemplo expresión de la entidad y sus propiedades, cantidad y número, espacio y las relaciones espaciales, afirmación, exclamación, negación e interrogación.",
+        "Unidades lingüísticas básicas y significados asociados a estas unidades, como por ejemplo expresión de la entidad y sus propiedades, cantidad y número, espacio y relaciones espaciales, tiempo, afirmación, negación, interrogación y exclamación y relaciones lógicas elementales."
+       ]
+      },
+      {
+       "titulo": "Modelos contextuales y géneros discursivos",
+       "saberes": [
+        "Modelos contextuales elementales en la comprensión y producción de textos orales, escritos y multimodales, breves y sencillos, como por ejemplo felicitaciones, notas, listas o avisos.",
+        "Modelos contextuales y géneros discursivos básicos de uso común en la comprensión, producción y coproducción de textos orales, escritos y multimodales, breves y sencillos, literarios y no literarios, como por ejemplo folletos, instrucciones, normas, avisos o conversaciones reguladoras de la convivencia.",
+        "Modelos contextuales y géneros discursivos básicos en la comprensión, producción y coproducción de textos orales, escritos y multimodales, breves y sencillos, literarios y no literarios: características y reconocimiento del contexto, la organización y la estructuración según la estructura interna."
+       ]
+      },
+      {
+       "titulo": "Expresiones y léxico",
+       "saberes": [
+        "Léxico básico elemental y de interés para el alumnado, relativo a relaciones interpersonales básicas, vivienda, lugares y entornos próximos.",
+        "Léxico elemental y de interés para el alumnado, relativo a relaciones interpersonales próximas, vivienda, lugares y entornos próximos.",
+        "Léxico básico y de interés para el alumnado, relativo a identificación personal, relaciones interpersonales próximas, lugares y entornos próximos, ocio y tiempo libre y vida cotidiana.",
+        "Léxico y expresiones elementales para comprender enunciados sobre la comunicación, la lengua y el aprendizaje (metalenguaje).",
+        "Léxico y expresiones de uso común para comprender enunciados sobre la comunicación, la lengua, el aprendizaje y las herramientas de comunicación y aprendizaje (metalenguaje)."
+       ]
+      },
+      {
+       "titulo": "Patrones sonoros, acentuales y de entonación",
+       "saberes": [
+        "Iniciación a patrones sonoros y acentuales elementales.",
+        "Patrones sonoros, acentuales y de entonación básicos de uso común y funciones comunicativas generales asociadas a estos patrones.",
+        "Patrones sonoros, acentuales, rítmicos y de entonación básicos y funciones comunicativas generales asociadas a estos patrones."
+       ]
+      },
+      {
+       "titulo": "Convenciones ortográficas",
+       "saberes": [
+        "Iniciación a convenciones ortográficas elementales.",
+        "Convenciones ortográficas básicas de uso común y significados asociados a los formatos y elementos gráficos.",
+        "Convenciones ortográficas básicas y significados asociados a los formatos y elementos gráficos."
+       ]
+      }
+     ],
+     "pagina": 163
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Estrategias comunicativas",
+   "subbloques": [
+    {
+     "cabecera": "Estrategias comunicativas",
+     "grupos": [
+      {
+       "titulo": "Estrategias de comprensión y expresión",
+       "saberes": [
+        "Iniciación a las estrategias elementales para la comprensión y la producción de textos orales, escritos y multimodales breves, sencillos y contextualizados.",
+        "Estrategias básicas de uso común para la comprensión y la producción de textos orales, escritos y multimodales breves, sencillos y contextualizados.",
+        "Estrategias básicas para la comprensión y la producción de textos orales, escritos y multimodales breves, sencillos y contextualizados."
+       ]
+      },
+      {
+       "titulo": "Estrategias conversacionales",
+       "saberes": [
+        "Convenciones y estrategias conversacionales elementales, en formato síncrono o asíncrono, para iniciar, mantener y acabar la comunicación, tomar y ceder la palabra, preguntar y responder, etc.",
+        "Convenciones y estrategias conversacionales elementales, en formato síncrono o asíncrono, para iniciar, mantener y acabar la comunicación, tomar y ceder la palabra, preguntar y responder, pedir y dar indicaciones, etc.",
+        "Convenciones y estrategias conversacionales básicas de uso común, en formato síncrono o asíncrono, para iniciar, mantener y acabar la comunicación, tomar y ceder la palabra, preguntar y responder, pedir y dar indicaciones, pedir y dar aclaraciones y explicaciones, comparar y contrastar, colaborar, etc.",
+        "Interés en la participación en intercambios comunicativos planificados, a través de diferentes medios, con estudiantes de la lengua extranjera.",
+        "Interés y valoración positiva para establecer contactos y comunicarse a través de diferentes medios con hablantes o estudiantes de la lengua extranjera."
+       ]
+      },
+      {
+       "titulo": "Estrategias de mediación",
+       "saberes": [
+        "Conocimientos, destrezas y actitudes elementales que permiten iniciarse en actividades de mediación en situaciones cotidianas básicas."
+       ]
+      },
+      {
+       "titulo": "Estrategias de transferencia entre lenguas",
+       "saberes": [
+        "Iniciación a las estrategias elementales para identificar y utilizar unidades lingüísticas (léxico, morfosintaxis, patrones sonoros, etc.) a partir de la comparación de las lenguas y variedades que conforman el repertorio lingüístico personal.",
+        "Estrategias básicas de uso común para identificar y utilizar unidades lingüísticas (léxico, morfosintaxis, patrones sonoros, etc.) a partir de la comparación de las lenguas y variedades que conforman el repertorio lingüístico personal.",
+        "Estrategias básicas de uso común para identificar, organizar, retener, recuperar y utilizar unidades lingüísticas (léxico, morfosintaxis, patrones sonoros, etc.) a partir de la comparación de las lenguas y variedades que conforman el repertorio lingüístico personal.",
+        "Estrategias y técnicas elementales de detección de las carencias comunicativas y las limitaciones derivadas del nivel de competencia en la lengua extranjera y en las lenguas familiares.",
+        "Estrategias y técnicas de compensación de las carencias comunicativas para responder eficazmente a una necesidad concreta, a pesar de las limitaciones derivadas del nivel de competencia en la lengua extranjera y en las lenguas familiares.",
+        "Reconocimiento de similitudes léxicas entre lenguas.",
+        "Reconocimiento de similitudes y diferencias léxicas entre lenguas."
+       ]
+      },
+      {
+       "titulo": "Reflexión sobre el aprendizaje y tratamiento del error",
+       "saberes": [
+        "Autoconfianza en el uso de la lengua extranjera.",
+        "Autoconfianza y reflexión sobre el aprendizaje. El error como parte integrante del proceso.",
+        "Autoconfianza y reflexión sobre el aprendizaje. El error como instrumento de mejora."
+       ]
+      },
+      {
+       "titulo": "Estrategias de autoevaluación y coevaluación",
+       "saberes": [
+        "Iniciación a estrategias y herramientas básicas de uso común de autoevaluación y coevaluación, analógicas y digitales, individuales y cooperativas.",
+        "Estrategias y herramientas básicas de uso común de autoevaluación y coevaluación, analógicas y digitales, individuales y cooperativas."
+       ]
+      },
+      {
+       "titulo": "Herramientas analógicas y digitales",
+       "saberes": [
+        "Herramientas analógicas y digitales elementales para la comprensión y producción oral, escrita y multimodal.",
+        "Herramientas analógicas y digitales básicas de uso común para la comprensión, producción y coproducción oral, escrita y multimodal, y plataformas virtuales de interacción y colaboración educativa.",
+        "Herramientas analógicas y digitales básicas de uso común para la comprensión, producción y coproducción oral, escrita y multimodal, y plataformas virtuales de interacción y colaboración educativa (aulas virtuales, videoconferencias, herramientas digitales colaborativas...) para el aprendizaje, la comunicación y el desarrollo de proyectos con hablantes o estudiantes de la lengua extranjera.",
+        "Recursos para el aprendizaje y estrategias elementales de búsqueda guiada de información en medios analógicos y digitales."
+       ]
+      }
+     ],
+     "pagina": 166
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Cultura y sociedad",
+   "subbloques": [
+    {
+     "cabecera": "Cultura y sociedad",
+     "grupos": [
+      {
+       "titulo": "Aspectos socioculturales y sociolingüísticos",
+       "saberes": [
+        "Patrones culturales elementales propios de la lengua extranjera.",
+        "Patrones culturales básicos de uso frecuente propios de la lengua extranjera.",
+        "Aspectos socioculturales y sociolingüísticos elementales y más significativos relativos a las costumbres y la vida cotidiana en países donde se habla la lengua extranjera.",
+        "Aspectos socioculturales y sociolingüísticos elementales relativos a las costumbres, la vida cotidiana y las relaciones interpersonales básicas en países donde se habla la lengua extranjera.",
+        "Aspectos socioculturales y sociolingüísticos básicos y habituales relativos a las costumbres, la vida cotidiana y a las relaciones interpersonales, convenciones sociales básicas de uso común, lenguaje no verbal, cortesía lingüística y etiqueta digital, propias de países donde se habla la lengua extranjera."
+       ]
+      },
+      {
+       "titulo": "Diversidad lingüística y cultural",
+       "saberes": [
+        "Estrategias básicas de uso común para apreciar la diversidad lingüística y cultural.",
+        "Estrategias básicas de uso común para apreciar la diversidad lingüística, cultural y artística, atendiendo a valores ecosociales y democráticos.",
+        "Diferencias en la comunicación no verbal entre las diferentes lenguas y culturas.",
+        "Diferencias y diversidad plurilingüe e intercultural.",
+        "Estereotipos de otras culturas donde se habla la lengua extranjera.",
+        "Reconocimiento de los diferentes contextos sociales y culturales en los que se desarrolla la comunicación."
+       ]
+      },
+      {
+       "titulo": "Lengua extranjera como medio de comunicación",
+       "saberes": [
+        "La lengua extranjera como medio de comunicación y relación con personas de otros países, como medio para conocer culturas y modos de vida diferentes.",
+        "La lengua extranjera como medio de comunicación y relación con personas de otros países, como forma de acceder a nueva información y como medio para conocer culturas y modos de vida diferentes."
+       ]
+      }
+     ],
+     "pagina": 168
+    }
+   ]
+  }
+ ],
+ "matematicas": [
+  {
+   "n": 1,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "NÚMEROS NATURALES",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Recuento de los elementos de un conjunto. Cardinalidad.",
+        "Introducción a la decena.",
+        "Descomposiciones y estructura del número, patrones y regularidades (par, impar).",
+        "Comprensión del sistema de numeración decimal: composición y descomposición en unidades, decenas, y centenas.",
+        "Lectura, escritura y representación de numerales superiores al millar.",
+        "Estrategias de representación. Recta numérica. Comparación y ordenación.",
+        "Múltiplos y divisores. Números primos y compuestos. Propiedades y criterios de divisibilidad.",
+        "Introducción al número negativo: comparación y ordenación.",
+        "Contribución de la humanidad al desarrollo numérico, entendido este como una necesidad básica. Usos sociales del sentido numérico.",
+        "Técnicas cooperativas para estimular el trabajo en equipo relacionado con el sentido numérico y la aritmética."
+       ]
+      }
+     ],
+     "pagina": 188
+    },
+    {
+     "cabecera": "OPERACIONES CON NATURALES Y SUS PROPIEDADES",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Significados, estrategias y representaciones para la suma (añadir, combinar, comparar) y la resta (detracción, diferencia, escala ascendente, escala descendente).",
+        "Doble y mitad. Iniciación al significado de la multiplicación (suma reiterada, producto cartesiano) y de la división (reparto, agrupación).",
+        "Significados, estrategias y representaciones para el producto y el cociente (suma repetida, partición, producto cartesiano, diagrama de árbol).",
+        "Significado y uso de la igualdad y las desigualdades en relaciones y expresiones aritméticas sencillas.",
+        "Potencias y su relación con el producto. Cuadrados, cubos y potencias de 10.",
+        "Relaciones y propiedades de las operaciones. Propiedad conmutativa, asociativa y distributiva.",
+        "Cálculo mental. Estimación y aproximación.",
+        "Contribución de la humanidad al desarrollo numérico incorporando la perspectiva de género.",
+        "Autonomía y tolerancia a la frustración frente a dificultades relacionadas con las propiedades numéricas."
+       ]
+      }
+     ],
+     "pagina": 189
+    },
+    {
+     "cabecera": "FRACCIONES Y DECIMALES",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "La fracción como medida y como relación entre las partes y el todo.",
+        "Fracción decimal. Números decimales (décimas, centésimas y milésimas). Operaciones básicas.",
+        "Aproximación y redondeo de números decimales.",
+        "Cálculo mental: multiplicación y división de decimales por 10, 100, 1000.",
+        "Comparación y ordenación de números naturales y fracciones.",
+        "Correspondencia entre fracciones decimales y porcentajes.",
+        "Fracciones equivalentes.",
+        "Proporcionalidad directa.",
+        "Introducción a la suma y resta de dos fracciones.",
+        "Valoración de situaciones en las que es útil el uso de fracciones y decimales.",
+        "Estrategias de mejora en la perseverancia en la resolución de problemas aritméticos."
+       ]
+      }
+     ],
+     "pagina": 190
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "ESTIMACIÓN Y MEDICIÓN. MAGNITUDES Y UNIDADES.",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Unidades no convencionales para medir y estimar las dimensiones de los objetos cercanos y del propio cuerpo.",
+        "Estrategias de medida y estimación de tiempo, longitud, capacidad, volumen y masa mediante unidades no convencionales en situaciones reales.",
+        "Elección y utilización de los instrumentos adecuados para medir con precisión diferentes magnitudes.",
+        "Experimentación y conceptualización de magnitudes: tiempo, longitud, ángulos, masa, superficie, capacidad y volumen, temperatura y monedas.",
+        "Unidades de magnitud convencionales. Relación, comparación directa, ordenación y conversión entre unidades de la misma magnitud. Valoración de resultados en mediciones y estimaciones realizadas.",
+        "Contribución de la humanidad a la unificación de sistemas de medida y magnitudes, y valoración de sus usos sociales y científicos.",
+        "Técnicas cooperativas para estimular el trabajo en equipo relacionado con la medida y estimación de magnitudes."
+       ]
+      }
+     ],
+     "pagina": 191
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "GEOMETRÍA PLANA Y ESPACIAL",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Localización y visualización de objetos. Orientación básica en el espacio (derecha, izquierda, delante, detrás, arriba, abajo, etc.)",
+        "Localización de objetos (puntos) sobre los ejes, el plano cartesiano. Localización en mapas a partir de puntos de referencia, incluidos los puntos cardinales.",
+        "Elementos básicos: vértices y lados. Polígonos regulares.",
+        "Poliedros regulares. Vocabulario básico. Relación entre vértices, aristas y caras.",
+        "Líneas rectas, curvas.",
+        "Intersección, paralelismo y perpendicularidad. Posiciones relativas de rectas en el plano.",
+        "Identificación y descripción de diferentes polígonos. Composición y descomposición",
+        "Cálculo de perímetros y áreas de polígonos.",
+        "La circunferencia y el círculo. Elementos y propiedades.",
+        "Longitud de la circunferencia y área del círculo. Número pi.",
+        "Ángulos, medición y clasificación de ángulos. Clasificación de triángulos.",
+        "Transformaciones: giros, traslaciones y simetrías en situaciones reales.",
+        "Semejanza: identificación y generación a partir de patrones.",
+        "Concavidad y convexidad de figuras planas.",
+        "Desarrollo y clasificación de prismas y pirámides.",
+        "Programas informáticos de geometría dinámica.",
+        "Desarrollo y usos de la geometría, tanto a nivel práctico como estético, incorporando la perspectiva de género.",
+        "Estrategias de aprendizaje de conceptos geométricos y aceptación de dificultades."
+       ]
+      }
+     ],
+     "pagina": 192
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "INCERTIDUMBRE Y PROBABILIDAD",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Concepto de situación aleatoria y situación determinista. Incertidumbre. Contribución de la humanidad al conocimiento de las leyes del azar y la incertidumbre.",
+        "Idea intuitiva de probabilidad: ocurre siempre, muchas veces, algunas veces, pocas veces, nunca.",
+        "Concepto de suceso y de suceso elemental.",
+        "Espacio muestral en experimentos aleatorios simples sencillos: concepto y determinación.",
+        "Uso de tablas de contingencia y diagramas de árbol para obtener el espacio muestral en experimentos compuestos sencillos.",
+        "Concepto de probabilidad como medida de la posibilidad de que ocurra un determinado suceso en un experimento aleatorio sencillo.",
+        "Estimación de probabilidades a partir de la experimentación y simulación.",
+        "Regla de Laplace en sucesos equiprobables.",
+        "Relación entre la Regla de Laplace y la estimación de probabilidades en experimentos sencillos.",
+        "Gestión de las emociones y utilización de estrategias que permiten afrontar la incertidumbre."
+       ]
+      }
+     ],
+     "pagina": 194
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "ANÁLISIS DE DATOS Y CÁLCULOS ESTADÍSTICOS",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Elaboración de preguntas y encuestas sencillas para obtener datos.",
+        "Variables cualitativas y cuantitativas discretas: recuento de casos y construcción de tablas de frecuencia.",
+        "Elaboración de diagramas de barras.",
+        "Representaciones (pictogramas, diagramas de sectores, polígonos de frecuencias…). Uso de herramientas tecnológicas para generar diferentes tipos de representaciones",
+        "Interpretación de datos a partir de diferentes representaciones (tablas, gráficas), y análisis en casos sencillos.",
+        "Significado e interpretación de las principales medidas centrales (moda, mediana y media aritmética).",
+        "Significado e interpretación de la idea de dispersión a partir de representaciones gráficas. Rango.",
+        "Diferenciación entre población y muestra. Comparación entre muestras de la misma población.",
+        "Introducción a las variables cuantitativas continuas. Histogramas.",
+        "Contribución de la humanidad al desarrollo y evolución de la estadística y tratamiento de datos, incorporando la perspectiva de género.",
+        "Respeto, sensibilidad y tolerancia ante diferentes interpretaciones sobre resultados estadísticos, mostrando rechazo ante actitudes discriminatorias."
+       ]
+      }
+     ],
+     "pagina": 195
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "titulo": null,
+   "subbloques": [
+    {
+     "cabecera": "PENSAMIENTO COMPUTACIONAL",
+     "grupos": [
+      {
+       "titulo": null,
+       "saberes": [
+        "Identificación de regularidades, interpretación de rutinas o instrucciones con pasos ordenados. Predicción de términos en secuencias de figuras o imágenes o números.",
+        "Identificación de regularidades y predicción de términos de secuencias numéricas. Creación de patrones.",
+        "Interpretación, modificación y creación de algoritmos sencillos.",
+        "Interpretación y diseño de algoritmos sencillos en hojas de cálculo y mediante programación por bloques.",
+        "Búsqueda y análisis de estrategias en juegos abstractos sin información oculta ni presencia de azar: ajedrez, damas, etc.",
+        "Simbolización y obtención de datos sencillos desconocidos en expresiones con igualdades",
+        "Valoración de la evolución del pensamiento computacional y su repercusión social, incorporando la perspectiva de género.",
+        "Trabajo cooperativo en situaciones que involucran diseño y aplicación de algoritmos. Estrategias de aprendizaje específicas del pensamiento computacional."
+       ]
+      }
+     ],
+     "pagina": 196
+    }
+   ]
+  }
+ ],
+ "valores": [
+  {
+   "n": 1,
+   "titulo": "Persona",
+   "epigrafes": [
+    {
+     "titulo": "El bienestar físico y emocional",
+     "items": [
+      "Autoconcepto y autoestima",
+      "Emociones y sentimientos",
+      "Educación afectiva y sexual"
+     ]
+    },
+    {
+     "titulo": "La diversidad",
+     "items": [
+      "Diversidad familiar, sexual y de género",
+      "Diversidad social y cultural"
+     ]
+    },
+    {
+     "titulo": "La igualdad entre mujeres y hombres",
+     "items": [
+      "Sexismo y estereotipos de género",
+      "Prevención del abuso sexual y la violencia machista",
+      "Mujeres y ámbitos de conocimiento",
+      "Lenguaje igualitario"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "titulo": "Paz",
+   "epigrafes": [
+    {
+     "titulo": "La resolución de conflictos",
+     "items": [
+      "Estrategias para abordar los conflictos de manera positiva: “provención”",
+      "Conflicto como oportunidad para la resiliencia, asertividad y creatividad",
+      "Maltrato, acoso y exclusión",
+      "Cultura de la paz y la no violencia",
+      "Conductas adictivas"
+     ]
+    },
+    {
+     "titulo": "Los deberes y los derechos de las personas",
+     "items": [
+      "Normas de convivencia de las esferas escolar, familiar y social",
+      "Marco ético para el uso de dispositivos, aplicaciones, herramientas informáticas y redes sociales",
+      "Principios básicos de la Declaración Universal de los Derechos Humanos",
+      "Convención sobre los Derechos de la Infancia",
+      "Valores democráticos"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "titulo": "Prosperidad",
+   "epigrafes": [
+    {
+     "titulo": "Agenda 2030 y Objetivos de Desarrollo Sostenible",
+     "items": [
+      "Hambre y pobreza",
+      "Explotación infantil"
+     ]
+    },
+    {
+     "titulo": "La desigualdad",
+     "items": [
+      "Por razón de género, origen, creencia y cultura",
+      "Estereotipos y prejuicios",
+      "Conductas solidarias y altruistas"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "titulo": "Planeta",
+   "epigrafes": [
+    {
+     "titulo": "Agenda 2030 y Objetivos de Desarrollo Sostenible",
+     "items": [
+      "Impacto del ser humano en el planeta",
+      "Límites del planeta y cambio climático",
+      "Empatía, cuidado y respeto de los seres vivos y el medio natural",
+      "Acciones cotidianas, activismo y emprendimiento escolar"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": "Participación",
+   "epigrafes": [
+    {
+     "titulo": "Habilidades",
+     "items": [
+      "Diálogo y debate",
+      "Pensamiento crítico y creativo",
+      "Trabajo en equipo"
+     ]
+    },
+    {
+     "titulo": "Ámbitos",
+     "items": [
+      "Procesos participativos en los ámbitos escolar y local",
+      "Activismo en las esferas escolar y local"
+     ]
+    }
+   ]
+  }
+ ]
+}

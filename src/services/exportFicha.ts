@@ -217,7 +217,10 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
 
   // La versión adaptada lleva una marca discreta para que el docente las distinga al repartir
   const marca = c.variante ? `<span class="var-mark" title="${esc(t(VARIANTE_LABEL[c.variante]))}">${VARIANTE_MARK[c.variante]}</span>` : '';
-  const datos = `${t('Nombre')}: ______________________________&nbsp;&nbsp;&nbsp; ${t('Fecha')}: ____________&nbsp;&nbsp;&nbsp; ${t('Clase')}: __________${marca}`;
+  // El área va delante, impresa: quien recoge las fichas sabe de qué asignatura es cada una
+  const area = f.request.area?.trim();
+  const datos = (area ? `<strong class="ficha-area">${esc(area)}</strong>&nbsp;&nbsp;&nbsp; ` : '') +
+    `${t('Nombre')}: ______________________________&nbsp;&nbsp;&nbsp; ${t('Fecha')}: ____________&nbsp;&nbsp;&nbsp; ${t('Clase')}: __________${marca}`;
 
   const explicacionHtml = c.explicacion
     ? `<div class="ficha-explicacion"${mark('data-part="explicacion"')}><div class="lbl">${svgLightbulb('#' + theme.color, 15)}${esc(t('Antes de empezar'))}</div><div class="txt">${nl2br(c.explicacion)}</div></div>`
@@ -325,6 +328,7 @@ const FICHA_DOC_STYLE = `
 .ficha-header h1 { font-size: 18px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
 .ficha-motivo { width: 76px; height: 76px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .ficha-datos { font-size: 12.5px; color: #334155; margin: 10px 0 14px; padding-bottom: 10px; border-bottom: 1px solid #cbd5e1; }
+.ficha-area { color: #0f172a; }
 
 .ficha-banner { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: var(--r); background: linear-gradient(135deg, var(--c), var(--cd)); color: #fff; min-height: 84px; }
 .ficha-banner .deco { position: absolute; opacity: .55; line-height: 1; }
@@ -829,11 +833,15 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     new Paragraph({ text: '', spacing: { after: 160 } }),
   ];
 
+  const area = f.request.area?.trim();
   children.push(new Paragraph({
-    children: [new TextRun({
-      text: `${t('Nombre')}: ______________________________     ${t('Fecha')}: ____________     ${t('Clase')}: __________${c.variante ? `     ${VARIANTE_MARK[c.variante]}` : ''}`,
-      size: 20,
-    })],
+    children: [
+      ...(area ? [new TextRun({ text: `${area}     `, bold: true, size: 20 })] : []),
+      new TextRun({
+        text: `${t('Nombre')}: ______________________________     ${t('Fecha')}: ____________     ${t('Clase')}: __________${c.variante ? `     ${VARIANTE_MARK[c.variante]}` : ''}`,
+        size: 20,
+      }),
+    ],
     spacing: { after: 200 },
     border: { bottom: { style: 'single', size: 4, color: 'CBD5E1', space: 8 } },
   }));

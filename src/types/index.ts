@@ -5,6 +5,8 @@ export interface User {
   school: string;
   subject: string;
   initials?: string;
+  /** Comunidad autónoma del perfil; ausente si todavía no la ha elegido. */
+  community?: import('../lib/curriculum/comunidades').ComunidadId;
 }
 
 export interface Class {
@@ -22,6 +24,27 @@ export interface Class {
    * Nunca está vacío: `normalizeClass()` garantiza al menos una.
    */
   subjects: string[];
+  /**
+   * Etapa y curso de la clase, para saber qué currículo oficial le toca (ver
+   * `lib/curriculum`). Ausentes hasta que el docente los indica: una clase
+   * anterior a esto sigue funcionando, y se le piden la primera vez que se
+   * genera una situación de aprendizaje.
+   */
+  etapa?: import('../lib/curriculum').Etapa;
+  curso?: number;
+  /**
+   * Solo en Matemáticas de 4º de ESO: el decreto estatal separa la materia en
+   * dos opciones con criterios y saberes propios.
+   */
+  opcionMatematicas?: 'A' | 'B';
+  /**
+   * La materia oficial de cada asignatura de la clase, por el nombre que el
+   * docente le puso («Mates» → «Matemáticas»). `null` quiere decir que el
+   * docente decidió no emparejarla y trabajarla en modo libre; que falte la
+   * asignatura quiere decir que aún no se ha decidido. Un valor que ya no
+   * existe en el currículo de su comunidad (porque la cambió) se ignora.
+   */
+  materiasOficiales?: Record<string, string | null>;
   /** Es el grupo del que este docente es tutor. */
   isTutoria?: boolean;
   room: string;
@@ -268,6 +291,17 @@ export function competencyScoresFor(
   return out;
 }
 
+/**
+ * Un criterio de evaluación oficial: la materia (`CurriculumEntry.id` del
+ * currículo de la clase) y su código («2.1»). Es lo que une un criterio de
+ * rúbrica o un ítem de diana con la evaluación por competencias específicas
+ * (ver `lib/curriculum/evaluacionPorCriterios.ts`).
+ */
+export interface OfficialCriterionRef {
+  materia: string;
+  codigo: string;
+}
+
 export interface RubricCriterion {
   id: string;
   name: string;
@@ -279,11 +313,17 @@ export interface RubricCriterion {
   descriptors: Record<number, string>;
   /**
    * Competencias clave LOMLOE que evalúa este criterio (códigos de
-   * `LOMLOE_COMPETENCES`: CCL, CP, STEM…). Ausente o vacío en la mayoría de
-   * rúbricas, hechas a mano: solo las que genera una Situación de Aprendizaje
-   * las trae, porque ahí es donde el docente ya las eligió al diseñarla.
+   * `LOMLOE_COMPETENCES`: CCL, CP, STEM…). Las pone la IA (al generar, con
+   * «Marcar con IA» o desde una Situación de Aprendizaje) y el docente las
+   * cambia en el editor. Ausente en rúbricas antiguas hechas a mano.
    */
   competencies?: string[];
+  /**
+   * Criterios de evaluación oficiales que evalúa, de una o varias materias.
+   * Su nota se apunta en todos ellos al evaluar (`officialCriteriaScoresFor`),
+   * además de ir a la asignatura del cuaderno, como siempre.
+   */
+  officialCriteria?: OfficialCriterionRef[];
 }
 
 /**
@@ -346,12 +386,18 @@ export interface Evaluation {
   max_level?: number;
   /**
    * Nota por competencia clave LOMLOE, calculada con `competencyScoresFor` en
-   * el momento de guardar. Solo la traen las evaluaciones con una rúbrica que
-   * etiqueta sus criterios con competencias (las que vienen de una Situación
-   * de Aprendizaje). Se congela aquí, como `rubric_name`: si la rúbrica
+   * el momento de guardar. Solo la traen las evaluaciones con un instrumento
+   * que etiqueta sus criterios o ítems con competencias clave. Se congela aquí, como `rubric_name`: si la rúbrica
    * cambia después, esta evaluación sigue contando lo que contó entonces.
    */
   competencyScores?: Record<string, number>;
+  /**
+   * Nota sobre 10 por criterio de evaluación oficial («materia|2.1»), calculada
+   * con `officialCriteriaScoresFor` al guardar y congelada aquí por la misma
+   * razón que `competencyScores`. Solo la traen las evaluaciones con un
+   * instrumento cuyos criterios o ítems llevan `officialCriteria`.
+   */
+  officialCriteriaScores?: Record<string, number>;
 }
 
 /* ── Diana de evaluación (instrumento con niveles de logro) ── */
@@ -364,6 +410,8 @@ export interface DianaItem {
   descriptors?: Record<number, string>;
   /** Competencias LOMLOE que evalúa. Ver `RubricCriterion.competencies`. */
   competencies?: string[];
+  /** Criterios de evaluación oficiales que evalúa. Ver `RubricCriterion.officialCriteria`. */
+  officialCriteria?: OfficialCriterionRef[];
 }
 
 export interface EvalDiana extends GradeTarget {
@@ -477,6 +525,10 @@ export interface LearningSituation {
     etapa?: import('../lib/curriculum').Etapa;
     curso?: number;
     opcionMatematicas?: 'A' | 'B';
+    /** La comunidad con cuyo currículo se generó. Ausente en las anteriores. */
+    comunidad?: import('../lib/curriculum/comunidades').ComunidadId;
+    /** La materia oficial elegida para cada área (ver `Class.materiasOficiales`). */
+    materiasOficiales?: Record<string, string | null>;
     contextoClase: string;
     metodologia: string;
   };
