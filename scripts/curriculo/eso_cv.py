@@ -478,14 +478,6 @@ def ver_criterios(mat: dict) -> None:
                 print(f'      CE{c["ce"]} {c["codigo"]} p{c["pag"]} | {unir(c["lineas"], mat["fuente"], idioma)[:120]}')
 
 
-if __name__ == '__main__' and '--criterios' not in sys.argv:
-    if '--solo' in sys.argv:
-        ids = sys.argv[sys.argv.index('--solo') + 1].split(',')
-        for mat in MATERIAS:
-            if mat['id'] in ids:
-                ver_criterios(mat)
-
-
 def todos_los_criterios(volcado: Path) -> dict:
     """Criterios de todas las materias en las dos lenguas (crudos, para revisar)."""
     res = {}
@@ -510,10 +502,6 @@ def todos_los_criterios(volcado: Path) -> dict:
 
 SOLO = sys.argv[sys.argv.index('--solo') + 1].split(',') if '--solo' in sys.argv else None
 
-if __name__ == '__main__' and '--criterios' in sys.argv:
-    todos_los_criterios(Path(sys.argv[sys.argv.index('--criterios') + 1]))
-
-
 # ── Competencias específicas ─────────────────────────────────────────────────
 
 @lru_cache(maxsize=8)
@@ -531,50 +519,63 @@ FIN_ENUNCIADO = re.compile(r'^\s*(?:2\s?\.\s?\d{1,2}\s?\.\s?\d|Descripci[óo]|\d
 
 def competencias(mat: dict, idioma: str) -> list[dict]:
     """Los enunciados de las competencias específicas, del apartado 2: tras
-    «2.N. Competencia específica N» (con un título detrás en las lenguas), el
-    primer párrafo. Un párrafo nuevo empieza con sangría."""
+    «2.N. Competencia específica N» (con un título detrás en las lenguas y
+    en Lengua Extranjera), la frase del enunciado, hasta su punto. Unas
+    materias lo escriben en la misma línea del título, otras debajo, otras
+    en un recuadro (Latín, en castellano) y alguna tras «Descripción de la
+    competencia» (Plástica, en valenciano)."""
     ini, fin = mat['paginas'][idioma]
-    cache = lineas_cache(mat['fuente'], idioma)
-    ls = [dict(l, pag=n) for n in range(ini, fin + 1) for l in cache.get(n, []) if l['top'] > CABECERA_PAGINA]
+    lin, tab = lineas_cache(mat['fuente'], idioma), tablas_cache(mat['fuente'], idioma)
+    ls = []
+    for n in range(ini, fin + 1):
+        ls += [dict(l, pag=n, caja=None) for l in lin.get(n, []) if l['top'] > CABECERA_PAGINA]
+        ls += [dict(top=t['bbox'][1], x0=t['bbox'][0], x1=t['bbox'][2], text='', pag=n, caja=t['bbox'])
+               for t in tab.get(n, []) if any(c for fila in t['rows'] for c in fila)]
+    ls.sort(key=lambda l: (l['pag'], l['top']))
     i0 = next(i for i, l in enumerate(ls) if re.match(r'^\s*2\s?\.?\s*Compet', l['text']))
     i1 = next((i for i in range(i0 + 1, len(ls)) if re.match(r'^\s*3\s?\.?\s*(?:Conexi|Connexi)', ls[i]['text'])), len(ls))
     sec = ls[i0 + 1:i1]
-    margen = min(l['x0'] for l in sec)
+    for l in sec:
+        if l['caja']:
+            # el texto del recuadro, leído del PDF: la tabla guardada pierde alguna palabra
+            l['caja'] = [x for x in texto_celda(mat['fuente'], l['pag'], l['caja']).split('\n') if x.strip()]
+            l['text'] = ' '.join(l['caja'])
+        l['text'] = re.sub(r'\s*\(llevem negreta?\)', '', l['text'])     # nota de edición en el DOGV, no es del currículo
+    derecha = max(l['x1'] for l in sec)
     salida, i = [], 0
     while i < len(sec):
-        mm = TITULO_CE.match(sec[i]['text'])
+        mm = TITULO_CE.match(sec[i]['text']) if sec[i]['caja'] is None else None
         if not mm or FIN_ENUNCIADO.match(sec[i]['text']):
             i += 1
             continue
         n, resto = int(mm.group(2)), mm.group(3).strip()
         j = i + 1
-        sangrada = lambda k: sec[k]['x0'] > margen + 8
-        if resto and (resto.endswith('.') or len(resto) > 70 or (j < len(sec) and not sangrada(j))):
-            partes = [resto]                       # el enunciado empieza en el título
-        else:
-            partes = []                            # en la línea siguiente (tras un título, si lo hay)
-            if j < len(sec):
-                sig = TITULO_CE.match(sec[j]['text'])
-                partes = [sig.group(3)] if sig and int(sig.group(2)) == n else [sec[j]['text']]
-                j += 1
-        while j < len(sec) and not sangrada(j) and not FIN_ENUNCIADO.match(sec[j]['text']) and not TITULO_CE.match(sec[j]['text']):
+        partes = [resto] if resto and not (len(resto) < 70 and not resto.endswith('.') and sec[i]['x1'] < derecha - 40) else []
+        while j < len(sec) and not partes:
+            l = sec[j]
+            if TITULO_CE.match(l['text']) and l['caja'] is None and int(TITULO_CE.match(l['text']).group(2)) != n:
+                break
+            if l['caja']:
+                partes = list(l['caja'])            # el enunciado, en un recuadro
+            elif TITULO_CE.match(l['text']) and TITULO_CE.match(l['text']).group(3).strip() and not FIN_ENUNCIADO.match(l['text']):
+                partes = [TITULO_CE.match(l['text']).group(3).strip()]     # «CE1. Representar…», debajo del título
+            elif FIN_ENUNCIADO.match(l['text']) or TITULO_CE.match(l['text']):
+                pass                                 # «2.2.1. Descripción…» antes del enunciado
+            elif len(l['text'].strip()) < 70 and not l['text'].rstrip().endswith('.') and l['x1'] < derecha - 40 \
+                    and j + 1 < len(sec) and re.match(r'^\s*[A-ZÁÉÍÓÚÀÈÒ¿]', sec[j + 1]['text']):
+                pass                                 # el título de la competencia («Comprensión oral»)
+            else:
+                partes = [l['text']]
+            j += 1
+        # hasta el punto final del enunciado
+        while partes and not ' '.join(partes).rstrip().endswith('.') and j < len(sec) and sec[j]['caja'] is None \
+                and not FIN_ENUNCIADO.match(sec[j]['text']) and not TITULO_CE.match(sec[j]['text']):
             partes.append(sec[j]['text'])
             j += 1
-        salida.append(dict(n=n, texto=unir(partes, mat['fuente'], idioma)))
+        texto = re.sub(r'^[-–•]\s*', '', unir(partes, mat['fuente'], idioma))     # «- Explicar…» (Geografía e Historia)
+        salida.append(dict(n=n, texto=texto))
         i = j
     return salida
-
-
-if __name__ == '__main__' and '--competencias' in sys.argv:
-    for mat in MATERIAS:
-        if SOLO and mat['id'] not in SOLO:
-            continue
-        for idioma in IDIOMAS:
-            cs = competencias(mat, idioma)
-            print(f"{mat['id']} ({idioma}) {[c['n'] for c in cs]}")
-            if '-v' in sys.argv:
-                for c in cs:
-                    print(f"    {c['n']}: {c['texto'][:150]}")
 
 
 # ── Saberes básicos ──────────────────────────────────────────────────────────
@@ -850,6 +851,9 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
         izq, der = caja[0], caja[2]
         centrada = (e['x0'] > izq + 25 and abs((e['x0'] + e['x1']) / 2 - (izq + der) / 2) < 25
                     and (e['x1'] - e['x0']) < 0.7 * (der - izq) and e.get('lineas_celda', 1) <= 2)
+        if mat.get('bloques') == 'apartado' and e['tipo'] == 'linea' and re.match(r'^\s*4\.\d{1,2}\.\d{1,2}\.?\s+\S', t):
+            nuevo_epigrafe(re.sub(r'^\s*4\.\d{1,2}\.\d{1,2}\.?\s+', '', t))     # «4.6.2. Estructuras y esfuerzos mecánicos»
+            continue
         if mat.get('saberes') == 'guion' and e['tipo'] == 'linea':
             if re.match(r'^\s*[-–]\s+', t):
                 nuevo_epigrafe(re.sub(r'^\s*[-–]\s+', '', t))
@@ -913,7 +917,8 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
             titulo_celda_de['caja'] = e['celda']
             continue
         corta_final = (item is not None and len(t.split()) <= 2 and ',' not in t and t.endswith('.')
-                       and not item[-1].rstrip().endswith(('.', ':', ';')))     # «Valenciana.» partida en otra fila
+                       and not item[-1].rstrip().endswith(('.', ':', ';'))     # «Valenciana.» partida en otra fila
+                       and ultima is not None and ultima['x1'] >= (ultima['celda'] or (0, 0, ancho))[2] - 40)
         sigue = item is not None and (corta_final or re.match(r'^[a-zà-ú(),;]', t)
                                       or (sangria_item is not None and e['x0'] >= sangria_item - 2 and not e.get('primera', False))
                                       # una fila por línea: la que va sangrada sigue el saber de la viñeta
@@ -938,6 +943,10 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
             vineta_pendiente = vineta_pendiente or pendiente_aqui
             continue
         # línea fuera de tablas
+        if (item is not None and ultima is not None and ultima['celda'] is not None
+                and not re.match(r'^[a-zà-ú(),;]', t)):
+            item = None          # el párrafo que sigue a la tabla (Biología, «Las herramientas digitales…»)
+            continue
         if sigue or (item is not None and e['x0'] > margen + 12):
             seguir(t, e['x0'])
         else:
@@ -954,17 +963,38 @@ def saberes(mat: dict, idioma: str) -> list[dict]:
     return salida
 
 
-if __name__ == '__main__' and '--saberes' in sys.argv:
-    for mat in MATERIAS:
-        if SOLO and mat['id'] not in SOLO:
-            continue
-        for idioma in IDIOMAS:
-            bs = saberes(mat, idioma)
-            print(f"== {mat['id']} ({idioma}) " + ' '.join(f"B{b['bloque']}:{[len(e['items']) for e in b['epigrafes']]}" for b in bs))
-            if '-v' in sys.argv:
-                for b in bs:
-                    print(f"  B{b['bloque']} {b['tituloBloque']}")
-                    for ep in b['epigrafes']:
-                        print(f"     [{ep['titulo']}]")
-                        for it in ep['items']:
-                            print(f"         - {it[:110]}")
+def main() -> None:
+    if '--criterios' in sys.argv:
+        todos_los_criterios(Path(sys.argv[sys.argv.index('--criterios') + 1]))
+    elif '--competencias' in sys.argv:
+        for mat in MATERIAS:
+            if SOLO and mat['id'] not in SOLO:
+                continue
+            for idioma in IDIOMAS:
+                cs = competencias(mat, idioma)
+                print(f"{mat['id']} ({idioma}) {[c['n'] for c in cs]}")
+                if '-v' in sys.argv:
+                    for c in cs:
+                        print(f"    {c['n']}: {c['texto']}")
+    elif '--saberes' in sys.argv:
+        for mat in MATERIAS:
+            if SOLO and mat['id'] not in SOLO:
+                continue
+            for idioma in IDIOMAS:
+                bs = saberes(mat, idioma)
+                print(f"== {mat['id']} ({idioma}) " + ' '.join(f"B{b['bloque']}:{[len(e['items']) for e in b['epigrafes']]}" for b in bs))
+                if '-v' in sys.argv:
+                    for b in bs:
+                        print(f"  B{b['bloque']} {b['tituloBloque']}")
+                        for ep in b['epigrafes']:
+                            print(f"     [{ep['titulo']}]")
+                            for it in ep['items']:
+                                print(f"         - {it[:110]}")
+    elif SOLO:
+        for mat in MATERIAS:
+            if mat['id'] in SOLO:
+                ver_criterios(mat)
+
+
+if __name__ == '__main__':
+    main()
