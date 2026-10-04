@@ -17,7 +17,7 @@ const sirve = (materias: CurriculumEntry[]): Cargador => async idioma => ({ idio
 
 describe('sin decreto propio', () => {
   it('con los cargadores reales, una comunidad sin su decreto copiado usa el estatal', async () => {
-    for (const id of ['cataluna', 'andalucia', 'fuera'] as const) {
+    for (const id of ['galicia', 'andalucia', 'fuera'] as const) {
       const c = await cargarCurriculo(id, 'primaria');
       expect(c.origen).toBe('estatal');
       expect(c.materias).toBe(materiasDe('primaria'));

@@ -9,7 +9,8 @@ Estado (2-10-2026):
 - Comunidad de Madrid, Primaria: hecha (3-10-2026). Las 7 áreas del artículo 7, Educación en Valores (solo en quinto) y las dos que puede añadir el centro (Segunda Lengua Extranjera y Tecnología y Robótica), extraídas del anexo II del 61/2022 y comprobadas (ver «Comunidad de Madrid» más abajo). Está en `CARGADORES`.
 - Comunidad de Madrid, ESO: hecha (3-10-2026). Las 21 materias del anexo II del 65/2022, curso a curso, con lo que añade el 59/2024 a Geografía e Historia, y Educación en Valores del Real Decreto 217/2022 con lo que le añade Madrid (ver «Comunidad de Madrid» más abajo). Está en `CARGADORES`.
 - Comunitat Valenciana, ESO: hecha (4-10-2026), en castellano y en valenciano. Las 29 materias con currículo de los anexos III y IV del 107/2022, con lo que sustituye y añade el 66/2024 (Biología y Geología, Matemáticas, Música y Finanzas y Consumo Responsables), extraídas de los PDF oficiales y comprobadas (ver «ESO (107/2022 y 66/2024)» más abajo). Está en `CARGADORES`.
-- Pendiente: Cataluña y el calendario.
+- Cataluña, Primaria y ESO: hechas (4-10-2026), en catalán (el decreto solo se publica en catalán). Las 10 áreas del annex 2 y las 25 materias del annex 3 del Decret 175/2022, con competencias, criterios y saberes por ciclo o curso, extraídas del PDF y comprobadas (ver «Cataluña» más abajo). Está en `CARGADORES`.
+- Pendiente: el calendario.
 - El resto de comunidades usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
@@ -100,7 +101,7 @@ Hecho:
 
 - `TeacherProfile.community` y `communityPromptAt` en `src/services/storage.ts`. El escritorio (`electron/storage.cjs`) guarda `community` al crear el perfil. Se lee siempre con `comunidadDePerfil`, que descarta cualquier valor que no sea de la lista.
 - `src/lib/curriculum/comunidades.ts`: las 20 opciones (17 comunidades, Ceuta, Melilla y «Fuera de España»), sus decretos por etapa con matriz y modificaciones, y las funciones para citarlos en el idioma de la app sin traducir.
-- `src/lib/curriculum/cargar.ts`: `CARGADORES` (Primaria y ESO de la Comunitat Valenciana y de Madrid), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia (con `saberesPorGrupo`, los grupos que traen los suyos: la adenda de cuarto de la ESO valenciana).
+- `src/lib/curriculum/cargar.ts`: `CARGADORES` (Primaria y ESO de la Comunitat Valenciana, Cataluña y Madrid), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia (con `saberesPorGrupo`, los grupos que traen los suyos: la adenda de cuarto de la ESO valenciana).
 - `src/components/CommunitySelect.tsx` (selector en dos grupos y una nota con el decreto de cada etapa), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
 - `Class.etapa`, `curso`, `opcionMatematicas` y `materiasOficiales` (asignatura → materia oficial, `null` para modo libre). `src/lib/curriculum/materiasDeClase.ts` decide si una asignatura ya tiene materia (elegida o por alias seguro), está en modo libre o hay que preguntar, y con qué opciones. Una elección que ya no existe en el currículo (por cambiar de comunidad) se ignora y se vuelve a preguntar.
 - `src/hooks/useCurriculo.ts` y `src/components/curriculum/CurriculumFields.tsx`: lo que comparten el formulario de la clase y el de la SdA.
@@ -112,7 +113,7 @@ Hecho:
 Pendiente:
 
 - Evaluación por competencias específicas: hecha (3-10-2026), ver «Evaluación por competencias específicas» en «Estructura técnica». La decisión del dueño: la nota de una rúbrica sigue yendo a una asignatura y categoría del cuaderno (por ejemplo, Matemáticas), y a la vez a un apartado de competencias en Evaluar, junto a la Diana competencial, donde va todo lo de competencias. Cada criterio de una rúbrica o ítem de una diana puede llevar los criterios de evaluación oficiales que evalúa, de una o varias áreas (los de una SdA, ya puestos; en las hechas a mano, los marca el docente de la lista oficial de la clase). Al evaluar, la nota de ese criterio se apunta en todos sus criterios oficiales. En el apartado, por alumno y área: nota de cada criterio de evaluación (media de las veces que se evaluó), de cada competencia específica (media de sus criterios) y del área por competencias. Medias simples; la nota del área por competencias se muestra, no sustituye la del cuaderno. Boletines e informes, más adelante.
-- Datos del resto: `src/lib/curriculum/data/<comunidad>/primaria.<idioma>.json` y `eso.<idioma>.json`, y su entrada en `CARGADORES`. Cada uno sale en su propio archivo al compilar y solo se descarga al pedirlo (el de Primaria valenciana pesa unos 48 KB comprimido; el de ESO valenciana, 116 KB; el de Primaria de Madrid, 67 KB, porque sus contenidos cambian de un ciclo a otro; el de ESO de Madrid, 134 KB, porque van curso a curso).
+- Datos del resto: `src/lib/curriculum/data/<comunidad>/primaria.<idioma>.json` y `eso.<idioma>.json`, y su entrada en `CARGADORES`. Cada uno sale en su propio archivo al compilar y solo se descarga al pedirlo (el de Primaria valenciana pesa unos 48 KB comprimido; el de ESO valenciana, 116 KB; los de Cataluña, 69 KB Primaria y 106 KB ESO; el de Primaria de Madrid, 67 KB, porque sus contenidos cambian de un ciclo a otro; el de ESO de Madrid, 134 KB, porque van curso a curso).
 - La forma de los datos actuales es la del RD estatal. Los decretos autonómicos pueden agrupar los cursos de otra manera o traer campos propios. Se decide con el texto real delante. Hacia fuera, la interfaz de `index.ts` debe seguir siendo la misma.
 
 ## Bloqueos y pendientes
@@ -121,7 +122,7 @@ Pendiente:
 - Decretos, tal y como los dio el dueño (2-10-2026). En el registro llevan `verificada: false` hasta comprobar título, número y boletín contra la publicación oficial, y una prueba impide que una comunidad con currículo propio cite una norma sin verificar:
   - Comunitat Valenciana, Primaria: Decret 106/2022, de 5 d'agost (DOGV núm. 9402, de 10 d'agost de 2022), modificado por el Decret 96/2026, de 19 de juny (DOGV núm. 10391, de 25 de juny de 2026). Los dos verificados, en las dos lenguas.
   - Comunitat Valenciana, ESO: Decret 107/2022, de 5 d'agost (DOGV núm. 9403, d'11 d'agost de 2022), modificado por el Decret 66/2024, de 21 de juny (DOGV núm. 9878, de 26 de juny de 2024; el registro decía 9879 y el PDF lo desmiente). Los dos verificados con sus PDF, en las dos lenguas; el título del 107/2022 es «pel qual s'estableix l'ordenació i el currículum d'Educació Secundària Obligatòria», sin «de l'etapa».
-  - Cataluña, Primaria y ESO en uno: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (DOGC núm. 8762, de 29 de setembre de 2022).
+  - Cataluña, Primaria y ESO en uno: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (DOGC núm. 8762, de 29 de setembre de 2022). Verificado con su PDF.
   - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), modificado por el Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024). Verificados con sus PDF.
   - Madrid, ESO: Decreto 65/2022, de 20 de julio (BOCM núm. 176, de 26 de julio de 2022; el dueño lo había dado como núm. 175, de 25 de julio, y el PDF lo desmiente), modificado por el mismo Decreto 59/2024. Verificados con sus PDF.
 - En la Comunitat Valenciana el DOGV publica la modificación sin el texto consolidado. El currículo vigente hay que construirlo aplicando la modificación a la matriz, dejar anotado qué se cambió y comprobarlo contra los dos documentos. La cita de la SdA nombra los dos decretos («modificado por»).
@@ -315,6 +316,40 @@ En `docs/Normativa Comunidad de Madrid/`, descargados del BOCM (desde el entorno
 En `docs/Normativa Cataluña/`, subido por el dueño:
 
 - `DECRET 175-2022.pdf`: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica. DOGC núm. 8762, de 29-9-2022 (CVE-DOGC-A-22270097-2022). Solo en catalán, Primaria y ESO en un mismo decreto. 491 páginas. SHA-256 `ce0c1e9c719d8071029b03c539d742fe0fd24c2a23ea1485db1b57c736939843`.
+
+### Qué dice el decreto
+
+- Annex 2 (páginas 45 a 193): las áreas de Primaria. Annex 3 (194 a 452): las materias de la ESO. Cada una con presentación, competencias específicas («Competència específica N», enunciado en negrita), sus criterios de evaluación con la explicación de la competencia debajo, y los saberes («Sabers»).
+- Las tres lenguas (Aranès i Literatura a l'Aran, Llengua Castellana i Literatura y Llengua Catalana i Literatura) comparten un mismo currículo.
+- Criterios: una columna por ciclo en Primaria («1r i 2n», «3r i 4t», «5è i 6è») y, en la ESO, por grupo de cursos («1r i 2n» y «3r i 4t»; «1r, 2n i 3r» y «4t»; «Cursos de 1r a 3r» y «Optativa de 4t»), o una sola columna en las materias de un solo curso. Educació en Valors: «5è o 6è» en Primaria y «1r o 2n o 3r o 4t» en la ESO (el centro elige el curso). Educació Plàstica, Visual i Audiovisual (de primero a tercero) y Expressió Artística (cuarto) comparten apartado y competencias, con una columna de criterios cada una. Emprenedoria tiene dos apartados, de primero a tercero (5 competencias) y de cuarto (10).
+- Saberes: por ciclo o curso («Primer cicle», «Primer i segon curs», «Quart curs»…), en bloques con título en negrita (algunos con letra, «A. Reptes del món actual»), epígrafes («● Comptatge») y saberes («- …»). Cambian de un ciclo o curso a otro.
+- Artículos 9 y 10: Segona Llengua Estrangera, optativa en Primaria y en todos los cursos de la ESO; Cultura Clàssica, Emprenedoria y Robòtica i Programació, optativas de primero a tercero (Cultura Clàssica y Emprenedoria, también de cuarto); Arts Escèniques i Dansa, Digitalització, Economia Bàsica, Filosofia, Formació i Orientació, Llatí y Tecnologia, optativas de cuarto. Cultura Científica figura entre las optativas de cuarto pero no tiene currículo en el annex 3.
+
+### Cómo se extrajo
+
+- Script: `scripts/curriculo/catalunya.py`. Escribe `src/lib/curriculum/data/cataluna/primaria.ca.json` y `eso.ca.json`; `--ver id` imprime una materia para revisarla. Lee cada página con pdfplumber (palabras con su posición, si van en negrita y su tamaño) y lo guarda en `scripts/curriculo/.cache-catalunya/` (fuera del repositorio).
+- La negrita del PDF no trae la correspondencia de algunas letras con su carácter: `pdftotext` las pierde («di ersitat», «Competència específica» sin número) y pdfplumber las da como «(cid:89)». Son los números de glifo de la Arial (`GLIFOS`: «v», «j», «é», «ò», las cifras, «À», «È»…), comprobados con las palabras en que salen. La viñeta de Matemàtiques de la ESO es un carácter de la fuente Symbol.
+- Criterios en columnas: la cabecera dice el ciclo o curso de cada columna, y cada palabra va a la columna en que cae. Acaban donde empieza el párrafo de la explicación: una fila que pasa por encima de la frontera entre columnas o, con una sola columna, un salto mayor que el de una línea sin código delante.
+- El PDF parte algunas palabras con un espacio («escola rs»): se juntan cuando juntas son una palabra del decreto y uno de los trozos no lo es (20 casos; «innovador a partir» se queda como está). Un guion al final de línea nunca parte una palabra en este decreto: es de un pronombre o de una compuesta y se conserva.
+
+### Comprobaciones
+
+- Cada materia tiene las competencias que dice su presentación («es treballen un total de N competències específiques»); los criterios de cada competencia van seguidos (1.1, 1.2…) en cada ciclo o curso.
+- Cada texto que pasa a la app (3457, contando una vez las tres lenguas) se busca en el PDF: 3108 tal cual en el texto simple (`pdftotext`, camino independiente), 233 en el texto de pdfplumber con los glifos puestos (los enunciados en negrita), 65 en el de las celdas de su tabla, y 51 siguen en la página siguiente (criterios en columnas y saberes largos): su principio coincide hasta el salto y se comprobaron por muestreo con el PDF.
+- Las pruebas de `src/lib/curriculum/cataluna.test.ts` fijan los totales de cada materia y grupo.
+
+### Literalidad
+
+- Se conserva el texto del decreto, también sus variantes: Educació Artística titula «Competència 1» sin «específica», Física i Química pone «Criteris avaluació» en la competencia 6, y Matemàtiques de cuarto marca con «(*)» los saberes más académicos.
+
+### Cómo queda en la app
+
+- Solo en catalán: con la app en castellano o en inglés también se sirve el catalán.
+- Primaria, en el orden del annex 2: las tres lenguas, Llengua Estrangera, Segona Llengua Estrangera (sus criterios, sin ciclo en el decreto, valen para los tres), Coneixement del Medi Natural, Social i Cultural, Educació Artística, Educació en Valors Cívics i Ètics (tercer ciclo), Educació Física y Matemàtiques. Grupos «1», «2» y «3», los ciclos.
+- ESO, en el orden del annex 3, con los grupos que entiende `cursosDelGrupoEso`: «Primero y segundo», «Tercero y cuarto», «Cursos de primero a tercero», «Cuarto curso» y, para las que el centro pone en el curso que quiere (Segona Llengua Estrangera, Cultura Clàssica, Educació en Valors), «Curso no especificado». Matemàtiques de cuarto no tiene opciones A y B (el decreto lo dice). Emprenedoria es una sola materia con las competencias de cada apartado (`competenciasPorGrupo`).
+- Identificadores: los mismos que en las otras comunidades cuando es la misma materia (`lengua-castellana`, `matematicas`…), más `catalan`, `aranes`, `economia-basica`, `emprendimiento` y `robotica-y-programacion`.
+- Alias: «Català», «Aranès», «Economia Bàsica», «Emprenedoria», «Robòtica i Programació» y las formas en catalán de las demás.
+- Cita: «Decret 175/2022, de 27 de setembre (DOGC núm. 8762, de 29 de setembre de 2022)».
 
 ## Pendiente de decidir
 

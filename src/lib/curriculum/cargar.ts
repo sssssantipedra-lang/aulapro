@@ -77,6 +77,18 @@ export const CARGADORES: Cargadores = {
         : (await import('./data/comunitat-valenciana/eso.es.json')).default) as unknown as RawEntrySaberesComunes[]),
     }),
   },
+  // Decret 175/2022 (`scripts/curriculo/catalunya.py`), solo en catalán: Primaria
+  // y ESO en un mismo decreto. Sus saberes cambian de un ciclo o curso a otro.
+  cataluna: {
+    primaria: async () => ({
+      idioma: 'ca',
+      materias: normalizarEntradas((await import('./data/cataluna/primaria.ca.json')).default as unknown as RawEntry[]),
+    }),
+    eso: async () => ({
+      idioma: 'ca',
+      materias: normalizarEntradas((await import('./data/cataluna/eso.ca.json')).default as unknown as RawEntry[]),
+    }),
+  },
   // Decretos 61/2022 y 65/2022 con el 59/2024 aplicado (`scripts/curriculo/madrid_primaria.py`
   // y `madrid_eso.py`), solo en castellano. Sus contenidos cambian de un ciclo o
   // curso a otro: cada grupo lleva los suyos.

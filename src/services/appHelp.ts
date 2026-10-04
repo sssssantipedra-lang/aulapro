@@ -87,13 +87,16 @@ modificado por el Decreto 96/2026; en la ESO, el Decreto 107/2022, modificado po
 el Decreto 66/2024, con sus materias propias (Valenciano: Lengua y Literatura,
 Cultura Clásica, Filosofía, Inteligencia Artificial, Programación y Robótica,
 Finanzas y Consumo Responsables, los talleres y laboratorios…), sin opciones A y
-B en las Matemáticas de cuarto. Y la Comunidad de Madrid, en castellano: en
-Primaria, el Decreto 61/2022, con sus áreas propias (Ciencias de la Naturaleza y
-Ciencias Sociales por separado, Segunda Lengua Extranjera y Tecnología y
-Robótica, y Educación en Valores solo en quinto); en la ESO, el Decreto 65/2022,
-curso a curso, con sus materias propias (Ciencias de la Computación, Cultura
-Clásica y Filosofía). Las dos, modificadas por el Decreto 59/2024. El resto de
-comunidades siguen el estatal.
+B en las Matemáticas de cuarto. Cataluña, en catalán, la lengua del texto que
+lleva la aplicación: Primaria y ESO con el Decret 175/2022, con sus áreas y
+materias propias (Llengua Catalana i Literatura, Aranès i Literatura a l'Aran,
+Economia Bàsica, Emprenedoria, Robòtica i Programació…). Y la Comunidad de
+Madrid, en castellano: en Primaria, el Decreto 61/2022, con sus áreas propias
+(Ciencias de la Naturaleza y Ciencias Sociales por separado, Segunda Lengua
+Extranjera y Tecnología y Robótica, y Educación en Valores solo en quinto); en la
+ESO, el Decreto 65/2022, curso a curso, con sus materias propias (Ciencias de la
+Computación, Cultura Clásica y Filosofía). Las dos, modificadas por el Decreto
+59/2024. El resto de comunidades siguen el estatal.
 
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.

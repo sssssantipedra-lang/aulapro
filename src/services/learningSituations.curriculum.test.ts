@@ -176,8 +176,8 @@ describe('generateSda: de qué decreto sale y cómo se cita', () => {
 
   it('una comunidad que aún no tiene su decreto copiado usa el estatal y lo dice: origen estatal', async () => {
     callGemini.mockResolvedValueOnce(respuestaSimulada());
-    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'cataluna' }, 'es');
-    expect(sda!.normativa).toEqual({ comunidad: 'cataluna', origen: 'estatal', cita: CITA_ESTATAL });
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'galicia' }, 'es');
+    expect(sda!.normativa).toEqual({ comunidad: 'galicia', origen: 'estatal', cita: CITA_ESTATAL });
   });
 
   it('el prompt nombra el decreto del que salen las listas, no «enseñanzas mínimas» a secas', async () => {

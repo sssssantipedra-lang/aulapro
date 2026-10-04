@@ -106,7 +106,7 @@ describe('currículo de la comunidad en el formulario', () => {
   };
   const sinNivel: Class = { id: 'c2', name: '5º B', subject: 'Mates', subjects: ['Mates'], room: '', color: '#10b981' };
 
-  async function abrirFormulario(classes: Class[], comunidad: ComunidadId = 'cataluna') {
+  async function abrirFormulario(classes: Class[], comunidad: ComunidadId = 'galicia') {
     const user = userEvent.setup();
     const onUpdateClass = vi.fn();
     render(
@@ -132,8 +132,8 @@ describe('currículo de la comunidad en el formulario', () => {
     expect(screen.getByRole('button', { name: 'Cambiar en la clase' })).toBeTruthy();
     expect(screen.getAllByText(/5º de Primaria/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022, de 1 de marzo/)).toBeTruthy();
-    // Cataluña aún no está copiada: se avisa en pantalla
-    expect(screen.getByText('Cataluña sigue el currículo estatal.')).toBeTruthy();
+    // Galicia sigue el estatal: se avisa en pantalla
+    expect(screen.getByText('Galicia sigue el currículo estatal.')).toBeTruthy();
   });
 
   it('«Fuera de España» cita el estatal sin avisar de nada', async () => {
@@ -176,7 +176,7 @@ describe('currículo de la comunidad en el formulario', () => {
 
     expect(onUpdateClass).toHaveBeenCalledWith(expect.objectContaining({ id: 'c2', etapa: 'primaria', curso: 3 }));
     expect(generateSda).toHaveBeenCalledWith(
-      expect.objectContaining({ etapa: 'primaria', curso: 3, comunidad: 'cataluna' }), 'es', expect.anything(),
+      expect.objectContaining({ etapa: 'primaria', curso: 3, comunidad: 'galicia' }), 'es', expect.anything(),
     );
   });
 });

@@ -143,6 +143,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
       ['valenciana es', await valenciana('es')],
       ['valenciana ca', await valenciana('ca')],
       ['Madrid', await madrid()],
+      ['Cataluña', (await cargarCurriculo('cataluna', 'primaria')).materias],
     ];
     for (const [nombre, materias] of curriculos) {
       for (const [alias, ids] of tablaDeAlias('primaria')) {
@@ -153,13 +154,17 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
   });
 
   it('cada identificador de la tabla existe en algún currículo', async () => {
-    const todos = [...materiasDe('primaria'), ...await valenciana('es'), ...await madrid()].map(m => m.id);
+    const todos = [
+      ...materiasDe('primaria'), ...await valenciana('es'), ...await madrid(),
+      ...(await cargarCurriculo('cataluna', 'primaria')).materias,
+    ].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('primaria')) {
       for (const id of ids) expect(todos, `«${alias}» → ${id}`).toContain(id);
     }
     const eso = [
       ...materiasDe('eso'), ...(await cargarCurriculo('madrid', 'eso')).materias,
       ...(await cargarCurriculo('comunitat-valenciana', 'eso')).materias,
+      ...(await cargarCurriculo('cataluna', 'eso')).materias,
     ].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('eso')) {
       for (const id of ids) expect(eso, `«${alias}» → ${id}`).toContain(id);
@@ -188,7 +193,11 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
   });
 
   it('ningún alias de la ESO puede caer en dos materias del mismo currículo', async () => {
-    for (const [nombre, materias] of [['estatal', materiasDe('eso')], ['Madrid', await madridEso()]] as const) {
+    for (const [nombre, materias] of [
+      ['estatal', materiasDe('eso')], ['Madrid', await madridEso()],
+      ['Comunitat Valenciana', (await cargarCurriculo('comunitat-valenciana', 'eso')).materias],
+      ['Cataluña', (await cargarCurriculo('cataluna', 'eso')).materias],
+    ] as const) {
       for (const [alias, ids] of tablaDeAlias('eso')) {
         const existen = ids.filter(id => materias.some(m => m.id === id));
         expect(existen.length, `${nombre}: «${alias}» → ${existen.join(', ')}`).toBeLessThanOrEqual(1);

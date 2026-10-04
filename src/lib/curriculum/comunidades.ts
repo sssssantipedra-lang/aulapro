@@ -159,12 +159,13 @@ const VC_ESO: Norma[] = [
 
 /* ── Cataluña: Primaria y ESO, un único decreto ── */
 
+// Comprobado con el PDF del DOGC (docs/Normativa Cataluña): título, número y fecha.
 const CT_EDUCACIO_BASICA: Norma = {
   tipo: 'matriz',
   titulo: { ca: 'Decret 175/2022, de 27 de setembre, d\'ordenació dels ensenyaments de l\'educació bàsica.' },
   corto: { ca: 'Decret 175/2022, de 27 de setembre' },
   boletin: { ca: 'DOGC núm. 8762, de 29 de setembre de 2022' },
-  verificada: false,
+  verificada: true,
 };
 
 /* ── Comunidad de Madrid ── */

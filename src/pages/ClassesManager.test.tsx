@@ -16,7 +16,7 @@ import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 afterEach(cleanup);
 
-function setup(classes: Class[] = [], comunidad: ComunidadId = 'cataluna') {
+function setup(classes: Class[] = [], comunidad: ComunidadId = 'galicia') {
   const onAddClass = vi.fn();
   const onUpdateClass = vi.fn();
   render(
@@ -62,11 +62,11 @@ describe('crear una clase', () => {
     await nuevaClase(user, 'primaria', '5');
     const grupo = screen.getByRole('group', { name: 'Asignaturas del currículo' });
     const nombres = [...grupo.querySelectorAll('button')].map(b => b.textContent);
-    // Cataluña aún no está copiada: las 7 áreas del Real Decreto, en su orden
+    // Galicia sigue el estatal: las 7 áreas del Real Decreto, en su orden
     expect(nombres).toEqual(materiasDe('primaria').map(m => m.nombre));
     // Y se cita de dónde salen, avisando de que es el estatal
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
-    expect(screen.getByText('Cataluña sigue el currículo estatal.')).toBeTruthy();
+    expect(screen.getByText('Galicia sigue el currículo estatal.')).toBeTruthy();
   });
 
   it('con el decreto de la comunidad copiado, ofrece sus áreas y lo cita, sin avisar del estatal', async () => {
