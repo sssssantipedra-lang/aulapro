@@ -114,10 +114,42 @@ export interface SesionApoyo {
   alumnos: RegistroAlumno[];
 }
 
+/**
+ * Los documentos del especialista. Ver `docs/PTAL.md`, «Documentos»:
+ * - `programacion`: la del alumno, una por curso.
+ * - `familia` y `equipo`: los informes trimestrales.
+ * - `pap`: el seguimiento del apartado I del PAP (Comunitat Valenciana), uno
+ *   por curso, con una columna por trimestre que se va rellenando.
+ */
+export type TipoDocumentoApoyo = 'programacion' | 'familia' | 'equipo' | 'pap';
+
+export interface ApartadoDocumento {
+  /** Identificador estable del apartado dentro de su tipo de documento. */
+  id: string;
+  titulo: string;
+  texto: string;
+}
+
+export interface DocumentoApoyo {
+  id: string;
+  alumnoId: string;
+  tipo: TipoDocumentoApoyo;
+  /** Los informes trimestrales y el trimestre que se rellenó por última vez en el PAP. */
+  trimestre?: Trimestre;
+  /** Cuándo se generó o se cambió por última vez, YYYY-MM-DD. */
+  fecha: string;
+  titulo: string;
+  /** Lo que el docente puede retocar; siempre en el orden del modelo. */
+  apartados: ApartadoDocumento[];
+  /** Solo el PAP: una fila por medida de respuesta, con sus cinco columnas. */
+  tabla?: string[][];
+}
+
 /** Todo lo del módulo, tal como se guarda en el perfil. */
 export interface ApoyoData {
   alumnos: AlumnoApoyo[];
   grupos: GrupoApoyo[];
   programas: ProgramaApoyo[];
   sesiones: SesionApoyo[];
+  documentos: DocumentoApoyo[];
 }

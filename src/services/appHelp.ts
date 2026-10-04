@@ -45,6 +45,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'apoyo-registro':      { es: 'Registro diario', en: 'Session Log' },
   'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
   'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
+  'apoyo-documentos':    { es: 'Programación e informes', en: 'Planning and Reports' },
 };
 
 /**
@@ -500,6 +501,32 @@ conducta), apoyándose en la normativa de inclusión de la comunidad y en los
 autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
 del alumno, también el diagnóstico, con el nombre cambiado por un código: si no
 se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
+
+[apoyo-documentos] PROGRAMACIÓN E INFORMES
+Por alumno (fila de botones arriba). En «Nuevo documento» se elige cuál y, si
+es trimestral, el trimestre, y «Preparar con IA» lo redacta:
+- PROGRAMACIÓN (una por alumno): sus datos y su horario de apoyo,
+  justificación y marco normativo, necesidades y punto de partida, objetivos
+  por ámbito y trimestre (tal cual de sus programas, con sus criterios
+  oficiales), metodología, recursos y materiales, coordinación y evaluación.
+- INFORME TRIMESTRAL A LA FAMILIA: lo trabajado y cómo avanza, cómo ha
+  respondido, orientaciones para casa y objetivos del próximo trimestre, en
+  lenguaje para familias y sin el diagnóstico en la cabecera.
+- INFORME TRIMESTRAL AL TUTOR O AL EQUIPO: asistencia a las sesiones (la cuenta
+  la app), evolución por programa y objetivo, respuesta en las sesiones y
+  propuestas para el aula de referencia.
+- SEGUIMIENTO DEL PAP (APARTADO I), solo en la Comunitat Valenciana: la tabla
+  «Medidas de respuesta» con una fila por programa y las columnas 1º, 2º y 3º
+  trimestre y «Propuesta para el curso siguiente», el progreso global y, en el
+  3º, la propuesta de nuevas medidas, con los textos del Documento 7 de la
+  Conselleria. Cada vez rellena la columna del trimestre elegido y conserva las
+  demás. Lleva el cuadro de firma.
+Los datos (objetivos, recuentos del registro diario, medias de cómo ha
+respondido, notas, asistencia) los pone la app; la IA solo los redacta, con la
+normativa de la comunidad y los autores de referencia, y no inventa logros. Un
+informe trimestral nuevo del mismo trimestre sustituye al anterior (lo
+pregunta). La lista «Documentos de…» abre cada uno para retocarlo (se guarda
+solo), lo exporta a PDF (en la app de escritorio) o a Word, o lo elimina.
 
 [audit] REGISTRO DE CAMBIOS
 Quién cambió qué y cuándo: notas, alumnos, asistencia, evaluaciones… Con filtros

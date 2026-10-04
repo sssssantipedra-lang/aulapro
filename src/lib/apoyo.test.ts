@@ -137,6 +137,8 @@ describe('carga y borrado', () => {
       { alumnoId: 'a', objetivos: { o: 'si' }, respuesta: { atencion: 3 }, nota: 'Bien' },
       { alumnoId: 'b', ausente: true, objetivos: {}, respuesta: {}, nota: '' },
     ] }],
+    documentos: [{ id: 'd', alumnoId: 'a', tipo: 'familia', trimestre: 1, fecha: '2026-12-15', titulo: 'Informe',
+      apartados: [{ id: 'trabajado', titulo: 'Lo trabajado', texto: 'Texto' }] }],
   };
 
   it('lo guardado vuelve igual', () => {
@@ -145,6 +147,7 @@ describe('carga y borrado', () => {
     expect(vuelta.grupos).toEqual(datos.grupos);
     expect(vuelta.programas[0].objetivos[0].trimestres).toEqual([1, 2]);
     expect(vuelta.sesiones).toEqual(datos.sesiones);
+    expect(vuelta.documentos).toEqual(datos.documentos);
   });
 
   it('descarta lo que no entiende en vez de romper', () => {
@@ -170,6 +173,7 @@ describe('carga y borrado', () => {
     expect(d.grupos[0].alumnos).toEqual(['b']);
     expect(d.programas).toEqual([]);
     expect(d.sesiones[0].alumnos.map(r => r.alumnoId)).toEqual(['b']);
+    expect(d.documentos).toEqual([]);
     // Una sesión sin nadie desaparece
     expect(sinAlumno(d, 'b').sesiones).toEqual([]);
   });

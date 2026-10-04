@@ -34,6 +34,7 @@ const inicial: ApoyoData = {
     ] },
   ],
   sesiones: [],
+  documentos: [],
 };
 
 let ultimo: ApoyoData = inicial;

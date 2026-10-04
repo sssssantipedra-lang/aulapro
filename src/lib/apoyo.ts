@@ -3,11 +3,11 @@
  */
 import type { ComunidadId } from './curriculum/comunidades';
 import type {
-  AlumnoApoyo, ApoyoData, AspectoRespuesta, CursoDe, Especialidad, GrupoApoyo, Logro,
+  AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, CursoDe, DocumentoApoyo, Especialidad, GrupoApoyo, Logro,
   ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
 } from '../types/apoyo';
 
-export const APOYO_VACIO: ApoyoData = { alumnos: [], grupos: [], programas: [], sesiones: [] };
+export const APOYO_VACIO: ApoyoData = { alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [] };
 
 export function nuevoIdApoyo(prefijo: string): string {
   return prefijo + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -204,6 +204,48 @@ export function resumenObjetivo(
 
 export const ASPECTOS: readonly AspectoRespuesta[] = ['atencion', 'motivacion', 'conducta', 'autonomia'];
 
+export interface DatosTrimestre {
+  /** Sesiones de sus grupos en que tiene registro, y en cuántas no vino. */
+  sesiones: number;
+  ausencias: number;
+  /** Cada objetivo del trimestre, con su programa y cómo ha ido. */
+  objetivos: { programa: ProgramaApoyo; objetivo: ObjetivoApoyo; resumen: ResumenObjetivo }[];
+  /** Media de cada aspecto de 1 a 3 y en cuántas sesiones se anotó. */
+  respuesta: Record<AspectoRespuesta, { media: number | null; veces: number }>;
+  /** Las notas del docente, con su fecha, de la más antigua a la más reciente. */
+  notas: { fecha: string; texto: string }[];
+  /** Lo que trabajaba su clase en cada sesión. */
+  temas: { fecha: string; texto: string }[];
+}
+
+/** Lo que dice el registro de un alumno en un trimestre: los datos que la IA solo redacta. */
+export function datosDelTrimestre(d: ApoyoData, alumnoId: string, trimestre: Trimestre): DatosTrimestre {
+  const sesiones = d.sesiones
+    .filter(s => trimestreDe(s.fecha) === trimestre && s.alumnos.some(r => r.alumnoId === alumnoId))
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const registros = sesiones.map(s => ({ s, r: s.alumnos.find(r => r.alumnoId === alumnoId)! }));
+  const respuesta = {} as DatosTrimestre['respuesta'];
+  for (const a of ASPECTOS) {
+    const valores = registros.map(x => x.r.respuesta[a]).filter((v): v is Cara => v !== undefined);
+    respuesta[a] = {
+      media: valores.length ? Math.round((valores.reduce((n, v) => n + v, 0) / valores.length) * 10) / 10 : null,
+      veces: valores.length,
+    };
+  }
+  return {
+    sesiones: registros.length,
+    ausencias: registros.filter(x => x.r.ausente).length,
+    objetivos: d.programas
+      .filter(p => p.alumnoId === alumnoId)
+      .flatMap(programa => programa.objetivos
+        .filter(o => o.trimestres.includes(trimestre))
+        .map(objetivo => ({ programa, objetivo, resumen: resumenObjetivo(sesiones, alumnoId, objetivo.id, trimestre) }))),
+    respuesta,
+    notas: registros.filter(x => x.r.nota.trim()).map(x => ({ fecha: x.s.fecha, texto: x.r.nota.trim() })),
+    temas: [...new Map(sesiones.filter(s => s.temaClase.trim()).map(s => [s.temaClase.trim(), { fecha: s.fecha, texto: s.temaClase.trim() }])).values()],
+  };
+}
+
 /* ── Carga segura ── */
 
 const esTexto = (v: unknown): v is string => typeof v === 'string';
@@ -305,7 +347,27 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       }),
     };
   });
-  return { alumnos, grupos, programas, sesiones };
+  const documentos = lista<DocumentoApoyo>(o.documentos, v => {
+    const x = obj(v);
+    const tipos = ['programacion', 'familia', 'equipo', 'pap'];
+    if (!x || !esTexto(x.id) || !esTexto(x.alumnoId) || !ids.has(x.alumnoId) || !tipos.includes(x.tipo as string)) return null;
+    const trimestre = x.trimestre === 1 || x.trimestre === 2 || x.trimestre === 3 ? x.trimestre : undefined;
+    const tabla = Array.isArray(x.tabla)
+      ? x.tabla.filter(Array.isArray).map(f => (f as unknown[]).map(c => (esTexto(c) ? c : '')))
+      : undefined;
+    return {
+      id: x.id, alumnoId: x.alumnoId, tipo: x.tipo as DocumentoApoyo['tipo'],
+      ...(trimestre ? { trimestre } : {}),
+      fecha: esTexto(x.fecha) ? x.fecha : '',
+      titulo: esTexto(x.titulo) ? x.titulo : '',
+      apartados: lista(x.apartados, a => {
+        const y = obj(a);
+        return y && esTexto(y.id) && esTexto(y.titulo) && esTexto(y.texto) ? { id: y.id, titulo: y.titulo, texto: y.texto } : null;
+      }),
+      ...(tabla ? { tabla } : {}),
+    };
+  });
+  return { alumnos, grupos, programas, sesiones, documentos };
 }
 
 /** Quita un alumno de todo el módulo: grupos, programas y registros. */
@@ -317,6 +379,7 @@ export function sinAlumno(d: ApoyoData, alumnoId: string): ApoyoData {
     sesiones: d.sesiones
       .map(s => ({ ...s, alumnos: s.alumnos.filter(r => r.alumnoId !== alumnoId) }))
       .filter(s => s.alumnos.length > 0),
+    documentos: d.documentos.filter(x => x.alumnoId !== alumnoId),
   };
 }
 

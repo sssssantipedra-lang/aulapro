@@ -77,6 +77,7 @@ export const HUBS: readonly NavHub[] = [
       { id: 'apoyo-registro',   label: 'Registro diario' },
       { id: 'apoyo-alumnado',   label: 'Alumnado y grupos' },
       { id: 'apoyo-programas',  label: 'Programas' },
+      { id: 'apoyo-documentos', label: 'Programación e informes' },
     ],
   },
 ];

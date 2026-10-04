@@ -46,6 +46,7 @@ const Resources      = lazy(() => import('./pages/Resources').then(m => ({ defau
 const WorkSessions   = lazy(() => import('./pages/WorkSessions').then(m => ({ default: m.WorkSessions })));
 const RegistroApoyo  = lazy(() => import('./pages/apoyo/RegistroApoyo').then(m => ({ default: m.RegistroApoyo })));
 const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m => ({ default: m.AlumnadoApoyo })));
+const DocumentosApoyo = lazy(() => import('./pages/apoyo/DocumentosApoyo').then(m => ({ default: m.DocumentosApoyo })));
 const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
 
 function Loading() {
@@ -536,6 +537,16 @@ function AppInner() {
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}
                 comunidad={st.currentUser.community}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
+            {section === 'apoyo-documentos' && (
+              <DocumentosApoyo
+                data={st.apoyo}
+                onChange={st.setApoyo}
+                especialidades={st.currentUser.especialidades ?? []}
+                comunidad={st.currentUser.community}
+                docente={{ nombre: st.profile?.name ?? '', centro: st.profile?.school ?? '', curso: st.profile?.course ?? '' }}
                 onNav={s => setSection(s as Section)}
               />
             )}

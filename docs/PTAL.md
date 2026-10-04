@@ -71,9 +71,10 @@ Todos los prepara la IA a partir de los objetivos de los programas y del registr
   - la propuesta de nuevas medidas para el curso siguiente.
 
   El formato del plan individual cambia con la comunidad: PAP en la Comunitat Valenciana, pla de suport individualitzat (PI) en Cataluña y, en Madrid, adaptación curricular por área.
-- **Informe trimestral al tutor o al equipo.** Documento aparte, que se adjunta al PAP. Falta el modelo, que sube el dueño.
-- **Informe trimestral a la familia.** En lenguaje para familias.
-- **Programación anual del aula de apoyo.**
+- **Informe trimestral al tutor o al equipo.** Documento aparte, que se adjunta al PAP. Mientras no llegue el modelo del dueño, uno técnico: asistencia a las sesiones, evolución de cada objetivo, respuesta en las sesiones y propuestas para el aula de referencia.
+- **Informe trimestral a la familia** (decisión del 4-10-2026), en lenguaje para familias, con cuatro apartados: lo trabajado y cómo avanza; cómo ha respondido (atención, motivación, conducta y autonomía); orientaciones para casa; objetivos del próximo trimestre.
+- **Programación** (decisión del 4-10-2026): una por alumno, con el conjunto de sus programas. Lleva sus datos y su horario de apoyo, la justificación con la normativa y los autores, sus necesidades y punto de partida, los objetivos de cada ámbito por trimestre con sus criterios oficiales, la metodología, los recursos, la coordinación y la evaluación.
+- Los datos (objetivos, criterios, recuentos del registro, asistencia, horario) los pone la app tal cual; la IA solo redacta, a partir de esos datos, y no puede inventar logros.
 
 ## Datos y IA
 
