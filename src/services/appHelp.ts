@@ -472,7 +472,7 @@ Documentos, En clase, Más) y, justo después del Inicio, el apartado
 INICIO DE EF (sin tutoría): el de siempre, con «Observar en la pista» en vez de
 «Anotar en el aula» en la clase de ahora, la tarjeta «Exentos y lesiones» con
 quién no puede hacer la clase hoy y qué hace mientras tanto, y la tarjeta
-«Pruebas físicas» con la última toma de cada clase.
+«Pruebas físicas» con la última toma de cada clase, y «Próximas sesiones».
 
 [ef-pista] EN LA PISTA
 La observación rápida, pensada para el móvil. Arriba, la clase (sale la que
@@ -551,8 +551,8 @@ actividades. Si ese día hay exentos o lesionados en la clase, la sesión lleva
 medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
-sesión» la escribe a mano. «PDF» la guarda para imprimirla (en la aplicación
-de escritorio). Salen en «Próximas», «Sin fecha» y «Ver las anteriores».
+sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
+«Próximas», «Sin fecha» y «Ver las anteriores».
 
 [ef-actividades] ACTIVIDADES
 El banco de actividades: las de partida de AulaPro (juegos motrices, deportes

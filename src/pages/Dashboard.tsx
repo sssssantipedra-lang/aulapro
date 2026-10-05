@@ -10,7 +10,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Coffee, Clock, Bandage, Timer,
+  TrendingUp, Coffee, Clock, Bandage, Timer, ClipboardList,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -45,6 +45,8 @@ interface Props {
   ef?: {
     exentosHoy: { id: string; nombre: string; clase: string; detalle: string; tarea: string }[];
     pruebas: { id: string; clase: string; color: string; fecha?: string; prueba?: string }[];
+    /** Las próximas sesiones de EF, de hoy en adelante. */
+    sesiones: { id: string; titulo: string; clase: string; color: string; fecha: string }[];
   };
 }
 
@@ -300,6 +302,30 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             </ul>
           )}
         </div>
+
+        {ef && (
+          <div className="card home-card">
+            <div className="home-card-hd">
+              <div className="home-card-ttl"><ClipboardList size={15} />{t('Próximas sesiones')}</div>
+              <button className="home-link" onClick={() => nav('ef-sesiones')}>{ef.sesiones.length ? t('Ver todo') : t('Preparar')}</button>
+            </div>
+            {ef.sesiones.length === 0 ? (
+              <p className="home-muted">{t('No tienes sesiones previstas.')}</p>
+            ) : (
+              <ul className="home-list">
+                {ef.sesiones.slice(0, 3).map(s => (
+                  <li key={s.id} className="home-event">
+                    <span className="home-class-dot" style={{ background: s.color }} />
+                    <span className="home-event-txt">
+                      <span className="home-event-name">{s.titulo}</span>
+                      <span className="home-tl-room">{[s.clase, fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })].filter(Boolean).join(' · ')}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {ef && (
           <div className="card home-card">

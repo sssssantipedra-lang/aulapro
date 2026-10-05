@@ -11,7 +11,8 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 ## Menú e Inicio
 
 - El menú de aula entero (clases, cuaderno, asistencia, evaluar con rúbricas y dianas, documentos, en clase) y, después del Inicio, el apartado «Educación Física» (`NAV_EF` en `src/lib/navigation.ts`).
-- Inicio sin tutoría: el de siempre, adaptado a EF, con «Observar en la pista» en la clase de ahora y la tarjeta «Exentos y lesiones».
+- Inicio sin tutoría: el de siempre, adaptado a EF, con «Observar en la pista» en la clase de ahora y las tarjetas «Exentos y lesiones», «Próximas sesiones» y «Pruebas físicas».
+- Pestañas del apartado: En la pista, Exentos y lesiones, Pruebas físicas, Equipos, Circuitos, Sesiones, Actividades y Material (su página se llama «Material e instalaciones»).
 - Inicio con tutoría: el de tutoría tal cual.
 
 ## En la pista
@@ -72,7 +73,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Sesiones (pestaña «Sesiones»):
   - Calentamiento, parte principal, vuelta a la calma, material, inclusión (DUA-A) y plan B, con su clase, día e instalación, y de 1 a 3 criterios de evaluación oficiales de la clase (se cambian con el buscador de criterios).
   - «Preparar con IA»: clase, día, instalación, minutos (del horario si la clase tiene tramo ese día) y qué se trabaja. La IA usa el currículo de la clase y su comunidad, el material que no está para reponer, las instalaciones cubiertas para el plan B y, si se marca, el banco. La sesión se revisa antes de guardarla.
-  - PDF para imprimirla (en la aplicación de escritorio).
+  - PDF para imprimirla (Windows y Android).
 - La IA (`src/services/efIA.ts`): marco con el currículo LOMLOE de la comunidad, el DUA-A, la normativa de inclusión y los autores de referencia:
   - Parlebas y Lavega (juegos y praxiología motriz).
   - Blázquez, Devís y Peiró (iniciación deportiva).
@@ -92,3 +93,9 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Todo va en `ef` del perfil (`src/types/ef.ts`, `src/lib/ef.ts`).
 - Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
 - Datos de ejemplo: `src/lib/demoEF.ts`.
+
+## Lo que falta
+
+- Baremos publicados: comprobar la licencia de ALPHA-Fitness y HELENA, y de Tomkinson y otros (2018), antes de incluir ninguno (ver «Pruebas físicas»).
+- Los datos de ejemplo de EF están solo en castellano (como los de PT y AL); el banco de actividades sí está en los tres idiomas.
+- El cronómetro no suena con la pantalla bloqueada: por eso pide que la pantalla no se apague mientras corre.

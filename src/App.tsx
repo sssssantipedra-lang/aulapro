@@ -126,6 +126,12 @@ function AppInner() {
         const prueba = ultima ? pruebasDe(st.ef).find(p => p.id === ultima.pruebaId) : undefined;
         return { id: c.id, clase: c.name, color: c.color, fecha: ultima?.fecha, prueba: prueba ? t(prueba.nombre) : undefined };
       }),
+      sesiones: st.ef.sesiones.filter(s => s.fecha && s.fecha >= hoy)
+        .sort((a, b) => a.fecha!.localeCompare(b.fecha!))
+        .map(s => {
+          const c = st.classes.find(x => x.id === s.claseId);
+          return { id: s.id, titulo: s.titulo, clase: c?.name ?? '', color: c?.color ?? 'var(--text-3)', fecha: s.fecha! };
+        }),
     };
   }, [tipo, st.currentUser?.tutor, st.ef, st.students, st.classes, t]);
 

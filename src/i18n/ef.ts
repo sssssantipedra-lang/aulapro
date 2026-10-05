@@ -341,6 +341,11 @@ export const EF_EN: Record<string, string> = {
   'Preparar la sesión': 'Prepare the session',
   'Sesión preparada con IA': 'Session prepared with AI',
   'Revísala y cambia lo que quieras antes de guardarla.': 'Review it and change anything you like before saving it.',
+
+  /* ── Inicio de EF (2) ── */
+  'Próximas sesiones': 'Upcoming sessions',
+  'Preparar': 'Prepare',
+  'No tienes sesiones previstas.': 'You have no sessions planned.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -682,4 +687,9 @@ export const EF_CA: Record<string, string> = {
   'Preparar la sesión': 'Preparar la sessió',
   'Sesión preparada con IA': 'Sessió preparada amb IA',
   'Revísala y cambia lo que quieras antes de guardarla.': 'Revisa-la i canvia el que vulguis abans de desar-la.',
+
+  /* ── Inicio de EF (2) ── */
+  'Próximas sesiones': 'Properes sessions',
+  'Preparar': 'Preparar',
+  'No tienes sesiones previstas.': 'No tens sessions previstes.',
 };

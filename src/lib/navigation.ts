@@ -89,7 +89,7 @@ export const HUBS: readonly NavHub[] = [
       { id: 'ef-circuitos', label: 'Circuitos' },
       { id: 'ef-sesiones', label: 'Sesiones' },
       { id: 'ef-actividades', label: 'Actividades' },
-      { id: 'ef-material', label: 'Material e instalaciones' },
+      { id: 'ef-material', label: 'Material' },
     ],
   },
 ];
