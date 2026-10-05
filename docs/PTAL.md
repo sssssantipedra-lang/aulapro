@@ -1,6 +1,6 @@
 # Módulo de PT y AL
 
-Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición y Lenguaje (AL). Decisiones del dueño del 4-10-2026. Si una cambia, cámbiala aquí en el mismo cambio.
+Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición y Lenguaje (AL). En la app desde la 2.1.0. Decisiones del dueño del 4-10-2026. Si una cambia, cámbiala aquí en el mismo cambio.
 
 ## Qué tiene que hacer
 
