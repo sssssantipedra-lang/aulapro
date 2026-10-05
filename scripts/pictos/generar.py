@@ -48,7 +48,7 @@ os.makedirs(dst)
 subprocess.run(['npx', '--yes', 'svgo@3', '-q', '--config', os.path.join(AQUI, 'svgo.config.cjs'), '-f', tmp, '-o', dst], check=True)
 shutil.copy(os.path.join(repo, 'LICENSE.txt'), os.path.join(dst, 'LICENSE.txt'))
 
-out = open(os.path.join(AQUI, 'plantilla.ts'), encoding='utf-8').read()
+out = open(os.path.join(AQUI, 'plantilla.ts.txt'), encoding='utf-8').read()
 out = out.replace('/*CATEGORIAS_TIPO*/', '\n  | '.join(q(c) for c in NOMBRES))
 out = out.replace('/*CATEGORIAS*/', '\n'.join(
     f'  {{ id: {q(c)}, es: {q(es)}, ca: {q(ca)}, en: {q(en)} }},' for c, (es, ca, en) in NOMBRES.items()))

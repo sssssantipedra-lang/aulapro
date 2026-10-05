@@ -5,7 +5,7 @@
 import { isoDate } from './utils';
 import type { CalEvent, Class, GradeCategory, GradeItem, GradeMap, ScheduleBlock, Student, Task } from '../types';
 import type { EfData, MarcaPrueba } from '../types/ef';
-import { EF_VACIO } from './ef';
+import { EF_VACIO, hacerEquipos } from './ef';
 
 export const DEMO_EF_USER = {
   full_name: 'Jordi Puig Serra',
@@ -92,10 +92,17 @@ export function buildDemoEF(hoy: Date = new Date()) {
     );
   });
 
+  // Los equipos de 1º ESO A, hechos hace dos días (con un azar fijo, para que salgan siempre igual)
+  let semilla = 7;
+  const azar = () => { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; };
+  const separar = [{ a: 'ef-s01', b: 'ef-s05' }];
+  const equipos: EfData['equipos'] = {
+    'ef-c1': { fecha: dias(-2), grupos: hacerEquipos(students.filter(s => s.class_id === 'ef-c1').map(s => s.id), 2, { niveles, sexos, separar }, { nivel: true, sexo: true, separar: true }, azar) },
+  };
+
   const ef: EfData = {
     ...EF_VACIO,
-    sexos, niveles,
-    separar: [{ a: 'ef-s01', b: 'ef-s05' }],
+    sexos, niveles, separar, equipos,
     exentos: [
       { id: 'ef-x1', alumnoId: 'ef-s03', limitaciones: ['correr', 'saltar'], otra: '', desde: dias(-4), hasta: dias(10),
         tarea: 'Arbitrar y anotar los resultados de su equipo.', justificante: true, motivo: 'Esguince de tobillo' },

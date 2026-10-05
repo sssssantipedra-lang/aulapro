@@ -85,6 +85,8 @@ export const HUBS: readonly NavHub[] = [
       { id: 'ef-pista',   label: 'En la pista' },
       { id: 'ef-exentos', label: 'Exentos y lesiones' },
       { id: 'ef-pruebas', label: 'Pruebas físicas' },
+      { id: 'ef-equipos', label: 'Equipos' },
+      { id: 'ef-circuitos', label: 'Circuitos' },
     ],
   },
 ];

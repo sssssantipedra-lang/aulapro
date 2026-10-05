@@ -58,6 +58,8 @@ const AgendaVisualApoyo = lazy(() => import('./pages/apoyo/AgendaVisualApoyo').t
 const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ default: m.EfPista })));
 const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
 const EfPruebas      = lazy(() => import('./pages/ef/EfPruebas').then(m => ({ default: m.EfPruebas })));
+const EfEquipos      = lazy(() => import('./pages/ef/EfEquipos').then(m => ({ default: m.EfEquipos })));
+const EfCircuitos    = lazy(() => import('./pages/ef/EfCircuitos').then(m => ({ default: m.EfCircuitos })));
 
 function Loading() {
   const { t } = useI18n();
@@ -621,6 +623,10 @@ function AppInner() {
                 gradeCategories={st.gradeCategories} onAddGradeItem={st.addGradeItem} onSetGrade={st.setGrade} onNav={setSection}
               />
             )}
+            {section === 'ef-equipos' && (
+              <EfEquipos classes={st.classes} students={st.students} attendance={st.attendance} ef={st.ef} onChangeEf={st.setEf} onNav={setSection} />
+            )}
+            {section === 'ef-circuitos' && <EfCircuitos ef={st.ef} onChangeEf={st.setEf} />}
             {section === 'profile' && (
               <Profile
                 user={st.currentUser}

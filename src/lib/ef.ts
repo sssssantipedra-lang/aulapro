@@ -4,12 +4,12 @@
 import type { Class } from '../types';
 import { esAsignaturaEF } from '../services/classMarks';
 import type {
-  ActividadEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, ExentoEF, InstalacionEF, LimitacionEF, MarcaPrueba,
-  MaterialEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
+  ActividadEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
+  MarcaPrueba, MaterialEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
 } from '../types/ef';
 
 export const EF_VACIO: EfData = {
-  exentos: [], niveles: {}, sexos: {}, separar: [], pruebas: [], marcas: [], baremos: [],
+  exentos: [], niveles: {}, sexos: {}, separar: [], equipos: {}, pruebas: [], marcas: [], baremos: [],
   actividades: [], sesiones: [], material: [], instalaciones: [], circuitos: [],
 };
 
@@ -157,6 +157,144 @@ export const TIPOS_ACTIVIDAD: readonly { id: TipoActividadEF; label: string }[] 
   { id: 'calma', label: 'Vuelta a la calma' },
 ];
 
+/* ── Equipos ── */
+
+/** Qué se tiene en cuenta al hacer equipos (decisión del dueño, 5-10-2026). */
+export interface OpcionesEquipos {
+  /** Repartir el nivel de 1 a 3 que marca el docente. */
+  nivel: boolean;
+  /** Mezclar chicos y chicas en cada equipo. */
+  sexo: boolean;
+  /** Que no coincidan las parejas que conviene separar. */
+  separar: boolean;
+}
+
+/** Los equipos se llaman por el color del peto. */
+export const COLORES_EQUIPO: readonly { label: string; color: string }[] = [
+  { label: 'Equipo rojo', color: '#dc2626' },
+  { label: 'Equipo azul', color: '#2563eb' },
+  { label: 'Equipo verde', color: '#16a34a' },
+  { label: 'Equipo amarillo', color: '#eab308' },
+  { label: 'Equipo naranja', color: '#ea580c' },
+  { label: 'Equipo morado', color: '#9333ea' },
+  { label: 'Equipo rosa', color: '#db2777' },
+  { label: 'Equipo gris', color: '#6b7280' },
+  { label: 'Equipo blanco', color: '#ffffff' },
+  { label: 'Equipo negro', color: '#111827' },
+];
+export const MAX_EQUIPOS = COLORES_EQUIPO.length;
+
+/**
+ * Reparte el alumnado en `n` equipos de tamaños parecidos (como mucho, uno de
+ * diferencia). Empieza con un reparto en serpiente, ordenado por sexo y nivel
+ * si se piden, y lo mejora intercambiando alumnos de dos en dos mientras algún
+ * cambio lo mejore: la suma de niveles parecida, chicos y chicas en la misma
+ * proporción que en la clase y ninguna pareja que separar en el mismo equipo.
+ * Quien no tiene nivel cuenta como 2. `azar` se pasa para poder probarlo; cada
+ * vez sale un reparto distinto.
+ */
+export function hacerEquipos(
+  ids: string[], n: number, d: Pick<EfData, 'niveles' | 'sexos' | 'separar'>, op: OpcionesEquipos,
+  azar: () => number = Math.random,
+): string[][] {
+  if (!ids.length) return [];
+  const k = Math.max(1, Math.min(Math.round(n), ids.length));
+  const nivel = (id: string) => d.niveles[id] ?? 2;
+  const orden = [...ids];
+  for (let i = orden.length - 1; i > 0; i--) {
+    const j = Math.floor(azar() * (i + 1));
+    [orden[i], orden[j]] = [orden[j], orden[i]];
+  }
+  orden.sort((a, b) =>
+    (op.sexo ? (d.sexos[a] ?? 'Z').localeCompare(d.sexos[b] ?? 'Z') : 0) || (op.nivel ? nivel(b) - nivel(a) : 0));
+  const equipos: string[][] = Array.from({ length: k }, () => []);
+  orden.forEach((id, i) => {
+    const vuelta = Math.floor(i / k);
+    const pos = i % k;
+    equipos[vuelta % 2 ? k - 1 - pos : pos].push(id);
+  });
+
+  const dentro = new Set(ids);
+  const pares = op.separar ? d.separar.filter(p => dentro.has(p.a) && dentro.has(p.b)) : [];
+  const media = ids.reduce((s, id) => s + nivel(id), 0) / ids.length;
+  const parteF = ids.filter(id => d.sexos[id] === 'F').length / ids.length;
+  const parteM = ids.filter(id => d.sexos[id] === 'M').length / ids.length;
+  const coste = (eq: string[]) => {
+    let c = 0;
+    if (op.nivel) c += (eq.reduce((s, id) => s + nivel(id), 0) - eq.length * media) ** 2;
+    if (op.sexo) {
+      const f = eq.filter(id => d.sexos[id] === 'F').length;
+      const m = eq.filter(id => d.sexos[id] === 'M').length;
+      c += (f - eq.length * parteF) ** 2 + (m - eq.length * parteM) ** 2;
+    }
+    if (pares.length) {
+      const en = new Set(eq);
+      c += 100 * pares.filter(p => en.has(p.a) && en.has(p.b)).length;
+    }
+    return c;
+  };
+
+  let mejora = true;
+  for (let vueltas = 0; mejora && vueltas < 50; vueltas++) {
+    mejora = false;
+    for (let x = 0; x < k; x++) for (let y = x + 1; y < k; y++) {
+      const ex = equipos[x], ey = equipos[y];
+      for (let i = 0; i < ex.length; i++) for (let j = 0; j < ey.length; j++) {
+        const antes = coste(ex) + coste(ey);
+        [ex[i], ey[j]] = [ey[j], ex[i]];
+        if (coste(ex) + coste(ey) < antes - 1e-9) mejora = true;
+        else [ex[i], ey[j]] = [ey[j], ex[i]];
+      }
+    }
+  }
+  return equipos;
+}
+
+/** Las parejas que han quedado juntas en un mismo equipo. */
+export function parejasJuntas(grupos: string[][], separar: EfData['separar']): EfData['separar'] {
+  return separar.filter(p => grupos.some(g => g.includes(p.a) && g.includes(p.b)));
+}
+
+/* ── Cronómetro de circuitos ── */
+
+export type TipoFase = 'preparados' | 'trabajo' | 'descanso' | 'descansoRondas';
+
+export interface FaseCircuito {
+  tipo: TipoFase;
+  segundos: number;
+  /** La estación que se trabaja, o la siguiente en los descansos. */
+  estacion: number;
+  /** De 1 a `rondas`. */
+  ronda: number;
+}
+
+/** Segundos para colocarse antes de empezar. */
+export const PREPARADOS = 10;
+
+/**
+ * Las fases del cronómetro, en orden: preparados, y en cada ronda, trabajo en
+ * cada estación con su descanso entre medias; entre rondas, el descanso largo.
+ * Al final no hay descanso. Las fases de 0 segundos no salen.
+ */
+export function fasesCircuito(c: Pick<CircuitoEF, 'estaciones' | 'trabajo' | 'descanso' | 'rondas' | 'descansoRondas'>): FaseCircuito[] {
+  const n = Math.max(1, c.estaciones.length);
+  const fases: FaseCircuito[] = [{ tipo: 'preparados', segundos: PREPARADOS, estacion: 0, ronda: 1 }];
+  for (let r = 1; r <= Math.max(1, c.rondas); r++) {
+    for (let e = 0; e < n; e++) {
+      fases.push({ tipo: 'trabajo', segundos: c.trabajo, estacion: e, ronda: r });
+      const ultima = e === n - 1;
+      if (!ultima) fases.push({ tipo: 'descanso', segundos: c.descanso, estacion: e + 1, ronda: r });
+      else if (r < c.rondas) fases.push({ tipo: 'descansoRondas', segundos: c.descansoRondas, estacion: 0, ronda: r + 1 });
+    }
+  }
+  return fases.filter(f => f.segundos > 0);
+}
+
+/** Lo que dura todo, en segundos, sin contar el «preparados». */
+export function duracionCircuito(c: Pick<CircuitoEF, 'estaciones' | 'trabajo' | 'descanso' | 'rondas' | 'descansoRondas'>): number {
+  return fasesCircuito(c).filter(f => f.tipo !== 'preparados').reduce((s, f) => s + f.segundos, 0);
+}
+
 /* ── Fin de curso ── */
 
 /**
@@ -187,6 +325,8 @@ export function sinAlumnoEF(d: EfData, alumnoId: string): EfData {
     exentos: d.exentos.filter(e => e.alumnoId !== alumnoId),
     niveles, sexos,
     separar: d.separar.filter(p => p.a !== alumnoId && p.b !== alumnoId),
+    equipos: Object.fromEntries(Object.entries(d.equipos).map(([k, e]) =>
+      [k, { ...e, grupos: e.grupos.map(g => g.filter(id => id !== alumnoId)) }])),
     marcas: d.marcas.filter(m => m.alumnoId !== alumnoId),
   };
 }
@@ -318,6 +458,12 @@ export function normalizarEF(raw: unknown): EfData {
     separar: lista(o.separar, v => {
       const x = obj(v);
       return x && esTexto(x.a) && esTexto(x.b) && x.a !== x.b ? { a: x.a, b: x.b } : null;
+    }),
+    equipos: registro<EquiposEF>(o.equipos, v => {
+      const x = obj(v);
+      const f = fecha(x?.fecha);
+      return x && f && Array.isArray(x.grupos)
+        ? { fecha: f, grupos: lista(x.grupos, g => (Array.isArray(g) ? g.filter(esTexto) : null)) } : undefined;
     }),
     pruebas, marcas, baremos, actividades, sesiones, material, instalaciones, circuitos,
   };

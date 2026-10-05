@@ -147,6 +147,14 @@ export interface CircuitoEF {
   descansoRondas: number;
 }
 
+/** Los últimos equipos de una clase, que se quedan hasta que se hagan otros. */
+export interface EquiposEF {
+  /** YYYY-MM-DD. */
+  fecha: string;
+  /** Los ids del alumnado de cada equipo, en el orden de los colores. */
+  grupos: string[][];
+}
+
 export interface EfData {
   exentos: ExentoEF[];
   /** Nivel general de 1 a 3 que marca el docente, para hacer equipos. */
@@ -155,6 +163,8 @@ export interface EfData {
   sexos: Record<string, SexoEF>;
   /** Parejas que conviene separar al hacer equipos. */
   separar: { a: string; b: string }[];
+  /** Por id de clase. */
+  equipos: Record<string, EquiposEF>;
   pruebas: PruebaFisica[];
   marcas: MarcaPrueba[];
   baremos: BaremoEF[];

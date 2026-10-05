@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   EF_VACIO, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
+  hacerEquipos, parejasJuntas, fasesCircuito, duracionCircuito, PREPARADOS,
 } from './ef';
 import { buildDemoEF } from './demoEF';
 import { tipoDePerfil } from './tipoDocente';
@@ -99,5 +100,76 @@ describe('observación en la pista', () => {
     expect(['EF', 'Educació Física', 'educacion fisica', 'Physical Education'].every(esAsignaturaEF)).toBe(true);
     expect(esAsignaturaEF('Física y Química')).toBe(false);
     expect(asignaturaEF({ subject: 'Tutoría', subjects: ['Tutoría', 'Educación Física'] })).toBe('Educación Física');
+  });
+});
+
+/** Un azar repetible, para que las pruebas den siempre lo mismo. */
+function azarFijo(semilla: number) {
+  let x = semilla;
+  return () => { x = (x * 16807) % 2147483647; return (x - 1) / 2147483646; };
+}
+
+describe('equipos', () => {
+  const ids = Array.from({ length: 22 }, (_, i) => `a${i}`);
+  // Seis de nivel 3, ocho de nivel 2 y ocho de nivel 1; diez chicas y doce chicos
+  const niveles = Object.fromEntries(ids.map((id, i) => [id, (i < 6 ? 3 : i < 14 ? 2 : 1) as 1 | 2 | 3]));
+  const sexos = Object.fromEntries(ids.map((id, i) => [id, (i % 11 < 5 ? 'F' : 'M') as 'F' | 'M']));
+  const separar = [{ a: 'a0', b: 'a1' }, { a: 'a2', b: 'a3' }, { a: 'a14', b: 'a15' }];
+
+  it('reparte a todos, en equipos que se llevan como mucho uno', () => {
+    for (let s = 1; s < 20; s++) {
+      const eq = hacerEquipos(ids, 4, { niveles, sexos, separar }, { nivel: true, sexo: true, separar: true }, azarFijo(s));
+      expect(eq).toHaveLength(4);
+      expect(eq.flat().sort()).toEqual([...ids].sort());
+      const tam = eq.map(g => g.length);
+      expect(Math.max(...tam) - Math.min(...tam)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('iguala el nivel, mezcla chicos y chicas y separa las parejas', () => {
+    for (let s = 1; s < 20; s++) {
+      const eq = hacerEquipos(ids, 4, { niveles, sexos, separar }, { nivel: true, sexo: true, separar: true }, azarFijo(s));
+      const medias = eq.map(g => g.reduce((t, id) => t + niveles[id], 0) / g.length);
+      expect(Math.max(...medias) - Math.min(...medias)).toBeLessThan(0.5);
+      const chicas = eq.map(g => g.filter(id => sexos[id] === 'F').length);
+      expect(Math.max(...chicas) - Math.min(...chicas)).toBeLessThanOrEqual(1);
+      expect(parejasJuntas(eq, separar)).toEqual([]);
+    }
+  });
+
+  it('cada vez sale un reparto distinto, y con pocos alumnos no hay más equipos que alumnos', () => {
+    const a = hacerEquipos(ids, 3, { niveles, sexos, separar: [] }, { nivel: true, sexo: false, separar: false }, azarFijo(1));
+    const b = hacerEquipos(ids, 3, { niveles, sexos, separar: [] }, { nivel: true, sexo: false, separar: false }, azarFijo(2));
+    expect(a).not.toEqual(b);
+    expect(hacerEquipos(['x', 'y'], 5, { niveles: {}, sexos: {}, separar: [] }, { nivel: true, sexo: true, separar: true })).toHaveLength(2);
+    expect(hacerEquipos([], 4, { niveles: {}, sexos: {}, separar: [] }, { nivel: true, sexo: true, separar: true })).toEqual([]);
+  });
+
+  it('los equipos guardados se quedan al cargar, y sin el alumno que se borra', () => {
+    const d: EfData = { ...EF_VACIO, equipos: { c: { fecha: '2026-10-05', grupos: [['a', 'b'], ['c']] } } };
+    expect(normalizarEF(JSON.parse(JSON.stringify(d))).equipos).toEqual(d.equipos);
+    expect(sinAlumnoEF(d, 'b').equipos.c.grupos).toEqual([['a'], ['c']]);
+    expect(efParaOtroCurso(d).equipos).toEqual({});
+  });
+});
+
+describe('cronómetro de circuitos', () => {
+  const c = { estaciones: ['Sentadillas', 'Plancha', 'Comba'], trabajo: 30, descanso: 15, rondas: 2, descansoRondas: 60 };
+
+  it('preparados, cada estación con su descanso, el descanso largo entre rondas y sin descanso al final', () => {
+    const f = fasesCircuito(c);
+    expect(f[0]).toEqual({ tipo: 'preparados', segundos: PREPARADOS, estacion: 0, ronda: 1 });
+    expect(f.slice(1, 7).map(x => `${x.tipo}:${x.estacion}`)).toEqual([
+      'trabajo:0', 'descanso:1', 'trabajo:1', 'descanso:2', 'trabajo:2', 'descansoRondas:0',
+    ]);
+    expect(f.at(-1)).toMatchObject({ tipo: 'trabajo', estacion: 2, ronda: 2 });
+    expect(f.filter(x => x.tipo === 'trabajo')).toHaveLength(6);
+    // 6 × 30 de trabajo, 4 × 15 de descanso y 60 entre rondas
+    expect(duracionCircuito(c)).toBe(180 + 60 + 60);
+  });
+
+  it('sin descansos, las fases de cero segundos no salen', () => {
+    const f = fasesCircuito({ ...c, descanso: 0, descansoRondas: 0, rondas: 1 });
+    expect(f.map(x => x.tipo)).toEqual(['preparados', 'trabajo', 'trabajo', 'trabajo']);
   });
 });

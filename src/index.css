@@ -1316,6 +1316,62 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-tramos { list-style:none; margin:0 0 8px; padding:0; display:flex; flex-direction:column; gap:6px; }
 .ef-tramos li { display:flex; align-items:center; gap:8px; }
 .ef-tramos .finput { width:110px; }
+.ef-eq-ajustes { display:flex; flex-wrap:wrap; gap:16px 32px; align-items:flex-start; }
+.ef-eq-ajustes .finput { width:auto; min-width:90px; }
+.ef-eq-ops { display:flex; flex-direction:column; gap:6px; }
+.ef-eq-aviso { color:var(--warn-fg); background:var(--warn-bg); border-radius:10px; padding:8px 12px; margin:0 0 10px; }
+.ef-equipos { display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:12px; }
+.ef-equipo { border:1px solid var(--border); border-top:6px solid var(--eq); border-radius:12px; padding:10px 12px 12px; background:var(--card); display:flex; flex-direction:column; gap:6px; }
+.ef-equipo-hd { display:flex; align-items:center; gap:8px; }
+.ef-equipo-hd strong { font-size:15px; color:var(--text); flex:1; }
+.ef-equipo-dot { width:14px; height:14px; border-radius:50%; background:var(--eq); box-shadow:inset 0 0 0 1.5px var(--border); flex-shrink:0; }
+.ef-equipo-n { font-size:12px; font-weight:800; color:var(--text-2); background:var(--surface); border-radius:99px; padding:1px 8px; }
+.ef-equipo-lista { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.ef-eq-alumno { width:100%; display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:7px 10px; border-radius:9px; border:1.5px solid transparent; background:transparent; color:var(--text); font:inherit; font-size:14px; text-align:left; cursor:pointer; }
+.ef-eq-alumno:hover { border-color:var(--border); }
+.ef-eq-alumno.on { border-color:var(--accent-d); background:color-mix(in srgb, var(--accent-d) 10%, var(--card)); }
+.ef-equipo .home-link { align-self:flex-start; }
+.ef-sin-equipo { margin-top:14px; display:flex; flex-direction:column; gap:8px; }
+.ef-equipos:fullscreen { background:var(--surface); padding:32px; align-content:start; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); overflow:auto; }
+.ef-equipos:fullscreen .ef-privado { display:none; }
+.ef-equipos:fullscreen .ef-equipo-hd strong { font-size:26px; }
+.ef-equipos:fullscreen .ef-eq-alumno { font-size:22px; font-weight:700; pointer-events:none; }
+.ef-tabla-niveles tbody th { white-space:normal; min-width:110px; }
+@media (max-width:560px) {
+  .ef-tabla-niveles th, .ef-tabla-niveles td { padding:8px 3px; }
+  .ef-tabla-niveles tbody th { min-width:84px; font-size:13px; }
+  .ef-tabla-niveles .ap-trim { gap:3px; }
+  .ef-tabla-niveles .chip { padding:0 7px; font-size:12px; }
+}
+.ef-pareja { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:8px; align-items:center; }
+@media (max-width:560px) { .ef-pareja { grid-template-columns:1fr; } }
+
+/* Cronómetro de circuitos: el color acompaña al rótulo (trabajo, descanso…), nunca va solo */
+.ef-crono { position:fixed; inset:0; z-index:400; display:flex; flex-direction:column; color:#fff; background:#334155; padding:max(16px, env(safe-area-inset-top)) 20px max(16px, env(safe-area-inset-bottom)); transition:background 0.3s; }
+.ef-crono.trabajo { background:#15803d; }
+.ef-crono.descanso { background:#1d4ed8; }
+.ef-crono.descansoRondas { background:#6d28d9; }
+.ef-crono.fin { background:#0f172a; }
+.ef-crono-top { display:flex; align-items:flex-start; gap:14px; }
+.ef-crono-info { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 14px; }
+.ef-crono-nom { font-size:18px; font-weight:800; }
+.ef-crono-pos { font-size:16px; font-weight:600; opacity:0.9; }
+.ef-crono-centro { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; min-height:0; }
+.ef-crono-fase { font-size:clamp(22px, 4.5vw, 44px); font-weight:800; text-transform:uppercase; letter-spacing:0.06em; }
+.ef-crono-est { font-size:clamp(28px, 7vw, 76px); font-weight:800; line-height:1.1; max-width:95%; overflow-wrap:anywhere; }
+.ef-crono-num { font-size:clamp(110px, 32vh, 320px); font-weight:900; line-height:1; font-variant-numeric:tabular-nums; }
+.ef-crono-sig { font-size:clamp(18px, 3vw, 30px); font-weight:600; opacity:0.9; }
+.ef-crono-barra { height:10px; border-radius:99px; background:rgba(255,255,255,0.25); overflow:hidden; margin:10px 0 16px; }
+.ef-crono-barra span { display:block; height:100%; background:#fff; transition:width 0.1s linear; }
+.ef-crono-ctrl { display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; }
+.ef-crono-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:52px; height:52px; padding:0 14px; border-radius:14px; border:2px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.12); color:#fff; font:inherit; font-size:18px; font-weight:800; cursor:pointer; }
+.ef-crono-btn:hover:not(:disabled) { background:rgba(255,255,255,0.24); }
+.ef-crono-btn:disabled { opacity:0.4; cursor:default; }
+.ef-crono-btn:focus-visible { outline:3px solid #fff; outline-offset:2px; }
+.ef-crono-btn.grande { min-width:180px; height:64px; font-size:22px; background:#fff; color:#0f172a; border-color:#fff; }
+.ef-crono-btn.grande:hover:not(:disabled) { background:#e2e8f0; }
+.ef-crono-top .ef-crono-btn { min-width:44px; height:44px; padding:0; }
+@media (prefers-reduced-motion: reduce) { .ef-crono, .ef-crono-barra span { transition:none; } }
 /* Inicio de PT y AL */
 .ap-pasos { list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:14px; }
 .ap-pasos li { display:flex; gap:12px; align-items:flex-start; }

@@ -45,11 +45,21 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 ## Equipos y circuitos
 
-- Equipos equilibrados:
-  - Por el nivel de 1 a 3 que marca el docente.
-  - Mezclando chicos y chicas.
+- Equipos equilibrados (`hacerEquipos` en `src/lib/ef.ts`):
+  - Por el nivel de 1 a 3 que marca el docente (sin nivel cuenta como 2).
+  - Mezclando chicos y chicas en la proporción de la clase.
   - Separando las parejas que no conviene juntar.
-- Cronómetro de estaciones, series y descansos, a pantalla completa y con aviso sonoro.
+  - Cómo: reparto en serpiente y después intercambios de dos en dos mientras alguno mejore. Tamaños con un alumno de diferencia como mucho. Cada vez sale un reparto distinto.
+  - Quien falta hoy según la asistencia se queda fuera si se marca «Sin quien falta hoy».
+  - Los exentos juegan en su equipo y se ve su limitación y qué hace.
+  - Los equipos llevan el color del peto y se guardan por clase (`ef.equipos`) hasta que se hacen otros. Se retocan tocando a dos alumnos, o con «Mover aquí».
+  - «Proyectar» los enseña a pantalla completa sin niveles ni limitaciones.
+- Cronómetro de circuitos (`fasesCircuito`):
+  - Estaciones, trabajo, descanso, rondas y descanso entre rondas, con 10 segundos para colocarse.
+  - A pantalla completa, con tres pitidos cortos en los últimos segundos y uno largo al cambiar de fase.
+  - El color de fondo acompaña al rótulo (trabajo, descanso), nunca va solo.
+  - Pausa, fase anterior y siguiente, sonido; con teclado, espacio y flechas.
+  - Mientras corre pide que la pantalla no se apague (Wake Lock), si el dispositivo lo permite.
 
 ## Actividades y sesiones
 
@@ -72,5 +82,5 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 ## Datos
 
 - Todo va en `ef` del perfil (`src/types/ef.ts`, `src/lib/ef.ts`).
-- Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, marcas…).
+- Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
 - Datos de ejemplo: `src/lib/demoEF.ts`.

@@ -51,6 +51,8 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'ef-pista':            { es: 'En la pista', en: 'On the Court' },
   'ef-exentos':          { es: 'Exentos y lesiones', en: 'Exemptions and Injuries' },
   'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },
+  'ef-equipos':          { es: 'Equipos', en: 'Teams' },
+  'ef-circuitos':        { es: 'Circuitos', en: 'Circuits' },
 };
 
 /**
@@ -509,6 +511,31 @@ nota). Con baremo, la tabla muestra la nota de la última marca y aparece
 elija. La app todavía no trae baremos publicados: se incluirán solo cuando se
 haya comprobado que su licencia lo permite. El chico o chica de cada alumno
 para el baremo se marca en «Equipos».
+
+[ef-equipos] EQUIPOS
+Equipos equilibrados de una clase. Se elige la clase, el número de equipos
+(dice cuántos salen por equipo) y qué tener en cuenta: «Igualar el nivel» (el
+nivel de 1 a 3 que marca el docente), «Mezclar chicos y chicas» y «Separar las
+parejas». Si la asistencia de hoy tiene faltas, «Sin quien falta hoy» las deja
+fuera. «Hacer equipos» los reparte (cada vez de una manera distinta; «Hacer
+otros» repite). Los equipos llevan el color del peto y se quedan guardados en
+esa clase hasta que se hagan otros. Para retocarlos, se toca a un alumno y
+después a otro y se cambian de equipo, o «Mover aquí» en otro equipo. Quien
+está exento o lesionado juega en su equipo: sale su limitación y qué hace.
+«Proyectar» los muestra a pantalla completa SIN niveles ni limitaciones.
+Debajo, «Nivel y sexo del alumnado» (1, inicial; 2, medio; 3, avanzado; el
+sexo también sirve para el baremo) y «Parejas que separar».
+
+[ef-circuitos] CIRCUITOS
+El cronómetro de estaciones. «Nuevo circuito»: nombre, estaciones (una por
+línea), segundos de trabajo, de descanso entre estaciones, rondas y descanso
+entre rondas; abajo dice cuánto dura. «Empezar» lo abre a pantalla completa:
+10 segundos para colocarse y después cada estación, con su nombre en grande,
+la cuenta atrás y la siguiente. Tres pitidos cortos en los tres últimos
+segundos y uno largo al cambiar; el color y el rótulo dicen si es trabajo o
+descanso. Botones: fase anterior, pausa o seguir, fase siguiente, sonido y
+pantalla completa; con teclado, espacio y flechas. Mientras corre, la
+pantalla no se apaga si el dispositivo lo permite.
 
 === PT Y AL (solo profesorado especialista) ===
 Para quien atiende alumnado de muchas clases que no son suyas. Se elige al
