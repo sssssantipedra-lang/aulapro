@@ -21,7 +21,7 @@ import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
-import { exentosDelDia, LIMITACIONES } from './lib/ef';
+import { exentosDelDia, LIMITACIONES, pruebasDe } from './lib/ef';
 import { isoDate } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Ficha } from './types';
@@ -57,6 +57,7 @@ const CoordinacionesApoyo = lazy(() => import('./pages/apoyo/CoordinacionesApoyo
 const AgendaVisualApoyo = lazy(() => import('./pages/apoyo/AgendaVisualApoyo').then(m => ({ default: m.AgendaVisualApoyo })));
 const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ default: m.EfPista })));
 const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
+const EfPruebas      = lazy(() => import('./pages/ef/EfPruebas').then(m => ({ default: m.EfPruebas })));
 
 function Loading() {
   const { t } = useI18n();
@@ -111,6 +112,14 @@ function AppInner() {
         if (!s) return [];
         const detalle = e.limitaciones.map(l => t(LIMITACIONES.find(x => x.id === l)!.label)).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', ');
         return [{ id: e.id, nombre: s.name, clase: st.classes.find(c => c.id === s.class_id)?.name ?? '', detalle, tarea: e.tarea.trim() }];
+      }),
+      // La última toma de pruebas físicas de cada clase
+      pruebas: st.classes.map(c => {
+        const ids = new Set(st.students.filter(s => s.class_id === c.id).map(s => s.id));
+        const ultima = st.ef.marcas.filter(m => ids.has(m.alumnoId)).reduce<{ fecha: string; pruebaId: string } | null>(
+          (a, m) => (!a || m.fecha > a.fecha ? { fecha: m.fecha, pruebaId: m.pruebaId } : a), null);
+        const prueba = ultima ? pruebasDe(st.ef).find(p => p.id === ultima.pruebaId) : undefined;
+        return { id: c.id, clase: c.name, color: c.color, fecha: ultima?.fecha, prueba: prueba ? t(prueba.nombre) : undefined };
       }),
     };
   }, [tipo, st.currentUser?.tutor, st.ef, st.students, st.classes, t]);
@@ -605,6 +614,12 @@ function AppInner() {
             )}
             {section === 'ef-exentos' && (
               <EfExentos classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} onNav={setSection} />
+            )}
+            {section === 'ef-pruebas' && (
+              <EfPruebas
+                classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf}
+                gradeCategories={st.gradeCategories} onAddGradeItem={st.addGradeItem} onSetGrade={st.setGrade} onNav={setSection}
+              />
             )}
             {section === 'profile' && (
               <Profile

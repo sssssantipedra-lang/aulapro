@@ -38,8 +38,10 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - El docente puede ocultar estas pruebas y añadir las suyas.
 - Por defecto, marcas y evolución de cada alumno respecto a sí mismo.
 - Baremos opcionales, de dos fuentes:
-  - Los del docente, por curso y, si quiere, por sexo.
+  - Los del docente, por curso y, si quiere, por sexo. Se escriben a mano o se pegan desde una hoja de cálculo (`leerTramos`), y se copian de un curso a otro.
   - Uno publicado, solo si su licencia permite incluirlo en una app de pago.
+- Estado de los baremos publicados (5-10-2026): la app todavía no trae ninguno. Las tablas candidatas (ALPHA-Fitness y HELENA, Ortega y otros, 2011, BJSM; Tomkinson y otros, 2018, BJSM) están en revistas con licencias que hay que comprobar una a una, y desde el entorno de trabajo no se pudieron consultar. Hasta comprobar que la licencia permite el uso comercial, la app dice «La app todavía no trae baremos publicados; puedes crear el tuyo o pegar el de tu departamento.»
+- Con un baremo, la nota de cada marca sale del tramo en el que cae (`notaConBaremo`); «Al cuaderno» pasa esas notas a un instrumento del bloque que elija el docente.
 
 ## Equipos y circuitos
 

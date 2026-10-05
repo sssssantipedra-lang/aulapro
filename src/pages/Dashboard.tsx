@@ -10,7 +10,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Coffee, Clock, Bandage,
+  TrendingUp, Coffee, Clock, Bandage, Timer,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -42,7 +42,10 @@ interface Props {
    * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
    * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
    */
-  ef?: { exentosHoy: { id: string; nombre: string; clase: string; detalle: string; tarea: string }[] };
+  ef?: {
+    exentosHoy: { id: string; nombre: string; clase: string; detalle: string; tarea: string }[];
+    pruebas: { id: string; clase: string; color: string; fecha?: string; prueba?: string }[];
+  };
 }
 
 const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -297,6 +300,28 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             </ul>
           )}
         </div>
+
+        {ef && (
+          <div className="card home-card">
+            <div className="home-card-hd">
+              <div className="home-card-ttl"><Timer size={15} />{t('Pruebas físicas')}</div>
+              <button className="home-link" onClick={() => nav('ef-pruebas')}>{t('Anotar')}</button>
+            </div>
+            <ul className="home-list">
+              {ef.pruebas.map(p => (
+                <li key={p.id} className="home-event">
+                  <span className="home-class-dot" style={{ background: p.color }} />
+                  <span className="home-event-txt">
+                    <span className="home-event-name">{p.clase}</span>
+                    <span className="home-tl-room">{p.fecha
+                      ? t('Última toma: {prueba}, {fecha}', { prueba: p.prueba ?? '', fecha: fromIsoDate(p.fecha).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) })
+                      : t('Todavía sin pruebas')}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="card home-card">
           <div className="home-card-hd">

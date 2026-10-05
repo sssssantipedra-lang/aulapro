@@ -50,6 +50,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'apoyo-agenda-visual': { es: 'Agenda visual', en: 'Visual Schedule' },
   'ef-pista':            { es: 'En la pista', en: 'On the Court' },
   'ef-exentos':          { es: 'Exentos y lesiones', en: 'Exemptions and Injuries' },
+  'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },
 };
 
 /**
@@ -464,8 +465,9 @@ aula (Mis Clases, Agenda, Cuaderno, Asistencia, Evaluar con rúbricas y dianas,
 Documentos, En clase, Más) y, justo después del Inicio, el apartado
 «Educación Física», con pestañas arriba.
 INICIO DE EF (sin tutoría): el de siempre, con «Observar en la pista» en vez de
-«Anotar en el aula» en la clase de ahora, y la tarjeta «Exentos y lesiones» con
-quién no puede hacer la clase hoy y qué hace mientras tanto.
+«Anotar en el aula» en la clase de ahora, la tarjeta «Exentos y lesiones» con
+quién no puede hacer la clase hoy y qué hace mientras tanto, y la tarjeta
+«Pruebas físicas» con la última toma de cada clase.
 
 [ef-pista] EN LA PISTA
 La observación rápida, pensada para el móvil. Arriba, la clase (sale la que
@@ -488,6 +490,25 @@ MOTIVO es un dato de salud: se queda en el equipo y nunca se envía a la IA; a
 la IA solo le llega lo que no puede hacer, sin nombre. La lista se divide en
 «Ahora», «Más adelante» y los que ya terminaron. Sale en la pista, en el Inicio
 y al hacer equipos.
+
+[ef-pruebas] PRUEBAS FÍSICAS
+Arriba, la clase y la prueba, por capacidades: resistencia (Course Navette,
+test de Cooper), velocidad y agilidad (30 m, 4 × 10 m), fuerza (salto
+horizontal, balón medicinal, dinamometría) y flexibilidad (flexión de tronco
+sentado). Debajo, cómo se hace y una tabla con cada alumno: su primera marca,
+la última, la MEJORA respecto a sí mismo (en %, con flecha verde si mejora) y
+la casilla «Nueva marca». «Toma del» es la fecha; «Guardar la toma» guarda las
+marcas escritas (una por alumno, prueba y día: si se repite, sustituye a la
+anterior). «Pruebas» permite ocultar las de partida y crear las propias
+(nombre, capacidad, unidad, si es mejor una marca más alta o más baja y cómo
+se hace). «Baremos» es OPCIONAL: para cada prueba y curso (y, si se quiere,
+solo chicas o solo chicos) se escriben los tramos «con esta marca o mejor,
+esta nota», o se pegan de una hoja de cálculo (una línea por tramo: marca y
+nota). Con baremo, la tabla muestra la nota de la última marca y aparece
+«Pasar las notas al cuaderno», que crea una columna en la categoría que se
+elija. La app todavía no trae baremos publicados: se incluirán solo cuando se
+haya comprobado que su licencia lo permite. El chico o chica de cada alumno
+para el baremo se marca en «Equipos».
 
 === PT Y AL (solo profesorado especialista) ===
 Para quien atiende alumnado de muchas clases que no son suyas. Se elige al

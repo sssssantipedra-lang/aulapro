@@ -107,6 +107,45 @@ export function notaConBaremo(b: Pick<BaremoEF, 'tramos'>, p: Pick<PruebaFisica,
   return Math.max(...alcanzados.map(t => t.nota));
 }
 
+/** La primera y la última marca de un alumno, y cuánto ha mejorado (en %, positivo es mejor). */
+export function evolucionPrueba(d: EfData, p: PruebaFisica, alumnoId: string):
+  { primera?: MarcaPrueba; ultima?: MarcaPrueba; mejora: number | null; tomas: number } {
+  const ms = marcasDe(d, p.id, alumnoId);
+  const primera = ms[0];
+  const ultima = ms[ms.length - 1];
+  if (!primera || !ultima || ms.length < 2 || primera.valor === 0) return { primera, ultima, mejora: null, tomas: ms.length };
+  const cambio = ((ultima.valor - primera.valor) / Math.abs(primera.valor)) * 100;
+  return { primera, ultima, mejora: Math.round((p.mejor === 'mas' ? cambio : -cambio) * 10) / 10, tomas: ms.length };
+}
+
+/**
+ * El baremo de una prueba para un curso: el de su sexo si lo hay, y si no, el
+ * que no distingue. Sin curso o sin baremo, ninguno.
+ */
+export function baremoPara(
+  d: EfData, pruebaId: string, curso: { etapa?: string; curso?: number } | undefined, sexo?: SexoEF,
+): BaremoEF | undefined {
+  if (!curso?.etapa || !curso.curso) return undefined;
+  const delCurso = d.baremos.filter(b => b.pruebaId === pruebaId && b.etapa === curso.etapa && b.curso === curso.curso);
+  return (sexo && delCurso.find(b => b.sexo === sexo)) || delCurso.find(b => !b.sexo);
+}
+
+/**
+ * Lee un baremo pegado de una hoja de cálculo o escrito a mano: una línea por
+ * tramo con la marca y la nota, separadas por tabulador, punto y coma o
+ * espacio. Admite la coma decimal. Lo que no se entiende se salta.
+ */
+export function leerTramos(texto: string): TramoBaremo[] {
+  const num = (x: string) => Number(x.trim().replace(',', '.'));
+  return texto.split(/\r?\n/).flatMap(linea => {
+    const partes = linea.trim().split(/\t|;|\s+/).filter(Boolean);
+    if (partes.length < 2) return [];
+    const marca = num(partes[0]);
+    const nota = num(partes[1]);
+    return Number.isFinite(marca) && Number.isFinite(nota) && nota >= 0 && nota <= 10 ? [{ marca, nota }] : [];
+  });
+}
+
 /* ── Actividades ── */
 
 export const TIPOS_ACTIVIDAD: readonly { id: TipoActividadEF; label: string }[] = [

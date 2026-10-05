@@ -1300,6 +1300,22 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 @media (max-width: 640px) {
   .ef-pista { grid-template-columns:repeat(2, minmax(0,1fr)); }
 }
+/* Educación Física: pruebas físicas */
+.ef-pruebas-sel { display:flex; flex-wrap:wrap; gap:10px 22px; margin-bottom:14px; }
+.ef-pruebas-cat { display:flex; flex-direction:column; gap:6px; }
+.ef-tabla-wrap { overflow-x:auto; margin-top:14px; }
+.ef-tabla { width:100%; border-collapse:collapse; font-size:13.5px; }
+.ef-tabla th, .ef-tabla td { padding:8px 10px; border-top:1px solid var(--border); text-align:left; white-space:nowrap; }
+.ef-tabla thead th { border-top:none; font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-3); }
+.ef-tabla tbody th { font-weight:700; color:var(--text); }
+.ef-marca-in { width:96px; padding:6px 10px; text-align:right; }
+.ef-mejora { display:inline-flex; align-items:center; gap:3px; font-weight:800; font-variant-numeric:tabular-nums; }
+.ef-mejora.sube { color:var(--ok-fg); }
+.ef-mejora.baja { color:var(--danger); }
+.ef-mejora.igual { color:var(--text-3); }
+.ef-tramos { list-style:none; margin:0 0 8px; padding:0; display:flex; flex-direction:column; gap:6px; }
+.ef-tramos li { display:flex; align-items:center; gap:8px; }
+.ef-tramos .finput { width:110px; }
 /* Inicio de PT y AL */
 .ap-pasos { list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:14px; }
 .ap-pasos li { display:flex; gap:12px; align-items:flex-start; }
