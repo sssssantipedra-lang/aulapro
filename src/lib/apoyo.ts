@@ -123,20 +123,44 @@ export function tieneDesfase(a: AlumnoApoyo): boolean {
 }
 
 /**
- * Categorías de necesidad específica de apoyo educativo de la LOE (artículo
- * 71.2, en la redacción de la LOMLOE), para sugerirlas al escribir.
+ * Necesidades específicas de apoyo educativo para marcar en la ficha (un
+ * alumno puede tener varias). Las necesidades educativas especiales, por lo
+ * que las origina (discapacidad o trastornos graves de conducta, de la
+ * comunicación y del lenguaje, LOE artículo 73), y el resto de las del
+ * artículo 71.2, con el TDAH y las dificultades específicas de aprendizaje
+ * por separado, que es como se registran en los centros.
  */
-export const CATEGORIAS_NEAE: readonly string[] = [
-  'Necesidades educativas especiales',
-  'Retraso madurativo',
-  'Trastornos del desarrollo del lenguaje y la comunicación',
-  'Trastornos de atención o de aprendizaje',
-  'Desconocimiento grave de la lengua de aprendizaje',
-  'Situación de vulnerabilidad socioeducativa',
-  'Altas capacidades intelectuales',
-  'Incorporación tardía al sistema educativo',
-  'Condiciones personales o de historia escolar',
+export const GRUPOS_NEAE: readonly { titulo: string; categorias: readonly string[] }[] = [
+  {
+    titulo: 'Necesidades educativas especiales',
+    categorias: [
+      'Discapacidad intelectual',
+      'Discapacidad motora',
+      'Discapacidad auditiva',
+      'Discapacidad visual',
+      'Trastorno del espectro del autismo (TEA)',
+      'Trastorno grave de conducta',
+      'Trastorno grave de la comunicación y del lenguaje',
+      'Pluridiscapacidad',
+    ],
+  },
+  {
+    titulo: 'Otras necesidades específicas de apoyo educativo',
+    categorias: [
+      'Retraso madurativo',
+      'Trastorno del desarrollo del lenguaje y la comunicación',
+      'Trastorno por déficit de atención e hiperactividad (TDAH)',
+      'Dificultades específicas de aprendizaje (dislexia, discalculia…)',
+      'Desconocimiento grave de la lengua de aprendizaje',
+      'Situación de vulnerabilidad socioeducativa',
+      'Altas capacidades intelectuales',
+      'Incorporación tardía al sistema educativo',
+      'Condiciones personales o de historia escolar',
+    ],
+  },
 ];
+
+export const CATEGORIAS_NEAE: readonly string[] = GRUPOS_NEAE.flatMap(g => g.categorias);
 
 /* ── Programas y sesiones ── */
 
@@ -278,7 +302,10 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       id: a.id, nombre: a.nombre,
       claseOrigen: esTexto(a.claseOrigen) ? a.claseOrigen : '',
       matricula: curso(a.matricula), nivel: curso(a.nivel),
-      categoria: esTexto(a.categoria) ? a.categoria : '',
+      // Hasta la 2.1.0 era una sola, en `categoria`
+      categorias: Array.isArray(a.categorias)
+        ? [...new Set(a.categorias.filter(esTexto).map(c => c.trim()).filter(Boolean))]
+        : esTexto(a.categoria) && a.categoria.trim() ? [a.categoria.trim()] : [],
       diagnostico: esTexto(a.diagnostico) ? a.diagnostico : '',
       necesidades: esTexto(a.necesidades) ? a.necesidades : '',
       notas: esTexto(a.notas) ? a.notas : '',

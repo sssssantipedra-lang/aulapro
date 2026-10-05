@@ -30,7 +30,7 @@ const nombreCurso = (c: CursoDe) => `${c.curso}º ${c.etapa === 'primaria' ? 'Pr
 const marta: AlumnoApoyo = {
   id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B',
   matricula: { etapa: 'primaria', curso: 4 }, nivel: { etapa: 'primaria', curso: 2 },
-  categoria: 'Necesidades educativas especiales', diagnostico: 'Discapacidad intelectual leve',
+  categorias: ['Necesidades educativas especiales'], diagnostico: 'Discapacidad intelectual leve',
   necesidades: 'Aprende mejor con apoyo visual', notas: '',
 };
 

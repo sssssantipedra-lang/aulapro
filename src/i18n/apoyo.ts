@@ -205,6 +205,25 @@ export const APOYO_EN: Record<string, string> = {
   'Cómo adaptarlo a cada alumno, con IA': 'How to adapt it for each student, with AI',
   'Propuesta para hoy': 'Suggestion for today',
   'La IA no devolvió propuestas. Inténtalo de nuevo.': 'AI returned no suggestions. Please try again.',
+
+  /* ── Varias necesidades específicas ── */
+  'Necesidades específicas de apoyo educativo': 'Specific educational support needs',
+  'Marca todas las que tenga.': 'Tick all that apply.',
+  'Otras necesidades específicas de apoyo educativo': 'Other specific educational support needs',
+  'Discapacidad intelectual': 'Intellectual disability',
+  'Discapacidad motora': 'Physical (motor) disability',
+  'Discapacidad auditiva': 'Hearing impairment',
+  'Discapacidad visual': 'Visual impairment',
+  'Trastorno del espectro del autismo (TEA)': 'Autism spectrum disorder (ASD)',
+  'Trastorno grave de conducta': 'Severe behavioural disorder',
+  'Trastorno grave de la comunicación y del lenguaje': 'Severe communication and language disorder',
+  'Pluridiscapacidad': 'Multiple disabilities',
+  'Trastorno del desarrollo del lenguaje y la comunicación': 'Developmental language and communication disorder',
+  'Trastorno por déficit de atención e hiperactividad (TDAH)': 'Attention deficit hyperactivity disorder (ADHD)',
+  'Dificultades específicas de aprendizaje (dislexia, discalculia…)': 'Specific learning difficulties (dyslexia, dyscalculia…)',
+  'Otra necesidad': 'Another need',
+  'Otra que no esté en la lista': 'Another one not on the list',
+  'Quitar «{name}»': 'Remove “{name}”',
 };
 
 export const APOYO_CA: Record<string, string> = {
@@ -405,4 +424,23 @@ export const APOYO_CA: Record<string, string> = {
   'Cómo adaptarlo a cada alumno, con IA': 'Com adaptar-ho a cada alumne, amb IA',
   'Propuesta para hoy': 'Proposta per a avui',
   'La IA no devolvió propuestas. Inténtalo de nuevo.': 'La IA no ha tornat propostes. Torna-ho a provar.',
+
+  /* ── Varias necesidades específicas ── */
+  'Necesidades específicas de apoyo educativo': 'Necessitats específiques de suport educatiu',
+  'Marca todas las que tenga.': 'Marca totes les que tingui.',
+  'Otras necesidades específicas de apoyo educativo': 'Altres necessitats específiques de suport educatiu',
+  'Discapacidad intelectual': 'Discapacitat intel·lectual',
+  'Discapacidad motora': 'Discapacitat motora',
+  'Discapacidad auditiva': 'Discapacitat auditiva',
+  'Discapacidad visual': 'Discapacitat visual',
+  'Trastorno del espectro del autismo (TEA)': 'Trastorn de l\'espectre autista (TEA)',
+  'Trastorno grave de conducta': 'Trastorn greu de conducta',
+  'Trastorno grave de la comunicación y del lenguaje': 'Trastorn greu de la comunicació i del llenguatge',
+  'Pluridiscapacidad': 'Pluridiscapacitat',
+  'Trastorno del desarrollo del lenguaje y la comunicación': 'Trastorn del desenvolupament del llenguatge i la comunicació',
+  'Trastorno por déficit de atención e hiperactividad (TDAH)': 'Trastorn per dèficit d\'atenció i hiperactivitat (TDAH)',
+  'Dificultades específicas de aprendizaje (dislexia, discalculia…)': 'Dificultats específiques d\'aprenentatge (dislèxia, discalcúlia…)',
+  'Otra necesidad': 'Una altra necessitat',
+  'Otra que no esté en la lista': 'Una altra que no sigui a la llista',
+  'Quitar «{name}»': 'Treu «{name}»',
 };

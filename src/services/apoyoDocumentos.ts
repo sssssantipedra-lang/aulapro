@@ -176,7 +176,7 @@ export function cabecera(
     [t('Curso escolar'), docente.curso],
     ...(doc.tipo !== 'familia' ? [
       [t('Nivel de competencia curricular'), nivel ? nombreCurso(nivel) : undefined] as [string, string | undefined],
-      [t('Necesidad específica de apoyo educativo'), alumno.categoria] as [string, string | undefined],
+      [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')] as [string, string | undefined],
     ] : []),
     ...(doc.tipo === 'programacion' ? [[t('Horario de apoyo'), horario] as [string, string | undefined]] : []),
     ...(doc.trimestre && doc.tipo !== 'pap' && doc.tipo !== 'programacion' ? [[t('Trimestre'), t('{n}º trimestre', { n: doc.trimestre })] as [string, string]] : []),

@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   ambitosDe, trimestreDe, diaDeLaSemana, gruposDelDia, tieneDesfase, nivelDe,
   objetivosDelTrimestre, sesionDe, sesionConDatos, resumenObjetivo,
-  normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO,
+  normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, CATEGORIAS_NEAE,
 } from './apoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
 const alumno = (id: string, extra: Partial<AlumnoApoyo> = {}): AlumnoApoyo => ({
-  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', categoria: '', diagnostico: '', necesidades: '', notas: '', ...extra,
+  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', categorias: [], diagnostico: '', necesidades: '', notas: '', ...extra,
 });
 const grupo = (id: string, extra: Partial<GrupoApoyo> = {}): GrupoApoyo => ({
   id, nombre: `Grupo ${id}`, especialidad: 'PT', modalidad: 'fuera', horario: [], alumnos: [], color: '#000', ...extra,
@@ -151,6 +151,19 @@ describe('carga y borrado', () => {
     expect(vuelta.programas[0].objetivos[0].trimestres).toEqual([1, 2]);
     expect(vuelta.sesiones).toEqual(datos.sesiones);
     expect(vuelta.documentos).toEqual(datos.documentos);
+  });
+
+  it('convierte la necesidad única de la 2.1.0 en una lista, sin repetidas', () => {
+    const viejo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categoria: 'Discapacidad motora' }] });
+    expect(viejo.alumnos[0].categorias).toEqual(['Discapacidad motora']);
+    const nuevo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categorias: ['TDAH', ' TDAH ', 7, 'Discapacidad visual'] }] });
+    expect(nuevo.alumnos[0].categorias).toEqual(['TDAH', 'Discapacidad visual']);
+    expect(normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana' }] }).alumnos[0].categorias).toEqual([]);
+  });
+
+  it('la lista de necesidades incluye las motoras y no repite ninguna', () => {
+    expect(CATEGORIAS_NEAE).toContain('Discapacidad motora');
+    expect(new Set(CATEGORIAS_NEAE).size).toBe(CATEGORIAS_NEAE.length);
   });
 
   it('descarta lo que no entiende en vez de romper', () => {

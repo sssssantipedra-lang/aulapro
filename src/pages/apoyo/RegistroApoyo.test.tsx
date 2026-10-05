@@ -15,8 +15,8 @@ import type { ApoyoData } from '../../types/apoyo';
 
 const inicial: ApoyoData = {
   alumnos: [
-    { id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', categoria: '', diagnostico: '', necesidades: '', notas: '' },
-    { id: 'a2', nombre: 'Pau Ruiz', claseOrigen: '3º A', categoria: '', diagnostico: '', necesidades: '', notas: '' },
+    { id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', categorias: [], diagnostico: '', necesidades: '', notas: '' },
+    { id: 'a2', nombre: 'Pau Ruiz', claseOrigen: '3º A', categorias: [], diagnostico: '', necesidades: '', notas: '' },
   ],
   grupos: [
     { id: 'g1', nombre: 'Lectoescritura', especialidad: 'PT', modalidad: 'fuera', color: '#000', alumnos: ['a1', 'a2'],

@@ -24,7 +24,7 @@ const reg = (alumnoId: string, objetivos: Record<string, 'si' | 'proceso' | 'no'
 
 const data: ApoyoData = {
   alumnos: [{ id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', matricula: { etapa: 'primaria', curso: 4 },
-    nivel: { etapa: 'primaria', curso: 2 }, categoria: 'NEE', diagnostico: 'Discapacidad intelectual leve', necesidades: '', notas: '' }],
+    nivel: { etapa: 'primaria', curso: 2 }, categorias: ['NEE'], diagnostico: 'Discapacidad intelectual leve', necesidades: '', notas: '' }],
   grupos: [{ id: 'g1', nombre: 'Lectoescritura', especialidad: 'PT', modalidad: 'fuera', color: '#000', alumnos: ['a1'],
     horario: [{ dia: 0, inicio: '09:00', fin: '09:45' }] }],
   programas: [
@@ -80,7 +80,7 @@ describe('datos que pone la app', () => {
     const docente = { nombre: 'Laura Martí', centro: 'CEIP Prova', curso: '2026-2027' };
     const base = { id: 'd', alumnoId: 'a1', fecha: '', titulo: '', apartados: [], trimestre: 1 as const };
     const familia = cabecera({ ...base, tipo: 'familia' }, data.alumnos[0], data, docente, nombreCurso, t, 'es').map(f => f[0]);
-    expect(familia).not.toContain('Necesidad específica de apoyo educativo');
+    expect(familia).not.toContain('Necesidades específicas de apoyo educativo');
     expect(familia).toContain('Trimestre');
     const prog = cabecera({ ...base, tipo: 'programacion' }, data.alumnos[0], data, docente, nombreCurso, t, 'es');
     expect(prog.find(f => f[0] === 'Horario de apoyo')?.[1]).toBe('Lectoescritura: Lun 09:00–09:45');

@@ -21,7 +21,8 @@ Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición 
   - el nombre y la clase de origen (texto, por ejemplo «2º B»);
   - la etapa y el curso en que está matriculado;
   - el nivel de competencia curricular (etapa y curso de referencia);
-  - el diagnóstico y la categoría NEAE;
+  - el diagnóstico;
+  - sus necesidades específicas de apoyo educativo, todas las que tenga (decisión del 5-10-2026, desde la 2.2.0; hasta la 2.1.0 era una sola). Se marcan de una lista en dos grupos: las necesidades educativas especiales por lo que las origina (discapacidad intelectual, motora, auditiva o visual, TEA, trastorno grave de conducta o de la comunicación y del lenguaje, pluridiscapacidad) y el resto de las de la LOE, artículo 71.2, con el TDAH y las dificultades específicas de aprendizaje por separado. Se puede añadir otra a mano;
   - las necesidades, dichas en términos educativos;
   - las notas del docente.
 

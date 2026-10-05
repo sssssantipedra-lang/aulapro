@@ -477,9 +477,13 @@ sesiones a la semana, con día, hora de empezar y de acabar), su alumnado y un
 color; si el perfil es de PT y de AL, también de cuál de las dos es. ALUMNADO
 («Nuevo alumno»): nombre y apellidos, clase de origen («2º B»), curso en que
 está matriculado, nivel de competencia curricular (el curso cuyo currículo
-trabaja; si está por debajo de su curso se marca en la lista), necesidad
-específica de apoyo educativo (se elige o se escribe; sugiere las categorías
-de la LOE), diagnóstico, necesidades educativas (barreras, fortalezas y qué le
+trabaja; si está por debajo de su curso se marca en la lista), necesidades
+específicas de apoyo educativo (se marcan todas las que tenga, en dos grupos:
+las necesidades educativas especiales, con discapacidad intelectual, motora,
+auditiva o visual, TEA, trastorno grave de conducta o de la comunicación y
+pluridiscapacidad, y las demás, como TDAH, dificultades específicas de
+aprendizaje, TDL o altas capacidades; «Otra que no esté en la lista» añade una
+escrita a mano), diagnóstico, necesidades educativas (barreras, fortalezas y qué le
 ayuda), notas y sus grupos. El lápiz de cada fila edita; dentro está
 «Eliminar». Eliminar un alumno borra sus programas y sus registros; eliminar
 un grupo borra sus registros, pero no al alumnado. Todo se guarda en el

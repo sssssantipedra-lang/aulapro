@@ -32,8 +32,12 @@ export interface AlumnoApoyo {
    * de su matrícula.
    */
   nivel?: CursoDe;
-  /** Categoría de necesidad específica de apoyo educativo, en texto libre. */
-  categoria: string;
+  /**
+   * Sus necesidades específicas de apoyo educativo: puede tener varias. Las de
+   * la lista (`GRUPOS_NEAE`) se guardan con su texto en castellano y se
+   * traducen al mostrarlas; las escritas a mano, tal cual.
+   */
+  categorias: string[];
   /** Dato de salud: se guarda en el equipo. Ver `docs/PTAL.md`, «Datos y IA». */
   diagnostico: string;
   /** Sus necesidades en términos educativos: barreras, fortalezas, qué le ayuda. */
