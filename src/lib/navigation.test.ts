@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reachableSections, hubOf, isCurrent, NAV_GROUPS, navGroupsFor } from './navigation';
+import { reachableSections, hubOf, hubEnMenu, isCurrent, NAV_GROUPS, NAV_APOYO, navGroupsFor } from './navigation';
 import type { Section } from '../types';
 
 const ALL: Section[] = [
@@ -7,12 +7,15 @@ const ALL: Section[] = [
   'sec-classroom', 'share', 'classroom-live', 'attendance', 'reports', 'selfassess', 'audit', 'records',
   'learning-situations', 'resources', 'meetings', 'trainings', 'seating',
 ];
+const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-documentos'];
 
 describe('menú', () => {
   it('no se pierde ninguna pantalla y ninguna sale dos veces', () => {
     const r = reachableSections();
     expect(new Set(r).size).toBe(r.length);
     expect([...r].sort()).toEqual([...ALL].sort());
+    // Las de PT y AL, en su menú
+    expect(reachableSections(true)).toEqual(expect.arrayContaining(APOYO));
   });
 
   it('el menú visible es corto: 8 entradas fuera de «Más»', () => {
@@ -20,15 +23,23 @@ describe('menú', () => {
     expect(visible).toHaveLength(8);
   });
 
-  it('el profesorado de PT y AL tiene su apartado justo después del Inicio; el resto, no', () => {
+  it('el profesorado de PT y AL tiene su propio menú: el apoyo, lo común y Aula Live', () => {
     expect(navGroupsFor(false)).toBe(NAV_GROUPS);
-    const dia = navGroupsFor(true)[0].items;
-    expect(dia.map(e => e.id).slice(0, 2)).toEqual(['dashboard', 'apoyo']);
+    expect(navGroupsFor(true)).toBe(NAV_APOYO);
     const r = reachableSections(true);
     expect(new Set(r).size).toBe(r.length);
-    expect(r).toContain('apoyo-alumnado');
+    expect(r.slice(0, 5)).toEqual(['dashboard', 'apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-documentos']);
+    expect(r).toEqual(expect.arrayContaining(['agenda', 'resources', 'sec-classroom', 'meetings', 'trainings', 'audit', 'profile']));
+    // Nada de lo de tutoría
+    for (const s of ['classes', 'notebook', 'attendance', 'rubrics', 'reports', 'records', 'seating', 'share'] as Section[]) {
+      expect(r).not.toContain(s);
+    }
     expect(reachableSections()).not.toContain('apoyo-alumnado');
-    expect(hubOf('apoyo-alumnado')?.id).toBe('apoyo');
+    // Todo va suelto: sin pestañas de apartados que ese menú no tiene
+    expect(NAV_APOYO.flatMap(g => g.items).every(e => e.kind === 'link')).toBe(true);
+    expect(hubEnMenu('resources', true)).toBeUndefined();
+    expect(hubEnMenu('resources', false)?.id).toBe('documents');
+    expect(hubOf('apoyo-alumnado')).toBeUndefined();
   });
 
   it('cada pantalla agrupada marca su apartado como actual', () => {

@@ -8,6 +8,7 @@ import type {
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
+import { buildDemoApoyo } from '../lib/demoApoyo';
 import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
 import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
@@ -287,7 +288,9 @@ export function useAppState() {
   ) => {
     const created = await store.createProfile(input);
     if (options.demo) {
-      await store.saveData(created.id, demoSnapshot() as unknown as store.ProfileData);
+      // El ejemplo de PT y AL es su alumnado de apoyo, sin clases
+      const demo = input.especialidades?.length ? { ...emptySnapshot(), apoyo: buildDemoApoyo() } : demoSnapshot();
+      await store.saveData(created.id, demo as unknown as store.ProfileData);
     } else if (options.importLegacy) {
       const legacy = readLegacyData();
       if (legacy) {

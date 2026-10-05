@@ -19,6 +19,8 @@ import { downloadFile } from '../lib/download';
 import { CommunitySelect } from '../components/CommunitySelect';
 import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Especialidad } from '../types/apoyo';
+import { TipoDocentePicker, type TipoDocente } from '../components/TipoDocente';
+import { especialidadTexto } from '../lib/apoyo';
 
 interface Props {
   user: User | null;
@@ -42,6 +44,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [curso,  setCurso]  = useState(course ?? '');
   const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
   const [especialidades, setEspecialidades] = useState<Especialidad[]>(user?.especialidades ?? []);
+  const [tipo, setTipo] = useState<TipoDocente>(user?.especialidades?.length ? 'apoyo' : 'aula');
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>(
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
@@ -99,12 +102,26 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     toast(t('Contraseña quitada'));
   }
 
+  /** La especialidad escrita sola al elegir PT y AL, en el idioma de ahora. */
+  const especialidadSola = (e: string) =>
+    (['PT', 'AL'] as const).some(x => t(especialidadTexto([x])) === e) || t(especialidadTexto(['PT', 'AL'])) === e;
+
+  function cambiarTipo(tp: TipoDocente, esp: Especialidad[]) {
+    setTipo(tp);
+    setEspecialidades(esp);
+    // La que escribió el docente no se toca; la puesta sola sigue al tipo
+    if (espec.trim() && !especialidadSola(espec.trim())) return;
+    if (tp === 'aula') setEspec('');
+    else if (esp.length) setEspec(t(especialidadTexto(esp)));
+  }
+
   function saveProfile() {
     if (!nombre.trim()) { toast('El nombre no puede quedar vacío'); return; }
+    if (tipo === 'apoyo' && especialidades.length === 0) { toast(t('Marca si eres de PT, de AL o de las dos.')); return; }
     onUpdateUser({
       full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso,
       ...(comunidad ? { community: comunidad } : {}),
-      especialidades,
+      especialidades: tipo === 'apoyo' ? especialidades : [],
     });
     // Quien ya tenía comunidad y la cambia: las SdA que guardó siguen citando
     // el decreto con el que se hicieron, no se reescriben.
@@ -220,24 +237,13 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
               <label className="flabel" htmlFor="profile-f6">{t('Comunidad autónoma')}</label>
               <CommunitySelect id="profile-f6" value={comunidad} onChange={setComunidad} />
             </div>
-            {/* Con alguna, aparece en el menú el apartado «PT y AL» (ver docs/PTAL.md) */}
-            <fieldset className="fgroup" style={{ gridColumn: '1 / -1', border: 0, padding: 0, margin: 0 }}>
-              <legend className="flabel">{t('Profesorado especialista de apoyo')}</legend>
-              {([['PT', 'Pedagogía Terapéutica (PT)'], ['AL', 'Audición y Lenguaje (AL)']] as const).map(([id, label]) => (
-                <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, marginBottom: 6, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox" checked={especialidades.includes(id)}
-                    onChange={e => setEspecialidades(prev => (e.target.checked
-                      ? (['PT', 'AL'] as const).filter(x => x === id || prev.includes(x))
-                      : prev.filter(x => x !== id)))}
-                  />
-                  {t(label)}
-                </label>
-              ))}
-              <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '2px 0 0' }}>
-                {t('Si marcas alguna, en el menú aparece «PT y AL», con tu alumnado de apoyo, el registro de cada sesión, sus programas y los informes.')}
+            {/* Con PT y AL cambian el menú y el Inicio (ver docs/PTAL.md) */}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <TipoDocentePicker id="profile-tipo" tipo={tipo} especialidades={especialidades} onChange={cambiarTipo} />
+              <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '-6px 0 0' }}>
+                {t('Al cambiar el tipo cambian el menú y el Inicio. No se borra nada: si vuelves al otro tipo, lo encontrarás como lo dejaste.')}
               </p>
-            </fieldset>
+            </div>
           </div>
           <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
             <button className="btn-accent" onClick={saveProfile}>{t('Guardar cambios')}</button>

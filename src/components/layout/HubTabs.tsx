@@ -4,21 +4,20 @@
  * volver al menú. Al entrar en el apartado parpadea dos veces del color de la
  * app (ver App.tsx e index.css). Ver lib/navigation.ts.
  */
-import { ClipboardCheck, FileText, Presentation, HeartHandshake } from 'lucide-react';
+import { ClipboardCheck, FileText, Presentation } from 'lucide-react';
 import type { Section } from '../../types';
-import { hubOf, type NavHub } from '../../lib/navigation';
+import { hubEnMenu, type NavHub } from '../../lib/navigation';
 import { useI18n } from '../../i18n';
 
 const HUB_ICON: Record<NavHub['id'], React.ReactNode> = {
   evaluate: <ClipboardCheck size={16} />,
   documents: <FileText size={16} />,
   inclass: <Presentation size={16} />,
-  apoyo: <HeartHandshake size={16} />,
 };
 
-export function HubTabs({ section, onNav }: { section: Section; onNav: (s: Section) => void }) {
+export function HubTabs({ section, especialista, onNav }: { section: Section; especialista: boolean; onNav: (s: Section) => void }) {
   const { t } = useI18n();
-  const hub = hubOf(section);
+  const hub = hubEnMenu(section, especialista);
   if (!hub) return null;
 
   return (

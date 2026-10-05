@@ -115,6 +115,10 @@ inglés y catalán (se cambia en la pantalla de bienvenida y en Configuración �
 Idioma). En catalán, también la IA redacta en catalán (fichas, informes, SdA…).
 
 === CÓMO SE NAVEGA ===
+Al crear el perfil se elige el TIPO DE DOCENTE: «Docente de aula» (tutoría o
+materias) o «PT y AL» (profesorado especialista de apoyo). Cada tipo tiene su
+menú y su Inicio. Lo que sigue es el del docente de aula; el de PT y AL está en
+«PT Y AL», más abajo. El tipo se cambia en Configuración → Perfil.
 Barra lateral a la izquierda, organizada por tareas, con tres grupos:
 - «Tu día a día»: Inicio, Mis Clases, Agenda, Cuaderno de Notas y Asistencia.
 - «Trabajo docente»: tres APARTADOS que reúnen pantallas hermanas. Al entrar
@@ -443,13 +447,39 @@ un QR y los cambios se sincronizan solos. El dueño de cada lista manda sobre
 ella, para que nadie machaque el trabajo del otro.
 
 === PT Y AL (solo profesorado especialista) ===
-Apartado del menú, justo después del Inicio, que solo aparece si en
-Configuración → Perfil está marcada «Pedagogía Terapéutica (PT)» o «Audición y
-Lenguaje (AL)». Es para quien atiende alumnado de muchas clases que no son
-suyas: este alumnado es aparte del de «Mis Clases».
+Para quien atiende alumnado de muchas clases que no son suyas. Se elige al
+crear el perfil («Tipo de docente» → «PT y AL», y se marca «Pedagogía
+Terapéutica (PT)», «Audición y Lenguaje (AL)» o las dos; la especialidad se
+escribe sola) o después en Configuración → Perfil. Al cambiar de tipo no se
+borra nada. Su MENÚ es otro:
+- «Tu día a día»: Inicio, Registro diario, Alumnado y grupos, Programas,
+  Programación e informes y Agenda.
+- «Herramientas»: Recursos (fichas, sin clase concreta) y Aula Live (la ruleta
+  y los grupos salen de su alumnado de apoyo).
+- «Más»: Reuniones, Formaciones, Registro de cambios y Configuración.
+No tiene Mis Clases, Cuaderno, Asistencia, Evaluar ni Trabajo compartido.
+En la AGENDA, el horario de sus grupos de apoyo sale solo en la vista semanal
+(pulsándolo lleva a Alumnado y grupos, donde se cambia).
+
+INICIO DE PT Y AL: el saludo con el trimestre y tres tarjetas:
+- SESIONES DE HOY: los grupos que tienen sesión hoy según su horario, por hora,
+  con su alumnado. «Registrar» abre el Registro diario en ese grupo; las ya
+  anotadas dicen «Registrada».
+- AVISOS DE SEGUIMIENTO: al final del trimestre, los informes que faltan; las
+  sesiones de los últimos 7 días que se quedaron sin registrar (desde la
+  primera que se registró de ese grupo), con «Registrar» en ese día; un
+  objetivo con 3 veces seguidas «No conseguido» («quizá convenga ajustarlo o
+  cambiar el apoyo»); un objetivo del trimestre sin trabajar en ninguna de 3 o
+  más sesiones; alumnos sin objetivos este trimestre y alumnos sin grupo.
+- EVOLUCIÓN DEL ALUMNADO: una barra por alumno con sus objetivos del trimestre
+  según lo último registrado de cada uno (Conseguido, En proceso, No conseguido,
+  Sin trabajar) y cuántos lleva conseguidos. Pulsando el alumno se ve cada
+  objetivo con un punto por sesión, de color según cómo fue.
+Sin alumnado todavía, el Inicio muestra tres pasos (alumnado y grupos,
+programas, registro) y «Probar con datos de ejemplo».
 
 [apoyo-registro] REGISTRO DIARIO
-La primera pestaña de «PT y AL», para usar en la sesión. Arriba, la fecha (con
+La entrada de PT y AL para usar en la sesión. Arriba, la fecha (con
 flechas para el día anterior y el siguiente, o pulsándola para elegir otra) y
 el trimestre, que sale de la fecha (septiembre a diciembre el 1º, enero a marzo
 el 2º, abril en adelante el 3º). Debajo, los grupos que tienen sesión ese día
@@ -546,9 +576,9 @@ Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
 izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
 vuelve con «← Configuración»:
 - PERFIL: nombre, apellidos, centro, especialidad, curso escolar, comunidad
-  autónoma y, para el profesorado especialista de apoyo, las casillas
-  «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»: con alguna marcada
-  aparece en el menú el apartado «PT y AL».
+  autónoma y el TIPO DE DOCENTE: «Docente de aula» o «PT y AL» (con las
+  casillas «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»). Al
+  cambiarlo cambian el menú y el Inicio; no se borra nada.
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
   «Pegar mi clave», que la guarda y comprueba que funciona. También explica el

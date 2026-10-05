@@ -5,10 +5,14 @@ import { listProfiles, deleteProfile, isDesktop, type TeacherProfile, type NewPr
 import { CommunitySelect } from '../components/CommunitySelect';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { DEMO_COMMUNITY } from '../lib/demoData';
+import { DEMO_APOYO_USER } from '../lib/demoApoyo';
 import { initials } from '../lib/utils';
 import { verifyPassword } from '../lib/password';
 import { Modal } from '../components/ui/Modal';
 import { Flag } from '../components/ui/Flag';
+import { TipoDocentePicker, type TipoDocente } from '../components/TipoDocente';
+import { especialidadTexto } from '../lib/apoyo';
+import type { Especialidad } from '../types/apoyo';
 
 /**
  * Selector de idioma flotante, visible en las tres pantallas de este
@@ -106,6 +110,8 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   const [subject, setSubject] = useState('');
   const [course, setCourse]   = useState(currentCourse());
   const [community, setCommunity] = useState<ComunidadId | ''>('');
+  const [tipo, setTipo] = useState<TipoDocente>('aula');
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [error, setError]     = useState('');
   const [importLegacy, setImportLegacy] = useState(true);
 
@@ -122,10 +128,16 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setError(t('Escribe tu nombre para empezar.')); return; }
+    if (tipo === 'apoyo' && especialidades.length === 0) { setError(t('Marca si eres de PT, de AL o de las dos.')); return; }
     if (!community) { setError(t('Elige tu comunidad autónoma.')); return; }
     setBusy(true);
     await onCreateProfile(
-      { name: name.trim(), school: school.trim(), subject: subject.trim(), course: course.trim(), community },
+      {
+        name: name.trim(), school: school.trim(), course: course.trim(), community,
+        ...(tipo === 'apoyo'
+          ? { subject: t(especialidadTexto(especialidades)), especialidades }
+          : { subject: subject.trim() }),
+      },
       { importLegacy: legacy && importLegacy && profiles?.length === 0 },
     );
     setBusy(false);
@@ -199,16 +211,28 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
             <input id="welcome-f1" className="finput" value={name} autoFocus placeholder="Ana García Ruiz"
               onChange={e => { setName(e.target.value); if (error) setError(''); }} />
           </div>
-          <div className="frow fgroup">
-            <div>
+          <TipoDocentePicker
+            id="welcome-tipo" tipo={tipo} especialidades={especialidades}
+            onChange={(tp, esp) => { setTipo(tp); setEspecialidades(esp); if (error) setError(''); }}
+          />
+          {/* La especialidad de PT y AL se escribe sola */}
+          {tipo === 'apoyo' ? (
+            <div className="fgroup">
               <label className="flabel" htmlFor="welcome-f2">{t('Centro educativo')}</label>
-              <input id="welcome-f2" className="finput" value={school} placeholder="IES Ejemplo" onChange={e => setSchool(e.target.value)} />
+              <input id="welcome-f2" className="finput" value={school} placeholder="CEIP Ejemplo" onChange={e => setSchool(e.target.value)} />
             </div>
-            <div>
-              <label className="flabel" htmlFor="welcome-f3">{t('Especialidad')}</label>
-              <input id="welcome-f3" className="finput" value={subject} placeholder="Matemáticas" onChange={e => setSubject(e.target.value)} />
+          ) : (
+            <div className="frow fgroup">
+              <div>
+                <label className="flabel" htmlFor="welcome-f2">{t('Centro educativo')}</label>
+                <input id="welcome-f2" className="finput" value={school} placeholder="IES Ejemplo" onChange={e => setSchool(e.target.value)} />
+              </div>
+              <div>
+                <label className="flabel" htmlFor="welcome-f3">{t('Especialidad')}</label>
+                <input id="welcome-f3" className="finput" value={subject} placeholder="Matemáticas" onChange={e => setSubject(e.target.value)} />
+              </div>
             </div>
-          </div>
+          )}
           <div className="fgroup">
             <label className="flabel" htmlFor="welcome-f4">{t('Curso escolar')}</label>
             <input id="welcome-f4" className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
@@ -236,7 +260,14 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         {profiles.length === 0 ? (
           <button
             type="button"
-            onClick={() => onExploreDemo({ name: 'Ana García Ruiz', school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse(), community: DEMO_COMMUNITY })}
+            // Con el tipo elegido: quien es de PT y AL ve el ejemplo de PT y AL
+            onClick={() => onExploreDemo(tipo === 'apoyo'
+              ? {
+                name: DEMO_APOYO_USER.full_name, school: DEMO_APOYO_USER.school, course: currentCourse(), community: DEMO_COMMUNITY,
+                especialidades: especialidades.length ? especialidades : ['PT', 'AL'],
+                subject: t(especialidadTexto(especialidades.length ? especialidades : ['PT', 'AL'])),
+              }
+              : { name: 'Ana García Ruiz', school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse(), community: DEMO_COMMUNITY })}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
               width: '100%', marginTop: 14, padding: '11px 0', background: 'none',
@@ -327,7 +358,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         </div>
       )}
 
-      <button className="btn-primary" onClick={() => { setCreating(true); setName(''); setSchool(''); setSubject(''); setError(''); }}>
+      <button className="btn-primary" onClick={() => { setCreating(true); setName(''); setSchool(''); setSubject(''); setTipo('aula'); setEspecialidades([]); setError(''); }}>
         <Plus size={16} style={{ display: 'inline', verticalAlign: -3, marginRight: 6 }} />
         {t('Añadir otro perfil')}
       </button>

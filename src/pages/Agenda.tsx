@@ -43,9 +43,11 @@ function weekDates(date: Date): Date[] {
   });
 }
 
-// Check if a schedule block falls within a time slot
+// Si el bloque ocupa algo de esa hora. Antes solo contaba si cruzaba la hora
+// en punto, y uno de 12:15 a 13:00 no salía en ninguna.
 function blockInSlot(block: ScheduleBlock, slot: string): boolean {
-  return block.time_start <= slot && block.time_end > slot;
+  const end = `${String(Number(slot.slice(0, 2)) + 1).padStart(2, '0')}:00`;
+  return block.time_start < end && block.time_end > slot;
 }
 
 // --------------- sub-components ---------------
@@ -108,6 +110,11 @@ function blankEvent(): CalEvent {
 interface Props {
   classes: Class[];
   scheduleBlocks: ScheduleBlock[];
+  /**
+   * PT y AL: el horario de sus grupos de apoyo, que se pinta en la semana sin
+   * apuntarlo dos veces. Se cambia en «Alumnado y grupos», no aquí.
+   */
+  apoyoBlocks?: ScheduleBlock[];
   calEvents: CalEvent[];
   onAddBlock: (b: ScheduleBlock) => void;
   onUpdateBlock: (b: ScheduleBlock) => void;
@@ -124,6 +131,7 @@ interface Props {
 export function Agenda({
   classes,
   scheduleBlocks,
+  apoyoBlocks = [],
   calEvents,
   onAddBlock,
   onUpdateBlock,
@@ -502,6 +510,9 @@ export function Agenda({
                   const blocksInCell = scheduleBlocks.filter(
                     b => b.day === dayNum && blockInSlot(b, slot),
                   );
+                  const apoyoInCell = apoyoBlocks.filter(
+                    b => b.day === dayNum && blockInSlot(b, slot),
+                  );
                   return (
                     <div
                       key={`cell-${slot}-${dayNum}`}
@@ -515,6 +526,9 @@ export function Agenda({
                         gap: 3,
                       }}
                     >
+                      {apoyoInCell.map(b => (
+                        <BlockCard key={b.id} block={b} onClick={() => onNav('apoyo-alumnado')} />
+                      ))}
                       {blocksInCell.map(b => (
                         <BlockCard key={b.id} block={b} onClick={() => openEditBlock(b)} />
                       ))}

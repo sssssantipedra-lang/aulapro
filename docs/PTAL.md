@@ -13,6 +13,37 @@ Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición 
 - Solo el profesorado especialista. El perfil dice si es de PT, de AL o de las dos; el módulo aparece en el menú solo entonces.
 - No se comparte con el tutor o la tutora por ahora.
 
+## Perfil de PT y AL (5-10-2026)
+
+Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposición de la app.
+
+- **Tipo de docente.** Al crear el perfil se elige «Docente de aula» o «PT y AL». Con PT y AL se marca PT, AL o las dos (al menos una) y la especialidad del perfil se escribe sola. Se cambia en Configuración → Perfil; al cambiar no se borra nada. En los datos, un perfil es de PT y AL si tiene alguna especialidad (`especialidades`): no hay otro campo.
+- **Más adelante:** Educación Física, con la opción de ser tutor a la vez («un 2 en 1»). Junto con la tutoría.
+- **Menú** (`NAV_APOYO` en `src/lib/navigation.ts`): lo de apoyo y lo común, sin nada de tutoría.
+  - Tu día a día: Inicio, Registro diario, Alumnado y grupos, Programas, Programación e informes y Agenda.
+  - Herramientas: Recursos y Aula Live, cuya ruleta y grupos salen del alumnado de apoyo.
+  - Más: Reuniones, Formaciones, Registro de cambios y Configuración.
+  - Todo va como entradas sueltas: Recursos y Aula Live no llevan las pestañas de Documentos y En clase, que ese menú no tiene.
+- **Agenda:** el horario de los grupos de apoyo sale en la vista semanal sin apuntarlo dos veces. Se cambia en Alumnado y grupos.
+- **Inicio** (`src/pages/apoyo/InicioApoyo.tsx`, lógica en `src/lib/inicioApoyo.ts`):
+  - Sesiones de hoy, por hora, con «Registrar», que abre el registro de ese grupo y ese día.
+  - Avisos de seguimiento:
+    - los informes que faltan al final del trimestre (diciembre, desde el 10 de marzo y junio);
+    - las sesiones de los últimos 7 días sin registrar, solo desde la primera registrada de cada grupo;
+    - un objetivo con 3 «No conseguido» seguidos;
+    - un objetivo del trimestre sin trabajar en 3 o más sesiones a las que vino;
+    - el alumnado sin objetivos en el trimestre o sin grupo.
+  - Evolución del alumnado: por alumno, sus objetivos del trimestre según lo último registrado (conseguido, en proceso, no conseguido, sin trabajar), y al desplegarlo, cada objetivo sesión a sesión.
+  - Sin alumnado, tres pasos y «Probar con datos de ejemplo».
+- **Datos de ejemplo** (`src/lib/demoApoyo.ts`): 4 alumnos inventados, uno con TEA y discapacidad motora, 4 grupos y sesiones de las dos últimas semanas. Las fechas se calculan desde hoy.
+
+### Lo que viene después, ya decidido
+
+- Gráfica de cada objetivo, sesión a sesión.
+- Coordinaciones por alumno (tutor, familia, orientación) con los acuerdos, para el apartado H del PAP y los informes.
+- Fichas adaptadas con IA a partir de un alumno.
+- Agenda visual del alumno con pictogramas de Mulberry Symbols (CC BY-SA 4.0, unos 200, dentro de la app, con su nombre en castellano, valenciano e inglés) y fotos del propio docente. Funciona sin conexión y no envía nada. La atribución va en Configuración y al pie de cada agenda impresa: «Mulberry Symbols by Steve Lee are licenced under the Creative Commons Attribution-ShareAlike 4.0 License. See https://mulberrysymbols.org for details». ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el uso comercial.
+
 ## Alumnado y grupos de apoyo
 
 - El especialista crea sus grupos de apoyo («Lectoescritura, lunes 9:00») con alumnado de distintas clases.

@@ -17,6 +17,7 @@ import { adaptarTema } from '../../services/apoyoIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import { isoDate } from '../../lib/utils';
 import { isAndroidApp } from '../../lib/platform';
+import { takeRegistro } from '../../lib/apoyoNav';
 import {
   ASPECTOS, diaDeLaSemana, gruposDelDia, objetivosDelTrimestre, sesionConDatos, sesionDe, trimestreDe,
 } from '../../lib/apoyo';
@@ -58,8 +59,10 @@ export function RegistroApoyo({ data, onChange, comunidad, onNav }: Props) {
   const nombreCurso = useNombreCurso();
   const [adaptando, setAdaptando] = useState(false);
   const estrecha = useNarrowScreen();
-  const [fecha, setFecha] = useState(isoDate());
-  const [elegido, setElegido] = useState<string | null>(null);
+  // Desde el Inicio se llega con el grupo y el día ya elegidos
+  const [pedido] = useState(takeRegistro);
+  const [fecha, setFecha] = useState(pedido?.fecha ?? isoDate());
+  const [elegido, setElegido] = useState<string | null>(pedido?.grupoId ?? null);
   const [indice, setIndice] = useState(0);
 
   const delDia = useMemo(() => gruposDelDia(data.grupos, fecha), [data.grupos, fecha]);

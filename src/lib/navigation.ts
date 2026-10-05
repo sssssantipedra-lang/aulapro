@@ -13,9 +13,11 @@
  *   - Más (plegado): Reuniones, Formaciones, Trabajo compartido, Registro
  *     de cambios y Mi perfil.
  *
- * El profesorado especialista de PT y AL tiene además el apartado «PT y AL»,
- * justo después del Inicio: es su trabajo diario (ver `docs/PTAL.md`). Al
- * resto no le aparece.
+ * El profesorado especialista de PT y AL tiene su propio menú (decisión del
+ * dueño, 5-10-2026: quien es de PT o de AL normalmente no es tutor). Lleva su
+ * trabajo de apoyo como entradas sueltas, lo común de todo el profesorado y
+ * Aula Live; nada de clases, cuaderno ni evaluación del grupo. Ver
+ * `docs/PTAL.md`.
  *
  * Las pantallas no cambian ni de identificador: todo lo que ya navegaba a
  * «rubrics» o «records» sigue funcionando; el apartado solo agrupa.
@@ -24,11 +26,12 @@ import type { Section } from '../types';
 
 export type NavIcon =
   | 'home' | 'classes' | 'agenda' | 'notebook' | 'attendance'
-  | 'evaluate' | 'documents' | 'inclass' | 'apoyo'
+  | 'evaluate' | 'documents' | 'inclass'
+  | 'session' | 'students' | 'goals' | 'reports' | 'resources' | 'live'
   | 'meetings' | 'trainings' | 'share' | 'audit' | 'profile';
 
 export interface NavHub {
-  id: 'evaluate' | 'documents' | 'inclass' | 'apoyo';
+  id: 'evaluate' | 'documents' | 'inclass';
   label: string;
   /** Para qué sirve, en una frase: se ve bajo las pestañas y en el tooltip del menú. */
   hint: string;
@@ -70,22 +73,14 @@ export const HUBS: readonly NavHub[] = [
       { id: 'classroom-live', label: 'Sala de alumnos' },
     ],
   },
-  {
-    id: 'apoyo', label: 'PT y AL', icon: 'apoyo',
-    hint: 'Tu alumnado de apoyo: el registro de cada sesión, sus programas personalizados, la programación y los informes.',
-    tabs: [
-      { id: 'apoyo-registro',   label: 'Registro diario' },
-      { id: 'apoyo-alumnado',   label: 'Alumnado y grupos' },
-      { id: 'apoyo-programas',  label: 'Programas' },
-      { id: 'apoyo-documentos', label: 'Programación e informes' },
-    ],
-  },
 ];
+
+type NavGroups = readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[];
 
 const link = (id: Section, label: string, icon: NavIcon): NavEntry => ({ kind: 'link', id, label, icon });
 const hub = (id: NavHub['id']): NavEntry => ({ kind: 'hub', ...HUBS.find(h => h.id === id)! });
 
-export const NAV_GROUPS: readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[] = [
+export const NAV_GROUPS: NavGroups = [
   {
     sect: 'Tu día a día',
     items: [
@@ -108,25 +103,64 @@ export const NAV_GROUPS: readonly { sect: string; items: NavEntry[]; collapsedBy
       link('trainings', 'Formaciones',         'trainings'),
       link('share',     'Trabajo compartido',  'share'),
       link('audit',     'Registro de cambios', 'audit'),
-      link('profile',   'Configuración',           'profile'),
+      link('profile',   'Configuración',       'profile'),
     ],
   },
 ];
 
 /**
- * El menú de un perfil: el de siempre y, si es especialista de PT o de AL,
- * su apartado justo después del Inicio.
+ * El menú del profesorado especialista de PT y AL. Su día a día es el apoyo;
+ * de las herramientas, las que sirven sin clases propias.
  */
-export function navGroupsFor(especialista: boolean): readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[] {
-  if (!especialista) return NAV_GROUPS;
-  return NAV_GROUPS.map((g, i) => (i === 0
-    ? { ...g, items: [g.items[0], hub('apoyo'), ...g.items.slice(1)] }
-    : g));
+export const NAV_APOYO: NavGroups = [
+  {
+    sect: 'Tu día a día',
+    items: [
+      link('dashboard',        'Inicio',                  'home'),
+      link('apoyo-registro',   'Registro diario',         'session'),
+      link('apoyo-alumnado',   'Alumnado y grupos',       'students'),
+      link('apoyo-programas',  'Programas',               'goals'),
+      link('apoyo-documentos', 'Programación e informes', 'reports'),
+      link('agenda',           'Agenda',                  'agenda'),
+    ],
+  },
+  {
+    sect: 'Herramientas',
+    items: [
+      link('resources',     'Recursos',  'resources'),
+      link('sec-classroom', 'Aula Live', 'live'),
+    ],
+  },
+  {
+    sect: 'Más',
+    collapsedByDefault: true,
+    items: [
+      link('meetings',  'Reuniones',           'meetings'),
+      link('trainings', 'Formaciones',         'trainings'),
+      link('audit',     'Registro de cambios', 'audit'),
+      link('profile',   'Configuración',       'profile'),
+    ],
+  },
+];
+
+/** El menú de un perfil: el de siempre o, si es especialista de PT o de AL, el suyo. */
+export function navGroupsFor(especialista: boolean): NavGroups {
+  return especialista ? NAV_APOYO : NAV_GROUPS;
 }
 
 /** El apartado al que pertenece una pantalla, si pertenece a alguno. */
 export function hubOf(section: Section): NavHub | undefined {
   return HUBS.find(h => h.tabs.some(t => t.id === section));
+}
+
+/**
+ * El apartado de la pantalla, solo si ese menú lo tiene: en el de PT y AL,
+ * Recursos y Aula Live van sueltos y no llevan las pestañas de sus hermanas,
+ * que ese menú no tiene.
+ */
+export function hubEnMenu(section: Section, especialista: boolean): NavHub | undefined {
+  const h = hubOf(section);
+  return h && navGroupsFor(especialista).some(g => g.items.some(e => e.kind === 'hub' && e.id === h.id)) ? h : undefined;
 }
 
 /** Si la entrada del menú corresponde a la pantalla abierta. */

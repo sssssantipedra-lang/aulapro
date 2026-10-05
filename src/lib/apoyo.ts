@@ -2,6 +2,7 @@
  * Lógica del módulo de PT y AL, sin React. Ver `docs/PTAL.md`.
  */
 import type { ComunidadId } from './curriculum/comunidades';
+import type { ScheduleBlock } from '../types';
 import type {
   AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, CursoDe, DocumentoApoyo, Especialidad, GrupoApoyo, Logro,
   ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
@@ -17,6 +18,15 @@ export function nuevoIdApoyo(prefijo: string): string {
 export function especialidadesDePerfil(valor: unknown): Especialidad[] {
   if (!Array.isArray(valor)) return [];
   return (['PT', 'AL'] as const).filter(e => valor.includes(e));
+}
+
+/**
+ * La especialidad que se escribe en el perfil de PT y AL cuando el docente no
+ * ha escrito otra. Es una clave del diccionario: se traduce al guardarla.
+ */
+export function especialidadTexto(especialidades: readonly Especialidad[]): string {
+  if (especialidades.includes('PT') && especialidades.includes('AL')) return 'Pedagogía Terapéutica y Audición y Lenguaje';
+  return especialidades.includes('AL') ? 'Audición y Lenguaje' : 'Pedagogía Terapéutica';
 }
 
 /* ── Ámbitos ── */
@@ -106,6 +116,18 @@ export function gruposDelDia(grupos: readonly GrupoApoyo[], fechaIso: string): G
   const dia = diaDeLaSemana(fechaIso);
   const inicio = (g: GrupoApoyo) => g.horario.filter(f => f.dia === dia).map(f => f.inicio).sort()[0] ?? '';
   return grupos.filter(g => g.horario.some(f => f.dia === dia)).sort((a, b) => inicio(a).localeCompare(inicio(b)));
+}
+
+/**
+ * El horario de los grupos de apoyo como bloques de la Agenda, para que el
+ * especialista no tenga que apuntarlo dos veces. La Agenda cuenta los días
+ * de 1 (lunes) a 5; el apoyo, de 0 a 4.
+ */
+export function bloquesDeApoyo(grupos: readonly GrupoApoyo[]): ScheduleBlock[] {
+  return grupos.flatMap(g => g.horario.map((f, i) => ({
+    id: `apoyo-${g.id}-${i}`, day: f.dia + 1, time_start: f.inicio, time_end: f.fin,
+    subject: g.nombre, room: g.especialidad, class_id: '', color: g.color,
+  })));
 }
 
 /* ── Alumnado ── */

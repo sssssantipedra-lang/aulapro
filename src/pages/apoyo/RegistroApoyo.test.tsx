@@ -12,6 +12,7 @@ import { RegistroApoyo } from './RegistroApoyo';
 import { I18nProvider } from '../../i18n';
 import { ToastProvider } from '../../components/ui/Toast';
 import type { ApoyoData } from '../../types/apoyo';
+import { requestRegistro } from '../../lib/apoyoNav';
 
 const inicial: ApoyoData = {
   alumnos: [
@@ -58,6 +59,14 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('Registro diario', () => {
+  it('desde el Inicio llega con el grupo y el día ya elegidos', () => {
+    requestRegistro({ grupoId: 'g2', fecha: '2026-10-07' });
+    render(<Harness />);
+    expect(screen.getByRole('tab', { name: /Lenguaje oral/ }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByText(/Miércoles, 7 de octubre/)).toBeTruthy();
+    expect(within(screen.getByRole('article', { name: 'Marta Gil' })).getByText('Respetar el turno')).toBeTruthy();
+  });
+
   it('abre el grupo del día con los objetivos del trimestre de su especialidad', () => {
     render(<Harness />);
     expect(screen.getByRole('tab', { name: /Lectoescritura/ }).getAttribute('aria-selected')).toBe('true');
