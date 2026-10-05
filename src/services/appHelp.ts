@@ -53,6 +53,9 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },
   'ef-equipos':          { es: 'Equipos', en: 'Teams' },
   'ef-circuitos':        { es: 'Circuitos', en: 'Circuits' },
+  'ef-sesiones':         { es: 'Sesiones', en: 'Sessions' },
+  'ef-actividades':      { es: 'Actividades', en: 'Activities' },
+  'ef-material':         { es: 'Material e instalaciones', en: 'Equipment and Facilities' },
 };
 
 /**
@@ -536,6 +539,38 @@ segundos y uno largo al cambiar; el color y el rótulo dicen si es trabajo o
 descanso. Botones: fase anterior, pausa o seguir, fase siguiente, sonido y
 pantalla completa; con teclado, espacio y flechas. Mientras corre, la
 pantalla no se apaga si el dispositivo lo permite.
+
+[ef-sesiones] SESIONES
+Sesiones de EF con calentamiento, parte principal, vuelta a la calma,
+material, «Para que participe todo el grupo (DUA-A)» y plan B. «Preparar con
+IA»: se elige la clase, el día, la instalación, los minutos (salen del
+horario si la clase tiene tramo) y qué se quiere trabajar; la IA usa el
+currículo de la clase y su comunidad, el material que no está para reponer,
+las instalaciones cubiertas para el plan B y, si se marca, el banco de
+actividades. Si ese día hay exentos o lesionados en la clase, la sesión lleva
+medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
+nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
+oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
+sesión» la escribe a mano. «PDF» la guarda para imprimirla (en la aplicación
+de escritorio). Salen en «Próximas», «Sin fecha» y «Ver las anteriores».
+
+[ef-actividades] ACTIVIDADES
+El banco de actividades: las de partida de AulaPro (juegos motrices, deportes
+con juegos modificados, días de lluvia, medio natural, calentamiento y vuelta
+a la calma, escritas para la app en castellano, catalán e inglés), las tuyas y
+las que guardes de la IA. Se filtran por tipo, por origen y con el buscador.
+Cada una tiene en qué consiste, organización, material, variantes y cómo
+participa todo el grupo (DUA-A). Las del banco no se cambian: «Copiar y
+adaptar» crea una tuya a partir de ella. «Proponer con IA» pide tres
+actividades de un tipo, para una clase y un tema, con tu material y, si se
+marca, con las limitaciones de hoy de esa clase (sin nombres).
+
+[ef-material] MATERIAL E INSTALACIONES
+El inventario: material, cantidad, estado (bien, regular o para reponer, que
+se cambia desde la tabla) y dónde está; arriba sale lo que hay que reponer.
+Las instalaciones, con «Es cubierta: sirve los días de lluvia» y notas. La IA
+usa el material que no está para reponer y las instalaciones cubiertas para
+el plan B.
 
 === PT Y AL (solo profesorado especialista) ===
 Para quien atiende alumnado de muchas clases que no son suyas. Se elige al

@@ -737,4 +737,5 @@ export type Section =
   | 'meetings' | 'trainings' | 'seating'
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos'
   | 'apoyo-coordinaciones' | 'apoyo-agenda-visual'
-  | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos';
+  | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos'
+  | 'ef-actividades' | 'ef-sesiones' | 'ef-material';

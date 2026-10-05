@@ -1303,7 +1303,7 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 /* Educación Física: pruebas físicas */
 .ef-pruebas-sel { display:flex; flex-wrap:wrap; gap:10px 22px; margin-bottom:14px; }
 .ef-pruebas-cat { display:flex; flex-direction:column; gap:6px; }
-.ef-tabla-wrap { overflow-x:auto; margin-top:14px; }
+.ef-tabla-wrap { position:relative; overflow-x:auto; margin-top:14px; }
 .ef-tabla { width:100%; border-collapse:collapse; font-size:13.5px; }
 .ef-tabla th, .ef-tabla td { padding:8px 10px; border-top:1px solid var(--border); text-align:left; white-space:nowrap; }
 .ef-tabla thead th { border-top:none; font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-3); }
@@ -1343,6 +1343,44 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   .ef-tabla-niveles .ap-trim { gap:3px; }
   .ef-tabla-niveles .chip { padding:0 7px; font-size:12px; }
 }
+.ef-act-filtros { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+.ef-act-filtros > select.finput { width:auto; }
+.ef-busca { position:relative; flex:1 1 220px; display:flex; align-items:center; }
+.ef-busca svg { position:absolute; left:12px; color:var(--text-3); pointer-events:none; }
+.ef-busca .finput { padding-left:36px; }
+.ef-acts { display:flex; flex-direction:column; gap:8px; }
+.ef-act { border:1px solid var(--border); border-radius:12px; background:var(--card); }
+.ef-act > summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:11px 14px; }
+.ef-act > summary::-webkit-details-marker { display:none; }
+.ef-act > summary::before { content:'▸'; color:var(--text-3); margin-right:-2px; transition:transform var(--t); }
+.ef-act[open] > summary::before { transform:rotate(90deg); }
+.ef-act-ttl { flex:1; min-width:0; font-size:14.5px; font-weight:700; color:var(--text); }
+.ef-act-chips { display:flex; gap:6px; flex-wrap:wrap; }
+.ef-origen-ia { color:var(--accent-d); }
+.ef-origen-propia { color:var(--ok-fg); }
+.ef-act-campos { margin:0; padding:0 14px 6px; display:flex; flex-direction:column; gap:8px; }
+.ef-act-campos dt { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-3); }
+.ef-act-campos dd { margin:2px 0 0; font-size:13.5px; line-height:1.5; color:var(--text); white-space:pre-line; }
+.ef-act-acc { display:flex; flex-wrap:wrap; gap:8px; padding:6px 14px 12px; }
+.ef-sesiones > li { padding:0; }
+.ef-sesion { width:100%; display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:11px 4px; background:none; border:none; font:inherit; text-align:left; color:var(--text); cursor:pointer; border-radius:8px; }
+.ef-sesion:hover { background:var(--surface); }
+.ef-sesion strong { font-size:14px; }
+.ef-num { font-variant-numeric:tabular-nums; text-align:right; }
+.ef-ubic-movil { display:none; }
+@media (max-width:560px) {
+  .ef-tabla-material .ef-col-ubic { display:none; }
+  .ef-tabla-material .ef-ubic-movil { display:block; font-weight:400; margin-top:2px; }
+  .ef-tabla-material tbody th { white-space:normal; }
+  .ef-tabla-material th, .ef-tabla-material td { padding:8px 4px; }
+  .ef-tabla-material tbody th { min-width:104px; }
+  .ef-tabla-material .ef-estado { max-width:126px; padding:4px 20px 4px 6px; background-position:right 4px center; font-size:12px; }
+  .ef-tabla-material tbody th { min-width:96px; }
+  .ef-tabla-material thead th { font-size:10px; letter-spacing:0.02em; }
+}
+.ef-estado { width:auto; padding:4px 28px 4px 10px; font-size:12.5px; height:auto; font-weight:700; }
+.ef-estado.regular { color:var(--warn-fg); }
+.ef-estado.reponer { color:var(--danger); }
 .ef-pareja { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:8px; align-items:center; }
 @media (max-width:560px) { .ef-pareja { grid-template-columns:1fr; } }
 

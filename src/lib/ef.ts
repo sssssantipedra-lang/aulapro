@@ -426,6 +426,11 @@ export function normalizarEF(raw: unknown): EfData {
       ...(esTexto(x.instalacionId) ? { instalacionId: x.instalacionId } : {}),
       objetivo: texto(x.objetivo), calentamiento: texto(x.calentamiento), principal: texto(x.principal),
       calma: texto(x.calma), material: texto(x.material), inclusion: texto(x.inclusion), planB: texto(x.planB),
+      ...(Array.isArray(x.criterios) ? { criterios: lista(x.criterios, c => {
+        const y = obj(c);
+        return y && esTexto(y.materia) && esTexto(y.codigo) ? { materia: y.materia, codigo: y.codigo } : null;
+      }) } : {}),
+      ...(x.ia === true ? { ia: true } : {}),
     };
   });
   const material = lista<MaterialEF>(o.material, v => {

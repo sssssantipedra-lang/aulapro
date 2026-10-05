@@ -98,6 +98,10 @@ export interface ActividadEF {
 
 /** Una sesión de EF: calentamiento, parte principal y vuelta a la calma. */
 export interface SesionEF {
+  /** Los criterios de evaluación oficiales que trabaja. */
+  criterios?: import('./index').OfficialCriterionRef[];
+  /** Si la preparó la IA. */
+  ia?: boolean;
   id: string;
   titulo: string;
   claseId?: string;

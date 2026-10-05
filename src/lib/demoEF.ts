@@ -122,6 +122,23 @@ export function buildDemoEF(hoy: Date = new Date()) {
       { id: 'ef-mt4', nombre: 'Conos', cantidad: 40, estado: 'bien', ubicacion: 'Almacén del pabellón' },
       { id: 'ef-mt5', nombre: 'Petos de cuatro colores', cantidad: 32, estado: 'bien', ubicacion: 'Armario 1' },
     ],
+    actividades: [
+      { id: 'ef-a1', titulo: 'Rondo de pases 4 contra 2', tipo: 'deporte', origen: 'propia',
+        descripcion: 'Cuatro jugadores en un cuadrado de 10 m se pasan el balón con la mano y dos defensores intentan tocarlo. Quien pierde el balón pasa a defender.',
+        organizacion: 'Grupos de 6, un cuadrado de conos por grupo. 10 minutos.', material: 'Un balón y cuatro conos por grupo.',
+        variantes: 'Pases solo con bote; tres defensores; pases con el pie.',
+        inclusion: 'Quien no puede correr juega de pasador fijo en un vértice y no se le puede robar el balón.' },
+    ],
+    sesiones: [
+      { id: 'ef-se1', titulo: 'Voleibol: el toque de dedos', claseId: 'ef-c1', fecha: dias(1), instalacionId: 'ef-i1', ia: true,
+        objetivo: 'Pasar el balón con el toque de dedos a un compañero, colocando las manos en forma de triángulo por encima de la frente.',
+        calentamiento: 'Pilla-pilla de movilidad (8 min): dos la paran y quien es tocado hace un ejercicio de movilidad de hombros y muñecas.\nPases por parejas atrapando (4 min): lanzar y atrapar el balón por encima de la cabeza.',
+        principal: 'Toque de dedos por parejas (12 min): primero atrapando y soltando, después con un toque, contando los pases seguidos.\nVoleibol atrapa y lanza 3 contra 3 (20 min): el segundo pase de cada equipo tiene que ser de dedos.',
+        calma: 'El semáforo de la sesión (5 min): cada uno se coloca según cómo le ha salido el toque de dedos.\nRecogida del material (3 min).',
+        material: 'Balones de voleibol blandos, redes o cuerdas a 2 m, conos.',
+        inclusion: 'No puede correr ni saltar: juega cerca de la red como colocador, con un balón de playa más lento, y sus pases valen doble.',
+        planB: 'Si el pabellón está ocupado, en el porche: toque de dedos por parejas contra la pared y voleibol sentado con globo en un campo pequeño.' },
+    ],
     circuitos: [
       { id: 'ef-ci1', nombre: 'Circuito de fuerza, 1º ESO', estaciones: ['Sentadillas', 'Plancha', 'Saltos a la comba', 'Abdominales', 'Fondos en el banco'],
         trabajo: 30, descanso: 15, rondas: 2, descansoRondas: 60 },

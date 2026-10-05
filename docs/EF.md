@@ -63,21 +63,29 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 ## Actividades y sesiones
 
-- Banco de actividades:
-  - Tipos: juegos y deportes motrices, días de lluvia, medio natural, calentamiento y vuelta a la calma.
-  - Origen: un banco inicial escrito por nosotros, la IA y las del docente.
-- Sesiones con IA: calentamiento, parte principal y vuelta a la calma, según el curso, el material y la instalación, con medidas DUA-A para las limitaciones del día y un plan B.
-- Autores de referencia:
+- Banco de actividades (pestaña «Actividades»):
+  - Tipos: juegos motrices, deportes (juegos modificados), días de lluvia, medio natural, calentamiento y vuelta a la calma.
+  - Origen: el banco de partida, las del docente y las que guarda de la IA.
+  - El banco de partida está en `src/lib/bancoEF.ts`: 23 actividades escritas para AulaPro, de uso común en las clases de EF y contadas con nuestras palabras (no se copian de ningún libro), en castellano, catalán e inglés. No se editan: «Copiar y adaptar» crea una del docente.
+  - Cada actividad tiene en qué consiste, organización, material, variantes y «Para que participe todo el grupo (DUA-A)».
+  - «Proponer con IA»: tres actividades de un tipo, para una clase y un tema, con el inventario y, si se marca, con las limitaciones de hoy de esa clase.
+- Sesiones (pestaña «Sesiones»):
+  - Calentamiento, parte principal, vuelta a la calma, material, inclusión (DUA-A) y plan B, con su clase, día e instalación, y de 1 a 3 criterios de evaluación oficiales de la clase (se cambian con el buscador de criterios).
+  - «Preparar con IA»: clase, día, instalación, minutos (del horario si la clase tiene tramo ese día) y qué se trabaja. La IA usa el currículo de la clase y su comunidad, el material que no está para reponer, las instalaciones cubiertas para el plan B y, si se marca, el banco. La sesión se revisa antes de guardarla.
+  - PDF para imprimirla (en la aplicación de escritorio).
+- La IA (`src/services/efIA.ts`): marco con el currículo LOMLOE de la comunidad, el DUA-A, la normativa de inclusión y los autores de referencia:
   - Parlebas y Lavega (juegos y praxiología motriz).
   - Blázquez, Devís y Peiró (iniciación deportiva).
   - Fernández-Río (aprendizaje cooperativo).
   - López-Pastor (evaluación formativa).
   - Granero-Gallegos y Baena-Extremera (medio natural).
+- Qué recibe la IA de quien está exento o lesionado: solo qué no puede hacer, una línea por alumno, sin nombre ni motivo (`limitacionesParaIA`). Contado en la política de privacidad y en las condiciones de la web.
 
 ## Material e instalaciones
 
-- Inventario del material (cantidad, estado y ubicación).
-- Instalaciones, con si son cubiertas, para el plan B por lluvia.
+- Inventario del material: cantidad, estado (bien, regular, para reponer; se cambia desde la tabla) y dónde está. Arriba sale lo que hay que reponer.
+- Instalaciones, con si son cubiertas (sirven con lluvia) y notas, para el plan B.
+- La IA usa el material que no está para reponer y las instalaciones.
 
 ## Datos
 
