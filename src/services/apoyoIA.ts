@@ -148,7 +148,8 @@ export async function proponerObjetivos(
             type: 'OBJECT',
             properties: {
               texto: { type: 'STRING' },
-              trimestres: { type: 'ARRAY', items: { type: 'INTEGER', enum: [1, 2, 3] } },
+              // Gemini solo admite listas cerradas de texto: con números rechaza la petición entera
+              trimestres: { type: 'ARRAY', items: { type: 'STRING', enum: ['1', '2', '3'] } },
               ...(conCriterios ? { criterios: { type: 'ARRAY', items: { type: 'STRING', enum: disponibles } } } : {}),
             },
             required: ['texto', 'trimestres'],
