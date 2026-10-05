@@ -114,6 +114,9 @@ describe('programas y sesiones', () => {
     expect(abierta.id).toBe(hecha.id);
     expect(abierta.alumnos.map(r => r.alumnoId)).toEqual(['a', 'b']);
     expect(sesionConDatos(abierta)).toBe(true);
+    // Una propuesta de la IA también cuenta como algo anotado
+    expect(sesionConDatos({ ...nueva, adaptaciones: { a: 'Contar con fichas' } })).toBe(true);
+    expect(sesionConDatos({ ...nueva, adaptaciones: { a: '  ' } })).toBe(false);
   });
 
   it('resume cómo va cada objetivo, con el último registro', () => {
@@ -133,7 +136,7 @@ describe('carga y borrado', () => {
     alumnos: [alumno('a', { nivel: { etapa: 'primaria', curso: 2 } }), alumno('b')],
     grupos: [grupo('g', { alumnos: ['a', 'b'], horario: [{ dia: 0, inicio: '09:00', fin: '09:45' }] })],
     programas: [{ id: 'p', alumnoId: 'a', ambito: 'X', especialidad: 'PT', intensidad: 'alta', objetivos: [{ id: 'o', texto: 'T', trimestres: [2, 1], criterios: [{ materia: 'm', codigo: '1.1' }] }] }],
-    sesiones: [{ id: 's', grupoId: 'g', fecha: '2026-10-05', temaClase: 'Fracciones', alumnos: [
+    sesiones: [{ id: 's', grupoId: 'g', fecha: '2026-10-05', temaClase: 'Fracciones', adaptaciones: { a: 'Fracciones con fichas' }, alumnos: [
       { alumnoId: 'a', objetivos: { o: 'si' }, respuesta: { atencion: 3 }, nota: 'Bien' },
       { alumnoId: 'b', ausente: true, objetivos: {}, respuesta: {}, nota: '' },
     ] }],

@@ -454,7 +454,11 @@ flechas para el día anterior y el siguiente, o pulsándola para elegir otra) y
 el trimestre, que sale de la fecha (septiembre a diciembre el 1º, enero a marzo
 el 2º, abril en adelante el 3º). Debajo, los grupos que tienen sesión ese día
 según su horario, por orden de hora, y «Otro grupo…» para registrar uno que no
-toca ese día. En el grupo: «Qué trabaja hoy su clase» y, por cada alumno, «No
+toca ese día. En el grupo: «Qué trabaja hoy su clase» y, con él escrito, «Cómo
+adaptarlo a cada alumno, con IA»: para cada alumno que ha venido, la IA propone
+cómo trabajar ese mismo tema con sus objetivos del trimestre (una actividad, el
+apoyo o material y cómo saber si lo ha conseguido); sale en su ficha como
+«Propuesta para hoy», que se puede retocar. Por cada alumno, «No
 ha venido», sus OBJETIVOS DE ESTE TRIMESTRE (los de sus programas de la
 especialidad del grupo) con tres botones: ✓ conseguido, – en proceso, ✗ no
 conseguido; «CÓMO HA RESPONDIDO»: atención, motivación, conducta y autonomía,

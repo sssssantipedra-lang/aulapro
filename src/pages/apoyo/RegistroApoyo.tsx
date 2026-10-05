@@ -7,10 +7,14 @@
  * ordenador, el grupo en una tabla. Se guarda solo. Ver `docs/PTAL.md`.
  */
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Check, X, Minus, Mic, Clock, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, X, Minus, Mic, Clock, CalendarDays, Sparkles } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { useNarrowScreen } from '../../hooks/useNarrowScreen';
+import { useNombreCurso } from '../../hooks/useNombreCurso';
+import { hasApiKey } from '../../services/gemini';
+import { adaptarTema } from '../../services/apoyoIA';
+import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import { isoDate } from '../../lib/utils';
 import { isAndroidApp } from '../../lib/platform';
 import {
@@ -23,6 +27,7 @@ import type {
 interface Props {
   data: ApoyoData;
   onChange: (f: (d: ApoyoData) => ApoyoData) => void;
+  comunidad?: ComunidadId;
   onNav: (s: string) => void;
 }
 
@@ -47,9 +52,11 @@ function sumarDias(fecha: string, n: number): string {
   return isoDate(new Date(y, m - 1, d + n));
 }
 
-export function RegistroApoyo({ data, onChange, onNav }: Props) {
-  const { t, locale } = useI18n();
+export function RegistroApoyo({ data, onChange, comunidad, onNav }: Props) {
+  const { t, locale, lang } = useI18n();
   const { toast } = useToast();
+  const nombreCurso = useNombreCurso();
+  const [adaptando, setAdaptando] = useState(false);
   const estrecha = useNarrowScreen();
   const [fecha, setFecha] = useState(isoDate());
   const [elegido, setElegido] = useState<string | null>(null);
@@ -73,6 +80,22 @@ export function RegistroApoyo({ data, onChange, onNav }: Props) {
     if (!sesion) return;
     guardar({ ...sesion, alumnos: sesion.alumnos.map(r => (r.alumnoId === alumnoId ? f(r) : r)) });
   };
+
+  async function adaptar() {
+    if (!grupo || !sesion || !sesion.temaClase.trim()) return;
+    const presentes = registros.filter(r => !r.ausente);
+    setAdaptando(true);
+    const propuestas = await adaptarTema({
+      tema: sesion.temaClase.trim(), especialidad: grupo.especialidad, comunidad, lang, nombreCurso,
+      alumnos: presentes.map(r => ({
+        alumno: data.alumnos.find(a => a.id === r.alumnoId)!,
+        objetivos: objetivosDelTrimestre(data.programas, r.alumnoId, grupo.especialidad, trimestre).map(x => x.objetivo.texto),
+      })),
+    }, { onError: m => toast(t(m)) });
+    setAdaptando(false);
+    if (!propuestas) return;
+    guardar({ ...sesion, adaptaciones: { ...(sesion.adaptaciones ?? {}), ...propuestas } });
+  }
 
   function dictar(campo: HTMLTextAreaElement | null) {
     campo?.focus();
@@ -152,6 +175,12 @@ export function RegistroApoyo({ data, onChange, onNav }: Props) {
               placeholder={t('Ej: Las fracciones; un cuento sobre el otoño')}
               onChange={e => guardar({ ...sesion, temaClase: e.target.value })}
             />
+            <button className="btn-ia" type="button" style={{ marginTop: 10 }}
+              disabled={adaptando || !sesion.temaClase.trim() || !hasApiKey()} onClick={adaptar}
+              title={hasApiKey() ? undefined : t('Necesitas la clave gratuita de Google para usar la IA.')}>
+              {adaptando ? <span className="spin" /> : <Sparkles size={15} />}
+              {adaptando ? t('Preparando…') : t('Cómo adaptarlo a cada alumno, con IA')}
+            </button>
           </div>
 
           {registros.length === 0 && (
@@ -168,6 +197,8 @@ export function RegistroApoyo({ data, onChange, onNav }: Props) {
               <TarjetaAlumno
                 registro={actual} alumno={data.alumnos.find(a => a.id === actual.alumnoId)!}
                 programas={data.programas} grupo={grupo} trimestre={trimestre}
+                adaptacion={sesion.adaptaciones?.[actual.alumnoId]}
+                onAdaptacion={v => guardar({ ...sesion, adaptaciones: { ...(sesion.adaptaciones ?? {}), [actual.alumnoId]: v } })}
                 onChange={f => cambiarRegistro(actual.alumnoId, f)} onDictar={dictar} onNav={onNav}
               />
             </>
@@ -179,6 +210,8 @@ export function RegistroApoyo({ data, onChange, onNav }: Props) {
                 <TarjetaAlumno
                   key={r.alumnoId} registro={r} alumno={data.alumnos.find(a => a.id === r.alumnoId)!}
                   programas={data.programas} grupo={grupo} trimestre={trimestre}
+                  adaptacion={sesion.adaptaciones?.[r.alumnoId]}
+                  onAdaptacion={v => guardar({ ...sesion, adaptaciones: { ...(sesion.adaptaciones ?? {}), [r.alumnoId]: v } })}
                   onChange={f => cambiarRegistro(r.alumnoId, f)} onDictar={dictar} onNav={onNav}
                 />
               ))}
@@ -190,8 +223,10 @@ export function RegistroApoyo({ data, onChange, onNav }: Props) {
   );
 }
 
-function TarjetaAlumno({ registro, alumno, programas, grupo, trimestre, onChange, onDictar, onNav }: {
+function TarjetaAlumno({ registro, alumno, programas, grupo, trimestre, adaptacion, onAdaptacion, onChange, onDictar, onNav }: {
   registro: RegistroAlumno;
+  adaptacion?: string;
+  onAdaptacion: (v: string) => void;
   alumno: AlumnoApoyo;
   programas: ProgramaApoyo[];
   grupo: GrupoApoyo;
@@ -220,6 +255,13 @@ function TarjetaAlumno({ registro, alumno, programas, grupo, trimestre, onChange
 
       {!registro.ausente && (
         <>
+          {adaptacion !== undefined && (
+            <div className="ap-adapt">
+              <div className="ap-reg-sec">{t('Propuesta para hoy')}</div>
+              <textarea className="finput" rows={3} value={adaptacion} aria-label={t('Propuesta para hoy')}
+                onChange={e => onAdaptacion(e.target.value)} />
+            </div>
+          )}
           <div className="ap-reg-sec">{t('Objetivos de este trimestre')}</div>
           {objetivos.length === 0 ? (
             <p className="ap-vacio">

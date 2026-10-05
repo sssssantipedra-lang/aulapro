@@ -111,6 +111,8 @@ export interface SesionApoyo {
   fecha: string;
   /** Lo que trabaja ese día la clase de referencia. */
   temaClase: string;
+  /** Lo que propone la IA para trabajar ese tema con cada alumno, por id; el docente lo retoca. */
+  adaptaciones?: Record<string, string>;
   alumnos: RegistroAlumno[];
 }
 

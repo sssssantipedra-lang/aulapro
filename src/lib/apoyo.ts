@@ -173,7 +173,7 @@ export function sesionDe(
 
 /** Si la sesión tiene algo anotado; una vacía no se guarda. */
 export function sesionConDatos(s: SesionApoyo): boolean {
-  return s.temaClase.trim() !== '' || s.alumnos.some(r =>
+  return s.temaClase.trim() !== '' || Object.values(s.adaptaciones ?? {}).some(x => x.trim() !== '') || s.alumnos.some(r =>
     r.ausente || Object.keys(r.objetivos).length > 0 || Object.keys(r.respuesta).length > 0 || r.nota.trim() !== '');
 }
 
@@ -326,9 +326,12 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
   const sesiones = lista<SesionApoyo>(o.sesiones, v => {
     const s = obj(v);
     if (!s || !esTexto(s.id) || !esTexto(s.grupoId) || !esTexto(s.fecha) || !/^\d{4}-\d{2}-\d{2}$/.test(s.fecha)) return null;
+    const adaptaciones: Record<string, string> = {};
+    Object.entries(obj(s.adaptaciones) ?? {}).forEach(([k, v]) => { if (esTexto(v) && v.trim()) adaptaciones[k] = v; });
     return {
       id: s.id, grupoId: s.grupoId, fecha: s.fecha,
       temaClase: esTexto(s.temaClase) ? s.temaClase : '',
+      ...(Object.keys(adaptaciones).length ? { adaptaciones } : {}),
       alumnos: lista<RegistroAlumno>(s.alumnos, r => {
         const x = obj(r);
         if (!x || !esTexto(x.alumnoId)) return null;

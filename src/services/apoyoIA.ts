@@ -177,3 +177,54 @@ export async function proponerObjetivos(
       };
     });
 }
+
+/**
+ * La clase de referencia trabaja hoy un tema y la IA propone cómo trabajarlo
+ * con cada alumno del grupo según sus objetivos del trimestre (decisión del
+ * dueño, 4-10-2026: la programación del aula de apoyo sigue lo que da la
+ * clase en cada sesión).
+ */
+export async function adaptarTema(
+  args: {
+    tema: string;
+    especialidad: 'PT' | 'AL';
+    alumnos: { alumno: AlumnoApoyo; objetivos: string[] }[];
+    comunidad: ComunidadId | undefined;
+    lang: 'es' | 'en' | 'ca';
+    nombreCurso: (c: CursoDe) => string;
+  },
+  callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
+): Promise<Record<string, string> | null> {
+  const { tema, especialidad, alumnos, comunidad, lang, nombreCurso } = args;
+  if (!alumnos.length) return {};
+  const userPrompt =
+    `Hoy su clase de referencia trabaja: ${tema}\n` +
+    `Sesión de ${especialidad === 'AL' ? 'Audición y Lenguaje' : 'Pedagogía Terapéutica'}.\n\n` +
+    alumnos.map(({ alumno, objetivos }) =>
+      `id ${alumno.id}\n${alumnoParaIA(alumno, nombreCurso)}\nObjetivos de este trimestre:\n` +
+      (objetivos.length ? objetivos.map(o => `- ${o}`).join('\n') : '- (sin objetivos todavía)')).join('\n\n') +
+    '\n\nPara cada alumno, en "propuesta" de 2 a 3 frases: cómo trabajar ese mismo tema en la sesión con sus objetivos ' +
+    'de este trimestre (una actividad concreta, el apoyo o material y cómo saber si lo ha conseguido), siguiendo los ' +
+    'principios del DUA. Que pueda hacerse en una sesión. Sin títulos ni negritas.';
+  const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [], callbacks, {
+    responseSchema: {
+      type: 'OBJECT',
+      properties: {
+        alumnos: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+          id: { type: 'STRING', enum: alumnos.map(a => a.alumno.id) },
+          propuesta: { type: 'STRING' },
+        }, required: ['id', 'propuesta'] } },
+      },
+      required: ['alumnos'],
+    },
+    thinkingLevel: 'medium',
+  });
+  if (!raw) return null;
+  const r = parseGeminiJson<{ alumnos?: { id?: string; propuesta?: string }[] }>(raw);
+  if (!r?.alumnos) { callbacks.onError?.('La IA no devolvió propuestas. Inténtalo de nuevo.'); return null; }
+  const out: Record<string, string> = {};
+  for (const x of r.alumnos) {
+    if (x.id && alumnos.some(a => a.alumno.id === x.id) && x.propuesta?.trim()) out[x.id] = x.propuesta.trim();
+  }
+  return out;
+}

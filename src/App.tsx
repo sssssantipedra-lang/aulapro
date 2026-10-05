@@ -522,7 +522,7 @@ function AppInner() {
               />
             )}
             {section === 'apoyo-registro' && (
-              <RegistroApoyo data={st.apoyo} onChange={st.setApoyo} onNav={s => setSection(s as Section)} />
+              <RegistroApoyo data={st.apoyo} onChange={st.setApoyo} comunidad={st.currentUser.community} onNav={s => setSection(s as Section)} />
             )}
             {section === 'apoyo-alumnado' && (
               <AlumnadoApoyo

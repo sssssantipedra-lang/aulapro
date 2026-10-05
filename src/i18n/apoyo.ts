@@ -199,6 +199,12 @@ export const APOYO_EN: Record<string, string> = {
   'Evolución por programa y objetivo': 'Progress by programme and objective',
   'Respuesta en las sesiones': 'Response in sessions',
   'Propuestas para el aula de referencia y coordinación': 'Suggestions for the home class and coordination',
+
+  /* ── Adaptar el tema de la clase ── */
+  'Necesitas la clave gratuita de Google para usar la IA.': 'You need the free Google key to use AI.',
+  'Cómo adaptarlo a cada alumno, con IA': 'How to adapt it for each student, with AI',
+  'Propuesta para hoy': 'Suggestion for today',
+  'La IA no devolvió propuestas. Inténtalo de nuevo.': 'AI returned no suggestions. Please try again.',
 };
 
 export const APOYO_CA: Record<string, string> = {
@@ -393,4 +399,10 @@ export const APOYO_CA: Record<string, string> = {
   'Evolución por programa y objetivo': 'Evolució per programa i objectiu',
   'Respuesta en las sesiones': 'Resposta a les sessions',
   'Propuestas para el aula de referencia y coordinación': 'Propostes per a l\'aula de referència i coordinació',
+
+  /* ── Adaptar el tema de la clase ── */
+  'Necesitas la clave gratuita de Google para usar la IA.': 'Necessites la clau gratuïta de Google per fer servir la IA.',
+  'Cómo adaptarlo a cada alumno, con IA': 'Com adaptar-ho a cada alumne, amb IA',
+  'Propuesta para hoy': 'Proposta per a avui',
+  'La IA no devolvió propuestas. Inténtalo de nuevo.': 'La IA no ha tornat propostes. Torna-ho a provar.',
 };

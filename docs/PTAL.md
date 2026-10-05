@@ -48,7 +48,7 @@ Es el plan individual de cada alumno: por ámbito, objetivos por trimestre.
 La del aula de apoyo sigue lo que da la clase de referencia en cada sesión, así que no puede cerrarse por unidades.
 
 - Programación anual por ámbitos, con los objetivos de cada alumno.
-- En cada sesión, el docente apunta qué trabaja la clase de referencia, y la IA propone cómo adaptarlo a los objetivos de cada alumno.
+- En cada sesión, el docente apunta qué trabaja la clase de referencia, y la IA propone cómo adaptarlo a los objetivos de cada alumno. Está en el registro diario: «Cómo adaptarlo a cada alumno, con IA» deja en la ficha de cada alumno que ha venido una «Propuesta para hoy» que se puede retocar, y se guarda con la sesión.
 
 ## Registro diario
 

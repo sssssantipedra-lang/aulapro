@@ -5,7 +5,7 @@
  * curso de su nivel, de la lista cerrada.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { proponerObjetivos, materiasParaAmbito, marcoApoyo, normativaInclusion, alumnoParaIA } from './apoyoIA';
+import { proponerObjetivos, materiasParaAmbito, marcoApoyo, normativaInclusion, alumnoParaIA, adaptarTema } from './apoyoIA';
 import { cargarCurriculo } from '../lib/curriculum/cargar';
 import { resolverGrupo } from '../lib/curriculum/index';
 import type { MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
@@ -136,5 +136,32 @@ describe('proponerObjetivos', () => {
       materias: [], comunidad: undefined, lang: 'es', nombreCurso,
     }, { onError })).toBeNull();
     expect(onError).toHaveBeenCalled();
+  });
+});
+
+describe('adaptarTema', () => {
+  beforeEach(() => callGemini.mockReset());
+
+  it('propone para cada alumno cómo trabajar el tema de su clase con sus objetivos, y descarta ids ajenos', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ alumnos: [
+      { id: 'a1', propuesta: ' Contar fracciones con tarjetas de sílabas. ' },
+      { id: 'otro', propuesta: 'No debería entrar' },
+    ] }));
+    const r = await adaptarTema({
+      tema: 'Las fracciones', especialidad: 'PT', comunidad: 'madrid', lang: 'es', nombreCurso,
+      alumnos: [{ alumno: marta, objetivos: ['Leer sílabas directas'] }],
+    });
+    expect(r).toEqual({ a1: 'Contar fracciones con tarjetas de sílabas.' });
+    const [sistema, usuario, , , opciones] = callGemini.mock.calls[0];
+    expect(sistema).toContain('Decreto 23/2023');
+    expect(usuario).toContain('Hoy su clase de referencia trabaja: Las fracciones');
+    expect(usuario).toContain('- Leer sílabas directas');
+    expect(usuario).toContain('DUA');
+    expect(opciones.responseSchema.properties.alumnos.items.properties.id.enum).toEqual(['a1']);
+  });
+
+  it('sin alumnado no llama a la IA', async () => {
+    expect(await adaptarTema({ tema: 'X', especialidad: 'AL', comunidad: undefined, lang: 'es', nombreCurso, alumnos: [] })).toEqual({});
+    expect(callGemini).not.toHaveBeenCalled();
   });
 });
