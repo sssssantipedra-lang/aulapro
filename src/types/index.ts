@@ -9,6 +9,10 @@ export interface User {
   community?: import('../lib/curriculum/comunidades').ComunidadId;
   /** Especialidades de PT y AL del perfil; vacía si no es especialista. */
   especialidades?: import('./apoyo').Especialidad[];
+  /** De aula, de PT y AL o de EF (ver `lib/tipoDocente.ts`). */
+  tipo?: import('../lib/tipoDocente').TipoDocente;
+  /** EF: si además es tutor o tutora de uno de sus grupos. */
+  tutor?: boolean;
 }
 
 export interface Class {
@@ -688,7 +692,9 @@ export interface SeatingPlan {
  * (Tareas, Comportamiento y Participación), que vale un punto de la nota
  * final. Ver `services/classMarks.ts`.
  */
-export type ClassMarkType = 'homework' | 'material' | 'behavior-bad' | 'behavior-good' | 'participation';
+export type ClassMarkType = 'homework' | 'material' | 'behavior-bad' | 'behavior-good' | 'participation'
+  // Educación Física: la observación rápida en la pista (ver `services/classMarks.ts`)
+  | 'ef-ropa' | 'ef-aseo' | 'ef-esfuerzo' | 'ef-no-participa';
 
 /** Las tres partes del bloque de anotaciones. */
 export type MarkTarget = 'homework' | 'behavior' | 'participation';
@@ -730,4 +736,5 @@ export type Section =
   | 'learning-situations' | 'resources'
   | 'meetings' | 'trainings' | 'seating'
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos'
-  | 'apoyo-coordinaciones' | 'apoyo-agenda-visual';
+  | 'apoyo-coordinaciones' | 'apoyo-agenda-visual'
+  | 'ef-pista' | 'ef-exentos';

@@ -19,7 +19,7 @@ import { downloadFile } from '../lib/download';
 import { CommunitySelect } from '../components/CommunitySelect';
 import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Especialidad } from '../types/apoyo';
-import { TipoDocentePicker, type TipoDocente } from '../components/TipoDocente';
+import { TipoDocentePicker, type TipoDocente, type EleccionTipo } from '../components/TipoDocente';
 import { especialidadTexto } from '../lib/apoyo';
 import { ATRIBUCION_MULBERRY } from '../lib/atribucionPictos';
 
@@ -28,7 +28,10 @@ interface Props {
   profile: TeacherProfile | null;
   profileId: string | null;
   course: string;
-  onUpdateUser: (u: { full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId; especialidades?: Especialidad[] }) => void;
+  onUpdateUser: (u: {
+    full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId;
+    especialidades?: Especialidad[]; tipoDocente?: 'aula' | 'ef'; tutor?: boolean;
+  }) => void;
   onUpdateSecurity: (patch: { passwordHash?: string; passwordSalt?: string }) => void;
   onExportData: () => Record<string, unknown>;
   onImportData: (raw: string) => string | null;
@@ -45,7 +48,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [curso,  setCurso]  = useState(course ?? '');
   const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
   const [especialidades, setEspecialidades] = useState<Especialidad[]>(user?.especialidades ?? []);
-  const [tipo, setTipo] = useState<TipoDocente>(user?.especialidades?.length ? 'apoyo' : 'aula');
+  const [tipo, setTipo] = useState<TipoDocente>(user?.tipo ?? (user?.especialidades?.length ? 'apoyo' : 'aula'));
+  const [tutor, setTutor] = useState(!!user?.tutor);
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>(
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
@@ -103,17 +107,20 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     toast(t('Contraseña quitada'));
   }
 
-  /** La especialidad escrita sola al elegir PT y AL, en el idioma de ahora. */
+  /** La especialidad escrita sola al elegir PT y AL o EF, en el idioma de ahora. */
   const especialidadSola = (e: string) =>
-    (['PT', 'AL'] as const).some(x => t(especialidadTexto([x])) === e) || t(especialidadTexto(['PT', 'AL'])) === e;
+    (['PT', 'AL'] as const).some(x => t(especialidadTexto([x])) === e) || t(especialidadTexto(['PT', 'AL'])) === e
+    || t('Educación Física') === e;
 
-  function cambiarTipo(tp: TipoDocente, esp: Especialidad[]) {
-    setTipo(tp);
-    setEspecialidades(esp);
+  function cambiarTipo(v: EleccionTipo) {
+    setTipo(v.tipo);
+    setEspecialidades(v.especialidades);
+    setTutor(v.tutor);
     // La que escribió el docente no se toca; la puesta sola sigue al tipo
     if (espec.trim() && !especialidadSola(espec.trim())) return;
-    if (tp === 'aula') setEspec('');
-    else if (esp.length) setEspec(t(especialidadTexto(esp)));
+    if (v.tipo === 'aula') setEspec('');
+    else if (v.tipo === 'ef') setEspec(t('Educación Física'));
+    else if (v.especialidades.length) setEspec(t(especialidadTexto(v.especialidades)));
   }
 
   function saveProfile() {
@@ -123,6 +130,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
       full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso,
       ...(comunidad ? { community: comunidad } : {}),
       especialidades: tipo === 'apoyo' ? especialidades : [],
+      tipoDocente: tipo === 'ef' ? 'ef' : 'aula',
+      tutor: tipo === 'ef' && tutor,
     });
     // Quien ya tenía comunidad y la cambia: las SdA que guardó siguen citando
     // el decreto con el que se hicieron, no se reescriben.
@@ -247,7 +256,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             </div>
             {/* Con PT y AL cambian el menú y el Inicio (ver docs/PTAL.md) */}
             <div style={{ gridColumn: '1 / -1' }}>
-              <TipoDocentePicker id="profile-tipo" tipo={tipo} especialidades={especialidades} onChange={cambiarTipo} />
+              <TipoDocentePicker id="profile-tipo" tipo={tipo} especialidades={especialidades} tutor={tutor} onChange={cambiarTipo} />
               <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '-6px 0 0' }}>
                 {t('Al cambiar el tipo cambian el menú y el Inicio. No se borra nada: si vuelves al otro tipo, lo encontrarás como lo dejaste.')}
               </p>

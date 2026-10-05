@@ -10,7 +10,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Coffee, Clock,
+  TrendingUp, Coffee, Clock, Bandage,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -38,6 +38,11 @@ interface Props {
   onAddTask: () => void;
   onToggleTask: (id: string) => void;
   onLoadDemo: () => void;
+  /**
+   * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
+   * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
+   */
+  ef?: { exentosHoy: { id: string; nombre: string; clase: string; detalle: string; tarea: string }[] };
 }
 
 const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -50,7 +55,7 @@ function gradeColor(n: number | null): string {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes,
-  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, ef }: Props) {
   const { t, locale, lang } = useI18n();
 
   // La hora manda en «ahora / siguiente»: se refresca cada medio minuto
@@ -142,7 +147,9 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               </p>
               <div className="home-now-actions">
                 <button className="btn-accent" onClick={() => nav('attendance')}><UserCheck size={15} />{t('Pasar lista')}</button>
-                <button className="btn-ghost" onClick={() => nav('seating')}><Flag size={15} />{t('Anotar en el aula')}</button>
+                {ef
+                  ? <button className="btn-ghost" onClick={() => nav('ef-pista')}><Flag size={15} />{t('Observar en la pista')}</button>
+                  : <button className="btn-ghost" onClick={() => nav('seating')}><Flag size={15} />{t('Anotar en el aula')}</button>}
                 <button className="btn-ghost" onClick={() => nav('notebook')}><BookOpen size={15} />{t('Cuaderno')}</button>
               </div>
             </>
@@ -242,6 +249,31 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             </ul>
           )}
         </div>
+
+        {ef && (
+          <div className="card home-card">
+            <div className="home-card-hd">
+              <div className="home-card-ttl"><Bandage size={15} />{t('Exentos y lesiones')}</div>
+              <button className="home-link" onClick={() => nav('ef-exentos')}>{t('Ver todo')}</button>
+            </div>
+            {ef.exentosHoy.length === 0 ? (
+              <p className="home-muted">{t('Hoy todo tu alumnado puede hacer la clase.')}</p>
+            ) : (
+              <ul className="home-list">
+                {ef.exentosHoy.slice(0, 4).map(x => (
+                  <li key={x.id} className="home-alert">
+                    <span className="home-alert-dot warn" />
+                    <span className="home-event-txt">
+                      <span className="home-event-name">{x.nombre} · {x.clase}</span>
+                      <span className="home-tl-room">{x.detalle}{x.tarea ? ` · ${x.tarea}` : ''}</span>
+                    </span>
+                  </li>
+                ))}
+                {ef.exentosHoy.length > 4 && <li className="home-muted">{t('y {n} más', { n: ef.exentosHoy.length - 4 })}</li>}
+              </ul>
+            )}
+          </div>
+        )}
 
         <div className="card home-card">
           <div className="home-card-hd">

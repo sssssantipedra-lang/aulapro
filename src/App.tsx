@@ -21,6 +21,8 @@ import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
+import { exentosDelDia, LIMITACIONES } from './lib/ef';
+import { isoDate } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Ficha } from './types';
 import { X, Menu } from 'lucide-react';
@@ -53,6 +55,8 @@ const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m 
 const InicioApoyo    = lazy(() => import('./pages/apoyo/InicioApoyo').then(m => ({ default: m.InicioApoyo })));
 const CoordinacionesApoyo = lazy(() => import('./pages/apoyo/CoordinacionesApoyo').then(m => ({ default: m.CoordinacionesApoyo })));
 const AgendaVisualApoyo = lazy(() => import('./pages/apoyo/AgendaVisualApoyo').then(m => ({ default: m.AgendaVisualApoyo })));
+const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ default: m.EfPista })));
+const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
 
 function Loading() {
   const { t } = useI18n();
@@ -86,7 +90,8 @@ function AppInner() {
   const [taskPri, setTaskPri]         = useState<'high'|'medium'|'low'>('medium');
 
   // Al profesorado de PT y AL, su menú y su Inicio (ver lib/navigation.ts).
-  const especialista = !!st.currentUser?.especialidades?.length;
+  const tipo = st.currentUser?.tipo ?? 'aula';
+  const especialista = tipo === 'apoyo';
   // Se memoriza para no crear una lista nueva en cada render: Aula Live la usa
   // como origen de la ruleta y reiniciaría el giro cada vez que cambie. Para
   // el de PT y AL, la ruleta es de su alumnado de apoyo, no de clases que no tiene.
@@ -95,6 +100,20 @@ function AppInner() {
     [especialista, st.students, st.apoyo.alumnos],
   );
   const apoyoBlocks = useMemo(() => (especialista ? bloquesDeApoyo(st.apoyo.grupos) : []), [especialista, st.apoyo.grupos]);
+
+  // EF sin tutoría: su Inicio lleva lo de EF; con tutoría, el de tutoría tal cual
+  const efInicio = useMemo(() => {
+    if (tipo !== 'ef' || st.currentUser?.tutor) return undefined;
+    const hoy = isoDate();
+    return {
+      exentosHoy: exentosDelDia(st.ef, hoy).flatMap(e => {
+        const s = st.students.find(x => x.id === e.alumnoId);
+        if (!s) return [];
+        const detalle = e.limitaciones.map(l => t(LIMITACIONES.find(x => x.id === l)!.label)).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', ');
+        return [{ id: e.id, nombre: s.name, clase: st.classes.find(c => c.id === s.class_id)?.name ?? '', detalle, tarea: e.tarea.trim() }];
+      }),
+    };
+  }, [tipo, st.currentUser?.tutor, st.ef, st.students, st.classes, t]);
 
   /**
    * El cuaderno tal como cuenta para las medias: lo guardado más el bloque
@@ -214,7 +233,7 @@ function AppInner() {
         }}
         onExploreDemo={async input => {
           // El ejemplo de PT y AL lleva el nombre que le pone la bienvenida
-          await st.createAndOpenProfile(input.especialidades?.length ? input : {
+          await st.createAndOpenProfile(input.especialidades?.length || input.tipoDocente === 'ef' ? input : {
             name: DEMO_USER.full_name, school: DEMO_USER.school,
             subject: DEMO_USER.subject, course: '2025-2026', community: DEMO_COMMUNITY,
           }, { demo: true });
@@ -270,11 +289,11 @@ function AppInner() {
             recorta lo que se salga a lo ancho sin convertir <main> en zona de
             desplazamiento propia: si lo fuera, nada de dentro podría quedarse
             fijo (position: sticky), ni la barra de pestañas ni los índices. */}
-        <main style={{ flex: 1, overflowX: 'clip' }} className={hubEnMenu(section, especialista) ? 'with-hub' : undefined}>
+        <main style={{ flex: 1, overflowX: 'clip' }} className={hubEnMenu(section, tipo) ? 'with-hub' : undefined}>
           {/* La clave cambia al entrar en otro apartado: la barra se monta de
               nuevo y su animación de aviso (parpadeo) vuelve a sonar. Al
               cambiar de pestaña dentro del mismo apartado no parpadea. */}
-          <HubTabs key={hubEnMenu(section, especialista)?.id ?? 'none'} section={section} especialista={especialista} onNav={setSection} />
+          <HubTabs key={hubEnMenu(section, tipo)?.id ?? 'none'} section={section} tipo={tipo} onNav={setSection} />
           <Suspense fallback={<Loading />}>
             {section === 'dashboard' && especialista && (
               <InicioApoyo
@@ -301,6 +320,7 @@ function AppInner() {
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
                 onLoadDemo={() => { st.loadDemoData(); toast(t('✅ Datos de ejemplo cargados')); }}
+                ef={efInicio}
               />
             )}
             {section === 'classes' && (
@@ -576,6 +596,16 @@ function AppInner() {
             {section === 'apoyo-agenda-visual' && (
               <AgendaVisualApoyo data={st.apoyo} onChange={st.setApoyo} />
             )}
+            {section === 'ef-pista' && (
+              <EfPista
+                classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks}
+                classMarks={st.classMarks} ef={st.ef}
+                onAddMark={st.addClassMark} onDeleteMark={st.deleteClassMark} onNav={setSection}
+              />
+            )}
+            {section === 'ef-exentos' && (
+              <EfExentos classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} onNav={setSection} />
+            )}
             {section === 'profile' && (
               <Profile
                 user={st.currentUser}
@@ -588,6 +618,8 @@ function AppInner() {
                     subject: u.subject, course: u.course,
                     ...(u.community ? { community: u.community } : {}),
                     ...(u.especialidades ? { especialidades: u.especialidades } : {}),
+                    ...(u.tipoDocente ? { tipoDocente: u.tipoDocente } : {}),
+                    ...(u.tutor !== undefined ? { tutor: u.tutor } : {}),
                   });
                 }}
                 onUpdateSecurity={st.updateUser}

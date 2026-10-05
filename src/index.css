@@ -1280,6 +1280,26 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ap-graf-linea { fill:none; stroke:var(--text-3); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
 .ap-graf-punto { stroke:var(--card); stroke-width:2; }
 .ap-graf-p:hover .ap-graf-punto { r:7; }
+/* Educación Física: en la pista */
+.td-nota { font-size:12px; color:var(--text-2); line-height:1.45; margin:4px 0 0; }
+.ef-aspectos { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.ef-aspecto { padding:9px 14px; border-radius:99px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; }
+.ef-aspecto.pos.on { background:var(--ok-bg); border-color:var(--ok-fg); color:var(--ok-fg); }
+.ef-aspecto.neg.on { background:color-mix(in srgb, var(--danger) 12%, var(--card)); border-color:var(--danger); color:var(--danger); }
+.ef-pista { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:10px; }
+.ef-alumno { width:100%; min-height:78px; display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:12px 14px; border-radius:14px; border:2px solid var(--border); background:var(--card); color:var(--text); font:inherit; text-align:left; cursor:pointer; transition:border-color var(--t), background var(--t); }
+.ef-alumno:hover { border-color:var(--accent-d); }
+.ef-alumno.on.pos { border-color:var(--ok-fg); background:var(--ok-bg); }
+.ef-alumno.on.neg { border-color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, var(--card)); }
+.ef-alumno-nom { font-size:14px; font-weight:700; line-height:1.3; }
+.ef-exento { display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:var(--warn-fg); background:var(--warn-bg); border-radius:99px; padding:2px 8px; }
+.ef-alumno-marcas { display:flex; flex-wrap:wrap; gap:4px; }
+.ef-marca { font-size:11px; font-weight:700; border-radius:99px; padding:1px 7px; }
+.ef-marca.pos { color:var(--ok-fg); background:var(--ok-bg); }
+.ef-marca.neg { color:var(--danger); background:color-mix(in srgb, var(--danger) 12%, var(--card)); }
+@media (max-width: 640px) {
+  .ef-pista { grid-template-columns:repeat(2, minmax(0,1fr)); }
+}
 /* Inicio de PT y AL */
 .ap-pasos { list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:14px; }
 .ap-pasos li { display:flex; gap:12px; align-items:flex-start; }

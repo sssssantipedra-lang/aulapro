@@ -13,6 +13,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `docs/DESCARGAS.md`: el servidor de descargas (descargas.aulapro.app).
 - `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar sigue pendiente.
 - `docs/PTAL.md`: el módulo de Pedagogía Terapéutica y Audición y Lenguaje: decisiones, normativa de inclusión de cada comunidad, autores de referencia y lo que falta.
+- `docs/EF.md`: el perfil de Educación Física (con tutoría o sin ella): decisiones, herramientas y lo que falta.
 - `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad, y en su carpeta `Inclusión`, la normativa y los modelos de inclusión (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
 - Logo oficial: `public/favicon.svg` (con "AULAPRO" debajo) y `public/favicon-mini.svg` (sin texto, para tamaños pequeños). `npm run icons` saca de ahí los iconos de la app. La web usa el pequeño: copia en `web/sitio/assets/icono.svg` y dibujado dentro de cada página (marca de la cabecera). Si cambia el logo, cambia también la web.
 

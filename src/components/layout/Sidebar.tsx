@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, Settings, ChevronLeft, ChevronRight,
   Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, ChevronDown, Share2, MapPin,
-  NotebookPen, Contact, Target, FileSignature, Shapes, MonitorPlay, Handshake, Images,
+  NotebookPen, Contact, Target, FileSignature, Shapes, MonitorPlay, Handshake, Images, Volleyball,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
@@ -21,6 +21,7 @@ const ICONS: Record<NavIcon, React.ReactNode> = {
   evaluate: <ClipboardCheck size={18} />,
   documents: <FileText size={18} />,
   inclass: <Presentation size={18} />,
+  ef: <Volleyball size={18} />,
   session: <NotebookPen size={18} />,
   students: <Contact size={18} />,
   goals: <Target size={18} />,
@@ -114,7 +115,7 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
       <div className="sb-div" />
 
       <nav className="sb-nav">
-        {navGroupsFor(!!user?.especialidades?.length).map(({ sect, items, collapsedByDefault }) => {
+        {navGroupsFor(user?.tipo ?? 'aula').map(({ sect, items, collapsedByDefault }) => {
           const holdsCurrent = items.some(i => isCurrent(i, current));
           // Con la barra plegada no se ven las cabeceras, así que plegar un
           // grupo ahí escondería sus entradas sin dejar forma de recuperarlas.

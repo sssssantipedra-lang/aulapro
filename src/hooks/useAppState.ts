@@ -15,6 +15,10 @@ import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
 import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
+import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF } from '../lib/ef';
+import { buildDemoEF } from '../lib/demoEF';
+import { tipoDePerfil } from '../lib/tipoDocente';
+import type { EfData } from '../types/ef';
 import type { TeacherProfile } from '../services/storage';
 import {
   pushEntry, newEntry, formatGrade, formatDay,
@@ -59,6 +63,7 @@ interface ProfileSnapshot {
   marksConfigs: Record<string, MarksBlockConfig>;
   /** Módulo de PT y AL (ver `docs/PTAL.md`). Solo lo usan los especialistas. */
   apoyo: ApoyoData;
+  ef: EfData;
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -70,7 +75,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
-    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [], marksConfigs: {}, apoyo: APOYO_VACIO,
+    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [], marksConfigs: {}, apoyo: APOYO_VACIO, ef: EF_VACIO,
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -158,6 +163,7 @@ export function useAppState() {
   const [classMarks, setClassMarks]           = useState<ClassMark[]>([]);
   const [marksConfigs, setMarksConfigs]       = useState<Record<string, MarksBlockConfig>>({});
   const [apoyo, setApoyo]                     = useState<ApoyoData>(APOYO_VACIO);
+  const [ef, setEf]                           = useState<EfData>(EF_VACIO);
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -198,6 +204,7 @@ export function useAppState() {
     setMarksConfigs(s.marksConfigs);
     // Puede venir de una copia editada a mano o de una versión anterior
     setApoyo(normalizarApoyo(s.apoyo));
+    setEf(normalizarEF(s.ef));
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -240,11 +247,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    workSessions, seatingPlans, classMarks, marksConfigs, apoyo, tombstones, shareScope, auditLog,
+    workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      workSessions, seatingPlans, classMarks, marksConfigs, apoyo, tombstones, shareScope, auditLog]);
+      workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -288,8 +295,10 @@ export function useAppState() {
   ) => {
     const created = await store.createProfile(input);
     if (options.demo) {
-      // El ejemplo de PT y AL es su alumnado de apoyo, sin clases
-      const demo = input.especialidades?.length ? { ...emptySnapshot(), apoyo: buildDemoApoyo() } : demoSnapshot();
+      // El ejemplo de PT y AL es su alumnado de apoyo, sin clases; el de EF, sus clases de EF
+      const demo = input.especialidades?.length ? { ...emptySnapshot(), apoyo: buildDemoApoyo() }
+        : input.tipoDocente === 'ef' ? { ...emptySnapshot(), ...buildDemoEF() }
+        : demoSnapshot();
       await store.saveData(created.id, demo as unknown as store.ProfileData);
     } else if (options.importLegacy) {
       const legacy = readLegacyData();
@@ -325,6 +334,8 @@ export function useAppState() {
     subject: profile.subject,
     community: comunidadDePerfil(profile.community) ?? undefined,
     especialidades: especialidadesDePerfil(profile.especialidades),
+    tipo: tipoDePerfil(profile),
+    tutor: tipoDePerfil(profile) === 'ef' && profile.tutor === true,
   } : null), [profile]);
 
   /* ── Lápidas para que los borrados se propaguen ── */
@@ -456,6 +467,7 @@ export function useAppState() {
     const goneName = studentName(id);
     setStudents(prev => prev.filter(s => s.id !== id));
     setClassMarks(prev => prev.filter(m => m.student_id !== id));
+    setEf(prev => sinAlumnoEF(prev, id));
     markDeleted({ students: [id] });
     log('delete', 'student', id, `Alumno ${goneName}`);
   }, [markDeleted, log, studentName]);
@@ -943,6 +955,8 @@ export function useAppState() {
     // El alumnado de apoyo, sus programas y sus registros son de este curso;
     // las agendas visuales sin alumno son plantillas y se quedan
     setApoyo(apoyoParaOtroCurso);
+    // De EF se queda el material del docente: pruebas, baremos, actividades…
+    setEf(efParaOtroCurso);
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
@@ -985,6 +999,7 @@ export function useAppState() {
     classMarks, addClassMark, deleteClassMark,
     marksConfigs, setMarksConfig,
     apoyo, setApoyo,
+    ef, setEf,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

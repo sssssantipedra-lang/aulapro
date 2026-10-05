@@ -60,3 +60,18 @@ describe('crear el perfil', () => {
     expect(onExploreDemo).toHaveBeenCalledWith(expect.objectContaining({ especialidades: ['PT', 'AL'] }));
   });
 });
+
+describe('crear el perfil de Educación Física', () => {
+  it('EF, con la casilla de tutoría, guarda su tipo y escribe sola su especialidad', async () => {
+    const user = userEvent.setup();
+    const { onCreateProfile } = await abrir();
+    await user.click(screen.getByRole('radio', { name: /Educación Física/ }));
+    expect(screen.queryByLabelText('Especialidad')).toBeNull();
+    await user.click(screen.getByRole('checkbox', { name: 'También soy tutor o tutora' }));
+    await user.type(screen.getByLabelText('Tu nombre *'), 'Jordi Puig');
+    await user.selectOptions(screen.getByLabelText('Comunidad autónoma *'), 'cataluna');
+    await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+    expect(onCreateProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Jordi Puig', subject: 'Educación Física', tipoDocente: 'ef', tutor: true }), expect.anything());
+  });
+});

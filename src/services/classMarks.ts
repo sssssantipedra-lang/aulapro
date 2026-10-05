@@ -43,8 +43,29 @@ export const MARK_TYPES: readonly MarkTypeInfo[] = [
   { id: 'participation', label: 'Participa',           positive: true,  target: 'participation' },
 ];
 
+/**
+ * Educación Física: lo que se observa en la pista (decisión del dueño,
+ * 5-10-2026). Van al mismo bloque del cuaderno, con sus tres partes
+ * renombradas: vestimenta e higiene, actitud y juego limpio, participación y
+ * esfuerzo (ver `targetLabel`).
+ */
+export const EF_MARK_TYPES: readonly MarkTypeInfo[] = [
+  { id: 'participation',   label: 'Participa',      positive: true,  target: 'participation' },
+  { id: 'ef-esfuerzo',     label: 'Se esfuerza',    positive: true,  target: 'participation' },
+  { id: 'ef-no-participa', label: 'No participa',   positive: false, target: 'participation' },
+  { id: 'behavior-good',   label: 'Juego limpio',   positive: true,  target: 'behavior' },
+  { id: 'behavior-bad',    label: 'Mala actitud',   positive: false, target: 'behavior' },
+  { id: 'ef-ropa',         label: 'Sin equipación', positive: false, target: 'homework' },
+  { id: 'ef-aseo',         label: 'Sin aseo',       positive: false, target: 'homework' },
+];
+
 export const markTypeInfo = (id: ClassMarkType): MarkTypeInfo | undefined =>
-  MARK_TYPES.find(m => m.id === id);
+  MARK_TYPES.find(m => m.id === id) ?? EF_MARK_TYPES.find(m => m.id === id);
+
+/** Si una asignatura es Educación Física, con cualquiera de los nombres con que se suele escribir. */
+export function esAsignaturaEF(subject: string): boolean {
+  return /^(ef|educaci[oó] f[ií]sica|educaci[oó]n f[ií]sica|physical education|pe)$/i.test(subject.trim());
+}
 
 export const TARGETS: readonly MarkTarget[] = ['homework', 'behavior', 'participation'];
 
@@ -53,6 +74,16 @@ export const TARGET_LABEL: Record<MarkTarget, string> = {
   behavior: 'Comportamiento',
   participation: 'Participación',
 };
+
+/** En EF, las tres partes del bloque son otras, aunque se calculen igual. */
+export const TARGET_LABEL_EF: Record<MarkTarget, string> = {
+  homework: 'Vestimenta e higiene',
+  behavior: 'Actitud y juego limpio',
+  participation: 'Participación y esfuerzo',
+};
+
+export const targetLabel = (target: MarkTarget, subject: string) =>
+  (esAsignaturaEF(subject) ? TARGET_LABEL_EF : TARGET_LABEL)[target];
 
 export const BLOCK_NAME = 'Trabajo diario y actitud';
 

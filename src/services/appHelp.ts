@@ -48,6 +48,8 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'apoyo-documentos':    { es: 'Programación e informes', en: 'Planning and Reports' },
   'apoyo-coordinaciones': { es: 'Coordinaciones', en: 'Coordination' },
   'apoyo-agenda-visual': { es: 'Agenda visual', en: 'Visual Schedule' },
+  'ef-pista':            { es: 'En la pista', en: 'On the Court' },
+  'ef-exentos':          { es: 'Exentos y lesiones', en: 'Exemptions and Injuries' },
 };
 
 /**
@@ -118,9 +120,10 @@ Idioma). En catalán, también la IA redacta en catalán (fichas, informes, SdA�
 
 === CÓMO SE NAVEGA ===
 Al crear el perfil se elige el TIPO DE DOCENTE: «Docente de aula» (tutoría o
-materias) o «PT y AL» (profesorado especialista de apoyo). Cada tipo tiene su
-menú y su Inicio. Lo que sigue es el del docente de aula; el de PT y AL está en
-«PT Y AL», más abajo. El tipo se cambia en Configuración → Perfil.
+materias), «Educación Física» (con la casilla de tutoría si también es tutor) o
+«PT y AL» (profesorado especialista de apoyo). Cada tipo tiene su menú y su
+Inicio. Lo que sigue es el del docente de aula; el de EF y el de PT y AL están
+más abajo. El tipo se cambia en Configuración → Perfil.
 Barra lateral a la izquierda, organizada por tareas, con tres grupos:
 - «Tu día a día»: Inicio, Mis Clases, Agenda, Cuaderno de Notas y Asistencia.
 - «Trabajo docente»: tres APARTADOS que reúnen pantallas hermanas. Al entrar
@@ -452,6 +455,40 @@ las mismas clases, alumnos, notas, rúbricas y dianas. Se conecta con un código
 un QR y los cambios se sincronizan solos. El dueño de cada lista manda sobre
 ella, para que nadie machaque el trabajo del otro.
 
+=== EDUCACIÓN FÍSICA (solo profesorado de EF) ===
+Al crear el perfil, «Tipo de docente» → «Educación Física» (o después, en
+Configuración → Perfil). Con la casilla «También soy tutor o tutora», el Inicio
+es el de tutoría y su grupo es la clase en la que marque «Soy el tutor o la
+tutora de este grupo» en Mis Clases (el 2 en 1). El MENÚ es el de un docente de
+aula (Mis Clases, Agenda, Cuaderno, Asistencia, Evaluar con rúbricas y dianas,
+Documentos, En clase, Más) y, justo después del Inicio, el apartado
+«Educación Física», con pestañas arriba.
+INICIO DE EF (sin tutoría): el de siempre, con «Observar en la pista» en vez de
+«Anotar en el aula» en la clase de ahora, y la tarjeta «Exentos y lesiones» con
+quién no puede hacer la clase hoy y qué hace mientras tanto.
+
+[ef-pista] EN LA PISTA
+La observación rápida, pensada para el móvil. Arriba, la clase (sale la que
+toca ahora según el horario); debajo, qué se observa: «+ Participa», «+ Se
+esfuerza», «− No participa», «+ Juego limpio», «− Mala actitud», «− Sin
+equipación», «− Sin aseo». Se elige uno y se toca a cada alumno; otro toque lo
+quita. Quien está exento lleva una etiqueta con lo que no puede hacer. Cuenta en
+el Cuaderno, en el bloque «Trabajo diario y actitud», que en EF tiene tres
+partes: Vestimenta e higiene (sin equipación, sin aseo), Actitud y juego limpio
+y Participación y esfuerzo. Los puntos del bloque y el peso de cada parte se
+cambian en el Cuaderno, como el resto del bloque.
+
+[ef-exentos] EXENTOS Y LESIONES
+Quién no puede hacer la clase o parte de ella. «Añadir»: alumno, qué no puede
+hacer (no puede correr, no puede saltar, sin impactos, sin contacto, no puede
+usar un brazo, no puede apoyar una pierna, sin esfuerzo intenso, sin sol, u
+otra escrita a mano), desde y hasta cuándo (sin fecha de fin, hasta que se
+quite), qué hace mientras tanto, si ha traído justificante y el motivo. El
+MOTIVO es un dato de salud: se queda en el equipo y nunca se envía a la IA; a
+la IA solo le llega lo que no puede hacer, sin nombre. La lista se divide en
+«Ahora», «Más adelante» y los que ya terminaron. Sale en la pista, en el Inicio
+y al hacer equipos.
+
 === PT Y AL (solo profesorado especialista) ===
 Para quien atiende alumnado de muchas clases que no son suyas. Se elige al
 crear el perfil («Tipo de docente» → «PT y AL», y se marca «Pedagogía
@@ -617,9 +654,10 @@ Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
 izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
 vuelve con «← Configuración»:
 - PERFIL: nombre, apellidos, centro, especialidad, curso escolar, comunidad
-  autónoma y el TIPO DE DOCENTE: «Docente de aula» o «PT y AL» (con las
-  casillas «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»). Al
-  cambiarlo cambian el menú y el Inicio; no se borra nada.
+  autónoma y el TIPO DE DOCENTE: «Docente de aula», «Educación Física» (con la
+  casilla «También soy tutor o tutora») o «PT y AL» (con las casillas
+  «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»). Al cambiarlo
+  cambian el menú y el Inicio; no se borra nada.
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
   «Pegar mi clave», que la guarda y comprueba que funciona. También explica el
