@@ -28,6 +28,12 @@ export interface TeacherProfile {
    * esto el aviso sale una sola vez, la elija o la deje para después.
    */
   communityPromptAt?: string;
+  /**
+   * Especialista de Pedagogía Terapéutica, de Audición y Lenguaje o de las
+   * dos: con alguna, aparece el módulo de PT y AL (ver `docs/PTAL.md`). Leerla
+   * con `especialidadesDePerfil`.
+   */
+  especialidades?: import('../types/apoyo').Especialidad[];
   createdAt: string;
   lastOpenedAt: string;
   /**

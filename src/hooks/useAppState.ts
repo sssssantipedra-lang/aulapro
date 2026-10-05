@@ -12,6 +12,8 @@ import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type Shar
 import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
+import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil } from '../lib/apoyo';
+import type { ApoyoData } from '../types/apoyo';
 import type { TeacherProfile } from '../services/storage';
 import {
   pushEntry, newEntry, formatGrade, formatDay,
@@ -54,6 +56,8 @@ interface ProfileSnapshot {
   classMarks: ClassMark[];
   /** Cómo cuenta ese bloque en cada clase y asignatura, por `classId|asignatura`. */
   marksConfigs: Record<string, MarksBlockConfig>;
+  /** Módulo de PT y AL (ver `docs/PTAL.md`). Solo lo usan los especialistas. */
+  apoyo: ApoyoData;
   tombstones: Tombstones;
   shareScope: ShareScope;
   auditLog: AuditEntry[];
@@ -65,7 +69,7 @@ function emptySnapshot(): ProfileSnapshot {
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
-    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [], marksConfigs: {},
+    fichas: [], workSessions: [], seatingPlans: {}, classMarks: [], marksConfigs: {}, apoyo: APOYO_VACIO,
     tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
   };
 }
@@ -152,6 +156,7 @@ export function useAppState() {
   const [seatingPlans, setSeatingPlans]       = useState<Record<string, SeatingPlan>>({});
   const [classMarks, setClassMarks]           = useState<ClassMark[]>([]);
   const [marksConfigs, setMarksConfigs]       = useState<Record<string, MarksBlockConfig>>({});
+  const [apoyo, setApoyo]                     = useState<ApoyoData>(APOYO_VACIO);
   const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
   const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
@@ -190,6 +195,8 @@ export function useAppState() {
     setSeatingPlans(s.seatingPlans);
     setClassMarks(s.classMarks);
     setMarksConfigs(s.marksConfigs);
+    // Puede venir de una copia editada a mano o de una versión anterior
+    setApoyo(normalizarApoyo(s.apoyo));
     setTombstones(s.tombstones);
     setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
@@ -232,11 +239,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    workSessions, seatingPlans, classMarks, marksConfigs, tombstones, shareScope, auditLog,
+    workSessions, seatingPlans, classMarks, marksConfigs, apoyo, tombstones, shareScope, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      workSessions, seatingPlans, classMarks, marksConfigs, tombstones, shareScope, auditLog]);
+      workSessions, seatingPlans, classMarks, marksConfigs, apoyo, tombstones, shareScope, auditLog]);
 
   const [saving, setSaving] = useState(false);
   const lastSavedRef = useRef('');
@@ -314,6 +321,7 @@ export function useAppState() {
     school: profile.school,
     subject: profile.subject,
     community: comunidadDePerfil(profile.community) ?? undefined,
+    especialidades: especialidadesDePerfil(profile.especialidades),
   } : null), [profile]);
 
   /* ── Lápidas para que los borrados se propaguen ── */
@@ -929,6 +937,8 @@ export function useAppState() {
     setSeatingPlans({});
     setClassMarks([]);
     setMarksConfigs({});
+    // El alumnado de apoyo, sus programas y sus registros son de este curso
+    setApoyo(APOYO_VACIO);
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
@@ -970,6 +980,7 @@ export function useAppState() {
     seatingPlans, setSeatingPlan,
     classMarks, addClassMark, deleteClassMark,
     marksConfigs, setMarksConfig,
+    apoyo, setApoyo,
     shareScope, setShareScope, syncSource, applyBundle,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,

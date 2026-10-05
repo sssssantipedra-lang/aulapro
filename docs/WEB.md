@@ -37,6 +37,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 6. Android y Google Play: dentro de la app no puede haber ningún botón ni enlace que lleve a pagar. Sí se puede escribir "Consigue tu licencia en aulapro.app", como texto sin enlace. Hecho en la app 1.8.0: en Android la pantalla de licencia solo muestra ese texto; en Windows y Mac, enlace a aulapro.app. Pendiente para el lanzamiento: sin licencia, un modo de prueba con datos de ejemplo en vez de una pantalla vacía.
 7. Datos del alumnado solo en el equipo. Sin cuentas ni servidores propios.
 8. IA: con la clave gratuita de Google del docente (API de Gemini). Antes de enviar nada, los nombres se sustituyen por códigos. La clave se guarda cifrada. La política avisa de que, en el uso gratuito, Google puede usar los contenidos para mejorar sus servicios.
+   - Módulo de PT y AL (ver `docs/PTAL.md`): la IA recibe además la ficha del alumno, con su necesidad específica de apoyo educativo y su diagnóstico, siempre con el nombre cambiado por un código. Decisión del dueño del 4-10-2026. La privacidad lo dice en los tres idiomas y explica que, si no se quiere enviar el diagnóstico, se deja en blanco; las condiciones remiten a la privacidad.
 9. Sala de alumnos: servidor local; el alumnado entra por la wifi del aula con un código QR. No pasa por internet.
 10. Trabajo compartido entre docentes sin pasar por servidores de AulaPro.
 11. Copia de seguridad automática cada 10 minutos, en el propio equipo.

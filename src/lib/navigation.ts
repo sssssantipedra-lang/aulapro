@@ -13,6 +13,10 @@
  *   - Más (plegado): Reuniones, Formaciones, Trabajo compartido, Registro
  *     de cambios y Mi perfil.
  *
+ * El profesorado especialista de PT y AL tiene además el apartado «PT y AL»,
+ * justo después del Inicio: es su trabajo diario (ver `docs/PTAL.md`). Al
+ * resto no le aparece.
+ *
  * Las pantallas no cambian ni de identificador: todo lo que ya navegaba a
  * «rubrics» o «records» sigue funcionando; el apartado solo agrupa.
  */
@@ -20,11 +24,11 @@ import type { Section } from '../types';
 
 export type NavIcon =
   | 'home' | 'classes' | 'agenda' | 'notebook' | 'attendance'
-  | 'evaluate' | 'documents' | 'inclass'
+  | 'evaluate' | 'documents' | 'inclass' | 'apoyo'
   | 'meetings' | 'trainings' | 'share' | 'audit' | 'profile';
 
 export interface NavHub {
-  id: 'evaluate' | 'documents' | 'inclass';
+  id: 'evaluate' | 'documents' | 'inclass' | 'apoyo';
   label: string;
   /** Para qué sirve, en una frase: se ve bajo las pestañas y en el tooltip del menú. */
   hint: string;
@@ -66,6 +70,16 @@ export const HUBS: readonly NavHub[] = [
       { id: 'classroom-live', label: 'Sala de alumnos' },
     ],
   },
+  {
+    id: 'apoyo', label: 'PT y AL', icon: 'apoyo',
+    hint: 'Tu alumnado de apoyo: el registro de cada sesión, sus programas personalizados, la programación y los informes.',
+    tabs: [
+      { id: 'apoyo-registro',   label: 'Registro diario' },
+      { id: 'apoyo-alumnado',   label: 'Alumnado y grupos' },
+      { id: 'apoyo-programas',  label: 'Programas' },
+      { id: 'apoyo-documentos', label: 'Programación e informes' },
+    ],
+  },
 ];
 
 const link = (id: Section, label: string, icon: NavIcon): NavEntry => ({ kind: 'link', id, label, icon });
@@ -98,6 +112,17 @@ export const NAV_GROUPS: readonly { sect: string; items: NavEntry[]; collapsedBy
     ],
   },
 ];
+
+/**
+ * El menú de un perfil: el de siempre y, si es especialista de PT o de AL,
+ * su apartado justo después del Inicio.
+ */
+export function navGroupsFor(especialista: boolean): readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[] {
+  if (!especialista) return NAV_GROUPS;
+  return NAV_GROUPS.map((g, i) => (i === 0
+    ? { ...g, items: [g.items[0], hub('apoyo'), ...g.items.slice(1)] }
+    : g));
+}
 
 /** El apartado al que pertenece una pantalla, si pertenece a alguno. */
 export function hubOf(section: Section): NavHub | undefined {
@@ -132,6 +157,6 @@ export function hubTarget(h: NavHub): Section {
 }
 
 /** Todas las pantallas a las que se llega desde el menú (para comprobar que no se pierde ninguna). */
-export function reachableSections(): Section[] {
-  return NAV_GROUPS.flatMap(g => g.items.flatMap(e => (e.kind === 'link' ? [e.id] : e.tabs.map(t => t.id))));
+export function reachableSections(especialista = false): Section[] {
+  return navGroupsFor(especialista).flatMap(g => g.items.flatMap(e => (e.kind === 'link' ? [e.id] : e.tabs.map(t => t.id))));
 }

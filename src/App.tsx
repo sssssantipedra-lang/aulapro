@@ -44,6 +44,10 @@ const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default
 const LearningSituations = lazy(() => import('./pages/LearningSituations').then(m => ({ default: m.LearningSituations })));
 const Resources      = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
 const WorkSessions   = lazy(() => import('./pages/WorkSessions').then(m => ({ default: m.WorkSessions })));
+const RegistroApoyo  = lazy(() => import('./pages/apoyo/RegistroApoyo').then(m => ({ default: m.RegistroApoyo })));
+const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m => ({ default: m.AlumnadoApoyo })));
+const DocumentosApoyo = lazy(() => import('./pages/apoyo/DocumentosApoyo').then(m => ({ default: m.DocumentosApoyo })));
+const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
 
 function Loading() {
   const { t } = useI18n();
@@ -142,8 +146,11 @@ function AppInner() {
     setSection('dashboard');
   }
 
-  // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts
-  useEffect(() => { setPrivacyRoster(st.students, lang); }, [st.students, lang]);
+  // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts.
+  // Tampoco los del alumnado de apoyo de PT y AL, que no está en las clases.
+  useEffect(() => {
+    setPrivacyRoster([...st.students, ...st.apoyo.alumnos.map(a => ({ id: a.id, name: a.nombre }))], lang);
+  }, [st.students, st.apoyo.alumnos, lang]);
 
   // Android: el botón «atrás» cierra lo que esté abierto o vuelve al Inicio
   // antes de salir, en vez de cerrar la aplicación de golpe.
@@ -514,6 +521,35 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
               />
             )}
+            {section === 'apoyo-registro' && (
+              <RegistroApoyo data={st.apoyo} onChange={st.setApoyo} comunidad={st.currentUser.community} onNav={s => setSection(s as Section)} />
+            )}
+            {section === 'apoyo-alumnado' && (
+              <AlumnadoApoyo
+                data={st.apoyo}
+                onChange={st.setApoyo}
+                especialidades={st.currentUser.especialidades ?? []}
+              />
+            )}
+            {section === 'apoyo-programas' && (
+              <ProgramasApoyo
+                data={st.apoyo}
+                onChange={st.setApoyo}
+                especialidades={st.currentUser.especialidades ?? []}
+                comunidad={st.currentUser.community}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
+            {section === 'apoyo-documentos' && (
+              <DocumentosApoyo
+                data={st.apoyo}
+                onChange={st.setApoyo}
+                especialidades={st.currentUser.especialidades ?? []}
+                comunidad={st.currentUser.community}
+                docente={{ nombre: st.profile?.name ?? '', centro: st.profile?.school ?? '', curso: st.profile?.course ?? '' }}
+                onNav={s => setSection(s as Section)}
+              />
+            )}
             {section === 'profile' && (
               <Profile
                 user={st.currentUser}
@@ -525,6 +561,7 @@ function AppInner() {
                     name: u.full_name, school: u.school,
                     subject: u.subject, course: u.course,
                     ...(u.community ? { community: u.community } : {}),
+                    ...(u.especialidades ? { especialidades: u.especialidades } : {}),
                   });
                 }}
                 onUpdateSecurity={st.updateUser}

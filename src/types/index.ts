@@ -7,6 +7,8 @@ export interface User {
   initials?: string;
   /** Comunidad autónoma del perfil; ausente si todavía no la ha elegido. */
   community?: import('../lib/curriculum/comunidades').ComunidadId;
+  /** Especialidades de PT y AL del perfil; vacía si no es especialista. */
+  especialidades?: import('./apoyo').Especialidad[];
 }
 
 export interface Class {
@@ -726,4 +728,5 @@ export type Section =
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
-  | 'meetings' | 'trainings' | 'seating';
+  | 'meetings' | 'trainings' | 'seating'
+  | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos';

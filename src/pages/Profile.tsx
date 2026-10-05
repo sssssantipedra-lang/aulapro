@@ -18,13 +18,14 @@ import { useI18n, LANGS } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { CommunitySelect } from '../components/CommunitySelect';
 import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades';
+import type { Especialidad } from '../types/apoyo';
 
 interface Props {
   user: User | null;
   profile: TeacherProfile | null;
   profileId: string | null;
   course: string;
-  onUpdateUser: (u: { full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId }) => void;
+  onUpdateUser: (u: { full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId; especialidades?: Especialidad[] }) => void;
   onUpdateSecurity: (patch: { passwordHash?: string; passwordSalt?: string }) => void;
   onExportData: () => Record<string, unknown>;
   onImportData: (raw: string) => string | null;
@@ -40,6 +41,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [espec,  setEspec]  = useState(user?.subject ?? '');
   const [curso,  setCurso]  = useState(course ?? '');
   const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>(user?.especialidades ?? []);
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>(
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
@@ -102,6 +104,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     onUpdateUser({
       full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso,
       ...(comunidad ? { community: comunidad } : {}),
+      especialidades,
     });
     // Quien ya tenía comunidad y la cambia: las SdA que guardó siguen citando
     // el decreto con el que se hicieron, no se reescriben.
@@ -217,6 +220,24 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
               <label className="flabel" htmlFor="profile-f6">{t('Comunidad autónoma')}</label>
               <CommunitySelect id="profile-f6" value={comunidad} onChange={setComunidad} />
             </div>
+            {/* Con alguna, aparece en el menú el apartado «PT y AL» (ver docs/PTAL.md) */}
+            <fieldset className="fgroup" style={{ gridColumn: '1 / -1', border: 0, padding: 0, margin: 0 }}>
+              <legend className="flabel">{t('Profesorado especialista de apoyo')}</legend>
+              {([['PT', 'Pedagogía Terapéutica (PT)'], ['AL', 'Audición y Lenguaje (AL)']] as const).map(([id, label]) => (
+                <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, marginBottom: 6, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox" checked={especialidades.includes(id)}
+                    onChange={e => setEspecialidades(prev => (e.target.checked
+                      ? (['PT', 'AL'] as const).filter(x => x === id || prev.includes(x))
+                      : prev.filter(x => x !== id)))}
+                  />
+                  {t(label)}
+                </label>
+              ))}
+              <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '2px 0 0' }}>
+                {t('Si marcas alguna, en el menú aparece «PT y AL», con tu alumnado de apoyo, el registro de cada sesión, sus programas y los informes.')}
+              </p>
+            </fieldset>
           </div>
           <div style={{ marginTop: 4, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
             <button className="btn-accent" onClick={saveProfile}>{t('Guardar cambios')}</button>

@@ -42,6 +42,10 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   share:                 { es: 'Trabajo compartido', en: 'Shared Workspace' },
   audit:                 { es: 'Registro de cambios', en: 'Change Log' },
   profile:               { es: 'Configuración', en: 'Settings' },
+  'apoyo-registro':      { es: 'Registro diario', en: 'Session Log' },
+  'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
+  'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
+  'apoyo-documentos':    { es: 'Programación e informes', en: 'Planning and Reports' },
 };
 
 /**
@@ -438,6 +442,96 @@ las mismas clases, alumnos, notas, rúbricas y dianas. Se conecta con un código
 un QR y los cambios se sincronizan solos. El dueño de cada lista manda sobre
 ella, para que nadie machaque el trabajo del otro.
 
+=== PT Y AL (solo profesorado especialista) ===
+Apartado del menú, justo después del Inicio, que solo aparece si en
+Configuración → Perfil está marcada «Pedagogía Terapéutica (PT)» o «Audición y
+Lenguaje (AL)». Es para quien atiende alumnado de muchas clases que no son
+suyas: este alumnado es aparte del de «Mis Clases».
+
+[apoyo-registro] REGISTRO DIARIO
+La primera pestaña de «PT y AL», para usar en la sesión. Arriba, la fecha (con
+flechas para el día anterior y el siguiente, o pulsándola para elegir otra) y
+el trimestre, que sale de la fecha (septiembre a diciembre el 1º, enero a marzo
+el 2º, abril en adelante el 3º). Debajo, los grupos que tienen sesión ese día
+según su horario, por orden de hora, y «Otro grupo…» para registrar uno que no
+toca ese día. En el grupo: «Qué trabaja hoy su clase» y, con él escrito, «Cómo
+adaptarlo a cada alumno, con IA»: para cada alumno que ha venido, la IA propone
+cómo trabajar ese mismo tema con sus objetivos del trimestre (una actividad, el
+apoyo o material y cómo saber si lo ha conseguido); sale en su ficha como
+«Propuesta para hoy», que se puede retocar. Por cada alumno, «No
+ha venido», sus OBJETIVOS DE ESTE TRIMESTRE (los de sus programas de la
+especialidad del grupo) con tres botones: ✓ conseguido, – en proceso, ✗ no
+conseguido; «CÓMO HA RESPONDIDO»: atención, motivación, conducta y autonomía,
+cada una con tres caras (ha ido bien, regular, mal); y una nota. Volver a
+pulsar un botón lo desmarca. El micrófono explica cómo dictar con el propio
+sistema (Windows + H en Windows, el micrófono del teclado en Android): la app
+no graba ni envía audio. En el móvil o la tableta se ve un alumno por pantalla,
+con flechas para pasar al siguiente; en el ordenador, todo el grupo a la vista.
+Se guarda solo; una sesión sin nada anotado no se guarda.
+
+[apoyo-alumnado] ALUMNADO Y GRUPOS
+Dos listas. GRUPOS DE APOYO («Nuevo grupo»): uno por cada sesión que se da
+(«Lectoescritura, lunes 9:00»; un alumno que se atiende solo es un grupo de
+uno), con su nombre, si es dentro o fuera del aula, su horario (una o varias
+sesiones a la semana, con día, hora de empezar y de acabar), su alumnado y un
+color; si el perfil es de PT y de AL, también de cuál de las dos es. ALUMNADO
+(«Nuevo alumno»): nombre y apellidos, clase de origen («2º B»), curso en que
+está matriculado, nivel de competencia curricular (el curso cuyo currículo
+trabaja; si está por debajo de su curso se marca en la lista), necesidad
+específica de apoyo educativo (se elige o se escribe; sugiere las categorías
+de la LOE), diagnóstico, necesidades educativas (barreras, fortalezas y qué le
+ayuda), notas y sus grupos. El lápiz de cada fila edita; dentro está
+«Eliminar». Eliminar un alumno borra sus programas y sus registros; eliminar
+un grupo borra sus registros, pero no al alumnado. Todo se guarda en el
+equipo y se vacía con el vaciado de fin de curso.
+
+[apoyo-programas] PROGRAMAS
+El plan individual de cada alumno. Arriba se elige el alumno (una fila de
+botones con sus nombres); debajo se ven su clase, su curso y su nivel. «Nuevo
+programa» crea uno por ámbito: en la Comunitat Valenciana, los programas del
+apartado D del PAP (comunicación, lenguaje y habla; lectura y escritura;
+matemáticas; autonomía personal; conducta; ACIS), con su nombre oficial; en el
+resto, ámbitos de partida de PT (lectoescritura, razonamiento
+lógico-matemático, atención y funciones ejecutivas…) y de AL (fonética y
+fonología, morfosintaxis, pragmática…), o «Otro ámbito…» escrito a mano. Cada
+programa tiene la intensidad del apoyo (baja, media, alta) y sus OBJETIVOS:
+cada uno con su texto, los trimestres en que se trabaja (botones 1º, 2º, 3º) y,
+con el icono del enlace, los criterios de evaluación oficiales del curso de su
+NIVEL DE COMPETENCIA (no de su matrícula), que se buscan por código o palabra.
+«Proponer objetivos con IA» añade de 4 a 6 objetivos repartidos por trimestres
+y enlazados con criterios de su nivel (de Lengua en lectoescritura y lenguaje,
+de Matemáticas en matemáticas, de todas en una ACIS, ninguno en atención o
+conducta), apoyándose en la normativa de inclusión de la comunidad y en los
+autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
+del alumno, también el diagnóstico, con el nombre cambiado por un código: si no
+se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
+
+[apoyo-documentos] PROGRAMACIÓN E INFORMES
+Por alumno (fila de botones arriba). En «Nuevo documento» se elige cuál y, si
+es trimestral, el trimestre, y «Preparar con IA» lo redacta:
+- PROGRAMACIÓN (una por alumno): sus datos y su horario de apoyo,
+  justificación y marco normativo, necesidades y punto de partida, objetivos
+  por ámbito y trimestre (tal cual de sus programas, con sus criterios
+  oficiales), metodología, recursos y materiales, coordinación y evaluación.
+- INFORME TRIMESTRAL A LA FAMILIA: lo trabajado y cómo avanza, cómo ha
+  respondido, orientaciones para casa y objetivos del próximo trimestre, en
+  lenguaje para familias y sin el diagnóstico en la cabecera.
+- INFORME TRIMESTRAL AL TUTOR O AL EQUIPO: asistencia a las sesiones (la cuenta
+  la app), evolución por programa y objetivo, respuesta en las sesiones y
+  propuestas para el aula de referencia.
+- SEGUIMIENTO DEL PAP (APARTADO I), solo en la Comunitat Valenciana: la tabla
+  «Medidas de respuesta» con una fila por programa y las columnas 1º, 2º y 3º
+  trimestre y «Propuesta para el curso siguiente», el progreso global y, en el
+  3º, la propuesta de nuevas medidas, con los textos del Documento 7 de la
+  Conselleria. Cada vez rellena la columna del trimestre elegido y conserva las
+  demás. Lleva el cuadro de firma.
+Los datos (objetivos, recuentos del registro diario, medias de cómo ha
+respondido, notas, asistencia) los pone la app; la IA solo los redacta, con la
+normativa de la comunidad y los autores de referencia, y no inventa logros. Un
+informe trimestral nuevo del mismo trimestre sustituye al anterior (lo
+pregunta). La lista «Documentos de…» abre cada uno para retocarlo (se guarda
+solo), lo exporta a PDF (en la app de escritorio) o a Word, o lo elimina.
+
 [audit] REGISTRO DE CAMBIOS
 Quién cambió qué y cuándo: notas, alumnos, asistencia, evaluaciones… Con filtros
 y buscador, y se exporta a CSV. Útil cuando dos docentes comparten trabajo o
@@ -447,8 +541,10 @@ para justificar un cambio de nota.
 Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
 izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
 vuelve con «← Configuración»:
-- PERFIL: nombre, apellidos, centro, especialidad, curso escolar y comunidad
-  autónoma.
+- PERFIL: nombre, apellidos, centro, especialidad, curso escolar, comunidad
+  autónoma y, para el profesorado especialista de apoyo, las casillas
+  «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»: con alguna marcada
+  aparece en el menú el apartado «PT y AL».
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
   «Pegar mi clave», que la guarda y comprueba que funciona. También explica el
@@ -462,7 +558,7 @@ vuelve con «← Configuración»:
 - DATOS Y COPIAS: descargar o cargar un archivo con todo (copia de seguridad o
   para llevar a otro equipo), ver la carpeta donde se guardan los datos y el
   VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
-  asistencia e informes y conserva rúbricas, dianas, reuniones y formaciones
+  asistencia, informes y el alumnado de PT y AL y conserva rúbricas, dianas, reuniones y formaciones
   (hace una copia antes).
 - Licencia (solo en la app de escritorio): el estado de Aula Pro en este
   ordenador. «Docente fundador/a» = la usaba antes de que saliera a la venta y
