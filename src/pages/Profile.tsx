@@ -21,6 +21,7 @@ import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades
 import type { Especialidad } from '../types/apoyo';
 import { TipoDocentePicker, type TipoDocente } from '../components/TipoDocente';
 import { especialidadTexto } from '../lib/apoyo';
+import { ATRIBUCION_MULBERRY } from '../lib/atribucionPictos';
 
 interface Props {
   user: User | null;
@@ -204,6 +205,13 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             </button>
           ))}
         </div>
+      )}
+
+      {/* La licencia de los pictogramas de la agenda visual pide citarlos (ver lib/pictos.ts) */}
+      {!current && (
+        <p className="st-creditos">
+          <strong>{t('Créditos')}.</strong> {t('Pictogramas de la agenda visual:')} {ATRIBUCION_MULBERRY}
+        </p>
       )}
 
       {/* ── Perfil ── */}

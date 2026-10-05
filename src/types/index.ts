@@ -729,4 +729,5 @@ export type Section =
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
   | 'meetings' | 'trainings' | 'seating'
-  | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos';
+  | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos'
+  | 'apoyo-coordinaciones' | 'apoyo-agenda-visual';

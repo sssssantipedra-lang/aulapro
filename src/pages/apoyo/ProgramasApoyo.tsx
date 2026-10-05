@@ -5,7 +5,7 @@
  * competencia. La IA los propone y el docente los cambia. Ver `docs/PTAL.md`.
  */
 import { useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, Sparkles, Target, Link2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Sparkles, Target, Link2, FileText } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
@@ -18,10 +18,13 @@ import { proponerObjetivos } from '../../services/apoyoIA';
 import { describirCriterio } from '../../lib/curriculum/criteriosParaIA';
 import { claveCriterioOficial } from '../../lib/curriculum/evaluacionPorCriterios';
 import { ambitosDe, nivelDe, nuevoIdApoyo, tieneDesfase } from '../../lib/apoyo';
+import { puntosDe } from '../../lib/inicioApoyo';
+import { requestFichaPara } from '../../lib/apoyoNav';
+import { GraficaObjetivo } from '../../components/apoyo/GraficaObjetivo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
 import type { EstadoCurriculoClase } from '../../hooks/useNotasPorCompetencias';
-import type { ApoyoData, Especialidad, ObjetivoApoyo, ProgramaApoyo, Trimestre } from '../../types/apoyo';
+import type { ApoyoData, Especialidad, Logro, ObjetivoApoyo, ProgramaApoyo, Trimestre } from '../../types/apoyo';
 
 interface Props {
   data: ApoyoData;
@@ -154,6 +157,10 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
         {nivel
           ? <span className={`sda-chip${tieneDesfase(alumno) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(nivel) })}</span>
           : <span>{t('Sin nivel de competencia: indícalo en su ficha para enlazar los objetivos con el currículo.')}</span>}
+        {/* Una ficha de Recursos adaptada a su nivel, sus necesidades y sus objetivos */}
+        <button type="button" className="ap-enlace ap-ficha-link" onClick={() => { requestFichaPara(alumno.id); onNav('resources'); }}>
+          <FileText size={13} aria-hidden="true" />{t('Hacer una ficha adaptada con IA')}
+        </button>
       </p>
 
       {programas.length === 0 && (
@@ -196,6 +203,7 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
                 {p.objetivos.map(o => (
                   <ObjetivoFila
                     key={o.id} objetivo={o} estado={estado} materias={materias}
+                    puntos={puntosDe(data, alumno.id, o.id)}
                     onChange={f => cambiarObjetivo(p.id, o.id, f)}
                     onDelete={() => cambiarPrograma(p.id, x => ({ ...x, objetivos: x.objetivos.filter(y => y.id !== o.id) }))}
                   />
@@ -251,8 +259,10 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
   );
 }
 
-function ObjetivoFila({ objetivo, estado, materias, onChange, onDelete }: {
+function ObjetivoFila({ objetivo, estado, materias, puntos, onChange, onDelete }: {
   objetivo: ObjetivoApoyo;
+  /** Lo registrado de este objetivo, sesión a sesión. */
+  puntos: { fecha: string; logro: Logro }[];
   estado: EstadoCurriculoClase;
   materias: MateriaDeClase[];
   onChange: (f: (o: ObjetivoApoyo) => ObjetivoApoyo) => void;
@@ -301,6 +311,7 @@ function ObjetivoFila({ objetivo, estado, materias, onChange, onDelete }: {
           })}
         </div>
       )}
+      <GraficaObjetivo puntos={puntos} />
       {abierto && (
         <CriteriosPicker
           idPrefix={`ap-${objetivo.id}`} estado={estado} materias={materias}

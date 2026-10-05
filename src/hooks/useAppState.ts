@@ -13,7 +13,7 @@ import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type Shar
 import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
-import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil } from '../lib/apoyo';
+import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
 import type { TeacherProfile } from '../services/storage';
 import {
@@ -940,8 +940,9 @@ export function useAppState() {
     setSeatingPlans({});
     setClassMarks([]);
     setMarksConfigs({});
-    // El alumnado de apoyo, sus programas y sus registros son de este curso
-    setApoyo(APOYO_VACIO);
+    // El alumnado de apoyo, sus programas y sus registros son de este curso;
+    // las agendas visuales sin alumno son plantillas y se quedan
+    setApoyo(apoyoParaOtroCurso);
     setTombstones(emptyTombstones());
     setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba

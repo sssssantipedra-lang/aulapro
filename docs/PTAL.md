@@ -20,8 +20,8 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
 - **Tipo de docente.** Al crear el perfil se elige «Docente de aula» o «PT y AL». Con PT y AL se marca PT, AL o las dos (al menos una) y la especialidad del perfil se escribe sola. Se cambia en Configuración → Perfil; al cambiar no se borra nada. En los datos, un perfil es de PT y AL si tiene alguna especialidad (`especialidades`): no hay otro campo.
 - **Más adelante:** Educación Física, con la opción de ser tutor a la vez («un 2 en 1»). Junto con la tutoría.
 - **Menú** (`NAV_APOYO` en `src/lib/navigation.ts`): lo de apoyo y lo común, sin nada de tutoría.
-  - Tu día a día: Inicio, Registro diario, Alumnado y grupos, Programas, Programación e informes y Agenda.
-  - Herramientas: Recursos y Aula Live, cuya ruleta y grupos salen del alumnado de apoyo.
+  - Tu día a día: Inicio, Registro diario, Alumnado y grupos, Programas, Coordinaciones, Programación e informes y Agenda.
+  - Herramientas: Agenda visual, Recursos y Aula Live, cuya ruleta y grupos salen del alumnado de apoyo.
   - Más: Reuniones, Formaciones, Registro de cambios y Configuración.
   - Todo va como entradas sueltas: Recursos y Aula Live no llevan las pestañas de Documentos y En clase, que ese menú no tiene.
 - **Agenda:** el horario de los grupos de apoyo sale en la vista semanal sin apuntarlo dos veces. Se cambia en Alumnado y grupos.
@@ -37,12 +37,23 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
   - Sin alumnado, tres pasos y «Probar con datos de ejemplo».
 - **Datos de ejemplo** (`src/lib/demoApoyo.ts`): 4 alumnos inventados, uno con TEA y discapacidad motora, 4 grupos y sesiones de las dos últimas semanas. Las fechas se calculan desde hoy.
 
-### Lo que viene después, ya decidido
+### Herramientas (5-10-2026)
 
-- Gráfica de cada objetivo, sesión a sesión.
-- Coordinaciones por alumno (tutor, familia, orientación) con los acuerdos, para el apartado H del PAP y los informes.
-- Fichas adaptadas con IA a partir de un alumno.
-- Agenda visual del alumno con pictogramas de Mulberry Symbols (CC BY-SA 4.0, unos 200, dentro de la app, con su nombre en castellano, valenciano e inglés) y fotos del propio docente. Funciona sin conexión y no envía nada. La atribución va en Configuración y al pie de cada agenda impresa: «Mulberry Symbols by Steve Lee are licenced under the Creative Commons Attribution-ShareAlike 4.0 License. See https://mulberrysymbols.org for details». ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el uso comercial.
+- **Gráfica de cada objetivo** (`src/components/apoyo/GraficaObjetivo.tsx`): bajo cada objetivo en Programas, y en la evolución del Inicio. Un punto por sesión a tres alturas (conseguido, en proceso, no conseguido), las 24 últimas, con la fecha al pasar por encima.
+- **Coordinaciones** (`src/pages/apoyo/CoordinacionesApoyo.tsx`):
+  - Por alumno: fecha, con quién (tutoría, familia, orientación, equipo docente u otros), quiénes estuvieron, de qué se habló y los acuerdos.
+  - «Copiar todas para el PAP» las copia como texto.
+  - Las del trimestre llegan a la IA en los informes, y todas en la programación. «Quiénes estuvieron» no se envía, porque puede llevar nombres de personas adultas.
+- **Fichas adaptadas con IA**: en Recursos, «Adaptada a» un alumno de apoyo rellena su nivel y lo que se cuenta a la IA (sus necesidades específicas, cómo aprende y sus objetivos del trimestre). No se envían ni su nombre ni su diagnóstico, que para adaptar una ficha no hacen falta. Desde Programas, «Hacer una ficha adaptada con IA».
+- **Agenda visual** (`src/pages/apoyo/AgendaVisualApoyo.tsx`):
+  - Pictogramas: 242 de Mulberry Symbols (CC BY-SA 4.0), en `public/pictos/mulberry/` con su licencia, por categorías y con buscador, y con su nombre en castellano, català e inglés.
+  - Fotos del propio docente, reducidas a 480 px y guardadas en el perfil.
+  - Se muestra a pantalla completa, tachando cada paso, y se guarda en PDF para imprimir y recortar.
+  - La atribución va en Configuración (pie de la cuadrícula) y al pie del PDF si lleva algún pictograma.
+  - Al vaciar el curso se quedan las agendas sin alumno, que son plantillas, y sus fotos.
+  - La lista se cambia en `scripts/pictos/lista.py` y se regenera con `scripts/pictos/generar.py`. Fuera los que llevan palabras en inglés dibujadas.
+  - ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el uso comercial.
+- **Aula Live**: para el perfil de PT y AL, la ruleta y los grupos salen de su alumnado de apoyo.
 
 ## Alumnado y grupos de apoyo
 

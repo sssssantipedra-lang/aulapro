@@ -4,11 +4,13 @@
 import type { ComunidadId } from './curriculum/comunidades';
 import type { ScheduleBlock } from '../types';
 import type {
-  AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, CursoDe, DocumentoApoyo, Especialidad, GrupoApoyo, Logro,
-  ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
+  AgendaVisual, AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, ConQuien, CoordinacionApoyo, CursoDe, DocumentoApoyo,
+  Especialidad, FotoApoyo, GrupoApoyo, Logro, ObjetivoApoyo, PasoAgenda, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
 } from '../types/apoyo';
 
-export const APOYO_VACIO: ApoyoData = { alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [] };
+export const APOYO_VACIO: ApoyoData = {
+  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], agendas: [], fotos: [],
+};
 
 export function nuevoIdApoyo(prefijo: string): string {
   return prefijo + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -262,6 +264,15 @@ export interface DatosTrimestre {
   notas: { fecha: string; texto: string }[];
   /** Lo que trabajaba su clase en cada sesión. */
   temas: { fecha: string; texto: string }[];
+  /** Las coordinaciones del trimestre sobre el alumno, por orden de fecha. */
+  coordinaciones: CoordinacionApoyo[];
+}
+
+/** Las coordinaciones sobre un alumno, por orden de fecha; con trimestre, solo las de ese trimestre. */
+export function coordinacionesDe(d: ApoyoData, alumnoId: string, trimestre?: Trimestre): CoordinacionApoyo[] {
+  return d.coordinaciones
+    .filter(c => c.alumnoId === alumnoId && (trimestre === undefined || (c.fecha !== '' && trimestreDe(c.fecha) === trimestre)))
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
 
 /** Lo que dice el registro de un alumno en un trimestre: los datos que la IA solo redacta. */
@@ -289,7 +300,26 @@ export function datosDelTrimestre(d: ApoyoData, alumnoId: string, trimestre: Tri
     respuesta,
     notas: registros.filter(x => x.r.nota.trim()).map(x => ({ fecha: x.s.fecha, texto: x.r.nota.trim() })),
     temas: [...new Map(sesiones.filter(s => s.temaClase.trim()).map(s => [s.temaClase.trim(), { fecha: s.fecha, texto: s.temaClase.trim() }])).values()],
+    coordinaciones: coordinacionesDe(d, alumnoId, trimestre),
   };
+}
+
+/**
+ * Lo que se cuenta a la IA de un alumno para hacerle una ficha adaptada, en
+ * el campo «Cómo es el grupo» de Recursos, donde el docente lo ve y lo puede
+ * cambiar antes de enviarlo. Ni su nombre ni su diagnóstico: para adaptar una
+ * ficha bastan sus necesidades y sus objetivos.
+ */
+export function contextoFichaApoyo(
+  a: AlumnoApoyo, objetivos: readonly string[], t: (k: string, vars?: Record<string, string | number>) => string,
+): string {
+  return [
+    t('Ficha para un alumno o una alumna de apoyo.'),
+    a.categorias.length ? t('Necesidades específicas de apoyo educativo: {lista}.', { lista: a.categorias.map(c => t(c)).join(', ') }) : '',
+    a.necesidades.trim() ? t('Cómo aprende: {texto}', { texto: a.necesidades.trim() }) : '',
+    objetivos.length ? t('Objetivos que trabaja este trimestre: {lista}.', { lista: objetivos.join('; ') }) : '',
+    t('Adáptala: enunciados cortos y claros, pocas actividades por página, apoyo visual y letra grande.'),
+  ].filter(Boolean).join(' ');
 }
 
 /* ── Carga segura ── */
@@ -419,7 +449,56 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       ...(tabla ? { tabla } : {}),
     };
   });
-  return { alumnos, grupos, programas, sesiones, documentos };
+  const conQuien: readonly ConQuien[] = ['tutoria', 'familia', 'orientacion', 'equipo', 'otros'];
+  const coordinaciones = lista<CoordinacionApoyo>(o.coordinaciones, v => {
+    const x = obj(v);
+    if (!x || !esTexto(x.id) || !esTexto(x.alumnoId) || !ids.has(x.alumnoId)) return null;
+    return {
+      id: x.id, alumnoId: x.alumnoId,
+      fecha: esTexto(x.fecha) ? x.fecha : '',
+      con: conQuien.includes(x.con as ConQuien) ? x.con as ConQuien : 'otros',
+      asistentes: esTexto(x.asistentes) ? x.asistentes : '',
+      temas: esTexto(x.temas) ? x.temas : '',
+      acuerdos: esTexto(x.acuerdos) ? x.acuerdos : '',
+    };
+  });
+  const fotos = lista<FotoApoyo>(o.fotos, v => {
+    const x = obj(v);
+    return x && esTexto(x.id) && esTexto(x.datos) && x.datos.startsWith('data:image/')
+      ? { id: x.id, nombre: esTexto(x.nombre) ? x.nombre : '', datos: x.datos }
+      : null;
+  });
+  const idsFotos = new Set(fotos.map(f => f.id));
+  const agendas = lista<AgendaVisual>(o.agendas, v => {
+    const x = obj(v);
+    if (!x || !esTexto(x.id)) return null;
+    return {
+      id: x.id,
+      ...(esTexto(x.alumnoId) && ids.has(x.alumnoId) ? { alumnoId: x.alumnoId } : {}),
+      titulo: esTexto(x.titulo) ? x.titulo : '',
+      pasos: lista<PasoAgenda>(x.pasos, p => {
+        const y = obj(p);
+        if (!y || !esTexto(y.id)) return null;
+        return {
+          id: y.id,
+          ...(esTexto(y.picto) ? { picto: y.picto } : {}),
+          ...(esTexto(y.fotoId) && idsFotos.has(y.fotoId) ? { fotoId: y.fotoId } : {}),
+          texto: esTexto(y.texto) ? y.texto : '',
+        };
+      }),
+    };
+  });
+  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, agendas, fotos };
+}
+
+/**
+ * Lo que queda al vaciar el curso: las agendas visuales sin alumno, que son
+ * plantillas, y las fotos que usan. Todo lo demás es de este curso.
+ */
+export function apoyoParaOtroCurso(d: ApoyoData): ApoyoData {
+  const agendas = d.agendas.filter(a => !a.alumnoId);
+  const usadas = new Set(agendas.flatMap(a => a.pasos.map(p => p.fotoId).filter(Boolean)));
+  return { ...APOYO_VACIO, agendas, fotos: d.fotos.filter(f => usadas.has(f.id)) };
 }
 
 /** Quita un alumno de todo el módulo: grupos, programas y registros. */
@@ -432,6 +511,10 @@ export function sinAlumno(d: ApoyoData, alumnoId: string): ApoyoData {
       .map(s => ({ ...s, alumnos: s.alumnos.filter(r => r.alumnoId !== alumnoId) }))
       .filter(s => s.alumnos.length > 0),
     documentos: d.documentos.filter(x => x.alumnoId !== alumnoId),
+    coordinaciones: d.coordinaciones.filter(x => x.alumnoId !== alumnoId),
+    agendas: d.agendas.filter(a => a.alumnoId !== alumnoId),
+    // Las fotos son la biblioteca del docente: se quitan una a una
+    fotos: d.fotos,
   };
 }
 

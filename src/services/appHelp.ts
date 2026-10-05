@@ -46,6 +46,8 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
   'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
   'apoyo-documentos':    { es: 'Programación e informes', en: 'Planning and Reports' },
+  'apoyo-coordinaciones': { es: 'Coordinaciones', en: 'Coordination' },
+  'apoyo-agenda-visual': { es: 'Agenda visual', en: 'Visual Schedule' },
 };
 
 /**
@@ -361,7 +363,11 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
-área y el nivel. Se elige «el mundo de la historia» (Misión espacial, Selva,
+área y el nivel. Para el profesorado de PT y AL, en vez de «Clase» sale
+«Adaptada a»: al elegir a un alumno de apoyo se rellenan su nivel y, en «Más
+opciones», lo que se le cuenta a la IA (sus necesidades específicas, cómo
+aprende y sus objetivos de este trimestre, sin su nombre ni su diagnóstico),
+que se puede cambiar antes de crearla. Se elige «el mundo de la historia» (Misión espacial, Selva,
 Detectives, Submarina, Superhéroes, La gran final, Jurásico, Piratas, Magia,
 Cocina), «Que elija la IA» o «Clásica» (sin historia). Con historia, un
 personaje presenta la misión, cada bloque es un paso de la aventura («Misión
@@ -453,9 +459,10 @@ Terapéutica (PT)», «Audición y Lenguaje (AL)» o las dos; la especialidad se
 escribe sola) o después en Configuración → Perfil. Al cambiar de tipo no se
 borra nada. Su MENÚ es otro:
 - «Tu día a día»: Inicio, Registro diario, Alumnado y grupos, Programas,
-  Programación e informes y Agenda.
-- «Herramientas»: Recursos (fichas, sin clase concreta) y Aula Live (la ruleta
-  y los grupos salen de su alumnado de apoyo).
+  Coordinaciones, Programación e informes y Agenda.
+- «Herramientas»: Agenda visual, Recursos (con «Adaptada a», una ficha para un
+  alumno de apoyo) y Aula Live (la ruleta y los grupos salen de su alumnado de
+  apoyo).
 - «Más»: Reuniones, Formaciones, Registro de cambios y Configuración.
 No tiene Mis Clases, Cuaderno, Asistencia, Evaluar ni Trabajo compartido.
 En la AGENDA, el horario de sus grupos de apoyo sale solo en la vista semanal
@@ -539,6 +546,40 @@ conducta), apoyándose en la normativa de inclusión de la comunidad y en los
 autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
 del alumno, también el diagnóstico, con el nombre cambiado por un código: si no
 se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
+Debajo de cada objetivo con registros, su GRÁFICA sesión a sesión: un punto por
+sesión a tres alturas (✓ conseguido arriba, – en proceso, ✗ no conseguido
+abajo), con la fecha al pasar por encima; se ven las 24 últimas. Junto al nivel
+del alumno, «Hacer una ficha adaptada con IA» lleva a Recursos con la ficha ya
+adaptada a ese alumno (ver RECURSOS: «Adaptada a»).
+
+[apoyo-coordinaciones] COORDINACIONES
+Lo que el especialista habla con la tutoría, la familia, orientación o el
+equipo docente sobre cada alumno, y lo que se acuerda. «Nueva coordinación»:
+alumno, fecha, con quién (Tutoría, Familia, Orientación, Equipo docente u
+Otros), quiénes estuvieron, de qué se habló y los acuerdos. Arriba se filtra por
+alumno («Todo el alumnado» o uno); con uno elegido, «Copiar todas para el PAP»
+copia sus coordinaciones como texto para pegarlas en el PAP o en un acta. Las
+del trimestre llegan a la IA al preparar sus informes, y todas, al preparar su
+programación (sin «quiénes estuvieron», que puede llevar nombres de adultos, y
+con el nombre del alumno cambiado por un código).
+
+[apoyo-agenda-visual] AGENDA VISUAL
+Secuencias con pictogramas o con fotos del propio docente para anticipar una
+sesión, el día o una rutina. Cada agenda tiene título, para quién (un alumno o
+«Plantilla, sin alumno») y sus pasos en orden. «Nueva agenda» o, sin ninguna
+todavía, una de las plantillas («Mi sesión de apoyo», «Rutina de entrada», «Ir
+al baño»). En el editor, «Añadir paso» abre los PICTOGRAMAS (unos 240 de
+Mulberry Symbols, por categorías: rutinas, en clase, material, acciones, cómo
+me siento, personas, comida, lugares, juego y cuándo, con buscador) o «MIS
+FOTOS» («Añadir una foto»: se guarda reducida en el perfil, en este equipo, y no
+se envía a ninguna parte). Se pueden añadir varios seguidos y cerrar con
+«Listo». Cada paso tiene su texto, que se cambia, y flechas para moverlo antes o
+después. En la lista de agendas: «Mostrar» la enseña a pantalla completa para
+el alumno (se toca cada paso al hacerlo y se tacha; el siguiente queda
+marcado; «Volver a empezar» y «Cerrar»), y los botones de editar, guardar en
+PDF para imprimir (una tarjeta por paso, para recortar, con la atribución de
+Mulberry al pie), duplicar y eliminar. Al vaciar el curso se quedan las agendas
+sin alumno, como plantillas.
 
 [apoyo-documentos] PROGRAMACIÓN E INFORMES
 Por alumno (fila de botones arriba). En «Nuevo documento» se elige cuál y, si

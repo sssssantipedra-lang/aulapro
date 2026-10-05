@@ -6,7 +6,7 @@
 import { isoDate } from './utils';
 import { diaDeLaSemana, trimestreDe } from './apoyo';
 import type {
-  AlumnoApoyo, ApoyoData, Cara, GrupoApoyo, Logro, ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
+  AgendaVisual, AlumnoApoyo, ApoyoData, Cara, CoordinacionApoyo, GrupoApoyo, Logro, ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
 } from '../types/apoyo';
 
 export const DEMO_APOYO_USER = {
@@ -119,5 +119,24 @@ export function buildDemoApoyo(hoy: Date = new Date()): ApoyoData {
     }
   }
 
-  return { alumnos, grupos, programas, sesiones, documentos: [] };
+  const haceDias = (n: number) => isoDate(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - n));
+  const coordinaciones: CoordinacionApoyo[] = [
+    { id: 'demo-c1', alumnoId: 'demo-a1', fecha: haceDias(9), con: 'tutoria', asistentes: 'Tutora de 4º B',
+      temas: 'Cómo sigue en clase las fichas de lectura.', acuerdos: 'En clase, las mismas fichas con letra más grande y menos ejercicios por página.' },
+    { id: 'demo-c2', alumnoId: 'demo-a4', fecha: haceDias(4), con: 'familia', asistentes: 'Madre y padre',
+      temas: 'Los cambios de rutina en casa y en el colegio.', acuerdos: 'Usar en casa la misma agenda visual de la mañana. Avisar con un día de antelación de las excursiones.' },
+  ];
+  const paso = (id: string, picto: string, texto: string) => ({ id, picto, texto });
+  const agendas: AgendaVisual[] = [
+    { id: 'demo-ag1', alumnoId: 'demo-a4', titulo: 'Mi sesión de apoyo', pasos: [
+      paso('demo-ag1-1', 'hello', 'Hola'), paso('demo-ag1-2', 'sit', 'Sentarse'), paso('demo-ag1-3', 'read-book', 'Leer'),
+      paso('demo-ag1-4', 'roll-dice', 'Jugar a los dados'), paso('demo-ag1-5', 'tidy-2', 'Recoger'), paso('demo-ag1-6', 'class-room', 'Volver a clase'),
+    ] },
+    { id: 'demo-ag2', titulo: 'Rutina de entrada', pasos: [
+      paso('demo-ag2-1', 'hang-coat', 'Colgar el abrigo'), paso('demo-ag2-2', 'wash-hands', 'Lavarse las manos'),
+      paso('demo-ag2-3', 'circle-time', 'Asamblea'), paso('demo-ag2-4', 'calendar', 'Mirar el calendario'),
+    ] },
+  ];
+
+  return { alumnos, grupos, programas, sesiones, documentos: [], coordinaciones, agendas, fotos: [] };
 }

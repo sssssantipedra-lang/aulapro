@@ -43,6 +43,9 @@ const data: ApoyoData = {
     { id: 's4', grupoId: 'g1', fecha: '2027-01-11', temaClase: '', alumnos: [reg('a1', { o2: 'proceso' })] },
   ],
   documentos: [],
+  coordinaciones: [],
+  agendas: [],
+  fotos: [],
 };
 
 describe('datos que pone la app', () => {
@@ -62,6 +65,22 @@ describe('datos que pone la app', () => {
     expect(txt).toContain('Leer sílabas directas: conseguido 1, en proceso 0, no conseguido 1; último registro: conseguido');
     expect(txt).toContain('atención: 2,5 en 2 sesiones');
     expect(txt).toContain('conducta: sin datos');
+  });
+
+  it('las coordinaciones del trimestre llegan a la IA con los acuerdos, sin quiénes estuvieron', () => {
+    const con = {
+      ...data,
+      coordinaciones: [
+        { id: 'c1', alumnoId: 'a1', fecha: '2026-10-20', con: 'familia' as const, asistentes: 'Rosa Pérez, la madre', temas: 'Lectura en casa', acuerdos: 'Leer diez minutos al día' },
+        { id: 'c2', alumnoId: 'a1', fecha: '2027-01-15', con: 'tutoria' as const, asistentes: '', temas: 'Otro trimestre', acuerdos: '' },
+      ],
+    };
+    const d = datosDelTrimestre(con, 'a1', 1);
+    expect(d.coordinaciones.map(c => c.id)).toEqual(['c1']);
+    const txt = datosParaIA(d, 1);
+    expect(txt).toContain('Coordinaciones de este trimestre:\n- 2026-10-20, con familia: Lectura en casa. Acuerdos: Leer diez minutos al día');
+    expect(txt).not.toContain('Rosa');
+    expect(txt).not.toContain('Otro trimestre');
   });
 
   it('los objetivos van por ámbito y trimestre, con la intensidad', () => {

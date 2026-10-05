@@ -51,6 +51,8 @@ const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m =
 const DocumentosApoyo = lazy(() => import('./pages/apoyo/DocumentosApoyo').then(m => ({ default: m.DocumentosApoyo })));
 const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
 const InicioApoyo    = lazy(() => import('./pages/apoyo/InicioApoyo').then(m => ({ default: m.InicioApoyo })));
+const CoordinacionesApoyo = lazy(() => import('./pages/apoyo/CoordinacionesApoyo').then(m => ({ default: m.CoordinacionesApoyo })));
+const AgendaVisualApoyo = lazy(() => import('./pages/apoyo/AgendaVisualApoyo').then(m => ({ default: m.AgendaVisualApoyo })));
 
 function Loading() {
   const { t } = useI18n();
@@ -523,6 +525,7 @@ function AppInner() {
                 onDelete={id => { st.deleteFicha(id); toast(t('Ficha eliminada')); }}
                 onProject={f => { setLiveFicha(f); setSection('sec-classroom'); }}
                 onNav={s => setSection(s as Section)}
+                apoyo={especialista ? st.apoyo : undefined}
               />
             )}
             {(section === 'meetings' || section === 'trainings') && (
@@ -566,6 +569,12 @@ function AppInner() {
                 docente={{ nombre: st.profile?.name ?? '', centro: st.profile?.school ?? '', curso: st.profile?.course ?? '' }}
                 onNav={s => setSection(s as Section)}
               />
+            )}
+            {section === 'apoyo-coordinaciones' && (
+              <CoordinacionesApoyo data={st.apoyo} onChange={st.setApoyo} onNav={setSection} />
+            )}
+            {section === 'apoyo-agenda-visual' && (
+              <AgendaVisualApoyo data={st.apoyo} onChange={st.setApoyo} />
             )}
             {section === 'profile' && (
               <Profile

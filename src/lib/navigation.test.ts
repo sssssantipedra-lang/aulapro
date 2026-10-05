@@ -7,7 +7,7 @@ const ALL: Section[] = [
   'sec-classroom', 'share', 'classroom-live', 'attendance', 'reports', 'selfassess', 'audit', 'records',
   'learning-situations', 'resources', 'meetings', 'trainings', 'seating',
 ];
-const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-documentos'];
+const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-documentos', 'apoyo-coordinaciones', 'apoyo-agenda-visual'];
 
 describe('menú', () => {
   it('no se pierde ninguna pantalla y ninguna sale dos veces', () => {
@@ -28,8 +28,8 @@ describe('menú', () => {
     expect(navGroupsFor(true)).toBe(NAV_APOYO);
     const r = reachableSections(true);
     expect(new Set(r).size).toBe(r.length);
-    expect(r.slice(0, 5)).toEqual(['dashboard', 'apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-documentos']);
-    expect(r).toEqual(expect.arrayContaining(['agenda', 'resources', 'sec-classroom', 'meetings', 'trainings', 'audit', 'profile']));
+    expect(r.slice(0, 6)).toEqual(['dashboard', 'apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-coordinaciones', 'apoyo-documentos']);
+    expect(r).toEqual(expect.arrayContaining(['agenda', 'apoyo-agenda-visual', 'resources', 'sec-classroom', 'meetings', 'trainings', 'audit', 'profile']));
     // Nada de lo de tutoría
     for (const s of ['classes', 'notebook', 'attendance', 'rubrics', 'reports', 'records', 'seating', 'share'] as Section[]) {
       expect(r).not.toContain(s);

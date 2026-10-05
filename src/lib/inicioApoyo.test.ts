@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { avisosApoyo, evolucionDelTrimestre, serieDe, sesionesDeHoy } from './inicioApoyo';
-import { bloquesDeApoyo, especialidadTexto, normalizarApoyo } from './apoyo';
+import { APOYO_VACIO, bloquesDeApoyo, especialidadTexto, normalizarApoyo } from './apoyo';
 import { buildDemoApoyo } from './demoApoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, Logro, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
@@ -21,7 +21,7 @@ const sesion = (grupoId: string, fecha: string, alumnoId: string, objetivos: Rec
   alumnos: [{ alumnoId, objetivos, respuesta: { atencion: 3 }, nota: '' }],
 });
 const datos = (extra: Partial<ApoyoData>): ApoyoData => ({
-  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], ...extra,
+  ...APOYO_VACIO, ...extra,
 });
 
 // Lunes 5 de octubre de 2026, 1.er trimestre

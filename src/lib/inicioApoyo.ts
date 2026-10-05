@@ -140,17 +140,24 @@ export interface EvolucionAlumno {
   alumno: AlumnoApoyo;
   /** Sesiones del trimestre en que vino. */
   sesiones: number;
-  objetivos: { programa: ProgramaApoyo; objetivo: ObjetivoApoyo; estado: EstadoObjetivo; serie: Logro[] }[];
+  objetivos: { programa: ProgramaApoyo; objetivo: ObjetivoApoyo; estado: EstadoObjetivo; serie: Logro[]; puntos: { fecha: string; logro: Logro }[] }[];
   cuenta: Record<EstadoObjetivo, number>;
 }
 
-/** Lo que se anotó de un objetivo, sesión a sesión y por orden de fecha. */
-export function serieDe(d: ApoyoData, alumnoId: string, objetivoId: string, trimestre?: Trimestre): Logro[] {
+/** Lo que se anotó de un objetivo, sesión a sesión y por orden de fecha, con su fecha. */
+export function puntosDe(d: ApoyoData, alumnoId: string, objetivoId: string, trimestre?: Trimestre): { fecha: string; logro: Logro }[] {
   return [...d.sesiones]
     .filter(s => trimestre === undefined || trimestreDe(s.fecha) === trimestre)
     .sort((a, b) => a.fecha.localeCompare(b.fecha))
-    .map(s => s.alumnos.find(r => r.alumnoId === alumnoId)?.objetivos[objetivoId])
-    .filter((l): l is Logro => !!l);
+    .flatMap(s => {
+      const logro = s.alumnos.find(r => r.alumnoId === alumnoId)?.objetivos[objetivoId];
+      return logro ? [{ fecha: s.fecha, logro }] : [];
+    });
+}
+
+/** Lo mismo, solo cómo fue cada vez. */
+export function serieDe(d: ApoyoData, alumnoId: string, objetivoId: string, trimestre?: Trimestre): Logro[] {
+  return puntosDe(d, alumnoId, objetivoId, trimestre).map(p => p.logro);
 }
 
 export function evolucionDelTrimestre(d: ApoyoData, trimestre: Trimestre): EvolucionAlumno[] {
@@ -161,7 +168,8 @@ export function evolucionDelTrimestre(d: ApoyoData, trimestre: Trimestre): Evolu
         .filter(o => o.trimestres.includes(trimestre))
         .map(objetivo => {
           const r = resumenObjetivo(d.sesiones, alumno.id, objetivo.id, trimestre);
-          return { programa, objetivo, estado: (r.ultimo ?? 'sin') as EstadoObjetivo, serie: serieDe(d, alumno.id, objetivo.id, trimestre) };
+          const puntos = puntosDe(d, alumno.id, objetivo.id, trimestre);
+          return { programa, objetivo, estado: (r.ultimo ?? 'sin') as EstadoObjetivo, serie: puntos.map(p => p.logro), puntos };
         }));
     const cuenta: Record<EstadoObjetivo, number> = { si: 0, proceso: 0, no: 0, sin: 0 };
     objetivos.forEach(o => { cuenta[o.estado] += 1; });

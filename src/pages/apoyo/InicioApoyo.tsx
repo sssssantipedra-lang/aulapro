@@ -16,6 +16,7 @@ import {
   avisosApoyo, evolucionDelTrimestre, sesionesDeHoy, type Aviso, type EstadoObjetivo,
 } from '../../lib/inicioApoyo';
 import type { ApoyoData, GrupoApoyo } from '../../types/apoyo';
+import { GraficaObjetivo } from '../../components/apoyo/GraficaObjetivo';
 import type { Section } from '../../types';
 
 interface Props {
@@ -214,13 +215,9 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
                     {ev.objetivos.map(o => (
                       <li key={o.objetivo.id}>
                         <span className="ap-reg-obj">{o.objetivo.texto}</span>
-                        <span className="ap-serie" role="img" aria-label={o.serie.length
-                          ? `${t('Sesión a sesión')}: ${o.serie.map(l => t(ESTADOS.find(e => e.id === l)!.label)).join(', ')}`
-                          : t('Sin trabajar')}>
-                          {o.serie.length === 0
-                            ? <span className="ap-sub">{t('Sin trabajar')}</span>
-                            : o.serie.slice(-12).map((l, i) => <span key={i} className={`ap-serie-p ${l}`} />)}
-                        </span>
+                        {o.puntos.length === 0
+                          ? <span className="ap-sub">{t('Sin trabajar')}</span>
+                          : <GraficaObjetivo puntos={o.puntos} />}
                       </li>
                     ))}
                   </ul>

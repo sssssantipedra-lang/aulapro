@@ -31,6 +31,10 @@ import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { takeFichaPara } from '../lib/apoyoNav';
+import { contextoFichaApoyo, nivelDe, trimestreDe } from '../lib/apoyo';
+import { useNombreCurso } from '../hooks/useNombreCurso';
+import type { ApoyoData } from '../types/apoyo';
 
 interface Props {
   classes: Class[];
@@ -40,6 +44,8 @@ interface Props {
   onNav: (s: string) => void;
   /** Abre la ficha a pantalla completa en Aula Live. */
   onProject?: (f: Ficha) => void;
+  /** PT y AL: su alumnado de apoyo, para hacer una ficha adaptada a uno. */
+  apoyo?: ApoyoData;
 }
 
 function newId() {
@@ -110,18 +116,33 @@ function ThemeGrid({ value, onChange, withAuto, compact, t }: {
   );
 }
 
-export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject }: Props) {
+export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject, apoyo }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
+  const nombreCurso = useNombreCurso();
+
+  /** PT y AL: el alumno para el que se adapta la ficha, su nivel y lo que necesita. */
+  const paraAlumno = (id: string) => {
+    const a = apoyo?.alumnos.find(x => x.id === id);
+    if (!a) return null;
+    const n = nivelDe(a);
+    const T = trimestreDe(isoDate());
+    const objetivos = (apoyo?.programas ?? []).filter(p => p.alumnoId === a.id)
+      .flatMap(p => p.objetivos.filter(o => o.trimestres.includes(T)).map(o => o.texto.trim())).filter(Boolean);
+    return { id: a.id, nivel: n ? nombreCurso(n) : '', contexto: contextoFichaApoyo(a, objetivos, t) };
+  };
+  // Desde Programas se llega con el alumno ya elegido
+  const [inicial] = useState(() => { const id = takeFichaPara(); return id ? paraAlumno(id) : null; });
+  const [alumnoApoyo, setAlumnoApoyo] = useState(inicial?.id ?? '');
 
   /* ── Formulario ── */
   const [classId, setClassId] = useState('');
   const [tema, setTema] = useState('');
   const [area, setArea] = useState('');
-  const [nivel, setNivel] = useState('');
+  const [nivel, setNivel] = useState(inicial?.nivel ?? '');
   const [numEjercicios, setNumEjercicios] = useState(6);
   const [niveles, setNiveles] = useState(false);
-  const [contextoClase, setContextoClase] = useState('');
+  const [contextoClase, setContextoClase] = useState(inicial?.contexto ?? '');
   const [estilo, setEstilo] = useState<FichaThemeChoice>('auto');
   const [formato, setFormato] = useState<FichaFormato>('ficha');
 
@@ -632,13 +653,28 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject 
         </div>
 
         <div className="frow">
-          <div className="fgroup">
-            <label className="flabel" htmlFor="resources-f2">{t('Clase')}</label>
-            <select id="resources-f2" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
-              <option value="">{t('Sin clase concreta')}</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
+          {apoyo?.alumnos.length ? (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="resources-f2">{t('Adaptada a')}</label>
+              <select id="resources-f2" className="finput" value={alumnoApoyo} onChange={e => {
+                setAlumnoApoyo(e.target.value);
+                const x = paraAlumno(e.target.value);
+                setNivel(x?.nivel ?? '');
+                setContextoClase(x?.contexto ?? '');
+              }}>
+                <option value="">{t('Sin alumno concreto')}</option>
+                {[...apoyo.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+              </select>
+            </div>
+          ) : (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="resources-f2">{t('Clase')}</label>
+              <select id="resources-f2" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
+                <option value="">{t('Sin clase concreta')}</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          )}
           <div className="fgroup">
             <label className="flabel" htmlFor="resources-f3">{t('Área o asignatura')}</label>
             <input id="resources-f3" className="finput" value={area} onChange={e => setArea(e.target.value)} />
@@ -656,6 +692,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject 
             />
           </div>
         </div>
+
+        {alumnoApoyo && (
+          <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
+            {t('Se adapta a su nivel, a sus necesidades y a sus objetivos de este trimestre; la IA no recibe su nombre ni su diagnóstico. Lo que se le cuenta está en «Más opciones», y lo puedes cambiar.')}
+          </p>
+        )}
 
         <div className="fgroup">
           <span className="flabel">{t('Qué quieres crear')}</span>

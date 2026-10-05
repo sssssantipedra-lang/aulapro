@@ -27,7 +27,7 @@ import type { Section } from '../types';
 export type NavIcon =
   | 'home' | 'classes' | 'agenda' | 'notebook' | 'attendance'
   | 'evaluate' | 'documents' | 'inclass'
-  | 'session' | 'students' | 'goals' | 'reports' | 'resources' | 'live'
+  | 'session' | 'students' | 'goals' | 'coord' | 'reports' | 'resources' | 'live' | 'pictos'
   | 'meetings' | 'trainings' | 'share' | 'audit' | 'profile';
 
 export interface NavHub {
@@ -120,6 +120,7 @@ export const NAV_APOYO: NavGroups = [
       link('apoyo-registro',   'Registro diario',         'session'),
       link('apoyo-alumnado',   'Alumnado y grupos',       'students'),
       link('apoyo-programas',  'Programas',               'goals'),
+      link('apoyo-coordinaciones', 'Coordinaciones',      'coord'),
       link('apoyo-documentos', 'Programación e informes', 'reports'),
       link('agenda',           'Agenda',                  'agenda'),
     ],
@@ -127,6 +128,7 @@ export const NAV_APOYO: NavGroups = [
   {
     sect: 'Herramientas',
     items: [
+      link('apoyo-agenda-visual', 'Agenda visual', 'pictos'),
       link('resources',     'Recursos',  'resources'),
       link('sec-classroom', 'Aula Live', 'live'),
     ],

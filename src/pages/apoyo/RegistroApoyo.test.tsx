@@ -36,6 +36,9 @@ const inicial: ApoyoData = {
   ],
   sesiones: [],
   documentos: [],
+  coordinaciones: [],
+  agendas: [],
+  fotos: [],
 };
 
 let ultimo: ApoyoData = inicial;
