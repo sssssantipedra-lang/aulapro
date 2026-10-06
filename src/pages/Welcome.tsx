@@ -4,7 +4,7 @@ import { Sparkles, Plus, ArrowRight, Trash2, HardDrive, Lock } from 'lucide-reac
 import { listProfiles, deleteProfile, isDesktop, type TeacherProfile, type NewProfileInput } from '../services/storage';
 import { CommunitySelect } from '../components/CommunitySelect';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
-import { DEMO_COMMUNITY } from '../lib/demoData';
+import { DEMO_COMMUNITY, DEMO_USER } from '../lib/demoData';
 import { DEMO_APOYO_USER } from '../lib/demoApoyo';
 import { DEMO_EF_USER } from '../lib/demoEF';
 import { initials } from '../lib/utils';
@@ -212,7 +212,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         <form onSubmit={submit}>
           <div className="fgroup">
             <label className="flabel" htmlFor="welcome-f1">{t('Tu nombre *')}</label>
-            <input id="welcome-f1" className="finput" value={name} autoFocus placeholder="Ana García Ruiz"
+            <input id="welcome-f1" className="finput" value={name} autoFocus placeholder={t('Profesor')}
               onChange={e => { setName(e.target.value); if (error) setError(''); }} />
           </div>
           <TipoDocentePicker
@@ -274,7 +274,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
                 especialidades: especialidades.length ? especialidades : ['PT', 'AL'],
                 subject: t(especialidadTexto(especialidades.length ? especialidades : ['PT', 'AL'])),
               }
-              : { name: 'Ana García Ruiz', school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse(), community: DEMO_COMMUNITY })}
+              : { name: DEMO_USER.full_name, school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse(), community: DEMO_COMMUNITY })}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
               width: '100%', marginTop: 14, padding: '11px 0', background: 'none',

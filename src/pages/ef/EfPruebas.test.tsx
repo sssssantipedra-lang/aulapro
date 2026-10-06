@@ -47,10 +47,10 @@ describe('Pruebas físicas', () => {
     const user = userEvent.setup();
     render(<Harness />);
     // Course Navette, 1º ESO A: la demo trae dos tomas
-    const fila = screen.getByRole('row', { name: /Nora Ferrer Gil/ });
+    const fila = screen.getByRole('row', { name: /Alumno 1(?!\d)/ });
     expect(within(fila).getByLabelText(/Ha mejorado|Igual/)).toBeTruthy();
 
-    await user.type(screen.getByLabelText('Nueva marca de Nora Ferrer Gil'), '7,5');
+    await user.type(screen.getByLabelText('Nueva marca de Alumno 1'), '7,5');
     await user.click(screen.getByRole('button', { name: 'Guardar la toma' }));
     const suyas = ultimo.marcas.filter(m => m.alumnoId === 'ef-s00' && m.pruebaId === 'course-navette');
     expect(suyas.at(-1)).toMatchObject({ fecha: '2026-10-05', valor: 7.5 });
@@ -65,7 +65,7 @@ describe('Pruebas físicas', () => {
     await user.keyboard('{Escape}');
 
     // 7,5 períodos → 7
-    expect(within(screen.getByRole('row', { name: /Nora Ferrer Gil/ })).getAllByRole('cell')[3].textContent).toBe('7');
+    expect(within(screen.getByRole('row', { name: /Alumno 1(?!\d)/ })).getAllByRole('cell')[3].textContent).toBe('7');
     await user.click(screen.getByRole('button', { name: /Pasar las notas al cuaderno/ }));
     await user.click(screen.getByRole('button', { name: 'Pasar al cuaderno' }));
     expect(items).toEqual([expect.objectContaining({ class_id: 'ef-c1', category_id: 'ef-c1-g1', name: 'Course Navette' })]);

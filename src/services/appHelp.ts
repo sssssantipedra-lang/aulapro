@@ -217,7 +217,7 @@ Tiene DOS PESTAÑAS arriba:
    exporta a Excel.
 2. «✨ Consulta IA»: el asistente pedagógico que SÍ VE LOS DATOS del docente
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
-   «¿cómo va Marta?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
+   «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
 Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
 aula desde la Distribución de aula, el cuaderno añade este bloque, que vale
@@ -250,7 +250,7 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   roles cooperativos (Portavoz, Secretario/a, Responsable del material,
   Responsable del tiempo) y su responsabilidad.
 - «✨ Repartir con IA» abre una ventana donde se escriben, si se quiere,
-  aspectos a tener en cuenta («Marco y Lucía no deben ir juntos») y se pulsa
+  aspectos a tener en cuenta («Alumno 1 y Alumno 2 no deben ir juntos») y se pulsa
   «Generar grupos con IA». La IA reparte al alumnado real en mesas EQUILIBRADAS
   y MULTINIVEL usando la media ponderada, la asistencia y los avisos de cada
   alumno, sin inventar ninguno. Sustituye la distribución que hubiera.
@@ -876,8 +876,8 @@ export function helpSystemPrompt(lang: Lang, section: string): string {
         ? '2. Be brief and practical: the exact route (“Sidebar → My Classes → New class”) and the steps in order. Two or three short paragraphs at most, or a short list.'
         : '2. Sé breve y práctico: la ruta exacta («barra lateral → Mis Clases → Nueva clase», o «Documentos → Actas» para las pantallas agrupadas) y los pasos en orden. Dos o tres párrafos cortos como mucho, o una lista breve.',
       lang === 'en'
-        ? '3. You do NOT see the teacher\'s classes, students or marks. If they ask about their own data (“how is Marta doing?”), point them to the Gradebook’s “Consulta IA” tab, which does.'
-        : '3. TÚ NO VES las clases, los alumnos ni las notas de este docente. Si te preguntan por sus datos («¿cómo va Marta?»), mándalos a la pestaña «Consulta IA» del Cuaderno de Notas, que es la que sí los ve.',
+        ? '3. You do NOT see the teacher\'s classes, students or marks. If they ask about their own data (“how is Student 1 doing?”), point them to the Gradebook’s “Consulta IA” tab, which does.'
+        : '3. TÚ NO VES las clases, los alumnos ni las notas de este docente. Si te preguntan por sus datos («¿cómo va Alumno 1?»), mándalos a la pestaña «Consulta IA» del Cuaderno de Notas, que es la que sí los ve.',
       lang === 'en'
         ? '4. When your answer points to one screen, end the message with its marker on its own line: [IR:id] (for example [IR:classes]). Only one, only from the manual’s ids, and never mention the marker in the text.'
         : '4. Cuando tu respuesta lleve a una pantalla concreta, termina el mensaje con su marca en una línea aparte: [IR:id] (por ejemplo [IR:classes]). Solo una, solo de los identificadores del manual, y no menciones nunca la marca en el texto.',

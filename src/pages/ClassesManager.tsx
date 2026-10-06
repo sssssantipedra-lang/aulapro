@@ -833,7 +833,7 @@ export function ClassesManager({
             <label className="flabel" htmlFor="classesmanager-f6">{t('Datos CSV')}</label>
             <textarea id="classesmanager-f6" className="finput" rows={8} value={csvText}
               onChange={e => setCsvText(e.target.value)}
-              placeholder={'Nombre,Email\nAna García,ana@ejemplo.com\nLuis Pérez,luis@ejemplo.com'}
+              placeholder={'Nombre,Email\nAlumno 1,alumno1@ejemplo.com\nAlumno 2,alumno2@ejemplo.com'}
               style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 13 }} />
           </div>
 

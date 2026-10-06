@@ -32,3 +32,4 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 4. Ningún formulario de la web envía nada si no se marca la casilla "He leído y acepto la política de privacidad".
 5. Textos: tú con vocabulario formal. Docentes, profesorado, maestros y maestras; nunca "profes". Sin rayas largas: comas y puntos. Castellano, català e inglés.
 6. No se publican nunca el DNI del dueño ni su Gmail. El contacto público es contacto@aulapro.app.
+7. En las capturas, en los datos de ejemplo y en el modo de prueba no salen nombres de personas: el docente es «Profesor» y el alumnado, «Alumno 1», «Alumno 2»… (decisión del 6-10-2026; `web/DISENO.md`, sección 33). Las pruebas automáticas de privacidad sí usan nombres completos inventados, porque comprueban que se ocultan.

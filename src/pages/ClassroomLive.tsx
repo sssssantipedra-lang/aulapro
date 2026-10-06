@@ -4,7 +4,7 @@ import {
   ClipboardCheck, Plus, Trash2, Monitor, Wifi, ArrowRight, Save, Target,
 } from 'lucide-react';
 import type { Class, Student, Rubric, EvalDiana, SelfAssessmentSession } from '../types';
-import { isoDate } from '../lib/utils';
+import { isoDate, nombreDePila } from '../lib/utils';
 import type { ClassroomActivity, ClassroomSnapshot } from '../types/electron';
 import { SessionQR } from '../components/share/SessionQR';
 import { useToast } from '../components/ui/Toast';
@@ -506,7 +506,7 @@ function ResultsPanel({
 
       {pending.length > 0 && responses.length > 0 && (
         <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--border)', lineHeight: 1.5 }}>
-          <strong>{t('Faltan:')}</strong> {pending.slice(0, 12).map(p => `${p.n}. ${p.name.split(' ')[0]}`).join(' · ')}
+          <strong>{t('Faltan:')}</strong> {pending.slice(0, 12).map(p => `${p.n}. ${nombreDePila(p.name)}`).join(' · ')}
           {pending.length > 12 && t(' y {n} más', { n: pending.length - 12 })}
         </p>
       )}
@@ -556,7 +556,7 @@ function BrainstormResults({ responses }: { responses: ClassroomSnapshot['respon
           }}
         >
           <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.45 }}>{x.idea}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5 }}>{x.who.split(' ')[0]}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5 }}>{nombreDePila(x.who)}</div>
         </div>
       ))}
     </div>

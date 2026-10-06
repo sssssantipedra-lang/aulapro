@@ -7,7 +7,7 @@ import type {
   GradeMap, AttendanceMap, CompetencyReport,
 } from '../types';
 import { callGemini, hasApiKey } from '../services/gemini';
-import { isoDate, PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
+import { isoDate, PERIODS, LOMLOE_COMPETENCES, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
@@ -183,7 +183,7 @@ export function Reports(props: Props) {
   async function generateFor(student: Student): Promise<boolean> {
     const { text: evidence, hasData } = buildEvidence(student);
     if (!hasData) {
-      toast(`${student.name.split(' ')[0]} ${t('no tiene evaluaciones ni notas todavía')}`);
+      toast(`${nombreDePila(student.name)} ${t('no tiene evaluaciones ni notas todavía')}`);
       return false;
     }
 
@@ -581,7 +581,7 @@ function EmptyReport({
           {t('Sin datos suficientes')}
         </h3>
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 400, margin: '0 auto 20px' }}>
-          {t('{name} no tiene todavía evaluaciones ni notas en el cuaderno. Un informe sin datos serían solo frases genéricas, así que es mejor evaluarle antes.', { name: student.name.split(' ')[0] })}
+          {t('{name} no tiene todavía evaluaciones ni notas en el cuaderno. Un informe sin datos serían solo frases genéricas, así que es mejor evaluarle antes.', { name: nombreDePila(student.name) })}
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button className="btn-ghost" onClick={() => onNav('rubrics')}>{t('Ir a Evaluación')}</button>

@@ -63,7 +63,7 @@ describe('Sesiones', () => {
 
     const prompt = callGemini.mock.calls[0][1] as string;
     expect(prompt).toContain('No puede correr, No puede saltar');
-    expect(prompt).not.toMatch(/Mateo|esguince/i);
+    expect(prompt).not.toMatch(/Alumno 4|esguince/i);
     expect(prompt).toContain('Duración de la sesión: 55 minutos');
 
     expect((await screen.findByLabelText('Título') as HTMLInputElement).value).toBe('Bádminton: el clear');

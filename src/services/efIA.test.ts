@@ -53,7 +53,7 @@ describe('marco de la IA de EF', () => {
     const lims = limitacionesParaIA(demo.ef, ids('ef-c1'), '2026-10-05');
     expect(lims).toEqual(['No puede correr, No puede saltar']);
     const todo = lims.join(' ');
-    expect(todo).not.toContain('Mateo');
+    expect(todo).not.toContain('Alumno 4');
     expect(todo).not.toMatch(/esguince/i);
     // En otra clase, nadie de la primera
     expect(limitacionesParaIA(demo.ef, ids('ef-c2'), '2026-10-05')).toEqual([]);
@@ -89,7 +89,7 @@ describe('sesión con IA', () => {
     expect(user).toContain('No puede correr, No puede saltar');
     expect(user).toContain('Pista exterior (al aire libre)');
     expect(user).toContain('Espacios cubiertos para el plan B: Pabellón');
-    expect(user).not.toMatch(/Mateo|esguince/i);
+    expect(user).not.toMatch(/Alumno 4|esguince/i);
     expect(opciones.responseSchema.properties.criterios.items.enum.every((x: unknown) => typeof x === 'string')).toBe(true);
     expect(r?.criterios).toEqual([{ materia: materias[0].entry.id, codigo }]);
     expect(r?.planB).toBe('En el porche.');

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Flag, X, BookX, PackageX, ThumbsDown, ThumbsUp, Hand, ArrowRight, Shirt, Droplets, Flame } from 'lucide-react';
 import type { Class, ClassMark, ClassMarkType, MarksBlockConfig, Student } from '../../types';
 import { MARK_TYPES, markTypeInfo, TARGET_LABEL, BLOCK_NAME, blockConfig } from '../../services/classMarks';
-import { isoDate } from '../../lib/utils';
+import { isoDate, nombreDePila } from '../../lib/utils';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { useI18n } from '../../i18n';
@@ -67,7 +67,7 @@ export function ClassMarksModal({ student, cls, marksConfigs, classMarks, onAdd,
       // asignatura a la clase, las anotaciones viejas siguen en la principal.
       subject: subjects.length > 1 ? subject : undefined,
     }, t(info.label));
-    toast(t('Anotado: {what} · {name}', { what: t(info.label), name: student.name.split(' ')[0] }));
+    toast(t('Anotado: {what} · {name}', { what: t(info.label), name: nombreDePila(student.name) }));
   }
 
   return (

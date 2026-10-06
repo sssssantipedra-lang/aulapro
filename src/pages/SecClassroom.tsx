@@ -36,7 +36,7 @@ const APPS: WidgetConfig[] = [
 ];
 
 /** Nombres de relleno cuando aún no hay alumnos creados. */
-const DEFAULT_NAMES = ['Ana', 'Luis', 'Carlos', 'María', 'Jorge', 'Lucía'];
+const DEFAULT_NAMES = ['Alumno 1', 'Alumno 2', 'Alumno 3', 'Alumno 4', 'Alumno 5', 'Alumno 6'];
 
 /**
  * Colores del lápiz según el fondo: en una pizarra blanca el blanco y el

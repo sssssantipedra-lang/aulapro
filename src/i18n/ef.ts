@@ -394,6 +394,9 @@ export const EF_EN: Record<string, string> = {
   'Sin modalidad': 'No modality',
   'Modalidad del juego o deporte': 'Game or sport modality',
   'Que la decida la IA según la idea': 'Let the AI decide from the idea',
+
+  /* ── Nombres de ejemplo ── */
+  'Profesor': 'Teacher',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -788,4 +791,7 @@ export const EF_CA: Record<string, string> = {
   'Sin modalidad': 'Sense modalitat',
   'Modalidad del juego o deporte': 'Modalitat del joc o esport',
   'Que la decida la IA según la idea': 'Que la decideixi la IA segons la idea',
+
+  /* ── Nombres de ejemplo ── */
+  'Profesor': 'Professor',
 };

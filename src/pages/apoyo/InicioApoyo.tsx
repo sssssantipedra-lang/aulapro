@@ -9,7 +9,7 @@ import {
   CalendarDays, AlertTriangle, TrendingUp, ArrowRight, Check, Clock, Coffee, ChevronDown, Sparkles,
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
-import { isoDate, fromIsoDate } from '../../lib/utils';
+import { isoDate, fromIsoDate, nombreDePila } from '../../lib/utils';
 import { trimestreDe } from '../../lib/apoyo';
 import { requestRegistro } from '../../lib/apoyoNav';
 import {
@@ -134,7 +134,7 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
                       <span>{grupo.especialidad} · {t(grupo.modalidad === 'dentro' ? 'Dentro del aula' : 'Fuera del aula')}</span>
                     </span>
                     <span className="ap-sub">
-                      {grupo.alumnos.map(id => data.alumnos.find(a => a.id === id)?.nombre.split(' ')[0]).filter(Boolean).join(', ')}
+                      {grupo.alumnos.map(id => data.alumnos.find(a => a.id === id)?.nombre).filter((n): n is string => !!n).map(nombreDePila).join(', ')}
                     </span>
                   </span>
                   {registrada ? (
@@ -248,7 +248,7 @@ function AvisoFila({ aviso, diaCorto, onRegistrar, onNav }: {
       <button className="home-link" onClick={accion}>{boton} <ArrowRight size={13} /></button>
     </li>
   );
-  const nombre = (n: string) => n.split(' ')[0];
+  const nombre = nombreDePila;
   switch (aviso.tipo) {
     case 'informes':
       return fila('warn', t('Se acaba el {n}º trimestre', { n: aviso.trimestre }),

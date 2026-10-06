@@ -16,7 +16,7 @@ import type { AttendanceMap } from '../../types';
 
 const demo = buildDemoEF(new Date(2026, 9, 5));
 let ultimo: EfData = demo.ef;
-// Iker falta hoy en 1º ESO A
+// Alumno 2 falta hoy en 1º ESO A
 const attendance: AttendanceMap = { 'ef-c1': { '2026-10-05': { 'ef-s01': 'absent' } } };
 function Harness() {
   const [ef, setEf] = useState(demo.ef);
@@ -50,7 +50,7 @@ describe('Equipos', () => {
     expect(grupos).toHaveLength(3);
     expect(grupos.flat()).toHaveLength(7);
     expect(grupos.flat()).not.toContain('ef-s01');
-    // Mateo está lesionado: juega en su equipo, con su limitación y qué hace
+    // Alumno 4 está lesionado: juega en su equipo, con su limitación y qué hace
     expect(grupos.flat()).toContain('ef-s03');
     expect(screen.getAllByText(/No puede correr/).length).toBeGreaterThan(0);
 
@@ -66,10 +66,10 @@ describe('Equipos', () => {
   it('el nivel y el sexo se marcan en la tabla, y las parejas que separar se añaden', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.click(within(screen.getByRole('radiogroup', { name: 'Nivel de Nora Ferrer Gil' })).getByRole('radio', { name: '3' }));
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Nivel de Alumno 1' })).getByRole('radio', { name: '3' }));
     expect(ultimo.niveles['ef-s00']).toBe(3);
     // Otro toque en el sexo marcado lo quita
-    await user.click(within(screen.getByRole('radiogroup', { name: 'Sexo de Nora Ferrer Gil' })).getByRole('radio', { name: 'Chica' }));
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Sexo de Alumno 1' })).getByRole('radio', { name: 'Chica' }));
     expect(ultimo.sexos['ef-s00']).toBeUndefined();
 
     await user.selectOptions(screen.getByLabelText('Primer alumno de la pareja'), 'ef-s02');

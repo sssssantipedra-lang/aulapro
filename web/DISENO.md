@@ -321,3 +321,10 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - En la última parada (la pantalla), una franja a lo ancho de la parte inferior dice "Sigue descubriendo AulaPro ↓" (`b5.more`; "Continua descobrint AulaPro", "Keep exploring AulaPro"). Es otra `.band` (`band-strip`, de 0,9 a 1): aparece al llegar a la parada y sube desde abajo con `--k`; fondo oscuro translúcido con desenfoque, flecha que baila (quieta con movimiento reducido). Es un enlace a `#funciones`.
 - Ese mismo día, a petición del usuario, los botones "Quiero AulaPro" y "Ver cómo funciona ↓" salen de la parada de "Cada cosa en su sitio" y pasan a la franja final: "Sigue descubriendo AulaPro" queda como texto, con los dos botones al lado (`.strip-in`, que salta de línea si no caben).
 
+
+## 33. Nombres de prueba: Profesor, Alumno 1, Alumno 2… (6-10-2026, petición del usuario)
+
+- En las capturas y en los modos de prueba no aparecen nombres de personas: el docente es «Profesor» (avatar «P») y el alumnado, «Alumno 1», «Alumno 2»… La app ya lo hace en sus datos de ejemplo (`src/lib/demoData.ts`, `demoApoyo.ts`, `demoEF.ts`).
+- Retocadas, sin volver a capturar, las imágenes de la web que llevaban nombres: `app/inicio`, `app/cuaderno`, `app/distribucion`, `app/diana-competencial`, `app/rubrica`, `app/aula-live` y `demo/inicio`, `demo/distribucion`, `demo/diana`, `demo/rubrica`, `demo/live` y el disco de la ruleta (`demo/ruleta-disco.webp`, con transparencia). Mismo tipo de letra que la app (Outfit) y mismo tamaño y grosor que el texto original.
+- Equivalencias, para que el texto y la imagen coincidan: Lucía → Alumno 7, Daniel → Alumno 8, Sara → Alumno 9, Adrián → Alumno 10 (y María, Rubén y Patricia → Alumno 11, 12 y 13 en la ruleta); José Calladares → Alumno 1; las filas del cuaderno, Alumno 1 a 6 de arriba abajo. En `assets/demo.js` cambian las etiquetas de las zonas activas y los nombres de la ruleta; en `demo.html`, el perfil de la barra lateral.
+- El título borroso del fondo de las dianas («Robots luminosos…») es una situación de aprendizaje, no una persona, y se queda. El nombre del pie (aviso legal) tampoco cambia.

@@ -1668,7 +1668,7 @@ const EN: Record<string, string> = {
   'Convoca': 'Called by',
   'Entidad y ponente': 'Provider and trainer',
   'Ej: Jefatura de estudios': 'e.g. Head of studies',
-  'Ej: CEFIRE · Marta Ruiz': 'e.g. Teacher training centre · Marta Ruiz',
+  'Ej: CEFIRE · Profesor': 'e.g. Teacher training centre · Teacher',
   'Lugar': 'Place',
   'Ej: Sala de profesores': 'e.g. Staff room',
   'Ej: En línea': 'e.g. Online',
@@ -1755,7 +1755,7 @@ const EN: Record<string, string> = {
   '(asiento libre)': '(empty seat)',
   'Alumnos por mesa': 'Students per table',
   'Anota las conclusiones y los acuerdos del grupo.': 'Notes down the group\'s conclusions and agreements.',
-  'Aspectos a tener en cuenta (opcional): p. ej. «Marco y Lucía no deben ir juntos»': 'Anything to bear in mind (optional): e.g. “Marco and Lucía shouldn\'t be together”',
+  'Aspectos a tener en cuenta (opcional): p. ej. «Alumno 1 y Alumno 2 no deben ir juntos»': 'Anything to bear in mind (optional): e.g. “Student 1 and Student 2 shouldn\'t be together”',
   'Aula {room}': 'Room {room}',
   'Configuración de mesas y roles': 'Table and role settings',
   'Controla el tiempo de la tarea y el volumen de voz.': 'Keeps track of time and the noise level.',
@@ -1831,7 +1831,7 @@ const EN: Record<string, string> = {
   'Arrastra a un alumno hasta un asiento, o tócalo y después toca el asiento.': 'Drag a student onto a seat, or tap them and then tap the seat.',
   'Se sustituirá la distribución actual de {clase}.': 'This will replace the current layout for {clase}.',
   'Aspectos a tener en cuenta (opcional)': 'Anything to bear in mind (optional)',
-  'p. ej. «Marco y Lucía no deben ir juntos»': 'e.g. “Marco and Lucía shouldn\'t be together”',
+  'p. ej. «Alumno 1 y Alumno 2 no deben ir juntos»': 'e.g. “Student 1 and Student 2 shouldn\'t be together”',
 
   /* ── Licencia ── */
   "Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.": "That key doesn't exist. Copy it exactly as it appears in your purchase email.",

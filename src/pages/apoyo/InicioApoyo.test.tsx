@@ -40,7 +40,7 @@ describe('Inicio de PT y AL', () => {
     const evol = screen.getByText('Evolución del alumnado').closest('.card') as HTMLElement;
     for (const a of data.alumnos) expect(within(evol).getByText(a.nombre)).toBeTruthy();
     expect(within(evol).getAllByRole('img').length).toBe(data.alumnos.length);
-    await user.click(within(evol).getByRole('button', { name: /Marta Gil Soler/ }));
+    await user.click(within(evol).getByRole('button', { name: /Alumno 1(?!\d)/ }));
     expect(within(evol).getByText('Leer sílabas directas con fluidez')).toBeTruthy();
   });
 

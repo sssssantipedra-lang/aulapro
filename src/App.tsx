@@ -23,7 +23,7 @@ import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { exentosDelDia, LIMITACIONES, limitacionesParaIA, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
-import { isoDate } from './lib/utils';
+import { isoDate, nombresCortos } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Ficha } from './types';
 import { X, Menu } from 'lucide-react';
@@ -103,7 +103,7 @@ function AppInner() {
   // como origen de la ruleta y reiniciaría el giro cada vez que cambie. Para
   // el de PT y AL, la ruleta es de su alumnado de apoyo, no de clases que no tiene.
   const studentFirstNames = useMemo(
-    () => (especialista ? st.apoyo.alumnos.map(a => a.nombre) : st.students.map(s => s.name)).map(n => n.split(' ')[0]),
+    () => nombresCortos(especialista ? st.apoyo.alumnos.map(a => a.nombre) : st.students.map(s => s.name)),
     [especialista, st.students, st.apoyo.alumnos],
   );
   const apoyoBlocks = useMemo(() => (especialista ? bloquesDeApoyo(st.apoyo.grupos) : []), [especialista, st.apoyo.grupos]);

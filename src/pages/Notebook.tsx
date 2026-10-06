@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
-import { fileToBase64, isoDate } from '../lib/utils';
+import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
@@ -877,7 +877,8 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
   const suggestions = (() => {
     const cls = classId ? data.classes.find(c => c.id === classId) : data.classes[0];
     if (!cls) return [t('¿Por dónde empiezo a montar mi cuaderno de notas?')];
-    const alumno = data.students.find(s => s.class_id === cls.id)?.name.split(' ')[0];
+    const nombre = data.students.find(s => s.class_id === cls.id)?.name;
+    const alumno = nombre ? nombreDePila(nombre) : undefined;
     return [
       t('¿Cómo va {clase} en general?', { clase: cls.name }),
       t('¿Qué alumnos de {clase} van justos y qué haría con ellos?', { clase: cls.name }),

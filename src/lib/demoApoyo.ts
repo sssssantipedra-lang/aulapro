@@ -10,7 +10,7 @@ import type {
 } from '../types/apoyo';
 
 export const DEMO_APOYO_USER = {
-  full_name: 'Laura Martí Navarro',
+  full_name: 'Profesor',
   school: 'CEIP Ejemplo',
   subject: 'Pedagogía Terapéutica y Audición y Lenguaje',
 };
@@ -28,13 +28,13 @@ export function buildDemoApoyo(hoy: Date = new Date()): ApoyoData {
     categorias, diagnostico, necesidades, notas: '',
   });
   const alumnos = [
-    al('demo-a1', 'Marta Gil Soler', '4º B', 4, 2, ['Discapacidad intelectual'], 'Discapacidad intelectual leve',
+    al('demo-a1', 'Alumno 1', '4º B', 4, 2, ['Discapacidad intelectual'], 'Discapacidad intelectual leve',
       'Le cuesta mantener la atención más de diez minutos. Aprende mejor con apoyo visual y tareas cortas. Se motiva con los juegos.'),
-    al('demo-a2', 'Pau Ruiz Ferrer', '3º A', 3, 2, ['Dificultades específicas de aprendizaje (dislexia, discalculia…)', 'Trastorno por déficit de atención e hiperactividad (TDAH)'], 'Dislexia y TDAH',
+    al('demo-a2', 'Alumno 2', '3º A', 3, 2, ['Dificultades específicas de aprendizaje (dislexia, discalculia…)', 'Trastorno por déficit de atención e hiperactividad (TDAH)'], 'Dislexia y TDAH',
       'Lectura lenta, con sustituciones de letras. Buena comprensión oral y mucho interés por los animales.'),
-    al('demo-a3', 'Aitana López Vidal', '2º A', 2, 1, ['Trastorno del desarrollo del lenguaje y la comunicación'], 'Trastorno del desarrollo del lenguaje (TDL)',
+    al('demo-a3', 'Alumno 3', '2º A', 2, 1, ['Trastorno del desarrollo del lenguaje y la comunicación'], 'Trastorno del desarrollo del lenguaje (TDL)',
       'Frases cortas y vocabulario reducido. Entiende mejor con imágenes y gestos.'),
-    al('demo-a4', 'Hugo Sanz Moreno', '5º A', 5, 3, ['Trastorno del espectro del autismo (TEA)', 'Discapacidad motora'], 'TEA; hemiparesia leve en el lado derecho',
+    al('demo-a4', 'Alumno 4', '5º A', 5, 3, ['Trastorno del espectro del autismo (TEA)', 'Discapacidad motora'], 'TEA; hemiparesia leve en el lado derecho',
       'Necesita anticipación y agenda visual. Le cuesta la interacción en grupo y la escritura a mano; muy buena memoria visual.'),
   ];
   const f = (dia: number, inicio: string, fin: string) => ({ dia, inicio, fin });

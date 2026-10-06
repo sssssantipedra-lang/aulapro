@@ -40,16 +40,16 @@ describe('En la pista', () => {
     const user = userEvent.setup();
     render(<Harness />);
     expect(screen.getByRole('tab', { name: '1º ESO A' }).getAttribute('aria-selected')).toBe('true');
-    // Mateo está lesionado: no puede correr ni saltar
-    expect(screen.getByRole('button', { name: /Mateo Ruiz Ortega/ }).textContent).toContain('No puede correr');
+    // Alumno 4 está lesionado: no puede correr ni saltar
+    expect(screen.getByRole('button', { name: /Alumno 4(?!\d)/ }).textContent).toContain('No puede correr');
 
     await user.click(screen.getByRole('radio', { name: /Sin equipación/ }));
-    await user.click(screen.getByRole('button', { name: /Nora Ferrer Gil/ }));
+    await user.click(screen.getByRole('button', { name: /Alumno 1(?!\d)/ }));
     expect(marcas).toEqual([expect.objectContaining({ class_id: 'ef-c1', student_id: 'ef-s00', type: 'ef-ropa', date: '2026-10-05' })]);
-    expect(screen.getByRole('button', { name: /Nora Ferrer Gil/ }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /Alumno 1(?!\d)/ }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Hoy, 1 anotación en 1º ESO A.')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: /Nora Ferrer Gil/ }));
+    await user.click(screen.getByRole('button', { name: /Alumno 1(?!\d)/ }));
     expect(marcas).toEqual([]);
   });
 });

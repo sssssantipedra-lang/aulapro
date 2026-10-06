@@ -8,7 +8,7 @@ import type { EfData, MarcaPrueba } from '../types/ef';
 import { EF_VACIO, hacerEquipos } from './ef';
 
 export const DEMO_EF_USER = {
-  full_name: 'Jordi Puig Serra',
+  full_name: 'Profesor',
   school: 'IES Ejemplo',
   subject: 'Educación Física',
 };
@@ -21,12 +21,12 @@ const clase = (id: string, name: string, curso: number, color: string): Class =>
 });
 
 const NOMBRES: [string, 'F' | 'M'][][] = [
-  [['Nora Ferrer Gil', 'F'], ['Iker Moreno Pastor', 'M'], ['Lucía Soler Vidal', 'F'], ['Mateo Ruiz Ortega', 'M'],
-    ['Aya Benali Romero', 'F'], ['Hugo Navarro Ríos', 'M'], ['Vega Martí Sanz', 'F'], ['Leo Castillo Prieto', 'M']],
-  [['Sofía Lozano Peña', 'F'], ['Álex Molina Torres', 'M'], ['Carla Rubio Méndez', 'F'], ['Izan Garrido León', 'M'],
-    ['Emma Herrero Cano', 'F'], ['Bruno Santos Vega', 'M'], ['Lola Iglesias Pons', 'F'], ['Marc Domènech Roca', 'M']],
-  [['Paula Crespo Nieto', 'F'], ['Daniel Vicente Mora', 'M'], ['Inés Gallego Solà', 'F'], ['Pablo Esteve Marín', 'M'],
-    ['Julia Pascual Ibáñez', 'F'], ['Adrián Blasco Ferrer', 'M'], ['Martina Sáez Llopis', 'F'], ['Hugo Bravo Cortés', 'M']],
+  [['Alumno 1', 'F'], ['Alumno 2', 'M'], ['Alumno 3', 'F'], ['Alumno 4', 'M'],
+    ['Alumno 5', 'F'], ['Alumno 6', 'M'], ['Alumno 7', 'F'], ['Alumno 8', 'M']],
+  [['Alumno 9', 'F'], ['Alumno 10', 'M'], ['Alumno 11', 'F'], ['Alumno 12', 'M'],
+    ['Alumno 13', 'F'], ['Alumno 14', 'M'], ['Alumno 15', 'F'], ['Alumno 16', 'M']],
+  [['Alumno 17', 'F'], ['Alumno 18', 'M'], ['Alumno 19', 'F'], ['Alumno 20', 'M'],
+    ['Alumno 21', 'F'], ['Alumno 22', 'M'], ['Alumno 23', 'F'], ['Alumno 24', 'M']],
 ];
 
 export function buildDemoEF(hoy: Date = new Date()) {
