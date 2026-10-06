@@ -33,6 +33,8 @@ import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { IDS_MODELOS_EF, modeloEF, modelosParaIA, referenciasDeModelos } from '../lib/modelosEF';
+import { IDS_MODALIDADES, MODALIDADES_EF } from '../lib/ef';
+import type { ModalidadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
 /* ── Lo que devuelve la IA ── */
@@ -109,12 +111,16 @@ export interface SdaContent {
 export interface SdaEF {
   modelos: string[];
   referencias: string[];
+  /** La modalidad del juego o deporte que trabaja, si es uno. */
+  modalidad?: ModalidadEF;
 }
 
 /** Lo propio de Educación Física que se añade a la petición. */
 export interface SdaPeticionEF {
   /** El id del modelo que eligió el docente; vacío, lo elige la IA. */
   modelo: string;
+  /** La modalidad que eligió el docente; vacía, la decide la IA si la idea es un juego o un deporte. */
+  modalidad?: ModalidadEF | '';
   /** El material disponible, ya en texto (ver `recursosParaIA`). */
   material: string;
   instalaciones: string;
@@ -217,6 +223,12 @@ function instruccionesEF(ef: SdaPeticionEF): string {
       ? `El docente ha elegido el modelo "${elegido.id}" (${elegido.nombre}): úsalo y pon solo ese id en "modelosPedagogicos".`
       : `Elige el modelo, o la hibridación de dos, que mejor encaje con la idea, y pon su id en "modelosPedagogicos" (1 o 2).`) +
     `\nModelos disponibles:\n${modelosParaIA()}\n` +
+    `- Modalidad de juegos y deportes: ` +
+    (ef.modalidad
+      ? `el docente ha elegido "${ef.modalidad}"; pon ese id en "modalidadDeportiva". `
+      : `si la idea trabaja un juego o un deporte, pon su modalidad en "modalidadDeportiva"; si no, "ninguna". `) +
+    `Trabaja el juego o deporte según la lógica de su modalidad y prepáralo como ella pide (calentamiento específico, ` +
+    `progresión y seguridad):\n${MODALIDADES_EF.map(m => `  - ${m.id}: ${m.label}. Lógica: ${m.logica} Preparación: ${m.preparacion}`).join('\n')}\n` +
     `- La metodología, el agrupamiento y cada sesión aplican de verdad el modelo (sus roles, grupos, fases y momentos de reflexión).\n` +
     `- Cada "descripcion" de sesión es una sesión de EF: calentamiento, parte principal y vuelta a la calma, con mucho ` +
     `tiempo de compromiso motor, la organización, el material y las normas de seguridad.\n` +
@@ -387,9 +399,14 @@ const SDA_SCHEMA_EF = {
       description: 'De 1 a 2 identificadores de modelos pedagógicos de EF de la lista cerrada.',
       items: { type: 'STRING', enum: IDS_MODELOS_EF },
     },
+    modalidadDeportiva: {
+      type: 'STRING',
+      description: 'La modalidad del juego o deporte que trabaja la SdA, o "ninguna".',
+      enum: [...IDS_MODALIDADES, 'ninguna'],
+    },
   },
-  required: ['modelosPedagogicos', ...SDA_FIELDS],
-  propertyOrdering: ['modelosPedagogicos', ...SDA_FIELDS],
+  required: ['modelosPedagogicos', 'modalidadDeportiva', ...SDA_FIELDS],
+  propertyOrdering: ['modelosPedagogicos', 'modalidadDeportiva', ...SDA_FIELDS],
 };
 
 /** Los ocho códigos oficiales, para que Gemini no se invente uno nuevo. */
@@ -648,9 +665,9 @@ export async function generateSda(
   });
   if (!raw) return null;
 
-  const respuesta = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[]; modelosPedagogicos?: unknown }>(raw);
+  const respuesta = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[]; modelosPedagogicos?: unknown; modalidadDeportiva?: unknown }>(raw);
   if (!respuesta) return null;
-  const { modelosPedagogicos, ...parsed } = respuesta;
+  const { modelosPedagogicos, modalidadDeportiva, ...parsed } = respuesta;
   // Un modelo de reserva puede devolver el array vacío o ausente
   const finales = (parsed.areas ?? []).map((a, i) => finalizarArea(a, resoluciones[i] ?? null));
   // Solo se cita un decreto si de verdad se usó: un área en modo libre, o una
@@ -669,7 +686,7 @@ export async function generateSda(
     areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
     sesiones: Array.isArray(parsed.sesiones) ? parsed.sesiones : [],
     normativa,
-    ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos) } : {}),
+    ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva) } : {}),
   };
 }
 
@@ -678,10 +695,11 @@ export async function generateSda(
  * eligió la IA de la lista cerrada (como mucho dos). Las referencias salen de
  * `lib/modelosEF`, no de la IA.
  */
-export function efDeLaRespuesta(ef: SdaPeticionEF, marcados: unknown): SdaEF {
+export function efDeLaRespuesta(ef: SdaPeticionEF, marcados: unknown, modalidadIA?: unknown): SdaEF {
   const deLaIA = (Array.isArray(marcados) ? marcados : []).filter((m): m is string => typeof m === 'string' && IDS_MODELOS_EF.includes(m));
   const modelos = modeloEF(ef.modelo) ? [ef.modelo] : [...new Set(deLaIA)].slice(0, 2);
-  return { modelos, referencias: referenciasDeModelos(modelos) };
+  const modalidad = ef.modalidad || (IDS_MODALIDADES.includes(modalidadIA as ModalidadEF) ? modalidadIA as ModalidadEF : undefined);
+  return { modelos, referencias: referenciasDeModelos(modelos), ...(modalidad ? { modalidad } : {}) };
 }
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */

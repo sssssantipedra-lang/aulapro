@@ -60,7 +60,7 @@ describe('modelos pedagógicos de EF', () => {
 
 describe('SdA de Educación Física', () => {
   it('es la SdA de siempre, con el modelo, el DUA-A, el inventario y las limitaciones sin nombres', async () => {
-    callGemini.mockResolvedValue(respuesta({ modelosPedagogicos: ['educacion-deportiva', 'aprendizaje-cooperativo', 'inventado'] }));
+    callGemini.mockResolvedValue(respuesta({ modelosPedagogicos: ['educacion-deportiva', 'aprendizaje-cooperativo', 'inventado'], modalidadDeportiva: 'red-pared' }));
     const sda = await generateSda(PETICION, 'es');
     const [system, user, , , opciones] = callGemini.mock.calls[0];
     // Lo general: el currículo real y las competencias
@@ -75,15 +75,23 @@ describe('SdA de Educación Física', () => {
     expect(user).toContain('- No puede correr, No puede saltar');
     expect(opciones.responseSchema.properties.modelosPedagogicos.items.enum).toEqual(IDS_MODELOS_EF);
     expect(opciones.responseSchema.propertyOrdering[0]).toBe('modelosPedagogicos');
+    expect(opciones.responseSchema.properties.modalidadDeportiva.enum).toContain('red-pared');
+    expect(opciones.responseSchema.properties.modalidadDeportiva.enum.every((x: unknown) => typeof x === 'string')).toBe(true);
+    expect(system).toContain('red-pared: Red y pared. Lógica:');
     // Lo que vuelve: el currículo oficial, y los modelos válidos con sus referencias de la lista
     expect(sda?.areas[0].oficial).toBe(true);
     expect(sda?.ef?.modelos).toEqual(['educacion-deportiva', 'aprendizaje-cooperativo']);
     expect(sda?.ef?.referencias).toEqual(referenciasDeModelos(['educacion-deportiva', 'aprendizaje-cooperativo']));
+    expect(sda?.ef?.modalidad).toBe('red-pared');
     expect(JSON.stringify(sda)).not.toContain('2030');
   });
 
   it('si el docente elige el modelo, manda el suyo; y sin EF no cambia nada', async () => {
     expect(efDeLaRespuesta({ ...PETICION.ef!, modelo: 'responsabilidad' }, ['educacion-deportiva']).modelos).toEqual(['responsabilidad']);
+    // La modalidad del docente manda; «ninguna» o una inventada no se guardan
+    expect(efDeLaRespuesta({ ...PETICION.ef!, modalidad: 'lucha' }, [], 'invasion').modalidad).toBe('lucha');
+    expect(efDeLaRespuesta(PETICION.ef!, [], 'ninguna').modalidad).toBeUndefined();
+    expect(efDeLaRespuesta(PETICION.ef!, [], 'esgrima').modalidad).toBeUndefined();
     callGemini.mockResolvedValue(respuesta());
     const sda = await generateSda({ ...PETICION, ef: undefined }, 'es');
     const [system, , , , opciones] = callGemini.mock.calls[0];

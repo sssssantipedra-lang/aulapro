@@ -21,6 +21,7 @@ import type { LearningSituation } from '../types';
 import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { modeloEF } from '../lib/modelosEF';
+import { MODALIDADES_EF } from '../lib/ef';
 
 function fileBase(sda: LearningSituation): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -75,6 +76,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
 
   const areaVal = [req.areas.join(', '), req.nivel].filter(Boolean).join(' · ');
   const modelos = modelosDeSda(c, t);
+  const modalidad = c.ef?.modalidad ? t(MODALIDADES_EF.find(m => m.id === c.ef!.modalidad)?.label ?? '') : '';
 
   const objetivosPair = rowDouble(t('Objetivos de etapa'), c.objetivosEtapa, t('Competencias clave'), c.competenciasClave);
 
@@ -102,6 +104,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
     (c.metodologia || c.agrupamiento || c.recursos
       ? band(t('Metodología y desarrollo')) +
         rowFull(t('Modelo pedagógico'), modelos) +
+        rowFull(t('Modalidad del juego o deporte'), modalidad) +
         rowFull(t('Metodología'), c.metodologia) +
         rowFull(t('Agrupamiento'), c.agrupamiento) +
         rowFull(t('Recursos'), c.recursos)
@@ -223,6 +226,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
 
   const areaVal = [req.areas.join(', '), req.nivel].filter(Boolean).join(' · ');
   const modelos = modelosDeSda(c, t);
+  const modalidad = c.ef?.modalidad ? t(MODALIDADES_EF.find(m => m.id === c.ef!.modalidad)?.label ?? '') : '';
   const objetivosPair = () => gRowDouble(t('Objetivos de etapa'), c.objetivosEtapa, t('Competencias clave'), c.competenciasClave);
 
   const rows: TableRow[] = [
@@ -250,6 +254,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
     ...(c.metodologia || c.agrupamiento || c.recursos ? [
       gBand(t('Metodología y desarrollo')),
       ...gRowFull(t('Modelo pedagógico'), modelos),
+      ...gRowFull(t('Modalidad del juego o deporte'), modalidad),
       ...gRowFull(t('Metodología'), c.metodologia),
       ...gRowFull(t('Agrupamiento'), c.agrupamiento),
       ...gRowFull(t('Recursos'), c.recursos),

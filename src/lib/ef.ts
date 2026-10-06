@@ -5,7 +5,7 @@ import type { Class } from '../types';
 import { esAsignaturaEF } from '../services/classMarks';
 import type {
   ActividadEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
-  MarcaPrueba, MaterialEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
+  MarcaPrueba, MaterialEF, ModalidadEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
 } from '../types/ef';
 
 export const EF_VACIO: EfData = {
@@ -179,6 +179,58 @@ export const TIPOS_ACTIVIDAD: readonly { id: TipoActividadEF; label: string }[] 
   { id: 'calentamiento', label: 'Calentamiento' },
   { id: 'calma', label: 'Vuelta a la calma' },
 ];
+
+/**
+ * Las modalidades de juegos y deportes, con su lógica y cómo se preparan
+ * (decisión del dueño, 6-10-2026). Se ven en Actividades al filtrar por una y
+ * van en las peticiones a la IA de actividades, sesiones y situaciones de
+ * aprendizaje.
+ */
+export const MODALIDADES_EF: readonly { id: ModalidadEF; label: string; logica: string; preparacion: string }[] = [
+  {
+    id: 'invasion', label: 'Invasión',
+    logica: 'Dos equipos comparten el espacio y se disputan un móvil para llevarlo a la meta contraria (baloncesto, fútbol, balonmano, hockey, ultimate). En ataque, conservar, progresar y finalizar; en defensa, recuperar, impedir la progresión y proteger la meta.',
+    preparacion: 'Calentamiento con móvil y con cambios de dirección y de ritmo; juegos reducidos y modificados (3 contra 3, superioridad numérica); resistencia intermitente y velocidad de reacción; reglas de no contacto.',
+  },
+  {
+    id: 'red-pared', label: 'Red y pared',
+    logica: 'El móvil se envía al campo contrario, por encima de una red o contra una pared, para que el otro no pueda devolverlo (voleibol, bádminton, tenis, pádel, frontón, pilota). Enviar a los espacios libres, recuperar la posición de base y anticiparse.',
+    preparacion: 'Movilidad de hombros, muñecas y tobillos; desplazamientos laterales y pasos de ajuste; empezar atrapando y lanzando, con globos o balones lentos y en campos pequeños; primero cooperar (contar golpeos) y después competir.',
+  },
+  {
+    id: 'lucha', label: 'Lucha',
+    logica: 'Oposición directa con contacto para desequilibrar, inmovilizar o sacar al otro de un espacio (judo, lucha, juegos de lucha y de oposición).',
+    preparacion: 'Calentamiento de cuello, hombros y cadera; caídas seguras (rodar, amortiguar) antes de cualquier lucha; normas claras de seguridad y de respeto (saludo, parar al oír la señal); parejas de peso parecido; sobre colchonetas, empezando por juegos de empuje y de tracción.',
+  },
+  {
+    id: 'blanco-diana', label: 'Blanco y diana',
+    logica: 'Lanzar o golpear un móvil para dar en un blanco o acercarse a él, sin oposición directa (bolos, petanca, boccia, tiro con arco adaptado, golf, dardos de ventosa).',
+    preparacion: 'Activación de la musculatura del lanzamiento y control postural; precisión antes que fuerza; distancias y blancos graduados; turnos ordenados y zonas seguras para recoger.',
+  },
+  {
+    id: 'cooperacion', label: 'Cooperación',
+    logica: 'Todo el grupo colabora para un objetivo común, sin adversario (retos cooperativos, acrosport, paracaídas, malabares en grupo, comba).',
+    preparacion: 'Juegos de confianza y de cohesión de grupo; retos de dificultad creciente; comunicación y reparto de papeles; en acrosport, papeles de base, ágil y ayudante, apoyos solo en cadera y hombros, y bajar en orden inverso.',
+  },
+  {
+    id: 'tradicionales', label: 'Juegos tradicionales y populares',
+    logica: 'Juegos del entorno y de otras culturas, con reglas que se pueden pactar y cambiar (pañuelo, rayuela, comba, chapas, balón prisionero, juegos de pilota).',
+    preparacion: 'Recoger juegos de las familias y del barrio; contar su origen; jugar con reglas pactadas y modificarlas; hablar de las emociones que provocan y de su papel social.',
+  },
+  {
+    id: 'natural-urbano', label: 'Medio natural y urbano',
+    logica: 'Actividades en un entorno con incertidumbre, natural o de la ciudad (orientación, senderismo, rocódromo, bicicleta, patines, rutas urbanas).',
+    preparacion: 'Empezar en el centro y en su entorno próximo; normas de seguridad (también vial) y del medio; material adecuado; mapas y brújula; respeto y cuidado del entorno sin dejar huella.',
+  },
+];
+
+export const IDS_MODALIDADES = MODALIDADES_EF.map(m => m.id);
+
+/** La modalidad para el prompt de la IA: su lógica y su preparación. */
+export function modalidadParaIA(id: string | undefined): string {
+  const m = MODALIDADES_EF.find(x => x.id === id);
+  return m ? `Modalidad: ${m.label}. Lógica: ${m.logica} Preparación: ${m.preparacion}` : '';
+}
 
 /* ── Equipos ── */
 
@@ -437,6 +489,7 @@ export function normalizarEF(raw: unknown): EfData {
       id: x.id, titulo: x.titulo, tipo: de(x.tipo, TIPOS, 'juego'), descripcion: texto(x.descripcion),
       organizacion: texto(x.organizacion), material: texto(x.material), variantes: texto(x.variantes),
       inclusion: texto(x.inclusion), origen: de(x.origen, ['banco', 'propia', 'ia'] as const, 'propia'),
+      ...(IDS_MODALIDADES.includes(x.modalidad as ModalidadEF) ? { modalidad: x.modalidad as ModalidadEF } : {}),
     };
   });
   const sesiones = lista<SesionEF>(o.sesiones, v => {
@@ -454,6 +507,7 @@ export function normalizarEF(raw: unknown): EfData {
         return y && esTexto(y.materia) && esTexto(y.codigo) ? { materia: y.materia, codigo: y.codigo } : null;
       }) } : {}),
       ...(x.ia === true ? { ia: true } : {}),
+      ...(IDS_MODALIDADES.includes(x.modalidad as ModalidadEF) ? { modalidad: x.modalidad as ModalidadEF } : {}),
     };
   });
   const material = lista<MaterialEF>(o.material, v => {

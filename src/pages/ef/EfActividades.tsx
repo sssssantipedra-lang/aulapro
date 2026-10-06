@@ -14,12 +14,12 @@ import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { isoDate } from '../../lib/utils';
 import { bancoEF } from '../../lib/bancoEF';
-import { nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
+import { MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
 import { hasApiKey } from '../../services/gemini';
 import { limitacionesParaIA, proponerActividades } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, Student } from '../../types';
-import type { ActividadEF, EfData, TipoActividadEF } from '../../types/ef';
+import type { ActividadEF, EfData, ModalidadEF, TipoActividadEF } from '../../types/ef';
 
 interface Props {
   classes: Class[];
@@ -46,10 +46,11 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   const [tipo, setTipo] = useState<TipoActividadEF | 'todas'>('todas');
+  const [modalidad, setModalidad] = useState<ModalidadEF | 'todas'>('todas');
   const [origen, setOrigen] = useState<Origen>('todas');
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<ActividadEF | null>(null);
-  const [ia, setIa] = useState<{ tipo: TipoActividadEF; claseId: string; tema: string; inventario: boolean; limitaciones: boolean } | null>(null);
+  const [ia, setIa] = useState<{ tipo: TipoActividadEF; modalidad: ModalidadEF | ''; claseId: string; tema: string; inventario: boolean; limitaciones: boolean } | null>(null);
   const [propuestas, setPropuestas] = useState<ActividadEF[]>([]);
   const [pensando, setPensando] = useState(false);
   const esNueva = !!editando && !ef.actividades.some(a => a.id === editando.id);
@@ -57,7 +58,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const todas = useMemo(() => [...ef.actividades, ...bancoEF(lang)], [ef.actividades, lang]);
   const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const visibles = todas.filter(a =>
-    (tipo === 'todas' || a.tipo === tipo) && (origen === 'todas' || a.origen === origen) &&
+    (tipo === 'todas' || a.tipo === tipo) && (modalidad === 'todas' || a.modalidad === modalidad) && (origen === 'todas' || a.origen === origen) &&
     (!busca.trim() || norm(`${a.titulo} ${a.descripcion} ${a.material}`).includes(norm(busca.trim()))));
 
   function guardar() {
@@ -77,7 +78,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
 
   const vacia = (): ActividadEF => ({
     id: nuevoIdEF('act'), titulo: '', tipo: tipo === 'todas' ? 'juego' : tipo, descripcion: '', organizacion: '',
-    material: '', variantes: '', inclusion: '', origen: 'propia',
+    material: '', variantes: '', inclusion: '', origen: 'propia', ...(modalidad !== 'todas' ? { modalidad } : {}),
   });
 
   /* ── La IA ── */
@@ -91,6 +92,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
     setPensando(true);
     const r = await proponerActividades({
       tipo: ia.tipo,
+      modalidad: ia.modalidad || undefined,
       curso: claseIa?.etapa && claseIa.curso ? nombreCurso({ etapa: claseIa.etapa, curso: claseIa.curso }) : undefined,
       etapa: claseIa?.etapa,
       tema: ia.tema,
@@ -114,6 +116,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
         <span className="ef-act-ttl">{a.titulo}</span>
         <span className="ef-act-chips">
           <span className="sda-chip">{t(TIPOS_ACTIVIDAD.find(x => x.id === a.tipo)!.label)}</span>
+          {a.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === a.modalidad)!.label)}</span>}
           {a.origen !== 'banco' && <span className={`sda-chip ef-origen-${a.origen}`}>{t(ORIGEN[a.origen])}</span>}
         </span>
       </summary>
@@ -134,7 +137,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
           <p className="pg-sub">{t('El banco de partida de AulaPro, las tuyas y las que guardes de la IA. Cada una dice cómo participa quien tiene una limitación, según el DUA-A.')}</p>
         </div>
         <div className="ap-prog-acc">
-          <button className="btn-ghost" onClick={() => { setPropuestas([]); setIa({ tipo: tipo === 'todas' ? 'juego' : tipo, claseId: classes[0]?.id ?? '', tema: '', inventario: hayInventario, limitaciones: true }); }}
+          <button className="btn-ghost" onClick={() => { setPropuestas([]); setIa({ tipo: tipo === 'todas' ? 'juego' : tipo, modalidad: modalidad === 'todas' ? '' : modalidad, claseId: classes[0]?.id ?? '', tema: '', inventario: hayInventario, limitaciones: true }); }}
             disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
             <Sparkles size={15} />{t('Proponer con IA')}
           </button>
@@ -148,6 +151,22 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
           <button key={x.id} type="button" role="radio" aria-checked={tipo === x.id} className={`chip sm accent${tipo === x.id ? ' on' : ''}`} onClick={() => setTipo(x.id)}>{t(x.label)}</button>
         ))}
       </div>
+      <div className="chip-row ap-alumnos" role="radiogroup" aria-label={t('Modalidad')}>
+        <button type="button" role="radio" aria-checked={modalidad === 'todas'} className={`chip sm${modalidad === 'todas' ? ' on' : ''}`} onClick={() => setModalidad('todas')}>{t('Todas las modalidades')}</button>
+        {MODALIDADES_EF.map(m => (
+          <button key={m.id} type="button" role="radio" aria-checked={modalidad === m.id} className={`chip sm${modalidad === m.id ? ' on' : ''}`} onClick={() => setModalidad(m.id)}>{t(m.label)}</button>
+        ))}
+      </div>
+      {modalidad !== 'todas' && (() => {
+        const m = MODALIDADES_EF.find(x => x.id === modalidad)!;
+        return (
+          <div className="card ef-modalidad-info">
+            <div className="home-card-ttl">{t(m.label)}</div>
+            <p><strong>{t('Lógica')}:</strong> {t(m.logica)}</p>
+            <p><strong>{t('Preparación')}:</strong> {t(m.preparacion)}</p>
+          </div>
+        );
+      })()}
       <div className="ef-act-filtros">
         <label className="ef-busca">
           <Search size={15} aria-hidden="true" />
@@ -190,6 +209,16 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
                 {TIPOS_ACTIVIDAD.map(x => <option key={x.id} value={x.id}>{t(x.label)}</option>)}
               </select>
             </div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
+              <label className="flabel" htmlFor="ef-a-modalidad">{t('Modalidad')}</label>
+              <select id="ef-a-modalidad" className="finput" value={editando.modalidad ?? ''}
+                onChange={e => setEditando(e.target.value
+                  ? { ...editando, modalidad: e.target.value as ModalidadEF }
+                  : (({ modalidad: _m, ...r }) => { void _m; return r; })(editando))}>
+                <option value="">{t('Sin modalidad')}</option>
+                {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
+              </select>
+            </div>
             {CAMPOS.map(c => (
               <div key={c.id} className="fgroup" style={{ gridColumn: '1 / -1' }}>
                 <label className="flabel" htmlFor={`ef-a-${c.id}`}>{t(c.label)}</label>
@@ -213,6 +242,13 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
               <label className="flabel" htmlFor="ef-ia-tipo">{t('Tipo')}</label>
               <select id="ef-ia-tipo" className="finput" value={ia.tipo} onChange={e => setIa({ ...ia, tipo: e.target.value as TipoActividadEF })}>
                 {TIPOS_ACTIVIDAD.map(x => <option key={x.id} value={x.id}>{t(x.label)}</option>)}
+              </select>
+            </div>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="ef-ia-modalidad">{t('Modalidad')}</label>
+              <select id="ef-ia-modalidad" className="finput" value={ia.modalidad} onChange={e => setIa({ ...ia, modalidad: e.target.value as ModalidadEF | '' })}>
+                <option value="">{t('Sin modalidad')}</option>
+                {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
               </select>
             </div>
             <div className="fgroup">

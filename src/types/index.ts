@@ -539,6 +539,8 @@ export interface LearningSituation {
     metodologia: string;
     /** Solo en las de Educación Física: el modelo pedagógico que eligió el docente ('' si lo eligió la IA). */
     efModelo?: string;
+    /** Solo en las de Educación Física: la modalidad que eligió el docente ('' si la decidió la IA). */
+    efModalidad?: import('./ef').ModalidadEF | '';
   };
   content: import('../services/learningSituations').SdaContent;
 }

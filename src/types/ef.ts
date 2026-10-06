@@ -79,6 +79,15 @@ export interface BaremoEF {
 
 export type TipoActividadEF = 'juego' | 'deporte' | 'lluvia' | 'natural' | 'calentamiento' | 'calma';
 
+/**
+ * La modalidad de un juego o deporte, por su lógica interna (decisión del
+ * dueño, 6-10-2026): invasión, red y pared, lucha, blanco y diana,
+ * cooperación, juegos tradicionales y populares, y medio natural y urbano.
+ * Cada una se prepara de una manera (ver `MODALIDADES_EF`).
+ */
+export type ModalidadEF =
+  | 'invasion' | 'red-pared' | 'lucha' | 'blanco-diana' | 'cooperacion' | 'tradicionales' | 'natural-urbano';
+
 /** Una actividad del banco: las de partida, las del docente y las de la IA que guarda. */
 export interface ActividadEF {
   id: string;
@@ -94,6 +103,8 @@ export interface ActividadEF {
   inclusion: string;
   /** Las de partida vienen con la app; las demás, del docente o de la IA. */
   origen: 'banco' | 'propia' | 'ia';
+  /** Si es un juego o deporte, su modalidad. */
+  modalidad?: ModalidadEF;
 }
 
 /** Una sesión de EF: calentamiento, parte principal y vuelta a la calma. */
@@ -102,6 +113,8 @@ export interface SesionEF {
   criterios?: import('./index').OfficialCriterionRef[];
   /** Si la preparó la IA. */
   ia?: boolean;
+  /** La modalidad del juego o deporte que trabaja, si es uno. */
+  modalidad?: ModalidadEF;
   id: string;
   titulo: string;
   claseId?: string;

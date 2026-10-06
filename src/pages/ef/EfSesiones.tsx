@@ -15,7 +15,7 @@ import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { useMateriasOficiales } from '../../hooks/useNotasPorCompetencias';
 import { isoDate, fromIsoDate } from '../../lib/utils';
-import { nuevoIdEF } from '../../lib/ef';
+import { MODALIDADES_EF, nuevoIdEF } from '../../lib/ef';
 import { bancoEF } from '../../lib/bancoEF';
 import { describirCriterio } from '../../lib/curriculum/criteriosParaIA';
 import { esAsignaturaEF } from '../../services/classMarks';
@@ -24,7 +24,7 @@ import { limitacionesParaIA, prepararSesion } from '../../services/efIA';
 import { guardarSesionPdf } from '../../services/exportSesionEF';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, ScheduleBlock, Student } from '../../types';
-import type { EfData, SesionEF } from '../../types/ef';
+import type { EfData, ModalidadEF, SesionEF } from '../../types/ef';
 
 interface Props {
   classes: Class[];
@@ -62,7 +62,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const nombreCurso = useNombreCurso();
   const hoy = isoDate();
   const [editando, setEditando] = useState<SesionEF | null>(null);
-  const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean } | null>(null);
+  const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean; modalidad: ModalidadEF | '' } | null>(null);
   const [pensando, setPensando] = useState(false);
   const [verAnteriores, setVerAnteriores] = useState(false);
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
@@ -95,7 +95,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
 
   function abrirIa() {
     const claseId = classes[0]?.id ?? '';
-    setIa({ claseId, fecha: hoy, instalacionId: ef.instalaciones[0]?.id ?? '', tema: '', minutos: minutosDeClase(scheduleBlocks, claseId, hoy) ?? 55, banco: true });
+    setIa({ claseId, fecha: hoy, instalacionId: ef.instalaciones[0]?.id ?? '', tema: '', minutos: minutosDeClase(scheduleBlocks, claseId, hoy) ?? 55, banco: true, modalidad: '' });
   }
 
   async function preparar() {
@@ -107,18 +107,20 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
       curso: claseIa?.etapa && claseIa.curso ? nombreCurso({ etapa: claseIa.etapa, curso: claseIa.curso }) : undefined,
       etapa: claseIa?.etapa,
       tema: ia.tema,
+      modalidad: ia.modalidad || undefined,
       minutos: ia.minutos,
       instalacion,
       cubiertas: ef.instalaciones.filter(i => i.cubierta && i.id !== instalacion?.id),
       limitaciones: claseIa ? limitacionesDe(claseIa.id, ia.fecha) : [],
       materias: deEF(materiasIa),
-      banco: ia.banco ? [...ef.actividades, ...bancoEF(lang)] : [],
+      // Con modalidad, del banco solo las suyas: así la sesión aprovecha juegos de la misma lógica
+      banco: ia.banco ? [...ef.actividades, ...bancoEF(lang)].filter(a => !ia.modalidad || a.modalidad === ia.modalidad) : [],
     }, ef, comunidad, lang, { onError: m => toast(t(m)) });
     setPensando(false);
     if (!r) return;
     setIa(null);
     setEditando({
-      id: nuevoIdEF('ses'), ...r, ia: true,
+      id: nuevoIdEF('ses'), ...r, ia: true, ...(ia.modalidad ? { modalidad: ia.modalidad } : {}),
       ...(ia.claseId ? { claseId: ia.claseId } : {}), fecha: ia.fecha, ...(ia.instalacionId ? { instalacionId: ia.instalacionId } : {}),
     });
   }
@@ -159,6 +161,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
             {s.claseId && <span>{nombreClase(s.claseId)}</span>}
             {s.fecha && <span className="ap-hora"><CalendarDays size={12} aria-hidden="true" />{dia(s.fecha)}</span>}
             {s.instalacionId && <span className="ap-hora"><MapPin size={12} aria-hidden="true" />{nombreInst(s.instalacionId)}</span>}
+            {s.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === s.modalidad)!.label)}</span>}
             {s.ia && <span className="sda-chip ef-origen-ia">{t('Con IA')}</span>}
             {lims > 0 && <span className="ef-exento"><Bandage size={11} aria-hidden="true" />{t(lims === 1 ? '{n} con limitación' : '{n} con limitaciones', { n: lims })}</span>}
           </span>
@@ -233,6 +236,13 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
                 onChange={e => setIa({ ...ia, minutos: Math.max(20, Math.min(120, Math.round(Number(e.target.value) || 55))) })} />
             </div>
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
+              <label className="flabel" htmlFor="ef-si-modalidad">{t('Modalidad del juego o deporte')}</label>
+              <select id="ef-si-modalidad" className="finput" value={ia.modalidad} onChange={e => setIa({ ...ia, modalidad: e.target.value as ModalidadEF | '' })}>
+                <option value="">{t('Sin modalidad')}</option>
+                {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
+              </select>
+            </div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <label className="flabel" htmlFor="ef-si-tema">{t('Qué quieres trabajar')}</label>
               <textarea id="ef-si-tema" className="finput" rows={2} value={ia.tema}
                 placeholder={t('Ej: iniciación al voleibol, el toque de dedos; o la tercera sesión de la unidad de orientación')}
@@ -287,6 +297,13 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
                 onChange={e => setEditando({ ...editando, instalacionId: e.target.value || undefined })}>
                 <option value="">{t('Sin indicar')}</option>
                 {ef.instalaciones.map(i => <option key={i.id} value={i.id}>{i.nombre}</option>)}
+              </select>
+            </div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
+              <label className="flabel" htmlFor="ef-s-modalidad">{t('Modalidad del juego o deporte')}</label>
+              <select id="ef-s-modalidad" className="finput" value={editando.modalidad ?? ''} onChange={e => setEditando(e.target.value ? { ...editando, modalidad: e.target.value as ModalidadEF } : (({ modalidad: _m, ...r }) => { void _m; return r; })(editando))}>
+                <option value="">{t('Sin modalidad')}</option>
+                {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
               </select>
             </div>
             {PARTES.map(p => (

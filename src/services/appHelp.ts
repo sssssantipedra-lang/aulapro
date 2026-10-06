@@ -551,7 +551,8 @@ el formulario añade el bloque «Educación Física»: el MODELO PEDAGÓGICO
 (Aprendizaje cooperativo, Educación Deportiva, Enseñanza comprensiva del
 deporte, Responsabilidad personal y social, Educación en el medio natural,
 Juegos motores y educación emocional, Hibridación de modelos, o «Que lo elija
-la IA»), «Con mi material y mis instalaciones» y las medidas para quien tiene
+la IA»), la MODALIDAD del juego o deporte (o que la decida la IA), «Con mi
+material y mis instalaciones» y las medidas para quien tiene
 ahora una limitación (a la IA solo le llega lo que no puede hacer, sin
 nombres). Las sesiones son de EF (calentamiento, parte principal y vuelta a
 la calma), la inclusión sigue el DUA-A y la evaluación es formativa y
@@ -564,7 +565,8 @@ demás y salen también en Documentos.
 Sesiones de EF con calentamiento, parte principal, vuelta a la calma,
 material, «Para que participe todo el grupo (DUA-A)» y plan B. «Preparar con
 IA»: se elige la clase, el día, la instalación, los minutos (salen del
-horario si la clase tiene tramo) y qué se quiere trabajar; la IA usa el
+horario si la clase tiene tramo), la modalidad del juego o deporte (el
+calentamiento será el de esa modalidad) y qué se quiere trabajar; la IA usa el
 currículo de la clase y su comunidad, el material que no está para reponer,
 las instalaciones cubiertas para el plan B y, si se marca, el banco de
 actividades. Si ese día hay exentos o lesionados en la clase, la sesión lleva
@@ -578,11 +580,15 @@ sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
 El banco de actividades: las de partida de AulaPro (juegos motrices, deportes
 con juegos modificados, días de lluvia, medio natural, calentamiento y vuelta
 a la calma, escritas para la app en castellano, catalán e inglés), las tuyas y
-las que guardes de la IA. Se filtran por tipo, por origen y con el buscador.
-Cada una tiene en qué consiste, organización, material, variantes y cómo
-participa todo el grupo (DUA-A). Las del banco no se cambian: «Copiar y
+las que guardes de la IA. Se filtran por tipo, por MODALIDAD (invasión, red y
+pared, lucha, blanco y diana, cooperación, juegos tradicionales y populares,
+medio natural y urbano), por origen y con el buscador. Al elegir una modalidad
+sale su lógica y cómo se prepara (calentamiento, progresión y seguridad).
+Cada una tiene en qué consiste, organización, material, variantes, cómo
+participa todo el grupo (DUA-A) y, si es un juego o deporte, su modalidad. Las del banco no se cambian: «Copiar y
 adaptar» crea una tuya a partir de ella. «Proponer con IA» pide tres
-actividades de un tipo, para una clase y un tema, con tu material y, si se
+actividades de un tipo (y, si se quiere, de una modalidad, con su
+preparación), para una clase y un tema, con tu material y, si se
 marca, con las limitaciones de hoy de esa clase (sin nombres).
 
 [ef-material] MATERIAL E INSTALACIONES

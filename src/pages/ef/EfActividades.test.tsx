@@ -37,6 +37,16 @@ beforeEach(() => { localStorage.clear(); ultimo = demo.ef; callGemini.mockReset(
 afterEach(() => cleanup());
 
 describe('Actividades', () => {
+  it('filtra por modalidad y enseña su lógica y su preparación', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('radio', { name: 'Lucha' }));
+    expect(screen.getByText('Lucha de equilibrio por parejas')).toBeTruthy();
+    expect(screen.getByText('Caídas y la tortuga')).toBeTruthy();
+    expect(screen.queryByText('Bolos con botellas')).toBeNull();
+    expect(screen.getByText(/caídas seguras \(rodar, amortiguar\) antes de cualquier lucha/)).toBeTruthy();
+  });
+
   it('filtra el banco, copia una para adaptarla y guarda las de la IA', async () => {
     const user = userEvent.setup();
     render(<Harness />);

@@ -35,8 +35,9 @@ import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
+import { MODALIDADES_EF } from '../lib/ef';
 import { esAsignaturaEF } from '../services/classMarks';
-import type { SesionEF } from '../types/ef';
+import type { ModalidadEF, SesionEF } from '../types/ef';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
@@ -201,6 +202,7 @@ export function LearningSituations({
   const [areas, setAreas] = useState<string[]>([]);
   /* ── Educación Física ── */
   const [efModelo, setEfModelo] = useState('');
+  const [efModalidad, setEfModalidad] = useState<ModalidadEF | ''>('');
   const [efInventario, setEfInventario] = useState(true);
   const [efLimitaciones, setEfLimitaciones] = useState(true);
 
@@ -402,6 +404,7 @@ export function LearningSituations({
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
       ef: esEF && ef ? {
         modelo: efModelo,
+        modalidad: efModalidad,
         material: efInventario ? ef.material : '',
         instalaciones: efInventario ? ef.instalaciones : '',
         limitaciones: efLimitaciones ? limitacionesClase : [],
@@ -451,7 +454,7 @@ export function LearningSituations({
         opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
         comunidad,
         materiasOficiales: Object.keys(materias).length ? materias : undefined,
-        ...(esEF ? { efModelo } : {}),
+        ...(esEF ? { efModelo, efModalidad } : {}),
       },
       content,
     };
@@ -536,6 +539,7 @@ export function LearningSituations({
     setContextoClase(s.request.contextoClase);
     setMetodologia(s.request.metodologia);
     setEfModelo(s.request.efModelo ?? '');
+    setEfModalidad(s.request.efModalidad ?? '');
     setRubricRows(null);
     setDianaRows(null);
     setFichaContent(null);
@@ -559,7 +563,7 @@ export function LearningSituations({
     setClassId(''); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
     setOpcionMatematicas('A'); setMaterias({}); setPreguntadas([]);
     setNumero('1'); setTemporalizacion(''); setMeses(''); setContextoClase(''); setMetodologia('');
-    setNumSesiones(6); setMoreOpts(false); setEfModelo('');
+    setNumSesiones(6); setMoreOpts(false); setEfModelo(''); setEfModalidad('');
     setFormOpen(true);
   }
 
@@ -578,6 +582,7 @@ export function LearningSituations({
       objetivo: t('Sesión {n} de «{sda}» ({fase}).', { n: i + 1, sda: content.titulo, fase: s.fase }),
       calentamiento: '', principal: s.descripcion, calma: '', material: '',
       inclusion: content.inclusionUniversal, planB: '', ia: true,
+      ...(content.ef?.modalidad ? { modalidad: content.ef.modalidad } : {}),
     }));
     ef.onPasarSesiones(lista);
     toast(t('Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.', { n: lista.length }));
@@ -887,6 +892,11 @@ export function LearningSituations({
             <select id="learningsituations-ef-modelo" className="finput" value={efModelo} onChange={e => setEfModelo(e.target.value)}>
               <option value="">{t('Que lo elija la IA según la idea')}</option>
               {MODELOS_EF.map(m => <option key={m.id} value={m.id}>{t(m.nombre)}</option>)}
+            </select>
+            <label className="sda-ef-lbl" htmlFor="learningsituations-ef-modalidad">{t('Modalidad del juego o deporte')}</label>
+            <select id="learningsituations-ef-modalidad" className="finput" value={efModalidad} onChange={e => setEfModalidad(e.target.value as ModalidadEF | '')}>
+              <option value="">{t('Que la decida la IA según la idea')}</option>
+              {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
             </select>
             {(ef.material || ef.instalaciones) && (
               <label className="td-chk">
@@ -1315,6 +1325,12 @@ export function LearningSituations({
               <div className="sda-text">
                 <div className="sda-text-hd"><h4>{t('Modelo pedagógico')}</h4></div>
                 <p className="sda-p">{content.ef.modelos.map(id => t(modeloEF(id)?.nombre ?? id)).join(' + ')}</p>
+              </div>
+            )}
+            {content.ef?.modalidad && (
+              <div className="sda-text">
+                <div className="sda-text-hd"><h4>{t('Modalidad del juego o deporte')}</h4></div>
+                <p className="sda-p">{t(MODALIDADES_EF.find(m => m.id === content.ef!.modalidad)?.label ?? '')}</p>
               </div>
             )}
             <div className="sda-two">

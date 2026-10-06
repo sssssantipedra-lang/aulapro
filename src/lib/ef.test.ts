@@ -173,3 +173,17 @@ describe('cronómetro de circuitos', () => {
     expect(f.map(x => x.tipo)).toEqual(['preparados', 'trabajo', 'trabajo', 'trabajo']);
   });
 });
+
+describe('modalidades de juegos y deportes', () => {
+  it('se guardan en actividades y sesiones, y una que no existe se descarta', () => {
+    const d = normalizarEF({
+      actividades: [
+        { id: 'a', titulo: 'Rondo', tipo: 'deporte', modalidad: 'invasion' },
+        { id: 'b', titulo: 'Esgrima', tipo: 'deporte', modalidad: 'esgrima' },
+      ],
+      sesiones: [{ id: 's', titulo: 'Voleibol', modalidad: 'red-pared' }],
+    });
+    expect(d.actividades.map(a => a.modalidad)).toEqual(['invasion', undefined]);
+    expect(d.sesiones[0].modalidad).toBe('red-pared');
+  });
+});

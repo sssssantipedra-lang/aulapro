@@ -10,7 +10,7 @@ import { cargarCurriculo } from '../lib/curriculum/cargar';
 import { resolverGrupo } from '../lib/curriculum/index';
 import { buildDemoEF } from '../lib/demoEF';
 import { bancoEF, TAMANO_BANCO } from '../lib/bancoEF';
-import { TIPOS_ACTIVIDAD } from '../lib/ef';
+import { MODALIDADES_EF, TIPOS_ACTIVIDAD } from '../lib/ef';
 import type { MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 
 const callGemini = vi.hoisted(() => vi.fn());
@@ -108,6 +108,19 @@ describe('actividades con IA y banco de partida', () => {
     expect(callGemini.mock.calls[0][1]).toContain('no las repitas');
   });
 
+  it('con una modalidad, la IA recibe su lógica y su preparación, y las actividades la llevan', async () => {
+    callGemini.mockResolvedValue(JSON.stringify({ actividades: [
+      { titulo: 'Sumo de palmas', descripcion: 'Empujar palma con palma.', organizacion: 'Parejas', material: 'Colchonetas', variantes: 'Sentados', inclusion: 'Sentado' },
+    ] }));
+    const r = await proponerActividades({ tipo: 'juego', modalidad: 'lucha', tema: 'equilibrio', limitaciones: [], conInventario: false, yaTiene: [] },
+      demo.ef, undefined, 'es');
+    const [system, user] = callGemini.mock.calls[0];
+    expect(system).toContain('invasión, red y pared, lucha, blanco y diana, cooperación, juegos tradicionales y populares, medio natural y urbano');
+    expect(user).toContain('Modalidad: Lucha');
+    expect(user).toContain('caídas seguras');
+    expect(r?.[0].modalidad).toBe('lucha');
+  });
+
   it('el banco de partida tiene de todos los tipos, en los tres idiomas y con inclusión', () => {
     for (const lang of ['es', 'ca', 'en'] as const) {
       const b = bancoEF(lang);
@@ -121,6 +134,8 @@ describe('actividades con IA y banco de partida', () => {
         }
       }
     }
+    // Cada modalidad tiene al menos dos juegos o deportes en el banco
+    for (const m of MODALIDADES_EF) expect(bancoEF('es').filter(a => a.modalidad === m.id).length, m.id).toBeGreaterThanOrEqual(2);
     // Cada idioma tiene su texto, no una copia del castellano
     expect(bancoEF('ca')[0].descripcion).not.toBe(bancoEF('es')[0].descripcion);
     expect(bancoEF('en')[0].titulo).toBe('Handkerchief by numbers');

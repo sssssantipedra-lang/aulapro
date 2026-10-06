@@ -8,7 +8,7 @@
  * La columna «inclusion» sigue el DUA-A: quien tiene una limitación juega la
  * misma actividad con un cambio de reglas, espacio, material o papel.
  */
-import type { ActividadEF, TipoActividadEF } from '../types/ef';
+import type { ActividadEF, ModalidadEF, TipoActividadEF } from '../types/ef';
 
 type Lang = 'es' | 'ca' | 'en';
 /** Castellano, catalán e inglés. */
@@ -17,6 +17,7 @@ type T3 = readonly [es: string, ca: string, en: string];
 interface EntradaBanco {
   id: string;
   tipo: TipoActividadEF;
+  modalidad?: ModalidadEF;
   titulo: T3;
   descripcion: T3;
   organizacion: T3;
@@ -28,7 +29,7 @@ interface EntradaBanco {
 const BANCO: readonly EntradaBanco[] = [
   /* ── Juegos motrices ── */
   {
-    id: 'banco-panuelo', tipo: 'juego',
+    id: 'banco-panuelo', tipo: 'juego', modalidad: 'tradicionales',
     titulo: ['El pañuelo por números', 'El mocador per números', 'Handkerchief by numbers'],
     descripcion: [
       'Dos equipos frente a frente, con un número para cada jugador. Quien dirige el juego sostiene el pañuelo en el centro y dice un número: los dos jugadores con ese número salen a por él. Gana el punto quien lo lleva a su línea sin que el otro le toque.',
@@ -49,7 +50,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-balon-tiro', tipo: 'juego',
+    id: 'banco-balon-tiro', tipo: 'juego', modalidad: 'tradicionales',
     titulo: ['Balón tiro', 'Pilota presonera', 'Dodgeball with a back zone'],
     descripcion: [
       'Dos campos y, detrás de cada uno, la zona de «eliminados» del otro equipo. Se lanza para dar a un contrario por debajo de la cintura; quien recibe un impacto pasa a la zona de detrás y desde allí sigue lanzando. Si alguien atrapa el balón, vuelve un compañero.',
@@ -70,7 +71,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-cortahilos', tipo: 'juego',
+    id: 'banco-cortahilos', tipo: 'juego', modalidad: 'tradicionales',
     titulo: ['Cortahílos', 'Talla fils', 'Cut the thread'],
     descripcion: [
       'Quien la para persigue a un jugador, que dice en voz alta su nombre. Cualquiera puede cruzar entre los dos y «cortar el hilo»: entonces se persigue a quien ha cruzado. Si atrapa a quien persigue, cambian los papeles.',
@@ -91,7 +92,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-diez-pases', tipo: 'juego',
+    id: 'banco-diez-pases', tipo: 'juego', modalidad: 'invasion',
     titulo: ['Los diez pases', 'Els deu passis', 'Ten passes'],
     descripcion: [
       'Dos equipos. El que tiene el balón intenta dar diez pases seguidos sin que el otro lo intercepte, contándolos en voz alta. No se puede correr con el balón ni devolverlo a quien te lo ha pasado. Diez pases son un punto.',
@@ -113,7 +114,7 @@ const BANCO: readonly EntradaBanco[] = [
   },
   /* ── Deportes (juegos modificados) ── */
   {
-    id: 'banco-voley-atrapa', tipo: 'deporte',
+    id: 'banco-voley-atrapa', tipo: 'deporte', modalidad: 'red-pared',
     titulo: ['Voleibol atrapa y lanza', 'Voleibol agafa i llança', 'Catch-and-throw volleyball'],
     descripcion: [
       'Iniciación al voleibol: se atrapa el balón y se lanza en lugar de golpearlo. Cada equipo hace tres pases antes de pasar la red, y se puntúa si el balón toca el suelo del otro campo. Poco a poco, el tercer pase se convierte en un toque de dedos.',
@@ -134,7 +135,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-basket-todos', tipo: 'deporte',
+    id: 'banco-basket-todos', tipo: 'deporte', modalidad: 'invasion',
     titulo: ['Baloncesto 3 contra 3: todos tocan', 'Bàsquet 3 contra 3: tots toquen', '3 v 3 basketball: everyone touches'],
     descripcion: [
       'Partido a media pista en el que una canasta solo vale si antes han tocado el balón los tres del equipo. Tras canasta o robo, el balón sale de detrás de la línea de tres. Sin contacto: quien defiende, a un brazo de distancia.',
@@ -155,7 +156,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-badminton-coop', tipo: 'deporte',
+    id: 'banco-badminton-coop', tipo: 'deporte', modalidad: 'red-pared',
     titulo: ['Bádminton: de cooperar a competir', 'Bàdminton: de cooperar a competir', 'Badminton: from cooperation to competition'],
     descripcion: [
       'Por parejas, primero se cuentan los golpeos seguidos sin que el volante caiga (cooperación). Después, la misma pareja juega a puntos en un campo pequeño y se busca el hueco libre del otro campo (oposición).',
@@ -176,7 +177,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-ultimate', tipo: 'deporte',
+    id: 'banco-ultimate', tipo: 'deporte', modalidad: 'invasion',
     titulo: ['Ultimate adaptado', 'Ultimate adaptat', 'Adapted ultimate'],
     descripcion: [
       'Dos equipos intentan atrapar el disco dentro de la zona de marca contraria. Quien tiene el disco no se mueve y tiene diez segundos para pasar. Si el disco cae o se intercepta, cambia la posesión. Sin contacto y con autoarbitraje: las faltas las cantan los propios jugadores.',
@@ -219,7 +220,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-aro-cadena', tipo: 'lluvia',
+    id: 'banco-aro-cadena', tipo: 'lluvia', modalidad: 'cooperacion',
     titulo: ['El aro viajero', 'El cèrcol viatger', 'The travelling hoop'],
     descripcion: [
       'En corro y cogidos de las manos, el grupo pasa un aro de uno a otro sin soltarse, pasando el cuerpo por dentro. Se cronometra la vuelta completa y se busca entre todos cómo mejorar el tiempo.',
@@ -261,7 +262,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-bolos', tipo: 'lluvia',
+    id: 'banco-bolos', tipo: 'lluvia', modalidad: 'blanco-diana',
     titulo: ['Bolos con botellas', 'Bitlles amb ampolles', 'Bottle bowling'],
     descripcion: [
       'Diez botellas de plástico con un poco de agua forman los bolos. Por equipos, cada jugador tiene dos lanzamientos rodando una pelota; se suman los bolos derribados. Los propios jugadores anotan y vuelven a colocar los bolos.',
@@ -283,7 +284,7 @@ const BANCO: readonly EntradaBanco[] = [
   },
   /* ── Medio natural ── */
   {
-    id: 'banco-orientacion-centro', tipo: 'natural',
+    id: 'banco-orientacion-centro', tipo: 'natural', modalidad: 'natural-urbano',
     titulo: ['Orientación en el centro', 'Orientació al centre', 'Orienteering around the school'],
     descripcion: [
       'Con un plano del patio y del centro, por parejas, se buscan balizas escondidas en un orden libre. Cada baliza tiene una letra; con todas se forma una palabra. Gana la pareja que la forma bien, no solo la más rápida.',
@@ -304,7 +305,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-rastreo', tipo: 'natural',
+    id: 'banco-rastreo', tipo: 'natural', modalidad: 'natural-urbano',
     titulo: ['Rastreo con señales de pista', 'Rastreig amb senyals de pista', 'Trail-sign tracking'],
     descripcion: [
       'Un equipo marca un recorrido con señales de pista hechas con piedras, palos o tiza (seguir, girar, peligro, mensaje escondido). Diez minutos después, otro equipo lo sigue hasta encontrar el mensaje final.',
@@ -325,7 +326,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-nudos', tipo: 'natural',
+    id: 'banco-nudos', tipo: 'natural', modalidad: 'natural-urbano',
     titulo: ['Nudos básicos por relevos', 'Nusos bàsics per relleus', 'Basic knots relay'],
     descripcion: [
       'Se aprenden tres nudos útiles en la montaña (as de guía, ballestrinque y nudo en ocho) con una ficha de pasos. Después, por relevos: cada jugador hace un nudo, el siguiente lo revisa y lo deshace, y hace el suyo.',
@@ -346,7 +347,7 @@ const BANCO: readonly EntradaBanco[] = [
     ],
   },
   {
-    id: 'banco-foto-orientacion', tipo: 'natural',
+    id: 'banco-foto-orientacion', tipo: 'natural', modalidad: 'natural-urbano',
     titulo: ['Foto-orientación', 'Foto-orientació', 'Photo orienteering'],
     descripcion: [
       'Cada pareja recibe fotos de detalles del centro o del parque (una barandilla, un grafiti, un árbol). Tienen que encontrar cada lugar y anotar el código que hay escondido allí.',
@@ -364,6 +365,133 @@ const BANCO: readonly EntradaBanco[] = [
       'Los lugares están en zonas accesibles. Quien no puede correr decide el orden y la ruta, y el tiempo no puntúa.',
       'Els llocs són en zones accessibles. Qui no pot córrer decideix l\'ordre i la ruta, i el temps no puntua.',
       'The spots are in accessible areas. A student who cannot run decides the order and the route, and time does not score.',
+    ],
+  },
+  /* ── Modalidades que faltaban (decisión del dueño, 6-10-2026) ── */
+  {
+    id: 'banco-sumo-equilibrio', tipo: 'juego', modalidad: 'lucha',
+    titulo: ['Lucha de equilibrio por parejas', 'Lluita d\'equilibri per parelles', 'Pair balance wrestling'],
+    descripcion: [
+      'Por parejas, dentro de un círculo marcado y sobre colchonetas, se empujan solo palma contra palma para hacer que el otro pise fuera o levante un pie. Antes se practican las caídas seguras. Gana el punto quien mantiene el equilibrio; a la señal, todo el mundo para.',
+      'Per parelles, dins d\'un cercle marcat i sobre matalassos, s\'empenyen només palmell contra palmell per fer que l\'altre trepitgi fora o aixequi un peu. Abans es practiquen les caigudes segures. Guanya el punt qui manté l\'equilibri; al senyal, tothom s\'atura.',
+      'In pairs, inside a marked circle and on mats, students push palm against palm only, trying to make the other step out or lift a foot. Safe falls are practised first. The point goes to whoever keeps their balance; at the signal, everyone stops.',
+    ],
+    organizacion: ['Parejas de peso parecido, rotando cada minuto. 10 minutos.', 'Parelles de pes semblant, rotant cada minut. 10 minuts.', 'Pairs of similar weight, rotating every minute. 10 minutes.'],
+    material: ['Colchonetas y cinta o aros para marcar los círculos.', 'Matalassos i cinta o cèrcols per marcar els cercles.', 'Mats and tape or hoops to mark the circles.'],
+    variantes: [
+      'Sentados con las piernas cruzadas; a la pata coja; tirando de una cuerda corta en lugar de empujar.',
+      'Asseguts amb les cames creuades; a peu coix; estirant una corda curta en lloc d\'empènyer.',
+      'Seated cross-legged; on one leg; pulling a short rope instead of pushing.',
+    ],
+    inclusion: [
+      'Quien no puede apoyar una pierna o no debe recibir impactos juega la versión sentada, con la misma puntuación, o hace de árbitro y da la señal.',
+      'Qui no pot recolzar una cama o no ha de rebre impactes juga la versió asseguda, amb la mateixa puntuació, o fa d\'àrbitre i dona el senyal.',
+      'A student who cannot put weight on one leg or must avoid impacts plays the seated version with the same scoring, or referees and gives the signal.',
+    ],
+  },
+  {
+    id: 'banco-caidas-tortuga', tipo: 'juego', modalidad: 'lucha',
+    titulo: ['Caídas y la tortuga', 'Caigudes i la tortuga', 'Falls and the turtle'],
+    descripcion: [
+      'Primero, caídas seguras: rodar de lado, caer hacia atrás amortiguando con los brazos y voltear por encima del hombro. Después, por parejas, uno se pone a cuatro patas como una tortuga y el otro intenta darle la vuelta en 20 segundos, sin agarrar del cuello ni de la ropa.',
+      'Primer, caigudes segures: rodolar de costat, caure enrere esmorteint amb els braços i voltejar per damunt de l\'espatlla. Després, per parelles, un es posa a quatre grapes com una tortuga i l\'altre intenta donar-li la volta en 20 segons, sense agafar del coll ni de la roba.',
+      'First, safe falls: rolling sideways, falling backwards and cushioning with the arms, and rolling over the shoulder. Then, in pairs, one gets on all fours like a turtle and the other tries to turn them over within 20 seconds, without grabbing the neck or clothes.',
+    ],
+    organizacion: ['Por parejas, sobre colchonetas. 12 minutos.', 'Per parelles, sobre matalassos. 12 minuts.', 'In pairs, on mats. 12 minutes.'],
+    material: ['Colchonetas.', 'Matalassos.', 'Mats.'],
+    variantes: [
+      'La tortuga puede moverse; dar la vuelta a la tortuga entre dos; inmovilizar tres segundos al acabar.',
+      'La tortuga es pot moure; donar la volta a la tortuga entre dos; immobilitzar tres segons en acabar.',
+      'The turtle may move; two students try to turn one turtle; hold for three seconds at the end.',
+    ],
+    inclusion: [
+      'Quien no puede hacer esfuerzos intensos o tiene un brazo lesionado cuenta el tiempo y vigila las normas, o hace de tortuga en una versión sin fuerza (resistir solo con el equilibrio).',
+      'Qui no pot fer esforços intensos o té un braç lesionat compta el temps i vigila les normes, o fa de tortuga en una versió sense força (resistir només amb l\'equilibri).',
+      'A student who must avoid intense effort or has an injured arm keeps time and watches the rules, or plays the turtle in a strength-free version (resisting with balance only).',
+    ],
+  },
+  {
+    id: 'banco-diana-saquitos', tipo: 'juego', modalidad: 'blanco-diana',
+    titulo: ['Diana de aros', 'Diana de cèrcols', 'Hoop target'],
+    descripcion: [
+      'Tres aros concéntricos en el suelo forman una diana: el centro vale 3 puntos, el segundo 2 y el de fuera 1. Por equipos, cada jugador lanza tres saquitos desde una línea. Se suma la puntuación del equipo y, en cada ronda, la línea se aleja.',
+      'Tres cèrcols concèntrics a terra formen una diana: el centre val 3 punts, el segon 2 i el de fora 1. Per equips, cada jugador llança tres saquets des d\'una línia. Se suma la puntuació de l\'equip i, a cada ronda, la línia s\'allunya.',
+      'Three concentric hoops on the floor form a target: the centre is worth 3 points, the second 2 and the outer one 1. In teams, each player throws three beanbags from a line. Team scores are added up and the line moves back each round.',
+    ],
+    organizacion: ['Equipos de 4 o 5, una diana por equipo. 12 minutos.', 'Equips de 4 o 5, una diana per equip. 12 minuts.', 'Teams of 4 or 5, one target per team. 12 minutes.'],
+    material: ['Aros de tres tamaños y saquitos.', 'Cèrcols de tres mides i saquets.', 'Hoops in three sizes and beanbags.'],
+    variantes: [
+      'Lanzar con la mano no dominante, de espaldas o rodando; dianas a distintas alturas; puntos solo si se dice antes dónde caerá.',
+      'Llançar amb la mà no dominant, d\'esquena o rodolant; dianes a diferents altures; punts només si es diu abans on caurà.',
+      'Throw with the non-dominant hand, backwards or rolling; targets at different heights; points only if the landing spot is called beforehand.',
+    ],
+    inclusion: [
+      'Se lanza sentado o de pie; quien tiene una limitación lanza desde una línea más cercana o con saquitos más grandes, con la misma puntuación.',
+      'Es llança assegut o dempeus; qui té una limitació llança des d\'una línia més propera o amb saquets més grans, amb la mateixa puntuació.',
+      'Players throw seated or standing; a student with a limitation throws from a closer line or with bigger beanbags, with the same scoring.',
+    ],
+  },
+  {
+    id: 'banco-acrosport', tipo: 'deporte', modalidad: 'cooperacion',
+    titulo: ['Acrosport por tríos', 'Acrosport per trios', 'Acrosport in threes'],
+    descripcion: [
+      'Por tríos, con tarjetas de figuras, se montan figuras de equilibrio con tres papeles: base, ágil y ayudante. Normas: apoyos solo en cadera y hombros, nunca en la columna; se sube y se baja despacio y en orden inverso; la figura se mantiene tres segundos.',
+      'Per trios, amb targetes de figures, es munten figures d\'equilibri amb tres papers: base, àgil i ajudant. Normes: suports només a maluc i espatlles, mai a la columna; es puja i es baixa a poc a poc i en ordre invers; la figura es manté tres segons.',
+      'In threes, using figure cards, students build balance figures with three roles: base, flyer and spotter. Rules: support only on hips and shoulders, never on the spine; climb up and down slowly and in reverse order; hold the figure for three seconds.',
+    ],
+    organizacion: ['Tríos sobre colchonetas, cambiando de papel. 20 minutos.', 'Trios sobre matalassos, canviant de paper. 20 minuts.', 'Groups of three on mats, swapping roles. 20 minutes.'],
+    material: ['Colchonetas y tarjetas de figuras.', 'Matalassos i targetes de figures.', 'Mats and figure cards.'],
+    variantes: [
+      'Enlazar tres figuras con transiciones; montar una coreografía corta con música; inventar una figura y dibujar su tarjeta.',
+      'Enllaçar tres figures amb transicions; muntar una coreografia curta amb música; inventar una figura i dibuixar-ne la targeta.',
+      'Link three figures with transitions; build a short routine to music; invent a figure and draw its card.',
+    ],
+    inclusion: [
+      'Quien no puede cargar peso hace de ayudante o de coordinador de la figura, o forma parte de figuras sin carga (apoyos en el suelo); también puede ser base sentado.',
+      'Qui no pot carregar pes fa d\'ajudant o de coordinador de la figura, o forma part de figures sense càrrega (suports a terra); també pot ser base assegut.',
+      'A student who cannot bear weight acts as spotter or figure coordinator, or joins weight-free figures (floor supports); they can also be a seated base.',
+    ],
+  },
+  {
+    id: 'banco-comba', tipo: 'juego', modalidad: 'tradicionales',
+    titulo: ['La comba con canciones', 'La corda amb cançons', 'Skipping rhymes'],
+    descripcion: [
+      'Dos personas dan a una comba larga mientras el grupo canta una canción de comba tradicional. Por turnos, se entra, se salta al ritmo de la canción y se sale sin tocar la cuerda. Antes, cada uno pregunta en casa qué canciones de comba se cantaban.',
+      'Dues persones donen corda a una corda llarga mentre el grup canta una cançó tradicional de saltar a corda. Per torns, s\'entra, se salta al ritme de la cançó i se surt sense tocar la corda. Abans, cadascú pregunta a casa quines cançons de corda es cantaven.',
+      'Two people turn a long rope while the group sings a traditional skipping rhyme. In turns, students jump in, skip to the rhythm of the song and jump out without touching the rope. Beforehand, everyone asks at home which skipping rhymes were sung.',
+    ],
+    organizacion: ['Grupos de 6 a 8, una comba por grupo. 12 minutos.', 'Grups de 6 a 8, una corda per grup. 12 minuts.', 'Groups of 6 to 8, one rope per group. 12 minutes.'],
+    material: ['Combas largas.', 'Cordes llargues.', 'Long skipping ropes.'],
+    variantes: [
+      'Entrar por parejas; hacer gestos que dice la canción; la «culebrilla», con la cuerda ondulando en el suelo.',
+      'Entrar per parelles; fer els gestos que diu la cançó; la «serp», amb la corda fent ones a terra.',
+      'Jump in pairs; do the actions in the rhyme; the "snake", with the rope wriggling along the floor.',
+    ],
+    inclusion: [
+      'Quien no puede saltar da a la comba, marca el ritmo o canta y dirige; con la «culebrilla» se puede pasar caminando.',
+      'Qui no pot saltar dona corda, marca el ritme o canta i dirigeix; amb la «serp» es pot passar caminant.',
+      'A student who cannot jump turns the rope, keeps the rhythm or leads the singing; with the "snake" they can walk across.',
+    ],
+  },
+  {
+    id: 'banco-ruta-urbana', tipo: 'natural', modalidad: 'natural-urbano',
+    titulo: ['Ruta urbana con plano', 'Ruta urbana amb plànol', 'Town trail with a map'],
+    descripcion: [
+      'Con un plano del barrio, los grupos siguen una ruta a pie con puntos de control en lugares conocidos (una plaza, una fuente, un parque). En cada punto responden una pregunta sobre el lugar. Antes se repasan las normas de seguridad vial; cada grupo va con una persona adulta.',
+      'Amb un plànol del barri, els grups segueixen una ruta a peu amb punts de control en llocs coneguts (una plaça, una font, un parc). A cada punt responen una pregunta sobre el lloc. Abans es repassen les normes de seguretat viària; cada grup va amb una persona adulta.',
+      'With a map of the neighbourhood, groups follow a walking route with checkpoints at known places (a square, a fountain, a park). At each point they answer a question about the place. Road safety rules are reviewed first; each group goes with an adult.',
+    ],
+    organizacion: ['Grupos de 5 o 6 con una persona adulta. Una sesión doble.', 'Grups de 5 o 6 amb una persona adulta. Una sessió doble.', 'Groups of 5 or 6 with an adult. One double session.'],
+    material: ['Planos del barrio, tarjetas de preguntas y petos.', 'Plànols del barri, targetes de preguntes i pitets.', 'Neighbourhood maps, question cards and bibs.'],
+    variantes: [
+      'Ruta en estrella desde la plaza del centro; cada grupo diseña una ruta para otro; medir la distancia con una aplicación y compararla con la del plano.',
+      'Ruta en estrella des de la plaça del centre; cada grup dissenya una ruta per a un altre; mesurar la distància amb una aplicació i comparar-la amb la del plànol.',
+      'A star route from the central square; each group designs a route for another; measure the distance with an app and compare it with the map.',
+    ],
+    inclusion: [
+      'Ruta sin escaleras y con descansos. Quien no puede caminar mucho hace de orientador con el plano o de fotógrafo del grupo, desde los puntos más cercanos.',
+      'Ruta sense escales i amb descansos. Qui no pot caminar gaire fa d\'orientador amb el plànol o de fotògraf del grup, des dels punts més propers.',
+      'A route without stairs and with rests. A student who cannot walk far navigates with the map or is the group photographer, from the nearest checkpoints.',
     ],
   },
   /* ── Calentamiento ── */
@@ -523,7 +651,7 @@ const IDX: Record<Lang, 0 | 1 | 2> = { es: 0, ca: 1, en: 2 };
 export function bancoEF(lang: Lang): ActividadEF[] {
   const i = IDX[lang];
   return BANCO.map(b => ({
-    id: b.id, tipo: b.tipo, origen: 'banco',
+    id: b.id, tipo: b.tipo, origen: 'banco', ...(b.modalidad ? { modalidad: b.modalidad } : {}),
     titulo: b.titulo[i], descripcion: b.descripcion[i], organizacion: b.organizacion[i],
     material: b.material[i], variantes: b.variantes[i], inclusion: b.inclusion[i],
   }));

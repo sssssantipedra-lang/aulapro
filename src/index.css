@@ -1362,6 +1362,10 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-act-ttl { flex:1; min-width:0; font-size:14.5px; font-weight:700; color:var(--text); }
 .ef-act-chips { display:flex; gap:6px; flex-wrap:wrap; }
 .ef-origen-ia { color:var(--accent-d); }
+.ef-modalidad { color:var(--text); background:color-mix(in srgb, var(--accent-d) 14%, var(--card)); }
+.ef-modalidad-info { margin-bottom:12px; display:flex; flex-direction:column; gap:6px; }
+.ef-modalidad-info p { margin:0; font-size:13px; line-height:1.55; color:var(--text-2); }
+.ef-modalidad-info strong { color:var(--text); }
 .ef-origen-propia { color:var(--ok-fg); }
 .ef-act-campos { margin:0; padding:0 14px 6px; display:flex; flex-direction:column; gap:8px; }
 .ef-act-campos dt { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-3); }

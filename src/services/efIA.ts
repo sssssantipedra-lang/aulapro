@@ -14,8 +14,8 @@ import { normativaInclusion } from './apoyoIA';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { citarNormas, normasDe, NORMAS_ESTATALES, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Etapa } from '../lib/curriculum';
-import { recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
-import type { ActividadEF, EfData, InstalacionEF, SesionEF, TipoActividadEF } from '../types/ef';
+import { MODALIDADES_EF, modalidadParaIA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
+import type { ActividadEF, EfData, InstalacionEF, ModalidadEF, SesionEF, TipoActividadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
 type Lang = 'es' | 'en' | 'ca';
@@ -54,6 +54,8 @@ export function marcoEF(comunidad: ComunidadId | undefined, etapa: Etapa | undef
     `\nCurrículo: ${curriculoEF(comunidad, etapa)}` +
     `\nInclusión: ${DUA_A}\nNormativa de inclusión: ${normativaInclusion(comunidad)}` +
     `\nAutores de referencia: ${AUTORES_EF}` +
+    `\nModalidades de juegos y deportes: ${MODALIDADES_EF.map(m => m.label.toLowerCase()).join(', ')}. Cada juego o deporte ` +
+    'se trabaja según la lógica de su modalidad y se prepara como ella pide (calentamiento específico, progresión y seguridad).' +
     '\nBásate en este marco y en estos autores, pero no inventes artículos, citas literales ni datos que no se te den. ' +
     'Propuestas seguras, realistas para un grupo entero, con el material y el espacio que se indican, y adecuadas a la ' +
     'edad. Lenguaje claro y práctico, de docente a docente. Texto llano: sin markdown, sin negritas ni almohadillas.' +
@@ -78,6 +80,8 @@ export interface PeticionActividades {
   conInventario: boolean;
   /** Títulos que ya tiene, para no repetirlos. */
   yaTiene: string[];
+  /** La modalidad del juego o deporte, si se pide una. */
+  modalidad?: ModalidadEF;
 }
 
 /** La IA propone tres actividades para el banco del docente. */
@@ -87,6 +91,7 @@ export async function proponerActividades(
   const recursos = recursosParaIA(d);
   const userPrompt =
     `Tipo de actividad: ${nombreTipo(p.tipo)}\n` +
+    (p.modalidad ? `${modalidadParaIA(p.modalidad)}\nLas tres actividades son de esta modalidad y siguen su preparación.\n` : '') +
     (p.curso ? `Curso: ${p.curso}\n` : '') +
     (p.tema.trim() ? `Qué se quiere trabajar: ${p.tema.trim()}\n` : '') +
     (p.conInventario && recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
@@ -122,7 +127,8 @@ export async function proponerActividades(
   const parsed = parseGeminiJson<{ actividades?: Record<string, unknown>[] }>(raw);
   const lista = (parsed?.actividades ?? [])
     .map(a => ({
-      titulo: texto(a.titulo), tipo: p.tipo, descripcion: texto(a.descripcion), organizacion: texto(a.organizacion),
+      titulo: texto(a.titulo), tipo: p.tipo, ...(p.modalidad ? { modalidad: p.modalidad } : {}),
+      descripcion: texto(a.descripcion), organizacion: texto(a.organizacion),
       material: texto(a.material), variantes: texto(a.variantes), inclusion: texto(a.inclusion), origen: 'ia' as const,
     }))
     .filter(a => a.titulo && a.descripcion);
@@ -144,6 +150,8 @@ export interface PeticionSesion {
   materias: MateriaDeClase[];
   /** Actividades del banco del docente que puede aprovechar, si encajan. */
   banco: Pick<ActividadEF, 'titulo' | 'tipo'>[];
+  /** La modalidad del juego o deporte que se trabaja, si es uno. */
+  modalidad?: ModalidadEF;
 }
 
 export type SesionPropuesta = Omit<SesionEF, 'id' | 'claseId' | 'fecha' | 'instalacionId'> & { criterios: OfficialCriterionRef[] };
@@ -161,6 +169,7 @@ export async function prepararSesion(
   const userPrompt =
     (p.curso ? `Curso: ${p.curso}\n` : '') +
     `Qué se trabaja: ${p.tema.trim()}\n` +
+    (p.modalidad ? `${modalidadParaIA(p.modalidad)}\nEl calentamiento es específico de esta modalidad y la sesión sigue su preparación.\n` : '') +
     `Duración de la sesión: ${p.minutos} minutos\n` +
     (lugar ? `Instalación: ${lugar}\n` : '') +
     (recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
