@@ -29,6 +29,7 @@ import { isDesktop } from '../services/storage';
 import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
+import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { takeFichaPara } from '../lib/apoyoNav';
@@ -81,9 +82,10 @@ const VARIANTES: { id: FichaVariante; emoji: string; desc: string }[] = [
   { id: 'apoyo', emoji: '🤝', desc: 'Más guiada y con números más sencillos.' },
   { id: 'ampliacion', emoji: '🚀', desc: 'Más reto: más pasos y justificar.' },
   { id: 'lectura_facil', emoji: '📖', desc: 'Frases cortas y claras, letra más grande.' },
+  { id: 'visual', emoji: '🖼️', desc: 'Pasos numerados con pictogramas, dibujos y frases cortas.' },
 ];
 
-const VARIANTE_SUFFIX: Record<FichaVariante, string> = { apoyo: 'apoyo', ampliacion: 'ampliación', lectura_facil: 'lectura fácil' };
+const VARIANTE_SUFFIX: Record<FichaVariante, string> = { apoyo: 'apoyo', ampliacion: 'ampliación', lectura_facil: 'lectura fácil', visual: 'visual' };
 
 /** Rejilla de temas para elegir el mundo de la ficha. */
 function ThemeGrid({ value, onChange, withAuto, compact, t }: {
@@ -142,6 +144,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   const [nivel, setNivel] = useState(inicial?.nivel ?? '');
   const [numEjercicios, setNumEjercicios] = useState(6);
   const [niveles, setNiveles] = useState(false);
+  // Con un alumno de apoyo, las instrucciones salen muy visuales (decisión del dueño, 6-10-2026)
+  const [visual, setVisual] = useState(!!inicial);
   const [contextoClase, setContextoClase] = useState(inicial?.contexto ?? '');
   const [estilo, setEstilo] = useState<FichaThemeChoice>('auto');
   const [formato, setFormato] = useState<FichaFormato>('ficha');
@@ -169,7 +173,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     if (cls) setArea(cls.subject);
   }
 
-  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato });
+  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato, visual });
 
   function pickFormato(f: FichaFormato) {
     setFormato(f);
@@ -481,6 +485,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                   <span className="fe-lbl">💡 {t('Antes de empezar')}</span>
                   <textarea className="finput" rows={3} value={content.explicacion ?? ''} onChange={e => edit(c => ({ ...c, explicacion: e.target.value }))} />
                 </label>
+                {content.visual && (
+                  <ConceptosEditor conceptos={content.conceptos ?? []} onChange={conceptos => edit(c => ({ ...c, conceptos }))} t={t} />
+                )}
               </div>
             )}
             <div className={blockCls('instrucciones')} {...selectOn('instrucciones')}>
@@ -547,10 +554,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                       aria-label={t('Narrativa')} onChange={e => patchAct(a, { narrativa: e.target.value })}
                     />
                   )}
+                  {content.visual && <ActividadVisualEditor act={act} onChange={p => patchAct(a, p)} t={t} />}
                   <div className="fe-act-body">
                     {act.ejercicios.map((ex, i) => (
                       <ExerciseEditor
-                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t}
+                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual}
                         selected={selected === `${a}-${i}`} first={i === 0} last={i === act.ejercicios.length - 1}
                         busy={busyEx === `${a}-${i}`} aiDisabled={sinClave || (busyEx !== null && busyEx !== `${a}-${i}`)}
                         onSelect={() => setSelected(`${a}-${i}`)}
@@ -661,6 +669,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                 const x = paraAlumno(e.target.value);
                 setNivel(x?.nivel ?? '');
                 setContextoClase(x?.contexto ?? '');
+                if (x) setVisual(true);
               }}>
                 <option value="">{t('Sin alumno concreto')}</option>
                 {[...apoyo.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
@@ -697,6 +706,17 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
             {t('Se adapta a su nivel, a sus necesidades y a sus objetivos de este trimestre; la IA no recibe su nombre ni su diagnóstico. Lo que se le cuenta está en «Más opciones», y lo puedes cambiar.')}
           </p>
+        )}
+
+        {formato !== 'tarjetas' && (
+          <label className={`fe-visual-opt${visual ? ' on' : ''}`}>
+            <input type="checkbox" checked={visual} onChange={e => setVisual(e.target.checked)} />
+            <span className="fe-visual-ico" aria-hidden="true">🖼️</span>
+            <span className="fe-visual-txt">
+              <strong>{t('Instrucciones muy visuales, con pictogramas')}</strong>
+              <em>{t('Pasos numerados con su pictograma, dibujos para contar y tarjetas en la explicación. Para el alumnado que lo necesita, por ejemplo con TEA.')}</em>
+            </span>
+          </label>
         )}
 
         <div className="fgroup">

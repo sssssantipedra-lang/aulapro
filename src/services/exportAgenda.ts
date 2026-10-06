@@ -5,7 +5,7 @@
  * licencia de Mulberry Symbols si se ha usado alguno. Ver `lib/pictos.ts`.
  */
 import { translate, type Lang } from '../i18n';
-import { ATRIBUCION_MULBERRY, urlPicto } from '../lib/pictos';
+import { ATRIBUCION_MULBERRY, esMulberry, urlPicto } from '../lib/pictos';
 import type { AgendaVisual, FotoApoyo } from '../types/apoyo';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -44,7 +44,8 @@ export async function imagenesDe(agenda: AgendaVisual, fotos: readonly FotoApoyo
 
 export function buildAgendaHtml(agenda: AgendaVisual, imagenes: Record<string, string>, lang: Lang): string {
   const t = (k: string) => translate(lang, k);
-  const conMulberry = agenda.pasos.some(p => p.picto && !p.fotoId);
+  // Los dibujos propios de AulaPro (`ap-`) no piden atribución
+  const conMulberry = agenda.pasos.some(p => p.picto && !p.fotoId && esMulberry(p.picto));
   const tarjetas = agenda.pasos.map((p, i) => {
     const img = imagenes[p.id];
     return `<div class="ag-t"><span class="ag-n">${i + 1}</span>`

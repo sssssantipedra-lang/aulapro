@@ -131,7 +131,36 @@ describe('Recursos — editor de fichas', () => {
     expect(screen.getByRole('menuitem', { name: /Versión de apoyo/ })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /Versión de ampliación/ })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /Lectura fácil/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /Versión visual/ })).toBeTruthy();
     localStorage.removeItem('aulapro_gemini_key');
+  });
+
+  it('una ficha con apoyos visuales edita sus pasos, su «Recuerda» y la consigna de cada ejercicio', async () => {
+    const visual: Ficha = {
+      ...ficha, id: 'fv',
+      content: {
+        ...ficha.content, estilo: 'clasico', historia: undefined, visual: true,
+        conceptos: [{ picto: 'apple', titulo: 'Fracción', texto: 'Una parte de algo.' }],
+        actividades: [{
+          titulo: 'Motor', indicacion: 'Primero, lee. Luego, rodea.',
+          pasos: [{ picto: 'read-book', verbo: 'Lee', detalle: 'cada frase' }],
+          recuerda: [{ texto: 'La mitad es 1/2.' }],
+          ejercicios: [{ tipo: 'abierta', enunciado: 'Explica qué es una fracción.', consigna: 'write', solucion: '—' }],
+        }],
+      },
+    };
+    const onSave = setup(vi.fn(), [visual]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    expect(screen.getByDisplayValue('Primero, lee. Luego, rodea.')).toBeTruthy();
+    expect(screen.getByDisplayValue('Una parte de algo.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Consigna: Escribir' })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Verbo del paso 1'), { target: { value: 'Mira' } });
+    await userEvent.click(screen.getByRole('button', { name: /Añadir paso/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar «Recuerda» 1' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    const act = onSave.mock.calls[0][0].content.actividades[0];
+    expect(act.pasos).toEqual([{ picto: 'read-book', verbo: 'Mira', detalle: 'cada frase' }, { picto: 'write', verbo: '', detalle: '' }]);
+    expect(act.recuerda).toEqual([]);
   });
 
   it('añade un ejercicio con IA al final del bloque', async () => {
@@ -170,8 +199,12 @@ describe('Recursos · ficha adaptada (PT y AL)', () => {
         <Resources classes={[]} fichas={[]} onSave={() => {}} onDelete={() => {}} onNav={() => {}} apoyo={apoyo} />
       </ToastProvider></I18nProvider>,
     );
+    const visual = screen.getByRole('checkbox', { name: /Instrucciones muy visuales/ }) as HTMLInputElement;
+    expect(visual.checked).toBe(false);
     await user.selectOptions(screen.getByLabelText('Adaptada a'), 'a1');
     expect((screen.getByLabelText('Nivel o curso') as HTMLInputElement).value).toBe('2º Primaria');
+    // Para un alumno de apoyo, las instrucciones salen muy visuales (se puede desmarcar)
+    expect(visual.checked).toBe(true);
     const contexto = (screen.getByLabelText('Cómo es el grupo (opcional)') as HTMLTextAreaElement).value;
     expect(contexto).toContain('Aprende mejor con apoyo visual.');
     expect(contexto).not.toContain('Marta');
