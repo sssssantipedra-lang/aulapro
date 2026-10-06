@@ -17,6 +17,16 @@ export function nuevoIdEF(prefijo: string): string {
   return prefijo + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+/**
+ * La edad del alumnado de un curso, la que cumple durante el curso escolar:
+ * 1º de Primaria, 6 a 7 años; 1º de ESO, 12 a 13. Para que la IA adapte una
+ * actividad a la edad.
+ */
+export function edadAproximada(etapa: 'primaria' | 'eso', curso: number): { desde: number; hasta: number } {
+  const desde = (etapa === 'primaria' ? 5 : 11) + curso;
+  return { desde, hasta: desde + 1 };
+}
+
 /** La asignatura de EF de una clase: la que se llame así, o la principal. */
 export function asignaturaEF(c: Pick<Class, 'subjects' | 'subject'>): string {
   return c.subjects.find(esAsignaturaEF) ?? c.subjects[0] ?? c.subject;

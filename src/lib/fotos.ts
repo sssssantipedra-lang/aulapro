@@ -1,8 +1,10 @@
 /**
- * Fotos del propio docente para la agenda visual: se reducen antes de
- * guardarlas, para que el perfil y sus copias no crezcan de golpe. Se quedan
- * en el equipo; no se envían a ninguna parte.
+ * Fotos del propio docente. Las de la agenda visual se reducen antes de
+ * guardarlas, para que el perfil y sus copias no crezcan de golpe, y se quedan
+ * en el equipo. La de «Desde una foto» (EF, Actividades) va a la IA y no se
+ * guarda: ver `fotoParaIA`.
  */
+import type { InlineFile } from '../services/gemini';
 
 /** El lado mayor de la foto guardada, en píxeles: de sobra para una tarjeta impresa. */
 export const LADO_FOTO = 480;
@@ -33,6 +35,18 @@ export async function reducirFoto(file: Blob, lado = LADO_FOTO): Promise<string>
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+/** El lado mayor de la foto que se envía a la IA: de sobra para reconocer una actividad. */
+export const LADO_FOTO_IA = 1280;
+
+/**
+ * La foto para la IA: reducida y vuelta a hacer en JPEG, así que no lleva los
+ * metadatos del original (la ubicación, el móvil con que se hizo, la fecha).
+ */
+export async function fotoParaIA(file: Blob): Promise<InlineFile> {
+  const dataUrl = await reducirFoto(file, LADO_FOTO_IA);
+  return { name: 'foto.jpg', mimeType: 'image/jpeg', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) };
 }
 
 /** El nombre del archivo sin la extensión, como nombre de partida de la foto. */

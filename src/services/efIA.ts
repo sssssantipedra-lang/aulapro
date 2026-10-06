@@ -9,12 +9,12 @@
  * la IA solo le llega lo que no puede hacer, sin nombre y sin el motivo, que
  * es un dato de salud y se queda en el equipo (ver `limitacionesParaIA`).
  */
-import { callGemini, parseGeminiJson } from './gemini';
+import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import { normativaInclusion } from './apoyoIA';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { citarNormas, normasDe, NORMAS_ESTATALES, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Etapa } from '../lib/curriculum';
-import { MODALIDADES_EF, modalidadParaIA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
+import { IDS_MODALIDADES, MODALIDADES_EF, modalidadParaIA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
 import type { ActividadEF, EfData, InstalacionEF, ModalidadEF, SesionEF, TipoActividadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
@@ -136,6 +136,89 @@ export async function proponerActividades(
     .filter(a => a.titulo && a.descripcion);
   if (!lista.length) { callbacks.onError?.('La IA no devolvió actividades. Inténtalo de nuevo.'); return null; }
   return lista;
+}
+
+export interface PeticionFoto {
+  /** «1º ESO»; o el nombre del grupo, si la clase no tiene curso. */
+  curso?: string;
+  etapa?: Etapa;
+  /** «12 a 13 años», si se sabe el curso. */
+  edad?: string;
+  /** Lo que el docente quiere que tenga en cuenta. */
+  nota: string;
+  limitaciones: string[];
+  conInventario: boolean;
+}
+
+export interface ActividadDeFoto {
+  /** Lo que la IA reconoce en la foto, en una frase. */
+  visto: string;
+  /** La actividad redactada; `null` si la foto no muestra ninguna actividad física. */
+  actividad: Omit<ActividadEF, 'id'> | null;
+}
+
+/**
+ * La IA mira una foto de un deporte o de una actividad (o un esquema, o la
+ * página de un libro) y la redacta para la edad del grupo (decisión del dueño,
+ * 6-10-2026). La foto llega reducida y sin sus metadatos (`reducirFoto`) y no se
+ * guarda; a la IA se le pide que no describa a las personas que salgan.
+ */
+export async function actividadDesdeFoto(
+  p: PeticionFoto, foto: InlineFile, d: EfData, comunidad: ComunidadId | undefined, lang: Lang, callbacks: Callbacks = {},
+): Promise<ActividadDeFoto | null> {
+  const recursos = recursosParaIA(d);
+  const userPrompt =
+    'La foto adjunta la ha hecho o elegido el docente. Puede ser un deporte, un juego, un ejercicio o un circuito, un ' +
+    'dibujo o esquema de una actividad, o la página de un libro o de una ficha.\n' +
+    (p.curso ? `Para: ${p.curso}${p.edad ? ` (${p.edad})` : ''}\n` : 'Para: un grupo de Educación Física (curso sin indicar)\n') +
+    (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${p.nota.trim()}\n` : '') +
+    (p.conInventario && recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
+    (p.conInventario && recursos.instalaciones ? `Instalaciones: ${recursos.instalaciones}\n` : '') +
+    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones (una línea por alumno):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
+    '\n"visto": en una frase, qué deporte o actividad física reconoces en la foto, sin describir ni identificar a las ' +
+    'personas que salgan. "esActividad": "si" si la foto muestra o explica una actividad física que se pueda hacer en ' +
+    'clase; si no, "no", y deja vacíos los demás campos. Si es "si", redacta esa actividad para que el docente la haga con ' +
+    'su grupo, adaptada a esa edad (reglas, tamaño del espacio, material, duración y exigencia): "titulo" (corto), ' +
+    '"tipo" y "modalidad" (de sus listas; "ninguna" si no es de ninguna), "descripcion" (en qué consiste y sus reglas, ' +
+    'paso a paso, en 3 a 6 frases), "organizacion" (agrupamiento, espacio, duración aproximada y normas de seguridad ' +
+    'para esa edad), "material", "variantes" (2 o 3 progresiones, de la más fácil a la más difícil, en una o dos ' +
+    'frases) e "inclusion" (cómo participa en la misma actividad quien no puede correr, saltar o hacer esfuerzos ' +
+    'intensos, o quien tenga las limitaciones indicadas, según el DUA-A; 1 a 3 frases). Si la foto es la página de un ' +
+    'libro o de una ficha, no copies su texto: redáctala con tus palabras.';
+  const raw = await callGemini(marcoEF(comunidad, p.etapa, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [foto], callbacks, {
+    responseSchema: {
+      type: 'OBJECT',
+      properties: {
+        visto: { type: 'STRING' },
+        esActividad: { type: 'STRING', enum: ['si', 'no'] },
+        titulo: { type: 'STRING' },
+        tipo: { type: 'STRING', enum: TIPOS_ACTIVIDAD.map(x => x.id) },
+        modalidad: { type: 'STRING', enum: [...IDS_MODALIDADES, 'ninguna'] },
+        descripcion: { type: 'STRING' }, organizacion: { type: 'STRING' }, material: { type: 'STRING' },
+        variantes: { type: 'STRING' }, inclusion: { type: 'STRING' },
+      },
+      required: ['visto', 'esActividad', 'titulo', 'tipo', 'modalidad', 'descripcion', 'organizacion', 'material', 'variantes', 'inclusion'],
+      propertyOrdering: ['visto', 'esActividad', 'titulo', 'tipo', 'modalidad', 'descripcion', 'organizacion', 'material', 'variantes', 'inclusion'],
+    },
+    thinkingLevel: 'medium',
+  });
+  if (!raw) return null;
+  const a = parseGeminiJson<Record<string, unknown>>(raw);
+  if (!a) { callbacks.onError?.('La IA no devolvió la actividad. Inténtalo de nuevo.'); return null; }
+  const visto = texto(a.visto);
+  const titulo = texto(a.titulo);
+  const descripcion = texto(a.descripcion);
+  if (a.esActividad !== 'si' || !titulo || !descripcion) return { visto, actividad: null };
+  const tipo = TIPOS_ACTIVIDAD.find(x => x.id === a.tipo)?.id ?? 'juego';
+  const modalidad = IDS_MODALIDADES.find(m => m === a.modalidad);
+  return {
+    visto,
+    actividad: {
+      titulo, tipo, ...(modalidad ? { modalidad } : {}), descripcion,
+      organizacion: texto(a.organizacion), material: texto(a.material), variantes: texto(a.variantes),
+      inclusion: texto(a.inclusion), origen: 'ia',
+    },
+  };
 }
 
 export interface PeticionSesion {

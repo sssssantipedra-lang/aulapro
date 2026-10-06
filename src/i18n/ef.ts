@@ -397,6 +397,24 @@ export const EF_EN: Record<string, string> = {
 
   /* ── Nombres de ejemplo ── */
   'Profesor': 'Teacher',
+
+  /* ── Actividad desde una foto ── */
+  'Desde una foto': 'From a photo',
+  'Actividad desde una foto': 'Activity from a photo',
+  'Foto de la actividad': 'Photo of the activity',
+  'La foto elegida': 'The chosen photo',
+  'Elige una foto o haz una': 'Choose a photo or take one',
+  'Un deporte, un juego, un circuito, un esquema dibujado o la página de un libro. La IA reconoce la actividad y la redacta para la edad de la clase.': 'A sport, a game, a circuit, a drawn diagram or a page from a book. The AI recognises the activity and writes it up for the age of the class.',
+  'Cambiar la foto': 'Change the photo',
+  '{curso}: de {desde} a {hasta} años': '{curso}: {desde} to {hasta} years old',
+  'Algo que quieras que tenga en cuenta (opcional)': 'Anything you want it to bear in mind (optional)',
+  'Ej: somos 24, en media pista': 'E.g. there are 24 of us, on half a court',
+  'La foto se envía a Google para que la IA la vea, reducida y sin su ubicación, y AulaPro no la guarda. No uses fotos en las que se reconozca a tu alumnado.': 'The photo is sent to Google so the AI can see it, reduced in size and without its location, and AulaPro does not keep it. Do not use photos in which your pupils can be recognised.',
+  'Mirando la foto…': 'Looking at the photo…',
+  'Reconocer y redactar': 'Recognise and write up',
+  'Lo que ve la IA': 'What the AI sees',
+  'En la foto no se ve una actividad física que se pueda hacer en clase. Prueba con otra.': 'The photo does not show a physical activity that can be done in class. Try another one.',
+  'La IA no devolvió la actividad. Inténtalo de nuevo.': 'The AI did not return the activity. Try again.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -794,4 +812,22 @@ export const EF_CA: Record<string, string> = {
 
   /* ── Nombres de ejemplo ── */
   'Profesor': 'Professor',
+
+  /* ── Actividad desde una foto ── */
+  'Desde una foto': 'A partir d\'una foto',
+  'Actividad desde una foto': 'Activitat a partir d\'una foto',
+  'Foto de la actividad': 'Foto de l\'activitat',
+  'La foto elegida': 'La foto triada',
+  'Elige una foto o haz una': 'Tria una foto o fes-ne una',
+  'Un deporte, un juego, un circuito, un esquema dibujado o la página de un libro. La IA reconoce la actividad y la redacta para la edad de la clase.': 'Un esport, un joc, un circuit, un esquema dibuixat o la pàgina d\'un llibre. La IA reconeix l\'activitat i la redacta per a l\'edat de la classe.',
+  'Cambiar la foto': 'Canviar la foto',
+  '{curso}: de {desde} a {hasta} años': '{curso}: de {desde} a {hasta} anys',
+  'Algo que quieras que tenga en cuenta (opcional)': 'Alguna cosa que vulguis que tingui en compte (opcional)',
+  'Ej: somos 24, en media pista': 'Ex.: som 24, a mitja pista',
+  'La foto se envía a Google para que la IA la vea, reducida y sin su ubicación, y AulaPro no la guarda. No uses fotos en las que se reconozca a tu alumnado.': 'La foto s\'envia a Google perquè la IA la vegi, reduïda i sense la seva ubicació, i AulaPro no la desa. No facis servir fotos en què es reconegui el teu alumnat.',
+  'Mirando la foto…': 'Mirant la foto…',
+  'Reconocer y redactar': 'Reconèixer i redactar',
+  'Lo que ve la IA': 'El que veu la IA',
+  'En la foto no se ve una actividad física que se pueda hacer en clase. Prueba con otra.': 'A la foto no es veu una activitat física que es pugui fer a classe. Prova-ho amb una altra.',
+  'La IA no devolvió la actividad. Inténtalo de nuevo.': 'La IA no ha tornat l\'activitat. Torna-ho a provar.',
 };

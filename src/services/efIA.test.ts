@@ -5,7 +5,7 @@
  * (decisión del dueño, 5-10-2026).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { curriculoEF, limitacionesParaIA, marcoEF, prepararSesion, proponerActividades, recursosParaIA } from './efIA';
+import { actividadDesdeFoto, curriculoEF, limitacionesParaIA, marcoEF, prepararSesion, proponerActividades, recursosParaIA } from './efIA';
 import { cargarCurriculo } from '../lib/curriculum/cargar';
 import { resolverGrupo } from '../lib/curriculum/index';
 import { buildDemoEF } from '../lib/demoEF';
@@ -119,6 +119,50 @@ describe('actividades con IA y banco de partida', () => {
     expect(user).toContain('Modalidad: Lucha');
     expect(user).toContain('caídas seguras');
     expect(r?.[0].modalidad).toBe('lucha');
+  });
+
+  it('desde una foto: la manda con el curso, la edad y las limitaciones sin nombres, y la redacta como de la IA', async () => {
+    const foto = { name: 'foto.jpg', mimeType: 'image/jpeg', base64: 'QUJD' };
+    callGemini.mockResolvedValue(JSON.stringify({
+      visto: 'Un partido de voleibol en un pabellón.', esActividad: 'si', titulo: 'Voleibol 2 contra 2', tipo: 'deporte',
+      modalidad: 'red-pared', descripcion: 'Dos parejas, campo pequeño.', organizacion: 'Parejas, 10 minutos.',
+      material: 'Balones blandos', variantes: 'Atrapar y lanzar', inclusion: 'Juega sin saltar.', referencias: 'inventada',
+    }));
+    const lims = limitacionesParaIA(demo.ef, ids('ef-c1'), '2026-10-05');
+    const r = await actividadDesdeFoto({ curso: '1º ESO', etapa: 'eso', edad: '12 a 13 años', nota: 'somos 24', limitaciones: lims, conInventario: true },
+      foto, demo.ef, 'comunitat-valenciana', 'es');
+    const [system, user, files, , opciones] = callGemini.mock.calls[0];
+    expect(files).toEqual([foto]);
+    expect(system).toContain('DUA-A');
+    expect(user).toContain('Para: 1º ESO (12 a 13 años)');
+    expect(user).toContain('somos 24');
+    expect(user).toContain('No puede correr');
+    expect(user).not.toMatch(/Alumno \d|esguince/i);
+    expect(user).toMatch(/sin describir ni identificar a las personas/);
+    expect(user).toMatch(/no copies su texto/);
+    // Listas cerradas, siempre de texto (Gemini no admite otras)
+    const props = opciones.responseSchema.properties;
+    for (const k of ['esActividad', 'tipo', 'modalidad']) expect(props[k].enum.every((v: unknown) => typeof v === 'string')).toBe(true);
+    expect(r).toEqual({
+      visto: 'Un partido de voleibol en un pabellón.',
+      actividad: {
+        titulo: 'Voleibol 2 contra 2', tipo: 'deporte', modalidad: 'red-pared', descripcion: 'Dos parejas, campo pequeño.',
+        organizacion: 'Parejas, 10 minutos.', material: 'Balones blandos', variantes: 'Atrapar y lanzar', inclusion: 'Juega sin saltar.', origen: 'ia',
+      },
+    });
+  });
+
+  it('desde una foto: si no es una actividad física, lo dice y no inventa ninguna', async () => {
+    const foto = { name: 'foto.jpg', mimeType: 'image/jpeg', base64: 'QUJD' };
+    callGemini.mockResolvedValue(JSON.stringify({ visto: 'Una taza de café.', esActividad: 'no', titulo: '', tipo: 'juego', modalidad: 'ninguna', descripcion: '', organizacion: '', material: '', variantes: '', inclusion: '' }));
+    expect(await actividadDesdeFoto({ nota: '', limitaciones: [], conInventario: false }, foto, demo.ef, undefined, 'es'))
+      .toEqual({ visto: 'Una taza de café.', actividad: null });
+    expect(callGemini.mock.calls[0][1]).toContain('curso sin indicar');
+    // Un tipo o una modalidad fuera de la lista no pasan
+    callGemini.mockResolvedValue(JSON.stringify({ visto: 'Un juego.', esActividad: 'si', titulo: 'Pilla pilla', tipo: 'esgrima', modalidad: 'ninguna', descripcion: 'Correr.', organizacion: '', material: '', variantes: '', inclusion: '' }));
+    const r = await actividadDesdeFoto({ nota: '', limitaciones: [], conInventario: false }, foto, demo.ef, undefined, 'es');
+    expect(r?.actividad).toMatchObject({ titulo: 'Pilla pilla', tipo: 'juego' });
+    expect(r?.actividad && 'modalidad' in r.actividad).toBe(false);
   });
 
   it('el banco de partida tiene de todos los tipos, en los tres idiomas y con inclusión', () => {

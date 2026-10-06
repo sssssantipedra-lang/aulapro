@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  EF_VACIO, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, sinClaseEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
+  EF_VACIO, edadAproximada, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, sinClaseEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
   hacerEquipos, parejasJuntas, fasesCircuito, duracionCircuito, PREPARADOS,
 } from './ef';
 import { buildDemoEF } from './demoEF';
@@ -118,6 +118,13 @@ describe('observación en la pista', () => {
     expect(['EF', 'Educació Física', 'educacion fisica', 'Physical Education'].every(esAsignaturaEF)).toBe(true);
     expect(esAsignaturaEF('Física y Química')).toBe(false);
     expect(asignaturaEF({ subject: 'Tutoría', subjects: ['Tutoría', 'Educación Física'] })).toBe('Educación Física');
+  });
+
+  it('la edad de cada curso, para adaptar una actividad', () => {
+    expect(edadAproximada('primaria', 1)).toEqual({ desde: 6, hasta: 7 });
+    expect(edadAproximada('primaria', 6)).toEqual({ desde: 11, hasta: 12 });
+    expect(edadAproximada('eso', 1)).toEqual({ desde: 12, hasta: 13 });
+    expect(edadAproximada('eso', 4)).toEqual({ desde: 15, hasta: 16 });
   });
 });
 
