@@ -35,6 +35,24 @@ const SAVE_DELAY_MS = 700;
 /** Cada cuánto se hace una copia de seguridad automática. */
 const BACKUP_EVERY_MS = 10 * 60 * 1000;
 
+/**
+ * Huella de lo último guardado, para no volver a escribir lo mismo. Antes se
+ * guardaba aquí el texto entero, una segunda copia del curso que no se soltaba
+ * nunca (varios MB con un curso completo); la longitud y el SHA-256 bastan para
+ * saber si ha cambiado algo. Si el navegador no tiene `crypto.subtle`, se queda
+ * el texto, como antes.
+ */
+async function huellaDe(json: string): Promise<string> {
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) return json;
+  try {
+    const digest = new Uint8Array(await subtle.digest('SHA-256', new TextEncoder().encode(json)));
+    return `${json.length}:${Array.from(digest, b => b.toString(16).padStart(2, '0')).join('')}`;
+  } catch {
+    return json;
+  }
+}
+
 /** Todo lo que se guarda de un perfil. */
 interface ProfileSnapshot {
   tasks: Task[];
@@ -264,11 +282,11 @@ export function useAppState() {
     // escritura y no en cada tecla; hacerlo fuera ponía todo el cuaderno en el
     // camino de cada pulsación y se notaba al escribir.
     const timer = setTimeout(async () => {
-      const json = JSON.stringify(snapshot);
-      if (json === lastSavedRef.current) return;
+      const huella = await huellaDe(JSON.stringify(snapshot));
+      if (huella === lastSavedRef.current) return;
       setSaving(true);
       await store.saveData(profileId, snapshot as unknown as store.ProfileData);
-      lastSavedRef.current = json;
+      lastSavedRef.current = huella;
       setSaving(false);
     }, SAVE_DELAY_MS);
     return () => clearTimeout(timer);

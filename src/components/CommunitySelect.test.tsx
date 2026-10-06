@@ -13,8 +13,8 @@ import { CommunityPrompt } from './CommunityPrompt';
 import { I18nProvider } from '../i18n';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 
-vi.mock('../lib/curriculum/cargar', async importOriginal => {
-  const original = await importOriginal<typeof import('../lib/curriculum/cargar')>();
+vi.mock('../lib/curriculum/propios', async importOriginal => {
+  const original = await importOriginal<typeof import('../lib/curriculum/propios')>();
   return {
     ...original,
     etapasConCurriculoPropio: (id: string) =>

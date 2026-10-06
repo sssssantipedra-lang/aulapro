@@ -17,6 +17,15 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad, y en su carpeta `Inclusión`, la normativa y los modelos de inclusión (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
 - Logo oficial: `public/favicon.svg` (con "AULAPRO" debajo) y `public/favicon-mini.svg` (sin texto, para tamaños pequeños). `npm run icons` saca de ahí los iconos de la app. La web usa el pequeño: copia en `web/sitio/assets/icono.svg` y dibujado dentro de cada página (marca de la cabecera). Si cambia el logo, cambia también la web.
 
+## Memoria (revisión del 6-10-2026)
+
+Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
+
+- El currículo estatal (`src/lib/curriculum/index.ts`, unos 650 KB de JSON) se abre con la primera pantalla que lo usa. Lo que se importa al arrancar (bienvenida, perfil, barra lateral) no puede depender de `index.ts` ni de `cargar.ts`: para saber qué etapas tienen decreto propio está `propios.ts`.
+- El manual de la ayuda (`src/services/appHelpManual.ts`) se pide al abrir el panel; PeerJS, al conectar en «Trabajo compartido»; `electron-updater`, solo en el instalador de Windows.
+- Las ventanas emergentes (`.modal-overlay`) llevan el desenfoque solo mientras están abiertas: cerradas siguen montadas, y con él la tarjeta gráfica reservaba unos 30 MB.
+- El guardado automático recuerda una huella SHA-256 de lo guardado, no una copia del curso.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

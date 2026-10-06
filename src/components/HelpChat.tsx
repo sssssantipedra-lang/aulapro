@@ -3,7 +3,7 @@
  * derecha, disponible en todas las pantallas.
  *
  * Responde a «¿cómo hago…?» sobre la propia aplicación, leyendo el manual de
- * `services/appHelp.ts`. NO ve los datos del docente —ni sus clases ni sus
+ * `services/appHelpManual.ts`. NO ve los datos del docente —ni sus clases ni sus
  * notas—: para eso está la pestaña «Consulta IA» del Cuaderno, y a ella manda
  * a quien pregunte por sus alumnos.
  *
@@ -16,11 +16,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircleQuestion, X, Send, Sparkles, ExternalLink, ArrowRight, Trash2 } from 'lucide-react';
 import { callGemini, hasApiKey, setApiKey, type ChatTurn } from '../services/gemini';
-import { helpSystemPrompt, splitJump, targetLabel } from '../services/appHelp';
+import { splitJump, targetLabel } from '../services/appHelp';
 import { RichText } from './ui/RichText';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { requestSettingsPanel } from '../lib/settingsNav';
+
+/**
+ * El manual (unos 60 KB de texto) se pide al abrir el panel, no al abrir la
+ * aplicación: casi nunca se usa. Cuando el docente pregunta ya está cargado.
+ */
+let manual: Promise<typeof import('../services/appHelpManual')> | null = null;
+const cargarManual = () => (manual ??= import('../services/appHelpManual')
+  .catch(err => { manual = null; throw err; }));
 
 interface HelpMessage {
   id: string;
@@ -57,7 +65,7 @@ export function HelpChat({ section, onNav }: Props) {
    */
   function alternar() {
     const abrir = !open;
-    if (abrir) setHasKey(hasApiKey());
+    if (abrir) { setHasKey(hasApiKey()); void cargarManual(); }
     setOpen(abrir);
   }
 
@@ -76,6 +84,7 @@ export function HelpChat({ section, onNav }: Props) {
     setMessages(afterUser);
     setQuestion('');
 
+    const { helpSystemPrompt } = await cargarManual();
     const answer = await callGemini(
       helpSystemPrompt(lang, sectionLabel),
       text,

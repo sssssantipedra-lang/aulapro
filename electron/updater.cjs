@@ -13,9 +13,18 @@ const path = require('path');
 const { Notification } = require('electron');
 
 let autoUpdater = null;
-try {
-  ({ autoUpdater } = require('electron-updater'));
-} catch { /* no instalado en este empaquetado; ver comentario arriba */ }
+
+/**
+ * Se carga al ponerse en marcha y solo donde se usa (el instalador de
+ * Windows): en la versión de Microsoft Store, en Mac y en desarrollo no hace
+ * falta, y son varios MB de memoria del proceso principal que no se gastan.
+ */
+function cargarActualizador() {
+  try {
+    ({ autoUpdater } = require('electron-updater'));
+  } catch { /* no instalado en este empaquetado; ver comentario arriba */ }
+  return autoUpdater;
+}
 
 /* ── Textos del aviso del sistema ──────────────────────────────────────────
  *
@@ -128,13 +137,13 @@ function notify({ title, body, silent, onClick }) {
  * instalador; el cartel de dentro de la aplicación sigue funcionando igual.
  */
 function setup(app, { onStatus, onActivate } = {}) {
-  if (!autoUpdater) return;
   if (process.platform !== 'win32') return;
   // La versión de Microsoft Store la actualiza la propia Store
   if (process.windowsStore) return;
   // Sin `app-update.yml` (solo existe en la app empaquetada) esto fallaría
   // sin aportar nada; en desarrollo simplemente no se comprueba.
   if (!app.isPackaged) return;
+  if (!cargarActualizador()) return;
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
