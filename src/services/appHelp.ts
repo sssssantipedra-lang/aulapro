@@ -496,6 +496,17 @@ MOTIVO es un dato de salud: se queda en el equipo y nunca se envía a la IA; a
 la IA solo le llega lo que no puede hacer, sin nombre. La lista se divide en
 «Ahora», «Más adelante» y los que ya terminaron. Sale en la pista, en el Inicio
 y al hacer equipos.
+Debajo, «Niveles de respuesta II y III» (Decreto 104/2018 de la Comunitat
+Valenciana): el alumnado con medidas de NIVEL II (medidas generales del
+grupo-clase) o de NIVEL III (respuesta diferenciada con apoyos ordinarios
+adicionales) para todo el curso, y lo que necesita en EF (anticipar la sesión,
+instrucciones cortas, apoyos visuales, un compañero de referencia, más tiempo,
+material adaptado, pocos estímulos… u otra escrita a mano). Uno por alumno. La
+IA lo tiene en cuenta en el DUA-A de actividades (también desde una foto),
+sesiones y situaciones de aprendizaje: en el nivel II, medidas para todo el
+grupo; en el nivel III, además, una medida concreta para ese alumno dentro de
+la misma actividad. A la IA le llegan el nivel y lo que necesita, sin nombre ni
+diagnóstico: no escribas el diagnóstico.
 
 [ef-pruebas] PRUEBAS FÍSICAS
 Arriba, la clase y la prueba, por capacidades: resistencia (Course Navette,

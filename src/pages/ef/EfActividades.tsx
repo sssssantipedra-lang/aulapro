@@ -3,8 +3,8 @@
  * docente y las que guarda de la IA (decisión del dueño, 5-10-2026). Tipos:
  * juegos, deportes, días de lluvia, medio natural, calentamiento y vuelta a la
  * calma. Cada actividad dice cómo participa quien tiene una limitación
- * (DUA-A). A la IA solo le llega lo que no puede hacer cada alumno, sin nombre
- * ni motivo. «Desde una foto» (6-10-2026): la IA reconoce el deporte o la
+ * (DUA-A). A la IA solo le llega lo que no puede hacer cada alumno y su nivel
+ * de apoyo (II o III) con lo que necesita, sin nombre, motivo ni diagnóstico. «Desde una foto» (6-10-2026): la IA reconoce el deporte o la
  * actividad de una foto y la redacta para la edad de la clase; la foto va
  * reducida y sin sus metadatos, y no se guarda. Ver `docs/EF.md`.
  */
@@ -16,10 +16,10 @@ import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { isoDate } from '../../lib/utils';
 import { bancoEF } from '../../lib/bancoEF';
-import { edadAproximada, MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
+import { alumnadoParaIA, edadAproximada, MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
 import { fotoParaIA } from '../../lib/fotos';
 import { hasApiKey, type InlineFile } from '../../services/gemini';
-import { actividadDesdeFoto, limitacionesParaIA, proponerActividades } from '../../services/efIA';
+import { actividadDesdeFoto, proponerActividades } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, Student } from '../../types';
 import type { ActividadEF, EfData, ModalidadEF, TipoActividadEF } from '../../types/ef';
@@ -90,7 +90,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   /* ── La IA ── */
   const claseIa = classes.find(c => c.id === ia?.claseId);
   const limitacionesDe = (c: Class | undefined) =>
-    (c ? limitacionesParaIA(ef, students.filter(s => s.class_id === c.id).map(s => s.id), isoDate()) : []);
+    (c ? alumnadoParaIA(ef, students.filter(s => s.class_id === c.id).map(s => s.id), isoDate()) : []);
   const limitacionesHoy = limitacionesDe(claseIa);
   const hayInventario = ef.material.length > 0 || ef.instalaciones.length > 0;
   const cursoDe = (c: Class | undefined) => (c?.etapa && c.curso ? nombreCurso({ etapa: c.etapa, curso: c.curso }) : undefined);
@@ -325,10 +325,10 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             {limitacionesHoy.length > 0 && (
               <label className="td-chk" style={{ gridColumn: '1 / -1' }}>
                 <input type="checkbox" checked={ia.limitaciones} onChange={e => setIa({ ...ia, limitaciones: e.target.checked })} />
-                {t('Que puedan participar quienes hoy tienen una limitación en esta clase ({n})', { n: limitacionesHoy.length })}
+                {t('Que puedan participar quienes tienen hoy una limitación o medidas de nivel II o III en esta clase ({n})', { n: limitacionesHoy.length })}
               </label>
             )}
-            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.')}</p>
+            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('A la IA solo le llega lo que no puede hacer cada alumno y su nivel de apoyo con lo que necesita, sin nombres, motivos ni diagnósticos.')}</p>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={proponer} disabled={pensando}>
                 {pensando ? <span className="spin" /> : <Sparkles size={15} />}{pensando ? t('Preparando…') : t('Proponer tres')}
@@ -383,7 +383,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             {limitacionesFoto.length > 0 && (
               <label className="td-chk" style={{ gridColumn: '1 / -1' }}>
                 <input type="checkbox" checked={foto.limitaciones} onChange={e => setFoto({ ...foto, limitaciones: e.target.checked })} />
-                {t('Que puedan participar quienes hoy tienen una limitación en esta clase ({n})', { n: limitacionesFoto.length })}
+                {t('Que puedan participar quienes tienen hoy una limitación o medidas de nivel II o III en esta clase ({n})', { n: limitacionesFoto.length })}
               </label>
             )}
             <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('La foto se envía a Google para que la IA la vea, reducida y sin su ubicación, y AulaPro no la guarda. No uses fotos en las que se reconozca a tu alumnado.')}</p>

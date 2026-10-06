@@ -29,6 +29,15 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - A la IA solo le llega la limitación, sin nombre, para que proponga medidas de inclusión basadas en el DUA-A. El texto libre («Otra») también le llega: su ejemplo pide escribirla sin el motivo (6-10-2026).
 - Salen en la pista, en el Inicio y al hacer equipos. Los exentos participan en los equipos con su adaptación.
 
+## Niveles de respuesta II y III
+
+- Decisión del dueño (6-10-2026): las medidas DUA-A tienen en cuenta al alumnado con medidas de nivel II o III de respuesta para la inclusión de la Comunitat Valenciana (Decreto 104/2018, art. 14; Orden 20/2019). El dueño eligió estos niveles, y no los grados del DSM-5 ni los suports catalanes, y que a la IA lleguen el nivel y lo que necesita, sin diagnóstico.
+  - Nivel II: medidas generales del grupo-clase, con apoyos ordinarios. Nivel III: respuesta diferenciada, individual o en grupo, con apoyos ordinarios adicionales (refuerzo, adaptaciones de acceso que no impliquen materiales singulares ni personal especializado…). El nivel IV (apoyos especializados) no se marca aquí.
+  - El texto de los niveles sale del artículo 14 tal como lo recogen varias fuentes; el DOGV no se pudo abrir desde la sesión (red bloqueada). Pendiente: cotejarlo con el PDF del Decreto 104/2018 (DOGV del 7 de agosto de 2018, https://dogv.gva.es/datos/2018/08/07/pdf/2018_7822.pdf) y guardarlo en `docs/Normativa Comunitat Valenciana/Inclusión/`.
+- En «Exentos y lesiones», debajo, «Niveles de respuesta II y III» (`EfApoyos`): alumno, nivel y lo que necesita en EF, con una lista (`NECESIDADES_EF`: anticipar la sesión, rutinas, instrucciones cortas, apoyos visuales, señales visuales, un compañero de referencia, más tiempo, material adaptado, ayuda para desplazarse, pocos estímulos, un sitio para calmarse, normas claras) y otra escrita a mano, sin diagnóstico. Uno por alumno, para todo el curso. Los números son los valencianos, pero cada nivel lleva su descripción para que se entienda en cualquier comunidad.
+- La IA: `alumnadoParaIA` une, por alumno y en una línea sin nombre, lo que no puede hacer ese día y su nivel con lo que necesita. Va en «Proponer con IA», «Desde una foto», «Preparar con IA» y la SdA de EF. El marco (`NIVELES_PARA_IA`) dice qué pide cada nivel: en el II, el DUA-A pensado para todo el grupo; en el III, además, una medida concreta para ese alumno, dentro de la misma actividad. La cuenta «con limitación» de la lista de sesiones sigue siendo solo de exentos y lesionados (`limitacionesParaIA`).
+- Se van con el alumno, con su clase y al vaciar el curso. La privacidad lo dice en los tres idiomas.
+
 ## Pruebas físicas
 
 - De partida:
@@ -109,7 +118,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 - Todo va en `ef` del perfil (`src/types/ef.ts`, `src/lib/ef.ts`).
 - Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
-- Al borrar un alumno se va todo lo suyo de EF (`sinAlumnoEF`). Al borrar una clase, lo de todo su alumnado, también el motivo de las lesiones, y sus equipos; sus sesiones se quedan sin clase (`sinClaseEF`, desde el 6-10-2026; antes se quedaba huérfano).
+- Al borrar un alumno se va todo lo suyo de EF, también su nivel de respuesta (`sinAlumnoEF`). Al borrar una clase, lo de todo su alumnado, también el motivo de las lesiones, y sus equipos; sus sesiones se quedan sin clase (`sinClaseEF`, desde el 6-10-2026; antes se quedaba huérfano).
 - Datos de ejemplo: `src/lib/demoEF.ts`, con «Profesor» y «Alumno 1» a «Alumno 24».
 
 ## Lo que falta

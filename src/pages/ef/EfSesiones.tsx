@@ -21,6 +21,7 @@ import { describirCriterio } from '../../lib/curriculum/criteriosParaIA';
 import { esAsignaturaEF } from '../../services/classMarks';
 import { hasApiKey } from '../../services/gemini';
 import { limitacionesParaIA, prepararSesion } from '../../services/efIA';
+import { alumnadoParaIA } from '../../lib/ef';
 import { guardarSesionPdf } from '../../services/exportSesionEF';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, ScheduleBlock, Student } from '../../types';
@@ -87,6 +88,9 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
 
   const limitacionesDe = (claseId: string, fecha: string) =>
     limitacionesParaIA(ef, students.filter(s => s.class_id === claseId).map(s => s.id), fecha);
+  /** Lo que llega a la IA: las limitaciones del día y los niveles II y III, sin nombres. */
+  const alumnadoDe = (claseId: string, fecha: string) =>
+    alumnadoParaIA(ef, students.filter(s => s.class_id === claseId).map(s => s.id), fecha);
 
   const vacia = (): SesionEF => ({
     id: nuevoIdEF('ses'), titulo: '', claseId: classes[0]?.id, fecha: hoy, instalacionId: ef.instalaciones[0]?.id,
@@ -111,7 +115,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
       minutos: ia.minutos,
       instalacion,
       cubiertas: ef.instalaciones.filter(i => i.cubierta && i.id !== instalacion?.id),
-      limitaciones: claseIa ? limitacionesDe(claseIa.id, ia.fecha) : [],
+      limitaciones: claseIa ? alumnadoDe(claseIa.id, ia.fecha) : [],
       materias: deEF(materiasIa),
       // Con modalidad, del banco solo las suyas: así la sesión aprovecha juegos de la misma lógica
       banco: ia.banco ? [...ef.actividades, ...bancoEF(lang)].filter(a => !ia.modalidad || a.modalidad === ia.modalidad) : [],
@@ -171,7 +175,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     );
   };
 
-  const limsIa = ia && claseIa ? limitacionesDe(claseIa.id, ia.fecha) : [];
+  const limsIa = ia && claseIa ? alumnadoDe(claseIa.id, ia.fecha) : [];
 
   return (
     <section className="sec active ap-page">
@@ -253,10 +257,10 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
               {t('Que aproveche actividades de mi banco si encajan')}
             </label>
             <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
-              {limsIa.length === 0 ? t('Ese día no hay nadie exento ni lesionado en esta clase.')
-                : limsIa.length === 1 ? t('Ese día hay un alumno o alumna con alguna limitación en esta clase: la sesión llevará medidas para que participe.')
-                : t('Ese día hay {n} alumnos con alguna limitación en esta clase: la sesión llevará medidas para que participen.', { n: limsIa.length })}
-              {' '}{t('A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.')}
+              {limsIa.length === 0 ? t('Ese día no hay nadie exento, lesionado ni con medidas de nivel II o III en esta clase.')
+                : limsIa.length === 1 ? t('Ese día hay un alumno o alumna con alguna limitación o con medidas de nivel II o III en esta clase: la sesión llevará medidas para que participe.')
+                : t('Ese día hay {n} alumnos con alguna limitación o con medidas de nivel II o III en esta clase: la sesión llevará medidas para que participen.', { n: limsIa.length })}
+              {' '}{t('A la IA solo le llega lo que no puede hacer cada alumno y su nivel de apoyo con lo que necesita, sin nombres, motivos ni diagnósticos.')}
             </p>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={preparar} disabled={pensando}>

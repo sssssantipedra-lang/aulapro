@@ -44,7 +44,7 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('Sesiones', () => {
-  it('la IA prepara la sesión con las limitaciones de hoy, sin nombres, y se guarda tras revisarla', async () => {
+  it('la IA prepara la sesión con las limitaciones de hoy y los niveles II y III, sin nombres, y se guarda tras revisarla', async () => {
     const user = userEvent.setup();
     render(<Harness />);
     expect(screen.getByText('Voleibol: el toque de dedos')).toBeTruthy();
@@ -55,15 +55,18 @@ describe('Sesiones', () => {
       inclusion: 'No puede correr: juega en un campo más estrecho.', planB: 'En el porche, con globos.',
     }));
     await user.click(screen.getByRole('button', { name: /Preparar con IA/ }));
-    // 1º ESO A el lunes 5 de octubre de 2026: 55 minutos en el horario, y un lesionado
+    // 1º ESO A el lunes 5 de octubre de 2026: 55 minutos en el horario, un lesionado y otro con nivel III
     expect((screen.getByLabelText('Minutos') as HTMLInputElement).value).toBe('55');
-    expect(screen.getByText(/Ese día hay un alumno o alumna con alguna limitación/)).toBeTruthy();
+    expect(screen.getByText(/Ese día hay 2 alumnos con alguna limitación o con medidas de nivel II o III/)).toBeTruthy();
     await user.type(screen.getByLabelText('Qué quieres trabajar'), 'el clear de bádminton');
     await user.click(screen.getByRole('button', { name: /Preparar la sesión/ }));
 
     const prompt = callGemini.mock.calls[0][1] as string;
     expect(prompt).toContain('No puede correr, No puede saltar');
-    expect(prompt).not.toMatch(/Alumno 4|esguince/i);
+    expect(prompt).toContain('Nivel III (respuesta diferenciada con apoyos ordinarios adicionales): necesita anticipar la sesión');
+    expect(prompt).not.toMatch(/Alumno \d|esguince/i);
+    // El marco de la IA explica qué pide cada nivel
+    expect(callGemini.mock.calls[0][0]).toContain('en el nivel III, respuesta diferenciada');
     expect(prompt).toContain('Duración de la sesión: 55 minutos');
 
     expect((await screen.findByLabelText('Título') as HTMLInputElement).value).toBe('Bádminton: el clear');

@@ -14,7 +14,7 @@ import { normativaInclusion } from './apoyoIA';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { citarNormas, normasDe, NORMAS_ESTATALES, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Etapa } from '../lib/curriculum';
-import { IDS_MODALIDADES, MODALIDADES_EF, modalidadParaIA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
+import { IDS_MODALIDADES, MODALIDADES_EF, modalidadParaIA, NIVELES_PARA_IA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
 import type { ActividadEF, EfData, InstalacionEF, ModalidadEF, SesionEF, TipoActividadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
@@ -52,7 +52,7 @@ export function marcoEF(comunidad: ComunidadId | undefined, etapa: Etapa | undef
     ? 'You are an expert Physical Education teacher in Spain, with years of experience in schools. '
     : 'Eres un docente experto de Educación Física en España, con años de experiencia en centros educativos. ') +
     `\nCurrículo: ${curriculoEF(comunidad, etapa)}` +
-    `\nInclusión: ${DUA_A}\nNormativa de inclusión: ${normativaInclusion(comunidad)}` +
+    `\nInclusión: ${DUA_A}\n${NIVELES_PARA_IA}\nNormativa de inclusión: ${normativaInclusion(comunidad)}` +
     `\nAutores de referencia: ${AUTORES_EF}` +
     `\nModalidades de juegos y deportes: ${MODALIDADES_EF.map(m => m.label.toLowerCase()).join(', ')}. Cada juego o deporte ` +
     'se trabaja según la lógica de su modalidad y se prepara como ella pide (calentamiento específico, progresión y seguridad).' +
@@ -98,7 +98,7 @@ export async function proponerActividades(
     (p.tema.trim() ? `Qué se quiere trabajar: ${p.tema.trim()}\n` : '') +
     (p.conInventario && recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
     (p.conInventario && recursos.instalaciones ? `Instalaciones: ${recursos.instalaciones}\n` : '') +
-    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones (una línea por alumno):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
+    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
     (p.yaTiene.length ? `Actividades que ya tiene (no las repitas): ${p.yaTiene.slice(0, 40).join('; ')}\n` : '') +
     '\nPropón 3 actividades distintas de este tipo, variadas en su lógica interna (Parlebas). Para cada una: ' +
     '"titulo" (corto), "descripcion" (en qué consiste y sus reglas, 2 a 4 frases), "organizacion" (agrupamiento, ' +
@@ -174,7 +174,7 @@ export async function actividadDesdeFoto(
     (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${p.nota.trim()}\n` : '') +
     (p.conInventario && recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
     (p.conInventario && recursos.instalaciones ? `Instalaciones: ${recursos.instalaciones}\n` : '') +
-    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones (una línea por alumno):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
+    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
     '\n"visto": en una frase, qué deporte o actividad física reconoces en la foto, sin describir ni identificar a las ' +
     'personas que salgan. "esActividad": "si" si la foto muestra o explica una actividad física que se pueda hacer en ' +
     'clase; si no, "no", y deja vacíos los demás campos. Si es "si", redacta esa actividad para que el docente la haga con ' +
@@ -260,16 +260,16 @@ export async function prepararSesion(
     (recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
     (p.cubiertas.length ? `Espacios cubiertos para el plan B: ${p.cubiertas.map(i => i.nombre).join('; ')}\n` : '') +
     (p.limitaciones.length
-      ? `Hoy hay alumnado con estas limitaciones (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n`
-      : 'Hoy no hay nadie exento ni lesionado.\n') +
+      ? `Hoy hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n`
+      : 'Hoy no hay nadie exento ni lesionado ni con medidas de nivel II o III.\n') +
     (p.banco.length ? `Actividades de su banco que puedes usar si encajan: ${p.banco.slice(0, 40).map(a => a.titulo).join('; ')}\n` : '') +
     '\nPrepara la sesión. "titulo": corto. "objetivo": una o dos frases, qué aprenderá el alumnado. ' +
     '"calentamiento", "principal" y "calma": cada actividad en su párrafo, separados por un salto de línea, que ' +
     'empiece por su nombre y los minutos entre paréntesis y diga cómo se organiza y sus reglas; los minutos de las tres ' +
     'partes suman la duración (calentamiento 10 a 15, vuelta a la calma 5 a 10, con la recogida). "material": la lista ' +
-    'de lo que hace falta, solo de lo disponible. "inclusion": para cada limitación de hoy, cómo participa en las mismas ' +
-    'actividades según el DUA-A (una frase por limitación, sin nombres); si no hay ninguna, una medida general de ' +
-    'accesibilidad. "planB": la misma sesión si llueve o la instalación está ocupada, en un espacio cubierto, en 2 a 4 ' +
+    'de lo que hace falta, solo de lo disponible. "inclusion": para cada alumno de la lista, cómo participa en las mismas ' +
+    'actividades según el DUA-A y su nivel (una o dos frases por alumno, sin nombres); si no hay ninguno, una medida ' +
+    'general de accesibilidad. "planB": la misma sesión si llueve o la instalación está ocupada, en un espacio cubierto, en 2 a 4 ' +
     'frases.' +
     (conCriterios
       ? ' En "criterios" elige de 1 a 3 criterios de evaluación oficiales de esta lista cerrada, los que la sesión ' +

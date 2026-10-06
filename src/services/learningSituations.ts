@@ -33,7 +33,7 @@ import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { IDS_MODELOS_EF, modeloEF, modelosParaIA, referenciasDeModelos } from '../lib/modelosEF';
-import { IDS_MODALIDADES, MODALIDADES_EF } from '../lib/ef';
+import { IDS_MODALIDADES, MODALIDADES_EF, NIVELES_PARA_IA } from '../lib/ef';
 import type { ModalidadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
@@ -235,7 +235,7 @@ function instruccionesEF(ef: SdaPeticionEF): string {
     `coreografía, un juego inventado y enseñado a otro grupo).\n` +
     `- Inclusión según el DUA-A (Diseño Universal para el Aprendizaje y la Accesibilidad): quien tiene una limitación ` +
     `participa en las mismas tareas con cambios de reglas, espacio, material, tiempo o papel; una tarea aparte es el ` +
-    `último recurso.\n` +
+    `último recurso. ${NIVELES_PARA_IA}\n` +
     `- Evaluación formativa y compartida (López-Pastor y Pérez-Pueyo): autoevaluación, coevaluación y evaluación ` +
     `compartida, con instrumentos concretos (rúbricas, listas de control, escalas, cuaderno del alumnado).\n` +
     `- No cites autores, estudios ni referencias que no aparezcan en estas instrucciones, y no inventes ninguna: ` +
@@ -249,8 +249,8 @@ function datosEF(ef: SdaPeticionEF): string {
     (ef.material ? `Material disponible: ${ef.material}\n` : '') +
     (ef.instalaciones ? `Instalaciones: ${ef.instalaciones}\n` : '') +
     (ef.limitaciones.length
-      ? `Alumnado con alguna limitación ahora (una línea por alumno, sin nombres): en "inclusionIndividualizada", una ` +
-        `medida para cada una:\n${ef.limitaciones.map(l => `- ${l}`).join('\n')}\n`
+      ? `Alumnado con alguna limitación ahora o con medidas de nivel II o III (una línea por alumno, sin nombres): en ` +
+        `"inclusionIndividualizada", una medida para cada uno, según su nivel:\n${ef.limitaciones.map(l => `- ${l}`).join('\n')}\n`
       : '')
   );
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  EF_VACIO, edadAproximada, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, sinClaseEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
+  alumnadoParaIA, EF_VACIO, edadAproximada, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, sinClaseEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
   hacerEquipos, parejasJuntas, fasesCircuito, duracionCircuito, PREPARADOS,
 } from './ef';
 import { buildDemoEF } from './demoEF';
@@ -118,6 +118,35 @@ describe('observación en la pista', () => {
     expect(['EF', 'Educació Física', 'educacion fisica', 'Physical Education'].every(esAsignaturaEF)).toBe(true);
     expect(esAsignaturaEF('Física y Química')).toBe(false);
     expect(asignaturaEF({ subject: 'Tutoría', subjects: ['Tutoría', 'Educación Física'] })).toBe('Educación Física');
+  });
+
+  it('niveles II y III: a la IA llegan el nivel y lo que necesita, junto a la limitación del día, sin nombres', () => {
+    const d = buildDemoEF(new Date(2026, 9, 5));
+    const ids = d.students.filter(s => s.class_id === 'ef-c1').map(s => s.id);
+    const lineas = alumnadoParaIA(d.ef, ids, '2026-10-05');
+    expect(lineas).toEqual([
+      'No puede correr, No puede saltar',
+      'Nivel III (respuesta diferenciada con apoyos ordinarios adicionales): necesita anticipar la sesión, con imágenes o antes de empezar; instrucciones cortas, de una en una; un compañero o compañera de referencia; pocos estímulos: menos ruido y un espacio acotado',
+    ]);
+    expect(lineas.join(' ')).not.toMatch(/Alumno|esguince/i);
+    // Si el mismo alumno está lesionado y tiene nivel, va en una sola línea
+    const ambos = { ...d.ef, apoyos: [{ id: 'a', alumnoId: 'ef-s03', nivel: 2 as const, necesidades: ['senales' as const], otra: 'le cuesta esperar su turno' }] };
+    expect(alumnadoParaIA(ambos, ids, '2026-10-05')).toEqual([
+      'No puede correr, No puede saltar · Nivel II (medidas generales del grupo-clase): necesita señales visuales, además del silbato; le cuesta esperar su turno',
+    ]);
+  });
+
+  it('niveles II y III: se cargan con cuidado, uno por alumno, y se van con el alumno y con el curso', () => {
+    const n = normalizarEF({ apoyos: [
+      { id: 'a', alumnoId: 's1', nivel: 3, necesidades: ['anticipar', 'inventada'], otra: 'x' },
+      { id: 'b', alumnoId: 's1', nivel: 2, necesidades: [], otra: '' },
+      { id: 'c', alumnoId: 's2', nivel: 4, necesidades: [], otra: '' },
+      { id: 'd', alumnoId: 's3', nivel: '3', necesidades: [], otra: '' },
+    ] });
+    expect(n.apoyos).toEqual([{ id: 'a', alumnoId: 's1', nivel: 3, necesidades: ['anticipar'], otra: 'x' }]);
+    expect(normalizarEF({}).apoyos).toEqual([]);
+    expect(sinAlumnoEF(n, 's1').apoyos).toEqual([]);
+    expect(efParaOtroCurso(n).apoyos).toEqual([]);
   });
 
   it('la edad de cada curso, para adaptar una actividad', () => {
