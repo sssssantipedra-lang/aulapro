@@ -202,7 +202,6 @@ export interface SdaRequest {
   /** Cómo es el grupo: ritmos, apoyos, lo que convenga tener en cuenta. */
   contextoClase: string;
   metodologia: string;
-  docente: string;
   /** Resúmenes de los documentos que haya subido (normativa, programación…). */
   documentos: { nombre: string; resumen: string }[];
   /** Solo si es una SdA de Educación Física. */
@@ -371,7 +370,7 @@ const SDA_SCHEMA = {
     ods: S('Objetivos de Desarrollo Sostenible relacionados'),
     objetivosEtapa: S('Objetivos de etapa que se trabajan'),
     competenciasClave: S('Competencias clave LOMLOE implicadas, con su abreviatura'),
-    explicacionCurricular: S('Lista enumerada que justifica al docente cada elección curricular'),
+    explicacionCurricular: S('Lista enumerada que justifica al docente cada elección curricular, un punto por línea'),
     areas: { type: 'ARRAY', items: SDA_AREA_SCHEMA },
     inclusionUniversal: S('Medidas para todo el grupo (DUA)'),
     inclusionAdicional: S('Medidas para quien necesite apoyo puntual'),
@@ -606,7 +605,7 @@ export async function generateSda(
   const systemPrompt =
     `Eres un experto en educación y en la legislación educativa LOMLOE, y evalúas con el rigor ` +
     `de un tribunal de oposición. Tu tarea exclusiva es redactar los apartados de una situación ` +
-    `de aprendizaje para el grupo de ${req.docente || 'este docente'}.\n` +
+    `de aprendizaje para un grupo concreto de alumnado.\n` +
     `CONTEXTO: apóyate en los resúmenes de los documentos aportados y en las características del grupo.\n` +
     `CANTIDAD: selecciona como máximo de 2 a 4 competencias específicas y de 2 a 4 saberes básicos ` +
     `POR ÁREA. Lo que se trabaja debe desarrollarse con profundidad; una lista larga y superficial ` +
@@ -619,7 +618,7 @@ export async function generateSda(
     `por el texto oficial de lo que elijas. Para las áreas SIN esa lista, sigue como siempre, ` +
     `redactando esos dos campos en texto libre.\n` +
     `EXPLICACIÓN CURRICULAR: el campo "explicacionCurricular" se dirige EXCLUSIVAMENTE AL DOCENTE ` +
-    `y debe ser una lista enumerada que justifique cada elemento elegido.\n` +
+    `y debe ser una lista enumerada que justifique cada elemento elegido, un punto por línea.\n` +
     `SESIONES: crea EXACTAMENTE ${req.numSesiones} sesiones en "sesiones", ni una más ni una menos. ` +
     `Deben aparecer al menos las fases Activación, Desarrollo, Consolidación y Producto final. ` +
     `Cada "descripcion" desarrolla la sesión de principio a fin —qué hace el docente, qué hace el ` +
@@ -639,7 +638,6 @@ export async function generateSda(
     .join('');
 
   const userPrompt =
-    `Docente: ${req.docente}\n` +
     `Nivel: ${req.nivel}\n` +
     `Características del grupo: ${req.contextoClase || '(sin indicar)'}\n` +
     `Metodología habitual: ${req.metodologia || '(sin indicar)'}\n\n` +
@@ -679,7 +677,7 @@ export async function generateSda(
   // inventada, por ejemplo) no llega a la SdA. Los de texto, siempre texto.
   const textos = Object.fromEntries(
     SDA_FIELDS.filter(k => k !== 'areas' && k !== 'sesiones')
-      .map(k => [k, typeof parsed[k] === 'string' ? parsed[k] : '']),
+      .map(k => [k, typeof parsed[k] === 'string' ? listaEnLineas(parsed[k]) : '']),
   ) as Omit<SdaContent, 'areas' | 'sesiones' | 'normativa' | 'ef'>;
   return {
     ...textos,
@@ -688,6 +686,17 @@ export async function generateSda(
     normativa,
     ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva) } : {}),
   };
+}
+
+/**
+ * «1. … 2. … 3. …» o «- … - …» en un solo párrafo, como a veces devuelve la IA
+ * una lista aunque se le pida un punto por línea: cada número o guion que
+ * empieza tras un punto, un punto y coma o dos puntos pasa a su línea. Si el
+ * texto ya trae saltos de línea, no se toca.
+ */
+export function listaEnLineas(texto: string): string {
+  if (texto.includes('\n')) return texto;
+  return texto.replace(/([.;:])\s+(?=(\d{1,2}\.|[-•])\s)/g, '$1\n');
 }
 
 /**

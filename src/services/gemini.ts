@@ -284,8 +284,13 @@ async function callModel(
     maxOutputTokens: options.maxOutputTokens ?? DEFAULT_MAX_TOKENS,
   };
   if (options.temperature !== undefined) generationConfig.temperature = options.temperature;
+  // Dentro de `thinkingConfig`: suelto en `generationConfig`, la API responde
+  // 400 «Unknown name thinkingLevel» (comprobado el 6-10-2026 con 3.8 Flash y
+  // 3.5 Flash-Lite) y cada llamada acababa en el reintento sin razonamiento.
+  // `minimal` solo lo aceptan los Flash-Lite; a los demás se les pide `low`.
   if (!omitirRazonamiento && supportsThinkingLevel(model)) {
-    generationConfig.thinkingLevel = options.thinkingLevel ?? DEFAULT_THINKING;
+    const nivel = options.thinkingLevel ?? DEFAULT_THINKING;
+    generationConfig.thinkingConfig = { thinkingLevel: nivel === 'minimal' && !/lite/.test(model) ? 'low' : nivel };
   }
   if (options.responseSchema) {
     generationConfig.responseMimeType = 'application/json';

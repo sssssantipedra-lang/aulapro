@@ -20,7 +20,7 @@ const PETICION: SdaRequest = {
   numero: '2', temporalizacion: '2ª evaluación', meses: 'Enero y febrero',
   areas: ['Educación Física'], numSesiones: 8, nivel: '1º ESO',
   etapa: 'eso', curso: 1, comunidad: 'comunitat-valenciana',
-  contextoClase: '', metodologia: '', docente: 'Profesor', documentos: [],
+  contextoClase: '', metodologia: '', documentos: [],
   ef: {
     modelo: '',
     material: 'Balones de voleibol (14); Conos (40)',

@@ -562,7 +562,6 @@ function AppInner() {
                 classes={st.classes}
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}
-                teacherName={st.currentUser?.full_name ?? ''}
                 comunidad={st.currentUser?.community}
                 onUpdateClass={st.updateClass}
                 onSave={s => { st.saveLearningSituation(s); }}

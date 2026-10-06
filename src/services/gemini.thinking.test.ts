@@ -1,7 +1,8 @@
 /**
- * El nivel de razonamiento se manda dentro de `generationConfig`, y un campo
- * mal escrito no da error: la API lo ignora y el ajuste no hace nada, en
- * silencio. Por eso aquí se inspecciona el cuerpo real de la petición.
+ * El nivel de razonamiento se manda en `generationConfig.thinkingConfig`. Mal
+ * colocado (por ejemplo, suelto en `generationConfig`), la API responde 400 y
+ * la llamada acaba en el reintento sin razonamiento: funciona, pero tarda el
+ * doble y no razona. Por eso aquí se inspecciona el cuerpo real de la petición.
  *
  * Lo otro que se vigila es que NO se mande a los modelos 2.x del respaldo:
  * no lo entienden, y un 400 corta la cascada entera dejando la aplicación sin
@@ -45,21 +46,31 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const config = (i = 0) => enviados[i].body.generationConfig as unknown as Record<string, unknown>;
+const nivel = (i = 0) => (config(i).thinkingConfig as { thinkingLevel?: string } | undefined)?.thinkingLevel;
 
 describe('nivel de razonamiento', () => {
   it('por defecto va en low, no en el minimal de fábrica de Flash-Lite', async () => {
     await callGemini('sistema', 'pregunta');
-    expect(config().thinkingLevel).toBe('low');
+    expect(nivel()).toBe('low');
   });
 
   it('respeta el high que piden informes, rúbricas y dianas', async () => {
     await callGemini('sistema', 'pregunta', [], {}, { thinkingLevel: 'high' });
-    expect(config().thinkingLevel).toBe('high');
+    expect(nivel()).toBe('high');
   });
 
-  it('viaja dentro de generationConfig, junto al resto de ajustes', async () => {
+  it('viaja en generationConfig.thinkingConfig, junto al resto de ajustes, y nunca suelto', async () => {
     await callGemini('sistema', 'pregunta', [], {}, { thinkingLevel: 'high', maxOutputTokens: 999 });
-    expect(config()).toMatchObject({ thinkingLevel: 'high', maxOutputTokens: 999 });
+    expect(config()).toMatchObject({ thinkingConfig: { thinkingLevel: 'high' }, maxOutputTokens: 999 });
+    expect('thinkingLevel' in config()).toBe(false);
+  });
+
+  it('minimal solo va a los Flash-Lite: al modelo principal se le pide low', async () => {
+    responder = model => (model.includes('lite') ? { ok: false, status: 429, message: 'quota' } : { ok: true });
+    await callGemini('sistema', 'pregunta', [], {}, { thinkingLevel: 'minimal' });
+    const porModelo = Object.fromEntries(enviados.map((e, i) => [e.model, nivel(i)]));
+    expect(porModelo['gemini-3.5-flash-lite']).toBe('minimal');
+    expect(porModelo['gemini-3.8-flash']).toBe('low');
   });
 
   it('NO se manda a los modelos 2.x, que no lo entienden', async () => {
@@ -71,7 +82,7 @@ describe('nivel de razonamiento', () => {
     await callGemini('sistema', 'pregunta', [], {}, { thinkingLevel: 'high' });
 
     const porModelo = Object.fromEntries(
-      enviados.map(e => [e.model, 'thinkingLevel' in (e.body.generationConfig as object)]),
+      enviados.map(e => [e.model, 'thinkingConfig' in (e.body.generationConfig as object)]),
     );
     expect(porModelo['gemini-3.5-flash-lite']).toBe(true);
     expect(porModelo['gemini-2.5-flash']).toBe(false);
@@ -87,8 +98,8 @@ describe('nivel de razonamiento', () => {
     const texto = await callGemini('sistema', 'pregunta', [], {}, { thinkingLevel: 'high' });
 
     expect(texto).toBe('listo');
-    expect('thinkingLevel' in (enviados[0].body.generationConfig as object)).toBe(true);
-    expect('thinkingLevel' in (enviados[1].body.generationConfig as object)).toBe(false);
+    expect('thinkingConfig' in (enviados[0].body.generationConfig as object)).toBe(true);
+    expect('thinkingConfig' in (enviados[1].body.generationConfig as object)).toBe(false);
   });
 
   it('un 400 que no sea del razonamiento sigue cortando la cascada', async () => {

@@ -48,7 +48,7 @@ function setup(list: LearningSituation[]) {
     <I18nProvider>
       <ToastProvider>
         <LearningSituations
-          classes={[]} gradeCategories={[]} learningSituations={list} teacherName="Ana"
+          classes={[]} gradeCategories={[]} learningSituations={list}
           onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
         />
       </ToastProvider>
@@ -113,7 +113,7 @@ describe('currículo de la comunidad en el formulario', () => {
       <I18nProvider>
         <ToastProvider>
           <LearningSituations
-            classes={classes} gradeCategories={[]} learningSituations={[]} teacherName="Ana" comunidad={comunidad}
+            classes={classes} gradeCategories={[]} learningSituations={[]} comunidad={comunidad}
             onUpdateClass={onUpdateClass} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}}
             onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
           />

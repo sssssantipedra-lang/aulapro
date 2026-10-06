@@ -30,7 +30,6 @@ const BASE: SdaRequest = {
   nivel: '5º de Primaria',
   contextoClase: '',
   metodologia: '',
-  docente: 'Ana',
   documentos: [],
 };
 

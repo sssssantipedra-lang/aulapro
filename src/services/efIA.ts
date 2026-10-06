@@ -58,7 +58,9 @@ export function marcoEF(comunidad: ComunidadId | undefined, etapa: Etapa | undef
     'se trabaja según la lógica de su modalidad y se prepara como ella pide (calentamiento específico, progresión y seguridad).' +
     '\nBásate en este marco y en estos autores, pero no inventes artículos, citas literales ni datos que no se te den. ' +
     'Propuestas seguras, realistas para un grupo entero, con el material y el espacio que se indican, y adecuadas a la ' +
-    'edad. Lenguaje claro y práctico, de docente a docente. Texto llano: sin markdown, sin negritas ni almohadillas.' +
+    'edad. Lenguaje claro y práctico, de docente a docente. Sin formato (sin markdown, negritas ni almohadillas), ' +
+    // «Texto llano», a secas, hacía que Flash-Lite escribiera sin tildes ni eñes (prueba real del 6-10-2026).
+    'pero con la ortografía completa: tildes, eñes, diéresis y signos de apertura.' +
     (lang === 'en' ? '\nWrite every human-readable text in English.' : '');
 }
 

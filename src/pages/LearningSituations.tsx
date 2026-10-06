@@ -45,7 +45,6 @@ interface Props {
   classes: Class[];
   gradeCategories: GradeCategory[];
   learningSituations: LearningSituation[];
-  teacherName: string;
   /** Comunidad del perfil: de ella sale el currículo oficial. */
   comunidad?: ComunidadId;
   /** Para recordar en la clase la etapa, el curso y las materias que se decidan aquí. */
@@ -172,7 +171,7 @@ function conCriteriosOficiales(sda: SdaContent, marcados: string[] | undefined):
 }
 
 export function LearningSituations({
-  classes, gradeCategories, learningSituations, teacherName, comunidad, onUpdateClass,
+  classes, gradeCategories, learningSituations, comunidad, onUpdateClass,
   onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef,
 }: Props) {
   const { toast } = useToast();
@@ -400,7 +399,6 @@ export function LearningSituations({
       comunidad,
       materiasOficiales: materias,
       contextoClase, metodologia,
-      docente: teacherName,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
       ef: esEF && ef ? {
         modelo: efModelo,
@@ -1197,9 +1195,11 @@ export function LearningSituations({
               {t('SdA {n}', { n: numero || '1' })}{activeClass ? ` · ${activeClass.name}` : ''}{nivel ? ` · ${nivel}` : ''}
               {!editingId && <span className="sda-unsaved">{t('Sin guardar')}</span>}
             </span>
-            <input
-              className="sda-title-input" value={content.titulo ?? ''}
-              onChange={e => patch('titulo', e.target.value)} aria-label={t('Título')}
+            {/* Un cuadro de una línea que crece: los títulos de la IA suelen ser largos y una caja de una sola línea los cortaba */}
+            <textarea
+              className="sda-title-input" rows={1} value={content.titulo ?? ''}
+              onChange={e => patch('titulo', e.target.value.replace(/\n/g, ' '))} aria-label={t('Título')}
+              onKeyDown={e => { if (e.key === 'Enter') e.preventDefault(); }}
             />
             <div className="sda-facts">
               <span><CalendarRange size={13} />{t('{n} sesiones', { n: content.sesiones.length })}{temporalizacion ? ` · ${temporalizacion}` : ''}{meses ? ` (${meses})` : ''}</span>

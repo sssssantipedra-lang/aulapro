@@ -53,6 +53,12 @@ function datos(): TeacherData {
 }
 
 describe('buildTeacherContext', () => {
+  it('no lleva el nombre del docente, que no hace falta para responder', () => {
+    const ctx = buildTeacherContext(datos());
+    expect(ctx).not.toContain('Ana García');
+    expect(ctx).toContain('Centro: IES Ejemplo');
+  });
+
   it('incluye la media ponderada real de cada alumno', () => {
     const ctx = buildTeacherContext(datos());
     // Carmen: 4×60% + 7×40% = 5,2 · Elena: 9×60% + 10×40% = 9,4
