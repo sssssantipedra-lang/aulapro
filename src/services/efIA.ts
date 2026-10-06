@@ -14,7 +14,7 @@ import { normativaInclusion } from './apoyoIA';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { citarNormas, normasDe, NORMAS_ESTATALES, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Etapa } from '../lib/curriculum';
-import { exentosDelDia, LIMITACIONES, TIPOS_ACTIVIDAD } from '../lib/ef';
+import { recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
 import type { ActividadEF, EfData, InstalacionEF, SesionEF, TipoActividadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
@@ -60,26 +60,7 @@ export function marcoEF(comunidad: ComunidadId | undefined, etapa: Etapa | undef
     (lang === 'en' ? '\nWrite every human-readable text in English.' : '');
 }
 
-/**
- * Lo que la IA sabe de quien está exento o lesionado ese día en esa clase:
- * solo qué no puede hacer, una línea por alumno, sin nombre ni motivo.
- */
-export function limitacionesParaIA(d: EfData, alumnosDeLaClase: string[], fecha: string): string[] {
-  const ids = new Set(alumnosDeLaClase);
-  return exentosDelDia(d, fecha)
-    .filter(e => ids.has(e.alumnoId))
-    .map(e => e.limitaciones.map(l => LIMITACIONES.find(x => x.id === l)!.label).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', '))
-    .filter(Boolean);
-}
-
-/** El material que hay (sin lo que está para reponer) y las instalaciones, para el prompt. */
-export function recursosParaIA(d: EfData): { material: string; instalaciones: string } {
-  return {
-    material: d.material.filter(m => m.estado !== 'reponer' && m.cantidad > 0)
-      .map(m => `${m.nombre} (${m.cantidad}${m.estado === 'regular' ? ', en estado regular' : ''})`).join('; '),
-    instalaciones: d.instalaciones.map(i => `${i.nombre} (${i.cubierta ? 'cubierta' : 'al aire libre'}${i.notas.trim() ? `; ${i.notas.trim()}` : ''})`).join('; '),
-  };
-}
+export { limitacionesParaIA, recursosParaIA } from '../lib/ef';
 
 const nombreTipo = (t: TipoActividadEF) => TIPOS_ACTIVIDAD.find(x => x.id === t)!.label;
 const texto = (v: unknown) => (typeof v === 'string' ? v.trim() : '');

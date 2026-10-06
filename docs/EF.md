@@ -82,6 +82,17 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Granero-Gallegos y Baena-Extremera (medio natural).
 - Qué recibe la IA de quien está exento o lesionado: solo qué no puede hacer, una línea por alumno, sin nombre ni motivo (`limitacionesParaIA`). Contado en la política de privacidad y en las condiciones de la web.
 
+## Situaciones de aprendizaje
+
+- Decisión del dueño (5 y 6-10-2026): un creador de situaciones de aprendizaje en el apartado de EF, hecho como el general de la app y con lo mismo: competencias específicas, criterios y saberes básicos del decreto de la comunidad (la IA elige de la lista real), competencias clave, objetivos de etapa, sesiones por fases, inclusión, evaluación, y después rúbrica, diana y ficha. Es la misma pantalla (`LearningSituations`), en la pestaña «Situaciones de aprendizaje» (`ef-sda`); las SdA se guardan con las demás.
+- Si una de las áreas es Educación Física y el perfil es de EF, el formulario añade el bloque «Educación Física» y la petición lleva `ef` (`SdaPeticionEF` en `src/services/learningSituations.ts`):
+  - Modelo pedagógico, elegido por el docente o por la IA de una lista cerrada (`src/lib/modelosEF.ts`): Aprendizaje cooperativo, Educación Deportiva, Enseñanza comprensiva del deporte, Responsabilidad personal y social, Educación en el medio natural, Juegos motores y educación emocional, e Hibridación de modelos.
+  - El material, las instalaciones y las limitaciones de ahora de la clase, sin nombres.
+  - Sesiones de EF (calentamiento, parte principal y vuelta a la calma), producto final motor, DUA-A y evaluación formativa y compartida.
+- Estudios de autores publicados en abierto (petición del dueño): cada modelo lleva sus referencias, que pone la app, nunca la IA (se le prohíbe citar nada que no esté en las instrucciones y se descarta cualquier campo que no sea del esquema). Las diez referencias se comprobaron el 5-10-2026: REEFD (Fernández-Río y otros, 2016 y 2018; Calderón, Hastie y Martínez de Ojeda, 2011), Retos (Fernández-Río y Méndez-Giménez, 2016; Fernández-Río, 2017; Baena-Extremera y Granero-Gallegos, 2008), Cultura, Ciencia y Deporte (Abad Robles y otros, 2013), Apunts (Niubò-Solé, Lavega-Burgués y Sáenz-López, 2022), el libro de la Universidad de León (López-Pastor y Pérez-Pueyo, 2017) y las pautas DUA 3.0 de CAST (2024). Si se añade una, comprobarla antes.
+- La SdA guarda `ef: { modelos, referencias }`; el modelo y las referencias salen en la pantalla, en el PDF y en el Word.
+- «Pasar a Sesiones de EF» copia cada sesión de la SdA a la pestaña Sesiones, sin fecha.
+
 ## Material e instalaciones
 
 - Inventario del material: cantidad, estado (bien, regular, para reponer; se cambia desde la tabla) y dónde está. Arriba sale lo que hay que reponer.

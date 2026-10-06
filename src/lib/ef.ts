@@ -41,6 +41,29 @@ export function exentosDelDia(d: EfData, fecha: string): ExentoEF[] {
   return d.exentos.filter(e => e.desde <= fecha && (!e.hasta || e.hasta >= fecha));
 }
 
+/* ── Para la IA ── */
+
+/**
+ * Lo que la IA sabe de quien está exento o lesionado ese día en esa clase:
+ * solo qué no puede hacer, una línea por alumno, sin nombre ni motivo.
+ */
+export function limitacionesParaIA(d: EfData, alumnosDeLaClase: string[], fecha: string): string[] {
+  const ids = new Set(alumnosDeLaClase);
+  return exentosDelDia(d, fecha)
+    .filter(e => ids.has(e.alumnoId))
+    .map(e => e.limitaciones.map(l => LIMITACIONES.find(x => x.id === l)!.label).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', '))
+    .filter(Boolean);
+}
+
+/** El material que hay (sin lo que está para reponer) y las instalaciones, para el prompt. */
+export function recursosParaIA(d: EfData): { material: string; instalaciones: string } {
+  return {
+    material: d.material.filter(m => m.estado !== 'reponer' && m.cantidad > 0)
+      .map(m => `${m.nombre} (${m.cantidad}${m.estado === 'regular' ? ', en estado regular' : ''})`).join('; '),
+    instalaciones: d.instalaciones.map(i => `${i.nombre} (${i.cubierta ? 'cubierta' : 'al aire libre'}${i.notas.trim() ? `; ${i.notas.trim()}` : ''})`).join('; '),
+  };
+}
+
 /* ── Pruebas físicas ── */
 
 /**

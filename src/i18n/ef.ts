@@ -346,6 +346,24 @@ export const EF_EN: Record<string, string> = {
   'Próximas sesiones': 'Upcoming sessions',
   'Preparar': 'Prepare',
   'No tienes sesiones previstas.': 'You have no sessions planned.',
+
+  /* ── Situaciones de aprendizaje de EF ── */
+  'Sesión {n} de «{sda}» ({fase}).': 'Session {n} of «{sda}» ({fase}).',
+  'Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.': 'The {n} sessions are now in Physical Education → Sessions, without a date.',
+  'Modelo pedagógico': 'Pedagogical model',
+  'Que lo elija la IA según la idea': 'Let the AI choose it from the idea',
+  'Con medidas para quienes tienen ahora una limitación en esta clase ({n})': 'With measures for students who currently have a limitation in this class ({n})',
+  'Se apoya en estudios de acceso abierto sobre modelos pedagógicos de Educación Física; sus referencias se añaden a la SdA. A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.': 'It draws on open-access studies of pedagogical models in Physical Education; their references are added to the learning situation. The AI only receives what each student cannot do, without names or reasons.',
+  'Pasar a Sesiones de EF': 'Copy to PE sessions',
+  'Referencias (acceso abierto)': 'References (open access)',
+  'Referencias': 'References',
+  'Aprendizaje cooperativo': 'Cooperative learning',
+  'Educación Deportiva': 'Sport Education',
+  'Enseñanza comprensiva del deporte': 'Teaching Games for Understanding',
+  'Responsabilidad personal y social': 'Teaching Personal and Social Responsibility',
+  'Educación en el medio natural': 'Outdoor education',
+  'Juegos motores y educación emocional': 'Motor games and emotional education',
+  'Hibridación de modelos': 'Hybrid models',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -692,4 +710,22 @@ export const EF_CA: Record<string, string> = {
   'Próximas sesiones': 'Properes sessions',
   'Preparar': 'Preparar',
   'No tienes sesiones previstas.': 'No tens sessions previstes.',
+
+  /* ── Situaciones de aprendizaje de EF ── */
+  'Sesión {n} de «{sda}» ({fase}).': 'Sessió {n} de «{sda}» ({fase}).',
+  'Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.': 'Les {n} sessions ara són a Educació Física → Sessions, sense data.',
+  'Modelo pedagógico': 'Model pedagògic',
+  'Que lo elija la IA según la idea': 'Que el triï la IA segons la idea',
+  'Con medidas para quienes tienen ahora una limitación en esta clase ({n})': 'Amb mesures per als qui tenen ara una limitació en aquesta classe ({n})',
+  'Se apoya en estudios de acceso abierto sobre modelos pedagógicos de Educación Física; sus referencias se añaden a la SdA. A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.': 'Es basa en estudis d\'accés obert sobre models pedagògics d\'Educació Física; les seves referències s\'afegeixen a la SdA. A la IA només li arriba el que no pot fer cada alumne, sense noms ni motius.',
+  'Pasar a Sesiones de EF': 'Passar a Sessions d\'EF',
+  'Referencias (acceso abierto)': 'Referències (accés obert)',
+  'Referencias': 'Referències',
+  'Aprendizaje cooperativo': 'Aprenentatge cooperatiu',
+  'Educación Deportiva': 'Educació Esportiva',
+  'Enseñanza comprensiva del deporte': 'Ensenyament comprensiu de l\'esport',
+  'Responsabilidad personal y social': 'Responsabilitat personal i social',
+  'Educación en el medio natural': 'Educació en el medi natural',
+  'Juegos motores y educación emocional': 'Jocs motors i educació emocional',
+  'Hibridación de modelos': 'Hibridació de models',
 };

@@ -537,6 +537,8 @@ export interface LearningSituation {
     materiasOficiales?: Record<string, string | null>;
     contextoClase: string;
     metodologia: string;
+    /** Solo en las de Educación Física: el modelo pedagógico que eligió el docente ('' si lo eligió la IA). */
+    efModelo?: string;
   };
   content: import('../services/learningSituations').SdaContent;
 }
@@ -738,4 +740,4 @@ export type Section =
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos'
   | 'apoyo-coordinaciones' | 'apoyo-agenda-visual'
   | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos'
-  | 'ef-actividades' | 'ef-sesiones' | 'ef-material';
+  | 'ef-actividades' | 'ef-sesiones' | 'ef-material' | 'ef-sda';

@@ -32,6 +32,7 @@ import { competenciasDe, resolverGrupo, type CurriculumBloqueSaberes, type Curri
 import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
+import { IDS_MODELOS_EF, modeloEF, modelosParaIA, referenciasDeModelos } from '../lib/modelosEF';
 import type { OfficialCriterionRef } from '../types';
 
 /* ── Lo que devuelve la IA ── */
@@ -97,6 +98,28 @@ export interface SdaContent {
   evaluacionInstrumentos: string;
   /** Ausente si ninguna área usó currículo oficial, y en las SdA anteriores a esto. */
   normativa?: SdaNormativa;
+  /**
+   * Solo en las SdA de Educación Física (ver `docs/EF.md`): los modelos
+   * pedagógicos con los que se diseñó (ids de `lib/modelosEF`) y sus
+   * referencias. Las referencias las pone la aplicación, nunca la IA.
+   */
+  ef?: SdaEF;
+}
+
+export interface SdaEF {
+  modelos: string[];
+  referencias: string[];
+}
+
+/** Lo propio de Educación Física que se añade a la petición. */
+export interface SdaPeticionEF {
+  /** El id del modelo que eligió el docente; vacío, lo elige la IA. */
+  modelo: string;
+  /** El material disponible, ya en texto (ver `recursosParaIA`). */
+  material: string;
+  instalaciones: string;
+  /** Lo que no puede hacer quien está exento o lesionado: una línea por alumno, sin nombre ni motivo. */
+  limitaciones: string[];
 }
 
 export interface SdaRubricRow {
@@ -176,6 +199,49 @@ export interface SdaRequest {
   docente: string;
   /** Resúmenes de los documentos que haya subido (normativa, programación…). */
   documentos: { nombre: string; resumen: string }[];
+  /** Solo si es una SdA de Educación Física. */
+  ef?: SdaPeticionEF;
+}
+
+/**
+ * Lo que se añade a las instrucciones en una SdA de Educación Física: el
+ * modelo pedagógico, el DUA-A, la evaluación formativa y compartida, y que no
+ * se cite nada que no esté en la lista (las referencias las pone la app).
+ */
+function instruccionesEF(ef: SdaPeticionEF): string {
+  const elegido = modeloEF(ef.modelo);
+  return (
+    `\nEDUCACIÓN FÍSICA: esta SdA es de Educación Física y se diseña con modelos pedagógicos de EF ` +
+    `(práctica basada en modelos). ` +
+    (elegido
+      ? `El docente ha elegido el modelo "${elegido.id}" (${elegido.nombre}): úsalo y pon solo ese id en "modelosPedagogicos".`
+      : `Elige el modelo, o la hibridación de dos, que mejor encaje con la idea, y pon su id en "modelosPedagogicos" (1 o 2).`) +
+    `\nModelos disponibles:\n${modelosParaIA()}\n` +
+    `- La metodología, el agrupamiento y cada sesión aplican de verdad el modelo (sus roles, grupos, fases y momentos de reflexión).\n` +
+    `- Cada "descripcion" de sesión es una sesión de EF: calentamiento, parte principal y vuelta a la calma, con mucho ` +
+    `tiempo de compromiso motor, la organización, el material y las normas de seguridad.\n` +
+    `- El producto final es un desempeño motor (un festival, el evento final de una liga, una ruta de orientación, una ` +
+    `coreografía, un juego inventado y enseñado a otro grupo).\n` +
+    `- Inclusión según el DUA-A (Diseño Universal para el Aprendizaje y la Accesibilidad): quien tiene una limitación ` +
+    `participa en las mismas tareas con cambios de reglas, espacio, material, tiempo o papel; una tarea aparte es el ` +
+    `último recurso.\n` +
+    `- Evaluación formativa y compartida (López-Pastor y Pérez-Pueyo): autoevaluación, coevaluación y evaluación ` +
+    `compartida, con instrumentos concretos (rúbricas, listas de control, escalas, cuaderno del alumnado).\n` +
+    `- No cites autores, estudios ni referencias que no aparezcan en estas instrucciones, y no inventes ninguna: ` +
+    `la aplicación añade las referencias del modelo.\n`
+  );
+}
+
+/** Los datos de EF para el prompt del usuario. */
+function datosEF(ef: SdaPeticionEF): string {
+  return (
+    (ef.material ? `Material disponible: ${ef.material}\n` : '') +
+    (ef.instalaciones ? `Instalaciones: ${ef.instalaciones}\n` : '') +
+    (ef.limitaciones.length
+      ? `Alumnado con alguna limitación ahora (una línea por alumno, sin nombres): en "inclusionIndividualizada", una ` +
+        `medida para cada una:\n${ef.limitaciones.map(l => `- ${l}`).join('\n')}\n`
+      : '')
+  );
 }
 
 /** Una entrada de `req.areas` que sí encaja con el currículo oficial. */
@@ -310,6 +376,21 @@ const SDA_SCHEMA = {
   required: SDA_FIELDS,
   propertyOrdering: SDA_FIELDS,
 } as const;
+
+/** El mismo esquema con los modelos pedagógicos de EF, lo primero: el resto se escribe ya con el modelo decidido. */
+const SDA_SCHEMA_EF = {
+  ...SDA_SCHEMA,
+  properties: {
+    ...SDA_SCHEMA.properties,
+    modelosPedagogicos: {
+      type: 'ARRAY',
+      description: 'De 1 a 2 identificadores de modelos pedagógicos de EF de la lista cerrada.',
+      items: { type: 'STRING', enum: IDS_MODELOS_EF },
+    },
+  },
+  required: ['modelosPedagogicos', ...SDA_FIELDS],
+  propertyOrdering: ['modelosPedagogicos', ...SDA_FIELDS],
+};
 
 /** Los ocho códigos oficiales, para que Gemini no se invente uno nuevo. */
 const LOMLOE_CODES = LOMLOE_COMPETENCES.map(c => c.key);
@@ -528,6 +609,7 @@ export async function generateSda(
     `alumnado, con qué recursos, cómo se cierra—, no un titular de una frase.\n` +
     `NIVEL: ajusta el currículo, el vocabulario y la exigencia a ${req.nivel || 'el nivel indicado'}.\n` +
     `FORMATO: todo muy resumido, claro y directo, en frases cortas o listas.\n` +
+    (req.ef ? instruccionesEF(req.ef) : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`;
 
   const docs = req.documentos.length
@@ -551,6 +633,7 @@ export async function generateSda(
     `Meses: ${req.meses}\n` +
     `Áreas implicadas: ${req.areas.join(', ')}\n` +
     `Número total de sesiones: ${req.numSesiones}\n` +
+    (req.ef ? datosEF(req.ef) : '') +
     curriculoReal +
     `\nRellena todos los campos del JSON de salida.`;
 
@@ -560,13 +643,14 @@ export async function generateSda(
     // frases cada una, no 2 o 3) hace falta más margen que antes, sobre todo
     // con muchas sesiones pedidas.
     maxOutputTokens: 24576,
-    responseSchema: SDA_SCHEMA,
+    responseSchema: req.ef ? SDA_SCHEMA_EF : SDA_SCHEMA,
     thinkingLevel: 'medium',
   });
   if (!raw) return null;
 
-  const parsed = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[] }>(raw);
-  if (!parsed) return null;
+  const respuesta = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[]; modelosPedagogicos?: unknown }>(raw);
+  if (!respuesta) return null;
+  const { modelosPedagogicos, ...parsed } = respuesta;
   // Un modelo de reserva puede devolver el array vacío o ausente
   const finales = (parsed.areas ?? []).map((a, i) => finalizarArea(a, resoluciones[i] ?? null));
   // Solo se cita un decreto si de verdad se usó: un área en modo libre, o una
@@ -574,12 +658,30 @@ export async function generateSda(
   const normativa: SdaNormativa | undefined = curriculo && finales.some(f => f.oficial)
     ? { comunidad: curriculo.comunidad, origen: curriculo.origen, cita }
     : undefined;
+  // Solo los campos del esquema: lo que la IA añada por su cuenta (una «referencias»
+  // inventada, por ejemplo) no llega a la SdA. Los de texto, siempre texto.
+  const textos = Object.fromEntries(
+    SDA_FIELDS.filter(k => k !== 'areas' && k !== 'sesiones')
+      .map(k => [k, typeof parsed[k] === 'string' ? parsed[k] : '']),
+  ) as Omit<SdaContent, 'areas' | 'sesiones' | 'normativa' | 'ef'>;
   return {
-    ...parsed,
+    ...textos,
     areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
-    sesiones: parsed.sesiones ?? [],
+    sesiones: Array.isArray(parsed.sesiones) ? parsed.sesiones : [],
     normativa,
+    ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos) } : {}),
   };
+}
+
+/**
+ * Los modelos de la SdA de EF: el que eligió el docente o, si no, los que
+ * eligió la IA de la lista cerrada (como mucho dos). Las referencias salen de
+ * `lib/modelosEF`, no de la IA.
+ */
+export function efDeLaRespuesta(ef: SdaPeticionEF, marcados: unknown): SdaEF {
+  const deLaIA = (Array.isArray(marcados) ? marcados : []).filter((m): m is string => typeof m === 'string' && IDS_MODELOS_EF.includes(m));
+  const modelos = modeloEF(ef.modelo) ? [ef.modelo] : [...new Set(deLaIA)].slice(0, 2);
+  return { modelos, referencias: referenciasDeModelos(modelos) };
 }
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */

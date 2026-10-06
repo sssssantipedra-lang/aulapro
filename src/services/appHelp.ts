@@ -53,6 +53,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },
   'ef-equipos':          { es: 'Equipos', en: 'Teams' },
   'ef-circuitos':        { es: 'Circuitos', en: 'Circuits' },
+  'ef-sda':              { es: 'Situaciones de aprendizaje', en: 'Learning Situations' },
   'ef-sesiones':         { es: 'Sesiones', en: 'Sessions' },
   'ef-actividades':      { es: 'Actividades', en: 'Activities' },
   'ef-material':         { es: 'Material e instalaciones', en: 'Equipment and Facilities' },
@@ -539,6 +540,25 @@ segundos y uno largo al cambiar; el color y el rótulo dicen si es trabajo o
 descanso. Botones: fase anterior, pausa o seguir, fase siguiente, sonido y
 pantalla completa; con teclado, espacio y flechas. Mientras corre, la
 pantalla no se apaga si el dispositivo lo permite.
+
+[ef-sda] SITUACIONES DE APRENDIZAJE (EF)
+El mismo creador de situaciones de aprendizaje que «Documentos → Situaciones
+de aprendizaje», con todo lo de siempre: competencias específicas, criterios
+de evaluación y saberes básicos del decreto de la comunidad, competencias
+clave, objetivos de etapa, sesiones por fases, inclusión, evaluación, y
+después su rúbrica, su diana y su ficha. Si la clase tiene Educación Física,
+el formulario añade el bloque «Educación Física»: el MODELO PEDAGÓGICO
+(Aprendizaje cooperativo, Educación Deportiva, Enseñanza comprensiva del
+deporte, Responsabilidad personal y social, Educación en el medio natural,
+Juegos motores y educación emocional, Hibridación de modelos, o «Que lo elija
+la IA»), «Con mi material y mis instalaciones» y las medidas para quien tiene
+ahora una limitación (a la IA solo le llega lo que no puede hacer, sin
+nombres). Las sesiones son de EF (calentamiento, parte principal y vuelta a
+la calma), la inclusión sigue el DUA-A y la evaluación es formativa y
+compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
+abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia
+cada sesión a la pestaña Sesiones, sin fecha. Las SdA se guardan con las
+demás y salen también en Documentos.
 
 [ef-sesiones] SESIONES
 Sesiones de EF con calentamiento, parte principal, vuelta a la calma,

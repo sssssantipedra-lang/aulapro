@@ -21,7 +21,8 @@ import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
-import { exentosDelDia, LIMITACIONES, pruebasDe } from './lib/ef';
+import { exentosDelDia, LIMITACIONES, limitacionesParaIA, pruebasDe, recursosParaIA } from './lib/ef';
+import type { SesionEF } from './types/ef';
 import { isoDate } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Ficha } from './types';
@@ -134,6 +135,19 @@ function AppInner() {
         }),
     };
   }, [tipo, st.currentUser?.tutor, st.ef, st.students, st.classes, t]);
+
+  // La SdA de una clase de EF: el material, las instalaciones y las limitaciones sin nombres
+  const setEf = st.setEf;
+  const efSda = useMemo(() => {
+    if (tipo !== 'ef') return undefined;
+    const { material, instalaciones } = recursosParaIA(st.ef);
+    return {
+      material, instalaciones,
+      limitacionesDe: (claseId: string) =>
+        limitacionesParaIA(st.ef, st.students.filter(s => s.class_id === claseId).map(s => s.id), isoDate()),
+      onPasarSesiones: (sesiones: SesionEF[]) => setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] })),
+    };
+  }, [tipo, st.ef, st.students, setEf]);
 
   /**
    * El cuaderno tal como cuenta para las medias: lo guardado más el bloque
@@ -541,8 +555,10 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
               />
             )}
-            {section === 'learning-situations' && (
+            {(section === 'learning-situations' || section === 'ef-sda') && (
               <LearningSituations
+                key={section}
+                ef={efSda}
                 classes={st.classes}
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}

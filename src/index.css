@@ -641,6 +641,11 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sda-sec-ttl { font-size:18px; font-weight:800; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
 .sda-count { font-size:12px; font-weight:800; padding:2px 9px; border-radius:99px; background:var(--surface-2); color:var(--text-2); }
 .sda-text { margin-bottom:18px; }
+.sda-sec-hd { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.sda-ef { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); margin-bottom:14px; }
+.sda-ef > legend { padding:0 6px; }
+.sda-ef-lbl { font-size:12.5px; font-weight:700; color:var(--text-2); }
+.sda-refs ul { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:12.5px; line-height:1.5; color:var(--text-2); overflow-wrap:anywhere; }
 .sda-text:last-child { margin-bottom:0; }
 .sda-text-hd { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
 .sda-text-hd h4 { font-size:12px; font-weight:800; color:var(--label); text-transform:uppercase; letter-spacing:0.05em; }

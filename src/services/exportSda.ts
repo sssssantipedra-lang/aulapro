@@ -20,6 +20,7 @@ import {
 import type { LearningSituation } from '../types';
 import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { modeloEF } from '../lib/modelosEF';
 
 function fileBase(sda: LearningSituation): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -48,6 +49,11 @@ const esc = (s: string) => (s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<'
 const nl2br = (s: string) => esc(s).replace(/\n/g, '<br>');
 const DASH = '—';
 
+/** Los modelos pedagógicos de una SdA de EF, por su nombre; vacío en las demás. */
+function modelosDeSda(c: LearningSituation['content'], t: (k: string) => string): string {
+  return (c.ef?.modelos ?? []).map(id => modeloEF(id)).filter(Boolean).map(m => t(m!.nombre)).join(' + ');
+}
+
 export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
   const t = (k: string, vars?: Record<string, string | number>) => translate(lang, k, vars);
   const c = sda.content;
@@ -68,6 +74,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
       : '';
 
   const areaVal = [req.areas.join(', '), req.nivel].filter(Boolean).join(' · ');
+  const modelos = modelosDeSda(c, t);
 
   const objetivosPair = rowDouble(t('Objetivos de etapa'), c.objetivosEtapa, t('Competencias clave'), c.competenciasClave);
 
@@ -94,6 +101,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
     ).join('') +
     (c.metodologia || c.agrupamiento || c.recursos
       ? band(t('Metodología y desarrollo')) +
+        rowFull(t('Modelo pedagógico'), modelos) +
         rowFull(t('Metodología'), c.metodologia) +
         rowFull(t('Agrupamiento'), c.agrupamiento) +
         rowFull(t('Recursos'), c.recursos)
@@ -109,7 +117,8 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
       ? band(t('Evaluación')) +
         rowFull(t('Técnicas de evaluación'), c.evaluacionTecnicas) +
         rowFull(t('Instrumentos de evaluación'), c.evaluacionInstrumentos)
-      : '');
+      : '') +
+    (c.ef?.referencias.length ? band(t('Referencias')) + rowFull(t('Referencias'), c.ef.referencias.join('\n')) : '');
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(titulo)}</title>` +
@@ -213,6 +222,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
   const { temporal, bandTitle, pageTitle } = buildHeadings(sda, t);
 
   const areaVal = [req.areas.join(', '), req.nivel].filter(Boolean).join(' · ');
+  const modelos = modelosDeSda(c, t);
   const objetivosPair = () => gRowDouble(t('Objetivos de etapa'), c.objetivosEtapa, t('Competencias clave'), c.competenciasClave);
 
   const rows: TableRow[] = [
@@ -239,6 +249,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
     ]),
     ...(c.metodologia || c.agrupamiento || c.recursos ? [
       gBand(t('Metodología y desarrollo')),
+      ...gRowFull(t('Modelo pedagógico'), modelos),
       ...gRowFull(t('Metodología'), c.metodologia),
       ...gRowFull(t('Agrupamiento'), c.agrupamiento),
       ...gRowFull(t('Recursos'), c.recursos),
@@ -255,6 +266,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
       ...gRowFull(t('Técnicas de evaluación'), c.evaluacionTecnicas),
       ...gRowFull(t('Instrumentos de evaluación'), c.evaluacionInstrumentos),
     ] : []),
+    ...(c.ef?.referencias.length ? [gBand(t('Referencias')), ...gRowFull(t('Referencias'), c.ef.referencias.join('\n'))] : []),
   ];
 
   const children: (Paragraph | Table)[] = [
