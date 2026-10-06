@@ -100,7 +100,6 @@ export const MAX_BLOCK_POINTS = 5;
 export const BLOCK_CATEGORY_PREFIX = 'marksblock:';
 export const BLOCK_ITEM_PREFIX = 'marks:';
 export const isMarksCategory = (id: string) => id.startsWith(BLOCK_CATEGORY_PREFIX);
-export const isMarksItem = (id: string) => id.startsWith(BLOCK_ITEM_PREFIX);
 
 export const blockKey = (classId: string, subject: string) => `${classId}|${subject}`;
 

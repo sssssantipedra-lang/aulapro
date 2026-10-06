@@ -107,11 +107,6 @@ export function pruebasDe(d: EfData): PruebaFisica[] {
   ];
 }
 
-/** La mejor de dos marcas según la prueba. */
-export function esMejor(p: Pick<PruebaFisica, 'mejor'>, a: number, b: number): boolean {
-  return p.mejor === 'mas' ? a > b : a < b;
-}
-
 /** Las marcas de un alumno en una prueba, de la más antigua a la más reciente. */
 export function marcasDe(d: EfData, pruebaId: string, alumnoId: string): MarcaPrueba[] {
   return d.marcas
@@ -403,6 +398,22 @@ export function sinAlumnoEF(d: EfData, alumnoId: string): EfData {
     equipos: Object.fromEntries(Object.entries(d.equipos).map(([k, e]) =>
       [k, { ...e, grupos: e.grupos.map(g => g.filter(id => id !== alumnoId)) }])),
     marcas: d.marcas.filter(m => m.alumnoId !== alumnoId),
+  };
+}
+
+/**
+ * Al borrar una clase: lo de su alumnado (también el motivo de una lesión,
+ * que es un dato de salud) y sus equipos se van; sus sesiones se quedan, sin
+ * clase, como material del docente.
+ */
+export function sinClaseEF(d: EfData, claseId: string, alumnoIds: readonly string[]): EfData {
+  const limpio = alumnoIds.reduce(sinAlumnoEF, d);
+  const { [claseId]: _e, ...equipos } = limpio.equipos;
+  void _e;
+  return {
+    ...limpio,
+    equipos,
+    sesiones: limpio.sesiones.map(s => (s.claseId === claseId ? (({ claseId: _c, ...r }) => { void _c; return r; })(s) : s)),
   };
 }
 

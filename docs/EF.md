@@ -26,7 +26,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 - Qué no puede hacer (lista y texto libre), desde y hasta cuándo, qué hace mientras tanto, justificante y motivo.
 - El motivo es un dato de salud: se queda en el equipo y nunca se envía a la IA.
-- A la IA solo le llega la limitación, sin nombre, para que proponga medidas de inclusión basadas en el DUA-A.
+- A la IA solo le llega la limitación, sin nombre, para que proponga medidas de inclusión basadas en el DUA-A. El texto libre («Otra») también le llega: su ejemplo pide escribirla sin el motivo (6-10-2026).
 - Salen en la pista, en el Inicio y al hacer equipos. Los exentos participan en los equipos con su adaptación.
 
 ## Pruebas físicas
@@ -85,6 +85,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - López-Pastor (evaluación formativa).
   - Granero-Gallegos y Baena-Extremera (medio natural).
 - Qué recibe la IA de quien está exento o lesionado: solo qué no puede hacer, una línea por alumno, sin nombre ni motivo (`limitacionesParaIA`). Contado en la política de privacidad y en las condiciones de la web.
+- El marco pide texto sin formato pero con la ortografía completa. Con «texto llano», a secas, 3.5 Flash-Lite escribía sin tildes ni eñes (prueba con la IA real del 6-10-2026).
 
 ## Situaciones de aprendizaje
 
@@ -94,7 +95,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - El material, las instalaciones y las limitaciones de ahora de la clase, sin nombres.
   - Sesiones de EF (calentamiento, parte principal y vuelta a la calma), producto final motor, DUA-A y evaluación formativa y compartida.
 - Estudios de autores publicados en abierto (petición del dueño): cada modelo lleva sus referencias, que pone la app, nunca la IA (se le prohíbe citar nada que no esté en las instrucciones y se descarta cualquier campo que no sea del esquema). Las diez referencias se comprobaron el 5-10-2026: REEFD (Fernández-Río y otros, 2016 y 2018; Calderón, Hastie y Martínez de Ojeda, 2011), Retos (Fernández-Río y Méndez-Giménez, 2016; Fernández-Río, 2017; Baena-Extremera y Granero-Gallegos, 2008), Cultura, Ciencia y Deporte (Abad Robles y otros, 2013), Apunts (Niubò-Solé, Lavega-Burgués y Sáenz-López, 2022), el libro de la Universidad de León (López-Pastor y Pérez-Pueyo, 2017) y las pautas DUA 3.0 de CAST (2024). Si se añade una, comprobarla antes.
-- La SdA guarda `ef: { modelos, referencias }`; el modelo y las referencias salen en la pantalla, en el PDF y en el Word.
+- La SdA guarda `ef: { modelos, referencias, modalidad }`; el modelo, la modalidad y las referencias salen en la pantalla, en el PDF y en el Word.
 - «Pasar a Sesiones de EF» copia cada sesión de la SdA a la pestaña Sesiones, sin fecha.
 
 ## Material e instalaciones
@@ -107,7 +108,8 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 - Todo va en `ef` del perfil (`src/types/ef.ts`, `src/lib/ef.ts`).
 - Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
-- Datos de ejemplo: `src/lib/demoEF.ts`.
+- Al borrar un alumno se va todo lo suyo de EF (`sinAlumnoEF`). Al borrar una clase, lo de todo su alumnado, también el motivo de las lesiones, y sus equipos; sus sesiones se quedan sin clase (`sinClaseEF`, desde el 6-10-2026; antes se quedaba huérfano).
+- Datos de ejemplo: `src/lib/demoEF.ts`, con «Profesor» y «Alumno 1» a «Alumno 24».
 
 ## Lo que falta
 

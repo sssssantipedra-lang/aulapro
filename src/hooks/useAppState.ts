@@ -15,7 +15,7 @@ import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
 import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
-import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF } from '../lib/ef';
+import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF, sinClaseEF } from '../lib/ef';
 import { buildDemoEF } from '../lib/demoEF';
 import { tipoDePerfil } from '../lib/tipoDocente';
 import type { EfData } from '../types/ef';
@@ -431,6 +431,7 @@ export function useAppState() {
     setAttendance(prev => { const n = { ...prev }; delete n[id]; return n; });
     setClassMarks(prev => prev.filter(m => m.class_id !== id));
     setMarksConfigs(prev => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(id + '|'))));
+    setEf(prev => sinClaseEF(prev, id, cascadeStudentIds));
     if (cascadeItemIds.length) {
       const removed = new Set(cascadeItemIds);
       setGrades(g => {

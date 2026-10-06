@@ -150,7 +150,7 @@ export function EfExentos({ classes, students, ef, onChangeEf, onNav }: Props) {
                   );
                 })}
               </div>
-              <input className="finput" style={{ marginTop: 8 }} value={editando.otra} placeholder={t('Otra, escrita por ti')} aria-label={t('Otra limitación')}
+              <input className="finput" style={{ marginTop: 8 }} value={editando.otra} placeholder={t('Otra, sin el motivo. Ej: no puede hacer volteretas')} aria-label={t('Otra limitación')}
                 onChange={e => setEditando({ ...editando, otra: e.target.value })} />
             </fieldset>
             <div className="fgroup">

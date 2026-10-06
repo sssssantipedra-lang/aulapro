@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  EF_VACIO, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
+  EF_VACIO, efParaOtroCurso, exentosDelDia, normalizarEF, notaConBaremo, pruebasDe, sinAlumnoEF, sinClaseEF, asignaturaEF, PRUEBAS_DE_PARTIDA,
   hacerEquipos, parejasJuntas, fasesCircuito, duracionCircuito, PREPARADOS,
 } from './ef';
 import { buildDemoEF } from './demoEF';
@@ -51,6 +51,24 @@ describe('datos de EF', () => {
     expect(otro.material).toEqual(d.material);
     expect(otro.circuitos).toEqual(d.circuitos);
     expect(otro.sesiones[0].claseId).toBeUndefined();
+  });
+
+  it('borrar una clase quita lo de su alumnado y sus equipos, y deja sus sesiones sin clase', () => {
+    const d = buildDemoEF(new Date(2026, 9, 5));
+    const clase = d.classes[0].id;
+    const alumnos = d.students.filter(s => s.class_id === clase).map(s => s.id);
+    const ef: EfData = { ...d.ef, equipos: { [clase]: { fecha: '2026-10-05', grupos: [alumnos] } } };
+    expect(ef.exentos.some(e => alumnos.includes(e.alumnoId))).toBe(true);
+    expect(ef.sesiones.some(s => s.claseId === clase)).toBe(true);
+    const sin = sinClaseEF(ef, clase, alumnos);
+    expect(sin.exentos.some(e => alumnos.includes(e.alumnoId))).toBe(false);
+    expect(sin.marcas.some(m => alumnos.includes(m.alumnoId))).toBe(false);
+    expect(alumnos.some(id => id in sin.niveles || id in sin.sexos)).toBe(false);
+    expect(sin.equipos[clase]).toBeUndefined();
+    expect(sin.sesiones.some(s => s.claseId === clase)).toBe(false);
+    expect(sin.sesiones).toHaveLength(ef.sesiones.length);
+    // Lo de las otras clases no se toca
+    expect(sin.exentos.length).toBe(ef.exentos.filter(e => !alumnos.includes(e.alumnoId)).length);
   });
 
   it('borrar un alumno lo quita de todo lo de EF', () => {

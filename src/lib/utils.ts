@@ -64,14 +64,6 @@ export function fromIsoDate(iso: string): Date {
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
-export function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export function escapeHtml(str: string): string {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
 export function fileToBase64(file: File): Promise<{ name: string; mimeType: string; base64: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -130,13 +122,6 @@ export function applyAppearance(mode: Appearance) {
   else r.setAttribute('data-theme', mode);
   try { localStorage.setItem(APPEARANCE_KEY, mode); } catch { /* sin almacenamiento */ }
 }
-
-export const LEVELS = [
-  { value: 1, label: 'Insuficiente', key: 'ins' },
-  { value: 2, label: 'Suficiente',   key: 'suf' },
-  { value: 3, label: 'Bien',         key: 'bi'  },
-  { value: 4, label: 'Excelente',    key: 'exc' },
-] as const;
 
 /** Competencias clave de la LOMLOE, con su abreviatura oficial. */
 export const LOMLOE_COMPETENCES = [
