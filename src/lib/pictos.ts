@@ -1,11 +1,15 @@
 /**
- * Pictogramas de la agenda visual de PT y AL: una selección de Mulberry
- * Symbols, de Steve Lee, con licencia Creative Commons
+ * Pictogramas de la agenda visual de PT y AL y de las fichas con apoyos
+ * visuales: una selección de Mulberry Symbols, de Steve Lee, con licencia
+ * Creative Commons
  * Reconocimiento-CompartirIgual 4.0 (CC BY-SA 4.0), que permite el uso
  * comercial. Van dentro de la aplicación, en `public/pictos/mulberry/`, sin
  * modificar (solo optimizados con svgo), con su licencia al lado: funcionan
  * sin conexión y no se envía nada. La atribución tiene que verse en
- * Configuración y al pie de cada agenda impresa (`ATRIBUCION_MULBERRY`).
+ * Configuración y al pie de cada agenda o ficha impresa que los lleve
+ * (`ATRIBUCION_MULBERRY`). Los que empiezan por `ap-` son dibujos propios de
+ * AulaPro para las consignas de ficha que Mulberry no tiene (rodear, unir,
+ * subrayar…), en `public/pictos/aulapro/`: no piden atribución.
  * ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el
  * uso comercial. Ver `docs/PTAL.md`.
  *
@@ -19,12 +23,17 @@ export type CategoriaPicto =
   | 'clase'
   | 'material'
   | 'acciones'
+  | 'consignas'
   | 'emociones'
   | 'personas'
   | 'comida'
   | 'lugares'
   | 'juego'
-  | 'tiempo';
+  | 'tiempo'
+  | 'matematicas'
+  | 'naturaleza'
+  | 'cuerpo'
+  | 'transporte';
 
 export interface Picto { id: string; categoria: CategoriaPicto; es: string; ca: string; en: string }
 
@@ -33,15 +42,41 @@ export const CATEGORIAS_PICTO: readonly { id: CategoriaPicto; es: string; ca: st
   { id: 'clase', es: 'En clase', ca: 'A classe', en: 'In class' },
   { id: 'material', es: 'Material', ca: 'Material', en: 'Materials' },
   { id: 'acciones', es: 'Acciones', ca: 'Accions', en: 'Actions' },
+  { id: 'consignas', es: 'Consignas de ficha', ca: 'Consignes de fitxa', en: 'Worksheet instructions' },
   { id: 'emociones', es: 'Cómo me siento', ca: 'Com em sento', en: 'Feelings' },
   { id: 'personas', es: 'Personas', ca: 'Persones', en: 'People' },
   { id: 'comida', es: 'Comida', ca: 'Menjar', en: 'Food' },
   { id: 'lugares', es: 'Lugares', ca: 'Llocs', en: 'Places' },
   { id: 'juego', es: 'Juego', ca: 'Joc', en: 'Play' },
   { id: 'tiempo', es: 'Cuándo', ca: 'Quan', en: 'When' },
+  { id: 'matematicas', es: 'Matemáticas', ca: 'Matemàtiques', en: 'Maths' },
+  { id: 'naturaleza', es: 'Naturaleza', ca: 'Natura', en: 'Nature' },
+  { id: 'cuerpo', es: 'El cuerpo', ca: 'El cos', en: 'The body' },
+  { id: 'transporte', es: 'Transporte', ca: 'Transport', en: 'Transport' },
 ];
 
 export const PICTOS: readonly Picto[] = [
+  { id: 'ap-rodear', categoria: 'consignas', es: 'Rodear', ca: 'Encerclar', en: 'Circle' },
+  { id: 'ap-unir', categoria: 'consignas', es: 'Unir con una línea', ca: 'Unir amb una línia', en: 'Match with a line' },
+  { id: 'ap-subrayar', categoria: 'consignas', es: 'Subrayar', ca: 'Subratllar', en: 'Underline' },
+  { id: 'ap-tachar', categoria: 'consignas', es: 'Tachar', ca: 'Ratllar', en: 'Cross out' },
+  { id: 'ap-marcar', categoria: 'consignas', es: 'Marcar', ca: 'Marcar', en: 'Tick' },
+  { id: 'ap-completar', categoria: 'consignas', es: 'Completar', ca: 'Completar', en: 'Fill in the gap' },
+  { id: 'ap-ordenar', categoria: 'consignas', es: 'Ordenar', ca: 'Ordenar', en: 'Put in order' },
+  { id: 'ap-elegir', categoria: 'consignas', es: 'Elegir la respuesta', ca: 'Triar la resposta', en: 'Choose the answer' },
+  { id: 'ap-verdadero-falso', categoria: 'consignas', es: 'Verdadero o falso', ca: 'Vertader o fals', en: 'True or false' },
+  { id: 'ap-sopa-letras', categoria: 'consignas', es: 'Buscar palabras', ca: 'Buscar paraules', en: 'Word search' },
+  { id: 'ap-palotes', categoria: 'consignas', es: 'Hacer palotes', ca: 'Fer palets', en: 'Tally marks' },
+  { id: 'ap-tabla', categoria: 'consignas', es: 'Rellenar la tabla', ca: 'Omplir la taula', en: 'Fill in the table' },
+  { id: 'ap-regla', categoria: 'consignas', es: 'Medir con la regla', ca: 'Mesurar amb el regle', en: 'Measure with a ruler' },
+  { id: 'eye', categoria: 'consignas', es: 'Observar', ca: 'Observar', en: 'Look carefully' },
+  { id: 'hear', categoria: 'consignas', es: 'Escuchar', ca: 'Escoltar', en: 'Listen' },
+  { id: 'point', categoria: 'consignas', es: 'Señalar', ca: 'Assenyalar', en: 'Point' },
+  { id: 'colour', categoria: 'consignas', es: 'Colorear', ca: 'Pintar de colors', en: 'Colour in' },
+  { id: 'glue', categoria: 'consignas', es: 'Pegar', ca: 'Enganxar', en: 'Glue' },
+  { id: 'tape-measure', categoria: 'consignas', es: 'Medir', ca: 'Mesurar', en: 'Measure' },
+  { id: 'weigh', categoria: 'consignas', es: 'Pesar', ca: 'Pesar', en: 'Weigh' },
+  { id: 'show-me', categoria: 'consignas', es: 'Enseñar', ca: 'Ensenyar', en: 'Show' },
   { id: 'hello', categoria: 'rutinas', es: 'Hola', ca: 'Hola', en: 'Hello' },
   { id: 'hang-coat', categoria: 'rutinas', es: 'Colgar el abrigo', ca: 'Penjar l\'abric', en: 'Hang up your coat' },
   { id: 'put-on-coat', categoria: 'rutinas', es: 'Ponerse el abrigo', ca: 'Posar-se l\'abric', en: 'Put on your coat' },
@@ -232,6 +267,18 @@ export const PICTOS: readonly Picto[] = [
   { id: 'plate', categoria: 'comida', es: 'Plato', ca: 'Plat', en: 'Plate' },
   { id: 'glass-drinking', categoria: 'comida', es: 'Vaso', ca: 'Got', en: 'Glass' },
   { id: 'lunch-box', categoria: 'comida', es: 'Fiambrera', ca: 'Carmanyola', en: 'Lunch box' },
+  { id: 'pear', categoria: 'comida', es: 'Pera', ca: 'Pera', en: 'Pear' },
+  { id: 'grapes', categoria: 'comida', es: 'Uvas', ca: 'Raïm', en: 'Grapes' },
+  { id: 'strawberry', categoria: 'comida', es: 'Fresa', ca: 'Maduixa', en: 'Strawberry' },
+  { id: 'carrot', categoria: 'comida', es: 'Zanahoria', ca: 'Pastanaga', en: 'Carrot' },
+  { id: 'tomato', categoria: 'comida', es: 'Tomate', ca: 'Tomàquet', en: 'Tomato' },
+  { id: 'potato', categoria: 'comida', es: 'Patata', ca: 'Patata', en: 'Potato' },
+  { id: 'egg', categoria: 'comida', es: 'Huevo', ca: 'Ou', en: 'Egg' },
+  { id: 'cheese', categoria: 'comida', es: 'Queso', ca: 'Formatge', en: 'Cheese' },
+  { id: 'cake', categoria: 'comida', es: 'Pastel', ca: 'Pastís', en: 'Cake' },
+  { id: 'chocolate', categoria: 'comida', es: 'Chocolate', ca: 'Xocolata', en: 'Chocolate' },
+  { id: 'rice', categoria: 'comida', es: 'Arroz', ca: 'Arròs', en: 'Rice' },
+  { id: 'pasta', categoria: 'comida', es: 'Pasta', ca: 'Pasta', en: 'Pasta' },
   { id: 'play-area', categoria: 'lugares', es: 'Parque', ca: 'Parc', en: 'Play area' },
   { id: 'toilets', categoria: 'lugares', es: 'Baño', ca: 'Lavabo', en: 'Toilets' },
   { id: 'sensory-room', categoria: 'lugares', es: 'Sala sensorial', ca: 'Sala sensorial', en: 'Sensory room' },
@@ -284,13 +331,82 @@ export const PICTOS: readonly Picto[] = [
   { id: 'cloudy', categoria: 'tiempo', es: 'Nublado', ca: 'Ennuvolat', en: 'Cloudy' },
   { id: 'rain', categoria: 'tiempo', es: 'Lluvia', ca: 'Pluja', en: 'Rain' },
   { id: 'snow', categoria: 'tiempo', es: 'Nieve', ca: 'Neu', en: 'Snow' },
+  { id: 'ap-sumar', categoria: 'matematicas', es: 'Sumar', ca: 'Sumar', en: 'Add' },
+  { id: 'subtract', categoria: 'matematicas', es: 'Restar', ca: 'Restar', en: 'Subtract' },
+  { id: 'multiply', categoria: 'matematicas', es: 'Multiplicar', ca: 'Multiplicar', en: 'Multiply' },
+  { id: 'divide', categoria: 'matematicas', es: 'Dividir', ca: 'Dividir', en: 'Divide' },
+  { id: 'same', categoria: 'matematicas', es: 'Igual', ca: 'Igual', en: 'Equal' },
+  { id: 'count-2', categoria: 'matematicas', es: 'Números', ca: 'Nombres', en: 'Numbers' },
+  { id: 'counters', categoria: 'matematicas', es: 'Fichas para contar', ca: 'Fitxes per comptar', en: 'Counters' },
+  { id: 'half', categoria: 'matematicas', es: 'La mitad', ca: 'La meitat', en: 'Half' },
+  { id: 'money', categoria: 'matematicas', es: 'Dinero', ca: 'Diners', en: 'Money' },
+  { id: 'square', categoria: 'matematicas', es: 'Cuadrado', ca: 'Quadrat', en: 'Square' },
+  { id: 'rectangle', categoria: 'matematicas', es: 'Rectángulo', ca: 'Rectangle', en: 'Rectangle' },
+  { id: 'triangle-equilateral', categoria: 'matematicas', es: 'Triángulo', ca: 'Triangle', en: 'Triangle' },
+  { id: 'circle', categoria: 'matematicas', es: 'Círculo', ca: 'Cercle', en: 'Circle' },
+  { id: 'oval', categoria: 'matematicas', es: 'Óvalo', ca: 'Oval', en: 'Oval' },
+  { id: 'pyramid-square-base', categoria: 'matematicas', es: 'Pirámide', ca: 'Piràmide', en: 'Pyramid' },
+  { id: 'shapes', categoria: 'matematicas', es: 'Figuras', ca: 'Figures', en: 'Shapes' },
+  { id: 'measuring-jug', categoria: 'matematicas', es: 'Jarra medidora', ca: 'Gerra mesuradora', en: 'Measuring jug' },
+  { id: 'scales', categoria: 'matematicas', es: 'Báscula de cocina', ca: 'Bàscula de cuina', en: 'Kitchen scales' },
+  { id: 'scales-2', categoria: 'matematicas', es: 'Báscula', ca: 'Bàscula', en: 'Scales' },
+  { id: 'graph-column', categoria: 'matematicas', es: 'Gráfico de barras', ca: 'Gràfic de barres', en: 'Bar chart' },
+  { id: 'pie-chart', categoria: 'matematicas', es: 'Gráfico de sectores', ca: 'Gràfic de sectors', en: 'Pie chart' },
+  { id: 'long', categoria: 'matematicas', es: 'Largo', ca: 'Llarg', en: 'Long' },
+  { id: 'short', categoria: 'matematicas', es: 'Bajo', ca: 'Baix', en: 'Short' },
+  { id: 'heavy', categoria: 'matematicas', es: 'Pesado', ca: 'Pesant', en: 'Heavy' },
+  { id: 'full', categoria: 'matematicas', es: 'Lleno', ca: 'Ple', en: 'Full' },
+  { id: 'empty', categoria: 'matematicas', es: 'Vacío', ca: 'Buit', en: 'Empty' },
+  { id: 'minute', categoria: 'matematicas', es: 'Minuto', ca: 'Minut', en: 'Minute' },
+  { id: 'dog', categoria: 'naturaleza', es: 'Perro', ca: 'Gos', en: 'Dog' },
+  { id: 'cat', categoria: 'naturaleza', es: 'Gato', ca: 'Gat', en: 'Cat' },
+  { id: 'bird', categoria: 'naturaleza', es: 'Pájaro', ca: 'Ocell', en: 'Bird' },
+  { id: 'fish', categoria: 'naturaleza', es: 'Pez', ca: 'Peix', en: 'Fish' },
+  { id: 'horse', categoria: 'naturaleza', es: 'Caballo', ca: 'Cavall', en: 'Horse' },
+  { id: 'cow', categoria: 'naturaleza', es: 'Vaca', ca: 'Vaca', en: 'Cow' },
+  { id: 'piglet', categoria: 'naturaleza', es: 'Cerdo', ca: 'Porc', en: 'Pig' },
+  { id: 'sheep', categoria: 'naturaleza', es: 'Oveja', ca: 'Ovella', en: 'Sheep' },
+  { id: 'rabbit', categoria: 'naturaleza', es: 'Conejo', ca: 'Conill', en: 'Rabbit' },
+  { id: 'duck', categoria: 'naturaleza', es: 'Pato', ca: 'Ànec', en: 'Duck' },
+  { id: 'frog', categoria: 'naturaleza', es: 'Rana', ca: 'Granota', en: 'Frog' },
+  { id: 'butterfly', categoria: 'naturaleza', es: 'Mariposa', ca: 'Papallona', en: 'Butterfly' },
+  { id: 'bee-bumble', categoria: 'naturaleza', es: 'Abeja', ca: 'Abella', en: 'Bee' },
+  { id: 'lion', categoria: 'naturaleza', es: 'León', ca: 'Lleó', en: 'Lion' },
+  { id: 'elephant', categoria: 'naturaleza', es: 'Elefante', ca: 'Elefant', en: 'Elephant' },
+  { id: 'tree', categoria: 'naturaleza', es: 'Árbol', ca: 'Arbre', en: 'Tree' },
+  { id: 'flower', categoria: 'naturaleza', es: 'Flor', ca: 'Flor', en: 'Flower' },
+  { id: 'leaf', categoria: 'naturaleza', es: 'Hoja', ca: 'Fulla', en: 'Leaf' },
+  { id: 'plant', categoria: 'naturaleza', es: 'Planta', ca: 'Planta', en: 'Plant' },
+  { id: 'mountains', categoria: 'naturaleza', es: 'Montaña', ca: 'Muntanya', en: 'Mountain' },
+  { id: 'moon', categoria: 'naturaleza', es: 'Luna', ca: 'Lluna', en: 'Moon' },
+  { id: 'star', categoria: 'naturaleza', es: 'Estrella', ca: 'Estel', en: 'Star' },
+  { id: 'rainbow', categoria: 'naturaleza', es: 'Arcoíris', ca: 'Arc de Sant Martí', en: 'Rainbow' },
+  { id: 'head', categoria: 'cuerpo', es: 'Cabeza', ca: 'Cap', en: 'Head' },
+  { id: 'eyes', categoria: 'cuerpo', es: 'Ojos', ca: 'Ulls', en: 'Eyes' },
+  { id: 'ear', categoria: 'cuerpo', es: 'Oreja', ca: 'Orella', en: 'Ear' },
+  { id: 'mouth', categoria: 'cuerpo', es: 'Boca', ca: 'Boca', en: 'Mouth' },
+  { id: 'teeth', categoria: 'cuerpo', es: 'Dientes', ca: 'Dents', en: 'Teeth' },
+  { id: 'arm', categoria: 'cuerpo', es: 'Brazo', ca: 'Braç', en: 'Arm' },
+  { id: 'leg', categoria: 'cuerpo', es: 'Pierna', ca: 'Cama', en: 'Leg' },
+  { id: 'foot', categoria: 'cuerpo', es: 'Pie', ca: 'Peu', en: 'Foot' },
+  { id: 'finger', categoria: 'cuerpo', es: 'Dedo', ca: 'Dit', en: 'Finger' },
+  { id: 'train', categoria: 'transporte', es: 'Tren', ca: 'Tren', en: 'Train' },
+  { id: 'boat', categoria: 'transporte', es: 'Barco', ca: 'Vaixell', en: 'Boat' },
+  { id: 'bicycle', categoria: 'transporte', es: 'Bicicleta', ca: 'Bicicleta', en: 'Bicycle' },
 ];
 
 export { ATRIBUCION_MULBERRY } from './atribucionPictos';
 
+/** ¿Es de Mulberry? Los propios de AulaPro (`ap-`) no piden atribución. */
+export function esMulberry(id: string): boolean {
+  return !id.startsWith('ap-');
+}
+
 /** Dónde está el dibujo, relativo a la página (la app se carga con `base: './'`). */
 export function urlPicto(id: string): string {
-  return `${import.meta.env.BASE_URL}pictos/mulberry/${id}.svg`;
+  return esMulberry(id)
+    ? `${import.meta.env.BASE_URL}pictos/mulberry/${id}.svg`
+    : `${import.meta.env.BASE_URL}pictos/aulapro/${id.slice(3)}.svg`;
 }
 
 export function pictoDe(id: string): Picto | undefined {

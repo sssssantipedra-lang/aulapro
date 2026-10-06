@@ -5,9 +5,10 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ATRIBUCION_MULBERRY, buscarPictos, CATEGORIAS_PICTO, PICTOS } from './pictos';
+import { ATRIBUCION_MULBERRY, buscarPictos, CATEGORIAS_PICTO, esMulberry, PICTOS, urlPicto } from './pictos';
 
 const DIR = join(__dirname, '../../public/pictos/mulberry');
+const PROPIOS = join(__dirname, '../../public/pictos/aulapro');
 
 describe('pictogramas', () => {
   it('cada uno tiene su archivo, su categoría y su nombre en castellano, català e inglés', () => {
@@ -15,12 +16,18 @@ describe('pictogramas', () => {
     expect(new Set(PICTOS.map(p => p.id)).size).toBe(PICTOS.length);
     const cats = new Set(CATEGORIAS_PICTO.map(c => c.id));
     for (const p of PICTOS) {
-      expect(existsSync(join(DIR, `${p.id}.svg`)), p.id).toBe(true);
+      const archivo = esMulberry(p.id) ? join(DIR, `${p.id}.svg`) : join(PROPIOS, `${p.id.slice(3)}.svg`);
+      expect(existsSync(archivo), p.id).toBe(true);
+      expect(urlPicto(p.id).endsWith(archivo.split('/public/')[1]), p.id).toBe(true);
       expect(cats.has(p.categoria)).toBe(true);
       expect(p.es && p.ca && p.en, p.id).toBeTruthy();
     }
     // Hay motoras: silla de ruedas
     expect(PICTOS.some(p => p.id === 'wheelchair')).toBe(true);
+    // Y las consignas de ficha que Mulberry no tiene, dibujadas para AulaPro
+    for (const id of ['ap-rodear', 'ap-unir', 'ap-subrayar', 'ap-tachar']) {
+      expect(PICTOS.find(p => p.id === id)?.categoria, id).toBe('consignas');
+    }
   });
 
   it('la licencia va con ellos y la atribución es la que pide el autor', () => {

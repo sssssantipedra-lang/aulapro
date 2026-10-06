@@ -333,6 +333,20 @@ siguiente, y al final se abre el cofre; el código no se imprime, se ve en el
 editor) o «Tarjetas recortables» (pregunta delante y respuesta detrás, se
 recortan por la línea discontinua y se doblan por la mitad; incluyen cómo
 jugar).
+INSTRUCCIONES MUY VISUALES, CON PICTOGRAMAS: casilla del formulario, que se
+marca sola al elegir un alumno en «Adaptada a» y se puede desmarcar. La ficha
+sale con letra grande, la consigna general en un recuadro amarillo, tarjetas
+con dibujo en «Antes de empezar», y en cada bloque qué hay que hacer en orden,
+los pasos numerados con su pictograma («Lee», «Rodea», «Escribe»…) y un
+recuadro «Recuerda». Cada ejercicio lleva el pictograma de lo que se hace y,
+cuando ayuda, los dibujos que hay que contar o reconocer (en una tabla, uno por
+fila). La IA elige los pictogramas de la lista de la app y no se inventa
+ninguno; en el editor se cambia cada dibujo con un clic, se quitan, se añaden
+pasos y se cambia cuántas veces sale un dibujo. Una ficha ya hecha se convierte
+con «Adaptar» → «Versión visual». Salen igual en el PDF, en el Word y al
+proyectarla en Aula Live, con la atribución de Mulberry Symbols al pie. Los
+pictogramas también están en la Agenda visual, en «Consignas de ficha»,
+«Matemáticas», «Naturaleza», «El cuerpo» y «Transporte».
 AÑADIR: al final de cada bloque, «Añadir ejercicio con IA» (elige el tipo o
 deja que lo elija la IA); en las tarjetas, «4 tarjetas más con IA» o «Añadir
 tarjeta» a mano. En un escape room, revisa después el código del candado.

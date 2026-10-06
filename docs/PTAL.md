@@ -45,8 +45,14 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
   - «Copiar todas para el PAP» las copia como texto.
   - Las del trimestre llegan a la IA en los informes, y todas en la programación. «Quiénes estuvieron» no se envía, porque puede llevar nombres de personas adultas.
 - **Fichas adaptadas con IA**: en Recursos, «Adaptada a» un alumno de apoyo rellena su nivel y lo que se cuenta a la IA (sus necesidades específicas, cómo aprende y sus objetivos del trimestre). No se envían ni su nombre ni su diagnóstico, que para adaptar una ficha no hacen falta. Desde Programas, «Hacer una ficha adaptada con IA».
+- **Fichas con instrucciones muy visuales** (decisión del dueño, 6-10-2026, con dos fichas de ejemplo para un alumno con TEA de grado 2):
+  - Casilla «Instrucciones muy visuales, con pictogramas» al crear la ficha; se marca sola con un alumno en «Adaptada a». En una ficha hecha, «Adaptar» → «Versión visual». Una ficha visual sigue siéndolo en sus versiones de apoyo o lectura fácil.
+  - Lo que lleva: letra grande, la consigna general en un recuadro amarillo, tarjetas con dibujo en la explicación y, en cada bloque, qué hay que hacer en una frase, de 2 a 4 pasos numerados con pictograma, verbo y detalle, y un recuadro «Recuerda». Cada ejercicio, el pictograma de su acción y, solo si ayuda, los dibujos que hay que contar o reconocer (intercalados, como en una ficha de recuento) o uno por fila de tabla.
+  - La IA elige de dos listas cerradas (`src/lib/pictosFicha.ts`): consignas y dibujos. Lo que no está en el catálogo se cambia por el pictograma de su verbo o se quita. Se le pide que un dibujo sea exactamente lo que nombra (un gato no es un tigre).
+  - Todo se edita a mano en el editor (`src/components/fichas/VisualEditor.tsx`) y sale igual en la vista previa, el PDF, el Word (los pictogramas, pasados a PNG) y Aula Live, con la atribución de Mulberry al pie cuando sale alguno suyo.
+  - No llega a la IA nada nuevo del alumno: lo visual sale del catálogo de la app.
 - **Agenda visual** (`src/pages/apoyo/AgendaVisualApoyo.tsx`):
-  - Pictogramas: 242 de Mulberry Symbols (CC BY-SA 4.0), en `public/pictos/mulberry/` con su licencia, por categorías y con buscador, y con su nombre en castellano, català e inglés.
+  - Pictogramas: 323 de Mulberry Symbols (CC BY-SA 4.0), en `public/pictos/mulberry/` con su licencia, por categorías y con buscador, y con su nombre en castellano, català e inglés. Y 14 dibujados para AulaPro (`ap-`, en `public/pictos/aulapro/`, fuente en `scripts/pictos/propios/`) para las consignas de ficha que Mulberry no tiene: rodear, unir, subrayar, tachar, marcar, completar, ordenar, elegir, verdadero o falso, buscar palabras, palotes, tabla, regla y sumar. Esos no piden atribución.
   - Fotos del propio docente, reducidas a 480 px y guardadas en el perfil.
   - Se muestra a pantalla completa, tachando cada paso, y se guarda en PDF para imprimir y recortar.
   - La atribución va en Configuración (pie de la cuadrícula) y al pie del PDF si lleva algún pictograma.

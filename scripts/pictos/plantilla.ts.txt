@@ -1,11 +1,15 @@
 /**
- * Pictogramas de la agenda visual de PT y AL: una selección de Mulberry
- * Symbols, de Steve Lee, con licencia Creative Commons
+ * Pictogramas de la agenda visual de PT y AL y de las fichas con apoyos
+ * visuales: una selección de Mulberry Symbols, de Steve Lee, con licencia
+ * Creative Commons
  * Reconocimiento-CompartirIgual 4.0 (CC BY-SA 4.0), que permite el uso
  * comercial. Van dentro de la aplicación, en `public/pictos/mulberry/`, sin
  * modificar (solo optimizados con svgo), con su licencia al lado: funcionan
  * sin conexión y no se envía nada. La atribución tiene que verse en
- * Configuración y al pie de cada agenda impresa (`ATRIBUCION_MULBERRY`).
+ * Configuración y al pie de cada agenda o ficha impresa que los lleve
+ * (`ATRIBUCION_MULBERRY`). Los que empiezan por `ap-` son dibujos propios de
+ * AulaPro para las consignas de ficha que Mulberry no tiene (rodear, unir,
+ * subrayar…), en `public/pictos/aulapro/`: no piden atribución.
  * ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el
  * uso comercial. Ver `docs/PTAL.md`.
  *
@@ -29,9 +33,16 @@ export const PICTOS: readonly Picto[] = [
 
 export { ATRIBUCION_MULBERRY } from './atribucionPictos';
 
+/** ¿Es de Mulberry? Los propios de AulaPro (`ap-`) no piden atribución. */
+export function esMulberry(id: string): boolean {
+  return !id.startsWith('ap-');
+}
+
 /** Dónde está el dibujo, relativo a la página (la app se carga con `base: './'`). */
 export function urlPicto(id: string): string {
-  return `${import.meta.env.BASE_URL}pictos/mulberry/${id}.svg`;
+  return esMulberry(id)
+    ? `${import.meta.env.BASE_URL}pictos/mulberry/${id}.svg`
+    : `${import.meta.env.BASE_URL}pictos/aulapro/${id.slice(3)}.svg`;
 }
 
 export function pictoDe(id: string): Picto | undefined {

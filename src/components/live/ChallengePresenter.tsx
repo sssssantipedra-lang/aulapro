@@ -22,6 +22,8 @@ import { cleanCode, shuffleApart } from '../../services/resources';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { ThemeArt } from '../fichas/ThemeArt';
 import { buildFigureSvg } from '../../lib/geometryFigures';
+import { urlPicto } from '../../lib/pictos';
+import { dibujosEnOrden } from '../../lib/pictosFicha';
 import { useI18n } from '../../i18n';
 
 const TIME_OPTIONS = [0, 10, 15, 20, 30, 45];
@@ -55,7 +57,15 @@ function ProjExercise({ ex, n, showSol, color, t }: {
   const letra = (i: number) => String.fromCharCode(97 + i);
   return (
     <div className="cp-ex">
-      <div className="cp-ex-q"><span className="cp-ex-n" style={{ background: color }}>{n}</span>{ex.enunciado}</div>
+      <div className="cp-ex-q">
+        <span className="cp-ex-n" style={{ background: color }}>{n}</span>
+        {ex.consigna && <img className="cp-consigna" src={urlPicto(ex.consigna)} alt="" />}
+        {ex.enunciado}
+      </div>
+      {/* Ficha con apoyos visuales: lo que hay que contar o reconocer, en grande */}
+      {!!ex.imagenes?.length && (
+        <div className="cp-dibujos">{dibujosEnOrden(ex.imagenes).map((id, i) => <img key={i} src={urlPicto(id)} alt="" />)}</div>
+      )}
       {ex.figura && (
         <div className="cp-fig" dangerouslySetInnerHTML={{ __html: buildFigureSvg(ex.figura.forma, ex.figura.medidas, color) }} />
       )}

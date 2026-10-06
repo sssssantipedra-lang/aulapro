@@ -29,6 +29,7 @@ import { buildWordSearchGrid, type WordSearchPlacement } from '../lib/wordSearch
 import { FIGURE_SHAPES, FIGURE_SLOTS, FIGURE_LABEL, type Figure } from '../lib/geometryFigures';
 import { buildCrossword, type Crossword } from '../lib/crossword';
 import { fichaTheme, cleanEmoji, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
+import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido } from '../lib/pictosFicha';
 
 /* ── Lo que devuelve la IA ── */
 
@@ -87,6 +88,16 @@ export interface FichaExercise {
    * `lib/geometryFigures.ts`, no la IA — ver esa cabecera.
    */
   figura?: Figure;
+  /**
+   * Fichas con apoyos visuales: el pictograma de la acción principal («Lee»,
+   * «Rodea», «Escribe»), que se pinta delante del enunciado. Un identificador
+   * de `pictos.ts`, elegido por la IA de una lista cerrada (`lib/pictosFicha.ts`).
+   */
+  consigna?: string;
+  /** Fichas con apoyos visuales: dibujos del contenido, cada uno repetido `cantidad` veces (para contar). */
+  imagenes?: ImagenEjercicio[];
+  /** Solo 'tabla_rellenar' con apoyos visuales: un pictograma por fila ('' = ninguno), en una columna delante. */
+  pictosFilas?: string[];
   /** Para el profesorado — nunca se muestra en la ficha exportada. */
   solucion: string;
   /** Variante simplificada del mismo ejercicio. Solo si se pidieron niveles. */
@@ -95,10 +106,42 @@ export interface FichaExercise {
   ampliacion?: string;
 }
 
+/** Un dibujo dentro de un ejercicio: un pictograma, repetido `cantidad` veces si hay que contarlo. */
+export interface ImagenEjercicio {
+  picto: string;
+  cantidad?: number;
+}
+
+/** Un paso de la consigna de un bloque: «Lee» (verbo) + «cada enunciado» (detalle), con su pictograma. */
+export interface PasoVisual {
+  picto: string;
+  verbo: string;
+  detalle: string;
+}
+
+/** Una línea del recuadro «Recuerda» de un bloque, con su dibujo si lo hay. */
+export interface RecuerdaVisual {
+  picto?: string;
+  texto: string;
+}
+
+/** Una tarjeta de la explicación: un dibujo, su nombre y una frase. */
+export interface ConceptoVisual {
+  picto: string;
+  titulo: string;
+  texto: string;
+}
+
 /** Un bloque con título propio (p. ej. "Escribe como potencia") y sus ejercicios. */
 export interface FichaActivity {
   titulo: string;
   ejercicios: FichaExercise[];
+  /** Con apoyos visuales: qué hay que hacer en el bloque, en una frase y en orden. */
+  indicacion?: string;
+  /** Con apoyos visuales: de 2 a 4 pasos numerados, cada uno con su pictograma. */
+  pasos?: PasoVisual[];
+  /** Con apoyos visuales: lo que hay que recordar para hacerlo, en frases cortas con dibujo. */
+  recuerda?: RecuerdaVisual[];
   /** Solo con historia: emoji de la misión y una frase que la une al relato. */
   emoji?: string;
   narrativa?: string;
@@ -126,7 +169,7 @@ export interface FichaTarjeta {
 export type FichaFormato = 'ficha' | 'escape' | 'tarjetas';
 
 /** Versión adaptada de otra ficha. Sin ella, es la versión estándar. */
-export type FichaVariante = 'apoyo' | 'ampliacion' | 'lectura_facil';
+export type FichaVariante = 'apoyo' | 'ampliacion' | 'lectura_facil' | 'visual';
 
 /** El hilo narrativo que envuelve la ficha: quién habla, qué hay que conseguir y el premio. */
 export interface FichaHistoria {
@@ -155,6 +198,15 @@ export interface FichaContent {
   /** Solo en 'tarjetas'. */
   tarjetas?: FichaTarjeta[];
   variante?: FichaVariante;
+  /**
+   * Con apoyos visuales: cada bloque lleva sus pasos con pictogramas, los
+   * ejercicios su consigna dibujada y la explicación sus tarjetas. Pensado
+   * para el alumnado que necesita las instrucciones muy visuales (TEA,
+   * dificultades de comprensión…). Ver `lib/pictosFicha.ts`.
+   */
+  visual?: boolean;
+  /** Con apoyos visuales: las tarjetas de la explicación. */
+  conceptos?: ConceptoVisual[];
 }
 
 /* ── Lo que pide el docente ── */
@@ -170,6 +222,8 @@ export interface FichaRequest {
   /** 'auto': la IA elige el tema que mejor encaja; 'clasico': sin historia. */
   estilo?: FichaThemeChoice;
   formato?: FichaFormato;
+  /** Instrucciones muy visuales, con pasos y pictogramas (no en tarjetas). */
+  visual?: boolean;
 }
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
@@ -247,8 +301,50 @@ const FIGURA_FORMAS_DOC = FIGURE_SHAPES
  * campo al valor de otro, así que se explica en la descripción cuándo usar
  * cada uno y se confía en que la IA solo rellene los que le tocan.
  */
-function fichaExerciseSchema(niveles: boolean) {
-  const base = ['tipo', 'enunciado', 'solucion'] as const;
+const IMAGEN_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    picto: S('Identificador de un dibujo de la lista DIBUJOS, exactamente como está escrito'),
+    cantidad: { type: 'INTEGER', description: 'Cuántas veces se dibuja, de 1 a 10: las que hay que contar, o 1 si solo se muestra' },
+  },
+  required: ['picto', 'cantidad'],
+  propertyOrdering: ['picto', 'cantidad'],
+} as const;
+
+const PASO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    picto: S('Identificador del pictograma de la acción, de la lista CONSIGNAS, exactamente como está escrito'),
+    verbo: S('El verbo en imperativo, UNA palabra: "Lee", "Rodea", "Escribe", "Cuenta"'),
+    detalle: S('Qué, en 2 a 6 palabras: "cada enunciado", "la unidad que corresponde"'),
+  },
+  required: ['picto', 'verbo', 'detalle'],
+  propertyOrdering: ['picto', 'verbo', 'detalle'],
+} as const;
+
+const RECUERDA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    picto: S('Identificador de un dibujo de la lista DIBUJOS que lo represente, o "" si no hay ninguno que encaje'),
+    texto: S('Una frase muy corta con algo que hay que saber para hacer el bloque, ej. "El agua se mide en litros (l)"'),
+  },
+  required: ['picto', 'texto'],
+  propertyOrdering: ['picto', 'texto'],
+} as const;
+
+const CONCEPTO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    picto: S('Identificador de un dibujo de la lista DIBUJOS que represente el concepto'),
+    titulo: S('El concepto en 1 a 4 palabras, ej. "Longitud (largo)"'),
+    texto: S('Qué es, en UNA frase corta y concreta, ej. "Mide lo largo que es algo. Usamos centímetros (cm)."'),
+  },
+  required: ['picto', 'titulo', 'texto'],
+  propertyOrdering: ['picto', 'titulo', 'texto'],
+} as const;
+
+function fichaExerciseSchema(niveles: boolean, visual = false) {
+  const base = ['tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'solucion'] as const;
   return {
     type: 'OBJECT',
     properties: {
@@ -263,6 +359,17 @@ function fichaExerciseSchema(niveles: boolean) {
           '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado',
       },
       enunciado: S('El texto del ejercicio o la pregunta, autocontenido'),
+      ...(visual ? {
+        consigna: S('Identificador del pictograma de la acción principal del ejercicio, de la lista CONSIGNAS'),
+        pictosFilas: {
+          type: 'ARRAY', items: { type: 'STRING' },
+          description: 'Solo si tipo es "tabla_rellenar": un identificador de DIBUJOS por fila, en el orden de "filas", o "" en la fila que no sea algo que se pueda dibujar',
+        },
+        imagenes: {
+          type: 'ARRAY', items: IMAGEN_SCHEMA,
+          description: 'Solo si un dibujo ayuda a entender o a hacer el ejercicio (contar objetos, reconocerlos, compararlos): de 1 a 4 dibujos distintos. Nunca de adorno.',
+        },
+      } : {}),
       opciones: {
         type: 'ARRAY', items: { type: 'STRING' },
         description: 'Solo si tipo es "opcion_multiple": de 3 a 5 opciones',
@@ -342,9 +449,9 @@ function fichaExerciseSchema(niveles: boolean) {
     },
     required: niveles ? [...base, 'apoyo', 'ampliacion'] : [...base],
     propertyOrdering: [
-      'tipo', 'enunciado', 'opciones', 'columnas', 'filas', 'izquierda', 'derecha',
-      'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
-      'figura', 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
+      'tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'opciones', 'columnas', 'filas', ...(visual ? ['pictosFilas'] : []),
+      'izquierda', 'derecha', 'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
+      'figura', ...(visual ? ['imagenes'] : []), 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
     ],
   } as const;
 }
@@ -357,6 +464,8 @@ interface SchemaOpts {
   /** Que la IA elija el tema visual. */
   elegirEstilo: boolean;
   formato: FichaFormato;
+  /** Apoyos visuales: pasos con pictogramas, consignas dibujadas y tarjetas de concepto. */
+  visual?: boolean;
 }
 
 const CANDADO_SCHEMA = {
@@ -375,13 +484,19 @@ function fichaActivitySchema(o: SchemaOpts) {
     narrativa: S('Una frase que conecta este bloque con la historia, ej. "El motor de la nave se ha roto: resuelve estas potencias para repararlo"'),
   } : {};
   const escape = o.formato === 'escape';
-  const tail = ['ejercicios', ...(escape ? ['candado'] : [])];
+  const vis = o.visual ? ['indicacion', 'pasos', 'recuerda'] : [];
+  const tail = [...vis, 'ejercicios', ...(escape ? ['candado'] : [])];
   return {
     type: 'OBJECT',
     properties: {
       titulo: S('Título breve del bloque de actividad, ej. "Escribe como potencia"'),
       ...story,
-      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles) },
+      ...(o.visual ? {
+        indicacion: S('Qué hay que hacer en este bloque, en UNA frase corta y en orden, ej. "Primero, lee. Luego, rodea la unidad. Por último, escribe la respuesta."'),
+        pasos: { type: 'ARRAY', items: PASO_SCHEMA, description: 'De 2 a 4 pasos, en el orden en que se hacen' },
+        recuerda: { type: 'ARRAY', items: RECUERDA_SCHEMA, description: 'De 0 a 3 cosas que hay que recordar para hacer el bloque' },
+      } : {}),
+      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual) },
       ...(escape ? { candado: CANDADO_SCHEMA } : {}),
     },
     required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
@@ -445,14 +560,17 @@ function fichaSchema(o: SchemaOpts) {
         'Repaso breve (3-5 frases) del concepto antes de los ejercicios: qué es, por qué sirve, ' +
         'y a ser posible un ejemplo resuelto sencillo. Se muestra destacado, antes de las instrucciones.',
       ),
+      ...(o.visual ? {
+        conceptos: { type: 'ARRAY', items: CONCEPTO_SCHEMA, description: 'De 2 a 4 tarjetas que explican el concepto, cada una con su dibujo' },
+      } : {}),
       instrucciones: S('Instrucciones generales para el alumnado, dos o tres frases'),
       actividades: {
         type: 'ARRAY', items: fichaActivitySchema(o),
         description: 'De 2 a 4 bloques de actividad, cada uno con su título y sus propios ejercicios',
       },
     },
-    required: [...head, 'explicacion', 'instrucciones', 'actividades'],
-    propertyOrdering: [...head, 'explicacion', 'instrucciones', 'actividades'],
+    required: [...head, 'explicacion', ...(o.visual ? ['conceptos'] : []), 'instrucciones', 'actividades'],
+    propertyOrdering: [...head, 'explicacion', ...(o.visual ? ['conceptos'] : []), 'instrucciones', 'actividades'],
   } as const;
 }
 
@@ -485,6 +603,42 @@ const ESCAPE_PROMPT =
   `múltiple, ordenar, completar) para que el código sea inequívoco; evita "abierta" y "comic" en este ` +
   `formato. La historia explica por qué hay que escapar o qué se desbloquea al final.\n`;
 
+/**
+ * La parte del prompt de las fichas con apoyos visuales (alumnado con TEA,
+ * con dificultades de comprensión…): pasos numerados con pictogramas, una
+ * consigna dibujada por ejercicio, dibujos del contenido y tarjetas en la
+ * explicación. Los pictogramas salen de una lista cerrada; la IA no dibuja.
+ */
+function visualPrompt(): string {
+  return (
+    `APOYOS VISUALES: esta ficha es para alumnado que necesita las instrucciones MUY visuales (por ejemplo, ` +
+    `alumnado con TEA o con dificultades de comprensión). Además de lo anterior:\n` +
+    `- Enunciados cortos, una sola tarea por enunciado, vocabulario concreto y frecuente, sin dobles negaciones ` +
+    `ni frases hechas. Mejor varios ejercicios cortos que uno largo.\n` +
+    `- En la ficha, "conceptos": de 2 a 4 tarjetas que explican el concepto, cada una con un dibujo ("picto"), ` +
+    `su nombre ("titulo") y una frase ("texto").\n` +
+    `- En cada bloque, "indicacion": qué hay que hacer, en una frase y en orden ("Primero, lee. Luego, rodea…"); ` +
+    `y "pasos": de 2 a 4 pasos en el orden en que se hacen, cada uno con el pictograma de la acción ("picto", de ` +
+    `CONSIGNAS), el verbo en imperativo en una palabra ("verbo") y qué, en pocas palabras ("detalle"). Los pasos ` +
+    `tienen que ser los que de verdad hay que hacer en los ejercicios de ese bloque.\n` +
+    `- En cada bloque, "recuerda": de 0 a 3 frases muy cortas con lo que hay que saber para hacerlo, cada una con ` +
+    `un dibujo de DIBUJOS solo si representa de verdad lo que dice la frase ("" si no hay ninguno así).\n` +
+    `- En cada ejercicio, "consigna": el pictograma de su acción principal (de CONSIGNAS).\n` +
+    `- "imagenes", solo cuando un dibujo ayude a entender o a hacer el ejercicio: los objetos que hay que contar ` +
+    `(con su "cantidad", que tiene que coincidir con el enunciado y la solución), reconocer o comparar. Si el ` +
+    `ejercicio se refiere a lo que se ve en los dibujos, dilo en el enunciado ("Cuenta las manzanas que ves"). ` +
+    `No pongas dibujos de adorno.\n` +
+    `- En "tabla_rellenar", "pictosFilas": un dibujo por fila cuando cada fila sea algo que se pueda dibujar.\n` +
+    `- Un dibujo tiene que ser EXACTAMENTE lo que nombra: si en DIBUJOS no está esa cosa, no pongas uno parecido ` +
+    `(un gato no es un tigre, una vaca no es un toro): deja "" o no pongas dibujo. Un dibujo equivocado confunde ` +
+    `más que ninguno. Y nunca un dibujo que dé la respuesta (en «¿cuál de estos es un ave?», no dibujes un pájaro).\n` +
+    `- Usa SOLO identificadores de estas dos listas, escritos exactamente igual (el nombre entre paréntesis es ` +
+    `para que sepas qué es cada uno; no lo copies):\n` +
+    `CONSIGNAS: ${listaParaIA(CONSIGNAS_FICHA)}\n` +
+    `DIBUJOS: ${listaParaIA(DIBUJOS_FICHA)}\n`
+  );
+}
+
 /** Prompt de sistema del formato «tarjetas recortables». */
 function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
   return (
@@ -500,7 +654,9 @@ function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
   );
 }
 
-function systemPrompt(niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha'): string {
+function systemPrompt(
+  niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
+): string {
   if (formato === 'tarjetas') return tarjetasSystemPrompt(lang, estilo);
   return (
     `Eres un experto en didáctica y creación de materiales educativos. Tu tarea exclusiva es ` +
@@ -562,6 +718,7 @@ function systemPrompt(niveles: boolean, lang: Lang, estilo: FichaThemeChoice = '
     `de texto que la IA no ha visto.\n` +
     (estilo !== 'clasico' ? storyPrompt(estilo) : '') +
     (formato === 'escape' ? ESCAPE_PROMPT : '') +
+    (visual ? visualPrompt() : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -601,9 +758,62 @@ function cleanMathNotation(text: string): string {
     .replace(/([A-Za-z0-9)])\s?\^(-?\d+)/g, (_m, base: string, exp: string) => base + toSuperscript(exp));
 }
 
-function cleanExercise(ex: FichaExercise): FichaExercise {
+/** Hasta 10 de cada dibujo: más no se cuentan bien en una ficha. */
+const MAX_CANTIDAD = 10;
+
+/**
+ * Lo visual de un ejercicio, comprobado: solo pictogramas del catálogo, la
+ * cantidad entre 1 y 10 y una fila de tabla por pictograma. Sin apoyos
+ * visuales, el ejercicio se queda sin estos campos.
+ */
+function cleanVisualExercise(ex: FichaExercise, visual: boolean): Pick<FichaExercise, 'consigna' | 'imagenes' | 'pictosFilas'> {
+  if (!visual) return { consigna: undefined, imagenes: undefined, pictosFilas: undefined };
+  const imagenes = (ex.imagenes ?? [])
+    .map(im => ({ picto: pictoValido(im?.picto), cantidad: Math.max(1, Math.min(MAX_CANTIDAD, Math.round(Number(im?.cantidad) || 1))) }))
+    .filter((im): im is { picto: string; cantidad: number } => !!im.picto)
+    .slice(0, 4);
+  const filas = ex.tipo === 'tabla_rellenar' ? ex.filas?.length ?? 0 : 0;
+  const pictosFilas = filas && ex.pictosFilas?.some(pictoValido)
+    ? Array.from({ length: filas }, (_, i) => pictoValido(ex.pictosFilas?.[i]) ?? '')
+    : undefined;
+  return { consigna: pictoValido(ex.consigna), imagenes: imagenes.length ? imagenes : undefined, pictosFilas };
+}
+
+/** Los pasos de un bloque: el pictograma, del catálogo o el de su verbo; sin verbo, el paso no vale. */
+export function cleanPasos(pasos: PasoVisual[] | undefined): PasoVisual[] | undefined {
+  const out = (pasos ?? [])
+    .map(p => ({ verbo: (p?.verbo ?? '').trim(), detalle: cleanMathNotation((p?.detalle ?? '').trim()), picto: p?.picto }))
+    .filter(p => p.verbo)
+    .map(p => ({ ...p, picto: pictoValido(p.picto) ?? pictoDeVerbo(p.verbo) ?? '' }))
+    .slice(0, 5);
+  return out.length ? out : undefined;
+}
+
+function cleanVisualActivity(act: FichaActivity, visual: boolean): Pick<FichaActivity, 'indicacion' | 'pasos' | 'recuerda'> {
+  if (!visual) return {};
+  const recuerda = (act.recuerda ?? [])
+    .filter(r => r?.texto?.trim())
+    .map(r => ({ texto: cleanMathNotation(r.texto.trim()), ...(pictoValido(r.picto) ? { picto: pictoValido(r.picto) } : {}) }))
+    .slice(0, 4);
+  return {
+    indicacion: cleanMathNotation((act.indicacion ?? '').trim()) || undefined,
+    pasos: cleanPasos(act.pasos),
+    recuerda: recuerda.length ? recuerda : undefined,
+  };
+}
+
+function cleanConceptos(c: ConceptoVisual[] | undefined): ConceptoVisual[] | undefined {
+  const out = (c ?? [])
+    .filter(x => x?.titulo?.trim() || x?.texto?.trim())
+    .map(x => ({ picto: pictoValido(x.picto) ?? '', titulo: cleanMathNotation((x.titulo ?? '').trim()), texto: cleanMathNotation((x.texto ?? '').trim()) }))
+    .slice(0, 4);
+  return out.length ? out : undefined;
+}
+
+function cleanExercise(ex: FichaExercise, visual = false): FichaExercise {
   return {
     ...ex,
+    ...cleanVisualExercise(ex, visual),
     enunciado: cleanMathNotation(ex.enunciado),
     opciones: ex.opciones?.map(cleanMathNotation),
     columnas: ex.columnas?.map(cleanMathNotation),
@@ -677,7 +887,9 @@ export function cleanCode(raw: string): string {
   return (raw ?? '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9Ñ]/g, '').slice(0, 8);
 }
 
-function cleanFichaContent(c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha'): FichaContent {
+function cleanFichaContent(
+  c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
+): FichaContent {
   const finalEstilo: FichaThemeId = estilo === 'auto'
     ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
     : estilo;
@@ -698,13 +910,15 @@ function cleanFichaContent(c: FichaContent, estilo: FichaThemeChoice = 'clasico'
     titulo: cleanMathNotation(c.titulo),
     explicacion: cleanMathNotation(c.explicacion ?? ''),
     instrucciones: cleanMathNotation(c.instrucciones ?? ''),
+    ...(visual ? { visual: true, conceptos: cleanConceptos(c.conceptos) } : { visual: undefined, conceptos: undefined }),
     actividades: (c.actividades ?? []).map((act, i) => ({
       titulo: cleanMathNotation(act.titulo),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
         narrativa: cleanMathNotation(act.narrativa ?? ''),
       } : {}),
-      ejercicios: (act.ejercicios ?? []).map(cleanExercise).map(prepareExercise),
+      ...cleanVisualActivity(act, visual),
+      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual)).map(prepareExercise),
       ...(formato === 'escape' && act.candado ? {
         candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
       } : {}),
@@ -721,14 +935,17 @@ type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: strin
 
 async function callFichaText(
   system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, formato: FichaFormato, onError?: (m: string) => void,
+  visual = false,
 ): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
-    maxOutputTokens: 16384,
+    // Con apoyos visuales la respuesta lleva además pasos, dibujos y tarjetas
+    maxOutputTokens: visual ? 24576 : 16384,
     responseSchema: fichaSchema({
       niveles: niveles && formato !== 'tarjetas',
       historia: estilo !== 'clasico' && formato !== 'tarjetas',
       elegirEstilo: estilo === 'auto',
       formato,
+      visual,
     }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
@@ -740,7 +957,7 @@ async function callFichaText(
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato);
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual);
 }
 
 /** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
@@ -788,6 +1005,7 @@ export async function generateFicha(
   try {
     const formato = req.formato ?? 'ficha';
     const estilo = effectiveEstilo(req.estilo, formato);
+    const visual = !!req.visual && formato !== 'tarjetas';
     const userPrompt =
       `Tema: ${req.tema}\n` +
       `Área o asignatura: ${req.area || '(no indicada)'}\n` +
@@ -795,7 +1013,9 @@ export async function generateFicha(
       (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
       `\n${askFor(formato, req.numEjercicios, 'sobre este tema')}\n\n${numberVarietyHint()}`;
 
-    return await callFichaText(systemPrompt(req.niveles, lang, estilo, formato), userPrompt, req.niveles, estilo, formato, callbacks.onError);
+    return await callFichaText(
+      systemPrompt(req.niveles, lang, estilo, formato, visual), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual,
+    );
   } finally {
     callbacks.onEnd?.();
   }
@@ -869,16 +1089,17 @@ export async function regenerateExercise(
       `Rehaz SOLO este ejercicio. Indicación del docente: ${opts.instruccion || 'haz una versión distinta'}.\n` +
       (opts.tipo ? `El nuevo ejercicio debe ser de tipo "${opts.tipo}".\n` : 'Mantén el mismo tipo salvo que la indicación pida otro.\n') +
       `Debe seguir encajando en la ficha y en su historia.\n\n${numberVarietyHint()}`;
-    const raw = await callGemini(systemPrompt(niveles, lang), userPrompt, [], { onError: callbacks.onError }, {
+    const visual = !!content.visual;
+    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles),
+      responseSchema: fichaExerciseSchema(niveles, visual),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed));
+    return prepareExercise(cleanExercise(parsed, visual));
   } finally {
     callbacks.onEnd?.();
   }
@@ -964,6 +1185,11 @@ const VARIANTE_PROMPT: Record<FichaVariante, string> = {
     `ironías ni dobles negaciones, instrucciones paso a paso y numeradas, y las palabras difíciles ` +
     `explicadas entre paréntesis la primera vez. El contenido académico y el número de ejercicios son los ` +
     `mismos; solo cambia cómo está escrito.`,
+  visual:
+    `Crea la versión CON APOYOS VISUALES de esta ficha (ver APOYOS VISUALES): mismo tema, mismos bloques, ` +
+    `mismos tipos de ejercicio y el mismo número de ejercicios, con los mismos contenidos. Añade los pasos con ` +
+    `pictogramas, la consigna dibujada de cada ejercicio, los dibujos donde ayuden y las tarjetas de la ` +
+    `explicación, y acorta y simplifica los enunciados que lo necesiten sin cambiar lo que se trabaja.`,
 };
 
 /**
@@ -984,6 +1210,8 @@ export async function adaptFicha(
       actividades: content.actividades.map(a => ({ ...a, ejercicios: a.ejercicios.map(exerciseForPrompt) })),
       estilo: undefined, variante: undefined,
     };
+    // Una ficha visual sigue siéndolo en sus otras versiones
+    const visual = (variante === 'visual' || !!content.visual) && formato !== 'tarjetas';
     const userPrompt =
       `Tema: ${req.tema}\n` +
       `Área o asignatura: ${req.area || '(no indicada)'}\n` +
@@ -992,16 +1220,16 @@ export async function adaptFicha(
       `${VARIANTE_PROMPT[variante]}\n` +
       (historia ? 'Mantén la misma historia y el mismo personaje, adaptando sus textos al mismo criterio.\n' : '') +
       (formato === 'escape' ? 'Recalcula el código de cada candado para que salga de las nuevas respuestas.\n' : '');
-    const raw = await callGemini(systemPrompt(false, lang, historia ? estilo : 'clasico', formato), userPrompt, [], { onError: callbacks.onError }, {
-      maxOutputTokens: 16384,
-      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato }),
+    const raw = await callGemini(systemPrompt(false, lang, historia ? estilo : 'clasico', formato, visual), userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: visual ? 24576 : 16384,
+      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual }),
       thinkingLevel: 'medium',
       temperature: 0.9,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaContent>(raw);
     if (!parsed) return null;
-    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, historia ? estilo : 'clasico', formato);
+    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, historia ? estilo : 'clasico', formato, visual);
     return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();
@@ -1035,16 +1263,17 @@ export async function addExercise(
       (opts.instruccion ? `Indicación del docente: ${opts.instruccion}\n` : '') +
       (formato === 'escape' ? 'Es un escape room: el ejercicio debe tener una respuesta corta y única.\n' : '') +
       `\n${numberVarietyHint()}`;
-    const raw = await callGemini(systemPrompt(niveles, lang), userPrompt, [], { onError: callbacks.onError }, {
+    const visual = !!content.visual;
+    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles),
+      responseSchema: fichaExerciseSchema(niveles, visual),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed));
+    return prepareExercise(cleanExercise(parsed, visual));
   } finally {
     callbacks.onEnd?.();
   }

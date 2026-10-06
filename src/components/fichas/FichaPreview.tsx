@@ -9,7 +9,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ficha } from '../../types';
-import { buildFichaHtml } from '../../services/exportFicha';
+import { buildFichaHtml, cargarPictos, pictosDeFicha } from '../../services/exportFicha';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { useThemeArt } from '../../lib/themeArtDoc';
 import type { Lang } from '../../i18n';
@@ -33,7 +33,15 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
   useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
 
   const art = useThemeArt(fichaTheme(ficha.content.estilo).id);
-  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art }), [ficha, lang, art]);
+  // Con apoyos visuales, sus pictogramas: se cargan al cambiar cuáles son, no a cada tecla
+  const ids = pictosDeFicha(ficha.content).join(' ');
+  const [pictos, setPictos] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let vivo = true;
+    if (ids) cargarPictos(ids.split(' ')).then(p => { if (vivo) setPictos(p); });
+    return () => { vivo = false; };
+  }, [ids]);
+  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos }), [ficha, lang, art, pictos]);
 
   // Escala al ancho disponible
   useEffect(() => {
