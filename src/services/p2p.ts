@@ -1,4 +1,7 @@
-import Peer, { type DataConnection } from 'peerjs';
+// Solo los tipos: el código de PeerJS (unos 80 KB con WebRTC) se carga al
+// conectar de verdad (`open`), no al abrir la aplicación.
+import type Peer from 'peerjs';
+import type { DataConnection } from 'peerjs';
 
 /**
  * Conexión entre dos equipos mediante un código corto.
@@ -136,9 +139,10 @@ export class PeerLink {
   }
 
   /** Crea un `Peer` con el id indicado y espera a que quede registrado. */
-  private static open(id: string | undefined): Promise<Peer> {
+  private static async open(id: string | undefined): Promise<Peer> {
+    const { default: PeerJS } = await import('peerjs');
     return new Promise((resolve, reject) => {
-      const peer = id ? new Peer(id, { debug: 0 }) : new Peer({ debug: 0 });
+      const peer = id ? new PeerJS(id, { debug: 0 }) : new PeerJS({ debug: 0 });
       const timer = setTimeout(() => {
         try { peer.destroy(); } catch { /* noop */ }
         reject(new Error('timeout'));

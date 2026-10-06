@@ -3,7 +3,7 @@ import { useI18n } from '../i18n';
 import {
   citarNormas, comunidadesOrdenadas, comunidadPorId, normasDe, NORMAS_ESTATALES, type ComunidadId,
 } from '../lib/curriculum/comunidades';
-import { etapasConCurriculoPropio } from '../lib/curriculum/cargar';
+import { etapasConCurriculoPropio } from '../lib/curriculum/propios';
 import type { Etapa } from '../lib/curriculum/index';
 
 interface Props {

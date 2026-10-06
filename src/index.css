@@ -190,8 +190,12 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .student-av { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--accent-d),var(--accent)); color:white; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 /* ─── MODAL ─── */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; opacity:0; pointer-events:none; transition:opacity var(--t); }
-.modal-overlay.open { opacity:1; pointer-events:auto; }
+/* El desenfoque solo mientras la ventana está abierta, y durante el fundido de
+   cierre (el retraso de su transición): cerrada no se ve, pero con él puesto la
+   tarjeta gráfica seguía reservando una copia desenfocada de toda la pantalla
+   (unos 30 MB). El retraso es la duración de --t (0.22s). */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; opacity:0; pointer-events:none; transition:opacity var(--t), backdrop-filter 0s 0.22s; }
+.modal-overlay.open { opacity:1; pointer-events:auto; backdrop-filter:blur(3px); transition:opacity var(--t); }
 .modal { background:var(--card); border-radius:var(--r-lg); padding:22px 24px; width:480px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.2); animation:modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1); }
 .modal.wide { width:680px; }
 @keyframes modalIn { from { transform:scale(0.94) translateY(8px); opacity:0; } }

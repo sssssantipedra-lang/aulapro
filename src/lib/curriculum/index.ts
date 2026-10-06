@@ -30,6 +30,7 @@
 
 import primariaData from './data/primaria.json';
 import esoData from './data/eso.json';
+import { normalizarEntradas } from './entradas';
 
 export type Etapa = 'primaria' | 'eso';
 
@@ -110,17 +111,9 @@ export interface RawEntry {
   cursos?: number[];
 }
 
-export function normalizarEntradas(raw: RawEntry[]): CurriculumEntry[] {
-  return raw.map(r => ({
-    id: r.id ?? r.area ?? r.materia ?? '',
-    nombre: r.area ?? r.materia ?? '',
-    competencias: r.competencias,
-    ...(r.competenciasPorGrupo ? { competenciasPorGrupo: r.competenciasPorGrupo } : {}),
-    criterios: r.criterios,
-    saberes: r.saberes,
-    ...(r.cursos ? { cursos: r.cursos } : {}),
-  }));
-}
+// En `./entradas.ts`, que no carga datos: los currículos autonómicos la usan
+// sin tener que abrir el estatal (ver `./propios.ts`).
+export { normalizarEntradas };
 
 /** Las competencias específicas de una materia, con el texto de este grupo de cursos. */
 export function competenciasDe(entry: CurriculumEntry, grupo: string): CurriculumCompetencia[] {

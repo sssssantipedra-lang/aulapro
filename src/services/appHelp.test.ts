@@ -9,7 +9,8 @@
  * de verdad, y que los saltos de pantalla que propone la IA se limpien siempre.
  */
 import { describe, it, expect } from 'vitest';
-import { HELP_TARGETS, MANUAL, splitJump, targetLabel } from './appHelp';
+import { HELP_TARGETS, splitJump, targetLabel } from './appHelp';
+import { MANUAL } from './appHelpManual';
 
 /** Los `[identificador]` que encabezan cada apartado del manual. */
 const enElManual = new Set(
