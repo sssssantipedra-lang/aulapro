@@ -283,7 +283,7 @@ export function WorkSessions({ kind, sessions, onSave, onDelete, onNav }: Props)
                   id="worksessions-f6"
                   className="finput" value={draft.organizer ?? ''}
                   onChange={e => patch({ organizer: e.target.value })}
-                  placeholder={esReunion ? t('Ej: Jefatura de estudios') : t('Ej: CEFIRE · Marta Ruiz')}
+                  placeholder={esReunion ? t('Ej: Jefatura de estudios') : t('Ej: CEFIRE · Profesor')}
                 />
               </div>
               <div className="fgroup">

@@ -13,6 +13,48 @@ Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición 
 - Solo el profesorado especialista. El perfil dice si es de PT, de AL o de las dos; el módulo aparece en el menú solo entonces.
 - No se comparte con el tutor o la tutora por ahora.
 
+## Perfil de PT y AL (5-10-2026)
+
+Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposición de la app.
+
+- **Tipo de docente.** Al crear el perfil se elige «Docente de aula» o «PT y AL». Con PT y AL se marca PT, AL o las dos (al menos una) y la especialidad del perfil se escribe sola. Se cambia en Configuración → Perfil; al cambiar no se borra nada. En los datos, un perfil es de PT y AL si tiene alguna especialidad (`especialidades`): no hay otro campo.
+- **Más adelante:** Educación Física, con la opción de ser tutor a la vez («un 2 en 1»). Junto con la tutoría.
+- **Menú** (`NAV_APOYO` en `src/lib/navigation.ts`): lo de apoyo y lo común, sin nada de tutoría.
+  - Tu día a día: Inicio, Registro diario, Alumnado y grupos, Programas, Coordinaciones, Programación e informes y Agenda.
+  - Herramientas: Agenda visual, Recursos y Aula Live, cuya ruleta y grupos salen del alumnado de apoyo.
+  - Más: Reuniones, Formaciones, Registro de cambios y Configuración.
+  - Todo va como entradas sueltas: Recursos y Aula Live no llevan las pestañas de Documentos y En clase, que ese menú no tiene.
+- **Agenda:** el horario de los grupos de apoyo sale en la vista semanal sin apuntarlo dos veces. Se cambia en Alumnado y grupos.
+- **Inicio** (`src/pages/apoyo/InicioApoyo.tsx`, lógica en `src/lib/inicioApoyo.ts`):
+  - Sesiones de hoy, por hora, con «Registrar», que abre el registro de ese grupo y ese día.
+  - Avisos de seguimiento:
+    - los informes que faltan al final del trimestre (diciembre, desde el 10 de marzo y junio);
+    - las sesiones de los últimos 7 días sin registrar, solo desde la primera registrada de cada grupo;
+    - un objetivo con 3 «No conseguido» seguidos;
+    - un objetivo del trimestre sin trabajar en 3 o más sesiones a las que vino;
+    - el alumnado sin objetivos en el trimestre o sin grupo.
+  - Evolución del alumnado: por alumno, sus objetivos del trimestre según lo último registrado (conseguido, en proceso, no conseguido, sin trabajar), y al desplegarlo, cada objetivo sesión a sesión.
+  - Sin alumnado, tres pasos y «Probar con datos de ejemplo».
+- **Datos de ejemplo** (`src/lib/demoApoyo.ts`): 4 alumnos inventados, uno con TEA y discapacidad motora, 4 grupos y sesiones de las dos últimas semanas. Las fechas se calculan desde hoy.
+
+### Herramientas (5-10-2026)
+
+- **Gráfica de cada objetivo** (`src/components/apoyo/GraficaObjetivo.tsx`): bajo cada objetivo en Programas, y en la evolución del Inicio. Un punto por sesión a tres alturas (conseguido, en proceso, no conseguido), las 24 últimas, con la fecha al pasar por encima.
+- **Coordinaciones** (`src/pages/apoyo/CoordinacionesApoyo.tsx`):
+  - Por alumno: fecha, con quién (tutoría, familia, orientación, equipo docente u otros), quiénes estuvieron, de qué se habló y los acuerdos.
+  - «Copiar todas para el PAP» las copia como texto.
+  - Las del trimestre llegan a la IA en los informes, y todas en la programación. «Quiénes estuvieron» no se envía, porque puede llevar nombres de personas adultas.
+- **Fichas adaptadas con IA**: en Recursos, «Adaptada a» un alumno de apoyo rellena su nivel y lo que se cuenta a la IA (sus necesidades específicas, cómo aprende y sus objetivos del trimestre). No se envían ni su nombre ni su diagnóstico, que para adaptar una ficha no hacen falta. Desde Programas, «Hacer una ficha adaptada con IA».
+- **Agenda visual** (`src/pages/apoyo/AgendaVisualApoyo.tsx`):
+  - Pictogramas: 242 de Mulberry Symbols (CC BY-SA 4.0), en `public/pictos/mulberry/` con su licencia, por categorías y con buscador, y con su nombre en castellano, català e inglés.
+  - Fotos del propio docente, reducidas a 480 px y guardadas en el perfil.
+  - Se muestra a pantalla completa, tachando cada paso, y se guarda en PDF para imprimir y recortar.
+  - La atribución va en Configuración (pie de la cuadrícula) y al pie del PDF si lleva algún pictograma.
+  - Al vaciar el curso se quedan las agendas sin alumno, que son plantillas, y sus fotos.
+  - La lista se cambia en `scripts/pictos/lista.py` y se regenera con `scripts/pictos/generar.py`. Fuera los que llevan palabras en inglés dibujadas.
+  - ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el uso comercial.
+- **Aula Live**: para el perfil de PT y AL, la ruleta y los grupos salen de su alumnado de apoyo.
+
 ## Alumnado y grupos de apoyo
 
 - El especialista crea sus grupos de apoyo («Lectoescritura, lunes 9:00») con alumnado de distintas clases.
@@ -21,7 +63,8 @@ Para el profesorado especialista de Pedagogía Terapéutica (PT) y de Audición 
   - el nombre y la clase de origen (texto, por ejemplo «2º B»);
   - la etapa y el curso en que está matriculado;
   - el nivel de competencia curricular (etapa y curso de referencia);
-  - el diagnóstico y la categoría NEAE;
+  - el diagnóstico;
+  - sus necesidades específicas de apoyo educativo, todas las que tenga (decisión del 5-10-2026, desde la 2.2.0; hasta la 2.1.0 era una sola). Se marcan de una lista en dos grupos: las necesidades educativas especiales por lo que las origina (discapacidad intelectual, motora, auditiva o visual, TEA, trastorno grave de conducta o de la comunicación y del lenguaje, pluridiscapacidad) y el resto de las de la LOE, artículo 71.2, con el TDAH y las dificultades específicas de aprendizaje por separado. Se puede añadir otra a mano;
   - las necesidades, dichas en términos educativos;
   - las notas del docente.
 

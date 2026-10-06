@@ -69,7 +69,7 @@ export function alumnoParaIA(a: AlumnoApoyo, nombreCurso: (c: CursoDe) => string
     `Alumno: ${a.nombre}`,
     a.matricula ? `Matriculado en ${nombreCurso(a.matricula)}${a.claseOrigen ? ` (${a.claseOrigen})` : ''}` : (a.claseOrigen ? `Clase: ${a.claseOrigen}` : ''),
     nivel ? `Nivel de competencia curricular: ${nombreCurso(nivel)}` : '',
-    a.categoria ? `Necesidad específica de apoyo educativo: ${a.categoria}` : '',
+    a.categorias.length ? `Necesidades específicas de apoyo educativo: ${a.categorias.join('; ')}` : '',
     a.diagnostico ? `Diagnóstico: ${a.diagnostico}` : '',
     a.necesidades ? `Necesidades educativas: ${a.necesidades}` : '',
     a.notas ? `Notas del especialista: ${a.notas}` : '',
@@ -148,7 +148,8 @@ export async function proponerObjetivos(
             type: 'OBJECT',
             properties: {
               texto: { type: 'STRING' },
-              trimestres: { type: 'ARRAY', items: { type: 'INTEGER', enum: [1, 2, 3] } },
+              // Gemini solo admite listas cerradas de texto: con números rechaza la petición entera
+              trimestres: { type: 'ARRAY', items: { type: 'STRING', enum: ['1', '2', '3'] } },
               ...(conCriterios ? { criterios: { type: 'ARRAY', items: { type: 'STRING', enum: disponibles } } } : {}),
             },
             required: ['texto', 'trimestres'],

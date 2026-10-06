@@ -4,6 +4,7 @@
  * trencada.
  */
 import { APOYO_CA } from './apoyo';
+import { EF_CA } from './ef';
 
 export const CA: Record<string, string> = {
   "Cargando…": "Carregant…",
@@ -1494,7 +1495,7 @@ export const CA: Record<string, string> = {
   "Convoca": "Convoca",
   "Entidad y ponente": "Entitat i ponent",
   "Ej: Jefatura de estudios": "Ex.: Cap d'estudis",
-  "Ej: CEFIRE · Marta Ruiz": "Ex.: CRP · Marta Ruiz",
+  "Ej: CEFIRE · Profesor": "Ex.: CRP · Professor",
   "Lugar": "Lloc",
   "Ej: Sala de profesores": "Ex.: Sala de professors",
   "Ej: En línea": "Ex.: En línia",
@@ -1547,7 +1548,7 @@ export const CA: Record<string, string> = {
   "(asiento libre)": "(seient lliure)",
   "Alumnos por mesa": "Alumnes per taula",
   "Anota las conclusiones y los acuerdos del grupo.": "Anota les conclusions i els acords del grup.",
-  "Aspectos a tener en cuenta (opcional): p. ej. «Marco y Lucía no deben ir juntos»": "Aspectes que cal tenir en compte (opcional): p. ex. «Marc i Lúcia no han d'anar junts»",
+  "Aspectos a tener en cuenta (opcional): p. ej. «Alumno 1 y Alumno 2 no deben ir juntos»": "Aspectes que cal tenir en compte (opcional): p. ex. «Alumne 1 i Alumne 2 no han d'anar junts»",
   "Aula {room}": "Aula {room}",
   "Configuración de mesas y roles": "Configuració de taules i rols",
   "Controla el tiempo de la tarea y el volumen de voz.": "Controla el temps de la tasca i el volum de veu.",
@@ -1619,7 +1620,7 @@ export const CA: Record<string, string> = {
   "Arrastra a un alumno hasta un asiento, o tócalo y después toca el asiento.": "Arrossega un alumne fins a un seient, o toca'l i després toca el seient.",
   "Se sustituirá la distribución actual de {clase}.": "Se substituirà la distribució actual de {clase}.",
   "Aspectos a tener en cuenta (opcional)": "Aspectes que cal tenir en compte (opcional)",
-  "p. ej. «Marco y Lucía no deben ir juntos»": "p. ex. «Marc i Lúcia no han d'anar junts»",
+  "p. ej. «Alumno 1 y Alumno 2 no deben ir juntos»": "p. ex. «Alumne 1 i Alumne 2 no han d'anar junts»",
   "Emoji": "Emoji",
   "Horario": "Horari",
   "Castellano, catalán o inglés internacional.": "Castellà, català o anglès internacional.",
@@ -1740,4 +1741,5 @@ export const CA: Record<string, string> = {
   "Otra que no esté en la lista, por ejemplo Religión o Tutoría": "Una altra que no sigui a la llista, per exemple Religió o Tutoria",
   "Si le das varias, no crees una clase por cada una: márcalas todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.": "Si n'hi fas diverses, no creïs una classe per a cadascuna: marca-les totes i després triaràs quina avalues al quadern, a les rúbriques i a les dianes.",
   ...APOYO_CA,
+  ...EF_CA,
 };

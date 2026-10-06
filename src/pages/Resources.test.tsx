@@ -156,3 +156,28 @@ describe('Recursos — editor de fichas', () => {
     localStorage.removeItem('aulapro_gemini_key');
   });
 });
+
+describe('Recursos · ficha adaptada (PT y AL)', () => {
+  it('al elegir un alumno de apoyo se rellenan su nivel y lo que necesita, sin su nombre', async () => {
+    const user = userEvent.setup();
+    const apoyo = {
+      alumnos: [{ id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', matricula: { etapa: 'primaria' as const, curso: 4 }, nivel: { etapa: 'primaria' as const, curso: 2 },
+        categorias: ['Discapacidad intelectual'], diagnostico: 'Discapacidad intelectual leve', necesidades: 'Aprende mejor con apoyo visual.', notas: '' }],
+      grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], agendas: [], fotos: [],
+    };
+    render(
+      <I18nProvider><ToastProvider>
+        <Resources classes={[]} fichas={[]} onSave={() => {}} onDelete={() => {}} onNav={() => {}} apoyo={apoyo} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.selectOptions(screen.getByLabelText('Adaptada a'), 'a1');
+    expect((screen.getByLabelText('Nivel o curso') as HTMLInputElement).value).toBe('2º Primaria');
+    const contexto = (screen.getByLabelText('Cómo es el grupo (opcional)') as HTMLTextAreaElement).value;
+    expect(contexto).toContain('Aprende mejor con apoyo visual.');
+    expect(contexto).not.toContain('Marta');
+    expect(contexto).not.toContain('leve');
+    // Volver a «Sin alumno concreto» lo vacía
+    await user.selectOptions(screen.getByLabelText('Adaptada a'), '');
+    expect((screen.getByLabelText('Cómo es el grupo (opcional)') as HTMLTextAreaElement).value).toBe('');
+  });
+});

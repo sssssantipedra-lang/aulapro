@@ -7,6 +7,29 @@ export function initials(name: string): string {
  * Necesario porque muchos plurales españoles no se forman añadiendo letras
  * (evaluación → evaluaciones pierde la tilde).
  */
+/**
+ * El nombre de pila de un alumno para avisos y frases cortas. Si detrás va un
+ * número («Alumno 1», como en los datos de ejemplo), el nombre entero: si no,
+ * todos serían «Alumno».
+ */
+export function nombreDePila(nombre: string): string {
+  const w = nombre.trim().split(/\s+/);
+  return w.length > 1 && /^\d+$/.test(w[1]) ? `${w[0]} ${w[1]}` : (w[0] ?? '');
+}
+
+/**
+ * El nombre corto de cada alumno para la ruleta y lo que se proyecta: el de
+ * pila; si dos lo comparten («Alumno 1», «Alumno 2», o dos Lucías), el nombre
+ * completo, para que no salgan iguales.
+ */
+export function nombresCortos(nombres: readonly string[]): string[] {
+  const limpios = nombres.map(n => n.trim().replace(/\s+/g, ' '));
+  const primero = nombreDePila;
+  const veces = new Map<string, number>();
+  for (const n of limpios) veces.set(primero(n).toLocaleLowerCase(), (veces.get(primero(n).toLocaleLowerCase()) ?? 0) + 1);
+  return limpios.map(n => ((veces.get(primero(n).toLocaleLowerCase()) ?? 0) > 1 ? n : primero(n)));
+}
+
 export function plural(n: number, singular: string, plural: string): string {
   return `${n} ${n === 1 ? singular : plural}`;
 }
@@ -39,14 +62,6 @@ export function isoDate(d: Date = new Date()): string {
 export function fromIsoDate(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);
-}
-
-export function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export function escapeHtml(str: string): string {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 export function fileToBase64(file: File): Promise<{ name: string; mimeType: string; base64: string }> {
@@ -107,13 +122,6 @@ export function applyAppearance(mode: Appearance) {
   else r.setAttribute('data-theme', mode);
   try { localStorage.setItem(APPEARANCE_KEY, mode); } catch { /* sin almacenamiento */ }
 }
-
-export const LEVELS = [
-  { value: 1, label: 'Insuficiente', key: 'ins' },
-  { value: 2, label: 'Suficiente',   key: 'suf' },
-  { value: 3, label: 'Bien',         key: 'bi'  },
-  { value: 4, label: 'Excelente',    key: 'exc' },
-] as const;
 
 /** Competencias clave de la LOMLOE, con su abreviatura oficial. */
 export const LOMLOE_COMPETENCES = [

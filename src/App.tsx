@@ -19,7 +19,12 @@ import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
-import { hubOf, rememberTab } from './lib/navigation';
+import { hubEnMenu, rememberTab } from './lib/navigation';
+import { bloquesDeApoyo } from './lib/apoyo';
+import { exentosDelDia, LIMITACIONES, limitacionesParaIA, pruebasDe, recursosParaIA } from './lib/ef';
+import type { SesionEF } from './types/ef';
+import { isoDate, nombresCortos } from './lib/utils';
+import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Ficha } from './types';
 import { X, Menu } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
@@ -48,6 +53,17 @@ const RegistroApoyo  = lazy(() => import('./pages/apoyo/RegistroApoyo').then(m =
 const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m => ({ default: m.AlumnadoApoyo })));
 const DocumentosApoyo = lazy(() => import('./pages/apoyo/DocumentosApoyo').then(m => ({ default: m.DocumentosApoyo })));
 const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
+const InicioApoyo    = lazy(() => import('./pages/apoyo/InicioApoyo').then(m => ({ default: m.InicioApoyo })));
+const CoordinacionesApoyo = lazy(() => import('./pages/apoyo/CoordinacionesApoyo').then(m => ({ default: m.CoordinacionesApoyo })));
+const AgendaVisualApoyo = lazy(() => import('./pages/apoyo/AgendaVisualApoyo').then(m => ({ default: m.AgendaVisualApoyo })));
+const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ default: m.EfPista })));
+const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
+const EfPruebas      = lazy(() => import('./pages/ef/EfPruebas').then(m => ({ default: m.EfPruebas })));
+const EfEquipos      = lazy(() => import('./pages/ef/EfEquipos').then(m => ({ default: m.EfEquipos })));
+const EfCircuitos    = lazy(() => import('./pages/ef/EfCircuitos').then(m => ({ default: m.EfCircuitos })));
+const EfSesiones     = lazy(() => import('./pages/ef/EfSesiones').then(m => ({ default: m.EfSesiones })));
+const EfActividades  = lazy(() => import('./pages/ef/EfActividades').then(m => ({ default: m.EfActividades })));
+const EfMaterial     = lazy(() => import('./pages/ef/EfMaterial').then(m => ({ default: m.EfMaterial })));
 
 function Loading() {
   const { t } = useI18n();
@@ -80,12 +96,58 @@ function AppInner() {
   const [taskText, setTaskText]       = useState('');
   const [taskPri, setTaskPri]         = useState<'high'|'medium'|'low'>('medium');
 
+  // Al profesorado de PT y AL, su menú y su Inicio (ver lib/navigation.ts).
+  const tipo = st.currentUser?.tipo ?? 'aula';
+  const especialista = tipo === 'apoyo';
   // Se memoriza para no crear una lista nueva en cada render: Aula Live la usa
-  // como origen de la ruleta y reiniciaría el giro cada vez que cambie.
+  // como origen de la ruleta y reiniciaría el giro cada vez que cambie. Para
+  // el de PT y AL, la ruleta es de su alumnado de apoyo, no de clases que no tiene.
   const studentFirstNames = useMemo(
-    () => st.students.map(s => s.name.split(' ')[0]),
-    [st.students],
+    () => nombresCortos(especialista ? st.apoyo.alumnos.map(a => a.nombre) : st.students.map(s => s.name)),
+    [especialista, st.students, st.apoyo.alumnos],
   );
+  const apoyoBlocks = useMemo(() => (especialista ? bloquesDeApoyo(st.apoyo.grupos) : []), [especialista, st.apoyo.grupos]);
+
+  // EF sin tutoría: su Inicio lleva lo de EF; con tutoría, el de tutoría tal cual
+  const efInicio = useMemo(() => {
+    if (tipo !== 'ef' || st.currentUser?.tutor) return undefined;
+    const hoy = isoDate();
+    return {
+      exentosHoy: exentosDelDia(st.ef, hoy).flatMap(e => {
+        const s = st.students.find(x => x.id === e.alumnoId);
+        if (!s) return [];
+        const detalle = e.limitaciones.map(l => t(LIMITACIONES.find(x => x.id === l)!.label)).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', ');
+        return [{ id: e.id, nombre: s.name, clase: st.classes.find(c => c.id === s.class_id)?.name ?? '', detalle, tarea: e.tarea.trim() }];
+      }),
+      // La última toma de pruebas físicas de cada clase
+      pruebas: st.classes.map(c => {
+        const ids = new Set(st.students.filter(s => s.class_id === c.id).map(s => s.id));
+        const ultima = st.ef.marcas.filter(m => ids.has(m.alumnoId)).reduce<{ fecha: string; pruebaId: string } | null>(
+          (a, m) => (!a || m.fecha > a.fecha ? { fecha: m.fecha, pruebaId: m.pruebaId } : a), null);
+        const prueba = ultima ? pruebasDe(st.ef).find(p => p.id === ultima.pruebaId) : undefined;
+        return { id: c.id, clase: c.name, color: c.color, fecha: ultima?.fecha, prueba: prueba ? t(prueba.nombre) : undefined };
+      }),
+      sesiones: st.ef.sesiones.filter(s => s.fecha && s.fecha >= hoy)
+        .sort((a, b) => a.fecha!.localeCompare(b.fecha!))
+        .map(s => {
+          const c = st.classes.find(x => x.id === s.claseId);
+          return { id: s.id, titulo: s.titulo, clase: c?.name ?? '', color: c?.color ?? 'var(--text-3)', fecha: s.fecha! };
+        }),
+    };
+  }, [tipo, st.currentUser?.tutor, st.ef, st.students, st.classes, t]);
+
+  // La SdA de una clase de EF: el material, las instalaciones y las limitaciones sin nombres
+  const setEf = st.setEf;
+  const efSda = useMemo(() => {
+    if (tipo !== 'ef') return undefined;
+    const { material, instalaciones } = recursosParaIA(st.ef);
+    return {
+      material, instalaciones,
+      limitacionesDe: (claseId: string) =>
+        limitacionesParaIA(st.ef, st.students.filter(s => s.class_id === claseId).map(s => s.id), isoDate()),
+      onPasarSesiones: (sesiones: SesionEF[]) => setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] })),
+    };
+  }, [tipo, st.ef, st.students, setEf]);
 
   /**
    * El cuaderno tal como cuenta para las medias: lo guardado más el bloque
@@ -203,8 +265,9 @@ function AppInner() {
           await st.createAndOpenProfile(input, options);
           toast(t('✅ ¡Bienvenido/a, {name}!', { name: input.name.split(' ')[0] }));
         }}
-        onExploreDemo={async () => {
-          await st.createAndOpenProfile({
+        onExploreDemo={async input => {
+          // El ejemplo de PT y AL lleva el nombre que le pone la bienvenida
+          await st.createAndOpenProfile(input.especialidades?.length || input.tipoDocente === 'ef' ? input : {
             name: DEMO_USER.full_name, school: DEMO_USER.school,
             subject: DEMO_USER.subject, course: '2025-2026', community: DEMO_COMMUNITY,
           }, { demo: true });
@@ -260,13 +323,21 @@ function AppInner() {
             recorta lo que se salga a lo ancho sin convertir <main> en zona de
             desplazamiento propia: si lo fuera, nada de dentro podría quedarse
             fijo (position: sticky), ni la barra de pestañas ni los índices. */}
-        <main style={{ flex: 1, overflowX: 'clip' }} className={hubOf(section) ? 'with-hub' : undefined}>
+        <main style={{ flex: 1, overflowX: 'clip' }} className={hubEnMenu(section, tipo) ? 'with-hub' : undefined}>
           {/* La clave cambia al entrar en otro apartado: la barra se monta de
               nuevo y su animación de aviso (parpadeo) vuelve a sonar. Al
               cambiar de pestaña dentro del mismo apartado no parpadea. */}
-          <HubTabs key={hubOf(section)?.id ?? 'none'} section={section} onNav={setSection} />
+          <HubTabs key={hubEnMenu(section, tipo)?.id ?? 'none'} section={section} tipo={tipo} onNav={setSection} />
           <Suspense fallback={<Loading />}>
-            {section === 'dashboard' && (
+            {section === 'dashboard' && especialista && (
+              <InicioApoyo
+                nombre={st.currentUser.full_name}
+                data={st.apoyo}
+                onNav={setSection}
+                onLoadDemo={() => { st.setApoyo(() => buildDemoApoyo()); toast(t('✅ Datos de ejemplo cargados')); }}
+              />
+            )}
+            {section === 'dashboard' && !especialista && (
               <Dashboard
                 user={st.currentUser}
                 tasks={st.tasks}
@@ -283,6 +354,7 @@ function AppInner() {
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
                 onLoadDemo={() => { st.loadDemoData(); toast(t('✅ Datos de ejemplo cargados')); }}
+                ef={efInicio}
               />
             )}
             {section === 'classes' && (
@@ -307,6 +379,7 @@ function AppInner() {
               <Agenda
                 classes={st.classes}
                 scheduleBlocks={st.scheduleBlocks}
+                apoyoBlocks={apoyoBlocks}
                 calEvents={st.calEvents}
                 onAddBlock={b => { st.addBlock(b); toast(t('✅ Bloque añadido')); }}
                 onUpdateBlock={b => { st.updateBlock(b); toast(t('✅ Actualizado')); }}
@@ -482,12 +555,13 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
               />
             )}
-            {section === 'learning-situations' && (
+            {(section === 'learning-situations' || section === 'ef-sda') && (
               <LearningSituations
+                key={section}
+                ef={efSda}
                 classes={st.classes}
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}
-                teacherName={st.currentUser?.full_name ?? ''}
                 comunidad={st.currentUser?.community}
                 onUpdateClass={st.updateClass}
                 onSave={s => { st.saveLearningSituation(s); }}
@@ -506,6 +580,7 @@ function AppInner() {
                 onDelete={id => { st.deleteFicha(id); toast(t('Ficha eliminada')); }}
                 onProject={f => { setLiveFicha(f); setSection('sec-classroom'); }}
                 onNav={s => setSection(s as Section)}
+                apoyo={especialista ? st.apoyo : undefined}
               />
             )}
             {(section === 'meetings' || section === 'trainings') && (
@@ -550,6 +625,39 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
               />
             )}
+            {section === 'apoyo-coordinaciones' && (
+              <CoordinacionesApoyo data={st.apoyo} onChange={st.setApoyo} onNav={setSection} />
+            )}
+            {section === 'apoyo-agenda-visual' && (
+              <AgendaVisualApoyo data={st.apoyo} onChange={st.setApoyo} />
+            )}
+            {section === 'ef-pista' && (
+              <EfPista
+                classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks}
+                classMarks={st.classMarks} ef={st.ef}
+                onAddMark={st.addClassMark} onDeleteMark={st.deleteClassMark} onNav={setSection}
+              />
+            )}
+            {section === 'ef-exentos' && (
+              <EfExentos classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} onNav={setSection} />
+            )}
+            {section === 'ef-pruebas' && (
+              <EfPruebas
+                classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf}
+                gradeCategories={st.gradeCategories} onAddGradeItem={st.addGradeItem} onSetGrade={st.setGrade} onNav={setSection}
+              />
+            )}
+            {section === 'ef-equipos' && (
+              <EfEquipos classes={st.classes} students={st.students} attendance={st.attendance} ef={st.ef} onChangeEf={st.setEf} onNav={setSection} />
+            )}
+            {section === 'ef-circuitos' && <EfCircuitos ef={st.ef} onChangeEf={st.setEf} />}
+            {section === 'ef-sesiones' && (
+              <EfSesiones classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />
+            )}
+            {section === 'ef-actividades' && (
+              <EfActividades classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />
+            )}
+            {section === 'ef-material' && <EfMaterial ef={st.ef} onChangeEf={st.setEf} />}
             {section === 'profile' && (
               <Profile
                 user={st.currentUser}
@@ -562,6 +670,8 @@ function AppInner() {
                     subject: u.subject, course: u.course,
                     ...(u.community ? { community: u.community } : {}),
                     ...(u.especialidades ? { especialidades: u.especialidades } : {}),
+                    ...(u.tipoDocente ? { tipoDocente: u.tipoDocente } : {}),
+                    ...(u.tutor !== undefined ? { tutor: u.tutor } : {}),
                   });
                 }}
                 onUpdateSecurity={st.updateUser}

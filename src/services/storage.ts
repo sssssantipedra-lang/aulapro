@@ -34,6 +34,10 @@ export interface TeacherProfile {
    * con `especialidadesDePerfil`.
    */
   especialidades?: import('../types/apoyo').Especialidad[];
+  /** Solo se guarda para EF; el de PT y AL se reconoce por sus especialidades. Leerlo con `tipoDePerfil`. */
+  tipoDocente?: 'aula' | 'ef';
+  /** EF: si además es tutor o tutora (su grupo es el que tiene «Es mi tutoría»). */
+  tutor?: boolean;
   createdAt: string;
   lastOpenedAt: string;
   /**
@@ -64,6 +68,10 @@ export interface NewProfileInput {
   subject: string;
   course: string;
   community?: ComunidadId;
+  /** Con alguna, el perfil es de PT y AL (ver `docs/PTAL.md`). */
+  especialidades?: import('../types/apoyo').Especialidad[];
+  tipoDocente?: 'aula' | 'ef';
+  tutor?: boolean;
 }
 
 export type ProfileData = Record<string, unknown>;
@@ -115,12 +123,27 @@ export async function listProfiles(): Promise<TeacherProfile[]> {
 
 export async function createProfile(input: NewProfileInput): Promise<TeacherProfile> {
   const b = bridge();
-  if (b) return (await b.createProfile(input)) as TeacherProfile;
+  if (b) {
+    const creado = (await b.createProfile(input)) as TeacherProfile;
+    // Cada plataforma guarda al crear solo los campos que conoce (la de
+    // Android ni siquiera la comunidad): lo que falte se añade a continuación.
+    const extra: Partial<TeacherProfile> = {};
+    if (input.community && creado.community !== input.community) extra.community = input.community;
+    if (input.especialidades?.length) extra.especialidades = input.especialidades;
+    if (input.tipoDocente === 'ef') extra.tipoDocente = 'ef';
+    if (input.tutor) extra.tutor = true;
+    if (Object.keys(extra).length === 0) return creado;
+    await b.updateProfile(creado.id, extra);
+    return { ...creado, ...extra };
+  }
 
   const profile: TeacherProfile = {
     id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name: input.name, school: input.school, subject: input.subject, course: input.course,
     ...(input.community ? { community: input.community } : {}),
+    ...(input.especialidades?.length ? { especialidades: input.especialidades } : {}),
+    ...(input.tipoDocente === 'ef' ? { tipoDocente: 'ef' as const } : {}),
+    ...(input.tutor ? { tutor: true } : {}),
     createdAt: new Date().toISOString(),
     lastOpenedAt: new Date().toISOString(),
   };

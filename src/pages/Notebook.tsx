@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
-import { fileToBase64, isoDate } from '../lib/utils';
+import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
@@ -11,7 +11,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig } from '../types';
 import {
   isMarksCategory, blockConfig, blockActive, marksFor, studentBlock,
-  TARGETS, TARGET_LABEL, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
+  TARGETS, targetLabel, esAsignaturaEF, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { downloadFile } from '../lib/download';
@@ -440,7 +440,7 @@ function GradesTab({
                 type="button"
                 className={`gb-block-chip${block.active ? ' on' : ''}`}
                 onClick={openBlock}
-                title={t('Tareas, comportamiento y participación, con lo que anotas en la Distribución de aula')}
+                title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en la Distribución de aula')}
               >
                 <Flag size={12} />
                 {t(BLOCK_NAME)} · {block.active
@@ -509,9 +509,9 @@ function GradesTab({
                               <button
                                 className="gb-item-hd gb-marks-hd"
                                 onClick={openBlock}
-                                title={t('Sale sola de lo que anotas en la Distribución de aula. Clic para ajustar el bloque.')}
+                                title={t(esAsignaturaEF(activeSubject) ? 'Sale sola de lo que observas en la pista. Clic para ajustar el bloque.' : 'Sale sola de lo que anotas en la Distribución de aula. Clic para ajustar el bloque.')}
                               >
-                                <span className="gb-item-name">{t(TARGET_LABEL[tg])}</span>
+                                <span className="gb-item-name">{t(targetLabel(tg, activeSubject))}</span>
                                 <span className="gb-item-cat">{block.cfg.weights[tg].toLocaleString(locale)}%</span>
                               </button>
                             </th>
@@ -640,7 +640,9 @@ function GradesTab({
         {bf && (
           <>
             <p className="gb-marks-cfg-help">
-              {t('Sale solo de lo que anotas en la Distribución de aula: «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
+              {t(esAsignaturaEF(activeSubject)
+                ? 'Sale solo de lo que observas en la pista: «Sin equipación» y «Sin aseo» cuentan en Vestimenta e higiene; «Juego limpio» y «Mala actitud», en Actitud y juego limpio; «Participa», «Se esfuerza» y «No participa», en Participación y esfuerzo. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.'
+                : 'Sale solo de lo que anotas en la Distribución de aula: «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
             </p>
             <label className="gb-block-toggle">
               <input type="checkbox" checked={bf.enabled} onChange={e => setBf({ ...bf, enabled: e.target.checked })} />
@@ -660,14 +662,14 @@ function GradesTab({
             </div>
             <table className="gb-block-parts">
               <thead>
-                <tr><th />{TARGETS.map(tg => <th key={tg}>{t(TARGET_LABEL[tg])}</th>)}</tr>
+                <tr><th />{TARGETS.map(tg => <th key={tg}>{t(targetLabel(tg, activeSubject))}</th>)}</tr>
               </thead>
               <tbody>
                 <tr>
                   <th scope="row">{t('Peso en el bloque (%)')}</th>
                   {TARGETS.map(tg => (
                     <td key={tg}>
-                      <input className="finput" inputMode="decimal" aria-label={`${t('Peso en el bloque (%)')} · ${t(TARGET_LABEL[tg])}`}
+                      <input className="finput" inputMode="decimal" aria-label={`${t('Peso en el bloque (%)')} · ${t(targetLabel(tg, activeSubject))}`}
                         value={bf.weights[tg]} disabled={!bf.enabled}
                         onChange={e => setBf({ ...bf, weights: { ...bf.weights, [tg]: e.target.value } })} />
                     </td>
@@ -677,7 +679,7 @@ function GradesTab({
                   <th scope="row">{t('Nota de partida')}</th>
                   {TARGETS.map(tg => (
                     <td key={tg}>
-                      <input className="finput" inputMode="decimal" aria-label={`${t('Nota de partida')} · ${t(TARGET_LABEL[tg])}`}
+                      <input className="finput" inputMode="decimal" aria-label={`${t('Nota de partida')} · ${t(targetLabel(tg, activeSubject))}`}
                         value={bf.bases[tg]} disabled={!bf.enabled}
                         onChange={e => setBf({ ...bf, bases: { ...bf.bases, [tg]: e.target.value } })} />
                     </td>
@@ -875,7 +877,8 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
   const suggestions = (() => {
     const cls = classId ? data.classes.find(c => c.id === classId) : data.classes[0];
     if (!cls) return [t('¿Por dónde empiezo a montar mi cuaderno de notas?')];
-    const alumno = data.students.find(s => s.class_id === cls.id)?.name.split(' ')[0];
+    const nombre = data.students.find(s => s.class_id === cls.id)?.name;
+    const alumno = nombre ? nombreDePila(nombre) : undefined;
     return [
       t('¿Cómo va {clase} en general?', { clase: cls.name }),
       t('¿Qué alumnos de {clase} van justos y qué haría con ellos?', { clase: cls.name }),

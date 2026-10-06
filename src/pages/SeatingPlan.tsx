@@ -570,7 +570,7 @@ export function SeatingPlan({
             <textarea
               id="seatingplan-f1"
               className="finput" rows={3} style={{ marginBottom: 14, resize: 'vertical' }}
-              placeholder={t('p. ej. «Marco y Lucía no deben ir juntos»')}
+              placeholder={t('p. ej. «Alumno 1 y Alumno 2 no deben ir juntos»')}
               value={notasDocente} onChange={e => setNotasDocente(e.target.value)}
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>

@@ -24,7 +24,7 @@ const reg = (alumnoId: string, objetivos: Record<string, 'si' | 'proceso' | 'no'
 
 const data: ApoyoData = {
   alumnos: [{ id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', matricula: { etapa: 'primaria', curso: 4 },
-    nivel: { etapa: 'primaria', curso: 2 }, categoria: 'NEE', diagnostico: 'Discapacidad intelectual leve', necesidades: '', notas: '' }],
+    nivel: { etapa: 'primaria', curso: 2 }, categorias: ['NEE'], diagnostico: 'Discapacidad intelectual leve', necesidades: '', notas: '' }],
   grupos: [{ id: 'g1', nombre: 'Lectoescritura', especialidad: 'PT', modalidad: 'fuera', color: '#000', alumnos: ['a1'],
     horario: [{ dia: 0, inicio: '09:00', fin: '09:45' }] }],
   programas: [
@@ -43,6 +43,9 @@ const data: ApoyoData = {
     { id: 's4', grupoId: 'g1', fecha: '2027-01-11', temaClase: '', alumnos: [reg('a1', { o2: 'proceso' })] },
   ],
   documentos: [],
+  coordinaciones: [],
+  agendas: [],
+  fotos: [],
 };
 
 describe('datos que pone la app', () => {
@@ -64,6 +67,22 @@ describe('datos que pone la app', () => {
     expect(txt).toContain('conducta: sin datos');
   });
 
+  it('las coordinaciones del trimestre llegan a la IA con los acuerdos, sin quiénes estuvieron', () => {
+    const con = {
+      ...data,
+      coordinaciones: [
+        { id: 'c1', alumnoId: 'a1', fecha: '2026-10-20', con: 'familia' as const, asistentes: 'Rosa Pérez, la madre', temas: 'Lectura en casa', acuerdos: 'Leer diez minutos al día' },
+        { id: 'c2', alumnoId: 'a1', fecha: '2027-01-15', con: 'tutoria' as const, asistentes: '', temas: 'Otro trimestre', acuerdos: '' },
+      ],
+    };
+    const d = datosDelTrimestre(con, 'a1', 1);
+    expect(d.coordinaciones.map(c => c.id)).toEqual(['c1']);
+    const txt = datosParaIA(d, 1);
+    expect(txt).toContain('Coordinaciones de este trimestre:\n- 2026-10-20, con familia: Lectura en casa. Acuerdos: Leer diez minutos al día');
+    expect(txt).not.toContain('Rosa');
+    expect(txt).not.toContain('Otro trimestre');
+  });
+
   it('los objetivos van por ámbito y trimestre, con la intensidad', () => {
     const txt = objetivosTexto(data, 'a1', [], t);
     expect(txt).toContain('Programa personalizado para el aprendizaje de la lectura y la escritura (intensidad alta)');
@@ -80,7 +99,7 @@ describe('datos que pone la app', () => {
     const docente = { nombre: 'Laura Martí', centro: 'CEIP Prova', curso: '2026-2027' };
     const base = { id: 'd', alumnoId: 'a1', fecha: '', titulo: '', apartados: [], trimestre: 1 as const };
     const familia = cabecera({ ...base, tipo: 'familia' }, data.alumnos[0], data, docente, nombreCurso, t, 'es').map(f => f[0]);
-    expect(familia).not.toContain('Necesidad específica de apoyo educativo');
+    expect(familia).not.toContain('Necesidades específicas de apoyo educativo');
     expect(familia).toContain('Trimestre');
     const prog = cabecera({ ...base, tipo: 'programacion' }, data.alumnos[0], data, docente, nombreCurso, t, 'es');
     expect(prog.find(f => f[0] === 'Horario de apoyo')?.[1]).toBe('Lectoescritura: Lun 09:00–09:45');

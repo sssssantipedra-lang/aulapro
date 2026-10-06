@@ -15,13 +15,13 @@ import {
 } from 'docx';
 import { callGemini, parseGeminiJson } from './gemini';
 import { marcoApoyo, alumnoParaIA } from './apoyoIA';
-import { datosDelTrimestre, nivelDe, nuevoIdApoyo, type DatosTrimestre } from '../lib/apoyo';
+import { coordinacionesDe, datosDelTrimestre, nivelDe, nuevoIdApoyo, type DatosTrimestre } from '../lib/apoyo';
 import { describirCriterio, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { translate, priorityLabel, weekdayLabel, LOCALES, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type {
-  AlumnoApoyo, ApartadoDocumento, ApoyoData, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre,
+  AlumnoApoyo, ApartadoDocumento, ApoyoData, ConQuien, CoordinacionApoyo, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre,
 } from '../types/apoyo';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
@@ -158,7 +158,22 @@ export function datosParaIA(datos: DatosTrimestre, trimestre: Trimestre): string
   ];
   if (datos.notas.length) lineas.push('Notas del especialista:', ...datos.notas.slice(-15).map(n => `- ${n.fecha}: ${n.texto}`));
   if (datos.temas.length) lineas.push('Lo que trabajaba su clase:', ...datos.temas.slice(-10).map(n => `- ${n.fecha}: ${n.texto}`));
+  if (datos.coordinaciones.length) lineas.push('Coordinaciones de este trimestre:', ...coordinacionesTexto(datos.coordinaciones));
   return lineas.join('\n');
+}
+
+export const CON_QUIEN: Record<ConQuien, string> = {
+  tutoria: 'Tutoría', familia: 'Familia', orientacion: 'Orientación', equipo: 'Equipo docente', otros: 'Otros',
+};
+
+/**
+ * Cada coordinación en una línea para la IA: cuándo, con quién, de qué se
+ * habló y qué se acordó. Quiénes estuvieron no se envía: pueden ser nombres de
+ * personas adultas que la IA no necesita.
+ */
+export function coordinacionesTexto(cs: readonly CoordinacionApoyo[]): string[] {
+  return cs.map(c => `- ${c.fecha}, con ${CON_QUIEN[c.con].toLowerCase()}: `
+    + `${c.temas.trim() || 'sin tema anotado'}.${c.acuerdos.trim() ? ` Acuerdos: ${c.acuerdos.trim()}` : ''}`);
 }
 
 /** Las filas de la ficha de cabecera, comunes a la pantalla, al PDF y al Word. */
@@ -176,7 +191,7 @@ export function cabecera(
     [t('Curso escolar'), docente.curso],
     ...(doc.tipo !== 'familia' ? [
       [t('Nivel de competencia curricular'), nivel ? nombreCurso(nivel) : undefined] as [string, string | undefined],
-      [t('Necesidad específica de apoyo educativo'), alumno.categoria] as [string, string | undefined],
+      [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')] as [string, string | undefined],
     ] : []),
     ...(doc.tipo === 'programacion' ? [[t('Horario de apoyo'), horario] as [string, string | undefined]] : []),
     ...(doc.trimestre && doc.tipo !== 'pap' && doc.tipo !== 'programacion' ? [[t('Trimestre'), t('{n}º trimestre', { n: doc.trimestre })] as [string, string]] : []),
@@ -226,6 +241,9 @@ export async function generarDocumento(args: GenerarArgs, callbacks: Callbacks =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
     `Programas y objetivos (por trimestre):\n${objetivosTexto(data, alumno.id, materias, t, lang)}\n\n` +
     (tipo === 'programacion' ? '' : `${datosParaIA(datos, trimestre)}\n`) +
+    // La programación es del curso: todas las coordinaciones hasta hoy
+    (tipo === 'programacion' && coordinacionesDe(data, alumno.id).length
+      ? `Coordinaciones hasta ahora:\n${coordinacionesTexto(coordinacionesDe(data, alumno.id)).join('\n')}\n` : '') +
     (tipo === 'familia' ? `\nObjetivos del próximo trimestre:\n${proximos(data, alumno.id, trimestre).join('\n') || '(ninguno todavía)'}\n` : '');
   const reglas = '\nRedacta SOLO a partir de estos datos. Si un objetivo no tiene registros, dilo así; no inventes logros, ' +
     'pruebas, fechas ni datos del alumno. Usa el nombre del alumno tal como aparece. Sin títulos ni negritas dentro de los textos.';

@@ -30,7 +30,7 @@ const nombreCurso = (c: CursoDe) => `${c.curso}º ${c.etapa === 'primaria' ? 'Pr
 const marta: AlumnoApoyo = {
   id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B',
   matricula: { etapa: 'primaria', curso: 4 }, nivel: { etapa: 'primaria', curso: 2 },
-  categoria: 'Necesidades educativas especiales', diagnostico: 'Discapacidad intelectual leve',
+  categorias: ['Necesidades educativas especiales'], diagnostico: 'Discapacidad intelectual leve',
   necesidades: 'Aprende mejor con apoyo visual', notas: '',
 };
 
@@ -83,7 +83,7 @@ describe('proponerObjetivos', () => {
 
   it('reparte por trimestres y solo deja criterios de la lista cerrada de su nivel', async () => {
     callGemini.mockResolvedValueOnce(JSON.stringify({ objetivos: [
-      { texto: 'Leer sílabas directas', trimestres: [1, 1], criterios: ['Lengua Castellana y Literatura|3.1', 'Matemáticas|1.1', 'Lengua Castellana y Literatura|99.9'] },
+      { texto: 'Leer sílabas directas', trimestres: ['1', '1'], criterios: ['Lengua Castellana y Literatura|3.1', 'Matemáticas|1.1', 'Lengua Castellana y Literatura|99.9'] },
       { texto: '  Escribir palabras sencillas ', trimestres: [5], criterios: [] },
       { texto: '', trimestres: [2] },
     ] }));
@@ -105,6 +105,8 @@ describe('proponerObjetivos', () => {
     expect(usuario).toContain('no los repitas');
     expect(usuario).toContain('Reconocer las vocales');
     expect(usuario).toContain('Criterios oficiales de 2º Primaria');
+    // Gemini rechaza la petición entera si una lista cerrada no es de texto
+    expect(opciones.responseSchema.properties.objetivos.items.properties.trimestres.items).toEqual({ type: 'STRING', enum: ['1', '2', '3'] });
     const enumCriterios: string[] = opciones.responseSchema.properties.objetivos.items.properties.criterios.items.enum;
     expect(enumCriterios.every(c => c.startsWith('Lengua Castellana y Literatura|'))).toBe(true);
   });

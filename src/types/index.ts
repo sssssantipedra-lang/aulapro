@@ -9,6 +9,10 @@ export interface User {
   community?: import('../lib/curriculum/comunidades').ComunidadId;
   /** Especialidades de PT y AL del perfil; vacía si no es especialista. */
   especialidades?: import('./apoyo').Especialidad[];
+  /** De aula, de PT y AL o de EF (ver `lib/tipoDocente.ts`). */
+  tipo?: import('../lib/tipoDocente').TipoDocente;
+  /** EF: si además es tutor o tutora de uno de sus grupos. */
+  tutor?: boolean;
 }
 
 export interface Class {
@@ -533,6 +537,10 @@ export interface LearningSituation {
     materiasOficiales?: Record<string, string | null>;
     contextoClase: string;
     metodologia: string;
+    /** Solo en las de Educación Física: el modelo pedagógico que eligió el docente ('' si lo eligió la IA). */
+    efModelo?: string;
+    /** Solo en las de Educación Física: la modalidad que eligió el docente ('' si la decidió la IA). */
+    efModalidad?: import('./ef').ModalidadEF | '';
   };
   content: import('../services/learningSituations').SdaContent;
 }
@@ -688,7 +696,9 @@ export interface SeatingPlan {
  * (Tareas, Comportamiento y Participación), que vale un punto de la nota
  * final. Ver `services/classMarks.ts`.
  */
-export type ClassMarkType = 'homework' | 'material' | 'behavior-bad' | 'behavior-good' | 'participation';
+export type ClassMarkType = 'homework' | 'material' | 'behavior-bad' | 'behavior-good' | 'participation'
+  // Educación Física: la observación rápida en la pista (ver `services/classMarks.ts`)
+  | 'ef-ropa' | 'ef-aseo' | 'ef-esfuerzo' | 'ef-no-participa';
 
 /** Las tres partes del bloque de anotaciones. */
 export type MarkTarget = 'homework' | 'behavior' | 'participation';
@@ -729,4 +739,7 @@ export type Section =
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
   | 'meetings' | 'trainings' | 'seating'
-  | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos';
+  | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-programas' | 'apoyo-documentos'
+  | 'apoyo-coordinaciones' | 'apoyo-agenda-visual'
+  | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos'
+  | 'ef-actividades' | 'ef-sesiones' | 'ef-material' | 'ef-sda';

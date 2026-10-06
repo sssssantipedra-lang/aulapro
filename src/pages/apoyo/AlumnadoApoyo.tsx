@@ -11,7 +11,7 @@ import { CursoSelect } from '../../components/apoyo/CursoSelect';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { useI18n, weekdayLabel } from '../../i18n';
 import {
-  CATEGORIAS_NEAE, nuevoIdApoyo, sinAlumno, sinGrupo, tieneDesfase,
+  CATEGORIAS_NEAE, GRUPOS_NEAE, nuevoIdApoyo, sinAlumno, sinGrupo, tieneDesfase,
 } from '../../lib/apoyo';
 import type { AlumnoApoyo, ApoyoData, Especialidad, FranjaApoyo, GrupoApoyo } from '../../types/apoyo';
 
@@ -26,7 +26,7 @@ interface Props {
 function alumnoVacio(): AlumnoApoyo {
   return {
     id: nuevoIdApoyo('alu'), nombre: '', claseOrigen: '',
-    categoria: '', diagnostico: '', necesidades: '', notas: '',
+    categorias: [], diagnostico: '', necesidades: '', notas: '',
   };
 }
 
@@ -187,7 +187,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
                     {a.nivel && (
                       <span className={`sda-chip${tieneDesfase(a) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(a.nivel) })}</span>
                     )}
-                    {a.categoria && <span className="sda-chip">{a.categoria}</span>}
+                    {a.categorias.map(c => <span key={c} className="sda-chip">{t(c)}</span>)}
                   </span>
                   {gruposDe(a.id).length > 0 && (
                     <span className="ap-sub">{gruposDe(a.id).map(g => g.nombre).join(' · ')}</span>
@@ -213,10 +213,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
                 <CursoSelect id="ap-a-mat" value={alumno.matricula} vacio={t('Sin indicar')} onChange={c => setAlumno({ ...alumno, matricula: c })} /></div>
               <div className="fgroup"><label className="flabel" htmlFor="ap-a-nivel">{t('Nivel de competencia curricular')}</label>
                 <CursoSelect id="ap-a-nivel" value={alumno.nivel} vacio={t('El de su curso')} onChange={c => setAlumno({ ...alumno, nivel: c })} /></div>
-              <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-cat">{t('Necesidad específica de apoyo educativo')}</label>
-                <input id="ap-a-cat" className="finput" list="ap-categorias" value={alumno.categoria} placeholder={t('Elige o escribe la categoría')} onChange={e => setAlumno({ ...alumno, categoria: e.target.value })} />
-                <datalist id="ap-categorias">{CATEGORIAS_NEAE.map(c => <option key={c} value={t(c)} />)}</datalist>
-              </div>
+              <NecesidadesPicker value={alumno.categorias} onChange={categorias => setAlumno({ ...alumno, categorias })} />
               <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-diag">{t('Diagnóstico')}</label>
                 <textarea id="ap-a-diag" className="finput" rows={2} value={alumno.diagnostico} onChange={e => setAlumno({ ...alumno, diagnostico: e.target.value })} /></div>
               <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-nec">{t('Necesidades educativas')}</label>
@@ -333,5 +330,54 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
         )}
       </Modal>
     </section>
+  );
+}
+
+/**
+ * Sus necesidades específicas de apoyo educativo: se marcan las que tenga, en
+ * dos grupos, y las que no estén en la lista se añaden a mano.
+ */
+function NecesidadesPicker({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const { t } = useI18n();
+  const [otra, setOtra] = useState('');
+  const propias = value.filter(c => !CATEGORIAS_NEAE.includes(c));
+  const alternar = (c: string) => onChange(value.includes(c) ? value.filter(x => x !== c) : [...value, c]);
+  function anadir() {
+    const c = otra.trim();
+    if (c && !value.some(x => x.toLocaleLowerCase() === c.toLocaleLowerCase())) onChange([...value, c]);
+    setOtra('');
+  }
+  return (
+    <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
+      <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
+      <p className="ap-aviso" style={{ margin: '0 0 8px' }}>{t('Marca todas las que tenga.')}</p>
+      {GRUPOS_NEAE.map(g => (
+        <div key={g.titulo} className="ap-neae">
+          <div className="ap-neae-ttl">{t(g.titulo)}</div>
+          <div className="chip-row">
+            {g.categorias.map(c => {
+              const on = value.includes(c);
+              return (
+                <button key={c} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on} onClick={() => alternar(c)}>{t(c)}</button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      {propias.length > 0 && (
+        <div className="chip-row" style={{ marginTop: 8 }}>
+          {propias.map(c => (
+            <button key={c} type="button" className="chip sm accent on" aria-pressed="true" onClick={() => alternar(c)}
+              aria-label={t('Quitar «{name}»', { name: c })} title={t('Quitar')}>{c} ×</button>
+          ))}
+        </div>
+      )}
+      <div className="ap-neae-otra">
+        <input id="ap-a-otra" className="finput" value={otra} aria-label={t('Otra necesidad')}
+          placeholder={t('Otra que no esté en la lista')} onChange={e => setOtra(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); anadir(); } }} />
+        <button type="button" className="btn-ghost" onClick={anadir} disabled={!otra.trim()}><Plus size={14} />{t('Añadir')}</button>
+      </div>
+    </fieldset>
   );
 }

@@ -156,7 +156,8 @@ export function buildTeacherContext(
   L.push('=== DATOS REALES DEL CUADERNO DE ESTE DOCENTE ===');
   L.push(`Fecha de hoy: ${hoy}`);
   if (d.profile) {
-    L.push(`Docente: ${d.profile.name || '(sin nombre)'} · Centro: ${d.profile.school || '(sin centro)'}` +
+    // Sin el nombre del docente: no hace falta para responder y no sale del equipo.
+    L.push(`Centro: ${d.profile.school || '(sin centro)'}` +
       ` · Asignatura principal: ${d.profile.subject || '(sin asignatura)'} · Curso escolar: ${d.profile.course || '(sin curso)'}`);
   }
 

@@ -32,8 +32,12 @@ export interface AlumnoApoyo {
    * de su matrícula.
    */
   nivel?: CursoDe;
-  /** Categoría de necesidad específica de apoyo educativo, en texto libre. */
-  categoria: string;
+  /**
+   * Sus necesidades específicas de apoyo educativo: puede tener varias. Las de
+   * la lista (`GRUPOS_NEAE`) se guardan con su texto en castellano y se
+   * traducen al mostrarlas; las escritas a mano, tal cual.
+   */
+  categorias: string[];
   /** Dato de salud: se guarda en el equipo. Ver `docs/PTAL.md`, «Datos y IA». */
   diagnostico: string;
   /** Sus necesidades en términos educativos: barreras, fortalezas, qué le ayuda. */
@@ -147,6 +151,53 @@ export interface DocumentoApoyo {
   tabla?: string[][];
 }
 
+/** Con quién se coordina el especialista sobre un alumno. */
+export type ConQuien = 'tutoria' | 'familia' | 'orientacion' | 'equipo' | 'otros';
+
+/**
+ * Una reunión o conversación de coordinación sobre un alumno, con lo que se
+ * acordó. Sale en el apartado H del PAP y en los informes del trimestre.
+ */
+export interface CoordinacionApoyo {
+  id: string;
+  alumnoId: string;
+  /** YYYY-MM-DD. */
+  fecha: string;
+  con: ConQuien;
+  /** Quiénes estuvieron, si se quiere anotar. */
+  asistentes: string;
+  /** De qué se habló. */
+  temas: string;
+  acuerdos: string;
+}
+
+/** Un paso de la agenda visual: un pictograma de Mulberry o una foto, y su texto. */
+export interface PasoAgenda {
+  id: string;
+  /** Identificador de `lib/pictos.ts`. */
+  picto?: string;
+  /** Identificador de una de `ApoyoData.fotos`. */
+  fotoId?: string;
+  texto: string;
+}
+
+/** Una agenda visual: la secuencia de una sesión, de un día o de una rutina. */
+export interface AgendaVisual {
+  id: string;
+  /** Sin alumno es una plantilla, que se queda al empezar otro curso. */
+  alumnoId?: string;
+  titulo: string;
+  pasos: PasoAgenda[];
+}
+
+/** Una foto del propio docente para la agenda visual. Se queda en el equipo. */
+export interface FotoApoyo {
+  id: string;
+  nombre: string;
+  /** La imagen ya reducida, como `data:image/jpeg;base64,…`. */
+  datos: string;
+}
+
 /** Todo lo del módulo, tal como se guarda en el perfil. */
 export interface ApoyoData {
   alumnos: AlumnoApoyo[];
@@ -154,4 +205,7 @@ export interface ApoyoData {
   programas: ProgramaApoyo[];
   sesiones: SesionApoyo[];
   documentos: DocumentoApoyo[];
+  coordinaciones: CoordinacionApoyo[];
+  agendas: AgendaVisual[];
+  fotos: FotoApoyo[];
 }

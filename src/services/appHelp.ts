@@ -46,6 +46,17 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
   'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
   'apoyo-documentos':    { es: 'Programación e informes', en: 'Planning and Reports' },
+  'apoyo-coordinaciones': { es: 'Coordinaciones', en: 'Coordination' },
+  'apoyo-agenda-visual': { es: 'Agenda visual', en: 'Visual Schedule' },
+  'ef-pista':            { es: 'En la pista', en: 'On the Court' },
+  'ef-exentos':          { es: 'Exentos y lesiones', en: 'Exemptions and Injuries' },
+  'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },
+  'ef-equipos':          { es: 'Equipos', en: 'Teams' },
+  'ef-circuitos':        { es: 'Circuitos', en: 'Circuits' },
+  'ef-sda':              { es: 'Situaciones de aprendizaje', en: 'Learning Situations' },
+  'ef-sesiones':         { es: 'Sesiones', en: 'Sessions' },
+  'ef-actividades':      { es: 'Actividades', en: 'Activities' },
+  'ef-material':         { es: 'Material e instalaciones', en: 'Equipment and Facilities' },
 };
 
 /**
@@ -115,6 +126,11 @@ inglés y catalán (se cambia en la pantalla de bienvenida y en Configuración �
 Idioma). En catalán, también la IA redacta en catalán (fichas, informes, SdA…).
 
 === CÓMO SE NAVEGA ===
+Al crear el perfil se elige el TIPO DE DOCENTE: «Docente de aula» (tutoría o
+materias), «Educación Física» (con la casilla de tutoría si también es tutor) o
+«PT y AL» (profesorado especialista de apoyo). Cada tipo tiene su menú y su
+Inicio. Lo que sigue es el del docente de aula; el de EF y el de PT y AL están
+más abajo. El tipo se cambia en Configuración → Perfil.
 Barra lateral a la izquierda, organizada por tareas, con tres grupos:
 - «Tu día a día»: Inicio, Mis Clases, Agenda, Cuaderno de Notas y Asistencia.
 - «Trabajo docente»: tres APARTADOS que reúnen pantallas hermanas. Al entrar
@@ -201,7 +217,7 @@ Tiene DOS PESTAÑAS arriba:
    exporta a Excel.
 2. «✨ Consulta IA»: el asistente pedagógico que SÍ VE LOS DATOS del docente
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
-   «¿cómo va Marta?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
+   «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
 Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
 aula desde la Distribución de aula, el cuaderno añade este bloque, que vale
@@ -234,7 +250,7 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   roles cooperativos (Portavoz, Secretario/a, Responsable del material,
   Responsable del tiempo) y su responsabilidad.
 - «✨ Repartir con IA» abre una ventana donde se escriben, si se quiere,
-  aspectos a tener en cuenta («Marco y Lucía no deben ir juntos») y se pulsa
+  aspectos a tener en cuenta («Alumno 1 y Alumno 2 no deben ir juntos») y se pulsa
   «Generar grupos con IA». La IA reparte al alumnado real en mesas EQUILIBRADAS
   y MULTINIVEL usando la media ponderada, la asistencia y los avisos de cada
   alumno, sin inventar ninguno. Sustituye la distribución que hubiera.
@@ -357,7 +373,11 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
-área y el nivel. Se elige «el mundo de la historia» (Misión espacial, Selva,
+área y el nivel. Para el profesorado de PT y AL, en vez de «Clase» sale
+«Adaptada a»: al elegir a un alumno de apoyo se rellenan su nivel y, en «Más
+opciones», lo que se le cuenta a la IA (sus necesidades específicas, cómo
+aprende y sus objetivos de este trimestre, sin su nombre ni su diagnóstico),
+que se puede cambiar antes de crearla. Se elige «el mundo de la historia» (Misión espacial, Selva,
 Detectives, Submarina, Superhéroes, La gran final, Jurásico, Piratas, Magia,
 Cocina), «Que elija la IA» o «Clásica» (sin historia). Con historia, un
 personaje presenta la misión, cada bloque es un paso de la aventura («Misión
@@ -442,14 +462,177 @@ las mismas clases, alumnos, notas, rúbricas y dianas. Se conecta con un código
 un QR y los cambios se sincronizan solos. El dueño de cada lista manda sobre
 ella, para que nadie machaque el trabajo del otro.
 
+=== EDUCACIÓN FÍSICA (solo profesorado de EF) ===
+Al crear el perfil, «Tipo de docente» → «Educación Física» (o después, en
+Configuración → Perfil). Con la casilla «También soy tutor o tutora», el Inicio
+es el de tutoría y su grupo es la clase en la que marque «Soy el tutor o la
+tutora de este grupo» en Mis Clases (el 2 en 1). El MENÚ es el de un docente de
+aula (Mis Clases, Agenda, Cuaderno, Asistencia, Evaluar con rúbricas y dianas,
+Documentos, En clase, Más) y, justo después del Inicio, el apartado
+«Educación Física», con pestañas arriba.
+INICIO DE EF (sin tutoría): el de siempre, con «Observar en la pista» en vez de
+«Anotar en el aula» en la clase de ahora, la tarjeta «Exentos y lesiones» con
+quién no puede hacer la clase hoy y qué hace mientras tanto, y la tarjeta
+«Pruebas físicas» con la última toma de cada clase, y «Próximas sesiones».
+
+[ef-pista] EN LA PISTA
+La observación rápida, pensada para el móvil. Arriba, la clase (sale la que
+toca ahora según el horario); debajo, qué se observa: «+ Participa», «+ Se
+esfuerza», «− No participa», «+ Juego limpio», «− Mala actitud», «− Sin
+equipación», «− Sin aseo». Se elige uno y se toca a cada alumno; otro toque lo
+quita. Quien está exento lleva una etiqueta con lo que no puede hacer. Cuenta en
+el Cuaderno, en el bloque «Trabajo diario y actitud», que en EF tiene tres
+partes: Vestimenta e higiene (sin equipación, sin aseo), Actitud y juego limpio
+y Participación y esfuerzo. Los puntos del bloque y el peso de cada parte se
+cambian en el Cuaderno, como el resto del bloque.
+
+[ef-exentos] EXENTOS Y LESIONES
+Quién no puede hacer la clase o parte de ella. «Añadir»: alumno, qué no puede
+hacer (no puede correr, no puede saltar, sin impactos, sin contacto, no puede
+usar un brazo, no puede apoyar una pierna, sin esfuerzo intenso, sin sol, u
+otra escrita a mano), desde y hasta cuándo (sin fecha de fin, hasta que se
+quite), qué hace mientras tanto, si ha traído justificante y el motivo. El
+MOTIVO es un dato de salud: se queda en el equipo y nunca se envía a la IA; a
+la IA solo le llega lo que no puede hacer, sin nombre. La lista se divide en
+«Ahora», «Más adelante» y los que ya terminaron. Sale en la pista, en el Inicio
+y al hacer equipos.
+
+[ef-pruebas] PRUEBAS FÍSICAS
+Arriba, la clase y la prueba, por capacidades: resistencia (Course Navette,
+test de Cooper), velocidad y agilidad (30 m, 4 × 10 m), fuerza (salto
+horizontal, balón medicinal, dinamometría) y flexibilidad (flexión de tronco
+sentado). Debajo, cómo se hace y una tabla con cada alumno: su primera marca,
+la última, la MEJORA respecto a sí mismo (en %, con flecha verde si mejora) y
+la casilla «Nueva marca». «Toma del» es la fecha; «Guardar la toma» guarda las
+marcas escritas (una por alumno, prueba y día: si se repite, sustituye a la
+anterior). «Pruebas» permite ocultar las de partida y crear las propias
+(nombre, capacidad, unidad, si es mejor una marca más alta o más baja y cómo
+se hace). «Baremos» es OPCIONAL: para cada prueba y curso (y, si se quiere,
+solo chicas o solo chicos) se escriben los tramos «con esta marca o mejor,
+esta nota», o se pegan de una hoja de cálculo (una línea por tramo: marca y
+nota). Con baremo, la tabla muestra la nota de la última marca y aparece
+«Pasar las notas al cuaderno», que crea una columna en la categoría que se
+elija. La app todavía no trae baremos publicados: se incluirán solo cuando se
+haya comprobado que su licencia lo permite. El chico o chica de cada alumno
+para el baremo se marca en «Equipos».
+
+[ef-equipos] EQUIPOS
+Equipos equilibrados de una clase. Se elige la clase, el número de equipos
+(dice cuántos salen por equipo) y qué tener en cuenta: «Igualar el nivel» (el
+nivel de 1 a 3 que marca el docente), «Mezclar chicos y chicas» y «Separar las
+parejas». Si la asistencia de hoy tiene faltas, «Sin quien falta hoy» las deja
+fuera. «Hacer equipos» los reparte (cada vez de una manera distinta; «Hacer
+otros» repite). Los equipos llevan el color del peto y se quedan guardados en
+esa clase hasta que se hagan otros. Para retocarlos, se toca a un alumno y
+después a otro y se cambian de equipo, o «Mover aquí» en otro equipo. Quien
+está exento o lesionado juega en su equipo: sale su limitación y qué hace.
+«Proyectar» los muestra a pantalla completa SIN niveles ni limitaciones.
+Debajo, «Nivel y sexo del alumnado» (1, inicial; 2, medio; 3, avanzado; el
+sexo también sirve para el baremo) y «Parejas que separar».
+
+[ef-circuitos] CIRCUITOS
+El cronómetro de estaciones. «Nuevo circuito»: nombre, estaciones (una por
+línea), segundos de trabajo, de descanso entre estaciones, rondas y descanso
+entre rondas; abajo dice cuánto dura. «Empezar» lo abre a pantalla completa:
+10 segundos para colocarse y después cada estación, con su nombre en grande,
+la cuenta atrás y la siguiente. Tres pitidos cortos en los tres últimos
+segundos y uno largo al cambiar; el color y el rótulo dicen si es trabajo o
+descanso. Botones: fase anterior, pausa o seguir, fase siguiente, sonido y
+pantalla completa; con teclado, espacio y flechas. Mientras corre, la
+pantalla no se apaga si el dispositivo lo permite.
+
+[ef-sda] SITUACIONES DE APRENDIZAJE (EF)
+El mismo creador de situaciones de aprendizaje que «Documentos → Situaciones
+de aprendizaje», con todo lo de siempre: competencias específicas, criterios
+de evaluación y saberes básicos del decreto de la comunidad, competencias
+clave, objetivos de etapa, sesiones por fases, inclusión, evaluación, y
+después su rúbrica, su diana y su ficha. Si la clase tiene Educación Física,
+el formulario añade el bloque «Educación Física»: el MODELO PEDAGÓGICO
+(Aprendizaje cooperativo, Educación Deportiva, Enseñanza comprensiva del
+deporte, Responsabilidad personal y social, Educación en el medio natural,
+Juegos motores y educación emocional, Hibridación de modelos, o «Que lo elija
+la IA»), la MODALIDAD del juego o deporte (o que la decida la IA), «Con mi
+material y mis instalaciones» y las medidas para quien tiene
+ahora una limitación (a la IA solo le llega lo que no puede hacer, sin
+nombres). Las sesiones son de EF (calentamiento, parte principal y vuelta a
+la calma), la inclusión sigue el DUA-A y la evaluación es formativa y
+compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
+abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia
+cada sesión a la pestaña Sesiones, sin fecha. Las SdA se guardan con las
+demás y salen también en Documentos.
+
+[ef-sesiones] SESIONES
+Sesiones de EF con calentamiento, parte principal, vuelta a la calma,
+material, «Para que participe todo el grupo (DUA-A)» y plan B. «Preparar con
+IA»: se elige la clase, el día, la instalación, los minutos (salen del
+horario si la clase tiene tramo), la modalidad del juego o deporte (el
+calentamiento será el de esa modalidad) y qué se quiere trabajar; la IA usa el
+currículo de la clase y su comunidad, el material que no está para reponer,
+las instalaciones cubiertas para el plan B y, si se marca, el banco de
+actividades. Si ese día hay exentos o lesionados en la clase, la sesión lleva
+medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
+nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
+oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
+sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
+«Próximas», «Sin fecha» y «Ver las anteriores».
+
+[ef-actividades] ACTIVIDADES
+El banco de actividades: las de partida de AulaPro (juegos motrices, deportes
+con juegos modificados, días de lluvia, medio natural, calentamiento y vuelta
+a la calma, escritas para la app en castellano, catalán e inglés), las tuyas y
+las que guardes de la IA. Se filtran por tipo, por MODALIDAD (invasión, red y
+pared, lucha, blanco y diana, cooperación, juegos tradicionales y populares,
+medio natural y urbano), por origen y con el buscador. Al elegir una modalidad
+sale su lógica y cómo se prepara (calentamiento, progresión y seguridad).
+Cada una tiene en qué consiste, organización, material, variantes, cómo
+participa todo el grupo (DUA-A) y, si es un juego o deporte, su modalidad. Las del banco no se cambian: «Copiar y
+adaptar» crea una tuya a partir de ella. «Proponer con IA» pide tres
+actividades de un tipo (y, si se quiere, de una modalidad, con su
+preparación), para una clase y un tema, con tu material y, si se
+marca, con las limitaciones de hoy de esa clase (sin nombres).
+
+[ef-material] MATERIAL E INSTALACIONES
+El inventario: material, cantidad, estado (bien, regular o para reponer, que
+se cambia desde la tabla) y dónde está; arriba sale lo que hay que reponer.
+Las instalaciones, con «Es cubierta: sirve los días de lluvia» y notas. La IA
+usa el material que no está para reponer y las instalaciones cubiertas para
+el plan B.
+
 === PT Y AL (solo profesorado especialista) ===
-Apartado del menú, justo después del Inicio, que solo aparece si en
-Configuración → Perfil está marcada «Pedagogía Terapéutica (PT)» o «Audición y
-Lenguaje (AL)». Es para quien atiende alumnado de muchas clases que no son
-suyas: este alumnado es aparte del de «Mis Clases».
+Para quien atiende alumnado de muchas clases que no son suyas. Se elige al
+crear el perfil («Tipo de docente» → «PT y AL», y se marca «Pedagogía
+Terapéutica (PT)», «Audición y Lenguaje (AL)» o las dos; la especialidad se
+escribe sola) o después en Configuración → Perfil. Al cambiar de tipo no se
+borra nada. Su MENÚ es otro:
+- «Tu día a día»: Inicio, Registro diario, Alumnado y grupos, Programas,
+  Coordinaciones, Programación e informes y Agenda.
+- «Herramientas»: Agenda visual, Recursos (con «Adaptada a», una ficha para un
+  alumno de apoyo) y Aula Live (la ruleta y los grupos salen de su alumnado de
+  apoyo).
+- «Más»: Reuniones, Formaciones, Registro de cambios y Configuración.
+No tiene Mis Clases, Cuaderno, Asistencia, Evaluar ni Trabajo compartido.
+En la AGENDA, el horario de sus grupos de apoyo sale solo en la vista semanal
+(pulsándolo lleva a Alumnado y grupos, donde se cambia).
+
+INICIO DE PT Y AL: el saludo con el trimestre y tres tarjetas:
+- SESIONES DE HOY: los grupos que tienen sesión hoy según su horario, por hora,
+  con su alumnado. «Registrar» abre el Registro diario en ese grupo; las ya
+  anotadas dicen «Registrada».
+- AVISOS DE SEGUIMIENTO: al final del trimestre, los informes que faltan; las
+  sesiones de los últimos 7 días que se quedaron sin registrar (desde la
+  primera que se registró de ese grupo), con «Registrar» en ese día; un
+  objetivo con 3 veces seguidas «No conseguido» («quizá convenga ajustarlo o
+  cambiar el apoyo»); un objetivo del trimestre sin trabajar en ninguna de 3 o
+  más sesiones; alumnos sin objetivos este trimestre y alumnos sin grupo.
+- EVOLUCIÓN DEL ALUMNADO: una barra por alumno con sus objetivos del trimestre
+  según lo último registrado de cada uno (Conseguido, En proceso, No conseguido,
+  Sin trabajar) y cuántos lleva conseguidos. Pulsando el alumno se ve cada
+  objetivo con un punto por sesión, de color según cómo fue.
+Sin alumnado todavía, el Inicio muestra tres pasos (alumnado y grupos,
+programas, registro) y «Probar con datos de ejemplo».
 
 [apoyo-registro] REGISTRO DIARIO
-La primera pestaña de «PT y AL», para usar en la sesión. Arriba, la fecha (con
+La entrada de PT y AL para usar en la sesión. Arriba, la fecha (con
 flechas para el día anterior y el siguiente, o pulsándola para elegir otra) y
 el trimestre, que sale de la fecha (septiembre a diciembre el 1º, enero a marzo
 el 2º, abril en adelante el 3º). Debajo, los grupos que tienen sesión ese día
@@ -477,9 +660,13 @@ sesiones a la semana, con día, hora de empezar y de acabar), su alumnado y un
 color; si el perfil es de PT y de AL, también de cuál de las dos es. ALUMNADO
 («Nuevo alumno»): nombre y apellidos, clase de origen («2º B»), curso en que
 está matriculado, nivel de competencia curricular (el curso cuyo currículo
-trabaja; si está por debajo de su curso se marca en la lista), necesidad
-específica de apoyo educativo (se elige o se escribe; sugiere las categorías
-de la LOE), diagnóstico, necesidades educativas (barreras, fortalezas y qué le
+trabaja; si está por debajo de su curso se marca en la lista), necesidades
+específicas de apoyo educativo (se marcan todas las que tenga, en dos grupos:
+las necesidades educativas especiales, con discapacidad intelectual, motora,
+auditiva o visual, TEA, trastorno grave de conducta o de la comunicación y
+pluridiscapacidad, y las demás, como TDAH, dificultades específicas de
+aprendizaje, TDL o altas capacidades; «Otra que no esté en la lista» añade una
+escrita a mano), diagnóstico, necesidades educativas (barreras, fortalezas y qué le
 ayuda), notas y sus grupos. El lápiz de cada fila edita; dentro está
 «Eliminar». Eliminar un alumno borra sus programas y sus registros; eliminar
 un grupo borra sus registros, pero no al alumnado. Todo se guarda en el
@@ -505,6 +692,40 @@ conducta), apoyándose en la normativa de inclusión de la comunidad y en los
 autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
 del alumno, también el diagnóstico, con el nombre cambiado por un código: si no
 se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
+Debajo de cada objetivo con registros, su GRÁFICA sesión a sesión: un punto por
+sesión a tres alturas (✓ conseguido arriba, – en proceso, ✗ no conseguido
+abajo), con la fecha al pasar por encima; se ven las 24 últimas. Junto al nivel
+del alumno, «Hacer una ficha adaptada con IA» lleva a Recursos con la ficha ya
+adaptada a ese alumno (ver RECURSOS: «Adaptada a»).
+
+[apoyo-coordinaciones] COORDINACIONES
+Lo que el especialista habla con la tutoría, la familia, orientación o el
+equipo docente sobre cada alumno, y lo que se acuerda. «Nueva coordinación»:
+alumno, fecha, con quién (Tutoría, Familia, Orientación, Equipo docente u
+Otros), quiénes estuvieron, de qué se habló y los acuerdos. Arriba se filtra por
+alumno («Todo el alumnado» o uno); con uno elegido, «Copiar todas para el PAP»
+copia sus coordinaciones como texto para pegarlas en el PAP o en un acta. Las
+del trimestre llegan a la IA al preparar sus informes, y todas, al preparar su
+programación (sin «quiénes estuvieron», que puede llevar nombres de adultos, y
+con el nombre del alumno cambiado por un código).
+
+[apoyo-agenda-visual] AGENDA VISUAL
+Secuencias con pictogramas o con fotos del propio docente para anticipar una
+sesión, el día o una rutina. Cada agenda tiene título, para quién (un alumno o
+«Plantilla, sin alumno») y sus pasos en orden. «Nueva agenda» o, sin ninguna
+todavía, una de las plantillas («Mi sesión de apoyo», «Rutina de entrada», «Ir
+al baño»). En el editor, «Añadir paso» abre los PICTOGRAMAS (unos 240 de
+Mulberry Symbols, por categorías: rutinas, en clase, material, acciones, cómo
+me siento, personas, comida, lugares, juego y cuándo, con buscador) o «MIS
+FOTOS» («Añadir una foto»: se guarda reducida en el perfil, en este equipo, y no
+se envía a ninguna parte). Se pueden añadir varios seguidos y cerrar con
+«Listo». Cada paso tiene su texto, que se cambia, y flechas para moverlo antes o
+después. En la lista de agendas: «Mostrar» la enseña a pantalla completa para
+el alumno (se toca cada paso al hacerlo y se tacha; el siguiente queda
+marcado; «Volver a empezar» y «Cerrar»), y los botones de editar, guardar en
+PDF para imprimir (una tarjeta por paso, para recortar, con la atribución de
+Mulberry al pie), duplicar y eliminar. Al vaciar el curso se quedan las agendas
+sin alumno, como plantillas.
 
 [apoyo-documentos] PROGRAMACIÓN E INFORMES
 Por alumno (fila de botones arriba). En «Nuevo documento» se elige cuál y, si
@@ -542,9 +763,10 @@ Se abre desde el grupo «Más» del menú o pulsando tu nombre arriba a la
 izquierda. Es una cuadrícula de TARJETAS; cada una se abre al pulsarla y se
 vuelve con «← Configuración»:
 - PERFIL: nombre, apellidos, centro, especialidad, curso escolar, comunidad
-  autónoma y, para el profesorado especialista de apoyo, las casillas
-  «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»: con alguna marcada
-  aparece en el menú el apartado «PT y AL».
+  autónoma y el TIPO DE DOCENTE: «Docente de aula», «Educación Física» (con la
+  casilla «También soy tutor o tutora») o «PT y AL» (con las casillas
+  «Pedagogía Terapéutica (PT)» y «Audición y Lenguaje (AL)»). Al cambiarlo
+  cambian el menú y el Inicio; no se borra nada.
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
   «Pegar mi clave», que la guarda y comprueba que funciona. También explica el
@@ -654,8 +876,8 @@ export function helpSystemPrompt(lang: Lang, section: string): string {
         ? '2. Be brief and practical: the exact route (“Sidebar → My Classes → New class”) and the steps in order. Two or three short paragraphs at most, or a short list.'
         : '2. Sé breve y práctico: la ruta exacta («barra lateral → Mis Clases → Nueva clase», o «Documentos → Actas» para las pantallas agrupadas) y los pasos en orden. Dos o tres párrafos cortos como mucho, o una lista breve.',
       lang === 'en'
-        ? '3. You do NOT see the teacher\'s classes, students or marks. If they ask about their own data (“how is Marta doing?”), point them to the Gradebook’s “Consulta IA” tab, which does.'
-        : '3. TÚ NO VES las clases, los alumnos ni las notas de este docente. Si te preguntan por sus datos («¿cómo va Marta?»), mándalos a la pestaña «Consulta IA» del Cuaderno de Notas, que es la que sí los ve.',
+        ? '3. You do NOT see the teacher\'s classes, students or marks. If they ask about their own data (“how is Student 1 doing?”), point them to the Gradebook’s “Consulta IA” tab, which does.'
+        : '3. TÚ NO VES las clases, los alumnos ni las notas de este docente. Si te preguntan por sus datos («¿cómo va Alumno 1?»), mándalos a la pestaña «Consulta IA» del Cuaderno de Notas, que es la que sí los ve.',
       lang === 'en'
         ? '4. When your answer points to one screen, end the message with its marker on its own line: [IR:id] (for example [IR:classes]). Only one, only from the manual’s ids, and never mention the marker in the text.'
         : '4. Cuando tu respuesta lleve a una pantalla concreta, termina el mensaje con su marca en una línea aparte: [IR:id] (por ejemplo [IR:classes]). Solo una, solo de los identificadores del manual, y no menciones nunca la marca en el texto.',

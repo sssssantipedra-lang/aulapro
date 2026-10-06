@@ -140,8 +140,8 @@
         [993, 725, 1056, 747, 't:task', 'Añadir tarea'],
         [1807, 725, 1864, 747, 'go:agenda', 'Ver todo'],
         [967, 831, 1056, 853, 'go:misclases', 'Ver alumnado'],
-        [297, 862, 560, 906, 'go:misclases', 'Lucía Pérez Navarro'],
-        [297, 910, 560, 954, 'go:misclases', 'Adrián Vidal Peña'],
+        [297, 862, 560, 906, 'go:misclases', 'Alumno 7'],
+        [297, 910, 560, 954, 'go:misclases', 'Alumno 10'],
         [1799, 831, 1864, 853, 'go:cuaderno', 'Cuaderno'],
         [1103, 862, 1300, 906, 'go:cuaderno', '4.º ESO B'],
         [1103, 910, 1300, 954, 'go:cuaderno', '1.º Bach A'],
@@ -206,10 +206,10 @@
         [833, 300, 1058, 425, 't:seat', 'Mesa 3'],
         [1103, 300, 1327, 425, 't:seat', 'Mesa 4'],
         [1372, 300, 1596, 425, 't:seat', 'Mesa 5'],
-        [295, 443, 519, 495, 't:student', 'Adrián Vidal Peña'],
-        [564, 443, 788, 514, 't:student', 'Daniel Gómez Herrera'],
-        [833, 443, 1058, 514, 't:student', 'Lucía Pérez Navarro'],
-        [1103, 443, 1327, 495, 't:student', 'Sara Iglesias Marín'],
+        [295, 443, 519, 495, 't:student', 'Alumno 10'],
+        [564, 443, 788, 514, 't:student', 'Alumno 8'],
+        [833, 443, 1058, 514, 't:student', 'Alumno 7'],
+        [1103, 443, 1327, 495, 't:student', 'Alumno 9'],
         [1832, 959, 1886, 1013, 't:help', 'Ayuda']
       ]
     },
@@ -732,7 +732,7 @@
     paintTimer();
 
     /* --- roulette --- */
-    const NAMES = ['Lucía', 'Daniel', 'Sara', 'Adrián', 'María', 'Rubén', 'Patricia'];
+    const NAMES = ['Alumno 7', 'Alumno 8', 'Alumno 9', 'Alumno 10', 'Alumno 11', 'Alumno 12', 'Alumno 13'];
     const disc = new Image();
     disc.className = 'disc';
     disc.alt = '';

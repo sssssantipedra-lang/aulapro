@@ -13,22 +13,30 @@
  *   - Más (plegado): Reuniones, Formaciones, Trabajo compartido, Registro
  *     de cambios y Mi perfil.
  *
- * El profesorado especialista de PT y AL tiene además el apartado «PT y AL»,
- * justo después del Inicio: es su trabajo diario (ver `docs/PTAL.md`). Al
- * resto no le aparece.
+ * El profesorado especialista de PT y AL tiene su propio menú (decisión del
+ * dueño, 5-10-2026: quien es de PT o de AL normalmente no es tutor). Lleva su
+ * trabajo de apoyo como entradas sueltas, lo común de todo el profesorado y
+ * Aula Live; nada de clases, cuaderno ni evaluación del grupo. Ver
+ * `docs/PTAL.md`.
+ *
+ * El de Educación Física tiene el menú de aula y, después del Inicio, el
+ * apartado «Educación Física» con sus herramientas (decisión del dueño,
+ * 5-10-2026). Ser también tutor solo cambia su Inicio. Ver `docs/EF.md`.
  *
  * Las pantallas no cambian ni de identificador: todo lo que ya navegaba a
  * «rubrics» o «records» sigue funcionando; el apartado solo agrupa.
  */
 import type { Section } from '../types';
+import type { TipoDocente } from './tipoDocente';
 
 export type NavIcon =
   | 'home' | 'classes' | 'agenda' | 'notebook' | 'attendance'
-  | 'evaluate' | 'documents' | 'inclass' | 'apoyo'
+  | 'evaluate' | 'documents' | 'inclass' | 'ef'
+  | 'session' | 'students' | 'goals' | 'coord' | 'reports' | 'resources' | 'live' | 'pictos'
   | 'meetings' | 'trainings' | 'share' | 'audit' | 'profile';
 
 export interface NavHub {
-  id: 'evaluate' | 'documents' | 'inclass' | 'apoyo';
+  id: 'evaluate' | 'documents' | 'inclass' | 'ef';
   label: string;
   /** Para qué sirve, en una frase: se ve bajo las pestañas y en el tooltip del menú. */
   hint: string;
@@ -71,21 +79,28 @@ export const HUBS: readonly NavHub[] = [
     ],
   },
   {
-    id: 'apoyo', label: 'PT y AL', icon: 'apoyo',
-    hint: 'Tu alumnado de apoyo: el registro de cada sesión, sus programas personalizados, la programación y los informes.',
+    id: 'ef', label: 'Educación Física', icon: 'ef',
+    hint: 'Lo propio de EF: observar en la pista, el alumnado exento o lesionado, las pruebas físicas, los equipos y los circuitos, las actividades y sesiones, y el material.',
     tabs: [
-      { id: 'apoyo-registro',   label: 'Registro diario' },
-      { id: 'apoyo-alumnado',   label: 'Alumnado y grupos' },
-      { id: 'apoyo-programas',  label: 'Programas' },
-      { id: 'apoyo-documentos', label: 'Programación e informes' },
+      { id: 'ef-pista',   label: 'En la pista' },
+      { id: 'ef-exentos', label: 'Exentos y lesiones' },
+      { id: 'ef-pruebas', label: 'Pruebas físicas' },
+      { id: 'ef-equipos', label: 'Equipos' },
+      { id: 'ef-circuitos', label: 'Circuitos' },
+      { id: 'ef-sda', label: 'Situaciones de aprendizaje' },
+      { id: 'ef-sesiones', label: 'Sesiones' },
+      { id: 'ef-actividades', label: 'Actividades' },
+      { id: 'ef-material', label: 'Material' },
     ],
   },
 ];
 
+type NavGroups = readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[];
+
 const link = (id: Section, label: string, icon: NavIcon): NavEntry => ({ kind: 'link', id, label, icon });
 const hub = (id: NavHub['id']): NavEntry => ({ kind: 'hub', ...HUBS.find(h => h.id === id)! });
 
-export const NAV_GROUPS: readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[] = [
+export const NAV_GROUPS: NavGroups = [
   {
     sect: 'Tu día a día',
     items: [
@@ -108,25 +123,71 @@ export const NAV_GROUPS: readonly { sect: string; items: NavEntry[]; collapsedBy
       link('trainings', 'Formaciones',         'trainings'),
       link('share',     'Trabajo compartido',  'share'),
       link('audit',     'Registro de cambios', 'audit'),
-      link('profile',   'Configuración',           'profile'),
+      link('profile',   'Configuración',       'profile'),
     ],
   },
 ];
 
 /**
- * El menú de un perfil: el de siempre y, si es especialista de PT o de AL,
- * su apartado justo después del Inicio.
+ * El menú del profesorado especialista de PT y AL. Su día a día es el apoyo;
+ * de las herramientas, las que sirven sin clases propias.
  */
-export function navGroupsFor(especialista: boolean): readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[] {
-  if (!especialista) return NAV_GROUPS;
-  return NAV_GROUPS.map((g, i) => (i === 0
-    ? { ...g, items: [g.items[0], hub('apoyo'), ...g.items.slice(1)] }
-    : g));
+export const NAV_APOYO: NavGroups = [
+  {
+    sect: 'Tu día a día',
+    items: [
+      link('dashboard',        'Inicio',                  'home'),
+      link('apoyo-registro',   'Registro diario',         'session'),
+      link('apoyo-alumnado',   'Alumnado y grupos',       'students'),
+      link('apoyo-programas',  'Programas',               'goals'),
+      link('apoyo-coordinaciones', 'Coordinaciones',      'coord'),
+      link('apoyo-documentos', 'Programación e informes', 'reports'),
+      link('agenda',           'Agenda',                  'agenda'),
+    ],
+  },
+  {
+    sect: 'Herramientas',
+    items: [
+      link('apoyo-agenda-visual', 'Agenda visual', 'pictos'),
+      link('resources',     'Recursos',  'resources'),
+      link('sec-classroom', 'Aula Live', 'live'),
+    ],
+  },
+  {
+    sect: 'Más',
+    collapsedByDefault: true,
+    items: [
+      link('meetings',  'Reuniones',           'meetings'),
+      link('trainings', 'Formaciones',         'trainings'),
+      link('audit',     'Registro de cambios', 'audit'),
+      link('profile',   'Configuración',       'profile'),
+    ],
+  },
+];
+
+/** El de EF: el de aula con su apartado después del Inicio. */
+export const NAV_EF: NavGroups = NAV_GROUPS.map((g, i) => (i === 0
+  ? { ...g, items: [g.items[0], hub('ef'), ...g.items.slice(1)] }
+  : g));
+
+/** El menú de cada tipo de docente. */
+export function navGroupsFor(tipo: TipoDocente): NavGroups {
+  return tipo === 'apoyo' ? NAV_APOYO : tipo === 'ef' ? NAV_EF : NAV_GROUPS;
 }
 
 /** El apartado al que pertenece una pantalla, si pertenece a alguno. */
 export function hubOf(section: Section): NavHub | undefined {
   return HUBS.find(h => h.tabs.some(t => t.id === section));
+}
+
+/**
+ * El apartado de la pantalla, solo si ese menú lo tiene: en el de PT y AL,
+ * Recursos y Aula Live van sueltos y no llevan las pestañas de sus hermanas,
+ * que ese menú no tiene.
+ */
+export function hubEnMenu(section: Section, tipo: TipoDocente): NavHub | undefined {
+  const h = hubOf(section);
+  return h && navGroupsFor(tipo).some(g => g.items.some(e => e.kind === 'hub' && e.id === h.id)) ? h : undefined;
 }
 
 /** Si la entrada del menú corresponde a la pantalla abierta. */
@@ -157,6 +218,6 @@ export function hubTarget(h: NavHub): Section {
 }
 
 /** Todas las pantallas a las que se llega desde el menú (para comprobar que no se pierde ninguna). */
-export function reachableSections(especialista = false): Section[] {
-  return navGroupsFor(especialista).flatMap(g => g.items.flatMap(e => (e.kind === 'link' ? [e.id] : e.tabs.map(t => t.id))));
+export function reachableSections(tipo: TipoDocente = 'aula'): Section[] {
+  return navGroupsFor(tipo).flatMap(g => g.items.flatMap(e => (e.kind === 'link' ? [e.id] : e.tabs.map(t => t.id))));
 }

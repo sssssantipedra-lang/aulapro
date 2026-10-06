@@ -16,18 +16,18 @@ afterEach(cleanup);
 const block = (id: string): ScheduleBlock =>
   ({ id, day: 1, time_start: '08:30', time_end: '09:25', subject: 'Mates', room: '', class_id: '', color: '#000' });
 
-function setup(blocks: ScheduleBlock[]) {
+function setup(blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav: (s: string) => void = () => {}) {
   const onReplaceBlocks = vi.fn();
   const onDeleteCalEvent = vi.fn();
   render(
     <I18nProvider>
       <ToastProvider>
         <Agenda
-          classes={[]} scheduleBlocks={blocks} calEvents={[]}
+          classes={[]} scheduleBlocks={blocks} apoyoBlocks={apoyoBlocks} calEvents={[]}
           onAddBlock={() => {}} onUpdateBlock={() => {}} onDeleteBlock={() => {}}
           onReplaceBlocks={onReplaceBlocks}
           onAddCalEvent={() => {}} onUpdateCalEvent={() => {}} onDeleteCalEvent={onDeleteCalEvent}
-          onNav={() => {}}
+          onNav={onNav}
         />
       </ToastProvider>
     </I18nProvider>,
@@ -52,5 +52,19 @@ describe('Agenda · borrar horario', () => {
     await user.click(botones[botones.length - 1]);
     expect(onReplaceBlocks).toHaveBeenCalledWith([]);
     expect(onDeleteCalEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe('Agenda · semana', () => {
+  it('pinta los bloques que no cruzan una hora en punto y el horario de los grupos de apoyo', async () => {
+    const user = userEvent.setup();
+    const onNav = vi.fn();
+    const apoyo: ScheduleBlock = { ...block('ap'), day: 3, time_start: '12:15', time_end: '13:00', subject: 'Habilidades sociales', room: 'PT' };
+    setup([{ ...block('c'), time_start: '10:15', time_end: '10:45', subject: 'Tutoría' }], [apoyo], onNav);
+    await user.click(screen.getByRole('tab', { name: 'Semanal' }));
+    expect(screen.getAllByText('Tutoría')).toHaveLength(1);
+    await user.click(screen.getByText('Habilidades sociales'));
+    // El horario de apoyo se cambia en su pantalla, no aquí
+    expect(onNav).toHaveBeenCalledWith('apoyo-alumnado');
   });
 });

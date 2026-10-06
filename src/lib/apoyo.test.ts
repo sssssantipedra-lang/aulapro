@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   ambitosDe, trimestreDe, diaDeLaSemana, gruposDelDia, tieneDesfase, nivelDe,
   objetivosDelTrimestre, sesionDe, sesionConDatos, resumenObjetivo,
-  normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO,
+  normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, CATEGORIAS_NEAE, apoyoParaOtroCurso,
+  contextoFichaApoyo,
 } from './apoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
 const alumno = (id: string, extra: Partial<AlumnoApoyo> = {}): AlumnoApoyo => ({
-  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', categoria: '', diagnostico: '', necesidades: '', notas: '', ...extra,
+  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', categorias: [], diagnostico: '', necesidades: '', notas: '', ...extra,
 });
 const grupo = (id: string, extra: Partial<GrupoApoyo> = {}): GrupoApoyo => ({
   id, nombre: `Grupo ${id}`, especialidad: 'PT', modalidad: 'fuera', horario: [], alumnos: [], color: '#000', ...extra,
@@ -142,6 +143,12 @@ describe('carga y borrado', () => {
     ] }],
     documentos: [{ id: 'd', alumnoId: 'a', tipo: 'familia', trimestre: 1, fecha: '2026-12-15', titulo: 'Informe',
       apartados: [{ id: 'trabajado', titulo: 'Lo trabajado', texto: 'Texto' }] }],
+    coordinaciones: [{ id: 'c', alumnoId: 'a', fecha: '2026-10-20', con: 'familia', asistentes: 'Madre', temas: 'Lectura en casa', acuerdos: 'Leer 10 minutos al día' }],
+    agendas: [
+      { id: 'ag1', alumnoId: 'a', titulo: 'Sesión de lectura', pasos: [{ id: 'p1', picto: 'hello', texto: 'Hola' }, { id: 'p2', fotoId: 'f1', texto: 'Mi mesa' }] },
+      { id: 'ag2', titulo: 'Rutina de entrada', pasos: [{ id: 'p3', picto: 'hang-coat', texto: 'Colgar el abrigo' }, { id: 'p4', fotoId: 'f2', texto: 'La clase' }] },
+    ],
+    fotos: [{ id: 'f1', nombre: 'Mesa', datos: 'data:image/jpeg;base64,AAAA' }, { id: 'f2', nombre: 'Clase', datos: 'data:image/jpeg;base64,BBBB' }],
   };
 
   it('lo guardado vuelve igual', () => {
@@ -151,6 +158,39 @@ describe('carga y borrado', () => {
     expect(vuelta.programas[0].objetivos[0].trimestres).toEqual([1, 2]);
     expect(vuelta.sesiones).toEqual(datos.sesiones);
     expect(vuelta.documentos).toEqual(datos.documentos);
+    expect(vuelta.coordinaciones).toEqual(datos.coordinaciones);
+    expect(vuelta.agendas).toEqual(datos.agendas);
+    expect(vuelta.fotos).toEqual(datos.fotos);
+  });
+
+  it('al vaciar el curso quedan las agendas sin alumno y sus fotos', () => {
+    const otro = apoyoParaOtroCurso(datos);
+    expect(otro.alumnos).toEqual([]);
+    expect(otro.coordinaciones).toEqual([]);
+    expect(otro.agendas.map(a => a.id)).toEqual(['ag2']);
+    expect(otro.fotos.map(f => f.id)).toEqual(['f2']);
+  });
+
+  it('una foto que no es una imagen o un paso con una foto que no existe no se cargan', () => {
+    const raro = normalizarApoyo({
+      fotos: [{ id: 'f', datos: 'javascript:alert(1)' }],
+      agendas: [{ id: 'a', titulo: 'X', alumnoId: 'nadie', pasos: [{ id: 'p', fotoId: 'f', texto: 'T' }] }],
+    });
+    expect(raro.fotos).toEqual([]);
+    expect(raro.agendas).toEqual([{ id: 'a', titulo: 'X', pasos: [{ id: 'p', texto: 'T' }] }]);
+  });
+
+  it('convierte la necesidad única de la 2.1.0 en una lista, sin repetidas', () => {
+    const viejo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categoria: 'Discapacidad motora' }] });
+    expect(viejo.alumnos[0].categorias).toEqual(['Discapacidad motora']);
+    const nuevo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categorias: ['TDAH', ' TDAH ', 7, 'Discapacidad visual'] }] });
+    expect(nuevo.alumnos[0].categorias).toEqual(['TDAH', 'Discapacidad visual']);
+    expect(normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana' }] }).alumnos[0].categorias).toEqual([]);
+  });
+
+  it('la lista de necesidades incluye las motoras y no repite ninguna', () => {
+    expect(CATEGORIAS_NEAE).toContain('Discapacidad motora');
+    expect(new Set(CATEGORIAS_NEAE).size).toBe(CATEGORIAS_NEAE.length);
   });
 
   it('descarta lo que no entiende en vez de romper', () => {
@@ -177,6 +217,8 @@ describe('carga y borrado', () => {
     expect(d.programas).toEqual([]);
     expect(d.sesiones[0].alumnos.map(r => r.alumnoId)).toEqual(['b']);
     expect(d.documentos).toEqual([]);
+    expect(d.coordinaciones).toEqual([]);
+    expect(d.agendas.map(a => a.id)).toEqual(['ag2']);
     // Una sesión sin nadie desaparece
     expect(sinAlumno(d, 'b').sesiones).toEqual([]);
   });
@@ -187,5 +229,21 @@ describe('carga y borrado', () => {
     expect(d.sesiones).toEqual([]);
     expect(d.alumnos).toHaveLength(2);
     expect(d.programas).toHaveLength(1);
+  });
+});
+
+describe('ficha adaptada', () => {
+  it('cuenta sus necesidades y sus objetivos, sin su nombre ni su diagnóstico', () => {
+    const a = alumno('a', {
+      nombre: 'Marta Gil', diagnostico: 'Discapacidad intelectual leve',
+      categorias: ['Discapacidad motora', 'TDAH'], necesidades: 'Aprende mejor con apoyo visual.',
+    });
+    const t = (k: string, v?: Record<string, string | number>) => k.replace(/\{(\w+)\}/g, (_, x) => String(v?.[x] ?? ''));
+    const txt = contextoFichaApoyo(a, ['Leer sílabas directas', 'Contar hasta 100'], t);
+    expect(txt).toContain('Necesidades específicas de apoyo educativo: Discapacidad motora, TDAH.');
+    expect(txt).toContain('Cómo aprende: Aprende mejor con apoyo visual.');
+    expect(txt).toContain('Objetivos que trabaja este trimestre: Leer sílabas directas; Contar hasta 100.');
+    expect(txt).not.toContain('Marta');
+    expect(txt).not.toContain('Discapacidad intelectual');
   });
 });

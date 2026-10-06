@@ -10,7 +10,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Coffee, Clock,
+  TrendingUp, Coffee, Clock, Bandage, Timer, ClipboardList,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -38,6 +38,16 @@ interface Props {
   onAddTask: () => void;
   onToggleTask: (id: string) => void;
   onLoadDemo: () => void;
+  /**
+   * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
+   * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
+   */
+  ef?: {
+    exentosHoy: { id: string; nombre: string; clase: string; detalle: string; tarea: string }[];
+    pruebas: { id: string; clase: string; color: string; fecha?: string; prueba?: string }[];
+    /** Las próximas sesiones de EF, de hoy en adelante. */
+    sesiones: { id: string; titulo: string; clase: string; color: string; fecha: string }[];
+  };
 }
 
 const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -50,7 +60,7 @@ function gradeColor(n: number | null): string {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes,
-  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, ef }: Props) {
   const { t, locale, lang } = useI18n();
 
   // La hora manda en «ahora / siguiente»: se refresca cada medio minuto
@@ -142,7 +152,9 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
               </p>
               <div className="home-now-actions">
                 <button className="btn-accent" onClick={() => nav('attendance')}><UserCheck size={15} />{t('Pasar lista')}</button>
-                <button className="btn-ghost" onClick={() => nav('seating')}><Flag size={15} />{t('Anotar en el aula')}</button>
+                {ef
+                  ? <button className="btn-ghost" onClick={() => nav('ef-pista')}><Flag size={15} />{t('Observar en la pista')}</button>
+                  : <button className="btn-ghost" onClick={() => nav('seating')}><Flag size={15} />{t('Anotar en el aula')}</button>}
                 <button className="btn-ghost" onClick={() => nav('notebook')}><BookOpen size={15} />{t('Cuaderno')}</button>
               </div>
             </>
@@ -243,6 +255,31 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           )}
         </div>
 
+        {ef && (
+          <div className="card home-card">
+            <div className="home-card-hd">
+              <div className="home-card-ttl"><Bandage size={15} />{t('Exentos y lesiones')}</div>
+              <button className="home-link" onClick={() => nav('ef-exentos')}>{t('Ver todo')}</button>
+            </div>
+            {ef.exentosHoy.length === 0 ? (
+              <p className="home-muted">{t('Hoy todo tu alumnado puede hacer la clase.')}</p>
+            ) : (
+              <ul className="home-list">
+                {ef.exentosHoy.slice(0, 4).map(x => (
+                  <li key={x.id} className="home-alert">
+                    <span className="home-alert-dot warn" />
+                    <span className="home-event-txt">
+                      <span className="home-event-name">{x.nombre} · {x.clase}</span>
+                      <span className="home-tl-room">{x.detalle}{x.tarea ? ` · ${x.tarea}` : ''}</span>
+                    </span>
+                  </li>
+                ))}
+                {ef.exentosHoy.length > 4 && <li className="home-muted">{t('y {n} más', { n: ef.exentosHoy.length - 4 })}</li>}
+              </ul>
+            )}
+          </div>
+        )}
+
         <div className="card home-card">
           <div className="home-card-hd">
             <div className="home-card-ttl"><AlertTriangle size={15} />{t('Necesitan atención')}</div>
@@ -265,6 +302,52 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             </ul>
           )}
         </div>
+
+        {ef && (
+          <div className="card home-card">
+            <div className="home-card-hd">
+              <div className="home-card-ttl"><ClipboardList size={15} />{t('Próximas sesiones')}</div>
+              <button className="home-link" onClick={() => nav('ef-sesiones')}>{ef.sesiones.length ? t('Ver todo') : t('Preparar')}</button>
+            </div>
+            {ef.sesiones.length === 0 ? (
+              <p className="home-muted">{t('No tienes sesiones previstas.')}</p>
+            ) : (
+              <ul className="home-list">
+                {ef.sesiones.slice(0, 3).map(s => (
+                  <li key={s.id} className="home-event">
+                    <span className="home-class-dot" style={{ background: s.color }} />
+                    <span className="home-event-txt">
+                      <span className="home-event-name">{s.titulo}</span>
+                      <span className="home-tl-room">{[s.clase, fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })].filter(Boolean).join(' · ')}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {ef && (
+          <div className="card home-card">
+            <div className="home-card-hd">
+              <div className="home-card-ttl"><Timer size={15} />{t('Pruebas físicas')}</div>
+              <button className="home-link" onClick={() => nav('ef-pruebas')}>{t('Anotar')}</button>
+            </div>
+            <ul className="home-list">
+              {ef.pruebas.map(p => (
+                <li key={p.id} className="home-event">
+                  <span className="home-class-dot" style={{ background: p.color }} />
+                  <span className="home-event-txt">
+                    <span className="home-event-name">{p.clase}</span>
+                    <span className="home-tl-room">{p.fecha
+                      ? t('Última toma: {prueba}, {fecha}', { prueba: p.prueba ?? '', fecha: fromIsoDate(p.fecha).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) })
+                      : t('Todavía sin pruebas')}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="card home-card">
           <div className="home-card-hd">

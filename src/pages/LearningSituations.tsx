@@ -34,6 +34,10 @@ import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
+import { MODALIDADES_EF } from '../lib/ef';
+import { esAsignaturaEF } from '../services/classMarks';
+import type { ModalidadEF, SesionEF } from '../types/ef';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
@@ -41,7 +45,6 @@ interface Props {
   classes: Class[];
   gradeCategories: GradeCategory[];
   learningSituations: LearningSituation[];
-  teacherName: string;
   /** Comunidad del perfil: de ella sale el currículo oficial. */
   comunidad?: ComunidadId;
   /** Para recordar en la clase la etapa, el curso y las materias que se decidan aquí. */
@@ -52,6 +55,20 @@ interface Props {
   onAddDiana: (d: EvalDiana) => void;
   onAddFicha: (f: Ficha) => void;
   onNav: (s: string) => void;
+  /**
+   * Solo para el profesorado de Educación Física: lo que se añade a la SdA de
+   * una clase de EF (modelo pedagógico, material, instalaciones y limitaciones
+   * sin nombres). Ver `docs/EF.md`.
+   */
+  ef?: {
+    /** El material y las instalaciones, ya en texto para la IA. */
+    material: string;
+    instalaciones: string;
+    /** Lo que no puede hacer ahora quien está exento o lesionado en una clase, sin nombres. */
+    limitacionesDe: (claseId: string) => string[];
+    /** Crea en Sesiones de EF una sesión por cada sesión de la SdA. */
+    onPasarSesiones: (sesiones: SesionEF[]) => void;
+  };
 }
 
 /** Documento de apoyo ya resumido por la IA. */
@@ -154,8 +171,8 @@ function conCriteriosOficiales(sda: SdaContent, marcados: string[] | undefined):
 }
 
 export function LearningSituations({
-  classes, gradeCategories, learningSituations, teacherName, comunidad, onUpdateClass,
-  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav,
+  classes, gradeCategories, learningSituations, comunidad, onUpdateClass,
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -182,6 +199,11 @@ export function LearningSituations({
   const [metodologia, setMetodologia] = useState('');
   const [numSesiones, setNumSesiones] = useState(6);
   const [areas, setAreas] = useState<string[]>([]);
+  /* ── Educación Física ── */
+  const [efModelo, setEfModelo] = useState('');
+  const [efModalidad, setEfModalidad] = useState<ModalidadEF | ''>('');
+  const [efInventario, setEfInventario] = useState(true);
+  const [efLimitaciones, setEfLimitaciones] = useState(true);
 
   /* ── Documentos de apoyo ── */
   const [docs, setDocs] = useState<DocSummary[]>([]);
@@ -251,6 +273,9 @@ export function LearningSituations({
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
+  /** Una SdA de EF: el perfil es de EF y una de las áreas es Educación Física. */
+  const esEF = !!ef && areas.some(esAsignaturaEF);
+  const limitacionesClase = ef && classId ? ef.limitacionesDe(classId) : [];
 
   /**
    * Al elegir clase se proponen sus asignaturas como áreas de la SdA, y se
@@ -374,8 +399,14 @@ export function LearningSituations({
       comunidad,
       materiasOficiales: materias,
       contextoClase, metodologia,
-      docente: teacherName,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
+      ef: esEF && ef ? {
+        modelo: efModelo,
+        modalidad: efModalidad,
+        material: efInventario ? ef.material : '',
+        instalaciones: efInventario ? ef.instalaciones : '',
+        limitaciones: efLimitaciones ? limitacionesClase : [],
+      } : undefined,
     }, lang, {
       onStart: () => setGenerating(true),
       onEnd: () => setGenerating(false),
@@ -421,6 +452,7 @@ export function LearningSituations({
         opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
         comunidad,
         materiasOficiales: Object.keys(materias).length ? materias : undefined,
+        ...(esEF ? { efModelo, efModalidad } : {}),
       },
       content,
     };
@@ -504,6 +536,8 @@ export function LearningSituations({
     setPreguntadas([]);
     setContextoClase(s.request.contextoClase);
     setMetodologia(s.request.metodologia);
+    setEfModelo(s.request.efModelo ?? '');
+    setEfModalidad(s.request.efModalidad ?? '');
     setRubricRows(null);
     setDianaRows(null);
     setFichaContent(null);
@@ -527,12 +561,29 @@ export function LearningSituations({
     setClassId(''); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
     setOpcionMatematicas('A'); setMaterias({}); setPreguntadas([]);
     setNumero('1'); setTemporalizacion(''); setMeses(''); setContextoClase(''); setMetodologia('');
-    setNumSesiones(6); setMoreOpts(false);
+    setNumSesiones(6); setMoreOpts(false); setEfModelo(''); setEfModalidad('');
     setFormOpen(true);
   }
 
   function scrollTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /** Las sesiones de la SdA de EF, a Educación Física → Sesiones, sin fecha, para repartirlas en el calendario. */
+  function pasarSesiones() {
+    if (!ef || !content) return;
+    const base = Date.now().toString(36);
+    const lista: SesionEF[] = content.sesiones.map((s, i) => ({
+      id: `ses${base}${i}`,
+      titulo: `${i + 1}. ${s.titulo}`,
+      ...(classId ? { claseId: classId } : {}),
+      objetivo: t('Sesión {n} de «{sda}» ({fase}).', { n: i + 1, sda: content.titulo, fase: s.fase }),
+      calentamiento: '', principal: s.descripcion, calma: '', material: '',
+      inclusion: content.inclusionUniversal, planB: '', ia: true,
+      ...(content.ef?.modalidad ? { modalidad: content.ef.modalidad } : {}),
+    }));
+    ef.onPasarSesiones(lista);
+    toast(t('Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.', { n: lista.length }));
   }
 
   /* ── Rúbrica ── */
@@ -832,6 +883,37 @@ export function LearningSituations({
           </div>
         )}
 
+        {esEF && ef && (
+          <fieldset className="fgroup ap-fs sda-ef">
+            <legend className="flabel">{t('Educación Física')}</legend>
+            <label className="sda-ef-lbl" htmlFor="learningsituations-ef-modelo">{t('Modelo pedagógico')}</label>
+            <select id="learningsituations-ef-modelo" className="finput" value={efModelo} onChange={e => setEfModelo(e.target.value)}>
+              <option value="">{t('Que lo elija la IA según la idea')}</option>
+              {MODELOS_EF.map(m => <option key={m.id} value={m.id}>{t(m.nombre)}</option>)}
+            </select>
+            <label className="sda-ef-lbl" htmlFor="learningsituations-ef-modalidad">{t('Modalidad del juego o deporte')}</label>
+            <select id="learningsituations-ef-modalidad" className="finput" value={efModalidad} onChange={e => setEfModalidad(e.target.value as ModalidadEF | '')}>
+              <option value="">{t('Que la decida la IA según la idea')}</option>
+              {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
+            </select>
+            {(ef.material || ef.instalaciones) && (
+              <label className="td-chk">
+                <input type="checkbox" checked={efInventario} onChange={e => setEfInventario(e.target.checked)} />
+                {t('Con mi material y mis instalaciones')}
+              </label>
+            )}
+            {limitacionesClase.length > 0 && (
+              <label className="td-chk">
+                <input type="checkbox" checked={efLimitaciones} onChange={e => setEfLimitaciones(e.target.checked)} />
+                {t('Con medidas para quienes tienen ahora una limitación en esta clase ({n})', { n: limitacionesClase.length })}
+              </label>
+            )}
+            <p className="sda-note">
+              {t('Se apoya en estudios de acceso abierto sobre modelos pedagógicos de Educación Física; sus referencias se añaden a la SdA. A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.')}
+            </p>
+          </fieldset>
+        )}
+
         <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="learningsituations-f8">{t('Nº de sesiones')}</label>
@@ -1113,9 +1195,11 @@ export function LearningSituations({
               {t('SdA {n}', { n: numero || '1' })}{activeClass ? ` · ${activeClass.name}` : ''}{nivel ? ` · ${nivel}` : ''}
               {!editingId && <span className="sda-unsaved">{t('Sin guardar')}</span>}
             </span>
-            <input
-              className="sda-title-input" value={content.titulo ?? ''}
-              onChange={e => patch('titulo', e.target.value)} aria-label={t('Título')}
+            {/* Un cuadro de una línea que crece: los títulos de la IA suelen ser largos y una caja de una sola línea los cortaba */}
+            <textarea
+              className="sda-title-input" rows={1} value={content.titulo ?? ''}
+              onChange={e => patch('titulo', e.target.value.replace(/\n/g, ' '))} aria-label={t('Título')}
+              onKeyDown={e => { if (e.key === 'Enter') e.preventDefault(); }}
             />
             <div className="sda-facts">
               <span><CalendarRange size={13} />{t('{n} sesiones', { n: content.sesiones.length })}{temporalizacion ? ` · ${temporalizacion}` : ''}{meses ? ` (${meses})` : ''}</span>
@@ -1211,7 +1295,12 @@ export function LearningSituations({
           </section>
 
           <section id="sda-sesiones" className="card sda-sec">
-            <h3 className="sda-sec-ttl">{t('Sesiones')} <span className="sda-count">{content.sesiones.length}</span></h3>
+            <div className="sda-sec-hd">
+              <h3 className="sda-sec-ttl">{t('Sesiones')} <span className="sda-count">{content.sesiones.length}</span></h3>
+              {ef && content.ef && content.sesiones.length > 0 && (
+                <button type="button" className="btn-ghost" onClick={pasarSesiones}><ArrowRight size={14} />{t('Pasar a Sesiones de EF')}</button>
+              )}
+            </div>
             <div className="sda-timeline">
               {phases.map((ph, pi) => (
                 <div key={pi} className="sda-phase" style={{ ['--ph' as string]: phaseTone(ph.fase) }}>
@@ -1232,11 +1321,29 @@ export function LearningSituations({
 
           <section id="sda-desarrollo" className="card sda-sec">
             <h3 className="sda-sec-ttl">{t('Metodología')}</h3>
+            {content.ef && content.ef.modelos.length > 0 && (
+              <div className="sda-text">
+                <div className="sda-text-hd"><h4>{t('Modelo pedagógico')}</h4></div>
+                <p className="sda-p">{content.ef.modelos.map(id => t(modeloEF(id)?.nombre ?? id)).join(' + ')}</p>
+              </div>
+            )}
+            {content.ef?.modalidad && (
+              <div className="sda-text">
+                <div className="sda-text-hd"><h4>{t('Modalidad del juego o deporte')}</h4></div>
+                <p className="sda-p">{t(MODALIDADES_EF.find(m => m.id === content.ef!.modalidad)?.label ?? '')}</p>
+              </div>
+            )}
             <div className="sda-two">
               <DocText label={t('Metodología')} value={content.metodologia} onChange={v => patch('metodologia', v)} />
               <DocText label={t('Agrupamiento')} value={content.agrupamiento} onChange={v => patch('agrupamiento', v)} />
             </div>
             <DocText label={t('Recursos')} value={content.recursos} onChange={v => patch('recursos', v)} />
+            {content.ef && content.ef.referencias.length > 0 && (
+              <div className="sda-text sda-refs">
+                <div className="sda-text-hd"><h4>{t('Referencias (acceso abierto)')}</h4></div>
+                <ul>{content.ef.referencias.map(r => <li key={r}>{r}</li>)}</ul>
+              </div>
+            )}
           </section>
 
           <section id="sda-inclusion" className="card sda-sec">

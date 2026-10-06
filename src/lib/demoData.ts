@@ -13,16 +13,16 @@ export const DEMO_COMMUNITY: ComunidadId = 'comunitat-valenciana';
 export const DEMO_USER: User = {
   id: 'demo-uid-001',
   email: 'demo@aulapro.es',
-  full_name: 'Ana García Ruiz',
+  full_name: 'Profesor',
   school: 'IES Ejemplo',
   subject: 'Matemáticas',
-  initials: 'AG',
+  initials: 'P',
 };
 
 const DEMO_TASKS: Task[] = [
   { id: 't1', text: 'Corregir exámenes 3º ESO A',    priority: 'high',   done: false },
   { id: 't2', text: 'Preparar UD Fracciones',        priority: 'medium', done: false },
-  { id: 't3', text: 'Llamar a la familia de Marco R.', priority: 'high', done: false },
+  { id: 't3', text: 'Llamar a la familia de Alumno 1', priority: 'high', done: false },
   { id: 't4', text: 'Actualizar notas en Séneca',    priority: 'low',    done: true  },
 ];
 
@@ -46,19 +46,19 @@ const DEMO_CLASSES: Class[] = [
 ];
 
 const DEMO_STUDENTS: Student[] = [
-  { id:'s01', class_id:'c1', name:'Marco Rodríguez Gil',   email:'marco.r@ies.es',    photo:null, alerts:[{id:'al1',text:'Dificultades con fracciones',level:'warn'}], notes:'Necesita refuerzo en operaciones con fracciones.' },
-  { id:'s02', class_id:'c1', name:'Laura Sánchez Vega',    email:'laura.s@ies.es',    photo:null, alerts:[], notes:'' },
-  { id:'s03', class_id:'c1', name:'Pablo Martín Díaz',     email:'pablo.m@ies.es',    photo:null, alerts:[], notes:'Muy participativo.' },
-  { id:'s04', class_id:'c1', name:'Carmen López Soto',     email:'carmen.l@ies.es',   photo:null, alerts:[{id:'al2',text:'Faltas reiteradas',level:'danger'}], notes:'' },
-  { id:'s05', class_id:'c1', name:'Javier Ortega Ruiz',    email:'javier.o@ies.es',   photo:null, alerts:[], notes:'' },
-  { id:'s06', class_id:'c1', name:'Elena Castro Romero',   email:'elena.c@ies.es',    photo:null, alerts:[], notes:'' },
-  { id:'s07', class_id:'c2', name:'Lucía Pérez Navarro',   email:'lucia.p@ies.es',    photo:null, alerts:[{id:'al3',text:'3 faltas sin justificar',level:'danger'}], notes:'Tutoría con familia pendiente.' },
-  { id:'s08', class_id:'c2', name:'Daniel Gómez Herrera',  email:'daniel.g@ies.es',   photo:null, alerts:[], notes:'' },
-  { id:'s09', class_id:'c2', name:'Sara Iglesias Marín',   email:'sara.i@ies.es',     photo:null, alerts:[], notes:'' },
-  { id:'s10', class_id:'c2', name:'Adrián Vidal Peña',     email:'adrian.v@ies.es',   photo:null, alerts:[{id:'al4',text:'Mejora notable en el último examen',level:'info'}], notes:'' },
-  { id:'s11', class_id:'c3', name:'María Delgado Ferrer',  email:'maria.d@ies.es',    photo:null, alerts:[], notes:'' },
-  { id:'s12', class_id:'c3', name:'Rubén Ortiz Salas',     email:'ruben.o@ies.es',    photo:null, alerts:[], notes:'' },
-  { id:'s13', class_id:'c3', name:'Patricia Nieto Ramos',  email:'patricia.n@ies.es', photo:null, alerts:[], notes:'' },
+  { id:'s01', class_id:'c1', name:'Alumno 1',  email:'alumno1@ies.es',  photo:null, alerts:[{id:'al1',text:'Dificultades con fracciones',level:'warn'}], notes:'Necesita refuerzo en operaciones con fracciones.' },
+  { id:'s02', class_id:'c1', name:'Alumno 2',  email:'alumno2@ies.es',  photo:null, alerts:[], notes:'' },
+  { id:'s03', class_id:'c1', name:'Alumno 3',  email:'alumno3@ies.es',  photo:null, alerts:[], notes:'Muy participativo.' },
+  { id:'s04', class_id:'c1', name:'Alumno 4',  email:'alumno4@ies.es',  photo:null, alerts:[{id:'al2',text:'Faltas reiteradas',level:'danger'}], notes:'' },
+  { id:'s05', class_id:'c1', name:'Alumno 5',  email:'alumno5@ies.es',  photo:null, alerts:[], notes:'' },
+  { id:'s06', class_id:'c1', name:'Alumno 6',  email:'alumno6@ies.es',  photo:null, alerts:[], notes:'' },
+  { id:'s07', class_id:'c2', name:'Alumno 7',  email:'alumno7@ies.es',  photo:null, alerts:[{id:'al3',text:'3 faltas sin justificar',level:'danger'}], notes:'Tutoría con familia pendiente.' },
+  { id:'s08', class_id:'c2', name:'Alumno 8',  email:'alumno8@ies.es',  photo:null, alerts:[], notes:'' },
+  { id:'s09', class_id:'c2', name:'Alumno 9',  email:'alumno9@ies.es',  photo:null, alerts:[], notes:'' },
+  { id:'s10', class_id:'c2', name:'Alumno 10', email:'alumno10@ies.es', photo:null, alerts:[{id:'al4',text:'Mejora notable en el último examen',level:'info'}], notes:'' },
+  { id:'s11', class_id:'c3', name:'Alumno 11', email:'alumno11@ies.es', photo:null, alerts:[], notes:'' },
+  { id:'s12', class_id:'c3', name:'Alumno 12', email:'alumno12@ies.es', photo:null, alerts:[], notes:'' },
+  { id:'s13', class_id:'c3', name:'Alumno 13', email:'alumno13@ies.es', photo:null, alerts:[], notes:'' },
 ];
 
 const DEMO_BLOCKS: ScheduleBlock[] = [
