@@ -496,6 +496,17 @@ MOTIVO es un dato de salud: se queda en el equipo y nunca se envía a la IA; a
 la IA solo le llega lo que no puede hacer, sin nombre. La lista se divide en
 «Ahora», «Más adelante» y los que ya terminaron. Sale en la pista, en el Inicio
 y al hacer equipos.
+Debajo, «Niveles de respuesta II y III» (Decreto 104/2018 de la Comunitat
+Valenciana): el alumnado con medidas de NIVEL II (medidas generales del
+grupo-clase) o de NIVEL III (respuesta diferenciada con apoyos ordinarios
+adicionales) para todo el curso, y lo que necesita en EF (anticipar la sesión,
+instrucciones cortas, apoyos visuales, un compañero de referencia, más tiempo,
+material adaptado, pocos estímulos… u otra escrita a mano). Uno por alumno. La
+IA lo tiene en cuenta en el DUA-A de actividades (también desde una foto),
+sesiones y situaciones de aprendizaje: en el nivel II, medidas para todo el
+grupo; en el nivel III, además, una medida concreta para ese alumno dentro de
+la misma actividad. A la IA le llegan el nivel y lo que necesita, sin nombre ni
+diagnóstico: no escribas el diagnóstico.
 
 [ef-pruebas] PRUEBAS FÍSICAS
 Arriba, la clase y la prueba, por capacidades: resistencia (Course Navette,
@@ -590,6 +601,13 @@ adaptar» crea una tuya a partir de ella. «Proponer con IA» pide tres
 actividades de un tipo (y, si se quiere, de una modalidad, con su
 preparación), para una clase y un tema, con tu material y, si se
 marca, con las limitaciones de hoy de esa clase (sin nombres).
+«Desde una foto» (en el móvil, también con la cámara): eliges una foto de un
+deporte, un juego, un circuito, un esquema dibujado o la página de un libro,
+y la clase. La IA dice lo que ve y redacta la actividad para la edad de esa
+clase (de 1º de Primaria, 6 a 7 años, a 4º de ESO, 15 a 16), con reglas,
+organización y seguridad, material, variantes y DUA-A; se revisa y se guarda
+en tus actividades. La foto va a Google reducida y sin su ubicación, y no se
+guarda en AulaPro: no uses fotos en las que se reconozca a tu alumnado.
 
 [ef-material] MATERIAL E INSTALACIONES
 El inventario: material, cantidad, estado (bien, regular o para reponer, que

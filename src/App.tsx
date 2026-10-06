@@ -21,7 +21,7 @@ import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
-import { exentosDelDia, LIMITACIONES, limitacionesParaIA, pruebasDe, recursosParaIA } from './lib/ef';
+import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
 import { isoDate, nombresCortos } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
@@ -144,7 +144,7 @@ function AppInner() {
     return {
       material, instalaciones,
       limitacionesDe: (claseId: string) =>
-        limitacionesParaIA(st.ef, st.students.filter(s => s.class_id === claseId).map(s => s.id), isoDate()),
+        alumnadoParaIA(st.ef, st.students.filter(s => s.class_id === claseId).map(s => s.id), isoDate()),
       onPasarSesiones: (sesiones: SesionEF[]) => setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] })),
     };
   }, [tipo, st.ef, st.students, setEf]);

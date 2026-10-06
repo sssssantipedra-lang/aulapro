@@ -59,6 +59,18 @@ const CATALAN_INSTRUCTION =
   '(català), aunque estas instrucciones estén en castellano. No traduzcas los nombres de campo ni los ' +
   'valores fijos de las listas del esquema JSON, ni los códigos de alumno como [ALU-3].';
 
+/**
+ * En castellano también hace falta decirlo: sin esta orden, Flash-Lite escribía
+ * a menudo sin tildes ni eñes, o con «&aacute;» en lugar de «á», sobre todo con
+ * una foto y con `responseSchema` (prueba con la IA real del 6-10-2026, misma
+ * petición cinco veces: falló en tres sin esta orden y en ninguna con ella).
+ */
+const SPANISH_INSTRUCTION =
+  '\n\nIDIOMA DE SALIDA: castellano de España. Todo el texto que redactes para personas (títulos, ' +
+  'enunciados, explicaciones, informes, respuestas) va en castellano correcto, con todas sus tildes y eñes ' +
+  '(por ejemplo, «balón», «pabellón», «niño»), nunca sin acentos ni con códigos como «&aacute;». No traduzcas ' +
+  'los nombres de campo ni los valores fijos de las listas del esquema JSON, ni los códigos de alumno como [ALU-3].';
+
 /* ── Cupo agotado: no volver a llamar a un modelo hasta que se renueve ── */
 
 const COOLDOWN_KEY = 'aulapro_model_cooldown';
@@ -323,8 +335,25 @@ async function callModel(
     .join('')
     .trim();
   if (!text) return { status: 0, message: 'La IA devolvió una respuesta vacía.' };
-  return { text: fixStrayPercentU(text) };
+  return { text: fixStrayEscapes(text) };
 }
+
+/**
+ * Un texto en castellano o en catalán de unas 500 letras tiene casi siempre
+ * alguna tilde, eñe o ce trencada; si no tiene ninguna, es que la IA las ha
+ * quitado. Los textos cortos no cuentan: «Mates, 3º A» no tiene por qué.
+ */
+export function pareceSinTildes(text: string): boolean {
+  const letras = text.match(/\p{L}/gu)?.length ?? 0;
+  return letras >= 500 && !/[áéíóúñàèòçüïÁÉÍÓÚÑÀÈÒÇÜÏ]/.test(text);
+}
+
+/** Las letras que la IA a veces escribe como entidad HTML («&aacute;»): castellano, catalán y signos de apertura. */
+const ENTIDADES: Record<string, string> = {
+  aacute: 'á', eacute: 'é', iacute: 'í', oacute: 'ó', uacute: 'ú', Aacute: 'Á', Eacute: 'É', Iacute: 'Í', Oacute: 'Ó', Uacute: 'Ú',
+  agrave: 'à', egrave: 'è', ograve: 'ò', Agrave: 'À', Egrave: 'È', Ograve: 'Ò', ntilde: 'ñ', Ntilde: 'Ñ', ccedil: 'ç', Ccedil: 'Ç',
+  uuml: 'ü', Uuml: 'Ü', iuml: 'ï', Iuml: 'Ï', middot: '·', iexcl: '¡', iquest: '¿', ordf: 'ª', ordm: 'º',
+};
 
 /**
  * A veces el modelo devuelve alguna letra acentuada como «%u00e1» en vez de
@@ -332,10 +361,19 @@ async function callModel(
  * sitio del JSON (así que `JSON.parse` la deja pasar tal cual, como texto
  * suelto) y que se nota sobre todo con `responseSchema` en peticiones largas.
  * Se repara aquí, en el único punto por el que pasa todo el texto que
- * devuelve la IA, en vez de en cada pantalla que luego lo muestra.
+ * devuelve la IA, en vez de en cada pantalla que luego lo muestra. Lo mismo
+ * con las letras escritas como entidad HTML («&aacute;», «&#225;»): solo las
+ * letras y signos de arriba, nunca «&lt;» ni «&amp;», que en una ficha en HTML
+ * pueden ser lo que se quiere.
  */
-function fixStrayPercentU(text: string): string {
-  return text.replace(/%u([0-9a-fA-F]{4})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+export function fixStrayEscapes(text: string): string {
+  return text
+    .replace(/%u([0-9a-fA-F]{4})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&([A-Za-z]+);/g, (m, nombre: string) => ENTIDADES[nombre] ?? m)
+    .replace(/&#(x[0-9a-fA-F]+|\d+);/g, (m, n: string) => {
+      const c = n[0] === 'x' ? parseInt(n.slice(1), 16) : Number(n);
+      return Object.values(ENTIDADES).includes(String.fromCharCode(c)) ? String.fromCharCode(c) : m;
+    });
 }
 
 /**
@@ -367,6 +405,7 @@ export async function callGemini(
       maskedSystem += privacyInstruction();
     }
     if (outputLang === 'ca') maskedSystem += CATALAN_INSTRUCTION;
+    else if (outputLang === 'es') maskedSystem += SPANISH_INSTRUCTION;
     const callOptions: GeminiOptions = maskedHistory ? { ...options, history: maskedHistory } : options;
 
     const userParts: object[] = [{ text: maskedUser }];
@@ -393,6 +432,14 @@ export async function callGemini(
          */
         if ('status' in result && result.status === 400 && /thinking/i.test(result.message)) {
           result = await callModel(model, key, maskedSystem, userParts, callOptions, true);
+        }
+
+        // Una respuesta larga en castellano o en catalán sin una sola tilde viene
+        // estropeada (Flash-Lite, a veces, aun con la orden de idioma): se pide
+        // otra vez, una sola, y se queda la que las tenga.
+        if ('text' in result && outputLang !== 'en' && pareceSinTildes(result.text)) {
+          const otra = await callModel(model, key, maskedSystem, userParts, callOptions);
+          if ('text' in otra && !pareceSinTildes(otra.text)) result = otra;
         }
 
         if ('text' in result) return privacy.unmask(result.text);

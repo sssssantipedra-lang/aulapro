@@ -3,20 +3,23 @@
  * docente y las que guarda de la IA (decisión del dueño, 5-10-2026). Tipos:
  * juegos, deportes, días de lluvia, medio natural, calentamiento y vuelta a la
  * calma. Cada actividad dice cómo participa quien tiene una limitación
- * (DUA-A). A la IA solo le llega lo que no puede hacer cada alumno, sin nombre
- * ni motivo. Ver `docs/EF.md`.
+ * (DUA-A). A la IA solo le llega lo que no puede hacer cada alumno y su nivel
+ * de apoyo (II o III) con lo que necesita, sin nombre, motivo ni diagnóstico. «Desde una foto» (6-10-2026): la IA reconoce el deporte o la
+ * actividad de una foto y la redacta para la edad de la clase; la foto va
+ * reducida y sin sus metadatos, y no se guarda. Ver `docs/EF.md`.
  */
-import { useMemo, useState } from 'react';
-import { Plus, Sparkles, Pencil, Trash2, Copy, Search, Save } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Plus, Sparkles, Pencil, Trash2, Copy, Search, Save, Camera, ImagePlus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { isoDate } from '../../lib/utils';
 import { bancoEF } from '../../lib/bancoEF';
-import { MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
-import { hasApiKey } from '../../services/gemini';
-import { limitacionesParaIA, proponerActividades } from '../../services/efIA';
+import { alumnadoParaIA, edadAproximada, MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
+import { fotoParaIA } from '../../lib/fotos';
+import { hasApiKey, type InlineFile } from '../../services/gemini';
+import { actividadDesdeFoto, proponerActividades } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, Student } from '../../types';
 import type { ActividadEF, EfData, ModalidadEF, TipoActividadEF } from '../../types/ef';
@@ -53,6 +56,9 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const [ia, setIa] = useState<{ tipo: TipoActividadEF; modalidad: ModalidadEF | ''; claseId: string; tema: string; inventario: boolean; limitaciones: boolean } | null>(null);
   const [propuestas, setPropuestas] = useState<ActividadEF[]>([]);
   const [pensando, setPensando] = useState(false);
+  const [foto, setFoto] = useState<{ claseId: string; nota: string; inventario: boolean; limitaciones: boolean; archivo: InlineFile | null } | null>(null);
+  const [deFoto, setDeFoto] = useState<{ visto: string; actividad: ActividadEF | null } | null>(null);
+  const archivoFoto = useRef<HTMLInputElement>(null);
   const esNueva = !!editando && !ef.actividades.some(a => a.id === editando.id);
 
   const todas = useMemo(() => [...ef.actividades, ...bancoEF(lang)], [ef.actividades, lang]);
@@ -83,9 +89,11 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
 
   /* ── La IA ── */
   const claseIa = classes.find(c => c.id === ia?.claseId);
-  const limitacionesHoy = claseIa
-    ? limitacionesParaIA(ef, students.filter(s => s.class_id === claseIa.id).map(s => s.id), isoDate()) : [];
+  const limitacionesDe = (c: Class | undefined) =>
+    (c ? alumnadoParaIA(ef, students.filter(s => s.class_id === c.id).map(s => s.id), isoDate()) : []);
+  const limitacionesHoy = limitacionesDe(claseIa);
   const hayInventario = ef.material.length > 0 || ef.instalaciones.length > 0;
+  const cursoDe = (c: Class | undefined) => (c?.etapa && c.curso ? nombreCurso({ etapa: c.etapa, curso: c.curso }) : undefined);
 
   async function proponer() {
     if (!ia) return;
@@ -107,6 +115,47 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   function guardarPropuesta(a: ActividadEF) {
     onChangeEf(d => ({ ...d, actividades: [a, ...d.actividades] }));
     setPropuestas(p => p.filter(x => x.id !== a.id));
+    toast(t('Guardada en tus actividades.'));
+  }
+
+  /* ── Desde una foto ── */
+  const claseFoto = classes.find(c => c.id === foto?.claseId);
+  const limitacionesFoto = limitacionesDe(claseFoto);
+  const edadFoto = claseFoto?.etapa && claseFoto.curso ? edadAproximada(claseFoto.etapa, claseFoto.curso) : undefined;
+  const vistaFoto = foto?.archivo ? `data:${foto.archivo.mimeType};base64,${foto.archivo.base64}` : '';
+
+  async function elegirFoto(files: FileList | null) {
+    const f = files?.[0];
+    if (archivoFoto.current) archivoFoto.current.value = '';
+    if (!f || !foto) return;
+    try {
+      const archivo = await fotoParaIA(f);
+      setFoto(x => (x ? { ...x, archivo } : x));
+      setDeFoto(null);
+    } catch {
+      toast(t('«{nombre}» no es una imagen que se pueda usar.', { nombre: f.name }));
+    }
+  }
+
+  async function reconocer() {
+    if (!foto?.archivo) return;
+    setPensando(true);
+    const r = await actividadDesdeFoto({
+      curso: cursoDe(claseFoto) ?? claseFoto?.name,
+      etapa: claseFoto?.etapa,
+      edad: edadFoto ? `${edadFoto.desde} a ${edadFoto.hasta} años` : undefined,
+      nota: foto.nota,
+      limitaciones: foto.limitaciones ? limitacionesFoto : [],
+      conInventario: foto.inventario,
+    }, foto.archivo, ef, comunidad, lang, { onError: m => toast(t(m)) });
+    setPensando(false);
+    if (r) setDeFoto({ visto: r.visto, actividad: r.actividad ? { ...r.actividad, id: nuevoIdEF('act') } : null });
+  }
+
+  function guardarDeFoto(a: ActividadEF) {
+    onChangeEf(d => ({ ...d, actividades: [a, ...d.actividades] }));
+    setDeFoto(x => (x ? { ...x, actividad: null } : x));
+    setFoto(null);
     toast(t('Guardada en tus actividades.'));
   }
 
@@ -137,6 +186,10 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
           <p className="pg-sub">{t('El banco de partida de AulaPro, las tuyas y las que guardes de la IA. Cada una dice cómo participa quien tiene una limitación, según el DUA-A.')}</p>
         </div>
         <div className="ap-prog-acc">
+          <button className="btn-ghost" onClick={() => { setDeFoto(null); setFoto({ claseId: classes[0]?.id ?? '', nota: '', inventario: hayInventario, limitaciones: true, archivo: null }); }}
+            disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            <Camera size={15} />{t('Desde una foto')}
+          </button>
           <button className="btn-ghost" onClick={() => { setPropuestas([]); setIa({ tipo: tipo === 'todas' ? 'juego' : tipo, modalidad: modalidad === 'todas' ? '' : modalidad, claseId: classes[0]?.id ?? '', tema: '', inventario: hayInventario, limitaciones: true }); }}
             disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
             <Sparkles size={15} />{t('Proponer con IA')}
@@ -272,10 +325,10 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             {limitacionesHoy.length > 0 && (
               <label className="td-chk" style={{ gridColumn: '1 / -1' }}>
                 <input type="checkbox" checked={ia.limitaciones} onChange={e => setIa({ ...ia, limitaciones: e.target.checked })} />
-                {t('Que puedan participar quienes hoy tienen una limitación en esta clase ({n})', { n: limitacionesHoy.length })}
+                {t('Que puedan participar quienes tienen hoy una limitación o medidas de nivel II o III en esta clase ({n})', { n: limitacionesHoy.length })}
               </label>
             )}
-            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.')}</p>
+            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('A la IA solo le llega lo que no puede hacer cada alumno y su nivel de apoyo con lo que necesita, sin nombres, motivos ni diagnósticos.')}</p>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={proponer} disabled={pensando}>
                 {pensando ? <span className="spin" /> : <Sparkles size={15} />}{pensando ? t('Preparando…') : t('Proponer tres')}
@@ -285,6 +338,67 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             {propuestas.length > 0 && (
               <div className="ef-acts" style={{ gridColumn: '1 / -1' }}>
                 {propuestas.map(a => ficha(a, <button className="btn-accent" onClick={() => guardarPropuesta(a)}><Save size={14} />{t('Guardar en mis actividades')}</button>))}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={!!foto} onClose={() => setFoto(null)} wide title={t('Actividad desde una foto')}>
+        {foto && (
+          <div className="ap-form">
+            <div className="fgroup ef-foto" style={{ gridColumn: '1 / -1' }}>
+              <input ref={archivoFoto} type="file" accept="image/*" hidden aria-label={t('Foto de la actividad')} onChange={e => elegirFoto(e.target.files)} />
+              {vistaFoto
+                ? <img className="ef-foto-img" src={vistaFoto} alt={t('La foto elegida')} />
+                : (
+                  <button type="button" className="ef-foto-vacia" onClick={() => archivoFoto.current?.click()}>
+                    <ImagePlus size={30} aria-hidden="true" /><span>{t('Elige una foto o haz una')}</span>
+                  </button>
+                )}
+              <div className="ef-foto-txt">
+                <p className="ap-sub">{t('Un deporte, un juego, un circuito, un esquema dibujado o la página de un libro. La IA reconoce la actividad y la redacta para la edad de la clase.')}</p>
+                {vistaFoto && <button type="button" className="btn-ghost" onClick={() => archivoFoto.current?.click()}><ImagePlus size={14} />{t('Cambiar la foto')}</button>}
+              </div>
+            </div>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="ef-foto-clase">{t('Clase')}</label>
+              <select id="ef-foto-clase" className="finput" value={foto.claseId} onChange={e => { setFoto({ ...foto, claseId: e.target.value }); setDeFoto(null); }}>
+                <option value="">{t('Sin clase concreta')}</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              {edadFoto && <span className="ap-sub">{t('{curso}: de {desde} a {hasta} años', { curso: cursoDe(claseFoto) ?? '', desde: edadFoto.desde, hasta: edadFoto.hasta })}</span>}
+            </div>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="ef-foto-nota">{t('Algo que quieras que tenga en cuenta (opcional)')}</label>
+              <input id="ef-foto-nota" className="finput" value={foto.nota} placeholder={t('Ej: somos 24, en media pista')}
+                onChange={e => setFoto({ ...foto, nota: e.target.value })} />
+            </div>
+            {hayInventario && (
+              <label className="td-chk" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={foto.inventario} onChange={e => setFoto({ ...foto, inventario: e.target.checked })} />
+                {t('Con mi material y mis instalaciones')}
+              </label>
+            )}
+            {limitacionesFoto.length > 0 && (
+              <label className="td-chk" style={{ gridColumn: '1 / -1' }}>
+                <input type="checkbox" checked={foto.limitaciones} onChange={e => setFoto({ ...foto, limitaciones: e.target.checked })} />
+                {t('Que puedan participar quienes tienen hoy una limitación o medidas de nivel II o III en esta clase ({n})', { n: limitacionesFoto.length })}
+              </label>
+            )}
+            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('La foto se envía a Google para que la IA la vea, reducida y sin su ubicación, y AulaPro no la guarda. No uses fotos en las que se reconozca a tu alumnado.')}</p>
+            <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
+              <button className="btn-accent" onClick={reconocer} disabled={pensando || !foto.archivo}>
+                {pensando ? <span className="spin" /> : <Sparkles size={15} />}{pensando ? t('Mirando la foto…') : t('Reconocer y redactar')}
+              </button>
+              <button className="btn-ghost" onClick={() => setFoto(null)}>{t('Cerrar')}</button>
+            </div>
+            {deFoto && (
+              <div className="ef-foto-res" style={{ gridColumn: '1 / -1' }}>
+                {deFoto.visto && <p className="ef-foto-visto"><strong>{t('Lo que ve la IA')}:</strong> {deFoto.visto}</p>}
+                {deFoto.actividad
+                  ? <div className="ef-acts">{ficha(deFoto.actividad, <button className="btn-accent" onClick={() => guardarDeFoto(deFoto.actividad!)}><Save size={14} />{t('Guardar en mis actividades')}</button>)}</div>
+                  : <p className="ap-aviso" role="status">{t('En la foto no se ve una actividad física que se pueda hacer en clase. Prueba con otra.')}</p>}
               </div>
             )}
           </div>

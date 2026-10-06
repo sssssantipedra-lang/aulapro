@@ -30,6 +30,33 @@ export interface ExentoEF {
   motivo: string;
 }
 
+/**
+ * Nivel de respuesta para la inclusión del alumno o la alumna en EF, según el
+ * Decreto 104/2018 de la Comunitat Valenciana, art. 14 (decisión del dueño,
+ * 6-10-2026): 2, el nivel II, medidas generales del grupo-clase; 3, el nivel
+ * III, respuesta diferenciada con apoyos ordinarios adicionales.
+ */
+export type NivelApoyoEF = 2 | 3;
+
+/** Lo que necesita en clase de EF, sin diagnóstico. */
+export type NecesidadEF =
+  | 'anticipar' | 'rutinas' | 'instrucciones' | 'visual' | 'senales' | 'companero'
+  | 'tiempo' | 'material' | 'desplazamiento' | 'estimulos' | 'calma' | 'normas';
+
+/**
+ * Un alumno con medidas de nivel II o III, para todo el curso (no tiene
+ * fechas, como los exentos). A la IA solo le llegan el nivel y lo que
+ * necesita, sin su nombre ni su diagnóstico.
+ */
+export interface ApoyoEF {
+  id: string;
+  alumnoId: string;
+  nivel: NivelApoyoEF;
+  necesidades: NecesidadEF[];
+  /** Otra necesidad escrita por el docente, sin el diagnóstico. */
+  otra: string;
+}
+
 export type CategoriaPrueba = 'resistencia' | 'velocidad' | 'fuerza' | 'flexibilidad' | 'otra';
 
 /** Una prueba de condición física: las de partida y las del docente. */
@@ -174,6 +201,8 @@ export interface EquiposEF {
 
 export interface EfData {
   exentos: ExentoEF[];
+  /** Alumnado con medidas de nivel II o III, uno por alumno. */
+  apoyos: ApoyoEF[];
   /** Nivel general de 1 a 3 que marca el docente, para hacer equipos. */
   niveles: Record<string, 1 | 2 | 3>;
   /** Para mezclar en los equipos y, si se quiere, para el baremo. */

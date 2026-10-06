@@ -905,11 +905,11 @@ export function LearningSituations({
             {limitacionesClase.length > 0 && (
               <label className="td-chk">
                 <input type="checkbox" checked={efLimitaciones} onChange={e => setEfLimitaciones(e.target.checked)} />
-                {t('Con medidas para quienes tienen ahora una limitación en esta clase ({n})', { n: limitacionesClase.length })}
+                {t('Con medidas para quienes tienen ahora una limitación o medidas de nivel II o III en esta clase ({n})', { n: limitacionesClase.length })}
               </label>
             )}
             <p className="sda-note">
-              {t('Se apoya en estudios de acceso abierto sobre modelos pedagógicos de Educación Física; sus referencias se añaden a la SdA. A la IA solo le llega lo que no puede hacer cada alumno, sin nombres ni motivos.')}
+              {t('Se apoya en estudios de acceso abierto sobre modelos pedagógicos de Educación Física; sus referencias se añaden a la SdA. A la IA solo le llega lo que no puede hacer cada alumno y su nivel de apoyo con lo que necesita, sin nombres, motivos ni diagnósticos.')}
             </p>
           </fieldset>
         )}

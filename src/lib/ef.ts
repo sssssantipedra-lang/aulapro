@@ -4,17 +4,27 @@
 import type { Class } from '../types';
 import { esAsignaturaEF } from '../services/classMarks';
 import type {
-  ActividadEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
-  MarcaPrueba, MaterialEF, ModalidadEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
+  ActividadEF, ApoyoEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
+  MarcaPrueba, MaterialEF, ModalidadEF, NecesidadEF, NivelApoyoEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
 } from '../types/ef';
 
 export const EF_VACIO: EfData = {
-  exentos: [], niveles: {}, sexos: {}, separar: [], equipos: {}, pruebas: [], marcas: [], baremos: [],
+  exentos: [], apoyos: [], niveles: {}, sexos: {}, separar: [], equipos: {}, pruebas: [], marcas: [], baremos: [],
   actividades: [], sesiones: [], material: [], instalaciones: [], circuitos: [],
 };
 
 export function nuevoIdEF(prefijo: string): string {
   return prefijo + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/**
+ * La edad del alumnado de un curso, la que cumple durante el curso escolar:
+ * 1º de Primaria, 6 a 7 años; 1º de ESO, 12 a 13. Para que la IA adapte una
+ * actividad a la edad.
+ */
+export function edadAproximada(etapa: 'primaria' | 'eso', curso: number): { desde: number; hasta: number } {
+  const desde = (etapa === 'primaria' ? 5 : 11) + curso;
+  return { desde, hasta: desde + 1 };
 }
 
 /** La asignatura de EF de una clase: la que se llame así, o la principal. */
@@ -41,6 +51,56 @@ export function exentosDelDia(d: EfData, fecha: string): ExentoEF[] {
   return d.exentos.filter(e => e.desde <= fecha && (!e.hasta || e.hasta >= fecha));
 }
 
+/* ── Niveles de respuesta para la inclusión ── */
+
+/**
+ * Los niveles II y III del Decreto 104/2018 de la Comunitat Valenciana, art.
+ * 14 (decisión del dueño, 6-10-2026). El texto de cada uno se lee en todas las
+ * comunidades, aunque los números sean los valencianos.
+ */
+export const NIVELES_APOYO: readonly { id: NivelApoyoEF; corto: string; label: string; ayuda: string }[] = [
+  { id: 2, corto: 'Nivel II', label: 'Medidas generales del grupo-clase',
+    ayuda: 'Le basta con lo que se programa para todo el grupo: el DUA-A de cada actividad, con apoyos ordinarios.' },
+  { id: 3, corto: 'Nivel III', label: 'Respuesta diferenciada con apoyos ordinarios adicionales',
+    ayuda: 'Además, una respuesta pensada para él o ella, sola o en un pequeño grupo: adaptación de acceso, refuerzo, un compañero de apoyo, más tiempo.' },
+];
+
+/** Lo que necesita en EF, en palabras que entiende cualquiera (y la IA), sin diagnóstico. */
+export const NECESIDADES_EF: readonly { id: NecesidadEF; label: string }[] = [
+  { id: 'anticipar', label: 'Anticipar la sesión, con imágenes o antes de empezar' },
+  { id: 'rutinas', label: 'Rutinas y estructura fijas' },
+  { id: 'instrucciones', label: 'Instrucciones cortas, de una en una' },
+  { id: 'visual', label: 'Apoyos visuales: demostración, imágenes, colores' },
+  { id: 'senales', label: 'Señales visuales, además del silbato' },
+  { id: 'companero', label: 'Un compañero o compañera de referencia' },
+  { id: 'tiempo', label: 'Más tiempo y su propio ritmo' },
+  { id: 'material', label: 'Material adaptado: más grande, más blando o sonoro' },
+  { id: 'desplazamiento', label: 'Ayuda para desplazarse' },
+  { id: 'estimulos', label: 'Pocos estímulos: menos ruido y un espacio acotado' },
+  { id: 'calma', label: 'Un sitio y un momento para calmarse' },
+  { id: 'normas', label: 'Normas claras y refuerzo positivo' },
+];
+
+/** Para la IA: qué pide cada nivel. Va en el marco de la IA de EF y en la SdA de EF. */
+export const NIVELES_PARA_IA =
+  'Niveles de respuesta para la inclusión (Decreto 104/2018 de la Comunitat Valenciana, art. 14): en el nivel II, ' +
+  'medidas generales del grupo-clase, basta con el DUA-A pensado para todo el grupo; en el nivel III, respuesta ' +
+  'diferenciada con apoyos ordinarios adicionales, además una medida concreta para ese alumno o alumna (adaptación de ' +
+  'acceso, refuerzo, un compañero de apoyo, más tiempo), siempre dentro de la misma actividad que el grupo.';
+
+/** El alumno con medidas de nivel II o III, si lo tiene. */
+export function apoyoDe(d: Pick<EfData, 'apoyos'>, alumnoId: string): ApoyoEF | undefined {
+  return d.apoyos.find(a => a.alumnoId === alumnoId);
+}
+
+/** Lo que la IA sabe del nivel de un alumno: el nivel y lo que necesita, sin nombre ni diagnóstico. */
+export function apoyoParaIA(a: ApoyoEF): string {
+  const n = NIVELES_APOYO.find(x => x.id === a.nivel)!;
+  const que = a.necesidades.map(x => NECESIDADES_EF.find(y => y.id === x)!.label.toLowerCase())
+    .concat(a.otra.trim() ? [a.otra.trim()] : []);
+  return `${n.corto} (${n.label.toLowerCase()})${que.length ? `: necesita ${que.join('; ')}` : ''}`;
+}
+
 /* ── Para la IA ── */
 
 /**
@@ -53,6 +113,23 @@ export function limitacionesParaIA(d: EfData, alumnosDeLaClase: string[], fecha:
     .filter(e => ids.has(e.alumnoId))
     .map(e => e.limitaciones.map(l => LIMITACIONES.find(x => x.id === l)!.label).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', '))
     .filter(Boolean);
+}
+
+/**
+ * Todo lo que la IA sabe del alumnado de una clase ese día: por alumno, lo que
+ * no puede hacer si está exento o lesionado y su nivel de respuesta con lo que
+ * necesita, en una línea y sin nombre. Lo que no hay, no sale.
+ */
+export function alumnadoParaIA(d: EfData, alumnosDeLaClase: string[], fecha: string): string[] {
+  const hoy = exentosDelDia(d, fecha);
+  return alumnosDeLaClase.flatMap(id => {
+    const lims = hoy.filter(e => e.alumnoId === id)
+      .map(e => e.limitaciones.map(l => LIMITACIONES.find(x => x.id === l)!.label).concat(e.otra.trim() ? [e.otra.trim()] : []).join(', '))
+      .filter(Boolean);
+    const apoyo = apoyoDe(d, id);
+    const partes = [...lims, ...(apoyo ? [apoyoParaIA(apoyo)] : [])];
+    return partes.length ? [partes.join(' · ')] : [];
+  });
 }
 
 /** El material que hay (sin lo que está para reponer) y las instalaciones, para el prompt. */
@@ -393,6 +470,7 @@ export function sinAlumnoEF(d: EfData, alumnoId: string): EfData {
   return {
     ...d,
     exentos: d.exentos.filter(e => e.alumnoId !== alumnoId),
+    apoyos: d.apoyos.filter(a => a.alumnoId !== alumnoId),
     niveles, sexos,
     separar: d.separar.filter(p => p.a !== alumnoId && p.b !== alumnoId),
     equipos: Object.fromEntries(Object.entries(d.equipos).map(([k, e]) =>
@@ -431,6 +509,7 @@ const de = <T extends string>(v: unknown, opciones: readonly T[], porDefecto: T)
   (opciones as readonly unknown[]).includes(v) ? v as T : porDefecto;
 
 const LIMS = LIMITACIONES.map(l => l.id);
+const NECS = NECESIDADES_EF.map(n => n.id);
 const CATS: CategoriaPrueba[] = ['resistencia', 'velocidad', 'fuerza', 'flexibilidad', 'otra'];
 const TIPOS: TipoActividadEF[] = ['juego', 'deporte', 'lluvia', 'natural', 'calentamiento', 'calma'];
 
@@ -459,6 +538,18 @@ export function normalizarEF(raw: unknown): EfData {
       limitaciones: lista(x.limitaciones, l => (LIMS.includes(l as LimitacionEF) ? l as LimitacionEF : null)),
       otra: texto(x.otra), desde, ...(hasta ? { hasta } : {}),
       tarea: texto(x.tarea), justificante: x.justificante === true, motivo: texto(x.motivo),
+    };
+  });
+  // Uno por alumno: si llegaran dos (una copia editada a mano), vale el primero
+  const vistos = new Set<string>();
+  const apoyos = lista<ApoyoEF>(o.apoyos, v => {
+    const x = obj(v);
+    if (!x || !esTexto(x.id) || !esTexto(x.alumnoId) || (x.nivel !== 2 && x.nivel !== 3) || vistos.has(x.alumnoId)) return null;
+    vistos.add(x.alumnoId);
+    return {
+      id: x.id, alumnoId: x.alumnoId, nivel: x.nivel,
+      necesidades: lista(x.necesidades, n => (NECS.includes(n as NecesidadEF) ? n as NecesidadEF : null)),
+      otra: texto(x.otra),
     };
   });
   const pruebas = lista<PruebaFisica>(o.pruebas, v => {
@@ -546,6 +637,7 @@ export function normalizarEF(raw: unknown): EfData {
   });
   return {
     exentos,
+    apoyos,
     niveles: registro(o.niveles, x => (x === 1 || x === 2 || x === 3 ? x : undefined)),
     sexos: registro(o.sexos, x => (x === 'F' || x === 'M' ? x : undefined)),
     separar: lista(o.separar, v => {

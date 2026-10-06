@@ -4,7 +4,8 @@
  * 5-10-2026). Se ve en la pista, en el Inicio y al hacer equipos. El motivo es
  * un dato de salud: se queda en el equipo y no se envía nunca a la IA; a la IA
  * solo le llega la limitación, sin nombre, para proponer cómo incluirle
- * (DUA-A). Ver `docs/EF.md`.
+ * (DUA-A). Debajo, el alumnado con medidas de nivel II o III (`EfApoyos`).
+ * Ver `docs/EF.md`.
  */
 import { useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, Bandage, FileCheck2 } from 'lucide-react';
@@ -15,6 +16,7 @@ import { isoDate, fromIsoDate } from '../../lib/utils';
 import { exentosDelDia, LIMITACIONES, nuevoIdEF } from '../../lib/ef';
 import type { Class, Section, Student } from '../../types';
 import type { EfData, ExentoEF } from '../../types/ef';
+import { EfApoyos } from './EfApoyos';
 
 interface Props {
   classes: Class[];
@@ -123,6 +125,8 @@ export function EfExentos({ classes, students, ef, onChangeEf, onNav }: Props) {
         </button>
       )}
       {verPasados && pasados.length > 0 && <div className="card"><ul className="ap-lista">{pasados.map(fila)}</ul></div>}
+
+      <EfApoyos classes={classes} students={students} ef={ef} onChangeEf={onChangeEf} />
 
       <Modal open={!!editando} onClose={() => setEditando(null)} wide title={esNuevo ? t('Exento o lesión') : alumno(editando?.alumnoId ?? '')?.name}>
         {editando && (

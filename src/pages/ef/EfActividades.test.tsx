@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 /**
  * Actividades: el banco de partida se filtra por tipo, una del banco se copia
- * para adaptarla y las de la IA se guardan en las del docente.
+ * para adaptarla y las de la IA (también las que redacta desde una foto) se
+ * guardan en las del docente.
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EfActividades } from './EfActividades';
 import { I18nProvider } from '../../i18n';
@@ -17,6 +18,12 @@ const callGemini = vi.hoisted(() => vi.fn());
 vi.mock('../../services/gemini', async importOriginal => {
   const real = await importOriginal<typeof import('../../services/gemini')>();
   return { ...real, callGemini, hasApiKey: () => true };
+});
+// En jsdom no hay lienzo para reducir la foto: se da ya reducida
+const FOTO = { name: 'foto.jpg', mimeType: 'image/jpeg', base64: 'QUJD' };
+vi.mock('../../lib/fotos', async importOriginal => {
+  const real = await importOriginal<typeof import('../../lib/fotos')>();
+  return { ...real, fotoParaIA: async () => FOTO };
 });
 
 const demo = buildDemoEF(new Date(2026, 9, 5));
@@ -72,5 +79,42 @@ describe('Actividades', () => {
     await user.click(screen.getByRole('button', { name: /Proponer tres/ }));
     await user.click(await screen.findByRole('button', { name: /Guardar en mis actividades/ }));
     expect(ultimo.actividades[0]).toMatchObject({ titulo: 'Puntería con aros', tipo: 'lluvia', origen: 'ia' });
+  });
+
+  it('desde una foto: la IA dice lo que ve y redacta la actividad para la edad de la clase', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: /Desde una foto/ }));
+    const reconocer = screen.getByRole('button', { name: /Reconocer y redactar/ });
+    expect((reconocer as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/No uses fotos en las que se reconozca a tu alumnado/)).toBeTruthy();
+    expect(screen.getByText(/de 12 a 13 años/)).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('Foto de la actividad'), { target: { files: [new File(['x'], 'voley.jpg', { type: 'image/jpeg' })] } });
+    expect(await screen.findByAltText('La foto elegida')).toBeTruthy();
+
+    callGemini.mockResolvedValue(JSON.stringify({
+      visto: 'Un partido de voleibol.', esActividad: 'si', titulo: 'Voleibol 2 contra 2', tipo: 'deporte', modalidad: 'red-pared',
+      descripcion: 'Dos parejas en un campo pequeño.', organizacion: 'Parejas', material: 'Balones blandos', variantes: 'Atrapar', inclusion: 'Sin saltar',
+    }));
+    await user.click(screen.getByRole('button', { name: /Reconocer y redactar/ }));
+    expect(await screen.findByText('Un partido de voleibol.')).toBeTruthy();
+    expect(callGemini.mock.calls[0][2]).toEqual([FOTO]);
+    expect(callGemini.mock.calls[0][1]).toContain('(12 a 13 años)');
+    await user.click(screen.getByRole('button', { name: /Guardar en mis actividades/ }));
+    expect(ultimo.actividades[0]).toMatchObject({ titulo: 'Voleibol 2 contra 2', tipo: 'deporte', modalidad: 'red-pared', origen: 'ia' });
+    expect(screen.queryByRole('button', { name: /Reconocer y redactar/ })).toBeNull();
+  });
+
+  it('desde una foto: si no se ve una actividad física, lo dice', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: /Desde una foto/ }));
+    fireEvent.change(screen.getByLabelText('Foto de la actividad'), { target: { files: [new File(['x'], 'taza.jpg', { type: 'image/jpeg' })] } });
+    await screen.findByAltText('La foto elegida');
+    callGemini.mockResolvedValue(JSON.stringify({ visto: 'Una taza de café.', esActividad: 'no', titulo: '', tipo: 'juego', modalidad: 'ninguna', descripcion: '', organizacion: '', material: '', variantes: '', inclusion: '' }));
+    await user.click(screen.getByRole('button', { name: /Reconocer y redactar/ }));
+    expect(await screen.findByText(/no se ve una actividad física/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Guardar en mis actividades/ })).toBeNull();
   });
 });

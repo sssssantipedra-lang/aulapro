@@ -109,6 +109,10 @@ export function buildDemoEF(hoy: Date = new Date()) {
       { id: 'ef-x2', alumnoId: 'ef-s22', limitaciones: ['esfuerzo-intenso'], otra: '', desde: dias(-30),
         tarea: 'Participa a su ritmo y descansa cuando lo necesita.', justificante: true, motivo: 'Asma' },
     ],
+    apoyos: [
+      { id: 'ef-ap1', alumnoId: 'ef-s05', nivel: 3, necesidades: ['anticipar', 'instrucciones', 'companero', 'estimulos'], otra: '' },
+      { id: 'ef-ap2', alumnoId: 'ef-s12', nivel: 2, necesidades: ['senales', 'visual'], otra: '' },
+    ],
     marcas,
     instalaciones: [
       { id: 'ef-i1', nombre: 'Pabellón', cubierta: true, notas: 'Compartido con el colegio los martes por la tarde.' },
