@@ -43,11 +43,14 @@ function weekDates(date: Date): Date[] {
   });
 }
 
-// Si el bloque ocupa algo de esa hora. Antes solo contaba si cruzaba la hora
-// en punto, y uno de 12:15 a 13:00 no salía en ninguna.
+// La fila en la que se pinta el bloque: la de la hora en la que empieza, una
+// sola vez. Antes salía en cada hora que tocaba, y uno de 09:45 a 10:30 se
+// veía dos veces (a las 9 y a las 10) aunque fuera una sola sesión. Lo que
+// empieza antes de la primera fila y llega a ella sale en la primera.
 function blockInSlot(block: ScheduleBlock, slot: string): boolean {
-  const end = `${String(Number(slot.slice(0, 2)) + 1).padStart(2, '0')}:00`;
-  return block.time_start < end && block.time_end > slot;
+  const first = TIME_SLOTS[0];
+  if (block.time_start < first) return slot === first && block.time_end > first;
+  return block.time_start.slice(0, 2) === slot.slice(0, 2);
 }
 
 // --------------- sub-components ---------------

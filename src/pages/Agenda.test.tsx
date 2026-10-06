@@ -67,4 +67,20 @@ describe('Agenda · semana', () => {
     // El horario de apoyo se cambia en su pantalla, no aquí
     expect(onNav).toHaveBeenCalledWith('apoyo-alumnado');
   });
+
+  it('un bloque que cruza una hora en punto sale una sola vez, en la hora en que empieza', async () => {
+    const user = userEvent.setup();
+    setup([
+      { ...block('m'), time_start: '09:45', time_end: '10:30', subject: 'Matemáticas' },
+      { ...block('e'), day: 2, time_start: '11:45', time_end: '12:30', subject: 'Educación Física' },
+      { ...block('t'), day: 3, time_start: '07:45', time_end: '08:40', subject: 'Guardia' },
+    ]);
+    await user.click(screen.getByRole('tab', { name: 'Semanal' }));
+    expect(screen.getAllByText('Matemáticas')).toHaveLength(1);
+    expect(screen.getAllByText('Educación Física')).toHaveLength(1);
+    expect(screen.getAllByText('Guardia')).toHaveLength(1);
+    // En la fila de las 9, no en la de las 10
+    const fila9 = screen.getByText('09:00').nextElementSibling!;
+    expect(fila9.textContent).toContain('Matemáticas');
+  });
 });
