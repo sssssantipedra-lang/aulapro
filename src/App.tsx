@@ -269,9 +269,9 @@ function AppInner() {
         onExploreDemo={async input => {
           // El ejemplo de PT y AL lleva el nombre que le pone la bienvenida
           await st.createAndOpenProfile(input.especialidades?.length || input.tipoDocente === 'ef' ? input : {
-            name: DEMO_USER.full_name, school: DEMO_USER.school,
-            subject: DEMO_USER.subject, course: '2025-2026', community: DEMO_COMMUNITY,
-          }, { demo: true });
+            name: t(DEMO_USER.full_name), school: t(DEMO_USER.school),
+            subject: t(DEMO_USER.subject), course: '2025-2026', community: DEMO_COMMUNITY,
+          }, { demo: true, lang });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
       />
@@ -335,7 +335,7 @@ function AppInner() {
                 nombre={st.currentUser.full_name}
                 data={st.apoyo}
                 onNav={setSection}
-                onLoadDemo={() => { st.setApoyo(() => buildDemoApoyo()); toast(t('✅ Datos de ejemplo cargados')); }}
+                onLoadDemo={() => { st.setApoyo(() => buildDemoApoyo(new Date(), lang)); toast(t('✅ Datos de ejemplo cargados')); }}
               />
             )}
             {section === 'dashboard' && !especialista && (
@@ -354,7 +354,7 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
-                onLoadDemo={() => { st.loadDemoData(); toast(t('✅ Datos de ejemplo cargados')); }}
+                onLoadDemo={() => { st.loadDemoData(lang); toast(t('✅ Datos de ejemplo cargados')); }}
                 ef={efInicio}
               />
             )}

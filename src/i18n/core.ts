@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react';
 import { CA } from './ca';
 import { APOYO_EN } from './apoyo';
 import { EF_EN } from './ef';
+import { DEMO_EN } from './demo';
 
 /**
  * Idiomas de la aplicación.
@@ -28,6 +29,8 @@ export const STORAGE_KEY = 'aulapro_lang';
  * castellano en lugar de enseñar una clave rota al usuario.
  */
 const EN: Record<string, string> = {
+  // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
+  ...DEMO_EN,
   /* ── Navegación ── */
   'Principal': 'Main',
   'Inicio': 'Home',

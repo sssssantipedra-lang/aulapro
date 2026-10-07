@@ -119,10 +119,9 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Todo va en `ef` del perfil (`src/types/ef.ts`, `src/lib/ef.ts`).
 - Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
 - Al borrar un alumno se va todo lo suyo de EF, también su nivel de respuesta (`sinAlumnoEF`). Al borrar una clase, lo de todo su alumnado, también el motivo de las lesiones, y sus equipos; sus sesiones se quedan sin clase (`sinClaseEF`, desde el 6-10-2026; antes se quedaba huérfano).
-- Datos de ejemplo: `src/lib/demoEF.ts`, con «Profesor» y «Alumno 1» a «Alumno 24».
+- Datos de ejemplo: `src/lib/demoEF.ts`, con «Profesor» y «Alumno 1» a «Alumno 24». Salen en el idioma de la app (desde el 7-10-2026; textos en `src/i18n/demo.ts`).
 
 ## Lo que falta
 
 - Baremos publicados: comprobar la licencia de ALPHA-Fitness y HELENA, y de Tomkinson y otros (2018), antes de incluir ninguno (ver «Pruebas físicas»).
-- Los datos de ejemplo de EF están solo en castellano (como los de PT y AL); el banco de actividades sí está en los tres idiomas.
 - El cronómetro no suena con la pantalla bloqueada: por eso pide que la pantalla no se apague mientras corre.

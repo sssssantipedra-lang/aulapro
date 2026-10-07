@@ -4,9 +4,12 @@
  * trencada.
  */
 import { APOYO_CA } from './apoyo';
+import { DEMO_CA } from './demo';
 import { EF_CA } from './ef';
 
 export const CA: Record<string, string> = {
+  // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
+  ...DEMO_CA,
   "Cargando…": "Carregant…",
   "Abriendo tu cuaderno…": "Obrint el teu quadern…",
   "✅ ¡Bienvenido/a, {name}!": "✅ Et donem la benvinguda, {name}!",
