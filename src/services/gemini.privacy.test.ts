@@ -6,6 +6,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { callGemini, setApiKey } from './gemini';
 import { setPrivacyRoster } from './privacy';
 
+/** Lo que contesta Google cuando se pide la respuesta por partes (`alt=sse`). */
+const sse = (text: string) => new Response(`data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\n`, { status: 200 });
+
 let enviado = '';
 let respuesta = '';
 
@@ -23,7 +26,7 @@ beforeEach(() => {
   ]);
   vi.stubGlobal('fetch', async (_url: string, init: { body: string }) => {
     enviado = init.body;
-    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: respuesta }] } }] }) };
+    return sse(respuesta);
   });
 });
 

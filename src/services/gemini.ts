@@ -104,9 +104,18 @@ function markExhausted(model: string, apiMessage: string, now = Date.now()) {
   writeCooldowns(c);
 }
 
+/**
+ * Los modelos que se quedaron callados (ver `ESPERA_RESPUESTA_MS`): durante
+ * un rato no se les vuelve a llamar, para no hacer esperar otros 30 segundos
+ * en cada petición. Solo en memoria: no es cupo gastado, y Configuración no
+ * debe decir que «se han gastado las de hoy».
+ */
+const SIN_RESPUESTA_PAUSA_MS = 10 * 60_000;
+const sinRespuesta = new Map<string, number>();
+
 function isCoolingDown(model: string, now = Date.now()): boolean {
-  const until = readCooldowns()[model];
-  return !!until && until > now;
+  const until = Math.max(readCooldowns()[model] ?? 0, sinRespuesta.get(model) ?? 0);
+  return until > now;
 }
 
 /** Para Configuración: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
@@ -203,6 +212,9 @@ interface GeminiCallbacks {
   onError?: (message: string) => void;
 }
 
+/** El estado que devuelve `callModel` cuando el modelo no ha respondido a tiempo (ver `ESPERA_RESPUESTA_MS`). */
+const SIN_RESPUESTA = -1;
+
 function friendlyError(status: number, apiMessage: string): string {
   if (status === 401 || (status === 400 && /api key/i.test(apiMessage))) return 'La clave API no es válida. Revísala en Configuración.';
   if (status === 403) return 'La clave API no tiene permiso para usar Gemini. Genera una nueva en Google AI Studio.';
@@ -211,7 +223,7 @@ function friendlyError(status: number, apiMessage: string): string {
       ? 'Se ha agotado el cupo gratuito de hoy de la IA de Google. Se renueva cada día a las 9:00.'
       : 'Se ha alcanzado el límite gratuito de peticiones. Espera un minuto y vuelve a intentarlo.';
   }
-  if (status >= 500) return 'El servicio de Google no responde ahora mismo. Inténtalo en unos minutos.';
+  if (status >= 500 || status === SIN_RESPUESTA) return 'El servicio de Google no responde ahora mismo. Inténtalo en unos minutos.';
   return apiMessage || `Error ${status} al llamar a la IA.`;
 }
 
@@ -274,6 +286,51 @@ export interface GeminiOptions {
 
 const DEFAULT_MAX_TOKENS = 4096;
 
+/**
+ * Lo que se espera a que un modelo empiece a responder, o a que siga
+ * cuando ya ha empezado. Pasados 30 segundos sin recibir nada se pasa al
+ * siguiente de la lista (decisión del dueño, 7-10-2026): ese día Gemini 3.8
+ * Flash no contestaba ni a «di hola» y las fichas se quedaban en «Creando…»
+ * para siempre, mientras Flash-Lite respondía en un segundo.
+ *
+ * Por eso la respuesta se pide por partes (`streamGenerateContent`): una
+ * ficha larga puede tardar más de 30 segundos en total con el modelo bien, y
+ * lo que se vigila es que vaya llegando, no cuánto tarda entera.
+ */
+export const ESPERA_RESPUESTA_MS = 30_000;
+
+/**
+ * El texto de una respuesta por partes (`alt=sse`): cada evento es una línea
+ * «data: {…}» con un trozo. Se juntan los trozos de texto, sin los
+ * razonamientos (`thought`), que no son la respuesta.
+ */
+export function textoDeSse(raw: string): { text: string } | { status: number; message: string } {
+  let text = '';
+  for (const linea of raw.split(/\r?\n/)) {
+    if (!linea.startsWith('data:')) continue;
+    let evento: { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[]; error?: { code?: number; message?: string } };
+    try { evento = JSON.parse(linea.slice(5)); } catch { continue; }
+    if (evento.error) return { status: evento.error.code ?? 500, message: evento.error.message ?? '' };
+    for (const p of evento.candidates?.[0]?.content?.parts ?? []) if (!p.thought) text += p.text ?? '';
+  }
+  return { text };
+}
+
+/** Lee el cuerpo entero; `vivo` se llama cada vez que llega algo. */
+async function leerCuerpo(res: Response, vivo: () => void): Promise<string> {
+  if (!res.body) return res.text();
+  const lector = res.body.getReader();
+  const decoder = new TextDecoder();
+  let raw = '';
+  for (;;) {
+    const { done, value } = await lector.read();
+    if (done) break;
+    vivo();
+    raw += decoder.decode(value, { stream: true });
+  }
+  return raw + decoder.decode();
+}
+
 async function callModel(
   model: string,
   key: string,
@@ -309,33 +366,46 @@ async function callModel(
     generationConfig.responseSchema = options.responseSchema;
   }
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        generationConfig,
-      }),
-    },
-  );
+  // Si en `ESPERA_RESPUESTA_MS` no llega nada, se corta y se prueba otro modelo
+  const control = new AbortController();
+  let reloj = setTimeout(() => control.abort(), ESPERA_RESPUESTA_MS);
+  const vivo = () => {
+    clearTimeout(reloj);
+    reloj = setTimeout(() => control.abort(), ESPERA_RESPUESTA_MS);
+  };
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents,
+          generationConfig,
+        }),
+        signal: control.signal,
+      },
+    );
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({})) as { error?: { message?: string } };
-    return { status: res.status, message: err?.error?.message ?? '' };
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: { message?: string } };
+      return { status: res.status, message: err?.error?.message ?? '' };
+    }
+
+    // Todos los trozos y todas sus partes: una respuesta larga llega
+    // repartida y se quedaría a medias si se leyera solo una.
+    const r = textoDeSse(await leerCuerpo(res, vivo));
+    if ('status' in r) return r;
+    const text = r.text.trim();
+    if (!text) return { status: 0, message: 'La IA devolvió una respuesta vacía.' };
+    return { text: fixStrayEscapes(text) };
+  } catch (e) {
+    if (control.signal.aborted) return { status: SIN_RESPUESTA, message: '' };
+    throw e;
+  } finally {
+    clearTimeout(reloj);
   }
-
-  const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-  // Todas las partes, no solo la primera: una respuesta larga puede llegar
-  // repartida en varias y quedarse a medias si se lee únicamente `parts[0]`.
-  const text = (data.candidates?.[0]?.content?.parts ?? [])
-    .map(p => p.text ?? '')
-    .join('')
-    .trim();
-  if (!text) return { status: 0, message: 'La IA devolvió una respuesta vacía.' };
-  return { text: fixStrayEscapes(text) };
 }
 
 /**
@@ -446,6 +516,8 @@ export async function callGemini(
 
         lastError = friendlyError(result.status, result.message);
         if (result.status === 429) markExhausted(model, result.message);
+        // Callado: el siguiente de la lista, y un rato sin volver a este
+        if (result.status === SIN_RESPUESTA) sinRespuesta.set(model, Date.now() + SIN_RESPUESTA_PAUSA_MS);
         // Solo un 400 o un 401 (clave no válida) detiene toda la cadena: eso
         // fallaría igual en cualquier modelo. Un 403 aquí no tiene por qué
         // significar que la clave esté mal en general, solo que le falta
