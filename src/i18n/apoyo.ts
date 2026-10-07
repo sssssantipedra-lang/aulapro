@@ -381,6 +381,8 @@ export const APOYO_EN: Record<string, string> = {
 
   /* ── Mi alumnado y la página de cada alumno (6-10-2026) ── */
   'Mi alumnado': 'My students',
+  // La pestaña de la página del alumno: «Sesiones» a secas es «Lessons» (situaciones de aprendizaje)
+  'Sesiones@@apoyo': 'Sessions',
   'Página del alumno': 'Student page',
   'Pulsa un alumno para ver todo lo suyo: su programa, sus sesiones, las coordinaciones y sus documentos.': 'Tap a student to see everything about them: their programme, sessions, coordination meetings and documents.',
   'Sus objetivos del {n}º trimestre': 'Their term {n} objectives',
@@ -801,6 +803,7 @@ export const APOYO_CA: Record<string, string> = {
 
   /* ── Mi alumnado y la página de cada alumno (6-10-2026) ── */
   'Mi alumnado': 'El meu alumnat',
+  'Sesiones@@apoyo': 'Sessions',
   'Página del alumno': 'Pàgina de l\'alumne',
   'Pulsa un alumno para ver todo lo suyo: su programa, sus sesiones, las coordinaciones y sus documentos.': 'Prem un alumne per veure tot el que és seu: el programa, les sessions, les coordinacions i els documents.',
   'Sus objetivos del {n}º trimestre': 'Els seus objectius del {n}r trimestre',

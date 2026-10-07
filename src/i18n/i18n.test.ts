@@ -45,6 +45,14 @@ describe('translate', () => {
     expect(translate('en', 'y {n} alumnos más', { n: 7 })).toBe('and 7 more students');
   });
 
+  it('una palabra con contexto lleva su propia traducción y en castellano se ve sin el contexto', () => {
+    expect(translate('en', 'Sesiones')).toBe('Lessons');
+    expect(translate('en', 'Sesiones@@apoyo')).toBe('Sessions');
+    expect(translate('ca', 'Sesiones@@apoyo')).toBe('Sessions');
+    expect(translate('es', 'Sesiones@@apoyo')).toBe('Sesiones');
+    expect(translate('en', 'Algo sin traducir@@donde sea')).toBe('Algo sin traducir');
+  });
+
   it('una variable repetida se sustituye en todas sus apariciones', () => {
     expect(translate('es', '{x} y {x}', { x: 'A' })).toBe('A y A');
   });

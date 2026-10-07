@@ -1964,10 +1964,21 @@ const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };
  * castellano, así que lo que falte se lee en castellano en lugar de dejar un
  * hueco o enseñar una clave.
  */
+/**
+ * «Texto@@contexto»: la misma palabra con otra traducción según dónde sale.
+ * «Sesiones» es «Lessons» en una situación de aprendizaje, pero en PT y AL son
+ * sesiones de apoyo: «Sesiones@@apoyo» lleva su propia traducción. Sin ella
+ * (en castellano, por ejemplo), se ve el texto sin el contexto.
+ */
+function sinContexto(key: string): string {
+  const i = key.indexOf('@@');
+  return i < 0 ? key : key.slice(0, i);
+}
+
 export function translate(
   lang: Lang, key: string, vars?: Record<string, string | number>,
 ): string {
-  let out = DICTS[lang]?.[key] ?? key;
+  let out = DICTS[lang]?.[key] ?? sinContexto(key);
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       out = out.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
