@@ -1,11 +1,12 @@
 /**
- * PT y AL, «Programas»: el plan individual de cada alumno. Por ámbito (en la
- * Comunitat Valenciana, los programas del PAP), sus objetivos de cada
- * trimestre, enlazables con los criterios oficiales del curso de su nivel de
- * competencia. La IA los propone y el docente los cambia. Ver `docs/PTAL.md`.
+ * PT y AL, pestaña «Programa» de la página de un alumno: su plan individual.
+ * Por ámbito (en la Comunitat Valenciana, los programas del PAP), sus
+ * objetivos de cada trimestre, enlazables con los criterios oficiales del
+ * curso de su nivel de competencia. La IA los propone y el docente los
+ * cambia. Ver `docs/PTAL.md`.
  */
-import { useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, Sparkles, Target, Link2, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Pencil, Trash2, Sparkles, Target, Link2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
@@ -17,37 +18,35 @@ import { hasApiKey } from '../../services/gemini';
 import { proponerObjetivos } from '../../services/apoyoIA';
 import { describirCriterio } from '../../lib/curriculum/criteriosParaIA';
 import { claveCriterioOficial } from '../../lib/curriculum/evaluacionPorCriterios';
-import { ambitosDe, nivelDe, nuevoIdApoyo, tieneDesfase } from '../../lib/apoyo';
+import { ambitosDe, nivelDe, nuevoIdApoyo } from '../../lib/apoyo';
 import { puntosDe } from '../../lib/inicioApoyo';
-import { requestFichaPara } from '../../lib/apoyoNav';
 import { GraficaObjetivo } from '../../components/apoyo/GraficaObjetivo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
 import type { EstadoCurriculoClase } from '../../hooks/useNotasPorCompetencias';
-import type { ApoyoData, Especialidad, Logro, ObjetivoApoyo, ProgramaApoyo, Trimestre } from '../../types/apoyo';
+import type { AlumnoApoyo, ApoyoData, Especialidad, Logro, ObjetivoApoyo, ProgramaApoyo, Trimestre } from '../../types/apoyo';
+import type { Section } from '../../types';
 
 interface Props {
+  alumno: AlumnoApoyo;
   data: ApoyoData;
   onChange: (f: (d: ApoyoData) => ApoyoData) => void;
   especialidades: Especialidad[];
   comunidad: ComunidadId | undefined;
-  onNav: (s: string) => void;
+  onNav: (s: Section) => void;
 }
 
 const TRIMESTRES: Trimestre[] = [1, 2, 3];
 const INTENSIDADES = ['baja', 'media', 'alta'] as const;
 const OTRO = '__otro__';
 
-export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNav }: Props) {
+export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunidad, onNav }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
-  const alumnos = useMemo(() => [...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)), [data.alumnos]);
-  const [alumnoId, setAlumnoId] = useState<string | null>(null);
-  const alumno = alumnos.find(a => a.id === alumnoId) ?? alumnos[0] ?? null;
-  const nivel = alumno ? nivelDe(alumno) : undefined;
+  const nivel = nivelDe(alumno);
   const { estado, materias } = useMateriasDeNivel(comunidad, nivel);
-  const programas = data.programas.filter(p => p.alumnoId === alumno?.id);
+  const programas = data.programas.filter(p => p.alumnoId === alumno.id);
   const [generando, setGenerando] = useState<string | null>(null);
 
   /** Programa que se está creando o cambiando de ámbito. */
@@ -65,7 +64,6 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
     cambiarPrograma(pid, p => ({ ...p, objetivos: p.objetivos.map(o => (o.id === oid ? f(o) : o)) }));
 
   function abrirNuevo() {
-    if (!alumno) return;
     const primero = ambitosVisibles[0];
     setEditando({
       id: nuevoIdApoyo('pro'), alumnoId: alumno.id, ambito: '', objetivos: [],
@@ -101,7 +99,6 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
   }
 
   async function proponer(p: ProgramaApoyo) {
-    if (!alumno) return;
     setGenerando(p.id);
     const propuestos = await proponerObjetivos(
       { alumno, programa: p, actuales: p.objetivos, materias, comunidad, lang, nombreCurso },
@@ -116,52 +113,20 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
     toast(t('✅ La IA ha añadido {n} objetivos. Revísalos y cambia lo que haga falta.', { n: propuestos.length }));
   }
 
-  if (!alumno) {
-    return (
-      <section className="sec active ap-page">
-        <div className="pg-hd"><div><h1 className="pg-title">{t('Programas')}</h1></div></div>
-        <div className="card">
-          <p className="ap-vacio">{t('Primero añade a tu alumnado en «Alumnado y grupos»: cada alumno tiene aquí sus programas.')}</p>
-          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => onNav('apoyo-alumnado')}>{t('Ir a Alumnado y grupos')}</button>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="sec active ap-page">
-      <div className="pg-hd">
-        <div>
-          <h1 className="pg-title">{t('Programas')}</h1>
-          <p className="pg-sub">{t('El plan individual de cada alumno: por ámbito, los objetivos de cada trimestre. La IA los propone y tú los cambias.')}</p>
-        </div>
+    <div className="al-panel">
+      <div className="al-barra">
+        <p className="ap-sub" style={{ margin: 0 }}>
+          {nivel
+            ? t('Por ámbito, sus objetivos de cada trimestre, enlazados con los criterios de {curso}. La IA los propone y tú los cambias.', { curso: nombreCurso(nivel) })
+            : t('Sin nivel de competencia: indícalo en la pestaña «Datos» para enlazar los objetivos con el currículo.')}
+        </p>
         <button className="btn-accent" onClick={abrirNuevo}><Plus size={16} />{t('Nuevo programa')}</button>
       </div>
 
       {!hasApiKey() && (
         <AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
       )}
-
-      <div className="chip-row ap-alumnos" role="tablist" aria-label={t('Alumnado')}>
-        {alumnos.map(a => (
-          <button key={a.id} type="button" role="tab" aria-selected={a.id === alumno.id}
-            className={`chip sm accent${a.id === alumno.id ? ' on' : ''}`} onClick={() => setAlumnoId(a.id)}>
-            {a.nombre}
-          </button>
-        ))}
-      </div>
-
-      <p className="ap-meta" style={{ margin: '0 0 14px' }}>
-        {alumno.claseOrigen && <span>{alumno.claseOrigen}</span>}
-        {alumno.matricula && <span>{nombreCurso(alumno.matricula)}</span>}
-        {nivel
-          ? <span className={`sda-chip${tieneDesfase(alumno) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(nivel) })}</span>
-          : <span>{t('Sin nivel de competencia: indícalo en su ficha para enlazar los objetivos con el currículo.')}</span>}
-        {/* Una ficha de Recursos adaptada a su nivel, sus necesidades y sus objetivos */}
-        <button type="button" className="ap-enlace ap-ficha-link" onClick={() => { requestFichaPara(alumno.id); onNav('resources'); }}>
-          <FileText size={13} aria-hidden="true" />{t('Hacer una ficha adaptada con IA')}
-        </button>
-      </p>
 
       {programas.length === 0 && (
         <div className="card"><p className="ap-vacio">{t('Todavía no tiene programas. Crea uno por cada ámbito que trabajas con este alumno.')}</p></div>
@@ -255,7 +220,7 @@ export function ProgramasApoyo({ data, onChange, especialidades, comunidad, onNa
           </>
         )}
       </Modal>
-    </section>
+    </div>
   );
 }
 

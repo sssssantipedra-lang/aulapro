@@ -570,21 +570,28 @@ crear el perfil («Tipo de docente» → «PT y AL», y se marca «Pedagogía
 Terapéutica (PT)», «Audición y Lenguaje (AL)» o las dos; la especialidad se
 escribe sola) o después en Configuración → Perfil. Al cambiar de tipo no se
 borra nada. Su MENÚ es otro:
-- «Tu día a día»: Inicio, Registro diario, Alumnado y grupos, Programas,
-  Coordinaciones, Programación e informes y Agenda.
+- «Tu día a día»: Inicio, Registro diario, Mi alumnado y Agenda.
 - «Herramientas»: Agenda visual, Recursos (con «Adaptada a», una ficha para un
   alumno de apoyo) y Aula Live (la ruleta y los grupos salen de su alumnado de
   apoyo).
 - «Más»: Reuniones, Formaciones, Registro de cambios y Configuración.
 No tiene Mis Clases, Cuaderno, Asistencia, Evaluar ni Trabajo compartido.
+Todo lo de cada alumno (su programa, sus sesiones, las coordinaciones y sus
+documentos: programación, informes y PAP) está en SU PÁGINA, que se abre
+pulsándolo en Mi alumnado (ver más abajo). Ya no hay pantallas sueltas de
+«Programas», «Coordinaciones» ni «Programación e informes»: son pestañas de
+esa página.
 En la AGENDA, el horario de sus grupos de apoyo sale solo en la vista semanal
-(pulsándolo lleva a Alumnado y grupos, donde se cambia).
+(pulsándolo se abre ese grupo en Mi alumnado, pestaña «Grupos», donde se
+cambia).
 
 INICIO DE PT Y AL: el saludo con el trimestre y tres tarjetas:
 - SESIONES DE HOY: los grupos que tienen sesión hoy según su horario, por hora,
   con su alumnado. «Registrar» abre el Registro diario en ese grupo; las ya
   anotadas dicen «Registrada».
-- AVISOS DE SEGUIMIENTO: al final del trimestre, los informes que faltan; las
+- AVISOS DE SEGUIMIENTO (cada uno con su botón, que lleva a la pestaña de la
+  página del alumno donde se resuelve): al final del trimestre, los informes
+  que faltan (cada nombre lleva a sus documentos); las
   sesiones de los últimos 7 días que se quedaron sin registrar (desde la
   primera que se registró de ese grupo), con «Registrar» en ese día; un
   objetivo con 3 veces seguidas «No conseguido» («quizá convenga ajustarlo o
@@ -593,7 +600,8 @@ INICIO DE PT Y AL: el saludo con el trimestre y tres tarjetas:
 - EVOLUCIÓN DEL ALUMNADO: una barra por alumno con sus objetivos del trimestre
   según lo último registrado de cada uno (Conseguido, En proceso, No conseguido,
   Sin trabajar) y cuántos lleva conseguidos. Pulsando el alumno se ve cada
-  objetivo con un punto por sesión, de color según cómo fue.
+  objetivo con un punto por sesión, de color según cómo fue, y «Abrir la
+  página de…»; uno sin objetivos este trimestre lleva a su programa.
 Sin alumnado todavía, el Inicio muestra tres pasos (alumnado y grupos,
 programas, registro) y «Probar con datos de ejemplo».
 
@@ -618,30 +626,53 @@ no graba ni envía audio. En el móvil o la tableta se ve un alumno por pantalla
 con flechas para pasar al siguiente; en el ordenador, todo el grupo a la vista.
 Se guarda solo; una sesión sin nada anotado no se guarda.
 
-[apoyo-alumnado] ALUMNADO Y GRUPOS
-Dos listas. GRUPOS DE APOYO («Nuevo grupo»): uno por cada sesión que se da
+[apoyo-alumnado] MI ALUMNADO
+Dos pestañas. ALUMNADO («Nuevo alumno»): la lista del alumnado que se atiende,
+de cualquier clase del centro, con su clase, su curso, su nivel (si está por
+debajo de su curso se marca), sus necesidades, sus grupos, cuántos objetivos
+del trimestre lleva conseguidos y cuántos avisos tiene. PULSANDO UN ALUMNO SE
+ABRE SU PÁGINA. Al crearlo se escriben nombre y apellidos, clase de origen
+(«2º B»), curso en que está matriculado, nivel de competencia curricular (el
+curso cuyo currículo trabaja), necesidades específicas de apoyo educativo (se
+marcan todas las que tenga, en dos grupos: las necesidades educativas
+especiales, con discapacidad intelectual, motora, auditiva o visual, TEA,
+trastorno grave de conducta o de la comunicación y pluridiscapacidad, y las
+demás, como TDAH, dificultades específicas de aprendizaje, TDL o altas
+capacidades; «Otra que no esté en la lista» añade una escrita a mano),
+diagnóstico, necesidades educativas (barreras, fortalezas y qué le ayuda),
+notas y sus grupos. GRUPOS («Nuevo grupo»): uno por cada sesión que se da
 («Lectoescritura, lunes 9:00»; un alumno que se atiende solo es un grupo de
 uno), con su nombre, si es dentro o fuera del aula, su horario (una o varias
 sesiones a la semana, con día, hora de empezar y de acabar), su alumnado y un
-color; si el perfil es de PT y de AL, también de cuál de las dos es. ALUMNADO
-(«Nuevo alumno»): nombre y apellidos, clase de origen («2º B»), curso en que
-está matriculado, nivel de competencia curricular (el curso cuyo currículo
-trabaja; si está por debajo de su curso se marca en la lista), necesidades
-específicas de apoyo educativo (se marcan todas las que tenga, en dos grupos:
-las necesidades educativas especiales, con discapacidad intelectual, motora,
-auditiva o visual, TEA, trastorno grave de conducta o de la comunicación y
-pluridiscapacidad, y las demás, como TDAH, dificultades específicas de
-aprendizaje, TDL o altas capacidades; «Otra que no esté en la lista» añade una
-escrita a mano), diagnóstico, necesidades educativas (barreras, fortalezas y qué le
-ayuda), notas y sus grupos. El lápiz de cada fila edita; dentro está
-«Eliminar». Eliminar un alumno borra sus programas y sus registros; eliminar
-un grupo borra sus registros, pero no al alumnado. Todo se guarda en el
-equipo y se vacía con el vaciado de fin de curso.
+color; si el perfil es de PT y de AL, también de cuál de las dos es. El lápiz
+de cada grupo lo edita; dentro está «Eliminar» (borra sus registros, pero no
+al alumnado). Todo se guarda en el equipo y se vacía con el vaciado de fin de
+curso.
 
-[apoyo-programas] PROGRAMAS
-El plan individual de cada alumno. Arriba se elige el alumno (una fila de
-botones con sus nombres); debajo se ven su clase, su curso y su nivel. «Nuevo
-programa» crea uno por ámbito: en la Comunitat Valenciana, los programas del
+[apoyo-alumno] PÁGINA DE CADA ALUMNO
+Se abre pulsando un alumno en Mi alumnado (o desde los avisos y la evolución
+del Inicio y desde el Registro diario); «← Mi alumnado» vuelve a la lista.
+Arriba, su nombre, su clase, su curso, su nivel y sus necesidades, y tres
+botones: «Ficha adaptada» (abre Recursos con la ficha ya adaptada a él, ver
+RECURSOS: «Adaptada a»), «Agenda visual» (abre la Agenda visual con solo sus
+agendas, y las nuevas son para él; «Ver todas» quita el filtro) y «Registrar
+sesión» (abre el Registro diario en su grupo de la sesión de ahora o la
+siguiente de hoy; si hoy no tiene, en su primer grupo). Debajo, seis pestañas:
+- RESUMEN: sus avisos (con el botón que lleva a resolverlos), «Este
+  trimestre» (la barra de sus objetivos y cómo va cada uno), sus grupos de
+  apoyo con el horario, sus últimas sesiones (cuántas veces ha venido este
+  trimestre) y la última coordinación.
+- PROGRAMA, COORDINACIONES y DOCUMENTOS: ver los apartados siguientes.
+- SESIONES: lo anotado de él en el Registro diario, por trimestre: cada
+  sesión con su fecha y su grupo, si no vino, lo que trabajaba su clase, la
+  propuesta para ese día, cada objetivo con ✓, – o ✗, cómo respondió (con las
+  caras) y la nota. «Abrir en el registro» lleva a esa sesión para cambiarla.
+- DATOS: su ficha («Editar» la cambia; dentro está «Eliminar», que borra
+  también sus programas y sus registros) y sus grupos, que se marcan o
+  desmarcan al momento.
+
+PROGRAMA (pestaña de la página del alumno)
+Su plan individual. «Nuevo programa» crea uno por ámbito: en la Comunitat Valenciana, los programas del
 apartado D del PAP (comunicación, lenguaje y habla; lectura y escritura;
 matemáticas; autonomía personal; conducta; ACIS), con su nombre oficial; en el
 resto, ámbitos de partida de PT (lectoescritura, razonamiento
@@ -660,42 +691,23 @@ del alumno, también el diagnóstico, con el nombre cambiado por un código: si 
 se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
 Debajo de cada objetivo con registros, su GRÁFICA sesión a sesión: un punto por
 sesión a tres alturas (✓ conseguido arriba, – en proceso, ✗ no conseguido
-abajo), con la fecha al pasar por encima; se ven las 24 últimas. Junto al nivel
-del alumno, «Hacer una ficha adaptada con IA» lleva a Recursos con la ficha ya
-adaptada a ese alumno (ver RECURSOS: «Adaptada a»).
+abajo), con la fecha al pasar por encima; se ven las 24 últimas. Para una
+ficha adaptada a él, el botón «Ficha adaptada» de arriba de su página.
 
-[apoyo-coordinaciones] COORDINACIONES
+COORDINACIONES (pestaña de la página del alumno)
 Lo que el especialista habla con la tutoría, la familia, orientación o el
-equipo docente sobre cada alumno, y lo que se acuerda. «Nueva coordinación»:
-alumno, fecha, con quién (Tutoría, Familia, Orientación, Equipo docente u
-Otros), quiénes estuvieron, de qué se habló y los acuerdos. Arriba se filtra por
-alumno («Todo el alumnado» o uno); con uno elegido, «Copiar todas para el PAP»
-copia sus coordinaciones como texto para pegarlas en el PAP o en un acta. Las
+equipo docente sobre él, y lo que se acuerda, de la más reciente a la más
+antigua. «Nueva coordinación»: fecha, con quién (Tutoría, Familia,
+Orientación, Equipo docente u Otros), quiénes estuvieron, de qué se habló y
+los acuerdos. «Copiar todas para el PAP» copia sus coordinaciones como texto
+para pegarlas en el PAP o en un acta. Las
 del trimestre llegan a la IA al preparar sus informes, y todas, al preparar su
 programación (sin «quiénes estuvieron», que puede llevar nombres de adultos, y
 con el nombre del alumno cambiado por un código).
 
-[apoyo-agenda-visual] AGENDA VISUAL
-Secuencias con pictogramas o con fotos del propio docente para anticipar una
-sesión, el día o una rutina. Cada agenda tiene título, para quién (un alumno o
-«Plantilla, sin alumno») y sus pasos en orden. «Nueva agenda» o, sin ninguna
-todavía, una de las plantillas («Mi sesión de apoyo», «Rutina de entrada», «Ir
-al baño»). En el editor, «Añadir paso» abre los PICTOGRAMAS (unos 240 de
-Mulberry Symbols, por categorías: rutinas, en clase, material, acciones, cómo
-me siento, personas, comida, lugares, juego y cuándo, con buscador) o «MIS
-FOTOS» («Añadir una foto»: se guarda reducida en el perfil, en este equipo, y no
-se envía a ninguna parte). Se pueden añadir varios seguidos y cerrar con
-«Listo». Cada paso tiene su texto, que se cambia, y flechas para moverlo antes o
-después. En la lista de agendas: «Mostrar» la enseña a pantalla completa para
-el alumno (se toca cada paso al hacerlo y se tacha; el siguiente queda
-marcado; «Volver a empezar» y «Cerrar»), y los botones de editar, guardar en
-PDF para imprimir (una tarjeta por paso, para recortar, con la atribución de
-Mulberry al pie), duplicar y eliminar. Al vaciar el curso se quedan las agendas
-sin alumno, como plantillas.
-
-[apoyo-documentos] PROGRAMACIÓN E INFORMES
-Por alumno (fila de botones arriba). En «Nuevo documento» se elige cuál y, si
-es trimestral, el trimestre, y «Preparar con IA» lo redacta:
+DOCUMENTOS (pestaña de la página del alumno)
+Su programación, sus informes y su PAP. En «Nuevo documento» se elige cuál y,
+si es trimestral, el trimestre, y «Preparar con IA» lo redacta:
 - PROGRAMACIÓN (una por alumno): sus datos y su horario de apoyo,
   justificación y marco normativo, necesidades y punto de partida, objetivos
   por ámbito y trimestre (tal cual de sus programas, con sus criterios
@@ -716,8 +728,27 @@ Los datos (objetivos, recuentos del registro diario, medias de cómo ha
 respondido, notas, asistencia) los pone la app; la IA solo los redacta, con la
 normativa de la comunidad y los autores de referencia, y no inventa logros. Un
 informe trimestral nuevo del mismo trimestre sustituye al anterior (lo
-pregunta). La lista «Documentos de…» abre cada uno para retocarlo (se guarda
+pregunta). La lista «Sus documentos» abre cada uno para retocarlo (se guarda
 solo), lo exporta a PDF (en la app de escritorio) o a Word, o lo elimina.
+
+[apoyo-agenda-visual] AGENDA VISUAL
+Secuencias con pictogramas o con fotos del propio docente para anticipar una
+sesión, el día o una rutina. Desde la página de un alumno («Agenda visual»)
+se ven solo las suyas; «Ver todas» enseña el resto. Cada agenda tiene título, para quién (un alumno o
+«Plantilla, sin alumno») y sus pasos en orden. «Nueva agenda» o, sin ninguna
+todavía, una de las plantillas («Mi sesión de apoyo», «Rutina de entrada», «Ir
+al baño»). En el editor, «Añadir paso» abre los PICTOGRAMAS (unos 240 de
+Mulberry Symbols, por categorías: rutinas, en clase, material, acciones, cómo
+me siento, personas, comida, lugares, juego y cuándo, con buscador) o «MIS
+FOTOS» («Añadir una foto»: se guarda reducida en el perfil, en este equipo, y no
+se envía a ninguna parte). Se pueden añadir varios seguidos y cerrar con
+«Listo». Cada paso tiene su texto, que se cambia, y flechas para moverlo antes o
+después. En la lista de agendas: «Mostrar» la enseña a pantalla completa para
+el alumno (se toca cada paso al hacerlo y se tacha; el siguiente queda
+marcado; «Volver a empezar» y «Cerrar»), y los botones de editar, guardar en
+PDF para imprimir (una tarjeta por paso, para recortar, con la atribución de
+Mulberry al pie), duplicar y eliminar. Al vaciar el curso se quedan las agendas
+sin alumno, como plantillas.
 
 [audit] REGISTRO DE CAMBIOS
 Quién cambió qué y cuándo: notas, alumnos, asistencia, evaluaciones… Con filtros

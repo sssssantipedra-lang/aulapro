@@ -7,7 +7,7 @@ const ALL: Section[] = [
   'sec-classroom', 'share', 'classroom-live', 'attendance', 'reports', 'selfassess', 'audit', 'records',
   'learning-situations', 'resources', 'meetings', 'trainings', 'seating',
 ];
-const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-documentos', 'apoyo-coordinaciones', 'apoyo-agenda-visual'];
+const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-agenda-visual'];
 
 describe('menú', () => {
   it('no se pierde ninguna pantalla y ninguna sale dos veces', () => {
@@ -28,7 +28,10 @@ describe('menú', () => {
     expect(navGroupsFor('apoyo')).toBe(NAV_APOYO);
     const r = reachableSections('apoyo');
     expect(new Set(r).size).toBe(r.length);
-    expect(r.slice(0, 6)).toEqual(['dashboard', 'apoyo-registro', 'apoyo-alumnado', 'apoyo-programas', 'apoyo-coordinaciones', 'apoyo-documentos']);
+    // Lo de cada alumno va en su página, no en el menú (6-10-2026)
+    expect(NAV_APOYO[0].items.map(e => e.id)).toEqual(['dashboard', 'apoyo-registro', 'apoyo-alumnado', 'agenda']);
+    expect(NAV_APOYO[1].items.map(e => e.id)).toEqual(['apoyo-agenda-visual', 'resources', 'sec-classroom']);
+    expect(r).not.toContain('apoyo-alumno');
     expect(r).toEqual(expect.arrayContaining(['agenda', 'apoyo-agenda-visual', 'resources', 'sec-classroom', 'meetings', 'trainings', 'audit', 'profile']));
     // Nada de lo de tutoría
     for (const s of ['classes', 'notebook', 'attendance', 'rubrics', 'reports', 'records', 'seating', 'share'] as Section[]) {
@@ -60,5 +63,12 @@ describe('menú', () => {
     const evaluar = NAV_GROUPS.flatMap(g => g.items).find(e => e.id === 'evaluate')!;
     expect(isCurrent(evaluar, 'diana')).toBe(true);
     expect(isCurrent(evaluar, 'reports')).toBe(false);
+  });
+
+  it('la página de un alumno de apoyo marca «Mi alumnado»', () => {
+    const items = NAV_APOYO.flatMap(g => g.items);
+    const alumnado = items.find(e => e.id === 'apoyo-alumnado')!;
+    expect(isCurrent(alumnado, 'apoyo-alumno')).toBe(true);
+    expect(items.filter(e => isCurrent(e, 'apoyo-alumno'))).toHaveLength(1);
   });
 });

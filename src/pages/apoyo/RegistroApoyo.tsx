@@ -17,12 +17,12 @@ import { adaptarTema } from '../../services/apoyoIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import { isoDate } from '../../lib/utils';
 import { isAndroidApp } from '../../lib/platform';
-import { takeRegistro } from '../../lib/apoyoNav';
+import { requestAlumno, requestGrupos, useRegistroPedido } from '../../lib/apoyoNav';
 import {
-  ASPECTOS, diaDeLaSemana, gruposDelDia, objetivosDelTrimestre, sesionConDatos, sesionDe, trimestreDe,
+  ASPECTOS, ASPECTO_LABEL, CARAS, diaDeLaSemana, gruposDelDia, objetivosDelTrimestre, sesionConDatos, sesionDe, trimestreDe,
 } from '../../lib/apoyo';
 import type {
-  AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, GrupoApoyo, Logro, ProgramaApoyo, RegistroAlumno, SesionApoyo,
+  AlumnoApoyo, ApoyoData, GrupoApoyo, Logro, ProgramaApoyo, RegistroAlumno, SesionApoyo,
 } from '../../types/apoyo';
 
 interface Props {
@@ -38,16 +38,6 @@ const LOGROS: { id: Logro; label: string; icon: React.ReactNode }[] = [
   { id: 'no', label: 'No conseguido', icon: <X size={18} strokeWidth={3} /> },
 ];
 
-const CARAS: { id: Cara; cara: string; label: string }[] = [
-  { id: 3, cara: '🙂', label: 'Ha ido bien' },
-  { id: 2, cara: '😐', label: 'Ha ido regular' },
-  { id: 1, cara: '🙁', label: 'Ha ido mal' },
-];
-
-const ASPECTO_LABEL: Record<AspectoRespuesta, string> = {
-  atencion: 'Atención', motivacion: 'Motivación', conducta: 'Conducta', autonomia: 'Autonomía',
-};
-
 function sumarDias(fecha: string, n: number): string {
   const [y, m, d] = fecha.split('-').map(Number);
   return isoDate(new Date(y, m - 1, d + n));
@@ -60,7 +50,7 @@ export function RegistroApoyo({ data, onChange, comunidad, onNav }: Props) {
   const [adaptando, setAdaptando] = useState(false);
   const estrecha = useNarrowScreen();
   // Desde el Inicio se llega con el grupo y el día ya elegidos
-  const [pedido] = useState(takeRegistro);
+  const pedido = useRegistroPedido();
   const [fecha, setFecha] = useState(pedido?.fecha ?? isoDate());
   const [elegido, setElegido] = useState<string | null>(pedido?.grupoId ?? null);
   const [indice, setIndice] = useState(0);
@@ -120,7 +110,7 @@ export function RegistroApoyo({ data, onChange, comunidad, onNav }: Props) {
         <div className="pg-hd"><div><h1 className="pg-title">{t('Registro diario')}</h1></div></div>
         <div className="card">
           <p className="ap-vacio">{t('Para registrar las sesiones, crea primero tus grupos de apoyo con su alumnado y su horario.')}</p>
-          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => onNav('apoyo-alumnado')}>{t('Ir a Alumnado y grupos')}</button>
+          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => { requestGrupos(); onNav('apoyo-alumnado'); }}>{t('Ir a Mi alumnado')}</button>
         </div>
       </section>
     );
@@ -187,7 +177,7 @@ export function RegistroApoyo({ data, onChange, comunidad, onNav }: Props) {
           </div>
 
           {registros.length === 0 && (
-            <div className="card"><p className="ap-vacio">{t('Este grupo no tiene alumnado. Añádelo en «Alumnado y grupos».')}</p></div>
+            <div className="card"><p className="ap-vacio">{t('Este grupo no tiene alumnado. Añádelo en Mi alumnado, en la pestaña «Grupos».')}</p></div>
           )}
 
           {estrecha && actual && (
@@ -269,7 +259,7 @@ function TarjetaAlumno({ registro, alumno, programas, grupo, trimestre, adaptaci
           {objetivos.length === 0 ? (
             <p className="ap-vacio">
               {t('No tiene objetivos para este trimestre.')}{' '}
-              <button type="button" className="ap-enlace" onClick={() => onNav('apoyo-programas')}>{t('Añádelos en Programas')}</button>
+              <button type="button" className="ap-enlace" onClick={() => { requestAlumno(alumno.id, 'programa'); onNav('apoyo-alumno'); }}>{t('Añádelos en su programa')}</button>
             </p>
           ) : (
             <ul className="ap-reg-objs">

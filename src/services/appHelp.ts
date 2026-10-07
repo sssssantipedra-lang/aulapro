@@ -48,10 +48,9 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   audit:                 { es: 'Registro de cambios', en: 'Change Log' },
   profile:               { es: 'Configuración', en: 'Settings' },
   'apoyo-registro':      { es: 'Registro diario', en: 'Session Log' },
-  'apoyo-alumnado':      { es: 'Alumnado y grupos', en: 'Students and Groups' },
-  'apoyo-programas':     { es: 'Programas', en: 'Programmes' },
-  'apoyo-documentos':    { es: 'Programación e informes', en: 'Planning and Reports' },
-  'apoyo-coordinaciones': { es: 'Coordinaciones', en: 'Coordination' },
+  'apoyo-alumnado':      { es: 'Mi alumnado', en: 'My Students' },
+  // Sin alumno elegido, abre la lista de «Mi alumnado»
+  'apoyo-alumno':        { es: 'Página del alumno', en: 'Student Page' },
   'apoyo-agenda-visual': { es: 'Agenda visual', en: 'Visual Schedule' },
   'ef-pista':            { es: 'En la pista', en: 'On the Court' },
   'ef-exentos':          { es: 'Exentos y lesiones', en: 'Exemptions and Injuries' },

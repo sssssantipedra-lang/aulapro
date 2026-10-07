@@ -1495,7 +1495,9 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ap-evol > li { border-top:1px solid var(--border); }
 .ap-evol > li:first-child { border-top:none; }
 .ap-evol-fila { width:100%; display:grid; grid-template-columns:minmax(140px,1fr) minmax(120px,2fr) auto 16px; align-items:center; gap:12px; padding:10px 0; background:none; border:none; font:inherit; text-align:left; cursor:pointer; color:inherit; }
-.ap-evol-fila:disabled { cursor:default; grid-template-columns:minmax(140px,1fr) minmax(0,2fr); }
+.ap-evol-fila.vacia { grid-template-columns:minmax(140px,1fr) minmax(0,2fr); }
+.ap-evol-fila.vacia .home-muted { display:inline-flex; align-items:center; gap:4px; }
+.ap-evol-ir { margin:0 0 12px; }
 .ap-evol-nom { display:flex; flex-direction:column; min-width:0; }
 .ap-evol-nom strong { font-size:13.5px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ap-barra { display:flex; gap:2px; height:12px; border-radius:99px; overflow:hidden; }
@@ -1519,3 +1521,82 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 }
 .ef-nivel { flex-shrink:0; margin-top:2px; font-weight:800; }
 .ef-nivel-3 { background:var(--warn-bg); color:var(--warn-fg); }
+/* PT y AL: Mi alumnado y la página de cada alumno (6-10-2026) */
+.al-tabs { display:flex; gap:2px; border-bottom:1px solid var(--border); margin:0 0 16px; overflow-x:auto; scrollbar-width:none; }
+.al-tabs::-webkit-scrollbar { display:none; }
+.al-tab { position:relative; display:inline-flex; align-items:center; gap:6px; padding:10px 14px; border:none; background:none; font-family:var(--font); font-size:13.5px; font-weight:600; color:var(--text-2); cursor:pointer; white-space:nowrap; transition:color var(--t); }
+.al-tab:hover { color:var(--text); }
+.al-tab.on { color:var(--accent-d); font-weight:700; }
+.al-tab.on::after { content:''; position:absolute; left:10px; right:10px; bottom:0; height:2.5px; border-radius:2px 2px 0 0; background:var(--accent-d); }
+.al-tab:focus-visible { outline:2px solid var(--accent-d); outline-offset:-4px; border-radius:6px; }
+.al-tab-n { font-size:11px; font-weight:800; padding:1px 7px; border-radius:99px; background:var(--surface-2); color:var(--text-2); }
+.al-tab.on .al-tab-n { background:var(--accent-l); color:var(--accent-d); }
+.al-lista > li, .al-lista > li:first-child { padding:0; }
+.al-fila { flex:1; min-width:0; display:flex; align-items:center; gap:12px; padding:10px 8px; border:none; border-radius:10px; background:none; font:inherit; text-align:left; color:inherit; cursor:pointer; transition:background var(--t); }
+.al-fila:hover { background:var(--surface); }
+.al-fila:focus-visible { outline:2px solid var(--accent-d); outline-offset:-2px; }
+.al-av, .al-av:hover { cursor:inherit; box-shadow:none; }
+.al-fila-der { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.al-progreso { display:inline-flex; align-items:center; gap:8px; }
+.al-progreso .ap-barra { width:90px; }
+.al-chev { color:var(--text-3); }
+.al-volver { margin-bottom:12px; }
+.al-cab { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+.al-cab-txt { flex:1 1 260px; min-width:0; display:flex; flex-direction:column; gap:6px; }
+.al-cab-txt .pg-title { margin:0; }
+.al-acc { display:flex; gap:8px; flex-wrap:wrap; }
+.al-panel { display:flex; flex-direction:column; gap:16px; }
+.ap-page .al-panel .card + .card { margin-top:0; }
+.al-barra { display:flex; align-items:center; justify-content:space-between; gap:10px 16px; flex-wrap:wrap; }
+.al-barra > .ap-sub { flex:1 1 280px; line-height:1.5; }
+.al-barra-acc { display:flex; gap:8px; flex-wrap:wrap; }
+.al-intro { margin:0; line-height:1.5; }
+.al-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:16px; align-items:start; }
+.al-col { display:flex; flex-direction:column; gap:16px; min-width:0; }
+.al-progreso-gr { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.al-progreso-gr .ap-barra { flex:1; }
+.al-objs { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.al-objs li { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:13.5px; line-height:1.4; }
+.al-objs li:first-child { border-top:none; padding-top:0; }
+.al-objs .ap-ley-c { margin-top:4px; flex-shrink:0; }
+.al-obj-txt { flex:1; min-width:0; color:var(--text); }
+.al-estado { font-size:11.5px; font-weight:700; white-space:nowrap; color:var(--text-3); }
+.al-estado.si { color:var(--ok-fg); }
+.al-estado.proceso { color:var(--warn-fg); }
+.al-estado.no { color:var(--danger); }
+.al-mini { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.al-mini li { display:flex; align-items:flex-start; gap:10px; }
+.al-mini .chip-dot { margin-top:5px; flex-shrink:0; }
+.al-mini strong { font-size:13px; }
+.al-coord { font-size:13px; line-height:1.5; color:var(--text-2); margin:0; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+.al-coord strong { color:var(--text); }
+.al-aviso-txt { font-size:13px; color:var(--text); line-height:1.45; }
+.al-ses { list-style:none; margin:0; padding:0; }
+.al-ses > li { padding:12px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:6px; }
+.al-ses > li:first-child { border-top:none; padding-top:0; }
+.al-ses-hd { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.al-ses-hd strong { font-size:13.5px; color:var(--text); }
+.al-ses-ir { margin-left:auto; }
+.al-ses-txt { margin:0; }
+.al-ses-prop { margin:0; padding:8px 10px; border-radius:10px; background:var(--accent-l); font-size:13px; line-height:1.45; color:var(--text); white-space:pre-wrap; }
+.al-ses-prop .ap-reg-sec { display:block; margin:0 0 2px; }
+.al-ses-objs { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.al-ses-objs li { display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.4; color:var(--text); }
+.al-logro { width:20px; height:20px; border-radius:6px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; color:#fff; }
+.al-logro.si { background:#16a34a; }
+.al-logro.proceso { background:#f59e0b; }
+.al-logro.no { background:#dc2626; }
+.al-ses-nota { margin:0; font-size:13px; line-height:1.5; color:var(--text-2); white-space:pre-wrap; }
+.al-datos td { white-space:pre-wrap; }
+@media (max-width: 900px) {
+  .al-grid { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width: 640px) {
+  .al-fila { flex-wrap:wrap; }
+  .al-fila .ap-lista-txt { flex:1 1 calc(100% - 60px); }
+  .al-fila-der { margin-left:50px; }
+  .al-progreso .ap-barra { width:70px; }
+  .al-acc { width:100%; }
+  .al-acc .btn-accent { flex:1 1 100%; justify-content:center; }
+  .ap-evol-fila.vacia { grid-template-columns:minmax(0,1fr) auto; }
+}

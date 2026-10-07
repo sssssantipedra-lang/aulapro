@@ -20,11 +20,16 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
 - **Tipo de docente.** Al crear el perfil se elige «Docente de aula» o «PT y AL». Con PT y AL se marca PT, AL o las dos (al menos una) y la especialidad del perfil se escribe sola. Se cambia en Configuración → Perfil; al cambiar no se borra nada. En los datos, un perfil es de PT y AL si tiene alguna especialidad (`especialidades`): no hay otro campo.
 - **Más adelante:** Educación Física, con la opción de ser tutor a la vez («un 2 en 1»). Junto con la tutoría.
 - **Menú** (`NAV_APOYO` en `src/lib/navigation.ts`): lo de apoyo y lo común, sin nada de tutoría.
-  - Tu día a día: Inicio, Registro diario, Alumnado y grupos, Programas, Coordinaciones, Programación e informes y Agenda.
-  - Herramientas: Agenda visual, Recursos y Aula Live, cuya ruleta y grupos salen del alumnado de apoyo.
+  - Tu día a día: Inicio, Registro diario, Mi alumnado y Agenda.
+  - Herramientas: Agenda visual, Recursos y Aula Live, cuya ruleta y grupos salen del alumnado de apoyo. Van separadas (decisión del dueño, 6-10-2026: no se juntan en un apartado «Materiales»).
   - Más: Reuniones, Formaciones, Registro de cambios y Configuración.
   - Todo va como entradas sueltas: Recursos y Aula Live no llevan las pestañas de Documentos y En clase, que ese menú no tiene.
-- **Agenda:** el horario de los grupos de apoyo sale en la vista semanal sin apuntarlo dos veces. Se cambia en Alumnado y grupos.
+- **Todo lo de un alumno, en su página** (decisión del dueño, 6-10-2026). Antes eran 7 entradas en «Tu día a día» y lo de un alumno estaba repartido en cinco pantallas, tres de las cuales pedían elegirlo otra vez. Ahora:
+  - **Mi alumnado** (`src/pages/apoyo/AlumnadoApoyo.tsx`): dos pestañas, Alumnado (la lista, con cuántos objetivos del trimestre lleva conseguidos y cuántos avisos tiene) y Grupos (sus grupos de apoyo con su horario). Pulsar un alumno abre su página.
+  - **La página del alumno** (`src/pages/apoyo/AlumnoApoyo.tsx`, sección `apoyo-alumno`, que en el menú marca «Mi alumnado»): arriba, sus datos y tres botones, «Ficha adaptada» (Recursos, adaptada a él), «Agenda visual» (solo sus agendas; las nuevas, para él) y «Registrar sesión» (el registro de su grupo de ahora o de la siguiente sesión de hoy). Debajo, seis pestañas: Resumen (sus avisos, este trimestre, sus grupos, sus últimas sesiones y la última coordinación), Programa, Sesiones (lo anotado de él en el registro, por trimestre), Coordinaciones, Documentos y Datos (su ficha y sus grupos, que se marcan al momento).
+  - Programa, Coordinaciones y Documentos son las pantallas de antes, solo de ese alumno (`ProgramasApoyo.tsx`, `CoordinacionesApoyo.tsx`, `DocumentosApoyo.tsx`), y se cargan al abrir su pestaña: Documentos lleva la librería de Word.
+  - Se llega con `requestAlumno(id, pestaña)` de `src/lib/apoyoNav.ts`: desde la lista, desde los avisos y la evolución del Inicio (cada aviso abre la pestaña donde se resuelve) y desde el Registro diario. «← Mi alumnado», la entrada del menú y el botón atrás de Android vuelven a la lista.
+- **Agenda:** el horario de los grupos de apoyo sale en la vista semanal sin apuntarlo dos veces. Pulsando un bloque se abre ese grupo en Mi alumnado, pestaña Grupos, donde se cambia.
 - **Inicio** (`src/pages/apoyo/InicioApoyo.tsx`, lógica en `src/lib/inicioApoyo.ts`):
   - Sesiones de hoy, por hora, con «Registrar», que abre el registro de ese grupo y ese día.
   - Avisos de seguimiento:
@@ -39,12 +44,12 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
 
 ### Herramientas (5-10-2026)
 
-- **Gráfica de cada objetivo** (`src/components/apoyo/GraficaObjetivo.tsx`): bajo cada objetivo en Programas, y en la evolución del Inicio. Un punto por sesión a tres alturas (conseguido, en proceso, no conseguido), las 24 últimas, con la fecha al pasar por encima.
-- **Coordinaciones** (`src/pages/apoyo/CoordinacionesApoyo.tsx`):
-  - Por alumno: fecha, con quién (tutoría, familia, orientación, equipo docente u otros), quiénes estuvieron, de qué se habló y los acuerdos.
+- **Gráfica de cada objetivo** (`src/components/apoyo/GraficaObjetivo.tsx`): bajo cada objetivo en el programa de cada alumno, y en la evolución del Inicio. Un punto por sesión a tres alturas (conseguido, en proceso, no conseguido), las 24 últimas, con la fecha al pasar por encima.
+- **Coordinaciones** (`src/pages/apoyo/CoordinacionesApoyo.tsx`, pestaña de la página del alumno):
+  - De cada alumno: fecha, con quién (tutoría, familia, orientación, equipo docente u otros), quiénes estuvieron, de qué se habló y los acuerdos.
   - «Copiar todas para el PAP» las copia como texto.
   - Las del trimestre llegan a la IA en los informes, y todas en la programación. «Quiénes estuvieron» no se envía, porque puede llevar nombres de personas adultas.
-- **Fichas adaptadas con IA**: en Recursos, «Adaptada a» un alumno de apoyo rellena su nivel y lo que se cuenta a la IA (sus necesidades específicas, cómo aprende y sus objetivos del trimestre). No se envían ni su nombre ni su diagnóstico, que para adaptar una ficha no hacen falta. Desde Programas, «Hacer una ficha adaptada con IA».
+- **Fichas adaptadas con IA**: en Recursos, «Adaptada a» un alumno de apoyo rellena su nivel y lo que se cuenta a la IA (sus necesidades específicas, cómo aprende y sus objetivos del trimestre). No se envían ni su nombre ni su diagnóstico, que para adaptar una ficha no hacen falta. Desde la página del alumno, «Ficha adaptada».
 - **Fichas con instrucciones muy visuales** (decisión del dueño, 6-10-2026, con dos fichas de ejemplo para un alumno con TEA de grado 2):
   - Casilla «Instrucciones muy visuales, con pictogramas» al crear la ficha; se marca sola con un alumno en «Adaptada a». En una ficha hecha, «Adaptar» → «Versión visual». Una ficha visual sigue siéndolo en sus versiones de apoyo o lectura fácil.
   - Lo que lleva: letra grande, la consigna general en un recuadro amarillo, tarjetas con dibujo en la explicación y, en cada bloque, qué hay que hacer en una frase, de 2 a 4 pasos numerados con pictograma, verbo y detalle, y un recuadro «Recuerda». Cada ejercicio, el pictograma de su acción y, solo si ayuda, los dibujos que hay que contar o reconocer (intercalados, como en una ficha de recuento) o uno por fila de tabla.

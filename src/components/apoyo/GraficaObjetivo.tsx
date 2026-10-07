@@ -2,7 +2,7 @@
  * Cómo ha ido un objetivo sesión a sesión: una línea con tres alturas
  * (conseguido arriba, en proceso en medio, no conseguido abajo) y un punto
  * por sesión, del color de los botones del Registro diario. Pasando por
- * encima de un punto se ve su fecha. Se usa en Programas y en el Inicio.
+ * encima de un punto se ve su fecha. Se usa en el programa de cada alumno y en el Inicio.
  */
 import { useI18n } from '../../i18n';
 import { fromIsoDate } from '../../lib/utils';

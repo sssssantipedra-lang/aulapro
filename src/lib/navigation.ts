@@ -16,8 +16,10 @@
  * El profesorado especialista de PT y AL tiene su propio menú (decisión del
  * dueño, 5-10-2026: quien es de PT o de AL normalmente no es tutor). Lleva su
  * trabajo de apoyo como entradas sueltas, lo común de todo el profesorado y
- * Aula Live; nada de clases, cuaderno ni evaluación del grupo. Ver
- * `docs/PTAL.md`.
+ * Aula Live; nada de clases, cuaderno ni evaluación del grupo. Desde el
+ * 6-10-2026, lo de cada alumno (programa, sesiones, coordinaciones y
+ * documentos) está en su página, a la que se llega desde «Mi alumnado»: el
+ * menú se queda en lo que se usa cada día. Ver `docs/PTAL.md`.
  *
  * El de Educación Física tiene el menú de aula y, después del Inicio, el
  * apartado «Educación Física» con sus herramientas (decisión del dueño,
@@ -32,7 +34,7 @@ import type { TipoDocente } from './tipoDocente';
 export type NavIcon =
   | 'home' | 'classes' | 'agenda' | 'notebook' | 'attendance'
   | 'evaluate' | 'documents' | 'inclass' | 'ef'
-  | 'session' | 'students' | 'goals' | 'coord' | 'reports' | 'resources' | 'live' | 'pictos'
+  | 'session' | 'students' | 'resources' | 'live' | 'pictos'
   | 'meetings' | 'trainings' | 'share' | 'audit' | 'profile';
 
 export interface NavHub {
@@ -136,13 +138,10 @@ export const NAV_APOYO: NavGroups = [
   {
     sect: 'Tu día a día',
     items: [
-      link('dashboard',        'Inicio',                  'home'),
-      link('apoyo-registro',   'Registro diario',         'session'),
-      link('apoyo-alumnado',   'Alumnado y grupos',       'students'),
-      link('apoyo-programas',  'Programas',               'goals'),
-      link('apoyo-coordinaciones', 'Coordinaciones',      'coord'),
-      link('apoyo-documentos', 'Programación e informes', 'reports'),
-      link('agenda',           'Agenda',                  'agenda'),
+      link('dashboard',      'Inicio',          'home'),
+      link('apoyo-registro', 'Registro diario', 'session'),
+      link('apoyo-alumnado', 'Mi alumnado',     'students'),
+      link('agenda',         'Agenda',          'agenda'),
     ],
   },
   {
@@ -190,9 +189,18 @@ export function hubEnMenu(section: Section, tipo: TipoDocente): NavHub | undefin
   return h && navGroupsFor(tipo).some(g => g.items.some(e => e.kind === 'hub' && e.id === h.id)) ? h : undefined;
 }
 
+/**
+ * Pantallas que no están en el menú y se abren desde otra que sí lo está: en
+ * el menú se marca la de la que cuelgan.
+ */
+const DENTRO_DE: Partial<Record<Section, Section>> = {
+  'apoyo-alumno': 'apoyo-alumnado',
+};
+
 /** Si la entrada del menú corresponde a la pantalla abierta. */
 export function isCurrent(entry: NavEntry, section: Section): boolean {
-  return entry.kind === 'link' ? entry.id === section : entry.tabs.some(t => t.id === section);
+  const s = DENTRO_DE[section] ?? section;
+  return entry.kind === 'link' ? entry.id === s : entry.tabs.some(t => t.id === s);
 }
 
 /* ── Última pestaña de cada apartado ──────────────────────────────────────

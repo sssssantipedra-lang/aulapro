@@ -11,12 +11,11 @@ import {
 import { useI18n } from '../../i18n';
 import { isoDate, fromIsoDate, nombreDePila } from '../../lib/utils';
 import { trimestreDe } from '../../lib/apoyo';
-import { requestRegistro } from '../../lib/apoyoNav';
-import {
-  avisosApoyo, evolucionDelTrimestre, sesionesDeHoy, type Aviso, type EstadoObjetivo,
-} from '../../lib/inicioApoyo';
-import type { ApoyoData, GrupoApoyo } from '../../types/apoyo';
+import { requestAlumno, requestRegistro, type PestanaAlumno } from '../../lib/apoyoNav';
+import { avisosApoyo, evolucionDelTrimestre, sesionesDeHoy, type EstadoObjetivo } from '../../lib/inicioApoyo';
+import type { AlumnoApoyo, ApoyoData, GrupoApoyo } from '../../types/apoyo';
 import { GraficaObjetivo } from '../../components/apoyo/GraficaObjetivo';
+import { AvisoFila } from '../../components/apoyo/AvisoFila';
 import type { Section } from '../../types';
 
 interface Props {
@@ -57,6 +56,10 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
     requestRegistro({ grupoId: grupo.id, fecha });
     onNav('apoyo-registro');
   };
+  const abrirAlumno = (a: AlumnoApoyo, pestana: PestanaAlumno = 'resumen') => {
+    requestAlumno(a.id, pestana);
+    onNav('apoyo-alumno');
+  };
   const diaCorto = (fecha: string) => {
     const s = fromIsoDate(fecha).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
     return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
@@ -64,8 +67,8 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
 
   if (data.alumnos.length === 0) {
     const pasos: { titulo: string; texto: string; ir: Section; boton: string }[] = [
-      { titulo: 'Tu alumnado y tus grupos', texto: 'Añade a cada alumno con su clase, sus necesidades y su nivel, y agrúpalos con su horario de apoyo.', ir: 'apoyo-alumnado', boton: 'Ir a Alumnado y grupos' },
-      { titulo: 'Sus programas', texto: 'Los objetivos de cada alumno por trimestre, en sus programas personalizados. La IA te puede proponer unos para revisar.', ir: 'apoyo-programas', boton: 'Ir a Programas' },
+      { titulo: 'Tu alumnado y tus grupos', texto: 'Añade a cada alumno con su clase, sus necesidades y su nivel, y agrúpalos con su horario de apoyo.', ir: 'apoyo-alumnado', boton: 'Ir a Mi alumnado' },
+      { titulo: 'Sus programas', texto: 'Pulsa un alumno para abrir su página. En «Programa», sus objetivos por trimestre; la IA te puede proponer unos para revisar.', ir: 'apoyo-alumnado', boton: 'Ir a Mi alumnado' },
       { titulo: 'El registro de cada sesión', texto: 'En la sesión, cómo va cada objetivo y cómo ha respondido, con un toque. Con eso salen la evolución, los avisos y los informes.', ir: 'apoyo-registro', boton: 'Ir al Registro diario' },
     ];
     return (
@@ -78,7 +81,7 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
           <div className="home-card-ttl" style={{ marginBottom: 6 }}><Sparkles size={15} />{t('Empieza en tres pasos')}</div>
           <ol className="ap-pasos">
             {pasos.map((p, i) => (
-              <li key={p.ir}>
+              <li key={p.titulo}>
                 <span className="ap-pasos-n">{i + 1}</span>
                 <span className="ap-lista-txt">
                   <strong>{t(p.titulo)}</strong>
@@ -120,7 +123,7 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
           {deHoy.length === 0 ? (
             <div className="home-now-empty">
               <span className="home-now-empty-ico"><Coffee size={20} /></span>
-              <p className="home-muted">{t(data.grupos.some(g => g.horario.length) ? 'Hoy no tienes sesiones de apoyo según tu horario.' : 'Pon el horario de tus grupos en Alumnado y grupos y aquí verás las sesiones de cada día.')}</p>
+              <p className="home-muted">{t(data.grupos.some(g => g.horario.length) ? 'Hoy no tienes sesiones de apoyo según tu horario.' : 'Pon el horario de tus grupos en Mi alumnado, en la pestaña «Grupos», y aquí verás las sesiones de cada día.')}</p>
             </div>
           ) : (
             <ul className="ap-lista">
@@ -158,7 +161,7 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
             <p className="home-muted">{t('Todo al día: sesiones registradas y objetivos en marcha.')}</p>
           ) : (
             <ul className="ap-lista">
-              {avisosVisibles.map((a, i) => <AvisoFila key={i} aviso={a} diaCorto={diaCorto} onRegistrar={registrar} onNav={onNav} />)}
+              {avisosVisibles.map((a, i) => <AvisoFila key={i} aviso={a} diaCorto={diaCorto} onRegistrar={registrar} onAlumno={abrirAlumno} />)}
             </ul>
           )}
           {avisos.length > AVISOS_VISIBLES && (
@@ -173,7 +176,7 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
       <div className="card home-card" style={{ marginTop: 16 }}>
         <div className="home-card-hd">
           <div className="home-card-ttl"><TrendingUp size={15} />{t('Evolución del alumnado')}</div>
-          <button className="home-link" onClick={() => onNav('apoyo-programas')}>{t('Programas')}</button>
+          <button className="home-link" onClick={() => onNav('apoyo-alumnado')}>{t('Mi alumnado')}</button>
         </div>
         <p className="ap-sub" style={{ marginBottom: 10 }}>
           {t('Sus objetivos del {n}º trimestre, según lo último que registraste de cada uno.', { n: T })}
@@ -188,16 +191,17 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
             const resumen = ESTADOS.filter(e => ev.cuenta[e.id]).map(e => `${t(e.label)}: ${ev.cuenta[e.id]}`).join(', ');
             return (
               <li key={ev.alumno.id}>
+                {/* Sin objetivos este trimestre no hay nada que desplegar: lleva a su programa */}
                 <button
-                  type="button" className="ap-evol-fila" aria-expanded={open} disabled={total === 0}
-                  onClick={() => setAbierto(open ? null : ev.alumno.id)}
+                  type="button" className={`ap-evol-fila${total === 0 ? ' vacia' : ''}`} aria-expanded={total === 0 ? undefined : open}
+                  onClick={() => (total === 0 ? abrirAlumno(ev.alumno, 'programa') : setAbierto(open ? null : ev.alumno.id))}
                 >
                   <span className="ap-evol-nom">
                     <strong>{ev.alumno.nombre}</strong>
                     <span className="ap-sub">{ev.alumno.claseOrigen}{ev.alumno.claseOrigen ? ' · ' : ''}{t(ev.sesiones === 1 ? '{n} sesión' : '{n} sesiones', { n: ev.sesiones })}</span>
                   </span>
                   {total === 0 ? (
-                    <span className="home-muted">{t('Sin objetivos este trimestre')}</span>
+                    <span className="home-muted">{t('Sin objetivos este trimestre')} <ArrowRight size={13} /></span>
                   ) : (
                     <>
                       <span className="ap-barra" role="img" aria-label={`${ev.alumno.nombre}. ${resumen}`}>
@@ -211,16 +215,21 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
                   )}
                 </button>
                 {open && (
-                  <ul className="ap-evol-objs">
-                    {ev.objetivos.map(o => (
-                      <li key={o.objetivo.id}>
-                        <span className="ap-reg-obj">{o.objetivo.texto}</span>
-                        {o.puntos.length === 0
-                          ? <span className="ap-sub">{t('Sin trabajar')}</span>
-                          : <GraficaObjetivo puntos={o.puntos} />}
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="ap-evol-objs">
+                      {ev.objetivos.map(o => (
+                        <li key={o.objetivo.id}>
+                          <span className="ap-reg-obj">{o.objetivo.texto}</span>
+                          {o.puntos.length === 0
+                            ? <span className="ap-sub">{t('Sin trabajar')}</span>
+                            : <GraficaObjetivo puntos={o.puntos} />}
+                        </li>
+                      ))}
+                    </ul>
+                    <button className="home-link ap-evol-ir" onClick={() => abrirAlumno(ev.alumno)}>
+                      {t('Abrir la página de {name}', { name: nombreDePila(ev.alumno.nombre) })} <ArrowRight size={13} />
+                    </button>
+                  </>
                 )}
               </li>
             );
@@ -229,48 +238,4 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
       </div>
     </section>
   );
-}
-
-function AvisoFila({ aviso, diaCorto, onRegistrar, onNav }: {
-  aviso: Aviso;
-  diaCorto: (fecha: string) => string;
-  onRegistrar: (g: GrupoApoyo, fecha: string) => void;
-  onNav: (s: Section) => void;
-}) {
-  const { t } = useI18n();
-  const fila = (nivel: 'warn' | 'danger' | 'info', titulo: string, texto: string, boton: string, accion: () => void) => (
-    <li className="home-alert">
-      <span className={`home-alert-dot ${nivel}`} />
-      <span className="ap-lista-txt">
-        <strong>{titulo}</strong>
-        <span className="ap-meta">{texto}</span>
-      </span>
-      <button className="home-link" onClick={accion}>{boton} <ArrowRight size={13} /></button>
-    </li>
-  );
-  const nombre = nombreDePila;
-  switch (aviso.tipo) {
-    case 'informes':
-      return fila('warn', t('Se acaba el {n}º trimestre', { n: aviso.trimestre }),
-        t('Falta el informe de: {nombres}.', { nombres: aviso.alumnos.map(a => nombre(a.nombre)).join(', ') }),
-        t('Informes'), () => onNav('apoyo-documentos'));
-    case 'sin-registrar':
-      return fila('warn', t('{grupo}: sin registrar', { grupo: aviso.grupo.nombre }), diaCorto(aviso.fecha),
-        t('Registrar'), () => onRegistrar(aviso.grupo, aviso.fecha));
-    case 'atascado':
-      return fila('danger', nombre(aviso.alumno.nombre),
-        t('«{objetivo}»: {n} veces seguidas sin conseguirlo. Quizá convenga ajustarlo o cambiar el apoyo.', { objetivo: aviso.objetivo.texto, n: aviso.veces }),
-        t('Programas'), () => onNav('apoyo-programas'));
-    case 'sin-trabajar':
-      return fila('info', nombre(aviso.alumno.nombre),
-        t('«{objetivo}» no se ha trabajado en sus {n} sesiones de este trimestre.', { objetivo: aviso.objetivo.texto, n: aviso.sesiones }),
-        t('Programas'), () => onNav('apoyo-programas'));
-    case 'sin-objetivos':
-      return fila('info', nombre(aviso.alumno.nombre),
-        t('No tiene objetivos para el {n}º trimestre.', { n: aviso.trimestre }),
-        t('Programas'), () => onNav('apoyo-programas'));
-    case 'sin-grupo':
-      return fila('info', nombre(aviso.alumno.nombre), t('No está en ningún grupo de apoyo.'),
-        t('Grupos'), () => onNav('apoyo-alumnado'));
-  }
 }
