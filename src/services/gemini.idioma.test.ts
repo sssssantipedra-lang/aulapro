@@ -7,6 +7,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { callGemini, fixStrayEscapes, pareceSinTildes, setAiLanguage, setApiKey } from './gemini';
 
+/** Lo que contesta Google cuando se pide la respuesta por partes (`alt=sse`). */
+const sse = (text: string) => new Response(`data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\n`, { status: 200 });
+
 let enviados: { system: string }[] = [];
 let respuesta = '';
 /** Si se da, cada llamada contesta con la siguiente de la lista. */
@@ -25,7 +28,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', async (_url: string, init: { body: string }) => {
     enviados.push({ system: JSON.parse(init.body).system_instruction.parts[0].text });
     const text = respuestas.length ? respuestas.shift()! : respuesta;
-    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text }] } }] }) };
+    return sse(text);
   });
 });
 

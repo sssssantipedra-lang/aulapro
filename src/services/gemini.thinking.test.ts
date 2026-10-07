@@ -11,6 +11,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { callGemini, setApiKey } from './gemini';
 
+/** Lo que contesta Google cuando se pide la respuesta por partes (`alt=sse`). */
+const sse = (text: string) => new Response(`data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\n`, { status: 200 });
+
 /** Cuerpos enviados, en orden, y qué modelo pedía cada uno. */
 let enviados: { model: string; body: Record<string, never> }[] = [];
 
@@ -37,7 +40,7 @@ beforeEach(() => {
 
     const r = responder(model);
     if (r.ok) {
-      return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: 'listo' }] } }] }) };
+      return sse('listo');
     }
     return { ok: false, status: r.status ?? 400, json: async () => ({ error: { message: r.message ?? '' } }) };
   });
