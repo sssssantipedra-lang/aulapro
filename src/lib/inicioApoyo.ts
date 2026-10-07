@@ -1,12 +1,13 @@
 /**
  * El Inicio del profesorado de PT y AL, sin React: las sesiones de hoy, los
  * avisos de seguimiento y cómo va cada alumno en el trimestre (decisión del
- * dueño, 5-10-2026). Ver `docs/PTAL.md`.
+ * dueño, 5-10-2026). También lo que resume la página de cada alumno. Ver
+ * `docs/PTAL.md`.
  */
 import { isoDate } from './utils';
 import { diaDeLaSemana, gruposDelDia, resumenObjetivo, sesionConDatos, trimestreDe } from './apoyo';
 import type {
-  AlumnoApoyo, ApoyoData, FranjaApoyo, GrupoApoyo, Logro, ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, Trimestre,
+  AlumnoApoyo, ApoyoData, FranjaApoyo, GrupoApoyo, Logro, ObjetivoApoyo, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
 } from '../types/apoyo';
 
 function sumarDias(fecha: string, n: number): string {
@@ -180,4 +181,44 @@ export function evolucionDelTrimestre(d: ApoyoData, trimestre: Trimestre): Evolu
     }).length;
     return { alumno, sesiones, objetivos, cuenta };
   });
+}
+
+/* ── La página de un alumno ── */
+
+/**
+ * Los avisos que tocan a un alumno: los suyos, el de su informe (solo con su
+ * nombre) y las sesiones sin registrar de sus grupos.
+ */
+export function avisosDelAlumno(avisos: readonly Aviso[], alumno: AlumnoApoyo): Aviso[] {
+  return avisos.flatMap((a): Aviso[] => {
+    switch (a.tipo) {
+      case 'informes': return a.alumnos.some(x => x.id === alumno.id) ? [{ ...a, alumnos: [alumno] }] : [];
+      case 'sin-registrar': return a.grupo.alumnos.includes(alumno.id) ? [a] : [];
+      default: return a.alumno.id === alumno.id ? [a] : [];
+    }
+  });
+}
+
+export interface SesionDelAlumno {
+  sesion: SesionApoyo;
+  /** Sin grupo si el grupo ya se borró (sus sesiones se borran con él, pero por si acaso). */
+  grupo: GrupoApoyo | undefined;
+  registro: RegistroAlumno;
+}
+
+/**
+ * Las sesiones en las que hay algo anotado del alumno (también «No ha
+ * venido»), de la más reciente a la más antigua; con trimestre, solo las de
+ * ese trimestre.
+ */
+export function sesionesDelAlumno(d: ApoyoData, alumnoId: string, trimestre?: Trimestre): SesionDelAlumno[] {
+  return d.sesiones
+    .filter(s => trimestre === undefined || trimestreDe(s.fecha) === trimestre)
+    .flatMap(sesion => {
+      const registro = sesion.alumnos.find(r => r.alumnoId === alumnoId);
+      return registro && registroConDatos(registro)
+        ? [{ sesion, grupo: d.grupos.find(g => g.id === sesion.grupoId), registro }]
+        : [];
+    })
+    .sort((a, b) => b.sesion.fecha.localeCompare(a.sesion.fecha));
 }

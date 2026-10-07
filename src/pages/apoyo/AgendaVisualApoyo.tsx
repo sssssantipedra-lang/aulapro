@@ -4,7 +4,9 @@
  * 5-10-2026). Los pictogramas son de Mulberry Symbols (CC BY-SA 4.0) y van
  * dentro de la aplicación; las fotos se quedan en el equipo. Nada se envía a
  * ninguna parte. Se enseña a pantalla completa, paso a paso, y se imprime en
- * PDF con la atribución al pie. Ver `lib/pictos.ts` y `docs/PTAL.md`.
+ * PDF con la atribución al pie. Desde la página de un alumno se llega con
+ * solo las suyas, y las nuevas ya son para él. Ver `lib/pictos.ts` y
+ * `docs/PTAL.md`.
  */
 import { useMemo, useRef, useState } from 'react';
 import {
@@ -14,6 +16,7 @@ import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { nuevoIdApoyo } from '../../lib/apoyo';
+import { useAgendaParaPedido } from '../../lib/apoyoNav';
 import { buscarPictos, CATEGORIAS_PICTO, pictoDe, urlPicto, type CategoriaPicto } from '../../lib/pictos';
 import { nombreDeArchivo, reducirFoto } from '../../lib/fotos';
 import { guardarAgendaPdf } from '../../services/exportAgenda';
@@ -36,7 +39,11 @@ export function AgendaVisualApoyo({ data, onChange }: Props) {
   const { toast } = useToast();
   const [editando, setEditando] = useState<AgendaVisual | null>(null);
   const [mostrando, setMostrando] = useState<AgendaVisual | null>(null);
+  // Desde la página de un alumno: solo las suyas, hasta pulsar «Ver todas»
+  const [para, setPara] = useState(useAgendaParaPedido());
   const nombre = (id?: string) => data.alumnos.find(a => a.id === id)?.nombre;
+  const nombrePara = nombre(para ?? undefined);
+  const agendas = para && nombrePara ? data.agendas.filter(a => a.alumnoId === para) : data.agendas;
   const imagen = (p: PasoAgenda) => (p.fotoId ? data.fotos.find(f => f.id === p.fotoId)?.datos : undefined) ?? (p.picto ? urlPicto(p.picto) : undefined);
 
   const guardarAgenda = (a: AgendaVisual) =>
@@ -45,6 +52,7 @@ export function AgendaVisualApoyo({ data, onChange }: Props) {
   function nueva(desde?: (typeof PLANTILLAS)[number]) {
     setEditando({
       id: nuevoIdApoyo('age'), titulo: desde ? t(desde.titulo) : '',
+      ...(para && nombrePara ? { alumnoId: para } : {}),
       pasos: (desde?.pictos ?? []).map(id => ({ id: nuevoIdApoyo('pas'), picto: id, texto: pictoDe(id)?.[lang] ?? '' })),
     });
   }
@@ -87,9 +95,18 @@ export function AgendaVisualApoyo({ data, onChange }: Props) {
         <button className="btn-accent" onClick={() => nueva()}><Plus size={15} />{t('Nueva agenda')}</button>
       </div>
 
-      {data.agendas.length === 0 && (
+      {para && nombrePara && (
+        <div className="chip-row ap-alumnos">
+          <span className="chip sm accent on" aria-current="true">{t('Las de {name}', { name: nombrePara })}</span>
+          <button type="button" className="chip sm accent" onClick={() => setPara(null)}>{t('Ver todas')}</button>
+        </div>
+      )}
+
+      {agendas.length === 0 && (
         <div className="card">
-          <p className="ap-vacio">{t('Todavía no tienes agendas. Empieza con una en blanco o a partir de una de estas:')}</p>
+          <p className="ap-vacio">{para && nombrePara
+            ? t('{name} todavía no tiene agendas. Empieza con una en blanco o a partir de una de estas:', { name: nombrePara })
+            : t('Todavía no tienes agendas. Empieza con una en blanco o a partir de una de estas:')}</p>
           <div className="chip-row" style={{ marginTop: 12 }}>
             {PLANTILLAS.map(p => (
               <button key={p.titulo} type="button" className="chip sm accent" onClick={() => nueva(p)}>{t(p.titulo)}</button>
@@ -99,7 +116,7 @@ export function AgendaVisualApoyo({ data, onChange }: Props) {
       )}
 
       <div className="ag-lista">
-        {data.agendas.map(a => (
+        {agendas.map(a => (
           <article key={a.id} className="card ag-card" aria-label={a.titulo || t('Sin título')}>
             <div className="ag-card-hd">
               <div style={{ minWidth: 0 }}>

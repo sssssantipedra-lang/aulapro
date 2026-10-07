@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, Settings, ChevronLeft, ChevronRight,
   Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, ChevronDown, Share2, MapPin,
-  NotebookPen, Contact, Target, FileSignature, Shapes, MonitorPlay, Handshake, Images, Volleyball,
+  NotebookPen, Contact, Shapes, MonitorPlay, Images, Volleyball,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
@@ -24,10 +24,7 @@ const ICONS: Record<NavIcon, React.ReactNode> = {
   ef: <Volleyball size={18} />,
   session: <NotebookPen size={18} />,
   students: <Contact size={18} />,
-  goals: <Target size={18} />,
-  coord: <Handshake size={18} />,
   pictos: <Images size={18} />,
-  reports: <FileSignature size={18} />,
   resources: <Shapes size={18} />,
   live: <MonitorPlay size={18} />,
   meetings: <Users2 size={18} />,

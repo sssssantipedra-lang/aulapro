@@ -1,11 +1,11 @@
 /**
- * PT y AL, «Programación e informes»: por alumno, su programación, sus
- * informes trimestrales a la familia y al tutor o al equipo y, en la
+ * PT y AL, pestaña «Documentos» de la página de un alumno: su programación,
+ * sus informes trimestrales a la familia y al tutor o al equipo y, en la
  * Comunitat Valenciana, el seguimiento del apartado I del PAP. Los prepara la
- * IA a partir de sus programas y del registro diario; el docente los retoca y
+ * IA a partir de su programa y del registro diario; el docente los retoca y
  * los exporta a PDF o a Word. Ver `docs/PTAL.md`, «Documentos».
  */
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Sparkles, FileText, Download, Trash2, Pencil } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
@@ -20,25 +20,24 @@ import {
 import { isoDate } from '../../lib/utils';
 import { nivelDe, trimestreDe } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoApoyo, Trimestre } from '../../types/apoyo';
+import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoApoyo, Trimestre } from '../../types/apoyo';
+import type { Section } from '../../types';
 
 interface Props {
+  alumno: AlumnoApoyo;
   data: ApoyoData;
   onChange: (f: (d: ApoyoData) => ApoyoData) => void;
   especialidades: Especialidad[];
   comunidad: ComunidadId | undefined;
   docente: { nombre: string; centro: string; curso: string };
-  onNav: (s: string) => void;
+  onNav: (s: Section) => void;
 }
 
-export function DocumentosApoyo({ data, onChange, especialidades, comunidad, docente, onNav }: Props) {
+export function DocumentosApoyo({ alumno, data, onChange, especialidades, comunidad, docente, onNav }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
-  const alumnos = useMemo(() => [...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)), [data.alumnos]);
-  const [alumnoId, setAlumnoId] = useState<string | null>(null);
-  const alumno = alumnos.find(a => a.id === alumnoId) ?? alumnos[0] ?? null;
-  const { materias } = useMateriasDeNivel(comunidad, alumno ? nivelDe(alumno) : undefined);
+  const { materias } = useMateriasDeNivel(comunidad, nivelDe(alumno));
   const tipos = tiposDe(comunidad);
   const [tipo, setTipo] = useState<TipoDocumentoApoyo>('familia');
   const [trimestre, setTrimestre] = useState<Trimestre>(trimestreDe(isoDate()));
@@ -49,17 +48,16 @@ export function DocumentosApoyo({ data, onChange, especialidades, comunidad, doc
   const pap = papDe(lang);
 
   const docsDelAlumno = data.documentos
-    .filter(d => d.alumnoId === alumno?.id)
+    .filter(d => d.alumnoId === alumno.id)
     .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   /** El que se sustituye al generar: la programación y el PAP son uno por alumno; los informes, uno por trimestre. */
   const existente = (tp: TipoDocumentoApoyo) => docsDelAlumno.find(d => d.tipo === tp && (tp === 'programacion' || tp === 'pap' || d.trimestre === trimestre));
 
   async function generar() {
-    if (!alumno) return;
     const anterior = existente(tipo);
     if (anterior && tipo !== 'pap' && !window.confirm(t('Ya hay un documento «{name}». ¿Lo sustituyes por uno nuevo?', { name: anterior.titulo }))) return;
-    if (!data.programas.some(p => p.alumnoId === alumno.id)) { toast(t('Este alumno todavía no tiene programas: créalos primero en «Programas».')); return; }
+    if (!data.programas.some(p => p.alumnoId === alumno.id)) { toast(t('Este alumno todavía no tiene programas: créalos primero en la pestaña «Programa».')); return; }
     setGenerando(true);
     const doc = await generarDocumento(
       { tipo, alumno, trimestre, data, materias, comunidad, lang, nombreCurso, anterior, hoy: isoDate() },
@@ -100,39 +98,13 @@ export function DocumentosApoyo({ data, onChange, especialidades, comunidad, doc
     }
   }
 
-  if (!alumno) {
-    return (
-      <section className="sec active ap-page">
-        <div className="pg-hd"><div><h1 className="pg-title">{t('Programación e informes')}</h1></div></div>
-        <div className="card">
-          <p className="ap-vacio">{t('Primero añade a tu alumnado en «Alumnado y grupos»: cada alumno tiene aquí sus programas.')}</p>
-          <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => onNav('apoyo-alumnado')}>{t('Ir a Alumnado y grupos')}</button>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="sec active ap-page">
-      <div className="pg-hd">
-        <div>
-          <h1 className="pg-title">{t('Programación e informes')}</h1>
-          <p className="pg-sub">{t('La IA los prepara con sus programas y el registro diario, sin inventar nada; tú los retocas y los sacas en PDF o en Word.')}</p>
-        </div>
-      </div>
+    <div className="al-panel">
+      <p className="ap-sub al-intro">{t('La IA los prepara con su programa y el registro diario, sin inventar nada; tú los retocas y los sacas en PDF o en Word.')}</p>
 
       {!hasApiKey() && (
         <AiKeyNotice message={t('Para que la IA prepare los documentos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
       )}
-
-      <div className="chip-row ap-alumnos" role="tablist" aria-label={t('Alumnado')}>
-        {alumnos.map(a => (
-          <button key={a.id} type="button" role="tab" aria-selected={a.id === alumno.id}
-            className={`chip sm accent${a.id === alumno.id ? ' on' : ''}`} onClick={() => setAlumnoId(a.id)}>
-            {a.nombre}
-          </button>
-        ))}
-      </div>
 
       <div className="card">
         <div className="card-hd"><div className="card-ttl"><Sparkles size={14} color="var(--accent-d)" />{t('Nuevo documento')}</div></div>
@@ -172,7 +144,7 @@ export function DocumentosApoyo({ data, onChange, especialidades, comunidad, doc
       </div>
 
       <div className="card">
-        <div className="card-hd"><div className="card-ttl"><FileText size={14} color="var(--accent-d)" />{t('Documentos de {name}', { name: alumno.nombre })}</div></div>
+        <div className="card-hd"><div className="card-ttl"><FileText size={14} color="var(--accent-d)" />{t('Sus documentos')}</div></div>
         {docsDelAlumno.length === 0 ? (
           <p className="ap-vacio">{t('Todavía no hay ninguno.')}</p>
         ) : (
@@ -236,6 +208,6 @@ export function DocumentosApoyo({ data, onChange, especialidades, comunidad, doc
           </>
         )}
       </Modal>
-    </section>
+    </div>
   );
 }

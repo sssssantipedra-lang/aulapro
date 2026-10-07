@@ -4,6 +4,8 @@ import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
 import type { ScheduleBlock, CalEvent, Class } from '../types';
 import { PALETTE } from '../lib/demoData';
 import { isoDate, fromIsoDate } from '../lib/utils';
+import { grupoDeBloque } from '../lib/apoyo';
+import { requestGrupos } from '../lib/apoyoNav';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useI18n, monthLabel, weekdayLabel, eventTypeLabel, urgencyLabel } from '../i18n';
@@ -115,7 +117,7 @@ interface Props {
   scheduleBlocks: ScheduleBlock[];
   /**
    * PT y AL: el horario de sus grupos de apoyo, que se pinta en la semana sin
-   * apuntarlo dos veces. Se cambia en «Alumnado y grupos», no aquí.
+   * apuntarlo dos veces. Se cambia en «Mi alumnado», pestaña «Grupos», no aquí.
    */
   apoyoBlocks?: ScheduleBlock[];
   calEvents: CalEvent[];
@@ -530,7 +532,7 @@ export function Agenda({
                       }}
                     >
                       {apoyoInCell.map(b => (
-                        <BlockCard key={b.id} block={b} onClick={() => onNav('apoyo-alumnado')} />
+                        <BlockCard key={b.id} block={b} onClick={() => { requestGrupos(grupoDeBloque(b.id)); onNav('apoyo-alumnado'); }} />
                       ))}
                       {blocksInCell.map(b => (
                         <BlockCard key={b.id} block={b} onClick={() => openEditBlock(b)} />

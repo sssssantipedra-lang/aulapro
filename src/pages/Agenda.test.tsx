@@ -10,6 +10,7 @@ import { Agenda } from './Agenda';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
 import type { ScheduleBlock } from '../types';
+import { takeGrupos } from '../lib/apoyoNav';
 
 afterEach(cleanup);
 
@@ -59,13 +60,14 @@ describe('Agenda · semana', () => {
   it('pinta los bloques que no cruzan una hora en punto y el horario de los grupos de apoyo', async () => {
     const user = userEvent.setup();
     const onNav = vi.fn();
-    const apoyo: ScheduleBlock = { ...block('ap'), day: 3, time_start: '12:15', time_end: '13:00', subject: 'Habilidades sociales', room: 'PT' };
+    const apoyo: ScheduleBlock = { ...block('apoyo-gru1-0'), day: 3, time_start: '12:15', time_end: '13:00', subject: 'Habilidades sociales', room: 'PT' };
     setup([{ ...block('c'), time_start: '10:15', time_end: '10:45', subject: 'Tutoría' }], [apoyo], onNav);
     await user.click(screen.getByRole('tab', { name: 'Semanal' }));
     expect(screen.getAllByText('Tutoría')).toHaveLength(1);
     await user.click(screen.getByText('Habilidades sociales'));
-    // El horario de apoyo se cambia en su pantalla, no aquí
+    // El horario de apoyo se cambia en su pantalla, no aquí: se abre su grupo en Mi alumnado
     expect(onNav).toHaveBeenCalledWith('apoyo-alumnado');
+    expect(takeGrupos()).toEqual({ grupoId: 'gru1' });
   });
 
   it('un bloque que cruza una hora en punto sale una sola vez, en la hora en que empieza', async () => {

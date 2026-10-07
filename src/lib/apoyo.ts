@@ -132,7 +132,28 @@ export function bloquesDeApoyo(grupos: readonly GrupoApoyo[]): ScheduleBlock[] {
   })));
 }
 
+/** El grupo de un bloque de `bloquesDeApoyo`: su identificador va entre «apoyo-» y el número de la franja. */
+export function grupoDeBloque(blockId: string): string | undefined {
+  const m = /^apoyo-(.+)-\d+$/.exec(blockId);
+  return m?.[1];
+}
+
 /* ── Alumnado ── */
+
+export function alumnoVacio(): AlumnoApoyo {
+  return {
+    id: nuevoIdApoyo('alu'), nombre: '', claseOrigen: '',
+    categorias: [], diagnostico: '', necesidades: '', notas: '',
+  };
+}
+
+/** Lo que se está editando en la ventana de un alumno: él y los grupos marcados. */
+export interface AlumnoEnEdicion { alumno: AlumnoApoyo; grupos: string[] }
+
+/** Para abrir la ventana con un alumno: con los grupos en los que ya está. */
+export function enEdicion(a: AlumnoApoyo, d: ApoyoData): AlumnoEnEdicion {
+  return { alumno: a, grupos: d.grupos.filter(g => g.alumnos.includes(a.id)).map(g => g.id) };
+}
 
 /** El curso cuyo currículo trabaja: su nivel, o el de su matrícula. */
 export function nivelDe(a: AlumnoApoyo): CursoDe | undefined {
@@ -252,6 +273,18 @@ export function resumenObjetivo(
 
 export const ASPECTOS: readonly AspectoRespuesta[] = ['atencion', 'motivacion', 'conducta', 'autonomia'];
 
+/** El nombre de cada aspecto de cómo ha respondido. Son claves del diccionario. */
+export const ASPECTO_LABEL: Record<AspectoRespuesta, string> = {
+  atencion: 'Atención', motivacion: 'Motivación', conducta: 'Conducta', autonomia: 'Autonomía',
+};
+
+/** Las tres caras de cómo ha ido, de mejor a peor, con su nombre (clave del diccionario). */
+export const CARAS: readonly { id: Cara; cara: string; label: string }[] = [
+  { id: 3, cara: '🙂', label: 'Ha ido bien' },
+  { id: 2, cara: '😐', label: 'Ha ido regular' },
+  { id: 1, cara: '🙁', label: 'Ha ido mal' },
+];
+
 export interface DatosTrimestre {
   /** Sesiones de sus grupos en que tiene registro, y en cuántas no vino. */
   sesiones: number;
@@ -267,6 +300,11 @@ export interface DatosTrimestre {
   /** Las coordinaciones del trimestre sobre el alumno, por orden de fecha. */
   coordinaciones: CoordinacionApoyo[];
 }
+
+/** Con quién es cada coordinación. Son claves del diccionario. */
+export const CON_QUIEN: Record<ConQuien, string> = {
+  tutoria: 'Tutoría', familia: 'Familia', orientacion: 'Orientación', equipo: 'Equipo docente', otros: 'Otros',
+};
 
 /** Las coordinaciones sobre un alumno, por orden de fecha; con trimestre, solo las de ese trimestre. */
 export function coordinacionesDe(d: ApoyoData, alumnoId: string, trimestre?: Trimestre): CoordinacionApoyo[] {

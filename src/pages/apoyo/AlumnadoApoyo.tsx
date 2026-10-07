@@ -1,19 +1,24 @@
 /**
- * PT y AL, «Alumnado y grupos»: el alumnado que atiende el especialista, de
- * cualquier clase del centro, y sus grupos de apoyo con su horario. Ver
- * `docs/PTAL.md`.
+ * PT y AL, «Mi alumnado» (decisión del dueño, 6-10-2026): en una pestaña, el
+ * alumnado que atiende el especialista, de cualquier clase del centro; al
+ * pulsar uno se abre su página (`AlumnoApoyo.tsx`), con todo lo suyo. En la
+ * otra, sus grupos de apoyo con su horario. Ver `docs/PTAL.md`.
  */
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Users, UserRound, Clock } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Plus, Pencil, Trash2, Users, Clock, ChevronRight } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { Avatar } from '../../components/ui/Avatar';
 import { useToast } from '../../components/ui/Toast';
-import { CursoSelect } from '../../components/apoyo/CursoSelect';
+import { Pestanas } from '../../components/apoyo/Pestanas';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { useI18n, weekdayLabel } from '../../i18n';
-import {
-  CATEGORIAS_NEAE, GRUPOS_NEAE, nuevoIdApoyo, sinAlumno, sinGrupo, tieneDesfase,
-} from '../../lib/apoyo';
-import type { AlumnoApoyo, ApoyoData, Especialidad, FranjaApoyo, GrupoApoyo } from '../../types/apoyo';
+import { isoDate } from '../../lib/utils';
+import { alumnoVacio, enEdicion, nuevoIdApoyo, sinGrupo, tieneDesfase, trimestreDe, type AlumnoEnEdicion } from '../../lib/apoyo';
+import { avisosApoyo, avisosDelAlumno, evolucionDelTrimestre } from '../../lib/inicioApoyo';
+import { requestAlumno, useGruposPedido } from '../../lib/apoyoNav';
+import { EditarAlumno } from './EditarAlumno';
+import type { ApoyoData, Especialidad, FranjaApoyo, GrupoApoyo } from '../../types/apoyo';
+import type { Section } from '../../types';
 
 const PALETA = ['#6366f1', '#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] as const;
 
@@ -21,14 +26,10 @@ interface Props {
   data: ApoyoData;
   onChange: (f: (d: ApoyoData) => ApoyoData) => void;
   especialidades: Especialidad[];
+  onNav: (s: Section) => void;
 }
 
-function alumnoVacio(): AlumnoApoyo {
-  return {
-    id: nuevoIdApoyo('alu'), nombre: '', claseOrigen: '',
-    categorias: [], diagnostico: '', necesidades: '', notas: '',
-  };
-}
+type Pestana = 'alumnado' | 'grupos';
 
 /** La sesión que se añade: la misma hora, el día siguiente al de la última. */
 function otraFranja(horario: FranjaApoyo[]): FranjaApoyo {
@@ -45,49 +46,28 @@ function grupoVacio(especialidad: Especialidad, n: number): GrupoApoyo {
   };
 }
 
-export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
+export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) {
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
-  const [alumno, setAlumno] = useState<AlumnoApoyo | null>(null);
-  const [grupo, setGrupo] = useState<GrupoApoyo | null>(null);
-  /** Grupos marcados en la ficha del alumno que se está editando. */
-  const [gruposDelAlumno, setGruposDelAlumno] = useState<string[]>([]);
+  // Desde la Agenda o el Registro se llega a los grupos, a veces con uno ya abierto
+  const pedido = useGruposPedido();
+  const [pestana, setPestana] = useState<Pestana>(pedido ? 'grupos' : 'alumnado');
+  const [edicion, setEdicion] = useState<AlumnoEnEdicion | null>(null);
+  const [grupo, setGrupo] = useState<GrupoApoyo | null>(() => data.grupos.find(g => g.id === pedido?.grupoId) ?? null);
   const dosEspecialidades = especialidades.length > 1;
   const dia = (n: number) => weekdayLabel(n, locale, 'short');
-
-  const esNuevoAlumno = !!alumno && !data.alumnos.some(a => a.id === alumno.id);
   const esNuevoGrupo = !!grupo && !data.grupos.some(g => g.id === grupo.id);
 
-  function abrirAlumno(a: AlumnoApoyo) {
-    setAlumno(a);
-    setGruposDelAlumno(data.grupos.filter(g => g.alumnos.includes(a.id)).map(g => g.id));
-  }
+  const hoy = isoDate();
+  const T = trimestreDe(hoy);
+  const alumnos = useMemo(() => [...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)), [data.alumnos]);
+  const evolucion = useMemo(() => new Map(evolucionDelTrimestre(data, T).map(e => [e.alumno.id, e])), [data, T]);
+  const avisos = useMemo(() => avisosApoyo(data, hoy), [data, hoy]);
 
-  function guardarAlumno() {
-    if (!alumno) return;
-    const a = { ...alumno, nombre: alumno.nombre.trim(), claseOrigen: alumno.claseOrigen.trim() };
-    if (!a.nombre) { toast(t('Escribe el nombre del alumno o la alumna')); return; }
-    onChange(d => ({
-      ...d,
-      alumnos: d.alumnos.some(x => x.id === a.id) ? d.alumnos.map(x => (x.id === a.id ? a : x)) : [...d.alumnos, a],
-      grupos: d.grupos.map(g => {
-        const dentro = g.alumnos.includes(a.id);
-        const quiere = gruposDelAlumno.includes(g.id);
-        if (dentro === quiere) return g;
-        return { ...g, alumnos: quiere ? [...g.alumnos, a.id] : g.alumnos.filter(id => id !== a.id) };
-      }),
-    }));
-    setAlumno(null);
-    toast(esNuevoAlumno ? t('✅ Alumno añadido') : t('✅ Actualizado'));
-  }
-
-  function borrarAlumno() {
-    if (!alumno) return;
-    if (!window.confirm(t('¿Eliminar a {name}? Se borran también sus programas y sus registros.', { name: alumno.nombre }))) return;
-    onChange(d => sinAlumno(d, alumno.id));
-    setAlumno(null);
-    toast(t('Eliminado'));
+  function abrir(id: string) {
+    requestAlumno(id);
+    onNav('apoyo-alumno');
   }
 
   function guardarGrupo() {
@@ -133,119 +113,111 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
     <section className="sec active ap-page">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Alumnado y grupos')}</h1>
-          <p className="pg-sub">{t('El alumnado que atiendes, de cualquier clase del centro, y tus grupos de apoyo con su horario.')}</p>
+          <h1 className="pg-title">{t('Mi alumnado')}</h1>
+          <p className="pg-sub">{t('Pulsa un alumno para ver todo lo suyo: su programa, sus sesiones, las coordinaciones y sus documentos.')}</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button className="btn-ghost" onClick={() => abrirAlumno(alumnoVacio())}><UserRound size={16} />{t('Nuevo alumno')}</button>
-          <button className="btn-accent" onClick={() => setGrupo(grupoVacio(especialidades[0] ?? 'PT', data.grupos.length))}><Plus size={16} />{t('Nuevo grupo')}</button>
+        {pestana === 'alumnado'
+          ? <button className="btn-accent" onClick={() => setEdicion(enEdicion(alumnoVacio(), data))}><Plus size={16} />{t('Nuevo alumno')}</button>
+          : <button className="btn-accent" onClick={() => setGrupo(grupoVacio(especialidades[0] ?? 'PT', data.grupos.length))}><Plus size={16} />{t('Nuevo grupo')}</button>}
+      </div>
+
+      <Pestanas
+        label={t('Mi alumnado')} value={pestana} onChange={setPestana}
+        items={[
+          { id: 'alumnado', label: t('Alumnado'), n: data.alumnos.length },
+          { id: 'grupos', label: t('Grupos'), n: data.grupos.length },
+        ]}
+      />
+
+      {pestana === 'alumnado' && (
+        <div className="card" role="tabpanel" aria-label={t('Alumnado')}>
+          {alumnos.length === 0 ? (
+            <p className="ap-vacio">{t('Añade a cada alumno con su clase, su curso y su nivel de competencia curricular. De ahí salen sus programas y los criterios que trabaja.')}</p>
+          ) : (
+            <ul className="ap-lista al-lista">
+              {alumnos.map(a => {
+                const ev = evolucion.get(a.id);
+                const total = ev?.objetivos.length ?? 0;
+                const nAvisos = avisosDelAlumno(avisos, a).length;
+                return (
+                  <li key={a.id}>
+                    {/* El nombre que se lee: el del alumno, su clase y sus avisos, sin juntar todos los textos */}
+                    <button
+                      type="button" className="al-fila" onClick={() => abrir(a.id)}
+                      aria-label={[a.nombre, a.claseOrigen, nAvisos ? t(nAvisos === 1 ? '{n} aviso' : '{n} avisos', { n: nAvisos }) : ''].filter(Boolean).join(', ')}
+                    >
+                      <span aria-hidden="true"><Avatar name={a.nombre} size={38} className="av al-av" /></span>
+                      <span className="ap-lista-txt">
+                        <strong>{a.nombre}</strong>
+                        <span className="ap-meta">
+                          {a.claseOrigen && <span>{a.claseOrigen}</span>}
+                          {a.matricula && <span>{nombreCurso(a.matricula)}</span>}
+                          {a.nivel && (
+                            <span className={`sda-chip${tieneDesfase(a) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(a.nivel) })}</span>
+                          )}
+                          {a.categorias.map(c => <span key={c} className="sda-chip">{t(c)}</span>)}
+                        </span>
+                        {gruposDe(a.id).length > 0 && (
+                          <span className="ap-sub">{gruposDe(a.id).map(g => g.nombre).join(' · ')}</span>
+                        )}
+                      </span>
+                      <span className="al-fila-der">
+                        {total > 0 && ev && (
+                          <span className="al-progreso" title={t('Sus objetivos del {n}º trimestre', { n: T })}>
+                            <span className="ap-barra" aria-hidden="true">
+                              {(['si', 'proceso', 'no', 'sin'] as const).filter(e => ev.cuenta[e]).map(e => (
+                                <span key={e} className={`ap-barra-s ${e}`} style={{ flexGrow: ev.cuenta[e] }} />
+                              ))}
+                            </span>
+                            <span className="ap-evol-n">{t('{a} de {b}', { a: ev.cuenta.si, b: total })}</span>
+                          </span>
+                        )}
+                        {nAvisos > 0 && (
+                          <span className="home-pill warn">{t(nAvisos === 1 ? '{n} aviso' : '{n} avisos', { n: nAvisos })}</span>
+                        )}
+                        <ChevronRight size={16} className="al-chev" aria-hidden="true" />
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
-      </div>
+      )}
 
-      <div className="card">
-        <div className="card-hd"><div className="card-ttl"><Users size={14} color="var(--accent-d)" />{t('Grupos de apoyo')}</div></div>
-        {data.grupos.length === 0 ? (
-          <p className="ap-vacio">{t('Todavía no hay grupos. Crea uno por cada sesión que das: «Lectoescritura, lunes 9:00». Un alumno que atiendes solo es un grupo de uno.')}</p>
-        ) : (
-          <ul className="ap-lista">
-            {data.grupos.map(g => (
-              <li key={g.id}>
-                <span className="chip-dot" style={{ background: g.color }} aria-hidden="true" />
-                <div className="ap-lista-txt">
-                  <strong>{g.nombre}</strong>
-                  <span className="ap-meta">
-                    {dosEspecialidades && <span className="sda-chip">{g.especialidad}</span>}
-                    <span className="sda-chip">{g.modalidad === 'dentro' ? t('Dentro del aula') : t('Fuera del aula')}</span>
-                    {g.horario.length > 0 && <span className="ap-hora"><Clock size={12} aria-hidden="true" />{horarioTexto(g)}</span>}
-                  </span>
-                  <span className="ap-sub">
-                    {g.alumnos.length
-                      ? g.alumnos.map(id => data.alumnos.find(a => a.id === id)?.nombre).filter(Boolean).join(', ')
-                      : t('Sin alumnado todavía')}
-                  </span>
-                </div>
-                <button className="ico-btn" onClick={() => setGrupo(g)} aria-label={t('Editar «{name}»', { name: g.nombre })} title={t('Editar')}><Pencil size={15} /></button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="card">
-        <div className="card-hd"><div className="card-ttl"><UserRound size={14} color="var(--accent-d)" />{t('Alumnado')}</div></div>
-        {data.alumnos.length === 0 ? (
-          <p className="ap-vacio">{t('Añade a cada alumno con su clase, su curso y su nivel de competencia curricular. De ahí salen sus programas y los criterios que trabaja.')}</p>
-        ) : (
-          <ul className="ap-lista">
-            {[...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(a => (
-              <li key={a.id}>
-                <div className="ap-lista-txt">
-                  <strong>{a.nombre}</strong>
-                  <span className="ap-meta">
-                    {a.claseOrigen && <span>{a.claseOrigen}</span>}
-                    {a.matricula && <span>{nombreCurso(a.matricula)}</span>}
-                    {a.nivel && (
-                      <span className={`sda-chip${tieneDesfase(a) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(a.nivel) })}</span>
-                    )}
-                    {a.categorias.map(c => <span key={c} className="sda-chip">{t(c)}</span>)}
-                  </span>
-                  {gruposDe(a.id).length > 0 && (
-                    <span className="ap-sub">{gruposDe(a.id).map(g => g.nombre).join(' · ')}</span>
-                  )}
-                </div>
-                <button className="ico-btn" onClick={() => abrirAlumno(a)} aria-label={t('Editar «{name}»', { name: a.nombre })} title={t('Editar')}><Pencil size={15} /></button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* ── Ficha del alumno ── */}
-      <Modal open={!!alumno} onClose={() => setAlumno(null)} wide title={esNuevoAlumno ? t('Nuevo alumno') : alumno?.nombre}>
-        {alumno && (
-          <>
-            <div className="ap-form">
-              <div className="fgroup"><label className="flabel" htmlFor="ap-a-nombre">{t('Nombre y apellidos')}</label>
-                <input id="ap-a-nombre" className="finput" value={alumno.nombre} autoFocus onChange={e => setAlumno({ ...alumno, nombre: e.target.value })} /></div>
-              <div className="fgroup"><label className="flabel" htmlFor="ap-a-clase">{t('Clase de origen')}</label>
-                <input id="ap-a-clase" className="finput" value={alumno.claseOrigen} placeholder={t('Ej: 2º B')} onChange={e => setAlumno({ ...alumno, claseOrigen: e.target.value })} /></div>
-              <div className="fgroup"><label className="flabel" htmlFor="ap-a-mat">{t('Curso en que está matriculado')}</label>
-                <CursoSelect id="ap-a-mat" value={alumno.matricula} vacio={t('Sin indicar')} onChange={c => setAlumno({ ...alumno, matricula: c })} /></div>
-              <div className="fgroup"><label className="flabel" htmlFor="ap-a-nivel">{t('Nivel de competencia curricular')}</label>
-                <CursoSelect id="ap-a-nivel" value={alumno.nivel} vacio={t('El de su curso')} onChange={c => setAlumno({ ...alumno, nivel: c })} /></div>
-              <NecesidadesPicker value={alumno.categorias} onChange={categorias => setAlumno({ ...alumno, categorias })} />
-              <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-diag">{t('Diagnóstico')}</label>
-                <textarea id="ap-a-diag" className="finput" rows={2} value={alumno.diagnostico} onChange={e => setAlumno({ ...alumno, diagnostico: e.target.value })} /></div>
-              <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-nec">{t('Necesidades educativas')}</label>
-                <textarea id="ap-a-nec" className="finput" rows={3} value={alumno.necesidades} placeholder={t('Barreras, fortalezas y qué le ayuda: «le cuesta mantener la atención más de 10 minutos; aprende mejor con apoyo visual»')} onChange={e => setAlumno({ ...alumno, necesidades: e.target.value })} /></div>
-              <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-notas">{t('Notas')}</label>
-                <textarea id="ap-a-notas" className="finput" rows={2} value={alumno.notas} onChange={e => setAlumno({ ...alumno, notas: e.target.value })} /></div>
-              {data.grupos.length > 0 && (
-                <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
-                  <legend className="flabel">{t('Grupos')}</legend>
-                  <div className="chip-row">
-                    {data.grupos.map(g => {
-                      const on = gruposDelAlumno.includes(g.id);
-                      return (
-                        <button key={g.id} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}
-                          onClick={() => setGruposDelAlumno(prev => (on ? prev.filter(x => x !== g.id) : [...prev, g.id]))}>
-                          <span className="chip-dot" style={{ background: g.color }} aria-hidden="true" />{g.nombre}
-                        </button>
-                      );
-                    })}
+      {pestana === 'grupos' && (
+        <div className="card" role="tabpanel" aria-label={t('Grupos')}>
+          <div className="card-hd"><div className="card-ttl"><Users size={14} color="var(--accent-d)" />{t('Grupos de apoyo')}</div></div>
+          {data.grupos.length === 0 ? (
+            <p className="ap-vacio">{t('Todavía no hay grupos. Crea uno por cada sesión que das: «Lectoescritura, lunes 9:00». Un alumno que atiendes solo es un grupo de uno.')}</p>
+          ) : (
+            <ul className="ap-lista">
+              {data.grupos.map(g => (
+                <li key={g.id}>
+                  <span className="chip-dot" style={{ background: g.color }} aria-hidden="true" />
+                  <div className="ap-lista-txt">
+                    <strong>{g.nombre}</strong>
+                    <span className="ap-meta">
+                      {dosEspecialidades && <span className="sda-chip">{g.especialidad}</span>}
+                      <span className="sda-chip">{g.modalidad === 'dentro' ? t('Dentro del aula') : t('Fuera del aula')}</span>
+                      {g.horario.length > 0 && <span className="ap-hora"><Clock size={12} aria-hidden="true" />{horarioTexto(g)}</span>}
+                    </span>
+                    <span className="ap-sub">
+                      {g.alumnos.length
+                        ? g.alumnos.map(id => data.alumnos.find(a => a.id === id)?.nombre).filter(Boolean).join(', ')
+                        : t('Sin alumnado todavía')}
+                    </span>
                   </div>
-                </fieldset>
-              )}
-            </div>
-            <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe también lo que escribes aquí, incluido el diagnóstico, con el nombre cambiado por un código. El diagnóstico es un dato de salud: si no quieres que llegue a Google, déjalo en blanco.')}</p>
-            <div className="ap-acciones">
-              <button className="btn-accent" onClick={guardarAlumno}>{t('Guardar')}</button>
-              <button className="btn-ghost" onClick={() => setAlumno(null)}>{t('Cancelar')}</button>
-              {!esNuevoAlumno && <button className="btn-ghost ap-borrar" onClick={borrarAlumno}><Trash2 size={15} />{t('Eliminar')}</button>}
-            </div>
-          </>
-        )}
-      </Modal>
+                  <button className="ico-btn" onClick={() => setGrupo(g)} aria-label={t('Editar «{name}»', { name: g.nombre })} title={t('Editar')}><Pencil size={15} /></button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <EditarAlumno edicion={edicion} onEdicion={setEdicion} data={data} onChange={onChange} />
 
       {/* ── Grupo de apoyo ── */}
       <Modal open={!!grupo} onClose={() => setGrupo(null)} wide title={esNuevoGrupo ? t('Nuevo grupo') : grupo?.nombre}>
@@ -295,7 +267,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
               <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
                 <legend className="flabel">{t('Alumnado')}</legend>
                 {data.alumnos.length === 0 ? (
-                  <p className="ap-vacio" style={{ margin: 0 }}>{t('Primero añade al alumnado con «Nuevo alumno».')}</p>
+                  <p className="ap-vacio" style={{ margin: 0 }}>{t('Primero añade al alumnado en la pestaña «Alumnado».')}</p>
                 ) : (
                   <div className="chip-row">
                     {[...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(a => {
@@ -330,54 +302,5 @@ export function AlumnadoApoyo({ data, onChange, especialidades }: Props) {
         )}
       </Modal>
     </section>
-  );
-}
-
-/**
- * Sus necesidades específicas de apoyo educativo: se marcan las que tenga, en
- * dos grupos, y las que no estén en la lista se añaden a mano.
- */
-function NecesidadesPicker({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
-  const { t } = useI18n();
-  const [otra, setOtra] = useState('');
-  const propias = value.filter(c => !CATEGORIAS_NEAE.includes(c));
-  const alternar = (c: string) => onChange(value.includes(c) ? value.filter(x => x !== c) : [...value, c]);
-  function anadir() {
-    const c = otra.trim();
-    if (c && !value.some(x => x.toLocaleLowerCase() === c.toLocaleLowerCase())) onChange([...value, c]);
-    setOtra('');
-  }
-  return (
-    <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
-      <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
-      <p className="ap-aviso" style={{ margin: '0 0 8px' }}>{t('Marca todas las que tenga.')}</p>
-      {GRUPOS_NEAE.map(g => (
-        <div key={g.titulo} className="ap-neae">
-          <div className="ap-neae-ttl">{t(g.titulo)}</div>
-          <div className="chip-row">
-            {g.categorias.map(c => {
-              const on = value.includes(c);
-              return (
-                <button key={c} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on} onClick={() => alternar(c)}>{t(c)}</button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-      {propias.length > 0 && (
-        <div className="chip-row" style={{ marginTop: 8 }}>
-          {propias.map(c => (
-            <button key={c} type="button" className="chip sm accent on" aria-pressed="true" onClick={() => alternar(c)}
-              aria-label={t('Quitar «{name}»', { name: c })} title={t('Quitar')}>{c} ×</button>
-          ))}
-        </div>
-      )}
-      <div className="ap-neae-otra">
-        <input id="ap-a-otra" className="finput" value={otra} aria-label={t('Otra necesidad')}
-          placeholder={t('Otra que no esté en la lista')} onChange={e => setOtra(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); anadir(); } }} />
-        <button type="button" className="btn-ghost" onClick={anadir} disabled={!otra.trim()}><Plus size={14} />{t('Añadir')}</button>
-      </div>
-    </fieldset>
   );
 }

@@ -32,7 +32,7 @@ import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
-import { takeFichaPara } from '../lib/apoyoNav';
+import { useFichaParaPedido } from '../lib/apoyoNav';
 import { contextoFichaApoyo, nivelDe, trimestreDe } from '../lib/apoyo';
 import { useNombreCurso } from '../hooks/useNombreCurso';
 import type { ApoyoData } from '../types/apoyo';
@@ -133,8 +133,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
       .flatMap(p => p.objetivos.filter(o => o.trimestres.includes(T)).map(o => o.texto.trim())).filter(Boolean);
     return { id: a.id, nivel: n ? nombreCurso(n) : '', contexto: contextoFichaApoyo(a, objetivos, t) };
   };
-  // Desde Programas se llega con el alumno ya elegido
-  const [inicial] = useState(() => { const id = takeFichaPara(); return id ? paraAlumno(id) : null; });
+  // Desde la página de un alumno se llega con él ya elegido
+  const fichaPara = useFichaParaPedido();
+  const [inicial] = useState(() => (fichaPara ? paraAlumno(fichaPara) : null));
   const [alumnoApoyo, setAlumnoApoyo] = useState(inicial?.id ?? '');
 
   /* ── Formulario ── */

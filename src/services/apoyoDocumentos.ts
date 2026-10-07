@@ -15,13 +15,13 @@ import {
 } from 'docx';
 import { callGemini, parseGeminiJson } from './gemini';
 import { marcoApoyo, alumnoParaIA } from './apoyoIA';
-import { coordinacionesDe, datosDelTrimestre, nivelDe, nuevoIdApoyo, type DatosTrimestre } from '../lib/apoyo';
+import { CON_QUIEN, coordinacionesDe, datosDelTrimestre, nivelDe, nuevoIdApoyo, type DatosTrimestre } from '../lib/apoyo';
 import { describirCriterio, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { translate, priorityLabel, weekdayLabel, LOCALES, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type {
-  AlumnoApoyo, ApartadoDocumento, ApoyoData, ConQuien, CoordinacionApoyo, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre,
+  AlumnoApoyo, ApartadoDocumento, ApoyoData, CoordinacionApoyo, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre,
 } from '../types/apoyo';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
@@ -161,10 +161,6 @@ export function datosParaIA(datos: DatosTrimestre, trimestre: Trimestre): string
   if (datos.coordinaciones.length) lineas.push('Coordinaciones de este trimestre:', ...coordinacionesTexto(datos.coordinaciones));
   return lineas.join('\n');
 }
-
-export const CON_QUIEN: Record<ConQuien, string> = {
-  tutoria: 'Tutoría', familia: 'Familia', orientacion: 'Orientación', equipo: 'Equipo docente', otros: 'Otros',
-};
 
 /**
  * Cada coordinación en una línea para la IA: cuándo, con quién, de qué se

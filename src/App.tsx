@@ -51,10 +51,8 @@ const Resources      = lazy(() => import('./pages/Resources').then(m => ({ defau
 const WorkSessions   = lazy(() => import('./pages/WorkSessions').then(m => ({ default: m.WorkSessions })));
 const RegistroApoyo  = lazy(() => import('./pages/apoyo/RegistroApoyo').then(m => ({ default: m.RegistroApoyo })));
 const AlumnadoApoyo  = lazy(() => import('./pages/apoyo/AlumnadoApoyo').then(m => ({ default: m.AlumnadoApoyo })));
-const DocumentosApoyo = lazy(() => import('./pages/apoyo/DocumentosApoyo').then(m => ({ default: m.DocumentosApoyo })));
-const ProgramasApoyo = lazy(() => import('./pages/apoyo/ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
+const AlumnoApoyo    = lazy(() => import('./pages/apoyo/AlumnoApoyo').then(m => ({ default: m.AlumnoApoyo })));
 const InicioApoyo    = lazy(() => import('./pages/apoyo/InicioApoyo').then(m => ({ default: m.InicioApoyo })));
-const CoordinacionesApoyo = lazy(() => import('./pages/apoyo/CoordinacionesApoyo').then(m => ({ default: m.CoordinacionesApoyo })));
 const AgendaVisualApoyo = lazy(() => import('./pages/apoyo/AgendaVisualApoyo').then(m => ({ default: m.AgendaVisualApoyo })));
 const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ default: m.EfPista })));
 const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
@@ -230,6 +228,9 @@ function AppInner() {
         overlays[overlays.length - 1].click();
       } else if (open || document.querySelector('.cp, .cp-picker')) {
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      } else if (current === 'apoyo-alumno') {
+        // De la página de un alumno se vuelve a la lista, como con «← Mi alumnado»
+        setSection('apoyo-alumnado');
       } else if (current !== 'dashboard') {
         setSection('dashboard');
       } else {
@@ -604,29 +605,18 @@ function AppInner() {
                 data={st.apoyo}
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}
+                onNav={setSection}
               />
             )}
-            {section === 'apoyo-programas' && (
-              <ProgramasApoyo
-                data={st.apoyo}
-                onChange={st.setApoyo}
-                especialidades={st.currentUser.especialidades ?? []}
-                comunidad={st.currentUser.community}
-                onNav={s => setSection(s as Section)}
-              />
-            )}
-            {section === 'apoyo-documentos' && (
-              <DocumentosApoyo
+            {section === 'apoyo-alumno' && (
+              <AlumnoApoyo
                 data={st.apoyo}
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}
                 comunidad={st.currentUser.community}
                 docente={{ nombre: st.profile?.name ?? '', centro: st.profile?.school ?? '', curso: st.profile?.course ?? '' }}
-                onNav={s => setSection(s as Section)}
+                onNav={setSection}
               />
-            )}
-            {section === 'apoyo-coordinaciones' && (
-              <CoordinacionesApoyo data={st.apoyo} onChange={st.setApoyo} onNav={setSection} />
             )}
             {section === 'apoyo-agenda-visual' && (
               <AgendaVisualApoyo data={st.apoyo} onChange={st.setApoyo} />

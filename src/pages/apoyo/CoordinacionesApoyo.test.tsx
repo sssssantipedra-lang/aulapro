@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /**
- * Coordinaciones: se anota una con sus acuerdos y se filtra por alumno.
+ * Coordinaciones, en la página de un alumno: se anota una con sus acuerdos y
+ * solo se ven las suyas.
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
@@ -15,8 +16,8 @@ import type { ApoyoData } from '../../types/apoyo';
 const inicial: ApoyoData = {
   ...APOYO_VACIO,
   alumnos: [
-    { id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', categorias: [], diagnostico: '', necesidades: '', notas: '' },
-    { id: 'a2', nombre: 'Pau Ruiz', claseOrigen: '3º A', categorias: [], diagnostico: '', necesidades: '', notas: '' },
+    { id: 'a1', nombre: 'Alumno 1', claseOrigen: '4º B', categorias: [], diagnostico: '', necesidades: '', notas: '' },
+    { id: 'a2', nombre: 'Alumno 2', claseOrigen: '3º A', categorias: [], diagnostico: '', necesidades: '', notas: '' },
   ],
   coordinaciones: [{ id: 'c0', alumnoId: 'a2', fecha: '2026-09-30', con: 'tutoria', asistentes: '', temas: 'Lectura en clase', acuerdos: '' }],
 };
@@ -27,7 +28,7 @@ function Harness() {
   return (
     <I18nProvider>
       <ToastProvider>
-        <CoordinacionesApoyo data={data} onNav={() => {}} onChange={f => setData(d => { ultimo = f(d); return ultimo; })} />
+        <CoordinacionesApoyo alumno={data.alumnos[0]} data={data} onChange={f => setData(d => { ultimo = f(d); return ultimo; })} />
       </ToastProvider>
     </I18nProvider>
   );
@@ -42,15 +43,16 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('Coordinaciones', () => {
-  it('anota una con la familia y sus acuerdos, y se filtra por alumno', async () => {
+  it('anota una con la familia y sus acuerdos; las de otro alumno no salen', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.click(screen.getByRole('tab', { name: 'Marta Gil' }));
     expect(screen.getByText('Todavía no hay coordinaciones de este alumno.')).toBeTruthy();
+    expect(screen.queryByText('Lectura en clase')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Copiar todas/ })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /Nueva coordinación/ }));
     const d = screen.getByRole('dialog');
-    expect((within(d).getByLabelText('Alumno o alumna') as HTMLSelectElement).value).toBe('a1');
+    expect(within(d).queryByLabelText('Alumno o alumna')).toBeNull();
     await user.click(within(d).getByRole('button', { name: 'Familia' }));
     await user.type(within(d).getByLabelText('De qué se habló'), 'La lectura en casa');
     await user.type(within(d).getByLabelText('Acuerdos'), 'Leer diez minutos al día');
@@ -60,7 +62,6 @@ describe('Coordinaciones', () => {
     expect(ultimo.coordinaciones[1]).toMatchObject({ alumnoId: 'a1', fecha: '2026-10-05', con: 'familia', temas: 'La lectura en casa', acuerdos: 'Leer diez minutos al día' });
     expect(screen.getByText('Leer diez minutos al día')).toBeTruthy();
     expect(screen.queryByText('Lectura en clase')).toBeNull();
-    await user.click(screen.getByRole('tab', { name: 'Todo el alumnado' }));
-    expect(screen.getByText('Lectura en clase')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Copiar todas para el PAP/ })).toBeTruthy();
   });
 });
