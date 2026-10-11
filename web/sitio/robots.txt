@@ -1,0 +1,5 @@
+# Todo el sitio se puede rastrear; las páginas legales y la de gracias llevan noindex.
+User-agent: *
+Allow: /
+
+Sitemap: https://aulapro.app/sitemap.xml

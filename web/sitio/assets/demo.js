@@ -48,7 +48,7 @@
     const md = $('meta[name="description"]');
     if (md) md.setAttribute('content', t('demo.meta.desc'));
     $$('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
-    $$('a[data-home]').forEach(a => { a.href = 'index.html' + (lang !== 'es' ? '?lang=' + lang : '') + (a.dataset.home || ''); });
+    $$('a[data-home]').forEach(a => { a.href = ({ es: './', ca: 'ca', en: 'en' }[lang] || './') + (a.dataset.home || ''); });   // /, /ca, /en
     $$('[data-lang-link]').forEach(a => { a.href = a.dataset.langLink + (lang !== 'es' ? '?lang=' + lang : ''); });
     fullLabel();
     const im = $('.shot', view);

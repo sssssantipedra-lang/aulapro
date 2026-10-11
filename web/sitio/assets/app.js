@@ -38,13 +38,16 @@
   const DICT = window.AULA_I18N || { es: {}, ca: {}, en: {} };
   const textEls = $$('[data-i18n]');
   const attrEls = $$('[data-i18n-attr]');
-  // Castellano is the page itself: read it once, before anything gets split into words.
-  textEls.forEach(el => { const k = el.dataset.i18n; if (!(k in DICT.es)) DICT.es[k] = el.innerHTML.trim(); });
+  // Each language has its own page: / in castellano, /ca and /en (made by web/idiomas.mjs before publishing).
+  // The page is its own language's text: read it once, before anything gets split into words.
+  const PAGE = DICT[document.documentElement.lang] ? document.documentElement.lang : 'es';
+  const PAGE_URL = { es: './', ca: 'ca', en: 'en' };
+  textEls.forEach(el => { const k = el.dataset.i18n; if (!(k in DICT[PAGE])) DICT[PAGE][k] = el.innerHTML.trim(); });
   attrEls.forEach(el => el.dataset.i18nAttr.split(';').forEach(pair => {
     const [attr, k] = pair.split(':');
-    if (!(k in DICT.es)) DICT.es[k] = el.getAttribute(attr) || '';
+    if (!(k in DICT[PAGE])) DICT[PAGE][k] = el.getAttribute(attr) || '';
   }));
-  let lang = 'es';
+  let lang = PAGE;
   const t = k => (DICT[lang] && DICT[lang][k] != null) ? DICT[lang][k] : (DICT.es[k] != null ? DICT.es[k] : '');
 
   // Split a headline into word spans (keeping <em> for the underline), with seeded offsets.
@@ -776,10 +779,13 @@
 
   /* ================= start ================= */
   setupStores();
-  $$('.lang button').forEach(b => b.addEventListener('click', () => applyLang(b.dataset.lang, true)));
+  // A language button takes the visitor to that language's page (same spot), and remembers the choice.
+  // The page never changes language by itself: the browser's language does not decide it, so Google sees
+  // every page in its own language.
+  const goLang = l => { store.set('aula-lang', l); if (l !== PAGE) location.href = PAGE_URL[l] + location.hash; };
+  $$('.lang button').forEach(b => b.addEventListener('click', () => goLang(b.dataset.lang)));
   const fromUrl = new URLSearchParams(location.search).get('lang');
-  const nav0 = (navigator.language || 'es').slice(0, 2).toLowerCase();
-  const first = [fromUrl, store.get('aula-lang'), nav0].find(l => l && DICT[l]) || 'es';
-  applyLang(first, false);
+  if (fromUrl && DICT[fromUrl] && fromUrl !== PAGE) location.replace(PAGE_URL[fromUrl] + location.hash);
+  applyLang(PAGE, false);
   applyHeroMode();
 })();

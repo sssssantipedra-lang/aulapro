@@ -23,7 +23,12 @@
     const g = document.querySelector('.lang');
     if (g) g.setAttribute('aria-label', UI[lang].label);
     const q = lang !== 'es' ? '?lang=' + lang : '';
-    document.querySelectorAll('a[data-to]').forEach(a => { a.href = a.dataset.to.replace('#', q + '#').replace(/^([^#]*)$/, '$1' + q); });
+    // the home page has its own address per language (/, /ca, /en); the other pages take ?lang=
+    const home = { es: './', ca: 'ca', en: 'en' }[lang];
+    document.querySelectorAll('a[data-to]').forEach(a => {
+      const to = a.dataset.to;
+      a.href = /^index\.html/.test(to) ? to.replace(/^index\.html/, home) : to.replace('#', q + '#').replace(/^([^#]*)$/, '$1' + q);
+    });
     if (save) store.set('aula-lang', lang);
     // #devoluciones, #app...: jump to that heading inside the article now on screen
     const hash = decodeURIComponent(location.hash.slice(1));
