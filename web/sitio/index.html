@@ -118,7 +118,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 /* ---------- hero: the sheet that settles ---------- */
 .hero{position:relative;z-index:1;height:700vh;--text:#f3ece6;--text-2:#d8c9b6;--line:rgba(216,201,182,.16);--line-strong:rgba(216,201,182,.55);--canvas:#1e1611;color:var(--text)}
 /* del vídeo (la tarde del papeleo) al resto de la web, en crema */
-.dusk{position:relative;z-index:1;height:clamp(90px,13vh,170px);background:linear-gradient(180deg,#1e1611 0%,#4a3628 30%,#b89878 64%,#efe2d1 88%,#fbf8f3 100%);pointer-events:none}
+.dusk{display:none;position:relative;z-index:1;height:clamp(90px,13vh,170px);background:linear-gradient(180deg,#1e1611 0%,#4a3628 30%,#b89878 64%,#efe2d1 88%,#fbf8f3 100%);pointer-events:none}
 .stage{position:sticky;top:0;height:100vh;overflow:hidden;background:#2a1f17}
 .stage .poster,.stage .poster-end,.stage .static-bg{position:absolute;inset:0;background-size:cover;background-position:center}
 .stage .poster-end{opacity:0}
@@ -132,8 +132,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .scrim{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(180deg,rgba(20,14,9,.55) 0,rgba(20,14,9,0) 150px),
   linear-gradient(90deg,rgba(20,14,9,.42) 0%,rgba(20,14,9,.16) 36%,rgba(20,14,9,0) 56%),
-  radial-gradient(ellipse 120% 90% at 58% 45%,rgba(20,14,9,0) 40%,rgba(20,14,9,.55) 100%),
-  linear-gradient(180deg,rgba(30,22,17,0) 84%,rgba(30,22,17,.92) 100%)}
+  radial-gradient(ellipse 120% 90% at 58% 45%,rgba(20,14,9,0) 40%,rgba(20,14,9,.55) 100%)}
 .bands{position:absolute;inset:0;pointer-events:none}
 .band{position:absolute;left:var(--gutter);top:50%;width:min(38vw,600px);transform:translateY(-46%);opacity:0;color:var(--text);text-shadow:var(--tshadow)}
 .band.live{pointer-events:auto}
@@ -157,7 +156,8 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .band-strip .btn.ghost{background:rgba(255,255,255,.7)}
 .band-strip .btn.ghost:hover{background:#fff}
 .band.band-strip::before{display:none}
-.strip-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px clamp(20px,2.6vw,40px);padding:clamp(14px,2.2vh,22px) var(--gutter);background:rgba(251,248,243,.92);border-top:1px solid rgba(120,100,80,.18);box-shadow:0 -18px 40px -24px rgba(20,14,9,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.strip-in{position:relative;isolation:isolate;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px clamp(20px,2.6vw,40px);padding:clamp(70px,13vh,140px) var(--gutter) clamp(18px,3vh,30px);background:linear-gradient(180deg,rgba(251,248,243,0) 0%,rgba(251,248,243,.18) 22%,rgba(251,248,243,.62) 46%,rgba(251,248,243,.9) 64%,#fbf8f3 82%)}
+.strip-in::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 60%);mask-image:linear-gradient(180deg,transparent 0%,#000 60%)}
 .strip-t{color:var(--text);font:600 clamp(1rem,1.3vw,1.22rem)/1.2 var(--f-display);letter-spacing:.005em}
 .band-strip .cta-row{margin:0}
 .band-strip .arr{display:inline-block;animation:strip-arr 1.8s var(--ease-io) infinite}
@@ -213,6 +213,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 /* the five static-hero gates: identical to GATES in assets/app.js */
 @media (max-width: 720px), (orientation: portrait) and (max-width: 1024px), (orientation: portrait) and (pointer: coarse), (orientation: landscape) and (pointer: coarse) and (max-height: 560px), (prefers-reduced-motion: reduce){
   .hero{height:auto}
+  .dusk{display:block}
   .stage{position:relative;height:auto;min-height:100svh;display:flex;align-items:flex-end}
   .stage video,.stage .poster,.stage .poster-end,.bands,.cue{display:none}
   .stage .static-bg{display:block;background-image:url("assets/escritorio.jpg");background-position:40% 30%}

@@ -658,7 +658,7 @@
   let navSolid = null, inHero = null;
   function onPageScroll() {
     const y = scrollY;
-    const solid = scrubOn ? y > heroTop + heroRange + innerHeight - 90 : y > 40;
+    const solid = scrubOn ? y > heroTop + heroRange + 8 : y > 40;      // cream as soon as the film starts to leave
     if (solid !== navSolid) { nav.classList.toggle('solid', solid); navSolid = solid; }
     const ih = scrubOn && y < heroTop + heroRange;
     if (ih !== inHero) { document.body.classList.toggle('in-hero', ih); inHero = ih; }
