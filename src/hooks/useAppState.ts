@@ -832,7 +832,7 @@ export function useAppState() {
     setMarksConfigs(prev => ({ ...prev, [`${classId}|${subject}`]: cfg }));
     log('update', 'gradeCategory', `${classId}|${subject}`,
       `Bloque «Trabajo diario y actitud» de ${className(classId)}`,
-      cfg.enabled === false ? 'no cuenta en la nota' : `${String(cfg.points).replace('.', ',')} punto(s) de la nota`);
+      cfg.enabled === false ? 'no cuenta en la nota' : `${String(Math.round(cfg.points * 100) / 10).replace('.', ',')}% de la nota`);
   }, [log, className]);
 
   /**

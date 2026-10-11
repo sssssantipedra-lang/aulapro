@@ -181,19 +181,23 @@ Tiene TRES PESTAÑAS arriba:
    «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
 Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
-aula desde la Distribución de aula, el cuaderno añade este bloque, que vale
-1 PUNTO de la nota final (la nota final queda en un 90% la media de las
-categorías del docente y un 10% el bloque). Tiene tres partes que ponderan
+aula desde la Distribución de aula, el cuaderno añade este bloque, que pesa
+un PORCENTAJE de la nota final, como las categorías: un 10% si no se cambia.
+Lo normal es que las categorías y el bloque sumen 100% (por ejemplo, Pruebas
+40%, Tareas 40% y el bloque 20%). Si las categorías ya suman 100% y el bloque
+va aparte, la nota final se reparte igual: el bloque se queda con su % y las
+categorías, en proporción, con el resto. Tiene tres partes que ponderan
 un 33,33% cada una: Tareas, Comportamiento y Participación. Cada parte es una
 nota de 0 a 10: se parte de 10 en Tareas y Comportamiento y de 5 en
 Participación (que solo suma), y cada anotación suma o resta 0,5. En la
 tabla se ven como columnas de solo lectura (con −/+ de cada alumno) y la
 «Nota» del bloque. Todo se ajusta pulsando el botón del bloque junto a las
-categorías o su cabecera en la tabla: si cuenta o no en la nota, los puntos
-que vale (hasta 5), el peso de cada parte (deben sumar 100%), la nota de
-partida de cada parte y lo que suma o resta cada anotación. El bloque no
-entra en el aviso de «los pesos suman 100%». Cuenta también en informes,
-actas (donde aparece en puntos), el inicio y la IA.
+categorías o su cabecera en la tabla: si cuenta o no en la nota, su peso en
+la nota final (del 1% al 50%), el peso de cada parte (deben sumar 100%), la nota de
+partida de cada parte y lo que suma o resta cada anotación. El aviso de «los pesos
+suman…» solo sale si ni las categorías solas ni las categorías con el bloque
+suman 100%. Cuenta también en informes, actas (donde cada columna aparece
+con lo que pesa de verdad en la nota), el inicio y la IA.
 
 [attendance] ASISTENCIA
 Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
@@ -490,7 +494,7 @@ equipación», «− Sin aseo». Se elige uno y se toca a cada alumno; otro toqu
 quita. Quien está exento lleva una etiqueta con lo que no puede hacer. Cuenta en
 el Cuaderno, en el bloque «Trabajo diario y actitud», que en EF tiene tres
 partes: Vestimenta e higiene (sin equipación, sin aseo), Actitud y juego limpio
-y Participación y esfuerzo. Los puntos del bloque y el peso de cada parte se
+y Participación y esfuerzo. El % que pesa el bloque y el peso de cada parte se
 cambian en el Cuaderno, como el resto del bloque.
 
 [ef-exentos] EXENTOS Y LESIONES
@@ -894,7 +898,7 @@ tarjeta «Clave de la IA».
   Los del docente de aula traen diez clases de seis alumnos: de 1º a 4º de
   ESO con Matemáticas y de 1º a 6º de Primaria, cada una con un área. El
   cuaderno de cada una cuenta un 40% las pruebas, un 40% las tareas y un 20%
-  el trabajo diario y actitud (el bloque vale 2 puntos). Hay rúbricas, una
+  el trabajo diario y actitud (40 + 40 + 20, y se cambia pulsando cada uno). Hay rúbricas, una
   diana y evaluaciones con competencias clave y criterios oficiales, y la
   Diana competencial de cada alumno ya está rellena.
 - «Empiezo de cero, ¿por dónde?»: Mis Clases (crear la clase y sus alumnos) →

@@ -134,12 +134,12 @@ export function Records({
   }, [rows]);
 
   const totalWeight = cats.reduce((a, c) => a + c.weight, 0);
-  // El bloque de anotaciones del aula no tiene un % fijo: se le da el peso
-  // justo para valer sus puntos. Por eso no entra en el aviso de «no suman
-  // 100%» y en la cabecera se muestra en puntos.
+  // El bloque de anotaciones del aula se da en % de la nota final, como las
+  // categorías. Con él, cada columna muestra lo que pesa de verdad en la nota.
   const ownWeight = cats.filter(c => !isMarksCategory(c.id)).reduce((a, c) => a + c.weight, 0);
-  const weightLabel = (c: GradeCategory) => isMarksCategory(c.id)
-    ? t('{n} pto.', { n: (Math.round((c.weight / (totalWeight || 1)) * 100) / 10).toLocaleString(locale) })
+  const hayBloque = cats.some(c => isMarksCategory(c.id));
+  const weightLabel = (c: GradeCategory) => hayBloque
+    ? `${(Math.round((c.weight / (totalWeight || 1)) * 1000) / 10).toLocaleString(locale)}%`
     : `${c.weight}%`;
 
   const docs = window.electronAPI?.docs;
@@ -308,7 +308,7 @@ export function Records({
           <Toggle label={t('Pie de firma')} on={showSignature} onChange={setShowSignature} />
         </div>
 
-        {ownWeight !== 100 && cats.length > 0 && (
+        {ownWeight !== 100 && Math.round(totalWeight) !== 100 && cats.length > 0 && (
           <p style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 12, lineHeight: 1.5 }}>
             <strong>{t('Atención:')}</strong> {t('los pesos de las categorías suman {n}%, no 100%. La nota final se calcula igualmente en proporción, pero revisa el cuaderno antes de firmar el acta.', { n: ownWeight })}
           </p>

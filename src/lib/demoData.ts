@@ -296,19 +296,17 @@ function demoDianaProfiles(tr: Tr, evaluations: Evaluation[]): Record<string, Di
 
 /*
  * El cuaderno de cada clase (decisión del dueño, 11-10-2026): 40% pruebas,
- * 40% tareas y 20% trabajo diario y actitud. El trabajo diario es el bloque
- * que sale de las anotaciones del aula y se da en puntos: con 2 puntos sobre
- * 10, Pruebas y Tareas se reparten el resto a partes iguales (50% y 50% de
- * los otros 8), y la nota final queda en 40, 40 y 20.
+ * 40% tareas y 20% trabajo diario y actitud, que es el bloque que sale de las
+ * anotaciones del aula. Los tres suman 100.
  */
 function demoCategories(tr: Tr): GradeCategory[] {
   return CLASES.flatMap(c => [
-    { id: `${c.id}-pruebas`, class_id: c.id, name: tr('Pruebas'), weight: 50 },
-    { id: `${c.id}-tareas`, class_id: c.id, name: tr('Tareas'), weight: 50 },
+    { id: `${c.id}-pruebas`, class_id: c.id, name: tr('Pruebas'), weight: 40 },
+    { id: `${c.id}-tareas`, class_id: c.id, name: tr('Tareas'), weight: 40 },
   ]);
 }
 
-/** El bloque «Trabajo diario y actitud» de cada clase: 2 puntos, el 20% de la nota. */
+/** El bloque «Trabajo diario y actitud» de cada clase: el 20% de la nota (se guarda como 2 puntos sobre 10). */
 function demoMarksConfigs(tr: Tr): Record<string, MarksBlockConfig> {
   return Object.fromEntries(CLASES.map(c => [`${c.id}|${tr(c.asignatura)}`, {
     enabled: true, points: 2,
