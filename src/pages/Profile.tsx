@@ -220,6 +220,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
       {!current && (
         <p className="st-creditos">
           <strong>{t('Créditos')}.</strong> {t('Pictogramas de la agenda visual:')} {ATRIBUCION_MULBERRY}
+          {/* Antes al pie del menú lateral: aquí no estorban y se siguen viendo */}
+          <br />{t('Diseñada sobre el currículo educativo español (LOMLOE)')} · © 2026 Santiago Pedra Calás · Aula Pro v{__APP_VERSION__}
         </p>
       )}
 

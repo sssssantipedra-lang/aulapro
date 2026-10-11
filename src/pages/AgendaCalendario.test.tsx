@@ -15,7 +15,7 @@ beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 function pinta(comunidad?: ComunidadId) {
-  render(
+  const r = render(
     <I18nProvider><ToastProvider>
       <Agenda
         classes={[]} scheduleBlocks={[]} calEvents={[]} comunidad={comunidad}
@@ -24,6 +24,8 @@ function pinta(comunidad?: ComunidadId) {
       />
     </ToastProvider></I18nProvider>,
   );
+  // La Agenda se abre en la semana: el calendario escolar está en el mes
+  fireEvent.click(r.getByRole('tab', { name: 'Mensual' }));
 }
 
 const dia = (n: number) => [...document.querySelectorAll('.cal-day:not(.other-month)')].find(d => d.textContent?.startsWith(String(n)) && d.querySelector('span')?.textContent === String(n))!;

@@ -7,16 +7,24 @@
  *
  *   - Tu día a día: Inicio, Mis clases, Agenda, Cuaderno, Asistencia.
  *   - Tres «apartados» que reúnen pantallas hermanas, con pestañas arriba:
- *       Evaluar     → Rúbricas, Diana, Autoevaluaciones, Historial
- *       Documentos  → Informes, Actas, Situaciones de aprendizaje, Recursos
- *       En clase    → Distribución de aula, Aula Live, Sala de alumnos
- *   - Más (plegado): Reuniones, Formaciones, Trabajo compartido, Registro
- *     de cambios y Mi perfil.
+ *       Evaluar     → Portada, Rúbricas, Dianas, Diana competencial,
+ *                     Autoevaluaciones, Historial
+ *       Documentos  → Portada, Informes, Actas, Situaciones de aprendizaje,
+ *                     Recursos
+ *       En clase    → Portada, Anotar actitud, Distribución de aula,
+ *                     Pizarra y herramientas, Actividades con móviles
+ *   - Centro y equipo: Reuniones, Formaciones y Trabajo compartido.
+ *   - Abajo, sin color y separadas del resto: Configuración y Registro de
+ *     cambios.
+ *
+ * Desde el 11-10-2026 no hay grupos plegables ni «Más»: escondían
+ * Reuniones, Formaciones y Trabajo compartido, y costaba encontrarlos. Cada
+ * entrada lleva su color (Sidebar.tsx) para reconocerla de un vistazo.
  *
  * El profesorado especialista de PT y AL tiene su propio menú (decisión del
  * dueño, 5-10-2026: quien es de PT o de AL normalmente no es tutor). Lleva su
  * trabajo de apoyo como entradas sueltas, lo común de todo el profesorado y
- * Aula Live; nada de clases, cuaderno ni evaluación del grupo. Desde el
+ * la pizarra y herramientas (Aula Live); nada de clases, cuaderno ni evaluación del grupo. Desde el
  * 6-10-2026, lo de cada alumno (programa, sesiones, coordinaciones y
  * documentos) está en su página, a la que se llega desde «Mi alumnado»: el
  * menú se queda en lo que se usa cada día. Ver `docs/PTAL.md`.
@@ -42,6 +50,11 @@ export interface NavHub {
   label: string;
   /** Para qué sirve, en una frase: se ve bajo las pestañas y en el tooltip del menú. */
   hint: string;
+  /**
+   * Su primera pestaña es una portada, y entrar desde el menú abre siempre la
+   * portada en vez de la última pestaña usada.
+   */
+  portada?: boolean;
   icon: NavIcon;
   tabs: { id: Section; label: string }[];
 }
@@ -54,8 +67,14 @@ export const HUBS: readonly NavHub[] = [
   {
     id: 'evaluate', label: 'Evaluar', icon: 'evaluate',
     hint: 'Evalúa con rúbricas o con la diana competencial, recoge autoevaluaciones y consulta todo lo evaluado.',
+    // Al entrar, dos tarjetas grandes (rúbricas o dianas) y cómo va cada clase
+    // (decisión del dueño, 11-10-2026). Rúbricas y Dianas eran una sola
+    // pantalla con sus propias pestañas, repetidas con las de arriba.
+    portada: true,
     tabs: [
+      { id: 'evaluar',    label: 'Resumen' },
       { id: 'rubrics',    label: 'Rúbricas' },
+      { id: 'dianas',     label: 'Dianas' },
       { id: 'diana',      label: 'Diana competencial' },
       { id: 'selfassess', label: 'Autoevaluaciones' },
       { id: 'history',    label: 'Historial' },
@@ -64,7 +83,10 @@ export const HUBS: readonly NavHub[] = [
   {
     id: 'documents', label: 'Documentos', icon: 'documents',
     hint: 'Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje y fichas.',
+    // Al entrar, una tarjeta grande por pantalla, como Evaluar (11-10-2026)
+    portada: true,
     tabs: [
+      { id: 'documentos',          label: 'Resumen' },
       { id: 'reports',             label: 'Informes' },
       { id: 'records',             label: 'Actas' },
       { id: 'learning-situations', label: 'Situaciones de aprendizaje' },
@@ -73,11 +95,17 @@ export const HUBS: readonly NavHub[] = [
   },
   {
     id: 'inclass', label: 'En clase', icon: 'inclass',
-    hint: 'Lo que usas con el alumnado delante: cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.',
+    hint: 'Lo que usas con el alumnado delante: anotar la actitud, cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.',
+    // Al entrar, una portada con la clase que toca y una tarjeta por
+    // herramienta (decisión del dueño, 11-10-2026). «Aula Live» y «Sala de
+    // alumnos» se llaman ahora por lo que hacen; la web aún usa esos nombres.
+    portada: true,
     tabs: [
+      { id: 'enclase',        label: 'Resumen' },
+      { id: 'actitud',        label: 'Anotar actitud' },
       { id: 'seating',        label: 'Distribución de aula' },
-      { id: 'sec-classroom',  label: 'Aula Live' },
-      { id: 'classroom-live', label: 'Sala de alumnos' },
+      { id: 'sec-classroom',  label: 'Pizarra y herramientas' },
+      { id: 'classroom-live', label: 'Actividades con móviles' },
     ],
   },
   {
@@ -97,7 +125,8 @@ export const HUBS: readonly NavHub[] = [
   },
 ];
 
-type NavGroups = readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[];
+/** `pie`: el grupo va abajo del todo, sin título ni color (lo de la cuenta). */
+type NavGroups = readonly { sect: string; items: NavEntry[]; pie?: boolean }[];
 
 const link = (id: Section, label: string, icon: NavIcon): NavEntry => ({ kind: 'link', id, label, icon });
 const hub = (id: NavHub['id']): NavEntry => ({ kind: 'hub', ...HUBS.find(h => h.id === id)! });
@@ -118,14 +147,19 @@ export const NAV_GROUPS: NavGroups = [
     items: [hub('evaluate'), hub('documents'), hub('inclass')],
   },
   {
-    sect: 'Más',
-    collapsedByDefault: true,
+    sect: 'Centro y equipo',
     items: [
       link('meetings',  'Reuniones',           'meetings'),
       link('trainings', 'Formaciones',         'trainings'),
       link('share',     'Trabajo compartido',  'share'),
-      link('audit',     'Registro de cambios', 'audit'),
+    ],
+  },
+  {
+    sect: 'Cuenta',
+    pie: true,
+    items: [
       link('profile',   'Configuración',       'profile'),
+      link('audit',     'Registro de cambios', 'audit'),
     ],
   },
 ];
@@ -149,17 +183,22 @@ export const NAV_APOYO: NavGroups = [
     items: [
       link('apoyo-agenda-visual', 'Agenda visual', 'pictos'),
       link('resources',     'Recursos',  'resources'),
-      link('sec-classroom', 'Aula Live', 'live'),
+      link('sec-classroom', 'Pizarra y herramientas', 'live'),
     ],
   },
   {
-    sect: 'Más',
-    collapsedByDefault: true,
+    sect: 'Centro y equipo',
     items: [
       link('meetings',  'Reuniones',           'meetings'),
       link('trainings', 'Formaciones',         'trainings'),
-      link('audit',     'Registro de cambios', 'audit'),
+    ],
+  },
+  {
+    sect: 'Cuenta',
+    pie: true,
+    items: [
       link('profile',   'Configuración',       'profile'),
+      link('audit',     'Registro de cambios', 'audit'),
     ],
   },
 ];
@@ -219,8 +258,9 @@ export function rememberTab(section: Section): void {
   try { localStorage.setItem(LAST_KEY, JSON.stringify({ ...readLast(), [h.id]: section })); } catch { /* sin almacenamiento */ }
 }
 
-/** La pantalla que abre un apartado: la última usada, o la primera. */
+/** La pantalla que abre un apartado: su portada, o la última usada, o la primera. */
 export function hubTarget(h: NavHub): Section {
+  if (h.portada) return h.tabs[0].id;
   const last = readLast()[h.id];
   return last && h.tabs.some(t => t.id === last) ? last : h.tabs[0].id;
 }

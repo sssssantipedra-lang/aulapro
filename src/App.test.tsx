@@ -23,7 +23,7 @@ describe('Aula Pro', () => {
 
     // Mis Clases abre el currículo estatal al entrar, y aquí con toda la
     // batería en marcha eso puede pasar del segundo que se espera por defecto
-    expect(await screen.findByText(/3 clases · 13 alumnos/, {}, { timeout: 5000 })).toBeTruthy();
+    expect(await screen.findByText(/10 clases · 60 alumnos/, {}, { timeout: 5000 })).toBeTruthy();
   });
 
   it('los datos de ejemplo siguen ahí al volver a abrir la app', async () => {
@@ -37,7 +37,7 @@ describe('Aula Pro', () => {
 
     render(<I18nProvider><App /></I18nProvider>);
     await user.click(await screen.findByRole('button', { name: /Mis Clases/ }));
-    expect(await screen.findByText(/3 clases · 13 alumnos/, {}, { timeout: 5000 })).toBeTruthy();
+    expect(await screen.findByText(/10 clases · 60 alumnos/, {}, { timeout: 5000 })).toBeTruthy();
   });
 
   describe('comunidad autónoma', () => {
@@ -144,9 +144,9 @@ describe('Aula Pro', () => {
     }
 
     const apartados: [string, string[]][] = [
-      ['Evaluar', ['Rúbricas', 'Diana competencial', 'Autoevaluaciones', 'Historial']],
-      ['Documentos', ['Informes', 'Actas']],
-      ['En clase', ['Distribución de aula', 'Sala de alumnos']],
+      ['Evaluar', ['Rúbricas', 'Dianas', 'Diana competencial', 'Autoevaluaciones', 'Historial', 'Resumen']],
+      ['Documentos', ['Informes', 'Actas', 'Resumen']],
+      ['En clase', ['Anotar actitud', 'Distribución de aula', 'Actividades con móviles', 'Resumen']],
     ];
     for (const [apartado, pestañas] of apartados) {
       await menu(apartado);
@@ -156,8 +156,7 @@ describe('Aula Pro', () => {
       }
     }
 
-    // «Más» empieza plegado
-    await user.click(screen.getByRole('button', { name: /^Más/ }));
+    // Todo a la vista, sin grupos plegados (11-10-2026)
     for (const nombre of ['Reuniones', 'Formaciones', 'Trabajo compartido', 'Registro de cambios', 'Configuración']) {
       await menu(nombre);
       await h1(nombre);

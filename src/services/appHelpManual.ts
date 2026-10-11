@@ -65,19 +65,29 @@ materias), «Educación Física» (con la casilla de tutoría si también es tut
 «PT y AL» (profesorado especialista de apoyo). Cada tipo tiene su menú y su
 Inicio. Lo que sigue es el del docente de aula; el de EF y el de PT y AL están
 más abajo. El tipo se cambia en Configuración → Perfil.
-Barra lateral a la izquierda, organizada por tareas, con tres grupos:
+Barra lateral a la izquierda, organizada por tareas. Cada entrada lleva su
+icono en un cuadradito de color. Todo está a la vista, en tres grupos:
 - «Tu día a día»: Inicio, Mis Clases, Agenda, Cuaderno de Notas y Asistencia.
 - «Trabajo docente»: tres APARTADOS que reúnen pantallas hermanas. Al entrar
   en uno aparecen PESTAÑAS arriba para pasar de una a otra:
-    · Evaluar → Rúbricas, Diana competencial, Autoevaluaciones e Historial.
-    · Documentos → Informes, Actas, Situaciones de aprendizaje y Recursos.
-    · En clase → Distribución de aula, Aula Live y Sala de alumnos.
-  Cada apartado recuerda la última pestaña usada. Al entrar en uno, la barra
+    · Evaluar → Resumen, Rúbricas, Dianas, Diana competencial,
+      Autoevaluaciones e Historial. Al entrar desde el menú abre siempre el
+      Resumen.
+    · Documentos → Resumen, Informes, Actas, Situaciones de aprendizaje y
+      Recursos. Al entrar desde el menú abre siempre el Resumen.
+    · En clase → Resumen, Anotar actitud, Distribución de aula, Pizarra y
+      herramientas (Aula Live) y Actividades con móviles (la Sala de
+      alumnos). Al entrar desde el menú abre siempre el Resumen. Al entrar en uno, la barra
   de pestañas parpadea dos veces del color de la app para que se vea dónde
   elegir (no lo hace si el sistema tiene activado «reducir movimiento»).
-- «Más» (plegado al principio; se abre pulsando «Más»): Reuniones,
-  Formaciones, Trabajo compartido, Registro de cambios y Configuración. A Configuración
-  también se llega pulsando el nombre del docente, arriba del todo.
+- «Centro y equipo»: Reuniones, Formaciones y Trabajo compartido.
+Abajo del todo, sin color: Configuración, Registro de cambios y Cerrar sesión.
+A Configuración también se llega pulsando el nombre del docente, arriba del
+todo.
+En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
+Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
+más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
+flechas a los lados para pasar a la anterior o la siguiente. La versión de la aplicación y los créditos están al pie de Configuración.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
 pulsando su cabecera, y la barra entera se estrecha con la flecha de arriba. En
@@ -90,26 +100,34 @@ Escape.
 
 [dashboard] INICIO
 Dice «qué toca ahora». Arriba, el saludo con un resumen (clases de hoy, tareas
-pendientes, alumnos con avisos). Debajo, una tarjeta grande con la clase de
-AHORA (o la siguiente, «Siguiente, a las 11:00») y tres botones: «Pasar lista»,
-«Anotar en el aula» (lleva a la Distribución de aula) y «Cuaderno»; a su lado,
-«Tu día» con todas las clases de hoy (las pasadas, atenuadas). Si ya no quedan
-clases, lo dice y propone ir al Cuaderno. Más abajo, cuatro tarjetas quietas:
-Tareas (se marcan y se añaden desde aquí), Próximos eventos, «Necesitan
-atención» (alumnos con avisos) y «Cómo van tus clases» (media de cada clase y
-cuántos están por debajo de 5).
+pendientes, alumnos con avisos). Debajo, la tarjeta «TU JORNADA»: las clases
+del día en una línea de tiempo (las pasadas, atenuadas; la de ahora, marcada)
+con la etiqueta «Ahora» o «Siguiente, a las 11:00». Si hoy ya no quedan
+clases, enseña el próximo día lectivo («Mañana · lunes 12» o «Próximo día
+lectivo»). «Ver la semana» lleva a la Agenda. En la misma tarjeta, cuatro
+ATAJOS: «Pasar lista» (Asistencia), «Añadir nota» (Cuaderno), «Evaluar» (la
+portada de Evaluar) y «Nueva tarea»; en Educación Física, también «Observar en
+la pista». Más abajo, tres columnas: Tareas (se marcan y se añaden desde
+aquí), Próximos eventos y «Necesitan atención» (alumnos con avisos); en EF,
+además, Exentos y lesiones, Próximas sesiones y Pruebas físicas. Al final,
+«Cómo van tus clases»: una minitarjeta por clase con su media, que solo
+avisa si hay alumnos por debajo de 5 o si aún no tiene notas.
 PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
 al hacerlos: 1) crear la primera clase con su alumnado, 2) añadir el horario
 (mejor escaneándolo en la Agenda), 3) decidir cómo se evalúa (categorías del
 Cuaderno), 4) pasar lista por primera vez y 5) conectar la IA (opcional). Cada
-paso tiene un botón que lleva a la pantalla. Con la flecha de la esquina la
-guía se minimiza a una sola línea (progreso, paso siguiente y su botón) y se
-vuelve a abrir pulsándola; desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
+paso tiene un botón que lleva a la pantalla. La guía sale plegada en una sola
+línea (progreso, paso siguiente y su botón) y se despliega pulsándola o con la
+flecha de la esquina; desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
 la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
 [classes] MIS CLASES
-El punto de partida de todo. Se crea una clase con nombre, aula y color; se
+El punto de partida de todo. Con varias clases, se entra por una PORTADA de
+tarjetas agrupadas en Primaria, ESO y otras clases: cada tarjeta lleva el
+color, la asignatura, cuántos alumnos tiene, cuántos tienen avisos y la media
+de la clase. Al pulsar una se ve su alumnado; «Todas las clases» vuelve a la
+portada. Con una sola clase se entra directamente en ella. Se crea una clase con nombre, aula y color; se
 puede marcar como tutoría. Se eligen ETAPA Y CURSO (Primaria 1º-6º o ESO 1º-4º,
 obligatorios) y aparecen las asignaturas de ese curso tal y como las llama el
 currículo de la comunidad del perfil: se marcan las que se dan (una o varias).
@@ -128,7 +146,12 @@ SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes
 [agenda] AGENDA
 Dos cosas: el horario semanal (bloques de día, hora de inicio y fin, asignatura,
 aula y clase) y el calendario de eventos (entregas, reuniones y eventos, con
-urgencia alta/media/baja). Tiene «Escanear horario»: se sube el horario del
+urgencia alta/media/baja). Se abre en la vista SEMANAL: el horario de lunes a
+viernes, desde las 8:00 hasta la hora de la última clase (también las de la
+tarde), y encima de cada día sus eventos; pulsando uno se edita. La pestaña
+«Mensual» tiene el calendario con los eventos y el calendario escolar. Arriba,
+«+ Nuevo evento» y el menú «Horario», con «Escanear horario», «Nuevo bloque» y
+«Borrar horario». En «Escanear horario»: se sube el horario del
 centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia
 la tabla celda a celda; la propia aplicación calcula el día y la hora de cada
 sesión por su posición, así que las celdas vacías o el recreo no descolocan
@@ -137,8 +160,7 @@ sesión se quita si no es tuya. Si ya había horario, se puede marcar
 «Sustituir mi horario actual» para que el escaneado lo reemplace en vez de
 sumarse. Consejo: una foto recta y nítida, o mejor el Excel del centro, da el
 mejor resultado.
-Para empezar de cero, el botón «Borrar horario» (arriba, junto a «Nuevo
-bloque») quita todas las sesiones del horario semanal tras pedir
+Para empezar de cero, «Borrar horario» (en el menú «Horario») quita todas las sesiones del horario semanal tras pedir
 confirmación; los eventos del calendario no se tocan.
 CALENDARIO ESCOLAR: con un perfil de la Comunitat Valenciana, Cataluña o
 Madrid, la vista mensual sombrea los días no lectivos de la comunidad y pinta
@@ -173,23 +195,31 @@ Tiene TRES PESTAÑAS arriba:
    «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
 Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
-aula desde la Distribución de aula, el cuaderno añade este bloque, que vale
-1 PUNTO de la nota final (la nota final queda en un 90% la media de las
-categorías del docente y un 10% el bloque). Tiene tres partes que ponderan
+aula (desde En clase → Anotar actitud, o desde la Distribución de aula), el
+cuaderno añade este bloque, que pesa
+un PORCENTAJE de la nota final, como las categorías: un 10% si no se cambia.
+Lo normal es que las categorías y el bloque sumen 100% (por ejemplo, Pruebas
+40%, Tareas 40% y el bloque 20%). Si las categorías ya suman 100% y el bloque
+va aparte, la nota final se reparte igual: el bloque se queda con su % y las
+categorías, en proporción, con el resto. Tiene tres partes que ponderan
 un 33,33% cada una: Tareas, Comportamiento y Participación. Cada parte es una
 nota de 0 a 10: se parte de 10 en Tareas y Comportamiento y de 5 en
 Participación (que solo suma), y cada anotación suma o resta 0,5. En la
 tabla se ven como columnas de solo lectura (con −/+ de cada alumno) y la
 «Nota» del bloque. Todo se ajusta pulsando el botón del bloque junto a las
-categorías o su cabecera en la tabla: si cuenta o no en la nota, los puntos
-que vale (hasta 5), el peso de cada parte (deben sumar 100%), la nota de
-partida de cada parte y lo que suma o resta cada anotación. El bloque no
-entra en el aviso de «los pesos suman 100%». Cuenta también en informes,
-actas (donde aparece en puntos), el inicio y la IA.
+categorías o su cabecera en la tabla: si cuenta o no en la nota, su peso en
+la nota final (del 1% al 50%), el peso de cada parte (deben sumar 100%), la nota de
+partida de cada parte y lo que suma o resta cada anotación. El aviso de «los pesos
+suman…» solo sale si ni las categorías solas ni las categorías con el bloque
+suman 100%. Cuenta también en informes, actas (donde cada columna aparece
+con lo que pesa de verdad en la nota), el inicio y la IA.
 
 [attendance] ASISTENCIA
-Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
-justificada. Hay botón de «Todos presentes» para marcar la clase entera de
+Pasar lista por clase y día. Al entrar se abre la clase que toca según el
+horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
+arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
+Justificada (en el móvil, solo el icono); pulsar el nombre del alumno va
+cambiando el estado. Hay botón de «Todos presentes» para marcar la clase entera de
 golpe. El porcentaje de asistencia cuenta el retraso y la falta justificada como
 asistencia. Se exporta a CSV.
 
@@ -207,17 +237,24 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   «Generar grupos con IA». La IA reparte al alumnado real en mesas EQUILIBRADAS
   y MULTINIVEL usando la media ponderada, la asistencia y los avisos de cada
   alumno, sin inventar ninguno. Sustituye la distribución que hubiera.
-- Cada mesa se dibuja como un semicírculo con los asientos numerados y, debajo,
-  la lista de asientos con el nombre y el rol de cada alumno.
+- Cada mesa se dibuja con los asientos numerados y, debajo, la lista de
+  asientos con el nombre y el rol de cada alumno. La FORMA DE LAS MESAS se
+  elige en «Mesas y roles»: «Mesas cooperativas» (piezas curvas alrededor
+  de un centro, como un semicírculo) o «Mesas cuadradas» (pupitres juntos en
+  dos filas, unos frente a otros). Solo cambia el dibujo, también en el PDF.
 - Sentar a mano: si hay alumnos sin mesa aparece abajo la bandeja
   «Sin mesa asignada». Se ARRASTRA un alumno hasta un asiento (en la lista o en el
   dibujo), o se toca el alumno y después «Sentar aquí». También se puede
   arrastrar a un alumno de un asiento a otro (si estaba ocupado, se
   intercambian) o devolverlo a la bandeja. Para quitar a alguien de su asiento
   se usa la × de su fila. Con todo el alumnado sentado la bandeja desaparece.
+  La bandeja se puede «Plegar» para que no tape las mesas, y su botón
+  «Sentar por orden de lista» sienta a todos los que faltan en los asientos
+  libres, mesa a mesa.
 - Las flechas de rotación cambian los roles dentro de cada mesa cada semana
   sin cambiar quién se sienta con quién; la otra flecha deshace la rotación.
-- ANOTACIONES DEL AULA: cada alumno sentado tiene a la derecha de su fila un
+- ANOTACIONES DEL AULA (lo más rápido es En clase → Anotar actitud, sin
+  sentar a nadie): cada alumno sentado tiene a la derecha de su fila un
   banderín. Al tocarlo se abre «Anotar a …» con cinco botones de un toque:
   «Sin tarea», «Sin material», «Mal comportamiento», «Buen comportamiento» y
   «Participa» (si la clase tiene varias asignaturas, se elige antes cuál). En
@@ -229,7 +266,46 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
 Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
 
+[enclase] EN CLASE (RESUMEN)
+La portada del apartado En clase. Arriba, si el horario lo dice, la clase que
+toca ahora (o la siguiente de hoy) con dos botones: «Pasar lista» y «Anotar
+actitud». Debajo, cuatro tarjetas grandes: Anotar actitud, Distribución de
+aula, Pizarra y herramientas (Aula Live) y Actividades con móviles.
+
+[actitud] ANOTAR ACTITUD
+La forma rápida de anotar el trabajo diario y la actitud: toda la clase en
+una lista y, en cada fila, un botón por anotación: «Participa», «Buen
+comportamiento», «Mal comportamiento», «Sin tarea» y «Sin material» (en
+Educación Física, las de la pista). Un toque, una anotación; no hace falta
+sentar antes a nadie. Se abre en la clase que toca según el horario.
+- Arriba, el selector de clase y, si la clase tiene varias asignaturas, cuál.
+- El número sobre cada botón es lo anotado ese día; la flecha de la fila
+  deshace la última anotación de ese alumno ese día. A la derecha, la nota del
+  bloque sobre 10. Quien tiene falta ese día sale marcado «Falta».
+- Se cambia de día con las flechas de la fecha.
+- Cuenta en el bloque «Trabajo diario y actitud» del CUADERNO DE NOTAS (ver
+  Cuaderno de notas), igual que lo anotado desde la Distribución de aula.
+  «Ajustar en el cuaderno» lleva a cambiar cuánto pesa y cuánto vale cada
+  anotación.
+- Se llega también desde el atajo «Anotar actitud» del Inicio y desde el
+  botón «Anotar» junto al bloque en el Cuaderno (abre esa misma clase).
+
 === EVALUAR Y DOCUMENTOS ===
+
+[documentos] DOCUMENTOS (RESUMEN)
+La portada del apartado Documentos: cuatro tarjetas grandes, una por pantalla
+(Informes, Actas, Situaciones de aprendizaje y Recursos), con para qué sirve
+cada una y cuánto hay hecho (informes redactados, clases con notas,
+situaciones y recursos guardados). Al pulsar una, se abre.
+
+[evaluar] EVALUAR (RESUMEN)
+La portada del apartado Evaluar. Dos tarjetas grandes: «Evaluar por rúbricas»
+(lleva a Rúbricas) y «Evaluar por dianas» (lleva a Dianas). Debajo, «Cómo va
+cada clase»: un gráfico de barras con la nota media de cada rúbrica en una
+clase, sobre 10, con una raya en el 5. Pasa solo de una clase a otra cada
+pocos segundos, como un carrusel; se para al poner el ratón encima, y se
+cambia a mano con las flechas o los puntos. Solo cuenta las evaluaciones con
+rúbrica. Si el sistema tiene «reducir movimiento», no pasa solo.
 
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y
@@ -247,6 +323,13 @@ buscador. Arriba se ven las competencias clave y las específicas que trabaja.
 Al evaluar, la nota de cada criterio va a sus competencias clave (Diana
 competencial) y a sus criterios oficiales. Las rúbricas y dianas que se crean
 desde una situación de aprendizaje ya lo traen marcado.
+
+[dianas] DIANAS
+El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
+dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
+evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
+IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
+nota entra en el cuaderno si declara clase y categoría.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
@@ -423,7 +506,10 @@ Al pulsar «Guardar» la copia se borra.
 
 === EN CLASE Y OTRAS HERRAMIENTAS ===
 
-[sec-classroom] AULA LIVE
+[sec-classroom] PIZARRA Y HERRAMIENTAS (AULA LIVE)
+Antes se llamaba solo «Aula Live». Arriba a la izquierda se elige la CLASE:
+la ruleta usa los nombres de esa clase (se abre en la que toca según el
+horario).
 Herramientas para proyectar en clase: temporizador, sorteo de alumnos (se puede
 ir sacando sin repetir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel.
@@ -432,7 +518,9 @@ defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
 oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
 próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
 
-[classroom-live] SALA DE ALUMNOS
+[classroom-live] ACTIVIDADES CON MÓVILES (SALA DE ALUMNOS)
+Antes se llamaba «Sala de alumnos». Solo funciona en la aplicación instalada
+(Windows o Android); en la versión de navegador se explica qué hace y cómo.
 Levanta un servidor en el propio ordenador para que los alumnos entren desde el
 móvil escaneando un QR o escribiendo un código, sin instalar nada y sin
 necesidad de internet (misma red wifi). Actividades: autoevaluación con una
@@ -466,7 +554,7 @@ equipación», «− Sin aseo». Se elige uno y se toca a cada alumno; otro toqu
 quita. Quien está exento lleva una etiqueta con lo que no puede hacer. Cuenta en
 el Cuaderno, en el bloque «Trabajo diario y actitud», que en EF tiene tres
 partes: Vestimenta e higiene (sin equipación, sin aseo), Actitud y juego limpio
-y Participación y esfuerzo. Los puntos del bloque y el peso de cada parte se
+y Participación y esfuerzo. El % que pesa el bloque y el peso de cada parte se
 cambian en el Cuaderno, como el resto del bloque.
 
 [ef-exentos] EXENTOS Y LESIONES
@@ -607,7 +695,7 @@ escribe sola) o después en Configuración → Perfil. Al cambiar de tipo no se
 borra nada. Su MENÚ es otro:
 - «Tu día a día»: Inicio, Registro diario, Mi alumnado y Agenda.
 - «Herramientas»: Agenda visual, Recursos (con «Adaptada a», una ficha para un
-  alumno de apoyo) y Aula Live (la ruleta y los grupos salen de su alumnado de
+  alumno de apoyo) y Pizarra y herramientas (Aula Live; la ruleta y los grupos salen de su alumnado de
   apoyo).
 - «Más»: Reuniones, Formaciones, Registro de cambios y Configuración.
 No tiene Mis Clases, Cuaderno, Asistencia, Evaluar ni Trabajo compartido.
@@ -867,6 +955,12 @@ tarjeta «Clave de la IA».
   sale un aviso para Recuperar lo escrito; se autoguarda cada minuto.
 - «Quiero probar sin meter datos reales»: en la pantalla de bienvenida,
   «Explorar con datos de ejemplo»; o en Inicio, «Cargar datos de ejemplo».
+  Los del docente de aula traen diez clases de seis alumnos: de 1º a 4º de
+  ESO con Matemáticas y de 1º a 6º de Primaria, cada una con un área. El
+  cuaderno de cada una cuenta un 40% las pruebas, un 40% las tareas y un 20%
+  el trabajo diario y actitud (40 + 40 + 20, y se cambia pulsando cada uno). Hay rúbricas, una
+  diana y evaluaciones con competencias clave y criterios oficiales, y la
+  Diana competencial de cada alumno ya está rellena.
 - «Empiezo de cero, ¿por dónde?»: Mis Clases (crear la clase y sus alumnos) →
   Cuaderno de Notas (categorías con sus pesos) → ya se pueden poner notas, pasar
   lista y sacar actas e informes.

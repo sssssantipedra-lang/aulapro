@@ -115,10 +115,14 @@ export function demoSnapshot(lang: Lang = 'es'): ProfileSnapshot {
     blocks: d.scheduleBlocks,
     events: d.calEvents,
     rubrics: d.rubrics,
+    dianas: d.dianas,
+    evaluations: d.evaluations,
+    dianaProfiles: d.dianaProfiles,
     gradeCategories: d.gradeCategories,
     gradeItems: d.gradeItems,
     grades: d.grades,
     classMarks: d.classMarks,
+    marksConfigs: d.marksConfigs,
   };
 }
 
@@ -828,7 +832,7 @@ export function useAppState() {
     setMarksConfigs(prev => ({ ...prev, [`${classId}|${subject}`]: cfg }));
     log('update', 'gradeCategory', `${classId}|${subject}`,
       `Bloque «Trabajo diario y actitud» de ${className(classId)}`,
-      cfg.enabled === false ? 'no cuenta en la nota' : `${String(cfg.points).replace('.', ',')} punto(s) de la nota`);
+      cfg.enabled === false ? 'no cuenta en la nota' : `${String(Math.round(cfg.points * 100) / 10).replace('.', ',')}% de la nota`);
   }, [log, className]);
 
   /**

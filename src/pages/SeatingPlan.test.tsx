@@ -120,4 +120,19 @@ describe('Distribución de aula', () => {
     await user.click(screen.getByRole('button', { name: 'Quitar esta anotación' }));
     expect(marks).toHaveLength(0);
   });
+
+  it('«Sentar por orden de lista» sienta a todos y las mesas pueden ser cuadradas', async () => {
+    const user = userEvent.setup();
+    let last: Plan | undefined;
+    render(<Harness onPlan={p => { last = p; }} />);
+
+    await user.click(screen.getAllByRole('button', { name: 'Sentar por orden de lista' })[0]);
+    expect(last?.groups[0].studentIds).toEqual(['s1', 's2', 's3', '']);
+    expect(screen.getByText('Todos sentados')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /Mesas y roles/ }));
+    await user.click(screen.getByRole('radio', { name: /Mesas cuadradas/ }));
+    expect(last?.forma).toBe('cuadrada');
+    expect(mesa(1).querySelector('.seat-svg path')).toBeNull();
+  });
 });

@@ -46,7 +46,7 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
      - Desde el 6-10-2026, «Desde una foto» en Actividades: la foto que adjunta el docente va a Google reducida (1280 px) y sin metadatos, porque se vuelve a hacer en JPEG (`fotoParaIA`), y no se guarda. La privacidad lo dice en los tres idiomas y pide no usar fotos en las que se reconozca al alumnado; la pantalla también.
    - Las condiciones dicen que los pictogramas de la agenda visual (Mulberry Symbols, CC BY-SA 4.0) se rigen por su propia licencia, no por la de AulaPro.
    - Desde el 6-10-2026 tampoco se envía el nombre del docente: ni en el asistente (antes iba «Docente: nombre · Centro: …») ni en la situación de aprendizaje («para el grupo de nombre»). No hacía falta para responder. El centro, la asignatura y el curso escolar siguen yendo al asistente.
-9. Sala de alumnos: servidor local; el alumnado entra por la wifi del aula con un código QR. No pasa por internet.
+9. Actividades con móviles (la sala de alumnos; hasta el 11-10-2026 se llamaba «Sala de alumnos»): servidor local; el alumnado entra por la wifi del aula con un código QR. No pasa por internet.
 10. Trabajo compartido entre docentes sin pasar por servidores de AulaPro.
 11. Copia de seguridad automática cada 10 minutos, en el propio equipo.
 12. Actualizaciones: la app comprueba si hay versión nueva sin enviar datos del alumnado. En Windows se actualiza sola; en Mac, a mano.

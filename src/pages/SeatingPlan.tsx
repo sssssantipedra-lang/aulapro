@@ -1,6 +1,7 @@
 /**
  * Distribución de aula: grupos cooperativos con mesas en abanico (como las
- * mesas trapezoidales reales del aula), roles rotativos y reparto
+ * mesas trapezoidales reales del aula) o cuadradas (`SeatingPlan.forma`,
+ * decisión del dueño del 11-10-2026), roles rotativos y reparto
  * equilibrado y multinivel generado por la IA a partir de datos reales.
  *
  * Una distribución por clase, no una lista: es la disposición física de
@@ -12,13 +13,19 @@
 import { useMemo, useState } from 'react';
 import {
   Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical, Flag,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, AttendanceMap, SeatingPlan, CooperativeRole, ClassMark, MarksBlockConfig } from '../types';
 import { seatStudentId } from '../types';
 import { weightedAverage, attendanceRate } from '../services/aiContext';
 import { generateBalancedGroups, type StudentForGrouping } from '../services/classGroups';
 import { hasApiKey } from '../services/gemini';
-import { buildTableSvg } from '../lib/seatingLayout';
+import { buildTableSvg, type FormaMesa } from '../lib/seatingLayout';
+
+const FORMAS: { id: FormaMesa; label: string; texto: string }[] = [
+  { id: 'cooperativa', label: 'Mesas cooperativas', texto: 'Piezas curvas alrededor de un centro' },
+  { id: 'cuadrada', label: 'Mesas cuadradas', texto: 'Pupitres juntos, unos frente a otros' },
+];
 import { saveSeatingPdf, saveSeatingDocx, roleForSeat, vecesLabel } from '../services/exportSeating';
 import { PALETTE } from '../lib/demoData';
 import { isDesktop } from '../services/storage';
@@ -101,6 +108,8 @@ export function SeatingPlan({
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
   /** Alumno al que se está anotando algo (sin tarea, comportamiento…). */
   const [marking, setMarking] = useState<Student | null>(null);
+  // La bandeja de «sin mesa» se puede plegar para que no tape las mesas
+  const [dockMin, setDockMin] = useState(false);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -133,6 +142,20 @@ export function SeatingPlan({
 
   function guardar(next: SeatingPlan) {
     onSave(clsId, { ...next, updatedAt: new Date().toISOString() });
+  }
+
+  /** Sienta a quien falte en los asientos libres, mesa a mesa y por orden de lista. */
+  function sentarEnOrden() {
+    const pendientes = [...sinAsignar].sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+    const groups = plan.groups.map(g => {
+      const ids = Array.from({ length: plan.groupSize }, (_, i) => seatStudentId(g, i) ?? '');
+      for (let i = 0; i < ids.length && pendientes.length > 0; i++) if (!ids[i]) ids[i] = pendientes.shift()!.id;
+      return { ...g, studentIds: ids };
+    });
+    guardar({ ...plan, groups });
+    toast(pendientes.length > 0
+      ? t('Faltan asientos para {n}: añade mesas en «Mesas y roles».', { n: pendientes.length })
+      : t('✅ Todos sentados'));
   }
 
   function pickClass(id: string) {
@@ -412,7 +435,9 @@ export function SeatingPlan({
 
       {nadieSentado && (
         <p className="seat-hint">
-          {t('Aún no hay nadie sentado. Reparte con IA o arrastra a cada alumno desde la bandeja inferior hasta un asiento.')}
+          {t('Aún no hay nadie sentado. Reparte con IA, siéntalos por orden de lista o arrastra a cada alumno desde la bandeja inferior hasta un asiento.')}
+          {' '}
+          <button type="button" className="mk-link" onClick={sentarEnOrden}>{t('Sentar por orden de lista')}</button>
         </p>
       )}
 
@@ -443,7 +468,7 @@ export function SeatingPlan({
                 className="seat-svg"
                 onClick={e => handleMesaClick(g.id, e)}
                 {...svgDropProps(g.id)}
-                dangerouslySetInnerHTML={{ __html: buildTableSvg(seats, color, g.label, { labels: false, showLabel: false }) }}
+                dangerouslySetInnerHTML={{ __html: buildTableSvg(seats, color, g.label, { labels: false, showLabel: false, forma: plan.forma }) }}
               />
 
               <ol className="seat-list">
@@ -519,16 +544,31 @@ export function SeatingPlan({
       {/* ── Bandeja de «sin mesa»: solo existe si hay alguien sin sentar ── */}
       {sinAsignar.length > 0 && (
         <div
-          className={`seat-dock${dropTarget === 'tray' ? ' over' : ''}`}
+          className={`seat-dock${dropTarget === 'tray' ? ' over' : ''}${dockMin ? ' min' : ''}`}
           {...dropProps('tray', id => moveStudent(id, null))}
         >
           <div className="seat-dock-hd">
             <span className="seat-dock-ttl"><Users size={14} />{t('Sin mesa asignada')} <b>{sinAsignar.length}</b></span>
-            <span className="seat-dock-help">
-              {t('Arrastra a un alumno hasta un asiento, o tócalo y después toca el asiento.')}
+            {!dockMin && (
+              <span className="seat-dock-help">
+                {t('Arrastra a un alumno hasta un asiento, o tócalo y después toca el asiento.')}
+              </span>
+            )}
+            <span className="seat-dock-acts">
+              {!dockMin && (
+                <button type="button" className="seat-dock-btn" onClick={sentarEnOrden}>
+                  {t('Sentar por orden de lista')}
+                </button>
+              )}
+              <button
+                type="button" className="seat-dock-btn" aria-expanded={!dockMin}
+                onClick={() => setDockMin(v => !v)}
+              >
+                {dockMin ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{t(dockMin ? 'Mostrar' : 'Plegar')}
+              </button>
             </span>
           </div>
-          <div className="seat-dock-chips">
+          {!dockMin && <div className="seat-dock-chips">
             {sinAsignar.map(s => {
               const on = selected === s.id;
               return (
@@ -543,7 +583,7 @@ export function SeatingPlan({
                 </button>
               );
             })}
-          </div>
+          </div>}
         </div>
       )}
 
@@ -585,6 +625,29 @@ export function SeatingPlan({
 
       {/* ── Configuración de mesas y roles ── */}
       <Modal open={configOpen} onClose={() => setConfigOpen(false)} title={t('Configuración de mesas y roles')} wide>
+        <span className="flabel">{t('Forma de las mesas')}</span>
+        <div className="seat-formas" role="radiogroup" aria-label={t('Forma de las mesas')}>
+          {FORMAS.map(fm => {
+            const on = (plan.forma ?? 'cooperativa') === fm.id;
+            return (
+              <button
+                key={fm.id} type="button" role="radio" aria-checked={on}
+                className={`seat-forma${on ? ' on' : ''}`}
+                onClick={() => guardar({ ...plan, forma: fm.id })}
+              >
+                <span
+                  className="seat-forma-art" aria-hidden="true"
+                  dangerouslySetInnerHTML={{ __html: buildTableSvg(
+                    Array.from({ length: plan.groupSize }, () => ({ studentName: 'x', roleName: null })),
+                    'var(--accent-d)', '', { labels: false, showLabel: false, forma: fm.id },
+                  ) }}
+                />
+                <span className="seat-forma-ttl">{t(fm.label)}</span>
+                <span className="seat-forma-txt">{t(fm.texto)}</span>
+              </button>
+            );
+          })}
+        </div>
         <div className="frow">
           <div className="fgroup">
             <label className="flabel" htmlFor="seatingplan-f2">{t('Nº de mesas')}</label>

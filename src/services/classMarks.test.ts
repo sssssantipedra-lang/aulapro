@@ -46,6 +46,8 @@ describe('studentBlock', () => {
 describe('blockCategoryWeight', () => {
   it('da el peso justo para valer esos puntos', () => {
     expect(blockCategoryWeight(100, 1)).toBeCloseTo(11.1111, 3);
+    // 40 + 40 y el bloque al 20%: pesa 20, y los tres suman 100 (11-10-2026)
+    expect(blockCategoryWeight(80, 2)).toBe(20);
     expect(blockCategoryWeight(90, 1)).toBe(10);
     expect(blockCategoryWeight(0, 1)).toBe(100);
     expect(blockCategoryWeight(100, 0)).toBe(0);

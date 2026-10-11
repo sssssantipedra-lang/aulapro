@@ -1,8 +1,8 @@
 import { useState, useId } from 'react';
 import {
-  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check,
+  Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check, ChevronLeft,
 } from 'lucide-react';
-import type { Class, Student, Alert, Evaluation, Rubric } from '../types';
+import type { Class, Student, Alert, Evaluation, Rubric, GradeCategory, GradeItem, GradeMap } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
 import { separaMatematicasAB } from '../lib/curriculum';
@@ -13,6 +13,7 @@ import {
 import { initials } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
+import { ClassCards } from '../components/clases/ClassCards';
 import { useI18n } from '../i18n';
 
 // ─── palette ─────────────────────────────────────────────────────────────────
@@ -67,6 +68,10 @@ interface Props {
   profileId?: string | null;
   /** Comunidad del perfil: de ella salen las materias oficiales que se ofrecen. */
   comunidad?: ComunidadId;
+  /** El cuaderno (con el bloque de anotaciones), para la media de cada clase en la portada. */
+  gradeCategories?: GradeCategory[];
+  gradeItems?: GradeItem[];
+  grades?: GradeMap;
 }
 
 /** Parte aleatoria de los ids nuevos. Fuera del componente: solo se llama al guardar, nunca al pintar. */
@@ -94,7 +99,7 @@ export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId, comunidad,
+  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
@@ -104,7 +109,9 @@ export function ClassesManager({
   const newId = () => `${uid}-${sufijoAleatorio()}`;
 
   // ── tabs ──
-  const [activeClassId, setActiveClassId] = useState<string>(classes[0]?.id ?? '');
+  // Con varias clases se entra por la portada de tarjetas (11-10-2026); con
+  // una sola, directamente en ella.
+  const [activeClassId, setActiveClassId] = useState<string>(classes.length === 1 ? classes[0].id : '');
   const activeClass = classes.find(c => c.id === activeClassId) ?? null;
 
   // ── search ──
@@ -357,24 +364,46 @@ export function ClassesManager({
             {t(students.length === 1 ? '{n} alumno en total' : '{n} alumnos en total', { n: students.length })}
           </p>
         </div>
+        {/* En la portada, «Nueva clase» va aquí arriba; dentro de una clase, en su barra */}
+        {!activeClass && classes.length > 0 && (
+          <button className="btn-accent" onClick={openClassModal}>
+            <Plus size={14} />{t('Nueva clase')}
+          </button>
+        )}
       </div>
 
-      {/* ── Barra: clases (con su número de alumnos) y crear clase ── */}
-      <div className="toolbar">
-        <ClassChips
-          classes={classes}
-          value={activeClassId ?? ''}
-          onChange={id => { setActiveClassId(id); setSearch(''); }}
-          counts={Object.fromEntries(classes.map(c => [c.id, students.filter(s => s.class_id === c.id).length]))}
-        />
+      {/* ── Barra: volver a la portada, cambiar de clase y crear clase ── */}
+      {activeClass && <div className="toolbar">
+        {activeClass && classes.length > 1 && (
+          <button type="button" className="tb-btn" onClick={() => { setActiveClassId(''); setSearch(''); }}>
+            <ChevronLeft size={14} />{t('Todas las clases')}
+          </button>
+        )}
+        {activeClass && (
+          <ClassChips
+            classes={classes}
+            value={activeClassId ?? ''}
+            onChange={id => { setActiveClassId(id); setSearch(''); }}
+            counts={Object.fromEntries(classes.map(c => [c.id, students.filter(s => s.class_id === c.id).length]))}
+          />
+        )}
         <span className="toolbar-spacer" />
         <button className="tb-btn" onClick={openClassModal}>
           <Plus size={14} />{t('Nueva clase')}
         </button>
-      </div>
+      </div>}
 
-      {/* ── active class card ── */}
-      {activeClass ? (
+      {/* ── Portada: todas las clases en tarjetas ── */}
+      {!activeClass && classes.length > 0 ? (
+        <ClassCards
+          classes={classes}
+          students={students}
+          gradeCategories={gradeCategories}
+          gradeItems={gradeItems}
+          grades={grades}
+          onOpen={id => { setActiveClassId(id); setSearch(''); window.scrollTo(0, 0); }}
+        />
+      ) : activeClass ? (
         <div className="card">
           {/* toolbar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
@@ -446,7 +475,9 @@ export function ClassesManager({
               onClick={() => {
                 if (!window.confirm(t('¿Eliminar la clase "{name}"? Se perderán todos sus datos.', { name: activeClass.name }))) return;
                 onDeleteClass(activeClass.id);
-                setActiveClassId(classes.find(c => c.id !== activeClassId)?.id ?? '');
+                // Vuelve a la portada, o a la única clase que quede
+                const quedan = classes.filter(c => c.id !== activeClassId);
+                setActiveClassId(quedan.length === 1 ? quedan[0].id : '');
                 notify(t('Clase eliminada'));
               }}
             >

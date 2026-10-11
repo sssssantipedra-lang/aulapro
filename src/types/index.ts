@@ -687,6 +687,11 @@ export interface SeatingPlan {
   updatedAt: string;
   /** Notas del docente que se usaron la última vez que la IA generó los grupos. */
   lastNotes?: string;
+  /**
+   * Cómo son las mesas: las cooperativas en abanico (sin dato, las de
+   * siempre) o pupitres cuadrados juntos. Solo cambia el dibujo.
+   */
+  forma?: 'cooperativa' | 'cuadrada';
 }
 
 /**
@@ -734,11 +739,11 @@ export interface ClassMark {
 
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
-  | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
+  | 'evaluar' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
-  | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
+  | 'attendance' | 'documentos' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
-  | 'meetings' | 'trainings' | 'seating'
+  | 'meetings' | 'trainings' | 'seating' | 'enclase' | 'actitud'
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-alumno' | 'apoyo-agenda-visual'
   | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos'
   | 'ef-actividades' | 'ef-sesiones' | 'ef-material' | 'ef-sda';

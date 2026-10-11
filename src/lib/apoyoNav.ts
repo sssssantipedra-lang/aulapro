@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 
 /** Un pedido que se guarda hasta que una pantalla lo usa. */
-function unaVez<T>() {
+export function unaVez<T>() {
   let pendiente: T | null = null;
   return {
     pedir(v: T) { pendiente = v; },

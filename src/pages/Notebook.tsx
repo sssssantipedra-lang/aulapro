@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag } from 'lucide-react';
+import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
 import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
@@ -15,6 +15,7 @@ import {
   TARGETS, targetLabel, esAsignaturaEF, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
@@ -166,7 +167,8 @@ function GradesTab({
   const [catWeight, setCatWeight] = useState('');
   const [blockOpen, setBlockOpen] = useState(false);
   /** Formulario del bloque, en texto para que se pueda escribir «33,33». */
-  const [bf, setBf] = useState<{ enabled: boolean; points: string; step: string; weights: Record<MarkTarget, string>; bases: Record<MarkTarget, string> } | null>(null);
+  // `pct`: el peso del bloque en la nota final, en %. Se guarda en puntos sobre 10 (`points`).
+  const [bf, setBf] = useState<{ enabled: boolean; pct: string; step: string; weights: Record<MarkTarget, string>; bases: Record<MarkTarget, string> } | null>(null);
   const [itemName, setItemName]   = useState('');
   const [itemCat, setItemCat]     = useState('');
   const [itemDate, setItemDate]   = useState(isoDate());
@@ -185,7 +187,7 @@ function GradesTab({
   const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
 
   const myStudents = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
     [students, clsId],
   );
   const myCategories = useMemo(
@@ -202,8 +204,8 @@ function GradesTab({
   }, [gradeItems, clsId, myCategories]);
   /**
    * Las categorías del docente, sin el bloque de anotaciones: ese no se edita
-   * como las demás ni entra en «los pesos suman 100%», porque su peso se
-   * calcula solo para valer sus puntos.
+   * como las demás. Su peso interno se calcula para que valga su % de la nota
+   * final (ver `blockCategoryWeight`).
    */
   const ownCategories = useMemo(() => myCategories.filter(c => !isMarksCategory(c.id)), [myCategories]);
   // El peso suma 100% por asignatura, no por clase
@@ -217,6 +219,8 @@ function GradesTab({
     const perStudent = new Map(myStudents.map(s => [s.id, studentBlock(marks.filter(m => m.student_id === s.id), cfg)]));
     return { cfg, active: blockActive(cfg, marks.length), count: marks.length, perStudent };
   }, [cls, activeSubject, marksConfigs, classMarks, myStudents]);
+  /** Lo que pesa el bloque en la nota final, en % (0 si no cuenta). */
+  const blockPct = block?.active ? Math.round(block.cfg.points * 100) / 10 : 0;
 
   /**
    * Las pruebas agrupadas por categoría, en el orden en que se muestran.
@@ -248,7 +252,7 @@ function GradesTab({
     const { cfg } = block;
     setBf({
       enabled: block.active,
-      points: dec(cfg.points),
+      pct: dec(Math.round(cfg.points * 100) / 10),
       step: dec(cfg.step),
       weights: Object.fromEntries(TARGETS.map(tg => [tg, dec(cfg.weights[tg])])) as Record<MarkTarget, string>,
       bases: Object.fromEntries(TARGETS.map(tg => [tg, dec(cfg.bases[tg])])) as Record<MarkTarget, string>,
@@ -258,11 +262,12 @@ function GradesTab({
 
   function saveBlock() {
     if (!bf || !cls) return;
-    const points = parseDec(bf.points);
+    const pct = parseDec(bf.pct);
+    const points = Math.round(pct * 10) / 100;
     const step = parseDec(bf.step);
     const weights = Object.fromEntries(TARGETS.map(tg => [tg, parseDec(bf.weights[tg])])) as Record<MarkTarget, number>;
     const bases = Object.fromEntries(TARGETS.map(tg => [tg, parseDec(bf.bases[tg])])) as Record<MarkTarget, number>;
-    if (!(points > 0 && points <= MAX_BLOCK_POINTS)) { toast(t('Los puntos del bloque deben estar entre 0,1 y {max}', { max: MAX_BLOCK_POINTS })); return; }
+    if (!(pct >= 1 && pct <= MAX_BLOCK_POINTS * 10)) { toast(t('El bloque debe pesar entre 1% y {max}%', { max: MAX_BLOCK_POINTS * 10 })); return; }
     if (!(step > 0 && step <= 10)) { toast(t('Lo que vale cada anotación debe estar entre 0 y 10')); return; }
     if (TARGETS.some(tg => !(weights[tg] >= 0 && weights[tg] <= 100))) { toast(t('Cada peso debe estar entre 0 y 100')); return; }
     if (TARGETS.some(tg => !(bases[tg] >= 0 && bases[tg] <= 10))) { toast(t('La nota de partida debe estar entre 0 y 10')); return; }
@@ -422,49 +427,67 @@ function GradesTab({
         </div>
       ) : (
         <>
-          {/* Categorías */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-            {ownCategories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => openCatModal(cat)}
-                title={t('Editar categoría')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-                  background: 'var(--accent-l)', border: 'none', borderRadius: 8,
-                  cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 12.5,
-                  fontWeight: 700, color: 'var(--accent-d)',
-                }}
-              >
-                {cat.name} · {cat.weight}%
-                <Pencil size={11} />
+          {/* Cómo se calcula la nota, en una fila (11-10-2026): las categorías
+              y el bloque de anotaciones, todos en %, sumados hasta el total.
+              Cada uno se edita pulsándolo. «Añadir nota», aparte a la derecha. */}
+          <div className="gb-formula">
+            <div className="gb-formula-row" role="group" aria-label={t('Cómo se calcula la nota')}>
+              <span className="gb-formula-lbl">{t('Nota final')}</span>
+              <span className="gb-formula-eq" aria-hidden="true">=</span>
+              {ownCategories.map((cat, k) => (
+                <span key={cat.id} className="gb-formula-term">
+                  {k > 0 && <span className="gb-formula-op" aria-hidden="true">+</span>}
+                  <button type="button" className="gb-w-chip" onClick={() => openCatModal(cat)} title={t('Editar categoría')}>
+                    {cat.name} <strong>{cat.weight}%</strong>
+                    <Pencil size={11} />
+                  </button>
+                </span>
+              ))}
+              {block && (
+                <span className="gb-formula-term">
+                  <span className="gb-formula-op" aria-hidden="true">+</span>
+                  <button
+                    type="button"
+                    className={`gb-w-chip block${block.active ? '' : ' off'}`}
+                    onClick={openBlock}
+                    title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en En clase › Anotar actitud')}
+                  >
+                    <Flag size={12} />
+                    {t(BLOCK_NAME)} <strong>{block.active ? `${blockPct.toLocaleString(locale)}%` : t('no cuenta')}</strong>
+                    <Pencil size={11} />
+                  </button>
+                  {/* Ir a anotar esta misma clase (11-10-2026); en EF, a la pista */}
+                  <button
+                    type="button" className="gb-formula-go"
+                    onClick={() => {
+                      if (esAsignaturaEF(activeSubject)) { onNav('ef-pista'); return; }
+                      requestActitud({ classId: cls!.id, subject: activeSubject });
+                      onNav('actitud');
+                    }}
+                  >
+                    <Hand size={12} />{t('Anotar')}
+                  </button>
+                </span>
+              )}
+              {/* El bloque se da en % de la nota final, como las categorías:
+                  40 + 40 + 20 suman 100. Los cuadernos de antes, con las
+                  categorías al 100% y el bloque aparte, tampoco avisan: la
+                  cuenta es la misma. */}
+              {weightSum === 100 || weightSum + blockPct === 100 ? (
+                <span className="gb-formula-total ok" title={t('Los pesos están bien')}>
+                  <Check size={13} />{weightSum === 100 ? '100%' : `${(weightSum + blockPct).toLocaleString(locale)}%`}
+                </span>
+              ) : (
+                <span className="gb-formula-total warn">
+                  ⚠ {t('Los pesos suman {n}% (lo ideal es 100%)', { n: (Math.round((weightSum + blockPct) * 10) / 10).toLocaleString(locale) })}
+                </span>
+              )}
+              <button type="button" className="gb-formula-add" onClick={() => openCatModal('new')}>
+                <Plus size={13} />{t('Categoría')}
               </button>
-            ))}
-            <button className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => openCatModal('new')}>
-              <Plus size={13} />{t('Categoría')}
-            </button>
-            {block && (
-              <button
-                type="button"
-                className={`gb-block-chip${block.active ? ' on' : ''}`}
-                onClick={openBlock}
-                title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en la Distribución de aula')}
-              >
-                <Flag size={12} />
-                {t(BLOCK_NAME)} · {block.active
-                  ? t('{n} pto.', { n: block.cfg.points.toLocaleString(locale) })
-                  : t('no cuenta')}
-                <Pencil size={11} />
-              </button>
-            )}
-            {weightSum !== 100 && (
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#b45309', background: 'rgba(245,158,11,0.12)', padding: '5px 12px', borderRadius: 8 }}>
-                ⚠ {t('Los pesos suman {n}% (lo ideal es 100%)', { n: weightSum })}
-              </span>
-            )}
-            <div style={{ flex: 1 }} />
-            <button className="btn-accent" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => openItemModal('new')}>
-              <Plus size={14} />{t('Añadir nota')}
+            </div>
+            <button className="btn-accent gb-add-grade" onClick={() => openItemModal('new')}>
+              <Plus size={15} />{t('Añadir nota')}
             </button>
           </div>
 
@@ -503,11 +526,11 @@ function GradesTab({
                           }}
                         >
                           {isMarksCategory(cat.id) && block
-                            ? `${t(BLOCK_NAME)} · ${t('{n} pto.', { n: block.cfg.points.toLocaleString(locale) })}`
+                            ? `${t(BLOCK_NAME)} · ${`${(Math.round(block.cfg.points * 100) / 10).toLocaleString(locale)}%`}`
                             : `${cat.name} · ${cat.weight}%`}
                         </th>
                       ))}
-                      <th style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>{t('Media')}</th>
+                      <th className="gb-sticky-r" style={{ minWidth: 76, borderLeft: '2px solid var(--border)' }} rowSpan={2}>{t('Media')}</th>
                     </tr>
                     <tr>
                       {grouped.map(({ cat, items }) =>
@@ -517,7 +540,7 @@ function GradesTab({
                               <button
                                 className="gb-item-hd gb-marks-hd"
                                 onClick={openBlock}
-                                title={t(esAsignaturaEF(activeSubject) ? 'Sale sola de lo que observas en la pista. Clic para ajustar el bloque.' : 'Sale sola de lo que anotas en la Distribución de aula. Clic para ajustar el bloque.')}
+                                title={t(esAsignaturaEF(activeSubject) ? 'Sale sola de lo que observas en la pista. Clic para ajustar el bloque.' : 'Sale sola de lo que anotas en Anotar actitud o en la Distribución de aula. Clic para ajustar el bloque.')}
                               >
                                 <span className="gb-item-name">{t(targetLabel(tg, activeSubject))}</span>
                                 <span className="gb-item-cat">{block.cfg.weights[tg].toLocaleString(locale)}%</span>
@@ -589,7 +612,7 @@ function GradesTab({
                               </td>
                             ));
                           })}
-                          <td style={{ textAlign: 'center', borderLeft: '2px solid var(--border)' }}>
+                          <td className="gb-sticky-r" style={{ textAlign: 'center', borderLeft: '2px solid var(--border)' }}>
                             <span style={{ fontSize: 13.5, fontWeight: 800, color: notaColor(avg) }}>{fmtNota(avg, locale)}</span>
                           </td>
                         </tr>
@@ -621,7 +644,7 @@ function GradesTab({
                           k === 0,
                         ));
                       })}
-                      <td style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)', borderLeft: '2px solid var(--border)' }}>
+                      <td className="gb-sticky-r" style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 800, color: 'var(--text-2)', borderLeft: '2px solid var(--border)' }}>
                         {(() => {
                           const avgs = myStudents
                             .map(s => weightedAverage(s.id, myCategories, myItems, grades))
@@ -650,7 +673,7 @@ function GradesTab({
             <p className="gb-marks-cfg-help">
               {t(esAsignaturaEF(activeSubject)
                 ? 'Sale solo de lo que observas en la pista: «Sin equipación» y «Sin aseo» cuentan en Vestimenta e higiene; «Juego limpio» y «Mala actitud», en Actitud y juego limpio; «Participa», «Se esfuerza» y «No participa», en Participación y esfuerzo. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.'
-                : 'Sale solo de lo que anotas en la Distribución de aula: «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
+                : 'Sale solo de lo que anotas en En clase › Anotar actitud (o desde la Distribución de aula): «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
             </p>
             <label className="gb-block-toggle">
               <input type="checkbox" checked={bf.enabled} onChange={e => setBf({ ...bf, enabled: e.target.checked })} />
@@ -658,9 +681,9 @@ function GradesTab({
             </label>
             <div className="frow fgroup">
               <div>
-                <label className="flabel" htmlFor="blk-points">{t('Puntos de la nota final')}</label>
-                <input id="blk-points" className="finput" inputMode="decimal" value={bf.points} disabled={!bf.enabled}
-                  onChange={e => setBf({ ...bf, points: e.target.value })} />
+                <label className="flabel" htmlFor="blk-points">{t('Peso en la nota final (%)')}</label>
+                <input id="blk-points" className="finput" inputMode="decimal" value={bf.pct} disabled={!bf.enabled}
+                  onChange={e => setBf({ ...bf, pct: e.target.value })} />
               </div>
               <div>
                 <label className="flabel" htmlFor="blk-step">{t('Cada anotación suma o resta')}</label>
@@ -696,7 +719,7 @@ function GradesTab({
               </tbody>
             </table>
             <p className="gb-marks-cfg-help" style={{ marginTop: 10 }}>
-              {t('Ejemplo: con 1 punto, la nota final es un 90% la media de tus categorías y un 10% la de este bloque.')}
+              {t('Ejemplo: Pruebas 40% + Tareas 40% + este bloque 20% = 100%. Si tus categorías ya suman 100%, el bloque se queda con su % y ellas se reparten el resto en proporción.')}
             </p>
             <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
               <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveBlock}>{t('Guardar')}</button>

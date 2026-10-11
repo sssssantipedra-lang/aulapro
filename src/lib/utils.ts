@@ -1,5 +1,6 @@
 export function initials(name: string): string {
-  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  // Un número va entero: «Alumno 10» es «A10», no «A1» como «Alumno 1»
+  return name.split(' ').filter(Boolean).slice(0, 2).map(w => (/^\d+$/.test(w) ? w : w[0])).join('').toUpperCase();
 }
 
 /**

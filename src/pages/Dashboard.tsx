@@ -1,6 +1,13 @@
 /**
  * Inicio: «qué toca ahora».
  *
+ * Desde el 11-10-2026 («Tu jornada», elegido por el dueño): arriba, el día
+ * como una línea de tiempo —el de hoy o, si hoy ya no queda clase, el
+ * próximo día lectivo— con cuatro atajos (pasar lista, añadir nota, evaluar
+ * y nueva tarea); debajo, tres columnas (tareas, eventos y alumnado con
+ * avisos) y las clases en minitarjetas con su media. «Primeros pasos» sale
+ * plegado en una línea.
+ *
  * Antes era un tablero de cifras con varias tarjetas del mismo peso que
  * rotaban solas. Ahora hay una jerarquía clara: arriba, la clase de ahora (o
  * la siguiente) con los botones de lo que se hace en ella —pasar lista,
@@ -10,7 +17,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Coffee, Clock, Bandage, Timer, ClipboardList,
+  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -21,6 +28,7 @@ import { firstSteps } from '../lib/firstSteps';
 import { hasApiKey } from '../services/gemini';
 import { isMarksCategory } from '../services/classMarks';
 import { weightedAverage } from '../services/aiContext';
+import { agruparPorEtapa } from '../lib/etapas';
 
 interface Props {
   user: User | null;
@@ -86,6 +94,22 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   const next = todayBlocks.find(b => b.time_start > nowHm) ?? null;
   const focus = current ?? next;
 
+  /**
+   * El día que se enseña: hoy, mientras quede alguna clase; si no, el próximo
+   * día con horario (el lunes, un domingo), a cuántos días está y sus clases.
+   */
+  const jornada = ((): { offset: number; blocks: ScheduleBlock[] } => {
+    if (focus) return { offset: 0, blocks: todayBlocks };
+    for (let k = 1; k <= 7; k++) {
+      const day = ((todayDay - 1 + k) % 7) + 1;
+      const blocks = scheduleBlocks.filter(b => b.day === day).sort((a, b) => a.time_start.localeCompare(b.time_start));
+      if (blocks.length) return { offset: k, blocks };
+    }
+    return { offset: 0, blocks: [] };
+  })();
+  const jornadaDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + jornada.offset);
+  const jornadaDia = jornadaDate.toLocaleDateString(locale, { weekday: 'long', day: 'numeric' });
+
   const pendingTasks = tasks.filter(tk => !tk.done);
   const alerts = students.filter(s => s.alerts.length > 0);
   const upcomingEvents = [...calEvents]
@@ -138,73 +162,78 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
 
       <FirstSteps steps={steps} hero={false} profileId={user?.id ?? ''} onNav={nav} onLoadDemo={onLoadDemo} />
 
-      {/* ── Ahora ── */}
-      <div className="card home-now">
-        <div className="home-now-main">
+      {/* ── Tu jornada: el día en una línea de tiempo y los atajos ── */}
+      <div className="card home-jornada">
+        <div className="home-j-hd">
           {focus ? (
-            <>
-              <span className={`home-now-tag${current ? ' live' : ''}`}>
-                {current ? <><span className="home-dot" />{t('Ahora')}</> : <><Clock size={12} />{t('Siguiente, a las {h}', { h: focus.time_start })}</>}
-              </span>
-              <h2 className="home-now-ttl">{focus.subject}</h2>
-              <p className="home-now-meta">
-                {focus.time_start}–{focus.time_end}{focus.room ? ` · ${focus.room}` : ''}
-              </p>
-              <div className="home-now-actions">
-                <button className="btn-accent" onClick={() => nav('attendance')}><UserCheck size={15} />{t('Pasar lista')}</button>
-                {ef
-                  ? <button className="btn-ghost" onClick={() => nav('ef-pista')}><Flag size={15} />{t('Observar en la pista')}</button>
-                  : <button className="btn-ghost" onClick={() => nav('seating')}><Flag size={15} />{t('Anotar en el aula')}</button>}
-                <button className="btn-ghost" onClick={() => nav('notebook')}><BookOpen size={15} />{t('Cuaderno')}</button>
-              </div>
-            </>
+            <span className={`home-now-tag${current ? ' live' : ''}`}>
+              {current ? <><span className="home-dot" />{t('Ahora')}</> : <><Clock size={12} />{t('Siguiente, a las {h}', { h: focus.time_start })}</>}
+            </span>
           ) : (
-            <div className="home-now-empty">
-              <span className="home-now-empty-ico"><Coffee size={20} /></span>
-              <div>
-                <h2 className="home-now-ttl">
-                  {t(todayBlocks.length ? 'Has terminado las clases de hoy' : 'Hoy no tienes clases')}
-                </h2>
-                <p className="home-now-meta">
-                  {t(scheduleBlocks.length ? 'Buen momento para poner notas o preparar lo de mañana.' : 'Añade tu horario en la Agenda y aquí verás siempre la clase que toca.')}
-                </p>
-                <div className="home-now-actions">
-                  <button className="btn-ghost" onClick={() => nav(scheduleBlocks.length ? 'notebook' : 'agenda')}>
-                    {t(scheduleBlocks.length ? 'Ir al Cuaderno' : 'Ir a la Agenda')} <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <span className="home-now-tag">
+              {t(!scheduleBlocks.length ? 'Sin horario' : todayBlocks.length ? 'Has terminado las clases de hoy' : 'Hoy no tienes clases')}
+            </span>
           )}
+          {jornada.blocks.length > 0 && (
+            <h2 className="home-j-ttl">
+              {jornada.offset === 0
+                ? t('Tu jornada de hoy')
+                : `${t(jornada.offset === 1 ? 'Mañana' : 'Próximo día lectivo')} · ${jornadaDia}`}
+            </h2>
+          )}
+          <button className="home-link home-j-week" onClick={() => nav('agenda')}>{t('Ver la semana')} <ArrowRight size={13} /></button>
         </div>
 
-        <div className="home-day">
-          <div className="home-card-ttl"><CalendarDays size={15} />{t('Tu día')}</div>
-          {todayBlocks.length === 0 ? (
-            <p className="home-muted">{t('Sin clases programadas para hoy.')}</p>
-          ) : (
-            <ol className="home-timeline">
-              {todayBlocks.map(b => {
-                const state = b === current ? 'now' : b.time_end <= nowHm ? 'past' : 'later';
-                return (
-                  <li key={b.id} className={`home-tl ${state}`}>
-                    <span className="home-tl-time">{b.time_start}</span>
-                    <span className="home-tl-bar" style={{ background: b.color }} />
-                    <span className="home-tl-txt">
-                      <span className="home-tl-subj">{b.subject}</span>
-                      {b.room && <span className="home-tl-room">{b.room}</span>}
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
+        {jornada.blocks.length === 0 ? (
+          <p className="home-muted home-j-empty">
+            {t('Añade tu horario en la Agenda y aquí verás siempre la clase que toca.')}{' '}
+            <button className="home-link" onClick={() => nav('agenda')}>{t('Ir a la Agenda')} <ArrowRight size={13} /></button>
+          </p>
+        ) : (
+          <ol className="home-j-line">
+            {jornada.blocks.map(b => {
+              const state = jornada.offset > 0 ? 'later' : b === current ? 'now' : b.time_end <= nowHm ? 'past' : 'later';
+              return (
+                <li key={b.id} className={`home-j-item ${state}`} style={{ '--j-c': b.color } as React.CSSProperties}>
+                  <span className="home-j-time">{b.time_start}</span>
+                  <span className="home-j-subj">{b.subject}</span>
+                  {b.room && <span className="home-j-room">{b.room}</span>}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+        {/* Los atajos de lo que más se hace (elegidos por el dueño) */}
+        <div className="home-quick">
+          <button type="button" className="home-q" style={{ '--q-c': '#0ea5e9' } as React.CSSProperties} onClick={() => nav('attendance')}>
+            <span className="home-q-ico"><UserCheck size={17} /></span>{t('Pasar lista')}
+          </button>
+          {/* En EF se anota en la pista (el último atajo) */}
+          {!ef && (
+            <button type="button" className="home-q" style={{ '--q-c': '#ec4899' } as React.CSSProperties} onClick={() => nav('actitud')}>
+              <span className="home-q-ico"><Hand size={17} /></span>{t('Anotar actitud')}
+            </button>
           )}
-          <button className="home-link" onClick={() => nav('agenda')}>{t('Ver la semana')} <ArrowRight size={13} /></button>
+          <button type="button" className="home-q" style={{ '--q-c': '#10b981' } as React.CSSProperties} onClick={() => nav('notebook')}>
+            <span className="home-q-ico"><BookOpen size={17} /></span>{t('Añadir nota')}
+          </button>
+          <button type="button" className="home-q" style={{ '--q-c': '#f59e0b' } as React.CSSProperties} onClick={() => nav('evaluar')}>
+            <span className="home-q-ico"><ClipboardCheck size={17} /></span>{t('Evaluar')}
+          </button>
+          <button type="button" className="home-q" style={{ '--q-c': '#8b5cf6' } as React.CSSProperties} onClick={onAddTask}>
+            <span className="home-q-ico"><ListPlus size={17} /></span>{t('Nueva tarea')}
+          </button>
+          {ef && (
+            <button type="button" className="home-q" style={{ '--q-c': '#65a30d' } as React.CSSProperties} onClick={() => nav('ef-pista')}>
+              <span className="home-q-ico"><Flag size={17} /></span>{t('Observar en la pista')}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── Lo demás, quieto y en listas cortas ── */}
-      <div className="home-grid">
+      {/* ── Lo demás, quieto y en listas cortas: tres columnas ── */}
+      <div className="home-grid tres">
         <div className="card home-card">
           <div className="home-card-hd">
             <div className="home-card-ttl"><CheckSquare2 size={15} />{t('Tareas')}</div>
@@ -255,6 +284,29 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           )}
         </div>
 
+        <div className="card home-card">
+          <div className="home-card-hd">
+            <div className="home-card-ttl"><AlertTriangle size={15} />{t('Necesitan atención')}</div>
+            <button className="home-link" onClick={() => nav('classes')}>{t('Ver alumnado')}</button>
+          </div>
+          {alerts.length === 0 ? (
+            <p className="home-muted">{t('Ningún alumno tiene avisos activos.')}</p>
+          ) : (
+            <ul className="home-list">
+              {alerts.slice(0, 4).map(s => (
+                <li key={s.id} className="home-alert">
+                  <span className={`home-alert-dot ${s.alerts[0]?.level ?? 'info'}`} />
+                  <span className="home-event-txt">
+                    <span className="home-event-name">{s.name}</span>
+                    <span className="home-tl-room">{s.alerts[0]?.text}</span>
+                  </span>
+                </li>
+              ))}
+              {alerts.length > 4 && <li className="home-muted">{t('y {n} más', { n: alerts.length - 4 })}</li>}
+            </ul>
+          )}
+        </div>
+
         {ef && (
           <div className="card home-card">
             <div className="home-card-hd">
@@ -279,29 +331,6 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             )}
           </div>
         )}
-
-        <div className="card home-card">
-          <div className="home-card-hd">
-            <div className="home-card-ttl"><AlertTriangle size={15} />{t('Necesitan atención')}</div>
-            <button className="home-link" onClick={() => nav('classes')}>{t('Ver alumnado')}</button>
-          </div>
-          {alerts.length === 0 ? (
-            <p className="home-muted">{t('Ningún alumno tiene avisos activos.')}</p>
-          ) : (
-            <ul className="home-list">
-              {alerts.slice(0, 4).map(s => (
-                <li key={s.id} className="home-alert">
-                  <span className={`home-alert-dot ${s.alerts[0]?.level ?? 'info'}`} />
-                  <span className="home-event-txt">
-                    <span className="home-event-name">{s.name}</span>
-                    <span className="home-tl-room">{s.alerts[0]?.text}</span>
-                  </span>
-                </li>
-              ))}
-              {alerts.length > 4 && <li className="home-muted">{t('y {n} más', { n: alerts.length - 4 })}</li>}
-            </ul>
-          )}
-        </div>
 
         {ef && (
           <div className="card home-card">
@@ -349,25 +378,31 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           </div>
         )}
 
-        <div className="card home-card">
-          <div className="home-card-hd">
-            <div className="home-card-ttl"><TrendingUp size={15} />{t('Cómo van tus clases')}</div>
-            <button className="home-link" onClick={() => nav('notebook')}>{t('Cuaderno')}</button>
-          </div>
-          <ul className="home-list">
-            {classAverages.map(({ cls, avg, failing, count }) => (
-              <li key={cls.id} className="home-class">
-                <span className="home-class-name"><span className="home-class-dot" style={{ background: cls.color }} />{cls.name}</span>
-                <span className="home-class-bar"><span style={{ width: `${((avg ?? 0) / 10) * 100}%`, background: gradeColor(avg) }} /></span>
-                <span className="home-class-avg" style={{ color: gradeColor(avg) }}>
+      </div>
+
+      {/* ── Cómo van tus clases: una minitarjeta por clase con su media ── */}
+      <div className="card home-card home-classes">
+        <div className="home-card-hd">
+          <div className="home-card-ttl"><TrendingUp size={15} />{t('Cómo van tus clases')}</div>
+          <button className="home-link" onClick={() => nav('notebook')}>{t('Cuaderno')}</button>
+        </div>
+        <div className="home-cls-grid">
+          {agruparPorEtapa(classAverages.map(a => ({ ...a, name: a.cls.name, etapa: a.cls.etapa, curso: a.cls.curso })))
+            .flatMap(g => g.clases)
+            .map(({ cls, avg, failing, count }) => (
+              <button key={cls.id} type="button" className="home-cls" style={{ '--j-c': cls.color } as React.CSSProperties} onClick={() => nav('notebook')}>
+                <span className="home-cls-name">{cls.name}</span>
+                <span className="home-cls-avg" style={{ color: gradeColor(avg) }}>
                   {avg === null ? '—' : avg.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                 </span>
-                <span className="home-tl-room home-class-sub">
-                  {count === 0 ? t('sin notas') : failing ? t('{n} por debajo de 5', { n: failing }) : t('todos aprueban')}
-                </span>
-              </li>
+                {/* Solo lo que pide atención: «todos aprueban» en cada tarjeta era ruido */}
+                {(count === 0 || failing > 0) && (
+                  <span className={`home-cls-sub${failing ? ' warn' : ''}`}>
+                    {count === 0 ? t('sin notas') : t('{n} por debajo de 5', { n: failing })}
+                  </span>
+                )}
+              </button>
             ))}
-          </ul>
         </div>
       </div>
     </section>

@@ -68,4 +68,16 @@ describe('buildTableSvg', () => {
     expect(svg).toContain('>1</text>');
     expect(svg).toContain('>2</text>');
   });
+
+  it('con mesas cuadradas dibuja un pupitre por asiento en dos filas, con los mismos índices', () => {
+    const seats = [0, 1, 2, 3].map(i => ({ studentName: i < 3 ? `Alumno ${i + 1}` : null, roleName: null }));
+    const svg = buildTableSvg(seats, '#0284c7', 'Mesa 8', { forma: 'cuadrada' });
+    expect(svg).not.toContain('<path');
+    expect(svg.match(/data-seat-index="/g)).toHaveLength(4);
+    expect(svg).toContain('Alumno 3');
+    expect(svg).toContain('Mesa 8');
+    expect(svg).not.toContain('NaN');
+    // Un solo asiento: un pupitre suelto
+    expect(buildTableSvg([seats[0]], '#0284c7', 'Mesa 9', { forma: 'cuadrada', labels: false })).toContain('>1</text>');
+  });
 });

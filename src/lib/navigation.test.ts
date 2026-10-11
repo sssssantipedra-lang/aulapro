@@ -3,9 +3,9 @@ import { reachableSections, hubOf, hubEnMenu, isCurrent, NAV_GROUPS, NAV_APOYO, 
 import type { Section } from '../types';
 
 const ALL: Section[] = [
-  'dashboard', 'classes', 'agenda', 'rubrics', 'diana', 'history', 'notebook', 'profile',
-  'sec-classroom', 'share', 'classroom-live', 'attendance', 'reports', 'selfassess', 'audit', 'records',
-  'learning-situations', 'resources', 'meetings', 'trainings', 'seating',
+  'dashboard', 'classes', 'agenda', 'evaluar', 'rubrics', 'dianas', 'diana', 'history', 'notebook', 'profile',
+  'sec-classroom', 'share', 'classroom-live', 'attendance', 'documentos', 'reports', 'selfassess', 'audit', 'records',
+  'learning-situations', 'resources', 'meetings', 'trainings', 'seating', 'enclase', 'actitud',
 ];
 const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-agenda-visual'];
 
@@ -18,12 +18,12 @@ describe('menú', () => {
     expect(reachableSections('apoyo')).toEqual(expect.arrayContaining(APOYO));
   });
 
-  it('el menú visible es corto: 8 entradas fuera de «Más»', () => {
-    const visible = NAV_GROUPS.filter(g => !g.collapsedByDefault).flatMap(g => g.items);
-    expect(visible).toHaveLength(8);
+  it('todo está a la vista: 11 entradas con color y lo de la cuenta abajo', () => {
+    expect(NAV_GROUPS.filter(g => !g.pie).flatMap(g => g.items)).toHaveLength(11);
+    expect(NAV_GROUPS.filter(g => g.pie).flatMap(g => g.items).map(e => e.id)).toEqual(['profile', 'audit']);
   });
 
-  it('el profesorado de PT y AL tiene su propio menú: el apoyo, lo común y Aula Live', () => {
+  it('el profesorado de PT y AL tiene su propio menú: el apoyo, lo común y la pizarra', () => {
     expect(navGroupsFor('aula')).toBe(NAV_GROUPS);
     expect(navGroupsFor('apoyo')).toBe(NAV_APOYO);
     const r = reachableSections('apoyo');

@@ -10,7 +10,7 @@ import { buildDemoEF } from './demoEF';
 import { buildDemoApoyo } from './demoApoyo';
 import { ambitosDe } from './apoyo';
 import { DEMO_CA, DEMO_EN } from '../i18n/demo';
-import { translate, type Lang } from '../i18n/core';
+import type { Lang } from '../i18n/core';
 
 /** Todos los textos de un objeto, a cualquier profundidad. */
 function textos(x: unknown, out: string[] = []): string[] {
@@ -39,10 +39,18 @@ describe('datos de ejemplo en cada idioma', () => {
   }
 
   it('las asignaturas se traducen, pero su materia oficial sigue siendo la del currículo', () => {
-    const [c1] = buildDemoData('en').classes;
-    expect(c1.subjects).toEqual(['Mathematics', 'Biology and Geology', translate('en', 'Tutoría')]);
-    expect(buildDemoData('ca').classes[0].subjects.slice(0, 2)).toEqual(['Matemàtiques', 'Biologia i Geologia']);
-    expect(Object.values(c1.materiasOficiales ?? {})).toEqual(['Matemáticas', 'Biología y Geología', null]);
+    // Un grupo de cada curso: 1º a 4º de ESO con Matemáticas y 1º a 6º de
+    // Primaria con un área distinta cada uno, una sola por clase (11-10-2026)
+    const clases = buildDemoData('en').classes;
+    expect(clases.map(c => `${c.etapa} ${c.curso}`)).toEqual([
+      'eso 1', 'eso 2', 'eso 3', 'eso 4',
+      'primaria 1', 'primaria 2', 'primaria 3', 'primaria 4', 'primaria 5', 'primaria 6',
+    ]);
+    expect(clases.every(c => c.subjects?.length === 1)).toBe(true);
+    expect(clases.slice(0, 4).every(c => c.subjects?.[0] === 'Mathematics')).toBe(true);
+    expect(new Set(clases.slice(4).map(c => c.subject)).size).toBe(6);
+    expect(buildDemoData('ca').classes[0].subjects).toEqual(['Matemàtiques']);
+    expect(Object.values(clases[0].materiasOficiales ?? {})).toEqual(['matematicas']);
     const ef = buildDemoEF(hoy, 'ca').classes[0];
     expect(ef.subject).toBe('Educació Física');
     expect(ef.materiasOficiales).toEqual({ 'Educació Física': 'Educación Física' });

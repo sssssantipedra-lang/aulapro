@@ -195,18 +195,32 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Sala de alumnos')}</h1>
+            <h1 className="pg-title">{t('Actividades con móviles')}</h1>
             <p className="pg-sub">{t('Actividades desde el móvil, sin instalar nada')}</p>
           </div>
         </div>
-        <div className="card" style={{ maxWidth: 560, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
-          <Monitor size={38} color="var(--text-3)" style={{ margin: '0 auto 16px' }} />
-          <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>
-            {t('Solo desde la aplicación de escritorio')}
-          </h2>
-          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-            {t('Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.')}
-          </p>
+        {/* En el navegador no se puede abrir la sala: se explica qué hace y dónde (11-10-2026) */}
+        <div className="card sala-web">
+          <div className="sala-web-hd">
+            <Monitor size={22} aria-hidden="true" />
+            <div>
+              <h2>{t('Se usa desde la aplicación instalada')}</h2>
+              <p>{t('Para que el alumnado se conecte, Aula Pro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre Aula Pro en Windows o en Android.')}</p>
+            </div>
+          </div>
+          <ol className="sala-web-pasos">
+            <li><b>1</b><span>{t('Eliges la actividad y abres la sala.')}</span></li>
+            <li><b>2</b><span>{t('El alumnado escanea el código QR con el móvil, conectado a la misma wifi del aula. No instala nada.')}</span></li>
+            <li><b>3</b><span>{t('Ves las respuestas al momento y las guardas.')}</span></li>
+          </ol>
+          <div className="sala-web-acts">
+            {KINDS.map(k => (
+              <div key={k.id} className="sala-web-act">
+                <span className="sala-web-ico">{k.icon}</span>
+                <span><strong>{t(k.label)}</strong><em>{t(k.desc)}</em></span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     );
@@ -221,7 +235,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Sala de alumnos')}</h1>
+          <h1 className="pg-title">{t('Actividades con móviles')}</h1>
           <p className="pg-sub">
             {running
               ? t(responses.length === 1 ? 'Sala abierta · {n} respuesta recibida' : 'Sala abierta · {n} respuestas recibidas', { n: responses.length })

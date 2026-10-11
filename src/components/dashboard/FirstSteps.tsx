@@ -38,17 +38,21 @@ const TEXT: Record<FirstStepId, { title: string; desc: string; action: string }>
   },
 };
 
-/** Perfiles con la guía minimizada. Se recuerda entre sesiones. */
-const MIN_KEY = 'aulapro_first_steps_min';
+/**
+ * Perfiles que han desplegado la guía. Desde el 11-10-2026 sale plegada en
+ * una línea (progreso y paso que toca) y se despliega a petición: abierta
+ * ocupaba medio Inicio aunque quedara un solo paso. Se recuerda entre sesiones.
+ */
+const OPEN_KEY = 'aulapro_first_steps_open';
 
 function readMin(profileId: string): boolean {
-  try { return (JSON.parse(localStorage.getItem(MIN_KEY) ?? '[]') as string[]).includes(profileId); } catch { return false; }
+  try { return !(JSON.parse(localStorage.getItem(OPEN_KEY) ?? '[]') as string[]).includes(profileId); } catch { return true; }
 }
 function writeMin(profileId: string, min: boolean) {
   try {
-    const list = new Set(JSON.parse(localStorage.getItem(MIN_KEY) ?? '[]') as string[]);
-    if (min) list.add(profileId); else list.delete(profileId);
-    localStorage.setItem(MIN_KEY, JSON.stringify([...list]));
+    const list = new Set(JSON.parse(localStorage.getItem(OPEN_KEY) ?? '[]') as string[]);
+    if (min) list.delete(profileId); else list.add(profileId);
+    localStorage.setItem(OPEN_KEY, JSON.stringify([...list]));
   } catch { /* sin almacenamiento: solo dura esta sesión */ }
 }
 

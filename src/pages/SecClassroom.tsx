@@ -3,7 +3,7 @@ import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
   Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
-  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete, Flag,
+  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete, Flag, Users,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -1294,7 +1294,12 @@ const DEFAULTS: Record<WidgetType, { x: number; y: number; width: number; height
 };
 
 interface ClassroomProps {
+  /** Nombres para la ruleta cuando no hay clases (el de PT y AL: su alumnado de apoyo). */
   studentNames?: string[];
+  /** Las clases, cada una con los nombres de su alumnado: la ruleta es de la clase elegida. */
+  clases?: { id: string; name: string; nombres: string[] }[];
+  /** La clase con que se abre: la que toca según el horario. */
+  claseInicial?: string;
   /** Fichas guardadas, para proyectarlas como reto. */
   fichas?: Ficha[];
   /** Ficha que se pidió proyectar desde Recursos: se abre al entrar. */
@@ -1336,8 +1341,10 @@ function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick:
   );
 }
 
-export default function SecClassroom({ studentNames = [], fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
+export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
   const { t } = useI18n();
+  const [claseId, setClaseId] = useState(claseInicial ?? '');
+  const clase = clases.find(c => c.id === claseId) ?? clases[0];
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
   const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
@@ -1361,10 +1368,11 @@ export default function SecClassroom({ studentNames = [], fichas = [], projectFi
     try { localStorage.setItem(BOARD_KEY, next); } catch { /* sin almacenamiento: solo dura esta sesión */ }
   }
 
-  const wheelNames = useMemo(
-    () => (studentNames.length > 0 ? studentNames : DEFAULT_NAMES),
-    [studentNames],
-  );
+  const nombresClase = clase?.nombres;
+  const wheelNames = useMemo(() => {
+    const base = nombresClase ?? studentNames;
+    return base.length > 0 ? base : DEFAULT_NAMES;
+  }, [nombresClase, studentNames]);
 
   const [widgets, setWidgets] = useState<Record<WidgetType, boolean>>({
     timer: true, wheel: true, calc: false, noise: false, embed: false,
@@ -1534,6 +1542,16 @@ export default function SecClassroom({ studentNames = [], fichas = [], projectFi
           boxShadow: '0 12px 34px rgba(0,0,0,0.42)',
         }}
       >
+        {clases.length > 0 && (
+          <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
+            <Users size={15} aria-hidden="true" />
+            <span className="sr-only">{t('Clase')}</span>
+            <select value={clase?.id ?? ''} onChange={e => setClaseId(e.target.value)}>
+              {clases.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+        )}
+
         <button
           onClick={() => setPenOn(v => !v)}
           title={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')}

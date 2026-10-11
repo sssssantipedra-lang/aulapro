@@ -77,7 +77,16 @@ export interface TableSvgOptions {
   labels?: boolean;
   /** Pinta la etiqueta de la mesa bajo el dibujo (la pantalla ya la muestra en la cabecera). */
   showLabel?: boolean;
+  /** Cómo son las mesas del aula: piezas en abanico (por defecto) o pupitres cuadrados juntos. */
+  forma?: FormaMesa;
 }
+
+/**
+ * La forma de las mesas (decisión del dueño, 11-10-2026): las cooperativas en
+ * abanico, o pupitres cuadrados de toda la vida juntados en dos filas, una
+ * frente a otra.
+ */
+export type FormaMesa = 'cooperativa' | 'cuadrada';
 
 /** Tonos neutros de un asiento libre: gris suave, sin discontinuas chillonas. */
 // Con variable CSS y color de respaldo: en la app siguen al modo oscuro; en el
@@ -89,8 +98,9 @@ const VACIO_NUMERO = 'var(--text-3, #94a3b8)';
 
 export function buildTableSvg(
   seats: SeatVisual[], color: string, label: string,
-  { labels = true, showLabel = true }: TableSvgOptions = {},
+  { labels = true, showLabel = true, forma = 'cooperativa' }: TableSvgOptions = {},
 ): string {
+  if (forma === 'cuadrada') return buildSquareSvg(seats, color, label, labels, showLabel);
   const n = Math.max(1, seats.length);
   const segAngle = ARCO_TOTAL / n;
   const piezas: string[] = [];
@@ -150,6 +160,64 @@ export function buildTableSvg(
     `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">` +
     piezas.join('') +
     (showLabel ? `<text x="${CX}" y="${HEIGHT - 2}" text-anchor="middle" font-size="10" font-weight="800" fill="${color}">${esc(label)}</text>` : '') +
+    `</svg>`
+  );
+}
+
+/**
+ * Pupitres cuadrados juntos en dos filas enfrentadas: los asientos 1, 2… en
+ * la de arriba, de izquierda a derecha, y el resto en la de abajo. Con un
+ * solo asiento, un pupitre suelto. La silla va por fuera de cada fila.
+ */
+function buildSquareSvg(seats: SeatVisual[], color: string, label: string, labels: boolean, showLabel: boolean): string {
+  const n = Math.max(1, seats.length);
+  const filas = n > 1 ? 2 : 1;
+  const cols = Math.ceil(n / filas);
+  const GAP = 3;
+  const SILLA = 15;
+  const lado = Math.min(64, (WIDTH - 30 - (cols - 1) * GAP) / cols);
+  const ancho = cols * lado + (cols - 1) * GAP;
+  const x0 = (WIDTH - ancho) / 2;
+  const y0 = SILLA + 6;
+  const alto = y0 + filas * lado + (filas - 1) * GAP + SILLA + (showLabel ? 16 : 4);
+  const piezas: string[] = [];
+
+  seats.forEach((seat, i) => {
+    const fila = i < cols ? 0 : 1;
+    const col = fila === 0 ? i : i - cols;
+    const x = x0 + col * (lado + GAP);
+    const y = y0 + fila * (lado + GAP);
+    const ocupado = !!seat.studentName;
+    const asiento: string[] = [];
+    asiento.push(ocupado
+      ? `<rect x="${f(x)}" y="${f(y)}" width="${f(lado)}" height="${f(lado)}" rx="5" fill="${color}" stroke="#ffffff" stroke-width="2.5" />`
+      : `<rect x="${f(x)}" y="${f(y)}" width="${f(lado)}" height="${f(lado)}" rx="5" fill="${VACIO_RELLENO}" stroke="${VACIO_BORDE}" stroke-width="1.2" />`);
+    // La silla, por fuera: encima en la fila de arriba, debajo en la de abajo
+    const sw = Math.min(30, lado - 12);
+    const sy = fila === 0 ? y - 13 : y + lado + 4;
+    asiento.push(`<rect x="${f(x + (lado - sw) / 2)}" y="${f(sy)}" width="${f(sw)}" height="9" rx="4.5" ` +
+      (ocupado ? `fill="${color}" fill-opacity="0.45" />` : `fill="${VACIO_SILLA}" />`));
+    const cx = x + lado / 2;
+    const cy = y + lado / 2;
+    if (!labels) {
+      asiento.push(`<text x="${f(cx)}" y="${f(cy + 5)}" text-anchor="middle" font-size="15" font-weight="800" fill="${ocupado ? '#ffffff' : VACIO_NUMERO}">${i + 1}</text>`);
+    } else if (seat.studentName) {
+      const lineas = envolver(seat.studentName, Math.max(6, Math.floor(lado / 6.5)));
+      const nombreY = cy - (seat.roleName ? 6 : 0) - (lineas.length - 1) * 5;
+      asiento.push(`<text x="${f(cx)}" y="${f(nombreY)}" text-anchor="middle" font-size="10" font-weight="700" fill="#0f172a">` +
+        lineas.map((l, li) => `<tspan x="${f(cx)}" dy="${li === 0 ? 0 : 11}">${esc(l)}</tspan>`).join('') +
+        `</text>`);
+      if (seat.roleName) {
+        asiento.push(`<text x="${f(cx)}" y="${f(nombreY + 11 * lineas.length + 1)}" text-anchor="middle" font-size="8.5" fill="#475569">${esc(envolver(seat.roleName, Math.floor(lado / 5))[0])}</text>`);
+      }
+    }
+    piezas.push(`<g data-seat-index="${i}" class="seating-seat">${asiento.join('')}</g>`);
+  });
+
+  return (
+    `<svg viewBox="0 0 ${WIDTH} ${f(alto)}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">` +
+    piezas.join('') +
+    (showLabel ? `<text x="${CX}" y="${f(alto - 3)}" text-anchor="middle" font-size="10" font-weight="800" fill="${color}">${esc(label)}</text>` : '') +
     `</svg>`
   );
 }
