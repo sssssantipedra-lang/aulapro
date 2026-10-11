@@ -5,9 +5,12 @@
     {
       "comunidad": "comunitat-valenciana",
       "curso": "2026-2027",
-      "norma": { "es": "Resolución de 15 de junio de 2026, de la Dirección General de Centros Docentes (DOGV núm. 10387, de 18 de junio de 2026)" },
+      "norma": {
+        "es": "Resolución de 15 de junio de 2026, de la Dirección General de Centros Docentes (DOGV núm. 10387, de 18 de junio de 2026)",
+        "ca": "Resolució de 15 de juny de 2026, de la Direcció General de Centres Docents (DOGV núm. 10387, de 18 de juny de 2026)"
+      },
       "url": "https://dogv.gva.es/",
-      "verificado": false,
+      "verificado": true,
       "clases": {
         "primaria": { "inicio": "2026-09-09", "fin": "2027-06-18" },
         "eso": { "inicio": "2026-09-09", "fin": "2027-06-18" }
@@ -28,7 +31,7 @@
       "curso": "2026-2027",
       "norma": { "ca": "Ordre EDF/66/2026, de 22 d'abril (DOGC núm. 9653, de 27 d'abril de 2026)" },
       "url": "https://dogc.gencat.cat/",
-      "verificado": false,
+      "verificado": true,
       "clases": {
         "primaria": { "inicio": "2026-09-08", "fin": "2027-06-21" },
         "eso": { "inicio": "2026-09-08", "fin": "2027-06-21" }

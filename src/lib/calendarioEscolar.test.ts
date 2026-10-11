@@ -44,6 +44,23 @@ describe('calendario de serie', () => {
   });
 });
 
+describe('Comunitat Valenciana y Cataluña, según sus documentos oficiales', () => {
+  it('la Resolución de 15 de junio de 2026 (DOGV 10387): del 9 de septiembre al 18 de junio y cuatro festivos', () => {
+    const cv = calendarioDe(serie, 'comunitat-valenciana', '2026-2027')!;
+    expect(cv.verificado).toBe(true);
+    expect(cv.clases.eso).toEqual({ inicio: '2026-09-09', fin: '2027-06-18' });
+    expect(cv.noLectivos.map(d => d.fecha)).toEqual(['2026-10-09', '2026-10-12', '2026-12-08', '2027-03-19']);
+    expect(cv.vacaciones.map(v => [v.desde, v.hasta])).toEqual([['2026-12-22', '2027-01-06'], ['2027-03-25', '2027-04-05']]);
+  });
+
+  it('el calendario de la Generalitat de Catalunya: del 8 de septiembre al 21 de junio y tres festivos', () => {
+    const cat = calendarioDe(serie, 'cataluna', '2026-2027')!;
+    expect(cat.clases.primaria).toEqual({ inicio: '2026-09-08', fin: '2027-06-21' });
+    expect(cat.noLectivos.map(d => d.fecha)).toEqual(['2026-09-11', '2026-10-12', '2026-12-08']);
+    expect(cat.vacaciones.map(v => [v.desde, v.hasta])).toEqual([['2026-12-22', '2027-01-07'], ['2027-03-20', '2027-03-29']]);
+  });
+});
+
 describe('comprobaciones', () => {
   const cambia = (f: (c: CalendarioCurso) => void) => { const a = copia(); f(a.calendarios[0]); return validarArchivo(a); };
 
