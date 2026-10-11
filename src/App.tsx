@@ -542,6 +542,7 @@ function AppInner() {
                 onSet={st.setAttendanceFor}
                 onSetDay={st.setAttendanceDay}
                 onNav={s => setSection(s as Section)}
+                scheduleBlocks={st.scheduleBlocks}
               />
             )}
             {section === 'seating' && (

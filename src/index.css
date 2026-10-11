@@ -1204,8 +1204,6 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   .pg-hd > div { flex-wrap:wrap; }
   /* Primeros pasos: el texto a todo lo ancho y el botón debajo */
   .fs-step .fs-body { flex-basis:calc(100% - 40px); }
-  /* Asistencia: el color de los botones ya dice el estado; así se lee el nombre */
-  .att-status { display:none; }
 }
 @media (max-width: 640px) {
   /* Contenido + columna lateral fija: en el móvil, una debajo de otra */
@@ -1813,3 +1811,28 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   .home-j-item { flex-basis:130px; }
 }
 @media (prefers-reduced-motion: reduce) { .home-q { transition:none; } .home-q:hover { transform:none; } }
+
+/* ── Menú desplegable sencillo (Agenda: «Horario ▾») ── */
+.menu-wrap { position:relative; }
+.menu-pop { position:absolute; right:0; top:calc(100% + 6px); z-index:30; min-width:210px; display:flex; flex-direction:column; padding:6px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 32px rgba(28,25,23,0.14); }
+.menu-item { display:flex; align-items:center; gap:9px; padding:9px 10px; border:none; border-radius:8px; background:none; font-family:var(--font); font-size:13.5px; font-weight:600; color:var(--text); text-align:left; cursor:pointer; }
+.menu-item:hover, .menu-item:focus-visible { background:var(--surface); outline:none; }
+.menu-item.danger { color:var(--danger); }
+.menu-item.danger:hover { background:color-mix(in srgb, var(--danger) 8%, var(--card)); }
+
+/* Los eventos de cada día, en la cabecera de la semana */
+.wk-event { display:block; width:100%; margin-top:5px; padding:3px 6px; border:none; border-left:3px solid var(--ev-c); border-radius:5px; background:color-mix(in srgb, var(--ev-c) 12%, var(--card)); font-family:var(--font); font-size:11px; font-weight:600; color:var(--text); text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.wk-event b { font-weight:800; color:var(--text-2); }
+
+/* ── Asistencia: los cuatro estados con su nombre (11-10-2026) ── */
+.att-opts { display:flex; gap:5px; flex-shrink:0; }
+.att-opt { display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 11px; border-radius:9px; border:1.5px solid var(--border); background:var(--card); color:var(--text-2); font-family:var(--font); font-size:12.5px; font-weight:600; cursor:pointer; transition:background 0.15s, border-color 0.15s, color 0.15s; }
+.att-opt svg { color:var(--att-c); }
+.att-opt:hover { border-color:color-mix(in srgb, var(--att-c) 50%, var(--border)); background:color-mix(in srgb, var(--att-c) 7%, var(--card)); }
+.att-opt.on { background:var(--att-c); border-color:var(--att-c); color:#fff; font-weight:700; }
+.att-opt.on svg { color:#fff; }
+.att-opt:focus-visible { outline:2px solid var(--att-c); outline-offset:2px; }
+@media (max-width: 760px) {
+  .att-opt { width:36px; padding:0; justify-content:center; }
+  .att-opt-lbl { display:none; }
+}

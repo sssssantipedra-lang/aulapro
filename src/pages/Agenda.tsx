@@ -1,5 +1,5 @@
 import { useState, useMemo, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, Plus, X, Trash2, ScanLine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock } from 'lucide-react';
 import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
 import type { ScheduleBlock, CalEvent, Class } from '../types';
 import { PALETTE } from '../lib/demoData';
@@ -22,8 +22,15 @@ function uid() {
 
 // La fecha se calcula en lib/utils para que toda la app use el mismo criterio
 
-// time slots 08:00 – 14:00 (1 h each)
-const TIME_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00'];
+/**
+ * Las horas de la semana, de una en una: de 08:00 a 14:00 como mínimo, y
+ * hasta la hora en que empiece la última clase. Antes se cortaba siempre a
+ * las 14:00 y las clases de la tarde no se veían (11-10-2026).
+ */
+function franjas(blocks: ScheduleBlock[]): string[] {
+  const ultima = blocks.reduce((h, b) => Math.max(h, Number(b.time_start.slice(0, 2)) || 0), 14);
+  return Array.from({ length: Math.min(ultima, 23) - 8 + 1 }, (_, i) => `${String(8 + i).padStart(2, '0')}:00`);
+}
 
 // Build a calendar grid for a given month (always 6 rows × 7 cols, Mon first)
 function buildCalGrid(year: number, month: number): Date[] {
@@ -55,7 +62,7 @@ function weekDates(date: Date): Date[] {
 // veía dos veces (a las 9 y a las 10) aunque fuera una sola sesión. Lo que
 // empieza antes de la primera fila y llega a ella sale en la primera.
 function blockInSlot(block: ScheduleBlock, slot: string): boolean {
-  const first = TIME_SLOTS[0];
+  const first = '08:00';
   if (block.time_start < first) return slot === first && block.time_end > first;
   return block.time_start.slice(0, 2) === slot.slice(0, 2);
 }
@@ -164,7 +171,9 @@ export function Agenda({
   const weekDayLabels = useMemo(() => Array.from({ length: 5 }, (_, i) => weekdayLabel(i, locale)), [locale]);
 
   // ---- view state ----
-  const [view, setView] = useState<'mensual' | 'semanal'>('mensual');
+  // Se abre en la semana: el horario es lo que más se mira (11-10-2026)
+  const [view, setView] = useState<'mensual' | 'semanal'>('semanal');
+  const [menuHorario, setMenuHorario] = useState(false);
 
   // ---- monthly state ----
   const [calYear, setCalYear] = useState(today.getFullYear());
@@ -308,17 +317,33 @@ export function Agenda({
           <p className="pg-sub">{t('Horario semanal y calendario de eventos')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ia" onClick={() => setScannerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <ScanLine size={15} /> {t('Escanear horario')}
-          </button>
-          <button className="btn-ghost" onClick={openNewBlock} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus size={15} /> {t('Nuevo bloque')}
-          </button>
-          {scheduleBlocks.length > 0 && (
-            <button className="btn-ghost danger" onClick={() => setConfirmClear(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Trash2 size={15} /> {t('Borrar horario')}
+          {/* Lo del horario, junto en un menú: «Borrar horario» en rojo a la
+              vista era fácil de pulsar sin querer (11-10-2026) */}
+          <div className="menu-wrap" onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setMenuHorario(false); }}>
+            <button
+              type="button" className="btn-ghost" aria-haspopup="menu" aria-expanded={menuHorario}
+              onClick={() => setMenuHorario(v => !v)}
+              onKeyDown={e => { if (e.key === 'Escape') setMenuHorario(false); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <CalendarClock size={15} /> {t('Horario')} <ChevronDown size={14} />
             </button>
-          )}
+            {menuHorario && (
+              <div className="menu-pop" role="menu" onKeyDown={e => { if (e.key === 'Escape') setMenuHorario(false); }}>
+                <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); setScannerOpen(true); }}>
+                  <ScanLine size={15} /> {t('Escanear horario')}
+                </button>
+                <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); openNewBlock(); }}>
+                  <Plus size={15} /> {t('Nuevo bloque')}
+                </button>
+                {scheduleBlocks.length > 0 && (
+                  <button type="button" role="menuitem" className="menu-item danger" onClick={() => { setMenuHorario(false); setConfirmClear(true); }}>
+                    <Trash2 size={15} /> {t('Borrar horario')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           <button className="btn-accent" onClick={() => openNewEvent()} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={15} /> {t('Nuevo evento')}
           </button>
@@ -548,12 +573,22 @@ export function Agenda({
                     {weekDayLabels[di]}
                   </div>
                   <div style={{ fontSize: 18, lineHeight: 1.2 }}>{d.getDate()}</div>
+                  {/* Los eventos del día, encima de sus clases (11-10-2026) */}
+                  {calEvents.filter(ev => ev.date === ds).map(ev => (
+                    <button
+                      key={ev.id} type="button" className="wk-event"
+                      style={{ '--ev-c': ev.color || 'var(--accent-d)' } as React.CSSProperties}
+                      onClick={() => openEditEvent(ev)} title={ev.desc || ev.name}
+                    >
+                      {ev.time && <b>{ev.time}</b>} {ev.name}
+                    </button>
+                  ))}
                 </div>
               );
             })}
 
             {/* Time rows */}
-            {TIME_SLOTS.map(slot => (
+            {franjas([...scheduleBlocks, ...apoyoBlocks]).map(slot => (
               <Fragment key={slot}>
                 {/* Time label */}
                 <div

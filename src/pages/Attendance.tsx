@@ -3,7 +3,8 @@ import {
   ClipboardList, Check, X, Clock, FileCheck2, ChevronLeft, ChevronRight,
   Users, ArrowRight, Download, CalendarDays,
 } from 'lucide-react';
-import type { Class, Student, AttendanceMap, AttendanceStatus } from '../types';
+import type { Class, Student, AttendanceMap, AttendanceStatus, ScheduleBlock } from '../types';
+import { claseQueToca } from '../lib/claseQueToca';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
@@ -17,7 +18,10 @@ interface Props {
   onSet: (classId: string, date: string, studentId: string, status: AttendanceStatus) => void;
   onSetDay: (classId: string, date: string, map: Record<string, AttendanceStatus>) => void;
   onNav: (s: string) => void;
+  /** El horario: al entrar se abre la clase que toca ahora, o la siguiente de hoy. */
+  scheduleBlocks?: ScheduleBlock[];
 }
+
 
 function statusList(t: (k: string) => string): { id: AttendanceStatus; label: string; short: string; color: string; icon: React.ReactNode }[] {
   return [
@@ -39,13 +43,15 @@ function shiftDate(iso: string, days: number): string {
   return isoDate(d);
 }
 
+/** «Martes, 13 de octubre»: solo la primera letra en mayúscula, no «13 De Octubre». */
 function prettyDate(iso: string, locale: string): string {
-  return fromIsoDate(iso).toLocaleDateString(locale, {
+  const s = fromIsoDate(iso).toLocaleDateString(locale, {
     weekday: 'long', day: 'numeric', month: 'long',
   });
+  return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
 }
 
-export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav }: Props) {
+export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav, scheduleBlocks = [] }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const STATUS = useMemo(() => statusList(t), [t]);
@@ -53,7 +59,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     () => Object.fromEntries(STATUS.map(s => [s.id, s])) as Record<AttendanceStatus, typeof STATUS[number]>,
     [STATUS],
   );
-  const [classId, setClassId] = useState(classes[0]?.id ?? '');
+  const [classId, setClassId] = useState(() => claseQueToca(classes, scheduleBlocks));
   const [date, setDate]       = useState(isoDate());
   const [tab, setTab]         = useState<'day' | 'summary'>('day');
 
@@ -191,7 +197,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                 <ChevronLeft size={17} />
               </button>
               <div style={{ flex: 1, minWidth: 160 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)', textTransform: 'capitalize' }}>
+                <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)' }}>
                   {prettyDate(date, locale)}
                 </div>
                 {date === isoDate() && (
@@ -215,7 +221,6 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
             </div>
             {roster.map((s, i) => {
               const st = today[s.id];
-              const info = st ? STATUS_BY_ID[st] : null;
               return (
                 <div
                   key={s.id}
@@ -247,36 +252,25 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                     {s.name}
                   </button>
 
-                  <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                  {/* Los cuatro estados con su nombre escrito (11-10-2026); en el móvil, solo el icono */}
+                  <div className="att-opts" role="group" aria-label={s.name}>
                     {STATUS.map(opt => {
                       const on = st === opt.id;
                       return (
                         <button
                           key={opt.id}
+                          type="button"
+                          className={`att-opt${on ? ' on' : ''}`}
+                          style={{ '--att-c': opt.color } as React.CSSProperties}
                           onClick={() => onSet(clsId, date, s.id, opt.id)}
+                          aria-pressed={on}
                           title={opt.label}
-                          style={{
-                            width: 34, height: 32, borderRadius: 9, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            border: `1.5px solid ${on ? opt.color : 'var(--border)'}`,
-                            background: on ? opt.color : 'var(--card)',
-                            color: on ? 'white' : 'var(--text-3)',
-                            transition: 'all 0.15s',
-                          }}
                         >
-                          {opt.icon}
+                          {opt.icon}<span className="att-opt-lbl">{opt.label}</span>
                         </button>
                       );
                     })}
                   </div>
-
-                  <span className="att-status" style={{
-                    width: 78, textAlign: 'right', flexShrink: 0,
-                    fontSize: 12, fontWeight: 700,
-                    color: info ? info.color : 'var(--text-3)',
-                  }}>
-                    {info ? info.label : t('Sin marcar')}
-                  </span>
                 </div>
               );
             })}

@@ -145,7 +145,12 @@ SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes
 [agenda] AGENDA
 Dos cosas: el horario semanal (bloques de día, hora de inicio y fin, asignatura,
 aula y clase) y el calendario de eventos (entregas, reuniones y eventos, con
-urgencia alta/media/baja). Tiene «Escanear horario»: se sube el horario del
+urgencia alta/media/baja). Se abre en la vista SEMANAL: el horario de lunes a
+viernes, desde las 8:00 hasta la hora de la última clase (también las de la
+tarde), y encima de cada día sus eventos; pulsando uno se edita. La pestaña
+«Mensual» tiene el calendario con los eventos y el calendario escolar. Arriba,
+«+ Nuevo evento» y el menú «Horario», con «Escanear horario», «Nuevo bloque» y
+«Borrar horario». En «Escanear horario»: se sube el horario del
 centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia
 la tabla celda a celda; la propia aplicación calcula el día y la hora de cada
 sesión por su posición, así que las celdas vacías o el recreo no descolocan
@@ -154,8 +159,7 @@ sesión se quita si no es tuya. Si ya había horario, se puede marcar
 «Sustituir mi horario actual» para que el escaneado lo reemplace en vez de
 sumarse. Consejo: una foto recta y nítida, o mejor el Excel del centro, da el
 mejor resultado.
-Para empezar de cero, el botón «Borrar horario» (arriba, junto a «Nuevo
-bloque») quita todas las sesiones del horario semanal tras pedir
+Para empezar de cero, «Borrar horario» (en el menú «Horario») quita todas las sesiones del horario semanal tras pedir
 confirmación; los eventos del calendario no se tocan.
 CALENDARIO ESCOLAR: con un perfil de la Comunitat Valenciana, Cataluña o
 Madrid, la vista mensual sombrea los días no lectivos de la comunidad y pinta
@@ -209,8 +213,11 @@ suman 100%. Cuenta también en informes, actas (donde cada columna aparece
 con lo que pesa de verdad en la nota), el inicio y la IA.
 
 [attendance] ASISTENCIA
-Pasar lista por clase y día. Cuatro estados: presente, falta, retraso y
-justificada. Hay botón de «Todos presentes» para marcar la clase entera de
+Pasar lista por clase y día. Al entrar se abre la clase que toca según el
+horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
+arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
+Justificada (en el móvil, solo el icono); pulsar el nombre del alumno va
+cambiando el estado. Hay botón de «Todos presentes» para marcar la clase entera de
 golpe. El porcentaje de asistencia cuenta el retraso y la falta justificada como
 asistencia. Se exporta a CSV.
 

@@ -37,15 +37,20 @@ function setup(blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav
 }
 
 describe('Agenda · borrar horario', () => {
-  it('sin horario no se ofrece', () => {
+  it('sin horario no se ofrece', async () => {
+    const user = userEvent.setup();
     setup([]);
-    expect(screen.queryByRole('button', { name: /Borrar horario/ })).toBeNull();
+    await user.click(screen.getByRole('button', { name: /Horario/ }));
+    expect(screen.getByRole('menuitem', { name: /Escanear horario/ })).toBeTruthy();
+    expect(screen.queryByRole('menuitem', { name: /Borrar horario/ })).toBeNull();
   });
 
   it('pide confirmación y vacía el horario', async () => {
     const user = userEvent.setup();
     const { onReplaceBlocks, onDeleteCalEvent } = setup([block('a'), block('b')]);
-    await user.click(screen.getByRole('button', { name: /Borrar horario/ }));
+    // Está en el menú «Horario», no a la vista (11-10-2026)
+    await user.click(screen.getByRole('button', { name: /Horario/ }));
+    await user.click(screen.getByRole('menuitem', { name: /Borrar horario/ }));
     expect(onReplaceBlocks).not.toHaveBeenCalled();
     expect(screen.getByText(/Se quitarán las 2 sesiones/)).toBeTruthy();
 
@@ -57,6 +62,13 @@ describe('Agenda · borrar horario', () => {
 });
 
 describe('Agenda · semana', () => {
+  it('se abre en la semana y enseña las clases de la tarde', () => {
+    setup([{ ...block('tarde'), time_start: '16:00', time_end: '16:55', subject: 'Música' }]);
+    expect(screen.getByRole('tab', { name: 'Semanal' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByText('16:00')).toBeTruthy();
+    expect(screen.getAllByText('Música')).toHaveLength(1);
+  });
+
   it('pinta los bloques que no cruzan una hora en punto y el horario de los grupos de apoyo', async () => {
     const user = userEvent.setup();
     const onNav = vi.fn();
