@@ -7,7 +7,8 @@
  *
  *   - Tu día a día: Inicio, Mis clases, Agenda, Cuaderno, Asistencia.
  *   - Tres «apartados» que reúnen pantallas hermanas, con pestañas arriba:
- *       Evaluar     → Rúbricas, Diana, Autoevaluaciones, Historial
+ *       Evaluar     → Portada, Rúbricas, Dianas, Diana competencial,
+ *                     Autoevaluaciones, Historial
  *       Documentos  → Informes, Actas, Situaciones de aprendizaje, Recursos
  *       En clase    → Distribución de aula, Aula Live, Sala de alumnos
  *   - Centro y equipo: Reuniones, Formaciones y Trabajo compartido.
@@ -47,6 +48,11 @@ export interface NavHub {
   label: string;
   /** Para qué sirve, en una frase: se ve bajo las pestañas y en el tooltip del menú. */
   hint: string;
+  /**
+   * Su primera pestaña es una portada, y entrar desde el menú abre siempre la
+   * portada en vez de la última pestaña usada.
+   */
+  portada?: boolean;
   icon: NavIcon;
   tabs: { id: Section; label: string }[];
 }
@@ -59,8 +65,14 @@ export const HUBS: readonly NavHub[] = [
   {
     id: 'evaluate', label: 'Evaluar', icon: 'evaluate',
     hint: 'Evalúa con rúbricas o con la diana competencial, recoge autoevaluaciones y consulta todo lo evaluado.',
+    // Al entrar, dos tarjetas grandes (rúbricas o dianas) y cómo va cada clase
+    // (decisión del dueño, 11-10-2026). Rúbricas y Dianas eran una sola
+    // pantalla con sus propias pestañas, repetidas con las de arriba.
+    portada: true,
     tabs: [
+      { id: 'evaluar',    label: 'Resumen' },
       { id: 'rubrics',    label: 'Rúbricas' },
+      { id: 'dianas',     label: 'Dianas' },
       { id: 'diana',      label: 'Diana competencial' },
       { id: 'selfassess', label: 'Autoevaluaciones' },
       { id: 'history',    label: 'Historial' },
@@ -235,8 +247,9 @@ export function rememberTab(section: Section): void {
   try { localStorage.setItem(LAST_KEY, JSON.stringify({ ...readLast(), [h.id]: section })); } catch { /* sin almacenamiento */ }
 }
 
-/** La pantalla que abre un apartado: la última usada, o la primera. */
+/** La pantalla que abre un apartado: su portada, o la última usada, o la primera. */
 export function hubTarget(h: NavHub): Section {
+  if (h.portada) return h.tabs[0].id;
   const last = readLast()[h.id];
   return last && h.tabs.some(t => t.id === last) ? last : h.tabs[0].id;
 }

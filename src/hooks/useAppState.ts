@@ -115,10 +115,14 @@ export function demoSnapshot(lang: Lang = 'es'): ProfileSnapshot {
     blocks: d.scheduleBlocks,
     events: d.calEvents,
     rubrics: d.rubrics,
+    dianas: d.dianas,
+    evaluations: d.evaluations,
+    dianaProfiles: d.dianaProfiles,
     gradeCategories: d.gradeCategories,
     gradeItems: d.gradeItems,
     grades: d.grades,
     classMarks: d.classMarks,
+    marksConfigs: d.marksConfigs,
   };
 }
 

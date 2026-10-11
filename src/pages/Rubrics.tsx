@@ -43,6 +43,11 @@ interface Props {
   onEvalOpened?: () => void;
   /** La comunidad del perfil: de su currículo salen los criterios oficiales que se pueden marcar. */
   comunidad?: ComunidadId;
+  /**
+   * Qué instrumento se ve. Rúbricas y Dianas son dos pestañas de Evaluar
+   * (11-10-2026); antes esta pantalla llevaba las suyas propias, repetidas.
+   */
+  vista?: 'rubrics' | 'dianas';
 }
 
 /* ─── Internal types ─── */
@@ -964,11 +969,10 @@ export function Rubrics({
   onAddRubric, onUpdateRubric, onDeleteRubric,
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
-  onEvalOpened, comunidad,
+  onEvalOpened, comunidad, vista = 'rubrics',
 }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
-  const [tab, setTab] = useState<'rubrics' | 'dianas'>('rubrics');
   const [query, setQuery] = useState('');
   const q = query.trim().toLocaleLowerCase('es');
   const visibleRubrics = q
@@ -1050,24 +1054,20 @@ export function Rubrics({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Evaluación')}</h1>
+          <h1 className="pg-title">{t(vista === 'dianas' ? 'Dianas' : 'Rúbricas')}</h1>
           <p className="pg-sub">
-            {t(rubrics.length === 1 ? '{n} rúbrica' : '{n} rúbricas', { n: rubrics.length })} ·{' '}
-            {t(dianas.length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.length })} ·{' '}
-            {t(evaluations.length === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: evaluations.length })}
+            {vista === 'dianas'
+              ? t(dianas.length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.length })
+              : t(rubrics.length === 1 ? '{n} rúbrica' : '{n} rúbricas', { n: rubrics.length })} ·{' '}
+            {(() => {
+              const n = evaluations.filter(e => (e.instrument === 'diana') === (vista === 'dianas')).length;
+              return t(n === 1 ? '{n} evaluación' : '{n} evaluaciones', { n });
+            })()}
           </p>
-        </div>
-        <div className="tab-bar" style={{ marginBottom: 0, width: 'auto' }}>
-          <button className={`tab-btn${tab === 'rubrics' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('rubrics')}>
-            {t('Rúbricas')}
-          </button>
-          <button className={`tab-btn${tab === 'dianas' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('dianas')}>
-            {t('Dianas')}
-          </button>
         </div>
       </div>
 
-      {tab === 'dianas' ? (
+      {vista === 'dianas' ? (
         <DianasTab
           dianas={dianas}
           evaluations={evaluations}

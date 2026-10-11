@@ -734,7 +734,7 @@ export interface ClassMark {
 
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
-  | 'rubrics' | 'diana' | 'history' | 'notebook' | 'profile'
+  | 'evaluar' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'

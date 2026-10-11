@@ -20,6 +20,7 @@ import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
+import { EvaluarInicio } from './pages/EvaluarInicio';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
@@ -399,8 +400,17 @@ function AppInner() {
                 comunidad={st.currentUser.community}
               />
             )}
-            {section === 'rubrics' && (
+            {section === 'evaluar' && (
+              <EvaluarInicio
+                classes={st.classes}
+                rubrics={st.rubrics}
+                evaluations={st.evaluations}
+                onNav={setSection}
+              />
+            )}
+            {(section === 'rubrics' || section === 'dianas') && (
               <Rubrics
+                vista={section}
                 rubrics={st.rubrics}
                 dianas={st.dianas}
                 evaluations={st.evaluations}

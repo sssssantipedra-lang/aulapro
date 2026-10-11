@@ -1,0 +1,79 @@
+/**
+ * Portada de Evaluar: dos tarjetas grandes para elegir cómo evaluar, por
+ * rúbricas o por dianas, y debajo cómo va cada clase según sus rúbricas
+ * (decisión del dueño, 11-10-2026). Entrar en Evaluar desde el menú abre
+ * siempre esta pantalla (`portada` en lib/navigation.ts).
+ */
+import { useMemo } from 'react';
+import { ArrowRight, ClipboardCheck, Target, TrendingUp } from 'lucide-react';
+import type { Class, Evaluation, Rubric, Section } from '../types';
+import { rendimientoPorClase } from '../lib/rendimiento';
+import { RendimientoCarrusel } from '../components/evaluar/RendimientoCarrusel';
+import { useI18n } from '../i18n';
+
+interface Props {
+  classes: Class[];
+  rubrics: Rubric[];
+  evaluations: Evaluation[];
+  onNav: (s: Section) => void;
+}
+
+export function EvaluarInicio({ classes, rubrics, evaluations, onNav }: Props) {
+  const { t } = useI18n();
+  const clases = useMemo(() => rendimientoPorClase(classes, rubrics, evaluations), [classes, rubrics, evaluations]);
+  const conRubrica = evaluations.filter(e => e.instrument !== 'diana').length;
+  const conDiana = evaluations.length - conRubrica;
+
+  const tarjetas = [
+    {
+      id: 'rubrics' as const, color: '#f59e0b', icono: <ClipboardCheck size={26} />,
+      titulo: 'Evaluar por rúbricas',
+      texto: 'Criterios con descriptores por nivel: marcas la casilla que corresponde a cada alumno.',
+      dato: t(conRubrica === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: conRubrica }),
+    },
+    {
+      id: 'dianas' as const, color: '#ef4444', icono: <Target size={26} />,
+      titulo: 'Evaluar por dianas',
+      texto: 'Ítems con peso sobre una diana: se ve de un vistazo en qué destaca cada alumno.',
+      dato: t(conDiana === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: conDiana }),
+    },
+  ];
+
+  return (
+    <section className="sec active">
+      <div className="pg-hd">
+        <div>
+          <h1 className="pg-title">{t('Evaluar')}</h1>
+          <p className="pg-sub">{t('Elige cómo quieres evaluar')}</p>
+        </div>
+      </div>
+
+      <div className="ev-cards">
+        {tarjetas.map(c => (
+          <button key={c.id} type="button" className="ev-card" style={{ '--ev-c': c.color } as React.CSSProperties} onClick={() => onNav(c.id)}>
+            <span className="ev-card-ico">{c.icono}</span>
+            <span className="ev-card-ttl">{t(c.titulo)}</span>
+            <span className="ev-card-txt">{t(c.texto)}</span>
+            <span className="ev-card-ft">
+              <span className="ev-card-dato">{c.dato}</span>
+              <span className="ev-card-go">{t('Empezar')}<ArrowRight size={15} /></span>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="card" style={{ marginTop: 20 }}>
+        <div className="card-hd">
+          <span className="card-ttl"><TrendingUp size={15} />{t('Cómo va cada clase')}</span>
+        </div>
+        {clases.length > 0
+          ? <RendimientoCarrusel clases={clases} />
+          : (
+            <p className="rend-vacio">
+              {t('Cuando evalúes con rúbricas, aquí verás la nota media de cada rúbrica en cada clase.')}
+            </p>
+          )}
+      </div>
+    </section>
+  );
+}

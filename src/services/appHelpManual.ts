@@ -65,19 +65,23 @@ materias), «Educación Física» (con la casilla de tutoría si también es tut
 «PT y AL» (profesorado especialista de apoyo). Cada tipo tiene su menú y su
 Inicio. Lo que sigue es el del docente de aula; el de EF y el de PT y AL están
 más abajo. El tipo se cambia en Configuración → Perfil.
-Barra lateral a la izquierda, organizada por tareas, con tres grupos:
+Barra lateral a la izquierda, organizada por tareas. Cada entrada lleva su
+icono en un cuadradito de color. Todo está a la vista, en tres grupos:
 - «Tu día a día»: Inicio, Mis Clases, Agenda, Cuaderno de Notas y Asistencia.
 - «Trabajo docente»: tres APARTADOS que reúnen pantallas hermanas. Al entrar
   en uno aparecen PESTAÑAS arriba para pasar de una a otra:
-    · Evaluar → Rúbricas, Diana competencial, Autoevaluaciones e Historial.
+    · Evaluar → Resumen, Rúbricas, Dianas, Diana competencial,
+      Autoevaluaciones e Historial. Al entrar desde el menú abre siempre el
+      Resumen.
     · Documentos → Informes, Actas, Situaciones de aprendizaje y Recursos.
     · En clase → Distribución de aula, Aula Live y Sala de alumnos.
-  Cada apartado recuerda la última pestaña usada. Al entrar en uno, la barra
+  Documentos y En clase recuerdan la última pestaña usada. Al entrar en uno, la barra
   de pestañas parpadea dos veces del color de la app para que se vea dónde
   elegir (no lo hace si el sistema tiene activado «reducir movimiento»).
-- «Más» (plegado al principio; se abre pulsando «Más»): Reuniones,
-  Formaciones, Trabajo compartido, Registro de cambios y Configuración. A Configuración
-  también se llega pulsando el nombre del docente, arriba del todo.
+- «Centro y equipo»: Reuniones, Formaciones y Trabajo compartido.
+Abajo del todo, sin color: Configuración, Registro de cambios y Cerrar sesión.
+A Configuración también se llega pulsando el nombre del docente, arriba del
+todo. La versión de la aplicación y los créditos están al pie de Configuración.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
 pulsando su cabecera, y la barra entera se estrecha con la flecha de arriba. En
@@ -231,6 +235,15 @@ botones de arriba a la derecha.
 
 === EVALUAR Y DOCUMENTOS ===
 
+[evaluar] EVALUAR (RESUMEN)
+La portada del apartado Evaluar. Dos tarjetas grandes: «Evaluar por rúbricas»
+(lleva a Rúbricas) y «Evaluar por dianas» (lleva a Dianas). Debajo, «Cómo va
+cada clase»: un gráfico de barras con la nota media de cada rúbrica en una
+clase, sobre 10, con una raya en el 5. Pasa solo de una clase a otra cada
+pocos segundos, como un carrusel; se para al poner el ratón encima, y se
+cambia a mano con las flechas o los puntos. Solo cuenta las evaluaciones con
+rúbrica. Si el sistema tiene «reducir movimiento», no pasa solo.
+
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y
 el resto reparte proporcionalmente); se pueden crear a mano o con la IA. Aquí se
@@ -247,6 +260,13 @@ buscador. Arriba se ven las competencias clave y las específicas que trabaja.
 Al evaluar, la nota de cada criterio va a sus competencias clave (Diana
 competencial) y a sus criterios oficiales. Las rúbricas y dianas que se crean
 desde una situación de aprendizaje ya lo traen marcado.
+
+[dianas] DIANAS
+El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
+dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
+evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
+IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
+nota entra en el cuaderno si declara clase y categoría.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
@@ -867,6 +887,12 @@ tarjeta «Clave de la IA».
   sale un aviso para Recuperar lo escrito; se autoguarda cada minuto.
 - «Quiero probar sin meter datos reales»: en la pantalla de bienvenida,
   «Explorar con datos de ejemplo»; o en Inicio, «Cargar datos de ejemplo».
+  Los del docente de aula traen diez clases de seis alumnos: de 1º a 4º de
+  ESO con Matemáticas y de 1º a 6º de Primaria, cada una con un área. El
+  cuaderno de cada una cuenta un 40% las pruebas, un 40% las tareas y un 20%
+  el trabajo diario y actitud (el bloque vale 2 puntos). Hay rúbricas, una
+  diana y evaluaciones con competencias clave y criterios oficiales, y la
+  Diana competencial de cada alumno ya está rellena.
 - «Empiezo de cero, ¿por dónde?»: Mis Clases (crear la clase y sus alumnos) →
   Cuaderno de Notas (categorías con sus pesos) → ya se pueden poner notas, pasar
   lista y sacar actas e informes.
