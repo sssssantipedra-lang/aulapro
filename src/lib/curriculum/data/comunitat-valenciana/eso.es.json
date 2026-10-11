@@ -5,47 +5,112 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resolver problemas científicos abordables en el ámbito escolar a partir de trabajos de investigación de carácter experimental."
+    "texto": "Resolver problemas científicos abordables en el ámbito escolar a partir de trabajos de investigación de carácter experimental.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analizar situaciones problemáticas reales utilizando la lógica científica y explorando las posibles consecuencias de las soluciones propuestas para afrontarlas."
+    "texto": "Analizar situaciones problemáticas reales utilizando la lógica científica y explorando las posibles consecuencias de las soluciones propuestas para afrontarlas.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Utilizar el conocimiento científico como instrumento del pensamiento crítico, interpretando y comunicando mensajes científicos, desarrollando argumentaciones y accediendo a fuentes fiables, para distinguir la información contrastada de los bulos y opiniones."
+    "texto": "Utilizar el conocimiento científico como instrumento del pensamiento crítico, interpretando y comunicando mensajes científicos, desarrollando argumentaciones y accediendo a fuentes fiables, para distinguir la información contrastada de los bulos y opiniones.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM"
+    ]
    },
    {
     "n": 4,
-    "texto": "Justificar la validez del modelo científico como producto dinámico que se va revisando y reconstruyendo bajo la influencia del contexto social e histórico, atendiendo a la importancia de la ciencia en el avance de las sociedades, así como a los riesgos de un uso inadecuado o interesado de los conocimientos científicos y a sus limitaciones."
+    "texto": "Justificar la validez del modelo científico como producto dinámico que se va revisando y reconstruyendo bajo la influencia del contexto social e histórico, atendiendo a la importancia de la ciencia en el avance de las sociedades, así como a los riesgos de un uso inadecuado o interesado de los conocimientos científicos y a sus limitaciones.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Adoptar hábitos de vida saludable basados en el conocimiento del funcionamiento del propio cuerpo, y de los peligros del uso y abuso de determinadas prácticas y del consumo de algunas sustancias."
+    "texto": "Adoptar hábitos de vida saludable basados en el conocimiento del funcionamiento del propio cuerpo, y de los peligros del uso y abuso de determinadas prácticas y del consumo de algunas sustancias.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Identificar y aceptar la sexualidad personal, y respetar la variedad de identidades de género y de orientaciones sexuales existentes, en base al conocimiento del cuerpo humano y del propio cuerpo."
+    "texto": "Identificar y aceptar la sexualidad personal, y respetar la variedad de identidades de género y de orientaciones sexuales existentes, en base al conocimiento del cuerpo humano y del propio cuerpo.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Actuar con responsabilidad participando activamente en la conservación de todas las formas de vida y del planeta en base al conocimiento de los sistemas biológicos y geológicos."
+    "texto": "Actuar con responsabilidad participando activamente en la conservación de todas las formas de vida y del planeta en base al conocimiento de los sistemas biológicos y geológicos.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 8,
-    "texto": "Utilizar el conocimiento geológico básico sobre el funcionamiento del planeta Tierra como sistema, con el fin de analizar su impacto sobre las poblaciones y proponer y valorar actuaciones de previsión e intervención."
+    "texto": "Utilizar el conocimiento geológico básico sobre el funcionamiento del planeta Tierra como sistema, con el fin de analizar su impacto sobre las poblaciones y proponer y valorar actuaciones de previsión e intervención.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Analizar e interpretar los principales hitos de la historia del planeta Tierra y los principales procesos evolutivos de los sistemas naturales, atendiendo a las magnitudes del tiempo geológico implicadas."
+    "texto": "Analizar e interpretar los principales hitos de la historia del planeta Tierra y los principales procesos evolutivos de los sistemas naturales, atendiendo a las magnitudes del tiempo geológico implicadas.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 10,
-    "texto": "Adoptar hábitos de comportamiento en la actividad cotidiana responsables con el entorno, aplicando criterios científicos y evitando o minimizando el impacto medioambiental."
+    "texto": "Adoptar hábitos de comportamiento en la actividad cotidiana responsables con el entorno, aplicando criterios científicos y evitando o minimizando el impacto medioambiental.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 11,
-    "texto": "Proponer soluciones realistas basadas en el conocimiento científico ante problemas de naturaleza ecosocial a nivel local y global, argumentar su idoneidad y actuar en consecuencia."
+    "texto": "Proponer soluciones realistas basadas en el conocimiento científico ante problemas de naturaleza ecosocial a nivel local y global, argumentar su idoneidad y actuar en consecuencia.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1010,23 +1075,52 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Diseñar equipos y redes de comunicación de uso personal y doméstico, y administrarlos y utilizarlos de manera segura y sostenible."
+    "texto": "Diseñar equipos y redes de comunicación de uso personal y doméstico, y administrarlos y utilizarlos de manera segura y sostenible.",
+    "descriptores": [
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar, seleccionar y organizar la información en el entorno personal de aprendizaje, y utilizarla para la creación, edición, publicación y difusión de contenidos digitales."
+    "texto": "Buscar, seleccionar y organizar la información en el entorno personal de aprendizaje, y utilizarla para la creación, edición, publicación y difusión de contenidos digitales.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Mostrar hábitos que fomenten el bienestar en entornos digitales, aplicando medidas preventivas y correctivas para proteger dispositivos, datos personales y la propia salud."
+    "texto": "Mostrar hábitos que fomenten el bienestar en entornos digitales, aplicando medidas preventivas y correctivas para proteger dispositivos, datos personales y la propia salud.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 4,
-    "texto": "Ejercer una ciudadanía digital crítica mediante un uso activo, responsable y ético de los medios digitales, el comercio electrónico y la administración digital en la sociedad de la información."
+    "texto": "Ejercer una ciudadanía digital crítica mediante un uso activo, responsable y ético de los medios digitales, el comercio electrónico y la administración digital en la sociedad de la información.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Afrontar los desafíos informáticos y digitales que la sociedad de la información plantea en los ámbitos personal, doméstico y educativo, y formular posibles soluciones."
+    "texto": "Afrontar los desafíos informáticos y digitales que la sociedad de la información plantea en los ámbitos personal, doméstico y educativo, y formular posibles soluciones.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1397,31 +1491,73 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Diseñar un proyecto personal que genere valor para la sociedad, analizando las fortalezas y debilidades propias y gestionando de forma eficaz las emociones."
+    "texto": "Diseñar un proyecto personal que genere valor para la sociedad, analizando las fortalezas y debilidades propias y gestionando de forma eficaz las emociones.",
+    "descriptores": [
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Utilizar estrategias de conformación de equipos y mostrar habilidades sociales de empatía, respeto y liderazgo en las dinámicas de trabajo en distintos contextos, analizando el valor de cooperar con otras personas."
+    "texto": "Utilizar estrategias de conformación de equipos y mostrar habilidades sociales de empatía, respeto y liderazgo en las dinámicas de trabajo en distintos contextos, analizando el valor de cooperar con otras personas.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Identificar necesidades de las personas a nivel local y global y proponer soluciones sencillas, innovadoras y sostenibles para satisfacerlas, con sentido ético y solidario, analizando sus puntos fuertes y débiles y su posible impacto en el entorno económico."
+    "texto": "Identificar necesidades de las personas a nivel local y global y proponer soluciones sencillas, innovadoras y sostenibles para satisfacerlas, con sentido ético y solidario, analizando sus puntos fuertes y débiles y su posible impacto en el entorno económico.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Identificar los recursos necesarios en el proceso de desarrollo de la idea o solución creativa propuesta y las posibles fuentes financieras necesarias para la obtención de dichos recursos y aplicarlas a su proyecto emprendedor."
+    "texto": "Identificar los recursos necesarios en el proceso de desarrollo de la idea o solución creativa propuesta y las posibles fuentes financieras necesarias para la obtención de dichos recursos y aplicarlas a su proyecto emprendedor.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Presentar y exponer ideas y soluciones creativas que transmitan mensajes convincentes adecuados al contexto y a los objetivos de cada situación, utilizando estrategias comunicativas eficaces, respetuosas e inclusivas."
+    "texto": "Presentar y exponer ideas y soluciones creativas que transmitan mensajes convincentes adecuados al contexto y a los objetivos de cada situación, utilizando estrategias comunicativas eficaces, respetuosas e inclusivas.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Analizar aspectos básicos de la economía y las finanzas, valorando críticamente el problema de la escasez de recursos, la necesidad de elegir, así como los principales objetivos de la economía actual, desarrollando ideas que den soluciones eficaces, equitativas y sostenibles."
+    "texto": "Analizar aspectos básicos de la economía y las finanzas, valorando críticamente el problema de la escasez de recursos, la necesidad de elegir, así como los principales objetivos de la economía actual, desarrollando ideas que den soluciones eficaces, equitativas y sostenibles.",
+    "descriptores": [
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Diseñar y analizar de manera cooperativa y ágil prototipos innovadores y sostenibles, a través de estrategias eficaces de diseño, validando sus resultados de forma ética, crítica y sostenible."
+    "texto": "Diseñar y analizar de manera cooperativa y ágil prototipos innovadores y sostenibles, a través de estrategias eficaces de diseño, validando sus resultados de forma ética, crítica y sostenible.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1672,31 +1808,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Dialogar y debatir de forma asertiva, respetuosa y correctamente argumentada sobre problemas morales planteados en cualquier situación de la vida diaria para poder llegar a acuerdos o consensos."
+    "texto": "Dialogar y debatir de forma asertiva, respetuosa y correctamente argumentada sobre problemas morales planteados en cualquier situación de la vida diaria para poder llegar a acuerdos o consensos.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Gestionar las emociones en situaciones de conflicto para poder afrontarlas desde la cultura de la paz y explorar y proponer soluciones equitativas y creativas."
+    "texto": "Gestionar las emociones en situaciones de conflicto para poder afrontarlas desde la cultura de la paz y explorar y proponer soluciones equitativas y creativas.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Analizar de forma crítica las normas y leyes vigentes en el marco de la Declaración Universal de los Derechos Humanos y adecuarse a ellas valorando su legitimidad."
+    "texto": "Analizar de forma crítica las normas y leyes vigentes en el marco de la Declaración Universal de los Derechos Humanos y adecuarse a ellas valorando su legitimidad.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Reconocer, denunciar y combatir los estereotipos y roles asociados a partir de una reflexión personal y crítica."
+    "texto": "Reconocer, denunciar y combatir los estereotipos y roles asociados a partir de una reflexión personal y crítica.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Identificar, analizar y valorar en el ámbito internacional los beneficios de los valores democráticos promovidos por leyes e instituciones para la construcción de una ciudadanía global."
+    "texto": "Identificar, analizar y valorar en el ámbito internacional los beneficios de los valores democráticos promovidos por leyes e instituciones para la construcción de una ciudadanía global.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Proponer y desplegar acciones responsables y justas comprometidas con la transformación social y la lucha efectiva contra las desigualdades e injusticias en cualquier situación real de acuerdo con los principios de una sociedad igualitaria e inclusiva."
+    "texto": "Proponer y desplegar acciones responsables y justas comprometidas con la transformación social y la lucha efectiva contra las desigualdades e injusticias en cualquier situación real de acuerdo con los principios de una sociedad igualitaria e inclusiva.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Explicar los desafíos ecológicos planteados por los Objetivos de Desarrollo Sostenible y actuar de manera comprometida con la transformación de la situación medioambiental del planeta."
+    "texto": "Explicar los desafíos ecológicos planteados por los Objetivos de Desarrollo Sostenible y actuar de manera comprometida con la transformación de la situación medioambiental del planeta.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1991,23 +2171,60 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Integrar un estilo de vida activo mediante la práctica de la actividad física y deportiva autorregulada y el establecimiento de conexiones entre los hábitos de comportamiento cotidianos y el bienestar físico y mental."
+    "texto": "Integrar un estilo de vida activo mediante la práctica de la actividad física y deportiva autorregulada y el establecimiento de conexiones entre los hábitos de comportamiento cotidianos y el bienestar físico y mental.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Resolver con éxito diferentes retos y situaciones motrices a través de propuestas físicas y deportivas específicas aplicando las técnicas, tácticas y estrategias de juego adecuadas."
+    "texto": "Resolver con éxito diferentes retos y situaciones motrices a través de propuestas físicas y deportivas específicas aplicando las técnicas, tácticas y estrategias de juego adecuadas.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Participar en procesos de creación de naturaleza artístico-expresiva mediante el uso del cuerpo, el gesto y el movimiento como medios de autoconocimiento para expresar ideas y sentimientos."
+    "texto": "Participar en procesos de creación de naturaleza artístico-expresiva mediante el uso del cuerpo, el gesto y el movimiento como medios de autoconocimiento para expresar ideas y sentimientos.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Interaccionar de manera sostenible con el patrimonio natural y cultural mediante actividades físicas y artístico-expresivas."
+    "texto": "Interaccionar de manera sostenible con el patrimonio natural y cultural mediante actividades físicas y artístico-expresivas.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Seleccionar y hacer un uso crítico y seguro de las tecnologías de la información y la comunicación como facilitadoras de la actividad física y de una vida activa y saludable."
+    "texto": "Seleccionar y hacer un uso crítico y seguro de las tecnologías de la información y la comunicación como facilitadoras de la actividad física y de una vida activa y saludable.",
+    "descriptores": [
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -2544,23 +2761,59 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analizar de manera crítica y argumentada diferentes propuestas artísticas, contemporáneas y de otras épocas, identificando, a través de distintos canales y contextos, referencias socioculturales, funcionalidades y elementos de contenido del patrimonio y de la cultura visual y audiovisual."
+    "texto": "Analizar de manera crítica y argumentada diferentes propuestas artísticas, contemporáneas y de otras épocas, identificando, a través de distintos canales y contextos, referencias socioculturales, funcionalidades y elementos de contenido del patrimonio y de la cultura visual y audiovisual.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Compartir ideas y opiniones usando la terminología específica del área en la comunicación de las experiencias de apreciación y creación artística."
+    "texto": "Compartir ideas y opiniones usando la terminología específica del área en la comunicación de las experiencias de apreciación y creación artística.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comunicar ideas, sentimientos y emociones, experimentando con los elementos del lenguaje visual y con diferentes técnicas y materiales en la elaboración de prácticas artísticas y creativas."
+    "texto": "Comunicar ideas, sentimientos y emociones, experimentando con los elementos del lenguaje visual y con diferentes técnicas y materiales en la elaboración de prácticas artísticas y creativas.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Seleccionar de manera responsable y autónoma recursos digitales aplicados a la percepción, la investigación y la creación en el desarrollo de propuestas y proyectos artísticos, desarrollando una identidad y criterio propio en un consumo responsable y sostenible de acuerdo a la normativa vigente."
+    "texto": "Seleccionar de manera responsable y autónoma recursos digitales aplicados a la percepción, la investigación y la creación en el desarrollo de propuestas y proyectos artísticos, desarrollando una identidad y criterio propio en un consumo responsable y sostenible de acuerdo a la normativa vigente.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Crear producciones artísticas colectivas, atendiendo a las diferentes fases del proceso creativo y aplicando los conocimientos específicos adquiridos."
+    "texto": "Crear producciones artísticas colectivas, atendiendo a las diferentes fases del proceso creativo y aplicando los conocimientos específicos adquiridos.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -3209,47 +3462,114 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resolver problemas científicos abordables en el ámbito escolar a partir de trabajos de investigación de carácter experimental."
+    "texto": "Resolver problemas científicos abordables en el ámbito escolar a partir de trabajos de investigación de carácter experimental.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analizar y resolver situaciones problemáticas del ámbito de la Física y la Química utilizando la lógica científica y alternando las estrategias del trabajo individual con el trabajo en equipo."
+    "texto": "Analizar y resolver situaciones problemáticas del ámbito de la Física y la Química utilizando la lógica científica y alternando las estrategias del trabajo individual con el trabajo en equipo.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Utilizar el conocimiento científico como instrumento del pensamiento crítico, interpretando y comunicando mensajes científicos, desarrollando argumentaciones y accediendo a fuentes fiables, para distinguir la información contrastada de los bulos y opiniones."
+    "texto": "Utilizar el conocimiento científico como instrumento del pensamiento crítico, interpretando y comunicando mensajes científicos, desarrollando argumentaciones y accediendo a fuentes fiables, para distinguir la información contrastada de los bulos y opiniones.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Justificar la validez del modelo científico como producto dinámico que se va revisando y reconstruyendo bajo la influencia del contexto social e histórico, atendiendo la importancia de la ciencia en el avance de las sociedades, así como a los riesgos de un uso inadecuado o interesado de los conocimientos y a sus limitaciones."
+    "texto": "Justificar la validez del modelo científico como producto dinámico que se va revisando y reconstruyendo bajo la influencia del contexto social e histórico, atendiendo la importancia de la ciencia en el avance de las sociedades, así como a los riesgos de un uso inadecuado o interesado de los conocimientos y a sus limitaciones.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Analizar algunos fenómenos naturales y predecir su comportamiento utilizando modelos de Física y Química para poder identificarlos, caracterizarlos y explicar otros fenómenos nuevos."
+    "texto": "Analizar algunos fenómenos naturales y predecir su comportamiento utilizando modelos de Física y Química para poder identificarlos, caracterizarlos y explicar otros fenómenos nuevos.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Utilizar adecuadamente el lenguaje científico propio de la Física y la Química en la interpretación y transmisión de información."
+    "texto": "Utilizar adecuadamente el lenguaje científico propio de la Física y la Química en la interpretación y transmisión de información.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 7,
-    "texto": "Interpretar correctamente la información presentada en diferentes formatos de representación gráfica y simbólica utilizados habitualmente en la Física y la Química."
+    "texto": "Interpretar correctamente la información presentada en diferentes formatos de representación gráfica y simbólica utilizados habitualmente en la Física y la Química.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 8,
-    "texto": "Distinguir las diferentes manifestaciones de la energía e identificar sus formas de transmisión, su conservación y disipación en contextos cercanos."
+    "texto": "Distinguir las diferentes manifestaciones de la energía e identificar sus formas de transmisión, su conservación y disipación en contextos cercanos.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Identificar y caracterizar las sustancias a partir de sus propiedades físicas para relacionar los materiales de nuestro entorno con el uso que se hace de ellos."
+    "texto": "Identificar y caracterizar las sustancias a partir de sus propiedades físicas para relacionar los materiales de nuestro entorno con el uso que se hace de ellos.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 10,
-    "texto": "Caracterizar los cambios químicos como transformación de unas sustancias en otras diferentes, reconociendo la importancia de las transformaciones químicas en actividades y procesos cotidianos."
+    "texto": "Caracterizar los cambios químicos como transformación de unas sustancias en otras diferentes, reconociendo la importancia de las transformaciones químicas en actividades y procesos cotidianos.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 11,
-    "texto": "Identificar las interacciones como causa de las transformaciones que tienen lugar en nuestro entorno físico para poder intervenir en el mismo, modificando las condiciones que nos permitan una mejora en nuestras condiciones de vida."
+    "texto": "Identificar las interacciones como causa de las transformaciones que tienen lugar en nuestro entorno físico para poder intervenir en el mismo, modificando las condiciones que nos permitan una mejora en nuestras condiciones de vida.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -4504,23 +4824,57 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar en sí mismo algunos procesos psicológicos básicos implicados en el aprendizaje, la conducta y las emociones, desarrollando procesos de autorregulación que le permitan un aprendizaje a lo largo de la vida."
+    "texto": "Identificar en sí mismo algunos procesos psicológicos básicos implicados en el aprendizaje, la conducta y las emociones, desarrollando procesos de autorregulación que le permitan un aprendizaje a lo largo de la vida.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Reconocer algunos factores personales y socioculturales que intervienen en la comprensión de sí mismo en relación con los demás y en la adaptación al contexto social y profesional, respetando y valorando la diversidad."
+    "texto": "Reconocer algunos factores personales y socioculturales que intervienen en la comprensión de sí mismo en relación con los demás y en la adaptación al contexto social y profesional, respetando y valorando la diversidad.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Explorar el entorno identificando las oportunidades de desarrollo personal, académico y profesional, utilizando de forma crítica la información."
+    "texto": "Explorar el entorno identificando las oportunidades de desarrollo personal, académico y profesional, utilizando de forma crítica la información.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD"
+    ]
    },
    {
     "n": 4,
-    "texto": "Definir metas realistas, ajustadas al conocimiento de sí mismo, utilizando la información relevante para resolver la incertidumbre y adoptar una actitud proactiva en la toma de decisiones personales, académicas y profesionales."
+    "texto": "Definir metas realistas, ajustadas al conocimiento de sí mismo, utilizando la información relevante para resolver la incertidumbre y adoptar una actitud proactiva en la toma de decisiones personales, académicas y profesionales.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Diseñar un proyecto personal, académico y profesional propio conjugando las necesidades e intereses personales y vocacionales con las oportunidades del entorno y las destrezas necesarias en la toma de decisiones."
+    "texto": "Diseñar un proyecto personal, académico y profesional propio conjugando las necesidades e intereses personales y vocacionales con las oportunidades del entorno y las destrezas necesarias en la toma de decisiones.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -4811,39 +5165,83 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Describir y contextualizar en el tiempo y el espacio los acontecimientos y procesos más relevantes de la historia propia y universal, identificando referentes de la evolución hacia la sociedad actual y valorando su diversidad"
+    "texto": "Describir y contextualizar en el tiempo y el espacio los acontecimientos y procesos más relevantes de la historia propia y universal, identificando referentes de la evolución hacia la sociedad actual y valorando su diversidad",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar, identificar y seleccionar la información referente a hechos históricos, geográficos y artísticos a partir de diferentes fuentes documentales, realizando un tratamiento correcto en cuanto a investigación, clasificación, recogida, organización, crítica y respeto"
+    "texto": "Buscar, identificar y seleccionar la información referente a hechos históricos, geográficos y artísticos a partir de diferentes fuentes documentales, realizando un tratamiento correcto en cuanto a investigación, clasificación, recogida, organización, crítica y respeto",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 3,
-    "texto": "Explicar las nociones básicas de cambio y continuidad en la historia empleando una perspectiva causal y contextualizada, reconociendo en el pasado el origen y evolución de las cuestiones más relevantes del mundo actual y expresando juicios y opiniones sobre el presente y el futuro"
+    "texto": "Explicar las nociones básicas de cambio y continuidad en la historia empleando una perspectiva causal y contextualizada, reconociendo en el pasado el origen y evolución de las cuestiones más relevantes del mundo actual y expresando juicios y opiniones sobre el presente y el futuro",
+    "descriptores": [
+     "CCL",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Contrastar las identidades individuales con las colectivas, identificando las aportaciones decisivas en su construcción, reconociendo y valorando las actuaciones de tolerancia y respeto"
+    "texto": "Contrastar las identidades individuales con las colectivas, identificando las aportaciones decisivas en su construcción, reconociendo y valorando las actuaciones de tolerancia y respeto",
+    "descriptores": [
+     "CCL",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Explicar las interrelaciones económicas fundamentales entre los elementos del espacio físico y las actividades de las sociedades humanas, así como su repercusión en la sostenibilidad"
+    "texto": "Explicar las interrelaciones económicas fundamentales entre los elementos del espacio físico y las actividades de las sociedades humanas, así como su repercusión en la sostenibilidad",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Contrastar los principales modelos de ocupación territorial y de organización política y económica que explican la desigualdad entre los seres humanos, tanto a escala local como global"
+    "texto": "Contrastar los principales modelos de ocupación territorial y de organización política y económica que explican la desigualdad entre los seres humanos, tanto a escala local como global",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Dar argumentos desde una perspectiva crítica, fundamentada en conocimientos históricos y geográficos acerca de problemas sociales relevantes, asumiendo valores democráticos y pronunciándose en su defensa"
+    "texto": "Dar argumentos desde una perspectiva crítica, fundamentada en conocimientos históricos y geográficos acerca de problemas sociales relevantes, asumiendo valores democráticos y pronunciándose en su defensa",
+    "descriptores": [
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Promover y participar en proyectos cooperativos de convivencia, tomando como base la construcción histórica de la Unión Europea, que favorezcan un entorno más justo y solidario mediante la aplicación de valores y procedimientos democráticos"
+    "texto": "Promover y participar en proyectos cooperativos de convivencia, tomando como base la construcción histórica de la Unión Europea, que favorezcan un entorno más justo y solidario mediante la aplicación de valores y procedimientos democráticos",
+    "descriptores": [
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Identificar el origen y reconocer el valor del patrimonio cultural y natural, especialmente de sus elementos geográficos, históricos y artísticos, tanto a escala local como a escala global, participando en la elaboración y difusión de propuestas que favorezcan su preservación y puesta en valor"
+    "texto": "Identificar el origen y reconocer el valor del patrimonio cultural y natural, especialmente de sus elementos geográficos, históricos y artísticos, tanto a escala local como a escala global, participando en la elaboración y difusión de propuestas que favorezcan su preservación y puesta en valor",
+    "descriptores": [
+     "CC",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -5432,23 +5830,57 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconocer y valorar el papel de la cultura y la lengua latinas en los orígenes de Europa, así como su mayor o menor pervivencia y presencia en las lenguas y culturas de los países que la conforman en la actualidad."
+    "texto": "Reconocer y valorar el papel de la cultura y la lengua latinas en los orígenes de Europa, así como su mayor o menor pervivencia y presencia en las lenguas y culturas de los países que la conforman en la actualidad.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Identificar los rasgos básicos y valorar la importancia de la lengua latina en los idiomas que el alumnado utiliza y estudia, a través del aprendizaje del alfabeto, la etimología, los latinismos, la composición y derivación."
+    "texto": "Identificar los rasgos básicos y valorar la importancia de la lengua latina en los idiomas que el alumnado utiliza y estudia, a través del aprendizaje del alfabeto, la etimología, los latinismos, la composición y derivación.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Traducir, comprender e interpretar textos latinos orales y escritos de dificultad moderada, utilizando estrategias de acceso al significado."
+    "texto": "Traducir, comprender e interpretar textos latinos orales y escritos de dificultad moderada, utilizando estrategias de acceso al significado.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 4,
-    "texto": "Producir enunciados sencillos en lengua latina, orales y escritos, desarrollando estrategias de acceso al significado."
+    "texto": "Producir enunciados sencillos en lengua latina, orales y escritos, desarrollando estrategias de acceso al significado.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 5,
-    "texto": "Localizar y valorar la presencia del mundo clásico en el patrimonio histórico, arqueológico y artístico de Europa, de la Península Ibérica y de la Comunidad Valenciana y contribuir a su conservación y respeto."
+    "texto": "Localizar y valorar la presencia del mundo clásico en el patrimonio histórico, arqueológico y artístico de Europa, de la Península Ibérica y de la Comunidad Valenciana y contribuir a su conservación y respeto.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -5667,35 +6099,81 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resolver problemas relacionados con situaciones diversas del ámbito social y en la iniciación a los ámbitos profesional y científico utilizando estrategias formales, representaciones y conceptos que permitan la generalización y abstracción de las soluciones."
+    "texto": "Resolver problemas relacionados con situaciones diversas del ámbito social y en la iniciación a los ámbitos profesional y científico utilizando estrategias formales, representaciones y conceptos que permitan la generalización y abstracción de las soluciones.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Explorar, formular y generalizar conjeturas y propiedades matemáticas, haciendo demostraciones sencillas y reconociendo y conectando los procedimientos, patrones y estructuras abstractas implicados en el razonamiento."
+    "texto": "Explorar, formular y generalizar conjeturas y propiedades matemáticas, haciendo demostraciones sencillas y reconociendo y conectando los procedimientos, patrones y estructuras abstractas implicados en el razonamiento.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir modelos matemáticos generales utilizando conceptos y procedimientos matemáticos funcionales con el fin de interpretar, analizar, comparar, valorar y hacer aportaciones al abordaje de situaciones, fenómenos y problemas relevantes en el ámbito social y en la iniciación a los ámbitos profesional y científico."
+    "texto": "Construir modelos matemáticos generales utilizando conceptos y procedimientos matemáticos funcionales con el fin de interpretar, analizar, comparar, valorar y hacer aportaciones al abordaje de situaciones, fenómenos y problemas relevantes en el ámbito social y en la iniciación a los ámbitos profesional y científico.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Implementar algoritmos computacionales organizando datos, descomponiendo un problema en partes, reconociendo patrones y empleando lenguajes de programación y otras herramientas TIC como soporte para resolver problemas y afrontar desafíos del ámbito social y de iniciación a los ámbitos profesional y científico."
+    "texto": "Implementar algoritmos computacionales organizando datos, descomponiendo un problema en partes, reconociendo patrones y empleando lenguajes de programación y otras herramientas TIC como soporte para resolver problemas y afrontar desafíos del ámbito social y de iniciación a los ámbitos profesional y científico.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Manejar con precisión el simbolismo matemático haciendo transformaciones y conversiones entre representaciones icónico-manipulativas, numéricas, simbólico-algebraicas, tabulares, funcionales, geométricas y gráficas que permitan pensar matemáticamente sobre situaciones del ámbito social y de iniciación a los ámbitos profesional y científico."
+    "texto": "Manejar con precisión el simbolismo matemático haciendo transformaciones y conversiones entre representaciones icónico-manipulativas, numéricas, simbólico-algebraicas, tabulares, funcionales, geométricas y gráficas que permitan pensar matemáticamente sobre situaciones del ámbito social y de iniciación a los ámbitos profesional y científico.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Producir, comunicar e interpretar mensajes orales y escritos complejos de manera formal, empleando el lenguaje matemático, para comunicar e intercambiar ideas generales y argumentos sobre características, conceptos, procedimientos y resultados relacionados con situaciones del ámbito social y de iniciación a los ámbitos profesional y científico."
+    "texto": "Producir, comunicar e interpretar mensajes orales y escritos complejos de manera formal, empleando el lenguaje matemático, para comunicar e intercambiar ideas generales y argumentos sobre características, conceptos, procedimientos y resultados relacionados con situaciones del ámbito social y de iniciación a los ámbitos profesional y científico.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Conocer el valor cultural e histórico de las matemáticas e identificar sus aportaciones en los avances significativos del conocimiento científico y del desarrollo tecnológico especialmente relevantes para abordar los desafíos con los que se enfrenta actualmente la humanidad."
+    "texto": "Conocer el valor cultural e histórico de las matemáticas e identificar sus aportaciones en los avances significativos del conocimiento científico y del desarrollo tecnológico especialmente relevantes para abordar los desafíos con los que se enfrenta actualmente la humanidad.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 8,
-    "texto": "Gestionar y regular las emociones, creencias y actitudes implicadas en los procesos matemáticos, asumiendo con confianza la incertidumbre, las dificultades y los errores que dichos procesos conllevan, y regulando la atención para lograr comprender sus propios procesos de aprendizaje y adaptarlos con éxito a situaciones variadas."
+    "texto": "Gestionar y regular las emociones, creencias y actitudes implicadas en los procesos matemáticos, asumiendo con confianza la incertidumbre, las dificultades y los errores que dichos procesos conllevan, y regulando la atención para lograr comprender sus propios procesos de aprendizaje y adaptarlos con éxito a situaciones variadas.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -6451,23 +6929,54 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analizar propuestas musicales, corporales y multidisciplinares de diferentes épocas y estilos por medio de la percepción activa, relacionando los elementos estructurales y técnicos, con sentido crítico y valorando la diversidad cultural que representan."
+    "texto": "Analizar propuestas musicales, corporales y multidisciplinares de diferentes épocas y estilos por medio de la percepción activa, relacionando los elementos estructurales y técnicos, con sentido crítico y valorando la diversidad cultural que representan.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Relacionar los elementos, las características y las representaciones gráficas del sonido, los instrumentos y la voz a partir del análisis auditivo y visual con el planteamiento de soluciones a las agresiones acústicas del entorno."
+    "texto": "Relacionar los elementos, las características y las representaciones gráficas del sonido, los instrumentos y la voz a partir del análisis auditivo y visual con el planteamiento de soluciones a las agresiones acústicas del entorno.",
+    "descriptores": [
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir propuestas musicales basadas en la interpretación, la improvisación y la experimentación a partir de las posibilidades expresivas y comunicativas del sonido, el cuerpo y los medios digitales mediante procesos individuales y colectivos."
+    "texto": "Construir propuestas musicales basadas en la interpretación, la improvisación y la experimentación a partir de las posibilidades expresivas y comunicativas del sonido, el cuerpo y los medios digitales mediante procesos individuales y colectivos.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Crear proyectos musicales e interdisciplinares mediante su diseño, planificación y ejecución, experimentando con diferentes roles y desarrollando la capacidad crítica, con una valoración tanto del proceso como del resultado."
+    "texto": "Crear proyectos musicales e interdisciplinares mediante su diseño, planificación y ejecución, experimentando con diferentes roles y desarrollando la capacidad crítica, con una valoración tanto del proceso como del resultado.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Aplicar recursos digitales a la escucha, la interpretación, la investigación, la creación y la difusión de producciones musicales, adoptando una actitud responsable y acorde con la normativa vigente."
+    "texto": "Aplicar recursos digitales a la escucha, la interpretación, la investigación, la creación y la difusión de producciones musicales, adoptando una actitud responsable y acorde con la normativa vigente.",
+    "descriptores": [
+     "CD",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -6897,31 +7406,91 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analizar y usar los repertorios lingüísticos de distintas lenguas, reflexionando sobre su funcionamiento y tomando conciencia de los propios conocimientos, valorando la diversidad lingüística y cultural a partir de la lengua extranjera."
+    "texto": "Analizar y usar los repertorios lingüísticos de distintas lenguas, reflexionando sobre su funcionamiento y tomando conciencia de los propios conocimientos, valorando la diversidad lingüística y cultural a partir de la lengua extranjera.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Interpretar textos orales, breves y sencillos, sobre temas predecibles y no predecibles del ámbito personal, social, educativo y profesional, utilizando los conocimientos adecuados sobre los géneros textuales y las estrategias de comprensión y de escucha activa."
+    "texto": "Interpretar textos orales, breves y sencillos, sobre temas predecibles y no predecibles del ámbito personal, social, educativo y profesional, utilizando los conocimientos adecuados sobre los géneros textuales y las estrategias de comprensión y de escucha activa.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar información explícita e implícita expresada en textos escritos y multimodales breves y sencillos que incluyen estructuras y vocabulario de uso frecuente, sobre temas predecibles y no predecibles de ámbito personal, social, educativo y profesional, mediante estrategias que permitan desarrollar su repertorio lingüístico."
+    "texto": "Interpretar información explícita e implícita expresada en textos escritos y multimodales breves y sencillos que incluyen estructuras y vocabulario de uso frecuente, sobre temas predecibles y no predecibles de ámbito personal, social, educativo y profesional, mediante estrategias que permitan desarrollar su repertorio lingüístico.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Producir textos orales, de manera autónoma y fluida, aplicando estrategias de planificación, producción y compensación, para expresar mensajes sencillos del ámbito personal, social, educativo y profesional, mediante estrategias que permitan desarrollar su repertorio lingüístico."
+    "texto": "Producir textos orales, de manera autónoma y fluida, aplicando estrategias de planificación, producción y compensación, para expresar mensajes sencillos del ámbito personal, social, educativo y profesional, mediante estrategias que permitan desarrollar su repertorio lingüístico.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Producir textos escritos y multimodales comprensibles y estructurados, de forma autónoma, para expresar mensajes sencillos del ámbito personal, social, educativo y profesional, aplicando estrategias de planificación, textualización y revisión, mediante estrategias que permitan desarrollar su repertorio lingüístico."
+    "texto": "Producir textos escritos y multimodales comprensibles y estructurados, de forma autónoma, para expresar mensajes sencillos del ámbito personal, social, educativo y profesional, aplicando estrategias de planificación, textualización y revisión, mediante estrategias que permitan desarrollar su repertorio lingüístico.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interactuar de manera oral, escrita y multimodal mediante intercambios sencillos de información, de forma síncrona y asíncrona, mostrando autonomía e iniciativa, para responder a necesidades comunicativas relacionadas con el ámbito personal, social, educativo y profesional, mediante estrategias que permitan desarrollar su repertorio lingüístico."
+    "texto": "Interactuar de manera oral, escrita y multimodal mediante intercambios sencillos de información, de forma síncrona y asíncrona, mostrando autonomía e iniciativa, para responder a necesidades comunicativas relacionadas con el ámbito personal, social, educativo y profesional, mediante estrategias que permitan desarrollar su repertorio lingüístico.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutores aplicando estrategias de adaptación, simplificación y reformulación del lenguaje para procesar y transmitir información más elaborada, en situaciones comunicativas de ámbito personal, social, educativo y profesional."
+    "texto": "Mediar entre interlocutores aplicando estrategias de adaptación, simplificación y reformulación del lenguaje para procesar y transmitir información más elaborada, en situaciones comunicativas de ámbito personal, social, educativo y profesional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -7336,27 +7905,64 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar problemas tecnológicos a partir del estudio de las necesidades presentes en el entorno próximo, formular propuestas para abordarlos, y resolverlos de manera eficiente e innovadora mediante procesos de trabajo colaborativo y utilizando estrategias propias del método de proyectos."
+    "texto": "Identificar problemas tecnológicos a partir del estudio de las necesidades presentes en el entorno próximo, formular propuestas para abordarlos, y resolverlos de manera eficiente e innovadora mediante procesos de trabajo colaborativo y utilizando estrategias propias del método de proyectos.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Fabricar soluciones tecnológicas utilizando los conocimientos interdisciplinares, las técnicas y los recursos disponibles de forma apropiada y segura para dar una respuesta satisfactoria a las necesidades planteadas."
+    "texto": "Fabricar soluciones tecnológicas utilizando los conocimientos interdisciplinares, las técnicas y los recursos disponibles de forma apropiada y segura para dar una respuesta satisfactoria a las necesidades planteadas.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Expresar, difundir e interpretar ideas, propuestas o soluciones tecnológicas de manera efectiva, empleando los recursos disponibles y participando en espacios de intercambio de información."
+    "texto": "Expresar, difundir e interpretar ideas, propuestas o soluciones tecnológicas de manera efectiva, empleando los recursos disponibles y participando en espacios de intercambio de información.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Diseñar y construir sistemas de control programables y robóticos, desarrollando soluciones automatizadas mediante la implementación de algoritmos y operadores tecnológicos."
+    "texto": "Diseñar y construir sistemas de control programables y robóticos, desarrollando soluciones automatizadas mediante la implementación de algoritmos y operadores tecnológicos.",
+    "descriptores": [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Aprovechar las posibilidades que ofrecen las herramientas digitales para la realización eficiente de tareas tecnológicas, configurándolas y aplicando los conocimientos interdisciplinares adecuados."
+    "texto": "Aprovechar las posibilidades que ofrecen las herramientas digitales para la realización eficiente de tareas tecnológicas, configurándolas y aplicando los conocimientos interdisciplinares adecuados.",
+    "descriptores": [
+     "CP",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Contribuir al desarrollo sostenible analizando críticamente el uso de objetos, materiales, productos, instalaciones y procesos tecnológicos, valorando los impactos y repercusiones ambientales, sociales y éticas de estos, y proponiendo alternativas realistas."
+    "texto": "Contribuir al desarrollo sostenible analizando críticamente el uso de objetos, materiales, productos, instalaciones y procesos tecnológicos, valorando los impactos y repercusiones ambientales, sociales y éticas de estos, y proponiendo alternativas realistas.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -7715,31 +8321,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar y resolver problemas tecnológicos sencillos aplicando el método de proyectos, propio de la ingeniería, ejecutando, si es necesario, sus fases características y utilizando los medios tecnológicos y digitales más adecuados al contexto."
+    "texto": "Identificar y resolver problemas tecnológicos sencillos aplicando el método de proyectos, propio de la ingeniería, ejecutando, si es necesario, sus fases características y utilizando los medios tecnológicos y digitales más adecuados al contexto.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar, obtener, analizar y seleccionar información de forma fiable y segura para poder gestionar el tiempo, los conocimientos y los recursos disponibles a la hora de abordar retos tecnológicos, siguiendo un plan de trabajo realista."
+    "texto": "Buscar, obtener, analizar y seleccionar información de forma fiable y segura para poder gestionar el tiempo, los conocimientos y los recursos disponibles a la hora de abordar retos tecnológicos, siguiendo un plan de trabajo realista.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM"
+    ]
    },
    {
     "n": 3,
-    "texto": "Configurar, utilizar y mantener máquinas, herramientas, aplicaciones y sistemas digitales, haciendo una selección idónea y un uso seguro y adecuado de los mismos en función de la tarea."
+    "texto": "Configurar, utilizar y mantener máquinas, herramientas, aplicaciones y sistemas digitales, haciendo una selección idónea y un uso seguro y adecuado de los mismos en función de la tarea.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Realizar un uso responsable y sostenible de los objetos, materiales, productos y soluciones tecnológicas y digitales existentes en su entorno, analizando críticamente sus implicaciones y repercusiones ambientales, sociales y éticas."
+    "texto": "Realizar un uso responsable y sostenible de los objetos, materiales, productos y soluciones tecnológicas y digitales existentes en su entorno, analizando críticamente sus implicaciones y repercusiones ambientales, sociales y éticas.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Crear, expresar, comprender y comunicar ideas, opiniones y propuestas utilizando correctamente los lenguajes y los medios propios de la tecnología y la digitalización, tanto en el ámbito académico como en el personal y social."
+    "texto": "Crear, expresar, comprender y comunicar ideas, opiniones y propuestas utilizando correctamente los lenguajes y los medios propios de la tecnología y la digitalización, tanto en el ámbito académico como en el personal y social.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Analizar problemas sencillos y plantear su solución automatizando procesos con herramientas de programación, sistemas de control o robótica y aplicando el pensamiento computacional."
+    "texto": "Analizar problemas sencillos y plantear su solución automatizando procesos con herramientas de programación, sistemas de control o robótica y aplicando el pensamiento computacional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Utilizar la tecnología poniéndola al servicio del desarrollo personal y profesional, social y comunitario y proponiendo soluciones creativas a los grandes desafíos del mundo actual."
+    "texto": "Utilizar la tecnología poniéndola al servicio del desarrollo personal y profesional, social y comunitario y proponiendo soluciones creativas a los grandes desafíos del mundo actual.",
+    "descriptores": [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    }
   ],
   "criterios": {
@@ -8339,39 +8989,110 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Describir y apreciar la diversidad lingüística y cultural de la Comunidad Valenciana, de España y del mundo, a través del reconocimiento de las lenguas del alumnado y de la realidad multilingüe e intercultural del entorno, analizando las características, el origen y el desarrollo sociohistórico de las dos lenguas oficiales y de las principales variedades lingüísticas, y combatiendo los prejuicios lingüísticos."
+    "texto": "Describir y apreciar la diversidad lingüística y cultural de la Comunidad Valenciana, de España y del mundo, a través del reconocimiento de las lenguas del alumnado y de la realidad multilingüe e intercultural del entorno, analizando las características, el origen y el desarrollo sociohistórico de las dos lenguas oficiales y de las principales variedades lingüísticas, y combatiendo los prejuicios lingüísticos.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos orales y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la escucha activa, aplicando estrategias de comprensión oral, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad."
+    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos orales y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la escucha activa, aplicando estrategias de comprensión oral, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos escritos y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la lectura de textos, aplicando estrategias de comprensión escrita, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad."
+    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos escritos y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la lectura de textos, aplicando estrategias de comprensión escrita, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Producir mensajes orales con coherencia, cohesión y adecuación, fluidez y corrección, a través de diferentes soportes y situaciones de comunicación del ámbito familiar, social, educativo o profesional."
+    "texto": "Producir mensajes orales con coherencia, cohesión y adecuación, fluidez y corrección, a través de diferentes soportes y situaciones de comunicación del ámbito familiar, social, educativo o profesional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Producir textos escritos y multimodales coherentes, cohesionados, adecuados y correctos empleando estrategias de planificación, textualización, revisión y edición."
+    "texto": "Producir textos escritos y multimodales coherentes, cohesionados, adecuados y correctos empleando estrategias de planificación, textualización, revisión y edición.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interactuar de manera oral, escrita y multimodal, de forma progresivamente autónoma, a través de textos de complejidad creciente de los ámbitos personal, social, educativo y profesional, utilizando un lenguaje no discriminatorio y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de forma síncrona y asíncrona."
+    "texto": "Interactuar de manera oral, escrita y multimodal, de forma progresivamente autónoma, a través de textos de complejidad creciente de los ámbitos personal, social, educativo y profesional, utilizando un lenguaje no discriminatorio y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de forma síncrona y asíncrona.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutores aplicando estrategias de adaptación, simplificación y reformulación del lenguaje para procesar y transmitir información más elaborada, en situaciones comunicativas de ámbito personal, social, educativo y profesional."
+    "texto": "Mediar entre interlocutores aplicando estrategias de adaptación, simplificación y reformulación del lenguaje para procesar y transmitir información más elaborada, en situaciones comunicativas de ámbito personal, social, educativo y profesional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Leer obras y textos de carácter diverso y de complejidad progresiva, seleccionados con autonomía, reflexionando sobre el perfil lector que se va configurando."
+    "texto": "Leer obras y textos de carácter diverso y de complejidad progresiva, seleccionados con autonomía, reflexionando sobre el perfil lector que se va configurando.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Leer y producir textos literarios, contextualizados en la cultura y la sociedad, como fuente de placer y de conocimiento."
+    "texto": "Leer y producir textos literarios, contextualizados en la cultura y la sociedad, como fuente de placer y de conocimiento.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -9001,39 +9722,110 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Describir y apreciar la diversidad lingüística y cultural de la Comunidad Valenciana, de España y del mundo, a través del reconocimiento de las lenguas del alumnado y de la realidad multilingüe e intercultural del entorno, analizando las características, el origen y el desarrollo sociohistórico de las dos lenguas oficiales y de las principales variedades lingüísticas, y combatiendo los prejuicios lingüísticos."
+    "texto": "Describir y apreciar la diversidad lingüística y cultural de la Comunidad Valenciana, de España y del mundo, a través del reconocimiento de las lenguas del alumnado y de la realidad multilingüe e intercultural del entorno, analizando las características, el origen y el desarrollo sociohistórico de las dos lenguas oficiales y de las principales variedades lingüísticas, y combatiendo los prejuicios lingüísticos.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos orales y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la escucha activa, aplicando estrategias de comprensión oral, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad."
+    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos orales y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la escucha activa, aplicando estrategias de comprensión oral, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos escritos y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la lectura de textos, aplicando estrategias de comprensión escrita, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad."
+    "texto": "Comprender, interpretar y valorar, de manera autónoma, textos escritos y multimodales propios de los ámbitos personal, social, educativo y profesional, a través de la lectura de textos, aplicando estrategias de comprensión escrita, reflexionando sobre el contenido y la forma, y evaluando su calidad y fiabilidad.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Producir mensajes orales con coherencia, cohesión y adecuación, fluidez y corrección, a través de diferentes soportes y situaciones de comunicación del ámbito familiar, social, educativo o profesional."
+    "texto": "Producir mensajes orales con coherencia, cohesión y adecuación, fluidez y corrección, a través de diferentes soportes y situaciones de comunicación del ámbito familiar, social, educativo o profesional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Producir textos escritos y multimodales coherentes, cohesionados, adecuados y correctos empleando estrategias de planificación, textualización, revisión y edición."
+    "texto": "Producir textos escritos y multimodales coherentes, cohesionados, adecuados y correctos empleando estrategias de planificación, textualización, revisión y edición.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interactuar de manera oral, escrita y multimodal, de forma progresivamente autónoma, a través de textos de complejidad creciente de los ámbitos personal, social, educativo y profesional, utilizando un lenguaje no discriminatorio y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de forma síncrona y asíncrona."
+    "texto": "Interactuar de manera oral, escrita y multimodal, de forma progresivamente autónoma, a través de textos de complejidad creciente de los ámbitos personal, social, educativo y profesional, utilizando un lenguaje no discriminatorio y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de forma síncrona y asíncrona.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutores aplicando estrategias de adaptación, simplificación y reformulación del lenguaje para procesar y transmitir información más elaborada, en situaciones comunicativas de ámbito personal, social, educativo y profesional."
+    "texto": "Mediar entre interlocutores aplicando estrategias de adaptación, simplificación y reformulación del lenguaje para procesar y transmitir información más elaborada, en situaciones comunicativas de ámbito personal, social, educativo y profesional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Leer obras y textos de carácter diverso y de complejidad progresiva, seleccionados con autonomía, reflexionando sobre el perfil lector que se va configurando."
+    "texto": "Leer obras y textos de carácter diverso y de complejidad progresiva, seleccionados con autonomía, reflexionando sobre el perfil lector que se va configurando.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Leer y producir textos literarios, contextualizados en la cultura y la sociedad, como fuente de placer y de conocimiento."
+    "texto": "Leer y producir textos literarios, contextualizados en la cultura y la sociedad, como fuente de placer y de conocimiento.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -9663,23 +10455,53 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Apreciar y argumentar la aportación de las manifestaciones escénicas al patrimonio cultural, participando activamente en la recepción a través de diferentes canales y valorando la diversidad de tradiciones, géneros y estilos estéticos."
+    "texto": "Apreciar y argumentar la aportación de las manifestaciones escénicas al patrimonio cultural, participando activamente en la recepción a través de diferentes canales y valorando la diversidad de tradiciones, géneros y estilos estéticos.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analizar propuestas escénicas desde un punto de vista estético, con actitud crítica, explorando componentes, la escritura, la finalidad comunicativa y las relaciones con el entorno sociocultural."
+    "texto": "Analizar propuestas escénicas desde un punto de vista estético, con actitud crítica, explorando componentes, la escritura, la finalidad comunicativa y las relaciones con el entorno sociocultural.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Planificar y crear producciones escénicas individuales y colectivas mediante el uso de elementos, técnicas y procesos de los diferentes lenguajes artísticos a partir de estímulos diversos, dando expresión concreta a ideas, sentimientos o emociones, y valorando tanto el proceso como el resultado final."
+    "texto": "Planificar y crear producciones escénicas individuales y colectivas mediante el uso de elementos, técnicas y procesos de los diferentes lenguajes artísticos a partir de estímulos diversos, dando expresión concreta a ideas, sentimientos o emociones, y valorando tanto el proceso como el resultado final.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Interpretar obras o piezas escénicas de creación propia o ajena mediante los instrumentos expresivos y comunicativos del cuerpo, la voz, el movimiento, el tiempo y el espacio, haciendo uso de la memoria sensorial y afectiva personal y del grupo."
+    "texto": "Interpretar obras o piezas escénicas de creación propia o ajena mediante los instrumentos expresivos y comunicativos del cuerpo, la voz, el movimiento, el tiempo y el espacio, haciendo uso de la memoria sensorial y afectiva personal y del grupo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Poner en escena proyectos artísticos de un repertorio diverso, cooperando en la organización de los elementos artísticos y fases de producción, asumiendo con responsabilidad los diferentes roles."
+    "texto": "Poner en escena proyectos artísticos de un repertorio diverso, cooperando en la organización de los elementos artísticos y fases de producción, asumiendo con responsabilidad los diferentes roles.",
+    "descriptores": [
+     "CPSAA",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -9852,27 +10674,66 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar los elementos compositivos, estructurales y comunicativos de creaciones sonoras e interdisciplinares contemporáneas, y valorar críticamente su dimensión estética."
+    "texto": "Identificar los elementos compositivos, estructurales y comunicativos de creaciones sonoras e interdisciplinares contemporáneas, y valorar críticamente su dimensión estética.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analizar los elementos sonoros del entorno más cercano mediante la escucha activa y explorar las posibilidades que ofrecen para la creación artística."
+    "texto": "Analizar los elementos sonoros del entorno más cercano mediante la escucha activa y explorar las posibilidades que ofrecen para la creación artística.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar piezas de música urbana y creaciones sonoras e interdisciplinares propias, mediante el uso de la voz, el cuerpo, instrumentos convencionales y no convencionales, con el apoyo del lenguaje musical y partituras gráficas, de manera individual y colectiva."
+    "texto": "Interpretar piezas de música urbana y creaciones sonoras e interdisciplinares propias, mediante el uso de la voz, el cuerpo, instrumentos convencionales y no convencionales, con el apoyo del lenguaje musical y partituras gráficas, de manera individual y colectiva.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Realizar improvisaciones guiadas musicales o interdisciplinares, utilizando lenguajes gestuales y gráficos, a través de procesos individuales y colectivos."
+    "texto": "Realizar improvisaciones guiadas musicales o interdisciplinares, utilizando lenguajes gestuales y gráficos, a través de procesos individuales y colectivos.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Crear y poner en escena proyectos sonoros e interdisciplinares, individuales y colectivos, mediante el uso de diversos lenguajes artísticos, asumiendo diferentes roles en sus fases y valorando tanto el proceso como el resultado."
+    "texto": "Crear y poner en escena proyectos sonoros e interdisciplinares, individuales y colectivos, mediante el uso de diversos lenguajes artísticos, asumiendo diferentes roles en sus fases y valorando tanto el proceso como el resultado.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Emplear recursos digitales en procesos de creación sonora e interdisciplinar, incorporando las posibilidades expresivas, comunicativas y artísticas, con actitud reflexiva y respetando la normativa vigente de uso y difusión."
+    "texto": "Emplear recursos digitales en procesos de creación sonora e interdisciplinar, incorporando las posibilidades expresivas, comunicativas y artísticas, con actitud reflexiva y respetando la normativa vigente de uso y difusión.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -10047,23 +10908,61 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconocer y valorar la pervivencia de las características de la vida social griega y romana en el desarrollo de nuestra actividad cotidiana y en nuestras raíces comunes con otros países de nuestro entorno."
+    "texto": "Reconocer y valorar la pervivencia de las características de la vida social griega y romana en el desarrollo de nuestra actividad cotidiana y en nuestras raíces comunes con otros países de nuestro entorno.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Relacionar los acontecimientos más relevantes de la historia griega y romana con la configuración sociopolítica de la Europa del siglo XXI y del mundo actual a partir de fuentes históricas, teniendo en cuenta los límites geográficos y las características específicas del mundo clásico."
+    "texto": "Relacionar los acontecimientos más relevantes de la historia griega y romana con la configuración sociopolítica de la Europa del siglo XXI y del mundo actual a partir de fuentes históricas, teniendo en cuenta los límites geográficos y las características específicas del mundo clásico.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Identificar los rasgos y valorar la importancia y la huella de la lengua griega y latina en los idiomas que el alumnado utiliza y estudia, a través del aprendizaje del alfabeto, la etimología, los helenismos y latinismos, la composición y derivación."
+    "texto": "Identificar los rasgos y valorar la importancia y la huella de la lengua griega y latina en los idiomas que el alumnado utiliza y estudia, a través del aprendizaje del alfabeto, la etimología, los helenismos y latinismos, la composición y derivación.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 4,
-    "texto": "Localizar y relacionar la presencia del mundo clásico en el patrimonio histórico de Europa, de la Península Ibérica y de la Comunidad Valenciana y contribuir a su conservación y respeto."
+    "texto": "Localizar y relacionar la presencia del mundo clásico en el patrimonio histórico de Europa, de la Península Ibérica y de la Comunidad Valenciana y contribuir a su conservación y respeto.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Desde una perspectiva inclusiva, investigar, identificar y explicar los referentes culturales, tanto masculinos como femeninos, de la época clásica en el desarrollo de la ciencia y en las diversas manifestaciones artísticas actuales."
+    "texto": "Desde una perspectiva inclusiva, investigar, identificar y explicar los referentes culturales, tanto masculinos como femeninos, de la época clásica en el desarrollo de la ciencia y en las diversas manifestaciones artísticas actuales.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -10394,27 +11293,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar en sí mismo cualidades personales y habilidades sociales que favorezcan la toma de decisiones, la creatividad, la actuación responsable y el espíritu de superación."
+    "texto": "Identificar en sí mismo cualidades personales y habilidades sociales que favorezcan la toma de decisiones, la creatividad, la actuación responsable y el espíritu de superación.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Participar en equipos de trabajo, valorando el planteamiento y discusión tanto de las propuestas personales como de grupo, ejerciendo el liderazgo de una manera positiva y organizando el trabajo en común."
+    "texto": "Participar en equipos de trabajo, valorando el planteamiento y discusión tanto de las propuestas personales como de grupo, ejerciendo el liderazgo de una manera positiva y organizando el trabajo en común.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Argumentar el papel de la Economía Social como marco que favorece el desarrollo de una ciudadanía global, valorando los efectos positivos que genera sobre su entorno."
+    "texto": "Argumentar el papel de la Economía Social como marco que favorece el desarrollo de una ciudadanía global, valorando los efectos positivos que genera sobre su entorno.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Diseñar proyectos básicos sostenibles e innovadores, utilizando herramientas de la Economía Social y comprobando su retorno a la sociedad dentro de un ámbito local o global."
+    "texto": "Diseñar proyectos básicos sostenibles e innovadores, utilizando herramientas de la Economía Social y comprobando su retorno a la sociedad dentro de un ámbito local o global.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Planificar un presupuesto personal sencillo, evaluando la importancia del ahorro y el riesgo que supone un endeudamiento excesivo e identificando los medios de pago utilizados."
+    "texto": "Planificar un presupuesto personal sencillo, evaluando la importancia del ahorro y el riesgo que supone un endeudamiento excesivo e identificando los medios de pago utilizados.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Analizar documentos relativos al consumo, desde una perspectiva responsable y sostenible, e identificar los organismos que velan por los derechos del consumidor."
+    "texto": "Analizar documentos relativos al consumo, desde una perspectiva responsable y sostenible, e identificar los organismos que velan por los derechos del consumidor.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -10625,19 +11572,40 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analizar problemas cotidianos desde una perspectiva filosófica y con una mirada crítica, constructiva y éticamente comprometida."
+    "texto": "Analizar problemas cotidianos desde una perspectiva filosófica y con una mirada crítica, constructiva y éticamente comprometida.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Identificar y diferenciar las premisas, estrategias argumentativas y conclusiones de textos o discursos, distinguiendo los usos correctos de las argumentaciones falaces."
+    "texto": "Identificar y diferenciar las premisas, estrategias argumentativas y conclusiones de textos o discursos, distinguiendo los usos correctos de las argumentaciones falaces.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Explicar las diferencias entre elementos racionales y emocionales en la justificación de decisiones a propósito de conflictos de valores."
+    "texto": "Explicar las diferencias entre elementos racionales y emocionales en la justificación de decisiones a propósito de conflictos de valores.",
+    "descriptores": [
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Elaborar y exponer de una manera clara, ordenada y argumentada ideas y propuestas filosóficas prácticas que fomenten el crecimiento personal y el compromiso social."
+    "texto": "Elaborar y exponer de una manera clara, ordenada y argumentada ideas y propuestas filosóficas prácticas que fomenten el crecimiento personal y el compromiso social.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -10768,19 +11736,44 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar, investigar y emplear técnicas de inteligencia artificial y virtualización de la realidad en el abordaje y la búsqueda de soluciones a problemas básicos de la sociedad valorando los principios éticos e inclusivos aplicados."
+    "texto": "Identificar, investigar y emplear técnicas de inteligencia artificial y virtualización de la realidad en el abordaje y la búsqueda de soluciones a problemas básicos de la sociedad valorando los principios éticos e inclusivos aplicados.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 2,
-    "texto": "Aplicar el pensamiento computacional en el análisis y resolución de problemas básicos significativos para el alumnado mediante el desarrollo de software."
+    "texto": "Aplicar el pensamiento computacional en el análisis y resolución de problemas básicos significativos para el alumnado mediante el desarrollo de software.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 3,
-    "texto": "Montar sistemas robóticos sencillos, analizando las respuestas que proporcionan en su interacción con el entorno y valorando la eficacia de estas frente a los retos planteados."
+    "texto": "Montar sistemas robóticos sencillos, analizando las respuestas que proporcionan en su interacción con el entorno y valorando la eficacia de estas frente a los retos planteados.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 4,
-    "texto": "Afrontar retos tecnológicos sencillos y proponer soluciones mediante la programación, la Inteligencia Artificial y la robótica, analizando las posibilidades y valorando críticamente las implicaciones éticas y ecosociales."
+    "texto": "Afrontar retos tecnológicos sencillos y proponer soluciones mediante la programación, la Inteligencia Artificial y la robótica, analizando las posibilidades y valorando críticamente las implicaciones éticas y ecosociales.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -11097,19 +12090,43 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Inventar propuestas escénicas breves a partir de estímulos creativos diversos, aplicando y compartiendo ideas personales, elementos, reglas y recursos de los diferentes lenguajes artísticos."
+    "texto": "Inventar propuestas escénicas breves a partir de estímulos creativos diversos, aplicando y compartiendo ideas personales, elementos, reglas y recursos de los diferentes lenguajes artísticos.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Interpretar obras o piezas escénicas diversas de creación propia o ajena mediante los instrumentos del cuerpo, la voz, el movimiento, el tiempo y el espacio en la expresión y comunicación de ideas, sentimientos y emociones personales y colectivas."
+    "texto": "Interpretar obras o piezas escénicas diversas de creación propia o ajena mediante los instrumentos del cuerpo, la voz, el movimiento, el tiempo y el espacio en la expresión y comunicación de ideas, sentimientos y emociones personales y colectivas.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Poner en escena creaciones artísticas colectivas mediante el uso de los diferentes lenguajes artísticos cooperando en la organización de la producción y valorando tanto el proceso como el resultado final."
+    "texto": "Poner en escena creaciones artísticas colectivas mediante el uso de los diferentes lenguajes artísticos cooperando en la organización de la producción y valorando tanto el proceso como el resultado final.",
+    "descriptores": [
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Apreciar producciones escénicas en su contexto sociocultural a través de diferentes canales, aprovechando la propia experiencia y conocimientos para valorar la diversidad de tradiciones, géneros y estilos estéticos."
+    "texto": "Apreciar producciones escénicas en su contexto sociocultural a través de diferentes canales, aprovechando la propia experiencia y conocimientos para valorar la diversidad de tradiciones, géneros y estilos estéticos.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -11454,31 +12471,91 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconocer y usar sus repertorios lingüísticos, y comparar su funcionamiento, identificando la diversidad lingüística y cultural a partir de la lengua extranjera."
+    "texto": "Reconocer y usar sus repertorios lingüísticos, y comparar su funcionamiento, identificando la diversidad lingüística y cultural a partir de la lengua extranjera.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Interpretar la información de textos orales y multimodales, breves y sencillos, de manera guiada, sobre diferentes temas predecibles de los ámbitos personal, social y educativo, a través de la escucha activa y la aplicación de estrategias para la comprensión oral."
+    "texto": "Interpretar la información de textos orales y multimodales, breves y sencillos, de manera guiada, sobre diferentes temas predecibles de los ámbitos personal, social y educativo, a través de la escucha activa y la aplicación de estrategias para la comprensión oral.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar la información expresada por medio de textos escritos y multimodales breves y sencillos, de manera guiada, sobre diferentes temas predecibles de ámbito personal, social y educativo."
+    "texto": "Interpretar la información expresada por medio de textos escritos y multimodales breves y sencillos, de manera guiada, sobre diferentes temas predecibles de ámbito personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Producir de manera guiada textos orales y multimodales comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación y compensación."
+    "texto": "Producir de manera guiada textos orales y multimodales comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación y compensación.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Producir, de forma guiada, textos escritos y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, mediante la aplicación de estrategias de planificación, textualización y revisión."
+    "texto": "Producir, de forma guiada, textos escritos y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, mediante la aplicación de estrategias de planificación, textualización y revisión.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interactuar de manera oral, escrita y multimodal a través de textos sencillos, breves y guiados, de forma síncrona y asíncrona, para responder a necesidades comunicativas relacionadas con el ámbito personal, social y educativo."
+    "texto": "Interactuar de manera oral, escrita y multimodal a través de textos sencillos, breves y guiados, de forma síncrona y asíncrona, para responder a necesidades comunicativas relacionadas con el ámbito personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje, para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de ámbito personal, social y educativo."
+    "texto": "Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje, para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de ámbito personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -11942,31 +13019,86 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar los problemas económicos básicos vinculados con la escasez y la necesidad de elegir, relacionándolos con situaciones del entorno más cercano."
+    "texto": "Identificar los problemas económicos básicos vinculados con la escasez y la necesidad de elegir, relacionándolos con situaciones del entorno más cercano.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analizar las cualidades individuales y colectivas que caracterizan una actitud emprendedora y ponerlas en práctica, mediante el trabajo cooperativo, para encontrar nuevas oportunidades de mejora en el entorno social y económico más próximo basadas en principios de equidad, coeducación e igualdad."
+    "texto": "Analizar las cualidades individuales y colectivas que caracterizan una actitud emprendedora y ponerlas en práctica, mediante el trabajo cooperativo, para encontrar nuevas oportunidades de mejora en el entorno social y económico más próximo basadas en principios de equidad, coeducación e igualdad.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Describir la importancia del papel de las familias, las empresas y el Estado en el funcionamiento de la economía, analizando la realidad socioeconómica del entorno más cercano del alumnado."
+    "texto": "Describir la importancia del papel de las familias, las empresas y el Estado en el funcionamiento de la economía, analizando la realidad socioeconómica del entorno más cercano del alumnado.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 4,
-    "texto": "Identificar los principales indicadores macroeconómicos relacionados con el mercado de trabajo, la redistribución de la renta, el crecimiento y los precios que le hagan comprender su realidad, utilizando fuentes y herramientas básicas de análisis."
+    "texto": "Identificar los principales indicadores macroeconómicos relacionados con el mercado de trabajo, la redistribución de la renta, el crecimiento y los precios que le hagan comprender su realidad, utilizando fuentes y herramientas básicas de análisis.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Explicar la conexión entre la actividad del Estado y la necesidad de financiación pública para el cumplimiento de sus objetivos, así como, identificar las principales figuras tributarias, valorando la función social y el papel redistributivo de los impuestos en la sociedad."
+    "texto": "Explicar la conexión entre la actividad del Estado y la necesidad de financiación pública para el cumplimiento de sus objetivos, así como, identificar las principales figuras tributarias, valorando la función social y el papel redistributivo de los impuestos en la sociedad.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Recopilar información de diferentes fuentes económicas seleccionando datos fiables que den rigor a las propuestas de mejora del proyecto de colaboración con un servicio a la comunidad."
+    "texto": "Recopilar información de diferentes fuentes económicas seleccionando datos fiables que den rigor a las propuestas de mejora del proyecto de colaboración con un servicio a la comunidad.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Diseñar un proyecto sencillo de colaboración con un servicio a la comunidad que posibilite la mejora de la calidad de vida de las personas y el medio ambiente, basándose en los principios recogidos en los Objetivos de Desarrollo Sostenible."
+    "texto": "Diseñar un proyecto sencillo de colaboración con un servicio a la comunidad que posibilite la mejora de la calidad de vida de las personas y el medio ambiente, basándose en los principios recogidos en los Objetivos de Desarrollo Sostenible.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -12237,19 +13369,40 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Utilizar dispositivos digitales de uso personal en el entorno doméstico y educativo de manera saludable, segura y sostenible."
+    "texto": "Utilizar dispositivos digitales de uso personal en el entorno doméstico y educativo de manera saludable, segura y sostenible.",
+    "descriptores": [
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar y seleccionar críticamente información digital de distintas fuentes, interpretarla, organizarla en el entorno personal de aprendizaje y crear contenidos digitales."
+    "texto": "Buscar y seleccionar críticamente información digital de distintas fuentes, interpretarla, organizarla en el entorno personal de aprendizaje y crear contenidos digitales.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir una identidad digital adecuada y aplicar estrategias básicas para cuidarla y protegerla."
+    "texto": "Construir una identidad digital adecuada y aplicar estrategias básicas para cuidarla y protegerla.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Mostrar hábitos básicos que fomenten el bienestar en las relaciones a través de entornos digitales."
+    "texto": "Mostrar hábitos básicos que fomenten el bienestar en las relaciones a través de entornos digitales.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -12467,23 +13620,61 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Diseñar un plan financiero personal y/o familiar sencillo, utilizando estrategias de planificación y toma de decisiones y evaluando la coherencia y consistencia a lo largo del tiempo."
+    "texto": "Diseñar un plan financiero personal y/o familiar sencillo, utilizando estrategias de planificación y toma de decisiones y evaluando la coherencia y consistencia a lo largo del tiempo.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Valorar el consumo responsable en nuestro entorno más cercano, identificando los beneficios económicos y sociales que produce, y su aplicación en nuestras actividades cotidianas."
+    "texto": "Valorar el consumo responsable en nuestro entorno más cercano, identificando los beneficios económicos y sociales que produce, y su aplicación en nuestras actividades cotidianas.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Utilizar, cumplimentar e interpretar documentos cotidianos, empleados en actividades relacionadas con el consumo, tratándolos de manera adecuada en su relación con las administraciones públicas u otras entidades"
+    "texto": "Utilizar, cumplimentar e interpretar documentos cotidianos, empleados en actividades relacionadas con el consumo, tratándolos de manera adecuada en su relación con las administraciones públicas u otras entidades",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Utilizar estrategias y acciones, individuales y colectivas, que prevengan problemas relacionados con el fraude, las apuestas, la publicidad engañosa y las compras compulsivas, aplicando herramientas y habilidades para evitarlos."
+    "texto": "Utilizar estrategias y acciones, individuales y colectivas, que prevengan problemas relacionados con el fraude, las apuestas, la publicidad engañosa y las compras compulsivas, aplicando herramientas y habilidades para evitarlos.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Identificar y proponer soluciones que reduzcan la desigualdad y la escasez de recursos, basándose en valores solidarios y sostenibles."
+    "texto": "Identificar y proponer soluciones que reduzcan la desigualdad y la escasez de recursos, basándose en valores solidarios y sostenibles.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {

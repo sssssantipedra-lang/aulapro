@@ -5,47 +5,113 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resoldre problemes científics abordables en l’àmbit escolar a partir de treballs d’investigació de caràcter experimental."
+    "texto": "Resoldre problemes científics abordables en l’àmbit escolar a partir de treballs d’investigació de caràcter experimental.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analitzar situacions problemàtiques reals utilitzant la lògica científica i explorant les possibles conseqüències de les solucions proposades per a afrontar-les."
+    "texto": "Analitzar situacions problemàtiques reals utilitzant la lògica científica i explorant les possibles conseqüències de les solucions proposades per a afrontar-les.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Utilitzar el coneixement científic com a instrument del pensament crític, interpretant i comunicant missatges científics, desenvolupant argumentacions i accedint a fonts fiables, per a distingir la informació contrastada de les notícies falses i opinions."
+    "texto": "Utilitzar el coneixement científic com a instrument del pensament crític, interpretant i comunicant missatges científics, desenvolupant argumentacions i accedint a fonts fiables, per a distingir la informació contrastada de les notícies falses i opinions.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM"
+    ]
    },
    {
     "n": 4,
-    "texto": "Justificar la validesa del model científic com a producte dinàmic que es va revisant i reconstruint sota la influència del context social i històric, atenent la importància de la ciència en l’avanç de les societats, així com els riscos d’un ús inadequat o interessat dels coneixements i les seues limitacions."
+    "texto": "Justificar la validesa del model científic com a producte dinàmic que es va revisant i reconstruint sota la influència del context social i històric, atenent la importància de la ciència en l’avanç de les societats, així com els riscos d’un ús inadequat o interessat dels coneixements i les seues limitacions.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Adoptar hàbits de vida saludable basats en el coneixement del funcionament del propi cos, i dels perills de l’ús i l’abús de pràctiques determinades i del consum d’algunes substàncies."
+    "texto": "Adoptar hàbits de vida saludable basats en el coneixement del funcionament del propi cos, i dels perills de l’ús i l’abús de pràctiques determinades i del consum d’algunes substàncies.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Identificar i acceptar la sexualitat personal, i respectar la varietat d’identitats de gènere i d’orientacions sexuals existents, sobre la base del coneixement del cos humà i del propi cos."
+    "texto": "Identificar i acceptar la sexualitat personal, i respectar la varietat d’identitats de gènere i d’orientacions sexuals existents, sobre la base del coneixement del cos humà i del propi cos.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Actuar amb responsabilitat participant activament en la conservació de totes les formes de vida i del planeta sobre la base del coneixement dels sistemes biològics i geològics."
+    "texto": "Actuar amb responsabilitat participant activament en la conservació de totes les formes de vida i del planeta sobre la base del coneixement dels sistemes biològics i geològics.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 8,
-    "texto": "Utilitzar el coneixement geològic bàsic sobre el funcionament del planeta Terra com a sistema, amb la finalitat d’analitzar el seu impacte sobre les poblacions i proposar i valorar actuacions de previsió i intervenció."
+    "texto": "Utilitzar el coneixement geològic bàsic sobre el funcionament del planeta Terra com a sistema, amb la finalitat d’analitzar el seu impacte sobre les poblacions i proposar i valorar actuacions de previsió i intervenció.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Analitzar i interpretar les principals fites de la història del planeta Terra i els principals processos evolutius dels sistemes naturals, atenent les magnituds del temps geològic implicades."
+    "texto": "Analitzar i interpretar les principals fites de la història del planeta Terra i els principals processos evolutius dels sistemes naturals, atenent les magnituds del temps geològic implicades.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 10,
-    "texto": "Adoptar hàbits de comportament en l’activitat quotidiana responsables amb l’entorn, aplicant criteris científics i evitant o minimitzant l’impacte mediambiental."
+    "texto": "Adoptar hàbits de comportament en l’activitat quotidiana responsables amb l’entorn, aplicant criteris científics i evitant o minimitzant l’impacte mediambiental.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 11,
-    "texto": "Proposar solucions realistes basades en el coneixement científic davant de problemes de naturalesa ecosocial a escala local i global, argumentar-ne la idoneïtat i actuar en conseqüència."
+    "texto": "Proposar solucions realistes basades en el coneixement científic davant de problemes de naturalesa ecosocial a escala local i global, argumentar-ne la idoneïtat i actuar en conseqüència.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1010,23 +1076,52 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Dissenyar equips i xarxes de comunicació d’ús personal i domèstic, administrar-los i utilitzar-los de manera segura i sostenible."
+    "texto": "Dissenyar equips i xarxes de comunicació d’ús personal i domèstic, administrar-los i utilitzar-los de manera segura i sostenible.",
+    "descriptores": [
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar, seleccionar i organitzar la informació en l’entorn personal d’aprenentatge, i utilitzar-la per a la creació, edició, publicació i difusió de continguts digitals."
+    "texto": "Buscar, seleccionar i organitzar la informació en l’entorn personal d’aprenentatge, i utilitzar-la per a la creació, edició, publicació i difusió de continguts digitals.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Mostrar hàbits que fomenten el benestar en entorns digitals, aplicant mesures preventives i correctives per a protegir dispositius, dades personals i la pròpia salut."
+    "texto": "Mostrar hàbits que fomenten el benestar en entorns digitals, aplicant mesures preventives i correctives per a protegir dispositius, dades personals i la pròpia salut.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 4,
-    "texto": "Exercir una ciutadania digital crítica mitjançant un ús actiu, responsable i ètic dels mitjans digitals, el comerç electrònic i l’administració digital en la societat de la informació."
+    "texto": "Exercir una ciutadania digital crítica mitjançant un ús actiu, responsable i ètic dels mitjans digitals, el comerç electrònic i l’administració digital en la societat de la informació.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Afrontar els desafiaments informàtics i digitals que la societat de la informació planteja en els àmbits personal, domèstic i educatiu, i formular possibles solucions."
+    "texto": "Afrontar els desafiaments informàtics i digitals que la societat de la informació planteja en els àmbits personal, domèstic i educatiu, i formular possibles solucions.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1397,31 +1492,73 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Dissenyar un projecte personal que genere valor per a la societat, analitzar les fortaleses i les febleses pròpies i gestionar de manera eficaç les emocions."
+    "texto": "Dissenyar un projecte personal que genere valor per a la societat, analitzar les fortaleses i les febleses pròpies i gestionar de manera eficaç les emocions.",
+    "descriptores": [
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Utilitzar estratègies de conformació d’equips i mostrar habilitats socials d’empatia, respecte i lideratge en les dinàmiques de treball en diferents contextos, i analitzar el valor de cooperar amb altres persones"
+    "texto": "Utilitzar estratègies de conformació d’equips i mostrar habilitats socials d’empatia, respecte i lideratge en les dinàmiques de treball en diferents contextos, i analitzar el valor de cooperar amb altres persones",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Identificar necessitats de les persones en l’àmbit local i global i proposar solucions senzilles, innovadores i sostenibles per a satisfer-les, amb sentit ètic i solidari, i analitzar els seus punts forts i febles i el possible impacte en l’entorn econòmic."
+    "texto": "Identificar necessitats de les persones en l’àmbit local i global i proposar solucions senzilles, innovadores i sostenibles per a satisfer-les, amb sentit ètic i solidari, i analitzar els seus punts forts i febles i el possible impacte en l’entorn econòmic.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Identificar els recursos necessaris en el procés de desenvolupament de la idea o la solució creativa proposada i les possibles fonts financeres necessàries per a l’obtenció d’aquests recursos i aplicar-les al seu projecte emprenedor"
+    "texto": "Identificar els recursos necessaris en el procés de desenvolupament de la idea o la solució creativa proposada i les possibles fonts financeres necessàries per a l’obtenció d’aquests recursos i aplicar-les al seu projecte emprenedor",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Presentar i exposar idees i solucions creatives que transmeten missatges convincents adequats al context i als objectius de cada situació, i utilitzar estratègies comunicatives eficaces, respectuoses i inclusives."
+    "texto": "Presentar i exposar idees i solucions creatives que transmeten missatges convincents adequats al context i als objectius de cada situació, i utilitzar estratègies comunicatives eficaces, respectuoses i inclusives.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Analitzar aspectes bàsics de l’economia i les finances, valorar críticament el problema de l’escassetat de recursos, la necessitat de triar, així com els principals objectius de l’economia actual, i desenvolupar idees que donen solucions eficaces, equitatives i sostenibles"
+    "texto": "Analitzar aspectes bàsics de l’economia i les finances, valorar críticament el problema de l’escassetat de recursos, la necessitat de triar, així com els principals objectius de l’economia actual, i desenvolupar idees que donen solucions eficaces, equitatives i sostenibles",
+    "descriptores": [
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Dissenyar i analitzar de manera cooperativa i àgil prototips innovadors i sostenibles, a través d’estratègies eficaces de disseny, i validar els seus resultats de manera ètica, crítica i sostenible."
+    "texto": "Dissenyar i analitzar de manera cooperativa i àgil prototips innovadors i sostenibles, a través d’estratègies eficaces de disseny, i validar els seus resultats de manera ètica, crítica i sostenible.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1672,31 +1809,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Dialogar i debatre de manera assertiva, respectuosa i correctament argumentada sobre problemes morals plantejats en qualsevol situació de la vida diària per a poder arribar a acords o consensos."
+    "texto": "Dialogar i debatre de manera assertiva, respectuosa i correctament argumentada sobre problemes morals plantejats en qualsevol situació de la vida diària per a poder arribar a acords o consensos.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Gestionar les emocions en situacions de conflicte per a poder afrontar-les des de la cultura de la pau i explorar i proposar solucions equitatives i creatives."
+    "texto": "Gestionar les emocions en situacions de conflicte per a poder afrontar-les des de la cultura de la pau i explorar i proposar solucions equitatives i creatives.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Analitzar de manera crítica les normes i lleis vigents en el marc de la Declaració Universal dels Drets Humans i adequar-se a aquestes valorant-ne la legitimitat."
+    "texto": "Analitzar de manera crítica les normes i lleis vigents en el marc de la Declaració Universal dels Drets Humans i adequar-se a aquestes valorant-ne la legitimitat.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Reconéixer, denunciar i combatre els estereotips i rols associats a partir d’una reflexió personal i crítica."
+    "texto": "Reconéixer, denunciar i combatre els estereotips i rols associats a partir d’una reflexió personal i crítica.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Identificar, analitzar i valorar en l’àmbit internacional els beneficis dels valors democràtics promoguts per lleis i institucions per a la construcció d’una ciutadania global."
+    "texto": "Identificar, analitzar i valorar en l’àmbit internacional els beneficis dels valors democràtics promoguts per lleis i institucions per a la construcció d’una ciutadania global.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Proposar i desplegar accions responsables i justes compromeses amb la transformació social i la lluita efectiva contra les desigualtats i injustícies en qualsevol situació real d’acord amb els principis d’una societat igualitària i inclusiva."
+    "texto": "Proposar i desplegar accions responsables i justes compromeses amb la transformació social i la lluita efectiva contra les desigualtats i injustícies en qualsevol situació real d’acord amb els principis d’una societat igualitària i inclusiva.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Explicar els desafiaments ecològics plantejats pels Objectius de Desenvolupament Sostenible i actuar de manera compromesa amb la transformació de la situació mediambiental del planeta."
+    "texto": "Explicar els desafiaments ecològics plantejats pels Objectius de Desenvolupament Sostenible i actuar de manera compromesa amb la transformació de la situació mediambiental del planeta.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -1991,23 +2172,60 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Integrar un estil de vida actiu mitjançant la pràctica de l’activitat física i esportiva autoregulada i l’establiment de connexions entre els hàbits de comportament quotidians i el benestar físic i mental."
+    "texto": "Integrar un estil de vida actiu mitjançant la pràctica de l’activitat física i esportiva autoregulada i l’establiment de connexions entre els hàbits de comportament quotidians i el benestar físic i mental.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Resoldre amb èxit diferents reptes i situacions motrius a través de propostes físiques i esportives específiques aplicant les tècniques, tàctiques i estratègies de joc adients."
+    "texto": "Resoldre amb èxit diferents reptes i situacions motrius a través de propostes físiques i esportives específiques aplicant les tècniques, tàctiques i estratègies de joc adients.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Participar en processos de creació de naturalesa artisticoexpressiva mitjançant l’ús del cos, el gest i el moviment com a mitjans d’autoconeixement per a expressar idees i sentiments."
+    "texto": "Participar en processos de creació de naturalesa artisticoexpressiva mitjançant l’ús del cos, el gest i el moviment com a mitjans d’autoconeixement per a expressar idees i sentiments.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Interaccionar de manera sostenible amb el patrimoni natural i cultural mitjançant activitats físiques i artisticoexpressives."
+    "texto": "Interaccionar de manera sostenible amb el patrimoni natural i cultural mitjançant activitats físiques i artisticoexpressives.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Seleccionar i fer un ús crític i segur de les tecnologies de la informació i la comunicació com a facilitadores de l’activitat física i d’una vida activa i saludable."
+    "texto": "Seleccionar i fer un ús crític i segur de les tecnologies de la informació i la comunicació com a facilitadores de l’activitat física i d’una vida activa i saludable.",
+    "descriptores": [
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -2544,23 +2762,59 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analitzar de manera crítica i argumentada diferents propostes artístiques, contemporànies i d'altres èpoques, identificant, a través de diferents canals i contextos, referències socioculturals, funcionalitats i elements de contingut del patrimoni i de la cultura visual i audiovisual."
+    "texto": "Analitzar de manera crítica i argumentada diferents propostes artístiques, contemporànies i d'altres èpoques, identificant, a través de diferents canals i contextos, referències socioculturals, funcionalitats i elements de contingut del patrimoni i de la cultura visual i audiovisual.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Compartir idees i opinions usant la terminologia específica de l'àrea en la comunicació de les experiències d'apreciació i creació artística."
+    "texto": "Compartir idees i opinions usant la terminologia específica de l'àrea en la comunicació de les experiències d'apreciació i creació artística.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comunicar idees, sentiments i emocions, experimentant amb els elements del llenguatge visual i amb diferents tècniques i materials en l’elaboració de pràctiques artístiques i creatives."
+    "texto": "Comunicar idees, sentiments i emocions, experimentant amb els elements del llenguatge visual i amb diferents tècniques i materials en l’elaboració de pràctiques artístiques i creatives.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Seleccionar de manera responsable i autònoma recursos digitals aplicats a la percepció, la investigació i la creació en el desenvolupament de propostes i projectes artístics, desenvolupant una identitat i criteri propi en el consum responsable i sostenible d'acord amb la normativa vigent."
+    "texto": "Seleccionar de manera responsable i autònoma recursos digitals aplicats a la percepció, la investigació i la creació en el desenvolupament de propostes i projectes artístics, desenvolupant una identitat i criteri propi en el consum responsable i sostenible d'acord amb la normativa vigent.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Crear produccions artístiques col·lectives, ateses les diferents fases del procés creatiu i aplicant els coneixements específics adquirits."
+    "texto": "Crear produccions artístiques col·lectives, ateses les diferents fases del procés creatiu i aplicant els coneixements específics adquirits.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -3215,47 +3469,114 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resoldre problemes científics abordables en l’àmbit escolar a partir de treballs d’investigació de caràcter experimental."
+    "texto": "Resoldre problemes científics abordables en l’àmbit escolar a partir de treballs d’investigació de caràcter experimental.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analitzar i resoldre situacions problemàtiques de l’àmbit de la física i la química utilitzant la lògica científica i alternant les estratègies del treball individual amb el treball en equip."
+    "texto": "Analitzar i resoldre situacions problemàtiques de l’àmbit de la física i la química utilitzant la lògica científica i alternant les estratègies del treball individual amb el treball en equip.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Utilitzar el coneixement científic com a instrument del pensament crític, interpretant i comunicant missatges científics, desenvolupant argumentacions i accedint a fonts fiables, per a distingir la informació contrastada de les faules i opinions."
+    "texto": "Utilitzar el coneixement científic com a instrument del pensament crític, interpretant i comunicant missatges científics, desenvolupant argumentacions i accedint a fonts fiables, per a distingir la informació contrastada de les faules i opinions.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Justificar la validesa del model científic com a producte dinàmic que es va revisant i reconstruint sota la influència del context social i històric, atenent la importància de la ciència en l’avanç de les societats, així com els riscos d’un ús inadequat o interessat dels coneixements i les seues limitacions."
+    "texto": "Justificar la validesa del model científic com a producte dinàmic que es va revisant i reconstruint sota la influència del context social i històric, atenent la importància de la ciència en l’avanç de les societats, així com els riscos d’un ús inadequat o interessat dels coneixements i les seues limitacions.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Analitzar alguns fenòmens naturals i predir el seu comportament utilitzant models de la física i la química per a poder identificar-los, caracteritzar-los i explicar altres fenòmens nous."
+    "texto": "Analitzar alguns fenòmens naturals i predir el seu comportament utilitzant models de la física i la química per a poder identificar-los, caracteritzar-los i explicar altres fenòmens nous.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Utilitzar adequadament el llenguatge científic propi de la física i la química en la interpretació i transmissió d’informació."
+    "texto": "Utilitzar adequadament el llenguatge científic propi de la física i la química en la interpretació i transmissió d’informació.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 7,
-    "texto": "Interpretar correctament la informació presentada en diferents formats de representació gràfica i simbòlica utilitzats habitualment en la física i la química."
+    "texto": "Interpretar correctament la informació presentada en diferents formats de representació gràfica i simbòlica utilitzats habitualment en la física i la química.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 8,
-    "texto": "Distingir les diferents manifestacions de l’energia i identificar-ne les formes de transmissió i la seua conservació i dissipació en contextos pròxims."
+    "texto": "Distingir les diferents manifestacions de l’energia i identificar-ne les formes de transmissió i la seua conservació i dissipació en contextos pròxims.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Identificar i caracteritzar les substàncies a partir de les seues propietats físiques per a relacionar els materials del nostre entorn amb l’ús que se’n fa."
+    "texto": "Identificar i caracteritzar les substàncies a partir de les seues propietats físiques per a relacionar els materials del nostre entorn amb l’ús que se’n fa.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 10,
-    "texto": "Caracteritzar els canvis químics com a transformació d’unes substàncies en altres de diferents i reconéixer la importància de les transformacions químiques en activitats i processos quotidians."
+    "texto": "Caracteritzar els canvis químics com a transformació d’unes substàncies en altres de diferents i reconéixer la importància de les transformacions químiques en activitats i processos quotidians.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 11,
-    "texto": "Identificar les interaccions com a causa de les transformacions que tenen lloc en el nostre entorn físic per a poder intervindre en aquest modificant les condicions que ens permeten una millora en les nostres condicions de vida."
+    "texto": "Identificar les interaccions com a causa de les transformacions que tenen lloc en el nostre entorn físic per a poder intervindre en aquest modificant les condicions que ens permeten una millora en les nostres condicions de vida.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -4498,23 +4819,57 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar en si mateix alguns processos psicològics bàsics implicats en l’aprenentatge, la conducta i les emocions, i desenvolupar processos d’autoregulació que li permeten un aprenentatge al llarg de la vida."
+    "texto": "Identificar en si mateix alguns processos psicològics bàsics implicats en l’aprenentatge, la conducta i les emocions, i desenvolupar processos d’autoregulació que li permeten un aprenentatge al llarg de la vida.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Reconéixer alguns factors personals i socioculturals que intervenen en la comprensió de si mateix en relació amb els altres i en l’adaptació al context social i professional, i respectar i valorar la diversitat."
+    "texto": "Reconéixer alguns factors personals i socioculturals que intervenen en la comprensió de si mateix en relació amb els altres i en l’adaptació al context social i professional, i respectar i valorar la diversitat.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Explorar l’entorn, identificar les oportunitats de desenvolupament personal, acadèmic i professional, i utilitzar de manera crítica la informació."
+    "texto": "Explorar l’entorn, identificar les oportunitats de desenvolupament personal, acadèmic i professional, i utilitzar de manera crítica la informació.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD"
+    ]
    },
    {
     "n": 4,
-    "texto": "Definir metes realistes, ajustades al coneixement de si mateix, i utilitzar la informació rellevant per a resoldre la incertesa i adoptar una actitud proactiva en la presa de decisions personals, acadèmiques i professionals."
+    "texto": "Definir metes realistes, ajustades al coneixement de si mateix, i utilitzar la informació rellevant per a resoldre la incertesa i adoptar una actitud proactiva en la presa de decisions personals, acadèmiques i professionals.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Dissenyar un projecte personal, acadèmic i professional propi i conjugar les necessitats i els interessos personals i vocacionals amb les oportunitats de l’entorn i les destreses necessàries en la presa de decisions."
+    "texto": "Dissenyar un projecte personal, acadèmic i professional propi i conjugar les necessitats i els interessos personals i vocacionals amb les oportunitats de l’entorn i les destreses necessàries en la presa de decisions.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -4805,39 +5160,83 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Descriure i contextualitzar en el temps i l’espai els esdeveniments i els processos més rellevants de la història pròpia i universal, identificant referents de l’evolució cap a la societat actual i valorant-ne la diversitat"
+    "texto": "Descriure i contextualitzar en el temps i l’espai els esdeveniments i els processos més rellevants de la història pròpia i universal, identificant referents de l’evolució cap a la societat actual i valorant-ne la diversitat",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar, identificar i seleccionar la informació referent a fets històrics, geogràfics i artístics a partir de diferents fonts documentals, i fer un tractament correcte quant a investigació, classificació, recollida, organització, crítica i respecte."
+    "texto": "Buscar, identificar i seleccionar la informació referent a fets històrics, geogràfics i artístics a partir de diferents fonts documentals, i fer un tractament correcte quant a investigació, classificació, recollida, organització, crítica i respecte.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 3,
-    "texto": "Explicar les nocions bàsiques de canvi i continuïtat en la història emprant una perspectiva causal i contextualitzada, reconéixer en el passat l’origen i l’evolució de les qüestions més rellevants del món actual i expressar judicis i opinions sobre el present i el futur."
+    "texto": "Explicar les nocions bàsiques de canvi i continuïtat en la història emprant una perspectiva causal i contextualitzada, reconéixer en el passat l’origen i l’evolució de les qüestions més rellevants del món actual i expressar judicis i opinions sobre el present i el futur.",
+    "descriptores": [
+     "CCL",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Contrastar les identitats individuals amb les col·lectives, identificar les aportacions decisives en la seua construcció, reconeixent i valorant les actuacions de tolerància i respecte."
+    "texto": "Contrastar les identitats individuals amb les col·lectives, identificar les aportacions decisives en la seua construcció, reconeixent i valorant les actuacions de tolerància i respecte.",
+    "descriptores": [
+     "CCL",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Explicar les interrelacions econòmiques fonamentals entre els elements de l’espai físic i les activitats de les societats humanes, així com la seua repercussió en la sostenibilitat."
+    "texto": "Explicar les interrelacions econòmiques fonamentals entre els elements de l’espai físic i les activitats de les societats humanes, així com la seua repercussió en la sostenibilitat.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Contrastar els principals models d’ocupació territorial i d’organització política i econòmica que expliquen la desigualtat entre els éssers humans, tant a escala local com global."
+    "texto": "Contrastar els principals models d’ocupació territorial i d’organització política i econòmica que expliquen la desigualtat entre els éssers humans, tant a escala local com global.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Donar arguments des d’una perspectiva crítica, fonamentada en coneixements històrics i la geografia sobre problemes socials rellevants, assumir valors democràtics i pronunciar-se en la defensa d’aquests."
+    "texto": "Donar arguments des d’una perspectiva crítica, fonamentada en coneixements històrics i la geografia sobre problemes socials rellevants, assumir valors democràtics i pronunciar-se en la defensa d’aquests.",
+    "descriptores": [
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Promoure projectes cooperatius de convivència i participar-hi, prenent com a base la construcció històrica de la Unió Europea, que afavorisquen un entorn més just i solidari mitjançant l’aplicació de valors i procediments democràtics."
+    "texto": "Promoure projectes cooperatius de convivència i participar-hi, prenent com a base la construcció històrica de la Unió Europea, que afavorisquen un entorn més just i solidari mitjançant l’aplicació de valors i procediments democràtics.",
+    "descriptores": [
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Identificar l’origen i reconéixer el valor del patrimoni cultural i natural, especialment dels elements geogràfics, històrics i artístics, tant a escala local com global, i participar en l’elaboració i la difusió de propostes que n’afavorisquen la preservació i la valoració."
+    "texto": "Identificar l’origen i reconéixer el valor del patrimoni cultural i natural, especialment dels elements geogràfics, històrics i artístics, tant a escala local com global, i participar en l’elaboració i la difusió de propostes que n’afavorisquen la preservació i la valoració.",
+    "descriptores": [
+     "CC",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -5426,23 +5825,57 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconéixer i valorar el paper de la cultura i la llengua llatines en els orígens d'Europa, així com la major o menor pervivència i presència en les llengües i cultures dels països que la conformen en l'actualitat."
+    "texto": "Reconéixer i valorar el paper de la cultura i la llengua llatines en els orígens d'Europa, així com la major o menor pervivència i presència en les llengües i cultures dels països que la conformen en l'actualitat.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Identificar els trets bàsics i valorar la importància de la llengua llatina en els idiomes que l'alumnat utilitza i estudia, a través de l'aprenentatge de l'alfabet, l'etimologia, els llatinismes, la composició i derivació."
+    "texto": "Identificar els trets bàsics i valorar la importància de la llengua llatina en els idiomes que l'alumnat utilitza i estudia, a través de l'aprenentatge de l'alfabet, l'etimologia, els llatinismes, la composició i derivació.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Traduir, comprendre i interpretar textos llatins orals i escrits de dificultat moderada, utilitzant estratègies d'accés al significat."
+    "texto": "Traduir, comprendre i interpretar textos llatins orals i escrits de dificultat moderada, utilitzant estratègies d'accés al significat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 4,
-    "texto": "Produir enunciats senzills en llengua llatina, orals i escrits, desenvolupant estratègies d'accés al significat."
+    "texto": "Produir enunciats senzills en llengua llatina, orals i escrits, desenvolupant estratègies d'accés al significat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 5,
-    "texto": "Localitzar i valorar la presència del món clàssic en el patrimoni històric, arqueològic i artístic d'Europa, de la Península Ibèrica i de la Comunitat Valenciana, i contribuir-ne a la conservació i respecte."
+    "texto": "Localitzar i valorar la presència del món clàssic en el patrimoni històric, arqueològic i artístic d'Europa, de la Península Ibèrica i de la Comunitat Valenciana, i contribuir-ne a la conservació i respecte.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -5661,35 +6094,81 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resoldre problemes relacionats amb situacions diverses de l’àmbit social i en la iniciació als àmbits professional i científic utilitzant estratègies formals, representacions i conceptes que permeten la generalització i l’abstracció de les solucions."
+    "texto": "Resoldre problemes relacionats amb situacions diverses de l’àmbit social i en la iniciació als àmbits professional i científic utilitzant estratègies formals, representacions i conceptes que permeten la generalització i l’abstracció de les solucions.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Explorar, formular i generalitzar conjectures i propietats matemàtiques, fent demostracions senzilles i reconeixent i connectant els procediments, els patrons i les estructures abstractes implicats en el raonament."
+    "texto": "Explorar, formular i generalitzar conjectures i propietats matemàtiques, fent demostracions senzilles i reconeixent i connectant els procediments, els patrons i les estructures abstractes implicats en el raonament.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir models matemàtics generals utilitzant conceptes i procediments matemàtics funcionals amb la finalitat d’interpretar, analitzar, comparar, valorar i fer aportacions a l’abordatge de situacions, fenòmens i problemes rellevants en l’àmbit social i en la iniciació als àmbits professional i científic."
+    "texto": "Construir models matemàtics generals utilitzant conceptes i procediments matemàtics funcionals amb la finalitat d’interpretar, analitzar, comparar, valorar i fer aportacions a l’abordatge de situacions, fenòmens i problemes rellevants en l’àmbit social i en la iniciació als àmbits professional i científic.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Implementar algoritmes computacionals organitzant dades, descomponent un problema en parts, reconeixent patrons i emprant llenguatges de programació i altres ferramentes TIC com a suport per a resoldre problemes i afrontar desafiaments de l’àmbit social i d’iniciació als àmbits professional i científic."
+    "texto": "Implementar algoritmes computacionals organitzant dades, descomponent un problema en parts, reconeixent patrons i emprant llenguatges de programació i altres ferramentes TIC com a suport per a resoldre problemes i afrontar desafiaments de l’àmbit social i d’iniciació als àmbits professional i científic.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Gestionar amb precisió el simbolisme matemàtic, fent transformacions i conversions entre representacions iconicomanipulatives, numèriques, simbolicoalgebraiques, tabulars, funcionals, geomètriques i gràfiques, que permeten pensar matemàticament sobre situacions de l’àmbit social i d’iniciació als àmbits professional i científic."
+    "texto": "Gestionar amb precisió el simbolisme matemàtic, fent transformacions i conversions entre representacions iconicomanipulatives, numèriques, simbolicoalgebraiques, tabulars, funcionals, geomètriques i gràfiques, que permeten pensar matemàticament sobre situacions de l’àmbit social i d’iniciació als àmbits professional i científic.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Produir, comunicar i interpretar missatges orals i escrits complexos de manera formal, amb l’ús del llenguatge matemàtic, per a comunicar i intercanviar idees generals i arguments sobre característiques, conceptes, procediments i resultats relacionats amb situacions de l’àmbit social i d’iniciació als àmbits professional i científic."
+    "texto": "Produir, comunicar i interpretar missatges orals i escrits complexos de manera formal, amb l’ús del llenguatge matemàtic, per a comunicar i intercanviar idees generals i arguments sobre característiques, conceptes, procediments i resultats relacionats amb situacions de l’àmbit social i d’iniciació als àmbits professional i científic.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Conéixer el valor cultural i històric de les matemàtiques i identificar les seues aportacions en els avanços significatius del coneixement científic i del desenvolupament tecnològic especialment rellevants per a abordar els desafiaments als quals s’enfronta actualment la humanitat."
+    "texto": "Conéixer el valor cultural i històric de les matemàtiques i identificar les seues aportacions en els avanços significatius del coneixement científic i del desenvolupament tecnològic especialment rellevants per a abordar els desafiaments als quals s’enfronta actualment la humanitat.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 8,
-    "texto": "Gestionar i regular les emocions, creences i actituds implicades en els processos matemàtics, assumir amb confiança la incertesa, les dificultats i els errors que estos processos comporten, i regular l’atenció per a aconseguir comprendre els seus propis processos d’aprenentatge i adaptar-los amb èxit a situacions variades."
+    "texto": "Gestionar i regular les emocions, creences i actituds implicades en els processos matemàtics, assumir amb confiança la incertesa, les dificultats i els errors que estos processos comporten, i regular l’atenció per a aconseguir comprendre els seus propis processos d’aprenentatge i adaptar-los amb èxit a situacions variades.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -6445,23 +6924,54 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analitzar propostes musicals, corporals i multidisciplinàries de diferents èpoques i estils per mitjà de la percepció activa, relacionant els elements estructurals i tècnics, amb sentit crític i valorant la diversitat cultural que representen."
+    "texto": "Analitzar propostes musicals, corporals i multidisciplinàries de diferents èpoques i estils per mitjà de la percepció activa, relacionant els elements estructurals i tècnics, amb sentit crític i valorant la diversitat cultural que representen.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Relacionar els elements, les característiques i les representacions gràfiques del so, els instruments i la veu a partir de l’anàlisi auditiva i visual amb el plantejament de solucions a les agressions acústiques de l’entorn."
+    "texto": "Relacionar els elements, les característiques i les representacions gràfiques del so, els instruments i la veu a partir de l’anàlisi auditiva i visual amb el plantejament de solucions a les agressions acústiques de l’entorn.",
+    "descriptores": [
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir propostes musicals basades en la interpretació, la improvisació i l’experimentació a partir de les possibilitats expressives i comunicatives del so, el cos i els mitjans digitals mitjançant processos individuals i col·lectius."
+    "texto": "Construir propostes musicals basades en la interpretació, la improvisació i l’experimentació a partir de les possibilitats expressives i comunicatives del so, el cos i els mitjans digitals mitjançant processos individuals i col·lectius.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Crear projectes musicals i interdisciplinaris mitjançant el disseny, la planificació i l’execució experimentant amb diferents rols, desenvolupant la capacitat crítica, amb una valoració tant del procés com del resultat."
+    "texto": "Crear projectes musicals i interdisciplinaris mitjançant el disseny, la planificació i l’execució experimentant amb diferents rols, desenvolupant la capacitat crítica, amb una valoració tant del procés com del resultat.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Aplicar recursos digitals a l’escolta, la interpretació, la investigació, la creació i la difusió de produccions musicals, adoptant una actitud responsable i d’acord amb la normativa vigent."
+    "texto": "Aplicar recursos digitals a l’escolta, la interpretació, la investigació, la creació i la difusió de produccions musicals, adoptant una actitud responsable i d’acord amb la normativa vigent.",
+    "descriptores": [
+     "CD",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -6891,31 +7401,91 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analitzar i usar els repertoris lingüístics de diverses llengües, reflexionar sobre el funcionament i prendre consciència dels coneixements propis, així com valorar la diversitat lingüística i cultural a partir de la llengua estrangera."
+    "texto": "Analitzar i usar els repertoris lingüístics de diverses llengües, reflexionar sobre el funcionament i prendre consciència dels coneixements propis, així com valorar la diversitat lingüística i cultural a partir de la llengua estrangera.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Interpretar textos orals, breus i senzills, sobre temes predictibles i no predictibles dels àmbits personal, social, educatiu i professional, utilitzant els coneixements adequats sobre els gèneres textuals i les estratègies de comprensió i d’escolta activa."
+    "texto": "Interpretar textos orals, breus i senzills, sobre temes predictibles i no predictibles dels àmbits personal, social, educatiu i professional, utilitzant els coneixements adequats sobre els gèneres textuals i les estratègies de comprensió i d’escolta activa.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar informació explícita i implícita expressada en textos escrits i multimodals breus i senzills que inclouen estructures i vocabulari d’ús freqüent, sobre temes predictibles i no predictibles d’àmbit personal, social, educatiu i professional, mitjançant estratègies que permeten desenvolupar el seu repertori lingüístic."
+    "texto": "Interpretar informació explícita i implícita expressada en textos escrits i multimodals breus i senzills que inclouen estructures i vocabulari d’ús freqüent, sobre temes predictibles i no predictibles d’àmbit personal, social, educatiu i professional, mitjançant estratègies que permeten desenvolupar el seu repertori lingüístic.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Produir textos orals, de manera autònoma i fluida, aplicant estratègies de planificació, producció i compensació, per a expressar missatges senzills dels àmbits personal, social, educatiu i professional, per mitjà d’estratègies que permeten desenvolupar el seu repertori lingüístic."
+    "texto": "Produir textos orals, de manera autònoma i fluida, aplicant estratègies de planificació, producció i compensació, per a expressar missatges senzills dels àmbits personal, social, educatiu i professional, per mitjà d’estratègies que permeten desenvolupar el seu repertori lingüístic.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Produir textos escrits i multimodals comprensibles i estructurats, de manera autònoma, per a expressar missatges senzills de l’àmbit personal, social, educatiu i professional, aplicant estratègies de planificació, textualització i revisió, per mitjà d’estratègies que permeten desenvolupar el seu repertori lingüístic."
+    "texto": "Produir textos escrits i multimodals comprensibles i estructurats, de manera autònoma, per a expressar missatges senzills de l’àmbit personal, social, educatiu i professional, aplicant estratègies de planificació, textualització i revisió, per mitjà d’estratègies que permeten desenvolupar el seu repertori lingüístic.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interaccionar de manera oral, escrita i multimodal per mitjà d’intercanvis senzills d’informació, de manera síncrona i asíncrona, mostrant autonomia i iniciativa, per a respondre a necessitats comunicatives relacionades amb els àmbits personal, social, educatiu i professional, mitjançant estratègies que permeten desenvolupar el seu repertori lingüístic."
+    "texto": "Interaccionar de manera oral, escrita i multimodal per mitjà d’intercanvis senzills d’informació, de manera síncrona i asíncrona, mostrant autonomia i iniciativa, per a respondre a necessitats comunicatives relacionades amb els àmbits personal, social, educatiu i professional, mitjançant estratègies que permeten desenvolupar el seu repertori lingüístic.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutors aplicant estratègies d’adaptació, simplificació i reformulació del llenguatge per a processar i transmetre informació més elaborada en situacions comunicatives d’àmbit personal, social i professional."
+    "texto": "Mediar entre interlocutors aplicant estratègies d’adaptació, simplificació i reformulació del llenguatge per a processar i transmetre informació més elaborada en situacions comunicatives d’àmbit personal, social i professional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -7330,27 +7900,64 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar problemes tecnològics a partir de l’estudi de les necessitats presents en l’entorn pròxim, formular propostes per a abordar-los, i resoldre’ls de manera eficient i innovadora mitjançant processos de treball col·laboratiu i utilitzant estratègies pròpies del mètode de projectes."
+    "texto": "Identificar problemes tecnològics a partir de l’estudi de les necessitats presents en l’entorn pròxim, formular propostes per a abordar-los, i resoldre’ls de manera eficient i innovadora mitjançant processos de treball col·laboratiu i utilitzant estratègies pròpies del mètode de projectes.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Fabricar solucions tecnològiques utilitzant els coneixements interdisciplinaris, les tècniques i els recursos disponibles de manera apropiada i segura per a donar una resposta satisfactòria a les necessitats plantejades."
+    "texto": "Fabricar solucions tecnològiques utilitzant els coneixements interdisciplinaris, les tècniques i els recursos disponibles de manera apropiada i segura per a donar una resposta satisfactòria a les necessitats plantejades.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Expressar, difondre i interpretar idees, propostes o solucions tecnològiques de manera efectiva, emprant els recursos disponibles i participant en espais d’intercanvi d’informació."
+    "texto": "Expressar, difondre i interpretar idees, propostes o solucions tecnològiques de manera efectiva, emprant els recursos disponibles i participant en espais d’intercanvi d’informació.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Dissenyar i construir sistemes de control programables i robòtics, desenvolupant solucions automatitzades mitjançant la implementació d’algorismes i operadors tecnològics."
+    "texto": "Dissenyar i construir sistemes de control programables i robòtics, desenvolupant solucions automatitzades mitjançant la implementació d’algorismes i operadors tecnològics.",
+    "descriptores": [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Aprofitar les possibilitats que ofereixen les eines digitals per a realitzar eficientment tasques tecnològiques, configurant-les i aplicant els coneixements interdisciplinaris adequats."
+    "texto": "Aprofitar les possibilitats que ofereixen les eines digitals per a realitzar eficientment tasques tecnològiques, configurant-les i aplicant els coneixements interdisciplinaris adequats.",
+    "descriptores": [
+     "CP",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Contribuir al desenvolupament sostenible analitzant críticament l’ús d’objectes, materials, productes, instal·lacions i processos tecnològics, valorant els impactes i les repercussions ambientals, socials i ètiques d’aquests, i proposant alternatives realistes."
+    "texto": "Contribuir al desenvolupament sostenible analitzant críticament l’ús d’objectes, materials, productes, instal·lacions i processos tecnològics, valorant els impactes i les repercussions ambientals, socials i ètiques d’aquests, i proposant alternatives realistes.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -7709,31 +8316,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar i resoldre problemes tecnològics senzills aplicant el mètode de projectes, propi de l’enginyeria, executant, si és necessari, les seues fases característiques i utilitzant els mitjans tecnològics i digitals més adequats al context."
+    "texto": "Identificar i resoldre problemes tecnològics senzills aplicant el mètode de projectes, propi de l’enginyeria, executant, si és necessari, les seues fases característiques i utilitzant els mitjans tecnològics i digitals més adequats al context.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar, obtindre, analitzar i seleccionar informació de manera fiable i segura per a poder gestionar el temps, els coneixements i els recursos disponibles a l’hora d’abordar reptes tecnològics, seguint un pla de treball realista."
+    "texto": "Buscar, obtindre, analitzar i seleccionar informació de manera fiable i segura per a poder gestionar el temps, els coneixements i els recursos disponibles a l’hora d’abordar reptes tecnològics, seguint un pla de treball realista.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM"
+    ]
    },
    {
     "n": 3,
-    "texto": "Configurar, utilitzar i mantindre màquines, eines, aplicacions i sistemes digitals, fent-ne una selecció idònia i un ús segur i adequat en funció de la tasca."
+    "texto": "Configurar, utilitzar i mantindre màquines, eines, aplicacions i sistemes digitals, fent-ne una selecció idònia i un ús segur i adequat en funció de la tasca.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Fer un ús responsable i sostenible dels objectes, materials, productes i solucions tecnològiques i digitals que hi ha en el seu entorn, analitzant-ne críticament les implicacions i repercussions ambientals, socials i ètiques."
+    "texto": "Fer un ús responsable i sostenible dels objectes, materials, productes i solucions tecnològiques i digitals que hi ha en el seu entorn, analitzant-ne críticament les implicacions i repercussions ambientals, socials i ètiques.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Crear, expressar, comprendre i comunicar idees, opinions i propostes amb un ús correcte dels llenguatges i els mitjans propis de la tecnologia i la digitalització, tant en l’àmbit acadèmic com en el personal i social."
+    "texto": "Crear, expressar, comprendre i comunicar idees, opinions i propostes amb un ús correcte dels llenguatges i els mitjans propis de la tecnologia i la digitalització, tant en l’àmbit acadèmic com en el personal i social.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Analitzar problemes senzills i plantejar-ne la solució, de manera que s’automatitzen processos amb eines de programació, sistemes de control o robòtica i aplicant el pensament computacional."
+    "texto": "Analitzar problemes senzills i plantejar-ne la solució, de manera que s’automatitzen processos amb eines de programació, sistemes de control o robòtica i aplicant el pensament computacional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Utilitzar la tecnologia posant-la al servei del desenvolupament personal i professional, social i comunitari, i proposant solucions creatives als grans desafiaments del món actual."
+    "texto": "Utilitzar la tecnologia posant-la al servei del desenvolupament personal i professional, social i comunitari, i proposant solucions creatives als grans desafiaments del món actual.",
+    "descriptores": [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    }
   ],
   "criterios": {
@@ -8333,39 +8984,110 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Descriure i apreciar la diversitat lingüística i cultural de la Comunitat Valenciana, d’Espanya i del món, per mitjà del reconeixement de les llengües de l’alumnat i de la realitat multilingüe i intercultural de l’entorn, analitzant les característiques, l’origen i el desenvolupament sociohistòric de les dues llengües oficials i de les principals varietats lingüístiques, i combatent els prejudicis lingüístics."
+    "texto": "Descriure i apreciar la diversitat lingüística i cultural de la Comunitat Valenciana, d’Espanya i del món, per mitjà del reconeixement de les llengües de l’alumnat i de la realitat multilingüe i intercultural de l’entorn, analitzant les característiques, l’origen i el desenvolupament sociohistòric de les dues llengües oficials i de les principals varietats lingüístiques, i combatent els prejudicis lingüístics.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos orals i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de l’escolta activa, aplicant estratègies de comprensió oral, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat."
+    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos orals i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de l’escolta activa, aplicant estratègies de comprensió oral, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos escrits i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de la lectura de textos, aplicant estratègies de comprensió escrita, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat."
+    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos escrits i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de la lectura de textos, aplicant estratègies de comprensió escrita, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Produir missatges orals amb coherència, cohesió i adequació, fluïdesa i correcció, per mitjà de diferents suports i situacions de comunicació de l’àmbit familiar, social, educatiu o professional."
+    "texto": "Produir missatges orals amb coherència, cohesió i adequació, fluïdesa i correcció, per mitjà de diferents suports i situacions de comunicació de l’àmbit familiar, social, educatiu o professional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Produir textos escrits i multimodals coherents, cohesionats, adequats i correctes emprant estratègies de planificació, textualització, revisió i edició."
+    "texto": "Produir textos escrits i multimodals coherents, cohesionats, adequats i correctes emprant estratègies de planificació, textualització, revisió i edició.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interactuar de manera oral, escrita i multimodal, de forma progressivament autònoma, per mitjà de textos de complexitat creixent dels àmbits personal, social, educatiu i professional, utilitzant un llenguatge no discriminatori i estratègies bàsiques de comprensió, expressió i resolució dialogada de conflictes, de manera síncrona i asíncrona."
+    "texto": "Interactuar de manera oral, escrita i multimodal, de forma progressivament autònoma, per mitjà de textos de complexitat creixent dels àmbits personal, social, educatiu i professional, utilitzant un llenguatge no discriminatori i estratègies bàsiques de comprensió, expressió i resolució dialogada de conflictes, de manera síncrona i asíncrona.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutors aplicant estratègies d’adaptació, simplificació i reformulació del llenguatge per a processar i transmetre informació més elaborada en situacions comunicatives d’àmbit personal, social i professional."
+    "texto": "Mediar entre interlocutors aplicant estratègies d’adaptació, simplificació i reformulació del llenguatge per a processar i transmetre informació més elaborada en situacions comunicatives d’àmbit personal, social i professional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Llegir obres i textos de caràcter divers i de complexitat progressiva, seleccionats amb autonomia, i reflexionar sobre el perfil lector que es va configurant."
+    "texto": "Llegir obres i textos de caràcter divers i de complexitat progressiva, seleccionats amb autonomia, i reflexionar sobre el perfil lector que es va configurant.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Llegir i produir textos literaris, contextualitzats en la cultura i la societat, com a font de plaer i de coneixement."
+    "texto": "Llegir i produir textos literaris, contextualitzats en la cultura i la societat, com a font de plaer i de coneixement.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -8995,39 +9717,110 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Descriure i apreciar la diversitat lingüística i cultural de la Comunitat Valenciana, d’Espanya i del món, per mitjà del reconeixement de les llengües de l’alumnat i de la realitat multilingüe i intercultural de l’entorn, analitzant les característiques, l’origen i el desenvolupament sociohistòric de les dues llengües oficials i de les principals varietats lingüístiques, i combatent els prejudicis lingüístics."
+    "texto": "Descriure i apreciar la diversitat lingüística i cultural de la Comunitat Valenciana, d’Espanya i del món, per mitjà del reconeixement de les llengües de l’alumnat i de la realitat multilingüe i intercultural de l’entorn, analitzant les característiques, l’origen i el desenvolupament sociohistòric de les dues llengües oficials i de les principals varietats lingüístiques, i combatent els prejudicis lingüístics.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos orals i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de l’escolta activa, aplicant estratègies de comprensió oral, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat."
+    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos orals i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de l’escolta activa, aplicant estratègies de comprensió oral, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos escrits i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de la lectura de textos, aplicant estratègies de comprensió escrita, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat."
+    "texto": "Comprendre, interpretar i valorar, de manera autònoma, textos escrits i multimodals propis dels àmbits personal, social, educatiu i professional, per mitjà de la lectura de textos, aplicant estratègies de comprensió escrita, reflexionant sobre el contingut i la forma, i avaluant-ne la qualitat i fiabilitat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Produir missatges orals amb coherència, cohesió i adequació, fluïdesa i correcció, per mitjà de diferents suports i situacions de comunicació de l’àmbit familiar, social, educatiu o professional."
+    "texto": "Produir missatges orals amb coherència, cohesió i adequació, fluïdesa i correcció, per mitjà de diferents suports i situacions de comunicació de l’àmbit familiar, social, educatiu o professional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Produir textos escrits i multimodals coherents, cohesionats, adequats i correctes emprant estratègies de planificació, textualització, revisió i edició."
+    "texto": "Produir textos escrits i multimodals coherents, cohesionats, adequats i correctes emprant estratègies de planificació, textualització, revisió i edició.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interactuar de manera oral, escrita i multimodal, de forma progressivament autònoma, per mitjà de textos de complexitat creixent dels àmbits personal, social, educatiu i professional, utilitzant un llenguatge no discriminatori i estratègies bàsiques de comprensió, expressió i resolució dialogada de conflictes, de manera síncrona i asíncrona."
+    "texto": "Interactuar de manera oral, escrita i multimodal, de forma progressivament autònoma, per mitjà de textos de complexitat creixent dels àmbits personal, social, educatiu i professional, utilitzant un llenguatge no discriminatori i estratègies bàsiques de comprensió, expressió i resolució dialogada de conflictes, de manera síncrona i asíncrona.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutors aplicant estratègies d’adaptació, simplificació i reformulació del llenguatge per a processar i transmetre informació més elaborada en situacions comunicatives d’àmbit personal, social i professional."
+    "texto": "Mediar entre interlocutors aplicant estratègies d’adaptació, simplificació i reformulació del llenguatge per a processar i transmetre informació més elaborada en situacions comunicatives d’àmbit personal, social i professional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Llegir obres i textos de caràcter divers i de complexitat progressiva, seleccionats amb autonomia, i reflexionar sobre el perfil lector que es va configurant."
+    "texto": "Llegir obres i textos de caràcter divers i de complexitat progressiva, seleccionats amb autonomia, i reflexionar sobre el perfil lector que es va configurant.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 9,
-    "texto": "Llegir i produir textos literaris, contextualitzats en la cultura i la societat, com a font de plaer i de coneixement."
+    "texto": "Llegir i produir textos literaris, contextualitzats en la cultura i la societat, com a font de plaer i de coneixement.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -9657,23 +10450,53 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Apreciar i argumentar l'aportació de les manifestacions escèniques al patrimoni cultural, participant-hi activament en la recepció a través de diferents canals, valorant la diversitat de tradicions, gèneres i estils estètics."
+    "texto": "Apreciar i argumentar l'aportació de les manifestacions escèniques al patrimoni cultural, participant-hi activament en la recepció a través de diferents canals, valorant la diversitat de tradicions, gèneres i estils estètics.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analitzar propostes escèniques des d’un punt de vista estètic, amb actitud crítica, explorant-ne components, l’escriptura, la finalitat comunicativa i les relacions amb l’entorn sociocultural."
+    "texto": "Analitzar propostes escèniques des d’un punt de vista estètic, amb actitud crítica, explorant-ne components, l’escriptura, la finalitat comunicativa i les relacions amb l’entorn sociocultural.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Planificar i crear produccions escèniques individuals i col·lectives mitjançant l’ús d’elements, tècniques i processos dels diferents llenguatges artístics a partir d’estímuls diversos, donant expressió concreta a idees, sentiments o emocions, valorant tan el procés com el resultat final."
+    "texto": "Planificar i crear produccions escèniques individuals i col·lectives mitjançant l’ús d’elements, tècniques i processos dels diferents llenguatges artístics a partir d’estímuls diversos, donant expressió concreta a idees, sentiments o emocions, valorant tan el procés com el resultat final.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Interpretar obres o peces escèniques de creació pròpia o aliena mitjançant els instruments expressius i comunicatius del cos, la veu, el moviment, el temps i l’espai, fent-hi ús de la memòria sensorial i afectiva personal i del grup."
+    "texto": "Interpretar obres o peces escèniques de creació pròpia o aliena mitjançant els instruments expressius i comunicatius del cos, la veu, el moviment, el temps i l’espai, fent-hi ús de la memòria sensorial i afectiva personal i del grup.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Posar en escena projectes artístics d’un repertori divers, cooperant en l’organització dels elements artístics i fases de producció, assumint amb responsabilitat els diferents rols."
+    "texto": "Posar en escena projectes artístics d’un repertori divers, cooperant en l’organització dels elements artístics i fases de producció, assumint amb responsabilitat els diferents rols.",
+    "descriptores": [
+     "CPSAA",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -9846,27 +10669,66 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar els elements compositius, estructurals i comunicatius de creacions sonores i interdisciplinàries contemporànies, i valorar críticament la dimensió estètica d’aquestes."
+    "texto": "Identificar els elements compositius, estructurals i comunicatius de creacions sonores i interdisciplinàries contemporànies, i valorar críticament la dimensió estètica d’aquestes.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analitzar els elements sonors de l'entorn més pròxim mitjançant l'escolta activa i explorar les possibilitats que ofereixen per a la creació artística."
+    "texto": "Analitzar els elements sonors de l'entorn més pròxim mitjançant l'escolta activa i explorar les possibilitats que ofereixen per a la creació artística.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar peces de música urbana i creacions sonores i interdisciplinàries pròpies, mitjançant l'ús de la veu, el cos, instruments convencionals i no convencionals, amb el suport del llenguatge musical i partitures gràfiques, de manera individual i col·lectiva."
+    "texto": "Interpretar peces de música urbana i creacions sonores i interdisciplinàries pròpies, mitjançant l'ús de la veu, el cos, instruments convencionals i no convencionals, amb el suport del llenguatge musical i partitures gràfiques, de manera individual i col·lectiva.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Realitzar improvisacions guiades musicals o interdisciplinàries, tot utilitzant llenguatges gestuals i gràfics, a través de processos individuals i col·lectius."
+    "texto": "Realitzar improvisacions guiades musicals o interdisciplinàries, tot utilitzant llenguatges gestuals i gràfics, a través de processos individuals i col·lectius.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Crear i posar en escena projectes sonors i interdisciplinaris, individuals i col·lectius, mitjançant l'ús de diversos llenguatges artístics, assumint diferents rols en les seues fases i valorant tant el procés com el resultat."
+    "texto": "Crear i posar en escena projectes sonors i interdisciplinaris, individuals i col·lectius, mitjançant l'ús de diversos llenguatges artístics, assumint diferents rols en les seues fases i valorant tant el procés com el resultat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Emprar recursos digitals en processos de creació sonora i interdisciplinària, incorporant les possibilitats expressives, comunicatives i artístiques, amb actitud reflexiva i respectant la normativa vigent d'ús i difusió."
+    "texto": "Emprar recursos digitals en processos de creació sonora i interdisciplinària, incorporant les possibilitats expressives, comunicatives i artístiques, amb actitud reflexiva i respectant la normativa vigent d'ús i difusió.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -10041,23 +10903,61 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconéixer i valorar la pervivència de les característiques de la vida social grega i romana en el desenvolupament de la nostra activitat quotidiana i en les nostres arrels comunes amb altres països del nostre entorn."
+    "texto": "Reconéixer i valorar la pervivència de les característiques de la vida social grega i romana en el desenvolupament de la nostra activitat quotidiana i en les nostres arrels comunes amb altres països del nostre entorn.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Relacionar els esdeveniments més rellevants de la història grega i romana amb la configuració sociopolítica de l'Europa del segle XXI i del món actual a partir de fonts històriques, tenint en compte els límits geogràfics i les característiques específiques del món clàssic."
+    "texto": "Relacionar els esdeveniments més rellevants de la història grega i romana amb la configuració sociopolítica de l'Europa del segle XXI i del món actual a partir de fonts històriques, tenint en compte els límits geogràfics i les característiques específiques del món clàssic.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Identificar els trets i valorar la importància i la pervivència de la llengua grega i llatina en els idiomes que l'alumnat fa servir i estudia, a través de l'aprenentatge de l'alfabet, l'etimologia, els hel·lenismes i llatinismes, la composició i derivació."
+    "texto": "Identificar els trets i valorar la importància i la pervivència de la llengua grega i llatina en els idiomes que l'alumnat fa servir i estudia, a través de l'aprenentatge de l'alfabet, l'etimologia, els hel·lenismes i llatinismes, la composició i derivació.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 4,
-    "texto": "Localitzar i relacionar la presència del món clàssic en el patrimoni històric d'Europa, de la Península Ibèrica i de la Comunitat Valenciana i contribuir a la seua conservació i respecte."
+    "texto": "Localitzar i relacionar la presència del món clàssic en el patrimoni històric d'Europa, de la Península Ibèrica i de la Comunitat Valenciana i contribuir a la seua conservació i respecte.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Des d’una perspectiva inclusiva, investigar, identificar i explicar els referents culturals, tant masculins com femenins, de l’època clàssica en el desenvolupament de la ciència i en les diverses manifestacions artístiques actuals."
+    "texto": "Des d’una perspectiva inclusiva, investigar, identificar i explicar els referents culturals, tant masculins com femenins, de l’època clàssica en el desenvolupament de la ciència i en les diverses manifestacions artístiques actuals.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -10388,27 +11288,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar en si mateix qualitats personals i habilitats socials que afavorisquen la presa de decisions, la creativitat, l'actuació responsable i l'esperit de superació."
+    "texto": "Identificar en si mateix qualitats personals i habilitats socials que afavorisquen la presa de decisions, la creativitat, l'actuació responsable i l'esperit de superació.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Participar en equips de treball, valorant el plantejament i discussió tant de les propostes personals com de grup, exercint el lideratge d'una manera positiva i organitzant el treball en comú."
+    "texto": "Participar en equips de treball, valorant el plantejament i discussió tant de les propostes personals com de grup, exercint el lideratge d'una manera positiva i organitzant el treball en comú.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Argumentar el paper de l'economia social com a marc que afavoreix el desenvolupament d'una ciutadania global, valorant els efectes positius que genera sobre el seu entorn."
+    "texto": "Argumentar el paper de l'economia social com a marc que afavoreix el desenvolupament d'una ciutadania global, valorant els efectes positius que genera sobre el seu entorn.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Dissenyar projectes bàsics sostenibles i innovadors, utilitzant eines de l'economia social i comprovant el seu retorn a la societat dins d'un àmbit local o global."
+    "texto": "Dissenyar projectes bàsics sostenibles i innovadors, utilitzant eines de l'economia social i comprovant el seu retorn a la societat dins d'un àmbit local o global.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Planificar un pressupost personal senzill, avaluant la importància de l'estalvi i el risc que suposa un endeutament excessiu i identificant els mitjans de pagament utilitzats."
+    "texto": "Planificar un pressupost personal senzill, avaluant la importància de l'estalvi i el risc que suposa un endeutament excessiu i identificant els mitjans de pagament utilitzats.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Analitzar documents relatius al consum, des d'una perspectiva responsable i sostenible, i identificar els organismes que vetlen pels drets del consumidor."
+    "texto": "Analitzar documents relatius al consum, des d'una perspectiva responsable i sostenible, i identificar els organismes que vetlen pels drets del consumidor.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -10619,19 +11567,40 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Analitzar problemes quotidians des d'una perspectiva filosòfica i amb una mirada crítica, constructiva i èticament compromesa."
+    "texto": "Analitzar problemes quotidians des d'una perspectiva filosòfica i amb una mirada crítica, constructiva i èticament compromesa.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Identificar i diferenciar les premisses, estratègies argumentatives i conclusions de textos o discursos, distingint els usos correctes de les argumentacions fal·laces."
+    "texto": "Identificar i diferenciar les premisses, estratègies argumentatives i conclusions de textos o discursos, distingint els usos correctes de les argumentacions fal·laces.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Explicar les diferències entre elements racionals i emocionals en la justificació de decisions a propòsit de conflictes de valors."
+    "texto": "Explicar les diferències entre elements racionals i emocionals en la justificació de decisions a propòsit de conflictes de valors.",
+    "descriptores": [
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Elaborar i exposar d'una manera clara, ordenada i argumentada idees i propostes filosòfiques pràctiques que fomenten el creixement personal i el compromís social."
+    "texto": "Elaborar i exposar d'una manera clara, ordenada i argumentada idees i propostes filosòfiques pràctiques que fomenten el creixement personal i el compromís social.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -10762,19 +11731,44 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar, investigar i emprar tècniques d'intel·ligència artificial i virtualització de la realitat en l'abordatge i la cerca de solucions a problemes bàsics de la societat valorant els principis ètics i inclusius aplicats."
+    "texto": "Identificar, investigar i emprar tècniques d'intel·ligència artificial i virtualització de la realitat en l'abordatge i la cerca de solucions a problemes bàsics de la societat valorant els principis ètics i inclusius aplicats.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 2,
-    "texto": "Aplicar el pensament computacional en l'anàlisi i resolució de problemes bàsics significatius per a l'alumnat mitjançant el desenvolupament de programari."
+    "texto": "Aplicar el pensament computacional en l'anàlisi i resolució de problemes bàsics significatius per a l'alumnat mitjançant el desenvolupament de programari.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 3,
-    "texto": "Muntar sistemes robòtics senzills, analitzant les respostes que proporcionen en la seua interacció amb l'entorn i valorant l'eficàcia d'aquestes davant dels reptes plantejats."
+    "texto": "Muntar sistemes robòtics senzills, analitzant les respostes que proporcionen en la seua interacció amb l'entorn i valorant l'eficàcia d'aquestes davant dels reptes plantejats.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 4,
-    "texto": "Afrontar reptes tecnològics senzills i proposar solucions mitjançant la programació, la Intel·ligència Artificial i la robòtica, analitzant les possibilitats i valorant críticament les implicacions ètiques i ecosocials."
+    "texto": "Afrontar reptes tecnològics senzills i proposar solucions mitjançant la programació, la Intel·ligència Artificial i la robòtica, analitzant les possibilitats i valorant críticament les implicacions ètiques i ecosocials.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -11091,19 +12085,43 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Inventar propostes escèniques breus a partir d’estímuls creatius diversos, aplicant i compartint idees personals, elements, regles i recursos dels diferents llenguatges artístics."
+    "texto": "Inventar propostes escèniques breus a partir d’estímuls creatius diversos, aplicant i compartint idees personals, elements, regles i recursos dels diferents llenguatges artístics.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Interpretar obres o peces escèniques diverses de creació pròpia o aliena mitjançant els instruments del cos, la veu, el moviment, el temps i l’espai en l’expressió i comunicació d'idees, sentiments i emocions personals i col·lectives."
+    "texto": "Interpretar obres o peces escèniques diverses de creació pròpia o aliena mitjançant els instruments del cos, la veu, el moviment, el temps i l’espai en l’expressió i comunicació d'idees, sentiments i emocions personals i col·lectives.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Posar en escena creacions artístiques col·lectives mitjançant l’ús dels diferents llenguatges artístics, cooperant en l’organització de la producció i valorant tant el procés com el resultat final."
+    "texto": "Posar en escena creacions artístiques col·lectives mitjançant l’ús dels diferents llenguatges artístics, cooperant en l’organització de la producció i valorant tant el procés com el resultat final.",
+    "descriptores": [
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Apreciar produccions escèniques en el seu context sociocultural a través de diferents canals, aprofitant la pròpia experiència i coneixements per a valorar-ne la diversitat de tradicions, gèneres i estils estètics."
+    "texto": "Apreciar produccions escèniques en el seu context sociocultural a través de diferents canals, aprofitant la pròpia experiència i coneixements per a valorar-ne la diversitat de tradicions, gèneres i estils estètics.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -11448,31 +12466,91 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconéixer i usar els seus repertoris lingüístics i comparar-ne el funcionament, tot identificant la diversitat lingüística i cultural a partir de la llengua estrangera."
+    "texto": "Reconéixer i usar els seus repertoris lingüístics i comparar-ne el funcionament, tot identificant la diversitat lingüística i cultural a partir de la llengua estrangera.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Interpretar la informació de textos orals i multimodals, breus i senzills, de manera guiada, sobre diversos temes predictibles dels àmbits personal, social i educatiu, per mitjà de l’escolta activa i l’aplicació d’estratègies per a la comprensió oral."
+    "texto": "Interpretar la informació de textos orals i multimodals, breus i senzills, de manera guiada, sobre diversos temes predictibles dels àmbits personal, social i educatiu, per mitjà de l’escolta activa i l’aplicació d’estratègies per a la comprensió oral.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar la informació expressada per mitjà de textos escrits i multimodals breus i senzills, de manera guiada, sobre diferents temes predictibles d’àmbit personal, social i educatiu."
+    "texto": "Interpretar la informació expressada per mitjà de textos escrits i multimodals breus i senzills, de manera guiada, sobre diferents temes predictibles d’àmbit personal, social i educatiu.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Produir de manera guiada textos orals i multimodals comprensibles i estructurats, per a expressar missatges breus i senzills dels àmbits personal, social i educatiu, aplicant estratègies de planificació i compensació."
+    "texto": "Produir de manera guiada textos orals i multimodals comprensibles i estructurats, per a expressar missatges breus i senzills dels àmbits personal, social i educatiu, aplicant estratègies de planificació i compensació.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Produir, de manera guiada, textos escrits i multimodals, comprensibles i estructurats, per a expressar missatges breus i senzills de l’àmbit personal, social i educatiu, mitjançant l’aplicació d’estratègies de planificació, textualització i revisió."
+    "texto": "Produir, de manera guiada, textos escrits i multimodals, comprensibles i estructurats, per a expressar missatges breus i senzills de l’àmbit personal, social i educatiu, mitjançant l’aplicació d’estratègies de planificació, textualització i revisió.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interaccionar de manera oral, escrita i multimodal per mitjà de textos senzills, breus i guiats, de manera síncrona i asíncrona, per a respondre a necessitats comunicatives relacionades amb l’àmbit personal, social i educatiu."
+    "texto": "Interaccionar de manera oral, escrita i multimodal per mitjà de textos senzills, breus i guiats, de manera síncrona i asíncrona, per a respondre a necessitats comunicatives relacionades amb l’àmbit personal, social i educatiu.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediar entre interlocutors utilitzant estratègies d’adaptació i simplificació del llenguatge, per a processar i transmetre informació bàsica i senzilla en situacions comunicatives predictibles d’àmbit personal, social i educatiu."
+    "texto": "Mediar entre interlocutors utilitzant estratègies d’adaptació i simplificació del llenguatge, per a processar i transmetre informació bàsica i senzilla en situacions comunicatives predictibles d’àmbit personal, social i educatiu.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -11936,31 +13014,86 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar els problemes econòmics bàsics vinculats amb l'escassetat i la necessitat de triar, relacionant-los amb situacions de l'entorn més pròxim."
+    "texto": "Identificar els problemes econòmics bàsics vinculats amb l'escassetat i la necessitat de triar, relacionant-los amb situacions de l'entorn més pròxim.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Analitzar les qualitats individuals i col·lectives que caracteritzen una actitud emprenedora i posar-les en pràctica, mitjançant el treball cooperatiu, per a trobar noves oportunitats de millora en l'entorn social i econòmic més pròxim basades en principis d'equitat, coeducació i igualtat."
+    "texto": "Analitzar les qualitats individuals i col·lectives que caracteritzen una actitud emprenedora i posar-les en pràctica, mitjançant el treball cooperatiu, per a trobar noves oportunitats de millora en l'entorn social i econòmic més pròxim basades en principis d'equitat, coeducació i igualtat.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Descriure la importància del paper de les famílies, les empreses i l'Estat en el funcionament de l'economia, analitzant la realitat socioeconòmica de l'entorn més pròxim de l'alumnat."
+    "texto": "Descriure la importància del paper de les famílies, les empreses i l'Estat en el funcionament de l'economia, analitzant la realitat socioeconòmica de l'entorn més pròxim de l'alumnat.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 4,
-    "texto": "Identificar els principals indicadors macroeconòmics relacionats amb el mercat de treball, la redistribució de la renda, el creixement i els preus que li facen comprendre la seua realitat, fent servir fonts i eines bàsiques d'anàlisi."
+    "texto": "Identificar els principals indicadors macroeconòmics relacionats amb el mercat de treball, la redistribució de la renda, el creixement i els preus que li facen comprendre la seua realitat, fent servir fonts i eines bàsiques d'anàlisi.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Explicar la connexió entre l'activitat de l'Estat i la necessitat de finançament públic per al compliment dels seus objectius, així com, identificar les principals figures tributàries, valorant la funció social i el paper redistributiu dels impostos en la societat."
+    "texto": "Explicar la connexió entre l'activitat de l'Estat i la necessitat de finançament públic per al compliment dels seus objectius, així com, identificar les principals figures tributàries, valorant la funció social i el paper redistributiu dels impostos en la societat.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Recopilar informació de diferents fonts econòmiques, seleccionant dades fiables que donen rigor a les propostes de millora del projecte de col·laboració amb un servei a la comunitat."
+    "texto": "Recopilar informació de diferents fonts econòmiques, seleccionant dades fiables que donen rigor a les propostes de millora del projecte de col·laboració amb un servei a la comunitat.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Dissenyar un projecte senzill de col·laboració amb un servei a la comunitat que possibilite la millora de la qualitat de vida de les persones i el medi ambient, basant-se en els principis recollits en els Objectius de Desenvolupament Sostenible."
+    "texto": "Dissenyar un projecte senzill de col·laboració amb un servei a la comunitat que possibilite la millora de la qualitat de vida de les persones i el medi ambient, basant-se en els principis recollits en els Objectius de Desenvolupament Sostenible.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -12231,19 +13364,40 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Utilitzar dispositius digitals d'ús personal en l'entorn domèstic i educatiu de manera saludable, segura i sostenible."
+    "texto": "Utilitzar dispositius digitals d'ús personal en l'entorn domèstic i educatiu de manera saludable, segura i sostenible.",
+    "descriptores": [
+     "STEM",
+     "CD"
+    ]
    },
    {
     "n": 2,
-    "texto": "Buscar i seleccionar críticament informació digital de diferents fonts, interpretar-la, organitzar-la en l'entorn personal d'aprenentatge i crear continguts digitals."
+    "texto": "Buscar i seleccionar críticament informació digital de diferents fonts, interpretar-la, organitzar-la en l'entorn personal d'aprenentatge i crear continguts digitals.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir una identitat digital adequada i aplicar estratègies bàsiques per a cuidar-la i protegir-la."
+    "texto": "Construir una identitat digital adequada i aplicar estratègies bàsiques per a cuidar-la i protegir-la.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Mostrar hàbits bàsics que fomenten el benestar en les relacions a través d'entorns digitals."
+    "texto": "Mostrar hàbits bàsics que fomenten el benestar en les relacions a través d'entorns digitals.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -12461,23 +13615,61 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Dissenyar un pla financer personal i/o familiar senzill, utilitzar estratègies de planificació i presa de decisions i avaluar la coherència i consistència al llarg del temps."
+    "texto": "Dissenyar un pla financer personal i/o familiar senzill, utilitzar estratègies de planificació i presa de decisions i avaluar la coherència i consistència al llarg del temps.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Valorar el consum responsable en el nostre entorn més pròxim i identificar els beneficis econòmics i socials que produïx, i la seua aplicació en les nostres activitats quotidianes."
+    "texto": "Valorar el consum responsable en el nostre entorn més pròxim i identificar els beneficis econòmics i socials que produïx, i la seua aplicació en les nostres activitats quotidianes.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Utilitzar, omplir i interpretar documents quotidians, emprats en activitats relacionades amb el consum, i tractar-los de manera adequada en la seua relació amb les administracions públiques o altres entitats"
+    "texto": "Utilitzar, omplir i interpretar documents quotidians, emprats en activitats relacionades amb el consum, i tractar-los de manera adequada en la seua relació amb les administracions públiques o altres entitats",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Utilitzar estratègies i accions, individuals i col·lectives, que previnguen problemes relacionats amb el frau, les apostes, la publicitat enganyosa i les compres compulsives, i aplicar ferramentes i habilitats per evitar-los."
+    "texto": "Utilitzar estratègies i accions, individuals i col·lectives, que previnguen problemes relacionats amb el frau, les apostes, la publicitat enganyosa i les compres compulsives, i aplicar ferramentes i habilitats per evitar-los.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Identificar i proposar solucions que reduïsquen la desigualtat i l’escassetat de recursos, basant-se en valors solidaris i sostenibles."
+    "texto": "Identificar i proposar solucions que reduïsquen la desigualtat i l’escassetat de recursos, basant-se en valors solidaris i sostenibles.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {

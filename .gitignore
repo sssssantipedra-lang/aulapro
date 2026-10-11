@@ -47,3 +47,5 @@ copias/
 __pycache__/
 scripts/curriculo/.cache-eso-cv/
 scripts/curriculo/.cache-catalunya/
+scripts/curriculo/.cache/
+.calendario/

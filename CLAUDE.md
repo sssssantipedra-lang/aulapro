@@ -30,7 +30,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
 - La web: se publica sola cuando llega a `master` un cambio en `web/sitio/` (`web.yml`, Cloudflare Pages, proyecto `aulapro-app`). Necesita el secreto `CLOUDFLARE_API_TOKEN`. Antes de publicar, `web/versionar.mjs` añade a cada ruta de `assets/` la huella de su contenido (`?v=…`), porque los navegadores guardan esos archivos 4 horas; en el repositorio las rutas van sin huella.
-- El calendario escolar: `web/sitio/calendario-escolar.json`, que se publica con la web y la app lleva también de serie. Al cambiarlo, sube la fecha de `actualizado`: las apps solo se quedan con el más nuevo. Cada curso nuevo de una comunidad se añade cuando sale en su boletín (pasos en `docs/COMUNIDADES.md`, «Calendario escolar»).
+- El calendario escolar: `web/sitio/calendario-escolar.json`, que se publica con la web y la app lleva también de serie. Al cambiarlo, sube la fecha de `actualizado`: las apps solo se quedan con el más nuevo. Cada curso nuevo lo busca en los boletines la tarea «Vigilar el calendario escolar» (`calendario.yml`), que propone un pull request para revisar; Cataluña se añade a mano (ver `docs/COMUNIDADES.md`, «Calendario escolar»).
 - Día del lanzamiento: rellenar `checkout` (enlace de pago de Lemon Squeezy), `play` (ficha de Google Play) y `store` (ficha de Microsoft Store) en `web/sitio/assets/launch.js`. La web entera pasa de "Próximamente" a "a la venta".
 - 15 de abril de 2027: termina la oferta de lanzamiento. Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta anunciada con fecha hay que cumplirla.
 

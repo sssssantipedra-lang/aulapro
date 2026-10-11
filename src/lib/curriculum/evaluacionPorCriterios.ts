@@ -20,6 +20,21 @@
 import { competenciasDe, type CurriculumEntry } from './index';
 import type { Evaluation, OfficialCriterionRef } from '../../types';
 
+const ORDEN_CLAVE = ['CCL', 'CP', 'STEM', 'CD', 'CPSAA', 'CC', 'CE', 'CCEC'];
+
+/**
+ * Las competencias clave con las que el decreto conecta una competencia
+ * específica: de sus descriptores («CCL1», «STEM4») sale la competencia
+ * («CCL», «STEM»), sin repetir y en el orden oficial. Se leen de
+ * `entry.competencias` por número: en Madrid Primaria `competenciasPorGrupo`
+ * repite el texto de cada ciclo, pero la conexión es la misma.
+ */
+export function competenciasClaveDe(entry: CurriculumEntry, n: number): string[] {
+  const descriptores = entry.competencias.find(c => c.n === n)?.descriptores ?? [];
+  const clave = new Set(descriptores.map(d => d.replace(/\d+$/, '')));
+  return ORDEN_CLAVE.filter(c => clave.has(c));
+}
+
 /** La clave con que se guarda la nota de un criterio oficial en una evaluación. */
 export function claveCriterioOficial(ref: OfficialCriterionRef): string {
   return `${ref.materia}|${ref.codigo}`;
@@ -66,6 +81,8 @@ export interface NotaCompetencia {
   n: number;
   texto: string;
   nota: number | null;
+  /** Las competencias clave con las que la conecta el decreto, en el orden oficial; vacío si no lo dice. */
+  clave: string[];
   criterios: NotaCriterio[];
 }
 
@@ -93,7 +110,7 @@ export function notasDeMateria(entry: CurriculumEntry, grupo: string, evaluacion
       return { codigo: cr.codigo, texto: cr.texto, nota: media(notas), veces: notas.length };
     });
     const evaluados = criterios.map(cr => cr.nota).filter((v): v is number => v !== null);
-    return { n: c.n, texto: c.texto, nota: media(evaluados), criterios };
+    return { n: c.n, texto: c.texto, nota: media(evaluados), clave: competenciasClaveDe(entry, c.n), criterios };
   });
   const evaluadas = competencias.map(c => c.nota).filter((v): v is number => v !== null);
   return { id: entry.id, nombre: entry.nombre, grupo, nota: media(evaluadas), competencias };

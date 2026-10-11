@@ -83,7 +83,7 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }
         )}
       </div>
       <p className="ce-intro">
-        {t('Nota de cada criterio de evaluación oficial, de cada competencia específica y del área, a partir de las rúbricas y dianas que marcan qué criterios oficiales evalúan. No cambia la nota del cuaderno.')}
+        {t('Nota de cada criterio de evaluación oficial, de cada competencia específica y del área, a partir de las rúbricas y dianas que marcan qué criterios oficiales evalúan. No cambia la nota del cuaderno. Cada competencia cuenta también en la Diana, en las competencias clave con las que la conecta el decreto.')}
       </p>
       {estado === 'sin-nivel' && (
         <p className="ce-aviso">{t('Indica la etapa y el curso de la clase en Mis Clases para ver sus competencias específicas.')}</p>
@@ -127,7 +127,14 @@ export function CompetenciasEspecificas({ cls, comunidad, alumno, evaluaciones }
                   {notas.competencias.filter(c => c.nota !== null).map(c => [
                     <tr key={`ce${c.n}`} className="ce-competencia">
                       <th scope="row">{t('CE{n}', { n: c.n })}</th>
-                      <td><Resumen texto={c.texto} /></td>
+                      <td>
+                        <Resumen texto={c.texto} />
+                        {c.clave.length > 0 && (
+                          <span className="ce-clave" title={t('Las competencias clave con las que la conecta el decreto: su nota también cuenta en ellas en la Diana.')}>
+                            {t('Competencias clave: {lista}', { lista: c.clave.join(', ') })}
+                          </span>
+                        )}
+                      </td>
                       <td />
                       <td><Nota valor={c.nota} /></td>
                     </tr>,

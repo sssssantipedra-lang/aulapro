@@ -5,35 +5,103 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Utilizar de forma guiada y acotada dispositivos y recursos digitales para buscar información, comunicarse, colaborar y crear contenido digital sencillo con seguridad y eficacia."
+    "texto": "Utilizar de forma guiada y acotada dispositivos y recursos digitales para buscar información, comunicarse, colaborar y crear contenido digital sencillo con seguridad y eficacia.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Desarrollar proyectos cooperativos acotados y realizar investigaciones sencillas de naturaleza interdisciplinar con la guía y ayuda del profesorado, utilizando estrategias elementales propias del pensamiento de diseño y computacional."
+    "texto": "Desarrollar proyectos cooperativos acotados y realizar investigaciones sencillas de naturaleza interdisciplinar con la guía y ayuda del profesorado, utilizando estrategias elementales propias del pensamiento de diseño y computacional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 3,
-    "texto": "Plantear y responder preguntas sobre cuestiones de la vida cotidiana relativas al entorno natural, social y cultural aplicando, con apoyo y guía de materiales y del profesorado, el razonamiento científico y la experimentación."
+    "texto": "Plantear y responder preguntas sobre cuestiones de la vida cotidiana relativas al entorno natural, social y cultural aplicando, con apoyo y guía de materiales y del profesorado, el razonamiento científico y la experimentación.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 4,
-    "texto": "Adoptar hábitos saludables de consumo, alimentación, ejercicio y descanso a partir del conocimiento científico del cuerpo, desde el punto de vista del bienestar físico, mental y emocional."
+    "texto": "Adoptar hábitos saludables de consumo, alimentación, ejercicio y descanso a partir del conocimiento científico del cuerpo, desde el punto de vista del bienestar físico, mental y emocional.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Identificar, analizar y proponer soluciones a los problemas generados por la acción humana en el entorno, tanto a nivel local como de manera global, derivados de los factores demográficos, históricos, económicos, tecnológicos y ambientales."
+    "texto": "Identificar, analizar y proponer soluciones a los problemas generados por la acción humana en el entorno, tanto a nivel local como de manera global, derivados de los factores demográficos, históricos, económicos, tecnológicos y ambientales.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Situar cronológica y espacialmente los acontecimientos que marcan el inicio y el final de los grandes periodos históricos mediante el uso de diferentes fuentes históricas y unidades de tiempo e identificar y explicar los principales procesos de cambio subyacentes y su interrelación."
+    "texto": "Situar cronológica y espacialmente los acontecimientos que marcan el inicio y el final de los grandes periodos históricos mediante el uso de diferentes fuentes históricas y unidades de tiempo e identificar y explicar los principales procesos de cambio subyacentes y su interrelación.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Identificar y describir la organización y estructura política y territorial municipal, de la Comunitat Valenciana, de España y de Europa, así como las características más destacadas de sus principales instituciones y funciones."
+    "texto": "Identificar y describir la organización y estructura política y territorial municipal, de la Comunitat Valenciana, de España y de Europa, así como las características más destacadas de sus principales instituciones y funciones.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 8,
-    "texto": "Reconocer algunos elementos destacados del patrimonio natural, histórico y cultural de la Comunitat Valenciana y España y explorar y formular propuestas para promover su reconocimiento y protección."
+    "texto": "Reconocer algunos elementos destacados del patrimonio natural, histórico y cultural de la Comunitat Valenciana y España y explorar y formular propuestas para promover su reconocimiento y protección.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -891,27 +959,70 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Explorar propuestas artísticas del entorno patrimonial y de la cultura visual y audiovisual, a través de diferentes canales y contextos, desarrollando hábitos de percepción activa."
+    "texto": "Explorar propuestas artísticas del entorno patrimonial y de la cultura visual y audiovisual, a través de diferentes canales y contextos, desarrollando hábitos de percepción activa.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Reconocer y valorar las características fundamentales de la contemporaneidad artística mediante la percepción de diferentes obras y la experimentación directa."
+    "texto": "Reconocer y valorar las características fundamentales de la contemporaneidad artística mediante la percepción de diferentes obras y la experimentación directa.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Emplear de manera adecuada la terminología específica del área relativa a elementos configurativos, formatos, técnicas y materiales en la expresión de las experiencias de apreciación y creación artística."
+    "texto": "Emplear de manera adecuada la terminología específica del área relativa a elementos configurativos, formatos, técnicas y materiales en la expresión de las experiencias de apreciación y creación artística.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Experimentar con los elementos básicos del lenguaje visual y audiovisual, así como con diferentes técnicas y materiales, expresando ideas, sentimientos y emociones en la elaboración de producciones artísticas individuales o colectivas."
+    "texto": "Experimentar con los elementos básicos del lenguaje visual y audiovisual, así como con diferentes técnicas y materiales, expresando ideas, sentimientos y emociones en la elaboración de producciones artísticas individuales o colectivas.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Utilizar de manera guiada recursos digitales aplicados a la búsqueda de información y a la creación artística, haciendo un uso responsable de acuerdo con la normativa vigente."
+    "texto": "Utilizar de manera guiada recursos digitales aplicados a la búsqueda de información y a la creación artística, haciendo un uso responsable de acuerdo con la normativa vigente.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Participar en las diferentes fases de un proceso creativo colaborativo con actitud inclusiva, asumiendo diferentes roles en el desarrollo de producciones visuales y audiovisuales sencillas."
+    "texto": "Participar en las diferentes fases de un proceso creativo colaborativo con actitud inclusiva, asumiendo diferentes roles en el desarrollo de producciones visuales y audiovisuales sencillas.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -1377,19 +1488,50 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Reconocer e investigar obras de diversos géneros y los componentes estructurales y técnicos más destacados en propuestas musicales y multidisciplinares de distintas épocas y estilos a través de la audición activa y vivencial."
+    "texto": "Reconocer e investigar obras de diversos géneros y los componentes estructurales y técnicos más destacados en propuestas musicales y multidisciplinares de distintas épocas y estilos a través de la audición activa y vivencial.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Explorar, distinguir y relacionar los parámetros del sonido, sus características y representaciones gráficas, el silencio y las agresiones acústicas, los instrumentos y la voz, a partir del análisis auditivo y visual."
+    "texto": "Explorar, distinguir y relacionar los parámetros del sonido, sus características y representaciones gráficas, el silencio y las agresiones acústicas, los instrumentos y la voz, a partir del análisis auditivo y visual.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Interpretar juegos y propuestas musicales y escénicas diversas a través de la voz, los instrumentos, el cuerpo y otros medios, buscando variedad expresiva."
+    "texto": "Interpretar juegos y propuestas musicales y escénicas diversas a través de la voz, los instrumentos, el cuerpo y otros medios, buscando variedad expresiva.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Crear propuestas musicales y escénicas breves de forma guiada a partir de uno o diversos lenguajes y mediante la participación en proyectos."
+    "texto": "Crear propuestas musicales y escénicas breves de forma guiada a partir de uno o diversos lenguajes y mediante la participación en proyectos.",
+    "descriptores": [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -1728,27 +1870,75 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Identificar e incorporar hábitos saludables básicos en la vida cotidiana, desarrollando un estilo de vida activo, a través de la actividad física regular y adecuada."
+    "texto": "Identificar e incorporar hábitos saludables básicos en la vida cotidiana, desarrollando un estilo de vida activo, a través de la actividad física regular y adecuada.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Mostrar conciencia y control de los elementos fundamentales de la corporalidad en la resolución de situaciones motrices variadas desde un planteamiento crítico."
+    "texto": "Mostrar conciencia y control de los elementos fundamentales de la corporalidad en la resolución de situaciones motrices variadas desde un planteamiento crítico.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Resolver retos y situaciones motrices haciendo uso de las capacidades físicas, perceptivomotrices y las habilidades motrices en diferentes contextos de la vida cotidiana a través de la actividad física y el juego."
+    "texto": "Resolver retos y situaciones motrices haciendo uso de las capacidades físicas, perceptivomotrices y las habilidades motrices en diferentes contextos de la vida cotidiana a través de la actividad física y el juego.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
    },
    {
     "n": 4,
-    "texto": "Participar en la ejecución de propuestas artístico-expresivas con aportaciones estéticas y creativas propias de la cultura motriz a través de la utilización de los recursos expresivos básicos del cuerpo y el movimiento."
+    "texto": "Participar en la ejecución de propuestas artístico-expresivas con aportaciones estéticas y creativas propias de la cultura motriz a través de la utilización de los recursos expresivos básicos del cuerpo y el movimiento.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Participar activamente en la exploración del patrimonio natural y cultural del entorno, a través de actividades físicas y artístico-expresivas guiadas, adoptando medidas de responsabilidad individuales y colectivas que favorezcan la práctica segura y respetuosa con el medio."
+    "texto": "Participar activamente en la exploración del patrimonio natural y cultural del entorno, a través de actividades físicas y artístico-expresivas guiadas, adoptando medidas de responsabilidad individuales y colectivas que favorezcan la práctica segura y respetuosa con el medio.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Identificar y explorar recursos tecnológicos relacionados con la actividad física y la salud, utilizándolos de manera responsable y segura, bajo la supervisión del entorno familiar y escolar."
+    "texto": "Identificar y explorar recursos tecnológicos relacionados con la actividad física y la salud, utilizándolos de manera responsable y segura, bajo la supervisión del entorno familiar y escolar.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    }
   ],
   "criterios": {
@@ -2426,39 +2616,109 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Multilingüismo e interculturalidad. Reconocer la diversidad lingüística y cultural de la Comunitat Valenciana, de España y del mundo, a través del contacto con las lenguas del alumnado y del entorno; evitar prejuicios lingüísticos, y valorar esta diversidad como una riqueza cultural."
+    "texto": "Multilingüismo e interculturalidad. Reconocer la diversidad lingüística y cultural de la Comunitat Valenciana, de España y del mundo, a través del contacto con las lenguas del alumnado y del entorno; evitar prejuicios lingüísticos, y valorar esta diversidad como una riqueza cultural.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprensión oral y multimodal. Comprender, interpretar y valorar, de manera guiada, textos orales y multimodales propios de los ámbitos personal, social y educativo, a través de la escucha activa, la aplicación de estrategias de comprensión oral y la reflexión sobre el contenido y la forma."
+    "texto": "Comprensión oral y multimodal. Comprender, interpretar y valorar, de manera guiada, textos orales y multimodales propios de los ámbitos personal, social y educativo, a través de la escucha activa, la aplicación de estrategias de comprensión oral y la reflexión sobre el contenido y la forma.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprensión escrita y multimodal. Comprender, interpretar y valorar, de manera guiada, textos escritos y multimodales propios de los ámbitos personal, social y educativo, a través de la lectura de textos, la aplicación de estrategias de comprensión lectora y la reflexión sobre el contenido y la forma."
+    "texto": "Comprensión escrita y multimodal. Comprender, interpretar y valorar, de manera guiada, textos escritos y multimodales propios de los ámbitos personal, social y educativo, a través de la lectura de textos, la aplicación de estrategias de comprensión lectora y la reflexión sobre el contenido y la forma.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Expresión oral. Producir, de manera guiada, mensajes orales sencillos con coherencia, cohesión y adecuación a través de situaciones de comunicación de los ámbitos familiar, social y educativo."
+    "texto": "Expresión oral. Producir, de manera guiada, mensajes orales sencillos con coherencia, cohesión y adecuación a través de situaciones de comunicación de los ámbitos familiar, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Expresión escrita y multimodal. Producir, de manera guiada, textos escritos y multimodales adecuados y coherentes con un vocabulario apropiado, utilizando estrategias básicas de planificación, textualización, revisión y edición."
+    "texto": "Expresión escrita y multimodal. Producir, de manera guiada, textos escritos y multimodales adecuados y coherentes con un vocabulario apropiado, utilizando estrategias básicas de planificación, textualización, revisión y edición.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interacción oral, escrita y multimodal. Interactuar de forma oral, escrita y multimodal, a través de textos sencillos de los ámbitos personal, social y educativo, utilizando un lenguaje respetuoso y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de manera síncrona y asíncrona."
+    "texto": "Interacción oral, escrita y multimodal. Interactuar de forma oral, escrita y multimodal, a través de textos sencillos de los ámbitos personal, social y educativo, utilizando un lenguaje respetuoso y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de manera síncrona y asíncrona.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediación oral, escrita y multimodal. Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de los ámbitos personal, social y educativo."
+    "texto": "Mediación oral, escrita y multimodal. Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de los ámbitos personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Lectura autónoma. Leer de manera autónoma obras y textos de carácter diverso, seleccionados atendiendo sus gustos e intereses, y compartir las experiencias de lectura."
+    "texto": "Lectura autónoma. Leer de manera autónoma obras y textos de carácter diverso, seleccionados atendiendo sus gustos e intereses, y compartir las experiencias de lectura.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 9,
-    "texto": "Competencia literaria. Leer y producir textos con intención literaria, sencillos, con lenguaje cercano al alumnado, contextualizados en la cultura y la tradición, como fuente de placer y de conocimiento."
+    "texto": "Competencia literaria. Leer y producir textos con intención literaria, sencillos, con lenguaje cercano al alumnado, contextualizados en la cultura y la tradición, como fuente de placer y de conocimiento.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -3266,39 +3526,109 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Multilingüismo e interculturalidad. Reconocer la diversidad lingüística y cultural de la Comunitat Valenciana, de España y del mundo, a través del contacto con las lenguas del alumnado y del entorno; evitar prejuicios lingüísticos, y valorar esta diversidad como una riqueza cultural."
+    "texto": "Multilingüismo e interculturalidad. Reconocer la diversidad lingüística y cultural de la Comunitat Valenciana, de España y del mundo, a través del contacto con las lenguas del alumnado y del entorno; evitar prejuicios lingüísticos, y valorar esta diversidad como una riqueza cultural.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprensión oral y multimodal. Comprender, interpretar y valorar, de manera guiada, textos orales y multimodales propios de los ámbitos personal, social y educativo, a través de la escucha activa, la aplicación de estrategias de comprensión oral y la reflexión sobre el contenido y la forma."
+    "texto": "Comprensión oral y multimodal. Comprender, interpretar y valorar, de manera guiada, textos orales y multimodales propios de los ámbitos personal, social y educativo, a través de la escucha activa, la aplicación de estrategias de comprensión oral y la reflexión sobre el contenido y la forma.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprensión escrita y multimodal. Comprender, interpretar y valorar, de manera guiada, textos escritos y multimodales propios de los ámbitos personal, social y educativo, a través de la lectura de textos, la aplicación de estrategias de comprensión lectora y la reflexión sobre el contenido y la forma."
+    "texto": "Comprensión escrita y multimodal. Comprender, interpretar y valorar, de manera guiada, textos escritos y multimodales propios de los ámbitos personal, social y educativo, a través de la lectura de textos, la aplicación de estrategias de comprensión lectora y la reflexión sobre el contenido y la forma.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Expresión oral. Producir, de manera guiada, mensajes orales sencillos con coherencia, cohesión y adecuación a través de situaciones de comunicación de los ámbitos familiar, social y educativo."
+    "texto": "Expresión oral. Producir, de manera guiada, mensajes orales sencillos con coherencia, cohesión y adecuación a través de situaciones de comunicación de los ámbitos familiar, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Expresión escrita y multimodal. Producir, de manera guiada, textos escritos y multimodales adecuados y coherentes con un vocabulario apropiado, utilizando estrategias básicas de planificación, textualización, revisión y edición."
+    "texto": "Expresión escrita y multimodal. Producir, de manera guiada, textos escritos y multimodales adecuados y coherentes con un vocabulario apropiado, utilizando estrategias básicas de planificación, textualización, revisión y edición.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interacción oral, escrita y multimodal. Interactuar de forma oral, escrita y multimodal, a través de textos sencillos de los ámbitos personal, social y educativo, utilizando un lenguaje respetuoso y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de manera síncrona y asíncrona."
+    "texto": "Interacción oral, escrita y multimodal. Interactuar de forma oral, escrita y multimodal, a través de textos sencillos de los ámbitos personal, social y educativo, utilizando un lenguaje respetuoso y estrategias básicas de comprensión, expresión y resolución dialogada de conflictos, de manera síncrona y asíncrona.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediación oral, escrita y multimodal. Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de los ámbitos personal, social y educativo."
+    "texto": "Mediación oral, escrita y multimodal. Mediar entre interlocutores utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de los ámbitos personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 8,
-    "texto": "Lectura autónoma. Leer de manera autónoma obras y textos de carácter diverso, seleccionados atendiendo sus gustos e intereses, y compartir las experiencias de lectura."
+    "texto": "Lectura autónoma. Leer de manera autónoma obras y textos de carácter diverso, seleccionados atendiendo sus gustos e intereses, y compartir las experiencias de lectura.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 9,
-    "texto": "Competencia literaria. Leer y producir textos con intención literaria, sencillos, con lenguaje cercano al alumnado, contextualizados en la cultura y la tradición, como fuente de placer y de conocimiento."
+    "texto": "Competencia literaria. Leer y producir textos con intención literaria, sencillos, con lenguaje cercano al alumnado, contextualizados en la cultura y la tradición, como fuente de placer y de conocimiento.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -4106,31 +4436,91 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Multilingüismo e interculturalidad. Reconocer y usar los repertorios lingüísticos de varias lenguas, reflexionar sobre su funcionamiento y tomar conciencia de los propios conocimientos, así como identificar la diversidad lingüística y cultural a partir de la lengua extranjera."
+    "texto": "Multilingüismo e interculturalidad. Reconocer y usar los repertorios lingüísticos de varias lenguas, reflexionar sobre su funcionamiento y tomar conciencia de los propios conocimientos, así como identificar la diversidad lingüística y cultural a partir de la lengua extranjera.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Comprensión oral. Interpretar la información de textos orales y multimodales, breves y sencillos, de manera guiada, sobre varios temas predecibles de ámbito personal, social y educativo, por medio de la escucha activa y la aplicación de estrategias para la comprensión oral."
+    "texto": "Comprensión oral. Interpretar la información de textos orales y multimodales, breves y sencillos, de manera guiada, sobre varios temas predecibles de ámbito personal, social y educativo, por medio de la escucha activa y la aplicación de estrategias para la comprensión oral.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Comprensión escrita. Interpretar la información expresada por medio de textos escritos y multimodales, breves y sencillos, de manera guiada, sobre diferentes temas predecibles de ámbito personal, social y educativo, mediante estrategias que permiten desarrollar la comprensión escrita."
+    "texto": "Comprensión escrita. Interpretar la información expresada por medio de textos escritos y multimodales, breves y sencillos, de manera guiada, sobre diferentes temas predecibles de ámbito personal, social y educativo, mediante estrategias que permiten desarrollar la comprensión escrita.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Expresión oral. Producir de manera guiada textos orales y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación y compensación."
+    "texto": "Expresión oral. Producir de manera guiada textos orales y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación y compensación.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Expresión escrita. Producir, de manera guiada, textos escritos y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación, textualización y revisión."
+    "texto": "Expresión escrita. Producir, de manera guiada, textos escritos y multimodales, comprensibles y estructurados, para expresar mensajes breves y sencillos del ámbito personal, social y educativo, aplicando estrategias de planificación, textualización y revisión.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 6,
-    "texto": "Interacción oral y escrita. Interaccionar de manera oral, escrita y multimodal por medio de textos sencillos, breves y guiados, de manera síncrona y asíncrona, para responder a necesidades comunicativas relacionadas con el ámbito personal, social y educativo."
+    "texto": "Interacción oral y escrita. Interaccionar de manera oral, escrita y multimodal por medio de textos sencillos, breves y guiados, de manera síncrona y asíncrona, para responder a necesidades comunicativas relacionadas con el ámbito personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Mediación oral y escrita. Mediar entre el grupo de interlocutores o interlocutoras utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de ámbito personal, social y educativo."
+    "texto": "Mediación oral y escrita. Mediar entre el grupo de interlocutores o interlocutoras utilizando estrategias de adaptación y simplificación del lenguaje para procesar y transmitir información básica y sencilla en situaciones comunicativas predecibles de ámbito personal, social y educativo.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    }
   ],
   "criterios": {
@@ -4676,35 +5066,81 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Resolver problemas relacionados con situaciones reales del entorno personal, social y educativo utilizando estrategias informales, representaciones y conceptos concretos."
+    "texto": "Resolver problemas relacionados con situaciones reales del entorno personal, social y educativo utilizando estrategias informales, representaciones y conceptos concretos.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 2,
-    "texto": "Observar, formular, explorar y comprobar conjeturas sencillas sobre propiedades y relaciones matemáticas concretas, reconociendo y conectando procedimientos, patrones, regularidades y estructuras."
+    "texto": "Observar, formular, explorar y comprobar conjeturas sencillas sobre propiedades y relaciones matemáticas concretas, reconociendo y conectando procedimientos, patrones, regularidades y estructuras.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Construir modelos matemáticos concretos y utilizar conceptos y procedimientos matemáticos sencillos para abordar e interpretar situaciones, fenómenos y problemas relevantes en el ámbito personal, educativo o social."
+    "texto": "Construir modelos matemáticos concretos y utilizar conceptos y procedimientos matemáticos sencillos para abordar e interpretar situaciones, fenómenos y problemas relevantes en el ámbito personal, educativo o social.",
+    "descriptores": [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Construir y aplicar algoritmos sencillos para afrontar situaciones y resolver problemas relevantes del ámbito personal, educativo o social, organizando datos, descomponiendo un problema en partes, reconociendo patrones y empleando herramientas TIC."
+    "texto": "Construir y aplicar algoritmos sencillos para afrontar situaciones y resolver problemas relevantes del ámbito personal, educativo o social, organizando datos, descomponiendo un problema en partes, reconociendo patrones y empleando herramientas TIC.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CE"
+    ]
    },
    {
     "n": 5,
-    "texto": "Utilizar con corrección el simbolismo matemático, haciendo transformaciones y algunas conversiones entre representaciones icónico-manipulativas, numéricas, geométricas y gráficas, para describir y analizar situaciones relevantes del ámbito personal, educativo o social."
+    "texto": "Utilizar con corrección el simbolismo matemático, haciendo transformaciones y algunas conversiones entre representaciones icónico-manipulativas, numéricas, geométricas y gráficas, para describir y analizar situaciones relevantes del ámbito personal, educativo o social.",
+    "descriptores": [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
    },
    {
     "n": 6,
-    "texto": "Comprender y producir mensajes orales y escritos concretos de manera informal, empleando un lenguaje matemático sencillo para comunicar y argumentar sobre características, conceptos, procedimientos y resultados relacionados con situaciones del ámbito personal, educativo o social."
+    "texto": "Comprender y producir mensajes orales y escritos concretos de manera informal, empleando un lenguaje matemático sencillo para comunicar y argumentar sobre características, conceptos, procedimientos y resultados relacionados con situaciones del ámbito personal, educativo o social.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ]
    },
    {
     "n": 7,
-    "texto": "Identificar fenómenos y problemas importantes desde el punto de vista cultural y social en los que el conocimiento matemático juega un papel decisivo."
+    "texto": "Identificar fenómenos y problemas importantes desde el punto de vista cultural y social en los que el conocimiento matemático juega un papel decisivo.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
    },
    {
     "n": 8,
-    "texto": "Gestionar las emociones y actitudes implicadas en los procesos matemáticos, aceptando la incertidumbre, las dificultades y los errores que dichos procesos conllevan, y controlando la atención para lograr un aprendizaje significativo y adaptable a diferentes situaciones."
+    "texto": "Gestionar las emociones y actitudes implicadas en los procesos matemáticos, aceptando la incertidumbre, las dificultades y los errores que dichos procesos conllevan, y controlando la atención para lograr un aprendizaje significativo y adaptable a diferentes situaciones.",
+    "descriptores": [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
    }
   ],
   "criterios": {
@@ -5432,31 +5868,72 @@
   "competencias": [
    {
     "n": 1,
-    "texto": "Dialogar y debatir de forma asertiva y respetuosa en situaciones del entorno personal, educativo y social del alumnado para poder llegar a acuerdos o consensos."
+    "texto": "Dialogar y debatir de forma asertiva y respetuosa en situaciones del entorno personal, educativo y social del alumnado para poder llegar a acuerdos o consensos.",
+    "descriptores": [
+     "CCL",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 2,
-    "texto": "Reconocer las emociones propias y ajenas en situaciones de conflicto del ámbito escolar y personal, y gestionarlas empleando estrategias sencillas para encontrar soluciones equitativas."
+    "texto": "Reconocer las emociones propias y ajenas en situaciones de conflicto del ámbito escolar y personal, y gestionarlas empleando estrategias sencillas para encontrar soluciones equitativas.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 3,
-    "texto": "Participar en la elaboración de las reglas de convivencia escolar en el marco de los principios democráticos y de los derechos de la infancia."
+    "texto": "Participar en la elaboración de las reglas de convivencia escolar en el marco de los principios democráticos y de los derechos de la infancia.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 4,
-    "texto": "Identificar, analizar y valorar críticamente estereotipos que inciden en el bienestar físico y emocional propio y ajeno, así como en el establecimiento de relaciones interpersonales igualitarias."
+    "texto": "Identificar, analizar y valorar críticamente estereotipos que inciden en el bienestar físico y emocional propio y ajeno, así como en el establecimiento de relaciones interpersonales igualitarias.",
+    "descriptores": [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
    },
    {
     "n": 5,
-    "texto": "Identificar en el entorno próximo los beneficios de los valores democráticos promovidos por las leyes e instituciones para la construcción de una ciudadanía participativa y responsable."
+    "texto": "Identificar en el entorno próximo los beneficios de los valores democráticos promovidos por las leyes e instituciones para la construcción de una ciudadanía participativa y responsable.",
+    "descriptores": [
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
    },
    {
     "n": 6,
-    "texto": "Proponer e implicarse en acciones frente a situaciones de desigualdad e injusticia social en el ámbito escolar y el entorno próximo en el marco de los principios de una sociedad igualitaria e inclusiva."
+    "texto": "Proponer e implicarse en acciones frente a situaciones de desigualdad e injusticia social en el ámbito escolar y el entorno próximo en el marco de los principios de una sociedad igualitaria e inclusiva.",
+    "descriptores": [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
    },
    {
     "n": 7,
-    "texto": "Identificar los desafíos ecológicos planteados por los Objetivos de Desarrollo Sostenible y actuar de manera comprometida con la transformación del entorno próximo."
+    "texto": "Identificar los desafíos ecológicos planteados por los Objetivos de Desarrollo Sostenible y actuar de manera comprometida con la transformación del entorno próximo.",
+    "descriptores": [
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ]
    }
   ],
   "criterios": {
