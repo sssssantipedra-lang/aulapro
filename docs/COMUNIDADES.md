@@ -11,7 +11,7 @@ Estado (2-10-2026):
 - Comunitat Valenciana, ESO: hecha (4-10-2026), en castellano y en valenciano. Las 29 materias con currículo de los anexos III y IV del 107/2022, con lo que sustituye y añade el 66/2024 (Biología y Geología, Matemáticas, Música y Finanzas y Consumo Responsables), extraídas de los PDF oficiales y comprobadas (ver «ESO (107/2022 y 66/2024)» más abajo). Está en `CARGADORES`.
 - Cataluña, Primaria y ESO: hechas (4-10-2026), en catalán (el decreto solo se publica en catalán). Las 10 áreas del annex 2 y las 25 materias del annex 3 del Decret 175/2022, con competencias, criterios y saberes por ciclo o curso, extraídas del PDF y comprobadas (ver «Cataluña» más abajo). Está en `CARGADORES`.
 - Cuaderno e informes (7-10-2026): la pestaña «Por competencias» del cuaderno y las competencias específicas en los informes que redacta la IA (ver «Evaluación por competencias específicas» en «Estructura técnica»).
-- Pendiente: el calendario.
+- Calendario escolar (11-10-2026): hecho para el curso 2026-2027 de las tres comunidades, en la Agenda (ver «Calendario escolar»). Falta la tarea que vigila los boletines.
 - El resto de comunidades usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
@@ -92,9 +92,19 @@ Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primari
 - Es una conexión nueva de la app. No envía datos del docente, solo descarga.
 - En el mismo cambio hay que actualizar `web/sitio/privacidad.html` en los tres idiomas, y revisar cualquier frase de la web que diga que la app solo se conecta para la licencia y la IA.
 
-### Pendiente de decidir al llegar a esta parte
+### Cómo quedó (11-10-2026)
 
-- Desde dónde vigila la tarea: una Action programada en este repositorio. Hará falta que pueda leer los boletines y, si la extracción usa IA, una clave como secreto del repositorio.
+- Datos: `web/sitio/calendario-escolar.json`, uno por comunidad y curso: la norma que lo fija (en el idioma en que se publicó), el enlace, `verificado`, el primer y el último día de clase de Primaria y de la ESO, las vacaciones y los días no lectivos con su nombre en castellano (la app los traduce con `t()`). La app lo importa tal cual como calendario de serie, así que hay un solo archivo.
+- `src/lib/calendarioEscolar.ts`: `validarArchivo` (fechas que existen y caen dentro del curso, de septiembre a agosto; como mucho 6 periodos de vacaciones y 30 días no lectivos; la fuente enlazada con `https://`; solo las tres comunidades; un calendario malo invalida el archivo entero), `diaEscolar`, `marcasDelDia` y `actualizarCalendarios`, que descarga el publicado una vez por sesión (10 segundos como mucho, sin credenciales) y se queda con él si es válido y su `actualizado` es más nuevo que el de serie o el guardado (`localStorage`, `aulapro_calendario_escolar`). Al guardar borra los cursos pasados. `App.tsx` lo llama al abrir un perfil de una comunidad con calendario.
+- `web/sitio/_headers`: CORS abierto y una hora de caché para el JSON, porque la app de escritorio y la de Android no tienen el origen aulapro.app.
+- Agenda, vista mensual: los días no lectivos sombreados (en rojo suave, salvo los que caen en fin de semana), las vacaciones en una franja del color de la app, y la leyenda con la norma debajo del mes. Al pulsar un día, su nombre y el primer o el último día de clase de las etapas de las clases del docente (las dos si ninguna tiene etapa). Si la comunidad tiene calendario pero no el del curso que se mira: «El calendario de este curso aún no está disponible.» Para las demás comunidades no se dice nada.
+- Fuentes del curso 2026-2027:
+  - Madrid: Orden 2034/2026, de 25 de mayo (BOCM núm. 131, de 4 de junio de 2026), leída en el BOCM: `verificado: true`. Los festivos de 2027 de la Comunidad de Madrid y los nacionales no se conocían al publicar la orden; dentro del periodo lectivo de 2027 no cae ninguno conocido (Jueves y Viernes Santo y el 6 de enero, en vacaciones; el 1 de mayo es sábado). Si Madrid traslada el 2 de mayo (domingo) al lunes 3, se añade.
+  - Comunitat Valenciana: Resolución de 15 de junio de 2026, de la Dirección General de Centros Docentes (DOGV núm. 10387, de 18 de junio de 2026). El DOGV está bloqueado desde el entorno de Claude: las fechas salen del comunicado de la Conselleria (comunica.gva.es) y de varias fuentes que coinciden. `verificado: false` hasta comprobarlas en el DOGV. Falta también el título en valenciano.
+  - Cataluña: Ordre EDF/66/2026, de 22 d'abril (DOGC núm. 9653, de 27 d'abril de 2026), que fija los cursos 2026-2027, 2027-2028 y 2028-2029. El DOGC está bloqueado desde el entorno de Claude: las fechas del 2026-2027 salen de varias fuentes que coinciden (edubcn, 3Cat, beteve). `verificado: false`. Los cuatro días de libre disposición los elige cada centro, así que no van. Con el texto delante se pueden añadir también los dos cursos siguientes.
+- Pendiente:
+  - Comprobar en el DOGV y en el DOGC las fechas de la Comunitat Valenciana y de Cataluña (tarea del dueño, o de Claude con acceso a `dogv.gva.es` y `dogc.gencat.cat`), y pasarlas a `verificado: true`.
+  - La tarea que vigila los boletines: una Action programada en este repositorio que, cuando sale el calendario de un curso nuevo, lo extrae, lo valida con `validarArchivo` y abre un cambio con el enlace. Hará falta que pueda leer los boletines y, si la extracción usa IA, una clave como secreto del repositorio. Mientras, el curso nuevo se añade a mano en el JSON y se sube `actualizado`.
 
 ## Estructura técnica
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { HelpChat } from './components/HelpChat';
@@ -82,6 +83,11 @@ function AppInner() {
   const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
   useEffect(() => { rememberTab(section); }, [section]);
+  // El calendario escolar publicado, al abrir un perfil de una comunidad que lo tiene (solo descarga)
+  const comunidadPerfil = st.currentUser?.community;
+  useEffect(() => {
+    if (comunidadPerfil && tieneCalendario(calendarios(), comunidadPerfil)) void actualizarCalendarios();
+  }, [comunidadPerfil]);
   const [sidebarMini, setSidebarMini] = useState(false);
   // En pantallas estrechas el menú va plegado a iconos y se abre por encima
   const narrow = useNarrowScreen();
@@ -390,6 +396,7 @@ function AppInner() {
                 onUpdateCalEvent={ev => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
                 onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}
                 onNav={s => setSection(s as Section)}
+                comunidad={st.currentUser.community}
               />
             )}
             {section === 'rubrics' && (

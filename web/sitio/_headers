@@ -1,0 +1,6 @@
+# Cloudflare Pages. El calendario escolar lo descarga la app al abrirse
+# (src/lib/calendarioEscolar.ts): desde la app de escritorio y la de Android
+# el origen no es aulapro.app, así que necesita CORS. Una hora de caché.
+/calendario-escolar.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600

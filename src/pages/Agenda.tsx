@@ -9,6 +9,11 @@ import { requestGrupos } from '../lib/apoyoNav';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useI18n, monthLabel, weekdayLabel, eventTypeLabel, urgencyLabel } from '../i18n';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
+import {
+  calendarioDe, citarCalendario, cursoDe, diaEscolar, marcasDelDia, tieneCalendario, type EtapaCalendario,
+} from '../lib/calendarioEscolar';
 
 // --------------- helpers ---------------
 function uid() {
@@ -130,6 +135,8 @@ interface Props {
   onUpdateCalEvent: (ev: CalEvent) => void;
   onDeleteCalEvent: (id: string) => void;
   onNav: (s: string) => void;
+  /** Del perfil: de ella sale el calendario escolar (vacaciones y días no lectivos). */
+  comunidad?: ComunidadId;
 }
 
 // ==================== Agenda ====================
@@ -146,6 +153,7 @@ export function Agenda({
   onUpdateCalEvent,
   onDeleteCalEvent,
   onNav,
+  comunidad,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -178,6 +186,18 @@ export function Agenda({
 
   // ---- calendar grid ----
   const calGrid = useMemo(() => buildCalGrid(calYear, calMonth), [calYear, calMonth]);
+
+  // ---- calendario escolar de la comunidad (el curso del mes que se ve) ----
+  const archivoCal = useCalendarioEscolar();
+  const conCalendario = tieneCalendario(archivoCal, comunidad);
+  const cursoVisto = cursoDe(new Date(calYear, calMonth, 15));
+  const calEscolar = calendarioDe(archivoCal, comunidad, cursoVisto);
+  /** Las etapas de las clases del docente, para marcar su primer y su último día; sin clases con etapa, las dos. */
+  const etapasDocente = useMemo<EtapaCalendario[]>(() => {
+    const e = new Set(classes.map(c => c.etapa).filter((x): x is EtapaCalendario => x === 'primaria' || x === 'eso'));
+    return e.size ? [...e] : ['primaria', 'eso'];
+  }, [classes]);
+  const etapaLabel = (e: EtapaCalendario) => (e === 'primaria' ? t('Primaria') : t('ESO'));
 
   // ---- events by date (for dots) ----
   const eventsByDate = useMemo(() => {
@@ -355,8 +375,19 @@ export function Agenda({
                 const isToday = ds === isoDate(today);
                 const isSelected = ds === selectedDate;
                 const dots = eventsByDate[ds] ?? [];
+                const escolar = diaEscolar(calEscolar, ds);
+                const finde = d.getDay() === 0 || d.getDay() === 6;
 
                 let cls = 'cal-day';
+                if (escolar?.tipo === 'no-lectivo' && !finde) cls += ' no-lectivo';
+                if (escolar?.tipo === 'vacaciones') {
+                  // Una franja continua: redondeada solo donde empieza y donde acaba
+                  cls += ' vacaciones';
+                  const antes = new Date(d); antes.setDate(d.getDate() - 1);
+                  const despues = new Date(d); despues.setDate(d.getDate() + 1);
+                  if (diaEscolar(calEscolar, isoDate(antes))?.tipo !== 'vacaciones' || d.getDay() === 1) cls += ' vac-ini';
+                  if (diaEscolar(calEscolar, isoDate(despues))?.tipo !== 'vacaciones' || d.getDay() === 0) cls += ' vac-fin';
+                }
                 if (isToday) cls += ' today';
                 if (isSelected) cls += ' selected';
                 if (isOtherMonth) cls += ' other-month';
@@ -367,6 +398,7 @@ export function Agenda({
                     className={cls}
                     onClick={() => setSelectedDate(ds)}
                     style={{ cursor: 'pointer' }}
+                    title={escolar && !(escolar.tipo === 'no-lectivo' && finde) ? t(escolar.nombre) : undefined}
                   >
                     <span>{d.getDate()}</span>
                     {dots.length > 0 && (
@@ -384,6 +416,18 @@ export function Agenda({
                 );
               })}
             </div>
+            {conCalendario && (
+              <p className="cal-escolar-fuente">
+                {calEscolar ? (
+                  <>
+                    <span className="cal-leyenda vacaciones" aria-hidden="true" />{t('Vacaciones')}
+                    <span className="cal-leyenda no-lectivo" aria-hidden="true" />{t('Día no lectivo')}
+                    <br />
+                    {t('Calendario escolar {curso}: {norma}. Los festivos locales dependen del municipio: añádelos como evento.', { curso: cursoVisto, norma: citarCalendario(calEscolar, lang) })}
+                  </>
+                ) : t('El calendario de este curso aún no está disponible.')}
+              </p>
+            )}
           </div>
 
           {/* Selected day events panel */}
@@ -403,6 +447,22 @@ export function Agenda({
               </button>
             </div>
 
+            {(() => {
+              const cal = calendarioDe(archivoCal, comunidad, cursoDe(fromIsoDate(selectedDate)));
+              const escolar = diaEscolar(cal, selectedDate);
+              const marcas = marcasDelDia(cal, selectedDate, etapasDocente);
+              if (!escolar && marcas.length === 0) return null;
+              return (
+                <ul className="cal-escolar-dia">
+                  {escolar && <li className={escolar.tipo}>{t(escolar.nombre)}</li>}
+                  {marcas.map(m => (
+                    <li key={m.tipo + m.etapa}>
+                      {t(m.tipo === 'inicio' ? 'Primer día de clase ({etapa})' : 'Último día de clase ({etapa})', { etapa: etapaLabel(m.etapa) })}
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
             {selectedDayEvents.length === 0 ? (
               <p style={{ color: 'var(--text-2, #9ca3af)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>
                 {t('Sin eventos para este día')}

@@ -11,7 +11,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `web/DISENO.md`: decisiones de diseño y de contenido de la web, ronda a ronda.
 - `docs/WEB.md`: contexto compartido entre la app y la web: modelo de venta, lo que la web promete y la app tiene que cumplir, descargas y Lemon Squeezy.
 - `docs/DESCARGAS.md`: el servidor de descargas (descargas.aulapro.app).
-- `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar sigue pendiente.
+- `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar de las tres está en la Agenda desde el 11-10-2026 (`web/sitio/calendario-escolar.json`).
 - `docs/PTAL.md`: el módulo de Pedagogía Terapéutica y Audición y Lenguaje: decisiones, normativa de inclusión de cada comunidad, autores de referencia y lo que falta.
 - `docs/EF.md`: el perfil de Educación Física (con tutoría o sin ella): decisiones, herramientas y lo que falta.
 - `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad, y en su carpeta `Inclusión`, la normativa y los modelos de inclusión (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
@@ -30,6 +30,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
 - La web: se publica sola cuando llega a `master` un cambio en `web/sitio/` (`web.yml`, Cloudflare Pages, proyecto `aulapro-app`). Necesita el secreto `CLOUDFLARE_API_TOKEN`. Antes de publicar, `web/versionar.mjs` añade a cada ruta de `assets/` la huella de su contenido (`?v=…`), porque los navegadores guardan esos archivos 4 horas; en el repositorio las rutas van sin huella.
+- El calendario escolar: `web/sitio/calendario-escolar.json`, que se publica con la web y la app lleva también de serie. Al cambiarlo, sube la fecha de `actualizado`: las apps solo se quedan con el más nuevo. Cada curso nuevo de una comunidad se añade cuando sale en su boletín (pasos en `docs/COMUNIDADES.md`, «Calendario escolar»).
 - Día del lanzamiento: rellenar `checkout` (enlace de pago de Lemon Squeezy), `play` (ficha de Google Play) y `store` (ficha de Microsoft Store) en `web/sitio/assets/launch.js`. La web entera pasa de "Próximamente" a "a la venta".
 - 15 de abril de 2027: termina la oferta de lanzamiento. Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta anunciada con fecha hay que cumplirla.
 
