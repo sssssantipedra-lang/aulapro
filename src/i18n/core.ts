@@ -1335,10 +1335,13 @@ const EN: Record<string, string> = {
   /* ── Diana Competencial desde evaluaciones con competencias ── */
   'Rellenar desde evaluaciones': 'Fill from assessments',
   '{n} evaluaciones con competencias asociadas': '{n} assessments with competencies attached',
-  'Este alumno no tiene evaluaciones con competencias asociadas. Se generan al evaluar con una rúbrica creada desde una Situación de Aprendizaje.':
-    'This student has no assessments with competencies attached. These are created by assessing with a rubric generated from a Learning Situation.',
-  'Calculado a partir de {n} evaluaciones: {resumen}': 'Calculated from {n} assessments: {resumen}',
+  'Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.':
+    'This student has no assessments with key competencies or official criteria yet. They come from assessing with rubrics and targets that have them marked.',
+  'Calculado a partir de: {resumen}': 'Calculated from: {resumen}',
+  'Las competencias clave con las que la conecta el decreto: su nota también cuenta en ellas en la Diana.': 'The key competencies the decree connects it to: its grade also counts towards them in the Competency target.',
+  'Competencias clave: {lista}': 'Key competencies: {lista}',
   '{n} competencias rellenadas desde {m} evaluaciones': '{n} competencies filled in from {m} assessments',
+  '{n} competencias rellenadas desde 1 evaluación': '{n} competencies filled in from 1 assessment',
 
   /* ── Diana desde una Situación de Aprendizaje ── */
   'Diana de esta SdA': 'Target for this unit',
@@ -1934,7 +1937,7 @@ const EN: Record<string, string> = {
   'Conciencia y expresión culturales': 'Cultural awareness and expression',
   'La IA no devolvió criterios válidos. Vuelve a intentarlo.': 'The AI did not return valid criteria. Try again.',
   'Quitar {criterio}': 'Remove {criterio}',
-  'Nota de cada criterio de evaluación oficial, de cada competencia específica y del área, a partir de las rúbricas y dianas que marcan qué criterios oficiales evalúan. No cambia la nota del cuaderno.': 'Grade for each official assessment criterion, each subject competency and the subject, from the rubrics and targets that mark which official criteria they assess. It does not change the gradebook grade.',
+  'Nota de cada criterio de evaluación oficial, de cada competencia específica y del área, a partir de las rúbricas y dianas que marcan qué criterios oficiales evalúan. No cambia la nota del cuaderno. Cada competencia cuenta también en la Diana, en las competencias clave con las que la conecta el decreto.': 'Grade for each official assessment criterion, each subject competency and the subject, from the rubrics and targets that mark which official criteria they assess. It does not change the gradebook grade. Each competency also counts in the Competency target, towards the key competencies the decree connects it to.',
   'Indica la etapa y el curso de la clase en Mis Clases para ver sus competencias específicas.': 'Set the class stage and year in My Classes to see its subject competencies.',
   'Ninguna asignatura de esta clase tiene materia oficial.': 'No subject in this class is linked to an official subject.',
   'Aún no hay notas: en Rúbricas y Dianas, marca qué criterios oficiales evalúa cada criterio o ítem, y evalúa con ellos.': 'No grades yet: in Rubrics and Targets, mark which official criteria each criterion or item assesses, and assess with them.',

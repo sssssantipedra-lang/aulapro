@@ -37,6 +37,14 @@ export type Etapa = 'primaria' | 'eso';
 export interface CurriculumCompetencia {
   n: number;
   texto: string;
+  /**
+   * Con qué competencias clave se conecta, según el decreto: sus descriptores
+   * del perfil de salida («CCL1», «STEM4»…) o, en la Comunitat Valenciana, la
+   * competencia clave de su tabla de conexiones («CCL», «STEM»). Sin el campo,
+   * el decreto no lo dice (Cataluña, parte de Madrid Primaria). Lo escribe
+   * `scripts/curriculo/descriptores.py`; ver docs/COMUNIDADES.md.
+   */
+  descriptores?: string[];
 }
 
 export interface CurriculumCriterio {

@@ -260,6 +260,17 @@ Es una tabla por asignatura con lo evaluado: el número de cada competencia
 al tocarlo en el móvil, se lee entero). Debajo, «Faltan por evaluar», solo con
 los números. «Exportar PDF» saca en una página las tablas del alumno, solo con
 los números y las notas, lo que falta y el decreto del que salen.
+Debajo de cada competencia específica pone con qué competencias clave la
+conecta el decreto («Competencias clave: STEM, CD, CPSAA»). Por esa conexión,
+«Rellenar desde evaluaciones» lleva también su nota a la Diana: cada sector es
+la media de las competencias clave marcadas en las rúbricas y dianas (de 1 a 4)
+y de las competencias específicas conectadas con él (su nota sobre 10 pasa a la
+escala de 1 a 4: un 7,5 es un 3). El descriptor de cada sector dice de dónde
+sale («Matemáticas CE2 10/10»). La conexión la dice el decreto: en el estatal y
+en Madrid, con los descriptores del perfil de salida; en la Comunitat
+Valenciana, con su tabla de conexiones. Cataluña no la publica, y en Madrid
+Primaria solo está en parte de las áreas: esas competencias no llegan a la
+Diana por este camino.
 
 [reports] INFORMES
 Informes de evaluación competencial redactados por la IA a partir de las

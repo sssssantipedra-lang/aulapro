@@ -4,12 +4,14 @@ import {
 } from 'lucide-react';
 import type { Class, Student, Evaluation, DianaProfile, Rubric, EvalDiana } from '../types';
 import type { InlineFile } from '../services/gemini';
-import { DIANA_SECTORS, LOMLOE_TO_DIANA, isoDate } from '../lib/utils';
+import { DIANA_SECTORS, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { CompetenciasEspecificas } from '../components/curriculum/CompetenciasEspecificas';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { useNotasPorCompetencias } from '../hooks/useNotasPorCompetencias';
+import { evidenciasPorSector, nivelDelSector, type SectorId } from '../lib/dianaSectores';
 
 interface Props {
   classes: Class[];
@@ -24,7 +26,6 @@ interface Props {
   comunidad?: ComunidadId;
 }
 
-type SectorId = 'ds1' | 'ds2' | 'ds3' | 'ds4' | 'ds5' | 'ds6';
 type ScoreMap = Record<SectorId, number>;
 type DescriptorMap = Record<SectorId, string>;
 
@@ -80,26 +81,6 @@ function emptyScores(): ScoreMap {
 
 function emptyDescriptors(): DescriptorMap {
   return { ds1: '', ds2: '', ds3: '', ds4: '', ds5: '', ds6: '' };
-}
-
-interface SectorEntry { value: number; code: string; rubric_name: string }
-
-/**
- * Reparte las notas por competencia de un grupo de evaluaciones entre los
- * seis sectores de la Diana, vía `LOMLOE_TO_DIANA`. La usan tanto el relleno
- * directo (`handleFillFromEvaluations`) como la sugerencia con IA: los dos
- * necesitan lo mismo, cuánta evidencia real hay por sector y de dónde sale.
- */
-function bySectorFromEvals(evals: Evaluation[]): Record<SectorId, SectorEntry[]> {
-  const out: Record<SectorId, SectorEntry[]> = { ds1: [], ds2: [], ds3: [], ds4: [], ds5: [], ds6: [] };
-  for (const ev of evals) {
-    for (const [code, value] of Object.entries(ev.competencyScores ?? {})) {
-      for (const sid of LOMLOE_TO_DIANA[code] ?? []) {
-        out[sid as SectorId].push({ value, code, rubric_name: ev.rubric_name });
-      }
-    }
-  }
-  return out;
 }
 
 /**
@@ -339,6 +320,28 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
     [studentEvals]
   );
 
+  /**
+   * Las competencias específicas del alumno en las asignaturas de la clase con
+   * currículo oficial: llegan a los sectores por las competencias clave con
+   * las que las conecta el decreto (ver `lib/dianaSectores.ts`).
+   */
+  const clase = useMemo(() => classes.find(c => c.id === classId) ?? null, [classes, classId]);
+  const { materias: notasEspecificas } = useNotasPorCompetencias(clase, comunidad, studentEvals);
+  const numFmt = useCallback(
+    (n: number) => n.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { maximumFractionDigits: 1 }),
+    [lang],
+  );
+  const porSector = useMemo(
+    () => evidenciasPorSector(competencyEvals, notasEspecificas, { numero: numFmt, ce: n => t('CE{n}', { n }) }),
+    [competencyEvals, notasEspecificas, numFmt, t],
+  );
+  /** Las evaluaciones que aportan algo: con competencias clave o con criterios oficiales. */
+  const evaluacionesConDatos = useMemo(
+    () => studentEvals.filter(e => Object.keys(e.competencyScores ?? {}).length > 0 || Object.keys(e.officialCriteriaScores ?? {}).length > 0).length,
+    [studentEvals],
+  );
+  const hayEvidencias = SECTOR_IDS.some(sid => porSector[sid].length > 0);
+
   const handleClassChange = useCallback((id: string) => {
     setClassId(id);
     setStudentId('');
@@ -393,16 +396,15 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
 
     const cls = classes.find(c => c.id === classId);
     const sectorLabel = (sid: SectorId) => t(DIANA_SECTORS.find(s => s.id === sid)!.label);
-    const numFmt = (n: number) => n.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { maximumFractionDigits: 1 });
 
-    const bySector = bySectorFromEvals(competencyEvals);
+    const bySector = porSector;
     const sectoresConDatos = SECTOR_IDS.filter(sid => bySector[sid].length > 0);
     const sectoresSinDatos = SECTOR_IDS.filter(sid => bySector[sid].length === 0);
 
     const objectiveBlock = sectoresConDatos.length === 0 ? '' : sectoresConDatos.map(sid => {
       const entries = bySector[sid];
       const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
-      const detalle = entries.map(e => `${e.code} ${numFmt(e.value)} («${e.rubric_name}»)`).join(', ');
+      const detalle = entries.map(e => e.etiqueta).join(', ');
       return lang === 'en'
         ? `- ${sectorLabel(sid)} (${sid}): REAL calculated value ${avg.toFixed(1)}/4, from: ${detalle}`
         : `- ${sectorLabel(sid)} (${sid}): valor REAL ya calculado ${avg.toFixed(1)}/4, a partir de: ${detalle}`;
@@ -470,10 +472,9 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
     // la respuesta: no es una sugerencia, es lo que ya salió de evaluar.
     const newScores = { ...emptyScores() };
     for (const sid of SECTOR_IDS) {
-      const entries = bySector[sid];
-      if (entries.length > 0) {
-        const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
-        newScores[sid] = Math.max(1, Math.min(4, Math.round(avg)));
+      const nivel = nivelDelSector(bySector[sid]);
+      if (nivel !== null) {
+        newScores[sid] = nivel;
       } else {
         const v = parsed.scores?.[sid];
         if (typeof v === 'number' && v >= 1 && v <= 4) newScores[sid] = v;
@@ -488,7 +489,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
     setDescriptors(newDesc);
 
     setSaved(false);
-  }, [student, studentEvals, competencyEvals, dianas, rubrics, classes, classId, lawDocument, toast, lang, t]);
+  }, [student, studentEvals, porSector, dianas, rubrics, classes, classId, lawDocument, toast, lang, t]);
 
   /**
    * Rellena desde las evaluaciones con competencias asociadas, en vez de
@@ -500,34 +501,28 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
    * evaluación con competencias no se borra, se deja como estuviera.
    */
   const handleFillFromEvaluations = useCallback(() => {
-    if (competencyEvals.length === 0) {
-      toast(t('Este alumno no tiene evaluaciones con competencias asociadas. Se generan al evaluar con una rúbrica creada desde una Situación de Aprendizaje.'));
+    if (!hayEvidencias) {
+      toast(t('Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.'));
       return;
     }
-
-    const bySector = bySectorFromEvals(competencyEvals);
 
     const newScores = { ...scores };
     const newDescriptors = { ...descriptors };
     let filled = 0;
 
     for (const sid of SECTOR_IDS) {
-      const entries = bySector[sid];
-      if (entries.length === 0) continue;
+      const nivel = nivelDelSector(porSector[sid]);
+      if (nivel === null) continue;
       filled++;
-      const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
-      newScores[sid] = Math.max(1, Math.min(4, Math.round(avg)));
-      const resumen = entries
-        .map(e => `${e.code} ${e.value.toLocaleString(lang === 'en' ? 'en-GB' : 'es-ES', { maximumFractionDigits: 1 })} («${e.rubric_name}»)`)
-        .join(', ');
-      newDescriptors[sid] = t('Calculado a partir de {n} evaluaciones: {resumen}', { n: entries.length, resumen });
+      newScores[sid] = nivel;
+      newDescriptors[sid] = t('Calculado a partir de: {resumen}', { resumen: porSector[sid].map(e => e.etiqueta).join(', ') });
     }
 
     setScores(newScores);
     setDescriptors(newDescriptors);
     setSaved(false);
-    toast(t('{n} competencias rellenadas desde {m} evaluaciones', { n: filled, m: competencyEvals.length }));
-  }, [competencyEvals, scores, descriptors, lang, toast, t]);
+    toast(t(evaluacionesConDatos === 1 ? '{n} competencias rellenadas desde 1 evaluación' : '{n} competencias rellenadas desde {m} evaluaciones', { n: filled, m: evaluacionesConDatos }));
+  }, [hayEvidencias, porSector, evaluacionesConDatos, scores, descriptors, toast, t]);
 
   const totalScore = SECTOR_IDS.reduce((acc, id) => acc + (scores[id] ?? 0), 0);
   const maxScore = SECTOR_IDS.length * RINGS;
@@ -621,9 +616,9 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                     className="btn-ghost"
                     onClick={handleFillFromEvaluations}
                     disabled={generating}
-                    title={competencyEvals.length > 0
-                      ? t('{n} evaluaciones con competencias asociadas', { n: competencyEvals.length })
-                      : t('Este alumno no tiene evaluaciones con competencias asociadas. Se generan al evaluar con una rúbrica creada desde una Situación de Aprendizaje.')}
+                    title={hayEvidencias
+                      ? t('{n} evaluaciones con competencias asociadas', { n: evaluacionesConDatos })
+                      : t('Este alumno aún no tiene evaluaciones con competencias clave ni con criterios oficiales. Se generan al evaluar con rúbricas y dianas que los tienen marcados.')}
                   >
                     <ListChecks size={14} />{t('Rellenar desde evaluaciones')}
                   </button>

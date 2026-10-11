@@ -63,6 +63,9 @@ describe('competencias específicas del alumno', () => {
     expect(within(mates).getByText('Faltan por evaluar:').parentElement!.textContent)
       .toMatch(/^Faltan por evaluar: 1\.2, 2\.2, 2\.3, 3\.1, .*8\.2$/);
     expect(screen.getByRole('button', { name: /Exportar PDF/ })).toBeTruthy();
+    // Con qué competencias clave conecta el decreto cada competencia evaluada (Madrid las toma del 157/2022)
+    expect(within(mates).getAllByText(/^Competencias clave: /).map(e => e.textContent))
+      .toEqual(['Competencias clave: STEM, CD, CPSAA, CE, CCEC', expect.stringMatching(/^Competencias clave: /)]);
   });
 
   it('una asignatura sin nada evaluado lo dice en una línea, sin tabla', async () => {

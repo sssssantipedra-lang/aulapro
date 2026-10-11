@@ -1,0 +1,7558 @@
+{
+ "src/lib/curriculum/data/primaria.json": {
+  "Conocimiento del Medio Natural, Social y Cultural": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL3",
+     "STEM2",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CC4"
+    ],
+    [
+     "STEM3",
+     "STEM4",
+     "CD5",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5",
+     "CE1",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM5",
+     "CPSAA1",
+     "CPSAA2",
+     "CPSAA3",
+     "CC3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ],
+    [
+     "CCL5",
+     "STEM2",
+     "STEM5",
+     "CPSAA4",
+     "CC1",
+     "CC3",
+     "CC4",
+     "CE1"
+    ],
+    [
+     "CCL3",
+     "STEM4",
+     "CPSAA4",
+     "CC1",
+     "CC3",
+     "CE2",
+     "CCEC1"
+    ],
+    [
+     "CP3",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ],
+    [
+     "CCL5",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ]
+   ]
+  },
+  "Educación Artística": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CP3",
+     "STEM1",
+     "CD1",
+     "CPSAA3",
+     "CC1",
+     "CE2",
+     "CCEC1",
+     "CCEC2"
+    ],
+    [
+     "CCL3",
+     "CP3",
+     "STEM2",
+     "CD1",
+     "CPSAA4",
+     "CC3",
+     "CCEC1",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA5",
+     "CC2",
+     "CE1",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL5",
+     "CP3",
+     "STEM3",
+     "CC2",
+     "CE1",
+     "CE3",
+     "CCEC3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "Educación Física": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "STEM2",
+     "STEM5",
+     "CPSAA2",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "CCL1",
+     "CCL5",
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA5",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CC3",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "STEM5",
+     "CC2",
+     "CC4",
+     "CE1",
+     "CE3"
+    ]
+   ]
+  },
+  "Lengua Castellana y Literatura": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 10,
+   "con_descriptores": 10,
+   "descriptores": [
+    [
+     "CCL1",
+     "CCL5",
+     "CP2",
+     "CP3",
+     "CC1",
+     "CC2",
+     "CCEC1",
+     "CCEC3"
+    ],
+    [
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "CD3",
+     "CPSAA3",
+     "CC3"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CC2",
+     "CE1"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CPSAA5",
+     "CC2"
+    ],
+    [
+     "CCL3",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CPSAA5",
+     "CC2",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "CCL4",
+     "CD3",
+     "CPSAA1",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL4",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "STEM2",
+     "CPSAA5"
+    ],
+    [
+     "CCL1",
+     "CCL5",
+     "CP3",
+     "CD3",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3"
+    ]
+   ]
+  },
+  "Lengua Extranjera": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA5",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CCEC4"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA3",
+     "CC3",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ]
+   ]
+  },
+  "Matemáticas": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CPSAA4",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CD3",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "CD1",
+     "CD3",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM3",
+     "CD3",
+     "CD5",
+     "CC4",
+     "CCEC1"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "STEM2",
+     "STEM4",
+     "CD1",
+     "CD5",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM5",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "STEM3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC2",
+     "CC3"
+    ]
+   ]
+  },
+  "Educación en Valores Cívicos y Éticos": {
+   "origen": "Real Decreto 157/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL1",
+     "CCL3",
+     "CD4",
+     "CPSAA4",
+     "CPSAA5",
+     "CC1",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "CPSAA3",
+     "CPSAA4",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ],
+    [
+     "CCL2",
+     "CCL5",
+     "STEM1",
+     "STEM5",
+     "CPSAA2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "CCL5",
+     "CPSAA1",
+     "CPSAA2",
+     "CPSAA3",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE3"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/eso.json": {
+  "Biología y Geología": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL1",
+     "CCL2",
+     "CCL5",
+     "STEM4",
+     "CD2",
+     "CD3",
+     "CCEC4"
+    ],
+    [
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA4"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CD5",
+     "CPSAA5",
+     "CE1",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CPSAA1",
+     "CPSAA2",
+     "CC4",
+     "CE1",
+     "CC3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ]
+   ]
+  },
+  "Física y Química": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "CPSAA4"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CPSAA4",
+     "CE1",
+     "CCEC3"
+    ],
+    [
+     "STEM4",
+     "STEM5",
+     "CD3",
+     "CPSAA2",
+     "CC1",
+     "CCEC2",
+     "CCEC4"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "STEM3",
+     "STEM5",
+     "CD3",
+     "CPSAA3",
+     "CC3",
+     "CE2"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CPSAA1",
+     "CPSAA4",
+     "CC4",
+     "CCEC1"
+    ]
+   ]
+  },
+  "Geografía e Historia": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CC1"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CD2",
+     "CC1",
+     "CC3",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CPSAA3",
+     "CC3",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ],
+    [
+     "CPSAA2",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ],
+    [
+     "CCL5",
+     "CC1",
+     "CC2",
+     "CCEC1"
+    ],
+    [
+     "CCL5",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ],
+    [
+     "CP3",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ],
+    [
+     "STEM5",
+     "CD4",
+     "CPSAA2",
+     "CPSAA5",
+     "CC1",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CCL2",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ]
+   ]
+  },
+  "Lengua Castellana y Literatura": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 10,
+   "con_descriptores": 10,
+   "descriptores": [
+    [
+     "CCL1",
+     "CCL5",
+     "CP2",
+     "CP3",
+     "CC1",
+     "CC2",
+     "CCEC1",
+     "CCEC3"
+    ],
+    [
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CC3"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CC2",
+     "CE1"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM4",
+     "CD1",
+     "CPSAA4",
+     "CC3"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CPSAA5",
+     "CC2"
+    ],
+    [
+     "CCL3",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CPSAA4",
+     "CC2",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "CCL4",
+     "CD3",
+     "CPSAA1",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CCL4",
+     "CC1",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "STEM2",
+     "CPSAA5"
+    ],
+    [
+     "CCL1",
+     "CCL5",
+     "CP3",
+     "CD3",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3"
+    ]
+   ]
+  },
+  "Lengua Extranjera": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA5",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CCEC3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA3",
+     "CC3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA5",
+     "CD2"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC3",
+     "CCEC1"
+    ]
+   ]
+  },
+  "Segunda Lengua Extranjera": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CD3",
+     "CPSAA3",
+     "CPSAA4",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD2",
+     "CPSAA4",
+     "CC4",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "STEM4",
+     "CD3",
+     "CPSAA3",
+     "CCEC3"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "STEM3",
+     "CD5",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CP2",
+     "CD2",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CC4"
+    ]
+   ]
+  },
+  "Matemáticas": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 10,
+   "con_descriptores": 10,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "CD2",
+     "CPSAA5",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CD2",
+     "CPSAA4",
+     "CC3",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CD2",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "CD2",
+     "CD3",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM3",
+     "CD2",
+     "CD3",
+     "CCEC1"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CD3",
+     "CD5",
+     "CC4",
+     "CE2",
+     "CE3",
+     "CCEC1"
+    ],
+    [
+     "STEM3",
+     "CD1",
+     "CD2",
+     "CD5",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CP1",
+     "STEM2",
+     "STEM4",
+     "CD2",
+     "CD3",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "STEM5",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "STEM3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC2",
+     "CC3"
+    ]
+   ]
+  },
+  "Educación Física": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL3",
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CPSAA2",
+     "CPSAA4"
+    ],
+    [
+     "CPSAA4",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA5",
+     "CC3"
+    ],
+    [
+     "CC2",
+     "CC3",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "STEM5",
+     "CC4",
+     "CE1",
+     "CE3"
+    ]
+   ]
+  },
+  "Educación Plástica, Visual y Audiovisual": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "CCL1",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CCEC1"
+    ],
+    [
+     "CCL1",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CC3",
+     "CCEC1",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CD1",
+     "CPSAA4",
+     "CC1",
+     "CC3",
+     "CCEC2"
+    ],
+    [
+     "CCL2",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CC3",
+     "CCEC2"
+    ],
+    [
+     "CCL2",
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA4",
+     "CC3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL2",
+     "CD1",
+     "CPSAA3",
+     "CC1",
+     "CCEC3"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "STEM3",
+     "CD1",
+     "CD5",
+     "CC1",
+     "CC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "STEM3",
+     "CD3",
+     "CPSAA3",
+     "CPSAA5",
+     "CE3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "Música": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP3",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CC1",
+     "CCEC1",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "STEM3",
+     "CD2",
+     "CPSAA3",
+     "CC1",
+     "CE1",
+     "CE3",
+     "CCEC3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "Expresión Artística": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP3",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CC1",
+     "CCEC1",
+     "CCEC2"
+    ],
+    [
+     "CD2",
+     "CPSAA1",
+     "CC1",
+     "CC3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CD5",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "STEM3",
+     "CD3",
+     "CPSAA3",
+     "CPSAA5",
+     "CE3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "Tecnología y Digitalización": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL3",
+     "STEM2",
+     "CD1",
+     "CD4",
+     "CPSAA4",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM3",
+     "CD3",
+     "CPSAA3",
+     "CPSAA5",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "STEM2",
+     "STEM3",
+     "STEM5",
+     "CD5",
+     "CPSAA1",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "STEM4",
+     "CD3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "STEM3",
+     "CD5",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CP2",
+     "CD2",
+     "CD4",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CC4"
+    ]
+   ]
+  },
+  "Digitalización": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "CD4",
+     "CD5",
+     "CPSAA1",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CCL3",
+     "STEM5",
+     "CD1",
+     "CD4",
+     "CPSAA2",
+     "CPSAA5",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CD3",
+     "CD4",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ]
+   ]
+  },
+  "Latín": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL2",
+     "CP2",
+     "CP3",
+     "CC1",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CE3"
+    ],
+    [
+     "CCL2",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA4",
+     "CCEC1"
+    ],
+    [
+     "CCL2",
+     "CP2",
+     "CP3",
+     "CD2",
+     "STEM1"
+    ],
+    [
+     "CP3",
+     "CD1",
+     "CD3",
+     "CC1",
+     "CC4",
+     "CCEC1",
+     "CCEC2"
+    ]
+   ]
+  },
+  "Economía y Emprendimiento": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CPSAA1",
+     "CC1",
+     "CE2",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CE2"
+    ],
+    [
+     "STEM3",
+     "CC4",
+     "CE1",
+     "CE2",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "STEM3",
+     "CD2",
+     "CE1",
+     "CE2"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL3",
+     "CD3",
+     "CPSAA1",
+     "CC1",
+     "CE1",
+     "CE2"
+    ],
+    [
+     "CC1",
+     "CE1",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "STEM3",
+     "CD5",
+     "CPSAA3",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ]
+   ]
+  },
+  "Formación y Orientación Personal y Profesional": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5",
+     "CC1",
+     "CE2"
+    ],
+    [
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CE2"
+    ],
+    [
+     "CC1",
+     "CC2",
+     "CC3",
+     "CE2"
+    ],
+    [
+     "CD1",
+     "CD3",
+     "CPSAA4",
+     "CPSAA5",
+     "CE1",
+     "CE2",
+     "CE3"
+    ]
+   ]
+  },
+  "Educación en Valores Cívicos y Éticos": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CCL5",
+     "CD3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CCEC1"
+    ],
+    [
+     "STEM5",
+     "CPSAA2",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "CPSAA1",
+     "CPSAA2",
+     "CPSAA3",
+     "CC1",
+     "CC3",
+     "CCEC3"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/madrid/eso.es.json": {
+  "biologia-y-geologia": {
+   "origen": "Decreto 65/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL1",
+     "CCL2",
+     "CCL5",
+     "STEM4",
+     "CD2",
+     "CD3",
+     "CCEC4"
+    ],
+    [
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA4"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CD5",
+     "CPSAA5",
+     "CE1",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CPSAA1",
+     "CPSAA2",
+     "CC4",
+     "CE1",
+     "CC3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ]
+   ]
+  },
+  "ciencias-de-la-computacion": {
+   "origen": "Decreto 65/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "STEM1",
+     "STEM3",
+     "CD2",
+     "CD5",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "CD5",
+     "CPSAA5"
+    ],
+    [
+     "CCL3",
+     "STEM3",
+     "CD2",
+     "CD4",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "CCL2",
+     "STEM5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4"
+    ]
+   ]
+  },
+  "cultura-clasica": {
+   "origen": "Decreto 65/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CC1",
+     "CCEC4"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CPSAA5",
+     "CC1",
+     "CC3",
+     "CE3",
+     "CCEC1",
+     "CCEC2",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CP2",
+     "CP3",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CPSAA5",
+     "CCEC1"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL3",
+     "CCL4",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CPSAA5",
+     "CC1",
+     "CC3",
+     "CCEC1",
+     "CCEC2",
+     "CCEC4"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "CCL5",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CC1",
+     "CC3",
+     "CE3",
+     "CCEC1",
+     "CCEC2",
+     "CCEC4"
+    ]
+   ]
+  },
+  "digitalizacion": {
+   "origen": "Decreto 65/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "CD4",
+     "CD5",
+     "CPSAA1",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CD1",
+     "CD2",
+     "CD3",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CCL3",
+     "STEM5",
+     "CD1",
+     "CD4",
+     "CPSAA2",
+     "CPSAA5",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CD3",
+     "CD4",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ]
+   ]
+  },
+  "economia-y-emprendimiento": {
+   "origen": "Decreto 65/2022",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CPSAA1",
+     "CC1",
+     "CE2",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CE2"
+    ],
+    [
+     "STEM3",
+     "CC4",
+     "CE1",
+     "CE2",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "STEM3",
+     "CD2",
+     "CE1",
+     "CE2"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL3",
+     "CD3",
+     "CPSAA1",
+     "CC1",
+     "CE1",
+     "CE2"
+    ],
+    [
+     "CC1",
+     "CE1",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "STEM3",
+     "CD5",
+     "CPSAA3",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ]
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "Decreto 65/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL3",
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CPSAA2",
+     "CPSAA4"
+    ],
+    [
+     "CPSAA4",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA5",
+     "CC3"
+    ],
+    [
+     "CC2",
+     "CC3",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "STEM5",
+     "CC4",
+     "CE1",
+     "CE3"
+    ]
+   ]
+  },
+  "educacion-plastica-visual-y-audiovisual": {
+   "origen": "Decreto 65/2022",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "CCL1",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CCEC1"
+    ],
+    [
+     "CCL1",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CC3",
+     "CCEC1",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CD1",
+     "CPSAA4",
+     "CC1",
+     "CC3",
+     "CCEC2"
+    ],
+    [
+     "CCL2",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CC3",
+     "CCEC2"
+    ],
+    [
+     "CCL2",
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA4",
+     "CC3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL2",
+     "CD1",
+     "CPSAA3",
+     "CC1",
+     "CCEC3"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "STEM3",
+     "CD1",
+     "CD5",
+     "CC1",
+     "CC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "STEM3",
+     "CD3",
+     "CPSAA3",
+     "CPSAA5",
+     "CE3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "Real Decreto 217/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CCL5",
+     "CD3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CCEC1"
+    ],
+    [
+     "STEM5",
+     "CPSAA2",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "CPSAA1",
+     "CPSAA2",
+     "CPSAA3",
+     "CC1",
+     "CC3",
+     "CCEC3"
+    ]
+   ]
+  },
+  "expresion-artistica": {
+   "origen": "Decreto 65/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP3",
+     "CD1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CCEC1",
+     "CCEC2"
+    ],
+    [
+     "CD2",
+     "CPSAA1",
+     "CC1",
+     "CC3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CD5",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "STEM3",
+     "CD3",
+     "CPSAA3",
+     "CPSAA5",
+     "CE3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "filosofia": {
+   "origen": "Decreto 65/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL1",
+     "STEM5",
+     "CPSAA1",
+     "CC1"
+    ],
+    [
+     "CCL3",
+     "CCL5",
+     "STEM4",
+     "CC1",
+     "CC3"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CPSAA1",
+     "CC1",
+     "CC3",
+     "CC4"
+    ],
+    [
+     "CCL1",
+     "CPSAA1",
+     "CPSAA2",
+     "CPSAA4",
+     "CC1",
+     "CC3",
+     "CCEC3"
+    ],
+    [
+     "CCL2",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4"
+    ]
+   ]
+  },
+  "fisica-y-quimica": {
+   "origen": "Decreto 65/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "CPSAA4"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CPSAA4",
+     "CE1",
+     "CCEC3"
+    ],
+    [
+     "STEM4",
+     "STEM5",
+     "CD3",
+     "CPSAA2",
+     "CC1",
+     "CCEC2",
+     "CCEC4"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "STEM3",
+     "STEM5",
+     "CD3",
+     "CPSAA3",
+     "CC3",
+     "CE2"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CPSAA1",
+     "CPSAA4",
+     "CC4",
+     "CCEC1"
+    ]
+   ]
+  },
+  "formacion-y-orientacion": {
+   "origen": "Decreto 65/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "CPSAA1",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5",
+     "CC1",
+     "CE2"
+    ],
+    [
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CE2"
+    ],
+    [
+     "CC1",
+     "CC2",
+     "CC3",
+     "CE2"
+    ],
+    [
+     "CD1",
+     "CD3",
+     "CPSAA4",
+     "CPSAA5",
+     "CE1",
+     "CE2",
+     "CE3"
+    ]
+   ]
+  },
+  "geografia-e-historia": {
+   "origen": "Decreto 65/2022",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CD1",
+     "CD2",
+     "CC1"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CD2",
+     "CC1",
+     "CC3",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CPSAA3",
+     "CC3",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ],
+    [
+     "CPSAA2",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1"
+    ],
+    [
+     "CCL5",
+     "CC1",
+     "CC2",
+     "CCEC1"
+    ],
+    [
+     "CCL5",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ],
+    [
+     "CP3",
+     "CPSAA1",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CCEC1"
+    ],
+    [
+     "STEM5",
+     "CD4",
+     "CPSAA2",
+     "CPSAA5",
+     "CC1",
+     "CC2",
+     "CC3"
+    ],
+    [
+     "CCL2",
+     "CC1",
+     "CC2",
+     "CC3",
+     "CC4",
+     "CE1",
+     "CCEC1"
+    ]
+   ]
+  },
+  "latin": {
+   "origen": "Decreto 65/2022",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL2",
+     "CP2",
+     "CP3",
+     "CC1",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CE3"
+    ],
+    [
+     "CCL2",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA4",
+     "CCEC1"
+    ],
+    [
+     "CCL2",
+     "CP2",
+     "CP3",
+     "CD2",
+     "STEM1"
+    ],
+    [
+     "CP3",
+     "CD1",
+     "CD3",
+     "CC1",
+     "CC4",
+     "CCEC1",
+     "CCEC2"
+    ]
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "Decreto 65/2022",
+   "competencias": 10,
+   "con_descriptores": 10,
+   "descriptores": [
+    [
+     "CCL1",
+     "CCL5",
+     "CP2",
+     "CP3",
+     "CC1",
+     "CC2",
+     "CCEC1",
+     "CCEC3"
+    ],
+    [
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CPSAA4",
+     "CC3"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CC2",
+     "CE1"
+    ],
+    [
+     "CCL2",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM4",
+     "CD1",
+     "CPSAA4",
+     "CC3"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CPSAA5",
+     "CC2"
+    ],
+    [
+     "CCL3",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CPSAA4",
+     "CC2",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "CCL4",
+     "CD3",
+     "CPSAA1",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CCL4",
+     "CC1",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "STEM2",
+     "CPSAA5"
+    ],
+    [
+     "CCL1",
+     "CCL5",
+     "CP3",
+     "CD3",
+     "CPSAA3",
+     "CC1",
+     "CC2",
+     "CC3"
+    ]
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "Decreto 65/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA5",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CCEC3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA3",
+     "CC3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA5",
+     "CD2"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC3",
+     "CCEC1"
+    ]
+   ]
+  },
+  "matematicas": {
+   "origen": "Decreto 65/2022",
+   "competencias": 10,
+   "con_descriptores": 10,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "CD2",
+     "CPSAA5",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CD2",
+     "CPSAA4",
+     "CC3",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CD2",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "CD2",
+     "CD3",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM3",
+     "CD2",
+     "CD3",
+     "CCEC1"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CD3",
+     "CD5",
+     "CC4",
+     "CE2",
+     "CE3",
+     "CCEC1"
+    ],
+    [
+     "STEM3",
+     "CD1",
+     "CD2",
+     "CD5",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CP1",
+     "STEM2",
+     "STEM4",
+     "CD2",
+     "CD3",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "STEM5",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE2",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "STEM3",
+     "CPSAA3",
+     "CC2",
+     "CC3"
+    ]
+   ]
+  },
+  "musica": {
+   "origen": "Decreto 65/2022",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP3",
+     "CD1",
+     "CD2",
+     "CPSAA3",
+     "CC1",
+     "CCEC1",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA3",
+     "CC1",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "STEM3",
+     "CD2",
+     "CPSAA3",
+     "CC1",
+     "CE1",
+     "CE3",
+     "CCEC3",
+     "CCEC4"
+    ]
+   ]
+  },
+  "segunda-lengua-extranjera": {
+   "origen": "Decreto 65/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA5",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CCEC3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA3",
+     "CC3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA5",
+     "CD2"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC3",
+     "CCEC1"
+    ]
+   ]
+  },
+  "tecnologia-y-digitalizacion": {
+   "origen": "Decreto 65/2022",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL3",
+     "STEM2",
+     "CD1",
+     "CD4",
+     "CPSAA4",
+     "CE1"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM3",
+     "CD3",
+     "CPSAA3",
+     "CPSAA5",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "STEM2",
+     "STEM3",
+     "STEM5",
+     "CD5",
+     "CPSAA1",
+     "CE3",
+     "CCEC3"
+    ],
+    [
+     "CCL1",
+     "STEM4",
+     "CD3",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "STEM3",
+     "CD5",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CP2",
+     "CD2",
+     "CD4",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CC4"
+    ]
+   ]
+  },
+  "tecnologia": {
+   "origen": "Decreto 65/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CD3",
+     "CPSAA3",
+     "CPSAA4",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD2",
+     "CPSAA4",
+     "CC4",
+     "CCEC4"
+    ],
+    [
+     "CCL1",
+     "STEM4",
+     "CD3",
+     "CPSAA3",
+     "CCEC3"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "STEM3",
+     "CD5",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CP2",
+     "CD2",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "STEM2",
+     "STEM5",
+     "CD4",
+     "CC4"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/madrid/primaria.es.json": {
+  "ciencias-de-la-naturaleza": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 6,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "ciencias-sociales": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-artistica": {
+   "origen": "Real Decreto 157/2022, solo las competencias con el mismo texto",
+   "competencias": 4,
+   "con_descriptores": 1,
+   "descriptores": [
+    [],
+    [],
+    [
+     "CCL1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA5",
+     "CC2",
+     "CE1",
+     "CCEC3",
+     "CCEC4"
+    ],
+    []
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "Real Decreto 157/2022, solo las competencias con el mismo texto",
+   "competencias": 10,
+   "con_descriptores": 4,
+   "descriptores": [
+    [],
+    [
+     "CCL2",
+     "CP2",
+     "STEM1",
+     "CD3",
+     "CPSAA3",
+     "CC3"
+    ],
+    [],
+    [
+     "CCL2",
+     "CCL3",
+     "CCL5",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA4",
+     "CPSAA5"
+    ],
+    [
+     "CCL1",
+     "CCL3",
+     "CCL5",
+     "STEM1",
+     "CD2",
+     "CD3",
+     "CPSAA5",
+     "CC2"
+    ],
+    [],
+    [],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL4",
+     "CCEC1",
+     "CCEC2",
+     "CCEC3",
+     "CCEC4"
+    ],
+    [],
+    []
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "Real Decreto 157/2022, solo las competencias con el mismo texto",
+   "competencias": 6,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA5",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CCEC4"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA3",
+     "CC3",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA4",
+     "CPSAA5",
+     "CE3"
+    ],
+    []
+   ]
+  },
+  "matematicas": {
+   "origen": "Real Decreto 157/2022, solo las competencias con el mismo texto",
+   "competencias": 8,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "STEM1",
+     "STEM2",
+     "STEM4",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CE3",
+     "CCEC4"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "CPSAA4",
+     "CPSAA5",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "CD1",
+     "CD3",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "CD1",
+     "CD3",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM3",
+     "CD3",
+     "CD5",
+     "CC4",
+     "CCEC1"
+    ],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "segunda-lengua-extranjera": {
+   "origen": "Decreto 61/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL2",
+     "CCL3",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD1",
+     "CPSAA5",
+     "CCEC2"
+    ],
+    [
+     "CCL1",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA5",
+     "CE1",
+     "CCEC4"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "STEM1",
+     "CPSAA3",
+     "CC3",
+     "CE1"
+    ],
+    [
+     "CCL5",
+     "CP1",
+     "CP2",
+     "CP3",
+     "STEM1",
+     "CPSAA1",
+     "CPSAA3",
+     "CCEC1"
+    ],
+    [
+     "CP2",
+     "STEM1",
+     "CD2",
+     "CPSAA1",
+     "CPSAA5"
+    ],
+    [
+     "CCL5",
+     "CP3",
+     "CPSAA1",
+     "CPSAA3",
+     "CC3",
+     "CCEC1"
+    ]
+   ]
+  },
+  "tecnologia-y-robotica": {
+   "origen": "Decreto 61/2022",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL1",
+     "CP1",
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5",
+     "CC3",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA2",
+     "CPSAA4",
+     "CPSAA5",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5",
+     "CC3",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "CP1",
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA4",
+     "CPSAA5",
+     "CC3",
+     "CE1",
+     "CE3"
+    ],
+    [
+     "CCL1",
+     "CCL2",
+     "CCL3",
+     "STEM4",
+     "CPSAA2",
+     "CPSAA5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CE3"
+    ],
+    [
+     "CCL2",
+     "STEM1",
+     "STEM2",
+     "STEM3",
+     "STEM4",
+     "STEM5",
+     "CD1",
+     "CD2",
+     "CD3",
+     "CD4",
+     "CD5",
+     "CPSAA3",
+     "CPSAA4",
+     "CPSAA5",
+     "CC3",
+     "CE1",
+     "CE3"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/comunitat-valenciana/eso.es.json": {
+  "biologia-y-geologia": {
+   "origen": "Decreto 66/2024, tabla 3.3 en castellano (p. 221)",
+   "competencias": 11,
+   "con_descriptores": 11,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "digitalizacion": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 95)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "STEM",
+     "CD"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "economia-y-emprendimiento": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 691)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 129)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 729)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-plastica-visual-y-audiovisual": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 752)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "expresion-artistica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "fisica-y-quimica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 805)",
+   "competencias": 11,
+   "con_descriptores": 11,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
+   ]
+  },
+  "formacion-y-orientacion": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 845)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "geografia-e-historia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 864)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CC",
+     "CE"
+    ],
+    [
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CC",
+     "CCEC"
+    ]
+   ]
+  },
+  "latin": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 888)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "matematicas": {
+   "origen": "Decreto 66/2024, tabla 3.3 en castellano (p. 262)",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "musica": {
+   "origen": "Decreto 66/2024, tabla 3.3 en castellano (p. 297)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CCEC"
+    ],
+    [
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 962)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "tecnologia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 981)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC"
+    ],
+    [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CP",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CC"
+    ]
+   ]
+  },
+  "tecnologia-y-digitalizacion": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1002)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
+   ]
+  },
+  "valenciano": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1037)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1037)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "artes-escenicas": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1065)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CPSAA",
+     "CCEC"
+    ]
+   ]
+  },
+  "creatividad-musical": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1079)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
+   ]
+  },
+  "cultura-clasica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1093)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "emprendimiento-social-y-sostenible": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1106)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "filosofia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1117)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CC"
+    ],
+    [
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
+   ]
+  },
+  "programacion-ia-y-robotica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1131)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "laboratorio-de-artes-escenicas": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1147)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
+   ]
+  },
+  "laboratorio-de-creacion-audiovisual": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "segunda-lengua-extranjera": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1176)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "taller-de-economia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1196)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "taller-de-relaciones-digitales": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1209)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "STEM",
+     "CD"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
+   ]
+  },
+  "finanzas-y-consumo-responsables": {
+   "origen": "Decreto 66/2024, tabla 3.3 en castellano (p. 324)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/comunitat-valenciana/eso.ca.json": {
+  "biologia-y-geologia": {
+   "origen": "Decreto 66/2024, tabla 3.3 en valenciano (p. 32)",
+   "competencias": 11,
+   "con_descriptores": 11,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "digitalizacion": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 95)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "STEM",
+     "CD"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "economia-y-emprendimiento": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 691)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 129)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 147)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-plastica-visual-y-audiovisual": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 169)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "expresion-artistica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "fisica-y-quimica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 220)",
+   "competencias": 11,
+   "con_descriptores": 11,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ]
+   ]
+  },
+  "formacion-y-orientacion": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 259)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "geografia-e-historia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 278)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CC",
+     "CE"
+    ],
+    [
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CC",
+     "CCEC"
+    ]
+   ]
+  },
+  "latin": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 300)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "matematicas": {
+   "origen": "Decreto 66/2024, tabla 3.3 en valenciano (p. 67)",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "musica": {
+   "origen": "Decreto 66/2024, tabla 3.3 en valenciano (p. 100)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CCEC"
+    ],
+    [
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 372)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "tecnologia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 391)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC"
+    ],
+    [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CP",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CC"
+    ]
+   ]
+  },
+  "tecnologia-y-digitalizacion": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 411)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ]
+   ]
+  },
+  "valenciano": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 445)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 445)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "artes-escenicas": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 472)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CPSAA",
+     "CCEC"
+    ]
+   ]
+  },
+  "creatividad-musical": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 486)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CCEC"
+    ]
+   ]
+  },
+  "cultura-clasica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 501)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "emprendimiento-social-y-sostenible": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 515)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "filosofia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en castellano (p. 1117)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CC"
+    ],
+    [
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
+   ]
+  },
+  "programacion-ia-y-robotica": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 538)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ]
+   ]
+  },
+  "laboratorio-de-artes-escenicas": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 555)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ]
+   ]
+  },
+  "laboratorio-de-creacion-audiovisual": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "segunda-lengua-extranjera": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 581)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "taller-de-economia": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 603)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CD",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "taller-de-relaciones-digitales": {
+   "origen": "Decreto 107/2022, tabla 3.3 en valenciano (p. 615)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "STEM",
+     "CD"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CCEC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
+   ]
+  },
+  "finanzas-y-consumo-responsables": {
+   "origen": "Decreto 66/2024, tabla 3.3 en valenciano (p. 125)",
+   "competencias": 5,
+   "con_descriptores": 5,
+   "descriptores": [
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/comunitat-valenciana/primaria.es.json": {
+  "conocimiento-del-medio": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 26)",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "educacion-plastica-y-visual": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 75)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "musica-y-danza": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 54)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 99)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
+   ]
+  },
+  "valenciano": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 133)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 133)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 162)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "matematicas": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 185)",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 213)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/comunitat-valenciana/primaria.ca.json": {
+  "conocimiento-del-medio": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 24)",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "educacion-plastica-y-visual": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 72)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "musica-y-danza": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 52)",
+   "competencias": 4,
+   "con_descriptores": 4,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 93)",
+   "competencias": 6,
+   "con_descriptores": 6,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CPSAA",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ]
+   ]
+  },
+  "valenciano": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 128)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 128)",
+   "competencias": 9,
+   "con_descriptores": 9,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 156)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ]
+   ]
+  },
+  "matematicas": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 177)",
+   "competencias": 8,
+   "con_descriptores": 8,
+   "descriptores": [
+    [
+     "STEM",
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CE"
+    ],
+    [
+     "CCL",
+     "STEM",
+     "CD",
+     "CPSAA"
+    ],
+    [
+     "CCL",
+     "CP",
+     "STEM",
+     "CE"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CC",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CPSAA",
+     "CE"
+    ]
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "Decreto 106/2022, tabla 3.3 (p. 204)",
+   "competencias": 7,
+   "con_descriptores": 7,
+   "descriptores": [
+    [
+     "CCL",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CCL",
+     "CP",
+     "CD",
+     "CPSAA",
+     "CC"
+    ],
+    [
+     "CPSAA",
+     "CC",
+     "CE"
+    ],
+    [
+     "CD",
+     "CPSAA",
+     "CC",
+     "CE",
+     "CCEC"
+    ],
+    [
+     "STEM",
+     "CD",
+     "CC",
+     "CE"
+    ]
+   ]
+  }
+ },
+ "src/lib/curriculum/data/cataluna/primaria.ca.json": {
+  "aranes": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "catalan": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "segunda-lengua-extranjera": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "conocimiento-del-medio": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-artistica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "matematicas": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 8,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  }
+ },
+ "src/lib/curriculum/data/cataluna/eso.ca.json": {
+  "aranes": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "lengua-castellana": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "catalan": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "lengua-extranjera": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "segunda-lengua-extranjera": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 10,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "artes-escenicas": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "biologia-y-geologia": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 6,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "geografia-e-historia": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 9,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "cultura-clasica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "digitalizacion": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "economia-basica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-en-valores": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-fisica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "educacion-plastica-visual-y-audiovisual": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 6,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "expresion-artistica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 6,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "emprendimiento": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "filosofia": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "fisica-y-quimica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 6,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "formacion-y-orientacion": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "latin": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 5,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "matematicas": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 9,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "musica": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "robotica-y-programacion": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 4,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "tecnologia": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 6,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "tecnologia-y-digitalizacion": {
+   "origen": "sin conexión en el decreto",
+   "competencias": 7,
+   "con_descriptores": 0,
+   "descriptores": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  }
+ }
+}
