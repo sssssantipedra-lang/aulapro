@@ -12,7 +12,7 @@ La única acción: **Quiero AulaPro** (formulario de email, no hay tienda todav�
 
 ## 2. Paleta (dirección; valores finales tras aprobar el video)
 
-Desde el 11-10-2026 la web es cálida, como la app: ver la sección 34. Esta paleta oscura queda solo en la portada del vídeo.
+Desde el 11-10-2026 la web es cálida, como la app: ver las secciones 34 y 35. Esta paleta oscura ya no se usa; el vídeo también es cálido.
 
 Mundo: aula vacía al anochecer, luz violeta por la ventana, lámpara cálida, papel en blanco, madera.
 
@@ -341,3 +341,12 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **Capturas nuevas, de la app de verdad**: `scripts/web/capturar.mjs` abre la app en modo desarrollo con los datos de ejemplo, un miércoles a las 9:45, y saca las de la portada (`assets/app`) y las de la demo (`assets/demo`). Escribe además en `scripts/web/marcas.json` dónde caen los números y los círculos que la portada dibuja encima. Para que no parezca solo de Secundaria (petición del usuario), el horario de ejemplo mezcla Primaria y ESO cada día y las capturas eligen clases de Primaria: la jornada del Inicio (4.º, 5.º y 6.º de Primaria con 2.º y 3.º de ESO), el cuaderno de 3.º, la rúbrica de 4.º, la diana de 6.º, la diana competencial y la pizarra de 5.º.
 - **La demo, rehecha con la app nueva**: cada pantalla es la captura de la ventana entera (menú incluido) a 1920 x 1008, con una zona pulsable sobre cada botón de la app, sacada del propio DOM (`assets/demo-pantallas.js`, generado; no se edita a mano). 28 pantallas, todas las del menú y las pestañas, en vez de 6 y notas de «No incluida en la demo». Funcionan de verdad: la ruleta (con los nombres de la clase), el temporizador, la calculadora, dibujar en la pizarra, pasar lista, anotar actitud (con contador y deshacer), marcar una rúbrica y rellenar una diana (la nota sale sola, con los pesos). Lo demás explica en un aviso qué hace. Lo que la demo dibuja encima de las capturas usa Outfit, la letra de la app (`assets/fonts`, OFL), y va en castellano como las capturas.
 
+## 35. El vídeo y la portada, también cálidos (11-10-2026, petición del usuario)
+
+- **Toda la web en beige cálido.** Fuera los fondos lilas: el resplandor del fondo (`.env .g1`), el del final (`.final::before`), el recuadro de la demo (`.demo-cta`), el aviso de formulario enviado, el recuadro de /descargar y los fondos de la demo y de las páginas legales pasan a arena (`rgba(214,176,128,…)`) o a un panel beige (`#f3ebdf`). Los grises violáceos de la lista y de las fichas pasan a grises tierra. El violeta queda solo como acento (botones, enlaces, marcas y foco), el del logo.
+- **El vídeo, con luz dorada de tarde.** Mismo vídeo y mismas paradas, con un filtro de color (tabla 3D en OKLab, `review/fps60/lut-calido.py` y `warm.cube`): los violetas del ambiente giran a ámbar, balance de blancos cálido y algo más de contraste, sin aclarar las sombras (si se aclaran, queda apagado). La pantalla del portátil no se toca: los colores saturados (el quesito azul y verde, los botones violeta) quedan protegidos. Se aplica igual a las dos películas (`hero-scrub-60.mp4` y `-atras.mp4`, con los fotogramas clave en las paradas), a `hero-poster.jpg`, `hero-ending.jpg`, `escritorio.jpg` y `og.jpg`.
+- **Se probó rehacerlo con IA** (fal.ai, MiniMax H3 Max, unos 0,54 $): mantuvo el violeta, cambió el orden de los planos y dejó una imagen fantasma. Descartado; el resultado está en `review/fal-calido/`.
+- **Los colores oscuros de la portada** (`.hero`, menú sobre el vídeo, sombras del texto, halos de las bandas, franja de transición `.dusk`) pasan de índigo a marrón café: base `#1e1611`, texto crema `#f3ece6`/`#efe6da`, secundario arena `#d8c9b6`.
+- **La franja "Sigue descubriendo AulaPro"** es crema con texto oscuro: anuncia la página que viene.
+- **Móvil y tableta en vertical:** la foto arriba y el texto debajo sobre crema, con texto oscuro y el menú oscuro sobre crema; sin franja de transición. `theme-color` crema en vertical y café en el resto.
+- **Pendiente de decidir:** la primera banda dice «Son las diez de la noche» y ahora la luz es de tarde.

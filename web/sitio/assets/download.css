@@ -24,7 +24,7 @@ html:not(.ms-store) [data-store="on"]{display:none!important}
 .steps{counter-reset:s;display:grid;gap:14px;margin-top:1rem;padding:0;list-style:none}
 .steps li{counter-increment:s;position:relative;padding-left:44px;color:var(--text)}
 .steps li::before{content:counter(s);position:absolute;left:0;top:-.1em;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--accent);font:500 .85rem/1 var(--f-mono);color:var(--text)}
-.box{margin-top:clamp(36px,5vw,52px);padding:clamp(22px,3vw,30px);border-radius:18px;background:rgba(139,109,255,.1);box-shadow:inset 0 0 0 1px rgba(139,109,255,.35)}
+.box{margin-top:clamp(36px,5vw,52px);padding:clamp(22px,3vw,30px);border-radius:18px;background:#f3ebdf;box-shadow:inset 0 0 0 1px rgba(120,100,80,.24)}
 .box h2{margin-top:0}
 .buyrow{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-top:1.2rem}
 .buyrow p{color:var(--text-2)}
