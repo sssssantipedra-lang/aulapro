@@ -146,7 +146,7 @@ describe('Aula Pro', () => {
     const apartados: [string, string[]][] = [
       ['Evaluar', ['Rúbricas', 'Dianas', 'Diana competencial', 'Autoevaluaciones', 'Historial', 'Resumen']],
       ['Documentos', ['Informes', 'Actas', 'Resumen']],
-      ['En clase', ['Distribución de aula', 'Sala de alumnos']],
+      ['En clase', ['Anotar actitud', 'Distribución de aula', 'Actividades con móviles', 'Resumen']],
     ];
     for (const [apartado, pestañas] of apartados) {
       await menu(apartado);

@@ -63,7 +63,7 @@ export function buildSeatingHtml(cls: Class, plan: SeatingPlan, students: Studen
       return { studentName: n, roleName: rol };
     });
     const color = PALETTE[gi % PALETTE.length];
-    return `<div class="mesa">${buildTableSvg(seats, color, g.label)}</div>`;
+    return `<div class="mesa">${buildTableSvg(seats, color, g.label, { forma: plan.forma })}</div>`;
   }).join('');
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +

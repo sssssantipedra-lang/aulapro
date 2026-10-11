@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { claseQueToca } from './claseQueToca';
+import { bloqueQueToca, claseQueToca } from './claseQueToca';
 import type { Class, ScheduleBlock } from '../types';
 
 const clase = (id: string) => ({ id, name: id, subject: '', room: '', color: '' }) as Class;
@@ -18,5 +18,12 @@ describe('la clase que toca pasar lista', () => {
   it('sin más clases hoy, o sin horario, la primera', () => {
     expect(claseQueToca(clases, horario, new Date(2026, 9, 13, 13, 0))).toBe('a');
     expect(claseQueToca(clases, [], new Date(2026, 9, 13, 9, 0))).toBe('a');
+  });
+});
+
+describe('el bloque que toca (portada de En clase)', () => {
+  it('da el bloque con su hora, o nada si hoy ya no queda ninguno', () => {
+    expect(bloqueQueToca(clases, horario, new Date(2026, 9, 13, 9, 45))?.time_start).toBe('11:00');
+    expect(bloqueQueToca(clases, horario, new Date(2026, 9, 13, 13, 0))).toBeUndefined();
   });
 });

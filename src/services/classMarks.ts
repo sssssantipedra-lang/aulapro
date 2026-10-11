@@ -1,7 +1,7 @@
 /**
  * Anotaciones del aula → cuaderno de notas.
  *
- * Desde la Distribución de aula el docente apunta en un toque cosas del día a
+ * Desde «Anotar actitud» o la Distribución de aula el docente apunta en un toque cosas del día a
  * día («no ha traído la tarea», «buen comportamiento», «participa»). Aquí se
  * convierten en un BLOQUE de la nota final —por defecto, 1 punto de 10— con
  * tres partes que ponderan un tercio cada una:

@@ -65,7 +65,7 @@ export function SelfAssessments({ sessions, onInclude, onDelete, onNav }: Props)
             {t('Cuando abras una sala con una rúbrica o una diana, lo que contesten tus alumnos se guardará aquí automáticamente. Después decides si lo pasas al historial de evaluaciones o lo descartas.')}
           </p>
           <button className="btn-accent" onClick={() => onNav('classroom-live')}>
-            {t('Ir a la Sala de alumnos')} <ArrowRight size={14} />
+            {t('Ir a Actividades con móviles')} <ArrowRight size={14} />
           </button>
         </div>
       </section>

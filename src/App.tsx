@@ -21,6 +21,8 @@ import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
+import { EnClaseInicio } from './pages/EnClaseInicio';
+import { claseQueToca } from './lib/claseQueToca';
 import { DocumentosInicio } from './pages/DocumentosInicio';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
@@ -47,6 +49,7 @@ const ClassRoom      = lazy(() => import('./pages/SecClassroom'));
 const Share          = lazy(() => import('./pages/Share').then(m => ({ default: m.Share })));
 const ClassroomLive  = lazy(() => import('./pages/ClassroomLive').then(m => ({ default: m.ClassroomLive })));
 const Attendance     = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
+const Actitud        = lazy(() => import('./pages/Actitud').then(m => ({ default: m.Actitud })));
 const SeatingPlan    = lazy(() => import('./pages/SeatingPlan').then(m => ({ default: m.SeatingPlan })));
 const Reports        = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
 const LearningSituations = lazy(() => import('./pages/LearningSituations').then(m => ({ default: m.LearningSituations })));
@@ -111,6 +114,19 @@ function AppInner() {
   const studentFirstNames = useMemo(
     () => nombresCortos(especialista ? st.apoyo.alumnos.map(a => a.nombre) : st.students.map(s => s.name)),
     [especialista, st.students, st.apoyo.alumnos],
+  );
+  // La ruleta de la pizarra va clase a clase (11-10-2026): antes salían todos
+  // los alumnos de todas las clases juntos.
+  const ruletaClases = useMemo(
+    () => (especialista ? [] : st.classes.map(c => ({
+      id: c.id,
+      name: c.name,
+      nombres: nombresCortos(st.students
+        .filter(s => s.class_id === c.id)
+        .sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }))
+        .map(s => s.name)),
+    }))),
+    [especialista, st.classes, st.students],
   );
   const apoyoBlocks = useMemo(() => (especialista ? bloquesDeApoyo(st.apoyo.grupos) : []), [especialista, st.apoyo.grupos]);
 
@@ -508,6 +524,8 @@ function AppInner() {
             {section === 'sec-classroom' && (
               <ClassRoom
                 studentNames={studentFirstNames}
+                clases={ruletaClases}
+                claseInicial={claseQueToca(st.classes, st.scheduleBlocks)}
                 fichas={st.fichas}
                 projectFicha={liveFicha}
                 onProjectDone={() => setLiveFicha(null)}
@@ -543,6 +561,28 @@ function AppInner() {
                 onSetDay={st.setAttendanceDay}
                 onNav={s => setSection(s as Section)}
                 scheduleBlocks={st.scheduleBlocks}
+              />
+            )}
+            {section === 'enclase' && (
+              <EnClaseInicio
+                classes={st.classes}
+                scheduleBlocks={st.scheduleBlocks}
+                classMarks={st.classMarks}
+                seatingPlans={st.seatingPlans}
+                onNav={setSection}
+              />
+            )}
+            {section === 'actitud' && (
+              <Actitud
+                classes={st.classes}
+                students={st.students}
+                classMarks={st.classMarks}
+                marksConfigs={st.marksConfigs}
+                attendance={st.attendance}
+                scheduleBlocks={st.scheduleBlocks}
+                onAdd={st.addClassMark}
+                onDelete={st.deleteClassMark}
+                onNav={s => setSection(s as Section)}
               />
             )}
             {section === 'seating' && (

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check } from 'lucide-react';
+import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
 import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
@@ -15,6 +15,7 @@ import {
   TARGETS, targetLabel, esAsignaturaEF, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
@@ -449,11 +450,22 @@ function GradesTab({
                     type="button"
                     className={`gb-w-chip block${block.active ? '' : ' off'}`}
                     onClick={openBlock}
-                    title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en la Distribución de aula')}
+                    title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en En clase › Anotar actitud')}
                   >
                     <Flag size={12} />
                     {t(BLOCK_NAME)} <strong>{block.active ? `${blockPct.toLocaleString(locale)}%` : t('no cuenta')}</strong>
                     <Pencil size={11} />
+                  </button>
+                  {/* Ir a anotar esta misma clase (11-10-2026); en EF, a la pista */}
+                  <button
+                    type="button" className="gb-formula-go"
+                    onClick={() => {
+                      if (esAsignaturaEF(activeSubject)) { onNav('ef-pista'); return; }
+                      requestActitud({ classId: cls!.id, subject: activeSubject });
+                      onNav('actitud');
+                    }}
+                  >
+                    <Hand size={12} />{t('Anotar')}
                   </button>
                 </span>
               )}
@@ -528,7 +540,7 @@ function GradesTab({
                               <button
                                 className="gb-item-hd gb-marks-hd"
                                 onClick={openBlock}
-                                title={t(esAsignaturaEF(activeSubject) ? 'Sale sola de lo que observas en la pista. Clic para ajustar el bloque.' : 'Sale sola de lo que anotas en la Distribución de aula. Clic para ajustar el bloque.')}
+                                title={t(esAsignaturaEF(activeSubject) ? 'Sale sola de lo que observas en la pista. Clic para ajustar el bloque.' : 'Sale sola de lo que anotas en Anotar actitud o en la Distribución de aula. Clic para ajustar el bloque.')}
                               >
                                 <span className="gb-item-name">{t(targetLabel(tg, activeSubject))}</span>
                                 <span className="gb-item-cat">{block.cfg.weights[tg].toLocaleString(locale)}%</span>
@@ -661,7 +673,7 @@ function GradesTab({
             <p className="gb-marks-cfg-help">
               {t(esAsignaturaEF(activeSubject)
                 ? 'Sale solo de lo que observas en la pista: «Sin equipación» y «Sin aseo» cuentan en Vestimenta e higiene; «Juego limpio» y «Mala actitud», en Actitud y juego limpio; «Participa», «Se esfuerza» y «No participa», en Participación y esfuerzo. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.'
-                : 'Sale solo de lo que anotas en la Distribución de aula: «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
+                : 'Sale solo de lo que anotas en En clase › Anotar actitud (o desde la Distribución de aula): «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
             </p>
             <label className="gb-block-toggle">
               <input type="checkbox" checked={bf.enabled} onChange={e => setBf({ ...bf, enabled: e.target.checked })} />

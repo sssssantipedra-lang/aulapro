@@ -11,7 +11,8 @@
  *                     Autoevaluaciones, Historial
  *       Documentos  → Portada, Informes, Actas, Situaciones de aprendizaje,
  *                     Recursos
- *       En clase    → Distribución de aula, Aula Live, Sala de alumnos
+ *       En clase    → Portada, Anotar actitud, Distribución de aula,
+ *                     Pizarra y herramientas, Actividades con móviles
  *   - Centro y equipo: Reuniones, Formaciones y Trabajo compartido.
  *   - Abajo, sin color y separadas del resto: Configuración y Registro de
  *     cambios.
@@ -23,7 +24,7 @@
  * El profesorado especialista de PT y AL tiene su propio menú (decisión del
  * dueño, 5-10-2026: quien es de PT o de AL normalmente no es tutor). Lleva su
  * trabajo de apoyo como entradas sueltas, lo común de todo el profesorado y
- * Aula Live; nada de clases, cuaderno ni evaluación del grupo. Desde el
+ * la pizarra y herramientas (Aula Live); nada de clases, cuaderno ni evaluación del grupo. Desde el
  * 6-10-2026, lo de cada alumno (programa, sesiones, coordinaciones y
  * documentos) está en su página, a la que se llega desde «Mi alumnado»: el
  * menú se queda en lo que se usa cada día. Ver `docs/PTAL.md`.
@@ -94,11 +95,17 @@ export const HUBS: readonly NavHub[] = [
   },
   {
     id: 'inclass', label: 'En clase', icon: 'inclass',
-    hint: 'Lo que usas con el alumnado delante: cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.',
+    hint: 'Lo que usas con el alumnado delante: anotar la actitud, cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.',
+    // Al entrar, una portada con la clase que toca y una tarjeta por
+    // herramienta (decisión del dueño, 11-10-2026). «Aula Live» y «Sala de
+    // alumnos» se llaman ahora por lo que hacen; la web aún usa esos nombres.
+    portada: true,
     tabs: [
+      { id: 'enclase',        label: 'Resumen' },
+      { id: 'actitud',        label: 'Anotar actitud' },
       { id: 'seating',        label: 'Distribución de aula' },
-      { id: 'sec-classroom',  label: 'Aula Live' },
-      { id: 'classroom-live', label: 'Sala de alumnos' },
+      { id: 'sec-classroom',  label: 'Pizarra y herramientas' },
+      { id: 'classroom-live', label: 'Actividades con móviles' },
     ],
   },
   {
@@ -176,7 +183,7 @@ export const NAV_APOYO: NavGroups = [
     items: [
       link('apoyo-agenda-visual', 'Agenda visual', 'pictos'),
       link('resources',     'Recursos',  'resources'),
-      link('sec-classroom', 'Aula Live', 'live'),
+      link('sec-classroom', 'Pizarra y herramientas', 'live'),
     ],
   },
   {

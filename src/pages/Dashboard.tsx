@@ -17,7 +17,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus,
+  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -209,6 +209,12 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           <button type="button" className="home-q" style={{ '--q-c': '#0ea5e9' } as React.CSSProperties} onClick={() => nav('attendance')}>
             <span className="home-q-ico"><UserCheck size={17} /></span>{t('Pasar lista')}
           </button>
+          {/* En EF se anota en la pista (el último atajo) */}
+          {!ef && (
+            <button type="button" className="home-q" style={{ '--q-c': '#ec4899' } as React.CSSProperties} onClick={() => nav('actitud')}>
+              <span className="home-q-ico"><Hand size={17} /></span>{t('Anotar actitud')}
+            </button>
+          )}
           <button type="button" className="home-q" style={{ '--q-c': '#10b981' } as React.CSSProperties} onClick={() => nav('notebook')}>
             <span className="home-q-ico"><BookOpen size={17} /></span>{t('Añadir nota')}
           </button>

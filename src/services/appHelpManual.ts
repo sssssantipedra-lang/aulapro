@@ -75,8 +75,9 @@ icono en un cuadradito de color. Todo está a la vista, en tres grupos:
       Resumen.
     · Documentos → Resumen, Informes, Actas, Situaciones de aprendizaje y
       Recursos. Al entrar desde el menú abre siempre el Resumen.
-    · En clase → Distribución de aula, Aula Live y Sala de alumnos.
-  En clase recuerda la última pestaña usada. Al entrar en uno, la barra
+    · En clase → Resumen, Anotar actitud, Distribución de aula, Pizarra y
+      herramientas (Aula Live) y Actividades con móviles (la Sala de
+      alumnos). Al entrar desde el menú abre siempre el Resumen. Al entrar en uno, la barra
   de pestañas parpadea dos veces del color de la app para que se vea dónde
   elegir (no lo hace si el sistema tiene activado «reducir movimiento»).
 - «Centro y equipo»: Reuniones, Formaciones y Trabajo compartido.
@@ -194,7 +195,8 @@ Tiene TRES PESTAÑAS arriba:
    «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
 Bloque «Trabajo diario y actitud»: en cuanto se hace alguna anotación del
-aula desde la Distribución de aula, el cuaderno añade este bloque, que pesa
+aula (desde En clase → Anotar actitud, o desde la Distribución de aula), el
+cuaderno añade este bloque, que pesa
 un PORCENTAJE de la nota final, como las categorías: un 10% si no se cambia.
 Lo normal es que las categorías y el bloque sumen 100% (por ejemplo, Pruebas
 40%, Tareas 40% y el bloque 20%). Si las categorías ya suman 100% y el bloque
@@ -235,17 +237,24 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   «Generar grupos con IA». La IA reparte al alumnado real en mesas EQUILIBRADAS
   y MULTINIVEL usando la media ponderada, la asistencia y los avisos de cada
   alumno, sin inventar ninguno. Sustituye la distribución que hubiera.
-- Cada mesa se dibuja como un semicírculo con los asientos numerados y, debajo,
-  la lista de asientos con el nombre y el rol de cada alumno.
+- Cada mesa se dibuja con los asientos numerados y, debajo, la lista de
+  asientos con el nombre y el rol de cada alumno. La FORMA DE LAS MESAS se
+  elige en «Mesas y roles»: «Mesas cooperativas» (piezas curvas alrededor
+  de un centro, como un semicírculo) o «Mesas cuadradas» (pupitres juntos en
+  dos filas, unos frente a otros). Solo cambia el dibujo, también en el PDF.
 - Sentar a mano: si hay alumnos sin mesa aparece abajo la bandeja
   «Sin mesa asignada». Se ARRASTRA un alumno hasta un asiento (en la lista o en el
   dibujo), o se toca el alumno y después «Sentar aquí». También se puede
   arrastrar a un alumno de un asiento a otro (si estaba ocupado, se
   intercambian) o devolverlo a la bandeja. Para quitar a alguien de su asiento
   se usa la × de su fila. Con todo el alumnado sentado la bandeja desaparece.
+  La bandeja se puede «Plegar» para que no tape las mesas, y su botón
+  «Sentar por orden de lista» sienta a todos los que faltan en los asientos
+  libres, mesa a mesa.
 - Las flechas de rotación cambian los roles dentro de cada mesa cada semana
   sin cambiar quién se sienta con quién; la otra flecha deshace la rotación.
-- ANOTACIONES DEL AULA: cada alumno sentado tiene a la derecha de su fila un
+- ANOTACIONES DEL AULA (lo más rápido es En clase → Anotar actitud, sin
+  sentar a nadie): cada alumno sentado tiene a la derecha de su fila un
   banderín. Al tocarlo se abre «Anotar a …» con cinco botones de un toque:
   «Sin tarea», «Sin material», «Mal comportamiento», «Buen comportamiento» y
   «Participa» (si la clase tiene varias asignaturas, se elige antes cuál). En
@@ -256,6 +265,30 @@ formaron los grupos» o «Rotada N veces»), un indicador («Todos sentados» o
   «Participa» en Participación.
 Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
+
+[enclase] EN CLASE (RESUMEN)
+La portada del apartado En clase. Arriba, si el horario lo dice, la clase que
+toca ahora (o la siguiente de hoy) con dos botones: «Pasar lista» y «Anotar
+actitud». Debajo, cuatro tarjetas grandes: Anotar actitud, Distribución de
+aula, Pizarra y herramientas (Aula Live) y Actividades con móviles.
+
+[actitud] ANOTAR ACTITUD
+La forma rápida de anotar el trabajo diario y la actitud: toda la clase en
+una lista y, en cada fila, un botón por anotación: «Participa», «Buen
+comportamiento», «Mal comportamiento», «Sin tarea» y «Sin material» (en
+Educación Física, las de la pista). Un toque, una anotación; no hace falta
+sentar antes a nadie. Se abre en la clase que toca según el horario.
+- Arriba, el selector de clase y, si la clase tiene varias asignaturas, cuál.
+- El número sobre cada botón es lo anotado ese día; la flecha de la fila
+  deshace la última anotación de ese alumno ese día. A la derecha, la nota del
+  bloque sobre 10. Quien tiene falta ese día sale marcado «Falta».
+- Se cambia de día con las flechas de la fecha.
+- Cuenta en el bloque «Trabajo diario y actitud» del CUADERNO DE NOTAS (ver
+  Cuaderno de notas), igual que lo anotado desde la Distribución de aula.
+  «Ajustar en el cuaderno» lleva a cambiar cuánto pesa y cuánto vale cada
+  anotación.
+- Se llega también desde el atajo «Anotar actitud» del Inicio y desde el
+  botón «Anotar» junto al bloque en el Cuaderno (abre esa misma clase).
 
 === EVALUAR Y DOCUMENTOS ===
 
@@ -473,7 +506,10 @@ Al pulsar «Guardar» la copia se borra.
 
 === EN CLASE Y OTRAS HERRAMIENTAS ===
 
-[sec-classroom] AULA LIVE
+[sec-classroom] PIZARRA Y HERRAMIENTAS (AULA LIVE)
+Antes se llamaba solo «Aula Live». Arriba a la izquierda se elige la CLASE:
+la ruleta usa los nombres de esa clase (se abre en la que toca según el
+horario).
 Herramientas para proyectar en clase: temporizador, sorteo de alumnos (se puede
 ir sacando sin repetir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel.
@@ -482,7 +518,9 @@ defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
 oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
 próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
 
-[classroom-live] SALA DE ALUMNOS
+[classroom-live] ACTIVIDADES CON MÓVILES (SALA DE ALUMNOS)
+Antes se llamaba «Sala de alumnos». Solo funciona en la aplicación instalada
+(Windows o Android); en la versión de navegador se explica qué hace y cómo.
 Levanta un servidor en el propio ordenador para que los alumnos entren desde el
 móvil escaneando un QR o escribiendo un código, sin instalar nada y sin
 necesidad de internet (misma red wifi). Actividades: autoevaluación con una
@@ -657,7 +695,7 @@ escribe sola) o después en Configuración → Perfil. Al cambiar de tipo no se
 borra nada. Su MENÚ es otro:
 - «Tu día a día»: Inicio, Registro diario, Mi alumnado y Agenda.
 - «Herramientas»: Agenda visual, Recursos (con «Adaptada a», una ficha para un
-  alumno de apoyo) y Aula Live (la ruleta y los grupos salen de su alumnado de
+  alumno de apoyo) y Pizarra y herramientas (Aula Live; la ruleta y los grupos salen de su alumnado de
   apoyo).
 - «Más»: Reuniones, Formaciones, Registro de cambios y Configuración.
 No tiene Mis Clases, Cuaderno, Asistencia, Evaluar ni Trabajo compartido.

@@ -5,7 +5,7 @@ import type { Section } from '../types';
 const ALL: Section[] = [
   'dashboard', 'classes', 'agenda', 'evaluar', 'rubrics', 'dianas', 'diana', 'history', 'notebook', 'profile',
   'sec-classroom', 'share', 'classroom-live', 'attendance', 'documentos', 'reports', 'selfassess', 'audit', 'records',
-  'learning-situations', 'resources', 'meetings', 'trainings', 'seating',
+  'learning-situations', 'resources', 'meetings', 'trainings', 'seating', 'enclase', 'actitud',
 ];
 const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-agenda-visual'];
 
@@ -23,7 +23,7 @@ describe('menú', () => {
     expect(NAV_GROUPS.filter(g => g.pie).flatMap(g => g.items).map(e => e.id)).toEqual(['profile', 'audit']);
   });
 
-  it('el profesorado de PT y AL tiene su propio menú: el apoyo, lo común y Aula Live', () => {
+  it('el profesorado de PT y AL tiene su propio menú: el apoyo, lo común y la pizarra', () => {
     expect(navGroupsFor('aula')).toBe(NAV_GROUPS);
     expect(navGroupsFor('apoyo')).toBe(NAV_APOYO);
     const r = reachableSections('apoyo');
