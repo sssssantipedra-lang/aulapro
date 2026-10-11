@@ -1754,3 +1754,35 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   .gb-item-name { max-width:72px; }
   .gb-table th.gb-sticky-r, .gb-table td.gb-sticky-r { min-width:56px !important; }
 }
+
+/* ── Portada de Mis clases (11-10-2026): tarjetas por etapa ── */
+.cls-groups { display:flex; flex-direction:column; gap:22px; }
+.cls-group-ttl { font-size:12px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); margin:0 0 10px 2px; }
+.cls-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:12px; }
+.cls-card { position:relative; display:flex; flex-direction:column; align-items:stretch; gap:6px; padding:16px 16px 14px 18px; text-align:left; background:var(--card); border:1px solid var(--border); border-radius:16px; cursor:pointer; font-family:var(--font); color:var(--text); overflow:hidden; box-shadow:0 2px 8px rgba(120,100,70,0.05); transition:transform var(--t),box-shadow var(--t),border-color var(--t); }
+.cls-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--cls-c); }
+.cls-card:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(120,100,70,0.12); border-color:color-mix(in srgb, var(--cls-c) 45%, var(--border)); }
+.cls-card:focus-visible { outline:2px solid var(--cls-c); outline-offset:2px; }
+.cls-card-hd { display:flex; align-items:center; gap:8px; }
+.cls-card-dot { width:10px; height:10px; border-radius:50%; background:var(--cls-c); flex-shrink:0; }
+.cls-card-name { font-size:16px; font-weight:800; letter-spacing:-0.2px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cls-card-tag { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:2px 8px; border-radius:99px; background:var(--accent-l); color:var(--accent-d); }
+.cls-card-go { margin-left:auto; color:var(--text-3); flex-shrink:0; transition:transform var(--t); }
+.cls-card:hover .cls-card-go { transform:translateX(2px); color:var(--text-2); }
+.cls-card-subj { font-size:13px; color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cls-card-ft { display:flex; align-items:center; gap:12px; margin-top:6px; padding-top:10px; border-top:1px solid var(--border); }
+.cls-card-stat { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:var(--text-2); }
+.cls-card-stat.warn { color:var(--warn-fg); }
+.cls-card-avg { margin-left:auto; font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .cls-card, .cls-card-go { transition:none; } .cls-card:hover { transform:none; } }
+
+/* ── Aviso de «falta la clave de la IA» (AiKeyNotice): una franja fina ── */
+.ai-notice { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:7px 8px 7px 14px; margin-bottom:16px; background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent-d); border-radius:10px; font-size:12.5px; color:var(--text-2); }
+.ai-notice svg { color:var(--accent-d); }
+.ai-notice-txt { flex:1; min-width:200px; line-height:1.45; }
+.ai-notice-btn { flex-shrink:0; height:28px; padding:0 12px; border:none; border-radius:7px; background:var(--accent-l); color:var(--accent-d); font-family:var(--font); font-size:12px; font-weight:700; cursor:pointer; }
+.ai-notice-btn:hover { filter:brightness(0.96); }
+
+/* La portada de Documentos: cuatro tarjetas en fila en pantallas anchas */
+.ev-cards.cuatro { grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); }
+.ev-cards.cuatro .ev-card { min-height:220px; }

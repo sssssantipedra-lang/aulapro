@@ -9,7 +9,8 @@
  *   - Tres «apartados» que reúnen pantallas hermanas, con pestañas arriba:
  *       Evaluar     → Portada, Rúbricas, Dianas, Diana competencial,
  *                     Autoevaluaciones, Historial
- *       Documentos  → Informes, Actas, Situaciones de aprendizaje, Recursos
+ *       Documentos  → Portada, Informes, Actas, Situaciones de aprendizaje,
+ *                     Recursos
  *       En clase    → Distribución de aula, Aula Live, Sala de alumnos
  *   - Centro y equipo: Reuniones, Formaciones y Trabajo compartido.
  *   - Abajo, sin color y separadas del resto: Configuración y Registro de
@@ -81,7 +82,10 @@ export const HUBS: readonly NavHub[] = [
   {
     id: 'documents', label: 'Documentos', icon: 'documents',
     hint: 'Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje y fichas.',
+    // Al entrar, una tarjeta grande por pantalla, como Evaluar (11-10-2026)
+    portada: true,
     tabs: [
+      { id: 'documentos',          label: 'Resumen' },
       { id: 'reports',             label: 'Informes' },
       { id: 'records',             label: 'Actas' },
       { id: 'learning-situations', label: 'Situaciones de aprendizaje' },

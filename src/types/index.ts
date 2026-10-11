@@ -736,7 +736,7 @@ export type Section =
   | 'dashboard' | 'classes' | 'agenda'
   | 'evaluar' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
-  | 'attendance' | 'reports' | 'selfassess' | 'audit' | 'records'
+  | 'attendance' | 'documentos' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'
   | 'meetings' | 'trainings' | 'seating'
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-alumno' | 'apoyo-agenda-visual'

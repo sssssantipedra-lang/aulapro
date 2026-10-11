@@ -73,9 +73,10 @@ icono en un cuadradito de color. Todo está a la vista, en tres grupos:
     · Evaluar → Resumen, Rúbricas, Dianas, Diana competencial,
       Autoevaluaciones e Historial. Al entrar desde el menú abre siempre el
       Resumen.
-    · Documentos → Informes, Actas, Situaciones de aprendizaje y Recursos.
+    · Documentos → Resumen, Informes, Actas, Situaciones de aprendizaje y
+      Recursos. Al entrar desde el menú abre siempre el Resumen.
     · En clase → Distribución de aula, Aula Live y Sala de alumnos.
-  Documentos y En clase recuerdan la última pestaña usada. Al entrar en uno, la barra
+  En clase recuerda la última pestaña usada. Al entrar en uno, la barra
   de pestañas parpadea dos veces del color de la app para que se vea dónde
   elegir (no lo hace si el sistema tiene activado «reducir movimiento»).
 - «Centro y equipo»: Reuniones, Formaciones y Trabajo compartido.
@@ -117,7 +118,11 @@ la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
 [classes] MIS CLASES
-El punto de partida de todo. Se crea una clase con nombre, aula y color; se
+El punto de partida de todo. Con varias clases, se entra por una PORTADA de
+tarjetas agrupadas en Primaria, ESO y otras clases: cada tarjeta lleva el
+color, la asignatura, cuántos alumnos tiene, cuántos tienen avisos y la media
+de la clase. Al pulsar una se ve su alumnado; «Todas las clases» vuelve a la
+portada. Con una sola clase se entra directamente en ella. Se crea una clase con nombre, aula y color; se
 puede marcar como tutoría. Se eligen ETAPA Y CURSO (Primaria 1º-6º o ESO 1º-4º,
 obligatorios) y aparecen las asignaturas de ese curso tal y como las llama el
 currículo de la comunidad del perfil: se marcan las que se dan (una o varias).
@@ -242,6 +247,12 @@ Se exporta a PDF (el plano visual) y a Word (el listado por mesas), con los
 botones de arriba a la derecha.
 
 === EVALUAR Y DOCUMENTOS ===
+
+[documentos] DOCUMENTOS (RESUMEN)
+La portada del apartado Documentos: cuatro tarjetas grandes, una por pantalla
+(Informes, Actas, Situaciones de aprendizaje y Recursos), con para qué sirve
+cada una y cuánto hay hecho (informes redactados, clases con notas,
+situaciones y recursos guardados). Al pulsar una, se abre.
 
 [evaluar] EVALUAR (RESUMEN)
 La portada del apartado Evaluar. Dos tarjetas grandes: «Evaluar por rúbricas»

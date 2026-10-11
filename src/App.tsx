@@ -21,6 +21,7 @@ import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
+import { DocumentosInicio } from './pages/DocumentosInicio';
 import { hubEnMenu, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
@@ -381,6 +382,9 @@ function AppInner() {
                 onOpenEval={() => setSection('rubrics')}
                 profileId={st.profileId}
                 comunidad={st.currentUser?.community}
+                gradeCategories={gradeView.gradeCategories}
+                gradeItems={gradeView.gradeItems}
+                grades={gradeView.grades}
               />
             )}
             {section === 'agenda' && (
@@ -555,6 +559,16 @@ function AppInner() {
                 onAddMark={st.addClassMark}
                 onDeleteMark={st.deleteClassMark}
                 onNav={s => setSection(s as Section)}
+              />
+            )}
+            {section === 'documentos' && (
+              <DocumentosInicio
+                classes={st.classes}
+                reports={st.reports}
+                gradeItems={st.gradeItems}
+                learningSituations={st.learningSituations}
+                fichas={st.fichas}
+                onNav={setSection}
               />
             )}
             {section === 'reports' && (

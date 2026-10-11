@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Class } from '../../types';
 import { useI18n } from '../../i18n';
+import { agruparPorEtapa } from '../../lib/etapas';
 
 interface Props {
   classes: Pick<Class, 'id' | 'name' | 'color' | 'etapa' | 'curso'>[];
@@ -17,11 +18,7 @@ interface Props {
  */
 export const MAX_CHIPS = 6;
 
-const ETAPAS: { id: 'primaria' | 'eso' | 'otras'; label: string }[] = [
-  { id: 'primaria', label: 'Primaria' },
-  { id: 'eso', label: 'ESO' },
-  { id: 'otras', label: 'Otras clases' },
-];
+
 
 /**
  * Selector de clase. Es el mismo en todas las pantallas que trabajan clase a
@@ -36,14 +33,7 @@ export function ClassChips({ classes, value, onChange, counts }: Props) {
   const { t } = useI18n();
 
   if (classes.length > MAX_CHIPS) {
-    const grupos = ETAPAS
-      .map(e => ({
-        ...e,
-        clases: classes
-          .filter(c => (c.etapa ?? 'otras') === e.id)
-          .sort((a, b) => (a.curso ?? 0) - (b.curso ?? 0) || a.name.localeCompare(b.name)),
-      }))
-      .filter(g => g.clases.length > 0);
+    const grupos = agruparPorEtapa(classes);
     // Las flechas siguen el orden del desplegable
     const orden = grupos.flatMap(g => g.clases);
     const i = orden.findIndex(c => c.id === value);

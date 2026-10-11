@@ -37,6 +37,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   rubrics:               { es: 'Rúbricas', en: 'Rubrics' },
   dianas:                { es: 'Dianas', en: 'Assessment Bullseye' },
   diana:                 { es: 'Diana Competencial', en: 'Learner Profile Tracking' },
+  documentos:            { es: 'Documentos', en: 'Documents' },
   reports:               { es: 'Informes', en: 'Reports' },
   records:               { es: 'Actas', en: 'Grade Sheets' },
   selfassess:            { es: 'Autoevaluaciones', en: 'Self-Assessments' },
