@@ -28,10 +28,10 @@
   --panel:#ffffff;
   --paper:#ffffff;
   --ink:#1c1917;
-  --accent:#8b6dff;
-  --accent-deep:#6d4ff0;
-  --accent-hover:#5f40e6;
-  --accent-ink:#5635db;
+  --accent:#c8693a;
+  --accent-deep:#b4532a;
+  --accent-hover:#9a4522;
+  --accent-ink:#9a4522;
   --text:#1c1917;
   --text-2:#5f574f;
   --line:rgba(120,100,80,.16);
@@ -99,7 +99,7 @@ main:focus{outline:none}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
 .tool{display:inline-flex;align-items:center;gap:.5em;padding:.55em .9em;border:0;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--text-2);font:400 .88rem/1.1 var(--f-body);cursor:pointer;transition:color .3s var(--ease-out),box-shadow .3s var(--ease-out),background-color .3s var(--ease-out)}
 .tool:hover{color:var(--text);box-shadow:inset 0 0 0 1px var(--line-strong);background:#fff}
-.tool[aria-pressed="true"]{color:var(--accent-ink);background:rgba(139,109,255,.12);box-shadow:inset 0 0 0 1px var(--accent)}
+.tool[aria-pressed="true"]{color:var(--accent-ink);background:rgba(200,105,58,.12);box-shadow:inset 0 0 0 1px var(--accent)}
 .tool:disabled{opacity:.4;cursor:default}
 .tool svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media (pointer:coarse){.chip,.tool{min-height:42px}}
@@ -127,9 +127,9 @@ footer a:hover{color:var(--text)}
 
 /* ---------- toasts: page-level so they read at any scale ---------- */
 .toasts{position:absolute;left:50%;bottom:22px;z-index:20;width:min(540px,calc(100% - 32px));transform:translateX(-50%);pointer-events:none;display:grid;justify-items:center}
-.toast{display:flex;gap:12px;align-items:flex-start;padding:14px 18px 14px 16px;border-radius:14px;background:rgba(28,25,23,.95);color:#fbf8f3;font:400 .95rem/1.45 var(--f-body);box-shadow:0 24px 50px -18px rgba(0,0,0,.55),inset 0 0 0 1px rgba(139,109,255,.45);opacity:0;transform:translateY(12px);transition:opacity .35s var(--ease-out),transform .45s var(--ease-out)}
+.toast{display:flex;gap:12px;align-items:flex-start;padding:14px 18px 14px 16px;border-radius:14px;background:rgba(28,25,23,.95);color:#fbf8f3;font:400 .95rem/1.45 var(--f-body);box-shadow:0 24px 50px -18px rgba(0,0,0,.55),inset 0 0 0 1px rgba(200,105,58,.45);opacity:0;transform:translateY(12px);transition:opacity .35s var(--ease-out),transform .45s var(--ease-out)}
 .toast.in{opacity:1;transform:none}
-.toast i{flex:none;width:8px;height:8px;margin-top:.5em;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(139,109,255,.3)}
+.toast i{flex:none;width:8px;height:8px;margin-top:.5em;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(200,105,58,.3)}
 .stage-wrap.narrow .toasts{position:fixed;bottom:16px}
 
 /* ================= the app window, drawn at the app's real size (1920 x 1032) ================= */

@@ -12,7 +12,7 @@ La única acción: **Quiero AulaPro** (formulario de email, no hay tienda todav�
 
 ## 2. Paleta (dirección; valores finales tras aprobar el video)
 
-Desde el 11-10-2026 la web es cálida, como la app: ver las secciones 34 y 35. Esta paleta oscura ya no se usa; el vídeo también es cálido.
+Desde el 11-10-2026 la web es cálida, como la app: ver las secciones 34 y 35. Esta paleta oscura ya no se usa; el vídeo también es cálido y el acento es terracota (sección 36).
 
 Mundo: aula vacía al anochecer, luz violeta por la ventana, lámpara cálida, papel en blanco, madera.
 
@@ -343,10 +343,17 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 
 ## 35. El vídeo y la portada, también cálidos (11-10-2026, petición del usuario)
 
-- **Toda la web en beige cálido.** Fuera los fondos lilas: el resplandor del fondo (`.env .g1`), el del final (`.final::before`), el recuadro de la demo (`.demo-cta`), el aviso de formulario enviado, el recuadro de /descargar y los fondos de la demo y de las páginas legales pasan a arena (`rgba(214,176,128,…)`) o a un panel beige (`#f3ebdf`). Los grises violáceos de la lista y de las fichas pasan a grises tierra. El violeta queda solo como acento (botones, enlaces, marcas y foco), el del logo.
+- **Toda la web en beige cálido.** Fuera los fondos lilas: el resplandor del fondo (`.env .g1`), el del final (`.final::before`), el recuadro de la demo (`.demo-cta`), el aviso de formulario enviado, el recuadro de /descargar y los fondos de la demo y de las páginas legales pasan a arena (`rgba(214,176,128,…)`) o a un panel beige (`#f3ebdf`). Los grises violáceos de la lista y de las fichas pasan a grises tierra. El violeta quedó como acento hasta la sección 36, que lo cambia por terracota.
 - **El vídeo, con luz dorada de tarde.** Mismo vídeo y mismas paradas, con un filtro de color (tabla 3D en OKLab, `review/fps60/lut-calido.py` y `warm.cube`): los violetas del ambiente giran a ámbar, balance de blancos cálido y algo más de contraste, sin aclarar las sombras (si se aclaran, queda apagado). La pantalla del portátil no se toca: los colores saturados (el quesito azul y verde, los botones violeta) quedan protegidos. Se aplica igual a las dos películas (`hero-scrub-60.mp4` y `-atras.mp4`, con los fotogramas clave en las paradas), a `hero-poster.jpg`, `hero-ending.jpg`, `escritorio.jpg` y `og.jpg`.
 - **Se probó rehacerlo con IA** (fal.ai, MiniMax H3 Max, unos 0,54 $): mantuvo el violeta, cambió el orden de los planos y dejó una imagen fantasma. Descartado; el resultado está en `review/fal-calido/`.
 - **Los colores oscuros de la portada** (`.hero`, menú sobre el vídeo, sombras del texto, halos de las bandas, franja de transición `.dusk`) pasan de índigo a marrón café: base `#1e1611`, texto crema `#f3ece6`/`#efe6da`, secundario arena `#d8c9b6`.
 - **La franja "Sigue descubriendo AulaPro"** es crema con texto oscuro: anuncia la página que viene.
 - **Móvil y tableta en vertical:** la foto arriba y el texto debajo sobre crema, con texto oscuro y el menú oscuro sobre crema; sin franja de transición. `theme-color` crema en vertical y café en el resto.
-- **Pendiente de decidir:** la primera banda dice «Son las diez de la noche» y ahora la luz es de tarde.
+
+## 36. Terracota, fondos que fluyen y la app nueva en el portátil (11-10-2026, petición del usuario)
+
+- **Acento terracota** en toda la web (portada, demo, legales, /descargar, /gracias), elegido por el usuario: botones `#b4532a`, al pasar el ratón y enlaces `#9a4522` (contraste 5:1 y 6:1 sobre crema), trazos, subrayados y foco `#c8693a`. El logo conserva sus colores. Los iconos de colores de S1 y En clase son los del menú de la app y se quedan.
+- **Fondos que fluyen**: cada sección pinta un velo arena (`rgba(214,178,134,…)`) que empieza donde acaba el de la anterior (`--v0`/`--v1` por sección), así la página pasa de crema a arena y latte y vuelve, sin cortes. El trazo a mano entre la lista y Evaluar (`.rule`) ya no ocupa alto, para que no quede una franja. El pie es café (`#241a13`), con una caída suave desde el latte, y cierra la página como la abre el vídeo.
+- **La app nueva en el portátil del vídeo**: la pantalla muestra la app 2.8.0 de verdad, capturada en local a 16:10 (la proporción de la pantalla, calculada por la perspectiva) con la evaluación por diana «Trabajo en equipo» de 6.º de Primaria. En el plano general hay dos ítems marcados (8,8); en el primer plano se marcan los otros dos y sale la nota, 7,5. Montaje fotograma a fotograma (`review/pantalla-app/`): esquinas de la pantalla por sus bordes (en el primer plano la cámara solo hace zoom, así que las esquinas de la izquierda siguen a las de la derecha), por color mientras se abre el portátil, desenfoque por movimiento promediando la exposición, desenfoque del lado izquierdo en el primer plano, la luz y el tono del blanco de cada fotograma, y las manos por delante. El fundido entre los dos planos se rehace con el cambio de pantalla de cada plano. Después, el mismo filtro cálido y las mismas paradas.
+- `escritorio.jpg` y `og.jpg` salen del fotograma 445 y `hero-ending.jpg` del último, con la pantalla nueva. Si cambia la app, se repite: capturar (`t53-capture-app.mjs` con `npm run dev`), `render_all.py`, montar, filtro y codificar.
+- **Pendiente de decidir:** la primera banda dice «Son las diez de la noche» y la luz es de tarde.
