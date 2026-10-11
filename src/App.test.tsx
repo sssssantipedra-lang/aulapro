@@ -156,8 +156,7 @@ describe('Aula Pro', () => {
       }
     }
 
-    // «Más» empieza plegado
-    await user.click(screen.getByRole('button', { name: /^Más/ }));
+    // Todo a la vista, sin grupos plegados (11-10-2026)
     for (const nombre of ['Reuniones', 'Formaciones', 'Trabajo compartido', 'Registro de cambios', 'Configuración']) {
       await menu(nombre);
       await h1(nombre);

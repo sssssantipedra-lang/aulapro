@@ -10,8 +10,13 @@
  *       Evaluar     → Rúbricas, Diana, Autoevaluaciones, Historial
  *       Documentos  → Informes, Actas, Situaciones de aprendizaje, Recursos
  *       En clase    → Distribución de aula, Aula Live, Sala de alumnos
- *   - Más (plegado): Reuniones, Formaciones, Trabajo compartido, Registro
- *     de cambios y Mi perfil.
+ *   - Centro y equipo: Reuniones, Formaciones y Trabajo compartido.
+ *   - Abajo, sin color y separadas del resto: Configuración y Registro de
+ *     cambios.
+ *
+ * Desde el 11-10-2026 no hay grupos plegables ni «Más»: escondían
+ * Reuniones, Formaciones y Trabajo compartido, y costaba encontrarlos. Cada
+ * entrada lleva su color (Sidebar.tsx) para reconocerla de un vistazo.
  *
  * El profesorado especialista de PT y AL tiene su propio menú (decisión del
  * dueño, 5-10-2026: quien es de PT o de AL normalmente no es tutor). Lleva su
@@ -97,7 +102,8 @@ export const HUBS: readonly NavHub[] = [
   },
 ];
 
-type NavGroups = readonly { sect: string; items: NavEntry[]; collapsedByDefault?: boolean }[];
+/** `pie`: el grupo va abajo del todo, sin título ni color (lo de la cuenta). */
+type NavGroups = readonly { sect: string; items: NavEntry[]; pie?: boolean }[];
 
 const link = (id: Section, label: string, icon: NavIcon): NavEntry => ({ kind: 'link', id, label, icon });
 const hub = (id: NavHub['id']): NavEntry => ({ kind: 'hub', ...HUBS.find(h => h.id === id)! });
@@ -118,14 +124,19 @@ export const NAV_GROUPS: NavGroups = [
     items: [hub('evaluate'), hub('documents'), hub('inclass')],
   },
   {
-    sect: 'Más',
-    collapsedByDefault: true,
+    sect: 'Centro y equipo',
     items: [
       link('meetings',  'Reuniones',           'meetings'),
       link('trainings', 'Formaciones',         'trainings'),
       link('share',     'Trabajo compartido',  'share'),
-      link('audit',     'Registro de cambios', 'audit'),
+    ],
+  },
+  {
+    sect: 'Cuenta',
+    pie: true,
+    items: [
       link('profile',   'Configuración',       'profile'),
+      link('audit',     'Registro de cambios', 'audit'),
     ],
   },
 ];
@@ -153,13 +164,18 @@ export const NAV_APOYO: NavGroups = [
     ],
   },
   {
-    sect: 'Más',
-    collapsedByDefault: true,
+    sect: 'Centro y equipo',
     items: [
       link('meetings',  'Reuniones',           'meetings'),
       link('trainings', 'Formaciones',         'trainings'),
-      link('audit',     'Registro de cambios', 'audit'),
+    ],
+  },
+  {
+    sect: 'Cuenta',
+    pie: true,
+    items: [
       link('profile',   'Configuración',       'profile'),
+      link('audit',     'Registro de cambios', 'audit'),
     ],
   },
 ];

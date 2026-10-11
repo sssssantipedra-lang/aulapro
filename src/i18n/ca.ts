@@ -519,6 +519,8 @@ export const CA: Record<string, string> = {
   "todos aprueban": "tots aproven",
   "Cuaderno": "Quadern",
   "Tu día a día": "El teu dia a dia",
+  "Centro y equipo": "Centre i equip",
+  "Cuenta": "Compte",
   "Trabajo docente": "Feina docent",
   "Más": "Més",
   "Documentos": "Documents",

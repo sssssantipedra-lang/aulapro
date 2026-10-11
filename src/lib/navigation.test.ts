@@ -18,9 +18,9 @@ describe('menú', () => {
     expect(reachableSections('apoyo')).toEqual(expect.arrayContaining(APOYO));
   });
 
-  it('el menú visible es corto: 8 entradas fuera de «Más»', () => {
-    const visible = NAV_GROUPS.filter(g => !g.collapsedByDefault).flatMap(g => g.items);
-    expect(visible).toHaveLength(8);
+  it('todo está a la vista: 11 entradas con color y lo de la cuenta abajo', () => {
+    expect(NAV_GROUPS.filter(g => !g.pie).flatMap(g => g.items)).toHaveLength(11);
+    expect(NAV_GROUPS.filter(g => g.pie).flatMap(g => g.items).map(e => e.id)).toEqual(['profile', 'audit']);
   });
 
   it('el profesorado de PT y AL tiene su propio menú: el apoyo, lo común y Aula Live', () => {

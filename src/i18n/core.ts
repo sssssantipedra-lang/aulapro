@@ -360,6 +360,8 @@ const EN: Record<string, string> = {
   'Tu día a día': 'Day to day',
   'Trabajo docente': 'Teaching work',
   'Más': 'More',
+  'Centro y equipo': 'School and team',
+  'Cuenta': 'Account',
   'Documentos': 'Documents',
   'En clase': 'In class',
   'Diana competencial': 'Competency target',

@@ -26,6 +26,13 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Las ventanas emergentes (`.modal-overlay`) llevan el desenfoque solo mientras están abiertas: cerradas siguen montadas, y con él la tarjeta gráfica reservaba unos 30 MB.
 - El guardado automático recuerda una huella SHA-256 de lo guardado, no una copia del curso.
 
+## Aspecto de la app (revisión del 11-10-2026)
+
+- Estilo cálido elegido por el dueño: fondo crema (`--surface`), tarjetas blancas y menú lateral claro (`--nav-*` en `src/index.css`). En modo oscuro el menú toma el color oscuro del tema (`--sb-bg`). La bienvenida y la pantalla de licencia siguen oscuras.
+- Cada entrada del menú lleva su icono en un cuadradito de color (`COLOR` en `Sidebar.tsx`), siempre con el nombre al lado.
+- Menú sin grupos plegables ni «Más»: Tu día a día, Trabajo docente, Centro y equipo; abajo y sin color, Configuración y Registro de cambios (`src/lib/navigation.ts`). Los créditos y la versión están al pie de Configuración.
+- Se rediseña por fases, con capturas para el dueño en cada una. Fase 1 (menú y estilo) hecha; quedan las páginas una a una.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
