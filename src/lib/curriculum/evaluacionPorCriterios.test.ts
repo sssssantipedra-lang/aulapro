@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { claveCriterioOficial, notasDeMateria, officialCriteriaScoresFor } from './evaluacionPorCriterios';
+import { claveCriterioOficial, lineasDeCompetencias, notasDeMateria, officialCriteriaScoresFor } from './evaluacionPorCriterios';
 import type { CurriculumEntry } from './index';
 import type { Evaluation } from '../../types';
 
@@ -72,5 +72,20 @@ describe('notasDeMateria', () => {
 
   it('la clave junta materia y código', () => {
     expect(claveCriterioOficial({ materia: 'matematicas', codigo: '2.1' })).toBe('matematicas|2.1');
+  });
+});
+
+describe('lineasDeCompetencias', () => {
+  it('para el informe, una línea por competencia evaluada con su texto oficial y su nota', () => {
+    const evs = [evaluacion({ 'matematicas|1.1': 6, 'matematicas|1.2': 9 })];
+    expect(lineasDeCompetencias([{ entry: MATES, grupo: '3' }], evs, false))
+      .toEqual(['- Matemáticas, CE1 (Resolver problemas.): 7.5/10']);
+    expect(lineasDeCompetencias([{ entry: MATES, grupo: '3' }], evs, true))
+      .toEqual(['- Matemáticas, SC1 (Resolver problemas.): 7.5/10']);
+  });
+
+  it('sin nada evaluado, ninguna línea', () => {
+    expect(lineasDeCompetencias([{ entry: MATES, grupo: '3' }], [], false)).toEqual([]);
+    expect(lineasDeCompetencias([], [evaluacion({ 'matematicas|1.1': 6 })], false)).toEqual([]);
   });
 });

@@ -4,9 +4,12 @@
  * trencada.
  */
 import { APOYO_CA } from './apoyo';
+import { DEMO_CA } from './demo';
 import { EF_CA } from './ef';
 
 export const CA: Record<string, string> = {
+  // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
+  ...DEMO_CA,
   "Cargando…": "Carregant…",
   "Abriendo tu cuaderno…": "Obrint el teu quadern…",
   "✅ ¡Bienvenido/a, {name}!": "✅ Et donem la benvinguda, {name}!",
@@ -1725,6 +1728,27 @@ export const CA: Record<string, string> = {
   "Indica la etapa y el curso de la clase en Mis Clases para ver sus competencias específicas.": "Indica l'etapa i el curs de la classe a Les meves classes per veure'n les competències específiques.",
   "Ninguna asignatura de esta clase tiene materia oficial.": "Cap assignatura d'aquesta classe no té matèria oficial.",
   "Aún no hay notas: en Rúbricas y Dianas, marca qué criterios oficiales evalúa cada criterio o ítem, y evalúa con ellos.": "Encara no hi ha notes: a Rúbriques i Dianes, marca quins criteris oficials avalua cada criteri o ítem, i avalua-hi.",
+  "Por competencias": "Per competències",
+  "Vacaciones": "Vacances",
+  "Día no lectivo": "Dia no lectiu",
+  "Festivo": "Festiu",
+  "Vacaciones de Navidad": "Vacances de Nadal",
+  "Vacaciones de Pascua": "Vacances de Pasqua",
+  "Vacaciones de Semana Santa": "Vacances de Setmana Santa",
+  "Día de la Comunitat Valenciana": "Dia de la Comunitat Valenciana",
+  "Fiesta Nacional de España": "Festa Nacional d'Espanya",
+  "Inmaculada Concepción": "La Immaculada",
+  "San José": "Sant Josep",
+  "Diada Nacional de Catalunya": "Diada Nacional de Catalunya",
+  "Calendario escolar {curso}: {norma}. Los festivos locales dependen del municipio: añádelos como evento.": "Calendari escolar {curso}: {norma}. Els festius locals depenen del municipi: afegeix-los com un esdeveniment.",
+  "El calendario de este curso aún no está disponible.": "El calendari d’aquest curs encara no està disponible.",
+  "Primer día de clase ({etapa})": "Primer dia de classe ({etapa})",
+  "Último día de clase ({etapa})": "Últim dia de classe ({etapa})",
+  "La nota de cada competencia específica del currículo oficial, a partir de las rúbricas y dianas que marcan qué criterios evalúan. No cambia la nota del cuaderno. El detalle de cada alumno, criterio a criterio, está en la Diana competencial.": "La nota de cada competència específica del currículum oficial, a partir de les rúbriques i dianes que marquen quins criteris avaluen. No canvia la nota del quadern. El detall de cada alumne, criteri a criteri, és a la Diana competencial.",
+  "Área por competencias": "Àrea per competències",
+  "Ir a Rúbricas": "Anar a Rúbriques",
+  "{materia}, según {norma}.": "{materia}, segons {norma}.",
+  "Competencias específicas según {norma}.": "Competències específiques segons {norma}.",
   "Competencias, criterios y saberes copiados tal cual del decreto.": "Competències, criteris i sabers copiats tal qual del decret.",
   "Editar clase": "Edita la classe",
   "Clase actualizada": "Classe actualitzada",

@@ -40,7 +40,7 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
     - el alumnado sin objetivos en el trimestre o sin grupo.
   - Evolución del alumnado: por alumno, sus objetivos del trimestre según lo último registrado (conseguido, en proceso, no conseguido, sin trabajar), y al desplegarlo, cada objetivo sesión a sesión.
   - Sin alumnado, tres pasos y «Probar con datos de ejemplo».
-- **Datos de ejemplo** (`src/lib/demoApoyo.ts`): 4 alumnos inventados, uno con TEA y discapacidad motora, 4 grupos y sesiones de las dos últimas semanas. Las fechas se calculan desde hoy.
+- **Datos de ejemplo** (`src/lib/demoApoyo.ts`): 4 alumnos inventados, uno con TEA y discapacidad motora, 4 grupos y sesiones de las dos últimas semanas. Las fechas se calculan desde hoy. Salen en el idioma de la app, con los programas del PAP valenciano en su nombre oficial (textos en `src/i18n/demo.ts`).
 
 ### Herramientas (5-10-2026)
 

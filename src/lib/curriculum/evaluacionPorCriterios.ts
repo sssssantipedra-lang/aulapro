@@ -99,6 +99,19 @@ export function notasDeMateria(entry: CurriculumEntry, grupo: string, evaluacion
   return { id: entry.id, nombre: entry.nombre, grupo, nota: media(evaluadas), competencias };
 }
 
+/**
+ * Para el informe que redacta la IA: una línea por cada competencia específica
+ * evaluada del alumno, con su materia, su texto oficial y su nota sobre 10.
+ * Las que no tienen nota no salen. `evaluaciones` son las del alumno.
+ */
+export function lineasDeCompetencias(
+  materias: { entry: CurriculumEntry; grupo: string }[], evaluaciones: Evaluation[], en: boolean,
+): string[] {
+  return materias.flatMap(m => notasDeMateria(m.entry, m.grupo, evaluaciones).competencias
+    .filter(c => c.nota !== null)
+    .map(c => `- ${m.entry.nombre}, ${en ? 'SC' : 'CE'}${c.n} (${c.texto}): ${c.nota!.toFixed(1)}/10`));
+}
+
 /** Los códigos de los criterios de una materia que aún no tienen nota, en orden. */
 export function sinEvaluar(notas: NotaMateria): string[] {
   return notas.competencias.flatMap(c => c.criterios.filter(cr => cr.nota === null).map(cr => cr.codigo));

@@ -266,15 +266,15 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
             type="button"
             // Con el tipo elegido: quien es de PT y AL ve el ejemplo de PT y AL
             onClick={() => onExploreDemo(tipo === 'ef'
-              ? { name: DEMO_EF_USER.full_name, school: DEMO_EF_USER.school, course: currentCourse(), community: DEMO_COMMUNITY,
+              ? { name: t(DEMO_EF_USER.full_name), school: t(DEMO_EF_USER.school), course: currentCourse(), community: DEMO_COMMUNITY,
                 subject: t('Educación Física'), tipoDocente: 'ef', ...(tutor ? { tutor: true } : {}) }
               : tipo === 'apoyo'
               ? {
-                name: DEMO_APOYO_USER.full_name, school: DEMO_APOYO_USER.school, course: currentCourse(), community: DEMO_COMMUNITY,
+                name: t(DEMO_APOYO_USER.full_name), school: t(DEMO_APOYO_USER.school), course: currentCourse(), community: DEMO_COMMUNITY,
                 especialidades: especialidades.length ? especialidades : ['PT', 'AL'],
                 subject: t(especialidadTexto(especialidades.length ? especialidades : ['PT', 'AL'])),
               }
-              : { name: DEMO_USER.full_name, school: 'IES Ejemplo', subject: 'Matemáticas', course: currentCourse(), community: DEMO_COMMUNITY })}
+              : { name: t(DEMO_USER.full_name), school: t(DEMO_USER.school), subject: t(DEMO_USER.subject), course: currentCourse(), community: DEMO_COMMUNITY })}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
               width: '100%', marginTop: 14, padding: '11px 0', background: 'none',

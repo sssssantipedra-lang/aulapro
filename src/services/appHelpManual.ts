@@ -140,16 +140,35 @@ mejor resultado.
 Para empezar de cero, el botón «Borrar horario» (arriba, junto a «Nuevo
 bloque») quita todas las sesiones del horario semanal tras pedir
 confirmación; los eventos del calendario no se tocan.
+CALENDARIO ESCOLAR: con un perfil de la Comunitat Valenciana, Cataluña o
+Madrid, la vista mensual sombrea los días no lectivos de la comunidad y pinta
+las vacaciones (Navidad, Semana Santa o Pascua) como una franja. Al pulsar un
+día se ve su nombre, y también el primer y el último día de clase de Primaria y
+de la ESO. Debajo del mes sale de qué norma sale. Los festivos locales dependen
+del municipio: se añaden como un evento. No se guarda entre los eventos del
+docente, así que no se puede borrar ni se mezcla con ellos. La app lo descarga
+de aulapro.app al abrirse (solo descarga, sin enviar datos) y sin conexión usa
+el último guardado. Si aún no está el del curso que se mira, lo dice. Para el
+resto de comunidades todavía no hay calendario.
 
 [notebook] CUADERNO DE NOTAS
-Tiene DOS PESTAÑAS arriba:
+Tiene TRES PESTAÑAS arriba:
 1. «Calificaciones»: se eligen la clase y la asignatura, se definen las
    categorías con su peso (por ejemplo Exámenes 60%, Tareas 30%, Participación
    10%; deben sumar 100% por asignatura), y dentro de cada categoría se añaden
    pruebas («Examen T1», «Cuaderno»). Se escriben notas de 0 a 10 en la rejilla
    y la media ponderada se calcula sola, con la media del grupo abajo. Se
    exporta a Excel.
-2. «✨ Consulta IA»: el asistente pedagógico que SÍ VE LOS DATOS del docente
+2. «Por competencias»: la clase entera con el currículo de la comunidad del
+   perfil. Se eligen la clase y la asignatura (solo las que tienen materia
+   oficial) y sale una tabla con un alumno por fila, una columna por
+   competencia específica (CE1, CE2…; al pasar el ratón por la cabecera se lee
+   entera) y la nota del área por competencias. Debajo, cada competencia con
+   su texto y el decreto del que sale. Las notas salen de las rúbricas y dianas
+   con criterios oficiales marcados, como en la Diana competencial (que tiene
+   el detalle de cada alumno criterio a criterio), y no cambian la nota de
+   «Calificaciones». Se exporta a Excel. La clase necesita etapa y curso.
+3. «✨ Consulta IA»: el asistente pedagógico que SÍ VE LOS DATOS del docente
    (clases, medias, asistencia, evaluaciones, agenda). Ahí es donde se pregunta
    «¿cómo va Alumno 1?», «¿quién va justo en 2ºB?» o «proponme refuerzo». Se puede
    acotar a una clase o desactivar el acceso a los datos.
@@ -246,7 +265,12 @@ los números y las notas, lo que falta y el decreto del que salen.
 Informes de evaluación competencial redactados por la IA a partir de las
 evaluaciones, las notas del cuaderno y la asistencia REALES del alumno, citando
 las competencias clave LOMLOE. Se generan por periodo (1ª, 2ª, 3ª evaluación o
-final) y en lote. Si un alumno no tiene datos, la IA se niega a inventarlo. Se
+final) y en lote. Si un alumno no tiene datos, la IA se niega a inventarlo. Si
+la clase tiene currículo oficial y hay rúbricas o dianas con criterios oficiales
+evaluados, a la IA le llegan también las competencias específicas del alumno,
+con su texto del decreto de la comunidad y su nota, y se apoya en ellas para
+decir qué tiene consolidado y qué en proceso, con palabras sencillas para las
+familias, sin códigos. El pie del informe cita entonces ese decreto. Se
 exportan a PDF y se pueden editar a mano.
 
 [records] ACTAS

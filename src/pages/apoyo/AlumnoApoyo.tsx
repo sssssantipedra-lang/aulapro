@@ -55,7 +55,7 @@ interface Props {
 const PESTANAS: { id: PestanaAlumno; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
   { id: 'programa', label: 'Programa' },
-  { id: 'sesiones', label: 'Sesiones' },
+  { id: 'sesiones', label: 'Sesiones@@apoyo' },
   { id: 'coordinaciones', label: 'Coordinaciones' },
   { id: 'documentos', label: 'Documentos' },
   { id: 'datos', label: 'Datos' },
@@ -274,7 +274,7 @@ function Resumen({ alumno, data, grupos, hoy, locale, onPestana, onRegistrar }: 
           <div className="card home-card">
             <div className="home-card-hd">
               <div className="home-card-ttl"><CalendarDays size={15} />{t('Últimas sesiones')}</div>
-              <button className="home-link" onClick={() => onPestana('sesiones')}>{t('Sesiones')} <ArrowRight size={13} /></button>
+              <button className="home-link" onClick={() => onPestana('sesiones')}>{t('Sesiones@@apoyo')} <ArrowRight size={13} /></button>
             </div>
             {delTrimestre.length > 0 && (
               <p className="ap-sub" style={{ margin: '0 0 8px' }}>{t('Ha venido a {a} de {b} sesiones este trimestre.', { a: vino, b: delTrimestre.length })}</p>

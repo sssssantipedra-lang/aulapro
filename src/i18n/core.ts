@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react';
 import { CA } from './ca';
 import { APOYO_EN } from './apoyo';
 import { EF_EN } from './ef';
+import { DEMO_EN } from './demo';
 
 /**
  * Idiomas de la aplicación.
@@ -28,6 +29,8 @@ export const STORAGE_KEY = 'aulapro_lang';
  * castellano en lugar de enseñar una clave rota al usuario.
  */
 const EN: Record<string, string> = {
+  // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
+  ...DEMO_EN,
   /* ── Navegación ── */
   'Principal': 'Main',
   'Inicio': 'Home',
@@ -1935,6 +1938,27 @@ const EN: Record<string, string> = {
   'Indica la etapa y el curso de la clase en Mis Clases para ver sus competencias específicas.': 'Set the class stage and year in My Classes to see its subject competencies.',
   'Ninguna asignatura de esta clase tiene materia oficial.': 'No subject in this class is linked to an official subject.',
   'Aún no hay notas: en Rúbricas y Dianas, marca qué criterios oficiales evalúa cada criterio o ítem, y evalúa con ellos.': 'No grades yet: in Rubrics and Targets, mark which official criteria each criterion or item assesses, and assess with them.',
+  'Por competencias': 'By competency',
+  "Vacaciones": "Holidays",
+  "Día no lectivo": "No-school day",
+  "Festivo": "Public holiday",
+  "Vacaciones de Navidad": "Christmas holidays",
+  "Vacaciones de Pascua": "Easter holidays",
+  "Vacaciones de Semana Santa": "Easter holidays",
+  "Día de la Comunitat Valenciana": "Valencian Community Day",
+  "Fiesta Nacional de España": "National Day of Spain",
+  "Inmaculada Concepción": "Immaculate Conception",
+  "San José": "Saint Joseph’s Day",
+  "Diada Nacional de Catalunya": "National Day of Catalonia",
+  "Calendario escolar {curso}: {norma}. Los festivos locales dependen del municipio: añádelos como evento.": "School calendar {curso}: {norma}. Local holidays depend on the municipality: add them as an event.",
+  "El calendario de este curso aún no está disponible.": "This school year’s calendar is not available yet.",
+  "Primer día de clase ({etapa})": "First day of classes ({etapa})",
+  "Último día de clase ({etapa})": "Last day of classes ({etapa})",
+  'La nota de cada competencia específica del currículo oficial, a partir de las rúbricas y dianas que marcan qué criterios evalúan. No cambia la nota del cuaderno. El detalle de cada alumno, criterio a criterio, está en la Diana competencial.': 'The grade for each subject competency of the official curriculum, from the rubrics and targets that mark which criteria they assess. It does not change the gradebook grade. Each student’s detail, criterion by criterion, is in the Competency target.',
+  'Área por competencias': 'Subject by competency',
+  'Ir a Rúbricas': 'Go to Rubrics',
+  '{materia}, según {norma}.': '{materia}, according to {norma}.',
+  'Competencias específicas según {norma}.': 'Subject competencies according to {norma}.',
   "Competencias, criterios y saberes copiados tal cual del decreto.": "Competences, criteria and basic knowledge copied verbatim from the decree.",
   "Editar clase": "Edit class",
   "Clase actualizada": "Class updated",
@@ -1964,10 +1988,21 @@ const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };
  * castellano, así que lo que falte se lee en castellano en lugar de dejar un
  * hueco o enseñar una clave.
  */
+/**
+ * «Texto@@contexto»: la misma palabra con otra traducción según dónde sale.
+ * «Sesiones» es «Lessons» en una situación de aprendizaje, pero en PT y AL son
+ * sesiones de apoyo: «Sesiones@@apoyo» lleva su propia traducción. Sin ella
+ * (en castellano, por ejemplo), se ve el texto sin el contexto.
+ */
+function sinContexto(key: string): string {
+  const i = key.indexOf('@@');
+  return i < 0 ? key : key.slice(0, i);
+}
+
 export function translate(
   lang: Lang, key: string, vars?: Record<string, string | number>,
 ): string {
-  let out = DICTS[lang]?.[key] ?? key;
+  let out = DICTS[lang]?.[key] ?? sinContexto(key);
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       out = out.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));

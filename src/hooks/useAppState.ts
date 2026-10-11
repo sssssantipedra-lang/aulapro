@@ -17,6 +17,7 @@ import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurs
 import type { ApoyoData } from '../types/apoyo';
 import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF, sinClaseEF } from '../lib/ef';
 import { buildDemoEF } from '../lib/demoEF';
+import type { Lang } from '../i18n/core';
 import { tipoDePerfil } from '../lib/tipoDocente';
 import type { EfData } from '../types/ef';
 import type { TeacherProfile } from '../services/storage';
@@ -104,8 +105,8 @@ function emptySnapshot(): ProfileSnapshot {
  * perfil: si se cargaran en memoria después de abrirlo, la lectura del disco
  * (asíncrona, y todavía vacía) terminaría más tarde y los borraría.
  */
-export function demoSnapshot(): ProfileSnapshot {
-  const d = buildDemoData();
+export function demoSnapshot(lang: Lang = 'es'): ProfileSnapshot {
+  const d = buildDemoData(lang);
   return {
     ...emptySnapshot(),
     tasks: d.tasks,
@@ -309,14 +310,16 @@ export function useAppState() {
 
   const createAndOpenProfile = useCallback(async (
     input: store.NewProfileInput,
-    options: { importLegacy?: boolean; demo?: boolean } = {},
+    /** `lang`: el idioma de la aplicación, en el que salen los datos de ejemplo. */
+    options: { importLegacy?: boolean; demo?: boolean; lang?: Lang } = {},
   ) => {
     const created = await store.createProfile(input);
     if (options.demo) {
       // El ejemplo de PT y AL es su alumnado de apoyo, sin clases; el de EF, sus clases de EF
-      const demo = input.especialidades?.length ? { ...emptySnapshot(), apoyo: buildDemoApoyo() }
-        : input.tipoDocente === 'ef' ? { ...emptySnapshot(), ...buildDemoEF() }
-        : demoSnapshot();
+      const lang = options.lang ?? 'es';
+      const demo = input.especialidades?.length ? { ...emptySnapshot(), apoyo: buildDemoApoyo(new Date(), lang) }
+        : input.tipoDocente === 'ef' ? { ...emptySnapshot(), ...buildDemoEF(new Date(), lang) }
+        : demoSnapshot(lang);
       await store.saveData(created.id, demo as unknown as store.ProfileData);
     } else if (options.importLegacy) {
       const legacy = readLegacyData();
@@ -897,8 +900,8 @@ export function useAppState() {
   }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones, log, profileId]);
 
   /* ── Datos de ejemplo y limpieza ── */
-  const loadDemoData = useCallback(() => {
-    const d = demoSnapshot();
+  const loadDemoData = useCallback((lang: Lang = 'es') => {
+    const d = demoSnapshot(lang);
     setTasks(d.tasks);
     setClasses(d.classes.map(normalizeClass));
     setStudents(d.students);

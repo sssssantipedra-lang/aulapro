@@ -330,6 +330,19 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
 .cal-day { min-height:36px; border-radius:8px; display:flex; flex-direction:column; align-items:center; padding:5px 2px; cursor:pointer; transition:background var(--t); font-size:12.5px; font-weight:500; }
 .cal-day:hover { background:var(--surface); }
+/* Calendario escolar: los días no lectivos sombreados y las vacaciones en una franja continua */
+.cal-day.no-lectivo { background:color-mix(in srgb, var(--danger) 13%, var(--card)); color:var(--danger); font-weight:700; }
+.cal-day.vacaciones { background:color-mix(in srgb, var(--accent) 17%, var(--card)); border-radius:0; margin:0 -2px; padding-left:4px; padding-right:4px; }
+.cal-day.vacaciones.vac-ini { border-top-left-radius:8px; border-bottom-left-radius:8px; margin-left:0; padding-left:2px; }
+.cal-day.vacaciones.vac-fin { border-top-right-radius:8px; border-bottom-right-radius:8px; margin-right:0; padding-right:2px; }
+.cal-escolar-fuente { font-size:11.5px; line-height:1.6; color:var(--text-3); margin:12px 2px 0; }
+.cal-leyenda { display:inline-block; width:10px; height:10px; border-radius:3px; margin:0 5px -1px 0; }
+.cal-leyenda.vacaciones { background:color-mix(in srgb, var(--accent) 22%, var(--card)); }
+.cal-leyenda.no-lectivo { background:color-mix(in srgb, var(--danger) 22%, var(--card)); margin-left:12px; }
+.cal-escolar-dia { list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:6px; }
+.cal-escolar-dia li { font-size:13px; font-weight:700; padding:8px 12px; border-radius:10px; background:var(--surface); color:var(--text-2); }
+.cal-escolar-dia li.no-lectivo { background:color-mix(in srgb, var(--danger) 10%, var(--card)); color:var(--danger); }
+.cal-escolar-dia li.vacaciones { background:color-mix(in srgb, var(--accent) 10%, var(--card)); color:var(--accent-d); }
 .cal-day.today { background:rgba(var(--accent-rgb),0.12); color:var(--accent-d); font-weight:800; }
 .cal-day.selected { background:var(--accent-d); color:white; }
 .cal-day.other-month { color:var(--text-3); }
@@ -708,6 +721,15 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .ce-nota.alta { background:var(--ok-bg); color:var(--ok-fg); }
 .ce-nota.media { background:var(--warn-bg); color:var(--warn-fg); }
 .ce-nota.baja { background:color-mix(in srgb, var(--danger) 14%, var(--card)); color:var(--danger); }
+/* El cuaderno por competencias: la clase entera, una columna por competencia específica */
+.ce-clase-envoltorio { padding:0; margin-top:10px; }
+.ce-tabla.ce-clase thead th:not(:first-child), .ce-tabla.ce-clase td { text-align:center; white-space:nowrap; }
+.ce-tabla.ce-clase thead th[title] { cursor:help; }
+.ce-tabla.ce-clase tbody th { position:sticky; left:0; background:var(--card); z-index:1; }
+.ce-tabla.ce-clase td:last-child, .ce-tabla.ce-clase thead th:last-child { border-left:1px solid var(--border); }
+.ce-leyenda { list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:5px; font-size:12.5px; line-height:1.45; color:var(--text-2); }
+.ce-leyenda strong { color:var(--text); font-weight:800; margin-right:4px; }
+.ce-cita { font-size:11.5px; color:var(--text-3); margin:12px 0 0; }
 .co-picker { margin:0 0 10px 20px; font-size:12.5px; }
 .co-ttl { font-size:11.5px; font-weight:800; color:var(--accent-d); text-transform:uppercase; letter-spacing:0.04em; }
 .co-vacio { font-size:12px; color:var(--text-3); margin:4px 0; }

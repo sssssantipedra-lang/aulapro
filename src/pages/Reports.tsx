@@ -13,6 +13,9 @@ import { ClassChips } from '../components/ui/ClassChips';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { useI18n } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
+import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -37,6 +40,8 @@ interface Props {
   grades: GradeMap;
   attendance: AttendanceMap;
   reports: CompetencyReport[];
+  /** La comunidad del perfil: de su currículo salen las competencias específicas que llegan al informe. */
+  comunidad?: ComunidadId;
   onAddReport: (r: CompetencyReport) => void;
   onUpdateReport: (r: CompetencyReport) => void;
   onDeleteReport: (id: string) => void;
@@ -100,7 +105,7 @@ html, body { margin: 0; padding: 0; background: #fff; }
 export function Reports(props: Props) {
   const {
     classes, students, evaluations, rubrics, dianas,
-    gradeCategories, gradeItems, grades, attendance, reports,
+    gradeCategories, gradeItems, grades, attendance, reports, comunidad,
     onAddReport, onUpdateReport, onDeleteReport, onNav,
   } = props;
 
@@ -116,6 +121,9 @@ export function Reports(props: Props) {
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
+  // Las asignaturas de la clase con materia oficial, del currículo de la comunidad
+  const { materias: materiasOficiales, curriculo } = useMateriasOficiales(cls ?? null, comunidad);
+  const cita = curriculo ? citarNormas(curriculo.normas, lang) : '';
 
   const roster = useMemo(
     () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
@@ -125,8 +133,12 @@ export function Reports(props: Props) {
   const reportOf = (studentId: string) =>
     reports.find(r => r.student_id === studentId && r.period === period);
 
+  /** Las competencias específicas evaluadas del alumno (rúbricas y dianas con criterios oficiales). */
+  const competenciasDe = (studentId: string) =>
+    lineasDeCompetencias(materiasOficiales, evaluations.filter(e => e.student_id === studentId), lang === 'en');
+
   /** Reúne todo lo que sabemos del alumno para dárselo a la IA. */
-  function buildEvidence(student: Student): { text: string; hasData: boolean } {
+  function buildEvidence(student: Student): { text: string; hasData: boolean; competencias: boolean } {
     const lines: string[] = [];
     const en = lang === 'en';
 
@@ -146,6 +158,14 @@ export function Reports(props: Props) {
         const obsLabel = en ? 'Comment' : 'Observación';
         lines.push(`- ${ev.rubric_name}${auto} (${ev.date}): ${detail}${ev.notes ? ` | ${obsLabel}: ${ev.notes}` : ''}`);
       });
+    }
+
+    const porCompetencias = competenciasDe(student.id);
+    if (porCompetencias.length) {
+      lines.push(en
+        ? `\nSPECIFIC COMPETENCES OF THE OFFICIAL CURRICULUM (${cita}), mark out of 10:`
+        : `\nCOMPETENCIAS ESPECÍFICAS DEL CURRÍCULO OFICIAL (${cita}), nota sobre 10:`);
+      lines.push(...porCompetencias);
     }
 
     const avg = notebookAverage(student.id, clsId, gradeCategories, gradeItems, grades);
@@ -177,11 +197,11 @@ export function Reports(props: Props) {
       lines.push(`${en ? 'ALERTS' : 'ALERTAS'}: ${student.alerts.map(a => a.text).join('; ')}`);
     }
 
-    return { text: lines.join('\n'), hasData: evs.length > 0 || avg !== null };
+    return { text: lines.join('\n'), hasData: evs.length > 0 || avg !== null, competencias: porCompetencias.length > 0 };
   }
 
   async function generateFor(student: Student): Promise<boolean> {
-    const { text: evidence, hasData } = buildEvidence(student);
+    const { text: evidence, hasData, competencias: conCompetencias } = buildEvidence(student);
     if (!hasData) {
       toast(`${nombreDePila(student.name)} ${t('no tiene evaluaciones ni notas todavía')}`);
       return false;
@@ -207,6 +227,9 @@ export function Reports(props: Props) {
         `- Name the subject only when needed to explain WHY that result was observed (the specific task or ` +
         `situation). Never as the report's main subject.\n` +
         `- Write between 120 and 180 words, in 2 or 3 paragraphs, no headings or bullet points.\n` +
+        (conCompetencias
+          ? `- The specific competences of the official curriculum are the most solid evidence: rely on them to say which key competencies are consolidated and which are in progress, describing what the student does in plain language for families, without quoting codes or the legal wording.\n`
+          : '') +
         `- Start with the competencies already consolidated, move to those in progress, and end with a ` +
         `concrete, actionable suggestion for improvement.\n` +
         `- Don't invent facts not given above. Don't mention grade numbers except the overall average if it exists.\n` +
@@ -225,6 +248,9 @@ export function Reports(props: Props) {
         `- Nombra la asignatura únicamente si hace falta para explicar POR QUÉ se observa ese resultado (la tarea o ` +
         `situación concreta en la que se vio). Nunca como asunto principal del informe.\n` +
         `- Escribe entre 120 y 180 palabras, en 2 o 3 párrafos, sin encabezados ni viñetas.\n` +
+        (conCompetencias
+          ? `- Las competencias específicas del currículo oficial son la evidencia más sólida: apóyate en ellas para decir qué competencias clave tiene consolidadas y cuáles en proceso, contando lo que hace el alumno con palabras sencillas para las familias, sin citar códigos ni el texto legal.\n`
+          : '') +
         `- Empieza por las competencias que ya tiene consolidadas, sigue con las que están en proceso y termina con ` +
         `una propuesta de mejora concreta y accionable.\n` +
         `- No inventes hechos que no aparezcan arriba. No menciones números de nota salvo la media general si existe.\n` +
@@ -284,7 +310,7 @@ export function Reports(props: Props) {
 <div><dt>${esc(t('Fecha'))}</dt><dd>${esc(en ? new Date(r.date).toLocaleDateString(locale) : r.date)}</dd></div>
 </dl>
 <div class="cuerpo">${esc(r.text)}</div>
-<div class="pie">${esc(t('Informe redactado con asistencia de inteligencia artificial a partir de las evaluaciones, calificaciones y asistencia registradas, y revisado por el docente. Competencias clave según el currículo educativo español (LOMLOE).'))}</div>
+<div class="pie">${esc(t('Informe redactado con asistencia de inteligencia artificial a partir de las evaluaciones, calificaciones y asistencia registradas, y revisado por el docente. Competencias clave según el currículo educativo español (LOMLOE).'))}${cita && competenciasDe(r.student_id).length ? ` ${esc(t('Competencias específicas según {norma}.', { norma: cita }))}` : ''}</div>
 </section>`;
   }
 

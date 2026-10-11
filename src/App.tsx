@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { HelpChat } from './components/HelpChat';
@@ -82,6 +83,11 @@ function AppInner() {
   const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
   useEffect(() => { rememberTab(section); }, [section]);
+  // El calendario escolar publicado, al abrir un perfil de una comunidad que lo tiene (solo descarga)
+  const comunidadPerfil = st.currentUser?.community;
+  useEffect(() => {
+    if (comunidadPerfil && tieneCalendario(calendarios(), comunidadPerfil)) void actualizarCalendarios();
+  }, [comunidadPerfil]);
   const [sidebarMini, setSidebarMini] = useState(false);
   // En pantallas estrechas el menú va plegado a iconos y se abre por encima
   const narrow = useNarrowScreen();
@@ -269,9 +275,9 @@ function AppInner() {
         onExploreDemo={async input => {
           // El ejemplo de PT y AL lleva el nombre que le pone la bienvenida
           await st.createAndOpenProfile(input.especialidades?.length || input.tipoDocente === 'ef' ? input : {
-            name: DEMO_USER.full_name, school: DEMO_USER.school,
-            subject: DEMO_USER.subject, course: '2025-2026', community: DEMO_COMMUNITY,
-          }, { demo: true });
+            name: t(DEMO_USER.full_name), school: t(DEMO_USER.school),
+            subject: t(DEMO_USER.subject), course: '2025-2026', community: DEMO_COMMUNITY,
+          }, { demo: true, lang });
           toast(t('✅ Datos de ejemplo cargados'));
         }}
       />
@@ -335,7 +341,7 @@ function AppInner() {
                 nombre={st.currentUser.full_name}
                 data={st.apoyo}
                 onNav={setSection}
-                onLoadDemo={() => { st.setApoyo(() => buildDemoApoyo()); toast(t('✅ Datos de ejemplo cargados')); }}
+                onLoadDemo={() => { st.setApoyo(() => buildDemoApoyo(new Date(), lang)); toast(t('✅ Datos de ejemplo cargados')); }}
               />
             )}
             {section === 'dashboard' && !especialista && (
@@ -354,7 +360,7 @@ function AppInner() {
                 onNav={s => setSection(s as Section)}
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
-                onLoadDemo={() => { st.loadDemoData(); toast(t('✅ Datos de ejemplo cargados')); }}
+                onLoadDemo={() => { st.loadDemoData(lang); toast(t('✅ Datos de ejemplo cargados')); }}
                 ef={efInicio}
               />
             )}
@@ -390,6 +396,7 @@ function AppInner() {
                 onUpdateCalEvent={ev => { st.updateCalEvent(ev); toast(t('✅ Actualizado')); }}
                 onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}
                 onNav={s => setSection(s as Section)}
+                comunidad={st.currentUser.community}
               />
             )}
             {section === 'rubrics' && (
@@ -477,6 +484,8 @@ function AppInner() {
                 lawDocument={st.lawDocument}
                 onLawDocumentChange={st.setLawDocument}
                 onNav={s => setSection(s as Section)}
+                evaluations={st.evaluations}
+                comunidad={st.currentUser.community}
                 aiData={aiData}
                 chat={st.chat}
                 onChatChange={st.setChat}
@@ -550,6 +559,7 @@ function AppInner() {
                 grades={gradeView.grades}
                 attendance={st.attendance}
                 reports={st.reports}
+                comunidad={st.currentUser.community}
                 onAddReport={st.addReport}
                 onUpdateReport={st.updateReport}
                 onDeleteReport={st.deleteReport}
