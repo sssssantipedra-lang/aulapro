@@ -20,7 +20,7 @@
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;background:var(--canvas);color:var(--text);font:300 1.0625rem/1.7 var(--f-body);-webkit-font-smoothing:antialiased}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 70% 45% at 50% 0%,rgba(139,109,255,.08),rgba(139,109,255,0) 70%),radial-gradient(ellipse 60% 50% at 100% 100%,rgba(227,169,105,.12),rgba(227,169,105,0) 70%)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 70% 45% at 50% 0%,rgba(214,176,128,.12),rgba(214,176,128,0) 70%),radial-gradient(ellipse 60% 50% at 100% 100%,rgba(227,169,105,.12),rgba(227,169,105,0) 70%)}
 a{color:var(--accent-ink);text-underline-offset:3px}
 a:hover{color:var(--ink)}
 :focus-visible{outline:2.5px solid var(--accent);outline-offset:3px;border-radius:6px}
