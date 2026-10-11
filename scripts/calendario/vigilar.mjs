@@ -147,7 +147,8 @@ async function main() {
   const archivo = JSON.parse(readFileSync(ARCHIVO, 'utf8'));
   const tiene = (c, curso) => archivo.calendarios.some(x => x.comunidad === c && x.curso === curso);
   const curso = cursoSiguiente(HOY);
-  const desdeJulio = HOY.getUTCMonth() >= 6;
+  // Julio y agosto: desde septiembre el curso siguiente ya es el otro, que sale en primavera
+  const desdeJulio = [6, 7].includes(HOY.getUTCMonth());
   const nuevas = [];
   const avisos = [];
   const fuentes = { 'comunitat-valenciana': cv, madrid };
