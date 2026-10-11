@@ -99,21 +99,25 @@ Escape.
 
 [dashboard] INICIO
 Dice «qué toca ahora». Arriba, el saludo con un resumen (clases de hoy, tareas
-pendientes, alumnos con avisos). Debajo, una tarjeta grande con la clase de
-AHORA (o la siguiente, «Siguiente, a las 11:00») y tres botones: «Pasar lista»,
-«Anotar en el aula» (lleva a la Distribución de aula) y «Cuaderno»; a su lado,
-«Tu día» con todas las clases de hoy (las pasadas, atenuadas). Si ya no quedan
-clases, lo dice y propone ir al Cuaderno. Más abajo, cuatro tarjetas quietas:
-Tareas (se marcan y se añaden desde aquí), Próximos eventos, «Necesitan
-atención» (alumnos con avisos) y «Cómo van tus clases» (media de cada clase y
-cuántos están por debajo de 5).
+pendientes, alumnos con avisos). Debajo, la tarjeta «TU JORNADA»: las clases
+del día en una línea de tiempo (las pasadas, atenuadas; la de ahora, marcada)
+con la etiqueta «Ahora» o «Siguiente, a las 11:00». Si hoy ya no quedan
+clases, enseña el próximo día lectivo («Mañana · lunes 12» o «Próximo día
+lectivo»). «Ver la semana» lleva a la Agenda. En la misma tarjeta, cuatro
+ATAJOS: «Pasar lista» (Asistencia), «Añadir nota» (Cuaderno), «Evaluar» (la
+portada de Evaluar) y «Nueva tarea»; en Educación Física, también «Observar en
+la pista». Más abajo, tres columnas: Tareas (se marcan y se añaden desde
+aquí), Próximos eventos y «Necesitan atención» (alumnos con avisos); en EF,
+además, Exentos y lesiones, Próximas sesiones y Pruebas físicas. Al final,
+«Cómo van tus clases»: una minitarjeta por clase con su media, que solo
+avisa si hay alumnos por debajo de 5 o si aún no tiene notas.
 PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
 al hacerlos: 1) crear la primera clase con su alumnado, 2) añadir el horario
 (mejor escaneándolo en la Agenda), 3) decidir cómo se evalúa (categorías del
 Cuaderno), 4) pasar lista por primera vez y 5) conectar la IA (opcional). Cada
-paso tiene un botón que lleva a la pantalla. Con la flecha de la esquina la
-guía se minimiza a una sola línea (progreso, paso siguiente y su botón) y se
-vuelve a abrir pulsándola; desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
+paso tiene un botón que lleva a la pantalla. La guía sale plegada en una sola
+línea (progreso, paso siguiente y su botón) y se despliega pulsándola o con la
+flecha de la esquina; desaparece sola al completar los pasos obligatorios. Si el perfil está vacío,
 la guía ocupa el Inicio y ofrece además «Cargar datos de ejemplo» (datos
 ficticios para trastear sin miedo).
 
