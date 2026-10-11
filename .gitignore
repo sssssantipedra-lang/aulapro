@@ -49,3 +49,7 @@ scripts/curriculo/.cache-eso-cv/
 scripts/curriculo/.cache-catalunya/
 scripts/curriculo/.cache/
 .calendario/
+
+# Portada en català e inglés: la genera web/idiomas.mjs al publicar
+web/sitio/ca.html
+web/sitio/en.html

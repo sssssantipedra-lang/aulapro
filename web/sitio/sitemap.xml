@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Las páginas que Google debe conocer. La portada existe en tres idiomas (/ca y /en las genera
+     web/idiomas.mjs); las páginas legales y la de gracias no se indexan y no están aquí. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://aulapro.app/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aulapro.app/"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://aulapro.app/ca"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aulapro.app/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aulapro.app/"/>
+  </url>
+  <url>
+    <loc>https://aulapro.app/ca</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aulapro.app/"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://aulapro.app/ca"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aulapro.app/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aulapro.app/"/>
+  </url>
+  <url>
+    <loc>https://aulapro.app/en</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aulapro.app/"/>
+    <xhtml:link rel="alternate" hreflang="ca" href="https://aulapro.app/ca"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aulapro.app/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aulapro.app/"/>
+  </url>
+  <url>
+    <loc>https://aulapro.app/demo</loc>
+  </url>
+  <url>
+    <loc>https://aulapro.app/descargar</loc>
+  </url>
+</urlset>

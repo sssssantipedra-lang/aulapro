@@ -12,13 +12,46 @@
 <link rel="apple-touch-icon" href="assets/icono-180.png">
 <!-- Live at https://aulapro.app/ (Cloudflare Pages project aulapro-app; aulapro-app.pages.dev and www also serve it). -->
 <link rel="canonical" href="https://aulapro.app/">
+<!-- the same page in each language (ca.html and en.html are generated from this one by web/idiomas.mjs) -->
+<link rel="alternate" hreflang="es" href="https://aulapro.app/">
+<link rel="alternate" hreflang="ca" href="https://aulapro.app/ca">
+<link rel="alternate" hreflang="en" href="https://aulapro.app/en">
+<link rel="alternate" hreflang="x-default" href="https://aulapro.app/">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
 <meta property="og:title" content="AulaPro · La app con IA para docentes de Educación Primaria y Secundaria">
 <meta property="og:description" content="Situaciones de aprendizaje, rúbricas, informes y evaluación LOMLOE con IA, para Windows y Android. Oferta de lanzamiento: 6,99 €, de por vida.">
 <meta property="og:image" content="https://aulapro.app/assets/og.jpg">
 <meta property="og:url" content="https://aulapro.app/">
 <meta name="twitter:card" content="summary_large_image">
 <script>document.documentElement.classList.add('js')</script>
+<!-- a visitor who chose català or English (or came from a page in that language) goes to it before anything shows -->
+<script id="lang-go">try{var q=new URLSearchParams(location.search).get('lang'),l=q||localStorage.getItem('aula-lang');if(l==='ca'||l==='en')location.replace(l+location.hash)}catch(e){}</script>
+<!-- the app's card for Google -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "AulaPro",
+  "url": "https://aulapro.app/",
+  "description": "AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una app para Windows y Android. Sin cuentas. Oferta de lanzamiento: 6,99 €, de por vida.",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Windows, Android",
+  "inLanguage": [
+    "es",
+    "ca",
+    "en"
+  ],
+  "image": "https://aulapro.app/assets/og.jpg",
+  "offers": {
+    "@type": "Offer",
+    "price": "6.99",
+    "priceCurrency": "EUR",
+    "priceValidUntil": "2027-04-15",
+    "url": "https://aulapro.app/#precio"
+  }
+}
+</script>
 <link rel="preload" href="assets/fonts/lexend-latin-45b4c6.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-latin-a97232.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/fonts/fonts.css">

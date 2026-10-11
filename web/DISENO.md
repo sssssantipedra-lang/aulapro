@@ -371,3 +371,12 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **Sobre fondo oscuro, beige**: `#f1e4cf` y, el secundario, `#d9c4a5` (portada del vídeo, menú sobre el vídeo, pie, visor de capturas, aviso de la demo, botones de tienda). En los botones terracota, crema `#fff6ea` (4,7:1).
 - **Las marcas de las casillas quedan dentro** (la lista del vídeo y «Tacha la lista del domingo»): el dibujo ocupa la casilla, no se sale del borde.
 - **«Tacha la lista del domingo» se tacha en terracota**, como la lista del vídeo (quedaba un violeta).
+
+## 39. Google: una página por idioma, mapa del sitio y ficha de la app (11-10-2026, petición del usuario)
+
+- **El problema**: la portada elegía el idioma por el navegador de quien la visitaba. Google la lee con un navegador en inglés, así que la portada en castellano podía quedar indexada en inglés, y el catalán no tenía dirección propia.
+- **Una página por idioma**: `/` (castellano), `/ca` y `/en`. `web/idiomas.mjs` genera `ca.html` y `en.html` al publicar (paso de `web.yml`, antes de las huellas) con el texto traducido dentro del HTML, su título, descripción, `canonical`, `og:url` y `og:locale`. Los textos se siguen escribiendo solo en `index.html` (castellano) y `assets/i18n.js`. Las tres llevan `hreflang` entre sí (`x-default`: castellano).
+- **La página no cambia de idioma sola**: los botones ES, CA y EN llevan a la página de ese idioma (en el mismo punto, con el `#`) y recuerdan la elección; quien eligió català o inglés y entra en `/` va a su página antes de que se vea nada (`<script id="lang-go">`, que no existe en `/ca` ni `/en`). Los enlaces antiguos con `?lang=` también llevan a su página. Las páginas legales, descargas, gracias y la demo enlazan la portada en su idioma.
+- **`sitemap.xml` y `robots.txt`**: el mapa lista la portada en los tres idiomas (con sus alternativas), la demo y descargas; las legales y gracias llevan `noindex` y no están.
+- **Ficha de la app para Google** (`application/ld+json`): SoftwareApplication, Windows y Android, educativa, 6,99 € hasta el 15-04-2027. El 16-04-2027 hay que cambiarla (docs/WEB.md, apartado 5, punto 9).
+- **Pendiente del usuario**: dar de alta aulapro.app en Google Search Console y enviar el mapa del sitio.
