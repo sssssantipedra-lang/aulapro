@@ -50,7 +50,12 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 - Baremos opcionales, de dos fuentes:
   - Los del docente, por curso y, si quiere, por sexo. Se escriben a mano o se pegan desde una hoja de cálculo (`leerTramos`), y se copian de un curso a otro.
   - Uno publicado, solo si su licencia permite incluirlo en una app de pago.
-- Estado de los baremos publicados (5-10-2026): la app todavía no trae ninguno. Las tablas candidatas (ALPHA-Fitness y HELENA, Ortega y otros, 2011, BJSM; Tomkinson y otros, 2018, BJSM) están en revistas con licencias que hay que comprobar una a una, y desde el entorno de trabajo no se pudieron consultar. Hasta comprobar que la licencia permite el uso comercial, la app dice «La app todavía no trae baremos publicados; puedes crear el tuyo o pegar el de tu departamento.»
+- Estado de los baremos publicados (comprobado el 11-10-2026): la app no trae ninguno, porque ninguna de las tablas candidatas permite el uso en una app de pago:
+  - Tomkinson y otros (2018), «European normative values for physical fitness in children and adolescents aged 9–17 years», BJSM 52(22), 1445-1456: no es de acceso abierto; los repositorios lo dan como «In Copyright».
+  - Ortega y otros (2011), HELENA, «Physical fitness levels among European adolescents», BJSM 45(1), 20-29: no es de acceso abierto, con los derechos de la revista.
+  - Ortega y otros (2023), FitBack, «European fitness landscape for children and adolescents», BJSM 57(5), 299-310, la versión actual de los valores de la batería ALPHA-Fitness (6 a 18 años): acceso abierto, pero CC BY-NC 4.0, que prohíbe el uso comercial.
+  - El manual de ALPHA-Fitness (Ruiz y otros, 2011): no se encontró ninguna licencia que permita reutilizar sus tablas.
+  - La única vía es pedir permiso por escrito a los autores (para FitBack, el grupo PROFITH de la Universidad de Granada) o a la revista. Es tarea del dueño; si llega el permiso, se incluye con la cita y el permiso anotado aquí. Mientras, la app dice «La app todavía no trae baremos publicados; puedes crear el tuyo o pegar el de tu departamento.»
 - Con un baremo, la nota de cada marca sale del tramo en el que cae (`notaConBaremo`); «Al cuaderno» pasa esas notas a un instrumento del bloque que elija el docente.
 
 ## Equipos y circuitos
@@ -123,5 +128,5 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 ## Lo que falta
 
-- Baremos publicados: comprobar la licencia de ALPHA-Fitness y HELENA, y de Tomkinson y otros (2018), antes de incluir ninguno (ver «Pruebas físicas»).
+- Baremos publicados: comprobadas las licencias el 11-10-2026, ninguna permite el uso comercial (ver «Pruebas físicas»). Queda pedir permiso a los autores, tarea del dueño.
 - El cronómetro no suena con la pantalla bloqueada: por eso pide que la pantalla no se apague mientras corre.
