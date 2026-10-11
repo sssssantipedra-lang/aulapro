@@ -364,3 +364,10 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **El final es un degradado entero.** La franja «Sigue descubriendo AulaPro» va de transparente sobre el vídeo a crema, con un desenfoque que también crece hacia abajo (`.strip-in` y su `::before` con máscara), y la página sigue en el mismo crema: sin borde superior, sin sombra y sin la banda café. El vídeo ya no se oscurece por abajo (`.scrim`). La banda `.dusk` solo existe para la portada fija (móvil en horizontal y movimiento reducido).
 - **El menú pasa a crema en cuanto el vídeo empieza a subir** (`app.js`), y no al terminar de salir: sobre la pantalla blanca del portátil sus enlaces claros no se leían.
 - **El marco izquierdo del portátil, a la vista** (petición del usuario): en el primer plano, el borde izquierdo de la pantalla del vídeo original estaba más inclinado que el canto del portátil y, hacia abajo, se comía el marco (el lateral violeta oscuro lo disimulaba). Ahora ese borde va paralelo al canto (pendiente -0,1095) y el marco tiene el mismo ancho de arriba abajo, como el derecho; la franja que queda libre se pinta del color del marco, medido junto a la pantalla. `tracks.py` (`q614`) y `comp.py` (`OLD`, `BEZEL`).
+
+## 38. Texto marrón y beige, marcas dentro de sus casillas (11-10-2026, petición del usuario)
+
+- **Sobre fondo claro, marrón**: texto y títulos `#3b2a1f` (chocolate), secundario `#6e5644` (5:1 sobre el latte más oscuro), en lugar de casi negro. En todas las páginas (`--text`, `--ink`, `--text-2`, `--ink-2`).
+- **Sobre fondo oscuro, beige**: `#f1e4cf` y, el secundario, `#d9c4a5` (portada del vídeo, menú sobre el vídeo, pie, visor de capturas, aviso de la demo, botones de tienda). En los botones terracota, crema `#fff6ea` (4,7:1).
+- **Las marcas de las casillas quedan dentro** (la lista del vídeo y «Tacha la lista del domingo»): el dibujo ocupa la casilla, no se sale del borde.
+- **«Tacha la lista del domingo» se tacha en terracota**, como la lista del vídeo (quedaba un violeta).
