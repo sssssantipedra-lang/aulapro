@@ -9,68 +9,165 @@
         "es": "Resolución de 15 de junio de 2026, de la Dirección General de Centros Docentes (DOGV núm. 10387, de 18 de junio de 2026)",
         "ca": "Resolució de 15 de juny de 2026, de la Direcció General de Centres Docents (DOGV núm. 10387, de 18 de juny de 2026)"
       },
-      "url": "https://dogv.gva.es/",
+      "url": "https://dogv.gva.es/datos/2026/06/18/pdf/2026_20810_es.pdf",
       "verificado": true,
       "clases": {
-        "primaria": { "inicio": "2026-09-09", "fin": "2027-06-18" },
-        "eso": { "inicio": "2026-09-09", "fin": "2027-06-18" }
+        "primaria": {
+          "inicio": "2026-09-09",
+          "fin": "2027-06-18"
+        },
+        "eso": {
+          "inicio": "2026-09-09",
+          "fin": "2027-06-18"
+        }
       },
       "vacaciones": [
-        { "nombre": "Vacaciones de Navidad", "desde": "2026-12-22", "hasta": "2027-01-06" },
-        { "nombre": "Vacaciones de Pascua", "desde": "2027-03-25", "hasta": "2027-04-05" }
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-22",
+          "hasta": "2027-01-06"
+        },
+        {
+          "nombre": "Vacaciones de Pascua",
+          "desde": "2027-03-25",
+          "hasta": "2027-04-05"
+        }
       ],
       "noLectivos": [
-        { "fecha": "2026-10-09", "nombre": "Día de la Comunitat Valenciana" },
-        { "fecha": "2026-10-12", "nombre": "Fiesta Nacional de España" },
-        { "fecha": "2026-12-08", "nombre": "Inmaculada Concepción" },
-        { "fecha": "2027-03-19", "nombre": "San José" }
+        {
+          "fecha": "2026-10-09",
+          "nombre": "Día de la Comunitat Valenciana"
+        },
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-03-19",
+          "nombre": "San José"
+        }
       ]
     },
     {
       "comunidad": "cataluna",
       "curso": "2026-2027",
-      "norma": { "ca": "Ordre EDF/66/2026, de 22 d'abril (DOGC núm. 9653, de 27 d'abril de 2026)" },
-      "url": "https://dogc.gencat.cat/",
+      "norma": {
+        "ca": "Ordre EDF/66/2026, de 22 d'abril (DOGC núm. 9653, de 27 d'abril de 2026)"
+      },
+      "url": "https://portaljuridic.gencat.cat/eli/es-ct/o/2026/04/22/edf66",
       "verificado": true,
       "clases": {
-        "primaria": { "inicio": "2026-09-08", "fin": "2027-06-21" },
-        "eso": { "inicio": "2026-09-08", "fin": "2027-06-21" }
+        "primaria": {
+          "inicio": "2026-09-08",
+          "fin": "2027-06-21"
+        },
+        "eso": {
+          "inicio": "2026-09-08",
+          "fin": "2027-06-21"
+        }
       },
       "vacaciones": [
-        { "nombre": "Vacaciones de Navidad", "desde": "2026-12-22", "hasta": "2027-01-07" },
-        { "nombre": "Vacaciones de Semana Santa", "desde": "2027-03-20", "hasta": "2027-03-29" }
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-22",
+          "hasta": "2027-01-07"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-20",
+          "hasta": "2027-03-29"
+        }
       ],
       "noLectivos": [
-        { "fecha": "2026-09-11", "nombre": "Diada Nacional de Catalunya" },
-        { "fecha": "2026-10-12", "nombre": "Fiesta Nacional de España" },
-        { "fecha": "2026-12-08", "nombre": "Inmaculada Concepción" }
+        {
+          "fecha": "2026-09-11",
+          "nombre": "Diada Nacional de Catalunya"
+        },
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        }
       ]
     },
     {
       "comunidad": "madrid",
       "curso": "2026-2027",
-      "norma": { "es": "Orden 2034/2026, de 25 de mayo (BOCM núm. 131, de 4 de junio de 2026)" },
+      "norma": {
+        "es": "Orden 2034/2026, de 25 de mayo (BOCM núm. 131, de 4 de junio de 2026)"
+      },
       "url": "https://www.bocm.es/boletin/CM_Orden_BOCM/2026/06/04/BOCM-20260604-13.PDF",
       "verificado": true,
       "clases": {
-        "primaria": { "inicio": "2026-09-07", "fin": "2027-06-18" },
-        "eso": { "inicio": "2026-09-08", "fin": "2027-06-18" }
+        "primaria": {
+          "inicio": "2026-09-07",
+          "fin": "2027-06-18"
+        },
+        "eso": {
+          "inicio": "2026-09-08",
+          "fin": "2027-06-18"
+        }
       },
       "vacaciones": [
-        { "nombre": "Vacaciones de Navidad", "desde": "2026-12-23", "hasta": "2027-01-06" },
-        { "nombre": "Vacaciones de Semana Santa", "desde": "2027-03-20", "hasta": "2027-03-28" }
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-23",
+          "hasta": "2027-01-06"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-20",
+          "hasta": "2027-03-28"
+        }
       ],
       "noLectivos": [
-        { "fecha": "2026-10-12", "nombre": "Fiesta Nacional de España" },
-        { "fecha": "2026-11-02", "nombre": "Festivo" },
-        { "fecha": "2026-12-07", "nombre": "Festivo" },
-        { "fecha": "2026-12-08", "nombre": "Inmaculada Concepción" },
-        { "fecha": "2027-01-07", "nombre": "Día no lectivo" },
-        { "fecha": "2027-01-08", "nombre": "Día no lectivo" },
-        { "fecha": "2027-02-12", "nombre": "Día no lectivo" },
-        { "fecha": "2027-02-15", "nombre": "Día no lectivo" },
-        { "fecha": "2027-03-19", "nombre": "Día no lectivo" },
-        { "fecha": "2027-03-29", "nombre": "Día no lectivo" }
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Festivo"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Festivo"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-01-07",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-01-08",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-02-12",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-02-15",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-03-19",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-03-29",
+          "nombre": "Día no lectivo"
+        }
       ]
     }
   ]

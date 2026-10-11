@@ -1,0 +1,94 @@
+name: Vigilar el calendario escolar
+
+# Busca en los boletines oficiales el calendario escolar del curso siguiente
+# (scripts/calendario/vigilar.mjs; ver docs/COMUNIDADES.md, «Calendario
+# escolar»). Si lo encuentra y lo lee, comprueba el archivo con las pruebas
+# del calendario y propone el cambio en un pull request: al fusionarlo, la web
+# lo publica y las apps lo descargan. Si no puede leerlo, o en julio aún no
+# ha salido, abre un aviso. No publica nada por su cuenta.
+#
+# Los lunes y los jueves de marzo a septiembre, que es cuando salen. También
+# se puede lanzar a mano desde la pestaña "Actions".
+on:
+  schedule:
+    - cron: '17 6 * 3-9 1,4'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: calendario
+  cancel-in-progress: false
+
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    env:
+      SALIDA: ${{ runner.temp }}/calendario
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lector de PDF
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+
+      - name: Buscar en los boletines
+        id: vigilar
+        run: node scripts/calendario/vigilar.mjs
+
+      - name: Comprobar el calendario nuevo
+        if: steps.vigilar.outputs.cambios == 'si'
+        run: npx vitest run src/lib/calendarioEscolar.test.ts src/pages/AgendaCalendario.test.tsx scripts/calendario
+
+      - name: Proponer el cambio
+        if: steps.vigilar.outputs.cambios == 'si'
+        run: |
+          rama="${{ steps.vigilar.outputs.rama }}"
+          if [ -n "$(gh pr list --head "$rama" --state open --json number --jq '.[].number')" ]; then
+            echo "Ya hay un pull request abierto para $rama."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$rama"
+          git add web/sitio/calendario-escolar.json
+          git commit -m "Calendario escolar ${{ steps.vigilar.outputs.curso }}, leído del boletín oficial"
+          git push --force origin "$rama"
+          titulo="Calendario escolar ${{ steps.vigilar.outputs.curso }}"
+          # Para que la tarea pueda abrir pull requests hay que permitirlo en Settings → Actions → General
+          # («Allow GitHub Actions to create and approve pull requests»). Si no, abre un aviso con el enlace.
+          if ! gh pr create --base master --head "$rama" --title "$titulo" --body-file "$SALIDA/resumen.md"; then
+            {
+              cat "$SALIDA/resumen.md"
+              echo
+              echo "No se ha podido abrir el pull request desde la tarea. Ábrelo desde aquí: ${{ github.server_url }}/${{ github.repository }}/compare/master...$rama?expand=1"
+            } > "$SALIDA/aviso-pr.md"
+            gh issue create --title "$titulo: revisar y abrir el pull request" --body-file "$SALIDA/aviso-pr.md"
+          fi
+
+      - name: Avisos
+        if: steps.vigilar.outputs.avisos != '0'
+        run: |
+          jq -c '.[]' "$SALIDA/avisos.json" | while read -r aviso; do
+            titulo=$(jq -r '.titulo' <<< "$aviso")
+            # Uno por título: si ya hay uno abierto, no se repite
+            if [ -n "$(gh issue list --state open --search "\"$titulo\" in:title" --json number --jq '.[].number')" ]; then
+              echo "Ya hay un aviso abierto: $titulo"
+              continue
+            fi
+            jq -r '.cuerpo' <<< "$aviso" > "$SALIDA/aviso.md"
+            gh issue create --title "$titulo" --body-file "$SALIDA/aviso.md"
+          done
