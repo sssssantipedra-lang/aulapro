@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
@@ -8,13 +8,18 @@ import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
 import { useI18n } from '../i18n';
 import { ClassChips } from '../components/ui/ClassChips';
-import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig } from '../types';
+import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, Evaluation } from '../types';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
 import {
   isMarksCategory, blockConfig, blockActive, marksFor, studentBlock,
   TARGETS, targetLabel, esAsignaturaEF, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { downloadFile } from '../lib/download';
+
+// El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
+const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
+  .then(m => ({ default: m.CompetenciasDeLaClase })));
 
 interface Props {
   classes: Class[];
@@ -40,6 +45,9 @@ interface Props {
   lawDocument: InlineFile | null;
   onLawDocumentChange: (doc: InlineFile | null) => void;
   onNav: (s: string) => void;
+  /** Para la pestaña «Por competencias»: las evaluaciones con criterios oficiales y la comunidad del perfil. */
+  evaluations: Evaluation[];
+  comunidad?: ComunidadId;
   /** Todo el cuaderno, para que el asistente responda con datos reales. */
   aiData: TeacherData;
   chat: ChatMessage[];
@@ -1089,7 +1097,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
 /* ══════════════════ Página ══════════════════ */
 
 export function Notebook(props: Props) {
-  const [tab, setTab] = useState<'grades' | 'ai'>('grades');
+  const [tab, setTab] = useState<'grades' | 'competencias' | 'ai'>('grades');
   const { t } = useI18n();
 
   return (
@@ -1103,13 +1111,20 @@ export function Notebook(props: Props) {
           <button className={`tab-btn${tab === 'grades' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('grades')}>
             {t('Calificaciones')}
           </button>
+          <button className={`tab-btn${tab === 'competencias' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('competencias')}>
+            {t('Por competencias')}
+          </button>
           <button className={`tab-btn${tab === 'ai' ? ' active' : ''}`} style={{ padding: '8px 20px' }} onClick={() => setTab('ai')}>
             ✨ {t('Consulta IA')}
           </button>
         </div>
       </div>
 
-      {tab === 'grades' ? <GradesTab {...props} /> : (
+      {tab === 'grades' ? <GradesTab {...props} /> : tab === 'competencias' ? (
+        <Suspense fallback={<div className="card"><p className="ce-aviso">{t('Cargando…')}</p></div>}>
+          <CompetenciasDeLaClase classes={props.classes} students={props.students} evaluations={props.evaluations} comunidad={props.comunidad} onNav={props.onNav} />
+        </Suspense>
+      ) : (
         <AiTab
           data={props.aiData}
           chat={props.chat}

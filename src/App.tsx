@@ -477,6 +477,8 @@ function AppInner() {
                 lawDocument={st.lawDocument}
                 onLawDocumentChange={st.setLawDocument}
                 onNav={s => setSection(s as Section)}
+                evaluations={st.evaluations}
+                comunidad={st.currentUser.community}
                 aiData={aiData}
                 chat={st.chat}
                 onChatChange={st.setChat}
@@ -550,6 +552,7 @@ function AppInner() {
                 grades={gradeView.grades}
                 attendance={st.attendance}
                 reports={st.reports}
+                comunidad={st.currentUser.community}
                 onAddReport={st.addReport}
                 onUpdateReport={st.updateReport}
                 onDeleteReport={st.deleteReport}

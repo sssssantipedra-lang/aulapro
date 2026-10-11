@@ -708,6 +708,15 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .ce-nota.alta { background:var(--ok-bg); color:var(--ok-fg); }
 .ce-nota.media { background:var(--warn-bg); color:var(--warn-fg); }
 .ce-nota.baja { background:color-mix(in srgb, var(--danger) 14%, var(--card)); color:var(--danger); }
+/* El cuaderno por competencias: la clase entera, una columna por competencia específica */
+.ce-clase-envoltorio { padding:0; margin-top:10px; }
+.ce-tabla.ce-clase thead th:not(:first-child), .ce-tabla.ce-clase td { text-align:center; white-space:nowrap; }
+.ce-tabla.ce-clase thead th[title] { cursor:help; }
+.ce-tabla.ce-clase tbody th { position:sticky; left:0; background:var(--card); z-index:1; }
+.ce-tabla.ce-clase td:last-child, .ce-tabla.ce-clase thead th:last-child { border-left:1px solid var(--border); }
+.ce-leyenda { list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:5px; font-size:12.5px; line-height:1.45; color:var(--text-2); }
+.ce-leyenda strong { color:var(--text); font-weight:800; margin-right:4px; }
+.ce-cita { font-size:11.5px; color:var(--text-3); margin:12px 0 0; }
 .co-picker { margin:0 0 10px 20px; font-size:12.5px; }
 .co-ttl { font-size:11.5px; font-weight:800; color:var(--accent-d); text-transform:uppercase; letter-spacing:0.04em; }
 .co-vacio { font-size:12px; color:var(--text-3); margin:4px 0; }
