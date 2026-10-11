@@ -61,7 +61,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
   const clsId = cls?.id ?? '';
 
   const roster = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
     [students, clsId],
   );
 

@@ -521,6 +521,7 @@ export const CA: Record<string, string> = {
   "Tu día a día": "El teu dia a dia",
   "Centro y equipo": "Centre i equip",
   "Cuenta": "Compte",
+  "Otras clases": "Altres classes",
   "carrusel": "carrusel",
   "Nota media por rúbrica, sobre 10": "Nota mitjana per rúbrica, sobre 10",
   "Clase anterior": "Classe anterior",

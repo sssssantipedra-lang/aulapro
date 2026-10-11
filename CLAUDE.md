@@ -33,7 +33,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Menú sin grupos plegables ni «Más»: Tu día a día, Trabajo docente, Centro y equipo; abajo y sin color, Configuración y Registro de cambios (`src/lib/navigation.ts`). Los créditos y la versión están al pie de Configuración.
 - Evaluar se abre siempre en su portada («Resumen», `src/pages/EvaluarInicio.tsx`): dos tarjetas grandes, «Evaluar por rúbricas» y «Evaluar por dianas», y el carrusel «Cómo va cada clase» (nota media de cada rúbrica por clase, `src/lib/rendimiento.ts`). Rúbricas y Dianas son pestañas separadas del apartado.
 - Datos de ejemplo del docente de aula (`src/lib/demoData.ts`): 1º a 4º de ESO con Matemáticas y 1º a 6º de Primaria con un área distinta cada uno; cuaderno 40% pruebas, 40% tareas y 20% trabajo diario y actitud (Pruebas y Tareas al 50% y el bloque a 2 puntos); evaluaciones con competencias clave y criterios oficiales de la Comunitat Valenciana.
-- Se rediseña por fases, con capturas para el dueño en cada una. Hechas: fase 1 (menú y estilo) y fase 2 (Evaluar). Siguiente: el Cuaderno de notas.
+- Se rediseña por fases, con capturas para el dueño en cada una. Hechas: fase 1 (menú y estilo), fase 2 (Evaluar) y fase 3 (selector de clase). Con más de 6 clases, el selector de clase (`ClassChips`, el mismo en Cuaderno, Asistencia, Informes, Actas…) es un desplegable agrupado en Primaria, ESO y otras, con flechas para pasar de clase.
 
 ## Publicar
 

@@ -185,7 +185,7 @@ function GradesTab({
   const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
 
   const myStudents = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
     [students, clsId],
   );
   const myCategories = useMemo(

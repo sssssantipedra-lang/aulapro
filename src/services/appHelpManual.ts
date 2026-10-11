@@ -81,7 +81,11 @@ icono en un cuadradito de color. Todo está a la vista, en tres grupos:
 - «Centro y equipo»: Reuniones, Formaciones y Trabajo compartido.
 Abajo del todo, sin color: Configuración, Registro de cambios y Cerrar sesión.
 A Configuración también se llega pulsando el nombre del docente, arriba del
-todo. La versión de la aplicación y los créditos están al pie de Configuración.
+todo.
+En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
+Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
+más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
+flechas a los lados para pasar a la anterior o la siguiente. La versión de la aplicación y los créditos están al pie de Configuración.
 Así, por ejemplo, las Actas están en «Documentos → Actas» y la Distribución de
 aula en «En clase → Distribución de aula». Cada grupo se pliega y despliega
 pulsando su cabecera, y la barra entera se estrecha con la flecha de arriba. En

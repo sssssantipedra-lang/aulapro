@@ -1706,3 +1706,11 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .rend-pip:focus-visible { outline:2px solid var(--accent-d); outline-offset:2px; }
 .rend-vacio { font-size:13px; color:var(--text-2); line-height:1.5; }
 @media (prefers-reduced-motion: reduce) { .rend-plot, .rend-bar { animation:none; } }
+
+/* ── Selector de clase con muchas clases: desplegable agrupado por etapa (ClassChips) ── */
+.class-pick { display:inline-flex; align-items:center; gap:2px; }
+.class-pick-sel { position:relative; display:inline-flex; align-items:center; height:36px; border:1.5px solid var(--cp-c); border-radius:99px; background:var(--card); transition:border-color var(--t); }
+.class-pick-sel .chip-dot { position:absolute; left:14px; background:var(--cp-c); pointer-events:none; }
+.class-pick-sel select { appearance:none; -webkit-appearance:none; height:100%; padding:0 36px 0 31px; min-width:170px; border:none; border-radius:99px; background:transparent; font-family:var(--font); font-size:13.5px; font-weight:700; color:var(--text); cursor:pointer; outline:none; }
+.class-pick-sel:focus-within { box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.18); }
+.class-pick-chev { position:absolute; right:13px; color:var(--text-3); pointer-events:none; }

@@ -362,6 +362,7 @@ const EN: Record<string, string> = {
   'Más': 'More',
   'Centro y equipo': 'School and team',
   'Cuenta': 'Account',
+  'Otras clases': 'Other classes',
   'carrusel': 'carousel',
   'Nota media por rúbrica, sobre 10': 'Average mark per rubric, out of 10',
   'Clase anterior': 'Previous class',
