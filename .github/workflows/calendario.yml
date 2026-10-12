@@ -27,9 +27,13 @@ jobs:
   vigilar:
     runs-on: ubuntu-latest
     env:
-      SALIDA: ${{ runner.temp }}/calendario
       GH_TOKEN: ${{ github.token }}
     steps:
+      # SALIDA va aquí y no en el `env` del job: ahí no existe el contexto
+      # `runner` y GitHub da el archivo por inválido. La carpeta la crea el script.
+      - name: Carpeta de salida
+        run: echo "SALIDA=$RUNNER_TEMP/calendario" >> "$GITHUB_ENV"
+
       - name: Descargar el código
         uses: actions/checkout@v4
 
