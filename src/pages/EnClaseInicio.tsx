@@ -7,7 +7,7 @@
 import { ArrowRight, Flag, LayoutGrid, Presentation, Smartphone, UserCheck } from 'lucide-react';
 import type { Class, ClassMark, ScheduleBlock, SeatingPlan, Section } from '../types';
 import { bloqueQueToca } from '../lib/claseQueToca';
-import { isoDate } from '../lib/utils';
+import { hhmm, isoDate } from '../lib/utils';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -25,11 +25,8 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
   const conMesas = classes.filter(c => seatingPlans[c.id]?.groups.some(g => g.studentIds.some(Boolean))).length;
   const bloque = bloqueQueToca(classes, scheduleBlocks);
   const clase = bloque && classes.find(c => c.id === bloque.class_id);
-  const ahora = bloque ? (() => {
-    const d = new Date();
-    const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    return bloque.time_start <= hm;
-  })() : false;
+  // bloqueQueToca da el que está en marcha o, si no, el siguiente
+  const ahora = !!bloque && bloque.time_start <= hhmm(new Date());
   const cuenta = (n: number, uno: string, varios: string) => t(n === 1 ? uno : varios, { n });
 
   const tarjetas: { id: Section; color: string; icono: React.ReactNode; titulo: string; texto: string; dato: string }[] = [
@@ -49,7 +46,7 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
       id: 'sec-classroom', color: '#0ea5e9', icono: <Presentation size={26} />,
       titulo: 'Pizarra y herramientas',
       texto: 'Para proyectar: pizarra, temporizador, ruleta con los nombres, sonómetro, calculadora y retos.',
-      dato: 'Aula Live',
+      dato: t('Para proyectar en el aula'),
     },
     {
       id: 'classroom-live', color: '#8b5cf6', icono: <Smartphone size={26} />,

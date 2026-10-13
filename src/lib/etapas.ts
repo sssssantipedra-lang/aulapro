@@ -18,7 +18,7 @@ export function agruparPorEtapa<C extends Pick<Class, 'name' | 'etapa' | 'curso'
       ...e,
       clases: classes
         .filter(c => (c.etapa ?? 'otras') === e.id)
-        .sort((a, b) => (a.curso ?? 0) - (b.curso ?? 0) || a.name.localeCompare(b.name)),
+        .sort((a, b) => (a.curso ?? 0) - (b.curso ?? 0) || a.name.localeCompare(b.name, 'es', { numeric: true })),
     }))
     .filter(g => g.clases.length > 0);
 }

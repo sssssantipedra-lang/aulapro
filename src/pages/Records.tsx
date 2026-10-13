@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 import { PERIODS } from '../lib/utils';
-import { isMarksCategory } from '../services/classMarks';
+import { isMarksCategory, sumaDePesos } from '../services/classMarks';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
@@ -137,7 +137,10 @@ export function Records({
   // El bloque de anotaciones del aula se da en % de la nota final, como las
   // categorías. Con él, cada columna muestra lo que pesa de verdad en la nota.
   const ownWeight = cats.filter(c => !isMarksCategory(c.id)).reduce((a, c) => a + c.weight, 0);
-  const hayBloque = cats.some(c => isMarksCategory(c.id));
+  const bloque = cats.find(c => isMarksCategory(c.id));
+  const hayBloque = !!bloque;
+  // La misma comprobación que el cuaderno, con el bloque en % de la nota final
+  const pesos = sumaDePesos(ownWeight, bloque && totalWeight ? (bloque.weight / totalWeight) * 100 : 0);
   const weightLabel = (c: GradeCategory) => hayBloque
     ? `${(Math.round((c.weight / (totalWeight || 1)) * 1000) / 10).toLocaleString(locale)}%`
     : `${c.weight}%`;
@@ -308,9 +311,9 @@ export function Records({
           <Toggle label={t('Pie de firma')} on={showSignature} onChange={setShowSignature} />
         </div>
 
-        {ownWeight !== 100 && Math.round(totalWeight) !== 100 && cats.length > 0 && (
+        {!pesos.ok && cats.length > 0 && (
           <p style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 12, lineHeight: 1.5 }}>
-            <strong>{t('Atención:')}</strong> {t('los pesos de las categorías suman {n}%, no 100%. La nota final se calcula igualmente en proporción, pero revisa el cuaderno antes de firmar el acta.', { n: ownWeight })}
+            <strong>{t('Atención:')}</strong> {t('los pesos de las categorías suman {n}%, no 100%. La nota final se calcula igualmente en proporción, pero revisa el cuaderno antes de firmar el acta.', { n: pesos.total.toLocaleString(locale) })}
           </p>
         )}
       </div>

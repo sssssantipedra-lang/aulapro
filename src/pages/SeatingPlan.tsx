@@ -147,9 +147,14 @@ export function SeatingPlan({
   /** Sienta a quien falte en los asientos libres, mesa a mesa y por orden de lista. */
   function sentarEnOrden() {
     const pendientes = [...sinAsignar].sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+    // Un asiento con alguien que ya no está en la clase (borrado o cambiado
+    // de grupo) se ve libre en la mesa, así que también se ocupa.
+    const enLista = new Set(roster.map(s => s.id));
     const groups = plan.groups.map(g => {
       const ids = Array.from({ length: plan.groupSize }, (_, i) => seatStudentId(g, i) ?? '');
-      for (let i = 0; i < ids.length && pendientes.length > 0; i++) if (!ids[i]) ids[i] = pendientes.shift()!.id;
+      for (let i = 0; i < ids.length && pendientes.length > 0; i++) {
+        if (!ids[i] || !enLista.has(ids[i])) ids[i] = pendientes.shift()!.id;
+      }
       return { ...g, studentIds: ids };
     });
     guardar({ ...plan, groups });

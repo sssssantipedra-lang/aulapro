@@ -163,6 +163,20 @@ export function blockCategoryWeight(otherWeightsSum: number, points: number): nu
   return Math.round((otherWeightsSum * share / (1 - share)) * 10000) / 10000;
 }
 
+/**
+ * Si los pesos de un cuaderno cuadran y cuánto suman, en % de la nota final.
+ * Valen dos formas: las categorías más el bloque sumando 100 (40 + 40 + 20) o,
+ * en los cuadernos de antes, las categorías al 100% con el bloque aparte. Se
+ * compara redondeado a una décima: los pesos pueden llevar decimales y
+ * 66,6 + 13,3 + 0,1 no da exactamente 80 en coma flotante.
+ */
+export function sumaDePesos(categorias: number, bloquePct: number): { ok: boolean; total: number } {
+  const decima = (n: number) => Math.round(n * 10) / 10;
+  if (decima(categorias) === 100) return { ok: true, total: 100 };
+  const total = decima(categorias + bloquePct);
+  return { ok: total === 100, total };
+}
+
 const subjectsOf = (c: Class) => (c.subjects?.length ? c.subjects : [c.subject]);
 const mainSubject = (c: Class) => subjectsOf(c)[0] ?? '';
 

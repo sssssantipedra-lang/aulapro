@@ -574,7 +574,7 @@ export function Agenda({
                   </div>
                   <div style={{ fontSize: 18, lineHeight: 1.2 }}>{d.getDate()}</div>
                   {/* Los eventos del día, encima de sus clases (11-10-2026) */}
-                  {calEvents.filter(ev => ev.date === ds).map(ev => (
+                  {(eventsByDate[ds] ?? []).map(ev => (
                     <button
                       key={ev.id} type="button" className="wk-event"
                       style={{ '--ev-c': ev.color || 'var(--accent-d)' } as React.CSSProperties}

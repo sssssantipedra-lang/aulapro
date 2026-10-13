@@ -22,13 +22,15 @@ import {
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
 import { useI18n, priorityLabel, weekdayLabel } from '../i18n';
-import { isoDate, fromIsoDate } from '../lib/utils';
+import { isoDate, fromIsoDate, hhmm, prettyDate } from '../lib/utils';
 import { FirstSteps } from '../components/dashboard/FirstSteps';
 import { firstSteps } from '../lib/firstSteps';
 import { hasApiKey } from '../services/gemini';
 import { isMarksCategory } from '../services/classMarks';
 import { weightedAverage } from '../services/aiContext';
 import { agruparPorEtapa } from '../lib/etapas';
+import { esLectivo, type EtapaCalendario } from '../lib/calendarioEscolar';
+import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 
 interface Props {
   user: User | null;
@@ -58,8 +60,6 @@ interface Props {
   };
 }
 
-const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-
 function gradeColor(n: number | null): string {
   if (n === null) return 'var(--text-3)';
   if (n < 5) return 'var(--grade-bad)';
@@ -80,15 +80,28 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
 
   const greeting = t(now.getHours() < 13 ? 'Buenos días' : now.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches');
   const firstName = user?.full_name.split(' ')[0] ?? '';
-  // Solo la primera letra en mayúscula: «Martes, 29 de septiembre», no «29 De Septiembre»
-  const rawDate = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
-  const dateLabel = rawDate.charAt(0).toLocaleUpperCase(locale) + rawDate.slice(1);
+  const dateLabel = prettyDate(isoDate(now), locale);
 
   const todayDay = now.getDay() === 0 ? 7 : now.getDay();
   const nowHm = hhmm(now);
+
+  /**
+   * Si un día hay clase según el calendario escolar de la comunidad (festivos,
+   * vacaciones, antes o después del curso), para las etapas de las clases del
+   * docente; sin calendario, manda el horario.
+   */
+  const archivoCal = useCalendarioEscolar();
+  const etapas = useMemo<EtapaCalendario[]>(() => {
+    const e = new Set(classes.map(c => c.etapa).filter((x): x is EtapaCalendario => x === 'primaria' || x === 'eso'));
+    return e.size ? [...e] : ['primaria', 'eso'];
+  }, [classes]);
+  const lectivo = (d: Date) => esLectivo(archivoCal, user?.community, d, etapas);
+  const hoyLectivo = lectivo(now);
+
   const todayBlocks = useMemo(
-    () => scheduleBlocks.filter(b => b.day === todayDay).sort((a, b) => a.time_start.localeCompare(b.time_start)),
-    [scheduleBlocks, todayDay],
+    () => (hoyLectivo ? scheduleBlocks.filter(b => b.day === todayDay) : [])
+      .sort((a, b) => a.time_start.localeCompare(b.time_start)),
+    [scheduleBlocks, todayDay, hoyLectivo],
   );
   const current = todayBlocks.find(b => b.time_start <= nowHm && nowHm < b.time_end) ?? null;
   const next = todayBlocks.find(b => b.time_start > nowHm) ?? null;
@@ -96,19 +109,27 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
 
   /**
    * El día que se enseña: hoy, mientras quede alguna clase; si no, el próximo
-   * día con horario (el lunes, un domingo), a cuántos días está y sus clases.
+   * día lectivo con horario (el lunes, un domingo; tras un festivo o unas
+   * vacaciones, el día de la vuelta), a cuántos días está y sus clases.
    */
   const jornada = ((): { offset: number; blocks: ScheduleBlock[] } => {
     if (focus) return { offset: 0, blocks: todayBlocks };
-    for (let k = 1; k <= 7; k++) {
-      const day = ((todayDay - 1 + k) % 7) + 1;
-      const blocks = scheduleBlocks.filter(b => b.day === day).sort((a, b) => a.time_start.localeCompare(b.time_start));
-      if (blocks.length) return { offset: k, blocks };
+    // Hasta las vacaciones de verano más largas, con margen
+    for (let k = 1; k <= 120; k++) {
+      const fecha = new Date(now.getFullYear(), now.getMonth(), now.getDate() + k);
+      const day = fecha.getDay() === 0 ? 7 : fecha.getDay();
+      const blocks = scheduleBlocks.filter(b => b.day === day);
+      if (blocks.length && lectivo(fecha)) {
+        return { offset: k, blocks: blocks.sort((a, b) => a.time_start.localeCompare(b.time_start)) };
+      }
     }
     return { offset: 0, blocks: [] };
   })();
   const jornadaDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + jornada.offset);
-  const jornadaDia = jornadaDate.toLocaleDateString(locale, { weekday: 'long', day: 'numeric' });
+  // Más allá de una semana, con el mes: «lunes 11 de enero», no «lunes 11»
+  const jornadaDia = jornadaDate.toLocaleDateString(locale, jornada.offset >= 7
+    ? { weekday: 'long', day: 'numeric', month: 'long' }
+    : { weekday: 'long', day: 'numeric' });
 
   const pendingTasks = tasks.filter(tk => !tk.done);
   const alerts = students.filter(s => s.alerts.length > 0);
