@@ -33,7 +33,11 @@ class Storage {
   }
 
   profileDir(id) {
-    return path.join(this.profilesDir, String(id).replace(/[^a-zA-Z0-9_-]/g, ''));
+    const safe = String(id ?? '').replace(/[^a-zA-Z0-9_-]/g, '');
+    // Un id vacío apuntaría a la carpeta de todos los perfiles: borrar uno
+    // las borraría todas.
+    if (!safe) throw new Error('Perfil sin identificador');
+    return path.join(this.profilesDir, safe);
   }
 
   dataFile(id)    { return path.join(this.profileDir(id), 'datos.json'); }

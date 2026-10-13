@@ -11,7 +11,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, Evaluation } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import {
-  isMarksCategory, blockConfig, blockActive, marksFor, studentBlock,
+  isMarksCategory, blockConfig, sumaDePesos, blockActive, marksFor, studentBlock,
   TARGETS, targetLabel, esAsignaturaEF, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
@@ -221,6 +221,7 @@ function GradesTab({
   }, [cls, activeSubject, marksConfigs, classMarks, myStudents]);
   /** Lo que pesa el bloque en la nota final, en % (0 si no cuenta). */
   const blockPct = block?.active ? Math.round(block.cfg.points * 100) / 10 : 0;
+  const pesos = sumaDePesos(weightSum, blockPct);
 
   /**
    * Las pruebas agrupadas por categoría, en el orden en que se muestran.
@@ -473,13 +474,13 @@ function GradesTab({
                   40 + 40 + 20 suman 100. Los cuadernos de antes, con las
                   categorías al 100% y el bloque aparte, tampoco avisan: la
                   cuenta es la misma. */}
-              {weightSum === 100 || weightSum + blockPct === 100 ? (
+              {pesos.ok ? (
                 <span className="gb-formula-total ok" title={t('Los pesos están bien')}>
-                  <Check size={13} />{weightSum === 100 ? '100%' : `${(weightSum + blockPct).toLocaleString(locale)}%`}
+                  <Check size={13} />{`${pesos.total.toLocaleString(locale)}%`}
                 </span>
               ) : (
                 <span className="gb-formula-total warn">
-                  ⚠ {t('Los pesos suman {n}% (lo ideal es 100%)', { n: (Math.round((weightSum + blockPct) * 10) / 10).toLocaleString(locale) })}
+                  ⚠ {t('Los pesos suman {n}% (lo ideal es 100%)', { n: pesos.total.toLocaleString(locale) })}
                 </span>
               )}
               <button type="button" className="gb-formula-add" onClick={() => openCatModal('new')}>

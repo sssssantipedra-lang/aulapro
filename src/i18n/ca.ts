@@ -1842,6 +1842,11 @@ export const CA: Record<string, string> = {
   "{what}, {n} hoy": "{what}, {n} avui",
   "✅ Todos sentados": "✅ Tothom assegut",
   "Anotar": "Anotar",
+  "{n} anotación hoy": "{n} anotació avui",
+  "{n} anotaciones hoy": "{n} anotacions avui",
+  "{n} clase con mesas": "{n} classe amb taules",
+  "{n} clases con mesas": "{n} classes amb taules",
+  "Para proyectar en el aula": "Per a projectar a l'aula",
   ...APOYO_CA,
   ...EF_CA,
 };

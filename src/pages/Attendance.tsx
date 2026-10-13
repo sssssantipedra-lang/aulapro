@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import type { Class, Student, AttendanceMap, AttendanceStatus, ScheduleBlock } from '../types';
 import { claseQueToca } from '../lib/claseQueToca';
-import { isoDate, fromIsoDate } from '../lib/utils';
+import { isoDate, prettyDate, shiftDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
@@ -36,20 +36,6 @@ function statusList(t: (k: string) => string): { id: AttendanceStatus; label: st
 const NEXT: Record<AttendanceStatus, AttendanceStatus> = {
   present: 'absent', absent: 'late', late: 'justified', justified: 'present',
 };
-
-function shiftDate(iso: string, days: number): string {
-  const d = fromIsoDate(iso);
-  d.setDate(d.getDate() + days);
-  return isoDate(d);
-}
-
-/** «Martes, 13 de octubre»: solo la primera letra en mayúscula, no «13 De Octubre». */
-function prettyDate(iso: string, locale: string): string {
-  const s = fromIsoDate(iso).toLocaleDateString(locale, {
-    weekday: 'long', day: 'numeric', month: 'long',
-  });
-  return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
-}
 
 export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav, scheduleBlocks = [] }: Props) {
   const { toast } = useToast();

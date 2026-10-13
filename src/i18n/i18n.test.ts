@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { translate, LANGS, TRANSLATED_KEYS, EN_DICT } from './index';
 import { CA } from './ca';
 
@@ -98,5 +100,46 @@ describe('català', () => {
     expect(missing).toEqual([]);
     const badVars = Object.entries(CA).filter(([k, v]) => vars(k) !== vars(v)).map(([k]) => k);
     expect(badVars).toEqual([]);
+  });
+});
+
+describe('textos de la interfaz', () => {
+  /** Los .ts y .tsx de src, sin pruebas, diccionarios ni datos del currículo. */
+  function fuentes(dir: string, out: string[] = []): string[] {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        if (e.name !== 'i18n' && e.name !== 'data') fuentes(p, out);
+      } else if (/\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name)) out.push(p);
+    }
+    return out;
+  }
+
+  it('cada texto escrito dentro de t() está en inglés y en catalán', () => {
+    // t('…'), t(cond ? '…' : '…') y cuenta(n, '…', '…'): las formas en que una
+    // pantalla pasa un texto fijo al traductor. Si faltara, se vería en
+    // castellano con la app en otro idioma.
+    const A = /(['"])((?:\\.|(?!\1).)*)\1/.source;
+    const B = A.replace(/\\1/g, '\\3');   // la segunda cadena, con sus propios grupos
+    const formas = [
+      new RegExp(/\bt\(\s*/.source + A, 'g'),
+      new RegExp(/\bt\(\s*[\w.!]+\s*\?\s*/.source + A + /\s*:\s*/.source + B, 'g'),
+      new RegExp(/\bcuenta\(\s*[^,]+,\s*/.source + A + /\s*,\s*/.source + B, 'g'),
+    ];
+    const faltan = new Set<string>();
+    for (const f of fuentes(path.resolve(__dirname, '..'))) {
+      const src = fs.readFileSync(f, 'utf8');
+      for (const re of formas) {
+        for (const m of src.matchAll(re)) {
+          for (const raw of [m[2], m[4]]) {
+            if (raw === undefined) continue;
+            const k = raw.replace(/\\(['"])/g, '$1').replace(/\\n/g, '\n');
+            if (!/[a-záéíóúñ]/i.test(k)) continue;
+            if (!(k in EN_DICT) || !(k in CA)) faltan.add(`${path.basename(f)}: ${k}`);
+          }
+        }
+      }
+    }
+    expect([...faltan]).toEqual([]);
   });
 });

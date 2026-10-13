@@ -4,11 +4,6 @@ export function initials(name: string): string {
 }
 
 /**
- * Concuerda en número: `plural(2, 'evaluación', 'evaluaciones')` → "2 evaluaciones".
- * Necesario porque muchos plurales españoles no se forman añadiendo letras
- * (evaluación → evaluaciones pierde la tilde).
- */
-/**
  * El nombre de pila de un alumno para avisos y frases cortas. Si detrás va un
  * número («Alumno 1», como en los datos de ejemplo), el nombre entero: si no,
  * todos serían «Alumno».
@@ -29,10 +24,6 @@ export function nombresCortos(nombres: readonly string[]): string[] {
   const veces = new Map<string, number>();
   for (const n of limpios) veces.set(primero(n).toLocaleLowerCase(), (veces.get(primero(n).toLocaleLowerCase()) ?? 0) + 1);
   return limpios.map(n => ((veces.get(primero(n).toLocaleLowerCase()) ?? 0) > 1 ? n : primero(n)));
-}
-
-export function plural(n: number, singular: string, plural: string): string {
-  return `${n} ${n === 1 ? singular : plural}`;
 }
 
 /**
@@ -64,6 +55,22 @@ export function fromIsoDate(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
+
+/** El mismo día movido `days` días adelante (o atrás), en AAAA-MM-DD. */
+export function shiftDate(iso: string, days: number): string {
+  const d = fromIsoDate(iso);
+  d.setDate(d.getDate() + days);
+  return isoDate(d);
+}
+
+/** «Martes, 13 de octubre»: solo la primera letra en mayúscula, no «13 De Octubre». */
+export function prettyDate(iso: string, locale: string): string {
+  const s = fromIsoDate(iso).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
+  return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
+}
+
+/** La hora de una fecha en «HH:MM», como las del horario. */
+export const hhmm = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 export function fileToBase64(file: File): Promise<{ name: string; mimeType: string; base64: string }> {
   return new Promise((resolve, reject) => {

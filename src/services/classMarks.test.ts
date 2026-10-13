@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  applyClassMarks, studentBlock, blockConfig, blockActive, blockCategoryWeight,
+  applyClassMarks, studentBlock, blockConfig, blockActive, blockCategoryWeight, sumaDePesos,
   DEFAULT_BLOCK, BLOCK_CATEGORY_PREFIX, BLOCK_ITEM_PREFIX, isMarksCategory,
 } from './classMarks';
 import { weightedAverage } from './aiContext';
@@ -51,6 +51,24 @@ describe('blockCategoryWeight', () => {
     expect(blockCategoryWeight(90, 1)).toBe(10);
     expect(blockCategoryWeight(0, 1)).toBe(100);
     expect(blockCategoryWeight(100, 0)).toBe(0);
+  });
+});
+
+describe('sumaDePesos', () => {
+  it('cuadra con categorías y bloque sumando 100, o con las categorías al 100%', () => {
+    expect(sumaDePesos(80, 20)).toEqual({ ok: true, total: 100 });
+    expect(sumaDePesos(100, 20)).toEqual({ ok: true, total: 100 });
+    expect(sumaDePesos(100, 0)).toEqual({ ok: true, total: 100 });
+  });
+
+  it('acepta pesos con decimales que en coma flotante no dan 80 exacto', () => {
+    expect(0.1 + 66.6 + 13.3).not.toBe(80);
+    expect(sumaDePesos(0.1 + 66.6 + 13.3, 20)).toEqual({ ok: true, total: 100 });
+  });
+
+  it('avisa con lo que suma de verdad en la nota final, bloque incluido', () => {
+    expect(sumaDePesos(70, 20)).toEqual({ ok: false, total: 90 });
+    expect(sumaDePesos(70, 0)).toEqual({ ok: false, total: 70 });
   });
 });
 

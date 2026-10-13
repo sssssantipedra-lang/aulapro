@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron')
 const path = require('path');
 const fsp = require('fs/promises');
 const os = require('os');
+const { pathToFileURL } = require('url');
 const { ClassroomServer } = require('./classroom.cjs');
 const { Storage } = require('./storage.cjs');
 const { AppServer } = require('./appserver.cjs');
@@ -165,11 +166,14 @@ async function createWindow() {
     minHeight: 700,
     title: 'AulaPro - Gestión Escolar de Escritorio',
     icon: path.join(__dirname, 'icon.ico'),
+    // Sin `webSecurity: false`: la app se sirve por http desde 127.0.0.1 y
+    // todo lo que pide fuera (Gemini, el calendario escolar) admite CORS,
+    // igual que en Android. Desactivarlo dejaba, entre otras cosas, que una
+    // web incrustada en la pizarra sacara a la ventana de la aplicación.
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false
     },
     autoHideMenuBar: true
   });
@@ -178,10 +182,24 @@ async function createWindow() {
   Menu.setApplicationMenu(null);
 
   // Los enlaces a webs (p. ej. Google AI Studio para la clave) se abren en el
-  // navegador del sistema, donde el docente ya tiene su sesión de Google.
+  // navegador del sistema, donde el docente ya tiene su sesión de Google. Nada
+  // más abre ventanas: una ventana nueva heredaría el acceso a los datos.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//.test(url)) { shell.openExternal(url); return { action: 'deny' }; }
-    return { action: 'allow' };
+    if (/^https?:\/\//i.test(url)) shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  // La ventana solo muestra la aplicación. Cualquier otra página cargada en
+  // ella tendría `window.electronAPI` (los datos de todos los perfiles, la
+  // clave de la IA…): una web incrustada en el widget de contenido de la
+  // pizarra podía llevarla a otra dirección con `top.location`.
+  const appOrigin = url => {
+    if (url.startsWith('file:')) return url.startsWith(pathToFileURL(path.join(__dirname, '../dist')).href + '/');
+    const allowed = [appServer.url, process.env.VITE_DEV_SERVER_URL].filter(Boolean);
+    try { return allowed.some(a => new URL(url).origin === new URL(a).origin); } catch { return false; }
+  };
+  mainWindow.webContents.on('will-navigate', e => {
+    if (!appOrigin(e.url)) e.preventDefault();
   });
 
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;

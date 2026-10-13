@@ -26,6 +26,12 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Las ventanas emergentes (`.modal-overlay`) llevan el desenfoque solo mientras están abiertas: cerradas siguen montadas, y con él la tarjeta gráfica reservaba unos 30 MB.
 - El guardado automático recuerda una huella SHA-256 de lo guardado, no una copia del curso.
 
+## Seguridad de la ventana de escritorio (revisión del 13-10-2026)
+
+- La ventana principal solo muestra la app: `will-navigate` bloquea cualquier otra dirección y `setWindowOpenHandler` no abre ventanas (las webs van al navegador del sistema). Una página distinta dentro de ella tendría `window.electronAPI`, con los datos de todos los perfiles y la clave de la IA; una web incrustada en el widget de contenido de la pizarra podía llevarla a otra dirección.
+- Sin `webSecurity: false`: la app se sirve desde 127.0.0.1 y todo lo que pide fuera admite CORS, como en Android.
+- `electron/storage.cjs` no acepta un id de perfil vacío: apuntaría a la carpeta de todos los perfiles.
+
 ## Aspecto de la app (revisión del 11-10-2026)
 
 - Estilo cálido elegido por el dueño: fondo crema (`--surface`), tarjetas blancas y menú lateral claro (`--nav-*` en `src/index.css`). En modo oscuro el menú toma el color oscuro del tema (`--sb-bg`). La bienvenida y la pantalla de licencia siguen oscuras.

@@ -7,6 +7,7 @@
  * sala, el servidor se apaga y no queda nada accesible.
  */
 
+const crypto = require('crypto');
 const http = require('http');
 const net = require('net');
 const os = require('os');
@@ -23,10 +24,11 @@ const CODE_LENGTH = 6;
 /** Interfaces que no sirven para que un móvil llegue al equipo. */
 const IGNORED_IFACE = /tun|tap|vpn|virtual|vmware|vbox|hyper-?v|docker|loopback|bluetooth/i;
 
+/** Con el generador criptográfico: el código es lo único que protege la sala. */
 function randomCode() {
   let out = '';
   for (let i = 0; i < CODE_LENGTH; i++) {
-    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+    out += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
   }
   return out;
 }

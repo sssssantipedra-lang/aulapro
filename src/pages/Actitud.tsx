@@ -17,7 +17,7 @@ import {
 import { claseQueToca } from '../lib/claseQueToca';
 import { useActitudPedido } from '../lib/actitudNav';
 import { markIcon } from '../lib/markIcons';
-import { fromIsoDate, isoDate } from '../lib/utils';
+import { isoDate, prettyDate, shiftDate } from '../lib/utils';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 
@@ -39,17 +39,6 @@ const CORTO: Partial<Record<ClassMarkType, string>> = {
   'behavior-good': 'Buen comport.',
   'behavior-bad': 'Mal comport.',
 };
-
-function shiftDate(iso: string, days: number): string {
-  const d = fromIsoDate(iso);
-  d.setDate(d.getDate() + days);
-  return isoDate(d);
-}
-
-function prettyDate(iso: string, locale: string): string {
-  const s = fromIsoDate(iso).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
-  return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
-}
 
 export function Actitud({ classes, students, classMarks, marksConfigs, attendance, scheduleBlocks = [], onAdd, onDelete, onNav }: Props) {
   const { t, locale } = useI18n();

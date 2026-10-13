@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import deSerie from '../../web/sitio/calendario-escolar.json';
 import {
-  validarArchivo, cursoDe, calendarioDe, diaEscolar, marcasDelDia, sinCursosPasados, tieneCalendario,
+  validarArchivo, cursoDe, esLectivo, calendarioDe, diaEscolar, marcasDelDia, sinCursosPasados, tieneCalendario,
   type ArchivoCalendarios, type CalendarioCurso,
 } from './calendarioEscolar';
 import { fromIsoDate } from './utils';
@@ -142,5 +142,26 @@ describe('descarga', () => {
     vi.resetModules();
     mod = await import('./calendarioEscolar');
     expect(mod.calendarios().actualizado).toBe('2026-12-01');
+  });
+});
+
+describe('esLectivo', () => {
+  const dia = (iso: string) => fromIsoDate(iso);
+
+  it('un festivo, unas vacaciones o un día fuera del curso no son lectivos', () => {
+    expect(esLectivo(serie, 'madrid', dia('2026-10-13'), ['eso'])).toBe(true);
+    expect(esLectivo(serie, 'madrid', dia('2026-10-12'), ['eso'])).toBe(false);
+    expect(esLectivo(serie, 'madrid', dia('2026-12-28'), ['eso'])).toBe(false);
+    expect(esLectivo(serie, 'madrid', dia('2027-07-05'), ['eso'])).toBe(false);
+  });
+
+  it('el primer día de cada etapa cuenta solo para la suya', () => {
+    expect(esLectivo(serie, 'madrid', dia('2026-09-07'), ['eso'])).toBe(false);
+    expect(esLectivo(serie, 'madrid', dia('2026-09-07'), ['primaria', 'eso'])).toBe(true);
+  });
+
+  it('sin calendario de la comunidad o del curso, manda el horario', () => {
+    expect(esLectivo(serie, 'andalucia', dia('2026-10-12'), ['eso'])).toBe(true);
+    expect(esLectivo(serie, undefined, dia('2026-12-28'), ['eso'])).toBe(true);
   });
 });

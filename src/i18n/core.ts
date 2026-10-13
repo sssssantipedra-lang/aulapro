@@ -2054,6 +2054,12 @@ const EN: Record<string, string> = {
   '{what}, {n} hoy': '{what}, {n} today',
   '✅ Todos sentados': '✅ Everyone seated',
   'Anotar': 'Log',
+  '{n} anotación hoy': '{n} note today',
+  '{n} anotaciones hoy': '{n} notes today',
+  '{n} clase con mesas': '{n} class with tables',
+  '{n} clases con mesas': '{n} classes with tables',
+  'Para proyectar en el aula': 'For the classroom projector',
+  'Emoji': 'Emoji',
 };
 
 const DICTS: Record<Lang, Record<string, string>> = { es: {}, en: EN, ca: CA };

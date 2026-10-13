@@ -1,4 +1,5 @@
 import type { Class, ScheduleBlock } from '../types';
+import { hhmm } from './utils';
 
 /**
  * El bloque del horario que está en marcha o, si no, el siguiente de hoy.
@@ -6,7 +7,7 @@ import type { Class, ScheduleBlock } from '../types';
  */
 export function bloqueQueToca(classes: Class[], blocks: ScheduleBlock[], now = new Date()): ScheduleBlock | undefined {
   const day = now.getDay() === 0 ? 7 : now.getDay();
-  const hm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const hm = hhmm(now);
   const hoy = blocks
     .filter(b => b.day === day && classes.some(c => c.id === b.class_id))
     .sort((a, b) => a.time_start.localeCompare(b.time_start));

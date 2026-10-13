@@ -143,6 +143,22 @@ export function diaEscolar(cal: CalendarioCurso | null, iso: string): DiaEscolar
   return vac ? { tipo: 'vacaciones', nombre: vac.nombre } : null;
 }
 
+/**
+ * Si ese día hay clase según el calendario de la comunidad: no es vacaciones
+ * ni día no lectivo y cae dentro del curso de alguna de las etapas que se dan.
+ * Sin calendario para ese curso, se da por lectivo: manda el horario.
+ */
+export function esLectivo(
+  archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined, fecha: Date, etapas: EtapaCalendario[],
+): boolean {
+  const cal = calendarioDe(archivo, comunidad, cursoDe(fecha));
+  if (!cal) return true;
+  const iso = isoDate(fecha);
+  if (diaEscolar(cal, iso)) return false;
+  const cursos = etapas.map(e => cal.clases[e]).filter(c => c !== undefined);
+  return cursos.length === 0 || cursos.some(c => iso >= c.inicio && iso <= c.fin);
+}
+
 /** El primer y el último día de clase de cada etapa que cae en ese día, para marcarlo. */
 export interface MarcaDelDia { tipo: 'inicio' | 'fin'; etapa: EtapaCalendario }
 

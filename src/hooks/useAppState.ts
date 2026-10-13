@@ -912,10 +912,17 @@ export function useAppState() {
     setScheduleBlocks(d.blocks);
     setCalEvents(d.events);
     setRubrics(d.rubrics);
+    // Lo mismo que «Explorar con datos de ejemplo» (demoSnapshot): sin el
+    // bloque, el cuaderno de ejemplo se quedaba al 10% y avisaba de que los
+    // pesos no suman 100; sin las evaluaciones, Evaluar salía vacío.
+    setDianas(d.dianas);
+    setEvaluations(d.evaluations);
+    setDianaProfiles(d.dianaProfiles);
     setGradeCategories(d.gradeCategories);
     setGradeItems(d.gradeItems);
     setGrades(d.grades);
     setClassMarks(d.classMarks);
+    setMarksConfigs(d.marksConfigs);
   }, []);
 
   /** Copia de seguridad descargable como archivo. */
