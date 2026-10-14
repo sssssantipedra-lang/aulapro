@@ -12,7 +12,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `docs/WEB.md`: contexto compartido entre la app y la web: modelo de venta, lo que la web promete y la app tiene que cumplir, descargas y Lemon Squeezy.
 - `docs/DESCARGAS.md`: el servidor de descargas (descargas.aulapro.app).
 - `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar de las tres está en la Agenda desde el 11-10-2026 (`web/sitio/calendario-escolar.json`).
-- `docs/FICHAS.md`: las fichas de trabajo (Recursos): el diseño «Cuaderno», el catálogo de ilustraciones con su descripción y sus temas, el generador con fal.ai y lo que falta.
+- `docs/FICHAS.md`: las fichas de trabajo (Recursos): el diseño «Cuaderno», el catálogo de ilustraciones con su descripción y sus temas, los hilos conductores, el generador con fal.ai y lo que falta. `docs/HILOS.md`: el índice de los hilos y de sus dibujos (lo genera una prueba).
 - `docs/PTAL.md`: el módulo de Pedagogía Terapéutica y Audición y Lenguaje: decisiones, normativa de inclusión de cada comunidad, autores de referencia y lo que falta.
 - `docs/EF.md`: el perfil de Educación Física (con tutoría o sin ella): decisiones, herramientas y lo que falta.
 - `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad, y en su carpeta `Inclusión`, la normativa y los modelos de inclusión (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
@@ -49,6 +49,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - Las fichas salen por defecto con el diseño «Cuaderno» (`src/services/fichaCuaderno.ts`): hoja de colegio con cinta de título, bloques numerados, listas de cálculos y recuadros laterales («Recuerda», «Reto», «Consejo»). «Clásica» y los temas con historia siguen disponibles. Detalle y decisiones en `docs/FICHAS.md`.
 - Ninguna ilustración entra suelta: cada una lleva descripción (es, ca, en) y temas comunes, y la app la relaciona con el contenido (`src/lib/ilustraciones.ts`). Las que se generan con fal.ai (modelo barato, licencia comercial revisada) salen de `scripts/ilustraciones/` y van dentro de la app: 281 motivos comunes en `public/ilustraciones/` (unos 6 MB, 384 px, fondo transparente). Son decorativas, nunca el dato de un ejercicio: los modelos no cuentan ni escriben.
+- Los dibujos se clasifican en 57 hilos conductores (`src/lib/hilos.ts`): la app reconoce de qué trata una ficha por su tema y le pone un hilo; con él, la cabecera, cada bloque y los ejercicios de «Cuaderno» se ilustran con dibujos de ese hilo, elegidos por la IA de una lista cerrada. El recuento («cuenta las vacas») lo hace el código repitiendo el dibujo, no el modelo. El hilo se cambia o se quita en el editor.
 
 ## Publicar
 

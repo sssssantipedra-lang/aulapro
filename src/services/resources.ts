@@ -30,6 +30,8 @@ import { FIGURE_SHAPES, FIGURE_SLOTS, FIGURE_LABEL, type Figure } from '../lib/g
 import { buildCrossword, type Crossword } from '../lib/crossword';
 import { fichaTheme, cleanEmoji, conHistoria, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
 import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido } from '../lib/pictosFicha';
+import { DIBUJOS_CABECERA, esContable, hiloDeFicha, hiloPorId, listaDibujosParaIA, type Hilo } from '../lib/hilos';
+import { ilustracionPorId } from '../lib/ilustraciones';
 
 /* ── Lo que devuelve la IA ── */
 
@@ -106,12 +108,25 @@ export interface FichaExercise {
   imagenes?: ImagenEjercicio[];
   /** Solo 'tabla_rellenar' con apoyos visuales: un pictograma por fila ('' = ninguno), en una columna delante. */
   pictosFilas?: string[];
+  /**
+   * Con hilo conductor (diseño «Cuaderno»): dibujos del catálogo (`lib/ilustraciones.ts`)
+   * que ayudan a hacer el ejercicio o lo ambientan, cada uno repetido `cantidad`
+   * veces si hay que contarlo. La IA elige de la lista cerrada del hilo; las
+   * copias las pone el código al maquetar, así que el recuento es exacto.
+   */
+  dibujos?: DibujoEjercicio[];
   /** Para el profesorado — nunca se muestra en la ficha exportada. */
   solucion: string;
   /** Variante simplificada del mismo ejercicio. Solo si se pidieron niveles. */
   apoyo?: string;
   /** Variante de más nivel del mismo ejercicio. Solo si se pidieron niveles. */
   ampliacion?: string;
+}
+
+/** Un dibujo del catálogo dentro de un ejercicio: su identificador y cuántas veces se dibuja (de 1 a 10). */
+export interface DibujoEjercicio {
+  ilustracion: string;
+  cantidad?: number;
 }
 
 /** Un dibujo dentro de un ejercicio: un pictograma, repetido `cantidad` veces si hay que contarlo. */
@@ -162,6 +177,8 @@ export interface FichaActivity {
   ejercicios: FichaExercise[];
   /** Solo en el diseño «Cuaderno»: el recuadro lateral del bloque. */
   recuadro?: FichaRecuadro;
+  /** Con hilo conductor: el dibujo que acompaña al título del bloque (un identificador del catálogo). */
+  dibujo?: string;
   /** Con apoyos visuales: qué hay que hacer en el bloque, en una frase y en orden. */
   indicacion?: string;
   /** Con apoyos visuales: de 2 a 4 pasos numerados, cada uno con su pictograma. */
@@ -218,6 +235,12 @@ export interface FichaContent {
   actividades: FichaActivity[];
   /** Tema visual. Sin él, la ficha se ve «Clásica» (así están las guardadas antes de los temas). */
   estilo?: FichaThemeId;
+  /**
+   * El hilo conductor (`lib/hilos.ts`): de qué trata la ficha, para ilustrarla
+   * con los dibujos de ese mundo. Solo en «Cuaderno» y sin apoyos visuales; sin
+   * él, la cabecera es la del área y los ejercicios no llevan dibujos.
+   */
+  hilo?: string;
   historia?: FichaHistoria;
   /** Sin él, 'ficha'. */
   formato?: FichaFormato;
@@ -250,6 +273,8 @@ export interface FichaRequest {
   formato?: FichaFormato;
   /** Instrucciones muy visuales, con pasos y pictogramas (no en tarjetas). */
   visual?: boolean;
+  /** El hilo conductor: un identificador de `lib/hilos.ts`, 'ninguno' (sin dibujos) o 'auto' (lo elige la app por el tema). Sin él, 'auto'. */
+  hilo?: string;
 }
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
@@ -337,6 +362,16 @@ const IMAGEN_SCHEMA = {
   propertyOrdering: ['picto', 'cantidad'],
 } as const;
 
+const DIBUJO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    ilustracion: S('Identificador de un dibujo de la lista DIBUJOS DEL HILO, exactamente como está escrito'),
+    cantidad: { type: 'INTEGER', description: 'Cuántas veces se dibuja, de 1 a 10: las que hay que contar, o 1 si solo se muestra' },
+  },
+  required: ['ilustracion', 'cantidad'],
+  propertyOrdering: ['ilustracion', 'cantidad'],
+} as const;
+
 const PASO_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -369,7 +404,7 @@ const CONCEPTO_SCHEMA = {
   propertyOrdering: ['picto', 'titulo', 'texto'],
 } as const;
 
-function fichaExerciseSchema(niveles: boolean, visual = false) {
+function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false) {
   const base = ['tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'solucion'] as const;
   return {
     type: 'OBJECT',
@@ -395,6 +430,14 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
         imagenes: {
           type: 'ARRAY', items: IMAGEN_SCHEMA,
           description: 'Solo si un dibujo ayuda a entender o a hacer el ejercicio (contar objetos, reconocerlos, compararlos): de 1 a 4 dibujos distintos. Nunca de adorno.',
+        },
+      } : {}),
+      ...(dibujos ? {
+        dibujos: {
+          type: 'ARRAY', items: DIBUJO_SCHEMA,
+          description:
+            'Opcional: solo si un dibujo del hilo ayuda a hacer el ejercicio (contar, comparar, reconocer) o lo ambienta bien: ' +
+            'de 1 a 3 dibujos distintos. Los que se cuentan, con su cantidad exacta. En la mayoría de ejercicios no hay ninguno.',
         },
       } : {}),
       opciones: {
@@ -505,6 +548,8 @@ interface SchemaOpts {
   visual?: boolean;
   /** Diseño «Cuaderno»: cada bloque puede llevar su recuadro lateral. */
   cuaderno?: boolean;
+  /** Con hilo conductor: los ejercicios pueden llevar dibujos del catálogo. */
+  dibujos?: boolean;
 }
 
 const CANDADO_SCHEMA = {
@@ -552,7 +597,7 @@ function fichaActivitySchema(o: SchemaOpts) {
         pasos: { type: 'ARRAY', items: PASO_SCHEMA, description: 'De 2 a 4 pasos, en el orden en que se hacen' },
         recuerda: { type: 'ARRAY', items: RECUERDA_SCHEMA, description: 'De 0 a 3 cosas que hay que recordar para hacer el bloque' },
       } : {}),
-      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual) },
+      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual, o.dibujos) },
       ...(o.cuaderno ? {
         recuadro: {
           ...RECUADRO_SCHEMA,
@@ -721,6 +766,28 @@ function cuadernoPrompt(): string {
   );
 }
 
+/**
+ * La parte del prompt del hilo conductor: de qué «mundo» es la ficha y con qué
+ * dibujos de ese mundo (lista cerrada del catálogo) se pueden ilustrar los
+ * ejercicios. La IA nunca dibuja: elige.
+ */
+function hiloPrompt(hilo: Hilo, lang: Lang): string {
+  return (
+    `HILO CONDUCTOR: esta ficha gira alrededor de «${hilo.nombre.es}». Cuando encaje con el contenido, ambienta ` +
+    `los enunciados en ese mundo (los datos, los objetos y las situaciones: «En la granja hay…»), sin forzarlo y ` +
+    `sin perder el rigor del tema.\n` +
+    `DIBUJOS: la ficha se ilustra con dibujos del catálogo. En "dibujos" de un ejercicio, y SOLO cuando el dibujo ` +
+    `ayuda a hacerlo (contar objetos, compararlos, reconocerlos) o lo ambienta bien, pon de 1 a 3 dibujos distintos ` +
+    `con su "cantidad". Si el ejercicio habla de lo que se ve, dilo en el enunciado («Cuenta las vacas»), y la ` +
+    `"cantidad" tiene que coincidir con el enunciado y con la solución. Los marcados [solo 1] llevan siempre ` +
+    `cantidad 1. No pongas un dibujo que dé la respuesta, ni uno que no sea EXACTAMENTE lo que nombra el ` +
+    `ejercicio (un gato no es un tigre). La mayoría de ejercicios NO lleva dibujos: unos dos de cada cinco, ` +
+    `como mucho, y mejor los de contar, hacer problemas y reconocer que los de tabla o crucigrama.\n` +
+    `DIBUJOS DEL HILO (usa SOLO estos identificadores, escritos exactamente igual; la descripción entre ` +
+    `paréntesis es para que sepas qué es cada uno): ${listaDibujosParaIA(hilo, lang)}\n`
+  );
+}
+
 /** Prompt de sistema del formato «tarjetas recortables». */
 function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
   return (
@@ -738,6 +805,7 @@ function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
 
 function systemPrompt(
   niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
+  hilo?: Hilo,
 ): string {
   if (formato === 'tarjetas') return tarjetasSystemPrompt(lang, estilo);
   return (
@@ -808,6 +876,7 @@ function systemPrompt(
     (estilo === 'cuaderno' ? cuadernoPrompt() : '') +
     (formato === 'escape' ? ESCAPE_PROMPT : '') +
     (visual ? visualPrompt() : '') +
+    (hilo && !visual && formato === 'ficha' ? hiloPrompt(hilo, lang) : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -923,10 +992,71 @@ export function cleanRecuadro(r: FichaRecuadro | undefined): FichaRecuadro | und
   return { tipo: r.tipo, texto, ...(lista.length ? { lista } : {}) };
 }
 
-function cleanExercise(ex: FichaExercise, visual = false): FichaExercise {
+/**
+ * Los dibujos de un ejercicio: solo los que están en el catálogo (la IA elige
+ * de una lista cerrada, pero se comprueba), sin repetir, con una cantidad de 1 a
+ * 10 y, si no son de los que se pueden contar, siempre 1. Como mucho tres.
+ */
+export function cleanDibujos(list: DibujoEjercicio[] | undefined): DibujoEjercicio[] | undefined {
+  const vistos = new Set<string>();
+  const out: DibujoEjercicio[] = [];
+  for (const d of Array.isArray(list) ? list : []) {
+    const id = String(d?.ilustracion ?? '').trim();
+    if (!id || vistos.has(id) || ilustracionPorId(id)?.fuente !== 'img') continue;
+    vistos.add(id);
+    const cantidad = esContable(id) ? Math.max(1, Math.min(MAX_CANTIDAD, Math.round(Number(d?.cantidad) || 1))) : 1;
+    out.push({ ilustracion: id, cantidad });
+  }
+  return out.length ? out.slice(0, 3) : undefined;
+}
+
+/**
+ * El dibujo que acompaña al título de cada bloque: los del hilo que no están en
+ * la cabecera, uno por bloque y en rotación, saltando los que el bloque ya usa
+ * en sus ejercicios. Sin hilo, ninguno.
+ */
+export function asignarDibujosDeBloque(actividades: FichaActivity[], hilo: Hilo | undefined): FichaActivity[] {
+  const ids = (hilo?.dibujos ?? []).filter(id => ilustracionPorId(id)?.fuente === 'img');
+  const candidatos = ids.length > DIBUJOS_CABECERA + 1 ? ids.slice(DIBUJOS_CABECERA) : ids;
+  return actividades.map((act, i) => {
+    const resto: FichaActivity = { ...act };
+    delete resto.dibujo;
+    if (!candidatos.length) return resto;
+    const usados = new Set(act.ejercicios.flatMap(e => (e.dibujos ?? []).map(d => d.ilustracion)));
+    const elegido = candidatos.map((_, k) => candidatos[(i + k) % candidatos.length]).find(id => !usados.has(id)) ?? candidatos[i % candidatos.length];
+    return { ...resto, dibujo: elegido };
+  });
+}
+
+/** La ficha con otro hilo conductor (o sin ninguno): cambia la cabecera y los dibujos de bloque; los de los ejercicios se quedan. */
+export function conHilo(content: FichaContent, hiloId: string | undefined): FichaContent {
+  const hilo = hiloPorId(hiloId);
+  if (!hilo) {
+    const resto: FichaContent = { ...content };
+    delete resto.hilo;
+    return { ...resto, actividades: asignarDibujosDeBloque(content.actividades, undefined) };
+  }
+  return { ...content, hilo: hilo.id, actividades: asignarDibujosDeBloque(content.actividades, hilo) };
+}
+
+/**
+ * El hilo que se le pone a una ficha nueva. Solo «Cuaderno», en formato ficha
+ * y sin apoyos visuales (que ya llevan sus pictogramas): 'ninguno' lo quita,
+ * un identificador lo fija, y con 'auto' o sin nada lo elige la app por el tema.
+ */
+export function resolverHilo(
+  req: { tema: string; area?: string; nivel?: string; hilo?: string },
+  estilo: FichaThemeChoice, formato: FichaFormato, visual: boolean,
+): Hilo | undefined {
+  if (estilo !== 'cuaderno' || formato !== 'ficha' || visual || req.hilo === 'ninguno') return undefined;
+  return hiloPorId(req.hilo) ?? hiloDeFicha({ tema: req.tema, area: req.area ?? '', nivel: req.nivel });
+}
+
+function cleanExercise(ex: FichaExercise, visual = false, conDibujos = false): FichaExercise {
   return {
     ...ex,
     ...cleanVisualExercise(ex, visual),
+    dibujos: conDibujos ? cleanDibujos(ex.dibujos) : undefined,
     enunciado: cleanMathNotation(ex.enunciado),
     opciones: ex.opciones?.map(cleanMathNotation),
     columnas: ex.columnas?.map(cleanMathNotation),
@@ -1002,8 +1132,9 @@ export function cleanCode(raw: string): string {
 }
 
 function cleanFichaContent(
-  c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
+  c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false, hiloElegido?: Hilo,
 ): FichaContent {
+  const hilo = hiloElegido && !visual && formato === 'ficha' ? hiloElegido : undefined;
   const finalEstilo: FichaThemeId = estilo === 'auto'
     ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
     : estilo;
@@ -1025,7 +1156,8 @@ function cleanFichaContent(
     explicacion: cleanMathNotation(c.explicacion ?? ''),
     instrucciones: cleanMathNotation(c.instrucciones ?? ''),
     ...(visual ? { visual: true, conceptos: cleanConceptos(c.conceptos) } : { visual: undefined, conceptos: undefined }),
-    actividades: (c.actividades ?? []).map((act, i) => ({
+    hilo: hilo?.id,
+    actividades: asignarDibujosDeBloque((c.actividades ?? []).map((act, i) => ({
       titulo: cleanMathNotation(act.titulo),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
@@ -1033,11 +1165,11 @@ function cleanFichaContent(
       } : {}),
       ...cleanVisualActivity(act, visual),
       ...(cleanRecuadro(act.recuadro) ? { recuadro: cleanRecuadro(act.recuadro) } : {}),
-      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual)).map(prepareExercise),
+      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual, !!hilo)).map(prepareExercise),
       ...(formato === 'escape' && act.candado ? {
         candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
       } : {}),
-    })),
+    })), hilo),
     ...(formato === 'tarjetas' ? {
       tarjetas: (c.tarjetas ?? [])
         .filter(tj => tj?.pregunta?.trim())
@@ -1050,7 +1182,7 @@ type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: strin
 
 async function callFichaText(
   system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, formato: FichaFormato, onError?: (m: string) => void,
-  visual = false,
+  visual = false, hilo?: Hilo,
 ): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
     // Con apoyos visuales la respuesta lleva además pasos, dibujos y tarjetas
@@ -1062,6 +1194,7 @@ async function callFichaText(
       formato,
       visual,
       cuaderno: estilo === 'cuaderno' && formato === 'ficha',
+      dibujos: !!hilo && !visual && formato === 'ficha',
     }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
@@ -1073,7 +1206,7 @@ async function callFichaText(
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual);
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual, hilo);
 }
 
 /** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
@@ -1129,8 +1262,9 @@ export async function generateFicha(
       (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
       `\n${askFor(formato, req.numEjercicios, 'sobre este tema')}\n\n${numberVarietyHint()}`;
 
+    const hilo = resolverHilo(req, estilo, formato, visual);
     return await callFichaText(
-      systemPrompt(req.niveles, lang, estilo, formato, visual), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual,
+      systemPrompt(req.niveles, lang, estilo, formato, visual, hilo), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo,
     );
   } finally {
     callbacks.onEnd?.();
@@ -1141,7 +1275,7 @@ export async function generateFicha(
 
 export async function generateFichaFromSda(
   sda: SdaContent, area: string,
-  opts: { numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice; formato?: FichaFormato },
+  opts: { numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice; formato?: FichaFormato; hilo?: string },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
@@ -1158,7 +1292,8 @@ export async function generateFichaFromSda(
       (opts.detalles ? `Además, ten en cuenta: ${opts.detalles}\n` : '') +
       `\n${askFor(formato, opts.numEjercicios, 'que trabajen estos saberes básicos')}\n\n${numberVarietyHint()}`;
 
-    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato), userPrompt, opts.niveles, estilo, formato, callbacks.onError);
+    const hilo = resolverHilo({ tema: sda.titulo, area: areaData?.area ?? area, hilo: opts.hilo }, estilo, formato, false);
+    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato, false, hilo), userPrompt, opts.niveles, estilo, formato, callbacks.onError, false, hilo);
   } finally {
     callbacks.onEnd?.();
   }
@@ -1206,16 +1341,17 @@ export async function regenerateExercise(
       (opts.tipo ? `El nuevo ejercicio debe ser de tipo "${opts.tipo}".\n` : 'Mantén el mismo tipo salvo que la indicación pida otro.\n') +
       `Debe seguir encajando en la ficha y en su historia.\n\n${numberVarietyHint()}`;
     const visual = !!content.visual;
-    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual), userPrompt, [], { onError: callbacks.onError }, {
+    const hilo = visual ? undefined : hiloPorId(content.hilo);
+    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles, visual),
+      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo));
   } finally {
     callbacks.onEnd?.();
   }
@@ -1339,16 +1475,18 @@ export async function adaptFicha(
       `${VARIANTE_PROMPT[variante]}\n` +
       (historia ? 'Mantén la misma historia y el mismo personaje, adaptando sus textos al mismo criterio.\n' : '') +
       (formato === 'escape' ? 'Recalcula el código de cada candado para que salga de las nuevas respuestas.\n' : '');
-    const raw = await callGemini(systemPrompt(false, lang, estiloPrompt, formato, visual), userPrompt, [], { onError: callbacks.onError }, {
+    // Con hilo, la versión adaptada lo conserva (salvo la visual, que lleva pictogramas)
+    const hilo = cuaderno && !visual ? hiloPorId(content.hilo) : undefined;
+    const raw = await callGemini(systemPrompt(false, lang, estiloPrompt, formato, visual, hilo), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: visual ? 24576 : 16384,
-      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual, cuaderno }),
+      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual, cuaderno, dibujos: !!hilo }),
       thinkingLevel: 'medium',
       temperature: 0.9,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaContent>(raw);
     if (!parsed) return null;
-    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estiloPrompt, formato, visual);
+    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estiloPrompt, formato, visual, hilo);
     return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();
@@ -1383,16 +1521,17 @@ export async function addExercise(
       (formato === 'escape' ? 'Es un escape room: el ejercicio debe tener una respuesta corta y única.\n' : '') +
       `\n${numberVarietyHint()}`;
     const visual = !!content.visual;
-    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual), userPrompt, [], { onError: callbacks.onError }, {
+    const hilo = visual ? undefined : hiloPorId(content.hilo);
+    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles, visual),
+      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo));
   } finally {
     callbacks.onEnd?.();
   }

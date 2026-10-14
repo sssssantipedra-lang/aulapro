@@ -9,8 +9,9 @@ Cómo se generan, cómo se ven y qué falta. Las decisiones llevan su fecha; si 
 - `src/services/fichaCuaderno.ts`: el diseño «Cuaderno» (cabeceras, recuadros, listas de cálculos, estilos).
 - `src/lib/fichaThemes.ts`: los temas (aspecto de la ficha). `src/lib/fuenteCuaderno.ts`: la letra incrustada.
 - `src/lib/ilustraciones.ts` y `ilustraciones.catalogo.json`: el catálogo de ilustraciones.
+- `src/lib/hilos.ts` y `docs/HILOS.md`: los hilos conductores, la clasificación de los dibujos por tópicos y el detector de qué trata una ficha.
 - `scripts/ilustraciones/`: la lista de ilustraciones y el generador con fal.ai.
-- `src/pages/Resources.tsx` y `src/components/fichas/`: la pantalla, el editor y la vista previa.
+- `src/pages/Resources.tsx` y `src/components/fichas/`: la pantalla, el editor (`DibujosEditor.tsx`: selector del hilo y dibujos de cada ejercicio) y la vista previa.
 
 ## Aspecto: el tema «Cuaderno» (14-10-2026)
 
@@ -61,9 +62,27 @@ FAL_KEY=… node scripts/ilustraciones/generar.mjs             # las que faltan
 - Para añadir ilustraciones: una fila nueva en `lista-ampliada.mjs` (con su motivo en inglés, sus tres descripciones, sus temas y sus áreas; `lista.mjs` lleva las primeras, la ampliación lleva el resto) y volver a ejecutar.
 - Estado (14-10-2026): hechas y en el catálogo las 281 (con el visto bueno del dueño al estilo). Se descartaron, tras varios intentos, el calendario, la regla, el transportador y el cinturón de seguridad (el modelo los llena de números o no los reconoce). El script y la lista están probados (`scripts/ilustraciones/generar.test.mjs`; `src/lib/ilustraciones.test.ts` comprueba que cada `img` tiene su archivo, ids únicos, las tres descripciones y temas en minúscula sin tildes).
 
+## Hilo conductor: las fichas con dibujos (14-10-2026)
+
+Los 281 dibujos del catálogo se clasifican por tópicos en **hilos conductores** (`src/lib/hilos.ts`, índice completo en `docs/HILOS.md`, generado por una prueba). Un hilo es el «mundo» de lo que se trabaja: la granja, el sistema solar, el cuerpo humano, repartir en partes iguales, el mercado y el dinero, la Edad Media… Son 57, con nombre en los tres idiomas, las palabras del tema que lo activan, las áreas donde es natural y sus dibujos, del más al menos protagonista. Un dibujo puede estar en varios hilos (la pizza, en el reparto y en la cocina); todos están al menos en uno (lo comprueba una prueba).
+
+**Cómo reconoce la app de qué trata la ficha** (`detectarHilos`, `hiloDeFicha`): las palabras de cada hilo se buscan en el tema (no en el nombre del área: «Ciencias Naturales» no activa nada ni «Lengua» activa los sentidos). Cada palabra vale 3 puntos (más si es larga), que el hilo sea del área que se deduce, 1,5, y cada dibujo suyo que encaja con el tema, 0,5 (hasta 2). De las palabras que empiezan igual («animal», «animales») cuenta la más larga, y un hilo `amplio` (los animales, los seres vivos, el cole, el laboratorio) resta 1,5, para que «los animales de la granja» sea la granja y no los animales. Con menos de 3 puntos no hay hilo detectado y vale el del área (matemáticas: números y cálculo; ciencias sociales: la ciudad…); sin área, el cole. El hilo que se le pone a una ficha lo puede cambiar o quitar el docente.
+
+**Qué se hace con el hilo** (solo diseño «Cuaderno», formato ficha y sin apoyos visuales, que ya llevan sus pictogramas; `resolverHilo`):
+
+- A la IA se le dice el hilo («ambienta los enunciados en ese mundo cuando encaje») y se le da la lista cerrada de los dibujos de ese hilo, con su identificador y su descripción; los que no se pueden repetir van marcados `[solo 1]`. Elige en `dibujos` de un ejercicio (de 1 a 3, con `cantidad`) y solo cuando ayudan a hacerlo o lo ambientan: contar, comparar, reconocer. Nunca dibuja: lo que devuelve se comprueba (`cleanDibujos`): solo los del catálogo, sin repetir, cantidad de 1 a 10 y 1 en los que no son contables (`esContable`: objetos sueltos, no partes del cuerpo, lugares, personas ni gráficos).
+- **El recuento lo hace el código.** La cantidad es un número, y la hoja repite el dibujo esas veces: un «cuenta las vacas» siempre tiene las vacas que dice. Un modelo de imagen no sabe contar (ver «Catálogo de ilustraciones»); por eso se usan dibujos sueltos repetidos y no escenas.
+- La hoja (`fichaCuaderno.ts`, `exportFicha.ts`): en la cabecera, los tres primeros dibujos del hilo, con el 1.º, más grande, en medio; junto al título de cada bloque, un dibujo del hilo (`FichaActivity.dibujo`, uno por bloque, distinto, sin repetir el de la cabecera ni los del propio bloque; `asignarDibujosDeBloque`); en «Antes de empezar», el 2.º dibujo del hilo asoma en la esquina; y en los ejercicios, un solo dibujo a la derecha del enunciado (el texto y las líneas lo esquivan) o varios en una bandeja debajo, que se hace más pequeña con más dibujos (16, 12,5 y 10 mm). Con dibujos que contar y una respuesta corta, la respuesta es una caja y no tres líneas.
+- Los dibujos se cargan como `data:` (`cargarIlustracionesFicha`) antes de maquetar, igual que los pictogramas, para que el PDF no dependa de nada externo. Mientras no están (la vista previa los pide al cambiar cuáles son), la cabecera es la de siempre por área y no salen imágenes rotas.
+- Word: el título lleva los tres dibujos a la derecha, cada bloque su dibujo y cada ejercicio sus dibujos debajo del enunciado (Word no admite WebP: se pasan a PNG en un `<canvas>`; si no se puede, el documento sale sin ellos).
+- Editor: «Hilo conductor» (selector con los 57 hilos y «Sin dibujos») cambia la cabecera y el dibujo de cada bloque, y los de los ejercicios se quedan; cada ejercicio muestra sus dibujos con su cantidad, un botón para quitarlos y el buscador del catálogo (primero los del hilo). Al pasar a «Cuaderno» una ficha sin hilo, se le pone el del tema. En el formulario de creación, «Dibujos de la ficha»: Automático (muestra el que detecta), Sin dibujos o un hilo.
+- Rehacer un ejercicio, añadir uno y las versiones adaptadas (apoyo, ampliación, lectura fácil) conservan el hilo y siguen pidiendo dibujos de él; la versión visual lo deja (lleva pictogramas).
+
+Lo que se ve queda como una hoja de ChatGPT con imagen, pero cada dibujo es del catálogo, nítido al imprimir, sin enviar nada a ningún sitio y con el recuento siempre bien. Lo que no hace: ilustrar con una escena a medida (fase 4).
+
 ## Lo que falta
 
 1. Fase 2: más material dibujado por área (fracciones, ábaco, mapas, cuerpo humano…) y más cabeceras.
-2. Fase 3: usar las ilustraciones `img` dentro de los ejercicios (la IA elige de la lista cerrada, como con los pictogramas) y en las cabeceras con el mismo catálogo.
+2. Hecho el 14-10-2026 (fase 3, ver «Hilo conductor»): las ilustraciones `img` van en la cabecera, en los bloques y dentro de los ejercicios. Queda ajustar con fichas reales: qué hilos hay que afinar o añadir, y cuántos dibujos por ficha es lo que le gusta al profesorado.
 3. Fase 4 (por decidir): escenas de cuento con IA de imágenes pagada por el docente. Obligaría a actualizar la privacidad y las condiciones en los tres idiomas (regla 1 de `CLAUDE.md`).
 4. Capturas de la web (`scripts/web/capturar.mjs`) con el diseño nuevo, cuando el dueño dé el visto bueno.

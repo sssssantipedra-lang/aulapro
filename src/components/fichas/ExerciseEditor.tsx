@@ -8,6 +8,7 @@ import { ArrowUp, ArrowDown, Trash2, Wand2, ChevronDown, ChevronRight } from 'lu
 import { prepareExercise, shuffleApart, TIPOS, type FichaExercise, type FichaExerciseType } from '../../services/resources';
 import { TIPO_LABEL, TIPO_EMOJI } from './tipos';
 import { EjercicioVisualEditor } from './VisualEditor';
+import { DibujosEditor } from './DibujosEditor';
 
 const QUICK = ['Más fácil', 'Más difícil', 'Otro distinto', 'Más visual y motivador'];
 
@@ -44,6 +45,8 @@ interface Props {
   aiDisabled: boolean;
   /** Ficha con apoyos visuales: la consigna dibujada y los dibujos del ejercicio. */
   visual?: boolean;
+  /** Ficha con hilo conductor: los dibujos del catálogo que lleva el ejercicio. */
+  hilo?: string;
   t: T;
   onSelect: () => void;
   onChange: (ex: FichaExercise) => void;
@@ -52,7 +55,7 @@ interface Props {
   onRegenerate: (instruccion: string, tipo?: FichaExerciseType) => void;
 }
 
-export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisabled, visual, t, onSelect, onChange, onMove, onDelete, onRegenerate }: Props) {
+export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisabled, visual, hilo, t, onSelect, onChange, onMove, onDelete, onRegenerate }: Props) {
   const [redo, setRedo] = useState(false);
   const [instr, setInstr] = useState('');
   const [tipo, setTipo] = useState<FichaExerciseType | ''>('');
@@ -106,6 +109,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
         onChange={e => set({ enunciado: e.target.value })}
       />
       {visual && <EjercicioVisualEditor ex={ex} onChange={set} t={t} />}
+      {!visual && hilo && <DibujosEditor ex={ex} hiloId={hilo} onChange={set} t={t} />}
 
       {ex.tipo === 'opcion_multiple' && (
         <LinesField label={t('Opciones')} value={ex.opciones ?? []} onCommit={v => set({ opciones: v })} />

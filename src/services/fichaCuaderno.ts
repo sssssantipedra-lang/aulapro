@@ -18,8 +18,12 @@
  */
 import type { FichaExercise, FichaRecuadro } from './resources';
 import { elegirIlustraciones, ilustracionPorId } from '../lib/ilustraciones';
+import { DIBUJOS_CABECERA, hiloPorId } from '../lib/hilos';
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
+
+/** Un `<img>` con un dibujo del catálogo (ya cargado como `data:`), o nada si aún no se tiene. */
+export type Ilus = (id: string | undefined, cls: string) => string;
 
 const esc = (s: string) => (s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
@@ -241,19 +245,33 @@ function aclarar(hex: string, k = 0.35): string {
 export const tamanoTitulo = (titulo: string) => Math.max(17, Math.min(30, Math.floor(630 / Math.max(titulo.length, 1))));
 
 /**
- * La cabecera: la cinta con el título y, a su lado, la ilustración de cabecera
- * del catálogo que mejor encaja con el tema, el área y el curso. Las de uso
- * «objeto» (las que se generan con fal.ai) no van aquí: se usan dentro de los
- * ejercicios.
+ * La cabecera: la cinta con el título y, a su lado, el arte. Con hilo conductor,
+ * los tres primeros dibujos de ese hilo (el del medio, más grande); sin hilo, o
+ * si aún no se han cargado, la ilustración de cabecera del catálogo que mejor
+ * encaja con el tema, el área y el curso.
  */
-export function cabeceraHtml(o: { titulo: string; tema: string; area: string; nivel?: string; marca: string }): string {
-  const ilu = elegirIlustraciones({ tema: o.tema, area: o.area, nivel: o.nivel }, { uso: 'cabecera', max: 1 })
-    .find(i => i.fuente === 'svg' && CABECERAS[i.id]);
-  const id = ilu?.id ?? 'cab-aula';
+export function cabeceraHtml(o: { titulo: string; tema: string; area: string; nivel?: string; marca: string; hilo?: string; ilus?: Ilus }): string {
+  const hilo = hiloPorId(o.hilo);
+  const trio = hilo?.dibujos.slice(0, DIBUJOS_CABECERA) ?? [];
+  // El del medio, el más grande: el orden de pintado es 2.º, 1.º, 3.º
+  const orden = trio.length === 3 ? [trio[1], trio[0], trio[2]] : trio;
+  const imgs = o.ilus ? orden.map(id => o.ilus!(id, `cq-hdib${id === trio[0] ? ' c' : ''}`)) : [];
+  const conHilo = !!hilo && imgs.length > 0 && imgs.every(Boolean);
+  let arte: string;
+  if (conHilo) {
+    arte = `<div class="cq-arte cq-arte-hilo" data-hilo="${esc(hilo!.id)}" data-ilustracion="${esc(trio.join(' '))}">${imgs.join('')}</div>`;
+  } else {
+    const ilu = elegirIlustraciones({ tema: o.tema, area: o.area, nivel: o.nivel }, { uso: 'cabecera', max: 1 })
+      .find(i => i.fuente === 'svg' && CABECERAS[i.id]);
+    const id = ilu?.id ?? 'cab-aula';
+    arte = `<div class="cq-arte" data-ilustracion="${esc(id)}">${cabeceraSvg(id, 62)}</div>`;
+  }
   return `<header class="cq-cab"${o.marca}>` +
-    `<div class="cq-cinta"><h1 style="font-size:${tamanoTitulo(o.titulo)}px">${esc(o.titulo)}</h1></div>` +
-    `<div class="cq-arte" data-ilustracion="${esc(id)}">${cabeceraSvg(id, 62)}</div></header>`;
+    `<div class="cq-cinta"><h1 style="font-size:${tamanoTitulo(o.titulo)}px">${esc(o.titulo)}</h1></div>${arte}</header>`;
 }
+
+/** Los dibujos que necesita la cabecera de un hilo (para cargarlos antes de maquetar). */
+export const dibujosDeLaCabecera = (hiloId: string | undefined): string[] => hiloPorId(hiloId)?.dibujos.slice(0, DIBUJOS_CABECERA) ?? [];
 
 /** Nombre, fecha y clase en una caja de trazos, con el área delante. */
 export function datosHtml(area: string | undefined, marca: string, t: Tr): string {
@@ -263,9 +281,28 @@ export function datosHtml(area: string | undefined, marca: string, t: Tr): strin
 }
 
 /** La cabecera de un bloque: el número en un círculo con degradado y el título en el color del bloque. */
-export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = ''): string {
+export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = '', dibujo = ''): string {
   return `<div class="cq-sec"${marca} style="--sc:#${color.bg};--sc2:${aclarar(color.bg)}">` +
-    `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2></div>`;
+    `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2>${dibujo ? `<span class="cq-med">${dibujo}</span>` : ''}</div>`;
+}
+
+/**
+ * Los dibujos de un ejercicio: uno solo, a un lado del enunciado; varios, en una
+ * bandeja debajo, cada dibujo repetido las veces que dice `cantidad` (las pone el
+ * código, así que lo que hay que contar está siempre bien dibujado). `lado` va
+ * antes del enunciado y `bandeja` después.
+ */
+export function dibujosHtml(ex: FichaExercise, ilus: Ilus): { lado: string; bandeja: string } {
+  const lista = (ex.dibujos ?? []).map(d => ({ id: d.ilustracion, n: Math.max(1, Math.min(10, d.cantidad ?? 1)) }));
+  const total = lista.reduce((s, d) => s + d.n, 0);
+  if (!total) return { lado: '', bandeja: '' };
+  if (total === 1) {
+    const img = ilus(lista[0].id, 'cq-dib');
+    return { lado: img ? `<div class="cq-dib-lado">${img}</div>` : '', bandeja: '' };
+  }
+  const tam = total <= 4 ? 'g' : total <= 8 ? 'm' : 'p';
+  const grupos = lista.map(d => `<span class="cq-grupo">${Array.from({ length: d.n }, () => ilus(d.id, 'cq-dib')).join('')}</span>`).join('');
+  return { lado: '', bandeja: `<div class="cq-dibujos ${tam}">${grupos}</div>` };
 }
 
 /** «CM = centena de millar» → ['CM', 'centena de millar']; sin «=», `null`. */
@@ -331,6 +368,10 @@ export const CUADERNO_STYLE = `
   text-shadow: -2px -2px 0 var(--cd), 2px -2px 0 var(--cd), -2px 2px 0 var(--cd), 2px 2px 0 var(--cd), 0 3px 0 var(--cd), 0 -2px 0 var(--cd), -2px 0 0 var(--cd), 2px 0 0 var(--cd); }
 .cq-arte { flex: 0 0 auto; display: flex; align-items: flex-end; margin-bottom: -2px; }
 .cq-arte svg, .cq-arte img { display: block; }
+.cq-arte-hilo { gap: 0; padding: 0 2px 0 0; }
+.cq-arte-hilo .cq-hdib { width: 17mm; height: 17mm; object-fit: contain; margin-left: -3mm; position: relative; }
+.cq-arte-hilo .cq-hdib:first-child { margin-left: 0; }
+.cq-arte-hilo .cq-hdib.c { width: 21mm; height: 21mm; z-index: 1; margin-bottom: 1mm; }
 .cq-arte text { font-family: var(--font-t); font-weight: 900; }
 
 .cq-datos { display: flex; align-items: baseline; gap: 6mm; margin: 0 0 8px; padding: 5px 12px; border: 1.75px dashed #7DB8E8; background: var(--cl); border-radius: 10px; font-size: 14px; font-weight: 800; color: var(--cd); }
@@ -349,8 +390,26 @@ export const CUADERNO_STYLE = `
 .cq-sec { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; break-after: avoid; break-inside: avoid; }
 .cq-num { flex: 0 0 auto; width: 9.5mm; height: 9.5mm; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-t); font-weight: 900; font-size: 19px;
   background: linear-gradient(160deg, var(--sc2), var(--sc)); border: 2px solid var(--sc); box-shadow: inset 0 0 0 2.5px #fff; }
+.cq-med { flex: 0 0 auto; margin-left: auto; line-height: 0; }
+.cq-med img { width: 11mm; height: 11mm; object-fit: contain; display: block; }
 .cq-sec h2 { margin: 0; font-family: var(--font-t); font-weight: 900; font-size: 18px; letter-spacing: .01em; word-spacing: .14em; color: var(--sc); text-transform: uppercase; line-height: 1.15; }
 
+/* Un solo dibujo: a la derecha del enunciado; las líneas y las cajas de respuesta lo esquivan (flow-root) y no pasan por debajo */
+.cq-dib-lado { float: right; margin: 0 0 4px 10px; line-height: 0; }
+.cq-dib-lado img { width: 21mm; height: 21mm; object-fit: contain; display: block; }
+.th-cuaderno .ficha-ejercicios > li { display: flow-root; }
+.th-cuaderno .ficha-ejercicios > li > .ficha-espacio, .th-cuaderno .ficha-ejercicios > li > .cq-respuesta { display: flow-root; }
+.th-cuaderno .ficha-ejercicios > li > .cq-respuesta { display: flex; }
+.cq-respuesta { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; font-size: 13px; }
+.cq-respuesta b { color: var(--num); font-weight: 900; }
+.cq-respuesta .cq-caja { flex: 0 0 34mm; }
+.th-cuaderno .ficha-explicacion { position: relative; }
+.th-cuaderno .ficha-explicacion.con-mascota .txt { padding-right: 19mm; }
+.cq-mascota-hilo { position: absolute; right: 10px; bottom: -7px; width: 17mm; height: 17mm; object-fit: contain; }
+.cq-dibujos { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 7mm; margin: 4px 0 6px; line-height: 0; }
+.cq-grupo { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 1px; }
+.cq-dib { object-fit: contain; display: block; }
+.cq-dibujos.g .cq-dib { width: 16mm; height: 16mm; } .cq-dibujos.m .cq-dib { width: 12.5mm; height: 12.5mm; } .cq-dibujos.p .cq-dib { width: 10mm; height: 10mm; }
 .cq-cuerpo { display: block; }
 .cq-cuerpo::after { content: ''; display: block; clear: both; }
 /* El recuadro flota a la derecha y los ejercicios corren a su lado: así el bloque puede partirse entre páginas (una rejilla de dos columnas no se parte) */

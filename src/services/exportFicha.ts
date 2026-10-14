@@ -37,8 +37,11 @@ import { ATRIBUCION_MULBERRY, esMulberry, pictoDe } from '../lib/pictos';
 import { pictoComoDato } from './exportAgenda';
 import { dibujosEnOrden } from '../lib/pictosFicha';
 import {
-  CUADERNO_STYLE, cabeceraHtml, calculosHtml, datosHtml, recuadroHtml, recuadroLineas, seccionHtml, serieDe, serieHtml,
+  CUADERNO_STYLE, cabeceraHtml, calculosHtml, datosHtml, dibujosDeLaCabecera, dibujosHtml, recuadroHtml, recuadroLineas, seccionHtml, serieDe, serieHtml,
+  type Ilus,
 } from './fichaCuaderno';
+import { urlIlustracion } from '../lib/ilustraciones';
+import { hiloPorId } from '../lib/hilos';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -120,6 +123,58 @@ export const cargarPictosFicha = (c: FichaContent) => cargarPictos(pictosDeFicha
 /** Un `<img>` con el pictograma, o nada si aún no se ha cargado. */
 type Pic = (id: string | undefined, cls: string) => string;
 
+/* ── Hilo conductor: los dibujos del catálogo de la ficha ── */
+
+/** Todos los dibujos del catálogo que usa la ficha (cabecera del hilo, bloques y ejercicios), sin repetir. */
+export function ilustracionesDeFicha(c: FichaContent): string[] {
+  if (!c.hilo) return [];
+  const ids = new Set<string>(dibujosDeLaCabecera(c.hilo));
+  for (const act of getActividades(c)) {
+    if (act.dibujo) ids.add(act.dibujo);
+    for (const ex of act.ejercicios) ex.dibujos?.forEach(d => ids.add(d.ilustracion));
+  }
+  return [...ids];
+}
+
+const cacheIlustraciones = new Map<string, Promise<string | null>>();
+
+/** Un dibujo del catálogo como `data:`, para incrustarlo en el PDF y en la vista previa. */
+export function ilustracionComoDato(id: string): Promise<string | null> {
+  let p = cacheIlustraciones.get(id);
+  if (!p) {
+    p = (async () => {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}${urlIlustracion(id)}`);
+        if (!res.ok) return null;
+        const blob = await res.blob();
+        return await new Promise<string | null>(resolve => {
+          const lector = new FileReader();
+          lector.onload = () => resolve(typeof lector.result === 'string' ? lector.result : null);
+          lector.onerror = () => resolve(null);
+          lector.readAsDataURL(blob);
+        });
+      } catch {
+        return null;
+      }
+    })();
+    p.then(r => { if (!r) cacheIlustraciones.delete(id); });
+    cacheIlustraciones.set(id, p);
+  }
+  return p;
+}
+
+/** Unos dibujos del catálogo como `data:`, por su id. */
+export async function cargarIlustraciones(ids: readonly string[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  await Promise.all(ids.map(async id => {
+    const d = await ilustracionComoDato(id);
+    if (d) out[id] = d;
+  }));
+  return out;
+}
+
+export const cargarIlustracionesFicha = (c: FichaContent) => cargarIlustraciones(ilustracionesDeFicha(c));
+
 /* ── PDF (HTML independiente, impreso por Electron en vertical) ── */
 
 const esc = (s: string) => (s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
@@ -127,9 +182,12 @@ const nl2br = (s: string) => esc(s).replace(/\n/g, '<br>');
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
 
-function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic, cuaderno = false): string {
+function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic, cuaderno = false, ilus?: Ilus): string {
   const letra = (i: number) => String.fromCharCode(97 + i);
-  let body = (pic && ex.consigna ? pic(ex.consigna, 'vis-consigna') : '') + `<div class="ficha-enunciado">${esc(ex.enunciado)}</div>`;
+  // Los dibujos del catálogo (hilo conductor): uno solo, a un lado del enunciado; varios, en una bandeja debajo
+  const dib = ilus ? dibujosHtml(ex, ilus) : { lado: '', bandeja: '' };
+  const enunciado = (pic && ex.consigna ? pic(ex.consigna, 'vis-consigna') : '') + `<div class="ficha-enunciado">${esc(ex.enunciado)}</div>`;
+  let body = dib.lado + enunciado + dib.bandeja;
 
   // Los dibujos del contenido, justo debajo del enunciado: lo que hay que contar o reconocer
   const dibujos = pic ? dibujosEnOrden(ex.imagenes) : [];
@@ -189,6 +247,9 @@ function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string 
       `<div class="panel"><span class="panel-n">${i + 1}</span>` +
       `<div class="bubble${v.texto ? '' : ' empty'}">${v.texto ? esc(v.texto) : '<div class="ln"></div><div class="ln"></div><div class="ln"></div>'}</div>` +
       `<div class="who">${esc(v.personaje)}</div></div>`).join('')}</div>`;
+  } else if (cuaderno && ilus && ex.dibujos?.length && ex.tipo === 'abierta' && (ex.solucion ?? '').trim().length <= 14) {
+    // Con dibujos que contar, la respuesta es corta: una caja y no tres líneas
+    body += `<div class="cq-respuesta"><b>${esc(t('Respuesta'))}:</b><span class="cq-caja"></span></div>`;
   } else {
     const espacio = espacioTipo(ex.tipo);
     body += espacio === 'box' ? '<div class="ficha-espacio box"></div>'
@@ -228,6 +289,8 @@ export interface FichaHtmlOptions {
   art?: string;
   /** Con apoyos visuales: los pictogramas como `data:`, por su id (`cargarPictosFicha`). */
   pictos?: Record<string, string>;
+  /** Con hilo conductor: los dibujos del catálogo como `data:`, por su id (`cargarIlustracionesFicha`). */
+  ilustraciones?: Record<string, string>;
   /** «Cuaderno»: el `@font-face` de su letra (`cargarFuenteCuaderno`); sin él, las letras del sistema. */
   fontCss?: string;
 }
@@ -257,13 +320,16 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const pic: Pic | undefined = visual
     ? (id, cls) => (id && opts.pictos?.[id] ? `<img class="${cls}" src="${opts.pictos[id]}" alt="${esc(nombre(id))}">` : '')
     : undefined;
+  const ilus: Ilus | undefined = c.hilo && !visual
+    ? (id, cls) => (id && opts.ilustraciones?.[id] ? `<img class="${cls}" src="${opts.ilustraciones[id]}" alt="">` : '')
+    : undefined;
 
   const actividadesHtml = actividades.map((act, actIdx) => {
     const color = theme.bloques[actIdx % theme.bloques.length];
     const emoji = act.emoji || theme.iconos[actIdx % theme.iconos.length];
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
     const header = cuaderno
-      ? seccionHtml(actIdx + 1, act.titulo, color, label)
+      ? seccionHtml(actIdx + 1, act.titulo, color, label, '', ilus && act.dibujo ? ilus(act.dibujo, 'cq-med-img') : '')
       : act.titulo
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
@@ -274,7 +340,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const narr = !classic && act.narrativa ? `<div class="act-narr" style="background:#${color.light}">${esc(act.narrativa)}</div>` : '';
     const ejerciciosHtml = act.ejercicios.map((ex, i) => {
       const id = `${actIdx}-${i}`;
-      return `<li${mark(`data-ex="${id}"`)}${opts.selected === id ? ' class="is-selected"' : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno)}</li>`;
+      return `<li${mark(`data-ex="${id}"`)}${opts.selected === id ? ' class="is-selected"' : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus)}</li>`;
     }).join('');
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras (A., B.), para no confundirlas con las líneas 1., 2.
     const numeracion = !cuaderno ? '' : act.ejercicios.length === 1 ? ' sin' : act.ejercicios.some(e => e.tipo === 'calculos') ? ' letras' : '';
@@ -324,8 +390,10 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     ? `<div class="vis-conceptos">${c.conceptos.map(k =>
       `<div class="vis-concepto">${pic(k.picto, 'vis-concepto-img')}<strong>${esc(k.titulo)}</strong><span>${esc(k.texto)}</span></div>`).join('')}</div>`
     : '';
+  // «Cuaderno» con hilo: un dibujo del hilo asoma en la esquina de «Antes de empezar»
+  const mascotaHilo = cuaderno && ilus ? ilus(hiloPorId(c.hilo)?.dibujos[1], 'cq-mascota-hilo') : '';
   const explicacionHtml = c.explicacion || conceptosHtml
-    ? `<div class="ficha-explicacion"${mark('data-part="explicacion"')}><div class="lbl">${svgLightbulb('#' + theme.color, 15)}${esc(t('Antes de empezar'))}</div>` +
+    ? `<div class="ficha-explicacion${mascotaHilo ? ' con-mascota' : ''}"${mark('data-part="explicacion"')}>${mascotaHilo}<div class="lbl">${svgLightbulb('#' + theme.color, 15)}${esc(t('Antes de empezar'))}</div>` +
       (c.explicacion ? `<div class="txt">${nl2br(c.explicacion)}</div>` : '') + `${conceptosHtml}</div>`
     : '';
   // La licencia de Mulberry pide la atribución allí donde salen sus pictogramas
@@ -333,7 +401,10 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
 
   let headerHtml: string;
   if (cuaderno) {
-    headerHtml = cabeceraHtml({ titulo: c.titulo || f.title, tema: f.request.tema, area: f.request.area, nivel: f.request.nivel, marca: mark('data-part="titulo"') });
+    headerHtml = cabeceraHtml({
+      titulo: c.titulo || f.title, tema: f.request.tema, area: f.request.area, nivel: f.request.nivel, marca: mark('data-part="titulo"'),
+      hilo: visual ? undefined : c.hilo, ilus,
+    });
   } else if (classic) {
     const motifKey = pickMotifKey(f.request.tema, f.request.area);
     const motif = MOTIF_COLORS[motifKey];
@@ -429,8 +500,10 @@ export async function saveFichaPdf(f: Ficha, lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
   const id = fichaTheme(f.content.estilo).id;
-  const [art, pictos, fontCss] = await Promise.all([loadThemeArt(id), cargarPictosFicha(f.content), id === 'cuaderno' ? cargarFuenteCuaderno() : Promise.resolve('')]);
-  const html = buildFichaHtml(f, lang, { art: art?.dataUrl, pictos, fontCss });
+  const [art, pictos, ilustraciones, fontCss] = await Promise.all([
+    loadThemeArt(id), cargarPictosFicha(f.content), cargarIlustracionesFicha(f.content), id === 'cuaderno' ? cargarFuenteCuaderno() : Promise.resolve(''),
+  ]);
+  const html = buildFichaHtml(f, lang, { art: art?.dataUrl, pictos, ilustraciones, fontCss });
   const res = await docs.savePdf(html, fileBase(f) + '.pdf', { landscape: false });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
@@ -725,6 +798,17 @@ async function pictosPng(c: FichaContent): Promise<Record<string, Uint8Array>> {
   return out;
 }
 
+/** Los dibujos del catálogo de la ficha (hilo conductor) en PNG, por su id: Word no admite WebP. */
+async function ilustracionesPng(c: FichaContent): Promise<Record<string, Uint8Array>> {
+  const datos = await cargarIlustracionesFicha(c);
+  const out: Record<string, Uint8Array> = {};
+  await Promise.all(Object.entries(datos).map(async ([id, url]) => {
+    const png = await svgDatoAPng(url, 192);
+    if (png) out[id] = png;
+  }));
+  return out;
+}
+
 type Imgs = Record<string, Uint8Array>;
 const pictoRun = (imgs: Imgs | undefined, id: string | undefined, size: number) =>
   id && imgs?.[id] ? new ImageRun({ type: 'png', data: imgs[id], transformation: { width: size, height: size } }) : null;
@@ -779,7 +863,7 @@ function cajaDocx(color: string, ancho = 100): Table {
 /** Cómo se rotula un ejercicio: «1. », «A. » o nada (un solo ejercicio en el bloque del diseño «Cuaderno»). */
 type Marcador = string;
 
-async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false) {
+async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false, ilus?: Imgs) {
   const letra = (n: number) => String.fromCharCode(97 + n);
   const consigna = pictoRun(imgs, ex.consigna, 26);
 
@@ -796,6 +880,17 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
   const dibujos = imgs ? dibujosEnOrden(ex.imagenes).map(id => pictoRun(imgs, id, 40)).filter((r): r is ImageRun => !!r) : [];
   if (dibujos.length) {
     children.push(new Paragraph({ children: dibujos.flatMap((r, k) => (k ? [new TextRun({ text: '  ' }), r] : [r])), spacing: { after: 100 } }));
+  }
+
+  // Hilo conductor: los dibujos del catálogo, cada uno repetido las veces que dice su cantidad
+  if (ilus && ex.dibujos?.length) {
+    const total = ex.dibujos.reduce((n, d) => n + Math.max(1, d.cantidad ?? 1), 0);
+    const px = total <= 1 ? 72 : total <= 4 ? 54 : total <= 8 ? 42 : 34;
+    const runs = ex.dibujos.flatMap((d, g) => {
+      const copias = Array.from({ length: Math.max(1, d.cantidad ?? 1) }, () => pictoRun(ilus, d.ilustracion, px)).filter((r): r is ImageRun => !!r);
+      return copias.flatMap((r, k) => (g > 0 && k === 0 ? [new TextRun({ text: '      ' }), r] : [r]));
+    });
+    if (runs.length) children.push(new Paragraph({ children: runs, spacing: { after: 100 } }));
   }
 
   const figureImage = await figureToImageRun(ex, colorHexNoHash);
@@ -1132,6 +1227,8 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const art = classic || cuaderno ? null : await loadThemeArt(theme.id);
   const visual = !!c.visual && (c.formato ?? 'ficha') !== 'tarjetas';
   const imgs = visual ? await pictosPng(c) : undefined;
+  // Con hilo conductor: los dibujos del catálogo (cabecera, bloques y ejercicios)
+  const ilus = c.hilo && !visual ? await ilustracionesPng(c) : undefined;
   const motif = classic
     ? MOTIF_COLORS[pickMotifKey(f.request.tema, f.request.area)]
     : { bg: theme.color, accent: 'FFFFFF' };
@@ -1159,6 +1256,11 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
                 font: classic ? undefined : cuaderno ? 'Trebuchet MS' : theme.fuenteTitulo.split(',')[0].replace(/"/g, ''),
               })],
             }),
+            // «Cuaderno» con hilo: los tres dibujos de la cabecera, a la derecha del título
+            ...(cuaderno && ilus ? [new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              children: dibujosDeLaCabecera(c.hilo).map(id => pictoRun(ilus, id, 52)).filter((r): r is ImageRun => !!r),
+            })] : []),
           ],
         })],
       })],
@@ -1276,6 +1378,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
         children: [
           new TextRun({ text: ` ${actIdx + 1} `, bold: true, color: 'FFFFFF', size: 28, shading: { type: 'clear', fill: color.bg, color: 'auto' } }),
           new TextRun({ text: `  ${(act.titulo || label).toUpperCase()}`, bold: true, color: color.bg, size: 26, font: 'Trebuchet MS' }),
+          ...(ilus && pictoRun(ilus, act.dibujo, 30) ? [new TextRun({ text: '   ' }), pictoRun(ilus, act.dibujo, 30)!] : []),
         ],
         border: { bottom: { style: 'single', size: 8, color: color.bg, space: 4 } },
         spacing: { before: 120, after: 160 },
@@ -1312,7 +1415,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     const marcador = (i: number): Marcador | undefined => !cuaderno ? undefined
       : act.ejercicios.length === 1 ? ''
       : act.ejercicios.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
-    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno);
+    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus);
     if (act.recuadro) pushRecuadroDocx(children, act.recuadro, t);
     if (visual && act.recuerda?.length) pushRecuerdaDocx(children, act, imgs, t);
     if (escape && act.candado) {

@@ -8,13 +8,13 @@
  * la hoja A4 tal cual se imprimirá, en vivo. El tema visual se cambia con un
  * clic sin volver a generar nada.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, TIPOS,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, conHilo, TIPOS,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
   type FichaFormato, type FichaVariante,
 } from '../services/resources';
@@ -31,6 +31,8 @@ import { RecuadroEditor } from '../components/fichas/RecuadroEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
+import { HiloSelector } from '../components/fichas/DibujosEditor';
+import { hiloDeFicha } from '../lib/hilos';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { useFichaParaPedido } from '../lib/apoyoNav';
@@ -152,6 +154,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   // Por defecto, la hoja de cuaderno (decisión del dueño, 14-10-2026); «Que elija la IA» sigue entre los de historia
   const [estilo, setEstilo] = useState<FichaThemeChoice>('cuaderno');
   const [formato, setFormato] = useState<FichaFormato>('ficha');
+  // El hilo conductor: 'auto' lo elige la app por el tema, 'ninguno' quita los dibujos, o un hilo concreto
+  const [hilo, setHilo] = useState('auto');
 
   /* ── Editor ── */
   const [generating, setGenerating] = useState(false);
@@ -176,7 +180,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     if (cls) setArea(cls.subject);
   }
 
-  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato, visual });
+  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato, visual, hilo });
+  // Lo que la app elegiría por el tema (se enseña en el selector)
+  const hiloDetectado = useMemo(() => (tema.trim() ? hiloDeFicha({ tema, area, nivel }) : undefined), [tema, area, nivel]);
 
   function pickFormato(f: FichaFormato) {
     setFormato(f);
@@ -362,7 +368,13 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).map((x, xi) => (xi === i ? { ...x, ...p } : x)) }));
 
   function changeTheme(id: FichaThemeId) {
-    edit(c => ({ ...c, estilo: id }));
+    // Al pasar a «Cuaderno» una ficha sin hilo (y sin apoyos visuales), se le pone el que encaja por el tema
+    edit(c => {
+      const nueva = { ...c, estilo: id };
+      return id === 'cuaderno' && !c.hilo && !c.visual && (c.formato ?? 'ficha') === 'ficha'
+        ? conHilo(nueva, hiloDeFicha({ tema, area, nivel }).id)
+        : nueva;
+    });
   }
 
   async function handleRewriteStory() {
@@ -452,6 +464,16 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
           <ThemeGrid value={theme.id} onChange={v => v !== 'auto' && changeTheme(v)} compact t={t} />
         </div>
+
+        {theme.id === 'cuaderno' && !tarjetas && !escape && !content.visual && (
+          <div className="card fe-theme-bar">
+            <div className="fe-theme-bar-hd">
+              <span className="fe-lbl">{t('Hilo conductor')}</span>
+              <span className="fe-hint">{t('Cambia la cabecera y el dibujo de cada bloque; los de los ejercicios se quedan.')}</span>
+            </div>
+            <HiloSelector value={content.hilo ?? 'ninguno'} onChange={v => edit(c => conHilo(c, v === 'ninguno' ? undefined : v))} t={t} />
+          </div>
+        )}
 
         <div className="fe-grid">
           <div className="fe-panel">
@@ -561,7 +583,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                   <div className="fe-act-body">
                     {act.ejercicios.map((ex, i) => (
                       <ExerciseEditor
-                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual}
+                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual} hilo={content.hilo}
                         selected={selected === `${a}-${i}`} first={i === 0} last={i === act.ejercicios.length - 1}
                         busy={busyEx === `${a}-${i}`} aiDisabled={sinClave || (busyEx !== null && busyEx !== `${a}-${i}`)}
                         onSelect={() => setSelected(`${a}-${i}`)}
@@ -753,6 +775,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                     : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
           </p>
         </div>
+
+        {estilo === 'cuaderno' && formato === 'ficha' && !visual && (
+          <div className="fgroup">
+            <span className="flabel">{t('Dibujos de la ficha')}</span>
+            <HiloSelector auto value={hilo} onChange={setHilo} detectado={hiloDetectado} t={t} />
+            <p className="fe-hint" style={{ marginTop: 6 }}>{t('Los dibujos y el ambiente de los enunciados salen de este tema. Puedes cambiarlo o quitarlo.')}</p>
+          </div>
+        )}
 
         <details className="fe-more">
           <summary>{t('Más opciones')}</summary>

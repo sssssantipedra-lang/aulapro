@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import { CA } from './ca';
 import { APOYO_EN } from './apoyo';
+import { HILOS_EN } from './hilos';
 import { EF_EN } from './ef';
 import { DEMO_EN } from './demo';
 
@@ -2035,6 +2036,7 @@ const EN: Record<string, string> = {
   "Si le das varias, no crees una clase por cada una: márcalas todas y luego elegirás cuál evalúas en el cuaderno, las rúbricas y las dianas.": "If you teach it several subjects, don’t create a separate class for each: tick them all and you’ll choose which one to assess in the gradebook, rubrics and learner-profile tracking.",
   ...APOYO_EN,
   ...EF_EN,
+  ...HILOS_EN,
   /* ── Fase 7: Anotar actitud y En clase (11-10-2026) ── */
   'Buen comport.': 'Good behav.',
   'Mal comport.': 'Poor behav.',

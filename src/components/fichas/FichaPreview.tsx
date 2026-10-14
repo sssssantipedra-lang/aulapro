@@ -9,7 +9,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ficha } from '../../types';
-import { buildFichaHtml, cargarPictos, pictosDeFicha } from '../../services/exportFicha';
+import { buildFichaHtml, cargarIlustraciones, cargarPictos, ilustracionesDeFicha, pictosDeFicha } from '../../services/exportFicha';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { useThemeArt } from '../../lib/themeArtDoc';
 import { useFuenteCuaderno } from '../../lib/fuenteCuaderno';
@@ -44,7 +44,15 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
     if (ids) cargarPictos(ids.split(' ')).then(p => { if (vivo) setPictos(p); });
     return () => { vivo = false; };
   }, [ids]);
-  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos, fontCss }), [ficha, lang, art, pictos, fontCss]);
+  // Con hilo conductor, los dibujos del catálogo: igual, al cambiar cuáles son
+  const idsIlu = ilustracionesDeFicha(ficha.content).join(' ');
+  const [ilustraciones, setIlustraciones] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let vivo = true;
+    if (idsIlu) cargarIlustraciones(idsIlu.split(' ')).then(p => { if (vivo) setIlustraciones(p); });
+    return () => { vivo = false; };
+  }, [idsIlu]);
+  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos, ilustraciones, fontCss }), [ficha, lang, art, pictos, ilustraciones, fontCss]);
 
   // Escala al ancho disponible
   useEffect(() => {
