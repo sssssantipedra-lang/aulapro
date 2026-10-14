@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
-import { ILUSTRACIONES, elegirIlustraciones, ilustracionPorId, listaIlustracionesParaIA, puntuarIlustracion, urlIlustracion } from './ilustraciones';
+import { ILUSTRACIONES, elegirIlustraciones, ilustracionPorId, listaIlustracionesParaIA, nombreIlustracion, puntuarIlustracion, urlIlustracion } from './ilustraciones';
 import { ILUSTRACIONES_PROPIAS } from '../services/fichaCuaderno';
 import { empiezaPalabra, pickMotifKey } from '../services/fichaMotifs';
 
@@ -33,6 +33,30 @@ describe('ilustraciones generadas con fal.ai', () => {
     for (const i of ILUSTRACIONES.filter(x => x.fuente === 'img')) {
       expect(existsSync(`public/${urlIlustracion(i.id)}`), `${i.id}.webp`).toBe(true);
     }
+  });
+});
+
+describe('nombres de las ilustraciones', () => {
+  it('cada dibujo suelto se nombra en los tres idiomas con una palabra o dos, y los nombres no se repiten', () => {
+    for (const lang of ['es', 'ca', 'en'] as const) {
+      const vistos = new Map<string, string>();
+      for (const i of ILUSTRACIONES.filter(x => x.fuente === 'img')) {
+        const n = nombreIlustracion(i.id, lang);
+        expect(n, `${i.id} sin nombre en ${lang}`).toBeTruthy();
+        expect(n!.length, `${i.id}: «${n}» es largo`).toBeLessThanOrEqual(26);
+        expect(n, `${i.id}: «${n}» sin espacios sobrantes`).toBe(n!.trim());
+        // Dos dibujos con el mismo nombre (el corazón del cuerpo y el de los valores) no se rotulan juntos: lo evita `cleanDibujos`
+        vistos.set(n!.toLowerCase(), i.id);
+      }
+      expect(vistos.size, `${lang}: nombres repetidos`).toBeGreaterThan(260);
+    }
+  });
+
+  it('las cabeceras y las mascotas no tienen nombre', () => {
+    expect(nombreIlustracion('cab-lengua', 'es')).toBeUndefined();
+    expect(nombreIlustracion(undefined, 'es')).toBeUndefined();
+    expect(nombreIlustracion('ani-vaca', 'ca')).toBe('vaca');
+    expect(nombreIlustracion('ani-vaca', 'en')).toBe('cow');
   });
 });
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import JSZip from 'jszip';
 import { buildFichaHtml, buildFichaDocxBlob } from './exportFicha';
-import { calculosHtml, recuadroHtml, serieDe, tamanoTitulo } from './fichaCuaderno';
+import { calculosHtml, completarHtml, esRespuestaCorta, lineasDeRespuesta, recuadroHtml, serieDe, tamanoTitulo } from './fichaCuaderno';
 import type { Ficha } from '../types';
 import type { FichaContent, FichaExercise } from './resources';
 
@@ -63,6 +63,8 @@ describe('diseño «Cuaderno» — hoja', () => {
     expect(html).toContain('<span class="cq-val">583.742</span><span class="cq-eq">=</span><span class="cq-linea"></span>');
     expect(html).toContain('<span class="cq-val">75.830</span>');
     expect(html).toContain('cq-calculos con-caja');
+    // los «=» van alineados: el ancho de la columna del cálculo es el del más largo
+    expect(html).toContain('style="--w:7ch"');
     expect(html).toContain('<span class="cq-caja"></span>');
   });
 
@@ -73,19 +75,23 @@ describe('diseño «Cuaderno» — hoja', () => {
     expect(c).toContain('<ol class="ficha-ejercicios" ');
   });
 
-  it('el recuadro va al lado de los ejercicios: «Recuerda» con su leyenda, «Reto» con su hueco y «Consejo»', () => {
-    expect(html.match(/class="cq-cuerpo con-nota"/g)).toHaveLength(3);
+  it('el recuadro es una franja con su mascota: «Recuerda» y «Consejo» antes de los ejercicios, «Reto» después con su hueco', () => {
     expect(html).toContain('class="cq-nota recuerda"');
-    expect(html).toContain('<tr><td>CM</td><td>=</td><td>centena de millar</td></tr>');
+    expect(html).toContain('<span><b>CM</b><i>=</i>centena de millar</span>');
     expect(html).toContain('class="cq-nota reto"');
-    expect(html).toContain('cq-caja libre');
+    expect(html).toContain('<div class="cq-respuesta"><b>Respuesta:</b>');
     expect(html).toContain('class="cq-nota consejo"');
     expect(html).toContain('Compara la cifra de mayor valor.');
+    const [a, b, c] = html.split('<section class="ficha-actividad').slice(1);
+    // «Recuerda» y «Consejo» van antes de la lista de ejercicios; el «Reto», después
+    expect(a.indexOf('cq-nota')).toBeLessThan(a.indexOf('<ol'));
+    expect(c.indexOf('cq-nota')).toBeLessThan(c.indexOf('<ol'));
+    expect(b.indexOf('cq-nota')).toBeGreaterThan(b.indexOf('</ol>'));
   });
 
-  it('una serie corta se escribe en orden en una caja; el recuadro sin lista de pares sale como lista', () => {
+  it('una serie corta se escribe en orden: la serie y tantas casillas como elementos; el recuadro sin lista de pares sale como lista', () => {
     expect(html).toContain('<div class="cq-serie"><span>345.678</span><i>–</i><span>354.876</span>');
-    expect(html).toContain('cq-caja ancha');
+    expect(html.match(/<div class="cq-celdas">(.*?)<\/div>/)![1].match(/class="cq-caja"/g)).toHaveLength(3);
     const r = recuadroHtml({ tipo: 'recuerda', texto: '', lista: ['Se suma', 'Se resta'] }, t);
     expect(r).toContain('<ul class="cq-lista"><li>Se suma</li><li>Se resta</li></ul>');
   });
@@ -113,7 +119,7 @@ describe('diseño «Cuaderno» — hoja', () => {
   it('con otro tema, el recuadro sale igual, debajo de los ejercicios', () => {
     const clasica = buildFichaHtml(ficha({ estilo: 'clasico' }), 'es');
     expect(clasica).toContain('class="cq-nota recuerda"');
-    expect(clasica).not.toContain('class="cq-cuerpo con-nota"');
+    expect(clasica).not.toContain('class="cq-sec"');
   });
 
   it('la letra de la cinta baja con los títulos largos', () => {
@@ -148,6 +154,35 @@ describe('diseño «Cuaderno» — piezas', () => {
 
   it('escapa el HTML de las líneas', () => {
     expect(calculosHtml({ tipo: 'calculos', enunciado: '', lineas: ['3 < 5 & 2 > 1'], solucion: '' })).toContain('3 &lt; 5 &amp; 2 &gt; 1');
+  });
+});
+
+describe('diseño «Cuaderno» — espacios de respuesta', () => {
+  it('una respuesta corta cabe en una caja; una frase, en líneas, y las justas', () => {
+    expect(esRespuestaCorta('3/8')).toBe(true);
+    expect(esRespuestaCorta('Madrid')).toBe(true);
+    expect(esRespuestaCorta('')).toBe(false);
+    expect(esRespuestaCorta('Nos da lana y leche.')).toBe(false);
+    expect(lineasDeRespuesta('Lana y leche.')).toBe(2);
+    expect(lineasDeRespuesta('x'.repeat(100))).toBe(3);
+    expect(lineasDeRespuesta('x'.repeat(200))).toBe(4);
+    // De opinión o sin solución, tres
+    expect(lineasDeRespuesta('Respuesta libre.')).toBe(3);
+    expect(lineasDeRespuesta('')).toBe(3);
+    expect(lineasDeRespuesta(undefined)).toBe(3);
+  });
+
+  it('«completar»: los guiones bajos de la frase pasan a un hueco, escapando el resto', () => {
+    expect(completarHtml('La vaca da ____ y <b>.')).toEqual({ html: 'La vaca da <span class="cq-hueco"></span> y &lt;b&gt;.', hueco: true });
+    expect(completarHtml('Escribe la palabra.').hueco).toBe(false);
+    expect(completarHtml('Un guion_bajo suelto').hueco).toBe(false);
+  });
+
+  it('los cálculos largos van en una columna y los cortos, de cuatro en adelante, en dos', () => {
+    const lineas = (l: string[]) => calculosHtml({ tipo: 'calculos', enunciado: '', lineas: l, solucion: '' });
+    expect(lineas(['1+1', '2+2', '3+3', '4+4'])).toContain('cq-calculos dos');
+    expect(lineas(['1+1', '2+2', '3+3'])).not.toContain(' dos');
+    expect(lineas(['1+1', '2+2', '3+3', 'una cuenta bastante más larga que las demás'])).not.toContain(' dos');
   });
 });
 

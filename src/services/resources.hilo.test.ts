@@ -1,8 +1,8 @@
 /**
  * El hilo conductor en lo que se le pide a la IA y en lo que devuelve (ver
  * `lib/hilos.ts`): el hilo que se le pone a la ficha, la lista cerrada de
- * dibujos del prompt, el esquema, la limpieza de los dibujos y el dibujo de cada
- * bloque.
+ * dibujos del prompt, el esquema, la limpieza de los dibujos y los tipos de
+ * ejercicio que viven de ellos (contar, etiquetar, clasificar).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -13,10 +13,9 @@ vi.mock('./gemini', async importOriginal => {
 });
 
 import {
-  adaptFicha, asignarDibujosDeBloque, cleanDibujos, conHilo, generateFicha, resolverHilo, regenerateExercise,
+  adaptFicha, cleanDibujos, conHilo, generateFicha, resolverHilo, regenerateExercise,
   type FichaContent, type FichaRequest,
 } from './resources';
-import { hiloPorId } from '../lib/hilos';
 
 const req = (over: Partial<FichaRequest> = {}): FichaRequest => ({
   tema: 'Los animales de la granja', area: 'Ciencias Naturales', nivel: '2º Primaria', numEjercicios: 4, niveles: false, contextoClase: '', estilo: 'cuaderno', ...over,
@@ -82,16 +81,11 @@ describe('generateFicha con hilo conductor', () => {
     expect(esquemaEj().required).not.toContain('dibujos');
   });
 
-  it('guarda el hilo en la ficha y le pone a cada bloque su dibujo, distinto en cada uno', async () => {
+  it('guarda el hilo en la ficha, sin dibujos sueltos de adorno en los bloques', async () => {
     callGemini.mockResolvedValueOnce(respuesta());
     const f = await generateFicha(req(), 'es');
     expect(f?.hilo).toBe('granja');
-    const dibujos = f!.actividades.map(a => a.dibujo);
-    expect(dibujos.every(Boolean)).toBe(true);
-    expect(new Set(dibujos).size).toBe(dibujos.length);
-    // Los de la cabecera (los tres primeros del hilo) no se repiten en los bloques
-    const cabecera = hiloPorId('granja')!.dibujos.slice(0, 3);
-    expect(dibujos.some(d => cabecera.includes(d!))).toBe(false);
+    expect(f!.actividades.every(a => !('dibujo' in a))).toBe(true);
   });
 
   it('comprueba los dibujos: solo los del catálogo, sin repetir, cantidad de 1 a 10, y 1 en los que no se cuentan', async () => {
@@ -119,7 +113,6 @@ describe('generateFicha con hilo conductor', () => {
     expect(esquemaEj().properties.dibujos).toBeUndefined();
     expect(f?.hilo).toBeUndefined();
     expect(f!.actividades[0].ejercicios[0].dibujos).toBeUndefined();
-    expect(f!.actividades.every(a => !a.dibujo)).toBe(true);
   });
 
   it('con apoyos visuales usa sus pictogramas y no el hilo', async () => {
@@ -145,7 +138,7 @@ describe('cleanDibujos', () => {
   });
 });
 
-describe('conHilo y los dibujos de bloque', () => {
+describe('conHilo', () => {
   const base = (): FichaContent => ({
     titulo: 'T', explicacion: '', instrucciones: '', estilo: 'cuaderno',
     actividades: [
@@ -154,32 +147,140 @@ describe('conHilo y los dibujos de bloque', () => {
     ],
   });
 
-  it('cambiar de hilo cambia la cabecera y los bloques, y deja los dibujos de los ejercicios', () => {
+  it('cambiar de hilo cambia la cabecera y deja los dibujos de los ejercicios', () => {
     const c = conHilo(base(), 'fracciones-reparto');
     expect(c.hilo).toBe('fracciones-reparto');
-    expect(c.actividades.map(a => a.dibujo)).toEqual(expect.arrayContaining([expect.any(String)]));
     const otro = conHilo(c, 'granja');
     expect(otro.hilo).toBe('granja');
-    expect(otro.actividades[0].dibujo).not.toBe(c.actividades[0].dibujo);
     expect(otro.actividades[0].ejercicios[0].dibujos).toEqual([{ ilustracion: 'com-sandia', cantidad: 2 }]);
   });
 
-  it('un bloque no repite como adorno el dibujo que ya usa en sus ejercicios', () => {
-    const hilo = hiloPorId('fracciones-reparto')!;
-    const c = base();
-    // La sandía es el primero de los candidatos (el 4.º del hilo): el bloque 0 salta al siguiente
-    const [a0] = asignarDibujosDeBloque(c.actividades, hilo);
-    expect(a0.dibujo).not.toBe('com-sandia');
-    expect(hilo.dibujos).toContain(a0.dibujo);
+  it('sin hilo, o con uno que no existe, se quita el hilo', () => {
+    const c = conHilo(base(), 'granja');
+    for (const id of [undefined, 'inventado']) expect(conHilo(c, id).hilo).toBeUndefined();
+  });
+});
+
+const un = (ex: unknown) => JSON.stringify({ titulo: 'F', explicacion: '', instrucciones: '', actividades: [{ titulo: 'B', ejercicios: [ex] }] });
+const ej = async (ex: unknown, lang: 'es' | 'ca' | 'en' = 'es', r: Partial<FichaRequest> = {}) => {
+  callGemini.mockResolvedValueOnce(un(ex));
+  return (await generateFicha(req(r), lang))!.actividades[0].ejercicios[0];
+};
+
+describe('los tipos con dibujos: «contar», «etiquetar» y «clasificar»', () => {
+  it('el esquema los ofrece solo con hilo, y con sus campos', async () => {
+    callGemini.mockResolvedValueOnce(respuesta());
+    await generateFicha(req(), 'es');
+    const props = esquemaEj().properties;
+    expect(props.tipo.enum).toEqual(expect.arrayContaining(['contar', 'etiquetar', 'clasificar']));
+    expect(props.categorias.items.required).toEqual(['nombre', 'dibujos']);
+    expect(props.total.type).toBe('BOOLEAN');
+    expect(props.banco.type).toBe('BOOLEAN');
+    callGemini.mockReset();
+    callGemini.mockResolvedValueOnce(respuesta());
+    await generateFicha(req({ hilo: 'ninguno' }), 'es');
+    expect(esquemaEj().properties.tipo.enum).not.toContain('contar');
+    expect(esquemaEj().properties.categorias).toBeUndefined();
   });
 
-  it('sin hilo, o con uno que no existe, se quitan el hilo y los dibujos de bloque', () => {
-    const c = conHilo(base(), 'granja');
-    for (const id of [undefined, 'inventado']) {
-      const sin = conHilo(c, id);
-      expect(sin.hilo).toBeUndefined();
-      expect(sin.actividades.every(a => !a.dibujo)).toBe(true);
-    }
+  it('el prompt explica cada tipo y que cada dibujo lleva su espacio', async () => {
+    callGemini.mockResolvedValueOnce(respuesta());
+    await generateFicha(req(), 'es');
+    const s = sistema();
+    expect(s).toContain('SU espacio para contestar');
+    for (const x of ['"contar"', '"etiquetar"', '"clasificar"', '"relacionar" y "tabla_rellenar"']) expect(s).toContain(x);
+  });
+
+  it('«contar»: solo grupos que se pueden contar, y la solución la calcula el código', async () => {
+    const e = await ej({
+      tipo: 'contar', enunciado: 'Cuenta.', total: true, solucion: 'LO QUE DIGA LA IA',
+      dibujos: [{ ilustracion: 'ani-vaca', cantidad: 4 }, { ilustracion: 'lug-granja', cantidad: 3 }, { ilustracion: 'ani-cerdo', cantidad: 3 }],
+    });
+    expect(e.tipo).toBe('contar');
+    expect(e.dibujos).toEqual([{ ilustracion: 'ani-vaca', cantidad: 4 }, { ilustracion: 'ani-cerdo', cantidad: 3 }]);
+    expect(e.total).toBe(true);
+    expect(e.solucion).toBe('vaca: 4; cerdo: 3; Total: 7');
+  });
+
+  it('«contar» con un solo grupo no pide total; en catalán y en inglés la solución usa su idioma', async () => {
+    const e = await ej({ tipo: 'contar', enunciado: 'Cuenta.', total: true, solucion: '', dibujos: [{ ilustracion: 'ani-vaca', cantidad: 5 }] }, 'en');
+    expect(e.total).toBeUndefined();
+    expect(e.solucion).toBe('cow: 5');
+    expect((await ej({ tipo: 'contar', enunciado: 'Cuenta.', solucion: '', dibujos: [{ ilustracion: 'ani-pez', cantidad: 2 }] }, 'ca')).solucion).toBe('peix: 2');
+  });
+
+  it('«contar» sin nada que contar pasa a pregunta abierta, no sale rota', async () => {
+    const e = await ej({ tipo: 'contar', enunciado: 'Cuenta.', solucion: '3', dibujos: [{ ilustracion: 'lug-granja', cantidad: 3 }] });
+    expect(e.tipo).toBe('abierta');
+    expect(e.total).toBeUndefined();
+    expect((await ej({ tipo: 'contar', enunciado: 'Cuenta.', solucion: '3' })).tipo).toBe('abierta');
+  });
+
+  it('«etiquetar»: de 2 a 8 dibujos con nombres distintos, cantidad 1, y la solución son los nombres', async () => {
+    const e = await ej({
+      tipo: 'etiquetar', enunciado: 'Nombra.', banco: true, solucion: '',
+      dibujos: ['ani-perro', 'ani-gato', 'cue-corazon', 'val-corazon', 'ani-perro', 'inventado'].map(ilustracion => ({ ilustracion, cantidad: 5 })),
+    });
+    expect(e.tipo).toBe('etiquetar');
+    // «corazón» del cuerpo y de los valores se llaman igual: solo uno
+    expect(e.dibujos).toEqual([{ ilustracion: 'ani-perro', cantidad: 1 }, { ilustracion: 'ani-gato', cantidad: 1 }, { ilustracion: 'cue-corazon', cantidad: 1 }]);
+    expect(e.banco).toBe(true);
+    expect(e.solucion).toBe('1. perro, 2. gato, 3. corazón');
+    const una = await ej({ tipo: 'etiquetar', enunciado: 'Nombra.', solucion: '', dibujos: [{ ilustracion: 'ani-perro', cantidad: 1 }] });
+    expect(una.tipo).toBe('abierta');
+  });
+
+  it('«clasificar»: grupos con sus dibujos sin repetir; la solución sale de la mezcla numerada', async () => {
+    const e = await ej({
+      tipo: 'clasificar', enunciado: 'Clasifica.', solucion: '',
+      categorias: [
+        { nombre: 'Domésticos', dibujos: ['ani-vaca', 'ani-perro', 'ani-gato'] },
+        { nombre: 'Salvajes', dibujos: ['ani-leon', 'ani-vaca', 'inventado', 'ani-jirafa'] },
+        { nombre: '', dibujos: ['ani-cebra'] },
+      ],
+    });
+    expect(e.tipo).toBe('clasificar');
+    expect(e.categorias).toEqual([
+      { nombre: 'Domésticos', dibujos: ['ani-vaca', 'ani-perro', 'ani-gato'] },
+      { nombre: 'Salvajes', dibujos: ['ani-leon', 'ani-jirafa'] },
+    ]);
+    expect(e.dibujos).toBeUndefined();
+    // Cada número aparece exactamente una vez en la solución
+    const numeros = e.solucion.match(/\d+/g)!.map(Number).sort();
+    expect(numeros).toEqual([1, 2, 3, 4, 5]);
+    expect(e.solucion).toMatch(/^Domésticos: [\d, ]+; Salvajes: [\d, ]+$/);
+  });
+
+  it('«clasificar» con menos de dos grupos o menos de cuatro dibujos pasa a pregunta abierta', async () => {
+    expect((await ej({ tipo: 'clasificar', enunciado: 'C.', solucion: '', categorias: [{ nombre: 'A', dibujos: ['ani-vaca', 'ani-gato', 'ani-perro', 'ani-leon'] }] })).tipo).toBe('abierta');
+    expect((await ej({ tipo: 'clasificar', enunciado: 'C.', solucion: '', categorias: [{ nombre: 'A', dibujos: ['ani-vaca'] }, { nombre: 'B', dibujos: ['ani-gato'] }] })).tipo).toBe('abierta');
+  });
+
+  it('sin hilo (o con apoyos visuales) los tres tipos pasan a pregunta abierta y se quitan sus campos', async () => {
+    const e = await ej({ tipo: 'contar', enunciado: 'Cuenta.', solucion: '', total: true, dibujos: [{ ilustracion: 'ani-vaca', cantidad: 4 }] }, 'es', { hilo: 'ninguno' });
+    expect(e.tipo).toBe('abierta');
+    expect(e.dibujos).toBeUndefined();
+    expect(e.total).toBeUndefined();
+    const v = await ej({ tipo: 'clasificar', enunciado: 'C.', solucion: '', categorias: [{ nombre: 'A', dibujos: ['ani-vaca'] }] }, 'es', { visual: true });
+    expect(v.tipo).toBe('abierta');
+    expect(v.categorias).toBeUndefined();
+  });
+
+  it('«relacionar» y las tablas: un dibujo por elemento o ninguno; con la longitud mal, se quitan', async () => {
+    const r = await ej({ tipo: 'relacionar', enunciado: 'Une.', solucion: '', izquierda: ['a', 'b', 'c'], derecha: ['x', 'y', 'z'], dibujos: [{ ilustracion: 'ani-vaca', cantidad: 3 }, { ilustracion: 'inventado', cantidad: 1 }, { ilustracion: 'ani-cerdo', cantidad: 1 }] });
+    // La cantidad se ignora (1) y el dibujo que no existe queda en blanco: la posición no se pierde
+    expect(r.dibujos).toEqual([{ ilustracion: 'ani-vaca', cantidad: 1 }, { ilustracion: '', cantidad: 1 }, { ilustracion: 'ani-cerdo', cantidad: 1 }]);
+    const mal = await ej({ tipo: 'relacionar', enunciado: 'Une.', solucion: '', izquierda: ['a', 'b', 'c'], derecha: ['x', 'y', 'z'], dibujos: [{ ilustracion: 'ani-vaca', cantidad: 1 }] });
+    expect(mal.dibujos).toBeUndefined();
+    const t = await ej({ tipo: 'tabla_rellenar', enunciado: 'T.', solucion: '', columnas: ['A', 'B'], filas: [['x', ''], ['y', '']], dibujos: [{ ilustracion: 'com-pera', cantidad: 1 }, { ilustracion: 'com-fresa', cantidad: 1 }] });
+    expect(t.dibujos).toHaveLength(2);
+  });
+
+  it('rehacer o añadir un ejercicio también calcula la solución de estos tipos', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ tipo: 'contar', enunciado: 'Cuenta.', solucion: 'x', dibujos: [{ ilustracion: 'ani-vaca', cantidad: 6 }] }));
+    const f = conHilo({ titulo: 'F', explicacion: '', instrucciones: '', estilo: 'cuaderno', actividades: [{ titulo: 'B', ejercicios: [{ tipo: 'abierta', enunciado: 'a', solucion: '' }] }] }, 'granja');
+    const ex = await regenerateExercise(f, req(), 0, 0, { instruccion: 'cuenta vacas', tipo: 'contar' }, 'es');
+    expect(ex?.solucion).toBe('vaca: 6');
   });
 });
 

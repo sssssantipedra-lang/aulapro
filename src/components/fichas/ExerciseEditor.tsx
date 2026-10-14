@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { ArrowUp, ArrowDown, Trash2, Wand2, ChevronDown, ChevronRight } from 'lucide-react';
 import { prepareExercise, shuffleApart, TIPOS, type FichaExercise, type FichaExerciseType } from '../../services/resources';
+import { esTipoConDibujos } from '../../lib/dibujosEjercicio';
 import { TIPO_LABEL, TIPO_EMOJI } from './tipos';
 import { EjercicioVisualEditor } from './VisualEditor';
 import { DibujosEditor } from './DibujosEditor';
@@ -94,7 +95,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
             />
             <select className="finput" value={tipo} onChange={e => setTipo(e.target.value as FichaExerciseType | '')} aria-label={t('Tipo de ejercicio')}>
               <option value="">{t('Mismo tipo')}</option>
-              {TIPOS.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+              {TIPOS.filter(x => hilo && !visual || !esTipoConDibujos(x)).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
             </select>
             <button type="button" className="btn-accent" disabled={!instr.trim() && !tipo} onClick={() => run(instr.trim())}>
               <Wand2 size={14} />{t('Rehacer')}

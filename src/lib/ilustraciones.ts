@@ -23,6 +23,7 @@
 import type { Lang } from '../i18n';
 import { pickMotifKey, empiezaPalabra, type FichaMotifKey } from '../services/fichaMotifs';
 import catalogoImg from './ilustraciones.catalogo.json';
+import nombresImg from './ilustraciones.nombres.json';
 
 /** Para qué sirve: cabecera de la ficha, mascota de un recuadro, objeto suelto o escena. */
 export type UsoIlustracion = 'cabecera' | 'mascota' | 'objeto' | 'escena';
@@ -131,6 +132,19 @@ const plano = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerC
 
 export function ilustracionPorId(id: string | undefined | null): Ilustracion | undefined {
   return id ? ILUSTRACIONES.find(i => i.id === id) : undefined;
+}
+
+const NOMBRES = nombresImg as unknown as Record<string, [string, string, string]>;
+
+/**
+ * La palabra que nombra lo que se ve («vaca»), en singular, para escribirla en una
+ * ficha: la palabra de un dibujo que se rotula, o la solución de «¿qué es?». Va en
+ * `ilustraciones.nombres.json`, que se mantiene a mano; `undefined` si no es un
+ * dibujo suelto (cabeceras y mascotas no se nombran).
+ */
+export function nombreIlustracion(id: string | undefined | null, lang: Lang): string | undefined {
+  const n = id ? NOMBRES[id] : undefined;
+  return n ? n[lang === 'ca' ? 1 : lang === 'en' ? 2 : 0] : undefined;
 }
 
 /** Dónde está el archivo de una ilustración `img`, dentro de la aplicación. */

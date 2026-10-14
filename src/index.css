@@ -954,6 +954,7 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .fe-vis-n { width:22px; height:22px; border-radius:50%; background:var(--blk, var(--accent-d)); color:#fff; font-size:11.5px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .fe-vis-img { display:inline-flex; align-items:center; gap:3px; }
 .fe-vis-img .finput { width:54px; padding:5px 6px !important; }
+.fe-check { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-2); cursor:pointer; }
 .fe-hilo { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .fe-hilo .finput { flex:0 1 320px; min-width:200px; }
 .fe-hilo-tira { display:flex; align-items:center; gap:2px; padding:3px 8px; border:1px dashed var(--border); border-radius:10px; background:var(--card); }
@@ -1048,6 +1049,14 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .cp-dibujos { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
 .cp-dibujos img { width:clamp(48px, 5vw, 76px); height:clamp(48px, 5vw, 76px); object-fit:contain; background:#fff; border-radius:12px; padding:4px; }
 .cp-fig svg { max-width:220px; height:auto; }
+.cp-ilus { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+.cp-ilus img, .cp-ilus-c img { width:clamp(54px, 6vw, 92px); height:clamp(54px, 6vw, 92px); object-fit:contain; }
+.cp-ilus-c { position:relative; display:inline-flex; flex-direction:column; align-items:center; padding:6px 8px; border:2px solid #e2e8f0; border-radius:14px; background:#fff; }
+.cp-ilus-c b { position:absolute; top:-8px; left:-8px; width:24px; height:24px; border-radius:50%; background:#334155; color:#fff; font-size:13px; display:flex; align-items:center; justify-content:center; }
+.cp-ilus-c small { font-size:clamp(12px, 1.2vw, 15px); font-weight:700; color:#475569; }
+.cp-contar { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.cp-contar .cp-ilus { margin:0; padding:6px 10px; border-radius:14px; background:#f8fafc; }
+.cp-rel-img { width:44px; height:44px; object-fit:contain; flex:0 0 auto; }
 .cp-items { display:flex; flex-wrap:wrap; gap:8px; }
 .cp-item { padding:8px 14px; border-radius:12px; background:#f1f5f9; font-size:clamp(15px, 1.5vw, 20px); }
 .cp-list { display:flex; flex-direction:column; gap:6px; }

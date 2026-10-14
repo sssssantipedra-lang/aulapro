@@ -19,6 +19,7 @@ import {
   type FichaFormato, type FichaVariante,
 } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
+import { esTipoConDibujos } from '../lib/dibujosEjercicio';
 import { FICHA_THEMES, fichaTheme, conHistoria, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
@@ -469,7 +470,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           <div className="card fe-theme-bar">
             <div className="fe-theme-bar-hd">
               <span className="fe-lbl">{t('Hilo conductor')}</span>
-              <span className="fe-hint">{t('Cambia la cabecera y el dibujo de cada bloque; los de los ejercicios se quedan.')}</span>
+              <span className="fe-hint">{t('Cambia los dibujos de la cabecera; los de los ejercicios se quedan.')}</span>
             </div>
             <HiloSelector value={content.hilo ?? 'ninguno'} onChange={v => edit(c => conHilo(c, v === 'ninguno' ? undefined : v))} t={t} />
           </div>
@@ -600,7 +601,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                         onChange={e => setAddTipo(m => ({ ...m, [a]: e.target.value as FichaExerciseType | '' }))}
                       >
                         <option value="">{t('Que elija la IA')}</option>
-                        {TIPOS.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+                        {TIPOS.filter(x => (content.hilo && !content.visual) || !esTipoConDibujos(x)).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
                       </select>
                       <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)}>
                         {adding === a ? <span className="spin" /> : <Plus size={13} />}{t('Añadir ejercicio con IA')}

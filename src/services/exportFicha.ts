@@ -37,11 +37,12 @@ import { ATRIBUCION_MULBERRY, esMulberry, pictoDe } from '../lib/pictos';
 import { pictoComoDato } from './exportAgenda';
 import { dibujosEnOrden } from '../lib/pictosFicha';
 import {
-  CUADERNO_STYLE, cabeceraHtml, calculosHtml, datosHtml, dibujosDeLaCabecera, dibujosHtml, recuadroHtml, recuadroLineas, seccionHtml, serieDe, serieHtml,
+  CUADERNO_STYLE, autoevaluacionHtml, cabeceraHtml, calculosHtml, clasificarHtml, completarHtml, contarHtml, datosHtml, dibujosDeLaCabecera, dibujosHtml, esRespuestaCorta,
+  etiquetarHtml, lineasDeRespuesta, lineasHtml, opcionesHtml, operacionHtml, recuadroHtml, recuadroLineas, respuestaHtml, seccionHtml, serieDe, serieHtml,
   type Ilus,
 } from './fichaCuaderno';
-import { urlIlustracion } from '../lib/ilustraciones';
-import { hiloPorId } from '../lib/hilos';
+import { nombreIlustracion, urlIlustracion } from '../lib/ilustraciones';
+import { bancoClasificar, esTipoConDibujos } from '../lib/dibujosEjercicio';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -130,8 +131,10 @@ export function ilustracionesDeFicha(c: FichaContent): string[] {
   if (!c.hilo) return [];
   const ids = new Set<string>(dibujosDeLaCabecera(c.hilo));
   for (const act of getActividades(c)) {
-    if (act.dibujo) ids.add(act.dibujo);
-    for (const ex of act.ejercicios) ex.dibujos?.forEach(d => ids.add(d.ilustracion));
+    for (const ex of act.ejercicios) {
+      ex.dibujos?.forEach(d => { if (d.ilustracion) ids.add(d.ilustracion); });
+      ex.categorias?.forEach(cat => cat.dibujos.forEach(id => ids.add(id)));
+    }
   }
   return [...ids];
 }
@@ -182,12 +185,24 @@ const nl2br = (s: string) => esc(s).replace(/\n/g, '<br>');
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
 
-function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic, cuaderno = false, ilus?: Ilus): string {
+function exerciseBodyHtml(
+  ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic, cuaderno = false, ilus?: Ilus, lang: Lang = 'es',
+): string {
   const letra = (i: number) => String.fromCharCode(97 + i);
-  // Los dibujos del catálogo (hilo conductor): uno solo, a un lado del enunciado; varios, en una bandeja debajo
-  const dib = ilus ? dibujosHtml(ex, ilus) : { lado: '', bandeja: '' };
-  const enunciado = (pic && ex.consigna ? pic(ex.consigna, 'vis-consigna') : '') + `<div class="ficha-enunciado">${esc(ex.enunciado)}</div>`;
-  let body = dib.lado + enunciado + dib.bandeja;
+  // «Cuaderno» con dibujos del catálogo (hilo conductor): cada dibujo lleva su espacio para contestar. Sin ellos
+  // (se quitó el hilo, o aún no se han cargado), contar, etiquetar y clasificar se maquetan como una pregunta abierta
+  const conDibujos = cuaderno && !!ilus;
+  const tipo: FichaExerciseType = !conDibujos && esTipoConDibujos(ex.tipo) ? 'abierta' : ex.tipo;
+  const dib = conDibujos ? dibujosHtml(ex, ilus!) : { lado: '', bandeja: '' };
+  // Estos tipos usan sus dibujos de otra manera (uno por grupo, por elemento…): ni figura al lado ni bandeja
+  const dibujosPropios = tipo === 'relacionar' || tipo === 'tabla_rellenar' || esTipoConDibujos(tipo);
+  const comp = cuaderno && tipo === 'completar' ? completarHtml(ex.enunciado) : null;
+  const enunciado = (pic && ex.consigna ? pic(ex.consigna, 'vis-consigna') : '') + `<div class="ficha-enunciado">${comp ? comp.html : esc(ex.enunciado)}</div>`;
+  const figuraSvg = ex.figura ? buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#' + color.bg) : '';
+  // La figura geométrica de un problema, enmarcada junto al enunciado como un dibujo suelto, si el tipo lo admite
+  const figuraAlLado = cuaderno && !!figuraSvg && !dib.lado && ['problema', 'abierta', 'completar', 'opcion_multiple'].includes(tipo);
+  const lado = dibujosPropios ? '' : figuraAlLado ? `<div class="cq-fig svg">${figuraSvg}</div>` : dib.lado;
+  let body = enunciado + (dibujosPropios ? '' : dib.bandeja);
 
   // Los dibujos del contenido, justo debajo del enunciado: lo que hay que contar o reconocer
   const dibujos = pic ? dibujosEnOrden(ex.imagenes) : [];
@@ -196,32 +211,54 @@ function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string 
   }
 
   // Independiente del tipo: cualquier ejercicio puede llevar un diagrama, aunque en la práctica solo lo pidan los "problema".
-  if (ex.figura) {
-    body += `<div class="ficha-figura">${buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#' + color.bg)}</div>`;
-  }
+  if (figuraSvg && !figuraAlLado) body += `<div class="ficha-figura">${figuraSvg}</div>`;
 
-  if (ex.tipo === 'opcion_multiple' && ex.opciones?.length) {
-    body += `<ol class="ficha-opciones">${ex.opciones.map((o, j) => `<li><span class="op-letra">${letra(j)})</span> ${esc(o)}</li>`).join('')}</ol>`;
-  } else if (ex.tipo === 'tabla_rellenar' && ex.columnas?.length && ex.filas?.length) {
-    // Con apoyos visuales, una columna delante con el dibujo de cada fila
-    const conDibujo = !!pic && !!ex.pictosFilas?.some(Boolean);
+  if (conDibujos && tipo === 'contar') {
+    body += contarHtml(ex, ilus!, t);
+  } else if (conDibujos && tipo === 'etiquetar') {
+    body += etiquetarHtml(ex, ilus!, lang);
+  } else if (conDibujos && tipo === 'clasificar') {
+    body += clasificarHtml(ex, ilus!, lang);
+  } else if (tipo === 'opcion_multiple' && ex.opciones?.length) {
+    body += cuaderno
+      ? opcionesHtml(ex.opciones)
+      : `<ol class="ficha-opciones">${ex.opciones.map((o, j) => `<li><span class="op-letra">${letra(j)})</span> ${esc(o)}</li>`).join('')}</ol>`;
+  } else if (tipo === 'tabla_rellenar' && ex.columnas?.length && ex.filas?.length) {
+    // Con apoyos visuales (pictogramas) o con dibujos del catálogo, una columna delante con el dibujo de cada fila
+    const dibFilas = conDibujos && ex.dibujos?.length === ex.filas.length && ex.dibujos.some(d => d.ilustracion) ? ex.dibujos : null;
+    const conDibujo = dibFilas ? true : !!pic && !!ex.pictosFilas?.some(Boolean);
+    const imgFila = (fi: number) => dibFilas ? ilus!(dibFilas[fi].ilustracion, 'cq-tdib') : pic!(ex.pictosFilas?.[fi], 'vis-fila');
     body += `<table class="ficha-tabla">` +
       `<thead><tr>${conDibujo ? `<th class="vis-col" style="background:#${color.light}"></th>` : ''}${ex.columnas.map(col => `<th style="background:#${color.light};color:#${color.bg}">${esc(col)}</th>`).join('')}</tr></thead>` +
-      `<tbody>${ex.filas.map((fila, fi) => `<tr>${conDibujo ? `<td class="vis-col">${pic!(ex.pictosFilas?.[fi], 'vis-fila')}</td>` : ''}${fila.map(celda => celda ? `<td>${esc(celda)}</td>` : `<td class="blank"></td>`).join('')}</tr>`).join('')}</tbody>` +
+      `<tbody>${ex.filas.map((fila, fi) => `<tr>${conDibujo ? `<td class="vis-col">${imgFila(fi)}</td>` : ''}${fila.map(celda => celda ? `<td>${esc(celda)}</td>` : `<td class="blank"></td>`).join('')}</tr>`).join('')}</tbody>` +
       `</table>`;
-  } else if (ex.tipo === 'relacionar' && ex.izquierda?.length && ex.derecha?.length) {
-    body += `<div class="ficha-relacionar">` +
-      `<div class="col">${ex.izquierda.map((it, i) => `<div class="item">${i + 1}. ${esc(it)}<span class="dot-r"></span></div>`).join('')}</div>` +
-      `<div class="col">${ex.derecha.map((it, j) => `<div class="item"><span class="dot-l"></span>${letra(j).toUpperCase()}. ${esc(it)}</div>`).join('')}</div>` +
-      `</div>`;
-  } else if (ex.tipo === 'colorear') {
+  } else if (tipo === 'relacionar' && ex.izquierda?.length && ex.derecha?.length) {
+    if (cuaderno) {
+      // Una fila por pareja de huecos (izquierda y derecha a la misma altura), con el dibujo en el elemento que lo tenga
+      const dibIzq = conDibujos && ex.dibujos?.length === ex.izquierda.length ? ex.dibujos : null;
+      const filas = Math.max(ex.izquierda.length, ex.derecha.length);
+      body += `<div class="cq-rel">` + Array.from({ length: filas }, (_, i) => {
+        const img = dibIzq ? ilus!(dibIzq[i]?.ilustracion, 'cq-rel-img') : '';
+        const izq = ex.izquierda![i] !== undefined
+          ? `<div class="item${img ? ' con-dib' : ''}">${img}<span><b>${i + 1}.</b> ${esc(ex.izquierda![i])}</span><span class="dot-r"></span></div>` : '<div></div>';
+        const der = ex.derecha![i] !== undefined
+          ? `<div class="item"><span class="dot-l"></span><span><b>${letra(i).toUpperCase()}.</b> ${esc(ex.derecha![i])}</span></div>` : '<div></div>';
+        return izq + der;
+      }).join('') + `</div>`;
+    } else {
+      body += `<div class="ficha-relacionar">` +
+        `<div class="col">${ex.izquierda.map((it, i) => `<div class="item">${i + 1}. ${esc(it)}<span class="dot-r"></span></div>`).join('')}</div>` +
+        `<div class="col">${ex.derecha.map((it, j) => `<div class="item"><span class="dot-l"></span>${letra(j).toUpperCase()}. ${esc(it)}</div>`).join('')}</div>` +
+        `</div>`;
+    }
+  } else if (tipo === 'colorear') {
     if (ex.leyenda?.length) {
       body += `<div class="ficha-leyenda">${ex.leyenda.map(l => `<span class="chip"><span class="dot" style="background:#${colorHex(l.color)}"></span>${esc(l.color)}: ${esc(l.criterio)}</span>`).join('')}</div>`;
     }
     if (ex.itemsColorear?.length) {
       body += `<div class="ficha-colorear-items">${ex.itemsColorear.map(it => `<span class="item-box">${esc(it)}</span>`).join('')}</div>`;
     }
-  } else if (ex.tipo === 'sopa_letras' && ex.rejilla?.length) {
+  } else if (tipo === 'sopa_letras' && ex.rejilla?.length) {
     // Solo la rejilla en blanco: la solución (`posiciones`) es para el profesorado y no se exporta.
     const cols = ex.rejilla[0].length;
     body += `<div class="ficha-sopa" style="grid-template-columns:repeat(${cols},1fr)">` +
@@ -230,34 +267,37 @@ function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string 
     if (ex.palabras?.length) {
       body += `<div class="ficha-colorear-items">${ex.palabras.map(p => `<span class="item-box">${esc(p)}</span>`).join('')}</div>`;
     }
-  } else if (ex.tipo === 'verdadero_falso' && ex.afirmaciones?.length) {
+  } else if (tipo === 'verdadero_falso' && ex.afirmaciones?.length) {
     body += `<div class="ficha-vf">${ex.afirmaciones.map(a =>
       `<div class="vf-row"><span class="vf-txt">${esc(a)}</span><span class="vf-box">${esc(t('V'))}</span><span class="vf-box">${esc(t('F'))}</span></div>`).join('')}</div>`;
-  } else if (ex.tipo === 'calculos' && ex.lineas?.length) {
+  } else if (tipo === 'calculos' && ex.lineas?.length) {
     body += calculosHtml(ex);
   } else if (cuaderno && serieDe(ex)) {
     // En «Cuaderno», una serie corta (números, palabras) se escribe en orden en una caja
     body += serieHtml(serieDe(ex)!);
-  } else if (ex.tipo === 'ordenar' && ex.elementos?.length) {
+  } else if (tipo === 'ordenar' && ex.elementos?.length) {
     body += `<div class="ficha-ordenar">${ex.elementos.map(e => `<div class="ord-item"><span class="ord-num"></span>${esc(e)}</div>`).join('')}</div>`;
-  } else if (ex.tipo === 'crucigrama' && ex.crucigrama?.entradas.length) {
+  } else if (tipo === 'crucigrama' && ex.crucigrama?.entradas.length) {
     body += crosswordHtml(ex.crucigrama, t);
-  } else if (ex.tipo === 'comic' && ex.vinetas?.length) {
+  } else if (tipo === 'comic' && ex.vinetas?.length) {
     body += `<div class="ficha-comic" style="grid-template-columns:repeat(${Math.min(ex.vinetas.length, 4)},1fr)">${ex.vinetas.map((v, i) =>
       `<div class="panel"><span class="panel-n">${i + 1}</span>` +
       `<div class="bubble${v.texto ? '' : ' empty'}">${v.texto ? esc(v.texto) : '<div class="ln"></div><div class="ln"></div><div class="ln"></div>'}</div>` +
       `<div class="who">${esc(v.personaje)}</div></div>`).join('')}</div>`;
-  } else if (cuaderno && ilus && ex.dibujos?.length && ex.tipo === 'abierta' && (ex.solucion ?? '').trim().length <= 14) {
-    // Con dibujos que contar, la respuesta es corta: una caja y no tres líneas
-    body += `<div class="cq-respuesta"><b>${esc(t('Respuesta'))}:</b><span class="cq-caja"></span></div>`;
+  } else if (cuaderno) {
+    // El espacio para contestar sigue a lo que se espera: una caja para una palabra o un número, las líneas justas para una frase, cuadrícula y respuesta para un problema
+    if (tipo === 'problema') body += operacionHtml(t);
+    else if (tipo === 'abierta') body += esRespuestaCorta(ex.solucion) ? respuestaHtml(t, true) : lineasHtml(lineasDeRespuesta(ex.solucion));
+    else if (tipo === 'completar' && !comp?.hueco) body += respuestaHtml(t, false);
   } else {
-    const espacio = espacioTipo(ex.tipo);
+    const espacio = espacioTipo(tipo);
     body += espacio === 'box' ? '<div class="ficha-espacio box"></div>'
       : espacio === 'lines' ? '<div class="ficha-espacio lines"><div class="ln"></div><div class="ln"></div><div class="ln"></div></div>'
       : espacio === 'line' ? '<div class="ficha-espacio line"></div>'
       : '';
   }
-  return body;
+  // «Cuaderno»: todo el ejercicio en una columna; con un dibujo suelto o una figura, ésta a la derecha, enmarcada
+  return cuaderno ? `<div class="cq-ej${lado ? ' con-fig' : ''}">${lado}${body}</div>` : body;
 }
 
 function crosswordHtml(cw: Crossword, t: Tr): string {
@@ -320,7 +360,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const pic: Pic | undefined = visual
     ? (id, cls) => (id && opts.pictos?.[id] ? `<img class="${cls}" src="${opts.pictos[id]}" alt="${esc(nombre(id))}">` : '')
     : undefined;
-  const ilus: Ilus | undefined = c.hilo && !visual
+  const ilus: Ilus | undefined = cuaderno && c.hilo && !visual
     ? (id, cls) => (id && opts.ilustraciones?.[id] ? `<img class="${cls}" src="${opts.ilustraciones[id]}" alt="">` : '')
     : undefined;
 
@@ -329,7 +369,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const emoji = act.emoji || theme.iconos[actIdx % theme.iconos.length];
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
     const header = cuaderno
-      ? seccionHtml(actIdx + 1, act.titulo, color, label, '', ilus && act.dibujo ? ilus(act.dibujo, 'cq-med-img') : '')
+      ? seccionHtml(actIdx + 1, act.titulo, color, label)
       : act.titulo
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
@@ -340,7 +380,9 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const narr = !classic && act.narrativa ? `<div class="act-narr" style="background:#${color.light}">${esc(act.narrativa)}</div>` : '';
     const ejerciciosHtml = act.ejercicios.map((ex, i) => {
       const id = `${actIdx}-${i}`;
-      return `<li${mark(`data-ex="${id}"`)}${opts.selected === id ? ' class="is-selected"' : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus)}</li>`;
+      // En «Cuaderno», un verdadero o falso largo puede partirse entre dos páginas por una fila
+      const clases = [opts.selected === id ? 'is-selected' : '', cuaderno && ex.tipo === 'verdadero_falso' ? 'largo' : ''].filter(Boolean).join(' ');
+      return `<li${mark(`data-ex="${id}"`)}${clases ? ` class="${clases}"` : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus, lang)}</li>`;
     }).join('');
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras (A., B.), para no confundirlas con las líneas 1., 2.
     const numeracion = !cuaderno ? '' : act.ejercicios.length === 1 ? ' sin' : act.ejercicios.some(e => e.tipo === 'calculos') ? ' letras' : '';
@@ -368,10 +410,12 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
         `</div>${candado}</section>`;
     }
     if (cuaderno) {
-      // La hoja de cuaderno: los ejercicios y, si el bloque lo tiene, su recuadro flotando a la derecha (va antes en el HTML)
+      // La hoja de cuaderno: la franja del recuadro (antes de los ejercicios; el «Reto», después) y los ejercicios
       const nota = act.recuadro ? recuadroHtml(act.recuadro, t) : '';
-      return `<section class="ficha-actividad${sel}"${mark(`data-act="${actIdx}"`)} style="--sc:#${color.bg}">${header}` +
-        `<div class="cq-cuerpo${nota ? ' con-nota' : ''}">${nota}<ol class="ficha-ejercicios${numeracion}" style="--num:#${color.bg}">${ejerciciosHtml}</ol></div>${candado}</section>`;
+      const antes = act.recuadro?.tipo === 'reto' ? '' : nota;
+      const despues = act.recuadro?.tipo === 'reto' ? nota : '';
+      return `<section class="ficha-actividad${sel}"${mark(`data-act="${actIdx}"`)} style="--sc:#${color.bg};--num:#${color.bg}">${header}` +
+        `<div class="cq-cuerpo" style="--num:#${color.bg}">${antes}<ol class="ficha-ejercicios${numeracion}" style="--num:#${color.bg}">${ejerciciosHtml}</ol>${despues}</div>${candado}</section>`;
     }
     const notaAbajo = act.recuadro ? recuadroHtml(act.recuadro, t) : '';
     return `<section class="ficha-actividad${sel}"${mark(`data-act="${actIdx}"`)}>${header}${narr}` +
@@ -390,10 +434,8 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     ? `<div class="vis-conceptos">${c.conceptos.map(k =>
       `<div class="vis-concepto">${pic(k.picto, 'vis-concepto-img')}<strong>${esc(k.titulo)}</strong><span>${esc(k.texto)}</span></div>`).join('')}</div>`
     : '';
-  // «Cuaderno» con hilo: un dibujo del hilo asoma en la esquina de «Antes de empezar»
-  const mascotaHilo = cuaderno && ilus ? ilus(hiloPorId(c.hilo)?.dibujos[1], 'cq-mascota-hilo') : '';
   const explicacionHtml = c.explicacion || conceptosHtml
-    ? `<div class="ficha-explicacion${mascotaHilo ? ' con-mascota' : ''}"${mark('data-part="explicacion"')}>${mascotaHilo}<div class="lbl">${svgLightbulb('#' + theme.color, 15)}${esc(t('Antes de empezar'))}</div>` +
+    ? `<div class="ficha-explicacion"${mark('data-part="explicacion"')}><div class="lbl">${svgLightbulb('#' + theme.color, 15)}${esc(t('Antes de empezar'))}</div>` +
       (c.explicacion ? `<div class="txt">${nl2br(c.explicacion)}</div>` : '') + `${conceptosHtml}</div>`
     : '';
   // La licencia de Mulberry pide la atribución allí donde salen sus pictogramas
@@ -455,6 +497,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
         : `<p class="ficha-instr"${mark('data-part="instrucciones"')}>${formato === 'tarjetas' ? `<b>${esc(t('Cómo se juega'))}:</b> ` : ''}${esc(c.instrucciones)}</p>`
       : '') +
     body +
+    (cuaderno && formato === 'ficha' ? autoevaluacionHtml(t) : '') +
     (conMulberry ? `<p class="vis-atrib">${esc(t('Pictogramas:'))} ${esc(ATRIBUCION_MULBERRY)}</p>` : '') +
     `</article></body></html>`;
 }
@@ -851,19 +894,103 @@ function crosswordDocx(children: (Paragraph | Table)[], cw: Crossword, t: Tr) {
 }
 
 /** Una caja vacía para escribir la respuesta (el diseño «Cuaderno»): una tabla de una celda. */
-function cajaDocx(color: string, ancho = 100): Table {
+function cajaDocx(color: string, ancho = 100, alto = 480): Table {
   const B = { style: BorderStyle.SINGLE, size: 8, color };
   return new Table({
     width: { size: ancho, type: WidthType.PERCENTAGE },
     borders: { top: B, bottom: B, left: B, right: B, insideHorizontal: B, insideVertical: B },
-    rows: [new TableRow({ height: { value: 480, rule: 'atLeast' }, children: [new TableCell({ children: [new Paragraph({ text: '' })] })] })],
+    rows: [new TableRow({ height: { value: alto, rule: 'atLeast' }, children: [new TableCell({ children: [new Paragraph({ text: '' })] })] })],
   });
+}
+
+/** «Contar» en Word: una fila por grupo (los dibujos y, al lado, su casilla) y, si se pide, la del total. */
+function contarDocx(children: (Paragraph | Table)[], ex: FichaExercise, ilus: Imgs, t: Tr) {
+  const grupos = (ex.dibujos ?? []).filter(d => d.ilustracion);
+  const px = Math.max(0, ...grupos.map(g => g.cantidad ?? 1)) <= 5 ? 44 : 34;
+  const casilla = (texto = '') => new TableCell({
+    width: { size: 20, type: WidthType.PERCENTAGE }, verticalAlign: 'center',
+    children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: texto ? `${texto}  =` : '=', bold: true, color: '64748B' })] })],
+  });
+  const filas = grupos.map(g => new TableRow({
+    height: { value: 760, rule: 'atLeast' },
+    children: [
+      new TableCell({ width: { size: 80, type: WidthType.PERCENTAGE }, verticalAlign: 'center', margins: { top: 60, bottom: 60, left: 120, right: 120 }, children: [new Paragraph({
+        children: Array.from({ length: Math.max(1, Math.min(10, g.cantidad ?? 1)) }, () => pictoRun(ilus, g.ilustracion, px)).filter((r): r is ImageRun => !!r),
+      })] }),
+      casilla(),
+    ],
+  }));
+  if (ex.total && grupos.length > 1) {
+    filas.push(new TableRow({
+      height: { value: 600, rule: 'atLeast' },
+      children: [
+        new TableCell({ width: { size: 80, type: WidthType.PERCENTAGE }, verticalAlign: 'center', children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: t('Total').toUpperCase(), bold: true, color: '64748B' })] })] }),
+        casilla(),
+      ],
+    }));
+  }
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: CELL_BORDERS, rows: filas }));
+  children.push(spacer(200));
+}
+
+/** Los dibujos de una lista en filas de `porFila`, cada celda con el dibujo y lo que `debajo` ponga bajo él. */
+function rejillaDibujosDocx(
+  children: (Paragraph | Table)[], ids: string[], ilus: Imgs, porFila: number, px: number,
+  debajo: (i: number) => Paragraph[],
+) {
+  const filas: TableRow[] = [];
+  for (let k = 0; k < ids.length; k += porFila) {
+    filas.push(new TableRow({
+      cantSplit: true,
+      children: Array.from({ length: porFila }, (_, c) => {
+        const i = k + c;
+        if (i >= ids.length) return new TableCell({ children: [new Paragraph({ text: '' })] });
+        return new TableCell({
+          margins: { top: 80, bottom: 80, left: 100, right: 100 },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: pictoRun(ilus, ids[i], px) ? [pictoRun(ilus, ids[i], px)!] : [] }), ...debajo(i)],
+        });
+      }),
+    }));
+  }
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: CELL_BORDERS, rows: filas }));
+  children.push(spacer(200));
+}
+
+/** «Etiquetar» en Word: los dibujos en una tabla con su línea debajo y, con banco, las palabras encima. */
+function etiquetarDocx(children: (Paragraph | Table)[], ex: FichaExercise, ilus: Imgs, color: string, lang: Lang) {
+  const ids = (ex.dibujos ?? []).map(d => d.ilustracion).filter(Boolean);
+  if (ex.banco) {
+    const palabras = ids.map(id => nombreIlustracion(id, lang) ?? '').filter(Boolean).sort((a, b) => a.localeCompare(b, lang));
+    children.push(new Paragraph({ children: palabras.map((p, k) => new TextRun({ text: (k ? '    ' : '') + `[ ${p} ]`, bold: true, color })), spacing: { after: 120 } }));
+  }
+  rejillaDibujosDocx(children, ids, ilus, ids.length <= 4 ? Math.max(2, ids.length) : 3, 70,
+    () => [new Paragraph({ text: '', spacing: { before: 120 }, border: { bottom: { style: 'single', size: 6, color: '94A3B8', space: 1 } } })]);
+}
+
+/** «Clasificar» en Word: los dibujos numerados con su nombre y, debajo, una tabla con un grupo por columna. */
+function clasificarDocx(children: (Paragraph | Table)[], ex: FichaExercise, ilus: Imgs, color: string, lang: Lang) {
+  const banco = bancoClasificar(ex.categorias);
+  rejillaDibujosDocx(children, banco.map(d => d.id), ilus, Math.min(5, Math.max(2, banco.length)), 52,
+    i => [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+      new TextRun({ text: `${i + 1}. `, bold: true, color }), new TextRun({ text: nombreIlustracion(banco[i].id, lang) ?? '', size: 18 }),
+    ] })]);
+  const cats = ex.categorias ?? [];
+  if (!cats.length) return;
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: CELL_BORDERS,
+    rows: [
+      new TableRow({ children: cats.map(c => new TableCell({ shading: { fill: color }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: c.nombre.toUpperCase(), bold: true, color: 'FFFFFF', size: 20 })] })] })) }),
+      new TableRow({ height: { value: 1100, rule: 'atLeast' }, children: cats.map(() => new TableCell({ children: [new Paragraph({ text: '' })] })) }),
+    ],
+  }));
+  children.push(spacer(200));
 }
 
 /** Cómo se rotula un ejercicio: «1. », «A. » o nada (un solo ejercicio en el bloque del diseño «Cuaderno»). */
 type Marcador = string;
 
-async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false, ilus?: Imgs) {
+async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false, ilus?: Imgs, lang: Lang = 'es') {
   const letra = (n: number) => String.fromCharCode(97 + n);
   const consigna = pictoRun(imgs, ex.consigna, 26);
 
@@ -882,8 +1009,13 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
     children.push(new Paragraph({ children: dibujos.flatMap((r, k) => (k ? [new TextRun({ text: '  ' }), r] : [r])), spacing: { after: 100 } }));
   }
 
+  // Los tipos con dibujos propios (contar, etiquetar, clasificar, y los de relacionar y tablas) los pintan a su manera
+  const dibujosPropios = ex.tipo === 'relacionar' || ex.tipo === 'tabla_rellenar' || esTipoConDibujos(ex.tipo);
+  const conDibujos = !!ilus && cuaderno;
+  const tipo: FichaExerciseType = !conDibujos && esTipoConDibujos(ex.tipo) ? 'abierta' : ex.tipo;
+
   // Hilo conductor: los dibujos del catálogo, cada uno repetido las veces que dice su cantidad
-  if (ilus && ex.dibujos?.length) {
+  if (ilus && !dibujosPropios && ex.dibujos?.length) {
     const total = ex.dibujos.reduce((n, d) => n + Math.max(1, d.cantidad ?? 1), 0);
     const px = total <= 1 ? 72 : total <= 4 ? 54 : total <= 8 ? 42 : 34;
     const runs = ex.dibujos.flatMap((d, g) => {
@@ -898,6 +1030,10 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
     children.push(new Paragraph({ children: [figureImage], spacing: { after: 100 } }));
   }
 
+  if (conDibujos && tipo === 'contar') { contarDocx(children, ex, ilus!, t); return; }
+  if (conDibujos && tipo === 'etiquetar') { etiquetarDocx(children, ex, ilus!, colorHexNoHash, lang); return; }
+  if (conDibujos && tipo === 'clasificar') { clasificarDocx(children, ex, ilus!, colorHexNoHash, lang); return; }
+
   if (ex.tipo === 'opcion_multiple' && ex.opciones?.length) {
     ex.opciones.forEach((o, j) => {
       children.push(new Paragraph({
@@ -910,7 +1046,8 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
   }
 
   if (ex.tipo === 'tabla_rellenar' && ex.columnas?.length && ex.filas?.length) {
-    const conDibujo = !!imgs && !!ex.pictosFilas?.some(id => id && imgs[id]);
+    const dibFilas = conDibujos && ex.dibujos?.length === ex.filas.length ? ex.dibujos : null;
+    const conDibujo = dibFilas ? true : !!imgs && !!ex.pictosFilas?.some(id => id && imgs[id]);
     children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       borders: CELL_BORDERS,
@@ -925,7 +1062,7 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
           ],
         }),
         ...ex.filas.map((fila, fi) => {
-          const dibujo = conDibujo ? pictoRun(imgs, ex.pictosFilas?.[fi], 24) : null;
+          const dibujo = dibFilas ? pictoRun(ilus, dibFilas[fi].ilustracion, 40) : conDibujo ? pictoRun(imgs, ex.pictosFilas?.[fi], 24) : null;
           return new TableRow({
             children: [
               ...(conDibujo ? [new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: dibujo ? [dibujo] : [] })] })] : []),
@@ -946,9 +1083,15 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
     const izquierda = ex.izquierda;
     const derecha = ex.derecha;
     const n = Math.max(izquierda.length, derecha.length);
+    const dibIzq = conDibujos && ex.dibujos?.length === izquierda.length ? ex.dibujos : null;
     const rows = Array.from({ length: n }, (_, r) => new TableRow({
       children: [
-        new TableCell({ margins: { top: 100, bottom: 100, left: 120, right: 120 }, children: [new Paragraph({ text: izquierda[r] ? `${r + 1}. ${izquierda[r]}` : '' })] }),
+        new TableCell({ margins: { top: 100, bottom: 100, left: 120, right: 120 }, children: [new Paragraph({
+          children: [
+            ...(dibIzq && pictoRun(ilus, dibIzq[r]?.ilustracion, 44) ? [pictoRun(ilus, dibIzq[r].ilustracion, 44)!, new TextRun({ text: '   ' })] : []),
+            new TextRun({ text: izquierda[r] ? `${r + 1}. ${izquierda[r]}` : '' }),
+          ],
+        })] }),
         new TableCell({ margins: { top: 100, bottom: 100, left: 120, right: 120 }, children: [new Paragraph({ text: derecha[r] ? `${letra(r).toUpperCase()}. ${derecha[r]}` : '' })] }),
       ],
     }));
@@ -1085,7 +1228,22 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
     return;
   }
 
-  const espacio = espacioTipo(ex.tipo);
+  if (cuaderno && (tipo === 'abierta' || tipo === 'problema')) {
+    // El espacio sigue a lo que se espera, como en el PDF: una caja para una palabra o un número, las líneas justas para una frase, cuadrícula y respuesta para un problema
+    if (tipo === 'problema') {
+      children.push(cajaDocx(colorHexNoHash, 100, 1400));
+      children.push(new Paragraph({ children: [new TextRun({ text: `${t('Respuesta')}: `, bold: true, color: colorHexNoHash }), new TextRun({ text: '_'.repeat(40) })], spacing: { before: 120, after: 160 } }));
+    } else if (esRespuestaCorta(ex.solucion)) {
+      children.push(new Paragraph({ children: [new TextRun({ text: `${t('Respuesta')}: `, bold: true, color: colorHexNoHash }), new TextRun({ text: '[                    ]', color: colorHexNoHash })], spacing: { before: 60, after: 160 } }));
+    } else {
+      for (let k = 0; k < lineasDeRespuesta(ex.solucion); k++) {
+        children.push(new Paragraph({ text: '', spacing: { after: 260 }, border: { bottom: { style: 'single', size: 4, color: '94A3B8', space: 1 } } }));
+      }
+    }
+    return;
+  }
+
+  const espacio = espacioTipo(tipo);
   if (espacio === 'lines') {
     for (let k = 0; k < 3; k++) {
       children.push(new Paragraph({ text: '', spacing: { after: 260 }, border: { bottom: { style: 'single', size: 4, color: '94A3B8', space: 1 } } }));
@@ -1378,7 +1536,6 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
         children: [
           new TextRun({ text: ` ${actIdx + 1} `, bold: true, color: 'FFFFFF', size: 28, shading: { type: 'clear', fill: color.bg, color: 'auto' } }),
           new TextRun({ text: `  ${(act.titulo || label).toUpperCase()}`, bold: true, color: color.bg, size: 26, font: 'Trebuchet MS' }),
-          ...(ilus && pictoRun(ilus, act.dibujo, 30) ? [new TextRun({ text: '   ' }), pictoRun(ilus, act.dibujo, 30)!] : []),
         ],
         border: { bottom: { style: 'single', size: 8, color: color.bg, space: 4 } },
         spacing: { before: 120, after: 160 },
@@ -1415,7 +1572,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     const marcador = (i: number): Marcador | undefined => !cuaderno ? undefined
       : act.ejercicios.length === 1 ? ''
       : act.ejercicios.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
-    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus);
+    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang);
     if (act.recuadro) pushRecuadroDocx(children, act.recuadro, t);
     if (visual && act.recuerda?.length) pushRecuerdaDocx(children, act, imgs, t);
     if (escape && act.candado) {

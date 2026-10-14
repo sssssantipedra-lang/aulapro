@@ -30,15 +30,18 @@ import { FIGURE_SHAPES, FIGURE_SLOTS, FIGURE_LABEL, type Figure } from '../lib/g
 import { buildCrossword, type Crossword } from '../lib/crossword';
 import { fichaTheme, cleanEmoji, conHistoria, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
 import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido } from '../lib/pictosFicha';
-import { DIBUJOS_CABECERA, esContable, hiloDeFicha, hiloPorId, listaDibujosParaIA, type Hilo } from '../lib/hilos';
-import { ilustracionPorId } from '../lib/ilustraciones';
+import { esContable, hiloDeFicha, hiloPorId, listaDibujosParaIA, type Hilo } from '../lib/hilos';
+import { esTipoConDibujos, solucionDeDibujos } from '../lib/dibujosEjercicio';
+import { ilustracionPorId, nombreIlustracion } from '../lib/ilustraciones';
 
 /* ── Lo que devuelve la IA ── */
 
 export type FichaExerciseType =
   | 'abierta' | 'completar' | 'opcion_multiple' | 'problema'
   | 'tabla_rellenar' | 'relacionar' | 'colorear' | 'sopa_letras'
-  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic' | 'calculos';
+  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic' | 'calculos'
+  // Con dibujos del catálogo (hilo conductor): cada dibujo lleva su espacio para contestar
+  | 'contar' | 'etiquetar' | 'clasificar';
 
 export interface FichaExercise {
   tipo: FichaExerciseType;
@@ -113,14 +116,30 @@ export interface FichaExercise {
    * que ayudan a hacer el ejercicio o lo ambientan, cada uno repetido `cantidad`
    * veces si hay que contarlo. La IA elige de la lista cerrada del hilo; las
    * copias las pone el código al maquetar, así que el recuento es exacto.
+   * Cada tipo los usa a su manera: en «contar» cada grupo lleva su caja, en
+   * «etiquetar» cada dibujo su línea, en «relacionar» y «tabla_rellenar» van de
+   * uno en uno junto a cada elemento de la izquierda o cada fila, y en el resto
+   * son una figura al lado del enunciado (uno) o una bandeja (varios).
    */
   dibujos?: DibujoEjercicio[];
+  /** Solo 'clasificar': los grupos y los dibujos (identificadores del catálogo) que van en cada uno; la app los mezcla al maquetar. */
+  categorias?: CategoriaDibujos[];
+  /** Solo 'contar' con varios grupos: además de cada grupo, una caja para el total. */
+  total?: boolean;
+  /** Solo 'etiquetar': encima de los dibujos, el banco con las palabras (desordenadas) para quien necesite ayuda. */
+  banco?: boolean;
   /** Para el profesorado — nunca se muestra en la ficha exportada. */
   solucion: string;
   /** Variante simplificada del mismo ejercicio. Solo si se pidieron niveles. */
   apoyo?: string;
   /** Variante de más nivel del mismo ejercicio. Solo si se pidieron niveles. */
   ampliacion?: string;
+}
+
+/** Un grupo de un ejercicio «clasificar»: su nombre («Domésticos») y los dibujos que le tocan. */
+export interface CategoriaDibujos {
+  nombre: string;
+  dibujos: string[];
 }
 
 /** Un dibujo del catálogo dentro de un ejercicio: su identificador y cuántas veces se dibuja (de 1 a 10). */
@@ -177,8 +196,6 @@ export interface FichaActivity {
   ejercicios: FichaExercise[];
   /** Solo en el diseño «Cuaderno»: el recuadro lateral del bloque. */
   recuadro?: FichaRecuadro;
-  /** Con hilo conductor: el dibujo que acompaña al título del bloque (un identificador del catálogo). */
-  dibujo?: string;
   /** Con apoyos visuales: qué hay que hacer en el bloque, en una frase y en orden. */
   indicacion?: string;
   /** Con apoyos visuales: de 2 a 4 pasos numerados, cada uno con su pictograma. */
@@ -287,8 +304,9 @@ const S = (d: string) => ({ type: 'STRING', description: d });
 
 export const TIPOS: FichaExerciseType[] = [
   'abierta', 'completar', 'opcion_multiple', 'problema', 'tabla_rellenar', 'relacionar', 'colorear', 'sopa_letras',
-  'verdadero_falso', 'ordenar', 'crucigrama', 'comic', 'calculos',
+  'verdadero_falso', 'ordenar', 'crucigrama', 'comic', 'calculos', 'contar', 'etiquetar', 'clasificar',
 ];
+
 
 const PISTA_ITEM_SCHEMA = {
   type: 'OBJECT',
@@ -365,11 +383,21 @@ const IMAGEN_SCHEMA = {
 const DIBUJO_SCHEMA = {
   type: 'OBJECT',
   properties: {
-    ilustracion: S('Identificador de un dibujo de la lista DIBUJOS DEL HILO, exactamente como está escrito'),
+    ilustracion: S('Identificador de un dibujo de la lista DIBUJOS DEL HILO, exactamente como está escrito ("" solo en "relacionar" y "tabla_rellenar", para un elemento sin dibujo)'),
     cantidad: { type: 'INTEGER', description: 'Cuántas veces se dibuja, de 1 a 10: las que hay que contar, o 1 si solo se muestra' },
   },
   required: ['ilustracion', 'cantidad'],
   propertyOrdering: ['ilustracion', 'cantidad'],
+} as const;
+
+const CATEGORIA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    nombre: S('Nombre corto del grupo, ej. "Animales domésticos"'),
+    dibujos: { type: 'ARRAY', items: { type: 'STRING' }, description: 'Identificadores de la lista DIBUJOS DEL HILO que van en este grupo, exactamente como están escritos' },
+  },
+  required: ['nombre', 'dibujos'],
+  propertyOrdering: ['nombre', 'dibujos'],
 } as const;
 
 const PASO_SCHEMA = {
@@ -410,7 +438,7 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false) 
     type: 'OBJECT',
     properties: {
       tipo: {
-        type: 'STRING', enum: TIPOS,
+        type: 'STRING', enum: dibujos ? TIPOS : TIPOS.filter(t => !esTipoConDibujos(t)),
         description:
           '"abierta" respuesta libre, "completar" huecos, "opcion_multiple" varias opciones, ' +
           '"problema" cálculo o razonamiento con pasos, "tabla_rellenar" tabla con celdas en blanco, ' +
@@ -418,7 +446,11 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false) 
           '"sopa_letras" lista de palabras para buscar en una rejilla, "verdadero_falso" frases para marcar V o F, ' +
           '"ordenar" pasos o elementos para numerar en orden, "crucigrama" palabras con pistas, ' +
           '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado, ' +
-          '"calculos" lista de números o cuentas, cada una con su hueco para la respuesta a la derecha del "="',
+          '"calculos" lista de números o cuentas, cada una con su hueco para la respuesta a la derecha del "="' +
+          (dibujos
+            ? ', "contar" grupos de dibujos que se cuentan, cada uno con su caja para el número, ' +
+              '"etiquetar" dibujos de los que se escribe el nombre, "clasificar" dibujos que se reparten en grupos'
+            : ''),
       },
       enunciado: S('El texto del ejercicio o la pregunta, autocontenido'),
       ...(visual ? {
@@ -436,9 +468,18 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false) 
         dibujos: {
           type: 'ARRAY', items: DIBUJO_SCHEMA,
           description:
-            'Opcional: solo si un dibujo del hilo ayuda a hacer el ejercicio (contar, comparar, reconocer) o lo ambienta bien: ' +
-            'de 1 a 3 dibujos distintos. Los que se cuentan, con su cantidad exacta. En la mayoría de ejercicios no hay ninguno.',
+            'Los dibujos del ejercicio, de la lista del hilo. En "contar": de 1 a 3 grupos de los que se cuentan, cada uno con su ' +
+            'cantidad EXACTA. En "etiquetar": de 3 a 8 dibujos distintos (cantidad 1). En "relacionar" y "tabla_rellenar": UN ' +
+            'dibujo por elemento de "izquierda" o por fila, en el mismo orden ("" si un elemento no se puede dibujar). En ' +
+            '"problema", "abierta", "completar" y "opcion_multiple": de 1 a 3 solo si ilustran lo que cuenta el enunciado. ' +
+            'En "clasificar" no se usa (van en "categorias"). En el resto de tipos, ninguno.',
         },
+        categorias: {
+          type: 'ARRAY', items: CATEGORIA_SCHEMA,
+          description: 'Solo si tipo es "clasificar": de 2 a 3 grupos, con los dibujos que van en cada uno (de 4 a 10 dibujos en total, sin repetir)',
+        },
+        total: { type: 'BOOLEAN', description: 'Solo si tipo es "contar" con 2 o 3 grupos y el enunciado pide también el total: true' },
+        banco: { type: 'BOOLEAN', description: 'Solo si tipo es "etiquetar": true para dar las palabras (desordenadas) encima de los dibujos, en cursos bajos' },
       } : {}),
       opciones: {
         type: 'ARRAY', items: { type: 'STRING' },
@@ -531,7 +572,8 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false) 
     propertyOrdering: [
       'tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'opciones', 'columnas', 'filas', ...(visual ? ['pictosFilas'] : []),
       'izquierda', 'derecha', 'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
-      'lineas', 'respuesta', 'figura', ...(visual ? ['imagenes'] : []), 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
+      'lineas', 'respuesta', 'figura', ...(visual ? ['imagenes'] : []), ...(dibujos ? ['dibujos', 'categorias', 'total', 'banco'] : []),
+      'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
     ],
   } as const;
 }
@@ -759,7 +801,7 @@ function cuadernoPrompt(): string {
     `"verdadero_falso". Un bloque puede mezclar dos o tres ejercicios cortos (por ejemplo, una lista de ` +
     `"calculos" para descomponer y otra para volver a escribir el número).\n` +
     `- En "recuadro" (opcional) añade a ALGUNOS bloques —uno de cada tres, como mucho uno por bloque— una nota ` +
-    `lateral: "recuerda" (la leyenda o las equivalencias que se necesitan para el bloque, en "lista", líneas ` +
+    `breve: "recuerda" (la leyenda o las equivalencias que se necesitan para el bloque, en "lista", líneas ` +
     `"SIGLA = significado"), "reto" (en "texto", una pregunta extra algo más difícil, de respuesta corta) o ` +
     `"consejo" (en "texto", una pista de método). No repitas en el recuadro el contenido de "explicacion". ` +
     `Que no se contesten en el recuadro cosas que ya se preguntan en los ejercicios.\n`
@@ -776,13 +818,28 @@ function hiloPrompt(hilo: Hilo, lang: Lang): string {
     `HILO CONDUCTOR: esta ficha gira alrededor de «${hilo.nombre.es}». Cuando encaje con el contenido, ambienta ` +
     `los enunciados en ese mundo (los datos, los objetos y las situaciones: «En la granja hay…»), sin forzarlo y ` +
     `sin perder el rigor del tema.\n` +
-    `DIBUJOS: la ficha se ilustra con dibujos del catálogo. En "dibujos" de un ejercicio, y SOLO cuando el dibujo ` +
-    `ayuda a hacerlo (contar objetos, compararlos, reconocerlos) o lo ambienta bien, pon de 1 a 3 dibujos distintos ` +
-    `con su "cantidad". Si el ejercicio habla de lo que se ve, dilo en el enunciado («Cuenta las vacas»), y la ` +
-    `"cantidad" tiene que coincidir con el enunciado y con la solución. Los marcados [solo 1] llevan siempre ` +
-    `cantidad 1. No pongas un dibujo que dé la respuesta, ni uno que no sea EXACTAMENTE lo que nombra el ` +
-    `ejercicio (un gato no es un tigre). La mayoría de ejercicios NO lleva dibujos: unos dos de cada cinco, ` +
-    `como mucho, y mejor los de contar, hacer problemas y reconocer que los de tabla o crucigrama.\n` +
+    `DIBUJOS: la ficha se ilustra con dibujos del catálogo y cada dibujo lleva en la hoja SU espacio para ` +
+    `contestar, así que úsalos donde el alumnado tenga algo que hacer con ellos:\n` +
+    `- "contar": de 1 a 3 "dibujos" de los marcados con × (los que se pueden repetir), cada uno con su ` +
+    `"cantidad" EXACTA. La ficha dibuja cada grupo con una caja al lado para escribir cuántos hay. Con 2 o 3 ` +
+    `grupos y "total": true, añade una caja para el total (para sumar). El enunciado dice qué se cuenta ` +
+    `(«Cuenta cuántos animales hay de cada tipo»). La solución se calcula sola.\n` +
+    `- "etiquetar": de 3 a 8 "dibujos" distintos (cantidad 1); el alumnado escribe el nombre de cada uno ` +
+    `debajo. Con "banco": true se le dan las palabras desordenadas (cursos bajos). Solo con dibujos que se ` +
+    `nombren con una palabra clara y que el alumnado conozca.\n` +
+    `- "clasificar": en "categorias", de 2 a 3 grupos con su "nombre" y los "dibujos" de cada uno (de 4 a 10 ` +
+    `dibujos en total, sin repetir, cada dibujo en un solo grupo): la ficha los mezcla y el alumnado escribe el ` +
+    `número de cada dibujo en su grupo. El enunciado lo explica («Escribe el número de cada animal en su grupo»).\n` +
+    `- "relacionar" y "tabla_rellenar": si cada elemento de "izquierda" (o cada fila) se puede dibujar, "dibujos" ` +
+    `lleva UN dibujo por elemento, en el mismo orden, y el texto se mantiene ("" en el elemento que no tenga).\n` +
+    `- "problema", "abierta", "completar" y "opcion_multiple": de 1 a 3 "dibujos" solo si ilustran de verdad lo ` +
+    `que cuenta el enunciado (la pizza del problema de fracciones, el castillo de la pregunta). Un dibujo suelto ` +
+    `queda al lado del enunciado.\n` +
+    `Reglas: la "cantidad" coincide con el enunciado; los marcados [solo 1] no se repiten; no pongas un dibujo ` +
+    `que dé la respuesta ni uno que no sea EXACTAMENTE lo que nombra el ejercicio (un gato no es un tigre); ` +
+    `nunca dibujos de adorno. Con un tema concreto (animales, objetos, lugares, oficios), en cursos bajos, ` +
+    `lleva dibujos al menos la mitad de los ejercicios y empieza por los de contar, rotular y clasificar; con un ` +
+    `tema abstracto o en cursos altos, pocos y solo donde ayuden.\n` +
     `DIBUJOS DEL HILO (usa SOLO estos identificadores, escritos exactamente igual; la descripción entre ` +
     `paréntesis es para que sepas qué es cada uno): ${listaDibujosParaIA(hilo, lang)}\n`
   );
@@ -995,9 +1052,10 @@ export function cleanRecuadro(r: FichaRecuadro | undefined): FichaRecuadro | und
 /**
  * Los dibujos de un ejercicio: solo los que están en el catálogo (la IA elige
  * de una lista cerrada, pero se comprueba), sin repetir, con una cantidad de 1 a
- * 10 y, si no son de los que se pueden contar, siempre 1. Como mucho tres.
+ * 10 y, si no son de los que se pueden contar, siempre 1. Como mucho `max` (tres
+ * de ambientación; más en los tipos que rotulan o clasifican dibujos).
  */
-export function cleanDibujos(list: DibujoEjercicio[] | undefined): DibujoEjercicio[] | undefined {
+export function cleanDibujos(list: DibujoEjercicio[] | undefined, max = 3): DibujoEjercicio[] | undefined {
   const vistos = new Set<string>();
   const out: DibujoEjercicio[] = [];
   for (const d of Array.isArray(list) ? list : []) {
@@ -1007,36 +1065,28 @@ export function cleanDibujos(list: DibujoEjercicio[] | undefined): DibujoEjercic
     const cantidad = esContable(id) ? Math.max(1, Math.min(MAX_CANTIDAD, Math.round(Number(d?.cantidad) || 1))) : 1;
     out.push({ ilustracion: id, cantidad });
   }
-  return out.length ? out.slice(0, 3) : undefined;
+  return out.length ? out.slice(0, max) : undefined;
 }
 
-/**
- * El dibujo que acompaña al título de cada bloque: los del hilo que no están en
- * la cabecera, uno por bloque y en rotación, saltando los que el bloque ya usa
- * en sus ejercicios. Sin hilo, ninguno.
- */
-export function asignarDibujosDeBloque(actividades: FichaActivity[], hilo: Hilo | undefined): FichaActivity[] {
-  const ids = (hilo?.dibujos ?? []).filter(id => ilustracionPorId(id)?.fuente === 'img');
-  const candidatos = ids.length > DIBUJOS_CABECERA + 1 ? ids.slice(DIBUJOS_CABECERA) : ids;
-  return actividades.map((act, i) => {
-    const resto: FichaActivity = { ...act };
-    delete resto.dibujo;
-    if (!candidatos.length) return resto;
-    const usados = new Set(act.ejercicios.flatMap(e => (e.dibujos ?? []).map(d => d.ilustracion)));
-    const elegido = candidatos.map((_, k) => candidatos[(i + k) % candidatos.length]).find(id => !usados.has(id)) ?? candidatos[i % candidatos.length];
-    return { ...resto, dibujo: elegido };
+/** Los dibujos de una lista que se corresponde elemento a elemento («relacionar», filas de una tabla): uno por elemento o ninguno. */
+function dibujosAlineados(list: DibujoEjercicio[] | undefined, n: number): DibujoEjercicio[] | undefined {
+  if (!Array.isArray(list) || list.length !== n) return undefined;
+  const out = list.map(d => {
+    const id = String(d?.ilustracion ?? '').trim();
+    return { ilustracion: ilustracionPorId(id)?.fuente === 'img' ? id : '', cantidad: 1 };
   });
+  return out.filter(d => d.ilustracion).length >= 2 ? out : undefined;
 }
 
-/** La ficha con otro hilo conductor (o sin ninguno): cambia la cabecera y los dibujos de bloque; los de los ejercicios se quedan. */
+/** La ficha con otro hilo conductor (o sin ninguno): cambia la cabecera; los dibujos de los ejercicios se quedan. */
 export function conHilo(content: FichaContent, hiloId: string | undefined): FichaContent {
   const hilo = hiloPorId(hiloId);
   if (!hilo) {
     const resto: FichaContent = { ...content };
     delete resto.hilo;
-    return { ...resto, actividades: asignarDibujosDeBloque(content.actividades, undefined) };
+    return resto;
   }
-  return { ...content, hilo: hilo.id, actividades: asignarDibujosDeBloque(content.actividades, hilo) };
+  return { ...content, hilo: hilo.id };
 }
 
 /**
@@ -1052,27 +1102,101 @@ export function resolverHilo(
   return hiloPorId(req.hilo) ?? hiloDeFicha({ tema: req.tema, area: req.area ?? '', nivel: req.nivel });
 }
 
-function cleanExercise(ex: FichaExercise, visual = false, conDibujos = false): FichaExercise {
+/**
+ * Lo que los dibujos del catálogo hacen en un ejercicio, comprobado: los tipos
+ * «contar», «etiquetar» y «clasificar» necesitan sus dibujos (si la IA no los da
+ * bien, el ejercicio pasa a «abierta» con lo que quede, antes que salir roto) y
+ * su solución la calcula el código; «relacionar» y las tablas llevan un dibujo
+ * por elemento o ninguno; en el resto, hasta tres de ambientación. Sin hilo
+ * conductor no hay dibujos.
+ */
+function cleanDibujosDeEjercicio(ex: FichaExercise, conDibujos: boolean, lang: Lang): FichaExercise {
+  const base: FichaExercise = { ...ex };
+  delete base.categorias; delete base.total; delete base.banco;
+  const aAbierta = (dibujos: DibujoEjercicio[] | undefined): FichaExercise => {
+    const out: FichaExercise = { ...base, tipo: 'abierta', dibujos: conDibujos ? cleanDibujos(dibujos) : undefined };
+    if (!out.dibujos) delete out.dibujos;
+    return out;
+  };
+  if (!conDibujos) {
+    const out = esTipoConDibujos(ex.tipo) ? aAbierta(undefined) : { ...base };
+    delete out.dibujos;
+    return out;
+  }
+  if (ex.tipo === 'contar') {
+    const grupos = (cleanDibujos(ex.dibujos) ?? []).filter(d => esContable(d.ilustracion));
+    if (!grupos.length) return aAbierta(ex.dibujos);
+    const out: FichaExercise = { ...base, dibujos: grupos, ...(ex.total && grupos.length > 1 ? { total: true } : {}) };
+    return { ...out, solucion: solucionDeDibujos(out, lang) };
+  }
+  if (ex.tipo === 'etiquetar') {
+    // Dos dibujos con el mismo nombre (el corazón del cuerpo y el de los valores) no se rotulan juntos
+    const nombres = new Set<string>();
+    const dibujos = (cleanDibujos(ex.dibujos, 12) ?? []).map(d => ({ ...d, cantidad: 1 })).filter(d => {
+      const n = (nombreIlustracion(d.ilustracion, 'es') ?? d.ilustracion).toLowerCase();
+      if (nombres.has(n)) return false;
+      nombres.add(n);
+      return true;
+    }).slice(0, 8);
+    if (dibujos.length < 2) return aAbierta(ex.dibujos);
+    const out: FichaExercise = { ...base, dibujos, ...(ex.banco ? { banco: true } : {}) };
+    return { ...out, solucion: solucionDeDibujos(out, lang) };
+  }
+  if (ex.tipo === 'clasificar') {
+    const vistos = new Set<string>();
+    const categorias = (Array.isArray(ex.categorias) ? ex.categorias : [])
+      .map(c => ({
+        nombre: cleanMathNotation(String(c?.nombre ?? '').trim()),
+        dibujos: (Array.isArray(c?.dibujos) ? c.dibujos : []).map(id => String(id ?? '').trim())
+          .filter(id => ilustracionPorId(id)?.fuente === 'img' && !vistos.has(id) && !!vistos.add(id)),
+      }))
+      .filter(c => c.nombre && c.dibujos.length)
+      .slice(0, 3);
+    let n = 0;
+    const recortadas = categorias.map(c => ({ ...c, dibujos: c.dibujos.slice(0, Math.max(0, 10 - n)).map(id => (n++, id)) }));
+    if (recortadas.length < 2 || recortadas.reduce((s, c) => s + c.dibujos.length, 0) < 4) return aAbierta(undefined);
+    const out: FichaExercise = { ...base, categorias: recortadas };
+    delete out.dibujos;
+    return { ...out, solucion: solucionDeDibujos(out, lang) };
+  }
+  if (ex.tipo === 'relacionar') {
+    const dibujos = dibujosAlineados(ex.dibujos, ex.izquierda?.length ?? 0);
+    if (dibujos) return { ...base, dibujos };
+    delete base.dibujos;
+    return base;
+  }
+  if (ex.tipo === 'tabla_rellenar') {
+    const dibujos = dibujosAlineados(ex.dibujos, ex.filas?.length ?? 0);
+    if (dibujos) return { ...base, dibujos };
+    delete base.dibujos;
+    return base;
+  }
+  const dibujos = cleanDibujos(ex.dibujos);
+  if (dibujos) return { ...base, dibujos };
+  delete base.dibujos;
+  return base;
+}
+
+function cleanExercise(ex: FichaExercise, visual = false, conDibujos = false, lang: Lang = 'es'): FichaExercise {
+  const limpio = cleanDibujosDeEjercicio({ ...ex, ...cleanVisualExercise(ex, visual) }, conDibujos && !visual, lang);
   return {
-    ...ex,
-    ...cleanVisualExercise(ex, visual),
-    dibujos: conDibujos ? cleanDibujos(ex.dibujos) : undefined,
-    enunciado: cleanMathNotation(ex.enunciado),
-    opciones: ex.opciones?.map(cleanMathNotation),
-    columnas: ex.columnas?.map(cleanMathNotation),
-    filas: ex.filas?.map(fila => fila.map(cleanMathNotation)),
-    izquierda: ex.izquierda?.map(cleanMathNotation),
-    derecha: ex.derecha?.map(cleanMathNotation),
-    leyenda: ex.leyenda?.map(l => ({ color: l.color, criterio: cleanMathNotation(l.criterio) })),
-    itemsColorear: ex.itemsColorear?.map(cleanMathNotation),
-    afirmaciones: ex.afirmaciones?.map(cleanMathNotation),
-    elementos: ex.elementos?.map(cleanMathNotation),
-    pistas: ex.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
-    vinetas: ex.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
-    ...(ex.tipo === 'calculos' ? { lineas: cleanLineas(ex.lineas), respuesta: ex.respuesta === 'caja' ? 'caja' as const : 'linea' as const } : {}),
-    solucion: cleanMathNotation(ex.solucion),
-    apoyo: ex.apoyo ? cleanMathNotation(ex.apoyo) : ex.apoyo,
-    ampliacion: ex.ampliacion ? cleanMathNotation(ex.ampliacion) : ex.ampliacion,
+    ...limpio,
+    enunciado: cleanMathNotation(limpio.enunciado),
+    opciones: limpio.opciones?.map(cleanMathNotation),
+    columnas: limpio.columnas?.map(cleanMathNotation),
+    filas: limpio.filas?.map(fila => fila.map(cleanMathNotation)),
+    izquierda: limpio.izquierda?.map(cleanMathNotation),
+    derecha: limpio.derecha?.map(cleanMathNotation),
+    leyenda: limpio.leyenda?.map(l => ({ color: l.color, criterio: cleanMathNotation(l.criterio) })),
+    itemsColorear: limpio.itemsColorear?.map(cleanMathNotation),
+    afirmaciones: limpio.afirmaciones?.map(cleanMathNotation),
+    elementos: limpio.elementos?.map(cleanMathNotation),
+    pistas: limpio.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
+    vinetas: limpio.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
+    ...(limpio.tipo === 'calculos' ? { lineas: cleanLineas(limpio.lineas), respuesta: limpio.respuesta === 'caja' ? 'caja' as const : 'linea' as const } : {}),
+    solucion: cleanMathNotation(limpio.solucion ?? ''),
+    apoyo: limpio.apoyo ? cleanMathNotation(limpio.apoyo) : limpio.apoyo,
+    ampliacion: limpio.ampliacion ? cleanMathNotation(limpio.ampliacion) : limpio.ampliacion,
   };
 }
 
@@ -1133,6 +1257,7 @@ export function cleanCode(raw: string): string {
 
 function cleanFichaContent(
   c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false, hiloElegido?: Hilo,
+  lang: Lang = 'es',
 ): FichaContent {
   const hilo = hiloElegido && !visual && formato === 'ficha' ? hiloElegido : undefined;
   const finalEstilo: FichaThemeId = estilo === 'auto'
@@ -1157,7 +1282,7 @@ function cleanFichaContent(
     instrucciones: cleanMathNotation(c.instrucciones ?? ''),
     ...(visual ? { visual: true, conceptos: cleanConceptos(c.conceptos) } : { visual: undefined, conceptos: undefined }),
     hilo: hilo?.id,
-    actividades: asignarDibujosDeBloque((c.actividades ?? []).map((act, i) => ({
+    actividades: (c.actividades ?? []).map((act, i) => ({
       titulo: cleanMathNotation(act.titulo),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
@@ -1165,11 +1290,11 @@ function cleanFichaContent(
       } : {}),
       ...cleanVisualActivity(act, visual),
       ...(cleanRecuadro(act.recuadro) ? { recuadro: cleanRecuadro(act.recuadro) } : {}),
-      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual, !!hilo)).map(prepareExercise),
+      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual, !!hilo, lang)).map(prepareExercise),
       ...(formato === 'escape' && act.candado ? {
         candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
       } : {}),
-    })), hilo),
+    })),
     ...(formato === 'tarjetas' ? {
       tarjetas: (c.tarjetas ?? [])
         .filter(tj => tj?.pregunta?.trim())
@@ -1182,7 +1307,7 @@ type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: strin
 
 async function callFichaText(
   system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, formato: FichaFormato, onError?: (m: string) => void,
-  visual = false, hilo?: Hilo,
+  visual = false, hilo?: Hilo, lang: Lang = 'es',
 ): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
     // Con apoyos visuales la respuesta lleva además pasos, dibujos y tarjetas
@@ -1206,7 +1331,7 @@ async function callFichaText(
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual, hilo);
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual, hilo, lang);
 }
 
 /** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
@@ -1264,7 +1389,7 @@ export async function generateFicha(
 
     const hilo = resolverHilo(req, estilo, formato, visual);
     return await callFichaText(
-      systemPrompt(req.niveles, lang, estilo, formato, visual, hilo), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo,
+      systemPrompt(req.niveles, lang, estilo, formato, visual, hilo), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo, lang,
     );
   } finally {
     callbacks.onEnd?.();
@@ -1293,7 +1418,7 @@ export async function generateFichaFromSda(
       `\n${askFor(formato, opts.numEjercicios, 'que trabajen estos saberes básicos')}\n\n${numberVarietyHint()}`;
 
     const hilo = resolverHilo({ tema: sda.titulo, area: areaData?.area ?? area, hilo: opts.hilo }, estilo, formato, false);
-    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato, false, hilo), userPrompt, opts.niveles, estilo, formato, callbacks.onError, false, hilo);
+    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato, false, hilo), userPrompt, opts.niveles, estilo, formato, callbacks.onError, false, hilo, lang);
   } finally {
     callbacks.onEnd?.();
   }
@@ -1351,7 +1476,7 @@ export async function regenerateExercise(
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual, !!hilo));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang));
   } finally {
     callbacks.onEnd?.();
   }
@@ -1486,7 +1611,7 @@ export async function adaptFicha(
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaContent>(raw);
     if (!parsed) return null;
-    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estiloPrompt, formato, visual, hilo);
+    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estiloPrompt, formato, visual, hilo, lang);
     return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();
@@ -1531,7 +1656,7 @@ export async function addExercise(
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual, !!hilo));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang));
   } finally {
     callbacks.onEnd?.();
   }

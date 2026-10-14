@@ -100,7 +100,7 @@ function indiceMarkdown(): string {
     '',
     'Generado por `src/lib/hilos.test.ts` a partir de `src/lib/hilos.ts`: no se edita a mano. Para regenerarlo tras cambiar los hilos: `ACTUALIZAR_DOCS=1 npx vitest run src/lib/hilos.test.ts`.',
     '',
-    'Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce por el tema, el área y el curso de la ficha (`detectarHilos`) y con él ilustra la hoja: cabecera, dibujo de cada bloque y dibujos de los ejercicios. Cómo funciona, en `docs/FICHAS.md`.',
+    'Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce por el tema, el área y el curso de la ficha (`detectarHilos`) y con él ilustra la hoja: la cabecera y los dibujos de los ejercicios. Cómo funciona, en `docs/FICHAS.md`.',
     '',
     `${HILOS.length} hilos, ${ILUSTRACIONES.filter(i => i.fuente === 'img').length} dibujos (cada dibujo está en uno o más hilos).`,
     '',

@@ -17,8 +17,10 @@
  * datos (`recuadroLineas`, `serieDe`) porque no admite SVG ni rejillas.
  */
 import type { FichaExercise, FichaRecuadro } from './resources';
-import { elegirIlustraciones, ilustracionPorId } from '../lib/ilustraciones';
+import { elegirIlustraciones, ilustracionPorId, nombreIlustracion } from '../lib/ilustraciones';
 import { DIBUJOS_CABECERA, hiloPorId } from '../lib/hilos';
+import { bancoClasificar } from '../lib/dibujosEjercicio';
+import type { Lang } from '../i18n';
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
 
@@ -280,29 +282,132 @@ export function datosHtml(area: string | undefined, marca: string, t: Tr): strin
     `${campo('Nombre')}${campo('Fecha')}${campo('Clase', true)}${marca}</div>`;
 }
 
-/** La cabecera de un bloque: el número en un círculo con degradado y el título en el color del bloque. */
-export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = '', dibujo = ''): string {
+/** La cabecera de un bloque: el número en un círculo con degradado y el título en el color del bloque, con un filete punteado detrás. */
+export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = ''): string {
   return `<div class="cq-sec"${marca} style="--sc:#${color.bg};--sc2:${aclarar(color.bg)}">` +
-    `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2>${dibujo ? `<span class="cq-med">${dibujo}</span>` : ''}</div>`;
+    `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2></div>`;
 }
 
+/* ── Dibujos del catálogo: cada uno con su espacio para contestar ── */
+
+const cantidadDe = (d: { cantidad?: number }) => Math.max(1, Math.min(10, d.cantidad ?? 1));
+
 /**
- * Los dibujos de un ejercicio: uno solo, a un lado del enunciado; varios, en una
- * bandeja debajo, cada dibujo repetido las veces que dice `cantidad` (las pone el
- * código, así que lo que hay que contar está siempre bien dibujado). `lado` va
- * antes del enunciado y `bandeja` después.
+ * Los dibujos de ambientación de un ejercicio: uno solo, en una figura enmarcada
+ * a un lado del enunciado; varios, en una bandeja enmarcada debajo, cada dibujo
+ * repetido las veces que dice `cantidad` (las pone el código, así que lo que hay
+ * que contar está siempre bien dibujado). `lado` va junto al enunciado y
+ * `bandeja` después de él.
  */
 export function dibujosHtml(ex: FichaExercise, ilus: Ilus): { lado: string; bandeja: string } {
-  const lista = (ex.dibujos ?? []).map(d => ({ id: d.ilustracion, n: Math.max(1, Math.min(10, d.cantidad ?? 1)) }));
+  const lista = (ex.dibujos ?? []).filter(d => d.ilustracion).map(d => ({ id: d.ilustracion, n: cantidadDe(d) }));
   const total = lista.reduce((s, d) => s + d.n, 0);
   if (!total) return { lado: '', bandeja: '' };
   if (total === 1) {
     const img = ilus(lista[0].id, 'cq-dib');
-    return { lado: img ? `<div class="cq-dib-lado">${img}</div>` : '', bandeja: '' };
+    return { lado: img ? `<div class="cq-fig">${img}</div>` : '', bandeja: '' };
   }
   const tam = total <= 4 ? 'g' : total <= 8 ? 'm' : 'p';
   const grupos = lista.map(d => `<span class="cq-grupo">${Array.from({ length: d.n }, () => ilus(d.id, 'cq-dib')).join('')}</span>`).join('');
   return { lado: '', bandeja: `<div class="cq-dibujos ${tam}">${grupos}</div>` };
+}
+
+const cajaRespuesta = (t: Tr) => `<div class="cq-cres"><b>=</b><span class="cq-caja" title="${esc(t('Respuesta'))}"></span></div>`;
+
+/**
+ * «Contar»: un cuadro con una fila por grupo de dibujos y, en la misma fila, la
+ * caja donde se escribe cuántos hay; con `total`, una última fila para el total.
+ */
+export function contarHtml(ex: FichaExercise, ilus: Ilus, t: Tr): string {
+  const grupos = (ex.dibujos ?? []).filter(d => d.ilustracion).map(d => ({ id: d.ilustracion, n: cantidadDe(d) }));
+  const tam = Math.max(0, ...grupos.map(g => g.n)) <= 5 ? 'g' : 'm';
+  const filas = grupos.map(g =>
+    `<div class="cq-crow"><div class="cq-cdib">${Array.from({ length: g.n }, () => ilus(g.id, 'cq-dib')).join('')}</div>${cajaRespuesta(t)}</div>`).join('');
+  const total = ex.total && grupos.length > 1
+    ? `<div class="cq-crow total"><div class="cq-ctot">${esc(t('Total'))}</div>${cajaRespuesta(t)}</div>` : '';
+  return `<div class="cq-contar ${tam}">${filas}${total}</div>`;
+}
+
+/**
+ * «Etiquetar»: una ficha por dibujo con su línea debajo para escribir el nombre;
+ * con `banco`, encima, las palabras que se usan (ordenadas alfabéticamente, no
+ * como salen los dibujos).
+ */
+export function etiquetarHtml(ex: FichaExercise, ilus: Ilus, lang: Lang): string {
+  const dibujos = (ex.dibujos ?? []).filter(d => d.ilustracion);
+  const cols = dibujos.length <= 4 ? Math.max(2, dibujos.length) : dibujos.length === 5 ? 5 : dibujos.length === 6 ? 3 : 4;
+  const banco = ex.banco
+    ? `<div class="cq-banco-p">${dibujos.map(d => nombreIlustracion(d.ilustracion, lang) ?? '').filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, lang)).map(n => `<span>${esc(n)}</span>`).join('')}</div>` : '';
+  const fichas = dibujos.map(d => `<div class="cq-etiq-c">${ilus(d.ilustracion, 'cq-etiq-img')}<span class="cq-linea-e"></span></div>`).join('');
+  return `${banco}<div class="cq-etiq" style="grid-template-columns:repeat(${cols},minmax(0,1fr));max-width:${Math.min(172, cols * 58)}mm">${fichas}</div>`;
+}
+
+/**
+ * «Clasificar»: arriba los dibujos, mezclados y numerados, con su nombre; debajo
+ * un cuadro por grupo donde se escriben los números de los que le tocan.
+ */
+export function clasificarHtml(ex: FichaExercise, ilus: Ilus, lang: Lang): string {
+  const banco = bancoClasificar(ex.categorias);
+  const fichas = banco.map((d, i) =>
+    `<div class="cq-pic"><b>${i + 1}</b>${ilus(d.id, 'cq-pic-img')}<span>${esc(nombreIlustracion(d.id, lang) ?? '')}</span></div>`).join('');
+  const grupos = (ex.categorias ?? []).map(c => {
+    const lineas = c.dibujos.length > 5 ? 3 : 2;
+    return `<div class="cq-cat"><h4>${esc(c.nombre)}</h4><div class="cq-cat-c">${'<div></div>'.repeat(lineas)}</div></div>`;
+  }).join('');
+  const cp = banco.length <= 6 ? Math.max(2, banco.length) : Math.min(5, Math.ceil(banco.length / 2));
+  return `<div class="cq-pics" style="grid-template-columns:repeat(${cp},minmax(0,1fr));max-width:${Math.min(172, cp * 36)}mm">${fichas}</div><div class="cq-cats" style="grid-template-columns:repeat(${Math.max(1, (ex.categorias ?? []).length)},minmax(0,1fr))">${grupos}</div>`;
+}
+
+/* ── Espacios para contestar ── */
+
+/** Una respuesta de una palabra o un número: cabe en una caja. */
+export const esRespuestaCorta = (solucion: string | undefined) => {
+  const s = (solucion ?? '').trim();
+  return s.length > 0 && s.length <= 12;
+};
+
+/** Cuántas líneas necesita escribir lo que dice la solución: dos como mínimo, hasta cuatro; tres cuando es de opinión o no se sabe. */
+export function lineasDeRespuesta(solucion: string | undefined): number {
+  const s = (solucion ?? '').trim();
+  if (!s || /\b(libre|personal|opini[oó]n|var[ií]a|cada alumno|cada alumna|cualquier)\b/i.test(s)) return 3;
+  return s.length > 160 ? 4 : s.length > 70 ? 3 : 2;
+}
+
+export const lineasHtml = (n: number) => `<div class="cq-lineas">${'<div></div>'.repeat(n)}</div>`;
+
+/** «Respuesta:» y su caja (si es corta) o su línea. */
+export const respuestaHtml = (t: Tr, caja: boolean) =>
+  `<div class="cq-respuesta"><b>${esc(t('Respuesta'))}:</b>${caja ? '<span class="cq-caja"></span>' : '<span class="cq-linea larga"></span>'}</div>`;
+
+/** El espacio de un problema: una cuadrícula para las operaciones y debajo la respuesta con su unidad. */
+export const operacionHtml = (t: Tr) =>
+  `<div class="cq-op"><span>${esc(t('Operación'))}</span></div>${respuestaHtml(t, false)}`;
+
+/**
+ * Un hueco de «completar»: tres o más guiones bajos (o puntos suspensivos) del
+ * enunciado pasan a una línea de verdad. Devuelve el texto ya escapado y si había hueco.
+ */
+export function completarHtml(enunciado: string): { html: string; hueco: boolean } {
+  let hueco = false;
+  const html = esc(enunciado).replace(/_{3,}|…{2,}|\.{5,}/g, () => { hueco = true; return '<span class="cq-hueco"></span>'; });
+  return { html, hueco };
+}
+
+/** Las opciones de un test: un círculo para marcar cada una, en dos columnas si son cortas. */
+export function opcionesHtml(opciones: string[]): string {
+  const corta = opciones.every(o => o.length <= 28);
+  return `<div class="cq-ops${corta ? ' dos' : ''}">${opciones.map((o, j) =>
+    `<span class="cq-opi"><i></i><b>${String.fromCharCode(97 + j)})</b> ${esc(o)}</span>`).join('')}</div>`;
+}
+
+/** Cierre de la hoja: «¿Cómo me ha ido?» con tres caritas para rodear. */
+export function autoevaluacionHtml(t: Tr): string {
+  const cara = (c: string, boca: string) =>
+    `<svg viewBox="0 0 32 32" width="30" height="30"><circle cx="16" cy="16" r="14" fill="#fff" stroke="${c}" stroke-width="2.5"/>` +
+    `<circle cx="11" cy="13" r="1.8" fill="${c}"/><circle cx="21" cy="13" r="1.8" fill="${c}"/><path d="${boca}" stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>`;
+  return `<footer class="cq-fin"><span>${esc(t('¿Cómo te ha ido?'))}</span>` +
+    `${cara('#22A559', 'M9.5 19q6.500 6 13 0')}${cara('#E0A800', 'M10 21.500h12')}${cara('#E5484D', 'M9.500 23q6.500-6 13 0')}</footer>`;
 }
 
 /** «CM = centena de millar» → ['CM', 'centena de millar']; sin «=», `null`. */
@@ -313,17 +418,21 @@ function parejaDe(linea: string): [string, string] | null {
   return a && b ? [a, b] : null;
 }
 
-/** El recuadro de un bloque, con su título y su mascota. */
+/**
+ * El recuadro de un bloque: una franja con su mascota, el título y lo que dice
+ * («Recuerda» y «Consejo» van antes de los ejercicios; «Reto», después, con su
+ * hueco para la respuesta).
+ */
 export function recuadroHtml(r: FichaRecuadro, t: Tr): string {
   const titulo = r.tipo === 'recuerda' ? 'Recuerda' : r.tipo === 'reto' ? 'Reto' : 'Consejo';
   const parejas = r.tipo === 'recuerda' && r.lista?.length ? r.lista.map(parejaDe) : [];
-  const tabla = parejas.length && parejas.every(Boolean)
-    ? `<table class="cq-leyenda">${(parejas as [string, string][]).map(([a, b]) => `<tr><td>${esc(a)}</td><td>=</td><td>${esc(b)}</td></tr>`).join('')}</table>`
+  const leyenda = parejas.length && parejas.every(Boolean)
+    ? `<div class="cq-leyenda">${(parejas as [string, string][]).map(([a, b]) => `<span><b>${esc(a)}</b><i>=</i>${esc(b)}</span>`).join('')}</div>`
     : r.lista?.length ? `<ul class="cq-lista">${r.lista.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : '';
   const respuesta = r.tipo === 'reto'
-    ? `<div class="cq-resp">${esc(t('Respuesta'))}:</div><div class="cq-caja libre"></div>` : '';
-  return `<aside class="cq-nota ${r.tipo}"><div class="cq-nota-t">${esc(t(titulo))}</div>` +
-    `${r.texto ? `<p>${esc(r.texto)}</p>` : ''}${tabla}${respuesta}<div class="cq-mascota">${MASCOTAS[r.tipo].svg}</div></aside>`;
+    ? `<div class="cq-respuesta"><b>${esc(t('Respuesta'))}:</b><span class="cq-linea larga"></span></div>` : '';
+  return `<aside class="cq-nota ${r.tipo}"><div class="cq-mascota">${MASCOTAS[r.tipo].svg}</div>` +
+    `<div class="cq-nota-c"><div class="cq-nota-t">${esc(t(titulo))}</div>${r.texto ? `<p>${esc(r.texto)}</p>` : ''}${leyenda}${respuesta}</div></aside>`;
 }
 
 /** Lo que el Word necesita de un recuadro: título y líneas, sin dibujo. */
@@ -335,11 +444,18 @@ export function recuadroLineas(r: FichaRecuadro, t: Tr): { titulo: string; linea
 /** Lo que va a la izquierda del «=»: sin el «=» ni los huecos que haya detrás. */
 const izquierda = (l: string) => l.replace(/[\s=_…]+$/u, '');
 
-/** Una lista de cálculos: cada línea con su número, el «=» y su hueco (línea o caja). */
+/**
+ * Una lista de cálculos: cada línea con su número, el «=» y su hueco (línea o
+ * caja) pegado al cálculo, con los «=» alineados; en dos columnas cuando son
+ * cuatro o más y cortas.
+ */
 export function calculosHtml(ex: FichaExercise): string {
   const caja = ex.respuesta === 'caja';
-  return `<div class="cq-calculos${caja ? ' con-caja' : ''}">${(ex.lineas ?? []).map((l, i) =>
-    `<div class="cq-fila"><b>${i + 1}.</b><span class="cq-val">${esc(izquierda(l))}</span><span class="cq-eq">=</span>` +
+  const lineas = (ex.lineas ?? []).map(izquierda);
+  const ancho = Math.max(...lineas.map(l => l.length), 1);
+  const dos = lineas.length >= 4 && ancho <= 18;
+  return `<div class="cq-calculos${caja ? ' con-caja' : ''}${dos ? ' dos' : ''}" style="--w:${Math.min(ancho, 40)}ch">${lineas.map((l, i) =>
+    `<div class="cq-fila"><b>${i + 1}.</b><span class="cq-val">${esc(l)}</span><span class="cq-eq">=</span>` +
     `<span class="${caja ? 'cq-caja' : 'cq-linea'}"></span></div>`).join('')}</div>`;
 }
 
@@ -352,14 +468,16 @@ export function serieDe(ex: FichaExercise): string[] | null {
   return ex.tipo === 'ordenar' && el.length >= 3 && el.every(e => e.length <= 14) ? el : null;
 }
 
+/** La serie dada y, debajo, tantas casillas como elementos para escribirla en orden. */
 export function serieHtml(elementos: string[]): string {
-  return `<div class="cq-serie">${elementos.map(e => `<span>${esc(e)}</span>`).join('<i>–</i>')}</div><div class="cq-caja ancha"></div>`;
+  return `<div class="cq-serie">${elementos.map(e => `<span>${esc(e)}</span>`).join('<i>–</i>')}</div>` +
+    `<div class="cq-celdas">${elementos.map(() => '<span class="cq-caja"></span>').join('<i>–</i>')}</div>`;
 }
 
 /* ── Estilos ── */
 
 export const CUADERNO_STYLE = `
-.th-cuaderno { font-size: 13.5px; word-spacing: .04em; }
+.th-cuaderno { font-size: 13.5px; word-spacing: .04em; --lin: #9db3cb; --tinta: #475569; }
 .ficha-doc.th-cuaderno { padding: 0; }
 .cq-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin: 0 0 7px -4px; }
 .cq-cinta { position: relative; flex: 1 1 auto; min-width: 0; max-width: 128mm; display: flex; align-items: center; min-height: 15mm; padding: 3.5mm 11mm 4mm 7mm; color: #fff;
@@ -380,84 +498,161 @@ export const CUADERNO_STYLE = `
 .cq-campo i { flex: 1; border-bottom: 1.75px solid var(--cd); height: 1px; transform: translateY(-3px); }
 .cq-datos .var-mark { margin-left: auto; }
 
-.th-cuaderno .ficha-explicacion { background: var(--cl); border: 1.75px dashed var(--c); border-left-width: 1.75px; border-radius: 12px; padding: 9px 14px; }
+.th-cuaderno .ficha-explicacion { background: var(--cl); border: 1.75px dashed var(--c); border-left-width: 1.75px; border-radius: 12px; padding: 9px 14px; margin-bottom: 10px; }
 .th-cuaderno .ficha-explicacion .lbl { color: var(--c); font-family: var(--font-t); font-size: 12px; }
 .th-cuaderno .ficha-explicacion .txt { font-size: 13px; line-height: 1.55; }
-.th-cuaderno .ficha-instr { font-style: normal; font-weight: 700; color: #334155; margin-bottom: 12px; }
+.th-cuaderno .ficha-instr { font-style: normal; font-weight: 700; color: #334155; margin: 0 0 14px; }
 
-.th-cuaderno .ficha-actividad { margin-bottom: 9px; padding-bottom: 9px; border-bottom: 2px solid var(--sc, #cbd5e1); }
-.th-cuaderno .ficha-actividad:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.cq-sec { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; break-after: avoid; break-inside: avoid; }
+/* Bloque: cabecera con su filete punteado y los ejercicios debajo */
+.th-cuaderno .ficha-actividad { margin: 0 0 7mm; padding: 0; border: none; break-inside: auto; page-break-inside: auto; }
+.th-cuaderno .ficha-actividad:last-of-type { margin-bottom: 0; }
+.cq-sec { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; break-after: avoid; break-inside: avoid; }
+.cq-sec::after { content: ''; flex: 1 1 auto; height: 0; border-bottom: 2.5px dotted var(--sc); opacity: .5; transform: translateY(2px); }
 .cq-num { flex: 0 0 auto; width: 9.5mm; height: 9.5mm; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-t); font-weight: 900; font-size: 19px;
   background: linear-gradient(160deg, var(--sc2), var(--sc)); border: 2px solid var(--sc); box-shadow: inset 0 0 0 2.5px #fff; }
-.cq-med { flex: 0 0 auto; margin-left: auto; line-height: 0; }
-.cq-med img { width: 11mm; height: 11mm; object-fit: contain; display: block; }
-.cq-sec h2 { margin: 0; font-family: var(--font-t); font-weight: 900; font-size: 18px; letter-spacing: .01em; word-spacing: .14em; color: var(--sc); text-transform: uppercase; line-height: 1.15; }
+.cq-sec h2 { flex: 0 1 auto; margin: 0; font-family: var(--font-t); font-weight: 900; font-size: 18px; letter-spacing: .01em; word-spacing: .14em; color: var(--sc); text-transform: uppercase; line-height: 1.15; }
 
-/* Un solo dibujo: a la derecha del enunciado; las líneas y las cajas de respuesta lo esquivan (flow-root) y no pasan por debajo */
-.cq-dib-lado { float: right; margin: 0 0 4px 10px; line-height: 0; }
-.cq-dib-lado img { width: 21mm; height: 21mm; object-fit: contain; display: block; }
-.th-cuaderno .ficha-ejercicios > li { display: flow-root; }
-.th-cuaderno .ficha-ejercicios > li > .ficha-espacio, .th-cuaderno .ficha-ejercicios > li > .cq-respuesta { display: flow-root; }
-.th-cuaderno .ficha-ejercicios > li > .cq-respuesta { display: flex; }
-.cq-respuesta { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; font-size: 13px; }
-.cq-respuesta b { color: var(--num); font-weight: 900; }
-.cq-respuesta .cq-caja { flex: 0 0 34mm; }
-.th-cuaderno .ficha-explicacion { position: relative; }
-.th-cuaderno .ficha-explicacion.con-mascota .txt { padding-right: 19mm; }
-.cq-mascota-hilo { position: absolute; right: 10px; bottom: -7px; width: 17mm; height: 17mm; object-fit: contain; }
-.cq-dibujos { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 7mm; margin: 4px 0 6px; line-height: 0; }
-.cq-grupo { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 1px; }
+/* Ejercicio: el número en su casilla a la izquierda y todo lo demás en una columna, siempre alineada */
+.th-cuaderno .ficha-actividad .ficha-ejercicios { list-style: none; counter-reset: ej; margin: 0; padding: 0; border: none; border-radius: 0; }
+.th-cuaderno .ficha-ejercicios > li { counter-increment: ej; position: relative; display: block; padding-left: 10mm; margin: 0 0 5.5mm; break-inside: avoid; page-break-inside: avoid; }
+.th-cuaderno .ficha-ejercicios > li.largo { break-inside: auto; page-break-inside: auto; }
+.th-cuaderno .ficha-ejercicios > li:last-child { margin-bottom: 0; }
+.th-cuaderno .ficha-ejercicios > li::before { content: counter(ej); position: absolute; left: 0; top: 0; box-sizing: border-box; width: 6.6mm; height: 6.6mm; display: flex; align-items: center; justify-content: center;
+  border: 1.75px solid var(--num); border-radius: 2mm; background: #fff; color: var(--num); font-family: var(--font-t); font-weight: 900; font-size: 13px; }
+.th-cuaderno .ficha-ejercicios.letras > li::before { content: counter(ej, upper-alpha); }
+.th-cuaderno .ficha-ejercicios.sin > li { padding-left: 0; }
+.th-cuaderno .ficha-ejercicios.sin > li::before { display: none; }
+.cq-ej { min-width: 0; }
+.cq-ej::after { content: ''; display: block; clear: both; }
+.th-cuaderno .ficha-enunciado { display: block; font-size: 13.5px; line-height: 1.5; margin: 0; break-after: avoid; }
+.th-cuaderno .ficha-enunciado .cq-hueco { display: inline-block; min-width: 24mm; height: .9em; margin: 0 1mm; border-bottom: 1.5px solid var(--tinta); }
+
+/* Con un solo dibujo (o una figura geométrica): enmarcado, a la derecha del enunciado y de su espacio */
+.cq-ej.con-fig { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 4mm; align-items: start; }
+.cq-ej.con-fig > .cq-fig { grid-column: 2; grid-row: 1 / span 6; }
+.cq-ej.con-fig > :not(.cq-fig) { grid-column: 1; }
+.cq-fig { box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 29mm; min-height: 27mm; padding: 1.5mm; line-height: 0;
+  border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: color-mix(in srgb, var(--num) 4%, #fff); }
+.cq-fig img { width: 24mm; height: 24mm; object-fit: contain; display: block; }
+.cq-fig.svg { width: auto; max-width: 52mm; padding: 2mm 3mm; background: #fff; }
+.cq-fig.svg svg { max-width: 46mm; height: auto; display: block; }
 .cq-dib { object-fit: contain; display: block; }
+
+/* Varios dibujos de ambientación: una bandeja enmarcada */
+.cq-dibujos { display: flex; flex-wrap: wrap; align-items: center; gap: 1mm 7mm; margin: 2mm 0 0; padding: 2mm 3mm; line-height: 0;
+  border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: color-mix(in srgb, var(--num) 4%, #fff); }
+.cq-grupo { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 1px; }
 .cq-dibujos.g .cq-dib { width: 16mm; height: 16mm; } .cq-dibujos.m .cq-dib { width: 12.5mm; height: 12.5mm; } .cq-dibujos.p .cq-dib { width: 10mm; height: 10mm; }
-.cq-cuerpo { display: block; }
-.cq-cuerpo::after { content: ''; display: block; clear: both; }
-/* El recuadro flota a la derecha y los ejercicios corren a su lado: así el bloque puede partirse entre páginas (una rejilla de dos columnas no se parte) */
-.cq-cuerpo.con-nota > .cq-nota { float: right; width: 50mm; margin: 14px 0 8px 12px; }
-.cq-cuerpo.con-nota > ol { display: flow-root; }
-.th-cuaderno .ficha-actividad { break-inside: auto; page-break-inside: auto; }
-.th-cuaderno .ficha-actividad .ficha-ejercicios { border: none; padding: 0; border-radius: 0; }
-.th-cuaderno .ficha-ejercicios > li { margin-bottom: 8px; }
-.th-cuaderno .ficha-ejercicios > li::before { color: var(--num); font-weight: 900; }
-.th-cuaderno .ficha-ejercicios.letras > li::before { content: counter(ej, upper-alpha) '. '; }
-.th-cuaderno .ficha-ejercicios.sin > li::before { content: none; }
-.th-cuaderno .ficha-enunciado { font-size: 13.5px; }
-.th-cuaderno .ficha-espacio.lines .ln, .th-cuaderno .ficha-espacio.line { border-bottom-color: #1e293b; }
 
-.cq-calculos { margin: 6px 0 2px 2px; }
-.cq-fila { display: flex; align-items: baseline; gap: 7px; margin: 0 0 4px; font-size: 14px; }
-.cq-fila b { flex: 0 0 5.5mm; font-weight: 900; color: var(--num); }
-.cq-val { flex: 0 0 auto; max-width: 100%; }
-.cq-calculos:not(.con-caja) .cq-val { min-width: 24mm; }
-.cq-eq { flex: 0 0 auto; }
-.cq-linea { flex: 1 1 auto; min-width: 16mm; margin-right: 8mm; border-bottom: 1.5px solid #1e293b; height: 1px; transform: translateY(-3px); }
-.cq-calculos.con-caja .cq-fila { align-items: center; margin-bottom: 4px; }
-.cq-calculos.con-caja .cq-val { flex: 1 1 auto; }
-.cq-caja { display: inline-block; flex: 0 0 26mm; height: 7.5mm; border: 1.75px solid var(--num); border-radius: 7px; background: #fff; }
-.cq-caja.ancha { display: block; width: 100%; height: 7mm; margin: 3px 0 0; }
+/* Contar: una fila por grupo, con su caja en la misma fila */
+.cq-contar { margin-top: 2mm; border: 1.5px solid color-mix(in srgb, var(--num) 45%, #fff); border-radius: 3mm; overflow: hidden; background: #fff; }
+.cq-crow { display: grid; grid-template-columns: minmax(0, 1fr) 38mm; align-items: stretch; border-top: 1.25px dotted color-mix(in srgb, var(--num) 45%, #fff); }
+.cq-crow:first-child { border-top: none; }
+.cq-cdib { display: flex; flex-wrap: wrap; align-items: center; gap: .5mm 1mm; padding: 1.8mm 3mm; line-height: 0; }
+.cq-contar.g .cq-dib { width: 14mm; height: 14mm; } .cq-contar.m .cq-dib { width: 11mm; height: 11mm; }
+.cq-cres { display: flex; align-items: center; justify-content: center; gap: 2mm; padding: 0 3mm; background: color-mix(in srgb, var(--num) 6%, #fff); border-left: 1.25px dotted color-mix(in srgb, var(--num) 45%, #fff); }
+.cq-cres b { color: var(--num); font-size: 18px; font-weight: 900; }
+.cq-cres .cq-caja { flex: 0 0 18mm; width: 18mm; height: 9mm; }
+.cq-crow.total { background: color-mix(in srgb, var(--num) 4%, #fff); }
+.cq-ctot { display: flex; align-items: center; justify-content: flex-end; padding: 0 3mm; font-weight: 900; color: var(--num); text-transform: uppercase; font-size: 12px; letter-spacing: .04em; }
+
+/* Etiquetar: una ficha por dibujo con su línea para el nombre */
+.cq-etiq { display: grid; gap: 3mm 4mm; margin-top: 2mm; }
+.cq-etiq-c { box-sizing: border-box; padding: 2mm 2.5mm 2.5mm; text-align: center; line-height: 0; break-inside: avoid;
+  border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
+.cq-etiq-img { width: 21mm; height: 21mm; object-fit: contain; display: block; margin: 0 auto 1.5mm; }
+.cq-linea-e { display: block; height: 7.5mm; border-bottom: 1.5px solid var(--lin); }
+.cq-banco-p { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5mm 2.5mm; margin-top: 2mm; padding: 2mm 3mm; border: 1.5px dashed var(--num); border-radius: 3mm; background: color-mix(in srgb, var(--num) 5%, #fff); }
+.cq-banco-p span { padding: .4mm 3mm; border: 1.25px solid var(--num); border-radius: 99px; background: #fff; font-weight: 800; font-size: 12.5px; color: var(--num); }
+
+/* Clasificar: los dibujos numerados arriba y un cuadro por grupo debajo */
+.cq-pics { display: grid; gap: 3mm; margin-top: 2.5mm; line-height: 0; }
+.cq-pic { position: relative; box-sizing: border-box; padding: 2mm 1mm 1.5mm; text-align: center; border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
+.cq-pic b { position: absolute; top: -1.5mm; left: -1.5mm; width: 5.4mm; height: 5.4mm; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--num); color: #fff; font-size: 11px; font-weight: 900; line-height: 1; }
+.cq-pic-img { width: 16mm; height: 16mm; object-fit: contain; display: block; margin: 0 auto; }
+.cq-pic span { display: block; margin-top: .5mm; font-size: 10.5px; line-height: 1.2; color: var(--tinta); font-weight: 700; }
+.cq-cats { display: grid; gap: 3mm; margin-top: 3mm; }
+.cq-cat { border: 1.75px solid var(--num); border-radius: 3mm; overflow: hidden; background: #fff; }
+.cq-cat h4 { margin: 0; padding: 1mm 2mm; background: var(--num); color: #fff; text-align: center; font-family: var(--font-t); font-weight: 900; font-size: 12.5px; letter-spacing: .02em; text-transform: uppercase; }
+.cq-cat-c { padding: 0 3mm 1mm; } .cq-cat-c div { height: 7.5mm; border-bottom: 1.25px solid var(--lin); } .cq-cat-c div:last-child { border-bottom: none; }
+
+/* Espacios para escribir: líneas finas de cuaderno, las justas según lo que se espera */
+.cq-lineas { margin-top: 1mm; } .cq-lineas > div { height: 8mm; border-bottom: 1.25px solid var(--lin); }
+.cq-respuesta { display: flex; align-items: center; gap: 2.5mm; margin: 2.5mm 0 0; font-size: 13px; }
+.cq-respuesta b { flex: 0 0 auto; color: var(--num); font-weight: 900; }
+.cq-respuesta .cq-caja { flex: 0 0 34mm; }
+.cq-linea { display: inline-block; border-bottom: 1.5px solid var(--lin); }
+.cq-respuesta .cq-linea.larga { flex: 1 1 auto; height: 6.5mm; }
+.cq-op { position: relative; box-sizing: border-box; height: 25mm; margin-top: 4.5mm; border: 1.75px solid var(--num); border-radius: 3mm; background-color: #fff;
+  background-image: linear-gradient(#dbe6f2 1px, transparent 1px), linear-gradient(90deg, #dbe6f2 1px, transparent 1px); background-size: 5mm 5mm; background-position: -1px -1px; }
+.cq-op > span { position: absolute; top: -2.9mm; left: 4mm; padding: 0 2mm; background: #fff; color: var(--num); font-weight: 900; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
+.cq-caja { display: inline-block; box-sizing: border-box; flex: 0 0 26mm; height: 8mm; border: 1.75px solid var(--num); border-radius: 7px; background: #fff; }
+.cq-caja.ancha { display: block; width: 100%; height: 7.5mm; margin: 3px 0 0; }
 .cq-caja.libre { display: block; width: 100%; flex: none; height: 9mm; border: 1.75px solid var(--k); }
-.cq-serie { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 4px 0 0; font-size: 14px; }
-.cq-serie i { font-style: normal; color: #475569; }
 
-.cq-nota { position: relative; border: 1.75px dashed var(--k); background: var(--kb); border-radius: 12px; padding: 8px 11px 10px; break-inside: avoid; page-break-inside: avoid; }
+/* Listas de cálculos: el hueco pegado a la cuenta y los «=» alineados */
+.cq-calculos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5mm 9mm; margin: 2mm 0 0 1mm; }
+.cq-calculos.dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cq-fila { display: flex; align-items: center; gap: 2.5mm; font-size: 14px; break-inside: avoid; }
+.cq-fila b { flex: 0 0 5.5mm; font-weight: 900; color: var(--num); font-size: 12.5px; }
+.cq-val { flex: 0 0 auto; min-width: var(--w, 10ch); }
+.cq-eq { flex: 0 0 auto; color: var(--tinta); }
+.cq-calculos .cq-linea { flex: 1 1 auto; min-width: 20mm; max-width: 60mm; height: 6mm; transform: translateY(-.3mm); }
+.cq-calculos .cq-caja { flex: 0 0 26mm; }
+.cq-serie { display: flex; flex-wrap: wrap; align-items: center; gap: 2mm 3mm; margin: 2mm 0 0; font-size: 14px; }
+.cq-serie span { padding: .6mm 3mm; border: 1.25px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 99px; background: #fff; font-weight: 700; }
+.cq-serie i, .cq-celdas i { font-style: normal; color: var(--tinta); }
+.cq-celdas { display: flex; flex-wrap: wrap; align-items: center; gap: 2mm 3mm; margin-top: 2.5mm; }
+.cq-celdas .cq-caja { flex: 0 0 22mm; }
+
+/* Test: un círculo para marcar cada opción */
+.cq-ops { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5mm 6mm; margin-top: 2mm; }
+.cq-ops.dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cq-opi { display: flex; align-items: baseline; gap: 2mm; font-size: 13.5px; line-height: 1.35; }
+.cq-opi i { flex: 0 0 auto; box-sizing: border-box; width: 4.2mm; height: 4.2mm; border: 1.6px solid var(--num); border-radius: 50%; transform: translateY(.8mm); }
+.cq-opi b { color: var(--num); }
+
+/* El recuadro del bloque: una franja con su mascota */
+.cq-nota { position: relative; display: flex; align-items: center; gap: 4mm; margin: 0 0 5mm; padding: 2.5mm 5mm 2.5mm 4mm; border: 1.75px dashed var(--k); background: var(--kb); border-radius: 3mm; break-inside: avoid; page-break-inside: avoid; }
+.cq-nota.reto { margin: 5.5mm 0 0; break-before: avoid; }
+.cq-nota.recuerda, .cq-nota.consejo { break-after: avoid; }
 .cq-nota.recuerda { --k: #1E88D8; --kb: #EAF5FE; } .cq-nota.reto { --k: #E0900A; --kb: #FFF8E6; } .cq-nota.consejo { --k: #1E88D8; --kb: #EAF5FE; }
-.cq-nota-t { text-align: center; font-family: var(--font-t); font-weight: 900; font-size: 14.5px; letter-spacing: .03em; text-transform: uppercase; color: var(--k); margin-bottom: 4px; }
-.cq-nota p { margin: 0 0 5px; font-size: 12.2px; line-height: 1.5; color: #1e293b; }
-.cq-mascota { position: absolute; line-height: 0; }
-.cq-nota.recuerda .cq-mascota { top: -16px; right: -10px; } .cq-nota.reto .cq-mascota { top: -22px; right: -12px; } .cq-nota.consejo .cq-mascota { bottom: -10px; right: -8px; }
-.cq-nota.consejo { padding-right: 34px; }
-.cq-leyenda { border-collapse: collapse; margin: 0 auto; font-size: 12.2px; } .cq-leyenda td { padding: 1px 5px 1px 0; } .cq-leyenda td:first-child { min-width: 9mm; white-space: nowrap; } .cq-leyenda td:nth-child(2) { width: 4mm; }
-.cq-lista { margin: 0; padding-left: 16px; font-size: 12.2px; line-height: 1.5; }
-.cq-resp { color: var(--k); font-weight: 900; font-size: 12px; margin: 4px 0 4px; }
+.cq-mascota { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 13mm; line-height: 0; }
+.cq-mascota svg { max-width: 13mm; height: auto; }
+.cq-nota-c { flex: 1 1 auto; min-width: 0; }
+.cq-nota-t { font-family: var(--font-t); font-weight: 900; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--k); margin-bottom: 1mm; }
+.cq-nota p { margin: 0; font-size: 12.5px; line-height: 1.5; color: #1e293b; }
+.cq-leyenda { display: grid; grid-template-columns: repeat(auto-fit, minmax(42mm, 1fr)); gap: 1mm 6mm; font-size: 12.5px; }
+.cq-leyenda span { display: flex; gap: 2mm; align-items: baseline; } .cq-leyenda b { min-width: 9mm; } .cq-leyenda i { font-style: normal; color: var(--tinta); }
+.cq-lista { margin: 0; padding-left: 16px; font-size: 12.5px; line-height: 1.5; }
+.cq-nota .cq-respuesta { margin-top: 2mm; } .cq-nota .cq-respuesta b { color: var(--k); }
 
-.th-cuaderno .ficha-tabla { border-collapse: separate; border-spacing: 0; border: 1.75px solid var(--num); border-radius: 9px; overflow: hidden; font-size: 13.5px; margin-top: 6px; }
-.th-cuaderno .ficha-tabla th { text-transform: none; font-size: 13.5px; font-weight: 800; border-width: 0 1.5px 0 0; border-style: solid; border-color: var(--num); padding: 5px 8px; }
-.th-cuaderno .ficha-tabla th:last-child { border-right: none; }
-.th-cuaderno .ficha-tabla td { border-width: 1.25px 1.5px 0 0; border-style: solid; border-color: color-mix(in srgb, var(--num) 40%, #fff); padding: 3px 10px; }
-.th-cuaderno .ficha-tabla td:last-child { border-right: none; }
+/* Tablas, relacionar y verdadero o falso, con el mismo aire que el resto */
+.th-cuaderno .ficha-tabla { border-collapse: separate; border-spacing: 0; border: 1.75px solid var(--num); border-radius: 9px; overflow: hidden; font-size: 13.5px; margin-top: 2mm; }
+.th-cuaderno .ficha-tabla th { text-transform: none; font-size: 13.5px; font-weight: 800; border: none; border-left: 1.5px solid var(--num); padding: 5px 8px; }
+.th-cuaderno .ficha-tabla td { border: none; border-top: 1.25px solid color-mix(in srgb, var(--num) 40%, #fff); border-left: 1.25px solid color-mix(in srgb, var(--num) 40%, #fff); padding: 3px 10px; }
+.th-cuaderno .ficha-tabla th:first-child, .th-cuaderno .ficha-tabla td:first-child { border-left: none; }
 .th-cuaderno .ficha-tabla td.blank { background: #fff; height: 9mm; }
-.th-cuaderno .ficha-opciones li { font-size: 13px; line-height: 1.8; }
+.th-cuaderno .ficha-tabla .vis-col { width: 17mm; padding: 1.5mm; }
+.th-cuaderno .ficha-tabla .cq-tdib { width: 12mm; height: 12mm; object-fit: contain; display: block; margin: 0 auto; }
 .th-cuaderno .ord-item { border-style: solid; border-color: color-mix(in srgb, var(--num) 45%, #fff); }
+.th-cuaderno .ord-num { width: 6.2mm; height: 6.2mm; border-color: var(--num); }
+.th-cuaderno .ficha-ordenar { gap: 2mm; margin-top: 2mm; }
+.th-cuaderno .ficha-vf { margin-top: 2mm; gap: 2mm; }
+.th-cuaderno .vf-row { border-color: color-mix(in srgb, var(--num) 35%, #fff); break-inside: avoid; }
+.th-cuaderno .vf-box { border-color: var(--num); color: var(--num); }
+.cq-rel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3.5mm 22mm; margin-top: 2mm; }
+.cq-rel .item { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: 3mm; min-height: 10mm; padding: 2mm 3mm; font-size: 13px; border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
+.cq-rel .item.con-dib { min-height: 17mm; }
+.cq-rel .item img { flex: 0 0 auto; width: 13mm; height: 13mm; object-fit: contain; display: block; }
+.cq-rel .item .dot-r, .cq-rel .item .dot-l { position: absolute; top: 50%; width: 3mm; height: 3mm; margin-top: -1.5mm; border-radius: 50%; background: var(--num); }
+.cq-rel .item .dot-r { right: -5mm; } .cq-rel .item .dot-l { left: -5mm; }
+.cq-rel .item b { color: var(--num); }
+
+/* Cierre de la hoja */
+.cq-fin { display: flex; align-items: center; justify-content: flex-end; gap: 3mm; margin-top: 7mm; padding-top: 3mm; border-top: 2px dotted var(--lin); color: var(--tinta); font-weight: 800; font-size: 12.5px; break-inside: avoid; }
+.cq-fin span { margin-right: 1mm; }
+.cq-fin svg { display: block; }
 `;
 
 /** Lo que cada ilustración de este archivo es para el catálogo, para las pruebas. */
