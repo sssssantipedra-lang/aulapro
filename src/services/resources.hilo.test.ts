@@ -17,8 +17,11 @@ import {
   type FichaContent, type FichaRequest,
 } from './resources';
 
+// Sin la revisión de la IA (`revisar`): aquí se prueban los dibujos y la reparación; la revisión, en resources.escalera.test.ts.
+// En 4.º: la receta de 1.º y 2.º (que el código añade un «contar» y un «etiquetar») se prueba en resources.escalera.test.ts
 const req = (over: Partial<FichaRequest> = {}): FichaRequest => ({
-  tema: 'Los animales de la granja', area: 'Ciencias Naturales', nivel: '2º Primaria', numEjercicios: 4, niveles: false, contextoClase: '', estilo: 'cuaderno', ...over,
+  tema: 'Los animales de la granja', area: 'Ciencias Naturales', nivel: '4º Primaria', numEjercicios: 4, niveles: false, contextoClase: '', estilo: 'cuaderno',
+  revisar: false, ...over,
 });
 
 const ejercicio = (dibujos?: unknown) => ({ tipo: 'abierta', enunciado: 'Cuenta las vacas.', solucion: '5', ...(dibujos ? { dibujos } : {}) });
@@ -284,6 +287,50 @@ describe('los tipos con dibujos: «contar», «etiquetar» y «clasificar»', ()
   });
 });
 
+describe('«escribe el nombre de cada dibujo» como respuesta libre pasa a «etiquetar»', () => {
+  const tres = [{ ilustracion: 'ani-vaca', cantidad: 1 }, { ilustracion: 'ani-cerdo', cantidad: 1 }, { ilustracion: 'ani-caballo', cantidad: 1 }];
+
+  it('cada dibujo tiene su línea y el banco sale de los propios dibujos', async () => {
+    const x = await ej({ tipo: 'abierta', enunciado: 'Escribe el nombre de cada animal debajo de su dibujo usando el siguiente banco de palabras: vaca, cerdo, caballo, pato.', dibujos: tres, solucion: 'x' });
+    expect(x.tipo).toBe('etiquetar');
+    expect(x.banco).toBe(true);
+    expect(x.enunciado).toBe('Escribe el nombre de cada dibujo en su línea. Usa las palabras del banco.');
+    expect(x.solucion).toBe('1. vaca, 2. cerdo, 3. caballo');
+  });
+
+  it('sin banco, y en catalán y en inglés', async () => {
+    expect((await ej({ tipo: 'abierta', enunciado: 'Anota el nombre de cada animal.', dibujos: tres, solucion: '' })).banco).toBeUndefined();
+    expect((await ej({ tipo: 'abierta', enunciado: 'Escriu el nom de cada animal.', dibujos: tres, solucion: '' }, 'ca')).enunciado).toBe('Escriu el nom de cada dibuix a la seva línia.');
+    expect((await ej({ tipo: 'abierta', enunciado: 'Write the name of each animal below its picture.', dibujos: tres, solucion: '' }, 'en')).enunciado).toBe('Write the name of each picture on its line.');
+  });
+
+  it('una pregunta que solo se ilustra, o con un solo dibujo, se queda como estaba', async () => {
+    const a = await ej({ tipo: 'abierta', enunciado: 'Explica qué nos da la oveja y por qué es importante.', dibujos: tres, solucion: 'x' });
+    expect(a.tipo).toBe('abierta');
+    expect(a.dibujos).toHaveLength(3);
+    const b = await ej({ tipo: 'abierta', enunciado: 'Escribe el nombre de cada animal.', dibujos: [tres[0]], solucion: 'x' });
+    expect(b.tipo).toBe('abierta');
+  });
+
+  it('la solución de un ejercicio no puede enrollarse sin fin', async () => {
+    const x = await ej({ tipo: 'abierta', enunciado: 'Explica por qué.', solucion: 'palabra '.repeat(1000) });
+    expect(x.solucion.length).toBeLessThanOrEqual(1500);
+  });
+});
+
+describe('un «problema» sin cuentas es una pregunta abierta', () => {
+  it('si pide explicar y no lleva ninguna cifra, pasa a abierta: no necesita cuadrícula de operaciones', async () => {
+    const x = await ej({ tipo: 'problema', enunciado: 'La vaca Lola come hierba. Explica con tus palabras por qué es importante cuidarla.', solucion: 'x' });
+    expect(x.tipo).toBe('abierta');
+  });
+
+  it('con una cifra, con figura o sin pedir explicación, sigue siendo problema', async () => {
+    expect((await ej({ tipo: 'problema', enunciado: 'Explica por qué 3 + 4 es 7.', solucion: 'x' })).tipo).toBe('problema');
+    expect((await ej({ tipo: 'problema', enunciado: 'Calcula el área. Explica el paso.', figura: { forma: 'rectangulo', medidas: [{ etiqueta: 'base', valor: '4 cm' }, { etiqueta: 'altura', valor: '3 cm' }] }, solucion: 'x' })).tipo).toBe('problema');
+    expect((await ej({ tipo: 'problema', enunciado: 'Si juntamos dos vacas y tres ovejas, ¿cuántos animales hay?', solucion: 'x' })).tipo).toBe('problema');
+  });
+});
+
 describe('las demás llamadas conservan el hilo', () => {
   const conHiloGranja = (): FichaContent => conHilo({
     titulo: 'La granja', explicacion: '', instrucciones: '', estilo: 'cuaderno',
@@ -332,6 +379,13 @@ describe('ejercicios rotos: lo que la IA promete y la hoja no lleva', () => {
     expect(problemaDeEjercicio(rel(['2/3', '3/4'], ['tres cuartos', 'dos tercios']), false)).toBeUndefined();
   });
 
+  it('«contar» con todos los grupos iguales es roto; con cantidades distintas, no', () => {
+    const grupo = (n: number) => ({ ilustracion: 'ani-vaca', cantidad: n });
+    expect(problemaDeEjercicio(ex({ tipo: 'contar', enunciado: 'Cuenta.', dibujos: [grupo(10), { ilustracion: 'ani-pato', cantidad: 10 }] }), true)).toContain('misma cantidad');
+    expect(problemaDeEjercicio(ex({ tipo: 'contar', enunciado: 'Cuenta.', dibujos: [grupo(4), { ilustracion: 'ani-pato', cantidad: 7 }] }), true)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ tipo: 'contar', enunciado: 'Cuenta.', dibujos: [grupo(5)] }), true)).toBeUndefined();
+  });
+
   it('con dibujos, con figura o sin hilo no es roto', () => {
     const habla = 'Cuenta los animales de los dibujos.';
     expect(problemaDeEjercicio(ex({ enunciado: habla, dibujos: [{ ilustracion: 'ani-vaca', cantidad: 2 }] }), true)).toBeUndefined();
@@ -344,13 +398,32 @@ describe('ejercicios rotos: lo que la IA promete y la hoja no lleva', () => {
 
   it('generateFicha rehace una vez el ejercicio roto y deja el resto como estaba', async () => {
     callGemini
-      .mockResolvedValueOnce(un({ tipo: 'abierta', enunciado: 'Escribe el nombre debajo de cada animal.', solucion: 'x' }))
-      .mockResolvedValueOnce(JSON.stringify({ tipo: 'etiquetar', enunciado: 'Escribe el nombre de cada animal.', solucion: '', dibujos: [{ ilustracion: 'ani-vaca', cantidad: 1 }, { ilustracion: 'ani-cerdo', cantidad: 1 }] }));
+      .mockResolvedValueOnce(un({ tipo: 'completar', enunciado: 'Completa las frases con la palabra correcta.', solucion: 'x' }))
+      .mockResolvedValueOnce(JSON.stringify({ tipo: 'completar', enunciado: 'La vaca da ______ y la gallina pone ______.', solucion: 'leche; huevos' }));
     const f = await generateFicha(req(), 'es');
     expect(callGemini).toHaveBeenCalledTimes(2);
-    expect(callGemini.mock.calls[1][1]).toContain('habla de dibujos');
-    expect(f!.actividades[0].ejercicios[0].tipo).toBe('etiquetar');
-    expect(f!.actividades[0].ejercicios[0].solucion).toBe('1. vaca, 2. cerdo');
+    expect(callGemini.mock.calls[1][1]).toContain('no tiene la frase con huecos');
+    expect(f!.actividades[0].ejercicios[0].enunciado).toBe('La vaca da ______ y la gallina pone ______.');
+  });
+
+  it('«escribe el nombre de cada dibujo» sin dibujos lo monta el código con los del hilo, sin otra llamada a la IA', async () => {
+    callGemini.mockResolvedValueOnce(un({ tipo: 'abierta', enunciado: 'Escribe el nombre debajo de cada animal.', solucion: 'x' }));
+    const f = await generateFicha(req({ nivel: '3º Primaria' }), 'es');
+    expect(callGemini).toHaveBeenCalledTimes(1);
+    const x = f!.actividades[0].ejercicios[0];
+    expect(x.tipo).toBe('etiquetar');
+    expect(x.banco).toBe(true);
+    expect(x.enunciado).toBe('Escribe el nombre de cada dibujo en su línea. Usa las palabras del banco.');
+    expect(x.dibujos!.map(d => d.ilustracion)).toEqual(['ani-vaca', 'ani-cerdo', 'ani-gallina', 'ani-oveja']);
+    expect(x.solucion).toBe('1. vaca, 2. cerdo, 3. gallina, 4. oveja');
+  });
+
+  it('el banco de palabras solo en 1.º a 3.º', async () => {
+    callGemini.mockResolvedValueOnce(un({ tipo: 'abierta', enunciado: 'Escribe el nombre debajo de cada animal.', solucion: 'x' }));
+    const x = (await generateFicha(req({ nivel: '5º Primaria' }), 'es'))!.actividades[0].ejercicios[0];
+    expect(x.tipo).toBe('etiquetar');
+    expect(x.banco).toBeUndefined();
+    expect(x.enunciado).toBe('Escribe el nombre de cada dibujo en su línea.');
   });
 
   it('si la IA no contesta o vuelve a fallar, el ejercicio se queda y no se insiste', async () => {

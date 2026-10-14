@@ -20,6 +20,7 @@ import type { FichaExercise, FichaRecuadro } from './resources';
 import { elegirIlustraciones, ilustracionPorId, nombreIlustracion } from '../lib/ilustraciones';
 import { DIBUJOS_CABECERA, hiloPorId } from '../lib/hilos';
 import { bancoClasificar } from '../lib/dibujosEjercicio';
+import { NOMBRE_DIFICULTAD, type Dificultad } from '../lib/escalera';
 import type { Lang } from '../i18n';
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
@@ -282,10 +283,24 @@ export function datosHtml(area: string | undefined, marca: string, t: Tr): strin
     `${campo('Nombre')}${campo('Fecha')}${campo('Clase', true)}${marca}</div>`;
 }
 
-/** La cabecera de un bloque: el número en un círculo con degradado y el título en el color del bloque, con un filete punteado detrás. */
-export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = ''): string {
+/** Una estrella de cinco puntas (vector, para que se vea igual en la vista previa, en el PDF y en cualquier letra). */
+const ESTRELLA = 'M12 2.4l2.9 6.2 6.7.8-4.9 4.7 1.3 6.7L12 17.5l-6 3.3 1.3-6.7L2.4 9.4l6.7-.8z';
+
+/** Las tres estrellas de un peldaño de la escalera: llenas las que cuentan, solo el contorno las demás. */
+export function estrellasSvg(d: Dificultad, color: string, tam = 11): string {
+  return [1, 2, 3].map(k =>
+    `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ESTRELLA}" fill="${k <= d ? color : '#fff'}" stroke="${color}" stroke-width="2" stroke-linejoin="round"/></svg>`).join('');
+}
+
+/** El peldaño de un bloque: «★★☆ Para practicar», a la derecha de su título. */
+export function nivelHtml(d: Dificultad, color: { bg: string }, t: Tr): string {
+  return `<span class="cq-niv" data-dificultad="${d}" title="${esc(t('Nivel {n} de 3', { n: d }))}">${estrellasSvg(d, '#' + color.bg)}<i>${esc(t(NOMBRE_DIFICULTAD[d]))}</i></span>`;
+}
+
+/** La cabecera de un bloque: el número en un círculo con degradado y el título en el color del bloque, con un filete punteado detrás y su nivel a la derecha. */
+export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = '', nivel = ''): string {
   return `<div class="cq-sec"${marca} style="--sc:#${color.bg};--sc2:${aclarar(color.bg)}">` +
-    `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2></div>`;
+    `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2>${nivel}</div>`;
 }
 
 /* ── Dibujos del catálogo: cada uno con su espacio para contestar ── */
@@ -427,7 +442,7 @@ export function recuadroHtml(r: FichaRecuadro, t: Tr): string {
   const titulo = r.tipo === 'recuerda' ? 'Recuerda' : r.tipo === 'reto' ? 'Reto' : 'Consejo';
   const parejas = r.tipo === 'recuerda' && r.lista?.length ? r.lista.map(parejaDe) : [];
   const leyenda = parejas.length && parejas.every(Boolean)
-    ? `<div class="cq-leyenda">${(parejas as [string, string][]).map(([a, b]) => `<span><b>${esc(a)}</b><i>=</i>${esc(b)}</span>`).join('')}</div>`
+    ? `<div class="cq-leyenda${(parejas as [string, string][]).some(([a, b]) => a.length + b.length > 30) ? ' ancha' : ''}">${(parejas as [string, string][]).map(([a, b]) => `<span><b>${esc(a)}</b><i>=</i><em>${esc(b)}</em></span>`).join('')}</div>`
     : r.lista?.length ? `<ul class="cq-lista">${r.lista.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : '';
   const respuesta = r.tipo === 'reto'
     ? `<div class="cq-respuesta"><b>${esc(t('Respuesta'))}:</b><span class="cq-linea larga"></span></div>` : '';
@@ -504,17 +519,21 @@ export const CUADERNO_STYLE = `
 .th-cuaderno .ficha-instr { font-style: normal; font-weight: 700; color: #334155; margin: 0 0 14px; }
 
 /* Bloque: cabecera con su filete punteado y los ejercicios debajo */
-.th-cuaderno .ficha-actividad { margin: 0 0 7mm; padding: 0; border: none; break-inside: auto; page-break-inside: auto; }
+.th-cuaderno .ficha-actividad { margin: 0 0 6mm; padding: 0; border: none; break-inside: auto; page-break-inside: auto; }
 .th-cuaderno .ficha-actividad:last-of-type { margin-bottom: 0; }
 .cq-sec { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; break-after: avoid; break-inside: avoid; }
-.cq-sec::after { content: ''; flex: 1 1 auto; height: 0; border-bottom: 2.5px dotted var(--sc); opacity: .5; transform: translateY(2px); }
+.cq-sec::after { content: ''; order: 2; flex: 1 1 auto; height: 0; border-bottom: 2.5px dotted var(--sc); opacity: .5; transform: translateY(2px); }
+.cq-niv { order: 3; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 1px; padding: .5mm 2.6mm .5mm 2mm; border: 1.5px solid var(--sc); border-radius: 99px; background: #fff;
+  font-family: var(--font-t); font-weight: 800; font-size: 9.5px; font-style: normal; text-transform: uppercase; letter-spacing: .05em; color: var(--sc); white-space: nowrap; }
+.cq-niv svg { display: block; flex: 0 0 auto; }
+.cq-niv i { font-style: normal; margin-left: 4px; }
 .cq-num { flex: 0 0 auto; width: 9.5mm; height: 9.5mm; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-t); font-weight: 900; font-size: 19px;
   background: linear-gradient(160deg, var(--sc2), var(--sc)); border: 2px solid var(--sc); box-shadow: inset 0 0 0 2.5px #fff; }
 .cq-sec h2 { flex: 0 1 auto; margin: 0; font-family: var(--font-t); font-weight: 900; font-size: 18px; letter-spacing: .01em; word-spacing: .14em; color: var(--sc); text-transform: uppercase; line-height: 1.15; }
 
 /* Ejercicio: el número en su casilla a la izquierda y todo lo demás en una columna, siempre alineada */
 .th-cuaderno .ficha-actividad .ficha-ejercicios { list-style: none; counter-reset: ej; margin: 0; padding: 0; border: none; border-radius: 0; }
-.th-cuaderno .ficha-ejercicios > li { counter-increment: ej; position: relative; display: block; padding-left: 10mm; margin: 0 0 5.5mm; break-inside: avoid; page-break-inside: avoid; }
+.th-cuaderno .ficha-ejercicios > li { counter-increment: ej; position: relative; display: block; padding-left: 10mm; margin: 0 0 4.5mm; break-inside: avoid; page-break-inside: avoid; }
 .th-cuaderno .ficha-ejercicios > li.largo { break-inside: auto; page-break-inside: auto; }
 .th-cuaderno .ficha-ejercicios > li:last-child { margin-bottom: 0; }
 .th-cuaderno .ficha-ejercicios > li::before { content: counter(ej); position: absolute; left: 0; top: 0; box-sizing: border-box; width: 6.6mm; height: 6.6mm; display: flex; align-items: center; justify-content: center;
@@ -623,7 +642,11 @@ export const CUADERNO_STYLE = `
 .cq-nota-t { font-family: var(--font-t); font-weight: 900; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--k); margin-bottom: 1mm; }
 .cq-nota p { margin: 0; font-size: 12.5px; line-height: 1.5; color: #1e293b; }
 .cq-leyenda { display: grid; grid-template-columns: repeat(auto-fit, minmax(42mm, 1fr)); gap: 1mm 6mm; font-size: 12.5px; }
-.cq-leyenda span { display: flex; gap: 2mm; align-items: baseline; } .cq-leyenda b { min-width: 9mm; } .cq-leyenda i { font-style: normal; color: var(--tinta); }
+/* Con definiciones largas, una o dos columnas anchas: la sigla y el «=» no se encogen nunca, el texto sí se parte */
+.cq-leyenda.ancha { grid-template-columns: repeat(auto-fit, minmax(78mm, 1fr)); }
+.cq-leyenda span { display: flex; gap: 2mm; align-items: baseline; min-width: 0; }
+.cq-leyenda b { flex: 0 0 auto; min-width: 9mm; } .cq-leyenda i { flex: 0 0 auto; font-style: normal; color: var(--tinta); }
+.cq-leyenda em { flex: 1 1 0; min-width: 0; font-style: normal; }
 .cq-lista { margin: 0; padding-left: 16px; font-size: 12.5px; line-height: 1.5; }
 .cq-nota .cq-respuesta { margin-top: 2mm; } .cq-nota .cq-respuesta b { color: var(--k); }
 

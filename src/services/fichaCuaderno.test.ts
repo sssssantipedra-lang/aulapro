@@ -77,7 +77,10 @@ describe('diseño «Cuaderno» — hoja', () => {
 
   it('el recuadro es una franja con su mascota: «Recuerda» y «Consejo» antes de los ejercicios, «Reto» después con su hueco', () => {
     expect(html).toContain('class="cq-nota recuerda"');
-    expect(html).toContain('<span><b>CM</b><i>=</i>centena de millar</span>');
+    expect(html).toContain('<span><b>CM</b><i>=</i><em>centena de millar</em></span>');
+    // Con definiciones cortas, columnas estrechas; con largas, anchas (la sigla y el «=» no se encogen)
+    expect(html).toContain('class="cq-leyenda"');
+    expect(html).not.toContain('cq-leyenda ancha"');
     expect(html).toContain('class="cq-nota reto"');
     expect(html).toContain('<div class="cq-respuesta"><b>Respuesta:</b>');
     expect(html).toContain('class="cq-nota consejo"');
@@ -126,6 +129,14 @@ describe('diseño «Cuaderno» — hoja', () => {
     expect(tamanoTitulo('Fracciones')).toBe(30);
     expect(tamanoTitulo('Matemáticas 5.º Primaria')).toBeLessThan(30);
     expect(tamanoTitulo('Un título larguísimo que no cabe en una sola línea de la cinta azul')).toBe(17);
+  });
+});
+
+describe('diseño «Cuaderno» — leyenda del «Recuerda»', () => {
+  it('con definiciones largas la leyenda pasa a columnas anchas', () => {
+    const html = recuadroHtml({ tipo: 'recuerda', texto: '', lista: ['Mamíferos = Tienen el cuerpo cubierto de pelo y maman leche', 'Aves = Tienen plumas, pico y dos patas'] }, (k: string) => k);
+    expect(html).toContain('class="cq-leyenda ancha"');
+    expect(html).toContain('<b>Mamíferos</b><i>=</i><em>');
   });
 });
 

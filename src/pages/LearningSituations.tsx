@@ -678,7 +678,7 @@ export function LearningSituations({
     if (!content) return;
     const result = await generateFichaFromSda(
       content, fichaArea || content.areas[0]?.area || '',
-      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, formato: fichaFormato },
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, formato: fichaFormato, nivel },
       lang,
       { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
     );

@@ -20,6 +20,7 @@ import {
 } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
 import { esTipoConDibujos } from '../lib/dibujosEjercicio';
+import { DIFICULTADES, esDificultad, estrellas, NOMBRE_DIFICULTAD, type Dificultad } from '../lib/escalera';
 import { FICHA_THEMES, fichaTheme, conHistoria, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
@@ -570,6 +571,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                     )}
                     <span className="fe-act-lbl">{t(escape ? 'Sala' : theme.paso)} {a + 1}</span>
                     <input className="fe-act-ttl" value={act.titulo} aria-label={t('Título del bloque')} onChange={e => patchAct(a, { titulo: e.target.value })} />
+                    <select
+                      className="fe-act-niv" value={act.dificultad ?? ''} aria-label={t('Nivel del bloque')} title={t('Las fichas van de menos a más')}
+                      onClick={e => e.stopPropagation()}
+                      onChange={e => patchAct(a, { dificultad: esDificultad(Number(e.target.value)) ? Number(e.target.value) as Dificultad : undefined })}
+                    >
+                      <option value="">{t('Sin nivel')}</option>
+                      {DIFICULTADES.map(d => <option key={d} value={d}>{estrellas(d)} {t(NOMBRE_DIFICULTAD[d])}</option>)}
+                    </select>
                     <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir bloque')} disabled={a === 0} onClick={() => moveAct(a, -1)}><ArrowUp size={14} /></button>
                     <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar bloque')} disabled={a === content.actividades.length - 1} onClick={() => moveAct(a, 1)}><ArrowDown size={14} /></button>
                     <button type="button" className="ico-btn sm" title={t('Eliminar')} aria-label={t('Eliminar bloque')} onClick={() => deleteAct(a)}><Trash2 size={14} /></button>
@@ -728,6 +737,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             />
           </div>
         </div>
+
+        {formato !== 'tarjetas' && (
+          <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
+            {t('Las fichas van de menos a más: bloques de nivel 1, 2 y 3, con estrellas en cada uno. En 5.º y 6.º de Primaria suben un punto.')}
+          </p>
+        )}
 
         {alumnoApoyo && (
           <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>

@@ -36,9 +36,10 @@ import { downloadFile } from '../lib/download';
 import { ATRIBUCION_MULBERRY, esMulberry, pictoDe } from '../lib/pictos';
 import { pictoComoDato } from './exportAgenda';
 import { dibujosEnOrden } from '../lib/pictosFicha';
+import { estrellas, NOMBRE_DIFICULTAD } from '../lib/escalera';
 import {
   CUADERNO_STYLE, autoevaluacionHtml, cabeceraHtml, calculosHtml, clasificarHtml, completarHtml, contarHtml, datosHtml, dibujosDeLaCabecera, dibujosHtml, esRespuestaCorta,
-  etiquetarHtml, lineasDeRespuesta, lineasHtml, opcionesHtml, operacionHtml, recuadroHtml, recuadroLineas, respuestaHtml, seccionHtml, serieDe, serieHtml,
+  estrellasSvg, etiquetarHtml, lineasDeRespuesta, lineasHtml, nivelHtml, opcionesHtml, operacionHtml, recuadroHtml, recuadroLineas, respuestaHtml, seccionHtml, serieDe, serieHtml,
   type Ilus,
 } from './fichaCuaderno';
 import { nombreIlustracion, urlIlustracion } from '../lib/ilustraciones';
@@ -369,11 +370,12 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const emoji = act.emoji || theme.iconos[actIdx % theme.iconos.length];
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
     const header = cuaderno
-      ? seccionHtml(actIdx + 1, act.titulo, color, label)
+      ? seccionHtml(actIdx + 1, act.titulo, color, label, '', act.dificultad ? nivelHtml(act.dificultad, color, t) : '')
       : act.titulo
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
         `<span class="act-ttl">${esc(label)}: ${esc(act.titulo)}</span>` +
+        (act.dificultad ? `<span class="act-niv" title="${esc(t('Nivel {n} de 3', { n: act.dificultad }))}">${estrellasSvg(act.dificultad, '#fff', 12)}</span>` : '') +
         (classic ? '' : `<span class="act-check" title="${esc(t('Hecho'))}"></span>`) +
         `</div>`
       : '';
@@ -584,6 +586,8 @@ const FICHA_DOC_STYLE = `
 .ficha-actividad .act-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r) var(--r) 0 0; color: #fff; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; font-family: var(--font-t); }
 .ficha-actividad .act-header svg { flex-shrink: 0; }
 .ficha-actividad .act-ttl { flex: 1; }
+.ficha-actividad .act-niv { display: inline-flex; align-items: center; gap: 1px; flex-shrink: 0; }
+.ficha-actividad .act-niv svg { display: block; }
 .act-emoji { font-size: 17px; line-height: 1; }
 .act-check { width: 16px; height: 16px; border-radius: 4px; border: 2px solid rgba(255,255,255,.9); flex-shrink: 0; }
 .act-narr { font-size: 12px; font-style: italic; color: #334155; padding: 7px 14px; border-left: 1.5px var(--bs); border-right: 1.5px var(--bs); border-color: inherit; }
@@ -1536,6 +1540,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
         children: [
           new TextRun({ text: ` ${actIdx + 1} `, bold: true, color: 'FFFFFF', size: 28, shading: { type: 'clear', fill: color.bg, color: 'auto' } }),
           new TextRun({ text: `  ${(act.titulo || label).toUpperCase()}`, bold: true, color: color.bg, size: 26, font: 'Trebuchet MS' }),
+          ...(act.dificultad ? [new TextRun({ text: `     ${estrellas(act.dificultad)} ${t(NOMBRE_DIFICULTAD[act.dificultad])}`, bold: true, color: color.bg, size: 18, font: 'Trebuchet MS' })] : []),
         ],
         border: { bottom: { style: 'single', size: 8, color: color.bg, space: 4 } },
         spacing: { before: 120, after: 160 },
@@ -1553,6 +1558,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
               children: [
                 ...(classic ? [] : [new TextRun({ text: `${act.emoji || theme.iconos[actIdx % theme.iconos.length]}  `, font: EMOJI_FONT, size: 22 })]),
                 new TextRun({ text: label, bold: true, color: 'FFFFFF', size: 20 }),
+                ...(act.dificultad ? [new TextRun({ text: `    ${estrellas(act.dificultad)}`, bold: true, color: 'FFFFFF', size: 20 })] : []),
               ],
             })],
           })],

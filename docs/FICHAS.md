@@ -10,7 +10,8 @@ Cómo se generan, cómo se ven y qué falta. Las decisiones llevan su fecha; si 
 - `src/lib/fichaThemes.ts`: los temas (aspecto de la ficha). `src/lib/fuenteCuaderno.ts`: la letra incrustada.
 - `src/lib/ilustraciones.ts` y `ilustraciones.catalogo.json`: el catálogo de ilustraciones.
 - `src/lib/hilos.ts` y `docs/HILOS.md`: los hilos conductores, la clasificación de los dibujos por tópicos y el detector de qué trata una ficha.
-- `src/lib/dibujosEjercicio.ts` y `ilustraciones.nombres.json`: la solución y la mezcla de los ejercicios con dibujos, y el nombre (es, ca, en) de cada dibujo.
+- `src/lib/dibujosEjercicio.ts` y `ilustraciones.nombres.json`: la solución y la mezcla de los ejercicios con dibujos, el nombre (es, ca, en) de cada dibujo y los «contar» y «etiquetar» que monta el código con los dibujos de un hilo.
+- `src/lib/escalera.ts`: la escalera de dificultad (reparto por bloques, qué se espera en cada peldaño según el curso, orden «de menos a más»). `src/services/fichaEjemplos.ts`: las tres fichas de ejemplo que se le enseñan a la IA.
 - `scripts/ilustraciones/`: la lista de ilustraciones y el generador con fal.ai.
 - `src/pages/Resources.tsx` y `src/components/fichas/`: la pantalla, el editor (`DibujosEditor.tsx`: selector del hilo y dibujos de cada ejercicio, según su tipo) y la vista previa.
 
@@ -105,9 +106,46 @@ Los 281 dibujos del catálogo se clasifican por tópicos en **hilos conductores*
 
 Lo que se ve queda como una hoja de ChatGPT con imagen, pero cada dibujo es del catálogo, nítido al imprimir, sin enviar nada a ningún sitio y con el recuento siempre bien. Lo que no hace: ilustrar con una escena a medida (fase 4).
 
+## Escalera de dificultad: todas las fichas van de menos a más (14-10-2026)
+
+Decisión del dueño, tras ver fichas reales hechas con Gemini que salían planas: «el nivel de las actividades va de menos a más, obligadamente multinivel». No es opcional y no tiene que ver con «apoyo y ampliación» (esa opción sigue aparte: dos variantes de cada ejercicio).
+
+- **El reparto lo decide el código** (`planDeBloques`, `src/lib/escalera.ts`). Con tres ejercicios o más, tres bloques de nivel 1 (para empezar), 2 (para practicar) y 3 (para retarte), con los ejercicios que sobran en el del medio (6 → 2+2+2; 7 → 2+3+2; 8 → 3+3+2); con 13 o más, cuatro bloques (1, 2, 2, 3); con 2, un bloque de nivel 1 y otro de 3; con 1, uno de nivel 2. También en el escape room (sala a sala); las tarjetas no llevan escalera.
+- **La IA rellena, el código corrige.** El prompt lleva el reparto, lo que se pide en cada peldaño según el curso y la ficha de ejemplo (abajo); el esquema fija el número de bloques y pide `dificultad` en cada uno. Lo que devuelve se ordena por nivel y, si el número de bloques es el del reparto, cada bloque recibe el nivel que le tocaba (`normalizarEscalera`): la IA repetía niveles («1, 1, 2») y la escalera tiene que salir completa. Sin niveles válidos, se reparten por posición. Las fichas guardadas antes no lo traen y se ven como siempre.
+- **A la vista:** `★☆☆ PARA EMPEZAR`, `★★☆ PARA PRACTICAR`, `★★★ PARA RETARTE` a la derecha de la cabecera de cada bloque (estrellas vectoriales; en «Cuaderno» una píldora sobre el filete punteado, en los demás temas estrellas blancas en la cinta), y en Word como texto. En el editor, un selector «Nivel del bloque» en la cabecera del bloque, y la vista previa cambia al instante. En el formulario, una línea que lo explica.
+- **Rehacer o añadir un ejercicio** (y las versiones adaptadas) conservan el peldaño: el prompt dice en qué nivel está el bloque y qué se pide.
+- **Cuántos ejercicios lleva cada bloque** no se puede limitar en el esquema: con límite de elementos en los bloques y en los ejercicios a la vez, Gemini responde 400 «invalid argument» (comprobado el 14-10-2026). Lo ajusta el código después (`ajustarAlReparto`): si la IA puso menos (salió una ficha de 6 con 4), se piden los que faltan al bloque que se quedó corto; si puso de más, se quitan los últimos.
+
+### El curso: 5.º y 6.º de Primaria suben un punto
+
+También decisión del dueño (14-10-2026). `perfilDeCurso` reconoce el curso del texto («5º de Primaria», «3r d'ESO», «Quinto», «Year 5») y lo reparte en ciclos; `expectativas` dice qué se pide en cada peldaño:
+
+| Curso | Nivel 1 | Nivel 2 | Nivel 3 |
+|---|---|---|---|
+| 1.º y 2.º | reconocer, nombrar, contar, emparejar | aplicar en una situación cercana | un paso más: explicar con una frase, inventar |
+| 3.º y 4.º | reconocer y calcular directo | situaciones cercanas, uno o dos pasos | razonar: dos o tres pasos, corregir un error |
+| **5.º y 6.º** | **aplicar ya con el nivel alto: seis cifras, decimales, fracciones de distinto denominador, porcentajes, unidades** | **dos pasos con datos que se interpretan; justificar; causas y consecuencias** | **retos: tres pasos, datos que sobran, argumentar, corregir y explicar, inventar** |
+| ESO y Bachillerato | aplicar con vocabulario técnico | contextos reales, interpretar y justificar | analizar, argumentar, transferir |
+
+El prompt de 5.º y 6.º lleva además un aviso («no es la de 4.º con otro tema»). Si la ficha no es de cálculo (ciencias, sociales…, `esAreaNumerica`: por el área o por el tema), esos peldaños no hablan de cifras ni decimales: con ellos, una ficha del cuerpo humano de 6.º salió con «78 × 60 × 24» en el primer bloque. Los números de los datos se ajustan al curso (`rangoNumerico`: 1.º hasta 20, 2.º hasta 100, 3.º hasta 999, 4.º hasta 9 999, 5.º y 6.º decenas de miles con decimales), con un rango sorteado por ficha porque la IA cae siempre en los mismos números de manual.
+
+### Que Gemini se acerque a una ficha hecha a mano (14-10-2026)
+
+Con una IA real (Gemini Flash-Lite, que es el de reserva cuando el principal tarda más de 30 s) y solo instrucciones, las fichas salían planas y con fallos que los datos de prueba no mostraban. Qué se hace ahora (`generateFicha` → `mejorarFicha`), de lo más barato a lo más caro:
+
+1. **Una ficha de ejemplo en el prompt** (`fichaEjemplos.ts`): tres, escritas a mano y con las cuentas comprobadas por una prueba, una por tramo (1.º a 3.º, 4.º, y de 5.º en adelante, ESO incluida). Tienen la forma que se espera (tres niveles, explicación con ejemplo resuelto, solución con las cuentas, datos reales, un último bloque que obliga a pensar y los recuadros) y un tema distinto de los más pedidos; el prompt dice que se copie la forma, no el contenido.
+2. **El código rehace lo roto sin preguntar a la IA** cuando puede: «escribe el nombre de cada dibujo» como respuesta libre con dibujos pasa a «etiquetar»; sin dibujos, se monta con los del hilo (una IA floja no los rellena ni con el motivo delante); un «problema» que pide explicar y no lleva una cifra es una pregunta abierta (no necesita cuadrícula de operaciones); la solución tiene tope (salió una de 900 letras de relleno).
+3. **Receta de 1.º y 2.º con hilo** (`completarDibujos`): al menos dos ejercicios con dibujos (un «contar» con cantidades distintas y su total, y un «etiquetar» con banco). Si la IA solo dio preguntas abiertas, el código los monta con los dibujos del hilo, sustituyendo una abierta o un «completar» de los bloques 1 y 2.
+4. **Reparación con la IA** (`repararFicha`): los ejercicios rotos que quedan (un «completar» sin frases, un «relacionar» con las mismas palabras, un «contar» con todos los grupos iguales…) se rehacen una vez, como mucho tres.
+5. **La IA revisa su ficha como un docente** (`revisarFicha`, una llamada más de 6 a 15 s): recalcula las soluciones, busca datos imposibles (una pizza de 8 trozos entre 5; billetes de 20 000 €; glóbulos rojos por mililitro en vez de por microlitro: los tres salieron con una IA real), el nivel que no toca y lo repetido. Lo grave se rehace, como mucho tres ejercicios. No revisa lo que calcula el código (dibujos, soluciones de «contar», «etiquetar» y «clasificar») y se le avisa de lo que no es un fallo («ordenar» viene en orden a propósito: la aplicación lo desordena). Es un paso extra: si falla o devuelve algo raro, la ficha se queda como estaba. `FichaRequest.revisar: false` lo salta (sin botón en la pantalla).
+
+Lo que no hace la IA y hace el código sigue siendo lo mismo de antes: contar, mezclar y la solución de los ejercicios con dibujos, la rejilla de las sopas de letras y los crucigramas.
+
 ## Lo que falta
 
 1. Fase 2: más material dibujado por área (fracciones, ábaco, mapas, cuerpo humano…) y más cabeceras.
-2. Hecho el 14-10-2026 (fase 3, ver «Hilo conductor» y «Orden y espacios de respuesta»): las ilustraciones `img` van en la cabecera y dentro de los ejercicios, cada una con su espacio. Queda probar con una clave real de Gemini cómo reparte los tipos con dibujos y ajustar con fichas reales: qué hilos hay que afinar o añadir, y cuántos dibujos por ficha es lo que le gusta al profesorado.
+2. Hecho el 14-10-2026 (fase 3, ver «Hilo conductor» y «Orden y espacios de respuesta»): las ilustraciones `img` van en la cabecera y dentro de los ejercicios, cada una con su espacio. Probado con una clave real de Gemini (2.º, 4.º, 5.º y 6.º; ver «Que Gemini se acerque…»). Queda ajustar con fichas de más temas: qué hilos hay que afinar o añadir, y cuántos dibujos por ficha es lo que le gusta al profesorado.
+2 bis. Una ficha de 6 ejercicios de 2.º o de 6.º a veces ocupa tres páginas, con la última casi vacía (el último ejercicio viaja con el «Reto» y el cierre); y quedan huecos al pie de página porque los bloques no se parten. Se ha compactado un poco el espaciado; no se ha tocado el margen que pone Electron al imprimir. El Word, y el PDF por Electron, siguen sin comprobarse a ojo con las estrellas.
+2 ter. La calidad depende del modelo: con el principal las fichas salen bien a la primera; con el de reserva (Flash-Lite) hay que reparar más. Una prueba más fina sería medir cuántas fichas de cada modelo salen sin tocar.
 3. Fase 4 (por decidir): escenas de cuento con IA de imágenes pagada por el docente. Obligaría a actualizar la privacidad y las condiciones en los tres idiomas (regla 1 de `CLAUDE.md`).
 4. Capturas de la web (`scripts/web/capturar.mjs`) con el diseño nuevo, cuando el dueño dé el visto bueno.
