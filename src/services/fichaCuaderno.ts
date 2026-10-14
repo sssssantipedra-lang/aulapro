@@ -583,7 +583,7 @@ export const CUADERNO_STYLE = `
 .cq-respuesta .cq-caja { flex: 0 0 34mm; }
 .cq-linea { display: inline-block; border-bottom: 1.5px solid var(--lin); }
 .cq-respuesta .cq-linea.larga { flex: 1 1 auto; height: 6.5mm; }
-.cq-op { position: relative; box-sizing: border-box; height: 25mm; margin-top: 4.5mm; border: 1.75px solid var(--num); border-radius: 3mm; background-color: #fff;
+.cq-op { position: relative; box-sizing: border-box; height: 22mm; margin-top: 4.5mm; border: 1.75px solid var(--num); border-radius: 3mm; background-color: #fff;
   background-image: linear-gradient(#dbe6f2 1px, transparent 1px), linear-gradient(90deg, #dbe6f2 1px, transparent 1px); background-size: 5mm 5mm; background-position: -1px -1px; }
 .cq-op > span { position: absolute; top: -2.9mm; left: 4mm; padding: 0 2mm; background: #fff; color: var(--num); font-weight: 900; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
 .cq-caja { display: inline-block; box-sizing: border-box; flex: 0 0 26mm; height: 8mm; border: 1.75px solid var(--num); border-radius: 7px; background: #fff; }
@@ -641,16 +641,18 @@ export const CUADERNO_STYLE = `
 .th-cuaderno .ficha-vf { margin-top: 2mm; gap: 2mm; }
 .th-cuaderno .vf-row { border-color: color-mix(in srgb, var(--num) 35%, #fff); break-inside: avoid; }
 .th-cuaderno .vf-box { border-color: var(--num); color: var(--num); }
-.cq-rel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3.5mm 22mm; margin-top: 2mm; }
+.cq-rel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3mm 22mm; margin-top: 2mm; }
 .cq-rel .item { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: 3mm; min-height: 10mm; padding: 2mm 3mm; font-size: 13px; border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
-.cq-rel .item.con-dib { min-height: 17mm; }
-.cq-rel .item img { flex: 0 0 auto; width: 13mm; height: 13mm; object-fit: contain; display: block; }
+.cq-rel .item.con-dib { min-height: 15mm; padding-top: 1.2mm; padding-bottom: 1.2mm; }
+.cq-rel .item img { flex: 0 0 auto; width: 12mm; height: 12mm; object-fit: contain; display: block; }
 .cq-rel .item .dot-r, .cq-rel .item .dot-l { position: absolute; top: 50%; width: 3mm; height: 3mm; margin-top: -1.5mm; border-radius: 50%; background: var(--num); }
 .cq-rel .item .dot-r { right: -5mm; } .cq-rel .item .dot-l { left: -5mm; }
 .cq-rel .item b { color: var(--num); }
 
 /* Cierre de la hoja */
-.cq-fin { display: flex; align-items: center; justify-content: flex-end; gap: 3mm; margin-top: 7mm; padding-top: 3mm; border-top: 2px dotted var(--lin); color: var(--tinta); font-weight: 800; font-size: 12.5px; break-inside: avoid; }
+/* La hoja no acaba en una página con solo «¿Cómo te ha ido?»: el último ejercicio (o el reto) viaja con el cierre */
+.th-cuaderno .ficha-actividad:last-of-type .cq-cuerpo > :last-child, .th-cuaderno .ficha-actividad:last-of-type .cq-cuerpo > ol > li:last-child { break-after: avoid; page-break-after: avoid; }
+.cq-fin { break-before: avoid; page-break-before: avoid; display: flex; align-items: center; justify-content: flex-end; gap: 3mm; margin-top: 7mm; padding-top: 3mm; border-top: 2px dotted var(--lin); color: var(--tinta); font-weight: 800; font-size: 12.5px; break-inside: avoid; }
 .cq-fin span { margin-right: 1mm; }
 .cq-fin svg { display: block; }
 `;
