@@ -214,3 +214,50 @@ describe('Recursos · ficha adaptada (PT y AL)', () => {
     expect((screen.getByLabelText('Cómo es el grupo (opcional)') as HTMLTextAreaElement).value).toBe('');
   });
 });
+
+describe('Recursos · diseño «Cuaderno»', () => {
+  const cuaderno: Ficha = {
+    id: 'f2', at: '2026-10-14T10:00:00Z', date: '2026-10-14', title: 'Números hasta el millón',
+    request: { tema: 'Números hasta el millón', area: 'Matemáticas', nivel: '5º', numEjercicios: 2, niveles: false, contextoClase: '' },
+    content: {
+      estilo: 'cuaderno', titulo: 'Matemáticas 5.º Primaria', explicacion: '', instrucciones: '',
+      actividades: [{
+        titulo: 'Descomponemos números',
+        ejercicios: [{ tipo: 'calculos', enunciado: 'Descompón estos números:', lineas: ['583.742', '75.830'], respuesta: 'linea', solucion: '' }],
+      }],
+    },
+  };
+
+  it('al crear, «Cuaderno» es el aspecto elegido y se explica en una línea', () => {
+    setup();
+    expect(screen.getByRole('radio', { name: /Cuaderno/ }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByText(/Una hoja de cuaderno de colegio/)).toBeTruthy();
+  });
+
+  it('edita la lista de cálculos y su respuesta, y la vista previa la pinta con su caja', async () => {
+    const onSave = setup(vi.fn(), [cuaderno]);
+    await userEvent.click(screen.getByText('Números hasta el millón'));
+    expect(screen.getByText('Actividad 1')).toBeTruthy();
+    const select = screen.getByDisplayValue('Una línea') as HTMLSelectElement;
+    await userEvent.selectOptions(select, 'caja');
+    const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
+    await waitFor(() => expect(frame.contentDocument?.querySelector('.cq-calculos.con-caja')).toBeTruthy(), { timeout: 2000 });
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[0][0].content.actividades[0].ejercicios[0].respuesta).toBe('caja');
+  });
+
+  it('añade un recuadro «Reto» a un bloque y llega a la hoja', async () => {
+    const onSave = setup(vi.fn(), [cuaderno]);
+    await userEvent.click(screen.getByText('Números hasta el millón'));
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Recuadro del bloque' }), 'reto');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Texto del recuadro' }), { target: { value: '¿Cuál es la cifra mayor?' } });
+    const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
+    await waitFor(() => expect(frame.contentDocument?.querySelector('.cq-nota.reto')?.textContent).toContain('¿Cuál es la cifra mayor?'), { timeout: 2000 });
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[0][0].content.actividades[0].recuadro).toEqual({ tipo: 'reto', texto: '¿Cuál es la cifra mayor?' });
+    // Y se puede quitar
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Recuadro del bloque' }), '');
+    await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
+    expect(onSave.mock.calls[1][0].content.actividades[0].recuadro).toBeUndefined();
+  });
+});

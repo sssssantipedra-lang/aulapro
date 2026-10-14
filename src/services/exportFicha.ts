@@ -23,10 +23,11 @@ import {
   Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, ImageRun,
 } from 'docx';
 import type { Ficha } from '../types';
-import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaTarjeta, FichaVariante, FichaContent } from './resources';
+import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaRecuadro, FichaTarjeta, FichaVariante, FichaContent } from './resources';
 import { crosswordCells, type Crossword } from '../lib/crossword';
 import { fichaTheme } from '../lib/fichaThemes';
 import { loadThemeArt } from '../lib/themeArtDoc';
+import { cargarFuenteCuaderno } from '../lib/fuenteCuaderno';
 import { translate, type Lang } from '../i18n';
 import { svgLightbulb, svgPencil } from './fichaIcons';
 import { pickMotifKey, MOTIF_COLORS, MOTIF_ICON } from './fichaMotifs';
@@ -35,6 +36,9 @@ import { downloadFile } from '../lib/download';
 import { ATRIBUCION_MULBERRY, esMulberry, pictoDe } from '../lib/pictos';
 import { pictoComoDato } from './exportAgenda';
 import { dibujosEnOrden } from '../lib/pictosFicha';
+import {
+  CUADERNO_STYLE, cabeceraHtml, calculosHtml, datosHtml, recuadroHtml, recuadroLineas, seccionHtml, serieDe, serieHtml,
+} from './fichaCuaderno';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -123,7 +127,7 @@ const nl2br = (s: string) => esc(s).replace(/\n/g, '<br>');
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
 
-function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic): string {
+function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic, cuaderno = false): string {
   const letra = (i: number) => String.fromCharCode(97 + i);
   let body = (pic && ex.consigna ? pic(ex.consigna, 'vis-consigna') : '') + `<div class="ficha-enunciado">${esc(ex.enunciado)}</div>`;
 
@@ -171,6 +175,11 @@ function exerciseBodyHtml(ex: FichaExercise, color: { bg: string; light: string 
   } else if (ex.tipo === 'verdadero_falso' && ex.afirmaciones?.length) {
     body += `<div class="ficha-vf">${ex.afirmaciones.map(a =>
       `<div class="vf-row"><span class="vf-txt">${esc(a)}</span><span class="vf-box">${esc(t('V'))}</span><span class="vf-box">${esc(t('F'))}</span></div>`).join('')}</div>`;
+  } else if (ex.tipo === 'calculos' && ex.lineas?.length) {
+    body += calculosHtml(ex);
+  } else if (cuaderno && serieDe(ex)) {
+    // En «Cuaderno», una serie corta (números, palabras) se escribe en orden en una caja
+    body += serieHtml(serieDe(ex)!);
   } else if (ex.tipo === 'ordenar' && ex.elementos?.length) {
     body += `<div class="ficha-ordenar">${ex.elementos.map(e => `<div class="ord-item"><span class="ord-num"></span>${esc(e)}</div>`).join('')}</div>`;
   } else if (ex.tipo === 'crucigrama' && ex.crucigrama?.entradas.length) {
@@ -219,6 +228,8 @@ export interface FichaHtmlOptions {
   art?: string;
   /** Con apoyos visuales: los pictogramas como `data:`, por su id (`cargarPictosFicha`). */
   pictos?: Record<string, string>;
+  /** «Cuaderno»: el `@font-face` de su letra (`cargarFuenteCuaderno`); sin él, las letras del sistema. */
+  fontCss?: string;
 }
 
 /** Posición «al azar» pero fija de cada adorno, para que la vista previa no baile al editar. */
@@ -236,7 +247,8 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const actividades = getActividades(c);
   const theme = fichaTheme(c.estilo);
   const classic = theme.id === 'clasico';
-  const historia = classic ? undefined : c.historia;
+  const cuaderno = theme.id === 'cuaderno';
+  const historia = theme.historia ? c.historia : undefined;
   const mark = (attr: string) => (opts.preview ? ` ${attr}` : '');
   const formato = c.formato ?? 'ficha';
   const escape = formato === 'escape';
@@ -250,7 +262,9 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const color = theme.bloques[actIdx % theme.bloques.length];
     const emoji = act.emoji || theme.iconos[actIdx % theme.iconos.length];
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}`;
-    const header = act.titulo
+    const header = cuaderno
+      ? seccionHtml(actIdx + 1, act.titulo, color, label)
+      : act.titulo
       ? `<div class="act-header" style="background:#${color.bg}">` +
         (classic ? svgPencil('#fff', 14) : `<span class="act-emoji">${esc(emoji)}</span>`) +
         `<span class="act-ttl">${esc(label)}: ${esc(act.titulo)}</span>` +
@@ -260,8 +274,10 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     const narr = !classic && act.narrativa ? `<div class="act-narr" style="background:#${color.light}">${esc(act.narrativa)}</div>` : '';
     const ejerciciosHtml = act.ejercicios.map((ex, i) => {
       const id = `${actIdx}-${i}`;
-      return `<li${mark(`data-ex="${id}"`)}${opts.selected === id ? ' class="is-selected"' : ''}>${exerciseBodyHtml(ex, color, t, pic)}</li>`;
+      return `<li${mark(`data-ex="${id}"`)}${opts.selected === id ? ' class="is-selected"' : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno)}</li>`;
     }).join('');
+    // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras (A., B.), para no confundirlas con las líneas 1., 2.
+    const numeracion = !cuaderno ? '' : act.ejercicios.length === 1 ? ' sin' : act.ejercicios.some(e => e.tipo === 'calculos') ? ' letras' : '';
     const sel = opts.selected === String(actIdx) ? ' is-selected' : '';
     const candado = escape && act.candado ? candadoHtml(act.candado, actIdx, actividades.length, color, t) : '';
     if (pic) {
@@ -285,15 +301,22 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
         `<div class="vis-cuerpo${recuerda ? ' con-recuerda' : ''}"><ol class="ficha-ejercicios">${ejerciciosHtml}</ol>${recuerda}</div>` +
         `</div>${candado}</section>`;
     }
+    if (cuaderno) {
+      // La hoja de cuaderno: los ejercicios y, si el bloque lo tiene, su recuadro flotando a la derecha (va antes en el HTML)
+      const nota = act.recuadro ? recuadroHtml(act.recuadro, t) : '';
+      return `<section class="ficha-actividad${sel}"${mark(`data-act="${actIdx}"`)} style="--sc:#${color.bg}">${header}` +
+        `<div class="cq-cuerpo${nota ? ' con-nota' : ''}">${nota}<ol class="ficha-ejercicios${numeracion}" style="--num:#${color.bg}">${ejerciciosHtml}</ol></div>${candado}</section>`;
+    }
+    const notaAbajo = act.recuadro ? recuadroHtml(act.recuadro, t) : '';
     return `<section class="ficha-actividad${sel}"${mark(`data-act="${actIdx}"`)}>${header}${narr}` +
-      `<ol class="ficha-ejercicios" style="border-color:#${color.bg};--num:#${color.bg}">${ejerciciosHtml}</ol>${candado}</section>`;
+      `<ol class="ficha-ejercicios" style="border-color:#${color.bg};--num:#${color.bg}">${ejerciciosHtml}</ol>${notaAbajo ? `<div class="cq-cuerpo" style="margin-top:8px;--num:#${color.bg}">${notaAbajo}</div>` : ''}${candado}</section>`;
   }).join('');
 
   // La versión adaptada lleva una marca discreta para que el docente las distinga al repartir
   const marca = c.variante ? `<span class="var-mark" title="${esc(t(VARIANTE_LABEL[c.variante]))}">${VARIANTE_MARK[c.variante]}</span>` : '';
   // El área va delante, impresa: quien recoge las fichas sabe de qué asignatura es cada una
   const area = f.request.area?.trim();
-  const datos = (area ? `<strong class="ficha-area">${esc(area)}</strong>&nbsp;&nbsp;&nbsp; ` : '') +
+  const datos = cuaderno ? '' : (area ? `<strong class="ficha-area">${esc(area)}</strong>&nbsp;&nbsp;&nbsp; ` : '') +
     `${t('Nombre')}: ______________________________&nbsp;&nbsp;&nbsp; ${t('Fecha')}: ____________&nbsp;&nbsp;&nbsp; ${t('Clase')}: __________${marca}`;
 
   // Con apoyos visuales, la explicación lleva sus tarjetas: un dibujo, el nombre y una frase
@@ -309,7 +332,9 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const conMulberry = !!pic && pictosDeFicha(c).some(id => esMulberry(id) && opts.pictos?.[id]);
 
   let headerHtml: string;
-  if (classic) {
+  if (cuaderno) {
+    headerHtml = cabeceraHtml({ titulo: c.titulo || f.title, tema: f.request.tema, area: f.request.area, nivel: f.request.nivel, marca: mark('data-part="titulo"') });
+  } else if (classic) {
     const motifKey = pickMotifKey(f.request.tema, f.request.area);
     const motif = MOTIF_COLORS[motifKey];
     const motivoHtml = `<div class="ficha-motivo" style="background:#${motif.bg}">${MOTIF_ICON[motifKey]('#' + motif.accent, 34)}</div>`;
@@ -347,10 +372,10 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(c.titulo || f.title)}</title>` +
-    `<style>${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}${opts.preview ? FICHA_PREVIEW_STYLE : ''}</style>` +
+    `<style>${cuaderno ? opts.fontCss ?? '' : ''}${FICHA_DOC_STANDALONE}${FICHA_DOC_STYLE}${CUADERNO_STYLE}${opts.preview ? FICHA_PREVIEW_STYLE : ''}</style>` +
     `</head><body><article class="${docCls}" style='${vars}'>` +
     headerHtml +
-    (formato === 'tarjetas' ? '' : `<div class="ficha-datos">${datos}</div>`) +
+    (formato === 'tarjetas' ? '' : cuaderno ? datosHtml(area, marca, t) : `<div class="ficha-datos">${datos}</div>`) +
     misionHtml +
     explicacionHtml +
     (c.instrucciones
@@ -403,8 +428,9 @@ function tarjetasHtml(cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme
 export async function saveFichaPdf(f: Ficha, lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
-  const [art, pictos] = await Promise.all([loadThemeArt(fichaTheme(f.content.estilo).id), cargarPictosFicha(f.content)]);
-  const html = buildFichaHtml(f, lang, { art: art?.dataUrl, pictos });
+  const id = fichaTheme(f.content.estilo).id;
+  const [art, pictos, fontCss] = await Promise.all([loadThemeArt(id), cargarPictosFicha(f.content), id === 'cuaderno' ? cargarFuenteCuaderno() : Promise.resolve('')]);
+  const html = buildFichaHtml(f, lang, { art: art?.dataUrl, pictos, fontCss });
   const res = await docs.savePdf(html, fileBase(f) + '.pdf', { landscape: false });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
@@ -740,13 +766,26 @@ function crosswordDocx(children: (Paragraph | Table)[], cw: Crossword, t: Tr) {
   children.push(spacer(160));
 }
 
-async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs) {
+/** Una caja vacía para escribir la respuesta (el diseño «Cuaderno»): una tabla de una celda. */
+function cajaDocx(color: string, ancho = 100): Table {
+  const B = { style: BorderStyle.SINGLE, size: 8, color };
+  return new Table({
+    width: { size: ancho, type: WidthType.PERCENTAGE },
+    borders: { top: B, bottom: B, left: B, right: B, insideHorizontal: B, insideVertical: B },
+    rows: [new TableRow({ height: { value: 480, rule: 'atLeast' }, children: [new TableCell({ children: [new Paragraph({ text: '' })] })] })],
+  });
+}
+
+/** Cómo se rotula un ejercicio: «1. », «A. » o nada (un solo ejercicio en el bloque del diseño «Cuaderno»). */
+type Marcador = string;
+
+async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false) {
   const letra = (n: number) => String.fromCharCode(97 + n);
   const consigna = pictoRun(imgs, ex.consigna, 26);
 
   children.push(new Paragraph({
     children: [
-      new TextRun({ text: `${i + 1}. `, bold: true, color: colorHexNoHash }),
+      ...(marcador === '' ? [] : [new TextRun({ text: marcador ?? `${i + 1}. `, bold: true, color: colorHexNoHash })]),
       ...(consigna ? [consigna, new TextRun({ text: '  ' })] : []),
       new TextRun({ text: ex.enunciado }),
     ],
@@ -865,6 +904,31 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
       })),
     }));
     children.push(spacer(200));
+    return;
+  }
+
+  if (ex.tipo === 'calculos' && ex.lineas?.length) {
+    const caja = ex.respuesta === 'caja';
+    ex.lineas.forEach((l, k) => {
+      children.push(new Paragraph({
+        children: [
+          new TextRun({ text: `${k + 1}.  `, bold: true, color: colorHexNoHash }),
+          new TextRun({ text: `${l.replace(/[\s=_…]+$/u, '')}   =   ` }),
+          new TextRun({ text: caja ? '[                    ]' : '______________________________', color: caja ? colorHexNoHash : '1E293B' }),
+        ],
+        indent: { left: 200 },
+        spacing: { after: 100 },
+      }));
+    });
+    children.push(spacer(100));
+    return;
+  }
+
+  const serie = cuaderno ? serieDe(ex) : null;
+  if (serie) {
+    children.push(new Paragraph({ children: [new TextRun({ text: serie.join('   –   ') })], spacing: { after: 80 } }));
+    children.push(cajaDocx(colorHexNoHash));
+    children.push(spacer(140));
     return;
   }
 
@@ -994,6 +1058,30 @@ function pushRecuerdaDocx(children: (Paragraph | Table)[], act: FichaActivity, i
   children.push(spacer(120));
 }
 
+/** El recuadro de un bloque («Cuaderno») en Word: una caja con borde discontinuo, debajo de los ejercicios. */
+function pushRecuadroDocx(children: (Paragraph | Table)[], r: FichaRecuadro, t: Tr) {
+  const color = r.tipo === 'reto' ? 'E0900A' : '1E88D8';
+  const B = { style: BorderStyle.DASHED, size: 8, color };
+  const { titulo, lineas, respuesta } = recuadroLineas(r, t);
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { top: B, bottom: B, left: B, right: B, insideHorizontal: NO_BORDER, insideVertical: NO_BORDER },
+    rows: [new TableRow({
+      cantSplit: true,
+      children: [new TableCell({
+        shading: { fill: r.tipo === 'reto' ? 'FFF8E6' : 'EAF5FE' },
+        margins: { top: 100, bottom: 100, left: 160, right: 160 },
+        children: [
+          new Paragraph({ children: [new TextRun({ text: titulo.toUpperCase(), bold: true, color, size: 22 })], spacing: { after: 60 } }),
+          ...lineas.map(l => new Paragraph({ children: [new TextRun({ text: l, size: 20 })], spacing: { after: 30 } })),
+          ...(respuesta ? [new Paragraph({ children: [new TextRun({ text: `${t('Respuesta')}: ______________________________`, bold: true, color, size: 20 })], spacing: { before: 60 } })] : []),
+        ],
+      })],
+    })],
+  }));
+  children.push(spacer(120));
+}
+
 /** Tarjetas en Word: tabla de 2 columnas con bordes discontinuos; la respuesta va debajo de la línea de doblar. */
 function tarjetasDocx(children: (Paragraph | Table)[], cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme>, t: Tr) {
   const CUT = { style: BorderStyle.DASHED, size: 8, color: '94A3B8' };
@@ -1033,14 +1121,15 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const actividades = getActividades(c);
   const theme = fichaTheme(c.estilo);
   const classic = theme.id === 'clasico';
-  const historia = classic ? undefined : c.historia;
+  const cuaderno = theme.id === 'cuaderno';
+  const historia = theme.historia ? c.historia : undefined;
 
   // Sin imagen de IA (los modelos de imagen de Gemini no están en el nivel
   // gratuito), el título lleva el mismo color de motivo que usaría la
   // ilustración, a modo de cabecera con identidad — igual que las
   // cabeceras de actividad más abajo, sin necesitar rasterizar nada. Con un
   // tema, la cabecera es la del tema, con su personaje.
-  const art = classic ? null : await loadThemeArt(theme.id);
+  const art = classic || cuaderno ? null : await loadThemeArt(theme.id);
   const visual = !!c.visual && (c.formato ?? 'ficha') !== 'tarjetas';
   const imgs = visual ? await pictosPng(c) : undefined;
   const motif = classic
@@ -1055,7 +1144,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
           shading: { fill: motif.bg },
           margins: { top: 160, bottom: 160, left: 180, right: 180 },
           children: [
-            ...(classic ? [] : [new Paragraph({
+            ...(classic || cuaderno ? [] : [new Paragraph({
               children: [
                 art
                   ? new ImageRun({ type: 'jpg', data: art.bytes, transformation: { width: 56, height: 56 } })
@@ -1065,7 +1154,10 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
               ],
             })]),
             new Paragraph({
-              children: [new TextRun({ text: c.titulo || f.title, bold: true, color: motif.accent, size: 32, font: classic ? undefined : theme.fuenteTitulo.split(',')[0].replace(/"/g, '') })],
+              children: [new TextRun({
+                text: cuaderno ? (c.titulo || f.title).toUpperCase() : c.titulo || f.title, bold: true, color: motif.accent, size: cuaderno ? 36 : 32,
+                font: classic ? undefined : cuaderno ? 'Trebuchet MS' : theme.fuenteTitulo.split(',')[0].replace(/"/g, ''),
+              })],
             }),
           ],
         })],
@@ -1178,7 +1270,18 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   for (const [actIdx, act] of (formato === 'tarjetas' ? [] : actividades).entries()) {
     const color = theme.bloques[actIdx % theme.bloques.length];
     const label = `${t(escape ? 'Sala' : theme.paso)} ${actIdx + 1}: ${act.titulo}`;
-    if (act.titulo) {
+    if (cuaderno) {
+      // Número con fondo de color y título en el color del bloque, subrayado con su línea
+      children.push(new Paragraph({
+        children: [
+          new TextRun({ text: ` ${actIdx + 1} `, bold: true, color: 'FFFFFF', size: 28, shading: { type: 'clear', fill: color.bg, color: 'auto' } }),
+          new TextRun({ text: `  ${(act.titulo || label).toUpperCase()}`, bold: true, color: color.bg, size: 26, font: 'Trebuchet MS' }),
+        ],
+        border: { bottom: { style: 'single', size: 8, color: color.bg, space: 4 } },
+        spacing: { before: 120, after: 160 },
+        keepNext: true,
+      }));
+    } else if (act.titulo) {
       children.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: CELL_BORDERS,
@@ -1205,7 +1308,12 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
       children.push(new Paragraph({ text: '', spacing: { after: 100 } }));
     }
     if (visual) pushVisualActivityDocx(children, act, color, imgs);
-    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs);
+    // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras
+    const marcador = (i: number): Marcador | undefined => !cuaderno ? undefined
+      : act.ejercicios.length === 1 ? ''
+      : act.ejercicios.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
+    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno);
+    if (act.recuadro) pushRecuadroDocx(children, act.recuadro, t);
     if (visual && act.recuerda?.length) pushRecuerdaDocx(children, act, imgs, t);
     if (escape && act.candado) {
       const next = actIdx + 1 < actividades.length ? t('Abre la sala {n}', { n: actIdx + 2 }) : t('Abre el cofre final');

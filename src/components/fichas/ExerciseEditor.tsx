@@ -16,7 +16,7 @@ type T = (k: string, v?: Record<string, string | number>) => string;
 const lines = (s: string) => s.split('\n').map(x => x.trim()).filter(Boolean);
 
 /** Lista de una línea por elemento; se aplica al salir del campo para no rehacer rejillas a cada tecla. */
-function LinesField({ label, value, onCommit, hint }: { label: string; value: string[]; onCommit: (v: string[]) => void; hint?: string }) {
+export function LinesField({ label, value, onCommit, hint }: { label: string; value: string[]; onCommit: (v: string[]) => void; hint?: string }) {
   const joined = value.join('\n');
   const [text, setText] = useState(joined);
   const [base, setBase] = useState(joined);
@@ -112,6 +112,18 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
       )}
       {ex.tipo === 'verdadero_falso' && (
         <LinesField label={t('Afirmaciones')} value={ex.afirmaciones ?? []} onCommit={v => set({ afirmaciones: v })} />
+      )}
+      {ex.tipo === 'calculos' && (
+        <>
+          <LinesField label={t('Líneas')} hint={t('lo que va antes del «=»; el hueco lo pone la ficha')} value={ex.lineas ?? []} onCommit={v => set({ lineas: v })} />
+          <label className="fe-field">
+            <span className="fe-lbl">{t('La respuesta se escribe en')}</span>
+            <select className="finput" value={ex.respuesta === 'caja' ? 'caja' : 'linea'} onChange={e => set({ respuesta: e.target.value as 'linea' | 'caja' })}>
+              <option value="linea">{t('Una línea')}</option>
+              <option value="caja">{t('Una caja')}</option>
+            </select>
+          </label>
+        </>
       )}
       {ex.tipo === 'ordenar' && (
         <LinesField

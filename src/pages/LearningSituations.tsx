@@ -1503,7 +1503,7 @@ export function LearningSituations({
           {t('El reto, lo que se va a conseguir y el camino por fases, en una hoja A4 para colgar. Elige el aspecto:')}
         </p>
         <div className="chip-row" role="radiogroup" aria-label={t('Tema del cartel')} style={{ marginBottom: 12 }}>
-          {FICHA_THEMES.filter(th => th.id !== 'clasico').map(th => (
+          {FICHA_THEMES.filter(th => th.historia).map(th => (
             <button
               key={th.id} type="button" role="radio" aria-checked={posterTheme === th.id}
               className={`chip sm${posterTheme === th.id ? ' on' : ''}`} onClick={() => setPosterTheme(th.id)}

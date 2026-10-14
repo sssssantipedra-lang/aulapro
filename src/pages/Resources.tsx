@@ -19,7 +19,7 @@ import {
   type FichaFormato, type FichaVariante,
 } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
-import { FICHA_THEMES, fichaTheme, type FichaThemeId } from '../lib/fichaThemes';
+import { FICHA_THEMES, fichaTheme, conHistoria, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -27,6 +27,7 @@ import { useI18n } from '../i18n';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
+import { RecuadroEditor } from '../components/fichas/RecuadroEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
@@ -148,7 +149,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   // Con un alumno de apoyo, las instrucciones salen muy visuales (decisión del dueño, 6-10-2026)
   const [visual, setVisual] = useState(!!inicial);
   const [contextoClase, setContextoClase] = useState(inicial?.contexto ?? '');
-  const [estilo, setEstilo] = useState<FichaThemeChoice>('auto');
+  // Por defecto, la hoja de cuaderno (decisión del dueño, 14-10-2026); «Que elija la IA» sigue entre los de historia
+  const [estilo, setEstilo] = useState<FichaThemeChoice>('cuaderno');
   const [formato, setFormato] = useState<FichaFormato>('ficha');
 
   /* ── Editor ── */
@@ -364,7 +366,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   }
 
   async function handleRewriteStory() {
-    if (!content?.estilo || content.estilo === 'clasico') return;
+    if (!content?.estilo || !conHistoria(content.estilo)) return;
     const res = await rewriteStory(content, request(), content.estilo, lang, {
       onStart: () => setStoryBusy(true),
       onEnd: () => setStoryBusy(false),
@@ -384,7 +386,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   /* ══ Editor ══ */
   if (content) {
     const theme = fichaTheme(content.estilo);
-    const story = theme.id !== 'clasico';
+    const story = theme.historia;
     const tarjetas = content.formato === 'tarjetas';
     const escape = content.formato === 'escape';
     const historia = content.historia;
@@ -583,6 +585,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                       </button>
                     </div>
                   </div>
+                  <RecuadroEditor recuadro={act.recuadro} onChange={recuadro => patchAct(a, { recuadro })} t={t} />
                   {escape && (
                     <div className="fe-lock">
                       <span className="fe-lock-ico" aria-hidden="true">🔒</span>
@@ -736,16 +739,18 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
         </div>
 
         <div className="fgroup">
-          <span className="flabel">{t(formato === 'tarjetas' ? 'Aspecto de las tarjetas' : 'El mundo de la historia')}</span>
+          <span className="flabel">{t(formato === 'tarjetas' ? 'Aspecto de las tarjetas' : 'Aspecto de la ficha')}</span>
           <ThemeGrid value={estilo} onChange={setEstilo} withAuto t={t} />
           <p className="fe-hint" style={{ marginTop: 6 }}>
             {formato === 'tarjetas'
               ? t('Solo cambia los colores y los dibujos de las tarjetas.')
-              : formato === 'escape' && estilo === 'clasico'
+              : formato === 'escape' && !conHistoria(estilo)
                 ? t('Un escape room necesita historia: la IA elegirá el mundo que mejor encaje.')
-                : estilo === 'clasico'
-                  ? t('Sin historia: una ficha sobria de las de siempre.')
-                  : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
+                : estilo === 'cuaderno'
+                  ? t('Una hoja de cuaderno de colegio: bloques numerados, recuadros de ayuda y un dibujo en la cabecera.')
+                  : estilo === 'clasico'
+                    ? t('Sin historia: una ficha sobria de las de siempre.')
+                    : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
           </p>
         </div>
 

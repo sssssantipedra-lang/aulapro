@@ -28,7 +28,7 @@ import type { SdaContent } from './learningSituations';
 import { buildWordSearchGrid, type WordSearchPlacement } from '../lib/wordSearch';
 import { FIGURE_SHAPES, FIGURE_SLOTS, FIGURE_LABEL, type Figure } from '../lib/geometryFigures';
 import { buildCrossword, type Crossword } from '../lib/crossword';
-import { fichaTheme, cleanEmoji, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
+import { fichaTheme, cleanEmoji, conHistoria, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
 import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido } from '../lib/pictosFicha';
 
 /* ── Lo que devuelve la IA ── */
@@ -36,7 +36,7 @@ import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido 
 export type FichaExerciseType =
   | 'abierta' | 'completar' | 'opcion_multiple' | 'problema'
   | 'tabla_rellenar' | 'relacionar' | 'colorear' | 'sopa_letras'
-  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic';
+  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic' | 'calculos';
 
 export interface FichaExercise {
   tipo: FichaExerciseType;
@@ -82,6 +82,14 @@ export interface FichaExercise {
   crucigrama?: Crossword;
   /** Solo 'comic': de 2 a 4 viñetas; un `texto` vacío es un bocadillo para rellenar. */
   vinetas?: { personaje: string; texto: string }[];
+  /**
+   * Solo 'calculos': lo que hay a la izquierda del «=» en cada línea (un número
+   * para descomponer, una suma, una expresión). A su derecha, el alumnado
+   * escribe la respuesta. Sin el «=» ni el hueco: los pone la ficha.
+   */
+  lineas?: string[];
+  /** Solo 'calculos': dónde se escribe cada respuesta, en una línea o en una caja. Sin él, en línea. */
+  respuesta?: 'linea' | 'caja';
   /**
    * Diagrama geométrico opcional (cualquier tipo, pero pensado sobre todo
    * para "problema" de área/perímetro/volumen). El dibujo en sí lo hace
@@ -132,10 +140,28 @@ export interface ConceptoVisual {
   texto: string;
 }
 
+/**
+ * El recuadro que acompaña a un bloque en el diseño «Cuaderno»: «Recuerda»
+ * (lo que hay que saber para hacerlo, con chincheta), «Reto» (una pregunta
+ * extra con su hueco, con estrella) o «Consejo» (una pista de método, con
+ * bombilla).
+ */
+export type FichaRecuadroTipo = 'recuerda' | 'reto' | 'consejo';
+
+export interface FichaRecuadro {
+  tipo: FichaRecuadroTipo;
+  /** La frase o la pregunta del reto. */
+  texto: string;
+  /** Solo «Recuerda»: equivalencias o datos, uno por línea («CM = centena de millar»). */
+  lista?: string[];
+}
+
 /** Un bloque con título propio (p. ej. "Escribe como potencia") y sus ejercicios. */
 export interface FichaActivity {
   titulo: string;
   ejercicios: FichaExercise[];
+  /** Solo en el diseño «Cuaderno»: el recuadro lateral del bloque. */
+  recuadro?: FichaRecuadro;
   /** Con apoyos visuales: qué hay que hacer en el bloque, en una frase y en orden. */
   indicacion?: string;
   /** Con apoyos visuales: de 2 a 4 pasos numerados, cada uno con su pictograma. */
@@ -236,7 +262,7 @@ const S = (d: string) => ({ type: 'STRING', description: d });
 
 export const TIPOS: FichaExerciseType[] = [
   'abierta', 'completar', 'opcion_multiple', 'problema', 'tabla_rellenar', 'relacionar', 'colorear', 'sopa_letras',
-  'verdadero_falso', 'ordenar', 'crucigrama', 'comic',
+  'verdadero_falso', 'ordenar', 'crucigrama', 'comic', 'calculos',
 ];
 
 const PISTA_ITEM_SCHEMA = {
@@ -356,7 +382,8 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
           '"relacionar" dos columnas para unir a mano, "colorear" leyenda de colores + elementos a colorear, ' +
           '"sopa_letras" lista de palabras para buscar en una rejilla, "verdadero_falso" frases para marcar V o F, ' +
           '"ordenar" pasos o elementos para numerar en orden, "crucigrama" palabras con pistas, ' +
-          '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado',
+          '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado, ' +
+          '"calculos" lista de números o cuentas, cada una con su hueco para la respuesta a la derecha del "="',
       },
       enunciado: S('El texto del ejercicio o la pregunta, autocontenido'),
       ...(visual ? {
@@ -428,6 +455,16 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
           'Solo si tipo es "comic": de 3 a 4 viñetas de una conversación sobre el tema; la última (o alguna) ' +
           'con "texto" vacío para que el alumnado escriba lo que dice el personaje',
       },
+      lineas: {
+        type: 'ARRAY', items: { type: 'STRING' },
+        description:
+          'Solo si tipo es "calculos": de 2 a 6 líneas, cada una con lo que va A LA IZQUIERDA del "=" (un número ' +
+          'para descomponer, una suma, una expresión). Sin el "=" ni la respuesta: la ficha pone el hueco.',
+      },
+      respuesta: {
+        type: 'STRING', enum: ['linea', 'caja'],
+        description: 'Solo si tipo es "calculos": "linea" si la respuesta es larga (una descomposición, una expresión), "caja" si es corta (un número)',
+      },
       figura: {
         ...FIGURA_SCHEMA,
         description:
@@ -451,7 +488,7 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
     propertyOrdering: [
       'tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'opciones', 'columnas', 'filas', ...(visual ? ['pictosFilas'] : []),
       'izquierda', 'derecha', 'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
-      'figura', ...(visual ? ['imagenes'] : []), 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
+      'lineas', 'respuesta', 'figura', ...(visual ? ['imagenes'] : []), 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
     ],
   } as const;
 }
@@ -466,6 +503,8 @@ interface SchemaOpts {
   formato: FichaFormato;
   /** Apoyos visuales: pasos con pictogramas, consignas dibujadas y tarjetas de concepto. */
   visual?: boolean;
+  /** Diseño «Cuaderno»: cada bloque puede llevar su recuadro lateral. */
+  cuaderno?: boolean;
 }
 
 const CANDADO_SCHEMA = {
@@ -478,6 +517,23 @@ const CANDADO_SCHEMA = {
   propertyOrdering: ['codigo', 'pista'],
 } as const;
 
+const RECUADRO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    tipo: {
+      type: 'STRING', enum: ['recuerda', 'reto', 'consejo'],
+      description: '"recuerda": datos o equivalencias que hacen falta para el bloque; "reto": una pregunta extra algo más difícil; "consejo": una pista de método',
+    },
+    texto: S('"consejo" y "reto": la frase o la pregunta, 1 a 3 frases cortas. "recuerda": una introducción muy corta, o "" si basta la lista'),
+    lista: {
+      type: 'ARRAY', items: { type: 'STRING' },
+      description: 'Solo en "recuerda": de 2 a 8 líneas del tipo "CM = centena de millar" (siglas o términos con su significado)',
+    },
+  },
+  required: ['tipo', 'texto'],
+  propertyOrdering: ['tipo', 'texto', 'lista'],
+} as const;
+
 function fichaActivitySchema(o: SchemaOpts) {
   const story = o.historia ? {
     emoji: S('UN emoji que represente esta misión dentro de la historia'),
@@ -485,7 +541,7 @@ function fichaActivitySchema(o: SchemaOpts) {
   } : {};
   const escape = o.formato === 'escape';
   const vis = o.visual ? ['indicacion', 'pasos', 'recuerda'] : [];
-  const tail = [...vis, 'ejercicios', ...(escape ? ['candado'] : [])];
+  const tail = [...vis, 'ejercicios', ...(o.cuaderno ? ['recuadro'] : []), ...(escape ? ['candado'] : [])];
   return {
     type: 'OBJECT',
     properties: {
@@ -497,9 +553,15 @@ function fichaActivitySchema(o: SchemaOpts) {
         recuerda: { type: 'ARRAY', items: RECUERDA_SCHEMA, description: 'De 0 a 3 cosas que hay que recordar para hacer el bloque' },
       } : {}),
       ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual) },
+      ...(o.cuaderno ? {
+        recuadro: {
+          ...RECUADRO_SCHEMA,
+          description: 'Opcional: un recuadro lateral para este bloque. Solo en algunos bloques (no en todos) y solo si aporta algo.',
+        },
+      } : {}),
       ...(escape ? { candado: CANDADO_SCHEMA } : {}),
     },
-    required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
+    required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail.filter(k => k !== 'recuadro')],
     propertyOrdering: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
   } as const;
 }
@@ -639,6 +701,26 @@ function visualPrompt(): string {
   );
 }
 
+/**
+ * La parte del prompt del diseño «Cuaderno»: una hoja de colegio, con bloques
+ * numerados y, en algunos, un recuadro lateral que acompaña a los ejercicios.
+ */
+function cuadernoPrompt(): string {
+  return (
+    `DISEÑO CUADERNO: la ficha se imprime como una hoja de cuaderno de colegio, compacta, con cada bloque ` +
+    `numerado y los ejercicios cortos y directos (sin historia ni personajes). Además de lo anterior:\n` +
+    `- Prefiere en cada bloque ejercicios que se contesten en poco espacio: "calculos" (varias líneas con su ` +
+    `hueco), "tabla_rellenar", "completar", "relacionar", "ordenar" (con números o palabras cortas), ` +
+    `"verdadero_falso". Un bloque puede mezclar dos o tres ejercicios cortos (por ejemplo, una lista de ` +
+    `"calculos" para descomponer y otra para volver a escribir el número).\n` +
+    `- En "recuadro" (opcional) añade a ALGUNOS bloques —uno de cada tres, como mucho uno por bloque— una nota ` +
+    `lateral: "recuerda" (la leyenda o las equivalencias que se necesitan para el bloque, en "lista", líneas ` +
+    `"SIGLA = significado"), "reto" (en "texto", una pregunta extra algo más difícil, de respuesta corta) o ` +
+    `"consejo" (en "texto", una pista de método). No repitas en el recuadro el contenido de "explicacion". ` +
+    `Que no se contesten en el recuadro cosas que ya se preguntan en los ejercicios.\n`
+  );
+}
+
 /** Prompt de sistema del formato «tarjetas recortables». */
 function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
   return (
@@ -688,6 +770,12 @@ function systemPrompt(
     `cuadrícula la monta la aplicación. Como mucho uno por ficha.\n` +
     `- "comic": de 3 a 4 "vinetas" con un emoji de personaje y lo que dice; deja al menos un bocadillo ` +
     `vacío ("") para que el alumnado escriba la respuesta o la explicación. Como mucho uno por ficha.\n` +
+    `- "calculos": una lista de 2 a 6 "lineas", cada una con lo que va a la IZQUIERDA del "=" (un número para ` +
+    `descomponer o redondear, una suma, una expresión, una cantidad para convertir); el "=" y el hueco de ` +
+    `respuesta los pone la ficha, no los escribas. "respuesta": "linea" si la respuesta es larga (una ` +
+    `descomposición, una expresión) o "caja" si es corta (un número). El "enunciado" es la consigna de toda la ` +
+    `lista. Es el tipo más fiel a las fichas de cuaderno: úsalo en cuanto el ejercicio sea repetir una misma ` +
+    `operación con varios datos.\n` +
     `VARIEDAD: usa al menos tres tipos distintos en la ficha y prefiere los más visuales y manipulativos ` +
     `(relacionar, ordenar, verdadero o falso, crucigrama, cómic…) cuando encajen con el contenido.\n` +
     `FIGURA: cuando un ejercicio (normalmente "problema") pida calcular área, perímetro, superficie o ` +
@@ -716,7 +804,8 @@ function systemPrompt(
     `número simple, escríbelo con palabras ("tres elevado a x").\n` +
     `El enunciado de cada ejercicio debe poder leerse y trabajarse solo, sin depender de un libro ` +
     `de texto que la IA no ha visto.\n` +
-    (estilo !== 'clasico' ? storyPrompt(estilo) : '') +
+    (conHistoria(estilo) ? storyPrompt(estilo) : '') +
+    (estilo === 'cuaderno' ? cuadernoPrompt() : '') +
     (formato === 'escape' ? ESCAPE_PROMPT : '') +
     (visual ? visualPrompt() : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
@@ -810,6 +899,30 @@ function cleanConceptos(c: ConceptoVisual[] | undefined): ConceptoVisual[] | und
   return out.length ? out : undefined;
 }
 
+/**
+ * Las líneas de un ejercicio «calculos»: sin el «=» ni los huecos que la IA
+ * pone a veces al final (la ficha los pinta), y sin líneas vacías.
+ */
+export function cleanLineas(lineas: string[] | undefined): string[] {
+  return (lineas ?? [])
+    .map(l => cleanMathNotation(String(l ?? '')).replace(/[\s=_…]+$/u, '').trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+const RECUADROS: FichaRecuadroTipo[] = ['recuerda', 'reto', 'consejo'];
+
+/** El recuadro de un bloque, comprobado; sin tipo válido o sin nada que decir, no hay recuadro. */
+export function cleanRecuadro(r: FichaRecuadro | undefined): FichaRecuadro | undefined {
+  if (!r || !RECUADROS.includes(r.tipo)) return undefined;
+  const texto = cleanMathNotation((r.texto ?? '').trim());
+  const lista = r.tipo === 'recuerda'
+    ? (r.lista ?? []).map(l => cleanMathNotation(String(l ?? '').trim())).filter(Boolean).slice(0, 10)
+    : [];
+  if (!texto && !lista.length) return undefined;
+  return { tipo: r.tipo, texto, ...(lista.length ? { lista } : {}) };
+}
+
 function cleanExercise(ex: FichaExercise, visual = false): FichaExercise {
   return {
     ...ex,
@@ -826,6 +939,7 @@ function cleanExercise(ex: FichaExercise, visual = false): FichaExercise {
     elementos: ex.elementos?.map(cleanMathNotation),
     pistas: ex.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
     vinetas: ex.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
+    ...(ex.tipo === 'calculos' ? { lineas: cleanLineas(ex.lineas), respuesta: ex.respuesta === 'caja' ? 'caja' as const : 'linea' as const } : {}),
     solucion: cleanMathNotation(ex.solucion),
     apoyo: ex.apoyo ? cleanMathNotation(ex.apoyo) : ex.apoyo,
     ampliacion: ex.ampliacion ? cleanMathNotation(ex.ampliacion) : ex.ampliacion,
@@ -894,7 +1008,7 @@ function cleanFichaContent(
     ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
     : estilo;
   const theme = fichaTheme(finalEstilo);
-  const historia = c.historia && finalEstilo !== 'clasico'
+  const historia = c.historia && theme.historia
     ? {
       ...c.historia,
       emoji: cleanEmoji(c.historia.emoji, theme.personaje),
@@ -918,6 +1032,7 @@ function cleanFichaContent(
         narrativa: cleanMathNotation(act.narrativa ?? ''),
       } : {}),
       ...cleanVisualActivity(act, visual),
+      ...(cleanRecuadro(act.recuadro) ? { recuadro: cleanRecuadro(act.recuadro) } : {}),
       ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual)).map(prepareExercise),
       ...(formato === 'escape' && act.candado ? {
         candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
@@ -942,10 +1057,11 @@ async function callFichaText(
     maxOutputTokens: visual ? 24576 : 16384,
     responseSchema: fichaSchema({
       niveles: niveles && formato !== 'tarjetas',
-      historia: estilo !== 'clasico' && formato !== 'tarjetas',
+      historia: conHistoria(estilo) && formato !== 'tarjetas',
       elegirEstilo: estilo === 'auto',
       formato,
       visual,
+      cuaderno: estilo === 'cuaderno' && formato === 'ficha',
     }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
@@ -963,7 +1079,7 @@ async function callFichaText(
 /** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
 function effectiveEstilo(estilo: FichaThemeChoice | undefined, formato: FichaFormato): FichaThemeChoice {
   const e = estilo ?? 'auto';
-  return formato === 'escape' && e === 'clasico' ? 'auto' : e;
+  return formato === 'escape' && !conHistoria(e) ? 'auto' : e;
 }
 
 /** Qué se pide al final del prompt según el formato. */
@@ -1113,7 +1229,7 @@ export async function regenerateExercise(
 export async function rewriteStory(
   content: FichaContent, req: FichaRequest, estilo: FichaThemeId, lang: Lang, callbacks: Callbacks = {},
 ): Promise<Pick<FichaContent, 'historia' | 'actividades'> | null> {
-  if (estilo === 'clasico') return null;
+  if (!conHistoria(estilo)) return null;
   callbacks.onStart?.();
   try {
     const n = content.actividades.length;
@@ -1204,7 +1320,10 @@ export async function adaptFicha(
   try {
     const formato = content.formato ?? 'ficha';
     const estilo: FichaThemeId = content.estilo ?? 'clasico';
-    const historia = !!content.historia && estilo !== 'clasico' && formato !== 'tarjetas';
+    const historia = !!content.historia && conHistoria(estilo) && formato !== 'tarjetas';
+    // «Cuaderno» sigue siendo «Cuaderno» en sus versiones adaptadas; «Clásica», sin estilo propio
+    const cuaderno = estilo === 'cuaderno' && formato === 'ficha';
+    const estiloPrompt: FichaThemeChoice = historia || cuaderno ? estilo : 'clasico';
     const original = {
       ...content,
       actividades: content.actividades.map(a => ({ ...a, ejercicios: a.ejercicios.map(exerciseForPrompt) })),
@@ -1220,16 +1339,16 @@ export async function adaptFicha(
       `${VARIANTE_PROMPT[variante]}\n` +
       (historia ? 'Mantén la misma historia y el mismo personaje, adaptando sus textos al mismo criterio.\n' : '') +
       (formato === 'escape' ? 'Recalcula el código de cada candado para que salga de las nuevas respuestas.\n' : '');
-    const raw = await callGemini(systemPrompt(false, lang, historia ? estilo : 'clasico', formato, visual), userPrompt, [], { onError: callbacks.onError }, {
+    const raw = await callGemini(systemPrompt(false, lang, estiloPrompt, formato, visual), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: visual ? 24576 : 16384,
-      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual }),
+      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual, cuaderno }),
       thinkingLevel: 'medium',
       temperature: 0.9,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaContent>(raw);
     if (!parsed) return null;
-    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, historia ? estilo : 'clasico', formato, visual);
+    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estiloPrompt, formato, visual);
     return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();

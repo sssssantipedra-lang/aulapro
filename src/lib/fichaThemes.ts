@@ -8,16 +8,21 @@
  * generar nada: solo cambia cómo se pinta.
  *
  * «Clásica» es el aspecto de siempre, sin historia; las fichas guardadas
- * antes de que hubiera temas se ven así.
+ * antes de que hubiera temas se ven así. «Cuaderno» (decisión del 14-10-2026)
+ * es la hoja de trabajo de colegio, bien maquetada: cinta de título, bloques
+ * numerados, recuadros laterales («Recuerda», «Reto», «Consejo») e
+ * ilustraciones del catálogo de `ilustraciones.ts`. Tampoco lleva historia.
  */
 
 export type FichaThemeId =
-  | 'clasico' | 'espacio' | 'selva' | 'detectives' | 'oceano' | 'superheroes'
+  | 'cuaderno' | 'clasico' | 'espacio' | 'selva' | 'detectives' | 'oceano' | 'superheroes'
   | 'deportes' | 'dinosaurios' | 'piratas' | 'magia' | 'cocina';
 
 export interface FichaTheme {
   id: FichaThemeId;
   nombre: string;
+  /** Si envuelve la ficha en una historia (personaje, misión, insignia). «Clásica» y «Cuaderno» no. */
+  historia: boolean;
   /** El mundo de la historia, para el prompt de la IA. */
   ambiente: string;
   /** Personaje por defecto (si la IA no da uno). */
@@ -46,17 +51,29 @@ const COMIC = '"Comic Sans MS", "Chalkboard SE", "Comic Neue", "Trebuchet MS", s
 const SERIF = 'Georgia, "Times New Roman", serif';
 const TYPE = '"Courier New", Courier, monospace';
 const SYSTEM = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+/** Outfit, la letra de la app (OFL, `assets/fonts/`): va incrustada en el PDF y la vista previa (`fuenteCuaderno.ts`); si faltara, las de abajo. */
+const OUTFIT = 'Outfit, "Trebuchet MS", "Segoe UI", system-ui, sans-serif';
 
 export const FICHA_THEMES: FichaTheme[] = [
   {
-    id: 'clasico', nombre: 'Clásica', ambiente: '',
+    id: 'cuaderno', nombre: 'Cuaderno@@ficha', historia: false, ambiente: '',
+    personaje: '📘', adornos: [], iconos: ['✏️', '✏️', '✏️', '✏️'], paso: 'Actividad',
+    color: '1E88D8', oscuro: '0B5FA5', claro: 'EAF5FE', papel: 'FFFFFF',
+    bloques: [
+      { bg: '2E9B3E', light: 'E8F7EA' }, { bg: 'DD8500', light: 'FFF3D6' },
+      { bg: 'E0357A', light: 'FFE6F0' }, { bg: '7B4FD6', light: 'EFE8FF' },
+    ],
+    fuente: OUTFIT, fuenteTitulo: OUTFIT, borde: 'dashed', radio: 12,
+  },
+  {
+    id: 'clasico', nombre: 'Clásica', historia: false, ambiente: '',
     personaje: '📘', adornos: [], iconos: ['✏️', '✏️', '✏️', '✏️'], paso: 'Actividad',
     color: '0369A1', oscuro: '0C4A6E', claro: 'E0F2FE', papel: 'FFFFFF',
     bloques: [{ bg: '0369A1', light: 'E0F2FE' }, { bg: '15803D', light: 'DCFCE7' }, { bg: 'B45309', light: 'FEF3C7' }, { bg: '6D28D9', light: 'EDE9FE' }],
     fuente: SYSTEM, fuenteTitulo: SYSTEM, borde: 'solid', radio: 8,
   },
   {
-    id: 'espacio', nombre: 'Misión espacial',
+    id: 'espacio', nombre: 'Misión espacial', historia: true,
     ambiente: 'una misión espacial: una nave, una tripulación y planetas por explorar',
     personaje: '👩‍🚀', adornos: ['🚀', '🪐', '⭐', '🌙', '✨'], iconos: ['🚀', '🪐', '🛰️', '🌟', '☄️'], paso: 'Misión',
     color: '4338CA', oscuro: '1E1B4B', claro: 'E0E7FF', papel: 'F8F9FF',
@@ -64,7 +81,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: ROUNDED, fuenteTitulo: ROUNDED, borde: 'solid', radio: 14,
   },
   {
-    id: 'selva', nombre: 'Expedición a la selva',
+    id: 'selva', nombre: 'Expedición a la selva', historia: true,
     ambiente: 'una expedición por la selva en busca de animales y un templo perdido',
     personaje: '🦁', adornos: ['🌿', '🦜', '🐒', '🌴', '🦋'], iconos: ['🌿', '🐒', '🦜', '🐍', '🗿'], paso: 'Etapa',
     color: '15803D', oscuro: '14532D', claro: 'DCFCE7', papel: 'FBFEF8',
@@ -72,7 +89,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: ROUNDED, fuenteTitulo: ROUNDED, borde: 'dashed', radio: 16,
   },
   {
-    id: 'detectives', nombre: 'Caso de detectives',
+    id: 'detectives', nombre: 'Caso de detectives', historia: true,
     ambiente: 'un caso misterioso que resolver como detectives, reuniendo pistas',
     personaje: '🕵️', adornos: ['🔍', '🗝️', '🧩', '👣', '📜'], iconos: ['🔍', '🧩', '🗝️', '👣', '📁'], paso: 'Pista',
     color: '92400E', oscuro: '451A03', claro: 'FEF3C7', papel: 'FFFDF7',
@@ -80,7 +97,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: SERIF, fuenteTitulo: TYPE, borde: 'double', radio: 4,
   },
   {
-    id: 'oceano', nombre: 'Aventura submarina',
+    id: 'oceano', nombre: 'Aventura submarina', historia: true,
     ambiente: 'una aventura bajo el mar en un submarino, entre peces y arrecifes',
     personaje: '🐙', adornos: ['🐠', '🐚', '🫧', '🌊', '🐳'], iconos: ['🐠', '🐢', '🦀', '🐳', '🪸'], paso: 'Inmersión',
     color: '0E7490', oscuro: '164E63', claro: 'CFFAFE', papel: 'F6FDFF',
@@ -88,7 +105,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: ROUNDED, fuenteTitulo: ROUNDED, borde: 'solid', radio: 20,
   },
   {
-    id: 'superheroes', nombre: 'Superhéroes',
+    id: 'superheroes', nombre: 'Superhéroes', historia: true,
     ambiente: 'un equipo de superhéroes que tiene que salvar la ciudad usando sus poderes',
     personaje: '🦸', adornos: ['💥', '⚡', '⭐', '🏙️', '💫'], iconos: ['⚡', '💥', '🛡️', '🦸', '⭐'], paso: 'Reto',
     color: 'DC2626', oscuro: '7F1D1D', claro: 'FEF9C3', papel: 'FFFFFF',
@@ -96,7 +113,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: COMIC, fuenteTitulo: COMIC, borde: 'solid', radio: 6,
   },
   {
-    id: 'deportes', nombre: 'La gran final',
+    id: 'deportes', nombre: 'La gran final', historia: true,
     ambiente: 'un campeonato deportivo en el que el equipo se juega la gran final',
     personaje: '🏃', adornos: ['🏆', '⚽', '🏀', '🥇', '🎽'], iconos: ['⚽', '🏀', '🎾', '🏐', '🏆'], paso: 'Prueba',
     color: 'EA580C', oscuro: '7C2D12', claro: 'FFEDD5', papel: 'FFFCF8',
@@ -104,7 +121,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: ROUNDED, fuenteTitulo: ROUNDED, borde: 'solid', radio: 10,
   },
   {
-    id: 'dinosaurios', nombre: 'Viaje al Jurásico',
+    id: 'dinosaurios', nombre: 'Viaje al Jurásico', historia: true,
     ambiente: 'un viaje en el tiempo a la época de los dinosaurios',
     personaje: '🦕', adornos: ['🦖', '🌋', '🥚', '🌿', '🦴'], iconos: ['🦖', '🥚', '🌋', '🦴', '🦕'], paso: 'Expedición',
     color: '4D7C0F', oscuro: '365314', claro: 'ECFCCB', papel: 'FCFDF7',
@@ -112,7 +129,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: ROUNDED, fuenteTitulo: ROUNDED, borde: 'dashed', radio: 18,
   },
   {
-    id: 'piratas', nombre: 'El tesoro pirata',
+    id: 'piratas', nombre: 'El tesoro pirata', historia: true,
     ambiente: 'una tripulación pirata que sigue un mapa para encontrar un tesoro',
     personaje: '🏴‍☠️', adornos: ['🗺️', '⚓', '🦜', '💰', '🧭'], iconos: ['🗺️', '🧭', '⚓', '🦜', '💰'], paso: 'Parada',
     color: '1E3A8A', oscuro: '172554', claro: 'FEF3C7', papel: 'FFFBF0',
@@ -120,7 +137,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: SERIF, fuenteTitulo: SERIF, borde: 'double', radio: 6,
   },
   {
-    id: 'magia', nombre: 'Escuela de magia',
+    id: 'magia', nombre: 'Escuela de magia', historia: true,
     ambiente: 'una escuela de magia en la que cada ejercicio es un hechizo que aprender',
     personaje: '🧙', adornos: ['🔮', '✨', '📜', '🌟', '🪄'], iconos: ['🪄', '🔮', '📜', '🧪', '🌟'], paso: 'Hechizo',
     color: '7E22CE', oscuro: '3B0764', claro: 'F3E8FF', papel: 'FDFAFF',
@@ -128,7 +145,7 @@ export const FICHA_THEMES: FichaTheme[] = [
     fuente: SERIF, fuenteTitulo: SERIF, borde: 'dotted', radio: 14,
   },
   {
-    id: 'cocina', nombre: 'Concurso de cocina',
+    id: 'cocina', nombre: 'Concurso de cocina', historia: true,
     ambiente: 'un concurso de cocina en el que cada prueba es una receta',
     personaje: '🧑‍🍳', adornos: ['🍰', '🥕', '🍳', '🧁', '🍓'], iconos: ['🥕', '🍳', '🧁', '🍕', '🍰'], paso: 'Receta',
     color: 'E11D48', oscuro: '881337', claro: 'FFE4E6', papel: 'FFFBFB',
@@ -137,10 +154,16 @@ export const FICHA_THEMES: FichaTheme[] = [
   },
 ];
 
-export const STORY_THEME_IDS = FICHA_THEMES.filter(t => t.id !== 'clasico').map(t => t.id);
+export const STORY_THEME_IDS = FICHA_THEMES.filter(t => t.historia).map(t => t.id);
 
+/** El tema de un id; sin id (fichas anteriores a los temas) o con uno que no existe, «Clásica». */
 export function fichaTheme(id: string | undefined): FichaTheme {
-  return FICHA_THEMES.find(t => t.id === id) ?? FICHA_THEMES[0];
+  return FICHA_THEMES.find(t => t.id === id) ?? FICHA_THEMES.find(t => t.id === 'clasico')!;
+}
+
+/** Si el tema (o 'auto', que lo elige la IA entre los de historia) lleva una historia. */
+export function conHistoria(id: string | undefined): boolean {
+  return id === 'auto' || fichaTheme(id).historia;
 }
 
 const PICTO = /\p{Extended_Pictographic}/u;

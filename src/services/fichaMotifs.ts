@@ -75,11 +75,23 @@ function normalize(s: string): string {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
+/**
+ * La palabra clave tiene que EMPEZAR una palabra del texto: «fraccion» encuentra
+ * «fracciones», pero «arte» ya no encuentra «partes» (una ficha de Lengua sobre
+ * las partes de un cuento salía con la paleta de Plástica).
+ */
+export function empiezaPalabra(texto: string, clave: string): boolean {
+  const i = texto.indexOf(clave);
+  if (i < 0) return false;
+  if (i === 0 || !/[a-z0-9]/.test(texto[i - 1])) return true;
+  return empiezaPalabra(texto.slice(i + 1), clave);
+}
+
 /** Elige el motivo según el tema y el área de la ficha. Nunca falla: sin coincidencia, "general". */
 export function pickMotifKey(tema: string, area: string): FichaMotifKey {
   const text = normalize(`${tema} ${area}`);
   for (const [key, words] of KEYWORDS) {
-    if (words.some(w => text.includes(w))) return key;
+    if (words.some(w => empiezaPalabra(text, w))) return key;
   }
   return 'general';
 }

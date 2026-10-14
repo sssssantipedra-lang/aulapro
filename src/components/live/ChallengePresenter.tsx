@@ -75,6 +75,9 @@ function ProjExercise({ ex, n, showSol, color, t }: {
       {!!ex.afirmaciones?.length && (
         <div className="cp-list">{ex.afirmaciones.map((a, i) => <div key={i} className="cp-row">{a}<span className="cp-vf">{t('V')} / {t('F')}</span></div>)}</div>
       )}
+      {ex.tipo === 'calculos' && !!ex.lineas?.length && (
+        <div className="cp-list">{ex.lineas.map((l, i) => <div key={i} className="cp-row">{i + 1}. {l.replace(/[\s=_…]+$/u, '')} = …</div>)}</div>
+      )}
       {!!ex.elementos?.length && (
         <div className="cp-items">{ex.elementos.map((e, i) => <span key={i} className="cp-item">{e}</span>)}</div>
       )}
@@ -123,7 +126,7 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   const { t } = useI18n();
   const c = ficha.content;
   const theme = fichaTheme(c.estilo);
-  const story = theme.id !== 'clasico' ? c.historia : undefined;
+  const story = theme.historia ? c.historia : undefined;
   const escape = c.formato === 'escape';
   const cards = c.formato === 'tarjetas';
   const acts = useMemo(() => (cards ? [] : c.actividades ?? []), [cards, c.actividades]);

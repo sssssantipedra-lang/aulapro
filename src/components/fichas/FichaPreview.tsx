@@ -12,6 +12,7 @@ import type { Ficha } from '../../types';
 import { buildFichaHtml, cargarPictos, pictosDeFicha } from '../../services/exportFicha';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { useThemeArt } from '../../lib/themeArtDoc';
+import { useFuenteCuaderno } from '../../lib/fuenteCuaderno';
 import type { Lang } from '../../i18n';
 
 /** Ancho del documento de la vista previa: la hoja A4 (210 mm ≈ 794 px) con su margen gris. */
@@ -32,7 +33,9 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
   const onSelectRef = useRef(onSelect);
   useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
 
-  const art = useThemeArt(fichaTheme(ficha.content.estilo).id);
+  const temaId = fichaTheme(ficha.content.estilo).id;
+  const art = useThemeArt(temaId);
+  const fontCss = useFuenteCuaderno(temaId === 'cuaderno');
   // Con apoyos visuales, sus pictogramas: se cargan al cambiar cuáles son, no a cada tecla
   const ids = pictosDeFicha(ficha.content).join(' ');
   const [pictos, setPictos] = useState<Record<string, string>>({});
@@ -41,7 +44,7 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
     if (ids) cargarPictos(ids.split(' ')).then(p => { if (vivo) setPictos(p); });
     return () => { vivo = false; };
   }, [ids]);
-  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos }), [ficha, lang, art, pictos]);
+  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos, fontCss }), [ficha, lang, art, pictos, fontCss]);
 
   // Escala al ancho disponible
   useEffect(() => {
