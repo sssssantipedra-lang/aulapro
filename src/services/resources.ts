@@ -835,6 +835,11 @@ function hiloPrompt(hilo: Hilo, lang: Lang): string {
     `- "problema", "abierta", "completar" y "opcion_multiple": de 1 a 3 "dibujos" solo si ilustran de verdad lo ` +
     `que cuenta el enunciado (la pizza del problema de fracciones, el castillo de la pregunta). Un dibujo suelto ` +
     `queda al lado del enunciado.\n` +
+    `Si el enunciado habla de lo que se ve («debajo de cada animal», «en la imagen», «los dibujos»), el ejercicio ` +
+    `TIENE que llevar esos dibujos (en "etiquetar", "contar", "clasificar" o "dibujos"); si no los pones, no ` +
+    `hables de dibujos. En "contar" se cuentan los propios dibujos repetidos («Cuenta cuántas naranjas hay»), ` +
+    `nunca partes de un dibujo (gajos, trozos, patas): un dibujo con partes (la pizza, la tarta) va con 1 de ` +
+    `cantidad. El "banco" solo en 1.º a 3.º de Primaria.\n` +
     `Reglas: la "cantidad" coincide con el enunciado; los marcados [solo 1] no se repiten; no pongas un dibujo ` +
     `que dé la respuesta ni uno que no sea EXACTAMENTE lo que nombra el ejercicio (un gato no es un tigre); ` +
     `nunca dibujos de adorno. Con un tema concreto (animales, objetos, lugares, oficios), en cursos bajos, ` +
@@ -876,8 +881,9 @@ function systemPrompt(
     `"Escribe como potencia", "Relaciona"). Agrupa en el mismo bloque los ejercicios del mismo tipo o ` +
     `del mismo objetivo.\n` +
     `TIPOS DE EJERCICIO — usa el que mejor encaje en cada bloque, variando entre bloques:\n` +
-    `- "abierta": respuesta libre. "completar": huecos en una frase o expresión. "opcion_multiple": de ` +
-    `3 a 5 opciones en "opciones". "problema": un enunciado con varios pasos.\n` +
+    `- "abierta": respuesta libre. "completar": el propio "enunciado" ES la frase o las frases, con cada hueco ` +
+    `marcado con ______ (al menos tres guiones bajos); nunca escribas «completa las frases» sin escribirlas. ` +
+    `"opcion_multiple": de 3 a 5 opciones en "opciones". "problema": un enunciado con varios pasos.\n` +
     `- "tabla_rellenar": tabla ("columnas" + "filas") con algunas celdas ya dadas y otras en blanco ("") ` +
     `para que el alumnado las complete.\n` +
     `- "relacionar": "izquierda" y "derecha" con el mismo número de elementos, PERO "derecha" EN UN ` +
@@ -1283,7 +1289,8 @@ function cleanFichaContent(
     ...(visual ? { visual: true, conceptos: cleanConceptos(c.conceptos) } : { visual: undefined, conceptos: undefined }),
     hilo: hilo?.id,
     actividades: (c.actividades ?? []).map((act, i) => ({
-      titulo: cleanMathNotation(act.titulo),
+      // El número del bloque lo pone la hoja: «1. El concepto» sin su «1.» (la IA lo escribe a veces)
+      titulo: cleanMathNotation(act.titulo ?? '').replace(/^\s*\d+\s*[.)\-:]\s*/, ''),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
         narrativa: cleanMathNotation(act.narrativa ?? ''),
@@ -1366,8 +1373,70 @@ function numberVarietyHint(): string {
     `VARIEDAD NUMÉRICA: en esta ficha en concreto, procura que las medidas, cantidades y datos de ` +
     `los ejercicios (figuras, problemas, tablas...) se muevan sobre todo entre ${lo} y ${hi} — evita ` +
     `en particular los combos más manidos de los libros de texto (8-4-6, 6-4, 5-3-4, 10-5) y no ` +
-    `repitas los mismos números de un ejercicio a otro dentro de la ficha.`
+    `repitas los mismos números de un ejercicio a otro dentro de la ficha. Los números tienen que ser razonables ` +
+    `para el curso y para la situación (una pizza no se corta en 13 trozos; en fracciones de Primaria, denominadores ` +
+    `como 2, 3, 4, 5, 6, 8 o 10).`
   );
+}
+
+/* ── Ejercicios rotos: lo que la IA promete y la hoja no lleva ── */
+
+const RE_HABLA_DE_DIBUJOS = /\b(?:dibujos?|im[aá]genes?|ilustraci(?:ón|ones)|fotos?|fotograf[ií]as?)\b|\b(?:debajo|bajo) de cada\b|\bqu[eé] (?:ves|aparecen?)\b/i;
+const RE_HUECO = /_{3,}|…{2,}|\.{5,}/;
+
+/**
+ * Qué le pasa a un ejercicio que no se puede hacer tal como lo escribió la IA,
+ * dicho como indicación para rehacerlo; `undefined` si está bien. Casos que
+ * salieron con una IA real: un «escribe el nombre debajo de cada animal» sin
+ * ningún animal dibujado (solo con hilo conductor: sin él no hay dibujos en la
+ * hoja), un «completa las frases» sin las frases y un «relacionar» con las mismas
+ * palabras en las dos columnas.
+ */
+export function problemaDeEjercicio(ex: FichaExercise, conHilo: boolean): string | undefined {
+  if (ex.tipo === 'completar' && !RE_HUECO.test(ex.enunciado)) {
+    return 'Es de tipo "completar" pero el enunciado no tiene la frase con huecos. Escribe en el enunciado la frase o las frases completas, ' +
+      'con cada hueco marcado con ______ (al menos tres guiones bajos), y en la solución las palabras que faltan.';
+  }
+  if (ex.tipo === 'relacionar' && ex.izquierda?.length && ex.derecha?.length) {
+    // Los dos lados con las mismas palabras no es relacionar nada (salió con una IA real: «dos tercios» con «dos tercios»)
+    const plano = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const der = new Set(ex.derecha.map(plano));
+    if (ex.izquierda.filter(x => der.has(plano(x))).length >= Math.min(2, ex.izquierda.length)) {
+      return 'Es de tipo "relacionar" pero las dos columnas repiten las mismas palabras, así que no hay nada que relacionar. En la columna derecha ' +
+        'pon otra cosa que se relacione con cada elemento de la izquierda (su definición, su función, su resultado, su equivalente numérico).';
+    }
+  }
+  if (conHilo && !['colorear', 'comic', 'sopa_letras', 'crucigrama'].includes(ex.tipo) && RE_HABLA_DE_DIBUJOS.test(ex.enunciado)
+    && !ex.dibujos?.length && !ex.categorias?.length && !ex.figura) {
+    return 'El enunciado habla de dibujos o imágenes, pero el ejercicio no lleva ninguno. Rehazlo con dibujos del hilo ' +
+      '("etiquetar" si hay que escribir el nombre de cada uno, "contar" si hay que contarlos, "clasificar" si hay que repartirlos), ' +
+      'o escríbelo sin mencionar dibujos.';
+  }
+  return undefined;
+}
+
+/**
+ * Rehace, una vez cada uno y como mucho tres, los ejercicios rotos de una ficha
+ * recién generada (`problemaDeEjercicio`). Si la IA no contesta, el ejercicio se
+ * queda como estaba: el docente lo ve y lo edita.
+ */
+async function repararFicha(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lang: Lang,
+): Promise<FichaContent> {
+  if ((content.formato ?? 'ficha') !== 'ficha') return content;
+  let actual = content;
+  let hechos = 0;
+  for (let a = 0; a < content.actividades.length && hechos < 3; a++) {
+    for (let e = 0; e < content.actividades[a].ejercicios.length && hechos < 3; e++) {
+      const motivo = problemaDeEjercicio(actual.actividades[a].ejercicios[e], !!actual.hilo);
+      if (!motivo) continue;
+      hechos++;
+      const nuevo = await regenerateExercise(actual, req, a, e, { instruccion: motivo }, lang);
+      if (!nuevo || problemaDeEjercicio(nuevo, !!actual.hilo)) continue;
+      actual = { ...actual, actividades: actual.actividades.map((act, i) => (i === a ? { ...act, ejercicios: act.ejercicios.map((x, j) => (j === e ? nuevo : x)) } : act)) };
+    }
+  }
+  return actual;
 }
 
 /* ── Vía suelta: tema + curso, sin anclar a ninguna SdA ── */
@@ -1388,9 +1457,10 @@ export async function generateFicha(
       `\n${askFor(formato, req.numEjercicios, 'sobre este tema')}\n\n${numberVarietyHint()}`;
 
     const hilo = resolverHilo(req, estilo, formato, visual);
-    return await callFichaText(
+    const content = await callFichaText(
       systemPrompt(req.niveles, lang, estilo, formato, visual, hilo), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo, lang,
     );
+    return content ? await repararFicha(content, req, lang) : null;
   } finally {
     callbacks.onEnd?.();
   }
@@ -1418,7 +1488,8 @@ export async function generateFichaFromSda(
       `\n${askFor(formato, opts.numEjercicios, 'que trabajen estos saberes básicos')}\n\n${numberVarietyHint()}`;
 
     const hilo = resolverHilo({ tema: sda.titulo, area: areaData?.area ?? area, hilo: opts.hilo }, estilo, formato, false);
-    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato, false, hilo), userPrompt, opts.niveles, estilo, formato, callbacks.onError, false, hilo, lang);
+    const content = await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato, false, hilo), userPrompt, opts.niveles, estilo, formato, callbacks.onError, false, hilo, lang);
+    return content ? await repararFicha(content, { tema: sda.titulo, area: areaData?.area ?? area, nivel: '' }, lang) : null;
   } finally {
     callbacks.onEnd?.();
   }
@@ -1433,7 +1504,7 @@ function exerciseForPrompt(ex: FichaExercise): Partial<FichaExercise> {
   return ex.tipo === 'ordenar' && ex.ordenCorrecto?.length ? { ...rest, elementos: ex.ordenCorrecto, ordenCorrecto: undefined } : rest;
 }
 
-function fichaContextForPrompt(c: FichaContent, req: FichaRequest): string {
+function fichaContextForPrompt(c: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>): string {
   return (
     `Ficha: ${c.titulo}\n` +
     `Tema: ${req.tema}\n` +
@@ -1448,7 +1519,7 @@ function fichaContextForPrompt(c: FichaContent, req: FichaRequest): string {
  * fácil», «cámbialo por un crucigrama»…) sin tocar el resto de la ficha.
  */
 export async function regenerateExercise(
-  content: FichaContent, req: FichaRequest, actIdx: number, exIdx: number,
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, actIdx: number, exIdx: number,
   opts: { instruccion: string; tipo?: FichaExerciseType },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaExercise | null> {

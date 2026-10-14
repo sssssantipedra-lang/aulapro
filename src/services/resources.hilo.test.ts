@@ -13,7 +13,7 @@ vi.mock('./gemini', async importOriginal => {
 });
 
 import {
-  adaptFicha, cleanDibujos, conHilo, generateFicha, resolverHilo, regenerateExercise,
+  adaptFicha, cleanDibujos, conHilo, generateFicha, problemaDeEjercicio, resolverHilo, regenerateExercise,
   type FichaContent, type FichaRequest,
 } from './resources';
 
@@ -312,5 +312,87 @@ describe('las demás llamadas conservan el hilo', () => {
     expect(callGemini.mock.calls[0][4].responseSchema.properties.dibujos).toBeDefined();
     // Un dibujo de otro hilo que exista en el catálogo se admite: lo comprueba el catálogo, no el hilo
     expect(ex?.dibujos?.map(d => d.ilustracion)).toEqual(['ani-cerdo', 'esp-cohete']);
+  });
+});
+
+describe('ejercicios rotos: lo que la IA promete y la hoja no lleva', () => {
+  const ex = (o: Record<string, unknown>) => ({ tipo: 'abierta', enunciado: 'x', solucion: '', ...o }) as never;
+
+  it('«completar» sin huecos en el enunciado, o un enunciado que habla de dibujos que no hay, son rotos', () => {
+    expect(problemaDeEjercicio(ex({ tipo: 'completar', enunciado: 'Completa las frases con las palabras adecuadas.' }), true)).toContain('huecos');
+    expect(problemaDeEjercicio(ex({ tipo: 'completar', enunciado: 'El granjero cuida a la ______ y a la ______.' }), true)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ enunciado: 'Escribe el nombre correcto debajo de cada animal de la granja.' }), true)).toContain('dibujos');
+    expect(problemaDeEjercicio(ex({ enunciado: 'Observa la imagen y escribe qué ves.' }), true)).toContain('dibujos');
+  });
+
+  it('«relacionar» con las mismas palabras en las dos columnas es roto; con otras cosas, no', () => {
+    const rel = (izquierda: string[], derecha: string[]) => ex({ tipo: 'relacionar', enunciado: 'Une.', izquierda, derecha });
+    expect(problemaDeEjercicio(rel(['dos tercios', 'tres cuartos', 'cinco sextos'], ['tres cuartos', 'cinco sextos', 'dos tercios']), false)).toContain('mismas palabras');
+    expect(problemaDeEjercicio(rel(['Vaca', 'Oveja'], ['Lana', 'Leche']), false)).toBeUndefined();
+    expect(problemaDeEjercicio(rel(['2/3', '3/4'], ['tres cuartos', 'dos tercios']), false)).toBeUndefined();
+  });
+
+  it('con dibujos, con figura o sin hilo no es roto', () => {
+    const habla = 'Cuenta los animales de los dibujos.';
+    expect(problemaDeEjercicio(ex({ enunciado: habla, dibujos: [{ ilustracion: 'ani-vaca', cantidad: 2 }] }), true)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ tipo: 'clasificar', enunciado: habla, categorias: [{ nombre: 'a', dibujos: [] }] }), true)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ enunciado: habla, figura: { forma: 'rectangulo', medidas: [] } }), true)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ enunciado: habla }), false)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ tipo: 'comic', enunciado: 'Completa el dibujo de la conversación.' }), true)).toBeUndefined();
+    expect(problemaDeEjercicio(ex({ enunciado: 'Dibuja un animal de la granja.' }), true)).toBeUndefined();
+  });
+
+  it('generateFicha rehace una vez el ejercicio roto y deja el resto como estaba', async () => {
+    callGemini
+      .mockResolvedValueOnce(un({ tipo: 'abierta', enunciado: 'Escribe el nombre debajo de cada animal.', solucion: 'x' }))
+      .mockResolvedValueOnce(JSON.stringify({ tipo: 'etiquetar', enunciado: 'Escribe el nombre de cada animal.', solucion: '', dibujos: [{ ilustracion: 'ani-vaca', cantidad: 1 }, { ilustracion: 'ani-cerdo', cantidad: 1 }] }));
+    const f = await generateFicha(req(), 'es');
+    expect(callGemini).toHaveBeenCalledTimes(2);
+    expect(callGemini.mock.calls[1][1]).toContain('habla de dibujos');
+    expect(f!.actividades[0].ejercicios[0].tipo).toBe('etiquetar');
+    expect(f!.actividades[0].ejercicios[0].solucion).toBe('1. vaca, 2. cerdo');
+  });
+
+  it('si la IA no contesta o vuelve a fallar, el ejercicio se queda y no se insiste', async () => {
+    callGemini
+      .mockResolvedValueOnce(un({ tipo: 'completar', enunciado: 'Completa las frases.', solucion: 'x' }))
+      .mockResolvedValueOnce(JSON.stringify({ tipo: 'completar', enunciado: 'Completa la frase otra vez.', solucion: 'y' }));
+    const f = await generateFicha(req(), 'es');
+    expect(callGemini).toHaveBeenCalledTimes(2);
+    expect(f!.actividades[0].ejercicios[0].enunciado).toBe('Completa las frases.');
+    callGemini.mockReset();
+    callGemini.mockResolvedValueOnce(un({ tipo: 'completar', enunciado: 'Completa las frases.', solucion: 'x' }));
+    expect((await generateFicha(req(), 'es'))!.actividades[0].ejercicios[0].enunciado).toBe('Completa las frases.');
+  });
+
+  it('una ficha sin ejercicios rotos no hace ninguna llamada más', async () => {
+    callGemini.mockResolvedValueOnce(respuesta());
+    await generateFicha(req(), 'es');
+    expect(callGemini).toHaveBeenCalledTimes(1);
+  });
+
+  it('el prompt avisa de lo que salió mal con la IA real', async () => {
+    callGemini.mockResolvedValueOnce(respuesta());
+    await generateFicha(req(), 'es');
+    const s = sistema();
+    expect(s).toContain('TIENE que llevar esos dibujos');
+    expect(s).toContain('nunca partes de un dibujo');
+    expect(s).toContain('ES la frase');
+  });
+});
+
+describe('el título de cada bloque', () => {
+  it('pierde el «1.» que la IA a veces le escribe, porque el número lo pone la hoja', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({
+      titulo: 'F', explicacion: '', instrucciones: '',
+      actividades: [
+        { titulo: '1. El concepto de fracción', ejercicios: [ejercicio()] },
+        { titulo: '2) Lectura', ejercicios: [ejercicio()] },
+        { titulo: '3 - Problemas', ejercicios: [ejercicio()] },
+        { titulo: '2024 en la historia', ejercicios: [ejercicio()] },
+      ],
+    }));
+    const f = await generateFicha(req(), 'es');
+    expect(f!.actividades.map(a => a.titulo)).toEqual(['El concepto de fracción', 'Lectura', 'Problemas', '2024 en la historia']);
   });
 });
