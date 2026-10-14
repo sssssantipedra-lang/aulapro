@@ -1,5 +1,635 @@
 [
   {
+    "id": "ani-abeja",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Abeja: insecto que poliniza las flores y hace miel",
+      "ca": "Abella: insecte que pol·linitza les flors i fa mel",
+      "en": "Bee: an insect that pollinates flowers and makes honey"
+    },
+    "temas": [
+      "animal",
+      "insecto",
+      "abeja",
+      "polinizacion",
+      "miel",
+      "flor",
+      "invertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-ardilla",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ardilla con una bellota: roedor del bosque",
+      "ca": "Esquirol amb una gla: rosegador del bosc",
+      "en": "Squirrel with an acorn: a forest rodent"
+    },
+    "temas": [
+      "animal",
+      "ardilla",
+      "roedor",
+      "bosque",
+      "mamifero",
+      "otono",
+      "herbivoro"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-ballena",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ballena: el mayor mamífero marino",
+      "ca": "Balena: el major mamífer marí",
+      "en": "Whale: the largest marine mammal"
+    },
+    "temas": [
+      "animal",
+      "ballena",
+      "mamifero",
+      "marino",
+      "oceano",
+      "mar",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-buho",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Búho: ave nocturna de presa",
+      "ca": "Mussol: ocell nocturn de presa",
+      "en": "Owl: a nocturnal bird of prey"
+    },
+    "temas": [
+      "animal",
+      "buho",
+      "ave",
+      "nocturno",
+      "noche",
+      "rapaz",
+      "bosque"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-caballo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Caballo: animal de granja y de montar, mamífero herbívoro",
+      "ca": "Cavall: animal de granja i de muntar, mamífer herbívor",
+      "en": "Horse: a farm and riding animal, a herbivore mammal"
+    },
+    "temas": [
+      "animal",
+      "granja",
+      "caballo",
+      "herbivoro",
+      "mamifero",
+      "transporte"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-caracol",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Caracol: molusco terrestre con concha en espiral",
+      "ca": "Cargol: mol·lusc terrestre amb closca en espiral",
+      "en": "Snail: a land mollusc with a spiral shell"
+    },
+    "temas": [
+      "animal",
+      "caracol",
+      "molusco",
+      "invertebrado",
+      "concha",
+      "espiral",
+      "jardin"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-cebra",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cebra: herbívoro rayado de la sabana",
+      "ca": "Zebra: herbívor ratllat de la sabana",
+      "en": "Zebra: a striped savanna herbivore"
+    },
+    "temas": [
+      "animal",
+      "cebra",
+      "sabana",
+      "herbivoro",
+      "africa",
+      "mamifero",
+      "rayas"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-cerdo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cerdo: animal de granja, mamífero omnívoro",
+      "ca": "Porc: animal de granja, mamífer omnívor",
+      "en": "Pig: a farm animal, an omnivore mammal"
+    },
+    "temas": [
+      "animal",
+      "cerdo",
+      "granja",
+      "omnivoro",
+      "mamifero",
+      "ganaderia",
+      "domestico"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-cocodrilo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cocodrilo: reptil carnívoro de los ríos",
+      "ca": "Cocodril: rèptil carnívor dels rius",
+      "en": "Crocodile: a carnivore river reptile"
+    },
+    "temas": [
+      "animal",
+      "cocodrilo",
+      "reptil",
+      "carnivoro",
+      "rio",
+      "africa",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-conejo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Conejo: mamífero herbívoro de orejas largas",
+      "ca": "Conill: mamífer herbívor d’orelles llargues",
+      "en": "Rabbit: a herbivore mammal with long ears"
+    },
+    "temas": [
+      "animal",
+      "conejo",
+      "herbivoro",
+      "mamifero",
+      "mascota",
+      "granja",
+      "domestico"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-delfin",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Delfín saltando: mamífero marino",
+      "ca": "Dofí saltant: mamífer marí",
+      "en": "Jumping dolphin: a marine mammal"
+    },
+    "temas": [
+      "animal",
+      "delfin",
+      "mamifero",
+      "marino",
+      "oceano",
+      "mar",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-elefante",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Elefante: el mayor animal terrestre, mamífero herbívoro",
+      "ca": "Elefant: el major animal terrestre, mamífer herbívor",
+      "en": "Elephant: the largest land animal, a herbivore mammal"
+    },
+    "temas": [
+      "animal",
+      "salvaje",
+      "elefante",
+      "herbivoro",
+      "mamifero",
+      "africa",
+      "asia"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-gallina",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gallina con un huevo: ave de granja, animal ovíparo",
+      "ca": "Gallina amb un ou: ocell de granja, animal ovípar",
+      "en": "Hen with an egg: a farm bird, an egg-laying animal"
+    },
+    "temas": [
+      "animal",
+      "granja",
+      "gallina",
+      "ave",
+      "huevo",
+      "oviparo",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-gato",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gato sentado: animal doméstico, felino, mamífero",
+      "ca": "Gat assegut: animal domèstic, felí, mamífer",
+      "en": "Sitting cat: a domestic feline mammal"
+    },
+    "temas": [
+      "animal",
+      "mascota",
+      "gato",
+      "mamifero",
+      "domestico",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-hipopotamo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Hipopótamo: mamífero herbívoro de los ríos africanos",
+      "ca": "Hipopòtam: mamífer herbívor dels rius africans",
+      "en": "Hippo: a herbivore mammal of African rivers"
+    },
+    "temas": [
+      "animal",
+      "hipopotamo",
+      "herbivoro",
+      "rio",
+      "africa",
+      "mamifero",
+      "salvaje"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-hormiga",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Hormiga con una hoja: insecto que vive en colonias",
+      "ca": "Formiga amb una fulla: insecte que viu en colònies",
+      "en": "Ant carrying a leaf: an insect that lives in colonies"
+    },
+    "temas": [
+      "animal",
+      "hormiga",
+      "insecto",
+      "invertebrado",
+      "colonia",
+      "trabajo en equipo",
+      "hormiguero"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-jirafa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Jirafa: el animal más alto, herbívoro de la sabana",
+      "ca": "Girafa: l’animal més alt, herbívor de la sabana",
+      "en": "Giraffe: the tallest animal, a savanna herbivore"
+    },
+    "temas": [
+      "animal",
+      "jirafa",
+      "herbivoro",
+      "sabana",
+      "africa",
+      "mamifero",
+      "salvaje"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-leon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "León: felino salvaje de la sabana, mamífero carnívoro",
+      "ca": "Lleó: felí salvatge de la sabana, mamífer carnívor",
+      "en": "Lion: a wild savanna feline, a carnivore mammal"
+    },
+    "temas": [
+      "animal",
+      "salvaje",
+      "leon",
+      "felino",
+      "carnivoro",
+      "mamifero",
+      "sabana",
+      "africa"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-mariposa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mariposa: insecto que pasa por la metamorfosis",
+      "ca": "Papallona: insecte que passa per la metamorfosi",
+      "en": "Butterfly: an insect that goes through metamorphosis"
+    },
+    "temas": [
+      "animal",
+      "insecto",
+      "mariposa",
+      "metamorfosis",
+      "ciclo de vida",
+      "invertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-mono",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mono con un plátano: mamífero de la selva",
+      "ca": "Mico amb un plàtan: mamífer de la selva",
+      "en": "Monkey with a banana: a jungle mammal"
+    },
+    "temas": [
+      "animal",
+      "mono",
+      "selva",
+      "mamifero",
+      "primate",
+      "omnivoro",
+      "salvaje"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-oso",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Oso pardo: mamífero omnívoro del bosque que hiberna",
+      "ca": "Ós bru: mamífer omnívor del bosc que hiberna",
+      "en": "Brown bear: an omnivore forest mammal that hibernates"
+    },
+    "temas": [
+      "animal",
+      "oso",
+      "mamifero",
+      "omnivoro",
+      "bosque",
+      "hibernacion",
+      "salvaje"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-oveja",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Oveja: animal de granja que da lana",
+      "ca": "Ovella: animal de granja que dona llana",
+      "en": "Sheep: a farm animal that gives wool"
+    },
+    "temas": [
+      "animal",
+      "oveja",
+      "lana",
+      "granja",
+      "herbivoro",
+      "mamifero",
+      "ganaderia"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-pajaro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pájaro con las alas abiertas: ave que vuela, con pico y plumas",
+      "ca": "Ocell amb les ales obertes: ocell que vola, amb bec i plomes",
+      "en": "Bird with open wings: a flying animal with a beak and feathers"
+    },
+    "temas": [
+      "animal",
+      "ave",
+      "pajaro",
+      "volar",
+      "plumas",
+      "pico",
+      "oviparo",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-pato",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pato: ave acuática de granja y de estanque",
+      "ca": "Ànec: ocell aquàtic de granja i d’estany",
+      "en": "Duck: a farm and pond water bird"
+    },
+    "temas": [
+      "animal",
+      "pato",
+      "ave",
+      "acuatico",
+      "granja",
+      "estanque",
+      "oviparo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "ani-perro",
     "uso": "objeto",
     "descripcion": {
@@ -18,6 +648,2755 @@
     "areas": [
       "cienciasNaturales",
       "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-pez",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pez: animal acuático, vertebrado que respira por branquias",
+      "ca": "Peix: animal aquàtic, vertebrat que respira per brànquies",
+      "en": "Fish: an aquatic vertebrate that breathes through gills"
+    },
+    "temas": [
+      "animal",
+      "pez",
+      "acuatico",
+      "agua",
+      "branquias",
+      "vertebrado",
+      "oceano",
+      "rio"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-pinguino",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pingüino: ave que no vuela y vive en zonas polares",
+      "ca": "Pingüí: ocell que no vola i viu a zones polars",
+      "en": "Penguin: a flightless bird that lives in polar regions"
+    },
+    "temas": [
+      "animal",
+      "pinguino",
+      "ave",
+      "polar",
+      "antartida",
+      "frio",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-pulpo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pulpo: molusco marino de ocho tentáculos",
+      "ca": "Pop: mol·lusc marí de vuit tentacles",
+      "en": "Octopus: a marine mollusc with eight tentacles"
+    },
+    "temas": [
+      "animal",
+      "pulpo",
+      "molusco",
+      "marino",
+      "invertebrado",
+      "oceano",
+      "mar"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-rana",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Rana: anfibio que nace en el agua y vive en la tierra",
+      "ca": "Granota: amfibi que neix a l’aigua i viu a terra",
+      "en": "Frog: an amphibian that is born in water and lives on land"
+    },
+    "temas": [
+      "animal",
+      "anfibio",
+      "rana",
+      "ciclo de vida",
+      "vertebrado",
+      "agua"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-serpiente",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Serpiente: reptil sin patas",
+      "ca": "Serp: rèptil sense potes",
+      "en": "Snake: a legless reptile"
+    },
+    "temas": [
+      "animal",
+      "serpiente",
+      "reptil",
+      "vertebrado",
+      "selva",
+      "oviparo",
+      "desierto"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-tiburon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tiburón: pez carnívoro del océano",
+      "ca": "Tauró: peix carnívor de l’oceà",
+      "en": "Shark: a carnivore ocean fish"
+    },
+    "temas": [
+      "animal",
+      "tiburon",
+      "pez",
+      "carnivoro",
+      "oceano",
+      "mar",
+      "marino"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-tortuga",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tortuga: reptil con caparazón, vertebrado",
+      "ca": "Tortuga: rèptil amb closca, vertebrat",
+      "en": "Turtle: a shelled reptile, a vertebrate"
+    },
+    "temas": [
+      "animal",
+      "reptil",
+      "tortuga",
+      "caparazon",
+      "vertebrado",
+      "oviparo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-vaca",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Vaca: animal de granja que da leche, mamífero herbívoro",
+      "ca": "Vaca: animal de granja que dona llet, mamífer herbívor",
+      "en": "Cow: a farm animal that gives milk, a herbivore mammal"
+    },
+    "temas": [
+      "animal",
+      "granja",
+      "vaca",
+      "leche",
+      "herbivoro",
+      "mamifero",
+      "ganaderia"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "ani-zorro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Zorro: mamífero carnívoro del bosque",
+      "ca": "Guineu: mamífer carnívor del bosc",
+      "en": "Fox: a carnivore forest mammal"
+    },
+    "temas": [
+      "animal",
+      "zorro",
+      "carnivoro",
+      "bosque",
+      "mamifero",
+      "salvaje",
+      "cuento"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "art-acuarelas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Caja de acuarelas con un pincel: pintura y mezcla de colores",
+      "ca": "Caixa d’aquarel·les amb un pinzell: pintura i barreja de colors",
+      "en": "Watercolor box with a brush: painting and color mixing"
+    },
+    "temas": [
+      "acuarela",
+      "pintura",
+      "color",
+      "mezcla de colores",
+      "colores primarios",
+      "pincel",
+      "creatividad"
+    ],
+    "areas": [
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "art-caballete",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Caballete con un cuadro: pintura y arte",
+      "ca": "Cavallet amb un quadre: pintura i art",
+      "en": "Easel with a painting: painting and art"
+    },
+    "temas": [
+      "arte",
+      "pintura",
+      "caballete",
+      "cuadro",
+      "artista",
+      "paisaje",
+      "museo",
+      "creatividad"
+    ],
+    "areas": [
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "art-marco",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cuadro con marco dorado: museo, arte y exposiciones",
+      "ca": "Quadre amb marc daurat: museu, art i exposicions",
+      "en": "Golden framed picture: museum, art and exhibitions"
+    },
+    "temas": [
+      "arte",
+      "cuadro",
+      "marco",
+      "museo",
+      "exposicion",
+      "pintura",
+      "cultura",
+      "artista"
+    ],
+    "areas": [
+      "plastica",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "art-pinceles",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pinceles y un bote de pintura: pintar y colores",
+      "ca": "Pinzells i un pot de pintura: pintar i colors",
+      "en": "Paintbrushes and a jar of paint: painting and colors"
+    },
+    "temas": [
+      "arte",
+      "pincel",
+      "pintura",
+      "color",
+      "colores",
+      "pintar",
+      "creatividad",
+      "taller"
+    ],
+    "areas": [
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "art-plastilina",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Plastilina de colores: modelar y esculpir",
+      "ca": "Plastilina de colors: modelar i esculpir",
+      "en": "Colorful modeling clay: shaping and sculpting"
+    },
+    "temas": [
+      "plastilina",
+      "modelar",
+      "escultura",
+      "color",
+      "manualidad",
+      "creatividad",
+      "taller",
+      "volumen"
+    ],
+    "areas": [
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-adn",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "ADN: la herencia y la genética",
+      "ca": "ADN: l’herència i la genètica",
+      "en": "DNA: heredity and genetics"
+    },
+    "temas": [
+      "adn",
+      "genetica",
+      "herencia",
+      "celula",
+      "biologia",
+      "ser vivo",
+      "helice",
+      "cromosoma"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-atomo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Átomo con electrones: materia y química",
+      "ca": "Àtom amb electrons: matèria i química",
+      "en": "Atom with electrons: matter and chemistry"
+    },
+    "temas": [
+      "atomo",
+      "materia",
+      "quimica",
+      "electron",
+      "ciencia",
+      "particula",
+      "fisica"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-bateria",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pila con un rayo: electricidad y energía",
+      "ca": "Pila amb un llamp: electricitat i energia",
+      "en": "Battery with a lightning bolt: electricity and energy"
+    },
+    "temas": [
+      "pila",
+      "bateria",
+      "electricidad",
+      "energia",
+      "corriente",
+      "carga",
+      "circuito",
+      "fisica"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-circuito",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Circuito eléctrico sencillo con pila y bombilla: electricidad y energía",
+      "ca": "Circuit elèctric senzill amb pila i bombeta: electricitat i energia",
+      "en": "Simple electric circuit with a battery and a light bulb: electricity and energy"
+    },
+    "temas": [
+      "electricidad",
+      "circuito",
+      "pila",
+      "bombilla",
+      "energia",
+      "corriente",
+      "experimento",
+      "fisica"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-engranajes",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Engranajes: máquinas, movimiento y tecnología",
+      "ca": "Engranatges: màquines, moviment i tecnologia",
+      "en": "Gears: machines, movement and technology"
+    },
+    "temas": [
+      "engranaje",
+      "maquina",
+      "mecanismo",
+      "movimiento",
+      "tecnologia",
+      "fuerza",
+      "ingenieria",
+      "rueda"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-iman",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Imán que atrae clips: magnetismo y fuerzas",
+      "ca": "Imant que atrau clips: magnetisme i forces",
+      "en": "Magnet attracting paper clips: magnetism and forces"
+    },
+    "temas": [
+      "iman",
+      "magnetismo",
+      "fuerza",
+      "atraccion",
+      "metal",
+      "experimento",
+      "fisica"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-polea",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Polea con cuerda y cubo: máquinas simples y fuerza",
+      "ca": "Politja amb corda i galleda: màquines simples i força",
+      "en": "Pulley with a rope and bucket: simple machines and force"
+    },
+    "temas": [
+      "polea",
+      "maquina simple",
+      "fuerza",
+      "palanca",
+      "peso",
+      "cuerda",
+      "fisica",
+      "mecanismo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-prisma",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Prisma que descompone la luz: colores y óptica",
+      "ca": "Prisma que descompon la llum: colors i òptica",
+      "en": "Prism splitting light: colors and optics"
+    },
+    "temas": [
+      "prisma",
+      "luz",
+      "color",
+      "arcoiris",
+      "optica",
+      "espectro",
+      "refraccion",
+      "fisica"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-probeta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tubos de ensayo con líquidos de colores: experimentos",
+      "ca": "Tubs d’assaig amb líquids de colors: experiments",
+      "en": "Test tubes with colorful liquids: experiments"
+    },
+    "temas": [
+      "probeta",
+      "tubo de ensayo",
+      "experimento",
+      "laboratorio",
+      "quimica",
+      "mezcla",
+      "liquido",
+      "ciencia"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-reciclaje",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Contenedores de reciclaje azul, amarillo y verde: residuos y medio ambiente",
+      "ca": "Contenidors de reciclatge blau, groc i verd: residus i medi ambient",
+      "en": "Blue, yellow and green recycling bins: waste and the environment"
+    },
+    "temas": [
+      "reciclaje",
+      "residuos",
+      "basura",
+      "contenedor",
+      "medio ambiente",
+      "sostenible",
+      "cuidado del planeta",
+      "reutilizar"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-renovables",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Aerogenerador y panel solar: energías renovables",
+      "ca": "Aerogenerador i placa solar: energies renovables",
+      "en": "Wind turbine and solar panel: renewable energy"
+    },
+    "temas": [
+      "energia",
+      "renovable",
+      "solar",
+      "eolica",
+      "viento",
+      "medio ambiente",
+      "electricidad",
+      "sostenible"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cie-robot",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Robot simpático: robótica, programación y tecnología",
+      "ca": "Robot simpàtic: robòtica, programació i tecnologia",
+      "en": "Friendly robot: robotics, programming and technology"
+    },
+    "temas": [
+      "robot",
+      "robotica",
+      "programacion",
+      "tecnologia",
+      "maquina",
+      "inteligencia artificial",
+      "futuro",
+      "automatizacion"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-agua",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Vaso de agua: hidratación y el agua como recurso",
+      "ca": "Got d’aigua: hidratació i l’aigua com a recurs",
+      "en": "Glass of water: hydration and water as a resource"
+    },
+    "temas": [
+      "agua",
+      "vaso",
+      "hidratacion",
+      "bebida",
+      "salud",
+      "liquido",
+      "recurso",
+      "ciclo del agua"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-brocoli",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Brócoli: verdura, alimentación saludable",
+      "ca": "Bròquil: verdura, alimentació saludable",
+      "en": "Broccoli: a vegetable, healthy eating"
+    },
+    "temas": [
+      "verdura",
+      "brocoli",
+      "alimentacion",
+      "comida",
+      "saludable",
+      "huerto",
+      "vitamina"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-fresa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Fresa: fruta roja, alimentación saludable",
+      "ca": "Maduixa: fruita vermella, alimentació saludable",
+      "en": "Strawberry: a red fruit, healthy eating"
+    },
+    "temas": [
+      "fruta",
+      "fresa",
+      "alimentacion",
+      "comida",
+      "vitamina",
+      "saludable",
+      "primavera"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-helado",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Helado de dos bolas: postre, verano y fracciones",
+      "ca": "Gelat de dues boles: postres, estiu i fraccions",
+      "en": "Two-scoop ice cream: dessert, summer and fractions"
+    },
+    "temas": [
+      "helado",
+      "postre",
+      "verano",
+      "comida",
+      "alimentacion",
+      "dulce",
+      "contar"
+    ],
+    "areas": [
+      "general",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-huevo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Huevo frito: alimento de origen animal, proteínas",
+      "ca": "Ou ferrat: aliment d’origen animal, proteïnes",
+      "en": "Fried egg: an animal-origin food, protein"
+    },
+    "temas": [
+      "huevo",
+      "alimentacion",
+      "comida",
+      "proteina",
+      "oviparo",
+      "desayuno",
+      "dieta"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-limon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Limón: cítrico, vitamina C",
+      "ca": "Llimona: cítric, vitamina C",
+      "en": "Lemon: a citrus fruit, vitamin C"
+    },
+    "temas": [
+      "fruta",
+      "limon",
+      "citrico",
+      "vitamina",
+      "alimentacion",
+      "comida",
+      "acido"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-manzana",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Manzana roja: fruta, alimentación saludable, objeto para contar",
+      "ca": "Poma vermella: fruita, alimentació saludable, objecte per comptar",
+      "en": "Red apple: a fruit, healthy eating, an object to count"
+    },
+    "temas": [
+      "fruta",
+      "manzana",
+      "alimentacion",
+      "comida",
+      "contar",
+      "saludable",
+      "vitamina"
+    ],
+    "areas": [
+      "matematicas",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-naranja",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Naranja entera y en gajos: fruta cítrica, vitamina C, fracciones",
+      "ca": "Taronja sencera i en grills: fruita cítrica, vitamina C, fraccions",
+      "en": "Orange whole and in segments: a citrus fruit, vitamin C, fractions"
+    },
+    "temas": [
+      "fruta",
+      "naranja",
+      "citrico",
+      "vitamina",
+      "alimentacion",
+      "comida",
+      "fraccion",
+      "contar"
+    ],
+    "areas": [
+      "matematicas",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-pan",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pan y leche: alimentos básicos, desayuno, dieta",
+      "ca": "Pa i llet: aliments bàsics, esmorzar, dieta",
+      "en": "Bread and milk: basic foods, breakfast, diet"
+    },
+    "temas": [
+      "alimentacion",
+      "pan",
+      "leche",
+      "desayuno",
+      "comida",
+      "dieta",
+      "cereal",
+      "lacteo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-patata",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Patata: tubérculo, alimento básico",
+      "ca": "Patata: tubercle, aliment bàsic",
+      "en": "Potato: a tuber, a staple food"
+    },
+    "temas": [
+      "verdura",
+      "patata",
+      "tuberculo",
+      "alimentacion",
+      "comida",
+      "huerto",
+      "basico"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-pera",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pera: fruta, alimentación saludable",
+      "ca": "Pera: fruita, alimentació saludable",
+      "en": "Pear: a fruit, healthy eating"
+    },
+    "temas": [
+      "fruta",
+      "pera",
+      "alimentacion",
+      "comida",
+      "saludable",
+      "vitamina",
+      "contar"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-pescado",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pescado en un plato: alimento, proteínas y dieta",
+      "ca": "Peix en un plat: aliment, proteïnes i dieta",
+      "en": "Fish on a plate: food, protein and diet"
+    },
+    "temas": [
+      "pescado",
+      "alimentacion",
+      "comida",
+      "proteina",
+      "dieta",
+      "mar",
+      "plato"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-platano",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Plátano: fruta, alimentación saludable, objeto para contar",
+      "ca": "Plàtan: fruita, alimentació saludable, objecte per comptar",
+      "en": "Banana: a fruit, healthy eating, an object to count"
+    },
+    "temas": [
+      "fruta",
+      "platano",
+      "banana",
+      "alimentacion",
+      "comida",
+      "contar",
+      "saludable"
+    ],
+    "areas": [
+      "matematicas",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-queso",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cuña de queso: lácteo, alimentación",
+      "ca": "Tros de formatge: làctic, alimentació",
+      "en": "Wedge of cheese: a dairy product, food"
+    },
+    "temas": [
+      "queso",
+      "lacteo",
+      "alimentacion",
+      "comida",
+      "leche",
+      "fraccion",
+      "dieta"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-sandia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Rodaja de sandía: fruta de verano, fracciones",
+      "ca": "Llesca de síndria: fruita d’estiu, fraccions",
+      "en": "Watermelon slice: a summer fruit, fractions"
+    },
+    "temas": [
+      "fruta",
+      "sandia",
+      "verano",
+      "alimentacion",
+      "comida",
+      "fraccion",
+      "agua"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-tarta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tarta de cumpleaños con velas: fiestas y fracciones",
+      "ca": "Pastís d’aniversari amb espelmes: festes i fraccions",
+      "en": "Birthday cake with candles: parties and fractions"
+    },
+    "temas": [
+      "tarta",
+      "cumpleanos",
+      "fiesta",
+      "celebracion",
+      "dulce",
+      "fraccion",
+      "edad",
+      "comida"
+    ],
+    "areas": [
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-tomate",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tomate: hortaliza, alimentación saludable",
+      "ca": "Tomàquet: hortalissa, alimentació saludable",
+      "en": "Tomato: a vegetable, healthy eating"
+    },
+    "temas": [
+      "verdura",
+      "hortaliza",
+      "tomate",
+      "alimentacion",
+      "comida",
+      "huerto",
+      "saludable"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-uvas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Racimo de uvas: fruta, vendimia y vino",
+      "ca": "Raïm: fruita, verema i vi",
+      "en": "Bunch of grapes: fruit, harvest and wine"
+    },
+    "temas": [
+      "fruta",
+      "uva",
+      "racimo",
+      "alimentacion",
+      "comida",
+      "vendimia",
+      "otono"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "com-zanahoria",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Zanahoria: verdura, hortaliza, alimentación saludable",
+      "ca": "Pastanaga: verdura, hortalissa, alimentació saludable",
+      "en": "Carrot: a vegetable, healthy eating"
+    },
+    "temas": [
+      "verdura",
+      "hortaliza",
+      "zanahoria",
+      "alimentacion",
+      "comida",
+      "saludable",
+      "huerto"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-botiquin",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Botiquín con cruz roja: primeros auxilios y salud",
+      "ca": "Farmaciola amb creu roja: primers auxilis i salut",
+      "en": "First aid kit with a red cross: first aid and health"
+    },
+    "temas": [
+      "botiquin",
+      "primeros auxilios",
+      "salud",
+      "herida",
+      "seguridad",
+      "medicina",
+      "accidente",
+      "cuidado"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-cerebro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cerebro: el sistema nervioso y pensar",
+      "ca": "Cervell: el sistema nerviós i pensar",
+      "en": "Brain: the nervous system and thinking"
+    },
+    "temas": [
+      "cerebro",
+      "sistema nervioso",
+      "pensar",
+      "cuerpo humano",
+      "organo",
+      "memoria",
+      "inteligencia",
+      "mente"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-corazon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Corazón: aparato circulatorio y cuerpo humano",
+      "ca": "Cor: aparell circulatori i cos humà",
+      "en": "Heart: the circulatory system and the human body"
+    },
+    "temas": [
+      "corazon",
+      "circulatorio",
+      "sangre",
+      "cuerpo humano",
+      "organo",
+      "salud",
+      "latido"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-dientes",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cepillo de dientes y diente sonriente: higiene y salud",
+      "ca": "Raspall de dents i dent somrient: higiene i salut",
+      "en": "Toothbrush and a smiling tooth: hygiene and health"
+    },
+    "temas": [
+      "dientes",
+      "higiene",
+      "salud",
+      "cepillo",
+      "habitos saludables",
+      "cuerpo humano",
+      "rutina"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-esqueleto",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Esqueleto humano: huesos y aparato locomotor",
+      "ca": "Esquelet humà: ossos i aparell locomotor",
+      "en": "Human skeleton: bones and the locomotor system"
+    },
+    "temas": [
+      "esqueleto",
+      "huesos",
+      "locomotor",
+      "cuerpo humano",
+      "articulaciones",
+      "salud",
+      "musculos"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-estomago",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Estómago e intestinos: el aparato digestivo",
+      "ca": "Estómac i intestins: l’aparell digestiu",
+      "en": "Stomach and intestines: the digestive system"
+    },
+    "temas": [
+      "estomago",
+      "digestivo",
+      "digestion",
+      "cuerpo humano",
+      "intestino",
+      "organo",
+      "alimentacion"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-huella",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Huellas de pies: el cuerpo, el movimiento y el rastro",
+      "ca": "Petjades de peus: el cos, el moviment i el rastre",
+      "en": "Footprints: the body, movement and tracks"
+    },
+    "temas": [
+      "huella",
+      "pie",
+      "cuerpo humano",
+      "movimiento",
+      "caminar",
+      "rastro",
+      "medir",
+      "descalzo"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-lengua",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Boca con lengua: el sentido del gusto",
+      "ca": "Boca amb llengua: el sentit del gust",
+      "en": "Mouth with a tongue: the sense of taste"
+    },
+    "temas": [
+      "boca",
+      "lengua",
+      "gusto",
+      "sabor",
+      "sentidos",
+      "cuerpo humano",
+      "comer"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-mano",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mano abierta: el sentido del tacto y contar hasta cinco",
+      "ca": "Mà oberta: el sentit del tacte i comptar fins a cinc",
+      "en": "Open hand: the sense of touch and counting to five"
+    },
+    "temas": [
+      "mano",
+      "tacto",
+      "sentidos",
+      "cuerpo humano",
+      "dedos",
+      "contar",
+      "piel",
+      "saludo"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-musculo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Brazo fuerte: músculos, fuerza y ejercicio",
+      "ca": "Braç fort: músculs, força i exercici",
+      "en": "Strong arm: muscles, strength and exercise"
+    },
+    "temas": [
+      "musculo",
+      "fuerza",
+      "ejercicio",
+      "cuerpo humano",
+      "brazo",
+      "deporte",
+      "locomotor",
+      "salud"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-nariz",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Nariz oliendo una flor: el sentido del olfato",
+      "ca": "Nas olorant una flor: el sentit de l’olfacte",
+      "en": "Nose smelling a flower: the sense of smell"
+    },
+    "temas": [
+      "nariz",
+      "olfato",
+      "olor",
+      "sentidos",
+      "cuerpo humano",
+      "flor",
+      "respiracion"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-ojo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ojo: el sentido de la vista",
+      "ca": "Ull: el sentit de la vista",
+      "en": "Eye: the sense of sight"
+    },
+    "temas": [
+      "ojo",
+      "vista",
+      "sentidos",
+      "cuerpo humano",
+      "observar",
+      "luz",
+      "color"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-oreja",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Oreja: el sentido del oído",
+      "ca": "Orella: el sentit de l’oïda",
+      "en": "Ear: the sense of hearing"
+    },
+    "temas": [
+      "oreja",
+      "oido",
+      "sonido",
+      "sentidos",
+      "cuerpo humano",
+      "escuchar",
+      "musica"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-pulmones",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pulmones: aparato respiratorio y cuerpo humano",
+      "ca": "Pulmons: aparell respiratori i cos humà",
+      "en": "Lungs: the respiratory system and the human body"
+    },
+    "temas": [
+      "pulmones",
+      "respiratorio",
+      "respiracion",
+      "aire",
+      "cuerpo humano",
+      "organo",
+      "oxigeno"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-baloncesto",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Balón de baloncesto y canasta: deporte de equipo",
+      "ca": "Pilota de bàsquet i cistella: esport d’equip",
+      "en": "Basketball and hoop: a team sport"
+    },
+    "temas": [
+      "deporte",
+      "baloncesto",
+      "balon",
+      "equipo",
+      "juego",
+      "canasta",
+      "educacion fisica"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-cuerda",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Comba: saltar, coordinación y juegos de patio",
+      "ca": "Corda de saltar: saltar, coordinació i jocs de pati",
+      "en": "Skipping rope: jumping, coordination and playground games"
+    },
+    "temas": [
+      "deporte",
+      "comba",
+      "cuerda",
+      "saltar",
+      "juego",
+      "coordinacion",
+      "patio",
+      "educacion fisica"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-futbol",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Balón de fútbol: deporte de equipo",
+      "ca": "Pilota de futbol: esport d’equip",
+      "en": "Soccer ball: a team sport"
+    },
+    "temas": [
+      "deporte",
+      "futbol",
+      "balon",
+      "equipo",
+      "porteria",
+      "juego",
+      "educacion fisica"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-gimnasia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niño haciendo el pino sobre una colchoneta: gimnasia",
+      "ca": "Nen fent la vertical sobre una màrfega: gimnàstica",
+      "en": "Child doing a handstand on a mat: gymnastics"
+    },
+    "temas": [
+      "deporte",
+      "gimnasia",
+      "voltereta",
+      "flexibilidad",
+      "colchoneta",
+      "ejercicio",
+      "educacion fisica",
+      "equilibrio"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-natacion",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cara con gorro y gafas de natación en el agua: deporte acuático",
+      "ca": "Cara amb gorra i ulleres de natació a l’aigua: esport aquàtic",
+      "en": "Face with swim cap and goggles in the water: a water sport"
+    },
+    "temas": [
+      "deporte",
+      "natacion",
+      "agua",
+      "piscina",
+      "salud",
+      "ejercicio",
+      "educacion fisica",
+      "verano"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-patines",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Patines: equilibrio, deporte y movilidad",
+      "ca": "Patins: equilibri, esport i mobilitat",
+      "en": "Roller skates: balance, sport and mobility"
+    },
+    "temas": [
+      "deporte",
+      "patines",
+      "equilibrio",
+      "ruedas",
+      "juego",
+      "movilidad",
+      "educacion fisica",
+      "patinaje"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-tenis",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Raqueta y pelota de tenis: deporte de raqueta",
+      "ca": "Raqueta i pilota de tennis: esport de raqueta",
+      "en": "Tennis racket and ball: a racket sport"
+    },
+    "temas": [
+      "deporte",
+      "tenis",
+      "raqueta",
+      "pelota",
+      "juego",
+      "individual",
+      "educacion fisica"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-voleibol",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Balón de voleibol y red: deporte de equipo",
+      "ca": "Pilota de voleibol i xarxa: esport d’equip",
+      "en": "Volleyball and net: a team sport"
+    },
+    "temas": [
+      "deporte",
+      "voleibol",
+      "balon",
+      "red",
+      "equipo",
+      "juego",
+      "educacion fisica"
+    ],
+    "areas": [
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "dep-zapatillas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Zapatillas de deporte y botella de agua: ejercicio y hábitos saludables",
+      "ca": "Sabatilles d’esport i ampolla d’aigua: exercici i hàbits saludables",
+      "en": "Running shoes and a water bottle: exercise and healthy habits"
+    },
+    "temas": [
+      "deporte",
+      "ejercicio",
+      "carrera",
+      "salud",
+      "habitos saludables",
+      "agua",
+      "calentamiento",
+      "educacion fisica"
+    ],
+    "areas": [
+      "educacionFisica",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-autobus",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Autobús escolar amarillo: el colegio y el transporte",
+      "ca": "Autobús escolar groc: l’escola i el transport",
+      "en": "Yellow school bus: school and transport"
+    },
+    "temas": [
+      "autobus",
+      "escolar",
+      "colegio",
+      "transporte",
+      "viaje",
+      "excursion",
+      "ruta"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-calculadora",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Calculadora: cálculo, operaciones y números",
+      "ca": "Calculadora: càlcul, operacions i nombres",
+      "en": "Calculator: calculation, operations and numbers"
+    },
+    "temas": [
+      "calculadora",
+      "calculo",
+      "operacion",
+      "numero",
+      "suma",
+      "resta",
+      "multiplicacion",
+      "division",
+      "tecnologia"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-cuaderno",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cuaderno abierto con un lápiz: escribir y tomar apuntes",
+      "ca": "Quadern obert amb un llapis: escriure i prendre apunts",
+      "en": "Open notebook with a pencil: writing and taking notes"
+    },
+    "temas": [
+      "cuaderno",
+      "escribir",
+      "apuntes",
+      "lapiz",
+      "tarea",
+      "deberes",
+      "redaccion",
+      "estudio"
+    ],
+    "areas": [
+      "lengua",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-diploma",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Diploma enrollado con lazo: reconocimientos y logros",
+      "ca": "Diploma enrotllat amb llaç: reconeixements i assoliments",
+      "en": "Rolled diploma with a ribbon: recognition and achievements"
+    },
+    "temas": [
+      "diploma",
+      "premio",
+      "logro",
+      "reconocimiento",
+      "graduacion",
+      "esfuerzo",
+      "evaluacion"
+    ],
+    "areas": [
+      "general",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-estuche",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Estuche con un lápiz: material escolar",
+      "ca": "Estoig amb un llapis: material escolar",
+      "en": "Pencil case with a pencil: school supplies"
+    },
+    "temas": [
+      "estuche",
+      "material escolar",
+      "lapiz",
+      "colegio",
+      "clase",
+      "estudio",
+      "mochila"
+    ],
+    "areas": [
+      "general",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-lapices",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Lápices de colores en un vaso: dibujo y material escolar",
+      "ca": "Llapis de colors en un got: dibuix i material escolar",
+      "en": "Colored pencils in a cup: drawing and school supplies"
+    },
+    "temas": [
+      "lapiz",
+      "colores",
+      "dibujo",
+      "material escolar",
+      "colorear",
+      "plastica",
+      "estuche"
+    ],
+    "areas": [
+      "plastica",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-libro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pila de libros con uno abierto: lectura y biblioteca",
+      "ca": "Pila de llibres amb un d’obert: lectura i biblioteca",
+      "en": "Stack of books with an open one: reading and the library"
+    },
+    "temas": [
+      "libro",
+      "lectura",
+      "leer",
+      "biblioteca",
+      "cuento",
+      "texto",
+      "literatura",
+      "estudio"
+    ],
+    "areas": [
+      "lengua",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-medalla",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Medalla de oro: premios, logros y deporte",
+      "ca": "Medalla d’or: premis, assoliments i esport",
+      "en": "Gold medal: awards, achievements and sport"
+    },
+    "temas": [
+      "medalla",
+      "premio",
+      "logro",
+      "victoria",
+      "deporte",
+      "olimpiada",
+      "esfuerzo",
+      "primero"
+    ],
+    "areas": [
+      "educacionFisica",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-microscopio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Microscopio: observar lo muy pequeño, células y seres vivos",
+      "ca": "Microscopi: observar el molt petit, cèl·lules i éssers vius",
+      "en": "Microscope: observing the very small, cells and living things"
+    },
+    "temas": [
+      "microscopio",
+      "celula",
+      "observar",
+      "ciencia",
+      "experimento",
+      "ser vivo",
+      "laboratorio",
+      "biologia"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-mochila",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mochila con cuaderno y lápiz: el colegio y el material escolar",
+      "ca": "Motxilla amb quadern i llapis: l’escola i el material escolar",
+      "en": "School backpack with notebook and pencil: school and school supplies"
+    },
+    "temas": [
+      "colegio",
+      "mochila",
+      "material escolar",
+      "aula",
+      "cuaderno",
+      "estudio",
+      "clase"
+    ],
+    "areas": [
+      "general",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-pegamento",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pegamento: pegar y manualidades",
+      "ca": "Cola: enganxar i manualitats",
+      "en": "Glue: sticking and crafts"
+    },
+    "temas": [
+      "pegamento",
+      "pegar",
+      "manualidad",
+      "material escolar",
+      "collage",
+      "plastica",
+      "taller"
+    ],
+    "areas": [
+      "plastica",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-pizarra",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pizarra verde con tiza: la clase y las explicaciones",
+      "ca": "Pissarra verda amb guix: la classe i les explicacions",
+      "en": "Green blackboard with chalk: the classroom and explanations"
+    },
+    "temas": [
+      "pizarra",
+      "tiza",
+      "clase",
+      "aula",
+      "escuela",
+      "explicacion",
+      "colegio",
+      "docente"
+    ],
+    "areas": [
+      "general",
+      "lengua",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esc-tijeras",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tijeras: recortar y manualidades",
+      "ca": "Tisores: retallar i manualitats",
+      "en": "Scissors: cutting and crafts"
+    },
+    "temas": [
+      "tijeras",
+      "recortar",
+      "manualidad",
+      "material escolar",
+      "cortar",
+      "plastica",
+      "taller"
+    ],
+    "areas": [
+      "plastica",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-astronauta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Astronauta flotando: espacio y exploración",
+      "ca": "Astronauta flotant: espai i exploració",
+      "en": "Floating astronaut: space and exploration"
+    },
+    "temas": [
+      "astronauta",
+      "espacio",
+      "exploracion",
+      "universo",
+      "planeta",
+      "gravedad",
+      "profesion"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-cohete",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cohete con estrellas: espacio y exploración",
+      "ca": "Coet amb estrelles: espai i exploració",
+      "en": "Rocket with stars: space and exploration"
+    },
+    "temas": [
+      "espacio",
+      "cohete",
+      "universo",
+      "planeta",
+      "sistema solar",
+      "astronauta",
+      "exploracion"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-estrella",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Estrella amarilla: astronomía, premios y puntuaciones",
+      "ca": "Estrella groga: astronomia, premis i puntuacions",
+      "en": "Yellow star: astronomy, rewards and scores"
+    },
+    "temas": [
+      "estrella",
+      "astronomia",
+      "premio",
+      "noche",
+      "espacio",
+      "puntuacion",
+      "universo"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-luna",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Luna con estrellas: satélite de la Tierra, la noche y sus fases",
+      "ca": "Lluna amb estrelles: satèl·lit de la Terra, la nit i les seves fases",
+      "en": "Moon with stars: Earth’s satellite, night and its phases"
+    },
+    "temas": [
+      "luna",
+      "noche",
+      "estrellas",
+      "fases de la luna",
+      "satelite",
+      "espacio",
+      "universo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-satelite",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Satélite artificial con paneles solares: tecnología y espacio",
+      "ca": "Satèl·lit artificial amb panells solars: tecnologia i espai",
+      "en": "Artificial satellite with solar panels: technology and space"
+    },
+    "temas": [
+      "satelite",
+      "espacio",
+      "tecnologia",
+      "comunicaciones",
+      "energia",
+      "solar",
+      "orbita"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-saturno",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Saturno con sus anillos: sistema solar",
+      "ca": "Saturn amb els seus anells: sistema solar",
+      "en": "Saturn with its rings: the solar system"
+    },
+    "temas": [
+      "saturno",
+      "planeta",
+      "sistema solar",
+      "anillos",
+      "espacio",
+      "universo",
+      "astronomia"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "esp-telescopio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Telescopio: observar las estrellas y los planetas",
+      "ca": "Telescopi: observar les estrelles i els planetes",
+      "en": "Telescope: observing stars and planets"
+    },
+    "temas": [
+      "telescopio",
+      "astronomia",
+      "estrella",
+      "observar",
+      "espacio",
+      "universo",
+      "ciencia"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "est-invierno",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Muñeco de nieve con bufanda: el invierno, el frío y la nieve",
+      "ca": "Ninot de neu amb bufanda: l’hivern, el fred i la neu",
+      "en": "Snowman with a scarf: winter, cold and snow"
+    },
+    "temas": [
+      "estacion",
+      "invierno",
+      "nieve",
+      "frio",
+      "navidad",
+      "tiempo atmosferico",
+      "temperatura"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "est-otono",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Árbol con hojas que caen y una seta: el otoño y los cambios de la naturaleza",
+      "ca": "Arbre amb fulles que cauen i un bolet: la tardor i els canvis de la natura",
+      "en": "Tree with falling leaves and a mushroom: autumn and changes in nature"
+    },
+    "temas": [
+      "estacion",
+      "otono",
+      "hojas",
+      "caducifolio",
+      "seta",
+      "ciclo",
+      "tiempo atmosferico",
+      "naturaleza"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "est-primavera",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tulipán, narciso y mariposa: la primavera y el ciclo de las estaciones",
+      "ca": "Tulipa, narcís i papallona: la primavera i el cicle de les estacions",
+      "en": "Tulip, daffodil and butterfly: spring and the cycle of the seasons"
+    },
+    "temas": [
+      "estacion",
+      "primavera",
+      "flor",
+      "floracion",
+      "ciclo",
+      "tiempo atmosferico",
+      "naturaleza"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "est-verano",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Sombrilla, sol y castillo de arena: el verano, la playa y el calor",
+      "ca": "Para-sol, sol i castell de sorra: l’estiu, la platja i la calor",
+      "en": "Beach umbrella, sun and sandcastle: summer, the beach and the heat"
+    },
+    "temas": [
+      "estacion",
+      "verano",
+      "playa",
+      "calor",
+      "sol",
+      "vacaciones",
+      "tiempo atmosferico",
+      "mar"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-calabaza",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Calabaza sonriente: otoño y Halloween",
+      "ca": "Carabassa somrient: tardor i Halloween",
+      "en": "Smiling pumpkin: autumn and Halloween"
+    },
+    "temas": [
+      "calabaza",
+      "halloween",
+      "otono",
+      "fiesta",
+      "cosecha",
+      "tradicion",
+      "verdura"
+    ],
+    "areas": [
+      "general",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-castanas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Castañas asadas: otoño y tradiciones",
+      "ca": "Castanyes torrades: tardor i tradicions",
+      "en": "Roasted chestnuts: autumn and traditions"
+    },
+    "temas": [
+      "castana",
+      "otono",
+      "tradicion",
+      "fiesta",
+      "fruto seco",
+      "castanada",
+      "comida"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-fuegos",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Fuegos artificiales: fiestas y celebraciones",
+      "ca": "Focs artificials: festes i celebracions",
+      "en": "Fireworks: festivals and celebrations"
+    },
+    "temas": [
+      "fuegos artificiales",
+      "fiesta",
+      "celebracion",
+      "noche",
+      "ano nuevo",
+      "tradicion",
+      "luz",
+      "verbena"
+    ],
+    "areas": [
+      "general",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-globos",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Globos de colores: fiestas y celebraciones",
+      "ca": "Globus de colors: festes i celebracions",
+      "en": "Colorful party balloons: parties and celebrations"
+    },
+    "temas": [
+      "globos",
+      "fiesta",
+      "celebracion",
+      "cumpleanos",
+      "alegria",
+      "color",
+      "evento"
+    ],
+    "areas": [
+      "general",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-gorro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gorro de fiesta con confeti: celebraciones y alegría",
+      "ca": "Barret de festa amb confeti: celebracions i alegria",
+      "en": "Party hat with confetti: celebrations and joy"
+    },
+    "temas": [
+      "fiesta",
+      "gorro",
+      "confeti",
+      "celebracion",
+      "cumpleanos",
+      "carnaval",
+      "alegria"
+    ],
+    "areas": [
+      "general",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-navidad",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Árbol de Navidad con regalos: fiestas y tradiciones",
+      "ca": "Arbre de Nadal amb regals: festes i tradicions",
+      "en": "Christmas tree with gifts: holidays and traditions"
+    },
+    "temas": [
+      "navidad",
+      "arbol",
+      "regalo",
+      "fiesta",
+      "tradicion",
+      "invierno",
+      "celebracion",
+      "estrella"
+    ],
+    "areas": [
+      "general",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "fes-pascua",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cesta con huevos de colores: Pascua y primavera",
+      "ca": "Cistell amb ous de colors: Pasqua i primavera",
+      "en": "Basket of colorful eggs: Easter and spring"
+    },
+    "temas": [
+      "pascua",
+      "huevo",
+      "primavera",
+      "fiesta",
+      "tradicion",
+      "cesta",
+      "celebracion"
+    ],
+    "areas": [
+      "general",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-anfora",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ánfora de barro: la vida en la antigüedad y la arqueología",
+      "ca": "Àmfora de fang: la vida a l’antiguitat i l’arqueologia",
+      "en": "Clay amphora: life in antiquity and archaeology"
+    },
+    "temas": [
+      "anfora",
+      "ceramica",
+      "barro",
+      "arqueologia",
+      "antiguo",
+      "historia",
+      "romanos",
+      "grecia"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-caballero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Caballero con armadura: la Edad Media",
+      "ca": "Cavaller amb armadura: l’Edat Mitjana",
+      "en": "Knight in armor: the Middle Ages"
+    },
+    "temas": [
+      "caballero",
+      "armadura",
+      "edad media",
+      "medieval",
+      "espada",
+      "historia",
+      "feudalismo",
+      "epoca"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-carabela",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Carabela de vela: descubrimientos, exploración y navegación",
+      "ca": "Caravel·la de vela: descobriments, exploració i navegació",
+      "en": "Old caravel sailing ship: discoveries, exploration and navigation"
+    },
+    "temas": [
+      "carabela",
+      "barco",
+      "descubrimiento",
+      "america",
+      "exploracion",
+      "navegacion",
+      "historia",
+      "mar",
+      "colon"
+    ],
+    "areas": [
+      "cienciasSociales"
     ],
     "etapas": [
       "infantil",
@@ -53,6 +3432,1775 @@
     "fuente": "img"
   },
   {
+    "id": "his-corona",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Corona de oro: monarquía, reyes y reinas",
+      "ca": "Corona d’or: monarquia, reis i reines",
+      "en": "Golden crown: monarchy, kings and queens"
+    },
+    "temas": [
+      "corona",
+      "rey",
+      "reina",
+      "monarquia",
+      "historia",
+      "poder",
+      "cuento",
+      "castillo"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-dinosaurio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Dinosaurio verde: la prehistoria y los fósiles",
+      "ca": "Dinosaure verd: la prehistòria i els fòssils",
+      "en": "Green dinosaur: prehistory and fossils"
+    },
+    "temas": [
+      "dinosaurio",
+      "prehistoria",
+      "fosil",
+      "extincion",
+      "reptil",
+      "historia",
+      "jurasico",
+      "epoca"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-faraon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Faraón con tocado dorado: el antiguo Egipto",
+      "ca": "Faraó amb tocat daurat: l’antic Egipte",
+      "en": "Pharaoh with a golden headdress: ancient Egypt"
+    },
+    "temas": [
+      "egipto",
+      "faraon",
+      "antiguo",
+      "historia",
+      "civilizacion",
+      "momia",
+      "epoca",
+      "nilo"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-imprenta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Imprenta antigua: la historia de la escritura y los libros",
+      "ca": "Impremta antiga: la història de l’escriptura i els llibres",
+      "en": "Old printing press: the history of writing and books"
+    },
+    "temas": [
+      "imprenta",
+      "libro",
+      "escritura",
+      "historia",
+      "inventos",
+      "papel",
+      "gutenberg",
+      "comunicacion"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-locomotora",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Locomotora de vapor: la Revolución Industrial",
+      "ca": "Locomotora de vapor: la Revolució Industrial",
+      "en": "Steam locomotive: the Industrial Revolution"
+    },
+    "temas": [
+      "locomotora",
+      "vapor",
+      "tren",
+      "industrial",
+      "revolucion",
+      "historia",
+      "transporte",
+      "inventos"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-mamut",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mamut con colmillos: la Edad de Hielo y la prehistoria",
+      "ca": "Mamut amb ullals: l’Edat de Gel i la prehistòria",
+      "en": "Woolly mammoth with tusks: the Ice Age and prehistory"
+    },
+    "temas": [
+      "mamut",
+      "prehistoria",
+      "glaciacion",
+      "edad de hielo",
+      "extincion",
+      "mamifero",
+      "historia",
+      "epoca"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-pergamino",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pergamino en blanco: escritura antigua y documentos",
+      "ca": "Pergamí en blanc: escriptura antiga i documents",
+      "en": "Blank parchment scroll: ancient writing and documents"
+    },
+    "temas": [
+      "pergamino",
+      "escritura",
+      "pluma",
+      "documento",
+      "historia",
+      "antiguo",
+      "carta",
+      "mensaje"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-piramide",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pirámide de Egipto en el desierto: civilizaciones antiguas",
+      "ca": "Piràmide d’Egipte al desert: civilitzacions antigues",
+      "en": "Egyptian pyramid in the desert: ancient civilizations"
+    },
+    "temas": [
+      "piramide",
+      "egipto",
+      "antiguo",
+      "civilizacion",
+      "faraon",
+      "historia",
+      "epoca",
+      "desierto"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-pirata",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Barco pirata: aventuras y navegación",
+      "ca": "Vaixell pirata: aventures i navegació",
+      "en": "Pirate ship: adventures and sailing"
+    },
+    "temas": [
+      "pirata",
+      "barco",
+      "mar",
+      "aventura",
+      "navegacion",
+      "tesoro",
+      "cuento",
+      "historia"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-prehistoria",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Hombre prehistórico junto a una hoguera: prehistoria y el fuego",
+      "ca": "Home prehistòric al costat d’una foguera: prehistòria i el foc",
+      "en": "Caveman next to a campfire: prehistory and fire"
+    },
+    "temas": [
+      "prehistoria",
+      "paleolitico",
+      "neolitico",
+      "fuego",
+      "cazador",
+      "historia",
+      "epoca",
+      "primeros humanos"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-romano",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Soldado romano con casco y escudo: la antigua Roma",
+      "ca": "Soldat romà amb casc i escut: l’antiga Roma",
+      "en": "Roman soldier with helmet and shield: ancient Rome"
+    },
+    "temas": [
+      "romanos",
+      "roma",
+      "legionario",
+      "imperio",
+      "antiguo",
+      "historia",
+      "epoca",
+      "civilizacion"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-templo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Templo griego con columnas: la antigua Grecia",
+      "ca": "Temple grec amb columnes: l’antiga Grècia",
+      "en": "Greek temple with columns: ancient Greece"
+    },
+    "temas": [
+      "grecia",
+      "templo",
+      "columna",
+      "antiguo",
+      "historia",
+      "civilizacion",
+      "arquitectura",
+      "olimpico"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-tesoro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mapa del tesoro con un camino de puntos: orientación y aventura",
+      "ca": "Mapa del tresor amb un camí de punts: orientació i aventura",
+      "en": "Treasure map with a dotted path: orientation and adventure"
+    },
+    "temas": [
+      "mapa",
+      "tesoro",
+      "orientacion",
+      "aventura",
+      "ruta",
+      "coordenadas",
+      "pirata",
+      "juego"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-tintero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tintero con pluma: la escritura de antes",
+      "ca": "Tinter amb ploma: l’escriptura d’abans",
+      "en": "Inkwell with a quill: writing in the past"
+    },
+    "temas": [
+      "tintero",
+      "pluma",
+      "escritura",
+      "tinta",
+      "historia",
+      "carta",
+      "literatura",
+      "autor"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-vikingo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Barco vikingo: navegación y pueblos del norte",
+      "ca": "Vaixell víking: navegació i pobles del nord",
+      "en": "Viking ship: navigation and northern peoples"
+    },
+    "temas": [
+      "vikingo",
+      "barco",
+      "norte",
+      "navegacion",
+      "historia",
+      "edad media",
+      "europa",
+      "epoca"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-cama",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cama con almohada y manta: el dormitorio y el descanso",
+      "ca": "Llit amb coixí i manta: el dormitori i el descans",
+      "en": "Bed with a pillow and blanket: the bedroom and rest"
+    },
+    "temas": [
+      "cama",
+      "dormir",
+      "descanso",
+      "dormitorio",
+      "hogar",
+      "noche",
+      "rutina",
+      "salud"
+    ],
+    "areas": [
+      "general",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-cubiertos",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Plato con tenedor y cuchara: comer y la mesa",
+      "ca": "Plat amb forquilla i cullera: menjar i la taula",
+      "en": "Plate with fork and spoon: eating and the table"
+    },
+    "temas": [
+      "plato",
+      "cubiertos",
+      "comer",
+      "mesa",
+      "comida",
+      "hogar",
+      "tenedor",
+      "cuchara"
+    ],
+    "areas": [
+      "general",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-escoba",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Escoba y recogedor: limpieza y tareas del hogar",
+      "ca": "Escombra i recollidor: neteja i tasques de la llar",
+      "en": "Broom and dustpan: cleaning and household chores"
+    },
+    "temas": [
+      "escoba",
+      "limpieza",
+      "tarea",
+      "hogar",
+      "orden",
+      "colaboracion",
+      "responsabilidad"
+    ],
+    "areas": [
+      "valores",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-grifo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Grifo con una gota: el agua, la higiene y el ahorro",
+      "ca": "Aixeta amb una gota: l’aigua, la higiene i l’estalvi",
+      "en": "Tap with a drop: water, hygiene and saving"
+    },
+    "temas": [
+      "grifo",
+      "agua",
+      "higiene",
+      "ahorro",
+      "gota",
+      "hogar",
+      "recurso",
+      "medio ambiente"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-jabon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Jabón y manos limpias: higiene y salud",
+      "ca": "Sabó i mans netes: higiene i salut",
+      "en": "Soap and clean hands: hygiene and health"
+    },
+    "temas": [
+      "jabon",
+      "higiene",
+      "manos",
+      "limpieza",
+      "salud",
+      "burbujas",
+      "habitos saludables",
+      "virus"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-lampara",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Lámpara encendida: luz y energía en casa",
+      "ca": "Làmpada encesa: llum i energia a casa",
+      "en": "Lit lamp: light and energy at home"
+    },
+    "temas": [
+      "lampara",
+      "luz",
+      "energia",
+      "electricidad",
+      "hogar",
+      "ahorro",
+      "bombilla"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-mesa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mesa y sillas: el comedor y los muebles",
+      "ca": "Taula i cadires: el menjador i els mobles",
+      "en": "Table and chairs: the dining room and furniture"
+    },
+    "temas": [
+      "mesa",
+      "silla",
+      "mueble",
+      "hogar",
+      "comedor",
+      "casa",
+      "comer"
+    ],
+    "areas": [
+      "general",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "hog-olla",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Olla con vapor: cocinar y alimentación",
+      "ca": "Olla amb vapor: cuinar i alimentació",
+      "en": "Cooking pot with steam: cooking and food"
+    },
+    "temas": [
+      "olla",
+      "cocinar",
+      "cocina",
+      "vapor",
+      "alimentacion",
+      "hogar",
+      "receta",
+      "calor"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "idi-bocadillo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Dos bocadillos de diálogo vacíos: conversación y comunicación",
+      "ca": "Dos bocadillos de diàleg buits: conversa i comunicació",
+      "en": "Two empty speech bubbles: conversation and communication"
+    },
+    "temas": [
+      "dialogo",
+      "conversacion",
+      "comunicacion",
+      "hablar",
+      "bocadillo",
+      "idioma",
+      "comic",
+      "expresion oral"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "idi-carta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Sobre abierto con una carta y un corazón: escribir cartas y el correo",
+      "ca": "Sobre obert amb una carta i un cor: escriure cartes i el correu",
+      "en": "Open envelope with a letter and a heart: writing letters and mail"
+    },
+    "temas": [
+      "carta",
+      "sobre",
+      "correo",
+      "escribir",
+      "mensaje",
+      "comunicacion",
+      "texto",
+      "direccion"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "idi-telefono",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Teléfono antiguo: comunicación y conversación",
+      "ca": "Telèfon antic: comunicació i conversa",
+      "en": "Retro telephone: communication and conversation"
+    },
+    "temas": [
+      "telefono",
+      "llamada",
+      "comunicacion",
+      "conversacion",
+      "hablar",
+      "historia",
+      "inventos"
+    ],
+    "areas": [
+      "lengua",
+      "ingles",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-bloques",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Torre de bloques de colores: construir, contar y apilar",
+      "ca": "Torre de blocs de colors: construir, comptar i apilar",
+      "en": "Tower of colorful blocks: building, counting and stacking"
+    },
+    "temas": [
+      "bloques",
+      "construir",
+      "juego",
+      "juguete",
+      "contar",
+      "torre",
+      "apilar",
+      "volumen"
+    ],
+    "areas": [
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-columpio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Columpios: el parque, el juego y el movimiento",
+      "ca": "Gronxadors: el parc, el joc i el moviment",
+      "en": "Swing set: the playground, play and motion"
+    },
+    "temas": [
+      "columpio",
+      "parque",
+      "juego",
+      "patio",
+      "movimiento",
+      "pendulo",
+      "infancia"
+    ],
+    "areas": [
+      "general",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-cometa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cometa volando: viento, juego y geometría",
+      "ca": "Estel volant: vent, joc i geometria",
+      "en": "Flying kite: wind, play and geometry"
+    },
+    "temas": [
+      "cometa",
+      "viento",
+      "juego",
+      "volar",
+      "primavera",
+      "rombo",
+      "aire",
+      "juguete"
+    ],
+    "areas": [
+      "general",
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-pelota",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pelota de playa de colores: juego, verano y esferas",
+      "ca": "Pilota de platja de colors: joc, estiu i esferes",
+      "en": "Colorful beach ball: play, summer and spheres"
+    },
+    "temas": [
+      "pelota",
+      "juego",
+      "verano",
+      "playa",
+      "esfera",
+      "juguete",
+      "rebote",
+      "colores"
+    ],
+    "areas": [
+      "general",
+      "educacionFisica",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-peluche",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Osito de peluche: juguetes e infancia",
+      "ca": "Ós de peluix: joguines i infància",
+      "en": "Teddy bear: toys and childhood"
+    },
+    "temas": [
+      "peluche",
+      "juguete",
+      "osito",
+      "infancia",
+      "juego",
+      "objeto",
+      "carino"
+    ],
+    "areas": [
+      "general",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-peonza",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Peonza de colores: juegos tradicionales y movimiento",
+      "ca": "Baldufa de colors: jocs tradicionals i moviment",
+      "en": "Colorful spinning top: traditional games and motion"
+    },
+    "temas": [
+      "peonza",
+      "juego",
+      "juguete",
+      "tradicional",
+      "movimiento",
+      "giro",
+      "fisica",
+      "patio"
+    ],
+    "areas": [
+      "general",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "jue-puzzle",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Puzle con una pieza que falta: juegos de lógica, patrones y resolución de problemas",
+      "ca": "Trencaclosques amb una peça que falta: jocs de lògica, patrons i resolució de problemes",
+      "en": "Jigsaw puzzle with a missing piece: logic games, patterns and problem solving"
+    },
+    "temas": [
+      "puzle",
+      "juego",
+      "logica",
+      "patron",
+      "problema",
+      "razonamiento",
+      "pieza",
+      "estrategia"
+    ],
+    "areas": [
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-ayuntamiento",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Ayuntamiento con torre del reloj: el municipio y las instituciones",
+      "ca": "Ajuntament amb torre del rellotge: el municipi i les institucions",
+      "en": "Town hall with a clock tower: the municipality and institutions"
+    },
+    "temas": [
+      "ayuntamiento",
+      "municipio",
+      "institucion",
+      "gobierno",
+      "ciudad",
+      "alcalde",
+      "servicios",
+      "edificio"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-biblioteca",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Biblioteca: libros, lectura y cultura",
+      "ca": "Biblioteca: llibres, lectura i cultura",
+      "en": "Library: books, reading and culture"
+    },
+    "temas": [
+      "biblioteca",
+      "libro",
+      "lectura",
+      "cultura",
+      "edificio",
+      "estudio",
+      "servicios",
+      "silencio"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-bosque",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Tres árboles con flores: bosque, ecosistema y naturaleza",
+      "ca": "Tres arbres amb flors: bosc, ecosistema i natura",
+      "en": "Three trees with flowers: forest, ecosystem and nature"
+    },
+    "temas": [
+      "bosque",
+      "arbol",
+      "ecosistema",
+      "naturaleza",
+      "sendero",
+      "paisaje",
+      "habitat",
+      "medio ambiente"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-casa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Casa con jardín: el hogar y la vivienda",
+      "ca": "Casa amb jardí: la llar i l’habitatge",
+      "en": "House with a garden: home and housing"
+    },
+    "temas": [
+      "casa",
+      "hogar",
+      "vivienda",
+      "familia",
+      "jardin",
+      "edificio",
+      "barrio"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-ciudad",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ciudad con edificios y calles: el entorno urbano y el barrio",
+      "ca": "Ciutat amb edificis i carrers: l’entorn urbà i el barri",
+      "en": "City with buildings and streets: the urban environment and the neighbourhood"
+    },
+    "temas": [
+      "ciudad",
+      "edificio",
+      "calle",
+      "barrio",
+      "urbano",
+      "poblacion",
+      "servicios",
+      "localidad"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-estadio",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Estadio con gradas y campo: deporte y competiciones",
+      "ca": "Estadi amb graderies i camp: esport i competicions",
+      "en": "Stadium with stands and a pitch: sport and competitions"
+    },
+    "temas": [
+      "estadio",
+      "deporte",
+      "futbol",
+      "competicion",
+      "equipo",
+      "campo",
+      "aficion",
+      "edificio"
+    ],
+    "areas": [
+      "educacionFisica",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-faro",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Faro en la costa: navegación, mar y seguridad",
+      "ca": "Far a la costa: navegació, mar i seguretat",
+      "en": "Lighthouse on the coast: navigation, sea and safety"
+    },
+    "temas": [
+      "faro",
+      "costa",
+      "mar",
+      "navegacion",
+      "luz",
+      "barco",
+      "seguridad",
+      "paisaje"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-granja",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Granja con establo, molino y valla: el campo, los animales de granja y el sector primario",
+      "ca": "Granja amb estable, molí i tanca: el camp, els animals de granja i el sector primari",
+      "en": "Farm with a barn, windmill and fence: the countryside, farm animals and the primary sector"
+    },
+    "temas": [
+      "granja",
+      "campo",
+      "rural",
+      "sector primario",
+      "animal",
+      "agricultura",
+      "ganaderia",
+      "paisaje"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-hospital",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Hospital con cruz roja: servicios de salud",
+      "ca": "Hospital amb creu roja: serveis de salut",
+      "en": "Hospital with a red cross: health services"
+    },
+    "temas": [
+      "hospital",
+      "salud",
+      "servicios",
+      "edificio",
+      "medico",
+      "cuidado",
+      "ciudad",
+      "emergencia"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-mercado",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Puesto de mercado con frutas y verduras: comercio y alimentación",
+      "ca": "Parada de mercat amb fruites i verdures: comerç i alimentació",
+      "en": "Market stall with fruit and vegetables: trade and food"
+    },
+    "temas": [
+      "mercado",
+      "puesto",
+      "fruta",
+      "verdura",
+      "comercio",
+      "compra",
+      "alimentacion",
+      "dinero"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-parque",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Parque con árbol, banco y columpio: espacios públicos y juego",
+      "ca": "Parc amb arbre, banc i gronxador: espais públics i joc",
+      "en": "Park with a tree, bench and swing: public spaces and play"
+    },
+    "temas": [
+      "parque",
+      "juego",
+      "ciudad",
+      "espacio publico",
+      "naturaleza",
+      "columpio",
+      "barrio",
+      "ocio"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-playa",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Playa con palmera, arena y mar: el litoral, el mar y las vacaciones",
+      "ca": "Platja amb palmera, sorra i mar: el litoral, el mar i les vacances",
+      "en": "Beach with a palm tree, sand and sea: the coast, the sea and holidays"
+    },
+    "temas": [
+      "playa",
+      "mar",
+      "litoral",
+      "costa",
+      "vacaciones",
+      "paisaje",
+      "oceano",
+      "arena",
+      "verano"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-puente",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Puente de piedra sobre un río: ingeniería y paisaje",
+      "ca": "Pont de pedra sobre un riu: enginyeria i paisatge",
+      "en": "Stone bridge over a river: engineering and landscape"
+    },
+    "temas": [
+      "puente",
+      "rio",
+      "ingenieria",
+      "construccion",
+      "paisaje",
+      "romanos",
+      "camino",
+      "arquitectura"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "lug-tienda",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Tienda con toldo: comercio, compras y dinero",
+      "ca": "Botiga amb tendal: comerç, compres i diners",
+      "en": "Shop with an awning: trade, shopping and money"
+    },
+    "temas": [
+      "tienda",
+      "comercio",
+      "compra",
+      "dinero",
+      "precio",
+      "mercado",
+      "barrio",
+      "servicios"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-abaco",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ábaco de colores: contar, sumar y el valor posicional",
+      "ca": "Àbac de colors: comptar, sumar i el valor posicional",
+      "en": "Colorful abacus: counting, adding and place value"
+    },
+    "temas": [
+      "abaco",
+      "contar",
+      "suma",
+      "numero",
+      "valor posicional",
+      "calculo",
+      "decena",
+      "cantidad"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-ajedrez",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tablero de ajedrez con rey y peón: estrategia y lógica",
+      "ca": "Tauler d’escacs amb rei i peó: estratègia i lògica",
+      "en": "Chess board with a king and a pawn: strategy and logic"
+    },
+    "temas": [
+      "ajedrez",
+      "estrategia",
+      "logica",
+      "juego",
+      "cuadricula",
+      "coordenadas",
+      "razonamiento",
+      "tablero"
+    ],
+    "areas": [
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-balanza",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Balanza de dos platos: masa, peso y equilibrio",
+      "ca": "Balança de dos plats: massa, pes i equilibri",
+      "en": "Two-pan balance scale: mass, weight and balance"
+    },
+    "temas": [
+      "balanza",
+      "masa",
+      "peso",
+      "equilibrio",
+      "medida",
+      "kilo",
+      "gramo",
+      "ecuacion",
+      "comparar"
+    ],
+    "areas": [
+      "matematicas",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-cartas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Baraja de cartas: probabilidad, azar y juegos",
+      "ca": "Baralla de cartes: probabilitat, atzar i jocs",
+      "en": "Fan of playing cards: probability, chance and games"
+    },
+    "temas": [
+      "cartas",
+      "baraja",
+      "probabilidad",
+      "azar",
+      "juego",
+      "combinacion",
+      "estadistica"
+    ],
+    "areas": [
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-cilindro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cilindro verde: cuerpo geométrico con dos bases",
+      "ca": "Cilindre verd: cos geomètric amb dues bases",
+      "en": "Green cylinder: a solid with two bases"
+    },
+    "temas": [
+      "cilindro",
+      "cuerpo geometrico",
+      "geometria",
+      "volumen",
+      "base",
+      "lata",
+      "curvo"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-compas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Compás: dibujar circunferencias y círculos",
+      "ca": "Compàs: dibuixar circumferències i cercles",
+      "en": "Drawing compass: drawing circles"
+    },
+    "temas": [
+      "compas",
+      "circunferencia",
+      "circulo",
+      "geometria",
+      "dibujo tecnico",
+      "radio",
+      "trazar"
+    ],
+    "areas": [
+      "matematicas",
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-cono",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cono naranja: cuerpo geométrico con un vértice",
+      "ca": "Con taronja: cos geomètric amb un vèrtex",
+      "en": "Orange cone: a solid with one vertex"
+    },
+    "temas": [
+      "cono",
+      "cuerpo geometrico",
+      "geometria",
+      "volumen",
+      "vertice",
+      "base",
+      "curvo"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-cubo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cubo azul: cuerpo geométrico de seis caras",
+      "ca": "Cub blau: cos geomètric de sis cares",
+      "en": "Blue cube: a six-faced solid"
+    },
+    "temas": [
+      "cubo",
+      "cuerpo geometrico",
+      "geometria",
+      "volumen",
+      "cara",
+      "arista",
+      "vertice",
+      "poliedro"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-dados",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Dos dados: azar, probabilidad y juegos de mesa",
+      "ca": "Dos daus: atzar, probabilitat i jocs de taula",
+      "en": "Two dice: chance, probability and board games"
+    },
+    "temas": [
+      "dado",
+      "azar",
+      "probabilidad",
+      "suceso",
+      "juego",
+      "estadistica",
+      "combinatoria"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-domino",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Fichas de dominó: contar puntos, sumas y juegos",
+      "ca": "Fitxes de dòmino: comptar punts, sumes i jocs",
+      "en": "Domino tiles: counting dots, sums and games"
+    },
+    "temas": [
+      "domino",
+      "contar",
+      "suma",
+      "juego",
+      "puntos",
+      "numero",
+      "combinacion"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-esfera",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Esfera roja: cuerpo geométrico redondo",
+      "ca": "Esfera vermella: cos geomètric rodó",
+      "en": "Red sphere: a round solid"
+    },
+    "temas": [
+      "esfera",
+      "cuerpo geometrico",
+      "geometria",
+      "volumen",
+      "redondo",
+      "bola",
+      "circulo"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-figuras",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Círculo, cuadrado, triángulo y rectángulo: figuras geométricas planas",
+      "ca": "Cercle, quadrat, triangle i rectangle: figures geomètriques planes",
+      "en": "Circle, square, triangle and rectangle: flat geometric shapes"
+    },
+    "temas": [
+      "figura",
+      "geometria",
+      "circulo",
+      "cuadrado",
+      "triangulo",
+      "rectangulo",
+      "poligono",
+      "forma",
+      "plano"
+    ],
+    "areas": [
+      "matematicas",
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-grafico-barras",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gráfico de barras: estadística y comparar datos",
+      "ca": "Gràfic de barres: estadística i comparar dades",
+      "en": "Bar chart: statistics and comparing data"
+    },
+    "temas": [
+      "grafico",
+      "barras",
+      "estadistica",
+      "datos",
+      "tabla",
+      "frecuencia",
+      "comparar",
+      "encuesta"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-grafico-tarta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gráfico circular: estadística, porcentajes y fracciones",
+      "ca": "Gràfic circular: estadística, percentatges i fraccions",
+      "en": "Pie chart: statistics, percentages and fractions"
+    },
+    "temas": [
+      "grafico",
+      "circular",
+      "estadistica",
+      "porcentaje",
+      "fraccion",
+      "datos",
+      "proporcion",
+      "encuesta"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-jarra",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Jarra medidora con agua: capacidad, litros y mililitros",
+      "ca": "Gerra mesuradora amb aigua: capacitat, litres i mil·lilitres",
+      "en": "Measuring jug with water: capacity, litres and millilitres"
+    },
+    "temas": [
+      "jarra",
+      "capacidad",
+      "litro",
+      "mililitro",
+      "medida",
+      "agua",
+      "liquido",
+      "volumen"
+    ],
+    "areas": [
+      "matematicas",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-monedas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Monedas y billete de euro: dinero, compras y problemas de precios",
+      "ca": "Monedes i bitllet d’euro: diners, compres i problemes de preus",
+      "en": "Euro coins and banknote: money, shopping and price problems"
+    },
+    "temas": [
+      "dinero",
+      "moneda",
+      "euro",
+      "billete",
+      "precio",
+      "compra",
+      "problema",
+      "decimal",
+      "cambio"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-pizza",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pizza en trozos iguales: fracciones y repartos",
+      "ca": "Pizza en trossos iguals: fraccions i repartiments",
+      "en": "Pizza in equal slices: fractions and sharing"
+    },
+    "temas": [
+      "fraccion",
+      "pizza",
+      "reparto",
+      "partes iguales",
+      "division",
+      "mitad",
+      "cuarto",
+      "comida"
+    ],
+    "areas": [
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "mat-reloj",
     "uso": "objeto",
     "descripcion": {
@@ -72,6 +5220,2405 @@
     ],
     "areas": [
       "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-termometro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Termómetro: temperatura, grados y medidas",
+      "ca": "Termòmetre: temperatura, graus i mesures",
+      "en": "Thermometer: temperature, degrees and measurements"
+    },
+    "temas": [
+      "termometro",
+      "temperatura",
+      "grados",
+      "calor",
+      "frio",
+      "medida",
+      "tiempo atmosferico",
+      "negativo"
+    ],
+    "areas": [
+      "matematicas",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-clave",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Clave de sol: lectura musical y pentagrama",
+      "ca": "Clau de sol: lectura musical i pentagrama",
+      "en": "Treble clef: reading music and the staff"
+    },
+    "temas": [
+      "musica",
+      "clave de sol",
+      "pentagrama",
+      "nota musical",
+      "lectura musical",
+      "solfeo",
+      "melodia"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-flauta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Flauta dulce con notas musicales: instrumento de viento",
+      "ca": "Flauta dolça amb notes musicals: instrument de vent",
+      "en": "Recorder with musical notes: a wind instrument"
+    },
+    "temas": [
+      "musica",
+      "flauta",
+      "instrumento",
+      "viento",
+      "nota musical",
+      "melodia",
+      "sonido"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-guitarra",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Guitarra: instrumento de cuerda",
+      "ca": "Guitarra: instrument de corda",
+      "en": "Guitar: a string instrument"
+    },
+    "temas": [
+      "musica",
+      "guitarra",
+      "instrumento",
+      "cuerda",
+      "sonido",
+      "cancion",
+      "melodia"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-maracas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Maracas: percusión y ritmo",
+      "ca": "Maraques: percussió i ritme",
+      "en": "Maracas: percussion and rhythm"
+    },
+    "temas": [
+      "musica",
+      "maracas",
+      "instrumento",
+      "percusion",
+      "ritmo",
+      "fiesta",
+      "sonido"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-piano",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Piano: instrumento de teclado",
+      "ca": "Piano: instrument de teclat",
+      "en": "Piano: a keyboard instrument"
+    },
+    "temas": [
+      "musica",
+      "piano",
+      "instrumento",
+      "teclado",
+      "sonido",
+      "cancion",
+      "melodia"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-tambor",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tambor con baquetas: instrumento de percusión y ritmo",
+      "ca": "Tambor amb baquetes: instrument de percussió i ritme",
+      "en": "Drum with drumsticks: a percussion instrument and rhythm"
+    },
+    "temas": [
+      "musica",
+      "tambor",
+      "instrumento",
+      "percusion",
+      "ritmo",
+      "sonido",
+      "compas"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-trompeta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Trompeta dorada: instrumento de viento metal",
+      "ca": "Trompeta daurada: instrument de vent metall",
+      "en": "Golden trumpet: a brass instrument"
+    },
+    "temas": [
+      "musica",
+      "trompeta",
+      "instrumento",
+      "viento",
+      "metal",
+      "orquesta",
+      "sonido"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-violin",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Violín con su arco: instrumento de cuerda frotada",
+      "ca": "Violí amb el seu arc: instrument de corda fregada",
+      "en": "Violin with a bow: a bowed string instrument"
+    },
+    "temas": [
+      "musica",
+      "violin",
+      "instrumento",
+      "cuerda",
+      "orquesta",
+      "sonido",
+      "arco"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mus-xilofono",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Xilófono de colores: percusión y notas musicales",
+      "ca": "Xilòfon de colors: percussió i notes musicals",
+      "en": "Colorful xylophone: percussion and musical notes"
+    },
+    "temas": [
+      "musica",
+      "xilofono",
+      "instrumento",
+      "percusion",
+      "nota musical",
+      "ritmo",
+      "escala"
+    ],
+    "areas": [
+      "musica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-arbol",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Árbol con tronco, ramas y hojas: planta leñosa",
+      "ca": "Arbre amb tronc, branques i fulles: planta llenyosa",
+      "en": "Tree with trunk, branches and leaves: a woody plant"
+    },
+    "temas": [
+      "planta",
+      "arbol",
+      "tronco",
+      "hojas",
+      "bosque",
+      "medio ambiente",
+      "ser vivo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-arcoiris",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Arcoíris entre nubes: la luz, los colores y el tiempo atmosférico",
+      "ca": "Arc de Sant Martí entre núvols: la llum, els colors i el temps atmosfèric",
+      "en": "Rainbow between clouds: light, colors and weather"
+    },
+    "temas": [
+      "arcoiris",
+      "color",
+      "colores",
+      "luz",
+      "lluvia",
+      "tiempo atmosferico",
+      "espectro"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "plastica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-cactus",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cactus con flor: planta del desierto",
+      "ca": "Cactus amb flor: planta del desert",
+      "en": "Cactus with a flower: a desert plant"
+    },
+    "temas": [
+      "planta",
+      "cactus",
+      "desierto",
+      "adaptacion",
+      "seco",
+      "ser vivo",
+      "clima"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-cascada",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cascada: el agua que cae, ríos y paisaje",
+      "ca": "Cascada: l’aigua que cau, rius i paisatge",
+      "en": "Waterfall: falling water, rivers and landscape"
+    },
+    "temas": [
+      "cascada",
+      "agua",
+      "rio",
+      "paisaje",
+      "relieve",
+      "naturaleza",
+      "energia"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-copo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Copo de nieve: invierno, agua y simetría",
+      "ca": "Floc de neu: hivern, aigua i simetria",
+      "en": "Snowflake: winter, water and symmetry"
+    },
+    "temas": [
+      "nieve",
+      "copo",
+      "invierno",
+      "frio",
+      "agua",
+      "simetria",
+      "cristal",
+      "tiempo atmosferico"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-cueva",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cueva con estalactitas: relieve y rocas",
+      "ca": "Cova amb estalactites: relleu i roques",
+      "en": "Cave with stalactites: landforms and rocks"
+    },
+    "temas": [
+      "cueva",
+      "roca",
+      "relieve",
+      "geologia",
+      "estalactita",
+      "prehistoria",
+      "paisaje"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-desierto",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Camello y cactus: el desierto y su clima",
+      "ca": "Camell i cactus: el desert i el seu clima",
+      "en": "Camel and cactus: the desert and its climate"
+    },
+    "temas": [
+      "desierto",
+      "duna",
+      "camello",
+      "clima",
+      "calor",
+      "africa",
+      "paisaje",
+      "seco"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-flor",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Flor con pétalos, tallo y hojas: partes de la planta",
+      "ca": "Flor amb pètals, tija i fulles: parts de la planta",
+      "en": "Flower with petals, stem and leaves: parts of a plant"
+    },
+    "temas": [
+      "planta",
+      "flor",
+      "petalos",
+      "tallo",
+      "partes de la planta",
+      "polinizacion",
+      "ser vivo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-frutal",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Árbol frutal con manzanas: la huerta y la cosecha",
+      "ca": "Arbre fruiter amb pomes: l’horta i la collita",
+      "en": "Fruit tree with apples: the orchard and the harvest"
+    },
+    "temas": [
+      "arbol",
+      "fruta",
+      "manzana",
+      "cosecha",
+      "huerto",
+      "planta",
+      "fruto",
+      "otono"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-germinacion",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Plántula que brota de la tierra: germinación de una semilla",
+      "ca": "Plàntula que brota de la terra: germinació d’una llavor",
+      "en": "Seedling sprouting from the soil: seed germination"
+    },
+    "temas": [
+      "planta",
+      "semilla",
+      "germinacion",
+      "ciclo de vida",
+      "crecimiento",
+      "ser vivo"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-isla",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Isla con una palmera: geografía y el mar",
+      "ca": "Illa amb una palmera: geografia i el mar",
+      "en": "Island with a palm tree: geography and the sea"
+    },
+    "temas": [
+      "isla",
+      "mar",
+      "geografia",
+      "oceano",
+      "costa",
+      "paisaje",
+      "tropical"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-lluvia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Nube con lluvia: ciclo del agua y tiempo atmosférico",
+      "ca": "Núvol amb pluja: cicle de l’aigua i temps atmosfèric",
+      "en": "Rain cloud: the water cycle and weather"
+    },
+    "temas": [
+      "nube",
+      "lluvia",
+      "agua",
+      "ciclo del agua",
+      "tiempo atmosferico",
+      "clima",
+      "precipitacion"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-montana",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Montaña nevada con bosque: relieve y paisaje",
+      "ca": "Muntanya nevada amb bosc: relleu i paisatge",
+      "en": "Snowy mountain with a forest: landforms and landscape"
+    },
+    "temas": [
+      "montana",
+      "relieve",
+      "paisaje",
+      "nieve",
+      "bosque",
+      "geografia",
+      "altura"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-rio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Río serpenteante entre campos verdes: curso del río y paisaje",
+      "ca": "Riu serpentejant entre camps verds: curs del riu i paisatge",
+      "en": "Winding river between green fields: river course and landscape"
+    },
+    "temas": [
+      "rio",
+      "agua",
+      "paisaje",
+      "mar",
+      "cauce",
+      "geografia",
+      "ciclo del agua"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-seta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Seta roja con puntos: hongos y bosque",
+      "ca": "Bolet vermell amb punts: fongs i bosc",
+      "en": "Red mushroom with white dots: fungi and the forest"
+    },
+    "temas": [
+      "seta",
+      "hongo",
+      "bosque",
+      "reino",
+      "ser vivo",
+      "otono",
+      "naturaleza"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-sol",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Sol sonriente con rayos: estrella, luz y calor",
+      "ca": "Sol somrient amb raigs: estrella, llum i calor",
+      "en": "Smiling sun with rays: a star, light and heat"
+    },
+    "temas": [
+      "sol",
+      "luz",
+      "calor",
+      "energia",
+      "estrella",
+      "tiempo atmosferico",
+      "dia"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-tierra",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Planeta Tierra: continentes, océanos y medio ambiente",
+      "ca": "Planeta Terra: continents, oceans i medi ambient",
+      "en": "Planet Earth: continents, oceans and the environment"
+    },
+    "temas": [
+      "planeta",
+      "tierra",
+      "continente",
+      "oceano",
+      "medio ambiente",
+      "sistema solar",
+      "mundo",
+      "globo"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-tormenta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Nube de tormenta con un rayo: el tiempo atmosférico",
+      "ca": "Núvol de tempesta amb un llamp: el temps atmosfèric",
+      "en": "Storm cloud with a lightning bolt: the weather"
+    },
+    "temas": [
+      "tormenta",
+      "rayo",
+      "lluvia",
+      "tiempo atmosferico",
+      "electricidad",
+      "nube",
+      "clima"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-viento",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Viento con hojas: el aire en movimiento y el tiempo",
+      "ca": "Vent amb fulles: l’aire en moviment i el temps",
+      "en": "Wind with leaves: moving air and the weather"
+    },
+    "temas": [
+      "viento",
+      "aire",
+      "tiempo atmosferico",
+      "energia",
+      "eolica",
+      "otono",
+      "movimiento"
+    ],
+    "areas": [
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "nat-volcan",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Volcán en erupción con lava y humo: relieve y fuerzas de la Tierra",
+      "ca": "Volcà en erupció amb lava i fum: relleu i forces de la Terra",
+      "en": "Erupting volcano with lava and smoke: landforms and Earth forces"
+    },
+    "temas": [
+      "volcan",
+      "erupcion",
+      "lava",
+      "relieve",
+      "tierra",
+      "montana",
+      "geologia"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-agricultor",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Agricultor con sombrero y cesta de verduras: sector primario y huerto",
+      "ca": "Agricultor amb barret i cistell de verdures: sector primari i hort",
+      "en": "Farmer with a straw hat and a basket of vegetables: the primary sector and the vegetable garden"
+    },
+    "temas": [
+      "profesion",
+      "agricultor",
+      "campo",
+      "huerto",
+      "sector primario",
+      "cultivo",
+      "alimentacion",
+      "trabajo"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-albanil",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Albañil con casco: profesiones y construcción",
+      "ca": "Paleta amb casc: professions i construcció",
+      "en": "Construction worker with a helmet: jobs and building"
+    },
+    "temas": [
+      "profesion",
+      "albanil",
+      "construccion",
+      "obra",
+      "casco",
+      "trabajo",
+      "edificio",
+      "oficio"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-bombero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Bombero con casco y manguera: profesiones y servicios de emergencia",
+      "ca": "Bomber amb casc i mànega: professions i serveis d’emergència",
+      "en": "Firefighter with a helmet and a hose: jobs and emergency services"
+    },
+    "temas": [
+      "profesion",
+      "bombero",
+      "emergencia",
+      "servicios",
+      "trabajo",
+      "seguridad",
+      "fuego"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-cartero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cartero con cartas: profesiones y correo",
+      "ca": "Carter amb cartes: professions i correu",
+      "en": "Mail carrier with letters: jobs and mail"
+    },
+    "temas": [
+      "profesion",
+      "cartero",
+      "carta",
+      "correo",
+      "trabajo",
+      "comunicacion",
+      "servicios",
+      "direccion"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-cientifico",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Científica con bata y matraz: profesiones y ciencia",
+      "ca": "Científica amb bata i matràs: professions i ciència",
+      "en": "Scientist in a lab coat with a flask: jobs and science"
+    },
+    "temas": [
+      "profesion",
+      "cientifico",
+      "ciencia",
+      "laboratorio",
+      "investigacion",
+      "experimento",
+      "trabajo",
+      "descubrimiento"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-cocinero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cocinero con gorro y olla: profesiones y alimentación",
+      "ca": "Cuiner amb barret i olla: professions i alimentació",
+      "en": "Chef with a hat and pot: jobs and food"
+    },
+    "temas": [
+      "profesion",
+      "cocinero",
+      "cocina",
+      "alimentacion",
+      "trabajo",
+      "restaurante",
+      "receta",
+      "comida"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-docente",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Docente junto a una pizarra: la escuela y las profesiones",
+      "ca": "Docent al costat d’una pissarra: l’escola i les professions",
+      "en": "Teacher next to a blackboard: school and jobs"
+    },
+    "temas": [
+      "profesion",
+      "maestro",
+      "docente",
+      "escuela",
+      "colegio",
+      "clase",
+      "trabajo",
+      "aula"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "lengua",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-medico",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Médico con bata y fonendoscopio: profesiones y salud",
+      "ca": "Metge amb bata i fonendoscopi: professions i salut",
+      "en": "Doctor with a white coat and stethoscope: jobs and health"
+    },
+    "temas": [
+      "profesion",
+      "medico",
+      "salud",
+      "hospital",
+      "trabajo",
+      "servicios",
+      "cuerpo humano"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-panadero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Panadero con pan recién hecho: profesiones y alimentación",
+      "ca": "Flequer amb pa acabat de fer: professions i alimentació",
+      "en": "Baker with fresh bread: jobs and food"
+    },
+    "temas": [
+      "profesion",
+      "panadero",
+      "pan",
+      "alimentacion",
+      "trabajo",
+      "horno",
+      "oficio",
+      "cereal"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-pescador",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pescador con caña: profesiones y sector primario",
+      "ca": "Pescador amb canya: professions i sector primari",
+      "en": "Fisherman with a rod: jobs and the primary sector"
+    },
+    "temas": [
+      "profesion",
+      "pescador",
+      "pesca",
+      "mar",
+      "sector primario",
+      "trabajo",
+      "pescado",
+      "oficio"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-piloto",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Piloto con gorra: profesiones y aviación",
+      "ca": "Pilot amb gorra: professions i aviació",
+      "en": "Pilot with a cap: jobs and aviation"
+    },
+    "temas": [
+      "profesion",
+      "piloto",
+      "avion",
+      "aviacion",
+      "trabajo",
+      "viaje",
+      "transporte",
+      "aire"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-pintor",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Pintor con boina y paleta: profesiones y arte",
+      "ca": "Pintor amb boina i paleta: professions i art",
+      "en": "Painter with a beret and palette: jobs and art"
+    },
+    "temas": [
+      "profesion",
+      "pintor",
+      "arte",
+      "artista",
+      "paleta",
+      "cuadro",
+      "trabajo",
+      "creatividad"
+    ],
+    "areas": [
+      "plastica",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-policia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Policía con gorra: profesiones y seguridad ciudadana",
+      "ca": "Policia amb gorra: professions i seguretat ciutadana",
+      "en": "Police officer with a cap: jobs and public safety"
+    },
+    "temas": [
+      "profesion",
+      "policia",
+      "seguridad",
+      "servicios",
+      "trabajo",
+      "normas",
+      "ciudad",
+      "ayuda"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "pro-veterinario",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Veterinaria con un perrito: profesiones y animales",
+      "ca": "Veterinària amb un gosset: professions i animals",
+      "en": "Veterinarian with a small dog: jobs and animals"
+    },
+    "temas": [
+      "profesion",
+      "veterinario",
+      "animal",
+      "mascota",
+      "salud",
+      "trabajo",
+      "cuidado",
+      "oficio"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "rop-abrigo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Abrigo rojo: ropa de invierno",
+      "ca": "Abric vermell: roba d’hivern",
+      "en": "Red winter coat: winter clothing"
+    },
+    "temas": [
+      "abrigo",
+      "ropa",
+      "invierno",
+      "frio",
+      "vestimenta",
+      "prenda",
+      "clothes"
+    ],
+    "areas": [
+      "ingles",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "rop-calcetines",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Calcetines de rayas: ropa y pares",
+      "ca": "Mitjons de ratlles: roba i parelles",
+      "en": "Striped socks: clothes and pairs"
+    },
+    "temas": [
+      "calcetines",
+      "ropa",
+      "par",
+      "prenda",
+      "vestimenta",
+      "clothes",
+      "contar"
+    ],
+    "areas": [
+      "ingles",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "rop-ropa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Camiseta, pantalón corto y gorra: la ropa y la vestimenta",
+      "ca": "Samarreta, pantaló curt i gorra: la roba i la vestimenta",
+      "en": "T-shirt, shorts and cap: clothes and clothing"
+    },
+    "temas": [
+      "ropa",
+      "vestimenta",
+      "prenda",
+      "vestir",
+      "clothes",
+      "moda",
+      "estacion"
+    ],
+    "areas": [
+      "ingles",
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "rop-vestido",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Vestido de verano con flores: ropa y estaciones",
+      "ca": "Vestit d’estiu amb flors: roba i estacions",
+      "en": "Summer dress with flowers: clothes and seasons"
+    },
+    "temas": [
+      "vestido",
+      "ropa",
+      "verano",
+      "vestimenta",
+      "prenda",
+      "clothes",
+      "estacion"
+    ],
+    "areas": [
+      "ingles",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "rop-zapatos",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Zapatos escolares: ropa y calzado",
+      "ca": "Sabates escolars: roba i calçat",
+      "en": "School shoes: clothes and footwear"
+    },
+    "temas": [
+      "zapatos",
+      "calzado",
+      "ropa",
+      "par",
+      "colegio",
+      "vestimenta",
+      "clothes"
+    ],
+    "areas": [
+      "ingles",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "seg-casco",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Casco sobre una bicicleta: protección y seguridad vial",
+      "ca": "Casc sobre una bicicleta: protecció i seguretat viària",
+      "en": "Helmet over a bicycle: protection and road safety"
+    },
+    "temas": [
+      "casco",
+      "proteccion",
+      "seguridad",
+      "bicicleta",
+      "deporte",
+      "prevencion",
+      "accidente"
+    ],
+    "areas": [
+      "educacionFisica",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "seg-extintor",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Extintor: incendios y seguridad",
+      "ca": "Extintor: incendis i seguretat",
+      "en": "Fire extinguisher: fires and safety"
+    },
+    "temas": [
+      "extintor",
+      "fuego",
+      "incendio",
+      "seguridad",
+      "emergencia",
+      "prevencion",
+      "bombero"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "seg-semaforo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Semáforo en verde y señal de paso de peatones: seguridad vial y normas",
+      "ca": "Semàfor en verd i senyal de pas de vianants: seguretat viària i normes",
+      "en": "Green traffic light and a pedestrian crossing sign: road safety and rules"
+    },
+    "temas": [
+      "semaforo",
+      "seguridad vial",
+      "normas",
+      "senal",
+      "peaton",
+      "calle",
+      "colores",
+      "convivencia"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "seg-stop",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Señal de stop: normas y seguridad vial",
+      "ca": "Senyal de stop: normes i seguretat viària",
+      "en": "Stop sign: rules and road safety"
+    },
+    "temas": [
+      "stop",
+      "senal",
+      "seguridad vial",
+      "norma",
+      "trafico",
+      "peligro",
+      "prohibido",
+      "calle"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-auriculares",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Auriculares: escuchar música y sonido",
+      "ca": "Auriculars: escoltar música i so",
+      "en": "Headphones: listening to music and sound"
+    },
+    "temas": [
+      "auriculares",
+      "escuchar",
+      "musica",
+      "sonido",
+      "tecnologia",
+      "audio",
+      "oido"
+    ],
+    "areas": [
+      "musica",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-camara",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cámara de fotos: fotografía, memoria y arte",
+      "ca": "Càmera de fotos: fotografia, memòria i art",
+      "en": "Photo camera: photography, memory and art"
+    },
+    "temas": [
+      "camara",
+      "foto",
+      "fotografia",
+      "imagen",
+      "recuerdo",
+      "arte",
+      "tecnologia",
+      "luz"
+    ],
+    "areas": [
+      "plastica",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-movil",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Teléfono móvil: comunicación y tecnología",
+      "ca": "Telèfon mòbil: comunicació i tecnologia",
+      "en": "Mobile phone: communication and technology"
+    },
+    "temas": [
+      "movil",
+      "telefono",
+      "comunicacion",
+      "tecnologia",
+      "digital",
+      "pantalla",
+      "llamada",
+      "mensaje"
+    ],
+    "areas": [
+      "general",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-ordenador",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ordenador portátil: tecnología, informática y recursos digitales",
+      "ca": "Ordinador portàtil: tecnologia, informàtica i recursos digitals",
+      "en": "Laptop computer: technology, computing and digital resources"
+    },
+    "temas": [
+      "ordenador",
+      "tecnologia",
+      "informatica",
+      "digital",
+      "internet",
+      "programacion",
+      "pantalla",
+      "robotica"
+    ],
+    "areas": [
+      "general",
+      "cienciasNaturales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-raton",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ratón de ordenador: informática y manejo del ordenador",
+      "ca": "Ratolí d’ordinador: informàtica i ús de l’ordinador",
+      "en": "Computer mouse: computing and using a computer"
+    },
+    "temas": [
+      "raton",
+      "ordenador",
+      "informatica",
+      "tecnologia",
+      "digital",
+      "clic",
+      "puntero"
+    ],
+    "areas": [
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-tablet",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tableta: recursos digitales y aprendizaje",
+      "ca": "Tauleta: recursos digitals i aprenentatge",
+      "en": "Tablet: digital resources and learning"
+    },
+    "temas": [
+      "tablet",
+      "tableta",
+      "digital",
+      "pantalla",
+      "tecnologia",
+      "aprendizaje",
+      "aplicacion",
+      "internet"
+    ],
+    "areas": [
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tec-teclado",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ordenador portátil: escribir y usar el teclado",
+      "ca": "Ordinador portàtil: escriure i usar el teclat",
+      "en": "Laptop computer: typing and using the keyboard"
+    },
+    "temas": [
+      "teclado",
+      "ordenador",
+      "escribir",
+      "informatica",
+      "tecnologia",
+      "digital",
+      "mecanografia"
+    ],
+    "areas": [
+      "general",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tie-amanecer",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Sol naciente tras una colina: el día, la mañana y el sol",
+      "ca": "Sol naixent darrere un turó: el dia, el matí i el sol",
+      "en": "Rising sun behind a hill: the day, the morning and the sun"
+    },
+    "temas": [
+      "amanecer",
+      "manana",
+      "sol",
+      "dia",
+      "rutina",
+      "tiempo",
+      "horizonte",
+      "paisaje"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tie-botas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Botas de agua amarillas: lluvia y ropa de abrigo",
+      "ca": "Botes d’aigua grogues: pluja i roba d’abric",
+      "en": "Yellow rain boots: rain and warm clothing"
+    },
+    "temas": [
+      "botas",
+      "lluvia",
+      "ropa",
+      "tiempo atmosferico",
+      "charco",
+      "otono",
+      "impermeable"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tie-bufanda",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gorro, bufanda y guantes: invierno y ropa de abrigo",
+      "ca": "Gorra, bufanda i guants: hivern i roba d’abric",
+      "en": "Hat, scarf and mittens: winter and warm clothing"
+    },
+    "temas": [
+      "gorro",
+      "bufanda",
+      "guantes",
+      "invierno",
+      "frio",
+      "ropa",
+      "abrigo",
+      "nieve"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tie-gafas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Gafas de sol y sombrero: verano y protección solar",
+      "ca": "Ulleres de sol i barret: estiu i protecció solar",
+      "en": "Sunglasses and a sun hat: summer and sun protection"
+    },
+    "temas": [
+      "gafas de sol",
+      "verano",
+      "sol",
+      "proteccion",
+      "ropa",
+      "playa",
+      "calor",
+      "vacaciones"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tie-noche",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Luna con estrellas: la noche, la luna y las estrellas",
+      "ca": "Lluna amb estrelles: la nit, la lluna i les estrelles",
+      "en": "Moon with stars: night, the moon and stars"
+    },
+    "temas": [
+      "noche",
+      "luna",
+      "estrellas",
+      "dormir",
+      "cielo",
+      "oscuridad",
+      "rutina",
+      "tiempo"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tie-paraguas",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Paraguas abierto con gotas: lluvia y tiempo atmosférico",
+      "ca": "Paraigua obert amb gotes: pluja i temps atmosfèric",
+      "en": "Open umbrella with raindrops: rain and weather"
+    },
+    "temas": [
+      "paraguas",
+      "lluvia",
+      "tiempo atmosferico",
+      "otono",
+      "proteccion",
+      "agua",
+      "clima"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-ambulancia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Ambulancia: emergencias y servicios sanitarios",
+      "ca": "Ambulància: emergències i serveis sanitaris",
+      "en": "Ambulance: emergencies and health services"
+    },
+    "temas": [
+      "ambulancia",
+      "emergencia",
+      "salud",
+      "hospital",
+      "vehiculo",
+      "servicios",
+      "transporte",
+      "ayuda"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-autobus",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Autobús urbano: transporte público",
+      "ca": "Autobús urbà: transport públic",
+      "en": "City bus: public transport"
+    },
+    "temas": [
+      "transporte",
+      "autobus",
+      "publico",
+      "ciudad",
+      "vehiculo",
+      "parada",
+      "viaje",
+      "movilidad"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-avion",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Avión: medio de transporte aéreo",
+      "ca": "Avió: mitjà de transport aeri",
+      "en": "Airplane: an air transport vehicle"
+    },
+    "temas": [
+      "transporte",
+      "avion",
+      "aire",
+      "vehiculo",
+      "viaje",
+      "aeropuerto",
+      "volar"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-bicicleta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Bicicleta: transporte sostenible, movilidad y deporte",
+      "ca": "Bicicleta: transport sostenible, mobilitat i esport",
+      "en": "Bicycle: sustainable transport, mobility and sport"
+    },
+    "temas": [
+      "transporte",
+      "bicicleta",
+      "movilidad",
+      "sostenible",
+      "deporte",
+      "vehiculo",
+      "ciclismo",
+      "medio ambiente"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-camion",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Camión: transporte de mercancías por carretera",
+      "ca": "Camió: transport de mercaderies per carretera",
+      "en": "Truck: road freight transport"
+    },
+    "temas": [
+      "transporte",
+      "camion",
+      "mercancia",
+      "carretera",
+      "vehiculo",
+      "carga",
+      "reparto",
+      "trabajo"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-coche",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Coche: medio de transporte por carretera",
+      "ca": "Cotxe: mitjà de transport per carretera",
+      "en": "Car: a road transport vehicle"
+    },
+    "temas": [
+      "transporte",
+      "coche",
+      "carretera",
+      "vehiculo",
+      "viaje",
+      "velocidad",
+      "seguridad vial"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-globo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Globo aerostático: el aire y los primeros viajes",
+      "ca": "Globus aerostàtic: l’aire i els primers viatges",
+      "en": "Hot air balloon: air and early flights"
+    },
+    "temas": [
+      "globo",
+      "aire",
+      "transporte",
+      "volar",
+      "aventura",
+      "calor",
+      "vehiculo",
+      "cielo"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-helicoptero",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Helicóptero: transporte aéreo y rescates",
+      "ca": "Helicòpter: transport aeri i rescats",
+      "en": "Helicopter: air transport and rescues"
+    },
+    "temas": [
+      "helicoptero",
+      "aire",
+      "transporte",
+      "vehiculo",
+      "rescate",
+      "volar",
+      "aeronave",
+      "emergencia"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-moto",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Moto de color rojo: transporte por carretera de dos ruedas",
+      "ca": "Moto vermella: transport per carretera de dues rodes",
+      "en": "Red scooter: two-wheeled road transport"
+    },
+    "temas": [
+      "moto",
+      "transporte",
+      "carretera",
+      "vehiculo",
+      "velocidad",
+      "seguridad vial",
+      "casco",
+      "motor"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-patinete",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Patinete: movilidad personal y juego",
+      "ca": "Patinet: mobilitat personal i joc",
+      "en": "Kick scooter: personal mobility and play"
+    },
+    "temas": [
+      "patinete",
+      "movilidad",
+      "juego",
+      "transporte",
+      "deporte",
+      "equilibrio",
+      "vehiculo",
+      "ciudad"
+    ],
+    "areas": [
+      "educacionFisica",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-submarino",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Submarino amarillo: exploración del mar",
+      "ca": "Submarí groc: exploració del mar",
+      "en": "Yellow submarine: exploring the sea"
+    },
+    "temas": [
+      "submarino",
+      "mar",
+      "oceano",
+      "exploracion",
+      "transporte",
+      "vehiculo",
+      "profundidad",
+      "aventura"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "tra-tren",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Tren: medio de transporte por ferrocarril",
+      "ca": "Tren: mitjà de transport per ferrocarril",
+      "en": "Train: a rail transport vehicle"
+    },
+    "temas": [
+      "transporte",
+      "tren",
+      "ferrocarril",
+      "vehiculo",
+      "viaje",
+      "estacion",
+      "velocidad"
+    ],
+    "areas": [
+      "cienciasSociales",
+      "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-abrazo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Dos niños abrazándose: amistad y cariño",
+      "ca": "Dos nens abraçant-se: amistat i afecte",
+      "en": "Two children hugging: friendship and affection"
+    },
+    "temas": [
+      "abrazo",
+      "amistad",
+      "carino",
+      "emocion",
+      "valor",
+      "convivencia",
+      "empatia",
+      "companerismo"
+    ],
+    "areas": [
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-amigos",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Grupo de niños y niñas: amistad, diversidad y equipo",
+      "ca": "Grup de nens i nenes: amistat, diversitat i equip",
+      "en": "Group of children: friendship, diversity and teamwork"
+    },
+    "temas": [
+      "amigos",
+      "amistad",
+      "diversidad",
+      "equipo",
+      "convivencia",
+      "grupo",
+      "inclusion",
+      "companeros"
+    ],
+    "areas": [
+      "valores",
+      "general",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-corazon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Corazón con una tirita: cuidar y empatía",
+      "ca": "Cor amb una tireta: cuidar i empatia",
+      "en": "Heart with a bandage: caring and empathy"
+    },
+    "temas": [
+      "corazon",
+      "cuidar",
+      "empatia",
+      "sentimiento",
+      "amor",
+      "amistad",
+      "valor",
+      "cuidado"
+    ],
+    "areas": [
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-emociones",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cuatro caritas con gestos distintos: las emociones y los sentimientos",
+      "ca": "Quatre carotes amb gestos diferents: les emocions i els sentiments",
+      "en": "Four little faces with different expressions: emotions and feelings"
+    },
+    "temas": [
+      "emocion",
+      "sentimiento",
+      "alegria",
+      "tristeza",
+      "enfado",
+      "sorpresa",
+      "empatia",
+      "valor"
+    ],
+    "areas": [
+      "valores",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-familia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Familia unida: convivencia y tipos de familia",
+      "ca": "Família unida: convivència i tipus de família",
+      "en": "Happy family: coexistence and types of family"
+    },
+    "temas": [
+      "familia",
+      "convivencia",
+      "hogar",
+      "amor",
+      "valor",
+      "padres",
+      "hermanos",
+      "sociedad"
+    ],
+    "areas": [
+      "valores",
+      "cienciasSociales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-justicia",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Balanza de la justicia: normas, derechos y ley",
+      "ca": "Balança de la justícia: normes, drets i llei",
+      "en": "Scales of justice: rules, rights and law"
+    },
+    "temas": [
+      "justicia",
+      "balanza",
+      "norma",
+      "derecho",
+      "ley",
+      "igualdad",
+      "valor",
+      "convivencia"
+    ],
+    "areas": [
+      "valores",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-manos",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Manos de distintos colores unidas: amistad, convivencia y solidaridad",
+      "ca": "Mans de colors diferents unides: amistat, convivència i solidaritat",
+      "en": "Hands of different colors joined together: friendship, coexistence and solidarity"
+    },
+    "temas": [
+      "amistad",
+      "convivencia",
+      "solidaridad",
+      "respeto",
+      "igualdad",
+      "diversidad",
+      "valor",
+      "equipo",
+      "cooperacion"
+    ],
+    "areas": [
+      "valores",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-paloma",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Paloma con una rama de olivo: la paz",
+      "ca": "Coloma amb una branca d’olivera: la pau",
+      "en": "Dove with an olive branch: peace"
+    },
+    "temas": [
+      "paz",
+      "paloma",
+      "valor",
+      "convivencia",
+      "solidaridad",
+      "respeto",
+      "no violencia",
+      "dia de la paz"
+    ],
+    "areas": [
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-planeta",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Manos que cuidan el planeta: sostenibilidad y medio ambiente",
+      "ca": "Mans que cuiden el planeta: sostenibilitat i medi ambient",
+      "en": "Hands caring for the planet: sustainability and the environment"
+    },
+    "temas": [
+      "medio ambiente",
+      "planeta",
+      "sostenible",
+      "cuidar",
+      "ecologia",
+      "responsabilidad",
+      "reciclaje",
+      "valor"
+    ],
+    "areas": [
+      "valores",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "val-regalo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Regalo con lazo: generosidad y celebraciones",
+      "ca": "Regal amb llaç: generositat i celebracions",
+      "en": "Gift with a bow: generosity and celebrations"
+    },
+    "temas": [
+      "regalo",
+      "generosidad",
+      "fiesta",
+      "cumpleanos",
+      "navidad",
+      "detalle",
+      "celebracion",
+      "valor"
+    ],
+    "areas": [
+      "valores",
       "general"
     ],
     "etapas": [

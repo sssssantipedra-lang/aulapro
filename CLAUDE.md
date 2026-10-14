@@ -48,7 +48,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 ## Fichas (revisión del 14-10-2026)
 
 - Las fichas salen por defecto con el diseño «Cuaderno» (`src/services/fichaCuaderno.ts`): hoja de colegio con cinta de título, bloques numerados, listas de cálculos y recuadros laterales («Recuerda», «Reto», «Consejo»). «Clásica» y los temas con historia siguen disponibles. Detalle y decisiones en `docs/FICHAS.md`.
-- Ninguna ilustración entra suelta: cada una lleva descripción (es, ca, en) y temas comunes, y la app la relaciona con el contenido (`src/lib/ilustraciones.ts`). Las que se generan con fal.ai (modelo barato, licencia comercial revisada) salen de `scripts/ilustraciones/` y van dentro de la app.
+- Ninguna ilustración entra suelta: cada una lleva descripción (es, ca, en) y temas comunes, y la app la relaciona con el contenido (`src/lib/ilustraciones.ts`). Las que se generan con fal.ai (modelo barato, licencia comercial revisada) salen de `scripts/ilustraciones/` y van dentro de la app: 281 motivos comunes en `public/ilustraciones/` (unos 6 MB, 384 px, fondo transparente). Son decorativas, nunca el dato de un ejercicio: los modelos no cuentan ni escriben.
 
 ## Publicar
 

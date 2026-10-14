@@ -74,6 +74,25 @@ describe('elegirIlustraciones', () => {
     expect(puntuarIlustracion(base, { ...ctx, nivel: '3º Primaria' })).toBeGreaterThan(puntuarIlustracion(base, { ...ctx, nivel: '2º ESO' }));
   });
 
+  it('los dibujos sueltos (`img`) también se relacionan con el tema', () => {
+    const ids = (tema: string, area: string) => elegirIlustraciones({ tema, area, nivel: '3º Primaria' }, { uso: 'objeto', max: 6 }).map(i => i.id);
+    expect(ids('Los animales de la granja', 'Ciencias Naturales')).toEqual(expect.arrayContaining(['ani-vaca', 'ani-cerdo']));
+    expect(ids('Las emociones', 'Valores')).toContain('val-emociones');
+    expect(ids('La higiene y los dientes', 'Ciencias Naturales')).toContain('cue-dientes');
+  });
+
+  it('un tema de tres letras o menos solo cuenta como palabra entera o en plural («sol» no es «solar»)', () => {
+    const sol = ilustracionPorId('nat-sol')!;
+    const gafas = ilustracionPorId('tie-gafas')!;
+    const solar = { tema: 'El sistema solar', area: '' };
+    // «sol» no puntúa en «solar»: lo que queda es el área o las palabras de la descripción
+    expect(puntuarIlustracion(sol, solar)).toBeLessThan(3);
+    expect(puntuarIlustracion(gafas, solar)).toBeLessThan(3);
+    expect(puntuarIlustracion(sol, { tema: 'El sol y la luz', area: '' })).toBeGreaterThanOrEqual(3);
+    expect(puntuarIlustracion(sol, { tema: 'Los soles del verano', area: '' })).toBeGreaterThanOrEqual(3);
+    expect(elegirIlustraciones(solar, { uso: 'objeto', max: 3 }).map(i => i.id)).toContain('esp-saturno');
+  });
+
   it('la lista para la IA lleva identificador y descripción', () => {
     expect(listaIlustracionesParaIA('mascota', 'es')).toContain('mascota-chincheta (Chincheta roja');
     expect(listaIlustracionesParaIA('mascota', 'en')).toContain('(Red pin');

@@ -152,6 +152,18 @@ function etapaDe(nivel: string | undefined): EtapaIlustracion | undefined {
 }
 
 /**
+ * Un tema encaja si empieza una palabra del texto; los de tres letras o menos
+ * («sol», «mar», «pez», «luz») solo con la palabra entera o su plural, porque
+ * si no «sol» encontraba «solar» (el sistema solar salía con unas gafas de sol)
+ * y «mar», «marzo».
+ */
+function encaja(texto: string, clave: string): boolean {
+  if (clave.length > 3) return empiezaPalabra(texto, clave);
+  const k = clave.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${k}(es|s)?($|[^a-z0-9])`).test(texto);
+}
+
+/**
  * Cuánto encaja una ilustración con lo que se trabaja. Cada tema de la
  * ilustración que aparece en el tema o el área vale 3 (el más largo, el más
  * específico, un poco más); que sea del área que se deduce vale 2; cada palabra
@@ -163,7 +175,7 @@ export function puntuarIlustracion(ilu: Ilustracion, ctx: ContextoIlustracion): 
   let puntos = 0;
   for (const t of ilu.temas) {
     const k = plano(t);
-    if (k && empiezaPalabra(texto, k)) puntos += 3 + Math.min(1, k.length / 20);
+    if (k && encaja(texto, k)) puntos += 3 + Math.min(1, k.length / 20);
   }
   if (ilu.areas.includes(pickMotifKey(ctx.tema, ctx.area))) puntos += 2;
   for (const w of new Set(plano(ilu.descripcion.es).split(/[^a-z0-9]+/).filter(x => x.length > 4))) {

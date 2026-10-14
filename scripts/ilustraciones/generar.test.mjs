@@ -39,32 +39,55 @@ describe('lista de ilustraciones para fal.ai', () => {
 });
 
 describe('quitar el fondo blanco', () => {
-  /** Un fondo blanco con una sombra gris y un círculo de contorno oscuro con el interior blanco. */
+  /** Fondo blanco, una sombra lila pegada al círculo, un círculo de contorno oscuro con el interior blanco y una mota suelta. */
   async function muestra() {
     const sharp = (await import('sharp')).default;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#fff"/>` +
-      `<ellipse cx="100" cy="176" rx="60" ry="9" fill="#d4d4d8"/><circle cx="100" cy="90" r="60" fill="#fff" stroke="#0b2a5b" stroke-width="8"/>` +
-      `<circle cx="100" cy="90" r="14" fill="#e11d48"/></svg>`;
+      `<ellipse cx="100" cy="150" rx="62" ry="12" fill="#cfc4e8"/><circle cx="100" cy="90" r="60" fill="#fff" stroke="#0b2a5b" stroke-width="8"/>` +
+      `<circle cx="100" cy="90" r="14" fill="#e11d48"/><rect x="176" y="20" width="6" height="5" fill="#222"/></svg>`;
     return sharp(Buffer.from(svg)).png().toBuffer();
   }
-
-  it('deja el exterior transparente, sin sombra, y el blanco que encierra el contorno opaco', async () => {
+  const alfas = async (buf) => {
     const sharp = (await import('sharp')).default;
+    const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    return { info, alfa: (x, y) => data[(y * info.width + x) * 4 + 3] };
+  };
+
+  it('deja el exterior transparente y el blanco que encierra el contorno opaco', async () => {
     const { quitarFondoBlanco } = await import('./fondo.mjs');
-    const out = await quitarFondoBlanco(await muestra(), { lado: 200, margen: 0 });
-    const { data, info } = await sharp(out).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const { info, alfa } = await alfas(await quitarFondoBlanco(await muestra(), { lado: 200, margen: 0 }));
     expect([info.width, info.height]).toEqual([200, 200]);
-    const alfa = (x, y) => data[(y * info.width + x) * 4 + 3];
     expect(alfa(2, 2)).toBe(0);            // esquina: fondo
     expect(alfa(100, 100)).toBe(255);      // dentro del círculo: el botón rojo
     expect(alfa(100, 60)).toBe(255);       // dentro del círculo, en blanco: se queda
   });
 
-  it('recorta al contorno y cuadra, con el sujeto centrado', async () => {
+  it('pela la sombra de color pegada al sujeto y borra las motas sueltas', async () => {
+    const { quitarFondoBlanco } = await import('./fondo.mjs');
+    // Sin recorte ni reescalado exactos no se puede mirar un píxel: se compara el contenido con y sin sombra
+    const sharp = (await import('sharp')).default;
+    const con = await quitarFondoBlanco(await muestra(), { lado: 200, margen: 0 });
+    const meta = await sharp(con).metadata();
+    expect(meta.hasAlpha).toBe(true);
+    // El círculo mide 128 de ancho con su contorno; sin sombra ni mota, el recorte es casi cuadrado (con sombra y mota, 6 px más ancho/alto)
+    const { data, info } = await sharp(con).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let minX = info.width, maxX = 0, minY = info.height, maxY = 0;
+    for (let y = 0; y < info.height; y++) for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3] > 0) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+    // Cuadrado: la sombra (más ancha que el círculo) y la mota (a la derecha) harían un recorte más ancho que alto
+    expect(Math.abs((maxX - minX) - (maxY - minY))).toBeLessThanOrEqual(3);
+  });
+
+  it('un color vivo sin contorno no se pela', async () => {
     const sharp = (await import('sharp')).default;
     const { quitarFondoBlanco } = await import('./fondo.mjs');
-    const out = await quitarFondoBlanco(await muestra(), { lado: 128 });
-    const { info } = await sharp(out).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="50" r="30" fill="#f59e0b"/></svg>`;
+    const { alfa } = await alfas(await quitarFondoBlanco(await sharp(Buffer.from(svg)).png().toBuffer(), { lado: 100, margen: 0 }));
+    expect(alfa(50, 50)).toBe(255);
+  });
+
+  it('recorta al contorno y cuadra, con el sujeto centrado', async () => {
+    const { quitarFondoBlanco } = await import('./fondo.mjs');
+    const { info } = await alfas(await quitarFondoBlanco(await muestra(), { lado: 128 }));
     expect([info.width, info.height]).toEqual([128, 128]);
   });
 });

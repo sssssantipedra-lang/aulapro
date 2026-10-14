@@ -11,7 +11,7 @@
  *
  * Por cada imagen, una llamada al modelo barato de `MODELO` (fondo blanco liso)
  * y el fondo se quita aquí, en local (`fondo.mjs`): un quitafondos de IA dejó
- * el perro con el cuerpo medio transparente. Se recorta, se cuadra a 512 px y se
+ * el perro con el cuerpo medio transparente. Se recorta, se cuadra a 384 px y se
  * guarda en WebP en `public/ilustraciones/<id>.webp`: va dentro de la aplicación
  * y funciona sin conexión. Las que ya están no se vuelven a generar, así que se
  * puede repetir sin gastar de más. La clave va en la variable FAL_KEY, nunca en
@@ -38,7 +38,7 @@ const CATALOGO = path.join(RAIZ, 'src', 'lib', 'ilustraciones.catalogo.json');
 
 const MODELO = 'fal-ai/flux/schnell';
 const MODELOS_PERMITIDOS = new Set([MODELO]);
-const LADO = 512;
+const LADO = 384;
 
 const USOS = new Set(['cabecera', 'mascota', 'objeto', 'escena']);
 const AREAS = new Set(['matematicas', 'lengua', 'ingles', 'cienciasNaturales', 'cienciasSociales', 'musica', 'educacionFisica', 'plastica', 'valores', 'general']);
