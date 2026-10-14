@@ -400,6 +400,38 @@ describe('la revisión de la IA', () => {
     expect(f!.actividades[2].ejercicios[0].enunciado).toBe('Razonamos 1');
   });
 
+  it('un fallo en el recuadro «Recuerda» se corrige rehaciendo el recuadro, no un ejercicio', async () => {
+    const conRecuadro = ficha([
+      { ...bloque('Calculamos', 1), recuadro: { tipo: 'recuerda', texto: '', lista: ['1 unidad = 10 décimas', '1 décima = 100 centésimas'] } },
+      bloque('Resolvemos', 2), bloque('Razonamos', 3),
+    ]);
+    callGemini
+      .mockResolvedValueOnce(conRecuadro)
+      .mockResolvedValueOnce(con([{ bloque: 1, ejercicio: 0, motivo: '1 décima son 10 centésimas, no 100.' }]))
+      .mockResolvedValueOnce(JSON.stringify({ tipo: 'recuerda', texto: '', lista: ['1 unidad = 10 décimas', '1 décima = 10 centésimas'] }));
+    const f = await generateFicha(req({ revisar: true }), 'es');
+    expect(callGemini).toHaveBeenCalledTimes(3);
+    expect(usuario(1)).toContain('"recuadro":{"tipo":"recuerda"');
+    expect(sistema(1)).toContain('pon "ejercicio": 0');
+    expect(usuario(2)).toContain('1 décima son 10 centésimas, no 100.');
+    expect(f!.actividades[0].recuadro!.lista).toEqual(['1 unidad = 10 décimas', '1 décima = 10 centésimas']);
+    // los ejercicios no se tocan
+    expect(f!.actividades[0].ejercicios.map(e => e.enunciado)).toEqual(['Calculamos 1', 'Calculamos 2']);
+  });
+
+  it('si el recuadro rehecho no vale (otro tipo o vacío), se queda el de antes; un 0 sin recuadro se descarta', async () => {
+    const conRecuadro = ficha([
+      { ...bloque('Calculamos', 1), recuadro: { tipo: 'recuerda', texto: '', lista: ['a = b'] } }, bloque('Resolvemos', 2), bloque('Razonamos', 3),
+    ]);
+    callGemini
+      .mockResolvedValueOnce(conRecuadro)
+      .mockResolvedValueOnce(con([{ bloque: 1, ejercicio: 0, motivo: 'mal' }, { bloque: 2, ejercicio: 0, motivo: 'no hay recuadro aquí' }]))
+      .mockResolvedValueOnce(JSON.stringify({ tipo: 'reto', texto: 'otra cosa' }));
+    const f = await generateFicha(req({ revisar: true }), 'es');
+    expect(callGemini).toHaveBeenCalledTimes(3);
+    expect(f!.actividades[0].recuadro).toEqual({ tipo: 'recuerda', texto: '', lista: ['a = b'] });
+  });
+
   it('una ficha sin fallos graves no se toca ni hace más llamadas', async () => {
     callGemini.mockResolvedValueOnce(buena()).mockResolvedValueOnce(con([]));
     await generateFicha(req({ revisar: true }), 'es');

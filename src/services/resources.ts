@@ -1569,7 +1569,7 @@ async function repararFicha(
 const MAX_REVISADOS = 3;
 
 export interface HallazgoRevision {
-  /** Bloque y ejercicio, contados desde 1 como en la hoja. */
+  /** Bloque y ejercicio, contados desde 1 como en la hoja; el ejercicio 0 es el recuadro del bloque. */
   bloque: number;
   ejercicio: number;
   /** Qué está mal, dicho como indicación para rehacerlo. */
@@ -1586,7 +1586,7 @@ const REVISION_SCHEMA = {
         type: 'OBJECT',
         properties: {
           bloque: { type: 'INTEGER', description: 'Número del bloque (1, 2, 3…)' },
-          ejercicio: { type: 'INTEGER', description: 'Número del ejercicio dentro del bloque (1, 2…)' },
+          ejercicio: { type: 'INTEGER', description: 'Número del ejercicio dentro del bloque (1, 2…), o 0 si el fallo está en el recuadro «Recuerda», «Reto» o «Consejo» del bloque' },
           motivo: S('Qué está mal y cómo rehacerlo, en una o dos frases, como una indicación para quien lo reescriba'),
         },
         required: ['bloque', 'ejercicio', 'motivo'],
@@ -1608,7 +1608,9 @@ const REVISION_SISTEMA =
   `3. El nivel es el que toca: un ejercicio del bloque 1 que ya es difícil, un ejercicio del bloque 3 que solo pide reconocer o copiar, ` +
   `o uno que es de un curso inferior al de la ficha (en 5.º y 6.º de Primaria esto es grave).\n` +
   `4. No repite otro ejercicio de la ficha ni pregunta lo que otro ya contesta.\n` +
-  `5. Es del tema y es riguroso (nada inventado, nada que un libro de texto contradiga).\n` +
+  `5. Es del tema y es riguroso (nada inventado, nada que un libro de texto contradiga). Esto incluye los recuadros de cada bloque ` +
+  `(«recuerda»: equivalencias, siglas, datos; «reto»; «consejo»): un dato equivocado ahí se aprende mal. Si el fallo está en un recuadro, ` +
+  `pon "ejercicio": 0.\n` +
   `6. Está bien montado: en "relacionar" cada par tiene sentido; en "verdadero_falso" las falsas tienen un error que se puede razonar; ` +
   `en "completar" los huecos se deducen; en "opcion_multiple" hay una sola correcta; la "solucion" explica cómo se llega.\n` +
   `NO son fallos: en "ordenar" los "elementos" vienen en el orden correcto a propósito (la aplicación los desordena al imprimir); ` +
@@ -1637,6 +1639,7 @@ export async function revisarFicha(
         bloque: i + 1,
         titulo: a.titulo,
         dificultad: a.dificultad,
+        recuadro: a.recuadro,
         ejercicios: a.ejercicios.flatMap((e, j) => {
           if (esTipoConDibujos(e.tipo)) return [];
           return [{ ejercicio: j + 1, ...exerciseForPrompt(e), dibujos: undefined, categorias: undefined }];
@@ -1659,12 +1662,35 @@ export async function revisarFicha(
     const parsed = parseGeminiJson<{ problemas?: HallazgoRevision[] }>(raw);
     return (Array.isArray(parsed?.problemas) ? parsed.problemas : [])
       .filter(h => h && Number.isInteger(h.bloque) && Number.isInteger(h.ejercicio) && typeof h.motivo === 'string' && h.motivo.trim()
-        && !!content.actividades[h.bloque - 1]?.ejercicios[h.ejercicio - 1])
+        && (h.ejercicio === 0 ? !!content.actividades[h.bloque - 1]?.recuadro : !!content.actividades[h.bloque - 1]?.ejercicios[h.ejercicio - 1]))
       .slice(0, MAX_REVISADOS);
   } catch {
     return [];
   } finally {
     callbacks.onEnd?.();
+  }
+}
+
+/** Corrige el recuadro de un bloque (un dato mal en el «Recuerda»); `null` si la IA no contesta o no devuelve nada válido. */
+async function regenerateRecuadro(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, actIdx: number, motivo: string, lang: Lang,
+): Promise<FichaRecuadro | null> {
+  const act = content.actividades[actIdx];
+  if (!act?.recuadro) return null;
+  try {
+    const raw = await callGemini(
+      'Eres un maestro o una maestra que corrige un recuadro de una ficha de trabajo. Devuelves el mismo recuadro con el fallo corregido, y nada más.',
+      fichaContextForPrompt(content, req) +
+      `Bloque de actividad: ${act.titulo}\nRecuadro actual (JSON):\n${JSON.stringify(act.recuadro)}\n\n` +
+      `Fallo que hay que corregir: ${motivo}\n` +
+      `Devuelve el recuadro corregido, del mismo tipo y con el mismo formato ("lista" con líneas «SIGLA = significado» si es de tipo "recuerda"). ` +
+      `El idioma de salida DEBE SER ${idioma(lang)}.`,
+      [], {}, { maxOutputTokens: 2048, responseSchema: RECUADRO_SCHEMA, thinkingLevel: 'low', temperature: 0.5 },
+    );
+    const nuevo = raw ? cleanRecuadro(parseGeminiJson<FichaRecuadro>(raw) ?? undefined) : undefined;
+    return nuevo && nuevo.tipo === act.recuadro.tipo ? nuevo : null;
+  } catch {
+    return null;
   }
 }
 
@@ -1744,6 +1770,11 @@ async function mejorarFicha(
   for (const h of await revisarFicha(actual, req, lang)) {
     const a = h.bloque - 1;
     const e = h.ejercicio - 1;
+    if (e < 0) {
+      const recuadro = await regenerateRecuadro(actual, req, a, h.motivo, lang);
+      if (recuadro) actual = { ...actual, actividades: actual.actividades.map((act, i) => (i === a ? { ...act, recuadro } : act)) };
+      continue;
+    }
     const nuevo = await regenerateExercise(actual, req, a, e, { instruccion: h.motivo }, lang);
     if (!nuevo || problemaDeEjercicio(nuevo, !!actual.hilo)) continue;
     actual = conEjercicio(actual, a, e, nuevo);
