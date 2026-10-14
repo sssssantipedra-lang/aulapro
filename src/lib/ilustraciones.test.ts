@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ILUSTRACIONES, elegirIlustraciones, ilustracionPorId, listaIlustracionesParaIA, puntuarIlustracion } from './ilustraciones';
+import { existsSync } from 'node:fs';
+import { ILUSTRACIONES, elegirIlustraciones, ilustracionPorId, listaIlustracionesParaIA, puntuarIlustracion, urlIlustracion } from './ilustraciones';
 import { ILUSTRACIONES_PROPIAS } from '../services/fichaCuaderno';
 import { empiezaPalabra, pickMotifKey } from '../services/fichaMotifs';
 
@@ -24,6 +25,14 @@ describe('catálogo de ilustraciones', () => {
     for (const id of ILUSTRACIONES_PROPIAS) expect(ilustracionPorId(id), id).toBeTruthy();
     const svg = ILUSTRACIONES.filter(i => i.fuente === 'svg').map(i => i.id).sort();
     expect(svg).toEqual([...ILUSTRACIONES_PROPIAS].sort());
+  });
+});
+
+describe('ilustraciones generadas con fal.ai', () => {
+  it('cada entrada `img` tiene su archivo en public/ilustraciones', () => {
+    for (const i of ILUSTRACIONES.filter(x => x.fuente === 'img')) {
+      expect(existsSync(`public/${urlIlustracion(i.id)}`), `${i.id}.webp`).toBe(true);
+    }
   });
 });
 

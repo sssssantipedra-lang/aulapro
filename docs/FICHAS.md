@@ -50,12 +50,14 @@ FAL_KEY=… node scripts/ilustraciones/generar.mjs --solo ani-perro,mat-reloj,hi
 FAL_KEY=… node scripts/ilustraciones/generar.mjs             # las que faltan
 ```
 
-- Modelo barato: `fal-ai/flux/schnell` y quitafondos `fal-ai/imageutils/rembg`, dos llamadas por imagen. El script se niega a usar un modelo cuya licencia comercial no esté revisada (`MODELOS_PERMITIDOS`): FLUX.1 schnell es Apache-2.0; FLUX.1 dev no vale.
+- Modelo barato: `fal-ai/flux/schnell` (768 × 768, una llamada por imagen; precio del 14-10-2026: 0,003 $ por megapíxel, unos 0,002 $ por imagen). El script se niega a usar un modelo cuya licencia comercial no esté revisada (`MODELOS_PERMITIDOS`): FLUX.1 schnell vale para uso comercial; FLUX.1 dev no.
+- El fondo se quita en local (`fondo.mjs`, relleno desde los bordes) y no con un quitafondos de IA: `fal-ai/imageutils/rembg` dejó el perro con solo la cabeza y el cuerpo medio transparente (prueba del 14-10-2026), porque el sujeto es del color del fondo. Por eso el estilo pide «fondo blanco liso, contorno grueso, sin sombra».
+- Los modelos no cuentan: pedido «un reloj a las tres», dibujó las diez. Las ilustraciones son decorativas, nunca el dato de un ejercicio (la hora, una cantidad, un nombre).
 - Las que ya están no se regeneran (ni se pagan); el catálogo se guarda a cada imagen.
-- La clave va solo en la variable `FAL_KEY` del entorno (nunca en un archivo del repositorio). En las sesiones en la nube, el host `fal.run` (y `fal.media` para descargar) hay que permitirlo en la red del entorno.
+- Dos formas de generarlas: (1) con la clave `FAL_KEY` en el entorno, que además necesita permitir en la red los hosts `fal.run` y `*.fal.media` (las imágenes salen de `v3b.fal.media`, no solo de `v3`); (2) sin clave ni red, con el conector MCP de fal en una sesión de Claude (https://mcp.fal.ai/mcp-relay, hay que abrir sesión nueva tras conectarlo): se genera con el conector, se leen las imágenes con `inspect_images` (que las deja como archivos locales de 768 px) y se meten con `--importar id=archivo`.
 - Antes de publicar, revisar las imágenes a ojo: estilo común, sin texto ni deformaciones.
 - Para añadir ilustraciones: una fila nueva en `lista.mjs` (con sus tres descripciones y sus temas) y volver a ejecutar.
-- Estado: el script y la lista están hechos y probados en seco (`scripts/ilustraciones/generar.test.mjs`). Aún no se ha generado ninguna imagen (sin clave ni red a fal.ai en la sesión de la fase 1).
+- Estado (14-10-2026): hechas y en el catálogo las 3 de prueba, `ani-perro`, `mat-reloj` y `his-castillo`, a la espera del visto bueno del dueño al estilo; faltan las otras 64. El script y la lista están probados (`scripts/ilustraciones/generar.test.mjs`).
 
 ## Lo que falta
 

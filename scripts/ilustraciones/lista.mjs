@@ -21,7 +21,7 @@
 export const ESTILO =
   "flat vector illustration for a children's school worksheet, friendly rounded cartoon style, " +
   'thick clean dark-blue outline, bright saturated colors, simple soft shading, a single subject centered, ' +
-  'isolated on a plain white background, no text, no letters, no watermark';
+  'isolated on a plain white background, no shadow, no ground, no text, no letters, no watermark';
 
 /** Etapas por defecto de cada ilustración. */
 export const ETAPAS = ['infantil', 'primaria'];
@@ -71,7 +71,7 @@ export const LISTA = [
 
   // ── Matemáticas ──
   ['mat-monedas', 'objeto', 'a pile of shiny euro coins and a banknote', 'Monedas y billete de euro: dinero, compras y problemas de precios', 'Monedes i bitllet d’euro: diners, compres i problemes de preus', 'Euro coins and banknote: money, shopping and price problems', ['dinero', 'moneda', 'euro', 'billete', 'precio', 'compra', 'problema', 'decimal', 'cambio'], ['matematicas']],
-  ['mat-reloj', 'objeto', 'a big round wall clock showing three o’clock', 'Reloj de pared: la hora, el tiempo y su medida', 'Rellotge de paret: l’hora, el temps i la seva mesura', 'Wall clock: telling the time and measuring time', ['reloj', 'hora', 'tiempo', 'minutos', 'medida', 'duracion', 'rutina', 'calendario'], ['matematicas', 'general']],
+  ['mat-reloj', 'objeto', 'a big round wall clock', 'Reloj de pared: la hora, el tiempo y su medida', 'Rellotge de paret: l’hora, el temps i la seva mesura', 'Wall clock: telling the time and measuring time', ['reloj', 'hora', 'tiempo', 'minutos', 'medida', 'duracion', 'rutina', 'calendario'], ['matematicas', 'general']],
   ['mat-balanza', 'objeto', 'a two-pan balance scale in equilibrium', 'Balanza de dos platos: masa, peso y equilibrio', 'Balança de dos plats: massa, pes i equilibri', 'Two-pan balance scale: mass, weight and balance', ['balanza', 'masa', 'peso', 'equilibrio', 'medida', 'kilo', 'gramo', 'ecuacion', 'comparar'], ['matematicas', 'cienciasNaturales']],
   ['mat-dados', 'objeto', 'two white dice with black dots, one showing five and the other three', 'Dos dados: azar, probabilidad y juegos de mesa', 'Dos daus: atzar, probabilitat i jocs de taula', 'Two dice: chance, probability and board games', ['dado', 'azar', 'probabilidad', 'suceso', 'juego', 'estadistica', 'combinatoria'], ['matematicas']],
   ['mat-calendario', 'objeto', 'a monthly wall calendar with a few days circled', 'Calendario del mes: días, semanas y meses', 'Calendari del mes: dies, setmanes i mesos', 'Monthly calendar: days, weeks and months', ['calendario', 'dia', 'semana', 'mes', 'ano', 'fecha', 'tiempo', 'medida'], ['matematicas', 'general']],

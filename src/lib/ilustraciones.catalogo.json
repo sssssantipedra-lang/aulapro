@@ -1,1 +1,83 @@
-[]
+[
+  {
+    "id": "ani-perro",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Perro sentado: animal doméstico, mamífero",
+      "ca": "Gos assegut: animal domèstic, mamífer",
+      "en": "Sitting dog: a domestic mammal"
+    },
+    "temas": [
+      "animal",
+      "mascota",
+      "perro",
+      "mamifero",
+      "domestico",
+      "vertebrado"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "his-castillo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Castillo medieval con torres y bandera: Edad Media y feudalismo",
+      "ca": "Castell medieval amb torres i bandera: Edat Mitjana i feudalisme",
+      "en": "Medieval castle with towers and a flag: the Middle Ages and feudalism"
+    },
+    "temas": [
+      "castillo",
+      "edad media",
+      "medieval",
+      "feudalismo",
+      "caballero",
+      "historia",
+      "epoca",
+      "fortaleza"
+    ],
+    "areas": [
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "mat-reloj",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Reloj de pared: la hora, el tiempo y su medida",
+      "ca": "Rellotge de paret: l’hora, el temps i la seva mesura",
+      "en": "Wall clock: telling the time and measuring time"
+    },
+    "temas": [
+      "reloj",
+      "hora",
+      "tiempo",
+      "minutos",
+      "medida",
+      "duracion",
+      "rutina",
+      "calendario"
+    ],
+    "areas": [
+      "matematicas",
+      "general"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  }
+]
