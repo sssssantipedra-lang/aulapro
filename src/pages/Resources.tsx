@@ -8,18 +8,19 @@
  * la hoja A4 tal cual se imprimirá, en vivo. El tema visual se cambia con un
  * clic sin volver a generar nada.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, TIPOS,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, conHilo, tiposDisponibles,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
   type FichaFormato, type FichaVariante,
 } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
-import { FICHA_THEMES, fichaTheme, type FichaThemeId } from '../lib/fichaThemes';
+import { DIFICULTADES, esDificultad, estrellas, NOMBRE_DIFICULTAD, type Dificultad } from '../lib/escalera';
+import { FICHA_THEMES, fichaTheme, conHistoria, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
 import { isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -27,9 +28,12 @@ import { useI18n } from '../i18n';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { ExerciseEditor } from '../components/fichas/ExerciseEditor';
+import { RecuadroEditor } from '../components/fichas/RecuadroEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
+import { HiloSelector } from '../components/fichas/DibujosEditor';
+import { hiloDeFicha } from '../lib/hilos';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { useFichaParaPedido } from '../lib/apoyoNav';
@@ -148,8 +152,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   // Con un alumno de apoyo, las instrucciones salen muy visuales (decisión del dueño, 6-10-2026)
   const [visual, setVisual] = useState(!!inicial);
   const [contextoClase, setContextoClase] = useState(inicial?.contexto ?? '');
-  const [estilo, setEstilo] = useState<FichaThemeChoice>('auto');
+  // Por defecto, la hoja de cuaderno (decisión del dueño, 14-10-2026); «Que elija la IA» sigue entre los de historia
+  const [estilo, setEstilo] = useState<FichaThemeChoice>('cuaderno');
   const [formato, setFormato] = useState<FichaFormato>('ficha');
+  // El hilo conductor: 'auto' lo elige la app por el tema, 'ninguno' quita los dibujos, o un hilo concreto
+  const [hilo, setHilo] = useState('auto');
 
   /* ── Editor ── */
   const [generating, setGenerating] = useState(false);
@@ -174,7 +181,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     if (cls) setArea(cls.subject);
   }
 
-  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato, visual });
+  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato, visual, hilo });
+  // Lo que la app elegiría por el tema (se enseña en el selector)
+  const hiloDetectado = useMemo(() => (tema.trim() ? hiloDeFicha({ tema, area, nivel }) : undefined), [tema, area, nivel]);
 
   function pickFormato(f: FichaFormato) {
     setFormato(f);
@@ -360,11 +369,17 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).map((x, xi) => (xi === i ? { ...x, ...p } : x)) }));
 
   function changeTheme(id: FichaThemeId) {
-    edit(c => ({ ...c, estilo: id }));
+    // Al pasar a «Cuaderno» una ficha sin hilo (y sin apoyos visuales), se le pone el que encaja por el tema
+    edit(c => {
+      const nueva = { ...c, estilo: id };
+      return id === 'cuaderno' && !c.hilo && !c.visual && (c.formato ?? 'ficha') === 'ficha'
+        ? conHilo(nueva, hiloDeFicha({ tema, area, nivel }).id)
+        : nueva;
+    });
   }
 
   async function handleRewriteStory() {
-    if (!content?.estilo || content.estilo === 'clasico') return;
+    if (!content?.estilo || !conHistoria(content.estilo)) return;
     const res = await rewriteStory(content, request(), content.estilo, lang, {
       onStart: () => setStoryBusy(true),
       onEnd: () => setStoryBusy(false),
@@ -384,7 +399,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   /* ══ Editor ══ */
   if (content) {
     const theme = fichaTheme(content.estilo);
-    const story = theme.id !== 'clasico';
+    const story = theme.historia;
     const tarjetas = content.formato === 'tarjetas';
     const escape = content.formato === 'escape';
     const historia = content.historia;
@@ -450,6 +465,16 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
           <ThemeGrid value={theme.id} onChange={v => v !== 'auto' && changeTheme(v)} compact t={t} />
         </div>
+
+        {theme.id === 'cuaderno' && !tarjetas && !escape && !content.visual && (
+          <div className="card fe-theme-bar">
+            <div className="fe-theme-bar-hd">
+              <span className="fe-lbl">{t('Hilo conductor')}</span>
+              <span className="fe-hint">{t('Cambia los dibujos de la cabecera; los de los ejercicios se quedan.')}</span>
+            </div>
+            <HiloSelector value={content.hilo ?? 'ninguno'} onChange={v => edit(c => conHilo(c, v === 'ninguno' ? undefined : v))} t={t} />
+          </div>
+        )}
 
         <div className="fe-grid">
           <div className="fe-panel">
@@ -545,6 +570,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                     )}
                     <span className="fe-act-lbl">{t(escape ? 'Sala' : theme.paso)} {a + 1}</span>
                     <input className="fe-act-ttl" value={act.titulo} aria-label={t('Título del bloque')} onChange={e => patchAct(a, { titulo: e.target.value })} />
+                    <select
+                      className="fe-act-niv" value={act.dificultad ?? ''} aria-label={t('Nivel del bloque')} title={t('Las fichas van de menos a más')}
+                      onClick={e => e.stopPropagation()}
+                      onChange={e => patchAct(a, { dificultad: esDificultad(Number(e.target.value)) ? Number(e.target.value) as Dificultad : undefined })}
+                    >
+                      <option value="">{t('Sin nivel')}</option>
+                      {DIFICULTADES.map(d => <option key={d} value={d}>{estrellas(d)} {t(NOMBRE_DIFICULTAD[d])}</option>)}
+                    </select>
                     <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir bloque')} disabled={a === 0} onClick={() => moveAct(a, -1)}><ArrowUp size={14} /></button>
                     <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar bloque')} disabled={a === content.actividades.length - 1} onClick={() => moveAct(a, 1)}><ArrowDown size={14} /></button>
                     <button type="button" className="ico-btn sm" title={t('Eliminar')} aria-label={t('Eliminar bloque')} onClick={() => deleteAct(a)}><Trash2 size={14} /></button>
@@ -559,7 +592,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                   <div className="fe-act-body">
                     {act.ejercicios.map((ex, i) => (
                       <ExerciseEditor
-                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual}
+                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual} hilo={content.hilo} fracciones={content.estilo === 'cuaderno' && !content.visual}
                         selected={selected === `${a}-${i}`} first={i === 0} last={i === act.ejercicios.length - 1}
                         busy={busyEx === `${a}-${i}`} aiDisabled={sinClave || (busyEx !== null && busyEx !== `${a}-${i}`)}
                         onSelect={() => setSelected(`${a}-${i}`)}
@@ -576,13 +609,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                         onChange={e => setAddTipo(m => ({ ...m, [a]: e.target.value as FichaExerciseType | '' }))}
                       >
                         <option value="">{t('Que elija la IA')}</option>
-                        {TIPOS.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+                        {tiposDisponibles({ dibujos: !!content.hilo && !content.visual, fracciones: content.estilo === 'cuaderno' && !content.visual }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
                       </select>
                       <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)}>
                         {adding === a ? <span className="spin" /> : <Plus size={13} />}{t('Añadir ejercicio con IA')}
                       </button>
                     </div>
                   </div>
+                  <RecuadroEditor recuadro={act.recuadro} onChange={recuadro => patchAct(a, { recuadro })} t={t} />
                   {escape && (
                     <div className="fe-lock">
                       <span className="fe-lock-ico" aria-hidden="true">🔒</span>
@@ -703,6 +737,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
         </div>
 
+        {formato !== 'tarjetas' && (
+          <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
+            {t('Las fichas van de menos a más: bloques de nivel 1, 2 y 3, con estrellas en cada uno. En 5.º y 6.º de Primaria suben un punto.')}
+          </p>
+        )}
+
         {alumnoApoyo && (
           <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
             {t('Se adapta a su nivel, a sus necesidades y a sus objetivos de este trimestre; la IA no recibe su nombre ni su diagnóstico. Lo que se le cuenta está en «Más opciones», y lo puedes cambiar.')}
@@ -736,18 +776,28 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
         </div>
 
         <div className="fgroup">
-          <span className="flabel">{t(formato === 'tarjetas' ? 'Aspecto de las tarjetas' : 'El mundo de la historia')}</span>
+          <span className="flabel">{t(formato === 'tarjetas' ? 'Aspecto de las tarjetas' : 'Aspecto de la ficha')}</span>
           <ThemeGrid value={estilo} onChange={setEstilo} withAuto t={t} />
           <p className="fe-hint" style={{ marginTop: 6 }}>
             {formato === 'tarjetas'
               ? t('Solo cambia los colores y los dibujos de las tarjetas.')
-              : formato === 'escape' && estilo === 'clasico'
+              : formato === 'escape' && !conHistoria(estilo)
                 ? t('Un escape room necesita historia: la IA elegirá el mundo que mejor encaje.')
-                : estilo === 'clasico'
-                  ? t('Sin historia: una ficha sobria de las de siempre.')
-                  : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
+                : estilo === 'cuaderno'
+                  ? t('Una hoja de cuaderno de colegio: bloques numerados, recuadros de ayuda y un dibujo en la cabecera.')
+                  : estilo === 'clasico'
+                    ? t('Sin historia: una ficha sobria de las de siempre.')
+                    : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
           </p>
         </div>
+
+        {estilo === 'cuaderno' && formato === 'ficha' && !visual && (
+          <div className="fgroup">
+            <span className="flabel">{t('Dibujos de la ficha')}</span>
+            <HiloSelector auto value={hilo} onChange={setHilo} detectado={hiloDetectado} t={t} />
+            <p className="fe-hint" style={{ marginTop: 6 }}>{t('Los dibujos y el ambiente de los enunciados salen de este tema. Puedes cambiarlo o quitarlo.')}</p>
+          </div>
+        )}
 
         <details className="fe-more">
           <summary>{t('Más opciones')}</summary>

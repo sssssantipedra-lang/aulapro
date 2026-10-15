@@ -36,7 +36,7 @@ const COMPETENCE_NAME: Record<string, string> = {
 export function buildSdaPosterHtml(sda: LearningSituation, themeId: FichaThemeId, lang: Lang, opts: { preview?: boolean; art?: string } = {}): string {
   const t = (k: string, v?: Record<string, string | number>) => translate(lang, k, v);
   const c = sda.content;
-  const theme = fichaTheme(themeId === 'clasico' ? 'espacio' : themeId);
+  const theme = fichaTheme(fichaTheme(themeId).historia ? themeId : 'espacio');
   const codes = KEY_COMPETENCES.filter(k => new RegExp(`(^|[^A-Z])${k}([^A-Z]|$)`).test(c.competenciasClave ?? ''));
 
   // Las sesiones, agrupadas por fase y en orden
@@ -129,7 +129,7 @@ export async function saveSdaPosterPdf(sda: LearningSituation, themeId: FichaThe
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-  const art = (await loadThemeArt(themeId === 'clasico' ? 'espacio' : themeId))?.dataUrl;
+  const art = (await loadThemeArt(fichaTheme(themeId).historia ? themeId : 'espacio'))?.dataUrl;
   const res = await docs.savePdf(buildSdaPosterHtml(sda, themeId, lang, { art }), `cartel-${slug(sda.title || 'sda')}.pdf`, { landscape: false });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;

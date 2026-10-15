@@ -9,9 +9,10 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ficha } from '../../types';
-import { buildFichaHtml, cargarPictos, pictosDeFicha } from '../../services/exportFicha';
+import { buildFichaHtml, cargarIlustraciones, cargarPictos, ilustracionesDeFicha, pictosDeFicha } from '../../services/exportFicha';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { useThemeArt } from '../../lib/themeArtDoc';
+import { useFuenteCuaderno } from '../../lib/fuenteCuaderno';
 import type { Lang } from '../../i18n';
 
 /** Ancho del documento de la vista previa: la hoja A4 (210 mm ≈ 794 px) con su margen gris. */
@@ -32,7 +33,9 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
   const onSelectRef = useRef(onSelect);
   useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
 
-  const art = useThemeArt(fichaTheme(ficha.content.estilo).id);
+  const temaId = fichaTheme(ficha.content.estilo).id;
+  const art = useThemeArt(temaId);
+  const fontCss = useFuenteCuaderno(temaId === 'cuaderno');
   // Con apoyos visuales, sus pictogramas: se cargan al cambiar cuáles son, no a cada tecla
   const ids = pictosDeFicha(ficha.content).join(' ');
   const [pictos, setPictos] = useState<Record<string, string>>({});
@@ -41,7 +44,15 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
     if (ids) cargarPictos(ids.split(' ')).then(p => { if (vivo) setPictos(p); });
     return () => { vivo = false; };
   }, [ids]);
-  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos }), [ficha, lang, art, pictos]);
+  // Con hilo conductor, los dibujos del catálogo: igual, al cambiar cuáles son
+  const idsIlu = ilustracionesDeFicha(ficha.content).join(' ');
+  const [ilustraciones, setIlustraciones] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let vivo = true;
+    if (idsIlu) cargarIlustraciones(idsIlu.split(' ')).then(p => { if (vivo) setIlustraciones(p); });
+    return () => { vivo = false; };
+  }, [idsIlu]);
+  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos, ilustraciones, fontCss }), [ficha, lang, art, pictos, ilustraciones, fontCss]);
 
   // Escala al ancho disponible
   useEffect(() => {

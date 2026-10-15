@@ -28,15 +28,31 @@ import type { SdaContent } from './learningSituations';
 import { buildWordSearchGrid, type WordSearchPlacement } from '../lib/wordSearch';
 import { FIGURE_SHAPES, FIGURE_SLOTS, FIGURE_LABEL, type Figure } from '../lib/geometryFigures';
 import { buildCrossword, type Crossword } from '../lib/crossword';
-import { fichaTheme, cleanEmoji, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
+import { fichaTheme, cleanEmoji, conHistoria, STORY_THEME_IDS, type FichaThemeId } from '../lib/fichaThemes';
 import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido } from '../lib/pictosFicha';
+import { esContable, hiloDeFicha, hiloPorId, listaDibujosParaIA, type Hilo } from '../lib/hilos';
+import { contarDelHilo, enunciadoRotular, esTipoConDibujos, etiquetarDelHilo, solucionDeDibujos } from '../lib/dibujosEjercicio';
+import { ilustracionPorId, nombreIlustracion } from '../lib/ilustraciones';
+import {
+  avisoDeSubida, expectativas, NOMBRE_DIFICULTAD, normalizarEscalera, perfilDeCurso, planDeBloques, planParaPrompt,
+  rangoNumerico, type BloquePlan, type Dificultad, type PerfilCurso,
+} from '../lib/escalera';
+import { ejemploParaPrompt } from './fichaEjemplos';
+import {
+  MIN_PARTES, MODOS_FRACCIONES, OBJETOS_FRACCION, fraccionValida, fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto,
+  type CogidosFraccion, type FraccionDibujo, type ModoFracciones,
+} from '../lib/fraccionesDibujo';
 
 /* ── Lo que devuelve la IA ── */
 
 export type FichaExerciseType =
   | 'abierta' | 'completar' | 'opcion_multiple' | 'problema'
   | 'tabla_rellenar' | 'relacionar' | 'colorear' | 'sopa_letras'
-  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic';
+  | 'verdadero_falso' | 'ordenar' | 'crucigrama' | 'comic' | 'calculos'
+  // Con dibujos del catálogo (hilo conductor): cada dibujo lleva su espacio para contestar
+  | 'contar' | 'etiquetar' | 'clasificar'
+  // Pizzas y tartas dibujadas por el código con los trozos exactos (`lib/fraccionesDibujo.ts`)
+  | 'fracciones';
 
 export interface FichaExercise {
   tipo: FichaExerciseType;
@@ -83,6 +99,14 @@ export interface FichaExercise {
   /** Solo 'comic': de 2 a 4 viñetas; un `texto` vacío es un bocadillo para rellenar. */
   vinetas?: { personaje: string; texto: string }[];
   /**
+   * Solo 'calculos': lo que hay a la izquierda del «=» en cada línea (un número
+   * para descomponer, una suma, una expresión). A su derecha, el alumnado
+   * escribe la respuesta. Sin el «=» ni el hueco: los pone la ficha.
+   */
+  lineas?: string[];
+  /** Solo 'calculos': dónde se escribe cada respuesta, en una línea o en una caja. Sin él, en línea. */
+  respuesta?: 'linea' | 'caja';
+  /**
    * Diagrama geométrico opcional (cualquier tipo, pero pensado sobre todo
    * para "problema" de área/perímetro/volumen). El dibujo en sí lo hace
    * `lib/geometryFigures.ts`, no la IA — ver esa cabecera.
@@ -98,12 +122,54 @@ export interface FichaExercise {
   imagenes?: ImagenEjercicio[];
   /** Solo 'tabla_rellenar' con apoyos visuales: un pictograma por fila ('' = ninguno), en una columna delante. */
   pictosFilas?: string[];
+  /**
+   * Con hilo conductor (diseño «Cuaderno»): dibujos del catálogo (`lib/ilustraciones.ts`)
+   * que ayudan a hacer el ejercicio o lo ambientan, cada uno repetido `cantidad`
+   * veces si hay que contarlo. La IA elige de la lista cerrada del hilo; las
+   * copias las pone el código al maquetar, así que el recuento es exacto.
+   * Cada tipo los usa a su manera: en «contar» cada grupo lleva su caja, en
+   * «etiquetar» cada dibujo su línea, en «relacionar» y «tabla_rellenar» van de
+   * uno en uno junto a cada elemento de la izquierda o cada fila, y en el resto
+   * son una figura al lado del enunciado (uno) o una bandeja (varios).
+   */
+  dibujos?: DibujoEjercicio[];
+  /** Solo 'clasificar': los grupos y los dibujos (identificadores del catálogo) que van en cada uno; la app los mezcla al maquetar. */
+  categorias?: CategoriaDibujos[];
+  /** Solo 'contar' con varios grupos: además de cada grupo, una caja para el total. */
+  total?: boolean;
+  /** Solo 'etiquetar': encima de los dibujos, el banco con las palabras (desordenadas) para quien necesite ayuda. */
+  banco?: boolean;
+  /**
+   * Pizzas o tartas de 2 a 12 trozos iguales, dibujadas por el código a partir de estos números
+   * (`lib/fraccionesDibujo.ts`): la imagen y el ejercicio coinciden siempre. En «fracciones» son el
+   * ejercicio (cada figura con su espacio para contestar); en problema, abierta, completar y opción
+   * múltiple, la figura de la que habla el enunciado (de 1 a 3).
+   */
+  fracciones?: FraccionDibujo[];
+  /** Solo 'fracciones': «leer» (se ve la pizza con los trozos cogidos y se escribe la fracción), «colorear» (la pizza en blanco y se colorean los trozos que dice su fracción) o «unir» (pizzas a un lado y valores al otro). Sin él, «leer». */
+  modo?: ModoFracciones;
+  /** Solo 'fracciones' en «leer» y «unir»: además de la fracción, su decimal (solo con 2, 4, 5, 8 o 10 trozos, que lo tienen exacto). */
+  decimal?: boolean;
+  /** Cómo se ven los trozos cogidos: en blanco y negro, separados o las dos cosas. Sin él, las dos. */
+  cogidos?: CogidosFraccion;
   /** Para el profesorado — nunca se muestra en la ficha exportada. */
   solucion: string;
   /** Variante simplificada del mismo ejercicio. Solo si se pidieron niveles. */
   apoyo?: string;
   /** Variante de más nivel del mismo ejercicio. Solo si se pidieron niveles. */
   ampliacion?: string;
+}
+
+/** Un grupo de un ejercicio «clasificar»: su nombre («Domésticos») y los dibujos que le tocan. */
+export interface CategoriaDibujos {
+  nombre: string;
+  dibujos: string[];
+}
+
+/** Un dibujo del catálogo dentro de un ejercicio: su identificador y cuántas veces se dibuja (de 1 a 10). */
+export interface DibujoEjercicio {
+  ilustracion: string;
+  cantidad?: number;
 }
 
 /** Un dibujo dentro de un ejercicio: un pictograma, repetido `cantidad` veces si hay que contarlo. */
@@ -132,10 +198,33 @@ export interface ConceptoVisual {
   texto: string;
 }
 
+/**
+ * El recuadro que acompaña a un bloque en el diseño «Cuaderno»: «Recuerda»
+ * (lo que hay que saber para hacerlo, con chincheta), «Reto» (una pregunta
+ * extra con su hueco, con estrella) o «Consejo» (una pista de método, con
+ * bombilla).
+ */
+export type FichaRecuadroTipo = 'recuerda' | 'reto' | 'consejo';
+
+export interface FichaRecuadro {
+  tipo: FichaRecuadroTipo;
+  /** La frase o la pregunta del reto. */
+  texto: string;
+  /** Solo «Recuerda»: equivalencias o datos, uno por línea («CM = centena de millar»). */
+  lista?: string[];
+}
+
 /** Un bloque con título propio (p. ej. "Escribe como potencia") y sus ejercicios. */
 export interface FichaActivity {
   titulo: string;
+  /**
+   * El peldaño de la escalera (`lib/escalera.ts`): 1 para empezar, 2 para practicar,
+   * 3 para retarte. Las fichas van «de menos a más»; las guardadas antes de esto no lo traen.
+   */
+  dificultad?: Dificultad;
   ejercicios: FichaExercise[];
+  /** Solo en el diseño «Cuaderno»: el recuadro lateral del bloque. */
+  recuadro?: FichaRecuadro;
   /** Con apoyos visuales: qué hay que hacer en el bloque, en una frase y en orden. */
   indicacion?: string;
   /** Con apoyos visuales: de 2 a 4 pasos numerados, cada uno con su pictograma. */
@@ -192,6 +281,12 @@ export interface FichaContent {
   actividades: FichaActivity[];
   /** Tema visual. Sin él, la ficha se ve «Clásica» (así están las guardadas antes de los temas). */
   estilo?: FichaThemeId;
+  /**
+   * El hilo conductor (`lib/hilos.ts`): de qué trata la ficha, para ilustrarla
+   * con los dibujos de ese mundo. Solo en «Cuaderno» y sin apoyos visuales; sin
+   * él, la cabecera es la del área y los ejercicios no llevan dibujos.
+   */
+  hilo?: string;
   historia?: FichaHistoria;
   /** Sin él, 'ficha'. */
   formato?: FichaFormato;
@@ -224,6 +319,10 @@ export interface FichaRequest {
   formato?: FichaFormato;
   /** Instrucciones muy visuales, con pasos y pictogramas (no en tarjetas). */
   visual?: boolean;
+  /** El hilo conductor: un identificador de `lib/hilos.ts`, 'ninguno' (sin dibujos) o 'auto' (lo elige la app por el tema). Sin él, 'auto'. */
+  hilo?: string;
+  /** Que la IA revise su propia ficha y se rehagan los ejercicios graves (cuentas mal, datos imposibles, nivel flojo). Sin él, sí. */
+  revisar?: boolean;
 }
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
@@ -236,8 +335,14 @@ const S = (d: string) => ({ type: 'STRING', description: d });
 
 export const TIPOS: FichaExerciseType[] = [
   'abierta', 'completar', 'opcion_multiple', 'problema', 'tabla_rellenar', 'relacionar', 'colorear', 'sopa_letras',
-  'verdadero_falso', 'ordenar', 'crucigrama', 'comic',
+  'verdadero_falso', 'ordenar', 'crucigrama', 'comic', 'calculos', 'contar', 'etiquetar', 'clasificar', 'fracciones',
 ];
+
+/** Los tipos que se ofrecen a la IA y en el editor: los de dibujos solo con hilo, «fracciones» solo con el diseño «Cuaderno». */
+export function tiposDisponibles(o: { dibujos: boolean; fracciones: boolean }): FichaExerciseType[] {
+  return TIPOS.filter(t => (t === 'fracciones' ? o.fracciones : o.dibujos || !esTipoConDibujos(t)));
+}
+
 
 const PISTA_ITEM_SCHEMA = {
   type: 'OBJECT',
@@ -301,6 +406,17 @@ const FIGURA_FORMAS_DOC = FIGURE_SHAPES
  * campo al valor de otro, así que se explica en la descripción cuándo usar
  * cada uno y se confía en que la IA solo rellene los que le tocan.
  */
+const FRACCION_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    partes: { type: 'INTEGER', description: `Trozos iguales en que está cortada la pizza o la tarta, de ${MIN_PARTES} a 10` },
+    tomadas: { type: 'INTEGER', description: 'Trozos que se cogen (salen en blanco y negro y separados), de 0 a "partes"' },
+    objeto: { type: 'STRING', enum: [...OBJETOS_FRACCION], description: '"pizza" o "tarta"' },
+  },
+  required: ['partes', 'tomadas'],
+  propertyOrdering: ['partes', 'tomadas', 'objeto'],
+} as const;
+
 const IMAGEN_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -309,6 +425,26 @@ const IMAGEN_SCHEMA = {
   },
   required: ['picto', 'cantidad'],
   propertyOrdering: ['picto', 'cantidad'],
+} as const;
+
+const DIBUJO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    ilustracion: S('Identificador de un dibujo de la lista DIBUJOS DEL HILO, exactamente como está escrito ("" solo en "relacionar" y "tabla_rellenar", para un elemento sin dibujo)'),
+    cantidad: { type: 'INTEGER', description: 'Cuántas veces se dibuja, de 1 a 10: las que hay que contar, o 1 si solo se muestra' },
+  },
+  required: ['ilustracion', 'cantidad'],
+  propertyOrdering: ['ilustracion', 'cantidad'],
+} as const;
+
+const CATEGORIA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    nombre: S('Nombre corto del grupo, ej. "Animales domésticos"'),
+    dibujos: { type: 'ARRAY', items: { type: 'STRING' }, description: 'Identificadores de la lista DIBUJOS DEL HILO que van en este grupo, exactamente como están escritos' },
+  },
+  required: ['nombre', 'dibujos'],
+  propertyOrdering: ['nombre', 'dibujos'],
 } as const;
 
 const PASO_SCHEMA = {
@@ -343,20 +479,26 @@ const CONCEPTO_SCHEMA = {
   propertyOrdering: ['picto', 'titulo', 'texto'],
 } as const;
 
-function fichaExerciseSchema(niveles: boolean, visual = false) {
+function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false, fracciones = false) {
   const base = ['tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'solucion'] as const;
   return {
     type: 'OBJECT',
     properties: {
       tipo: {
-        type: 'STRING', enum: TIPOS,
+        type: 'STRING', enum: tiposDisponibles({ dibujos, fracciones }),
         description:
           '"abierta" respuesta libre, "completar" huecos, "opcion_multiple" varias opciones, ' +
           '"problema" cálculo o razonamiento con pasos, "tabla_rellenar" tabla con celdas en blanco, ' +
           '"relacionar" dos columnas para unir a mano, "colorear" leyenda de colores + elementos a colorear, ' +
           '"sopa_letras" lista de palabras para buscar en una rejilla, "verdadero_falso" frases para marcar V o F, ' +
           '"ordenar" pasos o elementos para numerar en orden, "crucigrama" palabras con pistas, ' +
-          '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado',
+          '"comic" tira de viñetas con bocadillos, alguno vacío para que lo escriba el alumnado, ' +
+          '"calculos" lista de números o cuentas, cada una con su hueco para la respuesta a la derecha del "="' +
+          (dibujos
+            ? ', "contar" grupos de dibujos que se cuentan, cada uno con su caja para el número, ' +
+              '"etiquetar" dibujos de los que se escribe el nombre, "clasificar" dibujos que se reparten en grupos'
+            : '') +
+          (fracciones ? ', "fracciones" pizzas o tartas cortadas en trozos iguales, cada una con su espacio para contestar' : ''),
       },
       enunciado: S('El texto del ejercicio o la pregunta, autocontenido'),
       ...(visual ? {
@@ -369,6 +511,36 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
           type: 'ARRAY', items: IMAGEN_SCHEMA,
           description: 'Solo si un dibujo ayuda a entender o a hacer el ejercicio (contar objetos, reconocerlos, compararlos): de 1 a 4 dibujos distintos. Nunca de adorno.',
         },
+      } : {}),
+      ...(dibujos ? {
+        dibujos: {
+          type: 'ARRAY', items: DIBUJO_SCHEMA,
+          description:
+            'Los dibujos del ejercicio, de la lista del hilo. En "contar": de 1 a 3 grupos de los que se cuentan, cada uno con su ' +
+            'cantidad EXACTA. En "etiquetar": de 3 a 8 dibujos distintos (cantidad 1). En "relacionar" y "tabla_rellenar": UN ' +
+            'dibujo por elemento de "izquierda" o por fila, en el mismo orden ("" si un elemento no se puede dibujar). En ' +
+            '"problema", "abierta", "completar" y "opcion_multiple": de 1 a 3 solo si ilustran lo que cuenta el enunciado. ' +
+            'En "clasificar" no se usa (van en "categorias"). En el resto de tipos, ninguno.',
+        },
+        categorias: {
+          type: 'ARRAY', items: CATEGORIA_SCHEMA,
+          description: 'Solo si tipo es "clasificar": de 2 a 3 grupos, con los dibujos que van en cada uno (de 4 a 10 dibujos en total, sin repetir)',
+        },
+        total: { type: 'BOOLEAN', description: 'Solo si tipo es "contar" con 2 o 3 grupos y el enunciado pide también el total: true' },
+        banco: { type: 'BOOLEAN', description: 'Solo si tipo es "etiquetar": true para dar las palabras (desordenadas) encima de los dibujos, en cursos bajos' },
+      } : {}),
+      ...(fracciones ? {
+        fracciones: {
+          type: 'ARRAY', items: FRACCION_SCHEMA,
+          description:
+            'Pizzas o tartas dibujadas por la aplicación con estos números. En "fracciones": de 3 a 4, con distinto número de trozos. ' +
+            'En problema, abierta, completar y opcion_multiple: de 1 a 3, exactamente lo que dice el enunciado. En el resto de tipos, ninguna.',
+        },
+        modo: {
+          type: 'STRING', enum: [...MODOS_FRACCIONES],
+          description: 'Solo si tipo es "fracciones": "leer" (se ve la pizza con los trozos cogidos y se escribe la fracción), "colorear" (pizza en blanco y se colorean los trozos que dice la fracción) o "unir" (pizzas a un lado y fracciones al otro para unir)',
+        },
+        decimal: { type: 'BOOLEAN', description: 'Solo si tipo es "fracciones" en "leer" o "unir": true para pedir también el decimal (solo con 2, 4, 5, 8 o 10 trozos)' },
       } : {}),
       opciones: {
         type: 'ARRAY', items: { type: 'STRING' },
@@ -428,6 +600,16 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
           'Solo si tipo es "comic": de 3 a 4 viñetas de una conversación sobre el tema; la última (o alguna) ' +
           'con "texto" vacío para que el alumnado escriba lo que dice el personaje',
       },
+      lineas: {
+        type: 'ARRAY', items: { type: 'STRING' },
+        description:
+          'Solo si tipo es "calculos": de 2 a 6 líneas, cada una con lo que va A LA IZQUIERDA del "=" (un número ' +
+          'para descomponer, una suma, una expresión). Sin el "=" ni la respuesta: la ficha pone el hueco.',
+      },
+      respuesta: {
+        type: 'STRING', enum: ['linea', 'caja'],
+        description: 'Solo si tipo es "calculos": "linea" si la respuesta es larga (una descomposición, una expresión), "caja" si es corta (un número)',
+      },
       figura: {
         ...FIGURA_SCHEMA,
         description:
@@ -451,7 +633,9 @@ function fichaExerciseSchema(niveles: boolean, visual = false) {
     propertyOrdering: [
       'tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'opciones', 'columnas', 'filas', ...(visual ? ['pictosFilas'] : []),
       'izquierda', 'derecha', 'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
-      'figura', ...(visual ? ['imagenes'] : []), 'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
+      'lineas', 'respuesta', 'figura', ...(visual ? ['imagenes'] : []), ...(dibujos ? ['dibujos', 'categorias', 'total', 'banco'] : []),
+      ...(fracciones ? ['fracciones', 'modo', 'decimal'] : []),
+      'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
     ],
   } as const;
 }
@@ -466,6 +650,14 @@ interface SchemaOpts {
   formato: FichaFormato;
   /** Apoyos visuales: pasos con pictogramas, consignas dibujadas y tarjetas de concepto. */
   visual?: boolean;
+  /** Diseño «Cuaderno»: cada bloque puede llevar su recuadro lateral. */
+  cuaderno?: boolean;
+  /** Con hilo conductor: los ejercicios pueden llevar dibujos del catálogo. */
+  dibujos?: boolean;
+  /** La escalera de dificultad: cada bloque trae su nivel y el número de bloques es el del reparto. */
+  escalera?: BloquePlan[];
+  /** Tema de fracciones en «Cuaderno»: los ejercicios pueden llevar pizzas y tartas dibujadas por la aplicación. */
+  fracciones?: boolean;
 }
 
 const CANDADO_SCHEMA = {
@@ -478,6 +670,23 @@ const CANDADO_SCHEMA = {
   propertyOrdering: ['codigo', 'pista'],
 } as const;
 
+const RECUADRO_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    tipo: {
+      type: 'STRING', enum: ['recuerda', 'reto', 'consejo'],
+      description: '"recuerda": datos o equivalencias que hacen falta para el bloque; "reto": una pregunta extra algo más difícil; "consejo": una pista de método',
+    },
+    texto: S('"consejo" y "reto": la frase o la pregunta, 1 a 3 frases cortas. "recuerda": una introducción muy corta, o "" si basta la lista'),
+    lista: {
+      type: 'ARRAY', items: { type: 'STRING' },
+      description: 'Solo en "recuerda": de 2 a 8 líneas del tipo "CM = centena de millar" (siglas o términos con su significado)',
+    },
+  },
+  required: ['tipo', 'texto'],
+  propertyOrdering: ['tipo', 'texto', 'lista'],
+} as const;
+
 function fichaActivitySchema(o: SchemaOpts) {
   const story = o.historia ? {
     emoji: S('UN emoji que represente esta misión dentro de la historia'),
@@ -485,22 +694,37 @@ function fichaActivitySchema(o: SchemaOpts) {
   } : {};
   const escape = o.formato === 'escape';
   const vis = o.visual ? ['indicacion', 'pasos', 'recuerda'] : [];
-  const tail = [...vis, 'ejercicios', ...(escape ? ['candado'] : [])];
+  const tail = [...vis, 'ejercicios', ...(o.cuaderno ? ['recuadro'] : []), ...(escape ? ['candado'] : [])];
+  const escalera = o.escalera?.length ? ['dificultad'] : [];
   return {
     type: 'OBJECT',
     properties: {
       titulo: S('Título breve del bloque de actividad, ej. "Escribe como potencia"'),
+      ...(escalera.length ? {
+        dificultad: {
+          type: 'INTEGER',
+          description:
+            'El nivel del bloque en la escalera de dificultad: 1 = para empezar (fácil), 2 = para practicar, 3 = para retarte (difícil). ' +
+            'Los bloques van de menos a más: el primero es el 1 y el último el 3.',
+        },
+      } : {}),
       ...story,
       ...(o.visual ? {
         indicacion: S('Qué hay que hacer en este bloque, en UNA frase corta y en orden, ej. "Primero, lee. Luego, rodea la unidad. Por último, escribe la respuesta."'),
         pasos: { type: 'ARRAY', items: PASO_SCHEMA, description: 'De 2 a 4 pasos, en el orden en que se hacen' },
         recuerda: { type: 'ARRAY', items: RECUERDA_SCHEMA, description: 'De 0 a 3 cosas que hay que recordar para hacer el bloque' },
       } : {}),
-      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual) },
+      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual, o.dibujos, o.fracciones) },
+      ...(o.cuaderno ? {
+        recuadro: {
+          ...RECUADRO_SCHEMA,
+          description: 'Opcional: un recuadro lateral para este bloque. Solo en algunos bloques (no en todos) y solo si aporta algo.',
+        },
+      } : {}),
       ...(escape ? { candado: CANDADO_SCHEMA } : {}),
     },
-    required: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
-    propertyOrdering: ['titulo', ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
+    required: ['titulo', ...escalera, ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail.filter(k => k !== 'recuadro')],
+    propertyOrdering: ['titulo', ...escalera, ...(o.historia ? ['emoji', 'narrativa'] : []), ...tail],
   } as const;
 }
 
@@ -566,7 +790,14 @@ function fichaSchema(o: SchemaOpts) {
       instrucciones: S('Instrucciones generales para el alumnado, dos o tres frases'),
       actividades: {
         type: 'ARRAY', items: fichaActivitySchema(o),
-        description: 'De 2 a 4 bloques de actividad, cada uno con su título y sus propios ejercicios',
+        // Solo el número de bloques: con los ejercicios de cada bloque también limitados, Gemini responde 400 «invalid argument» (comprobado el 14-10-2026).
+        // Cuántos ejercicios lleva cada bloque lo ajusta el código después (`ajustarAlReparto`)
+        ...(o.escalera?.length
+          ? {
+            minItems: o.escalera.length, maxItems: o.escalera.length,
+            description: `EXACTAMENTE ${o.escalera.length} bloques de actividad, de menos a más dificultad, cada uno con su título, su nivel y sus propios ejercicios`,
+          }
+          : { description: 'De 2 a 4 bloques de actividad, cada uno con su título y sus propios ejercicios' }),
       },
     },
     required: [...head, 'explicacion', ...(o.visual ? ['conceptos'] : []), 'instrucciones', 'actividades'],
@@ -639,6 +870,70 @@ function visualPrompt(): string {
   );
 }
 
+/**
+ * La parte del prompt del diseño «Cuaderno»: una hoja de colegio, con bloques
+ * numerados y, en algunos, un recuadro lateral que acompaña a los ejercicios.
+ */
+function cuadernoPrompt(): string {
+  return (
+    `DISEÑO CUADERNO: la ficha se imprime como una hoja de cuaderno de colegio, compacta, con cada bloque ` +
+    `numerado y los ejercicios cortos y directos (sin historia ni personajes). Además de lo anterior:\n` +
+    `- En los bloques de nivel 1 y 2 prefiere ejercicios que se contesten en poco espacio: "calculos" (varias ` +
+    `líneas con su hueco), "tabla_rellenar", "completar", "relacionar", "ordenar" (con números o palabras cortas), ` +
+    `"verdadero_falso". Un bloque puede mezclar dos o tres ejercicios cortos (por ejemplo, una lista de ` +
+    `"calculos" para descomponer y otra para volver a escribir el número). En el de nivel 3 son buenos ` +
+    `"problema" y "abierta": la hoja les deja su espacio para escribir las operaciones y la respuesta.\n` +
+    `- En "recuadro" añade una nota breve a algunos bloques, como mucho una por bloque: "recuerda" (la leyenda o las ` +
+    `equivalencias que se necesitan para el bloque, en "lista", líneas "SIGLA = significado"), "reto" (en "texto", ` +
+    `una pregunta extra algo más difícil, de respuesta corta) o "consejo" (en "texto", una pista de método). ` +
+    `No repitas en el recuadro el contenido de "explicacion". ` +
+    `Que no se contesten en el recuadro cosas que ya se preguntan en los ejercicios.\n`
+  );
+}
+
+/**
+ * La parte del prompt del hilo conductor: de qué «mundo» es la ficha y con qué
+ * dibujos de ese mundo (lista cerrada del catálogo) se pueden ilustrar los
+ * ejercicios. La IA nunca dibuja: elige.
+ */
+function hiloPrompt(hilo: Hilo, lang: Lang): string {
+  return (
+    `HILO CONDUCTOR: esta ficha gira alrededor de «${hilo.nombre.es}». Cuando encaje con el contenido, ambienta ` +
+    `los enunciados en ese mundo (los datos, los objetos y las situaciones: «En la granja hay…»), sin forzarlo y ` +
+    `sin perder el rigor del tema.\n` +
+    `DIBUJOS: la ficha se ilustra con dibujos del catálogo y cada dibujo lleva en la hoja SU espacio para ` +
+    `contestar, así que úsalos donde el alumnado tenga algo que hacer con ellos:\n` +
+    `- "contar": de 1 a 3 "dibujos" de los marcados con × (los que se pueden repetir), cada uno con su ` +
+    `"cantidad" EXACTA. La ficha dibuja cada grupo con una caja al lado para escribir cuántos hay. Con 2 o 3 ` +
+    `grupos y "total": true, añade una caja para el total (para sumar). El enunciado dice qué se cuenta ` +
+    `(«Cuenta cuántos animales hay de cada tipo»). Las cantidades son distintas entre sí (nunca 10 y 10) y pequeñas: ` +
+    `hasta 6 en 1.º y 2.º, hasta 9 en 3.º. La solución se calcula sola.\n` +
+    `- "etiquetar": de 3 a 8 "dibujos" distintos (cantidad 1); el alumnado escribe el nombre de cada uno ` +
+    `debajo. Con "banco": true se le dan las palabras desordenadas (cursos bajos). Solo con dibujos que se ` +
+    `nombren con una palabra clara y que el alumnado conozca.\n` +
+    `- "clasificar": en "categorias", de 2 a 3 grupos con su "nombre" y los "dibujos" de cada uno (de 4 a 10 ` +
+    `dibujos en total, sin repetir, cada dibujo en un solo grupo): la ficha los mezcla y el alumnado escribe el ` +
+    `número de cada dibujo en su grupo. El enunciado lo explica («Escribe el número de cada animal en su grupo»).\n` +
+    `- "relacionar" y "tabla_rellenar": si cada elemento de "izquierda" (o cada fila) se puede dibujar, "dibujos" ` +
+    `lleva UN dibujo por elemento, en el mismo orden, y el texto se mantiene ("" en el elemento que no tenga).\n` +
+    `- "problema", "abierta", "completar" y "opcion_multiple": de 1 a 3 "dibujos" solo si ilustran de verdad lo ` +
+    `que cuenta el enunciado (la pizza del problema de fracciones, el castillo de la pregunta). Un dibujo suelto ` +
+    `queda al lado del enunciado.\n` +
+    `Si el enunciado habla de lo que se ve («debajo de cada animal», «en la imagen», «los dibujos»), el ejercicio ` +
+    `TIENE que llevar esos dibujos (en "etiquetar", "contar", "clasificar" o "dibujos"); si no los pones, no ` +
+    `hables de dibujos. En "contar" se cuentan los propios dibujos repetidos («Cuenta cuántas naranjas hay»), ` +
+    `nunca partes de un dibujo (gajos, trozos, patas): un dibujo con partes (la pizza, la tarta) va con 1 de ` +
+    `cantidad. El "banco" solo en 1.º a 3.º de Primaria.\n` +
+    `Reglas: la "cantidad" coincide con el enunciado; los marcados [solo 1] no se repiten; no pongas un dibujo ` +
+    `que dé la respuesta ni uno que no sea EXACTAMENTE lo que nombra el ejercicio (un gato no es un tigre); ` +
+    `nunca dibujos de adorno. Con un tema concreto (animales, objetos, lugares, oficios), en cursos bajos, ` +
+    `lleva dibujos al menos la mitad de los ejercicios y empieza por los de contar, rotular y clasificar; con un ` +
+    `tema abstracto o en cursos altos, pocos y solo donde ayuden.\n` +
+    `DIBUJOS DEL HILO (usa SOLO estos identificadores, escritos exactamente igual; la descripción entre ` +
+    `paréntesis es para que sepas qué es cada uno): ${listaDibujosParaIA(hilo, lang)}\n`
+  );
+}
+
 /** Prompt de sistema del formato «tarjetas recortables». */
 function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
   return (
@@ -654,10 +949,98 @@ function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
   );
 }
 
+/** Las pizzas del catálogo (un dibujo de IA, con los trozos desiguales): no valen para contar trozos. */
+const PIZZAS_DEL_CATALOGO = new Set(['mat-pizza', 'mat-grafico-tarta']);
+
+const RE_TEMA_FRACCIONES = /fracci|decimal|porcentaj|proporci|reparto|repartir|mitad|racional|partes? iguales/i;
+
+/**
+ * ¿Se le ofrecen a la IA las pizzas por fracciones? Solo en «Cuaderno», sin apoyos visuales, en una
+ * ficha normal y con un tema de fracciones, decimales o repartos.
+ */
+export function admiteFracciones(
+  c: { estilo?: FichaThemeChoice; formato?: FichaFormato; visual?: boolean }, req: Pick<FichaRequest, 'tema' | 'area'>,
+): boolean {
+  return c.estilo === 'cuaderno' && (c.formato ?? 'ficha') === 'ficha' && !c.visual && RE_TEMA_FRACCIONES.test(`${req.tema ?? ''} ${req.area ?? ''}`);
+}
+
+/** El enunciado remite a unas pizzas o figuras dibujadas («la parte coloreada de cada figura», «mira las pizzas»): sin ellas, no se puede hacer. */
+const RE_HABLA_DE_FIGURAS = /\b(?:partes?|trozos?)\s+(?:coloread|sombread|en gris|grises)|\b(?:mira|observa|f[ií]jate en)\s+(?:en\s+)?(?:la|las|cada|esta|estas)\s+(?:pizzas?|figuras?|tartas?)\b|\bfiguras?\s+(?:de arriba|dibujad|siguientes?|que ves)\b|\bcada\s+figura\b/i;
+
+const TIPOS_QUE_REMITEN_A_FIGURAS: readonly FichaExerciseType[] = ['abierta', 'completar', 'opcion_multiple', 'problema'];
+
+/** ¿Este ejercicio habla de pizzas o figuras dibujadas y no lleva ninguna? */
+export function hablaDeFigurasSinFiguras(ex: FichaExercise): boolean {
+  return TIPOS_QUE_REMITEN_A_FIGURAS.includes(ex.tipo) && !ex.fracciones?.length && !ex.dibujos?.length && !ex.figura && RE_HABLA_DE_FIGURAS.test(ex.enunciado ?? '');
+}
+
+const admiteFraccionesEn = (c: FichaContent, req: Pick<FichaRequest, 'tema' | 'area'>): boolean =>
+  admiteFracciones({ estilo: c.estilo, formato: c.formato, visual: c.visual }, req);
+
+/** La parte del prompt de las pizzas y tartas dibujadas por la aplicación. */
+function fraccionesPrompt(): string {
+  return (
+    `FRACCIONES DIBUJADAS: este tema se presta a pizzas y tartas cortadas en trozos iguales. La aplicación las dibuja EXACTAS a partir de ` +
+    `tus números, con los trozos cogidos en blanco y negro y separados del resto, así que úsalas siempre que el ejercicio hable de trozos ` +
+    `(nunca las del catálogo, que tienen los trozos desiguales). Cada figura es {"partes": de 2 a 10, "tomadas": los trozos que se cogen ` +
+    `(de 0 a partes), "objeto": "pizza" o "tarta"}.\n` +
+    `- Tipo "fracciones": de 3 a 4 figuras (casi siempre pizzas; una tarta de vez en cuando), cada una con su sitio para contestar. "modo": "leer" (se ve la pizza con los trozos cogidos y ` +
+    `se escribe qué fracción es; con "decimal": true, también su decimal), "colorear" (la pizza en blanco: se colorean los trozos que dice ` +
+    `su fracción, que la hoja escribe debajo) o "unir" (pizzas a un lado y sus fracciones, o sus decimales con "decimal": true, mezcladas ` +
+    `al otro). El enunciado dice qué hacer («Escribe la fracción de pizza que se ha comido en cada caso»). La solución la calcula la aplicación.\n` +
+    `- En problema, abierta, completar y opcion_multiple puedes poner de 1 a 3 "fracciones" como dibujo de lo que cuenta el enunciado: ` +
+    `tiene que ser EXACTAMENTE lo que dice (pizza de 8 trozos de la que se comen 3: partes 8, tomadas 3). Si el enunciado dice «8 trozos», ` +
+    `la figura tiene 8 partes.\n` +
+    `- Variedad: en la ficha, pizzas con distinto número de trozos (2, 3, 4, 5, 6, 7, 8, 9, 10) y distintas fracciones, nunca todas de 8; ` +
+    `en un mismo ejercicio, número de trozos distinto en cada figura. Con "decimal": true solo con 2, 4, 5, 8 o 10 trozos (decimal exacto: ` +
+    `1/2 = 0,5; 3/4 = 0,75; 2/5 = 0,4; 3/8 = 0,375; 7/10 = 0,7).\n` +
+    `- Incluye al menos un ejercicio de tipo "fracciones" en la ficha y úsalo para lo que sea visual: leer una fracción, ver equivalencias ` +
+    `(2/4 y 1/2: dos pizzas con distinto número de trozos y la misma cantidad), comparar o pasar a decimal.\n`
+  );
+}
+
+/** Lo que sabe el motor de la escalera de una ficha: el reparto por bloques y el curso. */
+interface Escalera {
+  plan: BloquePlan[];
+  perfil: PerfilCurso;
+}
+
+/**
+ * La parte del prompt de la escalera de dificultad: los bloques que hay, su nivel,
+ * qué se pide en cada uno según el curso y una ficha de ejemplo bien hecha. Lo que
+ * decide el reparto es el código (`lib/escalera.ts`); la IA solo lo rellena.
+ */
+function escaleraPrompt(e: Escalera, opts: { cuaderno: boolean; hilo: boolean }): string {
+  return (
+    `ESCALERA DE DIFICULTAD (obligatoria): la ficha tiene que ser MULTINIVEL y subir de menos a más. Cada bloque lleva su ` +
+    `"dificultad" (1, 2 o 3) y los bloques van en este orden y con este reparto:\n${planParaPrompt(e.plan, e.perfil)}\n` +
+    `- El nivel 1 es de entrada: el alumnado de ese curso tiene que poder hacerlo casi solo y con éxito, para ganar confianza. ` +
+    `El nivel 3 exige pensar: razonar, varios pasos, explicar, corregir un error o inventar; no lo llenes de verdadero o falso ` +
+    `ni de cálculos sueltos. Dentro de un bloque, los ejercicios tampoco bajan de nivel.\n` +
+    `- Cada ejercicio ha de ser claramente más exigente que los del bloque anterior; no repitas el mismo ejercicio con otros ` +
+    `números en otro bloque.\n` +
+    `- El título de cada bloque dice qué se hace («Calculamos», «Resolvemos en la tienda», «Razonamos»), sin número delante ` +
+    `(la hoja lo pone) y sin escribir «Nivel 1».\n` +
+    (opts.cuaderno
+      ? `- RECUADROS: el primer bloque lleva un "recuerda" (las equivalencias, siglas o datos que hacen falta; si no hay nada que ` +
+        `recordar, un "consejo") y el último un "reto": una pregunta extra algo más difícil, de respuesta corta, que no repita ` +
+        `ningún ejercicio. El del medio, ninguno.\n`
+      : '') +
+    avisoDeSubida(e.perfil) +
+    `EJEMPLO DE FICHA BIEN HECHA (de otro tema y de otro curso): copia su forma —los tres niveles, la explicación con un ejemplo ` +
+    `resuelto, la solución con las cuentas, los datos realistas y el último bloque que obliga a pensar—, nunca su tema, sus datos ` +
+    `ni sus frases.${opts.hilo ? ' No lleva dibujos porque no tiene hilo conductor; en tu ficha sigue las reglas de DIBUJOS.' : ''}\n` +
+    `${ejemploParaPrompt(e.perfil, { cuaderno: opts.cuaderno })}\n`
+  );
+}
+
 function systemPrompt(
   niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
+  hilo?: Hilo, escalera?: Escalera, fracciones = false,
 ): string {
   if (formato === 'tarjetas') return tarjetasSystemPrompt(lang, estilo);
+  // Con pizzas dibujadas por la aplicación, las del catálogo (trozos desiguales, uno suelto) no se ofrecen a la IA para fracciones
+  const hiloIA = hilo && fracciones ? { ...hilo, dibujos: hilo.dibujos.filter(id => !PIZZAS_DEL_CATALOGO.has(id)) } : hilo;
   return (
     `Eres un experto en didáctica y creación de materiales educativos. Tu tarea exclusiva es ` +
     `redactar una ficha de trabajo imprimible para el alumnado: una breve explicación del concepto ` +
@@ -665,12 +1048,15 @@ function systemPrompt(
     `EXPLICACIÓN: en el campo "explicacion", antes de los ejercicios, recuerda el concepto en pocas ` +
     `frases, como lo haría el profesorado en la pizarra antes de mandar la tarea — no es un tema nuevo, ` +
     `es un repaso. Si encaja, incluye un ejemplo resuelto corto.\n` +
-    `ACTIVIDADES: reparte los ejercicios en de 2 a 4 bloques, cada uno con un título corto y claro (ej. ` +
+    `ACTIVIDADES: reparte los ejercicios en ${escalera
+      ? `EXACTAMENTE ${escalera.plan.length} bloques, de menos a más dificultad (ver ESCALERA DE DIFICULTAD)`
+      : 'de 2 a 4 bloques'}, cada uno con un título corto y claro (ej. ` +
     `"Escribe como potencia", "Relaciona"). Agrupa en el mismo bloque los ejercicios del mismo tipo o ` +
     `del mismo objetivo.\n` +
     `TIPOS DE EJERCICIO — usa el que mejor encaje en cada bloque, variando entre bloques:\n` +
-    `- "abierta": respuesta libre. "completar": huecos en una frase o expresión. "opcion_multiple": de ` +
-    `3 a 5 opciones en "opciones". "problema": un enunciado con varios pasos.\n` +
+    `- "abierta": respuesta libre. "completar": el propio "enunciado" ES la frase o las frases, con cada hueco ` +
+    `marcado con ______ (al menos tres guiones bajos); nunca escribas «completa las frases» sin escribirlas. ` +
+    `"opcion_multiple": de 3 a 5 opciones en "opciones". "problema": un enunciado con varios pasos.\n` +
     `- "tabla_rellenar": tabla ("columnas" + "filas") con algunas celdas ya dadas y otras en blanco ("") ` +
     `para que el alumnado las complete.\n` +
     `- "relacionar": "izquierda" y "derecha" con el mismo número de elementos, PERO "derecha" EN UN ` +
@@ -688,6 +1074,12 @@ function systemPrompt(
     `cuadrícula la monta la aplicación. Como mucho uno por ficha.\n` +
     `- "comic": de 3 a 4 "vinetas" con un emoji de personaje y lo que dice; deja al menos un bocadillo ` +
     `vacío ("") para que el alumnado escriba la respuesta o la explicación. Como mucho uno por ficha.\n` +
+    `- "calculos": una lista de 2 a 6 "lineas", cada una con lo que va a la IZQUIERDA del "=" (un número para ` +
+    `descomponer o redondear, una suma, una expresión, una cantidad para convertir); el "=" y el hueco de ` +
+    `respuesta los pone la ficha, no los escribas. "respuesta": "linea" si la respuesta es larga (una ` +
+    `descomposición, una expresión) o "caja" si es corta (un número). El "enunciado" es la consigna de toda la ` +
+    `lista. Es el tipo más fiel a las fichas de cuaderno: úsalo en cuanto el ejercicio sea repetir una misma ` +
+    `operación con varios datos.\n` +
     `VARIEDAD: usa al menos tres tipos distintos en la ficha y prefiere los más visuales y manipulativos ` +
     `(relacionar, ordenar, verdadero o falso, crucigrama, cómic…) cuando encajen con el contenido.\n` +
     `FIGURA: cuando un ejercicio (normalmente "problema") pida calcular área, perímetro, superficie o ` +
@@ -716,9 +1108,13 @@ function systemPrompt(
     `número simple, escríbelo con palabras ("tres elevado a x").\n` +
     `El enunciado de cada ejercicio debe poder leerse y trabajarse solo, sin depender de un libro ` +
     `de texto que la IA no ha visto.\n` +
-    (estilo !== 'clasico' ? storyPrompt(estilo) : '') +
+    (conHistoria(estilo) ? storyPrompt(estilo) : '') +
+    (estilo === 'cuaderno' ? cuadernoPrompt() : '') +
     (formato === 'escape' ? ESCAPE_PROMPT : '') +
     (visual ? visualPrompt() : '') +
+    (hiloIA && !visual && formato === 'ficha' ? hiloPrompt(hiloIA, lang) : '') +
+    (fracciones && !visual && formato === 'ficha' ? fraccionesPrompt() : '') +
+    (escalera ? escaleraPrompt(escalera, { cuaderno: estilo === 'cuaderno' && formato === 'ficha', hilo: !!hilo && !visual && formato === 'ficha' }) : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -810,25 +1206,240 @@ function cleanConceptos(c: ConceptoVisual[] | undefined): ConceptoVisual[] | und
   return out.length ? out : undefined;
 }
 
-function cleanExercise(ex: FichaExercise, visual = false): FichaExercise {
+/**
+ * Las líneas de un ejercicio «calculos»: sin el «=» ni los huecos que la IA
+ * pone a veces al final (la ficha los pinta), y sin líneas vacías.
+ */
+export function cleanLineas(lineas: string[] | undefined): string[] {
+  return (lineas ?? [])
+    .map(l => cleanMathNotation(String(l ?? '')).replace(/[\s=_…]+$/u, '').trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+const RECUADROS: FichaRecuadroTipo[] = ['recuerda', 'reto', 'consejo'];
+
+/** El recuadro de un bloque, comprobado; sin tipo válido o sin nada que decir, no hay recuadro. */
+export function cleanRecuadro(r: FichaRecuadro | undefined): FichaRecuadro | undefined {
+  if (!r || !RECUADROS.includes(r.tipo)) return undefined;
+  const texto = cleanMathNotation((r.texto ?? '').trim());
+  const lista = r.tipo === 'recuerda'
+    ? (r.lista ?? []).map(l => cleanMathNotation(String(l ?? '').trim())).filter(Boolean).slice(0, 10)
+    : [];
+  if (!texto && !lista.length) return undefined;
+  return { tipo: r.tipo, texto, ...(lista.length ? { lista } : {}) };
+}
+
+/**
+ * Los dibujos de un ejercicio: solo los que están en el catálogo (la IA elige
+ * de una lista cerrada, pero se comprueba), sin repetir, con una cantidad de 1 a
+ * 10 y, si no son de los que se pueden contar, siempre 1. Como mucho `max` (tres
+ * de ambientación; más en los tipos que rotulan o clasifican dibujos).
+ */
+export function cleanDibujos(list: DibujoEjercicio[] | undefined, max = 3): DibujoEjercicio[] | undefined {
+  const vistos = new Set<string>();
+  const out: DibujoEjercicio[] = [];
+  for (const d of Array.isArray(list) ? list : []) {
+    const id = String(d?.ilustracion ?? '').trim();
+    if (!id || vistos.has(id) || ilustracionPorId(id)?.fuente !== 'img') continue;
+    vistos.add(id);
+    const cantidad = esContable(id) ? Math.max(1, Math.min(MAX_CANTIDAD, Math.round(Number(d?.cantidad) || 1))) : 1;
+    out.push({ ilustracion: id, cantidad });
+  }
+  return out.length ? out.slice(0, max) : undefined;
+}
+
+/** Los dibujos de una lista que se corresponde elemento a elemento («relacionar», filas de una tabla): uno por elemento o ninguno. */
+function dibujosAlineados(list: DibujoEjercicio[] | undefined, n: number): DibujoEjercicio[] | undefined {
+  if (!Array.isArray(list) || list.length !== n) return undefined;
+  const out = list.map(d => {
+    const id = String(d?.ilustracion ?? '').trim();
+    return { ilustracion: ilustracionPorId(id)?.fuente === 'img' ? id : '', cantidad: 1 };
+  });
+  return out.filter(d => d.ilustracion).length >= 2 ? out : undefined;
+}
+
+/** La ficha con otro hilo conductor (o sin ninguno): cambia la cabecera; los dibujos de los ejercicios se quedan. */
+export function conHilo(content: FichaContent, hiloId: string | undefined): FichaContent {
+  const hilo = hiloPorId(hiloId);
+  if (!hilo) {
+    const resto: FichaContent = { ...content };
+    delete resto.hilo;
+    return resto;
+  }
+  return { ...content, hilo: hilo.id };
+}
+
+/**
+ * El hilo que se le pone a una ficha nueva. Solo «Cuaderno», en formato ficha
+ * y sin apoyos visuales (que ya llevan sus pictogramas): 'ninguno' lo quita,
+ * un identificador lo fija, y con 'auto' o sin nada lo elige la app por el tema.
+ */
+export function resolverHilo(
+  req: { tema: string; area?: string; nivel?: string; hilo?: string },
+  estilo: FichaThemeChoice, formato: FichaFormato, visual: boolean,
+): Hilo | undefined {
+  if (estilo !== 'cuaderno' || formato !== 'ficha' || visual || req.hilo === 'ninguno') return undefined;
+  return hiloPorId(req.hilo) ?? hiloDeFicha({ tema: req.tema, area: req.area ?? '', nivel: req.nivel });
+}
+
+/**
+ * Lo que los dibujos del catálogo hacen en un ejercicio, comprobado: los tipos
+ * «contar», «etiquetar» y «clasificar» necesitan sus dibujos (si la IA no los da
+ * bien, el ejercicio pasa a «abierta» con lo que quede, antes que salir roto) y
+ * su solución la calcula el código; «relacionar» y las tablas llevan un dibujo
+ * por elemento o ninguno; en el resto, hasta tres de ambientación. Sin hilo
+ * conductor no hay dibujos.
+ */
+function cleanDibujosDeEjercicio(ex: FichaExercise, conDibujos: boolean, lang: Lang, conFracciones = false): FichaExercise {
+  const base: FichaExercise = { ...ex };
+  delete base.categorias; delete base.total; delete base.banco;
+  const aAbierta = (dibujos: DibujoEjercicio[] | undefined): FichaExercise => {
+    const out: FichaExercise = { ...base, tipo: 'abierta', dibujos: conDibujos ? cleanDibujos(dibujos) : undefined };
+    if (!out.dibujos) delete out.dibujos;
+    return out;
+  };
+  if (!conDibujos) {
+    const out = esTipoConDibujos(ex.tipo) ? aAbierta(undefined) : { ...base };
+    delete out.dibujos;
+    return out;
+  }
+  if (ex.tipo === 'contar') {
+    const grupos = (cleanDibujos(ex.dibujos) ?? []).filter(d => esContable(d.ilustracion));
+    if (!grupos.length) return aAbierta(ex.dibujos);
+    const out: FichaExercise = { ...base, dibujos: grupos, ...(ex.total && grupos.length > 1 ? { total: true } : {}) };
+    return { ...out, solucion: solucionDeDibujos(out, lang) };
+  }
+  if (ex.tipo === 'etiquetar') {
+    // Dos dibujos con el mismo nombre (el corazón del cuerpo y el de los valores) no se rotulan juntos
+    const nombres = new Set<string>();
+    const dibujos = (cleanDibujos(ex.dibujos, 12) ?? []).map(d => ({ ...d, cantidad: 1 })).filter(d => {
+      const n = (nombreIlustracion(d.ilustracion, 'es') ?? d.ilustracion).toLowerCase();
+      if (nombres.has(n)) return false;
+      nombres.add(n);
+      return true;
+    }).slice(0, 8);
+    if (dibujos.length < 2) return aAbierta(ex.dibujos);
+    const out: FichaExercise = { ...base, dibujos, ...(ex.banco ? { banco: true } : {}) };
+    return { ...out, solucion: solucionDeDibujos(out, lang) };
+  }
+  if (ex.tipo === 'clasificar') {
+    const vistos = new Set<string>();
+    const categorias = (Array.isArray(ex.categorias) ? ex.categorias : [])
+      .map(c => ({
+        nombre: cleanMathNotation(String(c?.nombre ?? '').trim()),
+        dibujos: (Array.isArray(c?.dibujos) ? c.dibujos : []).map(id => String(id ?? '').trim())
+          .filter(id => ilustracionPorId(id)?.fuente === 'img' && !vistos.has(id) && !!vistos.add(id)),
+      }))
+      .filter(c => c.nombre && c.dibujos.length)
+      .slice(0, 3);
+    let n = 0;
+    const recortadas = categorias.map(c => ({ ...c, dibujos: c.dibujos.slice(0, Math.max(0, 10 - n)).map(id => (n++, id)) }));
+    if (recortadas.length < 2 || recortadas.reduce((s, c) => s + c.dibujos.length, 0) < 4) return aAbierta(undefined);
+    const out: FichaExercise = { ...base, categorias: recortadas };
+    delete out.dibujos;
+    return { ...out, solucion: solucionDeDibujos(out, lang) };
+  }
+  if (ex.tipo === 'relacionar') {
+    const dibujos = dibujosAlineados(ex.dibujos, ex.izquierda?.length ?? 0);
+    if (dibujos) return { ...base, dibujos };
+    delete base.dibujos;
+    return base;
+  }
+  if (ex.tipo === 'tabla_rellenar') {
+    const dibujos = dibujosAlineados(ex.dibujos, ex.filas?.length ?? 0);
+    if (dibujos) return { ...base, dibujos };
+    delete base.dibujos;
+    return base;
+  }
+  // «Escribe el nombre de cada animal debajo de su dibujo» como respuesta libre: cada dibujo ha de tener su línea, es un «etiquetar»
+  if (ex.tipo === 'abierta' && esRotulado(ex.enunciado ?? '') && (cleanDibujos(ex.dibujos, 12)?.length ?? 0) >= 2) {
+    const banco = RE_BANCO.test(ex.enunciado);
+    const rotulado = cleanDibujosDeEjercicio({ ...ex, tipo: 'etiquetar', banco, enunciado: enunciadoRotular(banco, lang) }, true, lang);
+    if (rotulado.tipo === 'etiquetar') return rotulado;
+  }
+  // Con pizzas dibujadas por la aplicación, la del catálogo no ilustra un enunciado de trozos: sus trozos no son los que dice
+  const sinPizzas = conFracciones && RE_TROZOS.test(ex.enunciado ?? '')
+    ? cleanDibujos(ex.dibujos)?.filter(d => !PIZZAS_DEL_CATALOGO.has(d.ilustracion))
+    : cleanDibujos(ex.dibujos);
+  const dibujos = sinPizzas?.length ? sinPizzas : undefined;
+  if (dibujos) return { ...base, dibujos };
+  delete base.dibujos;
+  return base;
+}
+
+const RE_TROZOS = /\b(?:trozos?|porci[oó]n(?:es)?|rebanadas?|pedazos?|raciones?|partes? iguales|fracci[oó]n)\b/i;
+
+const RE_BANCO = /\b(?:banco|banc|word bank|box)\b/i;
+
+/** ¿Pide escribir el nombre de cada dibujo? (castellano, catalán o inglés) */
+const esRotulado = (t: string): boolean =>
+  /\b(?:escribe|anota|pon|rotula|completa|indica|escriu|posa|write|label|name)\b/i.test(t)
+  && /\b(?:nombres?|noms?|names?)\b/i.test(t)
+  && /\b(?:cada|debajo|bajo|junto|su dibujo|sus dibujos|sota|each|below|under)\b/i.test(t);
+
+/** Cuántas figuras como mucho: en el ejercicio «fracciones», cuatro; como dibujo del enunciado de otro tipo, tres. */
+const MAX_FIGURAS_FRACCION = 4;
+const MAX_FIGURAS_AMBIENTE = 3;
+
+/** Los tipos cuyo enunciado puede llevar una pizza al lado (la misma lista que la figura geométrica). */
+const TIPOS_CON_FIGURA_DE_ENUNCIADO: readonly FichaExerciseType[] = ['problema', 'abierta', 'completar', 'opcion_multiple'];
+
+const COGIDOS_VALIDOS: readonly CogidosFraccion[] = ['ambos', 'bn', 'separados'];
+
+/**
+ * Las pizzas y tartas de un ejercicio: solo figuras que se pueden dibujar (enteros, de 2 a 12 trozos y de
+ * 0 a todos cogidos), sin pasarse de las que caben; «fracciones» sin ninguna pasa a pregunta abierta; el
+ * decimal solo si todos los trozos lo tienen exacto; y la solución sale de los números, no de la IA.
+ * Sin «Cuaderno» (`permitido` falso) no hay figuras.
+ */
+function cleanFracciones(ex: FichaExercise, permitido: boolean, lang: Lang): FichaExercise {
+  const out: FichaExercise = { ...ex };
+  delete out.fracciones; delete out.modo; delete out.decimal; delete out.cogidos;
+  const quita = ex.tipo === 'fracciones' ? { ...out, tipo: 'abierta' as const } : out;
+  const dedicado = ex.tipo === 'fracciones';
+  // Como dibujo del enunciado, solo en los tipos que tienen un enunciado largo con espacio al lado
+  if (!permitido || (!dedicado && !TIPOS_CON_FIGURA_DE_ENUNCIADO.includes(ex.tipo))) return quita;
+  const figuras: FraccionDibujo[] = (Array.isArray(ex.fracciones) ? ex.fracciones : [])
+    .map(f => ({ partes: Math.round(Number(f?.partes)), tomadas: Math.round(Number(f?.tomadas)), objeto: OBJETOS_FRACCION.includes(f?.objeto as never) ? f.objeto : undefined }))
+    .filter(fraccionValida)
+    .map(f => (f.objeto ? f : { partes: f.partes, tomadas: f.tomadas }))
+    .slice(0, dedicado ? MAX_FIGURAS_FRACCION : MAX_FIGURAS_AMBIENTE);
+  if (!figuras.length) return quita;
+  const cogidos = COGIDOS_VALIDOS.includes(ex.cogidos as CogidosFraccion) ? { cogidos: ex.cogidos } : {};
+  if (!dedicado) return { ...out, fracciones: figuras, ...cogidos };
+  const modo: ModoFracciones = MODOS_FRACCIONES.includes(ex.modo as ModoFracciones) ? ex.modo as ModoFracciones : 'leer';
+  const modoFinal: ModoFracciones = modo === 'unir' && figuras.length < 2 ? 'leer' : modo;
+  const decimal = !!ex.decimal && modoFinal !== 'colorear' && figuras.every(tieneDecimalExacto);
+  const limpio: FichaExercise = { ...out, fracciones: figuras, modo: modoFinal, ...(decimal ? { decimal: true } : {}), ...cogidos };
+  return { ...limpio, solucion: solucionFracciones(limpio, lang) };
+}
+
+/** Un «problema» que pide explicar y no lleva ni una cifra no es de cálculo: es una pregunta abierta (la hoja le daría una cuadrícula de operaciones). */
+const RE_EXPLICA = /\b(?:explica|razona|justifica|describe|argumenta|por qu[eé])\b/i;
+
+function cleanExercise(ex: FichaExercise, visual = false, conDibujos = false, lang: Lang = 'es', conFracciones = false): FichaExercise {
+  const limpio = cleanFracciones(cleanDibujosDeEjercicio({ ...ex, ...cleanVisualExercise(ex, visual) }, conDibujos && !visual, lang, conFracciones), conFracciones && !visual, lang);
   return {
-    ...ex,
-    ...cleanVisualExercise(ex, visual),
-    enunciado: cleanMathNotation(ex.enunciado),
-    opciones: ex.opciones?.map(cleanMathNotation),
-    columnas: ex.columnas?.map(cleanMathNotation),
-    filas: ex.filas?.map(fila => fila.map(cleanMathNotation)),
-    izquierda: ex.izquierda?.map(cleanMathNotation),
-    derecha: ex.derecha?.map(cleanMathNotation),
-    leyenda: ex.leyenda?.map(l => ({ color: l.color, criterio: cleanMathNotation(l.criterio) })),
-    itemsColorear: ex.itemsColorear?.map(cleanMathNotation),
-    afirmaciones: ex.afirmaciones?.map(cleanMathNotation),
-    elementos: ex.elementos?.map(cleanMathNotation),
-    pistas: ex.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
-    vinetas: ex.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
-    solucion: cleanMathNotation(ex.solucion),
-    apoyo: ex.apoyo ? cleanMathNotation(ex.apoyo) : ex.apoyo,
-    ampliacion: ex.ampliacion ? cleanMathNotation(ex.ampliacion) : ex.ampliacion,
+    ...limpio,
+    ...(limpio.tipo === 'problema' && !limpio.figura && !/\d/.test(limpio.enunciado ?? '') && RE_EXPLICA.test(limpio.enunciado ?? '') ? { tipo: 'abierta' as const } : {}),
+    enunciado: cleanMathNotation(limpio.enunciado),
+    opciones: limpio.opciones?.map(cleanMathNotation),
+    columnas: limpio.columnas?.map(cleanMathNotation),
+    filas: limpio.filas?.map(fila => fila.map(cleanMathNotation)),
+    izquierda: limpio.izquierda?.map(cleanMathNotation),
+    derecha: limpio.derecha?.map(cleanMathNotation),
+    leyenda: limpio.leyenda?.map(l => ({ color: l.color, criterio: cleanMathNotation(l.criterio) })),
+    itemsColorear: limpio.itemsColorear?.map(cleanMathNotation),
+    afirmaciones: limpio.afirmaciones?.map(cleanMathNotation),
+    elementos: limpio.elementos?.map(cleanMathNotation),
+    pistas: limpio.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
+    vinetas: limpio.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
+    ...(limpio.tipo === 'calculos' ? { lineas: cleanLineas(limpio.lineas), respuesta: limpio.respuesta === 'caja' ? 'caja' as const : 'linea' as const } : {}),
+    // Una IA floja a veces se enrolla sin fin en la solución (salió una de más de 900 letras): el tope lo corta
+    solucion: cleanMathNotation(limpio.solucion ?? '').slice(0, 1500),
+    apoyo: limpio.apoyo ? cleanMathNotation(limpio.apoyo) : limpio.apoyo,
+    ampliacion: limpio.ampliacion ? cleanMathNotation(limpio.ampliacion) : limpio.ampliacion,
   };
 }
 
@@ -888,13 +1499,15 @@ export function cleanCode(raw: string): string {
 }
 
 function cleanFichaContent(
-  c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
+  c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false, hiloElegido?: Hilo,
+  lang: Lang = 'es', plan?: BloquePlan[],
 ): FichaContent {
+  const hilo = hiloElegido && !visual && formato === 'ficha' ? hiloElegido : undefined;
   const finalEstilo: FichaThemeId = estilo === 'auto'
     ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
     : estilo;
   const theme = fichaTheme(finalEstilo);
-  const historia = c.historia && finalEstilo !== 'clasico'
+  const historia = c.historia && theme.historia
     ? {
       ...c.historia,
       emoji: cleanEmoji(c.historia.emoji, theme.personaje),
@@ -911,14 +1524,22 @@ function cleanFichaContent(
     explicacion: cleanMathNotation(c.explicacion ?? ''),
     instrucciones: cleanMathNotation(c.instrucciones ?? ''),
     ...(visual ? { visual: true, conceptos: cleanConceptos(c.conceptos) } : { visual: undefined, conceptos: undefined }),
-    actividades: (c.actividades ?? []).map((act, i) => ({
-      titulo: cleanMathNotation(act.titulo),
+    hilo: hilo?.id,
+    // «De menos a más»: los bloques se ordenan por su nivel, y si la IA no los trae bien, se reparten por posición
+    actividades: (formato === 'tarjetas'
+      ? (c.actividades ?? []).map(a => ({ ...a, dificultad: undefined }))
+      : normalizarEscalera((c.actividades ?? []).map(a => ({ ...a, dificultad: Number(a.dificultad) })), plan?.map(b => b.dificultad))
+    ).map((act, i) => ({
+      // El número del bloque lo pone la hoja: «1. El concepto» sin su «1.» (la IA lo escribe a veces)
+      titulo: cleanMathNotation(act.titulo ?? '').replace(/^\s*\d+\s*[.)\-:]\s*/, ''),
+      ...(act.dificultad ? { dificultad: act.dificultad } : {}),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
         narrativa: cleanMathNotation(act.narrativa ?? ''),
       } : {}),
       ...cleanVisualActivity(act, visual),
-      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual)).map(prepareExercise),
+      ...(cleanRecuadro(act.recuadro) ? { recuadro: cleanRecuadro(act.recuadro) } : {}),
+      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual, !!hilo, lang, finalEstilo === 'cuaderno' && formato === 'ficha')).map(prepareExercise),
       ...(formato === 'escape' && act.candado ? {
         candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
       } : {}),
@@ -935,17 +1556,21 @@ type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: strin
 
 async function callFichaText(
   system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, formato: FichaFormato, onError?: (m: string) => void,
-  visual = false,
+  visual = false, hilo?: Hilo, lang: Lang = 'es', plan?: BloquePlan[], fracciones = false,
 ): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
     // Con apoyos visuales la respuesta lleva además pasos, dibujos y tarjetas
     maxOutputTokens: visual ? 24576 : 16384,
     responseSchema: fichaSchema({
       niveles: niveles && formato !== 'tarjetas',
-      historia: estilo !== 'clasico' && formato !== 'tarjetas',
+      historia: conHistoria(estilo) && formato !== 'tarjetas',
       elegirEstilo: estilo === 'auto',
       formato,
       visual,
+      cuaderno: estilo === 'cuaderno' && formato === 'ficha',
+      dibujos: !!hilo && !visual && formato === 'ficha',
+      escalera: formato === 'tarjetas' ? undefined : plan,
+      fracciones,
     }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
@@ -957,22 +1582,23 @@ async function callFichaText(
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual);
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual, hilo, lang, plan);
 }
 
 /** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
 function effectiveEstilo(estilo: FichaThemeChoice | undefined, formato: FichaFormato): FichaThemeChoice {
   const e = estilo ?? 'auto';
-  return formato === 'escape' && e === 'clasico' ? 'auto' : e;
+  return formato === 'escape' && !conHistoria(e) ? 'auto' : e;
 }
 
-/** Qué se pide al final del prompt según el formato. */
-function askFor(formato: FichaFormato, n: number, sobre: string): string {
+/** Qué se pide al final del prompt según el formato; con `plan`, repartido en los bloques de la escalera. */
+function askFor(formato: FichaFormato, n: number, sobre: string, plan?: BloquePlan[]): string {
   if (formato === 'tarjetas') return `Crea EXACTAMENTE ${n} tarjetas ${sobre}.`;
-  if (formato === 'escape') {
-    return `Crea un escape room con un total de EXACTAMENTE ${n} ejercicios ${sobre}, repartidos en de 2 a 4 salas, cada una con su candado.`;
-  }
-  return `Genera una ficha de trabajo con un total de EXACTAMENTE ${n} ejercicios ${sobre}, repartidos en sus bloques de actividad.`;
+  const reparto = plan?.length
+    ? `repartidos en EXACTAMENTE ${plan.length} ${formato === 'escape' ? 'salas' : 'bloques'} de menos a más dificultad (${plan.map(b => b.ejercicios).join(' + ')} ejercicios)`
+    : formato === 'escape' ? 'repartidos en de 2 a 4 salas, cada una con su candado' : 'repartidos en sus bloques de actividad';
+  if (formato === 'escape') return `Crea un escape room con un total de EXACTAMENTE ${n} ejercicios ${sobre}, ${reparto}${plan?.length ? ', cada sala con su candado' : ''}.`;
+  return `Genera una ficha de trabajo con un total de EXACTAMENTE ${n} ejercicios ${sobre}, ${reparto}.`;
 }
 
 /**
@@ -985,15 +1611,371 @@ function askFor(formato: FichaFormato, n: number, sobre: string): string {
  * generado aquí, no por la IA— le da un ancla nueva de la que no puede
  * escaparse repitiendo el ejemplo de siempre.
  */
-function numberVarietyHint(): string {
-  const lo = 2 + Math.floor(Math.random() * 7); // 2-8
-  const hi = lo + 6 + Math.floor(Math.random() * 10); // lo+6..lo+15
+function numberVarietyHint(perfil: PerfilCurso = perfilDeCurso('')): string {
+  // Una ficha de ciencias o sociales no es un problema de cálculo: sin rango de cifras, solo que los datos sean creíbles
+  if (!perfil.numerica) {
+    return (
+      `DATOS: si algún ejercicio lleva números (medidas, cantidades, fechas), que sean realistas para la situación y no se repitan ` +
+      `de un ejercicio a otro. No conviertas el tema en un problema de cálculo si no lo es.`
+    );
+  }
+  const { lo, hi, nota } = rangoNumerico(perfil);
   return (
     `VARIEDAD NUMÉRICA: en esta ficha en concreto, procura que las medidas, cantidades y datos de ` +
     `los ejercicios (figuras, problemas, tablas...) se muevan sobre todo entre ${lo} y ${hi} — evita ` +
     `en particular los combos más manidos de los libros de texto (8-4-6, 6-4, 5-3-4, 10-5) y no ` +
-    `repitas los mismos números de un ejercicio a otro dentro de la ficha.`
+    `repitas los mismos números de un ejercicio a otro dentro de la ficha. Los números tienen que ser razonables ` +
+    `para el curso y para la situación (una pizza no se corta en 13 trozos; en fracciones de Primaria, denominadores ` +
+    `como 2, 3, 4, 5, 6, 8 o 10).${nota ? ` ${nota}` : ''}`
   );
+}
+
+/* ── Ejercicios rotos: lo que la IA promete y la hoja no lleva ── */
+
+const RE_HABLA_DE_DIBUJOS = /\b(?:dibujos?|im[aá]genes?|ilustraci(?:ón|ones)|fotos?|fotograf[ií]as?)\b|\b(?:debajo|bajo) de cada\b|\bqu[eé] (?:ves|aparecen?)\b/i;
+const RE_HUECO = /_{3,}|…{2,}|\.{5,}/;
+
+/**
+ * Qué le pasa a un ejercicio que no se puede hacer tal como lo escribió la IA,
+ * dicho como indicación para rehacerlo; `undefined` si está bien. Casos que
+ * salieron con una IA real: un «escribe el nombre debajo de cada animal» sin
+ * ningún animal dibujado (solo con hilo conductor: sin él no hay dibujos en la
+ * hoja), un «completa las frases» sin las frases y un «relacionar» con las mismas
+ * palabras en las dos columnas.
+ */
+export function problemaDeEjercicio(ex: FichaExercise, conHilo: boolean): string | undefined {
+  if (ex.tipo === 'completar' && !RE_HUECO.test(ex.enunciado)) {
+    return 'Es de tipo "completar" pero el enunciado no tiene la frase con huecos. Escribe en el enunciado la frase o las frases completas, ' +
+      'con cada hueco marcado con ______ (al menos tres guiones bajos), y en la solución las palabras que faltan.';
+  }
+  if (ex.tipo === 'relacionar' && ex.izquierda?.length && ex.derecha?.length) {
+    // Los dos lados con las mismas palabras no es relacionar nada (salió con una IA real: «dos tercios» con «dos tercios»)
+    const plano = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const der = new Set(ex.derecha.map(plano));
+    if (ex.izquierda.filter(x => der.has(plano(x))).length >= Math.min(2, ex.izquierda.length)) {
+      return 'Es de tipo "relacionar" pero las dos columnas repiten las mismas palabras, así que no hay nada que relacionar. En la columna derecha ' +
+        'pon otra cosa que se relacione con cada elemento de la izquierda (su definición, su función, su resultado, su equivalente numérico).';
+    }
+  }
+  const fr = ex.fracciones ?? [];
+  if (ex.tipo === 'fracciones' && fr.length >= 2) {
+    const iguales = new Set(fr.map(f => `${f.partes}/${f.tomadas}`)).size < fr.length;
+    if (iguales || new Set(fr.map(f => f.partes)).size === 1) {
+      return 'Es de tipo "fracciones" y las pizzas tienen todas el mismo número de trozos (o hay dos iguales), así que no hay nada que comparar ni distinguir. ' +
+        'Usa pizzas con distinto número de trozos (por ejemplo 4, 5, 8 y 10) y distintas fracciones.';
+    }
+  }
+  if (fr.length && ex.tipo !== 'fracciones') {
+    // El enunciado habla de «8 trozos» y la figura tiene otros: lo que se lee y lo que se ve tienen que coincidir
+    const permitidos = new Set(fr.flatMap(f => [f.partes, f.tomadas, f.partes - f.tomadas]));
+    const dicen = [...(ex.enunciado ?? '').matchAll(/\b(\d{1,2})\s*(?:trozos?|porciones?|rebanadas?|pedazos?|raciones?|partes)\b/gi)].map(m => Number(m[1]));
+    const malo = dicen.find(n => !permitidos.has(n));
+    if (malo !== undefined) {
+      return `El enunciado habla de ${malo} trozos pero la figura de fracciones tiene ${fr.map(f => `${f.partes} trozos con ${f.tomadas} cogidos`).join(' y ')}. ` +
+        'Que lo que dice el enunciado y lo que se dibuja coincidan: cambia el enunciado o los números de la figura.';
+    }
+  }
+  if (ex.tipo === 'contar' && (ex.dibujos?.length ?? 0) >= 2 && new Set(ex.dibujos!.map(d => Math.max(1, d.cantidad ?? 1))).size === 1) {
+    return 'Es de tipo "contar" y todos los grupos tienen la misma cantidad, así que no hay nada que comparar ni sumar de verdad. ' +
+      'Pon cantidades distintas y pequeñas (por ejemplo 4 y 7).';
+  }
+  if (conHilo && !['colorear', 'comic', 'sopa_letras', 'crucigrama'].includes(ex.tipo) && RE_HABLA_DE_DIBUJOS.test(ex.enunciado)
+    && !ex.dibujos?.length && !ex.categorias?.length && !ex.figura) {
+    return 'El enunciado habla de dibujos o imágenes, pero el ejercicio no lleva ninguno. Rehazlo con dibujos del hilo ' +
+      '("etiquetar" si hay que escribir el nombre de cada uno, "contar" si hay que contarlos, "clasificar" si hay que repartirlos), ' +
+      'o escríbelo sin mencionar dibujos.';
+  }
+  return undefined;
+}
+
+/** La ficha con el ejercicio `e` del bloque `a` cambiado por `nuevo`. */
+function conEjercicio(content: FichaContent, a: number, e: number, nuevo: FichaExercise): FichaContent {
+  return {
+    ...content,
+    actividades: content.actividades.map((act, i) => (i === a
+      ? { ...act, ejercicios: act.ejercicios.map((x, j) => (j === e ? nuevo : x)) }
+      : act)),
+  };
+}
+
+/**
+ * Rehace, una vez cada uno y como mucho tres, los ejercicios rotos de una ficha
+ * recién generada (`problemaDeEjercicio`). Si la IA no contesta, el ejercicio se
+ * queda como estaba: el docente lo ve y lo edita.
+ */
+async function repararFicha(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lang: Lang,
+): Promise<FichaContent> {
+  if ((content.formato ?? 'ficha') !== 'ficha') return content;
+  let actual = content;
+  let hechos = 0;
+  for (let a = 0; a < content.actividades.length && hechos < 3; a++) {
+    for (let e = 0; e < content.actividades[a].ejercicios.length && hechos < 3; e++) {
+      const roto = actual.actividades[a].ejercicios[e];
+      // «Escribe la fracción de cada figura» sin ninguna figura (salió con una IA real): las pizzas las monta el código
+      if (admiteFraccionesEn(actual, req) && hablaDeFigurasSinFiguras(roto)) {
+        actual = conEjercicio(actual, a, e, fraccionesParaEjercicio('leer', lang, { decimal: /decimal/i.test(req.tema ?? '') }) as FichaExercise);
+        continue;
+      }
+      const motivo = problemaDeEjercicio(roto, !!actual.hilo);
+      if (!motivo) continue;
+      // «Escribe el nombre de cada dibujo» sin ningún dibujo: lo monta el código con los del hilo. Una IA floja no
+      // rellena los dibujos ni con el motivo delante (salió dos veces seguidas con Flash-Lite)
+      const hilo = hiloPorId(actual.hilo);
+      if (hilo && esRotulado(roto.enunciado ?? '') && !roto.dibujos?.length && !roto.categorias?.length) {
+        const fijo = etiquetarDelHilo(hilo, lang, { banco: bancoPermitido(perfilDeCurso(req.nivel)) });
+        if (fijo) { actual = conEjercicio(actual, a, e, fijo as FichaExercise); continue; }
+      }
+      hechos++;
+      const nuevo = await regenerateExercise(actual, req, a, e, { instruccion: motivo }, lang);
+      if (!nuevo || problemaDeEjercicio(nuevo, !!actual.hilo)) continue;
+      actual = conEjercicio(actual, a, e, nuevo);
+    }
+  }
+  return actual;
+}
+
+/* ── Revisión: la IA repasa su propia ficha como lo haría un docente ── */
+
+/** Cuántos ejercicios se rehacen, como mucho, tras la revisión. */
+const MAX_REVISADOS = 3;
+
+export interface HallazgoRevision {
+  /** Bloque y ejercicio, contados desde 1 como en la hoja; el ejercicio 0 es el recuadro del bloque. */
+  bloque: number;
+  ejercicio: number;
+  /** Qué está mal, dicho como indicación para rehacerlo. */
+  motivo: string;
+}
+
+const REVISION_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    problemas: {
+      type: 'ARRAY',
+      description: 'Los fallos graves, del más grave al menos y como mucho tres. Vacío si la ficha está bien.',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          bloque: { type: 'INTEGER', description: 'Número del bloque (1, 2, 3…)' },
+          ejercicio: { type: 'INTEGER', description: 'Número del ejercicio dentro del bloque (1, 2…), o 0 si el fallo está en el recuadro «Recuerda», «Reto» o «Consejo» del bloque' },
+          motivo: S('Qué está mal y cómo rehacerlo, en una o dos frases, como una indicación para quien lo reescriba'),
+        },
+        required: ['bloque', 'ejercicio', 'motivo'],
+        propertyOrdering: ['bloque', 'ejercicio', 'motivo'],
+      },
+    },
+  },
+  required: ['problemas'],
+  propertyOrdering: ['problemas'],
+} as const;
+
+const REVISION_SISTEMA =
+  `Eres un maestro o una maestra con muchos años de experiencia que revisa una ficha de trabajo antes de repartirla al ` +
+  `alumnado. Tu trabajo es encontrar los fallos GRAVES, no retocar el estilo. Revisa ejercicio por ejercicio, haciendo tú las ` +
+  `cuentas y las comprobaciones:\n` +
+  `1. La solución es correcta: recalcúlala (cuentas, fracciones, unidades, fechas, datos). Una solución equivocada es siempre grave.\n` +
+  `2. El ejercicio se puede resolver con lo que dice y los datos tienen sentido en la realidad (una pizza de 8 trozos no se reparte ` +
+  `entre 5 personas sin que sobren; un niño de 7 años no pesa 70 kg; un reparto que no sale exacto cuando el enunciado lo da por exacto).\n` +
+  `3. El nivel es el que toca: un ejercicio del bloque 1 que ya es difícil, un ejercicio del bloque 3 que solo pide reconocer o copiar, ` +
+  `o uno que es de un curso inferior al de la ficha (en 5.º y 6.º de Primaria esto es grave).\n` +
+  `4. No repite otro ejercicio de la ficha ni pregunta lo que otro ya contesta.\n` +
+  `5. Es del tema y es riguroso (nada inventado, nada que un libro de texto contradiga). Esto incluye los recuadros de cada bloque ` +
+  `(«recuerda»: equivalencias, siglas, datos; «reto»; «consejo»): un dato equivocado ahí se aprende mal. Si el fallo está en un recuadro, ` +
+  `pon "ejercicio": 0.\n` +
+  `5 bis. Si el ejercicio lleva "fracciones" (pizzas o tartas que dibuja la aplicación: "partes" trozos con "tomadas" cogidos), lo que dice el ` +
+  `enunciado, las preguntas y los números tienen que coincidir con esas figuras (una pizza de 8 trozos de la que se comen 3 es 3/8, no 3/5).\n` +
+  `6. Está bien montado: en "relacionar" cada par tiene sentido; en "verdadero_falso" las falsas tienen un error que se puede razonar; ` +
+  `en "completar" los huecos se deducen; en "opcion_multiple" hay una sola correcta; la "solucion" explica cómo se llega.\n` +
+  `NO son fallos: en "ordenar" los "elementos" vienen en el orden correcto a propósito (la aplicación los desordena al imprimir); ` +
+  `en "sopa_letras" y "crucigrama" la cuadrícula la monta la aplicación; los dibujos se ponen en la hoja; la "solucion" es para el ` +
+  `profesorado (no la juzgues por su estilo, solo si es incorrecta o no explica cómo se llega).\n` +
+  `Si algo no es grave, no lo menciones. Si la ficha está bien, devuelve la lista vacía. Como mucho tres fallos, los más graves.`;
+
+/**
+ * La IA revisa la ficha ya hecha y señala los ejercicios que un docente corregiría
+ * antes de repartirla. Es un paso extra: si falla, devuelve una lista vacía.
+ * Los ejercicios con dibujos del catálogo no se revisan (su recuento y su solución
+ * los calcula el código) ni el escape room (su código depende de las respuestas).
+ */
+export async function revisarFicha(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lang: Lang, callbacks: Callbacks = {},
+): Promise<HallazgoRevision[]> {
+  if ((content.formato ?? 'ficha') !== 'ficha') return [];
+  callbacks.onStart?.();
+  try {
+    const perfil = perfilDeCurso(req.nivel, req);
+    const esperado = expectativas(perfil);
+    const revisable = {
+      titulo: content.titulo,
+      explicacion: content.explicacion,
+      bloques: content.actividades.map((a, i) => ({
+        bloque: i + 1,
+        titulo: a.titulo,
+        dificultad: a.dificultad,
+        recuadro: a.recuadro,
+        ejercicios: a.ejercicios.flatMap((e, j) => {
+          if (esTipoConDibujos(e.tipo)) return [];
+          return [{ ejercicio: j + 1, ...exerciseForPrompt(e), dibujos: undefined, categorias: undefined }];
+        }),
+      })),
+    };
+    const userPrompt =
+      `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
+      `Qué se espera en cada nivel de dificultad en este curso:\n` +
+      ([1, 2, 3] as Dificultad[]).map(d => `- Nivel ${d}: ${esperado[d]}`).join('\n') + '\n' +
+      avisoDeSubida(perfil) +
+      `\nFicha (JSON):\n${JSON.stringify(revisable)}\n\nRevísala. El idioma de salida DEBE SER ${idioma(lang)}.`;
+    const raw = await callGemini(REVISION_SISTEMA, userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: 8192,
+      responseSchema: REVISION_SCHEMA,
+      thinkingLevel: 'medium',
+      temperature: 0.3,
+    });
+    if (!raw) return [];
+    const parsed = parseGeminiJson<{ problemas?: HallazgoRevision[] }>(raw);
+    return (Array.isArray(parsed?.problemas) ? parsed.problemas : [])
+      .filter(h => h && Number.isInteger(h.bloque) && Number.isInteger(h.ejercicio) && typeof h.motivo === 'string' && h.motivo.trim()
+        && (h.ejercicio === 0 ? !!content.actividades[h.bloque - 1]?.recuadro : !!content.actividades[h.bloque - 1]?.ejercicios[h.ejercicio - 1]))
+      .slice(0, MAX_REVISADOS);
+  } catch {
+    return [];
+  } finally {
+    callbacks.onEnd?.();
+  }
+}
+
+/** Corrige el recuadro de un bloque (un dato mal en el «Recuerda»); `null` si la IA no contesta o no devuelve nada válido. */
+async function regenerateRecuadro(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, actIdx: number, motivo: string, lang: Lang,
+): Promise<FichaRecuadro | null> {
+  const act = content.actividades[actIdx];
+  if (!act?.recuadro) return null;
+  try {
+    const raw = await callGemini(
+      'Eres un maestro o una maestra que corrige un recuadro de una ficha de trabajo. Devuelves el mismo recuadro con el fallo corregido, y nada más.',
+      fichaContextForPrompt(content, req) +
+      `Bloque de actividad: ${act.titulo}\nRecuadro actual (JSON):\n${JSON.stringify(act.recuadro)}\n\n` +
+      `Fallo que hay que corregir: ${motivo}\n` +
+      `Devuelve el recuadro corregido, del mismo tipo y con el mismo formato ("lista" con líneas «SIGLA = significado» si es de tipo "recuerda"). ` +
+      `El idioma de salida DEBE SER ${idioma(lang)}.`,
+      [], {}, { maxOutputTokens: 2048, responseSchema: RECUADRO_SCHEMA, thinkingLevel: 'low', temperature: 0.5 },
+    );
+    const nuevo = raw ? cleanRecuadro(parseGeminiJson<FichaRecuadro>(raw) ?? undefined) : undefined;
+    return nuevo && nuevo.tipo === act.recuadro.tipo ? nuevo : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lo que se hace con una ficha recién salida de la IA: rehacer los ejercicios rotos
+ * (`repararFicha`) y, después, que la IA revise la ficha y se rehagan los graves
+ * (`revisarFicha`). Cualquier fallo deja la ficha como estaba: el docente la edita.
+ */
+/** Cuántos ejercicios nuevos se piden, como mucho, para completar el reparto. */
+const MAX_ANADIDOS = 4;
+
+/**
+ * La ficha con los ejercicios que decidió el código para cada bloque: si la IA puso
+ * menos (pasó con 4 de 6), se le piden los que faltan al bloque, y si puso de más, se
+ * quitan los últimos. Solo si salieron los bloques del reparto, y nunca en un escape room.
+ */
+async function ajustarAlReparto(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, plan: BloquePlan[] | undefined, lang: Lang,
+): Promise<FichaContent> {
+  if (!plan?.length || (content.formato ?? 'ficha') !== 'ficha' || content.actividades.length !== plan.length) return content;
+  let actual = content;
+  let anadidos = 0;
+  for (let a = 0; a < plan.length; a++) {
+    const quiere = plan[a].ejercicios;
+    if (actual.actividades[a].ejercicios.length > quiere) {
+      actual = { ...actual, actividades: actual.actividades.map((act, i) => (i === a ? { ...act, ejercicios: act.ejercicios.slice(0, quiere) } : act)) };
+    }
+    while (actual.actividades[a].ejercicios.length < quiere && anadidos < MAX_ANADIDOS) {
+      anadidos++;
+      const nuevo = await addExercise(actual, req, a, {}, lang);
+      if (!nuevo) break;
+      actual = { ...actual, actividades: actual.actividades.map((act, i) => (i === a ? { ...act, ejercicios: [...act.ejercicios, nuevo] } : act)) };
+    }
+  }
+  return actual;
+}
+
+/** El banco de palabras de «etiquetar» solo se da en 1.º a 3.º de Primaria. */
+const bancoPermitido = (perfil: PerfilCurso): boolean => perfil.etapa === 'primaria' && perfil.curso >= 1 && perfil.curso <= 3;
+
+/** Cuántos ejercicios con dibujos del catálogo (contar, etiquetar, clasificar) lleva como mínimo una ficha con hilo de 1.º y 2.º de Primaria. */
+const MIN_EJERCICIOS_CON_DIBUJOS = 2;
+
+/**
+ * La receta de 1.º y 2.º de Primaria con hilo conductor: al menos un «contar» y un «etiquetar»
+ * (o «clasificar»). Si la IA no los puso (una IA floja da solo preguntas abiertas con los
+ * dibujos de adorno), el código monta los que faltan con los dibujos del hilo, sustituyendo
+ * una pregunta abierta o un «completar» de los bloques de nivel 1 y 2, que no lleve dibujos.
+ */
+function completarDibujos(content: FichaContent, perfil: PerfilCurso, lang: Lang): FichaContent {
+  const hilo = hiloPorId(content.hilo);
+  if (!hilo || perfil.banda !== 'ciclo1' || (content.formato ?? 'ficha') !== 'ficha' || content.visual) return content;
+  let actual = content;
+  const todos = () => actual.actividades.flatMap(a => a.ejercicios);
+  const conDibujos = () => todos().filter(x => esTipoConDibujos(x.tipo)).length;
+  for (const tipo of ['contar', 'etiquetar'] as const) {
+    if (conDibujos() >= MIN_EJERCICIOS_CON_DIBUJOS || todos().some(x => x.tipo === tipo)) continue;
+    const nuevo = tipo === 'contar' ? contarDelHilo(hilo, lang, Math.random, perfil.curso <= 1 ? 5 : 6) : etiquetarDelHilo(hilo, lang, { banco: true });
+    let sitio: [number, number] | undefined;
+    actual.actividades.forEach((act, a) => {
+      if (sitio || (act.dificultad ?? 1) > 2) return;
+      const e = act.ejercicios.findIndex(x => ['abierta', 'completar'].includes(x.tipo) && !x.dibujos?.length && !x.figura);
+      if (e >= 0) sitio = [a, e];
+    });
+    if (nuevo && sitio) actual = conEjercicio(actual, sitio[0], sitio[1], nuevo as FichaExercise);
+  }
+  return actual;
+}
+
+/**
+ * La receta de un tema de fracciones o decimales en «Cuaderno»: al menos un ejercicio con pizzas. Si la IA no
+ * puso ninguno (con una IA real a veces las ignora aunque se le pidan), el código monta uno, sustituyendo una
+ * pregunta abierta o un «completar» de los bloques de nivel 1 y 2, mejor uno que ya hablara de fracciones o
+ * de figuras. Con tema de decimales pide también el decimal de cada pizza.
+ */
+function completarFracciones(content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lang: Lang): FichaContent {
+  if (!admiteFraccionesEn(content, req)) return content;
+  if (content.actividades.some(a => a.ejercicios.some(x => x.tipo === 'fracciones' || x.fracciones?.length))) return content;
+  let mejor: { a: number; e: number; puntos: number } | undefined;
+  content.actividades.forEach((act, a) => {
+    if ((act.dificultad ?? 1) > 2) return;
+    act.ejercicios.forEach((x, e) => {
+      if (!['abierta', 'completar'].includes(x.tipo) || x.dibujos?.length || x.figura) return;
+      const puntos = (RE_HABLA_DE_FIGURAS.test(x.enunciado ?? '') ? 2 : 0) + (RE_TEMA_FRACCIONES.test(x.enunciado ?? '') ? 1 : 0);
+      if (!mejor || puntos > mejor.puntos) mejor = { a, e, puntos };
+    });
+  });
+  if (!mejor) return content;
+  return conEjercicio(content, mejor.a, mejor.e, fraccionesParaEjercicio('leer', lang, { decimal: /decimal/i.test(req.tema ?? '') }) as FichaExercise);
+}
+
+async function mejorarFicha(
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lang: Lang, revisar = true, plan?: BloquePlan[],
+): Promise<FichaContent> {
+  let actual = completarFracciones(completarDibujos(
+    await repararFicha(await ajustarAlReparto(content, req, plan, lang), req, lang), perfilDeCurso(req.nivel, req), lang,
+  ), req, lang);
+  if (!revisar || (actual.formato ?? 'ficha') !== 'ficha') return actual;
+  for (const h of await revisarFicha(actual, req, lang)) {
+    const a = h.bloque - 1;
+    const e = h.ejercicio - 1;
+    if (e < 0) {
+      const recuadro = await regenerateRecuadro(actual, req, a, h.motivo, lang);
+      if (recuadro) actual = { ...actual, actividades: actual.actividades.map((act, i) => (i === a ? { ...act, recuadro } : act)) };
+      continue;
+    }
+    const nuevo = await regenerateExercise(actual, req, a, e, { instruccion: h.motivo }, lang);
+    if (!nuevo || problemaDeEjercicio(nuevo, !!actual.hilo)) continue;
+    actual = conEjercicio(actual, a, e, nuevo);
+  }
+  return actual;
 }
 
 /* ── Vía suelta: tema + curso, sin anclar a ninguna SdA ── */
@@ -1006,16 +1988,23 @@ export async function generateFicha(
     const formato = req.formato ?? 'ficha';
     const estilo = effectiveEstilo(req.estilo, formato);
     const visual = !!req.visual && formato !== 'tarjetas';
+    // La escalera de dificultad la decide el código: cuántos bloques y de qué nivel
+    const perfil = perfilDeCurso(req.nivel, req);
+    const plan = formato === 'tarjetas' ? undefined : planDeBloques(req.numEjercicios);
     const userPrompt =
       `Tema: ${req.tema}\n` +
       `Área o asignatura: ${req.area || '(no indicada)'}\n` +
       `Curso o nivel: ${req.nivel || '(no indicado)'}\n` +
       (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
-      `\n${askFor(formato, req.numEjercicios, 'sobre este tema')}\n\n${numberVarietyHint()}`;
+      `\n${askFor(formato, req.numEjercicios, 'sobre este tema', plan)}\n\n${numberVarietyHint(perfil)}`;
 
-    return await callFichaText(
-      systemPrompt(req.niveles, lang, estilo, formato, visual), userPrompt, req.niveles, estilo, formato, callbacks.onError, visual,
+    const hilo = resolverHilo(req, estilo, formato, visual);
+    const fracciones = admiteFracciones({ estilo, formato, visual }, req);
+    const content = await callFichaText(
+      systemPrompt(req.niveles, lang, estilo, formato, visual, hilo, plan?.length ? { plan, perfil } : undefined, fracciones),
+      userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo, lang, plan, fracciones,
     );
+    return content ? await mejorarFicha(content, req, lang, req.revisar !== false, plan) : null;
   } finally {
     callbacks.onEnd?.();
   }
@@ -1025,7 +2014,11 @@ export async function generateFicha(
 
 export async function generateFichaFromSda(
   sda: SdaContent, area: string,
-  opts: { numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice; formato?: FichaFormato },
+  opts: {
+    numEjercicios: number; niveles: boolean; detalles: string; estilo?: FichaThemeChoice; formato?: FichaFormato; hilo?: string;
+    /** El curso de la clase de la SdA, para calibrar el nivel («5º de Primaria»). */
+    nivel?: string; revisar?: boolean;
+  },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
@@ -1033,16 +2026,27 @@ export async function generateFichaFromSda(
     const areaData = sda.areas.find(a => a.area === area) ?? sda.areas[0];
     const formato = opts.formato ?? 'ficha';
     const estilo = effectiveEstilo(opts.estilo, formato);
+    const perfil = perfilDeCurso(opts.nivel, { area: areaData?.area ?? area, tema: sda.titulo });
+    const plan = formato === 'tarjetas' ? undefined : planDeBloques(opts.numEjercicios);
 
     const userPrompt =
       `Situación de aprendizaje: ${sda.titulo}\n` +
       `Área: ${areaData?.area ?? area}\n` +
+      (opts.nivel ? `Curso o nivel: ${opts.nivel}\n` : '') +
       `Saberes básicos de esta área: ${areaData?.saberesBasicos ?? ''}\n` +
       `Criterios de evaluación de esta área: ${areaData?.criteriosEvaluacion ?? ''}\n` +
       (opts.detalles ? `Además, ten en cuenta: ${opts.detalles}\n` : '') +
-      `\n${askFor(formato, opts.numEjercicios, 'que trabajen estos saberes básicos')}\n\n${numberVarietyHint()}`;
+      `\n${askFor(formato, opts.numEjercicios, 'que trabajen estos saberes básicos', plan)}\n\n${numberVarietyHint(perfil)}`;
 
-    return await callFichaText(systemPrompt(opts.niveles, lang, estilo, formato), userPrompt, opts.niveles, estilo, formato, callbacks.onError);
+    const hilo = resolverHilo({ tema: sda.titulo, area: areaData?.area ?? area, hilo: opts.hilo }, estilo, formato, false);
+    const fracciones = admiteFracciones({ estilo, formato }, { tema: sda.titulo, area: areaData?.area ?? area });
+    const content = await callFichaText(
+      systemPrompt(opts.niveles, lang, estilo, formato, false, hilo, plan?.length ? { plan, perfil } : undefined, fracciones),
+      userPrompt, opts.niveles, estilo, formato, callbacks.onError, false, hilo, lang, plan, fracciones,
+    );
+    return content
+      ? await mejorarFicha(content, { tema: sda.titulo, area: areaData?.area ?? area, nivel: opts.nivel ?? '' }, lang, opts.revisar !== false, plan)
+      : null;
   } finally {
     callbacks.onEnd?.();
   }
@@ -1057,7 +2061,15 @@ function exerciseForPrompt(ex: FichaExercise): Partial<FichaExercise> {
   return ex.tipo === 'ordenar' && ex.ordenCorrecto?.length ? { ...rest, elementos: ex.ordenCorrecto, ordenCorrecto: undefined } : rest;
 }
 
-function fichaContextForPrompt(c: FichaContent, req: FichaRequest): string {
+/** Lo que se espera del ejercicio de un bloque, para que el nuevo no baje ni suba de nivel. */
+function nivelDeBloquePrompt(act: FichaActivity, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>): string {
+  const perfil = perfilDeCurso(req.nivel, req);
+  const d = act.dificultad;
+  return (d ? `Nivel de dificultad de este bloque: ${d} de 3 (${NOMBRE_DIFICULTAD[d].toLowerCase()}). Aquí se pide: ${expectativas(perfil)[d]}\n` : '') +
+    avisoDeSubida(perfil);
+}
+
+function fichaContextForPrompt(c: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>): string {
   return (
     `Ficha: ${c.titulo}\n` +
     `Tema: ${req.tema}\n` +
@@ -1068,11 +2080,21 @@ function fichaContextForPrompt(c: FichaContent, req: FichaRequest): string {
 }
 
 /**
+ * ¿Se ofrecen las pizzas por fracciones al rehacer o añadir un ejercicio? Si el tema las admite o si ya
+ * hay alguna en lo que se está tocando; siempre en «Cuaderno», una ficha normal y sin apoyos visuales.
+ */
+function conFraccionesEn(content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area'>, ejercicios: FichaExercise[]): boolean {
+  const base = { estilo: content.estilo as FichaThemeChoice | undefined, formato: content.formato, visual: content.visual };
+  if (content.estilo !== 'cuaderno' || (content.formato ?? 'ficha') !== 'ficha' || content.visual) return false;
+  return admiteFracciones(base, req) || ejercicios.some(e => e.tipo === 'fracciones' || !!e.fracciones?.length);
+}
+
+/**
  * Rehace un único ejercicio siguiendo la indicación del docente («hazlo más
  * fácil», «cámbialo por un crucigrama»…) sin tocar el resto de la ficha.
  */
 export async function regenerateExercise(
-  content: FichaContent, req: FichaRequest, actIdx: number, exIdx: number,
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, actIdx: number, exIdx: number,
   opts: { instruccion: string; tipo?: FichaExerciseType },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaExercise | null> {
@@ -1084,22 +2106,26 @@ export async function regenerateExercise(
     const niveles = !!(ex.apoyo || ex.ampliacion);
     const userPrompt =
       fichaContextForPrompt(content, req) +
-      `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n\n` +
+      `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n` +
+      nivelDeBloquePrompt(act, req) + '\n' +
       `Ejercicio actual (JSON):\n${JSON.stringify(exerciseForPrompt(ex))}\n\n` +
       `Rehaz SOLO este ejercicio. Indicación del docente: ${opts.instruccion || 'haz una versión distinta'}.\n` +
       (opts.tipo ? `El nuevo ejercicio debe ser de tipo "${opts.tipo}".\n` : 'Mantén el mismo tipo salvo que la indicación pida otro.\n') +
-      `Debe seguir encajando en la ficha y en su historia.\n\n${numberVarietyHint()}`;
+      `Debe seguir encajando en la ficha y en su historia, con el mismo nivel de dificultad que el resto de su bloque.\n\n${numberVarietyHint(perfilDeCurso(req.nivel, req))}`;
     const visual = !!content.visual;
-    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual), userPrompt, [], { onError: callbacks.onError }, {
+    const hilo = visual ? undefined : hiloPorId(content.hilo);
+    // Las pizzas por fracciones, si el tema las admite o el ejercicio (o su bloque) ya las lleva
+    const fracciones = conFraccionesEn(content, req, [ex]);
+    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo, undefined, fracciones), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles, visual),
+      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo, fracciones),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang, content.estilo === 'cuaderno'));
   } finally {
     callbacks.onEnd?.();
   }
@@ -1113,7 +2139,7 @@ export async function regenerateExercise(
 export async function rewriteStory(
   content: FichaContent, req: FichaRequest, estilo: FichaThemeId, lang: Lang, callbacks: Callbacks = {},
 ): Promise<Pick<FichaContent, 'historia' | 'actividades'> | null> {
-  if (estilo === 'clasico') return null;
+  if (!conHistoria(estilo)) return null;
   callbacks.onStart?.();
   try {
     const n = content.actividades.length;
@@ -1204,7 +2230,10 @@ export async function adaptFicha(
   try {
     const formato = content.formato ?? 'ficha';
     const estilo: FichaThemeId = content.estilo ?? 'clasico';
-    const historia = !!content.historia && estilo !== 'clasico' && formato !== 'tarjetas';
+    const historia = !!content.historia && conHistoria(estilo) && formato !== 'tarjetas';
+    // «Cuaderno» sigue siendo «Cuaderno» en sus versiones adaptadas; «Clásica», sin estilo propio
+    const cuaderno = estilo === 'cuaderno' && formato === 'ficha';
+    const estiloPrompt: FichaThemeChoice = historia || cuaderno ? estilo : 'clasico';
     const original = {
       ...content,
       actividades: content.actividades.map(a => ({ ...a, ejercicios: a.ejercicios.map(exerciseForPrompt) })),
@@ -1220,16 +2249,23 @@ export async function adaptFicha(
       `${VARIANTE_PROMPT[variante]}\n` +
       (historia ? 'Mantén la misma historia y el mismo personaje, adaptando sus textos al mismo criterio.\n' : '') +
       (formato === 'escape' ? 'Recalcula el código de cada candado para que salga de las nuevas respuestas.\n' : '');
-    const raw = await callGemini(systemPrompt(false, lang, historia ? estilo : 'clasico', formato, visual), userPrompt, [], { onError: callbacks.onError }, {
+    // Con hilo, la versión adaptada lo conserva (salvo la visual, que lleva pictogramas)
+    const hilo = cuaderno && !visual ? hiloPorId(content.hilo) : undefined;
+    // Una ficha con pizzas por fracciones las conserva en sus versiones adaptadas (menos la visual, que lleva pictogramas)
+    const fracciones = cuaderno && !visual && conFraccionesEn(content, req, content.actividades.flatMap(a => a.ejercicios));
+    const raw = await callGemini(systemPrompt(false, lang, estiloPrompt, formato, visual, hilo, undefined, fracciones), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: visual ? 24576 : 16384,
-      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual }),
+      responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual, cuaderno, dibujos: !!hilo, fracciones }),
       thinkingLevel: 'medium',
       temperature: 0.9,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaContent>(raw);
     if (!parsed) return null;
-    const out = cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, historia ? estilo : 'clasico', formato, visual);
+    // Misma ficha, mismos bloques: cada uno conserva su peldaño de la escalera
+    const mismos = (parsed.actividades ?? []).length === content.actividades.length;
+    const actividades = (parsed.actividades ?? []).map((a, i) => ({ ...a, dificultad: mismos ? content.actividades[i].dificultad : a.dificultad }));
+    const out = cleanFichaContent({ ...parsed, actividades }, estiloPrompt, formato, visual, hilo, lang);
     return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();
@@ -1243,7 +2279,7 @@ export async function adaptFicha(
  * pide un tipo, la IA elige el que mejor complete el bloque.
  */
 export async function addExercise(
-  content: FichaContent, req: FichaRequest, actIdx: number,
+  content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, actIdx: number,
   opts: { tipo?: FichaExerciseType; instruccion?: string },
   lang: Lang, callbacks: Callbacks = {},
 ): Promise<FichaExercise | null> {
@@ -1256,24 +2292,27 @@ export async function addExercise(
     const userPrompt =
       fichaContextForPrompt(content, req) +
       `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n` +
+      nivelDeBloquePrompt(act, req) +
       `Ejercicios que ya tiene el bloque (no los repitas):\n` +
       act.ejercicios.map((e, i) => `${i + 1}. [${e.tipo}] ${e.enunciado}`).join('\n') + '\n\n' +
       `Crea UN ejercicio nuevo para este bloque, distinto de los anteriores y con el mismo nivel.\n` +
       (opts.tipo ? `Debe ser de tipo "${opts.tipo}".\n` : 'Elige el tipo que mejor complete el bloque, preferiblemente uno que el bloque aún no tenga.\n') +
       (opts.instruccion ? `Indicación del docente: ${opts.instruccion}\n` : '') +
       (formato === 'escape' ? 'Es un escape room: el ejercicio debe tener una respuesta corta y única.\n' : '') +
-      `\n${numberVarietyHint()}`;
+      `\n${numberVarietyHint(perfilDeCurso(req.nivel, req))}`;
     const visual = !!content.visual;
-    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual), userPrompt, [], { onError: callbacks.onError }, {
+    const hilo = visual ? undefined : hiloPorId(content.hilo);
+    const fracciones = conFraccionesEn(content, req, act.ejercicios);
+    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo, undefined, fracciones), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles, visual),
+      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo, fracciones),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang, content.estilo === 'cuaderno'));
   } finally {
     callbacks.onEnd?.();
   }

@@ -678,7 +678,7 @@ export function LearningSituations({
     if (!content) return;
     const result = await generateFichaFromSda(
       content, fichaArea || content.areas[0]?.area || '',
-      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, formato: fichaFormato },
+      { numEjercicios: fichaNumEjercicios, niveles: fichaNiveles, detalles: fichaDetails, formato: fichaFormato, nivel },
       lang,
       { onStart: () => setFichaBusy(true), onEnd: () => setFichaBusy(false), onError: m => toast(m) },
     );
@@ -1503,7 +1503,7 @@ export function LearningSituations({
           {t('El reto, lo que se va a conseguir y el camino por fases, en una hoja A4 para colgar. Elige el aspecto:')}
         </p>
         <div className="chip-row" role="radiogroup" aria-label={t('Tema del cartel')} style={{ marginBottom: 12 }}>
-          {FICHA_THEMES.filter(th => th.id !== 'clasico').map(th => (
+          {FICHA_THEMES.filter(th => th.historia).map(th => (
             <button
               key={th.id} type="button" role="radio" aria-checked={posterTheme === th.id}
               className={`chip sm${posterTheme === th.id ? ' on' : ''}`} onClick={() => setPosterTheme(th.id)}

@@ -14,10 +14,15 @@ export const TIPO_LABEL: Record<FichaExerciseType, string> = {
   ordenar: 'Ordenar',
   crucigrama: 'Crucigrama',
   comic: 'Cómic',
+  calculos: 'Lista de cálculos',
+  contar: 'Contar dibujos',
+  etiquetar: 'Escribir el nombre de los dibujos',
+  clasificar: 'Clasificar dibujos',
+  fracciones: 'Fracciones con pizzas',
 };
 
 export const TIPO_EMOJI: Record<FichaExerciseType, string> = {
   abierta: '✍️', completar: '🔤', opcion_multiple: '🔘', problema: '🧮', tabla_rellenar: '📊',
   relacionar: '🔗', colorear: '🖍️', sopa_letras: '🔎', verdadero_falso: '✅', ordenar: '🔢',
-  crucigrama: '🧩', comic: '💬',
+  crucigrama: '🧩', comic: '💬', calculos: '➕', contar: '🔢', etiquetar: '🏷️', clasificar: '🗂️', fracciones: '🍕',
 };

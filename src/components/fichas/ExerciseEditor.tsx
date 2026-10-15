@@ -5,9 +5,11 @@
  */
 import { useState } from 'react';
 import { ArrowUp, ArrowDown, Trash2, Wand2, ChevronDown, ChevronRight } from 'lucide-react';
-import { prepareExercise, shuffleApart, TIPOS, type FichaExercise, type FichaExerciseType } from '../../services/resources';
+import { prepareExercise, shuffleApart, tiposDisponibles, type FichaExercise, type FichaExerciseType } from '../../services/resources';
 import { TIPO_LABEL, TIPO_EMOJI } from './tipos';
 import { EjercicioVisualEditor } from './VisualEditor';
+import { DibujosEditor } from './DibujosEditor';
+import { FraccionesEditor } from './FraccionesEditor';
 
 const QUICK = ['Más fácil', 'Más difícil', 'Otro distinto', 'Más visual y motivador'];
 
@@ -16,7 +18,7 @@ type T = (k: string, v?: Record<string, string | number>) => string;
 const lines = (s: string) => s.split('\n').map(x => x.trim()).filter(Boolean);
 
 /** Lista de una línea por elemento; se aplica al salir del campo para no rehacer rejillas a cada tecla. */
-function LinesField({ label, value, onCommit, hint }: { label: string; value: string[]; onCommit: (v: string[]) => void; hint?: string }) {
+export function LinesField({ label, value, onCommit, hint }: { label: string; value: string[]; onCommit: (v: string[]) => void; hint?: string }) {
   const joined = value.join('\n');
   const [text, setText] = useState(joined);
   const [base, setBase] = useState(joined);
@@ -44,6 +46,10 @@ interface Props {
   aiDisabled: boolean;
   /** Ficha con apoyos visuales: la consigna dibujada y los dibujos del ejercicio. */
   visual?: boolean;
+  /** Ficha con hilo conductor: los dibujos del catálogo que lleva el ejercicio. */
+  hilo?: string;
+  /** Diseño «Cuaderno» sin apoyos visuales: el ejercicio puede llevar pizzas y tartas dibujadas por la aplicación. */
+  fracciones?: boolean;
   t: T;
   onSelect: () => void;
   onChange: (ex: FichaExercise) => void;
@@ -52,7 +58,7 @@ interface Props {
   onRegenerate: (instruccion: string, tipo?: FichaExerciseType) => void;
 }
 
-export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisabled, visual, t, onSelect, onChange, onMove, onDelete, onRegenerate }: Props) {
+export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisabled, visual, hilo, fracciones, t, onSelect, onChange, onMove, onDelete, onRegenerate }: Props) {
   const [redo, setRedo] = useState(false);
   const [instr, setInstr] = useState('');
   const [tipo, setTipo] = useState<FichaExerciseType | ''>('');
@@ -91,7 +97,7 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
             />
             <select className="finput" value={tipo} onChange={e => setTipo(e.target.value as FichaExerciseType | '')} aria-label={t('Tipo de ejercicio')}>
               <option value="">{t('Mismo tipo')}</option>
-              {TIPOS.map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+              {tiposDisponibles({ dibujos: !!hilo && !visual, fracciones: !!fracciones }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
             </select>
             <button type="button" className="btn-accent" disabled={!instr.trim() && !tipo} onClick={() => run(instr.trim())}>
               <Wand2 size={14} />{t('Rehacer')}
@@ -106,12 +112,27 @@ export function ExerciseEditor({ ex, n, id, selected, first, last, busy, aiDisab
         onChange={e => set({ enunciado: e.target.value })}
       />
       {visual && <EjercicioVisualEditor ex={ex} onChange={set} t={t} />}
+      {!visual && hilo && ex.tipo !== 'fracciones' && <DibujosEditor ex={ex} hiloId={hilo} onChange={set} t={t} />}
+      {fracciones && ex.tipo === 'fracciones' && <FraccionesEditor ex={ex} uid={id} dedicado onChange={set} t={t} />}
+      {fracciones && ['problema', 'abierta', 'completar', 'opcion_multiple'].includes(ex.tipo) && <FraccionesEditor ex={ex} uid={id} dedicado={false} onChange={set} t={t} />}
 
       {ex.tipo === 'opcion_multiple' && (
         <LinesField label={t('Opciones')} value={ex.opciones ?? []} onCommit={v => set({ opciones: v })} />
       )}
       {ex.tipo === 'verdadero_falso' && (
         <LinesField label={t('Afirmaciones')} value={ex.afirmaciones ?? []} onCommit={v => set({ afirmaciones: v })} />
+      )}
+      {ex.tipo === 'calculos' && (
+        <>
+          <LinesField label={t('Líneas')} hint={t('lo que va antes del «=»; el hueco lo pone la ficha')} value={ex.lineas ?? []} onCommit={v => set({ lineas: v })} />
+          <label className="fe-field">
+            <span className="fe-lbl">{t('La respuesta se escribe en')}</span>
+            <select className="finput" value={ex.respuesta === 'caja' ? 'caja' : 'linea'} onChange={e => set({ respuesta: e.target.value as 'linea' | 'caja' })}>
+              <option value="linea">{t('Una línea')}</option>
+              <option value="caja">{t('Una caja')}</option>
+            </select>
+          </label>
+        </>
       )}
       {ex.tipo === 'ordenar' && (
         <LinesField

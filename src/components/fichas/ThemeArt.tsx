@@ -1,4 +1,5 @@
 import type { FichaThemeId } from '../../lib/fichaThemes';
+import cuaderno from '../../assets/temas/cuaderno.webp';
 import clasico from '../../assets/temas/clasico.webp';
 import espacio from '../../assets/temas/espacio.webp';
 import selva from '../../assets/temas/selva.webp';
@@ -16,7 +17,7 @@ import cocina from '../../assets/temas/cocina.webp';
  * Lo impreso sigue con el emoji del tema: no pesa y sale en cualquier impresora.
  */
 const THEME_ART: Record<FichaThemeId, string> = {
-  clasico, espacio, selva, detectives, oceano, superheroes, deportes, dinosaurios, piratas, magia, cocina,
+  cuaderno, clasico, espacio, selva, detectives, oceano, superheroes, deportes, dinosaurios, piratas, magia, cocina,
 };
 
 export function ThemeArt({ id, className }: { id: FichaThemeId; className?: string }) {

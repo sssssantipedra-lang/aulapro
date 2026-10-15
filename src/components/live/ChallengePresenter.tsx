@@ -24,6 +24,8 @@ import { ThemeArt } from '../fichas/ThemeArt';
 import { buildFigureSvg } from '../../lib/geometryFigures';
 import { urlPicto } from '../../lib/pictos';
 import { dibujosEnOrden } from '../../lib/pictosFicha';
+import { urlIlustracion, nombreIlustracion } from '../../lib/ilustraciones';
+import { bancoClasificar } from '../../lib/dibujosEjercicio';
 import { useI18n } from '../../i18n';
 
 const TIME_OPTIONS = [0, 10, 15, 20, 30, 45];
@@ -48,6 +50,39 @@ function beep(times = 3) {
   } catch { /* sin audio: basta el aviso en pantalla */ }
 }
 
+/** Un dibujo del catálogo (hilo conductor), tal como va dentro de la aplicación. */
+const Ilus = ({ id, className }: { id: string; className?: string }) =>
+  <img className={className} src={`${import.meta.env.BASE_URL}${urlIlustracion(id)}`} alt="" />;
+
+/** Los dibujos del catálogo de un ejercicio, en grande: lo que hay que contar, rotular o clasificar. */
+function ProjDibujos({ ex }: { ex: FichaExercise }) {
+  const { lang } = useI18n();
+  const dibujos = (ex.dibujos ?? []).filter(d => d.ilustracion);
+  if (ex.tipo === 'clasificar') {
+    return (
+      <>
+        <div className="cp-ilus">{bancoClasificar(ex.categorias).map((d, i) => (
+          <span key={i} className="cp-ilus-c"><b>{i + 1}</b><Ilus id={d.id} /><small>{nombreIlustracion(d.id, lang)}</small></span>
+        ))}</div>
+        <div className="cp-items">{(ex.categorias ?? []).map((c, i) => <span key={i} className="cp-item"><b>{c.nombre}</b></span>)}</div>
+      </>
+    );
+  }
+  if (!dibujos.length || ex.tipo === 'relacionar' || ex.tipo === 'tabla_rellenar') return null;
+  if (ex.tipo === 'contar') {
+    return (
+      <div className="cp-contar">{dibujos.map((d, i) => (
+        <div key={i} className="cp-ilus">{Array.from({ length: Math.max(1, Math.min(10, d.cantidad ?? 1)) }, (_, k) => <Ilus key={k} id={d.ilustracion} />)}</div>
+      ))}</div>
+    );
+  }
+  return (
+    <div className="cp-ilus">{dibujos.flatMap((d, i) => Array.from({ length: ex.tipo === 'etiquetar' ? 1 : Math.max(1, Math.min(10, d.cantidad ?? 1)) }, (_, k) => (
+      <span key={`${i}-${k}`} className="cp-ilus-c">{ex.tipo === 'etiquetar' && <b>{i + 1}</b>}<Ilus id={d.ilustracion} /></span>
+    )))}</div>
+  );
+}
+
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 /** Un ejercicio en grande, para leerlo desde el fondo del aula. */
@@ -66,6 +101,7 @@ function ProjExercise({ ex, n, showSol, color, t }: {
       {!!ex.imagenes?.length && (
         <div className="cp-dibujos">{dibujosEnOrden(ex.imagenes).map((id, i) => <img key={i} src={urlPicto(id)} alt="" />)}</div>
       )}
+      <ProjDibujos ex={ex} />
       {ex.figura && (
         <div className="cp-fig" dangerouslySetInnerHTML={{ __html: buildFigureSvg(ex.figura.forma, ex.figura.medidas, color) }} />
       )}
@@ -75,12 +111,17 @@ function ProjExercise({ ex, n, showSol, color, t }: {
       {!!ex.afirmaciones?.length && (
         <div className="cp-list">{ex.afirmaciones.map((a, i) => <div key={i} className="cp-row">{a}<span className="cp-vf">{t('V')} / {t('F')}</span></div>)}</div>
       )}
+      {ex.tipo === 'calculos' && !!ex.lineas?.length && (
+        <div className="cp-list">{ex.lineas.map((l, i) => <div key={i} className="cp-row">{i + 1}. {l.replace(/[\s=_…]+$/u, '')} = …</div>)}</div>
+      )}
       {!!ex.elementos?.length && (
         <div className="cp-items">{ex.elementos.map((e, i) => <span key={i} className="cp-item">{e}</span>)}</div>
       )}
       {ex.tipo === 'relacionar' && !!ex.izquierda?.length && (
         <div className="cp-two">
-          <div>{ex.izquierda.map((x, i) => <div key={i} className="cp-row">{i + 1}. {x}</div>)}</div>
+          <div>{ex.izquierda.map((x, i) => (
+            <div key={i} className="cp-row">{ex.dibujos?.[i]?.ilustracion ? <Ilus id={ex.dibujos[i].ilustracion} className="cp-rel-img" /> : null}{i + 1}. {x}</div>
+          ))}</div>
           <div>{(ex.derecha ?? []).map((x, i) => <div key={i} className="cp-row">{letra(i).toUpperCase()}. {x}</div>)}</div>
         </div>
       )}
@@ -123,7 +164,7 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   const { t } = useI18n();
   const c = ficha.content;
   const theme = fichaTheme(c.estilo);
-  const story = theme.id !== 'clasico' ? c.historia : undefined;
+  const story = theme.historia ? c.historia : undefined;
   const escape = c.formato === 'escape';
   const cards = c.formato === 'tarjetas';
   const acts = useMemo(() => (cards ? [] : c.actividades ?? []), [cards, c.actividades]);
