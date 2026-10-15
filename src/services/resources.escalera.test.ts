@@ -19,7 +19,7 @@ import {
 import type { SdaContent } from './learningSituations';
 
 const req = (over: Partial<FichaRequest> = {}): FichaRequest => ({
-  tema: 'Los decimales', area: 'Matemáticas', nivel: '6º Primaria', numEjercicios: 6, niveles: false, contextoClase: '', estilo: 'cuaderno',
+  tema: 'La multiplicación', area: 'Matemáticas', nivel: '6º Primaria', numEjercicios: 6, niveles: false, contextoClase: '', estilo: 'cuaderno',
   revisar: false, ...over,
 });
 

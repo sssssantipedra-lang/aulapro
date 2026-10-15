@@ -38,8 +38,11 @@ import { pictoComoDato } from './exportAgenda';
 import { dibujosEnOrden } from '../lib/pictosFicha';
 import { estrellas, NOMBRE_DIFICULTAD } from '../lib/escalera';
 import {
+  fraccionSvgDato, fraccionTexto, letraFraccion, ordenUnir, tieneDecimalExacto, valorUnir, type CogidosFraccion, type FraccionDibujo,
+} from '../lib/fraccionesDibujo';
+import {
   CUADERNO_STYLE, autoevaluacionHtml, cabeceraHtml, calculosHtml, clasificarHtml, completarHtml, contarHtml, datosHtml, dibujosDeLaCabecera, dibujosHtml, esRespuestaCorta,
-  estrellasSvg, etiquetarHtml, lineasDeRespuesta, lineasHtml, nivelHtml, opcionesHtml, operacionHtml, recuadroHtml, recuadroLineas, respuestaHtml, seccionHtml, serieDe, serieHtml,
+  estrellasSvg, etiquetarHtml, fraccionesAmbienteHtml, fraccionesHtml, lineasDeRespuesta, lineasHtml, nivelHtml, opcionesHtml, operacionHtml, recuadroHtml, recuadroLineas, respuestaHtml, seccionHtml, serieDe, serieHtml,
   type Ilus,
 } from './fichaCuaderno';
 import { nombreIlustracion, urlIlustracion } from '../lib/ilustraciones';
@@ -188,6 +191,7 @@ type Tr = (k: string, vars?: Record<string, string | number>) => string;
 
 function exerciseBodyHtml(
   ex: FichaExercise, color: { bg: string; light: string }, t: Tr, pic?: Pic, cuaderno = false, ilus?: Ilus, lang: Lang = 'es',
+  nuevoId: () => string = () => 'fr0',
 ): string {
   const letra = (i: number) => String.fromCharCode(97 + i);
   // «Cuaderno» con dibujos del catálogo (hilo conductor): cada dibujo lleva su espacio para contestar. Sin ellos
@@ -197,13 +201,17 @@ function exerciseBodyHtml(
   const dib = conDibujos ? dibujosHtml(ex, ilus!) : { lado: '', bandeja: '' };
   // Estos tipos usan sus dibujos de otra manera (uno por grupo, por elemento…): ni figura al lado ni bandeja
   const dibujosPropios = tipo === 'relacionar' || tipo === 'tabla_rellenar' || esTipoConDibujos(tipo);
+  // Pizzas y tartas dibujadas por el código: el ejercicio «fracciones» las lleva con su espacio; en otro tipo, la figura del enunciado
+  const frAmb = tipo !== 'fracciones' && ex.fracciones?.length ? fraccionesAmbienteHtml(ex, nuevoId) : { lado: '', bandeja: '' };
   const comp = cuaderno && tipo === 'completar' ? completarHtml(ex.enunciado) : null;
   const enunciado = (pic && ex.consigna ? pic(ex.consigna, 'vis-consigna') : '') + `<div class="ficha-enunciado">${comp ? comp.html : esc(ex.enunciado)}</div>`;
   const figuraSvg = ex.figura ? buildFigureSvg(ex.figura.forma, ex.figura.medidas, '#' + color.bg) : '';
   // La figura geométrica de un problema, enmarcada junto al enunciado como un dibujo suelto, si el tipo lo admite
   const figuraAlLado = cuaderno && !!figuraSvg && !dib.lado && ['problema', 'abierta', 'completar', 'opcion_multiple'].includes(tipo);
-  const lado = dibujosPropios ? '' : figuraAlLado ? `<div class="cq-fig svg">${figuraSvg}</div>` : dib.lado;
-  let body = enunciado + (dibujosPropios ? '' : dib.bandeja);
+  const lado = dibujosPropios ? '' : frAmb.lado ? frAmb.lado : figuraAlLado ? `<div class="cq-fig svg">${figuraSvg}</div>` : dib.lado;
+  let body = enunciado + (dibujosPropios ? '' : dib.bandeja) + frAmb.bandeja;
+  // Fuera de «Cuaderno» no hay columna al lado del enunciado: la figura suelta va debajo
+  if (!cuaderno && frAmb.lado) body += frAmb.lado;
 
   // Los dibujos del contenido, justo debajo del enunciado: lo que hay que contar o reconocer
   const dibujos = pic ? dibujosEnOrden(ex.imagenes) : [];
@@ -214,7 +222,9 @@ function exerciseBodyHtml(
   // Independiente del tipo: cualquier ejercicio puede llevar un diagrama, aunque en la práctica solo lo pidan los "problema".
   if (figuraSvg && !figuraAlLado) body += `<div class="ficha-figura">${figuraSvg}</div>`;
 
-  if (conDibujos && tipo === 'contar') {
+  if (tipo === 'fracciones' && ex.fracciones?.length) {
+    body += fraccionesHtml(ex, t, lang, nuevoId);
+  } else if (conDibujos && tipo === 'contar') {
     body += contarHtml(ex, ilus!, t);
   } else if (conDibujos && tipo === 'etiquetar') {
     body += etiquetarHtml(ex, ilus!, lang);
@@ -365,6 +375,10 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     ? (id, cls) => (id && opts.ilustraciones?.[id] ? `<img class="${cls}" src="${opts.ilustraciones[id]}" alt="">` : '')
     : undefined;
 
+  // Los ids de dentro de cada pizza (el rayado) no pueden repetirse en el documento
+  let nFraccion = 0;
+  const nuevoId = () => `fr${++nFraccion}`;
+
   const actividadesHtml = actividades.map((act, actIdx) => {
     const color = theme.bloques[actIdx % theme.bloques.length];
     const emoji = act.emoji || theme.iconos[actIdx % theme.iconos.length];
@@ -384,7 +398,7 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
       const id = `${actIdx}-${i}`;
       // En «Cuaderno», un verdadero o falso largo puede partirse entre dos páginas por una fila
       const clases = [opts.selected === id ? 'is-selected' : '', cuaderno && ex.tipo === 'verdadero_falso' ? 'largo' : ''].filter(Boolean).join(' ');
-      return `<li${mark(`data-ex="${id}"`)}${clases ? ` class="${clases}"` : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus, lang)}</li>`;
+      return `<li${mark(`data-ex="${id}"`)}${clases ? ` class="${clases}"` : ''}>${exerciseBodyHtml(ex, color, t, pic, cuaderno, ilus, lang, nuevoId)}</li>`;
     }).join('');
     // «Cuaderno»: un solo ejercicio no lleva número; con listas de cálculos, letras (A., B.), para no confundirlas con las líneas 1., 2.
     const numeracion = !cuaderno ? '' : act.ejercicios.length === 1 ? ' sin' : act.ejercicios.some(e => e.tipo === 'calculos') ? ' letras' : '';
@@ -991,10 +1005,101 @@ function clasificarDocx(children: (Paragraph | Table)[], ex: FichaExercise, ilus
   children.push(spacer(200));
 }
 
+/* ── Fracciones (pizzas y tartas) en Word ── */
+
+const claveFraccion = (f: FraccionDibujo, cogidos: CogidosFraccion | undefined, vacia: boolean) =>
+  `${f.objeto ?? 'pizza'}-${f.partes}-${f.tomadas}-${cogidos ?? 'ambos'}-${vacia ? 'v' : 'n'}`;
+
+/** Las pizzas y tartas de la ficha en PNG, por su clave: Word no admite SVG. Sin DOM (o si falla), la ficha sale sin ellas. */
+async function fraccionesPng(c: FichaContent): Promise<Imgs> {
+  const pendientes = new Map<string, () => Promise<Uint8Array | null>>();
+  for (const act of getActividades(c)) {
+    for (const ex of act.ejercicios) {
+      const vacia = ex.tipo === 'fracciones' && ex.modo === 'colorear';
+      for (const f of ex.fracciones ?? []) {
+        const clave = claveFraccion(f, ex.cogidos, vacia);
+        if (!pendientes.has(clave)) pendientes.set(clave, () => svgDatoAPng(fraccionSvgDato(f, { cogidos: ex.cogidos, vacia, uid: 'w' }), 240));
+      }
+    }
+  }
+  const out: Imgs = {};
+  await Promise.all([...pendientes].map(async ([clave, hacer]) => {
+    const png = await hacer();
+    if (png) out[clave] = png;
+  }));
+  return out;
+}
+
+const fraccionRun = (fp: Imgs | undefined, f: FraccionDibujo, ex: FichaExercise, vacia: boolean, px: number) =>
+  pictoRun(fp, claveFraccion(f, ex.cogidos, vacia), px);
+
+/** «Fracciones» en Word: las pizzas con su letra y su espacio (la fracción con su raya, el decimal), para colorear, o para unir en dos columnas. */
+function fraccionesDocx(children: (Paragraph | Table)[], ex: FichaExercise, fp: Imgs | undefined, color: string, lang: Lang) {
+  const fr = ex.fracciones ?? [];
+  if (!fr.length) return;
+  const modo = ex.modo ?? 'leer';
+  const decimal = !!ex.decimal && fr.every(tieneDecimalExacto);
+  const letra = (i: number) => new TextRun({ text: letraFraccion(i), bold: true, color });
+  if (modo === 'unir' && fr.length >= 2) {
+    const orden = ordenUnir(fr);
+    children.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: CELL_BORDERS,
+      rows: fr.map((f, i) => new TableRow({
+        cantSplit: true,
+        children: [
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, margins: { top: 80, bottom: 80, left: 120, right: 120 }, children: [new Paragraph({
+            children: [letra(i), new TextRun({ text: '   ' }), ...(fraccionRun(fp, f, ex, false, 70) ? [fraccionRun(fp, f, ex, false, 70)!] : [])],
+          })] }),
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, verticalAlign: 'center', children: [new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: `${i + 1}.  `, bold: true, color }), new TextRun({ text: valorUnir(fr[orden[i]], decimal, lang), size: 26 })],
+          })] }),
+        ],
+      })),
+    }));
+    children.push(spacer(200));
+    return;
+  }
+  const filas = Math.min(fr.length, 4);
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: CELL_BORDERS,
+    rows: [new TableRow({
+      cantSplit: true,
+      children: fr.slice(0, filas).map((f, i) => new TableCell({
+        margins: { top: 80, bottom: 80, left: 100, right: 100 },
+        children: [
+          new Paragraph({ alignment: AlignmentType.CENTER, children: [letra(i)] }),
+          new Paragraph({ alignment: AlignmentType.CENTER, children: fraccionRun(fp, f, ex, modo === 'colorear', 96) ? [fraccionRun(fp, f, ex, modo === 'colorear', 96)!] : [] }),
+          ...(modo === 'colorear'
+            ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: fraccionTexto(f), bold: true, color, size: 30 })] })]
+            : [
+              // La fracción para escribir: dos huecos con la raya en medio
+              new Paragraph({ alignment: AlignmentType.CENTER, text: '          ', spacing: { before: 120 }, border: { bottom: { style: 'single', size: 8, color: '1E293B', space: 1 } } }),
+              new Paragraph({ alignment: AlignmentType.CENTER, text: '          ' }),
+              ...(decimal ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '= ____________', color: '64748B' })] })] : []),
+            ]),
+        ],
+      })),
+    })],
+  }));
+  children.push(spacer(200));
+}
+
+/** Las pizzas de las que habla el enunciado de otro tipo de ejercicio, en una línea debajo de él. */
+function fraccionesAmbienteDocx(children: (Paragraph | Table)[], ex: FichaExercise, fp: Imgs | undefined) {
+  const runs = (ex.fracciones ?? []).flatMap((f, k) => {
+    const r = fraccionRun(fp, f, ex, false, 84);
+    return r ? (k ? [new TextRun({ text: '      ' }), r] : [r]) : [];
+  });
+  if (runs.length) children.push(new Paragraph({ children: runs, spacing: { after: 100 } }));
+}
+
 /** Cómo se rotula un ejercicio: «1. », «A. » o nada (un solo ejercicio en el bloque del diseño «Cuaderno»). */
 type Marcador = string;
 
-async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false, ilus?: Imgs, lang: Lang = 'es') {
+async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExercise, i: number, colorHexNoHash: string, t: Tr, imgs?: Imgs, marcador?: Marcador, cuaderno = false, ilus?: Imgs, lang: Lang = 'es', fp?: Imgs) {
   const letra = (n: number) => String.fromCharCode(97 + n);
   const consigna = pictoRun(imgs, ex.consigna, 26);
 
@@ -1033,6 +1138,9 @@ async function pushExerciseDocx(children: (Paragraph | Table)[], ex: FichaExerci
   if (figureImage) {
     children.push(new Paragraph({ children: [figureImage], spacing: { after: 100 } }));
   }
+
+  if (ex.tipo === 'fracciones' && ex.fracciones?.length) { fraccionesDocx(children, ex, fp, colorHexNoHash, lang); return; }
+  if (ex.fracciones?.length) fraccionesAmbienteDocx(children, ex, fp);
 
   if (conDibujos && tipo === 'contar') { contarDocx(children, ex, ilus!, t); return; }
   if (conDibujos && tipo === 'etiquetar') { etiquetarDocx(children, ex, ilus!, colorHexNoHash, lang); return; }
@@ -1391,6 +1499,8 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const imgs = visual ? await pictosPng(c) : undefined;
   // Con hilo conductor: los dibujos del catálogo (cabecera, bloques y ejercicios)
   const ilus = c.hilo && !visual ? await ilustracionesPng(c) : undefined;
+  // Pizzas y tartas por fracciones: dibujadas por el código, a PNG
+  const fp = cuaderno && !visual ? await fraccionesPng(c) : undefined;
   const motif = classic
     ? MOTIF_COLORS[pickMotifKey(f.request.tema, f.request.area)]
     : { bg: theme.color, accent: 'FFFFFF' };
@@ -1578,7 +1688,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
     const marcador = (i: number): Marcador | undefined => !cuaderno ? undefined
       : act.ejercicios.length === 1 ? ''
       : act.ejercicios.some(e => e.tipo === 'calculos') ? `${String.fromCharCode(65 + i)}. ` : undefined;
-    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang);
+    for (const [i, ex] of act.ejercicios.entries()) await pushExerciseDocx(children, ex, i, color.bg, t, imgs, marcador(i), cuaderno, ilus, lang, fp);
     if (act.recuadro) pushRecuadroDocx(children, act.recuadro, t);
     if (visual && act.recuerda?.length) pushRecuerdaDocx(children, act, imgs, t);
     if (escape && act.candado) {

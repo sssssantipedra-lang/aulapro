@@ -14,12 +14,11 @@ import {
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, conHilo, TIPOS,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, conHilo, tiposDisponibles,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
   type FichaFormato, type FichaVariante,
 } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
-import { esTipoConDibujos } from '../lib/dibujosEjercicio';
 import { DIFICULTADES, esDificultad, estrellas, NOMBRE_DIFICULTAD, type Dificultad } from '../lib/escalera';
 import { FICHA_THEMES, fichaTheme, conHistoria, type FichaThemeId } from '../lib/fichaThemes';
 import { hasApiKey } from '../services/gemini';
@@ -593,7 +592,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                   <div className="fe-act-body">
                     {act.ejercicios.map((ex, i) => (
                       <ExerciseEditor
-                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual} hilo={content.hilo}
+                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual} hilo={content.hilo} fracciones={content.estilo === 'cuaderno' && !content.visual}
                         selected={selected === `${a}-${i}`} first={i === 0} last={i === act.ejercicios.length - 1}
                         busy={busyEx === `${a}-${i}`} aiDisabled={sinClave || (busyEx !== null && busyEx !== `${a}-${i}`)}
                         onSelect={() => setSelected(`${a}-${i}`)}
@@ -610,7 +609,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                         onChange={e => setAddTipo(m => ({ ...m, [a]: e.target.value as FichaExerciseType | '' }))}
                       >
                         <option value="">{t('Que elija la IA')}</option>
-                        {TIPOS.filter(x => (content.hilo && !content.visual) || !esTipoConDibujos(x)).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+                        {tiposDisponibles({ dibujos: !!content.hilo && !content.visual, fracciones: content.estilo === 'cuaderno' && !content.visual }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
                       </select>
                       <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)}>
                         {adding === a ? <span className="spin" /> : <Plus size={13} />}{t('Añadir ejercicio con IA')}

@@ -21,6 +21,9 @@ import { elegirIlustraciones, ilustracionPorId, nombreIlustracion } from '../lib
 import { DIBUJOS_CABECERA, hiloPorId } from '../lib/hilos';
 import { bancoClasificar } from '../lib/dibujosEjercicio';
 import { NOMBRE_DIFICULTAD, type Dificultad } from '../lib/escalera';
+import {
+  fraccionSvg, fraccionTexto, letraFraccion, ordenUnir, tieneDecimalExacto, valorUnir, type FraccionDibujo,
+} from '../lib/fraccionesDibujo';
 import type { Lang } from '../i18n';
 
 type Tr = (k: string, vars?: Record<string, string | number>) => string;
@@ -301,6 +304,58 @@ export function nivelHtml(d: Dificultad, color: { bg: string }, t: Tr): string {
 export function seccionHtml(n: number, titulo: string, color: { bg: string; light: string }, label: string, marca = '', nivel = ''): string {
   return `<div class="cq-sec"${marca} style="--sc:#${color.bg};--sc2:${aclarar(color.bg)}">` +
     `<span class="cq-num">${n}</span><h2>${esc(titulo || label)}</h2>${nivel}</div>`;
+}
+
+/* ── Fracciones: pizzas y tartas dibujadas por el código, cada una con su espacio para contestar ── */
+
+type NuevoId = () => string;
+
+/** Una figura con el contorno y el dato exactos de la pizza o la tarta de `f`, como SVG en línea. */
+const figuraHtml = (f: FraccionDibujo, ex: FichaExercise, uid: string, vacia = false): string =>
+  fraccionSvg(f, { cogidos: ex.cogidos, vacia, uid });
+
+/** La fracción para escribir: numerador y denominador, cada uno en su caja, con la raya entre los dos. */
+const fraccionParaEscribir = '<span class="cq-fr-frac"><i></i><i class="raya"></i><i></i></span>';
+
+/**
+ * El ejercicio «fracciones»: las pizzas en tarjetas con su letra. «Leer»: la pizza con los trozos
+ * cogidos y la fracción (y el decimal, si se pide) por escribir; «colorear»: la pizza en blanco y su
+ * fracción debajo; «unir»: las pizzas a un lado y los valores mezclados al otro, para unir a mano.
+ */
+export function fraccionesHtml(ex: FichaExercise, t: Tr, lang: Lang, nuevoId: NuevoId): string {
+  const fr = ex.fracciones ?? [];
+  if (!fr.length) return '';
+  const modo = ex.modo ?? 'leer';
+  const decimal = !!ex.decimal && fr.every(tieneDecimalExacto);
+  if (modo === 'unir' && fr.length >= 2) {
+    const orden = ordenUnir(fr);
+    const filas = fr.map((f, i) => {
+      const izq = `<div class="item con-dib cq-fr-item"><span class="cq-fr-mini">${figuraHtml(f, ex, nuevoId())}</span><span><b>${letraFraccion(i)}</b></span><span class="dot-r"></span></div>`;
+      const der = `<div class="item cq-fr-item"><span class="dot-l"></span><span><b>${i + 1}.</b> ${esc(valorUnir(fr[orden[i]], decimal, lang))}</span></div>`;
+      return izq + der;
+    });
+    return `<div class="cq-rel cq-fr-unir">${filas.join('')}</div>`;
+  }
+  const tarjetas = fr.map((f, i) => {
+    const vacia = modo === 'colorear';
+    const abajo = modo === 'colorear'
+      ? `<div class="cq-fr-lbl">${esc(fraccionTexto(f))}</div>`
+      : `<div class="cq-fr-resp" aria-label="${esc(t('Respuesta'))}">${fraccionParaEscribir}${decimal ? '<span class="cq-fr-eq">=</span><span class="cq-caja cq-fr-dec"></span>' : ''}</div>`;
+    return `<div class="cq-fr-card"><span class="cq-fr-l">${letraFraccion(i)}</span><div class="cq-fr-img">${figuraHtml(f, ex, nuevoId(), vacia)}</div>${abajo}</div>`;
+  });
+  return `<div class="cq-fr" style="--n:${Math.min(fr.length, 4)}">${tarjetas.join('')}</div>`;
+}
+
+/**
+ * Las pizzas de las que habla el enunciado de otro tipo de ejercicio (un problema, una pregunta): una sola,
+ * enmarcada a un lado; varias, en una bandeja debajo del enunciado, con su letra.
+ */
+export function fraccionesAmbienteHtml(ex: FichaExercise, nuevoId: NuevoId): { lado: string; bandeja: string } {
+  const fr = ex.fracciones ?? [];
+  if (!fr.length) return { lado: '', bandeja: '' };
+  if (fr.length === 1) return { lado: `<div class="cq-fig svg cq-fr-fig">${figuraHtml(fr[0], ex, nuevoId())}</div>`, bandeja: '' };
+  const tarjetas = fr.map((f, i) => `<div class="cq-fr-card solo"><span class="cq-fr-l">${letraFraccion(i)}</span><div class="cq-fr-img">${figuraHtml(f, ex, nuevoId())}</div></div>`);
+  return { lado: '', bandeja: `<div class="cq-fr bandeja" style="--n:${Math.min(fr.length, 4)}">${tarjetas.join('')}</div>` };
 }
 
 /* ── Dibujos del catálogo: cada uno con su espacio para contestar ── */
@@ -671,6 +726,27 @@ export const CUADERNO_STYLE = `
 .cq-rel .item .dot-r, .cq-rel .item .dot-l { position: absolute; top: 50%; width: 3mm; height: 3mm; margin-top: -1.5mm; border-radius: 50%; background: var(--num); }
 .cq-rel .item .dot-r { right: -5mm; } .cq-rel .item .dot-l { left: -5mm; }
 .cq-rel .item b { color: var(--num); }
+
+/* Fracciones: pizzas y tartas dibujadas por el código */
+.cq-fr { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 40mm)); gap: 3mm 4mm; justify-content: start; margin-top: 2.5mm; }
+.cq-fr-card { position: relative; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 1.5mm; padding: 2.5mm 2mm 2mm; border: 1.5px solid color-mix(in srgb, var(--num, #1E88D8) 40%, #fff); border-radius: 3mm; background: #fff; break-inside: avoid; }
+.cq-fr-l { position: absolute; top: 1.2mm; left: 1.5mm; width: 5.4mm; height: 5.4mm; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--num, #1E88D8); color: #fff; font-family: var(--font-t, inherit); font-weight: 900; font-size: 11px; line-height: 1; }
+.cq-fr-img { width: 33mm; height: 33mm; line-height: 0; }
+.cq-fr-img svg, .cq-fr-mini svg, .cq-fr-fig svg { display: block; width: 100%; height: 100%; }
+.cq-fr-resp { display: flex; align-items: center; justify-content: center; gap: 2mm; min-height: 15mm; }
+.cq-fr-frac { display: inline-flex; flex-direction: column; align-items: center; gap: 0; }
+.cq-fr-frac i { display: block; box-sizing: border-box; width: 9mm; height: 6mm; border: 1.6px solid var(--num, #1E88D8); border-radius: 5px; background: #fff; }
+.cq-fr-frac i.raya { width: 12mm; height: 0; border: none; border-top: 2px solid #1e293b; border-radius: 0; margin: 1mm 0; background: none; }
+.cq-fr-eq { font-weight: 800; color: #1e293b; font-size: 15px; }
+.cq-fr-dec { flex: 0 0 auto; width: 15mm; }
+.cq-fr-lbl { font-family: var(--font-t, inherit); font-weight: 900; font-size: 17px; color: var(--num, #1E88D8); letter-spacing: .02em; line-height: 1.1; }
+.cq-fr.bandeja { margin-top: 2mm; }
+.cq-fr-card.solo .cq-fr-img { width: 30mm; height: 30mm; }
+.cq-fr-fig { width: auto; padding: 1.5mm; }
+.cq-fr-fig svg { width: 32mm; height: 32mm; }
+.cq-fr-unir .cq-fr-item { min-height: 22mm; }
+.cq-fr-unir .item b { font-size: 15px; }
+.cq-fr-mini { flex: 0 0 auto; width: 19mm; height: 19mm; line-height: 0; display: block; }
 
 /* Cierre de la hoja */
 /* La hoja no acaba en una página con solo «¿Cómo te ha ido?»: el último ejercicio (o el reto) viaja con el cierre */
