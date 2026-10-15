@@ -549,7 +549,12 @@ export function serieHtml(elementos: string[]): string {
 export const CUADERNO_STYLE = `
 .th-cuaderno { font-size: 13.5px; word-spacing: .04em; --lin: #9db3cb; --tinta: #475569; }
 .ficha-doc.th-cuaderno { padding: 0; }
-.cq-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin: 0 0 7px -4px; }
+/* La densidad de la hoja (el compositor, src/lib/densidad.ts): escala el aire vertical y el tamaño de los espacios de respuesta, no las letras */
+.th-cuaderno { --d: 1; --di: 1; }
+.th-cuaderno.d-apretada { --d: .8; --di: .9; }
+.th-cuaderno.d-compacta { --d: .9; --di: .95; }
+.th-cuaderno.d-holgada { --d: 1.15; --di: 1.05; }
+.cq-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin: 0 0 calc(7px * var(--d, 1)) -4px; }
 .cq-cinta { position: relative; flex: 1 1 auto; min-width: 0; max-width: 128mm; display: flex; align-items: center; min-height: 15mm; padding: 3.5mm 11mm 4mm 7mm; color: #fff;
   background: linear-gradient(180deg, var(--c), var(--cd)); border-bottom: 5px solid var(--cd); clip-path: polygon(0 0, 100% 0, calc(100% - 5mm) 50%, 100% 100%, 0 100%); }
 .cq-cinta h1 { margin: 0; font-family: var(--font-t); font-weight: 900; text-transform: uppercase; line-height: 1.08; letter-spacing: .01em; word-spacing: .14em; overflow-wrap: anywhere;
@@ -562,21 +567,21 @@ export const CUADERNO_STYLE = `
 .cq-arte-hilo .cq-hdib.c { width: 21mm; height: 21mm; z-index: 1; margin-bottom: 1mm; }
 .cq-arte text { font-family: var(--font-t); font-weight: 900; }
 
-.cq-datos { display: flex; align-items: baseline; gap: 6mm; margin: 0 0 8px; padding: 5px 12px; border: 1.75px dashed #7DB8E8; background: var(--cl); border-radius: 10px; font-size: 14px; font-weight: 800; color: var(--cd); }
+.cq-datos { display: flex; align-items: baseline; gap: 6mm; margin: 0 0 calc(8px * var(--d, 1)); padding: 5px 12px; border: 1.75px dashed #7DB8E8; background: var(--cl); border-radius: 10px; font-size: 14px; font-weight: 800; color: var(--cd); }
 .cq-datos .cq-area { padding-right: 2mm; color: var(--c); }
 .cq-campo { flex: 1; display: flex; align-items: baseline; gap: 6px; } .cq-campo.corto { flex: .55; }
 .cq-campo i { flex: 1; border-bottom: 1.75px solid var(--cd); height: 1px; transform: translateY(-3px); }
 .cq-datos .var-mark { margin-left: auto; }
 
-.th-cuaderno .ficha-explicacion { background: var(--cl); border: 1.75px dashed var(--c); border-left-width: 1.75px; border-radius: 12px; padding: 8px 14px; margin-bottom: 8px; }
+.th-cuaderno .ficha-explicacion { background: var(--cl); border: 1.75px dashed var(--c); border-left-width: 1.75px; border-radius: 12px; padding: 8px 14px; margin-bottom: calc(8px * var(--d, 1)); }
 .th-cuaderno .ficha-explicacion .lbl { color: var(--c); font-family: var(--font-t); font-size: 12px; }
 .th-cuaderno .ficha-explicacion .txt { font-size: 13px; line-height: 1.55; }
-.th-cuaderno .ficha-instr { font-style: normal; font-weight: 700; color: #334155; margin: 0 0 11px; }
+.th-cuaderno .ficha-instr { font-style: normal; font-weight: 700; color: #334155; margin: 0 0 calc(11px * var(--d, 1)); }
 
 /* Bloque: cabecera con su filete punteado y los ejercicios debajo */
-.th-cuaderno .ficha-actividad { margin: 0 0 6mm; padding: 0; border: none; break-inside: auto; page-break-inside: auto; }
+.th-cuaderno .ficha-actividad { margin: 0 0 calc(6mm * var(--d, 1)); padding: 0; border: none; break-inside: auto; page-break-inside: auto; }
 .th-cuaderno .ficha-actividad:last-of-type { margin-bottom: 0; }
-.cq-sec { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; break-after: avoid; break-inside: avoid; }
+.cq-sec { display: flex; align-items: center; gap: 10px; margin: 0 0 calc(6px * var(--d, 1)); break-after: avoid; break-inside: avoid; }
 .cq-sec::after { content: ''; order: 2; flex: 1 1 auto; height: 0; border-bottom: 2.5px dotted var(--sc); opacity: .5; transform: translateY(2px); }
 .cq-niv { order: 3; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 1px; padding: .5mm 2.6mm .5mm 2mm; border: 1.5px solid var(--sc); border-radius: 99px; background: #fff;
   font-family: var(--font-t); font-weight: 800; font-size: 9.5px; font-style: normal; text-transform: uppercase; letter-spacing: .05em; color: var(--sc); white-space: nowrap; }
@@ -588,7 +593,7 @@ export const CUADERNO_STYLE = `
 
 /* Ejercicio: el número en su casilla a la izquierda y todo lo demás en una columna, siempre alineada */
 .th-cuaderno .ficha-actividad .ficha-ejercicios { list-style: none; counter-reset: ej; margin: 0; padding: 0; border: none; border-radius: 0; }
-.th-cuaderno .ficha-ejercicios > li { counter-increment: ej; position: relative; display: block; padding-left: 10mm; margin: 0 0 4.5mm; break-inside: avoid; page-break-inside: avoid; }
+.th-cuaderno .ficha-ejercicios > li { counter-increment: ej; position: relative; display: block; padding-left: 10mm; margin: 0 0 calc(4.5mm * var(--d, 1)); break-inside: avoid; page-break-inside: avoid; }
 .th-cuaderno .ficha-ejercicios > li.largo { break-inside: auto; page-break-inside: auto; }
 .th-cuaderno .ficha-ejercicios > li:last-child { margin-bottom: 0; }
 .th-cuaderno .ficha-ejercicios > li::before { content: counter(ej); position: absolute; left: 0; top: 0; box-sizing: border-box; width: 6.6mm; height: 6.6mm; display: flex; align-items: center; justify-content: center;
@@ -634,8 +639,8 @@ export const CUADERNO_STYLE = `
 .cq-etiq { display: grid; gap: 3mm 4mm; margin-top: 2mm; }
 .cq-etiq-c { box-sizing: border-box; padding: 2mm 2.5mm 2.5mm; text-align: center; line-height: 0; break-inside: avoid;
   border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
-.cq-etiq-img { width: 21mm; height: 21mm; object-fit: contain; display: block; margin: 0 auto 1.5mm; }
-.cq-linea-e { display: block; height: 7.5mm; border-bottom: 1.5px solid var(--lin); }
+.cq-etiq-img { width: calc(21mm * var(--di, 1)); height: calc(21mm * var(--di, 1)); object-fit: contain; display: block; margin: 0 auto 1.5mm; }
+.cq-linea-e { display: block; height: calc(7.5mm * var(--d, 1)); border-bottom: 1.5px solid var(--lin); }
 .cq-banco-p { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5mm 2.5mm; margin-top: 2mm; padding: 2mm 3mm; border: 1.5px dashed var(--num); border-radius: 3mm; background: color-mix(in srgb, var(--num) 5%, #fff); }
 .cq-banco-p span { padding: .4mm 3mm; border: 1.25px solid var(--num); border-radius: 99px; background: #fff; font-weight: 800; font-size: 12.5px; color: var(--num); }
 
@@ -648,28 +653,28 @@ export const CUADERNO_STYLE = `
 .cq-cats { display: grid; gap: 3mm; margin-top: 3mm; }
 .cq-cat { border: 1.75px solid var(--num); border-radius: 3mm; overflow: hidden; background: #fff; }
 .cq-cat h4 { margin: 0; padding: 1mm 2mm; background: var(--num); color: #fff; text-align: center; font-family: var(--font-t); font-weight: 900; font-size: 12.5px; letter-spacing: .02em; text-transform: uppercase; }
-.cq-cat-c { padding: 0 3mm 1mm; } .cq-cat-c div { height: 7.5mm; border-bottom: 1.25px solid var(--lin); } .cq-cat-c div:last-child { border-bottom: none; }
+.cq-cat-c { padding: 0 3mm 1mm; } .cq-cat-c div { height: calc(7.5mm * var(--d, 1)); border-bottom: 1.25px solid var(--lin); } .cq-cat-c div:last-child { border-bottom: none; }
 
 /* Espacios para escribir: líneas finas de cuaderno, las justas según lo que se espera */
-.cq-lineas { margin-top: 1mm; } .cq-lineas > div { height: 8mm; border-bottom: 1.25px solid var(--lin); }
+.cq-lineas { margin-top: 1mm; } .cq-lineas > div { height: calc(8mm * var(--d, 1)); border-bottom: 1.25px solid var(--lin); }
 .cq-respuesta { display: flex; align-items: center; gap: 2.5mm; margin: 2.5mm 0 0; font-size: 13px; }
 .cq-respuesta b { flex: 0 0 auto; color: var(--num); font-weight: 900; }
 .cq-respuesta .cq-caja { flex: 0 0 34mm; }
 .cq-linea { display: inline-block; border-bottom: 1.5px solid var(--lin); }
 .cq-respuesta .cq-linea.larga { flex: 1 1 auto; height: 6.5mm; }
-.cq-op { position: relative; box-sizing: border-box; height: 22mm; margin-top: 4.5mm; border: 1.75px solid var(--num); border-radius: 3mm; background-color: #fff;
+.cq-op { position: relative; box-sizing: border-box; height: calc(22mm * var(--d, 1)); margin-top: calc(4.5mm * var(--d, 1)); border: 1.75px solid var(--num); border-radius: 3mm; background-color: #fff;
   background-image: linear-gradient(#dbe6f2 1px, transparent 1px), linear-gradient(90deg, #dbe6f2 1px, transparent 1px); background-size: 5mm 5mm; background-position: -1px -1px; }
 .cq-op > span { position: absolute; top: -2.9mm; left: 4mm; padding: 0 2mm; background: #fff; color: var(--num); font-weight: 900; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
-.cq-caja { display: inline-block; box-sizing: border-box; flex: 0 0 26mm; height: 8mm; border: 1.75px solid var(--num); border-radius: 7px; background: #fff; }
+.cq-caja { display: inline-block; box-sizing: border-box; flex: 0 0 26mm; height: calc(8mm * var(--d, 1)); border: 1.75px solid var(--num); border-radius: 7px; background: #fff; }
 .cq-caja.ancha { display: block; width: 100%; height: 7.5mm; margin: 3px 0 0; }
 .cq-caja.libre { display: block; width: 100%; flex: none; height: 9mm; border: 1.75px solid var(--k); }
 
 /* Listas de cálculos: el hueco pegado a la cuenta y los «=» alineados */
-.cq-calculos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2mm 9mm; margin: 2mm 0 0 1mm; }
+.cq-calculos { display: grid; grid-template-columns: minmax(0, 1fr); gap: calc(2mm * var(--d, 1)) 9mm; margin: 2mm 0 0 1mm; }
 .cq-calculos.dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cq-fila { display: flex; align-items: center; gap: 2.5mm; font-size: 14px; break-inside: avoid; }
 .cq-fila b { flex: 0 0 5.5mm; font-weight: 900; color: var(--num); font-size: 12.5px; }
-.cq-val { flex: 0 0 auto; min-width: var(--w, 10ch); }
+.cq-val { flex: 0 1 auto; min-width: min(var(--w, 10ch), 100%); overflow-wrap: anywhere; }
 .cq-eq { flex: 0 0 auto; color: var(--tinta); }
 .cq-calculos .cq-linea { flex: 1 1 auto; min-width: 20mm; max-width: 60mm; height: 6mm; transform: translateY(-.3mm); }
 .cq-calculos .cq-caja { flex: 0 0 26mm; }
@@ -687,8 +692,8 @@ export const CUADERNO_STYLE = `
 .cq-opi b { color: var(--num); }
 
 /* El recuadro del bloque: una franja con su mascota */
-.cq-nota { position: relative; display: flex; align-items: center; gap: 4mm; margin: 0 0 4mm; padding: 2.5mm 5mm 2.5mm 4mm; border: 1.75px dashed var(--k); background: var(--kb); border-radius: 3mm; break-inside: avoid; page-break-inside: avoid; }
-.cq-nota.reto { margin: 4.5mm 0 0; break-before: avoid; }
+.cq-nota { position: relative; display: flex; align-items: center; gap: 4mm; margin: 0 0 calc(4mm * var(--d, 1)); padding: 2.5mm 5mm 2.5mm 4mm; border: 1.75px dashed var(--k); background: var(--kb); border-radius: 3mm; break-inside: avoid; page-break-inside: avoid; }
+.cq-nota.reto { margin: calc(4.5mm * var(--d, 1)) 0 0; break-before: avoid; }
 .cq-nota.recuerda, .cq-nota.consejo { break-after: avoid; }
 .cq-nota.recuerda { --k: #1E88D8; --kb: #EAF5FE; } .cq-nota.reto { --k: #E0900A; --kb: #FFF8E6; } .cq-nota.consejo { --k: #1E88D8; --kb: #EAF5FE; }
 .cq-mascota { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 13mm; line-height: 0; }
@@ -710,7 +715,7 @@ export const CUADERNO_STYLE = `
 .th-cuaderno .ficha-tabla th { text-transform: none; font-size: 13.5px; font-weight: 800; border: none; border-left: 1.5px solid var(--num); padding: 5px 8px; }
 .th-cuaderno .ficha-tabla td { border: none; border-top: 1.25px solid color-mix(in srgb, var(--num) 40%, #fff); border-left: 1.25px solid color-mix(in srgb, var(--num) 40%, #fff); padding: 3px 10px; }
 .th-cuaderno .ficha-tabla th:first-child, .th-cuaderno .ficha-tabla td:first-child { border-left: none; }
-.th-cuaderno .ficha-tabla td.blank { background: #fff; height: 7.5mm; }
+.th-cuaderno .ficha-tabla td.blank { background: #fff; height: calc(7.5mm * var(--d, 1)); }
 .th-cuaderno .ficha-tabla .vis-col { width: 17mm; padding: 1.5mm; }
 .th-cuaderno .ficha-tabla .cq-tdib { width: 12mm; height: 12mm; object-fit: contain; display: block; margin: 0 auto; }
 .th-cuaderno .ord-item { border-style: solid; border-color: color-mix(in srgb, var(--num) 45%, #fff); }
@@ -719,8 +724,8 @@ export const CUADERNO_STYLE = `
 .th-cuaderno .ficha-vf { margin-top: 2mm; gap: 2mm; }
 .th-cuaderno .vf-row { border-color: color-mix(in srgb, var(--num) 35%, #fff); break-inside: avoid; }
 .th-cuaderno .vf-box { border-color: var(--num); color: var(--num); }
-.cq-rel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.2mm 22mm; margin-top: 2mm; }
-.cq-rel .item { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: 3mm; min-height: 9mm; padding: 1.6mm 3mm; font-size: 13px; border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
+.cq-rel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: calc(2.2mm * var(--d, 1)) 22mm; margin-top: 2mm; }
+.cq-rel .item { position: relative; box-sizing: border-box; display: flex; align-items: center; gap: 3mm; min-height: calc(9mm * var(--d, 1)); padding: 1.6mm 3mm; font-size: 13px; border: 1.5px solid color-mix(in srgb, var(--num) 40%, #fff); border-radius: 3mm; background: #fff; }
 .cq-rel .item.con-dib { min-height: 15mm; padding-top: 1.2mm; padding-bottom: 1.2mm; }
 .cq-rel .item img { flex: 0 0 auto; width: 12mm; height: 12mm; object-fit: contain; display: block; }
 .cq-rel .item .dot-r, .cq-rel .item .dot-l { position: absolute; top: 50%; width: 3mm; height: 3mm; margin-top: -1.5mm; border-radius: 50%; background: var(--num); }
@@ -728,12 +733,12 @@ export const CUADERNO_STYLE = `
 .cq-rel .item b { color: var(--num); }
 
 /* Fracciones: pizzas y tartas dibujadas por el código */
-.cq-fr { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 40mm)); gap: 3mm 4mm; justify-content: start; margin-top: 2.5mm; }
+.cq-fr { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 40mm)); gap: calc(3mm * var(--d, 1)) 4mm; justify-content: start; margin-top: 2.5mm; }
 .cq-fr-card { position: relative; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 1.5mm; padding: 2.5mm 2mm 2mm; border: 1.5px solid color-mix(in srgb, var(--num, #1E88D8) 40%, #fff); border-radius: 3mm; background: #fff; break-inside: avoid; }
 .cq-fr-l { position: absolute; top: 1.2mm; left: 1.5mm; width: 5.4mm; height: 5.4mm; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--num, #1E88D8); color: #fff; font-family: var(--font-t, inherit); font-weight: 900; font-size: 11px; line-height: 1; }
-.cq-fr-img { width: 33mm; height: 33mm; line-height: 0; }
+.cq-fr-img { width: calc(33mm * var(--di, 1)); height: calc(33mm * var(--di, 1)); line-height: 0; }
 .cq-fr-img svg, .cq-fr-mini svg, .cq-fr-fig svg { display: block; width: 100%; height: 100%; }
-.cq-fr-resp { display: flex; align-items: center; justify-content: center; gap: 2mm; min-height: 15mm; }
+.cq-fr-resp { display: flex; align-items: center; justify-content: center; gap: 2mm; min-height: calc(15mm * var(--d, 1)); }
 .cq-fr-frac { display: inline-flex; flex-direction: column; align-items: center; gap: 0; }
 .cq-fr-frac i { display: block; box-sizing: border-box; width: 9mm; height: 6mm; border: 1.6px solid var(--num, #1E88D8); border-radius: 5px; background: #fff; }
 .cq-fr-frac i.raya { width: 12mm; height: 0; border: none; border-top: 2px solid #1e293b; border-radius: 0; margin: 1mm 0; background: none; }
@@ -741,17 +746,17 @@ export const CUADERNO_STYLE = `
 .cq-fr-dec { flex: 0 0 auto; width: 15mm; }
 .cq-fr-lbl { font-family: var(--font-t, inherit); font-weight: 900; font-size: 17px; color: var(--num, #1E88D8); letter-spacing: .02em; line-height: 1.1; }
 .cq-fr.bandeja { margin-top: 2mm; }
-.cq-fr-card.solo .cq-fr-img { width: 30mm; height: 30mm; }
+.cq-fr-card.solo .cq-fr-img { width: calc(30mm * var(--di, 1)); height: calc(30mm * var(--di, 1)); }
 .cq-fr-fig { width: auto; padding: 1.5mm; }
-.cq-fr-fig svg { width: 32mm; height: 32mm; }
-.cq-fr-unir .cq-fr-item { min-height: 22mm; }
+.cq-fr-fig svg { width: calc(32mm * var(--di, 1)); height: calc(32mm * var(--di, 1)); }
+.cq-fr-unir .cq-fr-item { min-height: calc(22mm * var(--d, 1)); }
 .cq-fr-unir .item b { font-size: 15px; }
 .cq-fr-mini { flex: 0 0 auto; width: 19mm; height: 19mm; line-height: 0; display: block; }
 
 /* Cierre de la hoja */
 /* La hoja no acaba en una página con solo «¿Cómo te ha ido?»: el último ejercicio (o el reto) viaja con el cierre */
 .th-cuaderno .ficha-actividad:last-of-type .cq-cuerpo > :last-child, .th-cuaderno .ficha-actividad:last-of-type .cq-cuerpo > ol > li:last-child { break-after: avoid; page-break-after: avoid; }
-.cq-fin { break-before: avoid; page-break-before: avoid; display: flex; align-items: center; justify-content: flex-end; gap: 3mm; margin-top: 5mm; padding-top: 2.5mm; border-top: 2px dotted var(--lin); color: var(--tinta); font-weight: 800; font-size: 12.5px; break-inside: avoid; }
+.cq-fin { break-before: avoid; page-break-before: avoid; display: flex; align-items: center; justify-content: flex-end; gap: 3mm; margin-top: calc(5mm * var(--d, 1)); padding-top: 2.5mm; border-top: 2px dotted var(--lin); color: var(--tinta); font-weight: 800; font-size: 12.5px; break-inside: avoid; }
 .cq-fin span { margin-right: 1mm; }
 .cq-fin svg { display: block; }
 `;

@@ -223,6 +223,43 @@ export function solucionFracciones(ex: ConFracciones, lang: Lang): string {
   return fr.map((f, i) => `${letraFraccion(i)}: ${fraccionTexto(f)}${decimal ? ` = ${decimalDe(f, lang)}` : ''}`).join('; ');
 }
 
+/** Un ejercicio «fracciones» lleva de 3 a 4 figuras: con menos, no hay con qué comparar ni qué unir. */
+export const MIN_FIGURAS_FRACCION = 3;
+export const MAX_FIGURAS_FRACCION = 4;
+
+const valorDe = (f: FraccionDibujo): number => Math.round((f.tomadas / f.partes) * 1e6);
+
+/**
+ * Las figuras de un ejercicio «fracciones» con al menos tres: si la IA puso solo una o dos, se añaden pizzas con un
+ * número de trozos que aún no está (con decimal, solo los que lo tienen exacto) y una fracción distinta de las
+ * que hay, siempre la misma para el mismo ejercicio (la vista previa, el PDF y la solución no cambian de un
+ * momento a otro). En «unir» se quitan antes las que valen lo mismo (1/2 y 2/4 no se podrían unir sin dudar).
+ */
+export function completarFiguras(figuras: FraccionDibujo[], modo: ModoFracciones, decimal: boolean): FraccionDibujo[] {
+  let out = [...figuras];
+  if (modo === 'unir') {
+    const vistos = new Set<number>();
+    out = out.filter(f => { const v = valorDe(f); if (vistos.has(v)) return false; vistos.add(v); return true; });
+  }
+  if (out.length >= MIN_FIGURAS_FRACCION) return out;
+  const objeto = out[0]?.objeto;
+  const exacto = decimal && out.every(tieneDecimalExacto);
+  const pool = exacto ? DENOMINADORES_EXACTOS : [2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const usados = new Set(out.map(f => f.partes));
+  for (const partes of pool) {
+    if (out.length >= MIN_FIGURAS_FRACCION) break;
+    if (usados.has(partes)) continue;
+    for (let k = 0; k < partes - 1; k++) {
+      const nueva: FraccionDibujo = { partes, tomadas: 1 + ((partes + out.length + k) % (partes - 1)), ...(objeto ? { objeto } : {}) };
+      if (out.some(o => valorDe(o) === valorDe(nueva))) continue;
+      out.push(nueva);
+      usados.add(partes);
+      break;
+    }
+  }
+  return out;
+}
+
 /* ── Un ejercicio de fracciones hecho por el código, sin IA ── */
 
 const ENUNCIADO_LEER: Record<Lang, (decimal: boolean) => string> = {

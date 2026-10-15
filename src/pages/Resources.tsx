@@ -658,7 +658,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           <aside className="fe-preview" aria-label={t('Vista previa')}>
             <div className="fe-preview-hd"><Eye size={13} />{t('Vista previa · así se imprime')}</div>
             <div className="fe-preview-scroll">
-              <FichaPreview ficha={ficha} lang={lang} selected={selected} onSelect={selectFromPreview} />
+              <FichaPreview ficha={ficha} lang={lang} selected={selected} onSelect={selectFromPreview} onDensidad={d => edit(c => ({ ...c, densidad: d }))} />
             </div>
           </aside>
         </div>

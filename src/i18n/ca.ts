@@ -7,6 +7,7 @@ import { APOYO_CA } from './apoyo';
 import { DEMO_CA } from './demo';
 import { EF_CA } from './ef';
 import { HILOS_CA } from './hilos';
+import { COMPOSITOR_CA } from './compositor';
 
 export const CA: Record<string, string> = {
   // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
@@ -1895,4 +1896,5 @@ export const CA: Record<string, string> = {
   ...APOYO_CA,
   ...EF_CA,
   ...HILOS_CA,
+  ...COMPOSITOR_CA,
 };

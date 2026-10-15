@@ -9,7 +9,10 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Ficha } from '../../types';
-import { buildFichaHtml, cargarIlustraciones, cargarPictos, ilustracionesDeFicha, pictosDeFicha } from '../../services/exportFicha';
+import { admiteDensidad, buildFichaHtml, cargarIlustraciones, cargarPictos, ilustracionesDeFicha, pictosDeFicha } from '../../services/exportFicha';
+import { componerHoja, type Composicion } from '../../services/compositor';
+import { DENSIDADES, NOMBRE_DENSIDAD, esDensidad, type Densidad } from '../../lib/densidad';
+import { useI18n } from '../../i18n';
 import { fichaTheme } from '../../lib/fichaThemes';
 import { useThemeArt } from '../../lib/themeArtDoc';
 import { useFuenteCuaderno } from '../../lib/fuenteCuaderno';
@@ -23,9 +26,15 @@ interface Props {
   lang: Lang;
   selected: string | null;
   onSelect: (id: string) => void;
+  /** El docente fija la distribución de la hoja (o vuelve a la automática con `undefined`). */
+  onDensidad?: (d: Densidad | undefined) => void;
 }
 
-export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
+/** Las densidades en el selector; «Normal» lleva contexto porque la palabra sola ya existe en otros sitios. */
+const CLAVE_DENSIDAD: Record<Densidad, string> = { ...NOMBRE_DENSIDAD, normal: 'Normal@@hoja' };
+
+export function FichaPreview({ ficha, lang, selected, onSelect, onDensidad }: Props) {
+  const { t } = useI18n();
   const wrapRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [scale, setScale] = useState(0.6);
@@ -52,7 +61,30 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
     if (idsIlu) cargarIlustraciones(idsIlu.split(' ')).then(p => { if (vivo) setIlustraciones(p); });
     return () => { vivo = false; };
   }, [idsIlu]);
-  const html = useMemo(() => buildFichaHtml(ficha, lang, { preview: true, art, pictos, ilustraciones, fontCss }), [ficha, lang, art, pictos, ilustraciones, fontCss]);
+
+  // El compositor: mide la hoja tal como se imprime con cada densidad y elige la que mejor la deja
+  const conDensidad = admiteDensidad(ficha.content);
+  const htmlMedir = useMemo(
+    () => (conDensidad ? buildFichaHtml(ficha, lang, { art, pictos, ilustraciones, fontCss, densidad: 'normal' }) : ''),
+    [conDensidad, ficha, lang, art, pictos, ilustraciones, fontCss],
+  );
+  const [composicion, setComposicion] = useState<Composicion | null>(null);
+  useEffect(() => {
+    if (!htmlMedir) return;
+    let vivo = true;
+    // Mientras se teclea no se mide: se queda la última composición hasta que llegue la nueva
+    const id = window.setTimeout(() => { componerHoja(htmlMedir).then(c => { if (vivo) setComposicion(c); }); }, 450);
+    return () => { vivo = false; window.clearTimeout(id); };
+  }, [htmlMedir]);
+  const manual = esDensidad(ficha.content.densidad) ? ficha.content.densidad : undefined;
+  const composicionVigente = conDensidad ? composicion : null;
+  const densidad: Densidad | undefined = conDensidad ? manual ?? composicionVigente?.densidad ?? 'normal' : undefined;
+  const paginas = densidad ? composicionVigente?.medidas[densidad].paginas : undefined;
+
+  const html = useMemo(
+    () => buildFichaHtml(ficha, lang, { preview: true, art, pictos, ilustraciones, fontCss, densidad }),
+    [ficha, lang, art, pictos, ilustraciones, fontCss, densidad],
+  );
 
   // Escala al ancho disponible
   useEffect(() => {
@@ -109,13 +141,32 @@ export function FichaPreview({ ficha, lang, selected, onSelect }: Props) {
   }, [selected, html, scale, height]);
 
   return (
-    <div ref={wrapRef} className="fe-preview-sheet" style={{ height: height * scale }}>
-      <iframe
-        ref={frameRef}
-        title="preview"
-        className="fe-preview-frame"
-        style={{ width: DOC_W, height, transform: `scale(${scale})` }}
-      />
-    </div>
+    <>
+      {conDensidad && onDensidad && (
+        <div className="fe-compo">
+          <label className="fe-compo-sel">
+            <span className="fe-lbl">{t('Distribución de la hoja')}</span>
+            <select
+              className="finput" value={manual ?? 'auto'} title={t('La app mide la hoja y reparte el aire entre los ejercicios para que ocupe las menos páginas y deje pocos huecos.')}
+              onChange={e => onDensidad(esDensidad(e.target.value) ? e.target.value : undefined)}
+            >
+              <option value="auto">{t('Automática')}{composicionVigente ? ` · ${t(CLAVE_DENSIDAD[composicionVigente.densidad])}` : ''}</option>
+              {DENSIDADES.map(d => <option key={d} value={d}>{t(CLAVE_DENSIDAD[d])}</option>)}
+            </select>
+          </label>
+          {paginas !== undefined && (
+            <span className="fe-compo-pag">{paginas === 1 ? t('La hoja ocupa 1 página') : t('La hoja ocupa {n} páginas', { n: paginas })}</span>
+          )}
+        </div>
+      )}
+      <div ref={wrapRef} className="fe-preview-sheet" style={{ height: height * scale }}>
+        <iframe
+          ref={frameRef}
+          title="preview"
+          className="fe-preview-frame"
+          style={{ width: DOC_W, height, transform: `scale(${scale})` }}
+        />
+      </div>
+    </>
   );
 }

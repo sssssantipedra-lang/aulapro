@@ -117,7 +117,8 @@ describe('la limpieza del ejercicio «fracciones»', () => {
   it('descarta las figuras imposibles: de 2 a 12 trozos y de 0 a todos cogidos, enteros', async () => {
     const x = await ej({ tipo: 'fracciones', enunciado: 'Cuenta.', fracciones: [F(1, 1), F(13, 2), F(6, 7), F(6, -1), F(7, 2), { partes: 'ocho', tomadas: 3 }, null, F(6.4, 2)], solucion: '' });
     // F(6.4, 2) se redondea a 6 trozos: es válida
-    expect(x.fracciones).toEqual([{ partes: 7, tomadas: 2 }, { partes: 6, tomadas: 2 }]);
+    // Con solo dos válidas, el código añade una tercera (una pizza de 2 trozos que aún no está)
+    expect(x.fracciones).toEqual([{ partes: 7, tomadas: 2 }, { partes: 6, tomadas: 2 }, { partes: 2, tomadas: 1 }]);
   });
 
   it('sin ninguna figura válida, pasa a pregunta abierta y no sale rota', async () => {
@@ -141,9 +142,11 @@ describe('la limpieza del ejercicio «fracciones»', () => {
     expect((await ej({ tipo: 'fracciones', enunciado: 'a', fracciones: [F(8, 3), F(2, 1)], decimal: true, modo: 'unir', solucion: '' })).decimal).toBe(true);
   });
 
-  it('un modo que no existe vale «leer»; «unir» con una sola figura también', async () => {
+  it('un modo que no existe vale «leer»; «unir» con una sola figura se completa y sigue siendo «unir»', async () => {
     expect((await ej({ tipo: 'fracciones', enunciado: 'a', fracciones: [F(8, 3)], modo: 'saltar', solucion: '' })).modo).toBe('leer');
-    expect((await ej({ tipo: 'fracciones', enunciado: 'a', fracciones: [F(8, 3)], modo: 'unir', solucion: '' })).modo).toBe('leer');
+    const unir = await ej({ tipo: 'fracciones', enunciado: 'a', fracciones: [F(8, 3)], modo: 'unir', solucion: '' });
+    expect(unir.modo).toBe('unir');
+    expect(unir.fracciones).toHaveLength(3);
     expect((await ej({ tipo: 'fracciones', enunciado: 'a', fracciones: [F(8, 3), F(4, 1)], modo: 'unir', solucion: '' })).modo).toBe('unir');
   });
 
@@ -237,8 +240,8 @@ describe('rehacer y añadir un ejercicio con pizzas', () => {
     const nuevo = await regenerateExercise(f, { tema: 'Otro tema', area: '', nivel: '5º Primaria' }, 0, 0, { instruccion: 'otras pizzas' }, 'es');
     expect(sistema()).toContain('FRACCIONES DIBUJADAS');
     expect(callGemini.mock.calls[0][4].responseSchema.properties.fracciones).toBeDefined();
-    expect(nuevo!.fracciones).toEqual([{ partes: 10, tomadas: 7 }, { partes: 4, tomadas: 3 }]);
-    expect(nuevo!.solucion).toBe('A: 7/10; B: 3/4');
+    expect(nuevo!.fracciones).toEqual([{ partes: 10, tomadas: 7 }, { partes: 4, tomadas: 3 }, { partes: 2, tomadas: 1 }]);
+    expect(nuevo!.solucion).toBe('A: 7/10; B: 3/4; C: 1/2');
   });
 
   it('en una ficha de otro tema y sin pizzas, rehacer no las ofrece', async () => {
@@ -256,7 +259,7 @@ describe('rehacer y añadir un ejercicio con pizzas', () => {
     const nuevo = await addExercise(f, req(), 1, { tipo: 'fracciones' }, 'es');
     expect(callGemini.mock.calls[0][4].responseSchema.properties.tipo.enum).toContain('fracciones');
     expect(nuevo!.tipo).toBe('fracciones');
-    expect(nuevo!.solucion).toBe('A: 5 de 6 trozos; B: 4 de 9 trozos');
+    expect(nuevo!.solucion).toBe('A: 5 de 6 trozos; B: 4 de 9 trozos; C: 1 de 2 trozos');
   });
 });
 
@@ -273,7 +276,7 @@ describe('la revisión sabe de las pizzas', () => {
       .mockResolvedValueOnce(un({ tipo: 'fracciones', enunciado: 'Escribe la fracción.', fracciones: [F(8, 3), F(5, 2)], solucion: '' }))
       .mockResolvedValueOnce(JSON.stringify({ problemas: [] }));
     await generateFicha(req({ revisar: true }), 'es');
-    expect(usuario(1)).toContain('"fracciones":[{"partes":8,"tomadas":3},{"partes":5,"tomadas":2}]');
+    expect(usuario(1)).toContain('"fracciones":[{"partes":8,"tomadas":3},{"partes":5,"tomadas":2},{"partes":2,"tomadas":1}]');
   });
 });
 
@@ -333,7 +336,7 @@ describe('la receta de un tema de fracciones: siempre hay pizzas', () => {
     ]));
     const f = (await generateFicha(req(), 'es'))!;
     expect(todos(f).filter(x => x.tipo === 'fracciones')).toHaveLength(1);
-    expect(f.actividades[0].ejercicios[0].fracciones).toEqual([{ partes: 8, tomadas: 3 }, { partes: 5, tomadas: 2 }]);
+    expect(f.actividades[0].ejercicios[0].fracciones).toEqual([{ partes: 8, tomadas: 3 }, { partes: 5, tomadas: 2 }, { partes: 2, tomadas: 1 }]);
     expect(f.actividades[0].ejercicios[1].enunciado).toBe('a');
   });
 

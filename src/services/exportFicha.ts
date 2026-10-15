@@ -37,6 +37,8 @@ import { ATRIBUCION_MULBERRY, esMulberry, pictoDe } from '../lib/pictos';
 import { pictoComoDato } from './exportAgenda';
 import { dibujosEnOrden } from '../lib/pictosFicha';
 import { estrellas, NOMBRE_DIFICULTAD } from '../lib/escalera';
+import { esDensidad, type Densidad } from '../lib/densidad';
+import { componerHoja, type Composicion } from './compositor';
 import {
   fraccionSvgDato, fraccionTexto, letraFraccion, ordenUnir, tieneDecimalExacto, valorUnir, type CogidosFraccion, type FraccionDibujo,
 } from '../lib/fraccionesDibujo';
@@ -344,6 +346,8 @@ export interface FichaHtmlOptions {
   ilustraciones?: Record<string, string>;
   /** «Cuaderno»: el `@font-face` de su letra (`cargarFuenteCuaderno`); sin él, las letras del sistema. */
   fontCss?: string;
+  /** «Cuaderno»: la densidad de la hoja; sin ella, la que fijó el docente en la ficha o, si no, la normal. */
+  densidad?: Densidad;
 }
 
 /** Posición «al azar» pero fija de cada adorno, para que la vista previa no baile al editar. */
@@ -497,7 +501,8 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
   const body = formato === 'tarjetas'
     ? tarjetasHtml(c.tarjetas ?? [], theme, mark, t)
     : actividadesHtml + cierreHtml;
-  const docCls = `ficha-doc th-${theme.id}${c.variante === 'lectura_facil' ? ' lf' : ''}${visual ? ' vis' : ''}${formato === 'tarjetas' ? ' fmt-tarjetas' : ''}`;
+  const densidad: Densidad = cuaderno && esDensidad(opts.densidad ?? c.densidad) ? (opts.densidad ?? c.densidad)! : 'normal';
+  const docCls = `ficha-doc th-${theme.id}${cuaderno && densidad !== 'normal' ? ` d-${densidad}` : ''}${c.variante === 'lectura_facil' ? ' lf' : ''}${visual ? ' vis' : ''}${formato === 'tarjetas' ? ' fmt-tarjetas' : ''}`;
 
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
     `<title>${esc(c.titulo || f.title)}</title>` +
@@ -555,6 +560,30 @@ function tarjetasHtml(cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme
   }).join('')}</div><p class="tj-cut">✂️ ${esc(t('Recorta por la línea discontinua y dobla cada tarjeta por la mitad.'))}</p>`;
 }
 
+/** Lo que se carga aparte para dibujar la ficha (sin ello, el HTML sale sin dibujos ni letra propia). */
+export type RecursosFicha = Pick<FichaHtmlOptions, 'art' | 'pictos' | 'ilustraciones' | 'fontCss'>;
+
+/** Solo la hoja de ejercicios «Cuaderno» tiene densidad: las tarjetas y los demás diseños se quedan como están. */
+export function admiteDensidad(c: FichaContent): boolean {
+  return fichaTheme(c.estilo).id === 'cuaderno' && (c.formato ?? 'ficha') !== 'tarjetas';
+}
+
+/**
+ * El compositor sobre una ficha: la mide con cada densidad (tal como se imprime) y dice cuál la deja mejor.
+ * `null` si el diseño no admite densidad o no se pudo medir; entonces la hoja va con la densidad normal.
+ */
+export async function componerFicha(f: Ficha, lang: Lang, recursos: RecursosFicha): Promise<Composicion | null> {
+  if (!admiteDensidad(f.content)) return null;
+  return componerHoja(buildFichaHtml(f, lang, { ...recursos, densidad: 'normal' }));
+}
+
+/** La densidad con la que sale la ficha: la que fijó el docente o, si no, la que elige el compositor. */
+export async function densidadDeFicha(f: Ficha, lang: Lang, recursos: RecursosFicha): Promise<Densidad | undefined> {
+  if (!admiteDensidad(f.content)) return undefined;
+  if (esDensidad(f.content.densidad)) return f.content.densidad;
+  return (await componerFicha(f, lang, recursos))?.densidad;
+}
+
 export async function saveFichaPdf(f: Ficha, lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
@@ -562,7 +591,9 @@ export async function saveFichaPdf(f: Ficha, lang: Lang) {
   const [art, pictos, ilustraciones, fontCss] = await Promise.all([
     loadThemeArt(id), cargarPictosFicha(f.content), cargarIlustracionesFicha(f.content), id === 'cuaderno' ? cargarFuenteCuaderno() : Promise.resolve(''),
   ]);
-  const html = buildFichaHtml(f, lang, { art: art?.dataUrl, pictos, ilustraciones, fontCss });
+  const recursos: RecursosFicha = { art: art?.dataUrl, pictos, ilustraciones, fontCss };
+  const densidad = await densidadDeFicha(f, lang, recursos);
+  const html = buildFichaHtml(f, lang, { ...recursos, densidad });
   const res = await docs.savePdf(html, fileBase(f) + '.pdf', { landscape: false });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;

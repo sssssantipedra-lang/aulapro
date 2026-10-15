@@ -38,8 +38,9 @@ import {
   rangoNumerico, type BloquePlan, type Dificultad, type PerfilCurso,
 } from '../lib/escalera';
 import { ejemploParaPrompt } from './fichaEjemplos';
+import type { Densidad } from '../lib/densidad';
 import {
-  MIN_PARTES, MODOS_FRACCIONES, OBJETOS_FRACCION, fraccionValida, fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto,
+  MAX_FIGURAS_FRACCION, MIN_PARTES, MODOS_FRACCIONES, OBJETOS_FRACCION, completarFiguras, fraccionValida, fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto,
   type CogidosFraccion, type FraccionDibujo, type ModoFracciones,
 } from '../lib/fraccionesDibujo';
 
@@ -287,6 +288,11 @@ export interface FichaContent {
    * él, la cabecera es la del área y los ejercicios no llevan dibujos.
    */
   hilo?: string;
+  /**
+   * La densidad de la hoja «Cuaderno» (`lib/densidad.ts`) si el docente la fijó a mano; sin ella, la elige la
+   * app al imprimir midiendo la hoja (el compositor).
+   */
+  densidad?: Densidad;
   historia?: FichaHistoria;
   /** Sin él, 'ficha'. */
   formato?: FichaFormato;
@@ -1379,7 +1385,6 @@ const esRotulado = (t: string): boolean =>
   && /\b(?:cada|debajo|bajo|junto|su dibujo|sus dibujos|sota|each|below|under)\b/i.test(t);
 
 /** Cuántas figuras como mucho: en el ejercicio «fracciones», cuatro; como dibujo del enunciado de otro tipo, tres. */
-const MAX_FIGURAS_FRACCION = 4;
 const MAX_FIGURAS_AMBIENTE = 3;
 
 /** Los tipos cuyo enunciado puede llevar una pizza al lado (la misma lista que la figura geométrica). */
@@ -1409,9 +1414,10 @@ function cleanFracciones(ex: FichaExercise, permitido: boolean, lang: Lang): Fic
   const cogidos = COGIDOS_VALIDOS.includes(ex.cogidos as CogidosFraccion) ? { cogidos: ex.cogidos } : {};
   if (!dedicado) return { ...out, fracciones: figuras, ...cogidos };
   const modo: ModoFracciones = MODOS_FRACCIONES.includes(ex.modo as ModoFracciones) ? ex.modo as ModoFracciones : 'leer';
-  const modoFinal: ModoFracciones = modo === 'unir' && figuras.length < 2 ? 'leer' : modo;
-  const decimal = !!ex.decimal && modoFinal !== 'colorear' && figuras.every(tieneDecimalExacto);
-  const limpio: FichaExercise = { ...out, fracciones: figuras, modo: modoFinal, ...(decimal ? { decimal: true } : {}), ...cogidos };
+  // Con menos de tres figuras no hay con qué comparar: el código añade las que faltan
+  const completas = completarFiguras(figuras, modo, !!ex.decimal && modo !== 'colorear');
+  const decimal = !!ex.decimal && modo !== 'colorear' && completas.every(tieneDecimalExacto);
+  const limpio: FichaExercise = { ...out, fracciones: completas, modo, ...(decimal ? { decimal: true } : {}), ...cogidos };
   return { ...limpio, solucion: solucionFracciones(limpio, lang) };
 }
 

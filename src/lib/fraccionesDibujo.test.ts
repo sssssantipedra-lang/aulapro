@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DENOMINADORES_EXACTOS, decimalDe, fraccionSvg, fraccionSvgDato, fraccionTexto, fraccionValida, letraFraccion, ordenUnir, simplificada,
+  DENOMINADORES_EXACTOS, MIN_FIGURAS_FRACCION, completarFiguras, decimalDe, fraccionSvg, fraccionSvgDato, fraccionTexto, fraccionValida, letraFraccion, ordenUnir, simplificada,
   fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto, valorUnir,
 } from './fraccionesDibujo';
 
@@ -242,5 +242,63 @@ describe('fraccionesParaEjercicio: el ejercicio que monta el código', () => {
     expect(fraccionesParaEjercicio('leer', 'ca').enunciado).toContain('Escriu la fracció');
     expect(fraccionesParaEjercicio('unir', 'en').enunciado).toContain('Match each pizza with its fraction');
     expect(fraccionesParaEjercicio('colorear', 'ca').enunciado).toContain('Pinta');
+  });
+});
+
+describe('completarFiguras: un ejercicio «fracciones» lleva al menos tres figuras', () => {
+  const valores = (fr: { partes: number; tomadas: number }[]) => fr.map(f => f.tomadas / f.partes);
+
+  it('con una o dos, se añaden pizzas de otro número de trozos y con otra fracción', () => {
+    for (const ini of [[{ partes: 8, tomadas: 3 }], [{ partes: 8, tomadas: 3 }, { partes: 5, tomadas: 2 }]]) {
+      const fr = completarFiguras(ini, 'leer', false);
+      expect(fr).toHaveLength(MIN_FIGURAS_FRACCION);
+      expect(fr.slice(0, ini.length)).toEqual(ini);
+      expect(new Set(fr.map(f => f.partes)).size).toBe(3);
+      for (const f of fr) expect(fraccionValida(f)).toBe(true);
+    }
+  });
+
+  it('con tres o más no toca nada', () => {
+    const tres = [{ partes: 4, tomadas: 1 }, { partes: 6, tomadas: 5 }, { partes: 3, tomadas: 1 }];
+    expect(completarFiguras(tres, 'leer', false)).toEqual(tres);
+    expect(completarFiguras(tres, 'unir', false)).toEqual(tres);
+  });
+
+  it('con decimal, las que se añaden tienen decimal exacto', () => {
+    const fr = completarFiguras([{ partes: 8, tomadas: 3 }], 'leer', true);
+    expect(fr.every(tieneDecimalExacto)).toBe(true);
+    expect(fr).toHaveLength(3);
+  });
+
+  it('con una que no tiene decimal exacto, se añaden de las normales (el decimal se descarta más tarde)', () => {
+    const fr = completarFiguras([{ partes: 7, tomadas: 2 }], 'leer', true);
+    expect(fr).toHaveLength(3);
+    expect(fr[0]).toEqual({ partes: 7, tomadas: 2 });
+  });
+
+  it('la misma entrada da siempre la misma salida, y conserva el objeto de la primera', () => {
+    const a = completarFiguras([{ partes: 6, tomadas: 1, objeto: 'tarta' }], 'leer', false);
+    expect(a).toEqual(completarFiguras([{ partes: 6, tomadas: 1, objeto: 'tarta' }], 'leer', false));
+    expect(a.every(f => f.objeto === 'tarta')).toBe(true);
+  });
+
+  it('«unir»: se quitan las que valen lo mismo (1/2 y 2/4) y las añadidas no repiten ningún valor', () => {
+    const fr = completarFiguras([{ partes: 2, tomadas: 1 }, { partes: 4, tomadas: 2 }], 'unir', false);
+    expect(fr).toHaveLength(3);
+    expect(new Set(valores(fr).map(v => Math.round(v * 1e6))).size).toBe(3);
+    // en «leer» sí se dejan: son figuras distintas con el mismo valor, y es el contenido de la pregunta
+    expect(completarFiguras([{ partes: 2, tomadas: 1 }, { partes: 4, tomadas: 2 }, { partes: 8, tomadas: 4 }], 'leer', false)).toHaveLength(3);
+  });
+
+  it('todas las salidas son dibujables, de cualquier modo', () => {
+    for (const modo of ['leer', 'colorear', 'unir'] as const) {
+      for (let n = 2; n <= 12; n++) {
+        for (let k = 0; k <= n; k += 3) {
+          const fr = completarFiguras([{ partes: n, tomadas: k }], modo, false);
+          expect(fr.length).toBeGreaterThanOrEqual(MIN_FIGURAS_FRACCION);
+          expect(fr.every(fraccionValida)).toBe(true);
+        }
+      }
+    }
   });
 });
