@@ -712,6 +712,34 @@ clase (de 1º de Primaria, 6 a 7 años, a 4º de ESO, 15 a 16), con reglas,
 organización y seguridad, material, variantes y DUA-A; se revisa y se guarda
 en tus actividades. La foto va a Google reducida y sin su ubicación, y no se
 guarda en AulaPro: no uses fotos en las que se reconozca a tu alumnado.
+«Desde un manual (PDF)»: eliges el PDF de un libro, de tu departamento o de un
+curso (hasta 19 MB), la clase y, si el manual es largo, las páginas que
+interesan. La IA saca las actividades prácticas (hasta 25 cada vez), las
+clasifica por tipo y por modalidad, las redacta con sus palabras para la edad
+de la clase y añade cómo participa todo el grupo (DUA-A). Salen agrupadas por
+tipo, con una casilla en cada una (las que ya tienes con ese título salen sin
+marcar); se guardan las que elijas. El PDF va a Google y no se guarda en
+AulaPro: no uses documentos con datos de tu alumnado.
+
+[ef-pizarra] PIZARRA DE CIRCUITOS
+Una pizarra para dibujar un circuito sobre una pista. A la izquierda, el
+BANCO DE MATERIAL, con imágenes: cono, seta, aro, pica, valla, colchoneta,
+banco sueco, escalera de agilidad, balón, portería, canasta, cajón, cuerda,
+red, diana, espaldera y estación (un círculo con su número). Se toca una pieza
+para ponerla o se arrastra hasta donde quieras. Herramientas: «Mover» (arrastra
+las piezas; con una elegida, las flechas del teclado la mueven y Suprimir la
+quita; debajo salen girarla, hacerla más grande o más pequeña, duplicarla y
+quitarla), «Lápiz» y «Flecha» (el recorrido, en cuatro colores), «Dibujar
+material» y «Borrar». Con «Dibujar material» trazas a mano una forma y la app
+propone qué material es: un triángulo es un cono; un círculo, un aro, un balón
+o una seta según su tamaño; un rectángulo muy alargado, un banco; uno ancho,
+una colchoneta o una portería; una raya corta, una pica. Una forma puede ser
+varias cosas, así que tú eliges en el desplegable y pulsas «Poner». «Reconocer
+con IA» manda a Google una imagen del croquis (solo trazos, sin alumnado) y la
+IA propone qué material es cada pieza y resume el circuito; tú confirmas cada
+una. Abajo a la derecha, el MATERIAL DEL CIRCUITO: cuántas piezas de cada hay
+en la pizarra. «Guardar» la guarda con su nombre en este equipo, «Deshacer»
+(o Ctrl+Z) vuelve atrás y «Descargar imagen» la baja como PNG.
 
 [ef-material] MATERIAL E INSTALACIONES
 El inventario: material, cantidad, estado (bien, regular o para reponer, que

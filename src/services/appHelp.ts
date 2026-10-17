@@ -62,6 +62,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },
   'ef-equipos':          { es: 'Equipos', en: 'Teams' },
   'ef-circuitos':        { es: 'Circuitos', en: 'Circuits' },
+  'ef-pizarra':          { es: 'Pizarra de circuitos', en: 'Circuit Whiteboard' },
   'ef-sda':              { es: 'Situaciones de aprendizaje', en: 'Learning Situations' },
   'ef-sesiones':         { es: 'Sesiones', en: 'Sessions' },
   'ef-actividades':      { es: 'Actividades', en: 'Activities' },

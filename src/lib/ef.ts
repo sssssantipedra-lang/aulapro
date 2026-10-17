@@ -3,14 +3,15 @@
  */
 import type { Class } from '../types';
 import { esAsignaturaEF } from '../services/classMarks';
+import { ANCHO_PIZARRA, ALTO_PIZARRA, COLORES_TRAZO, IDS_MATERIAL_PIZARRA } from './pizarraEF';
 import type {
-  ActividadEF, ApoyoEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
-  MarcaPrueba, MaterialEF, ModalidadEF, NecesidadEF, NivelApoyoEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo,
+  ActividadEF, ApoyoEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, ElementoPizarra, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
+  MarcaPrueba, MaterialEF, MaterialPizarraId, ModalidadEF, NecesidadEF, NivelApoyoEF, PizarraEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo, TrazoPizarra,
 } from '../types/ef';
 
 export const EF_VACIO: EfData = {
   exentos: [], apoyos: [], niveles: {}, sexos: {}, separar: [], equipos: {}, pruebas: [], marcas: [], baremos: [],
-  actividades: [], sesiones: [], material: [], instalaciones: [], circuitos: [],
+  actividades: [], sesiones: [], material: [], instalaciones: [], circuitos: [], pizarras: [],
 };
 
 export function nuevoIdEF(prefijo: string): string {
@@ -446,8 +447,8 @@ export function duracionCircuito(c: Pick<CircuitoEF, 'estaciones' | 'trabajo' | 
 
 /**
  * Lo que queda al vaciar el curso: lo que es material del docente (sus
- * pruebas, baremos, actividades, sesiones, material, instalaciones y
- * circuitos). Lo del alumnado de este curso (exentos, niveles, marcas…) se va.
+ * pruebas, baremos, actividades, sesiones, material, instalaciones,
+ * circuitos y pizarras). Lo del alumnado de este curso (exentos, niveles, marcas…) se va.
  */
 export function efParaOtroCurso(d: EfData): EfData {
   return {
@@ -459,6 +460,7 @@ export function efParaOtroCurso(d: EfData): EfData {
     material: d.material,
     instalaciones: d.instalaciones,
     circuitos: d.circuitos,
+    pizarras: d.pizarras,
   };
 }
 
@@ -635,6 +637,36 @@ export function normalizarEF(raw: unknown): EfData {
       rondas: Math.max(1, Math.min(20, Math.round(numero(x.rondas) ?? 1))), descansoRondas: seg(x.descansoRondas, 60),
     };
   });
+  const pizarras = lista<PizarraEF>(o.pizarras, v => {
+    const x = obj(v);
+    if (!x || !esTexto(x.id)) return null;
+    const coord = (n: unknown, max: number) => Math.max(0, Math.min(max, Math.round(numero(n) ?? 0)));
+    return {
+      id: x.id, nombre: texto(x.nombre),
+      elementos: lista<ElementoPizarra>(x.elementos, e => {
+        const y = obj(e);
+        if (!y || !esTexto(y.id) || !IDS_MATERIAL_PIZARRA.includes(y.material as MaterialPizarraId)) return null;
+        return {
+          id: y.id, material: y.material as MaterialPizarraId, x: coord(y.x, ANCHO_PIZARRA), y: coord(y.y, ALTO_PIZARRA),
+          giro: Math.round(numero(y.giro) ?? 0) % 360, escala: Math.max(0.3, Math.min(4, numero(y.escala) ?? 1)),
+          ...(esTexto(y.texto) ? { texto: y.texto.slice(0, 3) } : {}),
+        };
+      }).slice(0, 300),
+      trazos: lista<TrazoPizarra>(x.trazos, t => {
+        const y = obj(t);
+        if (!y || !esTexto(y.id) || !Array.isArray(y.puntos)) return null;
+        const puntos = lista<[number, number]>(y.puntos, q => {
+          if (!Array.isArray(q)) return null;
+          const a = numero(q[0]);
+          const b = numero(q[1]);
+          return a === undefined || b === undefined ? null : [coord(a, ANCHO_PIZARRA), coord(b, ALTO_PIZARRA)];
+        }).slice(0, 600);
+        return puntos.length >= 2
+          ? { id: y.id, tipo: y.tipo === 'flecha' ? 'flecha' : 'libre', puntos, color: COLORES_TRAZO.some(c => c.id === y.color) ? (y.color as string) : COLORES_TRAZO[0].id }
+          : null;
+      }).slice(0, 300),
+    };
+  });
   return {
     exentos,
     apoyos,
@@ -650,6 +682,6 @@ export function normalizarEF(raw: unknown): EfData {
       return x && f && Array.isArray(x.grupos)
         ? { fecha: f, grupos: lista(x.grupos, g => (Array.isArray(g) ? g.filter(esTexto) : null)) } : undefined;
     }),
-    pruebas, marcas, baremos, actividades, sesiones, material, instalaciones, circuitos,
+    pruebas, marcas, baremos, actividades, sesiones, material, instalaciones, circuitos, pizarras,
   };
 }
