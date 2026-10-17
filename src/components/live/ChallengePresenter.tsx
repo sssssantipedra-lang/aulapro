@@ -27,6 +27,7 @@ import { dibujosEnOrden } from '../../lib/pictosFicha';
 import { urlIlustracion, nombreIlustracion } from '../../lib/ilustraciones';
 import { bancoClasificar } from '../../lib/dibujosEjercicio';
 import { useI18n } from '../../i18n';
+import { partirNegritas, quitarNegritas } from '../../lib/negritas';
 
 const TIME_OPTIONS = [0, 10, 15, 20, 30, 45];
 
@@ -168,7 +169,10 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   const escape = c.formato === 'escape';
   const cards = c.formato === 'tarjetas';
   const acts = useMemo(() => (cards ? [] : c.actividades ?? []), [cards, c.actividades]);
-  const lastStep = cards ? 1 : acts.length + 1;
+  // Una comprensión lectora tiene una pantalla más, antes de los bloques: el texto para leerlo entre todos
+  const conTexto = !cards && !!c.lectura;
+  const off = conTexto ? 1 : 0;
+  const lastStep = cards ? 1 : acts.length + off + 1;
   const paso = escape ? 'Sala' : theme.paso;
 
   const [step, setStep] = useState(0);
@@ -199,7 +203,9 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
   const [lockState, setLockState] = useState<'idle' | 'wrong' | 'open'>('idle');
   const [tries, setTries] = useState(0);
   const boxesRef = useRef<(HTMLInputElement | null)[]>([]);
-  const act = step >= 1 && step <= acts.length ? acts[step - 1] : undefined;
+  const act = step >= 1 + off && step <= acts.length + off ? acts[step - 1 - off] : undefined;
+  /** El número del bloque que se ve (1, 2, 3…), sin contar la pantalla del texto. */
+  const bi = step - off;
   const lockLen = act?.candado ? Math.max(3, act.candado.codigo.length) : 0;
 
   function celebrate(big = false) {
@@ -358,18 +364,36 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
             </div>
           )}
 
+          {/* El texto de una comprensión lectora, para leerlo entre todos */}
+          {conTexto && step === 1 && c.lectura && (
+            <div className={`cp-lectura${c.variante === 'lectura_facil' ? ' facil' : ''}`}>
+              {c.lectura.pista && <div className="cp-lectura-pista">🔍 {c.lectura.pista}</div>}
+              <div className="cp-lectura-texto">
+                {c.lectura.parrafos.map((p, i) => {
+                  const dib = c.lectura!.dibujos.find(d => d.parrafo === i)?.ilustracion;
+                  return (
+                    <p key={i} className={c.lectura!.genero === 'poema' ? 'verso' : undefined}>
+                      {dib && <Ilus id={dib} className="cp-lectura-img" />}
+                      {quitarNegritas(p) === p ? p : partirNegritas(p).map((x, k) => (x.negrita ? <b key={k}>{x.texto}</b> : <span key={k}>{x.texto}</span>))}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Bloques / salas */}
           {act && (
             <div className="cp-room">
-              <div className="cp-room-hd" style={{ background: blockColor(step - 1) }}>
-                <span className="cp-room-emoji">{actEmoji(step - 1)}</span>
-                <span>{t(paso)} {step} · {act.titulo}</span>
+              <div className="cp-room-hd" style={{ background: blockColor(bi - 1) }}>
+                <span className="cp-room-emoji">{actEmoji(bi - 1)}</span>
+                <span>{t(paso)} {bi} · {act.titulo}</span>
                 {done.has(step) && <span className="cp-done-badge">✓</span>}
               </div>
               {act.narrativa && <div className="cp-narr">{act.narrativa}</div>}
               <div className="cp-exs">
                 {act.ejercicios.map((ex, i) => (
-                  <ProjExercise key={i} ex={ex} n={i + 1} showSol={showSol} color={blockColor(step - 1)} t={t} />
+                  <ProjExercise key={i} ex={ex} n={i + 1} showSol={showSol} color={blockColor(bi - 1)} t={t} />
                 ))}
               </div>
 
@@ -383,7 +407,7 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
                   <div className="cp-lock-body">
                     {act.candado.pista && <div className="cp-lock-hint">{act.candado.pista}</div>}
                     {lockState === 'open' ? (
-                      <div className="cp-lock-ok">{step < acts.length ? t('¡Abierto! Pasad a la sala {n}', { n: step + 1 }) : t('¡Abierto! Solo queda el cofre final')}</div>
+                      <div className="cp-lock-ok">{bi < acts.length ? t('¡Abierto! Pasad a la sala {n}', { n: bi + 1 }) : t('¡Abierto! Solo queda el cofre final')}</div>
                     ) : (
                       <form className="cp-lock-boxes" onSubmit={e => { e.preventDefault(); checkCode(); }}>
                         {Array.from({ length: lockLen }, (_, i) => (
@@ -463,14 +487,20 @@ export function ChallengePresenter({ ficha, onClose }: Props) {
         <nav className="cp-map" aria-label={t('Mapa de la aventura')}>
           <button type="button" className="cp-nav" onClick={() => go(step - 1)} disabled={step === 0} aria-label={t('Anterior')}><ChevronLeft size={22} /></button>
           <button type="button" className={`cp-dot${step === 0 ? ' cur' : ''} done`} onClick={() => go(0)} title={t('Portada')}>⭐</button>
+          {conTexto && (
+            <span className="cp-map-seg">
+              <span className="cp-line done" />
+              <button type="button" className={`cp-dot${step === 1 ? ' cur' : ''} done`} onClick={() => go(1)} title={t('El texto')}>📖</button>
+            </span>
+          )}
           {acts.map((_, i) => (
             <span key={i} className="cp-map-seg">
-              <span className={`cp-line${done.has(i + 1) ? ' done' : ''}`} />
+              <span className={`cp-line${done.has(i + 1 + off) ? ' done' : ''}`} />
               <button
-                type="button" className={`cp-dot${step === i + 1 ? ' cur' : ''}${done.has(i + 1) ? ' done' : ''}`}
-                onClick={() => go(i + 1)} title={`${t(paso)} ${i + 1}: ${acts[i].titulo}`}
+                type="button" className={`cp-dot${step === i + 1 + off ? ' cur' : ''}${done.has(i + 1 + off) ? ' done' : ''}`}
+                onClick={() => go(i + 1 + off)} title={`${t(paso)} ${i + 1}: ${acts[i].titulo}`}
               >
-                {done.has(i + 1) ? '✓' : actEmoji(i)}
+                {done.has(i + 1 + off) ? '✓' : actEmoji(i)}
               </button>
             </span>
           ))}

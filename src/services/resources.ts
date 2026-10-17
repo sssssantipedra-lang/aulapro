@@ -39,7 +39,13 @@ import {
 } from '../lib/escalera';
 import { ejemploParaPrompt } from './fichaEjemplos';
 import {
-  MIN_PARTES, MODOS_FRACCIONES, OBJETOS_FRACCION, fraccionValida, fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto,
+  NIVELES_LECTURA, actividadesPedido, actividadesSistema, generarTextoLectura, instruccionesDeLectura, lecturaFacilPrompt,
+} from './fichaLectura';
+import { textoNumerado, type FichaLectura, type GeneroLectura } from '../lib/lectura';
+import { equilibrarNegritas, negritaDelVerbo, quitarNegritas } from '../lib/negritas';
+import type { Densidad } from '../lib/densidad';
+import {
+  MAX_FIGURAS_FRACCION, MIN_PARTES, MODOS_FRACCIONES, OBJETOS_FRACCION, completarFiguras, fraccionValida, fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto,
   type CogidosFraccion, type FraccionDibujo, type ModoFracciones,
 } from '../lib/fraccionesDibujo';
 
@@ -52,7 +58,9 @@ export type FichaExerciseType =
   // Con dibujos del catálogo (hilo conductor): cada dibujo lleva su espacio para contestar
   | 'contar' | 'etiquetar' | 'clasificar'
   // Pizzas y tartas dibujadas por el código con los trozos exactos (`lib/fraccionesDibujo.ts`)
-  | 'fracciones';
+  | 'fracciones'
+  // Comprensión lectora (`lib/lectura.ts`): trabajar sobre el texto impreso, contestar varias preguntas y dibujar
+  | 'en_texto' | 'contestar' | 'dibujar';
 
 export interface FichaExercise {
   tipo: FichaExerciseType;
@@ -152,6 +160,12 @@ export interface FichaExercise {
   decimal?: boolean;
   /** Cómo se ven los trozos cogidos: en blanco y negro, separados o las dos cosas. Sin él, las dos. */
   cogidos?: CogidosFraccion;
+  /** Solo 'contestar': de 2 a 4 preguntas cortas, cada una con su línea para la respuesta. */
+  preguntas?: string[];
+  /** Solo 'en_texto' y 'dibujar': las líneas que se dejan para escribir (0 si solo se marca en el texto o se dibuja). */
+  lineasRespuesta?: number;
+  /** Solo 'completar': el recuadro con las palabras con las que se rellenan los huecos (con alguna de más). */
+  bancoPalabras?: string[];
   /** Para el profesorado — nunca se muestra en la ficha exportada. */
   solucion: string;
   /** Variante simplificada del mismo ejercicio. Solo si se pidieron niveles. */
@@ -287,6 +301,11 @@ export interface FichaContent {
    * él, la cabecera es la del área y los ejercicios no llevan dibujos.
    */
   hilo?: string;
+  /**
+   * La densidad de la hoja «Cuaderno» (`lib/densidad.ts`) si el docente la fijó a mano; sin ella, la elige la
+   * app al imprimir midiendo la hoja (el compositor).
+   */
+  densidad?: Densidad;
   historia?: FichaHistoria;
   /** Sin él, 'ficha'. */
   formato?: FichaFormato;
@@ -302,6 +321,11 @@ export interface FichaContent {
   visual?: boolean;
   /** Con apoyos visuales: las tarjetas de la explicación. */
   conceptos?: ConceptoVisual[];
+  /**
+   * Comprensión lectora (`lib/lectura.ts`): el texto de la ficha con sus dibujos. Sin él, es una ficha de ejercicios.
+   * Las actividades se hacen sobre este texto y el título de la ficha es el del texto.
+   */
+  lectura?: FichaLectura;
 }
 
 /* ── Lo que pide el docente ── */
@@ -323,6 +347,12 @@ export interface FichaRequest {
   hilo?: string;
   /** Que la IA revise su propia ficha y se rehagan los ejercicios graves (cuentas mal, datos imposibles, nivel flojo). Sin él, sí. */
   revisar?: boolean;
+  /** Comprensión lectora: un texto con dibujos y actividades sobre él (siempre en «Cuaderno»). */
+  lectura?: boolean;
+  /** Comprensión lectora: el tipo de texto; sin él, la IA elige el que encaja con el tema. */
+  generoLectura?: GeneroLectura | 'auto';
+  /** Lectura fácil para dislexia: frases cortas, palabras clave en negrita y letra más grande. */
+  facil?: boolean;
 }
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
@@ -336,11 +366,22 @@ const S = (d: string) => ({ type: 'STRING', description: d });
 export const TIPOS: FichaExerciseType[] = [
   'abierta', 'completar', 'opcion_multiple', 'problema', 'tabla_rellenar', 'relacionar', 'colorear', 'sopa_letras',
   'verdadero_falso', 'ordenar', 'crucigrama', 'comic', 'calculos', 'contar', 'etiquetar', 'clasificar', 'fracciones',
+  'en_texto', 'contestar', 'dibujar',
 ];
 
-/** Los tipos que se ofrecen a la IA y en el editor: los de dibujos solo con hilo, «fracciones» solo con el diseño «Cuaderno». */
-export function tiposDisponibles(o: { dibujos: boolean; fracciones: boolean }): FichaExerciseType[] {
-  return TIPOS.filter(t => (t === 'fracciones' ? o.fracciones : o.dibujos || !esTipoConDibujos(t)));
+/** Los tipos propios de la comprensión lectora: sin texto no tienen sentido. */
+export const TIPOS_DE_LECTURA: readonly FichaExerciseType[] = ['en_texto', 'contestar', 'dibujar'];
+
+/** En una ficha de lectura no hay cálculo ni medidas: lo que se trabaja es el texto. */
+const TIPOS_SIN_LECTURA: readonly FichaExerciseType[] = ['problema', 'calculos', 'colorear', 'contar', 'etiquetar', 'clasificar', 'fracciones'];
+
+/**
+ * Los tipos que se ofrecen a la IA y en el editor: los de dibujos solo con hilo, «fracciones» solo con el diseño
+ * «Cuaderno» y, en una ficha de comprensión lectora, los de lectura (y no los de cálculo).
+ */
+export function tiposDisponibles(o: { dibujos: boolean; fracciones: boolean; lectura?: boolean }): FichaExerciseType[] {
+  if (o.lectura) return TIPOS.filter(t => !TIPOS_SIN_LECTURA.includes(t));
+  return TIPOS.filter(t => !TIPOS_DE_LECTURA.includes(t) && (t === 'fracciones' ? o.fracciones : o.dibujos || !esTipoConDibujos(t)));
 }
 
 
@@ -479,13 +520,13 @@ const CONCEPTO_SCHEMA = {
   propertyOrdering: ['picto', 'titulo', 'texto'],
 } as const;
 
-function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false, fracciones = false) {
+function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false, fracciones = false, lectura = false) {
   const base = ['tipo', 'enunciado', ...(visual ? ['consigna'] : []), 'solucion'] as const;
   return {
     type: 'OBJECT',
     properties: {
       tipo: {
-        type: 'STRING', enum: tiposDisponibles({ dibujos, fracciones }),
+        type: 'STRING', enum: tiposDisponibles({ dibujos, fracciones, lectura }),
         description:
           '"abierta" respuesta libre, "completar" huecos, "opcion_multiple" varias opciones, ' +
           '"problema" cálculo o razonamiento con pasos, "tabla_rellenar" tabla con celdas en blanco, ' +
@@ -498,7 +539,11 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false, 
             ? ', "contar" grupos de dibujos que se cuentan, cada uno con su caja para el número, ' +
               '"etiquetar" dibujos de los que se escribe el nombre, "clasificar" dibujos que se reparten en grupos'
             : '') +
-          (fracciones ? ', "fracciones" pizzas o tartas cortadas en trozos iguales, cada una con su espacio para contestar' : ''),
+          (fracciones ? ', "fracciones" pizzas o tartas cortadas en trozos iguales, cada una con su espacio para contestar' : '') +
+          (lectura
+            ? ', "en_texto" rodear, subrayar o buscar palabras o frases en el texto impreso, "contestar" varias preguntas cortas cada una con su línea, ' +
+              '"dibujar" un recuadro para dibujar lo que se imagina del texto'
+            : ''),
       },
       enunciado: S('El texto del ejercicio o la pregunta, autocontenido'),
       ...(visual ? {
@@ -541,6 +586,20 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false, 
           description: 'Solo si tipo es "fracciones": "leer" (se ve la pizza con los trozos cogidos y se escribe la fracción), "colorear" (pizza en blanco y se colorean los trozos que dice la fracción) o "unir" (pizzas a un lado y fracciones al otro para unir)',
         },
         decimal: { type: 'BOOLEAN', description: 'Solo si tipo es "fracciones" en "leer" o "unir": true para pedir también el decimal (solo con 2, 4, 5, 8 o 10 trozos)' },
+      } : {}),
+      ...(lectura ? {
+        preguntas: {
+          type: 'ARRAY', items: { type: 'STRING' },
+          description: 'Solo si tipo es "contestar": de 2 a 4 preguntas cortas sobre el texto, cada una con su línea para la respuesta',
+        },
+        lineasRespuesta: {
+          type: 'INTEGER',
+          description: 'Solo si tipo es "en_texto" o "dibujar": las líneas que se dejan para escribir (0 si solo se marca en el texto o se dibuja; 1 o 2 si hay que escribir lo encontrado)',
+        },
+        bancoPalabras: {
+          type: 'ARRAY', items: { type: 'STRING' },
+          description: 'Solo si tipo es "completar": de 4 a 8 palabras para rellenar los huecos, con alguna de más; en un recuadro encima de las frases',
+        },
       } : {}),
       opciones: {
         type: 'ARRAY', items: { type: 'STRING' },
@@ -635,6 +694,7 @@ function fichaExerciseSchema(niveles: boolean, visual = false, dibujos = false, 
       'izquierda', 'derecha', 'leyenda', 'itemsColorear', 'palabras', 'afirmaciones', 'elementos', 'pistas', 'vinetas',
       'lineas', 'respuesta', 'figura', ...(visual ? ['imagenes'] : []), ...(dibujos ? ['dibujos', 'categorias', 'total', 'banco'] : []),
       ...(fracciones ? ['fracciones', 'modo', 'decimal'] : []),
+      ...(lectura ? ['preguntas', 'lineasRespuesta', 'bancoPalabras'] : []),
       'solucion', ...(niveles ? ['apoyo', 'ampliacion'] : []),
     ],
   } as const;
@@ -658,6 +718,8 @@ interface SchemaOpts {
   escalera?: BloquePlan[];
   /** Tema de fracciones en «Cuaderno»: los ejercicios pueden llevar pizzas y tartas dibujadas por la aplicación. */
   fracciones?: boolean;
+  /** Comprensión lectora: solo las actividades (el texto se pide aparte) y los tipos de ejercicio de lectura. */
+  lectura?: boolean;
 }
 
 const CANDADO_SCHEMA = {
@@ -714,7 +776,7 @@ function fichaActivitySchema(o: SchemaOpts) {
         pasos: { type: 'ARRAY', items: PASO_SCHEMA, description: 'De 2 a 4 pasos, en el orden en que se hacen' },
         recuerda: { type: 'ARRAY', items: RECUERDA_SCHEMA, description: 'De 0 a 3 cosas que hay que recordar para hacer el bloque' },
       } : {}),
-      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual, o.dibujos, o.fracciones) },
+      ejercicios: { type: 'ARRAY', items: fichaExerciseSchema(o.niveles, o.visual, o.dibujos, o.fracciones, o.lectura) },
       ...(o.cuaderno ? {
         recuadro: {
           ...RECUADRO_SCHEMA,
@@ -766,8 +828,29 @@ function tarjetasSchema(o: SchemaOpts) {
   } as const;
 }
 
+/** Las actividades de una ficha de comprensión lectora: el texto, la explicación y las instrucciones no las escribe esta llamada. */
+function lecturaSchema(o: SchemaOpts) {
+  return {
+    type: 'OBJECT',
+    properties: {
+      actividades: {
+        type: 'ARRAY', items: fichaActivitySchema(o),
+        ...(o.escalera?.length
+          ? {
+            minItems: o.escalera.length, maxItems: o.escalera.length,
+            description: `EXACTAMENTE ${o.escalera.length} bloques de actividad, de menos a más dificultad, cada uno con su título, su nivel y sus propios ejercicios`,
+          }
+          : { description: 'De 2 a 4 bloques de actividad, cada uno con su título y sus propios ejercicios' }),
+      },
+    },
+    required: ['actividades'],
+    propertyOrdering: ['actividades'],
+  } as const;
+}
+
 function fichaSchema(o: SchemaOpts) {
   if (o.formato === 'tarjetas') return tarjetasSchema(o);
+  if (o.lectura) return lecturaSchema(o);
   const head = [...(o.elegirEstilo ? ['estilo'] : []), 'titulo', ...(o.historia ? ['historia'] : [])];
   return {
     type: 'OBJECT',
@@ -1036,7 +1119,7 @@ function escaleraPrompt(e: Escalera, opts: { cuaderno: boolean; hilo: boolean })
 
 function systemPrompt(
   niveles: boolean, lang: Lang, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false,
-  hilo?: Hilo, escalera?: Escalera, fracciones = false,
+  hilo?: Hilo, escalera?: Escalera, fracciones = false, facil = false,
 ): string {
   if (formato === 'tarjetas') return tarjetasSystemPrompt(lang, estilo);
   // Con pizzas dibujadas por la aplicación, las del catálogo (trozos desiguales, uno suelto) no se ofrecen a la IA para fracciones
@@ -1115,6 +1198,7 @@ function systemPrompt(
     (hiloIA && !visual && formato === 'ficha' ? hiloPrompt(hiloIA, lang) : '') +
     (fracciones && !visual && formato === 'ficha' ? fraccionesPrompt() : '') +
     (escalera ? escaleraPrompt(escalera, { cuaderno: estilo === 'cuaderno' && formato === 'ficha', hilo: !!hilo && !visual && formato === 'ficha' }) : '') +
+    (facil ? lecturaFacilPrompt() : '') +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -1379,7 +1463,6 @@ const esRotulado = (t: string): boolean =>
   && /\b(?:cada|debajo|bajo|junto|su dibujo|sus dibujos|sota|each|below|under)\b/i.test(t);
 
 /** Cuántas figuras como mucho: en el ejercicio «fracciones», cuatro; como dibujo del enunciado de otro tipo, tres. */
-const MAX_FIGURAS_FRACCION = 4;
 const MAX_FIGURAS_AMBIENTE = 3;
 
 /** Los tipos cuyo enunciado puede llevar una pizza al lado (la misma lista que la figura geométrica). */
@@ -1409,51 +1492,76 @@ function cleanFracciones(ex: FichaExercise, permitido: boolean, lang: Lang): Fic
   const cogidos = COGIDOS_VALIDOS.includes(ex.cogidos as CogidosFraccion) ? { cogidos: ex.cogidos } : {};
   if (!dedicado) return { ...out, fracciones: figuras, ...cogidos };
   const modo: ModoFracciones = MODOS_FRACCIONES.includes(ex.modo as ModoFracciones) ? ex.modo as ModoFracciones : 'leer';
-  const modoFinal: ModoFracciones = modo === 'unir' && figuras.length < 2 ? 'leer' : modo;
-  const decimal = !!ex.decimal && modoFinal !== 'colorear' && figuras.every(tieneDecimalExacto);
-  const limpio: FichaExercise = { ...out, fracciones: figuras, modo: modoFinal, ...(decimal ? { decimal: true } : {}), ...cogidos };
+  // Con menos de tres figuras no hay con qué comparar: el código añade las que faltan
+  const completas = completarFiguras(figuras, modo, !!ex.decimal && modo !== 'colorear');
+  const decimal = !!ex.decimal && modo !== 'colorear' && completas.every(tieneDecimalExacto);
+  const limpio: FichaExercise = { ...out, fracciones: completas, modo, ...(decimal ? { decimal: true } : {}), ...cogidos };
   return { ...limpio, solucion: solucionFracciones(limpio, lang) };
 }
 
 /** Un «problema» que pide explicar y no lleva ni una cifra no es de cálculo: es una pregunta abierta (la hoja le daría una cuadrícula de operaciones). */
 const RE_EXPLICA = /\b(?:explica|razona|justifica|describe|argumenta|por qu[eé])\b/i;
 
-function cleanExercise(ex: FichaExercise, visual = false, conDibujos = false, lang: Lang = 'es', conFracciones = false): FichaExercise {
+/** Lo que cambia al limpiar un ejercicio en lectura fácil (negritas) o en una ficha de comprensión lectora (tipos propios). */
+interface ExtraLimpieza {
+  facil?: boolean;
+  /** Comprensión lectora: los ejercicios son de lectura (sin pizzas ni dibujos del catálogo). */
+  lectura?: boolean;
+}
+
+/** Las líneas que se dejan para escribir lo encontrado en el texto o bajo un dibujo: de 0 a `max`, y una si el enunciado pide escribir. */
+function lineasDeRespuestaIA(valor: unknown, enunciado: string, max: number): number {
+  const n = Math.round(Number(valor));
+  if (Number.isFinite(n) && n >= 0) return Math.min(max, n);
+  return /\b(?:escr[ií]be(?:l[oa]s?)?|copia(?:l[oa]s?)?|anota(?:l[oa]s?)?|escriu(?:-l[oa]s?)?|escriure|write)\b/i.test(enunciado) ? 1 : 0;
+}
+
+function cleanExercise(
+  ex: FichaExercise, visual = false, conDibujos = false, lang: Lang = 'es', conFracciones = false, extra: ExtraLimpieza = {},
+): FichaExercise {
   const limpio = cleanFracciones(cleanDibujosDeEjercicio({ ...ex, ...cleanVisualExercise(ex, visual) }, conDibujos && !visual, lang, conFracciones), conFracciones && !visual, lang);
+  // Las negritas solo en lectura fácil, y bien cerradas; en el resto de fichas no se piden y se quitan
+  const t = (x: string) => (extra.facil ? equilibrarNegritas(cleanMathNotation(x)) : quitarNegritas(cleanMathNotation(x)));
+  const plano = (x: string) => quitarNegritas(cleanMathNotation(x));
+  let tipo: FichaExerciseType = limpio.tipo === 'problema' && !limpio.figura && !/\d/.test(limpio.enunciado ?? '') && RE_EXPLICA.test(limpio.enunciado ?? '') ? 'abierta' : limpio.tipo;
+  let enunciado = t(limpio.enunciado ?? '');
+  // «Contestar» con una sola pregunta (o ninguna) es una pregunta abierta
+  const preguntas = (limpio.tipo === 'contestar' ? limpio.preguntas ?? [] : []).map(t).filter(x => x.trim()).slice(0, 5);
+  if (limpio.tipo === 'contestar' && preguntas.length < 2) {
+    tipo = 'abierta';
+    enunciado = preguntas[0] ?? enunciado;
+  }
+  if (extra.facil) enunciado = negritaDelVerbo(enunciado);
+  const bancoPalabras = limpio.tipo === 'completar' ? (limpio.bancoPalabras ?? []).map(plano).filter(x => x.trim()).slice(0, 10) : [];
+  const resto = { ...limpio };
+  delete resto.preguntas; delete resto.lineasRespuesta; delete resto.bancoPalabras;
   return {
-    ...limpio,
-    ...(limpio.tipo === 'problema' && !limpio.figura && !/\d/.test(limpio.enunciado ?? '') && RE_EXPLICA.test(limpio.enunciado ?? '') ? { tipo: 'abierta' as const } : {}),
-    enunciado: cleanMathNotation(limpio.enunciado),
-    opciones: limpio.opciones?.map(cleanMathNotation),
-    columnas: limpio.columnas?.map(cleanMathNotation),
-    filas: limpio.filas?.map(fila => fila.map(cleanMathNotation)),
-    izquierda: limpio.izquierda?.map(cleanMathNotation),
-    derecha: limpio.derecha?.map(cleanMathNotation),
-    leyenda: limpio.leyenda?.map(l => ({ color: l.color, criterio: cleanMathNotation(l.criterio) })),
-    itemsColorear: limpio.itemsColorear?.map(cleanMathNotation),
-    afirmaciones: limpio.afirmaciones?.map(cleanMathNotation),
-    elementos: limpio.elementos?.map(cleanMathNotation),
-    pistas: limpio.pistas?.map(p => ({ palabra: p.palabra, pista: cleanMathNotation(p.pista) })),
-    vinetas: limpio.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: cleanMathNotation(v.texto ?? '') })),
+    ...resto,
+    tipo,
+    enunciado,
+    ...(tipo === 'contestar' ? { preguntas } : {}),
+    ...(tipo === 'en_texto' ? { lineasRespuesta: lineasDeRespuestaIA(limpio.lineasRespuesta, enunciado, 3) } : {}),
+    ...(tipo === 'dibujar' ? { lineasRespuesta: lineasDeRespuestaIA(limpio.lineasRespuesta, enunciado, 2) } : {}),
+    ...(bancoPalabras.length >= 2 ? { bancoPalabras } : {}),
+    opciones: limpio.opciones?.map(t),
+    columnas: limpio.columnas?.map(plano),
+    filas: limpio.filas?.map(fila => fila.map(plano)),
+    izquierda: limpio.izquierda?.map(t),
+    derecha: limpio.derecha?.map(t),
+    leyenda: limpio.leyenda?.map(l => ({ color: l.color, criterio: plano(l.criterio) })),
+    itemsColorear: limpio.itemsColorear?.map(plano),
+    afirmaciones: limpio.afirmaciones?.map(t),
+    elementos: limpio.elementos?.map(t),
+    pistas: limpio.pistas?.map(p => ({ palabra: p.palabra, pista: plano(p.pista) })),
+    vinetas: limpio.vinetas?.map(v => ({ personaje: cleanEmoji(v.personaje, '🙂'), texto: plano(v.texto ?? '') })),
     ...(limpio.tipo === 'calculos' ? { lineas: cleanLineas(limpio.lineas), respuesta: limpio.respuesta === 'caja' ? 'caja' as const : 'linea' as const } : {}),
     // Una IA floja a veces se enrolla sin fin en la solución (salió una de más de 900 letras): el tope lo corta
-    solucion: cleanMathNotation(limpio.solucion ?? '').slice(0, 1500),
-    apoyo: limpio.apoyo ? cleanMathNotation(limpio.apoyo) : limpio.apoyo,
-    ampliacion: limpio.ampliacion ? cleanMathNotation(limpio.ampliacion) : limpio.ampliacion,
+    solucion: plano(limpio.solucion ?? '').slice(0, 1500),
+    apoyo: limpio.apoyo ? plano(limpio.apoyo) : limpio.apoyo,
+    ampliacion: limpio.ampliacion ? plano(limpio.ampliacion) : limpio.ampliacion,
   };
 }
 
-/**
- * La IA solo propone la lista de palabras de un ejercicio "sopa_letras"; la
- * rejilla en sí la calcula `buildWordSearchGrid` (algoritmo determinista, no
- * IA — ver la cabecera de `lib/wordSearch.ts`). Aquí se genera una única vez,
- * al recibir la respuesta de la IA, y el resultado queda guardado en el
- * ejercicio: reabrir una ficha guardada no vuelve a barajar la rejilla.
- *
- * `palabras` se reduce a las que consiguieron colocarse (en su mismo orden
- * original) para que la lista que ve el alumnado nunca incluya una palabra
- * que no está en la rejilla.
- */
 function attachWordSearchGrid(ex: FichaExercise): FichaExercise {
   if (ex.tipo !== 'sopa_letras' || !ex.palabras?.length) return ex;
   const { rejilla, posiciones } = buildWordSearchGrid(ex.palabras);
@@ -1500,8 +1608,10 @@ export function cleanCode(raw: string): string {
 
 function cleanFichaContent(
   c: FichaContent, estilo: FichaThemeChoice = 'clasico', formato: FichaFormato = 'ficha', visual = false, hiloElegido?: Hilo,
-  lang: Lang = 'es', plan?: BloquePlan[],
+  lang: Lang = 'es', plan?: BloquePlan[], extra: ExtraLimpieza = {},
 ): FichaContent {
+  // Las negritas de la lectura fácil, bien cerradas; sin ella, ninguna
+  const texto = (x: string) => (extra.facil ? equilibrarNegritas(cleanMathNotation(x)) : quitarNegritas(cleanMathNotation(x)));
   const hilo = hiloElegido && !visual && formato === 'ficha' ? hiloElegido : undefined;
   const finalEstilo: FichaThemeId = estilo === 'auto'
     ? (STORY_THEME_IDS.includes(c.estilo as FichaThemeId) ? c.estilo as FichaThemeId : 'espacio')
@@ -1511,8 +1621,8 @@ function cleanFichaContent(
     ? {
       ...c.historia,
       emoji: cleanEmoji(c.historia.emoji, theme.personaje),
-      mision: cleanMathNotation(c.historia.mision),
-      cierre: cleanMathNotation(c.historia.cierre),
+      mision: texto(c.historia.mision),
+      cierre: texto(c.historia.cierre),
     }
     : undefined;
   return {
@@ -1521,8 +1631,9 @@ function cleanFichaContent(
     historia,
     formato,
     titulo: cleanMathNotation(c.titulo),
-    explicacion: cleanMathNotation(c.explicacion ?? ''),
-    instrucciones: cleanMathNotation(c.instrucciones ?? ''),
+    explicacion: texto(c.explicacion ?? ''),
+    instrucciones: texto(c.instrucciones ?? ''),
+    ...(extra.facil && formato !== 'tarjetas' ? { variante: 'lectura_facil' as const } : {}),
     ...(visual ? { visual: true, conceptos: cleanConceptos(c.conceptos) } : { visual: undefined, conceptos: undefined }),
     hilo: hilo?.id,
     // «De menos a más»: los bloques se ordenan por su nivel, y si la IA no los trae bien, se reparten por posición
@@ -1535,11 +1646,11 @@ function cleanFichaContent(
       ...(act.dificultad ? { dificultad: act.dificultad } : {}),
       ...(historia ? {
         emoji: cleanEmoji(act.emoji, theme.iconos[i % theme.iconos.length]),
-        narrativa: cleanMathNotation(act.narrativa ?? ''),
+        narrativa: quitarNegritas(cleanMathNotation(act.narrativa ?? '')),
       } : {}),
       ...cleanVisualActivity(act, visual),
       ...(cleanRecuadro(act.recuadro) ? { recuadro: cleanRecuadro(act.recuadro) } : {}),
-      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual, !!hilo, lang, finalEstilo === 'cuaderno' && formato === 'ficha')).map(prepareExercise),
+      ejercicios: (act.ejercicios ?? []).map(ex => cleanExercise(ex, visual, !!hilo, lang, finalEstilo === 'cuaderno' && formato === 'ficha' && !extra.lectura, extra)).map(prepareExercise),
       ...(formato === 'escape' && act.candado ? {
         candado: { codigo: cleanCode(act.candado.codigo), pista: cleanMathNotation(act.candado.pista ?? '') },
       } : {}),
@@ -1556,7 +1667,7 @@ type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: strin
 
 async function callFichaText(
   system: string, user: string, niveles: boolean, estilo: FichaThemeChoice, formato: FichaFormato, onError?: (m: string) => void,
-  visual = false, hilo?: Hilo, lang: Lang = 'es', plan?: BloquePlan[], fracciones = false,
+  visual = false, hilo?: Hilo, lang: Lang = 'es', plan?: BloquePlan[], fracciones = false, extra: ExtraLimpieza = {},
 ): Promise<FichaContent | null> {
   const raw = await callGemini(system, user, [], { onError }, {
     // Con apoyos visuales la respuesta lleva además pasos, dibujos y tarjetas
@@ -1571,6 +1682,7 @@ async function callFichaText(
       dibujos: !!hilo && !visual && formato === 'ficha',
       escalera: formato === 'tarjetas' ? undefined : plan,
       fracciones,
+      lectura: extra.lectura,
     }),
     thinkingLevel: 'medium',
     // Con responseSchema el modelo tiende a converger en respuestas "típicas"
@@ -1582,7 +1694,7 @@ async function callFichaText(
   if (!raw) return null;
   const parsed = parseGeminiJson<FichaContent>(raw);
   if (!parsed) return null;
-  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual, hilo, lang, plan);
+  return cleanFichaContent({ ...parsed, actividades: parsed.actividades ?? [] }, estilo, formato, visual, hilo, lang, plan, extra);
 }
 
 /** Un escape room necesita historia: con «Clásica» se deja elegir el mundo a la IA. */
@@ -1688,6 +1800,9 @@ export function problemaDeEjercicio(ex: FichaExercise, conHilo: boolean): string
   return undefined;
 }
 
+/** ¿Es una ficha en lectura fácil (dislexia)? */
+export const esFacil = (c: Pick<FichaContent, 'variante'>): boolean => c.variante === 'lectura_facil';
+
 /** La ficha con el ejercicio `e` del bloque `a` cambiado por `nuevo`. */
 function conEjercicio(content: FichaContent, a: number, e: number, nuevo: FichaExercise): FichaContent {
   return {
@@ -1713,7 +1828,7 @@ async function repararFicha(
     for (let e = 0; e < content.actividades[a].ejercicios.length && hechos < 3; e++) {
       const roto = actual.actividades[a].ejercicios[e];
       // «Escribe la fracción de cada figura» sin ninguna figura (salió con una IA real): las pizzas las monta el código
-      if (admiteFraccionesEn(actual, req) && hablaDeFigurasSinFiguras(roto)) {
+      if (!actual.lectura && admiteFraccionesEn(actual, req) && hablaDeFigurasSinFiguras(roto)) {
         actual = conEjercicio(actual, a, e, fraccionesParaEjercicio('leer', lang, { decimal: /decimal/i.test(req.tema ?? '') }) as FichaExercise);
         continue;
       }
@@ -1770,6 +1885,23 @@ const REVISION_SCHEMA = {
   propertyOrdering: ['problemas'],
 } as const;
 
+const REVISION_SISTEMA_LECTURA =
+  `Eres un maestro o una maestra de Lengua con muchos años de experiencia que revisa una ficha de comprensión lectora antes de repartirla ` +
+  `al alumnado. Encuentra los fallos GRAVES, no retoques el estilo. Tienes el texto (con sus párrafos numerados) y las actividades. Revisa ` +
+  `ejercicio por ejercicio, volviendo al texto:\n` +
+  `1. El ejercicio se puede hacer SOLO con el texto, y la solución es correcta y dice lo mismo que el texto (compruébalo en el párrafo ` +
+  `que corresponda). Una solución que el texto contradice, o una pregunta cuya respuesta no está ni se deduce del texto, es siempre grave.\n` +
+  `2. Está bien montado: en "verdadero_falso" las falsas tienen un error que se puede razonar en el texto; en "opcion_multiple" hay una sola ` +
+  `correcta; en "ordenar" el orden de "elementos" es el del texto; en "completar" los huecos se deducen y las palabras del recuadro encajan; ` +
+  `en "en_texto" lo que hay que marcar está de verdad en el texto, con esas palabras.\n` +
+  `3. El nivel es el que toca: el bloque 1 pide localizar lo que el texto dice; el 2, vocabulario e inferencias; el 3, opinar y crear. Un ` +
+  `ejercicio del bloque 3 que solo pide copiar una frase, o uno de un curso inferior, es grave.\n` +
+  `4. No repite otro ejercicio ni da la respuesta de otro (un enunciado que cuenta lo que pregunta otro).\n` +
+  `5. Si es lectura fácil: los enunciados son cortos y de una sola tarea.\n` +
+  `NO son fallos: en "ordenar" los "elementos" vienen en el orden correcto a propósito (la aplicación los desordena); "dibujar" y las ` +
+  `preguntas de opinión no tienen una única respuesta; la "solucion" es para el profesorado (no la juzgues por su estilo).\n` +
+  `Si algo no es grave, no lo menciones. Si la ficha está bien, devuelve la lista vacía. Como mucho tres fallos, los más graves.`;
+
 const REVISION_SISTEMA =
   `Eres un maestro o una maestra con muchos años de experiencia que revisa una ficha de trabajo antes de repartirla al ` +
   `alumnado. Tu trabajo es encontrar los fallos GRAVES, no retocar el estilo. Revisa ejercicio por ejercicio, haciendo tú las ` +
@@ -1820,13 +1952,16 @@ export async function revisarFicha(
         }),
       })),
     };
-    const userPrompt =
-      `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
-      `Qué se espera en cada nivel de dificultad en este curso:\n` +
-      ([1, 2, 3] as Dificultad[]).map(d => `- Nivel ${d}: ${esperado[d]}`).join('\n') + '\n' +
-      avisoDeSubida(perfil) +
-      `\nFicha (JSON):\n${JSON.stringify(revisable)}\n\nRevísala. El idioma de salida DEBE SER ${idioma(lang)}.`;
-    const raw = await callGemini(REVISION_SISTEMA, userPrompt, [], { onError: callbacks.onError }, {
+    const userPrompt = content.lectura
+      ? `Tema: ${req.tema}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n${esFacil(content) ? 'Es una ficha en lectura fácil.\n' : ''}` +
+        `Qué se espera en cada nivel:\n${([1, 2, 3] as const).map(d => `- Nivel ${d}: ${NIVELES_LECTURA[d]}`).join('\n')}\n` +
+        `\nTEXTO (${content.lectura.genero}):\n${textoNumerado(content.lectura)}\n\nActividades (JSON):\n${JSON.stringify(revisable)}\n\nRevísalas. El idioma de salida DEBE SER ${idioma(lang)}.`
+      : `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
+        `Qué se espera en cada nivel de dificultad en este curso:\n` +
+        ([1, 2, 3] as Dificultad[]).map(d => `- Nivel ${d}: ${esperado[d]}`).join('\n') + '\n' +
+        avisoDeSubida(perfil) +
+        `\nFicha (JSON):\n${JSON.stringify(revisable)}\n\nRevísala. El idioma de salida DEBE SER ${idioma(lang)}.`;
+    const raw = await callGemini(content.lectura ? REVISION_SISTEMA_LECTURA : REVISION_SISTEMA, userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 8192,
       responseSchema: REVISION_SCHEMA,
       thinkingLevel: 'medium',
@@ -1959,9 +2094,9 @@ function completarFracciones(content: FichaContent, req: Pick<FichaRequest, 'tem
 async function mejorarFicha(
   content: FichaContent, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lang: Lang, revisar = true, plan?: BloquePlan[],
 ): Promise<FichaContent> {
-  let actual = completarFracciones(completarDibujos(
-    await repararFicha(await ajustarAlReparto(content, req, plan, lang), req, lang), perfilDeCurso(req.nivel, req), lang,
-  ), req, lang);
+  const reparada = await repararFicha(await ajustarAlReparto(content, req, plan, lang), req, lang);
+  // Una ficha de lectura no lleva dibujos de ejercicio ni pizzas: lo suyo es el texto
+  let actual = content.lectura ? reparada : completarFracciones(completarDibujos(reparada, perfilDeCurso(req.nivel, req), lang), req, lang);
   if (!revisar || (actual.formato ?? 'ficha') !== 'ficha') return actual;
   for (const h of await revisarFicha(actual, req, lang)) {
     const a = h.bloque - 1;
@@ -1985,9 +2120,12 @@ export async function generateFicha(
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
   try {
+    // Comprensión lectora: primero el texto y después las actividades sobre él
+    if (req.lectura) return await generateLectura(req, lang, callbacks);
     const formato = req.formato ?? 'ficha';
     const estilo = effectiveEstilo(req.estilo, formato);
     const visual = !!req.visual && formato !== 'tarjetas';
+    const facil = !!req.facil && formato !== 'tarjetas';
     // La escalera de dificultad la decide el código: cuántos bloques y de qué nivel
     const perfil = perfilDeCurso(req.nivel, req);
     const plan = formato === 'tarjetas' ? undefined : planDeBloques(req.numEjercicios);
@@ -2001,13 +2139,43 @@ export async function generateFicha(
     const hilo = resolverHilo(req, estilo, formato, visual);
     const fracciones = admiteFracciones({ estilo, formato, visual }, req);
     const content = await callFichaText(
-      systemPrompt(req.niveles, lang, estilo, formato, visual, hilo, plan?.length ? { plan, perfil } : undefined, fracciones),
-      userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo, lang, plan, fracciones,
+      systemPrompt(req.niveles, lang, estilo, formato, visual, hilo, plan?.length ? { plan, perfil } : undefined, fracciones, facil),
+      userPrompt, req.niveles, estilo, formato, callbacks.onError, visual, hilo, lang, plan, fracciones, { facil },
     );
     return content ? await mejorarFicha(content, req, lang, req.revisar !== false, plan) : null;
   } finally {
     callbacks.onEnd?.();
   }
+}
+
+/* ── Comprensión lectora: un texto con sus dibujos y actividades sobre él ── */
+
+/**
+ * La ficha de comprensión lectora, en dos llamadas como lo haría un docente: primero el texto (su longitud la comprueba el
+ * código y los dibujos son del catálogo), y después las actividades, escritas sobre el texto ya escrito. Siempre en
+ * «Cuaderno». Con `base`, el texto que se reescribe (la lectura fácil de una ficha que ya existe).
+ */
+async function generateLectura(
+  req: FichaRequest, lang: Lang, callbacks: Callbacks, base?: { titulo: string; lectura: FichaLectura },
+): Promise<FichaContent | null> {
+  const facil = !!req.facil;
+  const perfil = perfilDeCurso(req.nivel, req);
+  const texto = await generarTextoLectura(
+    req.tema, { perfil, facil, tema: req.tema, area: req.area, nivel: req.nivel }, lang,
+    { onError: callbacks.onError, genero: req.generoLectura, base },
+  );
+  if (!texto) return null;
+  const plan = planDeBloques(req.numEjercicios);
+  const content = await callFichaText(
+    actividadesSistema(lang, plan, perfil, facil), actividadesPedido(texto.titulo, texto.lectura, plan, req.numEjercicios),
+    false, 'cuaderno', 'ficha', callbacks.onError, false, undefined, lang, plan, false, { facil, lectura: true },
+  );
+  if (!content) return null;
+  const completa: FichaContent = {
+    ...content, titulo: texto.titulo, lectura: texto.lectura, explicacion: '', instrucciones: instruccionesDeLectura(lang, facil),
+    estilo: 'cuaderno', formato: 'ficha', hilo: undefined,
+  };
+  return mejorarFicha(completa, req, lang, req.revisar !== false, plan);
 }
 
 /* ── Vía anclada: a partir de una Situación de Aprendizaje ya redactada ── */
@@ -2062,9 +2230,10 @@ function exerciseForPrompt(ex: FichaExercise): Partial<FichaExercise> {
 }
 
 /** Lo que se espera del ejercicio de un bloque, para que el nuevo no baje ni suba de nivel. */
-function nivelDeBloquePrompt(act: FichaActivity, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>): string {
+function nivelDeBloquePrompt(act: FichaActivity, req: Pick<FichaRequest, 'tema' | 'area' | 'nivel'>, lectura = false): string {
   const perfil = perfilDeCurso(req.nivel, req);
   const d = act.dificultad;
+  if (lectura) return d ? `Nivel de dificultad de este bloque: ${d} de 3 (${NOMBRE_DIFICULTAD[d].toLowerCase()}). Aquí se pide: ${NIVELES_LECTURA[d]}\n` : '';
   return (d ? `Nivel de dificultad de este bloque: ${d} de 3 (${NOMBRE_DIFICULTAD[d].toLowerCase()}). Aquí se pide: ${expectativas(perfil)[d]}\n` : '') +
     avisoDeSubida(perfil);
 }
@@ -2075,7 +2244,8 @@ function fichaContextForPrompt(c: FichaContent, req: Pick<FichaRequest, 'tema' |
     `Tema: ${req.tema}\n` +
     `Área o asignatura: ${req.area || '(no indicada)'}\n` +
     `Curso o nivel: ${req.nivel || '(no indicado)'}\n` +
-    (c.historia ? `Historia de la ficha: ${c.historia.personaje} — ${c.historia.mision}\n` : '')
+    (c.historia ? `Historia de la ficha: ${c.historia.personaje} — ${c.historia.mision}\n` : '') +
+    (c.lectura ? `TEXTO (${c.lectura.genero}; los párrafos van numerados):\n${textoNumerado(c.lectura)}\n` : '')
   );
 }
 
@@ -2107,25 +2277,31 @@ export async function regenerateExercise(
     const userPrompt =
       fichaContextForPrompt(content, req) +
       `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n` +
-      nivelDeBloquePrompt(act, req) + '\n' +
+      nivelDeBloquePrompt(act, req, !!content.lectura) + '\n' +
       `Ejercicio actual (JSON):\n${JSON.stringify(exerciseForPrompt(ex))}\n\n` +
       `Rehaz SOLO este ejercicio. Indicación del docente: ${opts.instruccion || 'haz una versión distinta'}.\n` +
       (opts.tipo ? `El nuevo ejercicio debe ser de tipo "${opts.tipo}".\n` : 'Mantén el mismo tipo salvo que la indicación pida otro.\n') +
-      `Debe seguir encajando en la ficha y en su historia, con el mismo nivel de dificultad que el resto de su bloque.\n\n${numberVarietyHint(perfilDeCurso(req.nivel, req))}`;
-    const visual = !!content.visual;
-    const hilo = visual ? undefined : hiloPorId(content.hilo);
+      `Debe seguir encajando en la ficha y en su historia, con el mismo nivel de dificultad que el resto de su bloque.\n\n` +
+      (content.lectura ? '' : numberVarietyHint(perfilDeCurso(req.nivel, req)));
+    const lectura = !!content.lectura;
+    const facil = esFacil(content);
+    const visual = !!content.visual && !lectura;
+    const hilo = visual || lectura ? undefined : hiloPorId(content.hilo);
     // Las pizzas por fracciones, si el tema las admite o el ejercicio (o su bloque) ya las lleva
-    const fracciones = conFraccionesEn(content, req, [ex]);
-    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo, undefined, fracciones), userPrompt, [], { onError: callbacks.onError }, {
+    const fracciones = !lectura && conFraccionesEn(content, req, [ex]);
+    const sistema = lectura
+      ? actividadesSistema(lang, [], perfilDeCurso(req.nivel, req), facil, true)
+      : systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo, undefined, fracciones, facil);
+    const raw = await callGemini(sistema, userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo, fracciones),
+      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo, fracciones, lectura),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang, content.estilo === 'cuaderno'));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang, content.estilo === 'cuaderno' && !lectura, { facil, lectura }));
   } finally {
     callbacks.onEnd?.();
   }
@@ -2206,11 +2382,9 @@ const VARIANTE_PROMPT: Record<FichaVariante, string> = {
     `mismos bloques, mismos tipos de ejercicio y el mismo número de ejercicios, pero con más reto: datos ` +
     `más complejos, más pasos, pedir que justifiquen o generalicen, y alguna conexión con otros contenidos.`,
   lectura_facil:
-    `Crea la versión en LECTURA FÁCIL de esta ficha, siguiendo las pautas de Lectura Fácil: frases cortas ` +
-    `(como mucho 15-20 palabras), una idea por frase, palabras frecuentes, voz activa, sin metáforas, ` +
-    `ironías ni dobles negaciones, instrucciones paso a paso y numeradas, y las palabras difíciles ` +
-    `explicadas entre paréntesis la primera vez. El contenido académico y el número de ejercicios son los ` +
-    `mismos; solo cambia cómo está escrito.`,
+    `Crea la versión en LECTURA FÁCIL de esta ficha, para alumnado con dislexia o con dificultades lectoras. El contenido académico, ` +
+    `los bloques y el número de ejercicios son los mismos; solo cambia cómo está escrito (ver LECTURA FÁCIL): frases cortas, ` +
+    `una idea por frase, palabras clave en negrita con **doble asterisco** y enunciados de una sola tarea.`,
   visual:
     `Crea la versión CON APOYOS VISUALES de esta ficha (ver APOYOS VISUALES): mismo tema, mismos bloques, ` +
     `mismos tipos de ejercicio y el mismo número de ejercicios, con los mismos contenidos. Añade los pasos con ` +
@@ -2228,6 +2402,16 @@ export async function adaptFicha(
 ): Promise<FichaContent | null> {
   callbacks.onStart?.();
   try {
+    // Una ficha de comprensión lectora solo se adapta a lectura fácil, y reescribiendo su texto (las actividades se rehacen sobre él)
+    if (content.lectura) {
+      if (variante !== 'lectura_facil') return null;
+      const total = content.actividades.reduce((n, a) => n + a.ejercicios.length, 0);
+      const res = await generateLectura(
+        { ...req, lectura: true, facil: true, generoLectura: content.lectura.genero, numEjercicios: Math.max(3, total) }, lang, callbacks,
+        { titulo: content.titulo, lectura: content.lectura },
+      );
+      return res ? { ...res, variante } : null;
+    }
     const formato = content.formato ?? 'ficha';
     const estilo: FichaThemeId = content.estilo ?? 'clasico';
     const historia = !!content.historia && conHistoria(estilo) && formato !== 'tarjetas';
@@ -2253,7 +2437,8 @@ export async function adaptFicha(
     const hilo = cuaderno && !visual ? hiloPorId(content.hilo) : undefined;
     // Una ficha con pizzas por fracciones las conserva en sus versiones adaptadas (menos la visual, que lleva pictogramas)
     const fracciones = cuaderno && !visual && conFraccionesEn(content, req, content.actividades.flatMap(a => a.ejercicios));
-    const raw = await callGemini(systemPrompt(false, lang, estiloPrompt, formato, visual, hilo, undefined, fracciones), userPrompt, [], { onError: callbacks.onError }, {
+    const facil = variante === 'lectura_facil' && formato !== 'tarjetas';
+    const raw = await callGemini(systemPrompt(false, lang, estiloPrompt, formato, visual, hilo, undefined, fracciones, facil), userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: visual ? 24576 : 16384,
       responseSchema: fichaSchema({ niveles: false, historia, elegirEstilo: false, formato, visual, cuaderno, dibujos: !!hilo, fracciones }),
       thinkingLevel: 'medium',
@@ -2265,7 +2450,7 @@ export async function adaptFicha(
     // Misma ficha, mismos bloques: cada uno conserva su peldaño de la escalera
     const mismos = (parsed.actividades ?? []).length === content.actividades.length;
     const actividades = (parsed.actividades ?? []).map((a, i) => ({ ...a, dificultad: mismos ? content.actividades[i].dificultad : a.dificultad }));
-    const out = cleanFichaContent({ ...parsed, actividades }, estiloPrompt, formato, visual, hilo, lang);
+    const out = cleanFichaContent({ ...parsed, actividades }, estiloPrompt, formato, visual, hilo, lang, undefined, { facil });
     return { ...out, estilo, variante };
   } finally {
     callbacks.onEnd?.();
@@ -2292,27 +2477,32 @@ export async function addExercise(
     const userPrompt =
       fichaContextForPrompt(content, req) +
       `Bloque de actividad: ${act.titulo}${act.narrativa ? ` (${act.narrativa})` : ''}\n` +
-      nivelDeBloquePrompt(act, req) +
+      nivelDeBloquePrompt(act, req, !!content.lectura) +
       `Ejercicios que ya tiene el bloque (no los repitas):\n` +
       act.ejercicios.map((e, i) => `${i + 1}. [${e.tipo}] ${e.enunciado}`).join('\n') + '\n\n' +
       `Crea UN ejercicio nuevo para este bloque, distinto de los anteriores y con el mismo nivel.\n` +
       (opts.tipo ? `Debe ser de tipo "${opts.tipo}".\n` : 'Elige el tipo que mejor complete el bloque, preferiblemente uno que el bloque aún no tenga.\n') +
       (opts.instruccion ? `Indicación del docente: ${opts.instruccion}\n` : '') +
       (formato === 'escape' ? 'Es un escape room: el ejercicio debe tener una respuesta corta y única.\n' : '') +
-      `\n${numberVarietyHint(perfilDeCurso(req.nivel, req))}`;
-    const visual = !!content.visual;
-    const hilo = visual ? undefined : hiloPorId(content.hilo);
-    const fracciones = conFraccionesEn(content, req, act.ejercicios);
-    const raw = await callGemini(systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo, undefined, fracciones), userPrompt, [], { onError: callbacks.onError }, {
+      (content.lectura ? '' : `\n${numberVarietyHint(perfilDeCurso(req.nivel, req))}`);
+    const lectura = !!content.lectura;
+    const facil = esFacil(content);
+    const visual = !!content.visual && !lectura;
+    const hilo = visual || lectura ? undefined : hiloPorId(content.hilo);
+    const fracciones = !lectura && conFraccionesEn(content, req, act.ejercicios);
+    const sistema = lectura
+      ? actividadesSistema(lang, [], perfilDeCurso(req.nivel, req), facil, true)
+      : systemPrompt(niveles, lang, 'clasico', 'ficha', visual, hilo, undefined, fracciones, facil);
+    const raw = await callGemini(sistema, userPrompt, [], { onError: callbacks.onError }, {
       maxOutputTokens: 4096,
-      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo, fracciones),
+      responseSchema: fichaExerciseSchema(niveles, visual, !!hilo, fracciones, lectura),
       thinkingLevel: 'low',
       temperature: 1.1,
     });
     if (!raw) return null;
     const parsed = parseGeminiJson<FichaExercise>(raw);
     if (!parsed?.tipo || !parsed.enunciado) return null;
-    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang, content.estilo === 'cuaderno'));
+    return prepareExercise(cleanExercise(parsed, visual, !!hilo, lang, content.estilo === 'cuaderno' && !lectura, { facil, lectura }));
   } finally {
     callbacks.onEnd?.();
   }

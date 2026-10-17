@@ -1,5 +1,5 @@
 /**
- * Hilos conductores de las fichas (decisión del dueño, 14-10-2026): los 281
+ * Hilos conductores de las fichas (decisión del dueño, 14-10-2026): los 319
  * dibujos del catálogo (`ilustraciones.ts`) clasificados por tópicos. Un hilo
  * es el «mundo» al que pertenece lo que se trabaja (la granja, el sistema
  * solar, el cuerpo humano, el reparto en partes iguales…) y reúne los dibujos
@@ -150,7 +150,7 @@ export const HILOS: readonly Hilo[] = [
     id: 'dia-noche', nombre: n('El día y la noche', 'El dia i la nit', 'Day and night'),
     temas: ['dia y noche', 'noche', 'amanecer', 'anochecer', 'sombra', 'luz', 'horario', 'rutina', 'sueno', 'dormir', 'manana', 'tarde'],
     areas: ['cienciasNaturales', 'general'],
-    dibujos: ['tie-amanecer', 'tie-noche', 'nat-sol', 'esp-luna', 'hog-cama', 'mat-reloj', 'hog-lampara'],
+    dibujos: ['tie-amanecer', 'tie-noche', 'nat-sol', 'esp-luna', 'hog-cama', 'mat-reloj', 'hog-lampara', 'per-nino-durmiendo', 'cue-casa-luna'],
   },
 
   /* ── Cuerpo y salud ── */
@@ -234,20 +234,43 @@ export const HILOS: readonly Hilo[] = [
     id: 'lectura-escritura', nombre: n('Leer y escribir', 'Llegir i escriure', 'Reading and writing'),
     temas: ['lectura', 'leer', 'escritura', 'escribir', 'redaccion', 'cuento', 'texto', 'biblioteca', 'libro', 'narracion', 'gramatica', 'ortografia', 'vocabulario', 'palabra', 'oracion', 'poesia', 'literatura', 'sustantivo', 'verbo', 'adjetivo', 'sinonimo', 'resumen'],
     areas: ['lengua'],
-    dibujos: ['esc-libro', 'esc-cuaderno', 'his-tintero', 'his-pergamino', 'lug-biblioteca', 'idi-carta', 'idi-bocadillo', 'esc-lapices', 'his-imprenta'],
+    dibujos: ['esc-libro', 'esc-cuaderno', 'his-tintero', 'his-pergamino', 'lug-biblioteca', 'idi-carta', 'idi-bocadillo', 'esc-lapices', 'his-imprenta', 'cue-libro-magico', 'per-nino-leyendo', 'per-nina-leyendo'],
   },
   {
     id: 'comunicacion', nombre: n('Comunicar y conversar', 'Comunicar i conversar', 'Communicating and chatting'),
     temas: ['comunicacion', 'conversacion', 'dialogo', 'hablar', 'carta', 'mensaje', 'telefono', 'idioma', 'saludo', 'presentarse', 'greetings', 'hello', 'expresion oral', 'debate', 'entrevista'],
     areas: ['ingles', 'lengua'],
-    dibujos: ['idi-bocadillo', 'idi-carta', 'idi-telefono', 'tec-movil', 'val-amigos', 'tec-auriculares'],
+    dibujos: ['idi-bocadillo', 'idi-carta', 'idi-telefono', 'tec-movil', 'val-amigos', 'tec-auriculares', 'obj-microfono', 'obj-radio', 'obj-periodico'],
+  },
+
+  /* ── Cuentos, aventuras y niños: para ilustrar textos narrativos (17-10-2026) ── */
+  {
+    id: 'cuentos-fantasia', nombre: n('Cuentos y fantasía', 'Contes i fantasia', 'Tales and fantasy'),
+    // «cuento» también es de «Leer y escribir»: con un cuento, ganan los dibujos de cuento
+    temas: ['cuento', 'leyenda', 'fabula', 'fantasia', 'fantastico', 'hada', 'dragon', 'princesa', 'mago', 'magia', 'bruja', 'duende', 'hechizo', 'encantado', 'caperucita', 'sirena', 'unicornio', 'fantasma', 'cuento de hadas', 'cuento popular', 'cuento clasico'],
+    areas: ['lengua', 'ingles'],
+    dibujos: ['cue-dragon', 'cue-princesa', 'cue-hada', 'cue-mago', 'cue-bruja', 'cue-unicornio', 'cue-rey', 'cue-fantasma', 'cue-sirena', 'cue-duende', 'cue-caperucita', 'cue-lobo', 'cue-varita', 'cue-pocion', 'cue-libro-magico', 'cue-lampara', 'his-castillo', 'his-corona', 'cue-molino', 'cue-cabana', 'obj-vela'],
+  },
+  {
+    id: 'aventura-misterio', nombre: n('Aventuras y misterio', 'Aventures i misteri', 'Adventure and mystery'),
+    // Sin «tesoro» ni «pirata» (son de «Descubrimientos y aventuras», en Sociales) ni «investigar» (del laboratorio)
+    temas: ['aventura', 'misterio', 'detective', 'explorador', 'cofre', 'enigma', 'secreto', 'suspense', 'policiaco', 'policiaca', 'busqueda del tesoro'],
+    areas: ['lengua', 'ingles'],
+    dibujos: ['per-detective', 'per-explorador', 'obj-cofre', 'obj-llave', 'his-tesoro', 'his-pirata', 'obj-linterna', 'nat-cueva', 'cue-cabana', 'cue-casa-luna', 'cue-camino', 'cue-fantasma', 'obj-periodico', 'obj-radio', 'obj-vela'],
+  },
+  {
+    id: 'ninos-cotidiano', nombre: n('Niños y niñas', 'Nens i nenes', 'Boys and girls'),
+    amplio: true,
+    temas: ['nino', 'nina', 'vida cotidiana', 'cotidiano', 'personaje', 'dia a dia'],
+    areas: ['lengua', 'valores'],
+    dibujos: ['per-nino', 'per-nina', 'per-nino-leyendo', 'per-nina-leyendo', 'per-nino-durmiendo', 'per-abuela', 'per-abuelo', 'esc-mochila', 'tra-bicicleta', 'jue-cometa', 'val-regalo', 'idi-carta', 'cue-casa-arbol', 'cue-camino', 'obj-campana', 'val-amigos'],
   },
   {
     id: 'escuela', nombre: n('El cole y la clase', 'L’escola i la classe', 'School and the classroom'),
     amplio: true,
     temas: ['cole', 'colegio', 'clase', 'aula', 'escuela', 'material escolar', 'estudiar', 'curso', 'profesor', 'alumno', 'normas de clase', 'repaso', 'estudio', 'examen'],
     areas: ['general', 'lengua', 'ingles'],
-    dibujos: ['esc-mochila', 'esc-estuche', 'esc-lapices', 'esc-pizarra', 'esc-cuaderno', 'esc-libro', 'esc-autobus', 'pro-docente', 'esc-tijeras', 'esc-pegamento', 'esc-diploma', 'esc-medalla'],
+    dibujos: ['esc-mochila', 'esc-estuche', 'esc-lapices', 'esc-pizarra', 'esc-cuaderno', 'esc-libro', 'esc-autobus', 'pro-docente', 'esc-tijeras', 'esc-pegamento', 'esc-diploma', 'esc-medalla', 'obj-campana'],
   },
 
   /* ── Ciencia y tecnología ── */
@@ -318,7 +341,7 @@ export const HILOS: readonly Hilo[] = [
     id: 'casa-familia', nombre: n('La casa y la familia', 'La casa i la família', 'Home and family'),
     temas: ['casa', 'hogar', 'familia', 'vivienda', 'habitacion', 'mueble', 'tareas del hogar', 'hermano', 'padres', 'abuelo', 'convivencia familiar'],
     areas: ['valores', 'cienciasSociales', 'general'],
-    dibujos: ['lug-casa', 'val-familia', 'hog-cama', 'hog-mesa', 'hog-lampara', 'hog-escoba', 'hog-olla', 'hog-cubiertos'],
+    dibujos: ['lug-casa', 'val-familia', 'hog-cama', 'hog-mesa', 'hog-lampara', 'hog-escoba', 'hog-olla', 'hog-cubiertos', 'per-abuela', 'per-abuelo'],
   },
   {
     id: 'cocina', nombre: n('La cocina y la receta', 'La cuina i la recepta', 'The kitchen and recipes'),
@@ -426,12 +449,14 @@ export const dibujosDeHilo = (hilo: Hilo): Ilustracion[] =>
  * gráficos. La cantidad la pone el código al maquetar, así que el recuento
  * siempre es exacto.
  */
-const CONTABLES_PREFIJO = new Set(['ani', 'com', 'jue', 'esc', 'art', 'mus', 'dep', 'rop', 'fes', 'hog', 'tec', 'tra', 'tie']);
+const CONTABLES_PREFIJO = new Set(['ani', 'com', 'jue', 'esc', 'art', 'mus', 'dep', 'rop', 'fes', 'hog', 'tec', 'tra', 'tie', 'obj']);
 const NO_CONTABLES = new Set([
   'com-agua', 'esc-pizarra', 'esc-diploma', 'esc-autobus', 'tra-ambulancia', 'tra-submarino', 'hog-mesa', 'hog-cama',
   'fes-fuegos', 'fes-navidad', 'tie-amanecer', 'tie-noche', 'dep-natacion', 'dep-gimnasia', 'rop-ropa', 'tec-ordenador',
 ]);
-const CONTABLES_EXTRA = new Set(['nat-flor', 'nat-seta', 'nat-arbol', 'nat-frutal', 'nat-copo', 'mat-dados', 'mat-monedas', 'mat-cartas', 'mat-domino', 'mat-pizza', 'mat-figuras', 'cie-bateria', 'cie-iman', 'cie-engranajes', 'cie-robot', 'cie-probeta', 'his-corona', 'his-anfora', 'esp-estrella', 'esp-luna', 'esp-cohete', 'seg-casco', 'seg-extintor']);
+const CONTABLES_EXTRA = new Set(['nat-flor', 'nat-seta', 'nat-arbol', 'nat-frutal', 'nat-copo', 'mat-dados', 'mat-monedas', 'mat-cartas', 'mat-domino', 'mat-pizza', 'mat-figuras', 'cie-bateria', 'cie-iman', 'cie-engranajes', 'cie-robot', 'cie-probeta', 'his-corona', 'his-anfora', 'esp-estrella', 'esp-luna', 'esp-cohete', 'seg-casco', 'seg-extintor',
+  // Cuentos: criaturas y objetos sueltos que se cuentan; los personajes, la realeza y las escenas, no
+  'cue-dragon', 'cue-fantasma', 'cue-unicornio', 'cue-lobo', 'cue-varita', 'cue-pocion', 'cue-libro-magico', 'cue-lampara']);
 
 export function esContable(ilustracionId: string): boolean {
   if (NO_CONTABLES.has(ilustracionId)) return false;

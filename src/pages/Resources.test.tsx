@@ -13,8 +13,10 @@ import { ToastProvider } from '../components/ui/Toast';
 import type { Ficha } from '../types';
 
 // La IA, simulada: lo que se prueba aquí es que el editor añade lo que devuelve
+const generar = vi.hoisted(() => vi.fn());
 vi.mock('../services/resources', async orig => ({
   ...(await orig<typeof import('../services/resources')>()),
+  generateFicha: generar,
   addExercise: vi.fn(async () => ({ tipo: 'abierta', enunciado: 'Un reto nuevo', solucion: '—' })),
   moreCards: vi.fn(async () => [1, 2, 3, 4].map(n => ({ pregunta: `Nueva ${n}`, respuesta: `R${n}` }))),
 }));
@@ -66,6 +68,10 @@ describe('Recursos — editor de fichas', () => {
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
     expect(screen.getByDisplayValue('Capitana Nova')).toBeTruthy();
     expect(screen.getByDisplayValue('Motor')).toBeTruthy();
+    // Los ejercicios salen en una línea cada uno; se abren al tocarlos
+    expect(screen.queryByDisplayValue('Marca V o F.')).toBeNull();
+    expect(screen.getByText('Marca V o F.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
     expect(screen.getByDisplayValue('Marca V o F.')).toBeTruthy();
     expect(screen.getByText('Vista previa · así se imprime')).toBeTruthy();
   });
@@ -86,6 +92,7 @@ describe('Recursos — editor de fichas', () => {
   it('mueve y borra ejercicios', async () => {
     const onSave = setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
     const bajar = screen.getAllByRole('button', { name: 'Bajar' });
     await userEvent.click(bajar[0]);
     await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
@@ -98,6 +105,7 @@ describe('Recursos — editor de fichas', () => {
   it('editar el enunciado llega a la vista previa', async () => {
     setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 2' }));
     fireEvent.change(screen.getByDisplayValue('Explica qué es una fracción.'), { target: { value: 'Dibuja tres cuartos.' } });
     const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
     await waitFor(() => expect(frame.contentDocument?.body.textContent).toContain('Dibuja tres cuartos.'), { timeout: 2000 });
@@ -153,6 +161,7 @@ describe('Recursos — editor de fichas', () => {
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
     expect(screen.getByDisplayValue('Primero, lee. Luego, rodea.')).toBeTruthy();
     expect(screen.getByDisplayValue('Una parte de algo.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
     expect(screen.getByRole('button', { name: 'Consigna: Escribir' })).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Verbo del paso 1'), { target: { value: 'Mira' } });
     await userEvent.click(screen.getByRole('button', { name: /Añadir paso/ }));
@@ -199,7 +208,7 @@ describe('Recursos · ficha adaptada (PT y AL)', () => {
         <Resources classes={[]} fichas={[]} onSave={() => {}} onDelete={() => {}} onNav={() => {}} apoyo={apoyo} />
       </ToastProvider></I18nProvider>,
     );
-    const visual = screen.getByRole('checkbox', { name: /Instrucciones muy visuales/ }) as HTMLInputElement;
+    const visual = screen.getByRole('checkbox', { name: /Con pictogramas/ }) as HTMLInputElement;
     expect(visual.checked).toBe(false);
     await user.selectOptions(screen.getByLabelText('Adaptada a'), 'a1');
     expect((screen.getByLabelText('Nivel o curso') as HTMLInputElement).value).toBe('2º Primaria');
@@ -238,6 +247,7 @@ describe('Recursos · diseño «Cuaderno»', () => {
     const onSave = setup(vi.fn(), [cuaderno]);
     await userEvent.click(screen.getByText('Números hasta el millón'));
     expect(screen.getByText('Actividad 1')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
     const select = screen.getByDisplayValue('Una línea') as HTMLSelectElement;
     await userEvent.selectOptions(select, 'caja');
     const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
@@ -259,5 +269,96 @@ describe('Recursos · diseño «Cuaderno»', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Recuadro del bloque' }), '');
     await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
     expect(onSave.mock.calls[1][0].content.actividades[0].recuadro).toBeUndefined();
+  });
+});
+
+describe('Recursos · crear en dos pasos', () => {
+  const lectura = {
+    titulo: 'El dragón sin fuego', explicacion: '', instrucciones: 'Lee el texto.', estilo: 'cuaderno', formato: 'ficha',
+    lectura: { genero: 'cuento', parrafos: ['Un dragón vivía solo.', 'Un día encontró un amigo.'], dibujos: [{ ilustracion: 'cue-dragon', parrafo: 0 }], pista: 'Fíjate en el dragón.', destrezas: ['Vocabulario'] },
+    actividades: [{ titulo: 'Buscamos', dificultad: 1, ejercicios: [{ tipo: 'en_texto', enunciado: 'Rodea al dragón.', lineasRespuesta: 1, solucion: 'dragón' }] }],
+  };
+
+  it('el primer paso son cuatro tarjetas grandes; la comprensión lectora pide el tipo de texto y quita lo que no le sirve', async () => {
+    setup(vi.fn(), []);
+    const tipos = screen.getAllByRole('radio').filter(r => r.classList.contains('fe-tipo'));
+    expect(tipos.map(t => t.querySelector('strong')?.textContent)).toEqual(['Ficha de ejercicios', 'Comprensión lectora', 'Escape room', 'Tarjetas']);
+    expect(tipos[0].getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('checkbox', { name: /Con pictogramas/ })).toBeTruthy();
+    expect(screen.queryByRole('radio', { name: 'Poema' })).toBeNull();
+    await userEvent.click(tipos[1]);
+    expect(tipos[1].getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Poema' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Que elija la IA', checked: true })).toBeTruthy();
+    // Sin pictogramas ni aspecto a elegir: la comprensión lectora es siempre «Cuaderno»
+    expect(screen.queryByRole('checkbox', { name: /Con pictogramas/ })).toBeNull();
+    expect(screen.queryByText('Aspecto de la ficha')).toBeNull();
+    // Y propone 8 ejercicios
+    expect((screen.getByLabelText('Nº de ejercicios') as HTMLInputElement).value).toBe('8');
+    expect(screen.getByRole('button', { name: /Crear comprensión lectora/ })).toBeTruthy();
+  });
+
+  it('el número de ejercicios que traía el tipo cambia con él, pero uno cambiado a mano se respeta', async () => {
+    setup(vi.fn(), []);
+    const n = () => (screen.getByLabelText('Nº de ejercicios') as HTMLInputElement).value;
+    expect(n()).toBe('6');
+    await userEvent.click(screen.getByRole('radio', { name: /Comprensión lectora/ }));
+    expect(n()).toBe('8');
+    fireEvent.change(screen.getByLabelText('Nº de ejercicios'), { target: { value: '5' } });
+    await userEvent.click(screen.getByRole('radio', { name: /Ficha de ejercicios/ }));
+    expect(n()).toBe('5');
+    await userEvent.click(screen.getByRole('radio', { name: /Tarjetas/ }));
+    expect(screen.queryByRole('checkbox', { name: /Lectura fácil/ })).toBeNull();
+  });
+
+  it('crea una comprensión lectora en lectura fácil: la petición lleva el tipo de texto y la lectura fácil, y se abre el editor del texto', async () => {
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    generar.mockResolvedValueOnce(lectura);
+    setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('radio', { name: /Comprensión lectora/ }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Poema' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Lectura fácil/ }));
+    await userEvent.type(screen.getByLabelText('¿De qué va la ficha?'), 'un dragón');
+    await userEvent.click(screen.getByRole('button', { name: /Crear comprensión lectora/ }));
+    const pedido = generar.mock.calls[0][0];
+    expect(pedido).toMatchObject({ tema: 'un dragón', lectura: true, generoLectura: 'poema', facil: true, estilo: 'cuaderno', formato: 'ficha', visual: false, numEjercicios: 8 });
+    // El editor: el texto con sus párrafos y sin el selector de aspecto (siempre «Cuaderno»)
+    expect(await screen.findByText(/El texto/)).toBeTruthy();
+    expect(screen.getByDisplayValue('Un día encontró un amigo.')).toBeTruthy();
+    expect(screen.queryByText('Aspecto')).toBeNull();
+    expect(screen.queryByText('Antes de empezar')).toBeNull();
+    // La vista previa pinta el texto y se puede cambiar
+    fireEvent.change(screen.getByDisplayValue('Un día encontró un amigo.'), { target: { value: 'Un día llegó un mago.' } });
+    const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
+    await waitFor(() => expect(frame.contentDocument?.querySelector('.lc-texto')?.textContent).toContain('Un día llegó un mago.'), { timeout: 2000 });
+  });
+
+  it('una ficha normal con lectura fácil: la petición la lleva; con tarjetas, no', async () => {
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    generar.mockResolvedValue(lectura);
+    setup(vi.fn(), []);
+    await userEvent.type(screen.getByLabelText('¿De qué va la ficha?'), 'las sumas');
+    await userEvent.click(screen.getByRole('checkbox', { name: /Lectura fácil/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^Crear ficha$/ }));
+    expect(generar.mock.calls.at(-1)![0]).toMatchObject({ lectura: false, facil: true });
+  });
+
+  it('el menú «Adaptar» de una comprensión lectora solo ofrece la lectura fácil', async () => {
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    const f: Ficha = { id: 'fl', at: '2026-10-17T10:00:00Z', date: '2026-10-17', title: 'El dragón sin fuego', request: { tema: 'dragón', area: 'Lengua', nivel: '3º', numEjercicios: 1, niveles: false, contextoClase: '' }, content: lectura as never };
+    setup(vi.fn(), [f]);
+    expect(screen.getByText('Comprensión lectora', { selector: '.fe-mini-badge' })).toBeTruthy();
+    await userEvent.click(screen.getByText('El dragón sin fuego'));
+    await userEvent.click(screen.getByRole('button', { name: /Adaptar/ }));
+    const items = screen.getAllByRole('menuitem');
+    expect(items).toHaveLength(1);
+    expect(items[0].textContent).toContain('Lectura fácil');
+  });
+
+  it('el aspecto y el hilo de una ficha de ejercicios van recogidos en una fila; el texto del Cuaderno se abre con «Cambiar»', async () => {
+    setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, estilo: 'cuaderno', historia: undefined } }]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    expect(screen.getByText('Aspecto')).toBeTruthy();
+    expect((document.querySelector('.fe-look') as HTMLDetailsElement).open).toBe(false);
   });
 });
