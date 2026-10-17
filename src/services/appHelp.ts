@@ -57,6 +57,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   // Sin alumno elegido, abre la lista de «Mi alumnado»
   'apoyo-alumno':        { es: 'Página del alumno', en: 'Student Page' },
   'apoyo-agenda-visual': { es: 'Agenda visual', en: 'Visual Schedule' },
+  'ef-inicio':           { es: 'Educación Física', en: 'Physical Education' },
   'ef-pista':            { es: 'En la pista', en: 'On the Court' },
   'ef-exentos':          { es: 'Exentos y lesiones', en: 'Exemptions and Injuries' },
   'ef-pruebas':          { es: 'Pruebas físicas', en: 'Fitness Tests' },

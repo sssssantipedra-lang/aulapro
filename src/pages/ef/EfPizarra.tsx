@@ -2,23 +2,29 @@
  * Educación Física, «Pizarra»: un circuito dibujado sobre una pista, con un
  * banco de material en imágenes que se coloca, se mueve y se gira (petición
  * del dueño, 17-10-2026). Lo que se dibuja a mano con «Dibujar material» se
- * reconoce por su forma (`analizarTrazo`) o con la IA (`reconocerPizarra`), y
- * el docente confirma cada propuesta antes de que sustituya al dibujo. Ver
- * `docs/EF.md`.
+ * reconoce por su forma (`analizarTrazo`) o con la IA (`reconocerPizarra`).
+ * Desde que hay dos formas dibujadas, la IA las procesa sola y coloca las
+ * piezas de las que está segura (la app, con una forma suelta, falla mucho:
+ * decisión del dueño, 17-10-2026); lo dudoso lo confirma el docente. Las
+ * piezas se duplican como en Canva: barra flotante, Ctrl+D (que repite la
+ * distancia de la última copia), Alt y arrastrar, Ctrl+C y Ctrl+V, y elegir
+ * varias con Mayús o con un recuadro. Ver `docs/EF.md`.
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Plus, Save, Trash2, Undo2, Download, Sparkles, MousePointer2, Pencil, MoveRight, Shapes, Eraser, RotateCcw, RotateCw,
-  ZoomIn, ZoomOut, Copy, Check, X,
+  ZoomIn, ZoomOut, Copy, Check, X, CopyPlus,
 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { downloadFile } from '../../lib/download';
 import { nuevoIdEF } from '../../lib/ef';
 import {
-  ALTO_PIZARRA, ANCHO_PIZARRA, analizarTrazo, cabezaFlecha, COLORES_TRAZO, elementoDeTrazo, elementoNuevo, materialDeLaPizarra,
-  materialDePizarra, MATERIALES_PIZARRA, pizarraSvg, puntosSvg, siguienteEstacion, transformDeElemento, type AnalisisTrazo, type Caja,
+  ALTO_PIZARRA, ANCHO_PIZARRA, analizarTrazo, cabezaFlecha, cajaDeElementos, COLORES_TRAZO, copiarElementos, DESPLAZAMIENTO_COPIA,
+  elementoDeTrazo, elementoNuevo, elementosEnCaja, materialDeLaPizarra, materialDePizarra, MATERIALES_PIZARRA, pizarraSvg, puntosSvg,
+  siguienteEstacion, transformDeElemento, type AnalisisTrazo, type Caja,
 } from '../../lib/pizarraEF';
+import { blobABase64, svgAPng } from '../../lib/svgPng';
 import { hasApiKey, type InlineFile } from '../../services/gemini';
 import { reconocerPizarra } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
@@ -55,36 +61,10 @@ const VACIA = (): PizarraEF => ({ id: nuevoIdEF('piz'), nombre: '', elementos: [
 const copia = (p: PizarraEF): PizarraEF => ({ ...p, elementos: p.elementos.map(e => ({ ...e })), trazos: p.trazos.map(t => ({ ...t, puntos: t.puntos.map(q => [...q] as Punto) })) });
 const limita = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-/** Pasa un SVG a PNG con el lienzo del navegador. */
-async function aPng(svg: string, ancho = 2 * ANCHO_PIZARRA): Promise<Blob> {
-  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error('No se pudo dibujar la imagen'));
-      i.src = url;
-    });
-    const canvas = document.createElement('canvas');
-    canvas.width = ancho;
-    canvas.height = Math.round(ancho * ALTO_PIZARRA / ANCHO_PIZARRA);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Sin lienzo');
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Sin imagen'))), 'image/png'));
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-const blobABase64 = (b: Blob) => new Promise<string>((resolve, reject) => {
-  const r = new FileReader();
-  r.onload = () => resolve((r.result as string).split(',')[1]);
-  r.onerror = reject;
-  r.readAsDataURL(b);
-});
+/** Lo que se espera tras la última forma dibujada antes de que la IA las procese: así se pueden seguir dibujando. */
+export const ESPERA_IA_MS = 1200;
+/** Desde cuántas formas dibujadas las procesa la IA sola. */
+export const FORMAS_PARA_IA = 2;
 
 export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   const { t, lang } = useI18n();
@@ -93,21 +73,33 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   const [historial, setHistorial] = useState<PizarraEF[]>([]);
   const [herramienta, setHerramienta] = useState<Herramienta>('mover');
   const [color, setColor] = useState<string>(COLORES_TRAZO[0].id);
-  const [seleccionado, setSeleccionado] = useState<string | null>(null);
+  const [seleccion, setSeleccion] = useState<string[]>([]);
   const [enCurso, setEnCurso] = useState<{ tipo: 'lapiz' | 'flecha' | 'material'; puntos: Punto[] } | null>(null);
+  const [marco, setMarco] = useState<{ a: Punto; b: Punto; anadir: boolean } | null>(null);
+  const [moviendo, setMoviendo] = useState(false);
   const [croquis, setCroquis] = useState<{ id: string; puntos: Punto[] }[]>([]);
   const [propuestas, setPropuestas] = useState<Propuesta[]>([]);
   const [resumenIa, setResumenIa] = useState('');
   const [pensando, setPensando] = useState(false);
-  const arrastre = useRef<{ id: string; dx: number; dy: number } | null>(null);
+  const [copiasEnFila, setCopiasEnFila] = useState('4');
+  /** Piezas que se mueven a la vez: dónde estaban y dónde se pulsó. */
+  const arrastre = useRef<{ inicio: Punto; origen: Map<string, Punto>; historia: PizarraEF | null } | null>(null);
+  /** Para repetir la distancia de la última copia, como Ctrl+D en Canva. */
+  const ultimaCopia = useRef<{ origen: string; copia: string } | null>(null);
+  const portapapeles = useRef<{ piezas: ElementoPizarra[]; pegadas: number }>({ piezas: [], pegadas: 0 });
+  /** Para que dos copias hechas en el mismo instante no repitan identificador. */
+  const contador = useRef(0);
   const svgRef = useRef<SVGSVGElement>(null);
+  const procesarIa = useRef<() => void>(() => undefined);
 
   const guardada = ef.pizarras.find(p => p.id === piz.id);
   const sinGuardar = guardada
     ? JSON.stringify(guardada) !== JSON.stringify(piz)
     : piz.elementos.length > 0 || piz.trazos.length > 0;
-  const elegido = piz.elementos.find(e => e.id === seleccionado);
+  const elegidos = piz.elementos.filter(e => seleccion.includes(e.id));
+  const elegido = elegidos.length === 1 ? elegidos[0] : undefined;
   const material = useMemo(() => materialDeLaPizarra(piz.elementos), [piz.elementos]);
+  const cajaElegidos = cajaDeElementos(elegidos);
 
   /* ── Cambios, con deshacer ── */
   function cambiar(f: (p: PizarraEF) => PizarraEF) {
@@ -123,8 +115,8 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
     });
   }
 
-  const cambiarElemento = (id: string, f: (e: ElementoPizarra) => ElementoPizarra) =>
-    cambiar(p => ({ ...p, elementos: p.elementos.map(e => (e.id === id ? f(e) : e)) }));
+  const cambiarElementos = (ids: readonly string[], f: (e: ElementoPizarra) => ElementoPizarra) =>
+    cambiar(p => ({ ...p, elementos: p.elementos.map(e => (ids.includes(e.id) ? f(e) : e)) }));
 
   function poner(m: MaterialPizarraId, x?: number, y?: number) {
     const n = piz.elementos.length;
@@ -135,19 +127,69 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
       m === 'estacion' ? siguienteEstacion(piz.elementos) : undefined,
     );
     cambiar(p => ({ ...p, elementos: [...p.elementos, e] }));
-    setSeleccionado(e.id);
+    setSeleccion([e.id]);
     setHerramienta('mover');
   }
 
-  function quitar(id: string) {
-    cambiar(p => ({ ...p, elementos: p.elementos.filter(e => e.id !== id) }));
-    if (seleccionado === id) setSeleccionado(null);
+  function quitarElegidos() {
+    if (!seleccion.length) return;
+    cambiar(p => ({ ...p, elementos: p.elementos.filter(e => !seleccion.includes(e.id)) }));
+    setSeleccion([]);
   }
 
-  function duplicar(e: ElementoPizarra) {
-    const nuevo = { ...e, id: nuevoIdEF('el'), x: limita(e.x + 30, 0, ANCHO_PIZARRA), y: limita(e.y + 30, 0, ALTO_PIZARRA), ...(e.material === 'estacion' ? { texto: siguienteEstacion(piz.elementos) } : {}) };
-    cambiar(p => ({ ...p, elementos: [...p.elementos, nuevo] }));
-    setSeleccionado(nuevo.id);
+  /* ── Duplicar, como en Canva ── */
+  const idNuevo = () => nuevoIdEF('el') + (contador.current++).toString(36);
+
+  /**
+   * Duplica lo elegido. Sin distancia, la de la última copia si se acaba de
+   * mover (así, Ctrl+D tras mover la copia sigue una fila), o un poco
+   * abajo y a la derecha. Las copias quedan elegidas.
+   */
+  function duplicarElegidos(delta?: Punto) {
+    if (!elegidos.length) return;
+    let d: Punto = delta ?? [DESPLAZAMIENTO_COPIA, DESPLAZAMIENTO_COPIA];
+    const u = ultimaCopia.current;
+    if (!delta && elegidos.length === 1 && u?.copia === elegidos[0].id) {
+      const o = piz.elementos.find(e => e.id === u.origen);
+      if (o && Math.hypot(elegidos[0].x - o.x, elegidos[0].y - o.y) >= 4) d = [elegidos[0].x - o.x, elegidos[0].y - o.y];
+    }
+    const copias = copiarElementos(piz.elementos, elegidos.map(e => e.id), d[0], d[1], idNuevo);
+    cambiar(p => ({ ...p, elementos: [...p.elementos, ...copias] }));
+    setSeleccion(copias.map(c => c.id));
+    ultimaCopia.current = elegidos.length === 1 ? { origen: elegidos[0].id, copia: copias[0].id } : null;
+  }
+
+  /** «Copias en fila»: varias de una vez, separadas lo que mide la pieza o lo que se movió la última copia. */
+  function copiarEnFila() {
+    if (!elegidos.length) return;
+    const caja = cajaElegidos!;
+    const u = ultimaCopia.current;
+    const o = elegidos.length === 1 && u?.copia === elegidos[0].id ? piz.elementos.find(e => e.id === u.origen) : undefined;
+    const paso: Punto = o && Math.hypot(elegidos[0].x - o.x, elegidos[0].y - o.y) >= 4
+      ? [elegidos[0].x - o.x, elegidos[0].y - o.y]
+      : [Math.round(caja.w + 14), 0];
+    const n = Math.max(1, Math.min(20, Math.round(Number(copiasEnFila)) || 1));
+    const ids = elegidos.map(e => e.id);
+    const nuevas: ElementoPizarra[] = [];
+    for (let k = 1; k <= n; k++) nuevas.push(...copiarElementos([...piz.elementos, ...nuevas], ids, paso[0] * k, paso[1] * k, idNuevo, false));
+    cambiar(p => ({ ...p, elementos: [...p.elementos, ...nuevas] }));
+    setSeleccion(nuevas.slice(-ids.length).map(e => e.id));
+    ultimaCopia.current = null;
+  }
+
+  function copiarAlPortapapeles() {
+    if (!elegidos.length) return;
+    portapapeles.current = { piezas: elegidos.map(e => ({ ...e })), pegadas: 0 };
+  }
+
+  function pegar() {
+    const { piezas } = portapapeles.current;
+    if (!piezas.length) return;
+    const k = ++portapapeles.current.pegadas;
+    const copias = copiarElementos(piezas, piezas.map(e => e.id), DESPLAZAMIENTO_COPIA * k, DESPLAZAMIENTO_COPIA * k, idNuevo);
+    cambiar(p => ({ ...p, elementos: [...p.elementos, ...copias] }));
+    setSeleccion(copias.map(c => c.id));
+    setHerramienta('mover');
   }
 
   /* ── Puntero sobre la pizarra ── */
@@ -164,30 +206,64 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
 
   function alPulsarFondo(e: React.PointerEvent<SVGSVGElement>) {
     svgRef.current?.focus();
-    if (herramienta === 'mover') { setSeleccionado(null); return; }
     if (herramienta === 'borrar') return;
     svgRef.current?.setPointerCapture(e.pointerId);
-    setEnCurso({ tipo: herramienta, puntos: [punto(e)] });
+    const p = punto(e);
+    if (herramienta === 'mover') {
+      // Un recuadro para elegir varias piezas, como en Canva
+      setMarco({ a: p, b: p, anadir: e.shiftKey || e.ctrlKey || e.metaKey });
+      return;
+    }
+    setEnCurso({ tipo: herramienta, puntos: [p] });
   }
 
   function alPulsarElemento(e: React.PointerEvent, el: ElementoPizarra) {
-    if (herramienta === 'borrar') { e.stopPropagation(); quitar(el.id); return; }
+    if (herramienta === 'borrar') { e.stopPropagation(); cambiar(p => ({ ...p, elementos: p.elementos.filter(x => x.id !== el.id) })); return; }
     if (herramienta !== 'mover') return;
     e.stopPropagation();
     svgRef.current?.setPointerCapture(e.pointerId);
-    const [x, y] = punto(e);
-    setSeleccionado(el.id);
-    setHistorial(h => [...h.slice(-49), piz]);
-    arrastre.current = { id: el.id, dx: el.x - x, dy: el.y - y };
+    svgRef.current?.focus();
+    const p = punto(e);
+    // Mayús o Ctrl: se suma o se quita de lo elegido, sin mover
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      setSeleccion(s => (s.includes(el.id) ? s.filter(x => x !== el.id) : [...s, el.id]));
+      return;
+    }
+    let ids = seleccion.includes(el.id) ? seleccion : [el.id];
+    if (e.altKey) {
+      // Alt y arrastrar: se deja la original y se mueve una copia
+      const copias = copiarElementos(piz.elementos, ids, 0, 0, idNuevo);
+      cambiar(x => ({ ...x, elementos: [...x.elementos, ...copias] }));
+      ids = copias.map(c => c.id);
+      arrastre.current = { inicio: p, origen: new Map(copias.map(c => [c.id, [c.x, c.y] as Punto])), historia: null };
+    } else {
+      // Solo cuenta para deshacer si de verdad se mueve (ver `alMover`)
+      arrastre.current = { inicio: p, origen: new Map(piz.elementos.filter(x => ids.includes(x.id)).map(x => [x.id, [x.x, x.y] as Punto])), historia: piz };
+    }
+    setSeleccion(ids);
+    setMoviendo(true);
   }
 
   function alMover(e: React.PointerEvent<SVGSVGElement>) {
     const [x, y] = punto(e);
     if (arrastre.current) {
-      const { id, dx, dy } = arrastre.current;
-      setPiz(p => ({ ...p, elementos: p.elementos.map(el => (el.id === id ? { ...el, x: limita(Math.round(x + dx), 0, ANCHO_PIZARRA), y: limita(Math.round(y + dy), 0, ALTO_PIZARRA) } : el)) }));
+      const { inicio, origen, historia } = arrastre.current;
+      const dx = x - inicio[0];
+      const dy = y - inicio[1];
+      if (historia && Math.hypot(dx, dy) >= 2) {
+        arrastre.current.historia = null;
+        setHistorial(h => [...h.slice(-49), historia]);
+      }
+      setPiz(p => ({
+        ...p,
+        elementos: p.elementos.map(el => {
+          const o = origen.get(el.id);
+          return o ? { ...el, x: limita(Math.round(o[0] + dx), 0, ANCHO_PIZARRA), y: limita(Math.round(o[1] + dy), 0, ALTO_PIZARRA) } : el;
+        }),
+      }));
       return;
     }
+    if (marco) { setMarco(m => (m ? { ...m, b: [x, y] } : m)); return; }
     if (!enCurso) return;
     setEnCurso(c => {
       if (!c) return c;
@@ -200,6 +276,14 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   function alSoltar() {
     if (arrastre.current) {
       arrastre.current = null;
+      setMoviendo(false);
+      return;
+    }
+    if (marco) {
+      const caja: Caja = { x: Math.min(marco.a[0], marco.b[0]), y: Math.min(marco.a[1], marco.b[1]), w: Math.abs(marco.a[0] - marco.b[0]), h: Math.abs(marco.a[1] - marco.b[1]) };
+      const dentro = caja.w < 5 && caja.h < 5 ? [] : elementosEnCaja(piz.elementos, caja);
+      setSeleccion(s => (marco.anadir ? [...new Set([...s, ...dentro])] : dentro));
+      setMarco(null);
       return;
     }
     const c = enCurso;
@@ -220,15 +304,22 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   }
 
   function alTeclear(e: React.KeyboardEvent) {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); deshacer(); return; }
-    if (!elegido) return;
-    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); quitar(elegido.id); return; }
+    const ctrl = e.ctrlKey || e.metaKey;
+    const tecla = e.key.toLowerCase();
+    if (ctrl && tecla === 'z') { e.preventDefault(); deshacer(); return; }
+    if (ctrl && tecla === 'd') { e.preventDefault(); duplicarElegidos(); return; }
+    if (ctrl && tecla === 'c') { copiarAlPortapapeles(); return; }
+    if (ctrl && tecla === 'v') { e.preventDefault(); pegar(); return; }
+    if (ctrl && tecla === 'a') { e.preventDefault(); setSeleccion(piz.elementos.map(x => x.id)); return; }
+    if (e.key === 'Escape') { setSeleccion([]); return; }
+    if (!elegidos.length) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); quitarElegidos(); return; }
     const paso = e.shiftKey ? 30 : 10;
     const mov: Record<string, [number, number]> = { ArrowLeft: [-paso, 0], ArrowRight: [paso, 0], ArrowUp: [0, -paso], ArrowDown: [0, paso] };
     const m = mov[e.key];
     if (m) {
       e.preventDefault();
-      cambiarElemento(elegido.id, x => ({ ...x, x: limita(x.x + m[0], 0, ANCHO_PIZARRA), y: limita(x.y + m[1], 0, ALTO_PIZARRA) }));
+      cambiarElementos(seleccion, x => ({ ...x, x: limita(x.x + m[0], 0, ANCHO_PIZARRA), y: limita(x.y + m[1], 0, ALTO_PIZARRA) }));
     }
   }
 
@@ -240,7 +331,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   }
 
   function resolver(p: Propuesta, poner_: boolean) {
-    if (poner_) setSeleccionado(ponerPropuesta(p).id);
+    if (poner_) setSeleccion([ponerPropuesta(p).id]);
     const quedan = propuestas.filter(x => x.id !== p.id);
     setPropuestas(quedan);
     // Los dibujos que ya son una pieza o se descartaron dejan de verse; los de la IA, cuando no queda ninguna propuesta
@@ -263,31 +354,61 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
     setResumenIa('');
   }
 
-  async function reconocerConIa() {
-    if (!croquis.length) { toast(t('Dibuja primero con «Dibujar material» y la IA lo reconocerá.')); return; }
+  /**
+   * La IA mira el croquis. Las piezas de las que está segura se colocan solas
+   * (se pueden deshacer); las dudosas quedan como propuesta para que el docente
+   * elija. Las formas que se dibujaron mientras tanto esperan a la siguiente vez.
+   */
+  async function reconocerConIa(auto = false) {
+    if (!croquis.length) { if (!auto) toast(t('Dibuja primero con «Dibujar material» y la IA lo reconocerá.')); return; }
+    const enviados = croquis;
     setPensando(true);
     try {
-      const trazos: TrazoPizarra[] = croquis.map(c => ({ id: c.id, tipo: 'libre', puntos: c.puntos, color: '#1e293b' }));
-      const png = await aPng(pizarraSvg({ elementos: [], trazos }), ANCHO_PIZARRA);
+      const trazos: TrazoPizarra[] = enviados.map(c => ({ id: c.id, tipo: 'libre', puntos: c.puntos, color: '#1e293b' }));
+      const png = await svgAPng(pizarraSvg({ elementos: [], trazos }), ANCHO_PIZARRA, ALTO_PIZARRA);
       const archivo: InlineFile = { name: 'croquis.png', mimeType: 'image/png', base64: await blobABase64(png) };
       const r = await reconocerPizarra(archivo, comunidad, lang, { onError: m => toast(t(m)) });
       if (!r) return;
       if (!r.objetos.length) { toast(t('La IA no ha reconocido ninguna pieza en el croquis.')); return; }
-      setResumenIa(r.resumen);
-      setPropuestas(r.objetos.map(o => {
+      const cajaDe = (o: typeof r.objetos[number]): Caja => {
         const ancho = o.ancho * ANCHO_PIZARRA;
         const alto = o.alto * ALTO_PIZARRA;
-        return {
-          id: nuevoIdEF('pr'), caja: { x: o.x * ANCHO_PIZARRA - ancho / 2, y: o.y * ALTO_PIZARRA - alto / 2, w: ancho, h: alto },
-          candidatos: MATERIALES_PIZARRA.filter(m => m.id !== 'estacion').map(m => m.id), material: o.material, origen: 'ia', seguridad: o.seguridad,
-        };
-      }));
+        return { x: o.x * ANCHO_PIZARRA - ancho / 2, y: o.y * ALTO_PIZARRA - alto / 2, w: ancho, h: alto };
+      };
+      const seguras = r.objetos.filter(o => o.seguridad !== 'baja');
+      const dudosas = r.objetos.filter(o => o.seguridad === 'baja');
+      const nuevas = seguras.map(o => elementoDeTrazo(idNuevo(), o.material, cajaDe(o)));
+      if (nuevas.length) {
+        cambiar(p => ({ ...p, elementos: [...p.elementos, ...nuevas] }));
+        setSeleccion(nuevas.map(n => n.id));
+        toast(t('La IA ha colocado {n} piezas. Si algo no es lo que querías, deshaz o cámbialo.', { n: nuevas.length }));
+      }
+      const enviadosIds = new Set(enviados.map(c => c.id));
+      setResumenIa(r.resumen);
+      setPropuestas(x => [
+        ...x.filter(p => !(p.trazoId && enviadosIds.has(p.trazoId))),
+        ...dudosas.map(o => ({
+          id: nuevoIdEF('pr'), caja: cajaDe(o), candidatos: MATERIALES_PIZARRA.filter(m => m.id !== 'estacion').map(m => m.id),
+          material: o.material, origen: 'ia' as const, seguridad: o.seguridad,
+        })),
+      ]);
+      // Sin dudas, los dibujos ya son piezas; con dudas, se dejan a la vista junto a su propuesta
+      if (!dudosas.length) setCroquis(c => c.filter(x => !enviadosIds.has(x.id)));
     } catch {
       toast(t('No se pudo preparar el croquis para la IA.'));
     } finally {
       setPensando(false);
     }
   }
+  // El temporizador de abajo llama siempre a la versión más reciente
+  useEffect(() => { procesarIa.current = () => { if (!pensando) void reconocerConIa(true); }; });
+
+  // Con dos formas dibujadas, las procesa la IA sola cuando se deja de dibujar
+  useEffect(() => {
+    if (croquis.length < FORMAS_PARA_IA || !hasApiKey()) return;
+    const h = setTimeout(() => procesarIa.current(), ESPERA_IA_MS);
+    return () => clearTimeout(h);
+  }, [croquis.length]);
 
   /* ── Guardar, abrir, bajar ── */
   function confirmarDescarte(): boolean {
@@ -298,7 +419,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
     if (!confirmarDescarte()) return;
     setPiz(p ? copia(p) : VACIA());
     setHistorial([]);
-    setSeleccionado(null);
+    setSeleccion([]);
     descartarCroquis();
   }
 
@@ -321,7 +442,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   async function bajar() {
     try {
       const nombre = (piz.nombre.trim() || 'pizarra').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-      await downloadFile(await aPng(pizarraSvg(piz)), `${nombre || 'pizarra'}.png`);
+      await downloadFile(await svgAPng(pizarraSvg(piz), 2 * ANCHO_PIZARRA, 2 * ALTO_PIZARRA), `${nombre || 'pizarra'}.png`);
     } catch {
       toast(t('No se pudo crear la imagen.'));
     }
@@ -394,6 +515,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
             <button type="button" className="chip sm" onClick={deshacer} disabled={!historial.length}><Undo2 size={15} />{t('Deshacer')}</button>
           </div>
 
+          <div className="ef-piz-wrap">
           <svg ref={svgRef} className={`ef-piz-lienzo ef-piz-${herramienta}`} viewBox={`0 0 ${ANCHO_PIZARRA} ${ALTO_PIZARRA}`} tabIndex={0}
             role="img" aria-label={t('Pizarra del circuito: {n} piezas', { n: piz.elementos.length })}
             onPointerDown={alPulsarFondo} onPointerMove={alMover} onPointerUp={alSoltar} onPointerCancel={alSoltar} onKeyDown={alTeclear}
@@ -419,7 +541,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
               const m = materialDePizarra(el.material);
               return (
                 <g key={el.id} transform={transformDeElemento(el, m)} onPointerDown={e => alPulsarElemento(e, el)}
-                  className={`ef-piz-el${el.id === seleccionado ? ' sel' : ''}`}>
+                  className={`ef-piz-el${seleccion.includes(el.id) ? ' sel' : ''}`}>
                   <rect x={-6} y={-6} width={m.ancho + 12} height={m.alto + 12} rx="6" className="ef-piz-marco" />
                   <g dangerouslySetInnerHTML={{ __html: m.svg(el.texto) }} />
                 </g>
@@ -431,6 +553,10 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
             {propuestas.filter(p => p.origen === 'ia').map(p => (
               <rect key={p.id} x={p.caja.x} y={p.caja.y} width={p.caja.w} height={p.caja.h} fill="none" stroke="#ea580c" strokeWidth="2" strokeDasharray="4 4" rx="6" />
             ))}
+            {marco && (
+              <rect x={Math.min(marco.a[0], marco.b[0])} y={Math.min(marco.a[1], marco.b[1])} width={Math.abs(marco.a[0] - marco.b[0])} height={Math.abs(marco.a[1] - marco.b[1])}
+                fill="rgba(124,58,237,.08)" stroke="#7c3aed" strokeWidth="1.5" strokeDasharray="5 4" />
+            )}
             {enCurso && (
               <g>
                 <polyline points={puntosSvg(enCurso.puntos)} fill="none" stroke={enCurso.tipo === 'material' ? '#ea580c' : color} strokeWidth={enCurso.tipo === 'material' ? 3 : 4}
@@ -439,21 +565,40 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
               </g>
             )}
           </svg>
-          <p className="ap-sub">{t('«Dibujar material»: traza a mano un triángulo (cono), un círculo (aro, balón o seta), un rectángulo (colchoneta, banco, portería…) o una raya (pica). La app propone qué es y tú lo confirmas.')}</p>
+          {cajaElegidos && !moviendo && !marco && herramienta === 'mover' && (
+            <div className="ef-piz-flota" role="toolbar" aria-label={t('Acciones de la pieza')}
+              style={{
+                left: `${limita((cajaElegidos.x + cajaElegidos.w / 2) / ANCHO_PIZARRA * 100, 12, 88)}%`,
+                top: `${cajaElegidos.y < 70 ? (cajaElegidos.y + cajaElegidos.h + 8) / ALTO_PIZARRA * 100 : (cajaElegidos.y - 8) / ALTO_PIZARRA * 100}%`,
+                transform: cajaElegidos.y < 70 ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
+              }}>
+              <button type="button" title={t('Duplicar (Ctrl+D)')} aria-label={t('Duplicar')} onClick={() => duplicarElegidos()}><Copy size={16} /></button>
+              <button type="button" title={t('Girar a la derecha')} aria-label={t('Girar a la derecha')} onClick={() => cambiarElementos(seleccion, x => ({ ...x, giro: (x.giro + 15) % 360 }))}><RotateCw size={16} /></button>
+              <button type="button" title={t('Quitar')} aria-label={t('Quitar')} onClick={quitarElegidos}><Trash2 size={16} /></button>
+            </div>
+          )}
+          </div>
+          <p className="ap-sub">{t('«Dibujar material»: traza a mano formas (un triángulo, un círculo, un rectángulo, una raya…). Con una sola, la app propone qué es y tú lo confirmas; desde dos, las procesa la IA y coloca las piezas.')}</p>
+          <p className="ap-sub">{t('Para duplicar: el botón de la pieza, Ctrl+D (otra vez, repite la distancia de la última copia), Alt y arrastrar, o Ctrl+C y Ctrl+V. Mayús y clic, o un recuadro, eligen varias piezas.')}</p>
 
-          {elegido && (
+          {elegidos.length > 0 && (
             <div className="card ef-piz-sel" role="group" aria-label={t('Pieza elegida')}>
-              <strong>{t(materialDePizarra(elegido.material).label)}</strong>
-              {elegido.material === 'estacion' && (
+              <strong>{elegido ? t(materialDePizarra(elegido.material).label) : t('{n} piezas elegidas', { n: elegidos.length })}</strong>
+              {elegido?.material === 'estacion' && (
                 <input className="finput" style={{ width: 70 }} maxLength={3} value={elegido.texto ?? ''} aria-label={t('Número de la estación')}
-                  onChange={e => cambiarElemento(elegido.id, x => ({ ...x, texto: e.target.value }))} />
+                  onChange={e => cambiarElementos([elegido.id], x => ({ ...x, texto: e.target.value }))} />
               )}
-              <button type="button" className="btn-ghost" onClick={() => cambiarElemento(elegido.id, x => ({ ...x, giro: (x.giro - 15 + 360) % 360 }))}><RotateCcw size={14} />{t('Girar a la izquierda')}</button>
-              <button type="button" className="btn-ghost" onClick={() => cambiarElemento(elegido.id, x => ({ ...x, giro: (x.giro + 15) % 360 }))}><RotateCw size={14} />{t('Girar a la derecha')}</button>
-              <button type="button" className="btn-ghost" onClick={() => cambiarElemento(elegido.id, x => ({ ...x, escala: Math.max(0.3, Math.round(x.escala * 85) / 100) }))}><ZoomOut size={14} />{t('Más pequeño')}</button>
-              <button type="button" className="btn-ghost" onClick={() => cambiarElemento(elegido.id, x => ({ ...x, escala: Math.min(4, Math.round(x.escala * 118) / 100) }))}><ZoomIn size={14} />{t('Más grande')}</button>
-              <button type="button" className="btn-ghost" onClick={() => duplicar(elegido)}><Copy size={14} />{t('Duplicar')}</button>
-              <button type="button" className="btn-ghost ap-borrar" onClick={() => quitar(elegido.id)}><Trash2 size={14} />{t('Quitar')}</button>
+              <button type="button" className="btn-ghost" onClick={() => cambiarElementos(seleccion, x => ({ ...x, giro: (x.giro - 15 + 360) % 360 }))}><RotateCcw size={14} />{t('Girar a la izquierda')}</button>
+              <button type="button" className="btn-ghost" onClick={() => cambiarElementos(seleccion, x => ({ ...x, giro: (x.giro + 15) % 360 }))}><RotateCw size={14} />{t('Girar a la derecha')}</button>
+              <button type="button" className="btn-ghost" onClick={() => cambiarElementos(seleccion, x => ({ ...x, escala: Math.max(0.3, Math.round(x.escala * 85) / 100) }))}><ZoomOut size={14} />{t('Más pequeño')}</button>
+              <button type="button" className="btn-ghost" onClick={() => cambiarElementos(seleccion, x => ({ ...x, escala: Math.min(4, Math.round(x.escala * 118) / 100) }))}><ZoomIn size={14} />{t('Más grande')}</button>
+              <button type="button" className="btn-ghost" onClick={() => duplicarElegidos()}><Copy size={14} />{t('Duplicar')}</button>
+              <span className="ef-piz-fila">
+                <input className="finput" type="number" min={1} max={20} value={copiasEnFila} aria-label={t('Número de copias')}
+                  onChange={e => setCopiasEnFila(e.target.value)} />
+                <button type="button" className="btn-ghost" onClick={copiarEnFila}><CopyPlus size={14} />{t('Copias en fila')}</button>
+              </span>
+              <button type="button" className="btn-ghost ap-borrar" onClick={quitarElegidos}><Trash2 size={14} />{t('Quitar')}</button>
             </div>
           )}
 
@@ -477,13 +622,13 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
               ))}
               <div className="ap-acciones">
                 {propuestas.length > 1 && <button type="button" className="btn-accent" onClick={ponerTodas}><Check size={14} />{t('Poner todas')}</button>}
-                <button type="button" className="btn-ghost" onClick={reconocerConIa} disabled={pensando || !hasApiKey()}
+                <button type="button" className="btn-ghost" onClick={() => void reconocerConIa()} disabled={pensando || !hasApiKey()}
                   title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
                   {pensando ? <span className="spin" /> : <Sparkles size={14} />}{pensando ? t('Mirando el croquis…') : t('Reconocer con IA')}
                 </button>
                 <button type="button" className="btn-ghost" onClick={descartarCroquis}>{t('Descartar el croquis')}</button>
               </div>
-              <p className="ap-aviso">{t('«Reconocer con IA» envía a Google una imagen del croquis, solo con los trazos, y AulaPro no la guarda.')}</p>
+              <p className="ap-aviso">{t('Desde la segunda forma, y con «Reconocer con IA», se envía a Google una imagen del croquis, solo con los trazos, y AulaPro no la guarda.')}</p>
             </div>
           )}
         </div>

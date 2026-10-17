@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  analizarTrazo, elementoDeTrazo, elementoNuevo, IDS_MATERIAL_PIZARRA, materialDeLaPizarra, MATERIALES_PIZARRA, pizarraSvg, siguienteEstacion,
+  analizarTrazo, cajaDeElementos, copiarElementos, elementosEnCaja, elementoDeTrazo, elementoNuevo, IDS_MATERIAL_PIZARRA, materialDeLaPizarra, MATERIALES_PIZARRA, pizarraSvg, siguienteEstacion,
 } from './pizarraEF';
 import { EF_VACIO, efParaOtroCurso, normalizarEF } from './ef';
 
@@ -126,5 +126,49 @@ describe('imagen y datos', () => {
   it('las pizarras son material del docente: se quedan al vaciar el curso', () => {
     const ef = { ...EF_VACIO, pizarras: [{ id: 'p', nombre: 'A', elementos: [], trazos: [] }] };
     expect(efParaOtroCurso(ef).pizarras).toEqual(ef.pizarras);
+  });
+});
+
+describe('duplicar y elegir, como en Canva', () => {
+  let n = 0;
+  const id = () => `c${n++}`;
+  const base = [
+    elementoNuevo('a', 'cono', 100, 100), elementoNuevo('b', 'aro', 200, 100), elementoNuevo('e', 'estacion', 300, 100, '1'),
+  ];
+
+  it('copia lo elegido, desplazado, sin tocar el resto', () => {
+    const c = copiarElementos(base, ['a', 'b'], 30, 20, id);
+    expect(c.map(e => [e.material, e.x, e.y])).toEqual([['cono', 130, 120], ['aro', 230, 120]]);
+    expect(c.every(e => !base.some(o => o.id === e.id))).toBe(true);
+  });
+
+  it('la copia de una estación sigue la numeración', () => {
+    const c = copiarElementos(base, ['e'], 50, 0, id);
+    expect(c[0].texto).toBe('2');
+    const dos = copiarElementos([...base, ...c], ['e'], 50, 0, id);
+    expect(dos[0].texto).toBe('3');
+  });
+
+  it('si la copia se saldría de la pizarra, rebota hacia el otro lado; el grupo no se parte', () => {
+    const borde = [elementoNuevo('x', 'cono', 990, 100), elementoNuevo('y', 'cono', 900, 100)];
+    const c = copiarElementos(borde, ['x', 'y'], 30, 0, id);
+    expect(c.map(e => e.x)).toEqual([960, 870]);
+    // Sin rebotar, se queda en el borde
+    expect(copiarElementos(borde, ['x'], 30, 0, id, false)[0].x).toBe(1000);
+  });
+
+  it('el recuadro elige las piezas cuyo centro cae dentro', () => {
+    expect(elementosEnCaja(base, { x: 50, y: 50, w: 200, h: 100 })).toEqual(['a', 'b']);
+    expect(elementosEnCaja(base, { x: 0, y: 0, w: 10, h: 10 })).toEqual([]);
+  });
+
+  it('el recuadro de las piezas tiene en cuenta su giro y su tamaño', () => {
+    expect(cajaDeElementos([])).toBeNull();
+    const horizontal = cajaDeElementos([elementoNuevo('b', 'banco', 500, 300)])!;
+    const girado = cajaDeElementos([{ ...elementoNuevo('b', 'banco', 500, 300), giro: 90 }])!;
+    expect(horizontal.w).toBeGreaterThan(horizontal.h);
+    expect(girado.h).toBeCloseTo(horizontal.w, 5);
+    expect(girado.w).toBeCloseTo(horizontal.h, 5);
+    expect(cajaDeElementos([{ ...elementoNuevo('b', 'banco', 500, 300), escala: 2 }])!.w).toBeCloseTo(horizontal.w * 2, 5);
   });
 });

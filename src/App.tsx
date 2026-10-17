@@ -64,6 +64,7 @@ const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ defa
 const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
 const EfPruebas      = lazy(() => import('./pages/ef/EfPruebas').then(m => ({ default: m.EfPruebas })));
 const EfEquipos      = lazy(() => import('./pages/ef/EfEquipos').then(m => ({ default: m.EfEquipos })));
+const EfInicio       = lazy(() => import('./pages/ef/EfInicio').then(m => ({ default: m.EfInicio })));
 const EfCircuitos    = lazy(() => import('./pages/ef/EfCircuitos').then(m => ({ default: m.EfCircuitos })));
 const EfPizarra      = lazy(() => import('./pages/ef/EfPizarra').then(m => ({ default: m.EfPizarra })));
 const EfSesiones     = lazy(() => import('./pages/ef/EfSesiones').then(m => ({ default: m.EfSesiones })));
@@ -716,6 +717,7 @@ function AppInner() {
             {section === 'ef-equipos' && (
               <EfEquipos classes={st.classes} students={st.students} attendance={st.attendance} ef={st.ef} onChangeEf={st.setEf} onNav={setSection} />
             )}
+            {section === 'ef-inicio' && <EfInicio ef={st.ef} onNav={setSection} />}
             {section === 'ef-circuitos' && <EfCircuitos ef={st.ef} onChangeEf={st.setEf} />}
             {section === 'ef-pizarra' && <EfPizarra ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />}
             {section === 'ef-sesiones' && (

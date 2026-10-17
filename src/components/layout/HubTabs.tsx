@@ -21,12 +21,19 @@ export function HubTabs({ section, tipo, onNav }: { section: Section; tipo: Tipo
   const { t } = useI18n();
   const hub = hubEnMenu(section, tipo);
   if (!hub) return null;
+  // Con grupos (Educación Física): en la portada, solo ella (las tarjetas
+  // llevan a todo lo demás); en una pantalla, la portada y las de su tema
+  const grupo = hub.tabs.find(tab => tab.id === section)?.grupo;
+  const tabs = !hub.grupos ? hub.tabs : hub.tabs.filter(tab => !tab.grupo || tab.grupo === grupo);
 
   return (
     <div className="hub-bar">
-      <span className="hub-ttl" title={t(hub.hint)}>{HUB_ICON[hub.id]}{t(hub.label)}</span>
+      <span className="hub-ttl" title={t(hub.hint)}>
+        {HUB_ICON[hub.id]}{t(hub.label)}
+        {hub.grupos && grupo && <span className="hub-grupo">{t(hub.grupos[grupo])}</span>}
+      </span>
       <div className="hub-tabs" role="tablist" aria-label={t(hub.label)}>
-        {hub.tabs.map(tab => {
+        {tabs.map(tab => {
           const on = tab.id === section;
           return (
             <button
