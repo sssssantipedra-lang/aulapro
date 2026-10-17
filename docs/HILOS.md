@@ -4,7 +4,7 @@ Generado por `src/lib/hilos.test.ts` a partir de `src/lib/hilos.ts`: no se edita
 
 Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce por el tema, el área y el curso de la ficha (`detectarHilos`) y con él ilustra la hoja: la cabecera y los dibujos de los ejercicios. Cómo funciona, en `docs/FICHAS.md`.
 
-57 hilos, 281 dibujos (cada dibujo está en uno o más hilos).
+60 hilos, 319 dibujos (cada dibujo está en uno o más hilos).
 
 ## La granja (`granja`)
 
@@ -273,6 +273,8 @@ Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce p
   - `hog-cama`: Cama con almohada y manta: el dormitorio y el descanso
   - `mat-reloj`: Reloj de pared: la hora, el tiempo y su medida
   - `hog-lampara` ×: Lámpara encendida: luz y energía en casa
+  - `per-nino-durmiendo`: Niño durmiendo en la cama con una pequeña luna: el sueño, la noche y los cuentos de buenas noches
+  - `cue-casa-luna`: Casa con una ventana encendida bajo una gran luna llena y estrellas: la noche y los cuentos de buenas noches
 
 ## El cuerpo humano (`cuerpo-humano`)
 
@@ -457,6 +459,9 @@ Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce p
   - `idi-bocadillo`: Dos bocadillos de diálogo vacíos: conversación y comunicación
   - `esc-lapices` ×: Lápices de colores en un vaso: dibujo y material escolar
   - `his-imprenta`: Imprenta antigua: la historia de la escritura y los libros
+  - `cue-libro-magico` ×: Libro antiguo abierto con destellos mágicos: cuentos, magia y lectura
+  - `per-nino-leyendo`: Niño sentado leyendo un libro: lectura y comprensión lectora
+  - `per-nina-leyendo`: Niña sentada leyendo un libro: lectura y comprensión lectora
 
 ## Comunicar y conversar (`comunicacion`)
 
@@ -470,6 +475,82 @@ Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce p
   - `tec-movil` ×: Teléfono móvil: comunicación y tecnología
   - `val-amigos`: Grupo de niños y niñas: amistad, diversidad y equipo
   - `tec-auriculares` ×: Auriculares: escuchar música y sonido
+  - `obj-microfono` ×: Micrófono antiguo con pie: entrevistas, radio y hablar en público
+  - `obj-radio` ×: Radio antigua con dial y antena: medios de comunicación y noticias
+  - `obj-periodico` ×: Periódico abierto con líneas grises y la imagen de un sol: noticias y medios de comunicación
+
+## Cuentos y fantasía (`cuentos-fantasia`)
+
+- Català: Contes i fantasia. English: Tales and fantasy.
+- Áreas: lengua, ingles.
+- Palabras del tema que lo activan: cuento, leyenda, fabula, fantasia, fantastico, hada, dragon, princesa, mago, magia, bruja, duende, hechizo, encantado, caperucita, sirena, unicornio, fantasma, cuento de hadas, cuento popular, cuento clasico.
+- Dibujos (el 1.º, 2.º y 3.º forman la cabecera; × = se pueden repetir para contar):
+  - `cue-dragon` ×: Dragón verde con alitas: cuentos, leyendas y fantasía
+  - `cue-princesa`: Princesa con corona y vestido largo: cuentos de hadas y la realeza
+  - `cue-hada`: Hada con alas y varita mágica: cuentos de hadas y magia
+  - `cue-mago`: Mago con sombrero puntiagudo, barba larga y bastón: magia y fantasía
+  - `cue-bruja`: Bruja volando en su escoba: cuentos, Halloween y magia
+  - `cue-unicornio` ×: Unicornio: animal fantástico de los cuentos
+  - `cue-rey`: Rey anciano con barba y corona: cuentos, leyendas y la realeza
+  - `cue-fantasma` ×: Fantasma blanco simpático: cuentos de miedo, misterio y Halloween
+  - `cue-sirena`: Sirena con cola de pez: cuentos del fondo del mar y fantasía
+  - `cue-duende`: Duende con gorro puntiagudo: cuentos, magia y fantasía
+  - `cue-caperucita`: Niña con capa roja con capucha y una cesta: Caperucita Roja y los cuentos populares
+  - `cue-lobo` ×: Lobo gris simpático: cuentos populares, fábulas y mamíferos carnívoros
+  - `cue-varita` ×: Varita mágica con una estrella brillante: magia, hadas y cuentos
+  - `cue-pocion` ×: Caldero con una poción verde burbujeante: magia, brujas y cuentos
+  - `cue-libro-magico` ×: Libro antiguo abierto con destellos mágicos: cuentos, magia y lectura
+  - `cue-lampara` ×: Lámpara mágica de genio: cuentos de las mil y una noches y deseos
+  - `his-castillo`: Castillo medieval con torres y bandera: Edad Media y feudalismo
+  - `his-corona` ×: Corona de oro: monarquía, reyes y reinas
+  - `cue-molino`: Molino de viento con aspas: el campo, el viento y los cuentos clásicos
+  - `cue-cabana`: Cabaña de madera con chimenea y humo: cuentos del bosque, vacaciones y aventuras
+  - `obj-vela` ×: Vela encendida en un candelabro: cuentos de noche, misterio y luz
+
+## Aventuras y misterio (`aventura-misterio`)
+
+- Català: Aventures i misteri. English: Adventure and mystery.
+- Áreas: lengua, ingles.
+- Palabras del tema que lo activan: aventura, misterio, detective, explorador, cofre, enigma, secreto, suspense, policiaco, policiaca, busqueda del tesoro.
+- Dibujos (el 1.º, 2.º y 3.º forman la cabecera; × = se pueden repetir para contar):
+  - `per-detective`: Detective con sombrero y lupa: misterios, pistas e investigación
+  - `per-explorador`: Explorador con sombrero, mochila y prismáticos: aventuras y expediciones
+  - `obj-cofre` ×: Cofre del tesoro abierto lleno de monedas de oro: aventuras, piratas y tesoros
+  - `obj-llave` ×: Llave antigua dorada: misterios, puertas cerradas y aventuras
+  - `his-tesoro`: Mapa del tesoro con un camino de puntos: orientación y aventura
+  - `his-pirata`: Barco pirata: aventuras y navegación
+  - `obj-linterna` ×: Linterna: aventuras en la oscuridad, cuevas y misterio
+  - `nat-cueva`: Cueva con estalactitas: relieve y rocas
+  - `cue-cabana`: Cabaña de madera con chimenea y humo: cuentos del bosque, vacaciones y aventuras
+  - `cue-casa-luna`: Casa con una ventana encendida bajo una gran luna llena y estrellas: la noche y los cuentos de buenas noches
+  - `cue-camino`: Camino que serpentea entre árboles: viajes, excursiones y cuentos de aventuras
+  - `cue-fantasma` ×: Fantasma blanco simpático: cuentos de miedo, misterio y Halloween
+  - `obj-periodico` ×: Periódico abierto con líneas grises y la imagen de un sol: noticias y medios de comunicación
+  - `obj-radio` ×: Radio antigua con dial y antena: medios de comunicación y noticias
+  - `obj-vela` ×: Vela encendida en un candelabro: cuentos de noche, misterio y luz
+
+## Niños y niñas (`ninos-cotidiano`)
+
+- Català: Nens i nenes. English: Boys and girls.
+- Áreas: lengua, valores. Hilo general: pierde frente a uno más concreto.
+- Palabras del tema que lo activan: nino, nina, vida cotidiana, cotidiano, personaje, dia a dia.
+- Dibujos (el 1.º, 2.º y 3.º forman la cabecera; × = se pueden repetir para contar):
+  - `per-nino`: Niño sonriente con mochila: personaje de cuentos y de la vida cotidiana
+  - `per-nina`: Niña sonriente con coletas y vestido: personaje de cuentos y de la vida cotidiana
+  - `per-nino-leyendo`: Niño sentado leyendo un libro: lectura y comprensión lectora
+  - `per-nina-leyendo`: Niña sentada leyendo un libro: lectura y comprensión lectora
+  - `per-nino-durmiendo`: Niño durmiendo en la cama con una pequeña luna: el sueño, la noche y los cuentos de buenas noches
+  - `per-abuela`: Abuela con gafas y chal: la familia, los abuelos y los cuentos contados
+  - `per-abuelo`: Abuelo con bastón y sombrero: la familia, los abuelos y los recuerdos
+  - `esc-mochila` ×: Mochila con cuaderno y lápiz: el colegio y el material escolar
+  - `tra-bicicleta` ×: Bicicleta: transporte sostenible, movilidad y deporte
+  - `jue-cometa` ×: Cometa volando: viento, juego y geometría
+  - `val-regalo`: Regalo con lazo: generosidad y celebraciones
+  - `idi-carta`: Sobre abierto con una carta y un corazón: escribir cartas y el correo
+  - `cue-casa-arbol`: Casa del árbol con escalera: juegos, amistad y aventuras de la infancia
+  - `cue-camino`: Camino que serpentea entre árboles: viajes, excursiones y cuentos de aventuras
+  - `obj-campana` ×: Campana dorada: el sonido, las campanadas y el timbre del cole
+  - `val-amigos`: Grupo de niños y niñas: amistad, diversidad y equipo
 
 ## El cole y la clase (`escuela`)
 
@@ -489,6 +570,7 @@ Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce p
   - `esc-pegamento` ×: Pegamento: pegar y manualidades
   - `esc-diploma`: Diploma enrollado con lazo: reconocimientos y logros
   - `esc-medalla` ×: Medalla de oro: premios, logros y deporte
+  - `obj-campana` ×: Campana dorada: el sonido, las campanadas y el timbre del cole
 
 ## El laboratorio y el método científico (`laboratorio`)
 
@@ -652,6 +734,8 @@ Un hilo es el «mundo» al que pertenece lo que se trabaja. La app lo reconoce p
   - `hog-escoba` ×: Escoba y recogedor: limpieza y tareas del hogar
   - `hog-olla` ×: Olla con vapor: cocinar y alimentación
   - `hog-cubiertos` ×: Plato con tenedor y cuchara: comer y la mesa
+  - `per-abuela`: Abuela con gafas y chal: la familia, los abuelos y los cuentos contados
+  - `per-abuelo`: Abuelo con bastón y sombrero: la familia, los abuelos y los recuerdos
 
 ## La cocina y la receta (`cocina`)
 

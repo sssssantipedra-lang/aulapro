@@ -1890,6 +1890,168 @@
     "fuente": "img"
   },
   {
+    "id": "cue-bruja",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Bruja volando en su escoba: cuentos, Halloween y magia",
+      "ca": "Bruixa volant amb la seva escombra: contes, Halloween i màgia",
+      "en": "Witch flying on a broomstick: tales, Halloween and magic"
+    },
+    "temas": [
+      "bruja",
+      "cuento",
+      "magia",
+      "halloween",
+      "fantasia",
+      "escoba",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-cabana",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Cabaña de madera con chimenea y humo: cuentos del bosque, vacaciones y aventuras",
+      "ca": "Cabana de fusta amb xemeneia i fum: contes del bosc, vacances i aventures",
+      "en": "Wooden cabin with a chimney and smoke: forest tales, holidays and adventures"
+    },
+    "temas": [
+      "cabana",
+      "cuento",
+      "aventura",
+      "vivienda",
+      "madera",
+      "refugio",
+      "misterio"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-camino",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Camino que serpentea entre árboles: viajes, excursiones y cuentos de aventuras",
+      "ca": "Camí que serpenteja entre arbres: viatges, excursions i contes d’aventures",
+      "en": "Winding path between trees: journeys, hikes and adventure tales"
+    },
+    "temas": [
+      "camino",
+      "sendero",
+      "excursion",
+      "viaje",
+      "aventura",
+      "cuento",
+      "ruta"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-caperucita",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niña con capa roja con capucha y una cesta: Caperucita Roja y los cuentos populares",
+      "ca": "Nena amb capa vermella amb caputxa i un cistell: la Caputxeta Vermella i els contes populars",
+      "en": "Little girl with a red hooded cape and a basket: Little Red Riding Hood and folk tales"
+    },
+    "temas": [
+      "caperucita",
+      "caperucita roja",
+      "cuento",
+      "cuento popular",
+      "cuento clasico",
+      "fantasia",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-casa-arbol",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Casa del árbol con escalera: juegos, amistad y aventuras de la infancia",
+      "ca": "Casa de l’arbre amb escala: jocs, amistat i aventures de la infància",
+      "en": "Treehouse with a ladder: games, friendship and childhood adventures"
+    },
+    "temas": [
+      "casa del arbol",
+      "juego",
+      "amistad",
+      "aventura",
+      "refugio",
+      "cuento",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-casa-luna",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Casa con una ventana encendida bajo una gran luna llena y estrellas: la noche y los cuentos de buenas noches",
+      "ca": "Casa amb una finestra encesa sota una gran lluna plena i estrelles: la nit i els contes de bona nit",
+      "en": "House with a lit window under a big full moon and stars: night and bedtime stories"
+    },
+    "temas": [
+      "luna llena",
+      "noche",
+      "cuento de buenas noches",
+      "estrellas",
+      "misterio",
+      "sueno",
+      "cuento"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "cue-cerebro",
     "uso": "objeto",
     "descripcion": {
@@ -1970,6 +2132,60 @@
     "fuente": "img"
   },
   {
+    "id": "cue-dragon",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Dragón verde con alitas: cuentos, leyendas y fantasía",
+      "ca": "Drac verd amb alets: contes, llegendes i fantasia",
+      "en": "Green dragon with small wings: tales, legends and fantasy"
+    },
+    "temas": [
+      "dragon",
+      "cuento",
+      "leyenda",
+      "fantasia",
+      "monstruo",
+      "personaje",
+      "narracion"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-duende",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Duende con gorro puntiagudo: cuentos, magia y fantasía",
+      "ca": "Follet amb barret punxegut: contes, màgia i fantasia",
+      "en": "Little elf with a pointed hat: tales, magic and fantasy"
+    },
+    "temas": [
+      "duende",
+      "elfo",
+      "cuento",
+      "fantasia",
+      "magia",
+      "leyenda",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "cue-esqueleto",
     "uso": "objeto",
     "descripcion": {
@@ -2023,6 +2239,60 @@
     "fuente": "img"
   },
   {
+    "id": "cue-fantasma",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Fantasma blanco simpático: cuentos de miedo, misterio y Halloween",
+      "ca": "Fantasma blanc simpàtic: contes de por, misteri i Halloween",
+      "en": "Friendly white ghost: spooky tales, mystery and Halloween"
+    },
+    "temas": [
+      "fantasma",
+      "misterio",
+      "cuento",
+      "halloween",
+      "miedo",
+      "fantasia",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-hada",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Hada con alas y varita mágica: cuentos de hadas y magia",
+      "ca": "Fada amb ales i vareta màgica: contes de fades i màgia",
+      "en": "Fairy with wings and a magic wand: fairy tales and magic"
+    },
+    "temas": [
+      "hada",
+      "cuento",
+      "cuento de hadas",
+      "magia",
+      "fantasia",
+      "varita",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "cue-huella",
     "uso": "objeto",
     "descripcion": {
@@ -2043,6 +2313,33 @@
     "areas": [
       "cienciasNaturales",
       "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-lampara",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Lámpara mágica de genio: cuentos de las mil y una noches y deseos",
+      "ca": "Llàntia màgica de geni: contes de les mil i una nits i desitjos",
+      "en": "Magic genie lamp: Arabian Nights tales and wishes"
+    },
+    "temas": [
+      "lampara magica",
+      "genio",
+      "deseo",
+      "cuento",
+      "magia",
+      "fantasia",
+      "leyenda"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
     ],
     "etapas": [
       "infantil",
@@ -2077,6 +2374,87 @@
     "fuente": "img"
   },
   {
+    "id": "cue-libro-magico",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Libro antiguo abierto con destellos mágicos: cuentos, magia y lectura",
+      "ca": "Llibre antic obert amb espurnes màgiques: contes, màgia i lectura",
+      "en": "Open old book with magic sparkles: tales, magic and reading"
+    },
+    "temas": [
+      "libro magico",
+      "cuento",
+      "lectura",
+      "magia",
+      "fantasia",
+      "narracion",
+      "comprension lectora"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-lobo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Lobo gris simpático: cuentos populares, fábulas y mamíferos carnívoros",
+      "ca": "Llop gris simpàtic: contes populars, faules i mamífers carnívors",
+      "en": "Friendly gray wolf: folk tales, fables and carnivore mammals"
+    },
+    "temas": [
+      "lobo",
+      "cuento",
+      "fabula",
+      "cuento popular",
+      "carnivoro",
+      "mamifero",
+      "salvaje"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-mago",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Mago con sombrero puntiagudo, barba larga y bastón: magia y fantasía",
+      "ca": "Mag amb barret punxegut, barba llarga i bastó: màgia i fantasia",
+      "en": "Wizard with a pointed hat, long beard and a staff: magic and fantasy"
+    },
+    "temas": [
+      "mago",
+      "magia",
+      "hechizo",
+      "cuento",
+      "fantasia",
+      "personaje",
+      "aventura"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "cue-mano",
     "uso": "objeto",
     "descripcion": {
@@ -2097,6 +2475,34 @@
     "areas": [
       "cienciasNaturales",
       "matematicas"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-molino",
+    "uso": "escena",
+    "descripcion": {
+      "es": "Molino de viento con aspas: el campo, el viento y los cuentos clásicos",
+      "ca": "Molí de vent amb aspes: el camp, el vent i els contes clàssics",
+      "en": "Windmill with sails: the countryside, the wind and classic tales"
+    },
+    "temas": [
+      "molino",
+      "molino de viento",
+      "viento",
+      "energia eolica",
+      "quijote",
+      "cuento",
+      "harina"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasNaturales",
+      "cienciasSociales"
     ],
     "etapas": [
       "infantil",
@@ -2212,6 +2618,60 @@
     "fuente": "img"
   },
   {
+    "id": "cue-pocion",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Caldero con una poción verde burbujeante: magia, brujas y cuentos",
+      "ca": "Calder amb una poció verda bombollejant: màgia, bruixes i contes",
+      "en": "Cauldron with a bubbling green potion: magic, witches and tales"
+    },
+    "temas": [
+      "pocion",
+      "caldero",
+      "magia",
+      "hechizo",
+      "bruja",
+      "cuento",
+      "fantasia"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-princesa",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Princesa con corona y vestido largo: cuentos de hadas y la realeza",
+      "ca": "Princesa amb corona i vestit llarg: contes de fades i la reialesa",
+      "en": "Princess with a crown and a long dress: fairy tales and royalty"
+    },
+    "temas": [
+      "princesa",
+      "cuento",
+      "cuento de hadas",
+      "fantasia",
+      "realeza",
+      "personaje",
+      "narracion"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
     "id": "cue-pulmones",
     "uso": "objeto",
     "descripcion": {
@@ -2231,6 +2691,114 @@
     "areas": [
       "cienciasNaturales",
       "educacionFisica"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-rey",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Rey anciano con barba y corona: cuentos, leyendas y la realeza",
+      "ca": "Rei ancià amb barba i corona: contes, llegendes i la reialesa",
+      "en": "Old king with a beard and a crown: tales, legends and royalty"
+    },
+    "temas": [
+      "rey",
+      "cuento",
+      "leyenda",
+      "fantasia",
+      "realeza",
+      "reino",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-sirena",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Sirena con cola de pez: cuentos del fondo del mar y fantasía",
+      "ca": "Sirena amb cua de peix: contes del fons del mar i fantasia",
+      "en": "Mermaid with a fish tail: tales from the bottom of the sea and fantasy"
+    },
+    "temas": [
+      "sirena",
+      "cuento",
+      "fantasia",
+      "leyenda",
+      "personaje",
+      "magia",
+      "narracion"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-unicornio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Unicornio: animal fantástico de los cuentos",
+      "ca": "Unicorn: animal fantàstic dels contes",
+      "en": "Unicorn: a fantasy animal from tales"
+    },
+    "temas": [
+      "unicornio",
+      "fantasia",
+      "cuento",
+      "magia",
+      "leyenda",
+      "personaje",
+      "narracion"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "cue-varita",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Varita mágica con una estrella brillante: magia, hadas y cuentos",
+      "ca": "Vareta màgica amb una estrella brillant: màgia, fades i contes",
+      "en": "Magic wand with a glowing star: magic, fairies and tales"
+    },
+    "temas": [
+      "varita",
+      "magia",
+      "hechizo",
+      "hada",
+      "mago",
+      "cuento",
+      "fantasia"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
     ],
     "etapas": [
       "infantil",
@@ -6018,6 +6586,469 @@
     "areas": [
       "cienciasNaturales",
       "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-campana",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Campana dorada: el sonido, las campanadas y el timbre del cole",
+      "ca": "Campana daurada: el so, les campanades i el timbre de l’escola",
+      "en": "Golden bell: sound, chimes and the school bell"
+    },
+    "temas": [
+      "campana",
+      "sonido",
+      "campanada",
+      "timbre",
+      "colegio",
+      "recreo",
+      "tradicion"
+    ],
+    "areas": [
+      "cienciasNaturales",
+      "lengua"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-cofre",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Cofre del tesoro abierto lleno de monedas de oro: aventuras, piratas y tesoros",
+      "ca": "Cofre del tresor obert ple de monedes d’or: aventures, pirates i tresors",
+      "en": "Open treasure chest full of gold coins: adventures, pirates and treasure"
+    },
+    "temas": [
+      "cofre",
+      "tesoro",
+      "aventura",
+      "pirata",
+      "monedas de oro",
+      "misterio",
+      "busqueda del tesoro"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-linterna",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Linterna: aventuras en la oscuridad, cuevas y misterio",
+      "ca": "Llanterna: aventures a la foscor, coves i misteri",
+      "en": "Flashlight: adventures in the dark, caves and mystery"
+    },
+    "temas": [
+      "linterna",
+      "oscuridad",
+      "luz",
+      "aventura",
+      "misterio",
+      "noche",
+      "cueva"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-llave",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Llave antigua dorada: misterios, puertas cerradas y aventuras",
+      "ca": "Clau antiga daurada: misteris, portes tancades i aventures",
+      "en": "Old golden key: mysteries, locked doors and adventures"
+    },
+    "temas": [
+      "llave",
+      "misterio",
+      "secreto",
+      "aventura",
+      "puerta",
+      "cerradura",
+      "cuento"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-microfono",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Micrófono antiguo con pie: entrevistas, radio y hablar en público",
+      "ca": "Micròfon antic amb peu: entrevistes, ràdio i parlar en públic",
+      "en": "Old microphone on a stand: interviews, radio and public speaking"
+    },
+    "temas": [
+      "microfono",
+      "entrevista",
+      "radio",
+      "exposicion oral",
+      "debate",
+      "hablar en publico",
+      "locutor"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-periodico",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Periódico abierto con líneas grises y la imagen de un sol: noticias y medios de comunicación",
+      "ca": "Diari obert amb línies grises i la imatge d’un sol: notícies i mitjans de comunicació",
+      "en": "Open newspaper with gray lines and a picture of a sun: news and the media"
+    },
+    "temas": [
+      "periodico",
+      "noticia",
+      "prensa",
+      "medios de comunicacion",
+      "texto periodistico",
+      "lectura",
+      "informacion"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-radio",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Radio antigua con dial y antena: medios de comunicación y noticias",
+      "ca": "Ràdio antiga amb dial i antena: mitjans de comunicació i notícies",
+      "en": "Old radio with a dial and antenna: the media and news"
+    },
+    "temas": [
+      "radio",
+      "medios de comunicacion",
+      "noticia",
+      "emision",
+      "escuchar",
+      "programa",
+      "locutor"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "obj-vela",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Vela encendida en un candelabro: cuentos de noche, misterio y luz",
+      "ca": "Espelma encesa en un canelobre: contes de nit, misteri i llum",
+      "en": "Lit candle in a holder: night tales, mystery and light"
+    },
+    "temas": [
+      "vela encendida",
+      "candelabro",
+      "llama",
+      "fuego",
+      "misterio",
+      "cuento",
+      "luz"
+    ],
+    "areas": [
+      "lengua",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-abuela",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Abuela con gafas y chal: la familia, los abuelos y los cuentos contados",
+      "ca": "Àvia amb ulleres i xal: la família, els avis i els contes explicats",
+      "en": "Grandmother with glasses and a shawl: family, grandparents and storytelling"
+    },
+    "temas": [
+      "abuela",
+      "abuelos",
+      "familia",
+      "vejez",
+      "cuento",
+      "personaje",
+      "tradicion oral"
+    ],
+    "areas": [
+      "lengua",
+      "valores",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-abuelo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Abuelo con bastón y sombrero: la familia, los abuelos y los recuerdos",
+      "ca": "Avi amb bastó i barret: la família, els avis i els records",
+      "en": "Grandfather with a cane and a hat: family, grandparents and memories"
+    },
+    "temas": [
+      "abuelo",
+      "abuelos",
+      "familia",
+      "vejez",
+      "recuerdos",
+      "personaje",
+      "tradicion oral"
+    ],
+    "areas": [
+      "lengua",
+      "valores",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-detective",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Detective con sombrero y lupa: misterios, pistas e investigación",
+      "ca": "Detectiu amb barret i lupa: misteris, pistes i investigació",
+      "en": "Detective with a hat and a magnifying glass: mysteries, clues and investigation"
+    },
+    "temas": [
+      "detective",
+      "misterio",
+      "pista",
+      "investigar",
+      "aventura",
+      "lupa",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-explorador",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Explorador con sombrero, mochila y prismáticos: aventuras y expediciones",
+      "ca": "Explorador amb barret, motxilla i prismàtics: aventures i expedicions",
+      "en": "Explorer with a hat, a backpack and binoculars: adventures and expeditions"
+    },
+    "temas": [
+      "explorador",
+      "aventura",
+      "expedicion",
+      "prismaticos",
+      "safari",
+      "viaje",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles",
+      "cienciasSociales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-nina",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niña sonriente con coletas y vestido: personaje de cuentos y de la vida cotidiana",
+      "ca": "Nena somrient amb cues i vestit: personatge de contes i de la vida quotidiana",
+      "en": "Smiling girl with pigtails and a dress: a character in stories and everyday life"
+    },
+    "temas": [
+      "nina",
+      "chica",
+      "personaje",
+      "vida cotidiana",
+      "cuento",
+      "narracion",
+      "amiga"
+    ],
+    "areas": [
+      "lengua",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-nina-leyendo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niña sentada leyendo un libro: lectura y comprensión lectora",
+      "ca": "Nena asseguda llegint un llibre: lectura i comprensió lectora",
+      "en": "Girl sitting and reading a book: reading and reading comprehension"
+    },
+    "temas": [
+      "nina leyendo",
+      "lectura",
+      "leer",
+      "comprension lectora",
+      "libro",
+      "biblioteca",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-nino",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niño sonriente con mochila: personaje de cuentos y de la vida cotidiana",
+      "ca": "Nen somrient amb motxilla: personatge de contes i de la vida quotidiana",
+      "en": "Smiling boy with a backpack: a character in stories and everyday life"
+    },
+    "temas": [
+      "nino",
+      "chico",
+      "personaje",
+      "vida cotidiana",
+      "cuento",
+      "narracion",
+      "amigo"
+    ],
+    "areas": [
+      "lengua",
+      "valores"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-nino-durmiendo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niño durmiendo en la cama con una pequeña luna: el sueño, la noche y los cuentos de buenas noches",
+      "ca": "Nen dormint al llit amb una petita lluna: el son, la nit i els contes de bona nit",
+      "en": "Boy sleeping in bed with a small moon: sleep, night and bedtime stories"
+    },
+    "temas": [
+      "dormir",
+      "sueno",
+      "noche",
+      "cuento de buenas noches",
+      "descanso",
+      "rutina",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "valores",
+      "cienciasNaturales"
+    ],
+    "etapas": [
+      "infantil",
+      "primaria"
+    ],
+    "fuente": "img"
+  },
+  {
+    "id": "per-nino-leyendo",
+    "uso": "objeto",
+    "descripcion": {
+      "es": "Niño sentado leyendo un libro: lectura y comprensión lectora",
+      "ca": "Nen assegut llegint un llibre: lectura i comprensió lectora",
+      "en": "Boy sitting and reading a book: reading and reading comprehension"
+    },
+    "temas": [
+      "nino leyendo",
+      "lectura",
+      "leer",
+      "comprension lectora",
+      "libro",
+      "biblioteca",
+      "personaje"
+    ],
+    "areas": [
+      "lengua",
+      "ingles"
     ],
     "etapas": [
       "infantil",

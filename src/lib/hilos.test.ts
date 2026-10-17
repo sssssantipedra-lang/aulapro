@@ -39,6 +39,18 @@ describe('hilos conductores: la clasificación', () => {
     for (const id of ['cue-corazon', 'lug-granja', 'pro-medico', 'his-castillo', 'com-agua', 'mat-grafico-barras', 'val-familia']) expect(esContable(id), id).toBe(false);
   });
 
+  it('en los cuentos se cuentan los objetos y las criaturas sueltas, no las personas ni las escenas', () => {
+    for (const id of ['cue-dragon', 'cue-varita', 'cue-libro-magico', 'obj-llave', 'obj-cofre', 'obj-vela']) expect(esContable(id), id).toBe(true);
+    for (const id of ['cue-princesa', 'cue-rey', 'cue-hada', 'per-nino', 'per-abuela', 'per-detective', 'cue-casa-arbol', 'cue-casa-luna']) expect(esContable(id), id).toBe(false);
+  });
+
+  it('los hilos de cuentos, aventuras y niños reúnen sus dibujos', () => {
+    expect(hiloPorId('cuentos-fantasia')!.dibujos.slice(0, 3)).toEqual(['cue-dragon', 'cue-princesa', 'cue-hada']);
+    expect(hilosDeDibujo('per-detective').map(h => h.id)).toContain('aventura-misterio');
+    expect(hilosDeDibujo('per-nino-leyendo').map(h => h.id)).toEqual(expect.arrayContaining(['ninos-cotidiano', 'lectura-escritura']));
+    expect(hilosDeDibujo('obj-microfono').map(h => h.id)).toContain('comunicacion');
+  });
+
   it('la lista para la IA marca los dibujos que no se pueden repetir', () => {
     const lista = listaDibujosParaIA(hiloPorId('granja')!, 'es');
     expect(lista).toContain('ani-vaca (');
@@ -62,6 +74,20 @@ describe('hilos conductores: de qué trata una ficha', () => {
     expect(hilo('La Revolución Industrial', 'Geografía e Historia', '4º ESO')).toBe('industria');
     expect(hilo('Unidades de medida de longitud', 'Matemáticas')).toBe('medida');
     expect(hilo('Perímetro de figuras planas', 'Matemáticas')).toBe('geometria');
+  });
+
+  it('reconoce los textos narrativos: cuentos, aventuras y vida de los niños', () => {
+    expect(hilo('El cuento de la princesa y el dragón', 'Lengua Castellana')).toBe('cuentos-fantasia');
+    expect(hilo('Caperucita Roja', 'Lengua Castellana', '2º Primaria')).toBe('cuentos-fantasia');
+    expect(hilo('Una leyenda con hadas', 'Lengua')).toBe('cuentos-fantasia');
+    expect(hilo('Un misterio en la casa abandonada', 'Lengua Castellana')).toBe('aventura-misterio');
+    expect(hilo('Una aventura de detectives', 'Lengua Castellana')).toBe('aventura-misterio');
+    expect(hilo('La vida cotidiana de unos niños', 'Lengua Castellana')).toBe('ninos-cotidiano');
+    // Lo de siempre no cambia: los temas de Lengua sin cuento siguen siendo «Leer y escribir»
+    expect(hilo('Los sustantivos y los adjetivos', 'Lengua Castellana')).toBe('lectura-escritura');
+    expect(hilo('Un tema sin pistas', 'Lengua Castellana')).toBe('lectura-escritura');
+    // y los piratas y los descubrimientos, de Sociales, siguen siendo de Sociales
+    expect(hilo('Los descubrimientos y los piratas', 'Ciencias Sociales', '5º Primaria')).toBe('descubrimientos');
   });
 
   it('el hilo concreto gana al general («los animales de la granja» es la granja)', () => {
