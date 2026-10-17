@@ -44,7 +44,7 @@ export function FichaPreview({ ficha, lang, selected, onSelect, onDensidad }: Pr
 
   const temaId = fichaTheme(ficha.content.estilo).id;
   const art = useThemeArt(temaId);
-  const fontCss = useFuenteCuaderno(temaId === 'cuaderno');
+  const fontCss = useFuenteCuaderno(temaId === 'cuaderno', ficha.content.variante === 'lectura_facil');
   // Con apoyos visuales, sus pictogramas: se cargan al cambiar cuáles son, no a cada tecla
   const ids = pictosDeFicha(ficha.content).join(' ');
   const [pictos, setPictos] = useState<Record<string, string>>({});

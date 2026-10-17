@@ -17,6 +17,8 @@
  * datos (`recuadroLineas`, `serieDe`) porque no admite SVG ni rejillas.
  */
 import type { FichaExercise, FichaRecuadro } from './resources';
+import type { FichaLectura } from '../lib/lectura';
+import { negritasHtml } from '../lib/negritas';
 import { elegirIlustraciones, ilustracionPorId, nombreIlustracion } from '../lib/ilustraciones';
 import { DIBUJOS_CABECERA, hiloPorId } from '../lib/hilos';
 import { bancoClasificar } from '../lib/dibujosEjercicio';
@@ -32,6 +34,9 @@ type Tr = (k: string, vars?: Record<string, string | number>) => string;
 export type Ilus = (id: string | undefined, cls: string) => string;
 
 const esc = (s: string) => (s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+
+/** Texto con palabras clave en negrita (**así**, lectura fácil), ya escapado. */
+export const rico = (s: string): string => negritasHtml(s, esc);
 
 /* ── Dibujos sueltos: cada uno cabe en una caja de unos 60 × 60 ── */
 
@@ -460,7 +465,7 @@ export const operacionHtml = (t: Tr) =>
  */
 export function completarHtml(enunciado: string): { html: string; hueco: boolean } {
   let hueco = false;
-  const html = esc(enunciado).replace(/_{3,}|…{2,}|\.{5,}/g, () => { hueco = true; return '<span class="cq-hueco"></span>'; });
+  const html = rico(enunciado).replace(/_{3,}|…{2,}|\.{5,}/g, () => { hueco = true; return '<span class="cq-hueco"></span>'; });
   return { html, hueco };
 }
 
@@ -468,7 +473,65 @@ export function completarHtml(enunciado: string): { html: string; hueco: boolean
 export function opcionesHtml(opciones: string[]): string {
   const corta = opciones.every(o => o.length <= 28);
   return `<div class="cq-ops${corta ? ' dos' : ''}">${opciones.map((o, j) =>
-    `<span class="cq-opi"><i></i><b>${String.fromCharCode(97 + j)})</b> ${esc(o)}</span>`).join('')}</div>`;
+    `<span class="cq-opi"><i></i><b>${String.fromCharCode(97 + j)})</b> ${rico(o)}</span>`).join('')}</div>`;
+}
+
+/* ── Comprensión lectora: el texto con sus dibujos y los ejercicios que se hacen sobre él ── */
+
+/** La mascota de la pista: una lupa con ojos y sonrisa (vectorial, del color de la hoja). */
+const MASCOTA_LUPA =
+  `<svg class="lc-mascota" viewBox="0 0 48 52" width="40" height="43" aria-hidden="true">` +
+  `<path d="M30 32 42 47" stroke="#C98B50" stroke-width="6" stroke-linecap="round"/>` +
+  `<circle cx="21" cy="21" r="16" fill="#fff" stroke="var(--c, #1E88D8)" stroke-width="4"/>` +
+  `<circle cx="21" cy="21" r="12" fill="var(--cl, #EAF5FE)"/>` +
+  `<circle cx="16" cy="19" r="2.4" fill="#1e293b"/><circle cx="26" cy="19" r="2.4" fill="#1e293b"/>` +
+  `<path d="M15.500 26q5.500 5 11 0" stroke="#1e293b" stroke-width="2.200" fill="none" stroke-linecap="round"/></svg>`;
+
+/** Una lupa pequeña: delante de las consignas que mandan al texto («Rodea en el texto…»). */
+export const lupaConsigna = `<svg class="cq-lupa" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="10" cy="10" r="6.200" fill="none" stroke="currentColor" stroke-width="2.600"/><path d="M15 15l5.500 5.500" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
+
+/**
+ * El texto de una ficha de lectura: arriba, lo que se trabaja (etiquetas) y la pista de la mascota; debajo, el texto con sus
+ * párrafos numerados y los dibujos a la derecha, junto al párrafo al que pertenecen (flotan: el texto los rodea). En un
+ * poema, cada verso en su línea y numerados el primero y de cinco en cinco.
+ */
+export function lecturaHtml(l: FichaLectura, o: { ilus?: Ilus; marca?: string }): string {
+  const chips = (l.destrezas ?? []).map(d => `<span class="lc-chip">${esc(d)}</span>`).join('');
+  const pista = l.pista ? `<div class="lc-pista"><p>${esc(l.pista)}</p>${MASCOTA_LUPA}</div>` : '';
+  const cab = chips || pista ? `<div class="lc-cab"><div class="lc-chips">${chips}</div>${pista}</div>` : '';
+  const dibujo = new Map(l.dibujos.map(d => [d.parrafo, d.ilustracion]));
+  let verso = 0;
+  const cuerpo = l.parrafos.map((p, i) => {
+    const img = o.ilus ? o.ilus(dibujo.get(i), 'lc-img') : '';
+    const figura = img ? `<span class="lc-fig" data-ilustracion="${esc(dibujo.get(i) ?? '')}">${img}</span>` : '';
+    if (l.genero === 'poema') {
+      const versos = p.split('\n').filter(v => v.trim()).map(v => {
+        verso++;
+        return `<span class="lc-v">${verso === 1 || verso % 5 === 0 ? `<i class="lc-vn">${verso}</i>` : ''}${rico(v)}</span>`;
+      }).join('');
+      return `<div class="lc-estrofa">${figura}${versos}</div>`;
+    }
+    return `<p class="lc-p">${figura}<span class="lc-n">${i + 1}</span>${rico(p)}</p>`;
+  }).join('');
+  return `<section class="lc lc-${l.genero}"${o.marca ?? ''}>${cab}<div class="lc-texto">${cuerpo}</div></section>`;
+}
+
+/** «Contesta.»: cada pregunta con su línea (o dos si la respuesta que se espera es larga). */
+export function contestarHtml(ex: FichaExercise): string {
+  const preguntas = ex.preguntas ?? [];
+  const largas = (ex.solucion ?? '').length / Math.max(1, preguntas.length) > 60;
+  return `<div class="cq-preguntas">${preguntas.map(q => `<div class="cq-pq"><p>${rico(q)}</p>${lineasHtml(largas ? 2 : 1)}</div>`).join('')}</div>`;
+}
+
+/** El recuadro de «Dibuja…»: un marco vacío (con un lápiz en la esquina) y, si se pide, líneas debajo. */
+export function dibujarHtml(ex: FichaExercise): string {
+  const n = Math.max(0, Math.min(2, ex.lineasRespuesta ?? 0));
+  return `<div class="cq-dibujo"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 20l1-4L16.500 4.500a2 2 0 0 1 3 0l0 0a2 2 0 0 1 0 3L8 19z" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/></svg></div>${n ? lineasHtml(n) : ''}`;
+}
+
+/** El recuadro con las palabras para rellenar los huecos de un «completar», en el orden que dio la IA (no la solución: lleva alguna de más). */
+export function bancoHtml(palabras: string[]): string {
+  return `<div class="cq-banco">${palabras.map(p => `<span>${esc(p)}</span>`).join('')}</div>`;
 }
 
 /** Cierre de la hoja: «¿Cómo me ha ido?» con tres caritas para rodear. */
@@ -752,6 +815,49 @@ export const CUADERNO_STYLE = `
 .cq-fr-unir .cq-fr-item { min-height: calc(22mm * var(--d, 1)); }
 .cq-fr-unir .item b { font-size: 15px; }
 .cq-fr-mini { flex: 0 0 auto; width: 19mm; height: 19mm; line-height: 0; display: block; }
+
+/* Comprensión lectora: el texto, sus dibujos y los ejercicios que se hacen sobre él (17-10-2026) */
+.lc { margin: 0 0 calc(5mm * var(--d, 1)); }
+.lc-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 4mm; margin: 0 0 calc(3mm * var(--d, 1)); break-inside: avoid; break-after: avoid; }
+.lc-chips { display: flex; flex-wrap: wrap; gap: 1.6mm; }
+.lc-chip { display: inline-block; padding: .7mm 3mm; border: 1.5px solid var(--c); border-radius: 99px; background: var(--cl); color: var(--cd); font-weight: 800; font-size: 10.5px; letter-spacing: .02em; }
+.lc-pista { position: relative; display: flex; align-items: center; gap: 2.5mm; max-width: 64%; padding: 1.8mm 3mm 1.8mm 4mm; border: 1.75px solid var(--c); border-radius: 5mm; background: #fff; }
+.lc-pista::after { content: ''; position: absolute; right: 10mm; bottom: -2.2mm; width: 3mm; height: 3mm; background: #fff; border-right: 1.75px solid var(--c); border-bottom: 1.75px solid var(--c); transform: rotate(45deg); }
+.lc-pista p { margin: 0; font-size: 11.5px; line-height: 1.35; font-weight: 800; color: var(--cd); }
+.lc-mascota { flex: 0 0 auto; display: block; margin-bottom: -1mm; }
+.lc-texto { display: flow-root; position: relative; padding: 4mm 5mm 2mm 11mm; border: 1.5px solid #EADFBF; border-radius: 4mm; background: #FFFCF3;
+  font-family: Georgia, 'Times New Roman', serif; font-size: 14.5px; line-height: 1.68; color: #1e293b; }
+.lc-p { position: relative; margin: 0 0 calc(2.6mm * var(--d, 1)); orphans: 3; widows: 3; text-align: left; }
+.lc-n { position: absolute; left: -8mm; top: .2em; width: 5.5mm; text-align: right; font: 800 10px/1 var(--font); color: var(--c); }
+.lc-fig { float: right; box-sizing: border-box; width: calc(32mm * var(--di, 1)); margin: .5mm 0 2mm 4.5mm; padding: 1.5mm; border-radius: 6mm; background: var(--cl); line-height: 0; break-inside: avoid; }
+.lc-img { display: block; width: 100%; max-height: calc(30mm * var(--di, 1)); object-fit: contain; }
+.lc-estrofa { position: relative; margin: 0 0 calc(3mm * var(--d, 1)); break-inside: avoid; }
+.lc-v { display: block; position: relative; }
+.lc-vn { position: absolute; left: -8mm; top: .4em; width: 5.5mm; text-align: right; font: 800 10px/1 var(--font); font-style: normal; color: var(--c); }
+.lc-texto b { font-weight: 800; }
+.cq-lupa { display: inline-block; vertical-align: -2px; margin-right: 1.5mm; color: var(--num); }
+.cq-preguntas { display: grid; gap: calc(2mm * var(--d, 1)); margin-top: calc(2mm * var(--d, 1)); }
+.cq-pq { break-inside: avoid; }
+.cq-pq p { margin: 0; font-size: 13px; line-height: 1.45; font-weight: 600; color: #334155; }
+.cq-dibujo { position: relative; height: calc(42mm * var(--d, 1)); margin-top: calc(2mm * var(--d, 1)); border: 1.75px dashed var(--lin); border-radius: 4mm; background: #fff; color: var(--num); break-inside: avoid; }
+.cq-dibujo svg { position: absolute; right: 2.5mm; bottom: 2.5mm; opacity: .7; }
+.cq-banco { display: flex; flex-wrap: wrap; gap: 1.8mm 2.5mm; margin: 1mm 0 calc(2.5mm * var(--d, 1)); padding: 2mm 3mm; border: 1.75px solid var(--num); border-radius: 3mm; background: color-mix(in srgb, var(--num) 7%, #fff); break-inside: avoid; break-after: avoid; }
+.cq-banco span { font-size: 13px; font-weight: 700; color: #1e293b; padding: .4mm 2.5mm; border-radius: 99px; background: #fff; border: 1.25px solid color-mix(in srgb, var(--num) 45%, #fff); }
+
+/* Lectura fácil (dislexia, 17-10-2026): letra aumentada y muy legible (Lexend), más espacio entre letras, palabras y líneas, sin
+   justificar ni cursiva ni mayúsculas, y las palabras clave en negrita con un subrayado de rotulador. */
+.th-cuaderno.lf { --font: 'Lexend', Verdana, Arial, sans-serif; --font-t: 'Lexend', Verdana, Arial, sans-serif; --d: 1.2; --di: 1.1; font-size: 15.5px; letter-spacing: .02em; word-spacing: .14em; font-family: var(--font); }
+.th-cuaderno.lf.d-apretada { --d: .96; --di: 1; } .th-cuaderno.lf.d-compacta { --d: 1.08; --di: 1.05; } .th-cuaderno.lf.d-holgada { --d: 1.38; --di: 1.15; }
+.th-cuaderno.lf .ficha-enunciado, .th-cuaderno.lf .cq-pq p { font-size: 16.5px; line-height: 1.85; }
+.th-cuaderno.lf .lc-texto { font-family: var(--font); font-size: 17px; line-height: 2; background: #FFFDF2; padding-right: 6mm; }
+.th-cuaderno.lf .lc-p, .th-cuaderno.lf .lc-v { max-width: 132mm; }
+.th-cuaderno.lf .lc-p { margin-bottom: calc(4mm * var(--d, 1)); }
+.th-cuaderno.lf .ficha-explicacion .txt, .th-cuaderno.lf .cq-opi, .th-cuaderno.lf .vf-row, .th-cuaderno.lf .ord-item, .th-cuaderno.lf .cq-nota p, .th-cuaderno.lf .cq-banco span { font-size: 15.5px; line-height: 1.75; }
+.th-cuaderno.lf .ficha-instr { font-size: 14.5px; line-height: 1.7; }
+.th-cuaderno.lf .cq-cinta h1, .th-cuaderno.lf .cq-sec h2, .th-cuaderno.lf .cq-nota-t { text-transform: none; letter-spacing: 0; word-spacing: .08em; }
+.th-cuaderno.lf i, .th-cuaderno.lf em { font-style: normal; }
+.th-cuaderno.lf b { font-weight: 800; background: linear-gradient(transparent 58%, #FFE56B 58%); }
+.th-cuaderno.lf .cq-sec b, .th-cuaderno.lf .cq-nota-t b, .th-cuaderno.lf .cq-opi b, .th-cuaderno.lf .lc-n { background: none; }
 
 /* Cierre de la hoja */
 /* La hoja no acaba en una página con solo «¿Cómo te ha ido?»: el último ejercicio (o el reto) viaja con el cierre */

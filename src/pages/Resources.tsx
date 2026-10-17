@@ -33,7 +33,9 @@ import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
 import { HiloSelector } from '../components/fichas/DibujosEditor';
-import { hiloDeFicha } from '../lib/hilos';
+import { LecturaEditor } from '../components/fichas/LecturaEditor';
+import { GENEROS_LECTURA, NOMBRE_GENERO, type GeneroLectura } from '../lib/lectura';
+import { hiloDeFicha, hiloPorId } from '../lib/hilos';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { useFichaParaPedido } from '../lib/apoyoNav';
@@ -74,13 +76,20 @@ const move = <X,>(list: X[], i: number, dir: -1 | 1): X[] => {
 
 type T = (k: string, v?: Record<string, string | number>) => string;
 
-const FORMATOS: { id: FichaFormato; emoji: string; label: string; desc: string }[] = [
-  { id: 'ficha', emoji: '📝', label: 'Ficha', desc: 'Ejercicios por bloques, para trabajar en la hoja.' },
-  { id: 'escape', emoji: '🔐', label: 'Escape room', desc: 'Cada bloque es una sala: sus respuestas forman el código que abre el candado.' },
-  { id: 'tarjetas', emoji: '🃏', label: 'Tarjetas recortables', desc: 'Pregunta delante y respuesta detrás, para jugar en grupo.' },
+const FORMATO_LABEL: Record<FichaFormato, string> = { ficha: 'Ficha', escape: 'Escape room', tarjetas: 'Tarjetas' };
+
+/** Lo que se puede crear: las cuatro tarjetas grandes del primer paso. La comprensión lectora es una ficha con texto (siempre en «Cuaderno»). */
+type TipoCreacion = FichaFormato | 'lectura';
+
+const TIPOS_CREACION: { id: TipoCreacion; emoji: string; label: string; desc: string }[] = [
+  { id: 'ficha', emoji: '📝', label: 'Ficha de ejercicios', desc: 'Ejercicios de menos a más, para trabajar en la hoja.' },
+  { id: 'lectura', emoji: '📖', label: 'Comprensión lectora', desc: 'Un texto con dibujos y actividades sobre él.' },
+  { id: 'escape', emoji: '🔐', label: 'Escape room', desc: 'Cada bloque es una sala con su candado.' },
+  { id: 'tarjetas', emoji: '🃏', label: 'Tarjetas', desc: 'Pregunta delante y respuesta detrás.' },
 ];
 
-const FORMATO_LABEL: Record<FichaFormato, string> = { ficha: 'Ficha', escape: 'Escape room', tarjetas: 'Tarjetas' };
+/** Cuántos ejercicios (o tarjetas) se proponen al elegir cada tipo. */
+const NUM_POR_DEFECTO: Record<TipoCreacion, number> = { ficha: 6, lectura: 8, escape: 6, tarjetas: 12 };
 
 const VARIANTES: { id: FichaVariante; emoji: string; desc: string }[] = [
   { id: 'apoyo', emoji: '🤝', desc: 'Más guiada y con números más sencillos.' },
@@ -154,7 +163,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   const [contextoClase, setContextoClase] = useState(inicial?.contexto ?? '');
   // Por defecto, la hoja de cuaderno (decisión del dueño, 14-10-2026); «Que elija la IA» sigue entre los de historia
   const [estilo, setEstilo] = useState<FichaThemeChoice>('cuaderno');
-  const [formato, setFormato] = useState<FichaFormato>('ficha');
+  const [tipo, setTipo] = useState<TipoCreacion>('ficha');
+  const formato: FichaFormato = tipo === 'lectura' ? 'ficha' : tipo;
+  // Comprensión lectora: el tipo de texto ('auto' lo elige la IA) y, para cualquier ficha, la lectura fácil (dislexia)
+  const [generoLectura, setGeneroLectura] = useState<GeneroLectura | 'auto'>('auto');
+  const [facil, setFacil] = useState(false);
   // El hilo conductor: 'auto' lo elige la app por el tema, 'ninguno' quita los dibujos, o un hilo concreto
   const [hilo, setHilo] = useState('auto');
 
@@ -181,13 +194,19 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     if (cls) setArea(cls.subject);
   }
 
-  const request = (): FichaRequest => ({ tema, area, nivel, numEjercicios, niveles, contextoClase, estilo, formato, visual, hilo });
+  const lectura = tipo === 'lectura';
+  const request = (): FichaRequest => ({
+    tema, area, nivel, numEjercicios, niveles, contextoClase, formato, hilo,
+    // La comprensión lectora es siempre «Cuaderno» y sin pictogramas; con tarjetas no hay lectura fácil
+    estilo: lectura ? 'cuaderno' : estilo, visual: visual && !lectura, lectura, generoLectura, facil: facil && tipo !== 'tarjetas',
+  });
   // Lo que la app elegiría por el tema (se enseña en el selector)
   const hiloDetectado = useMemo(() => (tema.trim() ? hiloDeFicha({ tema, area, nivel }) : undefined), [tema, area, nivel]);
 
-  function pickFormato(f: FichaFormato) {
-    setFormato(f);
-    if (f === 'tarjetas' && numEjercicios < 8) setNumEjercicios(12);
+  function pickTipo(nuevo: TipoCreacion) {
+    // El número de ejercicios que traía el tipo anterior pasa al del nuevo; si el docente lo cambió, se respeta
+    if (numEjercicios === NUM_POR_DEFECTO[tipo]) setNumEjercicios(NUM_POR_DEFECTO[nuevo]);
+    setTipo(nuevo);
   }
 
   function edit(fn: (c: FichaContent) => FichaContent) {
@@ -273,6 +292,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     setNumEjercicios(f.request.numEjercicios);
     setNiveles(f.request.niveles);
     setContextoClase(f.request.contextoClase);
+    setTipo(f.content.lectura ? 'lectura' : f.content.formato ?? 'ficha');
+    setFacil(f.content.variante === 'lectura_facil');
     setDirty(false);
     setSelected(null);
     window.scrollTo({ top: 0 });
@@ -430,7 +451,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
               {adaptOpen && (
                 <div className="fe-adapt-menu" role="menu">
                   <div className="fe-adapt-hd">{t('Crea otra versión de esta ficha, con la misma historia:')}</div>
-                  {VARIANTES.map(v => (
+                  {VARIANTES.filter(v => !content.lectura || v.id === 'lectura_facil').map(v => (
                     <button key={v.id} type="button" role="menuitem" className="fe-adapt-item" onClick={() => handleAdapt(v.id)}>
                       <span className="fe-adapt-emoji">{v.emoji}</span>
                       <span><strong>{t(VARIANTE_LABEL[v.id])}</strong><em>{t(v.desc)}</em></span>
@@ -451,29 +472,34 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
         </div>
 
-        <div className="card fe-theme-bar">
-          <div className="fe-theme-bar-hd">
-            <span className="fe-lbl">{t('Tema')}</span>
-            <span className="fe-hint">{t('Cambia el aspecto al instante, sin volver a generar.')}</span>
-            <span style={{ flex: 1 }} />
-            {story && !tarjetas && (
-              <button type="button" className="btn-ghost sm" disabled={storyBusy || sinClave} onClick={handleRewriteStory}>
-                {storyBusy ? <span className="spin" /> : <Wand2 size={13} />}
-                {historia ? t('Adaptar la historia a este tema') : t('Crear la historia')}
-              </button>
-            )}
-          </div>
-          <ThemeGrid value={theme.id} onChange={v => v !== 'auto' && changeTheme(v)} compact t={t} />
-        </div>
-
-        {theme.id === 'cuaderno' && !tarjetas && !escape && !content.visual && (
-          <div className="card fe-theme-bar">
-            <div className="fe-theme-bar-hd">
-              <span className="fe-lbl">{t('Hilo conductor')}</span>
-              <span className="fe-hint">{t('Cambia los dibujos de la cabecera; los de los ejercicios se quedan.')}</span>
+        {!content.lectura && (
+          <details className="card fe-look">
+            <summary>
+              <ThemeArt id={theme.id} className="fe-look-art" />
+              <span className="fe-look-txt"><strong>{t('Aspecto')}</strong><em>{t(theme.nombre)}{theme.id === 'cuaderno' && !tarjetas && !escape && !content.visual ? ` · ${content.hilo ? hiloPorId(content.hilo)?.nombre[lang] ?? '' : t('Sin dibujos')}` : ''}</em></span>
+              <span className="fe-look-cambiar">{t('Cambiar')}<ChevronDown size={14} /></span>
+            </summary>
+            <div className="fe-look-body">
+              <div className="fe-theme-bar-hd">
+                <span className="fe-hint">{t('Cambia el aspecto al instante, sin volver a generar.')}</span>
+                <span style={{ flex: 1 }} />
+                {story && !tarjetas && (
+                  <button type="button" className="btn-ghost sm" disabled={storyBusy || sinClave} onClick={handleRewriteStory}>
+                    {storyBusy ? <span className="spin" /> : <Wand2 size={13} />}
+                    {historia ? t('Adaptar la historia a este tema') : t('Crear la historia')}
+                  </button>
+                )}
+              </div>
+              <ThemeGrid value={theme.id} onChange={v => v !== 'auto' && changeTheme(v)} compact t={t} />
+              {theme.id === 'cuaderno' && !tarjetas && !escape && !content.visual && (
+                <div className="fe-look-hilo">
+                  <span className="fe-lbl">{t('Hilo conductor')}</span>
+                  <HiloSelector value={content.hilo ?? 'ninguno'} onChange={v => edit(c => conHilo(c, v === 'ninguno' ? undefined : v))} t={t} />
+                  <span className="fe-hint">{t('Cambia los dibujos de la cabecera; los de los ejercicios se quedan.')}</span>
+                </div>
+              )}
             </div>
-            <HiloSelector value={content.hilo ?? 'ninguno'} onChange={v => edit(c => conHilo(c, v === 'ninguno' ? undefined : v))} t={t} />
-          </div>
+          </details>
         )}
 
         <div className="fe-grid">
@@ -505,7 +531,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
               </div>
             )}
 
-            {!tarjetas && (
+            {content.lectura && (
+              <div className={`${blockCls('lectura')} fe-lec`} {...selectOn('lectura')}>
+                <div className="fe-sec-hd">📖 {t('El texto')}</div>
+                <LecturaEditor lectura={content.lectura} onChange={lectura => edit(c => ({ ...c, lectura }))} t={t} />
+              </div>
+            )}
+
+            {!tarjetas && !content.lectura && (
               <div className={blockCls('explicacion')} {...selectOn('explicacion')}>
                 <label className="fe-field">
                   <span className="fe-lbl">💡 {t('Antes de empezar')}</span>
@@ -592,7 +625,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                   <div className="fe-act-body">
                     {act.ejercicios.map((ex, i) => (
                       <ExerciseEditor
-                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual} hilo={content.hilo} fracciones={content.estilo === 'cuaderno' && !content.visual}
+                        key={i} ex={ex} n={i + 1} id={`${a}-${i}`} t={t} visual={!!content.visual} hilo={content.hilo} lectura={!!content.lectura} fracciones={content.estilo === 'cuaderno' && !content.visual && !content.lectura}
                         selected={selected === `${a}-${i}`} first={i === 0} last={i === act.ejercicios.length - 1}
                         busy={busyEx === `${a}-${i}`} aiDisabled={sinClave || (busyEx !== null && busyEx !== `${a}-${i}`)}
                         onSelect={() => setSelected(`${a}-${i}`)}
@@ -609,7 +642,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                         onChange={e => setAddTipo(m => ({ ...m, [a]: e.target.value as FichaExerciseType | '' }))}
                       >
                         <option value="">{t('Que elija la IA')}</option>
-                        {tiposDisponibles({ dibujos: !!content.hilo && !content.visual, fracciones: content.estilo === 'cuaderno' && !content.visual }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
+                        {tiposDisponibles({ dibujos: !!content.hilo && !content.visual && !content.lectura, fracciones: content.estilo === 'cuaderno' && !content.visual && !content.lectura, lectura: !!content.lectura }).map(x => <option key={x} value={x}>{TIPO_EMOJI[x]} {t(TIPO_LABEL[x])}</option>)}
                       </select>
                       <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={() => handleAddExercise(a)}>
                         {adding === a ? <span className="spin" /> : <Plus size={13} />}{t('Añadir ejercicio con IA')}
@@ -672,7 +705,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Recursos')}</h1>
-          <p className="pg-sub">{t('Fichas con historia, listas para imprimir: la IA las crea y tú las retocas.')}</p>
+          <p className="pg-sub">{t('Fichas, lecturas y juegos listos para imprimir: la IA los crea y tú los retocas.')}</p>
         </div>
       </div>
 
@@ -681,21 +714,31 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
       )}
 
       <div className="card fe-create" style={{ marginBottom: 16 }}>
-        <div className="card-hd">
-          <div className="card-ttl"><Sparkles size={14} color="var(--accent-d)" />{t('Nueva ficha')}</div>
+        <div className="fe-paso"><span className="fe-paso-n">1</span>{t('¿Qué quieres crear?')}</div>
+        <div className="fe-tipos" role="radiogroup" aria-label={t('Qué quieres crear')}>
+          {TIPOS_CREACION.map(x => (
+            <button
+              key={x.id} type="button" role="radio" aria-checked={tipo === x.id}
+              className={`fe-tipo${tipo === x.id ? ' on' : ''}`} onClick={() => pickTipo(x.id)}
+            >
+              <span className="fe-tipo-emoji" aria-hidden="true">{x.emoji}</span>
+              <strong>{t(x.label)}</strong>
+              <em>{t(x.desc)}</em>
+            </button>
+          ))}
         </div>
 
+        <div className="fe-paso"><span className="fe-paso-n">2</span>{t('¿De qué trata?')}</div>
         <div className="fgroup">
-          <label className="flabel" htmlFor="resources-f1">{t('¿De qué va la ficha?')} *</label>
           <input
-            id="resources-f1"
+            id="resources-f1" aria-label={t('¿De qué va la ficha?')}
             className="finput fe-big" value={tema} onChange={e => setTema(e.target.value)}
-            placeholder={t('Ej: las fracciones equivalentes')}
+            placeholder={t(lectura ? 'Ej: un dragón que perdió su fuego' : 'Ej: las fracciones equivalentes')}
             onKeyDown={e => { if (e.key === 'Enter' && !generating && !sinClave) handleGenerate(); }}
           />
         </div>
 
-        <div className="frow">
+        <div className="frow fe-quien">
           {apoyo?.alumnos.length ? (
             <div className="fgroup">
               <label className="flabel" htmlFor="resources-f2">{t('Adaptada a')}</label>
@@ -727,21 +770,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             <label className="flabel" htmlFor="resources-f4">{t('Nivel o curso')}</label>
             <input id="resources-f4" className="finput" value={nivel} onChange={e => setNivel(e.target.value)} placeholder={t('Ej: 5º de Primaria')} />
           </div>
-          <div className="fgroup" style={{ maxWidth: 140 }}>
-            <label className="flabel" htmlFor="resources-f5">{t(formato === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
-            <input
-              id="resources-f5"
-              className="finput" type="number" min={1} max={20} value={numEjercicios}
-              onChange={e => setNumEjercicios(Math.max(1, Math.min(formato === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
-            />
-          </div>
         </div>
-
-        {formato !== 'tarjetas' && (
-          <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
-            {t('Las fichas van de menos a más: bloques de nivel 1, 2 y 3, con estrellas en cada uno. En 5.º y 6.º de Primaria suben un punto.')}
-          </p>
-        )}
 
         {alumnoApoyo && (
           <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>
@@ -749,78 +778,116 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </p>
         )}
 
-        {formato !== 'tarjetas' && (
-          <label className={`fe-visual-opt${visual ? ' on' : ''}`}>
-            <input type="checkbox" checked={visual} onChange={e => setVisual(e.target.checked)} />
-            <span className="fe-visual-ico" aria-hidden="true">🖼️</span>
-            <span className="fe-visual-txt">
-              <strong>{t('Instrucciones muy visuales, con pictogramas')}</strong>
-              <em>{t('Pasos numerados con su pictograma, dibujos para contar y tarjetas en la explicación. Para el alumnado que lo necesita, por ejemplo con TEA.')}</em>
-            </span>
-          </label>
+        {lectura && (
+          <div className="fgroup">
+            <span className="flabel">{t('Tipo de texto')}</span>
+            <div className="fe-generos" role="radiogroup" aria-label={t('Tipo de texto')}>
+              {(['auto', ...GENEROS_LECTURA] as const).map(g => (
+                <button
+                  key={g} type="button" role="radio" aria-checked={generoLectura === g}
+                  className={`fe-genero${generoLectura === g ? ' on' : ''}`} onClick={() => setGeneroLectura(g)}
+                >
+                  {g === 'auto' ? t('Que elija la IA') : t(NOMBRE_GENERO[g])}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
-        <div className="fgroup">
-          <span className="flabel">{t('Qué quieres crear')}</span>
-          <div className="fe-formats" role="radiogroup" aria-label={t('Qué quieres crear')}>
-            {FORMATOS.map(f => (
-              <button
-                key={f.id} type="button" role="radio" aria-checked={formato === f.id}
-                className={`fe-format${formato === f.id ? ' on' : ''}`} onClick={() => pickFormato(f.id)}
-              >
-                <span className="fe-format-emoji">{f.emoji}</span>
-                <span className="fe-format-txt"><strong>{t(f.label)}</strong><em>{t(f.desc)}</em></span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="fgroup">
-          <span className="flabel">{t(formato === 'tarjetas' ? 'Aspecto de las tarjetas' : 'Aspecto de la ficha')}</span>
-          <ThemeGrid value={estilo} onChange={setEstilo} withAuto t={t} />
-          <p className="fe-hint" style={{ marginTop: 6 }}>
-            {formato === 'tarjetas'
-              ? t('Solo cambia los colores y los dibujos de las tarjetas.')
-              : formato === 'escape' && !conHistoria(estilo)
-                ? t('Un escape room necesita historia: la IA elegirá el mundo que mejor encaje.')
-                : estilo === 'cuaderno'
-                  ? t('Una hoja de cuaderno de colegio: bloques numerados, recuadros de ayuda y un dibujo en la cabecera.')
-                  : estilo === 'clasico'
-                    ? t('Sin historia: una ficha sobria de las de siempre.')
-                    : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
-          </p>
-        </div>
-
-        {estilo === 'cuaderno' && formato === 'ficha' && !visual && (
-          <div className="fgroup">
-            <span className="flabel">{t('Dibujos de la ficha')}</span>
-            <HiloSelector auto value={hilo} onChange={setHilo} detectado={hiloDetectado} t={t} />
-            <p className="fe-hint" style={{ marginTop: 6 }}>{t('Los dibujos y el ambiente de los enunciados salen de este tema. Puedes cambiarlo o quitarlo.')}</p>
+        {tipo !== 'tarjetas' && (
+          <div className="fe-opts">
+            <label className={`fe-opt${facil ? ' on' : ''}`}>
+              <input type="checkbox" checked={facil} onChange={e => setFacil(e.target.checked)} />
+              <span className="fe-opt-ico fe-opt-aa" aria-hidden="true">Aa</span>
+              <span className="fe-opt-txt">
+                <strong>{t('Lectura fácil')}</strong>
+                <em>{t('Para dislexia: frases cortas, palabras clave en negrita y letra más grande.')}</em>
+              </span>
+            </label>
+            {!lectura && (
+              <label className={`fe-opt${visual ? ' on' : ''}`}>
+                <input type="checkbox" checked={visual} onChange={e => setVisual(e.target.checked)} />
+                <span className="fe-opt-ico" aria-hidden="true">🖼️</span>
+                <span className="fe-opt-txt">
+                  <strong>{t('Con pictogramas')}</strong>
+                  <em>{t('Pasos numerados con dibujos, para el alumnado que lo necesita (TEA…).')}</em>
+                </span>
+              </label>
+            )}
           </div>
         )}
 
         <details className="fe-more">
-          <summary>{t('Más opciones')}</summary>
-          <div className="fgroup" style={{ marginTop: 10 }}>
-            <label className="flabel" htmlFor="resources-f6">{t('Cómo es el grupo (opcional)')}</label>
-            <textarea id="resources-f6" className="finput" rows={2} value={contextoClase} onChange={e => setContextoClase(e.target.value)} style={{ resize: 'vertical' }} />
+          <summary>
+            {t('Personalizar')}
+            <span className="fe-resumen">{t(tipo === 'tarjetas' ? '{n} tarjetas' : '{n} ejercicios', { n: numEjercicios })}{!lectura && tipo !== 'tarjetas' ? ` · ${estilo === 'auto' ? t('Que elija la IA') : t(fichaTheme(estilo).nombre)}` : ''}</span>
+          </summary>
+          <div className="fe-more-body">
+            <div className="fgroup" style={{ maxWidth: 160 }}>
+              <label className="flabel" htmlFor="resources-f5">{t(tipo === 'tarjetas' ? 'Nº de tarjetas' : 'Nº de ejercicios')}</label>
+              <input
+                id="resources-f5"
+                className="finput" type="number" min={1} max={20} value={numEjercicios}
+                onChange={e => setNumEjercicios(Math.max(1, Math.min(tipo === 'tarjetas' ? 32 : 20, Number(e.target.value) || 1)))}
+              />
+            </div>
+            {tipo !== 'tarjetas' && (
+              <p className="fe-hint" style={{ margin: 0 }}>
+                {t('Las fichas van de menos a más: bloques de nivel 1, 2 y 3, con estrellas en cada uno. En 5.º y 6.º de Primaria suben un punto.')}
+              </p>
+            )}
+
+            {!lectura && (
+              <div className="fgroup">
+                <span className="flabel">{t(tipo === 'tarjetas' ? 'Aspecto de las tarjetas' : 'Aspecto de la ficha')}</span>
+                <ThemeGrid value={estilo} onChange={setEstilo} withAuto t={t} />
+                <p className="fe-hint" style={{ marginTop: 6 }}>
+                  {tipo === 'tarjetas'
+                    ? t('Solo cambia los colores y los dibujos de las tarjetas.')
+                    : tipo === 'escape' && !conHistoria(estilo)
+                      ? t('Un escape room necesita historia: la IA elegirá el mundo que mejor encaje.')
+                      : estilo === 'cuaderno'
+                        ? t('Una hoja de cuaderno de colegio: bloques numerados, recuadros de ayuda y un dibujo en la cabecera.')
+                        : estilo === 'clasico'
+                          ? t('Sin historia: una ficha sobria de las de siempre.')
+                          : t('La ficha se convierte en una misión: un personaje la presenta, cada bloque es un paso de la aventura y al final se gana una insignia.')}
+                </p>
+              </div>
+            )}
+
+            {estilo === 'cuaderno' && tipo === 'ficha' && !visual && (
+              <div className="fgroup">
+                <span className="flabel">{t('Dibujos de la ficha')}</span>
+                <HiloSelector auto value={hilo} onChange={setHilo} detectado={hiloDetectado} t={t} />
+                <p className="fe-hint" style={{ marginTop: 6 }}>{t('Los dibujos y el ambiente de los enunciados salen de este tema. Puedes cambiarlo o quitarlo.')}</p>
+              </div>
+            )}
+
+            <div className="fgroup">
+              <label className="flabel" htmlFor="resources-f6">{t('Cómo es el grupo (opcional)')}</label>
+              <textarea id="resources-f6" className="finput" rows={2} value={contextoClase} onChange={e => setContextoClase(e.target.value)} style={{ resize: 'vertical' }} />
+            </div>
+            {!lectura && tipo !== 'tarjetas' && (
+              <>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={niveles} onChange={e => setNiveles(e.target.checked)} />
+                  {t('Incluir variantes de apoyo y ampliación por ejercicio')}
+                </label>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: 0 }}>
+                  {t('Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.')}
+                </p>
+              </>
+            )}
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer', marginBottom: 4 }}>
-            <input type="checkbox" checked={niveles} onChange={e => setNiveles(e.target.checked)} />
-            {t('Incluir variantes de apoyo y ampliación por ejercicio')}
-          </label>
-          <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginBottom: 4 }}>
-            {t('Útil como referencia para atender distintos ritmos; no se exportan en la ficha impresa, solo se ven aquí.')}
-          </p>
         </details>
 
-        <div style={{ paddingTop: 14, marginTop: 10, borderTop: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
+        <div className="fe-crear">
+          <button className="btn-accent fe-crear-btn" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
               ? <><span className="spin" />{t('Creando…')}</>
-              : <><Sparkles size={14} />{t(formato === 'escape' ? 'Crear escape room' : formato === 'tarjetas' ? 'Crear tarjetas' : 'Crear ficha')}</>}
+              : <><Sparkles size={15} />{t(tipo === 'escape' ? 'Crear escape room' : tipo === 'tarjetas' ? 'Crear tarjetas' : tipo === 'lectura' ? 'Crear comprensión lectora' : 'Crear ficha')}</>}
           </button>
-          {generating && <span className="fe-hint">{t('La IA está escribiendo la historia y los ejercicios. Tarda unos segundos.')}</span>}
+          {generating && <span className="fe-hint">{t(lectura ? 'La IA está escribiendo el texto y las actividades. Tarda unos segundos.' : 'La IA está escribiendo la historia y los ejercicios. Tarda unos segundos.')}</span>}
         </div>
       </div>
 
@@ -853,6 +920,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                       </span>
                       <span className="fe-card-theme">
                         {t(th.nombre)}
+                        {f.content.lectura && <span className="fe-mini-badge">{t('Comprensión lectora')}</span>}
                         {f.content.formato && f.content.formato !== 'ficha' && <span className="fe-mini-badge">{t(FORMATO_LABEL[f.content.formato])}</span>}
                         {f.content.variante && <span className="fe-mini-badge var">{t(VARIANTE_LABEL[f.content.variante])}</span>}
                       </span>

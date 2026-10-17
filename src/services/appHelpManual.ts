@@ -438,19 +438,52 @@ Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
 tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
 crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
 aplicación).
+CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cuatro tarjetas grandes:
+«Ficha de ejercicios», «Comprensión lectora», «Escape room» y «Tarjetas»; 2)
+«¿De qué trata?», con la clase, el área y el curso. Debajo, dos casillas:
+«Lectura fácil» (para dislexia) y «Con pictogramas». Lo demás está recogido en
+«Personalizar»: número de ejercicios, aspecto, dibujos y cómo es el grupo.
 Al crearla se abre el EDITOR: a la izquierda los bloques (título, historia,
 explicación, instrucciones, cada misión y sus ejercicios, final); a la derecha
-la vista previa A4, igual que se imprime. Cada ejercicio se edita, se sube, se
-baja, se borra o se «Rehace» con IA («Más fácil», «Más difícil», «Otro
-distinto», cambiar de tipo o una indicación libre). Al hacer clic en la hoja se
-selecciona ese bloque. El tema se cambia arriba con un clic sin volver a
-generar; «Adaptar la historia a este tema» reescribe solo la historia.
+la vista previa A4, igual que se imprime. Cada ejercicio sale en una línea
+(su número, su tipo y el principio del enunciado): al tocarlo se abre entero
+para editarlo, subirlo, bajarlo, borrarlo o «Rehacerlo» con IA («Más fácil»,
+«Más difícil», «Otro distinto», cambiar de tipo o una indicación libre). Al
+hacer clic en la hoja se selecciona ese bloque. El aspecto está recogido en una
+fila («Aspecto», con «Cambiar»): el tema se cambia con un clic sin volver a
+generar y ahí está también el hilo de los dibujos; «Adaptar la historia a este
+tema» reescribe solo la historia.
 QUÉ QUIERES CREAR: «Ficha» (ejercicios por bloques), «Escape room» (cada
 bloque es una sala; las respuestas forman el código del candado que abre la
 siguiente, y al final se abre el cofre; el código no se imprime, se ve en el
 editor) o «Tarjetas recortables» (pregunta delante y respuesta detrás, se
 recortan por la línea discontinua y se doblan por la mitad; incluyen cómo
 jugar).
+COMPRENSIÓN LECTORA: la IA escribe primero un texto original del curso (cuento,
+poema, noticia, texto informativo, descripción, entrevista o instrucciones; se
+elige el tipo o lo elige ella) y después las actividades sobre ese texto, de
+menos a más: «Buscamos en el texto» (rodear, subrayar, verdadero o falso,
+ordenar los hechos), «Pensamos» (vocabulario, causas, contestar preguntas) y
+«Opinamos y creamos» (opinar, dibujar). La longitud del texto la fija la app
+según el curso (de unas 50 palabras en 1.º a 450 en 6.º) y los dibujos son del
+catálogo de la app, uno junto a cada párrafo que los pide; cada párrafo lleva su
+número («en el párrafo 2»). Arriba va lo que se trabaja y la pista de la
+mascota. Tipos propios: «Rodear o subrayar en el texto», «Contestar preguntas»
+(cada una con su línea), «Dibujar» (un recuadro vacío) y «Completar» con un
+recuadro de palabras. En el editor, el bloque «El texto» cambia el tipo, la
+pista, cada párrafo y su dibujo; si cambias el texto, repasa las actividades.
+Siempre es «Cuaderno» y sale en PDF, Word y al proyectarla (una pantalla con el
+texto antes de los bloques). «Adaptar» ofrece solo «Lectura fácil», que
+reescribe el texto y rehace las actividades.
+LECTURA FÁCIL (dislexia): casilla del formulario, para cualquier ficha o
+comprensión lectora. Frases cortas (de 6 a 11 palabras de media), una idea por
+frase, palabras clave en negrita (la IA las marca entre dos asteriscos, **así**,
+y la app comprueba que estén bien cerradas) y el verbo de cada consigna en
+negrita; el texto se pide otra vez si las frases salen largas. La hoja usa la
+letra Lexend, más grande, con más espacio entre letras, palabras y líneas, sin
+justificar, sin cursiva ni mayúsculas, y las palabras clave con un subrayado de
+rotulador. En Word, Verdana grande con interlineado amplio. Una ficha ya hecha
+se convierte con «Adaptar» → «Lectura fácil».
 INSTRUCCIONES MUY VISUALES, CON PICTOGRAMAS: casilla del formulario, que se
 marca sola al elegir un alumno en «Adaptada a» y se puede desmarcar. La ficha
 sale con letra grande, la consigna general en un recuadro amarillo, tarjetas
@@ -480,7 +513,7 @@ F pantalla completa, Esc salir. Las tarjetas se proyectan de una en una y se
 giran con un clic o la barra espaciadora.
 ADAPTAR (botón arriba en el editor): crea otra versión de la misma ficha, con
 la misma historia: «Versión de apoyo», «Versión de ampliación» o «Lectura
-fácil» (frases cortas y letra más grande). Se abre como ficha nueva; en la
+fácil» (frases cortas, palabras clave en negrita y letra más grande). Se abre como ficha nueva; en la
 hoja solo lleva una marca discreta en la esquina (◆ apoyo, ▲ ampliación,
 ● lectura fácil) y en «Mis fichas» aparece con su etiqueta.
 Se exportan a PDF (vertical) y a Word. Las soluciones son solo para el

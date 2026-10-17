@@ -3,6 +3,7 @@ import { CA } from './ca';
 import { APOYO_EN } from './apoyo';
 import { HILOS_EN } from './hilos';
 import { COMPOSITOR_EN } from './compositor';
+import { LECTURA_EN } from './lectura';
 import { EF_EN } from './ef';
 import { DEMO_EN } from './demo';
 
@@ -2066,6 +2067,7 @@ const EN: Record<string, string> = {
   ...EF_EN,
   ...HILOS_EN,
   ...COMPOSITOR_EN,
+  ...LECTURA_EN,
   /* ── Fase 7: Anotar actitud y En clase (11-10-2026) ── */
   'Buen comport.': 'Good behav.',
   'Mal comport.': 'Poor behav.',

@@ -19,10 +19,14 @@ export const TIPO_LABEL: Record<FichaExerciseType, string> = {
   etiquetar: 'Escribir el nombre de los dibujos',
   clasificar: 'Clasificar dibujos',
   fracciones: 'Fracciones con pizzas',
+  en_texto: 'Rodear o subrayar en el texto',
+  contestar: 'Contestar preguntas',
+  dibujar: 'Dibujar',
 };
 
 export const TIPO_EMOJI: Record<FichaExerciseType, string> = {
   abierta: '✍️', completar: '🔤', opcion_multiple: '🔘', problema: '🧮', tabla_rellenar: '📊',
   relacionar: '🔗', colorear: '🖍️', sopa_letras: '🔎', verdadero_falso: '✅', ordenar: '🔢',
   crucigrama: '🧩', comic: '💬', calculos: '➕', contar: '🔢', etiquetar: '🏷️', clasificar: '🗂️', fracciones: '🍕',
+  en_texto: '🖍️', contestar: '❓', dibujar: '🎨',
 };
