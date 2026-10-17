@@ -6,20 +6,22 @@
  * (DUA-A). A la IA solo le llega lo que no puede hacer cada alumno y su nivel
  * de apoyo (II o III) con lo que necesita, sin nombre, motivo ni diagnóstico. «Desde una foto» (6-10-2026): la IA reconoce el deporte o la
  * actividad de una foto y la redacta para la edad de la clase; la foto va
- * reducida y sin sus metadatos, y no se guarda. Ver `docs/EF.md`.
+ * reducida y sin sus metadatos, y no se guarda. «Desde un manual» (17-10-2026):
+ * la IA lee un PDF, saca sus actividades, las clasifica y el docente elige cuáles
+ * guarda; el PDF va a Google y no se guarda. Ver `docs/EF.md`.
  */
 import { useMemo, useRef, useState } from 'react';
-import { Plus, Sparkles, Pencil, Trash2, Copy, Search, Save, Camera, ImagePlus } from 'lucide-react';
+import { Plus, Sparkles, Pencil, Trash2, Copy, Search, Save, Camera, ImagePlus, FileText } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
-import { isoDate } from '../../lib/utils';
+import { fileToBase64, isoDate } from '../../lib/utils';
 import { bancoEF } from '../../lib/bancoEF';
 import { alumnadoParaIA, edadAproximada, MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
 import { fotoParaIA } from '../../lib/fotos';
 import { hasApiKey, type InlineFile } from '../../services/gemini';
-import { actividadDesdeFoto, proponerActividades } from '../../services/efIA';
+import { actividadDesdeFoto, actividadesDesdeManual, MAX_ACTIVIDADES_MANUAL, proponerActividades } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { Class, Student } from '../../types';
 import type { ActividadEF, EfData, ModalidadEF, TipoActividadEF } from '../../types/ef';
@@ -33,6 +35,9 @@ interface Props {
 }
 
 type Origen = 'todas' | ActividadEF['origen'];
+
+/** Lo que admite Gemini en línea es 20 MB en total; se deja margen para el resto de la petición. */
+const MAX_MANUAL_BYTES = 19 * 1024 * 1024;
 
 const CAMPOS: readonly { id: keyof Pick<ActividadEF, 'descripcion' | 'organizacion' | 'material' | 'variantes' | 'inclusion'>; label: string }[] = [
   { id: 'descripcion', label: 'En qué consiste' },
@@ -59,6 +64,10 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const [foto, setFoto] = useState<{ claseId: string; nota: string; inventario: boolean; limitaciones: boolean; archivo: InlineFile | null } | null>(null);
   const [deFoto, setDeFoto] = useState<{ visto: string; actividad: ActividadEF | null } | null>(null);
   const archivoFoto = useRef<HTMLInputElement>(null);
+  const [manual, setManual] = useState<{ claseId: string; paginas: string; nota: string; archivo: InlineFile | null } | null>(null);
+  /** Lo que sacó la IA del manual y cuáles se guardan. */
+  const [delManual, setDelManual] = useState<{ actividades: ActividadEF[]; elegidas: string[] } | null>(null);
+  const archivoManual = useRef<HTMLInputElement>(null);
   const esNueva = !!editando && !ef.actividades.some(a => a.id === editando.id);
 
   const todas = useMemo(() => [...ef.actividades, ...bancoEF(lang)], [ef.actividades, lang]);
@@ -159,6 +168,53 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
     toast(t('Guardada en tus actividades.'));
   }
 
+  /* ── Desde un manual en PDF ── */
+  const claseManual = classes.find(c => c.id === manual?.claseId);
+  const edadManual = claseManual?.etapa && claseManual.curso ? edadAproximada(claseManual.etapa, claseManual.curso) : undefined;
+
+  async function elegirManual(files: FileList | null) {
+    const f = files?.[0];
+    if (archivoManual.current) archivoManual.current.value = '';
+    if (!f || !manual) return;
+    if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) { toast(t('«{nombre}» no es un PDF.', { nombre: f.name })); return; }
+    if (f.size > MAX_MANUAL_BYTES) { toast(t('El archivo supera el límite de 19 MB')); return; }
+    try {
+      const archivo = await fileToBase64(f);
+      setManual(x => (x ? { ...x, archivo: { ...archivo, mimeType: 'application/pdf' } } : x));
+      setDelManual(null);
+    } catch {
+      toast(t('No se pudo leer el archivo'));
+    }
+  }
+
+  async function leerManual() {
+    if (!manual?.archivo) return;
+    setPensando(true);
+    const r = await actividadesDesdeManual({
+      curso: cursoDe(claseManual) ?? claseManual?.name,
+      etapa: claseManual?.etapa,
+      edad: edadManual ? `${edadManual.desde} a ${edadManual.hasta} años` : undefined,
+      paginas: manual.paginas,
+      nota: manual.nota,
+      yaTiene: todas.map(a => a.titulo),
+    }, manual.archivo, comunidad, lang, { onError: m => toast(t(m)) });
+    setPensando(false);
+    if (!r) return;
+    const actividades = r.map(a => ({ ...a, id: nuevoIdEF('act') }));
+    const tiene = new Set(todas.map(a => norm(a.titulo.trim())));
+    setDelManual({ actividades, elegidas: actividades.filter(a => !tiene.has(norm(a.titulo))).map(a => a.id) });
+  }
+
+  function guardarDelManual() {
+    if (!delManual) return;
+    const elegidas = delManual.actividades.filter(a => delManual.elegidas.includes(a.id));
+    if (!elegidas.length) { toast(t('Elige al menos una actividad.')); return; }
+    onChangeEf(d => ({ ...d, actividades: [...elegidas, ...d.actividades] }));
+    setDelManual(null);
+    setManual(null);
+    toast(t('{n} actividades guardadas en las tuyas.', { n: elegidas.length }));
+  }
+
   const ficha = (a: ActividadEF, acciones: React.ReactNode) => (
     <details key={a.id} className="ef-act">
       <summary>
@@ -186,6 +242,10 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
           <p className="pg-sub">{t('El banco de partida de AulaPro, las tuyas y las que guardes de la IA. Cada una dice cómo participa quien tiene una limitación, según el DUA-A.')}</p>
         </div>
         <div className="ap-prog-acc">
+          <button className="btn-ghost" onClick={() => { setDelManual(null); setManual({ claseId: classes[0]?.id ?? '', paginas: '', nota: '', archivo: null }); }}
+            disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+            <FileText size={15} />{t('Desde un manual (PDF)')}
+          </button>
           <button className="btn-ghost" onClick={() => { setDeFoto(null); setFoto({ claseId: classes[0]?.id ?? '', nota: '', inventario: hayInventario, limitaciones: true, archivo: null }); }}
             disabled={!hasApiKey()} title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
             <Camera size={15} />{t('Desde una foto')}
@@ -338,6 +398,87 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             {propuestas.length > 0 && (
               <div className="ef-acts" style={{ gridColumn: '1 / -1' }}>
                 {propuestas.map(a => ficha(a, <button className="btn-accent" onClick={() => guardarPropuesta(a)}><Save size={14} />{t('Guardar en mis actividades')}</button>))}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={!!manual} onClose={() => setManual(null)} wide title={t('Actividades desde un manual')}>
+        {manual && (
+          <div className="ap-form">
+            <div className="fgroup ef-foto" style={{ gridColumn: '1 / -1' }}>
+              <input ref={archivoManual} type="file" accept=".pdf,application/pdf" hidden aria-label={t('Manual en PDF')} onChange={e => elegirManual(e.target.files)} />
+              <button type="button" className="ef-foto-vacia" onClick={() => archivoManual.current?.click()}>
+                <FileText size={30} aria-hidden="true" /><span>{manual.archivo ? manual.archivo.name : t('Elige el PDF del manual')}</span>
+              </button>
+              <div className="ef-foto-txt">
+                <p className="ap-sub">{t('El manual de un libro, de tu departamento o de un curso. La IA saca las actividades prácticas, las clasifica por tipo y por modalidad, las redacta con sus palabras, para la edad de la clase, y añade cómo participa todo el grupo (DUA-A). Tú eliges cuáles guardas.')}</p>
+                {manual.archivo && <button type="button" className="btn-ghost" onClick={() => archivoManual.current?.click()}><FileText size={14} />{t('Cambiar el PDF')}</button>}
+              </div>
+            </div>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="ef-man-clase">{t('Clase')}</label>
+              <select id="ef-man-clase" className="finput" value={manual.claseId} onChange={e => setManual({ ...manual, claseId: e.target.value })}>
+                <option value="">{t('Sin clase concreta')}</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              {edadManual && <span className="ap-sub">{t('{curso}: de {desde} a {hasta} años', { curso: cursoDe(claseManual) ?? '', desde: edadManual.desde, hasta: edadManual.hasta })}</span>}
+            </div>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="ef-man-pags">{t('Páginas (opcional)')}</label>
+              <input id="ef-man-pags" className="finput" value={manual.paginas} placeholder={t('Ej: 20-45')}
+                onChange={e => setManual({ ...manual, paginas: e.target.value })} />
+            </div>
+            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
+              <label className="flabel" htmlFor="ef-man-nota">{t('Algo que quieras que tenga en cuenta (opcional)')}</label>
+              <input id="ef-man-nota" className="finput" value={manual.nota} placeholder={t('Ej: solo las de baloncesto, o las que valgan para el patio')}
+                onChange={e => setManual({ ...manual, nota: e.target.value })} />
+            </div>
+            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('El PDF se envía a Google para que la IA lo lea y AulaPro no lo guarda. Saca como mucho {n} actividades cada vez: si el manual es largo, indica las páginas. No uses documentos con datos de tu alumnado.', { n: MAX_ACTIVIDADES_MANUAL })}</p>
+            <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
+              <button className="btn-accent" onClick={leerManual} disabled={pensando || !manual.archivo}>
+                {pensando ? <span className="spin" /> : <Sparkles size={15} />}{pensando ? t('Leyendo el manual…') : t('Leer y clasificar')}
+              </button>
+              <button className="btn-ghost" onClick={() => setManual(null)}>{t('Cerrar')}</button>
+            </div>
+            {delManual && (
+              <div className="ef-foto-res" style={{ gridColumn: '1 / -1' }}>
+                {delManual.actividades.length === 0
+                  ? <p className="ap-aviso" role="status">{t('En el PDF no se encontraron actividades prácticas de Educación Física. Prueba con otras páginas u otro manual.')}</p>
+                  : (
+                    <>
+                      <p className="ef-foto-visto">
+                        <strong>{t('Clasificadas')}:</strong>{' '}
+                        {TIPOS_ACTIVIDAD.map(x => ({ x, n: delManual.actividades.filter(a => a.tipo === x.id).length })).filter(g => g.n > 0)
+                          .map(g => `${t(g.x.label)} (${g.n})`).join(' · ')}
+                      </p>
+                      {TIPOS_ACTIVIDAD.map(x => {
+                        const grupo = delManual.actividades.filter(a => a.tipo === x.id);
+                        if (!grupo.length) return null;
+                        return (
+                          <div key={x.id} className="ef-manual-grupo">
+                            <div className="home-card-ttl">{t(x.label)}</div>
+                            {grupo.map(a => {
+                              const tiene = todas.some(o => norm(o.titulo.trim()) === norm(a.titulo));
+                              return (
+                                <div key={a.id} className="ef-manual-fila">
+                                  <input type="checkbox" aria-label={t('Guardar «{nombre}»', { nombre: a.titulo })} checked={delManual.elegidas.includes(a.id)}
+                                    onChange={e => setDelManual(m => (m ? { ...m, elegidas: e.target.checked ? [...m.elegidas, a.id] : m.elegidas.filter(i => i !== a.id) } : m))} />
+                                  <div className="ef-acts">{ficha(a, tiene ? <span className="ap-sub">{t('Ya tienes una con este título.')}</span> : null)}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                      <div className="ap-acciones">
+                        <button className="btn-accent" onClick={guardarDelManual}><Save size={14} />{t('Guardar {n} en mis actividades', { n: delManual.elegidas.length })}</button>
+                        <button className="btn-ghost" onClick={() => setDelManual(m => (m ? { ...m, elegidas: m.actividades.map(a => a.id) } : m))}>{t('Elegir todas')}</button>
+                        <button className="btn-ghost" onClick={() => setDelManual(m => (m ? { ...m, elegidas: [] } : m))}>{t('Quitar todas')}</button>
+                      </div>
+                    </>
+                  )}
               </div>
             )}
           </div>

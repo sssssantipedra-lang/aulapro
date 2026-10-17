@@ -5,7 +5,7 @@
  * (decisión del dueño, 5-10-2026).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { actividadDesdeFoto, curriculoEF, limitacionesParaIA, marcoEF, prepararSesion, proponerActividades, recursosParaIA } from './efIA';
+import { actividadDesdeFoto, actividadesDesdeManual, reconocerPizarra, curriculoEF, limitacionesParaIA, marcoEF, prepararSesion, proponerActividades, recursosParaIA } from './efIA';
 import { cargarCurriculo } from '../lib/curriculum/cargar';
 import { resolverGrupo } from '../lib/curriculum/index';
 import { buildDemoEF } from '../lib/demoEF';
@@ -183,5 +183,73 @@ describe('actividades con IA y banco de partida', () => {
     // Cada idioma tiene su texto, no una copia del castellano
     expect(bancoEF('ca')[0].descripcion).not.toBe(bancoEF('es')[0].descripcion);
     expect(bancoEF('en')[0].titulo).toBe('Handkerchief by numbers');
+  });
+});
+
+describe('actividades desde un manual en PDF', () => {
+  const PDF = { name: 'manual.pdf', mimeType: 'application/pdf', base64: 'QUJD' };
+  const act = (titulo: string, tipo = 'juego', modalidad = 'cooperacion') => ({
+    titulo, tipo, modalidad, descripcion: 'Se juega en equipos.', organizacion: 'Grupos de 4', material: 'Aros', variantes: 'Más lejos', inclusion: 'Con un papel de árbitro',
+  });
+  const peticion = { curso: '5º de Primaria', edad: '10 a 11 años', paginas: '20-45', nota: '', yaTiene: ['El pañuelo por números'] };
+
+  it('manda el PDF con las páginas y las actividades que ya tiene, y clasifica lo que vuelve', async () => {
+    callGemini.mockResolvedValue(JSON.stringify({ actividades: [
+      act('Los aros musicales'), act('Estiramientos en círculo', 'calma', 'ninguna'), act('Los aros musicales'), act('Raro', 'inventado', 'inventada'),
+      { ...act('Sin reglas'), descripcion: '' },
+    ] }));
+    const r = await actividadesDesdeManual(peticion, PDF, 'madrid', 'es');
+    expect(callGemini.mock.calls[0][2]).toEqual([PDF]);
+    expect(callGemini.mock.calls[0][1]).toContain('20-45');
+    expect(callGemini.mock.calls[0][1]).toContain('10 a 11 años');
+    expect(callGemini.mock.calls[0][1]).toContain('El pañuelo por números');
+    expect(callGemini.mock.calls[0][1]).toContain('con tus palabras');
+    expect(r?.map(a => a.titulo)).toEqual(['Los aros musicales', 'Estiramientos en círculo', 'Raro']);
+    expect(r?.[0]).toMatchObject({ tipo: 'juego', modalidad: 'cooperacion', origen: 'ia' });
+    expect(r?.[1]).toMatchObject({ tipo: 'calma' });
+    expect(r?.[1].modalidad).toBeUndefined();
+    expect(r?.[2]).toMatchObject({ tipo: 'juego' });
+  });
+
+  it('si la respuesta se corta a media actividad, se queda con las que llegaron enteras', async () => {
+    const entero = JSON.stringify({ actividades: [act('Una'), act('Dos'), act('Tres')] });
+    callGemini.mockResolvedValue(entero.slice(0, entero.length - 40));
+    const r = await actividadesDesdeManual(peticion, PDF, undefined, 'es');
+    expect(r?.map(a => a.titulo)).toEqual(['Una', 'Dos']);
+  });
+
+  it('un PDF sin actividades devuelve la lista vacía, no un error', async () => {
+    callGemini.mockResolvedValue(JSON.stringify({ actividades: [] }));
+    expect(await actividadesDesdeManual(peticion, PDF, undefined, 'es')).toEqual([]);
+  });
+
+  it('no pasa de 25 actividades', async () => {
+    callGemini.mockResolvedValue(JSON.stringify({ actividades: Array.from({ length: 40 }, (_, i) => act(`Juego ${i}`)) }));
+    expect(await actividadesDesdeManual(peticion, PDF, undefined, 'es')).toHaveLength(25);
+  });
+});
+
+describe('reconocer el croquis de la pizarra', () => {
+  const PNG = { name: 'croquis.png', mimeType: 'image/png', base64: 'QUJD' };
+
+  it('manda la imagen con la lista cerrada de material y recorta lo que devuelve a lo posible', async () => {
+    callGemini.mockResolvedValue(JSON.stringify({
+      resumen: 'Cuatro conos en zigzag.',
+      objetos: [
+        { material: 'cono', x: 0.2, y: 0.3, ancho: 0.05, alto: 0.07, seguridad: 'alta' },
+        { material: 'estacion', x: 0.5, y: 0.5, ancho: 0.05, alto: 0.05, seguridad: 'alta' },
+        { material: 'platillo', x: 0.5, y: 0.5, ancho: 0.05, alto: 0.05, seguridad: 'alta' },
+        { material: 'aro', x: 1.4, y: -2, ancho: 0.1, alto: 0.1, seguridad: 'rara' },
+      ],
+    }));
+    const r = await reconocerPizarra(PNG, 'madrid', 'es');
+    expect(callGemini.mock.calls[0][2]).toEqual([PNG]);
+    expect(callGemini.mock.calls[0][1]).toContain('- cono:');
+    expect(callGemini.mock.calls[0][1]).not.toContain('- estacion:');
+    expect(r?.resumen).toBe('Cuatro conos en zigzag.');
+    expect(r?.objetos).toEqual([
+      { material: 'cono', x: 0.2, y: 0.3, ancho: 0.05, alto: 0.07, seguridad: 'alta' },
+      { material: 'aro', x: 1, y: 0, ancho: 0.1, alto: 0.1, seguridad: 'media' },
+    ]);
   });
 });

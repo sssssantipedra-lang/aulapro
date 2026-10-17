@@ -191,6 +191,45 @@ export interface CircuitoEF {
   descansoRondas: number;
 }
 
+/** Un material del banco de la pizarra (ver `MATERIALES_PIZARRA`). */
+export type MaterialPizarraId =
+  | 'cono' | 'seta' | 'aro' | 'pica' | 'valla' | 'colchoneta' | 'banco' | 'escalera' | 'balon' | 'porteria'
+  | 'canasta' | 'cajon' | 'cuerda' | 'red' | 'diana' | 'espaldera' | 'estacion';
+
+/** Un material puesto en la pizarra. Las coordenadas van de 0 a 1000 (ancho) y de 0 a 600 (alto). */
+export interface ElementoPizarra {
+  id: string;
+  material: MaterialPizarraId;
+  x: number;
+  y: number;
+  /** Grados. */
+  giro: number;
+  /** 1 es el tamaño de partida del material. */
+  escala: number;
+  /** El número o la letra de una estación. */
+  texto?: string;
+}
+
+/** Un trazo del docente: a mano alzada o una flecha de un punto a otro. */
+export interface TrazoPizarra {
+  id: string;
+  tipo: 'libre' | 'flecha';
+  puntos: [number, number][];
+  color: string;
+}
+
+/**
+ * Un circuito dibujado en la pizarra (petición del dueño, 17-10-2026): material
+ * del banco de imágenes, colocado y girado, con los trazos y las flechas del
+ * recorrido.
+ */
+export interface PizarraEF {
+  id: string;
+  nombre: string;
+  elementos: ElementoPizarra[];
+  trazos: TrazoPizarra[];
+}
+
 /** Los últimos equipos de una clase, que se quedan hasta que se hagan otros. */
 export interface EquiposEF {
   /** YYYY-MM-DD. */
@@ -219,4 +258,6 @@ export interface EfData {
   material: MaterialEF[];
   instalaciones: InstalacionEF[];
   circuitos: CircuitoEF[];
+  /** Circuitos dibujados en la pizarra. */
+  pizarras: PizarraEF[];
 }

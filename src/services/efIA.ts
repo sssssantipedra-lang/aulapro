@@ -14,8 +14,9 @@ import { normativaInclusion } from './apoyoIA';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { citarNormas, normasDe, NORMAS_ESTATALES, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Etapa } from '../lib/curriculum';
+import { IDS_MATERIAL_PIZARRA, MATERIALES_PIZARRA } from '../lib/pizarraEF';
 import { IDS_MODALIDADES, MODALIDADES_EF, modalidadParaIA, NIVELES_PARA_IA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
-import type { ActividadEF, EfData, InstalacionEF, ModalidadEF, SesionEF, TipoActividadEF } from '../types/ef';
+import type { ActividadEF, EfData, InstalacionEF, MaterialPizarraId, ModalidadEF, SesionEF, TipoActividadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
 
 type Lang = 'es' | 'en' | 'ca';
@@ -219,6 +220,176 @@ export async function actividadDesdeFoto(
       inclusion: texto(a.inclusion), origen: 'ia',
     },
   };
+}
+
+export interface ObjetoReconocido {
+  material: MaterialPizarraId;
+  /** Fracciones de la imagen, de 0 a 1: el centro y el tamaño de lo dibujado. */
+  x: number;
+  y: number;
+  ancho: number;
+  alto: number;
+  /** Cómo de segura está la IA de que es ese material. */
+  seguridad: 'alta' | 'media' | 'baja';
+}
+
+/**
+ * La IA mira el croquis de un circuito dibujado a mano en la pizarra y dice qué
+ * material es cada cosa, de la lista cerrada del banco (`MATERIALES_PIZARRA`).
+ * El croquis es solo trazos, sin alumnado ni datos personales, y no se guarda.
+ * El docente confirma cada propuesta antes de que sustituya al dibujo.
+ */
+export async function reconocerPizarra(
+  croquis: InlineFile, comunidad: ComunidadId | undefined, lang: Lang, callbacks: Callbacks = {},
+): Promise<{ objetos: ObjetoReconocido[]; resumen: string } | null> {
+  const materiales = MATERIALES_PIZARRA.filter(m => m.id !== 'estacion').map(m => `- ${m.id}: ${m.descripcion}`).join('\n');
+  const userPrompt =
+    'La imagen es el croquis a mano alzada de un circuito o de una pista de Educación Física, visto desde arriba, que ' +
+    'ha dibujado el docente. Cada forma cerrada o cada raya suele ser una pieza de material. Estas son las únicas ' +
+    `piezas posibles:\n${materiales}\n\n` +
+    'Para cada pieza dibujada, devuelve en "objetos": "material" (uno de la lista), "x" e "y" (el centro de la forma) ' +
+    'y "ancho" y "alto" (su tamaño), los cuatro como fracción de la imagen entre 0 y 1, y "seguridad" ("alta" si no ' +
+    'hay duda, "media" si podría ser otra pieza, "baja" si es una suposición). Decide con la forma, el tamaño ' +
+    'relativo a las demás piezas y lo que escriba el docente junto al dibujo, si hay algo escrito. No cuentes las ' +
+    'flechas ni las rayas que solo indican el recorrido, ni los números de las estaciones. No inventes piezas que no ' +
+    'se vean. En "resumen", describe el circuito en dos frases: cuántas estaciones o zonas tiene y cómo se recorre.';
+  const raw = await callGemini(marcoEF(comunidad, undefined, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [croquis], callbacks, {
+    responseSchema: {
+      type: 'OBJECT',
+      properties: {
+        objetos: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              material: { type: 'STRING', enum: IDS_MATERIAL_PIZARRA.filter(i => i !== 'estacion') },
+              x: { type: 'NUMBER' }, y: { type: 'NUMBER' }, ancho: { type: 'NUMBER' }, alto: { type: 'NUMBER' },
+              seguridad: { type: 'STRING', enum: ['alta', 'media', 'baja'] },
+            },
+            required: ['material', 'x', 'y', 'ancho', 'alto', 'seguridad'],
+          },
+        },
+        resumen: { type: 'STRING' },
+      },
+      required: ['objetos', 'resumen'],
+    },
+    thinkingLevel: 'medium',
+  });
+  if (!raw) return null;
+  const r = parseGeminiJson<{ objetos?: Record<string, unknown>[]; resumen?: unknown }>(raw);
+  if (!r) { callbacks.onError?.('La IA no devolvió el reconocimiento. Inténtalo de nuevo.'); return null; }
+  const fraccion = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : null);
+  const objetos: ObjetoReconocido[] = [];
+  for (const o of r.objetos ?? []) {
+    const material = IDS_MATERIAL_PIZARRA.find(i => i === o.material && i !== 'estacion');
+    const [x, y, ancho, alto] = [fraccion(o.x), fraccion(o.y), fraccion(o.ancho), fraccion(o.alto)];
+    if (!material || x === null || y === null || ancho === null || alto === null) continue;
+    objetos.push({ material, x, y, ancho, alto, seguridad: o.seguridad === 'alta' || o.seguridad === 'baja' ? o.seguridad : 'media' });
+  }
+  return { objetos: objetos.slice(0, 60), resumen: texto(r.resumen) };
+}
+
+export interface PeticionManual {
+  /** «1º ESO»; o el nombre del grupo, si la clase no tiene curso. */
+  curso?: string;
+  etapa?: Etapa;
+  /** «12 a 13 años», si se sabe el curso. */
+  edad?: string;
+  /** Las páginas que interesan («20-45»), si no es todo el manual. */
+  paginas: string;
+  /** Lo que el docente quiere que tenga en cuenta. */
+  nota: string;
+  /** Títulos que ya tiene, para no repetirlos. */
+  yaTiene: string[];
+}
+
+/** Máximo de actividades que se piden de una vez: más no cabe en una respuesta. */
+export const MAX_ACTIVIDADES_MANUAL = 25;
+
+/**
+ * Si la respuesta se cortó a media actividad, el JSON llega roto: se queda con
+ * las actividades que sí llegaron enteras.
+ */
+function actividadesDeJson(raw: string): Record<string, unknown>[] {
+  const entero = parseGeminiJson<{ actividades?: Record<string, unknown>[] }>(raw);
+  if (entero) return entero.actividades ?? [];
+  const limpio = raw.replace(/```json?|```/g, '').trim();
+  for (let fin = limpio.lastIndexOf('}'); fin > 0; fin = limpio.lastIndexOf('}', fin - 1)) {
+    const parcial = parseGeminiJson<{ actividades?: Record<string, unknown>[] }>(`${limpio.slice(0, fin + 1)}]}`);
+    if (parcial?.actividades) return parcial.actividades;
+  }
+  return [];
+}
+
+/**
+ * La IA lee un manual en PDF (de un libro, de un departamento, de un curso) y
+ * saca de él las actividades que puede hacer una clase, cada una con su tipo
+ * y su modalidad, redactadas con sus palabras y con una medida DUA-A
+ * (petición del dueño, 17-10-2026). El PDF va a Google y AulaPro no lo guarda.
+ * Del manual no se copia el texto: se redacta de nuevo.
+ */
+export async function actividadesDesdeManual(
+  p: PeticionManual, manual: InlineFile, comunidad: ComunidadId | undefined, lang: Lang, callbacks: Callbacks = {},
+): Promise<Omit<ActividadEF, 'id'>[] | null> {
+  const userPrompt =
+    'El PDF adjunto es un manual con actividades de Educación Física (de un libro, de un departamento o de un curso).\n' +
+    (p.curso ? `Para: ${p.curso}${p.edad ? ` (${p.edad})` : ''}. Adapta las reglas, el espacio y la exigencia a esa edad.\n` : '') +
+    (p.paginas.trim() ? `Lee solo estas páginas: ${p.paginas.trim()}\n` : '') +
+    (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${p.nota.trim()}\n` : '') +
+    (p.yaTiene.length ? `Actividades que ya tiene (sáltatelas): ${p.yaTiene.slice(0, 60).join('; ')}\n` : '') +
+    `\nExtrae del manual las actividades que se puedan hacer en una clase, como mucho ${MAX_ACTIVIDADES_MANUAL}, una por juego, ejercicio o ` +
+    'tarea distintos (no repitas una variante como si fuera otra). Ignora la teoría, la evaluación, las fichas de ' +
+    'seguimiento y todo lo que no sea una actividad práctica. Para cada una: "titulo" (corto), "tipo" y "modalidad" ' +
+    '(de sus listas; "ninguna" si no es un juego o deporte), "descripcion" (en qué consiste y sus reglas, 2 a 4 frases), ' +
+    '"organizacion" (agrupamiento, espacio y duración aproximada), "material", "variantes" (2 o 3 progresiones, en una o ' +
+    'dos frases) e "inclusion" (cómo participa en la misma actividad quien no puede correr, saltar o hacer esfuerzos ' +
+    'intensos, según el DUA-A; 1 a 2 frases; si el manual no lo dice, propónlo tú). Clasifica por lo que se hace de ' +
+    'verdad: un calentamiento es "calentamiento" aunque sea un juego, y una actividad para la lluvia o para un espacio ' +
+    'cubierto es "lluvia". No copies frases del manual: redáctalo todo con tus palabras. Si el PDF no contiene ' +
+    'actividades prácticas de Educación Física, devuelve la lista vacía.';
+  const raw = await callGemini(marcoEF(comunidad, p.etapa, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [manual], callbacks, {
+    responseSchema: {
+      type: 'OBJECT',
+      properties: {
+        actividades: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              titulo: { type: 'STRING' },
+              tipo: { type: 'STRING', enum: TIPOS_ACTIVIDAD.map(x => x.id) },
+              modalidad: { type: 'STRING', enum: [...IDS_MODALIDADES, 'ninguna'] },
+              descripcion: { type: 'STRING' }, organizacion: { type: 'STRING' }, material: { type: 'STRING' },
+              variantes: { type: 'STRING' }, inclusion: { type: 'STRING' },
+            },
+            required: ['titulo', 'tipo', 'modalidad', 'descripcion', 'organizacion', 'material', 'variantes', 'inclusion'],
+            propertyOrdering: ['titulo', 'tipo', 'modalidad', 'descripcion', 'organizacion', 'material', 'variantes', 'inclusion'],
+          },
+        },
+      },
+      required: ['actividades'],
+    },
+    thinkingLevel: 'medium',
+    maxOutputTokens: 16384,
+  });
+  if (!raw) return null;
+  const vistos = new Set<string>();
+  return actividadesDeJson(raw)
+    .map(a => {
+      const modalidad = IDS_MODALIDADES.find(m => m === a.modalidad);
+      return {
+        titulo: texto(a.titulo), tipo: TIPOS_ACTIVIDAD.find(x => x.id === a.tipo)?.id ?? 'juego', ...(modalidad ? { modalidad } : {}),
+        descripcion: texto(a.descripcion), organizacion: texto(a.organizacion), material: texto(a.material),
+        variantes: texto(a.variantes), inclusion: texto(a.inclusion), origen: 'ia' as const,
+      };
+    })
+    .filter(a => {
+      const clave = a.titulo.toLowerCase();
+      if (!a.titulo || !a.descripcion || vistos.has(clave)) return false;
+      vistos.add(clave);
+      return true;
+    })
+    .slice(0, MAX_ACTIVIDADES_MANUAL);
 }
 
 export interface PeticionSesion {

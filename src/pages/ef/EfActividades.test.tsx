@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
-import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, within, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EfActividades } from './EfActividades';
 import { I18nProvider } from '../../i18n';
@@ -116,5 +116,42 @@ describe('Actividades', () => {
     await user.click(screen.getByRole('button', { name: /Reconocer y redactar/ }));
     expect(await screen.findByText(/no se ve una actividad física/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Guardar en mis actividades/ })).toBeNull();
+  });
+
+  it('desde un manual en PDF: la IA las saca clasificadas y se guardan las que se elijan', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: /Desde un manual/ }));
+    const leer = screen.getByRole('button', { name: /Leer y clasificar/ });
+    expect((leer as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/AulaPro no lo guarda/)).toBeTruthy();
+
+    // Un archivo que no es PDF no se acepta
+    fireEvent.change(screen.getByLabelText('Manual en PDF'), { target: { files: [new File(['x'], 'notas.txt', { type: 'text/plain' })] } });
+    expect(await screen.findByText('«notas.txt» no es un PDF.')).toBeTruthy();
+    expect((leer as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(screen.getByLabelText('Manual en PDF'), { target: { files: [new File(['x'], 'manual.pdf', { type: 'application/pdf' })] } });
+    await waitFor(() => expect((screen.getByRole('button', { name: /Leer y clasificar/ }) as HTMLButtonElement).disabled).toBe(false));
+    const act = (titulo: string, tipo: string, modalidad: string) => ({
+      titulo, tipo, modalidad, descripcion: 'Se juega en grupos.', organizacion: 'Grupos', material: 'Aros', variantes: 'Más lejos', inclusion: 'Con un papel',
+    });
+    callGemini.mockResolvedValue(JSON.stringify({ actividades: [
+      act('Los aros musicales', 'juego', 'cooperacion'), act('Estiramientos en círculo', 'calma', 'ninguna'), act('Bolos con botellas', 'lluvia', 'blanco-diana'),
+    ] }));
+    await user.click(screen.getByRole('button', { name: /Leer y clasificar/ }));
+
+    expect(await screen.findByText(/Clasificadas:/)).toBeTruthy();
+    expect(callGemini.mock.calls[0][2][0]).toMatchObject({ name: 'manual.pdf', mimeType: 'application/pdf' });
+    // Ya existe «Bolos con botellas» en el banco: sale avisada y sin marcar
+    expect(screen.getByText('Ya tienes una con este título.')).toBeTruthy();
+    expect((screen.getByLabelText('Guardar «Bolos con botellas»') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Guardar «Los aros musicales»') as HTMLInputElement).checked).toBe(true);
+
+    await user.click(screen.getByLabelText('Guardar «Estiramientos en círculo»'));
+    await user.click(screen.getByRole('button', { name: /Guardar 1 en mis actividades/ }));
+    expect(ultimo.actividades).toHaveLength(demo.ef.actividades.length + 1);
+    expect(ultimo.actividades[0]).toMatchObject({ titulo: 'Los aros musicales', tipo: 'juego', modalidad: 'cooperacion', origen: 'ia' });
+    expect(screen.queryByRole('button', { name: /Leer y clasificar/ })).toBeNull();
   });
 });

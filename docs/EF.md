@@ -12,7 +12,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 - El menú de aula entero (clases, cuaderno, asistencia, evaluar con rúbricas y dianas, documentos, en clase) y, después del Inicio, el apartado «Educación Física» (`NAV_EF` en `src/lib/navigation.ts`).
 - Inicio sin tutoría: el de siempre, adaptado a EF, con «Observar en la pista» en la clase de ahora y las tarjetas «Exentos y lesiones», «Próximas sesiones» y «Pruebas físicas».
-- Pestañas del apartado: En la pista, Exentos y lesiones, Pruebas físicas, Equipos, Circuitos, Sesiones, Actividades y Material (su página se llama «Material e instalaciones»).
+- Pestañas del apartado: En la pista, Exentos y lesiones, Pruebas físicas, Equipos, Circuitos, Pizarra de circuitos, Situaciones de aprendizaje, Sesiones, Actividades y Material (su página se llama «Material e instalaciones»).
 - Inicio con tutoría: el de tutoría tal cual.
 
 ## En la pista
@@ -85,6 +85,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Cada actividad tiene en qué consiste, organización, material, variantes y «Para que participe todo el grupo (DUA-A)».
   - «Proponer con IA»: tres actividades de un tipo, para una clase y un tema, con el inventario y, si se marca, con las limitaciones de hoy de esa clase.
   - «Desde una foto» (decisión del dueño, 6-10-2026): el docente elige o hace una foto de un deporte, un juego, un circuito, un esquema o la página de un libro, y la clase. La IA dice lo que ve («Lo que ve la IA») y redacta la actividad para la edad de esa clase (`edadAproximada`: de 1º de Primaria, 6 a 7 años, a 4º de ESO, 15 a 16), con reglas, organización y seguridad, material, variantes, DUA-A, tipo y modalidad (`actividadDesdeFoto` en `src/services/efIA.ts`). Si la foto no muestra una actividad física, lo dice y no inventa ninguna; de un libro no copia el texto. La foto va reducida y sin metadatos (`fotoParaIA` en `src/lib/fotos.ts`) y no se guarda; la pantalla y la privacidad piden no usar fotos en las que se reconozca al alumnado.
+  - «Desde un manual (PDF)» (petición del dueño, 17-10-2026): el docente adjunta el PDF de un libro, de su departamento o de un curso (hasta 19 MB, como el asistente del Cuaderno), elige la clase (para la edad) y, si el manual es largo, las páginas que interesan. La IA saca las actividades prácticas (como mucho 25 por vez; más no cabe en una respuesta), las **clasifica por tipo y por modalidad** de las listas cerradas, las redacta con sus palabras (no copia el texto del libro), las adapta a la edad y añade el DUA-A si el manual no lo trae (`actividadesDesdeManual` en `src/services/efIA.ts`). Salen agrupadas por tipo, con una casilla en cada una; las que ya tiene con ese título salen sin marcar. Si la respuesta se corta, se queda con las actividades que llegaron enteras; si el PDF no tiene actividades prácticas, lo dice. El PDF va a Google y no se guarda; la pantalla y la privacidad piden no usar documentos con datos del alumnado. No se lee el PDF en el equipo: Gemini lo recibe tal cual. Un manual escaneado sin texto lo lee por su aspecto; el límite real es el cupo diario del plan gratuito.
 - Modalidades de juegos y deportes (decisión del dueño, 6-10-2026), cada una con su lógica y su preparación (`MODALIDADES_EF` en `src/lib/ef.ts`): invasión, red y pared (el «pared» del dueño, con red y muro), lucha, blanco y diana, cooperación, juegos tradicionales y populares, y medio natural y urbano.
   - Las actividades y las sesiones llevan su modalidad (`modalidad`), y Actividades filtra por ella y enseña su lógica y su preparación.
   - El banco de partida tiene al menos dos de cada modalidad; para lucha, blanco y diana, cooperación, tradicionales y urbano se añadieron seis (lucha de equilibrio, caídas y la tortuga, diana de aros, acrosport por tríos, la comba con canciones y ruta urbana con plano).
@@ -101,6 +102,16 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Granero-Gallegos y Baena-Extremera (medio natural).
 - Qué recibe la IA de quien está exento o lesionado: solo qué no puede hacer, una línea por alumno, sin nombre ni motivo (`limitacionesParaIA`). Contado en la política de privacidad y en las condiciones de la web.
 - El marco pide texto sin formato pero con la ortografía completa. Con «texto llano», a secas, 3.5 Flash-Lite escribía sin tildes ni eñes (prueba con la IA real del 6-10-2026).
+
+## Pizarra de circuitos
+
+Petición del dueño (17-10-2026): «una pizarra digital en la que se dibuje un circuito y, según las formas, la app o la IA diferencien qué material es», y «al menos un banco de material en imágenes que el profesor pueda añadir a la pizarra». Pestaña «Pizarra de circuitos» (`ef-pizarra`, `src/pages/ef/EfPizarra.tsx`, lógica en `src/lib/pizarraEF.ts`).
+
+- **Banco de material en imágenes**: cono, seta, aro, pica, valla baja, colchoneta, banco sueco, escalera de agilidad, balón, portería, canasta, cajón, cuerda, red de voleibol, diana de lanzamiento, espaldera y estación (círculo con su número). Son SVG dibujados por el código (`MATERIALES_PIZARRA`), no de fal.ai: pesan nada, se ven nítidos a cualquier tamaño y salen igual en pantalla, en el PNG y en lo que se envía a la IA. Cada pieza lleva su descripción (es, ca, en) y su tamaño de partida. Para añadir una, se añade a la lista (y su tipo `MaterialPizarraId` en `src/types/ef.ts`) y sus textos en `src/i18n/ef.ts`.
+- Se toca una pieza para ponerla o se arrastra a su sitio; se mueve, se gira de 15 en 15 grados, se agranda, se duplica y se quita (con teclado: flechas y Supr). Lápiz y flecha en cuatro colores para el recorrido, «Borrar», «Deshacer» (Ctrl+Z), «Descargar imagen» (PNG) y «Material del circuito» (cuántas piezas de cada, sin contar estaciones).
+- **Reconocer lo dibujado**: con «Dibujar material», el trazo a mano se analiza en el equipo (`analizarTrazo`: esquinas, cierre, circularidad y proporciones) y la app propone qué material es: triángulo → cono; círculo → aro, balón o seta según su tamaño; rectángulo muy alargado → banco; ancho → colchoneta o portería; raya corta → pica. **Una forma sola no basta** (un círculo es un aro, un balón o una seta), así que la app propone una lista y el docente elige y confirma; la pieza ocupa el lugar y el tamaño del dibujo y se gira si hace falta.
+- **Reconocer con IA** (`reconocerPizarra`): manda a Gemini una imagen del croquis (solo trazos) y la lista cerrada del banco; devuelve cada pieza con su sitio, su tamaño y su seguridad, y un resumen del circuito. La IA decide con la forma, el tamaño relativo y lo que el docente escriba junto al dibujo. Cada propuesta se confirma antes de entrar en la pizarra. La imagen no se guarda; la privacidad lo dice en los tres idiomas.
+- Se guarda en `ef.pizarras` (`PizarraEF`: elementos con posición, giro y escala, y trazos). Es material del docente: se queda al vaciar el curso. Lo guardado se sanea al cargar (`normalizarEF`: material desconocido, coordenadas fuera de la pizarra y colores raros se descartan).
 
 ## Situaciones de aprendizaje
 
@@ -122,11 +133,14 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 ## Datos
 
 - Todo va en `ef` del perfil (`src/types/ef.ts`, `src/lib/ef.ts`).
-- Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones y circuitos) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
+- Al vaciar el curso se queda el material del docente (pruebas, baremos, actividades, sesiones, material, instalaciones, circuitos y pizarras) y se va lo del alumnado (exentos, niveles, sexos, parejas, equipos y marcas).
 - Al borrar un alumno se va todo lo suyo de EF, también su nivel de respuesta (`sinAlumnoEF`). Al borrar una clase, lo de todo su alumnado, también el motivo de las lesiones, y sus equipos; sus sesiones se quedan sin clase (`sinClaseEF`, desde el 6-10-2026; antes se quedaba huérfano).
 - Datos de ejemplo: `src/lib/demoEF.ts`, con «Profesor» y «Alumno 1» a «Alumno 24». Salen en el idioma de la app (desde el 7-10-2026; textos en `src/i18n/demo.ts`).
 
 ## Lo que falta
+
+- Pizarra: probar el reconocimiento con la IA real sobre croquis de docentes (solo se probó con respuestas simuladas), afinar el reconocedor local con ejemplos reales y valorar si los trazos que une una flecha (recorrido) pueden dar el orden de las estaciones para crear el cronómetro del circuito desde la pizarra.
+- Manual en PDF: probarlo con manuales reales de varios cientos de páginas (el límite de respuesta es de 25 actividades por lectura) y valorar guardar de qué manual y página sale cada actividad.
 
 - Baremos publicados: comprobadas las licencias el 11-10-2026, ninguna permite el uso comercial (ver «Pruebas físicas»). Queda pedir permiso a los autores, tarea del dueño.
 - El cronómetro no suena con la pantalla bloqueada: por eso pide que la pantalla no se apague mientras corre.

@@ -117,6 +117,7 @@ export const HUBS: readonly NavHub[] = [
       { id: 'ef-pruebas', label: 'Pruebas físicas' },
       { id: 'ef-equipos', label: 'Equipos' },
       { id: 'ef-circuitos', label: 'Circuitos' },
+      { id: 'ef-pizarra', label: 'Pizarra de circuitos' },
       { id: 'ef-sda', label: 'Situaciones de aprendizaje' },
       { id: 'ef-sesiones', label: 'Sesiones' },
       { id: 'ef-actividades', label: 'Actividades' },

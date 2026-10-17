@@ -2040,3 +2040,38 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .fe-create .fe-more[open] > summary::before { transform:rotate(90deg); }
 .fe-create .fe-more > summary:hover { background:var(--surface); }
 .fe-create .fe-more[open] > summary { margin-bottom:4px; }
+.ef-manual-grupo { margin:14px 0 6px; }
+.ef-manual-fila { display:flex; align-items:flex-start; gap:10px; margin-top:6px; }
+.ef-manual-fila > input { margin-top:14px; flex-shrink:0; }
+.ef-manual-fila > .ef-acts { flex:1; min-width:0; }
+
+/* Pizarra de circuitos (EF) */
+.ef-piz-nombre { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.ef-piz-nombre .finput { flex:1 1 240px; max-width:420px; }
+.ef-piz { display:grid; grid-template-columns:200px minmax(0,1fr) 180px; gap:14px; align-items:start; }
+.ef-piz-banco .ap-sub, .ef-piz-lista .ap-sub { margin:4px 0 8px; line-height:1.45; }
+.ef-piz-piezas { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.ef-piz-pieza { display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px; border:1px solid var(--border); border-radius:10px; background:#fff; font:inherit; font-size:11.5px; font-weight:600; color:var(--text-2); cursor:grab; }
+.ef-piz-pieza:hover, .ef-piz-pieza:focus-visible { border-color:var(--accent-d); background:var(--accent-l); }
+.ef-piz-pieza svg { width:100%; height:44px; }
+.ef-piz-centro { min-width:0; display:flex; flex-direction:column; gap:10px; }
+.ef-piz-barra { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.ef-piz-barra .chip { display:inline-flex; align-items:center; gap:5px; }
+.ef-piz-colores { display:inline-flex; gap:6px; margin:0 6px; }
+.ef-piz-color { width:22px; height:22px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px var(--border); cursor:pointer; }
+.ef-piz-color.on { box-shadow:0 0 0 2px var(--accent-d); }
+.ef-piz-lienzo { width:100%; height:auto; aspect-ratio:1000/600; border:1px solid var(--border); border-radius:12px; background:#f8fafc; touch-action:none; user-select:none; }
+.ef-piz-lienzo:focus-visible { outline:2px solid var(--accent-d); outline-offset:2px; }
+.ef-piz-lapiz, .ef-piz-flecha, .ef-piz-material { cursor:crosshair; }
+.ef-piz-borrar { cursor:not-allowed; }
+.ef-piz-mover .ef-piz-el { cursor:grab; }
+.ef-piz-borrar .ef-piz-el { cursor:pointer; }
+.ef-piz-marco { fill:transparent; stroke:none; }
+.ef-piz-el.sel .ef-piz-marco { stroke:var(--accent-d); stroke-width:2; stroke-dasharray:6 4; fill:rgba(124,58,237,.06); }
+.ef-piz-sel { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 12px; }
+.ef-piz-props { display:flex; flex-direction:column; gap:8px; }
+.ef-piz-prop { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.ef-piz-prop > span { flex:1 1 200px; font-size:13px; }
+.ef-piz-prop .finput { width:auto; min-width:150px; }
+.ef-piz-mat { list-style:none; margin:6px 0; padding:0; display:flex; flex-direction:column; gap:4px; font-size:13px; }
+@media (max-width: 900px) { .ef-piz { grid-template-columns:minmax(0,1fr); } .ef-piz-piezas { grid-template-columns:repeat(4,minmax(0,1fr)); } }
