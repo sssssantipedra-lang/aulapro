@@ -68,7 +68,7 @@ Sobre el fotograma final (la hoja en la mesa):
 - H2: "Abres AulaPro y ya sabes qué toca."
 - Entradilla: "Tus clases de hoy, lo que tienes pendiente y el alumnado que necesita atención, en la primera pantalla."
 - Anotaciones: "Te guía los primeros días" · "Tus clases de hoy" · "Quién necesita atención"
-- Fila: "Inicio" · "Mis clases" · "Agenda que lee tu horario con IA" · "Cuaderno de notas" · "Asistencia"
+- Fila: "Inicio" · "Mis clases" · "Agenda con tu horario, que coloca tus clases de cada día" · "Cuaderno de notas" · "Asistencia"
 
 **S2 · El momento interactivo: tacha la lista** (#lista). Una hoja de papel real sobre el fondo índigo.
 - Kicker: "Pruébalo"
@@ -380,3 +380,9 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **`sitemap.xml` y `robots.txt`**: el mapa lista la portada en los tres idiomas (con sus alternativas), la demo y descargas; las legales y gracias llevan `noindex` y no están.
 - **Ficha de la app para Google** (`application/ld+json`): SoftwareApplication, Windows y Android, educativa, 6,99 € hasta el 15-04-2027. El 16-04-2027 hay que cambiarla (docs/WEB.md, apartado 5, punto 9).
 - **Pendiente del usuario**: dar de alta aulapro.app en Google Search Console y enviar el mapa del sitio.
+
+## 40. El horario se carga desde el PDF, sin IA (17-10-2026, petición del usuario)
+
+- Para gastar menos IA, el docente carga el PDF (o una foto) de su horario y la Agenda lo muestra en la pestaña «Mi horario». Las clases de cada día para el Inicio se sacan del texto del PDF en el propio equipo (`src/services/horarioPdf.ts`); la IA solo entra si el docente pulsa «Leer con la IA» (foto o PDF escaneado).
+- Textos de la web que cambian: la fila de S1 («Agenda con tu horario, que coloca tus clases de cada día»), el punto `ia.p4` («Si no tienes el PDF del horario, lo lee desde una foto.») y la respuesta `a2`, que ya no dice que la IA lee el horario como lo normal. La privacidad lo explica en los tres idiomas.
+- Las capturas de la web no cambian: la Agenda semanal sigue igual. Si se quiere enseñar «Mi horario», hay que añadirla a `scripts/web/capturar.mjs`.

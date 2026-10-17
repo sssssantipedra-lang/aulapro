@@ -114,7 +114,7 @@ además, Exentos y lesiones, Próximas sesiones y Pruebas físicas. Al final,
 avisa si hay alumnos por debajo de 5 o si aún no tiene notas.
 PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
 al hacerlos: 1) crear la primera clase con su alumnado, 2) añadir el horario
-(mejor escaneándolo en la Agenda), 3) decidir cómo se evalúa (categorías del
+(lo más cómodo, cargando el PDF del centro en la Agenda), 3) decidir cómo se evalúa (categorías del
 Cuaderno), 4) pasar lista por primera vez y 5) conectar la IA (opcional). Cada
 paso tiene un botón que lleva a la pantalla. La guía sale plegada en una sola
 línea (progreso, paso siguiente y su botón) y se despliega pulsándola o con la
@@ -150,16 +150,24 @@ urgencia alta/media/baja). Se abre en la vista SEMANAL: el horario de lunes a
 viernes, desde las 8:00 hasta la hora de la última clase (también las de la
 tarde), y encima de cada día sus eventos; pulsando uno se edita. La pestaña
 «Mensual» tiene el calendario con los eventos y el calendario escolar. Arriba,
-«+ Nuevo evento» y el menú «Horario», con «Escanear horario», «Nuevo bloque» y
-«Borrar horario». En «Escanear horario»: se sube el horario del
-centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia
-la tabla celda a celda; la propia aplicación calcula el día y la hora de cada
-sesión por su posición, así que las celdas vacías o el recreo no descolocan
-nada. Antes de añadir, se muestra la semana tal como quedará: pulsando una
-sesión se quita si no es tuya. Si ya había horario, se puede marcar
-«Sustituir mi horario actual» para que el escaneado lo reemplace en vez de
-sumarse. Consejo: una foto recta y nítida, o mejor el Excel del centro, da el
-mejor resultado.
+«+ Nuevo evento» y el menú «Horario», con «Cargar mi horario (PDF o foto)»,
+«Detectar mis clases», «Nuevo bloque», «Quitar el documento» y «Borrar horario».
+La pestaña «Mi horario» es un lector: enseña tal cual el PDF o la foto que has
+cargado, con zoom, sin IA. Al cargarlo (un PDF de hasta 4 MB, o una foto, que
+se reduce al guardarla), la aplicación lee el texto del PDF en tu propio
+equipo, sin IA y sin enviar nada a internet, reconstruye la tabla (los días por
+las columnas, las horas por las filas) y propone las clases de cada día, con su
+aula y su grupo; esas clases son las que salen luego en el Inicio («Tu
+jornada») y en «la clase que toca». Antes de añadir se muestra la semana tal
+como quedará: pulsando una sesión se quita si no es tuya, y si ya había
+horario se puede marcar «Sustituir mi horario actual». Recreos, guardias y
+reuniones se descartan solos. «Detectar mis clases» (menú «Horario») repite la
+detección cuando quieras. Si el documento es una foto o un PDF escaneado, la
+aplicación no puede leer su texto: ofrece apuntar las clases a mano con «Nuevo
+bloque» o, solo si pulsas «Leer con la IA» (hace falta la clave de Google), que
+la IA lo transcriba; entonces el documento se envía a Google. «Quitar el
+documento» borra el PDF o la foto, pero no las sesiones ya añadidas. El
+documento se guarda dentro del perfil, así que viaja en las copias de seguridad.
 Para empezar de cero, «Borrar horario» (en el menú «Horario») quita todas las sesiones del horario semanal tras pedir
 confirmación; los eventos del calendario no se tocan.
 CALENDARIO ESCOLAR: con un perfil de la Comunitat Valenciana, Cataluña o

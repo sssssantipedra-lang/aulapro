@@ -1,5 +1,6 @@
 /**
- * Del horario transcrito por la IA a sesiones con día y hora.
+ * De la tabla del horario (transcrita por la IA o reconstruida del texto de un
+ * PDF, `horarioPdf.ts`) a sesiones con día y hora.
  *
  * Antes se le pedía a la IA que devolviera directamente «lunes, de 9:25 a
  * 10:20, Matemáticas». Leía bien las asignaturas, pero al tener que deducir

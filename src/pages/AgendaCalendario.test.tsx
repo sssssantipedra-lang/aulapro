@@ -19,7 +19,7 @@ function pinta(comunidad?: ComunidadId) {
     <I18nProvider><ToastProvider>
       <Agenda
         classes={[]} scheduleBlocks={[]} calEvents={[]} comunidad={comunidad}
-        onAddBlock={() => {}} onUpdateBlock={() => {}} onDeleteBlock={() => {}} onReplaceBlocks={() => {}}
+        onAddBlock={() => {}} onUpdateBlock={() => {}} onDeleteBlock={() => {}} onReplaceBlocks={() => {}} horarioDoc={null} onChangeHorarioDoc={() => {}}
         onAddCalEvent={() => {}} onUpdateCalEvent={() => {}} onDeleteCalEvent={() => {}} onNav={() => {}}
       />
     </ToastProvider></I18nProvider>,

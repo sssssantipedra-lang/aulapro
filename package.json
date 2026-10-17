@@ -154,6 +154,7 @@
     "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
     "lucide-react": "^1.16.0",
+    "pdfjs-dist": "^4.10.38",
     "peerjs": "^1.5.5",
     "png-to-ico": "^3.0.2",
     "qrcode": "^1.5.4",

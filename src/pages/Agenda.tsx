@@ -1,7 +1,9 @@
-import { useState, useMemo, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock } from 'lucide-react';
-import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
-import type { ScheduleBlock, CalEvent, Class } from '../types';
+import { useState, useMemo, useRef, Fragment } from 'react';
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock, FileUp, FileX } from 'lucide-react';
+import { ClasesDelHorario } from '../components/agenda/ClasesDelHorario';
+import { HorarioLector } from '../components/agenda/HorarioLector';
+import type { ScheduleBlock, CalEvent, Class, HorarioDocumento } from '../types';
+import { documentoDeArchivo, MAX_HORARIO_BYTES } from '../lib/horarioDoc';
 import { PALETTE } from '../lib/demoData';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { grupoDeBloque } from '../lib/apoyo';
@@ -138,6 +140,9 @@ interface Props {
   onDeleteBlock: (id: string) => void;
   /** Sustituye el horario entero (vacío = borrarlo). */
   onReplaceBlocks: (blocks: ScheduleBlock[]) => void;
+  /** El PDF o la foto del horario del docente, que la pestaña «Mi horario» muestra. */
+  horarioDoc: HorarioDocumento | null;
+  onChangeHorarioDoc: (doc: HorarioDocumento | null) => void;
   onAddCalEvent: (ev: CalEvent) => void;
   onUpdateCalEvent: (ev: CalEvent) => void;
   onDeleteCalEvent: (id: string) => void;
@@ -156,6 +161,8 @@ export function Agenda({
   onUpdateBlock,
   onDeleteBlock,
   onReplaceBlocks,
+  horarioDoc,
+  onChangeHorarioDoc,
   onAddCalEvent,
   onUpdateCalEvent,
   onDeleteCalEvent,
@@ -165,14 +172,16 @@ export function Agenda({
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
   const today = useMemo(() => new Date(), []);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [detectarOpen, setDetectarOpen] = useState(false);
+  const [confirmQuitarDoc, setConfirmQuitarDoc] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const shortDayLabels = useMemo(() => Array.from({ length: 7 }, (_, i) => weekdayLabel(i, locale, 'short')), [locale]);
   const weekDayLabels = useMemo(() => Array.from({ length: 5 }, (_, i) => weekdayLabel(i, locale)), [locale]);
 
   // ---- view state ----
   // Se abre en la semana: el horario es lo que más se mira (11-10-2026)
-  const [view, setView] = useState<'mensual' | 'semanal'>('semanal');
+  const [view, setView] = useState<'mensual' | 'semanal' | 'documento'>('semanal');
   const [menuHorario, setMenuHorario] = useState(false);
 
   // ---- monthly state ----
@@ -302,6 +311,25 @@ export function Agenda({
     setEventModalOpen(false);
   }
 
+  /** El docente elige su horario (PDF o foto): se guarda y se ofrece detectar sus clases. */
+  async function cargarHorario(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const r = await documentoDeArchivo(file);
+    if (!r.ok) {
+      toast(t(r.error === 'peso'
+        ? 'El archivo pesa demasiado (máximo {n} MB).'
+        : r.error === 'tipo'
+          ? 'Elige un PDF o una foto del horario.'
+          : 'No se pudo leer el archivo.', { n: MAX_HORARIO_BYTES / (1024 * 1024) }));
+      return;
+    }
+    onChangeHorarioDoc(r.doc);
+    setView('documento');
+    setDetectarOpen(true);
+  }
+
   function deleteEvent() {
     if (editingEventId) onDeleteCalEvent(editingEventId);
     setEventModalOpen(false);
@@ -330,12 +358,22 @@ export function Agenda({
             </button>
             {menuHorario && (
               <div className="menu-pop" role="menu" onKeyDown={e => { if (e.key === 'Escape') setMenuHorario(false); }}>
-                <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); setScannerOpen(true); }}>
-                  <ScanLine size={15} /> {t('Escanear horario')}
+                <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); fileRef.current?.click(); }}>
+                  <FileUp size={15} /> {t(horarioDoc ? 'Cambiar mi horario (PDF o foto)' : 'Cargar mi horario (PDF o foto)')}
                 </button>
+                {horarioDoc && (
+                  <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); setDetectarOpen(true); }}>
+                    <ScanLine size={15} /> {t('Detectar mis clases')}
+                  </button>
+                )}
                 <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); openNewBlock(); }}>
                   <Plus size={15} /> {t('Nuevo bloque')}
                 </button>
+                {horarioDoc && (
+                  <button type="button" role="menuitem" className="menu-item" onClick={() => { setMenuHorario(false); setConfirmQuitarDoc(true); }}>
+                    <FileX size={15} /> {t('Quitar el documento')}
+                  </button>
+                )}
                 {scheduleBlocks.length > 0 && (
                   <button type="button" role="menuitem" className="menu-item danger" onClick={() => { setMenuHorario(false); setConfirmClear(true); }}>
                     <Trash2 size={15} /> {t('Borrar horario')}
@@ -358,7 +396,20 @@ export function Agenda({
         <button role="tab" aria-selected={view === 'semanal'} className={`tab-btn${view === 'semanal' ? ' active' : ''}`} style={{ padding: '7px 18px' }} onClick={() => setView('semanal')}>
           {t('Semanal')}
         </button>
+        <button role="tab" aria-selected={view === 'documento'} className={`tab-btn${view === 'documento' ? ' active' : ''}`} style={{ padding: '7px 18px' }} onClick={() => setView('documento')}>
+          {t('Mi horario')}
+        </button>
       </div>
+
+      <input
+        ref={fileRef} type="file" style={{ display: 'none' }} onChange={cargarHorario}
+        accept=".pdf,application/pdf,image/*" aria-label={t('Cargar mi horario (PDF o foto)')}
+      />
+
+      {/* ===== MI HORARIO: el documento del docente, tal cual ===== */}
+      {view === 'documento' && (
+        <HorarioLector doc={horarioDoc} onElegir={() => fileRef.current?.click()} />
+      )}
 
       {/* ===== MONTHLY VIEW ===== */}
       {view === 'mensual' && (
@@ -641,11 +692,12 @@ export function Agenda({
         </div>
       )}
 
-      {/* ===== ESCÁNER DE HORARIO ===== */}
-      <ScheduleScanner
-        open={scannerOpen}
+      {/* ===== CLASES DETECTADAS DEL DOCUMENTO ===== */}
+      <ClasesDelHorario
+        open={detectarOpen}
+        doc={horarioDoc}
         classes={classes}
-        onClose={() => setScannerOpen(false)}
+        onClose={() => setDetectarOpen(false)}
         existingCount={scheduleBlocks.length}
         onImport={(blocks, replace) => {
           if (replace) onReplaceBlocks(blocks); else blocks.forEach(onAddBlock);
@@ -913,6 +965,22 @@ export function Agenda({
             onClick={() => { onReplaceBlocks([]); setConfirmClear(false); toast(t('Horario borrado')); }}
           >
             <Trash2 size={14} /> {t('Borrar horario')}
+          </button>
+        </div>
+      </Modal>
+      {/* Quitar el documento: las sesiones del horario semanal se quedan */}
+      <Modal open={confirmQuitarDoc} onClose={() => setConfirmQuitarDoc(false)} title={t('¿Quitar el documento?')}>
+        <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 18 }}>
+          {t('Se quitará el PDF o la foto de tu horario. Las sesiones del horario semanal no se tocan.')}
+        </p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button className="btn-ghost" onClick={() => setConfirmQuitarDoc(false)}>{t('Cancelar')}</button>
+          <button
+            className="btn-ghost"
+            style={{ color: 'white', background: 'var(--danger)', border: 'none' }}
+            onClick={() => { onChangeHorarioDoc(null); setConfirmQuitarDoc(false); toast(t('Documento quitado')); }}
+          >
+            <FileX size={14} /> {t('Quitar el documento')}
           </button>
         </div>
       </Modal>

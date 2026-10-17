@@ -1,14 +1,9 @@
-import { useRef, useState } from 'react';
-import {
-  Upload, Sparkles, X, Check, FileSpreadsheet, Image as ImageIcon,
-  AlertTriangle, Table2,
-} from 'lucide-react';
-import type { Class, ScheduleBlock } from '../../types';
-import { callGemini, parseGeminiJson, hasApiKey, type InlineFile } from '../../services/gemini';
-import {
-  gridToBlocks, fillMergedCells, SCHEDULE_GRID_SCHEMA, type DetectedBlock, type ScheduleGrid,
-} from '../../services/scheduleGrid';
-import { fileToBase64 } from '../../lib/utils';
+import { useEffect, useState } from 'react';
+import { Sparkles, X, Check, AlertTriangle, ScanSearch } from 'lucide-react';
+import type { Class, HorarioDocumento, ScheduleBlock } from '../../types';
+import { callGemini, parseGeminiJson, hasApiKey } from '../../services/gemini';
+import { gridToBlocks, SCHEDULE_GRID_SCHEMA, type DetectedBlock, type ScheduleGrid } from '../../services/scheduleGrid';
+import { detectarClases } from '../../services/horarioPdf';
 import { PALETTE } from '../../lib/demoData';
 import { useToast } from '../ui/Toast';
 import { useI18n, weekdayLabel } from '../../i18n';
@@ -16,93 +11,62 @@ import { requestSettingsPanel } from '../../lib/settingsNav';
 
 interface Props {
   open: boolean;
+  doc: HorarioDocumento | null;
   classes: Class[];
   onClose: () => void;
   /** Sesiones que ya tiene el horario: si hay, se ofrece sustituirlas. */
   existingCount: number;
-  /** `replace`: el horario escaneado sustituye al actual en vez de sumarse. */
+  /** `replace`: las clases del documento sustituyen al horario actual en vez de sumarse. */
   onImport: (blocks: ScheduleBlock[], replace: boolean) => void;
   onNav: (s: string) => void;
 }
-
-const MAX_FILE_BYTES = 19 * 1024 * 1024;
 
 const SYSTEM_PROMPT =
   'Eres un asistente que transcribe horarios escolares españoles a datos estructurados, ' +
   'copiando la tabla tal cual, celda a celda, sin reordenar ni resumir nada.';
 
-export function ScheduleScanner({ open, classes, existingCount, onClose, onImport, onNav }: Props) {
+/**
+ * Las clases de la semana a partir del documento del horario. Primero se lee
+ * el texto del PDF en el propio equipo (sin IA, `services/horarioPdf.ts`); la
+ * IA solo entra si el docente la pide, para una foto o un PDF escaneado.
+ */
+export function ClasesDelHorario(props: Props) {
+  // Se monta al abrir: cada apertura lee el documento de cero, con el estado limpio
+  return props.open && props.doc ? <Dialogo {...props} doc={props.doc} /> : null;
+}
+
+function Dialogo({ doc, classes, existingCount, onClose, onImport, onNav }: Props & { doc: HorarioDocumento }) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const [fileName, setFileName] = useState('');
-  const [reading, setReading]   = useState(false);
+  const [leyendo, setLeyendo]   = useState(true);
   const [scanning, setScanning] = useState(false);
   const [detected, setDetected] = useState<DetectedBlock[] | null>(null);
   const [skipped, setSkipped]   = useState<Set<number>>(new Set());
   const [error, setError]       = useState('');
   const [replace, setReplace]   = useState(false);
+  // Los grupos que ya existen ayudan a reconocer cada celda
+  const [grupos] = useState(() => classes.map(c => c.name));
 
-  function reset() {
-    setFileName('');
-    setDetected(null);
-    setSkipped(new Set());
+  function cerrar() { onClose(); }
+
+  // Al abrir, se leen las clases del documento sin gastar IA
+  useEffect(() => {
+    let vivo = true;
+    detectarClases(doc, grupos).then(bloques => {
+      if (!vivo) return;
+      setLeyendo(false);
+      setDetected(bloques.length > 0 ? bloques : null);
+    });
+    return () => { vivo = false; };
+  }, [doc, grupos]);
+
+  async function conIA() {
     setError('');
-  }
-
-  /** Convierte una hoja de cálculo en texto para que la IA pueda leerla. */
-  async function sheetToText(file: File): Promise<string> {
-    const XLSX = await import('xlsx');
-    const buffer = await file.arrayBuffer();
-    const book = XLSX.read(buffer, { type: 'array' });
-    return book.SheetNames.map(name => {
-      // Las celdas combinadas solo guardan el texto en su esquina: sin
-      // rellenarlas, una clase de dos horas o el recreo dejarían huecos y la
-      // tabla llegaría descuadrada.
-      fillMergedCells(book.Sheets[name] as never, XLSX.utils.encode_cell);
-      const csv = XLSX.utils.sheet_to_csv(book.Sheets[name], { blankrows: false });
-      return `--- Hoja: ${name} ---\n${csv}`;
-    }).join('\n\n').slice(0, 24000);
-  }
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    if (file.size > MAX_FILE_BYTES) { setError(t('El archivo supera el límite de 19 MB.')); return; }
-
-    reset();
-    setFileName(file.name);
-    setReading(true);
-
-    let textContent = '';
-    let inline: InlineFile | null = null;
-    const lower = file.name.toLowerCase();
-
-    try {
-      if (/\.(xlsx|xlsm|xls)$/.test(lower)) {
-        textContent = await sheetToText(file);
-      } else if (/\.(csv|txt|tsv)$/.test(lower)) {
-        textContent = (await file.text()).slice(0, 24000);
-      } else {
-        // Imagen o PDF: se le manda tal cual a la IA
-        inline = await fileToBase64(file);
-      }
-    } catch {
-      setReading(false);
-      setError(t('No se pudo leer el archivo. Prueba a guardarlo como CSV o hacerle una foto.'));
-      return;
-    }
-    setReading(false);
-    await scan(textContent, inline);
-  }
-
-  async function scan(textContent: string, inline: InlineFile | null) {
     const known = classes.map(c => c.name).join(', ');
     const userPrompt =
       'Transcribe el horario semanal de un docente que te paso.\n\n' +
-      (textContent ? `CONTENIDO (hoja de cálculo en CSV):\n${textContent}\n\n` : 'El horario está en el archivo adjunto.\n\n') +
+      'El horario está en el archivo adjunto.\n\n' +
       (known ? `GRUPOS QUE YA EXISTEN en la aplicación: ${known}. Si un grupo del horario es uno de estos, escríbelo exactamente así.\n\n` : '') +
       'NO calcules tú en qué día u hora cae cada clase: limítate a copiar la tabla y la aplicación lo calcula por la posición de cada celda. Por eso es imprescindible que ninguna celda cambie de sitio.\n\n' +
       'CÓMO TRANSCRIBIR:\n' +
@@ -115,7 +79,7 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
       '- En cada celda separa "subject" (la asignatura), "group" (el grupo o curso, p. ej. «3º ESO A») y "room" (el aula). Si una celda junta grupo y asignatura (p. ej. «3ºA MAT»), sepáralos. Copia las guardias, reuniones y horas libres como "subject"; ya se descartan después.\n' +
       '- Si el archivo trae varios horarios, transcribe solo el del docente (el que tiene sus clases).';
 
-    const raw = await callGemini(SYSTEM_PROMPT, userPrompt, inline ? [inline] : [], {
+    const raw = await callGemini(SYSTEM_PROMPT, userPrompt, [{ name: doc.name, mimeType: doc.mimeType, base64: doc.base64 }], {
       onStart: () => setScanning(true),
       onEnd: () => setScanning(false),
       onError: msg => setError(msg),
@@ -130,7 +94,7 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
 
     const rows = gridToBlocks(parseGeminiJson<ScheduleGrid>(raw));
     if (rows.length === 0) {
-      setError(t('No se ha reconocido ningún horario. Prueba con una foto más nítida o con el archivo en CSV.'));
+      setError(t('No se ha reconocido ningún horario. Prueba con una foto más nítida.'));
       return;
     }
     setDetected(rows);
@@ -158,11 +122,10 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
     });
 
     onImport(blocks, replace && existingCount > 0);
-    reset();
-    onClose();
+    cerrar();
   }
 
-  const busy = reading || scanning;
+  const busy = leyendo || scanning;
 
   // Franjas y días que aparecen en lo detectado, para pintar la semana.
   const weekDays = [1, 2, 3, 4, 5];
@@ -172,30 +135,27 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
     : [];
 
   return (
-    <div className={`modal-overlay${open ? ' open' : ''}`} onClick={e => { if (e.target === e.currentTarget && !busy) { reset(); onClose(); } }}>
+    <div className="modal-overlay open" onClick={e => { if (e.target === e.currentTarget && !busy) cerrar(); }}>
       <div className="modal wide" style={{ maxHeight: '92vh' }}>
         <div className="modal-hd">
           <div>
-            <div className="modal-title">{t('Escanear mi horario')}</div>
+            <div className="modal-title">{t('Detectar mis clases')}</div>
             <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 3 }}>
-              {t('La IA lee tu horario y crea los bloques por ti')}
+              {t('La aplicación lee tu horario y coloca las clases de cada día para el Inicio')}
             </p>
           </div>
-          <button className="ico-btn" onClick={() => { if (!busy) { reset(); onClose(); } }} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
+          <button className="ico-btn" onClick={() => { if (!busy) cerrar(); }} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
         </div>
 
-        {!hasApiKey() ? (
-          <div style={{ textAlign: 'center', padding: '26px 20px' }}>
-            <Sparkles size={30} color="var(--warn)" style={{ margin: '0 auto 14px' }} />
-            <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
-              {t('Para leer el horario hace falta la clave gratuita de Google que se configura en Configuración.')}
+        {busy ? (
+          <div style={{ textAlign: 'center', padding: '34px 20px' }}>
+            <span className="spin" />
+            <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginTop: 12 }}>
+              {t(leyendo ? 'Leyendo tu horario…' : 'La IA está interpretando tu horario…')}
             </p>
-            <button className="btn-accent" onClick={() => { onClose(); requestSettingsPanel('ia'); onNav('profile'); }}>
-              {t('Configurar la IA')}
-            </button>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{doc.name}</p>
           </div>
         ) : detected ? (
-          /* ── Revisión antes de importar ── */
           <>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', marginBottom: 14,
@@ -207,6 +167,10 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
                 {t('Pulsa una sesión para quitarla si no es tuya.')}
               </span>
             </div>
+
+            {error && (
+              <p role="alert" style={{ fontSize: 12.5, color: 'var(--danger)', margin: '0 0 12px', lineHeight: 1.5 }}>{error}</p>
+            )}
 
             {/* La semana como en el papel: así salta a la vista si algo cae en otra hora u otro día */}
             <div className="scan-week" role="grid" aria-label={t('Horario detectado')}>
@@ -248,9 +212,11 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
                 <Check size={14} />
                 {t(detected.length - skipped.size === 1 ? 'Añadir {n} sesión' : 'Añadir {n} sesiones', { n: detected.length - skipped.size })}
               </button>
-              <button className="btn-ghost" onClick={() => { reset(); fileRef.current?.click(); }}>
-                {t('Probar con otro archivo')}
-              </button>
+              {hasApiKey() && (
+                <button className="btn-ghost" onClick={conIA} title={t('El documento se enviaría a Google para interpretarlo. Podrás revisar todo antes de que se añada nada.')}>
+                  <Sparkles size={14} /> {t('No es esto: probar con la IA')}
+                </button>
+              )}
               <div style={{ flex: 1 }} />
               {existingCount > 0 ? (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 600, color: 'var(--text-2)', cursor: 'pointer' }}>
@@ -266,72 +232,23 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
             </div>
           </>
         ) : (
-          /* ── Subir archivo ── */
-          <>
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={busy}
-              style={{
-                width: '100%', padding: '34px 20px', borderRadius: 14, cursor: busy ? 'default' : 'pointer',
-                background: 'var(--surface)', border: '1.5px dashed var(--border)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-                fontFamily: 'var(--font)',
-              }}
-            >
-              {busy ? (
-                <>
-                  <span className="spin" />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
-                    {t(reading ? 'Leyendo el archivo…' : 'La IA está interpretando tu horario…')}
-                  </span>
-                  {fileName && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{fileName}</span>}
-                </>
-              ) : (
-                <>
-                  <Upload size={28} color="var(--accent-d)" />
-                  <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text)' }}>
-                    {t('Elige tu horario')}
-                  </span>
-                  <span style={{ fontSize: 12.5, color: 'var(--text-2)', textAlign: 'center', lineHeight: 1.55, maxWidth: 380 }}>
-                    {t('Vale una foto del papel, una captura, un PDF, un Excel o un CSV.')}
-                  </span>
-                </>
-              )}
-            </button>
-
-            <input
-              ref={fileRef}
-              type="file"
-              style={{ display: 'none' }}
-              onChange={handleFile}
-              accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt,.pdf,image/*"
-            />
-
-            <div style={{ display: 'flex', gap: 16, marginTop: 18, flexWrap: 'wrap' }}>
-              {[
-                { icon: <ImageIcon size={15} />, label: t('Foto o captura'), desc: t('Del horario en papel') },
-                { icon: <FileSpreadsheet size={15} />, label: t('Excel o CSV'), desc: t('El del centro') },
-                { icon: <Table2 size={15} />, label: 'PDF', desc: t('Tal cual te lo dieron') },
-              ].map(x => (
-                <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 9, flex: '1 1 150px' }}>
-                  <span style={{
-                    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                    background: 'var(--accent-l)', color: 'var(--accent-d)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {x.icon}
-                  </span>
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>{x.label}</span>
-                    <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-3)' }}>{x.desc}</span>
-                  </span>
-                </div>
-              ))}
+          /* ── No se han podido leer las clases del documento ── */
+          <div style={{ padding: '10px 4px 4px' }}>
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 10,
+              background: 'var(--warn-bg)', color: 'var(--warn-fg)', fontSize: 13, lineHeight: 1.55,
+            }}>
+              <ScanSearch size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>
+                {t(doc.mimeType === 'application/pdf'
+                  ? 'No he podido leer las clases de este PDF: puede ser una imagen dentro del PDF o una tabla con otro formato.'
+                  : 'Una foto no se puede leer sin IA: la aplicación no distingue el texto de una imagen.')}
+              </span>
             </div>
 
             {error && (
               <div style={{
-                display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 16,
+                display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 14,
                 padding: '11px 14px', borderRadius: 9, background: 'rgba(239,68,68,0.08)',
                 border: '0.5px solid rgba(239,68,68,0.3)', fontSize: 12.5, color: 'var(--danger)', lineHeight: 1.5,
               }}>
@@ -340,10 +257,28 @@ export function ScheduleScanner({ open, classes, existingCount, onClose, onImpor
               </div>
             )}
 
-            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 16, lineHeight: 1.55 }}>
-              {t('El archivo se envía a Google para interpretarlo. Podrás revisar todo antes de que se añada nada.')}
+            <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, margin: '16px 0 14px' }}>
+              {t('Puedes apuntar las clases a mano con «Nuevo bloque» en el menú Horario, o, si quieres, pedirle a la IA que lea el documento.')}
             </p>
-          </>
+
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              {hasApiKey() ? (
+                <button className="btn-accent" onClick={conIA}>
+                  <Sparkles size={14} /> {t('Leer con la IA')}
+                </button>
+              ) : (
+                <button className="btn-ghost" onClick={() => { cerrar(); requestSettingsPanel('ia'); onNav('profile'); }}>
+                  <Sparkles size={14} /> {t('Configurar la IA')}
+                </button>
+              )}
+              <button className="btn-ghost" onClick={cerrar}>{t('Las apunto a mano')}</button>
+            </div>
+            {hasApiKey() && (
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 14, lineHeight: 1.55 }}>
+                {t('El documento se enviaría a Google para interpretarlo. Podrás revisar todo antes de que se añada nada.')}
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>

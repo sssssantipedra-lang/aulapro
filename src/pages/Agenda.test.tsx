@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { Agenda } from './Agenda';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
-import type { ScheduleBlock } from '../types';
+import type { ScheduleBlock, HorarioDocumento } from '../types';
 import { takeGrupos } from '../lib/apoyoNav';
 
 afterEach(cleanup);
@@ -17,8 +17,14 @@ afterEach(cleanup);
 const block = (id: string): ScheduleBlock =>
   ({ id, day: 1, time_start: '08:30', time_end: '09:25', subject: 'Mates', room: '', class_id: '', color: '#000' });
 
-function setup(blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav: (s: string) => void = () => {}) {
+const FOTO: HorarioDocumento = { name: 'horario.png', mimeType: 'image/png', base64: 'iVBORw0KGgo=', addedAt: '2026-10-17' };
+
+function setup(
+  blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav: (s: string) => void = () => {},
+  horarioDoc: HorarioDocumento | null = null,
+) {
   const onReplaceBlocks = vi.fn();
+  const onChangeHorarioDoc = vi.fn();
   const onDeleteCalEvent = vi.fn();
   render(
     <I18nProvider>
@@ -26,14 +32,14 @@ function setup(blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav
         <Agenda
           classes={[]} scheduleBlocks={blocks} apoyoBlocks={apoyoBlocks} calEvents={[]}
           onAddBlock={() => {}} onUpdateBlock={() => {}} onDeleteBlock={() => {}}
-          onReplaceBlocks={onReplaceBlocks}
+          onReplaceBlocks={onReplaceBlocks} horarioDoc={horarioDoc} onChangeHorarioDoc={onChangeHorarioDoc}
           onAddCalEvent={() => {}} onUpdateCalEvent={() => {}} onDeleteCalEvent={onDeleteCalEvent}
           onNav={onNav}
         />
       </ToastProvider>
     </I18nProvider>,
   );
-  return { onReplaceBlocks, onDeleteCalEvent };
+  return { onReplaceBlocks, onDeleteCalEvent, onChangeHorarioDoc };
 }
 
 describe('Agenda · borrar horario', () => {
@@ -41,8 +47,11 @@ describe('Agenda · borrar horario', () => {
     const user = userEvent.setup();
     setup([]);
     await user.click(screen.getByRole('button', { name: /Horario/ }));
-    expect(screen.getByRole('menuitem', { name: /Escanear horario/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /Cargar mi horario/ })).toBeTruthy();
     expect(screen.queryByRole('menuitem', { name: /Borrar horario/ })).toBeNull();
+    // Sin documento no hay nada que detectar ni que quitar
+    expect(screen.queryByRole('menuitem', { name: /Detectar mis clases/ })).toBeNull();
+    expect(screen.queryByRole('menuitem', { name: /Quitar el documento/ })).toBeNull();
   });
 
   it('pide confirmación y vacía el horario', async () => {
@@ -96,5 +105,36 @@ describe('Agenda · semana', () => {
     // En la fila de las 9, no en la de las 10
     const fila9 = screen.getByText('09:00').nextElementSibling!;
     expect(fila9.textContent).toContain('Matemáticas');
+  });
+});
+
+describe('Agenda · Mi horario (el documento del docente)', () => {
+  it('sin documento, la pestaña invita a cargarlo', async () => {
+    const user = userEvent.setup();
+    setup([]);
+    await user.click(screen.getByRole('tab', { name: 'Mi horario' }));
+    expect(screen.getByText('Carga tu horario')).toBeTruthy();
+  });
+
+  it('con documento, la pestaña lo muestra y el menú ofrece cambiarlo, detectar las clases y quitarlo', async () => {
+    const user = userEvent.setup();
+    setup([], [], () => {}, FOTO);
+    await user.click(screen.getByRole('tab', { name: 'Mi horario' }));
+    expect(screen.getByRole('img', { name: 'Mi horario' }).getAttribute('src')).toBe('data:image/png;base64,iVBORw0KGgo=');
+    await user.click(screen.getByRole('button', { name: /^Horario/ }));
+    expect(screen.getByRole('menuitem', { name: /Cambiar mi horario/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /Detectar mis clases/ })).toBeTruthy();
+  });
+
+  it('quitar el documento pide confirmación y no toca las sesiones', async () => {
+    const user = userEvent.setup();
+    const { onChangeHorarioDoc, onReplaceBlocks } = setup([block('a')], [], () => {}, FOTO);
+    await user.click(screen.getByRole('button', { name: /^Horario/ }));
+    await user.click(screen.getByRole('menuitem', { name: /Quitar el documento/ }));
+    expect(onChangeHorarioDoc).not.toHaveBeenCalled();
+    const botones = screen.getAllByRole('button', { name: /Quitar el documento/ });
+    await user.click(botones[botones.length - 1]);
+    expect(onChangeHorarioDoc).toHaveBeenCalledWith(null);
+    expect(onReplaceBlocks).not.toHaveBeenCalled();
   });
 });

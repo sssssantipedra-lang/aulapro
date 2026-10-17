@@ -110,6 +110,19 @@ export interface ScheduleBlock {
   color: string;
 }
 
+/**
+ * El horario del docente tal como lo trae: un PDF o una foto que la Agenda
+ * muestra sin interpretarlo (sin IA). Se guarda dentro del perfil, así que
+ * viaja en las copias de seguridad; `src/lib/horarioDoc.ts` limita su peso.
+ */
+export interface HorarioDocumento {
+  name: string;
+  /** `application/pdf` o una imagen. */
+  mimeType: string;
+  base64: string;
+  addedAt: string;
+}
+
 export interface CalEvent {
   id: string;
   name: string;

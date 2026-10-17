@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
-  Class, Student, ScheduleBlock, CalEvent, Task, Rubric, Evaluation,
+  Class, Student, ScheduleBlock, HorarioDocumento, CalEvent, Task, Rubric, Evaluation,
   GradeCategory, GradeItem, GradeMap, DianaProfile, EvalDiana,
   AttendanceMap, AttendanceStatus, CompetencyReport, SelfAssessmentSession,
   LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark, MarksBlockConfig,
 } from '../types';
 import { normalizeClass, gradeItemIdFor } from '../types';
 import { isoDate } from '../lib/utils';
+import { horarioDocValido } from '../lib/horarioDoc';
 import { buildDemoData } from '../lib/demoData';
 import { buildDemoApoyo } from '../lib/demoApoyo';
 import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
@@ -60,6 +61,8 @@ interface ProfileSnapshot {
   classes: Class[];
   students: Student[];
   blocks: ScheduleBlock[];
+  /** El PDF o la foto del horario, tal como lo trajo el docente (la Agenda lo muestra). */
+  horarioDoc: HorarioDocumento | null;
   events: CalEvent[];
   rubrics: Rubric[];
   dianas: EvalDiana[];
@@ -90,7 +93,7 @@ interface ProfileSnapshot {
 
 function emptySnapshot(): ProfileSnapshot {
   return {
-    tasks: [], classes: [], students: [], blocks: [], events: [],
+    tasks: [], classes: [], students: [], blocks: [], horarioDoc: null, events: [],
     rubrics: [], dianas: [], evaluations: [],
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
@@ -168,6 +171,7 @@ export function useAppState() {
   const [classes, setClasses]                 = useState<Class[]>([]);
   const [students, setStudents]               = useState<Student[]>([]);
   const [scheduleBlocks, setScheduleBlocks]   = useState<ScheduleBlock[]>([]);
+  const [horarioDoc, setHorarioDoc]           = useState<HorarioDocumento | null>(null);
   const [calEvents, setCalEvents]             = useState<CalEvent[]>([]);
   const [rubrics, setRubrics]                 = useState<Rubric[]>([]);
   const [dianas, setDianas]                   = useState<EvalDiana[]>([]);
@@ -208,6 +212,8 @@ export function useAppState() {
     setClasses(s.classes.map(normalizeClass));
     setStudents(s.students);
     setScheduleBlocks(s.blocks);
+    // Una copia editada a mano puede traer cualquier cosa en su lugar
+    setHorarioDoc(horarioDocValido(s.horarioDoc));
     setCalEvents(s.events);
     setRubrics(s.rubrics);
     setDianas(s.dianas);
@@ -267,11 +273,11 @@ export function useAppState() {
 
   /* ── Guardado diferido ── */
   const snapshot = useMemo<ProfileSnapshot>(() => ({
-    tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
+    tasks, classes, students, blocks: scheduleBlocks, horarioDoc, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
     workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog,
-  }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
+  }), [tasks, classes, students, scheduleBlocks, horarioDoc, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
       workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog]);
@@ -970,6 +976,7 @@ export function useAppState() {
     setClasses([]);
     setStudents([]);
     setScheduleBlocks([]);
+    setHorarioDoc(null);
     setCalEvents([]);
     setEvaluations([]);
     setGradeCategories([]);
@@ -1003,7 +1010,7 @@ export function useAppState() {
     openProfile, createAndOpenProfile, logout, updateUser,
 
     tasks, classes, students,
-    scheduleBlocks, calEvents,
+    scheduleBlocks, horarioDoc, setHorarioDoc, calEvents,
     rubrics, dianas, evaluations,
     gradeCategories, gradeItems, grades,
     attendance, reports,

@@ -18,7 +18,7 @@ const TEXT: Record<FirstStepId, { title: string; desc: string; action: string }>
   },
   schedule: {
     title: 'Añade tu horario',
-    desc: 'Hazle una foto al horario del centro y la aplicación lo coloca solo en la Agenda.',
+    desc: 'Sube el PDF de tu horario en la Agenda y la aplicación coloca tus clases de cada día en el Inicio.',
     action: 'Ir a la Agenda',
   },
   notebook: {
@@ -33,7 +33,7 @@ const TEXT: Record<FirstStepId, { title: string; desc: string; action: string }>
   },
   ai: {
     title: 'Conecta la IA (opcional)',
-    desc: 'Con una clave gratuita de Google, la aplicación redacta informes, crea rúbricas y lee tu horario.',
+    desc: 'Con una clave gratuita de Google, la aplicación redacta informes y crea rúbricas.',
     action: 'Configurar',
   },
 };
