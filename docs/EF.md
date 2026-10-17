@@ -12,7 +12,13 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 - El menú de aula entero (clases, cuaderno, asistencia, evaluar con rúbricas y dianas, documentos, en clase) y, después del Inicio, el apartado «Educación Física» (`NAV_EF` en `src/lib/navigation.ts`).
 - Inicio sin tutoría: el de siempre, adaptado a EF, con «Observar en la pista» en la clase de ahora y las tarjetas «Exentos y lesiones», «Próximas sesiones» y «Pruebas físicas».
-- Pestañas del apartado: En la pista, Exentos y lesiones, Pruebas físicas, Equipos, Circuitos, Pizarra de circuitos, Situaciones de aprendizaje, Sesiones, Actividades y Material (su página se llama «Material e instalaciones»).
+- **Portada con cuatro tarjetas** (decisión del dueño, 17-10-2026: «tiene muchas pestañas»): entrar en «Educación Física» desde el menú abre siempre `EfInicio` (`ef-inicio`, `portada` en `lib/navigation.ts`), con cuatro tarjetas grandes, una por tema, y dentro de cada una todas sus herramientas con una línea de lo que hace cada una:
+  - **Con el grupo**: En la pista, Equipos y Cronómetro de circuitos (antes «Circuitos»).
+  - **Alumnado**: Exentos y lesiones (con los niveles de respuesta II y III) y Pruebas físicas.
+  - **Preparar las clases**: Actividades, Sesiones y Situaciones de aprendizaje.
+  - **Circuitos y material**: Pizarra de circuitos y Material e instalaciones.
+  Cada tarjeta acaba con un dato (clases con equipos, exentos de hoy, actividades y sesiones tuyas, pizarras y material).
+- **Barra de pestañas reducida**: diez pestañas seguidas eran demasiadas. En la portada la barra solo lleva «Resumen»; en una pantalla lleva «Resumen» y las pestañas de su tema, con el nombre del tema junto al del apartado (`grupo` y `grupos` en `NavHub`, `HubTabs`). Si se añade una pantalla a EF, hay que ponerla en un tema, en `navigation.ts` y en una fila de `EfInicio`; la prueba de `EfInicio` comprueba que cada pantalla sale en alguna tarjeta.
 - Inicio con tutoría: el de tutoría tal cual.
 
 ## En la pista

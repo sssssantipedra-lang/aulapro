@@ -579,6 +579,22 @@ INICIO DE EF (sin tutoría): el de siempre, con «Observar en la pista» en vez 
 quién no puede hacer la clase hoy y qué hace mientras tanto, y la tarjeta
 «Pruebas físicas» con la última toma de cada clase, y «Próximas sesiones».
 
+[ef-inicio] EDUCACIÓN FÍSICA (PORTADA)
+Al entrar en «Educación Física» desde el menú se abre una portada con cuatro
+tarjetas grandes, una por tema; dentro de cada una están sus herramientas, con
+una línea de lo que hace cada una, y se abren tocándolas:
+- CON EL GRUPO (lo que usas con el alumnado delante): En la pista, Equipos y
+  Cronómetro de circuitos.
+- ALUMNADO: Exentos y lesiones (con los niveles de respuesta II y III) y Pruebas
+  físicas.
+- PREPARAR LAS CLASES: Actividades (banco, IA, foto, manual en PDF), Sesiones y
+  Situaciones de aprendizaje.
+- CIRCUITOS Y MATERIAL: Pizarra de circuitos y Material e instalaciones.
+Cada tarjeta acaba con un dato (equipos hechos, exentos de hoy, actividades y
+sesiones tuyas, pizarras y material). Ya dentro de una herramienta, la barra de
+arriba solo enseña «Resumen» (para volver a la portada) y las pestañas de su
+mismo tema.
+
 [ef-pista] EN LA PISTA
 La observación rápida, pensada para el móvil. Arriba, la clase (sale la que
 toca ahora según el horario); debajo, qué se observa: «+ Participa», «+ Se
@@ -645,7 +661,7 @@ está exento o lesionado juega en su equipo: sale su limitación y qué hace.
 Debajo, «Nivel y sexo del alumnado» (1, inicial; 2, medio; 3, avanzado; el
 sexo también sirve para el baremo) y «Parejas que separar».
 
-[ef-circuitos] CIRCUITOS
+[ef-circuitos] CIRCUITOS (CRONÓMETRO)
 El cronómetro de estaciones. «Nuevo circuito»: nombre, estaciones (una por
 línea), segundos de trabajo, de descanso entre estaciones, rondas y descanso
 entre rondas; abajo dice cuánto dura. «Empezar» lo abre a pantalla completa:

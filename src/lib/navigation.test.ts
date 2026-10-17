@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reachableSections, hubOf, hubEnMenu, isCurrent, NAV_GROUPS, NAV_APOYO, NAV_EF, navGroupsFor } from './navigation';
+import { HUBS, hubTarget, reachableSections, hubOf, hubEnMenu, isCurrent, NAV_GROUPS, NAV_APOYO, NAV_EF, navGroupsFor } from './navigation';
 import type { Section } from '../types';
 
 const ALL: Section[] = [
@@ -54,6 +54,22 @@ describe('menú', () => {
     expect(reachableSections('aula')).not.toContain('ef-pista');
     expect(hubEnMenu('ef-pista', 'ef')?.id).toBe('ef');
     expect(hubEnMenu('ef-pista', 'aula')).toBeUndefined();
+  });
+
+  it('Educación Física se abre en su portada y reparte sus pantallas en cuatro temas', () => {
+    const ef = HUBS.find(h => h.id === 'ef')!;
+    expect(ef.portada).toBe(true);
+    expect(hubTarget(ef)).toBe('ef-inicio');
+    expect(ef.tabs[0]).toEqual({ id: 'ef-inicio', label: 'Resumen' });
+    const grupos = Object.keys(ef.grupos!);
+    expect(grupos).toHaveLength(4);
+    // Todas las demás pantallas pertenecen a un tema que existe, y ningún tema está vacío
+    for (const tab of ef.tabs.slice(1)) expect(grupos).toContain(tab.grupo);
+    for (const g of grupos) expect(ef.tabs.filter(tab => tab.grupo === g).length).toBeGreaterThanOrEqual(2);
+    // No se pierde ninguna pantalla de las que había
+    expect(reachableSections('ef')).toEqual(expect.arrayContaining([
+      'ef-pista', 'ef-exentos', 'ef-pruebas', 'ef-equipos', 'ef-circuitos', 'ef-pizarra', 'ef-sda', 'ef-sesiones', 'ef-actividades', 'ef-material',
+    ]));
   });
 
   it('cada pantalla agrupada marca su apartado como actual', () => {

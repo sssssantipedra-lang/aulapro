@@ -745,5 +745,5 @@ export type Section =
   | 'learning-situations' | 'resources'
   | 'meetings' | 'trainings' | 'seating' | 'enclase' | 'actitud'
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-alumno' | 'apoyo-agenda-visual'
-  | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos' | 'ef-pizarra'
+  | 'ef-inicio' | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos' | 'ef-pizarra'
   | 'ef-actividades' | 'ef-sesiones' | 'ef-material' | 'ef-sda';

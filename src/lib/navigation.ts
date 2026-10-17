@@ -13,6 +13,7 @@
  *                     Recursos
  *       En clase    → Portada, Anotar actitud, Distribución de aula,
  *                     Pizarra y herramientas, Actividades con móviles
+ *     y, solo para Educación Física, su propio apartado con cuatro temas
  *   - Centro y equipo: Reuniones, Formaciones y Trabajo compartido.
  *   - Abajo, sin color y separadas del resto: Configuración y Registro de
  *     cambios.
@@ -56,7 +57,14 @@ export interface NavHub {
    */
   portada?: boolean;
   icon: NavIcon;
-  tabs: { id: Section; label: string }[];
+  /**
+   * `grupo`: en un apartado con muchas pantallas (Educación Física), la
+   * portada las reparte en tarjetas, y la barra de pestañas de una pantalla
+   * solo enseña la portada y las de su mismo grupo (`HubTabs`).
+   */
+  tabs: { id: Section; label: string; grupo?: string }[];
+  /** El nombre de cada grupo, para la barra de pestañas. */
+  grupos?: Record<string, string>;
 }
 
 export interface NavLink { id: Section; label: string; icon: NavIcon }
@@ -111,18 +119,24 @@ export const HUBS: readonly NavHub[] = [
   {
     id: 'ef', label: 'Educación Física', icon: 'ef',
     hint: 'Lo propio de EF: observar en la pista, el alumnado exento o lesionado, las pruebas físicas, los equipos y los circuitos, las actividades y sesiones, y el material.',
+    // Diez pantallas en una fila de pestañas eran demasiadas: al entrar, cuatro
+    // tarjetas grandes con todo lo que ofrece cada tema (decisión del dueño,
+    // 17-10-2026), y en cada pantalla solo las pestañas de su tema.
+    portada: true,
     tabs: [
-      { id: 'ef-pista',   label: 'En la pista' },
-      { id: 'ef-exentos', label: 'Exentos y lesiones' },
-      { id: 'ef-pruebas', label: 'Pruebas físicas' },
-      { id: 'ef-equipos', label: 'Equipos' },
-      { id: 'ef-circuitos', label: 'Circuitos' },
-      { id: 'ef-pizarra', label: 'Pizarra de circuitos' },
-      { id: 'ef-sda', label: 'Situaciones de aprendizaje' },
-      { id: 'ef-sesiones', label: 'Sesiones' },
-      { id: 'ef-actividades', label: 'Actividades' },
-      { id: 'ef-material', label: 'Material' },
+      { id: 'ef-inicio',      label: 'Resumen' },
+      { id: 'ef-pista',       label: 'En la pista',               grupo: 'pista' },
+      { id: 'ef-equipos',     label: 'Equipos',                   grupo: 'pista' },
+      { id: 'ef-circuitos',   label: 'Cronómetro de circuitos',   grupo: 'pista' },
+      { id: 'ef-exentos',     label: 'Exentos y lesiones',        grupo: 'alumnado' },
+      { id: 'ef-pruebas',     label: 'Pruebas físicas',           grupo: 'alumnado' },
+      { id: 'ef-actividades', label: 'Actividades',               grupo: 'preparar' },
+      { id: 'ef-sesiones',    label: 'Sesiones',                  grupo: 'preparar' },
+      { id: 'ef-sda',         label: 'Situaciones de aprendizaje', grupo: 'preparar' },
+      { id: 'ef-pizarra',     label: 'Pizarra de circuitos',      grupo: 'material' },
+      { id: 'ef-material',    label: 'Material e instalaciones',  grupo: 'material' },
     ],
+    grupos: { pista: 'Con el grupo', alumnado: 'Alumnado', preparar: 'Preparar las clases', material: 'Circuitos y material' },
   },
 ];
 
