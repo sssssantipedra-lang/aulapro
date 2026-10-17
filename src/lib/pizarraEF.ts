@@ -315,6 +315,54 @@ export function elementoDeTrazo(id: string, material: MaterialPizarraId, caja: C
   };
 }
 
+/* ── Duplicar y elegir, como en Canva ── */
+
+/** Cuánto se desplaza una copia cuando no hay otra distancia que repetir. */
+export const DESPLAZAMIENTO_COPIA = 24;
+
+/**
+ * Copias de las piezas elegidas, movidas `dx`, `dy`. Si una copia se saldría de
+ * la pizarra, rebota hacia el otro lado en lugar de quedarse encima de la
+ * original (que no se vería), o se queda en el borde si `rebotar` es falso.
+ * Las estaciones siguen la numeración: la copia de la 2 es la siguiente libre.
+ */
+export function copiarElementos(
+  todos: readonly ElementoPizarra[], ids: readonly string[], dx: number, dy: number, nuevoId: () => string, rebotar = true,
+): ElementoPizarra[] {
+  const origen = todos.filter(e => ids.includes(e.id));
+  const sale = (v: number, d: number, max: number) => v + d < 0 || v + d > max;
+  // Si una pieza rebota, rebota todo el grupo: no se parte
+  const fx = rebotar && origen.some(e => sale(e.x, dx, ANCHO_PIZARRA)) ? -dx : dx;
+  const fy = rebotar && origen.some(e => sale(e.y, dy, ALTO_PIZARRA)) ? -dy : dy;
+  const copias: ElementoPizarra[] = [];
+  for (const e of origen) {
+    const copia: ElementoPizarra = { ...e, id: nuevoId(), x: limita(Math.round(e.x + fx), 0, ANCHO_PIZARRA), y: limita(Math.round(e.y + fy), 0, ALTO_PIZARRA) };
+    if (e.material === 'estacion') copia.texto = siguienteEstacion([...todos, ...copias]);
+    copias.push(copia);
+  }
+  return copias;
+}
+
+/** Las piezas cuyo centro cae dentro del recuadro. */
+export function elementosEnCaja(todos: readonly ElementoPizarra[], caja: Caja): string[] {
+  return todos.filter(e => e.x >= caja.x && e.x <= caja.x + caja.w && e.y >= caja.y && e.y <= caja.y + caja.h).map(e => e.id);
+}
+
+/** El recuadro que ocupan las piezas (con su giro y su escala), para colocar la barra flotante. */
+export function cajaDeElementos(elementos: readonly ElementoPizarra[]): Caja | null {
+  if (!elementos.length) return null;
+  let x0 = Infinity; let y0 = Infinity; let x1 = -Infinity; let y1 = -Infinity;
+  for (const e of elementos) {
+    const m = materialDePizarra(e.material);
+    const a = (e.giro * Math.PI) / 180;
+    const w = (Math.abs(m.ancho * Math.cos(a)) + Math.abs(m.alto * Math.sin(a))) * e.escala;
+    const h = (Math.abs(m.ancho * Math.sin(a)) + Math.abs(m.alto * Math.cos(a))) * e.escala;
+    x0 = Math.min(x0, e.x - w / 2); x1 = Math.max(x1, e.x + w / 2);
+    y0 = Math.min(y0, e.y - h / 2); y1 = Math.max(y1, e.y + h / 2);
+  }
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+
 /* ── Imagen de la pizarra ── */
 
 const transformDe = (e: ElementoPizarra, m: MaterialPizarra) =>

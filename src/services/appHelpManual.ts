@@ -750,10 +750,18 @@ material» y «Borrar». Con «Dibujar material» trazas a mano una forma y la a
 propone qué material es: un triángulo es un cono; un círculo, un aro, un balón
 o una seta según su tamaño; un rectángulo muy alargado, un banco; uno ancho,
 una colchoneta o una portería; una raya corta, una pica. Una forma puede ser
-varias cosas, así que tú eliges en el desplegable y pulsas «Poner». «Reconocer
-con IA» manda a Google una imagen del croquis (solo trazos, sin alumnado) y la
-IA propone qué material es cada pieza y resume el circuito; tú confirmas cada
-una. Abajo a la derecha, el MATERIAL DEL CIRCUITO: cuántas piezas de cada hay
+varias cosas, así que con una sola tú eliges en el desplegable y pulsas
+«Poner». DESDE LA SEGUNDA FORMA, la IA las procesa sola (espera un instante a
+que dejes de dibujar), manda a Google una imagen del croquis (solo trazos, sin
+alumnado) y coloca ella las piezas de las que está segura, que se pueden
+deshacer; las dudosas quedan para que las confirmes. «Reconocer con IA» hace
+lo mismo cuando tú lo pides, también con una forma.
+DUPLICAR, como en Canva: el botón que sale junto a la pieza, Ctrl+D (si
+mueves la copia y vuelves a pulsarlo, repite esa misma distancia: así se
+hacen filas de conos), Alt y arrastrar (deja la original y mueve una copia),
+Ctrl+C y Ctrl+V, y «Copias en fila» (el número que pongas, de una vez). Para
+elegir varias piezas: Mayús y clic, un recuadro arrastrando por el fondo o
+Ctrl+A; se mueven, giran, duplican y quitan juntas. Abajo a la derecha, el MATERIAL DEL CIRCUITO: cuántas piezas de cada hay
 en la pizarra. «Guardar» la guarda con su nombre en este equipo, «Deshacer»
 (o Ctrl+Z) vuelve atrás y «Descargar imagen» la baja como PNG.
 

@@ -2099,3 +2099,9 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-in-dato { position:relative; margin-top:auto; padding-top:8px; border-top:1px solid var(--border); font-size:12px; font-weight:600; color:var(--text-3); }
 @media (max-width: 860px) { .ef-in { grid-template-columns:minmax(0,1fr); } }
 @media (prefers-reduced-motion: reduce) { .ef-in-row, .ef-in-row-go { transition:none; } .ef-in-row:hover .ef-in-row-go { transform:none; } }
+.ef-piz-wrap { position:relative; }
+.ef-piz-flota { position:absolute; z-index:5; display:flex; gap:2px; padding:4px; background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 6px 20px rgba(60,40,20,.18); }
+.ef-piz-flota button { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:none; border-radius:7px; background:none; color:var(--text-2); cursor:pointer; }
+.ef-piz-flota button:hover, .ef-piz-flota button:focus-visible { background:var(--accent-l); color:var(--accent-d); }
+.ef-piz-fila { display:inline-flex; align-items:center; gap:4px; }
+.ef-piz-fila .finput { width:62px; }
