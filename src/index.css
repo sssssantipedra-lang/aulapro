@@ -2213,6 +2213,15 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-act-ficha { display:flex; flex-direction:column; gap:12px; }
 @media (prefers-reduced-motion: reduce) { .ef-act-card { transition:none; } .ef-act-card:hover { transform:none; } }
 
+
+/* Pizarra y herramientas: las ventanas no tienen tarjeta; el asa y la X salen al pasar el ratón */
+.pz-ventana { cursor: grab; }
+.pz-ventana .pz-barra { opacity: 0; transition: opacity 0.15s; }
+.pz-ventana:hover .pz-barra,
+.pz-ventana:focus-within .pz-barra { opacity: 1; }
+@media (hover: none) {
+  .pz-ventana .pz-barra { opacity: 0.9; }
+}
 /* ── Pizarra: el aro del borrador sigue al puntero del ratón ── */
 .pizarra-anillo { position:absolute; top:0; left:0; display:none; z-index:7; pointer-events:none; border:2px solid rgba(15,23,42,0.7); border-radius:50%; box-shadow:0 0 0 1px rgba(255,255,255,0.8); }
 

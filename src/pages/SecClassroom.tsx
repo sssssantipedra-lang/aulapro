@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
-  Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
-  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete, Flag, Users,
-  Highlighter, PenTool, Pencil, Undo2, Redo2, Trash2,
+  Plus, Minus, Eraser, ExternalLink, X, Disc3, Trophy,
+  RefreshCw, Link as LinkIcon, PenLine, Calculator, Delete, Flag, Users,
+  Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
+  Maximize, Minimize, LayoutTemplate, Save, Trash2, GripHorizontal,
+  Highlighter, PenTool, Pencil, Undo2, Redo2, Minus as MinusIcon, ChevronsDownUp, ChevronsUpDown, PanelTopClose, PanelTop,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -16,12 +18,22 @@ import { ThemeArt } from '../components/fichas/ThemeArt';
 import { useI18n } from '../i18n';
 import { Lienzo, type EstadoLienzo, type LienzoHandle } from '../components/pizarra/Lienzo';
 import { ANCHOS, HERRAMIENTAS, type Grosor, type Herramienta } from '../lib/trazos';
+import {
+  ClockWidget, StopwatchWidget, TrafficWidget, DiceWidget, SymbolsWidget, NoteWidget, ScoreWidget,
+  GroupsWidget, QrWidget, AgendaWidget,
+} from '../components/live/PizarraWidgets';
+import {
+  FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, siguienteId, enCascada, huecoLibre, rectVisible, LADO_MINIMIZADA, borrarDatosDeVentana, MAX_ESCENAS, MAX_VENTANAS,
+  type FondoId, type Rect, type Escena,
+} from '../lib/pizarraAula';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
    ════════════════════════════════════════════════════════════ */
 
-type WidgetType = 'wheel' | 'timer' | 'noise' | 'embed' | 'calc';
+type WidgetType =
+  | 'wheel' | 'timer' | 'noise' | 'embed' | 'calc'
+  | 'clock' | 'stopwatch' | 'traffic' | 'dice' | 'symbols' | 'note' | 'score' | 'groups' | 'qr' | 'agenda';
 
 interface WidgetConfig {
   id: WidgetType;
@@ -36,6 +48,26 @@ const APPS: WidgetConfig[] = [
   { id: 'calc',  title: 'Calculadora',  icon: <Calculator size={19} />,   accent: '#f472b6' },
   { id: 'noise', title: 'Sonómetro',    icon: <Volume2 size={19} />,      accent: '#34d399' },
   { id: 'embed', title: 'Contenido',    icon: <ExternalLink size={19} />, accent: '#fbbf24' },
+  { id: 'clock',     title: 'Reloj y fecha',       icon: <Clock3 size={19} />,       accent: '#60a5fa' },
+  { id: 'stopwatch', title: 'Cronómetro',          icon: <TimerIcon size={19} />,    accent: '#fb923c' },
+  { id: 'traffic',   title: 'Semáforo',            icon: <Car size={19} />,          accent: '#4ade80' },
+  { id: 'symbols',   title: 'Símbolos de trabajo', icon: <Hand size={19} />,         accent: '#c084fc' },
+  { id: 'dice',      title: 'Dados',               icon: <Dices size={19} />,        accent: '#f87171' },
+  { id: 'groups',    title: 'Grupos',              icon: <Users size={19} />,        accent: '#f472b6' },
+  { id: 'score',     title: 'Marcador',            icon: <Medal size={19} />,        accent: '#2dd4bf' },
+  { id: 'agenda',    title: 'Plan del día',        icon: <ListChecks size={19} />,   accent: '#a3e635' },
+  { id: 'note',      title: 'Nota',                icon: <StickyNote size={19} />,   accent: '#facc15' },
+  { id: 'qr',        title: 'Código QR',           icon: <QrCode size={19} />,       accent: '#e2e8f0' },
+];
+
+const APP_IDS = APPS.map(a => a.id);
+
+/** Cómo se agrupan en la barra inferior: tiempo, clase, participación y recursos. */
+const DOCK_GRUPOS: WidgetType[][] = [
+  ['timer', 'stopwatch', 'clock'],
+  ['traffic', 'symbols', 'agenda', 'note'],
+  ['wheel', 'groups', 'dice', 'score'],
+  ['calc', 'noise', 'embed', 'qr'],
 ];
 
 /** Nombres de relleno cuando aún no hay alumnos creados. */
@@ -54,20 +86,29 @@ type BoardTheme = keyof typeof PEN_COLORS;
 const MARKER_COLORS = ['#fde047', '#86efac', '#7dd3fc', '#f9a8d4', '#fdba74'] as const;
 
 const TOOLS: Record<Herramienta, { label: string; icon: React.ReactNode }> = {
-  lapiz: { label: 'Lápiz', icon: <Pencil size={15} /> },
-  rotulador: { label: 'Rotulador', icon: <PenTool size={15} /> },
-  subrayador: { label: 'Subrayador', icon: <Highlighter size={15} /> },
-  borrador: { label: 'Borrador', icon: <Eraser size={15} /> },
+  lapiz: { label: 'Lápiz', icon: <Pencil size={17} /> },
+  rotulador: { label: 'Rotulador', icon: <PenTool size={17} /> },
+  subrayador: { label: 'Subrayador', icon: <Highlighter size={17} /> },
+  borrador: { label: 'Borrador', icon: <Eraser size={17} /> },
 };
 const GROSORES: readonly { id: Grosor; label: string; dot: number }[] = [
   { id: 0, label: 'Fino', dot: 5 }, { id: 1, label: 'Medio', dot: 9 }, { id: 2, label: 'Grueso', dot: 14 },
 ];
 const BOARD_KEY = 'aulapro_board_theme';
 
-function readBoardTheme(): BoardTheme {
-  // Blanca por defecto: en la pantalla del aula (proyector o panel) el fondo
-  // oscuro se ve mal con luz ambiente.
-  try { return localStorage.getItem(BOARD_KEY) === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
+const FONDO_KEY = 'aulapro_pizarra_fondo';
+const ESCENAS_KEY = 'aulapro_pizarra_escenas';
+const ACTUAL_KEY = 'aulapro_pizarra_actual';
+
+function readFondo(): FondoId {
+  // Blanco por defecto: en la pantalla del aula (proyector o panel) el fondo
+  // oscuro se ve mal con luz ambiente. Quien ya había elegido pizarra oscura
+  // (`BOARD_KEY`, de antes de que hubiera más fondos) la conserva.
+  try {
+    const guardado = localStorage.getItem(FONDO_KEY);
+    if (guardado) return fondoPorId(guardado).id;
+    return localStorage.getItem(BOARD_KEY) === 'dark' ? 'oscuro' : 'blanco';
+  } catch { return 'blanco'; }
 }
 
 const WHEEL_COLORS = [
@@ -112,53 +153,78 @@ function beep(times = 3) {
    ════════════════════════════════════════════════════════════ */
 
 function WidgetShell({
-  title, icon, accent, onClose, children,
+  title, accent, icono, minimizada, onMinimizar, onClose, children,
 }: {
   title: string;
-  icon: React.ReactNode;
   accent: string;
+  icono: React.ReactNode;
+  minimizada: boolean;
+  onMinimizar: () => void;
   onClose: () => void;
   children: React.ReactNode;
 }) {
   const { t } = useI18n();
+  const boton = { width: 22, height: 22 } as const;
+  const realzar = (e: React.MouseEvent<HTMLButtonElement>, on: boolean) => {
+    e.currentTarget.style.background = on ? 'rgba(255,255,255,0.18)' : 'transparent';
+    e.currentTarget.style.color = on ? '#fff' : 'inherit';
+  };
   return (
     <div
-      className="w-full h-full overflow-hidden rounded-[26px] flex flex-col"
+      className="pz-ventana relative w-full h-full"
       style={{
-        background: 'linear-gradient(160deg, rgba(30,41,59,0.82), rgba(15,23,42,0.92))',
-        backdropFilter: 'blur(22px)',
-        WebkitBackdropFilter: 'blur(22px)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        boxShadow: `0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.14), 0 0 0 1px ${accent}22`,
+        // El color de la herramienta se usa solo en el botón principal; `--pz-ac` es esa misma tinta
+        // ajustada al fondo (más oscura sobre blanco, más clara sobre oscuro) para poder escribir con ella
+        ['--pz-accent' as string]: accent,
+        ['--pz-ac' as string]: `color-mix(in srgb, ${accent} 62%, rgb(var(--pz-rgb)))`,
+        color: 'rgb(var(--pz-rgb))',
       }}
     >
-      <div
-        className="drag-handle cursor-move flex items-center gap-3 px-5 py-3.5 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.035)' }}
-      >
-        <span
-          className="flex items-center justify-center rounded-xl flex-shrink-0"
-          style={{ width: 30, height: 30, background: `${accent}22`, color: accent }}
-        >
-          {icon}
-        </span>
-        <h2 className="text-white font-bold text-[15px] tracking-tight flex-1 min-w-0 truncate">
-          {title}
-        </h2>
+      {/* Sin tarjeta: la herramienta va directamente sobre la pizarra. Se arrastra desde cualquier parte que no sea un
+          control. Minimizada se oculta pero sigue montada, para que un temporizador siga contando. */}
+      <div className="h-full w-full min-h-0" style={minimizada ? { display: 'none' } : undefined}>{children}</div>
+      {minimizada ? (
         <button
-          onClick={onClose}
-          title={t('Cerrar')}
-          aria-label={t('Cerrar')}
-          className="widget-cerrar flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
-          style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.55)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+          type="button"
+          onClick={onMinimizar}
+          title={t('Restaurar {title}', { title })}
+          aria-label={t('Restaurar {title}', { title })}
+          className="absolute inset-0 flex items-center justify-center rounded-2xl transition-transform hover:scale-105"
+          style={{ background: '#1e2433', color: accent, boxShadow: '0 1px 2px rgba(15,23,42,0.25), 0 6px 16px rgba(15,23,42,0.22)' }}
         >
-          <X size={16} />
+          {icono}
         </button>
-      </div>
-
-      <div className="flex-1 min-h-0 p-5">{children}</div>
+      ) : (
+        <div
+          className="pz-barra absolute flex items-center gap-0.5 rounded-full"
+          style={{ top: 2, right: 2, padding: 2, background: 'rgba(15,23,42,0.88)', color: 'rgba(255,255,255,0.7)', zIndex: 5 }}
+          title={title}
+        >
+          <span className="flex items-center justify-center" style={boton} aria-hidden="true"><GripHorizontal size={14} /></span>
+          <button
+            onClick={onMinimizar}
+            title={t('Minimizar')}
+            aria-label={t('Minimizar')}
+            className="flex items-center justify-center rounded-full transition-colors"
+            style={boton}
+            onMouseEnter={e => realzar(e, true)}
+            onMouseLeave={e => realzar(e, false)}
+          >
+            <MinusIcon size={14} />
+          </button>
+          <button
+            onClick={onClose}
+            title={t('Cerrar')}
+            aria-label={t('Cerrar')}
+            className="widget-cerrar flex items-center justify-center rounded-full transition-colors"
+            style={boton}
+            onMouseEnter={e => realzar(e, true)}
+            onMouseLeave={e => realzar(e, false)}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -254,8 +320,8 @@ function TimerWidget() {
               className="rounded-full text-[12px] font-bold transition-all"
               style={{
                 padding: '5px 12px',
-                background: active ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.06)',
-                color: active ? '#67e8f9' : 'rgba(255,255,255,0.6)',
+                background: active ? 'rgba(34,211,238,0.2)' : 'rgba(var(--pz-rgb),0.06)',
+                color: active ? 'var(--pz-ac)' : 'rgba(var(--pz-rgb),0.6)',
                 border: `1px solid ${active ? 'rgba(34,211,238,0.45)' : 'transparent'}`,
               }}
             >
@@ -272,13 +338,12 @@ function TimerWidget() {
         transition={{ repeat: finished ? Infinity : 0, duration: 1.1 }}
       >
         <svg width={190} height={190} className="-rotate-90">
-          <circle cx={95} cy={95} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={11} />
+          <circle cx={95} cy={95} r={R} fill="none" stroke="rgba(var(--pz-rgb),0.08)" strokeWidth={11} />
           <motion.circle
             cx={95} cy={95} r={R} fill="none" stroke={color} strokeWidth={11} strokeLinecap="round"
             strokeDasharray={CIRC}
             animate={{ strokeDashoffset: CIRC * (1 - pct) }}
             transition={{ duration: 0.4, ease: 'linear' }}
-            style={{ filter: `drop-shadow(0 0 9px ${color}88)` }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -289,7 +354,7 @@ function TimerWidget() {
                 { ref: undefined, value: draftSec, set: setDraftSec, label: t('seg') },
               ].map((f, i) => (
                 <React.Fragment key={f.label}>
-                  {i === 1 && <span className="text-white/50 font-black" style={{ fontSize: 38 }}>:</span>}
+                  {i === 1 && <span className="text-[rgba(var(--pz-rgb),0.5)] font-black" style={{ fontSize: 38 }}>:</span>}
                   <div className="flex flex-col items-center">
                     <input
                       ref={f.ref}
@@ -301,15 +366,15 @@ function TimerWidget() {
                       }}
                       onFocus={e => e.currentTarget.select()}
                       inputMode="numeric"
-                      className="font-black text-white text-center outline-none rounded-lg"
+                      className="font-black text-[rgb(var(--pz-rgb))] text-center outline-none rounded-lg"
                       style={{
                         fontSize: 38, width: 62, padding: '2px 0',
                         fontVariantNumeric: 'tabular-nums',
-                        background: 'rgba(255,255,255,0.09)',
+                        background: 'rgba(var(--pz-rgb),0.09)',
                         border: '1.5px solid rgba(34,211,238,0.5)',
                       }}
                     />
-                    <span className="text-white/35 text-[10px] font-bold mt-0.5">{f.label}</span>
+                    <span className="text-[rgba(var(--pz-rgb),0.35)] text-[10px] font-bold mt-0.5">{f.label}</span>
                   </div>
                 </React.Fragment>
               ))}
@@ -320,13 +385,13 @@ function TimerWidget() {
                 onClick={startEditing}
                 disabled={running}
                 title={running ? undefined : t('Haz clic para escribir el tiempo')}
-                className="font-black text-white leading-none rounded-xl transition-colors"
+                className="font-black text-[rgb(var(--pz-rgb))] leading-none rounded-xl transition-colors"
                 style={{
                   fontSize: 46, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
                   background: 'transparent', padding: '2px 8px',
                   cursor: running ? 'default' : 'pointer',
                 }}
-                onMouseEnter={e => { if (!running) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseEnter={e => { if (!running) e.currentTarget.style.background = 'rgba(var(--pz-rgb),0.08)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 {mins}:{secs}
@@ -334,7 +399,7 @@ function TimerWidget() {
               {finished ? (
                 <div className="text-[13px] font-bold mt-1" style={{ color: '#fb7185' }}>{t('¡Tiempo!')}</div>
               ) : !running && (
-                <div className="text-[10px] font-semibold mt-0.5 text-white/25">{t('toca para editar')}</div>
+                <div className="text-[10px] font-semibold mt-0.5 text-[rgba(var(--pz-rgb),0.25)]">{t('toca para editar')}</div>
               )}
             </>
           )}
@@ -346,14 +411,14 @@ function TimerWidget() {
           <button
             onClick={commitEditing}
             className="rounded-lg font-bold text-[12.5px]"
-            style={{ padding: '6px 18px', background: 'rgba(34,211,238,0.22)', color: '#67e8f9' }}
+            style={{ padding: '6px 18px', background: 'rgba(var(--pz-rgb),0.1)', color: 'var(--pz-ac)' }}
           >
             {t('Aceptar')}
           </button>
           <button
             onClick={() => setEditing(false)}
-            className="rounded-lg font-bold text-[12.5px] text-white/50"
-            style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.06)' }}
+            className="rounded-lg font-bold text-[12.5px] text-[rgba(var(--pz-rgb),0.5)]"
+            style={{ padding: '6px 14px', background: 'rgba(var(--pz-rgb),0.06)' }}
           >
             {t('Cancelar')}
           </button>
@@ -366,8 +431,8 @@ function TimerWidget() {
           <button
             onClick={() => setDuration(total - 60)}
             title={t('Un minuto menos')}
-            className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors"
-            style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.07)' }}
+            className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.7)] hover:text-[rgb(var(--pz-rgb))] transition-colors"
+            style={{ width: 38, height: 38, background: 'rgba(var(--pz-rgb),0.07)' }}
           >
             <Minus size={17} />
           </button>
@@ -377,11 +442,9 @@ function TimerWidget() {
             disabled={seconds === 0}
             className="flex items-center justify-center gap-2 rounded-xl font-bold text-[14px] transition-all disabled:opacity-40"
             style={{
-              padding: '0 26px', height: 44, color: '#04141a',
-              background: running
-                ? 'linear-gradient(135deg,#fbbf24,#f59e0b)'
-                : 'linear-gradient(135deg,#34d399,#22d3ee)',
-              boxShadow: `0 6px 20px ${running ? 'rgba(245,158,11,0.4)' : 'rgba(34,211,238,0.35)'}`,
+              padding: '0 26px', height: 44,
+              background: running ? 'rgba(var(--pz-rgb),0.14)' : 'var(--pz-accent, #22d3ee)',
+              color: running ? 'rgb(var(--pz-rgb))' : '#0b1220',
             }}
           >
             {running ? <><Pause size={17} />{t('Pausa')}</> : <><Play size={17} />{t('Iniciar')}</>}
@@ -390,8 +453,8 @@ function TimerWidget() {
           <button
             onClick={() => setDuration(total + 60)}
             title={t('Un minuto más')}
-            className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors"
-            style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.07)' }}
+            className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.7)] hover:text-[rgb(var(--pz-rgb))] transition-colors"
+            style={{ width: 38, height: 38, background: 'rgba(var(--pz-rgb),0.07)' }}
           >
             <Plus size={17} />
           </button>
@@ -399,7 +462,7 @@ function TimerWidget() {
 
         <button
           onClick={() => setDuration(total)}
-          className="flex items-center gap-1.5 text-[12px] font-semibold text-white/45 hover:text-white/80 transition-colors"
+          className="flex items-center gap-1.5 text-[12px] font-semibold text-[rgba(var(--pz-rgb),0.45)] hover:text-[rgba(var(--pz-rgb),0.8)] transition-colors"
         >
           <TimerReset size={13} />{t('Reiniciar')}
         </button>
@@ -516,10 +579,10 @@ function NoiseWidget() {
           {micState === 'denied' ? <MicOff size={30} color="#fb7185" /> : <Mic size={30} color="#34d399" />}
         </div>
         <div>
-          <div className="text-white font-bold text-[15px]">
+          <div className="text-[rgb(var(--pz-rgb))] font-bold text-[15px]">
             {t(micState === 'denied' ? 'Sin acceso al micrófono' : 'Medidor de ruido')}
           </div>
-          <p className="text-white/50 text-[12.5px] mt-1.5 leading-relaxed" style={{ maxWidth: 230 }}>
+          <p className="text-[rgba(var(--pz-rgb),0.5)] text-[12.5px] mt-1.5 leading-relaxed" style={{ maxWidth: 230 }}>
             {t(micState === 'denied'
               ? (window.electronAPI?.app?.openSettings
                 ? 'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.'
@@ -531,7 +594,7 @@ function NoiseWidget() {
           onClick={start}
           disabled={micState === 'asking'}
           className="rounded-xl font-bold text-[13.5px] disabled:opacity-50"
-          style={{ padding: '10px 22px', background: 'linear-gradient(135deg,#34d399,#10b981)', color: '#04231a' }}
+          style={{ padding: '10px 22px', background: 'var(--pz-accent, #34d399)', color: '#0b1220' }}
         >
           {t(micState === 'asking' ? 'Pidiendo permiso…' : micState === 'denied' ? 'Volver a intentarlo' : 'Activar micrófono')}
         </button>
@@ -539,7 +602,7 @@ function NoiseWidget() {
           <button
             onClick={() => { window.electronAPI?.app?.openSettings?.()?.catch(() => {}); }}
             className="rounded-xl font-semibold text-[12.5px]"
-            style={{ padding: '8px 18px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+            style={{ padding: '8px 18px', background: 'rgba(var(--pz-rgb),0.1)', color: 'rgb(var(--pz-rgb))' }}
           >
             {t('Abrir los ajustes de AulaPro')}
           </button>
@@ -561,10 +624,10 @@ function NoiseWidget() {
         </motion.span>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-[14px]" style={{ color: stateColor }}>{stateLabel}</div>
-          <div className="text-white/40 text-[11.5px]">{t('Límite: {n}', { n: limit })}</div>
+          <div className="text-[rgba(var(--pz-rgb),0.4)] text-[11.5px]">{t('Límite: {n}', { n: limit })}</div>
         </div>
         <div
-          className="font-black text-white leading-none"
+          className="font-black text-[rgb(var(--pz-rgb))] leading-none"
           style={{ fontSize: 34, fontVariantNumeric: 'tabular-nums' }}
         >
           {Math.round(level)}
@@ -606,8 +669,8 @@ function NoiseWidget() {
         <button
           onClick={stop}
           title={t('Apagar micrófono')}
-          className="flex items-center justify-center rounded-lg text-white/50 hover:text-white transition-colors flex-shrink-0"
-          style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.07)' }}
+          className="flex items-center justify-center rounded-lg text-[rgba(var(--pz-rgb),0.5)] hover:text-[rgb(var(--pz-rgb))] transition-colors flex-shrink-0"
+          style={{ width: 32, height: 32, background: 'rgba(var(--pz-rgb),0.07)' }}
         >
           <MicOff size={15} />
         </button>
@@ -691,14 +754,14 @@ function WheelWidget({ names }: { names: string[] }) {
   if (n === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center gap-4">
-        <Trophy size={34} color="rgba(255,255,255,0.25)" />
-        <p className="text-white/50 text-[13px] leading-relaxed" style={{ maxWidth: 210 }}>
+        <Trophy size={34} color="rgba(var(--pz-rgb),0.25)" />
+        <p className="text-[rgba(var(--pz-rgb),0.5)] text-[13px] leading-relaxed" style={{ maxWidth: 210 }}>
           {t('Ya han salido todos. Reinicia para volver a empezar.')}
         </p>
         <button
           onClick={() => { setPool(names); setWinner(null); }}
           className="rounded-xl font-bold text-[13px]"
-          style={{ padding: '9px 20px', background: 'rgba(167,139,250,0.2)', color: '#c4b5fd' }}
+          style={{ padding: '9px 20px', background: 'rgba(var(--pz-rgb),0.1)', color: 'var(--pz-ac)' }}
         >
           <RefreshCw size={13} className="inline mr-1.5" />{t('Reiniciar lista')}
         </button>
@@ -717,7 +780,7 @@ function WheelWidget({ names }: { names: string[] }) {
             width: 0, height: 0,
             borderLeft: '11px solid transparent',
             borderRight: '11px solid transparent',
-            borderTop: '20px solid #f8fafc',
+            borderTop: '20px solid rgb(var(--pz-rgb))',
             filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.6))',
           }}
         />
@@ -743,7 +806,7 @@ function WheelWidget({ names }: { names: string[] }) {
                 </text>
               </g>
             ))}
-            <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={3} />
+            <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(var(--pz-rgb),0.22)" strokeWidth={3} />
           </svg>
         </motion.div>
 
@@ -778,18 +841,18 @@ function WheelWidget({ names }: { names: string[] }) {
               className="flex flex-col items-center gap-1.5"
             >
               <div
-                className="rounded-2xl font-black text-white truncate max-w-full"
+                className="rounded-2xl font-black text-[rgb(var(--pz-rgb))] truncate max-w-full"
                 style={{
                   padding: '9px 22px', fontSize: 21,
                   background: 'linear-gradient(135deg,rgba(167,139,250,0.28),rgba(236,72,153,0.28))',
-                  border: '1px solid rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(var(--pz-rgb),0.18)',
                 }}
               >
                 {winner}
               </div>
               <button
                 onClick={removeWinner}
-                className="text-[11.5px] font-semibold text-white/45 hover:text-white/80 transition-colors"
+                className="text-[11.5px] font-semibold text-[rgba(var(--pz-rgb),0.45)] hover:text-[rgba(var(--pz-rgb),0.8)] transition-colors"
               >
                 {n - 1 === 1 ? t('Quitar del sorteo (queda 1)') : t('Quitar del sorteo (quedan {n})', { n: n - 1 })}
               </button>
@@ -798,7 +861,7 @@ function WheelWidget({ names }: { names: string[] }) {
             <motion.p
               key="idle"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="text-white/35 text-[12.5px] pt-4"
+              className="text-[rgba(var(--pz-rgb),0.35)] text-[12.5px] pt-4"
             >
               {spinning ? t('Girando…') : n === 1 ? t('1 participante') : t('{n} participantes', { n })}
             </motion.p>
@@ -996,10 +1059,10 @@ function CalcWidget() {
   }, [press]);
 
   const styleFor = (kind: string, active: boolean) => {
-    if (kind === 'eq') return { background: 'linear-gradient(135deg,#f472b6,#ec4899)', color: '#fff' };
-    if (kind === 'op') return { background: active ? 'rgba(244,114,182,0.3)' : 'rgba(244,114,182,0.16)', color: '#fbcfe8' };
-    if (kind === 'fn') return { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.72)' };
-    return { background: 'rgba(255,255,255,0.1)', color: '#fff' };
+    if (kind === 'eq') return { background: 'var(--pz-accent, #f472b6)', color: '#0b1220' };
+    if (kind === 'op') return { background: active ? 'rgba(var(--pz-rgb),0.22)' : 'rgba(var(--pz-rgb),0.13)', color: 'rgb(var(--pz-rgb))' };
+    if (kind === 'fn') return { background: 'rgba(var(--pz-rgb),0.07)', color: 'rgba(var(--pz-rgb),0.72)' };
+    return { background: 'rgba(var(--pz-rgb),0.1)', color: 'rgb(var(--pz-rgb))' };
   };
 
   return (
@@ -1012,16 +1075,16 @@ function CalcWidget() {
       {/* Pantalla */}
       <div
         className="rounded-2xl px-4 py-3 flex flex-col justify-end flex-shrink-0"
-        style={{ background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.09)', minHeight: 92 }}
+        style={{ background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(var(--pz-rgb),0.09)', minHeight: 92 }}
       >
         <div
-          className="text-right text-white/45 text-[12.5px] truncate"
+          className="text-right text-[rgba(var(--pz-rgb),0.45)] text-[12.5px] truncate"
           style={{ minHeight: 17 }}
         >
           {history[0] ?? ''}
         </div>
         <div
-          className="text-right text-white font-black"
+          className="text-right text-[rgb(var(--pz-rgb))] font-black"
           style={{
             // El tamaño se adapta al largo para que nunca se corte el resultado
             fontSize: shown.length > 22 ? 16 : shown.length > 17 ? 19 : shown.length > 12 ? 23 : 30,
@@ -1032,7 +1095,7 @@ function CalcWidget() {
         >
           {shown}
         </div>
-        <div className="text-right text-[12.5px] font-semibold" style={{ minHeight: 17, color: '#f9a8d4' }}>
+        <div className="text-right text-[12.5px] font-semibold" style={{ minHeight: 17, color: 'var(--pz-ac)' }}>
           {result === null && live !== null && expr ? `= ${live}` : ''}
         </div>
       </div>
@@ -1181,28 +1244,28 @@ function EmbedWidget() {
           <LinkIcon
             size={14}
             className="absolute pointer-events-none"
-            style={{ left: 13, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.35)' }}
+            style={{ left: 13, top: '50%', transform: 'translateY(-50%)', color: 'rgba(var(--pz-rgb),0.35)' }}
           />
           <input
             value={url}
             onChange={e => setUrl(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') open(); }}
             placeholder={t('Pega un enlace de YouTube o una web…')}
-            className="w-full rounded-xl text-white text-[13px] outline-none transition-colors"
+            className="w-full rounded-xl text-[rgb(var(--pz-rgb))] text-[13px] outline-none transition-colors"
             style={{
               padding: '10px 14px 10px 34px',
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(var(--pz-rgb),0.07)',
+              border: '1px solid rgba(var(--pz-rgb),0.12)',
             }}
             onFocus={e => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(var(--pz-rgb),0.12)'; }}
           />
         </div>
         <button
           onClick={open}
           disabled={!url.trim()}
           className="rounded-xl font-bold text-[13px] disabled:opacity-40 flex-shrink-0"
-          style={{ padding: '0 20px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#2a1a00' }}
+          style={{ padding: '0 20px', background: 'var(--pz-accent, #fbbf24)', color: '#0b1220' }}
         >
           {t('Abrir')}
         </button>
@@ -1211,16 +1274,16 @@ function EmbedWidget() {
             <button
               onClick={() => setReloadKey(k => k + 1)}
               title={t('Recargar')}
-              className="flex items-center justify-center rounded-xl text-white/55 hover:text-white transition-colors flex-shrink-0"
-              style={{ width: 40, background: 'rgba(255,255,255,0.07)' }}
+              className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.55)] hover:text-[rgb(var(--pz-rgb))] transition-colors flex-shrink-0"
+              style={{ width: 40, background: 'rgba(var(--pz-rgb),0.07)' }}
             >
               <RefreshCw size={15} />
             </button>
             <button
               onClick={() => window.open(activeUrl, '_blank', 'noopener')}
               title={t('Abrir en el navegador')}
-              className="flex items-center justify-center rounded-xl text-white/55 hover:text-white transition-colors flex-shrink-0"
-              style={{ width: 40, background: 'rgba(255,255,255,0.07)' }}
+              className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.55)] hover:text-[rgb(var(--pz-rgb))] transition-colors flex-shrink-0"
+              style={{ width: 40, background: 'rgba(var(--pz-rgb),0.07)' }}
             >
               <ExternalLink size={15} />
             </button>
@@ -1230,21 +1293,21 @@ function EmbedWidget() {
 
       <div
         className="flex-1 min-h-0 rounded-2xl overflow-hidden"
-        style={{ background: '#000', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: '#000', border: '1px solid rgba(var(--pz-rgb),0.1)' }}
       >
         {activeUrl && bloqueado ? (
           <div className="h-full flex flex-col items-center justify-center gap-3 px-8 text-center">
             <ExternalLink size={26} color="rgba(251,191,36,0.6)" />
-            <p className="text-white/70 text-[13px] leading-relaxed">
+            <p className="text-[rgba(var(--pz-rgb),0.7)] text-[13px] leading-relaxed">
               {t('{sitio} no permite verse dentro de otra aplicación.', { sitio: bloqueado })}
             </p>
-            <p className="text-white/40 text-[11.5px] leading-relaxed" style={{ maxWidth: 340 }}>
+            <p className="text-[rgba(var(--pz-rgb),0.4)] text-[11.5px] leading-relaxed" style={{ maxWidth: 340 }}>
               {t('Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.')}
             </p>
             <button
               onClick={() => window.open(activeUrl, '_blank', 'noopener')}
               className="rounded-xl font-bold text-[12.5px]"
-              style={{ padding: '9px 18px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#2a1a00' }}
+              style={{ padding: '9px 18px', background: 'var(--pz-accent, #fbbf24)', color: '#0b1220' }}
             >
               {t('Abrir en el navegador')}
             </button>
@@ -1260,11 +1323,11 @@ function EmbedWidget() {
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2.5 px-8 text-center">
-            <ExternalLink size={26} color="rgba(255,255,255,0.2)" />
-            <p className="text-white/40 text-[12.5px] leading-relaxed">
+            <ExternalLink size={26} color="rgba(var(--pz-rgb),0.2)" />
+            <p className="text-[rgba(var(--pz-rgb),0.4)] text-[12.5px] leading-relaxed">
               {t('Proyecta un vídeo o una web sin salir de Aula Pro.')}
             </p>
-            <p className="text-white/25 text-[11.5px] leading-relaxed">
+            <p className="text-[rgba(var(--pz-rgb),0.25)] text-[11.5px] leading-relaxed">
               {t('Algunas webs no permiten incrustarse; en ese caso usa el botón de abrir en el navegador.')}
             </p>
           </div>
@@ -1283,13 +1346,42 @@ function EmbedWidget() {
  * (1110 px una vez descontada la barra lateral), sin que nada quede pegado al
  * borde ni tapado por el dock inferior.
  */
-const DEFAULTS: Record<WidgetType, { x: number; y: number; width: number; height: number }> = {
-  timer: { x: 24,  y: 70,  width: 316, height: 404 },
-  wheel: { x: 356, y: 70,  width: 376, height: 452 },
-  calc:  { x: 748, y: 70,  width: 302, height: 438 },
-  noise: { x: 356, y: 296, width: 330, height: 372 },
-  embed: { x: 110, y: 286, width: 600, height: 378 },
+const DEFAULTS: Record<WidgetType, Rect> = {
+  timer: { x: 24,  y: 70,  width: 290, height: 350 },
+  wheel: { x: 330, y: 70,  width: 290, height: 340 },
+  calc:  { x: 640, y: 70,  width: 270, height: 380 },
+  noise: { x: 330, y: 300, width: 300, height: 330 },
+  embed: { x: 110, y: 286, width: 560, height: 360 },
+  clock:     { x: 60,  y: 90,  width: 380, height: 160 },
+  stopwatch: { x: 120, y: 130, width: 300, height: 300 },
+  traffic:   { x: 200, y: 90,  width: 220, height: 330 },
+  symbols:   { x: 300, y: 100, width: 380, height: 300 },
+  dice:      { x: 260, y: 150, width: 300, height: 260 },
+  groups:    { x: 140, y: 90,  width: 520, height: 360 },
+  score:     { x: 420, y: 110, width: 380, height: 280 },
+  agenda:    { x: 640, y: 110, width: 340, height: 340 },
+  note:      { x: 180, y: 120, width: 340, height: 240 },
+  qr:        { x: 600, y: 90,  width: 300, height: 340 },
 };
+
+/** Tamaño mínimo de cada ventana: las hay que caben en poco (el reloj) y otras que no (el contenido). */
+const MIN_BASE = { width: 220, height: 200 };
+const MINIMOS: Partial<Record<WidgetType, { width: number; height: number }>> = {
+  timer: { width: 250, height: 300 },
+  wheel: { width: 260, height: 300 },
+  calc: { width: 240, height: 340 },
+  noise: { width: 260, height: 260 },
+  embed: { width: 300, height: 240 },
+  clock: { width: 200, height: 100 },
+  traffic: { width: 140, height: 220 },
+  note: { width: 200, height: 120 },
+  symbols: { width: 200, height: 140 },
+  score: { width: 260, height: 160 },
+  agenda: { width: 240, height: 160 },
+  groups: { width: 300, height: 220 },
+  qr: { width: 200, height: 240 },
+};
+const minDe = (id: WidgetType) => MINIMOS[id] ?? MIN_BASE;
 
 interface ClassroomProps {
   /** Nombres para la ruleta cuando no hay clases (el de PT y AL: su alumnado de apoyo). */
@@ -1339,6 +1431,63 @@ function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick:
   );
 }
 
+/** Una ventana abierta: una instancia (`id`) de una herramienta (`tipo`). Hay tantas como el docente quiera. */
+interface Ventana { id: string; tipo: WidgetType; rect: Rect; min?: boolean }
+
+/** Las ventanas que había abiertas la última vez (`null`: nunca se ha guardado nada). */
+function leerActual(): Ventana[] | null {
+  try {
+    const raw = localStorage.getItem(ACTUAL_KEY);
+    if (raw === null) return null;
+    return leerVentanas(JSON.parse(raw), APP_IDS) as Ventana[];
+  } catch { return null; }
+}
+
+function leerEscenasGuardadas(): Escena[] {
+  try { return leerEscenas(localStorage.getItem(ESCENAS_KEY), APP_IDS); } catch { return []; }
+}
+
+/** Superficie de las barras y los menús: plana, de un solo color, sin transparencias ni brillos. */
+const SUPERFICIE: React.CSSProperties = {
+  background: '#1e2433',
+  boxShadow: '0 1px 2px rgba(15,23,42,0.25), 0 10px 28px rgba(15,23,42,0.22), inset 0 0 0 1px rgba(255,255,255,0.08)',
+};
+
+/** Botón cuadrado, solo con icono, de las barras. El nombre sale al pasar el ratón y lo leen los lectores de pantalla. */
+function BotonBarra({ icono, nombre, activo, color, cuenta, onClick, disabled, pulsado }: {
+  icono: React.ReactNode; nombre: string; activo?: boolean; color?: string; cuenta?: number;
+  onClick: () => void; disabled?: boolean; pulsado?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={nombre}
+      aria-label={nombre}
+      aria-pressed={pulsado}
+      className="relative flex items-center justify-center rounded-xl transition-colors flex-shrink-0 disabled:opacity-35"
+      style={{
+        width: 40, height: 40,
+        background: activo ? 'rgba(255,255,255,0.14)' : 'transparent',
+        color: activo ? '#fff' : (color ?? 'rgba(255,255,255,0.62)'),
+      }}
+      onMouseEnter={e => { if (!activo && !disabled) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = activo ? 'rgba(255,255,255,0.14)' : 'transparent'; }}
+    >
+      {icono}
+      {!!cuenta && (
+        <span
+          className="absolute flex items-center justify-center rounded-full font-bold"
+          style={{ top: 3, right: 3, minWidth: 14, height: 14, padding: '0 3px', fontSize: 9, background: color ?? '#fff', color: '#0b1220' }}
+        >{cuenta}</span>
+      )}
+    </button>
+  );
+}
+
+const Separador = () => <span className="flex-shrink-0" style={{ width: 1, height: 22, margin: '0 5px', background: 'rgba(255,255,255,0.12)' }} aria-hidden="true" />;
+
 export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
   const { t } = useI18n();
   const [claseId, setClaseId] = useState(claseInicial ?? '');
@@ -1346,25 +1495,35 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
   const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const lienzo = useRef<LienzoHandle | null>(null);
-  const [board, setBoard] = useState<BoardTheme>(readBoardTheme);
+  const [fondoId, setFondoId] = useState<FondoId>(readFondo);
+  const fondo = fondoPorId(fondoId);
+  const light = fondo.tono === 'claro';
+  const board: BoardTheme = light ? 'light' : 'dark';
   const penColors = PEN_COLORS[board];
-  const [color, setColor] = useState<string>(penColors[0]);
+  const [color, setColor] = useState<string>(() => PEN_COLORS[board][0]);
   const [colorSub, setColorSub] = useState<string>(MARKER_COLORS[0]);
   const [penOn, setPenOn] = useState(false);
   const [herramienta, setHerramienta] = useState<Herramienta>('lapiz');
   const [grosor, setGrosor] = useState<Grosor>(1);
   const [estado, setEstado] = useState<EstadoLienzo>({ puedeDeshacer: false, puedeRehacer: false, hayTrazos: false });
-  const light = board === 'light';
+  const [menu, setMenu] = useState<null | 'fondos' | 'escenas'>(null);
+  /** Barras ocultas: solo queda un botón diminuto para volver a verlas, y la pizarra aprovecha toda la pantalla. */
+  const [barrasOcultas, setBarrasOcultas] = useState(false);
 
-  function switchBoard() {
-    const next: BoardTheme = light ? 'dark' : 'light';
-    setBoard(next);
-    // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
-    const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
-    setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
-    lienzo.current?.recolorear(PEN_COLORS[board], PEN_COLORS[next]);
-    try { localStorage.setItem(BOARD_KEY, next); } catch { /* sin almacenamiento: solo dura esta sesión */ }
+  /** Cambia el fondo; si cambia entre claro y oscuro, lo ya dibujado y el color del lápiz pasan a su equivalente. */
+  function elegirFondo(id: FondoId) {
+    const nuevo = fondoPorId(id);
+    if (nuevo.tono !== fondo.tono) {
+      const next: BoardTheme = nuevo.tono === 'claro' ? 'light' : 'dark';
+      // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
+      const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
+      setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
+      lienzo.current?.recolorear(PEN_COLORS[board], PEN_COLORS[next]);
+    }
+    setFondoId(nuevo.id);
+    try { localStorage.setItem(FONDO_KEY, nuevo.id); } catch { /* sin almacenamiento: solo dura esta sesión */ }
   }
 
   const nombresClase = clase?.nombres;
@@ -1373,153 +1532,272 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     return base.length > 0 ? base : DEFAULT_NAMES;
   }, [nombresClase, studentNames]);
 
-  const [widgets, setWidgets] = useState<Record<WidgetType, boolean>>({
-    timer: true, wheel: true, calc: false, noise: false, embed: false,
+  /* ── Ventanas: el orden de la lista es el orden de apilado (la última, delante) ── */
+  const [ventanas, setVentanas] = useState<Ventana[]>(() =>
+    leerActual() ?? (['timer', 'wheel'] as WidgetType[]).map(tipo => ({ id: tipo, tipo, rect: DEFAULTS[tipo] })));
+
+  const areaPizarra = useCallback(() => {
+    const r = rootRef.current?.getBoundingClientRect();
+    return r && r.width > 0 && r.height > 0 ? { width: r.width, height: r.height } : { width: 1110, height: 700 };
+  }, []);
+
+  // Lo guardado en otro monitor (o una ventana que se encoge) puede no caber: se mete todo en el área visible
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const ajustar = () => {
+      const area = areaPizarra();
+      setVentanas(prev => {
+        const next = prev.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));
+        return next.every((v, i) => JSON.stringify(v.rect) === JSON.stringify(prev[i].rect)) ? prev : next;
+      });
+    };
+    const observer = new ResizeObserver(ajustar);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [areaPizarra]);
+
+  useEffect(() => {
+    try { localStorage.setItem(ACTUAL_KEY, JSON.stringify(ventanas)); } catch { /* sin almacenamiento */ }
+  }, [ventanas]);
+
+  const alFrente = useCallback((id: string) => {
+    setVentanas(prev => (prev[prev.length - 1]?.id === id ? prev : [...prev.filter(v => v.id !== id), ...prev.filter(v => v.id === id)]));
+  }, []);
+  const ponerRect = useCallback((id: string, rect: Partial<Rect>) => {
+    setVentanas(prev => prev.map(v => v.id === id ? { ...v, rect: { ...v.rect, ...rect } } : v));
+  }, []);
+  /**
+   * Abre otra ventana de la herramienta, aunque ya haya una: cada una funciona por su cuenta. Va en un hueco libre
+   * de la pizarra y, si no queda ninguno, en cascada sobre las demás.
+   */
+  const anadir = (tipo: WidgetType) => setVentanas(prev => {
+    if (prev.length >= MAX_VENTANAS) return prev;
+    const area = areaPizarra();
+    const base = ajustarRect(DEFAULTS[tipo], area, minDe(tipo));
+    const libre = huecoLibre(base, prev.map(rectVisible), area);
+    const mismas = prev.filter(v => v.tipo === tipo).length;
+    return [...prev, {
+      id: siguienteId(tipo, prev.map(v => v.id)),
+      tipo,
+      rect: libre ?? ajustarRect(enCascada(base, mismas), area, minDe(tipo)),
+    }];
   });
+  const cerrar = (id: string) => {
+    borrarDatosDeVentana(id);
+    setVentanas(prev => prev.filter(v => v.id !== id));
+  };
+  /** Minimiza una ventana a su icono, o la restaura; no pierde lo que estuviera haciendo. */
+  const alternarMin = useCallback((id: string) => {
+    setVentanas(prev => prev.map(v => v.id === id ? { ...v, min: v.min ? undefined : true } : v));
+  }, []);
+  /** Con alguna a la vista, minimiza todas; si ya están todas minimizadas, las restaura. */
+  const hayAlgunaVisible = ventanas.some(v => !v.min);
+  const minimizarTodas = () => setVentanas(prev => {
+    const minimizar = prev.some(v => !v.min);
+    return prev.map(v => ({ ...v, min: minimizar ? true : undefined }));
+  });
+  const llena = ventanas.length >= MAX_VENTANAS;
 
-  const toggle = (id: WidgetType) => setWidgets(p => ({ ...p, [id]: !p[id] }));
+  /* ── Escenas: una disposición con nombre que se puede recuperar con un clic ── */
+  const [escenas, setEscenas] = useState<Escena[]>(leerEscenasGuardadas);
+  const [nombreEscena, setNombreEscena] = useState('');
+  useEffect(() => {
+    try { localStorage.setItem(ESCENAS_KEY, JSON.stringify(escenas)); } catch { /* sin almacenamiento */ }
+  }, [escenas]);
 
-  const renderWidget = (cfg: WidgetConfig) => {
-    if (!widgets[cfg.id]) return null;
-    const body =
-      cfg.id === 'timer' ? <TimerWidget /> :
-      cfg.id === 'wheel' ? <WheelWidget names={wheelNames} /> :
-      cfg.id === 'calc'  ? <CalcWidget /> :
-      cfg.id === 'noise' ? <NoiseWidget /> :
-                           <EmbedWidget />;
+  function guardarEscena() {
+    if (escenas.length >= MAX_ESCENAS) return;
+    const nombre = nombreEscena.trim().slice(0, 40) || t('Escena {n}', { n: escenas.length + 1 });
+    setEscenas(p => [...p, { id: 'sc' + Date.now(), nombre, fondo: fondoId, ventanas: ventanas.map(v => ({ id: v.id, tipo: v.tipo, rect: v.rect, ...(v.min ? { min: true } : {}) })) }]);
+    setNombreEscena('');
+  }
+  /** Una escena guarda la disposición, no lo escrito dentro: al recuperarla las ventanas salen limpias. */
+  function cargarEscena(e: Escena) {
+    const area = areaPizarra();
+    ventanas.forEach(v => borrarDatosDeVentana(v.id));
+    elegirFondo(e.fondo);
+    const ids: string[] = [];
+    setVentanas(e.ventanas.map(v => {
+      const tipo = v.tipo as WidgetType;
+      const id = siguienteId(tipo, ids);
+      ids.push(id);
+      return { id, tipo, rect: ajustarRect(v.rect, area, minDe(tipo)), ...(v.min ? { min: true } : {}) };
+    }));
+    setMenu(null);
+  }
+
+  /* ── Pantalla completa ── */
+  const [pantallaCompleta, setPantallaCompleta] = useState(() => typeof document !== 'undefined' && !!document.fullscreenElement);
+  useEffect(() => {
+    const f = () => setPantallaCompleta(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', f);
+    return () => document.removeEventListener('fullscreenchange', f);
+  }, []);
+  const puedePantallaCompleta = typeof document !== 'undefined' && !!document.fullscreenEnabled;
+  function alternarPantallaCompleta() {
+    // Si el sistema no la permite (el WebView de algunos móviles), simplemente no pasa nada
+    const hecho = document.fullscreenElement ? document.exitFullscreen() : rootRef.current?.requestFullscreen();
+    hecho?.catch(() => { /* rechazada */ });
+  }
+
+  const cuerpo = (v: Ventana) => {
+    switch (v.tipo) {
+      case 'timer':     return <TimerWidget />;
+      case 'wheel':     return <WheelWidget names={wheelNames} />;
+      case 'calc':      return <CalcWidget />;
+      case 'noise':     return <NoiseWidget />;
+      case 'embed':     return <EmbedWidget />;
+      case 'clock':     return <ClockWidget />;
+      case 'stopwatch': return <StopwatchWidget />;
+      case 'traffic':   return <TrafficWidget />;
+      case 'dice':      return <DiceWidget />;
+      case 'symbols':   return <SymbolsWidget uid={v.id} />;
+      case 'note':      return <NoteWidget uid={v.id} />;
+      case 'score':     return <ScoreWidget uid={v.id} />;
+      case 'groups':    return <GroupsWidget names={wheelNames} />;
+      case 'qr':        return <QrWidget uid={v.id} />;
+      case 'agenda':    return <AgendaWidget uid={v.id} />;
+    }
+  };
+
+  const renderWidget = (v: Ventana, apilado: number) => {
+    const cfg = APPS.find(a => a.id === v.tipo);
+    if (!cfg) return null;
+    const { rect } = v;
+    const min = v.min ? { width: LADO_MINIMIZADA, height: LADO_MINIMIZADA } : minDe(v.tipo);
 
     return (
       <Rnd
-        key={cfg.id}
-        default={DEFAULTS[cfg.id]}
-        minWidth={270}
-        minHeight={300}
+        key={v.id}
+        position={{ x: rect.x, y: rect.y }}
+        size={v.min ? min : { width: rect.width, height: rect.height }}
+        minWidth={min.width}
+        minHeight={min.height}
+        enableResizing={!v.min}
         bounds="parent"
-        dragHandleClassName="drag-handle"
-        // Sin esto, en el móvil el toque sobre la X empieza un arrastre de la cabecera y nunca llega a ser un clic
-        cancel=".widget-cerrar"
-        style={{ zIndex: 30 }}
+        // Se arrastra desde cualquier parte que no sea un control: sin esto un botón, un campo de texto o el
+        // contenido incrustado empezarían un arrastre en vez de recibir el clic (y, en el móvil, la X nunca cerraría)
+        cancel=".widget-cerrar, button, input, textarea, select, a, label, iframe, canvas, [role=checkbox]"
+        onMouseDown={() => alFrente(v.id)}
+        onDragStop={(_e, d) => ponerRect(v.id, { x: d.x, y: d.y })}
+        onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(v.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
+        style={{ zIndex: 30 + apilado }}
       >
-        <WidgetShell title={t(cfg.title)} icon={cfg.icon} accent={cfg.accent} onClose={() => toggle(cfg.id)}>
-          {body}
+        <WidgetShell title={t(cfg.title)} accent={cfg.accent} icono={cfg.icon} minimizada={!!v.min} onMinimizar={() => alternarMin(v.id)} onClose={() => cerrar(v.id)}>
+          {cuerpo(v)}
         </WidgetShell>
       </Rnd>
     );
   };
 
+  // Siempre en el mismo orden del DOM, aunque cambie el apilado: mover un nodo recargaría un contenido incrustado
+  const enOrdenFijo = ventanas.map((v, i) => ({ v, i })).sort((a, b) => (a.v.id < b.v.id ? -1 : 1));
+
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - var(--hub-h, 0px))', background: light ? '#ffffff' : '#080f21' }}>
+    <div
+      ref={rootRef}
+      className="relative w-full overflow-hidden"
+      style={{
+        height: pantallaCompleta ? '100vh' : 'calc(100vh - var(--hub-h, 0px))', background: fondo.css,
+        // Tinta de las herramientas: blanca sobre fondos oscuros y azul pizarra sobre claros
+        ['--pz-rgb' as string]: light ? '15,23,42' : '255,255,255',
+      }}
+    >
       {/* Fondo */}
-      {!light && (
+      {fondo.id === 'oscuro' && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(circle at 20% 0%, rgba(99,102,241,0.22), transparent 45%), radial-gradient(circle at 85% 25%, rgba(236,72,153,0.13), transparent 42%), radial-gradient(circle at 50% 100%, rgba(34,211,238,0.13), transparent 50%)' }}
         />
       )}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: light
-            ? 'linear-gradient(rgba(15,23,42,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.055) 1px, transparent 1px)'
-            : 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)',
-          backgroundSize: '46px 46px',
-        }}
-      />
+      {fondo.cuadricula && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: light
+              ? 'linear-gradient(rgba(15,23,42,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.055) 1px, transparent 1px)'
+              : 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)',
+            backgroundSize: '46px 46px',
+          }}
+        />
+      )}
 
-      {/* Pizarra */}
+      {/* Pizarra: lápiz, rotulador, subrayador y borrador (`components/pizarra/Lienzo.tsx`) */}
       <Lienzo ref={lienzo} activo={penOn} herramienta={herramienta} color={herramienta === 'subrayador' ? colorSub : color} ancho={ANCHOS[herramienta][grosor]} onEstado={setEstado} />
 
-      {/* Barra de dibujo */}
-      <div
-        className="absolute flex flex-wrap items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
-        style={{
-          top: 18, left: 18, zIndex: 50, maxWidth: 'calc(100% - 36px)',
-          background: 'rgba(15,23,42,0.72)',
-          backdropFilter: 'blur(18px)',
-          border: '1px solid rgba(255,255,255,0.11)',
-          boxShadow: '0 12px 34px rgba(0,0,0,0.42)',
-        }}
-      >
+      {!barrasOcultas && (
+        <>
+      {/* Cierra el menú abierto al tocar fuera */}
+      {menu && <div className="absolute inset-0" style={{ zIndex: 54 }} onClick={() => setMenu(null)} aria-hidden="true" />}
+
+      {/* Barra superior: solo iconos */}
+      <div className="absolute flex items-center gap-0.5 rounded-2xl p-1" style={{ top: 14, left: 14, zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}>
         {clases.length > 0 && (
-          <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
-            <Users size={15} aria-hidden="true" />
-            <span className="sr-only">{t('Clase')}</span>
-            <select value={clase?.id ?? ''} onChange={e => setClaseId(e.target.value)}>
-              {clases.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
-        )}
-
-        <button
-          onClick={() => setPenOn(v => !v)}
-          title={t(penOn ? 'Dejar de dibujar' : 'Dibujar sobre la pantalla')}
-          aria-pressed={penOn}
-          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={{
-            padding: '6px 12px',
-            background: penOn ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)',
-            color: penOn ? '#7dd3fc' : 'rgba(255,255,255,0.6)',
-          }}
-        >
-          <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Dibujar')}
-        </button>
-
-        <button
-          onClick={switchBoard}
-          title={t(light ? 'Cambiar a pizarra oscura' : 'Cambiar a pizarra blanca')}
-          aria-label={t(light ? 'Cambiar a pizarra oscura' : 'Cambiar a pizarra blanca')}
-          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)' }}
-        >
-          {light ? <Moon size={15} /> : <Sun size={15} />}{t(light ? 'Fondo oscuro' : 'Fondo blanco')}
-        </button>
-
-        {penOn && (
           <>
-            <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
-            <div role="group" aria-label={t('Herramienta')} className="flex items-center gap-1">
-              {HERRAMIENTAS.map(h => {
-                const on = herramienta === h;
-                return (
-                  <button
-                    key={h}
-                    onClick={() => setHerramienta(h)}
-                    title={t(TOOLS[h].label)}
-                    aria-pressed={on}
-                    className="flex items-center gap-1.5 rounded-lg text-[12px] font-bold transition-colors"
-                    style={{
-                      padding: '6px 9px',
-                      background: on ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)',
-                      color: on ? '#7dd3fc' : 'rgba(255,255,255,0.6)',
-                    }}
-                  >
-                    {TOOLS[h].icon}{t(TOOLS[h].label)}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
+              <Users size={15} aria-hidden="true" />
+              <span className="sr-only">{t('Clase')}</span>
+              <select value={clase?.id ?? ''} onChange={e => setClaseId(e.target.value)}>
+                {clases.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+            <Separador />
+          </>
+        )}
+        <BotonBarra icono={<PenLine size={19} />} nombre={t(penOn ? 'Dejar de dibujar' : 'Dibujar sobre la pantalla')} activo={penOn} pulsado={penOn} onClick={() => setPenOn(v => !v)} />
+        <BotonBarra icono={<ImageIcon size={19} />} nombre={t('Cambiar el fondo')} activo={menu === 'fondos'} onClick={() => setMenu(m => m === 'fondos' ? null : 'fondos')} />
+        <BotonBarra icono={<LayoutTemplate size={19} />} nombre={t('Guardar y recuperar la disposición de la pizarra')} activo={menu === 'escenas'} onClick={() => setMenu(m => m === 'escenas' ? null : 'escenas')} />
+        {puedePantallaCompleta && (
+          <BotonBarra
+            icono={pantallaCompleta ? <Minimize size={19} /> : <Maximize size={19} />}
+            nombre={t(pantallaCompleta ? 'Salir de la pantalla completa' : 'Pantalla completa')}
+            onClick={alternarPantallaCompleta}
+          />
+        )}
+        <Separador />
+        <BotonBarra
+          icono={hayAlgunaVisible ? <ChevronsDownUp size={19} /> : <ChevronsUpDown size={19} />}
+          nombre={t(hayAlgunaVisible ? 'Minimizar todas las ventanas' : 'Restaurar todas las ventanas')}
+          onClick={minimizarTodas}
+          disabled={ventanas.length === 0}
+        />
+        <BotonBarra icono={<PanelTopClose size={19} />} nombre={t('Ocultar las barras')} onClick={() => { setMenu(null); setBarrasOcultas(true); }} />
+      </div>
 
-            <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
-            <div role="group" aria-label={t('Grosor')} className="flex items-center gap-1">
-              {GROSORES.map(g => (
-                <button
-                  key={g.id}
-                  onClick={() => setGrosor(g.id)}
-                  title={t(g.label)}
-                  aria-label={t(g.label)}
-                  aria-pressed={grosor === g.id}
-                  className="flex items-center justify-center rounded-lg"
-                  style={{ width: 30, height: 30, background: grosor === g.id ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)' }}
-                >
-                  <span style={{ width: g.dot, height: g.dot, borderRadius: '50%', background: grosor === g.id ? '#7dd3fc' : 'rgba(255,255,255,0.6)' }} />
-                </button>
-              ))}
-            </div>
-
-            {herramienta !== 'borrador' && (
-              <>
-                <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
-                <Palette size={15} color="rgba(255,255,255,0.4)" aria-hidden="true" />
+      {/* Herramientas de dibujo: aparte y solo mientras se dibuja */}
+      {penOn && (
+        <div
+          className="absolute flex flex-wrap items-center justify-center gap-1 rounded-2xl p-1.5"
+          style={{ top: 66, left: '50%', transform: 'translateX(-50%)', zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}
+          role="toolbar"
+          aria-label={t('Dibujar sobre la pantalla')}
+        >
+          <div role="group" aria-label={t('Herramienta')} className="flex items-center gap-0.5">
+            {HERRAMIENTAS.map(h => (
+              <BotonBarra key={h} icono={TOOLS[h].icon} nombre={t(TOOLS[h].label)} activo={herramienta === h} pulsado={herramienta === h} onClick={() => setHerramienta(h)} />
+            ))}
+          </div>
+          <Separador />
+          <div role="group" aria-label={t('Grosor')} className="flex items-center gap-0.5">
+            {GROSORES.map(g => (
+              <button
+                key={g.id}
+                onClick={() => setGrosor(g.id)}
+                title={t(g.label)}
+                aria-label={t(g.label)}
+                aria-pressed={grosor === g.id}
+                className="flex items-center justify-center rounded-xl"
+                style={{ width: 32, height: 40, background: grosor === g.id ? 'rgba(255,255,255,0.14)' : 'transparent' }}
+              >
+                <span style={{ width: g.dot, height: g.dot, borderRadius: '50%', background: grosor === g.id ? '#fff' : 'rgba(255,255,255,0.55)' }} />
+              </button>
+            ))}
+          </div>
+          {herramienta !== 'borrador' && (
+            <>
+              <Separador />
+              <div role="group" aria-label={t('Color')} className="flex items-center gap-2 px-1">
                 {(herramienta === 'subrayador' ? MARKER_COLORS : penColors).map(c => {
                   const actual = herramienta === 'subrayador' ? colorSub : color;
                   return (
@@ -1531,111 +1809,157 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
                       aria-pressed={actual === c}
                       className="rounded-full transition-transform"
                       style={{
-                        width: 21, height: 21, background: c,
+                        width: 22, height: 22, background: c,
                         border: actual === c ? '2.5px solid white' : '2.5px solid transparent',
                         boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
-                        transform: actual === c ? 'scale(1.16)' : 'scale(1)',
+                        transform: actual === c ? 'scale(1.12)' : 'scale(1)',
                       }}
                     />
                   );
                 })}
-              </>
-            )}
+              </div>
+            </>
+          )}
+          <Separador />
+          <div className="flex items-center gap-0.5">
+            <BotonBarra icono={<Undo2 size={17} />} nombre={t('Deshacer')} onClick={() => lienzo.current?.deshacer()} disabled={!estado.puedeDeshacer} />
+            <BotonBarra icono={<Redo2 size={17} />} nombre={t('Rehacer')} onClick={() => lienzo.current?.rehacer()} disabled={!estado.puedeRehacer} />
+            <BotonBarra icono={<Trash2 size={17} />} nombre={t('Borrar todo')} onClick={() => lienzo.current?.borrarTodo()} disabled={!estado.hayTrazos} />
+          </div>
+        </div>
+      )}
 
-            <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
-            <button
-              onClick={() => lienzo.current?.deshacer()}
-              disabled={!estado.puedeDeshacer}
-              title={t('Deshacer')}
-              aria-label={t('Deshacer')}
-              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors disabled:opacity-30"
-              style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
-            >
-              <Undo2 size={15} />
-            </button>
-            <button
-              onClick={() => lienzo.current?.rehacer()}
-              disabled={!estado.puedeRehacer}
-              title={t('Rehacer')}
-              aria-label={t('Rehacer')}
-              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors disabled:opacity-30"
-              style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
-            >
-              <Redo2 size={15} />
-            </button>
-            <button
-              onClick={() => lienzo.current?.borrarTodo()}
-              disabled={!estado.hayTrazos}
-              title={t('Borrar todo')}
-              aria-label={t('Borrar todo')}
-              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors disabled:opacity-30"
-              style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
-            >
-              <Trash2 size={15} />
-            </button>
-          </>
-        )}
-      </div>
+      {/* Menú de fondos */}
+      {menu === 'fondos' && (
+        <div className="absolute rounded-2xl p-3" style={{ top: 66, left: 14, zIndex: 57, width: 300, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }} role="dialog" aria-label={t('Fondo')}>
+          <div className="grid grid-cols-4 gap-2.5">
+            {FONDOS.map(f => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => elegirFondo(f.id)}
+                aria-pressed={fondoId === f.id}
+                aria-label={t(f.label)}
+                title={t(f.label)}
+                className="block rounded-xl transition-transform hover:scale-105"
+                style={{
+                  height: 44, background: f.css,
+                  border: fondoId === f.id ? '2.5px solid #fff' : '1px solid rgba(255,255,255,0.22)',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Widgets */}
-      {APPS.map(renderWidget)}
+      {/* Menú de escenas */}
+      {menu === 'escenas' && (
+        <div className="absolute rounded-2xl p-3 flex flex-col gap-3" style={{ top: 66, left: 14, zIndex: 57, width: 320, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }} role="dialog" aria-label={t('Escenas')}>
+          <form className="flex gap-2" onSubmit={e => { e.preventDefault(); guardarEscena(); }}>
+            <input
+              value={nombreEscena}
+              onChange={e => setNombreEscena(e.target.value)}
+              maxLength={40}
+              placeholder={t('Nombre de la escena')}
+              aria-label={t('Nombre de la escena')}
+              className="flex-1 min-w-0 rounded-xl outline-none text-white placeholder:text-white/35 text-[13px] font-semibold"
+              style={{ background: 'rgba(255,255,255,0.08)', padding: '8px 11px' }}
+            />
+            <button
+              type="submit"
+              disabled={escenas.length >= MAX_ESCENAS}
+              title={t('Guardar')}
+              aria-label={t('Guardar')}
+              className="flex items-center justify-center rounded-xl disabled:opacity-40"
+              style={{ width: 38, background: 'rgba(255,255,255,0.14)', color: '#fff' }}
+            ><Save size={16} /></button>
+          </form>
+          {escenas.length === 0 && (
+            <p className="text-[12px] text-white/45 leading-snug">{t('Una escena guarda qué herramientas hay abiertas, dónde están y el fondo. Úsalas para pasar de la entrada a la tarea y al cierre con un clic.')}</p>
+          )}
+          {escenas.length >= MAX_ESCENAS && <p className="text-[11.5px] text-amber-300/90">{t('Has llegado al máximo de escenas. Borra alguna para guardar otra.')}</p>}
+          {escenas.length > 0 && (
+            <ul className="flex flex-col gap-1 max-h-[260px] overflow-y-auto">
+              {escenas.map(e => (
+                <li key={e.id} className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => cargarEscena(e)}
+                    className="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl text-left text-[13px] font-semibold text-white/85 hover:text-white hover:bg-white/5"
+                    style={{ padding: '8px 10px' }}
+                  >
+                    <span className="inline-block rounded-md flex-shrink-0" style={{ width: 16, height: 16, background: fondoPorId(e.fondo).css, border: '1px solid rgba(255,255,255,0.3)' }} />
+                    <span className="truncate">{e.nombre}</span>
+                    <span className="ml-auto text-[11px] font-medium text-white/35 flex-shrink-0">{e.ventanas.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEscenas(p => p.filter(x => x.id !== e.id))}
+                    title={t('Borrar escena')}
+                    aria-label={t('Borrar escena')}
+                    className="flex items-center justify-center rounded-lg text-white/35 hover:text-rose-300 flex-shrink-0"
+                    style={{ width: 30, height: 30 }}
+                  ><Trash2 size={14} /></button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+        </>
+      )}
+
+      {/* Ventanas */}
+      {enOrdenFijo.map(({ v, i }) => renderWidget(v, i))}
 
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
 
-      {/* Dock */}
-      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 20, zIndex: 60 }}>
-        <div
-          className="flex gap-2 rounded-3xl px-3 py-2.5"
-          style={{
-            background: 'rgba(15,23,42,0.76)',
-            backdropFilter: 'blur(22px)',
-            border: '1px solid rgba(255,255,255,0.11)',
-            boxShadow: '0 16px 44px rgba(0,0,0,0.5)',
-          }}
-        >
-          {APPS.map(app => {
-            const on = widgets[app.id];
-            return (
-              <motion.button
-                key={app.id}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.94 }}
-                onClick={() => toggle(app.id)}
-                title={t(on ? 'Cerrar {title}' : 'Abrir {title}', { title: t(app.title) })}
-                className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors"
-                style={{
-                  padding: '9px 15px',
-                  background: on ? `${app.accent}1f` : 'transparent',
-                  color: on ? app.accent : 'rgba(255,255,255,0.55)',
-                }}
-              >
-                {app.icon}
-                <span className="text-[10.5px] font-bold tracking-tight">{t(app.title)}</span>
-                {on && (
-                  <motion.div
-                    layoutId={`dot-${app.id}`}
-                    className="absolute rounded-full"
-                    style={{ bottom: 3, width: 4, height: 4, background: app.accent }}
+      {!barrasOcultas && (
+        <>
+      {/* Barra inferior: solo iconos, en cuatro grupos. Cada pulsación abre otra ventana de esa herramienta. */}
+      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 16, zIndex: 60, maxWidth: 'calc(100% - 140px)' }}>
+        <div className="flex items-center rounded-2xl p-1 overflow-x-auto" style={{ ...SUPERFICIE, scrollbarWidth: 'none' }}>
+          {DOCK_GRUPOS.map((grupo, gi) => (
+            <div key={gi} className="flex items-center flex-shrink-0">
+              {gi > 0 && <Separador />}
+              {grupo.map(id => {
+                const app = APPS.find(a => a.id === id)!;
+                const abiertas = ventanas.filter(v => v.tipo === id).length;
+                return (
+                  <BotonBarra
+                    key={id}
+                    icono={app.icon}
+                    nombre={t(llena ? 'Hay demasiadas ventanas abiertas. Cierra alguna.' : 'Añadir {title}', { title: t(app.title) })}
+                    color={abiertas > 0 ? app.accent : undefined}
+                    cuenta={abiertas > 1 ? abiertas : undefined}
+                    onClick={() => anadir(id)}
+                    disabled={llena}
                   />
-                )}
-              </motion.button>
-            );
-          })}
-          <div style={{ width: 1, alignSelf: 'stretch', margin: '4px 2px', background: 'rgba(255,255,255,0.12)' }} />
-          <motion.button
-            whileHover={{ y: -4 }}
-            whileTap={{ scale: 0.94 }}
-            onClick={() => setPicking(true)}
-            title={t('Proyectar una ficha, un escape room o unas tarjetas')}
-            className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors"
-            style={{ padding: '9px 15px', color: '#fb923c' }}
-          >
-            <Flag size={19} />
-            <span className="text-[10.5px] font-bold tracking-tight">{t('Reto')}</span>
-          </motion.button>
+                );
+              })}
+            </div>
+          ))}
+          <Separador />
+          <BotonBarra icono={<Flag size={19} />} nombre={t('Proyectar una ficha, un escape room o unas tarjetas')} color="#fb923c" onClick={() => setPicking(true)} />
         </div>
       </div>
+        </>
+      )}
+
+      {/* Con las barras ocultas solo queda este botón, discreto, para volver a verlas */}
+      {barrasOcultas && (
+        <button
+          type="button"
+          onClick={() => setBarrasOcultas(false)}
+          title={t('Mostrar las barras')}
+          aria-label={t('Mostrar las barras')}
+          className="absolute flex items-center justify-center rounded-xl transition-opacity opacity-40 hover:opacity-100 focus-visible:opacity-100"
+          style={{ top: 10, left: 10, width: 36, height: 36, zIndex: 56, color: '#fff', ...SUPERFICIE }}
+        >
+          <PanelTop size={18} />
+        </button>
+      )}
     </div>
   );
 }

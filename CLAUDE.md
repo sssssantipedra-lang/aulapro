@@ -14,6 +14,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar de las tres está en la Agenda desde el 11-10-2026 (`web/sitio/calendario-escolar.json`).
 - `docs/FICHAS.md`: las fichas de trabajo (Recursos): el diseño «Cuaderno», el catálogo de ilustraciones con su descripción y sus temas, los hilos conductores, el generador con fal.ai y lo que falta. `docs/HILOS.md`: el índice de los hilos y de sus dibujos (lo genera una prueba).
 - `docs/EVALUAR_FOTO.md`: «Evaluar por foto» (Evaluar): corregir un examen o un trabajo a partir de sus fotos, con la nota recalculada por el código y revisada por el docente; qué sale de la app y lo que falta.
+- `docs/PIZARRA.md`: «Pizarra y herramientas» (Aula Live): las herramientas, los fondos y las escenas, y lo que falta.
 - `docs/PTAL.md`: el módulo de Pedagogía Terapéutica y Audición y Lenguaje: decisiones, normativa de inclusión de cada comunidad, autores de referencia y lo que falta.
 - `docs/EF.md`: el perfil de Educación Física (con tutoría o sin ella): decisiones, herramientas (incluidas las actividades desde un manual en PDF y la pizarra de circuitos con su banco de material) y lo que falta.
 - `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad, y en su carpeta `Inclusión`, la normativa y los modelos de inclusión (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
@@ -79,6 +80,14 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Sesiones completadas**: `SesionEF.completada` y `SdaSession.completada`, con progreso. Ver `docs/EF.md`.
 - **Pizarra y herramientas** (`src/components/pizarra/Lienzo.tsx`, `src/lib/trazos.ts`): los trazos se guardan como vectores (lápiz, rotulador, subrayador y borrador que quita solo una parte; deshacer y rehacer) en vez de píxeles, con eventos de puntero y sin volver a pintar el trazo entero en cada movimiento (era la causa del retraso). Probado en Chromium; **sin comprobar con un dedo ni un lápiz táctil reales** (Android, pantallas táctiles de Windows). Las ideas de otras pizarras (Classroomscreen) son solo funcionales: no hay código copiado.
 - La web (`web/DISENO.md`, sección 40) tiene los textos nuevos; **sus capturas y la demo siguen siendo de antes** hasta volver a ejecutar `scripts/web/capturar.mjs`.
+
+## Pizarra y herramientas (2.13.0, 19-10-2026)
+
+- Petición del dueño: que se parezca a Classroomscreen, con varias ventanas de cada herramienta, más minimalista, sin tarjetas, y que se pueda minimizar todo. Detalle y decisiones en `docs/PIZARRA.md`.
+- Diez herramientas nuevas, ocho fondos, escenas guardadas, varias instancias por herramienta (`Ventana.id` y `tipo`, hasta 24), ventanas sin tarjeta (se arrastran desde cualquier parte salvo los controles) y minimizadas a un icono. Las barras son solo iconos. La lógica sin pantalla está en `src/lib/pizarraAula.ts`, con pruebas.
+- **Hay que conservar el dibujo de la 2.12.0** (lápiz, rotulador, subrayador y borrador, con deshacer y rehacer, y el trazo al instante): lo hace `Lienzo.tsx`. Al integrar la pizarra nueva con la de `master`, se tomó `Lienzo` tal cual y solo se movieron sus controles a una barra propia.
+- Las herramientas escriben con `rgba(var(--pz-rgb), x)` y no con blanco fijo: el color de la tinta sigue al fondo de la pizarra.
+- La demo y las capturas de la pizarra en la web son de esta versión; el resto de capturas de la web sigue desfasado (ver `docs/PIZARRA.md`).
 
 ## Publicar
 
