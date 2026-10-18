@@ -4,6 +4,7 @@ import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
   Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
   RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete, Flag, Users,
+  Highlighter, PenTool, Pencil, Undo2, Redo2, Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -13,6 +14,8 @@ import { ChallengePresenter } from '../components/live/ChallengePresenter';
 import { fichaTheme } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { useI18n } from '../i18n';
+import { Lienzo, type EstadoLienzo, type LienzoHandle } from '../components/pizarra/Lienzo';
+import { ANCHOS, HERRAMIENTAS, type Grosor, type Herramienta } from '../lib/trazos';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
@@ -47,36 +50,19 @@ const PEN_COLORS = {
   dark:  ['#f8fafc', '#38bdf8', '#f472b6', '#facc15', '#4ade80'],
 } as const;
 type BoardTheme = keyof typeof PEN_COLORS;
+/** El subrayador es translúcido: sus colores valen igual en la pizarra blanca y en la oscura. */
+const MARKER_COLORS = ['#fde047', '#86efac', '#7dd3fc', '#f9a8d4', '#fdba74'] as const;
+
+const TOOLS: Record<Herramienta, { label: string; icon: React.ReactNode }> = {
+  lapiz: { label: 'Lápiz', icon: <Pencil size={15} /> },
+  rotulador: { label: 'Rotulador', icon: <PenTool size={15} /> },
+  subrayador: { label: 'Subrayador', icon: <Highlighter size={15} /> },
+  borrador: { label: 'Borrador', icon: <Eraser size={15} /> },
+};
+const GROSORES: readonly { id: Grosor; label: string; dot: number }[] = [
+  { id: 0, label: 'Fino', dot: 5 }, { id: 1, label: 'Medio', dot: 9 }, { id: 2, label: 'Grueso', dot: 14 },
+];
 const BOARD_KEY = 'aulapro_board_theme';
-
-const hexToRgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
-
-/**
- * Pasa lo ya dibujado a los colores equivalentes del otro fondo (el blanco
- * del lápiz oscuro se vuelve negro, etc.): si no, al cambiar de pizarra los
- * trazos dejarían de verse. Cada píxel toma el color de la paleta nueva que
- * corresponde al más parecido de la vieja, conservando su transparencia para
- * que los bordes suavizados sigan igual.
- */
-function recolorStrokes(canvas: HTMLCanvasElement | null, from: readonly string[], to: readonly string[]) {
-  const ctx = canvas?.getContext('2d');
-  if (!canvas || !ctx || canvas.width === 0 || canvas.height === 0) return;
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const src = from.map(hexToRgb);
-  const dst = to.map(hexToRgb);
-  const d = img.data;
-  for (let p = 0; p < d.length; p += 4) {
-    if (d[p + 3] === 0) continue;
-    let best = 0;
-    let bestDist = Infinity;
-    for (let k = 0; k < src.length; k++) {
-      const dist = (d[p] - src[k][0]) ** 2 + (d[p + 1] - src[k][1]) ** 2 + (d[p + 2] - src[k][2]) ** 2;
-      if (dist < bestDist) { bestDist = dist; best = k; }
-    }
-    [d[p], d[p + 1], d[p + 2]] = dst[best];
-  }
-  ctx.putImageData(img, 0, 0);
-}
 
 function readBoardTheme(): BoardTheme {
   // Blanca por defecto: en la pantalla del aula (proyector o panel) el fondo
@@ -1360,14 +1346,15 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
   const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // El trazo se guarda en una referencia, no en estado: React agrupa las
-  // actualizaciones y los primeros movimientos del ratón se perderían.
-  const drawingRef = useRef(false);
+  const lienzo = useRef<LienzoHandle | null>(null);
   const [board, setBoard] = useState<BoardTheme>(readBoardTheme);
   const penColors = PEN_COLORS[board];
   const [color, setColor] = useState<string>(penColors[0]);
+  const [colorSub, setColorSub] = useState<string>(MARKER_COLORS[0]);
   const [penOn, setPenOn] = useState(false);
+  const [herramienta, setHerramienta] = useState<Herramienta>('lapiz');
+  const [grosor, setGrosor] = useState<Grosor>(1);
+  const [estado, setEstado] = useState<EstadoLienzo>({ puedeDeshacer: false, puedeRehacer: false, hayTrazos: false });
   const light = board === 'light';
 
   function switchBoard() {
@@ -1376,7 +1363,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
     const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
     setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
-    recolorStrokes(canvasRef.current, PEN_COLORS[board], PEN_COLORS[next]);
+    lienzo.current?.recolorear(PEN_COLORS[board], PEN_COLORS[next]);
     try { localStorage.setItem(BOARD_KEY, next); } catch { /* sin almacenamiento: solo dura esta sesión */ }
   }
 
@@ -1389,89 +1376,6 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [widgets, setWidgets] = useState<Record<WidgetType, boolean>>({
     timer: true, wheel: true, calc: false, noise: false, embed: false,
   });
-
-  /* ── Pizarra ── */
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Se mide el propio lienzo, no la ventana: Aula Live convive con la barra
-    // lateral, así que usar innerWidth desplazaría todos los trazos.
-    const resize = () => {
-      const { width, height } = canvas.getBoundingClientRect();
-      if (width === 0 || height === 0) return;
-
-      const dpr = window.devicePixelRatio || 1;
-      const nextW = Math.round(width * dpr);
-      const nextH = Math.round(height * dpr);
-      if (canvas.width === nextW && canvas.height === nextH) return;
-
-      // Conserva lo dibujado al cambiar el tamaño (redimensionar limpia el lienzo)
-      const previous = canvas.width > 0 && canvas.height > 0
-        ? canvas.getContext('2d')?.getImageData(0, 0, canvas.width, canvas.height)
-        : null;
-
-      canvas.width  = nextW;
-      canvas.height = nextH;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        if (previous) ctx.putImageData(previous, 0, 0);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-    };
-
-    resize();
-    // ResizeObserver y no window.resize: plegar la barra lateral cambia el
-    // ancho del panel sin que la ventana cambie de tamaño.
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, []);
-
-  const posOf = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    const p = 'touches' in e ? e.touches[0] : e;
-    return { x: p.clientX - rect.left, y: p.clientY - rect.top };
-  }, []);
-
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!penOn) return;
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const { x, y } = posOf(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = color;
-    // Un punto suelto también debe verse, sin necesidad de arrastrar
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    drawingRef.current = true;
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!drawingRef.current || !penOn) return;
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const { x, y } = posOf(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => { drawingRef.current = false; };
-
-  const clearBoard = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-    // El contexto está escalado por dpr, así que se limpia en píxeles CSS
-    const { width, height } = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, width, height);
-  };
 
   const toggle = (id: WidgetType) => setWidgets(p => ({ ...p, [id]: !p[id] }));
 
@@ -1523,33 +1427,13 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       />
 
       {/* Pizarra */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0"
-        style={{
-          // width/height explícitos: <canvas> es un elemento reemplazado y con
-          // inset:0 no se estira solo, se quedaría en su tamaño intrínseco.
-          width: '100%',
-          height: '100%',
-          touchAction: 'none',
-          pointerEvents: penOn ? 'auto' : 'none',
-          cursor: penOn ? 'crosshair' : 'default',
-          zIndex: 5,
-        }}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-      />
+      <Lienzo ref={lienzo} activo={penOn} herramienta={herramienta} color={herramienta === 'subrayador' ? colorSub : color} ancho={ANCHOS[herramienta][grosor]} onEstado={setEstado} />
 
       {/* Barra de dibujo */}
       <div
-        className="absolute flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
+        className="absolute flex flex-wrap items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
         style={{
-          top: 18, left: 18, zIndex: 50,
+          top: 18, left: 18, zIndex: 50, maxWidth: 'calc(100% - 36px)',
           background: 'rgba(15,23,42,0.72)',
           backdropFilter: 'blur(18px)',
           border: '1px solid rgba(255,255,255,0.11)',
@@ -1568,7 +1452,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
 
         <button
           onClick={() => setPenOn(v => !v)}
-          title={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')}
+          title={t(penOn ? 'Dejar de dibujar' : 'Dibujar sobre la pantalla')}
+          aria-pressed={penOn}
           className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
           style={{
             padding: '6px 12px',
@@ -1576,7 +1461,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
             color: penOn ? '#7dd3fc' : 'rgba(255,255,255,0.6)',
           }}
         >
-          <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Lápiz')}
+          <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Dibujar')}
         </button>
 
         <button
@@ -1592,28 +1477,101 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         {penOn && (
           <>
             <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
-            <Palette size={15} color="rgba(255,255,255,0.4)" />
-            {penColors.map(c => (
-              <button
-                key={c}
-                onClick={() => setColor(c)}
-                title={t('Color del lápiz')}
-                className="rounded-full transition-transform"
-                style={{
-                  width: 21, height: 21, background: c,
-                  border: color === c ? '2.5px solid white' : '2.5px solid transparent',
-                  boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
-                  transform: color === c ? 'scale(1.16)' : 'scale(1)',
-                }}
-              />
-            ))}
+            <div role="group" aria-label={t('Herramienta')} className="flex items-center gap-1">
+              {HERRAMIENTAS.map(h => {
+                const on = herramienta === h;
+                return (
+                  <button
+                    key={h}
+                    onClick={() => setHerramienta(h)}
+                    title={t(TOOLS[h].label)}
+                    aria-pressed={on}
+                    className="flex items-center gap-1.5 rounded-lg text-[12px] font-bold transition-colors"
+                    style={{
+                      padding: '6px 9px',
+                      background: on ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)',
+                      color: on ? '#7dd3fc' : 'rgba(255,255,255,0.6)',
+                    }}
+                  >
+                    {TOOLS[h].icon}{t(TOOLS[h].label)}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
+            <div role="group" aria-label={t('Grosor')} className="flex items-center gap-1">
+              {GROSORES.map(g => (
+                <button
+                  key={g.id}
+                  onClick={() => setGrosor(g.id)}
+                  title={t(g.label)}
+                  aria-label={t(g.label)}
+                  aria-pressed={grosor === g.id}
+                  className="flex items-center justify-center rounded-lg"
+                  style={{ width: 30, height: 30, background: grosor === g.id ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)' }}
+                >
+                  <span style={{ width: g.dot, height: g.dot, borderRadius: '50%', background: grosor === g.id ? '#7dd3fc' : 'rgba(255,255,255,0.6)' }} />
+                </button>
+              ))}
+            </div>
+
+            {herramienta !== 'borrador' && (
+              <>
+                <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
+                <Palette size={15} color="rgba(255,255,255,0.4)" aria-hidden="true" />
+                {(herramienta === 'subrayador' ? MARKER_COLORS : penColors).map(c => {
+                  const actual = herramienta === 'subrayador' ? colorSub : color;
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => (herramienta === 'subrayador' ? setColorSub(c) : setColor(c))}
+                      title={t('Color')}
+                      aria-label={t('Color')}
+                      aria-pressed={actual === c}
+                      className="rounded-full transition-transform"
+                      style={{
+                        width: 21, height: 21, background: c,
+                        border: actual === c ? '2.5px solid white' : '2.5px solid transparent',
+                        boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
+                        transform: actual === c ? 'scale(1.16)' : 'scale(1)',
+                      }}
+                    />
+                  );
+                })}
+              </>
+            )}
+
+            <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
             <button
-              onClick={clearBoard}
-              title={t('Borrar todo')}
-              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors"
+              onClick={() => lienzo.current?.deshacer()}
+              disabled={!estado.puedeDeshacer}
+              title={t('Deshacer')}
+              aria-label={t('Deshacer')}
+              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors disabled:opacity-30"
               style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
             >
-              <Eraser size={15} />
+              <Undo2 size={15} />
+            </button>
+            <button
+              onClick={() => lienzo.current?.rehacer()}
+              disabled={!estado.puedeRehacer}
+              title={t('Rehacer')}
+              aria-label={t('Rehacer')}
+              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors disabled:opacity-30"
+              style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
+            >
+              <Redo2 size={15} />
+            </button>
+            <button
+              onClick={() => lienzo.current?.borrarTodo()}
+              disabled={!estado.hayTrazos}
+              title={t('Borrar todo')}
+              aria-label={t('Borrar todo')}
+              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors disabled:opacity-30"
+              style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
+            >
+              <Trash2 size={15} />
             </button>
           </>
         )}

@@ -6,6 +6,8 @@
  * no le llega el nombre del alumno. Ver `docs/EVALUAR_FOTO.md`.
  */
 import { useMemo, useRef, useState } from 'react';
+import { useBorrador } from '../hooks/useBorrador';
+import { AvisoBorrador } from '../components/AvisoBorrador';
 import { Camera, ImagePlus, Sparkles, Trash2, Check, AlertTriangle, ClipboardCopy, UserRoundCheck, Lightbulb } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
@@ -31,6 +33,13 @@ interface Props {
 }
 
 const vista = (f: InlineFile) => `data:${f.mimeType};base64,${f.base64}`;
+
+/** Lo que se autoguarda de una corrección a medias. Las fotos no: pesan demasiado y la corrección ya las ha leído. */
+interface BorradorEvalFoto {
+  claseId: string; asignatura: string; alumnoId: string; tipo: TipoTrabajo; total: string; nombre: string;
+  categoriaId: string; criterios: string;
+  correccion: CorreccionFoto; puntos: string[]; comentario: string; hechos: string[];
+}
 
 export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAddGradeItem, onSetGrade, onNav }: Props) {
   const { t, locale } = useI18n();
@@ -141,6 +150,22 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
 
   const guardadoYa = !!alumno && hechos.includes(alumno.id);
 
+  /* Autoguardado: una corrección hecha por la IA y aún sin guardar en el cuaderno se conserva */
+  const pendiente = useMemo<BorradorEvalFoto | null>(() => (correccion && !(alumnoId && hechos.includes(alumnoId)) ? {
+    claseId, asignatura, alumnoId, tipo, total, nombre, categoriaId, criterios, correccion, puntos, comentario, hechos,
+  } : null), [correccion, claseId, asignatura, alumnoId, tipo, total, nombre, categoriaId, criterios, puntos, comentario, hechos]);
+  const borrador = useBorrador<BorradorEvalFoto>('evaluacion-foto', pendiente, `${alumno ? `${alumno.name}: ` : ''}${nombre || correccion?.titulo || ''}`.trim());
+  function continuarBorrador() {
+    const b = borrador.continuar();
+    if (!b) return;
+    // Solo si la clase sigue existiendo
+    if (classes.some(c => c.id === b.claseId)) setClaseId(b.claseId);
+    setAsignatura(b.asignatura); setAlumnoId(b.alumnoId); setTipo(b.tipo); setTotal(b.total); setNombre(b.nombre);
+    setCategoriaId(b.categoriaId); setCriterios(b.criterios);
+    setCorreccion(b.correccion); setPuntos(b.puntos); setComentario(b.comentario); setHechos(b.hechos);
+    setFotos([]); setSoluciones([]);
+  }
+
   if (!classes.length) {
     return (
       <section className="sec active ap-page">
@@ -175,6 +200,10 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
 
       {sinClave && (
         <AiKeyNotice message={t('Para corregir por foto hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+      )}
+
+      {borrador.encontrado && (
+        <AvisoBorrador borrador={borrador.encontrado} queEra={t('una corrección')} nota={t('Las fotos no se guardan.')} onContinuar={continuarBorrador} onDescartar={borrador.descartar} />
       )}
 
       <div className="card">

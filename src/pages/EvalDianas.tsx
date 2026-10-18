@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy } from 'lucide-react';
 import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
 import { GradeTargetPicker } from '../components/GradeTargetPicker';
@@ -19,6 +19,8 @@ import { listaCompetenciasClave, marcarCompetenciasConIA } from '../services/com
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
+import { useBorradorVentana } from '../hooks/useBorrador';
+import { AvisoBorrador } from '../components/AvisoBorrador';
 
 interface Props {
   dianas: EvalDiana[];
@@ -45,8 +47,20 @@ function blankItem(): DianaItem {
 
 /* ═══════════════════ Modal crear / editar diana ═══════════════════ */
 
+/** Lo que se autoguarda de una diana a medias, generada con IA o escrita a mano. */
+interface BorradorDiana {
+  mode: 'ia' | 'manual';
+  aiContext: string; aiCount: number;
+  name: string; items: DianaItem[];
+  target: GradeTarget; levels: AchievementLevel[];
+}
+
 interface DianaModalProps {
   open: boolean;
+  /** Si se vuelve a abrir una diana que quedó a medias, con lo que tenía. */
+  inicial?: BorradorDiana | null;
+  /** Cuenta lo que hay en la ventana mientras no se guarda (y `null` al guardar), para el autoguardado. */
+  onCambio?: (b: BorradorDiana | null) => void;
   editing: EvalDiana | null;
   classes: Class[];
   gradeCategories: GradeCategory[];
@@ -56,7 +70,7 @@ interface DianaModalProps {
   comunidad?: ComunidadId;
 }
 
-function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: DianaModalProps) {
+function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: DianaModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<'ia' | 'manual'>('ia');
@@ -96,6 +110,14 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
         class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
       });
       setLevels(levelsOf(editing));
+    } else if (inicial) {
+      setMode(inicial.mode);
+      setName(inicial.name);
+      setItems(inicial.items);
+      setAiContext(inicial.aiContext);
+      setAiCount(inicial.aiCount);
+      setTarget(inicial.target);
+      setLevels(inicial.levels);
     } else {
       setTarget({});
       setLevels(defaultLevels(lang));
@@ -106,6 +128,12 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       setAiCount(5);
     }
   });
+
+  /* Autoguardado: mientras haya algo hecho y sin guardar, la pantalla lo conserva */
+  useEffect(() => {
+    if (!open || editing) return;
+    if (name.trim() || items.some(i => i.name.trim())) onCambio?.({ mode, aiContext, aiCount, name, items, target, levels });
+  }, [open, editing, mode, aiContext, aiCount, name, items, target, levels, onCambio]);
 
   async function handleGenerate() {
     if (!aiContext.trim()) { toast(t('Describe la actividad que quieres evaluar')); return; }
@@ -231,6 +259,7 @@ function DianaModal({ open, editing, classes, gradeCategories, lawDocument, onCl
       levels: cleanLevels,
       ...target,
     });
+    onCambio?.(null);
     onClose();
   }
 
@@ -626,11 +655,23 @@ export function DianasTab({
   const { t, locale } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing]     = useState<EvalDiana | null>(null);
+  // Una diana que se cerró o se quedó a medias: se ofrece continuarla
+  const [inicial, setInicial]     = useState<BorradorDiana | null>(null);
+  const borrador = useBorradorVentana<BorradorDiana>('diana', modalOpen, p => p.name || p.aiContext);
+  const { cambiar: cambiarBorrador } = borrador;
+  const alCambiar = useCallback((b: BorradorDiana | null) => cambiarBorrador(b), [cambiarBorrador]);
+  function continuarDiana() {
+    const d = borrador.continuar();
+    if (!d) return;
+    setEditing(null);
+    setInicial(d);
+    setModalOpen(true);
+  }
   const [evalOpen, setEvalOpen]   = useState(false);
   const [evalDiana, setEvalDiana] = useState<EvalDiana | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  function openNew()  { setEditing(null); setModalOpen(true); }
+  function openNew()  { setEditing(null); setInicial(null); setModalOpen(true); }
   function openEdit(d: EvalDiana) { setEditing(d); setModalOpen(true); }
   function openEval(d: EvalDiana) { setEvalDiana(d); setEvalOpen(true); }
 
@@ -651,6 +692,9 @@ export function DianasTab({
 
   return (
     <>
+      {borrador.restos && (
+        <AvisoBorrador borrador={borrador.restos} queEra={t('una diana')} onContinuar={continuarDiana} onDescartar={borrador.descartar} />
+      )}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', flex: 1, lineHeight: 1.5 }}>
           {t('Marca el nivel de logro de cada ítem y la nota sobre 10 se calcula sola.')}
@@ -720,6 +764,8 @@ export function DianasTab({
 
       <DianaModal
         open={modalOpen}
+        inicial={inicial}
+        onCambio={alCambiar}
         editing={editing}
         classes={classes}
         gradeCategories={gradeCategories}

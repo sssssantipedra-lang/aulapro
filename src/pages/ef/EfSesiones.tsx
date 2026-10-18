@@ -6,8 +6,8 @@
  * el banco de actividades; de los exentos solo recibe lo que no pueden hacer,
  * sin nombre ni motivo. Se revisan, se guardan y se imprimen. Ver `docs/EF.md`.
  */
-import { useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { CopiarAClases } from '../../components/CopiarAClases';
 import { clonarSesionEF } from '../../lib/clonar';
@@ -15,6 +15,8 @@ import { useToast } from '../../components/ui/Toast';
 import { CriteriosOficialesPicker } from '../../components/curriculum/CriteriosOficialesPicker';
 import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
+import { useBorradorVentana } from '../../hooks/useBorrador';
+import { AvisoBorrador } from '../../components/AvisoBorrador';
 import { useMateriasOficiales } from '../../hooks/useNotasPorCompetencias';
 import { isoDate, fromIsoDate } from '../../lib/utils';
 import { MODALIDADES_EF, nuevoIdEF } from '../../lib/ef';
@@ -67,10 +69,23 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const [editando, setEditando] = useState<SesionEF | null>(null);
   const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean; modalidad: ModalidadEF | '' } | null>(null);
   const [pensando, setPensando] = useState(false);
-  const [verAnteriores, setVerAnteriores] = useState(false);
+  const [verCompletadas, setVerCompletadas] = useState(false);
   /** Copiar sesiones a otras clases: de qué clase, cuáles y si se conserva la fecha. */
   const [copiando, setCopiando] = useState<{ origenId: string; ids: string[]; conFecha: boolean } | null>(null);
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
+
+  /* Autoguardado: una sesión nueva (la prepare la IA o la escriba el docente) o con cambios, y sin guardar, se conserva */
+  const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
+  const { cambiar: cambiarBorrador } = borrador;
+  const guardadaAntes = editando ? ef.sesiones.find(s => s.id === editando.id) : undefined;
+  const hayCambios = !!editando && (!guardadaAntes || JSON.stringify(guardadaAntes) !== JSON.stringify(editando));
+  useEffect(() => {
+    if (editando && hayCambios && (editando.titulo.trim() || editando.objetivo.trim() || editando.principal.trim())) cambiarBorrador(editando);
+  }, [editando, hayCambios, cambiarBorrador]);
+  function continuarBorrador() {
+    const d = borrador.continuar();
+    if (d) { setIa(null); setEditando(d); }
+  }
 
   // El currículo de la clase que toca: la de la IA o la de la sesión abierta
   const claseIa = classes.find(c => c.id === ia?.claseId) ?? null;
@@ -83,9 +98,12 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   };
 
   const ordenadas = useMemo(() => [...ef.sesiones].sort((a, b) => (a.fecha ?? '9999').localeCompare(b.fecha ?? '9999')), [ef.sesiones]);
-  const proximas = ordenadas.filter(s => s.fecha && s.fecha >= hoy);
-  const sinFecha = ordenadas.filter(s => !s.fecha);
-  const anteriores = ordenadas.filter(s => s.fecha && s.fecha < hoy).reverse();
+  // Lo completado sale aparte, y lo que ya pasó sin completarse se queda a la vista para no perder el hilo
+  const proximas = ordenadas.filter(s => !s.completada && s.fecha && s.fecha >= hoy);
+  const sinFecha = ordenadas.filter(s => !s.completada && !s.fecha);
+  const atrasadas = ordenadas.filter(s => !s.completada && s.fecha && s.fecha < hoy);
+  const completadas = ordenadas.filter(s => s.completada).reverse();
+  const hechas = completadas.length;
   const nombreClase = (id?: string) => classes.find(c => c.id === id)?.name ?? '';
   const nombreInst = (id?: string) => ef.instalaciones.find(i => i.id === id)?.nombre ?? '';
   const dia = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
@@ -161,13 +179,22 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     const s = { ...editando, titulo: editando.titulo.trim() };
     if (!s.titulo) { toast(t('Ponle un título a la sesión.')); return; }
     onChangeEf(d => ({ ...d, sesiones: d.sesiones.some(x => x.id === s.id) ? d.sesiones.map(x => (x.id === s.id ? s : x)) : [...d.sesiones, s] }));
+    cambiarBorrador(null);
     setEditando(null);
     toast(t('✅ Guardado'));
+  }
+
+  /** Marca o desmarca una sesión como dada, sin abrirla. */
+  function alternarCompletada(s: SesionEF) {
+    const hecha = !s.completada;
+    onChangeEf(d => ({ ...d, sesiones: d.sesiones.map(x => (x.id === s.id ? { ...x, completada: hecha } : x)) }));
+    toast(hecha ? t('Sesión completada') : t('Sesión pendiente otra vez'));
   }
 
   function borrar(s: SesionEF) {
     if (!window.confirm(t('¿Borrar la sesión «{nombre}»?', { nombre: s.titulo }))) return;
     onChangeEf(d => ({ ...d, sesiones: d.sesiones.filter(x => x.id !== s.id) }));
+    cambiarBorrador(null);
     setEditando(null);
   }
 
@@ -192,9 +219,16 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   }
 
   const fila = (s: SesionEF) => {
-    const lims = s.claseId && s.fecha && s.fecha >= hoy ? limitacionesDe(s.claseId, s.fecha).length : 0;
+    const lims = !s.completada && s.claseId && s.fecha && s.fecha >= hoy ? limitacionesDe(s.claseId, s.fecha).length : 0;
     return (
-      <li key={s.id}>
+      <li key={s.id} className={`ef-sesion-fila${s.completada ? ' completada' : ''}`}>
+        <button
+          type="button" className="ef-sesion-check" onClick={() => alternarCompletada(s)} aria-pressed={!!s.completada}
+          aria-label={s.completada ? t('Marcar «{nombre}» como pendiente', { nombre: s.titulo }) : t('Marcar «{nombre}» como completada', { nombre: s.titulo })}
+          title={s.completada ? t('Completada: pulsa para volver a ponerla pendiente') : t('Marcar como completada')}
+        >
+          {s.completada ? <CheckCircle2 size={22} aria-hidden="true" /> : <Circle size={22} aria-hidden="true" />}
+        </button>
         <button type="button" className="ef-sesion" onClick={() => setEditando(s)}>
           <strong>{s.titulo || t('Sin título')}</strong>
           <span className="ap-meta">
@@ -231,6 +265,24 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         </div>
       </div>
 
+      {borrador.restos && (
+        <AvisoBorrador borrador={borrador.restos} queEra={t('una sesión')} onContinuar={continuarBorrador} onDescartar={borrador.descartar} />
+      )}
+
+      {ef.sesiones.length > 0 && (
+        <div className="ef-progreso" role="status">
+          <div className="ef-progreso-barra" aria-hidden="true"><span style={{ width: `${Math.round((hechas / ef.sesiones.length) * 100)}%` }} /></div>
+          <span>{t('{hechas} de {total} sesiones completadas', { hechas, total: ef.sesiones.length })}</span>
+        </div>
+      )}
+
+      {atrasadas.length > 0 && (
+        <div className="card ef-atrasadas">
+          <div className="home-card-ttl" style={{ marginBottom: 4 }}>{t('Por completar')}</div>
+          <p className="ap-aviso" style={{ marginBottom: 10 }}>{t('Su día ya pasó y no están marcadas como completadas. Márcalas si ya las diste; si no, cámbiales el día.')}</p>
+          <ul className="ap-lista ef-sesiones">{atrasadas.map(fila)}</ul>
+        </div>
+      )}
       <div className="card">
         <div className="home-card-ttl" style={{ marginBottom: 10 }}>{t('Próximas')}</div>
         {proximas.length === 0
@@ -243,12 +295,12 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
           <ul className="ap-lista ef-sesiones">{sinFecha.map(fila)}</ul>
         </div>
       )}
-      {anteriores.length > 0 && (
-        <button type="button" className="home-link" style={{ marginTop: 14 }} onClick={() => setVerAnteriores(v => !v)}>
-          {verAnteriores ? t('Ocultar las anteriores') : t('Ver las anteriores ({n})', { n: anteriores.length })}
+      {completadas.length > 0 && (
+        <button type="button" className="home-link" style={{ marginTop: 14 }} onClick={() => setVerCompletadas(v => !v)} aria-expanded={verCompletadas}>
+          {verCompletadas ? t('Ocultar las completadas') : t('Ver las completadas ({n})', { n: completadas.length })}
         </button>
       )}
-      {verAnteriores && anteriores.length > 0 && <div className="card"><ul className="ap-lista ef-sesiones">{anteriores.map(fila)}</ul></div>}
+      {verCompletadas && completadas.length > 0 && <div className="card"><ul className="ap-lista ef-sesiones">{completadas.map(fila)}</ul></div>}
 
       <CopiarAClases
         open={!!copiando} onClose={() => setCopiando(null)} titulo={t('Copiar sesiones a otras clases')}
@@ -386,6 +438,10 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
                   onChange={e => setEditando({ ...editando, [p.id]: e.target.value })} />
               </div>
             ))}
+            <label className="td-chk" style={{ gridColumn: '1 / -1' }}>
+              <input type="checkbox" checked={!!editando.completada} onChange={e => setEditando({ ...editando, completada: e.target.checked })} />
+              {t('Sesión completada')}
+            </label>
             <div style={{ gridColumn: '1 / -1' }}>
               <CriteriosOficialesPicker idPrefix="ef-s-co" cls={claseEd} comunidad={comunidad}
                 value={editando.criterios ?? []} onChange={v => setEditando({ ...editando, criterios: v })} />
@@ -394,7 +450,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
               <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
               <button className="btn-ghost" onClick={() => pdf(editando)}><FileDown size={14} />{t('PDF')}</button>
               {!esNueva && <button className="btn-ghost" onClick={() => abrirCopia(editando.claseId ?? '', [editando.id])}><Copy size={14} />{t('Copiar a otras clases')}</button>}
-              <button className="btn-ghost" onClick={() => setEditando(null)}>{t('Cancelar')}</button>
+              <button className="btn-ghost" onClick={() => { cambiarBorrador(null); setEditando(null); }}>{t('Cancelar')}</button>
               {!esNueva && <button className="btn-ghost ap-borrar" onClick={() => borrar(editando)}><Trash2 size={14} />{t('Borrar')}</button>}
             </div>
           </div>

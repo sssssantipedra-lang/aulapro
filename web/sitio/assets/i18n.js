@@ -137,7 +137,7 @@ window.AULA_I18N = {
     's4.title': 'Pissarra, temporitzador i ruleta a la mateixa finestra.',
     's4.t4d': "El teu alumnat s'hi connecta des d'un dispositiu escanejant un codi QR, a través de la wifi de l'aula.",
     's4.t4': 'Activitats amb mòbils',
-    's4.t3d': 'Pissarra, temporitzador, ruleta, calculadora, sonòmetre i reptes per projectar.',
+    's4.t3d': 'Pissarra amb llapis, retolador, marcador i goma, temporitzador, ruleta, calculadora, sonòmetre i reptes per projectar.',
     's4.t3': 'Pissarra i eines',
     's4.t2d': 'Taules cooperatives o quadrades, grups, rols i rotació setmanal.',
     's4.t2': "Distribució d'aula",
@@ -156,6 +156,7 @@ window.AULA_I18N = {
     's5.p3': 'La teva clau de Google es desa xifrada.',
     's5.p4': 'Còpia de seguretat automàtica cada 10 minuts.',
     's5.p5': 'Treball compartit amb altres docents sense passar per cap servidor.',
+    's5.p6': 'El que crees es desa automàticament al teu equip: si es tanca a mitges, continues on ho havies deixat.',
 
     'strips.label': 'IA i idiomes',
     'strip.ai': "La IA funciona amb la teva pròpia clau gratuïta de Google. La introdueixes a El meu perfil en tres passos i AulaPro comprova que funciona sense consumir quota.",
@@ -361,7 +362,7 @@ window.AULA_I18N = {
     's4.title': 'Whiteboard, timer and name wheel in one window.',
     's4.t4d': 'Students connect from a device by scanning a QR code, over the classroom wifi.',
     's4.t4': 'Phone activities',
-    's4.t3d': 'Whiteboard, timer, name wheel, calculator, noise meter and challenges to project.',
+    's4.t3d': 'Whiteboard with pencil, marker, highlighter and eraser, timer, name wheel, calculator, noise meter and challenges to project.',
     's4.t3': 'Board and tools',
     's4.t2d': 'Cooperative or square tables, groups, roles and weekly rotation.',
     's4.t2': 'Seating plan',
@@ -380,6 +381,7 @@ window.AULA_I18N = {
     's5.p3': 'Your Google key is stored encrypted.',
     's5.p4': 'Automatic backup every 10 minutes.',
     's5.p5': 'Work shared with other teachers without going through any server.',
+    's5.p6': 'What you create is autosaved on your device: if it is closed halfway, you carry on where you left off.',
 
     'strips.label': 'AI and languages',
     'strip.ai': 'The AI runs on your own free Google key. Enter it in My profile in three steps and AulaPro checks it works without using any quota.',

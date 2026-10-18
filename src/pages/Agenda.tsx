@@ -1,5 +1,5 @@
 import { useState, useMemo, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock, CalendarDays, ArrowRight } from 'lucide-react';
 import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
 import type { ScheduleBlock, CalEvent, Class } from '../types';
 import { PALETTE } from '../lib/demoData';
@@ -171,8 +171,9 @@ export function Agenda({
   const weekDayLabels = useMemo(() => Array.from({ length: 5 }, (_, i) => weekdayLabel(i, locale)), [locale]);
 
   // ---- view state ----
-  // Se abre en la semana: el horario es lo que más se mira (11-10-2026)
-  const [view, setView] = useState<'mensual' | 'semanal'>('semanal');
+  // Se abre en una portada con dos tarjetas, una por espacio: la agenda del mes y el horario de la semana
+  // (decisión del dueño, 18-10-2026; antes se abría directamente en la semana)
+  const [view, setView] = useState<'inicio' | 'mensual' | 'semanal'>('inicio');
   const [menuHorario, setMenuHorario] = useState(false);
 
   // ---- monthly state ----
@@ -223,6 +224,12 @@ export function Agenda({
     () => (eventsByDate[selectedDate] ?? []).sort((a, b) => a.time.localeCompare(b.time)),
     [eventsByDate, selectedDate],
   );
+
+  // ---- el próximo evento, para la tarjeta de la portada ----
+  const proximoEvento = useMemo(() => {
+    const hoy = isoDate(today);
+    return [...calEvents].filter(e => e.date >= hoy).sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))[0];
+  }, [calEvents, today]);
 
   // ---- week dates ----
   const currentWeekDates = useMemo(() => weekDates(weekAnchor), [weekAnchor]);
@@ -352,6 +359,9 @@ export function Agenda({
 
       {/* Vista: interruptor segmentado, como las pestañas del resto de la app */}
       <div className="tab-bar" role="tablist" aria-label={t('Vista')} style={{ width: 'fit-content', marginBottom: 16 }}>
+        <button role="tab" aria-selected={view === 'inicio'} className={`tab-btn${view === 'inicio' ? ' active' : ''}`} style={{ padding: '7px 18px' }} onClick={() => setView('inicio')}>
+          {t('Resumen')}
+        </button>
         <button role="tab" aria-selected={view === 'mensual'} className={`tab-btn${view === 'mensual' ? ' active' : ''}`} style={{ padding: '7px 18px' }} onClick={() => setView('mensual')}>
           {t('Mensual')}
         </button>
@@ -359,6 +369,34 @@ export function Agenda({
           {t('Semanal')}
         </button>
       </div>
+
+      {/* ===== PORTADA: dos tarjetas ===== */}
+      {view === 'inicio' && (
+        <div className="ev-cards">
+          <button type="button" className="ev-card" style={{ '--ev-c': '#8b5cf6' } as React.CSSProperties} onClick={() => setView('mensual')}>
+            <span className="ev-card-ico"><CalendarDays size={26} /></span>
+            <span className="ev-card-ttl">{t('Agenda mensual')}</span>
+            <span className="ev-card-txt">{t('El calendario del mes con tus eventos, exámenes y entregas, y las vacaciones y los días no lectivos de tu comunidad.')}</span>
+            <span className="ev-card-ft">
+              <span className="ev-card-dato">{proximoEvento
+                ? t('Próximo: {nombre}, {dia}', { nombre: proximoEvento.name, dia: fromIsoDate(proximoEvento.date).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' }) })
+                : t('Sin eventos próximos')}</span>
+              <span className="ev-card-go">{t('Abrir')}<ArrowRight size={15} /></span>
+            </span>
+          </button>
+          <button type="button" className="ev-card" style={{ '--ev-c': '#0ea5e9' } as React.CSSProperties} onClick={() => setView('semanal')}>
+            <span className="ev-card-ico"><CalendarClock size={26} /></span>
+            <span className="ev-card-ttl">{t('Horario semanal')}</span>
+            <span className="ev-card-txt">{t('Tus clases de cada día, con su hora y su aula. Puedes escanearlo desde una foto de tu horario.')}</span>
+            <span className="ev-card-ft">
+              <span className="ev-card-dato">{scheduleBlocks.length + apoyoBlocks.length > 0
+                ? t(scheduleBlocks.length + apoyoBlocks.length === 1 ? '{n} clase a la semana' : '{n} clases a la semana', { n: scheduleBlocks.length + apoyoBlocks.length })
+                : t('Todavía sin horario')}</span>
+              <span className="ev-card-go">{t('Abrir')}<ArrowRight size={15} /></span>
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* ===== MONTHLY VIEW ===== */}
       {view === 'mensual' && (
