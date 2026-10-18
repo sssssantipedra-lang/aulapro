@@ -711,6 +711,9 @@ export const EF_EN: Record<string, string> = {
   'Grande': 'Large',
   '«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.': '"Large" makes the text bigger throughout the app. It is remembered on this device.',
   'Orden de los deportes': 'Order of the sports',
+  'Todos los Santos': 'All Saints\' Day',
+  'Día de la Constitución': 'Constitution Day',
+  'Fiesta del Trabajo': 'Labour Day',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1422,4 +1425,7 @@ export const EF_CA: Record<string, string> = {
   'Grande': 'Gran',
   '«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.': '«Gran» fa més grans les lletres de tota l\'aplicació. Es recorda en aquest dispositiu.',
   'Orden de los deportes': 'Ordre dels esports',
+  'Todos los Santos': 'Tots Sants',
+  'Día de la Constitución': 'Dia de la Constitució',
+  'Fiesta del Trabajo': 'Festa del Treball',
 };

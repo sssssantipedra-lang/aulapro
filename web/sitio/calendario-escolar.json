@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "actualizado": "2026-10-11",
+  "actualizado": "2026-10-18",
   "calendarios": [
     {
       "comunidad": "comunitat-valenciana",
@@ -94,6 +94,116 @@
         {
           "fecha": "2026-12-08",
           "nombre": "Inmaculada Concepción"
+        }
+      ]
+    },
+    {
+      "comunidad": "cataluna",
+      "curso": "2027-2028",
+      "norma": {
+        "ca": "Ordre EDF/66/2026, de 22 d'abril (DOGC núm. 9653, de 27 d'abril de 2026)"
+      },
+      "url": "https://portaljuridic.gencat.cat/eli/es-ct/o/2026/04/22/edf66",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2027-09-08",
+          "fin": "2028-06-22"
+        },
+        "eso": {
+          "inicio": "2027-09-08",
+          "fin": "2028-06-22"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2027-12-22",
+          "hasta": "2028-01-09"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2028-04-08",
+          "hasta": "2028-04-17"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2027-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2027-11-01",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2027-12-06",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2027-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2028-05-01",
+          "nombre": "Fiesta del Trabajo"
+        }
+      ]
+    },
+    {
+      "comunidad": "cataluna",
+      "curso": "2028-2029",
+      "norma": {
+        "ca": "Ordre EDF/66/2026, de 22 d'abril (DOGC núm. 9653, de 27 d'abril de 2026)"
+      },
+      "url": "https://portaljuridic.gencat.cat/eli/es-ct/o/2026/04/22/edf66",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2028-09-08",
+          "fin": "2029-06-22"
+        },
+        "eso": {
+          "inicio": "2028-09-08",
+          "fin": "2029-06-22"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2028-12-22",
+          "hasta": "2029-01-07"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2029-03-24",
+          "hasta": "2029-04-02"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2028-09-11",
+          "nombre": "Diada Nacional de Catalunya"
+        },
+        {
+          "fecha": "2028-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2028-11-01",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2028-12-06",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2028-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2029-05-01",
+          "nombre": "Fiesta del Trabajo"
         }
       ]
     },
