@@ -739,7 +739,7 @@ export interface ClassMark {
 
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
-  | 'evaluar' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
+  | 'evaluar' | 'evalfoto' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'documentos' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'

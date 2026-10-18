@@ -66,6 +66,7 @@ const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ defa
 const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
 const EfPruebas      = lazy(() => import('./pages/ef/EfPruebas').then(m => ({ default: m.EfPruebas })));
 const EfEquipos      = lazy(() => import('./pages/ef/EfEquipos').then(m => ({ default: m.EfEquipos })));
+const EvalFoto        = lazy(() => import('./pages/EvalFoto').then(m => ({ default: m.EvalFoto })));
 const EfInicio       = lazy(() => import('./pages/ef/EfInicio').then(m => ({ default: m.EfInicio })));
 const EfCircuitos    = lazy(() => import('./pages/ef/EfCircuitos').then(m => ({ default: m.EfCircuitos })));
 const EfPizarra      = lazy(() => import('./pages/ef/EfPizarra').then(m => ({ default: m.EfPizarra })));
@@ -430,6 +431,12 @@ function AppInner() {
                 rubrics={st.rubrics}
                 evaluations={st.evaluations}
                 onNav={setSection}
+              />
+            )}
+            {section === 'evalfoto' && (
+              <EvalFoto
+                classes={st.classes} students={st.students} gradeCategories={st.gradeCategories} gradeItems={st.gradeItems}
+                onAddGradeItem={st.addGradeItem} onSetGrade={st.setGrade} onNav={setSection}
               />
             )}
             {(section === 'rubrics' || section === 'dianas') && (

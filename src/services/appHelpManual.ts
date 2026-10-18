@@ -331,6 +331,26 @@ evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
 nota entra en el cuaderno si declara clase y categoría.
 
+[evalfoto] EVALUAR POR FOTO
+Para corregir un examen o un trabajo a partir de su foto (profesorado de aula).
+Se elige la clase, la asignatura si hay varias, el alumno, si es un examen o un
+trabajo, los puntos en total (opcional), el nombre de la columna del cuaderno y
+su categoría (Exámenes, Trabajos…). Se añaden las fotos, una por página, hasta
+8 (desde el móvil se hacen con la cámara), y, si se quiere, las soluciones o los
+criterios, escritos o en foto de la hoja de soluciones (hasta 3): con ellos la IA
+corrige como el docente; sin ellos, con su propio criterio. «Corregir con IA»
+devuelve, pregunta por pregunta, lo que ha escrito el alumno, los puntos y un
+comentario, con las dudosas marcadas («Revísala»), más un comentario para el
+alumno o su familia (se puede editar y copiar). El docente cambia los puntos de
+cada pregunta y la nota sobre 10 se recalcula sola: la suma la hace la
+aplicación, no la IA. «Guardar la nota en el cuaderno» la pone en la columna con
+ese nombre (se crea si no existe), y «Siguiente alumno» deja las mismas
+opciones para el siguiente de la lista, con las fotos vacías. A la IA no le llega
+el nombre del alumno, y se le pide que no lea ningún nombre de la hoja; las
+fotos van a Google reducidas y sin su ubicación y no se guardan en AulaPro. Es
+bueno tapar el nombre del alumno en la foto. La IA se equivoca a veces, sobre
+todo con letra difícil: hay que repasar antes de guardar.
+
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
 clase y alumno. Debajo, «Competencias específicas»: por asignatura con currículo

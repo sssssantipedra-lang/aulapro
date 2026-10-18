@@ -1816,6 +1816,7 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* La portada de Documentos: cuatro tarjetas en fila en pantallas anchas */
 .ev-cards.cuatro { grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); }
+.ev-cards.tres { grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); }
 .ev-cards.cuatro .ev-card { min-height:220px; }
 
 /* ── Inicio «Tu jornada» (11-10-2026) ──
@@ -2123,3 +2124,27 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .aviso-guardado-btns { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
 .aviso-guardado-btns button { display:inline-flex; align-items:center; gap:6px; }
 @media (min-width: 700px) { .aviso-guardado { left:auto; right:20px; max-width:460px; } }
+
+/* Evaluar por foto */
+.evf-fotos { list-style:none; margin:0 0 10px; padding:0; display:flex; flex-wrap:wrap; gap:10px; }
+.evf-foto { position:relative; width:110px; height:140px; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--surface); }
+.evf-foto img { width:100%; height:100%; object-fit:cover; display:block; }
+.evf-foto .ico-btn { position:absolute; top:4px; right:4px; background:rgba(255,255,255,.92); }
+.evf-res { display:flex; flex-direction:column; gap:12px; }
+.evf-nota { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.evf-nota-num { font-size:44px; font-weight:800; letter-spacing:-1px; line-height:1; color:var(--accent-d); }
+.evf-nota-num small { font-size:16px; font-weight:700; color:var(--text-3); margin-left:2px; }
+.evf-preguntas { display:flex; flex-direction:column; gap:8px; }
+.evf-pregunta { padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+.evf-pregunta.dudosa { border-color:var(--warn); background:color-mix(in srgb, var(--warn) 7%, var(--card)); }
+.evf-p-hd { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.evf-p-enun { flex:1 1 180px; min-width:0; font-size:13.5px; }
+.evf-puntos { display:inline-flex; align-items:center; gap:6px; margin-left:auto; font-size:13px; color:var(--text-2); }
+.evf-puntos .finput { width:70px; text-align:right; }
+.evf-revisar { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700; color:var(--warn); }
+.evf-p-resp, .evf-p-com { margin:6px 0 0; font-size:12.5px; line-height:1.5; color:var(--text-2); }
+.evf-p-resp em { color:var(--text-3); }
+.evf-estado-correcta { background:color-mix(in srgb, var(--ok) 16%, transparent); color:var(--ok); }
+.evf-estado-incorrecta { background:color-mix(in srgb, var(--danger) 14%, transparent); color:var(--danger); }
+.evf-listas { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-size:13px; }
+.evf-listas ul { margin:4px 0 0; padding-left:18px; color:var(--text-2); }

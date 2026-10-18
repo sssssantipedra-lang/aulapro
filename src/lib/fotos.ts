@@ -40,12 +40,15 @@ export async function reducirFoto(file: Blob, lado = LADO_FOTO): Promise<string>
 /** El lado mayor de la foto que se envía a la IA: de sobra para reconocer una actividad. */
 export const LADO_FOTO_IA = 1280;
 
+/** El lado mayor de la foto de un examen: la letra de un niño a mano pide más que reconocer un deporte. */
+export const LADO_FOTO_EXAMEN = 2000;
+
 /**
  * La foto para la IA: reducida y vuelta a hacer en JPEG, así que no lleva los
  * metadatos del original (la ubicación, el móvil con que se hizo, la fecha).
  */
-export async function fotoParaIA(file: Blob): Promise<InlineFile> {
-  const dataUrl = await reducirFoto(file, LADO_FOTO_IA);
+export async function fotoParaIA(file: Blob, lado: number = LADO_FOTO_IA): Promise<InlineFile> {
+  const dataUrl = await reducirFoto(file, lado);
   return { name: 'foto.jpg', mimeType: 'image/jpeg', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) };
 }
 
