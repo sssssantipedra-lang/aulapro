@@ -1360,6 +1360,12 @@ export function LearningSituations({
                 <p className="sda-p">{content.ef.modelos.map(id => t(modeloEF(id)?.nombre ?? id)).join(' + ')}</p>
               </div>
             )}
+            {content.ef?.secuencia && content.ef.secuencia.length > 1 && (
+              <div className="sda-text">
+                <div className="sda-text-hd"><h4>{t('Orden de los deportes')}</h4></div>
+                <p className="sda-p">{content.ef.secuencia.join(' → ')}</p>
+              </div>
+            )}
             {content.ef?.modalidad && (
               <div className="sda-text">
                 <div className="sda-text-hd"><h4>{t('Modalidad del juego o deporte')}</h4></div>

@@ -710,6 +710,7 @@ export const EF_EN: Record<string, string> = {
   'Estándar': 'Standard',
   'Grande': 'Large',
   '«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.': '"Large" makes the text bigger throughout the app. It is remembered on this device.',
+  'Orden de los deportes': 'Order of the sports',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1420,4 +1421,5 @@ export const EF_CA: Record<string, string> = {
   'Estándar': 'Estàndard',
   'Grande': 'Gran',
   '«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.': '«Gran» fa més grans les lletres de tota l\'aplicació. Es recorda en aquest dispositiu.',
+  'Orden de los deportes': 'Ordre dels esports',
 };
