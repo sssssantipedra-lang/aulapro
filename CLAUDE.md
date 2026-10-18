@@ -11,6 +11,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `web/DISENO.md`: decisiones de diseño y de contenido de la web, ronda a ronda.
 - `docs/WEB.md`: contexto compartido entre la app y la web: modelo de venta, lo que la web promete y la app tiene que cumplir, descargas y Lemon Squeezy.
 - `docs/DESCARGAS.md`: el servidor de descargas (descargas.aulapro.app).
+- `docs/DNS.md`: los registros DNS de aulapro.app (copia del 18-10-2026), la renovación del dominio y lo pendiente (DMARC).
 - `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar de las tres está en la Agenda desde el 11-10-2026 (`web/sitio/calendario-escolar.json`).
 - `docs/FICHAS.md`: las fichas de trabajo (Recursos): el diseño «Cuaderno», el catálogo de ilustraciones con su descripción y sus temas, los hilos conductores, el generador con fal.ai y lo que falta. `docs/HILOS.md`: el índice de los hilos y de sus dibujos (lo genera una prueba).
 - `docs/EVALUAR_FOTO.md`: «Evaluar por foto» (Evaluar): corregir un examen o un trabajo a partir de sus fotos, con la nota recalculada por el código y revisada por el docente; qué sale de la app y lo que falta.
