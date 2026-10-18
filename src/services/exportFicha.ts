@@ -51,7 +51,7 @@ import {
   type Ilus,
 } from './fichaCuaderno';
 import { dibujosDeLaLectura } from '../lib/lectura';
-import { partirNegritas, quitarNegritas } from '../lib/negritas';
+import { partirNegritas, quitarNegritas, sinNegritasQueNoSePintan } from '../lib/negritas';
 import { nombreIlustracion, urlIlustracion } from '../lib/ilustraciones';
 import { bancoClasificar, esTipoConDibujos } from '../lib/dibujosEjercicio';
 import { CARPETAS } from '../lib/carpetas';
@@ -379,9 +379,17 @@ const DECOR_POS = [
   'top:34px;right:78px;font-size:13px',
 ];
 
+/** La ficha sin asteriscos sueltos; guardada para no recorrerla en cada repintado de la vista previa. */
+const sinAsteriscos = new WeakMap<FichaContent, FichaContent>();
+function contenidoLimpio(c: FichaContent): FichaContent {
+  let l = sinAsteriscos.get(c);
+  if (!l) { l = sinNegritasQueNoSePintan(c); sinAsteriscos.set(c, l); }
+  return l;
+}
+
 export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}): string {
   const t: Tr = (k, vars) => translate(lang, k, vars);
-  const c = f.content;
+  const c = contenidoLimpio(f.content);
   const actividades = getActividades(c);
   const theme = fichaTheme(c.estilo);
   const classic = theme.id === 'clasico';
@@ -538,8 +546,8 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     explicacionHtml +
     (c.instrucciones
       ? visual
-        ? `<div class="ficha-instr vis-instr"${mark('data-part="instrucciones"')}>${svgPencil('#' + theme.oscuro, 20)}<span>${esc(c.instrucciones)}</span></div>`
-        : `<p class="ficha-instr"${mark('data-part="instrucciones"')}>${formato === 'tarjetas' ? `<b>${esc(t('Cómo se juega'))}:</b> ` : ''}${esc(c.instrucciones)}</p>`
+        ? `<div class="ficha-instr vis-instr"${mark('data-part="instrucciones"')}>${svgPencil('#' + theme.oscuro, 20)}<span>${rico(c.instrucciones)}</span></div>`
+        : `<p class="ficha-instr"${mark('data-part="instrucciones"')}>${formato === 'tarjetas' ? `<b>${esc(t('Cómo se juega'))}:</b> ` : ''}${rico(c.instrucciones)}</p>`
       : '') +
     (c.lectura && cuaderno ? lecturaHtml(c.lectura, { ilus, marca: mark('data-part="lectura"') }) : '') +
     body +
@@ -1625,7 +1633,7 @@ function tarjetasDocx(children: (Paragraph | Table)[], cards: FichaTarjeta[], th
 /** Construye el .docx. Separado de `saveFichaDocx` para poder probarlo sin DOM. */
 export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   const t = (k: string, vars?: Record<string, string | number>) => translate(lang, k, vars);
-  const c = f.content;
+  const c = contenidoLimpio(f.content);
   const actividades = getActividades(c);
   const theme = fichaTheme(c.estilo);
   const classic = theme.id === 'clasico';
@@ -1769,7 +1777,7 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
   if (c.instrucciones) {
     children.push(visual
       ? new Paragraph({
-        children: [new TextRun({ text: c.instrucciones, color: '1E293B' })],
+        children: [...runsRicos(c.instrucciones, { color: '1E293B' })],
         shading: { fill: 'FEF3C7' },
         border: { top: { style: 'single', size: 6, color: 'F59E0B', space: 4 }, bottom: { style: 'single', size: 6, color: 'F59E0B', space: 4 }, left: { style: 'single', size: 6, color: 'F59E0B', space: 4 }, right: { style: 'single', size: 6, color: 'F59E0B', space: 4 } },
         spacing: { after: 240 },
