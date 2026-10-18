@@ -50,7 +50,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - La ruleta de Pizarra y herramientas **recuerda quién ha salido, por clase, hasta «Reiniciar lista»** (`src/lib/ruleta.ts`; decisión del dueño). Quien sale deja el sorteo en el siguiente giro, no al instante, para no recolocar los sectores al enseñar el resultado; «Volver a meter en el sorteo» lo devuelve. Se guarda en `localStorage` del dispositivo (`aulapro_ruleta_<id de clase>`), solo nombres que están en la clase, no en los datos del perfil.
 - «Anotar actitud» da respuesta inmediata: pitido corto de Web Audio (`src/lib/sonidos.ts`, sube al sumar y baja al restar; se silencia con el altavoz, preferencia del dispositivo), «+1» flotante y rebote del contador (sin animación con «reducir movimiento»), y una **racha** por alumno (`src/lib/racha.ts`): días de clase seguidos con alguna anotación que suma y ninguna que resta; solo cuentan los días en que se anotó a alguien de la clase.
-- Pendiente, propuesto al dueño y sin decidir: mejor aspecto de los paneles de la pizarra (hay que enseñar capturas antes, como en las fases del rediseño). Descartado por el dueño: nube o cuenta (Supabase u otra); AulaPro sigue siendo local con P2P.
+- Pendiente, propuesto al dueño y sin decidir: mejor aspecto de los paneles de la pizarra: propuesta en `docs/propuestas/pizarra.html` (abrir en el navegador), a la espera de que el dueño decida entre tarjetas claras o el cristal oscuro actual, si se añade «Ordenar» y si el dock lleva un color por herramienta. Descartado por el dueño: nube o cuenta (Supabase u otra); AulaPro sigue siendo local con P2P.
 
 ## Fichas (revisión del 14-10-2026)
 
