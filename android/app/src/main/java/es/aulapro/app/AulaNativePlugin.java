@@ -249,18 +249,27 @@ public class AulaNativePlugin extends Plugin {
         }
     }
 
-    /** Abre la carpeta de AulaPro en el explorador de archivos; si el dispositivo no sabe, rechaza y la interfaz abre el archivo. */
+    /**
+     * Abre la carpeta de AulaPro (o la de un tipo de documento) en el explorador de archivos; si el dispositivo
+     * no sabe, rechaza y la interfaz abre el archivo. Si la carpeta aún no existe (no se ha guardado nada),
+     * abre Documentos y responde `existe: false`.
+     */
     @PluginMethod
     public void openFolder(PluginCall call) {
         final String folder = call.getString("folder", "");
         try {
+            String ruta = "Documents/" + ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder);
+            boolean existe = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOCUMENTS), ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder)).exists();
             Uri dir = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
-                "primary:Documents/" + ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder));
+                "primary:" + (existe ? ruta : "Documents"));
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(dir, DocumentsContract.Document.MIME_TYPE_DIR);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(intent);
-            call.resolve();
+            JSObject ret = new JSObject();
+            ret.put("existe", existe);
+            call.resolve(ret);
         } catch (ActivityNotFoundException e) {
             call.reject("El dispositivo no sabe abrir la carpeta");
         } catch (Exception e) {

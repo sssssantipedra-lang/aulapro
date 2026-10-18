@@ -74,6 +74,11 @@ export interface DocsBridge {
   print: (html: string) => Promise<DocsResult>;
   /** Muestra el archivo en el explorador. */
   reveal: (filePath: string) => Promise<void>;
+  /**
+   * Solo en Android: abre «Documentos › AulaPro», donde se guarda lo que genera la app.
+   * `existe: false` si todavía no se ha guardado nada (se abre Documentos).
+   */
+  openFolder?: () => Promise<{ existe: boolean }>;
 }
 
 export interface UpdateStatus {

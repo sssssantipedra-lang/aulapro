@@ -4,9 +4,11 @@
  * sirve y cuánto hay hecho. Entrar en Documentos desde el menú abre siempre
  * esta pantalla (`portada` en lib/navigation.ts).
  */
-import { ArrowRight, ClipboardList, FileText, Lightbulb, Shapes } from 'lucide-react';
+import { ArrowRight, ClipboardList, FileText, FolderOpen, Lightbulb, Shapes } from 'lucide-react';
 import type { Class, CompetencyReport, Ficha, GradeItem, LearningSituation, Section } from '../types';
 import { useI18n } from '../i18n';
+import { useToast } from '../components/ui/Toast';
+import { CARPETA_RAIZ } from '../lib/carpetas';
 
 interface Props {
   classes: Class[];
@@ -19,6 +21,8 @@ interface Props {
 
 export function DocumentosInicio({ classes, reports, gradeItems, learningSituations, fichas, onNav }: Props) {
   const { t } = useI18n();
+  const { toast } = useToast();
+  const abrirCarpeta = window.electronAPI?.docs?.openFolder;
   const conNotas = classes.filter(c => gradeItems.some(i => i.class_id === c.id)).length;
   const cuenta = (n: number, uno: string, varios: string) => t(n === 1 ? uno : varios, { n });
 
@@ -56,6 +60,20 @@ export function DocumentosInicio({ classes, reports, gradeItems, learningSituati
           <h1 className="pg-title">{t('Documentos')}</h1>
           <p className="pg-sub">{t('Todo lo que acaba en papel')}</p>
         </div>
+        {abrirCarpeta && (
+          // Solo en Android: lleva a Documentos › AulaPro, donde quedan los PDF, Word y copias
+          <button type="button" className="btn-ghost" title={t('Abre la carpeta Documentos › AulaPro de tu dispositivo')}
+            onClick={async () => {
+              try {
+                const r = await abrirCarpeta();
+                if (!r.existe) toast(t('Todavía no has guardado ningún documento. Se abre Documentos; aquí aparecerá la carpeta «{carpeta}».', { carpeta: CARPETA_RAIZ }));
+              } catch {
+                toast(t('Este dispositivo no sabe abrir la carpeta. Búscala en Documentos › AulaPro.'));
+              }
+            }}>
+            <FolderOpen size={15} />{t('Documentos descargados')}
+          </button>
+        )}
       </div>
       <div className="ev-cards cuatro">
         {tarjetas.map(c => (

@@ -36,7 +36,7 @@ interface AulaNativePlugin {
   savePdfInDocuments: (o: { html: string; name: string; landscape: boolean; folder: string }) => Promise<{ uri: string; name: string }>;
   saveFileInDocuments: (o: { base64: string; name: string; mime: string; folder: string }) => Promise<{ uri: string; name: string }>;
   openFile: (o: { uri: string; mime: string }) => Promise<void>;
-  openFolder: (o: { folder: string }) => Promise<void>;
+  openFolder: (o: { folder: string }) => Promise<{ existe?: boolean } | void>;
   openAppSettings: () => Promise<void>;
   secretGet: (o: { name: string }) => Promise<{ value: string }>;
   secretSet: (o: { name: string; value: string }) => Promise<{ ok: boolean }>;
@@ -129,6 +129,10 @@ const docs: DocsBridge = {
     }
   },
   async reveal() { /* en Android, el aviso de «Guardado» tiene el botón que lleva a la carpeta */ },
+  async openFolder() {
+    const r = await AulaNative.openFolder({ folder: '' });
+    return { existe: !r || r.existe !== false };
+  },
 };
 
 function blobToBase64(blob: Blob): Promise<string> {

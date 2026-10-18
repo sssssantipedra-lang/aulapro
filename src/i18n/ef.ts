@@ -702,6 +702,10 @@ export const EF_EN: Record<string, string> = {
   'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.': 'Turn on the microphone under Permissions, in the AulaPro settings, and try again. The sound is not recorded and does not leave this device.',
   'Abrir los ajustes de AulaPro': 'Open AulaPro settings',
   'Volver a intentarlo': 'Try again',
+  'Documentos descargados': 'Downloaded documents',
+  'Abre la carpeta Documentos › AulaPro de tu dispositivo': 'Opens the Documents › AulaPro folder on your device',
+  'Todavía no has guardado ningún documento. Se abre Documentos; aquí aparecerá la carpeta «{carpeta}».': 'You have not saved any document yet. Documents opens; the "{carpeta}" folder will appear here.',
+  'Este dispositivo no sabe abrir la carpeta. Búscala en Documentos › AulaPro.': 'This device cannot open the folder. Look for it in Documents › AulaPro.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1404,4 +1408,8 @@ export const EF_CA: Record<string, string> = {
   'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.': 'Activa el micròfon a Permisos, dins dels ajustos d\'AulaPro, i torna-ho a provar. El so no es grava ni surt d\'aquest equip.',
   'Abrir los ajustes de AulaPro': 'Obre els ajustos d\'AulaPro',
   'Volver a intentarlo': 'Torna-ho a provar',
+  'Documentos descargados': 'Documents descarregats',
+  'Abre la carpeta Documentos › AulaPro de tu dispositivo': 'Obre la carpeta Documents › AulaPro del teu dispositiu',
+  'Todavía no has guardado ningún documento. Se abre Documentos; aquí aparecerá la carpeta «{carpeta}».': 'Encara no has desat cap document. S\'obre Documents; aquí apareixerà la carpeta «{carpeta}».',
+  'Este dispositivo no sabe abrir la carpeta. Búscala en Documentos › AulaPro.': 'Aquest dispositiu no sap obrir la carpeta. Cerca-la a Documents › AulaPro.',
 };
