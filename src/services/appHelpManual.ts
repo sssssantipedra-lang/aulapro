@@ -284,6 +284,12 @@ sentar antes a nadie. Se abre en la clase que toca según el horario.
   deshace la última anotación de ese alumno ese día. A la derecha, la nota del
   bloque sobre 10. Quien tiene falta ese día sale marcado «Falta».
 - Se cambia de día con las flechas de la fecha.
+- Al anotar suena un pitido corto (sube si suma, baja si resta), sale un «+1»
+  o «−1» sobre el botón y el contador rebota. El altavoz de arriba a la
+  derecha silencia el sonido; se queda así en ese dispositivo.
+- Junto al nombre sale una llama con un número cuando el alumno lleva dos o más
+  días de clase seguidos sumando y sin ninguna anotación que reste. Solo
+  cuentan los días en que se anotó a alguien de esa clase.
 - Cuenta en el bloque «Trabajo diario y actitud» del CUADERNO DE NOTAS (ver
   Cuaderno de notas), igual que lo anotado desde la Distribución de aula.
   «Ajustar en el cuaderno» lleva a cambiar cuánto pesa y cuánto vale cada
@@ -573,8 +579,10 @@ Al pulsar «Guardar» la copia se borra.
 Antes se llamaba solo «Aula Live». Arriba a la izquierda se elige la CLASE:
 la ruleta usa los nombres de esa clase (se abre en la que toca según el
 horario).
-Herramientas para proyectar en clase: temporizador, sorteo de alumnos (se puede
-ir sacando sin repetir) y medidor de ruido con el micrófono, con aviso al pasar
+Herramientas para proyectar en clase: temporizador, sorteo de alumnos (quien sale
+no vuelve a salir hasta que se pulsa «Reiniciar lista»; se acuerda de cada
+clase aunque se cierre la pizarra, y «Volver a meter en el sorteo» devuelve a
+quien acaba de salir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel.
 Tiene una pizarra para dibujar encima («Lápiz»). La pizarra es BLANCA por
 defecto, para que se vea bien en el proyector o el panel; el botón «Fondo

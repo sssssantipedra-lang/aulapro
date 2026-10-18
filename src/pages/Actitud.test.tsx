@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { Actitud } from './Actitud';
 import { I18nProvider } from '../i18n';
 import { requestActitud } from '../lib/actitudNav';
-import { isoDate } from '../lib/utils';
+import { isoDate, shiftDate } from '../lib/utils';
 import type { Class, Student, ClassMark } from '../types';
 
 afterEach(cleanup);
@@ -69,5 +69,32 @@ describe('Anotar actitud', () => {
     render(<Harness />);
     expect(screen.getByRole('group', { name: 'Alumno 9' })).toBeTruthy();
     expect(screen.queryByRole('group', { name: 'Alumno 2' })).toBeNull();
+  });
+
+  it('el botón de sonido se apaga y se acuerda del dispositivo', async () => {
+    const user = userEvent.setup();
+    localStorage.clear();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: 'Silenciar el sonido al anotar' }));
+    expect(localStorage.getItem('aulapro_sonido_actitud')).toBe('no');
+    expect(screen.getByRole('button', { name: 'Activar el sonido al anotar' })).toBeTruthy();
+  });
+
+  it('un alumno con dos días seguidos sumando enseña su racha', () => {
+    const ayer = shiftDate(isoDate(), -1);
+    const m = (id: string, date: string) => ({ id, class_id: 'c1', student_id: 's2', type: 'participation', date }) as ClassMark;
+    function Con() {
+      return (
+        <I18nProvider>
+          <Actitud
+            classes={clases} students={students} classMarks={[m('a', ayer), m('b', isoDate())]} marksConfigs={{}}
+            attendance={{}} onAdd={() => {}} onDelete={() => {}} onNav={() => {}}
+          />
+        </I18nProvider>
+      );
+    }
+    render(<Con />);
+    expect(within(fila('Alumno 2')).getByTitle('Racha de 2 días de clase seguidos sumando')).toBeTruthy();
+    expect(within(fila('Alumno 10')).queryByTitle(/Racha/)).toBeNull();
   });
 });

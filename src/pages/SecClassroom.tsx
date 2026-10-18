@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useResetOnChange } from '../lib/useResetOnChange';
+import { guardarSalidos, leerSalidos, marcarSalido, sinSalir } from '../lib/ruleta';
 import type { Ficha } from '../types';
 import { ChallengePresenter } from '../components/live/ChallengePresenter';
 import { fichaTheme } from '../lib/fichaThemes';
@@ -634,8 +635,15 @@ function NoiseWidget() {
    RULETA
    ════════════════════════════════════════════════════════════ */
 
-function WheelWidget({ names }: { names: string[] }) {
+/**
+ * `memoria` es la clave de la clase: quien sale queda guardado en el dispositivo
+ * y no vuelve a salir hasta «Reiniciar lista» (decisión del dueño, 18-10-2026).
+ * El círculo no cambia al salir alguien, solo al girar de nuevo: así no se
+ * recolocan los sectores justo cuando se enseña el resultado.
+ */
+function WheelWidget({ names, memoria }: { names: string[]; memoria: string }) {
   const { t } = useI18n();
+  const [salidos, setSalidos]   = useState<string[]>([]);
   const [pool, setPool]         = useState<string[]>(names);
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
@@ -644,40 +652,65 @@ function WheelWidget({ names }: { names: string[] }) {
   // Se compara el contenido, no la identidad del array: el padre crea una lista
   // nueva en cada render y depender de ella reiniciaría el giro a mitad de vuelta.
   const namesKey = names.join('\u0000');
-  useResetOnChange(namesKey, () => {
-    setPool(namesKey ? namesKey.split('\u0000') : []);
+  useResetOnChange(`${memoria}\u0001${namesKey}`, () => {
+    const todos = namesKey ? namesKey.split('\u0000') : [];
+    const ya = leerSalidos(memoria);
+    setSalidos(ya);
+    setPool(sinSalir(todos, ya));
     setWinner(null);
     setRotation(0);
   });
 
   const n = pool.length;
   const step = n > 0 ? 360 / n : 360;
+  const quedan = sinSalir(names, salidos).length;
+  const hanSalido = names.length - quedan;
 
   const spin = useCallback(() => {
-    if (spinning || n === 0) return;
-    setSpinning(true);
+    if (spinning) return;
+    // El círculo se rehace con quien aún no ha salido (el último ya ha salido y sigue en él hasta ahora)
+    const vivo = sinSalir(names, salidos);
+    setPool(vivo);
     setWinner(null);
+    if (vivo.length === 0) return;
+    setSpinning(true);
 
-    const idx = Math.floor(Math.random() * n);
+    const m = vivo.length;
+    const paso = 360 / m;
+    const idx = Math.floor(Math.random() * m);
     // Deja el centro del sector elegido justo bajo la aguja (arriba)
-    const targetMod = (360 - (idx + 0.5) * step + 360) % 360;
+    const targetMod = (360 - (idx + 0.5) * paso + 360) % 360;
     const currentMod = ((rotation % 360) + 360) % 360;
     const delta = (targetMod - currentMod + 360) % 360;
     const next = rotation + 360 * 5 + delta;
 
     setRotation(next);
     setTimeout(() => {
-      setWinner(pool[idx]);
+      const elegido = vivo[idx];
+      const ya = marcarSalido(names, salidos, elegido);
+      setSalidos(ya);
+      guardarSalidos(memoria, ya);
+      setWinner(elegido);
       setSpinning(false);
       confetti({ particleCount: 130, spread: 95, origin: { y: 0.55 } });
     }, 4100);
-  }, [spinning, n, step, rotation, pool]);
+  }, [spinning, names, salidos, rotation, memoria]);
 
-  const removeWinner = useCallback(() => {
+  /** Quien acaba de salir vuelve al sorteo (por si salió sin querer o va a repetir). */
+  const volverAMeter = useCallback(() => {
     if (!winner) return;
-    setPool(prev => prev.filter(x => x !== winner));
+    const ya = salidos.filter(x => x !== winner);
+    setSalidos(ya);
+    guardarSalidos(memoria, ya);
     setWinner(null);
-  }, [winner]);
+  }, [winner, salidos, memoria]);
+
+  const reiniciar = useCallback(() => {
+    setSalidos([]);
+    guardarSalidos(memoria, []);
+    setPool(names);
+    setWinner(null);
+  }, [memoria, names]);
 
   const SIZE = 250;
   const C = SIZE / 2;
@@ -710,7 +743,7 @@ function WheelWidget({ names }: { names: string[] }) {
           {t('Ya han salido todos. Reinicia para volver a empezar.')}
         </p>
         <button
-          onClick={() => { setPool(names); setWinner(null); }}
+          onClick={reiniciar}
           className="rounded-xl font-bold text-[13px]"
           style={{ padding: '9px 20px', background: 'rgba(167,139,250,0.2)', color: '#c4b5fd' }}
         >
@@ -801,11 +834,16 @@ function WheelWidget({ names }: { names: string[] }) {
               >
                 {winner}
               </div>
+              <p className="text-white/45 text-[11.5px] font-semibold">
+                {quedan === 0
+                  ? t('Era el último: ya han salido todos')
+                  : quedan === 1 ? t('Queda 1 por salir') : t('Quedan {n} por salir', { n: quedan })}
+              </p>
               <button
-                onClick={removeWinner}
-                className="text-[11.5px] font-semibold text-white/45 hover:text-white/80 transition-colors"
+                onClick={volverAMeter}
+                className="text-[11.5px] font-semibold text-white/45 hover:text-white/80 transition-colors underline underline-offset-2"
               >
-                {n - 1 === 1 ? t('Quitar del sorteo (queda 1)') : t('Quitar del sorteo (quedan {n})', { n: n - 1 })}
+                {t('Volver a meter en el sorteo')}
               </button>
             </motion.div>
           ) : (
@@ -814,7 +852,17 @@ function WheelWidget({ names }: { names: string[] }) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="text-white/35 text-[12.5px] pt-4"
             >
-              {spinning ? t('Girando…') : n === 1 ? t('1 participante') : t('{n} participantes', { n })}
+              {spinning ? t('Girando…') : hanSalido === 0
+                ? (names.length === 1 ? t('1 participante') : t('{n} participantes', { n: names.length }))
+                : t('Quedan {n} de {total}', { n: quedan, total: names.length })}
+              {!spinning && hanSalido > 0 && (
+                <button
+                  onClick={reiniciar}
+                  className="ml-2 font-semibold text-white/55 hover:text-white/85 transition-colors underline underline-offset-2"
+                >
+                  {t('Reiniciar lista')}
+                </button>
+              )}
             </motion.p>
           )}
         </AnimatePresence>
@@ -1479,7 +1527,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     if (!widgets[cfg.id]) return null;
     const body =
       cfg.id === 'timer' ? <TimerWidget /> :
-      cfg.id === 'wheel' ? <WheelWidget names={wheelNames} /> :
+      cfg.id === 'wheel' ? <WheelWidget names={wheelNames} memoria={clase?.id ?? 'sin-clase'} /> :
       cfg.id === 'calc'  ? <CalcWidget /> :
       cfg.id === 'noise' ? <NoiseWidget /> :
                            <EmbedWidget />;
