@@ -2148,3 +2148,22 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .evf-estado-incorrecta { background:color-mix(in srgb, var(--danger) 14%, transparent); color:var(--danger); }
 .evf-listas { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; font-size:13px; }
 .evf-listas ul { margin:4px 0 0; padding-left:18px; color:var(--text-2); }
+
+/* Sesión de EF en tres momentos (SdA) */
+.sda-momentos { margin-top:8px; }
+.sda-momentos > summary { cursor:pointer; font-size:12.5px; font-weight:700; color:var(--accent-d); display:flex; align-items:center; gap:10px; }
+.sda-momentos-min { display:inline-flex; align-items:center; gap:4px; font-weight:600; color:var(--text-3); }
+.sda-momentos-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px; margin-top:10px; }
+.sda-momento { padding:10px 12px; border-radius:12px; background:var(--card); border:1px solid var(--border); border-top:3px solid var(--mo-c, var(--accent-d)); }
+.sda-momento.preimpacto { --mo-c:#f59e0b; }
+.sda-momento.impacto { --mo-c:#16a34a; }
+.sda-momento.postimpacto { --mo-c:#7c3aed; }
+.sda-momento h5 { margin:0; font-size:13px; font-weight:800; display:flex; justify-content:space-between; align-items:baseline; }
+.sda-momento h5 small { font-size:11.5px; font-weight:600; color:var(--text-3); }
+.sda-momento-ayuda { margin:1px 0 6px; font-size:11.5px; color:var(--text-3); }
+.sda-momento-txt { margin:0 0 8px; font-size:12.5px; line-height:1.55; color:var(--text-2); }
+.sda-act { padding:8px 10px; margin-top:6px; border-radius:9px; background:var(--surface); }
+.sda-act-hd { display:flex; justify-content:space-between; gap:8px; font-size:13px; }
+.sda-act-hd span { font-size:11.5px; font-weight:600; color:var(--text-3); white-space:nowrap; }
+.sda-act p { margin:4px 0 0; font-size:12.5px; line-height:1.55; color:var(--text); }
+.sda-act p.sda-act-meta { color:var(--text-2); font-size:12px; }

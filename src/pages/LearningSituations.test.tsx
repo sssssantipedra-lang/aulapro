@@ -11,6 +11,7 @@ import { LearningSituations } from './LearningSituations';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
 import type { Class, LearningSituation } from '../types';
+import type { SesionEF } from '../types/ef';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 // Con clave de IA, para que el botón de generar funcione; la generación en sí
@@ -96,6 +97,53 @@ describe('Situaciones de aprendizaje', () => {
     expect(screen.getByRole('button', { name: /Crear escape room/ })).toBeTruthy();
     await user.click(screen.getByRole('radio', { name: /Tarjetas recortables/ }));
     expect(screen.getByLabelText('Nº de tarjetas')).toBeTruthy();
+  });
+});
+
+describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
+  const act = (nombre: string, material = '1 balón por pareja') => ({ nombre, minutos: 10, descripcion: 'Se juega por parejas: punto si recibe en el área.', organizacion: 'Parejas en media pista', material });
+  const ef: LearningSituation = {
+    ...sda, id: 'ef9', title: 'Liga de voleibol', class_id: 'c1', class_name: '4º A',
+    content: {
+      ...sda.content, titulo: 'Liga de voleibol', ef: { modelos: ['educacion-deportiva'], referencias: [] },
+      sesiones: [{
+        fase: 'Desarrollo', titulo: 'El toque de dedos', descripcion: 'Se trabaja el toque en movimiento.',
+        momentos: {
+          preimpacto: { texto: 'Se colocan cuatro zonas con conos.', actividades: [act('Pilla-pilla de cadenas', 'ninguno')] },
+          impacto: { texto: 'Progresión de 2 contra 1 a 3 contra 2.', actividades: [act('Toque y desmarque'), act('Rondo de 4 contra 1')] },
+          postimpacto: { texto: 'Puesta en común con semáforo.', actividades: [act('Estiramientos en círculo', 'ninguno')] },
+        },
+      }],
+    },
+  };
+  const claseEF = { id: 'c1', name: '4º A', subject: 'Educación Física', subjects: ['Educación Física'], etapa: 'primaria', curso: 4 } as Class;
+
+  it('se leen los tres momentos con sus actividades reales, y al pasarlas a Sesiones de EF cada momento va a su parte', async () => {
+    const user = userEvent.setup();
+    const pasadas: SesionEF[][] = [];
+    render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations
+          classes={[claseEF]} gradeCategories={[]} learningSituations={[ef]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
+          ef={{ material: '', instalaciones: '', limitacionesDe: () => [], onPasarSesiones: s => pasadas.push(s) }}
+        />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Liga de voleibol/ }));
+    for (const m of ['Preimpacto', 'Impacto', 'Postimpacto']) expect(screen.getByRole('region', { name: m })).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Impacto' })).getByText('Toque y desmarque')).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Preimpacto' })).getByText('Pilla-pilla de cadenas')).toBeTruthy();
+    expect(screen.getByText('Progresión de 2 contra 1 a 3 contra 2.')).toBeTruthy();
+    expect(screen.getByText('40 min')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /Pasar a Sesiones de EF/ }));
+    const s = pasadas[0][0];
+    expect(s.objetivo).toBe('Se trabaja el toque en movimiento.');
+    expect(s.calentamiento).toContain('Pilla-pilla de cadenas (10 min).');
+    expect(s.principal).toContain('Rondo de 4 contra 1');
+    expect(s.calma).toContain('Estiramientos en círculo');
+    expect(s.material).toBe('1 balón por pareja');
   });
 });
 

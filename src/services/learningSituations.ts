@@ -59,10 +59,42 @@ export interface SdaArea {
   materia?: string;
 }
 
+/** Una actividad real de una sesión de EF: un juego o una tarea con nombre, explicada paso a paso. */
+export interface ActividadSesionEF {
+  nombre: string;
+  minutos: number;
+  /** Cómo se hace: reglas, puntuación, progresión. */
+  descripcion: string;
+  /** Grupos, espacio y roles. */
+  organizacion: string;
+  material: string;
+}
+
+/** Uno de los tres momentos de una sesión: lo que se hace en él y sus actividades. */
+export interface MomentoSesionEF {
+  texto: string;
+  actividades: ActividadSesionEF[];
+}
+
+/**
+ * Una sesión de EF explicada en los tres momentos de Mosston (decisión del
+ * dueño, 18-10-2026: «que proponga actividades reales siguiendo el preimpacto,
+ * impacto y postimpacto»): antes de la práctica principal, durante ella y
+ * después. Ver `docs/EF.md`.
+ */
+export interface MomentosSesionEF {
+  preimpacto: MomentoSesionEF;
+  impacto: MomentoSesionEF;
+  postimpacto: MomentoSesionEF;
+}
+
 export interface SdaSession {
   fase: string;
   titulo: string;
+  /** En las de EF con momentos, un resumen de la sesión; el detalle está en `momentos`. */
   descripcion: string;
+  /** Solo en las SdA de EF hechas desde la 2.11.0. Las anteriores siguen con su `descripcion`. */
+  momentos?: MomentosSesionEF;
 }
 
 /**
@@ -126,7 +158,12 @@ export interface SdaPeticionEF {
   instalaciones: string;
   /** Lo que no puede hacer quien está exento o lesionado: una línea por alumno, sin nombre ni motivo. */
   limitaciones: string[];
+  /** Lo que dura cada sesión, en minutos (50 si no se dice). */
+  minutos?: number;
 }
+
+/** Lo que dura una sesión de EF si el docente no lo dice. */
+export const MINUTOS_SESION_EF = 50;
 
 export interface SdaRubricRow {
   criterio: string;
@@ -229,8 +266,20 @@ function instruccionesEF(ef: SdaPeticionEF): string {
     `Trabaja el juego o deporte según la lógica de su modalidad y prepáralo como ella pide (calentamiento específico, ` +
     `progresión y seguridad):\n${MODALIDADES_EF.map(m => `  - ${m.id}: ${m.label}. Lógica: ${m.logica} Preparación: ${m.preparacion}`).join('\n')}\n` +
     `- La metodología, el agrupamiento y cada sesión aplican de verdad el modelo (sus roles, grupos, fases y momentos de reflexión).\n` +
-    `- Cada "descripcion" de sesión es una sesión de EF: calentamiento, parte principal y vuelta a la calma, con mucho ` +
-    `tiempo de compromiso motor, la organización, el material y las normas de seguridad.\n` +
+    `- Cada sesión de EF se explica en los tres momentos de la enseñanza (Mosston y Ashworth): PREIMPACTO (antes de la ` +
+    `práctica principal: el objetivo, la organización del espacio, del material y de los grupos, las normas de seguridad, ` +
+    `cómo se presenta la tarea, y la activación o calentamiento específico), IMPACTO (durante: las tareas principales, ` +
+    `de lo fácil a lo difícil, cómo se organiza y qué decide el alumnado, el feedback del docente mientras tanto y las ` +
+    `adaptaciones para que participe todo el grupo) y POSTIMPACTO (después: la vuelta a la calma, la puesta en común con ` +
+    `preguntas concretas, la autoevaluación o coevaluación con su instrumento y el cierre).\n` +
+    `- ACTIVIDADES REALES, no generalidades: en cada momento, de 1 a 3 actividades con nombre (un juego o una tarea que ` +
+    `exista: «el pañuelo», «pilla-pilla de cadenas», «béisbol con la mano», «pase y desmarque 3 contra 1», «circuito de ` +
+    `equilibrios»…), explicadas de modo que el docente pueda hacerlas mañana: cómo se juega, las reglas, cómo se puntúa o ` +
+    `se gana, cuántos en cada grupo, el espacio, el material y cuánto y cómo se complica. Prohibido escribir «se realizará ` +
+    `un juego de calentamiento» o «se practicarán los pases»: di CUÁL y CÓMO. Cada sesión es distinta de las demás y avanza ` +
+    `respecto a la anterior (nada de repetir la misma actividad), y sus minutos suman la duración de la sesión ` +
+    `(preimpacto de 10 a 15, impacto la mayor parte, postimpacto de 5 a 10 con la recogida).\n` +
+    `- En "descripcion" de la sesión, un resumen de dos frases; el detalle va en "preimpacto", "impacto" y "postimpacto".\n` +
     `- El producto final es un desempeño motor (un festival, el evento final de una liga, una ruta de orientación, una ` +
     `coreografía, un juego inventado y enseñado a otro grupo).\n` +
     `- Inclusión según el DUA-A (Diseño Universal para el Aprendizaje y la Accesibilidad): quien tiene una limitación ` +
@@ -243,11 +292,18 @@ function instruccionesEF(ef: SdaPeticionEF): string {
   );
 }
 
+/** Lo que dura cada sesión de EF, en minutos enteros y con sentido (de 20 a 120). */
+export function minutosDeSesion(ef: Pick<SdaPeticionEF, 'minutos'>): number {
+  const m = Math.round(ef.minutos ?? MINUTOS_SESION_EF);
+  return Number.isFinite(m) && m >= 20 && m <= 120 ? m : MINUTOS_SESION_EF;
+}
+
 /** Los datos de EF para el prompt del usuario. */
 function datosEF(ef: SdaPeticionEF): string {
   return (
     (ef.material ? `Material disponible: ${ef.material}\n` : '') +
     (ef.instalaciones ? `Instalaciones: ${ef.instalaciones}\n` : '') +
+    `Duración de cada sesión: ${minutosDeSesion(ef)} minutos\n` +
     (ef.limitaciones.length
       ? `Alumnado con alguna limitación ahora o con medidas de nivel II o III (una línea por alumno, sin nombres): en ` +
         `"inclusionIndividualizada", una medida para cada uno, según su nivel:\n${ef.limitaciones.map(l => `- ${l}`).join('\n')}\n`
@@ -353,6 +409,44 @@ const SDA_SESSION_SCHEMA = {
   propertyOrdering: ['fase', 'titulo', 'descripcion'],
 } as const;
 
+const ACTIVIDAD_EF_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    nombre: S('Nombre de la actividad real: un juego o una tarea conocida o con nombre propio'),
+    minutos: { type: 'NUMBER', description: 'Minutos que dura' },
+    descripcion: S('Cómo se hace, paso a paso, en 3 a 5 frases: reglas, cómo se puntúa o se gana, y cómo progresa o se complica'),
+    organizacion: S('Cuántos en cada grupo, en qué espacio y con qué papeles'),
+    material: S('Material concreto y cuánto; «ninguno» si no hace falta'),
+  },
+  required: ['nombre', 'minutos', 'descripcion', 'organizacion', 'material'],
+  propertyOrdering: ['nombre', 'minutos', 'descripcion', 'organizacion', 'material'],
+} as const;
+
+const MOMENTO_EF_SCHEMA = (que: string) => ({
+  type: 'OBJECT',
+  properties: {
+    texto: S(que),
+    actividades: { type: 'ARRAY', items: ACTIVIDAD_EF_SCHEMA },
+  },
+  required: ['texto', 'actividades'],
+  propertyOrdering: ['texto', 'actividades'],
+}) as const;
+
+/** La sesión de EF: un resumen y los tres momentos, cada uno con actividades reales. */
+const SDA_SESSION_SCHEMA_EF = {
+  type: 'OBJECT',
+  properties: {
+    fase: S('Activación, Desarrollo, Consolidación o Producto final'),
+    titulo: S('Título corto de la sesión'),
+    descripcion: S('Resumen de la sesión en 2 frases: qué se trabaja y qué se consigue'),
+    preimpacto: MOMENTO_EF_SCHEMA('Antes de la práctica principal: el objetivo de la sesión, cómo se organiza el espacio, el material y los grupos, las normas de seguridad y cómo se presenta la tarea (demostración, reto o ejemplo), en 2 a 4 frases'),
+    impacto: MOMENTO_EF_SCHEMA('Durante la práctica: cómo se organiza el alumnado, qué decide, qué feedback da el docente mientras tanto y cómo se adapta para que participe todo el grupo (DUA-A), en 2 a 4 frases'),
+    postimpacto: MOMENTO_EF_SCHEMA('Después de la práctica: el feedback y la evaluación (preguntas concretas de la puesta en común, autoevaluación o coevaluación con su instrumento) y el cierre, en 2 a 4 frases'),
+  },
+  required: ['fase', 'titulo', 'descripcion', 'preimpacto', 'impacto', 'postimpacto'],
+  propertyOrdering: ['fase', 'titulo', 'descripcion', 'preimpacto', 'impacto', 'postimpacto'],
+} as const;
+
 const SDA_FIELDS = [
   'titulo', 'justificacion', 'ods', 'objetivosEtapa', 'competenciasClave',
   'explicacionCurricular', 'areas',
@@ -393,6 +487,7 @@ const SDA_SCHEMA_EF = {
   ...SDA_SCHEMA,
   properties: {
     ...SDA_SCHEMA.properties,
+    sesiones: { type: 'ARRAY', items: SDA_SESSION_SCHEMA_EF },
     modelosPedagogicos: {
       type: 'ARRAY',
       description: 'De 1 a 2 identificadores de modelos pedagógicos de EF de la lista cerrada.',
@@ -657,7 +752,7 @@ export async function generateSda(
     // y el JSON llegaría roto. Con sesiones más desarrolladas (de 5 a 8
     // frases cada una, no 2 o 3) hace falta más margen que antes, sobre todo
     // con muchas sesiones pedidas.
-    maxOutputTokens: 24576,
+    maxOutputTokens: req.ef ? 32768 : 24576,
     responseSchema: req.ef ? SDA_SCHEMA_EF : SDA_SCHEMA,
     thinkingLevel: 'medium',
   });
@@ -682,10 +777,50 @@ export async function generateSda(
   return {
     ...textos,
     areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
-    sesiones: Array.isArray(parsed.sesiones) ? parsed.sesiones : [],
+    sesiones: sesionesDeLaRespuesta(parsed.sesiones, !!req.ef),
     normativa,
     ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva) } : {}),
   };
+}
+
+const textoLimpio = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
+function momentoDeLaRespuesta(raw: unknown): MomentoSesionEF {
+  const o = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+  const actividades = (Array.isArray(o.actividades) ? o.actividades : [])
+    .filter((a): a is Record<string, unknown> => !!a && typeof a === 'object')
+    .map(a => {
+      const min = typeof a.minutos === 'number' && Number.isFinite(a.minutos) ? Math.round(a.minutos) : 0;
+      return {
+        nombre: textoLimpio(a.nombre), minutos: min >= 1 && min <= 120 ? min : 0,
+        descripcion: textoLimpio(a.descripcion), organizacion: textoLimpio(a.organizacion), material: textoLimpio(a.material),
+      };
+    })
+    .filter(a => a.nombre && a.descripcion)
+    .slice(0, 4);
+  return { texto: textoLimpio(o.texto), actividades };
+}
+
+/**
+ * Las sesiones tal como las devuelve la IA. En las de EF, con los tres
+ * momentos saneados (actividades con nombre y cómo se hacen, como mucho cuatro
+ * por momento, minutos razonables); si una sesión no trae ninguna actividad en
+ * ningún momento, se queda como sesión de solo descripción en vez de enseñar
+ * tres cuadros vacíos.
+ */
+export function sesionesDeLaRespuesta(raw: unknown, esEF: boolean): SdaSession[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((s): s is Record<string, unknown> => !!s && typeof s === 'object')
+    .map(s => {
+      const base = { fase: textoLimpio(s.fase), titulo: textoLimpio(s.titulo), descripcion: textoLimpio(s.descripcion) };
+      if (!esEF) return base;
+      const momentos: MomentosSesionEF = {
+        preimpacto: momentoDeLaRespuesta(s.preimpacto), impacto: momentoDeLaRespuesta(s.impacto), postimpacto: momentoDeLaRespuesta(s.postimpacto),
+      };
+      const hay = momentos.preimpacto.actividades.length + momentos.impacto.actividades.length + momentos.postimpacto.actividades.length > 0;
+      return hay ? { ...base, momentos } : base;
+    });
 }
 
 /**

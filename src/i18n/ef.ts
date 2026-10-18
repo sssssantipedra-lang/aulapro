@@ -670,6 +670,15 @@ export const EF_EN: Record<string, string> = {
   'Exámenes y trabajos': 'Exams and assignments',
   'Fotografías un examen o un trabajo: la IA propone los puntos de cada pregunta y tú revisas la nota.': 'You photograph an exam or an assignment: the AI suggests the points for each question and you check the grade.',
   'La IA no pudo corregirlo con esas fotos. Prueba con fotos más nítidas y de cerca.': 'The AI could not grade it from those photos. Try sharper, closer photos.',
+  'Preimpacto, impacto y postimpacto': 'Pre-impact, impact and post-impact',
+  '{n} min': '{n} min',
+  'Duración de cada sesión (minutos)': 'Length of each session (minutes)',
+  'Preimpacto': 'Pre-impact',
+  'Impacto': 'Impact',
+  'Postimpacto': 'Post-impact',
+  'Antes de la práctica: preparar, presentar y activar': 'Before the practice: prepare, introduce and activate',
+  'Durante la práctica principal': 'During the main practice',
+  'Después: feedback, evaluación y cierre': 'Afterwards: feedback, assessment and closing',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1340,4 +1349,13 @@ export const EF_CA: Record<string, string> = {
   'Exámenes y trabajos': 'Exàmens i treballs',
   'Fotografías un examen o un trabajo: la IA propone los puntos de cada pregunta y tú revisas la nota.': 'Fotografies un examen o un treball: la IA proposa els punts de cada pregunta i tu revises la nota.',
   'La IA no pudo corregirlo con esas fotos. Prueba con fotos más nítidas y de cerca.': 'La IA no ho ha pogut corregir amb aquestes fotos. Prova-ho amb fotos més nítides i de prop.',
+  'Preimpacto, impacto y postimpacto': 'Preimpacte, impacte i postimpacte',
+  '{n} min': '{n} min',
+  'Duración de cada sesión (minutos)': 'Durada de cada sessió (minuts)',
+  'Preimpacto': 'Preimpacte',
+  'Impacto': 'Impacte',
+  'Postimpacto': 'Postimpacte',
+  'Antes de la práctica: preparar, presentar y activar': 'Abans de la pràctica: preparar, presentar i activar',
+  'Durante la práctica principal': 'Durant la pràctica principal',
+  'Después: feedback, evaluación y cierre': 'Després: feedback, avaluació i tancament',
 };

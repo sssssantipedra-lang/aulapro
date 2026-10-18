@@ -23,6 +23,7 @@ import { downloadFile } from '../lib/download';
 import { modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { CARPETAS } from '../lib/carpetas';
+import { sesionEnTexto } from '../lib/sesionSda';
 
 function fileBase(sda: LearningSituation): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -114,7 +115,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
       ? band(t('Sesiones')) +
         c.sesiones.map((s, i) => rowFull(
           `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
-          s.descripcion,
+          sesionEnTexto(s, t),
         )).join('')
       : '') +
     (c.evaluacionTecnicas || c.evaluacionInstrumentos
@@ -192,15 +193,16 @@ function gcell(text: string, opts: { colSpan?: number; style?: 'bandTop' | 'band
     verticalAlign: VerticalAlign.CENTER,
     shading: fill ? { fill } : undefined,
     margins: { top: 90, bottom: 90, left: 110, right: 110 },
-    children: [new Paragraph({
+    // Una línea del texto, un párrafo: en Word un salto de línea dentro de un TextRun no se ve
+    children: (text || DASH).split('\n').map(linea => new Paragraph({
       children: [new TextRun({
-        text: text || DASH,
+        text: linea,
         bold: style !== 'value',
         size: style === 'bandTop' ? 20 : style === 'band' ? 19 : style === 'label' ? 19 : 20,
         color,
         allCaps: style === 'band',
       })],
-    })],
+    })),
   });
 }
 
@@ -264,7 +266,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
       gBand(t('Sesiones')),
       ...c.sesiones.flatMap((s, i) => gRowFull(
         `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
-        s.descripcion,
+        sesionEnTexto(s, t),
       )),
     ] : []),
     ...(c.evaluacionTecnicas || c.evaluacionInstrumentos ? [

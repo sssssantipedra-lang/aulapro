@@ -716,6 +716,16 @@ compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
 abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia
 cada sesión a la pestaña Sesiones, sin fecha. Las SdA se guardan con las
 demás y salen también en Documentos.
+SESIONES: cada sesión se explica en tres momentos, PREIMPACTO (antes de la
+práctica: objetivo, organización del espacio, el material y los grupos, normas
+de seguridad, cómo se presenta la tarea y la activación o calentamiento),
+IMPACTO (la práctica principal, de lo fácil a lo difícil, con el feedback del
+docente y las adaptaciones para que participe todo el grupo) y POSTIMPACTO
+(vuelta a la calma, puesta en común con preguntas, autoevaluación o coevaluación
+y cierre). En cada momento salen actividades reales con nombre: cómo se hace,
+cuántos minutos, la organización y el material. En el formulario de EF se
+indica «Duración de cada sesión» (50 minutos de partida). Se ven en la SdA, en
+el PDF y en el Word, y «Pasar a Sesiones de EF» pone cada momento en su parte.
 
 [ef-sesiones] SESIONES
 Sesiones de EF con calentamiento, parte principal, vuelta a la calma,
