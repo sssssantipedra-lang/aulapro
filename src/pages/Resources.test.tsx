@@ -55,6 +55,49 @@ function setup(onSave = vi.fn(), list: Ficha[] = [ficha]) {
   return onSave;
 }
 
+describe('Recursos — autoguardado', () => {
+  afterEach(() => { generar.mockClear(); localStorage.clear(); });
+  it('una ficha generada y sin guardar queda como borrador al salir, y se continúa al volver', async () => {
+    localStorage.clear();
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    generar.mockResolvedValueOnce({ ...ficha.content, titulo: 'Fracciones con pizzas', historia: undefined, estilo: 'cuaderno' });
+    const user = userEvent.setup();
+    const antes = render(
+      <I18nProvider><ToastProvider><Resources classes={[]} fichas={[]} onSave={() => {}} onDelete={() => {}} onNav={() => {}} /></ToastProvider></I18nProvider>,
+    );
+    await user.type(screen.getByLabelText('¿De qué va la ficha?'), 'fracciones');
+    await user.click(screen.getByRole('button', { name: /Crear ficha/ }));
+    expect(await screen.findByDisplayValue('Fracciones con pizzas')).toBeTruthy();
+    // Se va a otra pantalla sin guardar: la copia queda hecha
+    antes.unmount();
+
+    setup(vi.fn(), []);
+    expect(screen.getByText(/Te quedó una ficha sin guardar: «Fracciones con pizzas»/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect(screen.getByDisplayValue('Fracciones con pizzas')).toBeTruthy();
+    expect(screen.getByText('Sin guardar')).toBeTruthy();
+  });
+
+  it('al guardarla, la copia se borra y no se vuelve a ofrecer', async () => {
+    localStorage.clear();
+    localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
+    generar.mockResolvedValueOnce({ ...ficha.content, titulo: 'Fracciones con pizzas', historia: undefined, estilo: 'cuaderno' });
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    const antes = render(
+      <I18nProvider><ToastProvider><Resources classes={[]} fichas={[]} onSave={onSave} onDelete={() => {}} onNav={() => {}} /></ToastProvider></I18nProvider>,
+    );
+    await user.type(screen.getByLabelText('¿De qué va la ficha?'), 'fracciones');
+    await user.click(screen.getByRole('button', { name: /Crear ficha/ }));
+    await screen.findByDisplayValue('Fracciones con pizzas');
+    await user.click(screen.getByRole('button', { name: /Guardar$/ }));
+    expect(onSave).toHaveBeenCalledOnce();
+    antes.unmount();
+    setup(vi.fn(), []);
+    expect(screen.queryByText(/Te quedó una ficha sin guardar/)).toBeNull();
+  });
+});
+
 describe('Recursos — editor de fichas', () => {
   it('muestra la biblioteca con el tema de cada ficha y el selector de mundos', () => {
     setup();

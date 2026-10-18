@@ -343,9 +343,9 @@ await pestana('Pizarra y herramientas');
   fs.writeFileSync(path.join(SITIO, 'assets/app/pizarra.webp'), await webp(await sharp(limpia).extract({ left: SB, top: 0, width: W - SB, height: H }).toBuffer()));
 
   // Para la demo: también la calculadora y el lápiz
-  await page.getByRole('button', { name: /Calculadora/ }).last().click();
+  await page.getByRole('button', { name: /^Añadir Calculadora/ }).click();
   await page.waitForTimeout(400);
-  await page.getByRole('button', { name: /^Lápiz/ }).click();
+  await page.getByRole('button', { name: /^Dibujar sobre la pantalla/ }).click();
   await page.mouse.move(5, 5);
   await page.waitForTimeout(500);
 
@@ -356,13 +356,14 @@ await pestana('Pizarra y herramientas');
     const ruleta = girar.parentElement;
     const disco = ruleta.querySelector('svg').parentElement;
     const nombres = [...disco.querySelectorAll('text')].map(t => t.textContent);
-    const ventanas = [...document.querySelectorAll('main .drag-handle')].map(h => caja(h.closest('.react-draggable') ?? h.parentElement));
+    const ventanas = [...document.querySelectorAll('main .pz-ventana')].map(h => caja(h.closest('.react-draggable') ?? h));
     const teclas = [...document.querySelectorAll('main button')].filter(b => b.checkVisibility() && b.style.minHeight === '34px')
       .map(b => [...caja(b), b.textContent.trim().replace(/\s+/g, '') || '⌫']);
     const k0 = teclas[0];
-    const colores = [...document.querySelectorAll('main button[title="Color del lápiz"], main button[aria-label="Color del lápiz"]')].map(b => [...caja(b), getComputedStyle(b).backgroundColor]);
-    const barra = btn('Dibujando').parentElement;
-    const dock = btn('Temporizador').parentElement;
+    const colores = [...document.querySelectorAll('main button[title="Color"]')].map(b => [...caja(b), getComputedStyle(b).backgroundColor]);
+    const barra = btn('Dejar de dibujar').parentElement;
+    const paleta = btn('Borrar todo').closest('[role=toolbar]');
+    const dock = btn('Añadir Temporizador').parentElement.parentElement;
     const cuenta = [...document.querySelectorAll('main button')].find(b => /^\d\d:\d\d$/.test(b.textContent.trim()));
     return {
       ruleta: { disco: caja(disco), centro: caja(girar), nombres },
@@ -374,7 +375,7 @@ await pestana('Pizarra y herramientas');
       },
       calculadora: { pantalla: k0 ? [k0[0], k0[1] - 102, teclas[3]?.[2] ?? k0[2], k0[1] - 10] : null, teclas },
       lapiz: { colores, borrar: caja(btn('Borrar todo')) },
-      bloques: [caja(barra), caja(dock), ...ventanas, caja(document.querySelector('.help-fab'))],
+      bloques: [caja(barra), caja(dock), caja(paleta), ...ventanas, caja(document.querySelector('.help-fab'))],
     };
   });
   // El disco sin el botón central ni la aguja, para girarlo en la demo
@@ -393,9 +394,9 @@ await pestana('Pizarra y herramientas');
   await page.waitForTimeout(300);
   const [c0, c1, c2, c3] = live.ruleta.centro;
   await guardar('assets/demo/ruleta-centro.webp', await page.screenshot({ clip: { x: c0, y: c1, width: c2 - c0, height: c3 - c1 } }), 90);
-  await pantalla('pizarra', 'Pizarra y herramientas', 'enclase', { quitar: live.bloques.slice(2, -1), datos: { live } });
+  await pantalla('pizarra', 'Pizarra y herramientas', 'enclase', { quitar: live.bloques.slice(3, -1), datos: { live } });
   // Las zonas de la barra y el dock sí se quedan, menos las que hace la demo
-  PANTALLAS.pizarra.spots = PANTALLAS.pizarra.spots.filter(s => !/^(Dibujando|Color del lápiz|Borrar todo)$/.test(s[5]));
+  PANTALLAS.pizarra.spots = PANTALLAS.pizarra.spots.filter(s => !/^(Dejar de dibujar|Color|Borrar todo|Deshacer|Rehacer|Lápiz|Rotulador|Subrayador|Borrador|Fino|Medio|Grueso)$/.test(s[5]));
 }
 
 /* Centro y equipo, y lo de abajo */

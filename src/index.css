@@ -797,6 +797,14 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .sda-session { display:flex; gap:12px; align-items:flex-start; padding:10px 12px; border-radius:10px; background:var(--surface); margin-bottom:8px; }
 .sda-session:last-child { margin-bottom:0; }
 .sda-session-n { width:26px; height:26px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:var(--card); background:var(--ph); }
+.sda-session-check { flex-shrink:0; width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:none; border:none; border-radius:50%; color:var(--text-3); cursor:pointer; }
+.sda-session-check:hover { background:var(--surface-2); color:var(--accent); }
+.sda-session.completada .sda-session-check { color:var(--ok-fg); }
+.sda-session.completada .sda-session-ttl { text-decoration:line-through; color:var(--text-3); }
+.sda-session.completada .sda-p { color:var(--text-3); }
+.sda-progreso { display:inline-flex; align-items:center; gap:10px; font-size:12.5px; font-weight:600; color:var(--text-2); }
+.sda-progreso-barra { flex:0 0 110px; height:7px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
+.sda-progreso-barra span { display:block; height:100%; border-radius:99px; background:var(--ok-fg); transition:width var(--t); }
 .sda-session-ttl { font-size:13.5px; font-weight:700; color:var(--text); margin-bottom:2px; }
 .sda-session .sda-p { font-size:12.5px; line-height:1.6; color:var(--text-2); }
 .sda-steps3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
@@ -1531,6 +1539,17 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-sesion { width:100%; display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:11px 4px; background:none; border:none; font:inherit; text-align:left; color:var(--text); cursor:pointer; border-radius:8px; }
 .ef-sesion:hover { background:var(--surface); }
 .ef-sesion strong { font-size:14px; }
+/* Sesiones: el círculo para marcar una como completada, a la izquierda de cada fila */
+.ef-sesion-fila { display:flex; align-items:flex-start; gap:6px; }
+.ef-sesion-fila .ef-sesion { flex:1; min-width:0; width:auto; }
+.ef-sesion-check { flex-shrink:0; width:40px; height:40px; margin-top:4px; display:flex; align-items:center; justify-content:center; background:none; border:none; border-radius:50%; color:var(--text-3); cursor:pointer; }
+.ef-sesion-check:hover { background:var(--surface); color:var(--accent); }
+.ef-sesion-fila.completada .ef-sesion-check { color:var(--ok-fg); }
+.ef-sesion-fila.completada .ef-sesion strong { text-decoration:line-through; color:var(--text-3); }
+.ef-progreso { display:flex; align-items:center; gap:12px; margin-bottom:14px; font-size:13px; font-weight:600; color:var(--text-2); }
+.ef-progreso-barra { flex:0 0 160px; height:8px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
+.ef-progreso-barra span { display:block; height:100%; border-radius:99px; background:var(--ok-fg); transition:width var(--t); }
+.ef-atrasadas { border-left:3px solid var(--warn-fg, #d97706); }
 .ef-num { font-variant-numeric:tabular-nums; text-align:right; }
 .ef-ubic-movil { display:none; }
 @media (max-width:560px) {
@@ -2200,3 +2219,18 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-act-card-txt { font-size:12.5px; line-height:1.55; color:var(--text-2); overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
 .ef-act-ficha { display:flex; flex-direction:column; gap:12px; }
 @media (prefers-reduced-motion: reduce) { .ef-act-card { transition:none; } .ef-act-card:hover { transform:none; } }
+
+
+/* Pizarra y herramientas: las ventanas no tienen tarjeta; el asa y la X salen al pasar el ratón */
+.pz-ventana { cursor: grab; }
+.pz-ventana .pz-barra { opacity: 0; transition: opacity 0.15s; }
+.pz-ventana:hover .pz-barra,
+.pz-ventana:focus-within .pz-barra { opacity: 1; }
+@media (hover: none) {
+  .pz-ventana .pz-barra { opacity: 0.9; }
+}
+/* ── Pizarra: el aro del borrador sigue al puntero del ratón ── */
+.pizarra-anillo { position:absolute; top:0; left:0; display:none; z-index:7; pointer-events:none; border:2px solid rgba(15,23,42,0.7); border-radius:50%; box-shadow:0 0 0 1px rgba(255,255,255,0.8); }
+
+/* ── Autoguardado: la hora del último borrador junto a lo que se edita ── */
+.borrador-estado { font-size:12px; font-weight:600; color:var(--text-3); white-space:nowrap; }

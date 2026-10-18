@@ -121,4 +121,36 @@ describe('Sesiones', () => {
     await waitFor(() => expect((screen.getByRole('button', { name: /Borrar todas/ }) as HTMLButtonElement).disabled).toBe(true));
     confirmar.mockRestore();
   });
+
+  it('marcar una sesión como completada la saca de «Próximas», cuenta en el progreso y se puede deshacer', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    const total = demo.ef.sesiones.length;
+    expect(screen.getByText(`0 de ${total} sesiones completadas`)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'Marcar «Voleibol: el toque de dedos» como completada' }));
+    expect(ultimo.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')?.completada).toBe(true);
+    expect(screen.getByText(`1 de ${total} sesiones completadas`)).toBeTruthy();
+    // Sale de la lista de pendientes y queda en «Ver las completadas»
+    expect(screen.queryByText('Voleibol: el toque de dedos')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Ver las completadas (1)' }));
+    await user.click(screen.getByRole('button', { name: 'Marcar «Voleibol: el toque de dedos» como pendiente' }));
+    expect(ultimo.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')?.completada).toBe(false);
+    expect(screen.getByText(`0 de ${total} sesiones completadas`)).toBeTruthy();
+  });
+
+  it('una sesión a medias, al cerrar la ventana, se ofrece para continuar; al guardarla, deja de ofrecerse', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: /Nueva sesión/ }));
+    await user.type(screen.getByLabelText('Título'), 'Orientación en el patio');
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cerrar' }));
+
+    expect(screen.getByText(/Te quedó una sesión sin guardar: «Orientación en el patio»/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect((screen.getByLabelText('Título') as HTMLInputElement).value).toBe('Orientación en el patio');
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(ultimo.sesiones.some(x => x.titulo === 'Orientación en el patio')).toBe(true);
+    expect(screen.queryByText(/Te quedó una sesión sin guardar/)).toBeNull();
+  });
 });

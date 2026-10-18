@@ -380,3 +380,11 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **`sitemap.xml` y `robots.txt`**: el mapa lista la portada en los tres idiomas (con sus alternativas), la demo y descargas; las legales y gracias llevan `noindex` y no están.
 - **Ficha de la app para Google** (`application/ld+json`): SoftwareApplication, Windows y Android, educativa, 6,99 € hasta el 15-04-2027. El 16-04-2027 hay que cambiarla (docs/WEB.md, apartado 5, punto 9).
 - **Pendiente del usuario**: dar de alta aulapro.app en Google Search Console y enviar el mapa del sitio.
+
+## 40. Textos nuevos de la app (18-10-2026, petición del usuario: «actualizar la documentación de la app en la web»)
+
+- **Pizarra y herramientas** (S4, tarjeta «Pizarra y herramientas»): ahora dice «Pizarra con lápiz, rotulador, subrayador y borrador, temporizador, ruleta, calculadora, sonómetro y retos para proyectar» (`s4.t3d`, en los tres idiomas). La app tiene desde la 2.12.0 esas cuatro herramientas, tres grosores, deshacer y rehacer, y dibuja sin retraso.
+- **Privacidad** (S5): sexta casilla, «Lo que creas se autoguarda en tu equipo: si se cierra a medias, continúas donde lo dejaste» (`s5.p6`). Es el autoguardado de la 2.12.0 (borradores en el equipo con «Continuar» y «Descartar»). `privacidad.html` lo explica en el apartado 5 de «La aplicación», en los tres idiomas, y su fecha pasa al 18-10-2026.
+- **Agenda con dos tarjetas** y **sesiones completadas**: son de la app y la portada no las nombra (la fila de S1 sigue diciendo «Agenda que lee tu horario con IA», que sigue siendo verdad). Se cuentan en el manual de la ayuda de la app y en las notas de la versión.
+- **Pendiente**: las capturas (`assets/app/pizarra.webp`, la de la Agenda de la demo) y la demo son de antes: la barra de la pizarra dice ahora «Dibujar» y las herramientas salen al activarla, y la Agenda se abre en su portada con las dos tarjetas. Volver a ejecutar `scripts/web/capturar.mjs` cuando el dueño quiera estrenarlas (`demo.js` dibuja con cinco colores y borrador, como la app de antes; se puede acercar a las cuatro herramientas).
+

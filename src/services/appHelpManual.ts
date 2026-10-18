@@ -146,10 +146,13 @@ SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes
 [agenda] AGENDA
 Dos cosas: el horario semanal (bloques de día, hora de inicio y fin, asignatura,
 aula y clase) y el calendario de eventos (entregas, reuniones y eventos, con
-urgencia alta/media/baja). Se abre en la vista SEMANAL: el horario de lunes a
-viernes, desde las 8:00 hasta la hora de la última clase (también las de la
-tarde), y encima de cada día sus eventos; pulsando uno se edita. La pestaña
-«Mensual» tiene el calendario con los eventos y el calendario escolar. Arriba,
+urgencia alta/media/baja). Se abre en una PORTADA («Resumen») con dos tarjetas:
+«Agenda mensual» (el calendario del mes con los eventos y el calendario escolar;
+dice cuál es el próximo evento) y «Horario semanal» (el horario de lunes a
+viernes, con cuántas clases hay a la semana); cada una lleva a su vista, y las
+pestañas «Resumen», «Mensual» y «Semanal» de arriba permiten volver. La vista
+SEMANAL va desde las 8:00 hasta la hora de la última clase (también las de la
+tarde), y encima de cada día sus eventos; pulsando uno se edita. Arriba,
 «+ Nuevo evento» y el menú «Horario», con «Escanear horario», «Nuevo bloque» y
 «Borrar horario». En «Escanear horario»: se sube el horario del
 centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia
@@ -444,8 +447,10 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   el PDF y el Word); se guarda con la SdA. Las competencias clave
   salen como etiquetas (CCL, STEM…); cada área, en una tarjeta plegable con sus
   competencias específicas, criterios y saberes; las sesiones, en una línea de
-  tiempo por fases (Activación, Desarrollo, Consolidación, Producto final); la
-  inclusión, en tres niveles. En «Materiales» hay pestañas para generar la
+  tiempo por fases (Activación, Desarrollo, Consolidación, Producto final), cada
+  una con un círculo para marcarla como COMPLETADA según se va dando (se guarda
+  en el acto si la SdA ya está guardada; arriba sale «X de Y completadas» y la
+  tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles. En «Materiales» hay pestañas para generar la
   RÚBRICA (tabla de colores por nivel, «Llevar a Rúbricas»), la DIANA («Llevar
   a Dianas») y una FICHA de ejercicios («Llevar a Recursos»). Arriba: «Ajustar»
   (cambiar los datos y volver a generarla), PDF, Word, «Cartel» (una hoja A4
@@ -566,7 +571,17 @@ de las formaciones (contenidos, ideas clave, aplicación en el aula, valoración
 Se puede retocar a mano y exportar a PDF y Word. La IA no añade nada que no esté
 en las anotaciones. No van atadas a ninguna clase, y el vaciado de fin de curso
 no las borra.
-AUTOGUARDADO: mientras el formulario de anotaciones está abierto, se guarda una
+AUTOGUARDADO DE LO QUE SE GENERA (para todo lo demás): fichas y recursos,
+situaciones de aprendizaje, rúbricas, dianas, sesiones de EF y correcciones por
+foto guardan solos un borrador en el equipo mientras hay cambios sin guardar
+(poco después de cada cambio y al cambiar de pantalla o cerrar la ventana).
+Si se cierra a medias, al volver a esa pantalla sale un aviso («Te quedó una
+ficha sin guardar…») con «Continuar» (reabre lo que había) y «Descartar». Hay
+un solo borrador por tipo y por perfil, se borra al guardar y caduca a los 30
+días. En las rúbricas, dianas y sesiones, cerrar la ventana con la X no lo
+pierde; «Cancelar» sí lo descarta. En la corrección por foto no se guardan las
+fotos. Reuniones y Formaciones tienen el suyo, el siguiente.
+AUTOGUARDADO DE REUNIONES Y FORMACIONES: mientras el formulario de anotaciones está abierto, se guarda una
 copia sola cada minuto (y también al cerrar la ventana); cada copia sustituye a
 la anterior y se ve «Autoguardado a las HH:MM» bajo las anotaciones. Si la
 ventana o la aplicación se cierran sin guardar, al volver a Reuniones o
@@ -584,7 +599,13 @@ no vuelve a salir hasta que se pulsa «Reiniciar lista»; se acuerda de cada
 clase aunque se cierre la pizarra, y «Volver a meter en el sorteo» devuelve a
 quien acaba de salir) y medidor de ruido con el micrófono, con aviso al pasar
 de un nivel.
-Tiene una pizarra para dibujar encima («Lápiz»). La pizarra es BLANCA por
+Tiene una pizarra para dibujar encima: el botón «Dibujar» la activa y sale la
+barra con cuatro herramientas, «Lápiz» (fino, responde a la presión si el
+dispositivo la da), «Rotulador», «Subrayador» (translúcido, con sus propios
+colores) y «Borrador» (quita solo la parte por donde se pasa, no todo el
+dibujo), tres grosores (fino, medio y grueso), los colores, «Deshacer»,
+«Rehacer» y «Borrar todo» (que también se puede deshacer). Va fluida con ratón,
+dedo o lápiz táctil. La pizarra es BLANCA por
 defecto, para que se vea bien en el proyector o el panel; el botón «Fondo
 oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
 próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
@@ -755,7 +776,13 @@ medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
-«Próximas», «Sin fecha» y «Ver las anteriores».
+«Próximas» y «Sin fecha». A la izquierda de cada sesión hay un círculo para MARCARLA COMO
+COMPLETADA (también está en la ventana de la sesión): la sesión sale de las
+pendientes, tachada, y pasa a «Ver las completadas»; si se vuelve a pulsar,
+vuelve a pendiente. Arriba, «X de Y sesiones completadas» con una barra de
+avance. Las sesiones cuyo día ya pasó y no están completadas salen aparte,
+en «Por completar», para no perder el hilo. Al copiar una sesión a otra clase,
+la copia empieza sin completar.
 «Borrar todas» (arriba) vacía de golpe la lista de sesiones de todas las clases, tras
 pedir confirmación y sin poder deshacerlo.
 «Copiar a otras clases» (arriba, o dentro de una sesión): para quien da EF a
@@ -1116,6 +1143,8 @@ tarjeta «Clave de la IA».
   Oscura).
 - «Se me cerró la reunión sin guardar»: al volver a Reuniones (o Formaciones)
   sale un aviso para Recuperar lo escrito; se autoguarda cada minuto.
+- «Se me cerró la ficha (o la SdA, la rúbrica…) sin guardar»: al volver a esa
+  pantalla sale un aviso con «Continuar» y «Descartar».
 - «Quiero probar sin meter datos reales»: en la pantalla de bienvenida,
   «Explorar con datos de ejemplo»; o en Inicio, «Cargar datos de ejemplo».
   Los del docente de aula traen diez clases de seis alumnos: de 1º a 4º de

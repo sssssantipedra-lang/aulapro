@@ -40,7 +40,7 @@ describe('Agenda · borrar horario', () => {
   it('sin horario no se ofrece', async () => {
     const user = userEvent.setup();
     setup([]);
-    await user.click(screen.getByRole('button', { name: /Horario/ }));
+    await user.click(screen.getByRole('button', { name: 'Horario' }));
     expect(screen.getByRole('menuitem', { name: /Escanear horario/ })).toBeTruthy();
     expect(screen.queryByRole('menuitem', { name: /Borrar horario/ })).toBeNull();
   });
@@ -49,7 +49,7 @@ describe('Agenda · borrar horario', () => {
     const user = userEvent.setup();
     const { onReplaceBlocks, onDeleteCalEvent } = setup([block('a'), block('b')]);
     // Está en el menú «Horario», no a la vista (11-10-2026)
-    await user.click(screen.getByRole('button', { name: /Horario/ }));
+    await user.click(screen.getByRole('button', { name: 'Horario' }));
     await user.click(screen.getByRole('menuitem', { name: /Borrar horario/ }));
     expect(onReplaceBlocks).not.toHaveBeenCalled();
     expect(screen.getByText(/Se quitarán las 2 sesiones/)).toBeTruthy();
@@ -62,9 +62,25 @@ describe('Agenda · borrar horario', () => {
 });
 
 describe('Agenda · semana', () => {
-  it('se abre en la semana y enseña las clases de la tarde', () => {
+  it('se abre en una portada con dos tarjetas que llevan al horario semanal y a la agenda mensual', async () => {
+    const user = userEvent.setup();
     setup([{ ...block('tarde'), time_start: '16:00', time_end: '16:55', subject: 'Música' }]);
+    expect(screen.getByRole('tab', { name: 'Resumen' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByText('1 clase a la semana')).toBeTruthy();
+    expect(screen.getByText('Sin eventos próximos')).toBeTruthy();
+    expect(screen.queryByText('16:00')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /Agenda mensual/ }));
+    expect(screen.getByRole('tab', { name: 'Mensual' }).getAttribute('aria-selected')).toBe('true');
+    await user.click(screen.getByRole('tab', { name: 'Resumen' }));
+    await user.click(screen.getByRole('button', { name: /Horario semanal/ }));
     expect(screen.getByRole('tab', { name: 'Semanal' }).getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('enseña las clases de la tarde', async () => {
+    const user = userEvent.setup();
+    setup([{ ...block('tarde'), time_start: '16:00', time_end: '16:55', subject: 'Música' }]);
+    await user.click(screen.getByRole('button', { name: /Horario semanal/ }));
     expect(screen.getByText('16:00')).toBeTruthy();
     expect(screen.getAllByText('Música')).toHaveLength(1);
   });

@@ -14,6 +14,7 @@ AulaPro es una app para docentes de Educación Primaria y Secundaria (currículo
 - `docs/COMUNIDADES.md`: el currículo y el calendario de cada comunidad autónoma (Comunitat Valenciana, Cataluña y Madrid primero). Desde la 2.0.0 la app lleva el currículo de las tres, en Primaria y ESO; el resto de comunidades usan el estatal (RD 157/2022 y RD 217/2022). El calendario escolar de las tres está en la Agenda desde el 11-10-2026 (`web/sitio/calendario-escolar.json`).
 - `docs/FICHAS.md`: las fichas de trabajo (Recursos): el diseño «Cuaderno», el catálogo de ilustraciones con su descripción y sus temas, los hilos conductores, el generador con fal.ai y lo que falta. `docs/HILOS.md`: el índice de los hilos y de sus dibujos (lo genera una prueba).
 - `docs/EVALUAR_FOTO.md`: «Evaluar por foto» (Evaluar): corregir un examen o un trabajo a partir de sus fotos, con la nota recalculada por el código y revisada por el docente; qué sale de la app y lo que falta.
+- `docs/PIZARRA.md`: «Pizarra y herramientas» (Aula Live): las herramientas, los fondos y las escenas, y lo que falta.
 - `docs/PTAL.md`: el módulo de Pedagogía Terapéutica y Audición y Lenguaje: decisiones, normativa de inclusión de cada comunidad, autores de referencia y lo que falta.
 - `docs/EF.md`: el perfil de Educación Física (con tutoría o sin ella): decisiones, herramientas (incluidas las actividades desde un manual en PDF y la pizarra de circuitos con su banco de material) y lo que falta.
 - `docs/Normativa Comunitat Valenciana/`, `docs/Normativa Comunidad de Madrid/` y `docs/Normativa Cataluña/`: los PDF oficiales de los que se copia el currículo de cada comunidad, y en su carpeta `Inclusión`, la normativa y los modelos de inclusión (los valencianos y el catalán los sube el dueño; los de Madrid salen del BOCM). `scripts/curriculo/`: cómo se extrae.
@@ -50,7 +51,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - La ruleta de Pizarra y herramientas **recuerda quién ha salido, por clase, hasta «Reiniciar lista»** (`src/lib/ruleta.ts`; decisión del dueño). Quien sale deja el sorteo en el siguiente giro, no al instante, para no recolocar los sectores al enseñar el resultado; «Volver a meter en el sorteo» lo devuelve. Se guarda en `localStorage` del dispositivo (`aulapro_ruleta_<id de clase>`), solo nombres que están en la clase, no en los datos del perfil.
 - «Anotar actitud» da respuesta inmediata: pitido corto de Web Audio (`src/lib/sonidos.ts`, sube al sumar y baja al restar; se silencia con el altavoz, preferencia del dispositivo), «+1» flotante y rebote del contador (sin animación con «reducir movimiento»), y una **racha** por alumno (`src/lib/racha.ts`): días de clase seguidos con alguna anotación que suma y ninguna que resta; solo cuentan los días en que se anotó a alguien de la clase.
-- Pendiente, propuesto al dueño y sin decidir: mejor aspecto de los paneles de la pizarra: propuesta en `docs/propuestas/pizarra.html` (abrir en el navegador), a la espera de que el dueño decida entre tarjetas claras o el cristal oscuro actual, si se añade «Ordenar» y si el dock lleva un color por herramienta. Descartado por el dueño: nube o cuenta (Supabase u otra); AulaPro sigue siendo local con P2P.
+- Descartado por el dueño: nube o cuenta (Supabase u otra); AulaPro sigue siendo local con P2P. El aspecto de la pizarra (sin tarjetas, minimalista) ya lo decidió el dueño en la 2.13.0: ver `docs/PIZARRA.md`.
 
 ## Fichas (revisión del 14-10-2026)
 
@@ -77,6 +78,22 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - Petición del dueño: en Configuración › Apariencia, «Tamaño de las letras»: Estándar o Grande (`src/lib/tamanoLetra.ts`, factor 1,25). Es una preferencia del dispositivo (`localStorage`), no del perfil, y se vuelve a poner al abrir la app (`main.tsx`).
 - Todo el CSS va en píxeles, así que se agranda con lo que ofrece cada plataforma a través de `electronAPI.app.setTextScale`: Android, el zoom de texto del WebView (`AulaNativePlugin.setTextZoom`, solo las letras); Windows y Mac, el zoom de página de Electron (`webFrame.setZoomFactor` en `electron/preload.cjs`); sin ninguno, `zoom` de CSS. **Sin comprobar en un dispositivo real.**
+
+## Mejoras del 18-10-2026 (2.12.0)
+
+- **Autoguardado de lo que se genera** (petición del dueño: «si se ha quedado a medias sin guardar, que exista la opción de continuar»): `src/services/borradores.ts` (una copia por perfil y tipo en `localStorage`, caduca a los 30 días) y `src/hooks/useBorrador.ts`. Una pantalla pasa su estado sin guardar (o `null`) a `useBorrador` y se guarda solo, 1,2 s después de cada cambio, al salir de la pantalla y al cerrar la ventana; al volver, `AvisoBorrador` ofrece «Continuar» o «Descartar». Para ventanas emergentes (rúbricas, dianas) está `useBorradorVentana`: cerrar con la X no pierde nada. Cubre fichas (Recursos), SdA, rúbricas, dianas, sesiones de EF y «Evaluar por foto» (sin las fotos). Reuniones y Formaciones conservan su propio autoguardado (`services/draftAutosave.ts`). Una pantalla nueva que genere algo con IA debe usar el mismo. La privacidad lo explica (`web/sitio/privacidad.html`, apartado 5 de la app).
+- **Agenda con portada**: se abre en «Resumen», con dos tarjetas, «Agenda mensual» y «Horario semanal»; las pestañas son Resumen, Mensual y Semanal. Antes se abría en la semana.
+- **Sesiones completadas**: `SesionEF.completada` y `SdaSession.completada`, con progreso. Ver `docs/EF.md`.
+- **Pizarra y herramientas** (`src/components/pizarra/Lienzo.tsx`, `src/lib/trazos.ts`): los trazos se guardan como vectores (lápiz, rotulador, subrayador y borrador que quita solo una parte; deshacer y rehacer) en vez de píxeles, con eventos de puntero y sin volver a pintar el trazo entero en cada movimiento (era la causa del retraso). Probado en Chromium; **sin comprobar con un dedo ni un lápiz táctil reales** (Android, pantallas táctiles de Windows). Las ideas de otras pizarras (Classroomscreen) son solo funcionales: no hay código copiado.
+- La web (`web/DISENO.md`, sección 40) tiene los textos nuevos; **sus capturas y la demo siguen siendo de antes** hasta volver a ejecutar `scripts/web/capturar.mjs`.
+
+## Pizarra y herramientas (2.13.0, 19-10-2026)
+
+- Petición del dueño: que se parezca a Classroomscreen, con varias ventanas de cada herramienta, más minimalista, sin tarjetas, y que se pueda minimizar todo. Detalle y decisiones en `docs/PIZARRA.md`.
+- Diez herramientas nuevas, ocho fondos, escenas guardadas, varias instancias por herramienta (`Ventana.id` y `tipo`, hasta 24), ventanas sin tarjeta (se arrastran desde cualquier parte salvo los controles) y minimizadas a un icono. Las barras son solo iconos. La lógica sin pantalla está en `src/lib/pizarraAula.ts`, con pruebas.
+- **Hay que conservar el dibujo de la 2.12.0** (lápiz, rotulador, subrayador y borrador, con deshacer y rehacer, y el trazo al instante): lo hace `Lienzo.tsx`. Al integrar la pizarra nueva con la de `master`, se tomó `Lienzo` tal cual y solo se movieron sus controles a una barra propia.
+- Las herramientas escriben con `rgba(var(--pz-rgb), x)` y no con blanco fijo: el color de la tinta sigue al fondo de la pizarra.
+- La demo y las capturas de la pizarra en la web son de esta versión; el resto de capturas de la web sigue desfasado (ver `docs/PIZARRA.md`).
 
 ## Publicar
 

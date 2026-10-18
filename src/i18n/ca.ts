@@ -9,6 +9,8 @@ import { EF_CA } from './ef';
 import { HILOS_CA } from './hilos';
 import { COMPOSITOR_CA } from './compositor';
 import { LECTURA_CA } from './lectura';
+import { PIZARRA_CA } from './pizarra';
+import { MEJORAS_CA } from './mejoras';
 
 export const CA: Record<string, string> = {
   // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
@@ -1904,4 +1906,6 @@ export const CA: Record<string, string> = {
   ...HILOS_CA,
   ...COMPOSITOR_CA,
   ...LECTURA_CA,
+  ...PIZARRA_CA,
+  ...MEJORAS_CA,
 };

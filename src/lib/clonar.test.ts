@@ -13,6 +13,14 @@ const sda = {
 } as unknown as LearningSituation;
 
 describe('copiar a otras clases', () => {
+  it('lo completado no se copia: cada clase empieza sus sesiones desde cero', () => {
+    const hecha = { ...sda, content: { ...sda.content, sesiones: [{ titulo: 'Uno', fase: 'inicio', descripcion: 'd', completada: true }] } } as unknown as LearningSituation;
+    expect(clonarSda(hecha, clase('c2', '4º B'), 'n').content.sesiones[0]).toEqual({ titulo: 'Uno', fase: 'inicio', descripcion: 'd' });
+    expect(hecha.content.sesiones[0].completada).toBe(true);
+    const ses = { id: 's', titulo: 'x', completada: true } as unknown as SesionEF;
+    expect(clonarSesionEF(ses, clase('c2', '4º B'), 'n2').completada).toBeUndefined();
+  });
+
   it('la situación de aprendizaje copiada es de la otra clase y no comparte nada con la original', () => {
     const c = clonarSda(sda, clase('c2', '4º B', 'primaria', 4), 'nueva', new Date(2026, 9, 18));
     expect(c).toMatchObject({ id: 'nueva', class_id: 'c2', class_name: '4º B', title: 'Los juegos del mundo', date: '2026-10-18' });

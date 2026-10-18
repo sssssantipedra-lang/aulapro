@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search,
 } from 'lucide-react';
@@ -20,6 +20,8 @@ import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { promptCriteriosOficiales, refsDesdeIA } from '../lib/curriculum/criteriosParaIA';
 import { listaCompetenciasClave, marcarCompetenciasConIA } from '../services/competenciasIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { useBorradorVentana } from '../hooks/useBorrador';
+import { AvisoBorrador } from '../components/AvisoBorrador';
 
 /* ─── Props ─── */
 interface Props {
@@ -94,8 +96,21 @@ const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 /* ═══════════════════════════════════════════════════════════════════════════
    RUBRIC MODAL (create / edit)
 ═══════════════════════════════════════════════════════════════════════════ */
+/** Lo que se autoguarda de una rúbrica a medias, generada con IA o escrita a mano. */
+interface BorradorRubrica {
+  mode: RubricMode;
+  aiContext: string; aiCount: number;
+  aiPreview: { name: string; criteria: RubricCriterion[] } | null;
+  manualName: string; manualCriteria: CriterionDraft[];
+  target: GradeTarget; levels: AchievementLevel[];
+}
+
 interface RubricModalProps {
   open: boolean;
+  /** Si se vuelve a abrir una rúbrica que quedó a medias, con lo que tenía. */
+  inicial?: BorradorRubrica | null;
+  /** Cuenta lo que hay en la ventana mientras no se guarda (y `null` al guardar), para el autoguardado. */
+  onCambio?: (b: BorradorRubrica | null) => void;
   editing: Rubric | null;
   classes: Class[];
   gradeCategories: GradeCategory[];
@@ -105,7 +120,7 @@ interface RubricModalProps {
   comunidad?: ComunidadId;
 }
 
-function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: RubricModalProps) {
+function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategories, lawDocument, onClose, onSave, comunidad }: RubricModalProps) {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [mode, setMode] = useState<RubricMode>('ia');
@@ -152,6 +167,15 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
         class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
       });
       setLevels(levelsOf(editing));
+    } else if (inicial) {
+      setMode(inicial.mode);
+      setManualName(inicial.manualName);
+      setManualCriteria(inicial.manualCriteria);
+      setAiContext(inicial.aiContext);
+      setAiCount(inicial.aiCount);
+      setAiPreview(inicial.aiPreview);
+      setTarget(inicial.target);
+      setLevels(inicial.levels);
     } else {
       setLevels(defaultLevels(lang));
       setMode('ia');
@@ -163,6 +187,13 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       setTarget({});
     }
   });
+
+  /* Autoguardado: mientras haya algo hecho y sin guardar, la pantalla lo conserva */
+  useEffect(() => {
+    if (!open || editing) return;
+    const hayAlgo = !!aiPreview || !!manualName.trim() || manualCriteria.some(c => c.name.trim());
+    if (hayAlgo) onCambio?.({ mode, aiContext, aiCount, aiPreview, manualName, manualCriteria, target, levels });
+  }, [open, editing, mode, aiContext, aiCount, aiPreview, manualName, manualCriteria, target, levels, onCambio]);
 
   /* ── AI generate ── */
   async function handleGenerate() {
@@ -310,6 +341,7 @@ function RubricModal({ open, editing, classes, gradeCategories, lawDocument, onC
       levels: cleanLevels,
       ...target,
     };
+    onCambio?.(null);
     onSave(rubric);
     onClose();
   }
@@ -980,6 +1012,18 @@ export function Rubrics({
     : rubrics;
   const [rubricModalOpen, setRubricModalOpen] = useState(false);
   const [editingRubric, setEditingRubric] = useState<Rubric | null>(null);
+  // Una rúbrica que se cerró o se quedó a medias: se ofrece continuarla
+  const [inicialRubric, setInicialRubric] = useState<BorradorRubrica | null>(null);
+  const borradorRubric = useBorradorVentana<BorradorRubrica>('rubrica', rubricModalOpen, p => p.manualName || p.aiPreview?.name || p.aiContext);
+  const { cambiar: cambiarBorradorRubric } = borradorRubric;
+  const alCambiarRubric = useCallback((b: BorradorRubrica | null) => cambiarBorradorRubric(b), [cambiarBorradorRubric]);
+  function continuarRubric() {
+    const d = borradorRubric.continuar();
+    if (!d) return;
+    setEditingRubric(null);
+    setInicialRubric(d);
+    setRubricModalOpen(true);
+  }
 
   const [evalModalOpen, setEvalModalOpen] = useState(false);
   const [evalRubric, setEvalRubric] = useState<Rubric | null>(null);
@@ -1005,6 +1049,7 @@ export function Rubrics({
 
   function openNewRubric() {
     setEditingRubric(null);
+    setInicialRubric(null);
     setRubricModalOpen(true);
   }
 
@@ -1066,6 +1111,10 @@ export function Rubrics({
           </p>
         </div>
       </div>
+
+      {vista !== 'dianas' && borradorRubric.restos && (
+        <AvisoBorrador borrador={borradorRubric.restos} queEra={t('una rúbrica')} onContinuar={continuarRubric} onDescartar={borradorRubric.descartar} />
+      )}
 
       {vista === 'dianas' ? (
         <DianasTab
@@ -1249,6 +1298,8 @@ export function Rubrics({
       {/* Rubric modal */}
       <RubricModal
         open={rubricModalOpen}
+        inicial={inicialRubric}
+        onCambio={alCambiarRubric}
         editing={editingRubric}
         classes={classes}
         gradeCategories={gradeCategories}
