@@ -58,6 +58,12 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Recursos más sencillo** (17-10-2026): crear en dos pasos con cuatro tarjetas grandes y «Personalizar» plegado; en el editor, el aspecto en una fila y cada ejercicio en una línea que se abre al tocarla.
 - **Calidad con una IA real** (14-10-2026): a Gemini se le enseña una ficha de ejemplo bien hecha de su tramo (`src/services/fichaEjemplos.ts`, escritas a mano y con las cuentas comprobadas), y tras generar la ficha se rehacen los ejercicios rotos (`problemaDeEjercicio`) y la propia IA la revisa como un docente (`revisarFicha`: cuentas, datos imposibles, nivel); lo señalado como grave se rehace, como mucho tres. La revisión nunca tumba la ficha: si falla, se queda como estaba.
 
+## Android: dónde se guarda lo que se genera (revisión del 18-10-2026)
+
+- Petición del dueño: al guardar, una carpeta general «AulaPro» con una carpeta por tipo de cosa que se guarda, y, al guardar un PDF, un botón que lleve a donde ha quedado. Ahora, en Documentos › AulaPro › (Fichas, Situaciones de aprendizaje, Actas, Informes, Educación Física, Aula, Reuniones y formaciones, Apoyo, Cuaderno, Copias de seguridad, Otros): `src/lib/carpetas.ts`. Quien llama a `docs.savePdf` o a `downloadFile` dice la carpeta (`carpeta`).
+- En Android 10 o más se guarda directamente con MediaStore (sin permisos), el PDF también: `AulaNativePlugin.savePdfInDocuments` y `saveFileInDocuments`, con `android/print/PdfPrint.java` (escribe el PDF de un WebView sin el diálogo de impresión, con los márgenes del PDF del escritorio). Tras guardar sale el aviso de `components/AvisoGuardado.tsx`: carpeta y nombre, y «Ver carpeta», «Abrir» y «Compartir». Si no se puede (Android anterior al 10 o un fallo), se vuelve a lo de antes: el diálogo de impresión del sistema para los PDF y el menú de compartir para lo demás.
+- **Sin comprobar en un dispositivo real** (la sesión que lo hizo no tenía móvil): `PdfPrint` está en el paquete `android.print` porque sus clases de respuesta solo se pueden usar desde ahí, y «Ver carpeta» depende de que el explorador del dispositivo acepte abrir una carpeta (si no, abre el archivo). Probar en un móvil con Android 10 o más y en otro con Android 14 o 15 antes de dar por buena la versión; la privacidad dice que los documentos quedan en Documentos › AulaPro.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

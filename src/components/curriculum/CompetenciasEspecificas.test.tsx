@@ -117,7 +117,7 @@ describe('PDF de las competencias específicas', () => {
     window.electronAPI = { docs: { savePdf, reveal: vi.fn() } } as unknown as typeof window.electronAPI;
     try {
       await saveCompetenciasPdf({ alumno: 'Ana López', clase: '5º A', fecha: '2026-10-03', materias: [] }, 'es');
-      expect(savePdf).toHaveBeenCalledWith(expect.stringContaining('<h1>Competencias específicas</h1>'), 'competencias-Ana-Lopez.pdf', { landscape: false });
+      expect(savePdf).toHaveBeenCalledWith(expect.stringContaining('<h1>Competencias específicas</h1>'), 'competencias-Ana-Lopez.pdf', { landscape: false, carpeta: 'Informes' });
     } finally {
       delete (window as { electronAPI?: unknown }).electronAPI;
     }

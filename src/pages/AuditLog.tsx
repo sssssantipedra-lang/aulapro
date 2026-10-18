@@ -8,6 +8,7 @@ import {
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { CARPETAS } from '../lib/carpetas';
 
 interface Props {
   auditLog: AuditEntry[];
@@ -54,7 +55,7 @@ export function AuditLog({ auditLog, onClear }: Props) {
 
   function exportCsv() {
     if (filtered.length === 0) { toast(t('No hay nada que exportar con estos filtros')); return; }
-    void downloadFile(new Blob([auditToCsv(filtered)], { type: 'text/csv;charset=utf-8' }), `registro-de-cambios-${dayKeyOf(new Date().toISOString())}.csv`);
+    void downloadFile(new Blob([auditToCsv(filtered)], { type: 'text/csv;charset=utf-8' }), `registro-de-cambios-${dayKeyOf(new Date().toISOString())}.csv`, CARPETAS.otros);
     toast(t('✅ Registro descargado'));
   }
 

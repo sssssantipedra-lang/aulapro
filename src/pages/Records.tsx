@@ -8,6 +8,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
+import { CARPETAS } from '../lib/carpetas';
 
 interface Props {
   classes: Class[];
@@ -174,7 +175,7 @@ export function Records({
     const html = buildActaHtml();
     if (!html || !docs) return;
     setWorking('pdf');
-    const res = await docs.savePdf(html, fileBase() + '.pdf');
+    const res = await docs.savePdf(html, fileBase() + '.pdf', { carpeta: CARPETAS.actas });
     setWorking(null);
     if (res.canceled) return;
     if (res.error) { toast(t('No se pudo generar el PDF: {error}', { error: res.error })); return; }
@@ -208,7 +209,7 @@ export function Records({
     // BOM + punto y coma: así Excel en España lo abre en columnas sin tocar nada
     const csv = '﻿' + lines.join('\r\n');
     const slug = (s: string) => s.replace(/\s+/g, '-');
-    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`);
+    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`, CARPETAS.actas);
     toast(t('✅ Datos descargados'));
   }
 

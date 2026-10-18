@@ -4,10 +4,14 @@
  * necesita saber en qué plataforma está:
  *
  *  - store:   perfiles y datos en el almacenamiento privado de la app.
- *  - docs:    actas, fichas, SdA… al diálogo de impresión del sistema, que
- *             también ofrece «Guardar como PDF».
+ *  - docs:    actas, fichas, SdA… como PDF, guardado directamente en
+ *             Documentos › AulaPro › (carpeta del tipo de documento), con un
+ *             aviso que lleva a él. Si no se puede (Android anterior al 10, o
+ *             un fallo), al diálogo de impresión del sistema, que también
+ *             ofrece «Guardar como PDF».
  *  - secrets: la clave de la IA cifrada con el Android Keystore.
- *  - files:   los Word, CSV y copias se comparten (Drive, correo, Archivos…).
+ *  - files:   los Word, CSV y copias, igual: Documentos › AulaPro › carpeta,
+ *             con el aviso, y desde él se pueden compartir (Drive, correo…).
  *
  *  - classroom: la Sala de alumnos, con un servidor en la propia tableta
  *             (RoomServer.java) y la misma lógica y página que el escritorio.
@@ -22,10 +26,17 @@ import { createProfileStore, type Fs } from './profileStore';
 import { createRoom, type RoomRequest } from './classroomRoom';
 import { createAndroidLicense } from './androidLicense';
 import studentPage from '../../electron/student.html?raw';
+import { CARPETA_RAIZ, nombreDeCarpeta } from '../lib/carpetas';
+import { avisarGuardado, type Guardado } from '../lib/guardado';
 import type { ClassroomBridge, ClassroomSnapshot, DocsBridge, DocsResult, FilesBridge, StoreBridge } from '../types/electron';
 
 interface AulaNativePlugin {
   print: (o: { html: string; name: string; landscape: boolean }) => Promise<{ ok: boolean }>;
+  /** Guarda un PDF en Documentos/AulaPro/<folder> sin diálogo (Android 10 o más; si no, falla). */
+  savePdfInDocuments: (o: { html: string; name: string; landscape: boolean; folder: string }) => Promise<{ uri: string; name: string }>;
+  saveFileInDocuments: (o: { base64: string; name: string; mime: string; folder: string }) => Promise<{ uri: string; name: string }>;
+  openFile: (o: { uri: string; mime: string }) => Promise<void>;
+  openFolder: (o: { folder: string }) => Promise<void>;
   secretGet: (o: { name: string }) => Promise<{ value: string }>;
   secretSet: (o: { name: string; value: string }) => Promise<{ ok: boolean }>;
   roomStart: () => Promise<{ port: number; addresses: { iface: string; ip: string }[] }>;
@@ -73,10 +84,34 @@ const fs: Fs = {
 /** Nombre del documento sin extensión: es el que propone Android al guardar el PDF. */
 const docName = (name?: string) => (name || 'Aula Pro').replace(/\.pdf$/i, '');
 
+const MIME: Record<string, string> = {
+  pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  csv: 'text/csv', json: 'application/json', txt: 'text/plain', png: 'image/png',
+};
+const mimeDe = (nombre: string, blob?: Blob) => (blob?.type && blob.type !== 'application/octet-stream'
+  ? blob.type.split(';')[0]
+  : MIME[nombre.split('.').pop()?.toLowerCase() ?? ''] ?? 'application/octet-stream');
+
+/** Avisa a la pantalla de que se ha guardado un archivo (ver `components/AvisoGuardado.tsx`). */
+const anunciar = (carpeta: string, mime: string, r: { uri: string; name: string }): Guardado => {
+  const g = { nombre: r.name, carpeta, uri: r.uri, mime };
+  avisarGuardado(g);
+  return g;
+};
+
 const docs: DocsBridge = {
   async savePdf(html, suggestedName, opts): Promise<DocsResult> {
+    const landscape = opts?.landscape ?? true;
+    const carpeta = nombreDeCarpeta(opts?.carpeta);
     try {
-      await AulaNative.print({ html, name: docName(suggestedName), landscape: opts?.landscape ?? true });
+      const r = await AulaNative.savePdfInDocuments({ html, name: `${docName(suggestedName)}.pdf`, landscape, folder: carpeta });
+      anunciar(carpeta, 'application/pdf', r);
+      return { ok: true, path: `Documents/${CARPETA_RAIZ}/${carpeta}/${r.name}` };
+    } catch {
+      // Android anterior al 10 o un fallo al escribir: el diálogo del sistema, como antes
+    }
+    try {
+      await AulaNative.print({ html, name: docName(suggestedName), landscape });
       // Desde aquí manda el diálogo del sistema (guardar, imprimir o cancelar):
       // la app no sabe cómo acaba, así que no se anuncia nada.
       return { canceled: true };
@@ -92,7 +127,7 @@ const docs: DocsBridge = {
       return { error: err instanceof Error ? err.message : String(err) };
     }
   },
-  async reveal() { /* en Android no hay explorador de archivos que abrir */ },
+  async reveal() { /* en Android, el aviso de «Guardado» tiene el botón que lleva a la carpeta */ },
 };
 
 function blobToBase64(blob: Blob): Promise<string> {
@@ -105,8 +140,16 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 const files: FilesBridge = {
-  async save(blob, filename) {
+  async save(blob, filename, carpeta) {
     const safe = filename.replace(/[\\/:*?"<>|]+/g, '-');
+    const folder = nombreDeCarpeta(carpeta);
+    const mime = mimeDe(safe, blob);
+    try {
+      anunciar(folder, mime, await AulaNative.saveFileInDocuments({ base64: await blobToBase64(blob), name: safe, mime, folder }));
+      return;
+    } catch {
+      // Android anterior al 10 o un fallo al escribir: el menú de compartir, como antes
+    }
     const { uri } = await Filesystem.writeFile({
       path: `compartir/${safe}`, data: await blobToBase64(blob), directory: Directory.Cache, recursive: true,
     });
@@ -158,6 +201,18 @@ function createClassroom(): ClassroomBridge {
     },
   };
 }
+
+/** Para los botones del aviso de «Guardado»: abrir el archivo, ir a su carpeta o compartirlo. */
+export const guardadoAndroid = {
+  abrir: (g: Guardado) => AulaNative.openFile({ uri: g.uri, mime: g.mime }),
+  /** La carpeta; si el sistema no sabe abrirla, el propio archivo. */
+  async abrirCarpeta(g: Guardado) {
+    try { await AulaNative.openFolder({ folder: g.carpeta }); } catch { await AulaNative.openFile({ uri: g.uri, mime: g.mime }); }
+  },
+  async compartir(g: Guardado) {
+    try { await Share.share({ title: g.nombre, files: [g.uri], dialogTitle: g.nombre }); } catch { /* cerró el menú */ }
+  },
+};
 
 export function installAndroidBridge() {
   window.electronAPI = {

@@ -22,6 +22,7 @@ import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
+import { CARPETAS } from '../lib/carpetas';
 
 function fileBase(sda: LearningSituation): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -140,7 +141,7 @@ export async function saveSdaPdf(sda: LearningSituation, lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
   const html = buildSdaHtml(sda, lang);
-  const res = await docs.savePdf(html, fileBase(sda) + '.pdf');
+  const res = await docs.savePdf(html, fileBase(sda) + '.pdf', { carpeta: CARPETAS.situaciones });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }
@@ -306,5 +307,5 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
 
 export async function saveSdaDocx(sda: LearningSituation, lang: Lang) {
   const blob = await buildSdaDocxBlob(sda, lang);
-  await downloadFile(blob, fileBase(sda) + '.docx');
+  await downloadFile(blob, fileBase(sda) + '.docx', CARPETAS.situaciones);
 }

@@ -54,6 +54,7 @@ import { dibujosDeLaLectura } from '../lib/lectura';
 import { partirNegritas, quitarNegritas } from '../lib/negritas';
 import { nombreIlustracion, urlIlustracion } from '../lib/ilustraciones';
 import { bancoClasificar, esTipoConDibujos } from '../lib/dibujosEjercicio';
+import { CARPETAS } from '../lib/carpetas';
 
 function fileBase(f: Ficha): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -618,7 +619,7 @@ export async function saveFichaPdf(f: Ficha, lang: Lang) {
   const recursos: RecursosFicha = { art: art?.dataUrl, pictos, ilustraciones, fontCss };
   const densidad = await densidadDeFicha(f, lang, recursos);
   const html = buildFichaHtml(f, lang, { ...recursos, densidad });
-  const res = await docs.savePdf(html, fileBase(f) + '.pdf', { landscape: false });
+  const res = await docs.savePdf(html, fileBase(f) + '.pdf', { landscape: false, carpeta: CARPETAS.fichas });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }
@@ -1916,5 +1917,5 @@ export async function buildFichaDocxBlob(f: Ficha, lang: Lang): Promise<Blob> {
 
 export async function saveFichaDocx(f: Ficha, lang: Lang) {
   const blob = await buildFichaDocxBlob(f, lang);
-  await downloadFile(blob, fileBase(f) + '.docx');
+  await downloadFile(blob, fileBase(f) + '.docx', CARPETAS.fichas);
 }

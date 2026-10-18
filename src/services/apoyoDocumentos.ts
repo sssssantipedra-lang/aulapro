@@ -20,6 +20,7 @@ import { describirCriterio, type MateriaDeClase } from '../lib/curriculum/criter
 import { translate, priorityLabel, weekdayLabel, LOCALES, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { CARPETAS } from '../lib/carpetas';
 import type {
   AlumnoApoyo, ApartadoDocumento, ApoyoData, CoordinacionApoyo, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre,
 } from '../types/apoyo';
@@ -389,7 +390,7 @@ h2, tr { break-inside: avoid; page-break-inside: avoid; }
 export async function guardarDocumentoPdf(doc: DocumentoApoyo, filas: [string, string][], lang: Lang, firma?: { nombre: string; como: string }) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
-  const res = await docs.savePdf(buildDocumentoHtml(doc, filas, lang, firma), nombreArchivo(doc) + '.pdf', { landscape: false });
+  const res = await docs.savePdf(buildDocumentoHtml(doc, filas, lang, firma), nombreArchivo(doc) + '.pdf', { landscape: false, carpeta: CARPETAS.apoyo });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }
@@ -461,5 +462,5 @@ export async function buildDocumentoDocxBlob(doc: DocumentoApoyo, filas: [string
 }
 
 export async function guardarDocumentoDocx(doc: DocumentoApoyo, filas: [string, string][], lang: Lang, firma?: { nombre: string; como: string }) {
-  await downloadFile(await buildDocumentoDocxBlob(doc, filas, lang, firma), nombreArchivo(doc) + '.docx');
+  await downloadFile(await buildDocumentoDocxBlob(doc, filas, lang, firma), nombreArchivo(doc) + '.docx', CARPETAS.apoyo);
 }

@@ -17,6 +17,7 @@ import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
+import { CARPETAS } from '../lib/carpetas';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -328,7 +329,7 @@ export function Reports(props: Props) {
     if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
     if (!docs) { window.print(); return; }
     setWorking(modo);
-    const res = await docs.savePdf(buildDoc(list, nombre), nombre + '.pdf');
+    const res = await docs.savePdf(buildDoc(list, nombre), nombre + '.pdf', { carpeta: CARPETAS.informes });
     setWorking(null);
     if (res.canceled) return;
     if (res.error) { toast(t('No se pudo generar el PDF: {error}', { error: res.error })); return; }
@@ -359,7 +360,7 @@ export function Reports(props: Props) {
       .sort((a, b) => compararNombres(a.student_name, b.student_name))
       .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}\n\n${'—'.repeat(40)}\n`)
       .join('\n');
-    void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`);
+    void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`, CARPETAS.informes);
     toast(t('✅ Informes descargados'));
   }
 

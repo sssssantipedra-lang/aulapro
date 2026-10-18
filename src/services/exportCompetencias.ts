@@ -9,6 +9,7 @@
 import { translate, type Lang } from '../i18n';
 import { sinEvaluar, type NotaMateria } from '../lib/curriculum/evaluacionPorCriterios';
 import { fromIsoDate } from '../lib/utils';
+import { CARPETAS } from '../lib/carpetas';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
@@ -85,7 +86,7 @@ export async function saveCompetenciasPdf(d: DatosCompetencias, lang: Lang): Pro
     // «Ana López» → «Ana-Lopez»: sin tildes, que algunos sistemas de archivos llevan mal
     const slug = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
     // Vertical: es una hoja A4 de tablas estrechas (sin indicarlo, sale horizontal)
-    const res = await docs.savePdf(html, `competencias-${slug(d.alumno) || 'alumno'}.pdf`, { landscape: false });
+    const res = await docs.savePdf(html, `competencias-${slug(d.alumno) || 'alumno'}.pdf`, { landscape: false, carpeta: CARPETAS.informes });
     if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
     return res;
   }

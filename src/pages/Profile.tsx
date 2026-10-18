@@ -22,6 +22,7 @@ import type { Especialidad } from '../types/apoyo';
 import { TipoDocentePicker, type TipoDocente, type EleccionTipo } from '../components/TipoDocente';
 import { especialidadTexto } from '../lib/apoyo';
 import { ATRIBUCION_MULBERRY } from '../lib/atribucionPictos';
+import { CARPETAS } from '../lib/carpetas';
 
 interface Props {
   user: User | null;
@@ -154,7 +155,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   function handleExport() {
     const data = onExportData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    void downloadFile(blob, `aulapro-copia-${isoDate()}.json`);
+    void downloadFile(blob, `aulapro-copia-${isoDate()}.json`, CARPETAS.copias);
     toast('✅ Copia de seguridad descargada');
   }
 

@@ -11,6 +11,7 @@ import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
+import { CARPETAS } from '../lib/carpetas';
 
 interface Props {
   classes: Class[];
@@ -102,7 +103,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     const csv = '﻿' + [header, ...rows]
       .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
-    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `asistencia-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`);
+    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `asistencia-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`, CARPETAS.cuaderno);
     toast(t('✅ Asistencia exportada'));
   }
 

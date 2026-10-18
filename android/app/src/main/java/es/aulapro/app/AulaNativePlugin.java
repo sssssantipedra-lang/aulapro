@@ -1,9 +1,19 @@
 package es.aulapro.app;
 
+import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
+import android.print.PdfPrint;
 import android.print.PrintAttributes;
 import android.print.PrintManager;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
@@ -17,6 +27,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.Arrays;
@@ -34,6 +45,9 @@ import javax.crypto.spec.GCMParameterSpec;
  *  - print: abre el diálogo de impresión del sistema con un documento (acta,
  *    ficha, SdA…). Desde ahí se imprime o se elige «Guardar como PDF». Es el
  *    equivalente de docs:savePdf / docs:print de electron/main.cjs.
+ *  - savePdfInDocuments / saveFileInDocuments: guardan un PDF o un archivo en
+ *    Documentos/AulaPro/<carpeta> (MediaStore, Android 10 o más, sin permisos),
+ *    y openFile / openFolder los abren desde el aviso de «Guardado».
  *  - secretGet / secretSet: la clave de la IA, cifrada con una llave del
  *    Android Keystore que no sale del dispositivo (como electron/secrets.cjs).
  *  - roomStart / roomStop / roomRespond: la Sala de alumnos (ver RoomServer).
@@ -84,6 +98,174 @@ public class AulaNativePlugin extends Plugin {
                 call.reject(e.getMessage());
             }
         });
+    }
+
+    /* ── Guardar en Documentos/AulaPro/<carpeta> ── */
+
+    private static final String ROOT_FOLDER = "AulaPro";
+
+    /** Crea el archivo en Documentos/AulaPro/<carpeta> y devuelve su dirección. Solo Android 10 o más. */
+    private Uri createInDocuments(String folder, String name, String mime) throws Exception {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) throw new Exception("Android anterior al 10");
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Documents/" + ROOT_FOLDER + "/" + folder);
+        Uri uri = getContext().getContentResolver().insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), values);
+        if (uri == null) throw new Exception("No se pudo crear el archivo");
+        return uri;
+    }
+
+    /** El nombre con el que quedó (Android añade «(1)» si ya había uno igual). */
+    private String displayName(Uri uri, String fallback) {
+        try (Cursor c = getContext().getContentResolver().query(uri, new String[] { MediaStore.MediaColumns.DISPLAY_NAME }, null, null, null)) {
+            if (c != null && c.moveToFirst()) return c.getString(0);
+        } catch (Exception e) {
+            // se queda el nombre pedido
+        }
+        return fallback;
+    }
+
+    private JSObject saved(Uri uri, String name) {
+        JSObject ret = new JSObject();
+        ret.put("uri", uri.toString());
+        ret.put("name", displayName(uri, name));
+        return ret;
+    }
+
+    @PluginMethod
+    public void saveFileInDocuments(PluginCall call) {
+        final String name = call.getString("name", "archivo");
+        final String mime = call.getString("mime", "application/octet-stream");
+        final String folder = call.getString("folder", "Otros");
+        final String base64 = call.getString("base64", "");
+        Uri uri = null;
+        try {
+            uri = createInDocuments(folder, name, mime);
+            try (OutputStream out = getContext().getContentResolver().openOutputStream(uri)) {
+                if (out == null) throw new Exception("No se pudo abrir el archivo");
+                out.write(Base64.decode(base64, Base64.DEFAULT));
+            }
+            call.resolve(saved(uri, name));
+        } catch (Exception e) {
+            if (uri != null) getContext().getContentResolver().delete(uri, null, null);
+            call.reject(e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void savePdfInDocuments(PluginCall call) {
+        final String html = call.getString("html", "");
+        final String name = call.getString("name", "Aula Pro.pdf");
+        final String folder = call.getString("folder", "Otros");
+        final boolean landscape = call.getBoolean("landscape", true);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            call.reject("Android anterior al 10");
+            return;
+        }
+
+        getActivity().runOnUiThread(() -> {
+            try {
+                WebView view = new WebView(getActivity());
+                view.getSettings().setJavaScriptEnabled(false);
+                final boolean[] started = { false };
+                view.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public void onPageFinished(WebView v, String url) {
+                        if (started[0]) return;
+                        started[0] = true;
+                        writePdf(call, v, name, folder, landscape);
+                    }
+                });
+                printing = view;
+                view.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+            } catch (Throwable e) {
+                call.reject(String.valueOf(e.getMessage()));
+            }
+        });
+    }
+
+    private void writePdf(PluginCall call, WebView view, String name, String folder, boolean landscape) {
+        Uri uri = null;
+        ParcelFileDescriptor fd = null;
+        try {
+            uri = createInDocuments(folder, name, "application/pdf");
+            fd = getContext().getContentResolver().openFileDescriptor(uri, "w");
+            if (fd == null) throw new Exception("No se pudo abrir el archivo");
+            // Los mismos márgenes que el PDF del escritorio (electron/main.cjs): 0,5 pulgadas arriba y abajo, 0,55 a los lados
+            PrintAttributes.MediaSize a4 = landscape
+                ? PrintAttributes.MediaSize.ISO_A4.asLandscape()
+                : PrintAttributes.MediaSize.ISO_A4.asPortrait();
+            PrintAttributes attrs = new PrintAttributes.Builder()
+                .setMediaSize(a4)
+                .setResolution(new PrintAttributes.Resolution("pdf", "pdf", 300, 300))
+                .setMinMargins(new PrintAttributes.Margins(550, 500, 550, 500))
+                .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                .build();
+            final Uri target = uri;
+            final ParcelFileDescriptor out = fd;
+            new PdfPrint(attrs).write(view.createPrintDocumentAdapter(name), out, new PdfPrint.Listener() {
+                @Override
+                public void onDone() {
+                    closeQuietly(out);
+                    printing = null;
+                    call.resolve(saved(target, name));
+                }
+
+                @Override
+                public void onError(String message) {
+                    closeQuietly(out);
+                    getContext().getContentResolver().delete(target, null, null);
+                    printing = null;
+                    call.reject(message);
+                }
+            });
+        } catch (Throwable e) {
+            closeQuietly(fd);
+            if (uri != null) getContext().getContentResolver().delete(uri, null, null);
+            printing = null;
+            call.reject(String.valueOf(e.getMessage()));
+        }
+    }
+
+    private static void closeQuietly(ParcelFileDescriptor fd) {
+        if (fd == null) return;
+        try { fd.close(); } catch (Exception e) { /* ya cerrado */ }
+    }
+
+    /** Abre el archivo guardado con la aplicación que lo sepa leer. */
+    @PluginMethod
+    public void openFile(PluginCall call) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.parse(call.getString("uri", "")), call.getString("mime", "*/*"));
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
+            call.reject("No hay ninguna aplicación para abrirlo");
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
+    /** Abre la carpeta de AulaPro en el explorador de archivos; si el dispositivo no sabe, rechaza y la interfaz abre el archivo. */
+    @PluginMethod
+    public void openFolder(PluginCall call) {
+        final String folder = call.getString("folder", "");
+        try {
+            Uri dir = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
+                "primary:Documents/" + ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder));
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(dir, DocumentsContract.Document.MIME_TYPE_DIR);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
+            call.reject("El dispositivo no sabe abrir la carpeta");
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
     }
 
     private SharedPreferences prefs() {

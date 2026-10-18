@@ -603,6 +603,10 @@ export const EF_EN: Record<string, string> = {
   'Conservar también la fecha': 'Keep the date as well',
   'Copiar a 1 clase': 'Copy to 1 class',
   'Copiar a {n} clases': 'Copy to {n} classes',
+  'Guardado': 'Saved',
+  'Tu dispositivo no sabe abrirlo desde aquí. Búscalo en la aplicación de Archivos.': 'Your device cannot open it from here. Look for it in the Files app.',
+  'Ver carpeta': 'Show folder',
+  'Compartir': 'Share',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1206,4 +1210,8 @@ export const EF_CA: Record<string, string> = {
   'Conservar también la fecha': 'Conserva també la data',
   'Copiar a 1 clase': 'Copia a 1 classe',
   'Copiar a {n} clases': 'Copia a {n} classes',
+  'Guardado': 'Desat',
+  'Tu dispositivo no sabe abrirlo desde aquí. Búscalo en la aplicación de Archivos.': 'El teu dispositiu no sap obrir-ho des d\'aquí. Cerca-ho a l\'aplicació d\'Arxius.',
+  'Ver carpeta': 'Mostra la carpeta',
+  'Compartir': 'Comparteix',
 };

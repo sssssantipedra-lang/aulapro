@@ -29,6 +29,7 @@ import { hasApiKey, type InlineFile } from '../../services/gemini';
 import { reconocerPizarra } from '../../services/efIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { EfData, ElementoPizarra, MaterialPizarraId, PizarraEF, TrazoPizarra } from '../../types/ef';
+import { CARPETAS } from '../../lib/carpetas';
 
 interface Props {
   ef: EfData;
@@ -442,7 +443,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
   async function bajar() {
     try {
       const nombre = (piz.nombre.trim() || 'pizarra').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-      await downloadFile(await svgAPng(pizarraSvg(piz), 2 * ANCHO_PIZARRA, 2 * ALTO_PIZARRA), `${nombre || 'pizarra'}.png`);
+      await downloadFile(await svgAPng(pizarraSvg(piz), 2 * ANCHO_PIZARRA, 2 * ALTO_PIZARRA), `${nombre || 'pizarra'}.png`, CARPETAS.ef);
     } catch {
       toast(t('No se pudo crear la imagen.'));
     }

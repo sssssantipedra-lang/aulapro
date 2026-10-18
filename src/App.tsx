@@ -36,6 +36,7 @@ import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp } from './lib/platform';
 import { compararAlumnos } from './lib/alumnado';
+import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
@@ -823,11 +824,23 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** En Android, el aviso de «Guardado» con sus botones (el puente nativo se carga solo ahí). */
+function AvisoGuardadoAndroid() {
+  const [acciones, setAcciones] = useState<AccionesGuardado | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    import('./platform/android').then(m => { if (vivo) setAcciones(m.guardadoAndroid); });
+    return () => { vivo = false; };
+  }, []);
+  return acciones ? <AvisoGuardado acciones={acciones} /> : null;
+}
+
 export default function App() {
   return (
     <ToastProvider>
       <LicenseCheck><AppInner /></LicenseCheck>
       <UpdateBanner />
+      {isAndroidApp() && <AvisoGuardadoAndroid />}
     </ToastProvider>
   );
 }
