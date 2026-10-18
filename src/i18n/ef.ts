@@ -696,6 +696,9 @@ export const EF_EN: Record<string, string> = {
   'Nuestras sesiones': 'Our sessions',
   'Nuestro producto final': 'Our final product',
   'Qué vamos a trabajar, las sesiones y el producto final, en una hoja A4. Elige para quién es y el aspecto:': 'What we will work on, the sessions and the final product, on one A4 sheet. Choose who it is for and the look:',
+  'Borrar todas': 'Delete all',
+  '¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.': 'Delete all {n} sessions of every class? This cannot be undone.',
+  '{n} sesiones borradas.': '{n} sessions deleted.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1392,4 +1395,7 @@ export const EF_CA: Record<string, string> = {
   'Nuestras sesiones': 'Les nostres sessions',
   'Nuestro producto final': 'El nostre producte final',
   'Qué vamos a trabajar, las sesiones y el producto final, en una hoja A4. Elige para quién es y el aspecto:': 'Què treballarem, les sessions i el producte final, en un full A4. Tria per a qui és i l\'aspecte:',
+  'Borrar todas': 'Esborrar totes',
+  '¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.': 'Vols esborrar les {n} sessions de totes les classes? No es pot desfer.',
+  '{n} sesiones borradas.': '{n} sessions esborrades.',
 };

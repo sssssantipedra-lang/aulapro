@@ -171,6 +171,15 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     setEditando(null);
   }
 
+  function borrarTodas() {
+    const n = ef.sesiones.length;
+    if (n === 0) return;
+    if (!window.confirm(t('¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.', { n }))) return;
+    onChangeEf(d => ({ ...d, sesiones: [] }));
+    setEditando(null);
+    toast(t('{n} sesiones borradas.', { n }));
+  }
+
   async function pdf(s: SesionEF) {
     const criterios = (s.criterios ?? []).map(ref => describirCriterio(materiasEd, ref)).filter(Boolean)
       .map(c => `${c!.materia} ${c!.ref.codigo}: ${c!.texto}`);
@@ -214,6 +223,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         <div className="ap-prog-acc">
           <button className="btn-ghost" onClick={() => setEditando(vacia())}><Plus size={15} />{t('Nueva sesión')}</button>
           <button className="btn-ghost" onClick={() => abrirCopia()} disabled={ef.sesiones.length === 0}><Copy size={15} />{t('Copiar a otras clases')}</button>
+          <button className="btn-ghost ap-borrar" onClick={borrarTodas} disabled={ef.sesiones.length === 0}><Trash2 size={15} />{t('Borrar todas')}</button>
           <button className="btn-accent" onClick={abrirIa} disabled={!hasApiKey() || classes.length === 0}
             title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
             <Sparkles size={15} />{t('Preparar con IA')}

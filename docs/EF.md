@@ -101,6 +101,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Calentamiento, parte principal, vuelta a la calma, material, inclusión (DUA-A) y plan B, con su clase, día e instalación, y de 1 a 3 criterios de evaluación oficiales de la clase (se cambian con el buscador de criterios).
   - «Preparar con IA»: clase, día, instalación, minutos (del horario si la clase tiene tramo ese día) y qué se trabaja. La IA usa el currículo de la clase y su comunidad, el material que no está para reponer, las instalaciones cubiertas para el plan B y, si se marca, el banco. La sesión se revisa antes de guardarla.
   - PDF para imprimirla (Windows y Android).
+  - **Borrar todas** (18-10-2026): un botón arriba que borra de golpe todas las sesiones de todas las clases, con confirmación y sin deshacer.
   - **Copiar a otras clases** (18-10-2026): «Copiar a otras clases», arriba o dentro de una sesión. Se elige la clase de origen, qué sesiones (de partida, todas) y a qué clases (`CopiarAClases`, `clonarSesionEF`). Cada clase recibe sus copias sin fecha, porque cada clase tiene su horario, salvo que se marque «Conservar también la fecha»; la instalación, los criterios y la modalidad se conservan, y las originales no se tocan.
 - La IA (`src/services/efIA.ts`): marco con el currículo LOMLOE de la comunidad, el DUA-A, la normativa de inclusión y los autores de referencia:
   - Parlebas y Lavega (juegos y praxiología motriz).

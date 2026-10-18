@@ -743,6 +743,8 @@ nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
 «Próximas», «Sin fecha» y «Ver las anteriores».
+«Borrar todas» (arriba) vacía de golpe la lista de sesiones de todas las clases, tras
+pedir confirmación y sin poder deshacerlo.
 «Copiar a otras clases» (arriba, o dentro de una sesión): para quien da EF a
 varias clases del mismo curso. Se elige la clase de origen, qué sesiones (de
 partida, todas) y a qué clases; salen marcadas las del mismo curso y avisadas

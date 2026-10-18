@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EfSesiones } from './EfSesiones';
 import { I18nProvider } from '../../i18n';
@@ -104,5 +104,21 @@ describe('Sesiones', () => {
     expect(nuevas.map(n => n.titulo)).toEqual(demo.ef.sesiones.filter(s => s.claseId === origen.claseId).map(s => s.titulo));
     // Las originales no se tocan
     expect(ultimo.sesiones.slice(0, antes)).toEqual(demo.ef.sesiones);
+  });
+
+  it('«Borrar todas» pide confirmación y deja la lista vacía; si dices que no, no toca nada', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const antes = demo.ef.sesiones.length;
+    expect(antes).toBeGreaterThan(0);
+    render(<Harness />);
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+    await user.click(screen.getByRole('button', { name: /Borrar todas/ }));
+    expect(confirmar).toHaveBeenCalledOnce();
+    expect(ultimo.sesiones).toHaveLength(antes);
+    confirmar.mockReturnValueOnce(true);
+    await user.click(screen.getByRole('button', { name: /Borrar todas/ }));
+    expect(ultimo.sesiones).toHaveLength(0);
+    await waitFor(() => expect((screen.getByRole('button', { name: /Borrar todas/ }) as HTMLButtonElement).disabled).toBe(true));
+    confirmar.mockRestore();
   });
 });
