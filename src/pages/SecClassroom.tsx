@@ -551,7 +551,7 @@ function NoiseWidget() {
         </button>
         {micState === 'denied' && window.electronAPI?.app?.openSettings && (
           <button
-            onClick={() => { window.electronAPI?.app?.openSettings().catch(() => {}); }}
+            onClick={() => { window.electronAPI?.app?.openSettings?.()?.catch(() => {}); }}
             className="rounded-xl font-semibold text-[12.5px]"
             style={{ padding: '8px 18px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}
           >

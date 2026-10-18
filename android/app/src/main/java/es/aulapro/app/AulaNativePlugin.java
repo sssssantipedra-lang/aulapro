@@ -291,6 +291,20 @@ public class AulaNativePlugin extends Plugin {
         }
     }
 
+    /** El tamaño de las letras: el zoom de texto del WebView, entre el 80 % y el 160 %. */
+    @PluginMethod
+    public void setTextZoom(PluginCall call) {
+        final int percent = Math.max(80, Math.min(160, call.getInt("percent", 100)));
+        getActivity().runOnUiThread(() -> {
+            try {
+                getBridge().getWebView().getSettings().setTextZoom(percent);
+                call.resolve();
+            } catch (Exception e) {
+                call.reject(e.getMessage());
+            }
+        });
+    }
+
     private SharedPreferences prefs() {
         return getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }

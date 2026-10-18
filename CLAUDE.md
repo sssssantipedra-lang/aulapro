@@ -67,6 +67,11 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Micrófono y cámara en Android** (18-10-2026): el medidor de ruido (Pizarra y herramientas) y el lector de QR piden `getUserMedia`, y el WebView de Capacitor solo pide el permiso a Android si el manifiesto lo declara (`RECORD_AUDIO`, `MODIFY_AUDIO_SETTINGS`, `CAMERA`, con `uses-feature` no obligatorio); sin ello lo negaba sin preguntar. Si se niega para siempre, el medidor ofrece «Abrir los ajustes de AulaPro» (`electronAPI.app.openSettings`, `AulaNativePlugin.openAppSettings`). La privacidad lo dice en los tres idiomas. Las ventanas de Pizarra y herramientas llevan `cancel=".widget-cerrar"` en `Rnd`: sin él, en el móvil el toque sobre la X empezaba un arrastre y no cerraba.
 - **Sin comprobar en un dispositivo real** (la sesión que lo hizo no tenía móvil): `PdfPrint` está en el paquete `android.print` porque sus clases de respuesta solo se pueden usar desde ahí, y «Ver carpeta» depende de que el explorador del dispositivo acepte abrir una carpeta (si no, abre el archivo). Probar en un móvil con Android 10 o más y en otro con Android 14 o 15 antes de dar por buena la versión; la privacidad dice que los documentos quedan en Documentos › AulaPro.
 
+## Tamaño de las letras (18-10-2026)
+
+- Petición del dueño: en Configuración › Apariencia, «Tamaño de las letras»: Estándar o Grande (`src/lib/tamanoLetra.ts`, factor 1,15). Es una preferencia del dispositivo (`localStorage`), no del perfil, y se vuelve a poner al abrir la app (`main.tsx`).
+- Todo el CSS va en píxeles, así que se agranda con lo que ofrece cada plataforma a través de `electronAPI.app.setTextScale`: Android, el zoom de texto del WebView (`AulaNativePlugin.setTextZoom`, solo las letras); Windows y Mac, el zoom de página de Electron (`webFrame.setZoomFactor` en `electron/preload.cjs`); sin ninguno, `zoom` de CSS. **Sin comprobar en un dispositivo real.**
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

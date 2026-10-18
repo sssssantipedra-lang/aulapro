@@ -706,6 +706,10 @@ export const EF_EN: Record<string, string> = {
   'Abre la carpeta Documentos › AulaPro': 'Opens the Documents › AulaPro folder',
   'Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».': 'You have not saved any document yet. They will appear here, in the "{carpeta}" folder.',
   'No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.': 'The folder could not be opened. Look for it in Documents › AulaPro.',
+  'Tamaño de las letras': 'Text size',
+  'Estándar': 'Standard',
+  'Grande': 'Large',
+  '«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.': '"Large" makes the text bigger throughout the app. It is remembered on this device.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1412,4 +1416,8 @@ export const EF_CA: Record<string, string> = {
   'Abre la carpeta Documentos › AulaPro': 'Obre la carpeta Documents › AulaPro',
   'Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».': 'Encara no has desat cap document. Aquí apareixeran, a la carpeta «{carpeta}».',
   'No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.': 'No s\'ha pogut obrir la carpeta. Cerca-la a Documents › AulaPro.',
+  'Tamaño de las letras': 'Mida de les lletres',
+  'Estándar': 'Estàndard',
+  'Grande': 'Gran',
+  '«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.': '«Gran» fa més grans les lletres de tota l\'aplicació. Es recorda en aquest dispositiu.',
 };

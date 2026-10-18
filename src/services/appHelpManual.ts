@@ -1040,7 +1040,8 @@ vuelve con «← Configuración»:
   hasta pasados 10 minutos: nunca se queda en «Creando…» para siempre.
 - IDIOMA: castellano, inglés o catalán.
 - APARIENCIA: color de la interfaz y modo «Automática» (sigue el sistema),
-  «Clara» u «Oscura».
+  «Clara» u «Oscura», y TAMAÑO DE LAS LETRAS: «Estándar» o «Grande» (agranda las
+  letras de toda la aplicación y se recuerda en el dispositivo; no cambia con el perfil).
 - SEGURIDAD: contraseña opcional para abrir el perfil.
 - DATOS Y COPIAS: descargar o cargar un archivo con todo (copia de seguridad o
   para llevar a otro equipo), ver la carpeta donde se guardan los datos y el

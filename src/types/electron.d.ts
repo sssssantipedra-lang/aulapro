@@ -158,8 +158,13 @@ declare global {
       update?: UpdateBridge;
       license?: LicenseBridge;
       files?: FilesBridge;
-      /** Solo en Android: atajos al sistema. */
-      app?: { openSettings: () => Promise<void> };
+      /** Atajos al sistema. */
+      app?: {
+        /** Solo en Android: los ajustes de la app, donde se activan los permisos negados. */
+        openSettings?: () => Promise<void>;
+        /** Tamaño de las letras: 1 es el normal (ver `lib/tamanoLetra.ts`). */
+        setTextScale?: (factor: number) => Promise<void> | void;
+      };
       secrets?: {
         get: (name: 'gemini') => Promise<string>;
         /** `false` si el sistema no ofrece cifrado: entonces no se ha guardado. */

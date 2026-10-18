@@ -1379,7 +1379,7 @@ export const CA: Record<string, string> = {
   "Clave de la IA": "Clau de la IA",
   "La clave gratuita de Google y cuánto da de sí.": "La clau gratuïta de Google i fins on arriba.",
   "Idioma": "Idioma",
-  "Color de la aplicación y modo claro u oscuro.": "Color de l'aplicació i mode clar o fosc.",
+  "Color de la aplicación, modo claro u oscuro y tamaño de las letras.": "Color de l'aplicació, mode clar o fosc i mida de les lletres.",
   "Contraseña para abrir tu perfil.": "Contrasenya per obrir el teu perfil.",
   "Con contraseña": "Amb contrasenya",
   "Datos y copias": "Dades i còpies",
