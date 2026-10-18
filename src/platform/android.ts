@@ -38,6 +38,7 @@ interface AulaNativePlugin {
   openFile: (o: { uri: string; mime: string }) => Promise<void>;
   openFolder: (o: { folder: string }) => Promise<{ existe?: boolean } | void>;
   openAppSettings: () => Promise<void>;
+  setTextZoom: (o: { percent: number }) => Promise<void>;
   secretGet: (o: { name: string }) => Promise<{ value: string }>;
   secretSet: (o: { name: string; value: string }) => Promise<{ ok: boolean }>;
   roomStart: () => Promise<{ port: number; addresses: { iface: string; ip: string }[] }>;
@@ -228,7 +229,11 @@ export function installAndroidBridge() {
     docs,
     files,
     // Para el micrófono o la cámara negados: los ajustes de la app, donde se activan
-    app: { openSettings: () => AulaNative.openAppSettings() },
+    app: {
+      openSettings: () => AulaNative.openAppSettings(),
+      // Solo las letras: el zoom de texto del WebView (ver lib/tamanoLetra.ts)
+      setTextScale: factor => AulaNative.setTextZoom({ percent: Math.round(factor * 100) }),
+    },
     classroom: createClassroom(),
     license: createAndroidLicense({
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',

@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   isDesktop: true,
@@ -30,6 +30,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     print:   html                   => ipcRenderer.invoke('docs:print', { html }),
     reveal:  filePath               => ipcRenderer.invoke('docs:reveal', filePath),
     openFolder: ()                  => ipcRenderer.invoke('docs:openFolder'),
+  },
+
+  /** Tamaño de las letras: el zoom de la página (ver src/lib/tamanoLetra.ts). */
+  app: {
+    setTextScale: factor => { webFrame.setZoomFactor(Math.min(2, Math.max(0.5, Number(factor) || 1))); },
   },
 
   /** Guardar un archivo generado (Word, CSV, copia…), proponiendo Documentos › AulaPro › carpeta. */

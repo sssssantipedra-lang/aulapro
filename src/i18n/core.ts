@@ -1475,7 +1475,7 @@ const EN: Record<string, string> = {
   'La clave gratuita de Google y cuánto da de sí.': 'The free Google key and how far it goes.',
   'Idioma': 'Language',
   'Castellano, catalán o inglés internacional.': 'Spanish, Catalan or international English.',
-  'Color de la aplicación y modo claro u oscuro.': 'App colour and light or dark mode.',
+  'Color de la aplicación, modo claro u oscuro y tamaño de las letras.': 'App colour, light or dark mode and text size.',
   'Contraseña para abrir tu perfil.': 'Password to open your profile.',
   'Con contraseña': 'With password',
   'Datos y copias': 'Data and backups',

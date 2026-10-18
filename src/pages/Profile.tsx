@@ -9,6 +9,7 @@ import { DataFolder } from '../components/DataFolder';
 import { LicenseSettings } from '../components/LicenseSettings';
 import { getLicenseState } from '../services/license';
 import type { LicenseState } from '../types/electron';
+import { aplicarTamanoLetra, getTamanoLetra, type TamanoLetra } from '../lib/tamanoLetra';
 import { THEMES, applyTheme, isoDate, applyAppearance, getAppearance, type ThemeKey, type Appearance } from '../lib/utils';
 import type { User } from '../types';
 import type { TeacherProfile } from '../services/storage';
@@ -55,6 +56,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     (localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky'
   );
   const [appearance, setAppearance] = useState<Appearance>(getAppearance);
+  const [tamano, setTamano] = useState<TamanoLetra>(getTamanoLetra);
   const importRef = useRef<HTMLInputElement>(null);
   /** Apartado abierto; sin ninguno se ve la cuadrícula de tarjetas. */
   const [panel, setPanel] = useState<SettingsPanel | null>(() => takeSettingsPanel());
@@ -142,6 +144,11 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
       : '✅ Perfil actualizado');
   }
 
+  function handleTamano(nuevo: TamanoLetra) {
+    aplicarTamanoLetra(nuevo);
+    setTamano(nuevo);
+  }
+
   function handleAppearance(mode: Appearance) {
     applyAppearance(mode);
     setAppearance(mode);
@@ -174,7 +181,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     { id: 'perfil', icon: <UserCircle size={22} />, title: 'Perfil', desc: 'Tu nombre, centro, especialidad y curso escolar.', status: [user?.full_name, user?.school].filter(Boolean).join(' · ') },
     { id: 'ia', icon: <Sparkles size={22} />, title: 'Clave de la IA', desc: 'La clave gratuita de Google y cuánto da de sí.', status: t(getApiKey() ? 'Configurada ✓' : 'Sin configurar'), ok: !!getApiKey() },
     { id: 'idioma', icon: <Languages size={22} />, title: 'Idioma', desc: 'Castellano, catalán o inglés internacional.', status: LANGS.find(l => l.id === lang)?.label ?? '' },
-    { id: 'apariencia', icon: <Palette size={22} />, title: 'Apariencia', desc: 'Color de la aplicación y modo claro u oscuro.', status: `${t(themeLabel)} · ${t(appearanceLabel)}` },
+    { id: 'apariencia', icon: <Palette size={22} />, title: 'Apariencia', desc: 'Color de la aplicación, modo claro u oscuro y tamaño de las letras.', status: `${t(themeLabel)} · ${t(appearanceLabel)}` },
     { id: 'seguridad', icon: <Lock size={22} />, title: 'Seguridad', desc: 'Contraseña para abrir tu perfil.', status: t(hasPassword ? 'Con contraseña' : 'Sin contraseña'), ok: hasPassword },
     { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },
     ...(license ? [{
@@ -377,6 +384,37 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             </div>
             <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 8 }}>
               {t('«Automática» sigue el modo claro u oscuro de tu sistema.')}
+            </p>
+          </div>
+
+          <div style={{ marginTop: 18 }}>
+            <div className="flabel" id="tamano-label">{t('Tamaño de las letras')}</div>
+            <div role="radiogroup" aria-labelledby="tamano-label" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {([
+                { id: 'estandar', label: t('Estándar'), muestra: 14 },
+                { id: 'grande', label: t('Grande'), muestra: 18 },
+              ] as const).map(opt => {
+                const on = tamano === opt.id;
+                return (
+                  <button
+                    key={opt.id} type="button" role="radio" aria-checked={on}
+                    onClick={() => handleTamano(opt.id)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'baseline', gap: 8, padding: '8px 16px',
+                      borderRadius: 10, cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13,
+                      fontWeight: on ? 700 : 600,
+                      background: on ? 'var(--accent-l)' : 'var(--card)',
+                      color: on ? 'var(--accent-d)' : 'var(--text-2)',
+                      border: `1.5px solid ${on ? 'var(--accent-d)' : 'var(--border)'}`,
+                    }}
+                  >
+                    <span aria-hidden="true" style={{ fontSize: opt.muestra, fontWeight: 800, lineHeight: 1 }}>Aa</span>{opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 8 }}>
+              {t('«Grande» agranda las letras de toda la aplicación. Se recuerda en este dispositivo.')}
             </p>
           </div>
         </div>
