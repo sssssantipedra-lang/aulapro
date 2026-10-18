@@ -699,6 +699,13 @@ export const EF_EN: Record<string, string> = {
   'Borrar todas': 'Delete all',
   '¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.': 'Delete all {n} sessions of every class? This cannot be undone.',
   '{n} sesiones borradas.': '{n} sessions deleted.',
+  'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.': 'Turn on the microphone under Permissions, in the AulaPro settings, and try again. The sound is not recorded and does not leave this device.',
+  'Abrir los ajustes de AulaPro': 'Open AulaPro settings',
+  'Volver a intentarlo': 'Try again',
+  'Documentos descargados': 'Downloaded documents',
+  'Abre la carpeta Documentos › AulaPro': 'Opens the Documents › AulaPro folder',
+  'Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».': 'You have not saved any document yet. They will appear here, in the "{carpeta}" folder.',
+  'No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.': 'The folder could not be opened. Look for it in Documents › AulaPro.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1398,4 +1405,11 @@ export const EF_CA: Record<string, string> = {
   'Borrar todas': 'Esborrar totes',
   '¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.': 'Vols esborrar les {n} sessions de totes les classes? No es pot desfer.',
   '{n} sesiones borradas.': '{n} sessions esborrades.',
+  'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.': 'Activa el micròfon a Permisos, dins dels ajustos d\'AulaPro, i torna-ho a provar. El so no es grava ni surt d\'aquest equip.',
+  'Abrir los ajustes de AulaPro': 'Obre els ajustos d\'AulaPro',
+  'Volver a intentarlo': 'Torna-ho a provar',
+  'Documentos descargados': 'Documents descarregats',
+  'Abre la carpeta Documentos › AulaPro': 'Obre la carpeta Documents › AulaPro',
+  'Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».': 'Encara no has desat cap document. Aquí apareixeran, a la carpeta «{carpeta}».',
+  'No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.': 'No s\'ha pogut obrir la carpeta. Cerca-la a Documents › AulaPro.',
 };

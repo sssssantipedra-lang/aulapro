@@ -297,7 +297,10 @@ sentar antes a nadie. Se abre en la clase que toca según el horario.
 La portada del apartado Documentos: cuatro tarjetas grandes, una por pantalla
 (Informes, Actas, Situaciones de aprendizaje y Recursos), con para qué sirve
 cada una y cuánto hay hecho (informes redactados, clases con notas,
-situaciones y recursos guardados). Al pulsar una, se abre.
+situaciones y recursos guardados). Al pulsar una, se abre. Arriba a la derecha hay un
+botón «Documentos descargados» que abre la carpeta Documentos › AulaPro, donde la app
+guarda (en Android) o propone guardar (en Windows y Mac) los PDF, Word y copias de
+seguridad, cada uno en la carpeta de su tipo (Fichas, Actas, Informes…).
 
 [evaluar] EVALUAR (RESUMEN)
 La portada del apartado Evaluar. Dos tarjetas grandes: «Evaluar por rúbricas»

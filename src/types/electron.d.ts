@@ -66,14 +66,19 @@ export interface DocsBridge {
    * Genera el PDF y pregunta dónde guardarlo. Sin diálogo de impresora.
    * `landscape` por defecto es `true` (como las actas y la SdA); pásalo en
    * `false` para un documento vertical, como una ficha de trabajo.
-   * `carpeta` (solo Android, ver `lib/carpetas.ts`): en qué carpeta de
-   * «Documentos › AulaPro» se guarda.
+   * `carpeta` (ver `lib/carpetas.ts`): en qué carpeta de «Documentos › AulaPro»
+   * se guarda (en el ordenador, la que propone el diálogo).
    */
   savePdf: (html: string, suggestedName?: string, opts?: { landscape?: boolean; carpeta?: string }) => Promise<DocsResult>;
   /** Abre el diálogo de impresión del sistema con el documento solo. */
   print: (html: string) => Promise<DocsResult>;
   /** Muestra el archivo en el explorador. */
   reveal: (filePath: string) => Promise<void>;
+  /**
+   * Abre «Documentos › AulaPro», donde se guarda lo que genera la app.
+   * `existe: false` si todavía no se había guardado nada.
+   */
+  openFolder?: () => Promise<{ existe: boolean }>;
 }
 
 export interface UpdateStatus {
@@ -136,7 +141,7 @@ export interface StoreBridge {
 
 /** Guardar un archivo generado (Word, CSV, copia…) donde el docente elija. */
 export interface FilesBridge {
-  /** `carpeta`: solo Android, en qué carpeta de «Documentos › AulaPro» se guarda (ver `lib/carpetas.ts`). */
+  /** `carpeta`: en qué carpeta de «Documentos › AulaPro» se guarda (ver `lib/carpetas.ts`); en el ordenador, la que propone el diálogo. */
   save: (blob: Blob, filename: string, carpeta?: string) => Promise<void>;
 }
 
@@ -153,6 +158,8 @@ declare global {
       update?: UpdateBridge;
       license?: LicenseBridge;
       files?: FilesBridge;
+      /** Solo en Android: atajos al sistema. */
+      app?: { openSettings: () => Promise<void> };
       secrets?: {
         get: (name: 'gemini') => Promise<string>;
         /** `false` si el sistema no ofrece cifrado: entonces no se ha guardado. */
