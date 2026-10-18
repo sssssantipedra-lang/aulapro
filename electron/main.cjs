@@ -9,6 +9,7 @@ const { AppServer } = require('./appserver.cjs');
 const updater = require('./updater.cjs');
 const secrets = require('./secrets.cjs');
 const license = require('./license.cjs');
+const { carpetaDeAulaPro, nombreDeArchivo } = require('./carpetas.cjs');
 
 let mainWindow = null;
 const classroom = new ClassroomServer();
@@ -69,8 +70,15 @@ async function withDocumentWindow(html, fn) {
   }
 }
 
+/** Documentos › AulaPro (› carpeta), creada si no existe, para que el diálogo de guardar se abra ahí. */
+async function carpetaParaGuardar(carpeta) {
+  const dir = carpetaDeAulaPro(app.getPath('documents'), carpeta);
+  try { await fsp.mkdir(dir, { recursive: true }); } catch { return app.getPath('documents'); }
+  return dir;
+}
+
 function registerDocumentIpc() {
-  ipcMain.handle('docs:savePdf', async (_e, { html, suggestedName, landscape }) => {
+  ipcMain.handle('docs:savePdf', async (_e, { html, suggestedName, landscape, carpeta }) => {
     try {
       return await withDocumentWindow(html, async win => {
         // Horizontal por defecto: el acta lleva una columna por categoría y
@@ -86,7 +94,7 @@ function registerDocumentIpc() {
 
         const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
           title: 'Guardar acta en PDF',
-          defaultPath: suggestedName || 'acta.pdf',
+          defaultPath: path.join(await carpetaParaGuardar(carpeta), nombreDeArchivo(suggestedName || 'acta.pdf')),
           filters: [{ name: 'Documento PDF', extensions: ['pdf'] }],
         });
         if (canceled || !filePath) return { canceled: true };
@@ -114,6 +122,34 @@ function registerDocumentIpc() {
 
   ipcMain.handle('docs:reveal', (_e, filePath) => {
     if (filePath) shell.showItemInFolder(filePath);
+  });
+
+  // Word, hojas de cálculo, copias…: el mismo diálogo, en la carpeta de su tipo
+  ipcMain.handle('files:save', async (_e, { name, data, carpeta }) => {
+    try {
+      const nombre = nombreDeArchivo(name);
+      const ext = path.extname(nombre).slice(1);
+      const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+        defaultPath: path.join(await carpetaParaGuardar(carpeta), nombre),
+        ...(ext ? { filters: [{ name: ext.toUpperCase(), extensions: [ext] }] } : {}),
+      });
+      if (canceled || !filePath) return { canceled: true };
+      await fsp.writeFile(filePath, Buffer.from(data));
+      return { ok: true, path: filePath };
+    } catch (err) {
+      return { error: err.message };
+    }
+  });
+
+  // «Documentos descargados»: abre Documentos › AulaPro; `existe` es si ya había algo guardado
+  ipcMain.handle('docs:openFolder', async () => {
+    const dir = carpetaDeAulaPro(app.getPath('documents'));
+    let existe = true;
+    try { await fsp.access(dir); } catch { existe = false; }
+    await carpetaParaGuardar();
+    const error = await shell.openPath(dir);
+    if (error) throw new Error(error);
+    return { existe };
   });
 }
 

@@ -26,9 +26,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   docs: {
     // `landscape` es opcional: sin indicarlo, sale horizontal (como las actas
     // y la SdA); una ficha de trabajo pide `{ landscape: false }`.
-    savePdf: (html, suggestedName, opts) => ipcRenderer.invoke('docs:savePdf', { html, suggestedName, landscape: opts?.landscape }),
+    savePdf: (html, suggestedName, opts) => ipcRenderer.invoke('docs:savePdf', { html, suggestedName, landscape: opts?.landscape, carpeta: opts?.carpeta }),
     print:   html                   => ipcRenderer.invoke('docs:print', { html }),
     reveal:  filePath               => ipcRenderer.invoke('docs:reveal', filePath),
+    openFolder: ()                  => ipcRenderer.invoke('docs:openFolder'),
+  },
+
+  /** Guardar un archivo generado (Word, CSV, copia…), proponiendo Documentos › AulaPro › carpeta. */
+  files: {
+    save: async (blob, filename, carpeta) => {
+      const res = await ipcRenderer.invoke('files:save', { name: filename, data: new Uint8Array(await blob.arrayBuffer()), carpeta });
+      if (res && res.error) throw new Error(res.error);
+    },
   },
 
   /** Sala de alumnos: servidor local para que se conecten desde el móvil. */

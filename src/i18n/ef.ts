@@ -703,9 +703,9 @@ export const EF_EN: Record<string, string> = {
   'Abrir los ajustes de AulaPro': 'Open AulaPro settings',
   'Volver a intentarlo': 'Try again',
   'Documentos descargados': 'Downloaded documents',
-  'Abre la carpeta Documentos › AulaPro de tu dispositivo': 'Opens the Documents › AulaPro folder on your device',
-  'Todavía no has guardado ningún documento. Se abre Documentos; aquí aparecerá la carpeta «{carpeta}».': 'You have not saved any document yet. Documents opens; the "{carpeta}" folder will appear here.',
-  'Este dispositivo no sabe abrir la carpeta. Búscala en Documentos › AulaPro.': 'This device cannot open the folder. Look for it in Documents › AulaPro.',
+  'Abre la carpeta Documentos › AulaPro': 'Opens the Documents › AulaPro folder',
+  'Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».': 'You have not saved any document yet. They will appear here, in the "{carpeta}" folder.',
+  'No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.': 'The folder could not be opened. Look for it in Documents › AulaPro.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1409,7 +1409,7 @@ export const EF_CA: Record<string, string> = {
   'Abrir los ajustes de AulaPro': 'Obre els ajustos d\'AulaPro',
   'Volver a intentarlo': 'Torna-ho a provar',
   'Documentos descargados': 'Documents descarregats',
-  'Abre la carpeta Documentos › AulaPro de tu dispositivo': 'Obre la carpeta Documents › AulaPro del teu dispositiu',
-  'Todavía no has guardado ningún documento. Se abre Documentos; aquí aparecerá la carpeta «{carpeta}».': 'Encara no has desat cap document. S\'obre Documents; aquí apareixerà la carpeta «{carpeta}».',
-  'Este dispositivo no sabe abrir la carpeta. Búscala en Documentos › AulaPro.': 'Aquest dispositiu no sap obrir la carpeta. Cerca-la a Documents › AulaPro.',
+  'Abre la carpeta Documentos › AulaPro': 'Obre la carpeta Documents › AulaPro',
+  'Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».': 'Encara no has desat cap document. Aquí apareixeran, a la carpeta «{carpeta}».',
+  'No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.': 'No s\'ha pogut obrir la carpeta. Cerca-la a Documents › AulaPro.',
 };

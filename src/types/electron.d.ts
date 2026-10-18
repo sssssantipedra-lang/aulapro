@@ -66,8 +66,8 @@ export interface DocsBridge {
    * Genera el PDF y pregunta dónde guardarlo. Sin diálogo de impresora.
    * `landscape` por defecto es `true` (como las actas y la SdA); pásalo en
    * `false` para un documento vertical, como una ficha de trabajo.
-   * `carpeta` (solo Android, ver `lib/carpetas.ts`): en qué carpeta de
-   * «Documentos › AulaPro» se guarda.
+   * `carpeta` (ver `lib/carpetas.ts`): en qué carpeta de «Documentos › AulaPro»
+   * se guarda (en el ordenador, la que propone el diálogo).
    */
   savePdf: (html: string, suggestedName?: string, opts?: { landscape?: boolean; carpeta?: string }) => Promise<DocsResult>;
   /** Abre el diálogo de impresión del sistema con el documento solo. */
@@ -75,8 +75,8 @@ export interface DocsBridge {
   /** Muestra el archivo en el explorador. */
   reveal: (filePath: string) => Promise<void>;
   /**
-   * Solo en Android: abre «Documentos › AulaPro», donde se guarda lo que genera la app.
-   * `existe: false` si todavía no se ha guardado nada (se abre Documentos).
+   * Abre «Documentos › AulaPro», donde se guarda lo que genera la app.
+   * `existe: false` si todavía no se había guardado nada.
    */
   openFolder?: () => Promise<{ existe: boolean }>;
 }
@@ -141,7 +141,7 @@ export interface StoreBridge {
 
 /** Guardar un archivo generado (Word, CSV, copia…) donde el docente elija. */
 export interface FilesBridge {
-  /** `carpeta`: solo Android, en qué carpeta de «Documentos › AulaPro» se guarda (ver `lib/carpetas.ts`). */
+  /** `carpeta`: en qué carpeta de «Documentos › AulaPro» se guarda (ver `lib/carpetas.ts`); en el ordenador, la que propone el diálogo. */
   save: (blob: Blob, filename: string, carpeta?: string) => Promise<void>;
 }
 

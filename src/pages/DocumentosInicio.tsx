@@ -61,14 +61,14 @@ export function DocumentosInicio({ classes, reports, gradeItems, learningSituati
           <p className="pg-sub">{t('Todo lo que acaba en papel')}</p>
         </div>
         {abrirCarpeta && (
-          // Solo en Android: lleva a Documentos › AulaPro, donde quedan los PDF, Word y copias
-          <button type="button" className="btn-ghost" title={t('Abre la carpeta Documentos › AulaPro de tu dispositivo')}
+          // Lleva a Documentos › AulaPro, donde se proponen los PDF, Word y copias (en Android, donde quedan guardados)
+          <button type="button" className="btn-ghost" title={t('Abre la carpeta Documentos › AulaPro')}
             onClick={async () => {
               try {
                 const r = await abrirCarpeta();
-                if (!r.existe) toast(t('Todavía no has guardado ningún documento. Se abre Documentos; aquí aparecerá la carpeta «{carpeta}».', { carpeta: CARPETA_RAIZ }));
+                if (!r.existe) toast(t('Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».', { carpeta: CARPETA_RAIZ }));
               } catch {
-                toast(t('Este dispositivo no sabe abrir la carpeta. Búscala en Documentos › AulaPro.'));
+                toast(t('No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.'));
               }
             }}>
             <FolderOpen size={15} />{t('Documentos descargados')}
