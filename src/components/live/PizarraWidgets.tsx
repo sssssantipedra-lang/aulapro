@@ -4,7 +4,7 @@ import { useI18n } from '../../i18n';
 import { SessionQR } from '../share/SessionQR';
 import {
   SIMBOLOS_TRABAJO, MAX_DADOS, tirarDados, repartirGrupos, formatoCrono, direccionParaQr,
-  type ReparticionGrupos,
+  claveDatos, type ReparticionGrupos,
 } from '../../lib/pizarraAula';
 
 /**
@@ -57,14 +57,18 @@ function IconBtn({ onClick, title, children, disabled }: { onClick: () => void; 
   );
 }
 
-function BotonPrincipal({ onClick, children, color = 'linear-gradient(135deg,#34d399,#22d3ee)', disabled }: { onClick: () => void; children: React.ReactNode; color?: string; disabled?: boolean }) {
+function BotonPrincipal({ onClick, children, suave, disabled }: { onClick: () => void; children: React.ReactNode; suave?: boolean; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center justify-center gap-2 rounded-xl font-bold text-[14px] transition-all disabled:opacity-40"
-      style={{ padding: '0 22px', height: 42, color: '#04141a', background: color }}
+      className="flex items-center justify-center gap-2 rounded-xl font-bold text-[14px] transition-opacity disabled:opacity-40 hover:opacity-90"
+      style={{
+        padding: '0 20px', height: 40,
+        background: suave ? GLASS_HOVER : 'var(--pz-accent, #e2e8f0)',
+        color: suave ? '#fff' : '#0b1220',
+      }}
     >
       {children}
     </button>
@@ -128,7 +132,7 @@ export function StopwatchWidget() {
         {desde === null ? (
           <BotonPrincipal onClick={empezar}><Play size={17} />{t(acum > 0 ? 'Seguir' : 'Iniciar')}</BotonPrincipal>
         ) : (
-          <BotonPrincipal onClick={pausar} color="linear-gradient(135deg,#fbbf24,#f59e0b)"><Pause size={17} />{t('Pausa')}</BotonPrincipal>
+          <BotonPrincipal onClick={pausar} suave><Pause size={17} />{t('Pausa')}</BotonPrincipal>
         )}
         <IconBtn onClick={() => setVueltas(v => [...v, ms])} title={t('Marcar una vuelta')} disabled={desde === null}><Flag size={16} /></IconBtn>
         <IconBtn onClick={reiniciar} title={t('Reiniciar')} disabled={ms === 0}><RotateCcw size={16} /></IconBtn>
@@ -178,7 +182,7 @@ export function TrafficWidget() {
               style={{
                 width: '82%', aspectRatio: '1', maxWidth: 110,
                 background: on ? l.color : `${l.color}33`,
-                boxShadow: on ? `0 0 38px ${l.color}, inset 0 -6px 14px rgba(0,0,0,0.25)` : 'inset 0 2px 6px rgba(0,0,0,0.5)',
+                boxShadow: on ? `0 0 22px ${l.color}88` : 'none',
               }}
             />
           );
@@ -206,7 +210,7 @@ function CaraDado({ valor, size }: { valor: number; size: number }) {
       role="img"
       aria-label={String(valor)}
       className="grid grid-cols-3 grid-rows-3 rounded-[18%] p-[11%]"
-      style={{ width: size, height: size, background: '#f8fafc', boxShadow: '0 8px 20px rgba(0,0,0,0.4), inset 0 -4px 0 rgba(0,0,0,0.12)' }}
+      style={{ width: size, height: size, background: '#f8fafc', boxShadow: '0 3px 10px rgba(0,0,0,0.3)' }}
     >
       {Array.from({ length: 9 }, (_, i) => (
         <span key={i} className="flex items-center justify-center">
@@ -256,7 +260,7 @@ export function DiceWidget() {
       )}
       <div className="flex items-center gap-2">
         <IconBtn onClick={() => cambiarCantidad(cantidad - 1)} title={t('Un dado menos')} disabled={cantidad <= 1}><Minus size={15} /></IconBtn>
-        <BotonPrincipal onClick={tirar} color="linear-gradient(135deg,#fb7185,#f59e0b)" disabled={girando}><Shuffle size={16} />{t('Tirar')}</BotonPrincipal>
+        <BotonPrincipal onClick={tirar} disabled={girando}><Shuffle size={16} />{t('Tirar')}</BotonPrincipal>
         <IconBtn onClick={() => cambiarCantidad(cantidad + 1)} title={t('Un dado más')} disabled={cantidad >= MAX_DADOS}><Plus size={15} /></IconBtn>
       </div>
     </div>
@@ -269,9 +273,9 @@ export function DiceWidget() {
 
 const esLista = (x: unknown): x is string[] => Array.isArray(x) && x.every(esTexto);
 
-export function SymbolsWidget() {
+export function SymbolsWidget({ uid }: { uid: string }) {
   const { t } = useI18n();
-  const [elegidos, setElegidos] = usePersistido<string[]>('aulapro_pizarra_simbolos', ['silencio'], esLista);
+  const [elegidos, setElegidos] = usePersistido<string[]>(claveDatos(uid, 'simbolos'), ['silencio'], esLista);
   const [editando, setEditando] = useState(false);
   const validos = SIMBOLOS_TRABAJO.filter(s => elegidos.includes(s.id));
 
@@ -326,9 +330,9 @@ export function SymbolsWidget() {
 
 const TAMANOS_NOTA = [16, 20, 26, 34, 44, 58];
 
-export function NoteWidget() {
+export function NoteWidget({ uid }: { uid: string }) {
   const { t } = useI18n();
-  const [texto, setTexto] = usePersistido<string>('aulapro_pizarra_nota', '', esTexto);
+  const [texto, setTexto] = usePersistido<string>(claveDatos(uid, 'nota'), '', esTexto);
   const [nivel, setNivel] = useState(2);
   return (
     <div className="h-full flex flex-col gap-2 min-h-0">
@@ -361,9 +365,9 @@ function esEquipos(x: unknown): x is Equipo[] {
     && typeof (e as Equipo).id === 'string' && typeof (e as Equipo).nombre === 'string' && Number.isFinite((e as Equipo).puntos));
 }
 
-export function ScoreWidget() {
+export function ScoreWidget({ uid }: { uid: string }) {
   const { t } = useI18n();
-  const [equipos, setEquipos] = usePersistido<Equipo[]>('aulapro_pizarra_marcador', [
+  const [equipos, setEquipos] = usePersistido<Equipo[]>(claveDatos(uid, 'marcador'), [
     { id: 'e1', nombre: '', puntos: 0 }, { id: 'e2', nombre: '', puntos: 0 },
   ], esEquipos);
   const cambiar = (id: string, f: (e: Equipo) => Equipo) => setEquipos(p => p.map(e => e.id === id ? f(e) : e));
@@ -437,7 +441,7 @@ export function GroupsWidget({ names }: { names: string[] }) {
               type="button"
               aria-pressed={reparto.por === p}
               onClick={() => setReparto(r => ({ ...r, por: p }))}
-              style={{ padding: '7px 11px', background: reparto.por === p ? 'rgba(244,114,182,0.28)' : 'transparent', color: reparto.por === p ? '#f9a8d4' : 'rgba(255,255,255,0.55)' }}
+              style={{ padding: '7px 11px', background: reparto.por === p ? GLASS_HOVER : 'transparent', color: reparto.por === p ? '#fff' : 'rgba(255,255,255,0.55)' }}
             >{t(p === 'tamano' ? 'Personas por grupo' : 'Número de grupos')}</button>
           ))}
         </div>
@@ -445,7 +449,7 @@ export function GroupsWidget({ names }: { names: string[] }) {
         <span className="font-black text-white text-[20px] text-center" style={{ minWidth: 28 }}>{reparto.n}</span>
         <IconBtn onClick={() => paso(1)} title={t('Más')}><Plus size={15} /></IconBtn>
         <div className="flex-1" />
-        <BotonPrincipal onClick={formar} color="linear-gradient(135deg,#f472b6,#a78bfa)" disabled={names.length === 0}><Shuffle size={16} />{t(grupos.length ? 'Mezclar otra vez' : 'Formar grupos')}</BotonPrincipal>
+        <BotonPrincipal onClick={formar} disabled={names.length === 0}><Shuffle size={16} />{t(grupos.length ? 'Mezclar otra vez' : 'Formar grupos')}</BotonPrincipal>
       </div>
       {grupos.length === 0 ? (
         <div className="flex-1 flex items-center justify-center text-center text-white/40 text-[13px] px-6">
@@ -474,9 +478,9 @@ export function GroupsWidget({ names }: { names: string[] }) {
    CÓDIGO QR
    ════════════════════════════════════════════════════════════ */
 
-export function QrWidget() {
+export function QrWidget({ uid }: { uid: string }) {
   const { t } = useI18n();
-  const [texto, setTexto] = usePersistido<string>('aulapro_pizarra_qr', '', esTexto);
+  const [texto, setTexto] = usePersistido<string>(claveDatos(uid, 'qr'), '', esTexto);
   const caja = useRef<HTMLDivElement | null>(null);
   const [lado, setLado] = useState(200);
   useEffect(() => {
@@ -516,9 +520,9 @@ interface Tarea { id: string; texto: string; hecha: boolean }
 const esTareas = (x: unknown): x is Tarea[] =>
   Array.isArray(x) && x.every(e => e && typeof e === 'object' && typeof (e as Tarea).id === 'string' && typeof (e as Tarea).texto === 'string' && typeof (e as Tarea).hecha === 'boolean');
 
-export function AgendaWidget() {
+export function AgendaWidget({ uid }: { uid: string }) {
   const { t } = useI18n();
-  const [tareas, setTareas] = usePersistido<Tarea[]>('aulapro_pizarra_plan', [], esTareas);
+  const [tareas, setTareas] = usePersistido<Tarea[]>(claveDatos(uid, 'plan'), [], esTareas);
   const [nueva, setNueva] = useState('');
   const añadir = () => {
     const texto = nueva.trim();

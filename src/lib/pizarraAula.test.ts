@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, tirarDados, repartirGrupos,
-  formatoCrono, direccionParaQr, SIMBOLOS_TRABAJO, MAX_ESCENAS, MAX_DADOS,
+  formatoCrono, direccionParaQr, SIMBOLOS_TRABAJO, MAX_ESCENAS, MAX_DADOS, MAX_VENTANAS, siguienteId, enCascada, huecoLibre, claveDatos, borrarDatosDeVentana,
 } from './pizarraAula';
 
 /** Generador repetible para que las pruebas no dependan del azar. */
@@ -22,37 +22,68 @@ describe('fondos', () => {
 });
 
 describe('ventanas y escenas guardadas', () => {
-  const ids = ['timer', 'wheel'];
+  const tipos = ['timer', 'wheel'];
   const rect = { x: 10, y: 20, width: 300, height: 400 };
 
-  it('descarta ventanas que ya no existen, repetidas o con medidas rotas', () => {
+  it('lee varias instancias de la misma herramienta', () => {
+    const v = leerVentanas([{ id: 'timer', tipo: 'timer', rect }, { id: 'timer-2', tipo: 'timer', rect }], tipos);
+    expect(v.map(x => x.id)).toEqual(['timer', 'timer-2']);
+    expect(v.every(x => x.tipo === 'timer')).toBe(true);
+  });
+  it('lo guardado por versiones anteriores (sin tipo) se lee con el id como tipo', () => {
+    expect(leerVentanas([{ id: 'wheel', rect }], tipos)).toEqual([{ id: 'wheel', tipo: 'wheel', rect }]);
+  });
+  it('descarta herramientas que ya no existen, identificadores repetidos o medidas rotas', () => {
     const v = leerVentanas([
-      { id: 'timer', rect }, { id: 'timer', rect }, { id: 'borrada', rect },
-      { id: 'wheel', rect: { x: 0, y: 0, width: 0, height: 10 } },
-      { id: 'wheel', rect: { x: 'a', y: 0, width: 5, height: 5 } },
+      { id: 'timer', tipo: 'timer', rect }, { id: 'timer', tipo: 'timer', rect },
+      { id: 'borrada', tipo: 'borrada', rect }, { id: 'x', tipo: 'borrada', rect }, { id: '', tipo: 'timer', rect },
+      { id: 'wheel', tipo: 'wheel', rect: { x: 0, y: 0, width: 0, height: 10 } },
+      { id: 'wheel-2', tipo: 'wheel', rect: { x: 'a', y: 0, width: 5, height: 5 } },
       null, 3,
-    ], ids);
-    expect(v).toEqual([{ id: 'timer', rect }]);
+    ], tipos);
+    expect(v).toEqual([{ id: 'timer', tipo: 'timer', rect }]);
+  });
+  it('no pasa del máximo de ventanas', () => {
+    const muchas = Array.from({ length: MAX_VENTANAS + 5 }, (_, i) => ({ id: 'timer-' + i, tipo: 'timer', rect }));
+    expect(leerVentanas(muchas, tipos)).toHaveLength(MAX_VENTANAS);
   });
   it('lo que no es una lista da una lista vacía', () => {
-    expect(leerVentanas('x', ids)).toEqual([]);
-    expect(leerEscenas('no es json', ids)).toEqual([]);
-    expect(leerEscenas('{"a":1}', ids)).toEqual([]);
-    expect(leerEscenas(null, ids)).toEqual([]);
+    expect(leerVentanas('x', tipos)).toEqual([]);
+    expect(leerEscenas('no es json', tipos)).toEqual([]);
+    expect(leerEscenas('{"a":1}', tipos)).toEqual([]);
+    expect(leerEscenas(null, tipos)).toEqual([]);
   });
   it('lee una escena válida, recorta el nombre y corrige el fondo', () => {
     const raw = JSON.stringify([
-      { id: 'e1', nombre: '  Inicio de clase  ', fondo: 'raro', ventanas: [{ id: 'timer', rect }] },
+      { id: 'e1', nombre: '  Inicio de clase  ', fondo: 'raro', ventanas: [{ id: 'timer', tipo: 'timer', rect }] },
       { id: 'e2', nombre: '   ', fondo: 'blanco', ventanas: [] },
       { id: 'e3', fondo: 'blanco', ventanas: [] },
     ]);
-    expect(leerEscenas(raw, ids)).toEqual([
-      { id: 'e1', nombre: 'Inicio de clase', fondo: 'blanco', ventanas: [{ id: 'timer', rect }] },
+    expect(leerEscenas(raw, tipos)).toEqual([
+      { id: 'e1', nombre: 'Inicio de clase', fondo: 'blanco', ventanas: [{ id: 'timer', tipo: 'timer', rect }] },
     ]);
   });
   it('no pasa del máximo de escenas', () => {
     const muchas = Array.from({ length: MAX_ESCENAS + 5 }, (_, i) => ({ id: 'e' + i, nombre: 'E' + i, fondo: 'blanco', ventanas: [] }));
-    expect(leerEscenas(JSON.stringify(muchas), ids)).toHaveLength(MAX_ESCENAS);
+    expect(leerEscenas(JSON.stringify(muchas), tipos)).toHaveLength(MAX_ESCENAS);
+  });
+});
+
+describe('instancias nuevas', () => {
+  it('la primera lleva el nombre de la herramienta y las siguientes un número', () => {
+    expect(siguienteId('timer', [])).toBe('timer');
+    expect(siguienteId('timer', ['timer'])).toBe('timer-2');
+    expect(siguienteId('timer', ['timer', 'timer-2'])).toBe('timer-3');
+  });
+  it('reutiliza el número que quedó libre y no se confunde con otras herramientas', () => {
+    expect(siguienteId('timer', ['timer', 'timer-3'])).toBe('timer-2');
+    expect(siguienteId('timer', ['wheel', 'timer-2'])).toBe('timer');
+  });
+  it('las ventanas del mismo tipo se colocan en cascada y vuelven a empezar', () => {
+    const base = { x: 100, y: 100, width: 300, height: 300 };
+    expect(enCascada(base, 0)).toEqual(base);
+    expect(enCascada(base, 1)).toEqual({ x: 128, y: 128, width: 300, height: 300 });
+    expect(enCascada(base, 8)).toEqual(base);
   });
 });
 
@@ -164,5 +195,53 @@ describe('direccionParaQr', () => {
   it('un texto libre se queda como está', () => {
     expect(direccionParaQr('Aula 2.º B')).toBe('Aula 2.º B');
     expect(direccionParaQr('')).toBe('');
+  });
+});
+
+describe('datos de cada ventana', () => {
+  it('dos ventanas de la misma herramienta tienen claves distintas', () => {
+    expect(claveDatos('note', 'nota')).not.toBe(claveDatos('note-2', 'nota'));
+    expect(claveDatos('note', 'nota')).not.toBe(claveDatos('note', 'plan'));
+  });
+  it('al cerrar una ventana se borra lo suyo y solo lo suyo', () => {
+    const memoria = new Map<string, string>();
+    const falso = {
+      get length() { return memoria.size; },
+      key: (i: number) => [...memoria.keys()][i] ?? null,
+      removeItem: (k: string) => { memoria.delete(k); },
+    };
+    vi.stubGlobal('localStorage', falso);
+    memoria.set(claveDatos('note', 'nota'), '"a"');
+    memoria.set(claveDatos('note-2', 'nota'), '"b"');
+    memoria.set(claveDatos('note-2', 'otro'), '"c"');
+    memoria.set('aulapro_pizarra_fondo', 'blanco');
+    borrarDatosDeVentana('note-2');
+    expect([...memoria.keys()].sort()).toEqual([claveDatos('note', 'nota'), 'aulapro_pizarra_fondo'].sort());
+    vi.unstubAllGlobals();
+  });
+});
+
+describe('huecoLibre', () => {
+  const area = { width: 1000, height: 700 };
+  const tam = { width: 300, height: 300 };
+  it('en una pizarra vacía va arriba a la izquierda, debajo de la barra', () => {
+    expect(huecoLibre(tam, [], area)).toEqual({ x: 16, y: 70, ...tam });
+  });
+  it('se pone al lado de la ventana que ya hay y no encima', () => {
+    const ocupada = { x: 16, y: 70, width: 300, height: 300 };
+    const r = huecoLibre(tam, [ocupada], area)!;
+    expect(r).not.toBeNull();
+    expect(r.x).toBeGreaterThanOrEqual(ocupada.x + ocupada.width);
+    expect(r.y).toBe(70);
+  });
+  it('no deja la ventana fuera del área ni sobre la barra inferior', () => {
+    const ocupadas = [{ x: 16, y: 70, width: 300, height: 300 }, { x: 330, y: 70, width: 300, height: 300 }];
+    const r = huecoLibre(tam, ocupadas, area)!;
+    expect(r.x + r.width).toBeLessThanOrEqual(area.width - 16);
+    expect(r.y + r.height).toBeLessThanOrEqual(area.height - 84);
+  });
+  it('devuelve null si no hay sitio sin tapar nada', () => {
+    expect(huecoLibre(tam, [{ x: 0, y: 0, width: 1000, height: 700 }], area)).toBeNull();
+    expect(huecoLibre({ width: 2000, height: 300 }, [], area)).toBeNull();
   });
 });

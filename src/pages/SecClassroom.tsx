@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
-  Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
+  Plus, Minus, Eraser, ExternalLink, X, Disc3, Trophy,
   RefreshCw, Link as LinkIcon, PenLine, Calculator, Delete, Flag, Users,
   Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
   Maximize, Minimize, LayoutTemplate, Save, Trash2,
@@ -20,7 +20,7 @@ import {
   GroupsWidget, QrWidget, AgendaWidget,
 } from '../components/live/PizarraWidgets';
 import {
-  FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, MAX_ESCENAS,
+  FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, siguienteId, enCascada, huecoLibre, borrarDatosDeVentana, MAX_ESCENAS, MAX_VENTANAS,
   type FondoId, type Rect, type Escena,
 } from '../lib/pizarraAula';
 
@@ -58,6 +58,14 @@ const APPS: WidgetConfig[] = [
 ];
 
 const APP_IDS = APPS.map(a => a.id);
+
+/** Cómo se agrupan en la barra inferior: tiempo, clase, participación y recursos. */
+const DOCK_GRUPOS: WidgetType[][] = [
+  ['timer', 'stopwatch', 'clock'],
+  ['traffic', 'symbols', 'agenda', 'note'],
+  ['wheel', 'groups', 'dice', 'score'],
+  ['calc', 'noise', 'embed', 'qr'],
+];
 
 /** Nombres de relleno cuando aún no hay alumnos creados. */
 const DEFAULT_NAMES = ['Alumno 1', 'Alumno 2', 'Alumno 3', 'Alumno 4', 'Alumno 5', 'Alumno 6'];
@@ -159,10 +167,9 @@ function beep(times = 3) {
    ════════════════════════════════════════════════════════════ */
 
 function WidgetShell({
-  title, icon, accent, onClose, children,
+  title, accent, onClose, children,
 }: {
   title: string;
-  icon: React.ReactNode;
   accent: string;
   onClose: () => void;
   children: React.ReactNode;
@@ -170,42 +177,33 @@ function WidgetShell({
   const { t } = useI18n();
   return (
     <div
-      className="w-full h-full overflow-hidden rounded-[26px] flex flex-col"
+      className="w-full h-full overflow-hidden rounded-[18px] flex flex-col"
       style={{
-        background: 'linear-gradient(160deg, rgba(30,41,59,0.82), rgba(15,23,42,0.92))',
-        backdropFilter: 'blur(22px)',
-        WebkitBackdropFilter: 'blur(22px)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        boxShadow: `0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.14), 0 0 0 1px ${accent}22`,
+        background: '#1e2433',
+        boxShadow: '0 1px 2px rgba(15,23,42,0.25), 0 10px 28px rgba(15,23,42,0.22)',
+        // El color de la herramienta se usa solo en el botón principal y en el punto del título
+        ['--pz-accent' as string]: accent,
       }}
     >
-      <div
-        className="drag-handle cursor-move flex items-center gap-3 px-5 py-3.5 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.035)' }}
-      >
-        <span
-          className="flex items-center justify-center rounded-xl flex-shrink-0"
-          style={{ width: 30, height: 30, background: `${accent}22`, color: accent }}
-        >
-          {icon}
-        </span>
-        <h2 className="text-white font-bold text-[15px] tracking-tight flex-1 min-w-0 truncate">
+      <div className="drag-handle cursor-move flex items-center gap-2 px-4 flex-shrink-0" style={{ height: 38 }}>
+        <span className="rounded-full flex-shrink-0" style={{ width: 7, height: 7, background: accent }} aria-hidden="true" />
+        <h2 className="text-[12px] font-semibold tracking-wide flex-1 min-w-0 truncate" style={{ color: 'rgba(255,255,255,0.62)' }}>
           {title}
         </h2>
         <button
           onClick={onClose}
           title={t('Cerrar')}
           aria-label={t('Cerrar')}
-          className="widget-cerrar flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
-          style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.55)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+          className="widget-cerrar flex items-center justify-center rounded-md transition-colors flex-shrink-0"
+          style={{ width: 24, height: 24, color: 'rgba(255,255,255,0.4)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 p-5">{children}</div>
+      <div className="flex-1 min-h-0 px-4 pb-4 pt-1">{children}</div>
     </div>
   );
 }
@@ -325,7 +323,6 @@ function TimerWidget() {
             strokeDasharray={CIRC}
             animate={{ strokeDashoffset: CIRC * (1 - pct) }}
             transition={{ duration: 0.4, ease: 'linear' }}
-            style={{ filter: `drop-shadow(0 0 9px ${color}88)` }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -424,11 +421,9 @@ function TimerWidget() {
             disabled={seconds === 0}
             className="flex items-center justify-center gap-2 rounded-xl font-bold text-[14px] transition-all disabled:opacity-40"
             style={{
-              padding: '0 26px', height: 44, color: '#04141a',
-              background: running
-                ? 'linear-gradient(135deg,#fbbf24,#f59e0b)'
-                : 'linear-gradient(135deg,#34d399,#22d3ee)',
-              boxShadow: `0 6px 20px ${running ? 'rgba(245,158,11,0.4)' : 'rgba(34,211,238,0.35)'}`,
+              padding: '0 26px', height: 44,
+              background: running ? 'rgba(255,255,255,0.14)' : 'var(--pz-accent, #22d3ee)',
+              color: running ? '#fff' : '#0b1220',
             }}
           >
             {running ? <><Pause size={17} />{t('Pausa')}</> : <><Play size={17} />{t('Iniciar')}</>}
@@ -578,7 +573,7 @@ function NoiseWidget() {
           onClick={start}
           disabled={micState === 'asking'}
           className="rounded-xl font-bold text-[13.5px] disabled:opacity-50"
-          style={{ padding: '10px 22px', background: 'linear-gradient(135deg,#34d399,#10b981)', color: '#04231a' }}
+          style={{ padding: '10px 22px', background: 'var(--pz-accent, #34d399)', color: '#0b1220' }}
         >
           {t(micState === 'asking' ? 'Pidiendo permiso…' : micState === 'denied' ? 'Volver a intentarlo' : 'Activar micrófono')}
         </button>
@@ -1043,8 +1038,8 @@ function CalcWidget() {
   }, [press]);
 
   const styleFor = (kind: string, active: boolean) => {
-    if (kind === 'eq') return { background: 'linear-gradient(135deg,#f472b6,#ec4899)', color: '#fff' };
-    if (kind === 'op') return { background: active ? 'rgba(244,114,182,0.3)' : 'rgba(244,114,182,0.16)', color: '#fbcfe8' };
+    if (kind === 'eq') return { background: 'var(--pz-accent, #f472b6)', color: '#0b1220' };
+    if (kind === 'op') return { background: active ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.13)', color: '#fff' };
     if (kind === 'fn') return { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.72)' };
     return { background: 'rgba(255,255,255,0.1)', color: '#fff' };
   };
@@ -1249,7 +1244,7 @@ function EmbedWidget() {
           onClick={open}
           disabled={!url.trim()}
           className="rounded-xl font-bold text-[13px] disabled:opacity-40 flex-shrink-0"
-          style={{ padding: '0 20px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#2a1a00' }}
+          style={{ padding: '0 20px', background: 'var(--pz-accent, #fbbf24)', color: '#0b1220' }}
         >
           {t('Abrir')}
         </button>
@@ -1291,7 +1286,7 @@ function EmbedWidget() {
             <button
               onClick={() => window.open(activeUrl, '_blank', 'noopener')}
               className="rounded-xl font-bold text-[12.5px]"
-              style={{ padding: '9px 18px', background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#2a1a00' }}
+              style={{ padding: '9px 18px', background: 'var(--pz-accent, #fbbf24)', color: '#0b1220' }}
             >
               {t('Abrir en el navegador')}
             </button>
@@ -1408,7 +1403,8 @@ function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick:
   );
 }
 
-interface Ventana { id: WidgetType; rect: Rect }
+/** Una ventana abierta: una instancia (`id`) de una herramienta (`tipo`). Hay tantas como el docente quiera. */
+interface Ventana { id: string; tipo: WidgetType; rect: Rect }
 
 /** Las ventanas que había abiertas la última vez (`null`: nunca se ha guardado nada). */
 function leerActual(): Ventana[] | null {
@@ -1423,13 +1419,46 @@ function leerEscenasGuardadas(): Escena[] {
   try { return leerEscenas(localStorage.getItem(ESCENAS_KEY), APP_IDS); } catch { return []; }
 }
 
-const CRISTAL: React.CSSProperties = {
-  background: 'rgba(15,23,42,0.76)',
-  backdropFilter: 'blur(22px)',
-  WebkitBackdropFilter: 'blur(22px)',
-  border: '1px solid rgba(255,255,255,0.11)',
-  boxShadow: '0 16px 44px rgba(0,0,0,0.5)',
+/** Superficie de las barras y los menús: plana, de un solo color, sin transparencias ni brillos. */
+const SUPERFICIE: React.CSSProperties = {
+  background: '#1e2433',
+  boxShadow: '0 1px 2px rgba(15,23,42,0.25), 0 10px 28px rgba(15,23,42,0.22), inset 0 0 0 1px rgba(255,255,255,0.08)',
 };
+
+/** Botón cuadrado, solo con icono, de las barras. El nombre sale al pasar el ratón y lo leen los lectores de pantalla. */
+function BotonBarra({ icono, nombre, activo, color, cuenta, onClick, disabled, pulsado }: {
+  icono: React.ReactNode; nombre: string; activo?: boolean; color?: string; cuenta?: number;
+  onClick: () => void; disabled?: boolean; pulsado?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={nombre}
+      aria-label={nombre}
+      aria-pressed={pulsado}
+      className="relative flex items-center justify-center rounded-xl transition-colors flex-shrink-0 disabled:opacity-35"
+      style={{
+        width: 40, height: 40,
+        background: activo ? 'rgba(255,255,255,0.14)' : 'transparent',
+        color: activo ? '#fff' : (color ?? 'rgba(255,255,255,0.62)'),
+      }}
+      onMouseEnter={e => { if (!activo && !disabled) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = activo ? 'rgba(255,255,255,0.14)' : 'transparent'; }}
+    >
+      {icono}
+      {!!cuenta && (
+        <span
+          className="absolute flex items-center justify-center rounded-full font-bold"
+          style={{ top: 3, right: 3, minWidth: 14, height: 14, padding: '0 3px', fontSize: 9, background: color ?? '#fff', color: '#0b1220' }}
+        >{cuenta}</span>
+      )}
+    </button>
+  );
+}
+
+const Separador = () => <span className="flex-shrink-0" style={{ width: 1, height: 22, margin: '0 5px', background: 'rgba(255,255,255,0.12)' }} aria-hidden="true" />;
 
 export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
   const { t } = useI18n();
@@ -1474,7 +1503,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
 
   /* ── Ventanas: el orden de la lista es el orden de apilado (la última, delante) ── */
   const [ventanas, setVentanas] = useState<Ventana[]>(() =>
-    leerActual() ?? (['timer', 'wheel'] as WidgetType[]).map(id => ({ id, rect: DEFAULTS[id] })));
+    leerActual() ?? (['timer', 'wheel'] as WidgetType[]).map(tipo => ({ id: tipo, tipo, rect: DEFAULTS[tipo] })));
 
   const areaPizarra = useCallback(() => {
     const r = rootRef.current?.getBoundingClientRect();
@@ -1488,7 +1517,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const ajustar = () => {
       const area = areaPizarra();
       setVentanas(prev => {
-        const next = prev.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.id)) }));
+        const next = prev.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));
         return next.every((v, i) => JSON.stringify(v.rect) === JSON.stringify(prev[i].rect)) ? prev : next;
       });
     };
@@ -1501,16 +1530,33 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     try { localStorage.setItem(ACTUAL_KEY, JSON.stringify(ventanas)); } catch { /* sin almacenamiento */ }
   }, [ventanas]);
 
-  const alFrente = useCallback((id: WidgetType) => {
+  const alFrente = useCallback((id: string) => {
     setVentanas(prev => (prev[prev.length - 1]?.id === id ? prev : [...prev.filter(v => v.id !== id), ...prev.filter(v => v.id === id)]));
   }, []);
-  const ponerRect = useCallback((id: WidgetType, rect: Partial<Rect>) => {
+  const ponerRect = useCallback((id: string, rect: Partial<Rect>) => {
     setVentanas(prev => prev.map(v => v.id === id ? { ...v, rect: { ...v.rect, ...rect } } : v));
   }, []);
-  const toggle = (id: WidgetType) => setVentanas(prev =>
-    prev.some(v => v.id === id)
-      ? prev.filter(v => v.id !== id)
-      : [...prev, { id, rect: ajustarRect(DEFAULTS[id], areaPizarra(), minDe(id)) }]);
+  /**
+   * Abre otra ventana de la herramienta, aunque ya haya una: cada una funciona por su cuenta. Va en un hueco libre
+   * de la pizarra y, si no queda ninguno, en cascada sobre las demás.
+   */
+  const anadir = (tipo: WidgetType) => setVentanas(prev => {
+    if (prev.length >= MAX_VENTANAS) return prev;
+    const area = areaPizarra();
+    const base = ajustarRect(DEFAULTS[tipo], area, minDe(tipo));
+    const libre = huecoLibre(base, prev.map(v => v.rect), area);
+    const mismas = prev.filter(v => v.tipo === tipo).length;
+    return [...prev, {
+      id: siguienteId(tipo, prev.map(v => v.id)),
+      tipo,
+      rect: libre ?? ajustarRect(enCascada(base, mismas), area, minDe(tipo)),
+    }];
+  });
+  const cerrar = (id: string) => {
+    borrarDatosDeVentana(id);
+    setVentanas(prev => prev.filter(v => v.id !== id));
+  };
+  const llena = ventanas.length >= MAX_VENTANAS;
 
   /* ── Escenas: una disposición con nombre que se puede recuperar con un clic ── */
   const [escenas, setEscenas] = useState<Escena[]>(leerEscenasGuardadas);
@@ -1522,13 +1568,21 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   function guardarEscena() {
     if (escenas.length >= MAX_ESCENAS) return;
     const nombre = nombreEscena.trim().slice(0, 40) || t('Escena {n}', { n: escenas.length + 1 });
-    setEscenas(p => [...p, { id: 'sc' + Date.now(), nombre, fondo: fondoId, ventanas: ventanas.map(v => ({ id: v.id, rect: v.rect })) }]);
+    setEscenas(p => [...p, { id: 'sc' + Date.now(), nombre, fondo: fondoId, ventanas: ventanas.map(v => ({ id: v.id, tipo: v.tipo, rect: v.rect })) }]);
     setNombreEscena('');
   }
+  /** Una escena guarda la disposición, no lo escrito dentro: al recuperarla las ventanas salen limpias. */
   function cargarEscena(e: Escena) {
     const area = areaPizarra();
+    ventanas.forEach(v => borrarDatosDeVentana(v.id));
     elegirFondo(e.fondo);
-    setVentanas(e.ventanas.map(v => ({ id: v.id as WidgetType, rect: ajustarRect(v.rect, area, minDe(v.id as WidgetType)) })));
+    const ids: string[] = [];
+    setVentanas(e.ventanas.map(v => {
+      const tipo = v.tipo as WidgetType;
+      const id = siguienteId(tipo, ids);
+      ids.push(id);
+      return { id, tipo, rect: ajustarRect(v.rect, area, minDe(tipo)) };
+    }));
     setMenu(null);
   }
 
@@ -1629,8 +1683,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     ctx.clearRect(0, 0, width, height);
   };
 
-  const cuerpo = (id: WidgetType) => {
-    switch (id) {
+  const cuerpo = (v: Ventana) => {
+    switch (v.tipo) {
       case 'timer':     return <TimerWidget />;
       case 'wheel':     return <WheelWidget names={wheelNames} />;
       case 'calc':      return <CalcWidget />;
@@ -1640,24 +1694,24 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       case 'stopwatch': return <StopwatchWidget />;
       case 'traffic':   return <TrafficWidget />;
       case 'dice':      return <DiceWidget />;
-      case 'symbols':   return <SymbolsWidget />;
-      case 'note':      return <NoteWidget />;
-      case 'score':     return <ScoreWidget />;
+      case 'symbols':   return <SymbolsWidget uid={v.id} />;
+      case 'note':      return <NoteWidget uid={v.id} />;
+      case 'score':     return <ScoreWidget uid={v.id} />;
       case 'groups':    return <GroupsWidget names={wheelNames} />;
-      case 'qr':        return <QrWidget />;
-      case 'agenda':    return <AgendaWidget />;
+      case 'qr':        return <QrWidget uid={v.id} />;
+      case 'agenda':    return <AgendaWidget uid={v.id} />;
     }
   };
 
-  const renderWidget = (cfg: WidgetConfig) => {
-    const pos = ventanas.findIndex(v => v.id === cfg.id);
-    if (pos < 0) return null;
-    const { rect } = ventanas[pos];
-    const min = minDe(cfg.id);
+  const renderWidget = (v: Ventana, apilado: number) => {
+    const cfg = APPS.find(a => a.id === v.tipo);
+    if (!cfg) return null;
+    const { rect } = v;
+    const min = minDe(v.tipo);
 
     return (
       <Rnd
-        key={cfg.id}
+        key={v.id}
         position={{ x: rect.x, y: rect.y }}
         size={{ width: rect.width, height: rect.height }}
         minWidth={min.width}
@@ -1666,23 +1720,20 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         dragHandleClassName="drag-handle"
         // Sin esto, en el móvil el toque sobre la X empieza un arrastre de la cabecera y nunca llega a ser un clic
         cancel=".widget-cerrar"
-        onMouseDown={() => alFrente(cfg.id)}
-        onDragStop={(_e, d) => ponerRect(cfg.id, { x: d.x, y: d.y })}
-        onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(cfg.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
-        style={{ zIndex: 30 + pos }}
+        onMouseDown={() => alFrente(v.id)}
+        onDragStop={(_e, d) => ponerRect(v.id, { x: d.x, y: d.y })}
+        onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(v.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
+        style={{ zIndex: 30 + apilado }}
       >
-        <WidgetShell title={t(cfg.title)} icon={cfg.icon} accent={cfg.accent} onClose={() => toggle(cfg.id)}>
-          {cuerpo(cfg.id)}
+        <WidgetShell title={t(cfg.title)} accent={cfg.accent} onClose={() => cerrar(v.id)}>
+          {cuerpo(v)}
         </WidgetShell>
       </Rnd>
     );
   };
 
-  const botonBarra = (activo: boolean): React.CSSProperties => ({
-    padding: '6px 12px',
-    background: activo ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)',
-    color: activo ? '#7dd3fc' : 'rgba(255,255,255,0.7)',
-  });
+  // Siempre en el mismo orden del DOM, aunque cambie el apilado: mover un nodo recargaría un contenido incrustado
+  const enOrdenFijo = ventanas.map((v, i) => ({ v, i })).sort((a, b) => (a.v.id < b.v.id ? -1 : 1));
 
   return (
     <div
@@ -1735,114 +1786,82 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {/* Cierra el menú abierto al tocar fuera */}
       {menu && <div className="absolute inset-0" style={{ zIndex: 54 }} onClick={() => setMenu(null)} aria-hidden="true" />}
 
-      {/* Barra superior */}
-      <div
-        className="absolute flex flex-wrap items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
-        style={{
-          top: 18, left: 18, zIndex: 56, maxWidth: 'calc(100% - 36px)',
-          background: 'rgba(15,23,42,0.72)',
-          backdropFilter: 'blur(18px)',
-          border: '1px solid rgba(255,255,255,0.11)',
-          boxShadow: '0 12px 34px rgba(0,0,0,0.42)',
-        }}
-      >
+      {/* Barra superior: solo iconos */}
+      <div className="absolute flex items-center gap-0.5 rounded-2xl p-1" style={{ top: 14, left: 14, zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}>
         {clases.length > 0 && (
-          <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
-            <Users size={15} aria-hidden="true" />
-            <span className="sr-only">{t('Clase')}</span>
-            <select value={clase?.id ?? ''} onChange={e => setClaseId(e.target.value)}>
-              {clases.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </label>
-        )}
-
-        <button
-          onClick={() => setPenOn(v => !v)}
-          title={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')}
-          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={botonBarra(penOn)}
-        >
-          <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Lápiz')}
-        </button>
-
-        <button
-          onClick={() => setMenu(m => m === 'fondos' ? null : 'fondos')}
-          aria-expanded={menu === 'fondos'}
-          title={t('Cambiar el fondo')}
-          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={botonBarra(menu === 'fondos')}
-        >
-          <ImageIcon size={15} />{t('Fondo')}
-        </button>
-
-        <button
-          onClick={() => setMenu(m => m === 'escenas' ? null : 'escenas')}
-          aria-expanded={menu === 'escenas'}
-          title={t('Guardar y recuperar la disposición de la pizarra')}
-          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={botonBarra(menu === 'escenas')}
-        >
-          <LayoutTemplate size={15} />{t('Escenas')}
-        </button>
-
-        {puedePantallaCompleta && (
-          <button
-            onClick={alternarPantallaCompleta}
-            title={t(pantallaCompleta ? 'Salir de la pantalla completa' : 'Pantalla completa')}
-            aria-label={t(pantallaCompleta ? 'Salir de la pantalla completa' : 'Pantalla completa')}
-            className="flex items-center justify-center rounded-xl transition-all"
-            style={{ ...botonBarra(false), padding: '6px 9px' }}
-          >
-            {pantallaCompleta ? <Minimize size={15} /> : <Maximize size={15} />}
-          </button>
-        )}
-
-        {penOn && (
           <>
-            <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.12)' }} />
-            <Palette size={15} color="rgba(255,255,255,0.4)" />
-            {penColors.map(c => (
-              <button
-                key={c}
-                onClick={() => setColor(c)}
-                title={t('Color del lápiz')}
-                className="rounded-full transition-transform"
-                style={{
-                  width: 21, height: 21, background: c,
-                  border: color === c ? '2.5px solid white' : '2.5px solid transparent',
-                  boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
-                  transform: color === c ? 'scale(1.16)' : 'scale(1)',
-                }}
-              />
-            ))}
-            <button
-              onClick={clearBoard}
-              title={t('Borrar todo')}
-              className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors"
-              style={{ width: 30, height: 30, background: 'rgba(255,255,255,0.07)' }}
-            >
-              <Eraser size={15} />
-            </button>
+            <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
+              <Users size={15} aria-hidden="true" />
+              <span className="sr-only">{t('Clase')}</span>
+              <select value={clase?.id ?? ''} onChange={e => setClaseId(e.target.value)}>
+                {clases.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </label>
+            <Separador />
           </>
+        )}
+        <BotonBarra icono={<PenLine size={19} />} nombre={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')} activo={penOn} pulsado={penOn} onClick={() => setPenOn(v => !v)} />
+        <BotonBarra icono={<ImageIcon size={19} />} nombre={t('Cambiar el fondo')} activo={menu === 'fondos'} onClick={() => setMenu(m => m === 'fondos' ? null : 'fondos')} />
+        <BotonBarra icono={<LayoutTemplate size={19} />} nombre={t('Guardar y recuperar la disposición de la pizarra')} activo={menu === 'escenas'} onClick={() => setMenu(m => m === 'escenas' ? null : 'escenas')} />
+        {puedePantallaCompleta && (
+          <BotonBarra
+            icono={pantallaCompleta ? <Minimize size={19} /> : <Maximize size={19} />}
+            nombre={t(pantallaCompleta ? 'Salir de la pantalla completa' : 'Pantalla completa')}
+            onClick={alternarPantallaCompleta}
+          />
         )}
       </div>
 
+      {/* Paleta del lápiz: aparte y solo mientras se dibuja */}
+      {penOn && (
+        <div className="absolute flex items-center gap-2 rounded-2xl px-3 py-2" style={{ top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 56, ...SUPERFICIE }}>
+          {penColors.map(c => (
+            <button
+              key={c}
+              onClick={() => setColor(c)}
+              title={t('Color del lápiz')}
+              aria-label={t('Color del lápiz')}
+              aria-pressed={color === c}
+              className="rounded-full transition-transform"
+              style={{
+                width: 22, height: 22, background: c,
+                border: color === c ? '2.5px solid white' : '2.5px solid transparent',
+                boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
+                transform: color === c ? 'scale(1.12)' : 'scale(1)',
+              }}
+            />
+          ))}
+          <Separador />
+          <button
+            onClick={clearBoard}
+            title={t('Borrar todo')}
+            aria-label={t('Borrar todo')}
+            className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors"
+            style={{ width: 28, height: 28 }}
+          >
+            <Eraser size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Menú de fondos */}
       {menu === 'fondos' && (
-        <div className="absolute rounded-2xl p-3" style={{ top: 78, left: 18, zIndex: 57, width: 340, maxWidth: 'calc(100% - 36px)', ...CRISTAL, background: 'rgba(15,23,42,0.96)' }} role="dialog" aria-label={t('Fondo')}>
-          <div className="grid grid-cols-4 gap-2">
+        <div className="absolute rounded-2xl p-3" style={{ top: 66, left: 14, zIndex: 57, width: 300, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }} role="dialog" aria-label={t('Fondo')}>
+          <div className="grid grid-cols-4 gap-2.5">
             {FONDOS.map(f => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => elegirFondo(f.id)}
                 aria-pressed={fondoId === f.id}
-                className="flex flex-col items-center gap-1.5 rounded-xl text-[11px] font-bold text-white/75"
-                style={{ padding: 6, background: fondoId === f.id ? 'rgba(56,189,248,0.2)' : 'transparent' }}
-              >
-                <span className="block w-full rounded-lg" style={{ height: 38, background: f.css, border: '1px solid rgba(255,255,255,0.25)' }} />
-                {t(f.label)}
-              </button>
+                aria-label={t(f.label)}
+                title={t(f.label)}
+                className="block rounded-xl transition-transform hover:scale-105"
+                style={{
+                  height: 44, background: f.css,
+                  border: fondoId === f.id ? '2.5px solid #fff' : '1px solid rgba(255,255,255,0.22)',
+                }}
+              />
             ))}
           </div>
         </div>
@@ -1850,8 +1869,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
 
       {/* Menú de escenas */}
       {menu === 'escenas' && (
-        <div className="absolute rounded-2xl p-3 flex flex-col gap-2.5" style={{ top: 78, left: 18, zIndex: 57, width: 340, maxWidth: 'calc(100% - 36px)', ...CRISTAL, background: 'rgba(15,23,42,0.96)' }} role="dialog" aria-label={t('Escenas')}>
-          <p className="text-[12px] text-white/55 leading-snug">{t('Una escena guarda qué herramientas hay abiertas, dónde están y el fondo. Úsalas para pasar de la entrada a la tarea y al cierre con un clic.')}</p>
+        <div className="absolute rounded-2xl p-3 flex flex-col gap-3" style={{ top: 66, left: 14, zIndex: 57, width: 320, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }} role="dialog" aria-label={t('Escenas')}>
           <form className="flex gap-2" onSubmit={e => { e.preventDefault(); guardarEscena(); }}>
             <input
               value={nombreEscena}
@@ -1865,32 +1883,37 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
             <button
               type="submit"
               disabled={escenas.length >= MAX_ESCENAS}
-              className="flex items-center gap-1.5 rounded-xl text-[12.5px] font-bold disabled:opacity-40"
-              style={{ padding: '0 12px', background: 'rgba(56,189,248,0.22)', color: '#7dd3fc' }}
-            ><Save size={14} />{t('Guardar')}</button>
+              title={t('Guardar')}
+              aria-label={t('Guardar')}
+              className="flex items-center justify-center rounded-xl disabled:opacity-40"
+              style={{ width: 38, background: 'rgba(255,255,255,0.14)', color: '#fff' }}
+            ><Save size={16} /></button>
           </form>
+          {escenas.length === 0 && (
+            <p className="text-[12px] text-white/45 leading-snug">{t('Una escena guarda qué herramientas hay abiertas, dónde están y el fondo. Úsalas para pasar de la entrada a la tarea y al cierre con un clic.')}</p>
+          )}
           {escenas.length >= MAX_ESCENAS && <p className="text-[11.5px] text-amber-300/90">{t('Has llegado al máximo de escenas. Borra alguna para guardar otra.')}</p>}
           {escenas.length > 0 && (
             <ul className="flex flex-col gap-1 max-h-[260px] overflow-y-auto">
               {escenas.map(e => (
-                <li key={e.id} className="flex items-center gap-1.5">
+                <li key={e.id} className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => cargarEscena(e)}
-                    className="flex-1 min-w-0 flex items-center gap-2 rounded-xl text-left text-[13px] font-bold text-white/85 hover:text-white"
-                    style={{ padding: '8px 11px', background: 'rgba(255,255,255,0.06)' }}
+                    className="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl text-left text-[13px] font-semibold text-white/85 hover:text-white hover:bg-white/5"
+                    style={{ padding: '8px 10px' }}
                   >
                     <span className="inline-block rounded-md flex-shrink-0" style={{ width: 16, height: 16, background: fondoPorId(e.fondo).css, border: '1px solid rgba(255,255,255,0.3)' }} />
                     <span className="truncate">{e.nombre}</span>
-                    <span className="ml-auto text-[11px] font-semibold text-white/40 flex-shrink-0">{t('{n} herramientas', { n: e.ventanas.length })}</span>
+                    <span className="ml-auto text-[11px] font-medium text-white/35 flex-shrink-0">{e.ventanas.length}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setEscenas(p => p.filter(x => x.id !== e.id))}
                     title={t('Borrar escena')}
                     aria-label={t('Borrar escena')}
-                    className="flex items-center justify-center rounded-lg text-white/40 hover:text-rose-300 flex-shrink-0"
-                    style={{ width: 32, height: 32 }}
+                    className="flex items-center justify-center rounded-lg text-white/35 hover:text-rose-300 flex-shrink-0"
+                    style={{ width: 30, height: 30 }}
                   ><Trash2 size={14} /></button>
                 </li>
               ))}
@@ -1899,57 +1922,37 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         </div>
       )}
 
-      {/* Widgets */}
-      {APPS.map(renderWidget)}
+      {/* Ventanas */}
+      {enOrdenFijo.map(({ v, i }) => renderWidget(v, i))}
 
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
 
-      {/* Dock: con tantas herramientas se desplaza hacia los lados en pantallas estrechas */}
-      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 20, zIndex: 60, maxWidth: 'calc(100% - 150px)' }}>
-        <div className="flex rounded-3xl px-1.5 py-2 overflow-x-auto" style={{ ...CRISTAL, scrollbarWidth: 'thin' }}>
-          {APPS.map(app => {
-            const on = ventanas.some(v => v.id === app.id);
-            return (
-              <motion.button
-                key={app.id}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.94 }}
-                onClick={() => toggle(app.id)}
-                title={t(on ? 'Cerrar {title}' : 'Abrir {title}', { title: t(app.title) })}
-                aria-pressed={on}
-                className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors flex-shrink-0"
-                style={{
-                  padding: '8px 1px',
-                  width: 56,
-                  background: on ? `${app.accent}1f` : 'transparent',
-                  color: on ? app.accent : 'rgba(255,255,255,0.55)',
-                }}
-              >
-                {app.icon}
-                <span className="text-[9.5px] font-bold tracking-tight text-center leading-tight">{t(app.title)}</span>
-                {on && (
-                  <motion.div
-                    layoutId={`dot-${app.id}`}
-                    className="absolute rounded-full"
-                    style={{ bottom: 2, width: 4, height: 4, background: app.accent }}
+      {/* Barra inferior: solo iconos, en cuatro grupos. Cada pulsación abre otra ventana de esa herramienta. */}
+      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 16, zIndex: 60, maxWidth: 'calc(100% - 140px)' }}>
+        <div className="flex items-center rounded-2xl p-1 overflow-x-auto" style={{ ...SUPERFICIE, scrollbarWidth: 'none' }}>
+          {DOCK_GRUPOS.map((grupo, gi) => (
+            <div key={gi} className="flex items-center flex-shrink-0">
+              {gi > 0 && <Separador />}
+              {grupo.map(id => {
+                const app = APPS.find(a => a.id === id)!;
+                const abiertas = ventanas.filter(v => v.tipo === id).length;
+                return (
+                  <BotonBarra
+                    key={id}
+                    icono={app.icon}
+                    nombre={t(llena ? 'Hay demasiadas ventanas abiertas. Cierra alguna.' : 'Añadir {title}', { title: t(app.title) })}
+                    color={abiertas > 0 ? app.accent : undefined}
+                    cuenta={abiertas > 1 ? abiertas : undefined}
+                    onClick={() => anadir(id)}
+                    disabled={llena}
                   />
-                )}
-              </motion.button>
-            );
-          })}
-          <div className="flex-shrink-0" style={{ width: 1, alignSelf: 'stretch', margin: '4px 2px', background: 'rgba(255,255,255,0.12)' }} />
-          <motion.button
-            whileHover={{ y: -4 }}
-            whileTap={{ scale: 0.94 }}
-            onClick={() => setPicking(true)}
-            title={t('Proyectar una ficha, un escape room o unas tarjetas')}
-            className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors flex-shrink-0"
-            style={{ padding: '8px 1px', width: 52, color: '#fb923c' }}
-          >
-            <Flag size={19} />
-            <span className="text-[9.5px] font-bold tracking-tight">{t('Reto')}</span>
-          </motion.button>
+                );
+              })}
+            </div>
+          ))}
+          <Separador />
+          <BotonBarra icono={<Flag size={19} />} nombre={t('Proyectar una ficha, un escape room o unas tarjetas')} color="#fb923c" onClick={() => setPicking(true)} />
         </div>
       </div>
     </div>

@@ -40,7 +40,14 @@ export function fondoPorId(id: unknown): Fondo {
 
 export interface Rect { x: number; y: number; width: number; height: number }
 
-export interface VentanaGuardada { id: string; rect: Rect }
+/**
+ * Una ventana abierta. Cada una es una instancia de una herramienta (`tipo`) con identificador propio (`id`):
+ * se pueden abrir varias de la misma, por ejemplo dos temporizadores.
+ */
+export interface VentanaGuardada { id: string; tipo: string; rect: Rect }
+
+/** Cuántas ventanas caben a la vez antes de que la pizarra deje de ser legible. */
+export const MAX_VENTANAS = 24;
 
 /** Una disposición de la pizarra con nombre: qué ventanas hay abiertas, dónde y con qué fondo. */
 export interface Escena {
@@ -62,20 +69,37 @@ function rectValido(r: unknown): r is Rect {
 
 /**
  * Lee las ventanas guardadas en el almacenamiento del dispositivo. Lo que llega puede estar roto o venir de otra
- * versión, así que se descarta lo que no sirve (ventanas que ya no existen, medidas absurdas) en vez de fallar.
+ * versión, así que se descarta lo que no sirve (herramientas que ya no existen, medidas absurdas) en vez de fallar.
+ * Las versiones de antes guardaban una sola ventana por herramienta, sin `tipo`: el `id` era el tipo.
  */
-export function leerVentanas(raw: unknown, idsValidos: readonly string[]): VentanaGuardada[] {
+export function leerVentanas(raw: unknown, tiposValidos: readonly string[]): VentanaGuardada[] {
   if (!Array.isArray(raw)) return [];
   const vistos = new Set<string>();
   const out: VentanaGuardada[] = [];
   for (const v of raw) {
     if (!v || typeof v !== 'object') continue;
-    const { id, rect } = v as { id?: unknown; rect?: unknown };
-    if (typeof id !== 'string' || !idsValidos.includes(id) || vistos.has(id) || !rectValido(rect)) continue;
+    const { id, tipo, rect } = v as { id?: unknown; tipo?: unknown; rect?: unknown };
+    if (typeof id !== 'string' || !id || vistos.has(id) || !rectValido(rect)) continue;
+    const t = typeof tipo === 'string' ? tipo : id;
+    if (!tiposValidos.includes(t)) continue;
     vistos.add(id);
-    out.push({ id, rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } });
+    out.push({ id, tipo: t, rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } });
+    if (out.length >= MAX_VENTANAS) break;
   }
   return out;
+}
+
+/** Identificador libre para una instancia nueva de `tipo`: `timer`, `timer-2`, `timer-3`… */
+export function siguienteId(tipo: string, existentes: readonly string[]): string {
+  const usados = new Set(existentes);
+  if (!usados.has(tipo)) return tipo;
+  for (let n = 2; ; n++) if (!usados.has(`${tipo}-${n}`)) return `${tipo}-${n}`;
+}
+
+/** Posición de la ventana número `n` del mismo tipo: en cascada, para que una no tape del todo a la anterior. */
+export function enCascada(base: Rect, n: number): Rect {
+  const paso = 28 * (n % 8);
+  return { ...base, x: base.x + paso, y: base.y + paso };
 }
 
 export function leerEscenas(raw: string | null, idsValidos: readonly string[]): Escena[] {
@@ -103,6 +127,29 @@ export function ajustarRect(r: Rect, area: { width: number; height: number }, mi
   const x = Math.max(0, Math.min(r.x, Math.max(0, area.width - width)));
   const y = Math.max(0, Math.min(r.y, Math.max(0, area.height - height)));
   return { x, y, width, height };
+}
+
+const seCruzan = (a: Rect, b: Rect, aire: number) =>
+  a.x < b.x + b.width + aire && b.x < a.x + a.width + aire && a.y < b.y + b.height + aire && b.y < a.y + a.height + aire;
+
+/**
+ * Primer sitio libre para una ventana de ese tamaño, recorriendo la pizarra de arriba abajo y de izquierda a derecha,
+ * sin tapar a las que ya hay. Deja libres la franja de la barra superior y la de la inferior. `null` si no cabe en
+ * ningún sitio sin tapar nada: entonces conviene ponerla en cascada.
+ */
+export function huecoLibre(
+  tam: { width: number; height: number }, ocupados: readonly Rect[], area: { width: number; height: number },
+  margen = { arriba: 70, abajo: 84, lados: 16 }, paso = 24, aire = 12,
+): Rect | null {
+  const maxX = area.width - margen.lados - tam.width;
+  const maxY = area.height - margen.abajo - tam.height;
+  for (let y = margen.arriba; y <= maxY; y += paso) {
+    for (let x = margen.lados; x <= maxX; x += paso) {
+      const r = { x, y, ...tam };
+      if (!ocupados.some(o => seCruzan(r, o, aire))) return r;
+    }
+  }
+  return null;
 }
 
 /* ── Símbolos de trabajo ── */
@@ -184,4 +231,21 @@ export function direccionParaQr(raw: string): string {
   const t = raw.trim();
   if (/^(https?|mailto|tel|wifi):/i.test(t)) return t;
   return /^[^\s/]+\.[a-z]{2,}(:\d+)?(\/\S*)?$/i.test(t) ? `https://${t}` : t;
+}
+
+/* ── Lo que se escribe dentro de una ventana ── */
+
+/** Lo que escribe el docente en una ventana es de esa ventana: dos notas no comparten texto. */
+const PREFIJO_DATOS = 'aulapro_pizarra_d:';
+export const claveDatos = (id: string, campo: string) => `${PREFIJO_DATOS}${id}:${campo}`;
+
+/** Borra lo recordado de una ventana que se cierra, para no acumular restos en el dispositivo. */
+export function borrarDatosDeVentana(id: string) {
+  try {
+    const prefijo = `${PREFIJO_DATOS}${id}:`;
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k?.startsWith(prefijo)) localStorage.removeItem(k);
+    }
+  } catch { /* sin almacenamiento */ }
 }
