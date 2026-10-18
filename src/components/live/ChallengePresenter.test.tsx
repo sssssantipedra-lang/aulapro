@@ -76,6 +76,30 @@ describe('ChallengePresenter', () => {
   });
 });
 
+describe('ChallengePresenter · asteriscos de negrita', () => {
+  it('la IA marca **así** donde le parece: en pantalla no salen asteriscos, ni en la misión ni en el enunciado ni en la pista', async () => {
+    const f: Ficha = {
+      ...base,
+      content: {
+        ...base.content,
+        titulo: 'El **tesoro**',
+        historia: { ...base.content.historia!, mision: 'Abrid los **candados**.' },
+        actividades: [{
+          titulo: 'La **bodega**',
+          ejercicios: [{ tipo: 'completar', enunciado: '**Completa**: 0,4 × 10 = __', solucion: '4' }],
+          candado: { codigo: '47', pista: 'Los **resultados**' },
+        }],
+      },
+    };
+    const { container } = renderIt(f);
+    expect(screen.getByText('Abrid los candados.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /Empezar a escapar/ }));
+    expect(await screen.findByText('Completa: 0,4 × 10 = __')).toBeTruthy();
+    expect(screen.getByText('Los resultados')).toBeTruthy();
+    expect(container.textContent).not.toContain('**');
+  });
+});
+
 describe('ChallengePresenter · comprensión lectora', () => {
   const lectura: Ficha = {
     id: 'l1', at: '2026-10-17T10:00:00Z', date: '2026-10-17', title: 'El dragón',

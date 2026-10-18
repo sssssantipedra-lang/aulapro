@@ -42,7 +42,7 @@ import {
   NIVELES_LECTURA, actividadesPedido, actividadesSistema, generarTextoLectura, instruccionesDeLectura, lecturaFacilPrompt,
 } from './fichaLectura';
 import { textoNumerado, type FichaLectura, type GeneroLectura } from '../lib/lectura';
-import { equilibrarNegritas, negritaDelVerbo, quitarNegritas } from '../lib/negritas';
+import { equilibrarNegritas, negritaDelVerbo, quitarNegritas, sinNegritasQueNoSePintan } from '../lib/negritas';
 import type { Densidad } from '../lib/densidad';
 import {
   MAX_FIGURAS_FRACCION, MIN_PARTES, MODOS_FRACCIONES, OBJETOS_FRACCION, completarFiguras, fraccionValida, fraccionesParaEjercicio, solucionFracciones, tieneDecimalExacto,
@@ -1131,6 +1131,8 @@ function systemPrompt(
     `EXPLICACIÓN: en el campo "explicacion", antes de los ejercicios, recuerda el concepto en pocas ` +
     `frases, como lo haría el profesorado en la pizarra antes de mandar la tarea — no es un tema nuevo, ` +
     `es un repaso. Si encaja, incluye un ejemplo resuelto corto.\n` +
+    // La hoja no pinta Markdown: un asterisco suelto saldría tal cual (en lectura fácil, las negritas las pide su propio apartado)
+    (facil ? '' : `FORMATO DEL TEXTO: texto plano en todos los campos, sin Markdown (nada de asteriscos, almohadillas ni negritas).\n`) +
     `ACTIVIDADES: reparte los ejercicios en ${escalera
       ? `EXACTAMENTE ${escalera.plan.length} bloques, de menos a más dificultad (ver ESCALERA DE DIFICULTAD)`
       : 'de 2 a 4 bloques'}, cada uno con un título corto y claro (ej. ` +
@@ -1625,7 +1627,8 @@ function cleanFichaContent(
       cierre: texto(c.historia.cierre),
     }
     : undefined;
-  return {
+  // Lo que la hoja no pinta con negritas, sin asteriscos (la IA marca `**` donde le parece)
+  return sinNegritasQueNoSePintan({
     ...c,
     estilo: finalEstilo,
     historia,
@@ -1660,7 +1663,7 @@ function cleanFichaContent(
         .filter(tj => tj?.pregunta?.trim())
         .map(tj => ({ pregunta: cleanMathNotation(tj.pregunta), respuesta: cleanMathNotation(tj.respuesta ?? '') })),
     } : {}),
-  };
+  });
 }
 
 type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void };

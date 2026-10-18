@@ -64,4 +64,68 @@ describe('Mi alumnado', () => {
     expect(ultimo.alumnos.some(a => a.nombre === 'Alumno 9')).toBe(true);
     expect(screen.getByText('Alumno 9')).toBeTruthy();
   });
+
+  it('crea un alumno y su grupo nuevo en el mismo paso', async () => {
+    const user = userEvent.setup();
+    render(<Harness onNav={() => {}} />);
+    await user.click(screen.getByRole('button', { name: /Nuevo alumno/ }));
+    const d = screen.getByRole('dialog');
+    await user.type(within(d).getByLabelText('Nombre y apellidos'), 'Alumno 9');
+    await user.click(within(d).getByRole('button', { name: /Crear un grupo nuevo/ }));
+    await user.type(within(d).getByLabelText('Nombre del grupo'), 'Lectoescritura, viernes');
+    await user.click(within(d).getByRole('button', { name: 'Guardar' }));
+    const a = ultimo.alumnos.find(x => x.nombre === 'Alumno 9')!;
+    const g = ultimo.grupos.find(x => x.nombre === 'Lectoescritura, viernes')!;
+    expect(g.alumnos).toEqual([a.id]);
+    expect(g.horario.length).toBe(1);
+  });
+
+  it('un grupo nuevo sin nombre no se crea', async () => {
+    const user = userEvent.setup();
+    render(<Harness onNav={() => {}} />);
+    const antes = buildDemoApoyo(new Date(2026, 9, 5)).grupos.length;
+    await user.click(screen.getByRole('button', { name: /Nuevo alumno/ }));
+    const d = screen.getByRole('dialog');
+    await user.type(within(d).getByLabelText('Nombre y apellidos'), 'Alumno 9');
+    await user.click(within(d).getByRole('button', { name: /Crear un grupo nuevo/ }));
+    await user.click(within(d).getByRole('button', { name: 'Guardar' }));
+    expect(ultimo.grupos.length).toBe(antes);
+  });
+
+  it('crea un grupo con un alumno nuevo, sin salir de su ventana', async () => {
+    const user = userEvent.setup();
+    render(<Harness onNav={() => {}} />);
+    await user.click(screen.getAllByRole('button', { name: /Nuevo grupo/ })[0]);
+    const d = screen.getByRole('dialog');
+    await user.type(within(d).getByLabelText('Nombre'), 'Grupo de prueba');
+    await user.type(within(d).getByLabelText('Nombre del alumno nuevo'), 'Alumno 10');
+    await user.click(within(d).getByRole('button', { name: /Añadir$/ }));
+    await user.click(within(d).getByRole('button', { name: 'Guardar' }));
+    const a = ultimo.alumnos.find(x => x.nombre === 'Alumno 10')!;
+    expect(ultimo.grupos.find(g => g.nombre === 'Grupo de prueba')!.alumnos).toContain(a.id);
+  });
+
+  it('un alumno nuevo escrito en el grupo y sin añadir se añade al guardar', async () => {
+    const user = userEvent.setup();
+    render(<Harness onNav={() => {}} />);
+    await user.click(screen.getAllByRole('button', { name: /Nuevo grupo/ })[0]);
+    const d = screen.getByRole('dialog');
+    await user.type(within(d).getByLabelText('Nombre'), 'Otro grupo');
+    await user.type(within(d).getByLabelText('Nombre del alumno nuevo'), 'Alumno 11');
+    await user.click(within(d).getByRole('button', { name: 'Guardar' }));
+    expect(ultimo.alumnos.some(a => a.nombre === 'Alumno 11')).toBe(true);
+  });
+
+  it('un alumno nuevo quitado del grupo antes de guardar no se crea', async () => {
+    const user = userEvent.setup();
+    render(<Harness onNav={() => {}} />);
+    await user.click(screen.getAllByRole('button', { name: /Nuevo grupo/ })[0]);
+    const d = screen.getByRole('dialog');
+    await user.type(within(d).getByLabelText('Nombre'), 'Grupo vacío');
+    await user.type(within(d).getByLabelText('Nombre del alumno nuevo'), 'Alumno 12');
+    await user.click(within(d).getByRole('button', { name: /Añadir$/ }));
+    await user.click(within(d).getByRole('button', { name: /Alumno 12/ }));
+    await user.click(within(d).getByRole('button', { name: 'Guardar' }));
+    expect(ultimo.alumnos.some(a => a.nombre === 'Alumno 12')).toBe(false);
+  });
 });

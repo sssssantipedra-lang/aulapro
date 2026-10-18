@@ -24,8 +24,13 @@ export const CONSIGNAS_FICHA: readonly string[] = [
   'tape-measure', 'weigh', 'calculator', 'ap-sumar', 'subtract', 'multiply', 'divide',
 ];
 
-/** Lo que no tiene sentido dibujar dentro de un ejercicio: personas concretas y rutinas del día. */
-const FUERA_DE_FICHA = new Set(['personas', 'rutinas']);
+/**
+ * Lo que no tiene sentido dibujar dentro de un ejercicio: personas concretas,
+ * rutinas del día, y lo del trabajo con el alumnado (iniciar o terminar la
+ * actividad, praxias y respiración, calma): son para la agenda visual. El
+ * material manipulativo (plastilina, puzle…) sí puede salir.
+ */
+const FUERA_DE_FICHA = new Set(['personas', 'rutinas', 'estructura', 'lenguaje', 'calma']);
 
 /** Los dibujos del contenido: todo el catálogo menos las consignas y lo de `FUERA_DE_FICHA`. */
 export const DIBUJOS_FICHA: readonly string[] = PICTOS
@@ -55,6 +60,7 @@ const POR_VERBO: [RegExp, string][] = [
   [/^(colore|pinta|colour|color)/, 'colour'],
   [/^(dibuj|dibuix|draw)/, 'draw'],
   [/^(recort|retall|cut)/, 'cut-with-scissors'],
+  [/^(modela|modelar|model$)/, 'ia-modelar-plastilina'],
   [/^(pega|enganxa|glue|stick)/, 'glue'],
   [/^(mira|observ|look)/, 'eye'],
   [/^(escuch|escolt|listen)/, 'hear'],

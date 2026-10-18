@@ -13,14 +13,23 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 const cache = new Map<string, Promise<string | null>>();
 
-/** El pictograma como `data:` para incrustarlo en el PDF. */
+/** Un archivo de imagen como `data:` en base64, por trozos para no desbordar la pila con los grandes. */
+function aBase64(bytes: Uint8Array): string {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+/** El pictograma como `data:` para incrustarlo en el PDF: SVG (Mulberry y propios) o WebP (los hechos con IA, `ia-`). */
 export function pictoComoDato(id: string): Promise<string | null> {
   let p = cache.get(id);
   if (!p) {
     p = (async () => {
       try {
-        const res = await fetch(urlPicto(id));
+        const url = urlPicto(id);
+        const res = await fetch(url);
         if (!res.ok) return null;
+        if (url.endsWith('.webp')) return `data:image/webp;base64,${aBase64(new Uint8Array(await res.arrayBuffer()))}`;
         return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(await res.text())}`;
       } catch {
         return null;

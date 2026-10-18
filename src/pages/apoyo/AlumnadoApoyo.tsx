@@ -5,23 +5,22 @@
  * otra, sus grupos de apoyo con su horario. Ver `docs/PTAL.md`.
  */
 import { useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, Users, Clock, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, Clock, ChevronRight, UserPlus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Avatar } from '../../components/ui/Avatar';
 import { useToast } from '../../components/ui/Toast';
 import { Pestanas } from '../../components/apoyo/Pestanas';
+import { HorarioEditor } from '../../components/apoyo/HorarioEditor';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { useI18n, weekdayLabel } from '../../i18n';
 import { isoDate } from '../../lib/utils';
-import { alumnoVacio, enEdicion, nuevoIdApoyo, sinGrupo, tieneDesfase, trimestreDe, type AlumnoEnEdicion } from '../../lib/apoyo';
+import { alumnoVacio, enEdicion, grupoVacio, horarioIncorrecto, horarioLimpio, PALETA_GRUPOS, sinGrupo, tieneDesfase, trimestreDe, type AlumnoEnEdicion } from '../../lib/apoyo';
 import { avisosApoyo, avisosDelAlumno, evolucionDelTrimestre } from '../../lib/inicioApoyo';
 import { requestAlumno, useGruposPedido } from '../../lib/apoyoNav';
 import { EditarAlumno } from './EditarAlumno';
-import type { ApoyoData, Especialidad, FranjaApoyo, GrupoApoyo } from '../../types/apoyo';
+import type { AlumnoApoyo, ApoyoData, Especialidad, GrupoApoyo } from '../../types/apoyo';
 import type { Section } from '../../types';
 import { compararNombres } from '../../lib/alumnado';
-
-const PALETA = ['#6366f1', '#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] as const;
 
 interface Props {
   data: ApoyoData;
@@ -32,21 +31,6 @@ interface Props {
 
 type Pestana = 'alumnado' | 'grupos';
 
-/** La sesión que se añade: la misma hora, el día siguiente al de la última. */
-function otraFranja(horario: FranjaApoyo[]): FranjaApoyo {
-  const ultima = horario[horario.length - 1];
-  if (!ultima) return { dia: 0, inicio: '09:00', fin: '09:45' };
-  return { ...ultima, dia: Math.min(ultima.dia + 1, 4) };
-}
-
-function grupoVacio(especialidad: Especialidad, n: number): GrupoApoyo {
-  return {
-    id: nuevoIdApoyo('gru'), nombre: '', especialidad, modalidad: 'fuera',
-    horario: [{ dia: 0, inicio: '09:00', fin: '09:45' }], alumnos: [],
-    color: PALETA[n % PALETA.length],
-  };
-}
-
 export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) {
   const { t, locale } = useI18n();
   const { toast } = useToast();
@@ -56,6 +40,9 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
   const [pestana, setPestana] = useState<Pestana>(pedido ? 'grupos' : 'alumnado');
   const [edicion, setEdicion] = useState<AlumnoEnEdicion | null>(null);
   const [grupo, setGrupo] = useState<GrupoApoyo | null>(() => data.grupos.find(g => g.id === pedido?.grupoId) ?? null);
+  // Alumnado creado desde la ventana del grupo: no existe hasta que se guarda el grupo
+  const [nuevos, setNuevos] = useState<AlumnoApoyo[]>([]);
+  const [rapido, setRapido] = useState({ nombre: '', clase: '' });
   const dosEspecialidades = especialidades.length > 1;
   const dia = (n: number) => weekdayLabel(n, locale, 'short');
   const esNuevoGrupo = !!grupo && !data.grupos.some(g => g.id === grupo.id);
@@ -71,26 +58,40 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
     onNav('apoyo-alumno');
   }
 
+  function cerrarGrupo() {
+    setGrupo(null);
+    setNuevos([]);
+    setRapido({ nombre: '', clase: '' });
+  }
+
+  /** Un alumno nuevo, desde la ventana del grupo: queda marcado en él. */
+  function anadirRapido() {
+    const nombre = rapido.nombre.trim();
+    if (!grupo || !nombre) return;
+    const a = { ...alumnoVacio(), nombre, claseOrigen: rapido.clase.trim() };
+    setNuevos(n => [...n, a]);
+    setGrupo({ ...grupo, alumnos: [...grupo.alumnos, a.id] });
+    setRapido({ nombre: '', clase: '' });
+  }
+
   function guardarGrupo() {
     if (!grupo) return;
-    const vistas = new Set<string>();
-    const horario = grupo.horario.filter(f => {
-      const k = `${f.dia}|${f.inicio}|${f.fin}`;
-      if (vistas.has(k)) return false;
-      vistas.add(k);
-      return true;
-    });
-    const g = { ...grupo, nombre: grupo.nombre.trim(), horario };
+    const g = { ...grupo, nombre: grupo.nombre.trim(), horario: horarioLimpio(grupo.horario) };
     if (!g.nombre) { toast(t('Ponle un nombre al grupo')); return; }
-    if (g.horario.some(f => !f.inicio || !f.fin || f.fin <= f.inicio)) {
+    if (horarioIncorrecto(g.horario)) {
       toast(t('Revisa el horario: cada sesión tiene que acabar después de empezar'));
       return;
     }
+    // Un nombre escrito y sin añadir se añade solo: es lo que se espera al pulsar «Guardar»
+    const pendiente = rapido.nombre.trim() ? { ...alumnoVacio(), nombre: rapido.nombre.trim(), claseOrigen: rapido.clase.trim() } : null;
+    const altas = [...nuevos.filter(a => g.alumnos.includes(a.id)), ...(pendiente ? [pendiente] : [])];
+    const grupoFinal = pendiente ? { ...g, alumnos: [...g.alumnos, pendiente.id] } : g;
     onChange(d => ({
       ...d,
-      grupos: d.grupos.some(x => x.id === g.id) ? d.grupos.map(x => (x.id === g.id ? g : x)) : [...d.grupos, g],
+      alumnos: [...d.alumnos, ...altas],
+      grupos: d.grupos.some(x => x.id === grupoFinal.id) ? d.grupos.map(x => (x.id === grupoFinal.id ? grupoFinal : x)) : [...d.grupos, grupoFinal],
     }));
-    setGrupo(null);
+    cerrarGrupo();
     toast(esNuevoGrupo ? t('✅ Grupo creado') : t('✅ Actualizado'));
   }
 
@@ -98,12 +99,9 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
     if (!grupo) return;
     if (!window.confirm(t('¿Eliminar el grupo «{name}»? Se borran sus registros; el alumnado y sus programas se quedan.', { name: grupo.nombre }))) return;
     onChange(d => sinGrupo(d, grupo.id));
-    setGrupo(null);
+    cerrarGrupo();
     toast(t('Eliminado'));
   }
-
-  const patchFranja = (i: number, p: Partial<FranjaApoyo>) =>
-    setGrupo(g => (g ? { ...g, horario: g.horario.map((f, j) => (j === i ? { ...f, ...p } : f)) } : g));
 
   const gruposDe = (id: string) => data.grupos.filter(g => g.alumnos.includes(id));
   const horarioTexto = (g: GrupoApoyo) =>
@@ -115,11 +113,12 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Mi alumnado')}</h1>
-          <p className="pg-sub">{t('Pulsa un alumno para ver todo lo suyo: su programa, sus sesiones, las coordinaciones y sus documentos.')}</p>
+          <p className="pg-sub">{t('Pulsa un alumno para ver todo lo suyo: su programa, sus sesiones, las coordinaciones y sus documentos. Al crear un alumno o un grupo puedes crear el otro en el mismo paso.')}</p>
         </div>
-        {pestana === 'alumnado'
-          ? <button className="btn-accent" onClick={() => setEdicion(enEdicion(alumnoVacio(), data))}><Plus size={16} />{t('Nuevo alumno')}</button>
-          : <button className="btn-accent" onClick={() => setGrupo(grupoVacio(especialidades[0] ?? 'PT', data.grupos.length))}><Plus size={16} />{t('Nuevo grupo')}</button>}
+        <div className="ap-acciones" style={{ margin: 0 }}>
+          <button className={pestana === 'alumnado' ? 'btn-accent' : 'btn-ghost'} onClick={() => setEdicion(enEdicion(alumnoVacio(), data))}><Plus size={16} />{t('Nuevo alumno')}</button>
+          <button className={pestana === 'grupos' ? 'btn-accent' : 'btn-ghost'} onClick={() => setGrupo(grupoVacio(especialidades[0] ?? 'PT', data.grupos.length))}><Plus size={16} />{t('Nuevo grupo')}</button>
+        </div>
       </div>
 
       <Pestanas
@@ -133,7 +132,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
       {pestana === 'alumnado' && (
         <div className="card" role="tabpanel" aria-label={t('Alumnado')}>
           {alumnos.length === 0 ? (
-            <p className="ap-vacio">{t('Añade a cada alumno con su clase, su curso y su nivel de competencia curricular. De ahí salen sus programas y los criterios que trabaja.')}</p>
+            <p className="ap-vacio">{t('Pulsa «Nuevo alumno»: con su nombre y su grupo de apoyo ya puedes empezar. Su curso, su nivel y sus necesidades se pueden completar después.')}</p>
           ) : (
             <ul className="ap-lista al-lista">
               {alumnos.map(a => {
@@ -191,7 +190,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
         <div className="card" role="tabpanel" aria-label={t('Grupos')}>
           <div className="card-hd"><div className="card-ttl"><Users size={14} color="var(--accent-d)" />{t('Grupos de apoyo')}</div></div>
           {data.grupos.length === 0 ? (
-            <p className="ap-vacio">{t('Todavía no hay grupos. Crea uno por cada sesión que das: «Lectoescritura, lunes 9:00». Un alumno que atiendes solo es un grupo de uno.')}</p>
+            <p className="ap-vacio">{t('Todavía no hay grupos. Crea uno por cada sesión que das: «Lectoescritura, lunes 9:00», y añade su alumnado ahí mismo. Un alumno que atiendes solo es un grupo de uno.')}</p>
           ) : (
             <ul className="ap-lista">
               {data.grupos.map(g => (
@@ -218,10 +217,10 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
         </div>
       )}
 
-      <EditarAlumno edicion={edicion} onEdicion={setEdicion} data={data} onChange={onChange} />
+      <EditarAlumno edicion={edicion} onEdicion={setEdicion} data={data} onChange={onChange} especialidades={especialidades} />
 
       {/* ── Grupo de apoyo ── */}
-      <Modal open={!!grupo} onClose={() => setGrupo(null)} wide title={esNuevoGrupo ? t('Nuevo grupo') : grupo?.nombre}>
+      <Modal open={!!grupo} onClose={cerrarGrupo} wide title={esNuevoGrupo ? t('Nuevo grupo') : grupo?.nombre}>
         {grupo && (
           <>
             <div className="ap-form">
@@ -249,29 +248,13 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
               </fieldset>
               <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
                 <legend className="flabel">{t('Horario')}</legend>
-                {grupo.horario.map((f, i) => (
-                  <div key={i} className="ap-franja">
-                    <select className="finput" aria-label={t('Día')} value={f.dia} onChange={e => patchFranja(i, { dia: Number(e.target.value) })}>
-                      {[0, 1, 2, 3, 4].map(n => <option key={n} value={n}>{weekdayLabel(n, locale)}</option>)}
-                    </select>
-                    <input type="time" className="finput" aria-label={t('Empieza')} value={f.inicio} onChange={e => patchFranja(i, { inicio: e.target.value })} />
-                    <input type="time" className="finput" aria-label={t('Acaba')} value={f.fin} onChange={e => patchFranja(i, { fin: e.target.value })} />
-                    <button type="button" className="ico-btn" aria-label={t('Quitar esta sesión')} title={t('Quitar')}
-                      onClick={() => setGrupo({ ...grupo, horario: grupo.horario.filter((_, j) => j !== i) })}><Trash2 size={15} /></button>
-                  </div>
-                ))}
-                <button type="button" className="btn-ghost" style={{ fontSize: 12.5 }}
-                  onClick={() => setGrupo({ ...grupo, horario: [...grupo.horario, otraFranja(grupo.horario)] })}>
-                  <Plus size={14} />{t('Otra sesión a la semana')}
-                </button>
+                <HorarioEditor horario={grupo.horario} onChange={horario => setGrupo({ ...grupo, horario })} />
               </fieldset>
               <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
                 <legend className="flabel">{t('Alumnado')}</legend>
-                {data.alumnos.length === 0 ? (
-                  <p className="ap-vacio" style={{ margin: 0 }}>{t('Primero añade al alumnado en la pestaña «Alumnado».')}</p>
-                ) : (
+                {data.alumnos.length + nuevos.length > 0 && (
                   <div className="chip-row">
-                    {[...data.alumnos].sort((a, b) => compararNombres(a.nombre, b.nombre)).map(a => {
+                    {[...data.alumnos, ...nuevos].sort((a, b) => compararNombres(a.nombre, b.nombre)).map(a => {
                       const on = grupo.alumnos.includes(a.id);
                       return (
                         <button key={a.id} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}
@@ -282,11 +265,21 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
                     })}
                   </div>
                 )}
+                <div className="ap-neae-otra" style={{ marginTop: data.alumnos.length + nuevos.length > 0 ? 8 : 0 }}>
+                  <input className="finput" value={rapido.nombre} aria-label={t('Nombre del alumno nuevo')} placeholder={t('Añadir un alumno nuevo: nombre y apellidos')}
+                    onChange={e => setRapido({ ...rapido, nombre: e.target.value })}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); anadirRapido(); } }} />
+                  <input className="finput" value={rapido.clase} aria-label={t('Clase de origen')} placeholder={t('Ej: 2º B')} style={{ maxWidth: 110 }}
+                    onChange={e => setRapido({ ...rapido, clase: e.target.value })}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); anadirRapido(); } }} />
+                  <button type="button" className="btn-ghost" onClick={anadirRapido} disabled={!rapido.nombre.trim()}><UserPlus size={14} />{t('Añadir')}</button>
+                </div>
+                <p className="ap-aviso" style={{ margin: '6px 0 0' }}>{t('Los demás datos del alumno (curso, nivel, necesidades) se completan después, en su página.')}</p>
               </fieldset>
               <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
                 <legend className="flabel">{t('Color')}</legend>
                 <div className="chip-row">
-                  {PALETA.map(c => (
+                  {PALETA_GRUPOS.map(c => (
                     <button key={c} type="button" className="ap-color" aria-label={c} aria-pressed={grupo.color === c}
                       style={{ background: c, outline: grupo.color === c ? '2px solid var(--text)' : 'none' }}
                       onClick={() => setGrupo({ ...grupo, color: c })} />
@@ -296,7 +289,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
             </div>
             <div className="ap-acciones">
               <button className="btn-accent" onClick={guardarGrupo}>{t('Guardar')}</button>
-              <button className="btn-ghost" onClick={() => setGrupo(null)}>{t('Cancelar')}</button>
+              <button className="btn-ghost" onClick={cerrarGrupo}>{t('Cancelar')}</button>
               {!esNuevoGrupo && <button className="btn-ghost ap-borrar" onClick={borrarGrupo}><Trash2 size={15} />{t('Eliminar')}</button>}
             </div>
           </>

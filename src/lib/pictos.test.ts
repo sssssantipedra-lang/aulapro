@@ -16,7 +16,8 @@ describe('pictogramas', () => {
     expect(new Set(PICTOS.map(p => p.id)).size).toBe(PICTOS.length);
     const cats = new Set(CATEGORIAS_PICTO.map(c => c.id));
     for (const p of PICTOS) {
-      const archivo = esMulberry(p.id) ? join(DIR, `${p.id}.svg`) : join(PROPIOS, `${p.id.slice(3)}.svg`);
+      const archivo = p.id.startsWith('ia-') ? join(PROPIOS, `${p.id}.webp`)
+        : esMulberry(p.id) ? join(DIR, `${p.id}.svg`) : join(PROPIOS, `${p.id.slice(3)}.svg`);
       expect(existsSync(archivo), p.id).toBe(true);
       expect(urlPicto(p.id).endsWith(archivo.split('/public/')[1]), p.id).toBe(true);
       expect(cats.has(p.categoria)).toBe(true);
@@ -28,6 +29,23 @@ describe('pictogramas', () => {
     for (const id of ['ap-rodear', 'ap-unir', 'ap-subrayar', 'ap-tachar']) {
       expect(PICTOS.find(p => p.id === id)?.categoria, id).toBe('consignas');
     }
+  });
+
+  it('los hechos con IA (ia-) son WebP propios: sin atribución, en las categorías de trabajo con el alumnado', () => {
+    const ia = PICTOS.filter(p => p.id.startsWith('ia-'));
+    expect(ia.length).toBeGreaterThanOrEqual(6);
+    for (const p of ia) {
+      expect(esMulberry(p.id), p.id).toBe(false);
+      expect(urlPicto(p.id).endsWith(`pictos/aulapro/${p.id}.webp`), p.id).toBe(true);
+      expect(['estructura', 'manipulativo', 'lenguaje', 'calma'], p.id).toContain(p.categoria);
+    }
+    // Y los dibujados a mano para iniciar, pausar y repetir una actividad
+    for (const id of ['ap-terminado', 'ap-pausa', 'ap-repetir', 'ap-cambio-actividad']) {
+      expect(PICTOS.find(p => p.id === id)?.categoria, id).toBe('estructura');
+    }
+    expect(PICTOS.find(p => p.id === 'ia-plastilina')?.es).toBe('Plastilina');
+    expect(PICTOS.find(p => p.id === 'ia-inicio-actividad')?.es).toBe('Inicio de la actividad');
+    expect(PICTOS.find(p => p.id === 'ia-fin-actividad')?.es).toBe('Fin de la actividad');
   });
 
   it('la licencia va con ellos y la atribución es la que pide el autor', () => {

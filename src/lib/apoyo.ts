@@ -147,8 +147,39 @@ export function alumnoVacio(): AlumnoApoyo {
   };
 }
 
-/** Lo que se está editando en la ventana de un alumno: él y los grupos marcados. */
-export interface AlumnoEnEdicion { alumno: AlumnoApoyo; grupos: string[] }
+/**
+ * Lo que se está editando en la ventana de un alumno: él, los grupos marcados
+ * y, si se está creando uno en el mismo paso, el grupo nuevo (sin nombre = no
+ * se crea).
+ */
+export interface AlumnoEnEdicion { alumno: AlumnoApoyo; grupos: string[]; grupoNuevo?: GrupoApoyo }
+
+export const PALETA_GRUPOS = ['#6366f1', '#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] as const;
+
+/** Un grupo de apoyo por rellenar: lunes de 9:00 a 9:45, fuera del aula, con el siguiente color de la paleta. */
+export function grupoVacio(especialidad: Especialidad, n: number): GrupoApoyo {
+  return {
+    id: nuevoIdApoyo('gru'), nombre: '', especialidad, modalidad: 'fuera',
+    horario: [{ dia: 0, inicio: '09:00', fin: '09:45' }], alumnos: [],
+    color: PALETA_GRUPOS[n % PALETA_GRUPOS.length],
+  };
+}
+
+/** El horario de un grupo sin sesiones repetidas ni vacías. */
+export function horarioLimpio(horario: GrupoApoyo['horario']): GrupoApoyo['horario'] {
+  const vistas = new Set<string>();
+  return horario.filter(f => {
+    const k = `${f.dia}|${f.inicio}|${f.fin}`;
+    if (vistas.has(k)) return false;
+    vistas.add(k);
+    return true;
+  });
+}
+
+/** Si alguna sesión del horario acaba antes de empezar (o está sin hora). */
+export function horarioIncorrecto(horario: GrupoApoyo['horario']): boolean {
+  return horario.some(f => !f.inicio || !f.fin || f.fin <= f.inicio);
+}
 
 /** Para abrir la ventana con un alumno: con los grupos en los que ya está. */
 export function enEdicion(a: AlumnoApoyo, d: ApoyoData): AlumnoEnEdicion {

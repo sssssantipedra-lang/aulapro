@@ -27,7 +27,10 @@ import { dibujosEnOrden } from '../../lib/pictosFicha';
 import { urlIlustracion, nombreIlustracion } from '../../lib/ilustraciones';
 import { bancoClasificar } from '../../lib/dibujosEjercicio';
 import { useI18n } from '../../i18n';
-import { partirNegritas, quitarNegritas } from '../../lib/negritas';
+import { partirNegritas, quitarNegritas, sinNegritasQueNoSePintan } from '../../lib/negritas';
+
+/** En Aula Live solo el texto de una comprensión lectora se pinta con negritas; en el resto, los asteriscos se quitan. */
+const SOLO_LECTURA = new Set(['parrafos']);
 
 const TIME_OPTIONS = [0, 10, 15, 20, 30, 45];
 
@@ -163,7 +166,7 @@ interface Props {
 
 export function ChallengePresenter({ ficha, onClose }: Props) {
   const { t } = useI18n();
-  const c = ficha.content;
+  const c = useMemo(() => sinNegritasQueNoSePintan(ficha.content, SOLO_LECTURA), [ficha.content]);
   const theme = fichaTheme(c.estilo);
   const story = theme.historia ? c.historia : undefined;
   const escape = c.formato === 'escape';

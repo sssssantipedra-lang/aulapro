@@ -4,8 +4,27 @@
 # (`propios/`), para las consignas de ficha que Mulberry no tiene: rodear,
 # unir, subrayar, tachar… Fuera los que llevan palabras en inglés dibujadas
 # (semana, fin de semana, tablero de comunicación) y `plane`, que es un
-# cepillo de carpintero y no un avión.
+# cepillo de carpintero y no un avión. Los que empiezan por «!» están hechos
+# con IA (`ia/`, Nano Banana 2) y ya están en `public/pictos/aulapro/ia-*.webp`.
 L = {
+ 'estructura': [
+  ('!inicio-actividad','Inicio de la actividad','Inici de l\'activitat','Start of the activity'),
+  ('!fin-actividad','Fin de la actividad','Final de l\'activitat','End of the activity'),
+  ('@terminado','Terminado','Acabat','Finished'),
+  ('@pausa','Pausa','Pausa','Pause'),
+  ('@repetir','Repetir','Repetir','Repeat'),
+  ('@cambio-actividad','Cambio de actividad','Canvi d\'activitat','Change of activity'),
+ ],
+ 'manipulativo': [
+  ('!plastilina','Plastilina','Plastilina','Modelling clay'),
+  ('!modelar-plastilina','Modelar con plastilina','Modelar amb plastilina','Model with clay'),
+ ],
+ 'lenguaje': [
+  ('!hinchar-mejillas','Hinchar las mejillas','Inflar les galtes','Puff out your cheeks'),
+ ],
+ 'calma': [
+  ('!manos-quietas','Manos quietas','Mans quietes','Hands still'),
+ ],
  'consignas': [
   ('@rodear','Rodear','Encerclar','Circle'),
   ('@unir','Unir con una línea','Unir amb una línia','Match with a line'),

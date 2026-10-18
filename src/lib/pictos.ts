@@ -9,7 +9,11 @@
  * Configuración y al pie de cada agenda o ficha impresa que los lleve
  * (`ATRIBUCION_MULBERRY`). Los que empiezan por `ap-` son dibujos propios de
  * AulaPro para las consignas de ficha que Mulberry no tiene (rodear, unir,
- * subrayar…), en `public/pictos/aulapro/`: no piden atribución.
+ * subrayar…), en `public/pictos/aulapro/`: no piden atribución. Los que
+ * empiezan por `ia-` son pictogramas dibujados con IA (fal.ai, Nano Banana 2,
+ * `scripts/pictos/ia/`) para lo que Mulberry tampoco tiene: iniciar y terminar
+ * una actividad, material manipulativo, praxias, calma. Son WebP en la misma
+ * carpeta y tampoco piden atribución.
  * ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el
  * uso comercial. Ver `docs/PTAL.md`.
  *
@@ -26,6 +30,10 @@ export type CategoriaPicto =
   | 'consignas'
   | 'emociones'
   | 'personas'
+  | 'estructura'
+  | 'manipulativo'
+  | 'lenguaje'
+  | 'calma'
   | 'comida'
   | 'lugares'
   | 'juego'
@@ -45,6 +53,10 @@ export const CATEGORIAS_PICTO: readonly { id: CategoriaPicto; es: string; ca: st
   { id: 'consignas', es: 'Consignas de ficha', ca: 'Consignes de fitxa', en: 'Worksheet instructions' },
   { id: 'emociones', es: 'Cómo me siento', ca: 'Com em sento', en: 'Feelings' },
   { id: 'personas', es: 'Personas', ca: 'Persones', en: 'People' },
+  { id: 'estructura', es: 'Inicio y fin', ca: 'Inici i final', en: 'Start and finish' },
+  { id: 'manipulativo', es: 'Manipulativo', ca: 'Manipulatiu', en: 'Hands-on materials' },
+  { id: 'lenguaje', es: 'Lenguaje y habla', ca: 'Llenguatge i parla', en: 'Speech and language' },
+  { id: 'calma', es: 'Calma y convivencia', ca: 'Calma i convivència', en: 'Calm and getting along' },
   { id: 'comida', es: 'Comida', ca: 'Menjar', en: 'Food' },
   { id: 'lugares', es: 'Lugares', ca: 'Llocs', en: 'Places' },
   { id: 'juego', es: 'Juego', ca: 'Joc', en: 'Play' },
@@ -56,6 +68,16 @@ export const CATEGORIAS_PICTO: readonly { id: CategoriaPicto; es: string; ca: st
 ];
 
 export const PICTOS: readonly Picto[] = [
+  { id: 'ia-inicio-actividad', categoria: 'estructura', es: 'Inicio de la actividad', ca: 'Inici de l\'activitat', en: 'Start of the activity' },
+  { id: 'ia-fin-actividad', categoria: 'estructura', es: 'Fin de la actividad', ca: 'Final de l\'activitat', en: 'End of the activity' },
+  { id: 'ap-terminado', categoria: 'estructura', es: 'Terminado', ca: 'Acabat', en: 'Finished' },
+  { id: 'ap-pausa', categoria: 'estructura', es: 'Pausa', ca: 'Pausa', en: 'Pause' },
+  { id: 'ap-repetir', categoria: 'estructura', es: 'Repetir', ca: 'Repetir', en: 'Repeat' },
+  { id: 'ap-cambio-actividad', categoria: 'estructura', es: 'Cambio de actividad', ca: 'Canvi d\'activitat', en: 'Change of activity' },
+  { id: 'ia-plastilina', categoria: 'manipulativo', es: 'Plastilina', ca: 'Plastilina', en: 'Modelling clay' },
+  { id: 'ia-modelar-plastilina', categoria: 'manipulativo', es: 'Modelar con plastilina', ca: 'Modelar amb plastilina', en: 'Model with clay' },
+  { id: 'ia-hinchar-mejillas', categoria: 'lenguaje', es: 'Hinchar las mejillas', ca: 'Inflar les galtes', en: 'Puff out your cheeks' },
+  { id: 'ia-manos-quietas', categoria: 'calma', es: 'Manos quietas', ca: 'Mans quietes', en: 'Hands still' },
   { id: 'ap-rodear', categoria: 'consignas', es: 'Rodear', ca: 'Encerclar', en: 'Circle' },
   { id: 'ap-unir', categoria: 'consignas', es: 'Unir con una línea', ca: 'Unir amb una línia', en: 'Match with a line' },
   { id: 'ap-subrayar', categoria: 'consignas', es: 'Subrayar', ca: 'Subratllar', en: 'Underline' },
@@ -397,16 +419,16 @@ export const PICTOS: readonly Picto[] = [
 
 export { ATRIBUCION_MULBERRY } from './atribucionPictos';
 
-/** ¿Es de Mulberry? Los propios de AulaPro (`ap-`) no piden atribución. */
+/** ¿Es de Mulberry? Los propios de AulaPro (`ap-`) y los hechos con IA (`ia-`) no piden atribución. */
 export function esMulberry(id: string): boolean {
-  return !id.startsWith('ap-');
+  return !id.startsWith('ap-') && !id.startsWith('ia-');
 }
 
 /** Dónde está el dibujo, relativo a la página (la app se carga con `base: './'`). */
 export function urlPicto(id: string): string {
-  return esMulberry(id)
-    ? `${import.meta.env.BASE_URL}pictos/mulberry/${id}.svg`
-    : `${import.meta.env.BASE_URL}pictos/aulapro/${id.slice(3)}.svg`;
+  const base = import.meta.env.BASE_URL;
+  if (id.startsWith('ia-')) return `${base}pictos/aulapro/${id}.webp`;
+  return esMulberry(id) ? `${base}pictos/mulberry/${id}.svg` : `${base}pictos/aulapro/${id.slice(3)}.svg`;
 }
 
 export function pictoDe(id: string): Picto | undefined {

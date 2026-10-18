@@ -70,3 +70,27 @@ export function negritaDelVerbo(enunciado: string): string {
   if (!m || !VERBOS_CONSIGNA.has(sinTilde(m[2]))) return s;
   return `${m[1]}**${m[2]}**${s.slice(m[0].length)}`;
 }
+
+/**
+ * Los campos de una ficha que la hoja (HTML y Word) sabe pintar con negritas: lo demás (títulos, recuadros, tablas,
+ * cálculos, historia, narrativa, pasos visuales…) se escribe tal cual, así que un «**así**» saldría con sus asteriscos.
+ */
+const CAMPOS_CON_NEGRITA = new Set([
+  'explicacion', 'instrucciones', 'enunciado', 'opciones', 'izquierda', 'derecha', 'afirmaciones', 'elementos', 'preguntas', 'parrafos',
+]);
+
+/**
+ * La ficha sin los asteriscos de los campos que no pintan negritas. La IA marca `**` donde le parece (en un título, en
+ * un «Recuerda», en una celda…) aunque solo se le pida en lectura fácil; lo que no se pinta se quita y lo que sí se pinta
+ * se deja, bien cerrado. Se aplica al recibir la ficha y al maquetarla, para que también salgan bien las ya guardadas.
+ * Aula Live pinta casi todo como texto plano: allí solo se conservan los párrafos de lectura (`camposQueSePintan`).
+ */
+export function sinNegritasQueNoSePintan<T>(valor: T, camposQueSePintan: ReadonlySet<string> = CAMPOS_CON_NEGRITA): T {
+  const limpiar = (x: unknown, clave: string): unknown => {
+    if (typeof x === 'string') return camposQueSePintan.has(clave) ? equilibrarNegritas(x) : quitarNegritas(x);
+    if (Array.isArray(x)) return x.map(v => limpiar(v, clave));
+    if (x && typeof x === 'object') return Object.fromEntries(Object.entries(x).map(([k, v]) => [k, limpiar(v, k)]));
+    return x;
+  };
+  return limpiar(valor, '') as T;
+}
