@@ -1,0 +1,50 @@
+name: Prueba de la web en GitHub Pages
+
+# Publica una COPIA de web/sitio en https://sssssantipedra-lang.github.io/aulapro/ sin tocar aulapro.app.
+# Sirve para saber si esa dirección se abre desde conexiones españolas cuando los operadores bloquean
+# las de Cloudflare durante los partidos de LaLiga (docs/WEB.md). Solo se lanza a mano, desde la pestaña
+# "Actions". No sustituye a web.yml.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: web-prueba-pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Portada en català e inglés (/ca y /en)
+        run: node web/idiomas.mjs web/sitio
+
+      - name: Sellar los archivos con su huella
+        run: node web/versionar.mjs web/sitio
+
+      - name: Preparar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir la copia
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/sitio
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4
