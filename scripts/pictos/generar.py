@@ -9,8 +9,13 @@ Copia los elegidos en `lista.py` a `public/pictos/mulberry/` con un nombre
 corto, los optimiza con svgo (sin cambiar el dibujo) y escribe
 `src/lib/pictos.ts`. Los dibujos propios de AulaPro (los de `lista.py` que
 empiezan por «@», en `propios/`) van a `public/pictos/aulapro/` con el
-prefijo `ap-` en su identificador. Para añadir uno: se añade a `lista.py` y
-se vuelve a ejecutar.
+prefijo `ap-` en su identificador. Los hechos con IA (los que empiezan por
+«!», ver `ia/`) ya están en `public/pictos/aulapro/ia-<nombre>.webp`, que
+saca `ia/importar.mjs`: aquí solo entran en el catálogo, con el prefijo `ia-`.
+Para añadir uno: se añade a `lista.py` y se vuelve a ejecutar.
+
+Sin tener Mulberry a mano (para añadir solo dibujos propios o de IA) se pasa
+`-` en lugar de la carpeta: no toca `public/pictos/mulberry/`.
 """
 import json, os, re, shutil, subprocess, sys, tempfile
 
@@ -24,6 +29,10 @@ NOMBRES = {
     'material': ('Material', 'Material', 'Materials'), 'acciones': ('Acciones', 'Accions', 'Actions'),
     'consignas': ('Consignas de ficha', 'Consignes de fitxa', 'Worksheet instructions'),
     'emociones': ('Cómo me siento', 'Com em sento', 'Feelings'), 'personas': ('Personas', 'Persones', 'People'),
+    'estructura': ('Inicio y fin', 'Inici i final', 'Start and finish'),
+    'manipulativo': ('Manipulativo', 'Manipulatiu', 'Hands-on materials'),
+    'lenguaje': ('Lenguaje y habla', 'Llenguatge i parla', 'Speech and language'),
+    'calma': ('Calma y convivencia', 'Calma i convivència', 'Calm and getting along'),
     'comida': ('Comida', 'Menjar', 'Food'), 'lugares': ('Lugares', 'Llocs', 'Places'),
     'juego': ('Juego', 'Joc', 'Play'), 'tiempo': ('Cuándo', 'Quan', 'When'),
     'matematicas': ('Matemáticas', 'Matemàtiques', 'Maths'), 'naturaleza': ('Naturaleza', 'Natura', 'Nature'),
@@ -37,29 +46,40 @@ def ident(n):
 def q(s):
     return "'" + s.replace('\\', '\\\\').replace("'", "\\'") + "'"
 
+SIN_MULBERRY = repo == '-'
 cat, vistos = [], set()
 tmp, tmp_propios = tempfile.mkdtemp(), tempfile.mkdtemp()
 for c, xs in L.items():
     for f, es, ca, en in xs:
-        propio = f.startswith('@')
-        i = 'ap-' + f[1:] if propio else ident(f)
+        propio, ia = f.startswith('@'), f.startswith('!')
+        i = 'ap-' + f[1:] if propio else 'ia-' + f[1:] if ia else ident(f)
         assert i not in vistos, i
         vistos.add(i)
         if propio:
             shutil.copy(os.path.join(AQUI, 'propios', f[1:] + '.svg'), os.path.join(tmp_propios, f[1:] + '.svg'))
-        else:
+        elif ia:
+            assert os.path.exists(os.path.join(RAIZ, 'public', 'pictos', 'aulapro', i + '.webp')), i + ': falta el WebP (ia/importar.mjs)'
+        elif not SIN_MULBERRY:
             shutil.copy(os.path.join(repo, 'EN', f + '.svg'), os.path.join(tmp, i + '.svg'))
         cat.append(dict(id=i, c=c, es=es, ca=ca, en=en))
 
-def optimizar(origen, dst):
-    shutil.rmtree(dst, ignore_errors=True)
-    os.makedirs(dst)
+def optimizar(origen, dst, limpiar_svg=False):
+    # La carpeta de los propios también guarda los WebP de IA: solo se vacían los SVG
+    if limpiar_svg:
+        os.makedirs(dst, exist_ok=True)
+        for n in os.listdir(dst):
+            if n.endswith('.svg'):
+                os.remove(os.path.join(dst, n))
+    else:
+        shutil.rmtree(dst, ignore_errors=True)
+        os.makedirs(dst)
     subprocess.run(['npx', '--yes', 'svgo@3', '-q', '--config', os.path.join(AQUI, 'svgo.config.cjs'), '-f', origen, '-o', dst], check=True)
 
-dst = os.path.join(RAIZ, 'public', 'pictos', 'mulberry')
-optimizar(tmp, dst)
-shutil.copy(os.path.join(repo, 'LICENSE.txt'), os.path.join(dst, 'LICENSE.txt'))
-optimizar(tmp_propios, os.path.join(RAIZ, 'public', 'pictos', 'aulapro'))
+if not SIN_MULBERRY:
+    dst = os.path.join(RAIZ, 'public', 'pictos', 'mulberry')
+    optimizar(tmp, dst)
+    shutil.copy(os.path.join(repo, 'LICENSE.txt'), os.path.join(dst, 'LICENSE.txt'))
+optimizar(tmp_propios, os.path.join(RAIZ, 'public', 'pictos', 'aulapro'), limpiar_svg=True)
 
 out = open(os.path.join(AQUI, 'plantilla.ts.txt'), encoding='utf-8').read()
 out = out.replace('/*CATEGORIAS_TIPO*/', '\n  | '.join(q(c) for c in NOMBRES))

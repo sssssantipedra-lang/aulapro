@@ -892,26 +892,34 @@ con flechas para pasar al siguiente; en el ordenador, todo el grupo a la vista.
 Se guarda solo; una sesión sin nada anotado no se guarda.
 
 [apoyo-alumnado] MI ALUMNADO
-Dos pestañas. ALUMNADO («Nuevo alumno»): la lista del alumnado que se atiende,
-de cualquier clase del centro, con su clase, su curso, su nivel (si está por
-debajo de su curso se marca), sus necesidades, sus grupos, cuántos objetivos
-del trimestre lleva conseguidos y cuántos avisos tiene. PULSANDO UN ALUMNO SE
-ABRE SU PÁGINA. Al crearlo se escriben nombre y apellidos, clase de origen
-(«2º B»), curso en que está matriculado, nivel de competencia curricular (el
-curso cuyo currículo trabaja), necesidades específicas de apoyo educativo (se
-marcan todas las que tenga, en dos grupos: las necesidades educativas
-especiales, con discapacidad intelectual, motora, auditiva o visual, TEA,
-trastorno grave de conducta o de la comunicación y pluridiscapacidad, y las
-demás, como TDAH, dificultades específicas de aprendizaje, TDL o altas
-capacidades; «Otra que no esté en la lista» añade una escrita a mano),
-diagnóstico, necesidades educativas (barreras, fortalezas y qué le ayuda),
-notas y sus grupos. GRUPOS («Nuevo grupo»): uno por cada sesión que se da
-(«Lectoescritura, lunes 9:00»; un alumno que se atiende solo es un grupo de
-uno), con su nombre, si es dentro o fuera del aula, su horario (una o varias
-sesiones a la semana, con día, hora de empezar y de acabar), su alumnado y un
-color; si el perfil es de PT y de AL, también de cuál de las dos es. El lápiz
-de cada grupo lo edita; dentro está «Eliminar» (borra sus registros, pero no
-al alumnado). Todo se guarda en el equipo y se vacía con el vaciado de fin de
+Dos pestañas. Arriba hay siempre dos botones, «Nuevo alumno» y «Nuevo grupo»,
+y cualquiera de los dos crea también lo otro en el mismo paso, sin salir de la
+ventana. ALUMNADO: la lista del alumnado que se atiende, de cualquier clase del
+centro, con su clase, su curso, su nivel (si está por debajo de su curso se
+marca), sus necesidades, sus grupos, cuántos objetivos del trimestre lleva
+conseguidos y cuántos avisos tiene. PULSANDO UN ALUMNO SE ABRE SU PÁGINA. «Nuevo
+alumno» pide lo mínimo: nombre y apellidos, clase de origen («2º B»), curso en
+que está matriculado, nivel de competencia curricular (el curso cuyo currículo
+trabaja) y su GRUPO DE APOYO: se marcan los que hay o «Crear un grupo nuevo»
+(nombre, dentro o fuera del aula y su horario, y el alumno entra en él al
+guardar; si no se escribe nombre, no se crea). Plegado en «Necesidades,
+diagnóstico y notas» (abierto al editar a un alumno que ya existe) están las
+necesidades específicas de apoyo educativo (se marcan todas las que tenga, en
+dos grupos: las necesidades educativas especiales, con discapacidad
+intelectual, motora, auditiva o visual, TEA, trastorno grave de conducta o de
+la comunicación y pluridiscapacidad, y las demás, como TDAH, dificultades
+específicas de aprendizaje, TDL o altas capacidades; «Otra que no esté en la
+lista» añade una escrita a mano), el diagnóstico, las necesidades educativas
+(barreras, fortalezas y qué le ayuda) y las notas: se pueden completar después.
+GRUPOS («Nuevo grupo»): uno por cada sesión que se da («Lectoescritura, lunes
+9:00»; un alumno que se atiende solo es un grupo de uno), con su nombre, si es
+dentro o fuera del aula, su horario (una o varias sesiones a la semana, con día,
+hora de empezar y de acabar), su alumnado y un color; si el perfil es de PT y de
+AL, también de cuál de las dos es. En el alumnado del grupo se marcan los que
+hay o se escribe el nombre (y la clase) de uno nuevo y «Añadir»: el alumno se
+crea al guardar el grupo, y se completan sus demás datos en su página. El lápiz
+de cada grupo lo edita; dentro está «Eliminar» (borra sus registros, pero no al
+alumnado). Todo se guarda en el equipo y se vacía con el vaciado de fin de
 curso.
 
 [apoyo-alumno] PÁGINA DE CADA ALUMNO
@@ -1002,9 +1010,11 @@ sesión, el día o una rutina. Desde la página de un alumno («Agenda visual»)
 se ven solo las suyas; «Ver todas» enseña el resto. Cada agenda tiene título, para quién (un alumno o
 «Plantilla, sin alumno») y sus pasos en orden. «Nueva agenda» o, sin ninguna
 todavía, una de las plantillas («Mi sesión de apoyo», «Rutina de entrada», «Ir
-al baño»). En el editor, «Añadir paso» abre los PICTOGRAMAS (unos 240 de
-Mulberry Symbols, por categorías: rutinas, en clase, material, acciones, cómo
-me siento, personas, comida, lugares, juego y cuándo, con buscador) o «MIS
+al baño»). En el editor, «Añadir paso» abre los PICTOGRAMAS (unos 340, por
+categorías: rutinas, en clase, material, acciones, cómo me siento, personas,
+comida, lugares, juego, cuándo, y los de iniciar y terminar una actividad, el
+material manipulativo como la plastilina, el lenguaje y el habla y la calma,
+con buscador) o «MIS
 FOTOS» («Añadir una foto»: se guarda reducida en el perfil, en este equipo, y no
 se envía a ninguna parte). Se pueden añadir varios seguidos y cerrar con
 «Listo». Cada paso tiene su texto, que se cambia, y flechas para moverlo antes o

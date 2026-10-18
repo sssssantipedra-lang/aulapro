@@ -9,7 +9,11 @@
  * Configuración y al pie de cada agenda o ficha impresa que los lleve
  * (`ATRIBUCION_MULBERRY`). Los que empiezan por `ap-` son dibujos propios de
  * AulaPro para las consignas de ficha que Mulberry no tiene (rodear, unir,
- * subrayar…), en `public/pictos/aulapro/`: no piden atribución.
+ * subrayar…), en `public/pictos/aulapro/`: no piden atribución. Los que
+ * empiezan por `ia-` son pictogramas dibujados con IA (fal.ai, Nano Banana 2,
+ * `scripts/pictos/ia/`) para lo que Mulberry tampoco tiene: iniciar y terminar
+ * una actividad, material manipulativo, praxias, calma. Son WebP en la misma
+ * carpeta y tampoco piden atribución.
  * ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el
  * uso comercial. Ver `docs/PTAL.md`.
  *
@@ -33,16 +37,16 @@ export const PICTOS: readonly Picto[] = [
 
 export { ATRIBUCION_MULBERRY } from './atribucionPictos';
 
-/** ¿Es de Mulberry? Los propios de AulaPro (`ap-`) no piden atribución. */
+/** ¿Es de Mulberry? Los propios de AulaPro (`ap-`) y los hechos con IA (`ia-`) no piden atribución. */
 export function esMulberry(id: string): boolean {
-  return !id.startsWith('ap-');
+  return !id.startsWith('ap-') && !id.startsWith('ia-');
 }
 
 /** Dónde está el dibujo, relativo a la página (la app se carga con `base: './'`). */
 export function urlPicto(id: string): string {
-  return esMulberry(id)
-    ? `${import.meta.env.BASE_URL}pictos/mulberry/${id}.svg`
-    : `${import.meta.env.BASE_URL}pictos/aulapro/${id.slice(3)}.svg`;
+  const base = import.meta.env.BASE_URL;
+  if (id.startsWith('ia-')) return `${base}pictos/aulapro/${id}.webp`;
+  return esMulberry(id) ? `${base}pictos/mulberry/${id}.svg` : `${base}pictos/aulapro/${id.slice(3)}.svg`;
 }
 
 export function pictoDe(id: string): Picto | undefined {

@@ -1281,6 +1281,13 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ap-neae-ttl { font-size:11.5px; font-weight:700; color:var(--text-3); margin-bottom:6px; }
 .ap-neae-otra { display:flex; gap:8px; margin-top:8px; }
 .ap-neae-otra .finput { flex:1; min-width:0; }
+.ap-mas { margin-bottom:14px; border:0.5px solid var(--border); border-radius:10px; padding:10px 12px; }
+.ap-mas > summary { cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text); }
+.ap-mas > summary::-webkit-details-marker { display:none; }
+.ap-mas > summary svg { transition:transform .15s; transform:rotate(-90deg); }
+.ap-mas[open] > summary svg { transform:none; }
+.ap-grupo-nuevo { display:flex; flex-direction:column; gap:10px; margin-top:10px; padding:12px; border-radius:10px; background:var(--surface); }
+.ap-grupo-nuevo .fgroup { margin:0; }
 .ap-color { width:28px; height:28px; border-radius:50%; border:none; cursor:pointer; outline-offset:2px; }
 /* Programas */
 .ap-alumnos { margin-bottom:12px; }

@@ -67,7 +67,7 @@ export function InicioApoyo({ nombre, data, onNav, onLoadDemo }: Props) {
 
   if (data.alumnos.length === 0) {
     const pasos: { titulo: string; texto: string; ir: Section; boton: string }[] = [
-      { titulo: 'Tu alumnado y tus grupos', texto: 'Añade a cada alumno con su clase, sus necesidades y su nivel, y agrúpalos con su horario de apoyo.', ir: 'apoyo-alumnado', boton: 'Ir a Mi alumnado' },
+      { titulo: 'Tu alumnado y tus grupos', texto: 'Añade a cada alumno con su grupo de apoyo y su horario, en el mismo paso. Su curso, su nivel y sus necesidades se pueden completar después.', ir: 'apoyo-alumnado', boton: 'Ir a Mi alumnado' },
       { titulo: 'Sus programas', texto: 'Pulsa un alumno para abrir su página. En «Programa», sus objetivos por trimestre; la IA te puede proponer unos para revisar.', ir: 'apoyo-alumnado', boton: 'Ir a Mi alumnado' },
       { titulo: 'El registro de cada sesión', texto: 'En la sesión, cómo va cada objetivo y cómo ha respondido, con un toque. Con eso salen la evolución, los avisos y los informes.', ir: 'apoyo-registro', boton: 'Ir al Registro diario' },
     ];

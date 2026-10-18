@@ -165,7 +165,7 @@ export function AlumnoApoyo({ data, onChange, especialidades, comunidad, docente
         )}
       </div>
 
-      <EditarAlumno edicion={edicion} onEdicion={setEdicion} data={data} onChange={onChange} />
+      <EditarAlumno edicion={edicion} onEdicion={setEdicion} data={data} onChange={onChange} especialidades={especialidades} />
     </section>
   );
 }
@@ -463,7 +463,7 @@ function Datos({ alumno, data, onChange, onEditar, onNav }: {
         <div className="card-hd"><div className="card-ttl">{t('Sus grupos de apoyo')}</div></div>
         {data.grupos.length === 0 ? (
           <>
-            <p className="ap-vacio">{t('Todavía no hay grupos. Créalos en Mi alumnado, en la pestaña «Grupos».')}</p>
+            <p className="ap-vacio">{t('Todavía no hay grupos. Crea el primero en Mi alumnado, con «Nuevo grupo», o desde «Editar» de este alumno.')}</p>
             <button className="btn-ghost" style={{ marginTop: 10 }} onClick={() => { requestGrupos(); onNav('apoyo-alumnado'); }}>{t('Ir a los grupos')}</button>
           </>
         ) : (

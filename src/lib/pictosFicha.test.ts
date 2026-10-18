@@ -15,6 +15,15 @@ describe('pictogramas de ficha', () => {
     expect(DIBUJOS_FICHA).toEqual(expect.arrayContaining(['apple', 'banana', 'orange', 'measuring-jug', 'tree']));
   });
 
+  it('lo del trabajo con el alumnado (inicio y fin, praxias, calma) no se ofrece como dibujo de un ejercicio; el material, sí', () => {
+    for (const id of ['ia-inicio-actividad', 'ia-fin-actividad', 'ap-pausa', 'ia-hinchar-mejillas', 'ia-manos-quietas']) {
+      expect(DIBUJOS_FICHA, id).not.toContain(id);
+    }
+    expect(DIBUJOS_FICHA).toContain('ia-plastilina');
+    expect(pictoDeVerbo('Modela')).toBe('ia-modelar-plastilina');
+    expect(pictoDeVerbo('Modelo')).toBeUndefined();
+  });
+
   it('el verbo de un paso lleva a su pictograma en castellano, catalán o inglés', () => {
     expect(pictoDeVerbo('Rodea')).toBe('ap-rodear');
     expect(pictoDeVerbo('Encercla')).toBe('ap-rodear');
