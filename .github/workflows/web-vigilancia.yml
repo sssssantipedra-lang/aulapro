@@ -1,0 +1,66 @@
+name: Vigilancia de la web
+
+# Cada 30 minutos comprueba la web desde fuera, como un visitante (web/vigilar.mjs): las tres portadas,
+# el mapa del sitio, el calendario de la app, el vídeo, el certificado de seguridad, la caducidad del
+# dominio, las dos copias de respaldo y la web vista desde sondas en España.
+# Si algo falla abre una incidencia en GitHub (con la etiqueta "vigilancia") y GitHub avisa por correo;
+# cuando vuelve a funcionar, la cierra sola. Qué hacer entonces: docs/WEB.md, apartado 4c.
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: web-vigilancia
+  cancel-in-progress: false
+
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Comprobar la web
+        id: vigilar
+        continue-on-error: true
+        run: |
+          node web/vigilar.mjs | tee informe.txt
+          exit ${PIPESTATUS[0]}
+
+      - name: Avisar si la web falla, o cerrar el aviso si se ha recuperado
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULTADO: ${{ steps.vigilar.outcome }}
+        run: |
+          gh label create vigilancia --color B4532A --description "Avisos de la vigilancia automática de la web" 2>/dev/null || true
+          abierta=$(gh issue list --label vigilancia --state open --json number -q '.[0].number')
+          if [ "$RESULTADO" = "failure" ]; then
+            {
+              echo "La vigilancia automática ha detectado un problema en la web."
+              echo
+              echo '```'
+              cat informe.txt
+              echo '```'
+              echo
+              echo "Qué hacer: docs/WEB.md, apartado 4c."
+            } > aviso.md
+            if [ -z "$abierta" ]; then
+              gh issue create --label vigilancia --title "La web tiene un problema (vigilancia automática)" --body-file aviso.md
+            elif [ $((GITHUB_RUN_NUMBER % 12)) -eq 0 ]; then
+              gh issue comment "$abierta" --body-file aviso.md      # un recordatorio cada 6 horas, no cada 30 minutos
+            fi
+            exit 1
+          elif [ -n "$abierta" ]; then
+            gh issue close "$abierta" --comment "La web vuelve a responder bien ($(date -u '+%Y-%m-%d %H:%M UTC'))."
+          fi

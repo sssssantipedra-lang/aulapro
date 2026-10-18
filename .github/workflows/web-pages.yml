@@ -1,10 +1,19 @@
-name: Prueba de la web en GitHub Pages
+name: Publicar la web en GitHub Pages
 
-# Publica una COPIA de web/sitio en https://sssssantipedra-lang.github.io/aulapro/ sin tocar aulapro.app.
-# Sirve para saber si esa dirección se abre desde conexiones españolas cuando los operadores bloquean
-# las de Cloudflare durante los partidos de LaLiga (docs/WEB.md). Solo se lanza a mano, desde la pestaña
-# "Actions". No sustituye a web.yml.
+# Segunda copia de la web, en otro proveedor y en otras direcciones (las de GitHub, no las de Cloudflare):
+# https://sssssantipedra-lang.github.io/aulapro/. Se actualiza sola con cada cambio de la web, igual que
+# web.yml (Cloudflare Pages), pero cada una es independiente: si una publicación falla, la otra sigue.
+# Si algún día aulapro.app apunta aquí o a Cloudflare es solo cuestión de los DNS (docs/WEB.md, 4c).
+# No necesita ningún secreto.
 on:
+  push:
+    branches: [master]
+    paths:
+      - 'web/sitio/**'
+      - 'web/idiomas.mjs'
+      - 'web/comprobar.mjs'
+      - 'web/versionar.mjs'
+      - '.github/workflows/web-pages.yml'
   workflow_dispatch: {}
 
 permissions:
@@ -13,7 +22,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: web-prueba-pages
+  group: web-pages
   cancel-in-progress: true
 
 jobs:
@@ -33,6 +42,10 @@ jobs:
 
       - name: Portada en català e inglés (/ca y /en)
         run: node web/idiomas.mjs web/sitio
+
+      # Si la copia está rota, se para aquí y la web que está en línea se queda como estaba.
+      - name: Comprobar que la web está entera
+        run: node web/comprobar.mjs web/sitio
 
       - name: Sellar los archivos con su huella
         run: node web/versionar.mjs web/sitio

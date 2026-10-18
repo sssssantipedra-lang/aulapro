@@ -14,6 +14,7 @@ on:
       - 'web/sitio/**'
       - 'web/versionar.mjs'
       - 'web/idiomas.mjs'
+      - 'web/comprobar.mjs'
       - '.github/workflows/web.yml'
   workflow_dispatch: {}
 
@@ -45,6 +46,12 @@ jobs:
       - name: Portada en català e inglés (/ca y /en)
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: node web/idiomas.mjs web/sitio
+
+      # Si la copia está rota (falta un archivo, un enlace, un idioma...), aquí se para y la web que está en
+      # línea se queda como estaba. Es lo que impide que un cambio roto tire la web.
+      - name: Comprobar que la web está entera
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: node web/comprobar.mjs web/sitio
 
       - name: Sellar los archivos con su huella
         if: env.CLOUDFLARE_API_TOKEN != ''
