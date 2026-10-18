@@ -9,7 +9,7 @@
  * clase que toca según el horario, o en la que pida el Cuaderno.
  */
 import { useMemo, useState } from 'react';
-import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Flag, Undo2, Users } from 'lucide-react';
+import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Flag, Flame, Undo2, Users, Volume2, VolumeX } from 'lucide-react';
 import type { AttendanceMap, Class, ClassMark, ClassMarkType, MarksBlockConfig, ScheduleBlock, Student } from '../types';
 import {
   BLOCK_NAME, EF_MARK_TYPES, MARK_TYPES, blockConfig, esAsignaturaEF, markTypeInfo, marksFor, studentBlock, targetLabel,
@@ -21,6 +21,8 @@ import { isoDate, prettyDate, shiftDate } from '../lib/utils';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 import { compararAlumnos } from '../lib/alumnado';
+import { racha } from '../lib/racha';
+import { guardarSonido, sonar, sonidoActivo } from '../lib/sonidos';
 
 interface Props {
   classes: Class[];
@@ -35,6 +37,9 @@ interface Props {
   onNav: (s: string) => void;
 }
 
+/** Si una anotación suma a la nota (las de EF y las de aula son distintas). */
+const suma = (tipo: ClassMarkType) => !!markTypeInfo(tipo)?.positive;
+
 /** En el móvil no cabe «comportamiento» entero bajo el icono. */
 const CORTO: Partial<Record<ClassMarkType, string>> = {
   'behavior-good': 'Buen comport.',
@@ -47,6 +52,9 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
   const [classId, setClassId] = useState(() => pedido?.classId ?? claseQueToca(classes, scheduleBlocks));
   const [subjectPick, setSubject] = useState(pedido?.subject ?? '');
   const [date, setDate] = useState(isoDate());
+  const [sonido, setSonido] = useState(sonidoActivo);
+  /** La última anotación: de ella salen el «+1» flotante y el rebote del contador (`k` lo repite en cada toque). */
+  const [fx, setFx] = useState<{ sid: string; type: ClassMarkType; k: number } | null>(null);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -81,6 +89,14 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
       // Como en la Distribución de aula: solo se guarda si hay donde elegir
       subject: subjects.length > 1 ? subject : undefined,
     }, t(info.label));
+    sonar(info.positive ? 'suma' : 'resta');
+    setFx(prev => ({ sid: student.id, type, k: (prev?.k ?? 0) + 1 }));
+  }
+
+  function cambiarSonido() {
+    const nuevo = !sonido;
+    setSonido(nuevo);
+    guardarSonido(nuevo);
   }
 
   if (!cls) {
@@ -116,6 +132,14 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
             ))}
           </div>
         )}
+        <button
+          type="button" className="ico-btn" style={{ marginLeft: 'auto' }}
+          onClick={cambiarSonido} aria-pressed={sonido}
+          title={sonido ? t('Silenciar el sonido al anotar') : t('Activar el sonido al anotar')}
+          aria-label={sonido ? t('Silenciar el sonido al anotar') : t('Activar el sonido al anotar')}
+        >
+          {sonido ? <Volume2 size={17} /> : <VolumeX size={17} />}
+        </button>
       </div>
 
       <p className={`act-info${cfg.enabled === false ? ' off' : ''}`}>
@@ -164,12 +188,18 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
             const nota = studentBlock(suyas, cfg).total;
             const falta = faltas[s.id] === 'absent';
             const ultima = deHoy[deHoy.length - 1];
+            const dias = racha(mine, s.id, date, suma);
             return (
               <div key={s.id} className={`act-row${falta ? ' falta' : ''}`}>
                 <span className="act-num">{i + 1}</span>
                 <span className="act-name">
                   <span>{s.name}</span>
                   {falta && <span className="act-falta">{t('Falta')}</span>}
+                  {dias >= 2 && (
+                    <span className="act-racha" title={t('Racha de {n} días de clase seguidos sumando', { n: dias })}>
+                      <Flame size={12} aria-hidden="true" />{dias}
+                    </span>
+                  )}
                 </span>
                 <div className="act-opts" role="group" aria-label={s.name}>
                   {tipos.map(tp => {
@@ -186,7 +216,10 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
                         {markIcon(tp.id, 15)}
                         <span className="act-opt-lbl">{label}</span>
                         <span className="act-opt-corto" aria-hidden="true">{CORTO[tp.id] ? t(CORTO[tp.id]!) : label}</span>
-                        {n > 0 && <b className="act-count" aria-hidden="true">{n}</b>}
+                        {n > 0 && <b key={n} className="act-count" aria-hidden="true">{n}</b>}
+                        {fx?.sid === s.id && fx.type === tp.id && (
+                          <span key={fx.k} className="act-fx" aria-hidden="true">{tp.positive ? '+1' : '−1'}</span>
+                        )}
                       </button>
                     );
                   })}
@@ -204,7 +237,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
                 >
                   <Undo2 size={14} />
                 </button>
-                <span className={`act-nota${nota >= 5 ? '' : ' baja'}`} title={t('Nota del bloque, sobre 10')}>
+                <span key={fx?.sid === s.id ? fx.k : 0} className={`act-nota${nota >= 5 ? '' : ' baja'}${fx?.sid === s.id ? ' bump' : ''}`} title={t('Nota del bloque, sobre 10')}>
                   {nota.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                 </span>
               </div>

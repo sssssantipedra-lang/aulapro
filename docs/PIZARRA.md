@@ -12,6 +12,10 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
   cronómetro con vueltas, semáforo, símbolos de trabajo, dados (1 a 6), grupos (de la clase elegida, por tamaño o por
   número), marcador por equipos, plan del día con casillas, nota y código QR. «Reto» proyecta una ficha.
   Las nuevas están en `src/components/live/PizarraWidgets.tsx` y la lógica sin pantalla, en `src/lib/pizarraAula.ts`.
+- **Ruleta con memoria** (18-10-2026, petición del dueño): quien sale queda guardado por clase (`src/lib/ruleta.ts`,
+  `aulapro_ruleta_<id de clase>`) y no vuelve a salir hasta «Reiniciar lista», aunque se cierre la pizarra. Dos
+  ruletas de la misma clase comparten la lista. El círculo se rehace en el siguiente giro y no al salir alguien, para
+  no recolocar los sectores al enseñar el resultado; «Volver a meter en el sorteo» devuelve a quien acaba de salir.
 - **Varias ventanas de cada herramienta** (19-10-2026, como Classroomscreen): cada pulsación en la barra inferior abre
   otra ventana, hasta 24 (`MAX_VENTANAS`). Cada una es una instancia con su identificador (`timer`, `timer-2`…) y
   funciona por su cuenta: dos notas no comparten texto, dos marcadores no comparten puntos. La nueva se coloca en el
