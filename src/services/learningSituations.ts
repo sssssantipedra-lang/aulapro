@@ -145,6 +145,11 @@ export interface SdaEF {
   referencias: string[];
   /** La modalidad del juego o deporte que trabaja, si es uno. */
   modalidad?: ModalidadEF;
+  /**
+   * Con varios deportes o juegos (de 2 a 6), cuáles son y en qué orden se trabajan: uno detrás de otro, nunca
+   * mezclados sesión a sesión. Con uno solo, no se guarda.
+   */
+  secuencia?: string[];
 }
 
 /** Lo propio de Educación Física que se añade a la petición. */
@@ -265,6 +270,16 @@ function instruccionesEF(ef: SdaPeticionEF): string {
       : `si la idea trabaja un juego o un deporte, pon su modalidad en "modalidadDeportiva"; si no, "ninguna". `) +
     `Trabaja el juego o deporte según la lógica de su modalidad y prepáralo como ella pide (calentamiento específico, ` +
     `progresión y seguridad):\n${MODALIDADES_EF.map(m => `  - ${m.id}: ${m.label}. Lógica: ${m.logica} Preparación: ${m.preparacion}`).join('\n')}\n` +
+    `- SECUENCIA CON LÓGICA (varios deportes o juegos): si la idea trabaja más de un deporte, juego o contenido (por ` +
+    `ejemplo «baloncesto y balonmano», «un deporte de red y otro de invasión»), decide primero en "secuenciaDeportes" ` +
+    `cuáles son y en qué orden. Se trabajan UNO DETRÁS DE OTRO, en bloques de sesiones seguidas: primero todas las ` +
+    `sesiones del primero, completas y de menos a más (iniciación, práctica y aplicación en juego), y solo después las ` +
+    `del segundo, y así. Nunca alternes deportes sesión a sesión ni mezcles dos en la misma sesión (salvo en el producto ` +
+    `final). Si la idea ya da un orden, respétalo; si no, ordénalos de lo que prepara a lo que exige más (por ejemplo, ` +
+    `las habilidades y reglas que el siguiente aprovecha). Reparte las sesiones a partes iguales entre ellos y deja la ` +
+    `última sesión, o las dos últimas, para el producto final, que puede reunir a todos. El título de cada sesión empieza ` +
+    `por el deporte de su bloque («Baloncesto: el pase y el desmarque»). Si solo se trabaja uno, "secuenciaDeportes" ` +
+    `lleva un único elemento y las sesiones avanzan de menos a más como siempre.\n` +
     `- La metodología, el agrupamiento y cada sesión aplican de verdad el modelo (sus roles, grupos, fases y momentos de reflexión).\n` +
     `- Cada sesión de EF se explica en los tres momentos de la enseñanza (Mosston y Ashworth): PREIMPACTO (antes de la ` +
     `práctica principal: el objetivo, la organización del espacio, del material y de los grupos, las normas de seguridad, ` +
@@ -498,9 +513,15 @@ const SDA_SCHEMA_EF = {
       description: 'La modalidad del juego o deporte que trabaja la SdA, o "ninguna".',
       enum: [...IDS_MODALIDADES, 'ninguna'],
     },
+    // Antes que las sesiones: la IA decide el orden primero y después reparte las sesiones por bloques
+    secuenciaDeportes: {
+      type: 'ARRAY',
+      description: 'Los deportes o juegos concretos que se trabajan, en el orden en que se trabajan, uno detrás de otro (un solo elemento si es uno).',
+      items: { type: 'STRING' },
+    },
   },
-  required: ['modelosPedagogicos', 'modalidadDeportiva', ...SDA_FIELDS],
-  propertyOrdering: ['modelosPedagogicos', 'modalidadDeportiva', ...SDA_FIELDS],
+  required: ['modelosPedagogicos', 'modalidadDeportiva', 'secuenciaDeportes', ...SDA_FIELDS],
+  propertyOrdering: ['modelosPedagogicos', 'modalidadDeportiva', 'secuenciaDeportes', ...SDA_FIELDS],
 };
 
 /** Los ocho códigos oficiales, para que Gemini no se invente uno nuevo. */
@@ -758,9 +779,9 @@ export async function generateSda(
   });
   if (!raw) return null;
 
-  const respuesta = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[]; modelosPedagogicos?: unknown; modalidadDeportiva?: unknown }>(raw);
+  const respuesta = parseGeminiJson<Omit<SdaContent, 'areas'> & { areas?: RawSdaArea[]; modelosPedagogicos?: unknown; modalidadDeportiva?: unknown; secuenciaDeportes?: unknown }>(raw);
   if (!respuesta) return null;
-  const { modelosPedagogicos, modalidadDeportiva, ...parsed } = respuesta;
+  const { modelosPedagogicos, modalidadDeportiva, secuenciaDeportes, ...parsed } = respuesta;
   // Un modelo de reserva puede devolver el array vacío o ausente
   const finales = (parsed.areas ?? []).map((a, i) => finalizarArea(a, resoluciones[i] ?? null));
   // Solo se cita un decreto si de verdad se usó: un área en modo libre, o una
@@ -779,7 +800,7 @@ export async function generateSda(
     areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
     sesiones: sesionesDeLaRespuesta(parsed.sesiones, !!req.ef),
     normativa,
-    ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva) } : {}),
+    ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva, secuenciaDeportes) } : {}),
   };
 }
 
@@ -839,11 +860,22 @@ export function listaEnLineas(texto: string): string {
  * eligió la IA de la lista cerrada (como mucho dos). Las referencias salen de
  * `lib/modelosEF`, no de la IA.
  */
-export function efDeLaRespuesta(ef: SdaPeticionEF, marcados: unknown, modalidadIA?: unknown): SdaEF {
+export function efDeLaRespuesta(ef: SdaPeticionEF, marcados: unknown, modalidadIA?: unknown, secuenciaIA?: unknown): SdaEF {
   const deLaIA = (Array.isArray(marcados) ? marcados : []).filter((m): m is string => typeof m === 'string' && IDS_MODELOS_EF.includes(m));
   const modelos = modeloEF(ef.modelo) ? [ef.modelo] : [...new Set(deLaIA)].slice(0, 2);
   const modalidad = ef.modalidad || (IDS_MODALIDADES.includes(modalidadIA as ModalidadEF) ? modalidadIA as ModalidadEF : undefined);
-  return { modelos, referencias: referenciasDeModelos(modelos), ...(modalidad ? { modalidad } : {}) };
+  const secuencia = secuenciaDeportes(secuenciaIA);
+  return { modelos, referencias: referenciasDeModelos(modelos), ...(modalidad ? { modalidad } : {}), ...(secuencia ? { secuencia } : {}) };
+}
+
+/** Los deportes en su orden: de 2 a 6 nombres cortos y distintos; con uno o ninguno no hay secuencia que mostrar. */
+export function secuenciaDeportes(raw: unknown): string[] | undefined {
+  const nombres: string[] = [];
+  for (const x of Array.isArray(raw) ? raw : []) {
+    const n = typeof x === 'string' ? x.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
+    if (n && !nombres.some(o => o.toLowerCase() === n.toLowerCase())) nombres.push(n);
+  }
+  return nombres.length >= 2 ? nombres.slice(0, 6) : undefined;
 }
 
 /* ── Rúbrica a partir de la situación de aprendizaje ── */

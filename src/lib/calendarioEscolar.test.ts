@@ -83,8 +83,10 @@ describe('cursos', () => {
   it('el curso va de septiembre a agosto, y los pasados se borran', () => {
     expect(cursoDe(new Date(2026, 8, 1))).toBe('2026-2027');
     expect(cursoDe(new Date(2027, 7, 31))).toBe('2026-2027');
-    expect(sinCursosPasados(serie, new Date(2027, 8, 10)).calendarios).toEqual([]);
-    expect(sinCursosPasados(serie, new Date(2026, 9, 10)).calendarios).toHaveLength(3);
+    // Cataluña ya lleva los tres cursos de su orden: en septiembre de 2027 quedan los dos últimos
+    expect(sinCursosPasados(serie, new Date(2027, 8, 10)).calendarios.map(c => `${c.comunidad} ${c.curso}`)).toEqual(['cataluna 2027-2028', 'cataluna 2028-2029']);
+    expect(sinCursosPasados(serie, new Date(2029, 8, 10)).calendarios).toEqual([]);
+    expect(sinCursosPasados(serie, new Date(2026, 9, 10)).calendarios).toHaveLength(5);
   });
 });
 
@@ -107,7 +109,7 @@ describe('descarga', () => {
   it('un archivo válido y más nuevo sustituye al de serie, se guarda y avisa', async () => {
     const nuevo = copia();
     nuevo.actualizado = '2026-12-01';
-    nuevo.calendarios[2].noLectivos.push({ fecha: '2027-05-03', nombre: 'Festivo' });
+    nuevo.calendarios.find(c => c.comunidad === 'madrid')!.noLectivos.push({ fecha: '2027-05-03', nombre: 'Festivo' });
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(nuevo), { status: 200 }));
     vi.stubGlobal('fetch', fetch);
     const aviso = vi.fn();

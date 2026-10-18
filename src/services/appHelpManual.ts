@@ -715,7 +715,9 @@ Juegos motores y educación emocional, Hibridación de modelos, o «Que lo elija
 la IA»), la MODALIDAD del juego o deporte (o que la decida la IA), «Con mi
 material y mis instalaciones» y las medidas para quien tiene
 ahora una limitación (a la IA solo le llega lo que no puede hacer, sin
-nombres). Las sesiones son de EF (calentamiento, parte principal y vuelta a
+nombres). Si la idea trabaja varios deportes, se trabajan uno detrás de otro, en
+bloques de sesiones seguidas y de menos a más, con el producto final al final, y
+el orden se ve en Metodología («Orden de los deportes»). Las sesiones son de EF (calentamiento, parte principal y vuelta a
 la calma), la inclusión sigue el DUA-A y la evaluación es formativa y
 compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
 abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia

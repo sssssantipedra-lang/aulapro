@@ -6,7 +6,7 @@
  * `lib/modelosEF`, nunca la IA (decisión del dueño, 5-10-2026).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { efDeLaRespuesta, generateSda, minutosDeSesion, sesionesDeLaRespuesta, type SdaRequest } from './learningSituations';
+import { efDeLaRespuesta, generateSda, minutosDeSesion, secuenciaDeportes, sesionesDeLaRespuesta, type SdaRequest } from './learningSituations';
 import { IDS_MODELOS_EF, MODELOS_EF, REFERENCIAS_EF, referenciasDeModelos } from '../lib/modelosEF';
 
 const callGemini = vi.hoisted(() => vi.fn());
@@ -98,6 +98,33 @@ describe('SdA de Educación Física', () => {
     expect(system).not.toContain('EDUCACIÓN FÍSICA');
     expect(opciones.responseSchema.properties.modelosPedagogicos).toBeUndefined();
     expect(sda?.ef).toBeUndefined();
+  });
+});
+
+describe('varios deportes en una SdA de EF: uno detrás de otro', () => {
+  it('el prompt manda trabajarlos en bloques seguidos, nunca alternados, y el esquema decide el orden antes de las sesiones', async () => {
+    callGemini.mockResolvedValue(respuesta({ secuenciaDeportes: ['Baloncesto', 'Balonmano'] }));
+    await generateSda({ ...PETICION, idea: 'Baloncesto y balonmano' }, 'es');
+    const [system, , , , opciones] = callGemini.mock.calls[0];
+    expect(system).toContain('SECUENCIA CON LÓGICA');
+    expect(system).toContain('UNO DETRÁS DE OTRO');
+    expect(system).toMatch(/Nunca alternes deportes sesión a sesión/);
+    expect(system).toMatch(/última sesión, o las dos últimas, para el producto final/);
+    expect(opciones.responseSchema.properties.secuenciaDeportes.type).toBe('ARRAY');
+    const orden = opciones.responseSchema.propertyOrdering;
+    expect(orden.indexOf('secuenciaDeportes')).toBeLessThan(orden.indexOf('sesiones'));
+    expect(orden[0]).toBe('modelosPedagogicos');
+  });
+
+  it('guarda el orden de los deportes solo si son varios, sin repetir y con un tope', async () => {
+    expect(secuenciaDeportes(['Baloncesto', ' balonmano ', 'BALONCESTO', 3, ''])).toEqual(['Baloncesto', 'balonmano']);
+    expect(secuenciaDeportes(['Voleibol'])).toBeUndefined();
+    expect(secuenciaDeportes('Voleibol')).toBeUndefined();
+    expect(secuenciaDeportes(['a', 'b', 'c', 'd', 'e', 'f', 'g'])).toHaveLength(6);
+    callGemini.mockResolvedValue(respuesta({ secuenciaDeportes: ['Baloncesto', 'Balonmano'] }));
+    const sda = await generateSda(PETICION, 'es');
+    expect(sda?.ef?.secuencia).toEqual(['Baloncesto', 'Balonmano']);
+    expect(efDeLaRespuesta(PETICION.ef!, [], undefined, ['Fútbol']).secuencia).toBeUndefined();
   });
 });
 
