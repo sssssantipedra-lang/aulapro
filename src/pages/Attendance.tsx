@@ -17,7 +17,7 @@ interface Props {
   classes: Class[];
   students: Student[];
   attendance: AttendanceMap;
-  onSet: (classId: string, date: string, studentId: string, status: AttendanceStatus) => void;
+  onSet: (classId: string, date: string, studentId: string, status: AttendanceStatus | null) => void;
   onSetDay: (classId: string, date: string, map: Record<string, AttendanceStatus>) => void;
   onNav: (s: string) => void;
   /** El horario: al entrar se abre la clase que toca ahora, o la siguiente de hoy. */
@@ -250,7 +250,8 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
                           type="button"
                           className={`att-opt${on ? ' on' : ''}`}
                           style={{ '--att-c': opt.color } as React.CSSProperties}
-                          onClick={() => onSet(clsId, date, s.id, opt.id)}
+                          // Volver a pulsar el estado marcado lo quita (sin marcar)
+                          onClick={() => onSet(clsId, date, s.id, on ? null : opt.id)}
                           aria-pressed={on}
                           title={opt.label}
                         >
@@ -265,7 +266,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
           </div>
 
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 12, lineHeight: 1.5 }}>
-            {t('Toca el nombre para ir cambiando el estado, o usa los botones. Se guarda solo.')}
+            {t('Toca el nombre para ir cambiando el estado, o usa los botones; volver a pulsar el estado marcado lo quita. Se guarda solo.')}
           </p>
         </>
       ) : (

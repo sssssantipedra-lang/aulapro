@@ -21,7 +21,7 @@ import {
 import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
-import { buildSdaPosterHtml, saveSdaPosterPdf } from '../services/exportSdaPoster';
+import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../services/exportSdaPoster';
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
@@ -497,13 +497,14 @@ export function LearningSituations({
   const [posterOpen, setPosterOpen] = useState(false);
   const [posterTheme, setPosterTheme] = useState<FichaThemeId>('espacio');
   const posterArt = useThemeArt(posterTheme);
+  const [posterAudiencia, setPosterAudiencia] = useState<AudienciaCartel>('alumnado');
   const [posterBusy, setPosterBusy] = useState(false);
 
   async function handlePosterPdf() {
     const sda = currentSda();
     if (!sda) return;
     setPosterBusy(true);
-    const res = await saveSdaPosterPdf(sda, posterTheme, lang);
+    const res = await saveSdaPosterPdf(sda, posterTheme, lang, posterAudiencia);
     setPosterBusy(false);
     if (res.error === 'not-desktop') { toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.')); return; }
     if (res.canceled) return;
@@ -1532,8 +1533,16 @@ export function LearningSituations({
       {/* ══ Cartel para el aula ══ */}
       <Modal open={posterOpen} onClose={() => setPosterOpen(false)} title={t('Cartel para el aula')} wide>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-          {t('El reto, lo que se va a conseguir y el camino por fases, en una hoja A4 para colgar. Elige el aspecto:')}
+          {t('Qué vamos a trabajar, las sesiones y el producto final, en una hoja A4. Elige para quién es y el aspecto:')}
         </p>
+        <div className="chip-row" role="radiogroup" aria-label={t('Para quién es el cartel')} style={{ marginBottom: 10 }}>
+          {([['alumnado', 'Para el alumnado'], ['docente', 'Para el docente']] as const).map(([id, nombre]) => (
+            <button
+              key={id} type="button" role="radio" aria-checked={posterAudiencia === id}
+              className={`chip sm${posterAudiencia === id ? ' on' : ''}`} onClick={() => setPosterAudiencia(id)}
+            >{t(nombre)}</button>
+          ))}
+        </div>
         <div className="chip-row" role="radiogroup" aria-label={t('Tema del cartel')} style={{ marginBottom: 12 }}>
           {FICHA_THEMES.filter(th => th.historia).map(th => (
             <button
@@ -1548,7 +1557,7 @@ export function LearningSituations({
           <div className="sda-poster-preview">
             <iframe
               title={t('Vista previa del cartel')}
-              srcDoc={buildSdaPosterHtml(currentSda()!, posterTheme, lang, { preview: true, art: posterArt })}
+              srcDoc={buildSdaPosterHtml(currentSda()!, posterTheme, lang, { preview: true, art: posterArt, audiencia: posterAudiencia })}
             />
           </div>
         )}
