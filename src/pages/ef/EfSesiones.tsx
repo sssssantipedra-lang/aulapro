@@ -7,8 +7,10 @@
  * sin nombre ni motivo. Se revisan, se guardan y se imprimen. Ver `docs/EF.md`.
  */
 import { useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { CopiarAClases } from '../../components/CopiarAClases';
+import { clonarSesionEF } from '../../lib/clonar';
 import { useToast } from '../../components/ui/Toast';
 import { CriteriosOficialesPicker } from '../../components/curriculum/CriteriosOficialesPicker';
 import { useI18n } from '../../i18n';
@@ -66,6 +68,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean; modalidad: ModalidadEF | '' } | null>(null);
   const [pensando, setPensando] = useState(false);
   const [verAnteriores, setVerAnteriores] = useState(false);
+  /** Copiar sesiones a otras clases: de qué clase, cuáles y si se conserva la fecha. */
+  const [copiando, setCopiando] = useState<{ origenId: string; ids: string[]; conFecha: boolean } | null>(null);
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
 
   // El currículo de la clase que toca: la de la IA o la de la sesión abierta
@@ -91,6 +95,29 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   /** Lo que llega a la IA: las limitaciones del día y los niveles II y III, sin nombres. */
   const alumnadoDe = (claseId: string, fecha: string) =>
     alumnadoParaIA(ef, students.filter(s => s.class_id === claseId).map(s => s.id), fecha);
+
+  /* ── Copiar a otras clases ── */
+  const sesionesDe = (claseId: string) => ordenadas.filter(s => (s.claseId ?? '') === claseId);
+  /** Las clases (y «sin clase») que tienen sesiones: de dónde se puede copiar. */
+  const origenes = [...new Set(ordenadas.map(s => s.claseId ?? ''))];
+
+  function abrirCopia(origenId?: string, ids?: string[]) {
+    const origen = origenId ?? origenes[0];
+    if (origen === undefined) { toast(t('Aún no hay sesiones que copiar. Prepara una con la IA o escríbela tú.')); return; }
+    setEditando(null);
+    setCopiando({ origenId: origen, ids: ids ?? sesionesDe(origen).map(s => s.id), conFecha: false });
+  }
+
+  function copiarSesiones(destinosIds: string[]) {
+    if (!copiando) return;
+    const elegidas = ordenadas.filter(s => copiando.ids.includes(s.id));
+    const destinos = classes.filter(c => destinosIds.includes(c.id));
+    const nuevas = destinos.flatMap(c => elegidas.map(s => clonarSesionEF(s, c, nuevoIdEF('ses'), copiando.conFecha)));
+    onChangeEf(d => ({ ...d, sesiones: [...d.sesiones, ...nuevas] }));
+    setCopiando(null);
+    setEditando(null);
+    toast(t('{n} sesiones copiadas a {clases}.', { n: nuevas.length, clases: destinos.map(c => c.name).join(', ') }));
+  }
 
   const vacia = (): SesionEF => ({
     id: nuevoIdEF('ses'), titulo: '', claseId: classes[0]?.id, fecha: hoy, instalacionId: ef.instalaciones[0]?.id,
@@ -186,6 +213,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         </div>
         <div className="ap-prog-acc">
           <button className="btn-ghost" onClick={() => setEditando(vacia())}><Plus size={15} />{t('Nueva sesión')}</button>
+          <button className="btn-ghost" onClick={() => abrirCopia()} disabled={ef.sesiones.length === 0}><Copy size={15} />{t('Copiar a otras clases')}</button>
           <button className="btn-accent" onClick={abrirIa} disabled={!hasApiKey() || classes.length === 0}
             title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
             <Sparkles size={15} />{t('Preparar con IA')}
@@ -211,6 +239,37 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         </button>
       )}
       {verAnteriores && anteriores.length > 0 && <div className="card"><ul className="ap-lista ef-sesiones">{anteriores.map(fila)}</ul></div>}
+
+      <CopiarAClases
+        open={!!copiando} onClose={() => setCopiando(null)} titulo={t('Copiar sesiones a otras clases')}
+        texto={t('Cada clase tendrá sus propias copias, que podrás retocar sin cambiar las demás. Por defecto, sin fecha: tú las repartes en el calendario de cada clase.')}
+        classes={classes} origen={classes.find(c => c.id === copiando?.origenId)}
+        yaLoTienen={new Set(ef.sesiones.filter(x => x.claseId && ordenadas.some(o => copiando?.ids.includes(o.id) && o.titulo === x.titulo)).map(x => x.claseId!))}
+        deshabilitado={!copiando?.ids.length}
+        boton={n => t(n === 1 ? 'Copiar a 1 clase' : 'Copiar a {n} clases', { n })} onConfirm={copiarSesiones}
+        arriba={copiando && (
+          <div className="ef-copia-ses">
+            <label className="flabel" htmlFor="ef-cs-origen">{t('Sesiones de')}</label>
+            <select id="ef-cs-origen" className="finput" value={copiando.origenId}
+              onChange={e => setCopiando({ ...copiando, origenId: e.target.value, ids: sesionesDe(e.target.value).map(x => x.id) })}>
+              {origenes.map(o => <option key={o || 'sin'} value={o}>{o ? nombreClase(o) : t('Sin clase')}</option>)}
+            </select>
+            <div className="copiar-grupo" role="group" aria-label={t('Sesiones que se copian')}>
+              {sesionesDe(copiando.origenId).map(x => (
+                <label key={x.id} className="td-chk">
+                  <input type="checkbox" checked={copiando.ids.includes(x.id)}
+                    onChange={() => setCopiando({ ...copiando, ids: copiando.ids.includes(x.id) ? copiando.ids.filter(i => i !== x.id) : [...copiando.ids, x.id] })} />
+                  <span>{x.titulo || t('Sin título')}{x.fecha ? ` · ${dia(x.fecha)}` : ''}</span>
+                </label>
+              ))}
+            </div>
+            <label className="td-chk">
+              <input type="checkbox" checked={copiando.conFecha} onChange={e => setCopiando({ ...copiando, conFecha: e.target.checked })} />
+              {t('Conservar también la fecha')}
+            </label>
+          </div>
+        )}
+      />
 
       <Modal open={!!ia} onClose={() => setIa(null)} wide title={t('Preparar una sesión con IA')}>
         {ia && (
@@ -324,6 +383,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
               <button className="btn-ghost" onClick={() => pdf(editando)}><FileDown size={14} />{t('PDF')}</button>
+              {!esNueva && <button className="btn-ghost" onClick={() => abrirCopia(editando.claseId ?? '', [editando.id])}><Copy size={14} />{t('Copiar a otras clases')}</button>}
               <button className="btn-ghost" onClick={() => setEditando(null)}>{t('Cancelar')}</button>
               {!esNueva && <button className="btn-ghost ap-borrar" onClick={() => borrar(editando)}><Trash2 size={14} />{t('Borrar')}</button>}
             </div>

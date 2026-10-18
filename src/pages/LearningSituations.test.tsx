@@ -5,7 +5,7 @@
  * biblioteca; «Nueva» abre el formulario.
  */
 import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LearningSituations } from './LearningSituations';
 import { I18nProvider } from '../i18n';
@@ -96,6 +96,46 @@ describe('Situaciones de aprendizaje', () => {
     expect(screen.getByRole('button', { name: /Crear escape room/ })).toBeTruthy();
     await user.click(screen.getByRole('radio', { name: /Tarjetas recortables/ }));
     expect(screen.getByLabelText('Nº de tarjetas')).toBeTruthy();
+  });
+});
+
+describe('copiar a otras clases', () => {
+  const clase = (id: string, name: string, curso: number, etapa: 'primaria' | 'eso' = 'primaria'): Class => ({
+    id, name, subject: 'Educación Física', subjects: ['Educación Física'], etapa, curso,
+  } as Class);
+  const clases = [clase('c1', '4º A', 4), clase('c2', '4º B', 4), clase('c3', '4º C', 4), clase('c5', '5º A', 5)];
+  const propia: LearningSituation = { ...sda, id: 'ef1', title: 'Juegos del mundo', class_id: 'c1', class_name: '4º A', request: { ...sda.request, etapa: 'primaria', curso: 4 } };
+
+  it('copia la situación a las clases elegidas: marca las del mismo curso y cada una la recibe como suya', async () => {
+    const user = userEvent.setup();
+    const guardadas: LearningSituation[] = [];
+    render(
+      <I18nProvider>
+        <ToastProvider>
+          <LearningSituations
+            classes={clases} gradeCategories={[]} learningSituations={[propia, { ...propia, id: 'ef2', class_id: 'c3', class_name: '4º C' }]}
+            onUpdateClass={() => {}} onSave={x => guardadas.push(x)} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
+          />
+        </ToastProvider>
+      </I18nProvider>,
+    );
+    await user.click(screen.getAllByRole('button', { name: 'Copiar a otras clases' })[0]);
+    const ventana = screen.getByRole('dialog', { name: 'Copiar a otras clases' });
+    const marcada = (n: string) => (within(ventana).getByRole('checkbox', { name: new RegExp(`^${n}`) }) as HTMLInputElement).checked;
+    // La propia clase no sale; 4º B, del mismo curso, sí y marcada; 4º C ya la tiene; 5º A es de otro curso
+    expect(within(ventana).queryByRole('checkbox', { name: /^4º A/ })).toBeNull();
+    expect(marcada('4º B')).toBe(true);
+    expect(marcada('4º C')).toBe(false);
+    expect(within(ventana).getByText('ya la tiene')).toBeTruthy();
+    expect(marcada('5º A')).toBe(false);
+    expect(within(ventana).getByText('otro curso')).toBeTruthy();
+
+    await user.click(within(ventana).getByRole('checkbox', { name: /^5º A/ }));
+    await user.click(within(ventana).getByRole('button', { name: 'Copiar a 2 clases' }));
+    expect(guardadas.map(g => [g.class_id, g.class_name, g.title])).toEqual([['c2', '4º B', 'Juegos del mundo'], ['c5', '5º A', 'Juegos del mundo']]);
+    expect(guardadas[1].request.curso).toBe(5);
+    expect(new Set(guardadas.map(g => g.id)).size).toBe(2);
+    expect(guardadas.every(g => g.id !== propia.id)).toBe(true);
   });
 });
 

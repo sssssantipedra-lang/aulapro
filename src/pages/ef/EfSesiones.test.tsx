@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EfSesiones } from './EfSesiones';
 import { I18nProvider } from '../../i18n';
@@ -73,5 +73,36 @@ describe('Sesiones', () => {
     await user.click(screen.getByRole('button', { name: 'Guardar' }));
     const s = ultimo.sesiones.find(x => x.titulo === 'Bádminton: el clear');
     expect(s).toMatchObject({ claseId: 'ef-c1', fecha: '2026-10-05', ia: true, planB: 'En el porche, con globos.' });
+  });
+
+  it('copia las sesiones de una clase a otras: sin fecha, y cada clase con las suyas', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    const antes = demo.ef.sesiones.length;
+    const origen = demo.ef.sesiones[0];
+    const clasesDestino = demo.classes.filter(c => c.id !== origen.claseId);
+    expect(clasesDestino.length).toBeGreaterThan(1);
+
+    await user.click(screen.getByRole('button', { name: /Copiar a otras clases/ }));
+    const ventana = screen.getByRole('dialog', { name: 'Copiar sesiones a otras clases' });
+    // De partida, todas las sesiones de esa clase marcadas
+    expect((within(ventana).getByLabelText(/Sesiones de/) as HTMLSelectElement).value).toBe(origen.claseId ?? '');
+    const marcadas = within(ventana).getByRole('group', { name: 'Sesiones que se copian' }).querySelectorAll('input:checked').length;
+    expect(marcadas).toBe(demo.ef.sesiones.filter(s => s.claseId === origen.claseId).length);
+
+    // Una sola clase de destino, la última
+    const destino = clasesDestino[clasesDestino.length - 1];
+    for (const c of clasesDestino) {
+      const caja = within(ventana).getByRole('checkbox', { name: new RegExp(`^${c.name}`) }) as HTMLInputElement;
+      if (caja.checked !== (c.id === destino.id)) await user.click(caja);
+    }
+    await user.click(within(ventana).getByRole('button', { name: 'Copiar a 1 clase' }));
+
+    const nuevas = ultimo.sesiones.slice(antes);
+    expect(nuevas).toHaveLength(marcadas);
+    expect(nuevas.every(n => n.claseId === destino.id && !n.fecha)).toBe(true);
+    expect(nuevas.map(n => n.titulo)).toEqual(demo.ef.sesiones.filter(s => s.claseId === origen.claseId).map(s => s.titulo));
+    // Las originales no se tocan
+    expect(ultimo.sesiones.slice(0, antes)).toEqual(demo.ef.sesiones);
   });
 });

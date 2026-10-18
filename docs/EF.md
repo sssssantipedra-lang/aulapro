@@ -100,6 +100,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Calentamiento, parte principal, vuelta a la calma, material, inclusión (DUA-A) y plan B, con su clase, día e instalación, y de 1 a 3 criterios de evaluación oficiales de la clase (se cambian con el buscador de criterios).
   - «Preparar con IA»: clase, día, instalación, minutos (del horario si la clase tiene tramo ese día) y qué se trabaja. La IA usa el currículo de la clase y su comunidad, el material que no está para reponer, las instalaciones cubiertas para el plan B y, si se marca, el banco. La sesión se revisa antes de guardarla.
   - PDF para imprimirla (Windows y Android).
+  - **Copiar a otras clases** (18-10-2026): «Copiar a otras clases», arriba o dentro de una sesión. Se elige la clase de origen, qué sesiones (de partida, todas) y a qué clases (`CopiarAClases`, `clonarSesionEF`). Cada clase recibe sus copias sin fecha, porque cada clase tiene su horario, salvo que se marque «Conservar también la fecha»; la instalación, los criterios y la modalidad se conservan, y las originales no se tocan.
 - La IA (`src/services/efIA.ts`): marco con el currículo LOMLOE de la comunidad, el DUA-A, la normativa de inclusión y los autores de referencia:
   - Parlebas y Lavega (juegos y praxiología motriz).
   - Blázquez, Devís y Peiró (iniciación deportiva).
@@ -131,6 +132,7 @@ Petición del dueño (17-10-2026): «una pizarra digital en la que se dibuje un 
 - Estudios de autores publicados en abierto (petición del dueño): cada modelo lleva sus referencias, que pone la app, nunca la IA (se le prohíbe citar nada que no esté en las instrucciones y se descarta cualquier campo que no sea del esquema). Las diez referencias se comprobaron el 5-10-2026: REEFD (Fernández-Río y otros, 2016 y 2018; Calderón, Hastie y Martínez de Ojeda, 2011), Retos (Fernández-Río y Méndez-Giménez, 2016; Fernández-Río, 2017; Baena-Extremera y Granero-Gallegos, 2008), Cultura, Ciencia y Deporte (Abad Robles y otros, 2013), Apunts (Niubò-Solé, Lavega-Burgués y Sáenz-López, 2022), el libro de la Universidad de León (López-Pastor y Pérez-Pueyo, 2017) y las pautas DUA 3.0 de CAST (2024). Si se añade una, comprobarla antes.
 - La SdA guarda `ef: { modelos, referencias, modalidad }`; el modelo, la modalidad y las referencias salen en la pantalla, en el PDF y en el Word.
 - «Pasar a Sesiones de EF» copia cada sesión de la SdA a la pestaña Sesiones, sin fecha.
+- **Copiar a otras clases** (petición del dueño, 18-10-2026: «si doy EF a varias clases de 4º de Primaria, poder exportar la SdA»): cada tarjeta de la biblioteca de SdA, y el documento abierto, tienen «Copiar a otras clases». Se eligen las clases (salen marcadas las del mismo curso, sin la propia y sin las que ya tienen una con ese título) y cada una recibe una copia suya e independiente (`clonarSda` en `src/lib/clonar.ts`; la petición toma la etapa y el curso de la clase de destino). Es lo mismo en cualquier materia, no solo en EF.
 
 ## Material e instalaciones
 

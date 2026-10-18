@@ -422,6 +422,11 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   para colgar en el aula con el reto, lo que se va a conseguir, el camino por
   fases y las competencias, con el tema visual que elijas) y «Guardar»
   (mientras no se guarda aparece «Sin guardar»).
+«Copiar a otras clases» (el icono de copiar de cada tarjeta, o el botón del
+documento abierto): para quien da la misma materia a varias clases, por
+ejemplo EF a los cuartos de Primaria. Se eligen las clases de destino (salen
+marcadas las del mismo curso; las que ya la tienen, avisadas) y cada una
+recibe su propia copia, que se puede retocar sin cambiar las demás.
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
@@ -706,6 +711,12 @@ nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
 «Próximas», «Sin fecha» y «Ver las anteriores».
+«Copiar a otras clases» (arriba, o dentro de una sesión): para quien da EF a
+varias clases del mismo curso. Se elige la clase de origen, qué sesiones (de
+partida, todas) y a qué clases; salen marcadas las del mismo curso y avisadas
+las que ya tienen una sesión con ese título. Cada clase recibe sus propias
+copias, sin fecha salvo que se marque «Conservar también la fecha», y las
+originales no se tocan.
 
 [ef-actividades] ACTIVIDADES
 El banco de actividades: las de partida de AulaPro (juegos motrices, deportes

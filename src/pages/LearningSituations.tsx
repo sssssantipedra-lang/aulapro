@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
-  RefreshCw, Lightbulb, Search, Frame,
+  RefreshCw, Lightbulb, Search, Frame, Copy,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef } from '../types';
 import { DEFAULT_LEVELS } from '../types';
@@ -30,6 +30,8 @@ import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
+import { CopiarAClases } from '../components/CopiarAClases';
+import { clonarSda } from '../lib/clonar';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
@@ -243,6 +245,8 @@ export function LearningSituations({
   const [generating, setGenerating] = useState(false);
   const [content, setContent] = useState<SdaContent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  /** La situación que se está copiando a otras clases, si se está. */
+  const [copiando, setCopiando] = useState<LearningSituation | null>(null);
 
   /* ── Rúbrica ── */
   const [rubricRows, setRubricRows] = useState<SdaRubricRow[] | null>(null);
@@ -465,6 +469,15 @@ export function LearningSituations({
     onSave(sda);
     setEditingId(sda.id);
     toast(t('Situación de aprendizaje guardada'));
+  }
+
+  /** Copia la situación de aprendizaje a las clases elegidas: cada una la tiene suya, y editar una no cambia las otras. */
+  function copiarA(ids: string[]) {
+    if (!copiando) return;
+    const destinos = classes.filter(c => ids.includes(c.id));
+    for (const c of destinos) onSave(clonarSda(copiando, c, newId()));
+    setCopiando(null);
+    toast(t('Situación de aprendizaje copiada a {clases}.', { clases: destinos.map(c => c.name).join(', ') }));
   }
 
   /* ── Exportar ── */
@@ -1032,6 +1045,9 @@ export function LearningSituations({
                   {` · ${new Date(sda.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`}
                 </span>
                 <span className="sda-card-actions">
+                  <button className="ico-btn" title={t('Copiar a otras clases')} aria-label={t('Copiar a otras clases')} onClick={() => setCopiando(sda)}>
+                    <Copy size={15} />
+                  </button>
                   {isDesktop() && (
                     <button className="ico-btn" title={t('Guardar en PDF')} aria-label={t('Guardar en PDF')} disabled={exporting !== null} onClick={() => handleExportPdf(sda, sda.id)}>
                       {exporting?.key === sda.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
@@ -1218,6 +1234,9 @@ export function LearningSituations({
             )}
             <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportDocx(currentSda(), CURRENT_KEY)} title={t('Descargar en Word')}>
               {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
+            </button>
+            <button className="btn-ghost" onClick={() => setCopiando(currentSda())} title={t('Copiar esta situación de aprendizaje a otras clases')}>
+              <Copy size={14} />{t('Copiar a otras clases')}
             </button>
             <button className="btn-ghost" onClick={() => setPosterOpen(true)} title={t('Un cartel con el reto y el camino, para colgar en el aula')}>
               <Frame size={14} />{t('Cartel')}
@@ -1530,6 +1549,14 @@ export function LearningSituations({
       </Modal>
 
       {/* ══ Dónde se guarda la nota de la rúbrica ══ */}
+      <CopiarAClases
+        open={!!copiando} onClose={() => setCopiando(null)} titulo={t('Copiar a otras clases')}
+        texto={t('Cada clase tendrá su propia copia de «{titulo}»: la puedes retocar sin cambiar las demás.', { titulo: copiando?.title ?? '' })}
+        classes={classes} origen={classes.find(c => c.id === copiando?.class_id)}
+        yaLoTienen={new Set(learningSituations.filter(x => x.title === copiando?.title && x.class_id).map(x => x.class_id!))}
+        boton={n => t(n === 1 ? 'Copiar a 1 clase' : 'Copiar a {n} clases', { n })} onConfirm={copiarA}
+      />
+
       <Modal open={rubricModal} onClose={() => setRubricModal(false)} title={t('Dónde se guarda la nota')}>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
           {t('Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta rúbrica aparecerá al instante en el cuaderno, en una columna propia.')}
