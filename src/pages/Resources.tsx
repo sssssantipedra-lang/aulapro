@@ -41,6 +41,8 @@ import { requestSettingsPanel } from '../lib/settingsNav';
 import { useFichaParaPedido } from '../lib/apoyoNav';
 import { contextoFichaApoyo, nivelDe, trimestreDe } from '../lib/apoyo';
 import { useNombreCurso } from '../hooks/useNombreCurso';
+import { useBorrador } from '../hooks/useBorrador';
+import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
 import type { ApoyoData } from '../types/apoyo';
 import { compararNombres } from '../lib/alumnado';
 
@@ -132,6 +134,16 @@ function ThemeGrid({ value, onChange, withAuto, compact, t }: {
   );
 }
 
+/** Lo que se autoguarda de una ficha a medias: ella y lo que se pidió para hacerla. */
+interface BorradorFicha {
+  content: FichaContent;
+  editingId: string | null;
+  classId: string; tema: string; area: string; nivel: string;
+  numEjercicios: number; niveles: boolean; contextoClase: string;
+  tipo: TipoCreacion; facil: boolean; estilo: FichaThemeChoice; hilo: string; visual: boolean;
+  generoLectura: GeneroLectura | 'auto'; alumnoApoyo: string;
+}
+
 export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject, apoyo }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -188,6 +200,26 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const sinClave = !hasApiKey();
+
+  /* ── Autoguardado: lo que se está haciendo y no se ha guardado, para poder continuar si se cierra a medias ── */
+  const pendiente = useMemo<BorradorFicha | null>(() => (content && dirty ? {
+    content, editingId, classId, tema, area, nivel, numEjercicios, niveles, contextoClase, tipo, facil, estilo, hilo, visual, generoLectura, alumnoApoyo,
+  } : null), [content, dirty, editingId, classId, tema, area, nivel, numEjercicios, niveles, contextoClase, tipo, facil, estilo, hilo, visual, generoLectura, alumnoApoyo]);
+  const borrador = useBorrador<BorradorFicha>('ficha', pendiente, content?.titulo || tema);
+
+  function continuarBorrador() {
+    const b = borrador.continuar();
+    if (!b) return;
+    setContent(normalizeContent(b.content));
+    setEditingId(b.editingId);
+    setClassId(b.classId); setTema(b.tema); setArea(b.area); setNivel(b.nivel);
+    setNumEjercicios(b.numEjercicios); setNiveles(b.niveles); setContextoClase(b.contextoClase);
+    setTipo(b.tipo); setFacil(b.facil); setEstilo(b.estilo); setHilo(b.hilo); setVisual(b.visual);
+    setGeneroLectura(b.generoLectura); setAlumnoApoyo(b.alumnoApoyo);
+    setDirty(true);
+    setSelected(null);
+    window.scrollTo({ top: 0 });
+  }
 
   function pickClass(id: string) {
     setClassId(id);
@@ -438,6 +470,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             <strong>{content.titulo || t('Ficha de trabajo')}</strong>
             {content.variante && <span className="fe-badge">{t(VARIANTE_LABEL[content.variante])}</span>}
             {dirty && <span className="sda-unsaved">{t('Sin guardar')}</span>}
+            {dirty && <EstadoBorrador guardadoEn={borrador.guardadoEn} />}
           </div>
           <div className="fe-top-actions">
             {onProject && (
@@ -712,6 +745,10 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
       {sinClave && (
         <AiKeyNotice message={t('Para generar recursos hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+      )}
+
+      {borrador.encontrado && (
+        <AvisoBorrador borrador={borrador.encontrado} queEra={t('una ficha')} onContinuar={continuarBorrador} onDescartar={borrador.descartar} />
       )}
 
       <div className="card fe-create" style={{ marginBottom: 16 }}>

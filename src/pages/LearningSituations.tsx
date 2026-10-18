@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
-  RefreshCw, Lightbulb, Search, Frame, Copy,
+  RefreshCw, Lightbulb, Search, Frame, Copy, Circle, CheckCircle2,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef } from '../types';
 import { DEFAULT_LEVELS } from '../types';
@@ -41,6 +41,8 @@ import { MODALIDADES_EF } from '../lib/ef';
 import { MomentosDeSesion } from '../components/MomentosDeSesion';
 import { sesionParaEF } from '../lib/sesionSda';
 import { esAsignaturaEF } from '../services/classMarks';
+import { useBorrador } from '../hooks/useBorrador';
+import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
 import type { ModalidadEF, SesionEF } from '../types/ef';
 
 const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
@@ -174,6 +176,17 @@ function conCriteriosOficiales(sda: SdaContent, marcados: string[] | undefined):
   return refs.length ? { officialCriteria: refs } : {};
 }
 
+/** Lo que se autoguarda de una SdA a medias: ella, lo que se pidió para hacerla y lo que se sacó de ella. */
+interface BorradorSda {
+  content: SdaContent;
+  editingId: string | null;
+  classId: string; idea: string; numero: string; temporalizacion: string; meses: string; areas: string[];
+  numSesiones: number; nivel: string; etapa: Etapa | ''; curso: number | '';
+  opcionMatematicas: 'A' | 'B'; materias: Record<string, string | null>;
+  contextoClase: string; metodologia: string; efModelo: string; efModalidad: ModalidadEF | ''; efMinutos: string;
+  rubricRows: SdaRubricRow[] | null; dianaRows: SdaDianaItem[] | null; fichaContent: FichaContent | null;
+}
+
 export function LearningSituations({
   classes, gradeCategories, learningSituations, comunidad, onUpdateClass,
   onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef,
@@ -284,6 +297,35 @@ export function LearningSituations({
   /** Una SdA de EF: el perfil es de EF y una de las áreas es Educación Física. */
   const esEF = !!ef && areas.some(esAsignaturaEF);
   const limitacionesClase = ef && classId ? ef.limitacionesDe(classId) : [];
+
+  /* ── Autoguardado: una SdA generada o editada y sin guardar queda como borrador ── */
+  const guardada = editingId ? learningSituations.find(x => x.id === editingId) : undefined;
+  const sinGuardar = useMemo(
+    () => !!content && (!guardada || JSON.stringify(guardada.content) !== JSON.stringify(content)),
+    [content, guardada],
+  );
+  const pendiente = useMemo<BorradorSda | null>(() => (content && sinGuardar ? {
+    content, editingId, classId, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
+    opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent,
+  } : null), [content, sinGuardar, editingId, classId, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
+    opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent]);
+  const borrador = useBorrador<BorradorSda>('sda', pendiente, content?.titulo || idea);
+
+  function continuarBorrador() {
+    const b = borrador.continuar();
+    if (!b) return;
+    setContent(b.content);
+    setEditingId(b.editingId);
+    setClassId(b.classId); setIdea(b.idea); setNumero(b.numero); setTemporalizacion(b.temporalizacion); setMeses(b.meses);
+    setAreas(b.areas); setNumSesiones(b.numSesiones); setNivel(b.nivel); setNivelAuto(false);
+    setEtapa(b.etapa); setCurso(b.curso); setOpcionMatematicas(b.opcionMatematicas); setMaterias(b.materias); setPreguntadas([]);
+    setContextoClase(b.contextoClase); setMetodologia(b.metodologia);
+    setEfModelo(b.efModelo); setEfModalidad(b.efModalidad); setEfMinutos(b.efMinutos);
+    setRubricRows(b.rubricRows); setDianaRows(b.dianaRows); setFichaContent(b.fichaContent);
+    setFichaArea(b.content.areas[0]?.area ?? '');
+    setFormOpen(false);
+    scrollTop();
+  }
 
   /**
    * Al elegir clase se proponen sus asignaturas como áreas de la SdA, y se
@@ -435,6 +477,20 @@ export function LearningSituations({
 
   function patch(k: keyof SdaContent, v: string) {
     setContent(c => (c ? { ...c, [k]: v } : c));
+  }
+
+  /**
+   * Marca o desmarca una sesión como dada. Si la SdA ya está guardada, se
+   * guarda en el acto solo esa marca (sin tocar lo que haya sin guardar en
+   * la pantalla): es seguimiento del curso, no una edición del documento.
+   */
+  function alternarSesion(i: number) {
+    if (!content) return;
+    const hecha = !content.sesiones[i]?.completada;
+    const marcar = (c: SdaContent): SdaContent => ({ ...c, sesiones: c.sesiones.map((x, k) => (k === i ? { ...x, completada: hecha } : x)) });
+    setContent(c => (c ? marcar(c) : c));
+    const guardada = editingId ? learningSituations.find(x => x.id === editingId) : undefined;
+    if (guardada && guardada.content.sesiones[i]) onSave({ ...guardada, content: marcar(guardada.content) });
   }
 
   /**
@@ -1054,6 +1110,7 @@ export function LearningSituations({
                 <span className="sda-card-meta">
                   <CalendarRange size={13} />
                   {t('{n} sesiones', { n: sda.content.sesiones.length })}
+                  {sda.content.sesiones.some(x => x.completada) ? ` (${t('{hechas} completadas', { hechas: sda.content.sesiones.filter(x => x.completada).length })})` : ''}
                   {sda.request.temporalizacion ? ` · ${sda.request.temporalizacion}` : ''}
                   {` · ${new Date(sda.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`}
                 </span>
@@ -1097,6 +1154,10 @@ export function LearningSituations({
 
       {sinClave && (
         <AiKeyNotice message={t('Para redactar situaciones de aprendizaje hace falta la clave gratuita de Google que se configura en Configuración.')} action={t('Configurar la IA')} onAction={() => { requestSettingsPanel('ia'); onNav('profile'); }} />
+      )}
+
+      {borrador.encontrado && (
+        <AvisoBorrador borrador={borrador.encontrado} queEra={t('una situación de aprendizaje')} onContinuar={continuarBorrador} onDescartar={borrador.descartar} />
       )}
 
       {learningSituations.length === 0 ? (
@@ -1223,6 +1284,7 @@ export function LearningSituations({
             <span className="sda-card-kicker">
               {t('SdA {n}', { n: numero || '1' })}{activeClass ? ` · ${activeClass.name}` : ''}{nivel ? ` · ${nivel}` : ''}
               {!editingId && <span className="sda-unsaved">{t('Sin guardar')}</span>}
+              {sinGuardar && <EstadoBorrador guardadoEn={borrador.guardadoEn} />}
             </span>
             {/* Un cuadro de una línea que crece: los títulos de la IA suelen ser largos y una caja de una sola línea los cortaba */}
             <textarea
@@ -1329,6 +1391,12 @@ export function LearningSituations({
           <section id="sda-sesiones" className="card sda-sec">
             <div className="sda-sec-hd">
               <h3 className="sda-sec-ttl">{t('Sesiones')} <span className="sda-count">{content.sesiones.length}</span></h3>
+              {content.sesiones.length > 0 && (
+                <span className="sda-progreso" role="status">
+                  <span className="sda-progreso-barra" aria-hidden="true"><span style={{ width: `${Math.round((content.sesiones.filter(x => x.completada).length / content.sesiones.length) * 100)}%` }} /></span>
+                  {t('{hechas} de {total} completadas', { hechas: content.sesiones.filter(x => x.completada).length, total: content.sesiones.length })}
+                </span>
+              )}
               {ef && content.ef && content.sesiones.length > 0 && (
                 <button type="button" className="btn-ghost" onClick={pasarSesiones}><ArrowRight size={14} />{t('Pasar a Sesiones de EF')}</button>
               )}
@@ -1338,13 +1406,20 @@ export function LearningSituations({
                 <div key={pi} className="sda-phase" style={{ ['--ph' as string]: phaseTone(ph.fase) }}>
                   <div className="sda-phase-ttl">{ph.fase}</div>
                   {ph.items.map(({ n, s: ses }) => (
-                    <div key={n} className="sda-session">
+                    <div key={n} className={`sda-session${ses.completada ? ' completada' : ''}`}>
                       <span className="sda-session-n">{n}</span>
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div className="sda-session-ttl">{ses.titulo}</div>
                         <p className="sda-p">{ses.descripcion}</p>
                         {ses.momentos && <MomentosDeSesion momentos={ses.momentos} />}
                       </div>
+                      <button
+                        type="button" className="sda-session-check" aria-pressed={!!ses.completada} onClick={() => alternarSesion(n - 1)}
+                        aria-label={ses.completada ? t('Marcar la sesión {n} como pendiente', { n }) : t('Marcar la sesión {n} como completada', { n })}
+                        title={ses.completada ? t('Completada: pulsa para volver a ponerla pendiente') : t('Marcar como completada')}
+                      >
+                        {ses.completada ? <CheckCircle2 size={20} aria-hidden="true" /> : <Circle size={20} aria-hidden="true" />}
+                      </button>
                     </div>
                   ))}
                 </div>

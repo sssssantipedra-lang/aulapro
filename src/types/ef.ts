@@ -147,6 +147,8 @@ export interface SesionEF {
   claseId?: string;
   /** YYYY-MM-DD, si está prevista para un día. */
   fecha?: string;
+  /** Si ya se dio: sirve para saber por dónde vas (decisión del dueño, 18-10-2026). */
+  completada?: boolean;
   instalacionId?: string;
   objetivo: string;
   calentamiento: string;

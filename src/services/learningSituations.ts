@@ -95,6 +95,8 @@ export interface SdaSession {
   descripcion: string;
   /** Solo en las SdA de EF hechas desde la 2.11.0. Las anteriores siguen con su `descripcion`. */
   momentos?: MomentosSesionEF;
+  /** Si ya se dio en clase: sirve para saber por dónde vas (decisión del dueño, 18-10-2026). */
+  completada?: boolean;
 }
 
 /**

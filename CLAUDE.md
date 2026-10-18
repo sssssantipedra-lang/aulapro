@@ -72,6 +72,14 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Petición del dueño: en Configuración › Apariencia, «Tamaño de las letras»: Estándar o Grande (`src/lib/tamanoLetra.ts`, factor 1,25). Es una preferencia del dispositivo (`localStorage`), no del perfil, y se vuelve a poner al abrir la app (`main.tsx`).
 - Todo el CSS va en píxeles, así que se agranda con lo que ofrece cada plataforma a través de `electronAPI.app.setTextScale`: Android, el zoom de texto del WebView (`AulaNativePlugin.setTextZoom`, solo las letras); Windows y Mac, el zoom de página de Electron (`webFrame.setZoomFactor` en `electron/preload.cjs`); sin ninguno, `zoom` de CSS. **Sin comprobar en un dispositivo real.**
 
+## Mejoras del 18-10-2026 (2.12.0)
+
+- **Autoguardado de lo que se genera** (petición del dueño: «si se ha quedado a medias sin guardar, que exista la opción de continuar»): `src/services/borradores.ts` (una copia por perfil y tipo en `localStorage`, caduca a los 30 días) y `src/hooks/useBorrador.ts`. Una pantalla pasa su estado sin guardar (o `null`) a `useBorrador` y se guarda solo, 1,2 s después de cada cambio, al salir de la pantalla y al cerrar la ventana; al volver, `AvisoBorrador` ofrece «Continuar» o «Descartar». Para ventanas emergentes (rúbricas, dianas) está `useBorradorVentana`: cerrar con la X no pierde nada. Cubre fichas (Recursos), SdA, rúbricas, dianas, sesiones de EF y «Evaluar por foto» (sin las fotos). Reuniones y Formaciones conservan su propio autoguardado (`services/draftAutosave.ts`). Una pantalla nueva que genere algo con IA debe usar el mismo. La privacidad lo explica (`web/sitio/privacidad.html`, apartado 5 de la app).
+- **Agenda con portada**: se abre en «Resumen», con dos tarjetas, «Agenda mensual» y «Horario semanal»; las pestañas son Resumen, Mensual y Semanal. Antes se abría en la semana.
+- **Sesiones completadas**: `SesionEF.completada` y `SdaSession.completada`, con progreso. Ver `docs/EF.md`.
+- **Pizarra y herramientas** (`src/components/pizarra/Lienzo.tsx`, `src/lib/trazos.ts`): los trazos se guardan como vectores (lápiz, rotulador, subrayador y borrador que quita solo una parte; deshacer y rehacer) en vez de píxeles, con eventos de puntero y sin volver a pintar el trazo entero en cada movimiento (era la causa del retraso). Probado en Chromium; **sin comprobar con un dedo ni un lápiz táctil reales** (Android, pantallas táctiles de Windows). Las ideas de otras pizarras (Classroomscreen) son solo funcionales: no hay código copiado.
+- La web (`web/DISENO.md`, sección 40) tiene los textos nuevos; **sus capturas y la demo siguen siendo de antes** hasta volver a ejecutar `scripts/web/capturar.mjs`.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
