@@ -392,7 +392,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             <div role="radiogroup" aria-labelledby="tamano-label" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {([
                 { id: 'estandar', label: t('Estándar'), muestra: 14 },
-                { id: 'grande', label: t('Grande'), muestra: 17 },
+                { id: 'grande', label: t('Grande'), muestra: 18 },
               ] as const).map(opt => {
                 const on = tamano === opt.id;
                 return (

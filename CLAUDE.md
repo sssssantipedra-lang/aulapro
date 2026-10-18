@@ -69,7 +69,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 ## Tamaño de las letras (18-10-2026)
 
-- Petición del dueño: en Configuración › Apariencia, «Tamaño de las letras»: Estándar o Grande (`src/lib/tamanoLetra.ts`, factor 1,15). Es una preferencia del dispositivo (`localStorage`), no del perfil, y se vuelve a poner al abrir la app (`main.tsx`).
+- Petición del dueño: en Configuración › Apariencia, «Tamaño de las letras»: Estándar o Grande (`src/lib/tamanoLetra.ts`, factor 1,25). Es una preferencia del dispositivo (`localStorage`), no del perfil, y se vuelve a poner al abrir la app (`main.tsx`).
 - Todo el CSS va en píxeles, así que se agranda con lo que ofrece cada plataforma a través de `electronAPI.app.setTextScale`: Android, el zoom de texto del WebView (`AulaNativePlugin.setTextZoom`, solo las letras); Windows y Mac, el zoom de página de Electron (`webFrame.setZoomFactor` en `electron/preload.cjs`); sin ninguno, `zoom` de CSS. **Sin comprobar en un dispositivo real.**
 
 ## Publicar

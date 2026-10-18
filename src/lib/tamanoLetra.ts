@@ -11,7 +11,7 @@
  */
 export type TamanoLetra = 'estandar' | 'grande';
 
-export const FACTOR_TAMANO: Record<TamanoLetra, number> = { estandar: 1, grande: 1.15 };
+export const FACTOR_TAMANO: Record<TamanoLetra, number> = { estandar: 1, grande: 1.25 };
 
 const CLAVE = 'aulapro_tamano_letra';
 
