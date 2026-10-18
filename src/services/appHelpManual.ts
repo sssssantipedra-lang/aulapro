@@ -749,6 +749,15 @@ copias, sin fecha salvo que se marque «Conservar también la fecha», y las
 originales no se tocan.
 
 [ef-actividades] ACTIVIDADES
+Se abre en SEIS TARJETAS, una por tipo (juegos motrices, deportes, para días de
+lluvia, en el medio natural, calentamiento y vuelta a la calma), con cuántas
+actividades tiene cada una y unos ejemplos. Al tocar una tarjeta salen sus
+actividades, también en tarjetas con el título, la modalidad, el origen y un
+resumen; al tocar una se lee la ficha entera (en qué consiste, organización,
+material, variantes y DUA-A) y desde ahí se copia para adaptarla, se edita o se
+borra. «Todas las actividades» vuelve a las seis tarjetas, y el buscador recorre
+todas las actividades sin entrar en un tipo. Dentro de un tipo, los chips de
+modalidad solo ofrecen las que hay en él.
 El banco de actividades: las de partida de AulaPro (juegos motrices, deportes
 con juegos modificados, días de lluvia, medio natural, calentamiento y vuelta
 a la calma, escritas para la app en castellano, catalán e inglés), las tuyas y

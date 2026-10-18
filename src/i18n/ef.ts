@@ -679,6 +679,14 @@ export const EF_EN: Record<string, string> = {
   'Antes de la práctica: preparar, presentar y activar': 'Before the practice: prepare, introduce and activate',
   'Durante la práctica principal': 'During the main practice',
   'Después: feedback, evaluación y cierre': 'Afterwards: feedback, assessment and closing',
+  'Todas las actividades': 'All activities',
+  'Buscar en todas las actividades': 'Search all activities',
+  'Juegos de pillar, de cooperación, de relevos y populares, para toda la clase.': 'Tag, cooperative, relay and traditional games, for the whole class.',
+  'Juegos modificados y tareas de iniciación a cada deporte.': 'Modified games and introductory tasks for each sport.',
+  'Qué hacer en el pabellón, el porche o el aula cuando no se puede salir.': 'What to do in the sports hall, the porch or the classroom when you cannot go outside.',
+  'Orientación, rutas y juegos en el patio, el parque o el entorno.': 'Orienteering, routes and games in the playground, the park or the surroundings.',
+  'Activación general y específica para empezar la sesión.': 'General and specific activation to start the lesson.',
+  'Relajación, estiramientos y reflexión para cerrar la sesión.': 'Relaxation, stretching and reflection to close the lesson.',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1358,4 +1366,12 @@ export const EF_CA: Record<string, string> = {
   'Antes de la práctica: preparar, presentar y activar': 'Abans de la pràctica: preparar, presentar i activar',
   'Durante la práctica principal': 'Durant la pràctica principal',
   'Después: feedback, evaluación y cierre': 'Després: feedback, avaluació i tancament',
+  'Todas las actividades': 'Totes les activitats',
+  'Buscar en todas las actividades': 'Cerca a totes les activitats',
+  'Juegos de pillar, de cooperación, de relevos y populares, para toda la clase.': 'Jocs de pillar, de cooperació, de relleus i populars, per a tota la classe.',
+  'Juegos modificados y tareas de iniciación a cada deporte.': 'Jocs modificats i tasques d\'iniciació a cada esport.',
+  'Qué hacer en el pabellón, el porche o el aula cuando no se puede salir.': 'Què fer al pavelló, al porxo o a l\'aula quan no es pot sortir.',
+  'Orientación, rutas y juegos en el patio, el parque o el entorno.': 'Orientació, rutes i jocs al pati, al parc o a l\'entorn.',
+  'Activación general y específica para empezar la sesión.': 'Activació general i específica per començar la sessió.',
+  'Relajación, estiramientos y reflexión para cerrar la sesión.': 'Relaxació, estiraments i reflexió per tancar la sessió.',
 };

@@ -44,27 +44,59 @@ beforeEach(() => { localStorage.clear(); ultimo = demo.ef; callGemini.mockReset(
 afterEach(() => cleanup());
 
 describe('Actividades', () => {
-  it('filtra por modalidad y enseña su lógica y su preparación', async () => {
+  it('se abre en una tarjeta por tipo, con cuántas hay, y cada una abre sus actividades también en tarjetas', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.click(screen.getByRole('radio', { name: 'Lucha' }));
-    expect(screen.getByText('Lucha de equilibrio por parejas')).toBeTruthy();
-    expect(screen.getByText('Caídas y la tortuga')).toBeTruthy();
-    expect(screen.queryByText('Bolos con botellas')).toBeNull();
+    // La portada: seis tarjetas, sin la lista entera
+    for (const tipo of ['Juegos motrices', 'Deportes', 'Para días de lluvia', 'En el medio natural', 'Calentamiento', 'Vuelta a la calma']) {
+      expect(screen.getByRole('button', { name: new RegExp(`^${tipo}`) })).toBeTruthy();
+    }
+    expect(screen.queryByText('Bolos con botellas', { selector: '.ef-act-card-ttl' })).toBeNull();
+    expect(within(screen.getByRole('button', { name: /^Para días de lluvia/ })).getByText(/\d+ actividades/)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /^Para días de lluvia/ }));
+    expect(screen.getByText('Bolos con botellas', { selector: '.ef-act-card-ttl' })).toBeTruthy();
+    expect(screen.queryByText('El pañuelo por números', { selector: '.ef-act-card-ttl' })).toBeNull();
+    // Sin la ficha entera: se lee al tocar la tarjeta
+    expect(screen.queryByText('Para que participe todo el grupo (DUA-A)')).toBeNull();
+    await user.click(screen.getByRole('button', { name: /^Todas las actividades/ }));
+    expect(screen.getByRole('button', { name: /^Juegos motrices/ })).toBeTruthy();
+  });
+
+  it('dentro de un tipo se filtra por modalidad (solo las que hay) y enseña su lógica y su preparación', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: /^Juegos motrices/ }));
+    const modalidades = within(screen.getByRole('radiogroup', { name: 'Modalidad' }));
+    expect(modalidades.queryByRole('radio', { name: 'Red y pared' })).toBeNull();
+    await user.click(modalidades.getByRole('radio', { name: 'Lucha' }));
+    expect(screen.getByText('Lucha de equilibrio por parejas', { selector: '.ef-act-card-ttl' })).toBeTruthy();
+    expect(screen.getByText('Caídas y la tortuga', { selector: '.ef-act-card-ttl' })).toBeTruthy();
+    expect(screen.queryByText('Bolos con botellas', { selector: '.ef-act-card-ttl' })).toBeNull();
     expect(screen.getByText(/caídas seguras \(rodar, amortiguar\) antes de cualquier lucha/)).toBeTruthy();
   });
 
-  it('filtra el banco, copia una para adaptarla y guarda las de la IA', async () => {
+  it('buscar recorre todas las actividades, sin entrar en un tipo', async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.click(screen.getByRole('radio', { name: 'Para días de lluvia' }));
-    expect(screen.getByText('Bolos con botellas')).toBeTruthy();
-    expect(screen.queryByText('El pañuelo por números')).toBeNull();
+    await user.type(screen.getByLabelText('Buscar actividades'), 'bolos');
+    expect(screen.getByText('Bolos con botellas', { selector: '.ef-act-card-ttl' })).toBeTruthy();
+    // Con la búsqueda cada tarjeta dice de qué tipo es
+    expect(within(screen.getByText('Bolos con botellas', { selector: '.ef-act-card-ttl' }).closest('button')!).getByText('Para días de lluvia')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Deportes/ })).toBeNull();
+  });
 
-    // Copiar y adaptar una del banco
-    const bolos = screen.getByText('Bolos con botellas').closest('details')!;
-    await user.click(within(bolos).getByText('Bolos con botellas'));
-    await user.click(within(bolos).getByRole('button', { name: /Copiar y adaptar/ }));
+  it('copia una del banco para adaptarla y guarda las de la IA', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: /^Para días de lluvia/ }));
+    expect(screen.getByText('Bolos con botellas', { selector: '.ef-act-card-ttl' })).toBeTruthy();
+
+    // Se lee la ficha entera al tocar la tarjeta, y de ahí se copia para adaptarla
+    await user.click(screen.getByText('Bolos con botellas', { selector: '.ef-act-card-ttl' }));
+    const ficha = screen.getByRole('dialog', { name: 'Bolos con botellas' });
+    expect(within(ficha).getByText('Para que participe todo el grupo (DUA-A)')).toBeTruthy();
+    await user.click(within(ficha).getByRole('button', { name: /Copiar y adaptar/ }));
     const titulo = screen.getByLabelText('Título');
     await user.clear(titulo);
     await user.type(titulo, 'Bolos del porche');

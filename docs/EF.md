@@ -84,6 +84,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 ## Actividades y sesiones
 
+- **Banco por tarjetas** (petición del dueño, 18-10-2026: «en lugar de tenerlo todo ahí con tanta información, agrúpalo por tarjetas»): «Actividades» se abre en seis tarjetas, una por tipo (`TARJETA_TIPO` en `EfActividades.tsx`), con su icono y color, una frase, tres ejemplos y cuántas hay (y cuántas son tuyas o de la IA). Al abrir una, sus actividades salen también en tarjetas compactas (título, modalidad, origen y un resumen de tres líneas) y la ficha entera se lee en una ventana al tocarlas, con «Copiar y adaptar», «Editar» o «Borrar». Los chips de modalidad solo ofrecen las que hay en ese tipo; el buscador recorre todo el banco desde la portada. Las propuestas de la IA, de una foto o de un manual siguen en lista desplegable dentro de su ventana.
 - Banco de actividades (pestaña «Actividades»):
   - Tipos: juegos motrices, deportes (juegos modificados), días de lluvia, medio natural, calentamiento y vuelta a la calma.
   - Origen: el banco de partida, las del docente y las que guarda de la IA.

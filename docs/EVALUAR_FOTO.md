@@ -16,9 +16,12 @@ Petición del dueño (18-10-2026): «incluir evaluación por foto para exámenes
 - La privacidad lo dice en los tres idiomas. Nada se guarda fuera del equipo; AulaPro no guarda las fotos.
 - Usa el modelo bueno (`thinkingLevel: 'high'`, hasta 16384 tokens de salida): el cupo diario del plan gratuito de Google (unas 20 peticiones al día en septiembre de 2026, ver `src/services/gemini.ts`) limita cuántos exámenes se pueden corregir de golpe; si se agota, la app pasa a los modelos ligeros, que leen peor la letra a mano.
 
+## Descartado
+
+- Corregir de una vez la clase entera (una foto por alumno o el PDF escaneado de todos los exámenes): lo descartó el dueño el 18-10-2026, porque el cupo diario de la IA gratuita no da para tantas peticiones seguidas. Se corrige alumno a alumno, con «Siguiente alumno».
+
 ## Lo que falta
 
 - **Probar con una IA real y con exámenes reales** (solo se probó con respuestas simuladas): cuántos fallos de lectura hay con letra de Primaria, y si la nota se acerca a la del docente.
 - No se guarda la corrección (preguntas, comentarios) más que la nota en el cuaderno: no sale en el Historial ni en los informes. Valorar guardarla como una evaluación del Historial (`Evaluation`, con `instrument` nuevo) para poder repasarla y enseñarla.
-- Corregir de una vez la clase entera con una sola foto por alumno, o con el PDF escaneado de todos los exámenes, que el cupo de la IA gratuita hoy no permite.
 - Evaluar con una rúbrica de la app (los criterios de una rúbrica como criterios de la corrección).

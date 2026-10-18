@@ -11,7 +11,9 @@
  * guarda; el PDF va a Google y no se guarda. Ver `docs/EF.md`.
  */
 import { useMemo, useRef, useState } from 'react';
-import { Plus, Sparkles, Pencil, Trash2, Copy, Search, Save, Camera, ImagePlus, FileText } from 'lucide-react';
+import {
+  Plus, Sparkles, Pencil, Trash2, Copy, Search, Save, Camera, ImagePlus, FileText, ArrowLeft, ArrowRight, Gamepad2, Trophy, CloudRain, TreePine, Flame, Wind,
+} from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
@@ -35,6 +37,21 @@ interface Props {
 }
 
 type Origen = 'todas' | ActividadEF['origen'];
+
+/**
+ * El banco se abre en una tarjeta por tipo de actividad (petición del dueño,
+ * 18-10-2026: «en lugar de tenerlo todo ahí con tanta información, agrúpalo
+ * por tarjetas»); cada una abre sus actividades, también en tarjetas, y la
+ * ficha entera se lee al tocar una.
+ */
+const TARJETA_TIPO: Record<TipoActividadEF, { color: string; icono: React.ReactNode; texto: string }> = {
+  juego: { color: '#16a34a', icono: <Gamepad2 size={26} />, texto: 'Juegos de pillar, de cooperación, de relevos y populares, para toda la clase.' },
+  deporte: { color: '#2563eb', icono: <Trophy size={26} />, texto: 'Juegos modificados y tareas de iniciación a cada deporte.' },
+  lluvia: { color: '#0891b2', icono: <CloudRain size={26} />, texto: 'Qué hacer en el pabellón, el porche o el aula cuando no se puede salir.' },
+  natural: { color: '#65a30d', icono: <TreePine size={26} />, texto: 'Orientación, rutas y juegos en el patio, el parque o el entorno.' },
+  calentamiento: { color: '#ea580c', icono: <Flame size={26} />, texto: 'Activación general y específica para empezar la sesión.' },
+  calma: { color: '#7c3aed', icono: <Wind size={26} />, texto: 'Relajación, estiramientos y reflexión para cerrar la sesión.' },
+};
 
 /** Lo que admite Gemini en línea es 20 MB en total; se deja margen para el resto de la petición. */
 const MAX_MANUAL_BYTES = 19 * 1024 * 1024;
@@ -68,6 +85,8 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   /** Lo que sacó la IA del manual y cuáles se guardan. */
   const [delManual, setDelManual] = useState<{ actividades: ActividadEF[]; elegidas: string[] } | null>(null);
   const archivoManual = useRef<HTMLInputElement>(null);
+  /** La actividad que se está leyendo entera. */
+  const [leyendo, setLeyendo] = useState<ActividadEF | null>(null);
   const esNueva = !!editando && !ef.actividades.some(a => a.id === editando.id);
 
   const todas = useMemo(() => [...ef.actividades, ...bancoEF(lang)], [ef.actividades, lang]);
@@ -75,6 +94,20 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const visibles = todas.filter(a =>
     (tipo === 'todas' || a.tipo === tipo) && (modalidad === 'todas' || a.modalidad === modalidad) && (origen === 'todas' || a.origen === origen) &&
     (!busca.trim() || norm(`${a.titulo} ${a.descripcion} ${a.material}`).includes(norm(busca.trim()))));
+
+  const enTipo = tipo !== 'todas';
+  const buscando = busca.trim() !== '';
+  /** La portada de tarjetas por tipo: sin tipo elegido ni búsqueda. */
+  const portada = !enTipo && !buscando;
+  const delTipo = enTipo ? todas.filter(a => a.tipo === tipo) : [];
+  const modalidadesDelTipo = MODALIDADES_EF.filter(m => delTipo.some(a => a.modalidad === m.id));
+
+  function volver() {
+    setTipo('todas');
+    setModalidad('todas');
+    setOrigen('todas');
+    setBusca('');
+  }
 
   function guardar() {
     if (!editando) return;
@@ -258,56 +291,125 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
         </div>
       </div>
 
-      <div className="chip-row ap-alumnos" role="radiogroup" aria-label={t('Tipo de actividad')}>
-        <button type="button" role="radio" aria-checked={tipo === 'todas'} className={`chip sm accent${tipo === 'todas' ? ' on' : ''}`} onClick={() => setTipo('todas')}>{t('Todas')}</button>
-        {TIPOS_ACTIVIDAD.map(x => (
-          <button key={x.id} type="button" role="radio" aria-checked={tipo === x.id} className={`chip sm accent${tipo === x.id ? ' on' : ''}`} onClick={() => setTipo(x.id)}>{t(x.label)}</button>
-        ))}
-      </div>
-      <div className="chip-row ap-alumnos" role="radiogroup" aria-label={t('Modalidad')}>
-        <button type="button" role="radio" aria-checked={modalidad === 'todas'} className={`chip sm${modalidad === 'todas' ? ' on' : ''}`} onClick={() => setModalidad('todas')}>{t('Todas las modalidades')}</button>
-        {MODALIDADES_EF.map(m => (
-          <button key={m.id} type="button" role="radio" aria-checked={modalidad === m.id} className={`chip sm${modalidad === m.id ? ' on' : ''}`} onClick={() => setModalidad(m.id)}>{t(m.label)}</button>
-        ))}
-      </div>
-      {modalidad !== 'todas' && (() => {
-        const m = MODALIDADES_EF.find(x => x.id === modalidad)!;
-        return (
-          <div className="card ef-modalidad-info">
-            <div className="home-card-ttl">{t(m.label)}</div>
-            <p><strong>{t('Lógica')}:</strong> {t(m.logica)}</p>
-            <p><strong>{t('Preparación')}:</strong> {t(m.preparacion)}</p>
-          </div>
-        );
-      })()}
-      <div className="ef-act-filtros">
+      <div className="ef-act-barra">
+        {enTipo && <button type="button" className="btn-ghost" onClick={volver}><ArrowLeft size={15} />{t('Todas las actividades')}</button>}
         <label className="ef-busca">
           <Search size={15} aria-hidden="true" />
-          <input className="finput" type="search" value={busca} onChange={e => setBusca(e.target.value)} placeholder={t('Buscar')} aria-label={t('Buscar actividades')} />
+          <input className="finput" type="search" value={busca} onChange={e => setBusca(e.target.value)} placeholder={t('Buscar en todas las actividades')} aria-label={t('Buscar actividades')} />
         </label>
-        <select className="finput" value={origen} onChange={e => setOrigen(e.target.value as Origen)} aria-label={t('De dónde salen')}>
-          <option value="todas">{t('Todas')}</option>
-          <option value="banco">{t('Del banco')}</option>
-          <option value="propia">{t('Tuyas')}</option>
-          <option value="ia">{t('De la IA')}</option>
-        </select>
+        {!portada && (
+          <select className="finput" value={origen} onChange={e => setOrigen(e.target.value as Origen)} aria-label={t('De dónde salen')}>
+            <option value="todas">{t('Todas')}</option>
+            <option value="banco">{t('Del banco')}</option>
+            <option value="propia">{t('Tuyas')}</option>
+            <option value="ia">{t('De la IA')}</option>
+          </select>
+        )}
       </div>
 
-      <div className="card">
-        {visibles.length === 0
-          ? <p className="ap-vacio">{t('No hay actividades con estos filtros.')}</p>
-          : (
-            <div className="ef-acts">
-              {visibles.map(a => ficha(a, a.origen === 'banco'
-                ? <button className="btn-ghost" onClick={() => setEditando({ ...a, id: nuevoIdEF('act'), origen: 'propia' })}><Copy size={14} />{t('Copiar y adaptar')}</button>
-                : <>
-                    <button className="btn-ghost" onClick={() => setEditando(a)}><Pencil size={14} />{t('Editar')}</button>
-                    <button className="btn-ghost ap-borrar" onClick={() => borrar(a)}><Trash2 size={14} />{t('Borrar')}</button>
-                  </>))}
+      {portada && (
+        <div className="ef-tipos">
+          {TIPOS_ACTIVIDAD.map(x => {
+            const c = TARJETA_TIPO[x.id];
+            const lista = todas.filter(a => a.tipo === x.id);
+            const cuenta = (o: ActividadEF['origen']) => lista.filter(a => a.origen === o).length;
+            return (
+              <button key={x.id} type="button" className="ev-card ef-tipo" style={{ '--ev-c': c.color } as React.CSSProperties} onClick={() => setTipo(x.id)}>
+                <span className="ev-card-ico">{c.icono}</span>
+                <span className="ev-card-ttl">{t(x.label)}</span>
+                <span className="ev-card-txt">{t(c.texto)}</span>
+                <span className="ef-tipo-ej">{lista.slice(0, 3).map(a => a.titulo).join(' · ')}{lista.length > 3 ? '…' : ''}</span>
+                <span className="ev-card-ft">
+                  <span className="ev-card-dato">
+                    {t('{n} actividades', { n: lista.length })}
+                    {(cuenta('propia') > 0 || cuenta('ia') > 0) && ` · ${t('Tuyas')} ${cuenta('propia') + cuenta('ia')}`}
+                  </span>
+                  <span className="ev-card-go">{t('Abrir')}<ArrowRight size={15} /></span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {!portada && (
+        <>
+          {enTipo && (
+            <div className="ef-tipo-hd" style={{ '--ev-c': TARJETA_TIPO[tipo].color } as React.CSSProperties}>
+              <span className="ev-card-ico">{TARJETA_TIPO[tipo].icono}</span>
+              <div>
+                <h2 className="ef-tipo-ttl">{t(TIPOS_ACTIVIDAD.find(x => x.id === tipo)!.label)}</h2>
+                <p className="ap-sub" style={{ margin: 0 }}>{t(TARJETA_TIPO[tipo].texto)}</p>
+              </div>
             </div>
           )}
-        <p className="ap-sub" style={{ marginTop: 12 }}>{t('{n} actividades', { n: visibles.length })}</p>
-      </div>
+          {enTipo && modalidadesDelTipo.length > 0 && (
+            <div className="chip-row ap-alumnos" role="radiogroup" aria-label={t('Modalidad')}>
+              <button type="button" role="radio" aria-checked={modalidad === 'todas'} className={`chip sm${modalidad === 'todas' ? ' on' : ''}`} onClick={() => setModalidad('todas')}>{t('Todas las modalidades')}</button>
+              {modalidadesDelTipo.map(m => (
+                <button key={m.id} type="button" role="radio" aria-checked={modalidad === m.id} className={`chip sm${modalidad === m.id ? ' on' : ''}`} onClick={() => setModalidad(m.id)}>{t(m.label)}</button>
+              ))}
+            </div>
+          )}
+          {enTipo && modalidad !== 'todas' && (() => {
+            const m = MODALIDADES_EF.find(x => x.id === modalidad)!;
+            return (
+              <div className="card ef-modalidad-info">
+                <div className="home-card-ttl">{t(m.label)}</div>
+                <p><strong>{t('Lógica')}:</strong> {t(m.logica)}</p>
+                <p><strong>{t('Preparación')}:</strong> {t(m.preparacion)}</p>
+              </div>
+            );
+          })()}
+
+          {visibles.length === 0
+            ? <div className="card"><p className="ap-vacio">{t('No hay actividades con estos filtros.')}</p></div>
+            : (
+              <div className="ef-act-grid">
+                {visibles.map(a => (
+                  <button key={a.id} type="button" className="ef-act-card" style={{ '--ev-c': TARJETA_TIPO[a.tipo].color } as React.CSSProperties} onClick={() => setLeyendo(a)}>
+                    <span className="ef-act-card-ttl">{a.titulo}</span>
+                    <span className="ef-act-chips">
+                      {!enTipo && <span className="sda-chip">{t(TIPOS_ACTIVIDAD.find(x => x.id === a.tipo)!.label)}</span>}
+                      {a.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === a.modalidad)!.label)}</span>}
+                      {a.origen !== 'banco' && <span className={`sda-chip ef-origen-${a.origen}`}>{t(ORIGEN[a.origen])}</span>}
+                    </span>
+                    <span className="ef-act-card-txt">{a.descripcion}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          <p className="ap-sub" style={{ marginTop: 10 }}>{t('{n} actividades', { n: visibles.length })}</p>
+        </>
+      )}
+
+      <Modal open={!!leyendo} onClose={() => setLeyendo(null)} wide title={leyendo?.titulo}>
+        {leyendo && (
+          <div className="ef-act-ficha">
+            <span className="ef-act-chips">
+              <span className="sda-chip">{t(TIPOS_ACTIVIDAD.find(x => x.id === leyendo.tipo)!.label)}</span>
+              {leyendo.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === leyendo.modalidad)!.label)}</span>}
+              {leyendo.origen !== 'banco' && <span className={`sda-chip ef-origen-${leyendo.origen}`}>{t(ORIGEN[leyendo.origen])}</span>}
+            </span>
+            <dl className="ef-act-campos">
+              {CAMPOS.filter(c => leyendo[c.id].trim()).map(c => (
+                <div key={c.id}><dt>{t(c.label)}</dt><dd>{leyendo[c.id]}</dd></div>
+              ))}
+            </dl>
+            <div className="ap-acciones">
+              {leyendo.origen === 'banco'
+                ? <button className="btn-accent" onClick={() => { setEditando({ ...leyendo, id: nuevoIdEF('act'), origen: 'propia' }); setLeyendo(null); }}><Copy size={14} />{t('Copiar y adaptar')}</button>
+                : (
+                  <>
+                    <button className="btn-accent" onClick={() => { setEditando(leyendo); setLeyendo(null); }}><Pencil size={14} />{t('Editar')}</button>
+                    <button className="btn-ghost ap-borrar" onClick={() => { borrar(leyendo); setLeyendo(null); }}><Trash2 size={14} />{t('Borrar')}</button>
+                  </>
+                )}
+              <button className="btn-ghost" onClick={() => setLeyendo(null)}>{t('Cerrar')}</button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Modal open={!!editando} onClose={() => setEditando(null)} wide title={esNueva ? t('Nueva actividad') : editando?.titulo}>
         {editando && (

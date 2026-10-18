@@ -2167,3 +2167,22 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .sda-act-hd span { font-size:11.5px; font-weight:600; color:var(--text-3); white-space:nowrap; }
 .sda-act p { margin:4px 0 0; font-size:12.5px; line-height:1.55; color:var(--text); }
 .sda-act p.sda-act-meta { color:var(--text-2); font-size:12px; }
+
+/* Banco de actividades de EF por tarjetas */
+.ef-act-barra { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:14px; }
+.ef-act-barra .ef-busca { flex:1 1 240px; max-width:420px; }
+.ef-act-barra > select.finput { width:auto; }
+.ef-tipos { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; }
+.ef-tipo { min-height:230px; }
+.ef-tipo-ej { font-size:12px; line-height:1.5; color:var(--text-3); overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.ef-tipo-hd { display:flex; align-items:center; gap:14px; margin-bottom:12px; }
+.ef-tipo-hd .ev-card-ico { margin:0; flex-shrink:0; }
+.ef-tipo-ttl { margin:0; font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+.ef-act-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px; }
+.ef-act-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:14px 16px; text-align:left; background:var(--card); border:1px solid var(--border); border-top:3px solid var(--ev-c, var(--accent-d)); border-radius:14px; cursor:pointer; font-family:var(--font); color:var(--text); transition:transform var(--t), box-shadow var(--t); }
+.ef-act-card:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(120,100,70,0.13); }
+.ef-act-card:focus-visible { outline:2px solid var(--ev-c, var(--accent-d)); outline-offset:2px; }
+.ef-act-card-ttl { font-size:15px; font-weight:700; line-height:1.3; }
+.ef-act-card-txt { font-size:12.5px; line-height:1.55; color:var(--text-2); overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+.ef-act-ficha { display:flex; flex-direction:column; gap:12px; }
+@media (prefers-reduced-motion: reduce) { .ef-act-card { transition:none; } .ef-act-card:hover { transform:none; } }
