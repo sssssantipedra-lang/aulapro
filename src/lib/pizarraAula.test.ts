@@ -240,6 +240,13 @@ describe('huecoLibre', () => {
     expect(r.x + r.width).toBeLessThanOrEqual(area.width - 16);
     expect(r.y + r.height).toBeLessThanOrEqual(area.height - 84);
   });
+  it('solo usa el tamaño aunque reciba un rectángulo con su posición', () => {
+    const ocupada = { x: 16, y: 70, width: 300, height: 300 };
+    const conPosicion = { x: 16, y: 70, ...tam };
+    const r = huecoLibre(conPosicion, [ocupada], area)!;
+    expect(r).not.toBeNull();
+    expect(r.x).toBeGreaterThanOrEqual(ocupada.x + ocupada.width);
+  });
   it('devuelve null si no hay sitio sin tapar nada', () => {
     expect(huecoLibre(tam, [{ x: 0, y: 0, width: 1000, height: 700 }], area)).toBeNull();
     expect(huecoLibre({ width: 2000, height: 300 }, [], area)).toBeNull();

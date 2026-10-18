@@ -356,7 +356,7 @@ await pestana('Pizarra y herramientas');
     const ruleta = girar.parentElement;
     const disco = ruleta.querySelector('svg').parentElement;
     const nombres = [...disco.querySelectorAll('text')].map(t => t.textContent);
-    const ventanas = [...document.querySelectorAll('main .drag-handle')].map(h => caja(h.closest('.react-draggable') ?? h.parentElement));
+    const ventanas = [...document.querySelectorAll('main .pz-ventana')].map(h => caja(h.closest('.react-draggable') ?? h));
     const teclas = [...document.querySelectorAll('main button')].filter(b => b.checkVisibility() && b.style.minHeight === '34px')
       .map(b => [...caja(b), b.textContent.trim().replace(/\s+/g, '') || '⌫']);
     const k0 = teclas[0];

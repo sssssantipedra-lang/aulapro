@@ -145,7 +145,7 @@ export function huecoLibre(
   const maxY = area.height - margen.abajo - tam.height;
   for (let y = margen.arriba; y <= maxY; y += paso) {
     for (let x = margen.lados; x <= maxX; x += paso) {
-      const r = { x, y, ...tam };
+      const r = { x, y, width: tam.width, height: tam.height };
       if (!ocupados.some(o => seCruzan(r, o, aire))) return r;
     }
   }

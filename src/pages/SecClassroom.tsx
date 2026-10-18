@@ -5,7 +5,7 @@ import {
   Plus, Minus, Eraser, ExternalLink, X, Disc3, Trophy,
   RefreshCw, Link as LinkIcon, PenLine, Calculator, Delete, Flag, Users,
   Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
-  Maximize, Minimize, LayoutTemplate, Save, Trash2,
+  Maximize, Minimize, LayoutTemplate, Save, Trash2, GripHorizontal,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -177,33 +177,36 @@ function WidgetShell({
   const { t } = useI18n();
   return (
     <div
-      className="w-full h-full overflow-hidden rounded-[18px] flex flex-col"
+      className="pz-ventana relative w-full h-full"
       style={{
-        background: '#1e2433',
-        boxShadow: '0 1px 2px rgba(15,23,42,0.25), 0 10px 28px rgba(15,23,42,0.22)',
-        // El color de la herramienta se usa solo en el botón principal y en el punto del título
+        // El color de la herramienta se usa solo en el botón principal; `--pz-ac` es esa misma tinta
+        // ajustada al fondo (más oscura sobre blanco, más clara sobre oscuro) para poder escribir con ella
         ['--pz-accent' as string]: accent,
+        ['--pz-ac' as string]: `color-mix(in srgb, ${accent} 62%, rgb(var(--pz-rgb)))`,
+        color: 'rgb(var(--pz-rgb))',
       }}
     >
-      <div className="drag-handle cursor-move flex items-center gap-2 px-4 flex-shrink-0" style={{ height: 38 }}>
-        <span className="rounded-full flex-shrink-0" style={{ width: 7, height: 7, background: accent }} aria-hidden="true" />
-        <h2 className="text-[12px] font-semibold tracking-wide flex-1 min-w-0 truncate" style={{ color: 'rgba(255,255,255,0.62)' }}>
-          {title}
-        </h2>
+      {/* Sin tarjeta: la herramienta va directamente sobre la pizarra. Se arrastra desde cualquier parte que no sea un
+          control; el asa y la X solo se ven al pasar el ratón (siempre, en pantallas táctiles). */}
+      <div className="h-full w-full min-h-0">{children}</div>
+      <div
+        className="pz-barra absolute flex items-center gap-0.5 rounded-full"
+        style={{ top: 2, right: 2, padding: 2, background: 'rgba(15,23,42,0.88)', color: 'rgba(255,255,255,0.7)', zIndex: 5 }}
+        title={title}
+      >
+        <span className="flex items-center justify-center" style={{ width: 22, height: 22 }} aria-hidden="true"><GripHorizontal size={14} /></span>
         <button
           onClick={onClose}
           title={t('Cerrar')}
           aria-label={t('Cerrar')}
-          className="widget-cerrar flex items-center justify-center rounded-md transition-colors flex-shrink-0"
-          style={{ width: 24, height: 24, color: 'rgba(255,255,255,0.4)' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+          className="widget-cerrar flex items-center justify-center rounded-full transition-colors"
+          style={{ width: 22, height: 22 }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'inherit'; }}
         >
-          <X size={15} />
+          <X size={14} />
         </button>
       </div>
-
-      <div className="flex-1 min-h-0 px-4 pb-4 pt-1">{children}</div>
     </div>
   );
 }
@@ -299,8 +302,8 @@ function TimerWidget() {
               className="rounded-full text-[12px] font-bold transition-all"
               style={{
                 padding: '5px 12px',
-                background: active ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.06)',
-                color: active ? '#67e8f9' : 'rgba(255,255,255,0.6)',
+                background: active ? 'rgba(34,211,238,0.2)' : 'rgba(var(--pz-rgb),0.06)',
+                color: active ? 'var(--pz-ac)' : 'rgba(var(--pz-rgb),0.6)',
                 border: `1px solid ${active ? 'rgba(34,211,238,0.45)' : 'transparent'}`,
               }}
             >
@@ -317,7 +320,7 @@ function TimerWidget() {
         transition={{ repeat: finished ? Infinity : 0, duration: 1.1 }}
       >
         <svg width={190} height={190} className="-rotate-90">
-          <circle cx={95} cy={95} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={11} />
+          <circle cx={95} cy={95} r={R} fill="none" stroke="rgba(var(--pz-rgb),0.08)" strokeWidth={11} />
           <motion.circle
             cx={95} cy={95} r={R} fill="none" stroke={color} strokeWidth={11} strokeLinecap="round"
             strokeDasharray={CIRC}
@@ -333,7 +336,7 @@ function TimerWidget() {
                 { ref: undefined, value: draftSec, set: setDraftSec, label: t('seg') },
               ].map((f, i) => (
                 <React.Fragment key={f.label}>
-                  {i === 1 && <span className="text-white/50 font-black" style={{ fontSize: 38 }}>:</span>}
+                  {i === 1 && <span className="text-[rgba(var(--pz-rgb),0.5)] font-black" style={{ fontSize: 38 }}>:</span>}
                   <div className="flex flex-col items-center">
                     <input
                       ref={f.ref}
@@ -345,15 +348,15 @@ function TimerWidget() {
                       }}
                       onFocus={e => e.currentTarget.select()}
                       inputMode="numeric"
-                      className="font-black text-white text-center outline-none rounded-lg"
+                      className="font-black text-[rgb(var(--pz-rgb))] text-center outline-none rounded-lg"
                       style={{
                         fontSize: 38, width: 62, padding: '2px 0',
                         fontVariantNumeric: 'tabular-nums',
-                        background: 'rgba(255,255,255,0.09)',
+                        background: 'rgba(var(--pz-rgb),0.09)',
                         border: '1.5px solid rgba(34,211,238,0.5)',
                       }}
                     />
-                    <span className="text-white/35 text-[10px] font-bold mt-0.5">{f.label}</span>
+                    <span className="text-[rgba(var(--pz-rgb),0.35)] text-[10px] font-bold mt-0.5">{f.label}</span>
                   </div>
                 </React.Fragment>
               ))}
@@ -364,13 +367,13 @@ function TimerWidget() {
                 onClick={startEditing}
                 disabled={running}
                 title={running ? undefined : t('Haz clic para escribir el tiempo')}
-                className="font-black text-white leading-none rounded-xl transition-colors"
+                className="font-black text-[rgb(var(--pz-rgb))] leading-none rounded-xl transition-colors"
                 style={{
                   fontSize: 46, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
                   background: 'transparent', padding: '2px 8px',
                   cursor: running ? 'default' : 'pointer',
                 }}
-                onMouseEnter={e => { if (!running) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseEnter={e => { if (!running) e.currentTarget.style.background = 'rgba(var(--pz-rgb),0.08)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 {mins}:{secs}
@@ -378,7 +381,7 @@ function TimerWidget() {
               {finished ? (
                 <div className="text-[13px] font-bold mt-1" style={{ color: '#fb7185' }}>{t('¡Tiempo!')}</div>
               ) : !running && (
-                <div className="text-[10px] font-semibold mt-0.5 text-white/25">{t('toca para editar')}</div>
+                <div className="text-[10px] font-semibold mt-0.5 text-[rgba(var(--pz-rgb),0.25)]">{t('toca para editar')}</div>
               )}
             </>
           )}
@@ -390,14 +393,14 @@ function TimerWidget() {
           <button
             onClick={commitEditing}
             className="rounded-lg font-bold text-[12.5px]"
-            style={{ padding: '6px 18px', background: 'rgba(34,211,238,0.22)', color: '#67e8f9' }}
+            style={{ padding: '6px 18px', background: 'rgba(var(--pz-rgb),0.1)', color: 'var(--pz-ac)' }}
           >
             {t('Aceptar')}
           </button>
           <button
             onClick={() => setEditing(false)}
-            className="rounded-lg font-bold text-[12.5px] text-white/50"
-            style={{ padding: '6px 14px', background: 'rgba(255,255,255,0.06)' }}
+            className="rounded-lg font-bold text-[12.5px] text-[rgba(var(--pz-rgb),0.5)]"
+            style={{ padding: '6px 14px', background: 'rgba(var(--pz-rgb),0.06)' }}
           >
             {t('Cancelar')}
           </button>
@@ -410,8 +413,8 @@ function TimerWidget() {
           <button
             onClick={() => setDuration(total - 60)}
             title={t('Un minuto menos')}
-            className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors"
-            style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.07)' }}
+            className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.7)] hover:text-[rgb(var(--pz-rgb))] transition-colors"
+            style={{ width: 38, height: 38, background: 'rgba(var(--pz-rgb),0.07)' }}
           >
             <Minus size={17} />
           </button>
@@ -422,8 +425,8 @@ function TimerWidget() {
             className="flex items-center justify-center gap-2 rounded-xl font-bold text-[14px] transition-all disabled:opacity-40"
             style={{
               padding: '0 26px', height: 44,
-              background: running ? 'rgba(255,255,255,0.14)' : 'var(--pz-accent, #22d3ee)',
-              color: running ? '#fff' : '#0b1220',
+              background: running ? 'rgba(var(--pz-rgb),0.14)' : 'var(--pz-accent, #22d3ee)',
+              color: running ? 'rgb(var(--pz-rgb))' : '#0b1220',
             }}
           >
             {running ? <><Pause size={17} />{t('Pausa')}</> : <><Play size={17} />{t('Iniciar')}</>}
@@ -432,8 +435,8 @@ function TimerWidget() {
           <button
             onClick={() => setDuration(total + 60)}
             title={t('Un minuto más')}
-            className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors"
-            style={{ width: 38, height: 38, background: 'rgba(255,255,255,0.07)' }}
+            className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.7)] hover:text-[rgb(var(--pz-rgb))] transition-colors"
+            style={{ width: 38, height: 38, background: 'rgba(var(--pz-rgb),0.07)' }}
           >
             <Plus size={17} />
           </button>
@@ -441,7 +444,7 @@ function TimerWidget() {
 
         <button
           onClick={() => setDuration(total)}
-          className="flex items-center gap-1.5 text-[12px] font-semibold text-white/45 hover:text-white/80 transition-colors"
+          className="flex items-center gap-1.5 text-[12px] font-semibold text-[rgba(var(--pz-rgb),0.45)] hover:text-[rgba(var(--pz-rgb),0.8)] transition-colors"
         >
           <TimerReset size={13} />{t('Reiniciar')}
         </button>
@@ -558,10 +561,10 @@ function NoiseWidget() {
           {micState === 'denied' ? <MicOff size={30} color="#fb7185" /> : <Mic size={30} color="#34d399" />}
         </div>
         <div>
-          <div className="text-white font-bold text-[15px]">
+          <div className="text-[rgb(var(--pz-rgb))] font-bold text-[15px]">
             {t(micState === 'denied' ? 'Sin acceso al micrófono' : 'Medidor de ruido')}
           </div>
-          <p className="text-white/50 text-[12.5px] mt-1.5 leading-relaxed" style={{ maxWidth: 230 }}>
+          <p className="text-[rgba(var(--pz-rgb),0.5)] text-[12.5px] mt-1.5 leading-relaxed" style={{ maxWidth: 230 }}>
             {t(micState === 'denied'
               ? (window.electronAPI?.app?.openSettings
                 ? 'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.'
@@ -581,7 +584,7 @@ function NoiseWidget() {
           <button
             onClick={() => { window.electronAPI?.app?.openSettings?.()?.catch(() => {}); }}
             className="rounded-xl font-semibold text-[12.5px]"
-            style={{ padding: '8px 18px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+            style={{ padding: '8px 18px', background: 'rgba(var(--pz-rgb),0.1)', color: 'rgb(var(--pz-rgb))' }}
           >
             {t('Abrir los ajustes de AulaPro')}
           </button>
@@ -603,10 +606,10 @@ function NoiseWidget() {
         </motion.span>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-[14px]" style={{ color: stateColor }}>{stateLabel}</div>
-          <div className="text-white/40 text-[11.5px]">{t('Límite: {n}', { n: limit })}</div>
+          <div className="text-[rgba(var(--pz-rgb),0.4)] text-[11.5px]">{t('Límite: {n}', { n: limit })}</div>
         </div>
         <div
-          className="font-black text-white leading-none"
+          className="font-black text-[rgb(var(--pz-rgb))] leading-none"
           style={{ fontSize: 34, fontVariantNumeric: 'tabular-nums' }}
         >
           {Math.round(level)}
@@ -648,8 +651,8 @@ function NoiseWidget() {
         <button
           onClick={stop}
           title={t('Apagar micrófono')}
-          className="flex items-center justify-center rounded-lg text-white/50 hover:text-white transition-colors flex-shrink-0"
-          style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.07)' }}
+          className="flex items-center justify-center rounded-lg text-[rgba(var(--pz-rgb),0.5)] hover:text-[rgb(var(--pz-rgb))] transition-colors flex-shrink-0"
+          style={{ width: 32, height: 32, background: 'rgba(var(--pz-rgb),0.07)' }}
         >
           <MicOff size={15} />
         </button>
@@ -733,14 +736,14 @@ function WheelWidget({ names }: { names: string[] }) {
   if (n === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center gap-4">
-        <Trophy size={34} color="rgba(255,255,255,0.25)" />
-        <p className="text-white/50 text-[13px] leading-relaxed" style={{ maxWidth: 210 }}>
+        <Trophy size={34} color="rgba(var(--pz-rgb),0.25)" />
+        <p className="text-[rgba(var(--pz-rgb),0.5)] text-[13px] leading-relaxed" style={{ maxWidth: 210 }}>
           {t('Ya han salido todos. Reinicia para volver a empezar.')}
         </p>
         <button
           onClick={() => { setPool(names); setWinner(null); }}
           className="rounded-xl font-bold text-[13px]"
-          style={{ padding: '9px 20px', background: 'rgba(167,139,250,0.2)', color: '#c4b5fd' }}
+          style={{ padding: '9px 20px', background: 'rgba(var(--pz-rgb),0.1)', color: 'var(--pz-ac)' }}
         >
           <RefreshCw size={13} className="inline mr-1.5" />{t('Reiniciar lista')}
         </button>
@@ -759,7 +762,7 @@ function WheelWidget({ names }: { names: string[] }) {
             width: 0, height: 0,
             borderLeft: '11px solid transparent',
             borderRight: '11px solid transparent',
-            borderTop: '20px solid #f8fafc',
+            borderTop: '20px solid rgb(var(--pz-rgb))',
             filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.6))',
           }}
         />
@@ -785,7 +788,7 @@ function WheelWidget({ names }: { names: string[] }) {
                 </text>
               </g>
             ))}
-            <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={3} />
+            <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(var(--pz-rgb),0.22)" strokeWidth={3} />
           </svg>
         </motion.div>
 
@@ -820,18 +823,18 @@ function WheelWidget({ names }: { names: string[] }) {
               className="flex flex-col items-center gap-1.5"
             >
               <div
-                className="rounded-2xl font-black text-white truncate max-w-full"
+                className="rounded-2xl font-black text-[rgb(var(--pz-rgb))] truncate max-w-full"
                 style={{
                   padding: '9px 22px', fontSize: 21,
                   background: 'linear-gradient(135deg,rgba(167,139,250,0.28),rgba(236,72,153,0.28))',
-                  border: '1px solid rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(var(--pz-rgb),0.18)',
                 }}
               >
                 {winner}
               </div>
               <button
                 onClick={removeWinner}
-                className="text-[11.5px] font-semibold text-white/45 hover:text-white/80 transition-colors"
+                className="text-[11.5px] font-semibold text-[rgba(var(--pz-rgb),0.45)] hover:text-[rgba(var(--pz-rgb),0.8)] transition-colors"
               >
                 {n - 1 === 1 ? t('Quitar del sorteo (queda 1)') : t('Quitar del sorteo (quedan {n})', { n: n - 1 })}
               </button>
@@ -840,7 +843,7 @@ function WheelWidget({ names }: { names: string[] }) {
             <motion.p
               key="idle"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="text-white/35 text-[12.5px] pt-4"
+              className="text-[rgba(var(--pz-rgb),0.35)] text-[12.5px] pt-4"
             >
               {spinning ? t('Girando…') : n === 1 ? t('1 participante') : t('{n} participantes', { n })}
             </motion.p>
@@ -1039,9 +1042,9 @@ function CalcWidget() {
 
   const styleFor = (kind: string, active: boolean) => {
     if (kind === 'eq') return { background: 'var(--pz-accent, #f472b6)', color: '#0b1220' };
-    if (kind === 'op') return { background: active ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.13)', color: '#fff' };
-    if (kind === 'fn') return { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.72)' };
-    return { background: 'rgba(255,255,255,0.1)', color: '#fff' };
+    if (kind === 'op') return { background: active ? 'rgba(var(--pz-rgb),0.22)' : 'rgba(var(--pz-rgb),0.13)', color: 'rgb(var(--pz-rgb))' };
+    if (kind === 'fn') return { background: 'rgba(var(--pz-rgb),0.07)', color: 'rgba(var(--pz-rgb),0.72)' };
+    return { background: 'rgba(var(--pz-rgb),0.1)', color: 'rgb(var(--pz-rgb))' };
   };
 
   return (
@@ -1054,16 +1057,16 @@ function CalcWidget() {
       {/* Pantalla */}
       <div
         className="rounded-2xl px-4 py-3 flex flex-col justify-end flex-shrink-0"
-        style={{ background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(255,255,255,0.09)', minHeight: 92 }}
+        style={{ background: 'rgba(0,0,0,0.32)', border: '1px solid rgba(var(--pz-rgb),0.09)', minHeight: 92 }}
       >
         <div
-          className="text-right text-white/45 text-[12.5px] truncate"
+          className="text-right text-[rgba(var(--pz-rgb),0.45)] text-[12.5px] truncate"
           style={{ minHeight: 17 }}
         >
           {history[0] ?? ''}
         </div>
         <div
-          className="text-right text-white font-black"
+          className="text-right text-[rgb(var(--pz-rgb))] font-black"
           style={{
             // El tamaño se adapta al largo para que nunca se corte el resultado
             fontSize: shown.length > 22 ? 16 : shown.length > 17 ? 19 : shown.length > 12 ? 23 : 30,
@@ -1074,7 +1077,7 @@ function CalcWidget() {
         >
           {shown}
         </div>
-        <div className="text-right text-[12.5px] font-semibold" style={{ minHeight: 17, color: '#f9a8d4' }}>
+        <div className="text-right text-[12.5px] font-semibold" style={{ minHeight: 17, color: 'var(--pz-ac)' }}>
           {result === null && live !== null && expr ? `= ${live}` : ''}
         </div>
       </div>
@@ -1223,21 +1226,21 @@ function EmbedWidget() {
           <LinkIcon
             size={14}
             className="absolute pointer-events-none"
-            style={{ left: 13, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.35)' }}
+            style={{ left: 13, top: '50%', transform: 'translateY(-50%)', color: 'rgba(var(--pz-rgb),0.35)' }}
           />
           <input
             value={url}
             onChange={e => setUrl(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') open(); }}
             placeholder={t('Pega un enlace de YouTube o una web…')}
-            className="w-full rounded-xl text-white text-[13px] outline-none transition-colors"
+            className="w-full rounded-xl text-[rgb(var(--pz-rgb))] text-[13px] outline-none transition-colors"
             style={{
               padding: '10px 14px 10px 34px',
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(var(--pz-rgb),0.07)',
+              border: '1px solid rgba(var(--pz-rgb),0.12)',
             }}
             onFocus={e => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(var(--pz-rgb),0.12)'; }}
           />
         </div>
         <button
@@ -1253,16 +1256,16 @@ function EmbedWidget() {
             <button
               onClick={() => setReloadKey(k => k + 1)}
               title={t('Recargar')}
-              className="flex items-center justify-center rounded-xl text-white/55 hover:text-white transition-colors flex-shrink-0"
-              style={{ width: 40, background: 'rgba(255,255,255,0.07)' }}
+              className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.55)] hover:text-[rgb(var(--pz-rgb))] transition-colors flex-shrink-0"
+              style={{ width: 40, background: 'rgba(var(--pz-rgb),0.07)' }}
             >
               <RefreshCw size={15} />
             </button>
             <button
               onClick={() => window.open(activeUrl, '_blank', 'noopener')}
               title={t('Abrir en el navegador')}
-              className="flex items-center justify-center rounded-xl text-white/55 hover:text-white transition-colors flex-shrink-0"
-              style={{ width: 40, background: 'rgba(255,255,255,0.07)' }}
+              className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.55)] hover:text-[rgb(var(--pz-rgb))] transition-colors flex-shrink-0"
+              style={{ width: 40, background: 'rgba(var(--pz-rgb),0.07)' }}
             >
               <ExternalLink size={15} />
             </button>
@@ -1272,15 +1275,15 @@ function EmbedWidget() {
 
       <div
         className="flex-1 min-h-0 rounded-2xl overflow-hidden"
-        style={{ background: '#000', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: '#000', border: '1px solid rgba(var(--pz-rgb),0.1)' }}
       >
         {activeUrl && bloqueado ? (
           <div className="h-full flex flex-col items-center justify-center gap-3 px-8 text-center">
             <ExternalLink size={26} color="rgba(251,191,36,0.6)" />
-            <p className="text-white/70 text-[13px] leading-relaxed">
+            <p className="text-[rgba(var(--pz-rgb),0.7)] text-[13px] leading-relaxed">
               {t('{sitio} no permite verse dentro de otra aplicación.', { sitio: bloqueado })}
             </p>
-            <p className="text-white/40 text-[11.5px] leading-relaxed" style={{ maxWidth: 340 }}>
+            <p className="text-[rgba(var(--pz-rgb),0.4)] text-[11.5px] leading-relaxed" style={{ maxWidth: 340 }}>
               {t('Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.')}
             </p>
             <button
@@ -1302,11 +1305,11 @@ function EmbedWidget() {
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2.5 px-8 text-center">
-            <ExternalLink size={26} color="rgba(255,255,255,0.2)" />
-            <p className="text-white/40 text-[12.5px] leading-relaxed">
+            <ExternalLink size={26} color="rgba(var(--pz-rgb),0.2)" />
+            <p className="text-[rgba(var(--pz-rgb),0.4)] text-[12.5px] leading-relaxed">
               {t('Proyecta un vídeo o una web sin salir de Aula Pro.')}
             </p>
-            <p className="text-white/25 text-[11.5px] leading-relaxed">
+            <p className="text-[rgba(var(--pz-rgb),0.25)] text-[11.5px] leading-relaxed">
               {t('Algunas webs no permiten incrustarse; en ese caso usa el botón de abrir en el navegador.')}
             </p>
           </div>
@@ -1326,32 +1329,39 @@ function EmbedWidget() {
  * borde ni tapado por el dock inferior.
  */
 const DEFAULTS: Record<WidgetType, Rect> = {
-  timer: { x: 24,  y: 70,  width: 316, height: 404 },
-  wheel: { x: 356, y: 70,  width: 376, height: 452 },
-  calc:  { x: 748, y: 70,  width: 302, height: 438 },
-  noise: { x: 356, y: 296, width: 330, height: 372 },
-  embed: { x: 110, y: 286, width: 600, height: 378 },
-  clock:     { x: 60,  y: 90,  width: 420, height: 230 },
-  stopwatch: { x: 120, y: 130, width: 340, height: 390 },
-  traffic:   { x: 200, y: 90,  width: 330, height: 420 },
-  symbols:   { x: 300, y: 100, width: 420, height: 340 },
-  dice:      { x: 260, y: 150, width: 340, height: 340 },
-  groups:    { x: 140, y: 90,  width: 600, height: 430 },
-  score:     { x: 420, y: 110, width: 420, height: 340 },
-  agenda:    { x: 640, y: 110, width: 380, height: 430 },
-  note:      { x: 180, y: 120, width: 400, height: 300 },
-  qr:        { x: 600, y: 90,  width: 380, height: 470 },
+  timer: { x: 24,  y: 70,  width: 290, height: 350 },
+  wheel: { x: 330, y: 70,  width: 290, height: 340 },
+  calc:  { x: 640, y: 70,  width: 270, height: 380 },
+  noise: { x: 330, y: 300, width: 300, height: 330 },
+  embed: { x: 110, y: 286, width: 560, height: 360 },
+  clock:     { x: 60,  y: 90,  width: 380, height: 160 },
+  stopwatch: { x: 120, y: 130, width: 300, height: 300 },
+  traffic:   { x: 200, y: 90,  width: 220, height: 330 },
+  symbols:   { x: 300, y: 100, width: 380, height: 300 },
+  dice:      { x: 260, y: 150, width: 300, height: 260 },
+  groups:    { x: 140, y: 90,  width: 520, height: 360 },
+  score:     { x: 420, y: 110, width: 380, height: 280 },
+  agenda:    { x: 640, y: 110, width: 340, height: 340 },
+  note:      { x: 180, y: 120, width: 340, height: 240 },
+  qr:        { x: 600, y: 90,  width: 300, height: 340 },
 };
 
 /** Tamaño mínimo de cada ventana: las hay que caben en poco (el reloj) y otras que no (el contenido). */
-const MIN_BASE = { width: 270, height: 300 };
+const MIN_BASE = { width: 220, height: 200 };
 const MINIMOS: Partial<Record<WidgetType, { width: number; height: number }>> = {
-  clock: { width: 240, height: 150 },
-  traffic: { width: 250, height: 300 },
-  note: { width: 240, height: 180 },
-  symbols: { width: 240, height: 200 },
-  score: { width: 300, height: 220 },
-  agenda: { width: 270, height: 240 },
+  timer: { width: 250, height: 300 },
+  wheel: { width: 260, height: 300 },
+  calc: { width: 240, height: 340 },
+  noise: { width: 260, height: 260 },
+  embed: { width: 300, height: 240 },
+  clock: { width: 200, height: 100 },
+  traffic: { width: 140, height: 220 },
+  note: { width: 200, height: 120 },
+  symbols: { width: 200, height: 140 },
+  score: { width: 260, height: 160 },
+  agenda: { width: 240, height: 160 },
+  groups: { width: 300, height: 220 },
+  qr: { width: 200, height: 240 },
 };
 const minDe = (id: WidgetType) => MINIMOS[id] ?? MIN_BASE;
 
@@ -1717,9 +1727,9 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         minWidth={min.width}
         minHeight={min.height}
         bounds="parent"
-        dragHandleClassName="drag-handle"
-        // Sin esto, en el móvil el toque sobre la X empieza un arrastre de la cabecera y nunca llega a ser un clic
-        cancel=".widget-cerrar"
+        // Se arrastra desde cualquier parte que no sea un control: sin esto un botón, un campo de texto o el
+        // contenido incrustado empezarían un arrastre en vez de recibir el clic (y, en el móvil, la X nunca cerraría)
+        cancel=".widget-cerrar, button, input, textarea, select, a, label, iframe, canvas, [role=checkbox]"
         onMouseDown={() => alFrente(v.id)}
         onDragStop={(_e, d) => ponerRect(v.id, { x: d.x, y: d.y })}
         onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(v.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
@@ -1739,7 +1749,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     <div
       ref={rootRef}
       className="relative w-full overflow-hidden"
-      style={{ height: pantallaCompleta ? '100vh' : 'calc(100vh - var(--hub-h, 0px))', background: fondo.css }}
+      style={{
+        height: pantallaCompleta ? '100vh' : 'calc(100vh - var(--hub-h, 0px))', background: fondo.css,
+        // Tinta de las herramientas: blanca sobre fondos oscuros y azul pizarra sobre claros
+        ['--pz-rgb' as string]: light ? '15,23,42' : '255,255,255',
+      }}
     >
       {/* Fondo */}
       {fondo.id === 'oscuro' && (

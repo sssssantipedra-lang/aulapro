@@ -2193,3 +2193,13 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-act-card-txt { font-size:12.5px; line-height:1.55; color:var(--text-2); overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
 .ef-act-ficha { display:flex; flex-direction:column; gap:12px; }
 @media (prefers-reduced-motion: reduce) { .ef-act-card { transition:none; } .ef-act-card:hover { transform:none; } }
+
+
+/* Pizarra y herramientas: las ventanas no tienen tarjeta; el asa y la X salen al pasar el ratón */
+.pz-ventana { cursor: grab; }
+.pz-ventana .pz-barra { opacity: 0; transition: opacity 0.15s; }
+.pz-ventana:hover .pz-barra,
+.pz-ventana:focus-within .pz-barra { opacity: 1; }
+@media (hover: none) {
+  .pz-ventana .pz-barra { opacity: 0.9; }
+}

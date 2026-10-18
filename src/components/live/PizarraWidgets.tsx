@@ -13,8 +13,8 @@ import {
  * código QR y plan del día. Mismo aspecto que los otros: texto claro sobre el cristal oscuro de `WidgetShell`.
  */
 
-const GLASS = 'rgba(255,255,255,0.07)';
-const GLASS_HOVER = 'rgba(255,255,255,0.14)';
+const GLASS = 'rgba(var(--pz-rgb),0.07)';
+const GLASS_HOVER = 'rgba(var(--pz-rgb),0.14)';
 
 /**
  * Como `useState`, pero recuerda el valor en este dispositivo: una nota, un marcador o un plan del día no
@@ -47,7 +47,7 @@ function IconBtn({ onClick, title, children, disabled }: { onClick: () => void; 
       title={title}
       aria-label={title}
       disabled={disabled}
-      className="flex items-center justify-center rounded-xl text-white/70 hover:text-white transition-colors disabled:opacity-30 flex-shrink-0"
+      className="flex items-center justify-center rounded-xl text-[rgba(var(--pz-rgb),0.7)] hover:text-[rgb(var(--pz-rgb))] transition-colors disabled:opacity-30 flex-shrink-0"
       style={{ width: 36, height: 36, background: GLASS }}
       onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = GLASS_HOVER; }}
       onMouseLeave={e => { e.currentTarget.style.background = GLASS; }}
@@ -67,7 +67,7 @@ function BotonPrincipal({ onClick, children, suave, disabled }: { onClick: () =>
       style={{
         padding: '0 20px', height: 40,
         background: suave ? GLASS_HOVER : 'var(--pz-accent, #e2e8f0)',
-        color: suave ? '#fff' : '#0b1220',
+        color: suave ? 'rgb(var(--pz-rgb))' : '#0b1220',
       }}
     >
       {children}
@@ -93,10 +93,10 @@ export function ClockWidget() {
   const fecha = fechaLarga.charAt(0).toUpperCase() + fechaLarga.slice(1);
   return (
     <div className="h-full flex flex-col items-center justify-center text-center gap-1.5" style={{ containerType: 'inline-size' }}>
-      <div className="font-black text-white leading-none" style={{ fontSize: 'clamp(40px, 22cqw, 120px)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>
-        {hora}<span className="text-white/35" style={{ fontSize: '0.4em', marginLeft: 6 }}>{segundos}</span>
+      <div className="font-black text-[rgb(var(--pz-rgb))] leading-none" style={{ fontSize: 'clamp(40px, 22cqw, 120px)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>
+        {hora}<span className="text-[rgba(var(--pz-rgb),0.35)]" style={{ fontSize: '0.4em', marginLeft: 6 }}>{segundos}</span>
       </div>
-      <div className="font-semibold text-white/70" style={{ fontSize: 'clamp(13px, 6cqw, 28px)' }}>{fecha}</div>
+      <div className="font-semibold text-[rgba(var(--pz-rgb),0.7)]" style={{ fontSize: 'clamp(13px, 6cqw, 28px)' }}>{fecha}</div>
     </div>
   );
 }
@@ -125,7 +125,7 @@ export function StopwatchWidget() {
 
   return (
     <div className="h-full flex flex-col items-center gap-3 min-h-0" style={{ containerType: 'inline-size' }}>
-      <div className="font-black text-white leading-none pt-2" style={{ fontSize: 'clamp(30px, 17cqw, 90px)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>
+      <div className="font-black text-[rgb(var(--pz-rgb))] leading-none pt-2" style={{ fontSize: 'clamp(30px, 17cqw, 90px)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>
         {formatoCrono(ms)}
       </div>
       <div className="flex gap-2 items-center">
@@ -138,12 +138,12 @@ export function StopwatchWidget() {
         <IconBtn onClick={reiniciar} title={t('Reiniciar')} disabled={ms === 0}><RotateCcw size={16} /></IconBtn>
       </div>
       {vueltas.length > 0 && (
-        <ol className="w-full flex-1 min-h-0 overflow-y-auto text-[13px] text-white/75" style={{ fontVariantNumeric: 'tabular-nums' }}>
+        <ol className="w-full flex-1 min-h-0 overflow-y-auto text-[13px] text-[rgba(var(--pz-rgb),0.75)]" style={{ fontVariantNumeric: 'tabular-nums' }}>
           {vueltas.map((v, i) => (
             <li key={i} className="flex justify-between px-3 py-1 rounded-lg" style={{ background: i % 2 ? 'transparent' : GLASS }}>
-              <span className="text-white/45">{t('Vuelta {n}', { n: i + 1 })}</span>
+              <span className="text-[rgba(var(--pz-rgb),0.45)]">{t('Vuelta {n}', { n: i + 1 })}</span>
               <span>{formatoCrono(v)}</span>
-              <span className="text-white/45">+{formatoCrono(v - (vueltas[i - 1] ?? 0))}</span>
+              <span className="text-[rgba(var(--pz-rgb),0.45)]">+{formatoCrono(v - (vueltas[i - 1] ?? 0))}</span>
             </li>
           )).reverse()}
         </ol>
@@ -168,7 +168,7 @@ export function TrafficWidget() {
   const actual = LUCES.find(l => l.id === luz);
   return (
     <div className="h-full flex items-center justify-center gap-6 min-h-0">
-      <div className="h-full flex flex-col justify-evenly items-center rounded-[28px] px-3 py-3" style={{ aspectRatio: '1 / 2.7', maxHeight: '100%', background: '#0b1220', border: '1px solid rgba(255,255,255,0.12)' }}>
+      <div className="h-full flex flex-col justify-evenly items-center rounded-[28px] px-3 py-3" style={{ aspectRatio: '1 / 2.7', maxHeight: '100%', background: '#0b1220', border: '1px solid rgba(var(--pz-rgb),0.12)' }}>
         {LUCES.map(l => {
           const on = luz === l.id;
           return (
@@ -188,7 +188,7 @@ export function TrafficWidget() {
           );
         })}
       </div>
-      <div className="font-black text-[22px] leading-tight min-w-[80px]" style={{ color: actual?.color ?? 'rgba(255,255,255,0.3)' }}>
+      <div className="font-black text-[22px] leading-tight min-w-[80px]" style={{ color: actual?.color ?? 'rgba(var(--pz-rgb),0.3)' }}>
         {actual ? t(actual.texto) : t('Toca una luz')}
       </div>
     </div>
@@ -210,7 +210,7 @@ function CaraDado({ valor, size }: { valor: number; size: number }) {
       role="img"
       aria-label={String(valor)}
       className="grid grid-cols-3 grid-rows-3 rounded-[18%] p-[11%]"
-      style={{ width: size, height: size, background: '#f8fafc', boxShadow: '0 3px 10px rgba(0,0,0,0.3)' }}
+      style={{ width: size, height: size, background: '#f8fafc', border: '1px solid rgba(15,23,42,0.2)', boxShadow: '0 3px 10px rgba(0,0,0,0.25)' }}
     >
       {Array.from({ length: 9 }, (_, i) => (
         <span key={i} className="flex items-center justify-center">
@@ -256,7 +256,7 @@ export function DiceWidget() {
         {caras.map((v, i) => <CaraDado key={i} valor={v} size={lado} />)}
       </div>
       {cantidad > 1 && (
-        <div className="text-white/70 text-[13px] font-semibold">{t('Suman {n}', { n: caras.reduce((a, b) => a + b, 0) })}</div>
+        <div className="text-[rgba(var(--pz-rgb),0.7)] text-[13px] font-semibold">{t('Suman {n}', { n: caras.reduce((a, b) => a + b, 0) })}</div>
       )}
       <div className="flex items-center gap-2">
         <IconBtn onClick={() => cambiarCantidad(cantidad - 1)} title={t('Un dado menos')} disabled={cantidad <= 1}><Minus size={15} /></IconBtn>
@@ -288,7 +288,7 @@ export function SymbolsWidget({ uid }: { uid: string }) {
             type="button"
             onClick={() => setEditando(true)}
             title={t('Toca para cambiar')}
-            className="flex-1 min-w-[120px] rounded-3xl flex flex-col items-center justify-center gap-2 text-white font-black"
+            className="flex-1 min-w-[120px] rounded-3xl flex flex-col items-center justify-center gap-2 text-[rgb(var(--pz-rgb))] font-black"
             style={{ background: `${s.color}2b`, border: `2px solid ${s.color}` }}
           >
             <span style={{ fontSize: validos.length === 1 ? 'min(32cqh, 40cqw)' : '14cqh', lineHeight: 1 }}>{s.emoji}</span>
@@ -301,7 +301,7 @@ export function SymbolsWidget({ uid }: { uid: string }) {
 
   return (
     <div className="h-full flex flex-col gap-3 min-h-0">
-      <div className="text-white/55 text-[12.5px] font-semibold">{t('Elige lo que quieres mostrar')}</div>
+      <div className="text-[rgba(var(--pz-rgb),0.55)] text-[12.5px] font-semibold">{t('Elige lo que quieres mostrar')}</div>
       <div className="grid grid-cols-2 gap-2 flex-1 min-h-0 overflow-y-auto content-start">
         {SIMBOLOS_TRABAJO.map(s => {
           const on = elegidos.includes(s.id);
@@ -312,7 +312,7 @@ export function SymbolsWidget({ uid }: { uid: string }) {
               aria-pressed={on}
               onClick={() => setElegidos(p => on ? p.filter(x => x !== s.id) : [...p, s.id])}
               className="flex items-center gap-2 rounded-2xl text-left text-[13px] font-bold"
-              style={{ padding: '10px 12px', background: on ? `${s.color}33` : GLASS, color: on ? '#fff' : 'rgba(255,255,255,0.6)', border: `1.5px solid ${on ? s.color : 'transparent'}` }}
+              style={{ padding: '10px 12px', background: on ? `${s.color}33` : GLASS, color: on ? 'rgb(var(--pz-rgb))' : 'rgba(var(--pz-rgb),0.6)', border: `1.5px solid ${on ? s.color : 'transparent'}` }}
             >
               <span style={{ fontSize: 22 }}>{s.emoji}</span>{t(s.label)}
             </button>
@@ -341,7 +341,7 @@ export function NoteWidget({ uid }: { uid: string }) {
         onChange={e => setTexto(e.target.value)}
         placeholder={t('Escribe aquí lo que quieras proyectar…')}
         aria-label={t('Nota')}
-        className="flex-1 min-h-0 w-full resize-none rounded-2xl text-white placeholder:text-white/30 outline-none font-semibold"
+        className="flex-1 min-h-0 w-full resize-none rounded-2xl text-[rgb(var(--pz-rgb))] placeholder:text-[rgba(var(--pz-rgb),0.3)] outline-none font-semibold"
         style={{ background: GLASS, padding: 14, fontSize: TAMANOS_NOTA[nivel], lineHeight: 1.3 }}
       />
       <div className="flex gap-2 justify-end">
@@ -384,13 +384,13 @@ export function ScoreWidget({ uid }: { uid: string }) {
                 onChange={ev => cambiar(e.id, x => ({ ...x, nombre: ev.target.value.slice(0, 24) }))}
                 placeholder={t('Equipo {n}', { n: i + 1 })}
                 aria-label={t('Nombre del equipo')}
-                className="flex-1 min-w-0 bg-transparent outline-none text-white font-bold text-[15px] placeholder:text-white/35"
+                className="flex-1 min-w-0 bg-transparent outline-none text-[rgb(var(--pz-rgb))] font-bold text-[15px] placeholder:text-[rgba(var(--pz-rgb),0.35)]"
               />
               <IconBtn onClick={() => cambiar(e.id, x => ({ ...x, puntos: x.puntos - 1 }))} title={t('Quitar un punto')}><Minus size={15} /></IconBtn>
-              <div className="font-black text-white text-center" style={{ fontSize: 30, minWidth: 54, fontVariantNumeric: 'tabular-nums', color }}>{e.puntos}</div>
+              <div className="font-black text-[rgb(var(--pz-rgb))] text-center" style={{ fontSize: 30, minWidth: 54, fontVariantNumeric: 'tabular-nums', color }}>{e.puntos}</div>
               <IconBtn onClick={() => cambiar(e.id, x => ({ ...x, puntos: x.puntos + 1 }))} title={t('Sumar un punto')}><Plus size={15} /></IconBtn>
               {equipos.length > 1 && (
-                <button type="button" onClick={() => setEquipos(p => p.filter(x => x.id !== e.id))} title={t('Quitar equipo')} aria-label={t('Quitar equipo')} className="text-white/35 hover:text-white/80 flex-shrink-0"><X size={15} /></button>
+                <button type="button" onClick={() => setEquipos(p => p.filter(x => x.id !== e.id))} title={t('Quitar equipo')} aria-label={t('Quitar equipo')} className="text-[rgba(var(--pz-rgb),0.35)] hover:text-[rgba(var(--pz-rgb),0.8)] flex-shrink-0"><X size={15} /></button>
               )}
             </div>
           );
@@ -401,13 +401,13 @@ export function ScoreWidget({ uid }: { uid: string }) {
           type="button"
           onClick={() => setEquipos(p => [...p, { id: 'e' + Date.now(), nombre: '', puntos: 0 }])}
           disabled={equipos.length >= MAX_EQUIPOS}
-          className="flex items-center gap-1.5 rounded-xl text-[12.5px] font-bold text-white/70 hover:text-white disabled:opacity-30"
+          className="flex items-center gap-1.5 rounded-xl text-[12.5px] font-bold text-[rgba(var(--pz-rgb),0.7)] hover:text-[rgb(var(--pz-rgb))] disabled:opacity-30"
           style={{ padding: '7px 12px', background: GLASS }}
         ><Plus size={14} />{t('Equipo')}</button>
         <button
           type="button"
           onClick={() => setEquipos(p => p.map(e => ({ ...e, puntos: 0 })))}
-          className="flex items-center gap-1.5 rounded-xl text-[12.5px] font-bold text-white/55 hover:text-white"
+          className="flex items-center gap-1.5 rounded-xl text-[12.5px] font-bold text-[rgba(var(--pz-rgb),0.55)] hover:text-[rgb(var(--pz-rgb))]"
           style={{ padding: '7px 12px', background: GLASS }}
         ><RotateCcw size={14} />{t('Poner a cero')}</button>
       </div>
@@ -441,18 +441,18 @@ export function GroupsWidget({ names }: { names: string[] }) {
               type="button"
               aria-pressed={reparto.por === p}
               onClick={() => setReparto(r => ({ ...r, por: p }))}
-              style={{ padding: '7px 11px', background: reparto.por === p ? GLASS_HOVER : 'transparent', color: reparto.por === p ? '#fff' : 'rgba(255,255,255,0.55)' }}
+              style={{ padding: '7px 11px', background: reparto.por === p ? GLASS_HOVER : 'transparent', color: reparto.por === p ? 'rgb(var(--pz-rgb))' : 'rgba(var(--pz-rgb),0.55)' }}
             >{t(p === 'tamano' ? 'Personas por grupo' : 'Número de grupos')}</button>
           ))}
         </div>
         <IconBtn onClick={() => paso(-1)} title={t('Menos')}><Minus size={15} /></IconBtn>
-        <span className="font-black text-white text-[20px] text-center" style={{ minWidth: 28 }}>{reparto.n}</span>
+        <span className="font-black text-[rgb(var(--pz-rgb))] text-[20px] text-center" style={{ minWidth: 28 }}>{reparto.n}</span>
         <IconBtn onClick={() => paso(1)} title={t('Más')}><Plus size={15} /></IconBtn>
         <div className="flex-1" />
         <BotonPrincipal onClick={formar} disabled={names.length === 0}><Shuffle size={16} />{t(grupos.length ? 'Mezclar otra vez' : 'Formar grupos')}</BotonPrincipal>
       </div>
       {grupos.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-center text-white/40 text-[13px] px-6">
+        <div className="flex-1 flex items-center justify-center text-center text-[rgba(var(--pz-rgb),0.4)] text-[13px] px-6">
           {t('{n} personas para repartir. Elige cómo y pulsa «Formar grupos».', { n: names.length })}
         </div>
       ) : (
@@ -462,7 +462,7 @@ export function GroupsWidget({ names }: { names: string[] }) {
             return (
               <div key={i} className="rounded-2xl" style={{ padding: '10px 12px', background: GLASS, borderTop: `4px solid ${color}` }}>
                 <div className="text-[11px] font-black uppercase tracking-wide mb-1" style={{ color }}>{t('Grupo {n}', { n: i + 1 })}</div>
-                <ul className="text-white text-[13.5px] font-semibold leading-snug">
+                <ul className="text-[rgb(var(--pz-rgb))] text-[13.5px] font-semibold leading-snug">
                   {g.map(n => <li key={n} className="truncate">{n}</li>)}
                 </ul>
               </div>
@@ -500,13 +500,13 @@ export function QrWidget({ uid }: { uid: string }) {
         onChange={e => setTexto(e.target.value)}
         placeholder={t('Pega una dirección web o escribe un texto')}
         aria-label={t('Dirección del código QR')}
-        className="w-full rounded-xl outline-none text-white placeholder:text-white/35 text-[14px] font-semibold"
+        className="w-full rounded-xl outline-none text-[rgb(var(--pz-rgb))] placeholder:text-[rgba(var(--pz-rgb),0.35)] text-[14px] font-semibold"
         style={{ background: GLASS, padding: '10px 14px' }}
       />
       <div ref={caja} className="flex-1 min-h-0 flex items-center justify-center">
         {direccion
           ? <SessionQR code={direccion} size={lado} />
-          : <div className="text-white/40 text-[13px] text-center px-6">{t('El alumnado lo escanea con la cámara del móvil.')}</div>}
+          : <div className="text-[rgba(var(--pz-rgb),0.4)] text-[13px] text-center px-6">{t('El alumnado lo escanea con la cámara del móvil.')}</div>}
       </div>
     </div>
   );
@@ -533,7 +533,7 @@ export function AgendaWidget({ uid }: { uid: string }) {
   return (
     <div className="h-full flex flex-col gap-2.5 min-h-0">
       <ul className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5">
-        {tareas.length === 0 && <li className="text-white/40 text-[13px] text-center pt-6 px-4">{t('Apunta lo que vais a hacer hoy y ve tachándolo.')}</li>}
+        {tareas.length === 0 && <li className="text-[rgba(var(--pz-rgb),0.4)] text-[13px] text-center pt-6 px-4">{t('Apunta lo que vais a hacer hoy y ve tachándolo.')}</li>}
         {tareas.map(tarea => (
           <li key={tarea.id} className="flex items-center gap-2.5 rounded-xl" style={{ padding: '8px 10px', background: GLASS }}>
             <button
@@ -545,8 +545,8 @@ export function AgendaWidget({ uid }: { uid: string }) {
               className="flex items-center justify-center rounded-lg flex-shrink-0"
               style={{ width: 26, height: 26, background: tarea.hecha ? '#a3e635' : 'transparent', border: '2px solid #a3e635', color: '#1a2e05' }}
             >{tarea.hecha && <Check size={16} strokeWidth={3} />}</button>
-            <span className="flex-1 min-w-0 text-[16px] font-semibold" style={{ color: tarea.hecha ? 'rgba(255,255,255,0.35)' : '#fff', textDecoration: tarea.hecha ? 'line-through' : 'none' }}>{tarea.texto}</span>
-            <button type="button" onClick={() => setTareas(p => p.filter(x => x.id !== tarea.id))} title={t('Quitar')} aria-label={t('Quitar')} className="text-white/30 hover:text-white/80 flex-shrink-0"><X size={15} /></button>
+            <span className="flex-1 min-w-0 text-[16px] font-semibold" style={{ color: tarea.hecha ? 'rgba(var(--pz-rgb),0.35)' : 'rgb(var(--pz-rgb))', textDecoration: tarea.hecha ? 'line-through' : 'none' }}>{tarea.texto}</span>
+            <button type="button" onClick={() => setTareas(p => p.filter(x => x.id !== tarea.id))} title={t('Quitar')} aria-label={t('Quitar')} className="text-[rgba(var(--pz-rgb),0.3)] hover:text-[rgba(var(--pz-rgb),0.8)] flex-shrink-0"><X size={15} /></button>
           </li>
         ))}
       </ul>
@@ -556,7 +556,7 @@ export function AgendaWidget({ uid }: { uid: string }) {
           onChange={e => setNueva(e.target.value)}
           placeholder={t('Añadir una actividad')}
           aria-label={t('Añadir una actividad')}
-          className="flex-1 min-w-0 rounded-xl outline-none text-white placeholder:text-white/35 text-[14px] font-semibold"
+          className="flex-1 min-w-0 rounded-xl outline-none text-[rgb(var(--pz-rgb))] placeholder:text-[rgba(var(--pz-rgb),0.35)] text-[14px] font-semibold"
           style={{ background: GLASS, padding: '9px 12px' }}
         />
         <IconBtn onClick={añadir} title={t('Añadir')} disabled={!nueva.trim()}><Plus size={16} /></IconBtn>

@@ -31,9 +31,17 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 - Barra inferior de **solo iconos en cuatro grupos**: tiempo (temporizador, cronómetro, reloj), clase (semáforo,
   símbolos, plan, nota), participación (ruleta, grupos, dados, marcador) y recursos (calculadora, sonómetro,
   contenido, QR), y «Reto» al final.
-- Superficie plana de un solo color (`#1e2433`) en ventanas, barras y menús: sin degradados, sin desenfoque y sin
-  brillos. La cabecera de la ventana es una línea con un punto del color de la herramienta, el título pequeño y la X.
-  Ese color solo se usa en el botón principal (`--pz-accent`). Los botones principales son sólidos, sin degradado.
+- **Las herramientas no tienen tarjeta** (19-10-2026, petición del dueño: «en lugar de tarjetas, que ocupen menos
+  espacio; la ruleta, por ejemplo, directamente»): cada una se pinta sobre la pizarra, sin fondo, cabecera ni relleno.
+  Se arrastra desde cualquier parte que no sea un control (`cancel` de `Rnd`); al pasar el ratón sale arriba a la
+  derecha una pastilla con un asa y la X (siempre visible en pantallas táctiles, `@media (hover: none)`). Las ventanas
+  por defecto son unos 60 px más pequeñas que con tarjeta.
+- **El color sigue al fondo:** el contenedor de la pizarra define `--pz-rgb` (blanco sobre fondos oscuros, azul pizarra
+  `15,23,42` sobre claros) y las herramientas escriben con `rgba(var(--pz-rgb), x)` en vez de blanco fijo. `--pz-accent`
+  es el color de cada herramienta (solo en su botón principal) y `--pz-ac`, ese mismo color mezclado con la tinta para
+  poder usarlo como texto en cualquier fondo. Una herramienta nueva no debe escribir colores fijos claros ni oscuros.
+- Las barras y los menús siguen siendo una superficie plana de un solo color (`#1e2433`), sin degradados ni brillos.
+  Los botones principales son sólidos.
 - Los menús de fondo y de escena son una cuadrícula de muestras y una lista, sin textos explicativos salvo cuando aún
   no hay ninguna escena.
 
