@@ -3,7 +3,9 @@ import { Rnd } from 'react-rnd';
 import {
   Clock3, Mic, MicOff, Play, Pause, RotateCcw, TimerReset, Volume2,
   Plus, Minus, Palette, Eraser, ExternalLink, X, Disc3, Trophy,
-  RefreshCw, Link as LinkIcon, PenLine, Sun, Moon, Calculator, Delete, Flag, Users,
+  RefreshCw, Link as LinkIcon, PenLine, Calculator, Delete, Flag, Users,
+  Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
+  Maximize, Minimize, LayoutTemplate, Save, Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -13,12 +15,22 @@ import { ChallengePresenter } from '../components/live/ChallengePresenter';
 import { fichaTheme } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { useI18n } from '../i18n';
+import {
+  ClockWidget, StopwatchWidget, TrafficWidget, DiceWidget, SymbolsWidget, NoteWidget, ScoreWidget,
+  GroupsWidget, QrWidget, AgendaWidget,
+} from '../components/live/PizarraWidgets';
+import {
+  FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, MAX_ESCENAS,
+  type FondoId, type Rect, type Escena,
+} from '../lib/pizarraAula';
 
 /* ════════════════════════════════════════════════════════════
    Aula Live — panel de herramientas para proyectar en clase
    ════════════════════════════════════════════════════════════ */
 
-type WidgetType = 'wheel' | 'timer' | 'noise' | 'embed' | 'calc';
+type WidgetType =
+  | 'wheel' | 'timer' | 'noise' | 'embed' | 'calc'
+  | 'clock' | 'stopwatch' | 'traffic' | 'dice' | 'symbols' | 'note' | 'score' | 'groups' | 'qr' | 'agenda';
 
 interface WidgetConfig {
   id: WidgetType;
@@ -33,7 +45,19 @@ const APPS: WidgetConfig[] = [
   { id: 'calc',  title: 'Calculadora',  icon: <Calculator size={19} />,   accent: '#f472b6' },
   { id: 'noise', title: 'Sonómetro',    icon: <Volume2 size={19} />,      accent: '#34d399' },
   { id: 'embed', title: 'Contenido',    icon: <ExternalLink size={19} />, accent: '#fbbf24' },
+  { id: 'clock',     title: 'Reloj y fecha',       icon: <Clock3 size={19} />,       accent: '#60a5fa' },
+  { id: 'stopwatch', title: 'Cronómetro',          icon: <TimerIcon size={19} />,    accent: '#fb923c' },
+  { id: 'traffic',   title: 'Semáforo',            icon: <Car size={19} />,          accent: '#4ade80' },
+  { id: 'symbols',   title: 'Símbolos de trabajo', icon: <Hand size={19} />,         accent: '#c084fc' },
+  { id: 'dice',      title: 'Dados',               icon: <Dices size={19} />,        accent: '#f87171' },
+  { id: 'groups',    title: 'Grupos',              icon: <Users size={19} />,        accent: '#f472b6' },
+  { id: 'score',     title: 'Marcador',            icon: <Medal size={19} />,        accent: '#2dd4bf' },
+  { id: 'agenda',    title: 'Plan del día',        icon: <ListChecks size={19} />,   accent: '#a3e635' },
+  { id: 'note',      title: 'Nota',                icon: <StickyNote size={19} />,   accent: '#facc15' },
+  { id: 'qr',        title: 'Código QR',           icon: <QrCode size={19} />,       accent: '#e2e8f0' },
 ];
+
+const APP_IDS = APPS.map(a => a.id);
 
 /** Nombres de relleno cuando aún no hay alumnos creados. */
 const DEFAULT_NAMES = ['Alumno 1', 'Alumno 2', 'Alumno 3', 'Alumno 4', 'Alumno 5', 'Alumno 6'];
@@ -78,10 +102,19 @@ function recolorStrokes(canvas: HTMLCanvasElement | null, from: readonly string[
   ctx.putImageData(img, 0, 0);
 }
 
-function readBoardTheme(): BoardTheme {
-  // Blanca por defecto: en la pantalla del aula (proyector o panel) el fondo
-  // oscuro se ve mal con luz ambiente.
-  try { return localStorage.getItem(BOARD_KEY) === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
+const FONDO_KEY = 'aulapro_pizarra_fondo';
+const ESCENAS_KEY = 'aulapro_pizarra_escenas';
+const ACTUAL_KEY = 'aulapro_pizarra_actual';
+
+function readFondo(): FondoId {
+  // Blanco por defecto: en la pantalla del aula (proyector o panel) el fondo
+  // oscuro se ve mal con luz ambiente. Quien ya había elegido pizarra oscura
+  // (`BOARD_KEY`, de antes de que hubiera más fondos) la conserva.
+  try {
+    const guardado = localStorage.getItem(FONDO_KEY);
+    if (guardado) return fondoPorId(guardado).id;
+    return localStorage.getItem(BOARD_KEY) === 'dark' ? 'oscuro' : 'blanco';
+  } catch { return 'blanco'; }
 }
 
 const WHEEL_COLORS = [
@@ -1297,13 +1330,35 @@ function EmbedWidget() {
  * (1110 px una vez descontada la barra lateral), sin que nada quede pegado al
  * borde ni tapado por el dock inferior.
  */
-const DEFAULTS: Record<WidgetType, { x: number; y: number; width: number; height: number }> = {
+const DEFAULTS: Record<WidgetType, Rect> = {
   timer: { x: 24,  y: 70,  width: 316, height: 404 },
   wheel: { x: 356, y: 70,  width: 376, height: 452 },
   calc:  { x: 748, y: 70,  width: 302, height: 438 },
   noise: { x: 356, y: 296, width: 330, height: 372 },
   embed: { x: 110, y: 286, width: 600, height: 378 },
+  clock:     { x: 60,  y: 90,  width: 420, height: 230 },
+  stopwatch: { x: 120, y: 130, width: 340, height: 390 },
+  traffic:   { x: 200, y: 90,  width: 330, height: 420 },
+  symbols:   { x: 300, y: 100, width: 420, height: 340 },
+  dice:      { x: 260, y: 150, width: 340, height: 340 },
+  groups:    { x: 140, y: 90,  width: 600, height: 430 },
+  score:     { x: 420, y: 110, width: 420, height: 340 },
+  agenda:    { x: 640, y: 110, width: 380, height: 430 },
+  note:      { x: 180, y: 120, width: 400, height: 300 },
+  qr:        { x: 600, y: 90,  width: 380, height: 470 },
 };
+
+/** Tamaño mínimo de cada ventana: las hay que caben en poco (el reloj) y otras que no (el contenido). */
+const MIN_BASE = { width: 270, height: 300 };
+const MINIMOS: Partial<Record<WidgetType, { width: number; height: number }>> = {
+  clock: { width: 240, height: 150 },
+  traffic: { width: 250, height: 300 },
+  note: { width: 240, height: 180 },
+  symbols: { width: 240, height: 200 },
+  score: { width: 300, height: 220 },
+  agenda: { width: 270, height: 240 },
+};
+const minDe = (id: WidgetType) => MINIMOS[id] ?? MIN_BASE;
 
 interface ClassroomProps {
   /** Nombres para la ruleta cuando no hay clases (el de PT y AL: su alumnado de apoyo). */
@@ -1353,6 +1408,29 @@ function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick:
   );
 }
 
+interface Ventana { id: WidgetType; rect: Rect }
+
+/** Las ventanas que había abiertas la última vez (`null`: nunca se ha guardado nada). */
+function leerActual(): Ventana[] | null {
+  try {
+    const raw = localStorage.getItem(ACTUAL_KEY);
+    if (raw === null) return null;
+    return leerVentanas(JSON.parse(raw), APP_IDS) as Ventana[];
+  } catch { return null; }
+}
+
+function leerEscenasGuardadas(): Escena[] {
+  try { return leerEscenas(localStorage.getItem(ESCENAS_KEY), APP_IDS); } catch { return []; }
+}
+
+const CRISTAL: React.CSSProperties = {
+  background: 'rgba(15,23,42,0.76)',
+  backdropFilter: 'blur(22px)',
+  WebkitBackdropFilter: 'blur(22px)',
+  border: '1px solid rgba(255,255,255,0.11)',
+  boxShadow: '0 16px 44px rgba(0,0,0,0.5)',
+};
+
 export default function SecClassroom({ studentNames = [], clases = [], claseInicial, fichas = [], projectFicha = null, onProjectDone }: ClassroomProps) {
   const { t } = useI18n();
   const [claseId, setClaseId] = useState(claseInicial ?? '');
@@ -1360,24 +1438,32 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
   const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // El trazo se guarda en una referencia, no en estado: React agrupa las
   // actualizaciones y los primeros movimientos del ratón se perderían.
   const drawingRef = useRef(false);
-  const [board, setBoard] = useState<BoardTheme>(readBoardTheme);
+  const [fondoId, setFondoId] = useState<FondoId>(readFondo);
+  const fondo = fondoPorId(fondoId);
+  const light = fondo.tono === 'claro';
+  const board: BoardTheme = light ? 'light' : 'dark';
   const penColors = PEN_COLORS[board];
-  const [color, setColor] = useState<string>(penColors[0]);
+  const [color, setColor] = useState<string>(() => PEN_COLORS[board][0]);
   const [penOn, setPenOn] = useState(false);
-  const light = board === 'light';
+  const [menu, setMenu] = useState<null | 'fondos' | 'escenas'>(null);
 
-  function switchBoard() {
-    const next: BoardTheme = light ? 'dark' : 'light';
-    setBoard(next);
-    // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
-    const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
-    setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
-    recolorStrokes(canvasRef.current, PEN_COLORS[board], PEN_COLORS[next]);
-    try { localStorage.setItem(BOARD_KEY, next); } catch { /* sin almacenamiento: solo dura esta sesión */ }
+  /** Cambia el fondo; si cambia entre claro y oscuro, lo ya dibujado y el color del lápiz pasan a su equivalente. */
+  function elegirFondo(id: FondoId) {
+    const nuevo = fondoPorId(id);
+    if (nuevo.tono !== fondo.tono) {
+      const next: BoardTheme = nuevo.tono === 'claro' ? 'light' : 'dark';
+      // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
+      const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
+      setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
+      recolorStrokes(canvasRef.current, PEN_COLORS[board], PEN_COLORS[next]);
+    }
+    setFondoId(nuevo.id);
+    try { localStorage.setItem(FONDO_KEY, nuevo.id); } catch { /* sin almacenamiento: solo dura esta sesión */ }
   }
 
   const nombresClase = clase?.nombres;
@@ -1386,9 +1472,79 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     return base.length > 0 ? base : DEFAULT_NAMES;
   }, [nombresClase, studentNames]);
 
-  const [widgets, setWidgets] = useState<Record<WidgetType, boolean>>({
-    timer: true, wheel: true, calc: false, noise: false, embed: false,
-  });
+  /* ── Ventanas: el orden de la lista es el orden de apilado (la última, delante) ── */
+  const [ventanas, setVentanas] = useState<Ventana[]>(() =>
+    leerActual() ?? (['timer', 'wheel'] as WidgetType[]).map(id => ({ id, rect: DEFAULTS[id] })));
+
+  const areaPizarra = useCallback(() => {
+    const r = rootRef.current?.getBoundingClientRect();
+    return r && r.width > 0 && r.height > 0 ? { width: r.width, height: r.height } : { width: 1110, height: 700 };
+  }, []);
+
+  // Lo guardado en otro monitor (o una ventana que se encoge) puede no caber: se mete todo en el área visible
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const ajustar = () => {
+      const area = areaPizarra();
+      setVentanas(prev => {
+        const next = prev.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.id)) }));
+        return next.every((v, i) => JSON.stringify(v.rect) === JSON.stringify(prev[i].rect)) ? prev : next;
+      });
+    };
+    const observer = new ResizeObserver(ajustar);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [areaPizarra]);
+
+  useEffect(() => {
+    try { localStorage.setItem(ACTUAL_KEY, JSON.stringify(ventanas)); } catch { /* sin almacenamiento */ }
+  }, [ventanas]);
+
+  const alFrente = useCallback((id: WidgetType) => {
+    setVentanas(prev => (prev[prev.length - 1]?.id === id ? prev : [...prev.filter(v => v.id !== id), ...prev.filter(v => v.id === id)]));
+  }, []);
+  const ponerRect = useCallback((id: WidgetType, rect: Partial<Rect>) => {
+    setVentanas(prev => prev.map(v => v.id === id ? { ...v, rect: { ...v.rect, ...rect } } : v));
+  }, []);
+  const toggle = (id: WidgetType) => setVentanas(prev =>
+    prev.some(v => v.id === id)
+      ? prev.filter(v => v.id !== id)
+      : [...prev, { id, rect: ajustarRect(DEFAULTS[id], areaPizarra(), minDe(id)) }]);
+
+  /* ── Escenas: una disposición con nombre que se puede recuperar con un clic ── */
+  const [escenas, setEscenas] = useState<Escena[]>(leerEscenasGuardadas);
+  const [nombreEscena, setNombreEscena] = useState('');
+  useEffect(() => {
+    try { localStorage.setItem(ESCENAS_KEY, JSON.stringify(escenas)); } catch { /* sin almacenamiento */ }
+  }, [escenas]);
+
+  function guardarEscena() {
+    if (escenas.length >= MAX_ESCENAS) return;
+    const nombre = nombreEscena.trim().slice(0, 40) || t('Escena {n}', { n: escenas.length + 1 });
+    setEscenas(p => [...p, { id: 'sc' + Date.now(), nombre, fondo: fondoId, ventanas: ventanas.map(v => ({ id: v.id, rect: v.rect })) }]);
+    setNombreEscena('');
+  }
+  function cargarEscena(e: Escena) {
+    const area = areaPizarra();
+    elegirFondo(e.fondo);
+    setVentanas(e.ventanas.map(v => ({ id: v.id as WidgetType, rect: ajustarRect(v.rect, area, minDe(v.id as WidgetType)) })));
+    setMenu(null);
+  }
+
+  /* ── Pantalla completa ── */
+  const [pantallaCompleta, setPantallaCompleta] = useState(() => typeof document !== 'undefined' && !!document.fullscreenElement);
+  useEffect(() => {
+    const f = () => setPantallaCompleta(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', f);
+    return () => document.removeEventListener('fullscreenchange', f);
+  }, []);
+  const puedePantallaCompleta = typeof document !== 'undefined' && !!document.fullscreenEnabled;
+  function alternarPantallaCompleta() {
+    // Si el sistema no la permite (el WebView de algunos móviles), simplemente no pasa nada
+    const hecho = document.fullscreenElement ? document.exitFullscreen() : rootRef.current?.requestFullscreen();
+    hecho?.catch(() => { /* rechazada */ });
+  }
 
   /* ── Pizarra ── */
   useEffect(() => {
@@ -1473,54 +1629,85 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     ctx.clearRect(0, 0, width, height);
   };
 
-  const toggle = (id: WidgetType) => setWidgets(p => ({ ...p, [id]: !p[id] }));
+  const cuerpo = (id: WidgetType) => {
+    switch (id) {
+      case 'timer':     return <TimerWidget />;
+      case 'wheel':     return <WheelWidget names={wheelNames} />;
+      case 'calc':      return <CalcWidget />;
+      case 'noise':     return <NoiseWidget />;
+      case 'embed':     return <EmbedWidget />;
+      case 'clock':     return <ClockWidget />;
+      case 'stopwatch': return <StopwatchWidget />;
+      case 'traffic':   return <TrafficWidget />;
+      case 'dice':      return <DiceWidget />;
+      case 'symbols':   return <SymbolsWidget />;
+      case 'note':      return <NoteWidget />;
+      case 'score':     return <ScoreWidget />;
+      case 'groups':    return <GroupsWidget names={wheelNames} />;
+      case 'qr':        return <QrWidget />;
+      case 'agenda':    return <AgendaWidget />;
+    }
+  };
 
   const renderWidget = (cfg: WidgetConfig) => {
-    if (!widgets[cfg.id]) return null;
-    const body =
-      cfg.id === 'timer' ? <TimerWidget /> :
-      cfg.id === 'wheel' ? <WheelWidget names={wheelNames} /> :
-      cfg.id === 'calc'  ? <CalcWidget /> :
-      cfg.id === 'noise' ? <NoiseWidget /> :
-                           <EmbedWidget />;
+    const pos = ventanas.findIndex(v => v.id === cfg.id);
+    if (pos < 0) return null;
+    const { rect } = ventanas[pos];
+    const min = minDe(cfg.id);
 
     return (
       <Rnd
         key={cfg.id}
-        default={DEFAULTS[cfg.id]}
-        minWidth={270}
-        minHeight={300}
+        position={{ x: rect.x, y: rect.y }}
+        size={{ width: rect.width, height: rect.height }}
+        minWidth={min.width}
+        minHeight={min.height}
         bounds="parent"
         dragHandleClassName="drag-handle"
         // Sin esto, en el móvil el toque sobre la X empieza un arrastre de la cabecera y nunca llega a ser un clic
         cancel=".widget-cerrar"
-        style={{ zIndex: 30 }}
+        onMouseDown={() => alFrente(cfg.id)}
+        onDragStop={(_e, d) => ponerRect(cfg.id, { x: d.x, y: d.y })}
+        onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(cfg.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
+        style={{ zIndex: 30 + pos }}
       >
         <WidgetShell title={t(cfg.title)} icon={cfg.icon} accent={cfg.accent} onClose={() => toggle(cfg.id)}>
-          {body}
+          {cuerpo(cfg.id)}
         </WidgetShell>
       </Rnd>
     );
   };
 
+  const botonBarra = (activo: boolean): React.CSSProperties => ({
+    padding: '6px 12px',
+    background: activo ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)',
+    color: activo ? '#7dd3fc' : 'rgba(255,255,255,0.7)',
+  });
+
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - var(--hub-h, 0px))', background: light ? '#ffffff' : '#080f21' }}>
+    <div
+      ref={rootRef}
+      className="relative w-full overflow-hidden"
+      style={{ height: pantallaCompleta ? '100vh' : 'calc(100vh - var(--hub-h, 0px))', background: fondo.css }}
+    >
       {/* Fondo */}
-      {!light && (
+      {fondo.id === 'oscuro' && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(circle at 20% 0%, rgba(99,102,241,0.22), transparent 45%), radial-gradient(circle at 85% 25%, rgba(236,72,153,0.13), transparent 42%), radial-gradient(circle at 50% 100%, rgba(34,211,238,0.13), transparent 50%)' }}
         />
       )}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: light
-            ? 'linear-gradient(rgba(15,23,42,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.055) 1px, transparent 1px)'
-            : 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)',
-          backgroundSize: '46px 46px',
-        }}
-      />
+      {fondo.cuadricula && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: light
+              ? 'linear-gradient(rgba(15,23,42,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.055) 1px, transparent 1px)'
+              : 'linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px)',
+            backgroundSize: '46px 46px',
+          }}
+        />
+      )}
 
       {/* Pizarra */}
       <canvas
@@ -1545,11 +1732,14 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         onTouchEnd={stopDrawing}
       />
 
-      {/* Barra de dibujo */}
+      {/* Cierra el menú abierto al tocar fuera */}
+      {menu && <div className="absolute inset-0" style={{ zIndex: 54 }} onClick={() => setMenu(null)} aria-hidden="true" />}
+
+      {/* Barra superior */}
       <div
-        className="absolute flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
+        className="absolute flex flex-wrap items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
         style={{
-          top: 18, left: 18, zIndex: 50,
+          top: 18, left: 18, zIndex: 56, maxWidth: 'calc(100% - 36px)',
           background: 'rgba(15,23,42,0.72)',
           backdropFilter: 'blur(18px)',
           border: '1px solid rgba(255,255,255,0.11)',
@@ -1570,24 +1760,42 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
           onClick={() => setPenOn(v => !v)}
           title={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')}
           className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={{
-            padding: '6px 12px',
-            background: penOn ? 'rgba(56,189,248,0.22)' : 'rgba(255,255,255,0.07)',
-            color: penOn ? '#7dd3fc' : 'rgba(255,255,255,0.6)',
-          }}
+          style={botonBarra(penOn)}
         >
           <PenLine size={15} />{t(penOn ? 'Dibujando' : 'Lápiz')}
         </button>
 
         <button
-          onClick={switchBoard}
-          title={t(light ? 'Cambiar a pizarra oscura' : 'Cambiar a pizarra blanca')}
-          aria-label={t(light ? 'Cambiar a pizarra oscura' : 'Cambiar a pizarra blanca')}
+          onClick={() => setMenu(m => m === 'fondos' ? null : 'fondos')}
+          aria-expanded={menu === 'fondos'}
+          title={t('Cambiar el fondo')}
           className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
-          style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)' }}
+          style={botonBarra(menu === 'fondos')}
         >
-          {light ? <Moon size={15} /> : <Sun size={15} />}{t(light ? 'Fondo oscuro' : 'Fondo blanco')}
+          <ImageIcon size={15} />{t('Fondo')}
         </button>
+
+        <button
+          onClick={() => setMenu(m => m === 'escenas' ? null : 'escenas')}
+          aria-expanded={menu === 'escenas'}
+          title={t('Guardar y recuperar la disposición de la pizarra')}
+          className="flex items-center gap-2 rounded-xl text-[12.5px] font-bold transition-all"
+          style={botonBarra(menu === 'escenas')}
+        >
+          <LayoutTemplate size={15} />{t('Escenas')}
+        </button>
+
+        {puedePantallaCompleta && (
+          <button
+            onClick={alternarPantallaCompleta}
+            title={t(pantallaCompleta ? 'Salir de la pantalla completa' : 'Pantalla completa')}
+            aria-label={t(pantallaCompleta ? 'Salir de la pantalla completa' : 'Pantalla completa')}
+            className="flex items-center justify-center rounded-xl transition-all"
+            style={{ ...botonBarra(false), padding: '6px 9px' }}
+          >
+            {pantallaCompleta ? <Minimize size={15} /> : <Maximize size={15} />}
+          </button>
+        )}
 
         {penOn && (
           <>
@@ -1619,25 +1827,89 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         )}
       </div>
 
+      {/* Menú de fondos */}
+      {menu === 'fondos' && (
+        <div className="absolute rounded-2xl p-3" style={{ top: 78, left: 18, zIndex: 57, width: 340, maxWidth: 'calc(100% - 36px)', ...CRISTAL, background: 'rgba(15,23,42,0.96)' }} role="dialog" aria-label={t('Fondo')}>
+          <div className="grid grid-cols-4 gap-2">
+            {FONDOS.map(f => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => elegirFondo(f.id)}
+                aria-pressed={fondoId === f.id}
+                className="flex flex-col items-center gap-1.5 rounded-xl text-[11px] font-bold text-white/75"
+                style={{ padding: 6, background: fondoId === f.id ? 'rgba(56,189,248,0.2)' : 'transparent' }}
+              >
+                <span className="block w-full rounded-lg" style={{ height: 38, background: f.css, border: '1px solid rgba(255,255,255,0.25)' }} />
+                {t(f.label)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Menú de escenas */}
+      {menu === 'escenas' && (
+        <div className="absolute rounded-2xl p-3 flex flex-col gap-2.5" style={{ top: 78, left: 18, zIndex: 57, width: 340, maxWidth: 'calc(100% - 36px)', ...CRISTAL, background: 'rgba(15,23,42,0.96)' }} role="dialog" aria-label={t('Escenas')}>
+          <p className="text-[12px] text-white/55 leading-snug">{t('Una escena guarda qué herramientas hay abiertas, dónde están y el fondo. Úsalas para pasar de la entrada a la tarea y al cierre con un clic.')}</p>
+          <form className="flex gap-2" onSubmit={e => { e.preventDefault(); guardarEscena(); }}>
+            <input
+              value={nombreEscena}
+              onChange={e => setNombreEscena(e.target.value)}
+              maxLength={40}
+              placeholder={t('Nombre de la escena')}
+              aria-label={t('Nombre de la escena')}
+              className="flex-1 min-w-0 rounded-xl outline-none text-white placeholder:text-white/35 text-[13px] font-semibold"
+              style={{ background: 'rgba(255,255,255,0.08)', padding: '8px 11px' }}
+            />
+            <button
+              type="submit"
+              disabled={escenas.length >= MAX_ESCENAS}
+              className="flex items-center gap-1.5 rounded-xl text-[12.5px] font-bold disabled:opacity-40"
+              style={{ padding: '0 12px', background: 'rgba(56,189,248,0.22)', color: '#7dd3fc' }}
+            ><Save size={14} />{t('Guardar')}</button>
+          </form>
+          {escenas.length >= MAX_ESCENAS && <p className="text-[11.5px] text-amber-300/90">{t('Has llegado al máximo de escenas. Borra alguna para guardar otra.')}</p>}
+          {escenas.length > 0 && (
+            <ul className="flex flex-col gap-1 max-h-[260px] overflow-y-auto">
+              {escenas.map(e => (
+                <li key={e.id} className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => cargarEscena(e)}
+                    className="flex-1 min-w-0 flex items-center gap-2 rounded-xl text-left text-[13px] font-bold text-white/85 hover:text-white"
+                    style={{ padding: '8px 11px', background: 'rgba(255,255,255,0.06)' }}
+                  >
+                    <span className="inline-block rounded-md flex-shrink-0" style={{ width: 16, height: 16, background: fondoPorId(e.fondo).css, border: '1px solid rgba(255,255,255,0.3)' }} />
+                    <span className="truncate">{e.nombre}</span>
+                    <span className="ml-auto text-[11px] font-semibold text-white/40 flex-shrink-0">{t('{n} herramientas', { n: e.ventanas.length })}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEscenas(p => p.filter(x => x.id !== e.id))}
+                    title={t('Borrar escena')}
+                    aria-label={t('Borrar escena')}
+                    className="flex items-center justify-center rounded-lg text-white/40 hover:text-rose-300 flex-shrink-0"
+                    style={{ width: 32, height: 32 }}
+                  ><Trash2 size={14} /></button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {/* Widgets */}
       {APPS.map(renderWidget)}
 
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
 
-      {/* Dock */}
-      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 20, zIndex: 60 }}>
-        <div
-          className="flex gap-2 rounded-3xl px-3 py-2.5"
-          style={{
-            background: 'rgba(15,23,42,0.76)',
-            backdropFilter: 'blur(22px)',
-            border: '1px solid rgba(255,255,255,0.11)',
-            boxShadow: '0 16px 44px rgba(0,0,0,0.5)',
-          }}
-        >
+      {/* Dock: con tantas herramientas se desplaza hacia los lados en pantallas estrechas */}
+      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 20, zIndex: 60, maxWidth: 'calc(100% - 150px)' }}>
+        <div className="flex rounded-3xl px-1.5 py-2 overflow-x-auto" style={{ ...CRISTAL, scrollbarWidth: 'thin' }}>
           {APPS.map(app => {
-            const on = widgets[app.id];
+            const on = ventanas.some(v => v.id === app.id);
             return (
               <motion.button
                 key={app.id}
@@ -1645,36 +1917,38 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
                 whileTap={{ scale: 0.94 }}
                 onClick={() => toggle(app.id)}
                 title={t(on ? 'Cerrar {title}' : 'Abrir {title}', { title: t(app.title) })}
-                className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors"
+                aria-pressed={on}
+                className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors flex-shrink-0"
                 style={{
-                  padding: '9px 15px',
+                  padding: '8px 1px',
+                  width: 56,
                   background: on ? `${app.accent}1f` : 'transparent',
                   color: on ? app.accent : 'rgba(255,255,255,0.55)',
                 }}
               >
                 {app.icon}
-                <span className="text-[10.5px] font-bold tracking-tight">{t(app.title)}</span>
+                <span className="text-[9.5px] font-bold tracking-tight text-center leading-tight">{t(app.title)}</span>
                 {on && (
                   <motion.div
                     layoutId={`dot-${app.id}`}
                     className="absolute rounded-full"
-                    style={{ bottom: 3, width: 4, height: 4, background: app.accent }}
+                    style={{ bottom: 2, width: 4, height: 4, background: app.accent }}
                   />
                 )}
               </motion.button>
             );
           })}
-          <div style={{ width: 1, alignSelf: 'stretch', margin: '4px 2px', background: 'rgba(255,255,255,0.12)' }} />
+          <div className="flex-shrink-0" style={{ width: 1, alignSelf: 'stretch', margin: '4px 2px', background: 'rgba(255,255,255,0.12)' }} />
           <motion.button
             whileHover={{ y: -4 }}
             whileTap={{ scale: 0.94 }}
             onClick={() => setPicking(true)}
             title={t('Proyectar una ficha, un escape room o unas tarjetas')}
-            className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors"
-            style={{ padding: '9px 15px', color: '#fb923c' }}
+            className="relative flex flex-col items-center gap-1 rounded-2xl transition-colors flex-shrink-0"
+            style={{ padding: '8px 1px', width: 52, color: '#fb923c' }}
           >
             <Flag size={19} />
-            <span className="text-[10.5px] font-bold tracking-tight">{t('Reto')}</span>
+            <span className="text-[9.5px] font-bold tracking-tight">{t('Reto')}</span>
           </motion.button>
         </div>
       </div>
