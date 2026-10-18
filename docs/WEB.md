@@ -78,6 +78,15 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
 - Pendiente para mostrar la versión en `/descargar`: que `version.json` responda con `Access-Control-Allow-Origin: https://aulapro.app` (regla CORS del bucket de R2). Cuando esté, poner `version: 'https://descargas.aulapro.app/version.json'` en `assets/launch.js`.
 - El instalador .exe directo (sin firma) sigue en descargas.aulapro.app para pruebas y como alternativa mientras no exista la ficha de la Store.
 
+## 4b. Bloqueos de los operadores en España (18-10-2026)
+
+Durante los partidos de LaLiga, los operadores españoles bloquean por orden judicial bloques de direcciones de Cloudflare, y con ellos webs legítimas. El 18-10-2026 el dueño no podía abrir aulapro.app ni www.aulapro.app desde la tablet, el iPhone ni un segundo PC (errores `ERR_QUIC_PROTOCOL_ERROR`, tiempo agotado y `ERR_CONNECTION_ABORTED`), con la misma wifi y sin VPN; solo abría en el PC con VPN. Desde fuera de España la web respondía bien (12 de 12 puntos de comprobación). Consecuencias para la web y la app:
+
+- La web, `descargas.aulapro.app` (R2) y lo que la app pide a `aulapro.app` (`calendario-escolar.json`, `version.json`) no se pueden abrir desde España mientras dura un bloqueo. La app tiene que seguir funcionando sin esas respuestas.
+- Las descargas van por Microsoft Store y Google Play (no por Cloudflare); los instaladores directos son secundarios.
+- Prueba en curso: `.github/workflows/web-prueba-pages.yml` (manual) publica una copia en https://sssssantipedra-lang.github.io/aulapro/ para ver si GitHub Pages se abre durante un bloqueo. Si abre, `aulapro.app` pasaría a GitHub Pages (DNS en Cloudflare sin proxy, correo igual). Si no, otro alojamiento. No cambiar el alojamiento sin esa prueba.
+- HTTP/3 (QUIC) está desactivado en Cloudflare (Speed > Settings > Protocol Optimization) desde esa fecha; es indiferente para el bloqueo.
+
 ## 5. Lemon Squeezy: ajustes del producto
 
 1. Precios con impuestos incluidos, para que el cliente pague exactamente 6,99 €.
