@@ -36,6 +36,7 @@ import { ClassMarksModal } from '../components/seating/ClassMarksModal';
 import { markTypeInfo } from '../services/classMarks';
 import { isoDate } from '../lib/utils';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { compararAlumnos } from '../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -115,7 +116,7 @@ export function SeatingPlan({
   const clsId = cls?.id ?? '';
 
   const roster = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
 
@@ -146,7 +147,7 @@ export function SeatingPlan({
 
   /** Sienta a quien falte en los asientos libres, mesa a mesa y por orden de lista. */
   function sentarEnOrden() {
-    const pendientes = [...sinAsignar].sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+    const pendientes = [...sinAsignar].sort(compararAlumnos);
     // Un asiento con alguien que ya no está en la clase (borrado o cambiado
     // de grupo) se ve libre en la mesa, así que también se ocupa.
     const enLista = new Set(roster.map(s => s.id));

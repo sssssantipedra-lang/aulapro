@@ -10,6 +10,7 @@ import { SessionQR } from '../components/share/SessionQR';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { isAndroidApp } from '../lib/platform';
+import { compararAlumnos } from '../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -52,7 +53,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
   const roster = useMemo(() => {
     return students
       .filter(s => s.class_id === classId)
-      .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+      .sort(compararAlumnos)
       .map((s, i) => ({ n: i + 1, name: s.name, id: s.id }));
   }, [students, classId]);
 

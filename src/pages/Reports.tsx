@@ -16,6 +16,7 @@ import { downloadFile } from '../lib/download';
 import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
+import { compararAlumnos, compararNombres } from '../lib/alumnado';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -126,7 +127,7 @@ export function Reports(props: Props) {
   const cita = curriculo ? citarNormas(curriculo.normas, lang) : '';
 
   const roster = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+    () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
 
@@ -344,7 +345,7 @@ export function Reports(props: Props) {
     savePdf(
       reports
         .filter(r => r.class_id === clsId && r.period === period)
-        .sort((a, b) => a.student_name.localeCompare(b.student_name, 'es')),
+        .sort((a, b) => compararNombres(a.student_name, b.student_name)),
       `informes-${slug(cls?.name ?? 'clase')}-${slug(period)}`,
       'all',
     );
@@ -355,7 +356,7 @@ export function Reports(props: Props) {
     if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
     const text = list
       .slice()
-      .sort((a, b) => a.student_name.localeCompare(b.student_name, 'es'))
+      .sort((a, b) => compararNombres(a.student_name, b.student_name))
       .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}\n\n${'—'.repeat(40)}\n`)
       .join('\n');
     void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`);

@@ -10,6 +10,7 @@ import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { compararAlumnos } from '../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -53,7 +54,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
   const clsId = cls?.id ?? '';
 
   const roster = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
+    () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
 

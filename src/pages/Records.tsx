@@ -7,6 +7,7 @@ import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { compararAlumnos } from '../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -45,10 +46,8 @@ function num(n: number | null, locale = 'es-ES', decimals = 1): string {
   return n.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
-/** Apellidos primero, como se ordenan las actas en España. */
-function byName(a: Student, b: Student) {
-  return a.name.localeCompare(b.name, 'es');
-}
+/** Apellidos primero, como se ordenan las actas en España (el orden de lista de toda la app). */
+const byName = compararAlumnos;
 
 export function Records({
   classes, students, gradeCategories, gradeItems, grades,

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronUp, Search, ClipboardList, X } from 'lucide-react';
 import type { Evaluation, Class, Student, Rubric, EvalDiana } from '../types';
 import { useI18n } from '../i18n';
+import { compararNombres } from '../lib/alumnado';
 
 interface Props {
   evaluations: Evaluation[];
@@ -142,7 +143,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
       if (sortField === 'date') {
         cmp = a.date.localeCompare(b.date);
       } else if (sortField === 'student') {
-        cmp = a.student_name.localeCompare(b.student_name);
+        cmp = compararNombres(a.student_name, b.student_name);
       } else if (sortField === 'rubric') {
         cmp = a.rubric_name.localeCompare(b.rubric_name);
       } else if (sortField === 'score') {

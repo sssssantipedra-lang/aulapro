@@ -21,6 +21,7 @@ import type { Lang } from '../i18n/core';
 import { tipoDePerfil } from '../lib/tipoDocente';
 import type { EfData } from '../types/ef';
 import type { TeacherProfile } from '../services/storage';
+import { ordenarAlumnado } from '../lib/alumnado';
 import {
   pushEntry, newEntry, formatGrade, formatDay,
   type AuditEntry, type AuditAction, type AuditEntity,
@@ -998,11 +999,15 @@ export function useAppState() {
       'Vaciado de fin de curso', 'se conservan rúbricas y dianas')]);
   }, [profileId]);
 
+  // Todas las pantallas reciben el alumnado en orden de lista (ver `lib/alumnado.ts`);
+  // lo guardado sigue en el orden en que se dio de alta.
+  const alumnadoEnOrden = useMemo(() => ordenarAlumnado(students), [students]);
+
   return {
     ready, saving, profile, currentUser, profileId,
     openProfile, createAndOpenProfile, logout, updateUser,
 
-    tasks, classes, students,
+    tasks, classes, students: alumnadoEnOrden,
     scheduleBlocks, calEvents,
     rubrics, dianas, evaluations,
     gradeCategories, gradeItems, grades,

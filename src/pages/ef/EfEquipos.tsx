@@ -14,6 +14,7 @@ import { isoDate, fromIsoDate } from '../../lib/utils';
 import { COLORES_EQUIPO, exentosDelDia, hacerEquipos, LIMITACIONES, MAX_EQUIPOS, parejasJuntas, type OpcionesEquipos } from '../../lib/ef';
 import type { AttendanceMap, Class, Section, Student } from '../../types';
 import type { EfData, SexoEF } from '../../types/ef';
+import { compararAlumnos, compararNombres, idsEnOrdenDeLista } from '../../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -30,7 +31,7 @@ export function EfEquipos({ classes, students, attendance, ef, onChangeEf, onNav
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const hoy = isoDate();
-  const ordenadas = useMemo(() => [...classes].sort((a, b) => a.name.localeCompare(b.name)), [classes]);
+  const ordenadas = useMemo(() => [...classes].sort((a, b) => compararNombres(a.name, b.name)), [classes]);
   const [claseId, setClaseId] = useState<string | null>(null);
   const clase = ordenadas.find(c => c.id === claseId) ?? ordenadas[0] ?? null;
   /** Sin elegir, los mismos que los guardados, o cuatro. */
@@ -54,7 +55,7 @@ export function EfEquipos({ classes, students, attendance, ef, onChangeEf, onNav
     );
   }
 
-  const alumnos = students.filter(s => s.class_id === clase.id).sort((a, b) => a.name.localeCompare(b.name));
+  const alumnos = students.filter(s => s.class_id === clase.id).sort(compararAlumnos);
   const nombre = (id: string) => students.find(s => s.id === id)?.name ?? '';
   const faltaHoy = (id: string) => ['absent', 'justified'].includes(attendance[clase.id]?.[hoy]?.[id] ?? '');
   const ausentes = alumnos.filter(s => faltaHoy(s.id));
@@ -62,7 +63,7 @@ export function EfEquipos({ classes, students, attendance, ef, onChangeEf, onNav
   const exentos = new Map(exentosDelDia(ef, hoy).map(e => [e.alumnoId, e]));
   const ids = new Set(alumnos.map(s => s.id));
   const guardados = ef.equipos[clase.id];
-  const grupos = guardados?.grupos.map(g => g.filter(id => ids.has(id))) ?? null;
+  const grupos = guardados?.grupos.map(g => idsEnOrdenDeLista(g.filter(id => ids.has(id)), alumnos)) ?? null;
   const maxEquipos = Math.max(2, Math.min(MAX_EQUIPOS, juegan.length));
   const n = Math.max(2, Math.min(cuantos ?? grupos?.length ?? 4, maxEquipos));
   const sinEquipo = grupos ? juegan.filter(s => !grupos.some(g => g.includes(s.id))) : [];

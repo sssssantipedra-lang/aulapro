@@ -20,6 +20,7 @@ import { markIcon } from '../lib/markIcons';
 import { isoDate, prettyDate, shiftDate } from '../lib/utils';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
+import { compararAlumnos } from '../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -57,7 +58,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
   const pct = (Math.round(cfg.points * 100) / 10).toLocaleString(locale);
 
   const roster = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
+    () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
   const mine = useMemo(() => (cls ? marksFor(classMarks, cls, subject) : []), [classMarks, cls, subject]);

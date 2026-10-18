@@ -19,6 +19,7 @@ import { requestAlumno, useGruposPedido } from '../../lib/apoyoNav';
 import { EditarAlumno } from './EditarAlumno';
 import type { ApoyoData, Especialidad, FranjaApoyo, GrupoApoyo } from '../../types/apoyo';
 import type { Section } from '../../types';
+import { compararNombres } from '../../lib/alumnado';
 
 const PALETA = ['#6366f1', '#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] as const;
 
@@ -61,7 +62,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
 
   const hoy = isoDate();
   const T = trimestreDe(hoy);
-  const alumnos = useMemo(() => [...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)), [data.alumnos]);
+  const alumnos = useMemo(() => [...data.alumnos].sort((a, b) => compararNombres(a.nombre, b.nombre)), [data.alumnos]);
   const evolucion = useMemo(() => new Map(evolucionDelTrimestre(data, T).map(e => [e.alumno.id, e])), [data, T]);
   const avisos = useMemo(() => avisosApoyo(data, hoy), [data, hoy]);
 
@@ -270,7 +271,7 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
                   <p className="ap-vacio" style={{ margin: 0 }}>{t('Primero añade al alumnado en la pestaña «Alumnado».')}</p>
                 ) : (
                   <div className="chip-row">
-                    {[...data.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(a => {
+                    {[...data.alumnos].sort((a, b) => compararNombres(a.nombre, b.nombre)).map(a => {
                       const on = grupo.alumnos.includes(a.id);
                       return (
                         <button key={a.id} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}

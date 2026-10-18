@@ -52,4 +52,22 @@ describe('En la pista', () => {
     await user.click(screen.getByRole('button', { name: /Alumno 1(?!\d)/ }));
     expect(marcas).toEqual([]);
   });
+
+  it('el alumnado sale en orden de lista, con los números como números: 1, 2, 3… 10, 14 y no 1, 10, 14, 2', () => {
+    // Se da el alumnado revuelto: la pantalla lo pone en orden
+    const clase = demo.classes[0].id;
+    const revuelto = [14, 1, 5, 10, 2, 13, 3, 12, 4, 11, 6, 9, 7, 8]
+      .map(n => ({ id: `t${n}`, class_id: clase, name: `Alumno ${n}`, email: '', photo: null, alerts: [], notes: '' }));
+    render(
+      <I18nProvider>
+        <EfPista
+          classes={demo.classes} students={revuelto} scheduleBlocks={demo.blocks} classMarks={[]} ef={demo.ef}
+          onAddMark={() => {}} onDeleteMark={() => {}} onNav={() => {}}
+        />
+      </I18nProvider>,
+    );
+    const nombres = screen.getAllByRole('button', { name: /^Alumno \d+/ }).map(b => /^Alumno (\d+)/.exec(b.textContent ?? '')![1]).map(Number);
+    expect(nombres).toHaveLength(14);
+    expect(nombres).toEqual([...nombres].sort((a, b) => a - b));
+  });
 });

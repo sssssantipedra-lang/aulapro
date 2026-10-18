@@ -17,6 +17,7 @@ import {
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
+import { compararAlumnos } from '../lib/alumnado';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -187,7 +188,7 @@ function GradesTab({
   const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
 
   const myStudents = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
+    () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
   const myCategories = useMemo(

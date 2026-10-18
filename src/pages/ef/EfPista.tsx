@@ -14,6 +14,7 @@ import { EF_MARK_TYPES, esAsignaturaEF } from '../../services/classMarks';
 import { asignaturaEF, exentosDelDia, LIMITACIONES, nuevoIdEF } from '../../lib/ef';
 import type { Class, ClassMark, ClassMarkType, ScheduleBlock, Section, Student } from '../../types';
 import type { EfData } from '../../types/ef';
+import { compararAlumnos } from '../../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -60,7 +61,7 @@ export function EfPista({ classes, students, scheduleBlocks, classMarks, ef, onA
 
   const asignatura = asignaturaEF(clase);
   const principal = clase.subjects[0] ?? clase.subject;
-  const alumnos = students.filter(s => s.class_id === clase.id).sort((a, b) => a.name.localeCompare(b.name));
+  const alumnos = students.filter(s => s.class_id === clase.id).sort(compararAlumnos);
   const deHoy = classMarks.filter(m => m.class_id === clase.id && m.date === hoy && (m.subject ?? principal) === asignatura);
   const exentos = new Map(exentosDelDia(ef, hoy).map(e => [e.alumnoId, e]));
   const info = EF_MARK_TYPES.find(m => m.id === aspecto)!;

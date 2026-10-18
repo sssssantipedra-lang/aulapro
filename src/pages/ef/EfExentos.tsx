@@ -17,6 +17,7 @@ import { exentosDelDia, LIMITACIONES, nuevoIdEF } from '../../lib/ef';
 import type { Class, Section, Student } from '../../types';
 import type { EfData, ExentoEF } from '../../types/ef';
 import { EfApoyos } from './EfApoyos';
+import { compararAlumnos } from '../../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -33,7 +34,7 @@ export function EfExentos({ classes, students, ef, onChangeEf, onNav }: Props) {
   const [editando, setEditando] = useState<ExentoEF | null>(null);
   const [verPasados, setVerPasados] = useState(false);
   const esNuevo = !!editando && !ef.exentos.some(e => e.id === editando.id);
-  const alumnado = useMemo(() => [...students].sort((a, b) => a.name.localeCompare(b.name)), [students]);
+  const alumnado = useMemo(() => [...students].sort(compararAlumnos), [students]);
   const alumno = (id: string) => students.find(s => s.id === id);
   const clase = (id: string) => classes.find(c => c.id === alumno(id)?.class_id)?.name ?? '';
   const dia = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short' });

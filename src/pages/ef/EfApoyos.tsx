@@ -14,6 +14,7 @@ import { useI18n } from '../../i18n';
 import { NECESIDADES_EF, NIVELES_APOYO, nuevoIdEF } from '../../lib/ef';
 import type { Class, Student } from '../../types';
 import type { ApoyoEF, EfData } from '../../types/ef';
+import { compararAlumnos, compararNombres } from '../../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -27,14 +28,14 @@ export function EfApoyos({ classes, students, ef, onChangeEf }: Props) {
   const { toast } = useToast();
   const [editando, setEditando] = useState<ApoyoEF | null>(null);
   const esNuevo = !!editando && !ef.apoyos.some(a => a.id === editando.id);
-  const alumnado = useMemo(() => [...students].sort((a, b) => a.name.localeCompare(b.name)), [students]);
+  const alumnado = useMemo(() => [...students].sort(compararAlumnos), [students]);
   const alumno = (id: string) => students.find(s => s.id === id);
   const clase = (id: string) => classes.find(c => c.id === alumno(id)?.class_id)?.name ?? '';
   // Uno por alumno: en el desplegable, los que ya tienen nivel no salen (salvo el que se edita)
   const libres = (actual?: string) => alumnado.filter(s => s.id === actual || !ef.apoyos.some(a => a.alumnoId === s.id));
   const lista = ef.apoyos
     .filter(a => alumno(a.alumnoId))
-    .sort((a, b) => b.nivel - a.nivel || alumno(a.alumnoId)!.name.localeCompare(alumno(b.alumnoId)!.name));
+    .sort((a, b) => b.nivel - a.nivel || compararNombres(alumno(a.alumnoId)!.name, alumno(b.alumnoId)!.name));
 
   function nuevo() {
     const primero = libres()[0];

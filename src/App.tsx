@@ -35,6 +35,7 @@ import { X, Menu } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp } from './lib/platform';
+import { compararAlumnos } from './lib/alumnado';
 
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
@@ -125,7 +126,7 @@ function AppInner() {
       name: c.name,
       nombres: nombresCortos(st.students
         .filter(s => s.class_id === c.id)
-        .sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }))
+        .sort(compararAlumnos)
         .map(s => s.name)),
     }))),
     [especialista, st.classes, st.students],
