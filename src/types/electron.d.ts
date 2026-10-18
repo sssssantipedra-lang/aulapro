@@ -153,6 +153,8 @@ declare global {
       update?: UpdateBridge;
       license?: LicenseBridge;
       files?: FilesBridge;
+      /** Solo en Android: atajos al sistema. */
+      app?: { openSettings: () => Promise<void> };
       secrets?: {
         get: (name: 'gemini') => Promise<string>;
         /** `false` si el sistema no ofrece cifrado: entonces no se ha guardado. */

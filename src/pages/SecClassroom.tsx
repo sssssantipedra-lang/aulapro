@@ -162,7 +162,8 @@ function WidgetShell({
         <button
           onClick={onClose}
           title={t('Cerrar')}
-          className="flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
+          aria-label={t('Cerrar')}
+          className="widget-cerrar flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
           style={{ width: 28, height: 28, color: 'rgba(255,255,255,0.55)' }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
@@ -534,7 +535,9 @@ function NoiseWidget() {
           </div>
           <p className="text-white/50 text-[12.5px] mt-1.5 leading-relaxed" style={{ maxWidth: 230 }}>
             {t(micState === 'denied'
-              ? 'Permite el micrófono en el navegador y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.'
+              ? (window.electronAPI?.app?.openSettings
+                ? 'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.'
+                : 'Permite el micrófono en el navegador y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.')
               : 'Mide el nivel de ruido de la clase en tiempo real. El sonido no se graba ni se envía a ningún sitio.')}
           </p>
         </div>
@@ -544,8 +547,17 @@ function NoiseWidget() {
           className="rounded-xl font-bold text-[13.5px] disabled:opacity-50"
           style={{ padding: '10px 22px', background: 'linear-gradient(135deg,#34d399,#10b981)', color: '#04231a' }}
         >
-          {t(micState === 'asking' ? 'Pidiendo permiso…' : 'Activar micrófono')}
+          {t(micState === 'asking' ? 'Pidiendo permiso…' : micState === 'denied' ? 'Volver a intentarlo' : 'Activar micrófono')}
         </button>
+        {micState === 'denied' && window.electronAPI?.app?.openSettings && (
+          <button
+            onClick={() => { window.electronAPI?.app?.openSettings().catch(() => {}); }}
+            className="rounded-xl font-semibold text-[12.5px]"
+            style={{ padding: '8px 18px', background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+          >
+            {t('Abrir los ajustes de AulaPro')}
+          </button>
+        )}
       </div>
     );
   }
@@ -1480,6 +1492,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         minHeight={300}
         bounds="parent"
         dragHandleClassName="drag-handle"
+        // Sin esto, en el móvil el toque sobre la X empieza un arrastre de la cabecera y nunca llega a ser un clic
+        cancel=".widget-cerrar"
         style={{ zIndex: 30 }}
       >
         <WidgetShell title={t(cfg.title)} icon={cfg.icon} accent={cfg.accent} onClose={() => toggle(cfg.id)}>

@@ -699,6 +699,9 @@ export const EF_EN: Record<string, string> = {
   'Borrar todas': 'Delete all',
   '¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.': 'Delete all {n} sessions of every class? This cannot be undone.',
   '{n} sesiones borradas.': '{n} sessions deleted.',
+  'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.': 'Turn on the microphone under Permissions, in the AulaPro settings, and try again. The sound is not recorded and does not leave this device.',
+  'Abrir los ajustes de AulaPro': 'Open AulaPro settings',
+  'Volver a intentarlo': 'Try again',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1398,4 +1401,7 @@ export const EF_CA: Record<string, string> = {
   'Borrar todas': 'Esborrar totes',
   '¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.': 'Vols esborrar les {n} sessions de totes les classes? No es pot desfer.',
   '{n} sesiones borradas.': '{n} sessions esborrades.',
+  'Activa el micrófono en Permisos, dentro de los ajustes de AulaPro, y vuelve a intentarlo. El sonido no se graba ni sale de este equipo.': 'Activa el micròfon a Permisos, dins dels ajustos d\'AulaPro, i torna-ho a provar. El so no es grava ni surt d\'aquest equip.',
+  'Abrir los ajustes de AulaPro': 'Obre els ajustos d\'AulaPro',
+  'Volver a intentarlo': 'Torna-ho a provar',
 };
