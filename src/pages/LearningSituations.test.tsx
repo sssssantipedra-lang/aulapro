@@ -8,6 +8,7 @@ import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LearningSituations } from './LearningSituations';
+import { guardarBorrador, leerBorrador } from '../services/borradores';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
 import type { Class, LearningSituation } from '../types';
@@ -44,20 +45,83 @@ const sda: LearningSituation = {
   },
 };
 
-function setup(list: LearningSituation[]) {
+function setup(list: LearningSituation[], onSave: (s: LearningSituation) => void = () => {}) {
   render(
     <I18nProvider>
       <ToastProvider>
         <LearningSituations
           classes={[]} gradeCategories={[]} learningSituations={list}
-          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
+          onUpdateClass={() => {}} onSave={onSave} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
         />
       </ToastProvider>
     </I18nProvider>,
   );
 }
 
+describe('Situaciones de aprendizaje · autoguardado', () => {
+  it('al volver ofrece la SdA que quedó a medias y «Continuar» la abre con sus sesiones', async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    guardarBorrador('sda', {
+      content: { ...sda.content, titulo: 'Un huerto en el patio' }, editingId: null, classId: '', idea: 'huerto', numero: '1', temporalizacion: '', meses: '',
+      areas: ['Matemáticas'], numSesiones: 2, nivel: '3º ESO', etapa: '', curso: '', opcionMatematicas: 'A', materias: {}, contextoClase: '', metodologia: '',
+      efModelo: '', efModalidad: '', efMinutos: '55', rubricRows: null, dianaRows: null, fichaContent: null,
+    }, 'Un huerto en el patio');
+    setup([]);
+    expect(screen.getByText(/Te quedó una situación de aprendizaje sin guardar: «Un huerto en el patio»/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect((screen.getByLabelText('Título') as HTMLTextAreaElement).value).toBe('Un huerto en el patio');
+    expect(screen.getByText('Recuento')).toBeTruthy();
+    expect(screen.getByText('Sin guardar')).toBeTruthy();
+    localStorage.clear();
+  });
+
+  it('abrir una guardada sin cambiarla no deja borrador; cambiarla y salir, sí', async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    const r = render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations classes={[]} gradeCategories={[]} learningSituations={[sda]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    r.unmount();
+    expect(leerBorrador('sda')).toBeNull();
+
+    const r2 = render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations classes={[]} gradeCategories={[]} learningSituations={[sda]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    const titulo = screen.getByLabelText('Título');
+    await user.clear(titulo);
+    await user.type(titulo, 'Mercado muy sostenible');
+    r2.unmount();
+    expect(leerBorrador<{ editingId: string; content: { titulo: string } }>('sda')?.datos).toMatchObject({ editingId: 'sda1', content: { titulo: 'Mercado muy sostenible' } });
+    localStorage.clear();
+  });
+});
+
 describe('Situaciones de aprendizaje', () => {
+  it('una sesión se marca como completada, se guarda en el acto y cuenta en el progreso', async () => {
+    const user = userEvent.setup();
+    const guardadas: LearningSituation[] = [];
+    setup([sda], s => guardadas.push(s));
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    expect(screen.getByText('0 de 2 completadas')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'Marcar la sesión 1 como completada' }));
+    expect(screen.getByText('1 de 2 completadas')).toBeTruthy();
+    expect(guardadas).toHaveLength(1);
+    expect(guardadas[0].content.sesiones.map(x => !!x.completada)).toEqual([true, false]);
+
+    await user.click(screen.getByRole('button', { name: 'Marcar la sesión 1 como pendiente' }));
+    expect(guardadas[1].content.sesiones.map(x => !!x.completada)).toEqual([false, false]);
+  });
+
   it('sin ninguna, invita a crear la primera y abre el formulario', async () => {
     const user = userEvent.setup();
     setup([]);

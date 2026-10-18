@@ -22,6 +22,17 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 - **Escenas:** una disposición con nombre (qué ventanas, dónde y qué fondo), hasta 12. Guarda la disposición, no lo
   escrito dentro: al recuperarla las ventanas salen limpias. La última disposición se recupera al volver a entrar.
   Todo es del dispositivo (`localStorage`, claves `aulapro_pizarra_*`): no sale de él ni va en las copias.
+- **Dibujo** (de la 2.12.0, `src/components/pizarra/Lienzo.tsx` y `src/lib/trazos.ts`): lápiz (con presión), rotulador,
+  subrayador translúcido y borrador que quita solo la parte por donde pasa; tres grosores; deshacer, rehacer y «Borrar
+  todo». Los trazos son vectores en dos capas, así que salen al instante, también los largos (medido en la página: unos
+  12 a 20 microsegundos por movimiento). Los controles van en una barra propia (`role="toolbar"`), centrada bajo la de
+  arriba y solo mientras se dibuja. **No se debe volver a un dibujo que repinte el trazo entero en cada movimiento.**
+- **Minimizar para aprovechar la pantalla** (19-10-2026, petición del dueño): cada ventana tiene en su asa un botón de
+  minimizar que la reduce a un icono de 44 px en su misma esquina (`Ventana.min`, `LADO_MINIMIZADA`). La ventana sigue
+  montada, oculta con `display: none`, así que un temporizador o un cronómetro siguen contando. La barra de arriba
+  tiene «Minimizar todas las ventanas» (que pasa a «Restaurar todas») y «Ocultar las barras»: quita las dos barras, la
+  de dibujo y el dock, y deja solo un botón discreto arriba a la izquierda para volver. Con la pantalla completa, la
+  pizarra ocupa todo. Lo minimizado se recuerda al volver y viaja con las escenas.
 - **Pantalla completa:** solo si el sistema lo permite; en el WebView de Android puede no hacerlo.
 
 ## Aspecto (decisión del dueño, 19-10-2026: «más minimalista y organizado, hay demasiados elementos juntos»)
@@ -51,7 +62,7 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
   reordenar nodos recargaría el contenido incrustado (un iframe).
 - Lo que depende del azar (dados, grupos) recibe el generador como parámetro para poder probarlo.
 - `scripts/web/capturar.mjs` busca los botones de la pizarra por su nombre accesible («Añadir Calculadora», «Dibujar
-  sobre la pantalla», «Desactivar lápiz»…): si se cambian, se cambia también el script.
+  sobre la pantalla», «Dejar de dibujar»…): si se cambian, se cambia también el script.
 
 ## Lo que falta
 

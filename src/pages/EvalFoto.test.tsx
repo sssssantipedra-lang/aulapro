@@ -57,6 +57,34 @@ async function conFoto() {
 beforeEach(() => { localStorage.clear(); callGemini.mockReset(); window.scrollTo = () => {}; });
 afterEach(() => cleanup());
 
+describe('Evaluar por foto · autoguardado', () => {
+  it('una corrección sin guardar en el cuaderno se conserva al salir (sin las fotos) y se continúa con los puntos ya cambiados', async () => {
+    const user = userEvent.setup();
+    const antes = render(
+      <I18nProvider><ToastProvider>
+        <EvalFoto classes={[clase]} students={alumnos} gradeCategories={categorias} gradeItems={[]} onAddGradeItem={() => {}} onSetGrade={() => {}} onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.selectOptions(screen.getByLabelText('Alumno'), 's5');
+    await conFoto();
+    callGemini.mockResolvedValue(respuesta);
+    await user.click(screen.getByRole('button', { name: /Corregir con IA/ }));
+    await screen.findByText('Examen de fracciones');
+    const p2 = screen.getByLabelText('Puntos de la pregunta 2');
+    await user.clear(p2);
+    await user.type(p2, '3');
+    antes.unmount();
+
+    pintar();
+    expect(screen.getByText(/Te quedó una corrección sin guardar: «Alumno 5: Examen de fracciones»/)).toBeTruthy();
+    expect(screen.getByText(/Las fotos no se guardan/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect((screen.getByLabelText('Puntos de la pregunta 2') as HTMLInputElement).value).toBe('3');
+    expect(screen.getByLabelText('Nota').textContent).toContain('10');
+    expect((screen.getByLabelText('Alumno') as HTMLSelectElement).value).toBe('s5');
+  });
+});
+
 describe('Evaluar por foto', () => {
   it('el alumnado sale en orden de lista y sin la IA no se corrige hasta que hay una foto', async () => {
     pintar();

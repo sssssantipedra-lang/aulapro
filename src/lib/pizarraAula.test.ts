@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, tirarDados, repartirGrupos,
-  formatoCrono, direccionParaQr, SIMBOLOS_TRABAJO, MAX_ESCENAS, MAX_DADOS, MAX_VENTANAS, siguienteId, enCascada, huecoLibre, claveDatos, borrarDatosDeVentana,
+  formatoCrono, direccionParaQr, SIMBOLOS_TRABAJO, MAX_ESCENAS, MAX_DADOS, MAX_VENTANAS, siguienteId, enCascada, huecoLibre, rectVisible, LADO_MINIMIZADA, claveDatos, borrarDatosDeVentana,
 } from './pizarraAula';
 
 /** Generador repetible para que las pruebas no dependan del azar. */
@@ -250,5 +250,30 @@ describe('huecoLibre', () => {
   it('devuelve null si no hay sitio sin tapar nada', () => {
     expect(huecoLibre(tam, [{ x: 0, y: 0, width: 1000, height: 700 }], area)).toBeNull();
     expect(huecoLibre({ width: 2000, height: 300 }, [], area)).toBeNull();
+  });
+});
+
+describe('ventanas minimizadas', () => {
+  const rect = { x: 10, y: 20, width: 300, height: 400 };
+  it('se lee si una ventana está minimizada y se ignora cualquier otro valor', () => {
+    const v = leerVentanas([
+      { id: 'timer', tipo: 'timer', rect, min: true },
+      { id: 'wheel', tipo: 'wheel', rect, min: 'sí' },
+      { id: 'timer-2', tipo: 'timer', rect, min: false },
+    ], ['timer', 'wheel']);
+    expect(v.map(x => x.min)).toEqual([true, undefined, undefined]);
+    expect('min' in v[1]).toBe(false);
+  });
+  it('una ventana minimizada solo ocupa su icono, en su misma esquina', () => {
+    expect(rectVisible({ rect })).toEqual(rect);
+    expect(rectVisible({ rect, min: true })).toEqual({ x: 10, y: 20, width: LADO_MINIMIZADA, height: LADO_MINIMIZADA });
+  });
+  it('el hueco libre cuenta una ventana minimizada como un icono, no como la ventana entera', () => {
+    const area = { width: 1000, height: 700 };
+    const grande = { rect: { x: 16, y: 70, width: 600, height: 500 } };
+    const tam = { width: 300, height: 300 };
+    const conGrande = huecoLibre(tam, [rectVisible(grande)], area)!;
+    const minimizada = huecoLibre(tam, [rectVisible({ ...grande, min: true })], area)!;
+    expect(minimizada.x).toBeLessThan(conGrande.x);
   });
 });

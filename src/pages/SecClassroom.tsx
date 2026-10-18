@@ -6,6 +6,7 @@ import {
   RefreshCw, Link as LinkIcon, PenLine, Calculator, Delete, Flag, Users,
   Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
   Maximize, Minimize, LayoutTemplate, Save, Trash2, GripHorizontal,
+  Highlighter, PenTool, Pencil, Undo2, Redo2, Minus as MinusIcon, ChevronsDownUp, ChevronsUpDown, PanelTopClose, PanelTop,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -15,12 +16,14 @@ import { ChallengePresenter } from '../components/live/ChallengePresenter';
 import { fichaTheme } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { useI18n } from '../i18n';
+import { Lienzo, type EstadoLienzo, type LienzoHandle } from '../components/pizarra/Lienzo';
+import { ANCHOS, HERRAMIENTAS, type Grosor, type Herramienta } from '../lib/trazos';
 import {
   ClockWidget, StopwatchWidget, TrafficWidget, DiceWidget, SymbolsWidget, NoteWidget, ScoreWidget,
   GroupsWidget, QrWidget, AgendaWidget,
 } from '../components/live/PizarraWidgets';
 import {
-  FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, siguienteId, enCascada, huecoLibre, borrarDatosDeVentana, MAX_ESCENAS, MAX_VENTANAS,
+  FONDOS, fondoPorId, leerVentanas, leerEscenas, ajustarRect, siguienteId, enCascada, huecoLibre, rectVisible, LADO_MINIMIZADA, borrarDatosDeVentana, MAX_ESCENAS, MAX_VENTANAS,
   type FondoId, type Rect, type Escena,
 } from '../lib/pizarraAula';
 
@@ -79,36 +82,19 @@ const PEN_COLORS = {
   dark:  ['#f8fafc', '#38bdf8', '#f472b6', '#facc15', '#4ade80'],
 } as const;
 type BoardTheme = keyof typeof PEN_COLORS;
+/** El subrayador es translúcido: sus colores valen igual en la pizarra blanca y en la oscura. */
+const MARKER_COLORS = ['#fde047', '#86efac', '#7dd3fc', '#f9a8d4', '#fdba74'] as const;
+
+const TOOLS: Record<Herramienta, { label: string; icon: React.ReactNode }> = {
+  lapiz: { label: 'Lápiz', icon: <Pencil size={17} /> },
+  rotulador: { label: 'Rotulador', icon: <PenTool size={17} /> },
+  subrayador: { label: 'Subrayador', icon: <Highlighter size={17} /> },
+  borrador: { label: 'Borrador', icon: <Eraser size={17} /> },
+};
+const GROSORES: readonly { id: Grosor; label: string; dot: number }[] = [
+  { id: 0, label: 'Fino', dot: 5 }, { id: 1, label: 'Medio', dot: 9 }, { id: 2, label: 'Grueso', dot: 14 },
+];
 const BOARD_KEY = 'aulapro_board_theme';
-
-const hexToRgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
-
-/**
- * Pasa lo ya dibujado a los colores equivalentes del otro fondo (el blanco
- * del lápiz oscuro se vuelve negro, etc.): si no, al cambiar de pizarra los
- * trazos dejarían de verse. Cada píxel toma el color de la paleta nueva que
- * corresponde al más parecido de la vieja, conservando su transparencia para
- * que los bordes suavizados sigan igual.
- */
-function recolorStrokes(canvas: HTMLCanvasElement | null, from: readonly string[], to: readonly string[]) {
-  const ctx = canvas?.getContext('2d');
-  if (!canvas || !ctx || canvas.width === 0 || canvas.height === 0) return;
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const src = from.map(hexToRgb);
-  const dst = to.map(hexToRgb);
-  const d = img.data;
-  for (let p = 0; p < d.length; p += 4) {
-    if (d[p + 3] === 0) continue;
-    let best = 0;
-    let bestDist = Infinity;
-    for (let k = 0; k < src.length; k++) {
-      const dist = (d[p] - src[k][0]) ** 2 + (d[p + 1] - src[k][1]) ** 2 + (d[p + 2] - src[k][2]) ** 2;
-      if (dist < bestDist) { bestDist = dist; best = k; }
-    }
-    [d[p], d[p + 1], d[p + 2]] = dst[best];
-  }
-  ctx.putImageData(img, 0, 0);
-}
 
 const FONDO_KEY = 'aulapro_pizarra_fondo';
 const ESCENAS_KEY = 'aulapro_pizarra_escenas';
@@ -167,14 +153,22 @@ function beep(times = 3) {
    ════════════════════════════════════════════════════════════ */
 
 function WidgetShell({
-  title, accent, onClose, children,
+  title, accent, icono, minimizada, onMinimizar, onClose, children,
 }: {
   title: string;
   accent: string;
+  icono: React.ReactNode;
+  minimizada: boolean;
+  onMinimizar: () => void;
   onClose: () => void;
   children: React.ReactNode;
 }) {
   const { t } = useI18n();
+  const boton = { width: 22, height: 22 } as const;
+  const realzar = (e: React.MouseEvent<HTMLButtonElement>, on: boolean) => {
+    e.currentTarget.style.background = on ? 'rgba(255,255,255,0.18)' : 'transparent';
+    e.currentTarget.style.color = on ? '#fff' : 'inherit';
+  };
   return (
     <div
       className="pz-ventana relative w-full h-full"
@@ -187,26 +181,50 @@ function WidgetShell({
       }}
     >
       {/* Sin tarjeta: la herramienta va directamente sobre la pizarra. Se arrastra desde cualquier parte que no sea un
-          control; el asa y la X solo se ven al pasar el ratón (siempre, en pantallas táctiles). */}
-      <div className="h-full w-full min-h-0">{children}</div>
-      <div
-        className="pz-barra absolute flex items-center gap-0.5 rounded-full"
-        style={{ top: 2, right: 2, padding: 2, background: 'rgba(15,23,42,0.88)', color: 'rgba(255,255,255,0.7)', zIndex: 5 }}
-        title={title}
-      >
-        <span className="flex items-center justify-center" style={{ width: 22, height: 22 }} aria-hidden="true"><GripHorizontal size={14} /></span>
+          control. Minimizada se oculta pero sigue montada, para que un temporizador siga contando. */}
+      <div className="h-full w-full min-h-0" style={minimizada ? { display: 'none' } : undefined}>{children}</div>
+      {minimizada ? (
         <button
-          onClick={onClose}
-          title={t('Cerrar')}
-          aria-label={t('Cerrar')}
-          className="widget-cerrar flex items-center justify-center rounded-full transition-colors"
-          style={{ width: 22, height: 22 }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'inherit'; }}
+          type="button"
+          onClick={onMinimizar}
+          title={t('Restaurar {title}', { title })}
+          aria-label={t('Restaurar {title}', { title })}
+          className="absolute inset-0 flex items-center justify-center rounded-2xl transition-transform hover:scale-105"
+          style={{ background: '#1e2433', color: accent, boxShadow: '0 1px 2px rgba(15,23,42,0.25), 0 6px 16px rgba(15,23,42,0.22)' }}
         >
-          <X size={14} />
+          {icono}
         </button>
-      </div>
+      ) : (
+        <div
+          className="pz-barra absolute flex items-center gap-0.5 rounded-full"
+          style={{ top: 2, right: 2, padding: 2, background: 'rgba(15,23,42,0.88)', color: 'rgba(255,255,255,0.7)', zIndex: 5 }}
+          title={title}
+        >
+          <span className="flex items-center justify-center" style={boton} aria-hidden="true"><GripHorizontal size={14} /></span>
+          <button
+            onClick={onMinimizar}
+            title={t('Minimizar')}
+            aria-label={t('Minimizar')}
+            className="flex items-center justify-center rounded-full transition-colors"
+            style={boton}
+            onMouseEnter={e => realzar(e, true)}
+            onMouseLeave={e => realzar(e, false)}
+          >
+            <MinusIcon size={14} />
+          </button>
+          <button
+            onClick={onClose}
+            title={t('Cerrar')}
+            aria-label={t('Cerrar')}
+            className="widget-cerrar flex items-center justify-center rounded-full transition-colors"
+            style={boton}
+            onMouseEnter={e => realzar(e, true)}
+            onMouseLeave={e => realzar(e, false)}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1414,7 +1432,7 @@ function ChallengePicker({ fichas, onPick, onClose }: { fichas: Ficha[]; onPick:
 }
 
 /** Una ventana abierta: una instancia (`id`) de una herramienta (`tipo`). Hay tantas como el docente quiera. */
-interface Ventana { id: string; tipo: WidgetType; rect: Rect }
+interface Ventana { id: string; tipo: WidgetType; rect: Rect; min?: boolean }
 
 /** Las ventanas que había abiertas la última vez (`null`: nunca se ha guardado nada). */
 function leerActual(): Ventana[] | null {
@@ -1478,18 +1496,21 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
   const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // El trazo se guarda en una referencia, no en estado: React agrupa las
-  // actualizaciones y los primeros movimientos del ratón se perderían.
-  const drawingRef = useRef(false);
+  const lienzo = useRef<LienzoHandle | null>(null);
   const [fondoId, setFondoId] = useState<FondoId>(readFondo);
   const fondo = fondoPorId(fondoId);
   const light = fondo.tono === 'claro';
   const board: BoardTheme = light ? 'light' : 'dark';
   const penColors = PEN_COLORS[board];
   const [color, setColor] = useState<string>(() => PEN_COLORS[board][0]);
+  const [colorSub, setColorSub] = useState<string>(MARKER_COLORS[0]);
   const [penOn, setPenOn] = useState(false);
+  const [herramienta, setHerramienta] = useState<Herramienta>('lapiz');
+  const [grosor, setGrosor] = useState<Grosor>(1);
+  const [estado, setEstado] = useState<EstadoLienzo>({ puedeDeshacer: false, puedeRehacer: false, hayTrazos: false });
   const [menu, setMenu] = useState<null | 'fondos' | 'escenas'>(null);
+  /** Barras ocultas: solo queda un botón diminuto para volver a verlas, y la pizarra aprovecha toda la pantalla. */
+  const [barrasOcultas, setBarrasOcultas] = useState(false);
 
   /** Cambia el fondo; si cambia entre claro y oscuro, lo ya dibujado y el color del lápiz pasan a su equivalente. */
   function elegirFondo(id: FondoId) {
@@ -1499,7 +1520,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       // El color elegido puede no verse en el fondo nuevo: se pasa al equivalente.
       const i = (PEN_COLORS[board] as readonly string[]).indexOf(color);
       setColor(PEN_COLORS[next][i >= 0 ? i : 0]);
-      recolorStrokes(canvasRef.current, PEN_COLORS[board], PEN_COLORS[next]);
+      lienzo.current?.recolorear(PEN_COLORS[board], PEN_COLORS[next]);
     }
     setFondoId(nuevo.id);
     try { localStorage.setItem(FONDO_KEY, nuevo.id); } catch { /* sin almacenamiento: solo dura esta sesión */ }
@@ -1554,7 +1575,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     if (prev.length >= MAX_VENTANAS) return prev;
     const area = areaPizarra();
     const base = ajustarRect(DEFAULTS[tipo], area, minDe(tipo));
-    const libre = huecoLibre(base, prev.map(v => v.rect), area);
+    const libre = huecoLibre(base, prev.map(rectVisible), area);
     const mismas = prev.filter(v => v.tipo === tipo).length;
     return [...prev, {
       id: siguienteId(tipo, prev.map(v => v.id)),
@@ -1566,6 +1587,16 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     borrarDatosDeVentana(id);
     setVentanas(prev => prev.filter(v => v.id !== id));
   };
+  /** Minimiza una ventana a su icono, o la restaura; no pierde lo que estuviera haciendo. */
+  const alternarMin = useCallback((id: string) => {
+    setVentanas(prev => prev.map(v => v.id === id ? { ...v, min: v.min ? undefined : true } : v));
+  }, []);
+  /** Con alguna a la vista, minimiza todas; si ya están todas minimizadas, las restaura. */
+  const hayAlgunaVisible = ventanas.some(v => !v.min);
+  const minimizarTodas = () => setVentanas(prev => {
+    const minimizar = prev.some(v => !v.min);
+    return prev.map(v => ({ ...v, min: minimizar ? true : undefined }));
+  });
   const llena = ventanas.length >= MAX_VENTANAS;
 
   /* ── Escenas: una disposición con nombre que se puede recuperar con un clic ── */
@@ -1578,7 +1609,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   function guardarEscena() {
     if (escenas.length >= MAX_ESCENAS) return;
     const nombre = nombreEscena.trim().slice(0, 40) || t('Escena {n}', { n: escenas.length + 1 });
-    setEscenas(p => [...p, { id: 'sc' + Date.now(), nombre, fondo: fondoId, ventanas: ventanas.map(v => ({ id: v.id, tipo: v.tipo, rect: v.rect })) }]);
+    setEscenas(p => [...p, { id: 'sc' + Date.now(), nombre, fondo: fondoId, ventanas: ventanas.map(v => ({ id: v.id, tipo: v.tipo, rect: v.rect, ...(v.min ? { min: true } : {}) })) }]);
     setNombreEscena('');
   }
   /** Una escena guarda la disposición, no lo escrito dentro: al recuperarla las ventanas salen limpias. */
@@ -1591,7 +1622,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       const tipo = v.tipo as WidgetType;
       const id = siguienteId(tipo, ids);
       ids.push(id);
-      return { id, tipo, rect: ajustarRect(v.rect, area, minDe(tipo)) };
+      return { id, tipo, rect: ajustarRect(v.rect, area, minDe(tipo)), ...(v.min ? { min: true } : {}) };
     }));
     setMenu(null);
   }
@@ -1609,89 +1640,6 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const hecho = document.fullscreenElement ? document.exitFullscreen() : rootRef.current?.requestFullscreen();
     hecho?.catch(() => { /* rechazada */ });
   }
-
-  /* ── Pizarra ── */
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Se mide el propio lienzo, no la ventana: Aula Live convive con la barra
-    // lateral, así que usar innerWidth desplazaría todos los trazos.
-    const resize = () => {
-      const { width, height } = canvas.getBoundingClientRect();
-      if (width === 0 || height === 0) return;
-
-      const dpr = window.devicePixelRatio || 1;
-      const nextW = Math.round(width * dpr);
-      const nextH = Math.round(height * dpr);
-      if (canvas.width === nextW && canvas.height === nextH) return;
-
-      // Conserva lo dibujado al cambiar el tamaño (redimensionar limpia el lienzo)
-      const previous = canvas.width > 0 && canvas.height > 0
-        ? canvas.getContext('2d')?.getImageData(0, 0, canvas.width, canvas.height)
-        : null;
-
-      canvas.width  = nextW;
-      canvas.height = nextH;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        if (previous) ctx.putImageData(previous, 0, 0);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-    };
-
-    resize();
-    // ResizeObserver y no window.resize: plegar la barra lateral cambia el
-    // ancho del panel sin que la ventana cambie de tamaño.
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, []);
-
-  const posOf = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    const p = 'touches' in e ? e.touches[0] : e;
-    return { x: p.clientX - rect.left, y: p.clientY - rect.top };
-  }, []);
-
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!penOn) return;
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const { x, y } = posOf(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = color;
-    // Un punto suelto también debe verse, sin necesidad de arrastrar
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    drawingRef.current = true;
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!drawingRef.current || !penOn) return;
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const { x, y } = posOf(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => { drawingRef.current = false; };
-
-  const clearBoard = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-    // El contexto está escalado por dpr, así que se limpia en píxeles CSS
-    const { width, height } = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, width, height);
-  };
 
   const cuerpo = (v: Ventana) => {
     switch (v.tipo) {
@@ -1717,15 +1665,16 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const cfg = APPS.find(a => a.id === v.tipo);
     if (!cfg) return null;
     const { rect } = v;
-    const min = minDe(v.tipo);
+    const min = v.min ? { width: LADO_MINIMIZADA, height: LADO_MINIMIZADA } : minDe(v.tipo);
 
     return (
       <Rnd
         key={v.id}
         position={{ x: rect.x, y: rect.y }}
-        size={{ width: rect.width, height: rect.height }}
+        size={v.min ? min : { width: rect.width, height: rect.height }}
         minWidth={min.width}
         minHeight={min.height}
+        enableResizing={!v.min}
         bounds="parent"
         // Se arrastra desde cualquier parte que no sea un control: sin esto un botón, un campo de texto o el
         // contenido incrustado empezarían un arrastre en vez de recibir el clic (y, en el móvil, la X nunca cerraría)
@@ -1735,7 +1684,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(v.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
         style={{ zIndex: 30 + apilado }}
       >
-        <WidgetShell title={t(cfg.title)} accent={cfg.accent} onClose={() => cerrar(v.id)}>
+        <WidgetShell title={t(cfg.title)} accent={cfg.accent} icono={cfg.icon} minimizada={!!v.min} onMinimizar={() => alternarMin(v.id)} onClose={() => cerrar(v.id)}>
           {cuerpo(v)}
         </WidgetShell>
       </Rnd>
@@ -1774,29 +1723,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         />
       )}
 
-      {/* Pizarra */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0"
-        style={{
-          // width/height explícitos: <canvas> es un elemento reemplazado y con
-          // inset:0 no se estira solo, se quedaría en su tamaño intrínseco.
-          width: '100%',
-          height: '100%',
-          touchAction: 'none',
-          pointerEvents: penOn ? 'auto' : 'none',
-          cursor: penOn ? 'crosshair' : 'default',
-          zIndex: 5,
-        }}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-      />
+      {/* Pizarra: lápiz, rotulador, subrayador y borrador (`components/pizarra/Lienzo.tsx`) */}
+      <Lienzo ref={lienzo} activo={penOn} herramienta={herramienta} color={herramienta === 'subrayador' ? colorSub : color} ancho={ANCHOS[herramienta][grosor]} onEstado={setEstado} />
 
+      {!barrasOcultas && (
+        <>
       {/* Cierra el menú abierto al tocar fuera */}
       {menu && <div className="absolute inset-0" style={{ zIndex: 54 }} onClick={() => setMenu(null)} aria-hidden="true" />}
 
@@ -1814,7 +1745,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
             <Separador />
           </>
         )}
-        <BotonBarra icono={<PenLine size={19} />} nombre={t(penOn ? 'Desactivar lápiz' : 'Dibujar sobre la pantalla')} activo={penOn} pulsado={penOn} onClick={() => setPenOn(v => !v)} />
+        <BotonBarra icono={<PenLine size={19} />} nombre={t(penOn ? 'Dejar de dibujar' : 'Dibujar sobre la pantalla')} activo={penOn} pulsado={penOn} onClick={() => setPenOn(v => !v)} />
         <BotonBarra icono={<ImageIcon size={19} />} nombre={t('Cambiar el fondo')} activo={menu === 'fondos'} onClick={() => setMenu(m => m === 'fondos' ? null : 'fondos')} />
         <BotonBarra icono={<LayoutTemplate size={19} />} nombre={t('Guardar y recuperar la disposición de la pizarra')} activo={menu === 'escenas'} onClick={() => setMenu(m => m === 'escenas' ? null : 'escenas')} />
         {puedePantallaCompleta && (
@@ -1824,37 +1755,77 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
             onClick={alternarPantallaCompleta}
           />
         )}
+        <Separador />
+        <BotonBarra
+          icono={hayAlgunaVisible ? <ChevronsDownUp size={19} /> : <ChevronsUpDown size={19} />}
+          nombre={t(hayAlgunaVisible ? 'Minimizar todas las ventanas' : 'Restaurar todas las ventanas')}
+          onClick={minimizarTodas}
+          disabled={ventanas.length === 0}
+        />
+        <BotonBarra icono={<PanelTopClose size={19} />} nombre={t('Ocultar las barras')} onClick={() => { setMenu(null); setBarrasOcultas(true); }} />
       </div>
 
-      {/* Paleta del lápiz: aparte y solo mientras se dibuja */}
+      {/* Herramientas de dibujo: aparte y solo mientras se dibuja */}
       {penOn && (
-        <div className="absolute flex items-center gap-2 rounded-2xl px-3 py-2" style={{ top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 56, ...SUPERFICIE }}>
-          {penColors.map(c => (
-            <button
-              key={c}
-              onClick={() => setColor(c)}
-              title={t('Color del lápiz')}
-              aria-label={t('Color del lápiz')}
-              aria-pressed={color === c}
-              className="rounded-full transition-transform"
-              style={{
-                width: 22, height: 22, background: c,
-                border: color === c ? '2.5px solid white' : '2.5px solid transparent',
-                boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
-                transform: color === c ? 'scale(1.12)' : 'scale(1)',
-              }}
-            />
-          ))}
+        <div
+          className="absolute flex flex-wrap items-center justify-center gap-1 rounded-2xl p-1.5"
+          style={{ top: 66, left: '50%', transform: 'translateX(-50%)', zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}
+          role="toolbar"
+          aria-label={t('Dibujar sobre la pantalla')}
+        >
+          <div role="group" aria-label={t('Herramienta')} className="flex items-center gap-0.5">
+            {HERRAMIENTAS.map(h => (
+              <BotonBarra key={h} icono={TOOLS[h].icon} nombre={t(TOOLS[h].label)} activo={herramienta === h} pulsado={herramienta === h} onClick={() => setHerramienta(h)} />
+            ))}
+          </div>
           <Separador />
-          <button
-            onClick={clearBoard}
-            title={t('Borrar todo')}
-            aria-label={t('Borrar todo')}
-            className="flex items-center justify-center rounded-lg text-white/60 hover:text-white transition-colors"
-            style={{ width: 28, height: 28 }}
-          >
-            <Eraser size={16} />
-          </button>
+          <div role="group" aria-label={t('Grosor')} className="flex items-center gap-0.5">
+            {GROSORES.map(g => (
+              <button
+                key={g.id}
+                onClick={() => setGrosor(g.id)}
+                title={t(g.label)}
+                aria-label={t(g.label)}
+                aria-pressed={grosor === g.id}
+                className="flex items-center justify-center rounded-xl"
+                style={{ width: 32, height: 40, background: grosor === g.id ? 'rgba(255,255,255,0.14)' : 'transparent' }}
+              >
+                <span style={{ width: g.dot, height: g.dot, borderRadius: '50%', background: grosor === g.id ? '#fff' : 'rgba(255,255,255,0.55)' }} />
+              </button>
+            ))}
+          </div>
+          {herramienta !== 'borrador' && (
+            <>
+              <Separador />
+              <div role="group" aria-label={t('Color')} className="flex items-center gap-2 px-1">
+                {(herramienta === 'subrayador' ? MARKER_COLORS : penColors).map(c => {
+                  const actual = herramienta === 'subrayador' ? colorSub : color;
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => (herramienta === 'subrayador' ? setColorSub(c) : setColor(c))}
+                      title={t('Color')}
+                      aria-label={t('Color')}
+                      aria-pressed={actual === c}
+                      className="rounded-full transition-transform"
+                      style={{
+                        width: 22, height: 22, background: c,
+                        border: actual === c ? '2.5px solid white' : '2.5px solid transparent',
+                        boxShadow: c === '#0f172a' ? 'inset 0 0 0 1px rgba(255,255,255,0.35)' : undefined,
+                        transform: actual === c ? 'scale(1.12)' : 'scale(1)',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )}
+          <Separador />
+          <div className="flex items-center gap-0.5">
+            <BotonBarra icono={<Undo2 size={17} />} nombre={t('Deshacer')} onClick={() => lienzo.current?.deshacer()} disabled={!estado.puedeDeshacer} />
+            <BotonBarra icono={<Redo2 size={17} />} nombre={t('Rehacer')} onClick={() => lienzo.current?.rehacer()} disabled={!estado.puedeRehacer} />
+            <BotonBarra icono={<Trash2 size={17} />} nombre={t('Borrar todo')} onClick={() => lienzo.current?.borrarTodo()} disabled={!estado.hayTrazos} />
+          </div>
         </div>
       )}
 
@@ -1935,6 +1906,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
           )}
         </div>
       )}
+        </>
+      )}
 
       {/* Ventanas */}
       {enOrdenFijo.map(({ v, i }) => renderWidget(v, i))}
@@ -1942,6 +1915,8 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {picking && <ChallengePicker fichas={fichas} onClose={() => setPicking(false)} onPick={f => { setPicking(false); setPresenting(f); }} />}
       {presenting && <ChallengePresenter ficha={presenting} onClose={closePresenter} />}
 
+      {!barrasOcultas && (
+        <>
       {/* Barra inferior: solo iconos, en cuatro grupos. Cada pulsación abre otra ventana de esa herramienta. */}
       <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 16, zIndex: 60, maxWidth: 'calc(100% - 140px)' }}>
         <div className="flex items-center rounded-2xl p-1 overflow-x-auto" style={{ ...SUPERFICIE, scrollbarWidth: 'none' }}>
@@ -1969,6 +1944,22 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
           <BotonBarra icono={<Flag size={19} />} nombre={t('Proyectar una ficha, un escape room o unas tarjetas')} color="#fb923c" onClick={() => setPicking(true)} />
         </div>
       </div>
+        </>
+      )}
+
+      {/* Con las barras ocultas solo queda este botón, discreto, para volver a verlas */}
+      {barrasOcultas && (
+        <button
+          type="button"
+          onClick={() => setBarrasOcultas(false)}
+          title={t('Mostrar las barras')}
+          aria-label={t('Mostrar las barras')}
+          className="absolute flex items-center justify-center rounded-xl transition-opacity opacity-40 hover:opacity-100 focus-visible:opacity-100"
+          style={{ top: 10, left: 10, width: 36, height: 36, zIndex: 56, color: '#fff', ...SUPERFICIE }}
+        >
+          <PanelTop size={18} />
+        </button>
+      )}
     </div>
   );
 }

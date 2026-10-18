@@ -360,9 +360,9 @@ await pestana('Pizarra y herramientas');
     const teclas = [...document.querySelectorAll('main button')].filter(b => b.checkVisibility() && b.style.minHeight === '34px')
       .map(b => [...caja(b), b.textContent.trim().replace(/\s+/g, '') || '⌫']);
     const k0 = teclas[0];
-    const colores = [...document.querySelectorAll('main button[title="Color del lápiz"], main button[aria-label="Color del lápiz"]')].map(b => [...caja(b), getComputedStyle(b).backgroundColor]);
-    const barra = btn('Desactivar lápiz').parentElement;
-    const paleta = btn('Borrar todo').parentElement;
+    const colores = [...document.querySelectorAll('main button[title="Color"]')].map(b => [...caja(b), getComputedStyle(b).backgroundColor]);
+    const barra = btn('Dejar de dibujar').parentElement;
+    const paleta = btn('Borrar todo').closest('[role=toolbar]');
     const dock = btn('Añadir Temporizador').parentElement.parentElement;
     const cuenta = [...document.querySelectorAll('main button')].find(b => /^\d\d:\d\d$/.test(b.textContent.trim()));
     return {
@@ -396,7 +396,7 @@ await pestana('Pizarra y herramientas');
   await guardar('assets/demo/ruleta-centro.webp', await page.screenshot({ clip: { x: c0, y: c1, width: c2 - c0, height: c3 - c1 } }), 90);
   await pantalla('pizarra', 'Pizarra y herramientas', 'enclase', { quitar: live.bloques.slice(3, -1), datos: { live } });
   // Las zonas de la barra y el dock sí se quedan, menos las que hace la demo
-  PANTALLAS.pizarra.spots = PANTALLAS.pizarra.spots.filter(s => !/^(Desactivar lápiz|Color del lápiz|Borrar todo)$/.test(s[5]));
+  PANTALLAS.pizarra.spots = PANTALLAS.pizarra.spots.filter(s => !/^(Dejar de dibujar|Color|Borrar todo|Deshacer|Rehacer|Lápiz|Rotulador|Subrayador|Borrador|Fino|Medio|Grueso)$/.test(s[5]));
 }
 
 /* Centro y equipo, y lo de abajo */

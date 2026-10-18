@@ -3,7 +3,7 @@
  * Física, o cualquier otra materia, a varias clases del mismo curso no
  * tiene por qué volver a crear la situación de aprendizaje ni las sesiones de
  * cada una. Aquí está lo que cambia al copiar: la clase de destino, un
- * identificador nuevo y, en las sesiones, la fecha.
+ * identificador nuevo y, en las sesiones, la fecha y si estaban completadas.
  */
 import type { Class, LearningSituation } from '../types';
 import type { SesionEF } from '../types/ef';
@@ -18,6 +18,7 @@ export function clonarSda(sda: LearningSituation, destino: Class, id: string, ah
   const copia = structuredClone(sda);
   return {
     ...copia,
+    content: { ...copia.content, sesiones: copia.content.sesiones.map(({ completada: _c, ...resto }) => { void _c; return resto; }) },
     id,
     at: ahora.toISOString(),
     date: `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`,
@@ -34,7 +35,8 @@ export function clonarSda(sda: LearningSituation, destino: Class, id: string, ah
 /** Una copia de la sesión para otra clase, sin fecha (cada clase tiene su horario) salvo que se pida conservarla. */
 export function clonarSesionEF(s: SesionEF, destino: Class, id: string, conservarFecha = false): SesionEF {
   const copia = structuredClone(s);
-  const { fecha, ...resto } = copia;
+  const { fecha, completada: _c, ...resto } = copia;
+  void _c;
   return { ...resto, id, claseId: destino.id, ...(conservarFecha && fecha ? { fecha } : {}) };
 }
 

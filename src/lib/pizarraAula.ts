@@ -44,7 +44,10 @@ export interface Rect { x: number; y: number; width: number; height: number }
  * Una ventana abierta. Cada una es una instancia de una herramienta (`tipo`) con identificador propio (`id`):
  * se pueden abrir varias de la misma, por ejemplo dos temporizadores.
  */
-export interface VentanaGuardada { id: string; tipo: string; rect: Rect }
+export interface VentanaGuardada { id: string; tipo: string; rect: Rect; min?: boolean }
+
+/** Lado del icono al que se reduce una ventana minimizada. */
+export const LADO_MINIMIZADA = 44;
 
 /** Cuántas ventanas caben a la vez antes de que la pizarra deje de ser legible. */
 export const MAX_VENTANAS = 24;
@@ -78,12 +81,12 @@ export function leerVentanas(raw: unknown, tiposValidos: readonly string[]): Ven
   const out: VentanaGuardada[] = [];
   for (const v of raw) {
     if (!v || typeof v !== 'object') continue;
-    const { id, tipo, rect } = v as { id?: unknown; tipo?: unknown; rect?: unknown };
+    const { id, tipo, rect, min } = v as { id?: unknown; tipo?: unknown; rect?: unknown; min?: unknown };
     if (typeof id !== 'string' || !id || vistos.has(id) || !rectValido(rect)) continue;
     const t = typeof tipo === 'string' ? tipo : id;
     if (!tiposValidos.includes(t)) continue;
     vistos.add(id);
-    out.push({ id, tipo: t, rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } });
+    out.push({ id, tipo: t, rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }, ...(min === true ? { min: true } : {}) });
     if (out.length >= MAX_VENTANAS) break;
   }
   return out;
@@ -131,6 +134,11 @@ export function ajustarRect(r: Rect, area: { width: number; height: number }, mi
 
 const seCruzan = (a: Rect, b: Rect, aire: number) =>
   a.x < b.x + b.width + aire && b.x < a.x + a.width + aire && a.y < b.y + b.height + aire && b.y < a.y + a.height + aire;
+
+/** Lo que ocupa una ventana ahora mismo: su rectángulo, o solo el icono si está minimizada. */
+export function rectVisible(v: { rect: Rect; min?: boolean }): Rect {
+  return v.min ? { x: v.rect.x, y: v.rect.y, width: LADO_MINIMIZADA, height: LADO_MINIMIZADA } : v.rect;
+}
 
 /**
  * Primer sitio libre para una ventana de ese tamaño, recorriendo la pizarra de arriba abajo y de izquierda a derecha,
