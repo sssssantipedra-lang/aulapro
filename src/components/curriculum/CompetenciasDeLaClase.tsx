@@ -16,6 +16,7 @@ import { notasDeMateria, resumir, type NotaMateria } from '../../lib/curriculum/
 import { citarNormas, type ComunidadId } from '../../lib/curriculum/comunidades';
 import { downloadFile } from '../../lib/download';
 import type { Class, Evaluation, Student } from '../../types';
+import { CARPETAS } from '../../lib/carpetas';
 
 function Nota({ valor }: { valor: number | null }) {
   const { t, locale } = useI18n();
@@ -63,7 +64,7 @@ export function CompetenciasDeLaClase({ classes, students, evaluations, comunida
     const csv = [cab, ...lineas].map(l => l.map(celda).join(';')).join('\r\n')
       + `\r\n\r\n${celda(`${materia.asignatura}${cita ? ` · ${cita}` : ''}`)}`;
     void downloadFile(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }),
-      `${t('Competencias')} ${cls?.name ?? ''} ${materia.asignatura}.csv`.replace(/[\\/:*?"<>|]+/g, '-'));
+      `${t('Competencias')} ${cls?.name ?? ''} ${materia.asignatura}.csv`.replace(/[\\/:*?"<>|]+/g, '-'), CARPETAS.informes);
   }
 
   if (!cls) {

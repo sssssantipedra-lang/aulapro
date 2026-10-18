@@ -42,6 +42,7 @@ import { useFichaParaPedido } from '../lib/apoyoNav';
 import { contextoFichaApoyo, nivelDe, trimestreDe } from '../lib/apoyo';
 import { useNombreCurso } from '../hooks/useNombreCurso';
 import type { ApoyoData } from '../types/apoyo';
+import { compararNombres } from '../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -750,7 +751,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                 if (x) setVisual(true);
               }}>
                 <option value="">{t('Sin alumno concreto')}</option>
-                {[...apoyo.alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                {[...apoyo.alumnos].sort((a, b) => compararNombres(a.nombre, b.nombre)).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
               </select>
             </div>
           ) : (

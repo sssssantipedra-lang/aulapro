@@ -541,6 +541,8 @@ export interface LearningSituation {
     efModelo?: string;
     /** Solo en las de Educación Física: la modalidad que eligió el docente ('' si la decidió la IA). */
     efModalidad?: import('./ef').ModalidadEF | '';
+    /** Solo en las de Educación Física: lo que dura cada sesión, en minutos. */
+    efMinutos?: number;
   };
   content: import('../services/learningSituations').SdaContent;
 }
@@ -739,7 +741,7 @@ export interface ClassMark {
 
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
-  | 'evaluar' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
+  | 'evaluar' | 'evalfoto' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'documentos' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'

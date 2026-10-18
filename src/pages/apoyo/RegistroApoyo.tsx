@@ -18,6 +18,7 @@ import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import { isoDate } from '../../lib/utils';
 import { isAndroidApp } from '../../lib/platform';
 import { requestAlumno, requestGrupos, useRegistroPedido } from '../../lib/apoyoNav';
+import { compararNombres } from '../../lib/alumnado';
 import {
   ASPECTOS, ASPECTO_LABEL, CARAS, diaDeLaSemana, gruposDelDia, objetivosDelTrimestre, sesionConDatos, sesionDe, trimestreDe,
 } from '../../lib/apoyo';
@@ -60,7 +61,9 @@ export function RegistroApoyo({ data, onChange, comunidad, onNav }: Props) {
   const trimestre = trimestreDe(fecha);
   const sesion = grupo ? sesionDe(data.sesiones, grupo, fecha) : null;
   const registros = sesion
-    ? sesion.alumnos.filter(r => data.alumnos.some(a => a.id === r.alumnoId))
+    ? sesion.alumnos
+      .filter(r => data.alumnos.some(a => a.id === r.alumnoId))
+      .sort((x, y) => compararNombres(data.alumnos.find(a => a.id === x.alumnoId)!.nombre, data.alumnos.find(a => a.id === y.alumnoId)!.nombre))
     : [];
 
   function guardar(s: SesionApoyo) {

@@ -7,6 +7,7 @@
 import { translate, type Lang } from '../i18n';
 import { ATRIBUCION_MULBERRY, esMulberry, urlPicto } from '../lib/pictos';
 import type { AgendaVisual, FotoApoyo } from '../types/apoyo';
+import { CARPETAS } from '../lib/carpetas';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -76,7 +77,7 @@ export async function guardarAgendaPdf(agenda: AgendaVisual, fotos: readonly Fot
   if (!docs) return { error: 'not-desktop' as const };
   const html = buildAgendaHtml(agenda, await imagenesDe(agenda, fotos), lang);
   const nombre = (agenda.titulo || 'agenda').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-  const res = await docs.savePdf(html, `agenda-${nombre || 'visual'}.pdf`, { landscape: false });
+  const res = await docs.savePdf(html, `agenda-${nombre || 'visual'}.pdf`, { landscape: false, carpeta: CARPETAS.apoyo });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }

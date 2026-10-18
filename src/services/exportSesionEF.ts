@@ -5,6 +5,7 @@
  */
 import { translate, type Lang } from '../i18n';
 import type { SesionEF } from '../types/ef';
+import { CARPETAS } from '../lib/carpetas';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 /** Cada salto de línea, un párrafo. */
@@ -54,7 +55,7 @@ export async function guardarSesionPdf(s: SesionEF, datos: DatosSesionPdf, lang:
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
   const nombre = (s.titulo || 'sesion').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
-  const res = await docs.savePdf(buildSesionHtml(s, datos, lang), `sesion-ef-${nombre || 'sesion'}.pdf`, { landscape: false });
+  const res = await docs.savePdf(buildSesionHtml(s, datos, lang), `sesion-ef-${nombre || 'sesion'}.pdf`, { landscape: false, carpeta: CARPETAS.ef });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }

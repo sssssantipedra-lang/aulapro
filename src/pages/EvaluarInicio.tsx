@@ -5,7 +5,7 @@
  * siempre esta pantalla (`portada` en lib/navigation.ts).
  */
 import { useMemo } from 'react';
-import { ArrowRight, ClipboardCheck, Target, TrendingUp } from 'lucide-react';
+import { ArrowRight, Camera, ClipboardCheck, Target, TrendingUp } from 'lucide-react';
 import type { Class, Evaluation, Rubric, Section } from '../types';
 import { rendimientoPorClase } from '../lib/rendimiento';
 import { RendimientoCarrusel } from '../components/evaluar/RendimientoCarrusel';
@@ -24,18 +24,24 @@ export function EvaluarInicio({ classes, rubrics, evaluations, onNav }: Props) {
   const conRubrica = evaluations.filter(e => e.instrument !== 'diana').length;
   const conDiana = evaluations.length - conRubrica;
 
-  const tarjetas = [
+  const tarjetas: { id: Section; color: string; icono: React.ReactNode; titulo: string; texto: string; dato: string }[] = [
     {
-      id: 'rubrics' as const, color: '#f59e0b', icono: <ClipboardCheck size={26} />,
+      id: 'rubrics', color: '#f59e0b', icono: <ClipboardCheck size={26} />,
       titulo: 'Evaluar por rúbricas',
       texto: 'Criterios con descriptores por nivel: marcas la casilla que corresponde a cada alumno.',
       dato: t(conRubrica === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: conRubrica }),
     },
     {
-      id: 'dianas' as const, color: '#ef4444', icono: <Target size={26} />,
+      id: 'dianas', color: '#ef4444', icono: <Target size={26} />,
       titulo: 'Evaluar por dianas',
       texto: 'Ítems con peso sobre una diana: se ve de un vistazo en qué destaca cada alumno.',
       dato: t(conDiana === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: conDiana }),
+    },
+    {
+      id: 'evalfoto', color: '#0ea5e9', icono: <Camera size={26} />,
+      titulo: 'Evaluar por foto',
+      texto: 'Fotografías un examen o un trabajo: la IA propone los puntos de cada pregunta y tú revisas la nota.',
+      dato: t('Exámenes y trabajos'),
     },
   ];
 
@@ -48,7 +54,7 @@ export function EvaluarInicio({ classes, rubrics, evaluations, onNav }: Props) {
         </div>
       </div>
 
-      <div className="ev-cards">
+      <div className="ev-cards tres">
         {tarjetas.map(c => (
           <button key={c.id} type="button" className="ev-card" style={{ '--ev-c': c.color } as React.CSSProperties} onClick={() => onNav(c.id)}>
             <span className="ev-card-ico">{c.icono}</span>

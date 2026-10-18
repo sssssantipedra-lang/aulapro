@@ -17,6 +17,7 @@ import {
 } from '../../lib/ef';
 import type { Class, GradeCategory, GradeItem, Section, Student } from '../../types';
 import type { BaremoEF, CategoriaPrueba, EfData, MarcaPrueba, PruebaFisica, SexoEF } from '../../types/ef';
+import { compararAlumnos } from '../../lib/alumnado';
 
 interface Props {
   classes: Class[];
@@ -56,7 +57,7 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
   const [alCuaderno, setAlCuaderno] = useState(false);
 
   const alumnos = useMemo(
-    () => (clase ? students.filter(s => s.class_id === clase.id).sort((a, b) => a.name.localeCompare(b.name)) : []),
+    () => (clase ? students.filter(s => s.class_id === clase.id).sort(compararAlumnos) : []),
     [students, clase],
   );
   const fmt = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 2 });

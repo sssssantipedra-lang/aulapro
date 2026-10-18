@@ -16,6 +16,7 @@ import {
 import type { WorkSession } from '../types';
 import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { CARPETAS } from '../lib/carpetas';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
 
@@ -128,7 +129,7 @@ export async function saveWorkSessionPdf(s: WorkSession, lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
   // Vertical: es un documento de texto, no una rejilla como la SdA.
-  const res = await docs.savePdf(buildWorkSessionHtml(s, lang), fileBase(s) + '.pdf', { landscape: false });
+  const res = await docs.savePdf(buildWorkSessionHtml(s, lang), fileBase(s) + '.pdf', { landscape: false, carpeta: CARPETAS.reuniones });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }
@@ -241,5 +242,5 @@ export async function buildWorkSessionDocxBlob(s: WorkSession, lang: Lang): Prom
 
 export async function saveWorkSessionDocx(s: WorkSession, lang: Lang) {
   const blob = await buildWorkSessionDocxBlob(s, lang);
-  await downloadFile(blob, fileBase(s) + '.docx');
+  await downloadFile(blob, fileBase(s) + '.docx', CARPETAS.reuniones);
 }

@@ -35,6 +35,8 @@ import { X, Menu } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp } from './lib/platform';
+import { compararAlumnos } from './lib/alumnado';
+import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
@@ -64,6 +66,7 @@ const EfPista        = lazy(() => import('./pages/ef/EfPista').then(m => ({ defa
 const EfExentos      = lazy(() => import('./pages/ef/EfExentos').then(m => ({ default: m.EfExentos })));
 const EfPruebas      = lazy(() => import('./pages/ef/EfPruebas').then(m => ({ default: m.EfPruebas })));
 const EfEquipos      = lazy(() => import('./pages/ef/EfEquipos').then(m => ({ default: m.EfEquipos })));
+const EvalFoto        = lazy(() => import('./pages/EvalFoto').then(m => ({ default: m.EvalFoto })));
 const EfInicio       = lazy(() => import('./pages/ef/EfInicio').then(m => ({ default: m.EfInicio })));
 const EfCircuitos    = lazy(() => import('./pages/ef/EfCircuitos').then(m => ({ default: m.EfCircuitos })));
 const EfPizarra      = lazy(() => import('./pages/ef/EfPizarra').then(m => ({ default: m.EfPizarra })));
@@ -125,7 +128,7 @@ function AppInner() {
       name: c.name,
       nombres: nombresCortos(st.students
         .filter(s => s.class_id === c.id)
-        .sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }))
+        .sort(compararAlumnos)
         .map(s => s.name)),
     }))),
     [especialista, st.classes, st.students],
@@ -428,6 +431,12 @@ function AppInner() {
                 rubrics={st.rubrics}
                 evaluations={st.evaluations}
                 onNav={setSection}
+              />
+            )}
+            {section === 'evalfoto' && (
+              <EvalFoto
+                classes={st.classes} students={st.students} gradeCategories={st.gradeCategories} gradeItems={st.gradeItems}
+                onAddGradeItem={st.addGradeItem} onSetGrade={st.setGrade} onNav={setSection}
               />
             )}
             {(section === 'rubrics' || section === 'dianas') && (
@@ -822,11 +831,23 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** En Android, el aviso de «Guardado» con sus botones (el puente nativo se carga solo ahí). */
+function AvisoGuardadoAndroid() {
+  const [acciones, setAcciones] = useState<AccionesGuardado | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    import('./platform/android').then(m => { if (vivo) setAcciones(m.guardadoAndroid); });
+    return () => { vivo = false; };
+  }, []);
+  return acciones ? <AvisoGuardado acciones={acciones} /> : null;
+}
+
 export default function App() {
   return (
     <ToastProvider>
       <LicenseCheck><AppInner /></LicenseCheck>
       <UpdateBanner />
+      {isAndroidApp() && <AvisoGuardadoAndroid />}
     </ToastProvider>
   );
 }

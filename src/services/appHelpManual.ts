@@ -331,6 +331,26 @@ evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
 nota entra en el cuaderno si declara clase y categoría.
 
+[evalfoto] EVALUAR POR FOTO
+Para corregir un examen o un trabajo a partir de su foto (profesorado de aula).
+Se elige la clase, la asignatura si hay varias, el alumno, si es un examen o un
+trabajo, los puntos en total (opcional), el nombre de la columna del cuaderno y
+su categoría (Exámenes, Trabajos…). Se añaden las fotos, una por página, hasta
+8 (desde el móvil se hacen con la cámara), y, si se quiere, las soluciones o los
+criterios, escritos o en foto de la hoja de soluciones (hasta 3): con ellos la IA
+corrige como el docente; sin ellos, con su propio criterio. «Corregir con IA»
+devuelve, pregunta por pregunta, lo que ha escrito el alumno, los puntos y un
+comentario, con las dudosas marcadas («Revísala»), más un comentario para el
+alumno o su familia (se puede editar y copiar). El docente cambia los puntos de
+cada pregunta y la nota sobre 10 se recalcula sola: la suma la hace la
+aplicación, no la IA. «Guardar la nota en el cuaderno» la pone en la columna con
+ese nombre (se crea si no existe), y «Siguiente alumno» deja las mismas
+opciones para el siguiente de la lista, con las fotos vacías. A la IA no le llega
+el nombre del alumno, y se le pide que no lea ningún nombre de la hoja; las
+fotos van a Google reducidas y sin su ubicación y no se guardan en AulaPro. Es
+bueno tapar el nombre del alumno en la foto. La IA se equivoca a veces, sobre
+todo con letra difícil: hay que repasar antes de guardar.
+
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
 clase y alumno. Debajo, «Competencias específicas»: por asignatura con currículo
@@ -422,6 +442,11 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   para colgar en el aula con el reto, lo que se va a conseguir, el camino por
   fases y las competencias, con el tema visual que elijas) y «Guardar»
   (mientras no se guarda aparece «Sin guardar»).
+«Copiar a otras clases» (el icono de copiar de cada tarjeta, o el botón del
+documento abierto): para quien da la misma materia a varias clases, por
+ejemplo EF a los cuartos de Primaria. Se eligen las clases de destino (salen
+marcadas las del mismo curso; las que ya la tienen, avisadas) y cada una
+recibe su propia copia, que se puede retocar sin cambiar las demás.
 
 [resources] RECURSOS
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
@@ -691,6 +716,16 @@ compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
 abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia
 cada sesión a la pestaña Sesiones, sin fecha. Las SdA se guardan con las
 demás y salen también en Documentos.
+SESIONES: cada sesión se explica en tres momentos, PREIMPACTO (antes de la
+práctica: objetivo, organización del espacio, el material y los grupos, normas
+de seguridad, cómo se presenta la tarea y la activación o calentamiento),
+IMPACTO (la práctica principal, de lo fácil a lo difícil, con el feedback del
+docente y las adaptaciones para que participe todo el grupo) y POSTIMPACTO
+(vuelta a la calma, puesta en común con preguntas, autoevaluación o coevaluación
+y cierre). En cada momento salen actividades reales con nombre: cómo se hace,
+cuántos minutos, la organización y el material. En el formulario de EF se
+indica «Duración de cada sesión» (50 minutos de partida). Se ven en la SdA, en
+el PDF y en el Word, y «Pasar a Sesiones de EF» pone cada momento en su parte.
 
 [ef-sesiones] SESIONES
 Sesiones de EF con calentamiento, parte principal, vuelta a la calma,
@@ -706,8 +741,23 @@ nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
 «Próximas», «Sin fecha» y «Ver las anteriores».
+«Copiar a otras clases» (arriba, o dentro de una sesión): para quien da EF a
+varias clases del mismo curso. Se elige la clase de origen, qué sesiones (de
+partida, todas) y a qué clases; salen marcadas las del mismo curso y avisadas
+las que ya tienen una sesión con ese título. Cada clase recibe sus propias
+copias, sin fecha salvo que se marque «Conservar también la fecha», y las
+originales no se tocan.
 
 [ef-actividades] ACTIVIDADES
+Se abre en SEIS TARJETAS, una por tipo (juegos motrices, deportes, para días de
+lluvia, en el medio natural, calentamiento y vuelta a la calma), con cuántas
+actividades tiene cada una y unos ejemplos. Al tocar una tarjeta salen sus
+actividades, también en tarjetas con el título, la modalidad, el origen y un
+resumen; al tocar una se lee la ficha entera (en qué consiste, organización,
+material, variantes y DUA-A) y desde ahí se copia para adaptarla, se edita o se
+borra. «Todas las actividades» vuelve a las seis tarjetas, y el buscador recorre
+todas las actividades sin entrar en un tipo. Dentro de un tipo, los chips de
+modalidad solo ofrecen las que hay en él.
 El banco de actividades: las de partida de AulaPro (juegos motrices, deportes
 con juegos modificados, días de lluvia, medio natural, calentamiento y vuelta
 a la calma, escritas para la app en castellano, catalán e inglés), las tuyas y

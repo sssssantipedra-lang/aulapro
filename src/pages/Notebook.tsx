@@ -17,6 +17,8 @@ import {
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
+import { compararAlumnos } from '../lib/alumnado';
+import { CARPETAS } from '../lib/carpetas';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -187,7 +189,7 @@ function GradesTab({
   const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
 
   const myStudents = useMemo(
-    () => students.filter(s => s.class_id === clsId).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true })),
+    () => students.filter(s => s.class_id === clsId).sort(compararAlumnos),
     [students, clsId],
   );
   const myCategories = useMemo(
@@ -342,7 +344,7 @@ function GradesTab({
       .map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    void downloadFile(blob, `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`);
+    void downloadFile(blob, `notas-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${isoDate()}.csv`, CARPETAS.cuaderno);
     toast(t('✅ Notas exportadas (ábrelas con Excel)'));
   }
 

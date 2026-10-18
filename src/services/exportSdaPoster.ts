@@ -11,6 +11,7 @@ import type { LearningSituation } from '../types';
 import { translate, type Lang } from '../i18n';
 import { fichaTheme, type FichaThemeId } from '../lib/fichaThemes';
 import { loadThemeArt } from '../lib/themeArtDoc';
+import { CARPETAS } from '../lib/carpetas';
 
 const esc = (s: string) => (s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
@@ -130,7 +131,7 @@ export async function saveSdaPosterPdf(sda: LearningSituation, themeId: FichaThe
   if (!docs) return { error: 'not-desktop' as const };
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
   const art = (await loadThemeArt(fichaTheme(themeId).historia ? themeId : 'espacio'))?.dataUrl;
-  const res = await docs.savePdf(buildSdaPosterHtml(sda, themeId, lang, { art }), `cartel-${slug(sda.title || 'sda')}.pdf`, { landscape: false });
+  const res = await docs.savePdf(buildSdaPosterHtml(sda, themeId, lang, { art }), `cartel-${slug(sda.title || 'sda')}.pdf`, { landscape: false, carpeta: CARPETAS.situaciones });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }

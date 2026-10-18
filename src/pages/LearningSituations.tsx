@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
-  RefreshCw, Lightbulb, Search, Frame,
+  RefreshCw, Lightbulb, Search, Frame, Copy,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
-  refsDeSda,
+  refsDeSda, MINUTOS_SESION_EF,
 } from '../services/learningSituations';
 import { resolverGrupo, separaMatematicasAB, type Etapa } from '../lib/curriculum';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
@@ -30,12 +30,16 @@ import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
+import { CopiarAClases } from '../components/CopiarAClases';
+import { clonarSda } from '../lib/clonar';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
+import { MomentosDeSesion } from '../components/MomentosDeSesion';
+import { sesionParaEF } from '../lib/sesionSda';
 import { esAsignaturaEF } from '../services/classMarks';
 import type { ModalidadEF, SesionEF } from '../types/ef';
 
@@ -204,6 +208,8 @@ export function LearningSituations({
   const [efModalidad, setEfModalidad] = useState<ModalidadEF | ''>('');
   const [efInventario, setEfInventario] = useState(true);
   const [efLimitaciones, setEfLimitaciones] = useState(true);
+  /** Lo que dura cada sesión de EF, en minutos (texto, para poder escribirlo). */
+  const [efMinutos, setEfMinutos] = useState(String(MINUTOS_SESION_EF));
 
   /* ── Documentos de apoyo ── */
   const [docs, setDocs] = useState<DocSummary[]>([]);
@@ -243,6 +249,8 @@ export function LearningSituations({
   const [generating, setGenerating] = useState(false);
   const [content, setContent] = useState<SdaContent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  /** La situación que se está copiando a otras clases, si se está. */
+  const [copiando, setCopiando] = useState<LearningSituation | null>(null);
 
   /* ── Rúbrica ── */
   const [rubricRows, setRubricRows] = useState<SdaRubricRow[] | null>(null);
@@ -406,6 +414,7 @@ export function LearningSituations({
         material: efInventario ? ef.material : '',
         instalaciones: efInventario ? ef.instalaciones : '',
         limitaciones: efLimitaciones ? limitacionesClase : [],
+        minutos: Number(efMinutos) || MINUTOS_SESION_EF,
       } : undefined,
     }, lang, {
       onStart: () => setGenerating(true),
@@ -452,7 +461,7 @@ export function LearningSituations({
         opcionMatematicas: necesitaOpcionMatematicas ? opcionMatematicas : undefined,
         comunidad,
         materiasOficiales: Object.keys(materias).length ? materias : undefined,
-        ...(esEF ? { efModelo, efModalidad } : {}),
+        ...(esEF ? { efModelo, efModalidad, efMinutos: Number(efMinutos) || MINUTOS_SESION_EF } : {}),
       },
       content,
     };
@@ -465,6 +474,15 @@ export function LearningSituations({
     onSave(sda);
     setEditingId(sda.id);
     toast(t('Situación de aprendizaje guardada'));
+  }
+
+  /** Copia la situación de aprendizaje a las clases elegidas: cada una la tiene suya, y editar una no cambia las otras. */
+  function copiarA(ids: string[]) {
+    if (!copiando) return;
+    const destinos = classes.filter(c => ids.includes(c.id));
+    for (const c of destinos) onSave(clonarSda(copiando, c, newId()));
+    setCopiando(null);
+    toast(t('Situación de aprendizaje copiada a {clases}.', { clases: destinos.map(c => c.name).join(', ') }));
   }
 
   /* ── Exportar ── */
@@ -538,6 +556,7 @@ export function LearningSituations({
     setMetodologia(s.request.metodologia);
     setEfModelo(s.request.efModelo ?? '');
     setEfModalidad(s.request.efModalidad ?? '');
+    setEfMinutos(String(s.request.efMinutos ?? MINUTOS_SESION_EF));
     setRubricRows(null);
     setDianaRows(null);
     setFichaContent(null);
@@ -573,15 +592,19 @@ export function LearningSituations({
   function pasarSesiones() {
     if (!ef || !content) return;
     const base = Date.now().toString(36);
-    const lista: SesionEF[] = content.sesiones.map((s, i) => ({
-      id: `ses${base}${i}`,
-      titulo: `${i + 1}. ${s.titulo}`,
-      ...(classId ? { claseId: classId } : {}),
-      objetivo: t('Sesión {n} de «{sda}» ({fase}).', { n: i + 1, sda: content.titulo, fase: s.fase }),
-      calentamiento: '', principal: s.descripcion, calma: '', material: '',
-      inclusion: content.inclusionUniversal, planB: '', ia: true,
-      ...(content.ef?.modalidad ? { modalidad: content.ef.modalidad } : {}),
-    }));
+    const lista: SesionEF[] = content.sesiones.map((s, i) => {
+      const e = sesionParaEF(s, t);
+      return {
+        id: `ses${base}${i}`,
+        titulo: `${i + 1}. ${s.titulo}`,
+        ...(classId ? { claseId: classId } : {}),
+        // Con momentos, el objetivo es el resumen de la sesión y cada momento va a su parte; sin ellos, como siempre
+        objetivo: s.momentos ? e.objetivo : t('Sesión {n} de «{sda}» ({fase}).', { n: i + 1, sda: content.titulo, fase: s.fase }),
+        calentamiento: e.calentamiento, principal: e.principal, calma: e.calma, material: e.material,
+        inclusion: content.inclusionUniversal, planB: '', ia: true,
+        ...(content.ef?.modalidad ? { modalidad: content.ef.modalidad } : {}),
+      };
+    });
     ef.onPasarSesiones(lista);
     toast(t('Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.', { n: lista.length }));
   }
@@ -896,6 +919,8 @@ export function LearningSituations({
               <option value="">{t('Que la decida la IA según la idea')}</option>
               {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
             </select>
+            <label className="sda-ef-lbl" htmlFor="learningsituations-ef-minutos">{t('Duración de cada sesión (minutos)')}</label>
+            <input id="learningsituations-ef-minutos" className="finput" type="number" min={20} max={120} value={efMinutos} onChange={e => setEfMinutos(e.target.value)} />
             {(ef.material || ef.instalaciones) && (
               <label className="td-chk">
                 <input type="checkbox" checked={efInventario} onChange={e => setEfInventario(e.target.checked)} />
@@ -1032,6 +1057,9 @@ export function LearningSituations({
                   {` · ${new Date(sda.at).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`}
                 </span>
                 <span className="sda-card-actions">
+                  <button className="ico-btn" title={t('Copiar a otras clases')} aria-label={t('Copiar a otras clases')} onClick={() => setCopiando(sda)}>
+                    <Copy size={15} />
+                  </button>
                   {isDesktop() && (
                     <button className="ico-btn" title={t('Guardar en PDF')} aria-label={t('Guardar en PDF')} disabled={exporting !== null} onClick={() => handleExportPdf(sda, sda.id)}>
                       {exporting?.key === sda.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
@@ -1219,6 +1247,9 @@ export function LearningSituations({
             <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportDocx(currentSda(), CURRENT_KEY)} title={t('Descargar en Word')}>
               {exporting?.key === CURRENT_KEY && exporting.kind === 'docx' ? <span className="spin" /> : <FileType2 size={14} />}{t('Word')}
             </button>
+            <button className="btn-ghost" onClick={() => setCopiando(currentSda())} title={t('Copiar esta situación de aprendizaje a otras clases')}>
+              <Copy size={14} />{t('Copiar a otras clases')}
+            </button>
             <button className="btn-ghost" onClick={() => setPosterOpen(true)} title={t('Un cartel con el reto y el camino, para colgar en el aula')}>
               <Frame size={14} />{t('Cartel')}
             </button>
@@ -1308,9 +1339,10 @@ export function LearningSituations({
                   {ph.items.map(({ n, s: ses }) => (
                     <div key={n} className="sda-session">
                       <span className="sda-session-n">{n}</span>
-                      <div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <div className="sda-session-ttl">{ses.titulo}</div>
                         <p className="sda-p">{ses.descripcion}</p>
+                        {ses.momentos && <MomentosDeSesion momentos={ses.momentos} />}
                       </div>
                     </div>
                   ))}
@@ -1530,6 +1562,14 @@ export function LearningSituations({
       </Modal>
 
       {/* ══ Dónde se guarda la nota de la rúbrica ══ */}
+      <CopiarAClases
+        open={!!copiando} onClose={() => setCopiando(null)} titulo={t('Copiar a otras clases')}
+        texto={t('Cada clase tendrá su propia copia de «{titulo}»: la puedes retocar sin cambiar las demás.', { titulo: copiando?.title ?? '' })}
+        classes={classes} origen={classes.find(c => c.id === copiando?.class_id)}
+        yaLoTienen={new Set(learningSituations.filter(x => x.title === copiando?.title && x.class_id).map(x => x.class_id!))}
+        boton={n => t(n === 1 ? 'Copiar a 1 clase' : 'Copiar a {n} clases', { n })} onConfirm={copiarA}
+      />
+
       <Modal open={rubricModal} onClose={() => setRubricModal(false)} title={t('Dónde se guarda la nota')}>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
           {t('Si indicas clase, asignatura y categoría, cada alumno que evalúes con esta rúbrica aparecerá al instante en el cuaderno, en una columna propia.')}

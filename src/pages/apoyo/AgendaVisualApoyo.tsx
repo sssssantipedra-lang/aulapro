@@ -21,6 +21,7 @@ import { buscarPictos, CATEGORIAS_PICTO, pictoDe, urlPicto, type CategoriaPicto 
 import { nombreDeArchivo, reducirFoto } from '../../lib/fotos';
 import { guardarAgendaPdf } from '../../services/exportAgenda';
 import type { AgendaVisual, ApoyoData, FotoApoyo, PasoAgenda } from '../../types/apoyo';
+import { compararNombres } from '../../lib/alumnado';
 
 interface Props {
   data: ApoyoData;
@@ -161,7 +162,7 @@ function EditorAgenda({ agenda, data, imagen, onCambiarFotos, onGuardar, onCance
   const { toast } = useToast();
   const [a, setA] = useState(agenda);
   const [eligiendo, setEligiendo] = useState(false);
-  const alumnos = useMemo(() => [...data.alumnos].sort((x, y) => x.nombre.localeCompare(y.nombre)), [data.alumnos]);
+  const alumnos = useMemo(() => [...data.alumnos].sort((x, y) => compararNombres(x.nombre, y.nombre)), [data.alumnos]);
 
   const mover = (i: number, d: number) => setA(x => {
     const pasos = [...x.pasos];

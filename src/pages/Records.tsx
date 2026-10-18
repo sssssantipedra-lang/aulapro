@@ -7,6 +7,8 @@ import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n, monthLabel, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
+import { compararAlumnos } from '../lib/alumnado';
+import { CARPETAS } from '../lib/carpetas';
 
 interface Props {
   classes: Class[];
@@ -45,10 +47,8 @@ function num(n: number | null, locale = 'es-ES', decimals = 1): string {
   return n.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
-/** Apellidos primero, como se ordenan las actas en España. */
-function byName(a: Student, b: Student) {
-  return a.name.localeCompare(b.name, 'es');
-}
+/** Apellidos primero, como se ordenan las actas en España (el orden de lista de toda la app). */
+const byName = compararAlumnos;
 
 export function Records({
   classes, students, gradeCategories, gradeItems, grades,
@@ -175,7 +175,7 @@ export function Records({
     const html = buildActaHtml();
     if (!html || !docs) return;
     setWorking('pdf');
-    const res = await docs.savePdf(html, fileBase() + '.pdf');
+    const res = await docs.savePdf(html, fileBase() + '.pdf', { carpeta: CARPETAS.actas });
     setWorking(null);
     if (res.canceled) return;
     if (res.error) { toast(t('No se pudo generar el PDF: {error}', { error: res.error })); return; }
@@ -209,7 +209,7 @@ export function Records({
     // BOM + punto y coma: así Excel en España lo abre en columnas sin tocar nada
     const csv = '﻿' + lines.join('\r\n');
     const slug = (s: string) => s.replace(/\s+/g, '-');
-    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`);
+    void downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `acta-${slug(cls?.name ?? 'clase')}-${slug(activeSubject || 'materia')}-${slug(period)}.csv`, CARPETAS.actas);
     toast(t('✅ Datos descargados'));
   }
 

@@ -56,3 +56,38 @@ describe('normativa en el Word', () => {
     expect(await textoDelWord(base)).not.toContain('Normativa curricular');
   });
 });
+
+describe('sesiones de EF con preimpacto, impacto y postimpacto', () => {
+  const act = (nombre: string) => ({ nombre, minutos: 10, descripcion: 'Se juega por parejas.', organizacion: 'Parejas', material: '1 balón' });
+  const conMomentos: LearningSituation = {
+    ...base, content: {
+      ...base.content,
+      sesiones: [{
+        fase: 'Desarrollo', titulo: 'Pases', descripcion: 'Resumen de la sesión.',
+        momentos: {
+          preimpacto: { texto: 'Se colocan zonas.', actividades: [act('Pilla-pilla de cadenas')] },
+          impacto: { texto: 'Progresión.', actividades: [act('Rondo de 4 contra 1')] },
+          postimpacto: { texto: 'Puesta en común.', actividades: [act('Estiramientos en círculo')] },
+        },
+      }],
+    },
+  };
+
+  it('el PDF lleva los tres momentos con sus actividades', () => {
+    const html = buildSdaHtml(conMomentos, 'es');
+    for (const x of ['PREIMPACTO', 'IMPACTO', 'POSTIMPACTO', 'Pilla-pilla de cadenas (10 min).', 'Rondo de 4 contra 1', 'Estiramientos en círculo']) expect(html).toContain(x);
+  });
+
+  it('el Word también, cada línea en su párrafo', async () => {
+    const xml = await textoDelWord(conMomentos);
+    for (const x of ['PREIMPACTO', 'Rondo de 4 contra 1 (10 min).', 'POSTIMPACTO']) expect(xml).toContain(x);
+    // «PREIMPACTO» y la actividad no comparten párrafo
+    expect(xml).not.toMatch(/PREIMPACTO\nSe colocan/);
+  });
+
+  it('una SdA de antes, con solo la descripción, sigue igual', () => {
+    const html = buildSdaHtml({ ...base, content: { ...base.content, sesiones: [{ fase: 'Activación', titulo: 'Hola', descripcion: 'Solo la descripción.' }] } }, 'es');
+    expect(html).toContain('Solo la descripción.');
+    expect(html).not.toContain('PREIMPACTO');
+  });
+});

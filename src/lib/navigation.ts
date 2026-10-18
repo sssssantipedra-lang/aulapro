@@ -7,7 +7,7 @@
  *
  *   - Tu día a día: Inicio, Mis clases, Agenda, Cuaderno, Asistencia.
  *   - Tres «apartados» que reúnen pantallas hermanas, con pestañas arriba:
- *       Evaluar     → Portada, Rúbricas, Dianas, Diana competencial,
+ *       Evaluar     → Portada, Rúbricas, Dianas, Por foto, Diana competencial,
  *                     Autoevaluaciones, Historial
  *       Documentos  → Portada, Informes, Actas, Situaciones de aprendizaje,
  *                     Recursos
@@ -74,7 +74,7 @@ export type NavEntry = ({ kind: 'link' } & NavLink) | ({ kind: 'hub' } & NavHub)
 export const HUBS: readonly NavHub[] = [
   {
     id: 'evaluate', label: 'Evaluar', icon: 'evaluate',
-    hint: 'Evalúa con rúbricas o con la diana competencial, recoge autoevaluaciones y consulta todo lo evaluado.',
+    hint: 'Evalúa con rúbricas, con dianas o corrigiendo un examen o un trabajo por foto, recoge autoevaluaciones y consulta todo lo evaluado.',
     // Al entrar, dos tarjetas grandes (rúbricas o dianas) y cómo va cada clase
     // (decisión del dueño, 11-10-2026). Rúbricas y Dianas eran una sola
     // pantalla con sus propias pestañas, repetidas con las de arriba.
@@ -83,6 +83,7 @@ export const HUBS: readonly NavHub[] = [
       { id: 'evaluar',    label: 'Resumen' },
       { id: 'rubrics',    label: 'Rúbricas' },
       { id: 'dianas',     label: 'Dianas' },
+      { id: 'evalfoto',   label: 'Por foto' },
       { id: 'diana',      label: 'Diana competencial' },
       { id: 'selfassess', label: 'Autoevaluaciones' },
       { id: 'history',    label: 'Historial' },

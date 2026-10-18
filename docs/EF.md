@@ -84,6 +84,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
 
 ## Actividades y sesiones
 
+- **Banco por tarjetas** (petición del dueño, 18-10-2026: «en lugar de tenerlo todo ahí con tanta información, agrúpalo por tarjetas»): «Actividades» se abre en seis tarjetas, una por tipo (`TARJETA_TIPO` en `EfActividades.tsx`), con su icono y color, una frase, tres ejemplos y cuántas hay (y cuántas son tuyas o de la IA). Al abrir una, sus actividades salen también en tarjetas compactas (título, modalidad, origen y un resumen de tres líneas) y la ficha entera se lee en una ventana al tocarlas, con «Copiar y adaptar», «Editar» o «Borrar». Los chips de modalidad solo ofrecen las que hay en ese tipo; el buscador recorre todo el banco desde la portada. Las propuestas de la IA, de una foto o de un manual siguen en lista desplegable dentro de su ventana.
 - Banco de actividades (pestaña «Actividades»):
   - Tipos: juegos motrices, deportes (juegos modificados), días de lluvia, medio natural, calentamiento y vuelta a la calma.
   - Origen: el banco de partida, las del docente y las que guarda de la IA.
@@ -100,6 +101,7 @@ Para el profesorado de Educación Física, con o sin tutoría. Decisiones del du
   - Calentamiento, parte principal, vuelta a la calma, material, inclusión (DUA-A) y plan B, con su clase, día e instalación, y de 1 a 3 criterios de evaluación oficiales de la clase (se cambian con el buscador de criterios).
   - «Preparar con IA»: clase, día, instalación, minutos (del horario si la clase tiene tramo ese día) y qué se trabaja. La IA usa el currículo de la clase y su comunidad, el material que no está para reponer, las instalaciones cubiertas para el plan B y, si se marca, el banco. La sesión se revisa antes de guardarla.
   - PDF para imprimirla (Windows y Android).
+  - **Copiar a otras clases** (18-10-2026): «Copiar a otras clases», arriba o dentro de una sesión. Se elige la clase de origen, qué sesiones (de partida, todas) y a qué clases (`CopiarAClases`, `clonarSesionEF`). Cada clase recibe sus copias sin fecha, porque cada clase tiene su horario, salvo que se marque «Conservar también la fecha»; la instalación, los criterios y la modalidad se conservan, y las originales no se tocan.
 - La IA (`src/services/efIA.ts`): marco con el currículo LOMLOE de la comunidad, el DUA-A, la normativa de inclusión y los autores de referencia:
   - Parlebas y Lavega (juegos y praxiología motriz).
   - Blázquez, Devís y Peiró (iniciación deportiva).
@@ -129,8 +131,16 @@ Petición del dueño (17-10-2026): «una pizarra digital en la que se dibuje un 
   - El material, las instalaciones y las limitaciones de ahora de la clase, sin nombres.
   - Sesiones de EF (calentamiento, parte principal y vuelta a la calma), producto final motor, DUA-A y evaluación formativa y compartida.
 - Estudios de autores publicados en abierto (petición del dueño): cada modelo lleva sus referencias, que pone la app, nunca la IA (se le prohíbe citar nada que no esté en las instrucciones y se descarta cualquier campo que no sea del esquema). Las diez referencias se comprobaron el 5-10-2026: REEFD (Fernández-Río y otros, 2016 y 2018; Calderón, Hastie y Martínez de Ojeda, 2011), Retos (Fernández-Río y Méndez-Giménez, 2016; Fernández-Río, 2017; Baena-Extremera y Granero-Gallegos, 2008), Cultura, Ciencia y Deporte (Abad Robles y otros, 2013), Apunts (Niubò-Solé, Lavega-Burgués y Sáenz-López, 2022), el libro de la Universidad de León (López-Pastor y Pérez-Pueyo, 2017) y las pautas DUA 3.0 de CAST (2024). Si se añade una, comprobarla antes.
+- **Sesiones en preimpacto, impacto y postimpacto** (petición del dueño, 18-10-2026: «dice cosas generales; quiero actividades reales siguiendo el preimpacto, impacto y postimpacto»): las sesiones de la SdA de EF ya no son un párrafo. Cada una lleva un resumen y los tres momentos de la enseñanza (Mosston y Ashworth), cada uno con su texto y de 1 a 3 actividades reales (`SdaSession.momentos`, `MomentosSesionEF`):
+  - **Preimpacto**: antes de la práctica principal. Objetivo, organización del espacio, del material y de los grupos, normas de seguridad, cómo se presenta la tarea y la activación o calentamiento específico.
+  - **Impacto**: durante. Las tareas principales, de lo fácil a lo difícil, cómo se organiza y qué decide el alumnado, el feedback del docente y las adaptaciones DUA-A.
+  - **Postimpacto**: después. La vuelta a la calma, la puesta en común con preguntas concretas, la autoevaluación o coevaluación con su instrumento y el cierre.
+  - Cada **actividad** tiene nombre (un juego o una tarea que exista), minutos, cómo se hace (reglas, cómo se puntúa, progresión), organización y material. La instrucción a la IA prohíbe «se realizará un juego de calentamiento» y le pide decir cuál y cómo, sin repetir la misma actividad de una sesión a otra y con minutos que sumen la duración de la sesión. La duración es un campo del formulario de EF («Duración de cada sesión», 50 por defecto; `SdaPeticionEF.minutos`). Con esto la SdA ocupa más (hasta 32768 tokens de salida).
+  - Lo que devuelve la IA se sanea (`sesionesDeLaRespuesta`): una actividad sin nombre o sin explicación se descarta, los minutos tienen que tener sentido y como mucho hay cuatro por momento; una sesión sin ninguna actividad se queda como las de antes (solo su descripción) en vez de enseñar tres cuadros vacíos. Las SdA hechas antes de la 2.11.0 siguen leyéndose como siempre.
+  - Se ve en la pantalla (`MomentosDeSesion`), en el PDF y en el Word (`sesionEnTexto`: una línea, un párrafo en Word); «Pasar a Sesiones de EF» pone cada momento en su parte (calentamiento, parte principal y vuelta a la calma) con el material de las actividades (`sesionParaEF`).
 - La SdA guarda `ef: { modelos, referencias, modalidad }`; el modelo, la modalidad y las referencias salen en la pantalla, en el PDF y en el Word.
 - «Pasar a Sesiones de EF» copia cada sesión de la SdA a la pestaña Sesiones, sin fecha.
+- **Copiar a otras clases** (petición del dueño, 18-10-2026: «si doy EF a varias clases de 4º de Primaria, poder exportar la SdA»): cada tarjeta de la biblioteca de SdA, y el documento abierto, tienen «Copiar a otras clases». Se eligen las clases (salen marcadas las del mismo curso, sin la propia y sin las que ya tienen una con ese título) y cada una recibe una copia suya e independiente (`clonarSda` en `src/lib/clonar.ts`; la petición toma la etapa y el curso de la clase de destino). Es lo mismo en cualquier materia, no solo en EF.
 
 ## Material e instalaciones
 

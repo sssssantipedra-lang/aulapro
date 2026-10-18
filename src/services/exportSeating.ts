@@ -18,6 +18,7 @@ import { translate, type Lang } from '../i18n';
 import { buildTableSvg } from '../lib/seatingLayout';
 import { PALETTE } from '../lib/demoData';
 import { downloadFile } from '../lib/download';
+import { CARPETAS } from '../lib/carpetas';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
 
@@ -93,7 +94,7 @@ footer { margin-top: 12mm; padding-top: 6mm; border-top: 0.75px solid #cbd5e1; d
 export async function saveSeatingPdf(cls: Class, plan: SeatingPlan, students: Student[], lang: Lang) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
-  const res = await docs.savePdf(buildSeatingHtml(cls, plan, students, lang), fileBase(cls) + '.pdf', { landscape: true });
+  const res = await docs.savePdf(buildSeatingHtml(cls, plan, students, lang), fileBase(cls) + '.pdf', { landscape: true, carpeta: CARPETAS.aula });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
 }
@@ -182,5 +183,5 @@ export async function buildSeatingDocxBlob(cls: Class, plan: SeatingPlan, studen
 
 export async function saveSeatingDocx(cls: Class, plan: SeatingPlan, students: Student[], lang: Lang) {
   const blob = await buildSeatingDocxBlob(cls, plan, students, lang);
-  await downloadFile(blob, fileBase(cls) + '.docx');
+  await downloadFile(blob, fileBase(cls) + '.docx', CARPETAS.aula);
 }
