@@ -22,16 +22,32 @@ describe('cartel de la SdA', () => {
     expect(buildSdaPosterHtml(sda, 'selva', 'es')).toContain('<span class="hero">🦁</span>');
   });
 
-  it('lleva el reto, el producto, las fases con sus sesiones y las competencias', () => {
+  it('el cartel del alumnado lleva el reto, las áreas, las sesiones y el producto final, sin competencias', () => {
     const html = buildSdaPosterHtml(sda, 'selva', 'es');
     expect(html).toContain('Mercado sostenible');
-    expect(html).toContain('Nuestro reto');
-    expect(html).toContain('Un mercado en el patio.');
+    expect(html).toContain('¿Qué vamos a trabajar?');
+    expect(html).toContain('El centro tira mucha basura.');
+    expect(html).toContain('Nuestras sesiones');
     expect(html).toContain('Activación');
     expect(html).toContain('Recuento');
+    expect(html).toContain('Nuestro producto final');
+    expect(html).toContain('Un mercado en el patio.');
+    expect(html).not.toContain('<b>STEM</b>');
+    expect(html).not.toContain('Para el docente');
+    expect(html).toContain('3º ESO A');
+  });
+
+  it('el cartel del docente lleva lo que se trabaja de cada área, las competencias, las sesiones y el producto final', () => {
+    const html = buildSdaPosterHtml(sda, 'selva', 'es', { audiencia: 'docente' });
+    expect(html).toContain('Para el docente');
+    expect(html).toContain('Qué vamos a trabajar');
+    expect(html).toContain('Estadística y porcentajes.');
     expect(html).toContain('<b>STEM</b>');
     expect(html).toContain('<b>CCL</b>');
-    expect(html).toContain('3º ESO A');
+    expect(html).toContain('Las sesiones');
+    expect(html).toContain('Recuento');
+    expect(html).toContain('Un mercado en el patio.');
+    expect(html).not.toContain('Nuestro reto');
   });
 
   it('recorta por frases sin pasarse', () => {

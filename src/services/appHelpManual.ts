@@ -219,7 +219,8 @@ Pasar lista por clase y día. Al entrar se abre la clase que toca según el
 horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
 arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
 Justificada (en el móvil, solo el icono); pulsar el nombre del alumno va
-cambiando el estado. Hay botón de «Todos presentes» para marcar la clase entera de
+cambiando el estado; volver a pulsar el botón del estado marcado lo quita (el alumno
+queda sin marcar). Hay botón de «Todos presentes» para marcar la clase entera de
 golpe. El porcentaje de asistencia cuenta el retraso y la falta justificada como
 asistencia. Se exporta a CSV.
 
@@ -439,8 +440,9 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   RÚBRICA (tabla de colores por nivel, «Llevar a Rúbricas»), la DIANA («Llevar
   a Dianas») y una FICHA de ejercicios («Llevar a Recursos»). Arriba: «Ajustar»
   (cambiar los datos y volver a generarla), PDF, Word, «Cartel» (una hoja A4
-  para colgar en el aula con el reto, lo que se va a conseguir, el camino por
-  fases y las competencias, con el tema visual que elijas) y «Guardar»
+  sin mucha explicación, con qué vamos a trabajar, las sesiones y el producto
+  final: una versión para el alumnado y otra para el docente, con el tema
+  visual que elijas) y «Guardar»
   (mientras no se guarda aparece «Sin guardar»).
 «Copiar a otras clases» (el icono de copiar de cada tarjeta, o el botón del
 documento abierto): para quien da la misma materia a varias clases, por

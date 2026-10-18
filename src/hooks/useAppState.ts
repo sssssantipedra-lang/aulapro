@@ -656,21 +656,22 @@ export function useAppState() {
   }, []);
 
   /* ── Asistencia ── */
-  const setAttendanceFor = useCallback((classId: string, date: string, studentId: string, status: AttendanceStatus) => {
+  const setAttendanceFor = useCallback((classId: string, date: string, studentId: string, status: AttendanceStatus | null) => {
     const before = mirrorRef.current.attendance[classId]?.[date]?.[studentId];
-    setAttendance(prev => ({
-      ...prev,
-      [classId]: {
-        ...(prev[classId] ?? {}),
-        [date]: { ...(prev[classId]?.[date] ?? {}), [studentId]: status },
-      },
-    }));
+    setAttendance(prev => {
+      const dia = { ...(prev[classId]?.[date] ?? {}) };
+      // `null` quita la marca: volver a pulsar el estado puesto lo deja sin marcar
+      if (status) dia[studentId] = status; else delete dia[studentId];
+      const clase = { ...(prev[classId] ?? {}) };
+      if (Object.keys(dia).length) clase[date] = dia; else delete clase[date];
+      return { ...prev, [classId]: clase };
+    });
     // Solo se registran las CORRECCIONES. Pasar lista por primera vez es
     // rutina y metería veinticinco líneas por sesión, tapando lo importante.
     if (before && before !== status) {
       log('update', 'attendance', `${classId}:${date}:${studentId}`,
         `Asistencia de ${studentName(studentId)} el ${formatDay(date)}`,
-        `${ATT_LABEL[before]} → ${ATT_LABEL[status]}`);
+        `${ATT_LABEL[before]} → ${status ? ATT_LABEL[status] : 'sin marcar'}`);
     }
   }, [log, studentName]);
 

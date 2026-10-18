@@ -628,8 +628,8 @@ const EN: Record<string, string> = {
   'Hoy': 'Today',
   'Todos presentes': 'Mark all present',
   'Toca para cambiar el estado': 'Tap to change status',
-  'Toca el nombre para ir cambiando el estado, o usa los botones. Se guarda solo.':
-    'Tap the name to cycle through statuses, or use the buttons. It saves automatically.',
+  'Toca el nombre para ir cambiando el estado, o usa los botones; volver a pulsar el estado marcado lo quita. Se guarda solo.':
+    'Tap the name to cycle through statuses, or use the buttons; tap the marked status again to clear it. It saves automatically.',
   'Todavía no has pasado lista en {name}.': 'You haven’t taken the register in {name} yet.',
   'El porcentaje cuenta como asistencia los retrasos y las faltas justificadas.':
     'The percentage counts lateness and excused absences as attendance.',
@@ -1541,7 +1541,6 @@ const EN: Record<string, string> = {
   'Un cartel con el reto y el camino, para colgar en el aula': 'A poster with the challenge and the path, to hang in the classroom',
   'Cartel': 'Poster',
   'Cartel para el aula': 'Classroom poster',
-  'El reto, lo que se va a conseguir y el camino por fases, en una hoja A4 para colgar. Elige el aspecto:': 'The challenge, the goal and the path by phases, on an A4 sheet to hang up. Choose the look:',
   'Tema del cartel': 'Poster theme',
   'Vista previa del cartel': 'Poster preview',
   'SdA': 'LS',

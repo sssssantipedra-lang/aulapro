@@ -687,6 +687,15 @@ export const EF_EN: Record<string, string> = {
   'Orientación, rutas y juegos en el patio, el parque o el entorno.': 'Orienteering, routes and games in the playground, the park or the surroundings.',
   'Activación general y específica para empezar la sesión.': 'General and specific activation to start the lesson.',
   'Relajación, estiramientos y reflexión para cerrar la sesión.': 'Relaxation, stretching and reflection to close the lesson.',
+  'Para el docente': 'For the teacher',
+  'Para el alumnado': 'For the students',
+  'Para quién es el cartel': 'Who the poster is for',
+  'Qué vamos a trabajar': 'What we will work on',
+  '¿Qué vamos a trabajar?': 'What are we going to work on?',
+  'Las sesiones': 'The sessions',
+  'Nuestras sesiones': 'Our sessions',
+  'Nuestro producto final': 'Our final product',
+  'Qué vamos a trabajar, las sesiones y el producto final, en una hoja A4. Elige para quién es y el aspecto:': 'What we will work on, the sessions and the final product, on one A4 sheet. Choose who it is for and the look:',
 };
 
 export const EF_CA: Record<string, string> = {
@@ -1374,4 +1383,13 @@ export const EF_CA: Record<string, string> = {
   'Orientación, rutas y juegos en el patio, el parque o el entorno.': 'Orientació, rutes i jocs al pati, al parc o a l\'entorn.',
   'Activación general y específica para empezar la sesión.': 'Activació general i específica per començar la sessió.',
   'Relajación, estiramientos y reflexión para cerrar la sesión.': 'Relaxació, estiraments i reflexió per tancar la sessió.',
+  'Para el docente': 'Per al docent',
+  'Para el alumnado': 'Per a l\'alumnat',
+  'Para quién es el cartel': 'Per a qui és el cartell',
+  'Qué vamos a trabajar': 'Què treballarem',
+  '¿Qué vamos a trabajar?': 'Què treballarem?',
+  'Las sesiones': 'Les sessions',
+  'Nuestras sesiones': 'Les nostres sessions',
+  'Nuestro producto final': 'El nostre producte final',
+  'Qué vamos a trabajar, las sesiones y el producto final, en una hoja A4. Elige para quién es y el aspecto:': 'Què treballarem, les sessions i el producte final, en un full A4. Tria per a qui és i l\'aspecte:',
 };
