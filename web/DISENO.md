@@ -405,3 +405,5 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **Tres perfiles**: `FASES=aula,ef,apoyo`. 83 pantallas (las de EF llevan `ef-` y las de PT y AL, `pt-`). La demo tiene un selector de perfil sobre la ventana, y los botones de cada menú llevan a las pantallas de su perfil.
 - **Sin IA**: los botones que piden algo a la IA (`RE_IA` en `capturar.mjs`) avisan de que en la demo no se genera nada.
 - Capturada con la app 2.13.2 (tarjetas grandes y tarjetas circulares de Recursos y Actividades con móviles).
+
+- Decisión del dueño (19-10-2026), tras comparar con Additio (unos 10,99 €/año) y las herramientas de IA para programaciones (79 a 150 €/año): la anual baja de 11,99 € a 10,99 €/año. El lanzamiento (6,99 € de por vida) y los packs no cambian.
