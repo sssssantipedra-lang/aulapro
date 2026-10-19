@@ -101,6 +101,12 @@ Decisión del dueño: proteger la web de las caídas «de todas las maneras posi
 6. **Dominio y cuentas**: comprobado el 18-10-2026 que el dominio está activo, caduca el 30-9-2027 y tiene la renovación automática programada para el 31-8-2027 (hace falta una tarjeta válida en Cloudflare en esa fecha). A cargo del dueño: verificación en dos pasos en Cloudflare, GitHub, Google y Lemon Squeezy.
 7. **Conocido**: las normas de GitHub Pages no lo permiten para negocios ni para webs cuyo fin principal sea vender; una página de presentación con enlace a una tienda externa suele tolerarse, pero es zona gris. Por eso GitHub Pages es copia de respaldo y no la copia principal, y antes de lanzar la venta se revisa. `descargas.aulapro.app` (R2, Cloudflare) y lo que la app pide a `aulapro.app` no tienen respaldo; las descargas van por las tiendas.
 
+### Decisión sobre el alojamiento (19-10-2026)
+
+El dueño decide **mantener Cloudflare Pages como alojamiento principal** (con GitHub Pages y la vigilancia como respaldo) y pasar a un servidor propio cuando la web empiece a funcionar de verdad (ventas y visitas). Motivos que se manejaron: el bloqueo de direcciones por LaLiga afecta a las direcciones compartidas (Cloudflare la que más) y dura toda la temporada 2026/27; el alojamiento «solo legal y no bloqueable» más cercano es un servidor propio en Europa con IPv4 e IPv6 propias (unos 4 a 6 € al mes, con un segundo servidor o las copias actuales de respaldo); GitHub Pages no es válido como principal (sus normas no permiten webs que vendan), y el plan gratis de Netlify (300 créditos al mes, se pausan todas las webs al agotarlo) no aguanta una web con vídeos. Sin decidir: desactivar «Bot Fight Mode» de Cloudflare.
+
+Cuándo volver a decidirlo: antes de abrir la venta (`checkout` en `launch.js`); si la vigilancia avisa de que la mitad o más de las sondas en España no abren la web; o si llegan quejas de docentes que no pueden entrar. El plan de cambio de copia en 5 minutos está arriba (apartado 4c) y los DNS en `docs/DNS.md`.
+
 ## 5. Lemon Squeezy: ajustes del producto
 
 1. Precios con impuestos incluidos, para que el cliente pague exactamente 6,99 €.
