@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Smartphone, Play, Square, Users, MessageSquareText, BarChart3,
-  ClipboardCheck, Plus, Trash2, Monitor, Wifi, ArrowRight, Save, Target,
+  ClipboardCheck, Plus, Trash2, Monitor, Wifi, ArrowRight, Save, Target, Check,
 } from 'lucide-react';
 import type { Class, Student, Rubric, EvalDiana, SelfAssessmentSession } from '../types';
 import { isoDate, nombreDePila } from '../lib/utils';
@@ -24,10 +24,22 @@ interface Props {
 
 type ActivityKind = 'rubric' | 'brainstorm' | 'poll';
 
-const KINDS: { id: ActivityKind; label: string; desc: string; icon: React.ReactNode }[] = [
-  { id: 'rubric',     label: 'Autoevaluación', desc: 'Se puntúan con tus criterios', icon: <ClipboardCheck size={17} /> },
-  { id: 'brainstorm', label: 'Lluvia de ideas', desc: 'Envían ideas al mural',        icon: <MessageSquareText size={17} /> },
-  { id: 'poll',       label: 'Votación',       desc: 'Eligen una opción',            icon: <BarChart3 size={17} /> },
+const KINDS: { id: ActivityKind; label: string; desc: string; ejemplo: string; color: string; icon: React.ReactNode }[] = [
+  {
+    id: 'rubric', label: 'Autoevaluación', color: '#6366f1', icon: <ClipboardCheck size={24} />,
+    desc: 'Cada alumno se puntúa con tu rúbrica o tu diana desde el móvil, y tú ves cómo se ve la clase.',
+    ejemplo: '¿Cómo he trabajado hoy en grupo?',
+  },
+  {
+    id: 'brainstorm', label: 'Lluvia de ideas', color: '#f59e0b', icon: <MessageSquareText size={24} />,
+    desc: 'Los alumnos envían sus ideas desde el móvil y las ves llegar en directo.',
+    ejemplo: '¿Qué sabemos sobre los ecosistemas?',
+  },
+  {
+    id: 'poll', label: 'Votación', color: '#10b981', icon: <BarChart3 size={24} />,
+    desc: 'Una pregunta con hasta seis opciones: eligen una y ves el reparto de votos al momento.',
+    ejemplo: '¿Qué hemos entendido mejor?',
+  },
 ];
 
 const LEVEL_LABEL = ['Aún no', 'A veces', 'Casi siempre', 'Siempre'];
@@ -313,24 +325,22 @@ export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSav
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 9, marginBottom: 16 }}>
+            <div className="ev-cards tres cl-actividades" role="radiogroup" aria-label={t('Actividad')}>
               {KINDS.map(k => {
                 const on = kind === k.id;
                 return (
                   <button
-                    key={k.id}
+                    key={k.id} type="button" role="radio" aria-checked={on}
+                    className={`ev-card cl-actividad${on ? ' sel' : ''}`} style={{ '--ev-c': k.color } as React.CSSProperties}
                     onClick={() => { setKind(k.id); setTitle(''); setPrompt(''); setSourceId(''); }}
-                    style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
-                      padding: '12px 13px', borderRadius: 11, cursor: 'pointer', textAlign: 'left',
-                      background: on ? 'var(--accent-l)' : 'var(--surface)',
-                      border: `1.5px solid ${on ? 'var(--accent-d)' : 'transparent'}`,
-                      fontFamily: 'var(--font)',
-                    }}
                   >
-                    <span style={{ color: on ? 'var(--accent-d)' : 'var(--text-3)' }}>{k.icon}</span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{t(k.label)}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{t(k.desc)}</span>
+                    <span className="ev-card-ico">{k.icon}</span>
+                    <span className="ev-card-ttl">{t(k.label)}</span>
+                    <span className="ev-card-txt">{t(k.desc)}</span>
+                    <span className="ev-card-ft">
+                      <span className="ev-card-dato">{t('Ej: {ejemplo}', { ejemplo: t(k.ejemplo) })}</span>
+                      {on && <span className="ev-card-go"><Check size={15} />{t('Elegida')}</span>}
+                    </span>
                   </button>
                 );
               })}

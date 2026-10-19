@@ -2011,28 +2011,36 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .fe-paso { display:flex; align-items:center; gap:10px; margin:0 0 10px; font-size:15px; font-weight:800; color:var(--text); }
 .fe-paso:not(:first-child) { margin-top:18px; }
 .fe-paso-n { width:24px; height:24px; border-radius:50%; background:var(--accent-d); color:#fff; font-size:12.5px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.fe-tipos { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; }
-.fe-tipo { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:16px 16px 14px; border:2px solid var(--border); border-radius:16px; background:var(--card); cursor:pointer; font-family:var(--font); text-align:left; transition:border-color var(--t), box-shadow var(--t), transform var(--t); }
-.fe-tipo:hover { transform:translateY(-2px); box-shadow:0 10px 24px rgba(15,23,42,.1); }
-.fe-tipo.on { border-color:var(--accent); background:color-mix(in srgb, var(--accent-l) 55%, var(--card)); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
-.fe-tipo-emoji { font-size:34px; line-height:1; margin-bottom:6px; }
-.fe-tipo strong { font-size:14.5px; color:var(--text); }
-.fe-tipo em { font-style:normal; font-size:12px; color:var(--text-3); line-height:1.4; }
+/* Recursos: qué crear, en tarjetas grandes como las portadas del resto de la app (18-10-2026) */
+.fe-tipos { margin-bottom: 6px; }
+.fe-tipos .ev-card { min-height: 190px; padding: 20px 20px 16px; }
+.fe-tipos .ev-card-ttl { font-size: 18px; }
 .fe-quien { margin-top:2px; }
 .fe-generos { display:flex; flex-wrap:wrap; gap:8px; }
 .fe-genero { padding:7px 14px; border:1.5px solid var(--border); border-radius:99px; background:var(--card); font-family:var(--font); font-size:13px; font-weight:700; color:var(--text-2); cursor:pointer; }
 .fe-genero:hover { background:var(--surface); }
 .fe-genero.on { border-color:var(--accent); background:var(--accent-l); color:var(--accent-d); }
-.fe-opts { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin:2px 0 12px; }
-.fe-opt { display:flex; align-items:center; gap:12px; padding:10px 14px; border:1.5px solid var(--border); border-radius:14px; background:var(--card); cursor:pointer; transition:border-color var(--t), background var(--t); }
-.fe-opt:hover { background:var(--surface); }
-.fe-opt.on { border-color:var(--accent-d); background:rgba(var(--accent-rgb), .07); }
-.fe-opt input { width:18px; height:18px; flex-shrink:0; accent-color:var(--accent-d); }
-.fe-opt-ico { font-size:22px; line-height:1; width:30px; text-align:center; }
-.fe-opt-aa { font-family:'Lexend', Verdana, sans-serif; font-weight:800; font-size:18px; color:var(--accent-d); }
-.fe-opt-txt { display:flex; flex-direction:column; gap:1px; min-width:0; }
-.fe-opt-txt strong { font-size:13.5px; color:var(--text); }
-.fe-opt-txt em { font-style:normal; font-size:11.5px; color:var(--text-3); line-height:1.35; }
+/* Lectura fácil y pictogramas: tarjetas circulares pequeñas con su dibujo, que se encienden y se apagan (19-10-2026) */
+.fe-bolas { display:flex; flex-wrap:wrap; gap:22px; margin:14px 0 16px; }
+.fe-bola { position:relative; display:flex; flex-direction:column; align-items:center; gap:3px; width:110px; cursor:pointer; text-align:center; }
+.fe-bola-circ { position:relative; width:88px; height:88px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:5px;
+  background:radial-gradient(circle at 30% 25%, #fff 0%, color-mix(in srgb, var(--ev-c) 14%, var(--card)) 70%);
+  border:2px dashed color-mix(in srgb, var(--ev-c) 40%, var(--border));
+  box-shadow:inset 0 -6px 12px color-mix(in srgb, var(--ev-c) 10%, transparent);
+  transition:border-color var(--t), transform var(--t), box-shadow var(--t), background var(--t); }
+.fe-bola-circ img { width:62px; height:62px; object-fit:contain; filter:grayscale(.85) opacity(.7); transition:filter var(--t), transform var(--t); }
+.fe-bola:hover .fe-bola-circ { transform:translateY(-3px) rotate(-3deg); border-color:var(--ev-c); }
+.fe-bola:hover .fe-bola-circ img { filter:none; }
+.fe-bola.on .fe-bola-circ { border-style:solid; border-color:var(--ev-c); background:radial-gradient(circle at 30% 25%, #fff 0%, color-mix(in srgb, var(--ev-c) 28%, var(--card)) 78%);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--ev-c) 20%, transparent), 0 10px 22px color-mix(in srgb, var(--ev-c) 30%, transparent); }
+.fe-bola.on .fe-bola-circ img { filter:none; transform:scale(1.06); }
+.fe-bola input:focus-visible + .fe-bola-circ { outline:2px solid var(--ev-c); outline-offset:4px; }
+.fe-bola-aa { position:absolute; left:-4px; top:-2px; min-width:30px; height:30px; padding:0 6px; border-radius:15px; display:flex; align-items:center; justify-content:center; background:var(--ev-c); color:#fff; font-family:'Lexend', Verdana, sans-serif; font-weight:800; font-size:14px; box-shadow:0 3px 8px color-mix(in srgb, var(--ev-c) 40%, transparent); transform:rotate(-8deg); }
+.fe-bola-ok { position:absolute; right:-2px; bottom:2px; width:24px; height:24px; padding:4px; border-radius:50%; background:var(--ev-c); color:#fff; border:2px solid #fff; box-sizing:border-box; opacity:0; transform:scale(.4); transition:opacity var(--t), transform var(--t); }
+.fe-bola.on .fe-bola-ok { opacity:1; transform:scale(1); }
+.fe-bola-txt { font-size:13px; font-weight:800; line-height:1.25; color:var(--text); }
+.fe-bola-sub { font-size:11px; line-height:1.3; color:var(--text-3); }
+@media (prefers-reduced-motion: reduce) { .fe-bola-circ, .fe-bola-circ img, .fe-bola-ok { transition:none; } .fe-bola:hover .fe-bola-circ { transform:none; } }
 .fe-more { margin:4px 0 0; }
 .fe-more summary { display:flex; align-items:baseline; gap:10px; }
 .fe-resumen { font-weight:500; font-size:12px; color:var(--text-3); }
@@ -2234,3 +2242,11 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* ── Autoguardado: la hora del último borrador junto a lo que se edita ── */
 .borrador-estado { font-size:12px; font-weight:600; color:var(--text-3); white-space:nowrap; }
+
+/* ── Actividades con móviles: el tipo de actividad, en tarjetas grandes como las portadas del resto de la app ── */
+.cl-actividades { margin-bottom: 18px; }
+.cl-actividades .ev-card { min-height: 190px; padding: 20px 20px 16px; }
+.cl-actividades .ev-card-ttl { font-size: 18px; }
+.ev-card.sel { border-color: var(--ev-c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ev-c) 28%, transparent), 0 10px 28px rgba(120,100,70,0.12); }
+.ev-card.sel::before { opacity: 0.16; }
+.ev-card.sel .ev-card-go { color: var(--ev-c); }

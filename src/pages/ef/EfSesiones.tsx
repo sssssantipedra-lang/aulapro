@@ -237,7 +237,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
             {s.instalacionId && <span className="ap-hora"><MapPin size={12} aria-hidden="true" />{nombreInst(s.instalacionId)}</span>}
             {s.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === s.modalidad)!.label)}</span>}
             {s.ia && <span className="sda-chip ef-origen-ia">{t('Con IA')}</span>}
-            {lims > 0 && <span className="ef-exento"><Bandage size={11} aria-hidden="true" />{t(lims === 1 ? '{n} con limitación' : '{n} con limitaciones', { n: lims })}</span>}
+            {lims > 0 && <span className="ef-exento"><Bandage size={11} aria-hidden="true" />{t(lims === 1 ? '{n} con barrera de aprendizaje' : '{n} con barreras de aprendizaje', { n: lims })}</span>}
           </span>
           {s.objetivo.trim() && <span className="ap-sub">{s.objetivo}</span>}
         </button>

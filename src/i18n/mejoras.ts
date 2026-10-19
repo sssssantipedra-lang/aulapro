@@ -52,6 +52,21 @@ export const MEJORAS_EN: Record<string, string> = {
   'Fino': 'Thin',
   'Medio': 'Medium',
   'Grueso': 'Thick',
+  // Actividades con móviles, en tarjetas
+  'Ej: {ejemplo}': 'E.g. {ejemplo}',
+  'Elegida': 'Selected',
+  'Cada alumno se puntúa con tu rúbrica o tu diana desde el móvil, y tú ves cómo se ve la clase.': 'Each student scores themselves with your rubric or target from their phone, and you see how the class sees itself.',
+  'Los alumnos envían sus ideas desde el móvil y las ves llegar en directo.': 'Students send their ideas from their phones and you see them arrive live.',
+  'Una pregunta con hasta seis opciones: eligen una y ves el reparto de votos al momento.': 'A question with up to six options: they pick one and you see the votes split instantly.',
+  '¿Cómo he trabajado hoy en grupo?': 'How did I work in my group today?',
+  '¿Qué sabemos sobre los ecosistemas?': 'What do we know about ecosystems?',
+  '¿Qué hemos entendido mejor?': 'What have we understood best?',
+  // Recursos: qué crear, en tarjetas
+  'Se imprime en PDF o Word': 'Print it as PDF or Word',
+  'Cuento, poema, noticia…': 'Story, poem, news article…',
+  'Se puede proyectar en clase': 'Can be projected in class',
+  'Para dislexia': 'For dyslexia',
+  'Pasos con dibujos': 'Steps with drawings',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -102,4 +117,18 @@ export const MEJORAS_CA: Record<string, string> = {
   'Fino': 'Fi',
   'Medio': 'Mitjà',
   'Grueso': 'Gruixut',
+  // Actividades con móviles, en tarjetas
+  'Ej: {ejemplo}': 'Ex.: {ejemplo}',
+  'Elegida': 'Triada',
+  'Cada alumno se puntúa con tu rúbrica o tu diana desde el móvil, y tú ves cómo se ve la clase.': 'Cada alumne es puntua amb la teva rúbrica o la teva diana des del mòbil, i tu veus com es veu la classe.',
+  'Los alumnos envían sus ideas desde el móvil y las ves llegar en directo.': 'Els alumnes envien les seves idees des del mòbil i les veus arribar en directe.',
+  'Una pregunta con hasta seis opciones: eligen una y ves el reparto de votos al momento.': 'Una pregunta amb fins a sis opcions: en trien una i veus el repartiment de vots a l\'instant.',
+  '¿Cómo he trabajado hoy en grupo?': 'Com he treballat avui en grup?',
+  '¿Qué sabemos sobre los ecosistemas?': 'Què sabem sobre els ecosistemes?',
+  '¿Qué hemos entendido mejor?': 'Què hem entès millor?',
+  'Se imprime en PDF o Word': 'S\'imprimeix en PDF o Word',
+  'Cuento, poema, noticia…': 'Conte, poema, notícia…',
+  'Se puede proyectar en clase': 'Es pot projectar a classe',
+  'Para dislexia': 'Per a la dislèxia',
+  'Pasos con dibujos': 'Passos amb dibuixos',
 };

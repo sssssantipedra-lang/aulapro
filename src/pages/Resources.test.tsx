@@ -325,7 +325,7 @@ describe('Recursos · crear en dos pasos', () => {
   it('el primer paso son cuatro tarjetas grandes; la comprensión lectora pide el tipo de texto y quita lo que no le sirve', async () => {
     setup(vi.fn(), []);
     const tipos = screen.getAllByRole('radio').filter(r => r.classList.contains('fe-tipo'));
-    expect(tipos.map(t => t.querySelector('strong')?.textContent)).toEqual(['Ficha de ejercicios', 'Comprensión lectora', 'Escape room', 'Tarjetas']);
+    expect(tipos.map(t => t.querySelector('.ev-card-ttl')?.textContent)).toEqual(['Ficha de ejercicios', 'Comprensión lectora', 'Escape room', 'Tarjetas']);
     expect(tipos[0].getAttribute('aria-checked')).toBe('true');
     expect(screen.getByRole('checkbox', { name: /Con pictogramas/ })).toBeTruthy();
     expect(screen.queryByRole('radio', { name: 'Poema' })).toBeNull();

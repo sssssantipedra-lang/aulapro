@@ -96,6 +96,10 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Las herramientas escriben con `rgba(var(--pz-rgb), x)` y no con blanco fijo: el color de la tinta sigue al fondo de la pizarra.
 - La demo y todas las capturas de la web son de la 2.13.1 (19-10-2026). La pizarra de la demo se dibuja a mano sobre una captura sin ella (`web/DISENO.md`, sección 41): si cambia la pizarra, cambia también `INIT.pizarra` de `web/sitio/assets/demo.js`. **Queda por rehacer la pantalla del portátil del vídeo de la portada, que enseña la 2.8.0.**
 
+## Elegir en tarjetas grandes (19-10-2026)
+
+- Petición del dueño: «actividades por tarjetas, de manera más visual, como las otras partes de la app». «Actividades con móviles» (autoevaluación, lluvia de ideas, votación) y «¿Qué quieres crear?» de Recursos (ficha, comprensión lectora, escape room, tarjetas) usan las tarjetas `ev-card` de las portadas, con icono de color, explicación, un dato y la elegida marcada (`.ev-card.sel`), en vez de recuadros pequeños con emoji. Una elección nueva entre tipos debería seguir ese estilo. «Lectura fácil» y «Con pictogramas» (Recursos) son tarjetas circulares pequeñas con su dibujo (`.fe-bola`, apagadas en gris con borde discontinuo y encendidas en color con una marca); siguen siendo casillas por dentro.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
