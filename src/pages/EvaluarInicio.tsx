@@ -5,8 +5,9 @@
  * siempre esta pantalla (`portada` en lib/navigation.ts).
  */
 import { useMemo } from 'react';
-import { ArrowRight, Camera, ClipboardCheck, Target, TrendingUp } from 'lucide-react';
-import type { Class, Evaluation, Rubric, Section } from '../types';
+import { ArrowRight, Camera, ClipboardCheck, Target, ThumbsUp, TrendingUp } from 'lucide-react';
+import type { Class, EvalDiana, Evaluation, Rubric, Section } from '../types';
+import { esRegistro } from '../lib/registro';
 import { rendimientoPorClase } from '../lib/rendimiento';
 import { RendimientoCarrusel } from '../components/evaluar/RendimientoCarrusel';
 import { useI18n } from '../i18n';
@@ -14,15 +15,18 @@ import { useI18n } from '../i18n';
 interface Props {
   classes: Class[];
   rubrics: Rubric[];
+  dianas?: EvalDiana[];
   evaluations: Evaluation[];
   onNav: (s: Section) => void;
 }
 
-export function EvaluarInicio({ classes, rubrics, evaluations, onNav }: Props) {
+export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, onNav }: Props) {
   const { t } = useI18n();
   const clases = useMemo(() => rendimientoPorClase(classes, rubrics, evaluations), [classes, rubrics, evaluations]);
+  const idsRegistro = new Set(dianas.filter(esRegistro).map(d => d.id));
   const conRubrica = evaluations.filter(e => e.instrument !== 'diana').length;
-  const conDiana = evaluations.length - conRubrica;
+  const conRegistro = dianas.filter(esRegistro).length;
+  const conDiana = evaluations.filter(e => e.instrument === 'diana' && !idsRegistro.has(e.rubric_id)).length;
 
   const tarjetas: { id: Section; color: string; icono: React.ReactNode; titulo: string; texto: string; dato: string }[] = [
     {
@@ -36,6 +40,12 @@ export function EvaluarInicio({ classes, rubrics, evaluations, onNav }: Props) {
       titulo: 'Evaluar por dianas',
       texto: 'Ítems con peso sobre una diana: se ve de un vistazo en qué destaca cada alumno.',
       dato: t(conDiana === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: conDiana }),
+    },
+    {
+      id: 'registros', color: '#16a34a', icono: <ThumbsUp size={26} />,
+      titulo: 'Escalas de registro',
+      texto: 'Un concepto concreto: por cada alumno, un pulgar arriba (bien hecho) o abajo (mejorable).',
+      dato: t(conRegistro === 1 ? '{n} escala' : '{n} escalas', { n: conRegistro }),
     },
     {
       id: 'evalfoto', color: '#0ea5e9', icono: <Camera size={26} />,
@@ -54,7 +64,7 @@ export function EvaluarInicio({ classes, rubrics, evaluations, onNav }: Props) {
         </div>
       </div>
 
-      <div className="ev-cards tres">
+      <div className="ev-cards cuatro">
         {tarjetas.map(c => (
           <button key={c.id} type="button" className="ev-card" style={{ '--ev-c': c.color } as React.CSSProperties} onClick={() => onNav(c.id)}>
             <span className="ev-card-ico">{c.icono}</span>

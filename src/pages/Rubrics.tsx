@@ -12,6 +12,7 @@ import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriter
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { clasesDe, objetivoPara } from '../lib/objetivos';
+import { esRegistro } from '../lib/registro';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { DianasTab } from './EvalDianas';
 import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
@@ -1105,10 +1106,11 @@ export function Rubrics({
           <h1 className="pg-title">{t(vista === 'dianas' ? 'Dianas' : 'Rúbricas')}</h1>
           <p className="pg-sub">
             {vista === 'dianas'
-              ? t(dianas.length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.length })
+              ? t(dianas.filter(d => !esRegistro(d)).length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.filter(d => !esRegistro(d)).length })
               : t(rubrics.length === 1 ? '{n} rúbrica' : '{n} rúbricas', { n: rubrics.length })} ·{' '}
             {(() => {
-              const n = evaluations.filter(e => (e.instrument === 'diana') === (vista === 'dianas')).length;
+              const registros = new Set(dianas.filter(esRegistro).map(d => d.id));
+              const n = evaluations.filter(e => (e.instrument === 'diana') === (vista === 'dianas') && !registros.has(e.rubric_id)).length;
               return t(n === 1 ? '{n} evaluación' : '{n} evaluaciones', { n });
             })()}
           </p>
@@ -1121,7 +1123,7 @@ export function Rubrics({
 
       {vista === 'dianas' ? (
         <DianasTab
-          dianas={dianas}
+          dianas={dianas.filter(d => !esRegistro(d))}
           evaluations={evaluations}
           classes={classes}
           students={students}

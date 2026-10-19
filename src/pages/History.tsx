@@ -357,7 +357,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                             {ev.rubric_name}
                             {ev.instrument === 'diana' && (
                               <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 99, background: 'var(--accent-l)', color: 'var(--accent-d)' }}>
-                                {t('DIANA')}
+                                {t(dianas.find(d => d.id === ev.rubric_id)?.tipo === 'registro' ? 'ESCALA' : 'DIANA')}
                               </span>
                             )}
                           </div>

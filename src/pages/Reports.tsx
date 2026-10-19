@@ -154,6 +154,7 @@ export function Reports(props: Props) {
           const name = rubric?.criteria.find(c => c.id === k)?.name
                     ?? diana?.items.find(i => i.id === k)?.name
                     ?? k;
+          if (diana?.tipo === 'registro') return `${name}: ${v === 2 ? (en ? 'done well' : 'bien hecho') : (en ? 'needs improvement' : 'mejorable')}`;
           return `${name}: ${v}/4`;
         }).join('; ');
         const auto = ev.rubric_id === 'autoeval' ? (en ? ' [student’s own self-assessment]' : ' [autoevaluación del propio alumno]') : '';

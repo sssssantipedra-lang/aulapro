@@ -439,6 +439,13 @@ export interface EvalDiana extends GradeTarget {
   id: string;
   name: string;
   context?: string;
+  /**
+   * `registro`: una escala de registro (19-10-2026): conceptos que se valoran
+   * con un pulgar arriba (bien hecho) o abajo (mejorable). Vive con las dianas
+   * (mismo guardado, mismas clases y cuaderno), pero tiene su propia pantalla
+   * y su propia cuenta; ver `lib/registro.ts`. Ausente = una diana de siempre.
+   */
+  tipo?: 'diana' | 'registro';
   items: DianaItem[];
   /** Niveles de logro propios. Ausente = los cuatro clásicos. */
   levels?: AchievementLevel[];
@@ -756,7 +763,7 @@ export interface ClassMark {
 
 export type Section =
   | 'dashboard' | 'classes' | 'agenda'
-  | 'evaluar' | 'evalfoto' | 'rubrics' | 'dianas' | 'diana' | 'history' | 'notebook' | 'profile'
+  | 'evaluar' | 'evalfoto' | 'rubrics' | 'dianas' | 'registros' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'documentos' | 'reports' | 'selfassess' | 'audit' | 'records'
   | 'learning-situations' | 'resources'

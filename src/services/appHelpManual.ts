@@ -319,8 +319,9 @@ guarda (en Android) o propone guardar (en Windows y Mac) los PDF, Word y copias 
 seguridad, cada uno en la carpeta de su tipo (Fichas, Actas, Informes…).
 
 [evaluar] EVALUAR (RESUMEN)
-La portada del apartado Evaluar. Dos tarjetas grandes: «Evaluar por rúbricas»
-(lleva a Rúbricas) y «Evaluar por dianas» (lleva a Dianas). Debajo, «Cómo va
+La portada del apartado Evaluar. Cuatro tarjetas grandes: «Evaluar por rúbricas»
+(lleva a Rúbricas), «Evaluar por dianas» (lleva a Dianas), «Escalas de registro»
+(pulgar arriba o abajo por concepto) y «Evaluar por foto». Debajo, «Cómo va
 cada clase»: un gráfico de barras con la nota media de cada rúbrica en una
 clase, sobre 10, con una raya en el 5. Pasa solo de una clase a otra cada
 pocos segundos, como un carrusel; se para al poner el ratón encima, y se
@@ -343,6 +344,13 @@ buscador. Arriba se ven las competencias clave y las específicas que trabaja.
 Al evaluar, la nota de cada criterio va a sus competencias clave (Diana
 competencial) y a sus criterios oficiales. Las rúbricas y dianas que se crean
 desde una situación de aprendizaje ya lo traen marcado.
+VARIAS CLASES: la misma rúbrica o diana sirve para dos o tres clases sin
+duplicarla. En «Dónde se guarda la nota» se elige la primera clase, su asignatura
+y su categoría del cuaderno y, con «Usarla también en otra clase», las demás, cada
+una con su categoría. Cada clase tiene su propia columna en su cuaderno (la de la
+primera conserva la de siempre). Al evaluar solo salen las clases de la rúbrica,
+y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que ya
+tenía.
 
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
@@ -350,6 +358,21 @@ dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
 evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
 nota entra en el cuaderno si declara clase y categoría.
+
+[registros] ESCALAS DE REGISTRO
+Un instrumento rápido, en su pestaña de Evaluar: se elige un concepto concreto (o
+varios: «Golpea con la palma», «Entrega a tiempo»…) y, por cada alumno, un PULGAR
+ARRIBA (bien hecho) o un PULGAR ABAJO (mejorable); pulsar otra vez el mismo pulgar
+lo quita y el pulgar de la cabecera marca «bien hecho» a toda la clase. «Nueva
+escala» pide el nombre, los conceptos y las clases donde se usa (una o varias, con
+su categoría del cuaderno, como las rúbricas). «Valorar a la clase» enseña a toda la
+clase en una tabla, con lo que se valoró la última vez; «Guardar valoración» guarda
+una evaluación por alumno. La nota sobre 10 es la proporción de pulgares arriba
+entre los conceptos valorados (todo bien hecho, un 10; la mitad, un 5) y, si la
+escala declara clase y categoría, entra sola en el cuaderno. Las valoraciones salen
+en el Historial. Las escalas se pueden duplicar, editar y eliminar. No sirven para
+las autoevaluaciones con el móvil: son del docente. También se pueden crear y
+adjuntar desde una sesión de Educación Física.
 
 [evalfoto] EVALUAR POR FOTO
 Para corregir un examen o un trabajo a partir de su foto (profesorado de aula).
@@ -785,7 +808,13 @@ medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
-«Próximas» y «Sin fecha». A la izquierda de cada sesión hay un círculo para MARCARLA COMO
+«Próximas» y «Sin fecha». «Cómo se evalúa»: se adjunta un instrumento que ya existe
+(rúbrica, diana o escala de registro), se crea una escala de registro ahí mismo
+(con la clase de la sesión) o se va a crear una rúbrica o una diana (la sesión se
+queda como borrador y se retoma con «Continuar»); «Evaluar» lleva a su pantalla.
+«Circuito»: se adjunta uno ya dibujado o se dibuja uno nuevo con la pizarra de
+circuitos en una ventana, sin salir de la sesión; se ve en la sesión y sale en el
+PDF, junto con el instrumento. A la izquierda de cada sesión hay un círculo para MARCARLA COMO
 COMPLETADA (también está en la ventana de la sesión): la sesión sale de las
 pendientes, tachada, y pasa a «Ver las completadas»; si se vuelve a pulsar,
 vuelve a pendiente. Arriba, «X de Y sesiones completadas» con una barra de

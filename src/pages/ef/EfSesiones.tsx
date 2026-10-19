@@ -6,7 +6,7 @@
  * el banco de actividades; de los exentos solo recibe lo que no pueden hacer,
  * sin nombre ni motivo. Se revisan, se guardan y se imprimen. Ver `docs/EF.md`.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { CopiarAClases } from '../../components/CopiarAClases';
@@ -28,7 +28,10 @@ import { limitacionesParaIA, prepararSesion } from '../../services/efIA';
 import { alumnadoParaIA } from '../../lib/ef';
 import { guardarSesionPdf } from '../../services/exportSesionEF';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { Class, ScheduleBlock, Student } from '../../types';
+import type { Class, EvalDiana, Rubric, ScheduleBlock, Student } from '../../types';
+import { SesionEvaluacionCircuito } from '../../components/ef/SesionEvaluacionCircuito';
+import { describirInstrumento, ETIQUETA_INSTRUMENTO } from '../../lib/instrumentosSesion';
+import { pizarraSvg } from '../../lib/pizarraEF';
 import type { EfData, ModalidadEF, SesionEF } from '../../types/ef';
 
 interface Props {
@@ -38,7 +41,14 @@ interface Props {
   ef: EfData;
   onChangeEf: (f: (d: EfData) => EfData) => void;
   comunidad?: ComunidadId;
+  /** Para adjuntar a la sesión un instrumento de evaluación que ya existe, o crear una escala de registro. */
+  rubrics?: Rubric[];
+  dianas?: EvalDiana[];
+  onAddDiana?: (d: EvalDiana) => void;
+  onNav?: (s: 'rubrics' | 'dianas' | 'registros') => void;
 }
+
+const EfPizarra = lazy(() => import('./EfPizarra').then(m => ({ default: m.EfPizarra })));
 
 const PARTES: readonly { id: keyof Pick<SesionEF, 'objetivo' | 'calentamiento' | 'principal' | 'calma' | 'material' | 'inclusion' | 'planB'>; label: string; filas: number }[] = [
   { id: 'objetivo', label: 'Objetivo', filas: 2 },
@@ -61,7 +71,7 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
   return min > 0 ? min : null;
 }
 
-export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, comunidad }: Props) {
+export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -73,6 +83,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   /** Copiar sesiones a otras clases: de qué clase, cuáles y si se conserva la fecha. */
   const [copiando, setCopiando] = useState<{ origenId: string; ids: string[]; conFecha: boolean } | null>(null);
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
+  /** La pizarra de circuitos, abierta desde la sesión: con el circuito que se edita, o en blanco. */
+  const [dibujando, setDibujando] = useState<{ id?: string } | null>(null);
 
   /* Autoguardado: una sesión nueva (la prepare la IA o la escriba el docente) o con cambios, y sin guardar, se conserva */
   const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
@@ -213,6 +225,9 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     const res = await guardarSesionPdf(s, {
       clase: nombreClase(s.claseId) || undefined, fecha: s.fecha ? dia(s.fecha) : undefined,
       instalacion: nombreInst(s.instalacionId) || undefined, criterios,
+      instrumentos: (s.instrumentos ?? []).map(r => describirInstrumento(r, rubrics, dianas)).filter(Boolean)
+        .map(d => ({ nombre: d!.nombre, tipo: t(ETIQUETA_INSTRUMENTO[d!.tipo]), conceptos: d!.conceptos })),
+      circuito: (() => { const p = ef.pizarras.find(x => x.id === s.pizarraId); return p ? { nombre: p.nombre, svg: pizarraSvg(p) } : undefined; })(),
     }, lang);
     if (res.error === 'not-desktop') toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.'));
     else if (res.error) toast(t('No se ha podido guardar el PDF.'));
@@ -237,6 +252,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
             {s.instalacionId && <span className="ap-hora"><MapPin size={12} aria-hidden="true" />{nombreInst(s.instalacionId)}</span>}
             {s.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === s.modalidad)!.label)}</span>}
             {s.ia && <span className="sda-chip ef-origen-ia">{t('Con IA')}</span>}
+            {(s.instrumentos?.length ?? 0) > 0 && <span className="sda-chip">{t('Evaluación')}</span>}
+            {s.pizarraId && ef.pizarras.some(p => p.id === s.pizarraId) && <span className="sda-chip">{t('Circuito')}</span>}
             {lims > 0 && <span className="ef-exento"><Bandage size={11} aria-hidden="true" />{t(lims === 1 ? '{n} con barrera de aprendizaje' : '{n} con barreras de aprendizaje', { n: lims })}</span>}
           </span>
           {s.objetivo.trim() && <span className="ap-sub">{s.objetivo}</span>}
@@ -393,7 +410,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         )}
       </Modal>
 
-      <Modal open={!!editando} onClose={() => setEditando(null)} wide title={esNueva ? (editando?.ia ? t('Sesión preparada con IA') : t('Nueva sesión')) : editando?.titulo}>
+      <Modal open={!!editando} onClose={() => { if (!dibujando) setEditando(null); }} wide title={esNueva ? (editando?.ia ? t('Sesión preparada con IA') : t('Nueva sesión')) : editando?.titulo}>
         {editando && (
           <div className="ap-form">
             {esNueva && editando.ia && (
@@ -442,6 +459,10 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
               <input type="checkbox" checked={!!editando.completada} onChange={e => setEditando({ ...editando, completada: e.target.checked })} />
               {t('Sesión completada')}
             </label>
+            <SesionEvaluacionCircuito
+              sesion={editando} onChange={setEditando} ef={ef} rubrics={rubrics} dianas={dianas}
+              onAddDiana={onAddDiana} onNav={onNav} onCerrarSesion={() => setEditando(null)} onDibujar={id => setDibujando({ id })}
+            />
             <div style={{ gridColumn: '1 / -1' }}>
               <CriteriosOficialesPicker idPrefix="ef-s-co" cls={claseEd} comunidad={comunidad}
                 value={editando.criterios ?? []} onChange={v => setEditando({ ...editando, criterios: v })} />
@@ -454,6 +475,17 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
               {!esNueva && <button className="btn-ghost ap-borrar" onClick={() => borrar(editando)}><Trash2 size={14} />{t('Borrar')}</button>}
             </div>
           </div>
+        )}
+      </Modal>
+
+      <Modal open={!!dibujando} onClose={() => setDibujando(null)} wide title={t('Circuito de la sesión')}>
+        {dibujando && editando && (
+          <Suspense fallback={<p className="ap-vacio">{t('Cargando…')}</p>}>
+            <EfPizarra
+              embebida ef={ef} onChangeEf={onChangeEf} comunidad={comunidad} inicialId={dibujando.id}
+              alGuardar={id => { setEditando(e => (e ? { ...e, pizarraId: id } : e)); setDibujando(null); }}
+            />
+          </Suspense>
         )}
       </Modal>
     </section>

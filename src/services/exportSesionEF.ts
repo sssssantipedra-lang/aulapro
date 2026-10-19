@@ -18,6 +18,10 @@ export interface DatosSesionPdf {
   instalacion?: string;
   /** «EF.1.2: texto del criterio». */
   criterios: string[];
+  /** Con qué se evalúa: el nombre, qué es (ya en el idioma de la app) y lo que valora. */
+  instrumentos?: { nombre: string; tipo: string; conceptos: string[] }[];
+  /** El circuito de la pizarra de circuitos, como imagen SVG. */
+  circuito?: { nombre: string; svg: string };
 }
 
 export function buildSesionHtml(s: SesionEF, datos: DatosSesionPdf, lang: Lang): string {
@@ -37,6 +41,9 @@ section p { margin: 0 0 4px; }
 section.dua { border-color: #f59e0b; background: #fffbeb; }
 section.planb { border-style: dashed; }
 ul { margin: 0; padding-left: 18px; }
+.circuito svg { width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
+.instr { margin: 0 0 6px; }
+.instr small { color: #4b5563; }
 </style></head><body>
 <h1>${esc(s.titulo || t('Sesión'))}</h1>
 ${meta ? `<p class="meta">${meta}</p>` : ''}
@@ -48,6 +55,8 @@ ${bloque('Vuelta a la calma', s.calma)}
 ${bloque('Material', s.material)}
 ${bloque('Para que participe todo el grupo (DUA-A)', s.inclusion, 'dua')}
 ${bloque('Plan B', s.planB, 'planb')}
+${datos.circuito ? `<section class="circuito"><h2>${esc(t('Circuito'))}: ${esc(datos.circuito.nombre)}</h2>${datos.circuito.svg.replace(/ width="\d+" height="\d+"/, '')}</section>` : ''}
+${datos.instrumentos?.length ? `<section><h2>${esc(t('Cómo se evalúa'))}</h2>${datos.instrumentos.map(i => `<p class="instr"><strong>${esc(i.nombre)}</strong> <small>(${esc(i.tipo)})</small>${i.conceptos.length ? `<br>${esc(i.conceptos.join(' · '))}` : ''}</p>`).join('')}</section>` : ''}
 </body></html>`;
 }
 

@@ -41,6 +41,7 @@ import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
 const Rubrics        = lazy(() => import('./pages/Rubrics').then(m => ({ default: m.Rubrics })));
+const EscalasRegistro = lazy(() => import('./pages/EscalasRegistro').then(m => ({ default: m.EscalasRegistro })));
 const Diana          = lazy(() => import('./pages/Diana').then(m => ({ default: m.Diana })));
 const History        = lazy(() => import('./pages/History').then(m => ({ default: m.History })));
 const SelfAssessments = lazy(() => import('./pages/SelfAssessments').then(m => ({ default: m.SelfAssessments })));
@@ -429,6 +430,7 @@ function AppInner() {
               <EvaluarInicio
                 classes={st.classes}
                 rubrics={st.rubrics}
+                dianas={st.dianas}
                 evaluations={st.evaluations}
                 onNav={setSection}
               />
@@ -457,6 +459,14 @@ function AppInner() {
                 onAddEvaluation={st.addEvaluation}
                 gradeCategories={st.gradeCategories}
                 comunidad={st.currentUser?.community}
+              />
+            )}
+            {section === 'registros' && (
+              <EscalasRegistro
+                dianas={st.dianas} evaluations={st.evaluations} classes={st.classes} students={st.students}
+                gradeCategories={st.gradeCategories}
+                onAddDiana={st.addDiana} onUpdateDiana={st.updateDiana} onDeleteDiana={st.deleteDiana}
+                onAddEvaluation={st.addEvaluation}
               />
             )}
             {section === 'diana' && (
@@ -730,7 +740,7 @@ function AppInner() {
             {section === 'ef-circuitos' && <EfCircuitos ef={st.ef} onChangeEf={st.setEf} />}
             {section === 'ef-pizarra' && <EfPizarra ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />}
             {section === 'ef-sesiones' && (
-              <EfSesiones classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />
+              <EfSesiones classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana} onNav={setSection} />
             )}
             {section === 'ef-actividades' && (
               <EfActividades classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />
