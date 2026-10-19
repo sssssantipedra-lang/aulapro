@@ -683,6 +683,57 @@
   }
   document.addEventListener('visibilitychange', () => document.body.classList.toggle('paused', document.hidden));
 
+  /* ================= conversion: a real clip and real opinions, each hidden until it exists ================= */
+  function setupConversion() {
+    // 1. the clip of a real generation: only when launch.js names the files
+    const v = LAUNCH.video || {};
+    const sec = $('#video');
+    if (sec && v.src) {
+      sec.hidden = false;
+      const vid = $('#clip-video'), btn = $('#clip-btn');
+      if (v.poster) vid.poster = v.poster;
+      let loaded = false, userPaused = false;
+      const play = () => {
+        if (!loaded) { loaded = true; vid.src = v.src; vid.preload = 'auto'; }
+        const p = vid.play();
+        if (p && p.catch) p.catch(() => { /* the browser asked for a tap: the button is there */ });
+      };
+      const sync = () => { sec.classList.toggle('playing', !vid.paused); btn.setAttribute('aria-pressed', String(!vid.paused)); };
+      vid.addEventListener('play', sync);
+      vid.addEventListener('pause', sync);
+      const toggle = () => { if (vid.paused) { userPaused = false; play(); } else { userPaused = true; vid.pause(); } };
+      btn.addEventListener('click', toggle);
+      vid.addEventListener('click', toggle);
+      // plays while it is on screen (muted and looping), unless the visitor paused it or asked for less movement
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches)
+        new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { if (!userPaused) play(); } else vid.pause(); }), { threshold: 0.5 }).observe(vid);
+    }
+    // 2. what other teachers say: up to three, built with textContent (nothing here is HTML)
+    const ops = (Array.isArray(LAUNCH.testimonios) ? LAUNCH.testimonios : []).filter(o => o && o.nombre && o.texto).slice(0, 3);
+    const opSec = $('#opiniones'), list = $('#opiniones-lista');
+    if (opSec && list && ops.length) {
+      const pick = x => (x && typeof x === 'object') ? (x[lang] || x.es || '') : String(x || '');
+      ops.forEach((o, i) => {
+        const li = document.createElement('li');
+        li.className = 'op rise';
+        li.style.setProperty('--d', String(80 * i));
+        const q = document.createElement('blockquote');
+        q.textContent = pick(o.texto);
+        const who = document.createElement('p');
+        who.className = 'op-quien';
+        const b = document.createElement('b');
+        b.textContent = o.nombre;
+        const r = document.createElement('span');
+        r.textContent = pick(o.rol);
+        who.append(b, r);
+        li.append(q, who);
+        list.append(li);
+      });
+      opSec.hidden = false;
+    }
+  }
+  setupConversion();
+
   /* ================= entrances + living elements ================= */
   const entered = new IntersectionObserver(entries => entries.forEach(e => {
     if (!e.isIntersecting) return;

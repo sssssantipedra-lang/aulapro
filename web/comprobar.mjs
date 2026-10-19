@@ -99,6 +99,28 @@ if (hay('assets/launch.js')) {
     const L = ctx.window.AULA_LAUNCH;
     for (const k of ['checkout', 'play', 'store', 'packs', 'downloads']) if (!(k in L)) falla(`launch.js: falta ${k}`);
     for (const k of ['5', '10', '20', '30']) if (!(k in (L.packs || {}))) falla(`launch.js: falta el pack ${k}`);
+    // el vídeo de una generación real (sección «En directo»): vacío, o completo y ligero
+    for (const k of ['video', 'testimonios']) if (!(k in L)) falla(`launch.js: falta ${k}`);
+    const v = L.video || {};
+    if (v.src) {
+      const f = String(v.src).replace(/\?.*$/, '');
+      if (!/\.mp4$/i.test(f)) falla('launch.js: el vídeo tiene que ser un .mp4');
+      else if (!hay(f)) falla(`launch.js: el vídeo ${f} no existe`);
+      else if (statSync(join(root, f)).size > 6e6) falla(`launch.js: el vídeo pesa ${(statSync(join(root, f)).size / 1e6).toFixed(1)} MB (máximo 6 MB, o la web se vuelve lenta)`);
+      if (!v.poster || !hay(String(v.poster).replace(/\?.*$/, ''))) falla('launch.js: el vídeo necesita su imagen (poster) y no existe');
+    } else if (v.poster) falla('launch.js: hay poster pero no vídeo');
+    // las opiniones: máximo 3, de personas con nombre y con un texto corto
+    const ops = L.testimonios;
+    if (!Array.isArray(ops)) falla('launch.js: testimonios tiene que ser una lista');
+    else {
+      if (ops.length > 3) falla('launch.js: como mucho 3 opiniones');
+      ops.forEach((o, i) => {
+        const t = o && typeof o.texto === 'object' ? Object.values(o.texto).join(' ') : String(o?.texto || '');
+        if (!o?.nombre || !t) falla(`launch.js: la opinión ${i + 1} necesita nombre y texto`);
+        else if (t.length > 600) falla(`launch.js: la opinión ${i + 1} es muy larga (${t.length} caracteres)`);
+        if (/lorem|ejemplo|xxx/i.test(t + String(o?.nombre))) falla(`launch.js: la opinión ${i + 1} parece de relleno`);
+      });
+    }
   } catch (e) { falla('assets/launch.js no se puede leer: ' + e.message); }
 }
 if (hay('sitemap.xml')) {
