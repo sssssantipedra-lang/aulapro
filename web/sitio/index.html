@@ -290,6 +290,8 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 #precio{--v0:.24;--v1:.06}
 #preguntas{--v0:.06;--v1:.2}
 #quiero{--v0:.2;--v1:.42}
+#video{--v0:.3;--v1:.3}
+#opiniones{--v0:.24;--v1:.24}
 .wrap{max-width:1240px;margin:0 auto}
 .kicker{display:inline-flex;align-items:center;gap:.75em;font:500 .76rem/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
 .kicker::before{content:"";width:24px;height:1.5px;background:currentColor;opacity:.7}
@@ -594,6 +596,30 @@ html:not(.store-open) .after-launch{display:none!important}
 .form.sent .status{padding:22px;border-radius:16px;background:#f3ebdf;box-shadow:inset 0 0 0 1px rgba(120,100,80,.24);font:700 1.2rem/1.4 var(--f-display)}
 @media (max-width:620px){.form{grid-template-columns:1fr}}
 
+/* ---------- conversion: the struck-through future price, the clip and the opinions ---------- */
+.price-was{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:.25em .9em;margin:1rem 0 0;color:var(--ink-2)}
+.price-was s{font:600 clamp(1.1rem,2vw,1.4rem)/1 var(--f-display);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--accent-deep);opacity:.75}
+.price-was span{font:500 .7rem/1.3 var(--f-mono);letter-spacing:.07em;text-transform:uppercase}
+.price-was+.price{margin-top:.15em}
+.save{display:table;margin:1.3rem auto 0;padding:.55em 1.1em;border-radius:999px;background:rgba(180,83,42,.11);box-shadow:inset 0 0 0 1px rgba(180,83,42,.32);color:var(--accent-ink);font:600 .9rem/1.2 var(--f-body)}
+.clip-sec{text-align:center}
+.clip{position:relative;max-width:980px;margin:clamp(28px,4vw,48px) auto 0;border-radius:14px;overflow:hidden;background:#1e1611;box-shadow:var(--shadow)}
+.clip video{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#1e1611}
+.clip-btn{position:absolute;left:50%;top:50%;translate:-50% -50%;display:grid;place-items:center;width:76px;height:76px;padding:0;border:0;border-radius:50%;background:var(--accent-deep);color:#fff6ea;cursor:pointer;box-shadow:0 14px 34px -10px rgba(20,14,9,.6);transition:opacity .35s var(--ease-out),background-color .35s var(--ease-out),scale .35s var(--ease-out)}
+.clip-btn svg{width:30px;height:30px;fill:currentColor;margin-left:3px}
+.clip-btn:hover{background:var(--accent-hover);scale:1.06}
+.clip-sec.playing .clip-btn{opacity:0}
+.clip-sec.playing .clip:hover .clip-btn,.clip-sec.playing .clip-btn:focus-visible{opacity:.92}
+.ops .wrap{text-align:center}
+.ops-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:clamp(16px,2vw,26px);max-width:1100px;margin:clamp(28px,4vw,48px) auto 0;text-align:left}
+.op{display:flex;flex-direction:column;justify-content:space-between;gap:1.2rem;margin:0;padding:clamp(22px,2.6vw,30px);border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--line),0 18px 40px -28px rgba(80,60,40,.4)}
+.op blockquote{margin:0;font:400 1.04rem/1.6 var(--f-body);color:var(--text)}
+.op blockquote::before{content:"“";color:var(--accent);font:800 1.6em/0 var(--f-display);margin-right:.08em;vertical-align:-.28em}
+.op blockquote::after{content:"”";color:var(--accent);font:800 1.6em/0 var(--f-display);margin-left:.04em;vertical-align:-.28em}
+.op-quien{display:flex;flex-direction:column;gap:.15em;font-size:.92rem}
+.op-quien b{font-weight:700;color:var(--text)}
+.op-quien span{color:var(--text-2)}
+
 /* ---------- footer ---------- */
 footer{position:relative;z-index:1;padding:clamp(150px,16vw,190px) var(--gutter) 40px;color:var(--text);--text:#f1e4cf;--text-2:#d9c4a5;--line:rgba(216,201,182,.18);background:linear-gradient(180deg,#e9d7c0 0,#c9ab8a 40px,#7a5a42 92px,#3a2a1f 140px,#241a13 190px,#241a13 100%)}
 .foot{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px 48px;align-items:flex-start;justify-content:space-between}
@@ -869,6 +895,19 @@ html.zoom-open{overflow:hidden}
   </section>
 
   <!-- S2 · the one interactive moment -->
+  <!-- A short clip of a real generation. Hidden until assets/launch.js (`video`) names the files; see docs/WEB.md, 4d. -->
+  <section class="sec center clip-sec" id="video" aria-labelledby="video-title" hidden>
+    <div class="wrap">
+      <p class="kicker rise" data-i18n="vid.kicker">En directo</p>
+      <h2 class="h2 rise" id="video-title" style="--d:80" data-i18n="vid.title">Míralo funcionando.</h2>
+      <p class="lede rise" style="--d:160" data-i18n="vid.lede">Una generación real de AulaPro, grabada tal cual.</p>
+      <figure class="clip rise" style="--d:220">
+        <video id="clip-video" muted loop playsinline preload="none"></video>
+        <button class="clip-btn" id="clip-btn" type="button" aria-pressed="false" aria-label="Reproducir o pausar el vídeo" data-i18n-attr="aria-label:vid.btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5.2v13.6a.6.6 0 0 0 .9.5l11-6.8a.6.6 0 0 0 0-1L8.9 4.7a.6.6 0 0 0-.9.5z"/></svg></button>
+      </figure>
+    </div>
+  </section>
+
   <section class="sec sheet-sec" id="lista" data-live aria-labelledby="lista-title">
     <div class="sheet rise" id="sheet">
       <p class="kicker" data-i18n="s2.kicker">Pruébalo</p>
@@ -1001,12 +1040,23 @@ html.zoom-open{overflow:hidden}
   </section>
 
   <!-- S7 · price -->
+  <!-- Real opinions from teachers, with their permission. Hidden until assets/launch.js (`testimonios`) has some; see docs/WEB.md, 4d. -->
+  <section class="sec center ops" id="opiniones" aria-labelledby="opiniones-title" hidden>
+    <div class="wrap">
+      <p class="kicker rise" data-i18n="op.kicker">Entre docentes</p>
+      <h2 class="h2 rise" id="opiniones-title" style="--d:80" data-i18n="op.title">Lo que dicen otros docentes.</h2>
+      <ul class="ops-list" id="opiniones-lista"></ul>
+    </div>
+  </section>
+
   <section class="sec" id="precio">
     <div class="price-sheet rise">
       <p class="kicker" data-i18n="s7.kicker">Precio de lanzamiento</p>
       <h2 class="sr" data-i18n="s7.title">6,99&nbsp;€. Una vez, y para siempre.</h2>
+      <p class="price-was" aria-hidden="true"><s data-i18n="s7.was">11,99&nbsp;€ al año</s><span data-i18n="s7.wasnote">Precio desde el 16 de abril de 2027</span></p>
       <p class="price" aria-hidden="true" data-i18n="s7.price">6,99&nbsp;€</p>
       <p class="once" aria-hidden="true"><span data-i18n="s7.once">Una vez.</span><svg class="wipe" style="--d:500" viewBox="0 0 200 16" preserveAspectRatio="none"><path pathLength="1" d="M3 10c30-5 62-7 96-5s70 3 98 0"/></svg></p>
+      <p class="save" data-i18n="s7.save">Ahorras las cuotas anuales, de por vida</p>
       <p class="lede" data-i18n="s7.lede">Oferta de lanzamiento hasta el 15 de abril de 2027: pagas una vez y AulaPro es tuya para siempre. Después costará 11,99&nbsp;€ al año.</p>
       <ul class="ticklist">
         <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s7.i1">Windows y Android</span></li>

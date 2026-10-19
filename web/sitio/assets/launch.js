@@ -15,6 +15,14 @@ window.AULA_LAUNCH = {
   // Lemon Squeezy checkout links of the group packs for 5, 10, 20 and 30 teachers: one key for the whole
   // group, 2 devices per teacher (activation limit 10, 20, 40 and 60). An empty pack says "Próximamente".
   packs: { 5: '', 10: '', 20: '', 30: '' },
+  // Vídeo corto de una generación real de AulaPro (sección «En directo»). Vacío = la sección no sale.
+  // src: ruta de un .mp4 sin sonido, de unos 15 a 20 segundos y 1280x720; poster: una imagen del primer
+  // fotograma. Detalle en docs/WEB.md, apartado 4d.
+  video: { src: '', poster: '' },
+  // Opiniones reales de docentes, con su permiso por escrito (máximo 3). Vacío = la sección no sale.
+  // Cada una: { nombre: 'Marta', rol: 'Maestra de Primaria', texto: '…' }. `rol` y `texto` pueden ser
+  // una frase o { es: '…', ca: '…', en: '…' }. Detalle en docs/WEB.md, apartado 4d.
+  testimonios: [],
   // Installers. The release pipeline uploads every new version here under these same names.
   downloads: {
     windows: 'https://descargas.aulapro.app/AulaPro-instalador-windows.exe',
