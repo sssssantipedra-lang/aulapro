@@ -9,6 +9,8 @@ import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
 import { getLicenseState, licenseBridge } from './services/license';
+import { AccesoCtx, accesoDe, guardarPrueba, leerPrueba, setAcceso } from './lib/acceso';
+import { AvisoLicencia } from './components/AvisoLicencia';
 import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
@@ -815,10 +817,16 @@ function AppInner() {
 function LicenseCheck({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [state, setState] = useState<LicenseState | null | undefined>(licenseBridge() ? undefined : null);
+  // Sin licencia se puede explorar con los datos de ejemplo (lib/acceso.ts)
+  const [prueba, setPrueba] = useState(leerPrueba);
   useEffect(() => {
     if (state !== undefined) return;
     getLicenseState().then(setState);
   }, [state]);
+
+  const acceso = accesoDe(state ?? null, prueba);
+  // El candado de la IA se pone en cuanto se sabe el estado, antes de pintar nada
+  setAcceso(acceso);
 
   if (state === undefined) {
     return (
@@ -827,8 +835,16 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (state?.required) return <LicenseGate state={state} onChange={setState} />;
-  return <>{children}</>;
+  if (state?.required && acceso.modo !== 'prueba') {
+    return <LicenseGate state={state} onChange={s => { guardarPrueba(false); setPrueba(false); setState(s); }}
+      onTry={() => { guardarPrueba(true); setPrueba(true); }} />;
+  }
+  return (
+    <AccesoCtx.Provider value={{ acceso, buyUrl: state?.buyUrl ?? '', activar: () => { guardarPrueba(false); setPrueba(false); } }}>
+      <AvisoLicencia />
+      {children}
+    </AccesoCtx.Provider>
+  );
 }
 
 /** En Android, el aviso de «Guardado» con sus botones (el puente nativo se carga solo ahí). */

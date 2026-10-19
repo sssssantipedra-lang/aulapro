@@ -6,6 +6,7 @@ import { COMPOSITOR_EN } from './compositor';
 import { LECTURA_EN } from './lectura';
 import { PIZARRA_EN } from './pizarra';
 import { MEJORAS_EN } from './mejoras';
+import { LICENCIA_EN } from './licencia';
 import { EF_EN } from './ef';
 import { DEMO_EN } from './demo';
 
@@ -2077,6 +2078,7 @@ const EN: Record<string, string> = {
   ...LECTURA_EN,
   ...PIZARRA_EN,
   ...MEJORAS_EN,
+  ...LICENCIA_EN,
   /* ── Fase 7: Anotar actitud y En clase (11-10-2026) ── */
   'Buen comport.': 'Good behav.',
   'Mal comport.': 'Poor behav.',

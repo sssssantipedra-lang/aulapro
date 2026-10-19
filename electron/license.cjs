@@ -101,6 +101,8 @@ function publicState() {
     keyHint: record && record.kind === 'licencia' ? core.keyHint(record.key) : '',
     since: record ? record.activatedAt : '',
     buyUrl: BUY_URL,
+    expiresAt: s.expiresAt || '',
+    daysLeft: s.daysLeft ?? null,
   };
 }
 
@@ -109,11 +111,12 @@ async function check() {
   if (!record || record.kind !== 'licencia') return;
   const r = await store('validate', { license_key: record.key, instance_id: record.instanceId });
   if (!r) return; // sin conexión: se vuelve a intentar al próximo arranque
-  const st = r.body && r.body.license_key && r.body.license_key.status;
-  if (r.body && r.body.valid && st !== 'disabled' && st !== 'expired') {
-    record = { ...record, lastOkAt: new Date().toISOString() };
+  const verdict = core.validationVerdict(r.body, r.status);
+  if (verdict === 'valida' || verdict === 'caducada') {
+    // Una anual caducada se conserva (los datos no se bloquean) y al renovar vuelve a estar activa
+    record = { ...record, lastOkAt: new Date().toISOString(), expiresAt: core.expiresAtOf(r.body) || (verdict === 'caducada' ? new Date().toISOString() : '') };
     await writeRecord(record);
-  } else if (r.status < 500) {
+  } else if (verdict === 'anulada') {
     // La tienda dice que no: reembolsada, anulada o desactivada desde la web
     record = null;
     await removeRecord();
@@ -163,7 +166,7 @@ async function activate(key) {
     return { ok: false, error, state: publicState() };
   }
   const now = new Date().toISOString();
-  record = { v: 1, kind: 'licencia', machine: machineId(), key: k, instanceId: r.body.instance.id, activatedAt: now, lastOkAt: now };
+  record = { v: 1, kind: 'licencia', machine: machineId(), key: k, instanceId: r.body.instance.id, activatedAt: now, lastOkAt: now, expiresAt: core.expiresAtOf(r.body) };
   await writeRecord(record);
   return { ok: true, state: publicState() };
 }

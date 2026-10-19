@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import core from './licenseCore.cjs';
 
-const { evaluate, canBeFounder, keyHint, activationError, DAY } = core;
+const { evaluate, canBeFounder, keyHint, activationError, expiresAtOf, validationVerdict, DAY } = core;
 const now = Date.parse('2026-10-01T10:00:00Z');
 const machine = 'equipo-a';
 
@@ -58,5 +58,41 @@ describe('licencia: respuestas de la tienda', () => {
   });
   it('la clave nunca se enseña entera', () => {
     expect(keyHint('38b1460a-5104-4067-a91d-77b872934d51')).toBe('••••4d51');
+  });
+});
+
+describe('licencia anual', () => {
+  const dias = (n) => new Date(now + n * DAY).toISOString();
+  const anual = (expiraEn, lastOk = 1) => ({ kind: 'licencia', machine, key: 'K', lastOkAt: new Date(now - lastOk * DAY).toISOString(), expiresAt: dias(expiraEn) });
+
+  it('de por vida: sin fecha de caducidad, nada cambia', () => {
+    const r = evaluate({ kind: 'licencia', machine, key: 'K', lastOkAt: new Date(now).toISOString() }, { machine, now, enforced: true });
+    expect(r.expiresAt).toBeUndefined();
+    expect(r).toMatchObject({ status: 'activa', required: false });
+  });
+  it('anual vigente: activa y con los días que le quedan', () => {
+    expect(evaluate(anual(200), { machine, now, enforced: true })).toMatchObject({ status: 'activa', required: false, daysLeft: 200, needsCheck: false });
+  });
+  it('a 14 días de caducar se comprueba en cada arranque, por si ya renovó', () => {
+    expect(evaluate(anual(14), { machine, now, enforced: true })).toMatchObject({ status: 'activa', daysLeft: 14, needsCheck: true });
+    expect(evaluate(anual(15), { machine, now, enforced: true }).needsCheck).toBe(false);
+  });
+  it('caducada: no bloquea los datos (required false) y se vuelve a preguntar siempre', () => {
+    expect(evaluate(anual(-1), { machine, now, enforced: true })).toMatchObject({ status: 'caducada', required: false, needsCheck: true, daysLeft: 0 });
+  });
+  it('sin conexión una anual vigente sigue funcionando', () => {
+    expect(evaluate(anual(30, 400), { machine, now, enforced: true })).toMatchObject({ status: 'activa', required: false });
+  });
+  it('la fecha de la tienda se guarda en ISO, y vacía si no hay', () => {
+    expect(expiresAtOf({ license_key: { expires_at: '2027-04-16T10:00:00.000000Z' } })).toBe('2027-04-16T10:00:00.000Z');
+    expect(expiresAtOf({ license_key: { expires_at: null } })).toBe('');
+    expect(expiresAtOf({})).toBe('');
+  });
+  it('comprobar: solo una anulación quita la licencia, una caducada se conserva', () => {
+    expect(validationVerdict({ valid: true, license_key: { status: 'active' } }, 200)).toBe('valida');
+    expect(validationVerdict({ valid: false, license_key: { status: 'expired' } }, 200)).toBe('caducada');
+    expect(validationVerdict({ valid: false, license_key: { status: 'disabled' } }, 200)).toBe('anulada');
+    expect(validationVerdict({ valid: false, error: 'not found' }, 404)).toBe('anulada');
+    expect(validationVerdict({}, 503)).toBe('incierta');
   });
 });

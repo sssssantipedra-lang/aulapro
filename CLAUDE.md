@@ -105,6 +105,11 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Petición del dueño, al ver su horario escaneado: el patio de las 11:15 salía debajo de la clase de las 11:45, y quería poder mover los bloques. La vista «Semanal» de la Agenda es ahora una cuadrícula con la hora en vertical (`src/components/agenda/HorarioSemana.tsx`; la cuenta, en `src/lib/horarioSemana.ts`): cada bloque va a su hora, mide lo que dura (1,3 px por minuto) y los que se pisan van lado a lado. Antes se metían en la fila de la hora en que empezaban, apilados por orden de creación.
 - Se mueven arrastrando a otro día u otra hora, de 5 en 5 minutos y sin cambiar la duración; con el dedo, desde el asa de puntos (el resto del bloque deja desplazar la pantalla); con teclado, Alt y las flechas. Los bloques de apoyo (PT y AL) no se mueven aquí. **Sin comprobar con un dedo real.**
 
+## Licencia anual y modo de prueba (19-10-2026)
+
+- Anual (desde el 16-4-2027, 10,99 €/año): la tienda da la fecha de caducidad y la app la guarda (`expiresAt`). Aviso 14 días antes. Si caduca sin renovar, **los datos nunca se bloquean**: se abren y se exportan; se cierran la IA (`motivoIaCerrada` en `src/lib/acceso.ts`, comprobado en `callGemini`) y crear perfiles. Al renovar se recupera sola. Solo una devolución o anulación quita la licencia.
+- Modo de prueba: sin licencia y con `ENFORCED = true`, «Probar con datos de ejemplo» en la pantalla de activación; solo datos de ejemplo, sin IA ni perfiles propios. **Falta** ponerlo en las condiciones antes del 16-4-2027, probar con una suscripción real, pasar `ENFORCED` a `true` y fijar `FOUNDER_CUTOFF`. Detalle en `docs/WEB.md`, apartado 3, puntos 13 y 14.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

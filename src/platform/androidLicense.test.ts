@@ -59,3 +59,50 @@ describe('licencia en Android', () => {
     expect(activationError({ error: 'x', license_key: { status: 'disabled' } }, 400, '')).toBe('desactivada');
   });
 });
+
+describe('licencia anual en Android', () => {
+  const dias = (n: number) => new Date(Date.now() + n * 86400000).toISOString();
+
+  it('guarda la fecha de caducidad y cuenta los días', async () => {
+    post.mockResolvedValue({ status: 200, data: { activated: true, instance: { id: 'i' }, license_key: { expires_at: dias(100) } } });
+    const lic = createAndroidLicense(secrets(), { enforced: true });
+    const r = await lic.activate('ANUAL-1234-WXYZ');
+    expect(r.state).toMatchObject({ status: 'activa', daysLeft: 100 });
+    expect(r.state.expiresAt).toBeTruthy();
+  });
+
+  it('la de por vida no tiene fecha', async () => {
+    post.mockResolvedValue({ status: 200, data: { activated: true, instance: { id: 'i' }, license_key: { expires_at: null } } });
+    const r = await createAndroidLicense(secrets(), { enforced: true }).activate('VIDA-1234-WXYZ');
+    expect(r.state).toMatchObject({ status: 'activa', expiresAt: '', daysLeft: null });
+  });
+
+  it('caducada: no bloquea (required falso) y al renovar vuelve a activa', async () => {
+    const s = secrets();
+    post.mockResolvedValue({ status: 200, data: { activated: true, instance: { id: 'i' }, license_key: { expires_at: dias(-2) } } });
+    await createAndroidLicense(s, { enforced: true }).activate('ANUAL-1234-WXYZ');
+    // Al abrir: caducada y la tienda dice que sigue sin renovar
+    post.mockResolvedValue({ status: 200, data: { valid: false, license_key: { status: 'expired', expires_at: dias(-2) } } });
+    const lic = createAndroidLicense(s, { enforced: true });
+    expect(await lic.state()).toMatchObject({ required: false, status: 'caducada' });
+    await new Promise(r => setTimeout(r, 0));
+    expect(JSON.parse(s.mem.get('licencia')!).kind).toBe('licencia'); // se conserva
+    // Renueva: la tienda da la clave por buena con nueva fecha
+    post.mockResolvedValue({ status: 200, data: { valid: true, license_key: { status: 'active', expires_at: dias(365) } } });
+    const lic2 = createAndroidLicense(s, { enforced: true });
+    await lic2.state();
+    await new Promise(r => setTimeout(r, 0));
+    expect(await createAndroidLicense(s, { enforced: true }).state()).toMatchObject({ status: 'activa', daysLeft: 365 });
+  });
+
+  it('una devolución (disabled) sí quita la licencia', async () => {
+    const s = secrets();
+    post.mockResolvedValue({ status: 200, data: { activated: true, instance: { id: 'i' }, license_key: { expires_at: dias(5) } } });
+    await createAndroidLicense(s, { enforced: true }).activate('ANUAL-1234-WXYZ');
+    post.mockResolvedValue({ status: 200, data: { valid: false, license_key: { status: 'disabled' } } });
+    const lic = createAndroidLicense(s, { enforced: true });
+    await lic.state();
+    await new Promise(r => setTimeout(r, 0));
+    expect(await createAndroidLicense(s, { enforced: true }).state()).toMatchObject({ required: true, status: 'sin-licencia' });
+  });
+});

@@ -8,6 +8,7 @@
  */
 
 import { currentPseudonymizer, privacyInstruction } from './privacy';
+import { motivoIaCerrada } from '../lib/acceso';
 
 const KEY_STORAGE = 'aulapro_gemini_key';
 
@@ -460,6 +461,9 @@ export async function callGemini(
 ): Promise<string | null> {
   callbacks.onStart?.();
   try {
+    // Modo de prueba o anual caducada: la IA está cerrada (lib/acceso.ts)
+    const cerrada = motivoIaCerrada();
+    if (cerrada) { callbacks.onError?.(cerrada); return null; }
     const key = getApiKey();
     if (!key) {
       callbacks.onError?.('Configura tu clave API gratuita de Google en Configuración para usar la IA.');

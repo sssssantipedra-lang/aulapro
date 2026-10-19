@@ -186,7 +186,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },
     ...(license ? [{
       id: 'licencia' as const, icon: <KeyRound size={22} />, title: 'Licencia', desc: 'Tu licencia de Aula Pro en este ordenador.',
-      status: t(license.status === 'fundador' ? 'Docente fundador/a' : license.status === 'activa' ? 'Licencia activa' : 'Sin activar'),
+      status: t(license.status === 'fundador' ? 'Docente fundador/a' : license.status === 'activa' ? 'Licencia activa' : license.status === 'caducada' ? 'Licencia anual caducada' : 'Sin activar'),
       ok: license.status === 'fundador' || license.status === 'activa',
     }] : []),
   ];

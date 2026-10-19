@@ -98,7 +98,7 @@ export interface UpdateBridge {
   setLanguage: (lang: 'es' | 'en' | 'ca') => Promise<void>;
 }
 
-export type LicenseStatus = 'fundador' | 'activa' | 'sin-licencia' | 'otro-equipo';
+export type LicenseStatus = 'fundador' | 'activa' | 'caducada' | 'sin-licencia' | 'otro-equipo';
 export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
 
 export interface LicenseState {
@@ -112,6 +112,10 @@ export interface LicenseState {
   since: string;
   /** Página donde se compra; vacía mientras no haya tienda. */
   buyUrl: string;
+  /** Solo las licencias anuales: cuándo caducan (ISO); vacío si no caduca. */
+  expiresAt?: string;
+  /** Días que le quedan a una anual (0 si ya caducó); `null` si no caduca. */
+  daysLeft?: number | null;
 }
 
 export interface LicenseResult { ok: boolean; error?: LicenseError; state: LicenseState }

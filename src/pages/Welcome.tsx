@@ -5,6 +5,7 @@ import { listProfiles, deleteProfile, isDesktop, type TeacherProfile, type NewPr
 import { CommunitySelect } from '../components/CommunitySelect';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { DEMO_COMMUNITY, DEMO_USER } from '../lib/demoData';
+import { useAcceso } from '../lib/acceso';
 import { DEMO_APOYO_USER } from '../lib/demoApoyo';
 import { DEMO_EF_USER } from '../lib/demoEF';
 import { initials } from '../lib/utils';
@@ -76,6 +77,7 @@ function hasLegacyData(): boolean {
 
 export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props) {
   const { t } = useI18n();
+  const { acceso, activar } = useAcceso();
   const [profiles, setProfiles] = useState<TeacherProfile[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -188,6 +190,39 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', padding: '30px 0', color: 'var(--text-2)', fontSize: 14 }}>
         <span className="spin" />{t('Cargando perfiles…')}
       </div>
+    );
+  }
+
+  /* ── Sin licencia o con la anual caducada: no se crean perfiles propios ── */
+  if (creating && acceso.modo !== 'completo') {
+    const prueba = acceso.modo === 'prueba';
+    return shell(
+      <>
+        {header(prueba ? t('Modo de prueba') : t('Licencia caducada'), t('Tu cuaderno docente, en tu ordenador'))}
+        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
+          {prueba
+            ? t('Sin licencia puedes explorar Aula Pro con datos de ejemplo. Para crear tu perfil y usar la IA, activa tu licencia.')
+            : t('Tu licencia anual ha caducado. Tus perfiles y tus datos siguen disponibles; para crear un perfil nuevo, renueva tu licencia.')}
+        </p>
+        {prueba && profiles.length === 0 && (
+          <button className="btn-primary" type="button" onClick={() => onExploreDemo({
+            name: t(DEMO_USER.full_name), school: t(DEMO_USER.school), subject: t(DEMO_USER.subject),
+            course: currentCourse(), community: DEMO_COMMUNITY,
+          })}>
+            <Sparkles size={14} />&nbsp;{t('Explorar con datos de ejemplo')}
+          </button>
+        )}
+        {prueba && (
+          <button className="btn-ghost" style={{ width: '100%', marginTop: 10, justifyContent: 'center' }} onClick={activar}>
+            {t('Activar licencia')}
+          </button>
+        )}
+        {profiles.length > 0 && (
+          <button className="btn-ghost" style={{ width: '100%', marginTop: 10, justifyContent: 'center' }} onClick={() => setCreating(false)}>
+            {t('Volver a la lista')}
+          </button>
+        )}
+      </>
     );
   }
 

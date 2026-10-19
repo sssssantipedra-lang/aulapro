@@ -34,11 +34,13 @@ interface LicenseRecord {
   instanceId?: string;
   activatedAt: string;
   lastOkAt?: string;
+  /** Solo las anuales: cuándo caducan si no se renuevan (ISO); vacío en las de por vida. */
+  expiresAt?: string;
 }
 
 type StoreBody = {
   activated?: boolean; valid?: boolean; deactivated?: boolean; error?: string;
-  license_key?: { status?: string };
+  license_key?: { status?: string; expires_at?: string | null };
   instance?: { id?: string };
   meta?: { store_id?: number | string };
 };
@@ -53,6 +55,25 @@ export function activationError(body: StoreBody | null, httpStatus: number, stor
   if (st === 'disabled' || st === 'expired' || msg.includes('disabled') || msg.includes('expired')) return 'desactivada';
   if (httpStatus === 404 || msg.includes('not found') || msg.includes('invalid')) return 'clave-no-valida';
   return 'error-tienda';
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+/** Igual que RENEW_WARN_DAYS de electron/licenseCore.cjs. */
+const RENEW_WARN_DAYS = 14;
+
+/** Fecha de caducidad que da la tienda (ISO), o vacío si la licencia no caduca. */
+export function expiresAtOf(body: StoreBody | null): string {
+  const e = body?.license_key?.expires_at;
+  return e && Number.isFinite(Date.parse(e)) ? new Date(e).toISOString() : '';
+}
+
+/** Igual que `validationVerdict` de electron/licenseCore.cjs. */
+export function validationVerdict(body: StoreBody | null, httpStatus: number): 'valida' | 'caducada' | 'anulada' | 'incierta' {
+  const st = body?.license_key?.status;
+  if (body?.valid && st !== 'disabled' && st !== 'expired') return 'valida';
+  if (st === 'expired') return 'caducada';
+  if (httpStatus < 500) return 'anulada';
+  return 'incierta';
 }
 
 export function keyHint(key?: string): string {
@@ -85,14 +106,23 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
     }
   }
 
+  /** Fecha de caducidad y días que quedan (solo anuales); `caducada` si ya pasó. */
+  const expiry = (): { caducada: boolean; daysLeft: number | null } => {
+    const exp = Date.parse(record?.expiresAt ?? '');
+    if (record?.kind !== 'licencia' || !Number.isFinite(exp)) return { caducada: false, daysLeft: null };
+    return { caducada: exp < Date.now(), daysLeft: Math.max(0, Math.ceil((exp - Date.now()) / DAY)) };
+  };
+
   const state = (): LicenseState => ({
     required: enforced && !record,
-    status: record?.kind === 'fundador' ? 'fundador' : record ? 'activa' : 'sin-licencia',
+    status: record?.kind === 'fundador' ? 'fundador' : record ? (expiry().caducada ? 'caducada' : 'activa') : 'sin-licencia',
     enforced,
     keyHint: record?.kind === 'licencia' ? keyHint(record.key) : '',
     since: record?.activatedAt ?? '',
     // En Android no hay enlace de compra (normas de Google Play)
     buyUrl: '',
+    expiresAt: record?.kind === 'licencia' ? record.expiresAt ?? '' : '',
+    daysLeft: expiry().daysLeft,
   });
 
   /** Comprobación en segundo plano: sin conexión no pasa nada. */
@@ -100,9 +130,11 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
     if (record?.kind !== 'licencia' || !record.key || !record.instanceId) return;
     const r = await call('validate', { license_key: record.key, instance_id: record.instanceId });
     if (!r) return;
-    const st = r.body.license_key?.status;
-    if (r.body.valid && st !== 'disabled' && st !== 'expired') await save({ ...record, lastOkAt: new Date().toISOString() });
-    else if (r.status < 500) await save(null); // devuelta o anulada
+    const verdict = validationVerdict(r.body, r.status);
+    // Una anual caducada se conserva (los datos no se bloquean) y al renovar vuelve a estar activa
+    if (verdict === 'valida' || verdict === 'caducada') {
+      await save({ ...record, lastOkAt: new Date().toISOString(), expiresAt: expiresAtOf(r.body) || (verdict === 'caducada' ? new Date().toISOString() : '') });
+    } else if (verdict === 'anulada') await save(null); // devuelta o anulada
   }
 
   async function init() {
@@ -111,7 +143,10 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
     } else if (record?.kind === 'licencia') {
       const last = Date.parse(record.lastOkAt ?? record.activatedAt);
-      if (!Number.isFinite(last) || Date.now() - last > CHECK_EVERY) check().catch(() => {});
+      // Anual a punto de caducar o caducada: se pregunta en cada arranque, por si ya renovó
+      const exp = Date.parse(record.expiresAt ?? '');
+      const cercaDeCaducar = Number.isFinite(exp) && exp - Date.now() <= RENEW_WARN_DAYS * DAY;
+      if (!Number.isFinite(last) || Date.now() - last > CHECK_EVERY || cercaDeCaducar) check().catch(() => {});
     }
   }
   const whenReady = () => (ready ??= init());
@@ -131,7 +166,7 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
         return { ok: false, error, state: state() };
       }
       const now = new Date().toISOString();
-      await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now });
+      await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now, expiresAt: expiresAtOf(r.body) });
       return { ok: true, state: state() };
     },
 
