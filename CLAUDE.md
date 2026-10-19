@@ -86,7 +86,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Agenda con portada**: se abre en «Resumen», con dos tarjetas, «Agenda mensual» y «Horario semanal»; las pestañas son Resumen, Mensual y Semanal. Antes se abría en la semana.
 - **Sesiones completadas**: `SesionEF.completada` y `SdaSession.completada`, con progreso. Ver `docs/EF.md`.
 - **Pizarra y herramientas** (`src/components/pizarra/Lienzo.tsx`, `src/lib/trazos.ts`): los trazos se guardan como vectores (lápiz, rotulador, subrayador y borrador que quita solo una parte; deshacer y rehacer) en vez de píxeles, con eventos de puntero y sin volver a pintar el trazo entero en cada movimiento (era la causa del retraso). Probado en Chromium; **sin comprobar con un dedo ni un lápiz táctil reales** (Android, pantallas táctiles de Windows). Las ideas de otras pizarras (Classroomscreen) son solo funcionales: no hay código copiado.
-- La web (`web/DISENO.md`, sección 40) tiene los textos nuevos; **sus capturas y la demo siguen siendo de antes** hasta volver a ejecutar `scripts/web/capturar.mjs`.
+- La web (`web/DISENO.md`, secciones 40 y 41) tiene los textos nuevos y, desde el 19-10-2026, las capturas y la demo de la 2.13.1.
 
 ## Pizarra y herramientas (2.13.0, 19-10-2026)
 
@@ -94,7 +94,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Diez herramientas nuevas, ocho fondos, escenas guardadas, varias instancias por herramienta (`Ventana.id` y `tipo`, hasta 24), ventanas sin tarjeta (se arrastran desde cualquier parte salvo los controles) y minimizadas a un icono. Las barras son solo iconos. La lógica sin pantalla está en `src/lib/pizarraAula.ts`, con pruebas.
 - **Hay que conservar el dibujo de la 2.12.0** (lápiz, rotulador, subrayador y borrador, con deshacer y rehacer, y el trazo al instante): lo hace `Lienzo.tsx`. Al integrar la pizarra nueva con la de `master`, se tomó `Lienzo` tal cual y solo se movieron sus controles a una barra propia.
 - Las herramientas escriben con `rgba(var(--pz-rgb), x)` y no con blanco fijo: el color de la tinta sigue al fondo de la pizarra.
-- La demo y las capturas de la pizarra en la web son de esta versión; el resto de capturas de la web sigue desfasado (ver `docs/PIZARRA.md`).
+- La demo y todas las capturas de la web son de la 2.13.1 (19-10-2026). La pizarra de la demo se dibuja a mano sobre una captura sin ella (`web/DISENO.md`, sección 41): si cambia la pizarra, cambia también `INIT.pizarra` de `web/sitio/assets/demo.js`. **Queda por rehacer la pantalla del portátil del vídeo de la portada, que enseña la 2.8.0.**
 
 ## Publicar
 

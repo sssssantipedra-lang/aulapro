@@ -73,6 +73,12 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 - Webcam, tiempo meteorológico, imagen propia como fondo, encuesta en pantalla (existe «Actividades con móviles»).
 - Que una escena recuerde también lo escrito dentro de las ventanas.
 - Comprobar en un móvil Android real (barra inferior, pantalla completa) y en un proyector.
-- Las capturas de la portada y de la demo de la web se han vuelto a hacer solo para la pizarra (19-10-2026). Al
-  ejecutar `scripts/web/capturar.mjs` entero cambian también otras pantallas (Evaluar, Recursos, Configuración…)
-  porque sus capturas estaban desfasadas respecto a la app: conviene regenerarlas en otro cambio.
+- Las capturas de la portada y de la demo de la web se han vuelto a hacer enteras con la 2.13.1 (19-10-2026, `web/DISENO.md`,
+  sección 41). La demo vuelve a dibujar el lápiz y su paleta, el temporizador, la ruleta (con memoria) y la pantalla de
+  la calculadora sobre una captura sin ellos: si cambian las medidas, los colores o las reglas de esas herramientas
+  (grosores, opacidad del subrayador, colores, qué sale al girar la ruleta…), hay que cambiar también `INIT.pizarra` en
+  `web/sitio/assets/demo.js` y su CSS (`.pz-*` en `demo.html`), y volver a ejecutar `scripts/web/capturar.mjs`.
+- **Las ventanas se abren juntas, arriba a la izquierda, y la paleta del lápiz (que sale a 66 px del borde de arriba) tapa lo
+  que haya debajo**: con el lápiz activado y la calculadora abierta, la paleta cubre su pantalla. Es del diseño actual; las
+  capturas de la web reparten las ventanas a mano para que se vean bien. Si se quiere arreglar en la app, `huecoLibre`
+  podría dejar libre también la franja de la paleta (`margen.arriba` de 70 a unos 120 px).

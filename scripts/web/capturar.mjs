@@ -15,6 +15,13 @@
  *
  * Además escribe en scripts/web/marcas.json dónde caen, en %, las marcas que
  * la portada dibuja sobre las capturas (números, círculos y etiquetas).
+ *
+ * La pizarra de la demo es especial: se capturan las ventanas repartidas por la
+ * pizarra (cada una con aire alrededor, sin que las tape ninguna barra), una vez
+ * completa (`pizarra.webp`, la que se amplía) y otra sin lo que la demo vuelve a
+ * dibujar al usarlo (`pizarra-base.webp`: anillo y cifras del temporizador, ruleta,
+ * pantalla de la calculadora y paleta del lápiz). Si cambia algo de esa pantalla
+ * (ver `docs/PIZARRA.md`), hay que cambiar aquí y en `INIT.pizarra` de `assets/demo.js`.
  */
 import { chromium } from 'playwright';
 import sharp from 'sharp';
@@ -44,7 +51,7 @@ const MENU = {
   'Configuración': 'config', 'Registro de cambios': 'registro',
 };
 const PESTANAS = {
-  evaluar: { 'Resumen': 'evaluar', 'Rúbricas': 'rubricas', 'Dianas': 'dianas', 'Diana competencial': 'diana', 'Autoevaluaciones': 'autoeval', 'Historial': 'historial' },
+  evaluar: { 'Resumen': 'evaluar', 'Rúbricas': 'rubricas', 'Dianas': 'dianas', 'Por foto': 'evalfoto', 'Diana competencial': 'diana', 'Autoevaluaciones': 'autoeval', 'Historial': 'historial' },
   documentos: { 'Resumen': 'documentos', 'Informes': 'informes', 'Actas': 'actas', 'Situaciones de aprendizaje': 'situaciones', 'Recursos': 'recursos' },
   enclase: { 'Resumen': 'enclase', 'Anotar actitud': 'actitud', 'Distribución de aula': 'distribucion', 'Pizarra y herramientas': 'pizarra', 'Actividades con móviles': 'moviles' },
 };
@@ -52,7 +59,8 @@ const PESTANAS = {
 const SALTOS = [
   [/^Pasar lista/, 'asistencia'], [/^Anotar actitud/, 'actitud'], [/^Anotar$/, 'actitud'], [/^Añadir nota/, 'cuaderno'],
   [/^Ver la semana/, 'agenda'], [/^Ver alumnado/, 'clases'], [/^Ajustar en el cuaderno/, 'cuaderno'],
-  [/^Evaluar por rúbricas/, 'rubricas'], [/^Evaluar por dianas/, 'dianas'],
+  [/^Evaluar por rúbricas/, 'rubricas'], [/^Evaluar por dianas/, 'dianas'], [/^Evaluar por foto/, 'evalfoto'],
+  [/^Agenda mensual/, 'agendames'], [/^Horario semanal/, 'agendasemana'],
   [/^Informes/, 'informes'], [/^Actas/, 'actas'], [/^Situaciones de aprendizaje/, 'situaciones'], [/^Recursos/, 'recursos'],
   [/^Distribución de aula/, 'distribucion'], [/^Pizarra y herramientas/, 'pizarra'], [/^Actividades con móviles/, 'moviles'],
 ];
@@ -137,7 +145,7 @@ const MARCAS = {};
 /** Captura una pantalla entera para la demo, con sus zonas. */
 async function pantalla(id, titulo, hubId, opts = {}) {
   const buf = await foto();
-  const img = await guardar(`assets/demo/${id}.webp`, buf);
+  const img = await guardar(`assets/demo/${opts.archivo ?? id}.webp`, buf);
   const z = await zonas(page);
   let spots = acciones(z.zonas, hubId, opts.extra);
   if (opts.quitar) spots = fuera(spots, opts.quitar);
@@ -161,8 +169,16 @@ MARCAS.inicio = await page.evaluate(() => {
 
 await menu('Mis Clases');
 await pantalla('clases', 'Mis Clases');
+// La Agenda se abre en su portada de dos tarjetas; las pestañas Resumen, Mensual y Semanal son botones de la propia pantalla
+const AGENDA = { 'Resumen': 'go:agenda', 'Mensual': 'go:agendames', 'Semanal': 'go:agendasemana', 'Agenda mensual': 'go:agendames', 'Horario semanal': 'go:agendasemana' };
 await menu('Agenda');
-await pantalla('agenda', 'Agenda');
+await pantalla('agenda', 'Agenda', null, { extra: AGENDA });
+await page.getByRole('tab', { name: 'Mensual', exact: true }).click();
+await page.waitForTimeout(900);
+await pantalla('agendames', 'Agenda mensual', null, { extra: AGENDA });
+await page.getByRole('tab', { name: 'Semanal', exact: true }).click();
+await page.waitForTimeout(900);
+await pantalla('agendasemana', 'Horario semanal', null, { extra: AGENDA });
 await menu('Cuaderno de Notas');
 await elegir(page.locator('main .class-pick select').first(), '3º Primaria A');
 const cuaderno = await pantalla('cuaderno', 'Cuaderno de Notas');
@@ -267,6 +283,9 @@ await page.waitForTimeout(900);
   await cerrarModal();
 }
 
+await pestana('Por foto');
+await pantalla('evalfoto', 'Evaluar por foto', 'evaluar');
+
 await pestana('Diana competencial');
 {
   // Con un alumno elegido, para que se vea su perfil
@@ -338,65 +357,126 @@ await pestana('Distribución de aula');
 
 await pestana('Pizarra y herramientas');
 {
-  // Para la portada: la pizarra tal cual se abre
+  // Cada ventana tiene su sitio con aire alrededor: ni se tocan entre sí, ni las tapa la barra de arriba, ni la
+  // paleta del lápiz (que sale debajo de ella mientras se dibuja), ni el dock de abajo. En la app las ventanas
+  // se abren juntas, arriba a la izquierda, y con el lápiz activado la paleta tapa a la calculadora; por eso, para
+  // las capturas, se reparten por la pizarra.
+  const area = await page.evaluate(() => {
+    const girar = [...document.querySelectorAll('main button')].find(b => b.textContent.trim() === 'GIRAR');
+    let el = girar;
+    while (el && !(el.classList.contains('relative') && el.classList.contains('overflow-hidden'))) el = el.parentElement;
+    const b = el.getBoundingClientRect();
+    return { width: Math.round(b.width), height: Math.round(b.height) };
+  });
+  const TAM = { timer: [290, 350], wheel: [290, 340], calc: [270, 380] };   // lo que mide cada una al abrirse
+  const ventana = (tipo, x, y) => ({ id: tipo, tipo, rect: { x: r(x), y: r(y), width: TAM[tipo][0], height: TAM[tipo][1] } });
+  // La pizarra lee dónde estaban las ventanas al montarse: se sale y se vuelve a entrar con la disposición hecha
+  const disponer = async ventanas => {
+    await pestana('Resumen');
+    await page.evaluate(v => localStorage.setItem('aulapro_pizarra_actual', JSON.stringify(v)), ventanas);
+    await pestana('Pizarra y herramientas');
+    await page.mouse.move(5, 5);
+    await page.waitForTimeout(400);
+  };
+
+  // Para la portada: temporizador y ruleta con aire, a la izquierda (a la derecha la tapa la captura de Anotar actitud)
+  await disponer([ventana('timer', area.width * 0.17, 130), ventana('wheel', area.width * 0.47, 130)]);
   const limpia = await foto();
   fs.writeFileSync(path.join(SITIO, 'assets/app/pizarra.webp'), await webp(await sharp(limpia).extract({ left: SB, top: 0, width: W - SB, height: H }).toBuffer()));
 
-  // Para la demo: también la calculadora y el lápiz
-  await page.getByRole('button', { name: /^Añadir Calculadora/ }).click();
-  await page.waitForTimeout(400);
+  // Para la demo: los tres en fila, centrados en la franja que dejan la barra de arriba con la paleta y el dock, y el lápiz activado
+  const ARRIBA = 170, ABAJO = 110;
+  const mitad = (area.height - ARRIBA - ABAJO) / 2 + ARRIBA;
+  await disponer(['timer', 'wheel', 'calc'].map((tipo, i) => ventana(tipo, area.width * (2 * i + 1) / 6 - TAM[tipo][0] / 2, mitad - TAM[tipo][1] / 2)));
   await page.getByRole('button', { name: /^Dibujar sobre la pantalla/ }).click();
   await page.mouse.move(5, 5);
   await page.waitForTimeout(500);
 
+  // La captura completa, tal cual la ve el docente: es la que se amplía en la demo
+  await guardar('assets/demo/pizarra.webp', await foto());
+
+  // Dónde está cada cosa. La demo vuelve a dibujar lo que cambia al usarlo (anillo y cifras del temporizador, la
+  // ruleta, la pantalla de la calculadora y la paleta del lápiz) con las mismas medidas, y para eso necesita la
+  // captura sin ellos: sobre la misma pizarra, sin parches.
   const live = await page.evaluate(() => {
     const caja = el => { const x = el.getBoundingClientRect(); return [Math.round(x.left), Math.round(x.top), Math.round(x.right), Math.round(x.bottom)]; };
-    const btn = t => [...document.querySelectorAll('main button')].find(b => b.checkVisibility() && (b.getAttribute('aria-label') === t || b.title === t || b.textContent.trim() === t));
+    const botones = raiz => [...raiz.querySelectorAll('button')].filter(b => b.checkVisibility());
+    const btn = t => botones(document.querySelector('main')).find(b => b.getAttribute('aria-label') === t || b.title === t || b.textContent.trim() === t);
+    const ventanas = [...document.querySelectorAll('main .pz-ventana')];
+    const con = f => ventanas.find(v => botones(v).some(f));
+    const marco = v => v.closest('.react-draggable') ?? v;
+    const vTimer = con(b => b.textContent.trim() === 'Iniciar');
+    const vRuleta = con(b => b.textContent.trim() === 'GIRAR');
+    const vCalc = con(b => b.style.minHeight === '34px');
+
+    // Ruleta
     const girar = btn('GIRAR');
-    const ruleta = girar.parentElement;
-    const disco = ruleta.querySelector('svg').parentElement;
-    const nombres = [...disco.querySelectorAll('text')].map(t => t.textContent);
-    const ventanas = [...document.querySelectorAll('main .pz-ventana')].map(h => caja(h.closest('.react-draggable') ?? h));
-    const teclas = [...document.querySelectorAll('main button')].filter(b => b.checkVisibility() && b.style.minHeight === '34px')
+    const discoCaja = girar.parentElement;                      // el cuadrado de 250 px con disco, aguja y botón
+    const disco = discoCaja.querySelector('svg').parentElement;
+    const resultado = [...vRuleta.querySelectorAll('div')].find(d => d.classList.contains('w-full') && d.classList.contains('text-center'));
+    // Temporizador
+    const anillo = [...vTimer.querySelectorAll('svg')].find(s => s.classList.contains('-rotate-90'));
+    const cifras = botones(vTimer).find(b => /^\d\d:\d\d$/.test(b.textContent.trim()));
+    const fichas = btn('30 s').parentElement;
+    // Calculadora
+    const teclas = botones(vCalc).filter(b => b.style.minHeight === '34px')
       .map(b => [...caja(b), b.textContent.trim().replace(/\s+/g, '') || '⌫']);
-    const k0 = teclas[0];
-    const colores = [...document.querySelectorAll('main button[title="Color"]')].map(b => [...caja(b), getComputedStyle(b).backgroundColor]);
-    const barra = btn('Dejar de dibujar').parentElement;
+    const pantalla = vCalc.querySelector('div.rounded-2xl.flex-col');
+    // Paleta del lápiz
     const paleta = btn('Borrar todo').closest('[role=toolbar]');
+    const grupo = n => paleta.querySelector(`[role=group][aria-label="${n}"]`);
+    const nombre = b => b.getAttribute('aria-label');
+    const barra = btn('Dejar de dibujar').parentElement;
     const dock = btn('Añadir Temporizador').parentElement.parentElement;
-    const cuenta = [...document.querySelectorAll('main button')].find(b => /^\d\d:\d\d$/.test(b.textContent.trim()));
-    return {
-      ruleta: { disco: caja(disco), centro: caja(girar), nombres },
+
+    const datos = {
+      barra: caja(barra),
+      lapizSuperior: caja(btn('Dejar de dibujar')),
       temporizador: {
-        cifras: caja(cuenta),
-        fichas: ['30 s', '1 min', '5 min', '10 min'].map(t => [...caja(btn(t)), t]),
+        anillo: caja(anillo), cifras: caja(cifras),
+        fichas: botones(fichas).map(b => [...caja(b), b.textContent.trim()]),
         menos: caja(btn('Un minuto menos')), mas: caja(btn('Un minuto más')),
         iniciar: caja(btn('Iniciar')), reiniciar: caja(btn('Reiniciar')),
       },
-      calculadora: { pantalla: k0 ? [k0[0], k0[1] - 102, teclas[3]?.[2] ?? k0[2], k0[1] - 10] : null, teclas },
-      lapiz: { colores, borrar: caja(btn('Borrar todo')) },
-      bloques: [caja(barra), caja(dock), caja(paleta), ...ventanas, caja(document.querySelector('.help-fab'))],
+      ruleta: { ventana: caja(marco(vRuleta)), disco: caja(disco), centro: caja(girar), resultado: caja(resultado), nombres: [...disco.querySelectorAll('text')].map(t => t.textContent) },
+      calculadora: { pantalla: caja(pantalla), teclas },
+      paleta: {
+        caja: caja(paleta),
+        herramientas: botones(grupo('Herramienta')).map(b => [...caja(b), nombre(b)]),
+        grosores: botones(grupo('Grosor')).map(b => [...caja(b), nombre(b), Math.round(b.firstElementChild.getBoundingClientRect().width)]),
+        colores: botones(grupo('Color')).map(b => [...caja(b), getComputedStyle(b).backgroundColor]),
+        separadores: [...paleta.querySelectorAll(':scope > span[aria-hidden]')].map(caja),
+        deshacer: caja(btn('Deshacer')), rehacer: caja(btn('Rehacer')), borrar: caja(btn('Borrar todo')),
+      },
     };
+    datos.bloques = [datos.barra, caja(dock), datos.paleta.caja, ...ventanas.map(v => caja(marco(v))), caja(document.querySelector('.help-fab'))];
+    return datos;
   });
-  // El disco sin el botón central ni la aguja, para girarlo en la demo
+
+  // Se esconde lo que la demo vuelve a dibujar (se ocultan, no se quitan: así no se mueve nada de sitio)
   await page.evaluate(() => {
-    const g = [...document.querySelectorAll('main button')].find(b => b.textContent.trim() === 'GIRAR');
-    g.style.visibility = 'hidden';
-    g.parentElement.querySelector('div.absolute.z-20').style.visibility = 'hidden';
-  });
-  const [d0, d1, d2, d3] = live.ruleta.disco;
-  await guardar('assets/demo/ruleta-disco.webp', await page.screenshot({ clip: { x: d0, y: d1, width: d2 - d0, height: d3 - d1 } }), 90);
-  await page.evaluate(() => {
-    const g = [...document.querySelectorAll('main button')].find(b => b.textContent.trim() === 'GIRAR');
-    g.style.visibility = '';
-    g.parentElement.querySelector('div.absolute.z-20').style.visibility = '';
+    const botones = raiz => [...raiz.querySelectorAll('button')];
+    const ocultar = el => { if (el) el.style.visibility = 'hidden'; };
+    const ventanas = [...document.querySelectorAll('main .pz-ventana')];
+    const con = f => ventanas.find(v => botones(v).some(f));
+    const vTimer = con(b => b.textContent.trim() === 'Iniciar');
+    const vRuleta = con(b => b.textContent.trim() === 'GIRAR');
+    const vCalc = con(b => b.style.minHeight === '34px');
+    botones(vTimer).filter(b => b.textContent.trim() === 'Iniciar').forEach(ocultar);
+    ocultar([...vTimer.querySelectorAll('svg')].find(s => s.classList.contains('-rotate-90')).parentElement);
+    ocultar(botones(vTimer).find(b => b.textContent.trim() === '30 s').parentElement);
+    ocultar(botones(vRuleta).find(b => b.textContent.trim() === 'GIRAR').parentElement);
+    ocultar([...vRuleta.querySelectorAll('div')].find(d => d.classList.contains('w-full') && d.classList.contains('text-center')));
+    [...vCalc.querySelector('div.rounded-2xl.flex-col').children].forEach(ocultar);
+    ocultar(document.querySelector('main [role=toolbar]'));
   });
   await page.waitForTimeout(300);
-  const [c0, c1, c2, c3] = live.ruleta.centro;
-  await guardar('assets/demo/ruleta-centro.webp', await page.screenshot({ clip: { x: c0, y: c1, width: c2 - c0, height: c3 - c1 } }), 90);
-  await pantalla('pizarra', 'Pizarra y herramientas', 'enclase', { quitar: live.bloques.slice(3, -1), datos: { live } });
-  // Las zonas de la barra y el dock sí se quedan, menos las que hace la demo
-  PANTALLAS.pizarra.spots = PANTALLAS.pizarra.spots.filter(s => !/^(Dejar de dibujar|Color|Borrar todo|Deshacer|Rehacer|Lápiz|Rotulador|Subrayador|Borrador|Fino|Medio|Grueso)$/.test(s[5]));
+  await pantalla('pizarra', 'Pizarra y herramientas', 'enclase', { archivo: 'pizarra-base', quitar: live.bloques.slice(3, -1), datos: { live } });
+  // La pantalla se muestra con la base vacía y se amplía con la captura completa
+  PANTALLAS.pizarra.base = PANTALLAS.pizarra.img;
+  PANTALLAS.pizarra.img = 'pizarra.webp';
+  // Las zonas de la barra y el dock sí se quedan, menos el lápiz de arriba, que lo hace la demo
+  PANTALLAS.pizarra.spots = PANTALLAS.pizarra.spots.filter(s => !/^(Dejar de dibujar|Dibujar sobre la pantalla)$/.test(s[5]));
 }
 
 /* Centro y equipo, y lo de abajo */
