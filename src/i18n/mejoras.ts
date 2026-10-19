@@ -66,6 +66,7 @@ export const MEJORAS_EN: Record<string, string> = {
   'Cuento, poema, noticia…': 'Story, poem, news article…',
   'Se puede proyectar en clase': 'Can be projected in class',
   'Para dislexia': 'For dyslexia',
+  'Arrastra para cambiar el día o la hora. Con Alt y las flechas, también con el teclado.': 'Drag to change the day or the time. With Alt and the arrow keys, you can also use the keyboard.',
   'Pasos con dibujos': 'Steps with drawings',
 };
 
@@ -130,5 +131,6 @@ export const MEJORAS_CA: Record<string, string> = {
   'Cuento, poema, noticia…': 'Conte, poema, notícia…',
   'Se puede proyectar en clase': 'Es pot projectar a classe',
   'Para dislexia': 'Per a la dislèxia',
+  'Arrastra para cambiar el día o la hora. Con Alt y las flechas, también con el teclado.': 'Arrossega per canviar el dia o l\'hora. Amb Alt i les fletxes, també amb el teclat.',
   'Pasos con dibujos': 'Passos amb dibuixos',
 };

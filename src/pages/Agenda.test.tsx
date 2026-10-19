@@ -4,7 +4,7 @@
  * eventos del calendario como estaban.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Agenda } from './Agenda';
 import { I18nProvider } from '../i18n';
@@ -19,13 +19,14 @@ const block = (id: string): ScheduleBlock =>
 
 function setup(blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav: (s: string) => void = () => {}) {
   const onReplaceBlocks = vi.fn();
+  const onUpdateBlock = vi.fn();
   const onDeleteCalEvent = vi.fn();
   render(
     <I18nProvider>
       <ToastProvider>
         <Agenda
           classes={[]} scheduleBlocks={blocks} apoyoBlocks={apoyoBlocks} calEvents={[]}
-          onAddBlock={() => {}} onUpdateBlock={() => {}} onDeleteBlock={() => {}}
+          onAddBlock={() => {}} onUpdateBlock={onUpdateBlock} onDeleteBlock={() => {}}
           onReplaceBlocks={onReplaceBlocks}
           onAddCalEvent={() => {}} onUpdateCalEvent={() => {}} onDeleteCalEvent={onDeleteCalEvent}
           onNav={onNav}
@@ -33,7 +34,7 @@ function setup(blocks: ScheduleBlock[], apoyoBlocks: ScheduleBlock[] = [], onNav
       </ToastProvider>
     </I18nProvider>,
   );
-  return { onReplaceBlocks, onDeleteCalEvent };
+  return { onReplaceBlocks, onDeleteCalEvent, onUpdateBlock };
 }
 
 describe('Agenda · borrar horario', () => {
@@ -98,7 +99,7 @@ describe('Agenda · semana', () => {
     expect(takeGrupos()).toEqual({ grupoId: 'gru1' });
   });
 
-  it('un bloque que cruza una hora en punto sale una sola vez, en la hora en que empieza', async () => {
+  it('cada bloque sale una sola vez y a su hora: su posición es proporcional a la hora de inicio', async () => {
     const user = userEvent.setup();
     setup([
       { ...block('m'), time_start: '09:45', time_end: '10:30', subject: 'Matemáticas' },
@@ -109,8 +110,91 @@ describe('Agenda · semana', () => {
     expect(screen.getAllByText('Matemáticas')).toHaveLength(1);
     expect(screen.getAllByText('Educación Física')).toHaveLength(1);
     expect(screen.getAllByText('Guardia')).toHaveLength(1);
-    // En la fila de las 9, no en la de las 10
-    const fila9 = screen.getByText('09:00').nextElementSibling!;
-    expect(fila9.textContent).toContain('Matemáticas');
+    // Un bloque empieza a las 07:45, así que la cuadrícula empieza a las 07:00; cada minuto son 1,3 px y 09:45 son 165 minutos después
+    const m = screen.getByRole('button', { name: /Matemáticas, 09:45–10:30/ });
+    expect(parseFloat(m.style.top)).toBeCloseTo((105 + 60) * 1.3 + 1, 1);
+    expect(parseFloat(m.style.height)).toBeCloseTo(45 * 1.3 - 2, 1);
+    // Lo que empieza antes de las 8 hace que la cuadrícula empiece antes
+    expect(screen.getByText('07:00')).toBeTruthy();
+  });
+
+  it('el patio de las 11:15 sale encima de la clase de las 11:45, aunque se creara después', async () => {
+    const user = userEvent.setup();
+    setup([
+      { ...block('clase'), day: 2, time_start: '11:45', time_end: '12:30', subject: '4º A Educación Física' },
+      { ...block('patio'), day: 2, time_start: '11:15', time_end: '11:45', subject: 'Patio de juegos' },
+    ]);
+    await user.click(screen.getByRole('tab', { name: 'Semanal' }));
+    const patio = screen.getByRole('button', { name: /Patio de juegos/ });
+    const clase = screen.getByRole('button', { name: /4º A Educación Física/ });
+    expect(parseFloat(patio.style.top)).toBeLessThan(parseFloat(clase.style.top));
+    // Uno justo detrás del otro, sin pisarse: a todo el ancho
+    expect(patio.style.width).toBe('calc(100% - 4px)');
+    expect(clase.style.width).toBe('calc(100% - 4px)');
+  });
+
+  it('los bloques que coinciden en el tiempo van lado a lado', async () => {
+    const user = userEvent.setup();
+    setup([
+      { ...block('a'), time_start: '09:00', time_end: '10:00', subject: 'Grupo A' },
+      { ...block('b'), time_start: '09:30', time_end: '10:30', subject: 'Grupo B' },
+    ]);
+    await user.click(screen.getByRole('tab', { name: 'Semanal' }));
+    expect(screen.getByRole('button', { name: /Grupo A/ }).style.width).toBe('calc(50% - 4px)');
+    expect(screen.getByRole('button', { name: /Grupo B/ }).style.left).toBe('calc(50% + 2px)');
+  });
+});
+
+describe('Agenda · mover los bloques', () => {
+  it('con Alt y las flechas se mueve de 5 en 5 minutos y de día en día, sin cambiar lo que dura', async () => {
+    const user = userEvent.setup();
+    const { onUpdateBlock } = setup([{ ...block('p'), day: 3, time_start: '11:15', time_end: '11:45', subject: 'Patio' }]);
+    await user.click(screen.getByRole('tab', { name: 'Semanal' }));
+    const patio = screen.getByRole('button', { name: /Patio/ });
+    patio.focus();
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
+    expect(onUpdateBlock).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'p', day: 3, time_start: '11:20', time_end: '11:50' }));
+    await user.keyboard('{Alt>}{Shift>}{ArrowUp}{/Shift}{/Alt}');
+    expect(onUpdateBlock).toHaveBeenLastCalledWith(expect.objectContaining({ day: 3, time_start: '11:00', time_end: '11:30' }));
+    await user.keyboard('{Alt>}{ArrowRight}{/Alt}');
+    expect(onUpdateBlock).toHaveBeenLastCalledWith(expect.objectContaining({ day: 4, time_start: '11:15', time_end: '11:45' }));
+    // Intro abre el bloque para editarlo, como siempre
+    await user.keyboard('{Enter}');
+    expect(screen.getByText('Editar bloque')).toBeTruthy();
+  });
+
+  it('arrastrar un bloque a otra hora y otro día lo cambia, y el clic de soltar no lo abre', () => {
+    const { onUpdateBlock } = setup([{ ...block('p'), day: 3, time_start: '11:15', time_end: '11:45', subject: 'Patio' }]);
+    fireEvent.click(screen.getByRole('tab', { name: 'Semanal' }));
+    // jsdom no mide la pantalla: cinco columnas de 200 px a partir de x = 100
+    const cols = document.querySelectorAll('.wk-col');
+    cols.forEach((c, i) => { (c as HTMLElement).getBoundingClientRect = () => ({ left: 100 + i * 200, right: 300 + i * 200, top: 0, bottom: 800, width: 200, height: 800, x: 100 + i * 200, y: 0, toJSON: () => ({}) }); });
+    const patio = screen.getByRole('button', { name: /Patio/ });
+    patio.setPointerCapture = () => {};
+    const evento = (tipo: string, x: number, y: number) => {
+      const e = new MouseEvent(tipo, { bubbles: true, clientX: x, clientY: y, button: 0 });
+      Object.defineProperty(e, 'pointerType', { value: 'mouse' });
+      Object.defineProperty(e, 'pointerId', { value: 1 });
+      patio.dispatchEvent(e);
+    };
+    act(() => evento('pointerdown', 520, 300));
+    act(() => evento('pointermove', 720, 300 + 39)); // un día a la derecha y 30 minutos más abajo (39 px)
+    act(() => evento('pointerup', 720, 339));
+    patio.click();
+    expect(onUpdateBlock).toHaveBeenCalledOnce();
+    expect(onUpdateBlock).toHaveBeenCalledWith(expect.objectContaining({ day: 4, time_start: '11:45', time_end: '12:15' }));
+    expect(screen.queryByText('Editar bloque')).toBeNull();
+  });
+
+  it('los bloques de apoyo no se mueven desde aquí', async () => {
+    const user = userEvent.setup();
+    const onNav = vi.fn();
+    const { onUpdateBlock } = setup([], [{ ...block('apoyo-gru1-0'), day: 2, subject: 'Habilidades sociales' }], onNav);
+    await user.click(screen.getByRole('tab', { name: 'Semanal' }));
+    const b = screen.getByRole('button', { name: /Habilidades sociales/ });
+    b.focus();
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
+    expect(onUpdateBlock).not.toHaveBeenCalled();
+    expect(b.querySelector('.wk-asa')).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
-import { useState, useMemo, Fragment } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock, CalendarDays, ArrowRight } from 'lucide-react';
 import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
+import { HorarioSemana } from '../components/agenda/HorarioSemana';
 import type { ScheduleBlock, CalEvent, Class } from '../types';
 import { PALETTE } from '../lib/demoData';
 import { isoDate, fromIsoDate } from '../lib/utils';
@@ -21,16 +22,6 @@ function uid() {
 }
 
 // La fecha se calcula en lib/utils para que toda la app use el mismo criterio
-
-/**
- * Las horas de la semana, de una en una: de 08:00 a 14:00 como mínimo, y
- * hasta la hora en que empiece la última clase. Antes se cortaba siempre a
- * las 14:00 y las clases de la tarde no se veían (11-10-2026).
- */
-function franjas(blocks: ScheduleBlock[]): string[] {
-  const ultima = blocks.reduce((h, b) => Math.max(h, Number(b.time_start.slice(0, 2)) || 0), 14);
-  return Array.from({ length: Math.min(ultima, 23) - 8 + 1 }, (_, i) => `${String(8 + i).padStart(2, '0')}:00`);
-}
 
 // Build a calendar grid for a given month (always 6 rows × 7 cols, Mon first)
 function buildCalGrid(year: number, month: number): Date[] {
@@ -55,45 +46,6 @@ function weekDates(date: Date): Date[] {
     d.setDate(monday.getDate() + i);
     return d;
   });
-}
-
-// La fila en la que se pinta el bloque: la de la hora en la que empieza, una
-// sola vez. Antes salía en cada hora que tocaba, y uno de 09:45 a 10:30 se
-// veía dos veces (a las 9 y a las 10) aunque fuera una sola sesión. Lo que
-// empieza antes de la primera fila y llega a ella sale en la primera.
-function blockInSlot(block: ScheduleBlock, slot: string): boolean {
-  const first = '08:00';
-  if (block.time_start < first) return slot === first && block.time_end > first;
-  return block.time_start.slice(0, 2) === slot.slice(0, 2);
-}
-
-// --------------- sub-components ---------------
-interface BlockCardProps {
-  block: ScheduleBlock;
-  onClick: () => void;
-}
-function BlockCard({ block, onClick }: BlockCardProps) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        background: block.color,
-        borderRadius: 8,
-        padding: '4px 8px',
-        cursor: 'pointer',
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: 600,
-        lineHeight: 1.3,
-        overflow: 'hidden',
-        userSelect: 'none',
-      }}
-    >
-      <div style={{ opacity: 0.85, fontSize: 10 }}>{block.time_start}–{block.time_end}</div>
-      <div>{block.subject}</div>
-      {block.room && <div style={{ opacity: 0.8 }}>{block.room}</div>}
-    </div>
-  );
 }
 
 // --------------- blank form states ---------------
@@ -581,101 +533,12 @@ export function Agenda({
             <button className="ico-btn" onClick={nextWeek} aria-label={t('Siguiente')} title={t('Siguiente')}><ChevronRight size={18} /></button>
           </div>
 
-          {/* Grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '56px repeat(5, 1fr)',
-              gap: 0,
-              minWidth: 540,
-            }}
-          >
-            {/* Header row */}
-            <div /> {/* empty corner */}
-            {currentWeekDates.map((d, di) => {
-              const ds = isoDate(d);
-              const isToday = ds === isoDate(today);
-              return (
-                <div
-                  key={di}
-                  style={{
-                    textAlign: 'center',
-                    padding: '6px 4px 10px',
-                    fontWeight: 700,
-                    fontSize: 12,
-                    borderBottom: '1px solid var(--border, #e5e7eb)',
-                    color: isToday ? 'var(--accent, #0284c7)' : 'var(--text)',
-                  }}
-                >
-                  <div style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 10, opacity: 0.7 }}>
-                    {weekDayLabels[di]}
-                  </div>
-                  <div style={{ fontSize: 18, lineHeight: 1.2 }}>{d.getDate()}</div>
-                  {/* Los eventos del día, encima de sus clases (11-10-2026) */}
-                  {(eventsByDate[ds] ?? []).map(ev => (
-                    <button
-                      key={ev.id} type="button" className="wk-event"
-                      style={{ '--ev-c': ev.color || 'var(--accent-d)' } as React.CSSProperties}
-                      onClick={() => openEditEvent(ev)} title={ev.desc || ev.name}
-                    >
-                      {ev.time && <b>{ev.time}</b>} {ev.name}
-                    </button>
-                  ))}
-                </div>
-              );
-            })}
-
-            {/* Time rows */}
-            {franjas([...scheduleBlocks, ...apoyoBlocks]).map(slot => (
-              <Fragment key={slot}>
-                {/* Time label */}
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--text-2, #9ca3af)',
-                    textAlign: 'right',
-                    paddingRight: 8,
-                    paddingTop: 6,
-                    borderTop: '1px solid var(--border, #e5e7eb)',
-                    lineHeight: 1,
-                  }}
-                >
-                  {slot}
-                </div>
-
-                {/* Columns Mon–Fri */}
-                {[1, 2, 3, 4, 5].map(dayNum => {
-                  const blocksInCell = scheduleBlocks.filter(
-                    b => b.day === dayNum && blockInSlot(b, slot),
-                  );
-                  const apoyoInCell = apoyoBlocks.filter(
-                    b => b.day === dayNum && blockInSlot(b, slot),
-                  );
-                  return (
-                    <div
-                      key={`cell-${slot}-${dayNum}`}
-                      style={{
-                        borderTop: '1px solid var(--border, #e5e7eb)',
-                        borderLeft: '1px solid var(--border, #e5e7eb)',
-                        minHeight: 56,
-                        padding: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 3,
-                      }}
-                    >
-                      {apoyoInCell.map(b => (
-                        <BlockCard key={b.id} block={b} onClick={() => { requestGrupos(grupoDeBloque(b.id)); onNav('apoyo-alumnado'); }} />
-                      ))}
-                      {blocksInCell.map(b => (
-                        <BlockCard key={b.id} block={b} onClick={() => openEditBlock(b)} />
-                      ))}
-                    </div>
-                  );
-                })}
-              </Fragment>
-            ))}
-          </div>
+          <HorarioSemana
+            dias={currentWeekDates} etiquetas={weekDayLabels} hoy={isoDate(today)} isoDe={isoDate}
+            bloques={scheduleBlocks} apoyo={apoyoBlocks} eventosPorFecha={eventsByDate}
+            onEditar={openEditBlock} onMover={onUpdateBlock} onEditarEvento={openEditEvent}
+            onAbrirApoyo={b => { requestGrupos(grupoDeBloque(b.id)); onNav('apoyo-alumnado'); }}
+          />
         </div>
       )}
 
