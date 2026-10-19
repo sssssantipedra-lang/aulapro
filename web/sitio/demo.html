@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Demo de AulaPro · Pruébala por dentro</title>
-<meta name="description" content="Demo interactiva de AulaPro: recorre todas las pantallas, gira la ruleta, anota la actitud, marca una rúbrica y rellena una diana antes de comprarla.">
+<meta name="description" content="Demo interactiva de AulaPro: recorre todas las pantallas del docente de aula, de Educación Física y de PT y AL, gira la ruleta, anota la actitud y marca una rúbrica antes de comprarla.">
 <meta name="theme-color" content="#fbf8f3">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="assets/icono.svg" type="image/svg+xml">
@@ -89,6 +89,12 @@ main:focus{outline:none}
 
 /* ---------- toolbar above the window ---------- */
 .tools{max-width:1700px;margin:0 auto;padding:0 var(--gutter) 14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.perfiles{display:flex;flex-wrap:wrap;align-items:center;gap:8px;flex:1 1 100%}
+.perfiles>span{font:500 .74rem/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-right:4px}
+.pf{border:0;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--line-strong);padding:.55em 1.05em;color:var(--text);font:500 .9rem/1.1 var(--f-body);cursor:pointer;transition:background-color .3s var(--ease-out),box-shadow .3s var(--ease-out),color .3s var(--ease-out)}
+.pf:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.pf[aria-pressed="true"]{background:var(--ink);color:#f1e4cf;box-shadow:none}
+@media (pointer:coarse){.pf{min-height:42px}}
 .tries{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .tries>span{font:500 .74rem/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-right:4px}
 .chip{display:inline-flex;align-items:center;gap:.55em;padding:.5em .95em .5em .5em;border:0;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--text);font:400 .9rem/1.1 var(--f-body);cursor:pointer;transition:background-color .3s var(--ease-out),box-shadow .3s var(--ease-out),transform .3s var(--ease-out)}
@@ -314,10 +320,16 @@ html.zoom-open{overflow:hidden}
       <p class="kicker" data-i18n="demo.kicker">Demo interactiva</p>
       <h1 class="h1" data-i18n="demo.title">Toca AulaPro por dentro.</h1>
     </div>
-    <p class="lede" data-i18n="demo.lede">Recorre todas las pantallas como si la tuvieras instalada. Es una demo: los botones te enseñan dónde está cada cosa, pero no se guarda nada.</p>
+    <p class="lede" data-i18n="demo.lede">Recorre todas las pantallas, con el perfil de docente de aula, el de Educación Física y el de PT y AL, como si la tuvieras instalada. Es una demo: lo que crea la IA (situaciones de aprendizaje, informes, fichas, actas…) es un ejemplo ya hecho, los botones te enseñan dónde está cada cosa y no se guarda nada.</p>
   </section>
 
   <div class="tools">
+    <div class="perfiles" role="group" aria-label="Perfil" data-i18n-attr="aria-label:demo.perfil">
+      <span data-i18n="demo.perfil">Perfil</span>
+      <button class="pf" type="button" data-perfil="aula" aria-pressed="true" data-i18n="demo.p.aula">Docente de aula</button>
+      <button class="pf" type="button" data-perfil="ef" aria-pressed="false" data-i18n="demo.p.ef">Educación Física</button>
+      <button class="pf" type="button" data-perfil="apoyo" aria-pressed="false" data-i18n="demo.p.apoyo">PT y AL</button>
+    </div>
     <div class="tries">
       <span data-i18n="demo.try">Prueba a</span>
       <button class="chip" type="button" data-try="ruleta" style="--c:#0ea5e9"><i aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg></i><span data-i18n="demo.try1">Girar la ruleta</span></button>
@@ -354,7 +366,7 @@ html.zoom-open{overflow:hidden}
   </div>
 
   <div class="below">
-    <p data-i18n="demo.note">Los datos que ves son de ejemplo. La demo muestra AulaPro en castellano; la aplicación también funciona en català y en inglés.</p>
+    <p data-i18n="demo.note">Los datos que ves son de ejemplo, y cada cosa que crea la IA es un ejemplo ya hecho: la demo no genera nada. Muestra AulaPro en castellano; la aplicación también funciona en català y en inglés.</p>
     <div class="buy">
       <span data-i18n="demo.cta">¿Te convence? Oferta de lanzamiento: 6,99&nbsp;€, de por vida.</span>
       <a class="btn" href="index.html#precio" data-home="#precio" data-i18n="cta.want">Quiero AulaPro</a>

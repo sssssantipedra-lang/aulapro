@@ -158,6 +158,7 @@
     if (cleanup) { try { cleanup(); } catch (e) { /* nothing to undo */ } cleanup = null; }
     const first = !cur;
     cur = id;
+    paintPerfil();
     if (!first) { clearTimeout(toastTimer); toastBox.replaceChildren(); }
     const el = document.createElement('div');
     el.className = 'scr';
@@ -177,6 +178,15 @@
     if (!opt.quiet) srNote.textContent = `${t('demo.screen')}: ${s.title}`;
     if (HINT[id] && !opt.quiet && !opt.noHint) setTimeout(() => { if (cur === id) toast(t(HINT[id])); }, 450);
   }
+  // The three profiles of the app: each one has its own menu and its own first screen
+  const PERFIL_DE = id => (id.startsWith('ef-') ? 'ef' : id.startsWith('pt-') ? 'apoyo' : 'aula');
+  const INICIO = { aula: 'inicio', ef: 'ef-inicio', apoyo: 'pt-inicio' };
+  function paintPerfil() {
+    const p = PERFIL_DE(cur || 'inicio');
+    $$('.pf').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.perfil === p)));
+  }
+  $$('.pf').forEach(b => b.addEventListener('click', () => { if (SCREENS[INICIO[b.dataset.perfil]]) go(INICIO[b.dataset.perfil], { quiet: true }); }));
+
   // A short tip the first moment a screen with something to try opens
   const HINT = { pizarra: 'demo.h.pizarra', actitud: 'demo.h.actitud', asistencia: 'demo.h.asistencia', rubrica: 'demo.h.rubrica', dianaeval: 'demo.h.diana' };
 
