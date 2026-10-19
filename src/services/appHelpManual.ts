@@ -479,7 +479,7 @@ Tipos de ejercicio: respuesta abierta, completar, opción múltiple, problema,
 tabla, relacionar, colorear, sopa de letras, verdadero o falso, ordenar,
 crucigrama y cómic (la sopa, el crucigrama y las figuras los dibuja la propia
 aplicación).
-CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cuatro tarjetas grandes:
+CREAR, EN DOS PASOS: 1) «¿Qué quieres crear?», cuatro tarjetas grandes (con su icono de color, una explicación y la elegida marcada):
 «Ficha de ejercicios», «Comprensión lectora», «Escape room» y «Tarjetas»; 2)
 «¿De qué trata?», con la clase, el área y el curso. Debajo, dos casillas:
 «Lectura fácil» (para dislexia) y «Con pictogramas». Lo demás está recogido en
@@ -615,8 +615,10 @@ Antes se llamaba «Sala de alumnos». Solo funciona en la aplicación instalada
 (Windows o Android); en la versión de navegador se explica qué hace y cómo.
 Levanta un servidor en el propio ordenador para que los alumnos entren desde el
 móvil escaneando un QR o escribiendo un código, sin instalar nada y sin
-necesidad de internet (misma red wifi). Actividades: autoevaluación con una
-rúbrica o diana, lluvia de ideas y votación. Las respuestas llegan en directo y
+necesidad de internet (misma red wifi). Se elige la clase y la actividad en tres
+TARJETAS grandes, con su icono, una explicación y un ejemplo: autoevaluación con
+una rúbrica o diana, lluvia de ideas y votación (la elegida sale marcada y debajo
+se rellena lo que pide). Las respuestas llegan en directo y
 se guardan en Autoevaluaciones.
 
 [share] TRABAJO COMPARTIDO

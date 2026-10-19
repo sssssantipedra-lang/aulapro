@@ -10,7 +10,7 @@
  */
 import { useMemo, useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
@@ -36,6 +36,8 @@ import { HiloSelector } from '../components/fichas/DibujosEditor';
 import { LecturaEditor } from '../components/fichas/LecturaEditor';
 import { GENEROS_LECTURA, NOMBRE_GENERO, type GeneroLectura } from '../lib/lectura';
 import { hiloDeFicha, hiloPorId } from '../lib/hilos';
+import { urlIlustracion } from '../lib/ilustraciones';
+import { urlPicto } from '../lib/pictos';
 import { TIPO_LABEL, TIPO_EMOJI } from '../components/fichas/tipos';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { useFichaParaPedido } from '../lib/apoyoNav';
@@ -84,11 +86,11 @@ const FORMATO_LABEL: Record<FichaFormato, string> = { ficha: 'Ficha', escape: 'E
 /** Lo que se puede crear: las cuatro tarjetas grandes del primer paso. La comprensión lectora es una ficha con texto (siempre en «Cuaderno»). */
 type TipoCreacion = FichaFormato | 'lectura';
 
-const TIPOS_CREACION: { id: TipoCreacion; emoji: string; label: string; desc: string }[] = [
-  { id: 'ficha', emoji: '📝', label: 'Ficha de ejercicios', desc: 'Ejercicios de menos a más, para trabajar en la hoja.' },
-  { id: 'lectura', emoji: '📖', label: 'Comprensión lectora', desc: 'Un texto con dibujos y actividades sobre él.' },
-  { id: 'escape', emoji: '🔐', label: 'Escape room', desc: 'Cada bloque es una sala con su candado.' },
-  { id: 'tarjetas', emoji: '🃏', label: 'Tarjetas', desc: 'Pregunta delante y respuesta detrás.' },
+const TIPOS_CREACION: { id: TipoCreacion; icono: React.ReactNode; color: string; label: string; desc: string; dato: string }[] = [
+  { id: 'ficha', icono: <NotebookPen size={24} />, color: '#ec4899', label: 'Ficha de ejercicios', desc: 'Ejercicios de menos a más, para trabajar en la hoja.', dato: 'Se imprime en PDF o Word' },
+  { id: 'lectura', icono: <BookOpen size={24} />, color: '#0ea5e9', label: 'Comprensión lectora', desc: 'Un texto con dibujos y actividades sobre él.', dato: 'Cuento, poema, noticia…' },
+  { id: 'escape', icono: <KeyRound size={24} />, color: '#f59e0b', label: 'Escape room', desc: 'Cada bloque es una sala con su candado.', dato: 'Se puede proyectar en clase' },
+  { id: 'tarjetas', icono: <Layers size={24} />, color: '#8b5cf6', label: 'Tarjetas', desc: 'Pregunta delante y respuesta detrás.', dato: 'Se puede proyectar en clase' },
 ];
 
 /** Cuántos ejercicios (o tarjetas) se proponen al elegir cada tipo. */
@@ -753,15 +755,20 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
       <div className="card fe-create" style={{ marginBottom: 16 }}>
         <div className="fe-paso"><span className="fe-paso-n">1</span>{t('¿Qué quieres crear?')}</div>
-        <div className="fe-tipos" role="radiogroup" aria-label={t('Qué quieres crear')}>
+        <div className="ev-cards cuatro fe-tipos" role="radiogroup" aria-label={t('Qué quieres crear')}>
           {TIPOS_CREACION.map(x => (
             <button
               key={x.id} type="button" role="radio" aria-checked={tipo === x.id}
-              className={`fe-tipo${tipo === x.id ? ' on' : ''}`} onClick={() => pickTipo(x.id)}
+              className={`ev-card fe-tipo${tipo === x.id ? ' sel' : ''}`} style={{ '--ev-c': x.color } as React.CSSProperties}
+              onClick={() => pickTipo(x.id)}
             >
-              <span className="fe-tipo-emoji" aria-hidden="true">{x.emoji}</span>
-              <strong>{t(x.label)}</strong>
-              <em>{t(x.desc)}</em>
+              <span className="ev-card-ico" aria-hidden="true">{x.icono}</span>
+              <span className="ev-card-ttl">{t(x.label)}</span>
+              <span className="ev-card-txt">{t(x.desc)}</span>
+              <span className="ev-card-ft">
+                <span className="ev-card-dato">{t(x.dato)}</span>
+                {tipo === x.id && <span className="ev-card-go"><Check size={15} />{t('Elegida')}</span>}
+              </span>
             </button>
           ))}
         </div>
@@ -833,23 +840,26 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
         )}
 
         {tipo !== 'tarjetas' && (
-          <div className="fe-opts">
-            <label className={`fe-opt${facil ? ' on' : ''}`}>
-              <input type="checkbox" checked={facil} onChange={e => setFacil(e.target.checked)} />
-              <span className="fe-opt-ico fe-opt-aa" aria-hidden="true">Aa</span>
-              <span className="fe-opt-txt">
-                <strong>{t('Lectura fácil')}</strong>
-                <em>{t('Para dislexia: frases cortas, palabras clave en negrita y letra más grande.')}</em>
+          <div className="fe-bolas">
+            <label className={`fe-bola${facil ? ' on' : ''}`} style={{ '--ev-c': '#0ea5e9' } as React.CSSProperties} title={t('Para dislexia: frases cortas, palabras clave en negrita y letra más grande.')}>
+              <input type="checkbox" className="sr-only" checked={facil} onChange={e => setFacil(e.target.checked)} />
+              <span className="fe-bola-circ" aria-hidden="true">
+                <img src={urlIlustracion('esc-libro')} alt="" width={64} height={64} draggable={false} />
+                <span className="fe-bola-aa">Aa</span>
+                <Check size={13} className="fe-bola-ok" />
               </span>
+              <span className="fe-bola-txt">{t('Lectura fácil')}</span>
+              <span className="fe-bola-sub">{t('Para dislexia')}</span>
             </label>
             {!lectura && (
-              <label className={`fe-opt${visual ? ' on' : ''}`}>
-                <input type="checkbox" checked={visual} onChange={e => setVisual(e.target.checked)} />
-                <span className="fe-opt-ico" aria-hidden="true">🖼️</span>
-                <span className="fe-opt-txt">
-                  <strong>{t('Con pictogramas')}</strong>
-                  <em>{t('Pasos numerados con dibujos, para el alumnado que lo necesita (TEA…).')}</em>
+              <label className={`fe-bola${visual ? ' on' : ''}`} style={{ '--ev-c': '#8b5cf6' } as React.CSSProperties} title={t('Pasos numerados con dibujos, para el alumnado que lo necesita (TEA…).')}>
+                <input type="checkbox" className="sr-only" checked={visual} onChange={e => setVisual(e.target.checked)} />
+                <span className="fe-bola-circ" aria-hidden="true">
+                  <img src={urlPicto('ia-inicio-actividad')} alt="" width={64} height={64} draggable={false} />
+                  <Check size={13} className="fe-bola-ok" />
                 </span>
+                <span className="fe-bola-txt">{t('Con pictogramas')}</span>
+                <span className="fe-bola-sub">{t('Pasos con dibujos')}</span>
               </label>
             )}
           </div>
