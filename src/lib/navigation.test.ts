@@ -3,7 +3,7 @@ import { HUBS, hubTarget, reachableSections, hubOf, hubEnMenu, isCurrent, NAV_GR
 import type { Section } from '../types';
 
 const ALL: Section[] = [
-  'dashboard', 'classes', 'agenda', 'evaluar', 'evalfoto', 'rubrics', 'dianas', 'diana', 'history', 'notebook', 'profile',
+  'dashboard', 'classes', 'agenda', 'evaluar', 'evalfoto', 'rubrics', 'dianas', 'registros', 'diana', 'history', 'notebook', 'profile',
   'sec-classroom', 'share', 'classroom-live', 'attendance', 'documentos', 'reports', 'selfassess', 'audit', 'records',
   'learning-situations', 'resources', 'meetings', 'trainings', 'seating', 'enclase', 'actitud',
 ];

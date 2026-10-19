@@ -135,6 +135,12 @@ export interface ActividadEF {
 }
 
 /** Una sesión de EF: calentamiento, parte principal y vuelta a la calma. */
+/** Un instrumento de evaluación de la sesión: una rúbrica, una diana o una escala de registro (estas dos, con las dianas). */
+export interface InstrumentoRefEF {
+  tipo: 'rubrica' | 'diana' | 'registro';
+  id: string;
+}
+
 export interface SesionEF {
   /** Los criterios de evaluación oficiales que trabaja. */
   criterios?: import('./index').OfficialCriterionRef[];
@@ -149,6 +155,10 @@ export interface SesionEF {
   fecha?: string;
   /** Si ya se dio: sirve para saber por dónde vas (decisión del dueño, 18-10-2026). */
   completada?: boolean;
+  /** Los instrumentos de evaluación que se usan en la sesión: los que ya existían, o uno creado desde ella (19-10-2026). */
+  instrumentos?: InstrumentoRefEF[];
+  /** El circuito de la pizarra de circuitos (`EfData.pizarras`) que se monta en la sesión. */
+  pizarraId?: string;
   instalacionId?: string;
   objetivo: string;
   calentamiento: string;

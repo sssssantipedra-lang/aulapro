@@ -414,9 +414,11 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
       ? (lang === 'en' ? 'No previous assessments recorded.' : 'Sin evaluaciones previas registradas.')
       : studentEvals.map(e => {
           const lines = Object.entries(e.scores)
-            .map(([k, v]) => `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/4`)
+            .map(([k, v]) => (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro'
+              ? `  - ${resolveItemName(e, k, rubrics, dianas)}: ${v === 2 ? (lang === 'en' ? 'done well' : 'bien hecho') : (lang === 'en' ? 'needs improvement' : 'mejorable')}`
+              : `  - ${resolveItemName(e, k, rubrics, dianas)}: ${lang === 'en' ? 'level' : 'nivel'} ${v}/4`))
             .join('\n');
-          const kind = e.instrument === 'diana' ? (lang === 'en' ? 'Target' : 'Diana') : (lang === 'en' ? 'Rubric' : 'Rúbrica');
+          const kind = e.instrument === 'diana' ? (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro' ? (lang === 'en' ? 'Checklist scale' : 'Escala de registro') : (lang === 'en' ? 'Target' : 'Diana')) : (lang === 'en' ? 'Rubric' : 'Rúbrica');
           return lang === 'en'
             ? `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notes: ${e.notes}` : ''}`
             : `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notas: ${e.notes}` : ''}`;

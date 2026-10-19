@@ -36,6 +36,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   evaluar:               { es: 'Evaluar', en: 'Assess' },
   rubrics:               { es: 'Rúbricas', en: 'Rubrics' },
   dianas:                { es: 'Dianas', en: 'Assessment Bullseye' },
+  registros:             { es: 'Escalas de registro', en: 'Checklist Scales' },
   evalfoto:              { es: 'Evaluar por foto', en: 'Grade from a Photo' },
   diana:                 { es: 'Diana Competencial', en: 'Learner Profile Tracking' },
   documentos:            { es: 'Documentos', en: 'Documents' },

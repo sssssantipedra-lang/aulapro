@@ -45,7 +45,9 @@ const KINDS: { id: ActivityKind; label: string; desc: string; ejemplo: string; c
 const LEVEL_LABEL = ['Aún no', 'A veces', 'Casi siempre', 'Siempre'];
 const LEVEL_COLOR = ['#dc2626', '#d97706', '#2563eb', '#047857'];
 
-export function ClassroomLive({ classes, students, rubrics, dianas, onNav, onSaveSelfAssessment }: Props) {
+export function ClassroomLive({ classes, students, rubrics, dianas: todasDianas, onNav, onSaveSelfAssessment }: Props) {
+  // Las escalas de registro (pulgares) no sirven para autoevaluarse: son del docente
+  const dianas = todasDianas.filter(d => d.tipo !== 'registro');
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const bridge = window.electronAPI?.classroom;

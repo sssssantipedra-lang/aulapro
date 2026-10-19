@@ -35,6 +35,14 @@ interface Props {
   ef: EfData;
   onChangeEf: (f: (d: EfData) => EfData) => void;
   comunidad?: ComunidadId;
+  /**
+   * Dentro de una ventana, desde una sesión de EF (19-10-2026): sin el título de
+   * la página, abierta con el circuito que se pida (`inicialId`) o en blanco, y
+   * avisando al guardar (`alGuardar`) para que la sesión lo adjunte.
+   */
+  embebida?: boolean;
+  inicialId?: string;
+  alGuardar?: (id: string) => void;
 }
 
 type Herramienta = 'mover' | 'lapiz' | 'flecha' | 'material' | 'borrar';
@@ -67,10 +75,13 @@ export const ESPERA_IA_MS = 1200;
 /** Desde cuántas formas dibujadas las procesa la IA sola. */
 export const FORMAS_PARA_IA = 2;
 
-export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
+export function EfPizarra({ ef, onChangeEf, comunidad, embebida = false, inicialId, alGuardar }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
-  const [piz, setPiz] = useState<PizarraEF>(VACIA);
+  const [piz, setPiz] = useState<PizarraEF>(() => {
+    const inicial = inicialId ? ef.pizarras.find(x => x.id === inicialId) : undefined;
+    return inicial ? copia(inicial) : VACIA();
+  });
   const [historial, setHistorial] = useState<PizarraEF[]>([]);
   const [herramienta, setHerramienta] = useState<Herramienta>('mover');
   const [color, setColor] = useState<string>(COLORES_TRAZO[0].id);
@@ -431,6 +442,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
     onChangeEf(d => ({ ...d, pizarras: d.pizarras.some(x => x.id === p.id) ? d.pizarras.map(x => (x.id === p.id ? p : x)) : [...d.pizarras, p] }));
     setPiz(p);
     toast(t('✅ Guardado'));
+    alGuardar?.(p.id);
   }
 
   function borrar() {
@@ -461,7 +473,7 @@ export function EfPizarra({ ef, onChangeEf, comunidad }: Props) {
     <section className="sec active ap-page">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Pizarra de circuitos')}</h1>
+          {!embebida && <h1 className="pg-title">{t('Pizarra de circuitos')}</h1>}
           <p className="pg-sub">{t('Dibuja un circuito: coloca el material del banco, muévelo y gíralo, o dibuja a mano una forma y la app propone qué material es.')}</p>
         </div>
         <div className="ap-prog-acc">
