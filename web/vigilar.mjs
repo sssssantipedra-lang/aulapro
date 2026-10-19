@@ -29,7 +29,15 @@ async function pedir(url, headers = {}) {
 }
 async function texto(url, headers) {
   const { r, ms } = await pedir(url, headers);
-  if (r.status >= 400) throw new Error(`responde ${r.status}`);
+  if (r.status >= 400) {
+    // Cloudflare (Bot Fight Mode) pide una verificación a lo que no parece un navegador, y los servidores de
+    // GitHub, desde donde vigila este script, lo son: el 19-10-2026 devolvió 403 durante casi 5 horas con la
+    // web perfectamente viva (las copias de respaldo y las sondas en España abrían). Eso no es una caída.
+    const cuerpo = r.status === 403 ? await r.text().catch(() => '') : '';
+    if (r.status === 403 && (r.headers.get('cf-mitigated') || /challenge-platform|cf-chl|Just a moment/i.test(cuerpo)))
+      throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
+    throw new Error(`responde ${r.status}`);
+  }
   return { r, ms, t: await r.text() };
 }
 
@@ -40,6 +48,7 @@ async function comprobar(nombre, fn, { grave = true, veces = 3 } = {}) {
     try { const extra = await fn(); return { ok: true, linea: `✔ ${nombre}${extra ? ` (${extra})` : ''}` }; }
     catch (e) { ultimo = e; if (i < veces) await sleep(ESPERA); }
   }
+  if (ultimo.mitigado) return { ok: true, linea: `⚠ ${nombre}: ${ultimo.message}`, mitigado: true };
   return { ok: !grave, linea: `${grave ? '✖' : '⚠'} ${nombre}: ${ultimo.message}` };
 }
 
@@ -112,6 +121,8 @@ const tareas = [
   }),
   comprobar('vídeo de la portada', async () => {
     const { r } = await pedir(BASE + '/assets/hero-scrub-60.mp4', { range: 'bytes=0-1023' });
+    if (r.status === 403 && r.headers.get('cf-mitigated'))
+      throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
     if (![200, 206].includes(r.status)) throw new Error(`responde ${r.status}`);
     if (!/video/.test(r.headers.get('content-type') || '')) throw new Error('no devuelve un vídeo');
     await r.arrayBuffer();
