@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
- * Una rúbrica para varias clases (19-10-2026): se elige una clase y se añaden
- * otras, cada una con su categoría del cuaderno; se guarda una sola rúbrica.
+ * Una rúbrica para varias clases (19-10-2026): se marcan varias clases de una vez
+ * y una categoría del cuaderno por su nombre; se guarda una sola rúbrica.
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
@@ -16,8 +16,8 @@ afterEach(cleanup);
 
 const clases = ['4º A', '4º B', '4º C'].map((name, i) => ({ id: `c${i + 1}`, name, subject: 'Matemáticas', subjects: ['Matemáticas'], color: '#000' }) as Class);
 const cats: GradeCategory[] = [
-  { id: 'k1', class_id: 'c1', name: 'Exámenes A', weight: 50, subject: 'Matemáticas' },
-  { id: 'k2', class_id: 'c2', name: 'Exámenes B', weight: 50, subject: 'Matemáticas' },
+  { id: 'k1', class_id: 'c1', name: 'Exámenes', weight: 50, subject: 'Matemáticas' },
+  { id: 'k2', class_id: 'c2', name: 'Exámenes', weight: 50, subject: 'Matemáticas' },
 ];
 
 function pinta(onAddRubric = vi.fn()) {
@@ -42,16 +42,12 @@ describe('Rúbricas · varias clases', () => {
     await user.type(ventana.getByLabelText('Nombre de la rúbrica *'), 'Exposición oral');
     await user.type(ventana.getByPlaceholderText(/Ej: Claridad|Nombre del criterio|Criterio/i), 'Claridad');
 
-    // Primera clase y su categoría
-    await user.selectOptions(ventana.getByLabelText('Clase'), 'c1');
-    await user.selectOptions(ventana.getByLabelText('Categoría del cuaderno'), 'k1');
-    // Otra clase, con la suya
-    await user.click(ventana.getByRole('button', { name: /Usarla también en otra clase/ }));
-    const claseExtra = ventana.getAllByLabelText('Clase')[1] as HTMLSelectElement;
-    // La que ya está elegida no se ofrece otra vez
-    expect([...claseExtra.options].map(o => o.value)).not.toContain('c1');
-    await user.selectOptions(claseExtra, 'c2');
-    await user.selectOptions(ventana.getAllByLabelText('Categoría del cuaderno')[1], 'k2');
+    // Se marcan las dos clases de una vez y se elige una sola categoría, por su nombre
+    await user.click(ventana.getByRole('button', { name: '4º A' }));
+    await user.click(ventana.getByRole('button', { name: '4º B' }));
+    expect(ventana.getByRole('button', { name: '4º A' }).getAttribute('aria-pressed')).toBe('true');
+    expect(ventana.getByRole('button', { name: '4º C' }).getAttribute('aria-pressed')).toBe('false');
+    await user.selectOptions(ventana.getByLabelText('Categoría del cuaderno'), 'Exámenes');
 
     await user.click(ventana.getByRole('button', { name: 'Crear rúbrica' }));
     expect(onAdd).toHaveBeenCalledOnce();
@@ -70,7 +66,7 @@ describe('Rúbricas · varias clases', () => {
     await user.click(ventana.getByRole('button', { name: 'Manual' }));
     await user.type(ventana.getByLabelText('Nombre de la rúbrica *'), 'Debate');
     await user.type(ventana.getByPlaceholderText(/Ej: Claridad|Nombre del criterio|Criterio/i), 'Argumentos');
-    await user.selectOptions(ventana.getByLabelText('Clase'), 'c3');
+    await user.click(ventana.getByRole('button', { name: '4º C' }));
     await user.click(ventana.getByRole('button', { name: 'Crear rúbrica' }));
     const r = onAdd.mock.calls[0][0];
     expect(r.class_id).toBe('c3');

@@ -740,7 +740,7 @@ function AppInner() {
             {section === 'ef-circuitos' && <EfCircuitos ef={st.ef} onChangeEf={st.setEf} />}
             {section === 'ef-pizarra' && <EfPizarra ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />}
             {section === 'ef-sesiones' && (
-              <EfSesiones classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana} onNav={setSection} />
+              <EfSesiones classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana} onNav={setSection} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={st.addEvaluation} />
             )}
             {section === 'ef-actividades' && (
               <EfActividades classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />

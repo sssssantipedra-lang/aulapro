@@ -617,7 +617,8 @@ interface EvalModalProps {
   onSave: (ev: Evaluation) => void;
 }
 
-function EvalModal({
+/** Evaluar a un alumno con una rúbrica. También lo usan las sesiones de EF. */
+export function EvalModal({
   open, rubric, classes, students, lawDocument,
   defaultClassId, defaultStudentId,
   onClose, onSave,

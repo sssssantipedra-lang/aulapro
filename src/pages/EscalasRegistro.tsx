@@ -7,16 +7,15 @@
  * Ver `lib/registro.ts`.
  */
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown, Check } from 'lucide-react';
+import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, GradeCategory, GradeTarget, Student } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { Modal } from '../components/ui/Modal';
+import { ValorarRegistro } from '../components/ValorarRegistro';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
-import { clasesDe, conObjetivos, objetivoPara } from '../lib/objetivos';
-import { BIEN, MEJORABLE, NIVELES_REGISTRO, cuentaRegistro, esRegistro, notaRegistro } from '../lib/registro';
-import { compararAlumnos } from '../lib/alumnado';
-import { isoDate } from '../lib/utils';
+import { clasesDe, conObjetivos } from '../lib/objetivos';
+import { NIVELES_REGISTRO, esRegistro } from '../lib/registro';
 
 interface Props {
   dianas: EvalDiana[];
@@ -32,12 +31,10 @@ interface Props {
 
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
 
-type Marcas = Record<string, Record<string, number>>;
-
 export function EscalasRegistro({
   dianas, evaluations, classes, students, gradeCategories, onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
 }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { toast } = useToast();
   const escalas = useMemo(() => dianas.filter(esRegistro), [dianas]);
 
@@ -70,78 +67,6 @@ export function EscalasRegistro({
 
   /* ── Evaluar ── */
   const [evaluando, setEvaluando] = useState<EvalDiana | null>(null);
-  const [claseId, setClaseId] = useState('');
-  const [marcas, setMarcas] = useState<Marcas>({});
-
-  const clasesEval = evaluando
-    ? (clasesDe(evaluando).length ? classes.filter(c => clasesDe(evaluando).includes(c.id)) : classes)
-    : [];
-  const alumnado = useMemo(() => students.filter(s => s.class_id === claseId).sort(compararAlumnos), [students, claseId]);
-
-  /** Lo que ya se valoró la última vez, para seguir desde ahí. */
-  function previas(d: EvalDiana, alumnos: Student[]): Marcas {
-    const m: Marcas = {};
-    for (const s of alumnos) {
-      const ultima = evaluations.filter(e => e.rubric_id === d.id && e.student_id === s.id).sort((a, b) => b.date.localeCompare(a.date))[0];
-      if (ultima) m[s.id] = { ...ultima.scores };
-    }
-    return m;
-  }
-
-  function abrirEvaluar(d: EvalDiana) {
-    const cs = clasesDe(d).length ? classes.filter(c => clasesDe(d).includes(c.id)) : classes;
-    const c = cs[0]?.id ?? '';
-    setEvaluando(d);
-    setClaseId(c);
-    setMarcas(previas(d, students.filter(s => s.class_id === c)));
-  }
-
-  function cambiarClase(id: string) {
-    setClaseId(id);
-    if (evaluando) setMarcas(previas(evaluando, students.filter(s => s.class_id === id)));
-  }
-
-  /** Pulsar el pulgar que ya está puesto lo quita. */
-  function marcar(alumnoId: string, itemId: string, v: number) {
-    setMarcas(prev => {
-      const del = { ...(prev[alumnoId] ?? {}) };
-      if (del[itemId] === v) delete del[itemId]; else del[itemId] = v;
-      return { ...prev, [alumnoId]: del };
-    });
-  }
-
-  function marcarTodos(itemId: string, v: number) {
-    setMarcas(prev => {
-      const next: Marcas = { ...prev };
-      for (const s of alumnado) next[s.id] = { ...(next[s.id] ?? {}), [itemId]: v };
-      return next;
-    });
-  }
-
-  function guardarEvaluacion() {
-    if (!evaluando) return;
-    const hoy = isoDate();
-    let n = 0;
-    for (const s of alumnado) {
-      const scores = marcas[s.id] ?? {};
-      const valorados = evaluando.items.filter(i => scores[i.id] === BIEN || scores[i.id] === MEJORABLE);
-      if (valorados.length === 0) continue;
-      const lim: Record<string, number> = {};
-      valorados.forEach(i => { lim[i.id] = scores[i.id]; });
-      onAddEvaluation({
-        id: 'ev' + uid(), rubric_id: evaluando.id, rubric_name: evaluando.name,
-        student_id: s.id, student_name: s.name, class_id: claseId, date: hoy,
-        scores: lim, notes: '', instrument: 'diana', max_level: BIEN,
-        grade: notaRegistro(evaluando.items, lim) ?? undefined,
-      });
-      n++;
-    }
-    if (n === 0) { toast(t('Marca algún pulgar antes de guardar')); return; }
-    toast(t(n === 1 ? '✅ Guardada la valoración de {n} alumno' : '✅ Guardada la valoración de {n} alumnos', { n }));
-    setEvaluando(null);
-  }
-
-  const total = evaluando?.items.length ?? 0;
 
   return (
     <section className="sec active">
@@ -188,7 +113,7 @@ export function EscalasRegistro({
                 )}
                 <div className="reg-card-ft">
                   <span className="reg-dato">{t(n === 1 ? '{n} valoración' : '{n} valoraciones', { n })}</span>
-                  <button className="btn-accent" onClick={() => abrirEvaluar(d)}><ThumbsUp size={14} />{t('Valorar a la clase')}</button>
+                  <button className="btn-accent" onClick={() => setEvaluando(d)}><ThumbsUp size={14} />{t('Valorar a la clase')}</button>
                 </div>
               </div>
             );
@@ -241,83 +166,12 @@ export function EscalasRegistro({
       </Modal>
 
       {/* ── Valorar a la clase ── */}
-      <Modal open={!!evaluando} onClose={() => setEvaluando(null)} wide title={evaluando?.name}>
-        {evaluando && (
-          <>
-            <div className="frow" style={{ marginBottom: 12 }}>
-              <div className="fgroup" style={{ marginBottom: 0 }}>
-                <label className="flabel" htmlFor="reg-clase">{t('Clase')}</label>
-                <select id="reg-clase" className="finput" value={claseId} onChange={e => cambiarClase(e.target.value)}>
-                  {clasesEval.map(c => <option key={c.id} value={c.id}>{c.name} – {objetivoPara(evaluando, c.id)?.subject || c.subject}</option>)}
-                </select>
-              </div>
-            </div>
-            <p className="reg-ayuda">
-              <ThumbsUp size={13} /> {t('Bien hecho')} · <ThumbsDown size={13} /> {t('Mejorable')} · {t('pulsa otra vez para quitarlo')}
-            </p>
-            {alumnado.length === 0 ? (
-              <p className="ap-vacio">{t('Esa clase todavía no tiene alumnos.')}</p>
-            ) : (
-              <div className="reg-tabla-wrap">
-                <table className="reg-tabla">
-                  <thead>
-                    <tr>
-                      <th scope="col">{t('Alumno')}</th>
-                      {evaluando.items.map(i => (
-                        <th key={i.id} scope="col">
-                          <div className="reg-th">{i.name}</div>
-                          <div className="reg-todos">
-                            <button type="button" title={t('Bien hecho a toda la clase')} aria-label={t('Bien hecho a toda la clase: {nombre}', { nombre: i.name })} onClick={() => marcarTodos(i.id, BIEN)}><ThumbsUp size={12} /></button>
-                          </div>
-                        </th>
-                      ))}
-                      {total > 1 && <th scope="col">{t('Nota')}</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alumnado.map(s => {
-                      const m = marcas[s.id] ?? {};
-                      const nota = notaRegistro(evaluando.items, m);
-                      const { bien, mejorable } = cuentaRegistro(m, evaluando.items.map(i => i.id));
-                      return (
-                        <tr key={s.id}>
-                          <th scope="row" className="reg-alumno">{s.name}</th>
-                          {evaluando.items.map(i => (
-                            <td key={i.id}>
-                              <span className="reg-pulgares">
-                                <button type="button" className={`reg-pulgar bien${m[i.id] === BIEN ? ' on' : ''}`} aria-pressed={m[i.id] === BIEN}
-                                  aria-label={t('{alumno}, {concepto}: bien hecho', { alumno: s.name, concepto: i.name })} onClick={() => marcar(s.id, i.id, BIEN)}>
-                                  <ThumbsUp size={17} />
-                                </button>
-                                <button type="button" className={`reg-pulgar mejorable${m[i.id] === MEJORABLE ? ' on' : ''}`} aria-pressed={m[i.id] === MEJORABLE}
-                                  aria-label={t('{alumno}, {concepto}: mejorable', { alumno: s.name, concepto: i.name })} onClick={() => marcar(s.id, i.id, MEJORABLE)}>
-                                  <ThumbsDown size={17} />
-                                </button>
-                              </span>
-                            </td>
-                          ))}
-                          {total > 1 && (
-                            <td className="reg-nota" title={t('{bien} bien hechos y {mejorable} mejorables', { bien, mejorable })}>
-                              {nota === null ? '—' : nota.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {evaluando.class_id && evaluando.category_id && (
-              <p className="reg-ayuda" style={{ marginTop: 10 }}><Check size={13} /> {t('La nota va a la columna de esta escala en el cuaderno de la clase.')}</p>
-            )}
-            <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-              <button className="btn-accent" onClick={guardarEvaluacion} disabled={alumnado.length === 0}>{t('Guardar valoración')}</button>
-              <button className="btn-ghost" onClick={() => setEvaluando(null)}>{t('Cancelar')}</button>
-            </div>
-          </>
-        )}
-      </Modal>
+      {evaluando && (
+        <ValorarRegistro
+          escala={evaluando} classes={classes} students={students} evaluations={evaluations}
+          onAddEvaluation={onAddEvaluation} onClose={() => setEvaluando(null)}
+        />
+      )}
 
       {/* ── Eliminar ── */}
       <Modal open={!!aBorrar} onClose={() => setABorrar(null)} title={t('Eliminar escala de registro')}>

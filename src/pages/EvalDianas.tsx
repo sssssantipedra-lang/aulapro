@@ -476,6 +476,8 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
 
 interface DianaEvalProps {
   open: boolean;
+  /** La clase con la que se abre (la de la sesión de EF, por ejemplo). */
+  defaultClassId?: string;
   diana: EvalDiana | null;
   classes: Class[];
   students: Student[];
@@ -483,7 +485,8 @@ interface DianaEvalProps {
   onSave: (ev: Evaluation) => void;
 }
 
-function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: DianaEvalProps) {
+/** Evaluar a un alumno con una diana. También lo usan las sesiones de EF. */
+export function DianaEvalModal({ open, defaultClassId, diana, classes, students, onClose, onSave }: DianaEvalProps) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const [classId, setClassId]   = useState('');
@@ -491,10 +494,10 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
   const [scores, setScores]     = useState<Record<string, number>>({});
   const [notes, setNotes]       = useState('');
 
-  useResetOnChange(`${open}:${diana?.id ?? ''}`, () => {
+  useResetOnChange(`${open}:${diana?.id ?? ''}:${defaultClassId ?? ''}`, () => {
     if (!open) return;
     // La diana ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
-    setClassId(diana?.class_id ?? '');
+    setClassId(defaultClassId && (!diana || !clasesDe(diana).length || clasesDe(diana).includes(defaultClassId)) ? defaultClassId : diana?.class_id ?? '');
     setStudentId('');
     setScores({});
     setNotes('');

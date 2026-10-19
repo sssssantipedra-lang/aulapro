@@ -7,7 +7,7 @@
  */
 import { useState } from 'react';
 import { ClipboardCheck, Plus, Route, ThumbsUp, Trash2, X } from 'lucide-react';
-import type { EvalDiana, Rubric } from '../../types';
+import type { EvalDiana, Evaluation, Rubric, Student } from '../../types';
 import type { EfData, InstrumentoRefEF, SesionEF } from '../../types/ef';
 import { useToast } from '../ui/Toast';
 import { useI18n } from '../../i18n';
@@ -21,6 +21,11 @@ interface Props {
   ef: EfData;
   rubrics: Rubric[];
   dianas: EvalDiana[];
+  /** Para contar a quién se ha valorado ya con cada instrumento. */
+  evaluations?: Evaluation[];
+  students?: Student[];
+  /** Abre la valoración de la clase con ese instrumento, sin salir de la sesión. */
+  onEvaluar?: (r: InstrumentoRefEF) => void;
   onAddDiana?: (d: EvalDiana) => void;
   /** Para ir a crear o a usar un instrumento en Evaluar. */
   onNav?: (s: 'rubrics' | 'dianas' | 'registros') => void;
@@ -33,7 +38,7 @@ const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(3
 const claveRef = (r: InstrumentoRefEF) => `${r.tipo}:${r.id}`;
 
 
-export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas, onAddDiana, onNav, onCerrarSesion, onDibujar }: Props) {
+export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas, evaluations = [], students = [], onEvaluar, onAddDiana, onNav, onCerrarSesion, onDibujar }: Props) {
   const { t } = useI18n();
   const { toast } = useToast();
   const refs = sesion.instrumentos ?? [];
@@ -50,6 +55,14 @@ export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas
   ].filter(x => !puestos.has(claveRef(x.ref)));
 
   const poner = (r: InstrumentoRefEF) => onChange({ ...sesion, instrumentos: [...refs, r] });
+  /** A cuántos alumnos de la clase de la sesión se ha valorado ya con ese instrumento. */
+  const valorados = (r: InstrumentoRefEF) => {
+    if (!sesion.claseId) return null;
+    const total = students.filter(a => a.class_id === sesion.claseId).length;
+    if (total === 0) return null;
+    const hechos = new Set(evaluations.filter(e => e.rubric_id === r.id && e.class_id === sesion.claseId).map(e => e.student_id));
+    return { hechos: hechos.size, total };
+  };
   const quitar = (r: InstrumentoRefEF) => onChange({ ...sesion, instrumentos: refs.filter(x => claveRef(x) !== claveRef(r)) });
 
   function adjuntar() {
@@ -100,10 +113,15 @@ export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas
                 <span className="ef-ses-instr-txt">
                   <strong>{d?.nombre ?? t('Instrumento eliminado')}</strong>
                   <em>{t(ETIQUETA_INSTRUMENTO[r.tipo])}{d && d.conceptos.length > 0 ? ` · ${d.conceptos.slice(0, 3).join(', ')}${d.conceptos.length > 3 ? '…' : ''}` : ''}</em>
+                  {d && valorados(r) && <em className="ef-ses-instr-n">{t('{hechos} de {total} alumnos valorados', valorados(r)!)}</em>}
                 </span>
-                {d && onNav && (
+                {d && (onEvaluar || onNav) && (
                   <button type="button" className="btn-ghost" style={{ fontSize: 12, padding: '4px 10px' }}
-                    onClick={() => { onCerrarSesion?.(); onNav(r.tipo === 'rubrica' ? 'rubrics' : r.tipo === 'diana' ? 'dianas' : 'registros'); }}>
+                    onClick={() => {
+                      if (onEvaluar) { onEvaluar(r); return; }
+                      onCerrarSesion?.();
+                      onNav?.(r.tipo === 'rubrica' ? 'rubrics' : r.tipo === 'diana' ? 'dianas' : 'registros');
+                    }}>
                     {t('Evaluar')}
                   </button>
                 )}

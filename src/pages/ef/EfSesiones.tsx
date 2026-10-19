@@ -28,11 +28,13 @@ import { limitacionesParaIA, prepararSesion } from '../../services/efIA';
 import { alumnadoParaIA } from '../../lib/ef';
 import { guardarSesionPdf } from '../../services/exportSesionEF';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { Class, EvalDiana, Rubric, ScheduleBlock, Student } from '../../types';
+import type { Class, EvalDiana, Evaluation, Rubric, ScheduleBlock, Student } from '../../types';
 import { SesionEvaluacionCircuito } from '../../components/ef/SesionEvaluacionCircuito';
 import { describirInstrumento, ETIQUETA_INSTRUMENTO } from '../../lib/instrumentosSesion';
 import { pizarraSvg } from '../../lib/pizarraEF';
-import type { EfData, ModalidadEF, SesionEF } from '../../types/ef';
+import type { EfData, InstrumentoRefEF, ModalidadEF, SesionEF } from '../../types/ef';
+import type { InlineFile } from '../../services/gemini';
+import { ValorarRegistro } from '../../components/ValorarRegistro';
 
 interface Props {
   classes: Class[];
@@ -46,8 +48,14 @@ interface Props {
   dianas?: EvalDiana[];
   onAddDiana?: (d: EvalDiana) => void;
   onNav?: (s: 'rubrics' | 'dianas' | 'registros') => void;
+  /** Para valorar a la clase con un instrumento de la sesión, sin salir de ella. */
+  evaluations?: Evaluation[];
+  lawDocument?: InlineFile | null;
+  onAddEvaluation?: (ev: Evaluation) => void;
 }
 
+const EvalRubricaModal = lazy(() => import('../Rubrics').then(m => ({ default: m.EvalModal })));
+const EvalDianaModal = lazy(() => import('../EvalDianas').then(m => ({ default: m.DianaEvalModal })));
 const EfPizarra = lazy(() => import('./EfPizarra').then(m => ({ default: m.EfPizarra })));
 
 const PARTES: readonly { id: keyof Pick<SesionEF, 'objetivo' | 'calentamiento' | 'principal' | 'calma' | 'material' | 'inclusion' | 'planB'>; label: string; filas: number }[] = [
@@ -71,7 +79,7 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
   return min > 0 ? min : null;
 }
 
-export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav }: Props) {
+export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null, onAddEvaluation }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -85,6 +93,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
   /** La pizarra de circuitos, abierta desde la sesión: con el circuito que se edita, o en blanco. */
   const [dibujando, setDibujando] = useState<{ id?: string } | null>(null);
+  /** Valorar a la clase con un instrumento de la sesión, sin salir de ella. */
+  const [evaluando, setEvaluando] = useState<InstrumentoRefEF | null>(null);
 
   /* Autoguardado: una sesión nueva (la prepare la IA o la escriba el docente) o con cambios, y sin guardar, se conserva */
   const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
@@ -410,7 +420,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         )}
       </Modal>
 
-      <Modal open={!!editando} onClose={() => { if (!dibujando) setEditando(null); }} wide title={esNueva ? (editando?.ia ? t('Sesión preparada con IA') : t('Nueva sesión')) : editando?.titulo}>
+      <Modal open={!!editando} onClose={() => { if (!dibujando && !evaluando) setEditando(null); }} wide title={esNueva ? (editando?.ia ? t('Sesión preparada con IA') : t('Nueva sesión')) : editando?.titulo}>
         {editando && (
           <div className="ap-form">
             {esNueva && editando.ia && (
@@ -461,6 +471,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
             </label>
             <SesionEvaluacionCircuito
               sesion={editando} onChange={setEditando} ef={ef} rubrics={rubrics} dianas={dianas}
+              evaluations={evaluations} students={students} onEvaluar={onAddEvaluation ? setEvaluando : undefined}
               onAddDiana={onAddDiana} onNav={onNav} onCerrarSesion={() => setEditando(null)} onDibujar={id => setDibujando({ id })}
             />
             <div style={{ gridColumn: '1 / -1' }}>
@@ -477,6 +488,29 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
           </div>
         )}
       </Modal>
+
+      {evaluando && editando && (() => {
+        const alGuardar = (ev: Evaluation) => onAddEvaluation?.(ev);
+        const cerrar = () => setEvaluando(null);
+        const rubrica = evaluando.tipo === 'rubrica' ? rubrics.find(r => r.id === evaluando.id) : undefined;
+        const diana = evaluando.tipo !== 'rubrica' ? dianas.find(d => d.id === evaluando.id) : undefined;
+        return (
+          <Suspense fallback={null}>
+            {evaluando.tipo === 'registro' && diana && (
+              <ValorarRegistro escala={diana} classes={classes} students={students} evaluations={evaluations}
+                claseInicial={editando.claseId} onAddEvaluation={alGuardar} onClose={cerrar} />
+            )}
+            {evaluando.tipo === 'rubrica' && rubrica && (
+              <EvalRubricaModal open rubric={rubrica} classes={classes} students={students} lawDocument={lawDocument}
+                defaultClassId={editando.claseId} onClose={cerrar} onSave={alGuardar} />
+            )}
+            {evaluando.tipo === 'diana' && diana && (
+              <EvalDianaModal open diana={diana} classes={classes} students={students}
+                defaultClassId={editando.claseId} onClose={cerrar} onSave={alGuardar} />
+            )}
+          </Suspense>
+        );
+      })()}
 
       <Modal open={!!dibujando} onClose={() => setDibujando(null)} wide title={t('Circuito de la sesión')}>
         {dibujando && editando && (

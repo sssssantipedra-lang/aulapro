@@ -22,6 +22,7 @@ const diana: EvalDiana = { id: 'd1', name: 'Diana de cooperación', items: [{ id
 const registro: EvalDiana = { id: 'g1', tipo: 'registro', name: 'Saque', items: [{ id: 'i2', name: 'Golpea con la palma', weight: 1 }] };
 const onAddDiana = vi.fn();
 const onNav = vi.fn();
+const onAddEvaluation = vi.fn();
 
 function Harness({ inicial = demo.ef }: { inicial?: EfData }) {
   const [ef, setEf] = useState(inicial);
@@ -30,13 +31,13 @@ function Harness({ inicial = demo.ef }: { inicial?: EfData }) {
     <I18nProvider><ToastProvider>
       <EfSesiones classes={demo.classes} students={demo.students} scheduleBlocks={demo.blocks} ef={ef}
         onChangeEf={f => setEf(d => { ultimo = f(d); return ultimo; })} comunidad="comunitat-valenciana"
-        rubrics={[rubrica]} dianas={dianas} onAddDiana={d => { onAddDiana(d); setDianas(x => [...x, d]); }} onNav={onNav} />
+        rubrics={[rubrica]} dianas={dianas} onAddDiana={d => { onAddDiana(d); setDianas(x => [...x, d]); }} onNav={onNav} onAddEvaluation={onAddEvaluation} />
     </ToastProvider></I18nProvider>
   );
 }
 
 beforeEach(() => {
-  localStorage.clear(); ultimo = demo.ef; onAddDiana.mockReset(); onNav.mockReset();
+  localStorage.clear(); ultimo = demo.ef; onAddDiana.mockReset(); onNav.mockReset(); onAddEvaluation.mockReset();
   vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, 9, 5, 9, 0));
   window.scrollTo = () => {};
@@ -118,5 +119,40 @@ describe('Sesiones de EF · evaluación y circuito', () => {
     expect(screen.getByAltText('Circuito «Estaciones»')).toBeTruthy();
     await user.click(screen.getAllByRole('button', { name: /Quitar de la sesión/ }).pop()!);
     expect(screen.queryByAltText('Circuito «Estaciones»')).toBeNull();
+  });
+
+  it('se valora a la clase con el instrumento de la sesión, sin salir de ella', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    await nuevaSesion(user);
+    const clase = demo.classes[0];
+    await user.selectOptions(screen.getByLabelText('Clase'), clase.id);
+    await user.selectOptions(screen.getByLabelText('Instrumento que ya tienes'), 'registro:g1');
+    await user.click(screen.getByRole('button', { name: /^Adjuntar$/ }));
+    const alumno = demo.students.filter(a => a.class_id === clase.id)[0];
+    expect(screen.getByText(new RegExp(`0 de ${demo.students.filter(a => a.class_id === clase.id).length} alumnos valorados`))).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'Evaluar' }));
+    // La valoración se abre encima de la sesión, con la clase de la sesión
+    expect((screen.getByLabelText('Clase', { selector: '#reg-clase' }) as HTMLSelectElement).value).toBe(clase.id);
+    await user.click(screen.getByRole('button', { name: `${alumno.name}, Golpea con la palma: bien hecho` }));
+    await user.click(screen.getByRole('button', { name: 'Guardar valoración' }));
+    expect(onAddEvaluation).toHaveBeenCalledOnce();
+    expect(onAddEvaluation.mock.calls[0][0]).toMatchObject({ rubric_id: 'g1', student_id: alumno.id, class_id: clase.id, grade: 10 });
+    // La sesión sigue abierta
+    expect(screen.getByLabelText('Título')).toBeTruthy();
+    expect(onNav).not.toHaveBeenCalled();
+  });
+
+  it('también se evalúa con una rúbrica desde la sesión', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    await nuevaSesion(user);
+    await user.selectOptions(screen.getByLabelText('Clase'), demo.classes[0].id);
+    await user.selectOptions(screen.getByLabelText('Instrumento que ya tienes'), 'rubrica:r1');
+    await user.click(screen.getByRole('button', { name: /^Adjuntar$/ }));
+    await user.click(screen.getByRole('button', { name: 'Evaluar' }));
+    await waitFor(() => expect(screen.getByText('Haz clic en el nivel para cada criterio')).toBeTruthy());
+    expect(onNav).not.toHaveBeenCalled();
   });
 });

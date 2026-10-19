@@ -345,9 +345,9 @@ Al evaluar, la nota de cada criterio va a sus competencias clave (Diana
 competencial) y a sus criterios oficiales. Las rúbricas y dianas que se crean
 desde una situación de aprendizaje ya lo traen marcado.
 VARIAS CLASES: la misma rúbrica o diana sirve para dos o tres clases sin
-duplicarla. En «Dónde se guarda la nota» se elige la primera clase, su asignatura
-y su categoría del cuaderno y, con «Usarla también en otra clase», las demás, cada
-una con su categoría. Cada clase tiene su propia columna en su cuaderno (la de la
+duplicarla. En «Clases donde se usa» se marcan de una vez todas las que quieras y
+se elige una sola categoría del cuaderno, por su nombre (en cada clase se usa la
+que se llama así). Cada clase tiene su propia columna en su cuaderno (la de la
 primera conserva la de siempre). Al evaluar solo salen las clases de la rúbrica,
 y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que ya
 tenía.
@@ -811,7 +811,9 @@ sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
 «Próximas» y «Sin fecha». «Cómo se evalúa»: se adjunta un instrumento que ya existe
 (rúbrica, diana o escala de registro), se crea una escala de registro ahí mismo
 (con la clase de la sesión) o se va a crear una rúbrica o una diana (la sesión se
-queda como borrador y se retoma con «Continuar»); «Evaluar» lleva a su pantalla.
+queda como borrador y se retoma con «Continuar»); «Evaluar» abre la valoración de la
+clase con ese instrumento encima de la sesión, sin salir de ella, y debajo de cada
+instrumento se ve cuántos alumnos van valorados.
 «Circuito»: se adjunta uno ya dibujado o se dibuja uno nuevo con la pizarra de
 circuitos en una ventana, sin salir de la sesión; se ve en la sesión y sale en el
 PDF, junto con el instrumento. A la izquierda de cada sesión hay un círculo para MARCARLA COMO

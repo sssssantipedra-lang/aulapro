@@ -48,7 +48,7 @@ describe('Escalas de registro', () => {
     await user.click(screen.getAllByRole('button', { name: /Nueva escala|Crear la primera/ })[0]);
     await user.type(screen.getByLabelText('Nombre *'), 'Entrega a tiempo');
     await user.type(screen.getByLabelText('Concepto 1'), 'Trae la tarea');
-    await user.selectOptions(screen.getByLabelText('Clase'), 'c1');
+    await user.click(screen.getByRole('button', { name: '4º A' }));
     await user.click(screen.getByRole('button', { name: 'Crear escala' }));
     expect(p.onAddDiana).toHaveBeenCalledOnce();
     expect(p.onAddDiana.mock.calls[0][0]).toMatchObject({ tipo: 'registro', name: 'Entrega a tiempo', class_id: 'c1', items: [{ name: 'Trae la tarea' }] });
