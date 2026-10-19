@@ -151,8 +151,15 @@ urgencia alta/media/baja). Se abre en una PORTADA («Resumen») con dos tarjetas
 dice cuál es el próximo evento) y «Horario semanal» (el horario de lunes a
 viernes, con cuántas clases hay a la semana); cada una lleva a su vista, y las
 pestañas «Resumen», «Mensual» y «Semanal» de arriba permiten volver. La vista
-SEMANAL va desde las 8:00 hasta la hora de la última clase (también las de la
-tarde), y encima de cada día sus eventos; pulsando uno se edita. Arriba,
+SEMANAL es una cuadrícula con la hora en vertical: va desde las 8:00 hasta la hora
+de la última clase (también las de la tarde, o antes de las 8 si hace falta), cada
+bloque está a su hora y mide lo que dura (un patio de media hora, la mitad de una
+clase de una hora), y los que coinciden en el tiempo salen lado a lado; encima de
+cada día van sus eventos. Pulsando un bloque se edita. PARA MOVER UN BLOQUE se
+arrastra a otro día o a otra hora (de 5 en 5 minutos, sin cambiar lo que dura; en
+la tablet, desde el asa de puntos de su esquina para no impedir desplazar la
+pantalla); con el teclado, Alt y las flechas (con Mayús, de 15 en 15 minutos). Los
+bloques de apoyo de PT y AL no se mueven aquí: se cambian en su grupo. Arriba,
 «+ Nuevo evento» y el menú «Horario», con «Escanear horario», «Nuevo bloque» y
 «Borrar horario». En «Escanear horario»: se sube el horario del
 centro —una foto, un PDF o una hoja de cálculo (Excel, CSV)— y la IA copia

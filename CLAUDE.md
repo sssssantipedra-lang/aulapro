@@ -100,6 +100,11 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - Petición del dueño: «actividades por tarjetas, de manera más visual, como las otras partes de la app». «Actividades con móviles» (autoevaluación, lluvia de ideas, votación) y «¿Qué quieres crear?» de Recursos (ficha, comprensión lectora, escape room, tarjetas) usan las tarjetas `ev-card` de las portadas, con icono de color, explicación, un dato y la elegida marcada (`.ev-card.sel`), en vez de recuadros pequeños con emoji. Una elección nueva entre tipos debería seguir ese estilo. «Lectura fácil» y «Con pictogramas» (Recursos) son tarjetas circulares pequeñas con su dibujo (`.fe-bola`, apagadas en gris con borde discontinuo y encendidas en color con una marca); siguen siendo casillas por dentro.
 
+## Horario semanal (19-10-2026)
+
+- Petición del dueño, al ver su horario escaneado: el patio de las 11:15 salía debajo de la clase de las 11:45, y quería poder mover los bloques. La vista «Semanal» de la Agenda es ahora una cuadrícula con la hora en vertical (`src/components/agenda/HorarioSemana.tsx`; la cuenta, en `src/lib/horarioSemana.ts`): cada bloque va a su hora, mide lo que dura (1,3 px por minuto) y los que se pisan van lado a lado. Antes se metían en la fila de la hora en que empezaban, apilados por orden de creación.
+- Se mueven arrastrando a otro día u otra hora, de 5 en 5 minutos y sin cambiar la duración; con el dedo, desde el asa de puntos (el resto del bloque deja desplazar la pantalla); con teclado, Alt y las flechas. Los bloques de apoyo (PT y AL) no se mueven aquí. **Sin comprobar con un dedo real.**
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
