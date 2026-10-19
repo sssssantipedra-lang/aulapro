@@ -345,6 +345,20 @@ export interface GradeTarget {
   subject?: string;
   /** Categoría del cuaderno (Exámenes, Trabajos…) donde vive su columna. */
   category_id?: string;
+  /**
+   * Otras clases en las que se usa el mismo instrumento (19-10-2026, petición
+   * del dueño: «la misma rúbrica sirve para dos o tres clases»), cada una con
+   * su asignatura y su categoría del cuaderno y, por tanto, su propia
+   * columna. La clase de arriba es la primera; ver `lib/objetivos.ts`.
+   */
+  otras_clases?: ClassTarget[];
+}
+
+/** Una clase de un instrumento: dónde cae su nota en el cuaderno de esa clase. */
+export interface ClassTarget {
+  class_id: string;
+  subject?: string;
+  category_id?: string;
 }
 
 /**
@@ -355,8 +369,9 @@ export interface GradeTarget {
  * para la misma rúbrica. Al ser fija, volver a evaluar a un alumno
  * sobrescribe su nota anterior.
  */
-export function gradeItemIdFor(instrumentId: string): string {
-  return 'gi-' + instrumentId;
+export function gradeItemIdFor(instrumentId: string, classId?: string): string {
+  // La primera clase conserva el id de siempre, para no duplicar columnas de lo ya creado
+  return classId ? `gi-${instrumentId}-${classId}` : 'gi-' + instrumentId;
 }
 
 export interface Rubric extends GradeTarget {

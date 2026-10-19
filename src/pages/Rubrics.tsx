@@ -3,7 +3,7 @@ import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search,
 } from 'lucide-react';
 import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget, OfficialCriterionRef } from '../types';
-import { GradeTargetPicker } from '../components/GradeTargetPicker';
+import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { competenciasClaveValidas, fileToBase64, isoDate, newId } from '../lib/utils';
@@ -11,6 +11,7 @@ import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresF
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { clasesDe, objetivoPara } from '../lib/objetivos';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { DianasTab } from './EvalDianas';
 import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
@@ -165,6 +166,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
       setAiPreview(null);
       setTarget({
         class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
+        otras_clases: editing.otras_clases,
       });
       setLevels(levelsOf(editing));
     } else if (inicial) {
@@ -380,7 +382,7 @@ function RubricModal({ open, inicial, onCambio, editing, classes, gradeCategorie
           </button>
         </div>
 
-        <GradeTargetPicker
+        <GradeTargetsPicker
           value={target}
           onChange={setTarget}
           classes={classes}
@@ -656,16 +658,17 @@ function EvalModal({
   /**
    * Qué clases se pueden elegir al evaluar.
    *
-   * Si la rúbrica declara dónde se recoge la nota, esa es la única opción: dejar
+   * Si la rúbrica declara dónde se recoge la nota, solo esas clases (una o varias): dejar
    * elegir otra llevaría la calificación a un cuaderno que no es el suyo. Y la
    * asignatura que se muestra es la de la rúbrica, no la principal de la clase,
    * que puede ser distinta —una clase de varias asignaturas— y hacer creer que
    * se está evaluando otra cosa.
    */
-  const evalClasses = rubric?.class_id
-    ? classes.filter(c => c.id === rubric.class_id)
+  const evalClasses = rubric && clasesDe(rubric).length
+    ? classes.filter(c => clasesDe(rubric).includes(c.id))
     : classes;
-  const subjectLabel = (c: { subject: string }) => rubric?.subject || c.subject;
+  // Cada clase de la rúbrica tiene su asignatura
+  const subjectLabel = (c: { id: string; subject: string }) => (rubric && objetivoPara(rubric, c.id)?.subject) || c.subject;
 
   const totalScore = rubric
     ? rubric.criteria.reduce((sum, cr) => sum + (scores[cr.id] ?? 0), 0)
@@ -1210,6 +1213,15 @@ export function Rubrics({
                     {t(evCount === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: evCount })}
                   </span>
                 </div>
+
+                {/* En qué clases se usa */}
+                {clasesDe(r).length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                    {clasesDe(r).map(id => classes.find(c => c.id === id)).filter(Boolean).map(c => (
+                      <span key={c!.id} style={{ fontSize: 11.5, padding: '2px 9px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-2)', fontWeight: 700 }}>{c!.name}</span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Criteria preview */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 14, flex: 1 }}>

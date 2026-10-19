@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy } from 'lucide-react';
 import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
-import { GradeTargetPicker } from '../components/GradeTargetPicker';
+import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { competenciasClaveValidas, isoDate, newId } from '../lib/utils';
@@ -19,6 +19,7 @@ import { listaCompetenciasClave, marcarCompetenciasConIA } from '../services/com
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { useI18n } from '../i18n';
+import { clasesDe, objetivoPara } from '../lib/objetivos';
 import { useBorradorVentana } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
 
@@ -108,6 +109,7 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
       setAiContext(editing.context ?? '');
       setTarget({
         class_id: editing.class_id, subject: editing.subject, category_id: editing.category_id,
+        otras_clases: editing.otras_clases,
       });
       setLevels(levelsOf(editing));
     } else if (inicial) {
@@ -287,7 +289,7 @@ function DianaModal({ open, inicial, onCambio, editing, classes, gradeCategories
           </button>
         </div>
 
-        <GradeTargetPicker
+        <GradeTargetsPicker
           value={target}
           onChange={setTarget}
           classes={classes}
@@ -504,8 +506,8 @@ function DianaEvalModal({ open, diana, classes, students, onClose, onSave }: Dia
 
   // Igual que en las rúbricas: atada a una clase, esa es la única; y se muestra
   // la asignatura de la diana, no la principal de la clase, que puede ser otra.
-  const evalClasses = diana.class_id ? classes.filter(c => c.id === diana.class_id) : classes;
-  const subjectLabel = (c: { subject: string }) => diana.subject || c.subject;
+  const evalClasses = clasesDe(diana).length ? classes.filter(c => clasesDe(diana).includes(c.id)) : classes;
+  const subjectLabel = (c: { id: string; subject: string }) => objetivoPara(diana, c.id)?.subject || c.subject;
   const scale = levelsOf(diana);
   const grade = dianaGrade(diana.items, scores, diana.levels);
   const done = diana.items.filter(i => scores[i.id]).length;
@@ -747,6 +749,15 @@ export function DianasTab({
                     {t(count === 1 ? '{n} evaluación' : '{n} evaluaciones', { n: count })}
                   </span>
                 </div>
+
+                {/* En qué clases se usa */}
+                {clasesDe(d).length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    {clasesDe(d).map(id => classes.find(c => c.id === id)).filter(Boolean).map(c => (
+                      <span key={c!.id} style={{ fontSize: 11.5, padding: '2px 9px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-2)', fontWeight: 700 }}>{c!.name}</span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Miniatura */}
                 <div style={{ display: 'flex', justifyContent: 'center', flex: 1, alignItems: 'center', marginBottom: 12, transform: 'scale(0.62)', transformOrigin: 'center', height: 150 }}>
