@@ -16,8 +16,8 @@
  */
 import type { LicenseBridge, LicenseError, LicenseResult, LicenseState, PlayBridge, PlayOferta } from '../types/electron';
 
-/** Mientras sea `false`, todo dispositivo que abra la app queda como fundador. */
-const ENFORCED = false;
+/** Hasta el lanzamiento (10-11-2026), todo dispositivo que abra la app queda como fundador. */
+export const LAUNCH_AT = Date.parse('2026-11-10T00:00:00+01:00');
 
 export const PRODUCTOS = { vida: 'aulapro_vida', anual: 'aulapro_anual' } as const;
 export type Producto = keyof typeof PRODUCTOS;
@@ -71,8 +71,10 @@ export function errorDeCompra(e: unknown): LicenseError {
   return 'error-tienda';
 }
 
-export function createAndroidPlay(secrets: Secrets, billing: Facturacion, opts: { enforced?: boolean } = {}): LicenseBridge & { play: PlayBridge } {
-  const enforced = opts.enforced ?? ENFORCED;
+export function createAndroidPlay(secrets: Secrets, billing: Facturacion, opts: { enforced?: boolean; now?: () => number } = {}): LicenseBridge & { play: PlayBridge } {
+  const now = opts.now ?? Date.now;
+  // Se mira cada vez: una app abierta desde antes del lanzamiento pasa a pedir licencia sola
+  const enforcedNow = () => opts.enforced ?? now() >= LAUNCH_AT;
   let record: Registro | null = null;
   let ready: Promise<void> | null = null;
 
@@ -82,11 +84,11 @@ export function createAndroidPlay(secrets: Secrets, billing: Facturacion, opts: 
   };
 
   const state = (): LicenseState => ({
-    required: enforced && !record,
+    required: enforcedNow() && !record,
     status: record?.kind === 'fundador' ? 'fundador'
       : record?.kind === 'play' ? (record.expired ? 'caducada' : 'activa')
       : 'sin-licencia',
-    enforced,
+    enforced: enforcedNow(),
     keyHint: '',
     since: record?.activatedAt ?? '',
     expiresAt: '',
@@ -117,8 +119,8 @@ export function createAndroidPlay(secrets: Secrets, billing: Facturacion, opts: 
     try { record = JSON.parse((await secrets.get('licencia')) || 'null'); } catch { record = null; }
     // Registro de la versión con claves de Lemon Squeezy (Android ya no las usa): se descarta
     if (record && record.v !== 2) record = null;
-    if (!record && !enforced) await save({ v: 2, kind: 'fundador', activatedAt: new Date().toISOString() });
-    else if (record?.kind === 'play' || (!record && enforced)) await refresh().catch(() => false);
+    if (!record && !enforcedNow()) await save({ v: 2, kind: 'fundador', activatedAt: new Date().toISOString() });
+    else if (record?.kind === 'play' || (!record && enforcedNow())) await refresh().catch(() => false);
   }
   const whenReady = () => (ready ??= init());
 

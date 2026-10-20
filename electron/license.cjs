@@ -19,17 +19,19 @@ const { app, safeStorage } = require('electron');
 const core = require('./licenseCore.cjs');
 
 /* ── Ajustes de la venta ──────────────────────────────────────────────────
- * ENFORCED: mientras sea `false` nadie ve la pantalla de activación y todo
- *   equipo que abra la aplicación queda como fundador (gratis para siempre).
- *   Se pasa a `true` en la versión con la que empiece la venta.
+ * LAUNCH_AT: hasta el 10 de noviembre de 2026 nadie ve la pantalla de activación
+ *   y todo equipo que abra la aplicación queda como fundador (gratis para siempre).
+ *   Ese día empieza la venta y se pide licencia sin publicar otra versión.
  * FOUNDER_CUTOFF: fecha de esa versión (p. ej. '2026-11-01'). Quien tenga un
  *   perfil creado antes también es fundador aunque se salte versiones.
  * STORE_ID: el número de tienda de Lemon Squeezy; así una clave de otra tienda
  *   no vale (487841: aulapro.lemonsqueezy.com).
  * BUY_URL: la página donde se compra.
  */
-const ENFORCED = false;
-const FOUNDER_CUTOFF = '';
+const LAUNCH_AT = Date.parse('2026-11-10T00:00:00+01:00');
+const FOUNDER_CUTOFF = '2026-11-10';
+/** Desde el día del lanzamiento (10-11-2026) se pide licencia; antes, todo equipo queda como fundador. */
+const enforced = () => Date.now() >= LAUNCH_AT;
 const STORE_ID = '487841';
 const BUY_URL = 'https://aulapro.app';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
@@ -93,11 +95,11 @@ let ready = null;
 
 /** Lo que necesita saber la interfaz (nunca la clave entera). */
 function publicState() {
-  const s = core.evaluate(record, { machine: machineId(), now: Date.now(), enforced: ENFORCED });
+  const s = core.evaluate(record, { machine: machineId(), now: Date.now(), enforced: enforced() });
   return {
     required: s.required,
     status: s.status,
-    enforced: ENFORCED,
+    enforced: enforced(),
     keyHint: record && record.kind === 'licencia' ? core.keyHint(record.key) : '',
     since: record ? record.activatedAt : '',
     expiresAt: s.expiresAt,
@@ -148,12 +150,12 @@ async function recheck() {
 async function init(listProfiles) {
   record = await readRecord();
   const machine = machineId();
-  const s = core.evaluate(record, { machine, now: Date.now(), enforced: ENFORCED });
+  const s = core.evaluate(record, { machine, now: Date.now(), enforced: enforced() });
 
   if (s.status === 'sin-licencia' || s.status === 'otro-equipo') {
     let profiles = [];
     try { profiles = await listProfiles(); } catch { /* sin perfiles */ }
-    if (core.canBeFounder({ enforced: ENFORCED, founderCutoff: FOUNDER_CUTOFF, profiles })) {
+    if (core.canBeFounder({ enforced: enforced(), founderCutoff: FOUNDER_CUTOFF, profiles })) {
       record = { v: 1, kind: 'fundador', machine, activatedAt: new Date().toISOString() };
       await writeRecord(record).catch(() => {});
     }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createAndroidPlay, derecho, errorDeCompra, PRODUCTOS, type Compra, type Facturacion } from './androidPlay';
+import { createAndroidPlay, LAUNCH_AT, derecho, errorDeCompra, PRODUCTOS, type Compra, type Facturacion } from './androidPlay';
 
 function secrets() {
   const mem = new Map<string, string>();
@@ -115,3 +115,24 @@ describe('licencia en Android con Google Play', () => {
     expect(await lic.play.ofertas()).toEqual([{ id: 'vida', precio: '6,99 €' }, { id: 'anual', precio: '11,99 €' }]);
   });
 });
+
+describe('el lanzamiento (10 de noviembre de 2026)', () => {
+  it('antes, quien abre la app queda como fundador; desde ese día, quien llega nuevo necesita comprar', async () => {
+    const antes = createAndroidPlay(secrets(), facturacion(), { now: () => LAUNCH_AT - 1 });
+    expect(await antes.state()).toMatchObject({ required: false, status: 'fundador', enforced: false });
+    const despues = createAndroidPlay(secrets(), facturacion(), { now: () => LAUNCH_AT });
+    expect(await despues.state()).toMatchObject({ required: true, status: 'sin-licencia', enforced: true });
+  });
+
+  it('quien ya era fundador no pierde nada al llegar el día', async () => {
+    const s = secrets();
+    await createAndroidPlay(s, facturacion(), { now: () => LAUNCH_AT - 86400000 }).state();
+    expect(await createAndroidPlay(s, facturacion(), { now: () => LAUNCH_AT + 86400000 }).state())
+      .toMatchObject({ required: false, status: 'fundador' });
+  });
+
+  it('el lanzamiento es el 10 de noviembre de 2026 a las 00:00 en España', () => {
+    expect(new Date(LAUNCH_AT).toISOString()).toBe('2026-11-09T23:00:00.000Z');
+  });
+});
+
