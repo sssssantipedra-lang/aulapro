@@ -6,7 +6,7 @@ import type { LicenseState } from '../types/electron';
  * activación: una licencia anual caducada deja la app en solo lectura (decisión
  * del dueño, 20-10-2026: «no se podrá hacer nada, solo revisar lo que ya estaba
  * creado») y una a punto de caducar avisa antes. Las reglas de fechas están en
- * `electron/licenseCore.cjs` y `platform/androidLicense.ts`.
+ * `electron/licenseCore.cjs` (Windows) y `platform/androidPlay.ts` (Android).
  */
 
 /** Cuántos días antes de caducar se avisa (igual que `WARN_BEFORE` del proceso principal). */
