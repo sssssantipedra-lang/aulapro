@@ -1,6 +1,6 @@
 /**
  * Textos del modo de prueba sin licencia (`pages/PruebaInicio.tsx`, `lib/modoPrueba.ts`) y de la licencia
- * anual: caducada en solo lectura y aviso previo (`lib/licencia.ts`, `components/LicenseSettings.tsx`).
+ * anual y de la compra en Google Play (Android): caducada en solo lectura y aviso previo (`lib/licencia.ts`, `components/LicenseSettings.tsx`).
  * Se suman a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const PRUEBA_EN: Record<string, string> = {
@@ -29,6 +29,21 @@ export const PRUEBA_EN: Record<string, string> = {
   "Licencia anual, válida hasta el {d}": "Annual licence, valid until {d}",
   "Puedes abrir y revisar todo lo que ya creaste, y exportarlo, pero no añadir ni cambiar nada. Tus datos no se borran nunca. Al renovar, todo vuelve a la normalidad.": "You can open and review everything you already created, and export it, but not add or change anything. Your data is never deleted. Once you renew, everything goes back to normal.",
   "La suscripción de esta clave ha caducado. Renuévala en aulapro.app y vuelve a probar.": "This key's subscription has expired. Renew it at aulapro.app and try again.",
+  "Has cancelado la compra. Cuando quieras, puedes volver a intentarlo.": "You cancelled the purchase. You can try again whenever you like.",
+  "Google Play aún está procesando el pago. Cuando termine, pulsa «Restaurar compra».": "Google Play is still processing the payment. When it finishes, press “Restore purchase”.",
+  "Esa compra ya está hecha con tu cuenta de Google. Pulsa «Restaurar compra».": "That purchase is already made with your Google account. Press “Restore purchase”.",
+  "Esta cuenta de Google no tiene ninguna compra de Aula Pro. Comprueba que usas la misma cuenta con la que compraste.": "This Google account has no Aula Pro purchase. Check that you are using the same account you bought with.",
+  "Google Play no está disponible en este dispositivo. Comprueba que está instalado y con tu cuenta iniciada.": "Google Play is not available on this device. Check that it is installed and that you are signed in.",
+  "Aula Pro se activa con una compra en Google Play. Si ya la hiciste con esta cuenta de Google, pulsa «Restaurar compra».": "Aula Pro is activated with a purchase on Google Play. If you already bought it with this Google account, press “Restore purchase”.",
+  "Comprar de por vida · {precio}": "Buy for life · {precio}",
+  "Suscribirme · {precio} al año": "Subscribe · {precio} a year",
+  "Google Play no devuelve ahora ninguna oferta. Comprueba tu conexión y vuelve a probar.": "Google Play isn't returning any offer right now. Check your connection and try again.",
+  "Restaurar compra": "Restore purchase",
+  "Renueva tu licencia en Google Play.": "Renew your licence on Google Play.",
+  "La licencia sigue caducada. Renuévala en Google Play.": "The licence is still expired. Renew it on Google Play.",
+  "Renovar con Google Play": "Renew with Google Play",
+  "Tu licencia está en tu cuenta de Google: en otro móvil con la misma cuenta, pulsa «Restaurar compra» al abrir Aula Pro.": "Your licence is tied to your Google account: on another phone with the same account, press “Restore purchase” when you open Aula Pro.",
+  "Gestionar en Google Play": "Manage on Google Play",
 };
 
 export const PRUEBA_CA: Record<string, string> = {
@@ -57,4 +72,19 @@ export const PRUEBA_CA: Record<string, string> = {
   "Licencia anual, válida hasta el {d}": "Llicència anual, vàlida fins al {d}",
   "Puedes abrir y revisar todo lo que ya creaste, y exportarlo, pero no añadir ni cambiar nada. Tus datos no se borran nunca. Al renovar, todo vuelve a la normalidad.": "Pots obrir i revisar tot el que ja vas crear, i exportar-ho, però no afegir ni canviar res. Les teues dades no s'esborren mai. En renovar, tot torna a la normalitat.",
   "La suscripción de esta clave ha caducado. Renuévala en aulapro.app y vuelve a probar.": "La subscripció d'aquesta clau ha caducat. Renova-la a aulapro.app i torna-ho a provar.",
+  "Has cancelado la compra. Cuando quieras, puedes volver a intentarlo.": "Has cancel·lat la compra. Quan vulgues, pots tornar-ho a intentar.",
+  "Google Play aún está procesando el pago. Cuando termine, pulsa «Restaurar compra».": "Google Play encara està processant el pagament. Quan acabe, prem «Restaurar la compra».",
+  "Esa compra ya está hecha con tu cuenta de Google. Pulsa «Restaurar compra».": "Aquesta compra ja està feta amb el teu compte de Google. Prem «Restaurar la compra».",
+  "Esta cuenta de Google no tiene ninguna compra de Aula Pro. Comprueba que usas la misma cuenta con la que compraste.": "Aquest compte de Google no té cap compra d'Aula Pro. Comprova que uses el mateix compte amb què vas comprar.",
+  "Google Play no está disponible en este dispositivo. Comprueba que está instalado y con tu cuenta iniciada.": "Google Play no està disponible en aquest dispositiu. Comprova que està instal·lat i amb el teu compte iniciat.",
+  "Aula Pro se activa con una compra en Google Play. Si ya la hiciste con esta cuenta de Google, pulsa «Restaurar compra».": "Aula Pro s'activa amb una compra a Google Play. Si ja la vas fer amb aquest compte de Google, prem «Restaurar la compra».",
+  "Comprar de por vida · {precio}": "Comprar per a sempre · {precio}",
+  "Suscribirme · {precio} al año": "Subscriure'm · {precio} a l'any",
+  "Google Play no devuelve ahora ninguna oferta. Comprueba tu conexión y vuelve a probar.": "Google Play no retorna ara cap oferta. Comprova la connexió i torna-ho a provar.",
+  "Restaurar compra": "Restaurar la compra",
+  "Renueva tu licencia en Google Play.": "Renova la llicència a Google Play.",
+  "La licencia sigue caducada. Renuévala en Google Play.": "La llicència continua caducada. Renova-la a Google Play.",
+  "Renovar con Google Play": "Renovar amb Google Play",
+  "Tu licencia está en tu cuenta de Google: en otro móvil con la misma cuenta, pulsa «Restaurar compra» al abrir Aula Pro.": "La teua llicència està al teu compte de Google: en un altre mòbil amb el mateix compte, prem «Restaurar la compra» en obrir Aula Pro.",
+  "Gestionar en Google Play": "Gestionar a Google Play",
 };

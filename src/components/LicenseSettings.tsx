@@ -3,7 +3,6 @@ import { BadgeCheck, KeyRound, Heart, CalendarClock, RefreshCw } from 'lucide-re
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT } from '../services/license';
 import { useToast } from './ui/Toast';
-import { isAndroidApp } from '../lib/platform';
 import type { LicenseState } from '../types/electron';
 
 /** Estado de la licencia de este equipo en Configuración › Licencia. */
@@ -16,6 +15,18 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
   const since = fecha(state.since);
   const hasta = fecha(state.expiresAt);
   const caducada = state.status === 'caducada';
+  // En Android la licencia es una compra de Google Play, sin clave (`platform/androidPlay.ts`)
+  const play = licenseBridge()?.play;
+
+  async function comprarAnual() {
+    if (!play) return;
+    setBusy(true);
+    const r = await play.comprar('anual');
+    setBusy(false);
+    onChange(r.state);
+    if (r.ok) toast(t('✅ Licencia renovada'));
+    else toast(t(LICENSE_ERROR_TEXT[r.error ?? 'error-tienda']));
+  }
 
   async function recheck() {
     const bridge = licenseBridge();
@@ -25,7 +36,7 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
     setBusy(false);
     onChange(r.state);
     if (!r.ok) toast(t('Para comprobar la licencia hace falta internet. Conéctate y vuelve a probar.'));
-    else if (r.state.status === 'caducada') toast(t('La licencia sigue caducada. Renuévala en aulapro.app.'));
+    else if (r.state.status === 'caducada') toast(t(play ? 'La licencia sigue caducada. Renuévala en Google Play.' : 'La licencia sigue caducada. Renuévala en aulapro.app.'));
     else toast(t('✅ Licencia renovada'));
   }
 
@@ -59,7 +70,7 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
         : <div className="lic-badge ok"><BadgeCheck size={15} />{t('Licencia activa')}</div>}
       <div className="lic-row">
         <KeyRound size={16} color="var(--accent-d)" />
-        <span className="lic-key">{state.keyHint}</span>
+        {play ? <span className="lic-key">Google Play</span> : <span className="lic-key">{state.keyHint}</span>}
         {since && <span className="lic-card-meta">· {t('activada el {d}', { d: since })}</span>}
       </div>
       {hasta && (
@@ -73,30 +84,46 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
             {t('Puedes abrir y revisar todo lo que ya creaste, y exportarlo, pero no añadir ni cambiar nada. Tus datos no se borran nunca. Al renovar, todo vuelve a la normalidad.')}
           </p>
           <p className="lic-card-txt">
-            {isAndroidApp() || !state.buyUrl
-              ? t('Renueva tu licencia en aulapro.app')
+            {play || !state.buyUrl
+              ? (play ? t('Renueva tu licencia en Google Play.') : t('Renueva tu licencia en aulapro.app'))
               : <a href={state.buyUrl} target="_blank" rel="noreferrer">{t('Renovar en aulapro.app')}</a>}
           </p>
-          <button type="button" className="btn-accent" onClick={recheck} disabled={busy}>
-            {busy ? <span className="spin" /> : <RefreshCw size={14} />}&nbsp;{t('Volver a comprobar')}
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {play && (
+              <button type="button" className="btn-primary" onClick={comprarAnual} disabled={busy}>{t('Renovar con Google Play')}</button>
+            )}
+            <button type="button" className="btn-accent" onClick={recheck} disabled={busy}>
+              {busy ? <span className="spin" /> : <RefreshCw size={14} />}&nbsp;{t('Volver a comprobar')}
+            </button>
+          </div>
         </>
       )}
-      <p className="lic-card-txt">
-        {t('Si cambias de dispositivo, desactiva la licencia aquí antes y actívala en el nuevo con la misma clave: así no gastas una activación.')}
-      </p>
-      {confirm ? (
-        <div className="lic-confirm">
-          <span>{t('Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.')}</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" className="btn-accent lic-danger" onClick={deactivate} disabled={busy}>
-              {busy ? <span className="spin" /> : null}{t('Sí, desactivar')}
-            </button>
-            <button type="button" className="btn-ghost" onClick={() => setConfirm(false)}>{t('Cancelar')}</button>
-          </div>
-        </div>
+      {play ? (
+        <>
+          <p className="lic-card-txt">
+            {t('Tu licencia está en tu cuenta de Google: en otro móvil con la misma cuenta, pulsa «Restaurar compra» al abrir Aula Pro.')}
+          </p>
+          <button type="button" className="btn-ghost" onClick={() => play.gestionar()}>{t('Gestionar en Google Play')}</button>
+        </>
       ) : (
-        <button type="button" className="btn-ghost" onClick={() => setConfirm(true)}>{t('Desactivar en este equipo')}</button>
+        <>
+      <p className="lic-card-txt">
+            {t('Si cambias de dispositivo, desactiva la licencia aquí antes y actívala en el nuevo con la misma clave: así no gastas una activación.')}
+          </p>
+          {confirm ? (
+            <div className="lic-confirm">
+              <span>{t('Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.')}</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className="btn-accent lic-danger" onClick={deactivate} disabled={busy}>
+                  {busy ? <span className="spin" /> : null}{t('Sí, desactivar')}
+                </button>
+                <button type="button" className="btn-ghost" onClick={() => setConfirm(false)}>{t('Cancelar')}</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="btn-ghost" onClick={() => setConfirm(true)}>{t('Desactivar en este equipo')}</button>
+          )}
+        </>
       )}
     </div>
   );

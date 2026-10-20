@@ -24,7 +24,8 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { createProfileStore, type Fs } from './profileStore';
 import { createRoom, type RoomRequest } from './classroomRoom';
-import { createAndroidLicense } from './androidLicense';
+import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases';
+import { createAndroidPlay, PRODUCTOS, type Facturacion, type Producto } from './androidPlay';
 import studentPage from '../../electron/student.html?raw';
 import { CARPETA_RAIZ, nombreDeCarpeta } from '../lib/carpetas';
 import { avisarGuardado, type Guardado } from '../lib/guardado';
@@ -220,6 +221,16 @@ export const guardadoAndroid = {
   },
 };
 
+/** Compras de Google Play (ver `platform/androidPlay.ts`). La vitalicia es un producto único; la anual, una suscripción. */
+const tipoDe = (p: Producto) => (p === 'vida' ? PURCHASE_TYPE.INAPP : PURCHASE_TYPE.SUBS);
+const facturacion: Facturacion = {
+  disponible: async () => (await NativePurchases.isBillingSupported()).isBillingSupported,
+  compras: async () => (await NativePurchases.getPurchases()).purchases,
+  precio: async p => (await NativePurchases.getProduct({ productIdentifier: PRODUCTOS[p], productType: tipoDe(p) })).product.priceString,
+  comprar: async p => { await NativePurchases.purchaseProduct({ productIdentifier: PRODUCTOS[p], productType: tipoDe(p), autoAcknowledgePurchases: true }); },
+  gestionar: () => NativePurchases.manageSubscriptions(),
+};
+
 export function installAndroidBridge() {
   window.electronAPI = {
     isDesktop: false,
@@ -235,10 +246,10 @@ export function installAndroidBridge() {
       setTextScale: factor => AulaNative.setTextZoom({ percent: Math.round(factor * 100) }),
     },
     classroom: createClassroom(),
-    license: createAndroidLicense({
+    license: createAndroidPlay({
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,
-    }),
+    }, facturacion),
     secrets: {
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,

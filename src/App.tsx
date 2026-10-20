@@ -929,7 +929,7 @@ function AvisoLicencia() {
     const nuevo = await lic!.recomprobar();
     setBusy(false);
     if (!nuevo) toast(t('Para comprobar la licencia hace falta internet. Conéctate y vuelve a probar.'));
-    else if (nuevo.status === 'caducada') toast(t('La licencia sigue caducada. Renuévala en aulapro.app.'));
+    else if (nuevo.status === 'caducada') toast(t(licenseBridge()?.play ? 'La licencia sigue caducada. Renuévala en Google Play.' : 'La licencia sigue caducada. Renuévala en aulapro.app.'));
     else toast(t('✅ Licencia renovada'));
   }
 
@@ -940,7 +940,7 @@ function AvisoLicencia() {
           {t('Licencia caducada: puedes revisar lo que ya creaste, pero no modificarlo.')}{' '}
           {state.buyUrl
             ? <a href={state.buyUrl} target="_blank" rel="noreferrer">{t('Renovar en aulapro.app')}</a>
-            : t('Renueva tu licencia en aulapro.app')}
+            : licenseBridge()?.play ? t('Renueva tu licencia en Google Play.') : t('Renueva tu licencia en aulapro.app')}
         </span>
         <button type="button" onClick={volver} disabled={busy}>{busy ? <span className="spin" /> : t('Volver a comprobar')}</button>
       </div>

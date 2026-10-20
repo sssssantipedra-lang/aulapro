@@ -99,7 +99,9 @@ export interface UpdateBridge {
 }
 
 export type LicenseStatus = 'fundador' | 'activa' | 'caducada' | 'sin-licencia' | 'otro-equipo';
-export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'caducada' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
+export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'caducada' | 'sin-conexion' | 'error-tienda' | 'sin-licencia'
+  // Compra con Google Play (Android)
+  | 'compra-cancelada' | 'pendiente' | 'ya-comprada' | 'sin-compra' | 'no-disponible';
 
 export interface LicenseState {
   /** Hay que enseñar la pantalla de activación antes de nada. */
@@ -119,6 +121,19 @@ export interface LicenseState {
 
 export interface LicenseResult { ok: boolean; error?: LicenseError; state: LicenseState }
 
+/** Lo que Google Play ofrece, con el precio que da la tienda (ya con impuestos y en la moneda del usuario). */
+export interface PlayOferta { id: 'vida' | 'anual'; precio: string }
+
+/** Compra de la licencia dentro de la app, solo en Android (`platform/androidPlay.ts`). */
+export interface PlayBridge {
+  ofertas: () => Promise<PlayOferta[]>;
+  comprar: (id: 'vida' | 'anual') => Promise<LicenseResult>;
+  /** Recupera una compra ya hecha con la misma cuenta de Google (otro móvil, reinstalación). */
+  restaurar: () => Promise<LicenseResult>;
+  /** Abre la gestión de suscripciones de Google Play. */
+  gestionar: () => Promise<void>;
+}
+
 export interface LicenseBridge {
   state: () => Promise<LicenseState>;
   activate: (key: string) => Promise<LicenseResult>;
@@ -126,6 +141,8 @@ export interface LicenseBridge {
   deactivate: () => Promise<LicenseResult>;
   /** «Volver a comprobar»: pregunta ahora a la tienda (p. ej. tras renovar una anual). */
   recheck: () => Promise<LicenseResult>;
+  /** Solo en Android: la licencia se compra con Google Play en vez de activar una clave. */
+  play?: PlayBridge;
 }
 
 export interface StoreBridge {

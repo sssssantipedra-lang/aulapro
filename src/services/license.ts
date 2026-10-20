@@ -25,7 +25,15 @@ export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
   'sin-conexion': 'Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.',
   'error-tienda': 'La tienda no responde ahora mismo. Vuelve a probar en un rato.',
   'sin-licencia': 'En este equipo no hay ninguna licencia activada.',
+  'compra-cancelada': 'Has cancelado la compra. Cuando quieras, puedes volver a intentarlo.',
+  'pendiente': 'Google Play aún está procesando el pago. Cuando termine, pulsa «Restaurar compra».',
+  'ya-comprada': 'Esa compra ya está hecha con tu cuenta de Google. Pulsa «Restaurar compra».',
+  'sin-compra': 'Esta cuenta de Google no tiene ninguna compra de Aula Pro. Comprueba que usas la misma cuenta con la que compraste.',
+  'no-disponible': 'Google Play no está disponible en este dispositivo. Comprueba que está instalado y con tu cuenta iniciada.',
 };
+
+/** En Android no hay clave: la licencia se compra con Google Play. */
+export const LICENSE_STATUS_PLAY = 'Aula Pro se activa con una compra en Google Play. Si ya la hiciste con esta cuenta de Google, pulsa «Restaurar compra».';
 
 /** Por qué aparece la pantalla de activación. */
 export const LICENSE_STATUS_TEXT: Partial<Record<LicenseState['status'], string>> = {

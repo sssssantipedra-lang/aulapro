@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyRound, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
 import { useI18n } from '../i18n';
-import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../services/license';
-import type { LicenseError, LicenseState } from '../types/electron';
+import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT, LICENSE_STATUS_PLAY } from '../services/license';
+import type { LicenseError, LicenseState, PlayOferta } from '../types/electron';
 import { LangSwitch } from './Welcome';
-import { isAndroidApp } from '../lib/platform';
 
 interface Props {
   state: LicenseState;
@@ -23,6 +22,20 @@ export function LicenseGate({ state, onChange, onTrial }: Props) {
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<LicenseError | null>(null);
+  // En Android no hay clave: la licencia se compra con Google Play (`platform/androidPlay.ts`)
+  const play = licenseBridge()?.play;
+  const [ofertas, setOfertas] = useState<PlayOferta[] | null>(null);
+  useEffect(() => { if (play) play.ofertas().then(setOfertas, () => setOfertas([])); }, [play]);
+
+  async function comprar(id: 'vida' | 'anual' | 'restaurar') {
+    if (!play) return;
+    setBusy(true);
+    setError(null);
+    const r = id === 'restaurar' ? await play.restaurar() : await play.comprar(id);
+    setBusy(false);
+    if (r.ok) onChange(r.state);
+    else setError(r.error ?? 'error-tienda');
+  }
 
   async function activate(e: React.FormEvent) {
     e.preventDefault();
@@ -50,29 +63,42 @@ export function LicenseGate({ state, onChange, onTrial }: Props) {
           </div>
         </div>
 
-        <p className="lic-text">{t(LICENSE_STATUS_TEXT[state.status] ?? LICENSE_STATUS_TEXT['sin-licencia']!)}</p>
+        <p className="lic-text">{t(play ? LICENSE_STATUS_PLAY : (LICENSE_STATUS_TEXT[state.status] ?? LICENSE_STATUS_TEXT['sin-licencia']!))}</p>
 
         {error && <div className="lic-err" role="alert">{t(LICENSE_ERROR_TEXT[error])}</div>}
 
-        <form onSubmit={activate}>
-          <div className="fgroup">
-            <label className="flabel" htmlFor="lic-key">{t('Clave de licencia')}</label>
-            <input
-              id="lic-key" className="finput lic-input" value={key} autoFocus
-              placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-              autoComplete="off" spellCheck={false}
-              onChange={e => { setKey(e.target.value); if (error) setError(null); }}
-            />
+        {play ? (
+          <div className="play-ofertas">
+            {(ofertas ?? []).map(o => (
+              <button key={o.id} type="button" className="btn-primary" disabled={busy} onClick={() => comprar(o.id)}>
+                {o.id === 'vida'
+                  ? t('Comprar de por vida · {precio}', { precio: o.precio })
+                  : t('Suscribirme · {precio} al año', { precio: o.precio })}
+              </button>
+            ))}
+            {ofertas?.length === 0 && <p className="lic-text">{t('Google Play no devuelve ahora ninguna oferta. Comprueba tu conexión y vuelve a probar.')}</p>}
+            <button type="button" className="btn-ghost" style={{ justifyContent: 'center' }} disabled={busy} onClick={() => comprar('restaurar')}>
+              {busy ? <span className="spin" /> : t('Restaurar compra')}
+            </button>
           </div>
-          <button className="btn-primary" type="submit" disabled={busy || !key.trim()}>
-            {busy ? <><span className="spin" />&nbsp;{t('Activando…')}</> : t('Activar')}
-          </button>
-        </form>
+        ) : (
+          <form onSubmit={activate}>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="lic-key">{t('Clave de licencia')}</label>
+              <input
+                id="lic-key" className="finput lic-input" value={key} autoFocus
+                placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+                autoComplete="off" spellCheck={false}
+                onChange={e => { setKey(e.target.value); if (error) setError(null); }}
+              />
+            </div>
+            <button className="btn-primary" type="submit" disabled={busy || !key.trim()}>
+              {busy ? <><span className="spin" />&nbsp;{t('Activando…')}</> : t('Activar')}
+            </button>
+          </form>
+        )}
 
-        {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace */}
-        {isAndroidApp() ? (
-          <p className="lic-buy">{t('Consigue tu licencia en aulapro.app')}</p>
-        ) : state.buyUrl && (
+        {!play && state.buyUrl && (
           <a className="lic-buy" href={state.buyUrl} target="_blank" rel="noreferrer">
             {t('¿Aún no la tienes? Comprar Aula Pro')} <ExternalLink size={13} />
           </a>
