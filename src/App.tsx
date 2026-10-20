@@ -11,6 +11,7 @@ import { LicenseGate } from './pages/LicenseGate';
 import { PruebaInicio } from './pages/PruebaInicio';
 import { PruebaCtx, useModoPrueba, recordarPerfilPrueba, limpiarPrueba } from './lib/modoPrueba';
 import { deleteProfile, getActiveProfileId, setActiveProfileId } from './services/storage';
+import { LicenciaCtx, useLicencia, avisoLicencia, soloLectura as esSoloLectura, avisoCerrado, cerrarAviso } from './lib/licencia';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
@@ -90,7 +91,17 @@ function Loading() {
 function AppInner() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const st = useAppState();
+  const lic = useLicencia();
+  // Licencia anual caducada: se revisa lo creado, no se modifica (`lib/licencia.ts`)
+  const ultimoAviso = useRef(0);
+  const st = useAppState({
+    soloLectura: lic?.soloLectura ?? false,
+    onBloqueado: () => {
+      if (Date.now() - ultimoAviso.current < 4000) return;
+      ultimoAviso.current = Date.now();
+      toast(t('Licencia caducada: puedes revisar lo que ya creaste, pero no modificarlo.'));
+    },
+  });
   const prueba = useModoPrueba();
 
   const [section, setSection]         = useState<Section>('dashboard');
@@ -873,7 +884,18 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       </PruebaCtx.Provider>
     );
   }
-  return <>{children}</>;
+  const recomprobar = async () => {
+    const r = await licenseBridge()?.recheck();
+    if (!r) return null;
+    setState(r.state);
+    return r.ok ? r.state : null;
+  };
+  return (
+    <LicenciaCtx.Provider value={state ? { state, soloLectura: esSoloLectura(state), recomprobar } : null}>
+      {children}
+      <AvisoLicencia />
+    </LicenciaCtx.Provider>
+  );
 }
 
 /** Franja fija del modo de prueba: recuerda que son datos de ejemplo y lleva a la clave. */
@@ -884,6 +906,56 @@ function AvisoPrueba() {
     <div className="prueba-aviso" role="status">
       <span>{t('Modo de prueba · datos de ejemplo')}</span>
       <button type="button" onClick={() => prueba?.activar()}>{t('Activar licencia')}</button>
+    </div>
+  );
+}
+
+/**
+ * Franja fija de la licencia anual: caducada (solo se puede revisar) o a punto de
+ * caducar. Una licencia de por vida no la ve nunca.
+ */
+function AvisoLicencia() {
+  const { t } = useI18n();
+  const { toast } = useToast();
+  const lic = useLicencia();
+  const [busy, setBusy] = useState(false);
+  const [cerrado, setCerrado] = useState(() => avisoCerrado(lic?.state?.expiresAt ?? ''));
+  const state = lic?.state;
+  const aviso = avisoLicencia(state);
+  if (!lic || !state || !aviso) return null;
+
+  async function volver() {
+    setBusy(true);
+    const nuevo = await lic!.recomprobar();
+    setBusy(false);
+    if (!nuevo) toast(t('Para comprobar la licencia hace falta internet. Conéctate y vuelve a probar.'));
+    else if (nuevo.status === 'caducada') toast(t('La licencia sigue caducada. Renuévala en aulapro.app.'));
+    else toast(t('✅ Licencia renovada'));
+  }
+
+  if (aviso === 'caducada') {
+    return (
+      <div className="prueba-aviso lic-aviso caducada" role="alert">
+        <span>
+          {t('Licencia caducada: puedes revisar lo que ya creaste, pero no modificarlo.')}{' '}
+          {state.buyUrl
+            ? <a href={state.buyUrl} target="_blank" rel="noreferrer">{t('Renovar en aulapro.app')}</a>
+            : t('Renueva tu licencia en aulapro.app')}
+        </span>
+        <button type="button" onClick={volver} disabled={busy}>{busy ? <span className="spin" /> : t('Volver a comprobar')}</button>
+      </div>
+    );
+  }
+
+  if (cerrado) return null;
+  const n = state.daysLeft ?? 0;
+  return (
+    <div className="prueba-aviso lic-aviso" role="status">
+      <span>
+        {n === 1 ? t('Tu licencia anual caduca mañana.') : t('Tu licencia anual caduca en {n} días.', { n })}{' '}
+        {t('Si tienes la renovación activada, no tienes que hacer nada.')}
+      </span>
+      <button type="button" onClick={() => { cerrarAviso(state.expiresAt); setCerrado(true); }}>{t('Entendido')}</button>
     </div>
   );
 }

@@ -21,6 +21,7 @@ export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
   'limite': 'Esta clave ya está activada en todos los dispositivos que permite. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.',
   'desactivada': 'Esta clave está desactivada. Revisa el correo de la compra o escríbenos.',
   'otra-tienda': 'Esa clave no es de Aula Pro.',
+  'caducada': 'La suscripción de esta clave ha caducado. Renuévala en aulapro.app y vuelve a probar.',
   'sin-conexion': 'Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.',
   'error-tienda': 'La tienda no responde ahora mismo. Vuelve a probar en un rato.',
   'sin-licencia': 'En este equipo no hay ninguna licencia activada.',

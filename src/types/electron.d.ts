@@ -98,8 +98,8 @@ export interface UpdateBridge {
   setLanguage: (lang: 'es' | 'en' | 'ca') => Promise<void>;
 }
 
-export type LicenseStatus = 'fundador' | 'activa' | 'sin-licencia' | 'otro-equipo';
-export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
+export type LicenseStatus = 'fundador' | 'activa' | 'caducada' | 'sin-licencia' | 'otro-equipo';
+export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'caducada' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
 
 export interface LicenseState {
   /** Hay que enseñar la pantalla de activación antes de nada. */
@@ -110,6 +110,9 @@ export interface LicenseState {
   /** Final de la clave (••••ABCD), nunca entera. */
   keyHint: string;
   since: string;
+  /** Licencia anual: cuándo caduca (ISO) y cuántos días enteros quedan. Vacía y `null` si es de por vida. */
+  expiresAt: string;
+  daysLeft: number | null;
   /** Página donde se compra; vacía mientras no haya tienda. */
   buyUrl: string;
 }
@@ -121,6 +124,8 @@ export interface LicenseBridge {
   activate: (key: string) => Promise<LicenseResult>;
   /** Libera este equipo para poder activar la clave en otro. */
   deactivate: () => Promise<LicenseResult>;
+  /** «Volver a comprobar»: pregunta ahora a la tienda (p. ej. tras renovar una anual). */
+  recheck: () => Promise<LicenseResult>;
 }
 
 export interface StoreBridge {

@@ -191,3 +191,10 @@ export const LOMLOE_TO_DIANA: Record<string, readonly (typeof DIANA_SECTORS)[num
   CE:    ['ds6'],
   CCEC:  ['ds1'],
 };
+
+/** Curso escolar actual: de septiembre a agosto. */
+export function currentCourse(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  return now.getMonth() >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Sparkles, KeyRound } from 'lucide-react';
 import { useI18n } from '../i18n';
-import { LangSwitch, currentCourse } from './Welcome';
+import { LangSwitch } from './Welcome';
+import { currentCourse } from '../lib/utils';
 import { DEMO_COMMUNITY, DEMO_USER } from '../lib/demoData';
 import { DEMO_APOYO_USER } from '../lib/demoApoyo';
 import { DEMO_EF_USER } from '../lib/demoEF';

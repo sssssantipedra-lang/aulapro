@@ -7,7 +7,7 @@ import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { DEMO_COMMUNITY, DEMO_USER } from '../lib/demoData';
 import { DEMO_APOYO_USER } from '../lib/demoApoyo';
 import { DEMO_EF_USER } from '../lib/demoEF';
-import { initials } from '../lib/utils';
+import { initials, currentCourse } from '../lib/utils';
 import { verifyPassword } from '../lib/password';
 import { Modal } from '../components/ui/Modal';
 import { Flag } from '../components/ui/Flag';
@@ -54,13 +54,6 @@ interface Props {
   onOpenProfile: (id: string) => void;
   onCreateProfile: (input: NewProfileInput, options?: { importLegacy?: boolean }) => Promise<unknown>;
   onExploreDemo: (input: NewProfileInput) => void;
-}
-
-/** Curso escolar actual: de septiembre a agosto. */
-export function currentCourse(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  return now.getMonth() >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
 }
 
 /** ¿Hay trabajo de una versión anterior sin perfiles? */

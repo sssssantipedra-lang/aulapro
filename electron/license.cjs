@@ -100,24 +100,45 @@ function publicState() {
     enforced: ENFORCED,
     keyHint: record && record.kind === 'licencia' ? core.keyHint(record.key) : '',
     since: record ? record.activatedAt : '',
+    expiresAt: s.expiresAt,
+    daysLeft: s.daysLeft,
     buyUrl: BUY_URL,
   };
 }
 
-/** Pregunta a la tienda si la clave sigue valiendo. */
+/**
+ * Pregunta a la tienda si la clave sigue valiendo. Devuelve `false` si no hubo
+ * respuesta (sin conexión o error de la tienda).
+ */
 async function check() {
-  if (!record || record.kind !== 'licencia') return;
+  if (!record || record.kind !== 'licencia') return false;
   const r = await store('validate', { license_key: record.key, instance_id: record.instanceId });
-  if (!r) return; // sin conexión: se vuelve a intentar al próximo arranque
-  const st = r.body && r.body.license_key && r.body.license_key.status;
-  if (r.body && r.body.valid && st !== 'disabled' && st !== 'expired') {
-    record = { ...record, lastOkAt: new Date().toISOString() };
+  if (!r) return false; // sin conexión: se vuelve a intentar al próximo arranque
+  const o = core.checkOutcome(r.body, r.status);
+  if (o.kind === 'ok') {
+    // Renovada o de por vida: fecha al día y fuera la marca de caducada
+    const { expired, ...rest } = record;
+    record = { ...rest, lastOkAt: new Date().toISOString(), expiresAt: o.expiresAt };
     await writeRecord(record);
-  } else if (r.status < 500) {
+  } else if (o.kind === 'caducada') {
+    // No se renovó: el registro se queda (la app sigue abriendo los datos, sin modificarlos)
+    record = { ...record, expired: true, lastOkAt: new Date().toISOString(), expiresAt: o.expiresAt || record.expiresAt || '' };
+    await writeRecord(record);
+  } else if (o.kind === 'anulada') {
     // La tienda dice que no: reembolsada, anulada o desactivada desde la web
     record = null;
     await removeRecord();
+  } else {
+    return false;
   }
+  return true;
+}
+
+/** «Volver a comprobar»: pregunta ahora a la tienda (p. ej. tras renovar). */
+async function recheck() {
+  if (!record || record.kind !== 'licencia') return { ok: false, error: 'sin-licencia', state: publicState() };
+  const answered = await check();
+  return answered ? { ok: true, state: publicState() } : { ok: false, error: 'sin-conexion', state: publicState() };
 }
 
 /**
@@ -163,7 +184,10 @@ async function activate(key) {
     return { ok: false, error, state: publicState() };
   }
   const now = new Date().toISOString();
-  record = { v: 1, kind: 'licencia', machine: machineId(), key: k, instanceId: r.body.instance.id, activatedAt: now, lastOkAt: now };
+  record = {
+    v: 1, kind: 'licencia', machine: machineId(), key: k, instanceId: r.body.instance.id, activatedAt: now, lastOkAt: now,
+    expiresAt: (r.body.license_key && r.body.license_key.expires_at) || '',
+  };
   await writeRecord(record);
   return { ok: true, state: publicState() };
 }
@@ -178,4 +202,4 @@ async function deactivate() {
   return { ok: true, state: publicState() };
 }
 
-module.exports = { whenReady, publicState, activate, deactivate };
+module.exports = { whenReady, publicState, activate, deactivate, recheck };

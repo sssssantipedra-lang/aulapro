@@ -72,6 +72,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     state:      ()  => ipcRenderer.invoke('license:state'),
     activate:   key => ipcRenderer.invoke('license:activate', key),
     deactivate: ()  => ipcRenderer.invoke('license:deactivate'),
+    recheck:    ()  => ipcRenderer.invoke('license:recheck'),
   },
 
   /** Actualización automática (solo Windows: ver electron/updater.cjs). */

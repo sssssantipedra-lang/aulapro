@@ -160,7 +160,17 @@ function readLegacyData(): Partial<ProfileSnapshot> | null {
   };
 }
 
-export function useAppState() {
+/**
+ * `soloLectura`: licencia anual caducada (ver `lib/licencia.ts`). No se guarda
+ * nada y cualquier cambio se deshace al momento, avisando con `onBloqueado`:
+ * se puede revisar lo que ya estaba creado, no modificarlo.
+ */
+export interface OpcionesAppState {
+  soloLectura?: boolean;
+  onBloqueado?: () => void;
+}
+
+export function useAppState({ soloLectura = false, onBloqueado }: OpcionesAppState = {}) {
   const [profileId, setProfileId] = useState<string | null>(() => store.getActiveProfileId());
   const [profile, setProfile]     = useState<TeacherProfile | null>(null);
   // Sin perfil activo no hay nada que cargar: la app está lista desde el principio.
@@ -238,6 +248,12 @@ export function useAppState() {
     setChat([]);
   }, []);
 
+  // Solo lectura: lo que había al empezar y su huella, para deshacer cualquier cambio
+  const cargadoRef = useRef<Partial<ProfileSnapshot> | null>(null);
+  const huellaBaseRef = useRef<string | null>(null);
+  const onBloqueadoRef = useRef(onBloqueado);
+  useEffect(() => { onBloqueadoRef.current = onBloqueado; });
+
   /* ── Carga al entrar en un perfil ── */
   useEffect(() => {
     // Cerrar el perfil (sin id) ya limpia el estado en `closeProfile`, y
@@ -259,6 +275,8 @@ export function useAppState() {
         return;
       }
       setProfile(found);
+      cargadoRef.current = null;
+      huellaBaseRef.current = null;
       hydrate(data as Partial<ProfileSnapshot>);
       setReady(true);
       store.touchProfile(profileId);
@@ -282,7 +300,7 @@ export function useAppState() {
   const lastSavedRef = useRef('');
 
   useEffect(() => {
-    if (!ready || !profileId) return;
+    if (!ready || !profileId || soloLectura) return;
 
     // Serializar es lo caro de todo esto: recorre el curso entero. Va DENTRO
     // del temporizador a propósito, para que se pague una vez por pausa de
@@ -297,7 +315,21 @@ export function useAppState() {
       setSaving(false);
     }, SAVE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [snapshot, ready, profileId]);
+  }, [snapshot, ready, profileId, soloLectura]);
+
+  /* ── Solo lectura: lo cargado se queda como está ── */
+  useEffect(() => {
+    if (!soloLectura || !ready || !profileId) return;
+    const timer = setTimeout(async () => {
+      const huella = await huellaDe(JSON.stringify(snapshot));
+      // La primera vez es lo recién cargado: queda de referencia
+      if (huellaBaseRef.current === null) { huellaBaseRef.current = huella; cargadoRef.current = snapshot; return; }
+      if (huella === huellaBaseRef.current || !cargadoRef.current) return;
+      hydrate(cargadoRef.current);
+      onBloqueadoRef.current?.();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [snapshot, ready, profileId, soloLectura, hydrate]);
 
   /* ── Copia de seguridad automática ── */
   useEffect(() => {

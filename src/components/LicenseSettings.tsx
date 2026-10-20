@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { BadgeCheck, KeyRound, Heart } from 'lucide-react';
+import { BadgeCheck, KeyRound, Heart, CalendarClock, RefreshCw } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT } from '../services/license';
 import { useToast } from './ui/Toast';
+import { isAndroidApp } from '../lib/platform';
 import type { LicenseState } from '../types/electron';
 
 /** Estado de la licencia de este equipo en Configuración › Licencia. */
@@ -11,7 +12,22 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
   const { toast } = useToast();
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
-  const since = state.since ? new Date(state.since).toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'ca' ? 'ca-ES' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const fecha = (iso: string) => iso ? new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'ca' ? 'ca-ES' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const since = fecha(state.since);
+  const hasta = fecha(state.expiresAt);
+  const caducada = state.status === 'caducada';
+
+  async function recheck() {
+    const bridge = licenseBridge();
+    if (!bridge) return;
+    setBusy(true);
+    const r = await bridge.recheck();
+    setBusy(false);
+    onChange(r.state);
+    if (!r.ok) toast(t('Para comprobar la licencia hace falta internet. Conéctate y vuelve a probar.'));
+    else if (r.state.status === 'caducada') toast(t('La licencia sigue caducada. Renuévala en aulapro.app.'));
+    else toast(t('✅ Licencia renovada'));
+  }
 
   async function deactivate() {
     const bridge = licenseBridge();
@@ -38,12 +54,34 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
 
   return (
     <div className="card lic-card">
-      <div className="lic-badge ok"><BadgeCheck size={15} />{t('Licencia activa')}</div>
+      {caducada
+        ? <div className="lic-badge caducada"><CalendarClock size={15} />{t('Licencia caducada')}</div>
+        : <div className="lic-badge ok"><BadgeCheck size={15} />{t('Licencia activa')}</div>}
       <div className="lic-row">
         <KeyRound size={16} color="var(--accent-d)" />
         <span className="lic-key">{state.keyHint}</span>
         {since && <span className="lic-card-meta">· {t('activada el {d}', { d: since })}</span>}
       </div>
+      {hasta && (
+        <p className="lic-card-meta">
+          {caducada ? t('Caducó el {d}', { d: hasta }) : t('Licencia anual, válida hasta el {d}', { d: hasta })}
+        </p>
+      )}
+      {caducada && (
+        <>
+          <p className="lic-card-txt">
+            {t('Puedes abrir y revisar todo lo que ya creaste, y exportarlo, pero no añadir ni cambiar nada. Tus datos no se borran nunca. Al renovar, todo vuelve a la normalidad.')}
+          </p>
+          <p className="lic-card-txt">
+            {isAndroidApp() || !state.buyUrl
+              ? t('Renueva tu licencia en aulapro.app')
+              : <a href={state.buyUrl} target="_blank" rel="noreferrer">{t('Renovar en aulapro.app')}</a>}
+          </p>
+          <button type="button" className="btn-accent" onClick={recheck} disabled={busy}>
+            {busy ? <span className="spin" /> : <RefreshCw size={14} />}&nbsp;{t('Volver a comprobar')}
+          </button>
+        </>
+      )}
       <p className="lic-card-txt">
         {t('Si cambias de dispositivo, desactiva la licencia aquí antes y actívala en el nuevo con la misma clave: así no gastas una activación.')}
       </p>

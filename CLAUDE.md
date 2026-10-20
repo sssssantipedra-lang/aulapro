@@ -122,7 +122,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - Lanzamiento: **10 de noviembre de 2026** (decisión del dueño). Ese día `ENFORCED = true` y `FOUNDER_CUTOFF = '2026-11-10'` en `electron/license.cjs` y `src/platform/androidLicense.ts` (iguales en los dos).
 - Modo de prueba sin licencia (hecho): la pantalla de activación deja entrar con datos de ejemplo (`src/lib/modoPrueba.ts`, `src/pages/PruebaInicio.tsx`); ver `docs/WEB.md`, apartado 3, punto 6.
-- Licencia anual caducada (decisión del dueño): **no se puede hacer nada, solo revisar lo que ya estaba creado**; los datos nunca se bloquean ni se borran.
+- Licencia anual (hecha): caducada (pasada la fecha + 3 días de cortesía, o `expired` de la tienda) = **solo se puede revisar y exportar lo ya creado, no cambiar nada** (decisión del dueño); los datos nunca se bloquean ni se borran. `lib/licencia.ts`, `useAppState({ soloLectura })` deshace los cambios, franja de aviso en `App.tsx`. Detalle en `docs/WEB.md`, apartado 3, punto 13. Pendiente: probarla con una suscripción real de Lemon Squeezy antes del 16-4-2027.
 
 ## Publicar
 

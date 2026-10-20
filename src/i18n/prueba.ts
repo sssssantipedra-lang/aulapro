@@ -1,5 +1,6 @@
 /**
- * Textos del modo de prueba sin licencia (`pages/PruebaInicio.tsx`, `lib/modoPrueba.ts`).
+ * Textos del modo de prueba sin licencia (`pages/PruebaInicio.tsx`, `lib/modoPrueba.ts`) y de la licencia
+ * anual: caducada en solo lectura y aviso previo (`lib/licencia.ts`, `components/LicenseSettings.tsx`).
  * Se suman a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const PRUEBA_EN: Record<string, string> = {
@@ -13,6 +14,21 @@ export const PRUEBA_EN: Record<string, string> = {
   "Ya tengo una clave de licencia": "I already have a licence key",
   "Modo de prueba · datos de ejemplo": "Trial mode · sample data",
   "Activar licencia": "Activate licence",
+  "Licencia caducada: puedes revisar lo que ya creaste, pero no modificarlo.": "Licence expired: you can review what you already created, but not change it.",
+  "Renovar en aulapro.app": "Renew at aulapro.app",
+  "Renueva tu licencia en aulapro.app": "Renew your licence at aulapro.app",
+  "Para comprobar la licencia hace falta internet. Conéctate y vuelve a probar.": "Checking the licence needs an internet connection. Connect and try again.",
+  "La licencia sigue caducada. Renuévala en aulapro.app.": "The licence is still expired. Renew it at aulapro.app.",
+  "✅ Licencia renovada": "✅ Licence renewed",
+  "Tu licencia anual caduca mañana.": "Your annual licence expires tomorrow.",
+  "Tu licencia anual caduca en {n} días.": "Your annual licence expires in {n} days.",
+  "Si tienes la renovación activada, no tienes que hacer nada.": "If automatic renewal is on, you don't have to do anything.",
+  "Entendido": "Got it",
+  "Licencia caducada": "Licence expired",
+  "Caducó el {d}": "Expired on {d}",
+  "Licencia anual, válida hasta el {d}": "Annual licence, valid until {d}",
+  "Puedes abrir y revisar todo lo que ya creaste, y exportarlo, pero no añadir ni cambiar nada. Tus datos no se borran nunca. Al renovar, todo vuelve a la normalidad.": "You can open and review everything you already created, and export it, but not add or change anything. Your data is never deleted. Once you renew, everything goes back to normal.",
+  "La suscripción de esta clave ha caducado. Renuévala en aulapro.app y vuelve a probar.": "This key's subscription has expired. Renew it at aulapro.app and try again.",
 };
 
 export const PRUEBA_CA: Record<string, string> = {
@@ -26,4 +42,19 @@ export const PRUEBA_CA: Record<string, string> = {
   "Ya tengo una clave de licencia": "Ja tinc una clau de llicència",
   "Modo de prueba · datos de ejemplo": "Mode de prova · dades d'exemple",
   "Activar licencia": "Activa la llicència",
+  "Licencia caducada: puedes revisar lo que ya creaste, pero no modificarlo.": "Llicència caducada: pots revisar el que ja vas crear, però no modificar-ho.",
+  "Renovar en aulapro.app": "Renovar a aulapro.app",
+  "Renueva tu licencia en aulapro.app": "Renova la llicència a aulapro.app",
+  "Para comprobar la licencia hace falta internet. Conéctate y vuelve a probar.": "Per comprovar la llicència cal internet. Connecta't i torna-ho a provar.",
+  "La licencia sigue caducada. Renuévala en aulapro.app.": "La llicència continua caducada. Renova-la a aulapro.app.",
+  "✅ Licencia renovada": "✅ Llicència renovada",
+  "Tu licencia anual caduca mañana.": "La teua llicència anual caduca demà.",
+  "Tu licencia anual caduca en {n} días.": "La teua llicència anual caduca d'ací a {n} dies.",
+  "Si tienes la renovación activada, no tienes que hacer nada.": "Si tens la renovació activada, no cal que facis res.",
+  "Entendido": "Entés",
+  "Licencia caducada": "Llicència caducada",
+  "Caducó el {d}": "Va caducar el {d}",
+  "Licencia anual, válida hasta el {d}": "Llicència anual, vàlida fins al {d}",
+  "Puedes abrir y revisar todo lo que ya creaste, y exportarlo, pero no añadir ni cambiar nada. Tus datos no se borran nunca. Al renovar, todo vuelve a la normalidad.": "Pots obrir i revisar tot el que ja vas crear, i exportar-ho, però no afegir ni canviar res. Les teues dades no s'esborren mai. En renovar, tot torna a la normalitat.",
+  "La suscripción de esta clave ha caducado. Renuévala en aulapro.app y vuelve a probar.": "La subscripció d'aquesta clau ha caducat. Renova-la a aulapro.app i torna-ho a provar.",
 };
