@@ -351,13 +351,19 @@ que se llama así). Cada clase tiene su propia columna en su cuaderno (la de la
 primera conserva la de siempre). Al evaluar solo salen las clases de la rúbrica,
 y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que ya
 tenía.
+DESCARGAR EN PDF: el icono de PDF de cada tarjeta guarda la rúbrica en blanco, en
+horizontal, con sus niveles y descriptores y las líneas de alumno, clase, fecha y
+nota, para imprimirla y evaluar en papel (en Android, en Documentos › AulaPro ›
+Cuaderno; en el navegador abre la ventana de imprimir).
 
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
 dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
 evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
-nota entra en el cuaderno si declara clase y categoría.
+nota entra en el cuaderno si declara clase y categoría. El icono de PDF de cada
+tarjeta guarda la diana en blanco (un sector numerado por ítem, un anillo por
+nivel, y la leyenda con los ítems y sus descriptores) para imprimirla.
 
 [registros] ESCALAS DE REGISTRO
 Un instrumento rápido, en su pestaña de Evaluar: se elige un concepto concreto (o
@@ -371,7 +377,9 @@ una evaluación por alumno. La nota sobre 10 es la proporción de pulgares arrib
 entre los conceptos valorados (todo bien hecho, un 10; la mitad, un 5) y, si la
 escala declara clase y categoría, entra sola en el cuaderno. Las valoraciones salen
 en el Historial. Las escalas se pueden duplicar, editar y eliminar. No sirven para
-las autoevaluaciones con el móvil: son del docente. También se pueden crear y
+las autoevaluaciones con el móvil: son del docente. El icono de PDF de cada escala
+guarda una hoja por clase, con su alumnado por orden alfabético (o filas en
+blanco si no tiene clase) y los dos pulgares por concepto, para valorar en papel. También se pueden crear y
 adjuntar desde una sesión de Educación Física.
 
 [evalfoto] EVALUAR POR FOTO

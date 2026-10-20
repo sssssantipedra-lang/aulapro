@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy } from 'lucide-react';
+import { Plus, Pencil, Trash2, Target, X, Sparkles, ClipboardCheck, Copy, FileDown } from 'lucide-react';
 import type { EvalDiana, DianaItem, Evaluation, Class, Student, GradeCategory, GradeTarget } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
+import { buildDianaHtml, guardarInstrumentoPdf, nombresDeClases } from '../services/exportInstrumento';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { competenciasClaveValidas, isoDate, newId } from '../lib/utils';
@@ -657,7 +658,7 @@ export function DianasTab({
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation, comunidad,
 }: Props) {
   const { toast } = useToast();
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing]     = useState<EvalDiana | null>(null);
   // Una diana que se cerró o se quedó a medias: se ofrece continuarla
@@ -685,6 +686,13 @@ export function DianasTab({
    * Es la forma de reutilizar los mismos ítems en otro trimestre sin que la
    * evaluación nueva sobrescriba la anterior.
    */
+  /** La diana en blanco, para imprimirla y evaluar en papel. */
+  async function descargarPdf(d: EvalDiana) {
+    const res = await guardarInstrumentoPdf(buildDianaHtml(d, nombresDeClases(d, classes), lang), d.name, 'diana');
+    if (res.error) toast(t('No se pudo generar el PDF: {error}', { error: res.error }));
+    else if (!res.canceled && window.electronAPI?.docs) toast(t('✅ PDF guardado'));
+  }
+
   function duplicate(d: EvalDiana) {
     onAddDiana({
       ...d,
@@ -739,6 +747,7 @@ export function DianasTab({
                   </div>
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
                     <button className="ico-btn" onClick={() => openEdit(d)} title={t('Editar diana')}><Pencil size={14} /></button>
+                    <button className="ico-btn" onClick={() => descargarPdf(d)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: d.name })}><FileDown size={14} /></button>
                     <button className="ico-btn" onClick={() => duplicate(d)} title={t('Duplicar diana')}><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setConfirmDelete(d.id)} title={t('Eliminar diana')}><Trash2 size={14} color="var(--danger)" /></button>
                   </div>

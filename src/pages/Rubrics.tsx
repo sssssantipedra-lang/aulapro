@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search,
+  Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search, FileDown,
 } from 'lucide-react';
 import type { Rubric, RubricCriterion, Evaluation, Class, Student, EvalDiana, GradeCategory, GradeTarget, OfficialCriterionRef } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
+import { buildRubricaHtml, guardarInstrumentoPdf, nombresDeClases } from '../services/exportInstrumento';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { competenciasClaveValidas, fileToBase64, isoDate, newId } from '../lib/utils';
@@ -1009,7 +1010,7 @@ export function Rubrics({
   onEvalOpened, comunidad, vista = 'rubrics',
 }: Props) {
   const { toast } = useToast();
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const [query, setQuery] = useState('');
   const q = query.trim().toLocaleLowerCase('es');
   const visibleRubrics = q
@@ -1089,6 +1090,13 @@ export function Rubrics({
    * Es la forma de reutilizar los mismos criterios en otro trimestre sin que
    * la evaluación nueva sobrescriba la anterior.
    */
+  /** La rúbrica en blanco, para imprimirla y evaluar en papel. */
+  async function descargarPdf(r: Rubric) {
+    const res = await guardarInstrumentoPdf(buildRubricaHtml(r, nombresDeClases(r, classes), lang), r.name, 'rubrica');
+    if (res.error) toast(t('No se pudo generar el PDF: {error}', { error: res.error }));
+    else if (!res.canceled && window.electronAPI?.docs) toast(t('✅ PDF guardado'));
+  }
+
   function duplicateRubric(r: Rubric) {
     onAddRubric({
       ...r,
@@ -1193,6 +1201,9 @@ export function Rubrics({
                   <div style={{ display: 'flex', gap: 2, marginLeft: 8, flexShrink: 0 }}>
                     <button className="ico-btn" onClick={() => openEditRubric(r)} title={t('Editar rúbrica')}>
                       <Pencil size={14} />
+                    </button>
+                    <button className="ico-btn" onClick={() => descargarPdf(r)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: r.name })}>
+                      <FileDown size={14} />
                     </button>
                     <button className="ico-btn" onClick={() => duplicateRubric(r)} title={t('Duplicar rúbrica')}>
                       <Copy size={14} />

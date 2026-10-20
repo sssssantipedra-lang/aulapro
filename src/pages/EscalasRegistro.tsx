@@ -7,11 +7,12 @@
  * Ver `lib/registro.ts`.
  */
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown, FileDown } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, GradeCategory, GradeTarget, Student } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { Modal } from '../components/ui/Modal';
 import { ValorarRegistro } from '../components/ValorarRegistro';
+import { buildRegistroHtml, gruposRegistro, guardarInstrumentoPdf, registroApaisado } from '../services/exportInstrumento';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { clasesDe, conObjetivos } from '../lib/objetivos';
@@ -34,7 +35,7 @@ const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(3
 export function EscalasRegistro({
   dianas, evaluations, classes, students, gradeCategories, onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
 }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { toast } = useToast();
   const escalas = useMemo(() => dianas.filter(esRegistro), [dianas]);
 
@@ -58,6 +59,13 @@ export function EscalasRegistro({
     if (esNueva) { onAddDiana(e); toast(t('✅ Escala de registro creada')); }
     else { onUpdateDiana(e); toast(t('✅ Escala actualizada')); }
     setEditando(null);
+  }
+
+  /** La escala en blanco, una hoja por clase con su alumnado, para valorar en papel. */
+  async function descargarPdf(d: EvalDiana) {
+    const res = await guardarInstrumentoPdf(buildRegistroHtml(d, gruposRegistro(d, classes, students), lang), d.name, 'registro', registroApaisado(d));
+    if (res.error) toast(t('No se pudo generar el PDF: {error}', { error: res.error }));
+    else if (!res.canceled && window.electronAPI?.docs) toast(t('✅ PDF guardado'));
   }
 
   function duplicar(d: EvalDiana) {
@@ -98,6 +106,7 @@ export function EscalasRegistro({
                   <strong>{d.name}</strong>
                   <span className="reg-card-acc">
                     <button className="ico-btn" onClick={() => { setEsNueva(false); setEditando(d); }} title={t('Editar')} aria-label={t('Editar «{nombre}»', { nombre: d.name })}><Pencil size={14} /></button>
+                    <button className="ico-btn" onClick={() => descargarPdf(d)} title={t('Descargar en PDF')} aria-label={t('Descargar «{nombre}» en PDF', { nombre: d.name })}><FileDown size={14} /></button>
                     <button className="ico-btn" onClick={() => duplicar(d)} title={t('Duplicar')} aria-label={t('Duplicar «{nombre}»', { nombre: d.name })}><Copy size={14} /></button>
                     <button className="ico-btn" onClick={() => setABorrar(d)} title={t('Eliminar')} aria-label={t('Eliminar «{nombre}»', { nombre: d.name })}><Trash2 size={14} color="var(--danger)" /></button>
                   </span>

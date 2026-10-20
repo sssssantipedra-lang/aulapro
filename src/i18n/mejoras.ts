@@ -71,6 +71,11 @@ export const MEJORAS_EN: Record<string, string> = {
   // Varias clases, escalas de registro y sesiones de EF con instrumento y circuito (19-10-2026)
   'Clases donde se usa': 'Classes where it is used',
   'Ver por': 'View by',
+  'Descargar en PDF': 'Download as PDF',
+  'Descargar «{nombre}» en PDF': 'Download “{nombre}” as PDF',
+  'Del centro hacia fuera, de peor a mejor nivel': 'From the centre outwards, from lowest to highest level',
+  'Rellena de dentro hacia fuera hasta el nivel logrado en cada sector.': 'Fill in from the inside out up to the level reached in each sector.',
+  'Marca 👍 (bien hecho) o 👎 (mejorable) en cada concepto.': 'Mark 👍 (well done) or 👎 (needs work) for each concept.',
   'Todas las sesiones de este curso están completadas.': 'All the sessions for this year are completed.',
   '{hechos} de {total} alumnos valorados': '{hechos} of {total} students assessed',
   'Sin clase concreta. Marca una o varias.': 'No specific class. Select one or more.',
@@ -226,6 +231,11 @@ export const MEJORAS_CA: Record<string, string> = {
   // Varias clases, escalas de registro y sesiones de EF con instrumento y circuito (19-10-2026)
   'Clases donde se usa': 'Classes on s\'utilitza',
   'Ver por': 'Veure per',
+  'Descargar en PDF': 'Descarregar en PDF',
+  'Descargar «{nombre}» en PDF': 'Descarregar «{nombre}» en PDF',
+  'Del centro hacia fuera, de peor a mejor nivel': 'Del centre cap a fora, de pitjor a millor nivell',
+  'Rellena de dentro hacia fuera hasta el nivel logrado en cada sector.': 'Omple de dins cap a fora fins al nivell assolit en cada sector.',
+  'Marca 👍 (bien hecho) o 👎 (mejorable) en cada concepto.': 'Marca 👍 (ben fet) o 👎 (millorable) en cada concepte.',
   'Todas las sesiones de este curso están completadas.': 'Totes les sessions d\'aquest curs estan completades.',
   '{hechos} de {total} alumnos valorados': '{hechos} de {total} alumnes valorats',
   'Sin clase concreta. Marca una o varias.': 'Sense classe concreta. Marca\'n una o diverses.',
