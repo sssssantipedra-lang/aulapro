@@ -351,13 +351,19 @@ que se llama así). Cada clase tiene su propia columna en su cuaderno (la de la
 primera conserva la de siempre). Al evaluar solo salen las clases de la rúbrica,
 y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que ya
 tenía.
+DESCARGAR EN PDF: el icono de PDF de cada tarjeta guarda la rúbrica en blanco, en
+horizontal, con sus niveles y descriptores y las líneas de alumno, clase, fecha y
+nota, para imprimirla y evaluar en papel (en Android, en Documentos › AulaPro ›
+Cuaderno; en el navegador abre la ventana de imprimir).
 
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
 dentro de Rúbricas). Una diana tiene ítems con peso y niveles de logro, y se
 evalúa marcando el nivel de cada ítem sobre la diana. Se crea a mano o con la
 IA y, como las rúbricas, lleva competencias clave y criterios oficiales, y su
-nota entra en el cuaderno si declara clase y categoría.
+nota entra en el cuaderno si declara clase y categoría. El icono de PDF de cada
+tarjeta guarda la diana en blanco (un sector numerado por ítem, un anillo por
+nivel, y la leyenda con los ítems y sus descriptores) para imprimirla.
 
 [registros] ESCALAS DE REGISTRO
 Un instrumento rápido, en su pestaña de Evaluar: se elige un concepto concreto (o
@@ -371,7 +377,9 @@ una evaluación por alumno. La nota sobre 10 es la proporción de pulgares arrib
 entre los conceptos valorados (todo bien hecho, un 10; la mitad, un 5) y, si la
 escala declara clase y categoría, entra sola en el cuaderno. Las valoraciones salen
 en el Historial. Las escalas se pueden duplicar, editar y eliminar. No sirven para
-las autoevaluaciones con el móvil: son del docente. También se pueden crear y
+las autoevaluaciones con el móvil: son del docente. El icono de PDF de cada escala
+guarda una hoja por clase, con su alumnado por orden alfabético (o filas en
+blanco si no tiene clase) y los dos pulgares por concepto, para valorar en papel. También se pueden crear y
 adjuntar desde una sesión de Educación Física.
 
 [evalfoto] EVALUAR POR FOTO
@@ -460,8 +468,14 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   idea. Cada bloque se pliega pulsando su cabecera; la app recuerda la
   agrupación y los bloques plegados.
 - CREAR: formulario en dos pasos: «La idea» (qué se quiere trabajar) y «Para
-  quién» (clase, nivel, etapa y curso del currículo oficial, áreas, nº de
-  sesiones y temporalización). Si la clase ya tiene etapa y curso, no se
+  quién» (clases, nivel, etapa y curso del currículo oficial, áreas, nº de
+  sesiones y temporalización). Las CLASES se marcan como fichas y se pueden
+  marcar varias: la misma situación sirve a todas (el nivel y las áreas salen
+  de la primera, y la SdA sale en el bloque de cada clase). Si alguna clase tiene
+  alumnado con avisos, sale la casilla «Tener en cuenta las barreras de
+  aprendizaje del alumnado»: sin marcar, no se envía nada; marcada, a la IA le
+  llegan solo los avisos, sin nombres (se ven en pantalla) y la SdA concreta
+  una medida de inclusión para cada barrera. Si la clase ya tiene etapa y curso, no se
   preguntan: sale un resumen con el decreto que se usará y «Cambiar en la
   clase». Si no los tiene, se eligen aquí y se guardan en la clase al generar.
   Un área sin materia oficial clara pregunta cuál es, y la respuesta se
@@ -808,7 +822,8 @@ medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
-«Próximas» y «Sin fecha». «Cómo se evalúa»: se adjunta un instrumento que ya existe
+«Próximas» y «Sin fecha», o, con «Ver por → Curso», AGRUPADAS POR CURSO (un bloque
+plegable por curso, con las clases dentro). «Cómo se evalúa»: se adjunta un instrumento que ya existe
 (rúbrica, diana o escala de registro), se crea una escala de registro ahí mismo
 (con la clase de la sesión) o se va a crear una rúbrica o una diana (la sesión se
 queda como borrador y se retoma con «Continuar»); «Evaluar» abre la valoración de la

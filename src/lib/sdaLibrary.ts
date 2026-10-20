@@ -55,13 +55,19 @@ export function groupSituations(
   if (by === 'class') {
     const groups = new Map<string, SdaGroup>();
     for (const sda of list) {
-      const cls = classes.find(c => c.id === sda.class_id);
-      // La clase puede haberse borrado: entonces se agrupa por el nombre que guardó la SdA
-      const key = cls?.id ?? (sda.class_name ? `name:${sda.class_name}` : '');
-      if (!groups.has(key)) {
-        groups.set(key, { key: key || 'none', label: cls?.name ?? sda.class_name ?? labels.noClass, color: cls?.color, items: [] });
+      // Una SdA para varias clases sale en el grupo de cada una, diciendo con cuáles lo comparte
+      const ids = [sda.class_id, ...(sda.otras_clases ?? [])].filter((x): x is string => !!x);
+      const claves = ids.length > 1 ? ids : [sda.class_id];
+      const nombres = ids.map(id => classes.find(c => c.id === id)?.name).filter((x): x is string => !!x);
+      for (const id of claves) {
+        const cls = classes.find(c => c.id === id);
+        // La clase puede haberse borrado: entonces se agrupa por el nombre que guardó la SdA
+        const key = cls?.id ?? (sda.class_name ? `name:${sda.class_name}` : '');
+        if (!groups.has(key)) {
+          groups.set(key, { key: key || 'none', label: cls?.name ?? sda.class_name ?? labels.noClass, color: cls?.color, items: [] });
+        }
+        groups.get(key)!.items.push({ sda, sharedWith: nombres.filter(n => n !== cls?.name) });
       }
-      groups.get(key)!.items.push({ sda, sharedWith: [] });
     }
     const order = (g: SdaGroup) => {
       if (g.key === 'none') return Number.MAX_SAFE_INTEGER;

@@ -2327,3 +2327,9 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-ses-circuito { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
 .ef-ses-circuito img { width:260px; max-width:100%; border:1px solid var(--border); border-radius:10px; background:#f8fafc; }
 .ef-ses-circuito-acc { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.sda-barreras-lista { margin:0 0 6px; padding:8px 12px 8px 28px; border-radius:10px; background:var(--surface); border:1px dashed var(--border); font-size:12.5px; line-height:1.5; color:var(--text-2); }
+.ef-vista { margin:0 0 12px; display:flex; align-items:center; gap:10px; }
+.ef-curso .sda-group-hd { margin-bottom:10px; }
+.ef-curso-clase { margin-top:10px; }
+.ef-curso-clase-ttl { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:var(--text-2); margin-bottom:6px; }
+.ef-atrasada { background:color-mix(in srgb, var(--warn) 16%, var(--card)); color:var(--warn); }

@@ -7,7 +7,7 @@
  * sin nombre ni motivo. Se revisan, se guardan y se imprimen. Ver `docs/EF.md`.
  */
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2 } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, ChevronDown } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { CopiarAClases } from '../../components/CopiarAClases';
 import { clonarSesionEF } from '../../lib/clonar';
@@ -32,6 +32,7 @@ import type { Class, EvalDiana, Evaluation, Rubric, ScheduleBlock, Student } fro
 import { SesionEvaluacionCircuito } from '../../components/ef/SesionEvaluacionCircuito';
 import { describirInstrumento, ETIQUETA_INSTRUMENTO } from '../../lib/instrumentosSesion';
 import { pizarraSvg } from '../../lib/pizarraEF';
+import { agruparSesionesPorCurso } from '../../lib/sesionesPorCurso';
 import type { EfData, InstrumentoRefEF, ModalidadEF, SesionEF } from '../../types/ef';
 import type { InlineFile } from '../../services/gemini';
 import { ValorarRegistro } from '../../components/ValorarRegistro';
@@ -53,6 +54,8 @@ interface Props {
   lawDocument?: InlineFile | null;
   onAddEvaluation?: (ev: Evaluation) => void;
 }
+
+const VISTA_KEY = 'aulapro_ef_sesiones_vista';
 
 const EvalRubricaModal = lazy(() => import('../Rubrics').then(m => ({ default: m.EvalModal })));
 const EvalDianaModal = lazy(() => import('../EvalDianas').then(m => ({ default: m.DianaEvalModal })));
@@ -88,6 +91,15 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean; modalidad: ModalidadEF | '' } | null>(null);
   const [pensando, setPensando] = useState(false);
   const [verCompletadas, setVerCompletadas] = useState(false);
+  /** Cómo se ven las sesiones: por fecha (como siempre) o agrupadas por curso. Se recuerda en este dispositivo. */
+  const [vista, setVistaState] = useState<'fecha' | 'curso'>(() => {
+    try { return localStorage.getItem(VISTA_KEY) === 'curso' ? 'curso' : 'fecha'; } catch { return 'fecha'; }
+  });
+  const [plegados, setPlegados] = useState<Set<string>>(new Set());
+  function setVista(v: 'fecha' | 'curso') {
+    setVistaState(v);
+    try { localStorage.setItem(VISTA_KEY, v); } catch { /* solo esta sesión */ }
+  }
   /** Copiar sesiones a otras clases: de qué clase, cuáles y si se conserva la fecha. */
   const [copiando, setCopiando] = useState<{ origenId: string; ids: string[]; conFecha: boolean } | null>(null);
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
@@ -126,6 +138,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const atrasadas = ordenadas.filter(s => !s.completada && s.fecha && s.fecha < hoy);
   const completadas = ordenadas.filter(s => s.completada).reverse();
   const hechas = completadas.length;
+  const porCurso = useMemo(() => agruparSesionesPorCurso(ordenadas, classes), [ordenadas, classes]);
   const nombreClase = (id?: string) => classes.find(c => c.id === id)?.name ?? '';
   const nombreInst = (id?: string) => ef.instalaciones.find(i => i.id === id)?.nombre ?? '';
   const dia = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
@@ -259,6 +272,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
           <span className="ap-meta">
             {s.claseId && <span>{nombreClase(s.claseId)}</span>}
             {s.fecha && <span className="ap-hora"><CalendarDays size={12} aria-hidden="true" />{dia(s.fecha)}</span>}
+            {vista === 'curso' && !s.completada && s.fecha && s.fecha < hoy && <span className="sda-chip ef-atrasada">{t('Por completar')}</span>}
             {s.instalacionId && <span className="ap-hora"><MapPin size={12} aria-hidden="true" />{nombreInst(s.instalacionId)}</span>}
             {s.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === s.modalidad)!.label)}</span>}
             {s.ia && <span className="sda-chip ef-origen-ia">{t('Con IA')}</span>}
@@ -303,6 +317,55 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         </div>
       )}
 
+      {ef.sesiones.length > 0 && (
+        <div className="toolbar-row ef-vista">
+          <span className="toolbar-label" id="ef-vista-label">{t('Ver por')}</span>
+          <div className="chip-row" role="group" aria-labelledby="ef-vista-label">
+            {([['fecha', t('Fecha')], ['curso', t('Curso')]] as const).map(([id, label]) => (
+              <button key={id} type="button" className={`chip sm${vista === id ? ' on' : ''}`} aria-pressed={vista === id} onClick={() => setVista(id)}>{label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {vista === 'curso' && ef.sesiones.length > 0 ? (
+        <>
+          {porCurso.map(g => {
+            const visibles = g.sesiones.filter(x => verCompletadas || !x.completada);
+            const hechasG = g.sesiones.filter(x => x.completada).length;
+            const plegado = plegados.has(g.key);
+            const titulo = g.etapa && g.curso ? nombreCurso({ etapa: g.etapa, curso: g.curso }) : t(g.key === 'sin-clase' ? 'Sin clase' : 'Otras clases');
+            return (
+              <section key={g.key} className="card ef-curso">
+                <button type="button" className="sda-group-hd" aria-expanded={!plegado}
+                  onClick={() => setPlegados(prev => { const n = new Set(prev); if (n.has(g.key)) n.delete(g.key); else n.add(g.key); return n; })}>
+                  <ChevronDown size={16} style={{ transform: plegado ? 'rotate(-90deg)' : 'none' }} aria-hidden="true" />
+                  <span className="sda-group-name">{titulo}</span>
+                  <span className="sda-count">{g.sesiones.length}</span>
+                  {hechasG > 0 && <span className="ap-sub" style={{ marginLeft: 'auto' }}>{t('{hechas} de {total} sesiones completadas', { hechas: hechasG, total: g.sesiones.length })}</span>}
+                </button>
+                {!plegado && (g.clases.length > 1 ? g.clases.map(c => {
+                  const deClase = visibles.filter(x => x.claseId === c.id);
+                  return deClase.length > 0 && (
+                    <div key={c.id} className="ef-curso-clase">
+                      <div className="ef-curso-clase-ttl"><span className="sda-group-dot" style={{ background: c.color }} />{c.name}</div>
+                      <ul className="ap-lista ef-sesiones">{deClase.map(fila)}</ul>
+                    </div>
+                  );
+                }) : (visibles.length > 0
+                  ? <ul className="ap-lista ef-sesiones">{visibles.map(fila)}</ul>
+                  : <p className="ap-vacio">{t('Todas las sesiones de este curso están completadas.')}</p>))}
+              </section>
+            );
+          })}
+          {completadas.length > 0 && (
+            <button type="button" className="home-link" style={{ marginTop: 14 }} onClick={() => setVerCompletadas(v => !v)} aria-expanded={verCompletadas}>
+              {verCompletadas ? t('Ocultar las completadas') : t('Ver las completadas ({n})', { n: completadas.length })}
+            </button>
+          )}
+        </>
+      ) : (
+        <>
       {atrasadas.length > 0 && (
         <div className="card ef-atrasadas">
           <div className="home-card-ttl" style={{ marginBottom: 4 }}>{t('Por completar')}</div>
@@ -328,6 +391,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         </button>
       )}
       {verCompletadas && completadas.length > 0 && <div className="card"><ul className="ap-lista ef-sesiones">{completadas.map(fila)}</ul></div>}
+        </>
+      )}
 
       <CopiarAClases
         open={!!copiando} onClose={() => setCopiando(null)} titulo={t('Copiar sesiones a otras clases')}

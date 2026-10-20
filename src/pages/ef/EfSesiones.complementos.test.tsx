@@ -155,4 +155,19 @@ describe('Sesiones de EF · evaluación y circuito', () => {
     await waitFor(() => expect(screen.getByText('Haz clic en el nivel para cada criterio')).toBeTruthy());
     expect(onNav).not.toHaveBeenCalled();
   });
+
+  it('las sesiones se pueden ver agrupadas por curso, y se recuerda', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    expect(screen.queryByRole('button', { name: /Primaria|ESO/, expanded: true })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Curso' }));
+    expect(screen.getByRole('button', { name: 'Curso' }).getAttribute('aria-pressed')).toBe('true');
+    const cursos = screen.getAllByRole('button', { expanded: true }).filter(b => b.classList.contains('sda-group-hd'));
+    expect(cursos.length).toBeGreaterThan(0);
+    expect(cursos[0].textContent).toMatch(/Primaria|ESO|Otras clases|Sin clase/);
+    // Se pliega
+    await user.click(cursos[0]);
+    expect(cursos[0].getAttribute('aria-expanded')).toBe('false');
+    expect(localStorage.getItem('aulapro_ef_sesiones_vista')).toBe('curso');
+  });
 });

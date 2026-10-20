@@ -657,6 +657,7 @@ function AppInner() {
                 key={section}
                 ef={efSda}
                 classes={st.classes}
+                students={st.students}
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}
                 comunidad={st.currentUser?.community}
