@@ -460,8 +460,14 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   idea. Cada bloque se pliega pulsando su cabecera; la app recuerda la
   agrupación y los bloques plegados.
 - CREAR: formulario en dos pasos: «La idea» (qué se quiere trabajar) y «Para
-  quién» (clase, nivel, etapa y curso del currículo oficial, áreas, nº de
-  sesiones y temporalización). Si la clase ya tiene etapa y curso, no se
+  quién» (clases, nivel, etapa y curso del currículo oficial, áreas, nº de
+  sesiones y temporalización). Las CLASES se marcan como fichas y se pueden
+  marcar varias: la misma situación sirve a todas (el nivel y las áreas salen
+  de la primera, y la SdA sale en el bloque de cada clase). Si alguna clase tiene
+  alumnado con avisos, sale la casilla «Tener en cuenta las barreras de
+  aprendizaje del alumnado»: sin marcar, no se envía nada; marcada, a la IA le
+  llegan solo los avisos, sin nombres (se ven en pantalla) y la SdA concreta
+  una medida de inclusión para cada barrera. Si la clase ya tiene etapa y curso, no se
   preguntan: sale un resumen con el decreto que se usará y «Cambiar en la
   clase». Si no los tiene, se eligen aquí y se guardan en la clase al generar.
   Un área sin materia oficial clara pregunta cuál es, y la respuesta se
@@ -808,7 +814,8 @@ medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
-«Próximas» y «Sin fecha». «Cómo se evalúa»: se adjunta un instrumento que ya existe
+«Próximas» y «Sin fecha», o, con «Ver por → Curso», AGRUPADAS POR CURSO (un bloque
+plegable por curso, con las clases dentro). «Cómo se evalúa»: se adjunta un instrumento que ya existe
 (rúbrica, diana o escala de registro), se crea una escala de registro ahí mismo
 (con la clase de la sesión) o se va a crear una rúbrica o una diana (la sesión se
 queda como borrador y se retoma con «Continuar»); «Evaluar» abre la valoración de la

@@ -4,7 +4,7 @@ import {
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
   RefreshCw, Lightbulb, Search, Frame, Copy, Circle, CheckCircle2,
 } from 'lucide-react';
-import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef } from '../types';
+import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef, Student } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
@@ -36,6 +36,7 @@ import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 import { requestSettingsPanel } from '../lib/settingsNav';
+import { alumnosConBarreras, barrerasDeClases } from '../lib/barreras';
 import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { MomentosDeSesion } from '../components/MomentosDeSesion';
@@ -49,6 +50,8 @@ const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
 interface Props {
   classes: Class[];
+  /** Para las barreras de aprendizaje del alumnado de la clase, si el docente quiere tenerlas en cuenta. */
+  students?: Student[];
   gradeCategories: GradeCategory[];
   learningSituations: LearningSituation[];
   /** Comunidad del perfil: de ella sale el currículo oficial. */
@@ -180,7 +183,7 @@ function conCriteriosOficiales(sda: SdaContent, marcados: string[] | undefined):
 interface BorradorSda {
   content: SdaContent;
   editingId: string | null;
-  classId: string; idea: string; numero: string; temporalizacion: string; meses: string; areas: string[];
+  classId: string; otrasClases?: string[]; conBarreras?: boolean; idea: string; numero: string; temporalizacion: string; meses: string; areas: string[];
   numSesiones: number; nivel: string; etapa: Etapa | ''; curso: number | '';
   opcionMatematicas: 'A' | 'B'; materias: Record<string, string | null>;
   contextoClase: string; metodologia: string; efModelo: string; efModalidad: ModalidadEF | ''; efMinutos: string;
@@ -188,7 +191,7 @@ interface BorradorSda {
 }
 
 export function LearningSituations({
-  classes, gradeCategories, learningSituations, comunidad, onUpdateClass,
+  classes, students = [], gradeCategories, learningSituations, comunidad, onUpdateClass,
   onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef,
 }: Props) {
   const { toast } = useToast();
@@ -196,6 +199,10 @@ export function LearningSituations({
 
   /* ── Formulario ── */
   const [classId, setClassId] = useState('');
+  /** Otras clases para las que sirve la misma SdA: `classId` es la principal y de ella salen el nivel y las áreas. */
+  const [otrasClases, setOtrasClases] = useState<string[]>([]);
+  /** Tener en cuenta las barreras de aprendizaje del alumnado de las clases elegidas. */
+  const [conBarreras, setConBarreras] = useState(false);
   const [idea, setIdea] = useState('');
   const [numero, setNumero] = useState('1');
   const [temporalizacion, setTemporalizacion] = useState('');
@@ -296,7 +303,11 @@ export function LearningSituations({
   const classSubjects = activeClass ? (activeClass.subjects ?? [activeClass.subject]).filter(Boolean) : [];
   /** Una SdA de EF: el perfil es de EF y una de las áreas es Educación Física. */
   const esEF = !!ef && areas.some(esAsignaturaEF);
-  const limitacionesClase = ef && classId ? ef.limitacionesDe(classId) : [];
+  const clasesElegidas = useMemo(() => (classId ? [classId, ...otrasClases] : []), [classId, otrasClases]);
+  const nombresClases = clasesElegidas.map(id => classes.find(c => c.id === id)?.name).filter(Boolean).join(', ');
+  const limitacionesClase = ef ? clasesElegidas.flatMap(id => ef.limitacionesDe(id)) : [];
+  const barrerasClases = useMemo(() => barrerasDeClases(students, clasesElegidas), [students, clasesElegidas]);
+  const nBarreras = alumnosConBarreras(students, clasesElegidas);
 
   /* ── Autoguardado: una SdA generada o editada y sin guardar queda como borrador ── */
   const guardada = editingId ? learningSituations.find(x => x.id === editingId) : undefined;
@@ -305,9 +316,9 @@ export function LearningSituations({
     [content, guardada],
   );
   const pendiente = useMemo<BorradorSda | null>(() => (content && sinGuardar ? {
-    content, editingId, classId, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
+    content, editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
     opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent,
-  } : null), [content, sinGuardar, editingId, classId, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
+  } : null), [content, sinGuardar, editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
     opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent]);
   const borrador = useBorrador<BorradorSda>('sda', pendiente, content?.titulo || idea);
 
@@ -316,7 +327,7 @@ export function LearningSituations({
     if (!b) return;
     setContent(b.content);
     setEditingId(b.editingId);
-    setClassId(b.classId); setIdea(b.idea); setNumero(b.numero); setTemporalizacion(b.temporalizacion); setMeses(b.meses);
+    setClassId(b.classId); setOtrasClases(b.otrasClases ?? []); setConBarreras(b.conBarreras ?? false); setIdea(b.idea); setNumero(b.numero); setTemporalizacion(b.temporalizacion); setMeses(b.meses);
     setAreas(b.areas); setNumSesiones(b.numSesiones); setNivel(b.nivel); setNivelAuto(false);
     setEtapa(b.etapa); setCurso(b.curso); setOpcionMatematicas(b.opcionMatematicas); setMaterias(b.materias); setPreguntadas([]);
     setContextoClase(b.contextoClase); setMetodologia(b.metodologia);
@@ -348,6 +359,23 @@ export function LearningSituations({
       setEtapa('');
       setCurso('');
       if (nivelAuto) setNivel('');
+    }
+  }
+
+  /**
+   * Marca o desmarca una clase. La primera es la principal (de ella salen el
+   * nivel y las áreas); si se quita, pasa a serlo la siguiente.
+   */
+  function toggleClase(id: string) {
+    if (id === classId) {
+      const [sig, ...resto] = otrasClases;
+      if (sig) { pickClass(sig); setOtrasClases(resto); } else pickClass('');
+    } else if (otrasClases.includes(id)) {
+      setOtrasClases(prev => prev.filter(x => x !== id));
+    } else if (!classId) {
+      pickClass(id);
+    } else {
+      setOtrasClases(prev => [...prev, id]);
     }
   }
 
@@ -449,6 +477,7 @@ export function LearningSituations({
       comunidad,
       materiasOficiales: materias,
       contextoClase, metodologia,
+      barreras: conBarreras && barrerasClases.length ? barrerasClases : undefined,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
       ef: esEF && ef ? {
         modelo: efModelo,
@@ -507,7 +536,8 @@ export function LearningSituations({
       at: new Date().toISOString(),
       date: isoDate(),
       class_id: classId || undefined,
-      class_name: activeClass?.name,
+      ...(classId && otrasClases.length ? { otras_clases: otrasClases } : {}),
+      class_name: nombresClases || activeClass?.name,
       title: content.titulo || t('Situación de aprendizaje'),
       request: {
         idea, numero, temporalizacion, meses, areas,
@@ -518,6 +548,7 @@ export function LearningSituations({
         comunidad,
         materiasOficiales: Object.keys(materias).length ? materias : undefined,
         ...(esEF ? { efModelo, efModalidad, efMinutos: Number(efMinutos) || MINUTOS_SESION_EF } : {}),
+        ...(conBarreras ? { conBarreras: true } : {}),
       },
       content,
     };
@@ -596,6 +627,8 @@ export function LearningSituations({
     setEditingId(s.id);
     setContent(s.content);
     setClassId(s.class_id ?? '');
+    setOtrasClases((s.otras_clases ?? []).filter(id => id !== s.class_id));
+    setConBarreras(!!s.request.conBarreras);
     setIdea(s.request.idea);
     setNumero(s.request.numero);
     setTemporalizacion(s.request.temporalizacion);
@@ -634,7 +667,7 @@ export function LearningSituations({
   /** Empieza una SdA nueva desde cero. */
   function startNew() {
     resetAll();
-    setClassId(''); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
+    setClassId(''); setOtrasClases([]); setConBarreras(false); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
     setOpcionMatematicas('A'); setMaterias({}); setPreguntadas([]);
     setNumero('1'); setTemporalizacion(''); setMeses(''); setContextoClase(''); setMetodologia('');
     setNumSesiones(6); setMoreOpts(false); setEfModelo(''); setEfModalidad('');
@@ -869,11 +902,24 @@ export function LearningSituations({
         <div className="sda-step"><span>2</span>{t('Para quién')}</div>
         <div className="frow">
           <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f3">{t('Clase')}</label>
-            <select id="learningsituations-f3" className="finput" value={classId} onChange={e => pickClass(e.target.value)}>
-              <option value="">{t('Sin clase concreta')}</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <span className="flabel" id="learningsituations-f3">{t('Clases')}</span>
+            <div className="chip-row" role="group" aria-labelledby="learningsituations-f3">
+              {classes.map(c => {
+                const on = clasesElegidas.includes(c.id);
+                return (
+                  <button key={c.id} type="button" className={`chip accent sm${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleClase(c.id)}>
+                    {on && <Check size={12} />}{c.name}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="sda-note" style={{ margin: '6px 0 0' }}>
+              {clasesElegidas.length === 0
+                ? t('Sin clase concreta. Marca una o varias.')
+                : clasesElegidas.length === 1
+                  ? t('Puedes marcar más clases: la misma situación de aprendizaje les sirve a todas.')
+                  : t('El nivel y las áreas salen de la primera, {clase}.', { clase: classes.find(c => c.id === classId)?.name ?? '' })}
+            </p>
           </div>
           <div className="fgroup">
             <label className="flabel" htmlFor="learningsituations-f4">{t('Nivel o curso')}</label>
@@ -885,6 +931,27 @@ export function LearningSituations({
             />
           </div>
         </div>
+
+        {nBarreras > 0 && (
+          <div className="fgroup sda-barreras">
+            <label className="td-chk">
+              <input type="checkbox" checked={conBarreras} onChange={e => setConBarreras(e.target.checked)} />
+              {t(nBarreras === 1
+                ? 'Tener en cuenta las barreras de aprendizaje del alumnado ({n} alumno con avisos)'
+                : 'Tener en cuenta las barreras de aprendizaje del alumnado ({n} alumnos con avisos)', { n: nBarreras })}
+            </label>
+            {conBarreras && (
+              <>
+                <p className="sda-note" style={{ margin: '4px 0 6px' }}>
+                  {t('Esto es lo único que le llega a la IA, sin nombres. Salen de los avisos de cada alumno en Mis clases.')}
+                </p>
+                <ul className="sda-barreras-lista">
+                  {barrerasClases.map(b => <li key={b}>{b}</li>)}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
 
         {/*
           Etapa y curso: además de alimentar el texto libre de arriba, es lo

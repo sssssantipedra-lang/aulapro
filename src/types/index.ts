@@ -533,6 +533,9 @@ export interface LearningSituation {
   date: string;
   /** Clase para la que se diseñó, si se eligió una. */
   class_id?: string;
+  /** Otras clases para las que sirve la misma situación (20-10-2026); `class_id` es la principal. */
+  otras_clases?: string[];
+  /** El nombre de la clase, o los de todas separados por comas. */
   class_name?: string;
   title: string;
   /** Lo que pidió el docente, para poder volver a generarla o ajustarla. */
@@ -565,6 +568,8 @@ export interface LearningSituation {
     efModalidad?: import('./ef').ModalidadEF | '';
     /** Solo en las de Educación Física: lo que dura cada sesión, en minutos. */
     efMinutos?: number;
+    /** Se generó teniendo en cuenta las barreras de aprendizaje del alumnado de la clase. */
+    conBarreras?: boolean;
   };
   content: import('../services/learningSituations').SdaContent;
 }

@@ -278,7 +278,7 @@ describe('currículo de la comunidad en el formulario', () => {
 
   it('con una clase que ya tiene nivel: un resumen con el decreto, sin volver a preguntar etapa y curso', async () => {
     const { user } = await abrirFormulario([quintoA]);
-    await user.selectOptions(screen.getByLabelText('Clase', { selector: '#learningsituations-f3' }), 'c1');
+    await user.click(screen.getByRole('button', { name: '5º A' }));
 
     expect(screen.queryByLabelText('Etapa (currículo oficial)')).toBeNull();
     expect(screen.getByRole('button', { name: 'Cambiar en la clase' })).toBeTruthy();
@@ -290,14 +290,14 @@ describe('currículo de la comunidad en el formulario', () => {
 
   it('«Fuera de España» cita el estatal sin avisar de nada', async () => {
     const { user } = await abrirFormulario([quintoA], 'fuera');
-    await user.selectOptions(screen.getByLabelText('Clase', { selector: '#learningsituations-f3' }), 'c1');
+    await user.click(screen.getByRole('button', { name: '5º A' }));
     expect(screen.getByText(/Currículo: Real Decreto 157\/2022/)).toBeTruthy();
     expect(screen.queryByText(/sigue el currículo estatal/)).toBeNull();
   });
 
   it('pregunta la materia oficial del área que no tiene alias seguro, y lo recuerda en la clase', async () => {
     const { user, onUpdateClass } = await abrirFormulario([quintoA]);
-    await user.selectOptions(screen.getByLabelText('Clase', { selector: '#learningsituations-f3' }), 'c1');
+    await user.click(screen.getByRole('button', { name: '5º A' }));
 
     // «Mates» tiene alias seguro; «Ciencias» no
     expect(screen.queryByLabelText('«Mates»: ¿qué materia oficial es?')).toBeNull();
@@ -315,8 +315,9 @@ describe('currículo de la comunidad en el formulario', () => {
   it('una clase sin nivel pide etapa y curso, avisa de que se guardarán y los guarda al generar', async () => {
     const { user, onUpdateClass } = await abrirFormulario([quintoA, sinNivel]);
     // Primero una con nivel y luego la otra: no debe heredar el curso de la primera
-    await user.selectOptions(screen.getByLabelText('Clase', { selector: '#learningsituations-f3' }), 'c1');
-    await user.selectOptions(screen.getByLabelText('Clase', { selector: '#learningsituations-f3' }), 'c2');
+    await user.click(screen.getByRole('button', { name: '5º A' }));
+    await user.click(screen.getByRole('button', { name: '5º A' }));
+    await user.click(screen.getByRole('button', { name: '5º B' }));
     expect((screen.getByLabelText('Etapa (currículo oficial)') as HTMLSelectElement).value).toBe('');
 
     await user.selectOptions(screen.getByLabelText('Etapa (currículo oficial)'), 'primaria');

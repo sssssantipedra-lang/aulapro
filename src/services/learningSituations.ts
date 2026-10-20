@@ -248,6 +248,11 @@ export interface SdaRequest {
   metodologia: string;
   /** Resúmenes de los documentos que haya subido (normativa, programación…). */
   documentos: { nombre: string; resumen: string }[];
+  /**
+   * Las barreras de aprendizaje del alumnado de las clases elegidas, una línea
+   * por alumno y sin nombres (`lib/barreras.ts`). Solo si el docente lo marca.
+   */
+  barreras?: string[];
   /** Solo si es una SdA de Educación Física. */
   ef?: SdaPeticionEF;
 }
@@ -767,6 +772,11 @@ export async function generateSda(
     `Áreas implicadas: ${req.areas.join(', ')}\n` +
     `Número total de sesiones: ${req.numSesiones}\n` +
     (req.ef ? datosEF(req.ef) : '') +
+    (req.barreras?.length
+      ? 'BARRERAS DE APRENDIZAJE DEL ALUMNADO (una línea por alumno, sin nombres): tenlas en cuenta al diseñar las actividades y ' +
+        'concreta en "inclusionUniversal", "inclusionAdicional" e "inclusionIndividualizada" una medida para cada barrera, ' +
+        'con el DUA. No cites diagnósticos ni nombres.\n' + req.barreras.map(b => `- ${b}`).join('\n') + '\n\n'
+      : '') +
     curriculoReal +
     `\nRellena todos los campos del JSON de salida.`;
 

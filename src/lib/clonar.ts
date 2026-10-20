@@ -15,7 +15,8 @@ import type { SesionEF } from '../types/ef';
  * toma de ella.
  */
 export function clonarSda(sda: LearningSituation, destino: Class, id: string, ahora: Date = new Date()): LearningSituation {
-  const copia = structuredClone(sda);
+  const { otras_clases: _o, ...copia } = structuredClone(sda);
+  void _o;
   return {
     ...copia,
     content: { ...copia.content, sesiones: copia.content.sesiones.map(({ completada: _c, ...resto }) => { void _c; return resto; }) },
