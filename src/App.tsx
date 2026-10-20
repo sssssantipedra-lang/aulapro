@@ -8,6 +8,9 @@ import { Welcome } from './pages/Welcome';
 import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
+import { PruebaInicio } from './pages/PruebaInicio';
+import { PruebaCtx, useModoPrueba, recordarPerfilPrueba, limpiarPrueba } from './lib/modoPrueba';
+import { deleteProfile, getActiveProfileId, setActiveProfileId } from './services/storage';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
@@ -88,6 +91,7 @@ function AppInner() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const st = useAppState();
+  const prueba = useModoPrueba();
 
   const [section, setSection]         = useState<Section>('dashboard');
   /** Ficha que Recursos manda proyectar en Aula Live. */
@@ -285,6 +289,19 @@ function AppInner() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--sb-bg)', color: 'rgba(255,255,255,0.6)', fontSize: 14, gap: 10 }}>
         <span className="spin" />{t('Abriendo tu cuaderno…')}
       </div>
+    );
+  }
+
+  if (!st.currentUser && prueba) {
+    return (
+      <PruebaInicio
+        onStart={async input => {
+          // Un solo perfil de ejemplo a la vez: se borra el de la prueba anterior
+          await limpiarPrueba(deleteProfile, getActiveProfileId, () => setActiveProfileId(null));
+          const created = await st.createAndOpenProfile(input, { demo: true, lang });
+          recordarPerfilPrueba(created.id);
+        }}
+      />
     );
   }
 
@@ -826,6 +843,8 @@ function AppInner() {
 function LicenseCheck({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [state, setState] = useState<LicenseState | null | undefined>(licenseBridge() ? undefined : null);
+  // Modo de prueba: solo vale hasta cerrar la app (ver `lib/modoPrueba.ts`)
+  const [prueba, setPrueba] = useState(false);
   useEffect(() => {
     if (state !== undefined) return;
     getLicenseState().then(setState);
@@ -838,8 +857,35 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (state?.required) return <LicenseGate state={state} onChange={setState} />;
+  if (state?.required && !prueba) {
+    const activada = async (s: LicenseState) => {
+      // Con la licencia, fuera el perfil de ejemplo de la prueba
+      if (!s.required) await limpiarPrueba(deleteProfile, getActiveProfileId, () => setActiveProfileId(null));
+      setState(s);
+    };
+    return <LicenseGate state={state} onChange={activada} onTrial={() => setPrueba(true)} />;
+  }
+  if (state?.required) {
+    return (
+      <PruebaCtx.Provider value={{ activar: () => setPrueba(false) }}>
+        {children}
+        <AvisoPrueba />
+      </PruebaCtx.Provider>
+    );
+  }
   return <>{children}</>;
+}
+
+/** Franja fija del modo de prueba: recuerda que son datos de ejemplo y lleva a la clave. */
+function AvisoPrueba() {
+  const { t } = useI18n();
+  const prueba = useModoPrueba();
+  return (
+    <div className="prueba-aviso" role="status">
+      <span>{t('Modo de prueba · datos de ejemplo')}</span>
+      <button type="button" onClick={() => prueba?.activar()}>{t('Activar licencia')}</button>
+    </div>
+  );
 }
 
 /** En Android, el aviso de «Guardado» con sus botones (el puente nativo se carga solo ahí). */

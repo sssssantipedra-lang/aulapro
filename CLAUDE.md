@@ -118,6 +118,12 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Barreras de aprendizaje al generar** (petición del dueño): casilla (desmarcada por defecto) que aparece si el alumnado de las clases elegidas tiene avisos (`Student.alerts`). Con ella, a la IA le llega `SdaRequest.barreras`: una línea por alumno, sin nombres (`src/lib/barreras.ts` quita los nombres del alumnado que el aviso escriba) y a la vista del docente, y la SdA concreta una medida para cada barrera en las tres medidas de inclusión. No se envían diagnósticos del módulo de PT y AL ni notas. Se guarda `request.conBarreras`.
 - **Sesiones de EF por curso** (petición del dueño): «Ver por: Fecha / Curso» (`src/lib/sesionesPorCurso.ts`; se recuerda en el dispositivo): un bloque plegable por curso, Primaria antes que ESO, con las clases como subtítulo si hay varias.
 
+## Licencias (20-10-2026)
+
+- Lanzamiento: **10 de noviembre de 2026** (decisión del dueño). Ese día `ENFORCED = true` y `FOUNDER_CUTOFF = '2026-11-10'` en `electron/license.cjs` y `src/platform/androidLicense.ts` (iguales en los dos).
+- Modo de prueba sin licencia (hecho): la pantalla de activación deja entrar con datos de ejemplo (`src/lib/modoPrueba.ts`, `src/pages/PruebaInicio.tsx`); ver `docs/WEB.md`, apartado 3, punto 6.
+- Licencia anual caducada (decisión del dueño): **no se puede hacer nada, solo revisar lo que ya estaba creado**; los datos nunca se bloquean ni se borran.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

@@ -57,7 +57,7 @@ interface Props {
 }
 
 /** Curso escolar actual: de septiembre a agosto. */
-function currentCourse(): string {
+export function currentCourse(): string {
   const now = new Date();
   const y = now.getFullYear();
   return now.getMonth() >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`;

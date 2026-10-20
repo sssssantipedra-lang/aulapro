@@ -1239,6 +1239,20 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .lic-confirm { display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:10px; background:var(--surface); font-size:13px; color:var(--text-2); line-height:1.5; }
 .lic-danger { background:#dc2626; }
 
+/* ── Modo de prueba (sin licencia, con datos de ejemplo) ── */
+.prueba-btn { width:100%; justify-content:center; margin-top:10px; }
+.prueba-card { max-width:520px; }
+.prueba-opts { display:flex; flex-direction:column; gap:10px; }
+.prueba-opt { display:flex; flex-direction:column; gap:3px; text-align:left; padding:13px 16px; border-radius:12px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-family:var(--font); color:var(--text); }
+.prueba-opt strong { font-size:14px; }
+.prueba-opt span { font-size:12.5px; color:var(--text-2); line-height:1.5; }
+.prueba-opt:hover:not(:disabled) { border-color:var(--accent); background:var(--accent-l); }
+.prueba-opt:disabled { opacity:.6; cursor:default; }
+.prueba-activar { background:none; border:none; cursor:pointer; width:100%; font-family:var(--font); }
+.prueba-aviso { position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:900; display:flex; align-items:center; gap:12px; padding:8px 8px 8px 16px; border-radius:99px; background:var(--text); color:#fff; font-size:12.5px; font-weight:600; box-shadow:0 6px 24px rgba(0,0,0,.25); max-width:calc(100vw - 24px); }
+.prueba-aviso button { border:none; border-radius:99px; padding:6px 14px; background:var(--accent); color:#fff; font-family:var(--font); font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; }
+
+
 /* Nombre de la aplicación sobre la tarjeta de bienvenida */
 .wl-brand { position:relative; z-index:1; margin:0 0 22px; font-family:var(--font); font-size:clamp(34px, 6vw, 52px); font-weight:900; letter-spacing:.14em; color:#fff; line-height:1; text-shadow:0 6px 30px rgba(var(--accent-rgb),0.45); }
 

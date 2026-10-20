@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, ExternalLink, ShieldCheck } from 'lucide-react';
+import { KeyRound, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../services/license';
 import type { LicenseError, LicenseState } from '../types/electron';
@@ -9,6 +9,8 @@ import { isAndroidApp } from '../lib/platform';
 interface Props {
   state: LicenseState;
   onChange: (s: LicenseState) => void;
+  /** Entrar en el modo de prueba, con datos de ejemplo (ver `lib/modoPrueba.ts`). */
+  onTrial?: () => void;
 }
 
 /**
@@ -16,7 +18,7 @@ interface Props {
  * `electron/license.cjs`). Quien ya usaba Aula Pro antes de la venta queda
  * como fundador y nunca la ve.
  */
-export function LicenseGate({ state, onChange }: Props) {
+export function LicenseGate({ state, onChange, onTrial }: Props) {
   const { t } = useI18n();
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
@@ -74,6 +76,12 @@ export function LicenseGate({ state, onChange }: Props) {
           <a className="lic-buy" href={state.buyUrl} target="_blank" rel="noreferrer">
             {t('¿Aún no la tienes? Comprar Aula Pro')} <ExternalLink size={13} />
           </a>
+        )}
+
+        {onTrial && (
+          <button type="button" className="btn-ghost prueba-btn" onClick={onTrial}>
+            <Sparkles size={14} color="var(--accent-d)" />{t('Probar con datos de ejemplo')}
+          </button>
         )}
 
         <p className="lic-note">
