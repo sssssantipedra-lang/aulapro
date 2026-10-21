@@ -612,6 +612,15 @@ export function normalizarEF(raw: unknown): EfData {
       }) } : {}),
       ...(x.ia === true ? { ia: true } : {}),
       ...(IDS_MODALIDADES.includes(x.modalidad as ModalidadEF) ? { modalidad: x.modalidad as ModalidadEF } : {}),
+      ...(x.completada === true ? { completada: true } : {}),
+      ...(x.archivada === true ? { archivada: true } : {}),
+      ...(esTexto(x.sdaId) ? { sdaId: x.sdaId } : {}),
+      ...(numero(x.sdaOrden) !== undefined ? { sdaOrden: Math.max(1, Math.round(numero(x.sdaOrden) as number)) } : {}),
+      ...(esTexto(x.pizarraId) ? { pizarraId: x.pizarraId } : {}),
+      ...(Array.isArray(x.instrumentos) ? { instrumentos: lista(x.instrumentos, i => {
+        const y = obj(i);
+        return y && esTexto(y.id) && (y.tipo === 'rubrica' || y.tipo === 'diana' || y.tipo === 'registro') ? { tipo: y.tipo, id: y.id } : null;
+      }) } : {}),
     };
   });
   const material = lista<MaterialEF>(o.material, v => {
