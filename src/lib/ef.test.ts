@@ -9,6 +9,19 @@ import { EF_MARK_TYPES, studentBlock, DEFAULT_BLOCK, targetLabel, esAsignaturaEF
 import type { ClassMark } from '../types';
 import type { EfData } from '../types/ef';
 
+describe('normalizarEF conserva el estado de las sesiones', () => {
+  it('completada, archivada, SdA, circuito e instrumentos sobreviven a guardar y abrir', () => {
+    const base = { id: 's1', titulo: 'T', objetivo: '', calentamiento: '', principal: '', calma: '', material: '', inclusion: '', planB: '' };
+    const sesion = {
+      ...base, completada: true, archivada: true, sdaId: 'sda1', sdaOrden: 2, pizarraId: 'p1',
+      instrumentos: [{ tipo: 'registro', id: 'r1' }],
+    };
+    const r = normalizarEF(JSON.parse(JSON.stringify({ ...EF_VACIO, sesiones: [sesion, { ...base, id: 's2' }] })));
+    expect(r.sesiones[0]).toMatchObject(sesion);
+    expect(r.sesiones[1].completada).toBeUndefined();
+  });
+});
+
 describe('tipo de docente', () => {
   it('PT y AL por sus especialidades, EF por su tipo, y si no, de aula', () => {
     expect(tipoDePerfil({ especialidades: ['AL'] })).toBe('apoyo');
