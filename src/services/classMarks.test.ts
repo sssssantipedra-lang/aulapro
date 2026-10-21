@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   applyClassMarks, studentBlock, blockConfig, blockActive, blockCategoryWeight, sumaDePesos,
-  DEFAULT_BLOCK, BLOCK_CATEGORY_PREFIX, BLOCK_ITEM_PREFIX, isMarksCategory,
+  DEFAULT_BLOCK, nombreDelBloque, BLOCK_CATEGORY_PREFIX, BLOCK_ITEM_PREFIX, isMarksCategory,
 } from './classMarks';
 import { weightedAverage } from './aiContext';
 import type { Class, ClassMark, GradeCategory, Student, MarksBlockConfig } from '../types';
@@ -148,5 +148,26 @@ describe('applyClassMarks', () => {
     });
     expect(grades).toEqual({ e1: { ana: 7 } });
     expect(cats).toHaveLength(1);
+  });
+});
+
+describe('el título del bloque se puede renombrar', () => {
+  it('sin nombre propio, el de siempre; con él, el del docente', () => {
+    expect(nombreDelBloque(undefined)).toBe('Trabajo diario y actitud');
+    expect(nombreDelBloque({ name: '  ' })).toBe('Trabajo diario y actitud');
+    expect(nombreDelBloque({ name: ' Trabajo y participación ' })).toBe('Trabajo y participación');
+    expect(nombreDelBloque({}, k => k.toUpperCase())).toBe('TRABAJO DIARIO Y ACTITUD');
+  });
+
+  it('la columna del cuaderno lleva el nombre que le puso el docente', () => {
+    const r = applyClassMarks({
+      classes: [cls('c1')], students: [st('ana')],
+      marksConfigs: { 'c1|Matemáticas': { ...DEFAULT_BLOCK, name: 'Trabajo y participación' } },
+      gradeCategories: [cat('ex', 'Exámenes', 100)], gradeItems: [], grades: {},
+      classMarks: [mark('ana', 'homework')],
+    });
+    const bloque = r.gradeCategories.find(c => isMarksCategory(c.id));
+    expect(bloque?.name).toBe('Trabajo y participación');
+    expect(r.gradeItems.find(i => i.id.startsWith(BLOCK_ITEM_PREFIX))?.name).toBe('Trabajo y participación');
   });
 });

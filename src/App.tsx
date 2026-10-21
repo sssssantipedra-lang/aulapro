@@ -590,6 +590,7 @@ function AppInner() {
                 scheduleBlocks={st.scheduleBlocks}
                 classMarks={st.classMarks}
                 seatingPlans={st.seatingPlans}
+                comunidad={st.currentUser?.community}
                 onNav={setSection}
               />
             )}

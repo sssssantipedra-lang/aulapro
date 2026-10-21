@@ -12,7 +12,7 @@ import { useMemo, useState } from 'react';
 import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Flag, Flame, Undo2, Users, Volume2, VolumeX } from 'lucide-react';
 import type { AttendanceMap, Class, ClassMark, ClassMarkType, MarksBlockConfig, ScheduleBlock, Student } from '../types';
 import {
-  BLOCK_NAME, EF_MARK_TYPES, MARK_TYPES, blockConfig, esAsignaturaEF, markTypeInfo, marksFor, studentBlock, targetLabel,
+  nombreDelBloque, EF_MARK_TYPES, MARK_TYPES, blockConfig, esAsignaturaEF, markTypeInfo, marksFor, studentBlock, targetLabel,
 } from '../services/classMarks';
 import { claseQueToca } from '../lib/claseQueToca';
 import { useActitudPedido } from '../lib/actitudNav';
@@ -117,7 +117,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Anotar actitud')}</h1>
-          <p className="pg-sub">{t('Un toque por anotación. Cuenta en «{name}» del cuaderno.', { name: t(BLOCK_NAME) })}</p>
+          <p className="pg-sub">{t('Un toque por anotación. Cuenta en «{name}» del cuaderno.', { name: nombreDelBloque(cfg, t) })}</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
         <Flag size={14} aria-hidden="true" />
         <span>
           {cfg.enabled === false
-            ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: t(BLOCK_NAME) })
+            ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: nombreDelBloque(cfg, t) })
             : t('Pesa un {n}% de la nota final. Cada anotación suma o resta {step} en su parte.', { n: pct, step: cfg.step.toLocaleString(locale) })}
         </span>
         <button type="button" className="mk-link" onClick={() => onNav('notebook')}>

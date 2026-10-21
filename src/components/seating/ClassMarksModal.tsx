@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Flag, X, ArrowRight } from 'lucide-react';
 import { markIcon } from '../../lib/markIcons';
 import type { Class, ClassMark, ClassMarkType, MarksBlockConfig, Student } from '../../types';
-import { MARK_TYPES, markTypeInfo, TARGET_LABEL, BLOCK_NAME, blockConfig } from '../../services/classMarks';
+import { MARK_TYPES, markTypeInfo, TARGET_LABEL, nombreDelBloque, blockConfig } from '../../services/classMarks';
 import { isoDate, nombreDePila } from '../../lib/utils';
 import { Modal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
@@ -97,8 +97,8 @@ export function ClassMarksModal({ student, cls, marksConfigs, classMarks, onAdd,
 
       <p className="mk-hint">
         {cfg.enabled === false
-          ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: t(BLOCK_NAME) })
-          : t('Cuentan en el bloque «{name}» del cuaderno, que pesa un {n}% de la nota final.', { name: t(BLOCK_NAME), n: (Math.round(cfg.points * 100) / 10).toLocaleString(locale) })}{' '}
+          ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: nombreDelBloque(cfg, t) })
+          : t('Cuentan en el bloque «{name}» del cuaderno, que pesa un {n}% de la nota final.', { name: nombreDelBloque(cfg, t), n: (Math.round(cfg.points * 100) / 10).toLocaleString(locale) })}{' '}
         <button type="button" className="mk-link" onClick={() => { onClose(); onNav('notebook'); }}>
           {t('Ir al cuaderno')} <ArrowRight size={12} />
         </button>

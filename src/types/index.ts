@@ -743,6 +743,8 @@ export type MarkTarget = 'homework' | 'behavior' | 'participation';
  * por defecto de `services/classMarks.ts`.
  */
 export interface MarksBlockConfig {
+  /** Cómo se llama el bloque en el cuaderno (el docente lo renombra); ausente o vacío = «Trabajo diario y actitud». */
+  name?: string;
   /** true/false = el docente lo ha decidido; ausente = cuenta si hay anotaciones. */
   enabled?: boolean;
   /** Puntos que vale el bloque sobre 10 en la nota final. */

@@ -22,7 +22,7 @@ import {
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
 import { useI18n, priorityLabel, weekdayLabel } from '../i18n';
-import { isoDate, fromIsoDate, hhmm, prettyDate } from '../lib/utils';
+import { isoDate, fromIsoDate, prettyDate } from '../lib/utils';
 import { FirstSteps } from '../components/dashboard/FirstSteps';
 import { firstSteps } from '../lib/firstSteps';
 import { hasApiKey } from '../services/gemini';
@@ -30,6 +30,7 @@ import { isMarksCategory } from '../services/classMarks';
 import { weightedAverage } from '../services/aiContext';
 import { agruparPorEtapa } from '../lib/etapas';
 import { esLectivo, type EtapaCalendario } from '../lib/calendarioEscolar';
+import { aMinutos, enMarcha } from '../lib/claseQueToca';
 import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 
 interface Props {
@@ -83,7 +84,6 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   const dateLabel = prettyDate(isoDate(now), locale);
 
   const todayDay = now.getDay() === 0 ? 7 : now.getDay();
-  const nowHm = hhmm(now);
 
   /**
    * Si un día hay clase según el calendario escolar de la comunidad (festivos,
@@ -100,11 +100,13 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
 
   const todayBlocks = useMemo(
     () => (hoyLectivo ? scheduleBlocks.filter(b => b.day === todayDay) : [])
-      .sort((a, b) => a.time_start.localeCompare(b.time_start)),
+      .sort((a, b) => (aMinutos(a.time_start) ?? 1e9) - (aMinutos(b.time_start) ?? 1e9)),
     [scheduleBlocks, todayDay, hoyLectivo],
   );
-  const current = todayBlocks.find(b => b.time_start <= nowHm && nowHm < b.time_end) ?? null;
-  const next = todayBlocks.find(b => b.time_start > nowHm) ?? null;
+  // Las horas se comparan como horas: «9:00» sin cero no puede ir detrás de «10:00»
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const current = todayBlocks.find(b => enMarcha(b, now)) ?? null;
+  const next = todayBlocks.find(b => (aMinutos(b.time_start) ?? -1) > nowMin) ?? null;
   const focus = current ?? next;
 
   /**
@@ -213,7 +215,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
         ) : (
           <ol className="home-j-line">
             {jornada.blocks.map(b => {
-              const state = jornada.offset > 0 ? 'later' : b === current ? 'now' : b.time_end <= nowHm ? 'past' : 'later';
+              const state = jornada.offset > 0 ? 'later' : b === current ? 'now' : (aMinutos(b.time_end) ?? 1e9) <= nowMin ? 'past' : 'later';
               return (
                 <li key={b.id} className={`home-j-item ${state}`} style={{ '--j-c': b.color } as React.CSSProperties}>
                   <span className="home-j-time">{b.time_start}</span>

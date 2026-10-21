@@ -71,6 +71,9 @@ export const MEJORAS_EN: Record<string, string> = {
   // Varias clases, escalas de registro y sesiones de EF con instrumento y circuito (19-10-2026)
   'Clases donde se usa': 'Classes where it is used',
   'Ver por': 'View by',
+  'Usar los 3 componentes de Educación Física (40/30/30)': 'Use the 3 Physical Education components (40/30/30)',
+  'Define las categorías de nota y cuánto pesa cada una en la media. En Educación Física puedes empezar con sus tres componentes, motriz, cognitivo y social y relacional, y renombrarlos o cambiar su peso después.': 'Define the grade categories and how much each one weighs in the average. In Physical Education you can start with its three components, motor, cognitive and social and relational, and rename them or change their weight later.',
+  'Título del bloque': 'Block title',
   'Descargar en PDF': 'Download as PDF',
   'Descargar «{nombre}» en PDF': 'Download “{nombre}” as PDF',
   'Del centro hacia fuera, de peor a mejor nivel': 'From the centre outwards, from lowest to highest level',
@@ -231,6 +234,9 @@ export const MEJORAS_CA: Record<string, string> = {
   // Varias clases, escalas de registro y sesiones de EF con instrumento y circuito (19-10-2026)
   'Clases donde se usa': 'Classes on s\'utilitza',
   'Ver por': 'Veure per',
+  'Usar los 3 componentes de Educación Física (40/30/30)': 'Fer servir els 3 components d\'Educació Física (40/30/30)',
+  'Define las categorías de nota y cuánto pesa cada una en la media. En Educación Física puedes empezar con sus tres componentes, motriz, cognitivo y social y relacional, y renombrarlos o cambiar su peso después.': 'Defineix les categories de nota i quant pesa cadascuna a la mitjana. A Educació Física pots començar amb els seus tres components, motriu, cognitiu i social i relacional, i canviar-los de nom o de pes després.',
+  'Título del bloque': 'Títol del bloc',
   'Descargar en PDF': 'Descarregar en PDF',
   'Descargar «{nombre}» en PDF': 'Descarregar «{nombre}» en PDF',
   'Del centro hacia fuera, de peor a mejor nivel': 'Del centre cap a fora, de pitjor a millor nivell',

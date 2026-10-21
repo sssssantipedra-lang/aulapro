@@ -57,11 +57,12 @@ export function buildDemoEF(hoy: Date = new Date(), lang: Lang = 'es') {
   ];
 
   const gradeCategories: GradeCategory[] = classes.flatMap(c => [
-    { id: `${c.id}-g1`, class_id: c.id, name: tr('Situaciones de aprendizaje'), weight: 70, subject: EF },
-    { id: `${c.id}-g2`, class_id: c.id, name: tr('Condición física y salud'), weight: 30, subject: EF },
+    { id: `${c.id}-g1`, class_id: c.id, name: tr('Componente motriz'), weight: 40, subject: EF },
+    { id: `${c.id}-g2`, class_id: c.id, name: tr('Componente cognitivo'), weight: 30, subject: EF },
+    { id: `${c.id}-g3`, class_id: c.id, name: tr('Componente social y relacional'), weight: 30, subject: EF },
   ]);
   const gradeItems: GradeItem[] = classes.flatMap(c => [
-    { id: `${c.id}-i1`, class_id: c.id, category_id: `${c.id}-g1`, name: tr('Juegos cooperativos'), date: dias(-14) },
+    { id: `${c.id}-i1`, class_id: c.id, category_id: `${c.id}-g3`, name: tr('Juegos cooperativos'), date: dias(-14) },
     { id: `${c.id}-i2`, class_id: c.id, category_id: `${c.id}-g2`, name: tr('Plan personal de condición física'), date: dias(-7) },
   ]);
   const grades: GradeMap = {};

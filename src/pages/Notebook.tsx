@@ -12,7 +12,7 @@ import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, Mar
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import {
   isMarksCategory, blockConfig, sumaDePesos, blockActive, marksFor, studentBlock,
-  TARGETS, targetLabel, esAsignaturaEF, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
+  TARGETS, targetLabel, esAsignaturaEF, nombreDelBloque, BLOCK_NAME, MAX_BLOCK_POINTS, type MarkTarget,
 } from '../services/classMarks';
 import { requestSettingsPanel } from '../lib/settingsNav';
 import { requestActitud } from '../lib/actitudNav';
@@ -153,6 +153,27 @@ const DEFAULT_CATEGORIES_EN: { name: string; weight: number }[] = [
   { name: 'Participation', weight: 10 },
 ];
 
+/**
+ * La estructura de Educación Física (petición del dueño, 20-10-2026): tres
+ * componentes. Es solo el punto de partida: nombre y peso se editan después,
+ * para ajustarlos a la ponderación del centro o a los criterios LOMLOE.
+ */
+const EF_CATEGORIES_ES: { name: string; weight: number }[] = [
+  { name: 'Componente motriz', weight: 40 },
+  { name: 'Componente cognitivo', weight: 30 },
+  { name: 'Componente social y relacional', weight: 30 },
+];
+const EF_CATEGORIES_CA: { name: string; weight: number }[] = [
+  { name: 'Component motriu', weight: 40 },
+  { name: 'Component cognitiu', weight: 30 },
+  { name: 'Component social i relacional', weight: 30 },
+];
+const EF_CATEGORIES_EN: { name: string; weight: number }[] = [
+  { name: 'Motor component', weight: 40 },
+  { name: 'Cognitive component', weight: 30 },
+  { name: 'Social and relational component', weight: 30 },
+];
+
 function GradesTab({
   classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
@@ -170,7 +191,7 @@ function GradesTab({
   const [blockOpen, setBlockOpen] = useState(false);
   /** Formulario del bloque, en texto para que se pueda escribir «33,33». */
   // `pct`: el peso del bloque en la nota final, en %. Se guarda en puntos sobre 10 (`points`).
-  const [bf, setBf] = useState<{ enabled: boolean; pct: string; step: string; weights: Record<MarkTarget, string>; bases: Record<MarkTarget, string> } | null>(null);
+  const [bf, setBf] = useState<{ name: string; enabled: boolean; pct: string; step: string; weights: Record<MarkTarget, string>; bases: Record<MarkTarget, string> } | null>(null);
   const [itemName, setItemName]   = useState('');
   const [itemCat, setItemCat]     = useState('');
   const [itemDate, setItemDate]   = useState(isoDate());
@@ -254,6 +275,7 @@ function GradesTab({
     if (!block) return;
     const { cfg } = block;
     setBf({
+      name: cfg.name ?? '',
       enabled: block.active,
       pct: dec(Math.round(cfg.points * 100) / 10),
       step: dec(cfg.step),
@@ -276,7 +298,7 @@ function GradesTab({
     if (TARGETS.some(tg => !(bases[tg] >= 0 && bases[tg] <= 10))) { toast(t('La nota de partida debe estar entre 0 y 10')); return; }
     const wSum = TARGETS.reduce((a, tg) => a + weights[tg], 0);
     if (Math.abs(wSum - 100) > 0.05) { toast(t('Los pesos del bloque deben sumar 100% (ahora suman {n}%)', { n: dec(Math.round(wSum * 100) / 100) })); return; }
-    onSaveMarksConfig(cls.id, activeSubject, { enabled: bf.enabled, points, step, weights, bases });
+    onSaveMarksConfig(cls.id, activeSubject, { ...(bf.name.trim() ? { name: bf.name.trim() } : {}), enabled: bf.enabled, points, step, weights, bases });
     setBlockOpen(false);
     toast(t('✅ Bloque actualizado'));
   }
@@ -409,20 +431,31 @@ function GradesTab({
             {t('¿Cómo evalúas en {name}?', { name: cls?.name ?? '' })}
           </h3>
           <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, maxWidth: 440, margin: '0 auto 22px' }}>
-            {t('Define las categorías de nota y cuánto pesa cada una en la media. Puedes empezar con la configuración más habitual y ajustarla después.')}
+            {t(esAsignaturaEF(activeSubject) ? 'Define las categorías de nota y cuánto pesa cada una en la media. En Educación Física puedes empezar con sus tres componentes, motriz, cognitivo y social y relacional, y renombrarlos o cambiar su peso después.' : 'Define las categorías de nota y cuánto pesa cada una en la media. Puedes empezar con la configuración más habitual y ajustarla después.')}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              className="btn-accent"
-              onClick={() => {
-                const defaults = lang === 'en' ? DEFAULT_CATEGORIES_EN : lang === 'ca' ? DEFAULT_CATEGORIES_CA : DEFAULT_CATEGORIES_ES;
+            {(() => {
+              const esEF = esAsignaturaEF(activeSubject);
+              const crear = (defaults: { name: string; weight: number }[]) => {
                 defaults.forEach((c, i) =>
                   onAddCategory({ id: 'gc' + Date.now() + '_' + i, class_id: clsId, name: c.name, weight: c.weight, subject: activeSubject }));
                 toast(`✅ ${lang === 'en' ? 'Categories created' : lang === 'ca' ? 'Categories creades' : 'Categorías creadas'}: ${defaults.map(c => `${c.name} ${c.weight}%`).join(' · ')}`);
-              }}
-            >
-              {t('Usar configuración típica (60/30/10)')}
-            </button>
+              };
+              const tipica = lang === 'en' ? DEFAULT_CATEGORIES_EN : lang === 'ca' ? DEFAULT_CATEGORIES_CA : DEFAULT_CATEGORIES_ES;
+              const deEF = lang === 'en' ? EF_CATEGORIES_EN : lang === 'ca' ? EF_CATEGORIES_CA : EF_CATEGORIES_ES;
+              return (
+                <>
+                  {esEF && (
+                    <button className="btn-accent" onClick={() => crear(deEF)}>
+                      {t('Usar los 3 componentes de Educación Física (40/30/30)')}
+                    </button>
+                  )}
+                  <button className={esEF ? 'btn-ghost' : 'btn-accent'} onClick={() => crear(tipica)}>
+                    {t('Usar configuración típica (60/30/10)')}
+                  </button>
+                </>
+              );
+            })()}
             <button className="btn-ghost" onClick={() => openCatModal('new')}>
               <Plus size={14} />{t('Crear a mi manera')}
             </button>
@@ -456,7 +489,7 @@ function GradesTab({
                     title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en En clase › Anotar actitud')}
                   >
                     <Flag size={12} />
-                    {t(BLOCK_NAME)} <strong>{block.active ? `${blockPct.toLocaleString(locale)}%` : t('no cuenta')}</strong>
+                    {nombreDelBloque(block.cfg, t)} <strong>{block.active ? `${blockPct.toLocaleString(locale)}%` : t('no cuenta')}</strong>
                     <Pencil size={11} />
                   </button>
                   {/* Ir a anotar esta misma clase (11-10-2026); en EF, a la pista */}
@@ -529,7 +562,7 @@ function GradesTab({
                           }}
                         >
                           {isMarksCategory(cat.id) && block
-                            ? `${t(BLOCK_NAME)} · ${`${(Math.round(block.cfg.points * 100) / 10).toLocaleString(locale)}%`}`
+                            ? `${nombreDelBloque(block.cfg, t)} · ${`${(Math.round(block.cfg.points * 100) / 10).toLocaleString(locale)}%`}`
                             : `${cat.name} · ${cat.weight}%`}
                         </th>
                       ))}
@@ -669,7 +702,7 @@ function GradesTab({
       <Modal
         open={blockOpen && bf !== null}
         onClose={() => setBlockOpen(false)}
-        title={<span className="mk-ttl"><Flag size={16} color="var(--accent-d)" />{t(BLOCK_NAME)}</span>}
+        title={<span className="mk-ttl"><Flag size={16} color="var(--accent-d)" />{nombreDelBloque(block?.cfg, t)}</span>}
       >
         {bf && (
           <>
@@ -678,6 +711,11 @@ function GradesTab({
                 ? 'Sale solo de lo que observas en la pista: «Sin equipación» y «Sin aseo» cuentan en Vestimenta e higiene; «Juego limpio» y «Mala actitud», en Actitud y juego limpio; «Participa», «Se esfuerza» y «No participa», en Participación y esfuerzo. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.'
                 : 'Sale solo de lo que anotas en En clase › Anotar actitud (o desde la Distribución de aula): «Sin tarea» cuenta en Tareas; «Sin material» y el comportamiento, en Comportamiento; «Participa», en Participación. Cada parte es una nota de 0 a 10 y el bloque es su media ponderada.')}
             </p>
+            <div className="fgroup">
+              <label className="flabel" htmlFor="blk-name">{t('Título del bloque')}</label>
+              <input id="blk-name" className="finput" value={bf.name} maxLength={60} placeholder={t(BLOCK_NAME)}
+                onChange={e => setBf({ ...bf, name: e.target.value })} />
+            </div>
             <label className="gb-block-toggle">
               <input type="checkbox" checked={bf.enabled} onChange={e => setBf({ ...bf, enabled: e.target.checked })} />
               {t('Cuenta en la nota de {name}', { name: activeSubject || cls?.name || '' })}
