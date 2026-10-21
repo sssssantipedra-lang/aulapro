@@ -30,6 +30,8 @@ interface Props {
   /** Para ir a crear o a usar un instrumento en Evaluar. */
   onNav?: (s: 'rubrics' | 'dianas' | 'registros') => void;
   onCerrarSesion?: () => void;
+  /** Si lleva el apartado «Circuito» (solo en Educación Física). */
+  conCircuito?: boolean;
   /** Abre la pizarra de circuitos en una ventana (la tiene la pantalla de Sesiones): con el circuito que se pida o en blanco. */
   onDibujar: (id?: string) => void;
 }
@@ -38,7 +40,7 @@ const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(3
 const claveRef = (r: InstrumentoRefEF) => `${r.tipo}:${r.id}`;
 
 
-export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas, evaluations = [], students = [], onEvaluar, onAddDiana, onNav, onCerrarSesion, onDibujar }: Props) {
+export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas, evaluations = [], students = [], onEvaluar, onAddDiana, onNav, onCerrarSesion, onDibujar, conCircuito = true }: Props) {
   const { t } = useI18n();
   const { toast } = useToast();
   const refs = sesion.instrumentos ?? [];
@@ -167,6 +169,7 @@ export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas
         )}
       </div>
 
+      {conCircuito && (
       <div className="ef-ses-extra" style={{ gridColumn: '1 / -1' }}>
         <div className="flabel"><Route size={13} aria-hidden="true" /> {t('Circuito')}</div>
         {circuito ? (
@@ -193,7 +196,7 @@ export function SesionEvaluacionCircuito({ sesion, onChange, ef, rubrics, dianas
           </>
         )}
       </div>
-
+      )}
     </>
   );
 }

@@ -253,6 +253,12 @@ export interface SdaRequest {
    * por alumno y sin nombres (`lib/barreras.ts`). Solo si el docente lo marca.
    */
   barreras?: string[];
+  /**
+   * Sesiones que el docente ya tiene preparadas y de las que sale la SdA
+   * (decisión del dueño, 21-10-2026: «generar una SdA a partir de las sesiones
+   * seleccionadas»). La SdA se estructura en torno a ellas, en este orden.
+   */
+  sesionesBase?: { titulo: string; resumen: string }[];
   /** Solo si es una SdA de Educación Física. */
   ef?: SdaPeticionEF;
 }
@@ -772,6 +778,13 @@ export async function generateSda(
     `Áreas implicadas: ${req.areas.join(', ')}\n` +
     `Número total de sesiones: ${req.numSesiones}\n` +
     (req.ef ? datosEF(req.ef) : '') +
+    (req.sesionesBase?.length
+      ? `SESIONES YA PREPARADAS POR EL DOCENTE (${req.sesionesBase.length}): estructura la situación de aprendizaje en torno a ellas. ` +
+        `En "sesiones" devuelve EXACTAMENTE ${req.sesionesBase.length}, una por cada una de estas y en este orden, con su fase de la ` +
+        'secuencia didáctica, el MISMO título y una descripción que conserve lo que ya tiene y lo conecte con las demás. ' +
+        'Justificación, competencias, inclusión y evaluación deben salir de lo que estas sesiones trabajan.\n' +
+        req.sesionesBase.map((x, i) => `${i + 1}. ${x.titulo}${x.resumen.trim() ? `: ${x.resumen.trim().replace(/\s+/g, ' ').slice(0, 400)}` : ''}`).join('\n') + '\n\n'
+      : '') +
     (req.barreras?.length
       ? 'BARRERAS DE APRENDIZAJE DEL ALUMNADO (una línea por alumno, sin nombres): tenlas en cuenta al diseñar las actividades y ' +
         'concreta en "inclusionUniversal", "inclusionAdicional" e "inclusionIndividualizada" una medida para cada barrera, ' +
@@ -810,7 +823,9 @@ export async function generateSda(
   return {
     ...textos,
     areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
-    sesiones: sesionesDeLaRespuesta(parsed.sesiones, !!req.ef),
+    sesiones: req.sesionesBase?.length
+      ? ajustarSesionesABase(sesionesDeLaRespuesta(parsed.sesiones, !!req.ef), req.sesionesBase)
+      : sesionesDeLaRespuesta(parsed.sesiones, !!req.ef),
     normativa,
     ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva, secuenciaDeportes) } : {}),
   };
@@ -854,6 +869,26 @@ export function sesionesDeLaRespuesta(raw: unknown, esEF: boolean): SdaSession[]
       const hay = momentos.preimpacto.actividades.length + momentos.impacto.actividades.length + momentos.postimpacto.actividades.length > 0;
       return hay ? { ...base, momentos } : base;
     });
+}
+
+/**
+ * Con sesiones de partida, la SdA tiene exactamente esas sesiones y en ese
+ * orden: la IA puede devolver más, menos o en otro orden, y entonces se
+ * rehace la lista con los títulos del docente y lo que la IA haya escrito de
+ * cada una (por su posición); si no escribió nada, el resumen del docente.
+ */
+export function ajustarSesionesABase(
+  devueltas: SdaSession[], base: readonly { titulo: string; resumen: string }[],
+): SdaSession[] {
+  return base.map((b, i) => {
+    const d = devueltas[i];
+    return {
+      ...(d?.momentos ? { momentos: d.momentos } : {}),
+      fase: d?.fase || (i === 0 ? 'Activación' : i === base.length - 1 ? 'Cierre' : 'Desarrollo'),
+      titulo: b.titulo,
+      descripcion: d?.descripcion?.trim() || b.resumen.trim() || b.titulo,
+    };
+  });
 }
 
 /**

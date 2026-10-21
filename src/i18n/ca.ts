@@ -570,7 +570,7 @@ export const CA: Record<string, string> = {
   "En clase": "A classe",
   "Diana competencial": "Diana competencial",
   "Evalúa con rúbricas o con la diana competencial, recoge autoevaluaciones y consulta todo lo evaluado.": "Avalua amb rúbriques o amb la diana competencial, recull autoavaluacions i consulta tot el que s'ha avaluat.",
-  "Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje y fichas.": "Tot el que acaba en paper: informes per a les famílies, actes de qualificacions, situacions d'aprenentatge i fitxes.",
+  "Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje, sesiones y fichas.": "Tot el que acaba en paper: informes per a les famílies, actes de qualificacions, situacions d'aprenentatge, sessions i fitxes.",
   "Lo que usas con el alumnado delante: cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.": "El que fas servir amb l'alumnat davant: com seuen, la pissarra i eines per projectar, i les activitats des dels seus mòbils.",
   "Crea tu primera clase y añade a tu alumnado": "Crea la teva primera classe i afegeix-hi el teu alumnat",
   "Un grupo (por ejemplo «3º ESO A») con su lista. Puedes pegarla de una hoja de cálculo.": "Un grup (per exemple «3r ESO A») amb la seva llista. La pots enganxar d'un full de càlcul.",

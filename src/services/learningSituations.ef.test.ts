@@ -195,3 +195,22 @@ describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
     expect(minutosDeSesion({ minutos: Number.NaN })).toBe(50);
   });
 });
+
+import { ajustarSesionesABase } from './learningSituations';
+
+describe('SdA a partir de sesiones ya preparadas', () => {
+  const base = [{ titulo: 'Conocemos', resumen: 'Se presentan los juegos.' }, { titulo: 'Jugamos', resumen: '' }, { titulo: 'Evaluamos', resumen: 'Cierre.' }];
+  it('deja exactamente las sesiones del docente, con sus títulos, aunque la IA devuelva de más o de menos', () => {
+    const r = ajustarSesionesABase([
+      { fase: 'Activación', titulo: 'Otro título', descripcion: 'Texto de la IA.' },
+      { fase: 'Desarrollo', titulo: 'Otro', descripcion: '' },
+    ], base);
+    expect(r.map(s => s.titulo)).toEqual(['Conocemos', 'Jugamos', 'Evaluamos']);
+    expect(r[0]).toMatchObject({ fase: 'Activación', descripcion: 'Texto de la IA.' });
+    expect(r[1].descripcion).toBe('Jugamos');
+    expect(r[2]).toMatchObject({ fase: 'Cierre', descripcion: 'Cierre.' });
+  });
+  it('sin nada devuelto, solo lo del docente', () => {
+    expect(ajustarSesionesABase([], base).map(s => s.descripcion)).toEqual(['Se presentan los juegos.', 'Jugamos', 'Cierre.']);
+  });
+});

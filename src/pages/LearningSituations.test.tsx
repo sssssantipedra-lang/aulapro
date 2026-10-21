@@ -208,6 +208,42 @@ describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
     expect(s.principal).toContain('Rondo de 4 contra 1');
     expect(s.calma).toContain('Estiramientos en círculo');
     expect(s.material).toBe('1 balón por pareja');
+    // Y la sesión queda unida a su SdA, en su orden
+    expect(s).toMatchObject({ sdaId: 'ef9', sdaOrden: 1, claseId: 'c1' });
+  });
+
+  it('el docente de aula también pasa las sesiones: la SdA se guarda y las sesiones quedan asociadas a ella', async () => {
+    const user = userEvent.setup();
+    const pasadas: SesionEF[][] = [];
+    const guardadas: LearningSituation[] = [];
+    const aula: LearningSituation = { ...sda, id: 'a1', title: 'Mercado sostenible', class_id: 'c1', class_name: '4º A' };
+    render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations
+          classes={[claseEF]} gradeCategories={[]} learningSituations={[aula]}
+          onUpdateClass={() => {}} onSave={x => guardadas.push(x)} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
+          onPasarSesiones={s => pasadas.push(s)}
+        />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    await user.click(screen.getByRole('button', { name: 'Pasar a Sesiones' }));
+    expect(guardadas.at(-1)?.id).toBe('a1');
+    expect(pasadas[0].map(x => [x.titulo, x.sdaId, x.sdaOrden])).toEqual([['1. Recuento', 'a1', 1], ['2. Mercado', 'a1', 2]]);
+  });
+
+  it('sin la función de pasar sesiones, el botón no sale en una SdA de aula', async () => {
+    const user = userEvent.setup();
+    render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations
+          classes={[claseEF]} gradeCategories={[]} learningSituations={[{ ...sda, id: 'a2', title: 'Otra' }]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}}
+        />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Otra/ }));
+    expect(screen.queryByRole('button', { name: /Pasar a Sesiones/ })).toBeNull();
   });
 });
 

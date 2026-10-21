@@ -36,8 +36,9 @@ export function clonarSda(sda: LearningSituation, destino: Class, id: string, ah
 /** Una copia de la sesión para otra clase, sin fecha (cada clase tiene su horario) salvo que se pida conservarla. */
 export function clonarSesionEF(s: SesionEF, destino: Class, id: string, conservarFecha = false): SesionEF {
   const copia = structuredClone(s);
-  const { fecha, completada: _c, ...resto } = copia;
-  void _c;
+  // La copia es de otra clase: ni la SdA de la original ni su archivo la acompañan
+  const { fecha, completada: _c, sdaId: _s, sdaOrden: _o, archivada: _a, ...resto } = copia;
+  void _c; void _s; void _o; void _a;
   return { ...resto, id, claseId: destino.id, ...(conservarFecha && fecha ? { fecha } : {}) };
 }
 

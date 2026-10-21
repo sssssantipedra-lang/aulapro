@@ -5,6 +5,7 @@
  * del bloque de anotaciones se puede renombrar.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import type { ComponentProps } from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Notebook } from './Notebook';
@@ -25,7 +26,7 @@ function pinta(c: Class, gradeCategories: GradeCategory[] = [], extra: Record<st
     lawDocument: null, onLawDocumentChange: vi.fn(), onNav: vi.fn(), evaluations: [], aiData: {} as never, chat: [], onChatChange: vi.fn(),
     ...extra,
   };
-  render(<I18nProvider><ToastProvider><Notebook {...(props as never)} /></ToastProvider></I18nProvider>);
+  render(<I18nProvider><ToastProvider><Notebook {...(props as unknown as ComponentProps<typeof Notebook>)} /></ToastProvider></I18nProvider>);
   return props;
 }
 
