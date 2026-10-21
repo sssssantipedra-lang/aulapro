@@ -409,7 +409,7 @@ const EN: Record<string, string> = {
   'En clase': 'In class',
   'Diana competencial': 'Competency target',
   'Evalúa con rúbricas o con la diana competencial, recoge autoevaluaciones y consulta todo lo evaluado.': 'Assess with rubrics or the competency target, collect self-assessments and review everything assessed.',
-  'Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje y fichas.': 'Everything that ends up on paper: reports for families, grade records, learning situations and worksheets.',
+  'Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje, sesiones y fichas.': 'Everything that ends up on paper: reports for families, grade records, learning situations, sessions and worksheets.',
   'Lo que usas con el alumnado delante: cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.': 'What you use with students in front of you: seating, the board and projection tools, and activities from their phones.',
   'Crea tu primera clase y añade a tu alumnado': 'Create your first class and add your students',
   'Un grupo (por ejemplo «3º ESO A») con su lista. Puedes pegarla de una hoja de cálculo.': 'A group (e.g. «Year 9 A») with its list. You can paste it from a spreadsheet.',

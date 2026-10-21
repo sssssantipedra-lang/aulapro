@@ -4,10 +4,14 @@
  * debajo, una tarjeta grande por herramienta. Entrar en En clase desde el
  * menú abre siempre esta pantalla (`portada` en lib/navigation.ts).
  */
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Flag, LayoutGrid, Presentation, Smartphone, UserCheck } from 'lucide-react';
 import type { Class, ClassMark, ScheduleBlock, SeatingPlan, Section } from '../types';
-import { bloqueQueToca } from '../lib/claseQueToca';
-import { hhmm, isoDate } from '../lib/utils';
+import { bloqueQueToca, enMarcha } from '../lib/claseQueToca';
+import { esLectivo, type EtapaCalendario } from '../lib/calendarioEscolar';
+import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { isoDate } from '../lib/utils';
 import { useI18n } from '../i18n';
 
 interface Props {
@@ -15,18 +19,34 @@ interface Props {
   scheduleBlocks: ScheduleBlock[];
   classMarks: ClassMark[];
   seatingPlans: Record<string, SeatingPlan>;
+  /** Comunidad del perfil: de ella sale el calendario escolar (festivos y vacaciones). */
+  comunidad?: ComunidadId;
   onNav: (s: Section) => void;
 }
 
-export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, onNav }: Props) {
+export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, comunidad, onNav }: Props) {
   const { t } = useI18n();
-  const hoy = isoDate();
+  // La hora se renueva cada medio minuto: sin esto, la clase de «ahora» se quedaba la de cuando se abrió la pantalla
+  const [ahoraMs, setAhoraMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setAhoraMs(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const ahoraD = useMemo(() => new Date(ahoraMs), [ahoraMs]);
+  const hoy = isoDate(ahoraD);
   const anotadasHoy = classMarks.filter(m => m.date === hoy).length;
   const conMesas = classes.filter(c => seatingPlans[c.id]?.groups.some(g => g.studentIds.some(Boolean))).length;
-  const bloque = bloqueQueToca(classes, scheduleBlocks);
+  // Un festivo o unas vacaciones según el calendario escolar no tienen clase, diga lo que diga el horario
+  const archivoCal = useCalendarioEscolar();
+  const etapas = useMemo<EtapaCalendario[]>(() => {
+    const e = new Set(classes.map(c => c.etapa).filter((x): x is EtapaCalendario => x === 'primaria' || x === 'eso'));
+    return e.size ? [...e] : ['primaria', 'eso'];
+  }, [classes]);
+  const lectivo = esLectivo(archivoCal, comunidad, ahoraD, etapas);
+  const bloque = bloqueQueToca(classes, scheduleBlocks, ahoraD, lectivo);
   const clase = bloque && classes.find(c => c.id === bloque.class_id);
   // bloqueQueToca da el que está en marcha o, si no, el siguiente
-  const ahora = !!bloque && bloque.time_start <= hhmm(new Date());
+  const ahora = !!bloque && enMarcha(bloque, ahoraD);
   const cuenta = (n: number, uno: string, varios: string) => t(n === 1 ? uno : varios, { n });
 
   const tarjetas: { id: Section; color: string; icono: React.ReactNode; titulo: string; texto: string; dato: string }[] = [

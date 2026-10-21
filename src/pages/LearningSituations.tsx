@@ -40,7 +40,7 @@ import { alumnosConBarreras, barrerasDeClases } from '../lib/barreras';
 import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { MomentosDeSesion } from '../components/MomentosDeSesion';
-import { sesionParaEF } from '../lib/sesionSda';
+import { sesionesDeSda } from '../lib/sesiones';
 import { esAsignaturaEF } from '../services/classMarks';
 import { useBorrador } from '../hooks/useBorrador';
 import { AvisoBorrador, EstadoBorrador } from '../components/AvisoBorrador';
@@ -64,6 +64,8 @@ interface Props {
   onAddDiana: (d: EvalDiana) => void;
   onAddFicha: (f: Ficha) => void;
   onNav: (s: string) => void;
+  /** Para pasar las sesiones de la SdA a Sesiones, en el aula (en EF lo hace `ef.onPasarSesiones`). */
+  onPasarSesiones?: (sesiones: SesionEF[]) => void;
   /**
    * Solo para el profesorado de Educación Física: lo que se añade a la SdA de
    * una clase de EF (modelo pedagógico, material, instalaciones y limitaciones
@@ -89,6 +91,10 @@ interface DocSummary {
 
 function newId() {
   return 'sda' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function sesionId() {
+  return 'ses' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 function fichaId() {
@@ -192,7 +198,7 @@ interface BorradorSda {
 
 export function LearningSituations({
   classes, students = [], gradeCategories, learningSituations, comunidad, onUpdateClass,
-  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef,
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -678,25 +684,23 @@ export function LearningSituations({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /** Las sesiones de la SdA de EF, a Educación Física → Sesiones, sin fecha, para repartirlas en el calendario. */
+  /**
+   * Las sesiones de la SdA, a Sesiones (en EF, Educación Física → Sesiones), sin
+   * fecha para repartirlas en el calendario y ya unidas a su SdA. La SdA se
+   * guarda antes: sin ella guardada, la unión no tendría a qué apuntar.
+   */
   function pasarSesiones() {
-    if (!ef || !content) return;
-    const base = Date.now().toString(36);
-    const lista: SesionEF[] = content.sesiones.map((s, i) => {
-      const e = sesionParaEF(s, t);
-      return {
-        id: `ses${base}${i}`,
-        titulo: `${i + 1}. ${s.titulo}`,
-        ...(classId ? { claseId: classId } : {}),
-        // Con momentos, el objetivo es el resumen de la sesión y cada momento va a su parte; sin ellos, como siempre
-        objetivo: s.momentos ? e.objetivo : t('Sesión {n} de «{sda}» ({fase}).', { n: i + 1, sda: content.titulo, fase: s.fase }),
-        calentamiento: e.calentamiento, principal: e.principal, calma: e.calma, material: e.material,
-        inclusion: content.inclusionUniversal, planB: '', ia: true,
-        ...(content.ef?.modalidad ? { modalidad: content.ef.modalidad } : {}),
-      };
-    });
-    ef.onPasarSesiones(lista);
-    toast(t('Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.', { n: lista.length }));
+    const pasar = ef?.onPasarSesiones ?? onPasarSesiones;
+    if (!pasar || !content) return;
+    const sda = currentSda();
+    if (!sda) return;
+    onSave(sda);
+    setEditingId(sda.id);
+    const lista = sesionesDeSda({ id: sda.id, content }, { claseId: classId || undefined, nuevoId: sesionId, t });
+    pasar(lista);
+    toast(ef
+      ? t('Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.', { n: lista.length })
+      : t('Las {n} sesiones están ahora en Documentos → Sesiones, sin fecha.', { n: lista.length }));
   }
 
   /* ── Rúbrica ── */
@@ -1464,8 +1468,8 @@ export function LearningSituations({
                   {t('{hechas} de {total} completadas', { hechas: content.sesiones.filter(x => x.completada).length, total: content.sesiones.length })}
                 </span>
               )}
-              {ef && content.ef && content.sesiones.length > 0 && (
-                <button type="button" className="btn-ghost" onClick={pasarSesiones}><ArrowRight size={14} />{t('Pasar a Sesiones de EF')}</button>
+              {(ef ? !!content.ef : !!onPasarSesiones) && content.sesiones.length > 0 && (
+                <button type="button" className="btn-ghost" onClick={pasarSesiones}><ArrowRight size={14} />{t(ef ? 'Pasar a Sesiones de EF' : 'Pasar a Sesiones')}</button>
               )}
             </div>
             <div className="sda-timeline">

@@ -6,17 +6,17 @@
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
-import { render, screen, cleanup, within, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EfSesiones } from './EfSesiones';
-import { I18nProvider } from '../../i18n';
-import { ToastProvider } from '../../components/ui/Toast';
-import { buildDemoEF } from '../../lib/demoEF';
-import type { EfData } from '../../types/ef';
+import { Sesiones } from './Sesiones';
+import { I18nProvider } from '../i18n';
+import { ToastProvider } from '../components/ui/Toast';
+import { buildDemoEF } from '../lib/demoEF';
+import type { EfData } from '../types/ef';
 
 const callGemini = vi.hoisted(() => vi.fn());
-vi.mock('../../services/gemini', async importOriginal => {
-  const real = await importOriginal<typeof import('../../services/gemini')>();
+vi.mock('../services/gemini', async importOriginal => {
+  const real = await importOriginal<typeof import('../services/gemini')>();
   return { ...real, callGemini, hasApiKey: () => true };
 });
 
@@ -27,7 +27,7 @@ function Harness() {
   return (
     <I18nProvider>
       <ToastProvider>
-        <EfSesiones classes={demo.classes} students={demo.students} scheduleBlocks={demo.blocks} ef={ef}
+        <Sesiones perfil="ef" classes={demo.classes} students={demo.students} scheduleBlocks={demo.blocks} ef={ef}
           onChangeEf={f => setEf(d => { ultimo = f(d); return ultimo; })} comunidad="comunitat-valenciana" />
       </ToastProvider>
     </I18nProvider>
@@ -106,37 +106,82 @@ describe('Sesiones', () => {
     expect(ultimo.sesiones.slice(0, antes)).toEqual(demo.ef.sesiones);
   });
 
-  it('«Borrar todas» pide confirmación y deja la lista vacía; si dices que no, no toca nada', async () => {
+  /** Abre la tarjeta de la clase de una sesión de la demo. */
+  async function abrirClaseDe(user: ReturnType<typeof userEvent.setup>, titulo: string) {
+    const clase = demo.classes.find(c => c.id === demo.ef.sesiones.find(s => s.titulo === titulo)!.claseId)!;
+    await user.click(screen.getByRole('button', { name: `Abrir las sesiones de ${clase.name}` }));
+    return clase;
+  }
+
+  it('la portada es una tarjeta por clase, con cuántas sesiones tiene; dentro se ven sus sesiones', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    const antes = demo.ef.sesiones.length;
-    expect(antes).toBeGreaterThan(0);
     render(<Harness />);
+    for (const c of demo.classes) expect(screen.getByRole('button', { name: `Abrir las sesiones de ${c.name}` })).toBeTruthy();
+    const clase = await abrirClaseDe(user, 'Voleibol: el toque de dedos');
+    expect(screen.getByRole('heading', { name: clase.name })).toBeTruthy();
+    expect(screen.getByText('Voleibol: el toque de dedos')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Sesiones' }));
+    expect(screen.getByRole('button', { name: `Abrir las sesiones de ${clase.name}` })).toBeTruthy();
+  });
+
+  it('elegir varias y eliminarlas pide confirmación; si dices que no, no toca nada', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    const clase = await abrirClaseDe(user, 'Voleibol: el toque de dedos');
+    const deLaClase = demo.ef.sesiones.filter(s => s.claseId === clase.id).length;
+    const deOtras = demo.ef.sesiones.length - deLaClase;
+    await user.click(screen.getByRole('button', { name: 'Elegir varias' }));
+    await user.click(screen.getByRole('button', { name: 'Elegir todas' }));
+    expect(screen.getByText(`${deLaClase} ${deLaClase === 1 ? 'elegida' : 'elegidas'}`)).toBeTruthy();
+
     const confirmar = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
-    await user.click(screen.getByRole('button', { name: /Borrar todas/ }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
     expect(confirmar).toHaveBeenCalledOnce();
-    expect(ultimo.sesiones).toHaveLength(antes);
+    expect(ultimo.sesiones).toHaveLength(demo.ef.sesiones.length);
+
+    await user.click(screen.getByRole('button', { name: 'Elegir varias' }));
+    await user.click(screen.getByRole('button', { name: 'Elegir todas' }));
     confirmar.mockReturnValueOnce(true);
-    await user.click(screen.getByRole('button', { name: /Borrar todas/ }));
-    expect(ultimo.sesiones).toHaveLength(0);
-    await waitFor(() => expect((screen.getByRole('button', { name: /Borrar todas/ }) as HTMLButtonElement).disabled).toBe(true));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+    // Solo se van las de esa clase
+    expect(ultimo.sesiones).toHaveLength(deOtras);
+    expect(ultimo.sesiones.some(s => s.claseId === clase.id)).toBe(false);
     confirmar.mockRestore();
   });
 
-  it('marcar una sesión como completada la saca de «Próximas», cuenta en el progreso y se puede deshacer', async () => {
+  it('archivar saca las sesiones de la vista sin borrarlas, y se restauran', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Harness />);
+    await abrirClaseDe(user, 'Voleibol: el toque de dedos');
+    await user.click(screen.getByRole('button', { name: 'Elegir varias' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Elegir «Voleibol: el toque de dedos»' }));
+    await user.click(screen.getByRole('button', { name: 'Archivar' }));
+    expect(ultimo.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')?.archivada).toBe(true);
+    expect(ultimo.sesiones).toHaveLength(demo.ef.sesiones.length);
+    expect(screen.queryByText('Voleibol: el toque de dedos')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Ver las archivadas (1)' }));
+    await user.click(screen.getByRole('button', { name: 'Elegir varias' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Elegir «Voleibol: el toque de dedos»' }));
+    await user.click(screen.getByRole('button', { name: 'Restaurar' }));
+    expect(ultimo.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')?.archivada).toBeUndefined();
+  });
+
+  it('marcar una sesión como completada cuenta en el progreso y se puede deshacer', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<Harness />);
     const total = demo.ef.sesiones.length;
-    expect(screen.getByText(`0 de ${total} sesiones completadas`)).toBeTruthy();
+    expect(screen.getAllByText(`0 de ${total} sesiones completadas`).length).toBeGreaterThan(0);
 
+    const clase = await abrirClaseDe(user, 'Voleibol: el toque de dedos');
+    const deLaClase = demo.ef.sesiones.filter(s => s.claseId === clase.id).length;
     await user.click(screen.getByRole('button', { name: 'Marcar «Voleibol: el toque de dedos» como completada' }));
     expect(ultimo.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')?.completada).toBe(true);
-    expect(screen.getByText(`1 de ${total} sesiones completadas`)).toBeTruthy();
-    // Sale de la lista de pendientes y queda en «Ver las completadas»
-    expect(screen.queryByText('Voleibol: el toque de dedos')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Ver las completadas (1)' }));
+    expect(screen.getAllByText(`1 de ${deLaClase} sesiones completadas`).length).toBeGreaterThan(0);
     await user.click(screen.getByRole('button', { name: 'Marcar «Voleibol: el toque de dedos» como pendiente' }));
     expect(ultimo.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')?.completada).toBe(false);
-    expect(screen.getByText(`0 de ${total} sesiones completadas`)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Sesiones' }));
+    expect(screen.getAllByText(`0 de ${total} sesiones completadas`).length).toBeGreaterThan(0);
   });
 
   it('una sesión a medias, al cerrar la ventana, se ofrece para continuar; al guardarla, deja de ofrecerse', async () => {

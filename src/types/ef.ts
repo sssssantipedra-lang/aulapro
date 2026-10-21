@@ -159,6 +159,16 @@ export interface SesionEF {
   instrumentos?: InstrumentoRefEF[];
   /** El circuito de la pizarra de circuitos (`EfData.pizarras`) que se monta en la sesión. */
   pizarraId?: string;
+  /**
+   * La situación de aprendizaje (`LearningSituation.id`) a la que pertenece la
+   * sesión (decisión del dueño, 21-10-2026). Si la SdA se borra, la sesión se
+   * queda sin ella, sin romperse.
+   */
+  sdaId?: string;
+  /** El lugar de la sesión dentro de esa SdA (1, 2, 3…). */
+  sdaOrden?: number;
+  /** Archivada: sale de la vista y de los recuentos sin borrarla; se puede restaurar. */
+  archivada?: boolean;
   instalacionId?: string;
   objetivo: string;
   calentamiento: string;

@@ -8,12 +8,12 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { useState } from 'react';
 import { render, screen, cleanup, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EfSesiones } from './EfSesiones';
-import { I18nProvider } from '../../i18n';
-import { ToastProvider } from '../../components/ui/Toast';
-import { buildDemoEF } from '../../lib/demoEF';
-import type { EfData } from '../../types/ef';
-import type { EvalDiana, Rubric } from '../../types';
+import { Sesiones } from './Sesiones';
+import { I18nProvider } from '../i18n';
+import { ToastProvider } from '../components/ui/Toast';
+import { buildDemoEF } from '../lib/demoEF';
+import type { EfData } from '../types/ef';
+import type { EvalDiana, Rubric } from '../types';
 
 const demo = buildDemoEF(new Date(2026, 9, 5));
 let ultimo: EfData = demo.ef;
@@ -29,7 +29,7 @@ function Harness({ inicial = demo.ef }: { inicial?: EfData }) {
   const [dianas, setDianas] = useState<EvalDiana[]>([diana, registro]);
   return (
     <I18nProvider><ToastProvider>
-      <EfSesiones classes={demo.classes} students={demo.students} scheduleBlocks={demo.blocks} ef={ef}
+      <Sesiones perfil="ef" classes={demo.classes} students={demo.students} scheduleBlocks={demo.blocks} ef={ef}
         onChangeEf={f => setEf(d => { ultimo = f(d); return ultimo; })} comunidad="comunitat-valenciana"
         rubrics={[rubrica]} dianas={dianas} onAddDiana={d => { onAddDiana(d); setDianas(x => [...x, d]); }} onNav={onNav} onAddEvaluation={onAddEvaluation} />
     </ToastProvider></I18nProvider>
@@ -154,20 +154,5 @@ describe('Sesiones de EF · evaluación y circuito', () => {
     await user.click(screen.getByRole('button', { name: 'Evaluar' }));
     await waitFor(() => expect(screen.getByText('Haz clic en el nivel para cada criterio')).toBeTruthy());
     expect(onNav).not.toHaveBeenCalled();
-  });
-
-  it('las sesiones se pueden ver agrupadas por curso, y se recuerda', async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<Harness />);
-    expect(screen.queryByRole('button', { name: /Primaria|ESO/, expanded: true })).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Curso' }));
-    expect(screen.getByRole('button', { name: 'Curso' }).getAttribute('aria-pressed')).toBe('true');
-    const cursos = screen.getAllByRole('button', { expanded: true }).filter(b => b.classList.contains('sda-group-hd'));
-    expect(cursos.length).toBeGreaterThan(0);
-    expect(cursos[0].textContent).toMatch(/Primaria|ESO|Otras clases|Sin clase/);
-    // Se pliega
-    await user.click(cursos[0]);
-    expect(cursos[0].getAttribute('aria-expanded')).toBe('false');
-    expect(localStorage.getItem('aulapro_ef_sesiones_vista')).toBe('curso');
   });
 });

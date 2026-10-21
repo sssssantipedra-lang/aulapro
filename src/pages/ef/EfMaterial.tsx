@@ -5,7 +5,8 @@
  * usa al proponer actividades y sesiones. Ver `docs/EF.md`.
  */
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Package, Warehouse, Umbrella, Sun } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Warehouse, Umbrella, Sun, FileUp } from 'lucide-react';
+import { ImportarMaterial } from '../../components/ef/ImportarMaterial';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
@@ -28,6 +29,7 @@ export function EfMaterial({ ef, onChangeEf }: Props) {
   const { toast } = useToast();
   const [material, setMaterial] = useState<MaterialEF | null>(null);
   const [instalacion, setInstalacion] = useState<InstalacionEF | null>(null);
+  const [importando, setImportando] = useState(false);
   const nuevoMaterial = !!material && !ef.material.some(m => m.id === material.id);
   const nuevaInstalacion = !!instalacion && !ef.instalaciones.some(i => i.id === instalacion.id);
   const reponer = ef.material.filter(m => m.estado === 'reponer');
@@ -65,7 +67,10 @@ export function EfMaterial({ ef, onChangeEf }: Props) {
       <div className="card">
         <div className="ap-prog-hd" style={{ marginBottom: 10 }}>
           <div className="home-card-ttl"><Package size={15} />{t('Material')}</div>
+          <span className="ap-prog-acc">
+          <button className="btn-ghost" onClick={() => setImportando(true)}><FileUp size={15} />{t('Importar de un documento')}</button>
           <button className="btn-accent" onClick={() => setMaterial({ id: nuevoIdEF('mat'), nombre: '', cantidad: 1, estado: 'bien', ubicacion: '' })}><Plus size={15} />{t('Añadir material')}</button>
+          </span>
         </div>
         {reponer.length > 0 && (
           <p className="ap-aviso ef-eq-aviso" role="status">
@@ -125,6 +130,8 @@ export function EfMaterial({ ef, onChangeEf }: Props) {
           </ul>
         )}
       </div>
+
+      <ImportarMaterial open={importando} onClose={() => setImportando(false)} ef={ef} onChangeEf={onChangeEf} />
 
       <Modal open={!!material} onClose={() => setMaterial(null)} title={nuevoMaterial ? t('Añadir material') : material?.nombre}>
         {material && (

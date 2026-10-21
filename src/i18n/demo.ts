@@ -106,6 +106,9 @@ export const DEMO_EN: Record<string, string> = {
   /* ── Educación Física ── */
   'Pabellón': 'Sports hall',
   'Condición física y salud': 'Fitness and health',
+  'Componente motriz': 'Motor component',
+  'Componente cognitivo': 'Cognitive component',
+  'Componente social y relacional': 'Social and relational component',
   'Juegos cooperativos': 'Cooperative games',
   'Plan personal de condición física': 'Personal fitness plan',
   'Revisar el material de bádminton': 'Check the badminton equipment',
@@ -310,6 +313,9 @@ export const DEMO_CA: Record<string, string> = {
   /* ── Educación Física ── */
   'Pabellón': 'Pavelló',
   'Condición física y salud': 'Condició física i salut',
+  'Componente motriz': 'Component motriu',
+  'Componente cognitivo': 'Component cognitiu',
+  'Componente social y relacional': 'Component social i relacional',
   'Juegos cooperativos': 'Jocs cooperatius',
   'Plan personal de condición física': 'Pla personal de condició física',
   'Revisar el material de bádminton': 'Revisar el material de bàdminton',

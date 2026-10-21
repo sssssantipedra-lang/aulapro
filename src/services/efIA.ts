@@ -18,6 +18,7 @@ import { IDS_MATERIAL_PIZARRA, MATERIALES_PIZARRA } from '../lib/pizarraEF';
 import { IDS_MODALIDADES, MODALIDADES_EF, modalidadParaIA, NIVELES_PARA_IA, recursosParaIA, TIPOS_ACTIVIDAD } from '../lib/ef';
 import type { ActividadEF, EfData, InstalacionEF, MaterialPizarraId, ModalidadEF, SesionEF, TipoActividadEF } from '../types/ef';
 import type { OfficialCriterionRef } from '../types';
+import { aCantidad, aEstado, type MaterialLeido } from '../lib/importarMaterial';
 
 type Lang = 'es' | 'en' | 'ca';
 type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void };
@@ -470,3 +471,53 @@ export async function prepararSesion(
   };
 }
 
+
+/* ── Inventario desde un documento del centro ── */
+
+/**
+ * Lee el inventario de material de un documento (un PDF, o un texto que no
+ * se entiende por líneas) y devuelve una lista de material. Va a la IA de
+ * Google con la clave del docente, como el resto; la pantalla lo avisa.
+ */
+export async function materialDesdeDocumento(
+  doc: { texto?: string; archivo?: InlineFile }, callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
+): Promise<MaterialLeido[] | null> {
+  const sistema =
+    'Eres un asistente que lee inventarios de material deportivo de un centro educativo en España. Extrae SOLO el material que aparece ' +
+    'en el documento, sin inventar nada ni añadir material que no se nombre. Para cada elemento: "nombre" (como lo escribe el documento, ' +
+    'sin la cantidad), "cantidad" (número entero de unidades; si el documento no la dice, 1), "estado" ("bien", "regular" o "reponer", ' +
+    'solo si el documento lo indica; si no, cadena vacía) y "ubicacion" (dónde está, solo si lo indica; si no, cadena vacía). ' +
+    'Ignora títulos, totales, firmas, fechas y datos que no sean material. Responde SOLO con JSON válido.';
+  const usuario = doc.texto
+    ? `Documento:\n${doc.texto.slice(0, 24000)}\n\nExtrae el material.`
+    : 'Extrae el material del documento adjunto.';
+  const raw = await callGemini(sistema, usuario, doc.archivo ? [doc.archivo] : [], callbacks, {
+    responseSchema: {
+      type: 'OBJECT',
+      properties: {
+        material: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { nombre: { type: 'STRING' }, cantidad: { type: 'INTEGER' }, estado: { type: 'STRING' }, ubicacion: { type: 'STRING' } },
+            required: ['nombre', 'cantidad', 'estado', 'ubicacion'],
+          },
+        },
+      },
+      required: ['material'],
+    },
+    thinkingLevel: 'low',
+    maxOutputTokens: 8192,
+  });
+  if (!raw) return null;
+  const parsed = parseGeminiJson<{ material?: Record<string, unknown>[] }>(raw);
+  if (!parsed || !Array.isArray(parsed.material)) return null;
+  return parsed.material.flatMap(m => {
+    const nombre = typeof m.nombre === 'string' ? m.nombre.replace(/\s+/g, ' ').trim().slice(0, 80) : '';
+    const cantidad = aCantidad(m.cantidad);
+    if (!nombre || cantidad === null) return [];
+    const estado = aEstado(m.estado);
+    const ubicacion = typeof m.ubicacion === 'string' ? m.ubicacion.trim().slice(0, 80) : '';
+    return [{ nombre, cantidad, ...(estado ? { estado } : {}), ...(ubicacion ? { ubicacion } : {}) }];
+  });
+}

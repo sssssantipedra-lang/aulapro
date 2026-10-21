@@ -2333,3 +2333,33 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-curso-clase { margin-top:10px; }
 .ef-curso-clase-ttl { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:var(--text-2); margin-bottom:6px; }
 .ef-atrasada { background:color-mix(in srgb, var(--warn) 16%, var(--card)); color:var(--warn); }
+.ev-cards.cinco { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+.ev-cards.cinco .ev-card { min-height:220px; }
+
+/* ── Sesiones: tarjetas por clase y sesiones agrupadas por SdA (21-10-2026) ── */
+.ses-clases { display:flex; flex-direction:column; gap:22px; }
+.ses-etapa-ttl { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin:0 0 10px; }
+.ses-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; }
+.ses-clase { position:relative; background:var(--card); border:1px solid var(--border); border-left:4px solid var(--ses-c); border-radius:14px; }
+.ses-clase-main { width:100%; display:flex; flex-direction:column; align-items:flex-start; gap:7px; padding:14px 46px 14px 14px; background:none; border:none; border-radius:14px; font:inherit; color:var(--text); text-align:left; cursor:pointer; }
+.ses-clase-main:hover { background:var(--surface); }
+.ses-clase-hd { display:flex; align-items:center; gap:8px; width:100%; }
+.ses-clase-hd strong { font-size:15px; }
+.ses-clase-main .ef-progreso-barra { width:100%; flex:none; height:8px; }
+.ses-clase-prox { display:flex; gap:6px; align-items:center; max-width:100%; }
+.ses-clase-prox-t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ses-clase-nueva { position:absolute; top:8px; right:8px; }
+.ses-clase-cab { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:14px; }
+.ses-clase-nombre { display:flex; align-items:center; gap:8px; margin:0; font-size:19px; }
+.ses-clase-acc { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+.ses-clase-acc .btn-ghost.on { background:var(--accent-l); color:var(--accent-d); border-color:var(--accent-d); }
+.ses-barra { position:sticky; top:8px; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px; margin-bottom:14px; background:var(--card); border:1.5px solid var(--accent-d); border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.08); }
+.ses-grupo { margin-bottom:14px; }
+.ses-grupo-hd { display:flex; align-items:center; gap:8px; }
+.ses-grupo-hd .sda-group-hd { flex:1; min-width:0; }
+.ses-grupo-abrir { flex-shrink:0; font-size:12px; padding:4px 10px; }
+.ses-elegir { flex-shrink:0; width:18px; height:18px; margin-top:14px; accent-color:var(--accent-d); }
+.ef-sesion-fila.elegida { background:var(--accent-l); border-radius:10px; }
+.ef-sesion-fila.archivada .ef-sesion { opacity:.65; }
+.ses-sda-lista { display:flex; flex-direction:column; gap:8px; margin:0 0 4px; padding:0; list-style:none; }
+ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.5px; }

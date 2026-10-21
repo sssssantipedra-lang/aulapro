@@ -87,6 +87,10 @@ export const targetLabel = (target: MarkTarget, subject: string) =>
 
 export const BLOCK_NAME = 'Trabajo diario y actitud';
 
+/** El título del bloque: el que le ha puesto el docente o, si no, el de siempre (que se traduce al mostrarlo). */
+export const nombreDelBloque = (cfg: Pick<MarksBlockConfig, 'name'> | undefined, traducir: (k: string) => string = k => k): string =>
+  cfg?.name?.trim() || traducir(BLOCK_NAME);
+
 export const DEFAULT_BLOCK: MarksBlockConfig = {
   points: 1,
   weights: { homework: 33.33, behavior: 33.33, participation: 33.34 },
@@ -220,9 +224,9 @@ export function applyClassMarks(d: MarksInput): {
       const key = blockKey(cls.id, subject);
       const catId = BLOCK_CATEGORY_PREFIX + key;
       const itemId = BLOCK_ITEM_PREFIX + key;
-      cats.push({ id: catId, class_id: cls.id, name: BLOCK_NAME, weight, subject });
+      cats.push({ id: catId, class_id: cls.id, name: nombreDelBloque(cfg), weight, subject });
       items.push({
-        id: itemId, class_id: cls.id, category_id: catId, name: BLOCK_NAME,
+        id: itemId, class_id: cls.id, category_id: catId, name: nombreDelBloque(cfg),
         date: marks.reduce((a, m) => (m.date > a ? m.date : a), ''),
       });
       // Todos los de la clase tienen nota, no solo los anotados: quien no

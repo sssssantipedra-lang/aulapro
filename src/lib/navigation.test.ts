@@ -5,7 +5,7 @@ import type { Section } from '../types';
 const ALL: Section[] = [
   'dashboard', 'classes', 'agenda', 'evaluar', 'evalfoto', 'rubrics', 'dianas', 'registros', 'diana', 'history', 'notebook', 'profile',
   'sec-classroom', 'share', 'classroom-live', 'attendance', 'documentos', 'reports', 'selfassess', 'audit', 'records',
-  'learning-situations', 'resources', 'meetings', 'trainings', 'seating', 'enclase', 'actitud',
+  'learning-situations', 'sesiones', 'resources', 'meetings', 'trainings', 'seating', 'enclase', 'actitud',
 ];
 const APOYO: Section[] = ['apoyo-registro', 'apoyo-alumnado', 'apoyo-agenda-visual'];
 

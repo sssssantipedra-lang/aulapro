@@ -12,6 +12,8 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const parrafos = (s: string) => s.split('\n').map(x => x.trim()).filter(Boolean).map(x => `<p>${esc(x)}</p>`).join('');
 
 export interface DatosSesionPdf {
+  /** Sesión del docente de aula: inicio, desarrollo y cierre en vez de calentamiento, parte principal y vuelta a la calma. */
+  aula?: boolean;
   clase?: string;
   /** Ya escrita en el idioma de la app. */
   fecha?: string;
@@ -49,11 +51,11 @@ ul { margin: 0; padding-left: 18px; }
 ${meta ? `<p class="meta">${meta}</p>` : ''}
 ${bloque('Objetivo', s.objetivo)}
 ${datos.criterios.length ? `<section><h2>${esc(t('Criterios oficiales'))}</h2><ul>${datos.criterios.map(c => `<li>${esc(c)}</li>`).join('')}</ul></section>` : ''}
-${bloque('Calentamiento', s.calentamiento)}
-${bloque('Parte principal', s.principal)}
-${bloque('Vuelta a la calma', s.calma)}
-${bloque('Material', s.material)}
-${bloque('Para que participe todo el grupo (DUA-A)', s.inclusion, 'dua')}
+${bloque(datos.aula ? 'Inicio de la sesión' : 'Calentamiento', s.calentamiento)}
+${bloque(datos.aula ? 'Desarrollo de la sesión' : 'Parte principal', s.principal)}
+${bloque(datos.aula ? 'Cierre de la sesión' : 'Vuelta a la calma', s.calma)}
+${bloque(datos.aula ? 'Materiales' : 'Material', s.material)}
+${bloque(datos.aula ? 'Medidas de inclusión (DUA)' : 'Para que participe todo el grupo (DUA-A)', s.inclusion, 'dua')}
 ${bloque('Plan B', s.planB, 'planb')}
 ${datos.circuito ? `<section class="circuito"><h2>${esc(t('Circuito'))}: ${esc(datos.circuito.nombre)}</h2>${datos.circuito.svg.replace(/ width="\d+" height="\d+"/, '')}</section>` : ''}
 ${datos.instrumentos?.length ? `<section><h2>${esc(t('Cómo se evalúa'))}</h2>${datos.instrumentos.map(i => `<p class="instr"><strong>${esc(i.nombre)}</strong> <small>(${esc(i.tipo)})</small>${i.conceptos.length ? `<br>${esc(i.conceptos.join(' · '))}` : ''}</p>`).join('')}</section>` : ''}

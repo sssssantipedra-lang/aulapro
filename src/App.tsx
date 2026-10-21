@@ -71,7 +71,7 @@ const EvalFoto        = lazy(() => import('./pages/EvalFoto').then(m => ({ defau
 const EfInicio       = lazy(() => import('./pages/ef/EfInicio').then(m => ({ default: m.EfInicio })));
 const EfCircuitos    = lazy(() => import('./pages/ef/EfCircuitos').then(m => ({ default: m.EfCircuitos })));
 const EfPizarra      = lazy(() => import('./pages/ef/EfPizarra').then(m => ({ default: m.EfPizarra })));
-const EfSesiones     = lazy(() => import('./pages/ef/EfSesiones').then(m => ({ default: m.EfSesiones })));
+const Sesiones       = lazy(() => import('./pages/Sesiones').then(m => ({ default: m.Sesiones })));
 const EfActividades  = lazy(() => import('./pages/ef/EfActividades').then(m => ({ default: m.EfActividades })));
 const EfMaterial     = lazy(() => import('./pages/ef/EfMaterial').then(m => ({ default: m.EfMaterial })));
 
@@ -590,6 +590,7 @@ function AppInner() {
                 scheduleBlocks={st.scheduleBlocks}
                 classMarks={st.classMarks}
                 seatingPlans={st.seatingPlans}
+                comunidad={st.currentUser?.community}
                 onNav={setSection}
               />
             )}
@@ -630,6 +631,7 @@ function AppInner() {
                 gradeItems={st.gradeItems}
                 learningSituations={st.learningSituations}
                 fichas={st.fichas}
+                sesiones={st.ef.sesiones.filter(x => !x.archivada).length}
                 onNav={setSection}
               />
             )}
@@ -656,6 +658,7 @@ function AppInner() {
               <LearningSituations
                 key={section}
                 ef={efSda}
+                onPasarSesiones={sesiones => st.setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] }))}
                 classes={st.classes}
                 students={st.students}
                 gradeCategories={st.gradeCategories}
@@ -740,8 +743,15 @@ function AppInner() {
             {section === 'ef-inicio' && <EfInicio ef={st.ef} onNav={setSection} />}
             {section === 'ef-circuitos' && <EfCircuitos ef={st.ef} onChangeEf={st.setEf} />}
             {section === 'ef-pizarra' && <EfPizarra ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />}
-            {section === 'ef-sesiones' && (
-              <EfSesiones classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana} onNav={setSection} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={st.addEvaluation} />
+            {(section === 'sesiones' || section === 'ef-sesiones') && (
+              <Sesiones
+                perfil={tipo === 'ef' ? 'ef' : 'aula'}
+                classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf}
+                comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana}
+                onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={st.addEvaluation}
+                learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}
+                onAbrirSda={() => setSection(tipo === 'ef' ? 'ef-sda' : 'learning-situations')}
+              />
             )}
             {section === 'ef-actividades' && (
               <EfActividades classes={st.classes} students={st.students} ef={st.ef} onChangeEf={st.setEf} comunidad={st.currentUser?.community} />

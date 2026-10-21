@@ -16,6 +16,7 @@ import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
 import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
+import { useGuardadoAutomatico } from './useGuardadoAutomatico';
 import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF, sinClaseEF } from '../lib/ef';
 import { buildDemoEF } from '../lib/demoEF';
 import type { Lang } from '../i18n/core';
@@ -37,24 +38,6 @@ const ATT_LABEL: Record<AttendanceStatus, string> = {
 const SAVE_DELAY_MS = 700;
 /** Cada cuánto se hace una copia de seguridad automática. */
 const BACKUP_EVERY_MS = 10 * 60 * 1000;
-
-/**
- * Huella de lo último guardado, para no volver a escribir lo mismo. Antes se
- * guardaba aquí el texto entero, una segunda copia del curso que no se soltaba
- * nunca (varios MB con un curso completo); la longitud y el SHA-256 bastan para
- * saber si ha cambiado algo. Si el navegador no tiene `crypto.subtle`, se queda
- * el texto, como antes.
- */
-async function huellaDe(json: string): Promise<string> {
-  const subtle = globalThis.crypto?.subtle;
-  if (!subtle) return json;
-  try {
-    const digest = new Uint8Array(await subtle.digest('SHA-256', new TextEncoder().encode(json)));
-    return `${json.length}:${Array.from(digest, b => b.toString(16).padStart(2, '0')).join('')}`;
-  } catch {
-    return json;
-  }
-}
 
 /** Todo lo que se guarda de un perfil. */
 interface ProfileSnapshot {
@@ -278,26 +261,10 @@ export function useAppState() {
       attendance, reports, selfAssessments, learningSituations, fichas,
       workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog]);
 
-  const [saving, setSaving] = useState(false);
-  const lastSavedRef = useRef('');
-
-  useEffect(() => {
-    if (!ready || !profileId) return;
-
-    // Serializar es lo caro de todo esto: recorre el curso entero. Va DENTRO
-    // del temporizador a propósito, para que se pague una vez por pausa de
-    // escritura y no en cada tecla; hacerlo fuera ponía todo el cuaderno en el
-    // camino de cada pulsación y se notaba al escribir.
-    const timer = setTimeout(async () => {
-      const huella = await huellaDe(JSON.stringify(snapshot));
-      if (huella === lastSavedRef.current) return;
-      setSaving(true);
-      await store.saveData(profileId, snapshot as unknown as store.ProfileData);
-      lastSavedRef.current = huella;
-      setSaving(false);
-    }, SAVE_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [snapshot, ready, profileId]);
+  const { saving } = useGuardadoAutomatico({
+    ready, profileId, snapshot, retardo: SAVE_DELAY_MS,
+    guardar: (id, datos) => store.saveData(id, datos as unknown as store.ProfileData),
+  });
 
   /* ── Copia de seguridad automática ── */
   useEffect(() => {

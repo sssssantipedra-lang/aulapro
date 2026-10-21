@@ -810,6 +810,12 @@ indica «Duración de cada sesión» (50 minutos de partida). Se ven en la SdA, 
 el PDF y en el Word, y «Pasar a Sesiones de EF» pone cada momento en su parte.
 
 [ef-sesiones] SESIONES
+Es la misma pantalla de Sesiones del docente de aula (Documentos → Sesiones), con
+lo propio de EF. Se abre en una TARJETA POR CLASE, agrupadas en Primaria, ESO y
+otras: cuántas sesiones tiene, cómo van, la próxima y las que quedaron por
+completar; el «+» de la tarjeta añade una sesión a esa clase. Dentro de una
+clase, sus sesiones salen AGRUPADAS POR SITUACIÓN DE APRENDIZAJE (las que no
+tienen, al final); cada grupo se pliega y «Ver la SdA» lleva a ella.
 Sesiones de EF con calentamiento, parte principal, vuelta a la calma,
 material, «Para que participe todo el grupo (DUA-A)» y plan B. «Preparar con
 IA»: se elige la clase, el día, la instalación, los minutos (salen del
@@ -821,9 +827,19 @@ actividades. Si ese día hay exentos o lesionados en la clase, la sesión lleva
 medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
-sesión» la escribe a mano. «PDF» la guarda para imprimirla. Salen en
-«Próximas» y «Sin fecha», o, con «Ver por → Curso», AGRUPADAS POR CURSO (un bloque
-plegable por curso, con las clases dentro). «Cómo se evalúa»: se adjunta un instrumento que ya existe
+sesión» la escribe a mano. «PDF» la guarda para imprimirla.
+SITUACIÓN DE APRENDIZAJE: en la sesión, el desplegable «Situación de
+aprendizaje» la asocia a una SdA que ya existe; «Pasar a Sesiones de EF»,
+en la SdA, crea las sesiones ya asociadas a ella y en su orden.
+ELEGIR VARIAS: dentro de una clase, «Elegir varias» muestra una casilla en cada
+sesión (y en cada grupo); la barra de arriba permite «Elegir todas», «Asociar a
+una SdA» (a una existente, o quitarla), «Crear una SdA con ellas» (la IA
+estructura una situación de aprendizaje con esas sesiones, sus mismos títulos
+y en su orden, la guarda en Situaciones de aprendizaje y las deja asociadas),
+«Archivar» y «Eliminar» (pide confirmación). Las archivadas salen de la vista
+y de los recuentos pero no se borran: se ven en «Ver las archivadas» y se
+restauran.
+«Cómo se evalúa»: se adjunta un instrumento que ya existe
 (rúbrica, diana o escala de registro), se crea una escala de registro ahí mismo
 (con la clase de la sesión) o se va a crear una rúbrica o una diana (la sesión se
 queda como borrador y se retoma con «Continuar»); «Evaluar» abre la valoración de la
@@ -832,20 +848,28 @@ instrumento se ve cuántos alumnos van valorados.
 «Circuito»: se adjunta uno ya dibujado o se dibuja uno nuevo con la pizarra de
 circuitos en una ventana, sin salir de la sesión; se ve en la sesión y sale en el
 PDF, junto con el instrumento. A la izquierda de cada sesión hay un círculo para MARCARLA COMO
-COMPLETADA (también está en la ventana de la sesión): la sesión sale de las
-pendientes, tachada, y pasa a «Ver las completadas»; si se vuelve a pulsar,
-vuelve a pendiente. Arriba, «X de Y sesiones completadas» con una barra de
-avance. Las sesiones cuyo día ya pasó y no están completadas salen aparte,
-en «Por completar», para no perder el hilo. Al copiar una sesión a otra clase,
-la copia empieza sin completar.
-«Borrar todas» (arriba) vacía de golpe la lista de sesiones de todas las clases, tras
-pedir confirmación y sin poder deshacerlo.
+COMPLETADA (también está en la ventana de la sesión): la sesión sale tachada y cuenta
+en «X de Y sesiones completadas»; si se vuelve a pulsar, vuelve a pendiente. Las
+sesiones cuyo día ya pasó y no están completadas llevan la marca «Por completar».
+Al copiar una sesión a otra clase, la copia empieza sin completar, sin archivar y
+sin situación de aprendizaje.
 «Copiar a otras clases» (arriba, o dentro de una sesión): para quien da EF a
 varias clases del mismo curso. Se elige la clase de origen, qué sesiones (de
 partida, todas) y a qué clases; salen marcadas las del mismo curso y avisadas
 las que ya tienen una sesión con ese título. Cada clase recibe sus propias
 copias, sin fecha salvo que se marque «Conservar también la fecha», y las
 originales no se tocan.
+
+[sesiones] SESIONES (DOCENTE DE AULA)
+En Documentos → Sesiones, con el mismo funcionamiento que las de Educación Física:
+una tarjeta por clase (Primaria, ESO y otras) y, dentro, las sesiones agrupadas por
+situación de aprendizaje, con «Elegir varias» para asociarlas a una SdA, crear una
+SdA con ellas, archivarlas o eliminarlas (ver Sesiones de EF). Cada sesión tiene
+inicio, desarrollo y cierre, materiales, medidas de inclusión (DUA) y plan B, y se
+guarda en PDF. Se crean a mano o con «Pasar a Sesiones», en la situación de
+aprendizaje, que crea una sesión por cada sesión de la SdA, sin fecha y ya
+asociada a ella. Al contrario que en EF, la IA no las prepara una a una: la IA
+trabaja en la situación de aprendizaje.
 
 [ef-actividades] ACTIVIDADES
 Se abre en SEIS TARJETAS, una por tipo (juegos motrices, deportes, para días de

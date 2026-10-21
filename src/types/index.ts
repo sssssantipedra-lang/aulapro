@@ -743,6 +743,8 @@ export type MarkTarget = 'homework' | 'behavior' | 'participation';
  * por defecto de `services/classMarks.ts`.
  */
 export interface MarksBlockConfig {
+  /** Cómo se llama el bloque en el cuaderno (el docente lo renombra); ausente o vacío = «Trabajo diario y actitud». */
+  name?: string;
   /** true/false = el docente lo ha decidido; ausente = cuenta si hay anotaciones. */
   enabled?: boolean;
   /** Puntos que vale el bloque sobre 10 en la nota final. */
@@ -771,7 +773,7 @@ export type Section =
   | 'evaluar' | 'evalfoto' | 'rubrics' | 'dianas' | 'registros' | 'diana' | 'history' | 'notebook' | 'profile'
   | 'sec-classroom' | 'share' | 'classroom-live'
   | 'attendance' | 'documentos' | 'reports' | 'selfassess' | 'audit' | 'records'
-  | 'learning-situations' | 'resources'
+  | 'learning-situations' | 'sesiones' | 'resources'
   | 'meetings' | 'trainings' | 'seating' | 'enclase' | 'actitud'
   | 'apoyo-registro' | 'apoyo-alumnado' | 'apoyo-alumno' | 'apoyo-agenda-visual'
   | 'ef-inicio' | 'ef-pista' | 'ef-exentos' | 'ef-pruebas' | 'ef-equipos' | 'ef-circuitos' | 'ef-pizarra'

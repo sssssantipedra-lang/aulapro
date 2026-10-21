@@ -4,7 +4,7 @@
  * sirve y cuánto hay hecho. Entrar en Documentos desde el menú abre siempre
  * esta pantalla (`portada` en lib/navigation.ts).
  */
-import { ArrowRight, ClipboardList, FileText, FolderOpen, Lightbulb, Shapes } from 'lucide-react';
+import { ArrowRight, ClipboardList, FileText, FolderOpen, Layers, Lightbulb, Shapes } from 'lucide-react';
 import type { Class, CompetencyReport, Ficha, GradeItem, LearningSituation, Section } from '../types';
 import { useI18n } from '../i18n';
 import { useToast } from '../components/ui/Toast';
@@ -16,10 +16,12 @@ interface Props {
   gradeItems: GradeItem[];
   learningSituations: LearningSituation[];
   fichas: Ficha[];
+  /** Cuántas sesiones hay preparadas (sin las archivadas). */
+  sesiones?: number;
   onNav: (s: Section) => void;
 }
 
-export function DocumentosInicio({ classes, reports, gradeItems, learningSituations, fichas, onNav }: Props) {
+export function DocumentosInicio({ classes, reports, gradeItems, learningSituations, fichas, sesiones = 0, onNav }: Props) {
   const { t } = useI18n();
   const { toast } = useToast();
   const abrirCarpeta = window.electronAPI?.docs?.openFolder;
@@ -44,6 +46,12 @@ export function DocumentosInicio({ classes, reports, gradeItems, learningSituati
       titulo: 'Situaciones de aprendizaje',
       texto: 'Una idea y la IA redacta la SdA entera: currículo, sesiones, inclusión y evaluación.',
       dato: cuenta(learningSituations.length, '{n} situación', '{n} situaciones'),
+    },
+    {
+      id: 'sesiones', color: '#f59e0b', icono: <Layers size={26} />,
+      titulo: 'Sesiones',
+      texto: 'Una tarjeta por clase y, dentro, las sesiones agrupadas por situación de aprendizaje: elige varias para archivarlas o crear una SdA.',
+      dato: cuenta(sesiones, '{n} sesión', '{n} sesiones'),
     },
     {
       id: 'resources', color: '#ec4899', icono: <Shapes size={26} />,
@@ -75,7 +83,7 @@ export function DocumentosInicio({ classes, reports, gradeItems, learningSituati
           </button>
         )}
       </div>
-      <div className="ev-cards cuatro">
+      <div className="ev-cards cinco">
         {tarjetas.map(c => (
           <button key={c.id} type="button" className="ev-card" style={{ '--ev-c': c.color } as React.CSSProperties} onClick={() => onNav(c.id)}>
             <span className="ev-card-ico">{c.icono}</span>

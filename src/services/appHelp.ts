@@ -33,6 +33,7 @@ export const HELP_TARGETS: Record<Section, { es: string; en: string }> = {
   attendance:            { es: 'Asistencia', en: 'Attendance' },
   seating:               { es: 'Distribución de aula', en: 'Classroom Layout' },
   'learning-situations': { es: 'Situaciones de aprendizaje', en: 'Learning Situations' },
+  sesiones:              { es: 'Sesiones', en: 'Sessions' },
   evaluar:               { es: 'Evaluar', en: 'Assess' },
   rubrics:               { es: 'Rúbricas', en: 'Rubrics' },
   dianas:                { es: 'Dianas', en: 'Assessment Bullseye' },

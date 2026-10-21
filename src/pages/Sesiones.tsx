@@ -1,41 +1,50 @@
 /**
- * Educación Física, «Sesiones» (decisión del dueño, 5-10-2026): calentamiento,
- * parte principal y vuelta a la calma, con medidas DUA-A para quien ese día
- * tiene una limitación y un plan B si llueve o la instalación está ocupada. La
- * IA las prepara con el currículo de la clase, el material, las instalaciones y
- * el banco de actividades; de los exentos solo recibe lo que no pueden hacer,
- * sin nombre ni motivo. Se revisan, se guardan y se imprimen. Ver `docs/EF.md`.
+ * «Sesiones» (decisión del dueño, 5-10-2026, en Educación Física; desde el
+ * 21-10-2026, la misma pantalla para el docente de aula): calentamiento (inicio),
+ * parte principal (desarrollo) y vuelta a la calma (cierre), con medidas de
+ * inclusión para quien ese día tiene una limitación y un plan B. En EF, la IA las
+ * prepara con el currículo de la clase, el material, las instalaciones y el
+ * banco de actividades; de los exentos solo recibe lo que no pueden hacer, sin
+ * nombre ni motivo. Se revisan, se guardan y se imprimen. Ver `docs/EF.md`.
+ *
+ * La portada es una tarjeta por clase; dentro de cada una, las sesiones van
+ * agrupadas por su situación de aprendizaje y se pueden elegir varias para
+ * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, ChevronDown } from 'lucide-react';
-import { Modal } from '../../components/ui/Modal';
-import { CopiarAClases } from '../../components/CopiarAClases';
-import { clonarSesionEF } from '../../lib/clonar';
-import { useToast } from '../../components/ui/Toast';
-import { CriteriosOficialesPicker } from '../../components/curriculum/CriteriosOficialesPicker';
-import { useI18n } from '../../i18n';
-import { useNombreCurso } from '../../hooks/useNombreCurso';
-import { useBorradorVentana } from '../../hooks/useBorrador';
-import { AvisoBorrador } from '../../components/AvisoBorrador';
-import { useMateriasOficiales } from '../../hooks/useNotasPorCompetencias';
-import { isoDate, fromIsoDate } from '../../lib/utils';
-import { MODALIDADES_EF, nuevoIdEF } from '../../lib/ef';
-import { bancoEF } from '../../lib/bancoEF';
-import { describirCriterio } from '../../lib/curriculum/criteriosParaIA';
-import { esAsignaturaEF } from '../../services/classMarks';
-import { hasApiKey } from '../../services/gemini';
-import { limitacionesParaIA, prepararSesion } from '../../services/efIA';
-import { alumnadoParaIA } from '../../lib/ef';
-import { guardarSesionPdf } from '../../services/exportSesionEF';
-import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { Class, EvalDiana, Evaluation, Rubric, ScheduleBlock, Student } from '../../types';
-import { SesionEvaluacionCircuito } from '../../components/ef/SesionEvaluacionCircuito';
-import { describirInstrumento, ETIQUETA_INSTRUMENTO } from '../../lib/instrumentosSesion';
-import { pizarraSvg } from '../../lib/pizarraEF';
-import { agruparSesionesPorCurso } from '../../lib/sesionesPorCurso';
-import type { EfData, InstrumentoRefEF, ModalidadEF, SesionEF } from '../../types/ef';
-import type { InlineFile } from '../../services/gemini';
-import { ValorarRegistro } from '../../components/ValorarRegistro';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2 } from 'lucide-react';
+import { Modal } from '../components/ui/Modal';
+import { CopiarAClases } from '../components/CopiarAClases';
+import { clonarSesionEF } from '../lib/clonar';
+import { useToast } from '../components/ui/Toast';
+import { CriteriosOficialesPicker } from '../components/curriculum/CriteriosOficialesPicker';
+import { useI18n } from '../i18n';
+import { useNombreCurso } from '../hooks/useNombreCurso';
+import { useBorradorVentana } from '../hooks/useBorrador';
+import { AvisoBorrador } from '../components/AvisoBorrador';
+import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { isoDate, fromIsoDate } from '../lib/utils';
+import { MODALIDADES_EF, nuevoIdEF } from '../lib/ef';
+import { bancoEF } from '../lib/bancoEF';
+import { describirCriterio } from '../lib/curriculum/criteriosParaIA';
+import { esAsignaturaEF } from '../services/classMarks';
+import { hasApiKey } from '../services/gemini';
+import { limitacionesParaIA, prepararSesion } from '../services/efIA';
+import { alumnadoParaIA } from '../lib/ef';
+import { guardarSesionPdf } from '../services/exportSesionEF';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import type { Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
+import { SesionEvaluacionCircuito } from '../components/ef/SesionEvaluacionCircuito';
+import { describirInstrumento, ETIQUETA_INSTRUMENTO } from '../lib/instrumentosSesion';
+import { pizarraSvg } from '../lib/pizarraEF';
+import { archivarSesiones, asociarASda, quitarSesiones } from '../lib/sesiones';
+import { ClasesDeSesiones } from '../components/sesiones/ClasesDeSesiones';
+import { SesionesDeClase } from '../components/sesiones/SesionesDeClase';
+import { AsociarASda } from '../components/sesiones/AsociarASda';
+import { CrearSdaDeSesiones } from '../components/sesiones/CrearSdaDeSesiones';
+import type { EfData, InstrumentoRefEF, ModalidadEF, SesionEF } from '../types/ef';
+import type { InlineFile } from '../services/gemini';
+import { ValorarRegistro } from '../components/ValorarRegistro';
 
 interface Props {
   classes: Class[];
@@ -53,21 +62,29 @@ interface Props {
   evaluations?: Evaluation[];
   lawDocument?: InlineFile | null;
   onAddEvaluation?: (ev: Evaluation) => void;
+  /** Educación Física (con su banco, circuitos e IA de sesiones) o docente de aula; por defecto, EF. */
+  perfil?: 'ef' | 'aula';
+  /** Las situaciones de aprendizaje, para asociarles sesiones o crear una con ellas. */
+  learningSituations?: LearningSituation[];
+  onSaveSda?: (s: LearningSituation) => void;
+  /** Ir a Situaciones de aprendizaje. */
+  onAbrirSda?: () => void;
 }
 
-const VISTA_KEY = 'aulapro_ef_sesiones_vista';
+const EvalRubricaModal = lazy(() => import('./Rubrics').then(m => ({ default: m.EvalModal })));
+const EvalDianaModal = lazy(() => import('./EvalDianas').then(m => ({ default: m.DianaEvalModal })));
+const EfPizarra = lazy(() => import('./ef/EfPizarra').then(m => ({ default: m.EfPizarra })));
 
-const EvalRubricaModal = lazy(() => import('../Rubrics').then(m => ({ default: m.EvalModal })));
-const EvalDianaModal = lazy(() => import('../EvalDianas').then(m => ({ default: m.DianaEvalModal })));
-const EfPizarra = lazy(() => import('./EfPizarra').then(m => ({ default: m.EfPizarra })));
+type ParteId = keyof Pick<SesionEF, 'objetivo' | 'calentamiento' | 'principal' | 'calma' | 'material' | 'inclusion' | 'planB'>;
 
-const PARTES: readonly { id: keyof Pick<SesionEF, 'objetivo' | 'calentamiento' | 'principal' | 'calma' | 'material' | 'inclusion' | 'planB'>; label: string; filas: number }[] = [
+/** Las partes de una sesión: en EF, con sus nombres de siempre; en el aula, inicio, desarrollo y cierre (son los mismos campos). */
+const partesDe = (esEF: boolean): readonly { id: ParteId; label: string; filas: number }[] => [
   { id: 'objetivo', label: 'Objetivo', filas: 2 },
-  { id: 'calentamiento', label: 'Calentamiento', filas: 4 },
-  { id: 'principal', label: 'Parte principal', filas: 7 },
-  { id: 'calma', label: 'Vuelta a la calma', filas: 3 },
-  { id: 'material', label: 'Material', filas: 2 },
-  { id: 'inclusion', label: 'Para que participe todo el grupo (DUA-A)', filas: 3 },
+  { id: 'calentamiento', label: esEF ? 'Calentamiento' : 'Inicio de la sesión', filas: 4 },
+  { id: 'principal', label: esEF ? 'Parte principal' : 'Desarrollo de la sesión', filas: 7 },
+  { id: 'calma', label: esEF ? 'Vuelta a la calma' : 'Cierre de la sesión', filas: 3 },
+  { id: 'material', label: esEF ? 'Material' : 'Materiales', filas: 2 },
+  { id: 'inclusion', label: esEF ? 'Para que participe todo el grupo (DUA-A)' : 'Medidas de inclusión (DUA)', filas: 3 },
   { id: 'planB', label: 'Plan B', filas: 3 },
 ];
 
@@ -82,7 +99,10 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
   return min > 0 ? min : null;
 }
 
-export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null, onAddEvaluation }: Props) {
+export function Sesiones({
+  classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null,
+  onAddEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda,
+}: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -90,16 +110,12 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   const [editando, setEditando] = useState<SesionEF | null>(null);
   const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean; modalidad: ModalidadEF | '' } | null>(null);
   const [pensando, setPensando] = useState(false);
-  const [verCompletadas, setVerCompletadas] = useState(false);
-  /** Cómo se ven las sesiones: por fecha (como siempre) o agrupadas por curso. Se recuerda en este dispositivo. */
-  const [vista, setVistaState] = useState<'fecha' | 'curso'>(() => {
-    try { return localStorage.getItem(VISTA_KEY) === 'curso' ? 'curso' : 'fecha'; } catch { return 'fecha'; }
-  });
-  const [plegados, setPlegados] = useState<Set<string>>(new Set());
-  function setVista(v: 'fecha' | 'curso') {
-    setVistaState(v);
-    try { localStorage.setItem(VISTA_KEY, v); } catch { /* solo esta sesión */ }
-  }
+  const esEF = perfil === 'ef';
+  /** La clase abierta (`''` = sesiones sin clase); `null`, la portada con las tarjetas. */
+  const [claseVista, setClaseVista] = useState<string | null>(null);
+  /** Sesiones por asociar a una SdA y sesiones con las que crear una SdA nueva. */
+  const [asociando, setAsociando] = useState<string[] | null>(null);
+  const [creandoSda, setCreandoSda] = useState<string[] | null>(null);
   /** Copiar sesiones a otras clases: de qué clase, cuáles y si se conserva la fecha. */
   const [copiando, setCopiando] = useState<{ origenId: string; ids: string[]; conFecha: boolean } | null>(null);
   const esNueva = !!editando && !ef.sesiones.some(s => s.id === editando.id);
@@ -132,13 +148,6 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
   };
 
   const ordenadas = useMemo(() => [...ef.sesiones].sort((a, b) => (a.fecha ?? '9999').localeCompare(b.fecha ?? '9999')), [ef.sesiones]);
-  // Lo completado sale aparte, y lo que ya pasó sin completarse se queda a la vista para no perder el hilo
-  const proximas = ordenadas.filter(s => !s.completada && s.fecha && s.fecha >= hoy);
-  const sinFecha = ordenadas.filter(s => !s.completada && !s.fecha);
-  const atrasadas = ordenadas.filter(s => !s.completada && s.fecha && s.fecha < hoy);
-  const completadas = ordenadas.filter(s => s.completada).reverse();
-  const hechas = completadas.length;
-  const porCurso = useMemo(() => agruparSesionesPorCurso(ordenadas, classes), [ordenadas, classes]);
   const nombreClase = (id?: string) => classes.find(c => c.id === id)?.name ?? '';
   const nombreInst = (id?: string) => ef.instalaciones.find(i => i.id === id)?.nombre ?? '';
   const dia = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
@@ -172,8 +181,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     toast(t('{n} sesiones copiadas a {clases}.', { n: nuevas.length, clases: destinos.map(c => c.name).join(', ') }));
   }
 
-  const vacia = (): SesionEF => ({
-    id: nuevoIdEF('ses'), titulo: '', claseId: classes[0]?.id, fecha: hoy, instalacionId: ef.instalaciones[0]?.id,
+  const vacia = (claseId: string | undefined = claseVista || classes[0]?.id): SesionEF => ({
+    id: nuevoIdEF('ses'), titulo: '', claseId, fecha: hoy, ...(esEF && ef.instalaciones[0] ? { instalacionId: ef.instalaciones[0].id } : {}),
     objetivo: '', calentamiento: '', principal: '', calma: '', material: '', inclusion: '', planB: '',
   });
 
@@ -233,19 +242,39 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     setEditando(null);
   }
 
-  function borrarTodas() {
-    const n = ef.sesiones.length;
-    if (n === 0) return;
-    if (!window.confirm(t('¿Borrar las {n} sesiones de todas las clases? No se puede deshacer.', { n }))) return;
-    onChangeEf(d => ({ ...d, sesiones: [] }));
-    setEditando(null);
-    toast(t('{n} sesiones borradas.', { n }));
+  /* ── Acciones sobre varias sesiones ── */
+  function eliminarVarias(ids: string[]) {
+    if (ids.length === 0) return;
+    if (!window.confirm(t(ids.length === 1 ? '¿Eliminar la sesión elegida? No se puede deshacer.' : '¿Eliminar las {n} sesiones elegidas? No se puede deshacer.', { n: ids.length }))) return;
+    onChangeEf(d => ({ ...d, sesiones: quitarSesiones(d.sesiones, new Set(ids)) }));
+    toast(t(ids.length === 1 ? '{n} sesión eliminada.' : '{n} sesiones eliminadas.', { n: ids.length }));
+  }
+
+  function archivarVarias(ids: string[], archivar: boolean) {
+    if (ids.length === 0) return;
+    onChangeEf(d => ({ ...d, sesiones: archivarSesiones(d.sesiones, new Set(ids), archivar) }));
+    toast(t(archivar ? '{n} sesiones archivadas: las encuentras en «Ver las archivadas».' : '{n} sesiones restauradas.', { n: ids.length }));
+  }
+
+  function asociarVarias(sdaId: string | undefined) {
+    if (!asociando) return;
+    const ids = asociando;
+    onChangeEf(d => ({ ...d, sesiones: asociarASda(d.sesiones, ids, sdaId) }));
+    setAsociando(null);
+    toast(sdaId ? t('{n} sesiones asociadas a la situación de aprendizaje.', { n: ids.length }) : t('{n} sesiones sin situación de aprendizaje.', { n: ids.length }));
+  }
+
+  /** La SdA nueva ya está guardada: se asocian las sesiones con las que se creó. */
+  function sdaCreada(sda: LearningSituation, ids: string[]) {
+    onSaveSda?.(sda);
+    onChangeEf(d => ({ ...d, sesiones: asociarASda(d.sesiones, ids, sda.id) }));
   }
 
   async function pdf(s: SesionEF) {
     const criterios = (s.criterios ?? []).map(ref => describirCriterio(materiasEd, ref)).filter(Boolean)
       .map(c => `${c!.materia} ${c!.ref.codigo}: ${c!.texto}`);
     const res = await guardarSesionPdf(s, {
+      aula: !esEF,
       clase: nombreClase(s.claseId) || undefined, fecha: s.fecha ? dia(s.fecha) : undefined,
       instalacion: nombreInst(s.instalacionId) || undefined, criterios,
       instrumentos: (s.instrumentos ?? []).map(r => describirInstrumento(r, rubrics, dianas)).filter(Boolean)
@@ -256,10 +285,14 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
     else if (res.error) toast(t('No se ha podido guardar el PDF.'));
   }
 
-  const fila = (s: SesionEF) => {
-    const lims = !s.completada && s.claseId && s.fecha && s.fecha >= hoy ? limitacionesDe(s.claseId, s.fecha).length : 0;
+  const fila = (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }) => {
+    const lims = esEF && !s.completada && s.claseId && s.fecha && s.fecha >= hoy ? limitacionesDe(s.claseId, s.fecha).length : 0;
     return (
-      <li key={s.id} className={`ef-sesion-fila${s.completada ? ' completada' : ''}`}>
+      <li key={s.id} className={`ef-sesion-fila${s.completada ? ' completada' : ''}${s.archivada ? ' archivada' : ''}${seleccion?.marcada ? ' elegida' : ''}`}>
+        {seleccion && (
+          <input type="checkbox" className="ses-elegir" checked={seleccion.marcada} onChange={seleccion.alternar}
+            aria-label={t('Elegir «{nombre}»', { nombre: s.titulo || t('Sin título') })} />
+        )}
         <button
           type="button" className="ef-sesion-check" onClick={() => alternarCompletada(s)} aria-pressed={!!s.completada}
           aria-label={s.completada ? t('Marcar «{nombre}» como pendiente', { nombre: s.titulo }) : t('Marcar «{nombre}» como completada', { nombre: s.titulo })}
@@ -270,9 +303,9 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         <button type="button" className="ef-sesion" onClick={() => setEditando(s)}>
           <strong>{s.titulo || t('Sin título')}</strong>
           <span className="ap-meta">
-            {s.claseId && <span>{nombreClase(s.claseId)}</span>}
             {s.fecha && <span className="ap-hora"><CalendarDays size={12} aria-hidden="true" />{dia(s.fecha)}</span>}
-            {vista === 'curso' && !s.completada && s.fecha && s.fecha < hoy && <span className="sda-chip ef-atrasada">{t('Por completar')}</span>}
+            {!s.completada && s.fecha && s.fecha < hoy && <span className="sda-chip ef-atrasada">{t('Por completar')}</span>}
+            {s.archivada && <span className="sda-chip">{t('Archivada')}</span>}
             {s.instalacionId && <span className="ap-hora"><MapPin size={12} aria-hidden="true" />{nombreInst(s.instalacionId)}</span>}
             {s.modalidad && <span className="sda-chip ef-modalidad">{t(MODALIDADES_EF.find(m => m.id === s.modalidad)!.label)}</span>}
             {s.ia && <span className="sda-chip ef-origen-ia">{t('Con IA')}</span>}
@@ -288,21 +321,31 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
 
   const limsIa = ia && claseIa ? alumnadoDe(claseIa.id, ia.fecha) : [];
 
+  const claseAbierta = claseVista === null ? undefined : classes.find(c => c.id === claseVista);
+  const sesionesAbiertas = claseVista === null ? [] : ordenadas.filter(s => (claseVista ? s.claseId === claseVista : !s.claseId || !classes.some(c => c.id === s.claseId)));
+  const sdasDeLaClase = (id?: string) => learningSituations.filter(x => !id || x.class_id === id || !!x.otras_clases?.includes(id) || !x.class_id);
+  const sesionesPorId = (ids: string[]) => ids.map(id => ef.sesiones.find(x => x.id === id)).filter((x): x is SesionEF => !!x);
+  const sesionesDeSdaNueva = creandoSda ? sesionesPorId(creandoSda) : [];
+  const claseDeSdaNueva = classes.find(c => c.id === sesionesDeSdaNueva[0]?.claseId);
+
   return (
     <section className="sec active ap-page">
       <div className="pg-hd">
         <div>
           <h1 className="pg-title">{t('Sesiones')}</h1>
-          <p className="pg-sub">{t('Calentamiento, parte principal y vuelta a la calma, con medidas para quien tiene una limitación (DUA-A) y un plan B. Prepáralas con la IA o escríbelas tú.')}</p>
+          <p className="pg-sub">{t(esEF
+            ? 'Calentamiento, parte principal y vuelta a la calma, con medidas para quien tiene una limitación (DUA-A) y un plan B. Una tarjeta por clase y, dentro, agrupadas por situación de aprendizaje.'
+            : 'Inicio, desarrollo y cierre de cada clase, con medidas de inclusión y un plan B. Una tarjeta por clase y, dentro, agrupadas por situación de aprendizaje.')}</p>
         </div>
         <div className="ap-prog-acc">
-          <button className="btn-ghost" onClick={() => setEditando(vacia())}><Plus size={15} />{t('Nueva sesión')}</button>
-          <button className="btn-ghost" onClick={() => abrirCopia()} disabled={ef.sesiones.length === 0}><Copy size={15} />{t('Copiar a otras clases')}</button>
-          <button className="btn-ghost ap-borrar" onClick={borrarTodas} disabled={ef.sesiones.length === 0}><Trash2 size={15} />{t('Borrar todas')}</button>
-          <button className="btn-accent" onClick={abrirIa} disabled={!hasApiKey() || classes.length === 0}
-            title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
-            <Sparkles size={15} />{t('Preparar con IA')}
-          </button>
+          {claseVista === null && <button className="btn-ghost" onClick={() => setEditando(vacia())}><Plus size={15} />{t('Nueva sesión')}</button>}
+          <button className="btn-ghost" onClick={() => abrirCopia(claseVista ?? undefined)} disabled={ef.sesiones.length === 0}><Copy size={15} />{t('Copiar a otras clases')}</button>
+          {esEF && (
+            <button className="btn-accent" onClick={abrirIa} disabled={!hasApiKey() || classes.length === 0}
+              title={hasApiKey() ? undefined : t('Configura tu clave API gratuita de Google en Configuración para usar la IA.')}>
+              <Sparkles size={15} />{t('Preparar con IA')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -310,89 +353,40 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
         <AvisoBorrador borrador={borrador.restos} queEra={t('una sesión')} onContinuar={continuarBorrador} onDescartar={borrador.descartar} />
       )}
 
-      {ef.sesiones.length > 0 && (
-        <div className="ef-progreso" role="status">
-          <div className="ef-progreso-barra" aria-hidden="true"><span style={{ width: `${Math.round((hechas / ef.sesiones.length) * 100)}%` }} /></div>
-          <span>{t('{hechas} de {total} sesiones completadas', { hechas, total: ef.sesiones.length })}</span>
-        </div>
-      )}
-
-      {ef.sesiones.length > 0 && (
-        <div className="toolbar-row ef-vista">
-          <span className="toolbar-label" id="ef-vista-label">{t('Ver por')}</span>
-          <div className="chip-row" role="group" aria-labelledby="ef-vista-label">
-            {([['fecha', t('Fecha')], ['curso', t('Curso')]] as const).map(([id, label]) => (
-              <button key={id} type="button" className={`chip sm${vista === id ? ' on' : ''}`} aria-pressed={vista === id} onClick={() => setVista(id)}>{label}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {vista === 'curso' && ef.sesiones.length > 0 ? (
+      {claseVista === null ? (
         <>
-          {porCurso.map(g => {
-            const visibles = g.sesiones.filter(x => verCompletadas || !x.completada);
-            const hechasG = g.sesiones.filter(x => x.completada).length;
-            const plegado = plegados.has(g.key);
-            const titulo = g.etapa && g.curso ? nombreCurso({ etapa: g.etapa, curso: g.curso }) : t(g.key === 'sin-clase' ? 'Sin clase' : 'Otras clases');
-            return (
-              <section key={g.key} className="card ef-curso">
-                <button type="button" className="sda-group-hd" aria-expanded={!plegado}
-                  onClick={() => setPlegados(prev => { const n = new Set(prev); if (n.has(g.key)) n.delete(g.key); else n.add(g.key); return n; })}>
-                  <ChevronDown size={16} style={{ transform: plegado ? 'rotate(-90deg)' : 'none' }} aria-hidden="true" />
-                  <span className="sda-group-name">{titulo}</span>
-                  <span className="sda-count">{g.sesiones.length}</span>
-                  {hechasG > 0 && <span className="ap-sub" style={{ marginLeft: 'auto' }}>{t('{hechas} de {total} sesiones completadas', { hechas: hechasG, total: g.sesiones.length })}</span>}
-                </button>
-                {!plegado && (g.clases.length > 1 ? g.clases.map(c => {
-                  const deClase = visibles.filter(x => x.claseId === c.id);
-                  return deClase.length > 0 && (
-                    <div key={c.id} className="ef-curso-clase">
-                      <div className="ef-curso-clase-ttl"><span className="sda-group-dot" style={{ background: c.color }} />{c.name}</div>
-                      <ul className="ap-lista ef-sesiones">{deClase.map(fila)}</ul>
-                    </div>
-                  );
-                }) : (visibles.length > 0
-                  ? <ul className="ap-lista ef-sesiones">{visibles.map(fila)}</ul>
-                  : <p className="ap-vacio">{t('Todas las sesiones de este curso están completadas.')}</p>))}
-              </section>
+          {ef.sesiones.length > 0 && (() => {
+            const vivas = ef.sesiones.filter(x => !x.archivada);
+            const hechas = vivas.filter(x => x.completada).length;
+            return vivas.length > 0 && (
+              <div className="ef-progreso" role="status">
+                <div className="ef-progreso-barra" aria-hidden="true"><span style={{ width: `${Math.round((hechas / vivas.length) * 100)}%` }} /></div>
+                <span>{t('{hechas} de {total} sesiones completadas', { hechas, total: vivas.length })}</span>
+              </div>
             );
-          })}
-          {completadas.length > 0 && (
-            <button type="button" className="home-link" style={{ marginTop: 14 }} onClick={() => setVerCompletadas(v => !v)} aria-expanded={verCompletadas}>
-              {verCompletadas ? t('Ocultar las completadas') : t('Ver las completadas ({n})', { n: completadas.length })}
-            </button>
-          )}
+          })()}
+          <ClasesDeSesiones classes={classes} sesiones={ef.sesiones} hoy={hoy} onAbrir={setClaseVista} onNueva={id => setEditando(vacia(id))} />
         </>
       ) : (
-        <>
-      {atrasadas.length > 0 && (
-        <div className="card ef-atrasadas">
-          <div className="home-card-ttl" style={{ marginBottom: 4 }}>{t('Por completar')}</div>
-          <p className="ap-aviso" style={{ marginBottom: 10 }}>{t('Su día ya pasó y no están marcadas como completadas. Márcalas si ya las diste; si no, cámbiales el día.')}</p>
-          <ul className="ap-lista ef-sesiones">{atrasadas.map(fila)}</ul>
-        </div>
+        <SesionesDeClase
+          nombre={claseAbierta?.name ?? t('Sin clase concreta')} color={claseAbierta?.color}
+          sesiones={sesionesAbiertas} sdas={sdasDeLaClase(claseAbierta?.id)} fila={fila}
+          onVolver={() => setClaseVista(null)} onNueva={() => setEditando(vacia(claseAbierta?.id))}
+          onEliminar={eliminarVarias} onArchivar={archivarVarias}
+          onAsociar={ids => setAsociando(ids)} onCrearSda={ids => setCreandoSda(ids)}
+          onAbrirSda={onAbrirSda} puedeCrearSda={!!onSaveSda}
+        />
       )}
-      <div className="card">
-        <div className="home-card-ttl" style={{ marginBottom: 10 }}>{t('Próximas')}</div>
-        {proximas.length === 0
-          ? <p className="ap-vacio">{t('No tienes sesiones previstas. Prepara una con la IA o escríbela tú.')}</p>
-          : <ul className="ap-lista ef-sesiones">{proximas.map(fila)}</ul>}
-      </div>
-      {sinFecha.length > 0 && (
-        <div className="card">
-          <div className="home-card-ttl" style={{ marginBottom: 10 }}>{t('Sin fecha')}</div>
-          <ul className="ap-lista ef-sesiones">{sinFecha.map(fila)}</ul>
-        </div>
-      )}
-      {completadas.length > 0 && (
-        <button type="button" className="home-link" style={{ marginTop: 14 }} onClick={() => setVerCompletadas(v => !v)} aria-expanded={verCompletadas}>
-          {verCompletadas ? t('Ocultar las completadas') : t('Ver las completadas ({n})', { n: completadas.length })}
-        </button>
-      )}
-      {verCompletadas && completadas.length > 0 && <div className="card"><ul className="ap-lista ef-sesiones">{completadas.map(fila)}</ul></div>}
-        </>
-      )}
+
+      <AsociarASda
+        open={!!asociando} onClose={() => setAsociando(null)} cuantas={asociando?.length ?? 0}
+        sdas={learningSituations} claseId={claseAbierta?.id} onElegir={asociarVarias}
+      />
+      <CrearSdaDeSesiones
+        open={!!creandoSda} onClose={() => setCreandoSda(null)} sesiones={sesionesDeSdaNueva} clase={claseDeSdaNueva}
+        comunidad={comunidad} perfil={perfil} ef={ef} numeroSiguiente={learningSituations.length + 1}
+        onCreada={sdaCreada} onAbrirSda={onAbrirSda}
+      />
 
       <CopiarAClases
         open={!!copiando} onClose={() => setCopiando(null)} titulo={t('Copiar sesiones a otras clases')}
@@ -508,6 +502,19 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
               <input id="ef-s-fecha" type="date" className="finput" value={editando.fecha ?? ''}
                 onChange={e => setEditando({ ...editando, fecha: e.target.value || undefined })} />
             </div>
+            {learningSituations.length > 0 && (
+              <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
+                <label className="flabel" htmlFor="ef-s-sda">{t('Situación de aprendizaje')}</label>
+                <select id="ef-s-sda" className="finput" value={editando.sdaId ?? ''}
+                  onChange={e => setEditando(e.target.value
+                    ? { ...editando, sdaId: e.target.value, sdaOrden: editando.sdaId === e.target.value ? editando.sdaOrden : Math.max(0, ...ef.sesiones.filter(x => x.sdaId === e.target.value && x.id !== editando.id).map(x => x.sdaOrden ?? 0)) + 1 }
+                    : (({ sdaId: _i, sdaOrden: _o, ...r }) => { void _i; void _o; return r; })(editando))}>
+                  <option value="">{t('Ninguna')}</option>
+                  {sdasDeLaClase(editando.claseId).map(x => <option key={x.id} value={x.id}>{x.request.numero ? `${x.request.numero}. ` : ''}{x.title}</option>)}
+                </select>
+              </div>
+            )}
+            {esEF && (
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <label className="flabel" htmlFor="ef-s-inst">{t('Instalación')}</label>
               <select id="ef-s-inst" className="finput" value={editando.instalacionId ?? ''}
@@ -516,6 +523,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
                 {ef.instalaciones.map(i => <option key={i.id} value={i.id}>{i.nombre}</option>)}
               </select>
             </div>
+            )}
+            {esEF && (
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <label className="flabel" htmlFor="ef-s-modalidad">{t('Modalidad del juego o deporte')}</label>
               <select id="ef-s-modalidad" className="finput" value={editando.modalidad ?? ''} onChange={e => setEditando(e.target.value ? { ...editando, modalidad: e.target.value as ModalidadEF } : (({ modalidad: _m, ...r }) => { void _m; return r; })(editando))}>
@@ -523,7 +532,8 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
                 {MODALIDADES_EF.map(m => <option key={m.id} value={m.id}>{t(m.label)}</option>)}
               </select>
             </div>
-            {PARTES.map(p => (
+            )}
+            {partesDe(esEF).map(p => (
               <div key={p.id} className="fgroup" style={{ gridColumn: '1 / -1' }}>
                 <label className="flabel" htmlFor={`ef-s-${p.id}`}>{t(p.label)}</label>
                 <textarea id={`ef-s-${p.id}`} className="finput" rows={p.filas} value={editando[p.id]}
@@ -535,7 +545,7 @@ export function EfSesiones({ classes, students, scheduleBlocks, ef, onChangeEf, 
               {t('Sesión completada')}
             </label>
             <SesionEvaluacionCircuito
-              sesion={editando} onChange={setEditando} ef={ef} rubrics={rubrics} dianas={dianas}
+              sesion={editando} onChange={setEditando} ef={ef} rubrics={rubrics} dianas={dianas} conCircuito={esEF}
               evaluations={evaluations} students={students} onEvaluar={onAddEvaluation ? setEvaluando : undefined}
               onAddDiana={onAddDiana} onNav={onNav} onCerrarSesion={() => setEditando(null)} onDibujar={id => setDibujando({ id })}
             />

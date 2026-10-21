@@ -10,7 +10,7 @@
  *       Evaluar     → Portada, Rúbricas, Dianas, Por foto, Diana competencial,
  *                     Autoevaluaciones, Historial
  *       Documentos  → Portada, Informes, Actas, Situaciones de aprendizaje,
- *                     Recursos
+ *                     Sesiones, Recursos
  *       En clase    → Portada, Anotar actitud, Distribución de aula,
  *                     Pizarra y herramientas, Actividades con móviles
  *     y, solo para Educación Física, su propio apartado con cuatro temas
@@ -92,7 +92,7 @@ export const HUBS: readonly NavHub[] = [
   },
   {
     id: 'documents', label: 'Documentos', icon: 'documents',
-    hint: 'Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje y fichas.',
+    hint: 'Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje, sesiones y fichas.',
     // Al entrar, una tarjeta grande por pantalla, como Evaluar (11-10-2026)
     portada: true,
     tabs: [
@@ -100,6 +100,7 @@ export const HUBS: readonly NavHub[] = [
       { id: 'reports',             label: 'Informes' },
       { id: 'records',             label: 'Actas' },
       { id: 'learning-situations', label: 'Situaciones de aprendizaje' },
+      { id: 'sesiones',            label: 'Sesiones' },
       { id: 'resources',           label: 'Recursos' },
     ],
   },
