@@ -171,6 +171,7 @@ const SDA_DOC_STYLE = `
 
 /* Materiales generados desde la SdA (rúbrica y diana), como anexo */
 .sda-anexo { margin-top: 14px; }
+.ficha-anexo { break-before: page; page-break-before: always; }
 .sda-anexo h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #1f4e79; border-bottom: 1.5px solid #bdd7ee; padding-bottom: 4px; margin: 0 0 10px; }
 .sda-anexo h3 { font-size: 12px; color: #1e3a5f; margin: 0 0 6px; }
 .anexo-instr { margin: 0 0 12px; break-inside: avoid; }

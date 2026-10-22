@@ -22,6 +22,7 @@ import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx, buildSdaHtml } from '../services/exportSda';
 import { anexoMaterialesSda } from '../services/instrumentoEmbebido';
+import { buildFichaAnexoHtml } from '../services/exportFicha';
 import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../services/exportSdaPoster';
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
@@ -653,7 +654,7 @@ export function LearningSituations({
   async function handleExportPdf(sda: LearningSituation | null, key: string) {
     if (!sda) return;
     setExporting({ key, kind: 'pdf' });
-    const anexo = key === CURRENT_KEY ? anexoMaterialesSda(rubricRows, dianaRows, lang) : '';
+    const anexo = key === CURRENT_KEY ? anexoCompleto() : '';
     const res = await saveSdaPdf(sda, lang, anexo);
     setExporting(null);
     if (res.error === 'not-desktop') { toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.')); return; }
@@ -856,10 +857,11 @@ export function LearningSituations({
    * guarda, se crea directamente con la clase de la SdA (si tenía) y queda
    * en el historial de Recursos.
    */
-  function createFicha() {
-    if (!fichaContent || !content) return;
-    const ficha: Ficha = {
-      id: fichaId(),
+  /** La ficha que hay generada, con la forma que se guarda en Recursos. */
+  function fichaDeContenido(): Ficha | null {
+    if (!fichaContent || !content) return null;
+    return {
+      id: 'ficha-anexo',
       at: new Date().toISOString(),
       date: isoDate(),
       class_id: classId || undefined,
@@ -873,9 +875,22 @@ export function LearningSituations({
       },
       content: fichaContent,
     };
-    onAddFicha(ficha);
+  }
+
+  function createFicha() {
+    const ficha = fichaDeContenido();
+    if (!ficha) return;
+    onAddFicha({ ...ficha, id: fichaId() });
     setFichaContent(null);
     toast(t('Ficha creada en Recursos'));
+  }
+
+  /** Rúbrica, diana y ficha generadas, para el anexo del documento. */
+  function anexoCompleto(): string {
+    let anexo = anexoMaterialesSda(rubricRows, dianaRows, lang);
+    const ficha = fichaDeContenido();
+    if (ficha) anexo += buildFichaAnexoHtml(ficha, lang);
+    return anexo;
   }
 
   const sinClave = !hasApiKey();
@@ -1435,7 +1450,7 @@ export function LearningSituations({
             <button className="btn-ghost" onClick={() => setFormOpen(true)} title={t('Cambiar la idea o los datos y volver a generarla')}>
               <RefreshCw size={14} />{t('Ajustar')}
             </button>
-            <button className="btn-ghost" onClick={() => { const s = currentSda(); if (s) setPreview({ html: buildSdaHtml(s, lang, anexoMaterialesSda(rubricRows, dianaRows, lang)), title: s.title }); }} title={t('Vista previa')}>
+            <button className="btn-ghost" onClick={() => { const s = currentSda(); if (s) setPreview({ html: buildSdaHtml(s, lang, anexoCompleto()), title: s.title }); }} title={t('Vista previa')}>
               <Eye size={14} />{t('Vista previa')}
             </button>
             {isDesktop() && (

@@ -556,6 +556,17 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     `</article></body></html>`;
 }
 
+/** La ficha como anexo de otro documento: su hoja de estilos y su contenido, para pegarla en páginas propias. */
+export function buildFichaAnexoHtml(f: Ficha, lang: Lang): string {
+  const html = buildFichaHtml(f, lang);
+  const style = html.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? '';
+  const article = html.match(/<article[\s\S]*?<\/article>/)?.[0] ?? '';
+  if (!article) return '';
+  // Sin la regla de página de la ficha (A4 vertical): el documento que la aloja manda en el tamaño.
+  const limpio = style.replace(/@page\s*\{[^}]*\}/g, '');
+  return `<style>${limpio}</style><div class="ficha-anexo">${article}</div>`;
+}
+
 export const VARIANTE_LABEL: Record<FichaVariante, string> = {
   apoyo: 'Versión de apoyo',
   ampliacion: 'Versión de ampliación',
