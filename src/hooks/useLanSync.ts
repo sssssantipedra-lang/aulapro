@@ -17,9 +17,9 @@ interface Options {
  * por HTTP directo, en la misma wifi. Es el plan B para cuando PeerJS no puede
  * llegar a su punto de encuentro (redes sin salida a internet).
  *
- * Por ahora es **unidireccional**: «Mandar datos» sirve su paquete y «Recibir
- * datos» lo va trayendo y mezclando. El intercambio vivo en los dos sentidos
- * sigue por PeerJS cuando hay internet.
+ * Es **bidireccional**: una vez conectados, los cambios de cualquiera de los
+ * dos se van reflejando en el otro (el invitado envía su paquete y recibe el
+ * del anfitrión en cada vuelta).
  */
 export function useLanSync({ source, scope, applyBundle }: Options) {
   const lan = window.electronAPI?.lan;
@@ -69,10 +69,13 @@ export function useLanSync({ source, scope, applyBundle }: Options) {
     return url;
   }
 
-  // El anfitrión se entera cuando un invitado se conecta (hace un POST de saludo).
+  // El anfitrión recibe lo que manda el invitado y se entera de que hay conexión.
   useEffect(() => {
     if (!lan) return;
-    return lan.onPeer(() => setPeer(true));
+    return lan.onPeer(b => {
+      setPeer(true);
+      applyRef.current(b as SharedBundle, 'live');
+    });
   }, [lan]);
 
   async function stop() {
@@ -102,12 +105,13 @@ export function useLanSync({ source, scope, applyBundle }: Options) {
   useEffect(() => {
     if (!target || !peer) return;
     const timer = setInterval(async () => {
-      const remote = await lanPullBundle(target);
-      if (!remote) return;
-      const h = hashBundle(remote);
+      // Manda lo propio y recibe lo del anfitrión ya mezclado: bidireccional.
+      const merged = await lanPushBundle(target, localBundle());
+      if (!merged) return;
+      const h = hashBundle(merged);
       if (h === lastHashRef.current) return;
       lastHashRef.current = h;
-      applyRef.current(remote, 'reconcile');
+      applyRef.current(merged, 'live');
     }, POLL_MS);
     return () => clearInterval(timer);
   }, [target, peer]);

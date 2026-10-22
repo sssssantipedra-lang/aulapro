@@ -861,6 +861,16 @@ export function useAppState() {
     setDianas(merged.dianas);
     setEvaluations(merged.evaluations);
     setTombstones(merged.tombstones);
+    // Compartir de vuelta lo que nos han compartido: así los cambios son
+    // bidireccionales, se hagan en el que manda o en el que recibe.
+    if (remote.classes.length) {
+      setShareScope(s => {
+        const ids = new Set([...s.classIds, ...remote.classes.map(c => c.id)]);
+        return ids.size === s.classIds.length && s.classIds.every(id => ids.has(id))
+          ? s
+          : { ...s, classIds: [...ids] };
+      });
+    }
 
     // Una línea por fusión, no una por dato: si no, una sesión compartida
     // sepultaría el resto del registro.
