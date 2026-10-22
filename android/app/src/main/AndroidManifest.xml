@@ -26,6 +26,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Enlace aulapro://c/XXXXXX: abre la app y lleva el código a
+                 «Trabajo compartido» (main.tsx lo escucha con appUrlOpen). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="aulapro" android:host="c" />
+            </intent-filter>
+
         </activity>
 
         <provider

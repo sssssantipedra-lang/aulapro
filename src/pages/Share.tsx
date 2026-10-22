@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Users2, Copy, Check, Link2, LogIn, ShieldCheck, Wifi, WifiOff,
+  Users2, Copy, Check, Send, Inbox, ShieldCheck, Wifi, WifiOff,
   RefreshCw, AlertTriangle, ArrowRight, QrCode,
 } from 'lucide-react';
 import { SessionQR } from '../components/share/SessionQR';
@@ -9,6 +9,7 @@ import type { Class } from '../types';
 import type { ShareScope } from '../services/sync';
 import type { useP2PSync } from '../hooks/useP2PSync';
 import { formatCode, isCompleteCode, normalizeCode } from '../services/p2p';
+import { takeShareCode } from '../lib/shareNav';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 
@@ -87,6 +88,22 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
   const { state, code, peerName, lastSyncAt, error, connected, busy } = session;
   const role = uiRole;
   const nothingSelected = scope.classIds.length === 0;
+
+  // Si la app se abrió desde un enlace (aulapro://c/XXXXXX), se toma el código
+  // y se conecta como invitado sin pedir clase.
+  useEffect(() => {
+    const unir = () => {
+      const c = takeShareCode();
+      if (!c) return;
+      setUiRole('guest');
+      setCodeInput(c);
+      session.startJoin(c);
+    };
+    unir();
+    window.addEventListener('aulapro:open-share', unir);
+    return () => window.removeEventListener('aulapro:open-share', unir);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function restart() {
     session.disconnect();
@@ -173,22 +190,38 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
 
       <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 18, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Paso 1 */}
+          {/* ── Mandar datos ── */}
           <div className="card">
             <div className="card-hd">
-              <div className="card-ttl">
-                <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--accent-d)', color: 'white', fontSize: 11, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
-                {t('Elige qué quieres compartir')}
-              </div>
+              <div className="card-ttl"><Send size={16} color="var(--accent-d)" />{t('Mandar datos')}</div>
             </div>
+            <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, margin: '0 0 14px' }}>
+              {t('Eliges las clases y lo que se comparte, y te sale un código y un QR para dárselos a tu compañero/a.')}
+            </p>
 
             {classes.length === 0 ? (
-              <p style={{ fontSize: 13, color: 'var(--text-3)', padding: '10px 0' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
                 {t('Todavía no tienes clases que compartir. Crea una en «Mis Clases».')}
               </p>
+            ) : role === 'host' ? (
+              <div>
+                {busy || !code ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-2)', fontSize: 13, padding: '16px 0', justifyContent: 'center' }}>
+                    <span className="spin" />{t('Creando la sesión…')}
+                  </div>
+                ) : (
+                  <>
+                    <CodeDisplay code={code} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, padding: '11px 14px', borderRadius: 9, background: 'var(--surface)', fontSize: 12.5, color: 'var(--text-2)' }}>
+                      <span className="spin" style={{ flexShrink: 0 }} />
+                      {t('Esperando a que se una… Deja esta ventana abierta.')}
+                    </div>
+                  </>
+                )}
+              </div>
             ) : (
               <>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
                   {classes.map(c => {
                     const on = scope.classIds.includes(c.id);
                     return (
@@ -234,129 +267,96 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
                     </label>
                   ))}
                 </div>
+
+                <button
+                  className="btn-accent"
+                  style={{ marginTop: 14, width: '100%', justifyContent: 'center' }}
+                  disabled={nothingSelected || busy}
+                  onClick={() => { setUiRole('host'); session.startHost(); }}
+                >
+                  <Send size={14} />{t('Crear código y QR')}
+                </button>
               </>
             )}
           </div>
 
-          {/* Paso 2 */}
+          {/* ── Recibir datos ── */}
           <div className="card">
             <div className="card-hd">
-              <div className="card-ttl">
-                <span style={{ width: 20, height: 20, borderRadius: '50%', background: nothingSelected ? 'var(--text-3)' : 'var(--accent-d)', color: 'white', fontSize: 11, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>2</span>
-                {t('Conecta con tu compañero/a')}
-              </div>
+              <div className="card-ttl"><Inbox size={16} color="var(--accent-d)" />{t('Recibir datos')}</div>
             </div>
+            <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, margin: '0 0 14px' }}>
+              {t('Escaneas el QR o escribes el código que te han dado y recibes las clases y los datos que comparte el otro docente. No hace falta elegir clase.')}
+            </p>
 
-            {nothingSelected ? (
-              <p style={{ fontSize: 13, color: 'var(--text-3)', padding: '10px 0' }}>
-                {t('Marca antes al menos una clase para poder conectar.')}
-              </p>
-            ) : role === null ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <button
-                  onClick={() => { setUiRole('host'); session.startHost(); }}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
-                    padding: '18px 18px', background: 'var(--surface)', border: '1.5px solid var(--border)',
-                    borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', textAlign: 'left',
-                  }}
-                >
-                  <Link2 size={20} color="var(--accent-d)" />
-                  <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>{t('Yo invito')}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
-                    {t('Creo un código de 6 caracteres y se lo digo.')}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setUiRole('guest')}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
-                    padding: '18px 18px', background: 'var(--surface)', border: '1.5px solid var(--border)',
-                    borderRadius: 12, cursor: 'pointer', fontFamily: 'var(--font)', textAlign: 'left',
-                  }}
-                >
-                  <LogIn size={20} color="var(--accent-d)" />
-                  <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>{t('Me han invitado')}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
-                    {t('Escaneo su QR o escribo el código.')}
-                  </span>
-                </button>
-              </div>
-            ) : role === 'host' ? (
-              <div>
-                {busy || !code ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-2)', fontSize: 13, padding: '20px 0', justifyContent: 'center' }}>
-                    <span className="spin" />{t('Creando la sesión…')}
-                  </div>
-                ) : (
-                  <>
-                    <CodeDisplay code={code} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, padding: '11px 14px', borderRadius: 9, background: 'var(--surface)', fontSize: 12.5, color: 'var(--text-2)' }}>
-                      <span className="spin" style={{ flexShrink: 0 }} />
-                      {t('Esperando a que se una… Deja esta ventana abierta.')}
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : scanning ? (
-              <QRScanner
-                onDetected={c => { setScanning(false); setCodeInput(c); session.startJoin(c); }}
-                onCancel={() => setScanning(false)}
-              />
-            ) : (
-              <div>
-                <label className="flabel" htmlFor="share-f1">{t('Escribe el código que te han dado')}</label>
-                <input
-                  id="share-f1"
-                  className="finput"
-                  value={codeInput}
-                  onChange={e => setCodeInput(normalizeCode(e.target.value))}
-                  onKeyDown={e => { if (e.key === 'Enter' && isCompleteCode(codeInput)) session.startJoin(codeInput); }}
-                  placeholder="ABC123"
-                  autoFocus
-                  spellCheck={false}
-                  style={{
-                    textAlign: 'center', fontSize: 30, fontWeight: 800,
-                    letterSpacing: '0.16em', padding: '14px 12px',
-                    fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
-                    textTransform: 'uppercase',
-                  }}
+            {role === 'guest' ? (
+              scanning ? (
+                <QRScanner
+                  onDetected={c => { setScanning(false); setCodeInput(c); session.startJoin(c); }}
+                  onCancel={() => setScanning(false)}
                 />
-                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 7, textAlign: 'center' }}>
-                  {t('6 caracteres. No distingue mayúsculas de minúsculas.')}
-                </p>
-                <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                  <button
-                    className="btn-accent"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                    disabled={!isCompleteCode(codeInput) || busy || state === 'connecting'}
-                    onClick={() => session.startJoin(codeInput)}
-                  >
-                    {busy || state === 'connecting'
-                      ? <><span className="spin" />{t('Conectando…')}</>
-                      : <>{t('Conectar')} <ArrowRight size={14} /></>}
-                  </button>
-                  <button className="btn-ghost" onClick={() => setScanning(true)} title={t('Leer el QR con la cámara')}>
-                    <QrCode size={15} />{t('Escanear QR')}
-                  </button>
+              ) : (
+                <div>
+                  <label className="flabel" htmlFor="share-f1">{t('Escribe el código que te han dado')}</label>
+                  <input
+                    id="share-f1"
+                    className="finput"
+                    value={codeInput}
+                    onChange={e => setCodeInput(normalizeCode(e.target.value))}
+                    onKeyDown={e => { if (e.key === 'Enter' && isCompleteCode(codeInput)) session.startJoin(codeInput); }}
+                    placeholder="ABC123"
+                    autoFocus
+                    spellCheck={false}
+                    style={{
+                      textAlign: 'center', fontSize: 30, fontWeight: 800,
+                      letterSpacing: '0.16em', padding: '14px 12px',
+                      fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+                      textTransform: 'uppercase',
+                    }}
+                  />
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 7, textAlign: 'center' }}>
+                    {t('6 caracteres. No distingue mayúsculas de minúsculas.')}
+                  </p>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                    <button
+                      className="btn-accent"
+                      style={{ flex: 1, justifyContent: 'center' }}
+                      disabled={!isCompleteCode(codeInput) || busy || state === 'connecting'}
+                      onClick={() => session.startJoin(codeInput)}
+                    >
+                      {busy || state === 'connecting'
+                        ? <><span className="spin" />{t('Conectando…')}</>
+                        : <>{t('Conectar')} <ArrowRight size={14} /></>}
+                    </button>
+                    <button className="btn-ghost" onClick={() => setScanning(true)} title={t('Leer el QR con la cámara')}>
+                      <QrCode size={15} />{t('Escanear QR')}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {role !== null && (
-              <button className="btn-ghost" style={{ marginTop: 16, fontSize: 12.5 }} onClick={restart}>
-                {t('Empezar de nuevo')}
+              )
+            ) : (
+              <button
+                className="btn-accent"
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => setUiRole('guest')}
+              >
+                <QrCode size={14} />{t('Escanear QR o escribir código')}
               </button>
             )}
-
-            {error && (
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 14, padding: '11px 14px', borderRadius: 9, background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.3)', fontSize: 12.5, color: '#dc2626', lineHeight: 1.5 }}>
-                <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                {error}
-              </div>
-            )}
           </div>
+
+          {role !== null && (
+            <button className="btn-ghost" style={{ alignSelf: 'flex-start', fontSize: 12.5 }} onClick={restart}>
+              {t('Empezar de nuevo')}
+            </button>
+          )}
+
+          {error && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, padding: '11px 14px', borderRadius: 9, background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.3)', fontSize: 12.5, color: '#dc2626', lineHeight: 1.5 }}>
+              <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+              {error}
+            </div>
+          )}
         </div>
 
         {/* Panel lateral explicativo */}
@@ -366,9 +366,8 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
               <div className="card-ttl"><Users2 size={14} color="var(--accent-d)" />{t('Cómo funciona')}</div>
             </div>
             <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.7 }}>
-              <li>{t('Marcas las clases que quieres compartir.')}</li>
-              <li>{t('Uno crea la sesión: le sale un código y un QR.')}</li>
-              <li>{t('El otro escanea el QR o escribe el código.')}</li>
+              <li>{t('Quien manda elige las clases y lo que comparte, y le sale un código y un QR.')}</li>
+              <li>{t('Quien recibe escanea el QR o escribe el código, sin elegir clase.')}</li>
               <li>{t('Los cambios de los dos se ven al momento.')}</li>
             </ol>
           </div>

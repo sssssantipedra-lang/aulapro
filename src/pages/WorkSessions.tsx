@@ -13,16 +13,17 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Plus, Users2, GraduationCap, Sparkles, FileText, Download, Trash2, Pencil,
+  Plus, Users2, GraduationCap, Sparkles, FileText, Download, Eye, Trash2, Pencil,
   Calendar, MapPin, Clock, X, Save, ChevronRight, ListChecks, History,
 } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
+import { DocPreview } from '../components/DocPreview';
 import { useI18n } from '../i18n';
 import { isoDate } from '../lib/utils';
 import { hasApiKey } from '../services/gemini';
 import { generateWorkSessionDoc } from '../services/workSessions';
-import { saveWorkSessionPdf, saveWorkSessionDocx } from '../services/exportWorkSession';
+import { saveWorkSessionPdf, saveWorkSessionDocx, buildWorkSessionHtml } from '../services/exportWorkSession';
 import { getActiveProfileId } from '../services/storage';
 import {
   AUTOSAVE_EVERY_MS, writeAutosave, readAutosave, clearAutosave, isWorthRecovering, type Autosave,
@@ -370,6 +371,8 @@ function SessionDetail({ session, onClose, onEdit, onSave, onDelete }: {
 
   // Igual que en la lista: la bandera cierra, el documento se queda puesto.
   const [docOpen, setDocOpen] = useState(false);
+  // «Visor» del documento: el mismo HTML que se imprimiría como PDF, sin guardar nada.
+  const [preview, setPreview] = useState(false);
 
   const patchDoc = (p: Partial<WorkSessionDoc>) => setEditing(d => (d ? { ...d, ...p } : d));
 
@@ -405,6 +408,7 @@ function SessionDetail({ session, onClose, onEdit, onSave, onDelete }: {
   }
 
   return (
+    <>
     <Modal open onClose={onClose} wide stickyHeader title={session.title}>
       {/* Acciones */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginBottom: 16 }}>
@@ -417,6 +421,9 @@ function SessionDetail({ session, onClose, onEdit, onSave, onDelete }: {
         </button>
         <button className="btn-ghost" onClick={onEdit} type="button">
           <Pencil size={14} />{t('Editar anotaciones')}
+        </button>
+        <button className="btn-ghost" onClick={() => setPreview(true)} type="button">
+          <Eye size={14} />{t('Vista previa')}
         </button>
         {doc && (
           <>
@@ -539,6 +546,14 @@ function SessionDetail({ session, onClose, onEdit, onSave, onDelete }: {
         )}
       </Modal>
     </Modal>
+
+      <DocPreview
+        open={preview}
+        onClose={() => setPreview(false)}
+        title={session.title}
+        html={buildWorkSessionHtml(session, lang)}
+      />
+    </>
   );
 }
 

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
+import { shareUrl } from '../../services/p2p';
 
 /**
- * Código QR de la sesión. Contiene el código en texto plano, así que también
- * sirve si alguien lo escanea con la cámara del móvil: verá los 6 caracteres
- * y podrá teclearlos.
+ * Código QR de la sesión. Lleva el enlace `aulapro://c/XXXXXX`: si se escanea
+ * con un móvil que tiene AulaPro, se abre la app con el código ya puesto; y el
+ * lector de la propia app también sabe sacar el código de ese enlace.
  */
 export function SessionQR({ code, size = 168 }: { code: string; size?: number }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -15,7 +16,7 @@ export function SessionQR({ code, size = 168 }: { code: string; size?: number })
     if (!canvas || !code) return;
     let cancelled = false;
 
-    QRCode.toCanvas(canvas, code, {
+    QRCode.toCanvas(canvas, shareUrl(code), {
       width: size,
       margin: 1,
       errorCorrectionLevel: 'M',

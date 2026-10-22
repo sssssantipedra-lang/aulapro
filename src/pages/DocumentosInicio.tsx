@@ -74,7 +74,11 @@ export function DocumentosInicio({ classes, reports, gradeItems, learningSituati
             onClick={async () => {
               try {
                 const r = await abrirCarpeta();
-                if (!r.existe) toast(t('Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».', { carpeta: CARPETA_RAIZ }));
+                if (!r.existe) {
+                  toast(t('Todavía no has guardado ningún documento. Aquí aparecerán, en la carpeta «{carpeta}».', { carpeta: CARPETA_RAIZ }));
+                } else if (r.abierto === false) {
+                  toast(t('Tu dispositivo no abre la carpeta desde aquí. Búscala en Documentos › AulaPro con la aplicación de Archivos.'));
+                }
               } catch {
                 toast(t('No se pudo abrir la carpeta. Búscala en Documentos › AulaPro.'));
               }

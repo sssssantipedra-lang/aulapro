@@ -993,6 +993,18 @@ const EN: Record<string, string> = {
   'Conectar': 'Connect',
   'Leer el QR con la cámara': 'Read the QR code with the camera',
   'Escanear QR': 'Scan QR',
+  'Mandar datos': 'Send data',
+  'Recibir datos': 'Receive data',
+  'Eliges las clases y lo que se comparte, y te sale un código y un QR para dárselos a tu compañero/a.':
+    'You choose the classes and what to share, and you get a code and a QR to give to your colleague.',
+  'Crear código y QR': 'Create code and QR',
+  'Escaneas el QR o escribes el código que te han dado y recibes las clases y los datos que comparte el otro docente. No hace falta elegir clase.':
+    'You scan the QR code or type in the code you were given, and you receive the classes and data the other teacher shares. No need to choose a class.',
+  'Escanear QR o escribir código': 'Scan QR or type the code',
+  'Quien manda elige las clases y lo que comparte, y le sale un código y un QR.':
+    'Whoever sends picks the classes and what to share, and gets a code and a QR.',
+  'Quien recibe escanea el QR o escribe el código, sin elegir clase.':
+    'Whoever receives scans the QR code or types in the code, without choosing a class.',
   'Empezar de nuevo': 'Start over',
   'Cómo funciona': 'How it works',
   'Marcas las clases que quieres compartir.': 'You tick the classes you want to share.',
@@ -1326,6 +1338,13 @@ const EN: Record<string, string> = {
   'Documento analizado': 'Document analysed',
   'Añadir documento': 'Add document',
   'Analizando…': 'Analysing…',
+  'Importar desde PDF': 'Import from PDF',
+  'Importando…': 'Importing…',
+  'El archivo debe ser un PDF.': 'The file must be a PDF.',
+  'PDF importado: revisa la idea y las áreas antes de generar.': 'PDF imported: check the idea and the subjects before generating.',
+  'Se conservarán las sesiones del PDF en su orden al generar.': 'The PDF sessions will be kept in their order when generating.',
+  '¿Ya tienes una situación redactada en PDF? Aula Pro extrae su estructura y sus sesiones en orden.':
+    'Already have a learning situation written as a PDF? Aula Pro extracts its structure and its sessions in order.',
   'Generar situación de aprendizaje': 'Generate learning situation',
   'Redactando la situación de aprendizaje…': 'Writing the learning situation…',
   'Es la petición más larga de la aplicación: puede tardar cerca de un minuto.':

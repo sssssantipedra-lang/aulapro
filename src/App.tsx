@@ -25,6 +25,7 @@ import { EnClaseInicio } from './pages/EnClaseInicio';
 import { claseQueToca } from './lib/claseQueToca';
 import { DocumentosInicio } from './pages/DocumentosInicio';
 import { hubEnMenu, rememberTab } from './lib/navigation';
+import { peekShareCode } from './lib/shareNav';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
@@ -94,6 +95,14 @@ function AppInner() {
   const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
   useEffect(() => { rememberTab(section); }, [section]);
+  // Abrir «Trabajo compartido» cuando llega un enlace aulapro://c/… (Android)
+  useEffect(() => {
+    const h = () => { if (peekShareCode()) setSection('share'); };
+    window.addEventListener('aulapro:open-share', h);
+    // En frío el enlace pudo llegar antes de montarse: se mira una vez más.
+    const id = setTimeout(h, 0);
+    return () => { window.removeEventListener('aulapro:open-share', h); clearTimeout(id); };
+  }, []);
   // El calendario escolar publicado, al abrir un perfil de una comunidad que lo tiene (solo descarga)
   const comunidadPerfil = st.currentUser?.community;
   useEffect(() => {

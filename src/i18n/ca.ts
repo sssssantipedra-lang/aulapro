@@ -1040,6 +1040,18 @@ export const CA: Record<string, string> = {
   "Conectar": "Connectar",
   "Leer el QR con la cámara": "Llegir el QR amb la càmera",
   "Escanear QR": "Escanejar QR",
+  "Mandar datos": "Enviar dades",
+  "Recibir datos": "Rebre dades",
+  "Eliges las clases y lo que se comparte, y te sale un código y un QR para dárselos a tu compañero/a.":
+    "Tries les classes i què es comparteix, i et surt un codi i un QR per donar-los al teu company/a.",
+  "Crear código y QR": "Crear codi i QR",
+  "Escaneas el QR o escribes el código que te han dado y recibes las clases y los datos que comparte el otro docente. No hace falta elegir clase.":
+    "Escaneges el QR o escrius el codi que t'han donat i reps les classes i les dades que comparteix l'altre docent. No cal triar classe.",
+  "Escanear QR o escribir código": "Escanejar QR o escriure el codi",
+  "Quien manda elige las clases y lo que comparte, y le sale un código y un QR.":
+    "Qui envia tria les classes i què comparteix, i li surt un codi i un QR.",
+  "Quien recibe escanea el QR o escribe el código, sin elegir clase.":
+    "Qui rep escaneja el QR o escriu el codi, sense triar classe.",
   "Empezar de nuevo": "Començar de nou",
   "Cómo funciona": "Com funciona",
   "Marcas las clases que quieres compartir.": "Marques les classes que vols compartir.",
@@ -1259,6 +1271,13 @@ export const CA: Record<string, string> = {
   "Documento analizado": "Document analitzat",
   "Añadir documento": "Afegir un document",
   "Analizando…": "Analitzant…",
+  "Importar desde PDF": "Importar des d'un PDF",
+  "Importando…": "Important…",
+  "El archivo debe ser un PDF.": "El fitxer ha de ser un PDF.",
+  "PDF importado: revisa la idea y las áreas antes de generar.": "PDF importat: revisa la idea i les àrees abans de generar.",
+  "Se conservarán las sesiones del PDF en su orden al generar.": "Es conservaran les sessions del PDF en el seu ordre en generar.",
+  "¿Ya tienes una situación redactada en PDF? Aula Pro extrae su estructura y sus sesiones en orden.":
+    "Ja tens una situació d'aprenentatge en PDF? Aula Pro n'extreu l'estructura i les sessions en ordre.",
   "Generar situación de aprendizaje": "Generar la situació d'aprenentatge",
   "Redactando la situación de aprendizaje…": "Redactant la situació d'aprenentatge…",
   "Es la petición más larga de la aplicación: puede tardar cerca de un minuto.": "És la petició més llarga de l'aplicació: pot trigar prop d'un minut.",

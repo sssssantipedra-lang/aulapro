@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users } from 'lucide-react';
+import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
 import { PERIODS } from '../lib/utils';
 import { isMarksCategory, sumaDePesos } from '../services/classMarks';
@@ -9,6 +9,7 @@ import { useI18n, monthLabel, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
+import { DocPreview } from '../components/DocPreview';
 
 interface Props {
   classes: Class[];
@@ -147,6 +148,7 @@ export function Records({
 
   const docs = window.electronAPI?.docs;
   const [working, setWorking] = useState<'pdf' | 'print' | null>(null);
+  const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
 
   const fileBase = () => {
     const slug = (s: string) => s.replace(/\s+/g, '-');
@@ -169,6 +171,12 @@ export function Records({
       `<title>${esc(title)}</title>` +
       `<style>${DOC_STANDALONE}${DOC_STYLE}</style>` +
       `</head><body>${node.outerHTML}</body></html>`;
+  }
+
+  function abrirPreview() {
+    const html = buildActaHtml();
+    if (!html) { toast(t('Esta clase no tiene alumnos')); return; }
+    setPreview({ html, title: `${cls?.name ?? ''} · ${activeSubject} · ${period}`.trim() });
   }
 
   async function savePdf() {
@@ -254,6 +262,10 @@ export function Records({
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn-ghost" onClick={downloadCsv} disabled={rows.length === 0}>
             <FileSpreadsheet size={14} />{t('Datos en CSV')}
+          </button>
+
+          <button className="btn-ghost" onClick={abrirPreview} disabled={rows.length === 0}>
+            <Eye size={14} />{t('Vista previa')}
           </button>
 
           {docs ? (
@@ -407,6 +419,8 @@ export function Records({
           </div>
         </div>
       )}
+
+      <DocPreview open={!!preview} onClose={() => setPreview(null)} title={preview?.title ?? ''} html={preview?.html ?? ''} />
     </section>
   );
 }

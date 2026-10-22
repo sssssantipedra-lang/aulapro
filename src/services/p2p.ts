@@ -41,15 +41,37 @@ export function isCompleteCode(input: string): boolean {
   return normalizeCode(input).length === CODE_LENGTH;
 }
 
+/** El esquema del enlace que lleva el código (para abrir AulaPro al escanearlo). */
+export const SHARE_SCHEME = 'aulapro';
+
+/** El enlace de la sesión: al escanearlo, un móvil con AulaPro lo abre con el código ya puesto. */
+export function shareUrl(code: string): string {
+  return `${SHARE_SCHEME}://c/${normalizeCode(code)}`;
+}
+
 /**
- * Valida el contenido leído de un QR. A diferencia de `normalizeCode`, que
- * recorta lo que sobra (útil al teclear), aquí el texto debe ser exactamente
- * un código: si no, cualquier QR ajeno pasaría por bueno al truncarse.
+ * Saca el código de lo que haya en un QR: el código en texto plano o el enlace
+ * `aulapro://c/XXXXXX` (y admite `https://…/r/XXXXXX` por si alguien lo guarda
+ * como web). A diferencia de `normalizeCode`, que recorta lo que sobra (útil al
+ * teclear), aquí el texto debe ser exactamente un código o un enlace nuestro:
+ * si no, cualquier QR ajeno pasaría por bueno al truncarse.
  */
+export function codeFromShareUrl(raw: string): string | null {
+  const s = (raw ?? '').trim();
+  const bare = s.toUpperCase().replace(/[\s-]/g, '');
+  if (new RegExp(`^[${CODE_ALPHABET}]{${CODE_LENGTH}}$`).test(bare)) return bare;
+
+  let m = s.match(/^aulapro:\/\/c\/([A-Za-z0-9]+)$/i);
+  if (!m) m = s.match(/^https?:\/\/[^/\s]+\/r\/([A-Za-z0-9]+)$/i);
+  if (!m) return null;
+  const code = normalizeCode(m[1]);
+  // Igual de estricto que el texto plano: solo el alfabeto de la sesión.
+  return new RegExp(`^[${CODE_ALPHABET}]{${CODE_LENGTH}}$`).test(code) ? code : null;
+}
+
+/** Lo que acepta el lector de QR: el código solo o el enlace de sesión. */
 export function parseScannedCode(raw: string): string | null {
-  const clean = raw.trim().toUpperCase().replace(/[\s-]/g, '');
-  const valid = new RegExp(`^[${CODE_ALPHABET}]{${CODE_LENGTH}}$`).test(clean);
-  return valid ? clean : null;
+  return codeFromShareUrl(raw);
 }
 
 /** Lo separa en dos mitades para que sea más fácil de leer y dictar. */

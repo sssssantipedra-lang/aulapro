@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
-  FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users,
+  FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users, Eye,
   RefreshCw, Lightbulb, Search, Frame, Copy, Circle, CheckCircle2,
 } from 'lucide-react';
 import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef, Student } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
-  analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana,
+  analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana, extraerSdaDePdf,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
   refsDeSda, MINUTOS_SESION_EF,
 } from '../services/learningSituations';
@@ -20,7 +20,7 @@ import {
 } from '../components/curriculum/CurriculumFields';
 import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
-import { saveSdaPdf, saveSdaDocx } from '../services/exportSda';
+import { saveSdaPdf, saveSdaDocx, buildSdaHtml } from '../services/exportSda';
 import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../services/exportSdaPoster';
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
@@ -31,6 +31,7 @@ import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { Modal } from '../components/ui/Modal';
 import { CopiarAClases } from '../components/CopiarAClases';
+import { DocPreview } from '../components/DocPreview';
 import { clonarSda } from '../lib/clonar';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
@@ -193,6 +194,7 @@ interface BorradorSda {
   numSesiones: number; nivel: string; etapa: Etapa | ''; curso: number | '';
   opcionMatematicas: 'A' | 'B'; materias: Record<string, string | null>;
   contextoClase: string; metodologia: string; efModelo: string; efModalidad: ModalidadEF | ''; efMinutos: string;
+  sesionesBase: { titulo: string; resumen: string }[] | null;
   rubricRows: SdaRubricRow[] | null; dianaRows: SdaDianaItem[] | null; fichaContent: FichaContent | null;
 }
 
@@ -241,6 +243,10 @@ export function LearningSituations({
   const [docs, setDocs] = useState<DocSummary[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  /** Sesiones extraídas de un PDF, en su orden: base para reconstruir la SdA. */
+  const [sesionesBase, setSesionesBase] = useState<{ titulo: string; resumen: string }[] | null>(null);
+  const [importando, setImportando] = useState(false);
+  const pdfRef = useRef<HTMLInputElement>(null);
 
   /* ── Vista ── */
   /** Formulario de creación abierto (o de ajustes, si ya hay una SdA abierta). */
@@ -323,9 +329,9 @@ export function LearningSituations({
   );
   const pendiente = useMemo<BorradorSda | null>(() => (content && sinGuardar ? {
     content, editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
-    opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent,
+    opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent, sesionesBase,
   } : null), [content, sinGuardar, editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
-    opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent]);
+    opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent, sesionesBase]);
   const borrador = useBorrador<BorradorSda>('sda', pendiente, content?.titulo || idea);
 
   function continuarBorrador() {
@@ -337,6 +343,7 @@ export function LearningSituations({
     setAreas(b.areas); setNumSesiones(b.numSesiones); setNivel(b.nivel); setNivelAuto(false);
     setEtapa(b.etapa); setCurso(b.curso); setOpcionMatematicas(b.opcionMatematicas); setMaterias(b.materias); setPreguntadas([]);
     setContextoClase(b.contextoClase); setMetodologia(b.metodologia);
+    setSesionesBase(b.sesionesBase ?? null);
     setEfModelo(b.efModelo); setEfModalidad(b.efModalidad); setEfMinutos(b.efMinutos);
     setRubricRows(b.rubricRows); setDianaRows(b.dianaRows); setFichaContent(b.fichaContent);
     setFichaArea(b.content.areas[0]?.area ?? '');
@@ -460,6 +467,41 @@ export function LearningSituations({
     toast(t('Documento analizado'));
   }
 
+  /** Importa una SdA desde un PDF: extrae su estructura y rellena el formulario. */
+  async function handleImportPdf(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast(t('El archivo debe ser un PDF.'));
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) { toast(t('El archivo supera el límite de 19 MB.')); return; }
+
+    const inline = await fileToBase64(file);
+    const extraido = await extraerSdaDePdf(inline, lang, {
+      onStart: () => setImportando(true),
+      onEnd: () => setImportando(false),
+      onError: m => toast(m),
+    });
+    if (!extraido) return;
+
+    if (extraido.idea || extraido.titulo) setIdea(extraido.idea || extraido.titulo);
+    if (extraido.temporalizacion) setTemporalizacion(extraido.temporalizacion);
+    if (extraido.meses) setMeses(extraido.meses);
+    if (extraido.metodologia) setMetodologia(extraido.metodologia);
+    if (extraido.nivel) { setNivel(extraido.nivel); setNivelAuto(false); }
+    if (extraido.sesiones.length) setNumSesiones(Math.max(1, Math.min(40, extraido.sesiones.length)));
+    setSesionesBase(extraido.sesiones.length ? extraido.sesiones : null);
+    // Las áreas se cruzan con las asignaturas de la clase elegida para que
+    // sigan usando el currículo real; lo que no coincida lo elige el docente.
+    if (extraido.areas.length && classSubjects.length) {
+      const escogidas = classSubjects.filter(s => extraido.areas.some(a => s.toLowerCase() === a.toLowerCase()));
+      if (escogidas.length) setAreas(escogidas);
+    }
+    toast(t('PDF importado: revisa la idea y las áreas antes de generar.'));
+  }
+
   /* ── Generar ── */
   async function handleGenerate() {
     if (!idea.trim()) { toast(t('Escribe la idea de la situación de aprendizaje')); return; }
@@ -485,6 +527,7 @@ export function LearningSituations({
       contextoClase, metodologia,
       barreras: conBarreras && barrerasClases.length ? barrerasClases : undefined,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
+      sesionesBase: sesionesBase ?? undefined,
       ef: esEF && ef ? {
         modelo: efModelo,
         modalidad: efModalidad,
@@ -592,6 +635,7 @@ export function LearningSituations({
   const posterArt = useThemeArt(posterTheme);
   const [posterAudiencia, setPosterAudiencia] = useState<AudienciaCartel>('alumnado');
   const [posterBusy, setPosterBusy] = useState(false);
+  const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
 
   async function handlePosterPdf() {
     const sda = currentSda();
@@ -676,7 +720,7 @@ export function LearningSituations({
     setClassId(''); setOtrasClases([]); setConBarreras(false); setAreas([]); setNivel(''); setNivelAuto(true); setEtapa(''); setCurso('');
     setOpcionMatematicas('A'); setMaterias({}); setPreguntadas([]);
     setNumero('1'); setTemporalizacion(''); setMeses(''); setContextoClase(''); setMetodologia('');
-    setNumSesiones(6); setMoreOpts(false); setEfModelo(''); setEfModalidad('');
+    setNumSesiones(6); setMoreOpts(false); setEfModelo(''); setEfModalidad(''); setSesionesBase(null);
     setFormOpen(true);
   }
 
@@ -903,8 +947,21 @@ export function LearningSituations({
           />
         </div>
 
-        <div className="sda-step"><span>2</span>{t('Para quién')}</div>
-        <div className="frow">
+        <div className="sda-import-pdf" style={{ marginBottom: 4 }}>
+          <button type="button" className="btn-ghost" disabled={importando || sinClave} onClick={() => pdfRef.current?.click()}>
+            {importando ? <><span className="spin" />{t('Importando…')}</> : <><FileText size={14} />{t('Importar desde PDF')}</>}
+          </button>
+          <span className="sda-note">{t('¿Ya tienes una situación redactada en PDF? Aula Pro extrae su estructura y sus sesiones en orden.')}</span>
+          {sesionesBase && (
+            <p className="sda-note" style={{ margin: '6px 0 0' }}>
+              <Check size={11} style={{ display: 'inline', verticalAlign: -1, marginRight: 4, color: 'var(--ok)' }} />
+              {t('Se conservarán las sesiones del PDF en su orden al generar.')}
+            </p>
+          )}
+          <input ref={pdfRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={handleImportPdf} />
+        </div>
+
+        <div className="sda-step"><span>2</span>{t('Para quién')}</div>        <div className="frow">
           <div className="fgroup">
             <span className="flabel" id="learningsituations-f3">{t('Clases')}</span>
             <div className="chip-row" role="group" aria-labelledby="learningsituations-f3">
@@ -1189,6 +1246,9 @@ export function LearningSituations({
                   <button className="ico-btn" title={t('Copiar a otras clases')} aria-label={t('Copiar a otras clases')} onClick={() => setCopiando(sda)}>
                     <Copy size={15} />
                   </button>
+                  <button className="ico-btn" title={t('Vista previa')} aria-label={t('Vista previa')} onClick={() => setPreview({ html: buildSdaHtml(sda, lang), title: sda.title })}>
+                    <Eye size={15} />
+                  </button>
                   {isDesktop() && (
                     <button className="ico-btn" title={t('Guardar en PDF')} aria-label={t('Guardar en PDF')} disabled={exporting !== null} onClick={() => handleExportPdf(sda, sda.id)}>
                       {exporting?.key === sda.id && exporting.kind === 'pdf' ? <span className="spin" /> : <FileDown size={15} />}
@@ -1372,6 +1432,9 @@ export function LearningSituations({
           <div className="sda-doc-actions">
             <button className="btn-ghost" onClick={() => setFormOpen(true)} title={t('Cambiar la idea o los datos y volver a generarla')}>
               <RefreshCw size={14} />{t('Ajustar')}
+            </button>
+            <button className="btn-ghost" onClick={() => { const s = currentSda(); if (s) setPreview({ html: buildSdaHtml(s, lang), title: s.title }); }} title={t('Vista previa')}>
+              <Eye size={14} />{t('Vista previa')}
             </button>
             {isDesktop() && (
               <button className="btn-ghost" disabled={exporting !== null} onClick={() => handleExportPdf(currentSda(), CURRENT_KEY)} title={t('Guardar en PDF')}>
@@ -1799,6 +1862,8 @@ export function LearningSituations({
           <button className="btn-accent" onClick={createDiana}>{t('Crear diana')}</button>
         </div>
       </Modal>
+
+      <DocPreview open={!!preview} onClose={() => setPreview(null)} title={preview?.title ?? ''} html={preview?.html ?? ''} />
     </section>
   );
 }

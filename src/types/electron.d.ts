@@ -76,9 +76,11 @@ export interface DocsBridge {
   reveal: (filePath: string) => Promise<void>;
   /**
    * Abre «Documentos › AulaPro», donde se guarda lo que genera la app.
-   * `existe: false` si todavía no se había guardado nada.
+   * `existe: false` si todavía no se había guardado nada; `abierto: false`
+   * (solo Android) si el sistema no pudo abrir la carpeta y hay que orientar
+   * al docente a buscarla a mano.
    */
-  openFolder?: () => Promise<{ existe: boolean }>;
+  openFolder?: () => Promise<{ existe: boolean; abierto?: boolean }>;
 }
 
 export interface UpdateStatus {

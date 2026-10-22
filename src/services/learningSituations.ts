@@ -637,6 +637,105 @@ export async function analyzeDocument(
   return callGemini(systemPrompt, `Analiza este documento: ${file.name}`, [file], callbacks);
 }
 
+/* ── Importar una SdA desde un PDF (petición del dueño, 22-10-2026) ── */
+
+/**
+ * La estructura que se extrae de un PDF con una situación de aprendizaje ya
+ * redactada: los elementos clave y las sesiones **en el orden del documento**.
+ * Con esto, `generateSda` reconstruye la SdA en el formato de la app —la IA
+ * rellena el resto y el código empareja las competencias y saberes con el
+ * currículo oficial de la clase— usando `sesionesBase` para no perder el orden.
+ */
+export interface SdaDePdf {
+  titulo: string;
+  /** De qué trata, en dos o tres frases: alimenta «Idea de partida». */
+  idea: string;
+  areas: string[];
+  /** Etapa y curso si se deducen («5º de Primaria»); si no, cadena vacía. */
+  nivel: string;
+  metodologia: string;
+  temporalizacion: string;
+  meses: string;
+  sesiones: { titulo: string; resumen: string }[];
+}
+
+const SDA_PDF_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    titulo: S('Título de la situación de aprendizaje'),
+    idea: S('De qué trata, en 2 o 3 frases: el contexto y el reto que se plantea'),
+    areas: { type: 'ARRAY', description: 'Áreas o materias implicadas, una por elemento', items: { type: 'STRING' } },
+    nivel: S('Etapa y curso si se deducen del documento (p. ej. "5º de Primaria"); si no, cadena vacía'),
+    metodologia: S('La metodología que describe el documento; cadena vacía si no la dice'),
+    temporalizacion: S('Cómo se reparten las sesiones en el tiempo; cadena vacía si no lo dice'),
+    meses: S('Meses o trimestre en que se trabaja; cadena vacía si no lo dice'),
+    sesiones: {
+      type: 'ARRAY',
+      description: 'TODAS las sesiones, en el orden exacto en que aparecen en el documento, sin saltar ni añadir ninguna',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          titulo: S('Título de la sesión'),
+          resumen: S('Una o dos frases con lo que se hace en esa sesión'),
+        },
+        required: ['titulo', 'resumen'],
+      },
+    },
+  },
+  required: ['titulo', 'idea', 'areas', 'nivel', 'metodologia', 'temporalizacion', 'meses', 'sesiones'],
+};
+
+/** Limpia y valida lo que devuelve la IA al extraer la SdA de un PDF. Puro, para poder probarlo. */
+export function limpiarSdaDePdf(raw: unknown): SdaDePdf | null {
+  const o = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : null;
+  if (!o) return null;
+  const txt = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+  const areas = Array.isArray(o.areas) ? o.areas.map(a => txt(a)).filter(Boolean) : [];
+  const sesiones = (Array.isArray(o.sesiones) ? o.sesiones : [])
+    .map(s => {
+      const x = s && typeof s === 'object' ? (s as Record<string, unknown>) : {};
+      return { titulo: txt(x.titulo), resumen: txt(x.resumen) };
+    })
+    .filter(s => s.titulo || s.resumen);
+  const titulo = txt(o.titulo);
+  const idea = txt(o.idea);
+  if (!titulo && !idea && areas.length === 0 && sesiones.length === 0) return null;
+  return {
+    titulo, idea, areas,
+    nivel: txt(o.nivel), metodologia: txt(o.metodologia),
+    temporalizacion: txt(o.temporalizacion), meses: txt(o.meses),
+    sesiones,
+  };
+}
+
+/**
+ * Extrae de un PDF la estructura de una situación de aprendizaje: los elementos
+ * clave y las sesiones en orden. No genera nada: solo copia y resume lo que ya
+ * hay en el documento; la SdA completa la hace después `generateSda`.
+ */
+export async function extraerSdaDePdf(
+  file: InlineFile,
+  lang: Lang,
+  callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
+): Promise<SdaDePdf | null> {
+  const systemPrompt =
+    `Eres un experto en situaciones de aprendizaje LOMLOE. Lee el documento y extrae su estructura ` +
+    `exacta: los elementos clave (título, idea, áreas, metodología, temporalización) y TODAS las ` +
+    `sesiones, en el orden en que aparecen y sin saltar ni añadir ninguna. No redactes nada nuevo: ` +
+    `copia lo que dice el documento, resumido. El idioma de salida DEBE SER ${idioma(lang)}.`;
+
+  const raw = await callGemini(
+    systemPrompt,
+    `Extrae de este documento los elementos de la situación de aprendizaje y sus sesiones en orden: ${file.name}`,
+    [file],
+    callbacks,
+    { responseSchema: SDA_PDF_SCHEMA, maxOutputTokens: 8192, thinkingLevel: 'low' },
+  );
+  if (!raw) return null;
+  const parsed = parseGeminiJson<unknown>(raw);
+  return parsed ? limpiarSdaDePdf(parsed) : null;
+}
+
 /* ── Generación de la situación de aprendizaje: currículo real ── */
 
 /**

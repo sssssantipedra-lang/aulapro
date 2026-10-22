@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle,
+  FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle, Eye,
 } from 'lucide-react';
 import type {
   Class, Student, Evaluation, Rubric, EvalDiana, GradeCategory, GradeItem,
@@ -18,6 +18,7 @@ import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
+import { DocPreview } from '../components/DocPreview';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -296,6 +297,7 @@ export function Reports(props: Props) {
 
   const docs = window.electronAPI?.docs;
   const [working, setWorking] = useState<'one' | 'all' | null>(null);
+  const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
 
   const esc = (t: string) =>
     t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
@@ -352,6 +354,18 @@ export function Reports(props: Props) {
       'all',
     );
 
+  function previewAll() {
+    const list = reports
+      .filter(r => r.class_id === clsId && r.period === period)
+      .sort((a, b) => compararNombres(a.student_name, b.student_name));
+    if (list.length === 0) { toast(t('No hay informes de este periodo')); return; }
+    setPreview({ html: buildDoc(list, `informes-${slug(cls?.name ?? 'clase')}-${slug(period)}`), title: `${cls?.name ?? ''} · ${t(period)}` });
+  }
+
+  function previewOne(r: CompetencyReport) {
+    setPreview({ html: buildDoc([r], `informe-${slug(r.student_name)}-${slug(r.period)}`), title: `${r.student_name} · ${t(r.period)}` });
+  }
+
   /** Copia en texto plano, por si quiere pegarlo en otro sitio. */
   function exportAll() {
     const list = reports.filter(r => r.class_id === clsId && r.period === period);
@@ -407,6 +421,9 @@ export function Reports(props: Props) {
           <button className="btn-ghost" onClick={exportAll} disabled={generatedCount === 0}
             title={t('Copia en texto plano, para pegar en otro sitio')}>
             <Download size={14} />{t('Texto')}
+          </button>
+          <button className="btn-ghost" onClick={previewAll} disabled={generatedCount === 0}>
+            <Eye size={14} />{t('Vista previa')}
           </button>
           <button className="btn-ghost" onClick={savePdfAll}
             disabled={generatedCount === 0 || working !== null}>
@@ -566,6 +583,10 @@ export function Reports(props: Props) {
                     <button className="btn-ia" onClick={() => generateFor(current)}>
                       <Sparkles size={13} />{t('Volver a generar')}
                     </button>
+                    <button className="btn-ghost" onClick={() => previewOne(currentReport)}
+                      disabled={working !== null}>
+                      <Eye size={13} />{t('Vista previa')}
+                    </button>
                     <button className="btn-ghost" onClick={() => savePdfOne(currentReport)}
                       disabled={working !== null}>
                       {working === 'one'
@@ -589,6 +610,8 @@ export function Reports(props: Props) {
           )}
         </div>
       )}
+
+      <DocPreview open={!!preview} onClose={() => setPreview(null)} title={preview?.title ?? ''} html={preview?.html ?? ''} />
     </section>
   );
 }

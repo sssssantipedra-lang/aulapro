@@ -12,8 +12,9 @@
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2 } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
+import { DocPreview } from '../components/DocPreview';
 import { CopiarAClases } from '../components/CopiarAClases';
 import { clonarSesionEF } from '../lib/clonar';
 import { useToast } from '../components/ui/Toast';
@@ -31,7 +32,7 @@ import { esAsignaturaEF } from '../services/classMarks';
 import { hasApiKey } from '../services/gemini';
 import { limitacionesParaIA, prepararSesion } from '../services/efIA';
 import { alumnadoParaIA } from '../lib/ef';
-import { guardarSesionPdf } from '../services/exportSesionEF';
+import { guardarSesionPdf, buildSesionHtml } from '../services/exportSesionEF';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
 import { SesionEvaluacionCircuito } from '../components/ef/SesionEvaluacionCircuito';
@@ -123,6 +124,7 @@ export function Sesiones({
   const [dibujando, setDibujando] = useState<{ id?: string } | null>(null);
   /** Valorar a la clase con un instrumento de la sesión, sin salir de ella. */
   const [evaluando, setEvaluando] = useState<InstrumentoRefEF | null>(null);
+  const [preview, setPreview] = useState<{ html: string; title: string } | null>(null);
 
   /* Autoguardado: una sesión nueva (la prepare la IA o la escriba el docente) o con cambios, y sin guardar, se conserva */
   const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
@@ -271,18 +273,23 @@ export function Sesiones({
   }
 
   async function pdf(s: SesionEF) {
+    const res = await guardarSesionPdf(s, datosPdf(s), lang);
+    if (res.error === 'not-desktop') toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.'));
+    else if (res.error) toast(t('No se ha podido guardar el PDF.'));
+  }
+
+  /** Los datos de la sesión en el idioma de la app, para el visor y el PDF. */
+  function datosPdf(s: SesionEF) {
     const criterios = (s.criterios ?? []).map(ref => describirCriterio(materiasEd, ref)).filter(Boolean)
       .map(c => `${c!.materia} ${c!.ref.codigo}: ${c!.texto}`);
-    const res = await guardarSesionPdf(s, {
+    return {
       aula: !esEF,
       clase: nombreClase(s.claseId) || undefined, fecha: s.fecha ? dia(s.fecha) : undefined,
       instalacion: nombreInst(s.instalacionId) || undefined, criterios,
       instrumentos: (s.instrumentos ?? []).map(r => describirInstrumento(r, rubrics, dianas)).filter(Boolean)
         .map(d => ({ nombre: d!.nombre, tipo: t(ETIQUETA_INSTRUMENTO[d!.tipo]), conceptos: d!.conceptos })),
       circuito: (() => { const p = ef.pizarras.find(x => x.id === s.pizarraId); return p ? { nombre: p.nombre, svg: pizarraSvg(p) } : undefined; })(),
-    }, lang);
-    if (res.error === 'not-desktop') toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.'));
-    else if (res.error) toast(t('No se ha podido guardar el PDF.'));
+    };
   }
 
   const fila = (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }) => {
@@ -555,6 +562,7 @@ export function Sesiones({
             </div>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
+              <button className="btn-ghost" onClick={() => setPreview({ html: buildSesionHtml(editando, datosPdf(editando), lang), title: editando.titulo || t('Sesión') })}><Eye size={14} />{t('Vista previa')}</button>
               <button className="btn-ghost" onClick={() => pdf(editando)}><FileDown size={14} />{t('PDF')}</button>
               {!esNueva && <button className="btn-ghost" onClick={() => abrirCopia(editando.claseId ?? '', [editando.id])}><Copy size={14} />{t('Copiar a otras clases')}</button>}
               <button className="btn-ghost" onClick={() => { cambiarBorrador(null); setEditando(null); }}>{t('Cancelar')}</button>
@@ -597,6 +605,8 @@ export function Sesiones({
           </Suspense>
         )}
       </Modal>
+
+      <DocPreview open={!!preview} onClose={() => setPreview(null)} title={preview?.title ?? ''} html={preview?.html ?? ''} />
     </section>
   );
 }

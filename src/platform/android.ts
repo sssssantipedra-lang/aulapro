@@ -36,7 +36,7 @@ interface AulaNativePlugin {
   savePdfInDocuments: (o: { html: string; name: string; landscape: boolean; folder: string }) => Promise<{ uri: string; name: string }>;
   saveFileInDocuments: (o: { base64: string; name: string; mime: string; folder: string }) => Promise<{ uri: string; name: string }>;
   openFile: (o: { uri: string; mime: string }) => Promise<void>;
-  openFolder: (o: { folder: string }) => Promise<{ existe?: boolean } | void>;
+  openFolder: (o: { folder: string }) => Promise<{ existe?: boolean; abierto?: boolean } | void>;
   openAppSettings: () => Promise<void>;
   setTextZoom: (o: { percent: number }) => Promise<void>;
   secretGet: (o: { name: string }) => Promise<{ value: string }>;
@@ -132,7 +132,7 @@ const docs: DocsBridge = {
   async reveal() { /* en Android, el aviso de «Guardado» tiene el botón que lleva a la carpeta */ },
   async openFolder() {
     const r = await AulaNative.openFolder({ folder: '' });
-    return { existe: !r || r.existe !== false };
+    return { existe: !r || r.existe !== false, abierto: !!r?.abierto };
   },
 };
 
@@ -213,7 +213,8 @@ export const guardadoAndroid = {
   abrir: (g: Guardado) => AulaNative.openFile({ uri: g.uri, mime: g.mime }),
   /** La carpeta; si el sistema no sabe abrirla, el propio archivo. */
   async abrirCarpeta(g: Guardado) {
-    try { await AulaNative.openFolder({ folder: g.carpeta }); } catch { await AulaNative.openFile({ uri: g.uri, mime: g.mime }); }
+    const r = await AulaNative.openFolder({ folder: g.carpeta });
+    if (!r || r.abierto === false) await AulaNative.openFile({ uri: g.uri, mime: g.mime });
   },
   async compartir(g: Guardado) {
     try { await Share.share({ title: g.nombre, files: [g.uri], dialogTitle: g.nombre }); } catch { /* cerró el menú */ }

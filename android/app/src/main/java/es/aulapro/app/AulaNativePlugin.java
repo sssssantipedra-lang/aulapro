@@ -251,30 +251,52 @@ public class AulaNativePlugin extends Plugin {
 
     /**
      * Abre la carpeta de AulaPro (o la de un tipo de documento) en el explorador de archivos; si el dispositivo
-     * no sabe, rechaza y la interfaz abre el archivo. Si la carpeta aún no existe (no se ha guardado nada),
-     * abre Documentos y responde `existe: false`.
+     * no sabe, se intenta con el selector de documentos (lo que muestran todas las capas) y, como último recurso,
+     * se devuelve `abierto: false` para que la interfaz abra el archivo o explique dónde está. Si la carpeta aún
+     * no existe (no se ha guardado nada), apunta a Documentos y responde `existe: false`.
      */
     @PluginMethod
     public void openFolder(PluginCall call) {
         final String folder = call.getString("folder", "");
+        final String rel = ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder);
+        final String ruta = "Documents/" + rel;
+        boolean existe = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(
+            android.os.Environment.DIRECTORY_DOCUMENTS), rel).exists();
+
+        boolean abierto = false;
+        // 1) El explorador de Android de serie (funciona en la mayoría de tabletas).
         try {
-            String ruta = "Documents/" + ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder);
-            boolean existe = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(
-                android.os.Environment.DIRECTORY_DOCUMENTS), ROOT_FOLDER + (folder.isEmpty() ? "" : "/" + folder)).exists();
             Uri dir = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents",
                 "primary:" + (existe ? ruta : "Documents"));
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(dir, DocumentsContract.Document.MIME_TYPE_DIR);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(intent);
-            JSObject ret = new JSObject();
-            ret.put("existe", existe);
-            call.resolve(ret);
+            abierto = true;
         } catch (ActivityNotFoundException e) {
-            call.reject("El dispositivo no sabe abrir la carpeta");
+            // 2) MIUI y otras capas no abren carpetas con ACTION_VIEW: se usa el selector
+            //    de documentos, que todos los fabricantes muestran, apuntando a la carpeta.
+            try {
+                Intent tree = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Uri inicial = DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents",
+                        existe ? "primary:" + ruta : "primary:Documents");
+                    tree.putExtra(DocumentsContract.EXTRA_INITIAL_URI, inicial);
+                }
+                tree.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(tree);
+                abierto = true;
+            } catch (Exception e2) {
+                // se queda abierto = false
+            }
         } catch (Exception e) {
-            call.reject(e.getMessage());
+            // se queda abierto = false
         }
+
+        JSObject ret = new JSObject();
+        ret.put("existe", existe);
+        ret.put("abierto", abierto);
+        call.resolve(ret);
     }
 
     /** Abre la pantalla de ajustes de AulaPro, donde se activan los permisos (micrófono, cámara) que se negaron. */
