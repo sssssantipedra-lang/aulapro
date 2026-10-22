@@ -12,7 +12,7 @@
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { DocPreview } from '../components/DocPreview';
 import { CopiarAClases } from '../components/CopiarAClases';
@@ -292,6 +292,11 @@ export function Sesiones({
     };
   }
 
+  /** Abre el visor con el documento tal como se imprimiría. */
+  function verPreview(s: SesionEF) {
+    setPreview({ html: buildSesionHtml(s, datosPdf(s), lang), title: s.titulo || t('Sesión') });
+  }
+
   const fila = (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }) => {
     const lims = esEF && !s.completada && s.claseId && s.fecha && s.fecha >= hoy ? limitacionesDe(s.claseId, s.fecha).length : 0;
     return (
@@ -489,6 +494,15 @@ export function Sesiones({
       <Modal open={!!editando} onClose={() => { if (!dibujando && !evaluando) setEditando(null); }} wide title={esNueva ? (editando?.ia ? t('Sesión preparada con IA') : t('Nueva sesión')) : editando?.titulo}>
         {editando && (
           <div className="ap-form">
+            <div className="ap-acciones" style={{ gridColumn: '1 / -1', marginBottom: 14, padding: '10px 12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
+              <button className="btn-accent" onClick={guardar}><Check size={15} />{t('Guardar')}</button>
+              <button className="btn-ghost" onClick={() => verPreview(editando)}><Eye size={15} />{t('Vista previa')}</button>
+              <button className="btn-ghost" onClick={() => pdf(editando)}><FileDown size={15} />{t('PDF')}</button>
+              {!esNueva && <button className="btn-ghost" onClick={() => abrirCopia(editando.claseId ?? '', [editando.id])}><Copy size={15} />{t('Copiar a otras clases')}</button>}
+              <div style={{ flex: 1, minWidth: 8 }} />
+              <button className="btn-ghost" onClick={() => { cambiarBorrador(null); setEditando(null); }}>{t('Cancelar')}</button>
+              {!esNueva && <button className="btn-ghost ap-borrar" onClick={() => borrar(editando)}><Trash2 size={15} />{t('Borrar')}</button>}
+            </div>
             {esNueva && editando.ia && (
               <p className="ap-aviso" style={{ gridColumn: '1 / -1', marginBottom: 10 }}>{t('Revísala y cambia lo que quieras antes de guardarla.')}</p>
             )}
@@ -559,14 +573,6 @@ export function Sesiones({
             <div style={{ gridColumn: '1 / -1' }}>
               <CriteriosOficialesPicker idPrefix="ef-s-co" cls={claseEd} comunidad={comunidad}
                 value={editando.criterios ?? []} onChange={v => setEditando({ ...editando, criterios: v })} />
-            </div>
-            <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
-              <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
-              <button className="btn-ghost" onClick={() => setPreview({ html: buildSesionHtml(editando, datosPdf(editando), lang), title: editando.titulo || t('Sesión') })}><Eye size={14} />{t('Vista previa')}</button>
-              <button className="btn-ghost" onClick={() => pdf(editando)}><FileDown size={14} />{t('PDF')}</button>
-              {!esNueva && <button className="btn-ghost" onClick={() => abrirCopia(editando.claseId ?? '', [editando.id])}><Copy size={14} />{t('Copiar a otras clases')}</button>}
-              <button className="btn-ghost" onClick={() => { cambiarBorrador(null); setEditando(null); }}>{t('Cancelar')}</button>
-              {!esNueva && <button className="btn-ghost ap-borrar" onClick={() => borrar(editando)}><Trash2 size={14} />{t('Borrar')}</button>}
             </div>
           </div>
         )}

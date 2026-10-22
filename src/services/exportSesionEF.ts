@@ -28,37 +28,85 @@ export interface DatosSesionPdf {
 
 export function buildSesionHtml(s: SesionEF, datos: DatosSesionPdf, lang: Lang): string {
   const t = (k: string) => translate(lang, k);
-  const bloque = (titulo: string, texto: string, clase = '') =>
-    texto.trim() ? `<section class="${clase}"><h2>${esc(t(titulo))}</h2>${parrafos(texto)}</section>` : '';
-  const meta = [datos.clase, datos.fecha, datos.instalacion].filter(Boolean).map(x => esc(x!)).join(' · ');
+
+  // Ficha de cabecera: solo lo que se ha rellenado, en una tabla.
+  const ficha: [string, string][] = ([
+    [t('Clase'), datos.clase ?? ''],
+    [t('Fecha'), datos.fecha ?? ''],
+    [t('Instalación'), datos.instalacion ?? ''],
+  ] as [string, string][]).filter(([, v]) => v);
+
+  // Las tres partes, en una tabla (Fase | Desarrollo).
+  const fases: [string, string][] = ([
+    [t(datos.aula ? 'Inicio de la sesión' : 'Calentamiento'), s.calentamiento],
+    [t(datos.aula ? 'Desarrollo de la sesión' : 'Parte principal'), s.principal],
+    [t(datos.aula ? 'Cierre de la sesión' : 'Vuelta a la calma'), s.calma],
+  ] as [string, string][]).filter(([, v]) => v.trim());
+
+  const instrumentos = datos.instrumentos ?? [];
+
+  const seccion = (titulo: string, cuerpo: string, clase = '') =>
+    cuerpo.trim() ? `<section class="${clase}"><h2>${esc(t(titulo))}</h2>${cuerpo}</section>` : '';
+
+  const tablaFicha = ficha.length
+    ? `<table class="ficha"><tbody>${ficha.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table>`
+    : '';
+
+  const tablaFases = fases.length
+    ? `<table class="fases"><tbody>${fases.map(([fase, texto]) =>
+        `<tr><th>${esc(fase)}</th><td>${parrafos(texto)}</td></tr>`).join('')}</tbody></table>`
+    : '';
+
+  const criterios = datos.criterios.length
+    ? `<table class="criterios"><tbody>${datos.criterios.map(c => `<tr><td>${esc(c)}</td></tr>`).join('')}</tbody></table>`
+    : '';
+
+  const tablaInstrumentos = instrumentos.length
+    ? `<table class="instrumentos"><tbody>${instrumentos.map(i =>
+        `<tr><th>${esc(i.nombre)}</th><td><em>${esc(i.tipo)}</em>${i.conceptos.length ? `<span>${esc(i.conceptos.join(' · '))}</span>` : ''}</td></tr>`).join('')}</tbody></table>`
+    : '';
+
+  const circuito = datos.circuito
+    ? `<section class="circuito"><h2>${esc(t('Circuito'))} · ${esc(datos.circuito.nombre)}</h2>${datos.circuito.svg.replace(/ width="\d+" height="\d+"/, '')}</section>`
+    : '';
+
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><title>${esc(s.titulo)}</title><style>
 @page { size: A4 portrait; margin: 14mm; }
 * { box-sizing: border-box; }
-body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #111827; font-size: 12.5px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-h1 { font-size: 21px; margin: 0 0 4px; }
-.meta { color: #4b5563; margin: 0 0 12px; }
-h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 4px; color: #0f766e; }
-section { margin: 0 0 10px; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; break-inside: avoid; }
-section p { margin: 0 0 4px; }
-section.dua { border-color: #f59e0b; background: #fffbeb; }
-section.planb { border-style: dashed; }
-ul { margin: 0; padding-left: 18px; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #1f2937; font-size: 12px; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+.cabecera { border-bottom: 2.5px solid #0f766e; padding-bottom: 8px; margin-bottom: 14px; }
+h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+
+table { width: 100%; border-collapse: collapse; margin: 0 0 12px; break-inside: avoid; }
+table th, table td { border: 0.75px solid #d1d5db; padding: 7px 10px; text-align: left; vertical-align: top; }
+table th { background: #eef4f3; color: #0f4c5c; font-weight: 700; }
+.ficha th { width: 34%; white-space: nowrap; }
+.fases th { width: 28%; }
+.fases td p { margin: 0 0 5px; }
+.fases td p:last-child { margin-bottom: 0; }
+.criterios td { padding: 6px 10px; }
+
+section { margin: 0 0 10px; break-inside: avoid; }
+h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #0f766e; margin: 0 0 6px; padding-bottom: 3px; border-bottom: 1px solid #cbd5e1; }
+section p { margin: 0 0 5px; }
+section.dua { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 6px; padding: 9px 11px; }
+section.dua h2 { color: #b45309; border-bottom-color: #fcd34d; }
+section.planb { border: 1px dashed #94a3b8; border-radius: 6px; padding: 9px 11px; }
 .circuito svg { width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
-.instr { margin: 0 0 6px; }
-.instr small { color: #4b5563; }
+.instrumentos em { color: #6b7280; font-style: normal; font-size: 11px; }
+.instrumentos span { display: block; margin-top: 2px; }
 </style></head><body>
-<h1>${esc(s.titulo || t('Sesión'))}</h1>
-${meta ? `<p class="meta">${meta}</p>` : ''}
-${bloque('Objetivo', s.objetivo)}
-${datos.criterios.length ? `<section><h2>${esc(t('Criterios oficiales'))}</h2><ul>${datos.criterios.map(c => `<li>${esc(c)}</li>`).join('')}</ul></section>` : ''}
-${bloque(datos.aula ? 'Inicio de la sesión' : 'Calentamiento', s.calentamiento)}
-${bloque(datos.aula ? 'Desarrollo de la sesión' : 'Parte principal', s.principal)}
-${bloque(datos.aula ? 'Cierre de la sesión' : 'Vuelta a la calma', s.calma)}
-${bloque(datos.aula ? 'Materiales' : 'Material', s.material)}
-${bloque(datos.aula ? 'Medidas de inclusión (DUA)' : 'Para que participe todo el grupo (DUA-A)', s.inclusion, 'dua')}
-${bloque('Plan B', s.planB, 'planb')}
-${datos.circuito ? `<section class="circuito"><h2>${esc(t('Circuito'))}: ${esc(datos.circuito.nombre)}</h2>${datos.circuito.svg.replace(/ width="\d+" height="\d+"/, '')}</section>` : ''}
-${datos.instrumentos?.length ? `<section><h2>${esc(t('Cómo se evalúa'))}</h2>${datos.instrumentos.map(i => `<p class="instr"><strong>${esc(i.nombre)}</strong> <small>(${esc(i.tipo)})</small>${i.conceptos.length ? `<br>${esc(i.conceptos.join(' · '))}` : ''}</p>`).join('')}</section>` : ''}
+<div class="cabecera"><h1>${esc(s.titulo || t('Sesión'))}</h1></div>
+${tablaFicha}
+${seccion('Objetivo', parrafos(s.objetivo))}
+${seccion('Criterios oficiales', criterios)}
+${tablaFases}
+${seccion(datos.aula ? 'Materiales' : 'Material', parrafos(s.material))}
+${seccion(datos.aula ? 'Medidas de inclusión (DUA)' : 'Para que participe todo el grupo (DUA-A)', parrafos(s.inclusion), 'dua')}
+${seccion('Plan B', parrafos(s.planB), 'planb')}
+${circuito}
+${seccion('Cómo se evalúa', tablaInstrumentos)}
 </body></html>`;
 }
 
