@@ -6,6 +6,7 @@ const { pathToFileURL } = require('url');
 const { ClassroomServer } = require('./classroom.cjs');
 const { Storage } = require('./storage.cjs');
 const { AppServer } = require('./appserver.cjs');
+const { SyncServer } = require('./syncserver.cjs');
 const updater = require('./updater.cjs');
 const secrets = require('./secrets.cjs');
 const license = require('./license.cjs');
@@ -15,6 +16,7 @@ let mainWindow = null;
 const classroom = new ClassroomServer();
 const storage = new Storage(app.getPath('userData'));
 const appServer = new AppServer(path.join(__dirname, '../dist'));
+const syncServer = new SyncServer();
 
 function registerStorageIpc() {
   ipcMain.handle('store:listProfiles',  () => storage.listProfiles());
@@ -39,6 +41,11 @@ function registerStorageIpc() {
 // Cada respuesta que llega de un móvil se envía a la interfaz del docente
 classroom.onChange = snapshot => {
   mainWindow?.webContents.send('classroom:update', snapshot);
+};
+
+// Lo que envía el invitado por el canal local se aplica y se reenvía a la interfaz.
+syncServer.onPeerBundle = bundle => {
+  mainWindow?.webContents.send('share:peer', bundle);
 };
 
 /**
@@ -172,6 +179,13 @@ function registerSecretsIpc() {
   ipcMain.handle('secrets:set', (_e, name, value) => secrets.set(name, value));
 }
 
+function registerLanIpc() {
+  ipcMain.handle('share:start', (_e, opts) => syncServer.start(opts || {}));
+  ipcMain.handle('share:stop', () => syncServer.stop());
+  ipcMain.handle('share:state', () => syncServer.snapshot());
+  ipcMain.handle('share:setBundle', (_e, bundle) => syncServer.setBundle(bundle));
+}
+
 function registerLicenseIpc() {
   const listProfiles = () => storage.listProfiles();
   ipcMain.handle('license:state', async () => { await license.whenReady(listProfiles); return license.publicState(); });
@@ -295,6 +309,7 @@ if (!app.requestSingleInstanceLock()) {
     registerDocumentIpc();
     registerUpdateIpc();
     registerSecretsIpc();
+    registerLanIpc();
     registerLicenseIpc();
     // La licencia se lee (y, si toca, se comprueba) mientras se abre la ventana
     license.whenReady(() => storage.listProfiles());
@@ -319,10 +334,11 @@ if (!app.requestSingleInstanceLock()) {
 app.on('window-all-closed', () => {
   // La sala nunca queda abierta después de cerrar la app
   classroom.stop();
+  syncServer.stop();
   appServer.stop();
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-app.on('before-quit', () => { classroom.stop(); appServer.stop(); });
+app.on('before-quit', () => { classroom.stop(); syncServer.stop(); appServer.stop(); });

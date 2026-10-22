@@ -14,6 +14,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
 import { useP2PSync } from './hooks/useP2PSync';
+import { useLanSync } from './hooks/useLanSync';
 import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { buildBundle, bundleCounts } from './services/sync';
@@ -230,6 +231,9 @@ function AppInner() {
     userName: st.currentUser?.full_name ?? 'Docente',
     applyBundle: st.applyBundle,
   });
+
+  // Canal local, sin internet: el plan B de «Trabajo compartido» en la misma wifi.
+  const lan = useLanSync({ source: st.syncSource, scope: st.shareScope, applyBundle: st.applyBundle });
 
   useEffect(() => {
     applyTheme((localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky');
@@ -579,6 +583,7 @@ function AppInner() {
                 scope={st.shareScope}
                 onScopeChange={st.setShareScope}
                 session={session}
+                lan={lan}
                 counts={bundleCounts(buildBundle(st.syncSource, st.shareScope))}
               />
             )}

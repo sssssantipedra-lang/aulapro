@@ -505,7 +505,7 @@ export function QrWidget({ uid }: { uid: string }) {
       />
       <div ref={caja} className="flex-1 min-h-0 flex items-center justify-center">
         {direccion
-          ? <SessionQR code={direccion} size={lado} />
+          ? <SessionQR value={direccion} size={lado} />
           : <div className="text-[rgba(var(--pz-rgb),0.4)] text-[13px] text-center px-6">{t('El alumnado lo escanea con la cámara del móvil.')}</div>}
       </div>
     </div>

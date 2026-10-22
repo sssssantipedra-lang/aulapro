@@ -50,6 +50,24 @@ export interface ClassroomBridge {
   onUpdate: (cb: (snapshot: ClassroomSnapshot) => void) => () => void;
 }
 
+/** Canal local de «Trabajo compartido»: el servidor del equipo que manda. */
+export interface LanSnapshot {
+  running: boolean;
+  port: number | null;
+  code: string | null;
+  addresses: { iface: string; ip: string }[];
+}
+
+export interface LanBridge {
+  /** Abre el servidor y guarda el paquete que se comparte. */
+  start: (opts: { bundle?: unknown }) => Promise<LanSnapshot>;
+  stop: () => Promise<LanSnapshot>;
+  state: () => Promise<LanSnapshot>;
+  setBundle: (bundle: unknown) => Promise<LanSnapshot>;
+  /** Avisa cuando el invitado envía su paquete. Devuelve una función para dejar de escuchar. */
+  onPeer: (cb: (bundle: unknown) => void) => () => void;
+}
+
 /** Resultado de guardar o imprimir un documento. */
 export interface DocsResult {
   ok?: boolean;
@@ -156,6 +174,7 @@ declare global {
       version: string;
       store?: StoreBridge;
       classroom?: ClassroomBridge;
+      lan?: LanBridge;
       docs?: DocsBridge;
       update?: UpdateBridge;
       license?: LicenseBridge;

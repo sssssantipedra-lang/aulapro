@@ -28,7 +28,8 @@ import { createAndroidLicense } from './androidLicense';
 import studentPage from '../../electron/student.html?raw';
 import { CARPETA_RAIZ, nombreDeCarpeta } from '../lib/carpetas';
 import { avisarGuardado, type Guardado } from '../lib/guardado';
-import type { ClassroomBridge, ClassroomSnapshot, DocsBridge, DocsResult, FilesBridge, StoreBridge } from '../types/electron';
+import type { ClassroomBridge, ClassroomSnapshot, DocsBridge, DocsResult, FilesBridge, LanBridge, LanSnapshot, StoreBridge } from '../types/electron';
+import { generateCode } from '../services/p2p';
 
 interface AulaNativePlugin {
   print: (o: { html: string; name: string; landscape: boolean }) => Promise<{ ok: boolean }>;
@@ -45,7 +46,10 @@ interface AulaNativePlugin {
   roomStop: () => Promise<void>;
   roomAddresses: () => Promise<{ addresses: { iface: string; ip: string }[] }>;
   roomRespond: (o: { id: string; status: number; type: string; body: string }) => Promise<void>;
-  addListener: (event: 'roomRequest', fn: (req: RoomRequest & { id: string }) => void) => Promise<PluginListenerHandle>;
+  lanStart: () => Promise<{ port: number; addresses: { iface: string; ip: string }[] }>;
+  lanStop: () => Promise<void>;
+  lanRespond: (o: { id: string; status: number; type: string; body: string }) => Promise<void>;
+  addListener: (event: 'roomRequest' | 'lanRequest', fn: (req: RoomRequest & { id: string }) => void) => Promise<PluginListenerHandle>;
 }
 
 const AulaNative = registerPlugin<AulaNativePlugin>('AulaNative');
@@ -208,6 +212,52 @@ function createClassroom(): ClassroomBridge {
   };
 }
 
+/** Canal local de «Trabajo compartido»: el servidor es nativo (RoomServer) y la lógica vive aquí. */
+function createLan(): LanBridge {
+  let running = false;
+  let port: number | null = null;
+  let code = '';
+  let bundle: unknown = null;
+  const peers = new Set<(b: unknown) => void>();
+
+  AulaNative.addListener('lanRequest', req => {
+    const q = new URLSearchParams(req.query ?? '');
+    const c = (q.get('c') ?? '').toUpperCase();
+    let status = 404;
+    let body = '{"error":"no-encontrado"}';
+    if (req.path === '/share') {
+      if (c !== code) { status = 403; body = '{"error":"codigo"}'; }
+      else if (req.method === 'GET') { status = 200; body = JSON.stringify(bundle ?? {}); }
+      else if (req.method === 'POST') {
+        try { const b = JSON.parse(req.body); peers.forEach(cb => cb(b)); } catch { /* mal JSON */ }
+        status = 200; body = JSON.stringify(bundle ?? {});
+      } else { status = 405; body = '{"error":"metodo"}'; }
+    }
+    AulaNative.lanRespond({ id: req.id, status, type: 'application/json; charset=utf-8', body }).catch(() => {});
+  });
+
+  const snap = (): LanSnapshot => ({ running, port, code: code || null, addresses: [] });
+
+  return {
+    async start(opts) {
+      code = generateCode();
+      bundle = opts?.bundle ?? null;
+      const net = await AulaNative.lanStart();
+      running = true;
+      port = net.port;
+      return { running: true, port: net.port, code, addresses: net.addresses };
+    },
+    async stop() {
+      await AulaNative.lanStop().catch(() => {});
+      running = false; port = null; code = ''; bundle = null;
+      return { running: false, port: null, code: null, addresses: [] };
+    },
+    async state() { return snap(); },
+    async setBundle(b) { bundle = b; return snap(); },
+    onPeer(cb) { peers.add(cb); return () => { peers.delete(cb); }; },
+  };
+}
+
 /** Para los botones del aviso de «Guardado»: abrir el archivo, ir a su carpeta o compartirlo. */
 export const guardadoAndroid = {
   abrir: (g: Guardado) => AulaNative.openFile({ uri: g.uri, mime: g.mime }),
@@ -236,6 +286,7 @@ export function installAndroidBridge() {
       setTextScale: factor => AulaNative.setTextZoom({ percent: Math.round(factor * 100) }),
     },
     classroom: createClassroom(),
+    lan: createLan(),
     license: createAndroidLicense({
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,

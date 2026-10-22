@@ -8,7 +8,9 @@ import { QRScanner } from '../components/share/QRScanner';
 import type { Class } from '../types';
 import type { ShareScope } from '../services/sync';
 import type { useP2PSync } from '../hooks/useP2PSync';
-import { formatCode, isCompleteCode, normalizeCode } from '../services/p2p';
+import type { useLanSync } from '../hooks/useLanSync';
+import { formatCode, isCompleteCode, normalizeCode, shareUrl, parseScannedCode } from '../services/p2p';
+import { parseLanUrl } from '../services/lan';
 import { takeShareCode } from '../lib/shareNav';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -26,11 +28,12 @@ interface Props {
   scope: ShareScope;
   onScopeChange: (s: ShareScope) => void;
   session: ReturnType<typeof useP2PSync>;
+  lan: ReturnType<typeof useLanSync>;
   counts: Counts;
 }
 
 /** Muestra el código de sesión en grande, listo para dictar o copiar. */
-function CodeDisplay({ code }: { code: string }) {
+function CodeDisplay({ code, qrValue }: { code: string; qrValue: string }) {
   const { toast } = useToast();
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
@@ -53,7 +56,7 @@ function CodeDisplay({ code }: { code: string }) {
       </div>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <SessionQR code={code} />
+        <SessionQR value={qrValue} />
 
         <div>
           <div
@@ -78,7 +81,7 @@ function CodeDisplay({ code }: { code: string }) {
   );
 }
 
-export function Share({ classes, scope, onScopeChange, session, counts }: Props) {
+export function Share({ classes, scope, onScopeChange, session, lan, counts }: Props) {
   const { t, locale } = useI18n();
   const [codeInput, setCodeInput] = useState('');
   const [scanning, setScanning]   = useState(false);
@@ -88,6 +91,8 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
   const { state, code, peerName, lastSyncAt, error, connected, busy } = session;
   const role = uiRole;
   const nothingSelected = scope.classIds.length === 0;
+  // Conectado por PeerJS (internet) o por el canal local (misma wifi sin internet).
+  const conectado = connected || lan.peer;
 
   // Si la app se abrió desde un enlace (aulapro://c/XXXXXX), se toma el código
   // y se conecta como invitado sin pedir clase.
@@ -105,11 +110,16 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function restart() {
+  function desconectar() {
     session.disconnect();
+    lan.stop();
     setUiRole(null);
     setCodeInput('');
     setScanning(false);
+  }
+
+  function restart() {
+    desconectar();
   }
 
   function toggleClass(id: string) {
@@ -122,7 +132,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
   }
 
   /* ── Conectado ── */
-  if (connected) {
+  if (conectado) {
     return (
       <section className="sec active">
         <div className="pg-hd">
@@ -130,7 +140,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
             <h1 className="pg-title">{t('Trabajo compartido')}</h1>
             <p className="pg-sub">{t('Conexión activa con otro docente')}</p>
           </div>
-          <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={session.disconnect}>
+          <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={desconectar}>
             <WifiOff size={14} />{t('Desconectar')}
           </button>
         </div>
@@ -211,7 +221,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
                   </div>
                 ) : (
                   <>
-                    <CodeDisplay code={code} />
+                    <CodeDisplay code={code} qrValue={lan.lanUrl ?? (code ? shareUrl(code) : '')} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, padding: '11px 14px', borderRadius: 9, background: 'var(--surface)', fontSize: 12.5, color: 'var(--text-2)' }}>
                       <span className="spin" style={{ flexShrink: 0 }} />
                       {t('Esperando a que se una… Deja esta ventana abierta.')}
@@ -272,7 +282,7 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
                   className="btn-accent"
                   style={{ marginTop: 14, width: '100%', justifyContent: 'center' }}
                   disabled={nothingSelected || busy}
-                  onClick={() => { setUiRole('host'); session.startHost(); }}
+                  onClick={() => { setUiRole('host'); session.startHost(); lan.startHost(); }}
                 >
                   <Send size={14} />{t('Crear código y QR')}
                 </button>
@@ -292,7 +302,13 @@ export function Share({ classes, scope, onScopeChange, session, counts }: Props)
             {role === 'guest' ? (
               scanning ? (
                 <QRScanner
-                  onDetected={c => { setScanning(false); setCodeInput(c); session.startJoin(c); }}
+                  onDetected={raw => {
+                    setScanning(false);
+                    const target = parseLanUrl(raw);
+                    if (target) { lan.join(target); return; }
+                    const c = parseScannedCode(raw);
+                    if (c) { setCodeInput(c); session.startJoin(c); }
+                  }}
                   onCancel={() => setScanning(false)}
                 />
               ) : (

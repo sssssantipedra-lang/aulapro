@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { Camera, CameraOff, X } from 'lucide-react';
 import { parseScannedCode } from '../../services/p2p';
+import { parseLanUrl } from '../../services/lan';
 import { useI18n } from '../../i18n';
 
 type ScanState = 'asking' | 'scanning' | 'denied' | 'unsupported';
 
 interface Props {
-  onDetected: (code: string) => void;
+  /** Lo que había en el QR, en crudo: lo interpreta quien llama (código o dirección local). */
+  onDetected: (raw: string) => void;
   onCancel: () => void;
 }
 
@@ -68,10 +70,10 @@ export function QRScanner({ onDetected, onCancel }: Props) {
                 const img = ctx.getImageData(0, 0, w, h);
                 const found = jsQR(img.data, w, h, { inversionAttempts: 'dontInvert' });
                 if (found?.data) {
-                  const code = parseScannedCode(found.data);
-                  if (code) {
+                  const raw = found.data;
+                  if (parseScannedCode(raw) || parseLanUrl(raw)) {
                     doneRef.current = true;
-                    onDetected(code);
+                    onDetected(raw);
                     return;
                   }
                   setHint(t('Ese QR no es de una sesión de Aula Pro.'));

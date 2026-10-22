@@ -1,22 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { shareUrl } from '../../services/p2p';
 
 /**
- * Código QR de la sesión. Lleva el enlace `aulapro://c/XXXXXX`: si se escanea
- * con un móvil que tiene AulaPro, se abre la app con el código ya puesto; y el
- * lector de la propia app también sabe sacar el código de ese enlace.
+ * Código QR de la sesión. Lleva el valor que se le pase: la dirección local
+ * `http://<ip>:<puerto>/share?c=…` cuando hay canal local (para conectarse por
+ * la wifi sin internet), o el enlace `aulapro://c/XXXXXX` si no.
  */
-export function SessionQR({ code, size = 168 }: { code: string; size?: number }) {
+export function SessionQR({ value, size = 168 }: { value: string; size?: number }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !code) return;
+    if (!canvas || !value) return;
     let cancelled = false;
 
-    QRCode.toCanvas(canvas, shareUrl(code), {
+    QRCode.toCanvas(canvas, value, {
       width: size,
       margin: 1,
       errorCorrectionLevel: 'M',
@@ -26,7 +25,7 @@ export function SessionQR({ code, size = 168 }: { code: string; size?: number })
       .catch(() => { if (!cancelled) setFailed(true); });
 
     return () => { cancelled = true; };
-  }, [code, size]);
+  }, [value, size]);
 
   if (failed) return null;
 

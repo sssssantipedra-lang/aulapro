@@ -462,8 +462,58 @@ public class AulaNativePlugin extends Plugin {
         call.resolve();
     }
 
+    /* ── Canal local de «Trabajo compartido» (sin internet): otro RoomServer ── */
+
+    private static final int LAN_PORT = 8100;
+    private static final int LAN_PORT_TRIES = 12;
+    private RoomServer lan;
+
+    private RoomServer lan() {
+        if (lan == null) {
+            lan = new RoomServer((id, method, path, query, body) -> {
+                JSObject req = new JSObject();
+                req.put("id", id);
+                req.put("method", method);
+                req.put("path", path);
+                req.put("query", query);
+                req.put("body", body);
+                notifyListeners("lanRequest", req);
+            });
+        }
+        return lan;
+    }
+
+    @PluginMethod
+    public void lanStart(PluginCall call) {
+        try {
+            int port = lan().start(LAN_PORT, LAN_PORT_TRIES);
+            JSObject ret = new JSObject();
+            ret.put("port", port);
+            ret.put("addresses", RoomServer.addresses());
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void lanStop(PluginCall call) {
+        if (lan != null) lan.stop();
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void lanRespond(PluginCall call) {
+        if (lan != null) {
+            lan.respond(call.getString("id", ""), call.getInt("status", 200),
+                call.getString("type", "application/json; charset=utf-8"), call.getString("body", ""));
+        }
+        call.resolve();
+    }
+
     @Override
     protected void handleOnDestroy() {
         if (room != null) room.stop();
+        if (lan != null) lan.stop();
     }
 }

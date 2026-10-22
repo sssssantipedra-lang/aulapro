@@ -436,7 +436,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas: todasDianas,
               <div className="card-hd" style={{ justifyContent: 'center' }}>
                 <div className="card-ttl"><Smartphone size={14} color="var(--ok)" />{t('Para proyectar')}</div>
               </div>
-              <SessionQR code={joinUrl} size={186} />
+              <SessionQR value={joinUrl} size={186} />
               <div style={{ marginTop: 14 }}>
                 <div style={{ fontSize: 11.5, color: 'var(--text-2)', fontWeight: 600, marginBottom: 4 }}>
                   {t('O escribid en el navegador')}
