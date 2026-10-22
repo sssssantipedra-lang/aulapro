@@ -20,8 +20,8 @@ export interface DatosSesionPdf {
   instalacion?: string;
   /** «EF.1.2: texto del criterio». */
   criterios: string[];
-  /** Con qué se evalúa: el nombre, qué es (ya en el idioma de la app) y lo que valora. */
-  instrumentos?: { nombre: string; tipo: string; conceptos: string[] }[];
+  /** Con qué se evalúa: el nombre, qué es y su contenido completo en HTML (tabla o dibujo). */
+  instrumentos?: { nombre: string; tipo: string; html: string }[];
   /** El circuito de la pizarra de circuitos, como imagen SVG. */
   circuito?: { nombre: string; svg: string };
 }
@@ -62,8 +62,8 @@ export function buildSesionHtml(s: SesionEF, datos: DatosSesionPdf, lang: Lang):
     : '';
 
   const tablaInstrumentos = instrumentos.length
-    ? `<table class="instrumentos"><tbody>${instrumentos.map(i =>
-        `<tr><th>${esc(i.nombre)}</th><td><em>${esc(i.tipo)}</em>${i.conceptos.length ? `<span>${esc(i.conceptos.join(' · '))}</span>` : ''}</td></tr>`).join('')}</tbody></table>`
+    ? instrumentos.map(i =>
+        `<div class="instr"><h3>${esc(i.nombre)} <small>${esc(i.tipo)}</small></h3>${i.html}</div>`).join('')
     : '';
 
   const circuito = datos.circuito
@@ -94,8 +94,15 @@ section.dua { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 6px
 section.dua h2 { color: #b45309; border-bottom-color: #fcd34d; }
 section.planb { border: 1px dashed #94a3b8; border-radius: 6px; padding: 9px 11px; }
 .circuito svg { width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
-.instrumentos em { color: #6b7280; font-style: normal; font-size: 11px; }
-.instrumentos span { display: block; margin-top: 2px; }
+.instr { margin: 0 0 12px; break-inside: avoid; }
+.instr h3 { font-size: 12px; margin: 0 0 6px; color: #0f4c5c; }
+.instr small { color: #6b7280; font-weight: 400; }
+.mat-instr { width: 100%; border-collapse: collapse; font-size: 11px; }
+.mat-instr th, .mat-instr td { border: 0.75px solid #d1d5db; padding: 5px 8px; text-align: left; vertical-align: top; }
+.mat-instr thead th { background: #eef4f3; color: #0f4c5c; }
+.mat-diana { display: flex; gap: 16px; align-items: flex-start; }
+.mat-diana-svg svg { width: 200px; height: 200px; }
+.mat-diana-leyenda { flex: 1; min-width: 0; }
 </style></head><body>
 <div class="cabecera"><h1>${esc(s.titulo || t('Sesión'))}</h1></div>
 ${tablaFicha}

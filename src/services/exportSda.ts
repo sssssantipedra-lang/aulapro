@@ -57,7 +57,7 @@ function modelosDeSda(c: LearningSituation['content'], t: (k: string) => string)
   return (c.ef?.modelos ?? []).map(id => modeloEF(id)).filter(Boolean).map(m => t(m!.nombre)).join(' + ');
 }
 
-export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
+export function buildSdaHtml(sda: LearningSituation, lang: Lang, anexo?: string): string {
   const t = (k: string, vars?: Record<string, string | number>) => translate(lang, k, vars);
   const c = sda.content;
   const req = sda.request;
@@ -137,13 +137,14 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang): string {
     bandTop(bandTitle) +
     gridRows +
     `</tbody></table>` +
+    (anexo ?? '') +
     `</article></body></html>`;
 }
 
-export async function saveSdaPdf(sda: LearningSituation, lang: Lang) {
+export async function saveSdaPdf(sda: LearningSituation, lang: Lang, anexo?: string) {
   const docs = window.electronAPI?.docs;
   if (!docs) return { error: 'not-desktop' as const };
-  const html = buildSdaHtml(sda, lang);
+  const html = buildSdaHtml(sda, lang, anexo);
   const res = await docs.savePdf(html, fileBase(sda) + '.pdf', { carpeta: CARPETAS.situaciones });
   if (!res.canceled && !res.error && res.path) docs.reveal(res.path);
   return res;
@@ -167,6 +168,16 @@ const SDA_DOC_STYLE = `
 
 /* Reparto entre páginas: vale tanto en el PDF como en la impresora */
 .sda-grid tr { break-inside: avoid; page-break-inside: avoid; }
+
+/* Materiales generados desde la SdA (rúbrica y diana), como anexo */
+.sda-anexo { margin-top: 14px; }
+.sda-anexo h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #1f4e79; border-bottom: 1.5px solid #bdd7ee; padding-bottom: 4px; margin: 0 0 10px; }
+.sda-anexo h3 { font-size: 12px; color: #1e3a5f; margin: 0 0 6px; }
+.anexo-instr { margin: 0 0 12px; break-inside: avoid; }
+.mat-instr { width: 100%; border-collapse: collapse; font-size: 11px; }
+.mat-instr th, .mat-instr td { border: 0.75px solid #8faadc; padding: 5px 8px; text-align: left; vertical-align: top; }
+.mat-instr thead th { background: #dce6f1; color: #1e3a5f; }
+
 @media print { @page { size: A4 landscape; margin: 12mm 14mm; } }
 `;
 

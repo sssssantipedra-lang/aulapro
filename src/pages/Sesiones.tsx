@@ -36,7 +36,8 @@ import { guardarSesionPdf, buildSesionHtml } from '../services/exportSesionEF';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { Class, EvalDiana, Evaluation, LearningSituation, Rubric, ScheduleBlock, Student } from '../types';
 import { SesionEvaluacionCircuito } from '../components/ef/SesionEvaluacionCircuito';
-import { describirInstrumento, ETIQUETA_INSTRUMENTO } from '../lib/instrumentosSesion';
+import { ETIQUETA_INSTRUMENTO } from '../lib/instrumentosSesion';
+import { htmlInstrumento } from '../services/instrumentoEmbebido';
 import { pizarraSvg } from '../lib/pizarraEF';
 import { archivarSesiones, asociarASda, quitarSesiones } from '../lib/sesiones';
 import { ClasesDeSesiones } from '../components/sesiones/ClasesDeSesiones';
@@ -286,8 +287,11 @@ export function Sesiones({
       aula: !esEF,
       clase: nombreClase(s.claseId) || undefined, fecha: s.fecha ? dia(s.fecha) : undefined,
       instalacion: nombreInst(s.instalacionId) || undefined, criterios,
-      instrumentos: (s.instrumentos ?? []).map(r => describirInstrumento(r, rubrics, dianas)).filter(Boolean)
-        .map(d => ({ nombre: d!.nombre, tipo: t(ETIQUETA_INSTRUMENTO[d!.tipo]), conceptos: d!.conceptos })),
+      instrumentos: (s.instrumentos ?? []).map(r => {
+        const inst = r.tipo === 'rubrica' ? rubrics.find(y => y.id === r.id) : dianas.find(y => y.id === r.id);
+        if (!inst) return null;
+        return { nombre: inst.name, tipo: t(ETIQUETA_INSTRUMENTO[r.tipo]), html: htmlInstrumento(inst, lang) };
+      }).filter((x): x is { nombre: string; tipo: string; html: string } => !!x),
       circuito: (() => { const p = ef.pizarras.find(x => x.id === s.pizarraId); return p ? { nombre: p.nombre, svg: pizarraSvg(p) } : undefined; })(),
     };
   }

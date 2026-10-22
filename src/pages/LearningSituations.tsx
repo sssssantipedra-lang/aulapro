@@ -21,6 +21,7 @@ import {
 import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx, buildSdaHtml } from '../services/exportSda';
+import { anexoMaterialesSda } from '../services/instrumentoEmbebido';
 import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../services/exportSdaPoster';
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
@@ -652,7 +653,8 @@ export function LearningSituations({
   async function handleExportPdf(sda: LearningSituation | null, key: string) {
     if (!sda) return;
     setExporting({ key, kind: 'pdf' });
-    const res = await saveSdaPdf(sda, lang);
+    const anexo = key === CURRENT_KEY ? anexoMaterialesSda(rubricRows, dianaRows, lang) : '';
+    const res = await saveSdaPdf(sda, lang, anexo);
     setExporting(null);
     if (res.error === 'not-desktop') { toast(t('Guardar en PDF solo está disponible en la aplicación de escritorio.')); return; }
     if (res.canceled) return;
@@ -1433,7 +1435,7 @@ export function LearningSituations({
             <button className="btn-ghost" onClick={() => setFormOpen(true)} title={t('Cambiar la idea o los datos y volver a generarla')}>
               <RefreshCw size={14} />{t('Ajustar')}
             </button>
-            <button className="btn-ghost" onClick={() => { const s = currentSda(); if (s) setPreview({ html: buildSdaHtml(s, lang), title: s.title }); }} title={t('Vista previa')}>
+            <button className="btn-ghost" onClick={() => { const s = currentSda(); if (s) setPreview({ html: buildSdaHtml(s, lang, anexoMaterialesSda(rubricRows, dianaRows, lang)), title: s.title }); }} title={t('Vista previa')}>
               <Eye size={14} />{t('Vista previa')}
             </button>
             {isDesktop() && (
