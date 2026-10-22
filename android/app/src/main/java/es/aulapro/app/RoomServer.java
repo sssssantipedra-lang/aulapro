@@ -197,6 +197,8 @@ class RoomServer {
             + "Cache-Control: no-store\r\n"
             + "X-Content-Type-Options: nosniff\r\n"
             + "Access-Control-Allow-Origin: *\r\n"
+            + "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+            + "Access-Control-Allow-Headers: Content-Type\r\n"
             + "Connection: close\r\n\r\n";
         OutputStream out = c.getOutputStream();
         out.write(head.getBytes(StandardCharsets.US_ASCII));

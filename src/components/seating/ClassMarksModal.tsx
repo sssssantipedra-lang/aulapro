@@ -97,8 +97,8 @@ export function ClassMarksModal({ student, cls, marksConfigs, classMarks, onAdd,
 
       <p className="mk-hint">
         {cfg.enabled === false
-          ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: nombreDelBloque(cfg, t) })
-          : t('Cuentan en el bloque «{name}» del cuaderno, que pesa un {n}% de la nota final.', { name: nombreDelBloque(cfg, t), n: (Math.round(cfg.points * 100) / 10).toLocaleString(locale) })}{' '}
+          ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: nombreDelBloque(cfg, t, subject) })
+          : t('Cuentan en el bloque «{name}» del cuaderno, que pesa un {n}% de la nota final.', { name: nombreDelBloque(cfg, t, subject), n: (Math.round(cfg.points * 100) / 10).toLocaleString(locale) })}{' '}
         <button type="button" className="mk-link" onClick={() => { onClose(); onNav('notebook'); }}>
           {t('Ir al cuaderno')} <ArrowRight size={12} />
         </button>

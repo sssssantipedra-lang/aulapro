@@ -86,10 +86,16 @@ export const targetLabel = (target: MarkTarget, subject: string) =>
   (esAsignaturaEF(subject) ? TARGET_LABEL_EF : TARGET_LABEL)[target];
 
 export const BLOCK_NAME = 'Trabajo diario y actitud';
+/** En Educación Física, el bloque se llama así (decisión del dueño). */
+export const EF_BLOCK_NAME = 'Componente personal y social';
 
 /** El título del bloque: el que le ha puesto el docente o, si no, el de siempre (que se traduce al mostrarlo). */
-export const nombreDelBloque = (cfg: Pick<MarksBlockConfig, 'name'> | undefined, traducir: (k: string) => string = k => k): string =>
-  cfg?.name?.trim() || traducir(BLOCK_NAME);
+export const nombreDelBloque = (
+  cfg: Pick<MarksBlockConfig, 'name'> | undefined,
+  traducir: (k: string) => string = k => k,
+  subject?: string,
+): string =>
+  cfg?.name?.trim() || traducir(subject && esAsignaturaEF(subject) ? EF_BLOCK_NAME : BLOCK_NAME);
 
 export const DEFAULT_BLOCK: MarksBlockConfig = {
   points: 1,
@@ -121,13 +127,12 @@ export function blockConfig(
 }
 
 /**
- * Si el bloque cuenta en la nota. Sin decisión del docente, cuenta en cuanto
- * hay alguna anotación: así nadie ve cambiar las medias por una función que
- * no usa.
+ * Si el bloque cuenta en la nota. Está activo por defecto (petición del dueño);
+ * solo deja de contar si el docente lo desactiva expresamente.
  */
 export function blockActive(cfg: MarksBlockConfig, marksCount: number): boolean {
-  if (cfg.enabled === false) return false;
-  return cfg.enabled === true || marksCount > 0;
+  void marksCount;
+  return cfg.enabled !== false;
 }
 
 const clamp10 = (v: number) => Math.min(10, Math.max(0, Math.round(v * 100) / 100));
@@ -224,9 +229,9 @@ export function applyClassMarks(d: MarksInput): {
       const key = blockKey(cls.id, subject);
       const catId = BLOCK_CATEGORY_PREFIX + key;
       const itemId = BLOCK_ITEM_PREFIX + key;
-      cats.push({ id: catId, class_id: cls.id, name: nombreDelBloque(cfg), weight, subject });
+      cats.push({ id: catId, class_id: cls.id, name: nombreDelBloque(cfg, k => k, subject), weight, subject });
       items.push({
-        id: itemId, class_id: cls.id, category_id: catId, name: nombreDelBloque(cfg),
+        id: itemId, class_id: cls.id, category_id: catId, name: nombreDelBloque(cfg, k => k, subject),
         date: marks.reduce((a, m) => (m.date > a ? m.date : a), ''),
       });
       // Todos los de la clase tienen nota, no solo los anotados: quien no

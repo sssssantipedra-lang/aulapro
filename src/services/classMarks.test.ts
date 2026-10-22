@@ -73,8 +73,8 @@ describe('sumaDePesos', () => {
 });
 
 describe('blockActive', () => {
-  it('cuenta solo si hay anotaciones, salvo que el docente decida', () => {
-    expect(blockActive(DEFAULT_BLOCK, 0)).toBe(false);
+  it('cuenta siempre por defecto, salvo que el docente lo desactive', () => {
+    expect(blockActive(DEFAULT_BLOCK, 0)).toBe(true);
     expect(blockActive(DEFAULT_BLOCK, 3)).toBe(true);
     expect(blockActive({ ...DEFAULT_BLOCK, enabled: false }, 3)).toBe(false);
     expect(blockActive({ ...DEFAULT_BLOCK, enabled: true }, 0)).toBe(true);
@@ -109,12 +109,13 @@ describe('applyClassMarks', () => {
     expect(final).toBeCloseTo(0.9 * 6 + 0.1 * bloqueAna, 6);
   });
 
-  it('sin anotaciones no cambia ninguna media', () => {
+  it('sin anotaciones, el bloque cuenta igual (notas de partida)', () => {
     const r = applyClassMarks({
       ...base, gradeCategories: [cat('ex', 'Exámenes', 100)], gradeItems: [], grades: {}, classMarks: [],
     });
-    expect(r.gradeCategories).toHaveLength(1);
-    expect(r.gradeItems).toHaveLength(0);
+    expect(r.gradeCategories).toHaveLength(2); // Exámenes + bloque
+    expect(r.gradeItems).toHaveLength(1);      // la columna del bloque
+    expect(typeof r.grades[BLOCK_ITEM_PREFIX + 'c1|Matemáticas'].ana).toBe('number');
   });
 
   it('desactivado por el docente, no cuenta aunque haya anotaciones', () => {
@@ -157,6 +158,7 @@ describe('el título del bloque se puede renombrar', () => {
     expect(nombreDelBloque({ name: '  ' })).toBe('Trabajo diario y actitud');
     expect(nombreDelBloque({ name: ' Trabajo y participación ' })).toBe('Trabajo y participación');
     expect(nombreDelBloque({}, k => k.toUpperCase())).toBe('TRABAJO DIARIO Y ACTITUD');
+    expect(nombreDelBloque({}, k => k, 'Educación Física')).toBe('Componente personal y social');
   });
 
   it('la columna del cuaderno lleva el nombre que le puso el docente', () => {

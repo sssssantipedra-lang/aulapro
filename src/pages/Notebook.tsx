@@ -489,7 +489,7 @@ function GradesTab({
                     title={t(esAsignaturaEF(activeSubject) ? 'Vestimenta e higiene, actitud y participación, con lo que observas en la pista' : 'Tareas, comportamiento y participación, con lo que anotas en En clase › Anotar actitud')}
                   >
                     <Flag size={12} />
-                    {nombreDelBloque(block.cfg, t)} <strong>{block.active ? `${blockPct.toLocaleString(locale)}%` : t('no cuenta')}</strong>
+                    {nombreDelBloque(block.cfg, t, activeSubject)} <strong>{block.active ? `${blockPct.toLocaleString(locale)}%` : t('no cuenta')}</strong>
                     <Pencil size={11} />
                   </button>
                   {/* Ir a anotar esta misma clase (11-10-2026); en EF, a la pista */}
@@ -562,7 +562,7 @@ function GradesTab({
                           }}
                         >
                           {isMarksCategory(cat.id) && block
-                            ? `${nombreDelBloque(block.cfg, t)} · ${`${(Math.round(block.cfg.points * 100) / 10).toLocaleString(locale)}%`}`
+                            ? `${nombreDelBloque(block.cfg, t, activeSubject)} · ${`${(Math.round(block.cfg.points * 100) / 10).toLocaleString(locale)}%`}`
                             : `${cat.name} · ${cat.weight}%`}
                         </th>
                       ))}
@@ -702,7 +702,7 @@ function GradesTab({
       <Modal
         open={blockOpen && bf !== null}
         onClose={() => setBlockOpen(false)}
-        title={<span className="mk-ttl"><Flag size={16} color="var(--accent-d)" />{nombreDelBloque(block?.cfg, t)}</span>}
+        title={<span className="mk-ttl"><Flag size={16} color="var(--accent-d)" />{nombreDelBloque(block?.cfg, t, activeSubject)}</span>}
       >
         {bf && (
           <>
