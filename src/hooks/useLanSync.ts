@@ -74,7 +74,7 @@ export function useLanSync({ source, scope, applyBundle }: Options) {
     if (!lan) return;
     return lan.onPeer(b => {
       setPeer(true);
-      applyRef.current(b as SharedBundle, 'live');
+      if (b) applyRef.current(b as SharedBundle, 'live');
     });
   }, [lan]);
 

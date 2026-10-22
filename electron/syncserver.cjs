@@ -147,6 +147,8 @@ class SyncServer {
     if (code !== this.code) return send(403, { error: 'codigo' });
 
     if (req.method === 'GET') {
+      // Una lectura también avisa de que hay un invitado conectado.
+      if (this.onPeerBundle) this.onPeerBundle(null);
       return send(200, this.bundle ?? {});
     }
 

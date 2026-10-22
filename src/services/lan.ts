@@ -50,9 +50,13 @@ export async function lanPullBundle(target: LanTarget): Promise<SharedBundle | n
 /** Envía el paquete local al anfitrión y devuelve el suyo ya mezclado. */
 export async function lanPushBundle(target: LanTarget, bundle: SharedBundle): Promise<SharedBundle | null> {
   try {
+    // `text/plain` convierte el POST en una petición «simple» (sin preflight de
+    // CORS); con `application/json` el WebView pedía un OPTIONS previo que en
+    // Android no se resolvía y el anfitrión nunca se enteraba. El servidor lee
+    // el cuerpo como JSON igualmente.
     const res = await fetch(buildLanUrl(target.ip, target.port, target.code), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(bundle),
     });
     if (!res.ok) return null;

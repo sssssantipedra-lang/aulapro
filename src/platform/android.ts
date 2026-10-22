@@ -227,7 +227,11 @@ function createLan(): LanBridge {
     let body = '{"error":"no-encontrado"}';
     if (req.path === '/share') {
       if (c !== code) { status = 403; body = '{"error":"codigo"}'; }
-      else if (req.method === 'GET') { status = 200; body = JSON.stringify(bundle ?? {}); }
+      else if (req.method === 'GET') {
+        status = 200; body = JSON.stringify(bundle ?? {});
+        // Una lectura también avisa de que hay un invitado conectado.
+        peers.forEach(cb => cb(null));
+      }
       else if (req.method === 'POST') {
         try { const b = JSON.parse(req.body); peers.forEach(cb => cb(b)); } catch { /* mal JSON */ }
         status = 200; body = JSON.stringify(bundle ?? {});
