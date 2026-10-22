@@ -93,10 +93,11 @@ export function buildBundle(src: SyncSource, scope: ShareScope): SharedBundle {
     rubrics: scope.rubrics ? src.rubrics : [],
     dianas:  scope.rubrics ? src.dianas : [],
     evaluations: scope.evaluations ? src.evaluations.filter(e => ids.has(e.class_id)) : [],
-    // Las lápidas siempre viajan enteras: son solo ids, no datos de alumnos,
-    // y hace falta el registro completo para que un borrado llegue aunque
-    // la clase afectada ya no esté marcada para compartir.
-    tombstones: src.tombstones,
+    // Sin clases elegidas (recibir sin compartir), las lápidas no viajan: si
+    // no, quien solo recibe borraría en el anfitrión lo que este quiere mandar.
+    // Con clases, van enteras, para que un borrado llegue aunque la clase
+    // afectada ya no esté marcada para compartir.
+    tombstones: ids.size > 0 ? src.tombstones : emptyTombstones(),
     from: src.me,
   };
 }

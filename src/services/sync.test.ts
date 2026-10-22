@@ -257,10 +257,16 @@ describe('buildBundle: solo viaja lo marcado', () => {
     expect(b.evaluations).toHaveLength(0);
   });
 
-  it('las lápidas viajan SIEMPRE enteras, aunque su clase no se comparta', () => {
+  it('sin clases elegidas (solo recibir) las lápidas no viajan', () => {
+    // Quien solo recibe no debe borrar en el anfitrión lo que este quiere mandar.
+    const b = buildBundle(source, scope({ classIds: [] }));
+    expect(b.tombstones.students).toEqual([]);
+  });
+
+  it('con clases marcadas, las lápidas viajan enteras', () => {
     // Son solo ids, no datos personales, y hacen falta completas para que un
     // borrado llegue aunque la clase afectada ya no esté marcada.
-    const b = buildBundle(source, scope({ classIds: [] }));
+    const b = buildBundle(source, scope({ classIds: ['c1'] }));
     expect(b.tombstones.students).toEqual(['borrado1']);
   });
 });

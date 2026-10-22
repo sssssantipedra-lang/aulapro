@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { buildBundle, hashBundle, type SharedBundle, type ShareScope, type SyncSource } from '../services/sync';
-import { buildLanUrl, lanPullBundle, type LanTarget } from '../services/lan';
+import { buildLanUrl, lanPullBundle, lanPushBundle, type LanTarget } from '../services/lan';
 
 /** Cada cuánto comprueba el invitado si el anfitrión tiene algo nuevo (ms). */
 const POLL_MS = 1500;
@@ -69,6 +69,12 @@ export function useLanSync({ source, scope, applyBundle }: Options) {
     return url;
   }
 
+  // El anfitrión se entera cuando un invitado se conecta (hace un POST de saludo).
+  useEffect(() => {
+    if (!lan) return;
+    return lan.onPeer(() => setPeer(true));
+  }, [lan]);
+
   async function stop() {
     if (lan) await lan.stop();
     setServing(false);
@@ -89,6 +95,8 @@ export function useLanSync({ source, scope, applyBundle }: Options) {
       applyRef.current(first, 'reconcile');
       lastHashRef.current = hashBundle(first);
     }
+    // Saludo al anfitrión: con este POST se entera de que ya hay alguien conectado.
+    void lanPushBundle(t, localBundle());
   }
 
   useEffect(() => {
