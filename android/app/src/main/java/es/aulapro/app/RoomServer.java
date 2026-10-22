@@ -117,6 +117,11 @@ class RoomServer {
             if (requestLine == null) return;
             String[] parts = requestLine.split(" ");
             if (parts.length < 2) return;
+            // Preflight de CORS (para que la app de otro equipo lea el canal local)
+            if ("OPTIONS".equals(parts[0])) {
+                write(client, 204, TEXT, "");
+                return;
+            }
 
             int length = 0;
             String line;
@@ -175,6 +180,7 @@ class RoomServer {
     private static String reason(int status) {
         switch (status) {
             case 200: return "OK";
+            case 204: return "No Content";
             case 400: return "Bad Request";
             case 403: return "Forbidden";
             case 404: return "Not Found";
@@ -190,6 +196,7 @@ class RoomServer {
             + "Content-Length: " + bytes.length + "\r\n"
             + "Cache-Control: no-store\r\n"
             + "X-Content-Type-Options: nosniff\r\n"
+            + "Access-Control-Allow-Origin: *\r\n"
             + "Connection: close\r\n\r\n";
         OutputStream out = c.getOutputStream();
         out.write(head.getBytes(StandardCharsets.US_ASCII));
