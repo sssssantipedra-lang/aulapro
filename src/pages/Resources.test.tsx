@@ -113,6 +113,19 @@ describe('Recursos — editor de fichas', () => {
     expect(screen.getByRole('button', { name: 'Editar' })).toBeTruthy();
   });
 
+  it('una tarjeta interactiva guardada ofrece Memory en su panel', async () => {
+    const interactivas: Ficha = {
+      ...ficha,
+      content: {
+        ...ficha.content, formato: 'tarjetas', interactivas: true,
+        tarjetasInteractivas: [{ texto: 'Gato', imagen: 'ilu-gato', imagenTipo: 'ilustracion', imagenDelante: true }],
+      },
+    };
+    setup(vi.fn(), [interactivas]);
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    expect(screen.getByRole('button', { name: 'Memory' })).toBeTruthy();
+  });
+
   it('abre la ficha en el editor con la historia y sus bloques', async () => {
     setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));

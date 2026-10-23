@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil, Grid2x2,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
@@ -34,6 +34,7 @@ import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
 import { TarjetaImagenPicker } from '../components/fichas/TarjetaImagenPicker';
 import { TarjetasInteractivasPlay } from '../components/fichas/TarjetasInteractivasPlay';
+import { TarjetasMemory } from '../components/fichas/TarjetasMemory';
 import { HiloSelector } from '../components/fichas/DibujosEditor';
 import { LecturaEditor } from '../components/fichas/LecturaEditor';
 import { GENEROS_LECTURA, NOMBRE_GENERO, type GeneroLectura } from '../lib/lectura';
@@ -208,6 +209,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   const [pickingImagen, setPickingImagen] = useState<number | null>(null);
   /** Tarjetas interactivas: abrir el modo de uso (girar y marcar), desde el editor o la biblioteca. */
   const [projecting, setProjecting] = useState<{ titulo: string; cards: FichaTarjetaInteractiva[] } | null>(null);
+  /** Tarjetas interactivas: abrir el juego del memory. */
+  const [memory, setMemory] = useState<{ titulo: string; cards: FichaTarjetaInteractiva[] } | null>(null);
   /** Ficha de la biblioteca con su panel de acciones («Proyectar» / «Editar») abierto. */
   const [menuFicha, setMenuFicha] = useState<string | null>(null);
 
@@ -368,6 +371,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   function editFicha(f: Ficha) {
     setMenuFicha(null);
     openSaved(f);
+  }
+
+  /** Jugar al memory con las tarjetas interactivas de una ficha guardada. */
+  function playMemory(f: Ficha) {
+    setMenuFicha(null);
+    setMemory({ titulo: f.title, cards: f.content.tarjetasInteractivas ?? [] });
   }
 
   // El panel de acciones se cierra al tocar fuera o con Escape
@@ -537,9 +546,14 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
           <div className="fe-top-actions">
             {content.interactivas && (
-              <button type="button" className="btn-ghost" onClick={() => setProjecting({ titulo: content.titulo, cards: content.tarjetasInteractivas ?? [] })} title={t('Girarlas a pantalla completa')}>
-                <MonitorPlay size={14} />{t('Probar')}
-              </button>
+              <>
+                <button type="button" className="btn-ghost" onClick={() => setProjecting({ titulo: content.titulo, cards: content.tarjetasInteractivas ?? [] })} title={t('Girarlas a pantalla completa')}>
+                  <MonitorPlay size={14} />{t('Probar')}
+                </button>
+                <button type="button" className="btn-ghost" onClick={() => setMemory({ titulo: content.titulo, cards: content.tarjetasInteractivas ?? [] })} title={t('Jugar al memory')}>
+                  <Grid2x2 size={14} />{t('Memory')}
+                </button>
+              </>
             )}
             {onProject && !content.interactivas && (
               <button type="button" className="btn-ghost" onClick={() => onProject(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
@@ -847,6 +861,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             cards={projecting.cards}
           />
         )}
+        {memory && (
+          <TarjetasMemory onClose={() => setMemory(null)} titulo={memory.titulo} cards={memory.cards} />
+        )}
       </section>
     );
   }
@@ -1118,6 +1135,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                       <button type="button" className="fe-menu-proyectar" onClick={() => projectFicha(f)}>
                         <MonitorPlay size={20} />{t('Proyectar')}
                       </button>
+                      {f.content.interactivas && (
+                        <button type="button" className="fe-menu-editar" onClick={() => playMemory(f)}>
+                          <Grid2x2 size={16} />{t('Memory')}
+                        </button>
+                      )}
                       <button type="button" className="fe-menu-editar" onClick={() => editFicha(f)}>
                         <Pencil size={16} />{t('Editar')}
                       </button>
@@ -1155,6 +1177,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
       {projecting && (
         <TarjetasInteractivasPlay onClose={() => setProjecting(null)} titulo={projecting.titulo} cards={projecting.cards} />
+      )}
+      {memory && (
+        <TarjetasMemory onClose={() => setMemory(null)} titulo={memory.titulo} cards={memory.cards} />
       )}
     </section>
   );

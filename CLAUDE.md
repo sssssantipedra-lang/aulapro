@@ -137,6 +137,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Recursos › Tarjetas** (petición del dueño): al elegir «Tarjetas» se abre un paso intermedio con «Recortables» (las de siempre) e «Interactivas» (nuevas). Cada tarjeta interactiva lleva una imagen en una cara y texto en la otra, con cuál va delante (`FichaTarjetaInteractiva`: `texto`, `imagen`, `imagenTipo` ilustracion/picto, `imagenDelante`; `FichaContent.interactivas` y `tarjetasInteractivas`).
 - La imagen se elige en `components/fichas/TarjetaImagenPicker.tsx` (ilustraciones del catálogo y pictogramas). Se crean con IA (ilustraciones de la lista cerrada, `generateTarjetasInteractivas` y `moreCardsInteractivas`) y a mano.
 - Modo de uso en `components/fichas/TarjetasInteractivasPlay.tsx`: a pantalla completa, se giran al tocarlas, con barajar y «lo sé / no lo sé» para repasar solo las falladas. Se exportan a PDF como las recortables (imagen de un lado y texto del otro, se doblan; `tarjetasInteractivasHtml` en `exportFicha.ts`).
+- **Juego del memory** (23-10-2026, petición del dueño): `components/fichas/TarjetasMemory.tsx` empareja cada imagen con su texto, con selector de número de parejas, marcador (parejas, intentos y tiempo) y las parejas encontradas se quedan giradas. Se abre desde el panel de la biblioteca («Memory») y desde el editor de una tarjeta interactiva.
 
 ## Publicar
 
