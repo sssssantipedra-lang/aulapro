@@ -1290,6 +1290,7 @@ export const CA: Record<string, string> = {
   "Objetivos de etapa": "Objectius d'etapa",
   "Por áreas": "Per àrees",
   "Competencias específicas": "Competències específiques",
+  "Evaluación por competencias": "Avaluació per competències",
   "Criterios de evaluación": "Criteris d'avaluació",
   "Saberes básicos": "Sabers bàsics",
   "Sesiones": "Sessions",

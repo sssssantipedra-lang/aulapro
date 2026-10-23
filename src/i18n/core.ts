@@ -1360,6 +1360,7 @@ const EN: Record<string, string> = {
   'Objetivos de etapa': 'Stage objectives',
   'Por áreas': 'By subject',
   'Competencias específicas': 'Subject competencies',
+  'Evaluación por competencias': 'Competency assessment',
   'Criterios de evaluación': 'Assessment criteria',
   'Saberes básicos': 'Core content',
   'Sesiones': 'Lessons',

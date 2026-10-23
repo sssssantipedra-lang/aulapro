@@ -513,6 +513,8 @@ function AppInner() {
                 gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
+                evaluations={st.evaluations}
+                comunidad={st.currentUser?.community}
                 teacherName={st.profile?.name ?? ''}
                 course={st.profile?.course ?? ''}
                 onNav={s => setSection(s as Section)}

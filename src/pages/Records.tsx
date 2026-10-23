@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'lucide-react';
-import type { Class, Student, GradeCategory, GradeItem, GradeMap } from '../types';
-import { PERIODS } from '../lib/utils';
+import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation } from '../types';
+import { PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
 import { isMarksCategory, sumaDePesos } from '../services/classMarks';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
@@ -10,6 +10,9 @@ import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
 import { DocPreview } from '../components/DocPreview';
+import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { notasDeMateria } from '../lib/curriculum/evaluacionPorCriterios';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
 
 interface Props {
   classes: Class[];
@@ -17,6 +20,8 @@ interface Props {
   gradeCategories: GradeCategory[];
   gradeItems: GradeItem[];
   grades: GradeMap;
+  evaluations: Evaluation[];
+  comunidad?: ComunidadId;
   teacherName: string;
   course: string;
   onNav: (s: string) => void;
@@ -52,7 +57,7 @@ function num(n: number | null, locale = 'es-ES', decimals = 1): string {
 const byName = compararAlumnos;
 
 export function Records({
-  classes, students, gradeCategories, gradeItems, grades,
+  classes, students, gradeCategories, gradeItems, grades, evaluations, comunidad,
   teacherName, course, onNav,
 }: Props) {
   const { toast } = useToast();
@@ -62,6 +67,7 @@ export function Records({
   const [showCategories, setShowCategories] = useState(true);
   const [showLabel, setShowLabel]           = useState(true);
   const [showSignature, setShowSignature]   = useState(true);
+  const [showCompetencias, setShowCompetencias] = useState(true);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -78,6 +84,24 @@ export function Records({
   );
   const [subject, setSubject] = useState('');
   const activeSubject = subjects.includes(subject) ? subject : (subjects[0] ?? '');
+
+  /* ── Evaluación por competencias (segunda página del acta) ── */
+  const { materias: materiasOficiales } = useMateriasOficiales(cls ?? null, comunidad);
+  const materiaDeLaClase = useMemo(
+    () => materiasOficiales.find(m => m.asignatura === activeSubject) ?? null,
+    [materiasOficiales, activeSubject],
+  );
+  const evsDeClase = useMemo(
+    () => evaluations.filter(e => e.class_id === clsId),
+    [evaluations, clsId],
+  );
+  const columnasEspecificas = useMemo(
+    () => (materiaDeLaClase ? notasDeMateria(materiaDeLaClase.entry, materiaDeLaClase.grupo, []).competencias : []),
+    [materiaDeLaClase],
+  );
+  const hayClave = evsDeClase.some(e => e.competencyScores && Object.keys(e.competencyScores).length > 0);
+  const hayEspecificas = !!materiaDeLaClase && columnasEspecificas.length > 0
+    && evsDeClase.some(e => e.officialCriteriaScores && Object.keys(e.officialCriteriaScores).length > 0);
 
   const cats = useMemo(
     () => gradeCategories.filter(c =>
@@ -107,6 +131,32 @@ export function Records({
       weight += cat.weight;
     }
     return weight ? sum / weight : null;
+  }
+
+  /** Nota de cada competencia clave LOMLOE: media de sus evaluaciones con instrumento. */
+  function claveDe(studentId: string): Record<string, number> {
+    const sums: Record<string, number> = {};
+    const counts: Record<string, number> = {};
+    for (const ev of evsDeClase) {
+      if (ev.student_id !== studentId) continue;
+      for (const [code, v] of Object.entries(ev.competencyScores ?? {})) {
+        sums[code] = (sums[code] ?? 0) + v;
+        counts[code] = (counts[code] ?? 0) + 1;
+      }
+    }
+    const out: Record<string, number> = {};
+    for (const code of Object.keys(counts)) out[code] = Math.round((sums[code] / counts[code]) * 10) / 10;
+    return out;
+  }
+
+  /** Nota de cada competencia específica de la materia, por su número. */
+  function especificasDe(studentId: string): Record<number, number | null> {
+    if (!materiaDeLaClase) return {};
+    const notas = notasDeMateria(
+      materiaDeLaClase.entry, materiaDeLaClase.grupo,
+      evsDeClase.filter(e => e.student_id === studentId),
+    );
+    return Object.fromEntries(notas.competencias.map(c => [c.n, c.nota]));
   }
 
   const rows = useMemo(() => roster.map((s, i) => {
@@ -321,6 +371,7 @@ export function Records({
           <Toggle label={t('Desglose por categorías')} on={showCategories} onChange={setShowCategories} />
           <Toggle label={t('Calificación en palabras')} on={showLabel} onChange={setShowLabel} />
           <Toggle label={t('Pie de firma')} on={showSignature} onChange={setShowSignature} />
+          <Toggle label={t('Evaluación por competencias')} on={showCompetencias} onChange={setShowCompetencias} />
         </div>
 
         {!pesos.ok && cats.length > 0 && (
@@ -416,6 +467,67 @@ export function Records({
                 </div>
               </footer>
             )}
+
+            {showCompetencias && (hayClave || hayEspecificas) && (
+              <div className="acta-comp">
+                <h2 className="acta-comp-title">{t('Evaluación por competencias')}</h2>
+                <div className="acta-comp-meta">{cls?.name} · {activeSubject} · {t(period)}</div>
+
+                {hayClave && (
+                  <>
+                    <h3 className="acta-comp-sub">{t('Competencias clave')}</h3>
+                    <table className="acta-table comp-table">
+                      <thead>
+                        <tr>
+                          <th className="c-n">{t('Nº')}</th>
+                          <th className="c-name">{t('Alumno/a')}</th>
+                          {LOMLOE_COMPETENCES.map(c => <th key={c.key} className="c-num" title={t(c.label)}>{c.key}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map(r => {
+                          const cl = claveDe(r.student.id);
+                          return (
+                            <tr key={r.student.id}>
+                              <td className="c-n">{r.n}</td>
+                              <td className="c-name">{r.student.name}</td>
+                              {LOMLOE_COMPETENCES.map(c => <td key={c.key} className="c-num">{num(cl[c.key] ?? null, locale)}</td>)}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+
+                {hayEspecificas && (
+                  <>
+                    <h3 className="acta-comp-sub">{t('Competencias específicas')} · {materiaDeLaClase!.entry.nombre}</h3>
+                    <table className="acta-table comp-table">
+                      <thead>
+                        <tr>
+                          <th className="c-n">{t('Nº')}</th>
+                          <th className="c-name">{t('Alumno/a')}</th>
+                          {columnasEspecificas.map(c => <th key={c.n} className="c-num" title={c.texto}>{`CE${c.n}`}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map(r => {
+                          const esp = especificasDe(r.student.id);
+                          return (
+                            <tr key={r.student.id}>
+                              <td className="c-n">{r.n}</td>
+                              <td className="c-name">{r.student.name}</td>
+                              {columnasEspecificas.map(c => <td key={c.n} className="c-num">{num(esp[c.n] ?? null, locale)}</td>)}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -493,6 +605,16 @@ const DOC_STYLE = `
 .acta-table tbody tr:nth-child(even) {
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
+
+/* Segunda página: evaluación por competencias */
+.acta-comp { page-break-before: always; break-before: page; margin-top: 18px; }
+.acta-comp-title { font-size: 16px; font-weight: 700; margin: 0 0 2px; }
+.acta-comp-meta { font-size: 11.5px; color: #6b7280; font-family: var(--font); margin: 0 0 12px; }
+.acta-comp-sub { font-size: 12.5px; font-weight: 700; margin: 16px 0 6px; color: #1f2937; text-transform: uppercase; letter-spacing: 0.03em; }
+.comp-table { font-size: 10.5px; }
+.comp-table thead th { font-size: 9px; }
+.comp-table .c-num { width: 40px; }
+.comp-table .c-name { width: 140px; }
 `;
 
 /**
