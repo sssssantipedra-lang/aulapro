@@ -1361,6 +1361,8 @@ const EN: Record<string, string> = {
   'Por áreas': 'By subject',
   'Competencias específicas': 'Subject competencies',
   'Evaluación por competencias': 'Competency assessment',
+  'sobre {n}': 'out of {n}',
+  'Escala de las competencias clave': 'Key competency scale',
   'Criterios de evaluación': 'Assessment criteria',
   'Saberes básicos': 'Core content',
   'Sesiones': 'Lessons',

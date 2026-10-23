@@ -126,6 +126,11 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Inventario**: «Importar material» (EfMaterial) lee Excel, CSV, texto, Word o PDF (`leerMaterial.ts`, `importarMaterial.ts`; PDF por Gemini, solo tras pulsar), con vista previa y fusión con lo existente.
 - **Autoguardado** (`src/hooks/useGuardadoAutomatico.ts`): además de la pausa de 700 ms, escribe al instante al cerrar la ventana, ocultar la página o cambiar de perfil, para no perder lo hecho en la pausa. Sin comprobar en un móvil real.
 
+## Actas con competencias (23-10-2026)
+
+- **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Se puede ocultar con el selector «Evaluación por competencias».
+- **Escala de las competencias clave, a elección del docente** (23-10-2026): «Escala de las competencias clave» en el acta, 1-4 (niveles, como la Diana) o sobre 10; el documento dice siempre en qué escala va («sobre 4» o «sobre 10»).
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

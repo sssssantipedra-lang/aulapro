@@ -1291,6 +1291,8 @@ export const CA: Record<string, string> = {
   "Por áreas": "Per àrees",
   "Competencias específicas": "Competències específiques",
   "Evaluación por competencias": "Avaluació per competències",
+  "sobre {n}": "sobre {n}",
+  "Escala de las competencias clave": "Escala de les competències clau",
   "Criterios de evaluación": "Criteris d'avaluació",
   "Saberes básicos": "Sabers bàsics",
   "Sesiones": "Sessions",

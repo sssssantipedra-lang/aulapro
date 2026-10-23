@@ -68,6 +68,8 @@ export function Records({
   const [showLabel, setShowLabel]           = useState(true);
   const [showSignature, setShowSignature]   = useState(true);
   const [showCompetencias, setShowCompetencias] = useState(true);
+  /** Escala de las competencias clave en el acta: niveles (1-4) o nota sobre 10. */
+  const [escalaClave, setEscalaClave] = useState<'nivel' | 'nota'>('nivel');
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
   const clsId = cls?.id ?? '';
@@ -100,6 +102,8 @@ export function Records({
     [materiaDeLaClase],
   );
   const hayClave = evsDeClase.some(e => e.competencyScores && Object.keys(e.competencyScores).length > 0);
+  /** El nivel más alto con el que se ha evaluado (4 con la escala clásica), para decir «sobre 4». */
+  const maxNivel = evsDeClase.reduce((m, e) => Math.max(m, e.max_level ?? 4), 0) || 4;
   const hayEspecificas = !!materiaDeLaClase && columnasEspecificas.length > 0
     && evsDeClase.some(e => e.officialCriteriaScores && Object.keys(e.officialCriteriaScores).length > 0);
 
@@ -134,10 +138,10 @@ export function Records({
   }
 
   /**
-   * Nota de cada competencia clave LOMLOE sobre 10: la media de sus
-   * evaluaciones con instrumento. `competencyScores` guarda el nivel medio de
-   * cada evaluación (de 1 a su nivel máximo), así que se pasa a 0-10 con ese
-   * máximo, igual que las competencias específicas.
+   * Nota de cada competencia clave LOMLOE: media de sus evaluaciones con
+   * instrumento. En la escala que elija el docente: los niveles de logro
+   * (1 a 4, como la Diana) o pasada a 0-10 con el nivel máximo de cada
+   * evaluación, como las competencias específicas.
    */
   function claveDe(studentId: string): Record<string, number> {
     const sums: Record<string, number> = {};
@@ -146,7 +150,7 @@ export function Records({
       if (ev.student_id !== studentId) continue;
       const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
       for (const [code, v] of Object.entries(ev.competencyScores ?? {})) {
-        sums[code] = (sums[code] ?? 0) + (v / max) * 10;
+        sums[code] = (sums[code] ?? 0) + (escalaClave === 'nota' ? (v / max) * 10 : v);
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }
@@ -378,6 +382,15 @@ export function Records({
           <Toggle label={t('Calificación en palabras')} on={showLabel} onChange={setShowLabel} />
           <Toggle label={t('Pie de firma')} on={showSignature} onChange={setShowSignature} />
           <Toggle label={t('Evaluación por competencias')} on={showCompetencias} onChange={setShowCompetencias} />
+          {showCompetencias && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)' }}>
+              {t('Escala de las competencias clave')}
+              <select className="tb-select" value={escalaClave} onChange={e => setEscalaClave(e.target.value as 'nivel' | 'nota')}>
+                <option value="nivel">{`1-${maxNivel}`}</option>
+                <option value="nota">1-10</option>
+              </select>
+            </label>
+          )}
         </div>
 
         {!pesos.ok && cats.length > 0 && (
@@ -481,7 +494,7 @@ export function Records({
 
                 {hayClave && (
                   <>
-                    <h3 className="acta-comp-sub">{t('Competencias clave')}</h3>
+                    <h3 className="acta-comp-sub">{t('Competencias clave')} · {t('sobre {n}', { n: escalaClave === 'nota' ? 10 : maxNivel })}</h3>
                     <table className="acta-table comp-table">
                       <thead>
                         <tr>
