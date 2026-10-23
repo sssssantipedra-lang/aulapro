@@ -5,7 +5,7 @@
  * siempre esta pantalla (`portada` en lib/navigation.ts).
  */
 import { useMemo } from 'react';
-import { ArrowRight, Camera, ClipboardCheck, Target, ThumbsUp, TrendingUp } from 'lucide-react';
+import { ArrowRight, Camera, ClipboardCheck, History, Radar, Target, ThumbsUp, TrendingUp, UserCheck } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, Rubric, Section } from '../types';
 import { esRegistro } from '../lib/registro';
 import { rendimientoPorClase } from '../lib/rendimiento';
@@ -52,6 +52,24 @@ export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, onNa
       titulo: 'Evaluar por foto',
       texto: 'Fotografías un examen o un trabajo: la IA propone los puntos de cada pregunta y tú revisas la nota.',
       dato: t('Exámenes y trabajos'),
+    },
+    {
+      id: 'diana', color: '#8b5cf6', icono: <Radar size={26} />,
+      titulo: 'Diana competencial',
+      texto: 'Las competencias clave de cada alumno en una diana de seis sectores, con lo que sale de tus evaluaciones.',
+      dato: t('Por alumno'),
+    },
+    {
+      id: 'selfassess', color: '#6366f1', icono: <UserCheck size={26} />,
+      titulo: 'Autoevaluaciones',
+      texto: 'Lo que el alumnado dice de sí mismo en la Sala de alumnos; se guarda aparte y no cuenta en el cuaderno.',
+      dato: t('De la Sala'),
+    },
+    {
+      id: 'history', color: '#64748b', icono: <History size={26} />,
+      titulo: 'Historial',
+      texto: 'Todo lo evaluado, con su fecha y su instrumento, para consultarlo o pasarlo a otro sitio.',
+      dato: t('{n} evaluaciones', { n: evaluations.length }),
     },
   ];
 
