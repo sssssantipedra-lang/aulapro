@@ -133,14 +133,20 @@ export function Records({
     return weight ? sum / weight : null;
   }
 
-  /** Nota de cada competencia clave LOMLOE: media de sus evaluaciones con instrumento. */
+  /**
+   * Nota de cada competencia clave LOMLOE sobre 10: la media de sus
+   * evaluaciones con instrumento. `competencyScores` guarda el nivel medio de
+   * cada evaluación (de 1 a su nivel máximo), así que se pasa a 0-10 con ese
+   * máximo, igual que las competencias específicas.
+   */
   function claveDe(studentId: string): Record<string, number> {
     const sums: Record<string, number> = {};
     const counts: Record<string, number> = {};
     for (const ev of evsDeClase) {
       if (ev.student_id !== studentId) continue;
+      const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
       for (const [code, v] of Object.entries(ev.competencyScores ?? {})) {
-        sums[code] = (sums[code] ?? 0) + v;
+        sums[code] = (sums[code] ?? 0) + (v / max) * 10;
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }
