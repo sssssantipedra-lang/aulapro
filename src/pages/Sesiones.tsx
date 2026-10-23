@@ -27,6 +27,7 @@ import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { isoDate, fromIsoDate } from '../lib/utils';
 import { MODALIDADES_EF, nuevoIdEF } from '../lib/ef';
 import { bancoEF } from '../lib/bancoEF';
+import { todasLasActividades, textoDe } from '../lib/deportesAlternativos';
 import { describirCriterio } from '../lib/curriculum/criteriosParaIA';
 import { esAsignaturaEF } from '../services/classMarks';
 import { hasApiKey } from '../services/gemini';
@@ -112,6 +113,9 @@ export function Sesiones({
   const [editando, setEditando] = useState<SesionEF | null>(null);
   const [ia, setIa] = useState<{ claseId: string; fecha: string; instalacionId: string; tema: string; minutos: number; banco: boolean; modalidad: ModalidadEF | '' } | null>(null);
   const [pensando, setPensando] = useState(false);
+  /** Selector de actividades de deportes alternativos para añadirlas a la sesión. */
+  const [altPicker, setAltPicker] = useState(false);
+  const [altSel, setAltSel] = useState<string[]>([]);
   const esEF = perfil === 'ef';
   /** La clase abierta (`''` = sesiones sin clase); `null`, la portada con las tarjetas. */
   const [claseVista, setClaseVista] = useState<string | null>(null);
@@ -229,6 +233,17 @@ export function Sesiones({
     cambiarBorrador(null);
     setEditando(null);
     toast(t('✅ Guardado'));
+  }
+
+  /** Añade las actividades elegidas del selector al desarrollo de la sesión. */
+  function insertarActividades() {
+    const texto = altSel.map(codigo => {
+      const x = todasLasActividades().find(i => i.actividad.codigo === codigo);
+      return x ? `${textoDe(x.actividad.titulo, lang)}: ${textoDe(x.actividad.desarrollo, lang)}` : '';
+    }).filter(Boolean).join('\n\n');
+    setEditando(e => (e ? { ...e, principal: (e.principal.trim() ? e.principal + '\n\n' : '') + texto } : e));
+    setAltSel([]);
+    setAltPicker(false);
   }
 
   /** Marca o desmarca una sesión como dada, sin abrirla. */
@@ -501,6 +516,7 @@ export function Sesiones({
             <div className="ap-acciones" style={{ gridColumn: '1 / -1', marginBottom: 14, padding: '10px 12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
               <button className="btn-accent" onClick={guardar}><Check size={15} />{t('Guardar')}</button>
               <button className="btn-ghost" onClick={() => verPreview(editando)}><Eye size={15} />{t('Vista previa')}</button>
+              <button className="btn-ghost" onClick={() => { setAltSel([]); setAltPicker(true); }}><Plus size={15} />{t('Añadir actividades')}</button>
               <button className="btn-ghost" onClick={() => pdf(editando)}><FileDown size={15} />{t('PDF')}</button>
               {!esNueva && <button className="btn-ghost" onClick={() => abrirCopia(editando.claseId ?? '', [editando.id])}><Copy size={15} />{t('Copiar a otras clases')}</button>}
               <div style={{ flex: 1, minWidth: 8 }} />
@@ -580,6 +596,27 @@ export function Sesiones({
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal open={altPicker} onClose={() => setAltPicker(false)} wide title={t('Añadir actividades de deportes alternativos')}>
+        <div className="ap-form">
+          <div className="ef-alt-sel">
+            {todasLasActividades().map(({ deporte, actividad }) => (
+              <label key={actividad.codigo} className="ef-alt-act">
+                <input type="checkbox" className="ef-alt-chk" checked={altSel.includes(actividad.codigo)}
+                  onChange={() => setAltSel(prev => (prev.includes(actividad.codigo) ? prev.filter(c => c !== actividad.codigo) : [...prev, actividad.codigo]))} />
+                <div>
+                  <strong>{deporte ? `${textoDe(deporte.nombre, lang)}: ` : ''}{textoDe(actividad.titulo, lang)}</strong>
+                  <p className="ap-sub">{textoDe(actividad.desarrollo, lang)}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+          <div className="ap-acciones">
+            <button className="btn-accent" onClick={insertarActividades} disabled={altSel.length === 0}><Plus size={15} />{t('Añadir a la sesión')}</button>
+            <button className="btn-ghost" onClick={() => setAltPicker(false)}>{t('Cerrar')}</button>
+          </div>
+        </div>
       </Modal>
 
       {evaluando && editando && (() => {

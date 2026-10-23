@@ -2075,12 +2075,12 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .mem-tile.ok .mem-cara.face { background:#ecfdf5; box-shadow:0 0 0 2px #16a34a inset; }
 .mem-fin { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:rgba(16,21,29,0.94); font-size:16px; }
 .mem-fin strong { font-size:24px; }
-/* Deportes alternativos: pantalla con la progresión por sesiones */
-.ef-alt-sesiones { display:flex; flex-direction:column; gap:16px; }
+/* Deportes alternativos: pantalla con las actividades seleccionables */
 .ef-alt-acts { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
-.ef-alt-act { display:flex; gap:12px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
-.ef-alt-cod { flex-shrink:0; min-width:34px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:var(--accent); color:#fff; font-size:12px; font-weight:800; }
+.ef-alt-act { display:flex; gap:12px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); cursor:pointer; align-items:flex-start; }
+.ef-alt-chk { width:18px; height:18px; flex-shrink:0; margin-top:3px; accent-color:var(--accent); cursor:pointer; }
 .ef-alt-act p { margin:4px 0 0; font-size:13px; }
+.ef-alt-sel { display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow:auto; padding:2px; }
 .fe-quien { margin-top:2px; }
 .fe-generos { display:flex; flex-wrap:wrap; gap:8px; }
 .fe-genero { padding:7px 14px; border:1.5px solid var(--border); border-radius:99px; background:var(--card); font-family:var(--font); font-size:13px; font-weight:700; color:var(--text-2); cursor:pointer; }

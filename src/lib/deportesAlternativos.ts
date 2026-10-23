@@ -260,3 +260,17 @@ export function deporteAlternativoDe(bankId: string): DeporteAlternativo | undef
 
 /** El texto de un campo trilingüe en el idioma de la app. */
 export const textoDe = (v: T3, lang: Lang): string => v[IDX[lang]];
+
+export interface ActividadConDeporte {
+  /** `null` si es transversal. */
+  deporte: DeporteAlternativo | null;
+  actividad: ActividadGuia;
+}
+
+/** Todas las actividades (transversales y específicas), para los selectores. */
+export function todasLasActividades(): ActividadConDeporte[] {
+  return [
+    ...TRANSVERSALES.map(actividad => ({ deporte: null, actividad })),
+    ...DEPORTES_ALTERNATIVOS.flatMap(deporte => deporte.especificas.map(actividad => ({ deporte, actividad }))),
+  ];
+}

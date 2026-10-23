@@ -90,6 +90,8 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const [leyendo, setLeyendo] = useState<ActividadEF | null>(null);
   /** Deporte alternativo abierto, con su progresión de sesiones. */
   const [deporte, setDeporte] = useState<DeporteAlternativo | null>(null);
+  /** Códigos de las actividades marcadas para crear una sesión. */
+  const [seleccionadas, setSeleccionadas] = useState<string[]>([]);
   const esNueva = !!editando && !ef.actividades.some(a => a.id === editando.id);
 
   const todas = useMemo(() => [...ef.actividades, ...bancoEF(lang)], [ef.actividades, lang]);
@@ -271,8 +273,36 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   );
 
   if (deporte) {
-    const actividadDe = (codigo: string): ActividadGuia | undefined =>
-      deporte.especificas.find(e => e.codigo === codigo) ?? TRANSVERSALES.find(x => x.codigo === codigo);
+    const filaActividad = (a: ActividadGuia) => (
+      <label key={a.codigo} className="ef-alt-act">
+        <input
+          type="checkbox" className="ef-alt-chk"
+          checked={seleccionadas.includes(a.codigo)}
+          onChange={() => setSeleccionadas(prev => (prev.includes(a.codigo) ? prev.filter(c => c !== a.codigo) : [...prev, a.codigo]))}
+        />
+        <div>
+          <strong>{textoDe(a.titulo, lang)}</strong>
+          <p className="ap-sub"><em>{t('Objetivo')}:</em> {textoDe(a.objetivo, lang)}</p>
+          <p>{textoDe(a.desarrollo, lang)}</p>
+        </div>
+      </label>
+    );
+    const crearSesion = () => {
+      const elegidas = [...TRANSVERSALES, ...deporte.especificas].filter(a => seleccionadas.includes(a.codigo));
+      if (!elegidas.length) { toast(t('Elige al menos una actividad.')); return; }
+      const principal = elegidas.map(a => `${textoDe(a.titulo, lang)}: ${textoDe(a.desarrollo, lang)}`).join('\n\n');
+      onChangeEf(d => ({
+        ...d,
+        sesiones: [...d.sesiones, {
+          id: nuevoIdEF('ses'), titulo: textoDe(deporte.nombre, lang),
+          objetivo: textoDe(deporte.rasgos, lang),
+          calentamiento: '', principal, calma: '', material: '', inclusion: '', planB: '',
+          modalidad: deporte.modalidad, ia: false,
+        }],
+      }));
+      setSeleccionadas([]);
+      toast(t('✅ Sesión creada en Sesiones.'));
+    }
     return (
       <section className="sec active ap-page">
         <div className="pg-hd">
@@ -280,30 +310,18 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             <h1 className="pg-title">{textoDe(deporte.nombre, lang)}</h1>
             <p className="pg-sub">{textoDe(deporte.rasgos, lang)}</p>
           </div>
-          <button className="btn-ghost" onClick={() => setDeporte(null)}><ArrowLeft size={15} />{t('Volver a Deportes')}</button>
+          <div className="ap-prog-acc">
+            <button className="btn-ghost" onClick={() => setDeporte(null)}><ArrowLeft size={15} />{t('Volver a Deportes')}</button>
+            <button className="btn-accent" onClick={crearSesion} disabled={seleccionadas.length === 0}><Plus size={15} />{t('Crear sesión')}</button>
+          </div>
         </div>
-        <div className="ef-alt-sesiones">
-          {deporte.sesiones.map((s, i) => (
-            <div key={i} className="card">
-              <div className="home-card-ttl">{t('Sesión {n}', { n: i + 1 })} · {textoDe(s.titulo, lang)}</div>
-              <div className="ef-alt-acts">
-                {s.actividades.map(codigo => {
-                  const a = actividadDe(codigo);
-                  if (!a) return null;
-                  return (
-                    <div key={codigo} className="ef-alt-act">
-                      <span className="ef-alt-cod">{codigo}</span>
-                      <div>
-                        <strong>{textoDe(a.titulo, lang)}</strong>
-                        <p className="ap-sub"><em>{t('Objetivo')}:</em> {textoDe(a.objetivo, lang)}</p>
-                        <p>{textoDe(a.desarrollo, lang)}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <div className="card">
+          <div className="home-card-ttl">{t('Actividades transversales')}</div>
+          <div className="ef-alt-acts">{TRANSVERSALES.map(filaActividad)}</div>
+        </div>
+        <div className="card">
+          <div className="home-card-ttl">{t('Actividades específicas de {deporte}', { deporte: textoDe(deporte.nombre, lang) })}</div>
+          <div className="ef-alt-acts">{deporte.especificas.map(filaActividad)}</div>
         </div>
       </section>
     );
@@ -409,7 +427,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             : (
               <div className="ef-act-grid">
                 {visibles.map(a => (
-                  <button key={a.id} type="button" className="ef-act-card" style={{ '--ev-c': TARJETA_TIPO[a.tipo].color } as React.CSSProperties} onClick={() => { const d = deporteAlternativoDe(a.id); if (d) setDeporte(d); else setLeyendo(a); }}>
+                  <button key={a.id} type="button" className="ef-act-card" style={{ '--ev-c': TARJETA_TIPO[a.tipo].color } as React.CSSProperties} onClick={() => { const d = deporteAlternativoDe(a.id); if (d) { setSeleccionadas([]); setDeporte(d); } else setLeyendo(a); }}>
                     <span className="ef-act-card-ttl">{a.titulo}</span>
                     <span className="ef-act-chips">
                       {!enTipo && <span className="sda-chip">{t(TIPOS_ACTIVIDAD.find(x => x.id === a.tipo)!.label)}</span>}
