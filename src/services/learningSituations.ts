@@ -283,6 +283,12 @@ function instruccionesEF(ef: SdaPeticionEF): string {
       : `si la idea trabaja un juego o un deporte, pon su modalidad en "modalidadDeportiva"; si no, "ninguna". `) +
     `Trabaja el juego o deporte según la lógica de su modalidad y prepáralo como ella pide (calentamiento específico, ` +
     `progresión y seguridad):\n${MODALIDADES_EF.map(m => `  - ${m.id}: ${m.label}. Lógica: ${m.logica} Preparación: ${m.preparacion}`).join('\n')}\n` +
+    `- DEPORTES ALTERNATIVOS (por si la idea encaja, adáptalos con su lógica y su material o el sustituto): ` +
+    `korfball (invasión, equipos mixtos y canasta sin tablero), colpbol (invasión, golpeo con la mano abierta y tres pases), ` +
+    `kin-ball (cooperación, tres equipos y balón gigante), goalball (invasión, con antifaz y balón sonoro), ` +
+    `duni (red y pared, esfera por encima de la red), tchoukball (red y pared, marcos de rebote), ` +
+    `pinfuvote (red y pared, voleibol que admite el pie y un bote) y floorball (invasión, hockey con stick ligero). ` +
+    `Si la idea pide un deporte alternativo, usa su modalidad y su lógica, y añádelo a "secuenciaDeportes" como cualquier otro.\n` +
     `- SECUENCIA CON LÓGICA (varios deportes o juegos): si la idea trabaja más de un deporte, juego o contenido (por ` +
     `ejemplo «baloncesto y balonmano», «un deporte de red y otro de invasión»), decide primero en "secuenciaDeportes" ` +
     `cuáles son y en qué orden. Se trabajan UNO DETRÁS DE OTRO, en bloques de sesiones seguidas: primero todas las ` +

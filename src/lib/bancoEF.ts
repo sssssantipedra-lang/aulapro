@@ -643,6 +643,176 @@ const BANCO: readonly EntradaBanco[] = [
       'A student who cannot move holds up a coloured card. The zones also have a written label, not just a colour.',
     ],
   },
+
+  /* ── Deportes alternativos ── */
+  {
+    id: 'banco-korfball', tipo: 'deporte', modalidad: 'invasion',
+    titulo: ['Korfball', 'Korfball', 'Korfball'],
+    descripcion: [
+      'Deporte de equipo mixto, cuatro hombres y cuatro mujeres por equipo, con una canasta sin tablero. No se bota el balón y no hay contacto: se pasa hasta que un jugador libre, cambiando de espacio, lanza a canasta. Tras dos canastas, los equipos cambian de campo y de rol, ataque y defensa.',
+      'Esport d\'equip mixt, quatre homes i quatre dones per equip, amb una cistella sense tauler. No es bota la pilota i no hi ha contacte: es passa fins que un jugador lliure, canviant d\'espai, llança a cistella. Després de dues cistelles, els equips canvien de camp i de rol, atac i defensa.',
+      'Mixed team sport, four men and four women per team, with a basket without a backboard. You do not dribble the ball and there is no contact: you pass until a free player, moving into space, shoots at the basket. After two baskets, the teams swap ends and roles, attack and defence.',
+    ],
+    organizacion: ['Dos equipos mixtos de 8, en una pista de baloncesto. 12 minutos.', 'Dos equips mixtos de 8, en una pista de bàsquet. 12 minuts.', 'Two mixed teams of 8, on a basketball court. 12 minutes.'],
+    material: ['Un balón de korfball o de baloncesto y dos canastas sin tablero.', 'Una pilota de korfball o de bàsquet i dues cistelles sense tauler.', 'A korfball or basketball and two baskets without backboards.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: K1. Cesto circular 360° (tiro y rebote rodeando una canasta sin tablero); K2. Semáforo de tiro defendido (el tiro solo vale si el defensor está a más de un brazo); K3. Marcaje por paridad (cada jugador defiende a alguien de su género); K4. Dos zonas estancas (atacantes y defensores en mitades, sin cruzar); K5. Minipartido «cada 2, cambio» (al sumar dos canastas, se cambia de rol y de campo). Sesión 1 (familiarización y movimiento sin balón): T1 (pies de plomo) y T5 (rondo), y K1. Sesión 2 (tiro defendido y paridad): T3 (defensa sombra), K2 y K3. Sesión 3 (dos zonas y rotación): T2, T4, K4 y K5.',
+      'Progressió en 3 sessions. Específiques: K1. Cistella circular 360° (llançament i rebot voltant una cistella sense tauler); K2. Semàfor de tir defensat (el tir només val si el defensor està a més d\'un braç); K3. Marcatge per paritat (cada jugador defensa algú del seu gènere); K4. Dues zones estanques (atacants i defensors en meitats, sense creuar); K5. Minipartit «cada 2, canvi» (en sumar dues cistelles, es canvia de rol i de camp). Sessió 1 (familiarització i moviment sense pilota): T1 (peus de plom) i T5 (rondo), i K1. Sessió 2 (tir defensat i paritat): T3 (defensa ombra), K2 i K3. Sessió 3 (dues zones i rotació): T2, T4, K4 i K5.',
+      'Three-session progression. Specific: K1. 360° circular basket (shooting and rebounding around a basket without a backboard); K2. Defended-shot traffic light (a shot only counts if the defender is more than an arm away); K3. Same-gender marking (each player defends someone of their own gender); K4. Two sealed halves (attackers and defenders in separate halves, no crossing); K5. Mini-match "every 2, swap" (after two baskets, switch role and end). Session 1 (familiarisation and movement without the ball): T1 (lead feet) and T5 (rondo), plus K1. Session 2 (defended shot and parity): T3 (shadow defence), K2 and K3. Session 3 (two halves and rotation): T2, T4, K4 and K5.',
+    ],
+    inclusion: [
+      'Quien no puede saltar puede lanzar desde más cerca o con un balón más ligero; las canastas pueden sustituirse por aros grandes en el suelo.',
+      'Qui no pot saltar pot llançar des de més a prop o amb una pilota més lleugera; les cistelles es poden substituir per cèrcols grans a terra.',
+      'A student who cannot jump can shoot from closer or with a lighter ball; baskets can be replaced by large hoops on the floor.',
+    ],
+  },
+  {
+    id: 'banco-colpbol', tipo: 'deporte', modalidad: 'invasion',
+    titulo: ['Colpbol', 'Colpbol', 'Colpbol'],
+    descripcion: [
+      'Deporte de invasión con equipos mixtos de siete. Solo se puede golpear el balón con las manos abiertas, nunca cogerlo ni botarlo, y no hay contacto. Para marcar hay que dar al menos tres pases entre compañeros y el gol se consigue lanzando el balón a la portería contraria.',
+      'Esport d\'invasió amb equips mixtos de set. Només es pot colpejar la pilota amb les mans obertes, mai agafar-la ni botar-la, i no hi ha contacte. Per a marcar cal fer almenys tres passos entre companys i el gol s\'aconsegueix llançant la pilota a la porteria contrària.',
+      'Invasion sport with mixed teams of seven. You can only hit the ball with open hands, never catch or dribble it, and there is no contact. To score you must make at least three passes between teammates and the goal is scored by throwing the ball into the opposing goal.',
+    ],
+    organizacion: ['Dos equipos mixtos de 7, en una pista de balonmano o fútbol sala. 12 minutos.', 'Dos equips mixtos de 7, en una pista d\'handbol o futbol sala. 12 minuts.', 'Two mixed teams of 7, on a handball or futsal court. 12 minutes.'],
+    material: ['Un balón blando o de goma y dos porterías pequeñas.', 'Una pilota tova o de goma i dues porteries petites.', 'A soft or rubber ball and two small goals.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: C1. Frontón por tríos (golpeo de palma contra la pared, por aire o tras un bote); C2. Rueda del toque único (golpear a ras de suelo al hueco, sin dos toques seguidos); C3. Oleadas de 3 toques a portería (tres golpeos en 5 segundos antes de rematar); C4. Muro perimetral del área (nadie pisa el área del portero); C5. Partido «todos tocan antes del gol». Sesión 1 (palma abierta y golpeo dinámico): T6 (tenis-mano), T9 y T15, y C1. Sesión 2 (primer toque y doble toque): T1, T5, C2 y C3. Sesión 3 (ataque colectivo y área): T2, C4 y C5.',
+      'Progressió en 3 sessions. Específiques: C1. Frontó per trios (colpeig de palma contra la paret, per aire o després d\'un bot); C2. Roda del toc únic (colpejar arran de terra al buit, sense dos tocs seguits); C3. Onades de 3 tocs a porteria (tres colpeigs en 5 segons abans de rematar); C4. Mur perimetral de l\'àrea (ningú no trepitja l\'àrea del porter); C5. Partit «tots toquen abans del gol». Sessió 1 (palma oberta i colpeig dinàmic): T6 (tennis-mà), T9 i T15, i C1. Sessió 2 (primer toc i doble toc): T1, T5, C2 i C3. Sessió 3 (atac col·lectiu i àrea): T2, C4 i C5.',
+      'Three-session progression. Specific: C1. Wall rally in threes (palm strike against the wall, in the air or after one bounce); C2. Single-touch wheel (hit along the floor into a gap, never two touches in a row); C3. Waves of three touches to goal (three strikes in five seconds before shooting); C4. Perimeter wall of the area (nobody steps in the goalkeeper area); C5. Match "everyone touches before the goal". Session 1 (open palm and dynamic striking): T6 (hand tennis), T9 and T15, plus C1. Session 2 (first touch and double touch): T1, T5, C2 and C3. Session 3 (collective attack and area): T2, C4 and C5.',
+    ],
+    inclusion: [
+      'Quien no puede desplazarse rápido juega de portero o como apoyo fijo, con un balón propio; se puede permitir coger y lanzar sin golpear.',
+      'Qui no es pot desplaçar ràpid juga de porter o com a suport fix, amb una pilota pròpia; es pot permetre agafar i llançar sense colpejar.',
+      'A student who cannot move quickly plays as goalkeeper or as a fixed support, with their own ball; catching and throwing can be allowed.',
+    ],
+  },
+  {
+    id: 'banco-kinball', tipo: 'deporte', modalidad: 'cooperacion',
+    titulo: ['Kin-ball', 'Kin-ball', 'Kin-ball'],
+    descripcion: [
+      'Juego de tres equipos a la vez, en el mismo espacio, con un balón gigante y ligero. Un equipo lanza el balón hacia arriba diciendo el color de otro, y ese equipo debe evitar que toque el suelo con al menos tres jugadores en contacto. Si no lo consigue, el equipo que lanzó se lleva el punto.',
+      'Joc de tres equips alhora, en el mateix espai, amb una pilota gegant i lleugera. Un equip llança la pilota cap amunt dient el color d\'un altre, i aquest equip ha d\'evitar que toque el terra amb almenys tres jugadors en contacte. Si no ho aconsegueix, l\'equip que va llançar es porta el punt.',
+      'Game with three teams at once, in the same space, with a giant light ball. One team throws the ball up calling the colour of another, and that team must keep it from touching the ground with at least three players in contact. If they fail, the throwing team gets the point.',
+    ],
+    organizacion: ['Tres equipos de 4, en una pista de 20 x 20 m. 12 minutos.', 'Tres equips de 4, en una pista de 20 x 20 m. 12 minuts.', 'Three teams of 4, on a 20 x 20 m court. 12 minutes.'],
+    material: ['Un balón grande y ligero, o un balón de pilates, y petos de tres colores.', 'Una pilota gran i lleugera, o una pilota de pilates, i pitets de tres colors.', 'A large light ball, or a pilates ball, and bibs in three colours.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: KB1. Transporte cooperativo del meteorito (llevar el balón gigante sin palmas, con espaldas y cabezas); KB2. Trípode y golpeo a dos manos (tres de rodillas sujetan y el cuarto grita «¡Omnikin!» y golpea); KB3. Llamada al espacio libre (mirar qué rival está peor colocado antes de cantar); KB4. Salvamento de emergencia (meterse bajo el balón para que no toque el suelo); KB5. Partido triangular 4x4x4 (si el equipo llamado falla, los otros dos suman). Sesión 1 (control y transporte): T7, T13 y T15, y KB1. Sesión 2 (trípode y voz): T10, KB2 y KB3. Sesión 3 (defensa y partido): T9, T12, KB4 y KB5.',
+      'Progressió en 3 sessions. Específiques: KB1. Transport cooperatiu del meteorit (portar la pilota gegant sense palmes, amb esquenes i caps); KB2. Trípode i colpeig a dues mans (tres de genolls subjecten i el quart crida «Omnikin!» i colpeja); KB3. Crida a l\'espai lliure (mirar quin rival està pitjor col·locat abans de cantar); KB4. Salvament d\'emergència (ficar-se sota la pilota perquè no toque el terra); KB5. Partit triangular 4x4x4 (si l\'equip cridat falla, els altres dos sumen). Sessió 1 (control i transport): T7, T13 i T15, i KB1. Sessió 2 (trípode i veu): T10, KB2 i KB3. Sessió 3 (defensa i partit): T9, T12, KB4 i KB5.',
+      'Three-session progression. Specific: KB1. Cooperative meteorite carry (move the giant ball without palms, using backs and heads); KB2. Tripod and two-hand strike (three kneel and hold while the fourth shouts "Omnikin!" and strikes); KB3. Calling the free space (check which opponent is worst placed before calling); KB4. Emergency save (get under the ball so it does not touch the ground); KB5. Triangular match 4x4x4 (if the called team fails, the other two score). Session 1 (control and carry): T7, T13 and T15, plus KB1. Session 2 (tripod and voice): T10, KB2 and KB3. Session 3 (defence and match): T9, T12, KB4 and KB5.',
+    ],
+    inclusion: [
+      'Quien no puede lanzar el balón grande recibe y sujeta; el contacto puede hacerse sentado o de rodillas.',
+      'Qui no pot llançar la pilota gran rep i subjecta; el contacte es pot fer assegut o de genolls.',
+      'A student who cannot throw the large ball catches and holds it; contact can be made sitting or kneeling.',
+    ],
+  },
+  {
+    id: 'banco-goalball', tipo: 'deporte', modalidad: 'invasion',
+    titulo: ['Goalball', 'Goalball', 'Goalball'],
+    descripcion: [
+      'Deporte adaptado para personas con discapacidad visual: todos juegan con antifaz y un balón sonoro. Se lanza el balón rodando por el suelo hacia la portería contraria, y el equipo defiende tumbado para que no entre. El silencio es parte del juego: se juega escuchando.',
+      'Esport adaptat per a persones amb discapacitat visual: tots juguen amb antifaç i una pilota sonora. Es llança la pilota rodant per terra cap a la porteria contrària, i l\'equip defensa estirat perquè no entre. El silenci és part del joc: es juga escoltant.',
+      'Sport adapted for people with visual impairment: everyone plays blindfolded with a sounding ball. The ball is rolled along the floor towards the opposing goal, and the team defends lying down to keep it out. Silence is part of the game: you play by listening.',
+    ],
+    organizacion: ['Dos equipos de 3, en una pista de 18 x 9 m. 10 minutos.', 'Dos equips de 3, en una pista de 18 x 9 m. 10 minuts.', 'Two teams of 3, on an 18 x 9 m court. 10 minutes.'],
+    material: ['Un balón con cascabeles, antifaces y dos porterías de 9 m.', 'Una pilota amb cascavells, antifaços i dues porteries de 9 m.', 'A ball with bells, blindfolds and two 9 m goals.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: G1. Lectura táctil de las líneas (reconocer por tacto las líneas de ala y centro); G2. Lanzamiento de bolos a ciegas (rodar el balón sonoro guiándose por una señal); G3. Barrera lateral en colchoneta (bloqueo de costado con brazos y piernas extendidos); G4. Recepción y pase con voz (dos toques de aviso y rodar); G5. Triángulo defensivo coordinado (tres cubren los 9 m y se reparten zonas); G6. Regla de los 10 segundos (levantarse, orientarse y lanzar); G7. Partido 3x3 en silencio (solo se habla al cantar gol o fuera). Sesión 1 (orientación y escucha): T10, G1 y G2. Sesión 2 (bloqueo y lanzamiento bajo): T11, T13, G3 y G4. Sesión 3 (10 segundos y partido): G5, G6 y G7.',
+      'Progressió en 3 sessions. Específiques: G1. Lectura tàctil de les línies (reconèixer pel tacte les línies d\'ala i centre); G2. Llançament de bitlles a cegues (fer rodar la pilota sonora guiant-se per un senyal); G3. Barrera lateral a la màrfega (bloqueig de costat amb braços i cames estesos); G4. Recepció i passe amb veu (dos tocs d\'avís i rodar); G5. Triangle defensiu coordinat (tres cobreixen els 9 m i es reparteixen zones); G6. Regla dels 10 segons (aixecar-se, orientar-se i llançar); G7. Partit 3x3 en silenci (només es parla en cantar gol o fora). Sessió 1 (orientació i escolta): T10, G1 i G2. Sessió 2 (bloqueig i llançament baix): T11, T13, G3 i G4. Sessió 3 (10 segons i partit): G5, G6 i G7.',
+      'Three-session progression. Specific: G1. Tactile reading of the lines (recognise the wing and centre lines by touch); G2. Blind skittle throw (roll the sounding ball guided by a signal); G3. Side barrier on the mat (block on your side with arms and legs stretched); G4. Receiving and passing with a voice cue (two warning taps and roll); G5. Coordinated defensive triangle (three cover the 9 m and share zones); G6. Ten-second rule (get up, orient yourself and throw); G7. 3x3 match in silence (only speak to call a goal or out). Session 1 (orientation and listening): T10, G1 and G2. Session 2 (blocking and low throw): T11, T13, G3 and G4. Session 3 (ten seconds and match): G5, G6 and G7.',
+    ],
+    inclusion: [
+      'Todos llevan antifaz para igualar el juego; quien tenga miedo al silencio puede empezar de oyente y avisar de los sonidos.',
+      'Tots porten antifaç per igualar el joc; qui tinga por al silenci pot començar d\'oient i avisar dels sons.',
+      'Everyone wears a blindfold to even the game; anyone uneasy with silence can start as a listener and warn about sounds.',
+    ],
+  },
+  {
+    id: 'banco-duni', tipo: 'deporte', modalidad: 'red-pared',
+    titulo: ['Duni', 'Duni', 'Duni'],
+    descripcion: [
+      'Juego de red con dos equipos: hay que pasar una esfera blanda llamada core por encima de la red sin que toque el suelo en el campo propio. No se puede retener: se golpea con las manos o la cabeza. Se cuenta el punto cuando el otro equipo no la devuelve.',
+      'Joc de xarxa amb dos equips: cal passar una esfera tova anomenada core per damunt de la xarxa sense que toque el terra al camp propi. No es pot retenir: es colpeja amb les mans o el cap. Es compta el punt quan l\'altre equip no la torna.',
+      'Net game with two teams: you must send a soft ball called the core over the net without letting it touch the ground on your own side. You cannot hold it: you hit it with your hands or head. A point is scored when the other team fails to return it.',
+    ],
+    organizacion: ['Dos equipos de 5, en una pista de voleibol. 10 minutos.', 'Dos equips de 5, en una pista de voleibol. 10 minuts.', 'Two teams of 5, on a volleyball court. 10 minutes.'],
+    material: ['Una esfera blanda y una red de voleibol.', 'Una esfera tova i una xarxa de voleibol.', 'A soft ball and a volleyball net.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: D1. Recepción suave sin impacto (acompañar la esfera con las manos abiertas, sin ruido); D2. Movimiento pendular continuo (no quedarse parado; lanzar en menos de 1,5 segundos); D3. Pases ascendentes sobre la red (impulsar desde la cadera y recibir en el punto más alto); D4. Desafío de trayectorias 1x1 (dejadas y envíos bombeados, sin remates secos); D5. Duni en parejas con pase voluntario (partido 2x2 con un pase de absorción opcional). Sesión 1 (absorción y acompañamiento): T7, T14, D1 y D2. Sesión 2 (red y fintas): T8, D3 y D4. Sesión 3 (dinámica 2x2): T6 (adaptada), T12 y D5.',
+      'Progressió en 3 sessions. Específiques: D1. Recepció suau sense impacte (acompanyar l\'esfera amb les mans obertes, sense soroll); D2. Moviment pendular continu (no quedar-se quiet; llançar en menys d\'1,5 segons); D3. Passes ascendents sobre la xarxa (impulsar des del maluc i rebre en el punt més alt); D4. Repte de trajectòries 1x1 (deixades i enviaments bombejats, sense rematades seques); D5. Duni en parelles amb passe voluntari (partit 2x2 amb un passe d\'absorció opcional). Sessió 1 (absorció i acompanyament): T7, T14, D1 i D2. Sessió 2 (xarxa i fintes): T8, D3 i D4. Sessió 3 (dinàmica 2x2): T6 (adaptada), T12 i D5.',
+      'Three-session progression. Specific: D1. Soft catch with no impact (cushion the ball with open hands, without noise); D2. Continuous pendulum movement (never stand still; throw in under 1.5 seconds); D3. Upward passes over the net (drive from the hip and catch at the highest point); D4. Trajectory challenge 1v1 (drop shots and lobs, no hard spikes); D5. Duni in pairs with an optional pass (2v2 match with an optional cushioning pass). Session 1 (cushioning and escorting): T7, T14, D1 and D2. Session 2 (net and fakes): T8, D3 and D4. Session 3 (2v2 dynamic): T6 (adapted), T12 and D5.',
+    ],
+    inclusion: [
+      'Quien no puede golpear de pie juega sentado en una zona fija; se puede atrapar y lanzar en lugar de golpear.',
+      'Qui no pot colpejar de peu juga assegut en una zona fixa; es pot atrapar i llançar en lloc de colpejar.',
+      'A student who cannot hit standing plays sitting in a fixed zone; catching and throwing can replace hitting.',
+    ],
+  },
+  {
+    id: 'banco-tchoukball', tipo: 'deporte', modalidad: 'red-pared',
+    titulo: ['Tchoukball', 'Tchoukball', 'Tchoukball'],
+    descripcion: [
+      'Deporte de equipo con dos marcos de rebote en lugar de porterías: se lanza el balón contra el marco propio y el equipo contrario debe cogerlo antes de que toque el suelo. No se puede interceptar el pase ni quitar el balón al contrario, y hay un límite de pases.',
+      'Esport d\'equip amb dos marcs de rebot en lloc de porteries: es llança la pilota contra el marc propi i l\'equip contrari ha d\'agafar-la abans que toque el terra. No es pot interceptar el passe ni treure la pilota al contrari, i hi ha un límit de passos.',
+      'Team sport with two rebound frames instead of goals: you throw the ball at your own frame and the opposing team must catch it before it touches the ground. You cannot intercept passes or take the ball from an opponent, and there is a pass limit.',
+    ],
+    organizacion: ['Dos equipos de 6, en un espacio de 20 x 20 m con dos marcos. 12 minutos.', 'Dos equips de 6, en un espai de 20 x 20 m amb dos marcs. 12 minuts.', 'Two teams of 6, in a 20 x 20 m space with two frames. 12 minutes.'],
+    material: ['Un balón blando y dos marcos de rebote, o dos trampolines pequeños.', 'Una pilota tova i dos marcs de rebot, o dos trampolins petits.', 'A soft ball and two rebound frames, or two small mini-trampolines.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: TB1. Lectura del ángulo de rebote (colocarse en el sector opuesto al lanzamiento); TB2. Entrada en suspensión al semicírculo (soltar el balón en el aire antes de aterrizar); TB3. Defensa de lectura ocular (no interceptar el pase; leer la mirada del lanzador); TB4. Ataque al marco más libre (se puede anotar en los dos marcos); TB5. Partido «regla de tres» (3 pases, 3 pasos, 3 segundos y 3 tiros). Sesión 1 (geometría del rebote y área): T12, T14, TB1 y TB2. Sesión 2 (regla de tres y defensa): T1, T2, T3 y TB3. Sesión 3 (dos marcos y 5x5): T5, T8, TB4 y TB5.',
+      'Progressió en 3 sessions. Específiques: TB1. Lectura de l\'angle de rebot (col·locar-se en el sector oposat al llançament); TB2. Entrada en suspensió al semicercle (deixar anar la pilota en l\'aire abans d\'aterrar); TB3. Defensa de lectura ocular (no interceptar el passe; llegir la mirada del llançador); TB4. Atac al marc més lliure (es pot anotar en els dos marcs); TB5. Partit «regla de tres» (3 passos, 3 passos, 3 segons i 3 llançaments). Sessió 1 (geometria del rebot i àrea): T12, T14, TB1 i TB2. Sessió 2 (regla de tres i defensa): T1, T2, T3 i TB3. Sessió 3 (dos marcs i 5x5): T5, T8, TB4 i TB5.',
+      'Three-session progression. Specific: TB1. Reading the rebound angle (position yourself in the opposite sector to the shot); TB2. Jump entry into the semicircle (release the ball in the air before landing); TB3. Eye-reading defence (do not intercept the pass; read the shooter\'s gaze); TB4. Attack the freer frame (you can score at both frames); TB5. "Rule of three" match (3 passes, 3 steps, 3 seconds and 3 shots). Session 1 (rebound geometry and area): T12, T14, TB1 and TB2. Session 2 (rule of three and defence): T1, T2, T3 and TB3. Session 3 (two frames and 5v5): T5, T8, TB4 and TB5.',
+    ],
+    inclusion: [
+      'Quien no puede lanzar con fuerza puede lanzar desde más cerca; se puede sujetar el balón en lugar de lanzarlo al marco.',
+      'Qui no pot llançar amb força pot llançar des de més a prop; es pot subjectar la pilota en lloc de llançar-la al marc.',
+      'A student who cannot throw hard can throw from closer; holding the ball can replace throwing it at the frame.',
+    ],
+  },
+  {
+    id: 'banco-pinfuvote', tipo: 'deporte', modalidad: 'red-pared',
+    titulo: ['Pinfuvote', 'Pinfuvote', 'Pinfuvote'],
+    descripcion: [
+      'Juego de red que mezcla voleibol, fútbol y tenis: el balón puede pasarse por encima de la red con cualquier parte del cuerpo, también con el pie, y se permite un bote. El objetivo es que el otro equipo no lo devuelva.',
+      'Joc de xarxa que barreja voleibol, futbol i tennis: la pilota es pot passar per damunt de la xarxa amb qualsevol part del cos, també amb el peu, i es permet un bot. L\'objectiu és que l\'altre equip no la torne.',
+      'Net game mixing volleyball, football and tennis: the ball can be sent over the net with any part of the body, including the foot, and one bounce is allowed. The aim is that the other team fails to return it.',
+    ],
+    organizacion: ['Dos equipos de 4, en una pista de voleibol con red baja. 10 minutos.', 'Dos equips de 4, en una pista de voleibol amb xarxa baixa. 10 minuts.', 'Two teams of 4, on a volleyball court with a low net. 10 minutes.'],
+    material: ['Un balón de goma o de fútbol y una red de voleibol.', 'Una pilota de goma o de futbol i una xarxa de voleibol.', 'A rubber or football and a volleyball net.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: P1. Relevo de las tres superficies (pie, mano y cabeza en cada envío); P2. Bote salvavidas (usar el bote intermedio antes de tocar); P3. Jugada mano-pie-red (pie, colocación y remate con la palma); P4. Los tres saques (tenis, voleibol y fútbol); P5. Partido con bonificación multisuperficie (dos partes del cuerpo en la misma secuencia valen doble). Sesión 1 (golpeos alternos y rebote): T6, T7, T9 y P1. Sesión 2 (construcción y bote): T8, T12, P2 y P3. Sesión 3 (saque y juego global): P4 y P5.',
+      'Progressió en 3 sessions. Específiques: P1. Relleu de les tres superfícies (peu, mà i cap en cada enviament); P2. Bot salvavides (usar el bot intermedi abans de tocar); P3. Jugada mà-peu-xarxa (peu, col·locació i rematada amb el palmell); P4. Els tres serveis (tennis, voleibol i futbol); P5. Partit amb bonificació multisuperfície (dues parts del cos en la mateixa seqüència valen doble). Sessió 1 (colpeigs alterns i rebot): T6, T7, T9 i P1. Sessió 2 (construcció i bot): T8, T12, P2 i P3. Sessió 3 (servei i joc global): P4 i P5.',
+      'Three-session progression. Specific: P1. Three-surface relay (foot, hand and head on each send); P2. Lifesaver bounce (use the intermediate bounce before touching); P3. Hand-foot-net combination (foot, set and palm spike); P4. The three serves (tennis, volleyball and football); P5. Match with multi-surface bonus (two body parts in the same sequence count double). Session 1 (alternating strikes and bounce): T6, T7, T9 and P1. Session 2 (building and bounce): T8, T12, P2 and P3. Session 3 (serve and full game): P4 and P5.',
+    ],
+    inclusion: [
+      'Quien no puede pasar la pelota por encima de la red puede jugar en una zona de recepción fija; se permite coger y lanzar.',
+      'Qui no pot passar la pilota per damunt de la xarxa pot jugar en una zona de recepció fixa; es permet agafar i llançar.',
+      'A student who cannot send the ball over the net can play in a fixed reception zone; catching and throwing are allowed.',
+    ],
+  },
+  {
+    id: 'banco-floorball', tipo: 'deporte', modalidad: 'invasion',
+    titulo: ['Floorball (unihockey)', 'Floorball (unihockey)', 'Floorball (unihockey)'],
+    descripcion: [
+      'Deporte de invasión parecido al hockey, con un stick ligero y una bola de plástico. Se juega con cinco jugadores y portero, sin contacto, y el gol se marca empujando la bola a la portería contraria. Es fácil de aprender y muy inclusivo porque el material pesa poco.',
+      'Esport d\'invasió semblant a l\'hoquei, amb un stick lleuger i una bola de plàstic. Es juga amb cinc jugadors i porter, sense contacte, i el gol es marca empenyent la bola a la porteria contrària. És fàcil d\'aprendre i molt inclusiu perquè el material pesa poc.',
+      'Invasion sport similar to hockey, with a light stick and a plastic ball. It is played with five players and a goalkeeper, without contact, and goals are scored by pushing the ball into the opposing goal. It is easy to learn and very inclusive because the equipment is light.',
+    ],
+    organizacion: ['Dos equipos de 5 más portero, en una pista de 20 x 40 m o de fútbol sala. 12 minutos.', 'Dos equips de 5 més porter, en una pista de 20 x 40 m o de futbol sala. 12 minuts.', 'Two teams of 5 plus goalkeeper, on a 20 x 40 m court or a futsal court. 12 minutes.'],
+    material: ['Un stick de floorball por jugador, una bola de plástico y dos porterías.', 'Un stick de floorball per jugador, una bola de plàstic i dues porteries.', 'One floorball stick per player, a plastic ball and two goals.'],
+    variantes: [
+      'Progresión en 3 sesiones. Específicas: F1. El límite de la rodilla (prohibido subir la pala; si se sube, flexión y a reiniciar); F2. Manejo de doble cara (conducir con derecho y revés, protegiendo la bola); F3. Precisión en pase de barrido (pasar entre dos conos sin golpe seco); F4. Duelo sin choque de sticks (no se golpea la pala del rival); F5. Partido con circulación por detrás de la portería (pases desde la zona ciega). Sesión 1 (control y límite): T11, T15, F1 y F2. Sesión 2 (barrido y desmarque): T2, T4, F3 y F4. Sesión 3 (defensa y partido): T3 y F5.',
+      'Progressió en 3 sessions. Específiques: F1. El límit del genoll (prohibit pujar la pala; si es puja, flexió i a reiniciar); F2. Maneig de doble cara (conduir amb dret i revés, protegint la bola); F3. Precisió en passe de escombrat (passar entre dos cons sense cop sec); F4. Duel sense xoc de sticks (no es colpeja la pala del rival); F5. Partit amb circulació per darrere de la porteria (passes des de la zona cega). Sessió 1 (control i límit): T11, T15, F1 i F2. Sessió 2 (escombrat i desmarcatge): T2, T4, F3 i F4. Sessió 3 (defensa i partit): T3 i F5.',
+      'Three-session progression. Specific: F1. The knee limit (never raise the blade; if you do, squat and restart); F2. Two-side handling (drive with forehand and backhand, shielding the ball); F3. Sweep-pass accuracy (pass between two cones without a hard hit); F4. Duel without stick clash (do not hit the opponent stick); F5. Match with circulation behind the goal (passes from the blind zone). Session 1 (control and limit): T11, T15, F1 and F2. Session 2 (sweep and lead): T2, T4, F3 and F4. Session 3 (defence and match): T3 and F5.',
+    ],
+    inclusion: [
+      'Quien no puede correr juega de portero o en una zona fija; se puede usar un stick más corto o golpear con el pie.',
+      'Qui no pot córrer juga de porter o en una zona fixa; es pot usar un stick més curt o colpejar amb el peu.',
+      'A student who cannot run plays as goalkeeper or in a fixed zone; a shorter stick can be used or the ball kicked.',
+    ],
+  },
 ];
 
 const IDX: Record<Lang, 0 | 1 | 2> = { es: 0, ca: 1, en: 2 };

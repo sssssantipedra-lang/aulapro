@@ -184,6 +184,17 @@ describe('actividades con IA y banco de partida', () => {
     expect(bancoEF('ca')[0].descripcion).not.toBe(bancoEF('es')[0].descripcion);
     expect(bancoEF('en')[0].titulo).toBe('Handkerchief by numbers');
   });
+
+  it('el banco incluye los deportes alternativos, cada uno con su modalidad', () => {
+    const alternativos = ['banco-korfball', 'banco-colpbol', 'banco-kinball', 'banco-goalball', 'banco-duni', 'banco-tchoukball', 'banco-pinfuvote', 'banco-floorball'];
+    const b = bancoEF('es');
+    for (const id of alternativos) {
+      const a = b.find(x => x.id === id);
+      expect(a, id).toBeTruthy();
+      expect(a?.tipo).toBe('deporte');
+      expect(a?.modalidad, id).toBeTruthy();
+    }
+  });
 });
 
 describe('actividades desde un manual en PDF', () => {
