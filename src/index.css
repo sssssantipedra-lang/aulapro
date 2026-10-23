@@ -879,23 +879,23 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .fe-themes.compact .fe-theme-art .big { font-size:17px; }
 .fe-themes.compact .fe-theme-name { padding:0; white-space:nowrap; }
 
-.fe-lib { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px; }
-.fe-card { display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; background:var(--card); overflow:hidden; transition:box-shadow var(--t), transform var(--t); position:relative; }
+.fe-lib { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:14px; }
+.fe-card { display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; background:var(--card); overflow:hidden; transition:box-shadow var(--t), transform var(--t); position:relative; min-height:184px; }
 /* Panel flotante de la tarjeta guardada: «Proyectar» grande y «Editar» */
-.fe-card-menu { position:absolute; inset:0; z-index:6; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.97); border-radius:inherit; }
+.fe-card-menu { position:absolute; inset:0; z-index:6; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:12px; overflow-y:auto; background:rgba(255,255,255,0.97); border-radius:inherit; }
 .fe-menu-proyectar { display:inline-flex; align-items:center; gap:8px; padding:13px 26px; border:none; border-radius:12px; background:var(--accent); color:#fff; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 8px 20px rgba(120,100,70,0.18); }
 .fe-menu-proyectar:hover { filter:brightness(1.04); }
 .fe-menu-editar { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border:1.5px solid var(--border); border-radius:10px; background:var(--card); color:var(--text); font-size:14px; font-weight:700; cursor:pointer; }
 .fe-menu-editar:hover { border-color:var(--accent); color:var(--accent-d); }
 .fe-card:hover { box-shadow:0 8px 24px rgba(15,23,42,.08); transform:translateY(-1px); }
-.fe-card-main { display:flex; gap:12px; padding:14px; background:none; border:none; text-align:left; cursor:pointer; font-family:var(--font); flex:1; }
-.fe-card-art { width:56px; height:56px; flex-shrink:0; border-radius:12px; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,.12); }
+.fe-card-main { display:flex; gap:14px; padding:16px; background:none; border:none; text-align:left; cursor:pointer; font-family:var(--font); flex:1; }
+.fe-card-art { width:68px; height:68px; flex-shrink:0; border-radius:12px; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,.12); }
 .fe-card-body { display:flex; flex-direction:column; gap:3px; min-width:0; }
-.fe-card-ttl { font-size:14px; font-weight:800; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.fe-card-meta { font-size:11.5px; color:var(--text-3); }
-.fe-card-theme { font-size:10.5px; font-weight:800; color:var(--th); text-transform:uppercase; letter-spacing:.04em; }
-.fe-card-actions { display:flex; justify-content:flex-end; gap:2px; padding:4px 8px; border-top:1px solid var(--border); background:var(--surface); }
-.fe-card-new { align-items:center; justify-content:center; flex-direction:row; gap:8px; min-height:110px; border-style:dashed; color:var(--text-3); font-family:var(--font); font-size:13.5px; font-weight:700; cursor:pointer; }
+.fe-card-ttl { font-size:15px; font-weight:800; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fe-card-meta { font-size:12px; color:var(--text-3); }
+.fe-card-theme { font-size:11px; font-weight:800; color:var(--th); text-transform:uppercase; letter-spacing:.04em; }
+.fe-card-actions { display:flex; justify-content:flex-end; gap:2px; padding:6px 10px; border-top:1px solid var(--border); background:var(--surface); }
+.fe-card-new { align-items:center; justify-content:center; flex-direction:row; gap:8px; min-height:184px; border-style:dashed; color:var(--text-3); font-family:var(--font); font-size:13.5px; font-weight:700; cursor:pointer; }
 
 .fe-top { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
 .fe-top-ttl { flex:1; min-width:0; display:flex; align-items:center; gap:8px; font-size:17px; }
