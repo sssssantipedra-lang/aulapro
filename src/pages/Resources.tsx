@@ -10,13 +10,13 @@
  */
 import { useMemo, useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
-  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, conHilo, tiposDisponibles,
+  generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, moreCardsInteractivas, conHilo, tiposDisponibles,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
-  type FichaFormato, type FichaVariante,
+  type FichaFormato, type FichaVariante, type FichaTarjetaInteractiva,
 } from '../services/resources';
 import { saveFichaPdf, saveFichaDocx, VARIANTE_LABEL } from '../services/exportFicha';
 import { DIFICULTADES, esDificultad, estrellas, NOMBRE_DIFICULTAD, type Dificultad } from '../lib/escalera';
@@ -32,6 +32,8 @@ import { RecuadroEditor } from '../components/fichas/RecuadroEditor';
 import { FichaPreview } from '../components/fichas/FichaPreview';
 import { ThemeArt } from '../components/fichas/ThemeArt';
 import { ActividadVisualEditor, ConceptosEditor } from '../components/fichas/VisualEditor';
+import { TarjetaImagenPicker } from '../components/fichas/TarjetaImagenPicker';
+import { TarjetasInteractivasPlay } from '../components/fichas/TarjetasInteractivasPlay';
 import { HiloSelector } from '../components/fichas/DibujosEditor';
 import { LecturaEditor } from '../components/fichas/LecturaEditor';
 import { GENEROS_LECTURA, NOMBRE_GENERO, type GeneroLectura } from '../lib/lectura';
@@ -144,6 +146,7 @@ interface BorradorFicha {
   numEjercicios: number; niveles: boolean; contextoClase: string;
   tipo: TipoCreacion; facil: boolean; estilo: FichaThemeChoice; hilo: string; visual: boolean;
   generoLectura: GeneroLectura | 'auto'; alumnoApoyo: string;
+  modoTarjeta: 'recortables' | 'interactivas';
 }
 
 export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject, apoyo }: Props) {
@@ -179,6 +182,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   // Por defecto, la hoja de cuaderno (decisión del dueño, 14-10-2026); «Que elija la IA» sigue entre los de historia
   const [estilo, setEstilo] = useState<FichaThemeChoice>('cuaderno');
   const [tipo, setTipo] = useState<TipoCreacion>('ficha');
+  /** Tarjetas: si se eligen recortables o interactivas (se giran en pantalla). */
+  const [modoTarjeta, setModoTarjeta] = useState<'recortables' | 'interactivas'>('recortables');
   const formato: FichaFormato = tipo === 'lectura' ? 'ficha' : tipo;
   // Comprensión lectora: el tipo de texto ('auto' lo elige la IA) y, para cualquier ficha, la lectura fácil (dislexia)
   const [generoLectura, setGeneroLectura] = useState<GeneroLectura | 'auto'>('auto');
@@ -199,14 +204,18 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   /** Bloque al que se está añadiendo un ejercicio con IA, o -1 para tarjetas. */
   const [adding, setAdding] = useState<number | null>(null);
   const [addTipo, setAddTipo] = useState<Record<number, FichaExerciseType | ''>>({});
+  /** Índice de la tarjeta interactiva a la que se le está eligiendo imagen. */
+  const [pickingImagen, setPickingImagen] = useState<number | null>(null);
+  /** Tarjetas interactivas: abrir el modo de uso (girar y marcar). */
+  const [playing, setPlaying] = useState(false);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const sinClave = !hasApiKey();
 
   /* ── Autoguardado: lo que se está haciendo y no se ha guardado, para poder continuar si se cierra a medias ── */
   const pendiente = useMemo<BorradorFicha | null>(() => (content && dirty ? {
-    content, editingId, classId, tema, area, nivel, numEjercicios, niveles, contextoClase, tipo, facil, estilo, hilo, visual, generoLectura, alumnoApoyo,
-  } : null), [content, dirty, editingId, classId, tema, area, nivel, numEjercicios, niveles, contextoClase, tipo, facil, estilo, hilo, visual, generoLectura, alumnoApoyo]);
+    content, editingId, classId, tema, area, nivel, numEjercicios, niveles, contextoClase, tipo, facil, estilo, hilo, visual, generoLectura, alumnoApoyo, modoTarjeta,
+  } : null), [content, dirty, editingId, classId, tema, area, nivel, numEjercicios, niveles, contextoClase, tipo, facil, estilo, hilo, visual, generoLectura, alumnoApoyo, modoTarjeta]);
   const borrador = useBorrador<BorradorFicha>('ficha', pendiente, content?.titulo || tema);
 
   function continuarBorrador() {
@@ -218,6 +227,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     setNumEjercicios(b.numEjercicios); setNiveles(b.niveles); setContextoClase(b.contextoClase);
     setTipo(b.tipo); setFacil(b.facil); setEstilo(b.estilo); setHilo(b.hilo); setVisual(b.visual);
     setGeneroLectura(b.generoLectura); setAlumnoApoyo(b.alumnoApoyo);
+    setModoTarjeta(b.modoTarjeta ?? 'recortables');
     setDirty(true);
     setSelected(null);
     window.scrollTo({ top: 0 });
@@ -234,6 +244,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     tema, area, nivel, numEjercicios, niveles, contextoClase, formato, hilo,
     // La comprensión lectora es siempre «Cuaderno» y sin pictogramas; con tarjetas no hay lectura fácil
     estilo: lectura ? 'cuaderno' : estilo, visual: visual && !lectura, lectura, generoLectura, facil: facil && tipo !== 'tarjetas',
+    interactivas: tipo === 'tarjetas' && modoTarjeta === 'interactivas',
   });
   // Lo que la app elegiría por el tema (se enseña en el selector)
   const hiloDetectado = useMemo(() => (tema.trim() ? hiloDeFicha({ tema, area, nivel }) : undefined), [tema, area, nivel]);
@@ -257,7 +268,9 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
       onEnd: () => setGenerating(false),
       onError: m => toast(m),
     });
-    const ok = result && (result.formato === 'tarjetas' ? !!result.tarjetas?.length : result.actividades.some(a => a.ejercicios.length));
+    const ok = result && (result.interactivas
+      ? !!result.tarjetasInteractivas?.length
+      : result.formato === 'tarjetas' ? !!result.tarjetas?.length : result.actividades.some(a => a.ejercicios.length));
     if (!result || !ok) { toast(t('La IA no devolvió una ficha válida. Vuelve a intentarlo.')); return; }
     setContent(result);
     setEditingId(null);
@@ -328,6 +341,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     setNiveles(f.request.niveles);
     setContextoClase(f.request.contextoClase);
     setTipo(f.content.lectura ? 'lectura' : f.content.formato ?? 'ficha');
+    setModoTarjeta(f.content.interactivas ? 'interactivas' : 'recortables');
     setFacil(f.content.variante === 'lectura_facil');
     setDirty(false);
     setSelected(null);
@@ -421,8 +435,24 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     toast(t('{n} tarjetas añadidas', { n: list.length }));
   }
 
+  async function handleMoreCardsInt() {
+    if (!content) return;
+    const list = await moreCardsInteractivas(content, request(), 4, lang, {
+      onStart: () => setAdding(-1),
+      onEnd: () => setAdding(null),
+      onError: m => toast(m),
+    });
+    if (!list) { toast(t('La IA no devolvió tarjetas válidas. Vuelve a intentarlo.')); return; }
+    edit(c => ({ ...c, tarjetasInteractivas: [...(c.tarjetasInteractivas ?? []), ...list] }));
+    toast(t('{n} tarjetas añadidas', { n: list.length }));
+  }
+
   const patchCard = (i: number, p: Partial<NonNullable<FichaContent['tarjetas']>[number]>) =>
     edit(c => ({ ...c, tarjetas: (c.tarjetas ?? []).map((x, xi) => (xi === i ? { ...x, ...p } : x)) }));
+
+  const patchCardInt = (i: number, p: Partial<FichaTarjetaInteractiva>) =>
+    edit(c => ({ ...c, tarjetasInteractivas: (c.tarjetasInteractivas ?? []).map((x, xi) => (xi === i ? { ...x, ...p } : x)) }));
+  const urlImagenInt = (tj: FichaTarjetaInteractiva) => (tj.imagenTipo === 'picto' ? urlPicto(tj.imagen) : urlIlustracion(tj.imagen));
 
   function changeTheme(id: FichaThemeId) {
     // Al pasar a «Cuaderno» una ficha sin hilo (y sin apoyos visuales), se le pone el que encaja por el tema
@@ -475,7 +505,12 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             {dirty && <EstadoBorrador guardadoEn={borrador.guardadoEn} />}
           </div>
           <div className="fe-top-actions">
-            {onProject && (
+            {content.interactivas && (
+              <button type="button" className="btn-ghost" onClick={() => setPlaying(true)} title={t('Girarlas a pantalla completa')}>
+                <MonitorPlay size={14} />{t('Probar')}
+              </button>
+            )}
+            {onProject && !content.interactivas && (
               <button type="button" className="btn-ghost" onClick={() => onProject(ficha)} title={t('Proyectarla a pantalla completa en Aula Live')}>
                 <MonitorPlay size={14} />{t('Proyectar')}
               </button>
@@ -592,7 +627,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
               </label>
             </div>
 
-            {tarjetas && (
+            {tarjetas && !content.interactivas && (
               <div className="fe-cards">
                 {(content.tarjetas ?? []).map((tj, i) => (
                   <div
@@ -617,6 +652,43 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                     <Plus size={14} />{t('Añadir tarjeta')}
                   </button>
                   <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={handleMoreCards}>
+                    {adding === -1 ? <span className="spin" /> : <Sparkles size={13} />}{t('4 tarjetas más con IA')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tarjetas && content.interactivas && (
+              <div className="fe-cards">
+                {(content.tarjetasInteractivas ?? []).map((tj, i) => (
+                  <div
+                    key={i} className={`fe-card-row${selected === `card-${i}` ? ' sel' : ''}`} data-block={`card-${i}`}
+                    onFocusCapture={() => setSelected(`card-${i}`)} onClick={() => setSelected(`card-${i}`)}
+                  >
+                    <span className="fe-ex-n">{i + 1}</span>
+                    <button type="button" className="fe-card-img" onClick={() => setPickingImagen(i)} title={t('Elegir imagen')} aria-label={t('Elegir imagen')}>
+                      {tj.imagen ? <img src={urlImagenInt(tj)} alt="" draggable={false} /> : <ImageIcon size={22} color="var(--text-3)" />}
+                    </button>
+                    <div className="fe-card-fields">
+                      <input className="finput" value={tj.texto} aria-label={t('Texto {n}', { n: i + 1 })} placeholder={t('Texto')} onChange={e => patchCardInt(i, { texto: e.target.value })} />
+                    </div>
+                    <button type="button" className={`chip sm${tj.imagenDelante ? ' on' : ''}`} title={t('Qué va delante al girar')}
+                      onClick={() => patchCardInt(i, { imagenDelante: !tj.imagenDelante })}>
+                      <FlipHorizontal2 size={13} />{t(tj.imagenDelante ? 'Imagen delante' : 'Texto delante')}
+                    </button>
+                    <button type="button" className="ico-btn sm" title={t('Subir')} aria-label={t('Subir')} disabled={i === 0}
+                      onClick={() => edit(c => ({ ...c, tarjetasInteractivas: move(c.tarjetasInteractivas ?? [], i, -1) }))}><ArrowUp size={14} /></button>
+                    <button type="button" className="ico-btn sm" title={t('Bajar')} aria-label={t('Bajar')} disabled={i === (content.tarjetasInteractivas?.length ?? 0) - 1}
+                      onClick={() => edit(c => ({ ...c, tarjetasInteractivas: move(c.tarjetasInteractivas ?? [], i, 1) }))}><ArrowDown size={14} /></button>
+                    <button type="button" className="ico-btn sm" title={t('Eliminar')} aria-label={t('Eliminar')}
+                      onClick={() => edit(c => ({ ...c, tarjetasInteractivas: (c.tarjetasInteractivas ?? []).filter((_, xi) => xi !== i) }))}><Trash2 size={14} color="var(--danger)" /></button>
+                  </div>
+                ))}
+                <div className="fe-add-row">
+                  <button type="button" className="btn-ghost sm" onClick={() => edit(c => ({ ...c, tarjetasInteractivas: [...(c.tarjetasInteractivas ?? []), { texto: '', imagen: '', imagenTipo: 'ilustracion', imagenDelante: true }] }))}>
+                    <Plus size={14} />{t('Añadir tarjeta')}
+                  </button>
+                  <button type="button" className="fe-redo-btn" disabled={sinClave || adding !== null} onClick={handleMoreCardsInt}>
                     {adding === -1 ? <span className="spin" /> : <Sparkles size={13} />}{t('4 tarjetas más con IA')}
                   </button>
                 </div>
@@ -731,6 +803,19 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             </div>
           </aside>
         </div>
+
+        <TarjetaImagenPicker
+          open={pickingImagen !== null}
+          onClose={() => setPickingImagen(null)}
+          onPick={(tipo, id) => { if (pickingImagen !== null) patchCardInt(pickingImagen, { imagen: id, imagenTipo: tipo }); setPickingImagen(null); }}
+        />
+        {playing && (
+          <TarjetasInteractivasPlay
+            onClose={() => setPlaying(false)}
+            titulo={content.titulo}
+            cards={content.tarjetasInteractivas ?? []}
+          />
+        )}
       </section>
     );
   }
@@ -772,6 +857,28 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             </button>
           ))}
         </div>
+
+        {tipo === 'tarjetas' && (
+          <div style={{ marginTop: 4 }}>
+            <div className="fe-paso"><span className="fe-paso-n">1b</span>{t('¿Recortables o interactivas?')}</div>
+            <div className="ev-cards fe-tipos" role="radiogroup" aria-label={t('Recortables o interactivas')}>
+              {([
+                { id: 'recortables' as const, icono: <Scissors size={20} />, label: 'Recortables', desc: 'Pregunta delante y respuesta detrás, para imprimir y doblar.' },
+                { id: 'interactivas' as const, icono: <FlipHorizontal2 size={20} />, label: 'Interactivas', desc: 'Imagen en una cara y texto en la otra; se giran al tocarlas.' },
+              ]).map(x => (
+                <button
+                  key={x.id} type="button" role="radio" aria-checked={modoTarjeta === x.id}
+                  className={`ev-card fe-tipo${modoTarjeta === x.id ? ' sel' : ''}`} style={{ '--ev-c': '#8b5cf6' } as React.CSSProperties}
+                  onClick={() => setModoTarjeta(x.id)}
+                >
+                  <span className="ev-card-ico" aria-hidden="true">{x.icono}</span>
+                  <span className="ev-card-ttl">{t(x.label)}</span>
+                  <span className="ev-card-txt">{t(x.desc)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="fe-paso"><span className="fe-paso-n">2</span>{t('¿De qué trata?')}</div>
         <div className="fgroup">

@@ -23,7 +23,7 @@ import {
   Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, ImageRun,
 } from 'docx';
 import type { Ficha } from '../types';
-import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaRecuadro, FichaTarjeta, FichaVariante, FichaContent } from './resources';
+import type { FichaExercise, FichaExerciseType, FichaActivity, FichaCandado, FichaRecuadro, FichaTarjeta, FichaTarjetaInteractiva, FichaVariante, FichaContent } from './resources';
 import type { FichaLectura } from '../lib/lectura';
 import { crosswordCells, type Crossword } from '../lib/crossword';
 import { fichaTheme } from '../lib/fichaThemes';
@@ -105,19 +105,22 @@ function colorHex(name: string): string {
 
 /** Todos los pictogramas que usa la ficha, sin repetir. */
 export function pictosDeFicha(c: FichaContent): string[] {
-  if (!c.visual) return [];
   const ids = new Set<string>();
   const add = (id?: string) => { if (id) ids.add(id); };
-  c.conceptos?.forEach(k => add(k.picto));
-  for (const act of getActividades(c)) {
-    act.pasos?.forEach(p => add(p.picto));
-    act.recuerda?.forEach(r => add(r.picto));
-    for (const ex of act.ejercicios) {
-      add(ex.consigna);
-      ex.imagenes?.forEach(im => add(im.picto));
-      ex.pictosFilas?.forEach(add);
+  if (c.visual) {
+    c.conceptos?.forEach(k => add(k.picto));
+    for (const act of getActividades(c)) {
+      act.pasos?.forEach(p => add(p.picto));
+      act.recuerda?.forEach(r => add(r.picto));
+      for (const ex of act.ejercicios) {
+        add(ex.consigna);
+        ex.imagenes?.forEach(im => add(im.picto));
+        ex.pictosFilas?.forEach(add);
+      }
     }
   }
+  // Tarjetas interactivas: sus pictogramas también van al PDF
+  (c.tarjetasInteractivas ?? []).forEach(tj => { if (tj.imagenTipo === 'picto') add(tj.imagen); });
   return [...ids].filter(id => pictoDe(id));
 }
 
@@ -142,6 +145,8 @@ type Pic = (id: string | undefined, cls: string) => string;
 export function ilustracionesDeFicha(c: FichaContent): string[] {
   // Los del texto de una ficha de lectura van aunque no haya hilo (el hilo es de los ejercicios y la cabecera)
   const ids = new Set<string>([...dibujosDeLaCabecera(c.hilo), ...dibujosDeLaLectura(c.lectura)]);
+  // Tarjetas interactivas: las ilustraciones de sus tarjetas
+  (c.tarjetasInteractivas ?? []).forEach(tj => { if (tj.imagenTipo === 'ilustracion' && tj.imagen) ids.add(tj.imagen); });
   if (!c.hilo) return [...ids];
   for (const act of getActividades(c)) {
     for (const ex of act.ejercicios) {
@@ -531,7 +536,9 @@ export function buildFichaHtml(f: Ficha, lang: Lang, opts: FichaHtmlOptions = {}
     `--font:${cuaderno && facil ? LETRA_FACIL : theme.fuente};--font-t:${cuaderno && facil ? LETRA_FACIL : theme.fuenteTitulo};--r:${theme.radio}px;--bs:${theme.borde}`;
 
   const body = formato === 'tarjetas'
-    ? tarjetasHtml(c.tarjetas ?? [], theme, mark, t)
+    ? (c.interactivas
+      ? tarjetasInteractivasHtml(c.tarjetasInteractivas ?? [], theme, mark, t, opts.ilustraciones, opts.pictos)
+      : tarjetasHtml(c.tarjetas ?? [], theme, mark, t))
     : actividadesHtml + cierreHtml;
   const densidad: Densidad = cuaderno && esDensidad(opts.densidad ?? c.densidad) ? (opts.densidad ?? c.densidad)! : 'normal';
   const docCls = `ficha-doc th-${theme.id}${cuaderno && densidad !== 'normal' ? ` d-${densidad}` : ''}${c.variante === 'lectura_facil' ? ' lf' : ''}${visual ? ' vis' : ''}${formato === 'tarjetas' ? ' fmt-tarjetas' : ''}`;
@@ -600,6 +607,27 @@ function tarjetasHtml(cards: FichaTarjeta[], theme: ReturnType<typeof fichaTheme
       `<div class="tj-q">${esc(tj.pregunta)}</div></div>` +
       `<div class="tj-fold"><span>${esc(t('doblar'))}</span></div>` +
       `<div class="tj-back"><div class="tj-a"><span class="tj-albl">${esc(t('Respuesta'))}</span>${esc(tj.respuesta)}</div></div>` +
+      `</div>`;
+  }).join('')}</div><p class="tj-cut">✂️ ${esc(t('Recorta por la línea discontinua y dobla cada tarjeta por la mitad.'))}</p>`;
+}
+
+/** Tarjetas interactivas para recortar y doblar: la imagen en una cara y el texto en la otra. */
+function tarjetasInteractivasHtml(
+  cards: FichaTarjetaInteractiva[], theme: ReturnType<typeof fichaTheme>, mark: (a: string) => string, t: Tr,
+  ilustraciones?: Record<string, string>, pictos?: Record<string, string>,
+): string {
+  const imgHtml = (tj: FichaTarjetaInteractiva): string => {
+    const src = tj.imagenTipo === 'picto' ? pictos?.[tj.imagen] : ilustraciones?.[tj.imagen];
+    return src ? `<img class="tj-img" src="${src}" alt="">` : '';
+  };
+  return `<div class="tj-grid">${cards.map((tj, i) => {
+    const color = theme.bloques[i % theme.bloques.length];
+    const frente = tj.imagenDelante ? imgHtml(tj) : `<div class="tj-q">${esc(tj.texto)}</div>`;
+    const detras = tj.imagenDelante ? `<div class="tj-a"><span class="tj-albl">${esc(t('Texto'))}</span>${esc(tj.texto)}</div>` : imgHtml(tj);
+    return `<div class="tj"${mark(`data-card="${i}"`)} style="--tj:#${color.bg};--tjl:#${color.light}">` +
+      `<div class="tj-front"><span class="tj-n">${i + 1}</span>${frente}</div>` +
+      `<div class="tj-fold"><span>${esc(t('doblar'))}</span></div>` +
+      `<div class="tj-back">${detras}</div>` +
       `</div>`;
   }).join('')}</div><p class="tj-cut">✂️ ${esc(t('Recorta por la línea discontinua y dobla cada tarjeta por la mitad.'))}</p>`;
 }
@@ -781,6 +809,7 @@ const FICHA_DOC_STYLE = `
 .tj-n { position: absolute; top: 3mm; left: 4mm; font-size: 10px; font-weight: 800; color: var(--tj); }
 .tj-emoji { position: absolute; top: 2mm; right: 3mm; font-size: 16px; }
 .tj-q { font-family: var(--font-t); font-size: 13px; font-weight: 700; line-height: 1.35; color: #1e293b; }
+.tj-img { max-width: 80%; max-height: 42mm; object-fit: contain; }
 .tj-fold { position: relative; border-top: 1.25px dotted #94a3b8; height: 0; }
 .tj-fold span { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); background: #fff; padding: 0 6px; font-size: 8px; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; }
 .tj-back .tj-a { transform: rotate(180deg); font-size: 12.5px; line-height: 1.35; color: #334155; }

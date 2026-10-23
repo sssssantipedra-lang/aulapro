@@ -131,6 +131,12 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Se puede ocultar con el selector «Evaluación por competencias».
 - **Escala de las competencias clave, a elección del docente** (23-10-2026): «Escala de las competencias clave» en el acta, 1-4 (niveles, como la Diana) o sobre 10; el documento dice siempre en qué escala va («sobre 4» o «sobre 10»).
 
+## Tarjetas interactivas (23-10-2026)
+
+- **Recursos › Tarjetas** (petición del dueño): al elegir «Tarjetas» se abre un paso intermedio con «Recortables» (las de siempre) e «Interactivas» (nuevas). Cada tarjeta interactiva lleva una imagen en una cara y texto en la otra, con cuál va delante (`FichaTarjetaInteractiva`: `texto`, `imagen`, `imagenTipo` ilustracion/picto, `imagenDelante`; `FichaContent.interactivas` y `tarjetasInteractivas`).
+- La imagen se elige en `components/fichas/TarjetaImagenPicker.tsx` (ilustraciones del catálogo y pictogramas). Se crean con IA (ilustraciones de la lista cerrada, `generateTarjetasInteractivas` y `moreCardsInteractivas`) y a mano.
+- Modo de uso en `components/fichas/TarjetasInteractivasPlay.tsx`: a pantalla completa, se giran al tocarlas, con barajar y «lo sé / no lo sé» para repasar solo las falladas. Se exportan a PDF como las recortables (imagen de un lado y texto del otro, se doblan; `tarjetasInteractivasHtml` en `exportFicha.ts`).
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

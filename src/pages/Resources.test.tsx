@@ -341,6 +341,13 @@ describe('Recursos · crear en dos pasos', () => {
     expect(screen.getByRole('button', { name: /Crear comprensión lectora/ })).toBeTruthy();
   });
 
+  it('al elegir Tarjetas se elige entre recortables e interactivas', async () => {
+    setup(vi.fn(), []);
+    await userEvent.click(screen.getByRole('radio', { name: /Tarjetas/ }));
+    expect(screen.getByRole('radio', { name: /Recortables/ })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /Interactivas/ })).toBeTruthy();
+  });
+
   it('el número de ejercicios que traía el tipo cambia con él, pero uno cambiado a mano se respeta', async () => {
     setup(vi.fn(), []);
     const n = () => (screen.getByLabelText('Nº de ejercicios') as HTMLInputElement).value;

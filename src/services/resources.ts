@@ -32,7 +32,7 @@ import { fichaTheme, cleanEmoji, conHistoria, STORY_THEME_IDS, type FichaThemeId
 import { CONSIGNAS_FICHA, DIBUJOS_FICHA, listaParaIA, pictoDeVerbo, pictoValido } from '../lib/pictosFicha';
 import { esContable, hiloDeFicha, hiloPorId, listaDibujosParaIA, type Hilo } from '../lib/hilos';
 import { contarDelHilo, enunciadoRotular, esTipoConDibujos, etiquetarDelHilo, solucionDeDibujos } from '../lib/dibujosEjercicio';
-import { ilustracionPorId, nombreIlustracion } from '../lib/ilustraciones';
+import { ilustracionPorId, nombreIlustracion, listaIlustracionesParaIA } from '../lib/ilustraciones';
 import {
   avisoDeSubida, expectativas, NOMBRE_DIFICULTAD, normalizarEscalera, perfilDeCurso, planDeBloques, planParaPrompt,
   rangoNumerico, type BloquePlan, type Dificultad, type PerfilCurso,
@@ -265,6 +265,18 @@ export interface FichaTarjeta {
   respuesta: string;
 }
 
+/** Una tarjeta interactiva: imagen en una cara y texto en la otra; se giran al tocarlas. */
+export interface FichaTarjetaInteractiva {
+  /** El texto de una de las caras. */
+  texto: string;
+  /** Id de la ilustración (`lib/ilustraciones.ts`) o del pictograma (`lib/pictos.ts`). */
+  imagen: string;
+  /** De dónde es `imagen`. */
+  imagenTipo: 'ilustracion' | 'picto';
+  /** Si la imagen va delante y el texto detrás (true) o al revés (false). */
+  imagenDelante: boolean;
+}
+
 /**
  * Qué se imprime: la ficha de siempre, un escape room (cada bloque es una
  * sala con candado) o tarjetas para recortar y doblar.
@@ -311,6 +323,10 @@ export interface FichaContent {
   formato?: FichaFormato;
   /** Solo en 'tarjetas'. */
   tarjetas?: FichaTarjeta[];
+  /** Tarjetas interactivas (se giran en pantalla): imagen en una cara y texto en la otra. Solo en 'tarjetas'. */
+  interactivas?: boolean;
+  /** Solo en tarjetas interactivas. */
+  tarjetasInteractivas?: FichaTarjetaInteractiva[];
   variante?: FichaVariante;
   /**
    * Con apoyos visuales: cada bloque lleva sus pasos con pictogramas, los
@@ -353,6 +369,8 @@ export interface FichaRequest {
   generoLectura?: GeneroLectura | 'auto';
   /** Lectura fácil para dislexia: frases cortas, palabras clave en negrita y letra más grande. */
   facil?: boolean;
+  /** Tarjetas interactivas (imagen en una cara y texto en la otra, se giran); solo en formato 'tarjetas'. */
+  interactivas?: boolean;
 }
 
 export type FichaThemeChoice = FichaThemeId | 'auto';
@@ -813,6 +831,31 @@ const TARJETA_SCHEMA = {
   propertyOrdering: ['pregunta', 'respuesta'],
 } as const;
 
+/** Una tarjeta interactiva: imagen en una cara y texto en la otra. */
+const TARJETA_INTERACTIVA_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    texto: S('El texto de la tarjeta: la palabra, el concepto, la pregunta o la definición, breve'),
+    imagen: S('El identificador EXACTO de UNA ilustración de la lista (solo el id, sin la descripción entre paréntesis)'),
+    imagenDelante: { type: 'BOOLEAN', description: 'true si la imagen va delante y el texto detrás; false al revés' },
+  },
+  required: ['texto', 'imagen', 'imagenDelante'],
+  propertyOrdering: ['texto', 'imagen', 'imagenDelante'],
+} as const;
+
+function tarjetasInteractivasSchema() {
+  return {
+    type: 'OBJECT',
+    properties: {
+      titulo: S('Título breve del juego de tarjetas interactivas'),
+      instrucciones: S('Cómo se juega con las tarjetas, en 1-2 frases dirigidas al alumnado'),
+      tarjetasInteractivas: { type: 'ARRAY', items: TARJETA_INTERACTIVA_SCHEMA, description: 'Las tarjetas interactivas, todas distintas' },
+    },
+    required: ['titulo', 'instrucciones', 'tarjetasInteractivas'],
+    propertyOrdering: ['titulo', 'instrucciones', 'tarjetasInteractivas'],
+  } as const;
+}
+
 function tarjetasSchema(o: SchemaOpts) {
   const head = [...(o.elegirEstilo ? ['estilo'] : []), 'titulo'];
   return {
@@ -1028,6 +1071,18 @@ function tarjetasSystemPrompt(lang: Lang, estilo: FichaThemeChoice): string {
     `quien acierta se queda la tarjeta).\n` +
     (estilo === 'auto' ? `Elige en "estilo" el mundo visual que mejor encaje. ESTILOS: ${ESTILOS_DOC}.\n` : '') +
     `NOTACIÓN MATEMÁTICA: superíndices de verdad (x², 3⁴), nunca LaTeX.\n` +
+    `El idioma de salida DEBE SER ${idioma(lang)}.`
+  );
+}
+
+/** Prompt de sistema de las tarjetas interactivas: imagen en una cara, texto en la otra. */
+function tarjetasInteractivasSystemPrompt(lang: Lang, ilustraciones: string): string {
+  return (
+    `Eres un experto en didáctica. Tu tarea es crear un juego de tarjetas interactivas para proyectar en el aula: ` +
+    `cada tarjeta tiene una imagen en una cara y un texto en la otra (se giran al tocarlas). El texto es una palabra, ` +
+    `un concepto, una definición o una pregunta breve, apropiado al nivel; la imagen es un dibujo del catálogo que ` +
+    `representa ese texto. Usa SOLO estos identificadores de imagen, escritos exactamente igual (la descripción entre ` +
+    `paréntesis es para que sepas qué es cada una): ${ilustraciones}.\n` +
     `El idioma de salida DEBE SER ${idioma(lang)}.`
   );
 }
@@ -2125,6 +2180,8 @@ export async function generateFicha(
   try {
     // Comprensión lectora: primero el texto y después las actividades sobre él
     if (req.lectura) return await generateLectura(req, lang, callbacks);
+    // Tarjetas interactivas: imagen en una cara y texto en la otra, se giran
+    if (req.interactivas && (req.formato ?? 'ficha') === 'tarjetas') return await generateTarjetasInteractivas(req, lang, callbacks);
     const formato = req.formato ?? 'ficha';
     const estilo = effectiveEstilo(req.estilo, formato);
     const visual = !!req.visual && formato !== 'tarjetas';
@@ -2540,4 +2597,64 @@ export async function moreCards(
   } finally {
     callbacks.onEnd?.();
   }
+}
+
+/** Tarjetas interactivas nuevas: imagen en una cara y texto en la otra. */
+export async function moreCardsInteractivas(
+  content: FichaContent, req: FichaRequest, n: number, lang: Lang, callbacks: Callbacks = {},
+): Promise<FichaTarjetaInteractiva[] | null> {
+  callbacks.onStart?.();
+  try {
+    const ilustraciones = `${listaIlustracionesParaIA('objeto', lang)}, ${listaIlustracionesParaIA('escena', lang)}`;
+    const schema = {
+      type: 'OBJECT',
+      properties: { tarjetasInteractivas: { type: 'ARRAY', items: TARJETA_INTERACTIVA_SCHEMA, description: `Exactamente ${n} tarjetas nuevas` } },
+      required: ['tarjetasInteractivas'],
+      propertyOrdering: ['tarjetasInteractivas'],
+    } as const;
+    const userPrompt =
+      `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
+      `Juego: ${content.titulo}\n\nTarjetas que ya hay (no las repitas):\n` +
+      (content.tarjetasInteractivas ?? []).map((tj, i) => `${i + 1}. ${tj.texto}`).join('\n') +
+      `\n\nCrea EXACTAMENTE ${n} tarjetas nuevas, distintas de las anteriores y con el mismo nivel.`;
+    const raw = await callGemini(tarjetasInteractivasSystemPrompt(lang, ilustraciones), userPrompt, [], { onError: callbacks.onError }, {
+      maxOutputTokens: 8192, responseSchema: schema, thinkingLevel: 'low', temperature: 1.1,
+    });
+    if (!raw) return null;
+    const parsed = parseGeminiJson<{ tarjetasInteractivas: FichaTarjetaInteractiva[] }>(raw);
+    const list = (parsed?.tarjetasInteractivas ?? [])
+      .filter(tj => tj?.texto?.trim() && tj?.imagen?.trim() && ilustracionPorId(tj.imagen))
+      .map(tj => ({ texto: cleanMathNotation(tj.texto), imagen: tj.imagen.trim(), imagenTipo: 'ilustracion' as const, imagenDelante: !!tj.imagenDelante }));
+    return list.length ? list : null;
+  } finally {
+    callbacks.onEnd?.();
+  }
+}
+
+/** Genera las tarjetas interactivas: imagen en una cara y texto en la otra. */
+async function generateTarjetasInteractivas(req: FichaRequest, lang: Lang, callbacks: Callbacks): Promise<FichaContent | null> {
+  const ilustraciones = `${listaIlustracionesParaIA('objeto', lang)}, ${listaIlustracionesParaIA('escena', lang)}`;
+  const userPrompt =
+    `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
+    (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
+    `\nCrea EXACTAMENTE ${req.numEjercicios} tarjetas interactivas sobre este tema, cada una con su imagen y su texto relacionado.`;
+  const raw = await callGemini(tarjetasInteractivasSystemPrompt(lang, ilustraciones), userPrompt, [], { onError: callbacks.onError }, {
+    maxOutputTokens: 8192, responseSchema: tarjetasInteractivasSchema(), thinkingLevel: 'low', temperature: 1.1,
+  });
+  if (!raw) return null;
+  const parsed = parseGeminiJson<{ titulo: string; instrucciones: string; tarjetasInteractivas: FichaTarjetaInteractiva[] }>(raw);
+  const tarjetas = (parsed?.tarjetasInteractivas ?? [])
+    .filter(tj => tj?.texto?.trim() && tj?.imagen?.trim() && ilustracionPorId(tj.imagen))
+    .map(tj => ({ texto: cleanMathNotation(tj.texto), imagen: tj.imagen.trim(), imagenTipo: 'ilustracion' as const, imagenDelante: !!tj.imagenDelante }));
+  if (!tarjetas.length) return null;
+  return {
+    titulo: cleanMathNotation(parsed?.titulo ?? ''),
+    explicacion: '',
+    instrucciones: cleanMathNotation(parsed?.instrucciones ?? ''),
+    actividades: [],
+    formato: 'tarjetas',
+    interactivas: true,
+    tarjetasInteractivas: tarjetas,
+    estilo: 'clasico',
+  };
 }
