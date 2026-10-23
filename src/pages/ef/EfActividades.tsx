@@ -20,6 +20,7 @@ import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { fileToBase64, isoDate } from '../../lib/utils';
 import { bancoEF } from '../../lib/bancoEF';
+import { deporteAlternativoDe, textoDe, TRANSVERSALES, type DeporteAlternativo, type ActividadGuia } from '../../lib/deportesAlternativos';
 import { alumnadoParaIA, edadAproximada, MODALIDADES_EF, nuevoIdEF, TIPOS_ACTIVIDAD } from '../../lib/ef';
 import { fotoParaIA } from '../../lib/fotos';
 import { hasApiKey, type InlineFile } from '../../services/gemini';
@@ -87,6 +88,8 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
   const archivoManual = useRef<HTMLInputElement>(null);
   /** La actividad que se está leyendo entera. */
   const [leyendo, setLeyendo] = useState<ActividadEF | null>(null);
+  /** Deporte alternativo abierto, con su progresión de sesiones. */
+  const [deporte, setDeporte] = useState<DeporteAlternativo | null>(null);
   const esNueva = !!editando && !ef.actividades.some(a => a.id === editando.id);
 
   const todas = useMemo(() => [...ef.actividades, ...bancoEF(lang)], [ef.actividades, lang]);
@@ -267,6 +270,45 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
     </details>
   );
 
+  if (deporte) {
+    const actividadDe = (codigo: string): ActividadGuia | undefined =>
+      deporte.especificas.find(e => e.codigo === codigo) ?? TRANSVERSALES.find(x => x.codigo === codigo);
+    return (
+      <section className="sec active ap-page">
+        <div className="pg-hd">
+          <div>
+            <h1 className="pg-title">{textoDe(deporte.nombre, lang)}</h1>
+            <p className="pg-sub">{textoDe(deporte.rasgos, lang)}</p>
+          </div>
+          <button className="btn-ghost" onClick={() => setDeporte(null)}><ArrowLeft size={15} />{t('Volver a Deportes')}</button>
+        </div>
+        <div className="ef-alt-sesiones">
+          {deporte.sesiones.map((s, i) => (
+            <div key={i} className="card">
+              <div className="home-card-ttl">{t('Sesión {n}', { n: i + 1 })} · {textoDe(s.titulo, lang)}</div>
+              <div className="ef-alt-acts">
+                {s.actividades.map(codigo => {
+                  const a = actividadDe(codigo);
+                  if (!a) return null;
+                  return (
+                    <div key={codigo} className="ef-alt-act">
+                      <span className="ef-alt-cod">{codigo}</span>
+                      <div>
+                        <strong>{textoDe(a.titulo, lang)}</strong>
+                        <p className="ap-sub"><em>{t('Objetivo')}:</em> {textoDe(a.objetivo, lang)}</p>
+                        <p>{textoDe(a.desarrollo, lang)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="sec active ap-page">
       <div className="pg-hd">
@@ -367,7 +409,7 @@ export function EfActividades({ classes, students, ef, onChangeEf, comunidad }: 
             : (
               <div className="ef-act-grid">
                 {visibles.map(a => (
-                  <button key={a.id} type="button" className="ef-act-card" style={{ '--ev-c': TARJETA_TIPO[a.tipo].color } as React.CSSProperties} onClick={() => setLeyendo(a)}>
+                  <button key={a.id} type="button" className="ef-act-card" style={{ '--ev-c': TARJETA_TIPO[a.tipo].color } as React.CSSProperties} onClick={() => { const d = deporteAlternativoDe(a.id); if (d) setDeporte(d); else setLeyendo(a); }}>
                     <span className="ef-act-card-ttl">{a.titulo}</span>
                     <span className="ef-act-chips">
                       {!enTipo && <span className="sda-chip">{t(TIPOS_ACTIVIDAD.find(x => x.id === a.tipo)!.label)}</span>}

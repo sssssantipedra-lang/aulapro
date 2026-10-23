@@ -255,6 +255,9 @@ export const EF_EN: Record<string, string> = {
   /* ── Actividades, sesiones, material e instalaciones ── */
   'Juegos motrices': 'Movement games',
   'Deportes': 'Sports',
+  'Desarrollo': 'How to do it',
+  'Sesión {n}': 'Session {n}',
+  'Volver a Deportes': 'Back to Sports',
   'Para días de lluvia': 'For rainy days',
   'En el medio natural': 'Outdoors',
   'Calentamiento': 'Warm-up',
@@ -970,6 +973,9 @@ export const EF_CA: Record<string, string> = {
   /* ── Actividades, sesiones, material e instalaciones ── */
   'Juegos motrices': 'Jocs motrius',
   'Deportes': 'Esports',
+  'Desarrollo': 'Desenvolupament',
+  'Sesión {n}': 'Sessió {n}',
+  'Volver a Deportes': 'Tornar a Esports',
   'Para días de lluvia': 'Per a dies de pluja',
   'En el medio natural': 'En el medi natural',
   'Calentamiento': 'Escalfament',
