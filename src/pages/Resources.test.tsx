@@ -106,9 +106,17 @@ describe('Recursos — editor de fichas', () => {
     expect(screen.getByRole('radio', { name: /Que elija la IA/ })).toBeTruthy();
   });
 
+  it('al clicar una ficha guardada se abre un panel con Proyectar y Editar', async () => {
+    setup();
+    await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    expect(screen.getByRole('button', { name: 'Proyectar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Editar' })).toBeTruthy();
+  });
+
   it('abre la ficha en el editor con la historia y sus bloques', async () => {
     setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByDisplayValue('Capitana Nova')).toBeTruthy();
     expect(screen.getByDisplayValue('Motor')).toBeTruthy();
     // Los ejercicios salen en una línea cada uno; se abren al tocarlos
@@ -122,6 +130,7 @@ describe('Recursos — editor de fichas', () => {
   it('cambiar de tema no regenera nada y cambia la etiqueta de los bloques', async () => {
     const onSave = setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByText('Misión 1')).toBeTruthy();
     await userEvent.click(screen.getByRole('radio', { name: /Caso de detectives/ }));
     expect(screen.getByText('Pista 1')).toBeTruthy();
@@ -135,6 +144,7 @@ describe('Recursos — editor de fichas', () => {
   it('mueve y borra ejercicios', async () => {
     const onSave = setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
     const bajar = screen.getAllByRole('button', { name: 'Bajar' });
     await userEvent.click(bajar[0]);
@@ -148,6 +158,7 @@ describe('Recursos — editor de fichas', () => {
   it('editar el enunciado llega a la vista previa', async () => {
     setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 2' }));
     fireEvent.change(screen.getByDisplayValue('Explica qué es una fracción.'), { target: { value: 'Dibuja tres cuartos.' } });
     const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
@@ -158,6 +169,7 @@ describe('Recursos — editor de fichas', () => {
   it('escape room: cada bloque es una sala con su código editable', async () => {
     const onSave = setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, formato: 'escape', actividades: ficha.content.actividades.map(a => ({ ...a, candado: { codigo: '472', pista: 'Resultados en orden' } })) } }]);
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByText('Sala 1')).toBeTruthy();
     const code = screen.getByDisplayValue('472');
     fireEvent.change(code, { target: { value: 'a-9 b' } });
@@ -168,6 +180,7 @@ describe('Recursos — editor de fichas', () => {
   it('tarjetas: se editan y se añaden en una lista', async () => {
     const onSave = setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, formato: 'tarjetas', actividades: [], tarjetas: [{ pregunta: '¿1/2 de 8?', respuesta: '4' }] } }]);
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByDisplayValue('¿1/2 de 8?')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: /Añadir tarjeta/ }));
     await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
@@ -178,6 +191,7 @@ describe('Recursos — editor de fichas', () => {
     localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
     setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.click(screen.getByRole('button', { name: 'Adaptar' }));
     expect(screen.getByRole('menuitem', { name: /Versión de apoyo/ })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /Versión de ampliación/ })).toBeTruthy();
@@ -202,6 +216,7 @@ describe('Recursos — editor de fichas', () => {
     };
     const onSave = setup(vi.fn(), [visual]);
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByDisplayValue('Primero, lee. Luego, rodea.')).toBeTruthy();
     expect(screen.getByDisplayValue('Una parte de algo.')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
@@ -219,6 +234,7 @@ describe('Recursos — editor de fichas', () => {
     localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
     const onSave = setup();
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.click(screen.getByRole('button', { name: /Añadir ejercicio con IA/ }));
     expect(await screen.findByDisplayValue('Un reto nuevo')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
@@ -230,6 +246,7 @@ describe('Recursos — editor de fichas', () => {
     localStorage.setItem('aulapro_gemini_key', 'AIzaTEST');
     const onSave = setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, formato: 'tarjetas', actividades: [], tarjetas: [{ pregunta: '¿1/2 de 8?', respuesta: '4' }] } }]);
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.click(screen.getByRole('button', { name: /4 tarjetas más con IA/ }));
     expect(await screen.findByDisplayValue('Nueva 4')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: /^Guardar$/ }));
@@ -408,6 +425,7 @@ describe('Recursos · crear en dos pasos', () => {
   it('el aspecto y el hilo de una ficha de ejercicios van recogidos en una fila; el texto del Cuaderno se abre con «Cambiar»', async () => {
     setup(vi.fn(), [{ ...ficha, content: { ...ficha.content, estilo: 'cuaderno', historia: undefined } }]);
     await userEvent.click(screen.getByText('Rescate en el planeta Fracción'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByText('Aspecto')).toBeTruthy();
     expect((document.querySelector('.fe-look') as HTMLDetailsElement).open).toBe(false);
   });

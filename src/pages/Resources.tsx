@@ -8,9 +8,9 @@
  * la hoja A4 tal cual se imprimirá, en vivo. El tema visual se cambia con un
  * clic sin volver a generar nada.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon,
+  Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil,
 } from 'lucide-react';
 import type { Class, Ficha } from '../types';
 import {
@@ -206,8 +206,10 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
   const [addTipo, setAddTipo] = useState<Record<number, FichaExerciseType | ''>>({});
   /** Índice de la tarjeta interactiva a la que se le está eligiendo imagen. */
   const [pickingImagen, setPickingImagen] = useState<number | null>(null);
-  /** Tarjetas interactivas: abrir el modo de uso (girar y marcar). */
-  const [playing, setPlaying] = useState(false);
+  /** Tarjetas interactivas: abrir el modo de uso (girar y marcar), desde el editor o la biblioteca. */
+  const [projecting, setProjecting] = useState<{ titulo: string; cards: FichaTarjetaInteractiva[] } | null>(null);
+  /** Ficha de la biblioteca con su panel de acciones («Proyectar» / «Editar») abierto. */
+  const [menuFicha, setMenuFicha] = useState<string | null>(null);
 
   const activeClass = classes.find(c => c.id === classId) ?? null;
   const sinClave = !hasApiKey();
@@ -352,6 +354,35 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     if (dirty && !window.confirm(t('La ficha tiene cambios sin guardar. ¿Salir sin guardar?'))) return;
     setContent(null); setEditingId(null); setDirty(false); setSelected(null);
   }
+
+  /** Proyectar una ficha guardada: las interactivas abren el modo de girar, el resto va a Pizarra y herramientas. */
+  function projectFicha(f: Ficha) {
+    setMenuFicha(null);
+    if (f.content.interactivas) {
+      setProjecting({ titulo: f.title, cards: f.content.tarjetasInteractivas ?? [] });
+    } else if (onProject) {
+      onProject(f);
+    }
+  }
+
+  function editFicha(f: Ficha) {
+    setMenuFicha(null);
+    openSaved(f);
+  }
+
+  // El panel de acciones se cierra al tocar fuera o con Escape
+  useEffect(() => {
+    if (!menuFicha) return;
+    const onDown = (e: MouseEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest(`[data-ficha="${menuFicha}"]`)) return;
+      setMenuFicha(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuFicha(null); };
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey); };
+  }, [menuFicha]);
 
   /* ── Edición por bloques ── */
   const patchEx = (a: number, i: number, ex: FichaExercise) => edit(c => ({
@@ -506,7 +537,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
           <div className="fe-top-actions">
             {content.interactivas && (
-              <button type="button" className="btn-ghost" onClick={() => setPlaying(true)} title={t('Girarlas a pantalla completa')}>
+              <button type="button" className="btn-ghost" onClick={() => setProjecting({ titulo: content.titulo, cards: content.tarjetasInteractivas ?? [] })} title={t('Girarlas a pantalla completa')}>
                 <MonitorPlay size={14} />{t('Probar')}
               </button>
             )}
@@ -809,11 +840,11 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           onClose={() => setPickingImagen(null)}
           onPick={(tipo, id) => { if (pickingImagen !== null) patchCardInt(pickingImagen, { imagen: id, imagenTipo: tipo }); setPickingImagen(null); }}
         />
-        {playing && (
+        {projecting && (
           <TarjetasInteractivasPlay
-            onClose={() => setPlaying(false)}
-            titulo={content.titulo}
-            cards={content.tarjetasInteractivas ?? []}
+            onClose={() => setProjecting(null)}
+            titulo={projecting.titulo}
+            cards={projecting.cards}
           />
         )}
       </section>
@@ -1061,8 +1092,8 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
               const th = fichaTheme(f.content.estilo);
               const nEj = f.content.formato === 'tarjetas' ? 0 : (f.content.actividades ?? []).reduce((s, a) => s + a.ejercicios.length, 0);
               return (
-                <div key={f.id} className="fe-card" style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}` } as React.CSSProperties}>
-                  <button type="button" className="fe-card-main" onClick={() => openSaved(f)}>
+                <div key={f.id} className="fe-card" data-ficha={f.id} style={{ '--th': `#${th.color}`, '--thd': `#${th.oscuro}` } as React.CSSProperties}>
+                  <button type="button" className="fe-card-main" onClick={() => setMenuFicha(f.id)}>
                     <ThemeArt id={th.id} className="fe-card-art" />
                     <span className="fe-card-body">
                       <span className="fe-card-ttl">{f.title}</span>
@@ -1081,6 +1112,18 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
                       </span>
                     </span>
                   </button>
+
+                  {menuFicha === f.id && (
+                    <div className="fe-card-menu" role="menu" aria-label={f.title}>
+                      <button type="button" className="fe-menu-proyectar" onClick={() => projectFicha(f)}>
+                        <MonitorPlay size={20} />{t('Proyectar')}
+                      </button>
+                      <button type="button" className="fe-menu-editar" onClick={() => editFicha(f)}>
+                        <Pencil size={16} />{t('Editar')}
+                      </button>
+                    </div>
+                  )}
+
                   <div className="fe-card-actions">
                     {isDesktop() && (
                       <button className="ico-btn" title={t('Guardar en PDF')} aria-label={t('Guardar en PDF')} disabled={exporting !== null} onClick={() => handleExportPdf(f, f.id)}>
@@ -1109,6 +1152,10 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
           </div>
         )}
       </div>
+
+      {projecting && (
+        <TarjetasInteractivasPlay onClose={() => setProjecting(null)} titulo={projecting.titulo} cards={projecting.cards} />
+      )}
     </section>
   );
 }
