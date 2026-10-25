@@ -20,7 +20,7 @@ Pantalla: `src/pages/Share.tsx` (menú «Trabajo compartido», `Section` `share`
 
 **Quien envía**
 
-1. Marca las clases y qué comparte: cuaderno de notas, rúbricas y dianas, evaluaciones. El alumnado de las clases va siempre. Ve los recuentos de lo que irá en el archivo.
+1. Marca las clases y qué comparte: cuaderno de notas, rúbricas y dianas, evaluaciones. Ve los recuentos de lo que irá en el archivo. Con **«Elegir con detalle»** puede quitar lo que no quiera mandar: alumnos concretos, columnas concretas del cuaderno, rúbricas, dianas y escalas concretas, y las evaluaciones de un instrumento. Todo viene marcado y se quita lo que sobra, así que lo que se cree después entra solo; quitar a un alumno quita también sus notas y sus evaluaciones.
 2. Tiene una contraseña aleatoria propuesta (`ABCD-EFGH-JKMN-PQRS`, 16 símbolos de un alfabeto de 31 sin los que se confunden, unos 79 bits) que puede copiar, cambiar o sustituir por una propia de al menos 10 caracteres.
 3. «Crear archivo cifrado» guarda `aulapro-compartido-AAAA-MM-DD.json` como una copia de seguridad (Documentos › AulaPro › Copias de seguridad en Android; diálogo de guardar en el ordenador).
 4. Manda el archivo por el medio que quiera y la contraseña **por otro**.
@@ -53,6 +53,10 @@ Pidió el dueño que, si era posible, solo la app pudiera leerlo. **No es posibl
 
 `buildBundle` en `src/services/paquete.ts`: las clases elegidas y su alumnado; con las casillas, categorías, columnas y notas del cuaderno; las rúbricas y dianas **que se usan en esas clases** (la principal o una de las otras clases en las que se comparte; las que no tienen clase asignada no salen nunca) y las evaluaciones de esas clases. Nunca el perfil ni la clave de la IA.
 
+Las exclusiones del detalle viven en `ShareScope` (`sinAlumnos`, `sinColumnas`, `sinInstrumentos`, `sinEvaluacionesDe`): se guarda lo que se **quita**, no lo que se marca. Una categoría del cuaderno va si alguna de sus columnas va o si nunca tuvo ninguna; las notas solo llevan celdas de los alumnos que van; las evaluaciones se agrupan por instrumento (`gruposDeEvaluaciones`).
+
+**No se puede elegir todavía** (no están en el paquete): fichas, situaciones de aprendizaje, sesiones de aula y de EF, asistencia, anotaciones de actitud, agenda, ni nada del módulo de PT y AL.
+
 ## Código
 
 | Qué | Dónde |
@@ -60,6 +64,7 @@ Pidió el dueño que, si era posible, solo la app pudiera leerlo. **No es posibl
 | Pantalla | `src/pages/Share.tsx` (y su prueba, `Share.test.tsx`, que recorre el flujo entero: crear, abrir con la contraseña buena y con una mala, importar) |
 | Cifrado | `src/services/copiaCifrada.ts` |
 | Qué entra en el paquete y cómo se mezcla | `src/services/paquete.ts` |
+| Elegir con detalle | `src/components/compartir/DetalleEnvio.tsx` |
 | Importar en los datos del perfil | `importarPaquete` en `src/hooks/useAppState.ts` (apunta una línea en el registro de cambios: «Importó datos de otro docente») |
 | Textos en inglés y catalán | `src/i18n/compartir.ts` |
 

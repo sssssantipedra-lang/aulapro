@@ -30,8 +30,11 @@ afterEach(() => { cleanup(); guardados.length = 0; });
 
 const clase = { id: 'c1', name: '5.º A', subject: 'Matemáticas', color: '#2563eb' } as unknown as Class;
 const alumno = { id: 'a1', name: 'Alumno 1', class_id: 'c1' } as unknown as Student;
+const alumno2 = { id: 'a2', name: 'Alumno 2', class_id: 'c1' } as unknown as Student;
 const fuente: SyncSource = {
-  classes: [clase], students: [alumno], gradeCategories: [], gradeItems: [], grades: {},
+  classes: [clase], students: [alumno, alumno2], gradeCategories: [{ id: 'k1', class_id: 'c1', name: 'Exámenes', weight: 100 }],
+  gradeItems: [{ id: 'g1', class_id: 'c1', category_id: 'k1', name: 'Examen 1', date: '2026-10-01' }, { id: 'g2', class_id: 'c1', category_id: 'k1', name: 'Examen 2', date: '2026-10-15' }],
+  grades: { g1: { a1: 7, a2: 9 }, g2: { a1: 5, a2: 6 } },
   rubrics: [], dianas: [], evaluations: [], me: 'perfil-1',
 };
 
@@ -101,7 +104,7 @@ describe('compartir con otro docente', () => {
     const [paquete, modo] = onImport.mock.calls[0] as unknown as [{ classes: { id: string }[]; students: { id: string }[] }, string];
     expect(modo).toBe('conservar');
     expect(paquete.classes.map(c => c.id)).toEqual(['c1']);
-    expect(paquete.students.map(s => s.id)).toEqual(['a1']);
+    expect(paquete.students.map(s => s.id)).toEqual(['a1', 'a2']);
   });
 
   it('con una contraseña equivocada no entra nada', async () => {
@@ -124,5 +127,48 @@ describe('compartir con otro docente', () => {
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     await userEvent.upload(input, new File(['{"_app":"AulaPro","data":{}}'], 'copia.json', { type: 'application/json' }));
     expect((await screen.findByRole('alert')).textContent).toContain('no es una copia cifrada');
+  });
+
+  it('se puede elegir con detalle qué va: sin un alumno ni una columna, y sin sus notas', async () => {
+    const { unmount } = pinta();
+    const clave = 'una frase larga y secreta';
+    await userEvent.click(screen.getByRole('button', { name: '5.º A' }));
+    await userEvent.click(screen.getByText('Elegir con detalle'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Alumno 2' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Examen 1/ }));
+    expect(screen.getByText('2 sin enviar')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Escribir la mía' }));
+    await userEvent.type(screen.getByLabelText('Escribe una contraseña'), clave);
+    await userEvent.click(screen.getByRole('button', { name: /Crear archivo cifrado/ }));
+    await waitFor(() => expect(guardados).toHaveLength(1), { timeout: 15000 });
+    unmount();
+
+    // Quien lo recibe solo ve lo que se dejó marcado
+    const { onImport, container } = pinta();
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await userEvent.upload(input, new File([guardados[0].texto], guardados[0].nombre, { type: 'application/json' }));
+    await userEvent.type(await screen.findByLabelText('Contraseña que te han dado'), clave);
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir' }));
+    await screen.findByText('De Profesor', {}, { timeout: 15000 });
+    await userEvent.click(screen.getByRole('button', { name: /Importar/ }));
+
+    const [paquete] = onImport.mock.calls[0] as unknown as [{
+      students: { id: string }[]; gradeItems: { id: string }[]; grades: Record<string, Record<string, number>>;
+    }];
+    expect(paquete.students.map(x => x.id)).toEqual(['a1']);
+    expect(paquete.gradeItems.map(x => x.id)).toEqual(['g2']);
+    expect(paquete.grades).toEqual({ g2: { a1: 5 } });
+  });
+
+  it('Ninguno y Todos cambian de golpe toda la lista', async () => {
+    pinta();
+    await userEvent.click(screen.getByRole('button', { name: '5.º A' }));
+    await userEvent.click(screen.getByText('Elegir con detalle'));
+    const botonesNinguno = screen.getAllByRole('button', { name: 'Ninguno' });
+    await userEvent.click(botonesNinguno[0]);                       // el alumnado
+    expect((screen.getByRole('checkbox', { name: 'Alumno 1' }) as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByRole('checkbox', { name: 'Alumno 2' }) as HTMLInputElement).checked).toBe(false);
+    await userEvent.click(screen.getAllByRole('button', { name: 'Todos' })[0]);
+    expect((screen.getByRole('checkbox', { name: 'Alumno 1' }) as HTMLInputElement).checked).toBe(true);
   });
 });

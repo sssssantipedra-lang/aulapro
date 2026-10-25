@@ -11,6 +11,7 @@ import {
   cifrarCopia, descifrarCopia, esCopiaCifrada, generarContrasena, contrasenaValida,
   normalizarContrasena, CopiaError, LARGO_MINIMO_CONTRASENA, type ContenidoCompartido,
 } from '../services/copiaCifrada';
+import { DetalleEnvio } from '../components/compartir/DetalleEnvio';
 import { downloadFile } from '../lib/download';
 import { CARPETAS } from '../lib/carpetas';
 import { isoDate } from '../lib/utils';
@@ -242,9 +243,7 @@ export function Share({ classes, source, userName, onImport }: Props) {
                     </label>
                   ))}
                 </div>
-                <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '8px 2px 0' }}>
-                  {t('El alumnado de las clases elegidas va siempre incluido.')}
-                </p>
+                <DetalleEnvio source={source} scope={scope} onChange={s => { setCreado(null); setScope(s); }} />
 
                 {!nadaElegido && (
                   <div style={{ marginTop: 14 }}>

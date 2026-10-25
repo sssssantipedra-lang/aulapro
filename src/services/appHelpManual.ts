@@ -670,8 +670,10 @@ Pasa clases, alumnado, notas, rúbricas, dianas y evaluaciones de un docente a
 otro con un ARCHIVO CIFRADO. No hay conexión entre los dos equipos ni QR: desde
 la versión 2.20 se quitó el trabajo compartido en directo.
 - Quien envía marca las clases y lo que comparte (cuaderno de notas, rúbricas y
-  dianas de esas clases, evaluaciones; el alumnado de las clases va siempre) y
-  pulsa «Crear archivo cifrado». La app propone una contraseña aleatoria (por
+  dianas de esas clases, evaluaciones). Con «Elegir con detalle» puede quitar
+  alumnos concretos (con sus notas y evaluaciones), columnas del cuaderno,
+  rúbricas, dianas o escalas, y las evaluaciones de un instrumento: lo que se deja
+  sin marcar no va en el archivo. Después pulsa «Crear archivo cifrado». La app propone una contraseña aleatoria (por
   ejemplo ABCD-EFGH-JKMN-PQRS) que se puede copiar, cambiar o sustituir por una
   propia de al menos 10 caracteres. El archivo se guarda como una copia de
   seguridad (en Android, en Documentos › AulaPro › Copias de seguridad).

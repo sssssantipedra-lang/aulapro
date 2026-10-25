@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  buildBundle, mergeBundle, bundleCounts, emptyBundle, esPaquete,
+  buildBundle, mergeBundle, bundleCounts, emptyBundle, esPaquete, gruposDeEvaluaciones,
   type SharedBundle, type SyncSource, type ShareScope, type LocalState,
 } from './paquete';
 import type { Class, Student, GradeCategory, GradeItem, Rubric, Evaluation } from '../types';
@@ -266,5 +266,83 @@ describe('recuentos y forma del paquete', () => {
     expect(esPaquete(null)).toBe(false);
     expect(esPaquete({ classes: [] })).toBe(false);
     expect(esPaquete({ ...emptyBundle(), grades: [] })).toBe(false);
+  });
+});
+
+describe('buildBundle: elegir con detalle lo que se envía', () => {
+  const source: SyncSource = {
+    classes: [cls('c1'), cls('c2')],
+    students: [stu('s1', 'c1', 'Alumno 1'), stu('s2', 'c1', 'Alumno 2'), stu('s3', 'c2')],
+    gradeCategories: [cat('exam', 'c1'), cat('tareas', 'c1'), cat('vacia', 'c1')],
+    gradeItems: [item('i1', 'c1', 'exam'), item('i2', 'c1', 'exam'), item('i3', 'c1', 'tareas'), item('x', 'c2', 'exam')],
+    grades: { i1: { s1: 8, s2: 5 }, i2: { s1: 6, s2: 7 }, i3: { s1: 9, s2: 4 }, x: { s3: 1 } },
+    rubrics: [rub('r1', 'c1'), rub('r2', 'c1')],
+    dianas: [{ id: 'd1', name: 'd1', items: [], class_id: 'c1' }],
+    evaluations: [
+      { ...evl('e1', 'c1'), rubric_id: 'r1', student_id: 's1' },
+      { ...evl('e2', 'c1'), rubric_id: 'r1', student_id: 's2' },
+      { ...evl('e3', 'c1'), rubric_id: 'r2', student_id: 's1' },
+    ],
+  };
+  const base: ShareScope = { classIds: ['c1'], grades: true, rubrics: true, evaluations: true };
+
+  it('sin exclusiones va todo lo de las clases elegidas, como siempre', () => {
+    const b = buildBundle(source, base);
+    expect(b.students).toHaveLength(2);
+    expect(b.gradeItems).toHaveLength(3);
+    expect(b.rubrics).toHaveLength(2);
+    expect(b.dianas).toHaveLength(1);
+    expect(b.evaluations).toHaveLength(3);
+  });
+
+  it('un alumno que se deja fuera se lleva sus notas y sus evaluaciones', () => {
+    const b = buildBundle(source, { ...base, sinAlumnos: ['s2'] });
+    expect(b.students.map(s => s.id)).toEqual(['s1']);
+    expect(b.grades.i1).toEqual({ s1: 8 });
+    expect(b.grades.i3).toEqual({ s1: 9 });
+    expect(b.evaluations.map(e => e.id).sort()).toEqual(['e1', 'e3']);
+  });
+
+  it('una columna que se deja fuera no lleva ni sus notas, y su categoría sigue si le quedan otras', () => {
+    const b = buildBundle(source, { ...base, sinColumnas: ['i1'] });
+    expect(b.gradeItems.map(i => i.id).sort()).toEqual(['i2', 'i3']);
+    expect(b.grades.i1).toBeUndefined();
+    expect(b.gradeCategories.map(c => c.id)).toContain('exam');
+  });
+
+  it('una categoría se va con todas sus columnas, pero una categoría que nunca tuvo columnas se queda', () => {
+    const b = buildBundle(source, { ...base, sinColumnas: ['i1', 'i2'] });
+    const cats = b.gradeCategories.map(c => c.id).sort();
+    expect(cats).toEqual(['tareas', 'vacia']);
+  });
+
+  it('se puede dejar fuera una rúbrica o una diana concreta', () => {
+    const b = buildBundle(source, { ...base, sinInstrumentos: ['r2', 'd1'] });
+    expect(b.rubrics.map(r => r.id)).toEqual(['r1']);
+    expect(b.dianas).toHaveLength(0);
+  });
+
+  it('se pueden dejar fuera las evaluaciones de un instrumento, y el instrumento sigue', () => {
+    const b = buildBundle(source, { ...base, sinEvaluacionesDe: ['r1'] });
+    expect(b.evaluations.map(e => e.id)).toEqual(['e3']);
+    expect(b.rubrics.map(r => r.id).sort()).toEqual(['r1', 'r2']);
+  });
+
+  it('las exclusiones de otra clase no afectan a las clases elegidas', () => {
+    const b = buildBundle(source, { ...base, sinAlumnos: ['s3'], sinColumnas: ['x'] });
+    expect(b.students).toHaveLength(2);
+    expect(b.gradeItems).toHaveLength(3);
+  });
+
+  it('agrupa las evaluaciones por instrumento, solo de las clases elegidas', () => {
+    const grupos = gruposDeEvaluaciones(
+      [...source.evaluations, { ...evl('e9', 'c2'), rubric_id: 'r1' }, { ...evl('a1', 'c1'), rubric_id: 'autoeval', rubric_name: 'Mates (autoevaluación)' }],
+      ['c1'],
+    );
+    expect(grupos).toEqual([
+      { id: 'autoeval', nombre: 'Autoevaluaciones', n: 1 },
+      { id: 'r1', nombre: 'R', n: 2 },
+      { id: 'r2', nombre: 'R', n: 1 },
+    ]);
   });
 });

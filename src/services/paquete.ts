@@ -18,6 +18,19 @@ export interface ShareScope {
   grades: boolean;
   rubrics: boolean;
   evaluations: boolean;
+  /**
+   * Lo que se deja fuera dentro de las clases elegidas (25-10-2026, petición del
+   * dueño: «poder elegir qué exactamente se quiere enviar»). Por defecto no se
+   * deja nada fuera, y lo que se cree después entra solo: se guarda lo que
+   * SE QUITA, no lo que se marca.
+   */
+  sinAlumnos?: string[];
+  /** Columnas del cuaderno (ids de `GradeItem`). */
+  sinColumnas?: string[];
+  /** Rúbricas, dianas y escalas de registro. */
+  sinInstrumentos?: string[];
+  /** Ids de rúbrica o diana cuyas evaluaciones no van. */
+  sinEvaluacionesDe?: string[];
 }
 
 export const EMPTY_SCOPE: ShareScope = { classIds: [], grades: true, rubrics: true, evaluations: true };
@@ -56,7 +69,7 @@ export function emptyBundle(): SharedBundle {
 }
 
 /** ¿El instrumento se usa en alguna de estas clases? (la principal o las otras en las que se comparte) */
-function usadoEn(t: { class_id?: string; otras_clases?: { class_id: string }[] }, ids: Set<string>): boolean {
+export function usadoEn(t: { class_id?: string; otras_clases?: { class_id: string }[] }, ids: Set<string>): boolean {
   if (t.class_id && ids.has(t.class_id)) return true;
   return (t.otras_clases ?? []).some(o => ids.has(o.class_id));
 }
@@ -64,17 +77,30 @@ function usadoEn(t: { class_id?: string; otras_clases?: { class_id: string }[] }
 /** Extrae del estado solo lo que el docente ha elegido compartir. */
 export function buildBundle(src: SyncSource, scope: ShareScope): SharedBundle {
   const ids = new Set(scope.classIds);
-  const classes = src.classes.filter(c => ids.has(c.id));
-  const students = src.students.filter(s => ids.has(s.class_id));
+  const sinAlumnos = new Set(scope.sinAlumnos ?? []);
+  const sinColumnas = new Set(scope.sinColumnas ?? []);
+  const sinInstrumentos = new Set(scope.sinInstrumentos ?? []);
+  const sinEvaluacionesDe = new Set(scope.sinEvaluacionesDe ?? []);
 
-  const gradeCategories = scope.grades ? src.gradeCategories.filter(c => ids.has(c.class_id)) : [];
-  const gradeItems      = scope.grades ? src.gradeItems.filter(i => ids.has(i.class_id)) : [];
+  const classes = src.classes.filter(c => ids.has(c.id));
+  const students = src.students.filter(s => ids.has(s.class_id) && !sinAlumnos.has(s.id));
+  const alumnosQueVan = new Set(students.map(s => s.id));
+
+  const gradeItems = scope.grades ? src.gradeItems.filter(i => ids.has(i.class_id) && !sinColumnas.has(i.id)) : [];
+  // Una categoría va si alguna de sus columnas va, o si nunca tuvo ninguna (solo es estructura)
+  const categoriasConColumnas = new Set(src.gradeItems.map(i => i.category_id));
+  const categoriasQueVan = new Set(gradeItems.map(i => i.category_id));
+  const gradeCategories = scope.grades
+    ? src.gradeCategories.filter(c => ids.has(c.class_id) && (categoriasQueVan.has(c.id) || !categoriasConColumnas.has(c.id)))
+    : [];
 
   const grades: GradeMap = {};
   if (scope.grades) {
     const itemIds = new Set(gradeItems.map(i => i.id));
     for (const [itemId, row] of Object.entries(src.grades)) {
-      if (itemIds.has(itemId)) grades[itemId] = { ...row };
+      if (!itemIds.has(itemId)) continue;
+      // Sin las notas del alumnado que se deja fuera
+      grades[itemId] = Object.fromEntries(Object.entries(row).filter(([studentId]) => alumnosQueVan.has(studentId)));
     }
   }
 
@@ -86,11 +112,29 @@ export function buildBundle(src: SyncSource, scope: ShareScope): SharedBundle {
     grades,
     // Solo las rúbricas y dianas que se usan en las clases elegidas: antes iban
     // todas, y con ellas la biblioteca entera del docente.
-    rubrics: scope.rubrics ? src.rubrics.filter(r => usadoEn(r, ids)) : [],
-    dianas:  scope.rubrics ? src.dianas.filter(d => usadoEn(d, ids)) : [],
-    evaluations: scope.evaluations ? src.evaluations.filter(e => ids.has(e.class_id)) : [],
+    rubrics: scope.rubrics ? src.rubrics.filter(r => usadoEn(r, ids) && !sinInstrumentos.has(r.id)) : [],
+    dianas:  scope.rubrics ? src.dianas.filter(d => usadoEn(d, ids) && !sinInstrumentos.has(d.id)) : [],
+    evaluations: scope.evaluations
+      ? src.evaluations.filter(e => ids.has(e.class_id) && !sinAlumnos.has(e.student_id) && !sinEvaluacionesDe.has(e.rubric_id))
+      : [],
     from: src.me,
   };
+}
+
+/**
+ * Las evaluaciones de las clases elegidas, juntas por instrumento (una línea por
+ * rúbrica o diana, con cuántas son), para que el docente elija de cuáles manda.
+ */
+export function gruposDeEvaluaciones(evaluaciones: Evaluation[], classIds: string[]): { id: string; nombre: string; n: number }[] {
+  const ids = new Set(classIds);
+  const grupos = new Map<string, { id: string; nombre: string; n: number }>();
+  for (const e of evaluaciones) {
+    if (!ids.has(e.class_id)) continue;
+    const g = grupos.get(e.rubric_id);
+    if (g) g.n += 1;
+    else grupos.set(e.rubric_id, { id: e.rubric_id, nombre: e.rubric_id === 'autoeval' ? 'Autoevaluaciones' : e.rubric_name, n: 1 });
+  }
+  return [...grupos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 }
 
 /**

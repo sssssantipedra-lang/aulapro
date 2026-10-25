@@ -4,6 +4,13 @@
  * `services/copiaCifrada.ts`). Se suman a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const COMPARTIR_EN: Record<string, string> = {
+  'Todos': 'All',
+  'Elegir con detalle': 'Choose in detail',
+  '{n} sin enviar': '{n} left out',
+  'Quita lo que no quieras mandar: lo que dejes sin marcar no va en el archivo. Si quitas a un alumno, también se quitan sus notas y sus evaluaciones.': 'Untick whatever you don’t want to send: anything left unticked is not in the file. If you remove a student, their marks and assessments are removed too.',
+  'Columnas del cuaderno': 'Gradebook columns',
+  'Rúbricas, dianas y escalas': 'Rubrics, targets and checklist scales',
+  'Evaluaciones, por instrumento': 'Assessments, by instrument',
   'Compartir con otro docente': 'Share with another teacher',
   'Un archivo cifrado con contraseña: lo envías por el medio que quieras y solo se abre con ella': 'An encrypted, password-protected file: send it any way you like and it only opens with the password',
   'Enviar a otro docente': 'Send to another teacher',
@@ -56,6 +63,13 @@ export const COMPARTIR_EN: Record<string, string> = {
 };
 
 export const COMPARTIR_CA: Record<string, string> = {
+  'Todos': 'Tots',
+  'Elegir con detalle': 'Triar amb detall',
+  '{n} sin enviar': '{n} sense enviar',
+  'Quita lo que no quieras mandar: lo que dejes sin marcar no va en el archivo. Si quitas a un alumno, también se quitan sus notas y sus evaluaciones.': 'Treu el que no vulguis enviar: el que deixis sense marcar no va a l’arxiu. Si treus un alumne, també se’n treuen les notes i les avaluacions.',
+  'Columnas del cuaderno': 'Columnes del quadern',
+  'Rúbricas, dianas y escalas': 'Rúbriques, dianes i escales',
+  'Evaluaciones, por instrumento': 'Avaluacions, per instrument',
   'Compartir con otro docente': 'Compartir amb un altre docent',
   'Un archivo cifrado con contraseña: lo envías por el medio que quieras y solo se abre con ella': 'Un arxiu xifrat amb contrasenya: l’envies pel mitjà que vulguis i només s’obre amb ella',
   'Enviar a otro docente': 'Enviar a un altre docent',
