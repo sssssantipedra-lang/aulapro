@@ -94,6 +94,30 @@ Petición del dueño: más pictogramas con el MCP de fal.ai, por ejemplo usar pl
   - «Fin de la actividad» salió con una marca verde algo irregular: se puede repetir.
   - Sin ver en la app la agenda visual y el PDF con los nuevos: la sesión que lo hizo no tenía pantalla; sí se probó que cada archivo existe y que el PDF los incrusta (`exportAgenda.test.ts`). El Word los pasa a PNG con la misma función que las ilustraciones WebP, pero no se ha ejecutado con estos.
 
+## El flujo real del curso y lo que falta (25-10-2026)
+
+Lo cuenta el dueño, que conoce el trabajo de un PT: **la tarea se resume en una programación anual individual de cada alumno, hecha a partir del informe sociopsicopedagógico que aporta el orientador del centro**. De ella salen los objetivos de cada alumno, que se evalúan trimestre a trimestre; con la programación y su evaluación trimestral se hace **un informe que se entrega a los tutores y a las familias**. Lo difícil y lo que más tiempo quita son las programaciones y los informes trimestrales de cada alumno. Para saber cómo avanza, se registra cada sesión. Y en las sesiones se **adapta la programación de aula del tutor o la tutora** teniendo en cuenta los objetivos de cada alumno; lo ideal sería que, **a partir del informe psicopedagógico, la app pudiera crear esa programación de aula adaptada**. Objetivo: reducir la carga burocrática.
+
+Resumen de la revisión (qué hay, qué falta). Ver también «Qué tiene que hacer» arriba.
+
+| Paso del curso | Estado |
+|---|---|
+| Informe sociopsicopedagógico del orientador | **No está.** La ficha del alumno solo tiene diagnóstico, categorías NEAE, necesidades y notas, escritos a mano. No se puede subir ni pegar el informe, ni la app extrae de él nada (nivel curricular, necesidades, orientaciones). |
+| Programación anual individual | Está (`programacion`, un documento por alumno) y se redacta con la IA, pero parte de los objetivos que ya hay escritos y de los datos de la ficha, no del informe. |
+| Objetivos por trimestre | Están (`ProgramaApoyo.objetivos`, `proponerObjetivos`), con criterios oficiales del curso de su nivel. Se proponen sin el informe. |
+| Registro de cada sesión | Está y es cómodo. Alimenta las gráficas, los avisos y los informes. |
+| Evaluación trimestral | **A medias.** No hay un paso de «cerrar el trimestre»: el informe toma lo último que se registró de cada objetivo. No se puede ver ni corregir la nota de cada objetivo (conseguido, en proceso, no conseguido) antes de generar, ni se llevan los no conseguidos al trimestre siguiente con un clic. |
+| Informe trimestral a tutor y a familia | Están los dos y el seguimiento del PAP (Comunitat Valenciana), en PDF y Word. **Se hacen de uno en uno, alumno a alumno**: no hay «generar los que faltan» como en los informes de aula. |
+| Programación de aula adaptada | **No está.** `adaptarTema` propone, en cada sesión, cómo trabajar el tema del día con cada alumno, pero no hay forma de dar la programación del tutor (PDF, Word o una situación de aprendizaje) ni de obtener una adaptación curricular del alumno (ACI o ACIS, y el equivalente de Cataluña y Madrid). |
+| Cataluña y Madrid | Los modelos de documento (PI, adaptación curricular por área) esperan a que el dueño suba los PDF (ver «Normativa»). |
+
+Lo que se propone construir, por orden de ahorro de trabajo (**pendiente de que el dueño elija**):
+1. **Informe sociopsicopedagógico.** Subirlo (PDF o Word) o pegarlo; la IA lo lee una vez y rellena la ficha del alumno (nivel de competencia, necesidades en términos educativos, fortalezas, orientaciones), que el docente revisa. El informe en sí no se guarda en la IA ni se reenvía a ella en cada documento: se guardan sus conclusiones. Es el dato más sensible del módulo (artículo 9 del RGPD): mismas reglas que el diagnóstico, nombre cambiado por un código, y `privacidad.html` lo dice en los tres idiomas (regla 1 de `CLAUDE.md`).
+2. **Programación anual y objetivos a partir de ese informe**, sin volver a escribirlos: la programación y la propuesta de objetivos usan sus conclusiones.
+3. **Cierre de trimestre** por alumno: una tabla con cada objetivo, el resultado que sugiere el registro y el comentario, que el docente confirma; los no conseguidos pasan al trimestre siguiente. Informes y PAP salen de ahí.
+4. **Generar los documentos de todo el alumnado de una vez** (el informe a familias y al tutor del trimestre y el seguimiento del PAP), con una revisión alumno a alumno antes de exportar.
+5. **Adaptación de la programación de aula**: dar la del tutor (PDF, Word o una SdA hecha en la app) y obtener, para cada alumno, la adaptación de esa programación a sus objetivos (ACI o ACIS). Cuando el dueño suba los modelos, con el formato de cada comunidad.
+
 ## Alumnado y grupos de apoyo
 
 - El especialista crea sus grupos de apoyo («Lectoescritura, lunes 9:00») con alumnado de distintas clases.
