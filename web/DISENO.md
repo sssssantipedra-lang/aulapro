@@ -405,3 +405,19 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **Tres perfiles**: `FASES=aula,ef,apoyo`. 83 pantallas (las de EF llevan `ef-` y las de PT y AL, `pt-`). La demo tiene un selector de perfil sobre la ventana, y los botones de cada menú llevan a las pantallas de su perfil.
 - **Sin IA**: los botones que piden algo a la IA (`RE_IA` en `capturar.mjs`) avisan de que en la demo no se genera nada.
 - Capturada con la app 2.13.2 (tarjetas grandes y tarjetas circulares de Recursos y Actividades con móviles).
+
+## 43. Novedades de la 2.19 en la portada (25-10-2026, petición del usuario: «actualiza la web con las novedades de la 2.19»)
+
+- **Qué cambia**: solo textos, en los tres idiomas (`index.html` para el castellano, `assets/i18n.js` para catalán e inglés). Ninguna captura ni la demo se han vuelto a hacer: las pantallas que salen no han cambiado de aspecto.
+- **Recursos con IA** (`ia.d1d`, `ia.d3d`): las situaciones de aprendizaje valen para una o varias clases y el Word lleva la rúbrica y la diana de anexo; los informes llevan una tabla de competencias clave con un comentario de cada una.
+- **Y además** (`ia.p7`, `ia.p8`, dos viñetas nuevas): PT y AL con el informe del orientador (la IA propone la ficha y los programas, con los objetivos del informe), el cierre del trimestre, los documentos de todo el alumnado de una vez y la adaptación de la programación de aula.
+- **Evaluar** (`s3.p3`, `s3.p5`, `s2.a4`): el peso de cada nota dentro de su categoría, y la segunda página del acta con la evaluación por competencias.
+- **Pregunta «¿Sirve para PT y AL o para Educación Física?»** (`a13`): añade el flujo de PT y AL de la 2.19. Dice «Tú lo revisas todo», porque la IA solo propone.
+- **No se promete**: los formatos oficiales de Cataluña y Madrid para la adaptación (aún sin sus modelos) ni nada que dependa de probar en un dispositivo real.
+- **Pendiente**: la pantalla del portátil del vídeo de la portada sigue siendo la de la app 2.8.0 (ver secciones 36 y 41).
+
+## 44. Educación Física en la portada (25-10-2026, petición del usuario: «añade algo de EF en la web»)
+
+- La portada solo nombraba Educación Física en una pregunta. Ahora, en «Y además» (`ia.p9`, `ia.p10`, dos viñetas nuevas): la anotación en la pista desde el móvil, los equipos equilibrados, el cronómetro de circuitos y las pruebas físicas, y las sesiones y situaciones de aprendizaje con IA con la pizarra de circuitos y su banco de material.
+- La respuesta de «¿Sirve para PT y AL o para Educación Física?» (`a13`) añade lo mismo en una frase, antes de «Tú lo revisas todo».
+- Solo textos, en los tres idiomas. La demo ya tenía el perfil de Educación Física (sección 42).
