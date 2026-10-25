@@ -5,7 +5,7 @@
  * biblioteca; «Nueva» abre el formulario.
  */
 import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LearningSituations } from './LearningSituations';
 import { guardarBorrador, leerBorrador } from '../services/borradores';
@@ -24,6 +24,21 @@ vi.mock('../services/gemini', async importOriginal => ({
 vi.mock('../services/learningSituations', async importOriginal => ({
   ...await importOriginal<typeof import('../services/learningSituations')>(), generateSda,
 }));
+// Reducir una imagen necesita un lienzo, que jsdom no tiene: aquí se da por hecho
+vi.mock('../lib/imagenesSesion', async importOriginal => {
+  const real = await importOriginal<typeof import('../lib/imagenesSesion')>();
+  let n = 0;
+  return {
+    ...real,
+    prepararNuevas: async (blobs: Blob[], sitio: number) => {
+      const caben = blobs.slice(0, Math.max(0, sitio));
+      return {
+        nuevas: caben.map(() => ({ id: `n${++n}`, src: 'data:image/jpeg;base64,/9j/4AAQ', ancho: 100, alto: 80 })),
+        porElTope: blobs.length - caben.length, ilegibles: 0,
+      };
+    },
+  };
+});
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -410,3 +425,90 @@ describe('de qué decreto sale una SdA ya generada', () => {
   });
 });
 
+describe('Situaciones de aprendizaje · imágenes en las sesiones', () => {
+  const foto = { id: 'f1', src: 'data:image/jpeg;base64,/9j/4AAQ', ancho: 10, alto: 10, pie: 'Cajas del recuento' };
+  const conFoto: LearningSituation = {
+    ...sda, content: { ...sda.content, sesiones: [{ ...sda.content.sesiones[0], imagenes: [foto] }, sda.content.sesiones[1]] },
+  };
+  const png = () => new File(['x'], 'a.png', { type: 'image/png' });
+
+  it('una imagen soltada sobre una sesión se guarda en esa sesión y no en la otra', async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    const guardadas: LearningSituation[] = [];
+    setup([sda], s => guardadas.push(s));
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    await user.click(screen.getByRole('button', { name: 'Añadir una imagen a la sesión 2' }));
+    await user.upload(screen.getByRole('group', { name: 'Zona para pegar una imagen en la sesión 2' }).querySelector('input[type=file]') as HTMLInputElement, png());
+    await waitFor(() => expect(screen.getByRole('img', { name: 'Imagen 1 de la sesión 2' })).toBeTruthy());
+    expect(screen.queryByRole('img', { name: 'Imagen 1 de la sesión 1' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(guardadas).toHaveLength(1);
+    expect(guardadas[0].content.sesiones.map(x => x.imagenes?.length ?? 0)).toEqual([0, 1]);
+    localStorage.clear();
+  });
+
+  it('solo con añadir una imagen a una guardada ya hay algo sin guardar: al salir queda borrador', async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    const r = render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations classes={[]} gradeCategories={[]} learningSituations={[sda]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    await user.click(screen.getByRole('button', { name: 'Añadir una imagen a la sesión 1' }));
+    await user.upload(screen.getByRole('group', { name: 'Zona para pegar una imagen en la sesión 1' }).querySelector('input[type=file]') as HTMLInputElement, png());
+    await waitFor(() => expect(screen.getByRole('img', { name: 'Imagen 1 de la sesión 1' })).toBeTruthy());
+    r.unmount();
+    expect(leerBorrador<{ editingId: string }>('sda')?.datos).toMatchObject({ editingId: 'sda1' });
+    localStorage.clear();
+  });
+
+  it('quitar la imagen de una guardada la quita de la situación al guardar', async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    const guardadas: LearningSituation[] = [];
+    setup([conFoto], s => guardadas.push(s));
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    expect(screen.queryByText(/sin guardar/i)).toBeNull();
+    expect(screen.getByRole('img', { name: 'Cajas del recuento' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Quitar la imagen 1 de la sesión 1' }));
+    expect(screen.queryByRole('img', { name: 'Cajas del recuento' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(guardadas[0].content.sesiones[0]).not.toHaveProperty('imagenes');
+    localStorage.clear();
+  });
+
+  it('el borrador no guarda las imágenes (pesan), y al continuar el de una guardada se le devuelven', async () => {
+    localStorage.clear();
+    const user = userEvent.setup();
+    const r = render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations classes={[]} gradeCategories={[]} learningSituations={[conFoto]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: /Mercado sostenible/ }));
+    const titulo = screen.getByLabelText('Título');
+    await user.clear(titulo);
+    await user.type(titulo, 'Mercado con fotos');
+    r.unmount();
+    const b = leerBorrador<{ content: { sesiones: { imagenes?: unknown }[] } }>('sda');
+    expect(b?.datos.content.sesiones.some(x => 'imagenes' in x)).toBe(false);
+    expect(JSON.stringify(b)).not.toContain('/9j/4AAQ');
+
+    const r2 = render(
+      <I18nProvider><ToastProvider>
+        <LearningSituations classes={[]} gradeCategories={[]} learningSituations={[conFoto]}
+          onUpdateClass={() => {}} onSave={() => {}} onDelete={() => {}} onAddRubric={() => {}} onAddDiana={() => {}} onAddFicha={() => {}} onNav={() => {}} />
+      </ToastProvider></I18nProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect((screen.getByLabelText('Título') as HTMLTextAreaElement).value).toBe('Mercado con fotos');
+    expect(screen.getByRole('img', { name: 'Cajas del recuento' })).toBeTruthy();
+    r2.unmount();
+    localStorage.clear();
+  });
+});

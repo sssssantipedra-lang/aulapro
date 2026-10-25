@@ -141,7 +141,25 @@ export interface InstrumentoRefEF {
   id: string;
 }
 
+/**
+ * Una imagen de una sesión (25-10-2026, petición del dueño: pegarla o arrastrarla
+ * al editor de la sesión). Va dentro de los datos del perfil, como las fotos
+ * de la agenda visual: ya reducida y en JPEG (`lib/imagenesSesion.ts`), así que
+ * pesa unos cientos de KB. Sale en la vista previa y en el PDF de la sesión.
+ */
+export interface ImagenSesion {
+  id: string;
+  /** La imagen como `data:image/…;base64,…`. Nunca otra cosa: se pinta tal cual. */
+  src: string;
+  ancho: number;
+  alto: number;
+  /** Pie de foto, si el docente lo escribe. */
+  pie?: string;
+}
+
 export interface SesionEF {
+  /** Imágenes de la sesión, en el orden en que salen. */
+  imagenes?: ImagenSesion[];
   /** Los criterios de evaluación oficiales que trabaja. */
   criterios?: import('./index').OfficialCriterionRef[];
   /** Si la preparó la IA. */

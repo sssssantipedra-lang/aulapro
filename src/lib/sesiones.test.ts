@@ -80,4 +80,15 @@ describe('sesiones · desde una SdA', () => {
     expect(r[0].inclusion).toBe('DUA');
     expect(new Set(r.map(s => s.id)).size).toBe(2);
   });
+  it('las imágenes de una sesión de la SdA pasan a la sesión que se crea, y solo las que valen', () => {
+    const foto = { id: 'f1', src: 'data:image/jpeg;base64,/9j/4AAQ', ancho: 10, alto: 10, pie: 'Cajas' };
+    const web = { id: 'f2', src: 'https://x.com/a.png', ancho: 1, alto: 1 };
+    const conFotos = {
+      ...contenido,
+      sesiones: [{ ...contenido.sesiones[0], imagenes: [foto, web] }, contenido.sesiones[1]],
+    } as unknown as SdaContent;
+    const r = sesionesDeSda({ id: 's1', content: conFotos }, { claseId: 'c1', nuevoId: i => `n${i}`, t: k => k });
+    expect(r[0].imagenes).toEqual([foto]);
+    expect(r[1]).not.toHaveProperty('imagenes');
+  });
 });

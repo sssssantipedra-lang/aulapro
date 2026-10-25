@@ -22,6 +22,34 @@ describe('normalizarEF conserva el estado de las sesiones', () => {
   });
 });
 
+describe('normalizarEF y las imágenes de las sesiones', () => {
+  const base = { id: 's1', titulo: 'T', objetivo: '', calentamiento: '', principal: '', calma: '', material: '', inclusion: '', planB: '' };
+  const JPG = 'data:image/jpeg;base64,/9j/4AAQ';
+
+  it('las imágenes sobreviven a guardar y abrir, con su orden y su pie', () => {
+    const imagenes = [
+      { id: 'a', src: JPG, ancho: 800, alto: 600, pie: 'Primera' },
+      { id: 'b', src: JPG, ancho: 400, alto: 300 },
+    ];
+    const r = normalizarEF(JSON.parse(JSON.stringify({ ...EF_VACIO, sesiones: [{ ...base, imagenes }] })));
+    expect(r.sesiones[0].imagenes).toEqual(imagenes);
+  });
+
+  it('una copia editada a mano no puede colar un SVG, una web ni otra cosa que una imagen', () => {
+    const r = normalizarEF(JSON.parse(JSON.stringify({ ...EF_VACIO, sesiones: [{ ...base, imagenes: [
+      { id: 'a', src: JPG }, { id: 'svg', src: 'data:image/svg+xml;base64,PHN2Zz4=' }, { id: 'web', src: 'https://x.com/a.png' },
+    ] }] })));
+    expect(r.sesiones[0].imagenes?.map(i => i.id)).toEqual(['a']);
+  });
+
+  it('una sesión sin imágenes (o con todas descartadas) no lleva el campo', () => {
+    const r = normalizarEF(JSON.parse(JSON.stringify({ ...EF_VACIO, sesiones: [
+      base, { ...base, id: 's2', imagenes: [] }, { ...base, id: 's3', imagenes: [{ id: 'x', src: 'nada' }] },
+    ] })));
+    expect(r.sesiones.every(s => !('imagenes' in s))).toBe(true);
+  });
+});
+
 describe('tipo de docente', () => {
   it('PT y AL por sus especialidades, EF por su tipo, y si no, de aula', () => {
     expect(tipoDePerfil({ especialidades: ['AL'] })).toBe('apoyo');

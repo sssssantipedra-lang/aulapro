@@ -494,7 +494,18 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   tiempo por fases (Activación, Desarrollo, Consolidación, Producto final), cada
   una con un círculo para marcarla como COMPLETADA según se va dando (se guarda
   en el acto si la SdA ya está guardada; arriba sale «X de Y completadas» y la
-  tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles. En «Materiales» hay pestañas para generar la
+  tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles.
+  IMÁGENES EN LAS SESIONES: cada sesión puede llevar hasta 12 imágenes. Se
+  ARRASTRA una imagen (un archivo o una imagen de una web) sobre la sesión; o se
+  pulsa «Añadir imagen» en la sesión y se pega con Ctrl+V en la zona que se
+  abre (ya enfocada), o se elige de un archivo con «Elegir imagen» (en el móvil,
+  esta es la manera). Un Ctrl+V suelto no vale: como una situación tiene muchas
+  sesiones, hay que decir a cuál va. Cada imagen admite un pie de foto y se
+  quita con la papelera. Salen en el PDF y en el Word, bajo el texto de su
+  sesión; «Pasar a sesiones» las lleva a las sesiones que crea; y viajan dentro
+  del archivo cifrado de «Trabajo compartido». Se reducen para que los datos no
+  pesen y se quedan en el equipo. Hay que GUARDAR la situación para conservarlas:
+  el borrador automático no las incluye. En «Materiales» hay pestañas para generar la
   RÚBRICA (tabla de colores por nivel, «Llevar a Rúbricas»), la DIANA («Llevar
   a Dianas») y una FICHA de ejercicios («Llevar a Recursos»). Arriba: «Ajustar»
   (cambiar los datos y volver a generarla), PDF, Word, «Cartel» (una hoja A4
@@ -851,6 +862,15 @@ medidas para que participen: a la IA solo le llega LO QUE NO PUEDEN HACER, sin
 nombres ni motivos. La IA también propone de 1 a 3 criterios de evaluación
 oficiales de la lista de la clase. La sesión se revisa y se guarda; «Nueva
 sesión» la escribe a mano. «PDF» la guarda para imprimirla.
+IMÁGENES: cada sesión puede llevar hasta 12 imágenes (un esquema de la pista, una
+foto de una postura, una captura…). Se pegan con Ctrl+V desde cualquier punto de
+la sesión (una imagen copiada de internet, una captura de pantalla o un archivo
+copiado), se arrastran sobre la ventana de la sesión, o se eligen de un archivo
+con «Elegir imagen» (en el móvil, esta es la manera). Cada una admite un pie de
+foto, se mueve con las flechas y se quita con la papelera. Salen en la vista
+previa y en el PDF, después del plan B. Hay que GUARDAR la sesión para
+conservarlas: el borrador automático no las incluye. Se reducen para que los
+datos no pesen y se quedan en el equipo.
 SITUACIÓN DE APRENDIZAJE: en la sesión, el desplegable «Situación de
 aprendizaje» la asocia a una SdA que ya existe; «Pasar a Sesiones de EF»,
 en la SdA, crea las sesiones ya asociadas a ella y en su orden.
@@ -893,6 +913,8 @@ guarda en PDF. Se crean a mano o con «Pasar a Sesiones», en la situación de
 aprendizaje, que crea una sesión por cada sesión de la SdA, sin fecha y ya
 asociada a ella. Al contrario que en EF, la IA no las prepara una a una: la IA
 trabaja en la situación de aprendizaje.
+Las sesiones también pueden llevar imágenes (se pegan con Ctrl+V, se arrastran o se
+eligen de un archivo); ver Sesiones de EF.
 
 [ef-actividades] ACTIVIDADES
 Se abre en SEIS TARJETAS, una por tipo (juegos motrices, deportes, para días de

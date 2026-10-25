@@ -46,6 +46,9 @@ import { alumnosConBarreras, barrerasDeClases } from '../lib/barreras';
 import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { MomentosDeSesion } from '../components/MomentosDeSesion';
+import { ImagenesDeSesionSda } from '../components/sesiones/ImagenesDeSesionSda';
+import { contenidoSinImagenes, conImagenesDe, mismasImagenes, sesionConImagenes } from '../lib/imagenesSesion';
+import type { ImagenSesion } from '../types/ef';
 import { sesionesDeSda } from '../lib/sesiones';
 import { esAsignaturaEF } from '../services/classMarks';
 import { useBorrador } from '../hooks/useBorrador';
@@ -332,12 +335,15 @@ export function LearningSituations({
 
   /* ── Autoguardado: una SdA generada o editada y sin guardar queda como borrador ── */
   const guardada = editingId ? learningSituations.find(x => x.id === editingId) : undefined;
+  // Las imágenes de las sesiones se comparan por referencia: pasar megas por JSON en cada edición se notaría
   const sinGuardar = useMemo(
-    () => !!content && (!guardada || JSON.stringify(guardada.content) !== JSON.stringify(content)),
+    () => !!content && (!guardada || !mismasImagenes(guardada.content, content)
+      || JSON.stringify(contenidoSinImagenes(guardada.content)) !== JSON.stringify(contenidoSinImagenes(content))),
     [content, guardada],
   );
+  // El borrador va sin las imágenes: pesan, y el almacenamiento donde se guarda es pequeño
   const pendiente = useMemo<BorradorSda | null>(() => (content && sinGuardar ? {
-    content, editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
+    content: contenidoSinImagenes(content), editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
     opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent, sesionesBase,
   } : null), [content, sinGuardar, editingId, classId, otrasClases, conBarreras, idea, numero, temporalizacion, meses, areas, numSesiones, nivel, etapa, curso,
     opcionMatematicas, materias, contextoClase, metodologia, efModelo, efModalidad, efMinutos, rubricRows, dianaRows, fichaContent, sesionesBase]);
@@ -346,7 +352,8 @@ export function LearningSituations({
   function continuarBorrador() {
     const b = borrador.continuar();
     if (!b) return;
-    setContent(b.content);
+    // Si la SdA ya estaba guardada, las imágenes de sus sesiones se quedan: el borrador no las lleva
+    setContent(conImagenesDe(b.content, b.editingId ? learningSituations.find(x => x.id === b.editingId)?.content : undefined));
     setEditingId(b.editingId);
     setClassId(b.classId); setOtrasClases(b.otrasClases ?? []); setConBarreras(b.conBarreras ?? false); setIdea(b.idea); setNumero(b.numero); setTemporalizacion(b.temporalizacion); setMeses(b.meses);
     setAreas(b.areas); setNumSesiones(b.numSesiones); setNivel(b.nivel); setNivelAuto(false);
@@ -564,6 +571,11 @@ export function LearningSituations({
 
   function patch(k: keyof SdaContent, v: string) {
     setContent(c => (c ? { ...c, [k]: v } : c));
+  }
+
+  /** Cambia las imágenes de una sesión (pegadas, arrastradas o elegidas de un archivo). Se guardan con «Guardar», como el resto de lo editado. */
+  function cambiarImagenesSesion(i: number, f: (anteriores: ImagenSesion[]) => ImagenSesion[]) {
+    setContent(c => (c ? { ...c, sesiones: c.sesiones.map((x, k) => (k === i ? sesionConImagenes(x, f(x.imagenes ?? [])) : x)) } : c));
   }
 
   /**
@@ -1583,11 +1595,11 @@ export function LearningSituations({
                   {ph.items.map(({ n, s: ses }) => (
                     <div key={n} className={`sda-session${ses.completada ? ' completada' : ''}`}>
                       <span className="sda-session-n">{n}</span>
-                      <div style={{ minWidth: 0, flex: 1 }}>
+                      <ImagenesDeSesionSda imagenes={ses.imagenes} numero={n} onChange={f => cambiarImagenesSesion(n - 1, f)}>
                         <div className="sda-session-ttl">{ses.titulo}</div>
                         <p className="sda-p">{ses.descripcion}</p>
                         {ses.momentos && <MomentosDeSesion momentos={ses.momentos} />}
-                      </div>
+                      </ImagenesDeSesionSda>
                       <button
                         type="button" className="sda-session-check" aria-pressed={!!ses.completada} onClick={() => alternarSesion(n - 1)}
                         aria-label={ses.completada ? t('Marcar la sesión {n} como pendiente', { n }) : t('Marcar la sesión {n} como completada', { n })}
