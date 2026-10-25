@@ -179,7 +179,7 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sb-backdrop { position:fixed; inset:0; z-index:55; background:rgba(28,25,23,0.3); }
 .sb-logo { display:flex; align-items:center; gap:11px; padding:18px 14px 12px; flex-shrink:0; }
 .sidebar.mini .sb-logo { justify-content:center; padding:18px 0 12px; }
-.sb-logo-box { width:34px; height:34px; background:linear-gradient(135deg,var(--accent-d),var(--accent)); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 3px 10px rgba(var(--accent-rgb),0.28); }
+.sb-logo-box { width:34px; height:34px; display:block; flex-shrink:0; }
 .sidebar.mini .sb-logo-box { display:none; }
 .sb-title { font-size:16px; font-weight:800; color:var(--nav-strong); letter-spacing:-0.4px; white-space:nowrap; transition:opacity var(--t); }
 .sidebar.mini .sb-title { display:none; }
