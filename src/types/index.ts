@@ -150,6 +150,11 @@ export interface GradeItem {
   category_id: string;
   name: string;
   date: string;
+  /**
+   * Lo que cuenta esta nota dentro de su categoría, en % (25-10-2026). Ausente = cuenta igual que las
+   * demás de la categoría, como siempre. Ver `lib/ponderacion.ts`.
+   */
+  weight?: number;
 }
 
 /** notas[itemId][studentId] = nota 0-10 (null = sin calificar) */

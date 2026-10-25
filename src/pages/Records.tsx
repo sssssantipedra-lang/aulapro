@@ -13,6 +13,7 @@ import { DocPreview } from '../components/DocPreview';
 import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
 import { notasDeMateria } from '../lib/curriculum/evaluacionPorCriterios';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { mediaDeCategoria } from '../lib/ponderacion';
 
 interface Props {
   classes: Class[];
@@ -115,14 +116,9 @@ export function Records({
     [gradeCategories, clsId, activeSubject, subjects],
   );
 
-  /** Media de un alumno dentro de una categoría (media simple de sus pruebas). */
+  /** Media de un alumno dentro de una categoría (con el peso de cada prueba). */
   function categoryAverage(studentId: string, categoryId: string): number | null {
-    const items = gradeItems.filter(i => i.category_id === categoryId);
-    const vals = items
-      .map(i => grades[i.id]?.[studentId])
-      .filter((v): v is number => typeof v === 'number');
-    if (vals.length === 0) return null;
-    return vals.reduce((a, b) => a + b, 0) / vals.length;
+    return mediaDeCategoria(gradeItems.filter(i => i.category_id === categoryId), grades, studentId);
   }
 
   /** Nota final: media de las categorías ponderada por su peso. */

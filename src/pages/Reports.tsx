@@ -20,6 +20,7 @@ import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
 import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, normalizarValoracion, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
+import { mediaDeCategoria } from '../lib/ponderacion';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -74,10 +75,9 @@ function notebookAverage(
   const cats = categories.filter(c => c.class_id === classId);
   let sum = 0, weight = 0;
   for (const cat of cats) {
-    const catItems = items.filter(i => i.category_id === cat.id);
-    const scores = catItems.map(i => grades[i.id]?.[studentId]).filter((v): v is number => typeof v === 'number');
-    if (!scores.length) continue;
-    sum += (scores.reduce((a, b) => a + b, 0) / scores.length) * cat.weight;
+    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
+    if (avg === null) continue;
+    sum += avg * cat.weight;
     weight += cat.weight;
   }
   return weight ? sum / weight : null;

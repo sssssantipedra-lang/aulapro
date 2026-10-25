@@ -150,6 +150,10 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - `DocPreview` pinta el HTML del PDF hoja a hoja, como sale (petición del dueño: «que se vean exactamente cómo van a salir»). El motor de impresión hace caso al `@page` del HTML (tamaño y márgenes) y, sin él, usa A4 con los márgenes de `electron/main.cjs`; `src/lib/paginaDoc.ts` lo lee. El reparto en páginas usa las columnas de CSS de `lib/paginacion.ts` (una columna, una hoja), con los saltos de página forzados traducidos a saltos de columna y `@media print` aplicado siempre. Comprobado contra `page.pdf` de Chromium en SdA, informes y acta. Un documento nuevo debe llevar su `@page` o pasar `apaisado` si no lo trae. Más de 60 páginas, solo se pintan las 60 primeras.
 
+## Peso de cada nota en el cuaderno (2.18.22, 25-10-2026)
+
+- Petición del dueño: elegir cuánto cuenta cada actividad dentro de su categoría y, de ahí, en la nota final. `GradeItem.weight` (% dentro de la categoría; ausente = cuenta igual que las demás, como antes). Los pesos son relativos: la media divide por lo que suman las notas que el alumno tiene, y las notas sin peso cuentan como su parte igual. **Toda la cuenta está en `src/lib/ponderacion.ts`** (`mediaDeCategoria`): el cuaderno, las actas, los informes y el asistente la usan; una pantalla nueva que calcule medias no debe volver a hacer la media simple. Se edita en «Editar categoría» (`PesosDeNotas`, todas a la vez) y en «Editar nota» (con lo que pesa en la nota final).
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.
