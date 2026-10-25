@@ -532,8 +532,8 @@ export interface CompetencyReport {
   period: string;
   date: string;
   text: string;
-  /** Tabla de competencias clave con su valoración y un comentario breve; ausente en informes anteriores. */
-  tabla?: { clave: string; valoracion: 'bien' | 'mejorable' | 'mal'; comentario: string }[];
+  /** Tabla de competencias clave con su valoración y un comentario; ausente en informes anteriores. `mal` solo lo traen los de la 2.18.17 (se lee como `mejorable`). */
+  tabla?: { clave: string; valoracion: 'excelente' | 'bien' | 'mejorable' | 'mal'; comentario: string }[];
 }
 
 /* ── Situaciones de aprendizaje ── */

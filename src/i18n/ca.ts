@@ -1392,6 +1392,7 @@ export const CA: Record<string, string> = {
   "En estas áreas no hay una categoría con ese nombre y solo irá al historial:": "En aquestes àrees no hi ha cap categoria amb aquest nom i només anirà a l'historial:",
   "Puntúa en {areas}": "Puntua a {areas}",
   "Dejar solo {area}": "Deixar només {area}",
+  "Necesita mejorar": "Necessita millorar",
   "Peso ×{n}": "Pes ×{n}",
   "Llevar a Dianas": "Portar a Dianes",
   "Diana creada en Dianas": "Diana creada a Dianes",

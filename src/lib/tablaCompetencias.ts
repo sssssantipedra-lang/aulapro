@@ -1,17 +1,22 @@
 /**
  * La tabla de competencias clave de un informe competencial: una fila por
- * competencia con su valoración (bien, mejorable o mal) y un comentario muy
- * breve. La IA la devuelve tras el texto, detrás de una marca; el código la
+ * competencia con su valoración (excelente, bien o necesita mejorar) y un
+ * comentario de dos frases. La IA la devuelve tras el texto, detrás de una marca; el código la
  * separa y se queda solo con competencias y valoraciones válidas.
  */
 import { LOMLOE_COMPETENCES } from './utils';
 
-export type Valoracion = 'bien' | 'mejorable' | 'mal';
-export interface FilaCompetencia { clave: string; valoracion: Valoracion; comentario: string }
+export type Valoracion = 'excelente' | 'bien' | 'mejorable';
+/** `mal` solo lo traen los informes de la 2.18.17. */
+export interface FilaCompetencia { clave: string; valoracion: Valoracion | 'mal'; comentario: string }
 
 export const MARCA_TABLA = '###TABLA###';
-const VALORACIONES: Valoracion[] = ['bien', 'mejorable', 'mal'];
-const MAX_COMENTARIO = 140;
+const VALORACIONES: Valoracion[] = ['excelente', 'bien', 'mejorable'];
+const MAX_COMENTARIO = 320;
+
+/** Las valoraciones de antes («mal») pasan a «necesita mejorar»; lo desconocido, también. */
+export const normalizarValoracion = (v: unknown): Valoracion =>
+  VALORACIONES.includes(v as Valoracion) ? v as Valoracion : 'mejorable';
 
 /** Separa lo que devuelve la IA en el texto del informe y su tabla; sin marca o con tabla rota, solo el texto. */
 export function separarInforme(raw: string): { texto: string; tabla: FilaCompetencia[] } {
@@ -27,7 +32,8 @@ export function separarInforme(raw: string): { texto: string; tabla: FilaCompete
   for (const f of lista) {
     const o = (f ?? {}) as Record<string, unknown>;
     const clave = typeof o.clave === 'string' ? o.clave.trim().toUpperCase() : '';
-    const valoracion = typeof o.valoracion === 'string' ? o.valoracion.trim().toLowerCase() as Valoracion : 'bien';
+    const bruta = typeof o.valoracion === 'string' ? o.valoracion.trim().toLowerCase() : '';
+    const valoracion = bruta === 'mal' ? 'mejorable' : bruta as Valoracion;
     if (!claves.has(clave) || vistas.has(clave) || !VALORACIONES.includes(valoracion)) continue;
     const comentario = typeof o.comentario === 'string' ? o.comentario.replace(/\s+/g, ' ').trim().slice(0, MAX_COMENTARIO) : '';
     if (!comentario) continue;
@@ -40,7 +46,7 @@ export function separarInforme(raw: string): { texto: string; tabla: FilaCompete
   return { texto, tabla };
 }
 
-const COLOR: Record<Valoracion, string> = { bien: '#15803d', mejorable: '#b45309', mal: '#b91c1c' };
+const COLOR: Record<Valoracion, string> = { excelente: '#15803d', bien: '#1d4ed8', mejorable: '#b45309' };
 const ESC = (s: string) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
 
 /** La tabla como HTML para el PDF y la vista previa; vacío si no hay filas. */
@@ -49,19 +55,19 @@ export function tablaCompetenciasHtml(
 ): string {
   if (!tabla?.length) return '';
   const filas = tabla.map(f => `<tr><th scope="row">${ESC(f.clave)}<span>${ESC(etiqueta(f.clave))}</span></th>`
-    + `<td class="val" style="color:${COLOR[f.valoracion]}">${ESC(t(NOMBRE[f.valoracion]))}</td><td>${ESC(f.comentario)}</td></tr>`).join('');
+    + `<td class="val" style="color:${COLOR[normalizarValoracion(f.valoracion)]}">${ESC(t(NOMBRE[normalizarValoracion(f.valoracion)]))}</td><td>${ESC(f.comentario)}</td></tr>`).join('');
   return `<table class="comp"><thead><tr><th>${ESC(t('Competencia clave'))}</th><th>${ESC(t('Valoración'))}</th><th>${ESC(t('Comentario'))}</th></tr></thead><tbody>${filas}</tbody></table>`;
 }
 
 /** Textos de las valoraciones, que `t` traduce. */
-export const NOMBRE: Record<Valoracion, string> = { bien: 'Bien', mejorable: 'Mejorable', mal: 'Mal' };
+export const NOMBRE: Record<Valoracion, string> = { excelente: 'Excelente', bien: 'Bien', mejorable: 'Necesita mejorar' };
 export const COLOR_VALORACION = COLOR;
 
 /* ── Valoración calculada por el código a partir de las notas reales ── */
 
-/** Bien desde 3 sobre 4, mejorable desde 2, mal por debajo. */
+/** Excelente desde 3,5 sobre 4 (el nivel más alto al redondear), bien desde 2,5, necesita mejorar por debajo. */
 export function valoracionDeNota(nota: number): Valoracion {
-  return nota >= 3 ? 'bien' : nota >= 2 ? 'mejorable' : 'mal';
+  return nota >= 3.5 ? 'excelente' : nota >= 2.5 ? 'bien' : 'mejorable';
 }
 
 /** Media (1 a 4) de cada competencia clave en las evaluaciones del alumno; solo las que tienen nota. */

@@ -1441,6 +1441,7 @@ const EN: Record<string, string> = {
   'En estas áreas no hay una categoría con ese nombre y solo irá al historial:': 'These areas have no category with that name and it will only go to the history:',
   'Puntúa en {areas}': 'Counts in {areas}',
   'Dejar solo {area}': 'Keep only {area}',
+  'Necesita mejorar': 'Needs improvement',
   'Peso ×{n}': 'Weight ×{n}',
   'Llevar a Dianas': 'Send to Assessment Bullseye',
   'Diana creada en Dianas': 'Target created in Assessment Bullseye',

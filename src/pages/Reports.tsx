@@ -18,7 +18,7 @@ import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
-import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
+import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, normalizarValoracion, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
@@ -251,7 +251,8 @@ export function Reports(props: Props) {
         `- Start with the competencies already consolidated, move to those in progress, and end with a ` +
         `concrete, actionable suggestion for improvement.\n` +
         `- Don't invent facts not given above. Don't mention grade numbers except the overall average if it exists.\n` +
-        `- Return only the report text.`
+        `- After the text, on a new line, write exactly ${MARCA_TABLA} and then a JSON array with one object per key competency you mentioned ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): "excelente" = outstanding, "bien" = good, "mejorable" = needs improvement. The comment is TWO complete sentences (25 to 45 words): what the student does that supports the rating, with a concrete example from the evidence, and what to keep doing or how to improve. Use only abbreviations from the list above.\n` +
+        `- Return only the report text followed by that table.`
       : `Redacta el informe de evaluación competencial de un alumno para el periodo «${periodLabel}».\n\n` +
         `ALUMNO: ${student.name}\n` +
         `CONTEXTO DONDE SE OBSERVARON LAS EVIDENCIAS (no es el tema del informe): ` +
@@ -272,7 +273,7 @@ export function Reports(props: Props) {
         `- Empieza por las competencias que ya tiene consolidadas, sigue con las que están en proceso y termina con ` +
         `una propuesta de mejora concreta y accionable.\n` +
         `- No inventes hechos que no aparezcan arriba. No menciones números de nota salvo la media general si existe.\n` +
-        `- Después del texto, en una línea nueva, escribe exactamente ${MARCA_TABLA} y a continuación un array JSON con un objeto por cada competencia clave que hayas mencionado ({"clave":"CCL","valoracion":"bien"|"mejorable"|"mal","comentario":"..."}): el comentario es UNA frase muy breve (máximo 15 palabras) que diga por qué está bien, es mejorable o está mal. Usa solo abreviaturas de la lista de arriba.\n` +
+        `- Después del texto, en una línea nueva, escribe exactamente ${MARCA_TABLA} y a continuación un array JSON con un objeto por cada competencia clave que hayas mencionado ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): «excelente» es sobresaliente, «bien» es adecuado y «mejorable» es que necesita mejorar. El comentario son DOS frases completas (de 25 a 45 palabras): qué hace el alumno que justifica la valoración, con un ejemplo concreto de las evidencias, y qué mantener o cómo mejorar. Usa solo abreviaturas de la lista de arriba.\n` +
         `- Devuelve únicamente el texto del informe seguido de esa tabla.`;
 
     const raw = await callGemini(en ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_ES, userPrompt, [], {
@@ -394,7 +395,7 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
     const text = list
       .slice()
       .sort((a, b) => compararNombres(a.student_name, b.student_name))
-      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}${r.tabla?.length ? '\n\n' + r.tabla.map(f => `${f.clave}: ${t(NOMBRE[f.valoracion])}. ${f.comentario}`).join('\n') : ''}\n\n${'—'.repeat(40)}\n`)
+      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}${r.tabla?.length ? '\n\n' + r.tabla.map(f => `${f.clave}: ${t(NOMBRE[normalizarValoracion(f.valoracion)])}. ${f.comentario}`).join('\n') : ''}\n\n${'—'.repeat(40)}\n`)
       .join('\n');
     void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`, CARPETAS.informes);
     toast(t('✅ Informes descargados'));
