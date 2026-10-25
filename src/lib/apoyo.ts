@@ -5,7 +5,7 @@ import type { ComunidadId } from './curriculum/comunidades';
 import type { ScheduleBlock } from '../types';
 import type {
   AgendaVisual, AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, ConQuien, CoordinacionApoyo, CursoDe, DocumentoApoyo, EvaluacionObjetivo,
-  Especialidad, FotoApoyo, GrupoApoyo, Logro, ObjetivoApoyo, PasoAgenda, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
+  Especialidad, FotoApoyo, GrupoApoyo, Logro, ObjetivoApoyo, ObjetivoOrientacion, PasoAgenda, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
 } from '../types/apoyo';
 
 export const APOYO_VACIO: ApoyoData = {
@@ -316,6 +316,49 @@ export const CARAS: readonly { id: Cara; cara: string; label: string }[] = [
   { id: 1, cara: '🙁', label: 'Ha ido mal' },
 ];
 
+/* ── Objetivos que vienen de la orientación ── */
+
+const igual = (a: string, b: string) => a.trim().toLowerCase().replace(/\s+/g, ' ') === b.trim().toLowerCase().replace(/\s+/g, ' ');
+
+/** Si el objetivo de la orientación ya está en alguno de los programas del alumno. */
+export function yaEstaEnPrograma(d: ApoyoData, alumnoId: string, o: ObjetivoOrientacion): boolean {
+  return d.programas.some(p => p.alumnoId === alumnoId && p.objetivos.some(x => igual(x.texto, o.texto)));
+}
+
+/** Los de la orientación que aún no están en ningún programa. */
+export const objetivosPendientes = (d: ApoyoData, a: AlumnoApoyo): ObjetivoOrientacion[] =>
+  (a.objetivosOrientacion ?? []).filter(o => !yaEstaEnPrograma(d, a.id, o));
+
+/** Suma objetivos a la lista de la orientación sin repetir los que ya hay (por su texto). */
+export function conObjetivosOrientacion(a: AlumnoApoyo, nuevos: readonly ObjetivoOrientacion[]): AlumnoApoyo {
+  const actuales = a.objetivosOrientacion ?? [];
+  const de = nuevos.filter(n => n.texto.trim() && !actuales.some(x => igual(x.texto, n.texto)));
+  return de.length ? { ...a, objetivosOrientacion: [...actuales, ...de.map(n => ({ ...n, texto: n.texto.trim() }))] } : a;
+}
+
+/**
+ * Pasa los objetivos de la orientación a los programas del alumno: cada uno va al programa de su ámbito (se crea si
+ * no existe) y conserva su origen. Los que no tienen ámbito, o ya están, se quedan donde estaban. Devuelve también
+ * cuántos pasaron.
+ */
+export function pasarAProgramas(
+  d: ApoyoData, alumnoId: string, objetivos: readonly ObjetivoOrientacion[],
+  especialidadDe: (ambito: string) => Especialidad, idNuevo: (prefijo: string) => string = nuevoIdApoyo,
+): { data: ApoyoData; pasados: number } {
+  let programas = d.programas;
+  let pasados = 0;
+  for (const o of objetivos) {
+    if (!o.ambito || yaEstaEnPrograma({ ...d, programas }, alumnoId, o)) continue;
+    const objetivo: ObjetivoApoyo = { id: idNuevo('obj'), texto: o.texto, trimestres: o.trimestres, criterios: [], origen: o.origen };
+    const existe = programas.some(p => p.alumnoId === alumnoId && p.ambito === o.ambito);
+    programas = existe
+      ? programas.map(p => (p.alumnoId === alumnoId && p.ambito === o.ambito ? { ...p, objetivos: [...p.objetivos, objetivo] } : p))
+      : [...programas, { id: idNuevo('pro'), alumnoId, ambito: o.ambito, especialidad: especialidadDe(o.ambito), objetivos: [objetivo] }];
+    pasados++;
+  }
+  return { data: { ...d, programas }, pasados };
+}
+
 /* ── Cierre de trimestre ── */
 
 /** Cómo va un objetivo al cerrar el trimestre: un logro, o «sin trabajar». */
@@ -502,6 +545,16 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
   const alumnos = lista<AlumnoApoyo>(o.alumnos, v => {
     const a = obj(v);
     if (!a || !esTexto(a.id) || !esTexto(a.nombre)) return null;
+    const objetivosOrientacion = lista<ObjetivoOrientacion>(a.objetivosOrientacion, v => {
+      const x = obj(v);
+      if (!x || !esTexto(x.id) || !esTexto(x.texto) || !x.texto.trim()) return null;
+      const trimestres = lista<Trimestre>(x.trimestres, t => (t === 1 || t === 2 || t === 3 ? t : null));
+      return {
+        id: x.id, texto: x.texto, ...(esTexto(x.ambito) && x.ambito ? { ambito: x.ambito } : {}),
+        trimestres: trimestres.length ? [...new Set(trimestres)].sort() : [1, 2, 3],
+        origen: x.origen === 'informe' ? 'informe' : 'orientacion',
+      };
+    });
     const inf = obj(a.informe);
     const informe = inf && esTexto(inf.fecha)
       ? {
@@ -522,6 +575,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       necesidades: esTexto(a.necesidades) ? a.necesidades : '',
       notas: esTexto(a.notas) ? a.notas : '',
       ...(informe ? { informe } : {}),
+      ...(objetivosOrientacion.length ? { objetivosOrientacion } : {}),
     };
   });
   const ids = new Set(alumnos.map(a => a.id));
@@ -554,6 +608,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
         const trimestres = lista<Trimestre>(x.trimestres, t => (t === 1 || t === 2 || t === 3 ? t : null));
         return {
           id: x.id, texto: x.texto,
+          ...(x.origen === 'informe' || x.origen === 'orientacion' || x.origen === 'ia' ? { origen: x.origen } : {}),
           trimestres: trimestres.length ? [...new Set(trimestres)].sort() : [1, 2, 3],
           criterios: lista(x.criterios, c => {
             const r = obj(c);

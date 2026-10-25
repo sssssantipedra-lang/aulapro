@@ -2483,3 +2483,15 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .ap-lote-res { border:1px solid var(--border); border-radius:12px; padding:10px 14px; background:var(--surface); font-size:13px; }
 .ap-lote-res ul { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:6px 16px; }
 .ap-lote-est .sda-chip { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+
+.ap-oo { display:flex; flex-direction:column; gap:10px; }
+.ap-oo-lista { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.ap-oo-fila { display:flex; flex-direction:column; gap:6px; border:1px solid var(--border); border-radius:10px; padding:9px 11px; background:var(--surface, transparent); }
+.ap-oo-cab { display:flex; gap:6px; flex-wrap:wrap; }
+.ap-oo-opc { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ap-oo-amb { flex:1 1 260px; min-width:0; }
+.ap-oo-nuevo { display:flex; gap:8px; align-items:center; }
+.ap-oo-nuevo .finput { flex:1; min-width:0; }
+.ap-origen-informe { background:color-mix(in srgb, var(--accent) 16%, var(--card)); color:var(--accent-d); }
+.ap-origen-orientacion { background:color-mix(in srgb, #8b5cf6 16%, var(--card)); color:#6d28d9; }
+.ap-origen-ia { background:var(--surface-2); color:var(--text-2); }

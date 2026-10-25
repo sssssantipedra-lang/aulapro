@@ -7,6 +7,7 @@
 import { useRef, useState } from 'react';
 import { FileText, Sparkles, Upload, ListChecks, Check } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { ObjetivosOrientacion } from '../../components/apoyo/ObjetivosOrientacion';
 import { useToast } from '../../components/ui/Toast';
 import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
 import { useI18n } from '../../i18n';
@@ -18,9 +19,9 @@ import {
   analizarInforme, conInforme, EXTENSIONES_INFORME, leerArchivoInforme, type FuenteInforme, type PropuestaInforme,
 } from '../../services/informeOrientacion';
 import { isoDate } from '../../lib/utils';
-import { ambitosDe, CATEGORIAS_NEAE, nivelDe, nuevoIdApoyo } from '../../lib/apoyo';
+import { ambitosDe, CATEGORIAS_NEAE, nivelDe, nuevoIdApoyo, objetivosPendientes, pasarAProgramas, yaEstaEnPrograma } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { AlumnoApoyo, ApoyoData, Especialidad, ProgramaApoyo } from '../../types/apoyo';
+import type { AlumnoApoyo, ApoyoData, Especialidad, ObjetivoOrientacion, ProgramaApoyo } from '../../types/apoyo';
 import type { Section } from '../../types';
 
 interface Props {
@@ -55,7 +56,19 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
 
   const informe = alumno.informe;
   const yaTiene = new Set(data.programas.filter(p => p.alumnoId === alumno.id).map(p => p.ambito));
-  const pendientes = (informe?.ambitos ?? []).filter(a => !yaTiene.has(a));
+  const delaOrientacion = alumno.objetivosOrientacion ?? [];
+  const porPasar = objetivosPendientes(data, alumno).filter(o => o.ambito);
+  /** Programas que aún no existen y que el informe sugiere o a los que van objetivos de la orientación. */
+  const pendientes = [...new Set([...(informe?.ambitos ?? []), ...porPasar.map(o => o.ambito!)])].filter(a => !yaTiene.has(a));
+  const especialidadDe = (ambito: string): Especialidad => visibles.find(a => nombreAmbito(a.nombre) === ambito)?.especialidad ?? especialidades[0] ?? 'PT';
+  const cambiarOrientacion = (lista: ObjetivoOrientacion[]) =>
+    onChange(d => ({ ...d, alumnos: d.alumnos.map(a => (a.id === alumno.id ? { ...a, objetivosOrientacion: lista.length ? lista : undefined } : a)) }));
+
+  function pasar() {
+    const r = pasarAProgramas(data, alumno.id, porPasar, especialidadDe);
+    onChange(d => pasarAProgramas(d, alumno.id, porPasar, especialidadDe).data);
+    toast(t('✅ {n} objetivos pasados a sus programas. Revísalos en la pestaña «Programa».', { n: r.pasados }));
+  }
 
   function abrir() { setFuente({}); setPegado(''); setPropuesta(null); setAbierto(true); }
 
@@ -84,24 +97,39 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
     toast(t('✅ Guardado en su ficha. Ahora puedes crear sus programas con sus objetivos.'));
   }
 
+  /**
+   * Los programas elegidos: primero los objetivos de la orientación que van a cada uno (son los importantes) y,
+   * después, los que la IA propone además. Todo se guarda de una vez al final.
+   */
   async function crearProgramas() {
-    const hechos: ProgramaApoyo[] = [];
+    const complementos: { ambito: string; objetivos: ProgramaApoyo['objetivos'] }[] = [];
     for (const nombre of elegidos) {
-      const def = visibles.find(a => nombreAmbito(a.nombre) === nombre);
+      const propios = delaOrientacion.filter(o => o.ambito === nombre);
       const programa: ProgramaApoyo = {
-        id: nuevoIdApoyo('pro'), alumnoId: alumno.id, ambito: nombre, objetivos: [],
-        especialidad: def?.especialidad ?? especialidades[0] ?? 'PT',
+        id: nuevoIdApoyo('pro'), alumnoId: alumno.id, ambito: nombre, especialidad: especialidadDe(nombre),
+        objetivos: propios.map(o => ({ id: nuevoIdApoyo('obj'), texto: o.texto, trimestres: o.trimestres, criterios: [], origen: o.origen })),
       };
       setCreando(nombre);
       const propuestos = await proponerObjetivos(
-        { alumno, programa, actuales: [], materias, comunidad, lang, nombreCurso }, { onError: m => toast(t(m)) },
+        { alumno, programa, actuales: programa.objetivos, materias, comunidad, lang, nombreCurso }, { onError: m => toast(t(m)) },
       );
-      programa.objetivos = (propuestos ?? []).map(o => ({ id: nuevoIdApoyo('obj'), ...o }));
-      hechos.push(programa);
+      complementos.push({ ambito: nombre, objetivos: (propuestos ?? []).map(o => ({ id: nuevoIdApoyo('obj'), ...o, origen: 'ia' as const })) });
     }
     setCreando(null);
-    if (!hechos.length) return;
-    onChange(d => ({ ...d, programas: [...d.programas, ...hechos] }));
+    if (!complementos.length) return;
+    onChange(d => {
+      let r = pasarAProgramas(d, alumno.id, delaOrientacion.filter(o => o.ambito && elegidos.includes(o.ambito)), especialidadDe).data;
+      for (const c of complementos) {
+        const existe = r.programas.some(p => p.alumnoId === alumno.id && p.ambito === c.ambito);
+        r = {
+          ...r,
+          programas: existe
+            ? r.programas.map(p => (p.alumnoId === alumno.id && p.ambito === c.ambito ? { ...p, objetivos: [...p.objetivos, ...c.objetivos] } : p))
+            : [...r.programas, { id: nuevoIdApoyo('pro'), alumnoId: alumno.id, ambito: c.ambito, especialidad: especialidadDe(c.ambito), objetivos: c.objetivos }],
+        };
+      }
+      return r;
+    });
     setCrearAbierto(false);
     toast(t('✅ Programas creados con sus objetivos. Revísalos en la pestaña «Programa».'));
   }
@@ -129,13 +157,29 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
             <tr><th>{t('Orientaciones del informe')}</th><td>{informe.orientaciones || <span className="ap-sub">{t('Sin indicar')}</span>}</td></tr>
             <tr><th>{t('Programas que sugiere')}</th><td>{informe.ambitos.length ? informe.ambitos.join('; ') : <span className="ap-sub">{t('Sin indicar')}</span>}</td></tr>
           </tbody></table>
-          {pendientes.length > 0 && (
-            <button className="btn-accent" style={{ marginTop: 12 }} onClick={() => { setElegidos(pendientes); setCrearAbierto(true); }}>
-              <ListChecks size={15} />{t('Crear sus programas y objetivos desde el informe')}
-            </button>
-          )}
         </>
       )}
+
+      <div className="ap-oo-sec">
+        <div className="ap-reg-sec">{t('Objetivos de la orientación')}</div>
+        <p className="ap-sub" style={{ margin: '0 0 8px' }}>
+          {t('Los que plantea el informe y los que te indica la orientadora, aunque no estén en el informe. Pasan a sus programas tal cual; la IA propone otros además.')}
+        </p>
+        <ObjetivosOrientacion
+          objetivos={delaOrientacion} onChange={cambiarOrientacion} ambitos={nombres}
+          enPrograma={o => yaEstaEnPrograma(data, alumno.id, o)}
+        />
+        <div className="ap-acciones" style={{ marginTop: 12 }}>
+          {porPasar.length > 0 && (
+            <button className="btn-ghost" onClick={pasar}><ListChecks size={15} />{t(porPasar.length === 1 ? 'Pasar 1 objetivo a su programa' : 'Pasar {n} objetivos a sus programas', { n: porPasar.length })}</button>
+          )}
+          {pendientes.length > 0 && (
+            <button className="btn-accent" onClick={() => { setElegidos(pendientes); setCrearAbierto(true); }}>
+              <Sparkles size={15} />{t('Crear sus programas con IA, con estos objetivos y otros')}
+            </button>
+          )}
+        </div>
+      </div>
 
       <Modal open={abierto} onClose={() => setAbierto(false)} wide title={t('Informe del orientador')}>
         {!propuesta ? (
@@ -200,6 +244,10 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
                 })}
               </div>
             </fieldset>
+            <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
+              <legend className="flabel">{t('Objetivos que plantea el informe')}</legend>
+              <ObjetivosOrientacion objetivos={propuesta.objetivos} onChange={objetivos => edit({ objetivos })} ambitos={nombres} />
+            </fieldset>
             <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
               {propuesta.nivel ? t('Nivel de competencia que dice el informe: {curso}. Se guardará en su ficha.', { curso: nombreCurso(propuesta.nivel) }) : t('El informe no dice su nivel de competencia: se queda el que tenga.')}
             </p>
@@ -213,7 +261,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
 
       <Modal open={crearAbierto} onClose={() => !creando && setCrearAbierto(false)} wide title={t('Sus programas y objetivos')}>
         <div className="ap-form">
-          <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('La IA propone de 4 a 6 objetivos por programa, repartidos por trimestres y enlazados con los criterios de su nivel. Los revisas después en la pestaña «Programa».')}</p>
+          <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Primero entran los objetivos de la orientación que van a cada programa; después la IA propone otros además, repartidos por trimestres y enlazados con los criterios de su nivel. Los revisas después en la pestaña «Programa».')}</p>
           <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
             <legend className="flabel">{t('Programas que se crean')}</legend>
             <div className="chip-row">

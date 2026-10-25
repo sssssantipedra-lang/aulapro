@@ -19,6 +19,21 @@ describe('propuestaDeRespuesta', () => {
     expect(p.fortalezas).toBe('Memoria visual');
     expect(p.ambitos).toEqual(['Lectoescritura']);
   });
+  it('los objetivos que plantea el informe se recogen tal cual, con un programa que exista y sus trimestres', () => {
+    const p = propuestaDeRespuesta({
+      objetivos: [
+        { texto: ' Reconocer las letras ', ambito: 'Lectoescritura', trimestres: ['1', '2'] },
+        { texto: 'Pedir ayuda', ambito: 'ninguno', trimestres: [] },
+        { texto: 'Programa inventado', ambito: 'No existe', trimestres: ['3'] },
+        { texto: '   ', ambito: 'Lectoescritura', trimestres: ['1'] },
+      ],
+    }, ['Lectoescritura']);
+    expect(p.objetivos.map(o => [o.texto, o.ambito, o.trimestres, o.origen])).toEqual([
+      ['Reconocer las letras', 'Lectoescritura', [1, 2], 'informe'],
+      ['Pedir ayuda', undefined, [1, 2, 3], 'informe'],
+      ['Programa inventado', undefined, [3], 'informe'],
+    ]);
+  });
   it('un nivel imposible o ausente no se guarda', () => {
     expect(propuestaDeRespuesta({ nivelEtapa: 'eso', nivelCurso: '6' }, []).nivel).toBeUndefined();
     expect(propuestaDeRespuesta({ nivelEtapa: 'ninguna', nivelCurso: '0' }, []).nivel).toBeUndefined();
@@ -35,6 +50,8 @@ describe('conInforme', () => {
     expect(a.necesidades).toBe('Nuevas necesidades.');
     expect(a.nivel).toEqual({ etapa: 'primaria', curso: 1 });
     expect(a.informe).toEqual({ fecha: '2026-10-25', archivo: 'informe.pdf', fortalezas: 'f', orientaciones: 'o', ambitos: [] });
+    // Sin objetivos en el informe, no se inventa ninguno
+    expect(a.objetivosOrientacion).toBeUndefined();
   });
 });
 

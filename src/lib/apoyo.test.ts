@@ -3,7 +3,7 @@ import {
   ambitosDe, trimestreDe, diaDeLaSemana, gruposDelDia, tieneDesfase, nivelDe,
   objetivosDelTrimestre, sesionDe, sesionConDatos, resumenObjetivo,
   normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, CATEGORIAS_NEAE, apoyoParaOtroCurso,
-  contextoFichaApoyo, filasDeCierre, trimestreCerrado, cerrarTrimestre, datosDelTrimestre,
+  contextoFichaApoyo, conObjetivosOrientacion, objetivosPendientes, pasarAProgramas, filasDeCierre, trimestreCerrado, cerrarTrimestre, datosDelTrimestre,
 } from './apoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
@@ -285,5 +285,46 @@ describe('cierre de trimestre', () => {
       [{ objetivoId: 'o1', resultado: 'si', comentario: 'Lo domina', seguir: true }], '2027-06-10');
     expect(d.programas[0].objetivos[0].trimestres).toEqual([3]);
     expect(datosDelTrimestre(d, 'a', 3).objetivos[0].evaluacion?.resultado).toBe('si');
+  });
+});
+
+describe('objetivos de la orientación', () => {
+  const a = (): AlumnoApoyo => ({ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' });
+  const oo = (id: string, texto: string, ambito?: string, origen: 'informe' | 'orientacion' = 'informe') =>
+    ({ id, texto, ...(ambito ? { ambito } : {}), trimestres: [1, 2, 3] as (1 | 2 | 3)[], origen });
+  const base = (): ApoyoData => ({ ...APOYO_VACIO, alumnos: [a()] });
+
+  it('se suman sin repetir los que ya hay (por su texto, sin mirar mayúsculas ni espacios)', () => {
+    const x = conObjetivosOrientacion(a(), [oo('1', 'Leer sílabas'), oo('2', 'Pedir ayuda', undefined, 'orientacion')]);
+    const y = conObjetivosOrientacion(x, [oo('3', '  leer   SÍLABAS '), oo('4', 'Contar hasta 20')]);
+    expect(y.objetivosOrientacion?.map(o => o.texto)).toEqual(['Leer sílabas', 'Pedir ayuda', 'Contar hasta 20']);
+  });
+
+  it('pasan al programa de su ámbito (se crea si no existe) con su origen, y los sin ámbito se quedan', () => {
+    const lista = [oo('1', 'Leer sílabas', 'Lectoescritura'), oo('2', 'Pedir ayuda', 'Autonomía', 'orientacion'), oo('3', 'Sin programa')];
+    let n = 0;
+    const r = pasarAProgramas(base(), 'a', lista, ambito => (ambito === 'Autonomía' ? 'AL' : 'PT'), p => `${p}${++n}`);
+    expect(r.pasados).toBe(2);
+    expect(r.data.programas.map(p => [p.ambito, p.especialidad, p.objetivos.map(o => [o.texto, o.origen])])).toEqual([
+      ['Lectoescritura', 'PT', [['Leer sílabas', 'informe']]],
+      ['Autonomía', 'AL', [['Pedir ayuda', 'orientacion']]],
+    ]);
+    // Pasarlos otra vez no los duplica, y los que quedan pendientes son los sin programa
+    const otra = pasarAProgramas(r.data, 'a', lista, () => 'PT');
+    expect(otra.pasados).toBe(0);
+    expect(objetivosPendientes(r.data, { ...a(), objetivosOrientacion: lista }).map(o => o.texto)).toEqual(['Sin programa']);
+  });
+
+  it('en un programa que ya existe se añaden al final', () => {
+    const d = { ...base(), programas: [{ id: 'p', alumnoId: 'a', ambito: 'Lectoescritura', especialidad: 'PT' as const, objetivos: [{ id: 'o', texto: 'Ya escrito', trimestres: [1 as const], criterios: [] }] }] };
+    const r = pasarAProgramas(d, 'a', [oo('1', 'Del informe', 'Lectoescritura')], () => 'PT');
+    expect(r.data.programas).toHaveLength(1);
+    expect(r.data.programas[0].objetivos.map(o => o.texto)).toEqual(['Ya escrito', 'Del informe']);
+  });
+
+  it('se guardan y se recuperan con su origen', () => {
+    const d: ApoyoData = { ...base(), alumnos: [conObjetivosOrientacion(a(), [oo('1', 'Leer sílabas', 'Lectoescritura')])] };
+    const vuelta = normalizarApoyo(JSON.parse(JSON.stringify(d)));
+    expect(vuelta.alumnos[0].objetivosOrientacion).toEqual(d.alumnos[0].objetivosOrientacion);
   });
 });

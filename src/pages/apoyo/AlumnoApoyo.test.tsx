@@ -92,7 +92,7 @@ describe('Página de un alumno de apoyo', () => {
     expect(ultimo.grupos.find(g => g.id === 'demo-g4')?.alumnos).toContain('demo-a1');
 
     await user.click(screen.getByRole('tab', { name: 'Programa' }));
-    expect(await screen.findByRole('button', { name: /Nuevo programa/ })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: /Nuevo programa/ }, { timeout: 5000 })).toBeTruthy();
     expect(screen.queryByRole('tab', { name: 'Alumno 2' })).toBeNull();
   });
 

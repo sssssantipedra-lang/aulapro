@@ -6,11 +6,11 @@
  */
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import { marcoApoyo } from './apoyoIA';
-import { CATEGORIAS_NEAE } from '../lib/apoyo';
+import { CATEGORIAS_NEAE, conObjetivosOrientacion, nuevoIdApoyo } from '../lib/apoyo';
 import { fileToBase64 } from '../lib/utils';
 import { textoDeDocx } from '../lib/leerMaterial';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
-import type { AlumnoApoyo, CursoDe, InformeOrientacion } from '../types/apoyo';
+import type { AlumnoApoyo, CursoDe, InformeOrientacion, ObjetivoOrientacion, Trimestre } from '../types/apoyo';
 
 export const MAX_BYTES_INFORME = 19 * 1024 * 1024;
 export const EXTENSIONES_INFORME = '.pdf,.docx,.txt';
@@ -36,6 +36,8 @@ export interface PropuestaInforme {
   fortalezas: string;
   orientaciones: string;
   ambitos: string[];
+  /** Los objetivos que el informe plantea, tal como los dice (la IA no inventa otros aquí). */
+  objetivos: ObjetivoOrientacion[];
 }
 
 const cadena = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
@@ -55,6 +57,17 @@ export function propuestaDeRespuesta(raw: unknown, ambitosValidos: readonly stri
     fortalezas: cadena(o.fortalezas),
     orientaciones: cadena(o.orientaciones),
     ambitos: [...new Set(lista(o.ambitos).filter(a => ambitosValidos.includes(a)))].slice(0, 5),
+    objetivos: (Array.isArray(o.objetivos) ? o.objetivos : []).flatMap((x): ObjetivoOrientacion[] => {
+      const y = (x && typeof x === 'object' ? x : {}) as Record<string, unknown>;
+      const texto = cadena(y.texto);
+      if (!texto) return [];
+      const trimestres = lista(y.trimestres).map(Number).filter((n): n is Trimestre => n === 1 || n === 2 || n === 3);
+      const ambito = typeof y.ambito === 'string' && ambitosValidos.includes(y.ambito) ? y.ambito : undefined;
+      return [{
+        id: nuevoIdApoyo('oo'), texto, ...(ambito ? { ambito } : {}),
+        trimestres: trimestres.length ? [...new Set(trimestres)].sort() : [1, 2, 3], origen: 'informe',
+      }];
+    }).slice(0, 20),
   };
 }
 
@@ -81,7 +94,11 @@ export async function analizarInforme(
     '- nivelEtapa y nivelCurso: el nivel de competencia curricular si el informe lo dice (por ejemplo, «nivel de 2.º de Primaria»); si no, "ninguna" y "0".\n' +
     '- fortalezas: sus puntos fuertes e intereses, en 1 a 3 frases.\n' +
     '- orientaciones: las medidas y orientaciones que propone para el centro, el aula y el apoyo de PT o AL, en 3 a 6 frases.\n' +
-    '- ambitos: los programas de apoyo que el informe hace necesarios, de la lista cerrada (como mucho 4).' +
+    '- ambitos: los programas de apoyo que el informe hace necesarios, de la lista cerrada (como mucho 4).\n' +
+    '- objetivos: SOLO los objetivos que el informe plantea o recomienda trabajar con el alumno, uno por elemento, con las ' +
+    'palabras del informe (una frase corta, mejor si empieza por un verbo en infinitivo). En "ambito", el programa de la ' +
+    'lista cerrada al que pertenece, o "ninguno" si no encaja; en "trimestres", en cuáles se trabaja si el informe lo dice ' +
+    '(si no, los tres). Si el informe no trae objetivos, déjalos vacíos: no los inventes.' +
     (fuente.texto?.trim() ? `\n\nINFORME:\n${fuente.texto.trim().slice(0, 60000)}` : '\n\nEl informe va en el archivo adjunto.');
   const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, fuente.archivo ? [fuente.archivo] : [], callbacks, {
     responseSchema: {
@@ -95,8 +112,13 @@ export async function analizarInforme(
         fortalezas: { type: 'STRING' },
         orientaciones: { type: 'STRING' },
         ambitos: { type: 'ARRAY', items: { type: 'STRING', enum: [...ambitos] } },
+        objetivos: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+          texto: { type: 'STRING' },
+          ambito: { type: 'STRING', enum: [...ambitos, 'ninguno'] },
+          trimestres: { type: 'ARRAY', items: { type: 'STRING', enum: ['1', '2', '3'] } },
+        }, required: ['texto', 'ambito', 'trimestres'] } },
       },
-      required: ['categorias', 'diagnostico', 'necesidades', 'nivelEtapa', 'nivelCurso', 'fortalezas', 'orientaciones', 'ambitos'],
+      required: ['categorias', 'diagnostico', 'necesidades', 'nivelEtapa', 'nivelCurso', 'fortalezas', 'orientaciones', 'ambitos', 'objetivos'],
     },
     thinkingLevel: 'high',
     maxOutputTokens: 8192,
@@ -107,17 +129,20 @@ export async function analizarInforme(
   return propuestaDeRespuesta(r, ambitos);
 }
 
-/** La ficha del alumno con lo que el docente ha dado por bueno; lo que la propuesta deja vacío no borra lo que había. */
+/**
+ * La ficha del alumno con lo que el docente ha dado por bueno; lo que la propuesta deja vacío no borra lo que había.
+ * Los objetivos del informe se suman a los que ya hubiera de la orientación, sin repetir.
+ */
 export function conInforme(a: AlumnoApoyo, p: PropuestaInforme, archivo: string | undefined, hoy: string): AlumnoApoyo {
   const informe: InformeOrientacion = {
     fecha: hoy, ...(archivo ? { archivo } : {}), fortalezas: p.fortalezas.trim(), orientaciones: p.orientaciones.trim(), ambitos: p.ambitos,
   };
-  return {
+  return conObjetivosOrientacion({
     ...a,
     categorias: [...new Set([...a.categorias, ...p.categorias])],
     diagnostico: p.diagnostico.trim() || a.diagnostico,
     necesidades: p.necesidades.trim() || a.necesidades,
     ...(p.nivel ? { nivel: p.nivel } : {}),
     informe,
-  };
+  }, p.objetivos);
 }

@@ -48,6 +48,24 @@ export interface AlumnoApoyo {
    * informe. Lo revisa el docente antes de guardarse. Ver `docs/PTAL.md`, «El informe del orientador».
    */
   informe?: InformeOrientacion;
+  /**
+   * Los objetivos que vienen de la orientación: los que plantea su informe y los que indica la orientadora
+   * aunque no estén en el informe. Pasan a sus programas; la IA propone otros además de estos.
+   */
+  objetivosOrientacion?: ObjetivoOrientacion[];
+}
+
+/** De dónde viene un objetivo: del informe del orientador, de lo que dice la orientadora, o lo propuso la IA. */
+export type OrigenObjetivo = 'informe' | 'orientacion' | 'ia';
+
+/** Un objetivo que viene de la orientación, antes o después de pasarlo a un programa. */
+export interface ObjetivoOrientacion {
+  id: string;
+  texto: string;
+  /** El programa (ámbito) al que va, por su nombre en la lengua de la app; sin él no se puede pasar. */
+  ambito?: string;
+  trimestres: Trimestre[];
+  origen: Exclude<OrigenObjetivo, 'ia'>;
 }
 
 /** Las conclusiones del informe sociopsicopedagógico de un alumno, ya revisadas por el docente. */
@@ -90,6 +108,8 @@ export interface ObjetivoApoyo {
   trimestres: Trimestre[];
   /** Criterios oficiales del curso de su nivel con los que se enlaza, si los hay. */
   criterios: OfficialCriterionRef[];
+  /** De dónde viene; ausente en los escritos a mano y en los de antes. */
+  origen?: OrigenObjetivo;
 }
 
 /**

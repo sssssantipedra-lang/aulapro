@@ -39,6 +39,8 @@ interface Props {
 const TRIMESTRES: Trimestre[] = [1, 2, 3];
 const INTENSIDADES = ['baja', 'media', 'alta'] as const;
 const OTRO = '__otro__';
+/** De dónde viene un objetivo: claves del diccionario. */
+const ORIGEN = { informe: 'Informe', orientacion: 'Orientación', ia: 'IA' } as const;
 
 export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunidad, onNav }: Props) {
   const { t, lang } = useI18n();
@@ -108,7 +110,7 @@ export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunid
     if (!propuestos?.length) return;
     cambiarPrograma(p.id, x => ({
       ...x,
-      objetivos: [...x.objetivos, ...propuestos.map(o => ({ id: nuevoIdApoyo('obj'), ...o }))],
+      objetivos: [...x.objetivos, ...propuestos.map(o => ({ id: nuevoIdApoyo('obj'), ...o, origen: 'ia' as const }))],
     }));
     toast(t('✅ La IA ha añadido {n} objetivos. Revísalos y cambia lo que haga falta.', { n: propuestos.length }));
   }
@@ -240,6 +242,7 @@ function ObjetivoFila({ objetivo, estado, materias, puntos, onChange, onDelete }
   return (
     <li className="ap-obj">
       <div className="ap-obj-fila">
+        {objetivo.origen && <span className={`sda-chip ap-origen ap-origen-${objetivo.origen}`}>{t(ORIGEN[objetivo.origen])}</span>}
         <input
           className="finput ap-obj-txt" value={objetivo.texto} aria-label={t('Objetivo')}
           placeholder={t('Ej: Leer sílabas directas con fluidez')}

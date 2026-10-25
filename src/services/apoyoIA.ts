@@ -130,7 +130,10 @@ export async function proponerObjetivos(
     `Programa o ámbito: ${programa.ambito}\n` +
     (programa.intensidad ? `Intensidad del apoyo: ${programa.intensidad}\n` : '') +
     (actuales.length ? `Objetivos que ya tiene (no los repitas):\n${actuales.map(o => `- ${o.texto}`).join('\n')}\n` : '') +
-    '\nPropón de 4 a 6 objetivos para este programa durante el curso. Cada objetivo: una frase corta (máximo 12 ' +
+    (actuales.length
+      ? `\nYa tiene objetivos (los que vienen del informe de orientación o de la orientadora son los importantes): no los cambies ni los repitas. Propón de 2 a 4 objetivos MÁS para este programa, complementarios a ellos, durante el curso.`
+      : '\nPropón de 4 a 6 objetivos para este programa durante el curso.') +
+    ' Cada objetivo: una frase corta (máximo 12 ' +
     'palabras), que empiece por un verbo en infinitivo, observable y evaluable en una sesión, ajustada a su nivel de ' +
     'competencia curricular y a sus necesidades, de lo más sencillo a lo más complejo. En "trimestres" indica en cuáles ' +
     'se trabaja (1, 2 o 3; puede ser más de uno), con una progresión a lo largo del curso.' +
