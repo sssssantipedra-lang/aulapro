@@ -1,4 +1,6 @@
-import type { Class, Student, GradeCategory, GradeItem, GradeMap, Rubric, EvalDiana, Evaluation } from '../types';
+import type {
+  Class, Student, GradeCategory, GradeItem, GradeMap, Rubric, EvalDiana, Evaluation, LearningSituation, Ficha,
+} from '../types';
 
 /**
  * El paquete que un docente comparte con otro (ver `docs/COMPARTIR.md`).
@@ -31,6 +33,13 @@ export interface ShareScope {
   sinInstrumentos?: string[];
   /** Ids de rúbrica o diana cuyas evaluaciones no van. */
   sinEvaluacionesDe?: string[];
+  /**
+   * Documentos que se mandan, a diferencia de lo anterior hay que marcarlos
+   * (25-10-2026): una situación de aprendizaje o una ficha no cuelga de una
+   * clase, así que no entra por defecto con ella.
+   */
+  sdaIds?: string[];
+  fichaIds?: string[];
 }
 
 export const EMPTY_SCOPE: ShareScope = { classIds: [], grades: true, rubrics: true, evaluations: true };
@@ -44,6 +53,9 @@ export interface SharedBundle {
   rubrics: Rubric[];
   dianas: EvalDiana[];
   evaluations: Evaluation[];
+  /** Situaciones de aprendizaje y fichas (desde la 2.20.0; ausentes en los archivos anteriores). */
+  learningSituations?: LearningSituation[];
+  fichas?: Ficha[];
   /** Perfil que envía este paquete. Permite saber qué es suyo al fusionar. */
   from?: string;
 }
@@ -57,6 +69,8 @@ export interface SyncSource {
   rubrics: Rubric[];
   dianas: EvalDiana[];
   evaluations: Evaluation[];
+  learningSituations?: LearningSituation[];
+  fichas?: Ficha[];
   /** Id del perfil de quien comparte. */
   me?: string;
 }
@@ -64,7 +78,7 @@ export interface SyncSource {
 export function emptyBundle(): SharedBundle {
   return {
     classes: [], students: [], gradeCategories: [], gradeItems: [],
-    grades: {}, rubrics: [], dianas: [], evaluations: [],
+    grades: {}, rubrics: [], dianas: [], evaluations: [], learningSituations: [], fichas: [],
   };
 }
 
@@ -81,6 +95,8 @@ export function buildBundle(src: SyncSource, scope: ShareScope): SharedBundle {
   const sinColumnas = new Set(scope.sinColumnas ?? []);
   const sinInstrumentos = new Set(scope.sinInstrumentos ?? []);
   const sinEvaluacionesDe = new Set(scope.sinEvaluacionesDe ?? []);
+  const sdaIds = new Set(scope.sdaIds ?? []);
+  const fichaIds = new Set(scope.fichaIds ?? []);
 
   const classes = src.classes.filter(c => ids.has(c.id));
   const students = src.students.filter(s => ids.has(s.class_id) && !sinAlumnos.has(s.id));
@@ -117,6 +133,8 @@ export function buildBundle(src: SyncSource, scope: ShareScope): SharedBundle {
     evaluations: scope.evaluations
       ? src.evaluations.filter(e => ids.has(e.class_id) && !sinAlumnos.has(e.student_id) && !sinEvaluacionesDe.has(e.rubric_id))
       : [],
+    learningSituations: (src.learningSituations ?? []).filter(x => sdaIds.has(x.id)),
+    fichas: (src.fichas ?? []).filter(x => fichaIds.has(x.id)),
     from: src.me,
   };
 }
@@ -202,6 +220,29 @@ function mergeGrades(local: GradeMap, remote: GradeMap, remoteWins: boolean): Gr
 export type LocalState = Omit<SharedBundle, 'from'>;
 
 /**
+ * Un documento que llega puede apuntar a una clase (o a una situación de
+ * aprendizaje) que aquí no existe: se le quita ese vínculo para que no quede
+ * colgando, y se conserva el nombre de la clase en texto.
+ */
+function sinVinculosRotos<T extends { class_id?: string; otras_clases?: string[]; sda_id?: string }>(
+  docs: T[], clases: Set<string>, sdas?: Set<string>,
+): T[] {
+  return docs.map(d => {
+    const otras = d.otras_clases?.filter(id => clases.has(id));
+    const rota = (d.class_id && !clases.has(d.class_id)) || (d.sda_id && sdas && !sdas.has(d.sda_id))
+      || (d.otras_clases && otras && otras.length !== d.otras_clases.length);
+    if (!rota) return d;
+    const limpio: T = { ...d };
+    if (limpio.class_id && !clases.has(limpio.class_id)) delete limpio.class_id;
+    if (limpio.otras_clases) {
+      if (otras && otras.length) limpio.otras_clases = otras; else delete limpio.otras_clases;
+    }
+    if (limpio.sda_id && sdas && !sdas.has(limpio.sda_id)) delete limpio.sda_id;
+    return limpio;
+  });
+}
+
+/**
  * @param me Id del perfil local. Sin él no se puede saber qué es propio, y la
  *           fusión se comporta como antes de que existieran los dueños.
  */
@@ -211,10 +252,25 @@ export function mergeBundle(
   const rw = mode === 'actualizar';
   const peer = remote.from;
 
+  // La clase y su lista de alumnos son lo único que dos docentes tienen
+  // de verdad en común, así que son lo único que necesita un dueño.
+  const classes = mergeOwned(local.classes, remote.classes, rw, me, peer);
+  const clases = new Set(classes.map(c => c.id));
+
+  const learningSituations = mergeById(
+    local.learningSituations ?? [],
+    sinVinculosRotos(remote.learningSituations ?? [], clases),
+    rw,
+  );
+  const sdas = new Set(learningSituations.map(x => x.id));
+  const fichas = mergeById(
+    local.fichas ?? [],
+    sinVinculosRotos(remote.fichas ?? [], clases, sdas),
+    rw,
+  );
+
   return {
-    // La clase y su lista de alumnos son lo único que dos docentes tienen
-    // de verdad en común, así que son lo único que necesita un dueño.
-    classes:         mergeOwned(local.classes, remote.classes, rw, me, peer),
+    classes,
     students:        mergeOwned(local.students, remote.students, rw, me, peer),
     gradeCategories: mergeById(local.gradeCategories, remote.gradeCategories, rw),
     gradeItems:      mergeById(local.gradeItems, remote.gradeItems, rw),
@@ -222,6 +278,8 @@ export function mergeBundle(
     rubrics:         mergeById(local.rubrics, remote.rubrics, rw),
     dianas:          mergeById(local.dianas, remote.dianas, rw),
     evaluations:     mergeById(local.evaluations, remote.evaluations, rw),
+    learningSituations,
+    fichas,
   };
 }
 
@@ -234,6 +292,8 @@ export function bundleCounts(b: SharedBundle) {
     grades: cells,
     rubrics: b.rubrics.length + b.dianas.length,
     evaluations: b.evaluations.length,
+    sdas: (b.learningSituations ?? []).length,
+    fichas: (b.fichas ?? []).length,
   };
 }
 
@@ -243,5 +303,7 @@ export function esPaquete(x: unknown): x is SharedBundle {
   const b = x as Record<string, unknown>;
   const listas = ['classes', 'students', 'gradeCategories', 'gradeItems', 'rubrics', 'dianas', 'evaluations'];
   if (!listas.every(k => Array.isArray(b[k]))) return false;
+  // Los documentos son opcionales (los archivos de antes no los llevan), pero si vienen han de ser listas
+  for (const k of ['learningSituations', 'fichas']) if (b[k] !== undefined && !Array.isArray(b[k])) return false;
   return typeof b.grades === 'object' && b.grades !== null && !Array.isArray(b.grades);
 }

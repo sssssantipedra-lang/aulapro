@@ -14,7 +14,7 @@ import { useI18n } from '../../i18n';
 
 type Clave = 'sinAlumnos' | 'sinColumnas' | 'sinInstrumentos' | 'sinEvaluacionesDe';
 
-interface Elemento { id: string; etiqueta: string; sub?: string }
+export interface Elemento { id: string; etiqueta: string; sub?: string }
 
 interface ListaProps {
   titulo: string;
@@ -24,7 +24,7 @@ interface ListaProps {
 }
 
 /** Una lista de casillas con «Todos» y «Ninguno». Marcado = va en el archivo. */
-function Lista({ titulo, elementos, fuera, onFuera }: ListaProps) {
+export function Lista({ titulo, elementos, fuera, onFuera }: ListaProps) {
   const { t } = useI18n();
   if (elementos.length === 0) return null;
   const idsLista = new Set(elementos.map(e => e.id));

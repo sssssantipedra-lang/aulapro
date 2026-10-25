@@ -20,7 +20,7 @@ Pantalla: `src/pages/Share.tsx` (menú «Trabajo compartido», `Section` `share`
 
 **Quien envía**
 
-1. Marca las clases y qué comparte: cuaderno de notas, rúbricas y dianas, evaluaciones. Ve los recuentos de lo que irá en el archivo. Con **«Elegir con detalle»** puede quitar lo que no quiera mandar: alumnos concretos, columnas concretas del cuaderno, rúbricas, dianas y escalas concretas, y las evaluaciones de un instrumento. Todo viene marcado y se quita lo que sobra, así que lo que se cree después entra solo; quitar a un alumno quita también sus notas y sus evaluaciones.
+1. Marca las clases y qué comparte: cuaderno de notas, rúbricas y dianas, evaluaciones. Ve los recuentos de lo que irá en el archivo. Con **«Elegir con detalle»** puede quitar lo que no quiera mandar: alumnos concretos, columnas concretas del cuaderno, rúbricas, dianas y escalas concretas, y las evaluaciones de un instrumento. Todo viene marcado y se quita lo que sobra, así que lo que se cree después entra solo; quitar a un alumno quita también sus notas y sus evaluaciones. Además puede marcar **situaciones de aprendizaje y fichas**, que no cuelgan de una clase y por eso no vienen marcadas: se pueden mandar sin mandar ninguna clase. Van tal cual (el contexto de la clase que se escribió al crearlas también), y la pantalla lo avisa.
 2. Tiene una contraseña aleatoria propuesta (`ABCD-EFGH-JKMN-PQRS`, 16 símbolos de un alfabeto de 31 sin los que se confunden, unos 79 bits) que puede copiar, cambiar o sustituir por una propia de al menos 10 caracteres.
 3. «Crear archivo cifrado» guarda `aulapro-compartido-AAAA-MM-DD.json` como una copia de seguridad (Documentos › AulaPro › Copias de seguridad en Android; diálogo de guardar en el ordenador).
 4. Manda el archivo por el medio que quiera y la contraseña **por otro**.
@@ -55,7 +55,9 @@ Pidió el dueño que, si era posible, solo la app pudiera leerlo. **No es posibl
 
 Las exclusiones del detalle viven en `ShareScope` (`sinAlumnos`, `sinColumnas`, `sinInstrumentos`, `sinEvaluacionesDe`): se guarda lo que se **quita**, no lo que se marca. Una categoría del cuaderno va si alguna de sus columnas va o si nunca tuvo ninguna; las notas solo llevan celdas de los alumnos que van; las evaluaciones se agrupan por instrumento (`gruposDeEvaluaciones`).
 
-**No se puede elegir todavía** (no están en el paquete): fichas, situaciones de aprendizaje, sesiones de aula y de EF, asistencia, anotaciones de actitud, agenda, ni nada del módulo de PT y AL.
+Las situaciones de aprendizaje y las fichas viajan completas (`LearningSituation` y `Ficha`, con su contenido) y solo si se marcan (`ShareScope.sdaIds` y `fichaIds`, a diferencia de las exclusiones, que son «lo que se quita»). Al importarlas, un vínculo que aquí no existe se quita para que no quede colgando (`sinVinculosRotos` en `paquete.ts`): la clase (`class_id` y `otras_clases`, si la clase no llega en el mismo paquete ni la tiene el docente) y, en una ficha, la situación de la que salió (`sda_id`, que conserva su título). El nombre de la clase se queda como texto. Los archivos creados antes de añadirlas se abren igual: les falta ese campo.
+
+**No se puede elegir todavía** (no están en el paquete): sesiones de aula y de EF, informes, asistencia, anotaciones de actitud, agenda, ni nada del módulo de PT y AL.
 
 ## Código
 
@@ -65,6 +67,7 @@ Las exclusiones del detalle viven en `ShareScope` (`sinAlumnos`, `sinColumnas`, 
 | Cifrado | `src/services/copiaCifrada.ts` |
 | Qué entra en el paquete y cómo se mezcla | `src/services/paquete.ts` |
 | Elegir con detalle | `src/components/compartir/DetalleEnvio.tsx` |
+| Elegir situaciones y fichas | `src/components/compartir/DocumentosEnvio.tsx` |
 | Importar en los datos del perfil | `importarPaquete` en `src/hooks/useAppState.ts` (apunta una línea en el registro de cambios: «Importó datos de otro docente») |
 | Textos en inglés y catalán | `src/i18n/compartir.ts` |
 

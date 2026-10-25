@@ -4,6 +4,11 @@
  * `services/copiaCifrada.ts`). Se suman a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const COMPARTIR_EN: Record<string, string> = {
+  'Marca los que quieras mandar. Van tal cual: si en el contexto de la clase has escrito datos del alumnado, quítalos antes.': 'Tick the ones you want to send. They go as they are: if you wrote student data in the class context, remove it first.',
+  'Fichas': 'Worksheets',
+  'Fichas de trabajo': 'Worksheets',
+  'Todavía no tienes nada que compartir. Crea una clase en «Mis Clases», o una situación de aprendizaje o una ficha en Documentos.': 'You have nothing to share yet. Create a class in “My Classes”, or a learning situation or a worksheet in Documents.',
+  '✅ Datos importados. Nuevo: {c} clases, {a} alumnos, {s} situaciones de aprendizaje y {f} fichas': '✅ Data imported. New: {c} classes, {a} students, {s} learning situations and {f} worksheets',
   'Todos': 'All',
   'Elegir con detalle': 'Choose in detail',
   '{n} sin enviar': '{n} left out',
@@ -63,6 +68,11 @@ export const COMPARTIR_EN: Record<string, string> = {
 };
 
 export const COMPARTIR_CA: Record<string, string> = {
+  'Marca los que quieras mandar. Van tal cual: si en el contexto de la clase has escrito datos del alumnado, quítalos antes.': 'Marca els que vulguis enviar. Van tal qual: si al context de la classe has escrit dades de l’alumnat, treu-les abans.',
+  'Fichas': 'Fitxes',
+  'Fichas de trabajo': 'Fitxes de treball',
+  'Todavía no tienes nada que compartir. Crea una clase en «Mis Clases», o una situación de aprendizaje o una ficha en Documentos.': 'Encara no tens res per compartir. Crea una classe a «Les meves classes», o una situació d’aprenentatge o una fitxa a Documents.',
+  '✅ Datos importados. Nuevo: {c} clases, {a} alumnos, {s} situaciones de aprendizaje y {f} fichas': '✅ Dades importades. Nou: {c} classes, {a} alumnes, {s} situacions d’aprenentatge i {f} fitxes',
   'Todos': 'Tots',
   'Elegir con detalle': 'Triar amb detall',
   '{n} sin enviar': '{n} sense enviar',

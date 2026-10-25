@@ -673,7 +673,10 @@ la versión 2.20 se quitó el trabajo compartido en directo.
   dianas de esas clases, evaluaciones). Con «Elegir con detalle» puede quitar
   alumnos concretos (con sus notas y evaluaciones), columnas del cuaderno,
   rúbricas, dianas o escalas, y las evaluaciones de un instrumento: lo que se deja
-  sin marcar no va en el archivo. Después pulsa «Crear archivo cifrado». La app propone una contraseña aleatoria (por
+  sin marcar no va en el archivo. También puede marcar situaciones de aprendizaje
+  y fichas (no vienen marcadas), con o sin clases: se mandan tal cual, así que
+  conviene revisar que el contexto de la clase no lleve datos del alumnado.
+  Después pulsa «Crear archivo cifrado». La app propone una contraseña aleatoria (por
   ejemplo ABCD-EFGH-JKMN-PQRS) que se puede copiar, cambiar o sustituir por una
   propia de al menos 10 caracteres. El archivo se guarda como una copia de
   seguridad (en Android, en Documentos › AulaPro › Copias de seguridad).

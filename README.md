@@ -34,7 +34,7 @@ cambiados por códigos; el detalle de lo que sale de la app está en
 | **PT y AL, Educación Física** | Los perfiles de apoyo y de EF (`docs/PTAL.md`, `docs/EF.md`) |
 | **Pizarra y herramientas** | Pizarra, temporizador, ruleta, grupos y más (`docs/PIZARRA.md`) |
 | **Actividades con móviles** | La app abre un servidor local; el alumnado entra por la wifi del aula escaneando un QR |
-| **Trabajo compartido** | Pasar clases y notas a otro docente en un archivo cifrado con contraseña (`docs/COMPARTIR.md`) |
+| **Trabajo compartido** | Pasar clases, notas, situaciones de aprendizaje y fichas a otro docente en un archivo cifrado con contraseña (`docs/COMPARTIR.md`) |
 | **Registro de cambios** | Cuándo se cambió qué y cuál era el valor anterior |
 
 ## Cómo está montado

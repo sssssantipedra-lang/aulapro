@@ -6,7 +6,7 @@ import { webcrypto } from 'node:crypto';
 import { Share } from './Share';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
-import type { Class, Student } from '../types';
+import type { Class, Student, LearningSituation, Ficha } from '../types';
 import type { SyncSource } from '../services/paquete';
 
 // El archivo cifrado que "se descarga" se queda aquí para abrirlo después.
@@ -36,9 +36,15 @@ const fuente: SyncSource = {
   gradeItems: [{ id: 'g1', class_id: 'c1', category_id: 'k1', name: 'Examen 1', date: '2026-10-01' }, { id: 'g2', class_id: 'c1', category_id: 'k1', name: 'Examen 2', date: '2026-10-15' }],
   grades: { g1: { a1: 7, a2: 9 }, g2: { a1: 5, a2: 6 } },
   rubrics: [], dianas: [], evaluations: [], me: 'perfil-1',
+  learningSituations: [
+    { id: 'sda1', at: '2026-10-01T10:00:00Z', date: '2026-10-01', class_id: 'c1', class_name: '5.º A', title: 'Los volcanes', request: {}, content: { titulo: 'Los volcanes' } } as unknown as LearningSituation,
+  ],
+  fichas: [
+    { id: 'f1', at: '2026-10-02T10:00:00Z', date: '2026-10-02', title: 'Fracciones', request: {}, content: {} } as unknown as Ficha,
+  ],
 };
 
-function pinta(onImport = vi.fn(() => ({ clases: 1, alumnos: 1, evaluaciones: 0 }))) {
+function pinta(onImport = vi.fn(() => ({ clases: 1, alumnos: 1, evaluaciones: 0, situaciones: 0, fichas: 0 }))) {
   const r = render(
     <I18nProvider>
       <ToastProvider>
@@ -97,8 +103,8 @@ describe('compartir con otro docente', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Abrir' }));
 
     expect(await screen.findByText('De Profesor', {}, { timeout: 15000 })).toBeTruthy();
-    // una vez en los botones de enviar y otra en la vista previa de lo que llega
-    expect(screen.getAllByText('5.º A').length).toBe(2);
+    // en los botones de enviar, en la lista de documentos y en la vista previa de lo que llega
+    expect(screen.getAllByText('5.º A').length).toBeGreaterThanOrEqual(2);
     await userEvent.click(screen.getByRole('button', { name: /Importar/ }));
     expect(onImport).toHaveBeenCalledTimes(1);
     const [paquete, modo] = onImport.mock.calls[0] as unknown as [{ classes: { id: string }[]; students: { id: string }[] }, string];
@@ -170,5 +176,35 @@ describe('compartir con otro docente', () => {
     expect((screen.getByRole('checkbox', { name: 'Alumno 2' }) as HTMLInputElement).checked).toBe(false);
     await userEvent.click(screen.getAllByRole('button', { name: 'Todos' })[0]);
     expect((screen.getByRole('checkbox', { name: 'Alumno 1' }) as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('se pueden mandar una situación de aprendizaje y una ficha sin mandar ninguna clase', async () => {
+    const { unmount } = pinta();
+    const clave = 'una frase larga y secreta';
+    // Sin elegir nada no se puede crear
+    expect((screen.getByRole('button', { name: /Crear archivo cifrado/ }) as HTMLButtonElement).disabled).toBe(true);
+    await userEvent.click(screen.getByRole('checkbox', { name: /Los volcanes/ }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Fracciones/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Escribir la mía' }));
+    await userEvent.type(screen.getByLabelText('Escribe una contraseña'), clave);
+    await userEvent.click(screen.getByRole('button', { name: /Crear archivo cifrado/ }));
+    await waitFor(() => expect(guardados).toHaveLength(1), { timeout: 15000 });
+    expect(guardados[0].texto).not.toContain('Los volcanes');
+    unmount();
+
+    const { onImport, container } = pinta();
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await userEvent.upload(input, new File([guardados[0].texto], guardados[0].nombre, { type: 'application/json' }));
+    await userEvent.type(await screen.findByLabelText('Contraseña que te han dado'), clave);
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir' }));
+    expect(await screen.findByText(/Los volcanes · Fracciones/, {}, { timeout: 15000 })).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: /Importar/ }));
+
+    const [paquete] = onImport.mock.calls[0] as unknown as [{
+      classes: unknown[]; learningSituations: { id: string }[]; fichas: { id: string }[];
+    }];
+    expect(paquete.classes).toEqual([]);
+    expect(paquete.learningSituations.map(x => x.id)).toEqual(['sda1']);
+    expect(paquete.fichas.map(x => x.id)).toEqual(['f1']);
   });
 });

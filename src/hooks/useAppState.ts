@@ -816,17 +816,18 @@ export function useAppState() {
   /** Lo propio con la forma de un paquete: lo que se comparte sale de aquí (ver `buildBundle`). */
   const syncSource = {
     classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations,
+    learningSituations, fichas,
     me: profileId ?? undefined,
   };
 
   /**
    * Mezcla en los datos propios un paquete que ha enviado otro docente. Nunca
    * borra nada: lo que ya hay se queda, y ante el mismo id manda `modo`.
-   * Devuelve cuántas clases, alumnos y evaluaciones nuevos entran.
+   * Devuelve cuántas clases, alumnos, evaluaciones, situaciones de aprendizaje y fichas nuevos entran.
    */
   const importarPaquete = useCallback((remote: SharedBundle, modo: MergeMode) => {
     const merged = mergeBundle(
-      { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations },
+      { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, learningSituations, fichas },
       remote, modo,
       // Sin saber quién soy, la fusión no puede distinguir lo propio y el
       // paquete acabaría sobrescribiendo la lista de la que soy dueño.
@@ -841,18 +842,22 @@ export function useAppState() {
     setRubrics(merged.rubrics);
     setDianas(merged.dianas);
     setEvaluations(merged.evaluations);
+    setLearningSituations(merged.learningSituations ?? []);
+    setFichas(merged.fichas ?? []);
 
     const nuevas = {
       clases: merged.classes.length - classes.length,
       alumnos: merged.students.length - students.length,
       evaluaciones: merged.evaluations.length - evaluations.length,
+      situaciones: (merged.learningSituations ?? []).length - learningSituations.length,
+      fichas: (merged.fichas ?? []).length - fichas.length,
     };
     // Una línea por importación, no una por dato
     const cambios = (Object.entries(nuevas) as [string, number][]).filter(([, n]) => n !== 0)
       .map(([k, n]) => `${n > 0 ? '+' : ''}${n} ${k}`);
     log('update', 'sync', modo, 'Importó datos de otro docente', cambios.length ? cambios.join(', ') : 'sin cambios');
     return nuevas;
-  }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, log, profileId]);
+  }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, learningSituations, fichas, log, profileId]);
 
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback((lang: Lang = 'es') => {

@@ -3,7 +3,7 @@ import {
   buildBundle, mergeBundle, bundleCounts, emptyBundle, esPaquete, gruposDeEvaluaciones,
   type SharedBundle, type SyncSource, type ShareScope, type LocalState,
 } from './paquete';
-import type { Class, Student, GradeCategory, GradeItem, Rubric, Evaluation } from '../types';
+import type { Class, Student, GradeCategory, GradeItem, Rubric, Evaluation, LearningSituation, Ficha } from '../types';
 
 /* ── Ayudas para montar datos de prueba sin ruido ── */
 
@@ -258,7 +258,7 @@ describe('recuentos y forma del paquete', () => {
       classes: [cls('c1')], students: [stu('s1', 'c1'), stu('s2', 'c1')],
       grades: { i1: { s1: 8, s2: null } }, rubrics: [rub('r1', 'c1')], evaluations: [evl('e1', 'c1')],
     }));
-    expect(c).toEqual({ classes: 1, students: 2, grades: 1, rubrics: 1, evaluations: 1 });
+    expect(c).toEqual({ classes: 1, students: 2, grades: 1, rubrics: 1, evaluations: 1, sdas: 0, fichas: 0 });
   });
 
   it('esPaquete reconoce uno bueno y descarta lo que no lo es', () => {
@@ -344,5 +344,85 @@ describe('buildBundle: elegir con detalle lo que se envía', () => {
       { id: 'r1', nombre: 'R', n: 2 },
       { id: 'r2', nombre: 'R', n: 1 },
     ]);
+  });
+});
+
+describe('situaciones de aprendizaje y fichas', () => {
+  const sda = (id: string, class_id?: string, otras_clases?: string[]): LearningSituation => ({
+    id, at: '2026-10-01T10:00:00Z', date: '2026-10-01', class_id, otras_clases, class_name: class_id ? 'Clase' : undefined,
+    title: `SdA ${id}`,
+    request: {} as LearningSituation['request'], content: {} as LearningSituation['content'],
+  });
+  const fic = (id: string, class_id?: string, sda_id?: string): Ficha => ({
+    id, at: '2026-10-01T10:00:00Z', date: '2026-10-01', class_id, sda_id, sda_title: sda_id ? 'SdA' : undefined,
+    title: `Ficha ${id}`, request: {} as Ficha['request'], content: {} as Ficha['content'],
+  });
+  const fuente: SyncSource = {
+    classes: [cls('c1')], students: [], gradeCategories: [], gradeItems: [], grades: {}, rubrics: [], dianas: [], evaluations: [],
+    learningSituations: [sda('a1', 'c1'), sda('a2')],
+    fichas: [fic('f1', 'c1', 'a1'), fic('f2')],
+  };
+
+  it('no viaja ninguna por defecto: hay que marcarlas, y no cuelgan de la clase', () => {
+    const b = buildBundle(fuente, { classIds: ['c1'], grades: true, rubrics: true, evaluations: true });
+    expect(b.learningSituations).toEqual([]);
+    expect(b.fichas).toEqual([]);
+  });
+
+  it('se pueden mandar sin mandar ninguna clase', () => {
+    const b = buildBundle(fuente, { classIds: [], grades: true, rubrics: true, evaluations: true, sdaIds: ['a2'], fichaIds: ['f1'] });
+    expect(b.classes).toEqual([]);
+    expect(b.learningSituations?.map(x => x.id)).toEqual(['a2']);
+    expect(b.fichas?.map(x => x.id)).toEqual(['f1']);
+  });
+
+  it('un archivo de antes, sin documentos, sigue siendo un paquete bueno', () => {
+    const { learningSituations, fichas, ...antiguo } = emptyBundle();
+    void learningSituations; void fichas;
+    expect(esPaquete(antiguo)).toBe(true);
+    expect(esPaquete({ ...antiguo, fichas: 'no' })).toBe(false);
+  });
+
+  it('al importar, los documentos entran y se cuentan', () => {
+    const out = mergeBundle(propio(), bundle({ learningSituations: [sda('a2')], fichas: [fic('f2')] }), 'conservar');
+    expect(out.learningSituations?.map(x => x.id)).toEqual(['a2']);
+    expect(out.fichas?.map(x => x.id)).toEqual(['f2']);
+    expect(bundleCounts(bundle({ learningSituations: [sda('a2')], fichas: [fic('f1'), fic('f2')] })))
+      .toMatchObject({ sdas: 1, fichas: 2 });
+  });
+
+  it('un documento con una clase que aquí no existe pierde el vínculo y conserva el nombre', () => {
+    const out = mergeBundle(
+      propio({ classes: [cls('mia')] }),
+      bundle({ learningSituations: [sda('a1', 'c1', ['c2', 'mia'])], fichas: [fic('f1', 'c1')] }),
+      'conservar',
+    );
+    const a = out.learningSituations![0];
+    expect(a.class_id).toBeUndefined();
+    expect(a.otras_clases).toEqual(['mia']);
+    expect(a.class_name).toBe('Clase');
+    expect(out.fichas![0].class_id).toBeUndefined();
+  });
+
+  it('si la clase sí llega en el mismo paquete, el vínculo se conserva', () => {
+    const out = mergeBundle(propio(), bundle({ classes: [cls('c1')], learningSituations: [sda('a1', 'c1')] }), 'conservar');
+    expect(out.learningSituations![0].class_id).toBe('c1');
+  });
+
+  it('una ficha de una situación que no llega pierde el vínculo con ella', () => {
+    const sola = mergeBundle(propio(), bundle({ fichas: [fic('f1', undefined, 'a1')] }), 'conservar');
+    expect(sola.fichas![0].sda_id).toBeUndefined();
+    expect(sola.fichas![0].sda_title).toBe('SdA');
+    const junto = mergeBundle(propio(), bundle({ learningSituations: [sda('a1')], fichas: [fic('f1', undefined, 'a1')] }), 'conservar');
+    expect(junto.fichas![0].sda_id).toBe('a1');
+  });
+
+  it('con el mismo id manda el modo, y lo que ya tenía no se borra', () => {
+    const mia = { ...sda('a1'), title: 'MÍA' };
+    const suya = { ...sda('a1'), title: 'SUYA' };
+    expect(mergeBundle(propio({ learningSituations: [mia, sda('a9')] }), bundle({ learningSituations: [suya] }), 'conservar')
+      .learningSituations!.map(x => x.title).sort()).toEqual(['MÍA', 'SdA a9']);
+    expect(mergeBundle(propio({ learningSituations: [mia] }), bundle({ learningSituations: [suya] }), 'actualizar')
+      .learningSituations![0].title).toBe('SUYA');
   });
 });

@@ -12,6 +12,7 @@ import {
   normalizarContrasena, CopiaError, LARGO_MINIMO_CONTRASENA, type ContenidoCompartido,
 } from '../services/copiaCifrada';
 import { DetalleEnvio } from '../components/compartir/DetalleEnvio';
+import { DocumentosEnvio } from '../components/compartir/DocumentosEnvio';
 import { downloadFile } from '../lib/download';
 import { CARPETAS } from '../lib/carpetas';
 import { isoDate } from '../lib/utils';
@@ -24,7 +25,7 @@ interface Props {
   source: SyncSource;
   userName: string;
   /** Mezcla en los datos propios lo que ha enviado otro docente. */
-  onImport: (bundle: SharedBundle, modo: MergeMode) => { clases: number; alumnos: number; evaluaciones: number };
+  onImport: (bundle: SharedBundle, modo: MergeMode) => { clases: number; alumnos: number; evaluaciones: number; situaciones: number; fichas: number };
 }
 
 const SIN_CLASES: ShareScope = { classIds: [], grades: true, rubrics: true, evaluations: true };
@@ -49,6 +50,8 @@ function Recuentos({ paquete }: { paquete: SharedBundle }) {
       <Recuento etiqueta={t('Calificaciones')} valor={c.grades} />
       <Recuento etiqueta={t('Rúbricas y dianas')} valor={c.rubrics} />
       <Recuento etiqueta={t('Evaluaciones')} valor={c.evaluations} />
+      {c.sdas > 0 && <Recuento etiqueta={t('Situaciones de aprendizaje')} valor={c.sdas} />}
+      {c.fichas > 0 && <Recuento etiqueta={t('Fichas de trabajo')} valor={c.fichas} />}
     </div>
   );
 }
@@ -77,7 +80,8 @@ export function Share({ classes, source, userName, onImport }: Props) {
   const [creado, setCreado] = useState<string | null>(null);
 
   const paquete = useMemo(() => buildBundle(source, scope), [source, scope]);
-  const nadaElegido = scope.classIds.length === 0;
+  const nadaElegido = scope.classIds.length === 0 && !scope.sdaIds?.length && !scope.fichaIds?.length;
+  const sinNada = classes.length === 0 && !(source.learningSituations?.length) && !(source.fichas?.length);
   const contrasenaOk = contrasenaValida(contrasena);
 
   function alternarClase(id: string) {
@@ -162,7 +166,7 @@ export function Share({ classes, source, userName, onImport }: Props) {
   function importar() {
     if (!abierto) return;
     const r = onImport(abierto.paquete, modo);
-    toast(t('✅ Datos importados: {c} clases nuevas, {a} alumnos nuevos', { c: r.clases, a: r.alumnos }));
+    toast(t('✅ Datos importados. Nuevo: {c} clases, {a} alumnos, {s} situaciones de aprendizaje y {f} fichas', { c: r.clases, a: r.alumnos, s: r.situaciones, f: r.fichas }));
     reiniciarRecepcion();
   }
 
@@ -190,12 +194,13 @@ export function Share({ classes, source, userName, onImport }: Props) {
               {t('Eliges las clases y lo que se comparte, y la app crea un archivo cifrado. Se lo mandas a tu compañero/a y, por otro medio, la contraseña.')}
             </p>
 
-            {classes.length === 0 ? (
+            {sinNada ? (
               <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                {t('Todavía no tienes clases que compartir. Crea una en «Mis Clases».')}
+                {t('Todavía no tienes nada que compartir. Crea una clase en «Mis Clases», o una situación de aprendizaje o una ficha en Documentos.')}
               </p>
             ) : (
               <>
+                {classes.length > 0 && (<>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
                   {classes.map(c => {
                     const on = scope.classIds.includes(c.id);
@@ -244,6 +249,9 @@ export function Share({ classes, source, userName, onImport }: Props) {
                   ))}
                 </div>
                 <DetalleEnvio source={source} scope={scope} onChange={s => { setCreado(null); setScope(s); }} />
+                </>)}
+
+                <DocumentosEnvio source={source} scope={scope} onChange={s => { setCreado(null); setScope(s); }} />
 
                 {!nadaElegido && (
                   <div style={{ marginTop: 14 }}>
@@ -373,6 +381,11 @@ export function Share({ classes, source, userName, onImport }: Props) {
                   </div>
                 )}
                 <Recuentos paquete={abierto.paquete} />
+                {(abierto.paquete.learningSituations?.length || abierto.paquete.fichas?.length) ? (
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, marginTop: 10 }}>
+                    {[...(abierto.paquete.learningSituations ?? []), ...(abierto.paquete.fichas ?? [])].map(x => x.title).join(' · ')}
+                  </div>
+                ) : null}
 
                 <div role="radiogroup" aria-label={t('Si algo ya existe')} style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
                   {([
