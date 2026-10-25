@@ -161,7 +161,7 @@ window.AULA_I18N = {
     's5.p2': 'Abans de fer servir la IA, els noms se substitueixen per codis.',
     's5.p3': 'La teva clau de Google es desa xifrada.',
     's5.p4': 'Còpia de seguretat automàtica cada 10 minuts.',
-    's5.p5': 'Treball compartit amb altres docents sense passar per cap servidor.',
+    's5.p5': 'Treball compartit amb altres docents: les dades van directes d\'un equip a un altre, sense desar-se en cap servidor.',
     's5.p6': 'El que crees es desa automàticament al teu equip: si es tanca a mitges, continues on ho havies deixat.',
 
     'strips.label': 'IA i idiomes',
@@ -231,7 +231,7 @@ window.AULA_I18N = {
     'q10': 'I si no em convenç?',
     'a10': 'Tens 14 dies des de la compra per demanar la devolució, sense preguntes. Tots els detalls són a les <a href="condiciones.html" data-lang-link="condiciones.html">condicions de venda</a>.',
     'q9': 'Puc compartir la feina amb altres docents?',
-    'a9': 'Sí. El treball compartit funciona sense passar per cap servidor, i el registre de canvis mostra qui ha modificat què i quan.',
+    'a9': 'Sí. Les dades van directes d\'un equip a un altre, sense desar-se en cap servidor, i el registre de canvis anota quan reps canvis d\'un altre docent.',
 
     's9.title': 'Posa el teu curs al seu lloc.',
     's9.lede': 'Tria la teva plataforma. Oferta de llançament: 6,99\u00a0€, per sempre.',
@@ -405,7 +405,7 @@ window.AULA_I18N = {
     's5.p2': 'Before anything goes to the AI, names are replaced with codes.',
     's5.p3': 'Your Google key is stored encrypted.',
     's5.p4': 'Automatic backup every 10 minutes.',
-    's5.p5': 'Work shared with other teachers without going through any server.',
+    's5.p5': 'Work shared with other teachers: the data goes straight from one device to the other, without being stored on any server.',
     's5.p6': 'What you create is autosaved on your device: if it is closed halfway, you carry on where you left off.',
 
     'strips.label': 'AI and languages',
@@ -475,7 +475,7 @@ window.AULA_I18N = {
     'q10': 'What if it is not right for me?',
     'a10': 'You have 14 days from purchase to ask for a refund, no questions asked. All the details are in the <a href="condiciones.html" data-lang-link="condiciones.html">terms of sale</a>.',
     'q9': 'Can I share work with other teachers?',
-    'a9': 'Yes. Shared work runs without going through any server, and the change log shows who changed what and when.',
+    'a9': 'Yes. The data goes straight from one device to the other, without being stored on any server, and the change log notes when you receive changes from another teacher.',
 
     's9.title': 'Put your school year in its place.',
     's9.lede': 'Choose your platform. Launch offer: €6.99, yours for good.',

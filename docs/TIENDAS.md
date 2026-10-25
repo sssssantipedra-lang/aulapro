@@ -1,6 +1,6 @@
 # Publicar en Google Play y Microsoft Store
 
-Todo lo que hace falta para enviar AulaPro a las dos tiendas: textos de la ficha en los tres idiomas, notas para quien revisa, respuestas de los formularios y la lista de lo que hay que hacer antes. Preparado el 25-10-2026.
+Todo lo que hace falta para enviar AulaPro a las dos tiendas: textos de la ficha en los tres idiomas, notas para quien revisa, respuestas de los formularios y la lista de lo que hay que hacer antes. Preparado el 25-10-2026, con la privacidad de la web ya al día con lo que la app envía fuera (Gemini, Lemon Squeezy, PeerJS y STUN, contenido incrustado en la pizarra).
 
 Decisión del dueño (25-10-2026): **se cobra solo con Lemon Squeezy**, en la web. Las dos tiendas llevan la app gratuita, que se activa con la clave. No hay compras dentro de la app ni sistema de pago de las tiendas. Si Google la rechaza por eso, se decide entonces (ver el apartado 5).
 
@@ -18,7 +18,7 @@ Los límites de caracteres y los formularios de las tiendas cambian: se han pues
    - Microsoft Store: 3 a 6 capturas de escritorio, de 1366 × 768 o más, en PNG. Sirven las de `web/sitio/assets/app/` (1920 × 1008, en WebP: convertirlas a PNG) o las que genera `scripts/web/capturar.mjs`.
 5. **Política de privacidad**: https://aulapro.app/privacidad (pública, sin cuenta). Las dos tiendas piden la dirección. Contacto de soporte: contacto@aulapro.app. Web: https://aulapro.app.
 6. **Inconsistencias a arreglar antes (reglas 1 y 3 de `CLAUDE.md`):**
-   - **Trabajo compartido y la privacidad.** Hoy la conexión por código usa el servicio público de PeerJS y un STUN de Google para que los dos equipos se encuentren: esos servicios ven la dirección IP, y la privacidad solo dice «sin pasar por servidores de AulaPro». El canal por la wifi del centro va por HTTP sin cifrar, y la pantalla de Compartir dice que va «cifrado». Si Compartir sigue en la versión de las tiendas, hay que corregir esos textos y la privacidad en los tres idiomas. Si se quita, hay que quitarlo también de la web (`docs/WEB.md`, apartado 3, punto 10) y de la privacidad.
+   - **Trabajo compartido.** Corregido el 25-10-2026 en la web: la privacidad (apartado 4 de la app, en los tres idiomas), la portada y la pregunta sobre compartir cuentan ahora que el servicio público de PeerJS y un STUN de Google ven las direcciones IP y el código, que los datos van directos y cifrados por internet, y que el canal local de la wifi va sin cifrar. **Falta el código:** `Share.tsx` sigue diciendo «cifrados», «por ese servicio no pasan los datos» y que hacen falta internet en los dos equipos (`docs/COMPARTIR.md`, apartado 3, puntos 15 y 16). Si se quita Compartir, hay que quitarlo también de la web y de este documento (apartado 8 de ese archivo).
    - **Nombre.** La app se llama «Aula Pro» (nombre del icono en Android y de la ventana en Windows) y la ficha de las tiendas, «AulaPro». Elige uno y úsalo igual en todas partes.
    - **Aviso de Windows.** `docs/INSTALACION.md` explica el aviso «Windows protegió su PC» del instalador de la web. La versión de Microsoft Store va firmada por Microsoft y no lo muestra: conviene decirlo en la web cuando esté publicada.
 

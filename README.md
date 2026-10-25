@@ -1,17 +1,23 @@
 # Aula Pro
 
 Copyright © 2026 Santiago Pedra. Todos los derechos reservados.
-Uso gratuito para docentes; **no se permite redistribuir, vender ni modificar**
-sin permiso escrito. Ver [LICENSE](LICENSE).
+Programa de pago, con una licencia por docente; **no se permite redistribuir,
+vender ni modificar** sin permiso escrito. Ver [LICENSE](LICENSE).
 
-Gestión de aula para docentes: cuaderno de notas, evaluación por rúbricas y
-dianas, asistencia, informes competenciales LOMLOE, actas y actividades en
-directo con los móviles de los alumnos.
+App para docentes de Educación Primaria y Secundaria (currículo LOMLOE) para
+Windows (Electron) y Android (Capacitor); Mac queda para más adelante. Prepara
+con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas, y reúne
+el cuaderno, la asistencia y la evaluación en un solo sitio. La web es
+https://aulapro.app.
 
-**Todo funciona en el ordenador del docente.** No hay cuentas, no hay servidor y
-los datos de los alumnos no salen del equipo.
+**Los datos del alumnado se quedan en el dispositivo del docente.** No hay
+cuentas ni servidor propio. Las funciones de IA envían a Google (API de Gemini,
+con la clave del propio docente) lo necesario, con los nombres del alumnado
+cambiados por códigos; el detalle de lo que sale de la app está en
+[docs/TIENDAS.md](docs/TIENDAS.md) y en la política de privacidad de la web.
 
 > ¿Solo quieres usarla? Ve a **[docs/INSTALACION.md](docs/INSTALACION.md)**.
+> Memoria del proyecto y decisiones: **[CLAUDE.md](CLAUDE.md)**.
 
 ---
 
@@ -19,23 +25,33 @@ los datos de los alumnos no salen del equipo.
 
 | Sección | Qué resuelve |
 |---|---|
-| **Cuaderno** | Categorías ponderadas, media ponderada, exportación CSV para Excel español |
-| **Evaluación** | Rúbricas y dianas con niveles de logro y nota automática |
-| **Asistencia** | Cuatro estados, porcentajes y exportación |
-| **Informes** | Redactados por IA sobre las competencias clave LOMLOE, a partir de datos reales |
-| **Actas** | Documento formal imprimible con la escala oficial (IN/SU/BI/NT/SB) |
-| **Sala de alumnos** | La app abre un servidor local; los alumnos entran por wifi escaneando un QR |
-| **Trabajo compartido** | Sincronización entre docentes por WebRTC, sin servidor |
-| **Registro de cambios** | Quién cambió qué, cuándo y cuál era el valor anterior |
+| **Inicio, Mis clases, Agenda** | La jornada del día, las clases y el horario semanal |
+| **Cuaderno** | Categorías ponderadas, peso de cada nota, media ponderada y exportación a Excel |
+| **Evaluar** | Rúbricas, dianas y escalas de registro con nota automática; evaluar por foto; diana competencial |
+| **Asistencia y Anotar actitud** | Estados y porcentajes; toda la clase en una lista |
+| **Recursos con IA** | Situaciones de aprendizaje, fichas «Cuaderno» de menos a más, comprensión lectora, escape rooms y tarjetas |
+| **Informes y Actas** | Informes de competencias clave con tabla de competencias; actas con la escala IN/SU/BI/NT/SB y evaluación por competencias |
+| **PT y AL, Educación Física** | Los perfiles de apoyo y de EF (`docs/PTAL.md`, `docs/EF.md`) |
+| **Pizarra y herramientas** | Pizarra, temporizador, ruleta, grupos y más (`docs/PIZARRA.md`) |
+| **Actividades con móviles** | La app abre un servidor local; el alumnado entra por la wifi del aula escaneando un QR |
+| **Trabajo compartido** | Pasar datos entre docentes, por código o por la wifi (`docs/COMPARTIR.md`: revisión y plan) |
+| **Registro de cambios** | Cuándo se cambió qué y cuál era el valor anterior |
 
 ## Cómo está montado
 
-- **Interfaz**: React 19 + TypeScript, empaquetada con Vite.
-- **Escritorio**: Electron. El proceso principal (`electron/`) solo usa módulos
-  nativos de Node, sin ninguna dependencia de terceros.
-- **Datos**: una carpeta por perfil de docente en `userData`, con escritura
-  atómica y copia de seguridad automática cada 10 minutos.
-- **IA**: Google Gemini con la clave del propio docente, guardada en su equipo.
+- **Interfaz**: React 19 + TypeScript, empaquetada con Vite (`src/`).
+- **Escritorio**: Electron (`electron/`). El proceso principal usa casi solo
+  módulos nativos de Node; las excepciones son `electron-updater` (solo en el
+  instalador de Windows) y lo que trae Electron.
+- **Android**: Capacitor (`android/`), con un plugin nativo propio
+  (`AulaNativePlugin`).
+- **Web**: `web/sitio/`, HTML, CSS y JavaScript sin compilar.
+- **Datos**: una carpeta por perfil de docente, con escritura atómica y copia de
+  seguridad automática cada 10 minutos.
+- **IA**: Google Gemini con la clave del propio docente, guardada cifrada en su
+  equipo. Los nombres se enmascaran en un único punto (`src/services/privacy.ts`).
+- **Venta**: Lemon Squeezy, en la web; las tiendas llevan la app gratuita, que se
+  activa con la clave (`docs/WEB.md`, `docs/TIENDAS.md`).
 
 ## Desarrollo
 
@@ -45,7 +61,9 @@ npm run dev          # interfaz en el navegador
 npm run electron     # aplicación de escritorio
 npm test             # tests de las funciones críticas
 npm run build        # compila la interfaz
-npm run dist         # genera el instalador y el portable de Windows
+npm run lint         # eslint
+npm run android      # compila la web y la copia al proyecto de Android
+npm run dist         # genera el instalador, el portable y el .appx de Windows
 npm run dist:mac     # genera el .dmg y el .zip de Mac (solo funciona en macOS)
 ```
 
@@ -102,5 +120,6 @@ npm test
 
 Cubren lo que puede provocar pérdida de datos: la fusión entre docentes
 (`src/services/sync.test.ts`, incluidas las lápidas que impiden que un borrado
-resucite) y el registro de cambios (`src/services/audit.test.ts`, con la trampa
-de la zona horaria española).
+resucite), el registro de cambios (`src/services/audit.test.ts`, con la trampa
+de la zona horaria española) y el resto de la app. No hay todavía una prueba de
+extremo a extremo de Trabajo compartido con dos equipos (`docs/COMPARTIR.md`).
