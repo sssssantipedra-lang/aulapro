@@ -89,17 +89,21 @@ export function useLanSync({ source, scope, applyBundle }: Options) {
   }
 
   /* ── Invitado: trae el paquete del anfitrión, en bucle ── */
-  async function join(t: LanTarget) {
+  /**
+   * Solo da la conexión por hecha si el anfitrión contesta. Devuelve `false` si
+   * no llega (wifi que aísla los equipos, cortafuegos, otra red): quien llama
+   * puede entonces seguir por el código normal.
+   */
+  async function join(t: LanTarget): Promise<boolean> {
+    const first = await lanPullBundle(t);
+    if (!first) return false;
+    lastHashRef.current = hashBundle(first);
+    applyRef.current(first, 'reconcile');
     setTarget(t);
     setPeer(true);
-    lastHashRef.current = '';
-    const first = await lanPullBundle(t);
-    if (first) {
-      applyRef.current(first, 'reconcile');
-      lastHashRef.current = hashBundle(first);
-    }
     // Saludo al anfitrión: con este POST se entera de que ya hay alguien conectado.
     void lanPushBundle(t, localBundle());
+    return true;
   }
 
   useEffect(() => {
