@@ -103,8 +103,8 @@ export function Records({
     [materiaDeLaClase],
   );
   const hayClave = evsDeClase.some(e => e.competencyScores && Object.keys(e.competencyScores).length > 0);
-  /** El nivel más alto con el que se ha evaluado (4 con la escala clásica), para decir «sobre 4». */
-  const maxNivel = evsDeClase.reduce((m, e) => Math.max(m, e.max_level ?? 4), 0) || 4;
+  /** Los niveles de la escala del acta: siempre 4 (1-4, como la Diana), aunque una rúbrica se haya evaluado con otros. */
+  const maxNivel = 4;
   const hayEspecificas = !!materiaDeLaClase && columnasEspecificas.length > 0
     && evsDeClase.some(e => e.officialCriteriaScores && Object.keys(e.officialCriteriaScores).length > 0);
 
@@ -136,8 +136,9 @@ export function Records({
   /**
    * Nota de cada competencia clave LOMLOE: media de sus evaluaciones con
    * instrumento. En la escala que elija el docente: los niveles de logro
-   * (1 a 4, como la Diana) o pasada a 0-10 con el nivel máximo de cada
-   * evaluación, como las competencias específicas.
+   * (1 a 4, como la Diana) o pasada a 0-10, las dos con el nivel máximo de
+   * cada evaluación, como las competencias específicas: una rúbrica de tres
+   * niveles también sale sobre 4.
    */
   function claveDe(studentId: string): Record<string, number> {
     const sums: Record<string, number> = {};
@@ -146,7 +147,7 @@ export function Records({
       if (ev.student_id !== studentId) continue;
       const max = ev.max_level && ev.max_level > 0 ? ev.max_level : 4;
       for (const [code, v] of Object.entries(ev.competencyScores ?? {})) {
-        sums[code] = (sums[code] ?? 0) + (escalaClave === 'nota' ? (v / max) * 10 : v);
+        sums[code] = (sums[code] ?? 0) + ((v / max) * (escalaClave === 'nota' ? 10 : maxNivel));
         counts[code] = (counts[code] ?? 0) + 1;
       }
     }

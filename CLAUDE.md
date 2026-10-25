@@ -129,7 +129,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 ## Actas con competencias (23-10-2026)
 
-- **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Se puede ocultar con el selector «Evaluación por competencias».
+- **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Las competencias clave salen siempre en 1-4 o en 1-10 (desde la 2.18.23; antes la escala se deducía del nivel más alto evaluado y podía salir 1-3): las notas de rúbricas con otros niveles se pasan a esa escala con `max_level`. Se puede ocultar con el selector «Evaluación por competencias».
 - **Escala de las competencias clave, a elección del docente** (23-10-2026): «Escala de las competencias clave» en el acta, 1-4 (niveles, como la Diana) o sobre 10; el documento dice siempre en qué escala va («sobre 4» o «sobre 10»).
 
 ## Tarjetas interactivas (23-10-2026)
