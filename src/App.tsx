@@ -13,11 +13,8 @@ import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { useAppState } from './hooks/useAppState';
-import { useP2PSync } from './hooks/useP2PSync';
-import { useLanSync } from './hooks/useLanSync';
 import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
-import { buildBundle, bundleCounts } from './services/sync';
 import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { HubTabs } from './components/layout/HubTabs';
@@ -26,7 +23,6 @@ import { EnClaseInicio } from './pages/EnClaseInicio';
 import { claseQueToca } from './lib/claseQueToca';
 import { DocumentosInicio } from './pages/DocumentosInicio';
 import { hubEnMenu, rememberTab } from './lib/navigation';
-import { peekShareCode } from './lib/shareNav';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
@@ -96,14 +92,6 @@ function AppInner() {
   const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
   useEffect(() => { rememberTab(section); }, [section]);
-  // Abrir «Trabajo compartido» cuando llega un enlace aulapro://c/… (Android)
-  useEffect(() => {
-    const h = () => { if (peekShareCode()) setSection('share'); };
-    window.addEventListener('aulapro:open-share', h);
-    // En frío el enlace pudo llegar antes de montarse: se mira una vez más.
-    const id = setTimeout(h, 0);
-    return () => { window.removeEventListener('aulapro:open-share', h); clearTimeout(id); };
-  }, []);
   // El calendario escolar publicado, al abrir un perfil de una comunidad que lo tiene (solo descarga)
   const comunidadPerfil = st.currentUser?.community;
   useEffect(() => {
@@ -225,16 +213,6 @@ function AppInner() {
       st.evaluations, st.attendance, st.reports, st.calEvents, st.scheduleBlocks,
       st.tasks, st.learningSituations, st.seatingPlans]);
 
-  const session = useP2PSync({
-    source: st.syncSource,
-    scope: st.shareScope,
-    userName: st.currentUser?.full_name ?? 'Docente',
-    applyBundle: st.applyBundle,
-  });
-
-  // Canal local, sin internet: el plan B de «Trabajo compartido» en la misma wifi.
-  const lan = useLanSync({ source: st.syncSource, scope: st.shareScope, applyBundle: st.applyBundle });
-
   useEffect(() => {
     applyTheme((localStorage.getItem('aulapro_theme') as ThemeKey) ?? 'sky');
   }, []);
@@ -338,7 +316,6 @@ function AppInner() {
         current={section}
         onNav={s => { setSection(s); setMenuOpen(false); }}
         user={st.currentUser}
-        sharing={session.connected}
         saving={st.saving}
         onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
       />}
@@ -585,11 +562,9 @@ function AppInner() {
             {section === 'share' && (
               <Share
                 classes={st.classes}
-                scope={st.shareScope}
-                onScopeChange={st.setShareScope}
-                session={session}
-                lan={lan}
-                counts={bundleCounts(buildBundle(st.syncSource, st.shareScope))}
+                source={st.syncSource}
+                userName={st.currentUser?.full_name ?? 'Docente'}
+                onImport={st.importarPaquete}
               />
             )}
             {section === 'attendance' && (

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
-  buildBundle, mergeBundle, hashBundle, emptyBundle, emptyTombstones,
-  type SharedBundle, type SyncSource, type ShareScope,
-} from './sync';
+  buildBundle, mergeBundle, bundleCounts, emptyBundle, esPaquete,
+  type SharedBundle, type SyncSource, type ShareScope, type LocalState,
+} from './paquete';
 import type { Class, Student, GradeCategory, GradeItem, Rubric, Evaluation } from '../types';
 
 /* ── Ayudas para montar datos de prueba sin ruido ── */
@@ -19,7 +19,10 @@ const cat = (id: string, class_id: string, weight = 50): GradeCategory =>
 const item = (id: string, class_id: string, category_id: string): GradeItem =>
   ({ id, class_id, category_id, name: id, date: '2026-01-01' });
 
-const rub = (id: string): Rubric => ({ id, name: id, criteria: [] });
+const rub = (id: string, class_id?: string, otras: string[] = []): Rubric => ({
+  id, name: id, criteria: [], class_id,
+  ...(otras.length ? { otras_clases: otras.map(c => ({ class_id: c })) } : {}),
+});
 
 const evl = (id: string, class_id: string): Evaluation => ({
   id, rubric_id: 'r1', rubric_name: 'R', student_id: 's1', student_name: 'S',
@@ -30,33 +33,40 @@ function bundle(patch: Partial<SharedBundle> = {}): SharedBundle {
   return { ...emptyBundle(), ...patch };
 }
 
+/** Lo propio (sin `from`) con la misma forma que un paquete. */
+function propio(patch: Partial<LocalState> = {}): LocalState {
+  const { from, ...resto } = emptyBundle();
+  void from;
+  return { ...resto, ...patch };
+}
+
 /* ══════════════════════════════════════════════════════════
    Fusión de listas
    ══════════════════════════════════════════════════════════ */
 
 describe('mergeBundle: quién gana ante el mismo id', () => {
   it('en reconcile conserva lo LOCAL: nadie pierde su trabajo al conectarse', () => {
-    const local  = bundle({ students: [stu('s1', 'c1', 'Ana LOCAL')] });
+    const local  = propio({ students: [stu('s1', 'c1', 'Ana LOCAL')] });
     const remote = bundle({ students: [stu('s1', 'c1', 'Ana REMOTA')] });
 
-    const out = mergeBundle(local, remote, 'reconcile');
+    const out = mergeBundle(local, remote, 'conservar');
     expect(out.students).toHaveLength(1);
     expect(out.students[0].name).toBe('Ana LOCAL');
   });
 
   it('en live gana lo REMOTO: es una edición deliberada del compañero', () => {
-    const local  = bundle({ students: [stu('s1', 'c1', 'Ana LOCAL')] });
+    const local  = propio({ students: [stu('s1', 'c1', 'Ana LOCAL')] });
     const remote = bundle({ students: [stu('s1', 'c1', 'Ana REMOTA')] });
 
-    const out = mergeBundle(local, remote, 'live');
+    const out = mergeBundle(local, remote, 'actualizar');
     expect(out.students[0].name).toBe('Ana REMOTA');
   });
 
   it('lo que solo existe en un lado se añade, en los dos modos', () => {
-    const local  = bundle({ students: [stu('s1', 'c1')] });
+    const local  = propio({ students: [stu('s1', 'c1')] });
     const remote = bundle({ students: [stu('s2', 'c1')] });
 
-    for (const mode of ['reconcile', 'live'] as const) {
+    for (const mode of ['conservar', 'actualizar'] as const) {
       const ids = mergeBundle(local, remote, mode).students.map(s => s.id).sort();
       expect(ids).toEqual(['s1', 's2']);
     }
@@ -78,45 +88,37 @@ describe('mergeBundle: el dueño manda sobre lo suyo', () => {
     // Caso real: el tutor corrige el nombre de un alumno; el especialista
     // todavía tiene el viejo y su paquete llega en modo live, donde el
     // remoto ganaría siempre.
-    const local  = bundle({ students: [alumnoDe(TUTOR, 'Ana Ruiz Gómez')] });
+    const local  = propio({ students: [alumnoDe(TUTOR, 'Ana Ruiz Gómez')] });
     const remote = bundle({ students: [alumnoDe(TUTOR, 'Ana Ruiz')], from: ESPECIALISTA });
 
-    const out = mergeBundle(local, remote, 'live', TUTOR);
+    const out = mergeBundle(local, remote, 'actualizar', TUTOR);
     expect(out.students[0].name).toBe('Ana Ruiz Gómez');
   });
 
-  it('lo del compañero llega aunque yo tenga otra versión (reconcile)', () => {
+  it('lo del compañero llega aunque yo tenga otra versión (conservar)', () => {
     // El reverso: si la ficha es suya, su cambio entra aunque en reconcile
     // normalmente ganara lo local.
-    const local  = bundle({ students: [alumnoDe(ESPECIALISTA, 'copia vieja')] });
+    const local  = propio({ students: [alumnoDe(ESPECIALISTA, 'copia vieja')] });
     const remote = bundle({ students: [alumnoDe(ESPECIALISTA, 'al día')], from: ESPECIALISTA });
 
-    const out = mergeBundle(local, remote, 'reconcile', TUTOR);
+    const out = mergeBundle(local, remote, 'conservar', TUTOR);
     expect(out.students[0].name).toBe('al día');
   });
 
   it('sin dueño se comporta como antes: manda el modo', () => {
-    const local  = bundle({ students: [stu('s1', 'c1', 'LOCAL')] });
+    const local  = propio({ students: [stu('s1', 'c1', 'LOCAL')] });
     const remote = bundle({ students: [stu('s1', 'c1', 'REMOTO')], from: ESPECIALISTA });
 
-    expect(mergeBundle(local, remote, 'reconcile', TUTOR).students[0].name).toBe('LOCAL');
-    expect(mergeBundle(local, remote, 'live', TUTOR).students[0].name).toBe('REMOTO');
+    expect(mergeBundle(local, remote, 'conservar', TUTOR).students[0].name).toBe('LOCAL');
+    expect(mergeBundle(local, remote, 'actualizar', TUTOR).students[0].name).toBe('REMOTO');
   });
 
   it('sin saber quién soy, tampoco cambia el comportamiento anterior', () => {
     // `me` puede faltar (perfil aún sin cargar): no debe romper nada.
-    const local  = bundle({ students: [alumnoDe(TUTOR, 'LOCAL')] });
+    const local  = propio({ students: [alumnoDe(TUTOR, 'LOCAL')] });
     const remote = bundle({ students: [alumnoDe(TUTOR, 'REMOTO')], from: ESPECIALISTA });
 
-    expect(mergeBundle(local, remote, 'reconcile').students[0].name).toBe('LOCAL');
-  });
-
-  it('un borrado sigue ganando al dueño', () => {
-    // La lápida no se negocia: si alguien borró, se borra, sea de quien sea.
-    const local  = bundle({ tombstones: { ...emptyTombstones(), students: ['s1'] } });
-    const remote = bundle({ students: [alumnoDe(ESPECIALISTA, 'Ana')], from: ESPECIALISTA });
-
-    expect(mergeBundle(local, remote, 'live', TUTOR).students).toHaveLength(0);
+    expect(mergeBundle(local, remote, 'conservar').students[0].name).toBe('LOCAL');
   });
 
   it('las clases se rigen por la misma regla', () => {
@@ -125,61 +127,17 @@ describe('mergeBundle: el dueño manda sobre lo suyo', () => {
     const out = mergeBundle(
       bundle({ classes: [mia] }),
       bundle({ classes: [suya], from: ESPECIALISTA }),
-      'live', TUTOR,
+      'actualizar', TUTOR,
     );
     expect(out.classes[0].name).toBe('MI VERSION');
   });
 
   it('lo que solo tiene uno se añade, tenga dueño o no', () => {
-    const local  = bundle({ students: [alumnoDe(TUTOR, 'Ana')] });
+    const local  = propio({ students: [alumnoDe(TUTOR, 'Ana')] });
     const remote = bundle({ students: [{ ...stu('s2', 'c1', 'Luis'), owner: ESPECIALISTA }], from: ESPECIALISTA });
 
-    const out = mergeBundle(local, remote, 'live', TUTOR);
+    const out = mergeBundle(local, remote, 'actualizar', TUTOR);
     expect(out.students.map(s => s.name).sort()).toEqual(['Ana', 'Luis']);
-  });
-});
-
-/* ══════════════════════════════════════════════════════════
-   Lápidas: un borrado no puede resucitar
-   ══════════════════════════════════════════════════════════ */
-
-describe('lápidas', () => {
-  it('un borrado REMOTO elimina el dato local, aunque local mande (reconcile)', () => {
-    const local  = bundle({ students: [stu('s1', 'c1')] });
-    const remote = bundle({ tombstones: { ...emptyTombstones(), students: ['s1'] } });
-
-    const out = mergeBundle(local, remote, 'reconcile');
-    expect(out.students).toHaveLength(0);
-  });
-
-  it('un borrado LOCAL impide que el remoto lo resucite (live)', () => {
-    // El caso peligroso: yo borro a un alumno, mi compañero todavía lo tiene,
-    // y en modo live el remoto normalmente ganaría.
-    const local  = bundle({ tombstones: { ...emptyTombstones(), students: ['s1'] } });
-    const remote = bundle({ students: [stu('s1', 'c1')] });
-
-    const out = mergeBundle(local, remote, 'live');
-    expect(out.students).toHaveLength(0);
-  });
-
-  it('las lápidas se acumulan de los dos lados y sin duplicados', () => {
-    const local  = bundle({ tombstones: { ...emptyTombstones(), students: ['s1', 's2'] } });
-    const remote = bundle({ tombstones: { ...emptyTombstones(), students: ['s2', 's3'] } });
-
-    const out = mergeBundle(local, remote, 'live');
-    expect(out.tombstones.students.sort()).toEqual(['s1', 's2', 's3']);
-  });
-
-  it('borrar una prueba se lleva sus notas en la fusión', () => {
-    const local  = bundle({
-      gradeItems: [item('i1', 'c1', 'cat1')],
-      grades: { i1: { s1: 8 } },
-    });
-    const remote = bundle({ tombstones: { ...emptyTombstones(), gradeItems: ['i1'] } });
-
-    const out = mergeBundle(local, remote, 'reconcile');
-    expect(out.gradeItems).toHaveLength(0);
-    expect(out.grades.i1).toBeUndefined();
   });
 });
 
@@ -189,27 +147,27 @@ describe('lápidas', () => {
 
 describe('fusión de notas', () => {
   it('mezcla por alumno dentro de la misma prueba, sin pisar al otro', () => {
-    const local  = bundle({ grades: { i1: { s1: 7 } } });
+    const local  = propio({ grades: { i1: { s1: 7 } } });
     const remote = bundle({ grades: { i1: { s2: 9 } } });
 
-    const out = mergeBundle(local, remote, 'reconcile');
+    const out = mergeBundle(local, remote, 'conservar');
     expect(out.grades.i1).toEqual({ s1: 7, s2: 9 });
   });
 
-  it('una nota borrada a propósito (null) no la resucita el remoto en reconcile', () => {
+  it('una nota borrada a propósito (null) no la resucita el remoto al conservar', () => {
     // null no es «sin calificar»: es «yo quité esta nota». Debe aguantar.
-    const local  = bundle({ grades: { i1: { s1: null } } });
+    const local  = propio({ grades: { i1: { s1: null } } });
     const remote = bundle({ grades: { i1: { s1: 9 } } });
 
-    const out = mergeBundle(local, remote, 'reconcile');
+    const out = mergeBundle(local, remote, 'conservar');
     expect(out.grades.i1.s1).toBeNull();
   });
 
-  it('en live la nota del compañero sí sustituye a la mía', () => {
-    const local  = bundle({ grades: { i1: { s1: 7 } } });
+  it('al actualizar la nota del compañero sí sustituye a la mía', () => {
+    const local  = propio({ grades: { i1: { s1: 7 } } });
     const remote = bundle({ grades: { i1: { s1: 9 } } });
 
-    const out = mergeBundle(local, remote, 'live');
+    const out = mergeBundle(local, remote, 'actualizar');
     expect(out.grades.i1.s1).toBe(9);
   });
 });
@@ -225,10 +183,9 @@ describe('buildBundle: solo viaja lo marcado', () => {
     gradeCategories: [cat('cat1', 'c1'), cat('cat2', 'c2')],
     gradeItems: [item('i1', 'c1', 'cat1'), item('i2', 'c2', 'cat2')],
     grades: { i1: { s1: 8 }, i2: { s2: 6 } },
-    rubrics: [rub('r1')],
+    rubrics: [rub('r1', 'c1'), rub('r2', 'c2'), rub('r3', 'c2', ['c1']), rub('r4')],
     dianas: [],
     evaluations: [evl('e1', 'c1'), evl('e2', 'c2')],
-    tombstones: { ...emptyTombstones(), students: ['borrado1'] },
   };
 
   const scope = (p: Partial<ShareScope> = {}): ShareScope =>
@@ -256,49 +213,58 @@ describe('buildBundle: solo viaja lo marcado', () => {
     expect(b.dianas).toHaveLength(0);
     expect(b.evaluations).toHaveLength(0);
   });
+});
 
-  it('sin clases elegidas (solo recibir) las lápidas no viajan', () => {
-    // Quien solo recibe no debe borrar en el anfitrión lo que este quiere mandar.
-    const b = buildBundle(source, scope({ classIds: [] }));
-    expect(b.tombstones.students).toEqual([]);
+describe('buildBundle: las rúbricas no se llevan la biblioteca entera', () => {
+  const source: SyncSource = {
+    classes: [cls('c1'), cls('c2')], students: [], gradeCategories: [], gradeItems: [], grades: {},
+    rubrics: [rub('r1', 'c1'), rub('r2', 'c2'), rub('r3', 'c2', ['c1']), rub('sin-clase')],
+    dianas: [], evaluations: [],
+  };
+
+  it('solo van las que se usan en las clases elegidas, también si c1 es una de las otras clases', () => {
+    const b = buildBundle(source, { classIds: ['c1'], grades: true, rubrics: true, evaluations: true });
+    expect(b.rubrics.map(r => r.id).sort()).toEqual(['r1', 'r3']);
   });
 
-  it('con clases marcadas, las lápidas viajan enteras', () => {
-    // Son solo ids, no datos personales, y hacen falta completas para que un
-    // borrado llegue aunque la clase afectada ya no esté marcada.
-    const b = buildBundle(source, scope({ classIds: ['c1'] }));
-    expect(b.tombstones.students).toEqual(['borrado1']);
+  it('una rúbrica sin clase asignada no sale nunca', () => {
+    const b = buildBundle(source, { classIds: ['c1', 'c2'], grades: true, rubrics: true, evaluations: true });
+    expect(b.rubrics.map(r => r.id)).not.toContain('sin-clase');
   });
 });
 
-/* ══════════════════════════════════════════════════════════
-   Huella: detectar cambios sin comparar objeto a objeto
-   ══════════════════════════════════════════════════════════ */
-
-describe('hashBundle', () => {
-  it('mismo contenido, misma huella', () => {
-    expect(hashBundle(bundle({ students: [stu('s1', 'c1')] })))
-      .toBe(hashBundle(bundle({ students: [stu('s1', 'c1')] })));
+describe('importar nunca borra', () => {
+  it('lo que ya tengo y no viene en el paquete se queda', () => {
+    const out = mergeBundle(
+      propio({ students: [stu('s1', 'c1'), stu('s2', 'c1')] }),
+      bundle({ students: [stu('s3', 'c1')] }),
+      'actualizar',
+    );
+    expect(out.students.map(s => s.id).sort()).toEqual(['s1', 's2', 's3']);
   });
 
-  it('un cambio mínimo cambia la huella', () => {
-    expect(hashBundle(bundle({ students: [stu('s1', 'c1', 'Ana')] })))
-      .not.toBe(hashBundle(bundle({ students: [stu('s1', 'c1', 'Anna')] })));
-  });
-});
-
-/* ══════════════════════════════════════════════════════════
-   Convergencia: fusionar dos veces no debe cambiar nada más
-   ══════════════════════════════════════════════════════════ */
-
-describe('convergencia', () => {
-  it('aplicar la misma fusión otra vez da el mismo resultado (idempotente)', () => {
-    // Si no lo fuera, la sincronización en vivo entraría en bucle infinito.
-    const local  = bundle({ students: [stu('s1', 'c1', 'Ana')], classes: [cls('c1')] });
+  it('importar dos veces el mismo paquete da el mismo resultado', () => {
+    const local  = propio({ students: [stu('s1', 'c1', 'Ana')], classes: [cls('c1')] });
     const remote = bundle({ students: [stu('s2', 'c1', 'Luis')], classes: [cls('c1')] });
+    const once  = mergeBundle(local, remote, 'actualizar');
+    const twice = mergeBundle(once, remote, 'actualizar');
+    expect(twice).toEqual(once);
+  });
+});
 
-    const once  = mergeBundle(local, remote, 'live');
-    const twice = mergeBundle(once, remote, 'live');
-    expect(hashBundle(twice)).toBe(hashBundle(once));
+describe('recuentos y forma del paquete', () => {
+  it('cuenta clases, alumnos, notas con valor, instrumentos y evaluaciones', () => {
+    const c = bundleCounts(bundle({
+      classes: [cls('c1')], students: [stu('s1', 'c1'), stu('s2', 'c1')],
+      grades: { i1: { s1: 8, s2: null } }, rubrics: [rub('r1', 'c1')], evaluations: [evl('e1', 'c1')],
+    }));
+    expect(c).toEqual({ classes: 1, students: 2, grades: 1, rubrics: 1, evaluations: 1 });
+  });
+
+  it('esPaquete reconoce uno bueno y descarta lo que no lo es', () => {
+    expect(esPaquete(emptyBundle())).toBe(true);
+    expect(esPaquete(null)).toBe(false);
+    expect(esPaquete({ classes: [] })).toBe(false);
+    expect(esPaquete({ ...emptyBundle(), grades: [] })).toBe(false);
   });
 });

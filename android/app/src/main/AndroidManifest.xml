@@ -26,15 +26,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Enlace aulapro://c/XXXXXX: abre la app y lleva el código a
-                 «Trabajo compartido» (main.tsx lo escucha con appUrlOpen). -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="aulapro" android:host="c" />
-            </intent-filter>
-
         </activity>
 
         <provider
@@ -51,11 +42,10 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- El medidor de ruido (micrófono) y el lector de QR (cámara): el WebView los pide al usarlos.
-         Sin declararlos aquí, Android los niega sin ni siquiera preguntar. -->
+    <!-- El medidor de ruido (micrófono): el WebView lo pide al usarlo. Sin declararlo aquí, Android lo
+         niega sin ni siquiera preguntar. Sin CAMERA a propósito (25-10-2026): no hay lector de QR, y
+         las fotos se hacen con la aplicación de cámara del sistema, que no necesita el permiso. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>

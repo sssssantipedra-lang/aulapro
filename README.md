@@ -34,7 +34,7 @@ cambiados por códigos; el detalle de lo que sale de la app está en
 | **PT y AL, Educación Física** | Los perfiles de apoyo y de EF (`docs/PTAL.md`, `docs/EF.md`) |
 | **Pizarra y herramientas** | Pizarra, temporizador, ruleta, grupos y más (`docs/PIZARRA.md`) |
 | **Actividades con móviles** | La app abre un servidor local; el alumnado entra por la wifi del aula escaneando un QR |
-| **Trabajo compartido** | Pasar datos entre docentes, por código o por la wifi (`docs/COMPARTIR.md`: revisión y plan) |
+| **Trabajo compartido** | Pasar clases y notas a otro docente en un archivo cifrado con contraseña (`docs/COMPARTIR.md`) |
 | **Registro de cambios** | Cuándo se cambió qué y cuál era el valor anterior |
 
 ## Cómo está montado
@@ -122,4 +122,4 @@ Cubren lo que puede provocar pérdida de datos: la fusión entre docentes
 (`src/services/sync.test.ts`, incluidas las lápidas que impiden que un borrado
 resucite), el registro de cambios (`src/services/audit.test.ts`, con la trampa
 de la zona horaria española) y el resto de la app. No hay todavía una prueba de
-extremo a extremo de Trabajo compartido con dos equipos (`docs/COMPARTIR.md`).
+extremo a extremo del archivo cifrado en un móvil real (`docs/COMPARTIR.md`).

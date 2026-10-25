@@ -12,6 +12,5 @@ describe('demoSnapshot', () => {
     // Las claves son las del archivo guardado (blocks/events), no las de la interfaz
     expect(Array.isArray(d.blocks)).toBe(true);
     expect(Array.isArray(d.events)).toBe(true);
-    expect(d.tombstones).toBeDefined();
   });
 });

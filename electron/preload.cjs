@@ -61,21 +61,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
   },
 
-  /** Canal local de «Trabajo compartido»: servidor en el propio equipo para la misma wifi sin internet. */
-  lan: {
-    start:     opts   => ipcRenderer.invoke('share:start', opts),
-    stop:      ()     => ipcRenderer.invoke('share:stop'),
-    state:     ()     => ipcRenderer.invoke('share:state'),
-    setBundle: bundle => ipcRenderer.invoke('share:setBundle', bundle),
-
-    /** Avisa cuando el invitado envía su paquete. Devuelve una función para dejar de escuchar. */
-    onPeer: callback => {
-      const handler = (_event, bundle) => callback(bundle);
-      ipcRenderer.on('share:peer', handler);
-      return () => ipcRenderer.removeListener('share:peer', handler);
-    },
-  },
-
   /** Secretos cifrados por el sistema operativo (ver electron/secrets.cjs). */
   secrets: {
     get: name          => ipcRenderer.invoke('secrets:get', name),

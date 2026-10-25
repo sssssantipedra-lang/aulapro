@@ -3,8 +3,8 @@
 Aula Pro guarda los datos de tu alumnado **en tu propio equipo**. No hay que
 crear ninguna cuenta. Se activa una vez con una **licencia** (la compras en
 https://aulapro.app, la misma sirve para Windows y Android) y después funciona sin
-conexión; solo las funciones de IA, el trabajo compartido y la comprobación
-semanal de la licencia necesitan internet.
+conexión; solo las funciones de IA y la comprobación semanal de la licencia
+necesitan internet.
 
 ---
 
@@ -29,8 +29,8 @@ te dé permisos de administrador.
 Descárgala gratis en **Google Play** (Android 7.0 o más reciente) y actívala con
 tu licencia. Los documentos que guardas (PDF, Word, copias de seguridad) quedan
 en **Documentos › AulaPro** de tu dispositivo, en una carpeta por tipo. La
-primera vez que uses el medidor de ruido o el lector de QR, Android te pedirá el
-permiso de micrófono o de cámara; solo se usan en ese momento.
+primera vez que uses el medidor de ruido, Android te pedirá el permiso de
+micrófono; solo se usa en ese momento. La app no pide permiso de cámara.
 
 ## Activar la licencia
 
@@ -153,7 +153,7 @@ guarda ese archivo donde quieras.
 
 **Android:**
 - Android 7.0 o más reciente.
-- Para las **Actividades con móviles** y el **trabajo compartido por la wifi**: dispositivos en la misma red. Algunas wifis de centro aíslan los dispositivos entre sí y lo impiden; la zona wifi de un móvil lo sortea.
+- Para las **Actividades con móviles**: dispositivos en la misma red. Algunas wifis de centro aíslan los dispositivos entre sí y lo impiden; la zona wifi de un móvil lo sortea.
 
 **Mac:**
 - macOS reciente, Intel o Apple Silicon (build universal, no hay que elegir).

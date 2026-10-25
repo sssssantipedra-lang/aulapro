@@ -4,8 +4,6 @@ import './index.css'
 import App from './App.tsx'
 import { I18nProvider } from './i18n'
 import { initApiKey } from './services/gemini'
-import { codeFromShareUrl } from './services/p2p'
-import { requestShareCode } from './lib/shareNav'
 import { applyAppearance, getAppearance } from './lib/utils'
 import { restaurarTamanoLetra } from './lib/tamanoLetra'
 
@@ -23,16 +21,6 @@ async function nativeBridge() {
   if (cap?.getPlatform?.() !== 'android') return
   const { installAndroidBridge } = await import('./platform/android')
   installAndroidBridge()
-
-  // Un enlace aulapro://c/XXXXXX abre la app y la lleva a «Trabajo compartido»
-  // con el código ya puesto, listo para unirse como invitado.
-  const { App: CapApp } = await import('@capacitor/app')
-  CapApp.addListener('appUrlOpen', ({ url }) => {
-    const code = codeFromShareUrl(url)
-    if (!code) return
-    requestShareCode(code)
-    window.dispatchEvent(new CustomEvent('aulapro:open-share'))
-  })
 }
 
 // La clave de la IA está cifrada en disco: se descifra una vez antes de pintar.

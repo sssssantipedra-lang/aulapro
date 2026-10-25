@@ -1,124 +1,78 @@
-# Trabajo compartido: cómo funciona, qué falla y cómo dejarlo bien
+# Trabajo compartido: el archivo cifrado
 
-Revisión del 25-10-2026, hecha leyendo el código. Lo único probado con equipos reales es lo que contó el dueño: **conectar escribiendo el código funcionó; conectar escaneando el QR no** (el QR llevaba la dirección del canal local, ver el apartado 3, punto 5, ya corregido en la 2.19.2). Nada de lo que sigue se ha reproducido con dos equipos en un laboratorio.
+Desde la 2.20.0 (25-10-2026), «Trabajo compartido» no conecta dos equipos. Es **un archivo cifrado con contraseña** que un docente crea y otro abre. Este documento recoge cómo funciona, por qué se cambió y lo que queda.
 
-Petición del dueño (25-10-2026): que un P2P funcione de verdad, que un docente escanee el QR del otro y se conecten, y que **elijan quién recibe de quién y qué información recibe cada uno**. Decisión del dueño: si no funciona bien, se quita (apartado 8).
+## Por qué se quitó la conexión por QR y código
 
-## 1. Cómo funciona hoy
+Decisión del dueño (25-10-2026), después de una revisión del código y de pruebas suyas (conectar escribiendo el código funcionó; escaneando el QR, no). Lo que fallaba era de fondo, no un detalle:
 
-### Archivos
+- La conexión dependía del servicio público y gratuito de PeerJS y de un STUN de Google, sin servidor de relevo (TURN): en una wifi de centro con cortafuegos o aislamiento de clientes, fallaba. No tenía tiempo límite ni reconexión; el que se caía (pantalla bloqueada en Android) no podía volver con el mismo código.
+- No había aceptación: lo que llegaba se mezclaba al instante, borrados incluidos. Quien solo quería recibir acababa enviando lo que había recibido y, además, **toda su biblioteca de rúbricas**.
+- Cada cambio reenviaba el paquete entero, sin fecha por registro: ante una edición simultánea ganaba el último que llegaba.
+- El canal por la wifi del centro iba por HTTP sin cifrar, y el servicio de encuentro veía las direcciones IP: la pantalla y la privacidad prometían más de lo que había.
+- No existía una prueba de extremo a extremo con dos equipos.
+
+Se estudió rehacerlo (ofertas con aceptación, relevo gratuito de Cloudflare, envío por archivo como última salida). Se descartó por el coste de dejarlo bien y de mantenerlo: servidores, pruebas con varias redes y mucho código que sostener. El archivo cifrado cubre el caso real (pasar clases a un compañero) sin nada de eso.
+
+## Cómo funciona
+
+Pantalla: `src/pages/Share.tsx` (menú «Trabajo compartido», `Section` `share`). Sin conexión entre equipos ni servidor.
+
+**Quien envía**
+
+1. Marca las clases y qué comparte: cuaderno de notas, rúbricas y dianas, evaluaciones. El alumnado de las clases va siempre. Ve los recuentos de lo que irá en el archivo.
+2. Tiene una contraseña aleatoria propuesta (`ABCD-EFGH-JKMN-PQRS`, 16 símbolos de un alfabeto de 31 sin los que se confunden, unos 79 bits) que puede copiar, cambiar o sustituir por una propia de al menos 10 caracteres.
+3. «Crear archivo cifrado» guarda `aulapro-compartido-AAAA-MM-DD.json` como una copia de seguridad (Documentos › AulaPro › Copias de seguridad en Android; diálogo de guardar en el ordenador).
+4. Manda el archivo por el medio que quiera y la contraseña **por otro**.
+
+**Quien recibe**
+
+1. «Elegir el archivo recibido», escribe la contraseña y pulsa «Abrir».
+2. Ve de quién es, cuándo se creó, los nombres de las clases y los recuentos. **Todavía no ha entrado nada.**
+3. Elige cómo mezclar y pulsa «Importar»:
+   - «Conservar lo mío»: entra lo que no tiene; si algo ya existe, se queda como estaba.
+   - «Actualizar con esto»: entra lo que no tiene; si algo ya existe, se sustituye por lo que llega.
+4. **Nunca se borra nada** de lo que ya tenía. Las clases y los alumnos tienen dueño (`owner`): el dueño manda sobre lo suyo en cualquier modo.
+
+Una copia de seguridad normal («Descargar mis datos» en Mi Perfil) es otra cosa: todo el perfil, sin cifrar. Si alguien intenta cargar en Mi Perfil un archivo de Trabajo compartido, la app le dice que se abre en «Trabajo compartido».
+
+## El cifrado (`src/services/copiaCifrada.ts`)
+
+- **Clave:** PBKDF2-SHA256, 600.000 vueltas, sal aleatoria de 16 bytes, a partir de la contraseña. Web Crypto, sin librerías.
+- **Datos:** AES-256-GCM con un vector de inicio aleatorio de 12 bytes. GCM autentica: una contraseña equivocada o un archivo tocado fallan sin dar datos a medias. Los parámetros de la cabecera van como datos asociados: cambiarlos también hace fallar el descifrado.
+- **El archivo** es un JSON con una cabecera en claro (`_app: "AulaPro"`, `_tipo: "compartido"`, `_cifrada: true`, `v`, `kdf`, `iter`, `alg`, `sal`, `iv`) y los datos cifrados en `datos` (base64). Dentro, cifrado: `{ de, creado, paquete }`. En claro no hay ni nombres ni clases.
+- **Límites de seguridad al abrir:** se rechazan versiones más nuevas, cabeceras con menos de 100.000 o más de 3.000.000 de vueltas (un archivo hecho para colgar la app) y tamaños de sal o vector erróneos.
+- **La contraseña** no se guarda ni se envía a ninguna parte. Si se pierde, el archivo no se puede recuperar. Una generada se acepta con minúsculas, sin guiones o con espacios (se dicta por teléfono); una escrita a mano se usa tal cual.
+- La extensión es `.json` y no una propia a propósito: en Android, MediaStore puede añadir una extensión según el tipo de archivo, y `.json` funciona igual en todas partes.
+
+### Lo que NO se puede garantizar: «que solo la app lo lea»
+
+Pidió el dueño que, si era posible, solo la app pudiera leerlo. **No es posible de verdad.** Una clave metida dentro de la app se saca abriendo la app; esconder el formato no es seguridad. Lo que se garantiza es lo que sí se puede: sin la contraseña, el archivo no se puede leer, ni siquiera con él en la mano. Quien tenga el archivo **y** la contraseña podría leerlo con otra herramienta, porque el formato es público (esta página). La pantalla lo dice. La seguridad depende de una buena contraseña comunicada por un medio distinto al del archivo.
+
+## Qué viaja
+
+`buildBundle` en `src/services/paquete.ts`: las clases elegidas y su alumnado; con las casillas, categorías, columnas y notas del cuaderno; las rúbricas y dianas **que se usan en esas clases** (la principal o una de las otras clases en las que se comparte; las que no tienen clase asignada no salen nunca) y las evaluaciones de esas clases. Nunca el perfil ni la clave de la IA.
+
+## Código
 
 | Qué | Dónde |
 |---|---|
-| Pantalla | `src/pages/Share.tsx` (QR, código, estado, qué se comparte) |
-| Conexión por código (internet) | `src/services/p2p.ts` (clase `PeerLink`, sobre PeerJS) y `src/hooks/useP2PSync.ts` |
-| Canal local (misma wifi) | `src/services/lan.ts`, `src/hooks/useLanSync.ts`, `electron/syncserver.cjs` (escritorio) y el puente nativo de Android (`createLan` en `src/platform/android.ts`) |
-| Qué viaja y cómo se mezcla | `src/services/sync.ts` (`buildBundle`, `mergeBundle`, lápidas) y `applyBundle` en `src/hooks/useAppState.ts` |
-| QR | `src/components/share/SessionQR.tsx` (dibuja) y `QRScanner.tsx` (lee con `jsqr`) |
-| Enlace `aulapro://c/CODIGO` | `src/lib/shareNav.ts`, `src/main.tsx` (`appUrlOpen`), filtro de intención en `AndroidManifest.xml` |
+| Pantalla | `src/pages/Share.tsx` (y su prueba, `Share.test.tsx`, que recorre el flujo entero: crear, abrir con la contraseña buena y con una mala, importar) |
+| Cifrado | `src/services/copiaCifrada.ts` |
+| Qué entra en el paquete y cómo se mezcla | `src/services/paquete.ts` |
+| Importar en los datos del perfil | `importarPaquete` en `src/hooks/useAppState.ts` (apunta una línea en el registro de cambios: «Importó datos de otro docente») |
+| Textos en inglés y catalán | `src/i18n/compartir.ts` |
 
-### Dos canales a la vez
+## Lo que se quitó
 
-Al pulsar «Crear código y QR», el anfitrión abre los dos canales:
+`src/hooks/useP2PSync.ts`, `useLanSync.ts`, `src/services/p2p.ts`, `lan.ts`, `electron/syncserver.cjs` (y su puente en `main.cjs` y `preload.cjs`), el canal local nativo de Android (`lanStart`, `lanStop` y `lanRespond` en `AulaNativePlugin.java`, `createLan` en `android.ts`), el lector de QR (`QRScanner`) y la dependencia `jsqr`, la dependencia `peerjs`, el enlace `aulapro://` del `AndroidManifest.xml`, el permiso `CAMERA` (y su `uses-feature`) y las lápidas de borrado (`tombstones`) y el alcance guardado (`shareScope`) de los datos del perfil. Los perfiles ya guardados con esos dos campos siguen abriéndose: el campo sobrante se ignora.
 
-1. **Por código (PeerJS, internet).** Reserva en el servicio público de PeerJS (`0.peerjs.com`) el identificador `aulapro-v1-` + 6 caracteres. El invitado se conecta a ese identificador y, cuando se dan la mano, los datos van directos entre los dos equipos por WebRTC (cifrado). Solo hay un STUN de Google (el de PeerJS por defecto): **no hay servidor de relevo (TURN)**.
-2. **Canal local (sin internet).** El anfitrión abre un servidor HTTP en su equipo (puerto 8100 o el siguiente libre) con otro código distinto. El invitado lo lee y le escribe por HTTP cada 1,5 s. Va **sin cifrar**.
+`SessionQR` (el QR de «Actividades con móviles») se queda; está ahora en `src/components/live/`.
 
-### Qué viaja
+## Pendiente
 
-Un paquete (`SharedBundle`) con las clases elegidas, su alumnado, y, según las casillas, el cuaderno (categorías, columnas y notas), las rúbricas y dianas y las evaluaciones, más las lápidas (ids borrados). Nunca el perfil ni la clave de la IA.
-
-Al conectar, cada lado manda su paquete entero (`snapshot`) y se mezclan por id sin pisar lo propio (`reconcile`). Después, cada cambio local reenvía el paquete entero (`patch`, con 400 ms de espera) y el otro lo aplica dando prioridad al que llega (`live`). Las clases y los alumnos tienen dueño (`owner`): el dueño manda sobre lo suyo. Un borrado se propaga siempre (lápidas).
-
-## 2. Qué se arregló en la 2.19.2
-
-El QR llevaba solo `http://ip:puerto/share?c=…` cuando había canal local. Ahora lleva `aulapro://c/CODIGO?lan=ip:puerto:codigo`: el invitado prueba primero la red local (3 s como máximo) y, si no responde, sigue por el código. Solo se da por conectado cuando el anfitrión contesta. La cámara del sistema en Android abre la app con el código puesto. Código: `shareUrl` y `lanFromShareUrl` en `p2p.ts`, `join` en `useLanSync.ts`, `onDetected` en `Share.tsx`.
-
-## 3. Lo que sigue mal planteado
-
-**Conexión**
-
-1. Depende del servicio público y gratuito de PeerJS, sin garantía ni control, y de un STUN. Sin relevo, falla en redes con cortafuegos o NAT estrictos, que son las de los centros.
-2. `PeerLink.join` no tiene tiempo límite ni mira el estado de la conexión (ICE): si el canal no se abre, el invitado se queda en «Conectando…» sin ningún error.
-3. El anfitrión no admite reconexión. `link.conn` no se pone a `null` al cerrarse la conexión, así que un invitado que se cae (pantalla bloqueada en Android) no puede volver a entrar con el mismo código, y la pantalla sigue enseñando un código muerto con «Esperando a que se una…».
-4. El canal local, antes de la 2.19.2, daba «Conectado» sin comprobar nada.
-5. Eran dos sesiones distintas (el QR llevaba la local y el texto era el código de PeerJS). Ya corregido.
-6. El canal local reenvía el paquete entero cada 1,5 s aunque no haya cambios, y el anfitrión lo aplica y apunta una línea en el registro de cambios cada vez (salvo que el registro deduplique; no se ha comprobado). Con más de 2 MB (`MAX_BODY` en `syncserver.cjs`) el servidor corta la petición y falla en silencio.
-7. Entra el primero que llegue con el código; no hay confirmación en ninguna de las dos pantallas.
-
-**Modelo de datos**
-
-8. **No hay aceptación.** Lo que llega se mezcla en tus datos al instante, borrados incluidos. Quien recibe no puede ver, elegir ni rechazar nada. Es lo contrario de lo que pide el dueño.
-9. **Recibir acaba en enviar.** `applyBundle` añade las clases recibidas al `shareScope` de quien recibe (`useAppState.ts`, hacia la línea 871), así que se las devuelve al otro. «Mandar» y «recibir» solo existen en la pantalla, no en el protocolo.
-10. **Fuga de rúbricas.** `buildBundle` manda todas las rúbricas y dianas del docente, no solo las de las clases elegidas (`sync.ts`, líneas 93 y 94), y `shareScope.rubrics` está activado por defecto. Quien solo quería recibir acaba mandando toda su biblioteca de rúbricas.
-11. Cada cambio reenvía el paquete entero y no hay fecha de modificación por registro: ante una edición simultánea, gana el último que llega aunque su copia sea vieja.
-12. `justAppliedRef` es un booleano que descarta el siguiente envío: si editas en los 400 ms posteriores a recibir algo, tu edición no se manda hasta el cambio siguiente (`useP2PSync.ts`, hacia la línea 104).
-13. `applyBundle` fusiona contra el estado del último render; dos mensajes seguidos pueden pisarse. Probable, no comprobado.
-14. El registro de cambios apunta «Recibió un cambio de otro docente» con recuentos, a nombre de quien recibe. No dice qué cambió ni quién lo hizo (la web decía que sí; corregido el 25-10-2026).
-
-**Textos de la app que no coinciden (pendientes, son código)**
-
-15. `Share.tsx` dice que los datos viajan «directos y cifrados» y que «por ese servicio no pasan los datos», pero el canal local no va cifrado, y el servicio de encuentro ve las direcciones IP. También «Los cambios de los dos se ven al momento».
-16. La misma pantalla dice «Hacen falta internet en los dos equipos»; el canal local no lo necesita.
-
-## 4. Diseño para que funcione de verdad
-
-### Lo que ve el docente
-
-1. Uno enseña su QR y el otro lo escanea (o escribe el código). Los dos ven «Conectar con X» y el mismo número de 4 cifras para confirmar que es la persona correcta. Hasta que los dos aceptan, no viaja nada.
-2. Cada lado tiene «Enviar a X»: elige clases y qué contenido (alumnado, notas, rúbricas, evaluaciones).
-3. El otro recibe una **oferta** que solo lleva recuentos y nombres de clase («X te quiere enviar 2 clases, 48 alumnos y 120 notas»). Puede aceptar todo, parte o nada, y elegir cómo fusionar: añadir como nuevo, actualizar lo existente o conservar lo mío.
-4. «Mantener al día» es un interruptor opcional por clase y por sentido. Así se decide quién recibe de quién, y lo que no se acepta no entra.
-
-### Protocolo y datos
-
-- Mensajes con versión: `hello`, `offer`, `accept`, `chunk`, `ack`, `done`, `bye`. Trozos de menos de 64 KB y barra de progreso.
-- `updatedAt` por registro y por celda de nota, para fusionar por fecha y no por «gana el remoto». Las lápidas también llevan fecha.
-- La oferta solo incluye las clases elegidas y lo que cuelga de ellas (rúbricas incluidas). Recibir no activa el envío.
-- «Conectado» solo cuando llega el `hello` del otro lado, con latido periódico, tiempos límite y reconexión con el mismo código.
-- El mismo protocolo sirve para el **envío por archivo** (una oferta guardada que se manda por WhatsApp, correo o Drive y se abre en el otro equipo): es la última salida cuando ninguna red deja conectar.
-
-### Cadena de intentos
-
-1. Conexión directa (STUN).
-2. Relevo (TURN).
-3. Canal local por la wifi del centro, con la comprobación real y un mensaje claro si la red aísla los equipos («prueba con la zona wifi de un móvil»).
-4. Envío por archivo.
-
-La wifi de un centro puede tener aislamiento de clientes, redes separadas o un cortafuegos que bloquee el servidor local; una zona wifi del móvil de un docente sortea todo eso sin internet. Windows pide permiso de cortafuegos la primera vez que se abre el servidor y en un equipo del centro sin administrador puede no poder darse.
-
-## 5. Infraestructura gratuita
-
-Investigado el 25-10-2026 con búsquedas; **no se ha podido leer la documentación oficial de Cloudflare**, así que hay que confirmar los puntos marcados antes de montarlo.
-
-| Pieza | Opción | Estado |
-|---|---|---|
-| STUN | Cloudflare (gratis e ilimitado) o el de Google | Confirmado por fuentes |
-| TURN (relevo) | Cloudflare Realtime TURN: 1.000 GB al mes gratis, luego 0,05 $/GB | Confirmado por fuentes. Sin confirmar: si pide tarjeta al activarlo y el tiempo máximo de validez de las credenciales (una fuente dice 48 h) |
-| Señalización | Un Worker de Cloudflare con un Durable Object: capa gratuita de 100.000 peticiones al día | Cifras de la capa gratuita sin confirmar del todo |
-| Credenciales del TURN | Las genera un Worker pequeño que guarda la clave de Cloudflare como secreto y entrega credenciales de corta duración | Obligatorio: la clave no puede ir dentro de la app |
-
-Riesgos: alguien podría pedir credenciales al Worker y usar tu cuota de relevo; se mitiga con caducidad corta, límite por IP y exigiendo un identificador de sesión válido. El relevo solo ve bytes cifrados, pero **la privacidad dejaría de ser «sin servidores»**: el encuentro lo haría un servicio propio en Cloudflare (la web de privacidad ya cuenta hoy lo del servicio de PeerJS).
-
-Descartado: el TURN gratuito de Metered (Open Relay), por cifras contradictorias sobre su límite; un coturn propio, porque necesita un servidor de pago.
-
-Otra vía sin servidor: intercambiar la señalización con dos QR (uno en cada sentido). Funciona entre equipos que se ven en la red local, pero no entre redes distintas, y en WebView de Android el cifrado de direcciones locales (mDNS) lo complica.
-
-## 6. Pruebas
-
-Hoy solo se prueban las funciones auxiliares (`p2p.test.ts`, `lan.test.ts`, `sync.test.ts`). Falta una prueba de extremo a extremo: dos navegadores de Playwright y un PeerServer local que cubran conexión, oferta y aceptación, corte y reconexión, y edición simultánea. Sin esa prueba, no se puede decir que funciona.
-
-## 7. Plan por fases
-
-1. **Sin decisiones pendientes:** tiempo límite y estado de ICE en `join`, reconexión del anfitrión, «Conectado» solo con `hello`, cortar el envío de todas las rúbricas, no reenviar lo recibido ni el paquete del canal local si no cambió, y corregir los textos del apartado 3.
-2. **Flujo de oferta y aceptación** con «mantener al día» opcional (cambio grande en `sync.ts`, los hooks y `Share.tsx`).
-3. **Infraestructura gratuita** (Worker de señalización y TURN de Cloudflare) y la privacidad al día.
-4. **Prueba de extremo a extremo** y prueba con docentes en un centro real.
-
-## 8. Si se quita
-
-Decisión del dueño: si tras la fase 1 y una prueba real no funciona, se quita. Habría que retirar:
-
-- Código: `src/pages/Share.tsx`, `src/hooks/useP2PSync.ts`, `src/hooks/useLanSync.ts`, `src/services/p2p.ts`, `lan.ts`, `sync.ts` (y sus pruebas), `src/components/share/`, `src/lib/shareNav.ts`, la entrada de menú y de navegación, `applyBundle`, las lápidas (`tombstones`) y los dueños (`owner`) si solo se usan para esto, `electron/syncserver.cjs` y su puente en `preload.cjs` y `main.cjs`, el puente de Android (`createLan` y el plugin nativo), el filtro `aulapro://` del `AndroidManifest.xml`, el `appUrlOpen` de `main.tsx` y la dependencia `peerjs`.
-- Textos: el manual de la ayuda (`appHelpManual.ts`) y las traducciones.
-- Documentos: `docs/WEB.md` (apartado 3, punto 10), la privacidad (apartado 4 de la app, en los tres idiomas), `web/sitio/index.html` y `assets/i18n.js` (la viñeta de privacidad y la pregunta sobre compartir), la ficha de las tiendas (`docs/TIENDAS.md`: la declaración de la dirección IP y el cifrado en tránsito) y este archivo.
+- **La demo y las capturas de la web** (`web/sitio/assets/demo/compartido.webp`, `ef-compartido.webp` y sus zonas pulsables en `demo-pantallas.js`) enseñan la pantalla antigua, con el QR. Hay que volver a ejecutar `scripts/web/capturar.mjs` (ver `web/DISENO.md`, sección 46).
+- El diccionario de textos conserva las frases de la pantalla antigua (`src/i18n/core.ts` y `ca.ts`, bloque «Trabajo compartido»); varias se comparten con otras pantallas, así que hay que retirarlas una a una.
+- Los campos `owner` y `owner_name` de clases y alumnos se siguen usando al importar; el dueño manda sobre lo suyo.
+- Sin comprobar en un dispositivo real: guardar y abrir el archivo en Android (MediaStore, selector de archivos) y el tiempo de cifrado en un móvil lento (600.000 vueltas; en un ordenador, menos de un segundo).
+- Posible mejora: un aviso de que la contraseña es débil si es escrita a mano, y cifrar también las copias de seguridad normales.

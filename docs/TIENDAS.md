@@ -1,6 +1,6 @@
 # Publicar en Google Play y Microsoft Store
 
-Todo lo que hace falta para enviar AulaPro a las dos tiendas: textos de la ficha en los tres idiomas, notas para quien revisa, respuestas de los formularios y la lista de lo que hay que hacer antes. Preparado el 25-10-2026, con la privacidad de la web ya al día con lo que la app envía fuera (Gemini, Lemon Squeezy, PeerJS y STUN, contenido incrustado en la pizarra).
+Todo lo que hace falta para enviar AulaPro a las dos tiendas: textos de la ficha en los tres idiomas, notas para quien revisa, respuestas de los formularios y la lista de lo que hay que hacer antes. Preparado el 25-10-2026, con la privacidad de la web ya al día con lo que la app envía fuera (Gemini, Lemon Squeezy, contenido incrustado en la pizarra).
 
 Decisión del dueño (25-10-2026): **se cobra solo con Lemon Squeezy**, en la web. Las dos tiendas llevan la app gratuita, que se activa con la clave. No hay compras dentro de la app ni sistema de pago de las tiendas. Si Google la rechaza por eso, se decide entonces (ver el apartado 5).
 
@@ -18,7 +18,7 @@ Los límites de caracteres y los formularios de las tiendas cambian: se han pues
    - Microsoft Store: 3 a 6 capturas de escritorio, de 1366 × 768 o más, en PNG. Sirven las de `web/sitio/assets/app/` (1920 × 1008, en WebP: convertirlas a PNG) o las que genera `scripts/web/capturar.mjs`.
 5. **Política de privacidad**: https://aulapro.app/privacidad (pública, sin cuenta). Las dos tiendas piden la dirección. Contacto de soporte: contacto@aulapro.app. Web: https://aulapro.app.
 6. **Inconsistencias a arreglar antes (reglas 1 y 3 de `CLAUDE.md`):**
-   - **Trabajo compartido.** Corregido el 25-10-2026 en la web: la privacidad (apartado 4 de la app, en los tres idiomas), la portada y la pregunta sobre compartir cuentan ahora que el servicio público de PeerJS y un STUN de Google ven las direcciones IP y el código, que los datos van directos y cifrados por internet, y que el canal local de la wifi va sin cifrar. **Falta el código:** `Share.tsx` sigue diciendo «cifrados», «por ese servicio no pasan los datos» y que hacen falta internet en los dos equipos (`docs/COMPARTIR.md`, apartado 3, puntos 15 y 16). Si se quita Compartir, hay que quitarlo también de la web y de este documento (apartado 8 de ese archivo).
+   - **Trabajo compartido.** Resuelto el 25-10-2026 (2.20.0): ya no hay conexión entre equipos, QR ni cámara; es un archivo cifrado con contraseña (`docs/COMPARTIR.md`). La privacidad de la web lo cuenta así. Lo único que sale a internet por esa vía es el archivo, si el docente lo manda por correo o por la nube.
    - **Nombre.** La app se llama «Aula Pro» (nombre del icono en Android y de la ventana en Windows) y la ficha de las tiendas, «AulaPro». Elige uno y úsalo igual en todas partes.
    - **Aviso de Windows.** `docs/INSTALACION.md` explica el aviso «Windows protegió su PC» del instalador de la web. La versión de Microsoft Store va firmada por Microsoft y no lo muestra: conviene decirlo en la web cuando esté publicada.
 
@@ -192,7 +192,7 @@ After activation, no sign-in is needed. The welcome screen has the button "Explo
 
 About payments: the app does not sell anything. It has no in-app purchases, no prices, no purchase buttons and no links to buy. The activation screen only shows the plain text "Consigue tu licencia en aulapro.app" (no link). The licence is obtained outside the app, on the developer's website, and the same key also activates the developer's Windows version. The app is free to download.
 
-Permissions: CAMERA is used only to scan a QR code when the user connects with another teacher (the image is not stored or sent). RECORD_AUDIO is used only by the classroom noise meter, which analyses the sound on the device and does not record or transmit it. Both are optional and requested at the moment of use.
+Permissions: RECORD_AUDIO is used only by the classroom noise meter, which analyses the sound on the device and does not record or transmit it. It is optional and requested at the moment of use. The app does not request the camera permission.
 
 If you consider that this licensing model requires a different arrangement under the Payments policy, please tell us exactly which requirement applies so we can address it.
 ```
@@ -206,7 +206,7 @@ Las respuestas siguen lo que la app hace de verdad (privacidad y `docs/WEB.md`, 
 | Pregunta | Respuesta |
 |---|---|
 | ¿La app recopila o comparte tipos de datos del usuario? | Sí |
-| ¿Todos los datos se cifran en tránsito? | **No**, mientras exista el canal local de Trabajo compartido o el servidor de Actividades con móviles, que van por HTTP dentro de la wifi del aula. Si se cifraran o se quitaran, sería Sí. |
+| ¿Todos los datos se cifran en tránsito? | **No**, mientras exista el servidor de Actividades con móviles, que va por HTTP dentro de la wifi del aula. Si se cifrara, sería Sí. Trabajo compartido ya no cuenta: el archivo va cifrado de extremo a extremo. |
 | ¿Se puede pedir la eliminación de los datos? | Sí. El desarrollador no guarda datos del alumnado ni cuentas: lo del dispositivo se borra al desinstalar. Los datos de la licencia, en Lemon Squeezy, se piden a contacto@aulapro.app. |
 
 **Tipos de datos declarados:**
@@ -217,7 +217,8 @@ Las respuestas siguen lo que la app hace de verdad (privacidad y `docs/WEB.md`, 
 | Fotos (Evaluar por foto, actividades desde una foto) | Sí | Sí, con Google (API de Gemini, con la clave del propio docente) | No, solo si usa la IA | Funcionalidad de la app |
 | Archivos y documentos (PDF y manuales que el docente adjunta a la IA) | Sí | Sí, con Google | No | Funcionalidad de la app |
 | Otro contenido generado por el usuario (el texto de las peticiones a la IA, con los nombres cambiados por códigos) | Sí | Sí, con Google | No | Funcionalidad de la app |
-| Dirección IP en Trabajo compartido | Solo si se mantiene la función | Con el servicio de encuentro de PeerJS y el STUN de Google | No | Funcionalidad de la app |
+
+**Trabajo compartido** no añade nada a esta tabla: el archivo cifrado lo crea y lo manda el propio docente, y el desarrollador no lo recibe ni pasa por ningún servicio suyo.
 
 **Datos que no se recopilan:** ubicación, contactos, mensajes, historial de navegación, información financiera, salud y forma física, audio y vídeo (el medidor de ruido analiza el sonido en el momento y no lo guarda ni lo envía; la cámara solo lee un QR). Anuncios y analíticas: ninguno.
 
@@ -225,10 +226,10 @@ Las respuestas siguen lo que la app hace de verdad (privacidad y `docs/WEB.md`, 
 
 ### 2.7 Clasificación de contenido y otras declaraciones
 
-- **Cuestionario de clasificación (IARC):** categoría «Utilidad, productividad, comunicación u otra». Sin violencia, sin contenido sexual, sin lenguaje soez, sin drogas, sin apuestas. A «¿los usuarios pueden interactuar o intercambiar contenido?», responde que sí, por Trabajo compartido (entre docentes) y Actividades con móviles; no es contenido público ni hay chat. Se espera una clasificación apta para todos los públicos; comprueba el resultado.
+- **Cuestionario de clasificación (IARC):** categoría «Utilidad, productividad, comunicación u otra». Sin violencia, sin contenido sexual, sin lenguaje soez, sin drogas, sin apuestas. A «¿los usuarios pueden interactuar o intercambiar contenido?», responde que sí, por Actividades con móviles y por el archivo cifrado de Trabajo compartido, que se manda fuera de la app; no es contenido público ni hay chat. Se espera una clasificación apta para todos los públicos; comprueba el resultado.
 - **Anuncios:** no contiene anuncios.
 - **Aplicación de noticias, de salud, financiera, gubernamental o de COVID-19:** no.
-- **Permisos:** `INTERNET`, `CAMERA`, `RECORD_AUDIO` y `MODIFY_AUDIO_SETTINGS`, y las dos funciones de hardware (`microphone`, `camera`) marcadas como no obligatorias. Los documentos se guardan con MediaStore en Documentos › AulaPro, sin permisos de archivos. No hay permisos sensibles que requieran formulario.
+- **Permisos:** `INTERNET`, `RECORD_AUDIO` y `MODIFY_AUDIO_SETTINGS`, y la función de hardware `microphone` marcada como no obligatoria. **Sin `CAMERA`** desde la 2.20.0. Los documentos se guardan con MediaStore en Documentos › AulaPro, sin permisos de archivos. No hay permisos sensibles que requieran formulario.
 - **Copia de seguridad del sistema:** `allowBackup="false"`, a propósito: los datos del alumnado no se suben a la copia de Google.
 - **Dirección del desarrollador:** si Play la pide para el perfil público, es la del Aviso legal (ya pública). No se publican el DNI ni el Gmail del dueño.
 

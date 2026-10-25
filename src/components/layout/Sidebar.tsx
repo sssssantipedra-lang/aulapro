@@ -67,13 +67,12 @@ interface Props {
   onNav: (s: Section) => void;
   user: UserType | null;
   /** Hay una sesión compartida activa con otro docente. */
-  sharing?: boolean;
   /** Se está escribiendo en disco ahora mismo. */
   saving?: boolean;
   onLogout: () => void;
 }
 
-export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing, saving, onLogout }: Props) {
+export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving, onLogout }: Props) {
   const { t, lang } = useI18n();
 
   const groups = navGroupsFor(user?.tipo ?? 'aula');
@@ -95,9 +94,6 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
       >
         <span className="ni-icon" style={quiet ? undefined : { '--ni-c': COLOR[item.icon] } as React.CSSProperties}>{ICONS[item.icon]}</span>
         <span className="ni-label">{t(item.label)}</span>
-        {item.id === 'share' && sharing && (
-          <span className="ni-live" title="Sesión compartida activa" />
-        )}
       </button>
     );
   };

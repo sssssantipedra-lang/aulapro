@@ -161,7 +161,7 @@ window.AULA_I18N = {
     's5.p2': 'Abans de fer servir la IA, els noms se substitueixen per codis.',
     's5.p3': 'La teva clau de Google es desa xifrada.',
     's5.p4': 'Còpia de seguretat automàtica cada 10 minuts.',
-    's5.p5': 'Treball compartit amb altres docents: les dades van directes d\'un equip a un altre, sense desar-se en cap servidor.',
+    's5.p5': 'Treball compartit amb altres docents mitjançant un arxiu xifrat amb contrasenya, sense connexió entre equips.',
     's5.p6': 'El que crees es desa automàticament al teu equip: si es tanca a mitges, continues on ho havies deixat.',
 
     'strips.label': 'IA i idiomes',
@@ -231,7 +231,7 @@ window.AULA_I18N = {
     'q10': 'I si no em convenç?',
     'a10': 'Tens 14 dies des de la compra per demanar la devolució, sense preguntes. Tots els detalls són a les <a href="condiciones.html" data-lang-link="condiciones.html">condicions de venda</a>.',
     'q9': 'Puc compartir la feina amb altres docents?',
-    'a9': 'Sí. Les dades van directes d\'un equip a un altre, sense desar-se en cap servidor, i el registre de canvis anota quan reps canvis d\'un altre docent.',
+    'a9': 'Sí. Tries què comparteixes i AulaPro crea un arxiu xifrat amb contrasenya, que envies pel mitjà que vulguis. Qui el rep l\'obre amb la contrasenya, veu què porta i decideix si l\'importa.',
 
     's9.title': 'Posa el teu curs al seu lloc.',
     's9.lede': 'Tria la teva plataforma. Oferta de llançament: 6,99\u00a0€, per sempre.',
@@ -405,7 +405,7 @@ window.AULA_I18N = {
     's5.p2': 'Before anything goes to the AI, names are replaced with codes.',
     's5.p3': 'Your Google key is stored encrypted.',
     's5.p4': 'Automatic backup every 10 minutes.',
-    's5.p5': 'Work shared with other teachers: the data goes straight from one device to the other, without being stored on any server.',
+    's5.p5': 'Work shared with other teachers through a password-protected encrypted file, with no connection between devices.',
     's5.p6': 'What you create is autosaved on your device: if it is closed halfway, you carry on where you left off.',
 
     'strips.label': 'AI and languages',
@@ -475,7 +475,7 @@ window.AULA_I18N = {
     'q10': 'What if it is not right for me?',
     'a10': 'You have 14 days from purchase to ask for a refund, no questions asked. All the details are in the <a href="condiciones.html" data-lang-link="condiciones.html">terms of sale</a>.',
     'q9': 'Can I share work with other teachers?',
-    'a9': 'Yes. The data goes straight from one device to the other, without being stored on any server, and the change log notes when you receive changes from another teacher.',
+    'a9': 'Yes. You choose what to share and AulaPro creates a password-protected encrypted file, which you send by whatever means you like. The recipient opens it with the password, sees what it contains and decides whether to import it.',
 
     's9.title': 'Put your school year in its place.',
     's9.lede': 'Choose your platform. Launch offer: €6.99, yours for good.',

@@ -6,7 +6,7 @@ import {
 import type { Class, Student, Rubric, EvalDiana, SelfAssessmentSession } from '../types';
 import { isoDate, nombreDePila } from '../lib/utils';
 import type { ClassroomActivity, ClassroomSnapshot } from '../types/electron';
-import { SessionQR } from '../components/share/SessionQR';
+import { SessionQR } from '../components/live/SessionQR';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
 import { isAndroidApp } from '../lib/platform';
