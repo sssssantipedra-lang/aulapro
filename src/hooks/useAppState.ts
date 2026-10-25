@@ -10,7 +10,7 @@ import { destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/obj
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { buildDemoApoyo } from '../lib/demoApoyo';
-import { mergeBundle, EMPTY_SCOPE, emptyTombstones, type SharedBundle, type ShareScope, type MergeMode, type Tombstones } from '../services/sync';
+import { mergeBundle, type SharedBundle, type MergeMode } from '../services/paquete';
 import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
@@ -68,8 +68,6 @@ interface ProfileSnapshot {
   /** Módulo de PT y AL (ver `docs/PTAL.md`). Solo lo usan los especialistas. */
   apoyo: ApoyoData;
   ef: EfData;
-  tombstones: Tombstones;
-  shareScope: ShareScope;
   auditLog: AuditEntry[];
 }
 
@@ -80,7 +78,7 @@ function emptySnapshot(): ProfileSnapshot {
     gradeCategories: [], gradeItems: [], grades: {},
     dianaProfiles: {}, attendance: {}, reports: [], selfAssessments: [], learningSituations: [],
     fichas: [], workSessions: [], seatingPlans: {}, classMarks: [], marksConfigs: {}, apoyo: APOYO_VACIO, ef: EF_VACIO,
-    tombstones: emptyTombstones(), shareScope: EMPTY_SCOPE, auditLog: [],
+    auditLog: [],
   };
 }
 
@@ -172,8 +170,6 @@ export function useAppState() {
   const [marksConfigs, setMarksConfigs]       = useState<Record<string, MarksBlockConfig>>({});
   const [apoyo, setApoyo]                     = useState<ApoyoData>(APOYO_VACIO);
   const [ef, setEf]                           = useState<EfData>(EF_VACIO);
-  const [tombstones, setTombstones]           = useState<Tombstones>(emptyTombstones());
-  const [shareScope, setShareScope]           = useState<ShareScope>(EMPTY_SCOPE);
   const [auditLog, setAuditLog]               = useState<AuditEntry[]>([]);
 
   // El documento de normativa (base64, puede ser enorme) solo vive en memoria
@@ -213,8 +209,6 @@ export function useAppState() {
     // Puede venir de una copia editada a mano o de una versión anterior
     setApoyo(normalizarApoyo(s.apoyo));
     setEf(normalizarEF(s.ef));
-    setTombstones(s.tombstones);
-    setShareScope(s.shareScope);
     setAuditLog(s.auditLog);
     // La conversación con el asistente habla de los alumnos del perfil que se
     // acaba de dejar atrás: no puede seguir abierta en el siguiente.
@@ -255,11 +249,11 @@ export function useAppState() {
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
-    workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog,
+    workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, auditLog,
   }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
-      workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, tombstones, shareScope, auditLog]);
+      workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, auditLog]);
 
   const { saving } = useGuardadoAutomatico({
     ready, profileId, snapshot, retardo: SAVE_DELAY_MS,
@@ -332,19 +326,6 @@ export function useAppState() {
     tutor: tipoDePerfil(profile) === 'ef' && profile.tutor === true,
   } : null), [profile]);
 
-  /* ── Lápidas para que los borrados se propaguen ── */
-  const markDeleted = useCallback((patch: Partial<Tombstones>) => {
-    setTombstones(prev => {
-      const next = { ...prev };
-      (Object.keys(patch) as (keyof Tombstones)[]).forEach(key => {
-        const ids = patch[key];
-        if (!ids || ids.length === 0) return;
-        next[key] = [...new Set([...prev[key], ...ids])];
-      });
-      return next;
-    });
-  }, []);
-
   /* ── Registro de cambios ── */
 
   /**
@@ -412,9 +393,7 @@ export function useAppState() {
   const deleteClass = useCallback((id: string) => {
     const goneName = className(id);
     const cascadeStudentIds  = students.filter(s => s.class_id === id).map(s => s.id);
-    const cascadeCategoryIds = gradeCategories.filter(c => c.class_id === id).map(c => c.id);
     const cascadeItemIds     = gradeItems.filter(i => i.class_id === id).map(i => i.id);
-    const cascadeEvalIds     = evaluations.filter(e => e.class_id === id).map(e => e.id);
 
     setClasses(prev => prev.filter(c => c.id !== id));
     setStudents(prev => prev.filter(s => s.class_id !== id));
@@ -434,16 +413,11 @@ export function useAppState() {
         return next;
       });
     }
-    markDeleted({
-      classes: [id], students: cascadeStudentIds,
-      gradeCategories: cascadeCategoryIds, gradeItems: cascadeItemIds,
-      evaluations: cascadeEvalIds,
-    });
     log('delete', 'class', id, `Clase «${goneName}»`,
       cascadeStudentIds.length
         ? `arrastró ${cascadeStudentIds.length} alumnos y todas sus notas`
         : undefined);
-  }, [students, gradeCategories, gradeItems, evaluations, markDeleted, log, className]);
+  }, [students, gradeItems, log, className]);
 
   const addStudent = useCallback((s: Student) => {
     // La ficha hereda el dueño de su clase: quien manda en la lista es quien
@@ -463,9 +437,8 @@ export function useAppState() {
     setStudents(prev => prev.filter(s => s.id !== id));
     setClassMarks(prev => prev.filter(m => m.student_id !== id));
     setEf(prev => sinAlumnoEF(prev, id));
-    markDeleted({ students: [id] });
     log('delete', 'student', id, `Alumno ${goneName}`);
-  }, [markDeleted, log, studentName]);
+  }, [log, studentName]);
 
   /* ── Horario y calendario ── */
   const addBlock       = useCallback((b: ScheduleBlock) => setScheduleBlocks(prev => [...prev, b]), []);
@@ -489,9 +462,8 @@ export function useAppState() {
   const deleteRubric = useCallback((id: string) => {
     const goneName = rubricName(id);
     setRubrics(prev => prev.filter(r => r.id !== id));
-    markDeleted({ rubrics: [id] });
     log('delete', 'rubric', id, `Rúbrica «${goneName}»`);
-  }, [markDeleted, log, rubricName]);
+  }, [log, rubricName]);
 
   const addDiana = useCallback((d: EvalDiana) => {
     setDianas(prev => [d, ...prev]);
@@ -504,9 +476,8 @@ export function useAppState() {
   const deleteDiana = useCallback((id: string) => {
     const goneName = dianaName(id);
     setDianas(prev => prev.filter(d => d.id !== id));
-    markDeleted({ dianas: [id] });
     log('delete', 'diana', id, `Diana «${goneName}»`);
-  }, [markDeleted, log, dianaName]);
+  }, [log, dianaName]);
 
   /**
    * Lleva al cuaderno la nota que sale de evaluar con una rúbrica o una diana.
@@ -594,10 +565,9 @@ export function useAppState() {
         return next;
       });
     }
-    markDeleted({ gradeCategories: [id], gradeItems: cascadeItemIds });
     log('delete', 'gradeCategory', id, `Categoría «${goneName}»`,
       cascadeItemIds.length ? `arrastró ${cascadeItemIds.length} pruebas y sus notas` : undefined);
-  }, [gradeItems, gradeCategories, markDeleted, log]);
+  }, [gradeItems, gradeCategories, log]);
 
   const addGradeItem = useCallback((i: GradeItem) => {
     setGradeItems(prev => [...prev, i]);
@@ -612,9 +582,8 @@ export function useAppState() {
     const lost = Object.values(mirrorRef.current.grades[id] ?? {}).filter(v => typeof v === 'number').length;
     setGradeItems(prev => prev.filter(i => i.id !== id));
     setGrades(g => { const next = { ...g }; delete next[id]; return next; });
-    markDeleted({ gradeItems: [id] });
     log('delete', 'gradeItem', id, `Prueba «${goneName}»`, lost ? `arrastró ${lost} notas` : undefined);
-  }, [markDeleted, log, itemName]);
+  }, [log, itemName]);
 
   const setGrade = useCallback((itemId: string, studentId: string, value: number | null) => {
     const before = mirrorRef.current.grades[itemId]?.[studentId] ?? null;
@@ -842,21 +811,29 @@ export function useAppState() {
     setSelfAssessments(prev => prev.map(s => (s.id === id ? { ...s, included: true } : s)));
   }, [addEvaluation]);
 
-  /* ── Sincronización entre docentes ── */
+  /* ── Datos que llegan de otro docente (archivo cifrado, ver services/copiaCifrada.ts) ── */
+
+  /** Lo propio con la forma de un paquete: lo que se comparte sale de aquí (ver `buildBundle`). */
   const syncSource = {
-    classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones,
+    classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations,
+    learningSituations, fichas,
     me: profileId ?? undefined,
   };
 
-  const applyBundle = useCallback((remote: SharedBundle, mode: MergeMode) => {
+  /**
+   * Mezcla en los datos propios un paquete que ha enviado otro docente. Nunca
+   * borra nada: lo que ya hay se queda, y ante el mismo id manda `modo`.
+   * Devuelve cuántas clases, alumnos, evaluaciones, situaciones de aprendizaje y fichas nuevos entran.
+   */
+  const importarPaquete = useCallback((remote: SharedBundle, modo: MergeMode) => {
     const merged = mergeBundle(
-      { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones },
-      remote, mode,
+      { classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, learningSituations, fichas },
+      remote, modo,
       // Sin saber quién soy, la fusión no puede distinguir lo propio y el
-      // compañero acabaría sobrescribiendo la lista de la que soy dueño.
+      // paquete acabaría sobrescribiendo la lista de la que soy dueño.
       profileId ?? undefined,
     );
-    // El compañero puede tener una versión anterior de la aplicación
+    // El otro docente puede tener una versión anterior de la aplicación
     setClasses(merged.classes.map(normalizeClass));
     setStudents(merged.students);
     setGradeCategories(merged.gradeCategories);
@@ -865,31 +842,22 @@ export function useAppState() {
     setRubrics(merged.rubrics);
     setDianas(merged.dianas);
     setEvaluations(merged.evaluations);
-    setTombstones(merged.tombstones);
-    // Compartir de vuelta lo que nos han compartido: así los cambios son
-    // bidireccionales, se hagan en el que manda o en el que recibe.
-    if (remote.classes.length) {
-      setShareScope(s => {
-        const ids = new Set([...s.classIds, ...remote.classes.map(c => c.id)]);
-        return ids.size === s.classIds.length && s.classIds.every(id => ids.has(id))
-          ? s
-          : { ...s, classIds: [...ids] };
-      });
-    }
+    setLearningSituations(merged.learningSituations ?? []);
+    setFichas(merged.fichas ?? []);
 
-    // Una línea por fusión, no una por dato: si no, una sesión compartida
-    // sepultaría el resto del registro.
-    const delta = (a: number, b: number) => b - a;
-    const changes = [
-      ['alumnos', delta(students.length, merged.students.length)],
-      ['clases', delta(classes.length, merged.classes.length)],
-      ['evaluaciones', delta(evaluations.length, merged.evaluations.length)],
-    ].filter(([, n]) => (n as number) !== 0)
-     .map(([k, n]) => `${(n as number) > 0 ? '+' : ''}${n} ${k}`);
-    log('update', 'sync', mode,
-      mode === 'reconcile' ? 'Conectó con otro docente' : 'Recibió un cambio de otro docente',
-      changes.length ? changes.join(', ') : 'sin cambios');
-  }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, tombstones, log, profileId]);
+    const nuevas = {
+      clases: merged.classes.length - classes.length,
+      alumnos: merged.students.length - students.length,
+      evaluaciones: merged.evaluations.length - evaluations.length,
+      situaciones: (merged.learningSituations ?? []).length - learningSituations.length,
+      fichas: (merged.fichas ?? []).length - fichas.length,
+    };
+    // Una línea por importación, no una por dato
+    const cambios = (Object.entries(nuevas) as [string, number][]).filter(([, n]) => n !== 0)
+      .map(([k, n]) => `${n > 0 ? '+' : ''}${n} ${k}`);
+    log('update', 'sync', modo, 'Importó datos de otro docente', cambios.length ? cambios.join(', ') : 'sin cambios');
+    return nuevas;
+  }, [classes, students, gradeCategories, gradeItems, grades, rubrics, dianas, evaluations, learningSituations, fichas, log, profileId]);
 
   /* ── Datos de ejemplo y limpieza ── */
   const loadDemoData = useCallback((lang: Lang = 'es') => {
@@ -924,6 +892,8 @@ export function useAppState() {
     let parsed: { _app?: string; data?: unknown } & Record<string, unknown>;
     try { parsed = JSON.parse(raw); } catch { return 'El archivo no es una copia de seguridad válida.'; }
     if (parsed._app !== 'AulaPro') return 'El archivo no parece una copia de seguridad de Aula Pro.';
+    // Un archivo para compartir con otro docente no es una copia de seguridad: se abre en «Trabajo compartido»
+    if (parsed._cifrada === true) return 'Este archivo es una copia cifrada para compartir con otro docente. Ábrela en «Trabajo compartido».';
 
     // La versión 2 anida los datos; la 1 los tenía sueltos con otros nombres
     if (parsed.data) {
@@ -978,8 +948,6 @@ export function useAppState() {
     setApoyo(apoyoParaOtroCurso);
     // De EF se queda el material del docente: pruebas, baremos, actividades…
     setEf(efParaOtroCurso);
-    setTombstones(emptyTombstones());
-    setShareScope(EMPTY_SCOPE);
     // El registro del curso viejo se va con él (queda en la copia que se acaba
     // de hacer), pero dejamos constancia de que el vaciado ocurrió.
     setAuditLog([newEntry(whoRef.current, 'delete', 'system', 'year',
@@ -1025,7 +993,7 @@ export function useAppState() {
     marksConfigs, setMarksConfig,
     apoyo, setApoyo,
     ef, setEf,
-    shareScope, setShareScope, syncSource, applyBundle,
+    syncSource, importarPaquete,
     auditLog, clearAuditLog,
     loadDemoData, exportData, importData, clearSchoolYear,
   };

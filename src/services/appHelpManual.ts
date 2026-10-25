@@ -666,10 +666,33 @@ se rellena lo que pide). Las respuestas llegan en directo y
 se guardan en Autoevaluaciones.
 
 [share] TRABAJO COMPARTIDO
-Conecta a dos docentes que dan clase al mismo grupo para trabajar a la vez sobre
-las mismas clases, alumnos, notas, rúbricas y dianas. Se conecta con un código o
-un QR y los cambios se sincronizan solos. El dueño de cada lista manda sobre
-ella, para que nadie machaque el trabajo del otro.
+Pasa clases, alumnado, notas, rúbricas, dianas y evaluaciones de un docente a
+otro con un ARCHIVO CIFRADO. No hay conexión entre los dos equipos ni QR: desde
+la versión 2.20 se quitó el trabajo compartido en directo.
+- Quien envía marca las clases y lo que comparte (cuaderno de notas, rúbricas y
+  dianas de esas clases, evaluaciones). Con «Elegir con detalle» puede quitar
+  alumnos concretos (con sus notas y evaluaciones), columnas del cuaderno,
+  rúbricas, dianas o escalas, y las evaluaciones de un instrumento: lo que se deja
+  sin marcar no va en el archivo. También puede marcar situaciones de aprendizaje
+  y fichas (no vienen marcadas), con o sin clases: se mandan tal cual, así que
+  conviene revisar que el contexto de la clase no lleve datos del alumnado.
+  Después pulsa «Crear archivo cifrado». La app propone una contraseña aleatoria (por
+  ejemplo ABCD-EFGH-JKMN-PQRS) que se puede copiar, cambiar o sustituir por una
+  propia de al menos 10 caracteres. El archivo se guarda como una copia de
+  seguridad (en Android, en Documentos › AulaPro › Copias de seguridad).
+- El archivo se manda por el medio que se quiera (correo, WhatsApp, Drive…) y la
+  contraseña, por OTRO medio (una llamada, por ejemplo). Sin ella no se puede
+  leer. La app no guarda la contraseña ni la envía a ningún sitio: si se pierde,
+  el archivo no se puede recuperar.
+- Quien recibe pulsa «Elegir el archivo recibido», escribe la contraseña y ve qué
+  trae (de quién, cuándo, cuántas clases, alumnos, notas, rúbricas y
+  evaluaciones) ANTES de importar. Elige «Conservar lo mío» (entra lo nuevo y lo
+  que ya existe se queda como estaba) o «Actualizar con esto» (lo que ya existe
+  se sustituye por lo que llega). Nunca se borra nada de lo que ya se tenía.
+- Nunca viaja el perfil ni la clave de la IA. Solo AulaPro sabe abrir el archivo,
+  pero la seguridad está en la contraseña, no en el formato.
+- Una copia de seguridad normal («Descargar mis datos») no es lo mismo: es toda
+  tu información, sin cifrar, y se carga con «Cargar desde archivo».
 
 === EDUCACIÓN FÍSICA (solo profesorado de EF) ===
 Al crear el perfil, «Tipo de docente» → «Educación Física» (o después, en
@@ -1193,7 +1216,7 @@ tarjeta «Clave de la IA».
   alumnos es la tableta la que abre la sala (misma wifi; con la sala abierta
   la pantalla no se apaga). Los datos de la tableta y
   los del ordenador van por separado: para pasarlos, «Descargar mis datos» en
-  uno y «Cargar desde archivo» en el otro, o «Trabajo compartido».
+  uno y «Cargar desde archivo» en el otro, o «Trabajo compartido» (archivo cifrado con contraseña).
 - «Me pide una clave de licencia» / «He cambiado de ordenador»: la clave llega
   por correo al comprar Aula Pro en la web. Se activa con internet una sola vez
   y después funciona sin conexión. Cada clave vale para un número limitado de

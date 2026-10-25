@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, Plus, Minus, X, Flag, Shuffle, Check } from 'lucide-react';
 import { useI18n } from '../../i18n';
-import { SessionQR } from '../share/SessionQR';
+import { SessionQR } from './SessionQR';
 import {
   SIMBOLOS_TRABAJO, MAX_DADOS, tirarDados, repartirGrupos, formatoCrono, direccionParaQr,
   claveDatos, type ReparticionGrupos,

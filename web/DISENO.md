@@ -421,3 +421,15 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - La portada solo nombraba Educación Física en una pregunta. Ahora, en «Y además» (`ia.p9`, `ia.p10`, dos viñetas nuevas): la anotación en la pista desde el móvil, los equipos equilibrados, el cronómetro de circuitos y las pruebas físicas, y las sesiones y situaciones de aprendizaje con IA con la pizarra de circuitos y su banco de material.
 - La respuesta de «¿Sirve para PT y AL o para Educación Física?» (`a13`) añade lo mismo en una frase, antes de «Tú lo revisas todo».
 - Solo textos, en los tres idiomas. La demo ya tenía el perfil de Educación Física (sección 42).
+
+## 45. Trabajo compartido dicho como es (25-10-2026, petición del usuario: «revisa a fondo cómo funciona la app y actualiza todos los documentos»)
+
+- La portada (`s5.p5`) y la pregunta sobre compartir (`a9`) decían que el trabajo compartido iba «sin pasar por ningún servidor» y que el registro de cambios mostraba «quién modificó qué y cuándo». Ninguna de las dos cosas era exacta: la conexión por código usa el servicio de encuentro de PeerJS y un STUN de Google, y el registro solo anota que se recibieron cambios. Ahora dicen que los datos van directos de un equipo a otro, sin guardarse en ningún servidor, y que el registro anota cuándo se reciben cambios.
+- La privacidad (apartado 4 de la app) cuenta el servicio de encuentro, las direcciones IP que ven, el canal local sin cifrar y lo que se comparte. El apartado 3 dice que la sala de alumnos es una conexión local sin cifrar, y se añade un párrafo sobre el contenido incrustado en la pizarra (YouTube, Vimeo, Drive o la web que elija el docente). Fecha de actualización: 25 de octubre de 2026, en los tres idiomas.
+- Solo textos. Si se quita Trabajo compartido, estas frases se retiran (`docs/COMPARTIR.md`, apartado 8).
+
+## 46. Trabajo compartido pasa a ser un archivo cifrado (25-10-2026, petición del usuario)
+
+- El usuario quitó la conexión por QR y código: ahora se comparte un archivo cifrado con contraseña (`docs/COMPARTIR.md`). La portada (`s5.p5`) y la pregunta sobre compartir (`a9`) lo dicen así, y la privacidad (apartado 4 de la app, en los tres idiomas) lo explica, incluido que la seguridad depende de la contraseña. Sustituye a lo escrito en la sección 45 sobre PeerJS y el canal local.
+- La privacidad ya no habla de la cámara en Android: la app no pide ese permiso (no hay lector de QR).
+- **Pendiente:** la demo interactiva y la captura `assets/demo/compartido.webp` (y `ef-compartido.webp`) enseñan todavía la pantalla antigua, con el QR. Hay que volver a ejecutar `scripts/web/capturar.mjs` (que sustituye `scripts/web/capturar.mjs` de la 2.13.1) y revisar las capturas con el usuario.
