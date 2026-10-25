@@ -19,7 +19,7 @@ import { isoDate } from '../../lib/utils';
 import { trimestreDe } from '../../lib/apoyo';
 import { compararNombres } from '../../lib/alumnado';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { ApoyoData, TipoDocumentoApoyo, Trimestre } from '../../types/apoyo';
+import type { ApoyoData, TipoDocumentoGenerable, Trimestre } from '../../types/apoyo';
 import type { Section } from '../../types';
 
 interface Props {
@@ -36,7 +36,7 @@ export function InformesLoteApoyo({ open, onClose, data, onChange, comunidad, on
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   const tipos = tiposDe(comunidad);
-  const [tipo, setTipo] = useState<TipoDocumentoApoyo>(tipos.includes('familia') ? 'familia' : tipos[0]);
+  const [tipo, setTipo] = useState<TipoDocumentoGenerable>(tipos.includes('familia') ? 'familia' : tipos[0]);
   const [trimestre, setTrimestre] = useState<Trimestre>(trimestreDe(isoDate()));
   /** Alumnado desmarcado a mano; lo demás, marcado si puede prepararse. */
   const [quitados, setQuitados] = useState<Set<string>>(new Set());

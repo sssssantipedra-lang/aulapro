@@ -179,8 +179,13 @@ export interface SesionApoyo {
  * - `familia` y `equipo`: los informes trimestrales.
  * - `pap`: el seguimiento del apartado I del PAP (Comunitat Valenciana), uno
  *   por curso, con una columna por trimestre que se va rellenando.
+ * - `adaptacion`: la adaptación de la programación de aula del tutor a un
+ *   alumno, de un área y un trimestre (ACI o ACIS, en formato general).
  */
-export type TipoDocumentoApoyo = 'programacion' | 'familia' | 'equipo' | 'pap';
+export type TipoDocumentoApoyo = 'programacion' | 'familia' | 'equipo' | 'pap' | 'adaptacion';
+
+/** Los documentos que se preparan con un clic desde los datos del registro (todos menos la adaptación, que pide el área y la programación del tutor). */
+export type TipoDocumentoGenerable = Exclude<TipoDocumentoApoyo, 'adaptacion'>;
 
 export interface ApartadoDocumento {
   /** Identificador estable del apartado dentro de su tipo de documento. */
@@ -195,6 +200,8 @@ export interface DocumentoApoyo {
   tipo: TipoDocumentoApoyo;
   /** Los informes trimestrales y el trimestre que se rellenó por última vez en el PAP. */
   trimestre?: Trimestre;
+  /** Solo la adaptación de la programación de aula: el área, por su nombre en el currículo. */
+  area?: string;
   /** Cuándo se generó o se cambió por última vez, YYYY-MM-DD. */
   fecha: string;
   titulo: string;

@@ -6,7 +6,7 @@
  * los exporta a PDF o a Word. Ver `docs/PTAL.md`, «Documentos».
  */
 import { useState } from 'react';
-import { Sparkles, FileText, Download, Trash2, Pencil } from 'lucide-react';
+import { Sparkles, FileText, Download, Trash2, Pencil, ImagePlus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
@@ -18,9 +18,11 @@ import {
   NOMBRE_TIPO, cabecera, generarDocumento, guardarDocumentoDocx, guardarDocumentoPdf, papDe, tiposDe,
 } from '../../services/apoyoDocumentos';
 import { isoDate } from '../../lib/utils';
+import { requestFichaPara } from '../../lib/apoyoNav';
+import { AdaptacionApoyo } from './AdaptacionApoyo';
 import { nivelDe, trimestreCerrado, trimestreDe } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
-import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoApoyo, Trimestre } from '../../types/apoyo';
+import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoGenerable, Trimestre } from '../../types/apoyo';
 import type { Section } from '../../types';
 
 interface Props {
@@ -43,7 +45,7 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
   const nombreCurso = useNombreCurso();
   const { materias } = useMateriasDeNivel(comunidad, nivelDe(alumno));
   const tipos = tiposDe(comunidad);
-  const [tipo, setTipo] = useState<TipoDocumentoApoyo>('familia');
+  const [tipo, setTipo] = useState<TipoDocumentoGenerable>('familia');
   const [trimestre, setTrimestre] = useState<Trimestre>(trimestreInicial ?? trimestreDe(isoDate()));
   const [generando, setGenerando] = useState(false);
   const [abiertoId, setAbiertoId] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
     .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   /** El que se sustituye al generar: la programación y el PAP son uno por alumno; los informes, uno por trimestre. */
-  const existente = (tp: TipoDocumentoApoyo) => docsDelAlumno.find(d => d.tipo === tp && (tp === 'programacion' || tp === 'pap' || d.trimestre === trimestre));
+  const existente = (tp: TipoDocumentoGenerable) => docsDelAlumno.find(d => d.tipo === tp && (tp === 'programacion' || tp === 'pap' || d.trimestre === trimestre));
 
   async function generar() {
     const anterior = existente(tipo);
@@ -153,6 +155,8 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
         </button>
       </div>
 
+      <AdaptacionApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} onAbrir={setAbiertoId} onNav={onNav} />
+
       <div className="card">
         <div className="card-hd"><div className="card-ttl"><FileText size={14} color="var(--accent-d)" />{t('Sus documentos')}</div></div>
         {docsDelAlumno.length === 0 ? (
@@ -181,6 +185,9 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
               {conPdf && <button className="btn-accent" onClick={() => exportar(abierto, 'pdf')}><Download size={15} />{t('Exportar PDF')}</button>}
               <button className="btn-ghost" onClick={() => exportar(abierto, 'docx')}><FileText size={15} />{t('Exportar Word')}</button>
+              {abierto.tipo === 'adaptacion' && (
+                <button className="btn-ghost" onClick={() => { requestFichaPara(alumno.id); onNav('resources'); }}><ImagePlus size={15} />{t('Hacer una ficha adaptada')}</button>
+              )}
             </div>
             <table className="ap-ficha"><tbody>
               {filasDe(abierto).map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}

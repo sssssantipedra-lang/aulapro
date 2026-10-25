@@ -8,7 +8,7 @@ import { materiasDeNivel } from '../lib/curriculum/materiasDeNivel';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { nivelDe, trimestreCerrado } from '../lib/apoyo';
 import { generarDocumento, type GenerarArgs } from './apoyoDocumentos';
-import type { AlumnoApoyo, ApoyoData, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre } from '../types/apoyo';
+import type { AlumnoApoyo, ApoyoData, CursoDe, DocumentoApoyo, TipoDocumentoGenerable, Trimestre } from '../types/apoyo';
 
 export interface FilaLote {
   alumno: AlumnoApoyo;
@@ -21,11 +21,11 @@ export interface FilaLote {
 }
 
 /** El documento que ya tiene un alumno: la programación y el PAP son uno por curso; los informes, uno por trimestre. */
-export function documentoExistente(d: ApoyoData, alumnoId: string, tipo: TipoDocumentoApoyo, trimestre: Trimestre): DocumentoApoyo | undefined {
+export function documentoExistente(d: ApoyoData, alumnoId: string, tipo: TipoDocumentoGenerable, trimestre: Trimestre): DocumentoApoyo | undefined {
   return d.documentos.find(x => x.alumnoId === alumnoId && x.tipo === tipo && (tipo === 'programacion' || tipo === 'pap' || x.trimestre === trimestre));
 }
 
-export function filasDeLote(d: ApoyoData, tipo: TipoDocumentoApoyo, trimestre: Trimestre): FilaLote[] {
+export function filasDeLote(d: ApoyoData, tipo: TipoDocumentoGenerable, trimestre: Trimestre): FilaLote[] {
   return d.alumnos.map(alumno => ({
     alumno,
     conProgramas: d.programas.some(p => p.alumnoId === alumno.id),
@@ -38,7 +38,7 @@ export interface ResultadoLote { hechos: number; fallidos: string[]; cancelado: 
 
 export async function generarLote(args: {
   data: ApoyoData;
-  tipo: TipoDocumentoApoyo;
+  tipo: TipoDocumentoGenerable;
   trimestre: Trimestre;
   alumnoIds: readonly string[];
   comunidad: ComunidadId | undefined;

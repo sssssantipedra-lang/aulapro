@@ -108,7 +108,7 @@ Resumen de la revisión (qué hay, qué falta). Ver también «Qué tiene que ha
 | Registro de cada sesión | Está y es cómodo. Alimenta las gráficas, los avisos y los informes. |
 | Evaluación trimestral | **Hecho (2.18.24).** Pestaña «Evaluación» del alumno: el cierre del trimestre. Ver «El cierre del trimestre». |
 | Informe trimestral a tutor y a familia | Están los dos y el seguimiento del PAP (Comunitat Valenciana), en PDF y Word. **Desde la 2.18.24 también de todo el alumnado de una vez** (Mi alumnado › «Documentos del trimestre»). Ver «Documentos de todo el alumnado». |
-| Programación de aula adaptada | **No está.** `adaptarTema` propone, en cada sesión, cómo trabajar el tema del día con cada alumno, pero no hay forma de dar la programación del tutor (PDF, Word o una situación de aprendizaje) ni de obtener una adaptación curricular del alumno (ACI o ACIS, y el equivalente de Cataluña y Madrid). |
+| Programación de aula adaptada | **Versión pequeña hecha (2.18.25):** el documento de adaptación (ACI o ACIS en formato general) por área y trimestre. Ver «Adaptación de la programación de aula». Los materiales no: los cubre «Ficha adaptada». Falta el formato oficial de Cataluña y Madrid. |
 | Cataluña y Madrid | Los modelos de documento (PI, adaptación curricular por área) esperan a que el dueño suba los PDF (ver «Normativa»). |
 
 Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió empezar por 1, 2 y 3, hechos en la 2.18.24, y después el 4, hecho también en la 2.18.24**):
@@ -116,7 +116,7 @@ Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió
 2. **Programación anual y objetivos a partir de ese informe**, sin volver a escribirlos: la programación y la propuesta de objetivos usan sus conclusiones.
 3. **Cierre de trimestre** por alumno: una tabla con cada objetivo, el resultado que sugiere el registro y el comentario, que el docente confirma; los no conseguidos pasan al trimestre siguiente. Informes y PAP salen de ahí.
 4. **Generar los documentos de todo el alumnado de una vez** (el informe a familias y al tutor del trimestre y el seguimiento del PAP), con una revisión alumno a alumno antes de exportar.
-5. **Adaptación de la programación de aula**: dar la del tutor (PDF, Word o una SdA hecha en la app) y obtener, para cada alumno, la adaptación de esa programación a sus objetivos (ACI o ACIS). Cuando el dueño suba los modelos, con el formato de cada comunidad.
+5. **Adaptación de la programación de aula**: dar la del tutor (PDF, Word o una SdA hecha en la app) y obtener, para cada alumno, la adaptación de esa programación a sus objetivos (ACI o ACIS). Cuando el dueño suba los modelos, con el formato de cada comunidad. **Hecho en versión pequeña (2.18.25), ver abajo.**
 
 ### El informe del orientador (2.18.24, 25-10-2026)
 
@@ -140,6 +140,15 @@ Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió
 - **Qué hace:** se elige el documento (programación, informe a la familia, informe al tutor o al equipo, seguimiento del PAP), el trimestre y el alumnado; cada alumno indica si el trimestre está cerrado y si ya tiene el documento. Se prepara **de uno en uno** con la IA, guardando cada documento al acabar (si se corta, no se pierde lo hecho) y con «Parar al acabar este». Quien no tiene programas no se puede elegir. Al acabar, un enlace por alumno abre su pestaña «Documentos» para revisarlo, retocarlo y exportarlo.
 - **Qué no hace:** no envía nada a nadie ni exporta solo; los documentos quedan como borradores de la app. Si ya tenían el documento, avisa y lo sustituye (el PAP conserva las columnas de los otros trimestres).
 - Las materias del nivel de cada alumno se abren sin pantalla (`src/lib/curriculum/materiasDeNivel.ts`).
+
+### Adaptación de la programación de aula (2.18.25, 26-10-2026)
+
+- **Decisión del dueño (26-10-2026):** hacerla en versión pequeña. **Es un documento, no materiales**: crear fichas desde cero para cada unidad queda fuera, porque «Ficha adaptada» (Recursos) ya adapta materiales a un alumno y «Cómo adaptarlo a cada alumno» (Registro diario) propone cómo trabajar el tema del día.
+- **Dónde:** pestaña «Documentos» del alumno, tarjeta «Adaptación de la programación de aula» (`src/pages/apoyo/AdaptacionApoyo.tsx`; servicio `src/services/apoyoAdaptacion.ts`). Un documento (`tipo: 'adaptacion'`, con `area` y `trimestre`) por alumno, área y trimestre.
+- **Cómo:** se elige el área (entre las materias del curso de su nivel de competencia), el trimestre y, si se quiere, la programación del tutor (pegada o en un PDF, Word o texto). La IA redacta, con el nivel del alumno, sus objetivos de los programas y el informe del orientador (`alumnoParaIA`): punto de partida, objetivos adaptados, contenidos adaptados, medidas metodológicas y de acceso (DUA), evaluación adaptada y acuerdos con el tutor. **Los criterios de evaluación y los saberes básicos del curso de su nivel los escribe el código** a partir de la lista oficial (la IA solo elige entre ellos). Sin programación del tutor, se adapta lo que dice el currículo.
+- **Se edita y se exporta como el resto** (PDF y Word) y tiene un botón «Hacer una ficha adaptada» que lleva a Recursos con el alumno.
+- **Privacidad:** la programación del tutor llega a la IA como texto con los nombres cambiados por un código (Word o texto pegado) o, un PDF, tal cual; la ventana lo dice y `privacidad.html` también.
+- **Lo que no hace:** no adapta materiales ni fichas; no usa los formatos oficiales de Cataluña (PI) ni Madrid (adaptación curricular por área), que esperan a que el dueño suba los modelos; tampoco se genera en lote ni se rellena el apartado de la ACIS del PAP valenciano. **Sin probar con programaciones reales de tutores.**
 
 ## Alumnado y grupos de apoyo
 
