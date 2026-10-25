@@ -647,7 +647,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
   });
   const documentos = lista<DocumentoApoyo>(o.documentos, v => {
     const x = obj(v);
-    const tipos = ['programacion', 'familia', 'equipo', 'pap'];
+    const tipos = ['programacion', 'familia', 'equipo', 'pap', 'adaptacion'];
     if (!x || !esTexto(x.id) || !esTexto(x.alumnoId) || !ids.has(x.alumnoId) || !tipos.includes(x.tipo as string)) return null;
     const trimestre = x.trimestre === 1 || x.trimestre === 2 || x.trimestre === 3 ? x.trimestre : undefined;
     const tabla = Array.isArray(x.tabla)
@@ -656,6 +656,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
     return {
       id: x.id, alumnoId: x.alumnoId, tipo: x.tipo as DocumentoApoyo['tipo'],
       ...(trimestre ? { trimestre } : {}),
+      ...(esTexto(x.area) && x.area ? { area: x.area } : {}),
       fecha: esTexto(x.fecha) ? x.fecha : '',
       titulo: esTexto(x.titulo) ? x.titulo : '',
       apartados: lista(x.apartados, a => {

@@ -328,3 +328,14 @@ describe('objetivos de la orientación', () => {
     expect(vuelta.alumnos[0].objetivosOrientacion).toEqual(d.alumnos[0].objetivosOrientacion);
   });
 });
+
+describe('documentos de adaptación', () => {
+  it('se guardan con su área y se recuperan', () => {
+    const d: ApoyoData = {
+      ...APOYO_VACIO,
+      alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' }],
+      documentos: [{ id: 'd', alumnoId: 'a', tipo: 'adaptacion', area: 'Lengua Castellana y Literatura', trimestre: 2, fecha: '2026-11-02', titulo: 'Adaptación', apartados: [{ id: 'objetivos', titulo: 'Objetivos adaptados', texto: 'Leer' }] }],
+    };
+    expect(normalizarApoyo(JSON.parse(JSON.stringify(d))).documentos).toEqual(d.documentos);
+  });
+});

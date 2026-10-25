@@ -22,7 +22,7 @@ import { downloadFile } from '../lib/download';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { CARPETAS } from '../lib/carpetas';
 import type {
-  AlumnoApoyo, ApartadoDocumento, ApoyoData, CoordinacionApoyo, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, Trimestre,
+  AlumnoApoyo, ApartadoDocumento, ApoyoData, CoordinacionApoyo, AspectoRespuesta, CursoDe, DocumentoApoyo, TipoDocumentoApoyo, TipoDocumentoGenerable, Trimestre,
 } from '../types/apoyo';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
@@ -37,7 +37,7 @@ interface ApartadoModelo {
   ia?: string;
 }
 
-export const MODELOS: Record<Exclude<TipoDocumentoApoyo, 'pap'>, ApartadoModelo[]> = {
+export const MODELOS: Record<Exclude<TipoDocumentoApoyo, 'pap' | 'adaptacion'>, ApartadoModelo[]> = {
   programacion: [
     { id: 'justificacion', titulo: 'Justificación y marco normativo',
       ia: 'Por qué este alumno recibe este apoyo, con la normativa de inclusión de su comunidad y, cuando aporte, los autores de referencia. Dos párrafos.' },
@@ -101,7 +101,7 @@ export const PAP: Record<'es' | 'va', {
 export const papDe = (lang: Lang) => PAP[lang === 'ca' ? 'va' : 'es'];
 
 /** Qué documentos se pueden hacer en una comunidad: el PAP, solo en la valenciana. */
-export function tiposDe(comunidad: ComunidadId | undefined): TipoDocumentoApoyo[] {
+export function tiposDe(comunidad: ComunidadId | undefined): TipoDocumentoGenerable[] {
   return comunidad === 'comunitat-valenciana'
     ? ['programacion', 'familia', 'equipo', 'pap']
     : ['programacion', 'familia', 'equipo'];
@@ -112,6 +112,7 @@ export const NOMBRE_TIPO: Record<TipoDocumentoApoyo, string> = {
   familia: 'Informe trimestral a la familia',
   equipo: 'Informe trimestral al tutor o al equipo',
   pap: 'Seguimiento del PAP (apartado I)',
+  adaptacion: 'Adaptación de la programación de aula',
 };
 
 /* ── Datos que pone la app ── */
@@ -199,6 +200,7 @@ export function cabecera(
       [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')] as [string, string | undefined],
     ] : []),
     ...(doc.tipo === 'programacion' ? [[t('Horario de apoyo'), horario] as [string, string | undefined]] : []),
+    ...(doc.tipo === 'adaptacion' && doc.area ? [[t('Área'), doc.area] as [string, string]] : []),
     ...(doc.trimestre && doc.tipo !== 'pap' && doc.tipo !== 'programacion' ? [[t('Trimestre'), t('{n}º trimestre', { n: doc.trimestre })] as [string, string]] : []),
     [t('Especialista'), docente.nombre],
     [t('Centro'), docente.centro],
@@ -215,7 +217,8 @@ export function tituloDe(tipo: TipoDocumentoApoyo, alumno: AlumnoApoyo, trimestr
 /* ── Generar con la IA ── */
 
 export interface GenerarArgs {
-  tipo: TipoDocumentoApoyo;
+  /** La adaptación de la programación de aula se hace aparte (`apoyoAdaptacion.ts`): lleva el área y la programación del tutor. */
+  tipo: TipoDocumentoGenerable;
   alumno: AlumnoApoyo;
   trimestre: Trimestre;
   data: ApoyoData;

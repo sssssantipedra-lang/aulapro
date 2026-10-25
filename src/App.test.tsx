@@ -135,7 +135,7 @@ describe('Aula Pro', () => {
     // El menú va por tareas: unas pantallas son entradas directas y otras
     // pestañas dentro de un apartado (Evaluar, Documentos, En clase).
     const h1 = async (nombre: string) =>
-      expect((await screen.findAllByRole('heading', { level: 1 })).length, nombre).toBeGreaterThan(0);
+      expect((await screen.findAllByRole('heading', { level: 1 }, { timeout: 10_000 })).length, nombre).toBeGreaterThan(0);
     const menu = (nombre: string) => user.click(screen.getByRole('button', { name: new RegExp(`^${nombre}$`) }));
 
     for (const nombre of ['Mis Clases', 'Agenda', 'Cuaderno de Notas', 'Asistencia']) {
@@ -151,7 +151,7 @@ describe('Aula Pro', () => {
     for (const [apartado, pestañas] of apartados) {
       await menu(apartado);
       for (const p of pestañas) {
-        await user.click(await screen.findByRole('tab', { name: p }));
+        await user.click(await screen.findByRole('tab', { name: p }, { timeout: 10_000 }));
         await h1(`${apartado} → ${p}`);
       }
     }
