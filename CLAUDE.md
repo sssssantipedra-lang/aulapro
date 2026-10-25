@@ -157,7 +157,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 ## PT y AL: informe del orientador y cierre del trimestre (2.18.24, 25-10-2026)
 
 - Petición del dueño, que describe el trabajo de un PT: programación anual individual a partir del informe sociopsicopedagógico del orientador, objetivos evaluados cada trimestre, informes al tutor y a las familias, registro de cada sesión. Análisis completo y lo que queda en `docs/PTAL.md` («El flujo real del curso y lo que falta»).
-- Hecho: **informe del orientador** (se sube o se pega, la IA propone la ficha, los programas y sus objetivos y el docente lo revisa; el informe no se guarda, solo las conclusiones; un PDF se envía sin enmascarar el nombre y la privacidad lo dice) y **cierre del trimestre** (`ApoyoData.evaluaciones`: la valoración del especialista manda sobre el registro en los informes y el PAP). Pendiente: generar los documentos de todo el alumnado de una vez y la adaptación de la programación de aula (ACI, ACIS), esta última a falta de los modelos de Cataluña y Madrid.
+- Hecho: **informe del orientador** (se sube o se pega, la IA propone la ficha, los programas y sus objetivos y el docente lo revisa; el informe no se guarda, solo las conclusiones; un PDF se envía sin enmascarar el nombre y la privacidad lo dice) y **cierre del trimestre** (`ApoyoData.evaluaciones`: la valoración del especialista manda sobre el registro en los informes y el PAP). **Documentos de todo el alumnado de una vez** (Mi alumnado › «Documentos del trimestre», `apoyoLote.ts`). Pendiente: la adaptación de la programación de aula (ACI, ACIS), a falta de los modelos de Cataluña y Madrid.
 
 ## Publicar
 

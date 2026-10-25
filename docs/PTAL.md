@@ -107,11 +107,11 @@ Resumen de la revisión (qué hay, qué falta). Ver también «Qué tiene que ha
 | Objetivos por trimestre | Están (`ProgramaApoyo.objetivos`, `proponerObjetivos`), con criterios oficiales del curso de su nivel. **Desde la 2.18.24, con un clic desde el informe**: la IA sugiere los programas y propone sus objetivos. |
 | Registro de cada sesión | Está y es cómodo. Alimenta las gráficas, los avisos y los informes. |
 | Evaluación trimestral | **Hecho (2.18.24).** Pestaña «Evaluación» del alumno: el cierre del trimestre. Ver «El cierre del trimestre». |
-| Informe trimestral a tutor y a familia | Están los dos y el seguimiento del PAP (Comunitat Valenciana), en PDF y Word. **Se hacen de uno en uno, alumno a alumno**: no hay «generar los que faltan» como en los informes de aula. |
+| Informe trimestral a tutor y a familia | Están los dos y el seguimiento del PAP (Comunitat Valenciana), en PDF y Word. **Desde la 2.18.24 también de todo el alumnado de una vez** (Mi alumnado › «Documentos del trimestre»). Ver «Documentos de todo el alumnado». |
 | Programación de aula adaptada | **No está.** `adaptarTema` propone, en cada sesión, cómo trabajar el tema del día con cada alumno, pero no hay forma de dar la programación del tutor (PDF, Word o una situación de aprendizaje) ni de obtener una adaptación curricular del alumno (ACI o ACIS, y el equivalente de Cataluña y Madrid). |
 | Cataluña y Madrid | Los modelos de documento (PI, adaptación curricular por área) esperan a que el dueño suba los PDF (ver «Normativa»). |
 
-Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió empezar por 1, 2 y 3, hechos en la 2.18.24**):
+Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió empezar por 1, 2 y 3, hechos en la 2.18.24, y después el 4, hecho también en la 2.18.24**):
 1. **Informe sociopsicopedagógico.** Subirlo (PDF o Word) o pegarlo; la IA lo lee una vez y rellena la ficha del alumno (nivel de competencia, necesidades en términos educativos, fortalezas, orientaciones), que el docente revisa. El informe en sí no se guarda en la IA ni se reenvía a ella en cada documento: se guardan sus conclusiones. Es el dato más sensible del módulo (artículo 9 del RGPD): mismas reglas que el diagnóstico, nombre cambiado por un código, y `privacidad.html` lo dice en los tres idiomas (regla 1 de `CLAUDE.md`).
 2. **Programación anual y objetivos a partir de ese informe**, sin volver a escribirlos: la programación y la propuesta de objetivos usan sus conclusiones.
 3. **Cierre de trimestre** por alumno: una tabla con cada objetivo, el resultado que sugiere el registro y el comentario, que el docente confirma; los no conseguidos pasan al trimestre siguiente. Informes y PAP salen de ahí.
@@ -132,6 +132,13 @@ Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió
 - **Dónde:** pestaña «Evaluación» de la página del alumno (`src/pages/apoyo/CierreTrimestreApoyo.tsx`; lógica en `src/lib/apoyo.ts`: `filasDeCierre`, `cerrarTrimestre`, `trimestreCerrado`).
 - **Qué hace:** por trimestre, cada objetivo con lo que dice el registro (cuántas veces conseguido, en proceso o no) y la valoración que sugiere (lo último registrado). El docente la confirma o la cambia (conseguido, en proceso, no conseguido o sin trabajar), añade un comentario y marca si se sigue trabajando el trimestre siguiente (se propone con lo que no está conseguido). Guardar escribe `ApoyoData.evaluaciones` y añade el trimestre siguiente a los objetivos que se siguen; nunca quita trimestres.
 - **Qué cambia en los documentos:** con el trimestre cerrado, la valoración del especialista manda sobre el registro en los informes a familia y tutor y en el PAP (`datosParaIA`: «VALORACIÓN FINAL DEL ESPECIALISTA»), y los objetivos que quedan abiertos al acabar el curso salen de ella. Sin cerrar, funciona como antes y «Documentos» avisa y lleva al cierre.
+
+### Documentos de todo el alumnado (2.18.24, 25-10-2026)
+
+- **Dónde:** Mi alumnado › «Documentos del trimestre» (`src/pages/apoyo/InformesLoteApoyo.tsx`; lógica en `src/services/apoyoLote.ts`).
+- **Qué hace:** se elige el documento (programación, informe a la familia, informe al tutor o al equipo, seguimiento del PAP), el trimestre y el alumnado; cada alumno indica si el trimestre está cerrado y si ya tiene el documento. Se prepara **de uno en uno** con la IA, guardando cada documento al acabar (si se corta, no se pierde lo hecho) y con «Parar al acabar este». Quien no tiene programas no se puede elegir. Al acabar, un enlace por alumno abre su pestaña «Documentos» para revisarlo, retocarlo y exportarlo.
+- **Qué no hace:** no envía nada a nadie ni exporta solo; los documentos quedan como borradores de la app. Si ya tenían el documento, avisa y lo sustituye (el PAP conserva las columnas de los otros trimestres).
+- Las materias del nivel de cada alumno se abren sin pantalla (`src/lib/curriculum/materiasDeNivel.ts`).
 
 ## Alumnado y grupos de apoyo
 

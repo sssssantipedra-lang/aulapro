@@ -21,7 +21,7 @@ function Harness({ onNav }: { onNav: (s: Section) => void }) {
   return (
     <I18nProvider>
       <ToastProvider>
-        <AlumnadoApoyo data={data} onChange={f => setData(d => { ultimo = f(d); return ultimo; })} especialidades={['PT', 'AL']} onNav={onNav} />
+        <AlumnadoApoyo data={data} onChange={f => setData(d => { ultimo = f(d); return ultimo; })} especialidades={['PT', 'AL']} comunidad="comunitat-valenciana" onNav={onNav} />
       </ToastProvider>
     </I18nProvider>
   );

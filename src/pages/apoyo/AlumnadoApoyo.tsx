@@ -4,8 +4,8 @@
  * pulsar uno se abre su página (`AlumnoApoyo.tsx`), con todo lo suyo. En la
  * otra, sus grupos de apoyo con su horario. Ver `docs/PTAL.md`.
  */
-import { useMemo, useState } from 'react';
-import { Plus, Pencil, Trash2, Users, Clock, ChevronRight, UserPlus } from 'lucide-react';
+import { lazy, Suspense, useMemo, useState } from 'react';
+import { Plus, Pencil, Trash2, Users, Clock, ChevronRight, UserPlus, FileText } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Avatar } from '../../components/ui/Avatar';
 import { useToast } from '../../components/ui/Toast';
@@ -20,24 +20,29 @@ import { requestAlumno, useGruposPedido } from '../../lib/apoyoNav';
 import { EditarAlumno } from './EditarAlumno';
 import type { AlumnoApoyo, ApoyoData, Especialidad, GrupoApoyo } from '../../types/apoyo';
 import type { Section } from '../../types';
+import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import { compararNombres } from '../../lib/alumnado';
+
+const InformesLoteApoyo = lazy(() => import('./InformesLoteApoyo').then(m => ({ default: m.InformesLoteApoyo })));
 
 interface Props {
   data: ApoyoData;
   onChange: (f: (d: ApoyoData) => ApoyoData) => void;
   especialidades: Especialidad[];
+  comunidad: ComunidadId | undefined;
   onNav: (s: Section) => void;
 }
 
 type Pestana = 'alumnado' | 'grupos';
 
-export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) {
+export function AlumnadoApoyo({ data, onChange, especialidades, comunidad, onNav }: Props) {
   const { t, locale } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   // Desde la Agenda o el Registro se llega a los grupos, a veces con uno ya abierto
   const pedido = useGruposPedido();
   const [pestana, setPestana] = useState<Pestana>(pedido ? 'grupos' : 'alumnado');
+  const [lote, setLote] = useState(false);
   const [edicion, setEdicion] = useState<AlumnoEnEdicion | null>(null);
   const [grupo, setGrupo] = useState<GrupoApoyo | null>(() => data.grupos.find(g => g.id === pedido?.grupoId) ?? null);
   // Alumnado creado desde la ventana del grupo: no existe hasta que se guarda el grupo
@@ -116,6 +121,9 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
           <p className="pg-sub">{t('Pulsa un alumno para ver todo lo suyo: su programa, sus sesiones, las coordinaciones y sus documentos. Al crear un alumno o un grupo puedes crear el otro en el mismo paso.')}</p>
         </div>
         <div className="ap-acciones" style={{ margin: 0 }}>
+          {data.alumnos.length > 0 && (
+            <button className="btn-ghost" onClick={() => setLote(true)}><FileText size={16} />{t('Documentos del trimestre')}</button>
+          )}
           <button className={pestana === 'alumnado' ? 'btn-accent' : 'btn-ghost'} onClick={() => setEdicion(enEdicion(alumnoVacio(), data))}><Plus size={16} />{t('Nuevo alumno')}</button>
           <button className={pestana === 'grupos' ? 'btn-accent' : 'btn-ghost'} onClick={() => setGrupo(grupoVacio(especialidades[0] ?? 'PT', data.grupos.length))}><Plus size={16} />{t('Nuevo grupo')}</button>
         </div>
@@ -295,6 +303,11 @@ export function AlumnadoApoyo({ data, onChange, especialidades, onNav }: Props) 
           </>
         )}
       </Modal>
+      {lote && (
+        <Suspense fallback={null}>
+          <InformesLoteApoyo open={lote} onClose={() => setLote(false)} data={data} onChange={onChange} comunidad={comunidad} onNav={onNav} />
+        </Suspense>
+      )}
     </section>
   );
 }
