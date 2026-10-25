@@ -352,6 +352,23 @@ export interface GradeTarget {
    * columna. La clase de arriba es la primera; ver `lib/objetivos.ts`.
    */
   otras_clases?: ClassTarget[];
+  /**
+   * Situaciones interdisciplinares (25-10-2026): las áreas de la clase principal
+   * en las que puntúa el instrumento, cada una con su categoría del cuaderno y
+   * su materia oficial. Ausente o de una sola área = como siempre. Ver
+   * `destinosDe` en `lib/objetivos.ts`.
+   */
+  areas?: AreaTarget[];
+  /** Con varias áreas: la misma nota en cada columna, o la de los criterios de cada área. */
+  modo_areas?: 'misma' | 'criterio';
+}
+
+/** Un área en la que puntúa un instrumento de una situación interdisciplinar. */
+export interface AreaTarget {
+  subject: string;
+  category_id?: string;
+  /** Id de la materia oficial (`OfficialCriterionRef.materia`), para repartir por criterios. */
+  materia?: string;
 }
 
 /** Una clase de un instrumento: dónde cae su nota en el cuaderno de esa clase. */

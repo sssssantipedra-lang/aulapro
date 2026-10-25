@@ -2442,3 +2442,11 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .rep-tabla table.comp thead th { background:var(--surface-2); font-size:11px; color:var(--text-2); }
 .rep-tabla table.comp tbody th span { display:block; font-weight:400; color:var(--text-3); font-size:11px; }
 .rep-tabla table.comp td.val { font-weight:700; white-space:nowrap; }
+
+.area-opts { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px; }
+.area-opt { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:14px; text-align:left; background:var(--card); border:1.5px solid var(--border); border-radius:14px; cursor:pointer; font-family:var(--font); color:var(--text); font-size:12.5px; line-height:1.45; transition:border-color var(--t), box-shadow var(--t); }
+.area-opt strong { font-size:14px; }
+.area-opt span:not(.area-opt-ico) { color:var(--text-2); }
+.area-opt:hover { border-color:var(--accent-d); }
+.area-opt.sel { border-color:var(--accent-d); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent-d) 25%, transparent); background:color-mix(in srgb, var(--accent) 8%, var(--card)); }
+.area-opt-ico { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--accent-d); color:#fff; margin-bottom:4px; }

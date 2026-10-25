@@ -49,7 +49,12 @@ export function GradeTargetsPicker({ value, onChange, classes, gradeCategories }
   function emitir(nuevas: ClassTarget[]) {
     const [primera, ...otras] = nuevas;
     if (!primera) { onChange({ class_id: undefined, subject: undefined, category_id: undefined, otras_clases: undefined }); return; }
-    onChange({ ...primera, otras_clases: otras.length ? otras : undefined });
+    // Las áreas de una SdA interdisciplinar son de la clase y asignatura de antes: si cambian, se quitan
+    const mismaPrincipal = primera.class_id === value.class_id && primera.subject === value.subject;
+    onChange({
+      ...primera, otras_clases: otras.length ? otras : undefined,
+      ...(mismaPrincipal && value.areas ? {} : { areas: undefined, modo_areas: undefined }),
+    });
   }
 
   function alternar(id: string) {
@@ -108,6 +113,17 @@ export function GradeTargetsPicker({ value, onChange, classes, gradeCategories }
             );
           })}
         </div>
+      )}
+
+      {value.areas && value.areas.length > 1 && (
+        <p style={{ fontSize: 12.5, color: 'var(--text-2)', margin: '0 0 12px', lineHeight: 1.5 }}>
+          {t('Puntúa en {areas}', { areas: value.areas.map(a => a.subject).join(', ') })}{' · '}
+          {t(value.modo_areas === 'criterio' ? 'Nota por criterios' : 'Misma nota en cada área')}{' '}
+          <button type="button" className="sda-back" style={{ display: 'inline', marginBottom: 0 }}
+            onClick={() => onChange({ ...value, areas: undefined, modo_areas: undefined })}>
+            {t('Dejar solo {area}', { area: value.subject ?? '' })}
+          </button>
+        </p>
       )}
 
       {filas.length > 0 && (

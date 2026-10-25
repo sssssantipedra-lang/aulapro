@@ -10,7 +10,7 @@
  * clase (`gradeItemIdFor`). Sin clases, funciona como antes: la evaluación se
  * guarda en el Historial y el cuaderno no se toca.
  */
-import { gradeItemIdFor, type ClassTarget, type GradeTarget } from '../types';
+import { gradeFromLevels, gradeItemIdFor, levelsOf, type ClassTarget, type Evaluation, type EvalDiana, type GradeTarget, type Rubric } from '../types';
 
 /** Todas las clases del instrumento, la principal primero. */
 export function objetivosDe(inst: GradeTarget): ClassTarget[] {
@@ -42,4 +42,38 @@ export function conObjetivos<T extends GradeTarget>(t: T): T {
   const { otras_clases: _o, ...resto } = t;
   void _o;
   return (otras.length ? { ...resto, otras_clases: otras } : resto) as T;
+}
+
+/** Una columna del cuaderno donde cae la nota de un alumno: su id, su categoría y, si reparte por criterios, su materia. */
+export interface Destino { id: string; class_id: string; subject?: string; category_id?: string; materia?: string }
+
+const slug = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9áéíóúüñ]+/gi, '_');
+
+/**
+ * Las columnas del cuaderno a las que va la nota de una evaluación de esa clase:
+ * una, como siempre, o una por área si es una situación interdisciplinar y la
+ * clase es la principal. La del área principal conserva el id de siempre.
+ */
+export function destinosDe(inst: GradeTarget & { id: string }, classId: string): Destino[] {
+  const base = objetivoPara(inst, classId);
+  if (!base) return [];
+  const areas = inst.areas ?? [];
+  if (classId !== inst.class_id || areas.length < 2) return [{ ...base, id: idColumna(inst, classId) }];
+  return areas.map(a => ({
+    id: a.subject === inst.subject ? idColumna(inst, classId) : gradeItemIdFor(inst.id, `${classId}~${slug(a.subject)}`),
+    class_id: classId, subject: a.subject, category_id: a.category_id, materia: a.materia,
+  }));
+}
+
+/**
+ * La nota que va a esa columna: la de la evaluación, o, si el instrumento reparte
+ * por criterios, la de los criterios o ítems de esa materia (sin ninguno, la general).
+ */
+export function notaDeDestino(inst: Rubric | EvalDiana, d: Destino, ev: Pick<Evaluation, 'scores' | 'grade'>): number | undefined {
+  if (inst.modo_areas !== 'criterio' || !d.materia) return ev.grade;
+  const items: { id: string; weight?: number; officialCriteria?: { materia: string }[] }[] = 'criteria' in inst ? inst.criteria : inst.items;
+  const suyos = items.filter(i => i.officialCriteria?.some(r => r.materia === d.materia));
+  if (suyos.length === 0) return ev.grade;
+  const pesos = Object.fromEntries(suyos.map(i => [i.id, i.weight ?? 1]));
+  return gradeFromLevels(ev.scores, suyos.map(i => i.id), levelsOf(inst), 'criteria' in inst ? undefined : pesos) ?? undefined;
 }

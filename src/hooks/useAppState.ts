@@ -6,7 +6,7 @@ import type {
   LearningSituation, Ficha, WorkSession, SeatingPlan, ClassMark, MarksBlockConfig,
 } from '../types';
 import { normalizeClass } from '../types';
-import { idColumna, objetivoPara, objetivosDe } from '../lib/objetivos';
+import { destinosDe, notaDeDestino, objetivoPara, objetivosDe } from '../lib/objetivos';
 import { isoDate } from '../lib/utils';
 import { buildDemoData } from '../lib/demoData';
 import { buildDemoApoyo } from '../lib/demoApoyo';
@@ -522,42 +522,47 @@ export function useAppState() {
     const inst = m.rubrics.find(r => r.id === ev.rubric_id)
               ?? m.dianas.find(d => d.id === ev.rubric_id);
     if (!inst) return;
-    // Cada clase del instrumento tiene su categoría y su columna: se busca la del alumno
-    const destino = objetivoPara(inst, ev.class_id) ?? (ev.class_id ? undefined : objetivosDe(inst)[0]);
-    if (!destino?.category_id) return;
+    // Cada clase del instrumento tiene su categoría y su columna; una SdA interdisciplinar, una por área
+    const destinos = objetivoPara(inst, ev.class_id)
+      ? destinosDe(inst, ev.class_id)
+      : ev.class_id ? [] : destinosDe(inst, objetivosDe(inst)[0]?.class_id ?? '');
+    for (const destino of destinos) {
+      if (!destino.category_id) continue;
 
-    // La categoría pudo borrarse después de crear el instrumento: sin ella la
-    // nota no contaría para ninguna media, así que es mejor no escribirla y
-    // dejar constancia de por qué.
-    if (!m.gradeCategories.some(c => c.id === destino.category_id)) {
-      log('update', 'system', inst.id,
-        `No se pudo llevar al cuaderno la nota de ${ev.student_name}`,
-        `la categoría de «${inst.name}» ya no existe`);
-      return;
+      // La categoría pudo borrarse después de crear el instrumento: sin ella la
+      // nota no contaría para ninguna media, así que es mejor no escribirla y
+      // dejar constancia de por qué.
+      if (!m.gradeCategories.some(c => c.id === destino.category_id)) {
+        log('update', 'system', inst.id,
+          `No se pudo llevar al cuaderno la nota de ${ev.student_name}`,
+          `la categoría de «${inst.name}» ya no existe`);
+        continue;
+      }
+
+      const value = notaDeDestino(inst, destino, ev);
+      if (typeof value !== 'number') continue;
+      const itemId = destino.id;
+      const isNew = !m.gradeItems.some(i => i.id === itemId);
+
+      // El updater comprueba de nuevo la existencia: así evaluar a dos alumnos
+      // seguidos no puede duplicar la columna.
+      setGradeItems(prev => prev.some(i => i.id === itemId) ? prev : [...prev, {
+        id: itemId,
+        class_id: destino.class_id,
+        category_id: destino.category_id as string,
+        name: destino.subject && destinos.length > 1 ? `${inst.name} · ${destino.subject}` : inst.name,
+        date: isoDate(),
+      }]);
+
+      setGrades(prev => ({ ...prev, [itemId]: { ...(prev[itemId] ?? {}), [ev.student_id]: value } }));
+
+      if (isNew) {
+        log('create', 'gradeItem', itemId, `Columna «${inst.name}» en el cuaderno`, 'creada al evaluar');
+      }
+      log('update', 'grade', `${itemId}:${ev.student_id}`,
+        `Nota de ${ev.student_name} en «${inst.name}»`,
+        `${formatGrade(value)} · desde la evaluación`);
     }
-
-    const itemId = idColumna(inst, destino.class_id);
-    const isNew = !m.gradeItems.some(i => i.id === itemId);
-
-    // El updater comprueba de nuevo la existencia: así evaluar a dos alumnos
-    // seguidos no puede duplicar la columna.
-    setGradeItems(prev => prev.some(i => i.id === itemId) ? prev : [...prev, {
-      id: itemId,
-      class_id: destino.class_id,
-      category_id: destino.category_id as string,
-      name: inst.name,
-      date: isoDate(),
-    }]);
-
-    const value = ev.grade;
-    setGrades(prev => ({ ...prev, [itemId]: { ...(prev[itemId] ?? {}), [ev.student_id]: value } }));
-
-    if (isNew) {
-      log('create', 'gradeItem', itemId, `Columna «${inst.name}» en el cuaderno`, 'creada al evaluar');
-    }
-    log('update', 'grade', `${itemId}:${ev.student_id}`,
-      `Nota de ${ev.student_name} en «${inst.name}»`,
-      `${formatGrade(value)} · desde la evaluación`);
   }, [log]);
 
   const addEvaluation = useCallback((ev: Evaluation) => {
