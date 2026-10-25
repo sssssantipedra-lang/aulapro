@@ -172,6 +172,8 @@ const SDA_DOC_STYLE = `
 
 /* Reparto entre páginas: vale tanto en el PDF como en la impresora */
 .sda-grid tr { break-inside: avoid; page-break-inside: avoid; }
+/* Una franja de sección no se queda sola al pie de una página: va con su primera fila */
+.sda-grid tr.band, .sda-grid tr.band-top { break-after: avoid; page-break-after: avoid; }
 
 /* Materiales generados desde la SdA (rúbrica y diana), como anexo */
 .sda-anexo { margin-top: 14px; }
