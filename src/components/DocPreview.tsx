@@ -34,7 +34,8 @@ export function DocPreview({ open, onClose, title, html, apaisado = false }: Pro
   const titleId = useId();
   const caja = useRef<HTMLDivElement>(null);
   const [anchoCaja, setAnchoCaja] = useState(0);
-  const [paginas, setPaginas] = useState<number | null>(null);
+  /** Las páginas medidas y de qué documento: si el documento cambia, la medida deja de valer sin tener que borrarla. */
+  const [medida, setMedida] = useState<{ para: string; paginas: number } | null>(null);
 
   const pagina = useMemo(() => leerPagina(html, apaisado), [html, apaisado]);
   const area = useMemo(() => areaDe(pagina), [pagina]);
@@ -62,20 +63,19 @@ export function DocPreview({ open, onClose, title, html, apaisado = false }: Pro
     return () => ro.disconnect();
   }, [open]);
 
-  useEffect(() => { setPaginas(null); }, [html, apaisado]);
-
   /** Con el documento medidor cargado: espera imágenes y tipos de letra y cuenta las páginas. */
   async function medir(frame: HTMLIFrameElement) {
     const doc = frame.contentDocument;
-    if (!doc) { setPaginas(1); return; }
+    if (!doc) { setMedida({ para: conColumnas, paginas: 1 }); return; }
     const imgs = Array.from(doc.images).filter(i => !i.complete);
     await Promise.race([
       Promise.all([...imgs.map(i => new Promise(r => { i.onload = i.onerror = () => r(null); })), doc.fonts?.ready]),
       new Promise(r => setTimeout(r, ESPERA_IMAGENES_MS)),
     ]);
-    setPaginas(Math.max(1, medirPaginas(doc, area).paginas));
+    setMedida({ para: conColumnas, paginas: Math.max(1, medirPaginas(doc, area).paginas) });
   }
 
+  const paginas = medida?.para === conColumnas ? medida.paginas : null;
   const escala = anchoCaja > 0 ? Math.min(1, (anchoCaja - 36) / pagina.ancho) : 1;
   const hojas = Math.min(paginas ?? 1, MAX_HOJAS);
 

@@ -3,7 +3,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { PuntuaEnAreas, destinoDeAreas, type ModoAreas } from './PuntuaEnAreas';
+import { PuntuaEnAreas } from './PuntuaEnAreas';
+import { destinoDeAreas, type ModoAreas } from '../lib/areasMaterial';
 import { I18nProvider } from '../i18n';
 import type { Class, GradeCategory } from '../types';
 

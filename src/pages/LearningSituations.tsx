@@ -21,7 +21,8 @@ import {
 import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx, buildSdaHtml } from '../services/exportSda';
-import { PuntuaEnAreas, destinoDeAreas, asignaturaDeArea, type ModoAreas } from '../components/PuntuaEnAreas';
+import { PuntuaEnAreas } from '../components/PuntuaEnAreas';
+import { destinoDeAreas, asignaturaDeArea, type ModoAreas } from '../lib/areasMaterial';
 import { dianaSvg } from '../services/exportInstrumento';
 import { anexoMaterialesSda, dianaDeFilas } from '../services/instrumentoEmbebido';
 import { buildFichaAnexoHtml } from '../services/exportFicha';
@@ -767,6 +768,25 @@ export function LearningSituations({
     setRubricRows(rows);
   }
 
+  /** Las áreas de la SdA, con su materia oficial; con dos o más, el material puede puntuar en varias. */
+  const areasSda = (content?.areas ?? []).map(a => ({ area: a.area, materia: a.materia }));
+  const variasAreas = areasSda.length >= 2;
+  /** Marca por defecto todas las áreas de la SdA que son asignaturas de esa clase. */
+  const marcarAreas = (claseId: string) => {
+    const c = classes.find(x => x.id === claseId);
+    setAreasSel(areasSda.filter(a => asignaturaDeArea(c, a.area)).map(a => a.area));
+    setModoAreas('misma'); setCatAreas('');
+  };
+  /** Dónde cae la nota: lo de siempre, o las áreas elegidas si la SdA es interdisciplinar. */
+  const destinoDelMaterial = (claseId: string, subject: string, categoryId: string) => {
+    const c = classes.find(x => x.id === claseId);
+    if (variasAreas && c) {
+      const d = destinoDeAreas(c, areasSda, areasSel, modoAreas, catAreas, gradeCategories);
+      if (d.subject) return d;
+    }
+    return { subject: subject || undefined, category_id: categoryId || undefined };
+  };
+
   /**
    * Lleva la rúbrica generada a la sección de Rúbricas.
    *
@@ -836,25 +856,6 @@ export function LearningSituations({
   }
 
   const dianaClass = classes.find(c => c.id === dianaClassId) ?? null;
-
-  /** Las áreas de la SdA, con su materia oficial; con dos o más, el material puede puntuar en varias. */
-  const areasSda = (content?.areas ?? []).map(a => ({ area: a.area, materia: a.materia }));
-  const variasAreas = areasSda.length >= 2;
-  /** Marca por defecto todas las áreas de la SdA que son asignaturas de esa clase. */
-  const marcarAreas = (claseId: string) => {
-    const c = classes.find(x => x.id === claseId);
-    setAreasSel(areasSda.filter(a => asignaturaDeArea(c, a.area)).map(a => a.area));
-    setModoAreas('misma'); setCatAreas('');
-  };
-  /** Dónde cae la nota: lo de siempre, o las áreas elegidas si la SdA es interdisciplinar. */
-  const destinoDelMaterial = (claseId: string, subject: string, categoryId: string) => {
-    const c = classes.find(x => x.id === claseId);
-    if (variasAreas && c) {
-      const d = destinoDeAreas(c, areasSda, areasSel, modoAreas, catAreas, gradeCategories);
-      if (d.subject) return d;
-    }
-    return { subject: subject || undefined, category_id: categoryId || undefined };
-  };
   const dianaSubjects = dianaClass ? (dianaClass.subjects ?? [dianaClass.subject]).filter(Boolean) : [];
   const dianaCategories = gradeCategories.filter(
     c => c.class_id === dianaClassId && (!dianaSubject || (c.subject ?? dianaSubjects[0]) === dianaSubject),
