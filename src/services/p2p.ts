@@ -44,9 +44,26 @@ export function isCompleteCode(input: string): boolean {
 /** El esquema del enlace que lleva el código (para abrir AulaPro al escanearlo). */
 export const SHARE_SCHEME = 'aulapro';
 
-/** El enlace de la sesión: al escanearlo, un móvil con AulaPro lo abre con el código ya puesto. */
-export function shareUrl(code: string): string {
-  return `${SHARE_SCHEME}://c/${normalizeCode(code)}`;
+/**
+ * El enlace de la sesión: al escanearlo, un móvil con AulaPro lo abre con el código ya puesto.
+ * Si el anfitrión tiene canal local, lo lleva como pista (`?lan=ip:puerto:código`): quien
+ * escanea lo prueba primero y, si no llega, sigue con el código normal. Así el QR vale
+ * siempre, también cuando la wifi no deja que los equipos se vean.
+ */
+export function shareUrl(code: string, lan?: { ip: string; port: number; code: string } | null): string {
+  const base = `${SHARE_SCHEME}://c/${normalizeCode(code)}`;
+  return lan ? `${base}?lan=${lan.ip}:${lan.port}:${lan.code}` : base;
+}
+
+/** La pista de canal local que lleva un enlace de sesión, si la lleva. */
+export function lanFromShareUrl(raw: string): { ip: string; port: number; code: string } | null {
+  const m = (raw ?? '').trim().match(
+    /^aulapro:\/\/c\/[A-Za-z0-9]+\?(?:[^#]*&)?lan=(\d{1,3}(?:\.\d{1,3}){3}):(\d{1,5}):([A-Za-z0-9]+)(?:&[^#]*)?$/i,
+  );
+  if (!m) return null;
+  const port = Number(m[2]);
+  if (port < 1 || port > 65535) return null;
+  return { ip: m[1], port, code: m[3].toUpperCase() };
 }
 
 /**
@@ -61,7 +78,7 @@ export function codeFromShareUrl(raw: string): string | null {
   const bare = s.toUpperCase().replace(/[\s-]/g, '');
   if (new RegExp(`^[${CODE_ALPHABET}]{${CODE_LENGTH}}$`).test(bare)) return bare;
 
-  let m = s.match(/^aulapro:\/\/c\/([A-Za-z0-9]+)$/i);
+  let m = s.match(/^aulapro:\/\/c\/([A-Za-z0-9]+)(?:\?[^#]*)?$/i);
   if (!m) m = s.match(/^https?:\/\/[^/\s]+\/r\/([A-Za-z0-9]+)$/i);
   if (!m) return null;
   const code = normalizeCode(m[1]);

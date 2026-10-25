@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { codeFromShareUrl, parseScannedCode, shareUrl } from './p2p';
+import { codeFromShareUrl, lanFromShareUrl, parseScannedCode, shareUrl } from './p2p';
 
 describe('enlace de la sesión compartida', () => {
   it('construye un enlace aulapro://c/<código>', () => {
@@ -29,5 +29,18 @@ describe('enlace de la sesión compartida', () => {
   it('parseScannedCode solo acepta lo válido', () => {
     expect(parseScannedCode('aulapro://c/AB23C4')).toBe('AB23C4');
     expect(parseScannedCode('xyz')).toBeNull();
+  });
+
+  it('lleva la pista del canal local sin estropear el código', () => {
+    const url = shareUrl('ab23c4', { ip: '192.168.1.20', port: 8100, code: 'XYZ789' });
+    expect(url).toBe('aulapro://c/AB23C4?lan=192.168.1.20:8100:XYZ789');
+    expect(codeFromShareUrl(url)).toBe('AB23C4');
+    expect(lanFromShareUrl(url)).toEqual({ ip: '192.168.1.20', port: 8100, code: 'XYZ789' });
+  });
+
+  it('sin pista de canal local, no la inventa', () => {
+    expect(lanFromShareUrl('aulapro://c/AB23C4')).toBeNull();
+    expect(lanFromShareUrl('aulapro://c/AB23C4?lan=no-es-una-ip')).toBeNull();
+    expect(lanFromShareUrl('aulapro://c/AB23C4?lan=10.0.0.1:99999:ABC')).toBeNull();
   });
 });

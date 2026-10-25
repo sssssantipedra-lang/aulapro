@@ -36,14 +36,25 @@ export function parseLanUrl(raw: string): LanTarget | null {
   return { ip: u.hostname, port: Number(u.port) || (u.protocol === 'https:' ? 443 : 80), code };
 }
 
-/** Trae el paquete compartido del anfitrión. `null` si no responde o el código no vale. */
-export async function lanPullBundle(target: LanTarget): Promise<SharedBundle | null> {
+/** Cuánto se espera al anfitrión antes de dar el canal local por inalcanzable. */
+const LAN_TIMEOUT_MS = 3000;
+
+/**
+ * Trae el paquete compartido del anfitrión. `null` si no responde a tiempo o el
+ * código no vale. Con el límite de tiempo, una wifi que aísla los equipos falla
+ * en segundos y no se queda esperando.
+ */
+export async function lanPullBundle(target: LanTarget, timeoutMs = LAN_TIMEOUT_MS): Promise<SharedBundle | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(buildLanUrl(target.ip, target.port, target.code));
+    const res = await fetch(buildLanUrl(target.ip, target.port, target.code), { signal: ctrl.signal });
     if (!res.ok) return null;
     return (await res.json()) as SharedBundle;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

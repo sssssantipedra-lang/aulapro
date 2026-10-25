@@ -5,6 +5,7 @@
  * Se suman a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const MEJORAS_EN: Record<string, string> = {
+  'No se pudo llegar al equipo de tu compañero/a por la wifi. Pídele el código y escríbelo.': 'Could not reach your colleague\'s device over the wifi. Ask them for the code and type it in.',
   // Autoguardado
   'Te quedó {que} sin guardar: «{titulo}» (autoguardado el {dia} a las {hora}).': 'You left {que} unsaved: “{titulo}” (autosaved on {dia} at {hora}).',
   'Continuar': 'Continue',
@@ -242,6 +243,7 @@ export const MEJORAS_EN: Record<string, string> = {
 };
 
 export const MEJORAS_CA: Record<string, string> = {
+  'No se pudo llegar al equipo de tu compañero/a por la wifi. Pídele el código y escríbelo.': 'No s\'ha pogut arribar a l\'equip del teu company/a per la wifi. Demana-li el codi i escriu-lo.',
   // Autoguardado
   'Te quedó {que} sin guardar: «{titulo}» (autoguardado el {dia} a las {hora}).': 'Et va quedar {que} sense desar: «{titulo}» (desat automàticament el {dia} a les {hora}).',
   'Continuar': 'Continuar',

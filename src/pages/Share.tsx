@@ -9,7 +9,7 @@ import type { Class } from '../types';
 import type { ShareScope } from '../services/sync';
 import type { useP2PSync } from '../hooks/useP2PSync';
 import type { useLanSync } from '../hooks/useLanSync';
-import { formatCode, isCompleteCode, normalizeCode, shareUrl, parseScannedCode } from '../services/p2p';
+import { formatCode, isCompleteCode, normalizeCode, shareUrl, parseScannedCode, lanFromShareUrl } from '../services/p2p';
 import { parseLanUrl } from '../services/lan';
 import { takeShareCode } from '../lib/shareNav';
 import { useToast } from '../components/ui/Toast';
@@ -83,6 +83,7 @@ function CodeDisplay({ code, qrValue }: { code: string; qrValue: string }) {
 
 export function Share({ classes, scope, onScopeChange, session, lan, counts }: Props) {
   const { t, locale } = useI18n();
+  const { toast } = useToast();
   const [codeInput, setCodeInput] = useState('');
   const [scanning, setScanning]   = useState(false);
   // Rol elegido en la interfaz: el invitado escoge su papel antes de tener código
@@ -221,7 +222,7 @@ export function Share({ classes, scope, onScopeChange, session, lan, counts }: P
                   </div>
                 ) : (
                   <>
-                    <CodeDisplay code={code} qrValue={lan.lanUrl ?? (code ? shareUrl(code) : '')} />
+                    <CodeDisplay code={code} qrValue={code ? shareUrl(code, lan.lanUrl ? parseLanUrl(lan.lanUrl) : null) : ''} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, padding: '11px 14px', borderRadius: 9, background: 'var(--surface)', fontSize: 12.5, color: 'var(--text-2)' }}>
                       <span className="spin" style={{ flexShrink: 0 }} />
                       {t('Esperando a que se una… Deja esta ventana abierta.')}
@@ -302,12 +303,15 @@ export function Share({ classes, scope, onScopeChange, session, lan, counts }: P
             {role === 'guest' ? (
               scanning ? (
                 <QRScanner
-                  onDetected={raw => {
+                  onDetected={async raw => {
                     setScanning(false);
-                    const target = parseLanUrl(raw);
-                    if (target) { lan.join(target); return; }
                     const c = parseScannedCode(raw);
-                    if (c) { setCodeInput(c); session.startJoin(c); }
+                    if (c) setCodeInput(c);
+                    // Primero la red local (si el QR la trae); si no llega, el código de siempre.
+                    const target = lanFromShareUrl(raw) ?? parseLanUrl(raw);
+                    if (target && await lan.join(target)) return;
+                    if (c) { session.startJoin(c); return; }
+                    if (target) toast(t('No se pudo llegar al equipo de tu compañero/a por la wifi. Pídele el código y escríbelo.'));
                   }}
                   onCancel={() => setScanning(false)}
                 />

@@ -105,9 +105,7 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, sharing
   return (
     <aside className={`sidebar${mini ? ' mini' : ''}${overlay ? ' overlay' : ''}`} aria-label={t('Menú principal')}>
       <div className="sb-logo">
-        <div className="sb-logo-box">
-          <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </div>
+        <img className="sb-logo-box" src={`${import.meta.env.BASE_URL}favicon-mini.svg`} width={34} height={34} alt="" />
         <span className="sb-title">Aula Pro</span>
         <button
           className="ico-btn sb-toggle"
