@@ -1063,6 +1063,17 @@ export function refsDeSda(sda: SdaContent, marcados: string[] | undefined): Offi
   return out;
 }
 
+/**
+ * Las áreas de una SdA interdisciplinar a las que ningún criterio de las filas
+ * apunta: sin él, lo evaluado no puntúa en esa área. Vacío con una sola área.
+ */
+export function areasSinCriterio(sda: SdaContent, filas: { criteriosOficiales?: string[] }[]): string[] {
+  const porArea = criteriosOficialesDeSda(sda);
+  if (porArea.length < 2) return [];
+  const refs = filas.flatMap(f => refsDeSda(sda, f.criteriosOficiales));
+  return porArea.filter(a => !refs.some(r => r.materia === a.materia)).map(a => a.area);
+}
+
 /** El trozo de las instrucciones y del prompt sobre los criterios oficiales, y la lista cerrada. */
 function promptCriteriosOficiales(sda: SdaContent, que: 'criterio' | 'ítem') {
   const porArea = criteriosOficialesDeSda(sda);
@@ -1074,7 +1085,12 @@ function promptCriteriosOficiales(sda: SdaContent, que: 'criterio' | 'ítem') {
       `CRITERIOS OFICIALES: en el campo "criteriosOficiales" de cada ${que}, marca de 1 a 3 criterios de ` +
       `evaluación oficiales de la lista que se da, los que de verdad evalúe, escritos tal cual ` +
       `(«Área|código»). Pueden ser de varias áreas. Con ellos se calcula la nota de cada competencia ` +
-      `específica de cada área.\n`,
+      `específica de cada área.` +
+      (porArea.length > 1
+        ? ` La situación es interdisciplinar: entre todos los ${que === 'ítem' ? 'ítems' : 'criterios'} han de quedar ` +
+          `cubiertas TODAS las áreas (${porArea.map(a => a.area).join(', ')}), con al menos un criterio oficial de cada una, ` +
+          `y un mismo ${que} puede marcar criterios de varias áreas a la vez.`
+        : '') + `\n`,
     usuario:
       `Criterios de evaluación oficiales disponibles:\n` +
       porArea.flatMap(a => a.criterios.map(c => `- ${a.area}|${c.codigo}: ${c.texto}`)).join('\n') + '\n',

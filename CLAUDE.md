@@ -139,6 +139,13 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Modo de uso en `components/fichas/TarjetasInteractivasPlay.tsx`: a pantalla completa, se giran al tocarlas, con barajar y «lo sé / no lo sé» para repasar solo las falladas. Se exportan a PDF como las recortables (imagen de un lado y texto del otro, se doblan; `tarjetasInteractivasHtml` en `exportFicha.ts`).
 - **Juego del memory** (23-10-2026, petición del dueño): `components/fichas/TarjetasMemory.tsx` empareja cada imagen con su texto, con selector de número de parejas, marcador (parejas, intentos y tiempo) y las parejas encontradas se quedan giradas. Se abre desde el panel de la biblioteca («Memory») y desde el editor de una tarjeta interactiva.
 
+## Mejoras del 25-10-2026 (2.18.17)
+
+- **Título de la SdA** grande y centrado en la cabecera del documento generado (`.sda-doc-hero`, `src/index.css`).
+- **Diana en una SdA**: el material «Diana» se dibuja como diana (`dianaSvg`) con los descriptores al lado, en la pestaña, la vista previa y el PDF (`tablaDianaSda` reutiliza `tablaDiana`), no como tabla de rúbrica.
+- **SdA interdisciplinares**: las notas por criterios oficiales ya puntúan en cada área (la clave es «materia|código»). Lo que va a una sola asignatura es la nota del cuaderno. La IA debe cubrir todas las áreas al marcar criterios y la pantalla avisa si falta alguna (`areasSinCriterio`). Pendiente: llevar la nota del cuaderno a varias asignaturas.
+- **Informes competenciales**: la IA devuelve tras el texto una tabla de competencias clave (bien, mejorable o mal, con un comentario breve) detrás de `###TABLA###`; `src/lib/tablaCompetencias.ts` la separa y valida, y se guarda en `CompetencyReport.tabla`.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

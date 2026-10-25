@@ -515,6 +515,8 @@ export interface CompetencyReport {
   period: string;
   date: string;
   text: string;
+  /** Tabla de competencias clave con su valoración y un comentario breve; ausente en informes anteriores. */
+  tabla?: { clave: string; valoracion: 'bien' | 'mejorable' | 'mal'; comentario: string }[];
 }
 
 /* ── Situaciones de aprendizaje ── */

@@ -178,6 +178,10 @@ const SDA_DOC_STYLE = `
 .mat-instr { width: 100%; border-collapse: collapse; font-size: 11px; }
 .mat-instr th, .mat-instr td { border: 0.75px solid #8faadc; padding: 5px 8px; text-align: left; vertical-align: top; }
 .mat-instr thead th { background: #dce6f1; color: #1e3a5f; }
+.mat-diana { display: flex; gap: 16px; align-items: flex-start; }
+.mat-diana-svg { flex: none; }
+.mat-diana-svg svg { width: 220px; height: 220px; }
+.mat-diana-leyenda { flex: 1; min-width: 0; }
 
 @media print { @page { size: A4 landscape; margin: 12mm 14mm; } }
 `;

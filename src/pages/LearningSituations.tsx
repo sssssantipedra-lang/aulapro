@@ -9,7 +9,7 @@ import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana, extraerSdaDePdf,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
-  refsDeSda, MINUTOS_SESION_EF,
+  refsDeSda, areasSinCriterio, MINUTOS_SESION_EF,
 } from '../services/learningSituations';
 import { resolverGrupo, separaMatematicasAB, type Etapa } from '../lib/curriculum';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
@@ -21,7 +21,8 @@ import {
 import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx, buildSdaHtml } from '../services/exportSda';
-import { anexoMaterialesSda } from '../services/instrumentoEmbebido';
+import { dianaSvg } from '../services/exportInstrumento';
+import { anexoMaterialesSda, dianaDeFilas } from '../services/instrumentoEmbebido';
 import { buildFichaAnexoHtml } from '../services/exportFicha';
 import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../services/exportSdaPoster';
 import { useThemeArt } from '../lib/themeArtDoc';
@@ -1428,7 +1429,7 @@ export function LearningSituations({
           <ArrowLeft size={14} />{t('Mis situaciones de aprendizaje')}
         </button>
         <div className="sda-doc-top">
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="sda-doc-hero">
             <span className="sda-card-kicker">
               {t('SdA {n}', { n: numero || '1' })}{activeClass ? ` · ${activeClass.name}` : ''}{nivel ? ` · ${nivel}` : ''}
               {!editingId && <span className="sda-unsaved">{t('Sin guardar')}</span>}
@@ -1654,6 +1655,9 @@ export function LearningSituations({
                 </div>
                 {rubricRows && (
                   <>
+                    {content && areasSinCriterio(content, rubricRows).length > 0 && (
+                      <p className="sda-note" role="alert">{t('Ningún criterio apunta a: {areas}. Lo evaluado no puntuará en esa área; vuelve a generar o añade criterios oficiales.', { areas: areasSinCriterio(content, rubricRows).join(', ') })}</p>
+                    )}
                     {levelsTable(rubricRows.map(r => ({ name: r.criterio, codes: r.competencias ?? [], n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4] })), t('Criterio'))}
                     <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setRubricClassId(classId); setRubricSubject(areas[0] ?? ''); setRubricModal(true); }}>
                       <ArrowRight size={14} />{t('Llevar a Rúbricas')}
@@ -1674,6 +1678,10 @@ export function LearningSituations({
                 </div>
                 {dianaRows && (
                   <>
+                    {content && areasSinCriterio(content, dianaRows).length > 0 && (
+                      <p className="sda-note" role="alert">{t('Ningún criterio apunta a: {areas}. Lo evaluado no puntuará en esa área; vuelve a generar o añade criterios oficiales.', { areas: areasSinCriterio(content, dianaRows).join(', ') })}</p>
+                    )}
+                    <div className="sda-diana-prev" dangerouslySetInnerHTML={{ __html: dianaSvg(dianaDeFilas(dianaRows)) }} />
                     {levelsTable(dianaRows.map(r => ({
                       name: r.item, codes: r.competencias ?? [], n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4],
                       extra: r.peso > 1 ? <span className="sda-weight">{t('Peso ×{n}', { n: r.peso })}</span> : undefined,

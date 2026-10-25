@@ -18,6 +18,7 @@ import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
+import { separarInforme, MARCA_TABLA, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
@@ -99,6 +100,11 @@ html, body { margin: 0; padding: 0; background: #fff; }
   text-transform: uppercase; color: #6b7280; font-weight: 700; margin-bottom: 3px; }
 .rep dd { font-size: 13.5px; font-weight: 700; margin: 0; }
 .rep .cuerpo { font-size: 13.5px; line-height: 1.85; text-align: justify; white-space: pre-wrap; }
+.rep table.comp { width: 100%; border-collapse: collapse; margin-top: 22px; font-family: var(--font); font-size: 11.5px; line-height: 1.45; break-inside: avoid; }
+.rep table.comp th, .rep table.comp td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; vertical-align: top; }
+.rep table.comp thead th { background: #f3f4f6; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #374151; }
+.rep table.comp tbody th span { display: block; font-weight: 400; color: #6b7280; font-size: 10px; }
+.rep table.comp td.val { font-weight: 700; white-space: nowrap; }
 .rep .pie { margin-top: 34px; font-family: var(--font); font-size: 10.5px;
   color: #6b7280; border-top: 1px solid #d1d5db; padding-top: 10px; line-height: 1.5; }
 .rep .alumno { break-inside: avoid; page-break-inside: avoid; }
@@ -258,7 +264,8 @@ export function Reports(props: Props) {
         `- Empieza por las competencias que ya tiene consolidadas, sigue con las que están en proceso y termina con ` +
         `una propuesta de mejora concreta y accionable.\n` +
         `- No inventes hechos que no aparezcan arriba. No menciones números de nota salvo la media general si existe.\n` +
-        `- Devuelve únicamente el texto del informe.`;
+        `- Después del texto, en una línea nueva, escribe exactamente ${MARCA_TABLA} y a continuación un array JSON con un objeto por cada competencia clave que hayas mencionado ({"clave":"CCL","valoracion":"bien"|"mejorable"|"mal","comentario":"..."}): el comentario es UNA frase muy breve (máximo 15 palabras) que diga por qué está bien, es mejorable o está mal. Usa solo abreviaturas de la lista de arriba.\n` +
+        `- Devuelve únicamente el texto del informe seguido de esa tabla.`;
 
     const raw = await callGemini(en ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_ES, userPrompt, [], {
       onStart: () => setGenerating(student.id),
@@ -267,6 +274,7 @@ export function Reports(props: Props) {
     }, { thinkingLevel: 'high' });
     if (!raw) return false;
 
+    const { texto, tabla } = separarInforme(raw);
     onAddReport({
       id: 'rep' + Date.now() + Math.random().toString(36).slice(2, 6),
       student_id: student.id,
@@ -274,7 +282,8 @@ export function Reports(props: Props) {
       class_id: clsId,
       period,
       date: isoDate(),
-      text: raw.trim(),
+      text: texto,
+      ...(tabla.length ? { tabla } : {}),
     });
     return true;
   }
@@ -303,6 +312,8 @@ export function Reports(props: Props) {
     t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
   const slug = (t: string) => t.replace(/\s+/g, '-');
 
+  const etiquetaCompetencia = (clave: string) => t((lang === 'en' ? LOMLOE_COMPETENCES_EN : LOMLOE_COMPETENCES).find(c => c.key === clave)?.label ?? '');
+
   /** Un informe como bloque del documento, con su cabecera y su pie. */
   function reportBlock(r: CompetencyReport, salto: boolean): string {
     const en = lang === 'en';
@@ -315,6 +326,7 @@ export function Reports(props: Props) {
 <div><dt>${esc(t('Fecha'))}</dt><dd>${esc(en ? new Date(r.date).toLocaleDateString(locale) : r.date)}</dd></div>
 </dl>
 <div class="cuerpo">${esc(r.text)}</div>
+${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
 <div class="pie">${esc(t('Informe redactado con asistencia de inteligencia artificial a partir de las evaluaciones, calificaciones y asistencia registradas, y revisado por el docente. Competencias clave según el currículo educativo español (LOMLOE).'))}${cita && competenciasDe(r.student_id).length ? ` ${esc(t('Competencias específicas según {norma}.', { norma: cita }))}` : ''}</div>
 </section>`;
   }
@@ -373,7 +385,7 @@ export function Reports(props: Props) {
     const text = list
       .slice()
       .sort((a, b) => compararNombres(a.student_name, b.student_name))
-      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}\n\n${'—'.repeat(40)}\n`)
+      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}${r.tabla?.length ? '\n\n' + r.tabla.map(f => `${f.clave}: ${t(NOMBRE[f.valoracion])}. ${f.comentario}`).join('\n') : ''}\n\n${'—'.repeat(40)}\n`)
       .join('\n');
     void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`, CARPETAS.informes);
     toast(t('✅ Informes descargados'));
@@ -579,6 +591,9 @@ export function Reports(props: Props) {
                   }}>
                     {currentReport.text}
                   </div>
+                  {currentReport.tabla?.length ? (
+                    <div className="rep-tabla" dangerouslySetInnerHTML={{ __html: tablaCompetenciasHtml(currentReport.tabla, t, etiquetaCompetencia) }} />
+                  ) : null}
                   <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center' }}>
                     <button className="btn-ia" onClick={() => generateFor(current)}>
                       <Sparkles size={13} />{t('Volver a generar')}
