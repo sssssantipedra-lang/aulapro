@@ -689,8 +689,12 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 
 /* Documento */
 .sda-doc-hd { margin-bottom:18px; }
-.sda-doc-top { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
-.sda-title-input { width:100%; font-family:var(--font); font-size:24px; font-weight:800; line-height:1.25; color:var(--text); letter-spacing:-0.01em; background:transparent; border:1px solid transparent; border-radius:8px; padding:2px 6px; margin:4px 0 6px -6px; resize:none; field-sizing:content; display:block; }
+.sda-doc-top { display:flex; flex-direction:column; gap:16px; align-items:stretch; }
+.sda-doc-hero { text-align:center; padding:22px 12px 6px; }
+.sda-doc-hero .sda-card-kicker { justify-content:center; }
+.sda-doc-hero .sda-facts { justify-content:center; }
+.sda-doc-top .sda-doc-actions { justify-content:center; }
+.sda-title-input { width:100%; font-family:var(--font); font-size:clamp(28px, 4.2vw, 42px); font-weight:800; line-height:1.15; text-align:center; color:var(--text); letter-spacing:-0.02em; background:transparent; border:1px solid transparent; border-radius:8px; padding:2px 6px; margin:10px auto 12px; resize:none; field-sizing:content; display:block; }
 .sda-title-input:hover { border-color:var(--border); }
 .sda-title-input:focus { outline:none; border-color:var(--accent-d); background:var(--card); }
 .sda-unsaved { font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:99px; background:var(--warn-bg); color:var(--warn-fg); }
@@ -2429,3 +2433,31 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-sesion-fila.archivada .ef-sesion { opacity:.65; }
 .ses-sda-lista { display:flex; flex-direction:column; gap:8px; margin:0 0 4px; padding:0; list-style:none; }
 ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.5px; }
+
+.sda-diana-prev { margin:0 auto 14px; max-width:260px; }
+.sda-diana-prev svg { width:100%; height:auto; }
+
+.rep-tabla table.comp { width:100%; border-collapse:collapse; margin-top:12px; font-size:12.5px; line-height:1.45; }
+.rep-tabla table.comp th, .rep-tabla table.comp td { border:1px solid var(--border); padding:6px 9px; text-align:left; vertical-align:top; }
+.rep-tabla table.comp thead th { background:var(--surface-2); font-size:11px; color:var(--text-2); }
+.rep-tabla table.comp tbody th span { display:block; font-weight:400; color:var(--text-3); font-size:11px; }
+.rep-tabla table.comp td.val { font-weight:700; white-space:nowrap; }
+
+.area-opts { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px; }
+.area-opt { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:14px; text-align:left; background:var(--card); border:1.5px solid var(--border); border-radius:14px; cursor:pointer; font-family:var(--font); color:var(--text); font-size:12.5px; line-height:1.45; transition:border-color var(--t), box-shadow var(--t); }
+.area-opt strong { font-size:14px; }
+.area-opt span:not(.area-opt-ico) { color:var(--text-2); }
+.area-opt:hover { border-color:var(--accent-d); }
+.area-opt.sel { border-color:var(--accent-d); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent-d) 25%, transparent); background:color-mix(in srgb, var(--accent) 8%, var(--card)); }
+.area-opt-ico { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--accent-d); color:#fff; margin-bottom:4px; }
+
+.pesos-notas { border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:14px; background:var(--surface); }
+.pesos-notas-hd { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--text); margin-bottom:8px; }
+.pesos-notas-lista { list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:6px; max-height:230px; overflow:auto; }
+.pesos-notas-lista li { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.pesos-notas-lista label { font-size:12.5px; color:var(--text-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pesos-notas-in { display:flex; align-items:center; gap:5px; flex-shrink:0; font-size:12.5px; color:var(--text-2); }
+.pesos-notas-in .finput { width:74px; text-align:right; padding:5px 8px; }
+.pesos-notas-ft { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:12.5px; font-weight:700; }
+.pesos-notas-ft .ok { color:var(--grade-good); }
+.pesos-notas-ft .warn { color:var(--grade-mid); }

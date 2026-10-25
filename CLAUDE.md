@@ -139,6 +139,21 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Modo de uso en `components/fichas/TarjetasInteractivasPlay.tsx`: a pantalla completa, se giran al tocarlas, con barajar y «lo sé / no lo sé» para repasar solo las falladas. Se exportan a PDF como las recortables (imagen de un lado y texto del otro, se doblan; `tarjetasInteractivasHtml` en `exportFicha.ts`).
 - **Juego del memory** (23-10-2026, petición del dueño): `components/fichas/TarjetasMemory.tsx` empareja cada imagen con su texto, con selector de número de parejas, marcador (parejas, intentos y tiempo) y las parejas encontradas se quedan giradas. Se abre desde el panel de la biblioteca («Memory») y desde el editor de una tarjeta interactiva.
 
+## Mejoras del 25-10-2026 (2.18.17)
+
+- **Título de la SdA** grande y centrado en la cabecera del documento generado (`.sda-doc-hero`, `src/index.css`).
+- **Diana en una SdA**: el material «Diana» se dibuja como diana (`dianaSvg`) con los descriptores al lado, en la pestaña, la vista previa y el PDF (`tablaDianaSda` reutiliza `tablaDiana`), no como tabla de rúbrica.
+- **SdA interdisciplinares**: las notas por criterios oficiales ya puntúan en cada área (la clave es «materia|código»). Lo que va a una sola asignatura es la nota del cuaderno. La IA debe cubrir todas las áreas al marcar criterios y la pantalla avisa si falta alguna (`areasSinCriterio`). Desde la 2.18.19 el docente elige en qué áreas puntúa el material (`GradeTarget.areas`, `PuntuaEnAreas.tsx`) y si el cuaderno recibe la misma nota en una columna por área o la de los criterios de cada una (`modo_areas`, `destinosDe` y `notaDeDestino` en `lib/objetivos.ts`, que usa `routeToNotebook`). Solo en la clase principal del instrumento. El Word de la SdA lleva la rúbrica y la diana de anexo (la diana como PNG).
+- **Informes competenciales**: la IA devuelve tras el texto una tabla de competencias clave (excelente, bien o necesita mejorar, con un comentario) detrás de `###TABLA###`; `src/lib/tablaCompetencias.ts` la separa y valida, y se guarda en `CompetencyReport.tabla`. Desde la 2.18.18 la valoración de las competencias con nota la fija el código (media de `competencyScores` sobre 4: excelente desde 3,5, bien desde 2,5, necesita mejorar por debajo) y la IA solo escribe el comentario, de dos frases. Las valoraciones son `excelente`, `bien` y `mejorable` («Necesita mejorar»); el `mal` de la 2.18.17 se lee como `mejorable` (`normalizarValoracion`).
+
+## Vista previa de documentos (2.18.21, 25-10-2026)
+
+- `DocPreview` pinta el HTML del PDF hoja a hoja, como sale (petición del dueño: «que se vean exactamente cómo van a salir»). El motor de impresión hace caso al `@page` del HTML (tamaño y márgenes) y, sin él, usa A4 con los márgenes de `electron/main.cjs`; `src/lib/paginaDoc.ts` lo lee. El reparto en páginas usa las columnas de CSS de `lib/paginacion.ts` (una columna, una hoja), con los saltos de página forzados traducidos a saltos de columna y `@media print` aplicado siempre. Comprobado contra `page.pdf` de Chromium en SdA, informes y acta. Un documento nuevo debe llevar su `@page` o pasar `apaisado` si no lo trae. Más de 60 páginas, solo se pintan las 60 primeras.
+
+## Peso de cada nota en el cuaderno (2.18.22, 25-10-2026)
+
+- Petición del dueño: elegir cuánto cuenta cada actividad dentro de su categoría y, de ahí, en la nota final. `GradeItem.weight` (% dentro de la categoría; ausente = cuenta igual que las demás, como antes). Los pesos son relativos: la media divide por lo que suman las notas que el alumno tiene, y las notas sin peso cuentan como su parte igual. **Toda la cuenta está en `src/lib/ponderacion.ts`** (`mediaDeCategoria`): el cuaderno, las actas, los informes y el asistente la usan; una pantalla nueva que calcule medias no debe volver a hacer la media simple. Se edita en «Editar categoría» (`PesosDeNotas`, todas a la vez) y en «Editar nota» (con lo que pesa en la nota final).
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

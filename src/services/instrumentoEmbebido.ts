@@ -61,13 +61,20 @@ export function tablaRubricaSda(rows: SdaRubricRow[], lang: Lang): string {
   return `<table class="mat-instr"><thead>${thead}</thead><tbody>${filas}</tbody></table>`;
 }
 
-/** La diana generada desde una SdA, en los cuatro niveles clásicos. */
+/** La diana generada desde una SdA como `EvalDiana`, para dibujarla igual que las demás. */
+export function dianaDeFilas(rows: SdaDianaItem[]): EvalDiana {
+  return {
+    id: 'sda-diana', name: '',
+    items: rows.map((r, i) => ({
+      id: `it${i}`, name: r.item, weight: r.peso > 0 ? r.peso : 1,
+      descriptors: { 1: r.nivel1, 2: r.nivel2, 3: r.nivel3, 4: r.nivel4 },
+    })),
+  } as EvalDiana;
+}
+
+/** La diana generada desde una SdA: el círculo con sus ítems numerados y, al lado, los descriptores de cada nivel. */
 export function tablaDianaSda(rows: SdaDianaItem[], lang: Lang): string {
-  const t = (k: string) => translate(lang, k);
-  const thead = `<thead><tr><th>${esc(t('Ítem'))}</th>${DEFAULT_LEVELS.map(l =>
-    `<th style="background:${levelColor(l.value, 4)};color:#fff">${esc(t(l.label))}</th>`).join('')}</tr></thead>`;
-  const filas = rows.map(r => `<tr><th scope="row">${esc(r.item)}</th>${[r.nivel1, r.nivel2, r.nivel3, r.nivel4].map(n => `<td>${esc(n)}</td>`).join('')}</tr>`).join('');
-  return `<table class="mat-instr"><thead>${thead}</thead><tbody>${filas}</tbody></table>`;
+  return tablaDiana(dianaDeFilas(rows), lang);
 }
 
 /** El anexo con la rúbrica y la diana generadas desde la SdA, para meterlo en su documento. */

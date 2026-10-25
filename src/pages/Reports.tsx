@@ -18,7 +18,9 @@ import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
+import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, normalizarValoracion, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
+import { mediaDeCategoria } from '../lib/ponderacion';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -73,10 +75,9 @@ function notebookAverage(
   const cats = categories.filter(c => c.class_id === classId);
   let sum = 0, weight = 0;
   for (const cat of cats) {
-    const catItems = items.filter(i => i.category_id === cat.id);
-    const scores = catItems.map(i => grades[i.id]?.[studentId]).filter((v): v is number => typeof v === 'number');
-    if (!scores.length) continue;
-    sum += (scores.reduce((a, b) => a + b, 0) / scores.length) * cat.weight;
+    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
+    if (avg === null) continue;
+    sum += avg * cat.weight;
     weight += cat.weight;
   }
   return weight ? sum / weight : null;
@@ -99,6 +100,11 @@ html, body { margin: 0; padding: 0; background: #fff; }
   text-transform: uppercase; color: #6b7280; font-weight: 700; margin-bottom: 3px; }
 .rep dd { font-size: 13.5px; font-weight: 700; margin: 0; }
 .rep .cuerpo { font-size: 13.5px; line-height: 1.85; text-align: justify; white-space: pre-wrap; }
+.rep table.comp { width: 100%; border-collapse: collapse; margin-top: 22px; font-family: var(--font); font-size: 11.5px; line-height: 1.45; break-inside: avoid; }
+.rep table.comp th, .rep table.comp td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; vertical-align: top; }
+.rep table.comp thead th { background: #f3f4f6; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #374151; }
+.rep table.comp tbody th span { display: block; font-weight: 400; color: #6b7280; font-size: 10px; }
+.rep table.comp td.val { font-weight: 700; white-space: nowrap; }
 .rep .pie { margin-top: 34px; font-family: var(--font); font-size: 10.5px;
   color: #6b7280; border-top: 1px solid #d1d5db; padding-top: 10px; line-height: 1.5; }
 .rep .alumno { break-inside: avoid; page-break-inside: avoid; }
@@ -172,6 +178,14 @@ export function Reports(props: Props) {
       lines.push(...porCompetencias);
     }
 
+    const notasClave = notasPorClave(evs);
+    if (Object.keys(notasClave).length) {
+      lines.push(en
+        ? '\nKEY COMPETENCIES (mean of the assessments, out of 4; the rating in brackets is FIXED, do not change it):'
+        : '\nCOMPETENCIAS CLAVE (media de las evaluaciones, sobre 4; la valoración entre paréntesis es FIJA, no la cambies):');
+      lines.push(...lineasDeClave(notasClave, en));
+    }
+
     const avg = notebookAverage(student.id, clsId, gradeCategories, gradeItems, grades);
     if (avg !== null) {
       lines.push(en
@@ -237,7 +251,8 @@ export function Reports(props: Props) {
         `- Start with the competencies already consolidated, move to those in progress, and end with a ` +
         `concrete, actionable suggestion for improvement.\n` +
         `- Don't invent facts not given above. Don't mention grade numbers except the overall average if it exists.\n` +
-        `- Return only the report text.`
+        `- After the text, on a new line, write exactly ${MARCA_TABLA} and then a JSON array with one object per key competency you mentioned ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): "excelente" = outstanding, "bien" = good, "mejorable" = needs improvement. The comment is TWO complete sentences (25 to 45 words): what the student does that supports the rating, with a concrete example from the evidence, and what to keep doing or how to improve. Use only abbreviations from the list above.\n` +
+        `- Return only the report text followed by that table.`
       : `Redacta el informe de evaluación competencial de un alumno para el periodo «${periodLabel}».\n\n` +
         `ALUMNO: ${student.name}\n` +
         `CONTEXTO DONDE SE OBSERVARON LAS EVIDENCIAS (no es el tema del informe): ` +
@@ -258,7 +273,8 @@ export function Reports(props: Props) {
         `- Empieza por las competencias que ya tiene consolidadas, sigue con las que están en proceso y termina con ` +
         `una propuesta de mejora concreta y accionable.\n` +
         `- No inventes hechos que no aparezcan arriba. No menciones números de nota salvo la media general si existe.\n` +
-        `- Devuelve únicamente el texto del informe.`;
+        `- Después del texto, en una línea nueva, escribe exactamente ${MARCA_TABLA} y a continuación un array JSON con un objeto por cada competencia clave que hayas mencionado ({"clave":"CCL","valoracion":"excelente"|"bien"|"mejorable","comentario":"..."}): «excelente» es sobresaliente, «bien» es adecuado y «mejorable» es que necesita mejorar. El comentario son DOS frases completas (de 25 a 45 palabras): qué hace el alumno que justifica la valoración, con un ejemplo concreto de las evidencias, y qué mantener o cómo mejorar. Usa solo abreviaturas de la lista de arriba.\n` +
+        `- Devuelve únicamente el texto del informe seguido de esa tabla.`;
 
     const raw = await callGemini(en ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_ES, userPrompt, [], {
       onStart: () => setGenerating(student.id),
@@ -267,6 +283,8 @@ export function Reports(props: Props) {
     }, { thinkingLevel: 'high' });
     if (!raw) return false;
 
+    const { texto, tabla: deLaIA } = separarInforme(raw);
+    const tabla = aplicarNotas(deLaIA, notasPorClave(evaluations.filter(e => e.student_id === student.id)));
     onAddReport({
       id: 'rep' + Date.now() + Math.random().toString(36).slice(2, 6),
       student_id: student.id,
@@ -274,7 +292,8 @@ export function Reports(props: Props) {
       class_id: clsId,
       period,
       date: isoDate(),
-      text: raw.trim(),
+      text: texto,
+      ...(tabla.length ? { tabla } : {}),
     });
     return true;
   }
@@ -303,6 +322,8 @@ export function Reports(props: Props) {
     t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
   const slug = (t: string) => t.replace(/\s+/g, '-');
 
+  const etiquetaCompetencia = (clave: string) => t((lang === 'en' ? LOMLOE_COMPETENCES_EN : LOMLOE_COMPETENCES).find(c => c.key === clave)?.label ?? '');
+
   /** Un informe como bloque del documento, con su cabecera y su pie. */
   function reportBlock(r: CompetencyReport, salto: boolean): string {
     const en = lang === 'en';
@@ -315,6 +336,7 @@ export function Reports(props: Props) {
 <div><dt>${esc(t('Fecha'))}</dt><dd>${esc(en ? new Date(r.date).toLocaleDateString(locale) : r.date)}</dd></div>
 </dl>
 <div class="cuerpo">${esc(r.text)}</div>
+${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
 <div class="pie">${esc(t('Informe redactado con asistencia de inteligencia artificial a partir de las evaluaciones, calificaciones y asistencia registradas, y revisado por el docente. Competencias clave según el currículo educativo español (LOMLOE).'))}${cita && competenciasDe(r.student_id).length ? ` ${esc(t('Competencias específicas según {norma}.', { norma: cita }))}` : ''}</div>
 </section>`;
   }
@@ -373,7 +395,7 @@ export function Reports(props: Props) {
     const text = list
       .slice()
       .sort((a, b) => compararNombres(a.student_name, b.student_name))
-      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}\n\n${'—'.repeat(40)}\n`)
+      .map(r => `${r.student_name}\n${cls?.name ?? ''} · ${t(r.period)} · ${r.date}\n\n${r.text}${r.tabla?.length ? '\n\n' + r.tabla.map(f => `${f.clave}: ${t(NOMBRE[normalizarValoracion(f.valoracion)])}. ${f.comentario}`).join('\n') : ''}\n\n${'—'.repeat(40)}\n`)
       .join('\n');
     void downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `informes-${cls?.name.replace(/\s+/g, '-') ?? 'clase'}-${period.replace(/\s+/g, '-')}.txt`, CARPETAS.informes);
     toast(t('✅ Informes descargados'));
@@ -579,6 +601,9 @@ export function Reports(props: Props) {
                   }}>
                     {currentReport.text}
                   </div>
+                  {currentReport.tabla?.length ? (
+                    <div className="rep-tabla" dangerouslySetInnerHTML={{ __html: tablaCompetenciasHtml(currentReport.tabla, t, etiquetaCompetencia) }} />
+                  ) : null}
                   <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center' }}>
                     <button className="btn-ia" onClick={() => generateFor(current)}>
                       <Sparkles size={13} />{t('Volver a generar')}

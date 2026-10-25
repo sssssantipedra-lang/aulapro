@@ -40,13 +40,16 @@ const OMITIR = new Set(['HEAD', 'SCRIPT', 'STYLE', 'META', 'LINK', 'TITLE', 'NOS
  * columnas usadas y el hueco al pie de cada una. Cambia el estilo del documento (lo deja en columnas): pásale
  * uno que no se vaya a seguir usando.
  */
+export function estiloColumnas(area: AreaPagina, seguridad: number = SEGURIDAD_PX): string {
+  return `html { margin: 0; padding: 0; background: #fff; }` +
+    `body { margin: 0 !important; padding: 0 !important; width: ${area.ancho}px; height: ${area.alto - seguridad}px; ` +
+    `column-width: ${area.ancho}px; column-gap: 0; column-fill: auto; overflow: visible; }`;
+}
+
 export function medirPaginas(doc: Document, area: AreaPagina = AREA_FICHA, seguridad: number = SEGURIDAD_PX): MedidaPaginas {
   const altoUtil = area.alto - seguridad;
   const estilo = doc.createElement('style');
-  estilo.textContent =
-    `html { margin: 0; padding: 0; background: #fff; }` +
-    `body { margin: 0 !important; padding: 0 !important; width: ${area.ancho}px; height: ${altoUtil}px; ` +
-    `column-width: ${area.ancho}px; column-gap: 0; column-fill: auto; overflow: visible; }`;
+  estilo.textContent = estiloColumnas(area, seguridad);
   doc.head.appendChild(estilo);
 
   const base = doc.documentElement.getBoundingClientRect();

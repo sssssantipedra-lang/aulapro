@@ -9,7 +9,7 @@ import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana, extraerSdaDePdf,
   type SdaContent, type SdaRubricRow, type SdaDianaItem,
-  refsDeSda, MINUTOS_SESION_EF,
+  refsDeSda, areasSinCriterio, MINUTOS_SESION_EF,
 } from '../services/learningSituations';
 import { resolverGrupo, separaMatematicasAB, type Etapa } from '../lib/curriculum';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
@@ -21,7 +21,10 @@ import {
 import { nombreComunidad } from '../lib/curriculum/comunidades';
 import { generateFichaFromSda, type FichaContent, type FichaFormato } from '../services/resources';
 import { saveSdaPdf, saveSdaDocx, buildSdaHtml } from '../services/exportSda';
-import { anexoMaterialesSda } from '../services/instrumentoEmbebido';
+import { PuntuaEnAreas } from '../components/PuntuaEnAreas';
+import { destinoDeAreas, asignaturaDeArea, type ModoAreas } from '../lib/areasMaterial';
+import { dianaSvg } from '../services/exportInstrumento';
+import { anexoMaterialesSda, dianaDeFilas } from '../services/instrumentoEmbebido';
 import { buildFichaAnexoHtml } from '../services/exportFicha';
 import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../services/exportSdaPoster';
 import { useThemeArt } from '../lib/themeArtDoc';
@@ -300,6 +303,10 @@ export function LearningSituations({
   const [dianaDetails, setDianaDetails] = useState('');
   const [dianaBusy, setDianaBusy] = useState(false);
   const [dianaModal, setDianaModal] = useState(false);
+  /* Situación interdisciplinar: en qué áreas puntúa el material y cómo se refleja en el cuaderno */
+  const [areasSel, setAreasSel] = useState<string[]>([]);
+  const [modoAreas, setModoAreas] = useState<ModoAreas>('misma');
+  const [catAreas, setCatAreas] = useState('');
   const [dianaClassId, setDianaClassId] = useState('');
   const [dianaSubject, setDianaSubject] = useState('');
   const [dianaCategory, setDianaCategory] = useState('');
@@ -667,7 +674,7 @@ export function LearningSituations({
     if (!sda) return;
     setExporting({ key, kind: 'docx' });
     try {
-      await saveSdaDocx(sda, lang);
+      await saveSdaDocx(sda, lang, key === CURRENT_KEY ? { rubricRows, dianaRows } : undefined);
       toast(t('✅ Word descargado'));
     } catch {
       toast(t('No se pudo generar el documento Word.'));
@@ -761,6 +768,25 @@ export function LearningSituations({
     setRubricRows(rows);
   }
 
+  /** Las áreas de la SdA, con su materia oficial; con dos o más, el material puede puntuar en varias. */
+  const areasSda = (content?.areas ?? []).map(a => ({ area: a.area, materia: a.materia }));
+  const variasAreas = areasSda.length >= 2;
+  /** Marca por defecto todas las áreas de la SdA que son asignaturas de esa clase. */
+  const marcarAreas = (claseId: string) => {
+    const c = classes.find(x => x.id === claseId);
+    setAreasSel(areasSda.filter(a => asignaturaDeArea(c, a.area)).map(a => a.area));
+    setModoAreas('misma'); setCatAreas('');
+  };
+  /** Dónde cae la nota: lo de siempre, o las áreas elegidas si la SdA es interdisciplinar. */
+  const destinoDelMaterial = (claseId: string, subject: string, categoryId: string) => {
+    const c = classes.find(x => x.id === claseId);
+    if (variasAreas && c) {
+      const d = destinoDeAreas(c, areasSda, areasSel, modoAreas, catAreas, gradeCategories);
+      if (d.subject) return d;
+    }
+    return { subject: subject || undefined, category_id: categoryId || undefined };
+  };
+
   /**
    * Lleva la rúbrica generada a la sección de Rúbricas.
    *
@@ -782,8 +808,7 @@ export function LearningSituations({
         ...conCriteriosOficiales(content, r.criteriosOficiales),
       })),
       class_id: rubricClassId || undefined,
-      subject: rubricSubject || undefined,
-      category_id: rubricCategory || undefined,
+      ...destinoDelMaterial(rubricClassId, rubricSubject, rubricCategory),
     };
     onAddRubric(rubric);
     setRubricModal(false);
@@ -823,8 +848,7 @@ export function LearningSituations({
         ...conCriteriosOficiales(content, r.criteriosOficiales),
       })),
       class_id: dianaClassId || undefined,
-      subject: dianaSubject || undefined,
-      category_id: dianaCategory || undefined,
+      ...destinoDelMaterial(dianaClassId, dianaSubject, dianaCategory),
     };
     onAddDiana(diana);
     setDianaModal(false);
@@ -1428,7 +1452,7 @@ export function LearningSituations({
           <ArrowLeft size={14} />{t('Mis situaciones de aprendizaje')}
         </button>
         <div className="sda-doc-top">
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="sda-doc-hero">
             <span className="sda-card-kicker">
               {t('SdA {n}', { n: numero || '1' })}{activeClass ? ` · ${activeClass.name}` : ''}{nivel ? ` · ${nivel}` : ''}
               {!editingId && <span className="sda-unsaved">{t('Sin guardar')}</span>}
@@ -1654,8 +1678,11 @@ export function LearningSituations({
                 </div>
                 {rubricRows && (
                   <>
+                    {content && areasSinCriterio(content, rubricRows).length > 0 && (
+                      <p className="sda-note" role="alert">{t('Ningún criterio apunta a: {areas}. Lo evaluado no puntuará en esa área; vuelve a generar o añade criterios oficiales.', { areas: areasSinCriterio(content, rubricRows).join(', ') })}</p>
+                    )}
                     {levelsTable(rubricRows.map(r => ({ name: r.criterio, codes: r.competencias ?? [], n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4] })), t('Criterio'))}
-                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setRubricClassId(classId); setRubricSubject(areas[0] ?? ''); setRubricModal(true); }}>
+                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setRubricClassId(classId); setRubricSubject(areas[0] ?? ''); marcarAreas(classId); setRubricModal(true); }}>
                       <ArrowRight size={14} />{t('Llevar a Rúbricas')}
                     </button>
                   </>
@@ -1674,11 +1701,15 @@ export function LearningSituations({
                 </div>
                 {dianaRows && (
                   <>
+                    {content && areasSinCriterio(content, dianaRows).length > 0 && (
+                      <p className="sda-note" role="alert">{t('Ningún criterio apunta a: {areas}. Lo evaluado no puntuará en esa área; vuelve a generar o añade criterios oficiales.', { areas: areasSinCriterio(content, dianaRows).join(', ') })}</p>
+                    )}
+                    <div className="sda-diana-prev" dangerouslySetInnerHTML={{ __html: dianaSvg(dianaDeFilas(dianaRows)) }} />
                     {levelsTable(dianaRows.map(r => ({
                       name: r.item, codes: r.competencias ?? [], n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4],
                       extra: r.peso > 1 ? <span className="sda-weight">{t('Peso ×{n}', { n: r.peso })}</span> : undefined,
                     })), t('Ítem'))}
-                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setDianaClassId(classId); setDianaSubject(areas[0] ?? ''); setDianaModal(true); }}>
+                    <button className="btn-accent" style={{ marginTop: 14 }} onClick={() => { setDianaClassId(classId); setDianaSubject(areas[0] ?? ''); marcarAreas(classId); setDianaModal(true); }}>
                       <ArrowRight size={14} />{t('Llevar a Dianas')}
                     </button>
                   </>
@@ -1817,27 +1848,35 @@ export function LearningSituations({
         </p>
         <div className="fgroup">
           <label className="flabel" htmlFor="learningsituations-f15">{t('Clase')}</label>
-          <select id="learningsituations-f15" className="finput" value={rubricClassId} onChange={e => { setRubricClassId(e.target.value); setRubricSubject(''); setRubricCategory(''); }}>
+          <select id="learningsituations-f15" className="finput" value={rubricClassId} onChange={e => { setRubricClassId(e.target.value); setRubricSubject(''); setRubricCategory(''); marcarAreas(e.target.value); }}>
             <option value="">{t('Sin clase (solo historial)')}</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        {rubricSubjects.length > 0 && (
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f16">{t('Asignatura')}</label>
-            <select id="learningsituations-f16" className="finput" value={rubricSubject} onChange={e => { setRubricSubject(e.target.value); setRubricCategory(''); }}>
-              {rubricSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
+        {variasAreas && rubricClass && (
+          <PuntuaEnAreas areas={areasSda} clase={rubricClass} gradeCategories={gradeCategories} elegidas={areasSel} onElegidas={setAreasSel}
+            modo={modoAreas} onModo={setModoAreas} categoria={catAreas} onCategoria={setCatAreas} />
         )}
-        {rubricClassId && (
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f17">{t('Categoría del cuaderno')}</label>
-            <select id="learningsituations-f17" className="finput" value={rubricCategory} onChange={e => setRubricCategory(e.target.value)}>
-              <option value="">{t('Solo el historial, no el cuaderno')}</option>
-              {rubricCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
-            </select>
-          </div>
+        {!(variasAreas && rubricClass) && (
+          <>
+          {rubricSubjects.length > 0 && (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="learningsituations-f16">{t('Asignatura')}</label>
+              <select id="learningsituations-f16" className="finput" value={rubricSubject} onChange={e => { setRubricSubject(e.target.value); setRubricCategory(''); }}>
+                {rubricSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          )}
+          {rubricClassId && (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="learningsituations-f17">{t('Categoría del cuaderno')}</label>
+              <select id="learningsituations-f17" className="finput" value={rubricCategory} onChange={e => setRubricCategory(e.target.value)}>
+                <option value="">{t('Solo el historial, no el cuaderno')}</option>
+                {rubricCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
+              </select>
+            </div>
+          )}
+          </>
         )}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button className="btn-ghost" onClick={() => setRubricModal(false)}>{t('Cancelar')}</button>
@@ -1852,27 +1891,35 @@ export function LearningSituations({
         </p>
         <div className="fgroup">
           <label className="flabel" htmlFor="learningsituations-f18">{t('Clase')}</label>
-          <select id="learningsituations-f18" className="finput" value={dianaClassId} onChange={e => { setDianaClassId(e.target.value); setDianaSubject(''); setDianaCategory(''); }}>
+          <select id="learningsituations-f18" className="finput" value={dianaClassId} onChange={e => { setDianaClassId(e.target.value); setDianaSubject(''); setDianaCategory(''); marcarAreas(e.target.value); }}>
             <option value="">{t('Sin clase (solo historial)')}</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        {dianaSubjects.length > 0 && (
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f19">{t('Asignatura')}</label>
-            <select id="learningsituations-f19" className="finput" value={dianaSubject} onChange={e => { setDianaSubject(e.target.value); setDianaCategory(''); }}>
-              {dianaSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
+        {variasAreas && dianaClass && (
+          <PuntuaEnAreas areas={areasSda} clase={dianaClass} gradeCategories={gradeCategories} elegidas={areasSel} onElegidas={setAreasSel}
+            modo={modoAreas} onModo={setModoAreas} categoria={catAreas} onCategoria={setCatAreas} />
         )}
-        {dianaClassId && (
-          <div className="fgroup">
-            <label className="flabel" htmlFor="learningsituations-f20">{t('Categoría del cuaderno')}</label>
-            <select id="learningsituations-f20" className="finput" value={dianaCategory} onChange={e => setDianaCategory(e.target.value)}>
-              <option value="">{t('Solo el historial, no el cuaderno')}</option>
-              {dianaCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
-            </select>
-          </div>
+        {!(variasAreas && dianaClass) && (
+          <>
+          {dianaSubjects.length > 0 && (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="learningsituations-f19">{t('Asignatura')}</label>
+              <select id="learningsituations-f19" className="finput" value={dianaSubject} onChange={e => { setDianaSubject(e.target.value); setDianaCategory(''); }}>
+                {dianaSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          )}
+          {dianaClassId && (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="learningsituations-f20">{t('Categoría del cuaderno')}</label>
+              <select id="learningsituations-f20" className="finput" value={dianaCategory} onChange={e => setDianaCategory(e.target.value)}>
+                <option value="">{t('Solo el historial, no el cuaderno')}</option>
+                {dianaCategories.map(c => <option key={c.id} value={c.id}>{c.name} ({c.weight}%)</option>)}
+              </select>
+            </div>
+          )}
+          </>
         )}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button className="btn-ghost" onClick={() => setDianaModal(false)}>{t('Cancelar')}</button>

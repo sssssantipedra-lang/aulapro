@@ -27,6 +27,7 @@ import type {
 import { seatStudentId } from '../types';
 import { isMarksCategory } from './classMarks';
 import type { Lang } from '../i18n';
+import { mediaDeCategoria, hayPesosElegidos, porcentajesEnCategoria } from '../lib/ponderacion';
 
 /**
  * Un mensaje de la conversación tal y como se pinta en pantalla. Vive solo en
@@ -69,12 +70,8 @@ export function weightedAverage(
   let sum = 0;
   let weightUsed = 0;
   for (const cat of categories) {
-    const catItems = items.filter(i => i.category_id === cat.id);
-    const scores = catItems
-      .map(i => grades[i.id]?.[studentId])
-      .filter((v): v is number => typeof v === 'number');
-    if (scores.length === 0) continue;
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
+    if (avg === null) continue;
     sum += avg * cat.weight;
     weightUsed += cat.weight;
   }
@@ -186,7 +183,7 @@ export function buildTeacherContext(
     if (items.length) {
       const porCat = cats.map(c => {
         const suyos = items.filter(i => i.category_id === c.id);
-        return suyos.length ? `${c.name}: ${suyos.map(i => `«${i.name}» (${i.date})`).join(', ')}` : '';
+        return suyos.length ? `${c.name}: ${suyos.map(i => `«${i.name}» (${i.date}${hayPesosElegidos(suyos) ? `, ${Math.round((porcentajesEnCategoria(suyos).get(i.id) ?? 0) * 10) / 10}% de la categoría` : ''})`).join(', ')}` : '';
       }).filter(Boolean);
       L.push(`   Pruebas registradas (${items.length}): ${porCat.join(' | ')}`);
     } else {

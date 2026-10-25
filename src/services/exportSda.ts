@@ -15,9 +15,13 @@
 
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel,
-  Table, TableRow, TableCell, WidthType, VerticalAlign, BorderStyle, PageOrientation,
+  Table, TableRow, TableCell, WidthType, VerticalAlign, BorderStyle, PageOrientation, AlignmentType, ImageRun,
 } from 'docx';
 import type { LearningSituation } from '../types';
+import { DEFAULT_LEVELS } from '../types';
+import type { SdaRubricRow, SdaDianaItem } from './learningSituations';
+import { dianaSvg } from './exportInstrumento';
+import { dianaDeFilas } from './instrumentoEmbebido';
 import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { modeloEF } from '../lib/modelosEF';
@@ -168,6 +172,8 @@ const SDA_DOC_STYLE = `
 
 /* Reparto entre páginas: vale tanto en el PDF como en la impresora */
 .sda-grid tr { break-inside: avoid; page-break-inside: avoid; }
+/* Una franja de sección no se queda sola al pie de una página: va con su primera fila */
+.sda-grid tr.band, .sda-grid tr.band-top { break-after: avoid; page-break-after: avoid; }
 
 /* Materiales generados desde la SdA (rúbrica y diana), como anexo */
 .sda-anexo { margin-top: 14px; }
@@ -178,6 +184,10 @@ const SDA_DOC_STYLE = `
 .mat-instr { width: 100%; border-collapse: collapse; font-size: 11px; }
 .mat-instr th, .mat-instr td { border: 0.75px solid #8faadc; padding: 5px 8px; text-align: left; vertical-align: top; }
 .mat-instr thead th { background: #dce6f1; color: #1e3a5f; }
+.mat-diana { display: flex; gap: 16px; align-items: flex-start; }
+.mat-diana-svg { flex: none; }
+.mat-diana-svg svg { width: 220px; height: 220px; }
+.mat-diana-leyenda { flex: 1; min-width: 0; }
 
 @media print { @page { size: A4 landscape; margin: 12mm 14mm; } }
 `;
@@ -234,8 +244,84 @@ const gRowDouble = (l1: string, v1: string, l2: string, v2: string): TableRow[] 
     ? [new TableRow({ children: [gcell(l1, { style: 'label' }), gcell(v1), gcell(l2, { style: 'label' }), gcell(v2, { colSpan: 3 })] })]
     : [];
 
+/** La rúbrica y la diana generadas desde la SdA, para ir de anexo al final del Word. */
+export interface MaterialesSda { rubricRows?: SdaRubricRow[] | null; dianaRows?: SdaDianaItem[] | null }
+
+const DIANA_PX = 340;
+
+/** La diana dibujada como PNG (`docx` no admite SVG); `null` sin navegador o si algo falla, y entonces solo va la tabla. */
+async function dianaImagen(rows: SdaDianaItem[]): Promise<ImageRun | null> {
+  if (typeof document === 'undefined') return null;
+  try {
+    const svg = dianaSvg(dianaDeFilas(rows)).replace('<svg ', `<svg width="${DIANA_PX}" height="${DIANA_PX}" `);
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('svg'));
+        el.src = url;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = DIANA_PX * 2; canvas.height = DIANA_PX * 2;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(2, 2);
+      ctx.drawImage(img, 0, 0, DIANA_PX, DIANA_PX);
+      const png = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!png) return null;
+      return new ImageRun({ type: 'png', data: new Uint8Array(await png.arrayBuffer()), transformation: { width: 260, height: 260 } });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  } catch {
+    return null;
+  }
+}
+
+const hcell = (text: string, opts: { head?: boolean; width?: number } = {}) => new TableCell({
+  width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
+  shading: opts.head ? { fill: 'DCE6F1' } : undefined,
+  margins: { top: 60, bottom: 60, left: 90, right: 90 },
+  children: (text || DASH).split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: opts.head, size: 19 })] })),
+});
+
+/** Tabla de niveles: una fila por criterio o ítem, con un descriptor por nivel. */
+function tablaNiveles(primera: string, filas: { nombre: string; n: string[] }[], t: (k: string) => string): Table {
+  const w = 82 / DEFAULT_LEVELS.length;
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE }, borders: TABLE_BORDERS,
+    rows: [
+      new TableRow({ tableHeader: true, children: [hcell(primera, { head: true, width: 18 }), ...DEFAULT_LEVELS.map(l => hcell(t(l.label), { head: true, width: w }))] }),
+      ...filas.map(f => new TableRow({ cantSplit: true, children: [hcell(f.nombre, { head: true, width: 18 }), ...f.n.map(x => hcell(x, { width: w }))] })),
+    ],
+  });
+}
+
+/** El anexo «Instrumentos de evaluación» del Word: la rúbrica en tabla y la diana dibujada con sus descriptores. */
+async function anexoDocx(m: MaterialesSda | undefined, t: (k: string) => string): Promise<(Paragraph | Table)[]> {
+  const out: (Paragraph | Table)[] = [];
+  const titulo = (txt: string, nivel: 'h2' | 'h3') => new Paragraph({
+    children: [new TextRun({ text: nivel === 'h2' ? txt.toUpperCase() : txt, bold: true, color: '1F4E79', size: nivel === 'h2' ? 24 : 22 })],
+    spacing: { before: nivel === 'h2' ? 360 : 200, after: 100 }, pageBreakBefore: nivel === 'h2',
+  });
+  if (m?.rubricRows?.length || m?.dianaRows?.length) out.push(titulo(t('Instrumentos de evaluación'), 'h2'));
+  if (m?.rubricRows?.length) {
+    out.push(titulo(t('Rúbrica'), 'h3'));
+    out.push(tablaNiveles(t('Criterio'), m.rubricRows.map(r => ({ nombre: r.criterio, n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4] })), t));
+  }
+  if (m?.dianaRows?.length) {
+    out.push(titulo(t('Diana'), 'h3'));
+    const img = await dianaImagen(m.dianaRows);
+    if (img) out.push(new Paragraph({ children: [img], alignment: AlignmentType.CENTER, spacing: { after: 120 } }));
+    out.push(tablaNiveles(t('Ítem'), m.dianaRows.map((r, i) => ({ nombre: `${i + 1}. ${r.item}`, n: [r.nivel1, r.nivel2, r.nivel3, r.nivel4] })), t));
+  }
+  return out;
+}
+
 /** Construye el .docx. Separado de `saveSdaDocx` para poder probarlo sin DOM. */
-export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Promise<Blob> {
+export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang, materiales?: MaterialesSda): Promise<Blob> {
   const t = (k: string, vars?: Record<string, string | number>) => translate(lang, k, vars);
   const c = sda.content;
   const req = sda.request;
@@ -300,6 +386,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
     children.push(new Paragraph({ children: [new TextRun({ text: sda.class_name, italics: true, color: '64748B' })], spacing: { after: 160 } }));
   }
   children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: TABLE_BORDERS, rows }));
+  children.push(...await anexoDocx(materiales, t));
 
   const doc = new Document({
     sections: [{
@@ -323,7 +410,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang): Prom
   return Packer.toBlob(doc);
 }
 
-export async function saveSdaDocx(sda: LearningSituation, lang: Lang) {
-  const blob = await buildSdaDocxBlob(sda, lang);
+export async function saveSdaDocx(sda: LearningSituation, lang: Lang, materiales?: MaterialesSda) {
+  const blob = await buildSdaDocxBlob(sda, lang, materiales);
   await downloadFile(blob, fileBase(sda) + '.docx', CARPETAS.situaciones);
 }

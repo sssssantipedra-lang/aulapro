@@ -19,6 +19,8 @@ import { requestActitud } from '../lib/actitudNav';
 import { downloadFile } from '../lib/download';
 import { compararAlumnos } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
+import { mediaDeCategoria, pesoEnLaNotaFinal, porcentajesEnCategoria, hayPesosElegidos } from '../lib/ponderacion';
+import { PesosDeNotas } from '../components/PesosDeNotas';
 
 // El currículo (unos 650 KB) se abre con la pestaña «Por competencias», no con el cuaderno
 const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/CompetenciasDeLaClase')
@@ -69,12 +71,8 @@ function weightedAverage(
   let sum = 0;
   let weightUsed = 0;
   for (const cat of categories) {
-    const catItems = items.filter(i => i.category_id === cat.id);
-    const scores = catItems
-      .map(i => grades[i.id]?.[studentId])
-      .filter((v): v is number => typeof v === 'number');
-    if (scores.length === 0) continue;
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const avg = mediaDeCategoria(items.filter(i => i.category_id === cat.id), grades, studentId);
+    if (avg === null) continue;
     sum += avg * cat.weight;
     weightUsed += cat.weight;
   }
@@ -195,6 +193,10 @@ function GradesTab({
   const [itemName, setItemName]   = useState('');
   const [itemCat, setItemCat]     = useState('');
   const [itemDate, setItemDate]   = useState(isoDate());
+  /** Lo que cuenta la nota en su categoría, en % y en texto; vacío = como las demás. */
+  const [itemWeight, setItemWeight] = useState('');
+  /** Lo mismo para todas las notas de la categoría que se está editando. */
+  const [catItemWeights, setCatItemWeights] = useState<Record<string, string>>({});
   const [confirmDel, setConfirmDel] = useState(false);
 
   const cls = classes.find(c => c.id === classId) ?? classes[0];
@@ -307,6 +309,8 @@ function GradesTab({
   function openCatModal(cat: GradeCategory | 'new') {
     setCatName(cat === 'new' ? '' : cat.name);
     setCatWeight(cat === 'new' ? '' : String(cat.weight));
+    setCatItemWeights(cat === 'new' ? {} : Object.fromEntries(
+      gradeItems.filter(i => i.category_id === cat.id && typeof i.weight === 'number').map(i => [i.id, dec(i.weight!)])));
     setConfirmDel(false);
     setCatModal(cat);
   }
@@ -315,6 +319,7 @@ function GradesTab({
     setItemName(item === 'new' ? '' : item.name);
     setItemCat(item === 'new' ? (ownCategories[0]?.id ?? '') : item.category_id);
     setItemDate(item === 'new' ? isoDate() : item.date);
+    setItemWeight(item !== 'new' && typeof item.weight === 'number' ? dec(item.weight) : '');
     setConfirmDel(false);
     setItemModal(item);
   }
@@ -329,7 +334,15 @@ function GradesTab({
       onAddCategory({ id: 'gc' + Date.now(), class_id: clsId, name, weight, subject: activeSubject });
       toast(t('✅ Categoría creada'));
     } else if (catModal) {
+      const nuevos: GradeItem[] = [];
+      for (const i of gradeItems.filter(x => x.category_id === catModal.id)) {
+        const txt = (catItemWeights[i.id] ?? '').trim();
+        const w = txt === '' ? undefined : parseDec(txt);
+        if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
+        if (w !== i.weight) { const { weight: _w, ...resto } = i; void _w; nuevos.push(w === undefined ? resto : { ...resto, weight: w }); }
+      }
       onUpdateCategory({ ...catModal, name, weight });
+      nuevos.forEach(onUpdateItem);
       toast(t('✅ Categoría actualizada'));
     }
     setCatModal(null);
@@ -339,11 +352,14 @@ function GradesTab({
     const name = itemName.trim();
     if (!name) { toast(t('Escribe un nombre (ej: Examen Tema 3)')); return; }
     if (!itemCat) { toast(t('Elige una categoría')); return; }
+    const w = itemWeight.trim() === '' ? undefined : parseDec(itemWeight);
+    if (w !== undefined && !(w >= 0 && w <= 100)) { toast(t('Lo que cuenta cada nota debe estar entre 0 y 100')); return; }
     if (itemModal === 'new') {
-      onAddItem({ id: 'gi' + Date.now(), class_id: clsId, category_id: itemCat, name, date: itemDate });
+      onAddItem({ id: 'gi' + Date.now(), class_id: clsId, category_id: itemCat, name, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
       toast(t('✅ Columna de nota añadida'));
     } else if (itemModal) {
-      onUpdateItem({ ...itemModal, name, category_id: itemCat, date: itemDate });
+      const { weight: _w, ...resto } = itemModal; void _w;
+      onUpdateItem({ ...resto, name, category_id: itemCat, date: itemDate, ...(w !== undefined ? { weight: w } : {}) });
       toast(t('✅ Actualizada'));
     }
     setItemModal(null);
@@ -593,7 +609,7 @@ function GradesTab({
                           <th key={item.id} style={k === 0 ? { borderLeft: '2px solid var(--border)' } : undefined}>
                             <button className="gb-item-hd" onClick={() => openItemModal(item)} title={`${cat.name} · ${item.date} — ${t('clic para editar')}`}>
                               <span className="gb-item-name">{item.name}</span>
-                              <span className="gb-item-cat">{item.date}</span>
+                              <span className="gb-item-cat">{item.date}{hayPesosElegidos(items) && ` · ${(Math.round((porcentajesEnCategoria(items).get(item.id) ?? 0) * 10) / 10).toLocaleString(locale)}%`}</span>
                             </button>
                           </th>
                         )),
@@ -784,6 +800,11 @@ function GradesTab({
           <label className="flabel" htmlFor="notebook-f2">{t('Peso en la media (%)')}</label>
           <input id="notebook-f2" className="finput" value={catWeight} onChange={e => setCatWeight(e.target.value)} placeholder={t('Ej: 60')} inputMode="numeric" />
         </div>
+        {catModal !== 'new' && catModal !== null && (() => {
+          const suyas = gradeItems.filter(i => i.category_id === catModal.id)
+            .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.name.localeCompare(b.name, 'es'));
+          return suyas.length > 1 ? <PesosDeNotas items={suyas} valores={catItemWeights} onChange={setCatItemWeights} /> : null;
+        })()}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveCategory}>{t('Guardar')}</button>
           {catModal !== 'new' && catModal !== null && (
@@ -824,6 +845,26 @@ function GradesTab({
             <input id="notebook-f5" className="finput" type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} />
           </div>
         </div>
+        {(() => {
+          const cat = ownCategories.find(c => c.id === itemCat);
+          if (!cat) return null;
+          const hermanas = gradeItems.filter(i => i.category_id === itemCat && (itemModal === 'new' || itemModal === null || i.id !== itemModal.id));
+          const w = itemWeight.trim() === '' ? NaN : parseDec(itemWeight);
+          const yo: GradeItem = { id: '__yo', class_id: clsId, category_id: itemCat, name: '', date: '', ...(w >= 0 ? { weight: w } : {}) };
+          const lista = [...hermanas, yo];
+          const pct = porcentajesEnCategoria(lista).get('__yo') ?? 0;
+          const fmt = (n: number) => (Math.round(n * 10) / 10).toLocaleString(locale);
+          return (
+            <div className="fgroup">
+              <label className="flabel" htmlFor="notebook-f6">{t('Cuánto cuenta en la categoría (%)')}</label>
+              <input id="notebook-f6" className="finput" inputMode="decimal" value={itemWeight} onChange={e => setItemWeight(e.target.value)}
+                placeholder={t('Igual que las demás ({n}%)', { n: fmt(100 / lista.length) })} />
+              <p className="sda-note">
+                {t('Cuenta un {pct}% de «{cat}», un {final}% de la nota final.', { pct: fmt(pct), cat: cat.name, final: fmt(pesoEnLaNotaFinal(yo, lista, cat.weight)) })}
+              </p>
+            </div>
+          );
+        })()}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button className="btn-accent" style={{ flex: 1, justifyContent: 'center' }} onClick={saveItem}>{t('Guardar')}</button>
           {itemModal !== 'new' && itemModal !== null && (
