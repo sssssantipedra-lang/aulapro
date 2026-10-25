@@ -12,6 +12,7 @@ import { LECTURA_CA } from './lectura';
 import { PIZARRA_CA } from './pizarra';
 import { MEJORAS_CA } from './mejoras';
 import { COMPARTIR_CA } from './compartir';
+import { IMAGENES_CA } from './imagenes';
 
 export const CA: Record<string, string> = {
   // Los datos de ejemplo primero: si un texto coincide con uno de la interfaz, manda el de la interfaz
@@ -1993,4 +1994,5 @@ export const CA: Record<string, string> = {
   ...PIZARRA_CA,
   ...MEJORAS_CA,
   ...COMPARTIR_CA,
+  ...IMAGENES_CA,
 };

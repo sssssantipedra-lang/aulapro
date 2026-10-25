@@ -4,6 +4,7 @@
 import type { Class } from '../types';
 import { esAsignaturaEF } from '../services/classMarks';
 import { ANCHO_PIZARRA, ALTO_PIZARRA, COLORES_TRAZO, IDS_MATERIAL_PIZARRA } from './pizarraEF';
+import { imagenesValidas } from './imagenesSesion';
 import type {
   ActividadEF, ApoyoEF, BaremoEF, CategoriaPrueba, CircuitoEF, EfData, ElementoPizarra, EquiposEF, ExentoEF, InstalacionEF, LimitacionEF,
   MarcaPrueba, MaterialEF, MaterialPizarraId, ModalidadEF, NecesidadEF, NivelApoyoEF, PizarraEF, PruebaFisica, SesionEF, SexoEF, TipoActividadEF, TramoBaremo, TrazoPizarra,
@@ -500,6 +501,11 @@ export function sinClaseEF(d: EfData, claseId: string, alumnoIds: readonly strin
 /* ── Carga segura ── */
 
 const esTexto = (v: unknown): v is string => typeof v === 'string';
+/** Las imágenes de una sesión que valen; sin ninguna, ni el campo. */
+const conImagenes = (v: unknown) => {
+  const l = Array.isArray(v) ? imagenesValidas(v) : [];
+  return l.length ? { imagenes: l } : {};
+};
 const texto = (v: unknown) => (esTexto(v) ? v : '');
 const lista = <T,>(v: unknown, f: (x: unknown) => T | null): T[] =>
   Array.isArray(v) ? v.map(f).filter((x): x is T => x !== null) : [];
@@ -617,6 +623,7 @@ export function normalizarEF(raw: unknown): EfData {
       ...(esTexto(x.sdaId) ? { sdaId: x.sdaId } : {}),
       ...(numero(x.sdaOrden) !== undefined ? { sdaOrden: Math.max(1, Math.round(numero(x.sdaOrden) as number)) } : {}),
       ...(esTexto(x.pizarraId) ? { pizarraId: x.pizarraId } : {}),
+      ...conImagenes(x.imagenes),
       ...(Array.isArray(x.instrumentos) ? { instrumentos: lista(x.instrumentos, i => {
         const y = obj(i);
         return y && esTexto(y.id) && (y.tipo === 'rubrica' || y.tipo === 'diana' || y.tipo === 'registro') ? { tipo: y.tipo, id: y.id } : null;

@@ -11,7 +11,7 @@
  * agrupadas por su situación de aprendizaje y se pueden elegir varias para
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { DocPreview } from '../components/DocPreview';
@@ -44,10 +44,15 @@ import { archivarSesiones, asociarASda, quitarSesiones } from '../lib/sesiones';
 import { ClasesDeSesiones } from '../components/sesiones/ClasesDeSesiones';
 import { SesionesDeClase } from '../components/sesiones/SesionesDeClase';
 import { AsociarASda } from '../components/sesiones/AsociarASda';
+import { AvisoDeSoltar, ImagenesSesion } from '../components/sesiones/ImagenesSesion';
+import { useEntradaDeImagenes } from '../hooks/useEntradaDeImagenes';
 import { CrearSdaDeSesiones } from '../components/sesiones/CrearSdaDeSesiones';
-import type { EfData, InstrumentoRefEF, ModalidadEF, SesionEF } from '../types/ef';
+import type { EfData, ImagenSesion, InstrumentoRefEF, ModalidadEF, SesionEF } from '../types/ef';
 import type { InlineFile } from '../services/gemini';
 import { ValorarRegistro } from '../components/ValorarRegistro';
+
+/** La sesión sin sus imágenes: lo que se compara y lo que va al borrador. */
+const sinImagenes = (s: SesionEF): SesionEF => (s.imagenes ? (({ imagenes: _i, ...r }) => { void _i; return r; })(s) : s);
 
 interface Props {
   classes: Class[];
@@ -135,14 +140,32 @@ export function Sesiones({
   const borrador = useBorradorVentana<SesionEF>('sesion-ef', !!editando, s => s.titulo || s.objetivo);
   const { cambiar: cambiarBorrador } = borrador;
   const guardadaAntes = editando ? ef.sesiones.find(s => s.id === editando.id) : undefined;
-  const hayCambios = !!editando && (!guardadaAntes || JSON.stringify(guardadaAntes) !== JSON.stringify(editando));
+  // Las imágenes se comparan por referencia: pasar megas de imágenes por JSON en cada tecla se notaría
+  const hayCambios = !!editando && (!guardadaAntes || guardadaAntes.imagenes !== editando.imagenes
+    || JSON.stringify(sinImagenes(guardadaAntes)) !== JSON.stringify(sinImagenes(editando)));
+  // El borrador va sin las imágenes: pesan, y el almacenamiento donde se guarda es pequeño
   useEffect(() => {
-    if (editando && hayCambios && (editando.titulo.trim() || editando.objetivo.trim() || editando.principal.trim())) cambiarBorrador(editando);
+    if (editando && hayCambios && (editando.titulo.trim() || editando.objetivo.trim() || editando.principal.trim())) {
+      cambiarBorrador(sinImagenes(editando));
+    }
   }, [editando, hayCambios, cambiarBorrador]);
   function continuarBorrador() {
     const d = borrador.continuar();
-    if (d) { setIa(null); setEditando(d); }
+    if (!d) return;
+    setIa(null);
+    // Si la sesión ya estaba guardada, sus imágenes se quedan: el borrador no las lleva
+    const guardada = ef.sesiones.find(x => x.id === d.id);
+    setEditando(guardada?.imagenes?.length ? { ...d, imagenes: guardada.imagenes } : d);
   }
+
+  /* Imágenes de la sesión: pegadas, arrastradas o elegidas de un archivo */
+  const cambiarImagenes = useCallback((f: (prev: ImagenSesion[]) => ImagenSesion[]) => {
+    setEditando(e => {
+      if (!e) return e;
+      const imagenes = f(e.imagenes ?? []);
+      return imagenes.length ? { ...e, imagenes } : (({ imagenes: _i, ...r }) => { void _i; return r; })(e);
+    });
+  }, []);
 
   // El currículo de la clase que toca: la de la IA o la de la sesión abierta
   const claseIa = classes.find(c => c.id === ia?.claseId) ?? null;
@@ -153,6 +176,11 @@ export function Sesiones({
     const soloEF = m.filter(x => esAsignaturaEF(x.asignatura) || esAsignaturaEF(x.entry.nombre));
     return soloEF.length ? soloEF : m;
   };
+
+  const entradaImagenes = useEntradaDeImagenes(
+    editando?.imagenes ?? [], cambiarImagenes,
+    !!editando && !dibujando && !evaluando && !altPicker && !preview && !ia,
+  );
 
   const ordenadas = useMemo(() => [...ef.sesiones].sort((a, b) => (a.fecha ?? '9999').localeCompare(b.fecha ?? '9999')), [ef.sesiones]);
   const nombreClase = (id?: string) => classes.find(c => c.id === id)?.name ?? '';
@@ -512,6 +540,8 @@ export function Sesiones({
 
       <Modal open={!!editando} onClose={() => { if (!dibujando && !evaluando) setEditando(null); }} wide title={esNueva ? (editando?.ia ? t('Sesión preparada con IA') : t('Nueva sesión')) : editando?.titulo}>
         {editando && (
+          <div style={{ position: 'relative' }} {...entradaImagenes.arrastre}>
+          <AvisoDeSoltar visible={entradaImagenes.arrastrando} />
           <div className="ap-form">
             <div className="ap-acciones" style={{ gridColumn: '1 / -1', marginBottom: 14, padding: '10px 12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10 }}>
               <button className="btn-accent" onClick={guardar}><Check size={15} />{t('Guardar')}</button>
@@ -585,6 +615,7 @@ export function Sesiones({
               <input type="checkbox" checked={!!editando.completada} onChange={e => setEditando({ ...editando, completada: e.target.checked })} />
               {t('Sesión completada')}
             </label>
+            <ImagenesSesion entrada={entradaImagenes} />
             <SesionEvaluacionCircuito
               sesion={editando} onChange={setEditando} ef={ef} rubrics={rubrics} dianas={dianas} conCircuito={esEF}
               evaluations={evaluations} students={students} onEvaluar={onAddEvaluation ? setEvaluando : undefined}
@@ -594,6 +625,7 @@ export function Sesiones({
               <CriteriosOficialesPicker idPrefix="ef-s-co" cls={claseEd} comunidad={comunidad}
                 value={editando.criterios ?? []} onChange={v => setEditando({ ...editando, criterios: v })} />
             </div>
+          </div>
           </div>
         )}
       </Modal>

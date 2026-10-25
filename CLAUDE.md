@@ -129,6 +129,12 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Inventario**: «Importar material» (EfMaterial) lee Excel, CSV, texto, Word o PDF (`leerMaterial.ts`, `importarMaterial.ts`; PDF por Gemini, solo tras pulsar), con vista previa y fusión con lo existente.
 - **Autoguardado** (`src/hooks/useGuardadoAutomatico.ts`): además de la pausa de 700 ms, escribe al instante al cerrar la ventana, ocultar la página o cambiar de perfil, para no perder lo hecho en la pausa. Sin comprobar en un móvil real.
 
+## Imágenes en las sesiones (2.21.0, 25-10-2026)
+
+- Petición del dueño: poder pegar una imagen copiada de internet o de donde sea, o arrastrarla, en el apartado de sesiones. El editor de una sesión (EF y docente de aula, `src/pages/Sesiones.tsx`) lleva «Imágenes» (hasta 12): Ctrl+V desde cualquier punto del editor, arrastrar sobre él o «Elegir imagen». Se reducen antes de guardarlas (JPEG, 1.400 px) y van en `SesionEF.imagenes`; salen en la vista previa y en el PDF. Detalle y lo que falta en `docs/EF.md` (Sesiones). Código: `src/lib/imagenesSesion.ts`, `src/hooks/useEntradaDeImagenes.ts`, `src/components/sesiones/ImagenesSesion.tsx`.
+- **Tres cosas que no hay que deshacer:** `normalizarEF` (`src/lib/ef.ts`) reconstruye cada sesión campo a campo, así que un campo nuevo de la sesión hay que añadirlo ahí o se pierde al abrir el perfil; solo se aceptan imágenes `data:image/jpeg|png|webp|gif` (nunca SVG ni direcciones web); y el borrador automático va sin imágenes (`sinImagenes` en `Sesiones.tsx`): `localStorage` es pequeño, y al continuar un borrador de una sesión ya guardada se conservan las suyas.
+- La privacidad (apartado 2 de la app) dice que las imágenes de una sesión se quedan en el equipo.
+
 ## Actas con competencias (23-10-2026)
 
 - **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Las competencias clave salen siempre en 1-4 o en 1-10 (desde la 2.18.23; antes la escala se deducía del nivel más alto evaluado y podía salir 1-3): las notas de rúbricas con otros niveles se pasan a esa escala con `max_level`. Se puede ocultar con el selector «Evaluación por competencias».
