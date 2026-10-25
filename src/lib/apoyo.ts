@@ -4,12 +4,12 @@
 import type { ComunidadId } from './curriculum/comunidades';
 import type { ScheduleBlock } from '../types';
 import type {
-  AgendaVisual, AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, ConQuien, CoordinacionApoyo, CursoDe, DocumentoApoyo,
+  AgendaVisual, AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, ConQuien, CoordinacionApoyo, CursoDe, DocumentoApoyo, EvaluacionObjetivo,
   Especialidad, FotoApoyo, GrupoApoyo, Logro, ObjetivoApoyo, PasoAgenda, ProgramaApoyo, RegistroAlumno, SesionApoyo, Trimestre,
 } from '../types/apoyo';
 
 export const APOYO_VACIO: ApoyoData = {
-  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], agendas: [], fotos: [],
+  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], evaluaciones: [], agendas: [], fotos: [],
 };
 
 export function nuevoIdApoyo(prefijo: string): string {
@@ -316,12 +316,92 @@ export const CARAS: readonly { id: Cara; cara: string; label: string }[] = [
   { id: 1, cara: '🙁', label: 'Ha ido mal' },
 ];
 
+/* ── Cierre de trimestre ── */
+
+/** Cómo va un objetivo al cerrar el trimestre: un logro, o «sin trabajar». */
+export type ResultadoObjetivo = Logro | 'sin';
+
+/** Lo que sugiere el registro de un objetivo: lo último que se anotó, o «sin trabajar». */
+export const resultadoSugerido = (r: ResumenObjetivo): ResultadoObjetivo => r.ultimo ?? 'sin';
+
+/** La valoración del especialista de un objetivo en un trimestre, si ya cerró ese trimestre. */
+export function evaluacionDe(d: ApoyoData, alumnoId: string, objetivoId: string, trimestre: Trimestre): EvaluacionObjetivo | undefined {
+  return d.evaluaciones.find(e => e.alumnoId === alumnoId && e.objetivoId === objetivoId && e.trimestre === trimestre);
+}
+
+/** Una fila del cierre: el objetivo, lo que dice el registro y lo que el especialista va a dar por bueno. */
+export interface FilaCierre {
+  programa: ProgramaApoyo;
+  objetivo: ObjetivoApoyo;
+  resumen: ResumenObjetivo;
+  resultado: ResultadoObjetivo;
+  comentario: string;
+  /** Seguir trabajándolo el trimestre siguiente. */
+  seguir: boolean;
+  /** Ya estaba guardada. */
+  guardada: boolean;
+}
+
+/**
+ * Las filas del cierre de un trimestre, una por objetivo que se trabaja en él. Si ya se cerró, lo que se
+ * guardó; si no, lo que sugiere el registro. Se propone seguir con lo que está en proceso o sin conseguir
+ * (y no llega al 3.º, donde ya no hay siguiente).
+ */
+export function filasDeCierre(d: ApoyoData, alumnoId: string, trimestre: Trimestre): FilaCierre[] {
+  const sesiones = d.sesiones.filter(s => s.alumnos.some(r => r.alumnoId === alumnoId));
+  return d.programas.filter(p => p.alumnoId === alumnoId).flatMap(programa => programa.objetivos
+    .filter(o => o.trimestres.includes(trimestre))
+    .map(objetivo => {
+      const resumen = resumenObjetivo(sesiones, alumnoId, objetivo.id, trimestre);
+      const previa = evaluacionDe(d, alumnoId, objetivo.id, trimestre);
+      const resultado = previa?.resultado ?? resultadoSugerido(resumen);
+      const siguiente = trimestre < 3 ? ((trimestre + 1) as Trimestre) : undefined;
+      return {
+        programa, objetivo, resumen, resultado, comentario: previa?.comentario ?? '',
+        seguir: siguiente !== undefined && objetivo.trimestres.includes(siguiente)
+          ? true
+          : siguiente !== undefined && resultado !== 'si',
+        guardada: !!previa,
+      };
+    }));
+}
+
+/** Si el trimestre ya está cerrado: tiene objetivos y todos tienen valoración. */
+export function trimestreCerrado(d: ApoyoData, alumnoId: string, trimestre: Trimestre): boolean {
+  const filas = filasDeCierre(d, alumnoId, trimestre);
+  return filas.length > 0 && filas.every(f => f.guardada);
+}
+
+/**
+ * Guarda el cierre de un trimestre: la valoración de cada objetivo y, en los que se siguen trabajando, el
+ * trimestre siguiente en sus trimestres. Lo que no se sigue ya no se quita de ningún trimestre: solo se
+ * añade, para no borrar la programación.
+ */
+export function cerrarTrimestre(
+  d: ApoyoData, alumnoId: string, trimestre: Trimestre,
+  filas: readonly { objetivoId: string; resultado: ResultadoObjetivo; comentario: string; seguir: boolean }[], hoy: string,
+): ApoyoData {
+  const ids = new Set(filas.map(f => f.objetivoId));
+  const evaluaciones = [
+    ...d.evaluaciones.filter(e => !(e.alumnoId === alumnoId && e.trimestre === trimestre && ids.has(e.objetivoId))),
+    ...filas.map(f => ({ alumnoId, objetivoId: f.objetivoId, trimestre, resultado: f.resultado, comentario: f.comentario.trim(), fecha: hoy })),
+  ];
+  const siguiente = trimestre < 3 ? ((trimestre + 1) as Trimestre) : undefined;
+  const seguir = new Set(filas.filter(f => f.seguir).map(f => f.objetivoId));
+  const programas = siguiente === undefined ? d.programas : d.programas.map(p => p.alumnoId !== alumnoId ? p : {
+    ...p,
+    objetivos: p.objetivos.map(o => seguir.has(o.id) && !o.trimestres.includes(siguiente)
+      ? { ...o, trimestres: [...o.trimestres, siguiente].sort() as Trimestre[] } : o),
+  });
+  return { ...d, evaluaciones, programas };
+}
+
 export interface DatosTrimestre {
   /** Sesiones de sus grupos en que tiene registro, y en cuántas no vino. */
   sesiones: number;
   ausencias: number;
   /** Cada objetivo del trimestre, con su programa y cómo ha ido. */
-  objetivos: { programa: ProgramaApoyo; objetivo: ObjetivoApoyo; resumen: ResumenObjetivo }[];
+  objetivos: { programa: ProgramaApoyo; objetivo: ObjetivoApoyo; resumen: ResumenObjetivo; evaluacion?: EvaluacionObjetivo }[];
   /** Media de cada aspecto de 1 a 3 y en cuántas sesiones se anotó. */
   respuesta: Record<AspectoRespuesta, { media: number | null; veces: number }>;
   /** Las notas del docente, con su fecha, de la más antigua a la más reciente. */
@@ -365,7 +445,10 @@ export function datosDelTrimestre(d: ApoyoData, alumnoId: string, trimestre: Tri
       .filter(p => p.alumnoId === alumnoId)
       .flatMap(programa => programa.objetivos
         .filter(o => o.trimestres.includes(trimestre))
-        .map(objetivo => ({ programa, objetivo, resumen: resumenObjetivo(sesiones, alumnoId, objetivo.id, trimestre) }))),
+        .map(objetivo => ({
+          programa, objetivo, resumen: resumenObjetivo(sesiones, alumnoId, objetivo.id, trimestre),
+          evaluacion: evaluacionDe(d, alumnoId, objetivo.id, trimestre),
+        }))),
     respuesta,
     notas: registros.filter(x => x.r.nota.trim()).map(x => ({ fecha: x.s.fecha, texto: x.r.nota.trim() })),
     temas: [...new Map(sesiones.filter(s => s.temaClase.trim()).map(s => [s.temaClase.trim(), { fecha: s.fecha, texto: s.temaClase.trim() }])).values()],
@@ -419,6 +502,14 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
   const alumnos = lista<AlumnoApoyo>(o.alumnos, v => {
     const a = obj(v);
     if (!a || !esTexto(a.id) || !esTexto(a.nombre)) return null;
+    const inf = obj(a.informe);
+    const informe = inf && esTexto(inf.fecha)
+      ? {
+        fecha: inf.fecha, ...(esTexto(inf.archivo) && inf.archivo ? { archivo: inf.archivo } : {}),
+        fortalezas: esTexto(inf.fortalezas) ? inf.fortalezas : '', orientaciones: esTexto(inf.orientaciones) ? inf.orientaciones : '',
+        ambitos: lista<string>(inf.ambitos, x => (esTexto(x) && x.trim() ? x : null)),
+      }
+      : undefined;
     return {
       id: a.id, nombre: a.nombre,
       claseOrigen: esTexto(a.claseOrigen) ? a.claseOrigen : '',
@@ -430,6 +521,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       diagnostico: esTexto(a.diagnostico) ? a.diagnostico : '',
       necesidades: esTexto(a.necesidades) ? a.necesidades : '',
       notas: esTexto(a.notas) ? a.notas : '',
+      ...(informe ? { informe } : {}),
     };
   });
   const ids = new Set(alumnos.map(a => a.id));
@@ -531,6 +623,18 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       acuerdos: esTexto(x.acuerdos) ? x.acuerdos : '',
     };
   });
+  const evaluaciones = lista<EvaluacionObjetivo>(o.evaluaciones, v => {
+    const x = obj(v);
+    if (!x || !esTexto(x.alumnoId) || !ids.has(x.alumnoId) || !esTexto(x.objetivoId)) return null;
+    const trimestre = Number(x.trimestre);
+    const resultado = x.resultado;
+    if (!(trimestre === 1 || trimestre === 2 || trimestre === 3)) return null;
+    if (!(resultado === 'si' || resultado === 'proceso' || resultado === 'no' || resultado === 'sin')) return null;
+    return {
+      alumnoId: x.alumnoId, objetivoId: x.objetivoId, trimestre, resultado,
+      comentario: esTexto(x.comentario) ? x.comentario : '', fecha: esTexto(x.fecha) ? x.fecha : '',
+    };
+  });
   const fotos = lista<FotoApoyo>(o.fotos, v => {
     const x = obj(v);
     return x && esTexto(x.id) && esTexto(x.datos) && x.datos.startsWith('data:image/')
@@ -557,7 +661,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       }),
     };
   });
-  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, agendas, fotos };
+  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, evaluaciones, agendas, fotos };
 }
 
 /**
@@ -581,6 +685,7 @@ export function sinAlumno(d: ApoyoData, alumnoId: string): ApoyoData {
       .filter(s => s.alumnos.length > 0),
     documentos: d.documentos.filter(x => x.alumnoId !== alumnoId),
     coordinaciones: d.coordinaciones.filter(x => x.alumnoId !== alumnoId),
+    evaluaciones: d.evaluaciones.filter(x => x.alumnoId !== alumnoId),
     agendas: d.agendas.filter(a => a.alumnoId !== alumnoId),
     // Las fotos son la biblioteca del docente: se quitan una a una
     fotos: d.fotos,

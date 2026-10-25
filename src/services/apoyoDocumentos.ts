@@ -140,16 +140,24 @@ export function objetivosTexto(d: ApoyoData, alumnoId: string, materias: Materia
   }).join('\n\n') || t('Todavía no tiene programas.');
 }
 
+/** Cómo se dice cada resultado a la IA. */
+const NOMBRE_RESULTADO = { si: 'conseguido', proceso: 'en proceso', no: 'no conseguido', sin: 'sin trabajar' } as const;
+
 /** Lo que dice el registro de un trimestre, como texto para la IA. */
 export function datosParaIA(datos: DatosTrimestre, trimestre: Trimestre): string {
   const lineas = [
     `Trimestre: ${trimestre}º. Sesiones registradas: ${datos.sesiones}; ausencias: ${datos.ausencias}.`,
     'Objetivos del trimestre y cómo han ido en el registro:',
-    ...datos.objetivos.map(({ programa, objetivo, resumen: r }) => {
+    ...datos.objetivos.map(({ programa, objetivo, resumen: r, evaluacion }) => {
       const total = r.si + r.proceso + r.no;
-      return `- [${programa.ambito}] ${objetivo.texto}: ` + (total
+      const registro = total
         ? `conseguido ${r.si}, en proceso ${r.proceso}, no conseguido ${r.no}; último registro: ${r.ultimo === 'si' ? 'conseguido' : r.ultimo === 'proceso' ? 'en proceso' : 'no conseguido'}.`
-        : 'sin registros este trimestre.');
+        : 'sin registros este trimestre.';
+      // Al cerrar el trimestre, la valoración del especialista manda sobre el registro
+      const cierre = evaluacion
+        ? ` VALORACIÓN FINAL DEL ESPECIALISTA (es la que vale): ${NOMBRE_RESULTADO[evaluacion.resultado]}${evaluacion.comentario ? `. ${evaluacion.comentario}` : ''}.`
+        : '';
+      return `- [${programa.ambito}] ${objetivo.texto}: ${registro}${cierre}`;
     }),
     'Cómo ha respondido (media de 1 a 3, donde 3 es bien):',
     ...(Object.keys(datos.respuesta) as AspectoRespuesta[]).map(a => {
@@ -243,6 +251,7 @@ export async function generarDocumento(args: GenerarArgs, callbacks: Callbacks =
       ? `Coordinaciones hasta ahora:\n${coordinacionesTexto(coordinacionesDe(data, alumno.id)).join('\n')}\n` : '') +
     (tipo === 'familia' ? `\nObjetivos del próximo trimestre:\n${proximos(data, alumno.id, trimestre).join('\n') || '(ninguno todavía)'}\n` : '');
   const reglas = '\nRedacta SOLO a partir de estos datos. Si un objetivo no tiene registros, dilo así; no inventes logros, ' +
+    'y cuando un objetivo tenga una valoración final del especialista, esa es la que vale aunque el registro diga otra cosa, ' +
     'pruebas, fechas ni datos del alumno. Usa el nombre del alumno tal como aparece. Sin títulos ni negritas dentro de los textos.';
 
   if (tipo === 'pap') {
@@ -333,7 +342,7 @@ function proximos(d: ApoyoData, alumnoId: string, trimestre: Trimestre): string[
     return programas.flatMap(p => p.objetivos.filter(o => o.trimestres.includes(sig)).map(o => `- [${p.ambito}] ${o.texto}`));
   }
   const datos = datosDelTrimestre(d, alumnoId, 3);
-  return datos.objetivos.filter(o => o.resumen.ultimo !== 'si').map(o => `- [${o.programa.ambito}] ${o.objetivo.texto} (sin conseguir del todo)`);
+  return datos.objetivos.filter(o => (o.evaluacion?.resultado ?? o.resumen.ultimo) !== 'si').map(o => `- [${o.programa.ambito}] ${o.objetivo.texto} (sin conseguir del todo)`);
 }
 
 /* ── Exportar ── */

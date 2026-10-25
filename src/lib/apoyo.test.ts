@@ -3,7 +3,7 @@ import {
   ambitosDe, trimestreDe, diaDeLaSemana, gruposDelDia, tieneDesfase, nivelDe,
   objetivosDelTrimestre, sesionDe, sesionConDatos, resumenObjetivo,
   normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, CATEGORIAS_NEAE, apoyoParaOtroCurso,
-  contextoFichaApoyo,
+  contextoFichaApoyo, filasDeCierre, trimestreCerrado, cerrarTrimestre, datosDelTrimestre,
 } from './apoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
@@ -144,6 +144,7 @@ describe('carga y borrado', () => {
     documentos: [{ id: 'd', alumnoId: 'a', tipo: 'familia', trimestre: 1, fecha: '2026-12-15', titulo: 'Informe',
       apartados: [{ id: 'trabajado', titulo: 'Lo trabajado', texto: 'Texto' }] }],
     coordinaciones: [{ id: 'c', alumnoId: 'a', fecha: '2026-10-20', con: 'familia', asistentes: 'Madre', temas: 'Lectura en casa', acuerdos: 'Leer 10 minutos al día' }],
+    evaluaciones: [],
     agendas: [
       { id: 'ag1', alumnoId: 'a', titulo: 'Sesión de lectura', pasos: [{ id: 'p1', picto: 'hello', texto: 'Hola' }, { id: 'p2', fotoId: 'f1', texto: 'Mi mesa' }] },
       { id: 'ag2', titulo: 'Rutina de entrada', pasos: [{ id: 'p3', picto: 'hang-coat', texto: 'Colgar el abrigo' }, { id: 'p4', fotoId: 'f2', texto: 'La clase' }] },
@@ -245,5 +246,44 @@ describe('ficha adaptada', () => {
     expect(txt).toContain('Objetivos que trabaja este trimestre: Leer sílabas directas; Contar hasta 100.');
     expect(txt).not.toContain('Marta');
     expect(txt).not.toContain('Discapacidad intelectual');
+  });
+});
+
+describe('cierre de trimestre', () => {
+  const base = (): ApoyoData => ({
+    ...APOYO_VACIO,
+    alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' }],
+    programas: [{ id: 'p', alumnoId: 'a', ambito: 'Lectoescritura', especialidad: 'PT', objetivos: [
+      { id: 'o1', texto: 'Leer sílabas', trimestres: [1, 2], criterios: [] },
+      { id: 'o2', texto: 'Copiar frases', trimestres: [1], criterios: [] },
+    ] }],
+    sesiones: [{ id: 's', grupoId: 'g', fecha: '2026-10-05', temaClase: '', alumnos: [{ alumnoId: 'a', objetivos: { o1: 'proceso' }, respuesta: {}, nota: '' }] }],
+  });
+
+  it('sugiere lo último registrado y propone seguir con lo no conseguido', () => {
+    const f = filasDeCierre(base(), 'a', 1);
+    expect(f.map(x => [x.objetivo.id, x.resultado, x.guardada])).toEqual([['o1', 'proceso', false], ['o2', 'sin', false]]);
+    // o1 ya sigue en el 2.º trimestre; o2 no, y no se ha trabajado: se propone seguir
+    expect(f.map(x => x.seguir)).toEqual([true, true]);
+    expect(trimestreCerrado(base(), 'a', 1)).toBe(false);
+  });
+
+  it('al cerrar guarda la valoración y añade el trimestre siguiente a lo que se sigue', () => {
+    const d = cerrarTrimestre(base(), 'a', 1, [
+      { objetivoId: 'o1', resultado: 'si', comentario: ' Lo lee solo ', seguir: false },
+      { objetivoId: 'o2', resultado: 'no', comentario: '', seguir: true },
+    ], '2026-12-15');
+    expect(d.evaluaciones.map(e => [e.objetivoId, e.resultado, e.comentario])).toEqual([['o1', 'si', 'Lo lee solo'], ['o2', 'no', '']]);
+    expect(d.programas[0].objetivos.map(o => o.trimestres)).toEqual([[1, 2], [1, 2]]);
+    expect(trimestreCerrado(d, 'a', 1)).toBe(true);
+    // Volver a cerrar sustituye, no duplica
+    expect(cerrarTrimestre(d, 'a', 1, [{ objetivoId: 'o1', resultado: 'proceso', comentario: '', seguir: false }], '2026-12-16').evaluaciones).toHaveLength(2);
+  });
+
+  it('en el 3.º trimestre no hay siguiente y la valoración entra en los datos para la IA', () => {
+    const d = cerrarTrimestre({ ...base(), programas: [{ ...base().programas[0], objetivos: [{ id: 'o1', texto: 'Leer sílabas', trimestres: [3], criterios: [] }] }] }, 'a', 3,
+      [{ objetivoId: 'o1', resultado: 'si', comentario: 'Lo domina', seguir: true }], '2027-06-10');
+    expect(d.programas[0].objetivos[0].trimestres).toEqual([3]);
+    expect(datosDelTrimestre(d, 'a', 3).objetivos[0].evaluacion?.resultado).toBe('si');
   });
 });

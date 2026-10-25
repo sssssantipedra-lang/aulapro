@@ -73,6 +73,8 @@ export function alumnoParaIA(a: AlumnoApoyo, nombreCurso: (c: CursoDe) => string
     a.diagnostico ? `Diagnóstico: ${a.diagnostico}` : '',
     a.necesidades ? `Necesidades educativas: ${a.necesidades}` : '',
     a.notas ? `Notas del especialista: ${a.notas}` : '',
+    a.informe?.fortalezas ? `Fortalezas (informe del orientador): ${a.informe.fortalezas}` : '',
+    a.informe?.orientaciones ? `Orientaciones del informe del orientador: ${a.informe.orientaciones}` : '',
   ].filter(Boolean).join('\n');
 }
 

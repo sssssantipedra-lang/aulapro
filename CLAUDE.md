@@ -154,6 +154,11 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 - Petición del dueño: elegir cuánto cuenta cada actividad dentro de su categoría y, de ahí, en la nota final. `GradeItem.weight` (% dentro de la categoría; ausente = cuenta igual que las demás, como antes). Los pesos son relativos: la media divide por lo que suman las notas que el alumno tiene, y las notas sin peso cuentan como su parte igual. **Toda la cuenta está en `src/lib/ponderacion.ts`** (`mediaDeCategoria`): el cuaderno, las actas, los informes y el asistente la usan; una pantalla nueva que calcule medias no debe volver a hacer la media simple. Se edita en «Editar categoría» (`PesosDeNotas`, todas a la vez) y en «Editar nota» (con lo que pesa en la nota final).
 
+## PT y AL: informe del orientador y cierre del trimestre (2.18.24, 25-10-2026)
+
+- Petición del dueño, que describe el trabajo de un PT: programación anual individual a partir del informe sociopsicopedagógico del orientador, objetivos evaluados cada trimestre, informes al tutor y a las familias, registro de cada sesión. Análisis completo y lo que queda en `docs/PTAL.md` («El flujo real del curso y lo que falta»).
+- Hecho: **informe del orientador** (se sube o se pega, la IA propone la ficha, los programas y sus objetivos y el docente lo revisa; el informe no se guarda, solo las conclusiones; un PDF se envía sin enmascarar el nombre y la privacidad lo dice) y **cierre del trimestre** (`ApoyoData.evaluaciones`: la valoración del especialista manda sobre el registro en los informes y el PAP). Pendiente: generar los documentos de todo el alumnado de una vez y la adaptación de la programación de aula (ACI, ACIS), esta última a falta de los modelos de Cataluña y Madrid.
+
 ## Publicar
 
 - La app: Actions, "Publicar versión" (`release.yml`). Sube los instaladores a https://descargas.aulapro.app.

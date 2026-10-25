@@ -18,7 +18,7 @@ import {
   NOMBRE_TIPO, cabecera, generarDocumento, guardarDocumentoDocx, guardarDocumentoPdf, papDe, tiposDe,
 } from '../../services/apoyoDocumentos';
 import { isoDate } from '../../lib/utils';
-import { nivelDe, trimestreDe } from '../../lib/apoyo';
+import { nivelDe, trimestreCerrado, trimestreDe } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoApoyo, Trimestre } from '../../types/apoyo';
 import type { Section } from '../../types';
@@ -31,16 +31,20 @@ interface Props {
   comunidad: ComunidadId | undefined;
   docente: { nombre: string; centro: string; curso: string };
   onNav: (s: Section) => void;
+  /** El trimestre con el que se abre, si se viene del cierre. */
+  trimestreInicial?: Trimestre;
+  /** Para ir a cerrar el trimestre antes de preparar los informes. */
+  onCierre?: () => void;
 }
 
-export function DocumentosApoyo({ alumno, data, onChange, especialidades, comunidad, docente, onNav }: Props) {
+export function DocumentosApoyo({ alumno, data, onChange, especialidades, comunidad, docente, onNav, trimestreInicial, onCierre }: Props) {
   const { t, lang } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   const { materias } = useMateriasDeNivel(comunidad, nivelDe(alumno));
   const tipos = tiposDe(comunidad);
   const [tipo, setTipo] = useState<TipoDocumentoApoyo>('familia');
-  const [trimestre, setTrimestre] = useState<Trimestre>(trimestreDe(isoDate()));
+  const [trimestre, setTrimestre] = useState<Trimestre>(trimestreInicial ?? trimestreDe(isoDate()));
   const [generando, setGenerando] = useState(false);
   const [abiertoId, setAbiertoId] = useState<string | null>(null);
   const abierto = data.documentos.find(d => d.id === abiertoId) ?? null;
@@ -129,6 +133,12 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
               ))}
             </div>
           </fieldset>
+        )}
+        {tipo !== 'programacion' && onCierre && !trimestreCerrado(data, alumno.id, trimestre) && data.programas.some(p => p.alumnoId === alumno.id) && (
+          <p className="ap-aviso" style={{ marginBottom: 12 }}>
+            {t('El {n}º trimestre aún no está cerrado: el informe usará lo último que registraste.', { n: trimestre })}{' '}
+            <button type="button" className="home-link" onClick={onCierre}>{t('Cerrar el trimestre')}</button>
+          </p>
         )}
         <p className="ap-aviso" style={{ marginBottom: 12 }}>
           {tipo === 'pap'

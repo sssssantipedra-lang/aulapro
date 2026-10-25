@@ -19,7 +19,7 @@ export interface DocumentoLeido {
 }
 
 /** El texto de un .docx: lo que hay dentro de sus párrafos, uno por línea. */
-async function textoDeDocx(file: File): Promise<string> {
+export async function textoDeDocx(file: File): Promise<string> {
   const JSZip = (await import('jszip')).default;
   const zip = await JSZip.loadAsync(await file.arrayBuffer());
   const xml = await zip.file('word/document.xml')?.async('string');

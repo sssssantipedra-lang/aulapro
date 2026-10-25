@@ -44,6 +44,7 @@ const data: ApoyoData = {
   ],
   documentos: [],
   coordinaciones: [],
+  evaluaciones: [],
   agendas: [],
   fotos: [],
 };
