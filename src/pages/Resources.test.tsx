@@ -274,7 +274,7 @@ describe('Recursos · ficha adaptada (PT y AL)', () => {
     const apoyo = {
       alumnos: [{ id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', matricula: { etapa: 'primaria' as const, curso: 4 }, nivel: { etapa: 'primaria' as const, curso: 2 },
         categorias: ['Discapacidad intelectual'], diagnostico: 'Discapacidad intelectual leve', necesidades: 'Aprende mejor con apoyo visual.', notas: '' }],
-      grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], agendas: [], fotos: [],
+      grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], evaluaciones: [], agendas: [], fotos: [],
     };
     render(
       <I18nProvider><ToastProvider>

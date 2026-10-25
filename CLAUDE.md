@@ -129,7 +129,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 ## Actas con competencias (23-10-2026)
 
-- **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Se puede ocultar con el selector «Evaluación por competencias».
+- **Segunda página del acta** (petición del dueño): `src/pages/Records.tsx` añade una página de evaluación por competencias con dos tablas, competencias clave LOMLOE y competencias específicas, calculadas de las evaluaciones con rúbricas y dianas (`Evaluation.competencyScores` y `officialCriteriaScores`, ver `lib/curriculum/evaluacionPorCriterios.ts`). Las competencias clave salen siempre en 1-4 o en 1-10 (desde la 2.18.23; antes la escala se deducía del nivel más alto evaluado y podía salir 1-3): las notas de rúbricas con otros niveles se pasan a esa escala con `max_level`. Se puede ocultar con el selector «Evaluación por competencias».
 - **Escala de las competencias clave, a elección del docente** (23-10-2026): «Escala de las competencias clave» en el acta, 1-4 (niveles, como la Diana) o sobre 10; el documento dice siempre en qué escala va («sobre 4» o «sobre 10»).
 
 ## Tarjetas interactivas (23-10-2026)
@@ -153,6 +153,11 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 ## Peso de cada nota en el cuaderno (2.18.22, 25-10-2026)
 
 - Petición del dueño: elegir cuánto cuenta cada actividad dentro de su categoría y, de ahí, en la nota final. `GradeItem.weight` (% dentro de la categoría; ausente = cuenta igual que las demás, como antes). Los pesos son relativos: la media divide por lo que suman las notas que el alumno tiene, y las notas sin peso cuentan como su parte igual. **Toda la cuenta está en `src/lib/ponderacion.ts`** (`mediaDeCategoria`): el cuaderno, las actas, los informes y el asistente la usan; una pantalla nueva que calcule medias no debe volver a hacer la media simple. Se edita en «Editar categoría» (`PesosDeNotas`, todas a la vez) y en «Editar nota» (con lo que pesa en la nota final).
+
+## PT y AL: informe del orientador y cierre del trimestre (2.18.24, 25-10-2026)
+
+- Petición del dueño, que describe el trabajo de un PT: programación anual individual a partir del informe sociopsicopedagógico del orientador, objetivos evaluados cada trimestre, informes al tutor y a las familias, registro de cada sesión. Análisis completo y lo que queda en `docs/PTAL.md` («El flujo real del curso y lo que falta»).
+- Hecho: **informe del orientador** (se sube o se pega, la IA propone la ficha y los programas, recoge los objetivos que el informe plantea, y el docente lo revisa; **los objetivos del informe y los que indica la orientadora, aunque no estén en el informe, son los importantes: entran tal cual y la IA solo propone otros además**, `objetivosOrientacion`; el informe no se guarda, solo las conclusiones; un PDF se envía sin enmascarar el nombre y la privacidad lo dice) y **cierre del trimestre** (`ApoyoData.evaluaciones`: la valoración del especialista manda sobre el registro en los informes y el PAP). **Documentos de todo el alumnado de una vez** (Mi alumnado › «Documentos del trimestre», `apoyoLote.ts`). Pendiente: la adaptación de la programación de aula (ACI, ACIS), a falta de los modelos de Cataluña y Madrid.
 
 ## Publicar
 

@@ -141,5 +141,5 @@ export function buildDemoApoyo(hoy: Date = new Date(), lang: Lang = 'es'): Apoyo
     ] },
   ];
 
-  return { alumnos, grupos, programas, sesiones, documentos: [], coordinaciones, agendas, fotos: [] };
+  return { alumnos, grupos, programas, sesiones, documentos: [], coordinaciones, evaluaciones: [], agendas, fotos: [] };
 }

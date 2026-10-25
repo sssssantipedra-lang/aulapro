@@ -41,6 +41,8 @@ import type { Section } from '../../types';
 
 const ProgramasApoyo = lazy(() => import('./ProgramasApoyo').then(m => ({ default: m.ProgramasApoyo })));
 const CoordinacionesApoyo = lazy(() => import('./CoordinacionesApoyo').then(m => ({ default: m.CoordinacionesApoyo })));
+const CierreTrimestreApoyo = lazy(() => import('./CierreTrimestreApoyo').then(m => ({ default: m.CierreTrimestreApoyo })));
+const InformeOrientacionApoyo = lazy(() => import('./InformeOrientacionApoyo').then(m => ({ default: m.InformeOrientacionApoyo })));
 const DocumentosApoyo = lazy(() => import('./DocumentosApoyo').then(m => ({ default: m.DocumentosApoyo })));
 
 interface Props {
@@ -56,6 +58,7 @@ const PESTANAS: { id: PestanaAlumno; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
   { id: 'programa', label: 'Programa' },
   { id: 'sesiones', label: 'Sesiones@@apoyo' },
+  { id: 'cierre', label: 'Evaluación' },
   { id: 'coordinaciones', label: 'Coordinaciones' },
   { id: 'documentos', label: 'Documentos' },
   { id: 'datos', label: 'Datos' },
@@ -87,6 +90,8 @@ export function AlumnoApoyo({ data, onChange, especialidades, comunidad, docente
   const pedido = useAlumnoPedido();
   const [pestana, setPestana] = useState<PestanaAlumno>(pedido?.pestana ?? 'resumen');
   const [edicion, setEdicion] = useState<AlumnoEnEdicion | null>(null);
+  /** El trimestre con el que se abre «Documentos» al venir del cierre. */
+  const [trimestreDocs, setTrimestreDocs] = useState<Trimestre | undefined>();
   const alumno = data.alumnos.find(a => a.id === pedido?.alumnoId);
 
   // Sin alumno (se ha eliminado, o se llegó sin elegir ninguno): a la lista
@@ -154,14 +159,18 @@ export function AlumnoApoyo({ data, onChange, especialidades, comunidad, docente
           {pestana === 'programa' && (
             <ProgramasApoyo alumno={alumno} data={data} onChange={onChange} especialidades={especialidades} comunidad={comunidad} onNav={onNav} />
           )}
+          {pestana === 'cierre' && (
+            <CierreTrimestreApoyo alumno={alumno} data={data} onChange={onChange} onDocumentos={n => { setTrimestreDocs(n); setPestana('documentos'); }} />
+          )}
           {pestana === 'coordinaciones' && <CoordinacionesApoyo alumno={alumno} data={data} onChange={onChange} />}
           {pestana === 'documentos' && (
-            <DocumentosApoyo alumno={alumno} data={data} onChange={onChange} especialidades={especialidades} comunidad={comunidad} docente={docente} onNav={onNav} />
+            <DocumentosApoyo alumno={alumno} data={data} onChange={onChange} especialidades={especialidades} comunidad={comunidad} docente={docente} onNav={onNav}
+              trimestreInicial={trimestreDocs} onCierre={() => setPestana('cierre')} />
           )}
         </Suspense>
         {pestana === 'sesiones' && <Sesiones alumno={alumno} data={data} hoy={hoy} locale={locale} onAbrir={registrar} />}
         {pestana === 'datos' && (
-          <Datos alumno={alumno} data={data} onChange={onChange} onEditar={() => setEdicion(enEdicion(alumno, data))} onNav={onNav} />
+          <Datos alumno={alumno} data={data} onChange={onChange} onEditar={() => setEdicion(enEdicion(alumno, data))} onNav={onNav} especialidades={especialidades} comunidad={comunidad} />
         )}
       </div>
 
@@ -422,12 +431,14 @@ function Sesiones({ alumno, data, hoy, locale, onAbrir }: {
 
 /* ── Datos ── */
 
-function Datos({ alumno, data, onChange, onEditar, onNav }: {
+function Datos({ alumno, data, onChange, onEditar, onNav, especialidades, comunidad }: {
   alumno: AlumnoApoyo;
   data: ApoyoData;
   onChange: (f: (d: ApoyoData) => ApoyoData) => void;
   onEditar: () => void;
   onNav: (s: Section) => void;
+  especialidades: Especialidad[];
+  comunidad: ComunidadId | undefined;
 }) {
   const { t } = useI18n();
   const nombreCurso = useNombreCurso();
@@ -458,6 +469,10 @@ function Datos({ alumno, data, onChange, onEditar, onNav }: {
           {filas.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v.trim() || <span className="ap-sub">{t('Sin indicar')}</span>}</td></tr>)}
         </tbody></table>
       </div>
+
+      <Suspense fallback={<p className="ap-sub">{t('Cargando…')}</p>}>
+        <InformeOrientacionApoyo alumno={alumno} data={data} onChange={onChange} especialidades={especialidades} comunidad={comunidad} onNav={onNav} />
+      </Suspense>
 
       <div className="card">
         <div className="card-hd"><div className="card-ttl">{t('Sus grupos de apoyo')}</div></div>

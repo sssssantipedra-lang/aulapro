@@ -2461,3 +2461,37 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .pesos-notas-ft { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:12.5px; font-weight:700; }
 .pesos-notas-ft .ok { color:var(--grade-good); }
 .pesos-notas-ft .warn { color:var(--grade-mid); }
+
+.ap-cierre-estado { display:flex; align-items:center; gap:6px; margin:0; font-size:12.5px; font-weight:700; color:var(--text-2); }
+.ap-cierre-lista { list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.ap-cierre-fila { display:flex; flex-direction:column; gap:7px; padding-top:12px; border-top:1px solid var(--border); }
+.ap-cierre-fila:first-child { border-top:0; padding-top:0; }
+.ap-cierre-txt { font-size:14px; font-weight:700; color:var(--text); line-height:1.4; }
+.ap-cierre-reg { font-size:12px; color:var(--text-3); }
+.ap-cierre-seguir { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); cursor:pointer; }
+.ap-res { display:inline-flex; align-items:center; gap:5px; }
+.ap-res.on.ap-res-si { background:color-mix(in srgb, var(--grade-good) 18%, var(--card)); border-color:var(--grade-good); color:var(--grade-good); }
+.ap-res.on.ap-res-proceso { background:color-mix(in srgb, var(--grade-mid) 18%, var(--card)); border-color:var(--grade-mid); color:var(--grade-mid); }
+.ap-res.on.ap-res-no { background:color-mix(in srgb, var(--grade-bad) 16%, var(--card)); border-color:var(--grade-bad); color:var(--grade-bad); }
+
+.ap-lote { list-style:none; margin:0; padding:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; max-height:340px; overflow-y:auto; }
+.ap-lote li + li { border-top:1px solid var(--border); }
+.ap-lote-fila { display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer; }
+.ap-lote-fila.off { cursor:default; opacity:0.6; }
+.ap-lote-nom { flex:1; min-width:0; font-size:13.5px; font-weight:700; color:var(--text); }
+.ap-lote-est { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.ap-lote-res { border:1px solid var(--border); border-radius:12px; padding:10px 14px; background:var(--surface); font-size:13px; }
+.ap-lote-res ul { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:6px 16px; }
+.ap-lote-est .sda-chip { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+
+.ap-oo { display:flex; flex-direction:column; gap:10px; }
+.ap-oo-lista { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.ap-oo-fila { display:flex; flex-direction:column; gap:6px; border:1px solid var(--border); border-radius:10px; padding:9px 11px; background:var(--surface, transparent); }
+.ap-oo-cab { display:flex; gap:6px; flex-wrap:wrap; }
+.ap-oo-opc { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ap-oo-amb { flex:1 1 260px; min-width:0; }
+.ap-oo-nuevo { display:flex; gap:8px; align-items:center; }
+.ap-oo-nuevo .finput { flex:1; min-width:0; }
+.ap-origen-informe { background:color-mix(in srgb, var(--accent) 16%, var(--card)); color:var(--accent-d); }
+.ap-origen-orientacion { background:color-mix(in srgb, #8b5cf6 16%, var(--card)); color:#6d28d9; }
+.ap-origen-ia { background:var(--surface-2); color:var(--text-2); }

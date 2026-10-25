@@ -43,6 +43,42 @@ export interface AlumnoApoyo {
   /** Sus necesidades en términos educativos: barreras, fortalezas, qué le ayuda. */
   necesidades: string;
   notas: string;
+  /**
+   * Lo que se sacó de su informe sociopsicopedagógico (el del orientador): solo las conclusiones, no el
+   * informe. Lo revisa el docente antes de guardarse. Ver `docs/PTAL.md`, «El informe del orientador».
+   */
+  informe?: InformeOrientacion;
+  /**
+   * Los objetivos que vienen de la orientación: los que plantea su informe y los que indica la orientadora
+   * aunque no estén en el informe. Pasan a sus programas; la IA propone otros además de estos.
+   */
+  objetivosOrientacion?: ObjetivoOrientacion[];
+}
+
+/** De dónde viene un objetivo: del informe del orientador, de lo que dice la orientadora, o lo propuso la IA. */
+export type OrigenObjetivo = 'informe' | 'orientacion' | 'ia';
+
+/** Un objetivo que viene de la orientación, antes o después de pasarlo a un programa. */
+export interface ObjetivoOrientacion {
+  id: string;
+  texto: string;
+  /** El programa (ámbito) al que va, por su nombre en la lengua de la app; sin él no se puede pasar. */
+  ambito?: string;
+  trimestres: Trimestre[];
+  origen: Exclude<OrigenObjetivo, 'ia'>;
+}
+
+/** Las conclusiones del informe sociopsicopedagógico de un alumno, ya revisadas por el docente. */
+export interface InformeOrientacion {
+  /** Cuándo se leyó, YYYY-MM-DD. */
+  fecha: string;
+  /** El nombre del archivo del que se leyó, si lo hubo (el archivo no se guarda). */
+  archivo?: string;
+  fortalezas: string;
+  /** Orientaciones y medidas que propone el informe. */
+  orientaciones: string;
+  /** Los ámbitos de programa que sugiere el informe (por su nombre en la lengua de la app). */
+  ambitos: string[];
 }
 
 export interface FranjaApoyo {
@@ -72,6 +108,8 @@ export interface ObjetivoApoyo {
   trimestres: Trimestre[];
   /** Criterios oficiales del curso de su nivel con los que se enlaza, si los hay. */
   criterios: OfficialCriterionRef[];
+  /** De dónde viene; ausente en los escritos a mano y en los de antes. */
+  origen?: OrigenObjetivo;
 }
 
 /**
@@ -91,6 +129,21 @@ export interface ProgramaApoyo {
 
 /** Cómo va un objetivo en una sesión. */
 export type Logro = 'si' | 'proceso' | 'no';
+
+/**
+ * La valoración del especialista de un objetivo al cerrar un trimestre. Manda sobre lo último que se
+ * registró: es lo que sale en los informes y en el PAP.
+ */
+export interface EvaluacionObjetivo {
+  alumnoId: string;
+  objetivoId: string;
+  trimestre: Trimestre;
+  /** `sin`: no se trabajó. */
+  resultado: Logro | 'sin';
+  comentario: string;
+  /** YYYY-MM-DD. */
+  fecha: string;
+}
 
 /** Las cuatro filas de «cómo ha respondido». */
 export type AspectoRespuesta = 'atencion' | 'motivacion' | 'conducta' | 'autonomia';
@@ -206,6 +259,8 @@ export interface ApoyoData {
   sesiones: SesionApoyo[];
   documentos: DocumentoApoyo[];
   coordinaciones: CoordinacionApoyo[];
+  /** Cierre de cada trimestre: la valoración del especialista de cada objetivo. */
+  evaluaciones: EvaluacionObjetivo[];
   agendas: AgendaVisual[];
   fotos: FotoApoyo[];
 }

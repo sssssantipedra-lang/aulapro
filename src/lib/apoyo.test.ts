@@ -3,7 +3,7 @@ import {
   ambitosDe, trimestreDe, diaDeLaSemana, gruposDelDia, tieneDesfase, nivelDe,
   objetivosDelTrimestre, sesionDe, sesionConDatos, resumenObjetivo,
   normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, CATEGORIAS_NEAE, apoyoParaOtroCurso,
-  contextoFichaApoyo,
+  contextoFichaApoyo, conObjetivosOrientacion, objetivosPendientes, pasarAProgramas, filasDeCierre, trimestreCerrado, cerrarTrimestre, datosDelTrimestre,
 } from './apoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
@@ -144,6 +144,7 @@ describe('carga y borrado', () => {
     documentos: [{ id: 'd', alumnoId: 'a', tipo: 'familia', trimestre: 1, fecha: '2026-12-15', titulo: 'Informe',
       apartados: [{ id: 'trabajado', titulo: 'Lo trabajado', texto: 'Texto' }] }],
     coordinaciones: [{ id: 'c', alumnoId: 'a', fecha: '2026-10-20', con: 'familia', asistentes: 'Madre', temas: 'Lectura en casa', acuerdos: 'Leer 10 minutos al día' }],
+    evaluaciones: [],
     agendas: [
       { id: 'ag1', alumnoId: 'a', titulo: 'Sesión de lectura', pasos: [{ id: 'p1', picto: 'hello', texto: 'Hola' }, { id: 'p2', fotoId: 'f1', texto: 'Mi mesa' }] },
       { id: 'ag2', titulo: 'Rutina de entrada', pasos: [{ id: 'p3', picto: 'hang-coat', texto: 'Colgar el abrigo' }, { id: 'p4', fotoId: 'f2', texto: 'La clase' }] },
@@ -245,5 +246,85 @@ describe('ficha adaptada', () => {
     expect(txt).toContain('Objetivos que trabaja este trimestre: Leer sílabas directas; Contar hasta 100.');
     expect(txt).not.toContain('Marta');
     expect(txt).not.toContain('Discapacidad intelectual');
+  });
+});
+
+describe('cierre de trimestre', () => {
+  const base = (): ApoyoData => ({
+    ...APOYO_VACIO,
+    alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' }],
+    programas: [{ id: 'p', alumnoId: 'a', ambito: 'Lectoescritura', especialidad: 'PT', objetivos: [
+      { id: 'o1', texto: 'Leer sílabas', trimestres: [1, 2], criterios: [] },
+      { id: 'o2', texto: 'Copiar frases', trimestres: [1], criterios: [] },
+    ] }],
+    sesiones: [{ id: 's', grupoId: 'g', fecha: '2026-10-05', temaClase: '', alumnos: [{ alumnoId: 'a', objetivos: { o1: 'proceso' }, respuesta: {}, nota: '' }] }],
+  });
+
+  it('sugiere lo último registrado y propone seguir con lo no conseguido', () => {
+    const f = filasDeCierre(base(), 'a', 1);
+    expect(f.map(x => [x.objetivo.id, x.resultado, x.guardada])).toEqual([['o1', 'proceso', false], ['o2', 'sin', false]]);
+    // o1 ya sigue en el 2.º trimestre; o2 no, y no se ha trabajado: se propone seguir
+    expect(f.map(x => x.seguir)).toEqual([true, true]);
+    expect(trimestreCerrado(base(), 'a', 1)).toBe(false);
+  });
+
+  it('al cerrar guarda la valoración y añade el trimestre siguiente a lo que se sigue', () => {
+    const d = cerrarTrimestre(base(), 'a', 1, [
+      { objetivoId: 'o1', resultado: 'si', comentario: ' Lo lee solo ', seguir: false },
+      { objetivoId: 'o2', resultado: 'no', comentario: '', seguir: true },
+    ], '2026-12-15');
+    expect(d.evaluaciones.map(e => [e.objetivoId, e.resultado, e.comentario])).toEqual([['o1', 'si', 'Lo lee solo'], ['o2', 'no', '']]);
+    expect(d.programas[0].objetivos.map(o => o.trimestres)).toEqual([[1, 2], [1, 2]]);
+    expect(trimestreCerrado(d, 'a', 1)).toBe(true);
+    // Volver a cerrar sustituye, no duplica
+    expect(cerrarTrimestre(d, 'a', 1, [{ objetivoId: 'o1', resultado: 'proceso', comentario: '', seguir: false }], '2026-12-16').evaluaciones).toHaveLength(2);
+  });
+
+  it('en el 3.º trimestre no hay siguiente y la valoración entra en los datos para la IA', () => {
+    const d = cerrarTrimestre({ ...base(), programas: [{ ...base().programas[0], objetivos: [{ id: 'o1', texto: 'Leer sílabas', trimestres: [3], criterios: [] }] }] }, 'a', 3,
+      [{ objetivoId: 'o1', resultado: 'si', comentario: 'Lo domina', seguir: true }], '2027-06-10');
+    expect(d.programas[0].objetivos[0].trimestres).toEqual([3]);
+    expect(datosDelTrimestre(d, 'a', 3).objetivos[0].evaluacion?.resultado).toBe('si');
+  });
+});
+
+describe('objetivos de la orientación', () => {
+  const a = (): AlumnoApoyo => ({ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' });
+  const oo = (id: string, texto: string, ambito?: string, origen: 'informe' | 'orientacion' = 'informe') =>
+    ({ id, texto, ...(ambito ? { ambito } : {}), trimestres: [1, 2, 3] as (1 | 2 | 3)[], origen });
+  const base = (): ApoyoData => ({ ...APOYO_VACIO, alumnos: [a()] });
+
+  it('se suman sin repetir los que ya hay (por su texto, sin mirar mayúsculas ni espacios)', () => {
+    const x = conObjetivosOrientacion(a(), [oo('1', 'Leer sílabas'), oo('2', 'Pedir ayuda', undefined, 'orientacion')]);
+    const y = conObjetivosOrientacion(x, [oo('3', '  leer   SÍLABAS '), oo('4', 'Contar hasta 20')]);
+    expect(y.objetivosOrientacion?.map(o => o.texto)).toEqual(['Leer sílabas', 'Pedir ayuda', 'Contar hasta 20']);
+  });
+
+  it('pasan al programa de su ámbito (se crea si no existe) con su origen, y los sin ámbito se quedan', () => {
+    const lista = [oo('1', 'Leer sílabas', 'Lectoescritura'), oo('2', 'Pedir ayuda', 'Autonomía', 'orientacion'), oo('3', 'Sin programa')];
+    let n = 0;
+    const r = pasarAProgramas(base(), 'a', lista, ambito => (ambito === 'Autonomía' ? 'AL' : 'PT'), p => `${p}${++n}`);
+    expect(r.pasados).toBe(2);
+    expect(r.data.programas.map(p => [p.ambito, p.especialidad, p.objetivos.map(o => [o.texto, o.origen])])).toEqual([
+      ['Lectoescritura', 'PT', [['Leer sílabas', 'informe']]],
+      ['Autonomía', 'AL', [['Pedir ayuda', 'orientacion']]],
+    ]);
+    // Pasarlos otra vez no los duplica, y los que quedan pendientes son los sin programa
+    const otra = pasarAProgramas(r.data, 'a', lista, () => 'PT');
+    expect(otra.pasados).toBe(0);
+    expect(objetivosPendientes(r.data, { ...a(), objetivosOrientacion: lista }).map(o => o.texto)).toEqual(['Sin programa']);
+  });
+
+  it('en un programa que ya existe se añaden al final', () => {
+    const d = { ...base(), programas: [{ id: 'p', alumnoId: 'a', ambito: 'Lectoescritura', especialidad: 'PT' as const, objetivos: [{ id: 'o', texto: 'Ya escrito', trimestres: [1 as const], criterios: [] }] }] };
+    const r = pasarAProgramas(d, 'a', [oo('1', 'Del informe', 'Lectoescritura')], () => 'PT');
+    expect(r.data.programas).toHaveLength(1);
+    expect(r.data.programas[0].objetivos.map(o => o.texto)).toEqual(['Ya escrito', 'Del informe']);
+  });
+
+  it('se guardan y se recuperan con su origen', () => {
+    const d: ApoyoData = { ...base(), alumnos: [conObjetivosOrientacion(a(), [oo('1', 'Leer sílabas', 'Lectoescritura')])] };
+    const vuelta = normalizarApoyo(JSON.parse(JSON.stringify(d)));
+    expect(vuelta.alumnos[0].objetivosOrientacion).toEqual(d.alumnos[0].objetivosOrientacion);
   });
 });

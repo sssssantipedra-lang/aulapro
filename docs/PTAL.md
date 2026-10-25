@@ -94,6 +94,53 @@ Petición del dueño: más pictogramas con el MCP de fal.ai, por ejemplo usar pl
   - «Fin de la actividad» salió con una marca verde algo irregular: se puede repetir.
   - Sin ver en la app la agenda visual y el PDF con los nuevos: la sesión que lo hizo no tenía pantalla; sí se probó que cada archivo existe y que el PDF los incrusta (`exportAgenda.test.ts`). El Word los pasa a PNG con la misma función que las ilustraciones WebP, pero no se ha ejecutado con estos.
 
+## El flujo real del curso y lo que falta (25-10-2026)
+
+Lo cuenta el dueño, que conoce el trabajo de un PT: **la tarea se resume en una programación anual individual de cada alumno, hecha a partir del informe sociopsicopedagógico que aporta el orientador del centro**. De ella salen los objetivos de cada alumno, que se evalúan trimestre a trimestre; con la programación y su evaluación trimestral se hace **un informe que se entrega a los tutores y a las familias**. Lo difícil y lo que más tiempo quita son las programaciones y los informes trimestrales de cada alumno. Para saber cómo avanza, se registra cada sesión. Y en las sesiones se **adapta la programación de aula del tutor o la tutora** teniendo en cuenta los objetivos de cada alumno; lo ideal sería que, **a partir del informe psicopedagógico, la app pudiera crear esa programación de aula adaptada**. Objetivo: reducir la carga burocrática.
+
+Resumen de la revisión (qué hay, qué falta). Ver también «Qué tiene que hacer» arriba.
+
+| Paso del curso | Estado |
+|---|---|
+| Informe sociopsicopedagógico del orientador | **Hecho (2.18.24).** Se sube (PDF o Word) o se pega, la IA propone la ficha, el docente revisa y guarda. Ver «El informe del orientador». |
+| Programación anual individual | Está (`programacion`, un documento por alumno) y se redacta con la IA; **desde la 2.18.24 también con las fortalezas y orientaciones del informe**, porque `alumnoParaIA` las incluye. |
+| Objetivos por trimestre | Están (`ProgramaApoyo.objetivos`, `proponerObjetivos`), con criterios oficiales del curso de su nivel. **Desde la 2.18.24, con un clic desde el informe**: la IA sugiere los programas y propone sus objetivos. |
+| Registro de cada sesión | Está y es cómodo. Alimenta las gráficas, los avisos y los informes. |
+| Evaluación trimestral | **Hecho (2.18.24).** Pestaña «Evaluación» del alumno: el cierre del trimestre. Ver «El cierre del trimestre». |
+| Informe trimestral a tutor y a familia | Están los dos y el seguimiento del PAP (Comunitat Valenciana), en PDF y Word. **Desde la 2.18.24 también de todo el alumnado de una vez** (Mi alumnado › «Documentos del trimestre»). Ver «Documentos de todo el alumnado». |
+| Programación de aula adaptada | **No está.** `adaptarTema` propone, en cada sesión, cómo trabajar el tema del día con cada alumno, pero no hay forma de dar la programación del tutor (PDF, Word o una situación de aprendizaje) ni de obtener una adaptación curricular del alumno (ACI o ACIS, y el equivalente de Cataluña y Madrid). |
+| Cataluña y Madrid | Los modelos de documento (PI, adaptación curricular por área) esperan a que el dueño suba los PDF (ver «Normativa»). |
+
+Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió empezar por 1, 2 y 3, hechos en la 2.18.24, y después el 4, hecho también en la 2.18.24**):
+1. **Informe sociopsicopedagógico.** Subirlo (PDF o Word) o pegarlo; la IA lo lee una vez y rellena la ficha del alumno (nivel de competencia, necesidades en términos educativos, fortalezas, orientaciones), que el docente revisa. El informe en sí no se guarda en la IA ni se reenvía a ella en cada documento: se guardan sus conclusiones. Es el dato más sensible del módulo (artículo 9 del RGPD): mismas reglas que el diagnóstico, nombre cambiado por un código, y `privacidad.html` lo dice en los tres idiomas (regla 1 de `CLAUDE.md`).
+2. **Programación anual y objetivos a partir de ese informe**, sin volver a escribirlos: la programación y la propuesta de objetivos usan sus conclusiones.
+3. **Cierre de trimestre** por alumno: una tabla con cada objetivo, el resultado que sugiere el registro y el comentario, que el docente confirma; los no conseguidos pasan al trimestre siguiente. Informes y PAP salen de ahí.
+4. **Generar los documentos de todo el alumnado de una vez** (el informe a familias y al tutor del trimestre y el seguimiento del PAP), con una revisión alumno a alumno antes de exportar.
+5. **Adaptación de la programación de aula**: dar la del tutor (PDF, Word o una SdA hecha en la app) y obtener, para cada alumno, la adaptación de esa programación a sus objetivos (ACI o ACIS). Cuando el dueño suba los modelos, con el formato de cada comunidad.
+
+### El informe del orientador (2.18.24, 25-10-2026)
+
+- **Dónde:** pestaña «Datos» de la página del alumno, tarjeta «Informe del orientador» (`src/pages/apoyo/InformeOrientacionApoyo.tsx`, servicio `src/services/informeOrientacion.ts`).
+- **Cómo:** se sube un PDF, un Word (.docx) o un texto, o se pega su contenido. La IA lo lee una vez (`analizarInforme`) y propone: necesidades específicas de apoyo educativo (de la lista cerrada), diagnóstico, necesidades en términos educativos, nivel de competencia curricular, fortalezas, orientaciones y los programas (ámbitos) que hace necesarios (de los de su comunidad). **El docente lo revisa y lo edita antes de guardar**; guardar sustituye esos campos de la ficha.
+- **Qué se guarda:** solo las conclusiones (`AlumnoApoyo.informe`: fecha, nombre del archivo, fortalezas, orientaciones y ámbitos sugeridos). **El informe no se guarda en la app.** Las fortalezas y orientaciones llegan a la IA en todo lo que se prepara del alumno (objetivos, adaptación de cada sesión, programación, informes y PAP) a través de `alumnoParaIA`.
+- **Privacidad:** es el dato más sensible del módulo. Un Word o un texto pegado llegan a la IA con el nombre cambiado por un código; **un PDF se envía como archivo, tal cual** (con el nombre que lleve), y la ventana lo avisa y propone pegar el texto. `privacidad.html` y `docs/WEB.md` lo dicen (regla 1).
+- **Objetivos de la orientación** (decisión del dueño, 25-10-2026: «los importantes son los del informe psicopedagógico o los que te dice la orientadora, que pueden no estar en el informe»): al leer el informe, la IA recoge **solo los objetivos que el informe plantea**, con sus palabras, el programa al que van y sus trimestres, y no inventa ninguno (`PropuestaInforme.objetivos`). El docente los revisa en la misma ventana. Además, en la tarjeta del alumno (haya informe o no) se escriben a mano **los que indica la orientadora aunque no estén en el informe**. Se guardan en `AlumnoApoyo.objetivosOrientacion` con su origen (`informe` u `orientacion`) y pasan a los programas tal cual: «Pasar a sus programas» (sin IA, crea el programa si no existe) o «Crear sus programas con IA, con estos objetivos y otros», que primero mete los de la orientación y después pide a la IA **otros complementarios** (de 2 a 4 más, sin repetir). Cada objetivo de un programa lleva una etiqueta con su origen (Informe, Orientación o IA; `ObjetivoApoyo.origen`). Lógica en `src/lib/apoyo.ts` (`pasarAProgramas`, `conObjetivosOrientacion`, `objetivosPendientes`) y editor en `src/components/apoyo/ObjetivosOrientacion.tsx`.
+- **De ahí, los programas:** se crea un programa por cada ámbito sugerido o al que va algún objetivo de la orientación; la IA propone objetivos complementarios (`proponerObjetivos`, por trimestres y con criterios del curso de su nivel). Se revisan en la pestaña «Programa».
+- **Sin comprobar con informes reales**: la calidad de lo que extrae depende de cómo esté escrito cada informe de orientación; conviene probarlo con uno anonimizado.
+
+### El cierre del trimestre (2.18.24, 25-10-2026)
+
+- **Dónde:** pestaña «Evaluación» de la página del alumno (`src/pages/apoyo/CierreTrimestreApoyo.tsx`; lógica en `src/lib/apoyo.ts`: `filasDeCierre`, `cerrarTrimestre`, `trimestreCerrado`).
+- **Qué hace:** por trimestre, cada objetivo con lo que dice el registro (cuántas veces conseguido, en proceso o no) y la valoración que sugiere (lo último registrado). El docente la confirma o la cambia (conseguido, en proceso, no conseguido o sin trabajar), añade un comentario y marca si se sigue trabajando el trimestre siguiente (se propone con lo que no está conseguido). Guardar escribe `ApoyoData.evaluaciones` y añade el trimestre siguiente a los objetivos que se siguen; nunca quita trimestres.
+- **Qué cambia en los documentos:** con el trimestre cerrado, la valoración del especialista manda sobre el registro en los informes a familia y tutor y en el PAP (`datosParaIA`: «VALORACIÓN FINAL DEL ESPECIALISTA»), y los objetivos que quedan abiertos al acabar el curso salen de ella. Sin cerrar, funciona como antes y «Documentos» avisa y lleva al cierre.
+
+### Documentos de todo el alumnado (2.18.24, 25-10-2026)
+
+- **Dónde:** Mi alumnado › «Documentos del trimestre» (`src/pages/apoyo/InformesLoteApoyo.tsx`; lógica en `src/services/apoyoLote.ts`).
+- **Qué hace:** se elige el documento (programación, informe a la familia, informe al tutor o al equipo, seguimiento del PAP), el trimestre y el alumnado; cada alumno indica si el trimestre está cerrado y si ya tiene el documento. Se prepara **de uno en uno** con la IA, guardando cada documento al acabar (si se corta, no se pierde lo hecho) y con «Parar al acabar este». Quien no tiene programas no se puede elegir. Al acabar, un enlace por alumno abre su pestaña «Documentos» para revisarlo, retocarlo y exportarlo.
+- **Qué no hace:** no envía nada a nadie ni exporta solo; los documentos quedan como borradores de la app. Si ya tenían el documento, avisa y lo sustituye (el PAP conserva las columnas de los otros trimestres).
+- Las materias del nivel de cada alumno se abren sin pantalla (`src/lib/curriculum/materiasDeNivel.ts`).
+
 ## Alumnado y grupos de apoyo
 
 - El especialista crea sus grupos de apoyo («Lectoescritura, lunes 9:00») con alumnado de distintas clases.

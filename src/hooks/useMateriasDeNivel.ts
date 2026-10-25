@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useCurriculo } from './useCurriculo';
-import { resolverGrupo } from '../lib/curriculum';
+import { materiasDeCurriculo } from '../lib/curriculum/materiasDeNivel';
 import type { CurriculoActivo } from '../lib/curriculum/cargar';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
@@ -22,10 +22,7 @@ export function useMateriasDeNivel(
   return useMemo(() => {
     if (!etapa || !curso) return { estado: 'sin-nivel', materias: [], curriculo: null };
     if (!curriculo) return { estado: 'cargando', materias: [], curriculo: null };
-    const materias = curriculo.materias.flatMap(entry => {
-      const r = resolverGrupo(etapa, entry.nombre, curso, undefined, curriculo.materias);
-      return r ? [{ asignatura: entry.nombre, entry: r.entry, grupo: r.grupo }] : [];
-    });
+    const materias = materiasDeCurriculo(curriculo, { etapa, curso });
     return { estado: 'listo', materias, curriculo };
   }, [etapa, curso, curriculo]);
 }

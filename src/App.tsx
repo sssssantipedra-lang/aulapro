@@ -721,6 +721,7 @@ function AppInner() {
                 data={st.apoyo}
                 onChange={st.setApoyo}
                 especialidades={st.currentUser.especialidades ?? []}
+                comunidad={st.currentUser.community}
                 onNav={setSection}
               />
             )}

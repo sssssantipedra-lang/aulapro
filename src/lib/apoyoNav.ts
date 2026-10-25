@@ -56,7 +56,7 @@ export const useFichaParaPedido = fichaPara.usePedido;
  * Decisión del dueño (6-10-2026): todo lo de un alumno está en su página, en
  * pestañas, en vez de repartido por varias pantallas del menú.
  */
-export type PestanaAlumno = 'resumen' | 'programa' | 'sesiones' | 'coordinaciones' | 'documentos' | 'datos';
+export type PestanaAlumno = 'resumen' | 'programa' | 'sesiones' | 'cierre' | 'coordinaciones' | 'documentos' | 'datos';
 export interface AlumnoPedido { alumnoId: string; pestana: PestanaAlumno }
 
 const alumno = unaVez<AlumnoPedido>();
