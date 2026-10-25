@@ -357,7 +357,10 @@ function AppInner() {
             <button type="button" className="m-top-btn" onClick={() => setMenuOpen(true)} aria-label={t('Abrir el menú')} aria-expanded={menuOpen}>
               <Menu size={22} />
             </button>
-            <button type="button" className="m-top-brand" onClick={() => setSection('dashboard')}>AULAPRO</button>
+            <button type="button" className="m-top-brand" onClick={() => setSection('dashboard')}>
+              <img src={`${import.meta.env.BASE_URL}favicon-mini.svg`} width={28} height={28} alt="" />
+              AULAPRO
+            </button>
             <button type="button" className="m-top-avatar" onClick={() => setSection('profile')} aria-label={t('Configuración')}>
               {st.currentUser.full_name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
             </button>
