@@ -415,3 +415,9 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 - **Pregunta «¿Sirve para PT y AL o para Educación Física?»** (`a13`): añade el flujo de PT y AL de la 2.19. Dice «Tú lo revisas todo», porque la IA solo propone.
 - **No se promete**: los formatos oficiales de Cataluña y Madrid para la adaptación (aún sin sus modelos) ni nada que dependa de probar en un dispositivo real.
 - **Pendiente**: la pantalla del portátil del vídeo de la portada sigue siendo la de la app 2.8.0 (ver secciones 36 y 41).
+
+## 44. Educación Física en la portada (25-10-2026, petición del usuario: «añade algo de EF en la web»)
+
+- La portada solo nombraba Educación Física en una pregunta. Ahora, en «Y además» (`ia.p9`, `ia.p10`, dos viñetas nuevas): la anotación en la pista desde el móvil, los equipos equilibrados, el cronómetro de circuitos y las pruebas físicas, y las sesiones y situaciones de aprendizaje con IA con la pizarra de circuitos y su banco de material.
+- La respuesta de «¿Sirve para PT y AL o para Educación Física?» (`a13`) añade lo mismo en una frase, antes de «Tú lo revisas todo».
+- Solo textos, en los tres idiomas. La demo ya tenía el perfil de Educación Física (sección 42).
