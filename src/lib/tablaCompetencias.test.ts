@@ -18,3 +18,19 @@ describe('separarInforme', () => {
     expect(separarInforme(`Hola\n${MARCA_TABLA}\n{roto`)).toEqual({ texto: 'Hola', tabla: [] });
   });
 });
+
+import { valoracionDeNota, notasPorClave, aplicarNotas } from './tablaCompetencias';
+
+describe('valoración por código', () => {
+  it('umbrales y media por competencia', () => {
+    expect([valoracionDeNota(3), valoracionDeNota(2.5), valoracionDeNota(1.4)]).toEqual(['bien', 'mejorable', 'mal']);
+    expect(notasPorClave([{ competencyScores: { CCL: 4, STEM: 2 } }, { competencyScores: { CCL: 3 } }])).toEqual({ CCL: 3.5, STEM: 2 });
+  });
+  it('manda la nota sobre lo que diga la IA', () => {
+    const t = aplicarNotas([
+      { clave: 'CCL', valoracion: 'bien', comentario: 'x' },
+      { clave: 'CD', valoracion: 'mejorable', comentario: 'y' },
+    ], { CCL: 1.5 });
+    expect(t.map(f => f.valoracion)).toEqual(['mal', 'mejorable']);
+  });
+});

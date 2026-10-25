@@ -18,7 +18,7 @@ import { lineasDeCompetencias } from '../lib/curriculum/evaluacionPorCriterios';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
 import { compararAlumnos, compararNombres } from '../lib/alumnado';
 import { CARPETAS } from '../lib/carpetas';
-import { separarInforme, MARCA_TABLA, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
+import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
@@ -178,6 +178,14 @@ export function Reports(props: Props) {
       lines.push(...porCompetencias);
     }
 
+    const notasClave = notasPorClave(evs);
+    if (Object.keys(notasClave).length) {
+      lines.push(en
+        ? '\nKEY COMPETENCIES (mean of the assessments, out of 4; the rating in brackets is FIXED, do not change it):'
+        : '\nCOMPETENCIAS CLAVE (media de las evaluaciones, sobre 4; la valoración entre paréntesis es FIJA, no la cambies):');
+      lines.push(...lineasDeClave(notasClave, en));
+    }
+
     const avg = notebookAverage(student.id, clsId, gradeCategories, gradeItems, grades);
     if (avg !== null) {
       lines.push(en
@@ -274,7 +282,8 @@ export function Reports(props: Props) {
     }, { thinkingLevel: 'high' });
     if (!raw) return false;
 
-    const { texto, tabla } = separarInforme(raw);
+    const { texto, tabla: deLaIA } = separarInforme(raw);
+    const tabla = aplicarNotas(deLaIA, notasPorClave(evaluations.filter(e => e.student_id === student.id)));
     onAddReport({
       id: 'rep' + Date.now() + Math.random().toString(36).slice(2, 6),
       student_id: student.id,

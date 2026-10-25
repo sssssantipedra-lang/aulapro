@@ -319,6 +319,7 @@ describe('Recursos · diseño «Cuaderno»', () => {
   it('edita la lista de cálculos y su respuesta, y la vista previa la pinta con su caja', async () => {
     const onSave = setup(vi.fn(), [cuaderno]);
     await userEvent.click(screen.getByText('Números hasta el millón'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     expect(screen.getByText('Actividad 1')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Editar el ejercicio 1' }));
     const select = screen.getByDisplayValue('Una línea') as HTMLSelectElement;
@@ -332,6 +333,7 @@ describe('Recursos · diseño «Cuaderno»', () => {
   it('añade un recuadro «Reto» a un bloque y llega a la hoja', async () => {
     const onSave = setup(vi.fn(), [cuaderno]);
     await userEvent.click(screen.getByText('Números hasta el millón'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Recuadro del bloque' }), 'reto');
     fireEvent.change(screen.getByRole('textbox', { name: 'Texto del recuadro' }), { target: { value: '¿Cuál es la cifra mayor?' } });
     const frame = document.querySelector('.fe-preview-frame') as HTMLIFrameElement;
@@ -429,6 +431,7 @@ describe('Recursos · crear en dos pasos', () => {
     setup(vi.fn(), [f]);
     expect(screen.getByText('Comprensión lectora', { selector: '.fe-mini-badge' })).toBeTruthy();
     await userEvent.click(screen.getByText('El dragón sin fuego'));
+    await userEvent.click(screen.getByRole('button', { name: 'Editar' }));
     await userEvent.click(screen.getByRole('button', { name: /Adaptar/ }));
     const items = screen.getAllByRole('menuitem');
     expect(items).toHaveLength(1);

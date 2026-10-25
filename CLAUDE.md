@@ -144,7 +144,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Título de la SdA** grande y centrado en la cabecera del documento generado (`.sda-doc-hero`, `src/index.css`).
 - **Diana en una SdA**: el material «Diana» se dibuja como diana (`dianaSvg`) con los descriptores al lado, en la pestaña, la vista previa y el PDF (`tablaDianaSda` reutiliza `tablaDiana`), no como tabla de rúbrica.
 - **SdA interdisciplinares**: las notas por criterios oficiales ya puntúan en cada área (la clave es «materia|código»). Lo que va a una sola asignatura es la nota del cuaderno. La IA debe cubrir todas las áreas al marcar criterios y la pantalla avisa si falta alguna (`areasSinCriterio`). Pendiente: llevar la nota del cuaderno a varias asignaturas.
-- **Informes competenciales**: la IA devuelve tras el texto una tabla de competencias clave (bien, mejorable o mal, con un comentario breve) detrás de `###TABLA###`; `src/lib/tablaCompetencias.ts` la separa y valida, y se guarda en `CompetencyReport.tabla`.
+- **Informes competenciales**: la IA devuelve tras el texto una tabla de competencias clave (bien, mejorable o mal, con un comentario breve) detrás de `###TABLA###`; `src/lib/tablaCompetencias.ts` la separa y valida, y se guarda en `CompetencyReport.tabla`. Desde la 2.18.18 la valoración de las competencias con nota la fija el código (media de `competencyScores` sobre 4: bien desde 3, mejorable desde 2) y la IA solo escribe el comentario.
 
 ## Publicar
 

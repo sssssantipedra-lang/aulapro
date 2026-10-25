@@ -56,3 +56,33 @@ export function tablaCompetenciasHtml(
 /** Textos de las valoraciones, que `t` traduce. */
 export const NOMBRE: Record<Valoracion, string> = { bien: 'Bien', mejorable: 'Mejorable', mal: 'Mal' };
 export const COLOR_VALORACION = COLOR;
+
+/* ── Valoración calculada por el código a partir de las notas reales ── */
+
+/** Bien desde 3 sobre 4, mejorable desde 2, mal por debajo. */
+export function valoracionDeNota(nota: number): Valoracion {
+  return nota >= 3 ? 'bien' : nota >= 2 ? 'mejorable' : 'mal';
+}
+
+/** Media (1 a 4) de cada competencia clave en las evaluaciones del alumno; solo las que tienen nota. */
+export function notasPorClave(evaluaciones: { competencyScores?: Record<string, number> }[]): Record<string, number> {
+  const suma: Record<string, { s: number; n: number }> = {};
+  for (const ev of evaluaciones) {
+    for (const [k, v] of Object.entries(ev.competencyScores ?? {})) {
+      if (typeof v !== 'number' || !(v > 0)) continue;
+      const a = (suma[k.toUpperCase()] ??= { s: 0, n: 0 });
+      a.s += v; a.n++;
+    }
+  }
+  return Object.fromEntries(Object.entries(suma).map(([k, a]) => [k, Math.round((a.s / a.n) * 10) / 10]));
+}
+
+/** Las líneas de las notas, para que la IA escriba el comentario de acuerdo con ellas. */
+export function lineasDeClave(notas: Record<string, number>, en: boolean): string[] {
+  return Object.entries(notas).map(([k, v]) => `- ${k}: ${String(v).replace('.', en ? '.' : ',')}/4 (${valoracionDeNota(v)})`);
+}
+
+/** La valoración de las competencias con nota la fija el código; la IA solo escribe el comentario (y valora las que no tienen nota). */
+export function aplicarNotas(tabla: FilaCompetencia[], notas: Record<string, number>): FilaCompetencia[] {
+  return tabla.map(f => (f.clave in notas ? { ...f, valoracion: valoracionDeNota(notas[f.clave]) } : f));
+}
