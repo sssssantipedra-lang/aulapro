@@ -494,7 +494,18 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   tiempo por fases (Activación, Desarrollo, Consolidación, Producto final), cada
   una con un círculo para marcarla como COMPLETADA según se va dando (se guarda
   en el acto si la SdA ya está guardada; arriba sale «X de Y completadas» y la
-  tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles. En «Materiales» hay pestañas para generar la
+  tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles.
+  IMÁGENES EN LAS SESIONES: cada sesión puede llevar hasta 12 imágenes. Se
+  ARRASTRA una imagen (un archivo o una imagen de una web) sobre la sesión; o se
+  pulsa «Añadir imagen» en la sesión y se pega con Ctrl+V en la zona que se
+  abre (ya enfocada), o se elige de un archivo con «Elegir imagen» (en el móvil,
+  esta es la manera). Un Ctrl+V suelto no vale: como una situación tiene muchas
+  sesiones, hay que decir a cuál va. Cada imagen admite un pie de foto y se
+  quita con la papelera. Salen en el PDF y en el Word, bajo el texto de su
+  sesión; «Pasar a sesiones» las lleva a las sesiones que crea; y viajan dentro
+  del archivo cifrado de «Trabajo compartido». Se reducen para que los datos no
+  pesen y se quedan en el equipo. Hay que GUARDAR la situación para conservarlas:
+  el borrador automático no las incluye. En «Materiales» hay pestañas para generar la
   RÚBRICA (tabla de colores por nivel, «Llevar a Rúbricas»), la DIANA («Llevar
   a Dianas») y una FICHA de ejercicios («Llevar a Recursos»). Arriba: «Ajustar»
   (cambiar los datos y volver a generarla), PDF, Word, «Cartel» (una hoja A4

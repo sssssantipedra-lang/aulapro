@@ -29,13 +29,23 @@ export interface EntradaDeImagenes {
   arrastrando: boolean;
   /** Imágenes ya leídas (el botón «Elegir imagen»). */
   añadir: (blobs: Blob[]) => Promise<void>;
+  /** Para un elemento que se enfoca (con `pegado: 'elemento'`): su `onPaste`. */
+  alPegar: (e: React.ClipboardEvent) => void;
 }
 
 /**
  * `activo`: el editor está abierto y no hay otra ventana encima. Solo entonces
  * se atiende el pegado de todo el documento.
  */
-export function useEntradaDeImagenes(imagenes: ImagenSesion[], cambiar: Cambiar, activo: boolean): EntradaDeImagenes {
+export function useEntradaDeImagenes(
+  imagenes: ImagenSesion[], cambiar: Cambiar, activo: boolean,
+  /**
+   * `documento`: se atiende el Ctrl+V de todo el documento (el editor de una sesión, donde solo hay un sitio
+   * donde pegar). `elemento`: solo el pegado del elemento enfocado que lleve `alPegar` (una situación de
+   * aprendizaje tiene muchas sesiones y hay que saber a cuál va la imagen).
+   */
+  pegado: 'documento' | 'elemento' = 'documento',
+): EntradaDeImagenes {
   const { t } = useI18n();
   const { toast } = useToast();
   const [ocupado, setOcupado] = useState(false);
@@ -68,22 +78,23 @@ export function useEntradaDeImagenes(imagenes: ImagenSesion[], cambiar: Cambiar,
     }
   }, [añadir, t, toast]);
 
+  const manejarPegado = useCallback((e: { clipboardData: DataTransfer | null; target: EventTarget | null; preventDefault: () => void }) => {
+    const tr = leerTransferencia(e.clipboardData);
+    if (!traeImagen(tr)) return;
+    const el = e.target as HTMLElement | null;
+    const enTexto = !!el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable);
+    // Copiar celdas de Excel o un trozo de Word trae texto y una imagen de ese trozo: gana el texto
+    if (enTexto && tr.texto.trim()) return;
+    e.preventDefault();
+    void procesar(tr);
+  }, [procesar]);
+
   // Pegar (Ctrl+V) en cualquier punto del editor
   useEffect(() => {
-    if (!activo) return;
-    const alPegar = (e: ClipboardEvent) => {
-      const tr = leerTransferencia(e.clipboardData);
-      if (!traeImagen(tr)) return;
-      const el = e.target as HTMLElement | null;
-      const enTexto = !!el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable);
-      // Copiar celdas de Excel o un trozo de Word trae texto y una imagen de ese trozo: gana el texto
-      if (enTexto && tr.texto.trim()) return;
-      e.preventDefault();
-      void procesar(tr);
-    };
-    document.addEventListener('paste', alPegar);
-    return () => document.removeEventListener('paste', alPegar);
-  }, [activo, procesar]);
+    if (!activo || pegado !== 'documento') return;
+    document.addEventListener('paste', manejarPegado);
+    return () => document.removeEventListener('paste', manejarPegado);
+  }, [activo, pegado, manejarPegado]);
 
   const vieneImagen = (e: React.DragEvent) => {
     const tipos = Array.from(e.dataTransfer?.types ?? []);
@@ -110,5 +121,5 @@ export function useEntradaDeImagenes(imagenes: ImagenSesion[], cambiar: Cambiar,
     },
   };
 
-  return { imagenes, cambiar, ocupado, arrastre, arrastrando, añadir };
+  return { imagenes, cambiar, ocupado, arrastre, arrastrando, añadir, alPegar: activo ? manejarPegado : () => {} };
 }

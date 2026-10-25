@@ -2,8 +2,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   imagenesValidas, leerTransferencia, direccionesDeHtml, traeImagen, imagenesDeTransferencia, prepararNuevas,
-  MAX_IMAGENES_SESION,
+  MAX_IMAGENES_SESION, imagenesDeSesionSda, sesionConImagenes, contenidoSinImagenes, mismasImagenes, conImagenesDe, bytesDeImagen,
 } from './imagenesSesion';
+import type { SdaContent } from '../services/learningSituations';
 
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
 const JPG = 'data:image/jpeg;base64,/9j/4AAQ';
@@ -117,5 +118,62 @@ describe('preparar las nuevas', () => {
   it('sin sitio no prepara ninguna', async () => {
     const r = await prepararNuevas([png()], 0, bien);
     expect(r).toEqual({ nuevas: [], porElTope: 1, ilegibles: 0 });
+  });
+});
+
+describe('imágenes de las sesiones de una situación de aprendizaje', () => {
+  const im = (id: string, pie?: string) => ({ id, src: JPG, ancho: 10, alto: 10, ...(pie ? { pie } : {}) });
+  const contenido = (...imgs: ({ id: string; src: string; ancho: number; alto: number; pie?: string }[] | undefined)[]): SdaContent => ({
+    titulo: 'T', justificacion: '', ods: '', objetivosEtapa: '', competenciasClave: '', explicacionCurricular: '', areas: [],
+    inclusionUniversal: '', inclusionAdicional: '', inclusionIndividualizada: '', metodologia: '', agrupamiento: '', recursos: '',
+    productoFinal: '', evaluacionTecnicas: '', evaluacionInstrumentos: '',
+    sesiones: imgs.map((x, i) => ({ fase: 'F', titulo: `S${i + 1}`, descripcion: '', ...(x ? { imagenes: x } : {}) })),
+  });
+
+  it('solo se pintan las que valen: nada de SVG ni de direcciones web', () => {
+    const r = imagenesDeSesionSda({ imagenes: [im('a'), { id: 'svg', src: 'data:image/svg+xml;base64,PHN2Zz4=', ancho: 1, alto: 1 }, { id: 'web', src: 'https://x.com/a.png', ancho: 1, alto: 1 }] });
+    expect(r.map(x => x.id)).toEqual(['a']);
+    expect(imagenesDeSesionSda({})).toEqual([]);
+  });
+
+  it('una sesión sin imágenes no lleva el campo', () => {
+    const s = { fase: 'F', titulo: 'S', descripcion: '', imagenes: [im('a')] };
+    expect('imagenes' in sesionConImagenes(s, [])).toBe(false);
+    expect(sesionConImagenes(s, [im('b')]).imagenes?.map(x => x.id)).toEqual(['b']);
+  });
+
+  it('el contenido sin imágenes conserva todo lo demás, y sin imágenes devuelve el mismo objeto', () => {
+    const c = contenido([im('a')], undefined);
+    const sin = contenidoSinImagenes(c);
+    expect(sin.sesiones.every(s => !('imagenes' in s))).toBe(true);
+    expect(sin.sesiones.map(s => s.titulo)).toEqual(['S1', 'S2']);
+    const limpio = contenido(undefined);
+    expect(contenidoSinImagenes(limpio)).toBe(limpio);
+  });
+
+  it('se comparan por referencia: la misma lista es igual, una nueva con lo mismo no', () => {
+    const lista = [im('a')];
+    expect(mismasImagenes(contenido(lista), contenido(lista))).toBe(true);
+    expect(mismasImagenes(contenido(lista), contenido([im('a')]))).toBe(false);
+    expect(mismasImagenes(contenido(lista), contenido(lista, undefined))).toBe(false);
+  });
+
+  it('a un borrador sin imágenes se le devuelven las del guardado, sesión a sesión y solo si es la misma', () => {
+    const guardado = contenido([im('a')], [im('b')]);
+    const borrador = contenidoSinImagenes(guardado);
+    const r = conImagenesDe(borrador, guardado);
+    expect(r.sesiones.map(s => s.imagenes?.map(x => x.id))).toEqual([['a'], ['b']]);
+    // Si el borrador reordenó o renombró las sesiones, no se cuelan en la que no es
+    const otra = { ...borrador, sesiones: [{ ...borrador.sesiones[0], titulo: 'Otro título' }, borrador.sesiones[1]] };
+    expect(conImagenesDe(otra, guardado).sesiones.map(s => s.imagenes?.map(x => x.id))).toEqual([undefined, ['b']]);
+    expect(conImagenesDe(borrador, undefined)).toBe(borrador);
+  });
+
+  it('para el Word, los bytes de una imagen JPEG o PNG; WebP y lo raro, no', () => {
+    expect(bytesDeImagen(JPG)?.tipo).toBe('jpg');
+    expect(bytesDeImagen(PNG)?.tipo).toBe('png');
+    expect(bytesDeImagen(JPG)!.datos.length).toBeGreaterThan(0);
+    expect(bytesDeImagen('data:image/webp;base64,AAAA')).toBeNull();
+    expect(bytesDeImagen('https://x.com/a.png')).toBeNull();
   });
 });

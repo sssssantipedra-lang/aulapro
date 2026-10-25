@@ -8,6 +8,7 @@
  * Aquí, lo que se calcula sin pantalla. La sesión es `SesionEF` (el nombre
  * viene de cuando solo la tenía EF); `sdaId` la une a una SdA.
  */
+import { imagenesDeSesionSda } from './imagenesSesion';
 import type { LearningSituation } from '../types';
 import type { SesionEF } from '../types/ef';
 import { sesionParaEF } from './sesionSda';
@@ -133,6 +134,8 @@ export function sesionesDeSda(
       calentamiento: e.calentamiento, principal: e.principal, calma: e.calma, material: e.material,
       inclusion: content.inclusionUniversal, planB: '', ia: true,
       sdaId: sda.id, sdaOrden: i + 1,
+      // Las imágenes que el docente puso en la sesión de la SdA pasan a la sesión
+      ...(imagenesDeSesionSda(s).length ? { imagenes: imagenesDeSesionSda(s) } : {}),
       ...(content.ef?.modalidad ? { modalidad: content.ef.modalidad } : {}),
     };
   });

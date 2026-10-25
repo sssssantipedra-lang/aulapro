@@ -1,9 +1,16 @@
 /**
- * Textos de las imágenes en las sesiones (25-10-2026): `components/sesiones/ImagenesSesion.tsx`
- * y el PDF de la sesión (`services/exportSesionEF.ts`). Se suman a `EN` en `core.ts`
+ * Textos de las imágenes en las sesiones (25-10-2026): `components/sesiones/ImagenesSesion.tsx`,
+ * `ImagenesDeSesionSda.tsx` (las de una situación de aprendizaje) y el PDF de la sesión (`services/exportSesionEF.ts`). Se suman a `EN` en `core.ts`
  * y a `CA` en `ca.ts`.
  */
 export const IMAGENES_EN: Record<string, string> = {
+  'Imagen {n} de la sesión {s}': 'Image {n} of session {s}',
+  'Pie de la imagen {n} de la sesión {s}': 'Caption of image {n} of session {s}',
+  'Quitar la imagen {n} de la sesión {s}': 'Remove image {n} of session {s}',
+  'Añadir una imagen a la sesión {s}': 'Add an image to session {s}',
+  'Añadir imagen': 'Add image',
+  'Zona para pegar una imagen en la sesión {s}': 'Area to paste an image into session {s}',
+  'Pega aquí con Ctrl+V una imagen, arrastra una sobre la sesión o elige un archivo.': 'Paste an image here with Ctrl+V, drag one onto the session or choose a file.',
   'Imágenes': 'Images',
   'Pega una imagen con Ctrl+V, arrástrala al editor o elígela de un archivo.': 'Paste an image with Ctrl+V, drag it onto the editor or choose it from a file.',
   'Añadiendo…': 'Adding…',
@@ -22,6 +29,13 @@ export const IMAGENES_EN: Record<string, string> = {
 };
 
 export const IMAGENES_CA: Record<string, string> = {
+  'Imagen {n} de la sesión {s}': 'Imatge {n} de la sessió {s}',
+  'Pie de la imagen {n} de la sesión {s}': 'Peu de la imatge {n} de la sessió {s}',
+  'Quitar la imagen {n} de la sesión {s}': 'Treure la imatge {n} de la sessió {s}',
+  'Añadir una imagen a la sesión {s}': 'Afegir una imatge a la sessió {s}',
+  'Añadir imagen': 'Afegir imatge',
+  'Zona para pegar una imagen en la sesión {s}': 'Zona per enganxar una imatge a la sessió {s}',
+  'Pega aquí con Ctrl+V una imagen, arrastra una sobre la sesión o elige un archivo.': 'Enganxa aquí amb Ctrl+V una imatge, arrossega’n una sobre la sessió o tria un arxiu.',
   'Imágenes': 'Imatges',
   'Pega una imagen con Ctrl+V, arrástrala al editor o elígela de un archivo.': 'Enganxa una imatge amb Ctrl+V, arrossega-la a l’editor o tria-la d’un arxiu.',
   'Añadiendo…': 'Afegint…',

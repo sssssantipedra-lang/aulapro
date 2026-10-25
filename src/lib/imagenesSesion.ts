@@ -10,6 +10,7 @@
  * KB por imagen, de sobra para media página impresa.
  */
 import type { ImagenSesion } from '../types/ef';
+import type { SdaContent, SdaSession } from '../services/learningSituations';
 
 /** Las que caben en una sesión: más haría pesados los datos y las copias de seguridad. */
 export const MAX_IMAGENES_SESION = 12;
@@ -192,4 +193,52 @@ export async function prepararNuevas(
     }
   }
   return { nuevas, porElTope, ilegibles };
+}
+
+/* ── Imágenes en las sesiones de una situación de aprendizaje ── */
+
+/** Las imágenes de una sesión de SdA que valen (solo `data:` de imagen), para pintarlas o exportarlas. */
+export function imagenesDeSesionSda(s: Pick<SdaSession, 'imagenes'>): ImagenSesion[] {
+  return s.imagenes?.length ? imagenesValidas(s.imagenes) : [];
+}
+
+/** La sesión con estas imágenes; sin ninguna, sin el campo. */
+export function sesionConImagenes(s: SdaSession, imagenes: ImagenSesion[]): SdaSession {
+  if (imagenes.length) return { ...s, imagenes };
+  const { imagenes: _i, ...resto } = s;
+  void _i;
+  return resto;
+}
+
+/** El contenido sin las imágenes: lo que se compara y lo que va al borrador (pesan, y `localStorage` es pequeño). */
+export function contenidoSinImagenes(c: SdaContent): SdaContent {
+  if (!c.sesiones.some(s => s.imagenes)) return c;
+  return { ...c, sesiones: c.sesiones.map(s => sesionConImagenes(s, [])) };
+}
+
+/** ¿Las imágenes de cada sesión son las mismas? Por referencia: es lo que hay que mirar tras editar, y no cuesta nada. */
+export function mismasImagenes(a: SdaContent, b: SdaContent): boolean {
+  return a.sesiones.length === b.sesiones.length && a.sesiones.every((s, i) => s.imagenes === b.sesiones[i].imagenes);
+}
+
+/** Devuelve a un contenido sin imágenes (el de un borrador) las que tenía el guardado, sesión a sesión. */
+export function conImagenesDe(c: SdaContent, guardado: SdaContent | undefined): SdaContent {
+  if (!guardado) return c;
+  return {
+    ...c,
+    sesiones: c.sesiones.map((s, i) => {
+      const g = guardado.sesiones[i];
+      return g?.imagenes?.length && g.titulo === s.titulo ? sesionConImagenes(s, g.imagenes) : s;
+    }),
+  };
+}
+
+/** Los bytes de una imagen guardada (`data:image/…;base64,…`) y su tipo, para meterla en un Word. */
+export function bytesDeImagen(src: string): { tipo: 'jpg' | 'png' | 'gif'; datos: Uint8Array } | null {
+  const m = /^data:image\/(jpeg|png|gif);base64,([A-Za-z0-9+/=]+)$/.exec(src);
+  if (!m) return null;   // WebP no lo admite Word
+  const binario = atob(m[2]);
+  const datos = new Uint8Array(binario.length);
+  for (let i = 0; i < binario.length; i++) datos[i] = binario.charCodeAt(i);
+  return { tipo: m[1] === 'jpeg' ? 'jpg' : (m[1] as 'png' | 'gif'), datos };
 }

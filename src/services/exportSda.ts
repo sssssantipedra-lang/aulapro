@@ -28,6 +28,7 @@ import { modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { CARPETAS } from '../lib/carpetas';
 import { sesionEnTexto } from '../lib/sesionSda';
+import { bytesDeImagen, imagenesDeSesionSda } from '../lib/imagenesSesion';
 
 function fileBase(sda: LearningSituation): string {
   const slug = (s: string) => s.trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
@@ -71,6 +72,11 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang, anexo?: string)
   const band = (text: string) => `<tr class="band"><td colspan="6">${esc(text)}</td></tr>`;
   const rowFull = (label: string, value: string) => value
     ? `<tr><th class="lbl">${esc(label)}</th><td colspan="5">${nl2br(value)}</td></tr>` : '';
+  /** Las imágenes que el docente puso en una sesión, bajo su texto, con su pie de foto (solo `data:` de imagen). */
+  const rowImagenes = (imagenes: { src: string; pie?: string }[]) => imagenes.length
+    ? `<tr class="imgs"><th class="lbl">${esc(t('Imágenes'))}</th><td colspan="5"><div class="sda-imgs">${imagenes.map(i =>
+        `<figure><img src="${i.src}" alt="${esc(i.pie ?? '')}">${i.pie ? `<figcaption>${esc(i.pie)}</figcaption>` : ''}</figure>`).join('')}</div></td></tr>`
+    : '';
   const rowTriple = (l1: string, v1: string, l2: string, v2: string, l3: string, v3: string) =>
     (v1 || v2 || v3)
       ? `<tr><th class="lbl">${esc(l1)}</th><td>${nl2br(v1 || DASH)}</td><th class="lbl">${esc(l2)}</th><td>${nl2br(v2 || DASH)}</td><th class="lbl">${esc(l3)}</th><td>${nl2br(v3 || DASH)}</td></tr>`
@@ -122,7 +128,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang, anexo?: string)
         c.sesiones.map((s, i) => rowFull(
           `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
           sesionEnTexto(s, t),
-        )).join('')
+        ) + rowImagenes(imagenesDeSesionSda(s))).join('')
       : '') +
     (c.evaluacionTecnicas || c.evaluacionInstrumentos
       ? band(t('Evaluación')) +
@@ -174,6 +180,13 @@ const SDA_DOC_STYLE = `
 .sda-grid tr { break-inside: avoid; page-break-inside: avoid; }
 /* Una franja de sección no se queda sola al pie de una página: va con su primera fila */
 .sda-grid tr.band, .sda-grid tr.band-top { break-after: avoid; page-break-after: avoid; }
+
+/* Imágenes que el docente puso en las sesiones */
+.sda-grid tr.imgs { break-inside: auto; }
+.sda-imgs { display: flex; flex-wrap: wrap; gap: 10px; }
+.sda-imgs figure { margin: 0; break-inside: avoid; max-width: 78mm; }
+.sda-imgs img { display: block; max-width: 100%; max-height: 62mm; object-fit: contain; border: 1px solid #cbd5e1; border-radius: 3px; background: #fff; }
+.sda-imgs figcaption { font-size: 10.5px; color: #475569; margin-top: 3px; line-height: 1.35; }
 
 /* Materiales generados desde la SdA (rúbrica y diana), como anexo */
 .sda-anexo { margin-top: 14px; }
@@ -243,6 +256,39 @@ const gRowDouble = (l1: string, v1: string, l2: string, v2: string): TableRow[] 
   (v1 || v2)
     ? [new TableRow({ children: [gcell(l1, { style: 'label' }), gcell(v1), gcell(l2, { style: 'label' }), gcell(v2, { colSpan: 3 })] })]
     : [];
+
+/** Lo más ancho que sale una imagen de una sesión en el Word, en píxeles (unos 8 cm). */
+const IMAGEN_WORD_ANCHO = 300;
+const IMAGEN_WORD_ALTO = 230;
+
+/** Una fila con las imágenes de una sesión (y su pie de foto) bajo el texto de la sesión. WebP no lo admite Word: se deja fuera. */
+function gRowImagenes(etiqueta: string, imagenes: { src: string; ancho: number; alto: number; pie?: string }[]): TableRow[] {
+  const parrafos: Paragraph[] = [];
+  for (const im of imagenes) {
+    const b = bytesDeImagen(im.src);
+    if (!b) continue;
+    const escala = Math.min(1, IMAGEN_WORD_ANCHO / Math.max(1, im.ancho || IMAGEN_WORD_ANCHO), IMAGEN_WORD_ALTO / Math.max(1, im.alto || IMAGEN_WORD_ALTO));
+    const ancho = Math.max(24, Math.round((im.ancho || IMAGEN_WORD_ANCHO) * escala));
+    const alto = Math.max(24, Math.round((im.alto || IMAGEN_WORD_ALTO) * escala));
+    parrafos.push(new Paragraph({
+      spacing: { before: 60, after: im.pie ? 20 : 80 },
+      children: [new ImageRun({ type: b.tipo, data: b.datos, transformation: { width: ancho, height: alto } })],
+    }));
+    if (im.pie) {
+      parrafos.push(new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: im.pie, italics: true, size: 18, color: '475569' })] }));
+    }
+  }
+  if (parrafos.length === 0) return [];
+  return [new TableRow({
+    children: [
+      gcell(etiqueta, { style: 'label' }),
+      new TableCell({
+        columnSpan: 5, width: { size: 5 * COL_W, type: WidthType.PERCENTAGE }, verticalAlign: VerticalAlign.CENTER,
+        margins: { top: 90, bottom: 90, left: 110, right: 110 }, children: parrafos,
+      }),
+    ],
+  })];
+}
 
 /** La rúbrica y la diana generadas desde la SdA, para ir de anexo al final del Word. */
 export interface MaterialesSda { rubricRows?: SdaRubricRow[] | null; dianaRows?: SdaDianaItem[] | null }
@@ -333,6 +379,19 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang, mater
   const ordenDeportes = (c.ef?.secuencia?.length ?? 0) > 1 ? c.ef!.secuencia!.join(' → ') : '';
   const objetivosPair = () => gRowDouble(t('Objetivos de etapa'), c.objetivosEtapa, t('Competencias clave'), c.competenciasClave);
 
+  // Las filas de las sesiones, con las imágenes que el docente puso en cada una (se preparan antes: meterlas en el Word es asíncrono)
+  const filasSesiones: TableRow[] = [];
+  for (let i = 0; i < c.sesiones.length; i++) {
+    const s = c.sesiones[i];
+    filasSesiones.push(
+      ...gRowFull(
+        `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
+        sesionEnTexto(s, t),
+      ),
+      ...gRowImagenes(t('Imágenes'), imagenesDeSesionSda(s)),
+    );
+  }
+
   const rows: TableRow[] = [
     gBandTop(bandTitle),
     ...gRowTriple(t('Temporalización'), temporal, t('Área'), areaVal, t('ODS'), c.ods),
@@ -366,10 +425,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang, mater
     ] : []),
     ...(c.sesiones.length ? [
       gBand(t('Sesiones')),
-      ...c.sesiones.flatMap((s, i) => gRowFull(
-        `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
-        sesionEnTexto(s, t),
-      )),
+      ...filasSesiones,
     ] : []),
     ...(c.evaluacionTecnicas || c.evaluacionInstrumentos ? [
       gBand(t('Evaluación')),

@@ -97,6 +97,8 @@ export interface SdaSession {
   momentos?: MomentosSesionEF;
   /** Si ya se dio en clase: sirve para saber por dónde vas (decisión del dueño, 18-10-2026). */
   completada?: boolean;
+  /** Imágenes que el docente pega o arrastra a la sesión (25-10-2026). Ver `lib/imagenesSesion.ts`. */
+  imagenes?: import('../types/ef').ImagenSesion[];
 }
 
 /**
