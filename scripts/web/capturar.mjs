@@ -32,7 +32,7 @@ import sharp from 'sharp';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ejemplosAula, fichasAula, borradorEvalFoto, reunionYFormacion, ejemplosEF, ejemplosApoyo } from './ejemplos.mjs';
+import { ejemplosAula, fichasAula, borradorEvalFoto, reunionYFormacion, ejemplosEF, ejemplosApoyo, nuevasAula } from './ejemplos.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SITIO = path.join(RAIZ, 'web/sitio');
@@ -57,7 +57,7 @@ const MENU_AULA = {
 };
 const PESTANAS_AULA = {
   evaluar: { 'Resumen': 'evaluar', 'Rúbricas': 'rubricas', 'Dianas': 'dianas', 'Por foto': 'evalfoto', 'Diana competencial': 'diana', 'Autoevaluaciones': 'autoeval', 'Historial': 'historial' },
-  documentos: { 'Resumen': 'documentos', 'Informes': 'informes', 'Actas': 'actas', 'Situaciones de aprendizaje': 'situaciones', 'Recursos': 'recursos' },
+  documentos: { 'Resumen': 'documentos', 'Informes': 'informes', 'Actas': 'actas', 'Situaciones de aprendizaje': 'situaciones', 'Sesiones': 'sesiones', 'Recursos': 'recursos' },
   enclase: { 'Resumen': 'enclase', 'Anotar actitud': 'actitud', 'Distribución de aula': 'distribucion', 'Pizarra y herramientas': 'pizarra', 'Actividades con móviles': 'moviles' },
 };
 /** Botones del contenido que llevan a otra pantalla de la demo. */
@@ -66,7 +66,7 @@ const SALTOS_AULA = [
   [/^Ver la semana/, 'agenda'], [/^Ver alumnado/, 'clases'], [/^Ajustar en el cuaderno/, 'cuaderno'],
   [/^Evaluar por rúbricas/, 'rubricas'], [/^Evaluar por dianas/, 'dianas'], [/^Evaluar por foto/, 'evalfoto'],
   [/^Agenda mensual/, 'agendames'], [/^Horario semanal/, 'agendasemana'],
-  [/^Informes/, 'informes'], [/^Actas/, 'actas'], [/^Situaciones de aprendizaje/, 'situaciones'], [/^Recursos/, 'recursos'],
+  [/^Informes/, 'informes'], [/^Actas/, 'actas'], [/^Situaciones de aprendizaje/, 'situaciones'], [/^Sesiones/, 'sesiones'], [/^Recursos/, 'recursos'],
   [/^Distribución de aula/, 'distribucion'], [/^Pizarra y herramientas/, 'pizarra'], [/^Actividades con móviles/, 'moviles'],
 ];
 
@@ -160,7 +160,7 @@ function acciones(z, hubId, extra = {}, rutas = []) {
     // Lo que haría la IA: en la demo no se genera nada, y el aviso lo dice
     if (act === 'g' && RE_IA.test(nombre)) act = 't:ia';
     if (nombre === 'Cerrar sesión') act = 't:logout';
-    if (/^Ayuda de Aula Pro/.test(nombre)) act = 't:help';
+    if (/^Ayuda de AulaPro/.test(nombre)) act = 't:help';
     return [r(x0), r(y0), r(x1), r(y1), act, nombre];
   });
 }
@@ -169,7 +169,7 @@ const fuera = (zs, cajas) => zs.filter(([x0, y0, x1, y1]) => !cajas.some(([a, b,
 
 /* ── La sesión ───────────────────────────────────────────────────────── */
 const FASES = (process.env.FASES || 'aula,ef,apoyo').split(',');
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let ctx, page;
 const CLAVE_AI = 'clave-de-ejemplo-no-valida';   // Solo para que la app no pida la clave: no se conecta a nada
 
@@ -208,6 +208,15 @@ async function abrirPerfil(tipo) {
         request: { tema: 'El ciclo del agua', area: 'Conocimiento del Medio', nivel: '5º de Primaria', numEjercicios: 6, niveles: false, contextoClase: '' }, content: agua };
       return [f1, prep(fa.lectura), prep(fa.escape), prep(fa.tarjetas)];
     }, { fa, p5: clase('5º Primaria A') });
+    // Las tarjetas interactivas y las sesiones con imágenes (2.14 a 2.21): las imágenes salen del catálogo, ya reducidas y en JPEG como las guarda la app
+    const jpeg = async (id, pie) => {
+      const im = sharp(path.join(RAIZ, 'public/ilustraciones', id + '.webp')).flatten({ background: '#ffffff' }).resize(640, 420, { fit: 'contain', background: '#ffffff' });
+      const b = await im.jpeg({ quality: 82 }).toBuffer();
+      return { src: 'data:image/jpeg;base64,' + b.toString('base64'), ancho: 640, alto: 420, pie };
+    };
+    const nuevas = nuevasAula({ clases: data.classes, sdaId: patch.learningSituations[0].id, imagenes: [await jpeg('com-naranja', 'Un puesto con fruta de temporada'), await jpeg('obj-cofre', 'La caja de cada equipo')] });
+    patch.fichas.unshift(nuevas.interactivas);   // la primera: así sale en la primera fila de la biblioteca y la demo puede llevar a ella
+    patch.ef = { ...(data.ef ?? {}), sesiones: nuevas.sesiones };
     const c5 = clase('5º Primaria A');
     const alumno = data.students.find(a => a.class_id === c5.id);
     const categoria = data.gradeCategories.find(c => c.class_id === c5.id);
@@ -451,7 +460,7 @@ await page.waitForTimeout(1500);
 await pantalla('sda', 'Situación de aprendizaje', 'documentos', { extra: { 'Mis situaciones de aprendizaje': 'go:situaciones' } });
 await menu('Documentos');
 await pestana('Recursos');
-await pantalla('recursos', 'Recursos', 'documentos', { rutas: [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura']] });
+await pantalla('recursos', 'Recursos', 'documentos', { rutas: [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura'], [/Tarjetas interactivas/, 'go:tarjetas-panel']] });
 await page.getByText('El viaje del agua').first().click();
 await page.waitForTimeout(1800);
 await pantalla('ficha', 'Ficha de ejercicios', 'documentos', { extra: { 'Mis fichas': 'go:recursos' } });
@@ -738,6 +747,108 @@ await tabPT('Documentos');
 await page.getByRole('button', { name: /^Abrir «Informe trimestral a la familia/ }).click();
 await page.waitForTimeout(1500);
 await pantalla('pt-doc', 'Informe trimestral a la familia', null, { extra: { ...EXTRA_ALUMNO, 'Cerrar': 'fn:closeModal' }, datos: { back: 'pt-al-docs' } });
+}
+
+/* ══ Lo que llegó entre la 2.14 y la 2.21 ═════════════════════════════ */
+if (FASES.includes('nuevas')) {
+await abrirPerfil('aula');
+P = { menu: MENU_AULA, pestanas: PESTANAS_AULA, saltos: SALTOS_AULA };
+
+/** Una pantalla que ocupa toda la ventana (el juego de tarjetas, el memory): solo valen sus propios botones. */
+async function pantallaCompleta(id, titulo, raiz, accion, datos = {}) {
+  const buf = await foto();
+  const img = await guardar(`assets/demo/${id}.webp`, buf);
+  const z = await page.evaluate(sel => [...document.querySelector(sel).querySelectorAll('button')]
+    .filter(e => e.checkVisibility() && e.getBoundingClientRect().width >= 6)
+    .map(e => { const b = e.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom, e.className, e.getAttribute('aria-label') || e.innerText.trim().split('\n')[0] || '']; }), raiz);
+  const spots = z.map(([x0, y0, x1, y1, cls, nombre]) => [r(x0), r(y0), r(x1), r(y1), accion(cls, nombre) ?? 'g', nombre.slice(0, 60)]);
+  PANTALLAS[id] = { title: titulo, img: path.basename(img), spots, ...datos };
+  console.log(`· ${id}: ${spots.length} zonas`);
+}
+const fijarOrden = () => page.evaluate(() => { window.__azar = Math.random; Math.random = () => 0.5; });   // Las tarjetas se barajan al abrir: así salen siempre en el mismo orden
+const soltarOrden = () => page.evaluate(() => { if (window.__azar) Math.random = window.__azar; });
+
+/* Sesiones: la portada con las clases, una clase con sus sesiones por SdA y el editor con sus imágenes */
+await menu('Documentos');
+await pestana('Sesiones');
+await pantalla('sesiones', 'Sesiones', 'documentos', { rutas: [[/^5º Primaria A/, 'go:sesiones-clase']] });
+await page.getByText('5º Primaria A', { exact: true }).first().click();
+await page.waitForTimeout(1200);
+await pantalla('sesiones-clase', 'Sesiones de una clase', 'documentos', { extra: { 'Sesiones': 'go:sesiones' }, rutas: [[/^Preparamos los puestos/, 'go:sesion'], [/^Ver la SdA/, 'go:sda']] });
+await page.getByText('Preparamos los puestos del mercado').first().click();
+await page.waitForTimeout(1500);
+await page.getByText('Imágenes', { exact: true }).first().scrollIntoViewIfNeeded();
+await page.waitForTimeout(600);
+await pantalla('sesion', 'Sesión con imágenes', 'documentos', { extra: { 'Cancelar': 'fn:closeModal', 'Cerrar': 'fn:closeModal', 'Guardar': 'fn:closeModal' }, datos: { back: 'sesiones-clase' } });
+await page.getByRole('button', { name: 'Cancelar' }).first().click();
+await page.waitForTimeout(600);
+
+/* Tarjetas interactivas: la biblioteca con su panel, el juego (delante y detrás), el memory y el editor */
+await menu('Documentos');
+await pestana('Recursos');
+await page.getByText('Tarjetas interactivas: el tiempo y la naturaleza').first().click();
+await page.waitForTimeout(1000);
+await pantalla('tarjetas-panel', 'Recursos: una ficha de tarjetas interactivas', 'documentos', { scroll: 560, extra: { 'Proyectar': 'go:tarjetas-juego', 'Memory': 'go:memory', 'Editar': 'go:tarjetas-editor' }, rutas: [[/El viaje del agua/, 'go:ficha'], [/El drag/, 'go:lectura']] });
+await fijarOrden();
+await page.getByRole('button', { name: 'Proyectar' }).first().click();
+await page.waitForTimeout(1500);
+const alJuego = (cls, nombre) => /tip-stage/.test(cls) ? 'go:__otra' : (nombre === 'Salir' ? 'go:recursos' : null);
+await pantallaCompleta('tarjetas-juego', 'Tarjetas interactivas: delante', '.tip-overlay', (c, n) => { const a = alJuego(c, n); return a === 'go:__otra' ? 'go:tarjetas-girada' : a; });
+await page.keyboard.press('Space');
+await page.waitForTimeout(900);
+await pantallaCompleta('tarjetas-girada', 'Tarjetas interactivas: detrás', '.tip-overlay', (c, n) => { const a = alJuego(c, n); return a === 'go:__otra' ? 'go:tarjetas-juego' : a; });
+await page.keyboard.press('Escape');
+await page.waitForTimeout(700);
+await page.getByText('Tarjetas interactivas: el tiempo y la naturaleza').first().click();
+await page.waitForTimeout(800);
+await page.getByRole('button', { name: 'Memory' }).first().click();
+await page.waitForTimeout(1200);
+await page.getByRole('button', { name: 'Empezar' }).click();
+await page.waitForTimeout(900);
+{
+  // Se juega un poco: dos parejas encontradas y una carta levantada
+  const par = { 'nat-lluvia': 'La lluvia', 'nat-sol': 'El sol', 'nat-arcoiris': 'El arcoíris', 'nat-tormenta': 'La tormenta', 'nat-viento': 'El viento', 'nat-rio': 'El río', 'nat-cascada': 'La cascada', 'nat-volcan': 'El volcán' };
+  const fichas = await page.evaluate(() => [...document.querySelectorAll('.mem-tile')].map(t => {
+    const img = t.querySelector('.mem-cara.face img');
+    return { clave: img ? img.getAttribute('src').replace(/^.*\//, '').replace(/\..*$/, '') : null, texto: t.querySelector('.mem-texto')?.textContent ?? null };
+  }));
+  const tiles = page.locator('.mem-tile');
+  const juntas = clave => [fichas.findIndex(f => f.clave === clave), fichas.findIndex(f => f.texto === par[clave])];
+  for (const clave of ['nat-sol', 'nat-rio']) {
+    const [i, j] = juntas(clave);
+    await tiles.nth(i).click(); await page.waitForTimeout(350);
+    await tiles.nth(j).click(); await page.waitForTimeout(1300);
+  }
+  const [k] = juntas('nat-volcan');
+  await tiles.nth(k).click();
+  await page.waitForTimeout(900);
+}
+await pantallaCompleta('memory', 'Memory de tarjetas', '.mem-overlay', (c, n) => n === 'Salir' ? 'go:recursos' : null);
+await page.getByRole('button', { name: 'Salir' }).click();
+await page.waitForTimeout(700);
+await soltarOrden();
+await page.getByText('Tarjetas interactivas: el tiempo y la naturaleza').first().click();
+await page.waitForTimeout(800);
+await page.getByRole('button', { name: 'Editar' }).first().click();
+await page.waitForTimeout(1800);
+await pantalla('tarjetas-editor', 'Editar tarjetas interactivas', 'documentos', { extra: { 'Mis fichas': 'go:recursos' } });
+
+/* El peso de cada nota dentro de su categoría */
+await menu('Cuaderno de Notas');
+await elegir(page.locator('main .class-pick select').first(), '3º Primaria A');
+await page.locator('[title="Editar categoría"]').first().click();
+await page.waitForTimeout(900);
+{
+  const pesos = page.locator('.modal-overlay.open input[placeholder="50"]');   // los de cada nota; el de la categoría lleva su valor
+  if (await pesos.count() >= 2) { await pesos.nth(0).fill('30'); await pesos.nth(1).fill('70'); }
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.waitForTimeout(500);
+}
+await pantalla('pesos', 'Cuánto cuenta cada nota', null, { extra: { 'Cerrar': 'fn:closeModal', 'Guardar': 'fn:closeModal', 'Eliminar': 'fn:closeModal' }, datos: { back: 'cuaderno' } });
+await cerrarModal();
+
+// Desde lo que ya había: la pestaña, la biblioteca y el cuaderno llevan a lo nuevo
+if (PANTALLAS.cuaderno) PANTALLAS.cuaderno.spots = PANTALLAS.cuaderno.spots.map(sp => (/^Pruebas/.test(sp[5]) && sp[4] === 'g' ? [sp[0], sp[1], sp[2], sp[3], 'go:pesos', sp[5]] : sp));
 }
 
 /*__FIN__*/

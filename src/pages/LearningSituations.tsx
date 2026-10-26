@@ -1004,7 +1004,7 @@ export function LearningSituations({
           <button type="button" className="btn-ghost" disabled={importando || sinClave} onClick={() => pdfRef.current?.click()}>
             {importando ? <><span className="spin" />{t('Importando…')}</> : <><FileText size={14} />{t('Importar desde PDF')}</>}
           </button>
-          <span className="sda-note">{t('¿Ya tienes una situación redactada en PDF? Aula Pro extrae su estructura y sus sesiones en orden.')}</span>
+          <span className="sda-note">{t('¿Ya tienes una situación redactada en PDF? AulaPro extrae su estructura y sus sesiones en orden.')}</span>
           {sesionesBase && (
             <p className="sda-note" style={{ margin: '6px 0 0' }}>
               <Check size={11} style={{ display: 'inline', verticalAlign: -1, marginRight: 4, color: 'var(--ok)' }} />

@@ -319,7 +319,7 @@ export function buildTeacherContext(
 export function chatSystemPrompt(lang: Lang, hasContext: boolean): string {
   if (lang === 'en') {
     return [
-      'You are the teaching assistant built into Aula Pro, a gradebook app used by school teachers.',
+      'You are the teaching assistant built into AulaPro, a gradebook app used by school teachers.',
       'You answer in clear, useful English, in a warm but professional tone. Use short paragraphs and lists.',
       hasContext
         ? [
@@ -337,7 +337,7 @@ export function chatSystemPrompt(lang: Lang, hasContext: boolean): string {
   }
 
   return [
-    'Eres el asistente del cuaderno de Aula Pro, la aplicación de gestión de aula que usa este docente. Respondes en español de España, con claridad y en tono cercano pero profesional. Usa párrafos cortos y listas cuando ayuden.',
+    'Eres el asistente del cuaderno de AulaPro, la aplicación de gestión de aula que usa este docente. Respondes en español de España, con claridad y en tono cercano pero profesional. Usa párrafos cortos y listas cuando ayuden.',
     hasContext
       ? [
           'En el mensaje del docente viene un bloque titulado «DATOS REALES DEL CUADERNO DE ESTE DOCENTE» con su información auténtica.',

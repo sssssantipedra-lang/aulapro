@@ -1,5 +1,5 @@
 /**
- * Licencia de Aula Pro en este equipo: guardarla, activarla con la tienda y
+ * Licencia de AulaPro en este equipo: guardarla, activarla con la tienda y
  * comprobarla de vez en cuando. Las reglas están en `licenseCore.cjs`.
  *
  * La venta se hace en la web con Lemon Squeezy, que da una clave por compra y
@@ -152,7 +152,7 @@ async function activate(key) {
   if (!k) return { ok: false, error: 'clave-no-valida', state: publicState() };
   // Solo la clave y un nombre neutro del dispositivo: nada del equipo ni de
   // quien lo usa (docs/WEB.md, apartado 3, punto 3)
-  const instanceName = `Aula Pro · ${os.platform() === 'darwin' ? 'Mac' : os.platform() === 'win32' ? 'Windows' : 'Linux'}`;
+  const instanceName = `AulaPro · ${os.platform() === 'darwin' ? 'Mac' : os.platform() === 'win32' ? 'Windows' : 'Linux'}`;
   const r = await store('activate', { license_key: k, instance_name: instanceName });
   if (!r) return { ok: false, error: 'sin-conexion', state: publicState() };
 

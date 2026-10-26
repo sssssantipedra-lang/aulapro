@@ -1,7 +1,7 @@
 /**
  * Guardado por perfiles para Android: la misma estructura de carpetas y las
  * mismas reglas que `electron/storage.cjs` en el escritorio, sobre un sistema
- * de archivos cualquiera (en la app, el almacenamiento privado de Aula Pro vía
+ * de archivos cualquiera (en la app, el almacenamiento privado de AulaPro vía
  * Capacitor; en las pruebas, uno en memoria).
  *
  *   AulaPro/

@@ -1,6 +1,6 @@
-# Instalar Aula Pro
+# Instalar AulaPro
 
-Aula Pro guarda los datos de tu alumnado **en tu propio equipo**. No hay que
+AulaPro guarda los datos de tu alumnado **en tu propio equipo**. No hay que
 crear ninguna cuenta. Se activa una vez con una **licencia** (la compras en
 https://aulapro.app, la misma sirve para Windows y Android) y después funciona sin
 conexión; solo las funciones de IA y la comprobación semanal de la licencia
@@ -84,7 +84,7 @@ Es el equivalente en Mac del aviso de Windows de arriba: significa que la app no
 lleva la firma digital de pago de Apple, no que tenga nada malo. Se resuelve
 así, **solo la primera vez**:
 
-1. En **Finder**, haz **clic derecho (o Ctrl+clic)** sobre Aula Pro, en vez de
+1. En **Finder**, haz **clic derecho (o Ctrl+clic)** sobre AulaPro, en vez de
    doble clic.
 2. Elige **Abrir** en el menú.
 3. Saldrá el mismo aviso, pero esta vez con un botón **Abrir** — púlsalo.

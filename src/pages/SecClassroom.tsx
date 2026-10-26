@@ -1245,7 +1245,7 @@ function normalizeUrl(raw: string): string {
 /**
  * Servicios que rechazan de plano ser incrustados.
  *
- * No es una limitación de Aula Pro: lo impide el propio servicio con las
+ * No es una limitación de AulaPro: lo impide el propio servicio con las
  * cabeceras `X-Frame-Options` o `Content-Security-Policy`, y el navegador
  * obedece. No hay forma de saltárselo, así que más vale avisar antes de
  * enseñar un marco en negro que parece un fallo de la aplicación.
@@ -1350,7 +1350,7 @@ function EmbedWidget() {
               {t('{sitio} no permite verse dentro de otra aplicación.', { sitio: bloqueado })}
             </p>
             <p className="text-[rgba(var(--pz-rgb),0.4)] text-[11.5px] leading-relaxed" style={{ maxWidth: 340 }}>
-              {t('Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.')}
+              {t('Lo bloquea el propio servicio, no AulaPro. Ábrelo en el navegador y compártelo desde ahí.')}
             </p>
             <button
               onClick={() => window.open(activeUrl, '_blank', 'noopener')}
@@ -1373,7 +1373,7 @@ function EmbedWidget() {
           <div className="h-full flex flex-col items-center justify-center gap-2.5 px-8 text-center">
             <ExternalLink size={26} color="rgba(var(--pz-rgb),0.2)" />
             <p className="text-[rgba(var(--pz-rgb),0.4)] text-[12.5px] leading-relaxed">
-              {t('Proyecta un vídeo o una web sin salir de Aula Pro.')}
+              {t('Proyecta un vídeo o una web sin salir de AulaPro.')}
             </p>
             <p className="text-[rgba(var(--pz-rgb),0.25)] text-[11.5px] leading-relaxed">
               {t('Algunas webs no permiten incrustarse; en ese caso usa el botón de abrir en el navegador.')}

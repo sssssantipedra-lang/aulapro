@@ -1,6 +1,6 @@
 {
   "appId": "es.aulapro.app",
-  "appName": "Aula Pro",
+  "appName": "AulaPro",
   "webDir": "dist",
   "backgroundColor": "#0c2340",
   "android": {

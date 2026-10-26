@@ -24,7 +24,7 @@ export function CommunityPrompt({ onChoose, onLater }: Props) {
   return (
     <Modal open onClose={onLater} title={t('Elige tu comunidad autónoma')}>
       <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, margin: '0 0 16px' }}>
-        {t('Aula Pro usa el currículo oficial de tu comunidad en las situaciones de aprendizaje. Hasta que la elijas se usa el currículo estatal. Puedes cambiarla cuando quieras en Configuración.')}
+        {t('AulaPro usa el currículo oficial de tu comunidad en las situaciones de aprendizaje. Hasta que la elijas se usa el currículo estatal. Puedes cambiarla cuando quieras en Configuración.')}
       </p>
       <div className="fgroup">
         <label className="flabel" htmlFor="community-prompt">{t('Comunidad autónoma')}</label>

@@ -13,7 +13,7 @@ import { I18nProvider } from './i18n';
 beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
-describe('Aula Pro', () => {
+describe('AulaPro', () => {
   it('«Explorar con datos de ejemplo» abre la app con clases y alumnos', async () => {
     const user = userEvent.setup();
     render(<I18nProvider><App /></I18nProvider>);
@@ -56,12 +56,12 @@ describe('Aula Pro', () => {
       render(<I18nProvider><App /></I18nProvider>);
 
       await user.type(await screen.findByLabelText(/Tu nombre/), 'Ana García');
-      await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+      await user.click(screen.getByRole('button', { name: 'Empezar a usar AulaPro' }));
       expect(await screen.findByText('Elige tu comunidad autónoma.')).toBeTruthy();
       expect(screen.queryByRole('button', { name: /Mis Clases/ })).toBeNull();
 
       await user.selectOptions(screen.getByLabelText(/Comunidad autónoma/), 'madrid');
-      await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+      await user.click(screen.getByRole('button', { name: 'Empezar a usar AulaPro' }));
 
       expect(await screen.findByRole('button', { name: 'Comunidad autónoma: Comunidad de Madrid' })).toBeTruthy();
       // Ya la ha elegido: nadie le vuelve a preguntar

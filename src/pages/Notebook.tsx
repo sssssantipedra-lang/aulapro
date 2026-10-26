@@ -1159,7 +1159,7 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
             </p>
           )}
           <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '12px 0 0', lineHeight: 1.55 }}>
-            {t('Estos datos se envían a Google solo al hacer una pregunta, y no se guardan en ningún servidor de Aula Pro.')}
+            {t('Estos datos se envían a Google solo al hacer una pregunta, y no se guardan en ningún servidor de AulaPro.')}
           </p>
         </div>
 

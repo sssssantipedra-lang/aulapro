@@ -1,4 +1,4 @@
-# Aula Pro
+# AulaPro
 
 Copyright © 2026 Santiago Pedra. Todos los derechos reservados.
 Programa de pago, con una licencia por docente; **no se permite redistribuir,

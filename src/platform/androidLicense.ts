@@ -20,7 +20,7 @@ const STORE_ID = '487841';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
 const CHECK_EVERY = 7 * 24 * 60 * 60 * 1000;
 /** Nombre neutro: solo la clave y esto salen hacia la tienda (docs/WEB.md, apartado 3, punto 3). */
-const INSTANCE_NAME = 'Aula Pro · Android';
+const INSTANCE_NAME = 'AulaPro · Android';
 
 interface Secrets {
   get: (name: string) => Promise<string>;

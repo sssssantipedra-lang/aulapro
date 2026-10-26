@@ -376,7 +376,7 @@ export function buildDocumentoHtml(doc: DocumentoApoyo, filas: [string, string][
     `<body><article class="ap-doc"><p class="kind">${esc(t('PT y AL').toUpperCase())}</p><h1>${esc(doc.titulo)}</h1>` +
     (ficha ? `<table class="head"><tbody>${ficha}</tbody></table>` : '') +
     tabla + apartados + firmaHtml +
-    `<p class="pie">${esc(t('Documento generado con Aula Pro'))}</p></article></body></html>`;
+    `<p class="pie">${esc(t('Documento generado con AulaPro'))}</p></article></body></html>`;
 }
 
 const ESTILO = `
@@ -464,7 +464,7 @@ export async function buildDocumentoDocxBlob(doc: DocumentoApoyo, filas: [string
   }
   children.push(new Paragraph({
     spacing: { before: 400 }, alignment: AlignmentType.RIGHT,
-    children: [new TextRun({ text: t('Documento generado con Aula Pro'), size: 16, color: '94A3B8', italics: true })],
+    children: [new TextRun({ text: t('Documento generado con AulaPro'), size: 16, color: '94A3B8', italics: true })],
   }));
   const d = new Document({
     sections: [{ children, properties: { page: { margin: { top: 1000, bottom: 1000, left: 1000, right: 1000 } } } }],

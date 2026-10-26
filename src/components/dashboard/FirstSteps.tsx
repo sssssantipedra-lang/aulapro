@@ -106,7 +106,7 @@ export function FirstSteps({ steps, hero, profileId, onNav, onLoadDemo }: Props)
       <div className="fs-hd">
         <span className="fs-ico"><Rocket size={hero ? 22 : 16} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 className="fs-ttl">{t(hero ? 'Te damos la bienvenida a Aula Pro: empieza por aquí' : 'Primeros pasos')}</h2>
+          <h2 className="fs-ttl">{t(hero ? 'Te damos la bienvenida a AulaPro: empieza por aquí' : 'Primeros pasos')}</h2>
           <p className="fs-sub">
             {t('{done} de {total} hechos. Cada paso se marca solo en cuanto lo haces.', { done: doneCount, total: required.length })}
           </p>

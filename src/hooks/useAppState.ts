@@ -891,7 +891,7 @@ export function useAppState() {
   const importData = useCallback((raw: string): string | null => {
     let parsed: { _app?: string; data?: unknown } & Record<string, unknown>;
     try { parsed = JSON.parse(raw); } catch { return 'El archivo no es una copia de seguridad válida.'; }
-    if (parsed._app !== 'AulaPro') return 'El archivo no parece una copia de seguridad de Aula Pro.';
+    if (parsed._app !== 'AulaPro') return 'El archivo no parece una copia de seguridad de AulaPro.';
     // Un archivo para compartir con otro docente no es una copia de seguridad: se abre en «Trabajo compartido»
     if (parsed._cifrada === true) return 'Este archivo es una copia cifrada para compartir con otro docente. Ábrela en «Trabajo compartido».';
 

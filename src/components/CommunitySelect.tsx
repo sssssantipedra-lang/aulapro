@@ -46,7 +46,7 @@ function useNotaCurriculo(value: ComunidadId | ''): { titular: string; etapas: s
 /**
  * Selector de comunidad autónoma, el mismo al crear el perfil, al editarlo y en
  * el aviso a los perfiles antiguos. En dos grupos (decisión del dueño,
- * 3-10-2026): las comunidades cuyo decreto ya lleva Aula Pro, con la etapa si
+ * 3-10-2026): las comunidades cuyo decreto ya lleva AulaPro, con la etapa si
  * solo es una, y las que siguen el estatal, con «Fuera de España» al final.
  */
 export function CommunitySelect({ id, value, onChange }: Props) {

@@ -126,8 +126,8 @@ export function HelpChat({ section, onNav }: Props) {
       <button
         className="help-fab"
         onClick={alternar}
-        title={t('Ayuda de Aula Pro')}
-        aria-label={t('Ayuda de Aula Pro')}
+        title={t('Ayuda de AulaPro')}
+        aria-label={t('Ayuda de AulaPro')}
         aria-expanded={open}
         type="button"
       >
@@ -135,11 +135,11 @@ export function HelpChat({ section, onNav }: Props) {
       </button>
 
       {open && (
-        <div className="help-panel" role="dialog" aria-label={t('Ayuda de Aula Pro')}>
+        <div className="help-panel" role="dialog" aria-label={t('Ayuda de AulaPro')}>
           <div className="help-hd">
             <div className="help-ttl">
               <Sparkles size={15} />
-              {t('Ayuda de Aula Pro')}
+              {t('Ayuda de AulaPro')}
             </div>
             {hasKey && messages.length > 0 && (
               <button className="help-ico" onClick={() => setMessages([])} title={t('Nueva conversación')} type="button">
@@ -212,7 +212,7 @@ export function HelpChat({ section, onNav }: Props) {
                       {t('¿Qué necesitas saber?')}
                     </p>
                     <p style={{ fontSize: 11.5, color: 'var(--text-3)', margin: '0 0 14px', lineHeight: 1.55 }}>
-                      {t('Pregúntame cómo funciona cualquier parte de Aula Pro.')}
+                      {t('Pregúntame cómo funciona cualquier parte de AulaPro.')}
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                       {sugerencias.map(s => (

@@ -825,7 +825,7 @@ function AppInner() {
 
 /**
  * En escritorio, antes de nada, la licencia (ver `electron/license.cjs`).
- * Quien ya usaba Aula Pro antes de la venta es fundador y pasa directo; en el
+ * Quien ya usaba AulaPro antes de la venta es fundador y pasa directo; en el
  * navegador no hay licencia.
  */
 function LicenseCheck({ children }: { children: React.ReactNode }) {

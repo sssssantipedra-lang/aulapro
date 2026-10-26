@@ -30,7 +30,7 @@ describe('licencia en Android', () => {
     const lic = createAndroidLicense(s, { enforced: true, storeId: '7' });
     const r = await lic.activate('ABCD-1234-WXYZ');
     expect(r).toMatchObject({ ok: true, state: { required: false, status: 'activa', keyHint: '••••WXYZ' } });
-    expect(post.mock.calls[0][0].data).toEqual({ license_key: 'ABCD-1234-WXYZ', instance_name: 'Aula Pro · Android' });
+    expect(post.mock.calls[0][0].data).toEqual({ license_key: 'ABCD-1234-WXYZ', instance_name: 'AulaPro · Android' });
     // Al volver a abrir la app sigue activada, sin internet
     post.mockResolvedValue(undefined); // sin red: CapacitorHttp no devuelve respuesta
     expect(await createAndroidLicense(s, { enforced: true, storeId: '7' }).state()).toMatchObject({ required: false, status: 'activa' });

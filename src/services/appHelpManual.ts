@@ -1,5 +1,5 @@
 /**
- * El manual de Aula Pro que lee la IA para responder «¿cómo hago…?», y las
+ * El manual de AulaPro que lee la IA para responder «¿cómo hago…?», y las
  * instrucciones del asistente. Aparte de `appHelp.ts` para que solo se cargue
  * al abrir la ayuda (ver `HelpChat.tsx`).
  *
@@ -26,7 +26,7 @@ COMUNIDAD AUTÓNOMA: cada perfil tiene la suya (se elige al crearlo y se cambia
 en Configuración → Perfil; aparece bajo el nombre del docente en el menú). De
 ella sale el currículo oficial de las situaciones de aprendizaje. El selector
 tiene dos grupos: «Decreto autonómico actualizado», las comunidades cuyo decreto
-lleva Aula Pro (con la etapa entre paréntesis si es solo una), y «Decreto
+lleva AulaPro (con la etapa entre paréntesis si es solo una), y «Decreto
 estatal», las que siguen el currículo estatal: Real Decreto 157/2022 en
 Primaria y Real Decreto 217/2022 en la ESO. Al elegir una, debajo se ve de qué
 decreto sale cada etapa. «Fuera de España / no aplica» también usa el estatal.
@@ -1219,7 +1219,7 @@ vuelve con «← Configuración»:
   VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
   asistencia, informes y el alumnado de PT y AL y conserva rúbricas, dianas, reuniones y formaciones
   (hace una copia antes).
-- Licencia (solo en la app de escritorio): el estado de Aula Pro en este
+- Licencia (solo en la app de escritorio): el estado de AulaPro en este
   ordenador. «Docente fundador/a» = la usaba antes de que saliera a la venta y
   en ese ordenador es gratis para siempre. «Licencia activa» = activada con la
   clave comprada en la web; se ve el final de la clave y el botón «Desactivar
@@ -1228,7 +1228,7 @@ Los avisos de «Configurar la IA» de otras pantallas llevan directos a la
 tarjeta «Clave de la IA».
 
 === PREGUNTAS FRECUENTES ===
-- «¿Hay Aula Pro para tableta / móvil / Android?»: sí, en pruebas, para
+- «¿Hay AulaPro para tableta / móvil / Android?»: sí, en pruebas, para
   tabletas y móviles Android. En el móvil el menú se abre con el botón ☰ de la
   barra de arriba (el avatar lleva a Configuración) y las tablas anchas, como
   el cuaderno, se desplazan de lado con el dedo. Funciona igual que en el
@@ -1240,7 +1240,7 @@ tarjeta «Clave de la IA».
   los del ordenador van por separado: para pasarlos, «Descargar mis datos» en
   uno y «Cargar desde archivo» en el otro, o «Trabajo compartido» (archivo cifrado con contraseña).
 - «Me pide una clave de licencia» / «He cambiado de ordenador»: la clave llega
-  por correo al comprar Aula Pro en la web. Se activa con internet una sola vez
+  por correo al comprar AulaPro en la web. Se activa con internet una sola vez
   y después funciona sin conexión. Cada clave vale para un número limitado de
   ordenadores: para pasarla a otro, en el viejo Configuración → Licencia →
   «Desactivar en este equipo». Si dice que se ha alcanzado el máximo y el
@@ -1292,8 +1292,8 @@ export function helpSystemPrompt(lang: Lang, section: string): string {
 
   return [
     lang === 'en'
-      ? 'You are the built-in help assistant for Aula Pro, a desktop app for teachers. You explain how to USE THE APP.'
-      : 'Eres el asistente de ayuda de Aula Pro, una aplicación de escritorio para docentes. Explicas CÓMO SE USA LA APLICACIÓN.',
+      ? 'You are the built-in help assistant for AulaPro, a desktop app for teachers. You explain how to USE THE APP.'
+      : 'Eres el asistente de ayuda de AulaPro, una aplicación de escritorio para docentes. Explicas CÓMO SE USA LA APLICACIÓN.',
     idioma,
     lang === 'en' ? 'RULES:' : 'REGLAS:',
     [
