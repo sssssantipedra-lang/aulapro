@@ -22,8 +22,8 @@ vi.mock('../services/gemini', async importOriginal => {
 
 const demo = buildDemoEF(new Date(2026, 9, 5));
 let ultimo: EfData = demo.ef;
-function Harness() {
-  const [ef, setEf] = useState(demo.ef);
+function Harness({ inicial = demo.ef }: { inicial?: EfData }) {
+  const [ef, setEf] = useState(inicial);
   return (
     <I18nProvider>
       <ToastProvider>
@@ -197,5 +197,22 @@ describe('Sesiones', () => {
     await user.click(screen.getByRole('button', { name: 'Guardar' }));
     expect(ultimo.sesiones.some(x => x.titulo === 'Orientación en el patio')).toBe(true);
     expect(screen.queryByText(/Te quedó una sesión sin guardar/)).toBeNull();
+  });
+
+  it('subir y bajar una sesión cambia su orden dentro del grupo y se guarda', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const base = demo.ef.sesiones.find(s => s.titulo === 'Voleibol: el toque de dedos')!;
+    const otras = ['Segunda', 'Tercera'].map((titulo, i) => ({ ...base, id: `x${i}`, titulo, fecha: undefined, sdaId: undefined, completada: undefined }));
+    render(<Harness inicial={{ ...demo.ef, sesiones: [...demo.ef.sesiones.filter(s => s.claseId !== base.claseId), { ...base, sdaId: undefined }, ...otras] }} />);
+    const clase = await abrirClaseDe(user, 'Voleibol: el toque de dedos');
+    const delGrupo = () => ultimo.sesiones.filter(s => s.claseId === clase.id && !s.sdaId);
+    const titulos = () => [...document.querySelectorAll('.ef-sesion-fila .ef-sesion strong')].map(e => e.textContent);
+    const antes = titulos();
+    expect(antes.length).toBeGreaterThan(1);
+    await user.click(screen.getByRole('button', { name: `Bajar «${antes[0]}»` }));
+    const despues = titulos();
+    expect(despues[0]).toBe(antes[1]);
+    expect(despues[1]).toBe(antes[0]);
+    expect(delGrupo().every(s => s.orden !== undefined)).toBe(true);
   });
 });
