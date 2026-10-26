@@ -208,6 +208,39 @@ export function fichasAula({ clases }) {
   };
 }
 
+/**
+ * Lo que llegó entre la 2.14 y la 2.21 y la demo aún no enseñaba (26-10-2026): un juego de tarjetas interactivas
+ * (imagen en una cara y texto en la otra) y las sesiones de una situación de aprendizaje, con imágenes.
+ * `imagenes` son `data:image/jpeg` ya hechas por `capturar.mjs` a partir del catálogo de ilustraciones.
+ */
+export function nuevasAula({ clases, sdaId, imagenes }) {
+  const clase = n => clases.find(c => c.name.startsWith(n)) ?? clases[0];
+  const p5 = clase('5º Primaria A');
+  const tj = (texto, imagen, imagenDelante) => ({ texto, imagen, imagenTipo: 'ilustracion', imagenDelante });
+  const interactivas = {
+    id: 'ej-fic5', at: instante(-7), date: dia(-7), class_id: p5.id, class_name: p5.name, title: 'Tarjetas interactivas: el tiempo y la naturaleza',
+    request: { tema: 'El tiempo y la naturaleza', area: 'Conocimiento del Medio', nivel: '5º de Primaria', numEjercicios: 8, niveles: false, contextoClase: '', formato: 'tarjetas', interactivas: true },
+    content: {
+      titulo: 'El tiempo y la naturaleza', explicacion: '', instrucciones: 'Toca cada tarjeta para girarla.', estilo: 'clasico', formato: 'tarjetas', actividades: [], interactivas: true,
+      tarjetasInteractivas: [
+        tj('La lluvia', 'nat-lluvia', true), tj('El sol', 'nat-sol', true), tj('El arcoíris', 'nat-arcoiris', true), tj('La tormenta', 'nat-tormenta', true),
+        tj('El viento', 'nat-viento', true), tj('El río', 'nat-rio', true), tj('La cascada', 'nat-cascada', true), tj('El volcán', 'nat-volcan', true),
+      ],
+    },
+  };
+  const sesion = (n, titulo, objetivo, inicio, desarrollo, cierre, material, conImagenes, completada) => ({
+    id: `ej-ses${n}`, titulo, claseId: p5.id, fecha: dia(-4 + n * 2), completada, sdaId, sdaOrden: n,
+    objetivo, calentamiento: inicio, principal: desarrollo, calma: cierre, material, inclusion: 'Los equipos llevan un guion con pasos y un apoyo visual. Quien lo necesite tiene más tiempo y la calculadora.', planB: 'Si llueve, el mercado se hace en el aula con las mesas en U.',
+    imagenes: conImagenes ? imagenes.map((im, i) => ({ id: `ej-im${n}${i}`, src: im.src, ancho: im.ancho, alto: im.alto, pie: im.pie })) : [],
+  });
+  const sesiones = [
+    sesion(1, 'Preparamos los puestos del mercado', 'Organizar los equipos y calcular el precio de cada producto.', 'Se presenta el proyecto con preguntas: ¿qué vendería tu equipo y a qué precio?', 'Cada equipo reparte sus roles, elige sus productos y calcula el precio con el coste de los envases.', 'Cada portavoz cuenta en una frase qué venderá su puesto.', 'Calculadoras, cartulinas, tablas de precios', true, true),
+    sesion(2, 'Los carteles y los precios', 'Escribir un cartel claro con el precio y el mensaje de reutilizar.', 'Se comentan dos carteles de ejemplo: qué se entiende y qué falta.', 'Los equipos diseñan su cartel con un titular, el precio y un dibujo, y lo revisan con una lista de cotejo.', 'Galería rápida: cada equipo valora un cartel con un comentario amable.', 'Cartulinas, rotuladores, lista de cotejo', true, false),
+    sesion(3, 'Abrimos el mercado', 'Vender y registrar las ventas con monedas de juguete.', 'Se recuerdan las normas del puesto y los turnos de compra y venta.', 'Los equipos atienden su puesto, registran las ventas en una tabla y recogen los envases.', 'Se cuenta la caja de cada equipo y se anota el balance.', 'Monedas y billetes de juguete, tablas de registro', false, false),
+  ];
+  return { interactivas, sesiones };
+}
+
 /** «Evaluar por foto»: lo que dejaría una corrección a medias sin guardar (el borrador de la app), para enseñar el resultado. */
 export function borradorEvalFoto({ clase, alumno, categoriaId }) {
   const q = (n, enunciado, respuesta, puntosMax, puntos, estado, comentario, dudosa = false) => ({ n, enunciado, respuesta, puntosMax, puntos, estado, comentario, dudosa });
