@@ -195,7 +195,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   if (creating) {
     return shell(
       <>
-        {header(profiles.length === 0 ? t('Bienvenido/a a Aula Pro') : t('Nuevo perfil'), t('Tu cuaderno docente, en tu ordenador'))}
+        {header(profiles.length === 0 ? t('Bienvenido/a a AulaPro') : t('Nuevo perfil'), t('Tu cuaderno docente, en tu ordenador'))}
 
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
           {isDesktop()
@@ -257,7 +257,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
           )}
 
           <button className="btn-primary" type="submit" disabled={busy}>
-            {busy ? <><span className="spin" />&nbsp;{t('Creando…')}</> : t('Empezar a usar Aula Pro')}
+            {busy ? <><span className="spin" />&nbsp;{t('Creando…')}</> : t('Empezar a usar AulaPro')}
           </button>
         </form>
 

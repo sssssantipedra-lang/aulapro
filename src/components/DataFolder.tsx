@@ -68,9 +68,9 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
 
       <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
         {t(android
-          ? 'Todo tu trabajo se guarda dentro de Aula Pro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
+          ? 'Todo tu trabajo se guarda dentro de AulaPro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
           : desktop
-          ? 'Todo tu trabajo se guarda en una carpeta de este equipo, solo para este perfil. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
+          ? 'Todo tu trabajo se guarda en una carpeta de este equipo, solo para este perfil. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
           : 'En el navegador los datos se guardan dentro del propio navegador. Para que se guarden en carpetas de tu ordenador, con copias automáticas, usa la aplicación de escritorio (AulaPro.exe).')}
       </p>
 

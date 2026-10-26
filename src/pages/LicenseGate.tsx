@@ -13,7 +13,7 @@ interface Props {
 
 /**
  * Pantalla de activación: sale antes que nada en un equipo sin licencia (ver
- * `electron/license.cjs`). Quien ya usaba Aula Pro antes de la venta queda
+ * `electron/license.cjs`). Quien ya usaba AulaPro antes de la venta queda
  * como fundador y nunca la ve.
  */
 export function LicenseGate({ state, onChange }: Props) {
@@ -43,7 +43,7 @@ export function LicenseGate({ state, onChange }: Props) {
         <div className="lic-hd">
           <div className="lic-logo"><KeyRound size={22} color="#fff" /></div>
           <div>
-            <div className="lic-title">{t('Activa Aula Pro')}</div>
+            <div className="lic-title">{t('Activa AulaPro')}</div>
             <div className="lic-sub">{t('Tu cuaderno docente, en tu ordenador')}</div>
           </div>
         </div>
@@ -72,13 +72,13 @@ export function LicenseGate({ state, onChange }: Props) {
           <p className="lic-buy">{t('Consigue tu licencia en aulapro.app')}</p>
         ) : state.buyUrl && (
           <a className="lic-buy" href={state.buyUrl} target="_blank" rel="noreferrer">
-            {t('¿Aún no la tienes? Comprar Aula Pro')} <ExternalLink size={13} />
+            {t('¿Aún no la tienes? Comprar AulaPro')} <ExternalLink size={13} />
           </a>
         )}
 
         <p className="lic-note">
           <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
-          <span>{t('La activación solo necesita internet una vez; después Aula Pro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
+          <span>{t('La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
         </p>
       </div>
     </div>

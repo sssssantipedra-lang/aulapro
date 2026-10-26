@@ -19,7 +19,7 @@ Los límites de caracteres y los formularios de las tiendas cambian: se han pues
 5. **Política de privacidad**: https://aulapro.app/privacidad (pública, sin cuenta). Las dos tiendas piden la dirección. Contacto de soporte: contacto@aulapro.app. Web: https://aulapro.app.
 6. **Inconsistencias a arreglar antes (reglas 1 y 3 de `CLAUDE.md`):**
    - **Trabajo compartido.** Resuelto el 25-10-2026 (2.20.0): ya no hay conexión entre equipos, QR ni cámara; es un archivo cifrado con contraseña (`docs/COMPARTIR.md`). La privacidad de la web lo cuenta así. Lo único que sale a internet por esa vía es el archivo, si el docente lo manda por correo o por la nube.
-   - **Nombre.** La app se llama «Aula Pro» (nombre del icono en Android y de la ventana en Windows) y la ficha de las tiendas, «AulaPro». Elige uno y úsalo igual en todas partes.
+   - **Nombre.** Resuelto el 26-10-2026: el nombre es «AulaPro», todo junto, en la app, los instaladores, la web y las fichas. La carpeta de datos de Windows y Mac sigue llamándose «Aula Pro» (`electron/main.cjs` la fija) para no dejar sin datos a quien ya usaba la app.
    - **Aviso de Windows.** `docs/INSTALACION.md` explica el aviso «Windows protegió su PC» del instalador de la web. La versión de Microsoft Store va firmada por Microsoft y no lo muestra: conviene decirlo en la web cuando esté publicada.
 
 ## 2. Google Play
@@ -213,7 +213,7 @@ Las respuestas siguen lo que la app hace de verdad (privacidad y `docs/WEB.md`, 
 
 | Tipo | Recopilado | Compartido | Obligatorio | Para qué |
 |---|---|---|---|---|
-| Identificadores de dispositivo u otros (clave de licencia e identificador de activación; el nombre del dispositivo es genérico, «Aula Pro · Android») | Sí | Sí, con Lemon Squeezy (comprobación de la licencia) | Sí | Funcionalidad de la app |
+| Identificadores de dispositivo u otros (clave de licencia e identificador de activación; el nombre del dispositivo es genérico, «AulaPro · Android») | Sí | Sí, con Lemon Squeezy (comprobación de la licencia) | Sí | Funcionalidad de la app |
 | Fotos (Evaluar por foto, actividades desde una foto) | Sí | Sí, con Google (API de Gemini, con la clave del propio docente) | No, solo si usa la IA | Funcionalidad de la app |
 | Archivos y documentos (PDF y manuales que el docente adjunta a la IA) | Sí | Sí, con Google | No | Funcionalidad de la app |
 | Otro contenido generado por el usuario (el texto de las peticiones a la IA, con los nombres cambiados por códigos) | Sí | Sí, con Google | No | Funcionalidad de la app |
@@ -332,7 +332,7 @@ Licensing: the app is free to download. The licence is obtained outside the app,
 
 Capabilities: the package uses runFullTrust because it is an Electron (Chromium) desktop app. It needs it to: open a small server on the user's own local network for the classroom activities (students join over the classroom wifi; Windows may show a firewall prompt the first time), save documents to Documents\AulaPro, and use the system print and file dialogs. The in-app auto-updater is disabled in the Store build (the Store updates the app).
 
-Optional features that use the network: AI features call the Google Gemini API with the user's own key (names are replaced by codes before sending); the activation checks the licence with the licence provider, sending only the key and a generic device name ("Aula Pro · Windows").
+Optional features that use the network: AI features call the Google Gemini API with the user's own key (names are replaced by codes before sending); the activation checks the licence with the licence provider, sending only the key and a generic device name ("AulaPro · Windows").
 ```
 
 Para justificar `runFullTrust` en el formulario de capacidades restringidas, sirve el párrafo «Capabilities» de arriba. Las capacidades reales del paquete salen en Partner Center al subir el `.appx`: comprueba que son las esperadas.

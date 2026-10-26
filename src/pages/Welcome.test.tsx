@@ -28,7 +28,7 @@ describe('crear el perfil', () => {
     await user.type(screen.getByLabelText('Tu nombre *'), 'Ana García');
     await user.type(screen.getByLabelText('Especialidad'), 'Matemáticas');
     await user.selectOptions(screen.getByLabelText('Comunidad autónoma *'), 'madrid');
-    await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+    await user.click(screen.getByRole('button', { name: 'Empezar a usar AulaPro' }));
     expect(onCreateProfile).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Ana García', subject: 'Matemáticas', community: 'madrid' }), expect.anything());
     expect((onCreateProfile.mock.calls[0] as unknown[])[0]).not.toHaveProperty('especialidades');
@@ -42,12 +42,12 @@ describe('crear el perfil', () => {
     expect(screen.queryByLabelText('Especialidad')).toBeNull();
     await user.type(screen.getByLabelText('Tu nombre *'), 'Laura Martí');
     await user.selectOptions(screen.getByLabelText('Comunidad autónoma *'), 'comunitat-valenciana');
-    await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+    await user.click(screen.getByRole('button', { name: 'Empezar a usar AulaPro' }));
     expect(screen.getByText('Marca si eres de PT, de AL o de las dos.')).toBeTruthy();
     expect(onCreateProfile).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('checkbox', { name: 'Audición y Lenguaje (AL)' }));
-    await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+    await user.click(screen.getByRole('button', { name: 'Empezar a usar AulaPro' }));
     expect(onCreateProfile).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Laura Martí', subject: 'Audición y Lenguaje', especialidades: ['AL'] }), expect.anything());
   });
@@ -70,7 +70,7 @@ describe('crear el perfil de Educación Física', () => {
     await user.click(screen.getByRole('checkbox', { name: 'También soy tutor o tutora' }));
     await user.type(screen.getByLabelText('Tu nombre *'), 'Jordi Puig');
     await user.selectOptions(screen.getByLabelText('Comunidad autónoma *'), 'cataluna');
-    await user.click(screen.getByRole('button', { name: 'Empezar a usar Aula Pro' }));
+    await user.click(screen.getByRole('button', { name: 'Empezar a usar AulaPro' }));
     expect(onCreateProfile).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Jordi Puig', subject: 'Educación Física', tipoDocente: 'ef', tutor: true }), expect.anything());
   });

@@ -160,7 +160,7 @@ function acciones(z, hubId, extra = {}, rutas = []) {
     // Lo que haría la IA: en la demo no se genera nada, y el aviso lo dice
     if (act === 'g' && RE_IA.test(nombre)) act = 't:ia';
     if (nombre === 'Cerrar sesión') act = 't:logout';
-    if (/^Ayuda de Aula Pro/.test(nombre)) act = 't:help';
+    if (/^Ayuda de AulaPro/.test(nombre)) act = 't:help';
     return [r(x0), r(y0), r(x1), r(y1), act, nombre];
   });
 }
@@ -169,7 +169,7 @@ const fuera = (zs, cajas) => zs.filter(([x0, y0, x1, y1]) => !cajas.some(([a, b,
 
 /* ── La sesión ───────────────────────────────────────────────────────── */
 const FASES = (process.env.FASES || 'aula,ef,apoyo').split(',');
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 let ctx, page;
 const CLAVE_AI = 'clave-de-ejemplo-no-valida';   // Solo para que la app no pida la clave: no se conecta a nada
 

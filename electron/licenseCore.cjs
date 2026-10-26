@@ -5,7 +5,7 @@
  *
  * Un equipo puede tener dos tipos de registro:
  *
- *   - `fundador`: docentes que ya usaban Aula Pro antes de que se vendiera.
+ *   - `fundador`: docentes que ya usaban AulaPro antes de que se vendiera.
  *     Nunca ven la pantalla de activación en ese ordenador.
  *   - `licencia`: se activó con una clave comprada en la web. Se comprueba con
  *     la tienda cada semana; sin internet sigue funcionando, sin límite de tiempo.

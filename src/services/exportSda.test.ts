@@ -36,7 +36,7 @@ describe('normativa en el PDF', () => {
     expect(html).toContain('Normativa curricular');
     expect(html).toContain(CITA);
     expect(html).not.toMatch(/aún no tiene/);
-    expect(html).not.toMatch(/Aula Pro/);
+    expect(html).not.toMatch(/AulaPro/);
   });
 
   it('una SdA sin normativa guardada no lleva esa fila', () => {

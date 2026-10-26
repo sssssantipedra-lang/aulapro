@@ -29,7 +29,7 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
       <div className="card lic-card">
         <div className="lic-badge"><Heart size={15} />{t('Docente fundador/a')}</div>
         <p className="lic-card-txt">
-          {t('Usas Aula Pro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!')}
+          {t('Usas AulaPro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!')}
         </p>
         {since && <p className="lic-card-meta">{t('En este equipo desde el {d}', { d: since })}</p>}
       </div>
@@ -49,7 +49,7 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
       </p>
       {confirm ? (
         <div className="lic-confirm">
-          <span>{t('Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.')}</span>
+          <span>{t('AulaPro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.')}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="btn-accent lic-danger" onClick={deactivate} disabled={busy}>
               {busy ? <span className="spin" /> : null}{t('Sí, desactivar')}

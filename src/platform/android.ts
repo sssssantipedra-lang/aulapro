@@ -1,5 +1,5 @@
 /**
- * Aula Pro en Android (Capacitor). Monta en `window.electronAPI` el mismo
+ * AulaPro en Android (Capacitor). Monta en `window.electronAPI` el mismo
  * contrato que da Electron en el escritorio, así el resto de la aplicación no
  * necesita saber en qué plataforma está:
  *
@@ -84,7 +84,7 @@ const fs: Fs = {
 };
 
 /** Nombre del documento sin extensión: es el que propone Android al guardar el PDF. */
-const docName = (name?: string) => (name || 'Aula Pro').replace(/\.pdf$/i, '');
+const docName = (name?: string) => (name || 'AulaPro').replace(/\.pdf$/i, '');
 
 const MIME: Record<string, string> = {
   pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -123,7 +123,7 @@ const docs: DocsBridge = {
   },
   async print(html) {
     try {
-      await AulaNative.print({ html, name: 'Aula Pro', landscape: true });
+      await AulaNative.print({ html, name: 'AulaPro', landscape: true });
       return { ok: true };
     } catch (err) {
       return { error: err instanceof Error ? err.message : String(err) };

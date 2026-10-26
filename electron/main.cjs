@@ -11,6 +11,9 @@ const secrets = require('./secrets.cjs');
 const license = require('./license.cjs');
 const { carpetaDeAulaPro, nombreDeArchivo } = require('./carpetas.cjs');
 
+// Los datos de quien ya tenía la app están en la carpeta «Aula Pro»: no cambiarla con el nombre.
+app.setPath('userData', path.join(app.getPath('appData'), 'Aula Pro'));
+
 let mainWindow = null;
 const classroom = new ClassroomServer();
 const storage = new Storage(app.getPath('userData'));
@@ -264,7 +267,7 @@ async function createWindow() {
 /**
  * Una sola copia abierta a la vez.
  *
- * Sin esto, dos ventanas de Aula Pro cargan el mismo perfil y las dos guardan
+ * Sin esto, dos ventanas de AulaPro cargan el mismo perfil y las dos guardan
  * `datos.json` cada 700 ms: la última en escribir se lleva por delante el
  * trabajo de la otra, en silencio y con las notas dentro. Es fácil que pase
  * sin querer, con un doble clic de más en el acceso directo.
@@ -276,7 +279,7 @@ if (!app.requestSingleInstanceLock()) {
    * Identidad de la aplicación ante Windows. Tiene que ser exactamente el
    * mismo `appId` que declara electron-builder en package.json: es la etiqueta
    * con la que Windows relaciona los avisos del sistema con el acceso directo
-   * de Aula Pro. Sin esto, los avisos de actualización se descartan en
+   * de AulaPro. Sin esto, los avisos de actualización se descartan en
    * silencio, sin error ninguno. Se llama lo antes posible, antes incluso de
    * que la aplicación esté lista.
    */

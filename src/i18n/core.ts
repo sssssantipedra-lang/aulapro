@@ -67,14 +67,14 @@ const EN: Record<string, string> = {
     'Built on the Spanish national curriculum (LOMLOE)',
 
   /* ── Bienvenida ── */
-  'Bienvenido/a a Aula Pro': 'Welcome to Aula Pro',
+  'Bienvenido/a a AulaPro': 'Welcome to AulaPro',
   'Nuevo perfil': 'New profile',
   'Tu cuaderno docente, en tu ordenador': 'Your teaching gradebook, on your own computer',
   'Tu nombre': 'Your name',
   'Centro educativo': 'School',
   'Especialidad': 'Subject specialism',
   'Curso escolar': 'Academic year',
-  'Empezar a usar Aula Pro': 'Get started',
+  'Empezar a usar AulaPro': 'Get started',
   'Explorar con datos de ejemplo': 'Explore with sample data',
   'Cargando perfiles…': 'Loading profiles…',
   'Cada perfil guarda su propio trabajo en una carpeta separada de este equipo. Sin cuentas ni contraseñas.':
@@ -426,7 +426,7 @@ const EN: Record<string, string> = {
   'Ir a Asistencia': 'Go to Attendance',
   'Conecta la IA (opcional)': 'Connect the AI (optional)',
   'Con una clave gratuita de Google, la aplicación redacta informes, crea rúbricas y lee tu horario.': 'With a free Google key, the app writes reports, creates rubrics and reads your timetable.',
-  'Te damos la bienvenida a Aula Pro: empieza por aquí': 'Welcome to Aula Pro: start here',
+  'Te damos la bienvenida a AulaPro: empieza por aquí': 'Welcome to AulaPro: start here',
   'Primeros pasos': 'First steps',
   '{done} de {total} hechos. Cada paso se marca solo en cuanto lo haces.': '{done} of {total} done. Each step ticks itself as soon as you do it.',
   'Hecho': 'Done',
@@ -585,8 +585,8 @@ const EN: Record<string, string> = {
   'Asistencia, agenda y tareas pendientes': 'Attendance, planner and open tasks',
   'Ahora mismo responde solo con conocimiento general, sin mirar tu cuaderno.':
     'Right now it answers from general knowledge only, without looking at your gradebook.',
-  'Estos datos se envían a Google solo al hacer una pregunta, y no se guardan en ningún servidor de Aula Pro.':
-    'This data is sent to Google only when you ask a question, and is never stored on any Aula Pro server.',
+  'Estos datos se envían a Google solo al hacer una pregunta, y no se guardan en ningún servidor de AulaPro.':
+    'This data is sent to Google only when you ask a question, and is never stored on any AulaPro server.',
   '¿Por dónde empiezo a montar mi cuaderno de notas?': 'Where do I start setting up my gradebook?',
   '¿Cómo va {clase} en general?': 'How is {clase} doing overall?',
   '¿Qué alumnos de {clase} van justos y qué haría con ellos?':
@@ -1029,7 +1029,7 @@ const EN: Record<string, string> = {
     'Both computers need internet, and the school network must not block direct connections. If it just won’t work, use the backup in "Settings" to move the data across.',
 
   /* ── Escáner QR de sesión ── */
-  'Ese QR no es de una sesión de Aula Pro.': 'That QR code isn’t from an Aula Pro session.',
+  'Ese QR no es de una sesión de AulaPro.': 'That QR code isn’t from an AulaPro session.',
   'Este equipo no tiene cámara disponible.': 'This computer doesn’t have a camera available.',
   'No se pudo usar la cámara. Permite el acceso en el navegador o escribe el código a mano.':
     'Couldn’t use the camera. Allow access in the browser, or type in the code by hand.',
@@ -1057,8 +1057,8 @@ const EN: Record<string, string> = {
   'Sala cerrada': 'Room closed',
   '✅ Nueva actividad enviada a los móviles': '✅ New activity sent to phones',
   'Solo desde la aplicación de escritorio': 'Desktop app only',
-  'Para que los alumnos se conecten, Aula Pro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.':
-    'For students to connect, Aula Pro needs to open a room on your own computer, and only the installed application (AulaPro.exe) can do that, not the browser version.',
+  'Para que los alumnos se conecten, AulaPro tiene que abrir una sala en tu propio ordenador, y eso solo puede hacerlo la aplicación instalada (AulaPro.exe), no la versión de navegador.':
+    'For students to connect, AulaPro needs to open a room on your own computer, and only the installed application (AulaPro.exe) can do that, not the browser version.',
   'Sala abierta · {n} respuesta recibida': 'Room open · {n} response received',
   'Sala abierta · {n} respuestas recibidas': 'Room open · {n} responses received',
   'Actividades desde el móvil, sin instalar nada': 'Activities from a phone, nothing to install',
@@ -1153,7 +1153,7 @@ const EN: Record<string, string> = {
   'Abrir': 'Open',
   'Recargar': 'Reload',
   'Abrir en el navegador': 'Open in browser',
-  'Proyecta un vídeo o una web sin salir de Aula Pro.': 'Project a video or a website without leaving Aula Pro.',
+  'Proyecta un vídeo o una web sin salir de AulaPro.': 'Project a video or a website without leaving AulaPro.',
   'Algunas webs no permiten incrustarse; en ese caso usa el botón de abrir en el navegador.':
     'Some websites don’t allow embedding; in that case use the open-in-browser button.',
   'Desactivar lápiz': 'Turn off pen',
@@ -1194,8 +1194,8 @@ const EN: Record<string, string> = {
 
   /* ── Carpeta de datos ── */
   'Mis datos': 'My data',
-  'Todo tu trabajo se guarda en una carpeta de este equipo, solo para este perfil. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.':
-    'All your work is stored in a folder on this computer, just for this profile. Aula Pro makes an automatic backup every ten minutes while you work.',
+  'Todo tu trabajo se guarda en una carpeta de este equipo, solo para este perfil. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.':
+    'All your work is stored in a folder on this computer, just for this profile. AulaPro makes an automatic backup every ten minutes while you work.',
   'En el navegador los datos se guardan dentro del propio navegador. Para que se guarden en carpetas de tu ordenador, con copias automáticas, usa la aplicación de escritorio (AulaPro.exe).':
     'In the browser, data is stored inside the browser itself. To have it saved in folders on your computer, with automatic backups, use the desktop application (AulaPro.exe).',
   'Abrir carpeta': 'Open folder',
@@ -1307,8 +1307,8 @@ const EN: Record<string, string> = {
 
   /* ── Contenido incrustado (Aula Live) ── */
   '{sitio} no permite verse dentro de otra aplicación.': '{sitio} doesn’t allow itself to be shown inside another app.',
-  'Lo bloquea el propio servicio, no Aula Pro. Ábrelo en el navegador y compártelo desde ahí.':
-    'The service itself blocks it, not Aula Pro. Open it in your browser and share it from there.',
+  'Lo bloquea el propio servicio, no AulaPro. Ábrelo en el navegador y compártelo desde ahí.':
+    'The service itself blocks it, not AulaPro. Open it in your browser and share it from there.',
 
   /* ── Situaciones de aprendizaje ── */
   'Situaciones de aprendizaje': 'Learning Situations',
@@ -1345,8 +1345,8 @@ const EN: Record<string, string> = {
   'El archivo debe ser un PDF.': 'The file must be a PDF.',
   'PDF importado: revisa la idea y las áreas antes de generar.': 'PDF imported: check the idea and the subjects before generating.',
   'Se conservarán las sesiones del PDF en su orden al generar.': 'The PDF sessions will be kept in their order when generating.',
-  '¿Ya tienes una situación redactada en PDF? Aula Pro extrae su estructura y sus sesiones en orden.':
-    'Already have a learning situation written as a PDF? Aula Pro extracts its structure and its sessions in order.',
+  '¿Ya tienes una situación redactada en PDF? AulaPro extrae su estructura y sus sesiones en orden.':
+    'Already have a learning situation written as a PDF? AulaPro extracts its structure and its sessions in order.',
   'Generar situación de aprendizaje': 'Generate learning situation',
   'Redactando la situación de aprendizaje…': 'Writing the learning situation…',
   'Es la petición más larga de la aplicación: puede tardar cerca de un minuto.':
@@ -1894,13 +1894,13 @@ const EN: Record<string, string> = {
   'Aplicación en el aula': 'Putting it into practice',
   'Cierre': 'Closing',
   'Valoración': 'Evaluation',
-  'Documento generado con Aula Pro': 'Document generated with Aula Pro',
+  'Documento generado con AulaPro': 'Document generated with AulaPro',
   'El PDF solo está disponible en la aplicación de escritorio. Puedes exportar a Word.':
     'PDF export is only available in the desktop app. You can export to Word instead.',
   'Reuniones y formaciones': 'Meetings and training',
 
   /* ── Asistente de ayuda (botón flotante) ── */
-  'Ayuda de Aula Pro': 'Aula Pro help',
+  'Ayuda de AulaPro': 'AulaPro help',
   'Para poder responderte hace falta una clave': 'I need a key before I can answer',
   'Es gratuita, de Google, y se guarda solo en este ordenador. Se consigue en un par de minutos.':
     'It’s free, from Google, and stays on this computer only. Takes a couple of minutes to get.',
@@ -1910,7 +1910,7 @@ const EN: Record<string, string> = {
   'Ahora no': 'Not now',
   'Pega la clave antes de guardar': 'Paste the key before saving',
   '¿Qué necesitas saber?': 'What do you need to know?',
-  'Pregúntame cómo funciona cualquier parte de Aula Pro.': 'Ask me how any part of Aula Pro works.',
+  'Pregúntame cómo funciona cualquier parte de AulaPro.': 'Ask me how any part of AulaPro works.',
   '¿Por dónde empiezo?': 'Where do I start?',
   '¿Cómo pongo las notas?': 'How do I enter marks?',
   '¿Cómo hago copia de seguridad?': 'How do I back up my data?',
@@ -2021,36 +2021,36 @@ const EN: Record<string, string> = {
   "Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.": "That key doesn't exist. Copy it exactly as it appears in your purchase email.",
   "Esta clave ya está activada en todos los dispositivos que permite. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.": "This key is already activated on all the devices it allows. Deactivate it on one of them (Settings › Licence) and try again.",
   "Esta clave está desactivada. Revisa el correo de la compra o escríbenos.": "This key has been deactivated. Check your purchase email or get in touch.",
-  "Esa clave no es de Aula Pro.": "That key isn't for Aula Pro.",
+  "Esa clave no es de AulaPro.": "That key isn't for AulaPro.",
   "Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.": "Activation needs an internet connection (just this once). Connect and try again.",
   "La tienda no responde ahora mismo. Vuelve a probar en un rato.": "The shop isn't responding right now. Try again in a little while.",
   "En este equipo no hay ninguna licencia activada.": "No licence is activated on this computer.",
-  "Escribe la clave de licencia que recibiste por correo al comprar Aula Pro.": "Enter the licence key you received by email when you bought Aula Pro.",
-  "Esta copia de Aula Pro se activó en otro ordenador. Escribe tu clave para activarla en este.": "This copy of Aula Pro was activated on another computer. Enter your key to activate it on this one.",
-  "Hace más de 30 días que Aula Pro no puede comprobar la licencia. Conéctate a internet y pulsa «Volver a comprobar».": "Aula Pro hasn't been able to check the licence for over 30 days. Connect to the internet and press “Check again”.",
-  "Activa Aula Pro": "Activate Aula Pro",
+  "Escribe la clave de licencia que recibiste por correo al comprar AulaPro.": "Enter the licence key you received by email when you bought AulaPro.",
+  "Esta copia de AulaPro se activó en otro ordenador. Escribe tu clave para activarla en este.": "This copy of AulaPro was activated on another computer. Enter your key to activate it on this one.",
+  "Hace más de 30 días que AulaPro no puede comprobar la licencia. Conéctate a internet y pulsa «Volver a comprobar».": "AulaPro hasn't been able to check the licence for over 30 days. Connect to the internet and press “Check again”.",
+  "Activa AulaPro": "Activate AulaPro",
   "Volver a comprobar": "Check again",
   "Clave de licencia": "Licence key",
   "Activando…": "Activating…",
   "Activar": "Activate",
-  "¿Aún no la tienes? Comprar Aula Pro": "Don't have one yet? Buy Aula Pro",
-  "La activación solo necesita internet una vez; después Aula Pro funciona sin conexión y tus datos no salen de este dispositivo.": "Activation needs the internet only once; after that Aula Pro works offline and your data never leaves this device.",
+  "¿Aún no la tienes? Comprar AulaPro": "Don't have one yet? Buy AulaPro",
+  "La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.": "Activation needs the internet only once; after that AulaPro works offline and your data never leaves this device.",
   "Licencia desactivada en este equipo": "Licence deactivated on this computer",
   "Docente fundador/a": "Founding teacher",
-  "Usas Aula Pro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!": "You've been using Aula Pro since before it went on sale, so it's free for ever on this computer. Thank you for helping to make it better!",
+  "Usas AulaPro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!": "You've been using AulaPro since before it went on sale, so it's free for ever on this computer. Thank you for helping to make it better!",
   "En este equipo desde el {d}": "On this computer since {d}",
   "Licencia activa": "Licence active",
   "activada el {d}": "activated on {d}",
   "Si cambias de dispositivo, desactiva la licencia aquí antes y actívala en el nuevo con la misma clave: así no gastas una activación.": "If you change device, deactivate the licence here first and then activate it on the new one with the same key, so you don't use up an activation.",
-  "Aula Pro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.": "Aula Pro will ask for the key the next time it opens on this computer. Your data is not deleted.",
+  "AulaPro pedirá la clave la próxima vez que se abra en este equipo. Tus datos no se borran.": "AulaPro will ask for the key the next time it opens on this computer. Your data is not deleted.",
   "Sí, desactivar": "Yes, deactivate",
   "Desactivar en este equipo": "Deactivate on this computer",
   "Licencia": "Licence",
-  "Tu licencia de Aula Pro en este ordenador.": "Your Aula Pro licence on this computer.",
+  "Tu licencia de AulaPro en este ordenador.": "Your AulaPro licence on this computer.",
   "Sin activar": "Not activated",
 
   /* ── Android ── */
-  "Todo tu trabajo se guarda dentro de Aula Pro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. Aula Pro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "All your work is saved inside Aula Pro on this device, just for this profile, and is never uploaded to any cloud. Aula Pro makes an automatic backup every ten minutes while you work.",
+  "Todo tu trabajo se guarda dentro de AulaPro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "All your work is saved inside AulaPro on this device, just for this profile, and is never uploaded to any cloud. AulaPro makes an automatic backup every ten minutes while you work.",
   " No hace falta internet: los móviles hablan solo con tu tableta. Si no conectan, puede que la red del centro aísle los dispositivos; entonces activa la zona wifi de la tableta o de tu móvil y conectaos todos a esa red.": " No internet needed: the phones only talk to your tablet. If they can't connect, the school network may be isolating devices; in that case turn on the tablet's or your phone's hotspot and all join that network.",
   "Abrir el menú": "Open the menu",
   "Consigue tu licencia en aulapro.app": "Get your licence at aulapro.app",
@@ -2069,7 +2069,7 @@ const EN: Record<string, string> = {
   "{etapa}: currículo estatal, {cita}.": "{etapa}: national curriculum, {cita}.",
   "Elige tu comunidad autónoma.": "Choose your autonomous community.",
   "Elige tu comunidad autónoma": "Choose your autonomous community",
-  "Aula Pro usa el currículo oficial de tu comunidad en las situaciones de aprendizaje. Hasta que la elijas se usa el currículo estatal. Puedes cambiarla cuando quieras en Configuración.": "Aula Pro uses your community's official curriculum in learning situations. Until you choose one, the national curriculum is used. You can change it any time in Settings.",
+  "AulaPro usa el currículo oficial de tu comunidad en las situaciones de aprendizaje. Hasta que la elijas se usa el currículo estatal. Puedes cambiarla cuando quieras en Configuración.": "AulaPro uses your community's official curriculum in learning situations. Until you choose one, the national curriculum is used. You can change it any time in Settings.",
   "✅ Perfil actualizado. Las situaciones de aprendizaje que ya guardaste conservan su decreto.": "✅ Profile updated. The learning situations you already saved keep their decree.",
   "Tu comunidad autónoma. Púlsala para cambiarla en el perfil.": "Your autonomous community. Click it to change it in your profile.",
   "Elige tu comunidad": "Choose your community",
@@ -2186,7 +2186,7 @@ const EN: Record<string, string> = {
   'Nota del bloque, sobre 10': 'Block mark, out of 10',
   'Para anotar, primero crea una clase con sus alumnos.': 'To log notes, first create a class with its students.',
   'Para proyectar: pizarra, temporizador, ruleta con los nombres, sonómetro, calculadora y retos.': 'For the projector: whiteboard, timer, name wheel, noise meter, calculator and challenges.',
-  'Para que el alumnado se conecte, Aula Pro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre Aula Pro en Windows o en Android.': 'For students to join, Aula Pro opens a room on your own device and the connection stays on the classroom wifi. The browser version cannot do this: open Aula Pro on Windows or Android.',
+  'Para que el alumnado se conecte, AulaPro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre AulaPro en Windows o en Android.': 'For students to join, AulaPro opens a room on your own device and the connection stays on the classroom wifi. The browser version cannot do this: open AulaPro on Windows or Android.',
   'Pesa un {n}% de la nota final. Cada anotación suma o resta {step} en su parte.': 'It is worth {n}% of the final mark. Each note adds or subtracts {step} in its part.',
   'Piezas curvas alrededor de un centro': 'Curved pieces around a centre',
   'Pupitres juntos, unos frente a otros': 'Desks pushed together, facing each other',

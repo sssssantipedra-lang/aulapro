@@ -35,22 +35,22 @@ function cargarActualizador() {
  */
 const TEXTS = {
   es: {
-    availableTitle: 'Hay una versión nueva de Aula Pro',
+    availableTitle: 'Hay una versión nueva de AulaPro',
     availableBody: v => `La ${v} se está descargando en segundo plano. Te avisamos cuando esté lista.`,
-    readyTitle: v => `Aula Pro ${v} lista para instalar`,
-    readyBody: 'Abre Aula Pro y pulsa «Reiniciar y actualizar», o simplemente ciérrala: se instalará sola.',
+    readyTitle: v => `AulaPro ${v} lista para instalar`,
+    readyBody: 'Abre AulaPro y pulsa «Reiniciar y actualizar», o simplemente ciérrala: se instalará sola.',
   },
   ca: {
-    availableTitle: 'Hi ha una versió nova d\'Aula Pro',
+    availableTitle: 'Hi ha una versió nova d\'AulaPro',
     availableBody: v => `La ${v} s'està baixant en segon pla. T'avisarem quan estigui a punt.`,
-    readyTitle: v => `Aula Pro ${v} a punt per instal·lar`,
-    readyBody: 'Obre Aula Pro i prem «Reiniciar i actualitzar», o simplement tanca-la: s\'instal·larà sola.',
+    readyTitle: v => `AulaPro ${v} a punt per instal·lar`,
+    readyBody: 'Obre AulaPro i prem «Reiniciar i actualitzar», o simplement tanca-la: s\'instal·larà sola.',
   },
   en: {
-    availableTitle: 'A new version of Aula Pro is available',
+    availableTitle: 'A new version of AulaPro is available',
     availableBody: v => `Version ${v} is downloading in the background. We'll let you know when it's ready.`,
-    readyTitle: v => `Aula Pro ${v} is ready to install`,
-    readyBody: 'Open Aula Pro and click “Restart and update”, or just close it: it will install on its own.',
+    readyTitle: v => `AulaPro ${v} is ready to install`,
+    readyBody: 'Open AulaPro and click “Restart and update”, or just close it: it will install on its own.',
   },
 };
 
@@ -73,7 +73,7 @@ const RELEASE_MS = 5 * 60 * 1000;
 
 /**
  * Lanza un aviso del sistema (el globo de Windows), no un cartel dentro de la
- * aplicación: el docente casi nunca está mirando Aula Pro cuando arranca —está
+ * aplicación: el docente casi nunca está mirando AulaPro cuando arranca —está
  * abriendo el ordenador en clase— y el aviso de la interfaz se lo perdía.
  *
  * Nunca es crítico: si el sistema tiene las notificaciones desactivadas, o la

@@ -1,8 +1,8 @@
 {
   "name": "aulapro",
-  "productName": "Aula Pro",
+  "productName": "AulaPro",
   "description": "Gestión de aula para docentes: cuaderno, evaluación, asistencia e informes. Todo en tu ordenador.",
-  "author": "Aula Pro",
+  "author": "AulaPro",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "version": "2.21.0",
@@ -24,7 +24,7 @@
   },
   "build": {
     "appId": "es.aulapro.escritorio",
-    "productName": "Aula Pro",
+    "productName": "AulaPro",
     "copyright": "Copyright © 2026 Santiago Pedra Calás",
     "directories": {
       "output": "release",
@@ -71,7 +71,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Aula Pro",
+      "shortcutName": "AulaPro",
       "installerLanguages": [
         "es_ES"
       ],
@@ -117,7 +117,7 @@
       "gatekeeperAssess": false
     },
     "dmg": {
-      "title": "Aula Pro ${version}"
+      "title": "AulaPro ${version}"
     }
   },
   "dependencies": {

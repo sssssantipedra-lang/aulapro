@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- allowBackup en falso: los datos del alumnado no se suben a la copia de
-         Google Drive del dispositivo. Aula Pro promete que no salen del equipo;
+         Google Drive del dispositivo. AulaPro promete que no salen del equipo;
          las copias las hace el docente desde Configuración › Datos y copias. -->
 
     <application

@@ -185,7 +185,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     { id: 'seguridad', icon: <Lock size={22} />, title: 'Seguridad', desc: 'Contraseña para abrir tu perfil.', status: t(hasPassword ? 'Con contraseña' : 'Sin contraseña'), ok: hasPassword },
     { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },
     ...(license ? [{
-      id: 'licencia' as const, icon: <KeyRound size={22} />, title: 'Licencia', desc: 'Tu licencia de Aula Pro en este ordenador.',
+      id: 'licencia' as const, icon: <KeyRound size={22} />, title: 'Licencia', desc: 'Tu licencia de AulaPro en este ordenador.',
       status: t(license.status === 'fundador' ? 'Docente fundador/a' : license.status === 'activa' ? 'Licencia activa' : 'Sin activar'),
       ok: license.status === 'fundador' || license.status === 'activa',
     }] : []),
@@ -229,7 +229,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
         <p className="st-creditos">
           <strong>{t('Créditos')}.</strong> {t('Pictogramas de la agenda visual:')} {ATRIBUCION_MULBERRY}
           {/* Antes al pie del menú lateral: aquí no estorban y se siguen viendo */}
-          <br />{t('Diseñada sobre el currículo educativo español (LOMLOE)')} · © 2026 Santiago Pedra Calás · Aula Pro v{__APP_VERSION__}
+          <br />{t('Diseñada sobre el currículo educativo español (LOMLOE)')} · © 2026 Santiago Pedra Calás · AulaPro v{__APP_VERSION__}
         </p>
       )}
 

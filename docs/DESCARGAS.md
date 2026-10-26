@@ -1,6 +1,6 @@
 # Descargas y actualizaciones: descargas.aulapro.app
 
-El código de Aula Pro está en un repositorio privado. Los instaladores y la
+El código de AulaPro está en un repositorio privado. Los instaladores y la
 actualización automática de Windows se sirven desde **Cloudflare R2** (el
 almacén de archivos de Cloudflare) con el dominio `descargas.aulapro.app`.
 Cloudflare Pages no sirve: no admite archivos de más de 25 MB y los

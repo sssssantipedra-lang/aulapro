@@ -220,7 +220,7 @@ export function ClassroomLive({ classes, students, rubrics, dianas: todasDianas,
             <Monitor size={22} aria-hidden="true" />
             <div>
               <h2>{t('Se usa desde la aplicación instalada')}</h2>
-              <p>{t('Para que el alumnado se conecte, Aula Pro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre Aula Pro en Windows o en Android.')}</p>
+              <p>{t('Para que el alumnado se conecte, AulaPro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre AulaPro en Windows o en Android.')}</p>
             </div>
           </div>
           <ol className="sala-web-pasos">

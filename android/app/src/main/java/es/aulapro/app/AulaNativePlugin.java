@@ -68,7 +68,7 @@ public class AulaNativePlugin extends Plugin {
     @PluginMethod
     public void print(PluginCall call) {
         final String html = call.getString("html", "");
-        final String name = call.getString("name", "Aula Pro");
+        final String name = call.getString("name", "AulaPro");
         final boolean landscape = call.getBoolean("landscape", true);
 
         getActivity().runOnUiThread(() -> {
@@ -156,7 +156,7 @@ public class AulaNativePlugin extends Plugin {
     @PluginMethod
     public void savePdfInDocuments(PluginCall call) {
         final String html = call.getString("html", "");
-        final String name = call.getString("name", "Aula Pro.pdf");
+        final String name = call.getString("name", "AulaPro.pdf");
         final String folder = call.getString("folder", "Otros");
         final boolean landscape = call.getBoolean("landscape", true);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {

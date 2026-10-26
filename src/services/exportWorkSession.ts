@@ -226,7 +226,7 @@ export async function buildWorkSessionDocxBlob(s: WorkSession, lang: Lang): Prom
   children.push(new Paragraph({
     spacing: { before: 400 },
     alignment: AlignmentType.RIGHT,
-    children: [new TextRun({ text: t('Documento generado con Aula Pro'), size: 16, color: '94A3B8', italics: true })],
+    children: [new TextRun({ text: t('Documento generado con AulaPro'), size: 16, color: '94A3B8', italics: true })],
   }));
 
   const document = new Document({

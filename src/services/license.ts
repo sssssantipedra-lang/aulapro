@@ -20,7 +20,7 @@ export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
   'clave-no-valida': 'Esa clave no existe. Cópiala tal cual del correo que recibiste al comprar.',
   'limite': 'Esta clave ya está activada en todos los dispositivos que permite. Desactívala en uno de ellos (Configuración › Licencia) y vuelve a probar.',
   'desactivada': 'Esta clave está desactivada. Revisa el correo de la compra o escríbenos.',
-  'otra-tienda': 'Esa clave no es de Aula Pro.',
+  'otra-tienda': 'Esa clave no es de AulaPro.',
   'sin-conexion': 'Para activar hace falta internet (solo esta vez). Conéctate y vuelve a probar.',
   'error-tienda': 'La tienda no responde ahora mismo. Vuelve a probar en un rato.',
   'sin-licencia': 'En este equipo no hay ninguna licencia activada.',
@@ -28,6 +28,6 @@ export const LICENSE_ERROR_TEXT: Record<LicenseError, string> = {
 
 /** Por qué aparece la pantalla de activación. */
 export const LICENSE_STATUS_TEXT: Partial<Record<LicenseState['status'], string>> = {
-  'sin-licencia': 'Escribe la clave de licencia que recibiste por correo al comprar Aula Pro.',
-  'otro-equipo': 'Esta copia de Aula Pro se activó en otro ordenador. Escribe tu clave para activarla en este.',
+  'sin-licencia': 'Escribe la clave de licencia que recibiste por correo al comprar AulaPro.',
+  'otro-equipo': 'Esta copia de AulaPro se activó en otro ordenador. Escribe tu clave para activarla en este.',
 };
