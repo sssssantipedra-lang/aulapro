@@ -13,8 +13,8 @@
 import { CapacitorHttp } from '@capacitor/core';
 import type { LicenseBridge, LicenseError, LicenseResult, LicenseState } from '../types/electron';
 
-/** Mientras sea `false`, todo dispositivo que abra la app queda como fundador. */
-const ENFORCED = false;
+/** Con `false`, todo dispositivo que abra la app queda como fundador; con `true` hace falta clave (desde la venta). */
+const ENFORCED = true;
 /** Número de tienda de Lemon Squeezy (aulapro.lemonsqueezy.com): una clave de otra tienda no vale. */
 const STORE_ID = '487841';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';

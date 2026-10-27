@@ -19,7 +19,7 @@ const { app, safeStorage } = require('electron');
 const core = require('./licenseCore.cjs');
 
 /* ── Ajustes de la venta ──────────────────────────────────────────────────
- * ENFORCED: mientras sea `false` nadie ve la pantalla de activación y todo
+ * ENFORCED: con `false` nadie ve la pantalla de activación y todo
  *   equipo que abra la aplicación queda como fundador (gratis para siempre).
  *   Se pasa a `true` en la versión con la que empiece la venta.
  * FOUNDER_CUTOFF: fecha de esa versión (p. ej. '2026-11-01'). Quien tenga un
@@ -28,8 +28,8 @@ const core = require('./licenseCore.cjs');
  *   no vale (487841: aulapro.lemonsqueezy.com).
  * BUY_URL: la página donde se compra.
  */
-const ENFORCED = false;
-const FOUNDER_CUTOFF = '';
+const ENFORCED = true;
+const FOUNDER_CUTOFF = '2026-11-08';
 const STORE_ID = '487841';
 const BUY_URL = 'https://aulapro.app';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
