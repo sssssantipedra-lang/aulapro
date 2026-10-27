@@ -12,7 +12,7 @@
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check } from 'lucide-react';
+import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { DocPreview } from '../components/DocPreview';
 import { CopiarAClases } from '../components/CopiarAClases';
@@ -40,7 +40,8 @@ import { SesionEvaluacionCircuito } from '../components/ef/SesionEvaluacionCircu
 import { ETIQUETA_INSTRUMENTO } from '../lib/instrumentosSesion';
 import { htmlInstrumento } from '../services/instrumentoEmbebido';
 import { pizarraSvg } from '../lib/pizarraEF';
-import { archivarSesiones, asociarASda, quitarSesiones } from '../lib/sesiones';
+import type { OrdenFila } from '../components/sesiones/SesionesDeClase';
+import { archivarSesiones, asociarASda, ordenarGrupo, quitarSesiones } from '../lib/sesiones';
 import { ClasesDeSesiones } from '../components/sesiones/ClasesDeSesiones';
 import { SesionesDeClase } from '../components/sesiones/SesionesDeClase';
 import { AsociarASda } from '../components/sesiones/AsociarASda';
@@ -302,6 +303,11 @@ export function Sesiones({
     toast(t(archivar ? '{n} sesiones archivadas: las encuentras en «Ver las archivadas».' : '{n} sesiones restauradas.', { n: ids.length }));
   }
 
+  /** Cambia el orden de un grupo (`ids`, en el orden nuevo); fuera de una SdA se guarda aparte. */
+  function ordenarVarias(ids: string[], enSda: boolean) {
+    onChangeEf(d => ({ ...d, sesiones: ordenarGrupo(d.sesiones, ids, enSda) }));
+  }
+
   function asociarVarias(sdaId: string | undefined) {
     if (!asociando) return;
     const ids = asociando;
@@ -344,10 +350,21 @@ export function Sesiones({
     setPreview({ html: buildSesionHtml(s, datosPdf(s), lang), title: s.titulo || t('Sesión') });
   }
 
-  const fila = (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }) => {
+  const fila = (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }, orden?: OrdenFila) => {
     const lims = esEF && !s.completada && s.claseId && s.fecha && s.fecha >= hoy ? limitacionesDe(s.claseId, s.fecha).length : 0;
     return (
-      <li key={s.id} className={`ef-sesion-fila${s.completada ? ' completada' : ''}${s.archivada ? ' archivada' : ''}${seleccion?.marcada ? ' elegida' : ''}`}>
+      <li key={s.id} className={`ef-sesion-fila${s.completada ? ' completada' : ''}${s.archivada ? ' archivada' : ''}${seleccion?.marcada ? ' elegida' : ''}${orden?.arrastrando ? ' arrastrando' : ''}${orden?.encima ? ' encima' : ''}`}
+        onDragOver={orden?.alArrastrarSobre} onDrop={orden?.alSoltar}>
+        {orden && (
+          <span className="ses-orden">
+            <button type="button" className="ses-orden-btn" disabled={!orden.sube} onClick={orden.sube}
+              aria-label={t('Subir «{nombre}»', { nombre: s.titulo || t('Sin título') })} title={t('Subir')}><ChevronUp size={14} aria-hidden="true" /></button>
+            <span className="ses-orden-asa" draggable onDragStart={orden.alEmpezar} onDragEnd={orden.alTerminar}
+              title={t('Arrastra para cambiar el orden')} aria-hidden="true"><GripVertical size={14} /></span>
+            <button type="button" className="ses-orden-btn" disabled={!orden.baja} onClick={orden.baja}
+              aria-label={t('Bajar «{nombre}»', { nombre: s.titulo || t('Sin título') })} title={t('Bajar')}><ChevronDown size={14} aria-hidden="true" /></button>
+          </span>
+        )}
         {seleccion && (
           <input type="checkbox" className="ses-elegir" checked={seleccion.marcada} onChange={seleccion.alternar}
             aria-label={t('Elegir «{nombre}»', { nombre: s.titulo || t('Sin título') })} />
@@ -431,7 +448,7 @@ export function Sesiones({
           nombre={claseAbierta?.name ?? t('Sin clase concreta')} color={claseAbierta?.color}
           sesiones={sesionesAbiertas} sdas={sdasDeLaClase(claseAbierta?.id)} fila={fila}
           onVolver={() => setClaseVista(null)} onNueva={() => setEditando(vacia(claseAbierta?.id))}
-          onEliminar={eliminarVarias} onArchivar={archivarVarias}
+          onEliminar={eliminarVarias} onArchivar={archivarVarias} onOrdenar={ordenarVarias}
           onAsociar={ids => setAsociando(ids)} onCrearSda={ids => setCreandoSda(ids)}
           onAbrirSda={onAbrirSda} puedeCrearSda={!!onSaveSda}
         />

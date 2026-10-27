@@ -7,9 +7,21 @@
 import { useState } from 'react';
 import { ArrowLeft, Archive, ArchiveRestore, ChevronDown, Lightbulb, Link2, ListChecks, Plus, Trash2 } from 'lucide-react';
 import { useI18n } from '../../i18n';
-import { agruparPorSda } from '../../lib/sesiones';
+import { agruparPorSda, moverEnLista } from '../../lib/sesiones';
 import type { LearningSituation } from '../../types';
 import type { SesionEF } from '../../types/ef';
+
+/** Lo que la fila necesita para subir, bajar o arrastrarse dentro de su grupo. */
+export interface OrdenFila {
+  sube?: () => void;
+  baja?: () => void;
+  arrastrando: boolean;
+  encima: boolean;
+  alEmpezar: (e: React.DragEvent) => void;
+  alTerminar: () => void;
+  alArrastrarSobre: (e: React.DragEvent) => void;
+  alSoltar: (e: React.DragEvent) => void;
+}
 
 interface Props {
   nombre: string;
@@ -18,11 +30,13 @@ interface Props {
   sesiones: SesionEF[];
   sdas: LearningSituation[];
   /** Cómo se pinta una sesión; `seleccion` si se está eligiendo. */
-  fila: (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }) => React.ReactNode;
+  fila: (s: SesionEF, seleccion?: { marcada: boolean; alternar: () => void }, orden?: OrdenFila) => React.ReactNode;
   onVolver: () => void;
   onNueva: () => void;
   onEliminar: (ids: string[]) => void;
   onArchivar: (ids: string[], archivar: boolean) => void;
+  /** Fija el orden de un grupo: sus ids en el orden nuevo y si es una SdA. */
+  onOrdenar: (ids: string[], enSda: boolean) => void;
   onAsociar: (ids: string[]) => void;
   onCrearSda: (ids: string[]) => void;
   onAbrirSda?: () => void;
@@ -31,12 +45,14 @@ interface Props {
 }
 
 export function SesionesDeClase({
-  nombre, color, sesiones, sdas, fila, onVolver, onNueva, onEliminar, onArchivar, onAsociar, onCrearSda, onAbrirSda, puedeCrearSda,
+  nombre, color, sesiones, sdas, fila, onVolver, onNueva, onEliminar, onArchivar, onOrdenar, onAsociar, onCrearSda, onAbrirSda, puedeCrearSda,
 }: Props) {
   const { t } = useI18n();
   const [seleccionando, setSeleccionando] = useState(false);
   const [marcadas, setMarcadas] = useState<Set<string>>(new Set());
   const [verArchivadas, setVerArchivadas] = useState(false);
+  const [arrastrada, setArrastrada] = useState<string | null>(null);
+  const [encima, setEncima] = useState<string | null>(null);
   const [plegados, setPlegados] = useState<Set<string>>(new Set());
 
   const vivas = sesiones.filter(s => !s.archivada);
@@ -56,6 +72,32 @@ export function SesionesDeClase({
   });
   const salirDeSeleccion = () => { setSeleccionando(false); setMarcadas(new Set()); };
   const conSeleccion = (s: SesionEF) => (seleccionando ? { marcada: marcadas.has(s.id), alternar: () => alternar(s.id) } : undefined);
+
+  /** Cómo se mueve la fila `id` dentro de su grupo (`ids`, en el orden en que se ve). */
+  const ordenDe = (ids: string[], enSda: boolean, id: string): OrdenFila | undefined => {
+    if (seleccionando || ids.length < 2) return undefined;
+    const i = ids.indexOf(id);
+    const mover = (destino: number) => onOrdenar(moverEnLista(ids, id, destino), enSda);
+    return {
+      ...(i > 0 ? { sube: () => mover(i - 1) } : {}),
+      ...(i < ids.length - 1 ? { baja: () => mover(i + 1) } : {}),
+      arrastrando: arrastrada === id,
+      encima: !!arrastrada && arrastrada !== id && encima === id,
+      alEmpezar: e => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); setArrastrada(id); },
+      alTerminar: () => { setArrastrada(null); setEncima(null); },
+      alArrastrarSobre: e => {
+        // Solo se suelta sobre otra del mismo grupo
+        if (!arrastrada || !ids.includes(arrastrada)) return;
+        e.preventDefault();
+        if (encima !== id) setEncima(id);
+      },
+      alSoltar: e => {
+        e.preventDefault();
+        if (arrastrada && arrastrada !== id && ids.includes(arrastrada)) onOrdenar(moverEnLista(ids, arrastrada, i), enSda);
+        setArrastrada(null); setEncima(null);
+      },
+    };
+  };
 
   function accion(f: (ids: string[]) => void) { f(elegidas); salirDeSeleccion(); }
   const hayArchivadasElegidas = elegidas.some(id => sesiones.find(s => s.id === id)?.archivada);
@@ -110,7 +152,7 @@ export function SesionesDeClase({
               </button>
               {g.sda && onAbrirSda && <button type="button" className="btn-ghost ses-grupo-abrir" onClick={onAbrirSda}>{t('Ver la SdA')}</button>}
             </div>
-            {!plegado && <ul className="ap-lista ef-sesiones">{g.sesiones.map(s => fila(s, conSeleccion(s)))}</ul>}
+            {!plegado && <ul className="ap-lista ef-sesiones">{g.sesiones.map(s => fila(s, conSeleccion(s), ordenDe(ids, !!g.sda, s.id)))}</ul>}
           </section>
         );
       })}

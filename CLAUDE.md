@@ -131,6 +131,10 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - **Inventario**: «Importar material» (EfMaterial) lee Excel, CSV, texto, Word o PDF (`leerMaterial.ts`, `importarMaterial.ts`; PDF por Gemini, solo tras pulsar), con vista previa y fusión con lo existente.
 - **Autoguardado** (`src/hooks/useGuardadoAutomatico.ts`): además de la pausa de 700 ms, escribe al instante al cerrar la ventana, ocultar la página o cambiar de perfil, para no perder lo hecho en la pausa. Sin comprobar en un móvil real.
 
+## Orden de las sesiones (2.22.0, 26-10-2026)
+
+- Petición del dueño: subir y bajar las sesiones a placer, con botón o arrastrando. En una clase de Sesiones, cada fila lleva flechas y un asa (`OrdenFila` en `SesionesDeClase.tsx`, arrastre HTML5 solo dentro del mismo grupo). El orden de una SdA se guarda en `sdaOrden` y el de las que no tienen SdA en `SesionEF.orden` (`ordenarGrupo`, `moverEnLista` en `src/lib/sesiones.ts`); sin `orden`, mandan la fecha. `orden` está en `normalizarEF`. Las archivadas no se reordenan. **Arrastrar sin comprobar con un dedo real.**
+
 ## Imágenes en las sesiones (2.21.0, 25-10-2026)
 
 - Petición del dueño: poder pegar una imagen copiada de internet o de donde sea, o arrastrarla, en el apartado de sesiones. El editor de una sesión (EF y docente de aula, `src/pages/Sesiones.tsx`) lleva «Imágenes» (hasta 12): Ctrl+V desde cualquier punto del editor, arrastrar sobre él o «Elegir imagen». Se reducen antes de guardarlas (JPEG, 1.400 px) y van en `SesionEF.imagenes`; salen en la vista previa y en el PDF. Detalle y lo que falta en `docs/EF.md` (Sesiones). Código: `src/lib/imagenesSesion.ts`, `src/hooks/useEntradaDeImagenes.ts`, `src/components/sesiones/ImagenesSesion.tsx`.

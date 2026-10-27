@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { activas, agruparPorSda, archivarSesiones, asociarASda, quitarSesiones, resumenDeClase, sesionesDeSda } from './sesiones';
+import { activas, agruparPorSda, archivarSesiones, asociarASda, moverEnLista, ordenarGrupo, quitarSesiones, resumenDeClase, sesionesDeSda } from './sesiones';
 import type { LearningSituation } from '../types';
 import type { SesionEF } from '../types/ef';
 import type { SdaContent } from '../services/learningSituations';
@@ -90,5 +90,22 @@ describe('sesiones · desde una SdA', () => {
     const r = sesionesDeSda({ id: 's1', content: conFotos }, { claseId: 'c1', nuevoId: i => `n${i}`, t: k => k });
     expect(r[0].imagenes).toEqual([foto]);
     expect(r[1]).not.toHaveProperty('imagenes');
+  });
+});
+
+describe('orden manual', () => {
+
+  it('moverEnLista pone el id en su lugar y corre los demás', () => {
+    expect(moverEnLista(['a', 'b', 'c', 'd'], 'a', 2)).toEqual(['b', 'c', 'a', 'd']);
+    expect(moverEnLista(['a', 'b', 'c', 'd'], 'd', 0)).toEqual(['d', 'a', 'b', 'c']);
+    expect(moverEnLista(['a', 'b'], 'x', 0)).toEqual(['a', 'b']);
+  });
+
+  it('el orden elegido manda sobre la fecha, dentro y fuera de una SdA', () => {
+    const sesiones = [ses('a', { fecha: '2026-10-01' }), ses('b', { fecha: '2026-10-02' }), ses('c', { fecha: '2026-10-03' })];
+    const libre = ordenarGrupo(sesiones, ['c', 'a', 'b'], false);
+    expect(agruparPorSda(libre, [])[0].sesiones.map(s => s.id)).toEqual(['c', 'a', 'b']);
+    const enSda = ordenarGrupo(sesiones.map(s => ({ ...s, sdaId: 'x' })), ['b', 'c', 'a'], true);
+    expect(agruparPorSda(enSda, [sda('x', '1', 'X')])[0].sesiones.map(s => s.id)).toEqual(['b', 'c', 'a']);
   });
 });

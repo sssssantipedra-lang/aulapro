@@ -2495,3 +2495,13 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .ap-origen-informe { background:color-mix(in srgb, var(--accent) 16%, var(--card)); color:var(--accent-d); }
 .ap-origen-orientacion { background:color-mix(in srgb, #8b5cf6 16%, var(--card)); color:#6d28d9; }
 .ap-origen-ia { background:var(--surface-2); color:var(--text-2); }
+
+/* Cambiar el orden de las sesiones: botones y asa para arrastrar */
+.ses-orden { flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:2px; }
+.ses-orden-btn { display:flex; align-items:center; justify-content:center; width:28px; height:20px; background:none; border:none; border-radius:6px; color:var(--text-3); cursor:pointer; }
+.ses-orden-btn:hover:not(:disabled) { background:var(--surface); color:var(--accent); }
+.ses-orden-btn:disabled { opacity:.25; cursor:default; }
+.ses-orden-asa { display:flex; align-items:center; justify-content:center; width:28px; height:18px; color:var(--text-3); cursor:grab; }
+.ses-orden-asa:active { cursor:grabbing; }
+.ef-sesion-fila.arrastrando { opacity:.4; }
+.ef-sesion-fila.encima { box-shadow:0 -3px 0 var(--accent); }

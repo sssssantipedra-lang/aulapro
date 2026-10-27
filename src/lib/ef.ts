@@ -620,6 +620,7 @@ export function normalizarEF(raw: unknown): EfData {
       ...(IDS_MODALIDADES.includes(x.modalidad as ModalidadEF) ? { modalidad: x.modalidad as ModalidadEF } : {}),
       ...(x.completada === true ? { completada: true } : {}),
       ...(x.archivada === true ? { archivada: true } : {}),
+      ...(numero(x.orden) !== undefined ? { orden: Math.max(1, Math.round(numero(x.orden) as number)) } : {}),
       ...(esTexto(x.sdaId) ? { sdaId: x.sdaId } : {}),
       ...(numero(x.sdaOrden) !== undefined ? { sdaOrden: Math.max(1, Math.round(numero(x.sdaOrden) as number)) } : {}),
       ...(esTexto(x.pizarraId) ? { pizarraId: x.pizarraId } : {}),
