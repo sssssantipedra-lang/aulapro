@@ -48,6 +48,8 @@ export interface GrupoSda {
   sesiones: SesionEF[];
 }
 
+const ordenLibre = (a: SesionEF, b: SesionEF) => (a.orden ?? 1e9) - (b.orden ?? 1e9) || porFecha(a, b);
+
 const numeroDeSda = (s: LearningSituation) => {
   const n = parseInt(s.request.numero, 10);
   return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
@@ -68,12 +70,34 @@ export function agruparPorSda(sesiones: readonly SesionEF[], sdas: readonly Lear
   }
   const ordenSesion = (a: SesionEF, b: SesionEF) => (a.sdaOrden ?? 1e9) - (b.sdaOrden ?? 1e9) || porFecha(a, b);
   return [...grupos.values()]
-    .map(g => ({ ...g, sesiones: g.sda ? [...g.sesiones].sort(ordenSesion) : [...g.sesiones].sort(porFecha) }))
+    .map(g => ({ ...g, sesiones: g.sda ? [...g.sesiones].sort(ordenSesion) : [...g.sesiones].sort(ordenLibre) }))
     .sort((a, b) => {
       if (!a.sda) return 1;
       if (!b.sda) return -1;
       return numeroDeSda(a.sda) - numeroDeSda(b.sda) || a.sda.title.localeCompare(b.sda.title, 'es');
     });
+}
+
+/* ── Cambiar el orden ── */
+
+/** Los ids con `id` puesto en el lugar `destino` (0 es el primero); los demás se corren. */
+export function moverEnLista(ids: readonly string[], id: string, destino: number): string[] {
+  const resto = ids.filter(x => x !== id);
+  if (resto.length === ids.length) return [...ids];
+  resto.splice(Math.max(0, Math.min(resto.length, destino)), 0, id);
+  return resto;
+}
+
+/**
+ * Fija el orden de un grupo: `ids` son sus sesiones en el orden que se quiere.
+ * En una SdA se guarda en `sdaOrden` y fuera de ellas, en `orden`.
+ */
+export function ordenarGrupo(sesiones: readonly SesionEF[], ids: readonly string[], enSda: boolean): SesionEF[] {
+  const lugar = new Map(ids.map((id, i) => [id, i + 1]));
+  return sesiones.map(s => {
+    const n = lugar.get(s.id);
+    return n === undefined ? s : enSda ? { ...s, sdaOrden: n } : { ...s, orden: n };
+  });
 }
 
 /* ── Acciones en bloque ── */
@@ -105,8 +129,8 @@ export function asociarASda(sesiones: readonly SesionEF[], ids: readonly string[
   [...ids].sort((a, b) => (posicion.get(a) ?? 0) - (posicion.get(b) ?? 0)).forEach(id => nuevoOrden.set(id, ++orden));
   return sesiones.map(s => {
     if (!elegidos.has(s.id)) return s;
-    const { sdaId: _i, sdaOrden: _o, ...resto } = s;
-    void _i; void _o;
+    const { sdaId: _i, sdaOrden: _o, orden: _r, ...resto } = s;
+    void _i; void _o; void _r;
     return sdaId ? { ...resto, sdaId, sdaOrden: nuevoOrden.get(s.id) } : resto;
   });
 }

@@ -185,6 +185,8 @@ export interface SesionEF {
   sdaId?: string;
   /** El lugar de la sesión dentro de esa SdA (1, 2, 3…). */
   sdaOrden?: number;
+  /** El lugar de la sesión entre las que no tienen SdA, elegido por el docente (subir, bajar o arrastrar). */
+  orden?: number;
   /** Archivada: sale de la vista y de los recuentos sin borrarla; se puede restaurar. */
   archivada?: boolean;
   instalacionId?: string;
