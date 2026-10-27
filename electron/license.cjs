@@ -29,7 +29,7 @@ const core = require('./licenseCore.cjs');
  * BUY_URL: la página donde se compra.
  */
 const ENFORCED = true;
-const FOUNDER_CUTOFF = '2026-11-08';
+const FOUNDER_CUTOFF = '2026-11-10';
 const STORE_ID = '487841';
 const BUY_URL = 'https://aulapro.app';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
