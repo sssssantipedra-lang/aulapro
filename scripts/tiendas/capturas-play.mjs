@@ -18,12 +18,15 @@ import { ejemplosAula, fichasAula, reunionYFormacion, nuevasAula, ejemplosEF, ej
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SALIDA = path.resolve(process.argv[2] || path.join(RAIZ, 'tiendas-capturas'));
 const ESCRITORIO = !!process.env.ESCRITORIO;
+const TABLET = !!process.env.TABLET;   // tablet de 7": 1920x1080 en horizontal (16:9)
 const PERFIL = process.env.PERFIL || 'aula';
 const BASE = process.env.BASE || 'http://127.0.0.1:5173/';
 fs.mkdirSync(SALIDA, { recursive: true });
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
-const ctx = await browser.newContext(ESCRITORIO
+const ctx = await browser.newContext(TABLET
+  ? { viewport: { width: 1024, height: 576 }, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true, locale: 'es-ES' }
+  : ESCRITORIO
   ? { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, locale: 'es-ES' }
   : { viewport: { width: 412, height: 732 }, deviceScaleFactor: 1080 / 412, isMobile: true, hasTouch: true, locale: 'es-ES' });
 const page = await ctx.newPage();
@@ -77,7 +80,8 @@ await page.waitForTimeout(4500);
 await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap,[aria-label="Ayuda de AulaPro"]{display:none!important}' });
 
 async function menu(nombre) {
-  if (!ESCRITORIO) { await page.getByRole('button', { name: 'Abrir el menú' }).click(); await page.waitForTimeout(700); }
+  const burger = page.getByRole('button', { name: 'Abrir el menú' });
+  if (!ESCRITORIO && await burger.isVisible()) { await burger.click(); await page.waitForTimeout(700); }
   await page.locator('.sidebar .nav-item', { hasText: new RegExp(`^${nombre}$`) }).click();
   await page.waitForTimeout(1500);
 }
@@ -87,7 +91,7 @@ async function foto(nombre, y = 0) {
   await page.waitForTimeout(500);
   const buf = await page.screenshot();
   const f = path.join(SALIDA, `${nombre}.png`);
-  fs.writeFileSync(f, await (ESCRITORIO ? sharp(buf) : sharp(buf).resize(1080, 1920, { fit: 'fill' })).png().toBuffer());
+  fs.writeFileSync(f, await (ESCRITORIO || TABLET ? sharp(buf) : sharp(buf).resize(1080, 1920, { fit: 'fill' })).png().toBuffer());
   console.log('→', f);
 }
 
