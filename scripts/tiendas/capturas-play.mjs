@@ -13,19 +13,20 @@ import sharp from 'sharp';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ejemplosAula, fichasAula, reunionYFormacion, nuevasAula, ejemplosEF, ejemplosApoyo } from '../web/ejemplos.mjs';
+import { ejemplosAula, fichasAula, reunionYFormacion, nuevasAula, ejemplosEF, ejemplosApoyo, borradorEvalFoto } from '../web/ejemplos.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SALIDA = path.resolve(process.argv[2] || path.join(RAIZ, 'tiendas-capturas'));
 const ESCRITORIO = !!process.env.ESCRITORIO;
-const TABLET = !!process.env.TABLET;   // tablet de 7": 1920x1080 en horizontal (16:9)
+const TABLET = !!process.env.TABLET;   // TABLET=1: 7" (1024x576 CSS); TABLET=10: 10" (1280x720 CSS). Siempre 1920x1080 en horizontal (16:9)
+const T10 = process.env.TABLET === '10';
 const PERFIL = process.env.PERFIL || 'aula';
 const BASE = process.env.BASE || 'http://127.0.0.1:5173/';
 fs.mkdirSync(SALIDA, { recursive: true });
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const ctx = await browser.newContext(TABLET
-  ? { viewport: { width: 1024, height: 576 }, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true, locale: 'es-ES' }
+  ? { viewport: T10 ? { width: 1280, height: 720 } : { width: 1024, height: 576 }, deviceScaleFactor: T10 ? 1.5 : 1.875, isMobile: true, hasTouch: true, locale: 'es-ES' }
   : ESCRITORIO
   ? { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, locale: 'es-ES' }
   : { viewport: { width: 412, height: 732 }, deviceScaleFactor: 1080 / 412, isMobile: true, hasTouch: true, locale: 'es-ES' });
@@ -45,6 +46,7 @@ const { id, data } = await page.evaluate(() => {
 });
 const clase = n => data.classes.find(c => c.name.startsWith(n)) ?? data.classes[0];
 let patch = {};
+let borradores = {};
 if (PERFIL === 'aula') {
   patch = { ...ejemplosAula({ clases: data.classes, alumnos: data.students }) };
   const fa = fichasAula({ clases: data.classes });
@@ -57,6 +59,10 @@ if (PERFIL === 'aula') {
   patch.fichas.unshift(nuevas.interactivas);
   patch.ef = { ...(data.ef ?? {}), sesiones: nuevas.sesiones };
   patch.workSessions = reunionYFormacion();
+  const c5 = clase('5º Primaria A');
+  const alumno = data.students.find(a => a.class_id === c5.id);
+  const categoria = data.gradeCategories.find(c => c.class_id === c5.id);
+  borradores['evaluacion-foto'] = borradorEvalFoto({ clase: c5, alumno, categoriaId: categoria?.id ?? '' });
 } else if (PERFIL === 'ef') {
   const referencias = await page.evaluate(async () => (await import('/src/lib/modelosEF.ts')).referenciasDeModelos(['aprendizaje-cooperativo']));
   const e = ejemplosEF({ referencias });
@@ -70,11 +76,12 @@ if (PERFIL === 'aula') {
   }, data.apoyo.alumnos[0]);
   patch = { apoyo: { ...data.apoyo, ...ejemplosApoyo({ titulos }) }, workSessions: reunionYFormacion() };
 }
-await page.evaluate(({ id, patch }) => {
+await page.evaluate(({ id, patch, borradores }) => {
   const k = 'aulapro_web_data_' + id;
+  for (const [tipo, b] of Object.entries(borradores)) localStorage.setItem(`aulapro_borrador_${id}_${tipo}`, JSON.stringify(b));
   localStorage.setItem(k, JSON.stringify({ ...JSON.parse(localStorage.getItem(k)), ...patch }));
   localStorage.setItem('aulapro_gemini_key', 'clave-de-ejemplo-no-valida');
-}, { id, patch });
+}, { id, patch, borradores });
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(4500);
 await page.addStyleTag({ content: '*{caret-color:transparent!important} .toast,.toast-wrap,[aria-label="Ayuda de AulaPro"]{display:none!important}' });
@@ -107,6 +114,23 @@ if (PERFIL === 'aula') {
   await menu('Documentos'); await pestana('Recursos'); await foto('06-recursos');
   await menu('En clase'); await pestana('Anotar actitud'); await foto('07-actitud');
   await menu('Agenda'); await foto('08-agenda');
+  await menu('Evaluar'); await pestana('Rúbricas'); await foto('09-rubricas');
+  await menu('Evaluar'); await pestana('Dianas'); await page.waitForTimeout(1500); await foto('10-dianas');
+  await menu('Evaluar'); await pestana('Diana competencial');
+  const sel = page.locator('main select');
+  await sel.nth(0).selectOption({ index: 1 }); await page.waitForTimeout(600);
+  await sel.nth(1).selectOption({ index: 1 }); await page.waitForTimeout(1500); await foto('11-diana-competencial');
+  await menu('Evaluar'); await pestana('Por foto'); await page.waitForTimeout(1000); await foto('12-evaluar-foto');
+  await menu('Documentos'); await pestana('Informes');
+  await page.getByText('Alumno 1', { exact: true }).first().click(); await page.waitForTimeout(1200); await foto('14-informes');
+  await menu('Documentos'); await pestana('Actas'); await foto('15-actas');
+  // Pizarra y herramientas (Aula Live): con el temporizador y la ruleta abiertos, repartidos por la pizarra
+  const ancho = page.viewportSize().width;
+  const v = (tipo, x, y, w, h) => ({ id: tipo, tipo, rect: { x: Math.round(x), y, width: w, height: h } });
+  await page.evaluate(vs => localStorage.setItem('aulapro_pizarra_actual', JSON.stringify(vs)),
+    ancho < 600 ? [v('wheel', 50, 170, 300, 340)] : [v('timer', ancho * 0.3, 130, 290, 350), v('wheel', ancho * 0.58, 130, 290, 340)]);
+  await menu('En clase'); await pestana('Pizarra y herramientas'); await page.waitForTimeout(1500); await foto('16-pizarra');
+  await menu('En clase'); await pestana('Actividades con móviles'); await foto('17-actividades-moviles');
 } else if (PERFIL === 'ef') {
   await menu('Educación Física'); await foto('ef-01-portada');
   for (const [n, f] of [['En la pista', 'ef-02-pista'], ['Equipos', 'ef-03-equipos'], ['Pruebas físicas', 'ef-04-pruebas']]) {
