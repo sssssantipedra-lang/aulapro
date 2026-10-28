@@ -217,10 +217,11 @@ Las respuestas siguen lo que la app hace de verdad (privacidad y `docs/WEB.md`, 
 | Fotos (Evaluar por foto, actividades desde una foto) | Sí | Sí, con Google (API de Gemini, con la clave del propio docente) | No, solo si usa la IA | Funcionalidad de la app |
 | Archivos y documentos (PDF y manuales que el docente adjunta a la IA) | Sí | Sí, con Google | No | Funcionalidad de la app |
 | Otro contenido generado por el usuario (el texto de las peticiones a la IA, con los nombres cambiados por códigos) | Sí | Sí, con Google | No | Funcionalidad de la app |
+| Información sanitaria (PT y AL: diagnóstico y necesidades del alumnado, con el nombre cambiado por un código, solo si el docente lo rellena; añadida el 28-10-2026 porque la privacidad dice que va a Google) | Sí | Sí, con Google | No | Funcionalidad de la app |
 
 **Trabajo compartido** no añade nada a esta tabla: el archivo cifrado lo crea y lo manda el propio docente, y el desarrollador no lo recibe ni pasa por ningún servicio suyo.
 
-**Datos que no se recopilan:** ubicación, contactos, mensajes, historial de navegación, información financiera, salud y forma física, audio y vídeo (el medidor de ruido analiza el sonido en el momento y no lo guarda ni lo envía; la cámara solo lee un QR). Anuncios y analíticas: ninguno.
+**Datos que no se recopilan:** ubicación, contactos, mensajes, historial de navegación, información financiera, estado físico, audio y vídeo (el medidor de ruido analiza el sonido en el momento y no lo guarda ni lo envía; la app no usa la cámara desde la 2.20.0). Anuncios y analíticas: ninguno.
 
 **Alternativa menos prudente.** Google exime de «compartir» algunas transferencias hechas por una acción concreta del usuario o a un proveedor que trata los datos en nombre del desarrollador. Se podría defender que lo enviado a Gemini con la clave propia del docente no cuenta como compartir. No lo recomiendo: es más seguro declararlo, porque la privacidad ya lo explica con detalle, y un formulario más completo que el estricto no tiene riesgo de rechazo. Lee la ayuda «Proporcionar información para la sección Seguridad de los datos» antes de decidir.
 
@@ -365,3 +366,27 @@ Si Google la rechaza, las salidas, de menos a más trabajo:
 - Pack 10: https://aulapro.lemonsqueezy.com/checkout/buy/72657643-da0a-4803-9868-7762162ee184?enabled=2308835
 - Pack 20: https://aulapro.lemonsqueezy.com/checkout/buy/deabaf99-2c4e-414f-a5d2-35e107ed8af9?enabled=2308836
 - Pack 30: https://aulapro.lemonsqueezy.com/checkout/buy/a6363a1d-f949-4d83-a68e-189ed4e91bfd?enabled=2308837
+
+
+## 7. Estado de Google Play (28-10-2026)
+
+Hecho en Play Console (cuenta personal del dueño, app `es.aulapro.app`, gratuita, nombre «AulaPro»):
+
+- **Paquete:** `.aab` 2.23.0 (código 22300) generado con `android-play.yml` y firmado con la llave de subida privada del dueño (secretos `ANDROID_KEYSTORE_*`; copia de `subida.jks` y contraseñas fuera del repositorio). Play App Signing activo. Subido a **Prueba interna** (disponible) y a **Prueba cerrada, canal Alpha** (en revisión, España).
+- **Declaraciones:** acceso a la app (clave de revisión de Lemon Squeezy, 85 activaciones, caduca el 31-12-2026: **renovarla antes de la primera actualización posterior**, porque Google la usa en cada revisión), anuncios (no), clasificación de contenido (cuestionario con «no» a todo salvo interacción entre usuarios y contenido en línea de IA), seguridad de los datos (cinco tipos: información sanitaria, fotos, archivos y documentos, otro contenido generado por el usuario, identificadores; cifrado en tránsito «no» por la sala de alumnos), cuentas (no hay), ID de publicidad (no), funciones financieras y de salud (ninguna), aplicación gubernamental (no), etiquetas (Educación, Productividad...).
+- **Ficha en castellano:** nombre «AulaPro: IA para docentes», textos del apartado 2.2, icono 512, gráfico 1024x500, ocho capturas de móvil y ocho de tablet de 7 y de 10 pulgadas (scripts en `scripts/tiendas/`). Falta catalán e inglés (opcional).
+- **Política de privacidad:** https://aulapro.app/privacidad (actualizada el 28-10-2026 con las tiendas y las actualizaciones).
+- **Países:** pendiente limitar a España en producción (el producto se orienta a España; precios con IVA del 21 % en Lemon Squeezy).
+
+**Lo que falta, por orden:**
+1. **Prueba cerrada con al menos 12 testers inscritos durante 14 días seguidos** (requisito de las cuentas personales nuevas). Lista de correos `Equipo` (3 al 28-10). Cada tester abre el enlace «Unirse en la Web» y pulsa «Hacerse tester»; no puede desinstalar la app en 14 días. Contar de mensaje a los testers: ver el apartado 8.
+2. Pedir acceso a producción desde Play Console (cuestionario sobre la prueba) y esperar la revisión de Google.
+3. Pegar el enlace de la ficha en `play` de `web/sitio/assets/launch.js`.
+
+**Consecuencia para el calendario:** Android no llega al 10-11-2026. Ese día salen Windows (instalador directo y Microsoft Store) y la web; Android queda como «próximamente en Google Play».
+
+## 8. Mensaje para los testers
+
+> Hola, estoy sacando una app para docentes en Google Play y necesito 12 probadores durante 14 días. ¿Me ayudas? 1) Pásame tu correo de Google. 2) Cuando te avise, abre este enlace en tu móvil Android: [ENLACE «Unirse en la Web»]. 3) Pulsa «Hacerse tester» e instala la app. 4) No la desinstales en 2 semanas. No hace falta que la uses. ¡Gracias!
+
+Quien ya tenga la app instalada con el APK de la web (firmado con otra llave) debe desinstalarla antes, con una copia de seguridad hecha: Android no deja actualizar encima de una firma distinta.
