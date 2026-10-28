@@ -6,7 +6,7 @@
    and the "Descargar" link and the download page go live. */
 window.AULA_LAUNCH = {
   // Lemon Squeezy checkout link of the AulaPro product: one licence for Windows, Mac and Android
-  checkout: '',
+  checkout: 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832',
   // Google Play listing of the free Android app (it is activated with the licence)
   play: '',
   // Microsoft Store listing of the free Windows app (Microsoft signs it, so Windows shows no warning).
@@ -14,7 +14,12 @@ window.AULA_LAUNCH = {
   store: '',
   // Lemon Squeezy checkout links of the group packs for 5, 10, 20 and 30 teachers: one key for the whole
   // group, 2 devices per teacher (activation limit 10, 20, 40 and 60). An empty pack says "Próximamente".
-  packs: { 5: '', 10: '', 20: '', 30: '' },
+  packs: {
+    5: 'https://aulapro.lemonsqueezy.com/checkout/buy/61f76d20-1ea7-48f7-86a5-e2a0b24dad68?enabled=2308833',
+    10: 'https://aulapro.lemonsqueezy.com/checkout/buy/72657643-da0a-4803-9868-7762162ee184?enabled=2308835',
+    20: 'https://aulapro.lemonsqueezy.com/checkout/buy/deabaf99-2c4e-414f-a5d2-35e107ed8af9?enabled=2308836',
+    30: 'https://aulapro.lemonsqueezy.com/checkout/buy/a6363a1d-f949-4d83-a68e-189ed4e91bfd?enabled=2308837'
+  },
   // Vídeo corto de una generación real de AulaPro (sección «En directo»). Vacío = la sección no sale.
   // src: ruta de un .mp4 sin sonido, de unos 15 a 20 segundos y 1280x720; poster: una imagen del primer
   // fotograma. Detalle en docs/WEB.md, apartado 4d.
