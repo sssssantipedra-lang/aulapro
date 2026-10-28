@@ -1,0 +1,61 @@
+name: Android para Google Play
+
+# Genera el paquete .aab que se sube a Google Play (Play no admite APK en apps
+# nuevas), firmado con la llave de subida PRIVADA del dueño, nunca con la de
+# pruebas del repositorio. Se lanza a mano: Actions › Android para Google Play.
+# Secretos necesarios: ANDROID_KEYSTORE_BASE64 (el .jks en base64),
+# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Comprobar que está la llave de subida
+        env:
+          B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$B64" ]; then echo "Falta el secreto ANDROID_KEYSTORE_BASE64: no se firma con la llave de pruebas."; exit 1; fi
+          echo "$B64" | base64 -d > "$RUNNER_TEMP/subida.jks"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar la aplicación web
+        run: npx vite build
+
+      - name: Copiar la web al proyecto Android
+        run: npx cap sync android
+
+      - name: Compilar el paquete (.aab)
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/subida.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Subir el .aab como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaPro-play-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 14
