@@ -354,3 +354,14 @@ Si Google la rechaza, las salidas, de menos a más trabajo:
 1. Contestar al rechazo con la explicación de las notas del apartado 2.5 y pedir el requisito exacto.
 2. Ofrecer el APK directamente en la web, como instalación fuera de Play (ya se genera en cada versión).
 3. Una suscripción solo para Android dentro de Google Play (con su comisión, su precio propio y la integración del sistema de pago de Google), dejando la clave de la web para Windows. Rompe la licencia única y los packs para grupos en Android.
+
+
+## 6. Enlaces de pago de Lemon Squeezy (modo real, 28-10-2026)
+
+**No ponerlos en `web/sitio/assets/launch.js` hasta el día de la salida a la venta (10-11-2026):** con `checkout` relleno la web entera pasa a «a la venta» y se abre la página de descargas. Precios base sin IVA para que en España el total sea el de la web (21 %): 5,78 €, 20,65 €, 37,18 €, 66,11 € y 82,64 € (y 9,91 € la anual de 11,99 €). Decisión del dueño: el producto se orienta a España; Google Play se limita a España y las condiciones lo dicen.
+
+- `checkout` (oferta de lanzamiento): https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832
+- Pack 5: https://aulapro.lemonsqueezy.com/checkout/buy/61f76d20-1ea7-48f7-86a5-e2a0b24dad68?enabled=2308833
+- Pack 10: https://aulapro.lemonsqueezy.com/checkout/buy/72657643-da0a-4803-9868-7762162ee184?enabled=2308835
+- Pack 20: https://aulapro.lemonsqueezy.com/checkout/buy/deabaf99-2c4e-414f-a5d2-35e107ed8af9?enabled=2308836
+- Pack 30: https://aulapro.lemonsqueezy.com/checkout/buy/a6363a1d-f949-4d83-a68e-189ed4e91bfd?enabled=2308837
