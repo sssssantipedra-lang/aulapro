@@ -5,7 +5,7 @@
   "author": "AulaPro",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
-  "version": "2.22.0",
+  "version": "2.23.0",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
