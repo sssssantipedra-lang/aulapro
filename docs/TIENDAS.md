@@ -8,7 +8,7 @@ Los límites de caracteres y los formularios de las tiendas cambian: se han pues
 
 ## 1. Antes de enviar nada
 
-1. **Decidir cuándo se pide la clave (`ENFORCED`).** Hoy, en `electron/license.cjs` y `src/platform/androidLicense.ts`, `ENFORCED = false` y `FOUNDER_CUTOFF = ''`: la app **no pide clave** y todo el que la abre queda como fundador, gratis para siempre. Con eso publicado en las tiendas, la app sería gratuita para quien la descargue. La versión que se envíe a las tiendas tiene que llevar `ENFORCED = true` (y, si se quiere, una `FOUNDER_CUTOFF`). Hay que cambiar los dos archivos a la vez y actualizar `docs/WEB.md`, apartado 3, punto 4.
+1. **Clave obligatoria (`ENFORCED`): hecho el 27-10-2026 (`true` en los dos archivos, `FOUNDER_CUTOFF = '2026-11-10'` (fijado por el dueño)).** Antes: Hoy, en `electron/license.cjs` y `src/platform/androidLicense.ts`, `ENFORCED = false` y `FOUNDER_CUTOFF = ''`: la app **no pide clave** y todo el que la abre queda como fundador, gratis para siempre. Con eso publicado en las tiendas, la app sería gratuita para quien la descargue. La versión que se envíe a las tiendas tiene que llevar `ENFORCED = true` (y, si se quiere, una `FOUNDER_CUTOFF`). Hay que cambiar los dos archivos a la vez y actualizar `docs/WEB.md`, apartado 3, punto 4.
 2. **Crear una clave para quien revisa.** Google y Microsoft tienen que poder abrir la app. Con `ENFORCED = true` necesitan una clave: crea una en Lemon Squeezy (por ejemplo, con un código de descuento del 100 % en el producto individual) con un límite de activaciones holgado, y guarda la clave aparte. Se pega en las notas de cada tienda (marcada como `CLAVE_DE_REVISION`). Cuando acabe la revisión, desactívala.
 3. **Cuentas.**
    - Microsoft: la ficha ya existe (nombre «AulaPro» reservado, Store ID `9N9WJW9C24DN`, identidad en `docs/WEB.md`, apartado 4). Falta subir el paquete `AulaPro-<versión>-microsoft-store.appx` de cada versión.
@@ -340,7 +340,8 @@ Para justificar `runFullTrust` en el formulario de capacidades restringidas, sir
 ## 4. Lo que queda después de enviar
 
 1. **Cuando se publique en Microsoft Store**, poner su enlace en `store` de `web/sitio/assets/launch.js` (`https://apps.microsoft.com/detail/9N9WJW9C24DN`); y el de Google Play, en `play`. La web sigue en «Próximamente» mientras `checkout` esté vacío.
-2. **Cada versión nueva** hay que subirla a las dos tiendas a mano (el APK firmado con tu llave de subida en Play, el `.appx` en Partner Center). El workflow «Publicar versión» solo deja los archivos en GitHub y en descargas.aulapro.app.
+2. **Android para Google Play** (27-10-2026): Play pide un `.aab`, no un APK. Se genera con Actions › «Android para Google Play» (`android-play.yml`), firmado con la llave de subida privada del dueño (secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`); sin ellos falla a propósito. Activar «Play App Signing». Paquete `es.aulapro.app`, app **sin coste**.
+3. **Cada versión nueva** hay que subirla a las dos tiendas a mano (el APK firmado con tu llave de subida en Play, el `.appx` en Partner Center). El workflow «Publicar versión» solo deja los archivos en GitHub y en descargas.aulapro.app.
 3. **Cuando cambie lo que la app envía fuera** (IA, licencia, Compartir), actualizar a la vez la privacidad de la web y el formulario de seguridad de los datos de Play.
 4. **Prueba antes de abrir la venta**: instalar la versión de cada tienda en un equipo y un móvil limpios, activar la clave de revisión, comprar una licencia de verdad y devolverla (ver el punto 5 de `docs/WEB.md`).
 
