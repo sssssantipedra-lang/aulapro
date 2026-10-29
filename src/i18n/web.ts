@@ -5,6 +5,7 @@
  * a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const WEB_EN: Record<string, string> = {
+  '¿Compraste con otro correo o tienes un pack? Escribe tu clave': 'Bought with another email or have a pack? Enter your key',
   'Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.': 'Your account has one profile. To start from scratch, delete it with the bin and create yours.',
   'Tu cuaderno docente, en todos tus dispositivos': 'Your teaching notebook, on all your devices',
   'La licencia va con tu cuenta de Google. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive.': 'The licence goes with your Google account. Your work never goes through an AulaPro server: it stays on your device and, if you choose, in your Google Drive.',
@@ -101,6 +102,7 @@ export const WEB_EN: Record<string, string> = {
 };
 
 export const WEB_CA: Record<string, string> = {
+  '¿Compraste con otro correo o tienes un pack? Escribe tu clave': 'Vas comprar amb un altre correu o tens un pack? Escriu la teva clau',
   'Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.': 'El teu compte té un perfil. Per començar de zero, esborra’l amb la paperera i crea el teu.',
   'Tu cuaderno docente, en todos tus dispositivos': 'El teu quadern docent, a tots els teus dispositius',
   'La licencia va con tu cuenta de Google. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive.': 'La llicència va amb el teu compte de Google. La feina mai passa per un servidor d’AulaPro: es queda al teu dispositiu i, si ho tries, al teu Google Drive.',
