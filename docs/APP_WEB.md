@@ -20,6 +20,10 @@ La app es la misma: lo que cambia es la pieza que habla con el sistema. Como en 
 
 Nada del trabajo del docente sale hacia un servidor de AulaPro: la web es estática y la función de la licencia solo ve la clave.
 
+## Entrar con la cuenta (29-10-2026)
+
+Decisión del dueño: el docente entra con su cuenta de Google (Microsoft, después) y, en una segunda fase, sus datos se guardarán solos en su propio Drive o OneDrive, para que no tenga que preocuparse de copias. Hecho: la pantalla «Entra en AulaPro» antes de la licencia (`pages/EntrarWeb.tsx`, `CuentaCheck` en `App.tsx`), con Google Identity Services (`platform/cuentaWeb.ts`, ID de cliente público del proyecto «AulaPro» de Google Cloud). Se guardan en el navegador el nombre, el correo y el identificador de la cuenta; nada sale hacia AulaPro. En Configuración › Datos y copias, la cuenta y «Salir de la cuenta». Pendiente: Microsoft (registro en Entra), los datos en Drive y OneDrive, la verificación de Google y la privacidad (Google sabe que el docente entra en AulaPro).
+
 ## Publicar
 
 `web.yml` compila la app (`npm ci`, `npm run build:web`) y la copia en `web/sitio/app/` después de comprobar y sellar la web; las funciones se copian a `_pages/functions/`, donde las busca wrangler. Un push a `master` publica en https://aulapro.app/app/; uno a otra rama, en la copia de prueba https://prueba.aulapro-app.pages.dev/app/. Cabeceras de caché en `web/sitio/_headers`.

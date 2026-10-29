@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FolderSync, FolderX, AlertTriangle } from 'lucide-react';
+import { FolderSync, FolderX, AlertTriangle, LogOut, UserCircle } from 'lucide-react';
 import { carpetaWeb, EVENTO_PDF } from '../platform/carpetaWeb';
+import { cerrarSesion, leerCuenta, type Cuenta } from '../platform/cuentaWeb';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 
@@ -72,6 +73,25 @@ export function AvisoPdfWeb() {
     return () => window.removeEventListener(EVENTO_PDF, avisar);
   }, [t, toast]);
   return null;
+}
+
+/** Versión web: con qué cuenta se ha entrado, y salir (Configuración › Datos y copias). */
+export function CuentaWebPanel() {
+  const { t } = useI18n();
+  const [cuenta, setCuenta] = useState<Cuenta | undefined>();
+  useEffect(() => { leerCuenta().then(setCuenta); }, []);
+  if (!cuenta) return null;
+  return (
+    <div className="carpeta-web">
+      <div className="carpeta-web-ttl"><UserCircle size={15} color="var(--accent-d)" aria-hidden="true" />{t('Tu cuenta')}</div>
+      <p>{t('Has entrado con la cuenta de Google {email}.', { email: cuenta.email })}</p>
+      <div className="carpeta-web-btns">
+        <button className="btn-ghost" onClick={async () => { await cerrarSesion(); window.location.reload(); }}>
+          <LogOut size={14} />{t('Salir de la cuenta')}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /** Versión web: la carpeta del ordenador en Configuración › Datos y copias. */

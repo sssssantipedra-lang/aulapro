@@ -265,6 +265,7 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .update-banner button:not(.update-close):hover { opacity:0.87; }
 .update-banner.carpeta-aviso { bottom:150px; flex-wrap:wrap; max-width:400px; }
 .carpeta-aviso-btns { display:flex; gap:8px; flex-wrap:wrap; width:100%; justify-content:flex-end; }
+.entrar-google { display:flex; justify-content:center; min-height:44px; margin:4px 0 6px; }
 .carpeta-web { margin-bottom:18px; padding:14px 15px; background:var(--surface); border-radius:10px; }
 .carpeta-web-ttl { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--text); margin-bottom:6px; }
 .carpeta-web p { font-size:12.5px; color:var(--text-2); line-height:1.6; margin-bottom:12px; }

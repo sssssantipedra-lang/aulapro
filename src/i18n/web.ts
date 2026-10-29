@@ -37,6 +37,15 @@ export const WEB_EN: Record<string, string> = {
   'Guardar en mi nube': 'Save to my cloud',
   'Envía el archivo a Google Drive, OneDrive o iCloud desde el menú de compartir.': 'Send the file to Google Drive, OneDrive or iCloud from the share menu.',
   'Con «Guardar en mi nube», el archivo va a tu Google Drive, OneDrive o iCloud desde el menú de compartir.': 'With “Save to my cloud”, the file goes to your Google Drive, OneDrive or iCloud from the share menu.',
+  "Entra en AulaPro": "Sign in to AulaPro",
+  "Con tu cuenta de Google": "With your Google account",
+  "Entra con la misma cuenta en todos tus dispositivos.": "Use the same account on all your devices.",
+  "AulaPro solo guarda tu nombre y tu correo en este dispositivo. Tu trabajo no sale hacia ningún servidor de AulaPro.": "AulaPro only keeps your name and email on this device. Your work is never sent to any AulaPro server.",
+  "No se ha podido entrar con esa cuenta. Vuelve a probar.": "Could not sign in with that account. Try again.",
+  "Para entrar la primera vez hace falta internet. Conéctate y vuelve a probar.": "Signing in the first time needs internet. Connect and try again.",
+  "Tu cuenta": "Your account",
+  "Has entrado con la cuenta de Google {email}.": "You are signed in with the Google account {email}.",
+  "Salir de la cuenta": "Sign out",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -72,4 +81,13 @@ export const WEB_CA: Record<string, string> = {
   'Guardar en mi nube': 'Desar al meu núvol',
   'Envía el archivo a Google Drive, OneDrive o iCloud desde el menú de compartir.': 'Envia el fitxer a Google Drive, OneDrive o iCloud des del menú de compartir.',
   'Con «Guardar en mi nube», el archivo va a tu Google Drive, OneDrive o iCloud desde el menú de compartir.': 'Amb «Desar al meu núvol», el fitxer va al teu Google Drive, OneDrive o iCloud des del menú de compartir.',
+  "Entra en AulaPro": "Entra a AulaPro",
+  "Con tu cuenta de Google": "Amb el teu compte de Google",
+  "Entra con la misma cuenta en todos tus dispositivos.": "Entra amb el mateix compte en tots els teus dispositius.",
+  "AulaPro solo guarda tu nombre y tu correo en este dispositivo. Tu trabajo no sale hacia ningún servidor de AulaPro.": "AulaPro només desa el teu nom i el teu correu en aquest dispositiu. La teva feina no surt cap a cap servidor d’AulaPro.",
+  "No se ha podido entrar con esa cuenta. Vuelve a probar.": "No s’ha pogut entrar amb aquest compte. Torna-ho a provar.",
+  "Para entrar la primera vez hace falta internet. Conéctate y vuelve a probar.": "Per entrar la primera vegada cal internet. Connecta’t i torna-ho a provar.",
+  "Tu cuenta": "El teu compte",
+  "Has entrado con la cuenta de Google {email}.": "Has entrat amb el compte de Google {email}.",
+  "Salir de la cuenta": "Sortir del compte",
 };

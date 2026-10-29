@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
+import { EntrarWeb } from './pages/EntrarWeb';
+import { leerCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -848,6 +850,20 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Versión web: antes de la licencia, entrar con la cuenta (ver `platform/cuentaWeb.ts`). */
+function CuentaCheck({ children }: { children: React.ReactNode }) {
+  const [cuenta, setCuenta] = useState<Cuenta | null | undefined>(isWebApp() ? undefined : null);
+  useEffect(() => {
+    if (cuenta !== undefined) return;
+    leerCuenta().then(c => setCuenta(c ?? null));
+  }, [cuenta]);
+  const entrar = useCallback((c: Cuenta) => setCuenta(c), []);
+  if (!isWebApp()) return <>{children}</>;
+  if (cuenta === undefined) return null;
+  if (!cuenta) return <EntrarWeb onEntrar={entrar} />;
+  return <>{children}</>;
+}
+
 /** En Android, el aviso de «Guardado» con sus botones (el puente nativo se carga solo ahí). */
 function AvisoGuardadoAndroid() {
   const [acciones, setAcciones] = useState<AccionesGuardado | null>(null);
@@ -862,7 +878,7 @@ function AvisoGuardadoAndroid() {
 export default function App() {
   return (
     <ToastProvider>
-      <LicenseCheck><AppInner /></LicenseCheck>
+      <CuentaCheck><LicenseCheck><AppInner /></LicenseCheck></CuentaCheck>
       <UpdateBanner />
       {isWebApp() && <><CarpetaWebAviso /><AvisoPdfWeb /></>}
       {isAndroidApp() && <AvisoGuardadoAndroid />}
