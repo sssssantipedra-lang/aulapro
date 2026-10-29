@@ -31,7 +31,7 @@ async function pedirFuncion(accion: 'token' | 'renovar', cuerpo: object) {
   const d = await r.json().catch(() => ({}));
   if (!r.ok) {
     if (d.error === 'caducado' || r.status === 401) throw sinPermiso();
-    throw new Error(d.error === 'sin-configurar' ? 'Falta configurar Google Drive en el servidor' : 'Google no responde');
+    throw new Error(d.error === 'sin-configurar' ? 'Falta configurar Google Drive en el servidor' : `Google no responde (${r.status} ${d.error ?? ''})`);
   }
   return d as { access_token: string; expires_in?: number; refresh_token?: string };
 }

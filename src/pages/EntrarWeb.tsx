@@ -127,7 +127,7 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
     } catch (err) {
       setError((err as DOMException)?.name === 'NotAllowedError'
         ? t('Google no ha dado el permiso. Vuelve a probar y marca la casilla de Google Drive.')
-        : t('No se ha podido conectar con Google Drive. Vuelve a probar en un momento.'));
+        : `${t('No se ha podido conectar con Google Drive. Vuelve a probar en un momento.')} (${(err as Error)?.message || String(err)})`);
     }
     setOcupado(false);
   }
