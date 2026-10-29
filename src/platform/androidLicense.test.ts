@@ -59,3 +59,19 @@ describe('licencia en Android', () => {
     expect(activationError({ error: 'x', license_key: { status: 'disabled' } }, 400, '')).toBe('desactivada');
   });
 });
+
+describe('licencia de la cuenta (versión web)', () => {
+  it('se activa sin ocupar dispositivos en la tienda y se quita si se devuelve', async () => {
+    const s = secrets();
+    const lic = createAndroidLicense(s, { enforced: true });
+    expect((await lic.state()).required).toBe(true);
+    const st = await lic.porCuenta!('CLAVE-ABCD');
+    expect(st).toMatchObject({ required: false, status: 'activa', keyHint: '••••ABCD' });
+    expect(post).not.toHaveBeenCalled();
+    // Otra sesión en el mismo dispositivo: sigue activa sin llamar a la tienda
+    const otra = createAndroidLicense(s, { enforced: true });
+    expect((await otra.state()).required).toBe(false);
+    expect(post).not.toHaveBeenCalled();
+    expect((await otra.porCuenta!(null)).required).toBe(true);
+  });
+});

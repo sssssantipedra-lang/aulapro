@@ -123,6 +123,13 @@ export interface LicenseBridge {
   activate: (key: string) => Promise<LicenseResult>;
   /** Libera este equipo para poder activar la clave en otro. */
   deactivate: () => Promise<LicenseResult>;
+  /**
+   * Solo en la versión web: la licencia comprada con el correo de la cuenta de
+   * Google (ya comprobada por el servidor). No ocupa ninguno de los 2
+   * dispositivos: la cuenta entra en todos los que quiera (decisión del dueño,
+   * 29-10-2026). `null` la quita (se devolvió o se anuló).
+   */
+  porCuenta?: (key: string | null) => Promise<LicenseState>;
 }
 
 export interface StoreBridge {

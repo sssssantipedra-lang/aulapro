@@ -4,7 +4,7 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { EntrarWeb } from './pages/EntrarWeb';
-import { leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
+import { hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -838,10 +838,13 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     if (state !== undefined) return;
     getLicenseState().then(async s => {
       // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
-      if (s?.required && isWebApp()) {
-        const { key } = await licenciaDeLaCuenta();
-        const r = key ? await licenseBridge()?.activate(key).catch(() => null) : null;
-        if (r?.ok) { setState(r.state); return; }
+      // Sin límite de dispositivos: la licencia es de la cuenta (decisión del dueño, 29-10-2026)
+      const bridge = licenseBridge();
+      if (isWebApp() && bridge?.porCuenta && (s?.required || hayToken())) {
+        const b = await licenciaDeLaCuenta();
+        if (b.key) { setState(await bridge.porCuenta(b.key)); return; }
+        // Comprobada sin compra (devuelta o anulada): se quita la de la cuenta
+        if (!('error' in b && b.error)) { setState(await bridge.porCuenta(null)); return; }
       }
       setState(s);
     });

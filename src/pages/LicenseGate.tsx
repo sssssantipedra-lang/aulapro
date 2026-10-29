@@ -42,12 +42,11 @@ export function LicenseGate({ state, onChange }: Props) {
   async function comprobarCompra(manual: boolean) {
     if (manual) { setMirando(true); setAviso(''); }
     const b = await licenciaDeLaCuenta();
-    const r = b.key ? await licenseBridge()?.activate(b.key).catch(() => null) : null;
+    const bridge = licenseBridge();
     if (manual) setMirando(false);
-    if (r?.ok) { onChange(r.state); return; }
+    if (b.key && bridge?.porCuenta) { onChange(await bridge.porCuenta(b.key)); return; }
     if (!manual) return;
-    if (b.key && r && !r.ok) setAviso(t(LICENSE_ERROR_TEXT[r.error ?? 'error-tienda']));
-    else if (!('error' in b) || !b.error) setAviso(t('Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.', { email: cuenta?.email ?? '' }));
+    if (!('error' in b) || !b.error) setAviso(t('Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.', { email: cuenta?.email ?? '' }));
     else setAviso(t(AVISO_BUSQUEDA[b.error]));
   }
   useEffect(() => { if (isWebApp()) leerCuenta().then(setCuenta); }, []);
@@ -56,8 +55,8 @@ export function LicenseGate({ state, onChange }: Props) {
     let vivo = true;
     const mirar = async () => {
       const { key } = await licenciaDeLaCuenta();
-      const r = key && vivo ? await licenseBridge()?.activate(key) : null;
-      if (vivo && r?.ok) onChange(r.state);
+      const bridge = licenseBridge();
+      if (vivo && key && bridge?.porCuenta) onChange(await bridge.porCuenta(key));
     };
     const id = setInterval(mirar, 6000);
     window.addEventListener('focus', mirar);

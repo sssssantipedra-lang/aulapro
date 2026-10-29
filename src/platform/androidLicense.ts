@@ -34,6 +34,8 @@ interface LicenseRecord {
   instanceId?: string;
   activatedAt: string;
   lastOkAt?: string;
+  /** Versión web: licencia de la cuenta de Google, sin activación en Lemon Squeezy. */
+  cuenta?: boolean;
 }
 
 export type StoreBody = {
@@ -108,7 +110,8 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   /** Comprobación en segundo plano: sin conexión no pasa nada. */
   async function check() {
-    if (record?.kind !== 'licencia' || !record.key || !record.instanceId) return;
+    // La de la cuenta la vuelve a comprobar la app al entrar con Google (App.tsx)
+    if (record?.kind !== 'licencia' || !record.key || !record.instanceId || record.cuenta) return;
     const r = await call('validate', { license_key: record.key, instance_id: record.instanceId });
     if (!r) return;
     const st = r.body.license_key?.status;
@@ -144,6 +147,17 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       const now = new Date().toISOString();
       await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now });
       return { ok: true, state: state() };
+    },
+
+    async porCuenta(key): Promise<LicenseState> {
+      await whenReady();
+      if (key) {
+        const now = new Date().toISOString();
+        await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true });
+      } else if (record?.cuenta) {
+        await save(null);
+      }
+      return state();
     },
 
     async deactivate(): Promise<LicenseResult> {
