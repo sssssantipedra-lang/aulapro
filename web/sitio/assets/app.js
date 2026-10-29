@@ -749,13 +749,14 @@
   $$('[data-live]').forEach(el => living.observe(el));
 
   /* ================= the list you cross off ================= */
+  // Salió de la portada el 29-10-2026: solo si sigue en la página
   const sheet = $('#sheet');
-  const tasks = $$('.task', sheet);
+  const tasks = sheet ? $$('.task', sheet) : [];
   const countEl = $('#count');
   function updateCount() {
     const n = tasks.filter(b => b.getAttribute('aria-pressed') === 'true').length;
     if (countEl) countEl.textContent = t('s2.count').replace('{n}', n);
-    sheet.classList.toggle('all-done', n === tasks.length);
+    if (sheet) sheet.classList.toggle('all-done', n === tasks.length);
   }
   tasks.forEach(b => b.addEventListener('click', () => {
     b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));

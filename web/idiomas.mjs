@@ -72,8 +72,8 @@ for (const [lang, locale] of Object.entries(LANGS)) {
   const url = SITE + lang;
   let out = translateAttrs(translateTexts(html, d, missing), d, missing);
   out = setMeta(out, /(<html lang=")es(">)/, lang, 'html lang');
-  // the checklist counter, which JavaScript keeps up to date
-  out = setMeta(out, /(<span id="count" aria-live="polite">)[^<]*(<\/span>)/, d['s2.count'].replace('{n}', '0'), 'count');
+  // the checklist counter, which JavaScript keeps up to date (the checklist left the homepage on 29-10-2026)
+  if (out.includes('id="count"')) out = setMeta(out, /(<span id="count" aria-live="polite">)[^<]*(<\/span>)/, d['s2.count'].replace('{n}', '0'), 'count');
   out = setMeta(out, /(<title>)[^<]*(<\/title>)/, esc(d['meta.title']), 'title');
   out = setMeta(out, /(<meta name="description" content=")[^"]*(">)/, esc(d['meta.desc']), 'description');
   out = setMeta(out, /(<meta property="og:title" content=")[^"]*(">)/, esc(d['meta.title']), 'og:title');
