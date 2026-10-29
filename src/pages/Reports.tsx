@@ -604,7 +604,7 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
                   {currentReport.tabla?.length ? (
                     <div className="rep-tabla" dangerouslySetInnerHTML={{ __html: tablaCompetenciasHtml(currentReport.tabla, t, etiquetaCompetencia) }} />
                   ) : null}
-                  <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 14, alignItems: 'center' }}>
                     <button className="btn-ia" onClick={() => generateFor(current)}>
                       <Sparkles size={13} />{t('Volver a generar')}
                     </button>
@@ -618,7 +618,7 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
                         ? <><span className="spin" />{t('Generando…')}</>
                         : <><FileDown size={13} />{t('Guardar en PDF')}</>}
                     </button>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', flex: 1, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 11.5, color: 'var(--text-3)', flex: '1 1 200px', minWidth: 0, lineHeight: 1.5 }}>
                       {t('Revísalo siempre antes de entregarlo. La IA se equivoca.')}
                     </p>
                   </div>

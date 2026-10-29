@@ -422,41 +422,43 @@ export function Records({
               <div><dt>{t('Docente')}</dt><dd>{teacherName || '—'}</dd></div>
             </dl>
 
-            <table className="acta-table">
-              <thead>
-                <tr>
-                  <th className="c-n">{t('Nº')}</th>
-                  <th className="c-name">{t('Alumno/a')}</th>
-                  {showCategories && cats.map(c => (
-                    <th key={c.id} className="c-num">
-                      {c.name}
-                      <span className="c-weight">{weightLabel(c)}</span>
-                    </th>
-                  ))}
-                  <th className="c-num c-final">{t('Nota')}</th>
-                  {showLabel && <th className="c-label">{t('Calificación')}</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(r => (
-                  <tr key={r.student.id}>
-                    <td className="c-n">{r.n}</td>
-                    <td className="c-name">{r.student.name}</td>
-                    {showCategories && r.cells.map((v, i) => (
-                      <td key={cats[i].id} className="c-num">{num(v, locale)}</td>
+            <div className="acta-scroll">
+              <table className="acta-table">
+                <thead>
+                  <tr>
+                    <th className="c-n">{t('Nº')}</th>
+                    <th className="c-name">{t('Alumno/a')}</th>
+                    {showCategories && cats.map(c => (
+                      <th key={c.id} className="c-num">
+                        {c.name}
+                        <span className="c-weight">{weightLabel(c)}</span>
+                      </th>
                     ))}
-                    <td className={`c-num c-final${r.final !== null && r.final < 5 ? ' c-fail' : ''}`}>
-                      {num(r.final, locale)}
-                    </td>
-                    {showLabel && (
-                      <td className="c-label">
-                        {r.label ? <>{r.label.long} <span className="c-short">({r.label.short})</span></> : '—'}
-                      </td>
-                    )}
+                    <th className="c-num c-final">{t('Nota')}</th>
+                    {showLabel && <th className="c-label">{t('Calificación')}</th>}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {rows.map(r => (
+                    <tr key={r.student.id}>
+                      <td className="c-n">{r.n}</td>
+                      <td className="c-name">{r.student.name}</td>
+                      {showCategories && r.cells.map((v, i) => (
+                        <td key={cats[i].id} className="c-num">{num(v, locale)}</td>
+                      ))}
+                      <td className={`c-num c-final${r.final !== null && r.final < 5 ? ' c-fail' : ''}`}>
+                        {num(r.final, locale)}
+                      </td>
+                      {showLabel && (
+                        <td className="c-label">
+                          {r.label ? <>{r.label.long} <span className="c-short">({r.label.short})</span></> : '—'}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <div className="acta-sum">
               <span><b>{stats.total}</b> {t('alumnos')}</span>
@@ -492,54 +494,58 @@ export function Records({
                 {hayClave && (
                   <>
                     <h3 className="acta-comp-sub">{t('Competencias clave')} · {t('sobre {n}', { n: escalaClave === 'nota' ? 10 : maxNivel })}</h3>
-                    <table className="acta-table comp-table">
-                      <thead>
-                        <tr>
-                          <th className="c-n">{t('Nº')}</th>
-                          <th className="c-name">{t('Alumno/a')}</th>
-                          {LOMLOE_COMPETENCES.map(c => <th key={c.key} className="c-num" title={t(c.label)}>{c.key}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.map(r => {
-                          const cl = claveDe(r.student.id);
-                          return (
-                            <tr key={r.student.id}>
-                              <td className="c-n">{r.n}</td>
-                              <td className="c-name">{r.student.name}</td>
-                              {LOMLOE_COMPETENCES.map(c => <td key={c.key} className="c-num">{num(cl[c.key] ?? null, locale)}</td>)}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                    <div className="acta-scroll">
+                      <table className="acta-table comp-table">
+                        <thead>
+                          <tr>
+                            <th className="c-n">{t('Nº')}</th>
+                            <th className="c-name">{t('Alumno/a')}</th>
+                            {LOMLOE_COMPETENCES.map(c => <th key={c.key} className="c-num" title={t(c.label)}>{c.key}</th>)}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map(r => {
+                            const cl = claveDe(r.student.id);
+                            return (
+                              <tr key={r.student.id}>
+                                <td className="c-n">{r.n}</td>
+                                <td className="c-name">{r.student.name}</td>
+                                {LOMLOE_COMPETENCES.map(c => <td key={c.key} className="c-num">{num(cl[c.key] ?? null, locale)}</td>)}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </>
                 )}
 
                 {hayEspecificas && (
                   <>
                     <h3 className="acta-comp-sub">{t('Competencias específicas')} · {materiaDeLaClase!.entry.nombre}</h3>
-                    <table className="acta-table comp-table">
-                      <thead>
-                        <tr>
-                          <th className="c-n">{t('Nº')}</th>
-                          <th className="c-name">{t('Alumno/a')}</th>
-                          {columnasEspecificas.map(c => <th key={c.n} className="c-num" title={c.texto}>{`CE${c.n}`}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.map(r => {
-                          const esp = especificasDe(r.student.id);
-                          return (
-                            <tr key={r.student.id}>
-                              <td className="c-n">{r.n}</td>
-                              <td className="c-name">{r.student.name}</td>
-                              {columnasEspecificas.map(c => <td key={c.n} className="c-num">{num(esp[c.n] ?? null, locale)}</td>)}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                    <div className="acta-scroll">
+                      <table className="acta-table comp-table">
+                        <thead>
+                          <tr>
+                            <th className="c-n">{t('Nº')}</th>
+                            <th className="c-name">{t('Alumno/a')}</th>
+                            {columnasEspecificas.map(c => <th key={c.n} className="c-num" title={c.texto}>{`CE${c.n}`}</th>)}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map(r => {
+                            const esp = especificasDe(r.student.id);
+                            return (
+                              <tr key={r.student.id}>
+                                <td className="c-n">{r.n}</td>
+                                <td className="c-name">{r.student.name}</td>
+                                {columnasEspecificas.map(c => <td key={c.n} className="c-num">{num(esp[c.n] ?? null, locale)}</td>)}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </>
                 )}
               </div>
@@ -642,6 +648,20 @@ const SCREEN_STYLE = `
 .acta {
   max-width: 297mm; padding: 13mm 14mm; border-radius: 4px;
   border: 0.5px solid var(--border); box-shadow: 0 6px 26px rgba(0,0,0,0.09);
+}
+
+/* En el móvil la hoja no cabe: menos margen, datos en dos columnas y la tabla se desplaza hacia los lados dentro de la tarjeta */
+@media (max-width: 760px) {
+  .acta-wrap { display: block; min-width: 0; }
+  .acta { padding: 18px 14px; }
+  .acta-title { font-size: 21px; }
+  .acta-meta { grid-template-columns: repeat(2, 1fr); }
+  .acta-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .acta-scroll .acta-table { min-width: 480px; }
+  .acta-scroll .comp-table { min-width: 540px; }
+  /* El nombre del alumno se queda fijo a la izquierda mientras se desliza la tabla */
+  .acta-scroll .c-name { position: sticky; left: 0; z-index: 1; background: #fff; padding-left: 8px; box-shadow: 6px 0 6px -6px rgba(0,0,0,0.18); }
+  .acta-scroll tbody tr:nth-child(even) .c-name { background: #fafafa; }
 }
 `;
 
