@@ -74,4 +74,10 @@ describe('licencia de la cuenta (versión web)', () => {
     expect(post).not.toHaveBeenCalled();
     expect((await otra.porCuenta!(null)).required).toBe(true);
   });
+
+  it('un fundador por su correo entra gratis y deja de serlo si sale de la lista', async () => {
+    const lic = createAndroidLicense(secrets(), { enforced: true });
+    expect(await lic.porCuenta!('fundador')).toMatchObject({ required: false, status: 'fundador' });
+    expect((await lic.porCuenta!(null)).required).toBe(true);
+  });
 });

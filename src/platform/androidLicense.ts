@@ -151,7 +151,10 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
     async porCuenta(key): Promise<LicenseState> {
       await whenReady();
-      if (key) {
+      if (key === 'fundador') {
+        // Versión web: fundador por su correo (`FUNDADOR` en cuentaWeb.ts)
+        await save({ v: 1, kind: 'fundador', activatedAt: record?.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true });
+      } else if (key) {
         const now = new Date().toISOString();
         await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true });
       } else if (record?.cuenta) {

@@ -114,6 +114,9 @@ async function tokenNuevo(): Promise<string> {
   });
 }
 
+/** La «clave» de un fundador de la versión web: su correo está en la lista (`FUNDADORES` de la función de la licencia). */
+export const FUNDADOR = 'fundador';
+
 export type BusquedaLicencia = { key: string } | { key: null; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
 
 /**
@@ -129,7 +132,7 @@ export async function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }),
     });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) return j.key ? { key: String(j.key) } : { key: null };
+    if (r.ok) return j.fundador ? { key: FUNDADOR } : j.key ? { key: String(j.key) } : { key: null };
     return { key: null, error: ['sin-configurar', 'token', 'tienda'].includes(j.error) ? j.error : 'tienda' };
   } catch {
     return { key: null, error: 'sin-conexion' };

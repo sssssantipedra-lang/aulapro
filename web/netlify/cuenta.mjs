@@ -17,8 +17,7 @@ const json = (cuerpo, status = 200) => new Response(JSON.stringify(cuerpo), {
 
 export default async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-  const env = { LEMONSQUEEZY_API_KEY: Netlify.env.get('LEMONSQUEEZY_API_KEY') };
-  if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503);
+  const env = { LEMONSQUEEZY_API_KEY: Netlify.env.get('LEMONSQUEEZY_API_KEY'), FUNDADORES: Netlify.env.get('FUNDADORES') };
   const { token } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400);
 
@@ -27,6 +26,12 @@ export default async (request) => {
   const info = await g.json();
   if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401);
   const email = String(info.email).trim().toLowerCase();
+
+  // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
+  // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.
+  const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
+  if (fundadores.includes(email)) return json({ fundador: true });
+  if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
   const pedidos = await fetch(`${LS}/orders?filter[store_id]=${STORE_ID}&filter[user_email]=${encodeURIComponent(email)}`, { headers: cab });
