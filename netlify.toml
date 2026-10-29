@@ -1,0 +1,28 @@
+# Respaldo de aulapro.app en Netlify (respaldo.aulapro.app), fuera de Cloudflare: durante los
+# partidos de LaLiga los operadores españoles bloquean direcciones de Cloudflare y aulapro.app cae
+# con ellas. Netlify construye esto solo desde GitHub: la misma web, la misma app en /app/ y las
+# mismas funciones de la licencia (web/netlify/, copia de web/funciones/ con el formato de Netlify).
+# La app prueba primero aulapro.app y, si no responde, usa esta (src/platform/servidores.ts).
+[build]
+  command = "npm ci && npm run build:web && node web/idiomas.mjs web/sitio && node web/comprobar.mjs web/sitio && node web/versionar.mjs web/sitio && cp -r dist-web web/sitio/app"
+  publish = "web/sitio"
+  functions = "web/netlify"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/app/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/app/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/calendario-escolar.json"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"

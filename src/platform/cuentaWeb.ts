@@ -16,6 +16,7 @@
  * localhost:5173).
  */
 import { idbKv } from './webFs';
+import { pedirApi } from './servidores';
 
 export const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 
@@ -116,7 +117,7 @@ export async function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
   const token = tokenVigente() || await tokenNuevo();
   if (!token) return { key: null, error: 'sin-cuenta' };
   try {
-    const r = await fetch('/api/licencia/cuenta', {
+    const r = await pedirApi('/api/licencia/cuenta', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }),
     });
     const j = await r.json().catch(() => ({}));

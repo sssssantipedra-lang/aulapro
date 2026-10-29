@@ -27,13 +27,14 @@ import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost } from './androidLicense';
+import { pedirApi } from './servidores';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
 
 /* ── Licencia ── */
 
 const postLicencia: LicensePost = async (action, data) => {
   try {
-    const res = await fetch(`/api/licencia/${action}`, {
+    const res = await pedirApi(`/api/licencia/${action}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(data),
