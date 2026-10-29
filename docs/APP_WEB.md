@@ -42,6 +42,11 @@ Decisión del dueño: AulaPro es solo web; no hay más versiones de Windows ni d
 
 Decisión del dueño: en la versión web no se crean más perfiles; cada cuenta tiene el del propio docente («Añadir otro perfil» solo sale en las apps nativas, `pages/Welcome.tsx`). La licencia de la cuenta sigue sin límite de dispositivos: compartirla obliga a dar la contraseña de Google entera. Para empezar de cero (por ejemplo, tras los datos de ejemplo) se borra el perfil con la papelera y se crea otro.
 
+## Seguridad (29-10-2026)
+
+- **Licencia firmada:** las funciones de la licencia firman lo que dan por bueno (Ed25519, `web/funciones/api/_firma.js`; la llave sale de `GOOGLE_CLIENT_SECRET`, así que Netlify y Cloudflare firman igual sin otro secreto, y la pública está en `/api/licencia/clave`). La app solo acepta un registro de licencia con firma válida (`platform/firmaLicencia.ts`, `verificar` en `createAndroidLicense`); sin firma, la de la cuenta se vuelve a pedir sola y una clave se vuelve a comprobar. Sin llave pública (sin conexión la primera vez) o sin Ed25519 en el navegador, no bloquea. Sube el listón, no impide que alguien cambie el código.
+- **Content-Security-Policy** en `/app/*` (`web/sitio/_headers`, la leen Netlify y Cloudflare): código solo de la app y de Google (entrar), conexiones solo a la web y sus copias, Drive y Gemini, marcos de cualquier https (la pizarra). Un servicio nuevo que la app llame desde el navegador hay que añadirlo a `connect-src`.
+
 ## Publicar
 
 `web.yml` compila la app (`npm ci`, `npm run build:web`) y la copia en `web/sitio/app/` después de comprobar y sellar la web; las funciones se copian a `_pages/functions/`, donde las busca wrangler. Un push a `master` publica en https://aulapro.app/app/; uno a otra rama, en la copia de prueba https://prueba.aulapro-app.pages.dev/app/. Cabeceras de caché en `web/sitio/_headers`.
