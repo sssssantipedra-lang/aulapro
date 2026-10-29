@@ -117,7 +117,13 @@ export function createProfileStore(fs: Fs) {
     },
 
     updateProfile,
-    touchProfile: (id: string) => updateProfile(id, { lastOpenedAt: new Date().toISOString() }),
+    // Como mucho una vez cada 6 horas: en la versión web, con Drive, apuntarlo en cada apertura
+    // cambiaba perfiles.json, el otro dispositivo se recargaba para traerlo, lo apuntaba también… y así sin fin.
+    async touchProfile(id: string) {
+      const p = (await listProfiles()).find(x => x.id === id);
+      if (p?.lastOpenedAt && Date.now() - Date.parse(p.lastOpenedAt) < 6 * 3600_000) return p;
+      return updateProfile(id, { lastOpenedAt: new Date().toISOString() });
+    },
 
     async deleteProfile(id: string) {
       const list = await listProfiles();
