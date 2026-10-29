@@ -8,7 +8,7 @@
 import { carpetaFs, idbKv } from './webFs';
 import type { Conexion, Espejo } from './espejo';
 import { createDriveFs } from './driveFs';
-import { leerPermisoDrive, pedirPermisoDrive, quitarPermisoDrive, tokenDrive } from './googleDrive';
+import { hayVueltaDrive, leerPermisoDrive, pedirPermisoDrive, quitarPermisoDrive, terminarVueltaDrive, tokenDrive } from './googleDrive';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
 
 /** El nombre con el que sale el Drive del docente como «carpeta» (ver `driveFs.ts`). */
@@ -89,6 +89,15 @@ export const carpetaWeb = {
     const email = (cuentaActual() ?? await leerCuenta())?.email;
     if (!espejo || !email) return null;
     await pedirPermisoDrive(email);
+    return conectarDrive();
+  },
+
+  /** Se vuelve de la página de Google (Safari): termina de conectar Drive. */
+  hayVuelta: hayVueltaDrive,
+  async terminarVuelta(): Promise<Conexion | null> {
+    const email = (cuentaActual() ?? await leerCuenta())?.email;
+    if (!espejo || !email) return null;
+    await terminarVueltaDrive(email);
     return conectarDrive();
   },
 

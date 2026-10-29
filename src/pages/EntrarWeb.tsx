@@ -118,6 +118,13 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
   const [error, setError] = useState('');
   // Google cargado antes del toque: Safari bloquea la ventana si se abre después de esperar.
   useEffect(() => { cargarGoogle().catch(() => {}); }, []);
+  // De vuelta de la página de Google (Safari): se termina solo
+  const vuelta = useRef(false);
+  useEffect(() => {
+    if (vuelta.current || !carpetaWeb.hayVuelta()) return;
+    vuelta.current = true;
+    void correr(() => carpetaWeb.terminarVuelta());
+  });
 
   async function correr(fn: () => Promise<{ elegir: boolean; cargados: number } | null>) {
     setOcupado(true); setError('');

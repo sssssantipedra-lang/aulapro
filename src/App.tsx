@@ -4,7 +4,7 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
-import { leerPermisoDrive } from './platform/googleDrive';
+import { hayVueltaDrive, leerPermisoDrive } from './platform/googleDrive';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
@@ -881,6 +881,7 @@ function CuentaCheck({ children }: { children: React.ReactNode }) {
     if (!cuenta || pasoDrive !== undefined) return;
     let saltado = false;
     try { saltado = sessionStorage.getItem('aulapro_drive_ahora_no') === '1'; } catch { /* sin almacenamiento */ }
+    if (hayVueltaDrive()) { setPasoDrive(true); return; }
     leerPermisoDrive().then(p => setPasoDrive(!p && !saltado));
   }, [cuenta, pasoDrive]);
   const listoDrive = useCallback(() => {
