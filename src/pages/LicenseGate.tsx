@@ -99,7 +99,7 @@ export function LicenseGate({ state, onChange }: Props) {
           <div className="lic-logo"><KeyRound size={22} color="#fff" /></div>
           <div>
             <div className="lic-title">{t('Activa AulaPro')}</div>
-            <div className="lic-sub">{t('Tu cuaderno docente, en tu ordenador')}</div>
+            <div className="lic-sub">{t(isWebApp() ? 'Tu cuaderno docente, en todos tus dispositivos' : 'Tu cuaderno docente, en tu ordenador')}</div>
           </div>
         </div>
 
@@ -151,7 +151,7 @@ export function LicenseGate({ state, onChange }: Props) {
 
         <p className="lic-note">
           <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
-          <span>{t('La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
+          <span>{t(isWebApp() ? 'La licencia va con tu cuenta de Google. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive.' : 'La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
         </p>
       </div>
     </div>
