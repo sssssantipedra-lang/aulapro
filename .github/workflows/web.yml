@@ -88,8 +88,19 @@ jobs:
       # Cloudflare busca las funciones en `functions/`, junto a donde se ejecuta wrangler
       - name: Publicar en Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''
+        id: publicar
         run: |
+          set -o pipefail
           mkdir -p _pages && cp -r web/funciones _pages/functions
           cd _pages
           npx --yes wrangler@4 pages deploy ../web/sitio --project-name aulapro-app \
-            --branch ${{ github.ref == 'refs/heads/master' && 'main' || 'prueba' }} --commit-dirty=true
+            --branch ${{ github.ref == 'refs/heads/master' && 'main' || 'prueba' }} --commit-dirty=true | tee ../publicado.txt
+          echo "url=$(grep -oE 'https://[a-z0-9]+\.aulapro-app\.pages\.dev' ../publicado.txt | head -1)" >> "$GITHUB_OUTPUT"
+
+      # Con un navegador de verdad, contra lo que se acaba de publicar: abre, vuelve a abrir ya guardada y abre sin conexión
+      - name: Comprobar la app publicada
+        if: env.CLOUDFLARE_API_TOKEN != '' && steps.publicar.outputs.url != ''
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+          node web/app/comprobar-publicada.mjs "${{ steps.publicar.outputs.url }}/app/"

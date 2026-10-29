@@ -21,6 +21,16 @@ const limpia = res => (res && res.redirected
   ? res.blob().then(cuerpo => new Response(cuerpo, { status: res.status, statusText: res.statusText, headers: res.headers }))
   : res);
 
+/** Las versiones del 29-10-2026 por la mañana guardaban la página redirigida y ya no abrían: hay que sustituirlas sin esperar. */
+async function hayVersionRota() {
+  for (const nombre of await caches.keys()) {
+    if (!nombre.startsWith('aulapro-') || nombre === CACHE) continue;
+    const c = await caches.open(nombre);
+    if ((await c.keys()).some(r => r.url.endsWith('/index.html'))) return true;
+  }
+  return false;
+}
+
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
@@ -28,6 +38,7 @@ self.addEventListener('install', event => {
     for (let i = 0; i < PRECARGA.length; i += 40) {
       await cache.addAll(PRECARGA.slice(i, i + 40).map(url => new Request(url, { cache: 'reload' })));
     }
+    if (await hayVersionRota()) await self.skipWaiting();
   })());
 });
 
@@ -52,11 +63,12 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin || !url.pathname.startsWith(new URL('./', self.location).pathname)) return;
 
   if (req.mode === 'navigate') {
-    // La app es una sola página: si está guardada, esa; si no, la de la red
+    // La app es una sola página: si está guardada, esa; si no, o si algo falla, la de la red
     event.respondWith((async () => {
-      const cache = await caches.open(CACHE);
-      const pagina = await cache.match('./');
-      if (pagina) return limpia(pagina);
+      try {
+        const pagina = await (await caches.open(CACHE)).match('./');
+        if (pagina) return await limpia(pagina);
+      } catch { /* a la red */ }
       return fetch(req);
     })());
     return;

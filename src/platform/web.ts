@@ -141,10 +141,13 @@ function createUpdate(): UpdateBridge {
     oyentes.forEach(fn => fn(lista!));
   }
 
+  // Solo se recarga al pulsar «Reiniciar y actualizar»: la primera vez que la app queda guardada
+  // también cambia el service worker que la sirve, y recargar ahí cortaría al docente
+  let pedido = false;
   if ('serviceWorker' in navigator) {
     let recargando = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (recargando) return;
+      if (!pedido || recargando) return;
       recargando = true;
       location.reload();
     });
@@ -167,6 +170,7 @@ function createUpdate(): UpdateBridge {
       return () => { oyentes.delete(cb); };
     },
     async installNow() {
+      pedido = true;
       if (registro?.waiting) registro.waiting.postMessage('activar');
       else location.reload();
     },
