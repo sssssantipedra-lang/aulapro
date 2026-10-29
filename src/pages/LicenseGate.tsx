@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyRound, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../services/license';
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
 import { isAndroidApp, isWebApp } from '../lib/platform';
-import { cerrarSesion, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from '../platform/cuentaWeb';
+import { botonGoogle, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from '../platform/cuentaWeb';
 
 /** Por qué no se ha podido buscar la compra (`licenciaDeLaCuenta`). */
 const AVISO_BUSQUEDA: Record<string, string> = {
@@ -27,7 +27,7 @@ interface Props {
  * como fundador y nunca la ve.
  */
 export function LicenseGate({ state, onChange }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<LicenseError | null>(null);
@@ -50,6 +50,20 @@ export function LicenseGate({ state, onChange }: Props) {
     else setAviso(t(AVISO_BUSQUEDA[b.error]));
   }
   useEffect(() => { if (isWebApp()) leerCuenta().then(setCuenta); }, []);
+
+  // Sin el token de Google de esta sesión (la app se abrió otro día, y Safari no lo da solo),
+  // «Ya he pagado» lleva encima el botón de Google: un toque confirma la cuenta y busca la compra.
+  const [conToken, setConToken] = useState(hayToken);
+  const botonReal = useRef<HTMLDivElement>(null);
+  const buscar = useRef(comprobarCompra);
+  useEffect(() => { buscar.current = comprobarCompra; });
+  useEffect(() => {
+    if (!cuenta || conToken || !botonReal.current) return;
+    const el = botonReal.current;
+    el.innerHTML = '';
+    botonGoogle(el, lang, () => { setConToken(true); void buscar.current(true); }, () => setAviso(t(AVISO_BUSQUEDA['token'])))
+      .catch(() => setConToken(true));
+  }, [cuenta, conToken, lang, t]);
   useEffect(() => {
     if (!esperando) return;
     let vivo = true;
@@ -96,12 +110,13 @@ export function LicenseGate({ state, onChange }: Props) {
               {t('Comprar AulaPro · 6,99 €')} <ExternalLink size={14} />
             </a>
             {esperando && <p className="lic-espera"><span className="spin" />{t('Cuando termines el pago, vuelve aquí: AulaPro se activará sola.')}</p>}
-            <button type="button" className="btn-ghost" style={{ marginTop: 10, width: '100%', justifyContent: 'center' }} disabled={mirando} onClick={() => comprobarCompra(true)}>
-              {mirando ? <><span className="spin" />&nbsp;{t('Comprobando…')}</> : t('Ya he pagado: comprobar mi compra')}
-            </button>
-            {aviso && <div className="lic-err" role="status" style={{ marginTop: 10 }}>{aviso}{!hayToken() && (
-              <> <button type="button" className="lic-link" onClick={async () => { await cerrarSesion(); window.location.reload(); }}>{t('Volver a entrar con Google')}</button></>
-            )}</div>}
+            <div style={{ position: 'relative', marginTop: 10, overflow: 'hidden', borderRadius: 'var(--r)' }}>
+              <button type="button" className="btn-ghost" style={{ width: '100%', justifyContent: 'center' }} disabled={mirando} onClick={() => comprobarCompra(true)}>
+                {mirando ? <><span className="spin" />&nbsp;{t('Comprobando…')}</> : t('Ya he pagado: comprobar mi compra')}
+              </button>
+              {!conToken && <div ref={botonReal} className="entrar-google-real" aria-label={t('Ya he pagado: comprobar mi compra')} />}
+            </div>
+            {aviso && <div className="lic-err" role="status" style={{ marginTop: 10 }}>{aviso}</div>}
             <p className="lic-sub" style={{ marginTop: 14 }}>{t('¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:')}</p>
           </div>
         ) : (
