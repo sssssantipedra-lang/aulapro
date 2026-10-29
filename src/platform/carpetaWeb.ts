@@ -92,6 +92,12 @@ export const carpetaWeb = {
     return conectarDrive();
   },
 
+  /** Drive ya permitido al entrar (un solo paso): solo falta conectarlo. */
+  async conectarYa(): Promise<Conexion | null> {
+    if (!espejo || !(await leerPermisoDrive())) return null;
+    return conectarDrive();
+  },
+
   /** Se vuelve de la página de Google (Safari): termina de conectar Drive. */
   hayVuelta: hayVueltaDrive,
   async terminarVuelta(): Promise<Conexion | null> {

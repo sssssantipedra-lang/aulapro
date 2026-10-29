@@ -3,7 +3,7 @@ import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calen
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
-import { ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
+import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { hayVueltaDrive, leerPermisoDrive } from './platform/googleDrive';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
@@ -881,8 +881,10 @@ function CuentaCheck({ children }: { children: React.ReactNode }) {
     if (!cuenta || pasoDrive !== undefined) return;
     let saltado = false;
     try { saltado = sessionStorage.getItem('aulapro_drive_ahora_no') === '1'; } catch { /* sin almacenamiento */ }
-    if (hayVueltaDrive()) { setPasoDrive(true); return; }
-    leerPermisoDrive().then(p => setPasoDrive(!p && !saltado));
+    let ya = false;
+    try { ya = sessionStorage.getItem(CONECTAR_YA) === '1'; } catch { /* sin almacenamiento */ }
+    const directo = ya || hayVueltaDrive();
+    leerPermisoDrive().then(p => setPasoDrive(directo || (!p && !saltado)));
   }, [cuenta, pasoDrive]);
   const listoDrive = useCallback(() => {
     try { sessionStorage.setItem('aulapro_drive_ahora_no', '1'); } catch { /* sin almacenamiento */ }

@@ -30,5 +30,5 @@ export async function pedirAGoogle(accion, cuerpo, secreto) {
   const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p });
   const d = await r.json().catch(() => ({}));
   if (!r.ok || !d.access_token) return json({ error: d.error === 'invalid_grant' ? 'caducado' : 'google' }, r.status === 400 ? 401 : 502);
-  return json({ access_token: d.access_token, expires_in: d.expires_in, ...(d.refresh_token ? { refresh_token: d.refresh_token } : {}), scope: d.scope });
+  return json({ access_token: d.access_token, expires_in: d.expires_in, ...(d.refresh_token ? { refresh_token: d.refresh_token } : {}), scope: d.scope, ...(d.id_token ? { id_token: d.id_token } : {}) });
 }

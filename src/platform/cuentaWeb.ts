@@ -95,6 +95,10 @@ function tokenVigente(): string {
  * este navegador (Google lo da solo con `auto_select`). Vacío si no hay manera.
  */
 async function tokenNuevo(): Promise<string> {
+  // Con el permiso de Drive (entrada con un solo paso), Google lo da al renovar, también en Safari
+  const { tokenDeIdentidad } = await import('./googleDrive');
+  const conDrive = await tokenDeIdentidad();
+  if (conDrive && leerTokenGoogle(conDrive)) { guardarToken(conDrive); return conDrive; }
   try { await cargarGoogle(); } catch { return ''; }
   const g = (window as unknown as GoogleGlobal).google!;
   return new Promise(resolve => {
@@ -149,6 +153,17 @@ export function leerTokenGoogle(token: string, ahora = Date.now()): Omit<Cuenta,
   } catch {
     return null;
   }
+}
+
+/** Guarda la cuenta de un token de Google ya recibido (entrada con un solo paso, `googleDrive.ts`). */
+export async function entrarConToken(token: string): Promise<Cuenta | null> {
+  const datos = leerTokenGoogle(token);
+  if (!datos) return null;
+  guardarToken(token);
+  const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
+  actual = cuenta;
+  await idbKv.set(CLAVE, cuenta);
+  return cuenta;
 }
 
 /**

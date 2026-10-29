@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CircleHelp, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
-import { botonGoogle, cargarGoogle, type Cuenta } from '../platform/cuentaWeb';
+import { cargarGoogle, type Cuenta } from '../platform/cuentaWeb';
+import { entrarConGoogle, hayVueltaEntrada, terminarVueltaEntrada } from '../platform/googleDrive';
 import { carpetaWeb } from '../platform/carpetaWeb';
 
 /** Logo de Google (los cuatro colores oficiales). */
@@ -27,27 +28,44 @@ function LogoMicrosoft() {
   );
 }
 
+/** Tras entrar con Drive ya permitido: el paso de Drive solo termina de conectar (ver `ConectarDriveWeb`). */
+export const CONECTAR_YA = 'aulapro_conectar_drive';
+
 /**
  * Versión web: la entrada, antes que nada (ver `platform/cuentaWeb.ts`). El
- * logo grande y una tarjeta por cuenta. La de Google lleva encima, invisible,
- * el botón oficial de Google (Google Identity Services no deja otro): el
- * clic en cualquier punto de la tarjeta es un clic en ese botón. La de
+ * logo grande y una tarjeta por cuenta. La de Google pide en la misma ventana
+ * entrar y guardar en Drive (decisión del dueño, 29-10-2026: un solo paso en
+ * cada dispositivo; `entrarConGoogle` en `platform/googleDrive.ts`). La de
  * Microsoft aún no funciona (decisión del dueño, 29-10-2026: que se vea ya).
  */
 export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
-  const { t, lang } = useI18n();
-  const boton = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
   const [error, setError] = useState('');
   const [listo, setListo] = useState(false);
+  const [ocupado, setOcupado] = useState(false);
 
+  async function entrar(fn: () => Promise<{ cuenta: Cuenta; drive: boolean }>) {
+    setOcupado(true); setError('');
+    try {
+      const { cuenta, drive } = await fn();
+      if (drive) { try { sessionStorage.setItem(CONECTAR_YA, '1'); } catch { /* sin almacenamiento */ } }
+      onEntrar(cuenta);
+    } catch (err) {
+      setError((err as DOMException)?.name === 'NotAllowedError'
+        ? t('No se ha podido entrar con esa cuenta. Vuelve a probar.')
+        : `${t('No se ha podido entrar con esa cuenta. Vuelve a probar.')} (${(err as Error)?.message || String(err)})`);
+      setOcupado(false);
+    }
+  }
+
+  // Google cargado antes del toque (la ventana solo se abre en el mismo instante), y de vuelta de su página (Safari)
+  const vuelta = useRef(false);
   useEffect(() => {
-    if (!boton.current) return;
-    boton.current.innerHTML = '';
-    setListo(false);
-    botonGoogle(boton.current, lang, onEntrar, () => setError(t('No se ha podido entrar con esa cuenta. Vuelve a probar.')))
-      .then(() => setListo(true))
+    cargarGoogle().then(() => setListo(true))
       .catch(() => setError(t('Para entrar la primera vez hace falta internet. Conéctate y vuelve a probar.')));
-  }, [lang, onEntrar, t]);
+    if (!vuelta.current && hayVueltaEntrada()) { vuelta.current = true; void entrar(terminarVueltaEntrada); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="lic-shell entrar">
@@ -63,15 +81,14 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
         {error && <div className="lic-err entrar-err" role="alert">{error}</div>}
 
         <div className="entrar-tarjetas">
-          <div className={`entrar-tarjeta${listo ? '' : ' cargando'}`}>
+          <button type="button" className={`entrar-tarjeta${listo ? '' : ' cargando'}`} disabled={!listo || ocupado} onClick={() => entrar(entrarConGoogle)}>
             <span className="entrar-ico"><LogoGoogle /></span>
             <span className="entrar-txt">
               <strong>{t('Continuar con Google')}</strong>
               <em>{t('Gmail o la cuenta de Google de tu centro')}</em>
             </span>
-            {!listo && !error && <span className="spin" aria-hidden="true" />}
-            <div ref={boton} className="entrar-google-real" aria-label={t('Continuar con Google')} />
-          </div>
+            {(!listo || ocupado) && !error && <span className="spin" aria-hidden="true" />}
+          </button>
 
           <div className="entrar-tarjeta off" aria-disabled="true">
             <span className="entrar-ico"><LogoMicrosoft /></span>
@@ -141,7 +158,11 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
   // De vuelta de la página de Google (Safari): se termina solo
   const vuelta = useRef(false);
   useEffect(() => {
-    if (vuelta.current || !carpetaWeb.hayVuelta()) return;
+    if (vuelta.current) return;
+    let ya = false;
+    try { ya = sessionStorage.getItem(CONECTAR_YA) === '1'; sessionStorage.removeItem(CONECTAR_YA); } catch { /* sin almacenamiento */ }
+    if (ya) { vuelta.current = true; void correr(() => carpetaWeb.conectarYa()); return; }
+    if (!carpetaWeb.hayVuelta()) return;
     vuelta.current = true;
     void correr(() => carpetaWeb.terminarVuelta());
   });
