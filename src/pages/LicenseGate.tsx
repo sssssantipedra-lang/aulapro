@@ -79,7 +79,7 @@ export function LicenseGate({ state, onChange }: Props) {
     <div className="lic-shell">
       <div className="auth-orb" style={{ width: 500, height: 500, background: 'rgba(var(--accent-rgb),0.07)', top: -120, right: -80 }} />
       <div className="auth-orb" style={{ width: 300, height: 300, background: 'rgba(var(--accent-rgb),0.05)', bottom: -60, left: -40 }} />
-      <LangSwitch />
+      <LangSwitch claro />
       <div className="auth-card">
         <div className="lic-hd">
           <div className="lic-logo"><KeyRound size={22} color="#fff" /></div>

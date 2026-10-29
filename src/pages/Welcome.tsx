@@ -149,25 +149,17 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
     setBusy(false);
   }
 
+  // Fondo crema y logo de AulaPro, como la entrada de la versión web (petición del dueño, 29-10-2026)
   const shell = (children: React.ReactNode) => (
-    <div
-      style={{
-        background: 'var(--sb-bg)', minHeight: '100vh', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
-        padding: 24, position: 'relative', overflow: 'hidden',
-      }}
-    >
-      <div className="auth-orb" style={{ width: 500, height: 500, background: 'rgba(var(--accent-rgb),0.07)', top: -120, right: -80 }} />
-      <div className="auth-orb" style={{ width: 300, height: 300, background: 'rgba(var(--accent-rgb),0.05)', bottom: -60, left: -40 }} />
-      <LangSwitch />
-      <h1 className="wl-brand">AULAPRO</h1>
-      <div className="auth-card">{children}</div>
+    <div className="wl-shell">
+      <div className="auth-orb" style={{ width: 560, height: 560, background: 'rgba(var(--accent-rgb),0.10)', top: -160, right: -120 }} />
+      <div className="auth-orb" style={{ width: 420, height: 420, background: 'rgba(71,191,255,0.10)', bottom: -120, left: -100 }} />
+      <LangSwitch claro />
+      <img className="wl-logo" src="./favicon.svg" alt="AulaPro" width={96} height={96} />
+      <div className="auth-card wl-card">{children}</div>
       {/* Sobre qué currículo está construida: importa saberlo antes de
           empezar a usarla, sobre todo fuera de España. */}
-      <p style={{
-        fontSize: 11.5, color: 'rgba(255,255,255,0.4)', marginTop: 18,
-        textAlign: 'center', lineHeight: 1.5, maxWidth: 380,
-      }}>
+      <p className="wl-pie">
         {t('Diseñada sobre el currículo educativo español (LOMLOE): competencias clave, criterios de evaluación y niveles de logro.')}
       </p>
     </div>
@@ -175,9 +167,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
 
   const header = (title: string, sub: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-      <div style={{ width: 46, height: 46, background: 'linear-gradient(135deg,var(--accent-d),var(--accent))', borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(var(--accent-rgb),0.4)', flexShrink: 0 }}>
-        <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
-      </div>
+      <img src="./favicon-mini.svg" alt="" width={46} height={46} style={{ borderRadius: 13, flexShrink: 0, boxShadow: '0 8px 24px rgba(71,120,255,0.3)' }} />
       <div>
         <div style={{ fontWeight: 800, fontSize: 19, color: 'var(--text)', letterSpacing: -0.4 }}>{title}</div>
         <div style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{sub}</div>
@@ -197,11 +187,11 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   if (creating) {
     return shell(
       <>
-        {header(profiles.length === 0 ? t('Bienvenido/a a AulaPro') : t('Nuevo perfil'), t('Tu cuaderno docente, en tu ordenador'))}
+        {header(profiles.length === 0 ? t('Bienvenido/a a AulaPro') : t('Nuevo perfil'), t(isWebApp() ? 'Tu cuaderno docente' : 'Tu cuaderno docente, en tu ordenador'))}
 
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
           {isWebApp()
-            ? t('Cada perfil guarda su propio trabajo en este dispositivo, sin subirlo a ningún servidor. Sin cuentas ni contraseñas.')
+            ? t('Cada perfil guarda su propio trabajo por separado. Tu alumnado no sale hacia ningún servidor de AulaPro.')
             : isDesktop()
             ? t('Cada perfil guarda su propio trabajo en una carpeta separada de este equipo. Sin cuentas ni contraseñas.')
             : t('Los datos se guardan en este navegador. Sin cuentas ni contraseñas.')}
@@ -241,13 +231,15 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
               </div>
             </div>
           )}
-          <div className="fgroup">
-            <label className="flabel" htmlFor="welcome-f4">{t('Curso escolar')}</label>
-            <input id="welcome-f4" className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
-          </div>
-          <div className="fgroup">
-            <label className="flabel" htmlFor="welcome-f5">{t('Comunidad autónoma *')}</label>
-            <CommunitySelect id="welcome-f5" value={community} onChange={c => { setCommunity(c); if (error) setError(''); }} />
+          <div className="frow fgroup">
+            <div>
+              <label className="flabel" htmlFor="welcome-f4">{t('Curso escolar')}</label>
+              <input id="welcome-f4" className="finput" value={course} placeholder="2025-2026" onChange={e => setCourse(e.target.value)} />
+            </div>
+            <div>
+              <label className="flabel" htmlFor="welcome-f5">{t('Comunidad autónoma *')}</label>
+              <CommunitySelect id="welcome-f5" value={community} onChange={c => { setCommunity(c); if (error) setError(''); }} />
+            </div>
           </div>
 
           {legacy && profiles.length === 0 && (

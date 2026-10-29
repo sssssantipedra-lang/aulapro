@@ -83,6 +83,7 @@ export const WEB_EN: Record<string, string> = {
   "Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.": "Every change is saved automatically in the “AulaPro” folder of your Google Drive, and anything new from your other devices arrives within seconds.",
   "Guárdalo en tu Google Drive y lo tendrás en todos tus dispositivos. En un ordenador, también puedes elegir una carpeta.": "Save it to your Google Drive and you will have it on all your devices. On a computer, you can also choose a folder.",
   "Dejar de guardar en Drive": "Stop saving to Drive",
+  "Cada perfil guarda su propio trabajo por separado. Tu alumnado no sale hacia ningún servidor de AulaPro.": "Each profile keeps its own work separately. Your students never go to any AulaPro server.",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -164,4 +165,5 @@ export const WEB_CA: Record<string, string> = {
   "Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.": "Cada canvi es desa sol a la carpeta «AulaPro» del teu Google Drive, i el que és nou dels teus altres dispositius arriba en uns segons.",
   "Guárdalo en tu Google Drive y lo tendrás en todos tus dispositivos. En un ordenador, también puedes elegir una carpeta.": "Desa-ho al teu Google Drive i ho tindràs en tots els teus dispositius. En un ordinador, també pots triar una carpeta.",
   "Dejar de guardar en Drive": "Deixar de desar al Drive",
+  "Cada perfil guarda su propio trabajo por separado. Tu alumnado no sale hacia ningún servidor de AulaPro.": "Cada perfil desa la seva pròpia feina per separat. El teu alumnat no surt cap a cap servidor d’AulaPro.",
 };

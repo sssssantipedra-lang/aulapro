@@ -43,7 +43,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 
 ## Aspecto de la app (revisión del 11-10-2026)
 
-- Estilo cálido elegido por el dueño: fondo crema (`--surface`), tarjetas blancas y menú lateral claro (`--nav-*` en `src/index.css`). En modo oscuro el menú toma el color oscuro del tema (`--sb-bg`). La bienvenida y la pantalla de licencia siguen oscuras.
+- Estilo cálido elegido por el dueño: fondo crema (`--surface`), tarjetas blancas y menú lateral claro (`--nav-*` en `src/index.css`). En modo oscuro el menú toma el color oscuro del tema (`--sb-bg`). La bienvenida (crear perfil), la pantalla de licencia y la entrada de la versión web van en crema con el logo grande desde el 29-10-2026 (petición del dueño; antes, oscuras).
 - Cada entrada del menú lleva su icono en un cuadradito de color (`COLOR` en `Sidebar.tsx`), siempre con el nombre al lado.
 - Menú sin grupos plegables ni «Más»: Tu día a día, Trabajo docente, Centro y equipo; abajo y sin color, Configuración y Registro de cambios (`src/lib/navigation.ts`). Los créditos y la versión están al pie de Configuración.
 - Mis clases, con varias clases, se abre en una portada de tarjetas agrupadas en Primaria, ESO y otras (`src/components/clases/ClassCards.tsx`, agrupación en `src/lib/etapas.ts`): alumnos, avisos y media de cada clase. Documentos se abre siempre en su portada de cuatro tarjetas (`src/pages/DocumentosInicio.tsx`). El aviso de la clave de la IA (`AiKeyNotice`) es una franja fina.
