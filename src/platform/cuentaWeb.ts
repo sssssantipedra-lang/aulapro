@@ -47,34 +47,13 @@ interface GoogleGlobal {
         initialize: (o: Record<string, unknown>) => void;
         renderButton: (el: HTMLElement, o: Record<string, unknown>) => void;
         disableAutoSelect: () => void;
+        prompt: () => void;
       };
     };
   };
 }
 
 let cargando: Promise<void> | null = null;
-/** El último token de Google, solo en memoria: dura una hora y sirve para buscar la licencia. */
-let ultimoToken = '';
-
-/**
- * La clave de la licencia comprada con el correo de esta cuenta (función
- * `web/funciones/api/licencia/cuenta.js`), o `null`. Solo justo después de
- * entrar con Google, cuando hay token.
- */
-/** Hay token de Google en esta sesión (se ha entrado hace poco). */
-export const hayToken = () => !!ultimoToken;
-
-export async function licenciaDeLaCuenta(): Promise<string | null> {
-  if (!ultimoToken) return null;
-  try {
-    const r = await fetch('/api/licencia/cuenta', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: ultimoToken }),
-    });
-    return r.ok ? ((await r.json()).key ?? null) : null;
-  } catch {
-    return null;
-  }
-}
 
 function cargarGoogle(): Promise<void> {
   return (cargando ??= new Promise((resolve, reject) => {
@@ -86,6 +65,70 @@ function cargarGoogle(): Promise<void> {
     document.head.appendChild(s);
   }));
 }
+/**
+ * El último token de Google: dura una hora y sirve para que la función de la
+ * licencia compruebe la cuenta. En memoria y en `sessionStorage` (solo esta
+ * pestaña): así sobrevive a recargar la página tras pagar.
+ */
+const TOKEN = 'aulapro_token_google';
+let ultimoToken = '';
+
+function guardarToken(t: string) {
+  ultimoToken = t;
+  try { sessionStorage.setItem(TOKEN, t); } catch { /* sin almacenamiento */ }
+}
+
+/** El token, si aún le queda al menos un minuto. */
+function tokenVigente(): string {
+  let t = ultimoToken;
+  if (!t) { try { t = sessionStorage.getItem(TOKEN) ?? ''; } catch { t = ''; } }
+  return t && leerTokenGoogle(t, Date.now() + 60_000) ? t : '';
+}
+
+/**
+ * Un token nuevo sin que el docente haga nada, si ya dio permiso a AulaPro en
+ * este navegador (Google lo da solo con `auto_select`). Vacío si no hay manera.
+ */
+async function tokenNuevo(): Promise<string> {
+  try { await cargarGoogle(); } catch { return ''; }
+  const g = (window as unknown as GoogleGlobal).google!;
+  return new Promise(resolve => {
+    const fin = setTimeout(() => resolve(''), 10_000);
+    g.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID, auto_select: true, use_fedcm_for_prompt: true,
+      callback: ({ credential }: { credential: string }) => {
+        clearTimeout(fin);
+        if (leerTokenGoogle(credential)) { guardarToken(credential); resolve(credential); } else resolve('');
+      },
+    });
+    g.accounts.id.prompt();
+  });
+}
+
+export type BusquedaLicencia = { key: string } | { key: null; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
+
+/**
+ * La clave de la licencia comprada con el correo de esta cuenta (función
+ * `web/funciones/api/licencia/cuenta.js`). Sin compra, `key: null` sin error;
+ * si algo falla, el motivo, para poder decirlo en pantalla.
+ */
+export async function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
+  const token = tokenVigente() || await tokenNuevo();
+  if (!token) return { key: null, error: 'sin-cuenta' };
+  try {
+    const r = await fetch('/api/licencia/cuenta', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) return j.key ? { key: String(j.key) } : { key: null };
+    return { key: null, error: ['sin-configurar', 'token', 'tienda'].includes(j.error) ? j.error : 'tienda' };
+  } catch {
+    return { key: null, error: 'sin-conexion' };
+  }
+}
+
+/** Hay manera de buscar la licencia sin volver a entrar (o Google la dará sola). */
+export const hayToken = () => !!tokenVigente();
 
 /** Lo que trae el token de Google (un JWT), sin comprobar la firma: ver arriba. */
 export function leerTokenGoogle(token: string, ahora = Date.now()): Omit<Cuenta, 'desde'> | null {
@@ -116,7 +159,7 @@ export async function botonGoogle(el: HTMLElement, idioma: string, alEntrar: (c:
     callback: async ({ credential }: { credential: string }) => {
       const datos = leerTokenGoogle(credential);
       if (!datos) { alFallar(); return; }
-      ultimoToken = credential;
+      guardarToken(credential);
       const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
       await idbKv.set(CLAVE, cuenta);
       alEntrar(cuenta);

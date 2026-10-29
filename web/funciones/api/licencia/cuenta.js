@@ -22,9 +22,10 @@ export async function onRequestPost({ request, env }) {
   if (!g.ok) return json({ error: 'token' }, 401);
   const info = await g.json();
   if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401);
+  const email = String(info.email).trim().toLowerCase();
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
-  const pedidos = await fetch(`${LS}/orders?filter[store_id]=${STORE_ID}&filter[user_email]=${encodeURIComponent(info.email)}`, { headers: cab });
+  const pedidos = await fetch(`${LS}/orders?filter[store_id]=${STORE_ID}&filter[user_email]=${encodeURIComponent(email)}`, { headers: cab });
   if (!pedidos.ok) return json({ error: 'tienda' }, 502);
   for (const p of (await pedidos.json()).data ?? []) {
     if (p.attributes?.status !== 'paid') continue;

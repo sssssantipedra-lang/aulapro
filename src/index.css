@@ -1246,6 +1246,7 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .lic-title { font-weight:800; font-size:19px; color:var(--text); letter-spacing:-0.4px; }
 .lic-sub { font-size:12.5px; color:var(--text-2); }
 .lic-text { font-size:13.5px; color:var(--text-2); line-height:1.6; margin:0 0 18px; }
+.lic-link { background:none; border:none; padding:0; font:inherit; font-weight:700; color:inherit; text-decoration:underline; cursor:pointer; }
 .lic-compra { width:100%; }
 .lic-compra-btn { display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; width:100%; }
 .lic-espera { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); margin:12px 0 0; }

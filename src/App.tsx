@@ -839,7 +839,7 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     getLicenseState().then(async s => {
       // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
       if (s?.required && isWebApp()) {
-        const key = await licenciaDeLaCuenta();
+        const { key } = await licenciaDeLaCuenta();
         const r = key ? await licenseBridge()?.activate(key).catch(() => null) : null;
         if (r?.ok) { setState(r.state); return; }
       }

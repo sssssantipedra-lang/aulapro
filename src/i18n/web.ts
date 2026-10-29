@@ -51,6 +51,14 @@ export const WEB_EN: Record<string, string> = {
   "Cuando termines el pago, vuelve aquí: AulaPro se activará sola.": "When you finish paying, come back here: AulaPro will activate by itself.",
   "¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:": "Already have a key (from another email or a pack)? Type it here:",
   "Ya he pagado: volver a entrar con Google": "I have paid: sign in with Google again",
+  "Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.": "No purchase with {email} shows up yet. If you have just paid, wait a minute and check again.",
+  "Comprobando…": "Checking…",
+  "Ya he pagado: comprobar mi compra": "I have paid: check my purchase",
+  "Volver a entrar con Google": "Sign in with Google again",
+  "Google no ha confirmado tu cuenta. Vuelve a entrar con Google para buscar tu compra.": "Google has not confirmed your account. Sign in with Google again to find your purchase.",
+  "La búsqueda de compras aún no está configurada en el servidor. Escribe tu clave abajo o avísanos en contacto@aulapro.app.": "Purchase lookup is not set up on the server yet. Type your key below or tell us at contacto@aulapro.app.",
+  "La tienda no responde ahora mismo. Vuelve a probar en un rato o escribe tu clave abajo.": "The store is not responding right now. Try again later or type your key below.",
+  "Para buscar tu compra hace falta internet. Conéctate y vuelve a probar.": "Finding your purchase needs internet. Connect and try again.",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -100,4 +108,12 @@ export const WEB_CA: Record<string, string> = {
   "Cuando termines el pago, vuelve aquí: AulaPro se activará sola.": "Quan acabis el pagament, torna aquí: AulaPro s’activarà sola.",
   "¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:": "Ja tens una clau (d’un altre correu o d’un pack)? Escriu-la aquí:",
   "Ya he pagado: volver a entrar con Google": "Ja he pagat: tornar a entrar amb Google",
+  "Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.": "Encara no apareix cap compra amb {email}. Si acabes de pagar, espera un minut i torna-ho a comprovar.",
+  "Comprobando…": "Comprovant…",
+  "Ya he pagado: comprobar mi compra": "Ja he pagat: comprovar la meva compra",
+  "Volver a entrar con Google": "Tornar a entrar amb Google",
+  "Google no ha confirmado tu cuenta. Vuelve a entrar con Google para buscar tu compra.": "Google no ha confirmat el teu compte. Torna a entrar amb Google per buscar la teva compra.",
+  "La búsqueda de compras aún no está configurada en el servidor. Escribe tu clave abajo o avísanos en contacto@aulapro.app.": "La cerca de compres encara no està configurada al servidor. Escriu la teva clau a sota o avisa’ns a contacto@aulapro.app.",
+  "La tienda no responde ahora mismo. Vuelve a probar en un rato o escribe tu clave abajo.": "La botiga no respon ara mateix. Torna-ho a provar d’aquí a una estona o escriu la teva clau a sota.",
+  "Para buscar tu compra hace falta internet. Conéctate y vuelve a probar.": "Per buscar la teva compra cal internet. Connecta’t i torna-ho a provar.",
 };
