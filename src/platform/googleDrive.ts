@@ -19,8 +19,26 @@ export interface PermisoDrive { email: string; refresh: string }
 
 let acceso: { token: string; caduca: number } | null = null;
 
+/**
+ * El acceso de una hora se recuerda también en `sessionStorage` (solo esta pestaña, como el token de
+ * identidad en `cuentaWeb.ts`): al recargar la app no hace falta volver a pedirlo a la función (de 1 a 2 s).
+ */
+const ACCESO = 'aulapro_acceso_drive';
+function recordarAcceso(token: string, expiraEn?: number) {
+  acceso = { token, caduca: Date.now() + (expiraEn ?? 3600) * 1000 };
+  try { sessionStorage.setItem(ACCESO, JSON.stringify(acceso)); } catch { /* sin almacenamiento */ }
+}
+function accesoVigente(): string {
+  if (!acceso) { try { acceso = JSON.parse(sessionStorage.getItem(ACCESO) ?? 'null'); } catch { acceso = null; } }
+  return acceso && typeof acceso.token === 'string' && acceso.caduca - Date.now() > 60_000 ? acceso.token : '';
+}
+
 export const leerPermisoDrive = () => idbKv.get<PermisoDrive>(CLAVE).catch(() => undefined);
-export async function quitarPermisoDrive() { acceso = null; await idbKv.del(CLAVE); }
+export async function quitarPermisoDrive() {
+  acceso = null;
+  try { sessionStorage.removeItem(ACCESO); } catch { /* sin almacenamiento */ }
+  await idbKv.del(CLAVE);
+}
 
 /** El error que `espejo.ts` entiende como «hace falta que el docente vuelva a dar permiso». */
 const sinPermiso = () => new DOMException('drive', 'NotAllowedError');
@@ -82,11 +100,15 @@ async function pedirCodigo(scope: string, modo: Modo, email?: string): Promise<R
   return pedirFuncion('token', { code });
 }
 
+/** Una sola renovación a la vez: al abrir, la licencia y Drive la piden juntas y comparten la respuesta. */
+let renovando: Promise<Respuesta> | null = null;
+const renovar = (refresh: string) => (renovando ??= pedirFuncion('renovar', { refresh_token: refresh }).finally(() => { renovando = null; }));
+
 const conDrive = (d: Respuesta) => !!d.refresh_token && (d.scope ?? '').split(' ').includes(SCOPE);
 
 async function guardarPermiso(email: string, d: Respuesta) {
   if (!d.refresh_token) throw new Error('Google no ha dado el permiso duradero');
-  acceso = { token: d.access_token, caduca: Date.now() + (d.expires_in ?? 3600) * 1000 };
+  recordarAcceso(d.access_token, d.expires_in);
   const permiso = { email, refresh: d.refresh_token };
   await idbKv.set(CLAVE, permiso);
   return permiso;
@@ -159,20 +181,21 @@ export async function tokenDeIdentidad(): Promise<string> {
   const permiso = await leerPermisoDrive();
   if (!permiso) return '';
   try {
-    const d = await pedirFuncion('renovar', { refresh_token: permiso.refresh });
-    acceso = { token: d.access_token, caduca: Date.now() + (d.expires_in ?? 3600) * 1000 };
+    const d = await renovar(permiso.refresh);
+    recordarAcceso(d.access_token, d.expires_in);
     return d.id_token ?? '';
   } catch { return ''; }
 }
 
 /** Un acceso a Drive válido, renovándolo si hace falta. Sin permiso guardado o revocado, `NotAllowedError`. */
 export async function tokenDrive(): Promise<string> {
-  if (acceso && acceso.caduca - Date.now() > 60_000) return acceso.token;
+  const vigente = accesoVigente();
+  if (vigente) return vigente;
   const permiso = await leerPermisoDrive();
   if (!permiso) throw sinPermiso();
-  const d = await pedirFuncion('renovar', { refresh_token: permiso.refresh });
-  acceso = { token: d.access_token, caduca: Date.now() + (d.expires_in ?? 3600) * 1000 };
-  return acceso.token;
+  const d = await renovar(permiso.refresh);
+  recordarAcceso(d.access_token, d.expires_in);
+  return d.access_token;
 }
 
 /**

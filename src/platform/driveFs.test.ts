@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createDriveFs, nombreDe, rutaDe, vaADrive } from './driveFs';
 import { createEspejo } from './espejo';
 import { createProfileStore, type Fs } from './profileStore';
@@ -7,7 +7,7 @@ import type { Kv } from './webFs';
 /** Un Google Drive de mentira con lo que usa `driveFs`: buscar, listar, crear, subir, bajar y borrar. */
 function driveFalso() {
   const archivos = new Map<string, { name: string; parents: string[]; mime?: string; data: string; mtime: number }>();
-  let n = 0, reloj = 0, llamadas = 0;
+  let n = 0, reloj = 0, llamadas = 0, subidas = 0;
   const papelera: string[] = [];
   const fetcher = (async (url: string, init: RequestInit = {}) => {
     llamadas++;
@@ -30,6 +30,7 @@ function driveFalso() {
       return f ? new Response(f.data, { status: 200 }) : new Response('', { status: 404 });
     }
     if (met === 'POST' && u.pathname.startsWith('/upload')) {
+      subidas++;
       const cuerpo = String(init.body);
       const partes = cuerpo.split(/--aulapro\w+/).filter(p => p.includes('\r\n\r\n'));
       const meta = JSON.parse(partes[0].split('\r\n\r\n')[1].trim());
@@ -49,13 +50,14 @@ function driveFalso() {
       const f = archivos.get(fid);
       if (!f) return new Response('', { status: 404 });
       if (!u.pathname.startsWith('/upload')) { papelera.push(f.name); archivos.delete(fid); return ok({ id: fid }); }
+      subidas++;
       f.data = String(init.body); f.mtime = ++reloj;
       return ok({ id: fid, name: f.name, size: String(f.data.length) });
     }
     if (met === 'DELETE') { archivos.delete(id); return new Response(null, { status: 204 }); }
     throw new Error('no esperado ' + met + ' ' + url);
   }) as typeof fetch;
-  return { fetcher, archivos, papelera, llamadas: () => llamadas };
+  return { fetcher, archivos, papelera, llamadas: () => llamadas, subidas: () => subidas };
 }
 
 function memoryFs(): Fs {
@@ -81,6 +83,49 @@ function memoryFs(): Fs {
 const memoryKv = (): Kv => { const m = new Map(); return { get: async k => m.get(k), set: async (k, v) => { m.set(k, v); }, del: async k => { m.delete(k); } }; };
 
 describe('Google Drive como carpeta (versión web)', () => {
+  afterEach(() => { vi.useRealTimers(); });
+
+  it('no vuelve a listar la carpeta en cada llamada, y varias peticiones a la vez comparten una', async () => {
+    const d = driveFalso();
+    const fs = createDriveFs(async () => 'T', d.fetcher);
+    await fs.write('AulaPro/perfiles/p1/datos.json', '{}');
+    let antes = d.llamadas();
+    await Promise.all([fs.list('AulaPro/perfiles/p1'), fs.list('AulaPro/perfiles/p1'), fs.list('AulaPro/perfiles')]);
+    expect(d.llamadas() - antes).toBe(0);
+
+    // Un listado nuevo (otra pestaña, otro dispositivo): carpeta y listado, y los tres a la vez comparten la petición
+    const nuevo = createDriveFs(async () => 'T', d.fetcher);
+    antes = d.llamadas();
+    await Promise.all([nuevo.list('AulaPro/perfiles/p1'), nuevo.list('AulaPro/perfiles/p1'), nuevo.list('AulaPro/perfiles')]);
+    expect(d.llamadas() - antes).toBe(2);
+
+    // Pasados unos segundos vuelve a mirar: así se ven los cambios de otro dispositivo
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(Date.now() + 6000);
+    antes = d.llamadas();
+    await nuevo.list('AulaPro/perfiles');
+    expect(d.llamadas() - antes).toBe(1);
+  });
+
+  it('al reabrir sin novedades no sube de nuevo la lista de perfiles y hace pocas llamadas', async () => {
+    const d = driveFalso();
+    const drive = () => createDriveFs(async () => 'T', d.fetcher);
+    const kv = memoryKv(); const local = memoryFs();
+    const a = createEspejo({ local, kv, dispositivo: 'A', pausa: 10_000 });
+    const s = createProfileStore(a.fs);
+    await a.conectar(drive(), 'Google Drive');
+    await s.saveData((await s.createProfile({ name: 'Profesor' })).id, { nota: 7 });
+    await a.vaciar();
+
+    const recarga = createEspejo({ local, kv, dispositivo: 'A', pausa: 10_000 });
+    const subidas = d.subidas(); const llamadas = d.llamadas();
+    await recarga.activar(drive(), 'Google Drive', { congelar: true });
+    await recarga.vaciar();
+    expect(d.subidas() - subidas).toBe(0);
+    // Antes eran 8
+    expect(d.llamadas() - llamadas).toBeLessThanOrEqual(4);
+  });
+
   it('con el Drive lleno no pide permiso: avisa de que no hay sitio', async () => {
     const lleno = (async () => new Response(JSON.stringify({ error: { errors: [{ reason: 'storageQuotaExceeded' }] } }), { status: 403 })) as unknown as typeof fetch;
     const sinPermiso = (async () => new Response('{}', { status: 403 })) as unknown as typeof fetch;

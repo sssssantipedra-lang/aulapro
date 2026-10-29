@@ -124,7 +124,23 @@ export type BusquedaLicencia = { key: string; firma?: string } | { key: null; er
  * `web/funciones/api/licencia/cuenta.js`). Sin compra, `key: null` sin error;
  * si algo falla, el motivo, para poder decirlo en pantalla.
  */
-export async function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
+export function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
+  // Una sola búsqueda a la vez: la que se adelanta al entrar (`adelantarLicencia`) y la de la pantalla comparten la llamada
+  return (buscando ??= buscarLicencia().then(b => {
+    if (!('error' in b && b.error)) { try { sessionStorage.setItem(MIRADA, String(Date.now())); } catch { /* sin almacenamiento */ } }
+    return b;
+  }).finally(() => { buscando = null; }));
+}
+
+const MIRADA = 'aulapro_licencia_mirada';
+/** ¿Se acaba de mirar la compra de esta cuenta (en esta pestaña)? Para no repetir la llamada a la función. */
+export function licenciaMiradaHace(ms: number): boolean {
+  try { return Date.now() - Number(sessionStorage.getItem(MIRADA) ?? 0) < ms; } catch { return false; }
+}
+
+let buscando: Promise<BusquedaLicencia> | null = null;
+
+async function buscarLicencia(): Promise<BusquedaLicencia> {
   const token = tokenVigente() || await tokenNuevo();
   if (!token) return { key: null, error: 'sin-cuenta' };
   try {
@@ -167,7 +183,19 @@ export async function entrarConToken(token: string): Promise<Cuenta | null> {
   const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
   actual = cuenta;
   await idbKv.set(CLAVE, cuenta);
+  adelantarLicencia();
   return cuenta;
+}
+
+/**
+ * Busca la compra en cuanto se entra y guarda la licencia, mientras el docente
+ * pasa por el paso de Drive: antes iba después, una cosa tras otra, y sumaban
+ * varios segundos. Si hay compra, al terminar lo de Drive la app abre sin esperar.
+ */
+function adelantarLicencia() {
+  licenciaDeLaCuenta()
+    .then(b => (b.key ? (typeof window !== 'undefined' ? window.electronAPI : undefined)?.license?.porCuenta?.(b.key, b.firma) : undefined))
+    .catch(() => {});
 }
 
 /**

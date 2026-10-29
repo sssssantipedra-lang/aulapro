@@ -172,7 +172,7 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
     try {
       const r = await fn();
       if (r?.elegir) { setElegir(true); setOcupado(false); return; }
-      if (r && r.cargados > 0) { window.location.reload(); return; }
+      // La app aún no se ha abierto (este paso va antes): lo traído de Drive se lee al abrirla, sin recargar
       onListo();
     } catch (err) {
       setError((err as DOMException)?.name === 'NotAllowedError'
