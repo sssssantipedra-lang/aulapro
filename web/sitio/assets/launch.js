@@ -1,5 +1,7 @@
 /* AulaPro · the launch switch.
-   On launch day, fill in `checkout` (and `play` when the Android app is on Google Play) and redeploy.
+   AulaPro is web-only since 29-10-2026: on launch day, fill in `checkout` and redeploy; the buy button then
+   opens the app (app/), where the teacher signs in with Google and buys with the email already filled in.
+   `play`, `store` and `downloads` are kept only in case the native apps ever come back.
    With `checkout` empty the site stays in "coming soon": buttons say Próximamente, the waitlist shows,
    and the download page invites people to the waitlist instead of offering the installers.
    With `checkout` filled in, every buy button opens the checkout, the waitlist disappears,

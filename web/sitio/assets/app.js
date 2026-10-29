@@ -10,9 +10,9 @@
   // the waitlist disappears and the download links appear. One licence covers Windows, Mac and Android,
   // so all three open the same checkout.
   const LAUNCH = window.AULA_LAUNCH || {};
+  // 100% web desde el 29-10-2026: el botón lleva a la app, donde se entra con Google y se compra con el correo ya puesto
   const STORE_LINKS = {
-    windows: LAUNCH.checkout || '',
-    android: LAUNCH.checkout || ''
+    web: LAUNCH.checkout ? 'app/' : ''
   };
 
   // the film at 60 frames per second (interpolated from the 24 of the original), and the same film reversed,
@@ -804,8 +804,6 @@
       const label = $('small', a);
       if (url) {
         a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener';
         a.classList.add('ready');
         label.dataset.i18n = 'buy.for';
       } else {

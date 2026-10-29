@@ -3,6 +3,7 @@ import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calen
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
+import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { hayVueltaDrive, leerPermisoDrive } from './platform/googleDrive';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
@@ -916,6 +917,7 @@ export default function App() {
       <UpdateBanner />
       {isWebApp() && <><CarpetaWebAviso /><AvisoPdfWeb /></>}
       {isAndroidApp() && <AvisoGuardadoAndroid />}
+      {licenseBridge() && !isWebApp() && <AvisoPasarAWeb />}
     </ToastProvider>
   );
 }

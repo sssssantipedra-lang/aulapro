@@ -5,6 +5,8 @@
  * a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const WEB_EN: Record<string, string> = {
+  'AulaPro ahora funciona en el navegador, en aulapro.app/app, y esta app ya no recibirá versiones nuevas. Para llevarte tu trabajo, pulsa «Descargar mis datos» en «Llevar a otro equipo» y cárgalo en la web.': 'AulaPro now runs in the browser, at aulapro.app/app, and this app will not get new versions. To take your work with you, press “Download my data” under “Move to another computer” and load it in the web version.',
+  'Abrir aulapro.app': 'Open aulapro.app',
   'Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.': 'Your Google Drive is full and AulaPro cannot copy there. Your work is still saved on this device. Free up space in Drive and AulaPro will carry on copying by itself.',
   'Ver mi espacio en Drive': 'See my Drive storage',
   'Tu Google Drive está lleno.': 'Your Google Drive is full.',
@@ -96,6 +98,8 @@ export const WEB_EN: Record<string, string> = {
 };
 
 export const WEB_CA: Record<string, string> = {
+  'AulaPro ahora funciona en el navegador, en aulapro.app/app, y esta app ya no recibirá versiones nuevas. Para llevarte tu trabajo, pulsa «Descargar mis datos» en «Llevar a otro equipo» y cárgalo en la web.': 'AulaPro ara funciona al navegador, a aulapro.app/app, i aquesta app ja no rebrà versions noves. Per endur-te la feina, prem «Descarrega les meves dades» a «Portar a un altre equip» i carrega-la al web.',
+  'Abrir aulapro.app': 'Obre aulapro.app',
   'Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.': 'El teu Google Drive és ple i AulaPro no hi pot copiar. La feina continua desada en aquest dispositiu. Allibera espai a Drive i AulaPro continuarà copiant sola.',
   'Ver mi espacio en Drive': 'Veure el meu espai a Drive',
   'Tu Google Drive está lleno.': 'El teu Google Drive és ple.',
