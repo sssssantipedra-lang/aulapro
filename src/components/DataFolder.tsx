@@ -4,7 +4,7 @@ import * as store from '../services/storage';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { isAndroidApp, isWebApp } from '../lib/platform';
-import { CarpetaWebPanel, CuentaWebPanel } from './CarpetaWeb';
+import { CarpetaWebPanel, CuentaWebPanel, SinConexionPanel } from './CarpetaWeb';
 
 interface Props {
   profileId: string | null;
@@ -79,7 +79,7 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
           : 'En el navegador los datos se guardan dentro del propio navegador. Para que se guarden en carpetas de tu ordenador, con copias automáticas, usa la aplicación de escritorio (AulaPro.exe).')}
       </p>
 
-      {web && <><CuentaWebPanel /><CarpetaWebPanel /></>}
+      {web && <><CuentaWebPanel /><CarpetaWebPanel /><SinConexionPanel /></>}
 
       {desktop && !android && !web && info && (
         <div style={{

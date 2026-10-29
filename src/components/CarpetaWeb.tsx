@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle } from 'lucide-react';
+import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle, WifiOff } from 'lucide-react';
 import { carpetaWeb, EVENTO_PDF } from '../platform/carpetaWeb';
 import { DRIVE_LLENO } from '../platform/driveFs';
 import { cerrarSesion, leerCuenta, type Cuenta } from '../platform/cuentaWeb';
@@ -100,6 +100,51 @@ export function CuentaWebPanel() {
           <LogOut size={14} />{t('Salir de la cuenta')}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Versión web: ¿está AulaPro guardada en este dispositivo para abrirla sin internet? (service worker, `web/app/sw.js`) */
+type SinConexion = 'mirando' | 'lista' | 'preparando' | 'no';
+
+async function leerSinConexion(): Promise<SinConexion> {
+  try {
+    if (!('serviceWorker' in navigator) || !('caches' in window)) return 'no';
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return 'no';
+    if (!reg.active) return 'preparando';
+    for (const nombre of await caches.keys()) {
+      if (nombre.startsWith('aulapro-') && (await (await caches.open(nombre)).keys()).length > 0) return 'lista';
+    }
+    return 'preparando';
+  } catch { return 'no'; }
+}
+
+/** Versión web: si la app abre sin internet (Configuración › Datos y copias). */
+export function SinConexionPanel() {
+  const { t } = useI18n();
+  const [estado, setEstado] = useState<SinConexion>('mirando');
+  useEffect(() => {
+    let vivo = true;
+    let espera: ReturnType<typeof setTimeout>;
+    const mirar = async () => {
+      const e = await leerSinConexion();
+      if (!vivo) return;
+      setEstado(e);
+      if (e === 'preparando') espera = setTimeout(mirar, 2000);
+    };
+    mirar();
+    return () => { vivo = false; clearTimeout(espera); };
+  }, []);
+  if (estado === 'mirando') return null;
+  return (
+    <div className="carpeta-web">
+      <div className="carpeta-web-ttl"><WifiOff size={15} color="var(--accent-d)" aria-hidden="true" />{t('Uso sin conexión')}</div>
+      <p>{t(estado === 'lista'
+        ? 'Lista: AulaPro está guardada en este dispositivo y se abre sin internet. Ábrela desde la dirección aulapro.app/app/ (con la barra del final) o desde su icono en la pantalla de inicio.'
+        : estado === 'preparando'
+        ? 'Descargando AulaPro en este dispositivo para usarla sin internet. Déjala abierta un momento con conexión.'
+        : 'Este navegador no guarda AulaPro para usarla sin internet. Ábrela con conexión en una pestaña normal (no privada) y, en el iPhone, añádela a la pantalla de inicio desde Compartir.')}</p>
     </div>
   );
 }
