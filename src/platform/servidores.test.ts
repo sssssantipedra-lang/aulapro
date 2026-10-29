@@ -4,6 +4,7 @@ import { pedirApi, servidores, RESPALDO, PRINCIPAL } from './servidores';
 describe('servidores de la versión web', () => {
   it('primero el sitio desde el que se abrió y luego el respaldo', () => {
     expect(servidores(PRINCIPAL)).toEqual([PRINCIPAL, RESPALDO]);
+    expect(RESPALDO).toBe('https://aulapro-app.pages.dev');
     expect(servidores(RESPALDO)).toEqual([RESPALDO, PRINCIPAL]);
   });
   it('si el principal no responde, pide al respaldo', async () => {

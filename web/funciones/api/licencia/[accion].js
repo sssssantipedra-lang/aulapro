@@ -11,8 +11,13 @@
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
 
+const CORS_CF = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept' };
+
+/** Desde el 29-10-2026 esto es el respaldo de Netlify: la app de aulapro.app lo llama desde otro origen. */
+export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS_CF });
+
 export async function onRequestPost({ request, params }) {
-  if (!ACCIONES.has(params.accion)) return new Response('Not found', { status: 404 });
+  if (!ACCIONES.has(params.accion)) return new Response('Not found', { status: 404, headers: CORS_CF });
   const entrada = new URLSearchParams(await request.text());
   const salida = new URLSearchParams();
   for (const c of CAMPOS) {
@@ -26,6 +31,6 @@ export async function onRequestPost({ request, params }) {
   });
   return new Response(await res.text(), {
     status: res.status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    headers: { ...CORS_CF, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }

@@ -1,8 +1,9 @@
-# Respaldo de aulapro.app en Netlify (respaldo.aulapro.app), fuera de Cloudflare: durante los
-# partidos de LaLiga los operadores españoles bloquean direcciones de Cloudflare y aulapro.app cae
-# con ellas. Netlify construye esto solo desde GitHub: la misma web, la misma app en /app/ y las
-# mismas funciones de la licencia (web/netlify/, copia de web/funciones/ con el formato de Netlify).
-# La app prueba primero aulapro.app y, si no responde, usa esta (src/platform/servidores.ts).
+# aulapro.app en Netlify (desde el 29-10-2026, decisión del dueño), fuera de Cloudflare: durante
+# los partidos de LaLiga los operadores españoles bloquean direcciones de Cloudflare y la web caía
+# con ellas. Cloudflare sigue llevando el DNS (sin proxy, nube gris) y la copia de Cloudflare Pages
+# (aulapro-app.pages.dev) queda de respaldo. Netlify construye esto solo desde GitHub: la web, la
+# app en /app/ y las funciones de la licencia (web/netlify/, copia de web/funciones/ con el formato
+# de Netlify). Si aulapro.app no responde, la app usa el respaldo (src/platform/servidores.ts).
 [build]
   command = "npm ci && npm run build:web && node web/idiomas.mjs web/sitio && node web/comprobar.mjs web/sitio && node web/versionar.mjs web/sitio && cp -r dist-web web/sitio/app"
   publish = "web/sitio"

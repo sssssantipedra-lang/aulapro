@@ -1,13 +1,12 @@
 /**
  * Versión web: a qué servidor se piden la licencia y la búsqueda de compras.
- * Primero al mismo sitio desde el que se abrió la app (aulapro.app, en
- * Cloudflare) y, si no responde, al respaldo en Netlify
- * (respaldo.aulapro.app, ver netlify.toml): durante los partidos de LaLiga los
- * operadores españoles bloquean direcciones de Cloudflare. Abierta desde el
- * respaldo, al revés. Solo cambia de servidor si no hay respuesta, nunca por
- * una respuesta de error.
+ * Primero al mismo sitio desde el que se abrió la app (aulapro.app, en Netlify
+ * desde el 29-10-2026, fuera de los bloqueos de LaLiga a Cloudflare: ver
+ * netlify.toml) y, si no responde, a la copia de Cloudflare Pages
+ * (aulapro-app.pages.dev). Abierta desde la copia, al revés. Solo cambia de
+ * servidor si no hay respuesta, nunca por una respuesta de error.
  */
-export const RESPALDO = 'https://respaldo.aulapro.app';
+export const RESPALDO = 'https://aulapro-app.pages.dev';
 export const PRINCIPAL = 'https://aulapro.app';
 const ESPERA = 6000;
 

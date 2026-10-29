@@ -10,8 +10,13 @@ const STORE_ID = '487841';
 const LS = 'https://api.lemonsqueezy.com/v1';
 
 const json = (cuerpo, status = 200) => new Response(JSON.stringify(cuerpo), {
-  status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+  status, headers: { ...CORS_CF, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
 });
+
+const CORS_CF = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept' };
+
+/** Desde el 29-10-2026 esto es el respaldo de Netlify: la app de aulapro.app lo llama desde otro origen. */
+export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS_CF });
 
 export async function onRequestPost({ request, env }) {
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503);
