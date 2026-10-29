@@ -185,4 +185,25 @@ describe('copia en una carpeta del ordenador (versión web)', () => {
     expect(a.espejo.estado()).toEqual({ tipo: 'sin-permiso', nombre: 'X' });
     expect(await a.store.loadData(p.id)).toEqual({ v: 1 });
   });
+
+  it('con la app abierta, tras traer lo de otro dispositivo no se vuelve a guardar lo viejo encima', async () => {
+    const carpeta = memoryFs();
+    const a = dispositivo('A');
+    await a.espejo.conectar(carpeta.fs, 'X');
+    const p = await a.store.createProfile({ name: 'Profesor' });
+    await a.store.saveData(p.id, { v: 1 });
+    await a.espejo.vaciar();
+    const b = dispositivo('B');
+    await b.espejo.conectar(carpeta.fs, 'X');
+    await a.store.saveData(p.id, { v: 2 });
+    await a.espejo.vaciar();
+
+    expect(await b.espejo.comprobar({ congelar: true })).toBe(1);
+    expect(b.espejo.congelado()).toBe(true);
+    // La app de B aún tiene { v: 1 } en memoria y lo guarda: no pisa nada
+    await b.store.saveData(p.id, { v: 1 });
+    await b.espejo.vaciar();
+    expect(await b.store.loadData(p.id)).toEqual({ v: 2 });
+    expect(await leer(carpeta.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ v: 2 });
+  });
 });

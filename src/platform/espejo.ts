@@ -70,6 +70,13 @@ export function createEspejo(opts: {
   const pausa = opts.pausa ?? PAUSA_COPIA;
 
   let carpeta: Fs | null = null;
+  /**
+   * Tras traer datos de otro dispositivo con la app ya abierta: lo que tiene en
+   * memoria es viejo y lo volvería a guardar encima. Hasta que se recarga, no
+   * se escribe nada de los perfiles.
+   */
+  let congelado = false;
+  const deLosPerfiles = (p: string) => DATOS.test(p) || p === PERFILES;
   let estado: EstadoCarpeta = { tipo: 'sin-carpeta' };
   const conflictos = new Set<string>();
   const oyentes = new Set<() => void>();
@@ -156,11 +163,13 @@ export function createEspejo(opts: {
     read: p => local.read(p),
     list: p => local.list(p),
     async write(p, d) {
+      if (congelado && (deLosPerfiles(p) || deLosPerfiles(p.replace(/\.tmp$/, '')))) return;
       await local.write(p, d);
       // Los temporales de la escritura segura no salen: se copia el archivo ya renombrado
       if (!p.endsWith('.tmp')) await despues(p);
     },
     async rename(from, to) {
+      if (congelado && deLosPerfiles(to)) return;
       await local.rename(from, to);
       await despues(to);
     },
@@ -216,7 +225,7 @@ export function createEspejo(opts: {
    * haya dejado en la carpeta y copia lo que aquí quedó sin copiar.
    * Devuelve cuántos perfiles se han traído: si son más de cero, hay que recargar.
    */
-  async function comprobar(): Promise<number> {
+  async function comprobar(opts: { congelar?: boolean } = {}): Promise<number> {
     const c = activa();
     if (!c) return 0;
     let cargados = 0;
@@ -228,6 +237,7 @@ export function createEspejo(opts: {
         if (m.dispositivo === dispositivo) { await kv.set(`visto:${id}`, m.en); continue; }
         const pendiente = await kv.get<boolean>(`pendiente:${id}`);
         if (!pendiente || (await local.read(datosDe(id))) == null) {
+          if (opts.congelar) congelado = true;
           if (await traer(c, id, m)) cargados++;
         } else {
           conflictos.add(id);
@@ -253,11 +263,13 @@ export function createEspejo(opts: {
     onCambio(fn: () => void) { oyentes.add(fn); return () => { oyentes.delete(fn); }; },
 
     /** La carpeta guardada de otra vez, ya con permiso. */
-    async activar(c: Fs, nombreCarpeta: string) {
+    async activar(c: Fs, nombreCarpeta: string, opts: { congelar?: boolean } = {}) {
       carpeta = c;
       estado = { tipo: 'activa', nombre: nombreCarpeta };
-      return comprobar();
+      return comprobar(opts);
     },
+    /** Se ha traído algo con la app abierta y falta recargar (ver `congelado`). */
+    congelado: () => congelado,
 
     /** Hay carpeta guardada, pero el navegador pide permiso (un clic del docente). */
     sinPermiso(nombreCarpeta: string) {

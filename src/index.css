@@ -288,6 +288,9 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .entrar-tarjeta .spin { flex-shrink:0; }
 /* El botón real de Google, invisible y agrandado sobre toda la tarjeta */
 .entrar-google-real { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0.0001; transform:scale(1.9); }
+button.entrar-tarjeta { width:100%; border:0.5px solid var(--border); font:inherit; }
+button.entrar-tarjeta:disabled { cursor:progress; }
+.entrar-ahora-no { margin-top:16px; background:none; border:none; font:inherit; font-size:13px; font-weight:600; color:var(--text-2); text-decoration:underline; cursor:pointer; }
 .entrar-nota { display:flex; align-items:flex-start; gap:8px; margin:26px 0 0; max-width:380px; font-size:12px; line-height:1.55; color:var(--text-3); text-align:left; }
 .entrar-nota svg { flex-shrink:0; margin-top:1px; color:var(--ok); }
 @media (max-width:480px) { .entrar-logo { width:116px; height:116px; border-radius:28px; } .entrar-titulo { font-size:24px; } }

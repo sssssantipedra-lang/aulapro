@@ -3,7 +3,8 @@ import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calen
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
-import { EntrarWeb } from './pages/EntrarWeb';
+import { ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
+import { leerPermisoDrive } from './platform/googleDrive';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
@@ -874,9 +875,23 @@ function CuentaCheck({ children }: { children: React.ReactNode }) {
     leerCuenta().then(c => setCuenta(c ?? null));
   }, [cuenta]);
   const entrar = useCallback((c: Cuenta) => setCuenta(c), []);
+  // Después de entrar: el paso de Drive, salvo que ya esté o se haya dicho «Ahora no» en esta sesión
+  const [pasoDrive, setPasoDrive] = useState<boolean | undefined>(isWebApp() ? undefined : false);
+  useEffect(() => {
+    if (!cuenta || pasoDrive !== undefined) return;
+    let saltado = false;
+    try { saltado = sessionStorage.getItem('aulapro_drive_ahora_no') === '1'; } catch { /* sin almacenamiento */ }
+    leerPermisoDrive().then(p => setPasoDrive(!p && !saltado));
+  }, [cuenta, pasoDrive]);
+  const listoDrive = useCallback(() => {
+    try { sessionStorage.setItem('aulapro_drive_ahora_no', '1'); } catch { /* sin almacenamiento */ }
+    setPasoDrive(false);
+  }, []);
   if (!isWebApp()) return <>{children}</>;
   if (cuenta === undefined) return null;
   if (!cuenta) return <EntrarWeb onEntrar={entrar} />;
+  if (pasoDrive === undefined) return null;
+  if (pasoDrive) return <ConectarDriveWeb onListo={listoDrive} />;
   return <>{children}</>;
 }
 

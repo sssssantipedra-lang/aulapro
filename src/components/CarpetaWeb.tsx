@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FolderSync, FolderX, AlertTriangle, LogOut, UserCircle } from 'lucide-react';
+import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle } from 'lucide-react';
 import { carpetaWeb, EVENTO_PDF } from '../platform/carpetaWeb';
 import { cerrarSesion, leerCuenta, type Cuenta } from '../platform/cuentaWeb';
 import { useToast } from './ui/Toast';
@@ -102,13 +102,7 @@ export function CarpetaWebPanel() {
   const [ocupado, setOcupado] = useState(false);
   const [elegir, setElegir] = useState(false);
 
-  if (!carpetaWeb.soportada()) {
-    return (
-      <p className="carpeta-web-nota">
-        {t('En este dispositivo no se puede elegir una carpeta (solo en Chrome o Edge de un ordenador). Para guardar una copia fuera, usa «Descargar mis datos».')}
-      </p>
-    );
-  }
+  const drive = carpetaWeb.usaDrive();
 
   function terminar(r: { elegir: boolean; cargados: number } | null) {
     if (!r) return;
@@ -131,8 +125,10 @@ export function CarpetaWebPanel() {
 
   return (
     <div className="carpeta-web">
-      <div className="carpeta-web-ttl"><FolderSync size={15} color="var(--accent-d)" aria-hidden="true" />{t('Copia en una carpeta del ordenador')}</div>
-      <p>{t('Elige una carpeta y AulaPro copiará ahí cada cambio. Si eliges la carpeta de OneDrive o de Google Drive de tu ordenador, tu trabajo queda también en tu nube, y otro ordenador con la misma carpeta lo abre.')}</p>
+      <div className="carpeta-web-ttl"><Cloud size={15} color="var(--accent-d)" aria-hidden="true" />{t(drive ? 'Tu trabajo, en tu Google Drive' : 'Dónde se guarda una copia')}</div>
+      <p>{t(drive
+        ? 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.'
+        : 'Guárdalo en tu Google Drive y lo tendrás en todos tus dispositivos. En un ordenador, también puedes elegir una carpeta.')}</p>
 
       {estado.tipo === 'activa' && (
         <div className="carpeta-web-estado">
@@ -161,12 +157,19 @@ export function CarpetaWebPanel() {
         </div>
       ) : (
         <div className="carpeta-web-btns">
-          <button className={estado.tipo === 'sin-carpeta' ? 'btn-accent' : 'btn-ghost'} disabled={ocupado} onClick={() => correr(() => carpetaWeb.elegir())}>
-            <FolderSync size={14} />{t(estado.tipo === 'sin-carpeta' ? 'Elegir carpeta' : 'Cambiar carpeta')}
-          </button>
+          {!drive && (
+            <button className="btn-accent" disabled={ocupado} onClick={() => correr(() => carpetaWeb.conectarDrive())}>
+              <Cloud size={14} />{t('Guardar en mi Google Drive')}
+            </button>
+          )}
+          {!drive && carpetaWeb.soportada() && (
+            <button className="btn-ghost" disabled={ocupado} onClick={() => correr(() => carpetaWeb.elegir())}>
+              <FolderSync size={14} />{t(estado.tipo === 'sin-carpeta' ? 'Elegir carpeta' : 'Cambiar carpeta')}
+            </button>
+          )}
           {estado.tipo !== 'sin-carpeta' && (
             <button className="btn-ghost" disabled={ocupado} onClick={() => carpetaWeb.desconectar()}>
-              <FolderX size={14} />{t('Dejar de copiar')}
+              <FolderX size={14} />{t(drive ? 'Dejar de guardar en Drive' : 'Dejar de copiar')}
             </button>
           )}
         </div>

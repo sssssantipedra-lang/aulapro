@@ -25,7 +25,7 @@
 import { createProfileStore } from './profileStore';
 import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
-import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta } from './carpetaWeb';
+import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta, recargarCuandoSeAPuedeSinCortar } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost } from './androidLicense';
 import { pedirApi } from './servidores';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
@@ -182,7 +182,14 @@ export async function installWebBridge() {
   // Antes de pintar: si otro ordenador dejó algo más nuevo en la carpeta, se trae ya
   await abrirCarpetaGuardada();
   const vaciar = () => { espejo.vaciar(); };
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') vaciar(); });
+  // Lo de otro dispositivo llega solo: cada 30 s con la app a la vista y al volver a ella
+  const revisar = async () => {
+    if (document.visibilityState !== 'visible' || espejo.estado().tipo !== 'activa' || espejo.congelado()) return;
+    if ((await espejo.comprobar({ congelar: true })) > 0) recargarCuandoSeAPuedeSinCortar();
+  };
+  setInterval(revisar, 30_000);
+  window.addEventListener('focus', revisar);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') vaciar(); else revisar(); });
   window.addEventListener('pagehide', vaciar);
 
   window.electronAPI = {

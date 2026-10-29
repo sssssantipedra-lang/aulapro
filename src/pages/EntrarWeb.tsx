@@ -3,6 +3,7 @@ import { ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
 import { botonGoogle, type Cuenta } from '../platform/cuentaWeb';
+import { carpetaWeb } from '../platform/carpetaWeb';
 
 /** Logo de Google (los cuatro colores oficiales). */
 function LogoGoogle() {
@@ -85,6 +86,91 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
         <p className="entrar-nota">
           <ShieldCheck size={15} aria-hidden="true" />
           <span>{t('AulaPro solo guarda tu nombre y tu correo en este dispositivo. Tu trabajo no sale hacia ningún servidor de AulaPro.')}</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** Logo de Google Drive. */
+function LogoDrive() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 87.3 78" aria-hidden="true">
+      <path fill="#0066da" d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L27.5 53H0c0 1.55.4 3.1 1.2 4.5z" />
+      <path fill="#00ac47" d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" />
+      <path fill="#ea4335" d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.5z" />
+      <path fill="#00832d" d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z" />
+      <path fill="#2684fc" d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" />
+      <path fill="#ffba00" d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z" />
+    </svg>
+  );
+}
+
+/**
+ * Versión web, segundo paso al entrar: guardar el trabajo en el Google Drive
+ * de la cuenta (`platform/googleDrive.ts`, `driveFs.ts`). Un clic abre la
+ * ventana de Google; si el Drive ya tiene trabajo de otro dispositivo, se trae.
+ */
+export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
+  const { t } = useI18n();
+  const [ocupado, setOcupado] = useState(false);
+  const [elegir, setElegir] = useState(false);
+  const [error, setError] = useState('');
+
+  async function correr(fn: () => Promise<{ elegir: boolean; cargados: number } | null>) {
+    setOcupado(true); setError('');
+    try {
+      const r = await fn();
+      if (r?.elegir) { setElegir(true); setOcupado(false); return; }
+      if (r && r.cargados > 0) { window.location.reload(); return; }
+      onListo();
+    } catch (err) {
+      setError((err as DOMException)?.name === 'NotAllowedError'
+        ? t('Google no ha dado el permiso. Vuelve a probar y marca la casilla de Google Drive.')
+        : t('No se ha podido conectar con Google Drive. Vuelve a probar en un momento.'));
+    }
+    setOcupado(false);
+  }
+
+  return (
+    <div className="lic-shell entrar">
+      <div className="auth-orb" style={{ width: 560, height: 560, background: 'rgba(var(--accent-rgb),0.10)', top: -160, right: -120 }} />
+      <div className="auth-orb" style={{ width: 420, height: 420, background: 'rgba(71,191,255,0.10)', bottom: -120, left: -100 }} />
+      <LangSwitch claro />
+      <div className="entrar-caja">
+        <img className="entrar-logo" src="./favicon.svg" alt="AulaPro" width={148} height={148} />
+        <h1 className="entrar-titulo">{t('Tu trabajo, en tu Google Drive')}</h1>
+        <p className="entrar-sub">{t('AulaPro guardará todo en una carpeta «AulaPro» de tu Drive. Así lo tienes en todos tus dispositivos y no se pierde nunca. Solo ve los archivos que crea ella.')}</p>
+
+        {error && <div className="lic-err entrar-err" role="alert">{error}</div>}
+
+        {elegir ? (
+          <div className="entrar-tarjetas">
+            <p className="entrar-sub" style={{ margin: '0 0 4px' }}>{t('Tu Drive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?')}</p>
+            <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.confirmar('carpeta'))}>
+              <span className="entrar-ico"><LogoDrive /></span>
+              <span className="entrar-txt"><strong>{t('Usar el de mi Drive')}</strong><em>{t('Lo que solo esté en este navegador también se conserva.')}</em></span>
+            </button>
+            <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.confirmar('local'))}>
+              <span className="entrar-ico"><ShieldCheck size={24} aria-hidden="true" /></span>
+              <span className="entrar-txt"><strong>{t('Usar el de este navegador')}</strong><em>{t('Sustituye lo que hay en tu Drive.')}</em></span>
+            </button>
+          </div>
+        ) : (
+          <div className="entrar-tarjetas">
+            <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.conectarDrive())}>
+              <span className="entrar-ico"><LogoDrive /></span>
+              <span className="entrar-txt"><strong>{t('Guardar en mi Google Drive')}</strong><em>{t('Recomendado. Un clic y Google te pide permiso.')}</em></span>
+              {ocupado && <span className="spin" aria-hidden="true" />}
+            </button>
+          </div>
+        )}
+
+        <button type="button" className="entrar-ahora-no" disabled={ocupado} onClick={onListo}>{t('Ahora no: guardar solo en este dispositivo')}</button>
+
+        <p className="entrar-nota">
+          <ShieldCheck size={15} aria-hidden="true" />
+          <span>{t('Tu trabajo va de este dispositivo a tu Drive directamente. Nunca pasa por un servidor de AulaPro.')}</span>
         </p>
       </div>
     </div>

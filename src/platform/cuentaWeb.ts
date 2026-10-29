@@ -56,7 +56,7 @@ interface GoogleGlobal {
 
 let cargando: Promise<void> | null = null;
 
-function cargarGoogle(): Promise<void> {
+export function cargarGoogle(): Promise<void> {
   return (cargando ??= new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = 'https://accounts.google.com/gsi/client';
