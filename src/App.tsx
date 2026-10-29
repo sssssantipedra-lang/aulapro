@@ -849,7 +849,7 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       const bridge = licenseBridge();
       if (isWebApp() && bridge?.porCuenta && (s?.required || hayToken())) {
         const b = await licenciaDeLaCuenta();
-        if (b.key) { setState(await bridge.porCuenta(b.key)); return; }
+        if (b.key) { setState(await bridge.porCuenta(b.key, b.firma)); return; }
         // Comprobada sin compra (devuelta o anulada): se quita la de la cuenta
         if (!('error' in b && b.error)) { s = await bridge.porCuenta(null); }
       }

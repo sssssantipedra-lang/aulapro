@@ -26,7 +26,9 @@ import { createProfileStore } from './profileStore';
 import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta, recargarCuandoSeAPuedeSinCortar } from './carpetaWeb';
-import { createAndroidLicense, type LicensePost } from './androidLicense';
+import { createAndroidLicense, type LicensePost, type LicenseRecord } from './androidLicense';
+import { crearVerificador } from './firmaLicencia';
+import { cuentaActual, leerCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
 
@@ -44,6 +46,21 @@ const postLicencia: LicensePost = async (action, data) => {
     return null; // sin conexión
   }
 };
+
+/** La licencia guardada solo vale con la firma de las funciones de la licencia (`platform/firmaLicencia.ts`). */
+const verificarFirma = crearVerificador(idbKv, async () => {
+  const r = await pedirApi('/api/licencia/clave', { method: 'GET' });
+  return r.ok ? String((await r.json()).x ?? '') : '';
+});
+async function verificarLicencia(r: LicenseRecord): Promise<boolean> {
+  if (r.cuenta) {
+    const email = (cuentaActual() ?? await leerCuenta())?.email;
+    return verificarFirma(r.firma, { t: 'cuenta', email, ...(r.kind === 'fundador' ? { fundador: true } : { key: r.key }) });
+  }
+  if (r.kind === 'licencia') return verificarFirma(r.firma, { t: 'clave', key: r.key });
+  // Fundador sin cuenta: en la web no existe (los fundadores van por su correo)
+  return false;
+}
 
 const secretos = {
   get: async (name: string) => (await idbKv.get<string>(`secreto:${name}`)) ?? '',
@@ -199,7 +216,7 @@ export async function installWebBridge() {
     store: createProfileStore(espejo.fs) as unknown as StoreBridge,
     docs,
     update: createUpdate(),
-    license: createAndroidLicense(secretos, { post: postLicencia, instanceName: 'AulaPro · Navegador' }),
+    license: createAndroidLicense(secretos, { post: postLicencia, instanceName: 'AulaPro · Navegador', verificar: verificarLicencia }),
     secrets: secretos,
   };
 }

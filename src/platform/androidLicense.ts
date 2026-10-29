@@ -27,7 +27,7 @@ interface Secrets {
   set: (name: string, value: string) => Promise<boolean>;
 }
 
-interface LicenseRecord {
+export interface LicenseRecord {
   v: 1;
   kind: 'fundador' | 'licencia';
   key?: string;
@@ -36,6 +36,8 @@ interface LicenseRecord {
   lastOkAt?: string;
   /** Versión web: licencia de la cuenta de Google, sin activación en Lemon Squeezy. */
   cuenta?: boolean;
+  /** Versión web: la firma de las funciones de la licencia (`platform/firmaLicencia.ts`). */
+  firma?: string;
 }
 
 export type StoreBody = {
@@ -43,6 +45,8 @@ export type StoreBody = {
   license_key?: { status?: string };
   instance?: { id?: string };
   meta?: { store_id?: number | string };
+  /** Versión web: la firma que añade la función de la licencia. */
+  aulapro_firma?: string;
 };
 
 /** Igual que `activationError` de electron/licenseCore.cjs. */
@@ -85,6 +89,8 @@ async function postNativo(action: string, data: Record<string, string>) {
  */
 export function createAndroidLicense(secrets: Secrets, opts: {
   enforced?: boolean; storeId?: string; post?: LicensePost; instanceName?: string;
+  /** Versión web: si el registro guardado lleva una firma válida (`platform/firmaLicencia.ts`). */
+  verificar?: (r: LicenseRecord) => Promise<boolean>;
 } = {}): LicenseBridge {
   const enforced = opts.enforced ?? ENFORCED;
   const storeId = opts.storeId ?? STORE_ID;
@@ -115,12 +121,18 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     const r = await call('validate', { license_key: record.key, instance_id: record.instanceId });
     if (!r) return;
     const st = r.body.license_key?.status;
-    if (r.body.valid && st !== 'disabled' && st !== 'expired') await save({ ...record, lastOkAt: new Date().toISOString() });
+    if (r.body.valid && st !== 'disabled' && st !== 'expired') await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
     else if (r.status < 500) await save(null); // devuelta o anulada
   }
 
   async function init() {
     try { record = JSON.parse((await secrets.get('licencia')) || 'null'); } catch { record = null; }
+    // Versión web: sin firma válida, la de la cuenta se vuelve a pedir (App.tsx) y la clave se comprueba ya
+    if (record && opts.verificar && !(await opts.verificar(record).catch(() => false))) {
+      if (record.kind === 'licencia' && record.key && !record.cuenta) { await check(); if (record && !record.firma) record = null; }
+      else record = null;
+      return;
+    }
     if (!record && !enforced) {
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
     } else if (record?.kind === 'licencia') {
@@ -145,18 +157,19 @@ export function createAndroidLicense(secrets: Secrets, opts: {
         return { ok: false, error, state: state() };
       }
       const now = new Date().toISOString();
-      await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now });
+      await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now, ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
       return { ok: true, state: state() };
     },
 
-    async porCuenta(key): Promise<LicenseState> {
+    async porCuenta(key, firma): Promise<LicenseState> {
       await whenReady();
+      const f = firma ? { firma } : {};
       if (key === 'fundador') {
         // Versión web: fundador por su correo (`FUNDADOR` en cuentaWeb.ts)
-        await save({ v: 1, kind: 'fundador', activatedAt: record?.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true });
+        await save({ v: 1, kind: 'fundador', activatedAt: record?.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true, ...f });
       } else if (key) {
         const now = new Date().toISOString();
-        await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true });
+        await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true, ...f });
       } else if (record?.cuenta) {
         await save(null);
       }
