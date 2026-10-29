@@ -38,6 +38,10 @@ Decisión del dueño: AulaPro es solo web; no hay más versiones de Windows ni d
 
 **Fundadores en la web:** la función `/api/licencia/cuenta` lee la variable secreta `FUNDADORES` (correos separados por comas o saltos de línea, en Netlify y en Cloudflare, Production y Preview) y, si el correo de la cuenta está ahí, responde `fundador: true`; la app lo guarda como fundador de la cuenta (`FUNDADOR` en `cuentaWeb.ts`, `porCuenta('fundador')`). Si un correo sale de la lista, deja de serlo al volver a comprobar. Los correos nunca van en el repositorio.
 
+## Un perfil por cuenta (29-10-2026)
+
+Decisión del dueño: en la versión web no se crean más perfiles; cada cuenta tiene el del propio docente («Añadir otro perfil» solo sale en las apps nativas, `pages/Welcome.tsx`). La licencia de la cuenta sigue sin límite de dispositivos: compartirla obliga a dar la contraseña de Google entera. Para empezar de cero (por ejemplo, tras los datos de ejemplo) se borra el perfil con la papelera y se crea otro.
+
 ## Publicar
 
 `web.yml` compila la app (`npm ci`, `npm run build:web`) y la copia en `web/sitio/app/` después de comprobar y sellar la web; las funciones se copian a `_pages/functions/`, donde las busca wrangler. Un push a `master` publica en https://aulapro.app/app/; uno a otra rama, en la copia de prueba https://prueba.aulapro-app.pages.dev/app/. Cabeceras de caché en `web/sitio/_headers`.

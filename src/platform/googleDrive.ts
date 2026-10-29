@@ -8,6 +8,7 @@
  * secreto de cliente; no ve ni guarda nada más.
  */
 import { idbKv } from './webFs';
+import { createDriveFs } from './driveFs';
 import { pedirApi } from './servidores';
 import { cargarGoogle, entrarConToken, GOOGLE_CLIENT_ID, type Cuenta } from './cuentaWeb';
 
@@ -172,4 +173,23 @@ export async function tokenDrive(): Promise<string> {
   const d = await pedirFuncion('renovar', { refresh_token: permiso.refresh });
   acceso = { token: d.access_token, caduca: Date.now() + (d.expires_in ?? 3600) * 1000 };
   return acceso.token;
+}
+
+/**
+ * La clave escrita a mano (compra con otro correo o un pack), en el Drive de
+ * la cuenta: así, en otro dispositivo con la misma cuenta, se activa sola
+ * (petición del dueño, 29-10-2026). Un archivo aparte de la carpeta
+ * «AulaPro», fuera de lo que copia `espejo.ts`.
+ */
+const LICENCIA = 'AulaPro/licencia.json';
+export async function guardarClaveEnDrive(key: string) {
+  if (!(await leerPermisoDrive())) return;
+  await createDriveFs(tokenDrive).write(LICENCIA, JSON.stringify({ key }));
+}
+export async function claveDeDrive(): Promise<string> {
+  if (!(await leerPermisoDrive())) return '';
+  try {
+    const k = JSON.parse((await createDriveFs(tokenDrive).read(LICENCIA)) ?? '{}').key;
+    return typeof k === 'string' ? k : '';
+  } catch { return ''; }
 }

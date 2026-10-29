@@ -5,6 +5,7 @@
  * a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const WEB_EN: Record<string, string> = {
+  'Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.': 'Your account has one profile. To start from scratch, delete it with the bin and create yours.',
   'Tu cuaderno docente, en todos tus dispositivos': 'Your teaching notebook, on all your devices',
   'La licencia va con tu cuenta de Google. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive.': 'The licence goes with your Google account. Your work never goes through an AulaPro server: it stays on your device and, if you choose, in your Google Drive.',
   'AulaPro ahora funciona en el navegador, en aulapro.app/app, y esta app ya no recibirá versiones nuevas. Para llevarte tu trabajo, pulsa «Descargar mis datos» en «Llevar a otro equipo» y cárgalo en la web.': 'AulaPro now runs in the browser, at aulapro.app/app, and this app will not get new versions. To take your work with you, press “Download my data” under “Move to another computer” and load it in the web version.',
@@ -100,6 +101,7 @@ export const WEB_EN: Record<string, string> = {
 };
 
 export const WEB_CA: Record<string, string> = {
+  'Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.': 'El teu compte té un perfil. Per començar de zero, esborra’l amb la paperera i crea el teu.',
   'Tu cuaderno docente, en todos tus dispositivos': 'El teu quadern docent, a tots els teus dispositius',
   'La licencia va con tu cuenta de Google. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive.': 'La llicència va amb el teu compte de Google. La feina mai passa per un servidor d’AulaPro: es queda al teu dispositiu i, si ho tries, al teu Google Drive.',
   'AulaPro ahora funciona en el navegador, en aulapro.app/app, y esta app ya no recibirá versiones nuevas. Para llevarte tu trabajo, pulsa «Descargar mis datos» en «Llevar a otro equipo» y cárgalo en la web.': 'AulaPro ara funciona al navegador, a aulapro.app/app, i aquesta app ja no rebrà versions noves. Per endur-te la feina, prem «Descarrega les meves dades» a «Portar a un altre equip» i carrega-la al web.',

@@ -8,7 +8,7 @@
    and the "Descargar" link and the download page go live. */
 window.AULA_LAUNCH = {
   // Lemon Squeezy checkout link of the AulaPro product: one licence for Windows, Mac and Android
-  checkout: '',
+  checkout: 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832',
   // Google Play listing of the free Android app (it is activated with the licence)
   play: '',
   // Microsoft Store listing of the free Windows app (Microsoft signs it, so Windows shows no warning).
