@@ -851,7 +851,13 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
         const b = await licenciaDeLaCuenta();
         if (b.key) { setState(await bridge.porCuenta(b.key)); return; }
         // Comprobada sin compra (devuelta o anulada): se quita la de la cuenta
-        if (!('error' in b && b.error)) { setState(await bridge.porCuenta(null)); return; }
+        if (!('error' in b && b.error)) { s = await bridge.porCuenta(null); }
+      }
+      // Una clave escrita a mano en otro dispositivo de esta cuenta, guardada en su Drive
+      if (isWebApp() && bridge && s?.required) {
+        const { claveDeDrive } = await import('./platform/googleDrive');
+        const k = await claveDeDrive();
+        if (k) { const r = await bridge.activate(k); if (r.ok) { setState(r.state); return; } }
       }
       setState(s);
     });

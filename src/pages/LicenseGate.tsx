@@ -85,7 +85,11 @@ export function LicenseGate({ state, onChange }: Props) {
     setError(null);
     const r = await bridge.activate(key.trim());
     setBusy(false);
-    if (r.ok) onChange(r.state);
+    if (r.ok) {
+      // Versión web: la clave a mano queda en el Drive de la cuenta, para los demás dispositivos
+      if (isWebApp()) import('../platform/googleDrive').then(m => m.guardarClaveEnDrive(key.trim())).catch(() => {});
+      onChange(r.state);
+    }
     else setError(r.error ?? 'error-tienda');
   }
 
