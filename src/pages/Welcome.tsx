@@ -22,7 +22,8 @@ import { isWebApp } from '../lib/platform';
  * hay que poder cambiar nada más entrar, antes incluso de leer el
  * formulario, no algo escondido dentro de un perfil ya creado en Configuración.
  */
-export function LangSwitch() {
+/** `claro`: sobre un fondo claro (la entrada de la versión web), con tinta oscura. */
+export function LangSwitch({ claro = false }: { claro?: boolean } = {}) {
   const { lang, setLang } = useI18n();
   return (
     <div style={{ position: 'absolute', top: 18, right: 18, display: 'flex', gap: 6, zIndex: 2 }}>
@@ -38,9 +39,9 @@ export function LangSwitch() {
               display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px',
               borderRadius: 99, cursor: 'pointer', fontFamily: 'var(--font)',
               fontSize: 12, fontWeight: on ? 800 : 600,
-              background: on ? 'rgba(255,255,255,0.16)' : 'transparent',
-              border: `1.5px solid rgba(255,255,255,${on ? 0.5 : 0.18})`,
-              color: on ? '#fff' : 'rgba(255,255,255,0.62)',
+              background: on ? (claro ? 'var(--card)' : 'rgba(255,255,255,0.16)') : 'transparent',
+              border: claro ? `1.5px solid ${on ? 'var(--border-2, var(--border))' : 'transparent'}` : `1.5px solid rgba(255,255,255,${on ? 0.5 : 0.18})`,
+              color: claro ? (on ? 'var(--text)' : 'var(--text-2)') : (on ? '#fff' : 'rgba(255,255,255,0.62)'),
             }}
           >
             <Flag lang={l.id} size={15} />{l.label}

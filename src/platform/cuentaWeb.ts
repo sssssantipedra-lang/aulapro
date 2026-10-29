@@ -168,7 +168,7 @@ export async function botonGoogle(el: HTMLElement, idioma: string, alEntrar: (c:
   });
   g.accounts.id.renderButton(el, {
     type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill',
-    logo_alignment: 'left', width: 300, locale: idioma,
+    logo_alignment: 'left', width: 400, locale: idioma,
   });
 }
 

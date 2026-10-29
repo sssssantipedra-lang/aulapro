@@ -4,7 +4,7 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { EntrarWeb } from './pages/EntrarWeb';
-import { hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
+import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -320,7 +320,12 @@ function AppInner() {
         onNav={s => { setSection(s); setMenuOpen(false); }}
         user={st.currentUser}
         saving={st.saving}
-        onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
+        onLogout={async () => {
+          await st.logout();
+          // En la web, salir es salir de la cuenta: vuelve a la pantalla de entrada
+          if (isWebApp()) { await cerrarSesion(); window.location.reload(); return; }
+          toast(t('Sesión cerrada'));
+        }}
       />}
 
       {menuOverlay && (

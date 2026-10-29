@@ -265,7 +265,32 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .update-banner button:not(.update-close):hover { opacity:0.87; }
 .update-banner.carpeta-aviso { bottom:150px; flex-wrap:wrap; max-width:400px; }
 .carpeta-aviso-btns { display:flex; gap:8px; flex-wrap:wrap; width:100%; justify-content:flex-end; }
-.entrar-google { display:flex; justify-content:center; min-height:44px; margin:4px 0 6px; }
+/* Versión web: entrar con la cuenta (pages/EntrarWeb.tsx), con el fondo crema de la app (decisión del dueño, 29-10-2026) */
+.lic-shell.entrar { background:var(--surface); }
+.entrar-caja { position:relative; z-index:1; width:440px; max-width:100%; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.entrar-logo { width:148px; height:148px; border-radius:34px; box-shadow:0 24px 60px rgba(71,120,255,0.38); margin-bottom:26px; }
+.entrar-titulo { margin:0; font-size:28px; font-weight:800; letter-spacing:-0.6px; color:var(--text); }
+.entrar-sub { margin:8px 0 28px; font-size:14.5px; line-height:1.55; color:var(--text-2); max-width:360px; }
+.entrar-err { width:100%; text-align:left; }
+.entrar-tarjetas { width:100%; display:flex; flex-direction:column; gap:12px; }
+.entrar-tarjeta { position:relative; overflow:hidden; display:flex; align-items:center; gap:16px; padding:16px 20px; min-height:74px; background:var(--card); border:0.5px solid var(--border); border-radius:16px; text-align:left; box-shadow:0 8px 24px rgba(80,55,30,0.10); transition:transform var(--t), box-shadow var(--t); cursor:pointer; }
+.entrar-tarjeta:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(80,55,30,0.16); }
+.entrar-tarjeta:focus-within { outline:3px solid rgba(71,191,255,0.7); outline-offset:2px; }
+.entrar-tarjeta.cargando { cursor:progress; }
+.entrar-tarjeta.off { cursor:default; }
+.entrar-tarjeta.off:hover { transform:none; box-shadow:0 8px 24px rgba(80,55,30,0.10); }
+.entrar-tarjeta.off .entrar-ico, .entrar-tarjeta.off .entrar-txt { opacity:0.55; }
+.entrar-ico { flex-shrink:0; width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--surface); }
+.entrar-txt { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.entrar-txt strong { font-size:15.5px; font-weight:800; color:var(--text); }
+.entrar-txt em { font-style:normal; font-size:12.5px; color:var(--text-2); }
+.entrar-pronto { flex-shrink:0; padding:5px 10px; border-radius:99px; background:var(--accent-l); color:var(--accent-d); font-size:11.5px; font-weight:800; }
+.entrar-tarjeta .spin { flex-shrink:0; }
+/* El botón real de Google, invisible y agrandado sobre toda la tarjeta */
+.entrar-google-real { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0.0001; transform:scale(1.9); }
+.entrar-nota { display:flex; align-items:flex-start; gap:8px; margin:26px 0 0; max-width:380px; font-size:12px; line-height:1.55; color:var(--text-3); text-align:left; }
+.entrar-nota svg { flex-shrink:0; margin-top:1px; color:var(--ok); }
+@media (max-width:480px) { .entrar-logo { width:116px; height:116px; border-radius:28px; } .entrar-titulo { font-size:24px; } }
 .carpeta-web { margin-bottom:18px; padding:14px 15px; background:var(--surface); border-radius:10px; }
 .carpeta-web-ttl { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--text); margin-bottom:6px; }
 .carpeta-web p { font-size:12.5px; color:var(--text-2); line-height:1.6; margin-bottom:12px; }

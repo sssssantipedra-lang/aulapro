@@ -59,6 +59,13 @@ export const WEB_EN: Record<string, string> = {
   "La búsqueda de compras aún no está configurada en el servidor. Escribe tu clave abajo o avísanos en contacto@aulapro.app.": "Purchase lookup is not set up on the server yet. Type your key below or tell us at contacto@aulapro.app.",
   "La tienda no responde ahora mismo. Vuelve a probar en un rato o escribe tu clave abajo.": "The store is not responding right now. Try again later or type your key below.",
   "Para buscar tu compra hace falta internet. Conéctate y vuelve a probar.": "Finding your purchase needs internet. Connect and try again.",
+  "Tu cuaderno docente": "Your teaching notebook",
+  "Entra con tu cuenta y tendrás AulaPro en todos tus dispositivos.": "Sign in with your account and you will have AulaPro on all your devices.",
+  "Continuar con Google": "Continue with Google",
+  "Gmail o la cuenta de Google de tu centro": "Gmail or your school’s Google account",
+  "Continuar con Microsoft": "Continue with Microsoft",
+  "Outlook, Hotmail o Microsoft 365 de tu centro": "Outlook, Hotmail or your school’s Microsoft 365",
+  "Próximamente": "Coming soon",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -116,4 +123,11 @@ export const WEB_CA: Record<string, string> = {
   "La búsqueda de compras aún no está configurada en el servidor. Escribe tu clave abajo o avísanos en contacto@aulapro.app.": "La cerca de compres encara no està configurada al servidor. Escriu la teva clau a sota o avisa’ns a contacto@aulapro.app.",
   "La tienda no responde ahora mismo. Vuelve a probar en un rato o escribe tu clave abajo.": "La botiga no respon ara mateix. Torna-ho a provar d’aquí a una estona o escriu la teva clau a sota.",
   "Para buscar tu compra hace falta internet. Conéctate y vuelve a probar.": "Per buscar la teva compra cal internet. Connecta’t i torna-ho a provar.",
+  "Tu cuaderno docente": "El teu quadern docent",
+  "Entra con tu cuenta y tendrás AulaPro en todos tus dispositivos.": "Entra amb el teu compte i tindràs AulaPro en tots els teus dispositius.",
+  "Continuar con Google": "Continuar amb Google",
+  "Gmail o la cuenta de Google de tu centro": "Gmail o el compte de Google del teu centre",
+  "Continuar con Microsoft": "Continuar amb Microsoft",
+  "Outlook, Hotmail o Microsoft 365 de tu centro": "Outlook, Hotmail o Microsoft 365 del teu centre",
+  "Próximamente": "Properament",
 };
