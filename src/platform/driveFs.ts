@@ -31,6 +31,9 @@ export const rutaDe = (nombre: string) => RAIZ + nombre.split('~').join('/');
 /** Lo que no va a Drive: las copias con fecha (salvo la de antes de vaciar el curso) y los temporales. */
 export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || ruta.endsWith('-antes-de-vaciar.json')) && !ruta.endsWith('.tmp');
 
+/** Cuánto vale un listado de la carpeta sin volver a pedirlo (ms). */
+const VIGENCIA_LISTADO = 5000;
+
 interface ArchivoDrive { id: string; name: string; size?: string; modifiedTime?: string }
 
 /** El mensaje del error cuando el Drive del docente no tiene sitio (lo traduce `components/CarpetaWeb.tsx`). */
@@ -54,6 +57,8 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
   let carpeta: Promise<string> | null = null;
   /** nombre → archivo, de la última vez que se listó. */
   let indice: Map<string, ArchivoDrive> | null = null;
+  let listadoEn = 0;
+  let listando: Promise<Map<string, ArchivoDrive>> | null = null;
 
   async function pedir(url: string, init: RequestInit = {}): Promise<Response> {
     const r = await fetcher(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${await token()}` } });
@@ -77,7 +82,17 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
     })().catch(err => { carpeta = null; throw err; }));
   }
 
-  async function listar(): Promise<Map<string, ArchivoDrive>> {
+  /**
+   * El listado de la carpeta. Cada lectura y cada «¿hay carpeta de este perfil?» lo pedían de nuevo (de 3 a 5
+   * llamadas seguidas al abrir): dentro de unos segundos se reutiliza el último, y varias peticiones a la vez
+   * comparten una. Quien mira si hay novedades de otro dispositivo (cada 30 s) siempre ve un listado nuevo.
+   */
+  function listar(): Promise<Map<string, ArchivoDrive>> {
+    if (indice && Date.now() - listadoEn < VIGENCIA_LISTADO) return Promise.resolve(indice);
+    return (listando ??= listarDeVerdad().finally(() => { listando = null; }));
+  }
+
+  async function listarDeVerdad(): Promise<Map<string, ArchivoDrive>> {
     const padre = await idCarpeta();
     const out = new Map<string, ArchivoDrive>();
     let pagina = '';
@@ -88,6 +103,7 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
       pagina = r.nextPageToken ?? '';
     } while (pagina);
     indice = out;
+    listadoEn = Date.now();
     return out;
   }
 

@@ -186,26 +186,31 @@ export function createEspejo(opts: {
   };
 
   /** Los perfiles de la carpeta que tienen datos (uno borrado en otro dispositivo ya no los tiene). */
-  async function perfilesDeCarpeta(c: Fs): Promise<Perfil[]> {
-    const out: Perfil[] = [];
-    for (const p of leerLista(await c.read(PERFILES))) if ((await c.list(`${RAIZ}/perfiles/${p.id}`)).length) out.push(p);
-    return out;
+  async function leerPerfilesDeCarpeta(c: Fs): Promise<{ raw: string | null; perfiles: Perfil[] }> {
+    const raw = await c.read(PERFILES);
+    const lista = leerLista(raw);
+    const con = await Promise.all(lista.map(async p => (await c.list(`${RAIZ}/perfiles/${p.id}`)).length > 0));
+    return { raw, perfiles: lista.filter((_, i) => con[i]) };
   }
+  /** La misma lista aunque cambie el orden: para no subir `perfiles.json` si no ha cambiado nada. */
+  const canonica = (l: Perfil[]) => JSON.stringify([...l].sort((a, b) => (a.id < b.id ? -1 : 1)));
 
   /**
    * La lista de perfiles a la carpeta, sin quitar los que otro dispositivo
    * haya creado allí; los de aquí mandan sobre los de allí.
    */
-  async function copiarPerfiles(c: Fs) {
+  async function copiarPerfiles(c: Fs, leido?: { raw: string | null; perfiles: Perfil[] }) {
     const aqui = leerLista(await local.read(PERFILES));
-    const soloAlli = (await perfilesDeCarpeta(c)).filter(p => !aqui.some(q => q.id === p.id));
-    await c.write(PERFILES, JSON.stringify([...aqui, ...soloAlli], null, 1));
+    const { raw, perfiles } = leido ?? await leerPerfilesDeCarpeta(c);
+    const lista = [...aqui, ...perfiles.filter(p => !aqui.some(q => q.id === p.id))];
+    // Cada subida es una versión más en Drive: solo si hay algo distinto
+    if (raw != null && canonica(leerLista(raw)) === canonica(lista)) return;
+    await c.write(PERFILES, JSON.stringify(lista, null, 1));
   }
 
   /** Une la lista de perfiles de la carpeta a la de aquí (si un perfil está en las dos, manda el de aquí). */
-  async function unirPerfiles(c: Fs): Promise<Perfil[]> {
+  async function unirPerfiles(alli: Perfil[]): Promise<Perfil[]> {
     const aqui = leerLista(await local.read(PERFILES));
-    const alli = await perfilesDeCarpeta(c);
     const nuevos = alli.filter(p => !aqui.some(q => q.id === p.id));
     if (nuevos.length) await local.write(PERFILES, JSON.stringify([...aqui, ...nuevos], null, 1));
     return alli;
@@ -230,7 +235,8 @@ export function createEspejo(opts: {
     if (!c) return 0;
     let cargados = 0;
     try {
-      const alli = await unirPerfiles(c);
+      const leido = await leerPerfilesDeCarpeta(c);
+      const alli = await unirPerfiles(leido.perfiles);
       for (const { id } of alli) {
         const m = await leerMarca(c, id);
         if (!m || m.en === (await kv.get<string>(`visto:${id}`))) continue;
@@ -243,7 +249,8 @@ export function createEspejo(opts: {
           conflictos.add(id);
         }
       }
-      enCola(() => copiar(c, PERFILES));
+      // Con lo que acaba de leerse: no se vuelve a bajar `perfiles.json` para ver si hay algo que subir
+      enCola(() => copiarPerfiles(c, leido));
       for (const { id } of leerLista(await local.read(PERFILES))) {
         if (!conflictos.has(id) && (await kv.get<boolean>(`pendiente:${id}`))) enCola(() => copiarDatos(c, id));
       }
@@ -286,13 +293,14 @@ export function createEspejo(opts: {
      * de la carpeta.
      */
     async conectar(c: Fs, nombreCarpeta: string, preferir?: 'carpeta' | 'local'): Promise<Conexion> {
-      const alli = await perfilesDeCarpeta(c);
+      const leido = await leerPerfilesDeCarpeta(c);
+      const alli = leido.perfiles;
       const aqui = leerLista(await local.read(PERFILES));
       if (alli.length && aqui.length && !preferir) return { elegir: true, cargados: 0 };
 
       const traidos = new Set<string>();
       if (alli.length && preferir !== 'local') {
-        await unirPerfiles(c);
+        await unirPerfiles(alli);
         for (const { id } of alli) if (await traer(c, id, await leerMarca(c, id))) traidos.add(id);
       } else {
         // Los de aquí mandan: se da por vista la marca de la carpeta para poder sustituirla
@@ -303,7 +311,7 @@ export function createEspejo(opts: {
       }
       carpeta = c;
       estado = { tipo: 'activa', nombre: nombreCarpeta };
-      await enCola(() => copiar(c, PERFILES));
+      await enCola(() => copiarPerfiles(c, leido));
       // Lo que se acaba de traer ya está en la carpeta: copiarlo otra vez lo firmaría como de este dispositivo
       for (const { id } of leerLista(await local.read(PERFILES))) {
         if (!traidos.has(id)) await enCola(() => copiarDatos(c, id));

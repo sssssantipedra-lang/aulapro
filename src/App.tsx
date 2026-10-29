@@ -6,7 +6,7 @@ import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { hayVueltaDrive, leerPermisoDrive } from './platform/googleDrive';
-import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
+import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, licenciaMiradaHace, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -847,9 +847,21 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
       // Sin límite de dispositivos: la licencia es de la cuenta (decisión del dueño, 29-10-2026)
       const bridge = licenseBridge();
+      if (isWebApp() && bridge?.porCuenta && !s?.required && hayToken()) {
+        // Ya hay licencia guardada y con firma válida: la app abre sin esperar a la red (eran de 1 a 4 s en cada recarga)
+        // y la compra se vuelve a mirar en segundo plano. Si se devolvió, se nota al abrir la próxima vez.
+        setState(s);
+        if (!licenciaMiradaHace(10 * 60_000)) {
+          void licenciaDeLaCuenta().then(async b => {
+            if (b.key) await bridge.porCuenta?.(b.key, b.firma);
+            else if (!('error' in b && b.error)) await bridge.porCuenta?.(null);
+          }).catch(() => {});
+        }
+        return;
+      }
       if (isWebApp() && bridge?.porCuenta && (s?.required || hayToken())) {
         const b = await licenciaDeLaCuenta();
-        if (b.key) { setState(await bridge.porCuenta(b.key)); return; }
+        if (b.key) { setState(await bridge.porCuenta(b.key, b.firma)); return; }
         // Comprobada sin compra (devuelta o anulada): se quita la de la cuenta
         if (!('error' in b && b.error)) { s = await bridge.porCuenta(null); }
       }

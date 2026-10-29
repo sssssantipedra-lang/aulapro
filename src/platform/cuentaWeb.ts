@@ -117,14 +117,30 @@ async function tokenNuevo(): Promise<string> {
 /** La «clave» de un fundador de la versión web: su correo está en la lista (`FUNDADORES` de la función de la licencia). */
 export const FUNDADOR = 'fundador';
 
-export type BusquedaLicencia = { key: string } | { key: null; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
+export type BusquedaLicencia = { key: string; firma?: string } | { key: null; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
 
 /**
  * La clave de la licencia comprada con el correo de esta cuenta (función
  * `web/funciones/api/licencia/cuenta.js`). Sin compra, `key: null` sin error;
  * si algo falla, el motivo, para poder decirlo en pantalla.
  */
-export async function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
+export function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
+  // Una sola búsqueda a la vez: la que se adelanta al entrar (`adelantarLicencia`) y la de la pantalla comparten la llamada
+  return (buscando ??= buscarLicencia().then(b => {
+    if (!('error' in b && b.error)) { try { sessionStorage.setItem(MIRADA, String(Date.now())); } catch { /* sin almacenamiento */ } }
+    return b;
+  }).finally(() => { buscando = null; }));
+}
+
+const MIRADA = 'aulapro_licencia_mirada';
+/** ¿Se acaba de mirar la compra de esta cuenta (en esta pestaña)? Para no repetir la llamada a la función. */
+export function licenciaMiradaHace(ms: number): boolean {
+  try { return Date.now() - Number(sessionStorage.getItem(MIRADA) ?? 0) < ms; } catch { return false; }
+}
+
+let buscando: Promise<BusquedaLicencia> | null = null;
+
+async function buscarLicencia(): Promise<BusquedaLicencia> {
   const token = tokenVigente() || await tokenNuevo();
   if (!token) return { key: null, error: 'sin-cuenta' };
   try {
@@ -132,7 +148,8 @@ export async function licenciaDeLaCuenta(): Promise<BusquedaLicencia> {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }),
     });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) return j.fundador ? { key: FUNDADOR } : j.key ? { key: String(j.key) } : { key: null };
+    const firma = typeof j.firma === 'string' && j.firma ? { firma: j.firma as string } : {};
+    if (r.ok) return j.fundador ? { key: FUNDADOR, ...firma } : j.key ? { key: String(j.key), ...firma } : { key: null };
     return { key: null, error: ['sin-configurar', 'token', 'tienda'].includes(j.error) ? j.error : 'tienda' };
   } catch {
     return { key: null, error: 'sin-conexion' };
@@ -166,7 +183,19 @@ export async function entrarConToken(token: string): Promise<Cuenta | null> {
   const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
   actual = cuenta;
   await idbKv.set(CLAVE, cuenta);
+  adelantarLicencia();
   return cuenta;
+}
+
+/**
+ * Busca la compra en cuanto se entra y guarda la licencia, mientras el docente
+ * pasa por el paso de Drive: antes iba después, una cosa tras otra, y sumaban
+ * varios segundos. Si hay compra, al terminar lo de Drive la app abre sin esperar.
+ */
+function adelantarLicencia() {
+  licenciaDeLaCuenta()
+    .then(b => (b.key ? (typeof window !== 'undefined' ? window.electronAPI : undefined)?.license?.porCuenta?.(b.key, b.firma) : undefined))
+    .catch(() => {});
 }
 
 /**

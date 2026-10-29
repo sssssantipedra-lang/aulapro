@@ -5,6 +5,7 @@
 //
 // Necesita el secreto LEMONSQUEEZY_API_KEY en el proyecto aulapro-app de Cloudflare Pages. El correo
 // solo se usa para la búsqueda: no se guarda ni se registra. Ver src/platform/cuentaWeb.ts.
+import { firmar } from '../_firma.js';
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
 const LS = 'https://api.lemonsqueezy.com/v1';
@@ -31,7 +32,7 @@ export async function onRequestPost({ request, env }) {
   // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
   // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.
   const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (fundadores.includes(email)) return json({ fundador: true });
+  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, env.GOOGLE_CLIENT_SECRET) });
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
@@ -44,7 +45,7 @@ export async function onRequestPost({ request, env }) {
     for (const k of (await claves.json()).data ?? []) {
       const a = k.attributes ?? {};
       if (a.disabled || ['disabled', 'expired'].includes(a.status)) continue;
-      if (a.key) return json({ key: a.key });
+      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, env.GOOGLE_CLIENT_SECRET) });
     }
   }
   return json({ key: null });

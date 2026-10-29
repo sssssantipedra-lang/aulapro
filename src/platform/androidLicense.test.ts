@@ -81,3 +81,15 @@ describe('licencia de la cuenta (versión web)', () => {
     expect((await lic.porCuenta!(null)).required).toBe(true);
   });
 });
+
+describe('licencia firmada al abrir (versión web)', () => {
+  it('sin firma válida, la de la cuenta se quita y hay que volver a buscarla', async () => {
+    const s = secrets();
+    await createAndroidLicense(s, { enforced: true }).porCuenta!('CLAVE-ABCD');
+    const conFirma = createAndroidLicense(s, { enforced: true, verificar: async r => r.firma === 'buena' });
+    expect((await conFirma.state()).required).toBe(true);
+    const ok = createAndroidLicense(s, { enforced: true, verificar: async r => r.firma === 'buena' });
+    expect((await ok.porCuenta!('CLAVE-ABCD', 'buena')).required).toBe(false);
+    expect((await createAndroidLicense(s, { enforced: true, verificar: async r => r.firma === 'buena' }).state()).required).toBe(false);
+  });
+});

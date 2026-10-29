@@ -129,7 +129,7 @@ export interface LicenseBridge {
    * dispositivos: la cuenta entra en todos los que quiera (decisión del dueño,
    * 29-10-2026). `null` la quita (se devolvió o se anuló).
    */
-  porCuenta?: (key: string | null) => Promise<LicenseState>;
+  porCuenta?: (key: string | null, firma?: string) => Promise<LicenseState>;
 }
 
 export interface StoreBridge {

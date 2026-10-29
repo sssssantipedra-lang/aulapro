@@ -46,7 +46,7 @@ export function LicenseGate({ state, onChange }: Props) {
     const b = await licenciaDeLaCuenta();
     const bridge = licenseBridge();
     if (manual) setMirando(false);
-    if (b.key && bridge?.porCuenta) { onChange(await bridge.porCuenta(b.key)); return; }
+    if (b.key && bridge?.porCuenta) { onChange(await bridge.porCuenta(b.key, b.firma)); return; }
     if (!manual) return;
     if (!('error' in b) || !b.error) setAviso(t('Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.', { email: cuenta?.email ?? '' }));
     else setAviso(t(AVISO_BUSQUEDA[b.error]));
@@ -70,9 +70,9 @@ export function LicenseGate({ state, onChange }: Props) {
     if (!esperando) return;
     let vivo = true;
     const mirar = async () => {
-      const { key } = await licenciaDeLaCuenta();
+      const b = await licenciaDeLaCuenta();
       const bridge = licenseBridge();
-      if (vivo && key && bridge?.porCuenta) onChange(await bridge.porCuenta(key));
+      if (vivo && b.key && bridge?.porCuenta) onChange(await bridge.porCuenta(b.key, b.firma));
     };
     const id = setInterval(mirar, 6000);
     window.addEventListener('focus', mirar);
