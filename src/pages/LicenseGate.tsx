@@ -37,6 +37,8 @@ export function LicenseGate({ state, onChange }: Props) {
   const [esperando, setEsperando] = useState(false);
   const [mirando, setMirando] = useState(false);
   const [aviso, setAviso] = useState('');
+  // Con la cuenta, la clave escrita a mano es lo raro: queda detrás de un enlace pequeño
+  const [conClave, setConClave] = useState(false);
 
   /** Busca la compra de esta cuenta y, si la hay, activa la licencia. */
   async function comprobarCompra(manual: boolean) {
@@ -121,7 +123,11 @@ export function LicenseGate({ state, onChange }: Props) {
               {!conToken && <div ref={botonReal} className="entrar-google-real" aria-label={t('Ya he pagado: comprobar mi compra')} />}
             </div>
             {aviso && <div className="lic-err" role="status" style={{ marginTop: 10 }}>{aviso}</div>}
-            <p className="lic-sub" style={{ marginTop: 14 }}>{t('¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:')}</p>
+            {!conClave && (
+              <button type="button" className="lic-link" style={{ display: 'block', margin: '16px auto 0', fontSize: 12.5 }} onClick={() => setConClave(true)}>
+                {t('¿Compraste con otro correo o tienes un pack? Escribe tu clave')}
+              </button>
+            )}
           </div>
         ) : (
           <p className="lic-text">{t(LICENSE_STATUS_TEXT[state.status] ?? LICENSE_STATUS_TEXT['sin-licencia']!)}</p>
@@ -129,7 +135,7 @@ export function LicenseGate({ state, onChange }: Props) {
 
         {error && <div className="lic-err" role="alert">{t(LICENSE_ERROR_TEXT[error])}</div>}
 
-        <form onSubmit={activate}>
+        {(!cuenta || conClave) && <form onSubmit={activate} style={cuenta ? { marginTop: 14 } : undefined}>
           <div className="fgroup">
             <label className="flabel" htmlFor="lic-key">{t('Clave de licencia')}</label>
             <input
@@ -142,7 +148,7 @@ export function LicenseGate({ state, onChange }: Props) {
           <button className="btn-primary" type="submit" disabled={busy || !key.trim()}>
             {busy ? <><span className="spin" />&nbsp;{t('Activando…')}</> : t('Activar')}
           </button>
-        </form>
+        </form>}
 
         {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace. En la web, la misma regla (CLAUDE.md, regla 3) */}
         {cuenta ? null : isAndroidApp() || isWebApp() ? (
