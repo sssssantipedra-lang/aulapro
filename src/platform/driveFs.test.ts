@@ -81,6 +81,13 @@ function memoryFs(): Fs {
 const memoryKv = (): Kv => { const m = new Map(); return { get: async k => m.get(k), set: async (k, v) => { m.set(k, v); }, del: async k => { m.delete(k); } }; };
 
 describe('Google Drive como carpeta (versión web)', () => {
+  it('con el Drive lleno no pide permiso: avisa de que no hay sitio', async () => {
+    const lleno = (async () => new Response(JSON.stringify({ error: { errors: [{ reason: 'storageQuotaExceeded' }] } }), { status: 403 })) as unknown as typeof fetch;
+    const sinPermiso = (async () => new Response('{}', { status: 403 })) as unknown as typeof fetch;
+    await expect(createDriveFs(async () => 'T', lleno).write('AulaPro/perfiles.json', '[]')).rejects.toMatchObject({ name: 'ErrorDrive', message: 'drive-lleno' });
+    await expect(createDriveFs(async () => 'T', sinPermiso).write('AulaPro/perfiles.json', '[]')).rejects.toMatchObject({ name: 'NotAllowedError' });
+  });
+
   it('pasa las rutas a nombres de una sola carpeta y no sube las copias con fecha', () => {
     expect(nombreDe('AulaPro/perfiles/p1/datos.json')).toBe('perfiles~p1~datos.json');
     expect(rutaDe('perfiles~p1~datos.json')).toBe('AulaPro/perfiles/p1/datos.json');

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle } from 'lucide-react';
 import { carpetaWeb, EVENTO_PDF } from '../platform/carpetaWeb';
+import { DRIVE_LLENO } from '../platform/driveFs';
 import { cerrarSesion, leerCuenta, type Cuenta } from '../platform/cuentaWeb';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
@@ -48,6 +49,15 @@ export function CarpetaWebAviso() {
           <button disabled={ocupado} onClick={() => resolver('carpeta')}>{t('Usar el de la carpeta')}</button>
           <button disabled={ocupado} onClick={() => resolver('local')}>{t('Quedarme con el de aquí')}</button>
         </div>
+      </div>
+    );
+  }
+  if (estado.tipo === 'error' && estado.mensaje === DRIVE_LLENO) {
+    return (
+      <div className="update-banner carpeta-aviso" role="alert">
+        <AlertTriangle size={18} color="var(--warn, #d97706)" style={{ flexShrink: 0 }} aria-hidden="true" />
+        <span style={{ flex: 1 }}>{t('Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.')}</span>
+        <a className="carpeta-aviso-enlace" href="https://drive.google.com/drive/quota" target="_blank" rel="noreferrer">{t('Ver mi espacio en Drive')}</a>
       </div>
     );
   }
@@ -137,7 +147,7 @@ export function CarpetaWebPanel() {
         </div>
       )}
       {estado.tipo === 'error' && (
-        <div className="carpeta-web-estado error">{t('No se pudo copiar en «{nombre}»: {mensaje}', { nombre: estado.nombre, mensaje: estado.mensaje })}</div>
+        <div className="carpeta-web-estado error">{t('No se pudo copiar en «{nombre}»: {mensaje}', { nombre: estado.nombre, mensaje: estado.mensaje === DRIVE_LLENO ? t('Tu Google Drive está lleno.') : estado.mensaje })}</div>
       )}
 
       {elegir ? (

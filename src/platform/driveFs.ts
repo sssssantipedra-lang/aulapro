@@ -33,13 +33,20 @@ export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || ruta.ends
 
 interface ArchivoDrive { id: string; name: string; size?: string; modifiedTime?: string }
 
-/** Un 401 o 403 de Drive sale como `NotAllowedError`: `espejo.ts` lo entiende como «falta permiso». */
+/** El mensaje del error cuando el Drive del docente no tiene sitio (lo traduce `components/CarpetaWeb.tsx`). */
+export const DRIVE_LLENO = 'drive-lleno';
+
+/**
+ * Un 401 o 403 de Drive sale como `NotAllowedError`: `espejo.ts` lo entiende
+ * como «falta permiso». Salvo el Drive lleno (también 403): eso no se arregla
+ * dando permiso, y el trabajo sigue a salvo en el navegador.
+ */
 export class ErrorDrive extends Error {
   status: number;
-  constructor(status: number, mensaje: string) {
-    super(mensaje);
+  constructor(status: number, mensaje: string, lleno = false) {
+    super(lleno ? DRIVE_LLENO : mensaje);
     this.status = status;
-    this.name = status === 401 || status === 403 ? 'NotAllowedError' : 'ErrorDrive';
+    this.name = !lleno && (status === 401 || status === 403) ? 'NotAllowedError' : 'ErrorDrive';
   }
 }
 
@@ -50,7 +57,10 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
 
   async function pedir(url: string, init: RequestInit = {}): Promise<Response> {
     const r = await fetcher(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${await token()}` } });
-    if (!r.ok && r.status !== 404) throw new ErrorDrive(r.status, `Drive ${r.status}`);
+    if (!r.ok && r.status !== 404) {
+      const motivo = r.status === 403 ? await r.clone().text().catch(() => '') : '';
+      throw new ErrorDrive(r.status, `Drive ${r.status}`, /storageQuotaExceeded|quotaExceeded/.test(motivo));
+    }
     return r;
   }
 

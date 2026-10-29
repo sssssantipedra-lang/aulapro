@@ -5,6 +5,9 @@
  * a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const WEB_EN: Record<string, string> = {
+  'Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.': 'Your Google Drive is full and AulaPro cannot copy there. Your work is still saved on this device. Free up space in Drive and AulaPro will carry on copying by itself.',
+  'Ver mi espacio en Drive': 'See my Drive storage',
+  'Tu Google Drive está lleno.': 'Your Google Drive is full.',
   '¿Qué implica cada opción?': 'What does each option mean?',
   'En tu Google Drive': 'In your Google Drive',
   'Tu trabajo queda en una carpeta «AulaPro» de tu Drive y lo tienes en todos tus dispositivos. Si pierdes o cambias de dispositivo, entras con tu cuenta y está todo. Drive guarda también las versiones anteriores de cada archivo.': 'Your work is kept in an “AulaPro” folder in your Drive and you have it on all your devices. If you lose or change a device, you sign in with your account and everything is there. Drive also keeps earlier versions of each file.',
@@ -93,6 +96,9 @@ export const WEB_EN: Record<string, string> = {
 };
 
 export const WEB_CA: Record<string, string> = {
+  'Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.': 'El teu Google Drive és ple i AulaPro no hi pot copiar. La feina continua desada en aquest dispositiu. Allibera espai a Drive i AulaPro continuarà copiant sola.',
+  'Ver mi espacio en Drive': 'Veure el meu espai a Drive',
+  'Tu Google Drive está lleno.': 'El teu Google Drive és ple.',
   '¿Qué implica cada opción?': 'Què implica cada opció?',
   'En tu Google Drive': 'Al teu Google Drive',
   'Tu trabajo queda en una carpeta «AulaPro» de tu Drive y lo tienes en todos tus dispositivos. Si pierdes o cambias de dispositivo, entras con tu cuenta y está todo. Drive guarda también las versiones anteriores de cada archivo.': 'La feina queda en una carpeta «AulaPro» del teu Drive i la tens a tots els dispositius. Si perds o canvies de dispositiu, entres amb el teu compte i hi és tot. Drive també guarda les versions anteriors de cada fitxer.',
