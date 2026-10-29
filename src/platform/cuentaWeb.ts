@@ -53,6 +53,25 @@ interface GoogleGlobal {
 }
 
 let cargando: Promise<void> | null = null;
+/** El último token de Google, solo en memoria: dura una hora y sirve para buscar la licencia. */
+let ultimoToken = '';
+
+/**
+ * La clave de la licencia comprada con el correo de esta cuenta (función
+ * `web/funciones/api/licencia/cuenta.js`), o `null`. Solo justo después de
+ * entrar con Google, cuando hay token.
+ */
+export async function licenciaDeLaCuenta(): Promise<string | null> {
+  if (!ultimoToken) return null;
+  try {
+    const r = await fetch('/api/licencia/cuenta', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: ultimoToken }),
+    });
+    return r.ok ? ((await r.json()).key ?? null) : null;
+  } catch {
+    return null;
+  }
+}
 
 function cargarGoogle(): Promise<void> {
   return (cargando ??= new Promise((resolve, reject) => {
@@ -94,6 +113,7 @@ export async function botonGoogle(el: HTMLElement, idioma: string, alEntrar: (c:
     callback: async ({ credential }: { credential: string }) => {
       const datos = leerTokenGoogle(credential);
       if (!datos) { alFallar(); return; }
+      ultimoToken = credential;
       const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
       await idbKv.set(CLAVE, cuenta);
       alEntrar(cuenta);

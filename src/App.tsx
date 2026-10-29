@@ -4,7 +4,7 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { EntrarWeb } from './pages/EntrarWeb';
-import { leerCuenta, type Cuenta } from './platform/cuentaWeb';
+import { leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -836,7 +836,15 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<LicenseState | null | undefined>(licenseBridge() ? undefined : null);
   useEffect(() => {
     if (state !== undefined) return;
-    getLicenseState().then(setState);
+    getLicenseState().then(async s => {
+      // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
+      if (s?.required && isWebApp()) {
+        const key = await licenciaDeLaCuenta();
+        const r = key ? await licenseBridge()?.activate(key).catch(() => null) : null;
+        if (r?.ok) { setState(r.state); return; }
+      }
+      setState(s);
+    });
   }, [state]);
 
   if (state === undefined) {
