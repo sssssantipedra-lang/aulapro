@@ -14,6 +14,7 @@ import { Flag } from '../components/ui/Flag';
 import { TipoDocentePicker, type TipoDocente } from '../components/TipoDocente';
 import { especialidadTexto } from '../lib/apoyo';
 import type { Especialidad } from '../types/apoyo';
+import { isWebApp } from '../lib/platform';
 
 /**
  * Selector de idioma flotante, visible en las tres pantallas de este
@@ -198,7 +199,9 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         {header(profiles.length === 0 ? t('Bienvenido/a a AulaPro') : t('Nuevo perfil'), t('Tu cuaderno docente, en tu ordenador'))}
 
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
-          {isDesktop()
+          {isWebApp()
+            ? t('Cada perfil guarda su propio trabajo en este dispositivo, sin subirlo a ningún servidor. Sin cuentas ni contraseñas.')
+            : isDesktop()
             ? t('Cada perfil guarda su propio trabajo en una carpeta separada de este equipo. Sin cuentas ni contraseñas.')
             : t('Los datos se guardan en este navegador. Sin cuentas ni contraseñas.')}
         </p>
@@ -373,7 +376,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
       {isDesktop() && (
         <p style={{ fontSize: 11.5, color: 'var(--text-3)', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
           <HardDrive size={12} style={{ display: 'inline', verticalAlign: -2, marginRight: 4 }} />
-          {t('Cada perfil guarda sus datos en su propia carpeta de este equipo.')}
+          {t(isWebApp() ? 'Cada perfil guarda sus datos por separado en este dispositivo.' : 'Cada perfil guarda sus datos en su propia carpeta de este equipo.')}
         </p>
       )}
 

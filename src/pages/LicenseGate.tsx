@@ -4,7 +4,7 @@ import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../services/license';
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
-import { isAndroidApp } from '../lib/platform';
+import { isAndroidApp, isWebApp } from '../lib/platform';
 
 interface Props {
   state: LicenseState;
@@ -67,8 +67,8 @@ export function LicenseGate({ state, onChange }: Props) {
           </button>
         </form>
 
-        {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace */}
-        {isAndroidApp() ? (
+        {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace. En la web, la misma regla (CLAUDE.md, regla 3) */}
+        {isAndroidApp() || isWebApp() ? (
           <p className="lic-buy">{t('Consigue tu licencia en aulapro.app')}</p>
         ) : state.buyUrl && (
           <a className="lic-buy" href={state.buyUrl} target="_blank" rel="noreferrer">

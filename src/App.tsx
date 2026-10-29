@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
+import { CarpetaWebAviso } from './components/CarpetaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -32,7 +33,7 @@ import type { Section, Ficha } from './types';
 import { X, Menu } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
-import { isAndroidApp } from './lib/platform';
+import { isAndroidApp, isWebApp } from './lib/platform';
 import { compararAlumnos } from './lib/alumnado';
 import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
@@ -863,6 +864,7 @@ export default function App() {
     <ToastProvider>
       <LicenseCheck><AppInner /></LicenseCheck>
       <UpdateBanner />
+      {isWebApp() && <CarpetaWebAviso />}
       {isAndroidApp() && <AvisoGuardadoAndroid />}
     </ToastProvider>
   );

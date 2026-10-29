@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "preview": "vite preview",
+    "build:web": "vite build --mode web --outDir dist-web --emptyOutDir",
     "icons": "node scripts/make-icons.cjs",
     "icons:android": "node scripts/make-android-icons.cjs",
     "android": "vite build && cap sync android",

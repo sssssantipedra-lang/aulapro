@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-web
 *.local
 
 # Instaladores generados por `npm run dist`
@@ -53,3 +54,7 @@ scripts/curriculo/.cache/
 # Portada en català e inglés: la genera web/idiomas.mjs al publicar
 web/sitio/ca.html
 web/sitio/en.html
+
+# La versión web de la app y las funciones, copiadas al publicar (web.yml)
+web/sitio/app/
+_pages/

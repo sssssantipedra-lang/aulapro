@@ -12,6 +12,7 @@ import { LECTURA_CA } from './lectura';
 import { PIZARRA_CA } from './pizarra';
 import { MEJORAS_CA } from './mejoras';
 import { COMPARTIR_CA } from './compartir';
+import { WEB_CA } from './web';
 import { IMAGENES_CA } from './imagenes';
 
 export const CA: Record<string, string> = {
@@ -1994,5 +1995,6 @@ export const CA: Record<string, string> = {
   ...PIZARRA_CA,
   ...MEJORAS_CA,
   ...COMPARTIR_CA,
+  ...WEB_CA,
   ...IMAGENES_CA,
 };
