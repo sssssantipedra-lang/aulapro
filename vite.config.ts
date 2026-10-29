@@ -62,10 +62,12 @@ function appWeb(): Plugin {
         }
       }
       recorrer(salida)
-      const lista = todos.filter(f => !['sw.js', 'version.json'].includes(f) && !f.endsWith('.map')).sort()
+      // La página va como './': Cloudflare redirige index.html a la carpeta (ver web/app/sw.js)
+      const lista = todos.filter(f => !['sw.js', 'version.json'].includes(f) && !f.endsWith('.map'))
+        .map(f => (f === 'index.html' ? './' : f)).sort()
       // El nombre de la caché cambia con cualquier cambio de contenido: una versión no se mezcla con otra
       const huella = createHash('sha256')
-      for (const f of lista) huella.update(f).update(readFileSync(join(salida, f)))
+      for (const f of lista) huella.update(f).update(readFileSync(join(salida, f === './' ? 'index.html' : f)))
       const sw = readFileSync(join(WEB_APP, 'sw.js'), 'utf8')
         .replace("'__CACHE__'", `'aulapro-${pkg.version}-${huella.digest('hex').slice(0, 10)}'`)
         .replace('= __PRECARGA__;', `= ${JSON.stringify(lista)};`)

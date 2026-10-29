@@ -11,6 +11,16 @@
 const CACHE = '__CACHE__';
 const PRECARGA = __PRECARGA__;
 
+/**
+ * Chrome no deja abrir una página con una respuesta que viene de una
+ * redirección (ERR_FAILED), y Cloudflare redirige /app/index.html a /app/:
+ * la página se guarda como './' y, por si acaso, cualquier respuesta
+ * redirigida se copia limpia antes de servirla.
+ */
+const limpia = res => (res && res.redirected
+  ? res.blob().then(cuerpo => new Response(cuerpo, { status: res.status, statusText: res.statusText, headers: res.headers }))
+  : res);
+
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
@@ -42,10 +52,12 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin || !url.pathname.startsWith(new URL('./', self.location).pathname)) return;
 
   if (req.mode === 'navigate') {
-    // La app es una sola página
+    // La app es una sola página: si está guardada, esa; si no, la de la red
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
-      return (await cache.match('index.html')) ?? fetch(req);
+      const pagina = await cache.match('./');
+      if (pagina) return limpia(pagina);
+      return fetch(req);
     })());
     return;
   }
@@ -53,7 +65,7 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const guardada = await cache.match(req, { ignoreSearch: true });
-    if (guardada) return guardada;
+    if (guardada) return limpia(guardada);
     const res = await fetch(req);
     if (res.ok && res.type === 'basic') cache.put(req, res.clone()).catch(() => {});
     return res;
