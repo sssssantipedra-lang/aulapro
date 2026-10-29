@@ -8,6 +8,7 @@ import type { Kv } from './webFs';
 function driveFalso() {
   const archivos = new Map<string, { name: string; parents: string[]; mime?: string; data: string; mtime: number }>();
   let n = 0, reloj = 0, llamadas = 0;
+  const papelera: string[] = [];
   const fetcher = (async (url: string, init: RequestInit = {}) => {
     llamadas++;
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer T');
@@ -47,13 +48,14 @@ function driveFalso() {
       const fid = u.pathname.split('/files/')[1];
       const f = archivos.get(fid);
       if (!f) return new Response('', { status: 404 });
+      if (!u.pathname.startsWith('/upload')) { papelera.push(f.name); archivos.delete(fid); return ok({ id: fid }); }
       f.data = String(init.body); f.mtime = ++reloj;
       return ok({ id: fid, name: f.name, size: String(f.data.length) });
     }
     if (met === 'DELETE') { archivos.delete(id); return new Response(null, { status: 204 }); }
     throw new Error('no esperado ' + met + ' ' + url);
   }) as typeof fetch;
-  return { fetcher, archivos, llamadas: () => llamadas };
+  return { fetcher, archivos, papelera, llamadas: () => llamadas };
 }
 
 function memoryFs(): Fs {
@@ -84,6 +86,7 @@ describe('Google Drive como carpeta (versión web)', () => {
     expect(rutaDe('perfiles~p1~datos.json')).toBe('AulaPro/perfiles/p1/datos.json');
     expect(vaADrive('AulaPro/perfiles/p1/copias/copia-1.json')).toBe(false);
     expect(vaADrive('AulaPro/perfiles/p1/datos.json')).toBe(true);
+    expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-06-30T10-00-00-antes-de-vaciar.json')).toBe(true);
   });
 
   it('escribe, lee, lista y borra en la carpeta «AulaPro» de Drive', async () => {
@@ -98,6 +101,8 @@ describe('Google Drive como carpeta (versión web)', () => {
     expect((await fs.list('AulaPro/perfiles')).map(e => e.name)).toEqual(['p1']);
     await fs.removeDir('AulaPro/perfiles/p1');
     expect(await fs.read('AulaPro/perfiles/p1/datos.json')).toBeNull();
+    // A la papelera de Drive, no borrado para siempre
+    expect(d.papelera).toEqual(['perfiles~p1~datos.json']);
   });
 
   it('con el espejo: lo de un dispositivo aparece en otro al comprobar', async () => {

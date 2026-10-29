@@ -140,7 +140,7 @@ export interface StoreBridge {
   deleteProfile: (id: string) => Promise<unknown>;
   loadData: (id: string) => Promise<unknown>;
   saveData: (id: string, data: unknown) => Promise<unknown>;
-  backup: (id: string) => Promise<unknown>;
+  backup: (id: string, motivo?: 'antes-de-vaciar') => Promise<unknown>;
   listBackups: (id: string) => Promise<unknown>;
   restoreBackup: (id: string, file: string) => Promise<unknown>;
   clearBackups: (id: string) => Promise<unknown>;

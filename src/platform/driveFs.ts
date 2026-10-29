@@ -9,7 +9,9 @@
  * de su Drive. Drive no tiene carpetas dentro de carpetas aquí: cada ruta de
  * `profileStore` es un archivo de esa carpeta con la ruta en el nombre
  * (`AulaPro/perfiles/p1/datos.json` → `perfiles~p1~datos.json`). Las copias
- * con fecha no se suben (Drive ya guarda versiones anteriores de cada archivo).
+ * con fecha no se suben (Drive ya guarda versiones anteriores de cada archivo),
+ * salvo la de antes de vaciar el curso. Borrar manda a la papelera de Drive:
+ * se puede recuperar durante 30 días.
  *
  * El navegador habla con Drive directamente (googleapis.com admite CORS).
  */
@@ -26,8 +28,8 @@ const RAIZ = 'AulaPro/';
 export const nombreDe = (ruta: string) => (ruta.startsWith(RAIZ) ? ruta.slice(RAIZ.length) : ruta).split('/').join('~');
 export const rutaDe = (nombre: string) => RAIZ + nombre.split('~').join('/');
 
-/** Lo que no va a Drive: las copias con fecha y los temporales. */
-export const vaADrive = (ruta: string) => !/\/copias\//.test(ruta) && !ruta.endsWith('.tmp');
+/** Lo que no va a Drive: las copias con fecha (salvo la de antes de vaciar el curso) y los temporales. */
+export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || ruta.endsWith('-antes-de-vaciar.json')) && !ruta.endsWith('.tmp');
 
 interface ArchivoDrive { id: string; name: string; size?: string; modifiedTime?: string }
 
@@ -81,6 +83,10 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
 
   const buscar = async (nombre: string) => (indice ?? await listar()).get(nombre) ?? (await listar()).get(nombre);
 
+  const papelera = (id: string) => pedir(`${API}/${id}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }),
+  });
+
   const fs: Fs = {
     async read(ruta) {
       const f = await buscar(nombreDe(ruta));
@@ -118,14 +124,14 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
       const nombre = nombreDe(ruta);
       const f = await buscar(nombre);
       if (!f) return;
-      await pedir(`${API}/${f.id}`, { method: 'DELETE' });
+      await papelera(f.id);
       indice?.delete(nombre);
     },
     async removeDir(ruta) {
       const prefijo = nombreDe(ruta) + '~';
       for (const [nombre, f] of await listar()) {
         if (!nombre.startsWith(prefijo)) continue;
-        await pedir(`${API}/${f.id}`, { method: 'DELETE' });
+        await papelera(f.id);
         indice?.delete(nombre);
       }
     },
