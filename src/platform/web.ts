@@ -14,7 +14,8 @@
  *             función de Cloudflare Pages que solo pasa la clave a Lemon
  *             Squeezy: `web/funciones/`).
  *  - secrets: la clave de la IA, en el navegador.
- *  - update:  la versión nueva que trae el service worker (`public/sw.js`).
+ *  - update:  la versión nueva que trae el service worker (`web/app/sw.js`),
+ *             que se pone sola al abrir la app, sin avisos.
  *
  * Lo que no hay: la Sala de alumnos (un navegador no puede abrir un servidor
  * en la wifi del aula) ni abrir carpetas del sistema. Solo se monta en la
@@ -26,7 +27,7 @@ import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost } from './androidLicense';
-import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge, UpdateStatus } from '../types/electron';
+import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
 
 /* ── Licencia ── */
 
@@ -130,19 +131,10 @@ const docs: DocsBridge = {
 /* ── Versión nueva ── */
 
 function createUpdate(): UpdateBridge {
-  const oyentes = new Set<(s: UpdateStatus) => void>();
-  let lista: UpdateStatus | null = null;
   let registro: ServiceWorkerRegistration | null = null;
-
-  async function avisar() {
-    let version = '';
-    try { version = (await (await fetch('version.json', { cache: 'no-store' })).json()).version ?? ''; } catch { /* sin conexión */ }
-    lista = { state: 'ready', version };
-    oyentes.forEach(fn => fn(lista!));
-  }
-
-  // Solo se recarga al pulsar «Reiniciar y actualizar»: la primera vez que la app queda guardada
-  // también cambia el service worker que la sirve, y recargar ahí cortaría al docente
+  // Sin avisos (decisión del dueño, 29-10-2026): una versión nueva se descarga sola mientras se
+  // trabaja y se pone la próxima vez que se abre la app, antes de que el docente haga nada.
+  // Cambiarla a mitad de sesión rompería las pantallas que aún no se habían abierto.
   let pedido = false;
   if ('serviceWorker' in navigator) {
     let recargando = false;
@@ -153,28 +145,20 @@ function createUpdate(): UpdateBridge {
     });
     navigator.serviceWorker.register('sw.js').then(r => {
       registro = r;
-      const vigilar = (sw: ServiceWorker) => sw.addEventListener('statechange', () => {
-        if (sw.state === 'installed' && navigator.serviceWorker.controller) avisar();
-      });
-      if (r.waiting && navigator.serviceWorker.controller) avisar();
-      r.addEventListener('updatefound', () => { if (r.installing) vigilar(r.installing); });
-      // Quien deja la app abierta días enteros también se entera
+      if (r.waiting && navigator.serviceWorker.controller) { pedido = true; r.waiting.postMessage('activar'); }
+      // Quien deja la app abierta días enteros también la descarga
       setInterval(() => { r.update().catch(() => {}); }, 60 * 60 * 1000);
     }).catch(() => { /* sin service worker la app funciona igual, solo que no sin conexión */ });
   }
 
   return {
-    onStatus(cb) {
-      oyentes.add(cb);
-      if (lista) cb(lista);
-      return () => { oyentes.delete(cb); };
-    },
+    onStatus: () => () => {},
     async installNow() {
       pedido = true;
       if (registro?.waiting) registro.waiting.postMessage('activar');
       else location.reload();
     },
-    async setLanguage() { /* el aviso lo escribe la propia app */ },
+    async setLanguage() { /* sin avisos en la web */ },
   };
 }
 

@@ -5,8 +5,8 @@
  * en IndexedDB (src/platform/web.ts).
  *
  * `__CACHE__` y `__PRECARGA__` los rellena vite.config.ts al compilar en modo
- * `web`. Una versión nueva se instala en segundo plano y espera: la app avisa
- * («Reiniciar y actualizar») y, al pulsar, manda «activar».
+ * `web`. Una versión nueva se descarga en segundo plano y espera: la app la
+ * pone al abrirse la próxima vez (manda «activar»), sin avisos.
  */
 const CACHE = '__CACHE__';
 const PRECARGA = __PRECARGA__;
