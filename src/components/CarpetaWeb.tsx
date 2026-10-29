@@ -105,7 +105,7 @@ export function CuentaWebPanel() {
 }
 
 /** Versión web: ¿está AulaPro guardada en este dispositivo para abrirla sin internet? (service worker, `web/app/sw.js`) */
-type SinConexion = 'mirando' | 'lista' | 'preparando' | 'no';
+type SinConexion = 'mirando' | 'lista' | 'abre' | 'preparando' | 'no';
 
 async function leerSinConexion(): Promise<SinConexion> {
   try {
@@ -114,7 +114,11 @@ async function leerSinConexion(): Promise<SinConexion> {
     if (!reg) return 'no';
     if (!reg.active) return 'preparando';
     for (const nombre of await caches.keys()) {
-      if (nombre.startsWith('aulapro-') && (await (await caches.open(nombre)).keys()).length > 0) return 'lista';
+      if (!nombre.startsWith('aulapro-')) continue;
+      const cache = await caches.open(nombre);
+      if (await cache.match('./.todo-guardado')) return 'lista';
+      // Abre sin conexión; faltan los dibujos y pictogramas (el service worker los baja después)
+      if ((await cache.keys()).length > 0) return 'abre';
     }
     return 'preparando';
   } catch { return 'no'; }
@@ -131,7 +135,7 @@ export function SinConexionPanel() {
       const e = await leerSinConexion();
       if (!vivo) return;
       setEstado(e);
-      if (e === 'preparando') espera = setTimeout(mirar, 2000);
+      if (e === 'preparando' || e === 'abre') espera = setTimeout(mirar, 2000);
     };
     mirar();
     return () => { vivo = false; clearTimeout(espera); };
@@ -142,6 +146,8 @@ export function SinConexionPanel() {
       <div className="carpeta-web-ttl"><WifiOff size={15} color="var(--accent-d)" aria-hidden="true" />{t('Uso sin conexión')}</div>
       <p>{t(estado === 'lista'
         ? 'Lista: AulaPro está guardada en este dispositivo y se abre sin internet. Ábrela desde la dirección aulapro.app/app/ (con la barra del final) o desde su icono en la pantalla de inicio.'
+        : estado === 'abre'
+        ? 'Ya abre sin internet. Se están guardando también los dibujos y pictogramas: déjala abierta con conexión hasta que ponga «Lista».'
         : estado === 'preparando'
         ? 'Descargando AulaPro en este dispositivo para usarla sin internet. Déjala abierta un momento con conexión.'
         : 'Este navegador no guarda AulaPro para usarla sin internet. Ábrela con conexión en una pestaña normal (no privada) y, en el iPhone, añádela a la pantalla de inicio desde Compartir.')}</p>

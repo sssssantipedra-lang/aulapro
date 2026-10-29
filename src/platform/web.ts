@@ -167,6 +167,8 @@ function createUpdate(): UpdateBridge {
       // Quien deja la app abierta días enteros también la descarga
       setInterval(() => { r.update().catch(() => {}); }, 60 * 60 * 1000);
     }).catch(() => { /* sin service worker la app funciona igual, solo que no sin conexión */ });
+    // Dibujos y pictogramas para usar sin conexión: se bajan aparte, y si quedaron a medias se retoman al abrir
+    navigator.serviceWorker.ready.then(r => r.active?.postMessage('resto')).catch(() => {});
   }
 
   return {

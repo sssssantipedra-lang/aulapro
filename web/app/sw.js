@@ -4,12 +4,49 @@
  * la sirve desde el dispositivo. Los datos del docente no pasan por aquí: van
  * en IndexedDB (src/platform/web.ts).
  *
- * `__CACHE__` y `__PRECARGA__` los rellena vite.config.ts al compilar en modo
- * `web`. Una versión nueva se descarga en segundo plano y espera: la app la
- * pone al abrirse la próxima vez (manda «activar»), sin avisos.
+ * `__CACHE__`, `__PRECARGA__` y `__EXTRA__` los rellena vite.config.ts al
+ * compilar en modo `web`. Una versión nueva se descarga en segundo plano y
+ * espera: la app la pone al abrirse la próxima vez (manda «activar»), sin
+ * avisos.
+ *
+ * Se instala solo lo imprescindible para abrir (código, estilos, fuentes: unos
+ * 9 MB). Los dibujos y pictogramas (otros 9 MB) se bajan después, cuando la
+ * app ya funciona sin conexión: si la instalación pide 18 MB de golpe y el móvil
+ * la corta o un archivo falla, no queda nada guardado y sin internet no abre.
  */
 const CACHE = '__CACHE__';
 const PRECARGA = __PRECARGA__;
+const EXTRA = __EXTRA__;
+/** Se guarda en la caché cuando ya están todos los de EXTRA: la app lo mira para decir «Lista». */
+const MARCA = './.todo-guardado';
+
+/** Guarda un archivo sin la caché HTTP del navegador (que no se mezcle una versión con otra), con un reintento por si la red del móvil falla. */
+async function guardar(cache, url) {
+  const pedir = () => cache.add(new Request(url, { cache: 'reload' }));
+  try { await pedir(); } catch {
+    await new Promise(r => setTimeout(r, 600));
+    await pedir();
+  }
+}
+
+let bajando = null;
+/** Baja lo que falta de EXTRA; se puede repetir: sigue donde se quedó. */
+function bajarExtra() {
+  if (!bajando) {
+    bajando = (async () => {
+      const cache = await caches.open(CACHE);
+      if (await cache.match(MARCA)) return;
+      const faltan = [];
+      for (const url of EXTRA) if (!(await cache.match(url))) faltan.push(url);
+      let fallos = 0;
+      for (let i = 0; i < faltan.length; i += 12) {
+        await Promise.all(faltan.slice(i, i + 12).map(url => guardar(cache, url).catch(() => { fallos++; })));
+      }
+      if (!fallos) await cache.put(MARCA, new Response('1'));
+    })().catch(() => {}).finally(() => { bajando = null; });
+  }
+  return bajando;
+}
 
 /**
  * Chrome no deja abrir una página con una respuesta que viene de una
@@ -34,9 +71,9 @@ async function hayVersionRota() {
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    // Por tandas, y sin la caché HTTP del navegador: que no se mezcle una versión con otra
+    // Por tandas
     for (let i = 0; i < PRECARGA.length; i += 40) {
-      await cache.addAll(PRECARGA.slice(i, i + 40).map(url => new Request(url, { cache: 'reload' })));
+      await Promise.all(PRECARGA.slice(i, i + 40).map(url => guardar(cache, url)));
     }
     if (await hayVersionRota()) await self.skipWaiting();
   })());
@@ -53,6 +90,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('message', event => {
   if (event.data === 'activar') self.skipWaiting();
+  // La app lo manda al abrirse: así lo que quedó a medias se retoma
+  if (event.data === 'resto') event.waitUntil(bajarExtra());
 });
 
 self.addEventListener('fetch', event => {

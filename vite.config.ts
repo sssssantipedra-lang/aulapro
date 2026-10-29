@@ -63,14 +63,19 @@ function appWeb(): Plugin {
       }
       recorrer(salida)
       // La página va como './': Cloudflare redirige index.html a la carpeta (ver web/app/sw.js)
-      const lista = todos.filter(f => !['sw.js', 'version.json'].includes(f) && !f.endsWith('.map'))
+      const todo = todos.filter(f => !['sw.js', 'version.json'].includes(f) && !f.endsWith('.map'))
         .map(f => (f === 'index.html' ? './' : f)).sort()
+      // Lo imprescindible se instala antes de activar; los dibujos y pictogramas, después (ver web/app/sw.js)
+      const esExtra = (f: string) => f.startsWith('ilustraciones/') || f.startsWith('pictos/')
+      const lista = todo.filter(f => !esExtra(f))
+      const extra = todo.filter(esExtra)
       // El nombre de la caché cambia con cualquier cambio de contenido: una versión no se mezcla con otra
       const huella = createHash('sha256')
-      for (const f of lista) huella.update(f).update(readFileSync(join(salida, f === './' ? 'index.html' : f)))
+      for (const f of todo) huella.update(f).update(readFileSync(join(salida, f === './' ? 'index.html' : f)))
       const sw = readFileSync(join(WEB_APP, 'sw.js'), 'utf8')
         .replace("'__CACHE__'", `'aulapro-${pkg.version}-${huella.digest('hex').slice(0, 10)}'`)
         .replace('= __PRECARGA__;', `= ${JSON.stringify(lista)};`)
+        .replace('= __EXTRA__;', `= ${JSON.stringify(extra)};`)
       writeFileSync(join(salida, 'sw.js'), sw)
     },
   }

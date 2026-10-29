@@ -103,6 +103,7 @@ export const WEB_EN: Record<string, string> = {
   'Lista: AulaPro está guardada en este dispositivo y se abre sin internet. Ábrela desde la dirección aulapro.app/app/ (con la barra del final) o desde su icono en la pantalla de inicio.': 'Ready: AulaPro is saved on this device and opens without internet. Open it from the address aulapro.app/app/ (with the final slash) or from its icon on the home screen.',
   'Descargando AulaPro en este dispositivo para usarla sin internet. Déjala abierta un momento con conexión.': 'Downloading AulaPro to this device so you can use it without internet. Leave it open for a moment while you are online.',
   'Este navegador no guarda AulaPro para usarla sin internet. Ábrela con conexión en una pestaña normal (no privada) y, en el iPhone, añádela a la pantalla de inicio desde Compartir.': 'This browser does not save AulaPro for use without internet. Open it while online in a normal (not private) tab and, on an iPhone, add it to the home screen from Share.',
+  'Ya abre sin internet. Se están guardando también los dibujos y pictogramas: déjala abierta con conexión hasta que ponga «Lista».': 'It already opens without internet. The drawings and pictograms are still being saved: leave it open while online until it says “Ready”.',
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -204,4 +205,5 @@ export const WEB_CA: Record<string, string> = {
   'Lista: AulaPro está guardada en este dispositivo y se abre sin internet. Ábrela desde la dirección aulapro.app/app/ (con la barra del final) o desde su icono en la pantalla de inicio.': 'Llesta: AulaPro està desada en aquest dispositiu i s’obre sense internet. Obre-la des de l’adreça aulapro.app/app/ (amb la barra del final) o des de la seva icona a la pantalla d’inici.',
   'Descargando AulaPro en este dispositivo para usarla sin internet. Déjala abierta un momento con conexión.': 'Descarregant AulaPro en aquest dispositiu per fer-la servir sense internet. Deixa-la oberta un moment amb connexió.',
   'Este navegador no guarda AulaPro para usarla sin internet. Ábrela con conexión en una pestaña normal (no privada) y, en el iPhone, añádela a la pantalla de inicio desde Compartir.': 'Aquest navegador no desa AulaPro per fer-la servir sense internet. Obre-la amb connexió en una pestanya normal (no privada) i, a l’iPhone, afegeix-la a la pantalla d’inici des de Compartir.',
+  'Ya abre sin internet. Se están guardando también los dibujos y pictogramas: déjala abierta con conexión hasta que ponga «Lista».': 'Ja s’obre sense internet. També s’estan desant els dibuixos i els pictogrames: deixa-la oberta amb connexió fins que digui «Llesta».',
 };
