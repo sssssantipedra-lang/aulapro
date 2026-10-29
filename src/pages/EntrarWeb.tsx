@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { CircleHelp, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
 import { botonGoogle, cargarGoogle, type Cuenta } from '../platform/cuentaWeb';
@@ -106,6 +106,26 @@ function LogoDrive() {
   );
 }
 
+/** El «?» del paso de Drive: qué implica guardar en Drive o solo en el navegador (petición del dueño, 29-10-2026). */
+function AyudaDondeGuardar() {
+  const { t } = useI18n();
+  const [abierta, setAbierta] = useState(false);
+  return (
+    <div className="entrar-ayuda">
+      <button type="button" className="entrar-ayuda-btn" aria-expanded={abierta} onClick={() => setAbierta(a => !a)}>
+        <CircleHelp size={16} aria-hidden="true" /> {t('¿Qué implica cada opción?')}
+      </button>
+      {abierta && (
+        <div className="entrar-ayuda-caja">
+          <p><strong>{t('En tu Google Drive')}</strong>. {t('Tu trabajo queda en una carpeta «AulaPro» de tu Drive y lo tienes en todos tus dispositivos. Si pierdes o cambias de dispositivo, entras con tu cuenta y está todo. Drive guarda también las versiones anteriores de cada archivo.')}</p>
+          <p><strong>{t('Solo en este navegador')}</strong>. {t('Tu trabajo se queda solo en este dispositivo, dentro del navegador. No lo verás en otros dispositivos y se pierde si borras los datos del navegador, si cambias de dispositivo o si se estropea. En iPhone y iPad, Safari puede borrarlo si pasas siete días sin abrir AulaPro, salvo que la hayas añadido a la pantalla de inicio. Descarga copias a menudo (Configuración › Datos y copias).')}</p>
+          <p className="entrar-ayuda-pie">{t('En los dos casos, tus datos no pasan por ningún servidor de AulaPro: AulaPro no los ve, no los guarda y no se hace responsable de su pérdida. Su custodia es tuya (y de Google, si usas Drive). Más detalle en la política de privacidad.')}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Versión web, segundo paso al entrar: guardar el trabajo en el Google Drive
  * de la cuenta (`platform/googleDrive.ts`, `driveFs.ts`). Un clic abre la
@@ -174,6 +194,8 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
             </button>
           </div>
         )}
+
+        <AyudaDondeGuardar />
 
         <button type="button" className="entrar-ahora-no" disabled={ocupado} onClick={onListo}>{t('Ahora no: guardar solo en este dispositivo')}</button>
 
