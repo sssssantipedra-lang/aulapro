@@ -1,0 +1,24 @@
+// Límite de peticiones por IP o por clave de licencia, en Cloudflare KV. No evita que alguien con
+// Ed25519 y paciencia se salte la licencia en su propio navegador (eso no tiene arreglo en el
+// servidor: ver docs/APP_WEB.md, «Qué protege y qué no la licencia firmada»); evita dos abusos
+// concretos de estas funciones: agotar a propósito el cupo de dispositivos de una clave ajena
+// llamando a «activate» muchas veces, y aporrear la cuota de Lemon Squeezy o Google llamando a
+// «cuenta» o «activate» sin parar.
+//
+// Hace falta un espacio de nombres KV enlazado como `LIMITE` (en el proyecto de Cloudflare Pages:
+// Settings → Functions → KV namespace bindings → LIMITE). Sin él, `dentroDelLimite` no bloquea nada
+// (mejor no limitar que tumbar la licencia de todo el mundo por un enlace olvidado).
+export async function dentroDelLimite(kv, clave, maximo, ventanaSeg) {
+  if (!kv) return true;
+  const ventana = Math.floor(Date.now() / 1000 / ventanaSeg);
+  const k = `${clave}:${ventana}`;
+  const actual = Number((await kv.get(k).catch(() => null)) ?? '0');
+  if (actual >= maximo) return false;
+  await kv.put(k, String(actual + 1), { expirationTtl: ventanaSeg * 2 }).catch(() => {});
+  return true;
+}
+
+/** La respuesta cuando se supera el límite: 429, sin más detalle del motivo. */
+export const respuestaLimite = headers => new Response(JSON.stringify({ error: 'limite' }), {
+  status: 429, headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+});
