@@ -923,7 +923,7 @@ export function useAppState() {
    * una desde su propia pantalla si sobran.
    */
   const clearSchoolYear = useCallback(async () => {
-    if (profileId) await store.backup(profileId);
+    if (profileId) await store.backup(profileId, 'antes-de-vaciar');
     setTasks([]);
     setClasses([]);
     setStudents([]);

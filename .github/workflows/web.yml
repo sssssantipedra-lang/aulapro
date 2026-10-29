@@ -1,25 +1,40 @@
 name: Publicar la web
 
 # Publica `web/sitio` en https://aulapro.app (Cloudflare Pages, proyecto
-# `aulapro-app`) cada vez que llega a master un cambio de la web. También se
-# puede lanzar a mano desde la pestaña "Actions".
+# `aulapro-app`) cada vez que llega a master un cambio de la web o de la app:
+# la versión web de la app va dentro, en https://aulapro.app/app/ (se compila
+# con `npm run build:web`), con la función que pasa la licencia a Lemon
+# Squeezy (`web/funciones/`). También se puede lanzar a mano desde la pestaña
+# "Actions".
+#
+# Un cambio en otra rama se publica en la copia de prueba,
+# https://prueba.aulapro-app.pages.dev (la app, en /app/): ahí se prueba antes
+# de llevarlo a master.
 #
 # Necesita el secreto CLOUDFLARE_API_TOKEN: un token de Cloudflare con el
 # permiso "Cloudflare Pages: Edit" sobre la cuenta. Sin él, el workflow avisa
 # y no publica nada.
 on:
   push:
-    branches: [master]
     paths:
       - 'web/sitio/**'
       - 'web/versionar.mjs'
       - 'web/idiomas.mjs'
       - 'web/comprobar.mjs'
+      - 'web/app/**'
+      - 'web/funciones/**'
+      - 'src/**'
+      - 'public/**'
+      - 'electron/student.html'
+      - 'index.html'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/web.yml'
   workflow_dispatch: {}
 
 concurrency:
-  group: web
+  group: web-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,6 +58,14 @@ jobs:
         with:
           node-version: 22
 
+      - name: Dependencias de la app
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm ci
+
+      - name: Compilar la versión web de la app
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run build:web
+
       - name: Portada en català e inglés (/ca y /en)
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: node web/idiomas.mjs web/sitio
@@ -57,6 +80,27 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: node web/versionar.mjs web/sitio
 
+      # Después de sellar: la app lleva sus propias huellas en los nombres de archivo
+      - name: La app dentro de la web, en /app/
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: cp -r dist-web web/sitio/app
+
+      # Cloudflare busca las funciones en `functions/`, junto a donde se ejecuta wrangler
       - name: Publicar en Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: npx --yes wrangler@4 pages deploy web/sitio --project-name aulapro-app --branch main --commit-dirty=true
+        id: publicar
+        run: |
+          set -o pipefail
+          mkdir -p _pages && cp -r web/funciones _pages/functions
+          cd _pages
+          npx --yes wrangler@4 pages deploy ../web/sitio --project-name aulapro-app \
+            --branch ${{ github.ref == 'refs/heads/master' && 'main' || 'prueba' }} --commit-dirty=true | tee ../publicado.txt
+          echo "url=$(grep -oE 'https://[a-z0-9]+\.aulapro-app\.pages\.dev' ../publicado.txt | head -1)" >> "$GITHUB_OUTPUT"
+
+      # Con un navegador de verdad, contra lo que se acaba de publicar: abre, vuelve a abrir ya guardada y abre sin conexión
+      - name: Comprobar la app publicada
+        if: env.CLOUDFLARE_API_TOKEN != '' && steps.publicar.outputs.url != ''
+        run: |
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+          node web/app/comprobar-publicada.mjs "${{ steps.publicar.outputs.url }}/app/"

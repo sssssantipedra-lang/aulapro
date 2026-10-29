@@ -123,6 +123,13 @@ export interface LicenseBridge {
   activate: (key: string) => Promise<LicenseResult>;
   /** Libera este equipo para poder activar la clave en otro. */
   deactivate: () => Promise<LicenseResult>;
+  /**
+   * Solo en la versión web: la licencia comprada con el correo de la cuenta de
+   * Google (ya comprobada por el servidor). No ocupa ninguno de los 2
+   * dispositivos: la cuenta entra en todos los que quiera (decisión del dueño,
+   * 29-10-2026). `null` la quita (se devolvió o se anuló).
+   */
+  porCuenta?: (key: string | null) => Promise<LicenseState>;
 }
 
 export interface StoreBridge {
@@ -133,7 +140,7 @@ export interface StoreBridge {
   deleteProfile: (id: string) => Promise<unknown>;
   loadData: (id: string) => Promise<unknown>;
   saveData: (id: string, data: unknown) => Promise<unknown>;
-  backup: (id: string) => Promise<unknown>;
+  backup: (id: string, motivo?: 'antes-de-vaciar') => Promise<unknown>;
   listBackups: (id: string) => Promise<unknown>;
   restoreBackup: (id: string, file: string) => Promise<unknown>;
   clearBackups: (id: string) => Promise<unknown>;

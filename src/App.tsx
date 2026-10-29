@@ -1,7 +1,12 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
+import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
+import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
+import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
+import { hayVueltaDrive, leerPermisoDrive } from './platform/googleDrive';
+import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -32,7 +37,7 @@ import type { Section, Ficha } from './types';
 import { X, Menu } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
-import { isAndroidApp } from './lib/platform';
+import { isAndroidApp, isWebApp } from './lib/platform';
 import { compararAlumnos } from './lib/alumnado';
 import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
@@ -317,7 +322,12 @@ function AppInner() {
         onNav={s => { setSection(s); setMenuOpen(false); }}
         user={st.currentUser}
         saving={st.saving}
-        onLogout={async () => { await st.logout(); toast(t('Sesión cerrada')); }}
+        onLogout={async () => {
+          await st.logout();
+          // En la web, salir es salir de la cuenta: vuelve a la pantalla de entrada
+          if (isWebApp()) { await cerrarSesion(); window.location.reload(); return; }
+          toast(t('Sesión cerrada'));
+        }}
       />}
 
       {menuOverlay && (
@@ -833,7 +843,18 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<LicenseState | null | undefined>(licenseBridge() ? undefined : null);
   useEffect(() => {
     if (state !== undefined) return;
-    getLicenseState().then(setState);
+    getLicenseState().then(async s => {
+      // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
+      // Sin límite de dispositivos: la licencia es de la cuenta (decisión del dueño, 29-10-2026)
+      const bridge = licenseBridge();
+      if (isWebApp() && bridge?.porCuenta && (s?.required || hayToken())) {
+        const b = await licenciaDeLaCuenta();
+        if (b.key) { setState(await bridge.porCuenta(b.key)); return; }
+        // Comprobada sin compra (devuelta o anulada): se quita la de la cuenta
+        if (!('error' in b && b.error)) { setState(await bridge.porCuenta(null)); return; }
+      }
+      setState(s);
+    });
   }, [state]);
 
   if (state === undefined) {
@@ -844,6 +865,37 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     );
   }
   if (state?.required) return <LicenseGate state={state} onChange={setState} />;
+  return <>{children}</>;
+}
+
+/** Versión web: antes de la licencia, entrar con la cuenta (ver `platform/cuentaWeb.ts`). */
+function CuentaCheck({ children }: { children: React.ReactNode }) {
+  const [cuenta, setCuenta] = useState<Cuenta | null | undefined>(isWebApp() ? undefined : null);
+  useEffect(() => {
+    if (cuenta !== undefined) return;
+    leerCuenta().then(c => setCuenta(c ?? null));
+  }, [cuenta]);
+  const entrar = useCallback((c: Cuenta) => setCuenta(c), []);
+  // Después de entrar: el paso de Drive, salvo que ya esté o se haya dicho «Ahora no» en esta sesión
+  const [pasoDrive, setPasoDrive] = useState<boolean | undefined>(isWebApp() ? undefined : false);
+  useEffect(() => {
+    if (!cuenta || pasoDrive !== undefined) return;
+    let saltado = false;
+    try { saltado = sessionStorage.getItem('aulapro_drive_ahora_no') === '1'; } catch { /* sin almacenamiento */ }
+    let ya = false;
+    try { ya = sessionStorage.getItem(CONECTAR_YA) === '1'; } catch { /* sin almacenamiento */ }
+    const directo = ya || hayVueltaDrive();
+    leerPermisoDrive().then(p => setPasoDrive(directo || (!p && !saltado)));
+  }, [cuenta, pasoDrive]);
+  const listoDrive = useCallback(() => {
+    try { sessionStorage.setItem('aulapro_drive_ahora_no', '1'); } catch { /* sin almacenamiento */ }
+    setPasoDrive(false);
+  }, []);
+  if (!isWebApp()) return <>{children}</>;
+  if (cuenta === undefined) return null;
+  if (!cuenta) return <EntrarWeb onEntrar={entrar} />;
+  if (pasoDrive === undefined) return null;
+  if (pasoDrive) return <ConectarDriveWeb onListo={listoDrive} />;
   return <>{children}</>;
 }
 
@@ -861,9 +913,11 @@ function AvisoGuardadoAndroid() {
 export default function App() {
   return (
     <ToastProvider>
-      <LicenseCheck><AppInner /></LicenseCheck>
+      <CuentaCheck><LicenseCheck><AppInner /></LicenseCheck></CuentaCheck>
       <UpdateBanner />
+      {isWebApp() && <><CarpetaWebAviso /><AvisoPdfWeb /></>}
       {isAndroidApp() && <AvisoGuardadoAndroid />}
+      {licenseBridge() && !isWebApp() && <AvisoPasarAWeb />}
     </ToastProvider>
   );
 }

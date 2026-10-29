@@ -117,7 +117,13 @@ export function createProfileStore(fs: Fs) {
     },
 
     updateProfile,
-    touchProfile: (id: string) => updateProfile(id, { lastOpenedAt: new Date().toISOString() }),
+    // Como mucho una vez cada 6 horas: en la versión web, con Drive, apuntarlo en cada apertura
+    // cambiaba perfiles.json, el otro dispositivo se recargaba para traerlo, lo apuntaba también… y así sin fin.
+    async touchProfile(id: string) {
+      const p = (await listProfiles()).find(x => x.id === id);
+      if (p?.lastOpenedAt && Date.now() - Date.parse(p.lastOpenedAt) < 6 * 3600_000) return p;
+      return updateProfile(id, { lastOpenedAt: new Date().toISOString() });
+    },
 
     async deleteProfile(id: string) {
       const list = await listProfiles();
@@ -132,11 +138,12 @@ export function createProfileStore(fs: Fs) {
       return true;
     },
 
-    async backup(id: string) {
+    /** `motivo`: «antes-de-vaciar» va también al Drive de la versión web (`vaADrive` en `driveFs.ts`). */
+    async backup(id: string, motivo?: 'antes-de-vaciar') {
       const data = await loadData(id);
       if (!data || Object.keys(data).length === 0) return null;
       const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const file = `${backupsDir(id)}/copia-${stamp}.json`;
+      const file = `${backupsDir(id)}/copia-${stamp}${motivo ? '-' + motivo : ''}.json`;
       await writeJson(file, data);
       // Solo se conservan las más recientes
       const names = (await fs.list(backupsDir(id))).map(f => f.name).filter(n => n.startsWith('copia-') && n.endsWith('.json')).sort();

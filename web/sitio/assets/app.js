@@ -10,9 +10,9 @@
   // the waitlist disappears and the download links appear. One licence covers Windows, Mac and Android,
   // so all three open the same checkout.
   const LAUNCH = window.AULA_LAUNCH || {};
+  // 100% web desde el 29-10-2026: el botón lleva a la app, donde se entra con Google y se compra con el correo ya puesto
   const STORE_LINKS = {
-    windows: LAUNCH.checkout || '',
-    android: LAUNCH.checkout || ''
+    web: LAUNCH.checkout ? 'app/' : ''
   };
 
   // the film at 60 frames per second (interpolated from the 24 of the original), and the same film reversed,
@@ -749,13 +749,14 @@
   $$('[data-live]').forEach(el => living.observe(el));
 
   /* ================= the list you cross off ================= */
+  // Salió de la portada el 29-10-2026: solo si sigue en la página
   const sheet = $('#sheet');
-  const tasks = $$('.task', sheet);
+  const tasks = sheet ? $$('.task', sheet) : [];
   const countEl = $('#count');
   function updateCount() {
     const n = tasks.filter(b => b.getAttribute('aria-pressed') === 'true').length;
     if (countEl) countEl.textContent = t('s2.count').replace('{n}', n);
-    sheet.classList.toggle('all-done', n === tasks.length);
+    if (sheet) sheet.classList.toggle('all-done', n === tasks.length);
   }
   tasks.forEach(b => b.addEventListener('click', () => {
     b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
@@ -803,8 +804,6 @@
       const label = $('small', a);
       if (url) {
         a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener';
         a.classList.add('ready');
         label.dataset.i18n = 'buy.for';
       } else {

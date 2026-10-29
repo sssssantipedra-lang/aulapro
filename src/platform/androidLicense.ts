@@ -34,9 +34,11 @@ interface LicenseRecord {
   instanceId?: string;
   activatedAt: string;
   lastOkAt?: string;
+  /** Versión web: licencia de la cuenta de Google, sin activación en Lemon Squeezy. */
+  cuenta?: boolean;
 }
 
-type StoreBody = {
+export type StoreBody = {
   activated?: boolean; valid?: boolean; deactivated?: boolean; error?: string;
   license_key?: { status?: string };
   instance?: { id?: string };
@@ -60,9 +62,34 @@ export function keyHint(key?: string): string {
   return k.length > 4 ? `••••${k.slice(-4)}` : '';
 }
 
-export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolean; storeId?: string } = {}): LicenseBridge {
+/** Una llamada a la tienda: `null` si no hay conexión. */
+export type LicensePost = (action: string, data: Record<string, string>) => Promise<{ status: number; body: StoreBody } | null>;
+
+async function postNativo(action: string, data: Record<string, string>) {
+  try {
+    const res = await CapacitorHttp.post({
+      url: `${API}/${action}`,
+      headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+      data,
+    });
+    const body = typeof res.data === 'string' ? JSON.parse(res.data || '{}') : (res.data ?? {});
+    return { status: res.status, body };
+  } catch {
+    return null; // sin conexión
+  }
+}
+
+/**
+ * También la usa la versión web (`platform/web.ts`), con su propia forma de
+ * llamar a la tienda (`post`) y su nombre de dispositivo.
+ */
+export function createAndroidLicense(secrets: Secrets, opts: {
+  enforced?: boolean; storeId?: string; post?: LicensePost; instanceName?: string;
+} = {}): LicenseBridge {
   const enforced = opts.enforced ?? ENFORCED;
   const storeId = opts.storeId ?? STORE_ID;
+  const call = opts.post ?? postNativo;
+  const instanceName = opts.instanceName ?? INSTANCE_NAME;
   let record: LicenseRecord | null = null;
   let ready: Promise<void> | null = null;
 
@@ -70,20 +97,6 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
     record = r;
     await secrets.set('licencia', r ? JSON.stringify(r) : '').catch(() => false);
   };
-
-  async function call(action: string, data: Record<string, string>): Promise<{ status: number; body: StoreBody } | null> {
-    try {
-      const res = await CapacitorHttp.post({
-        url: `${API}/${action}`,
-        headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-        data,
-      });
-      const body = typeof res.data === 'string' ? JSON.parse(res.data || '{}') : (res.data ?? {});
-      return { status: res.status, body };
-    } catch {
-      return null; // sin conexión
-    }
-  }
 
   const state = (): LicenseState => ({
     required: enforced && !record,
@@ -97,7 +110,8 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
 
   /** Comprobación en segundo plano: sin conexión no pasa nada. */
   async function check() {
-    if (record?.kind !== 'licencia' || !record.key || !record.instanceId) return;
+    // La de la cuenta la vuelve a comprobar la app al entrar con Google (App.tsx)
+    if (record?.kind !== 'licencia' || !record.key || !record.instanceId || record.cuenta) return;
     const r = await call('validate', { license_key: record.key, instance_id: record.instanceId });
     if (!r) return;
     const st = r.body.license_key?.status;
@@ -123,7 +137,7 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
       await whenReady();
       const k = key.trim();
       if (!k) return { ok: false, error: 'clave-no-valida', state: state() };
-      const r = await call('activate', { license_key: k, instance_name: INSTANCE_NAME });
+      const r = await call('activate', { license_key: k, instance_name: instanceName });
       if (!r) return { ok: false, error: 'sin-conexion', state: state() };
       const error = activationError(r.body, r.status, storeId);
       if (error) {
@@ -133,6 +147,20 @@ export function createAndroidLicense(secrets: Secrets, opts: { enforced?: boolea
       const now = new Date().toISOString();
       await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now });
       return { ok: true, state: state() };
+    },
+
+    async porCuenta(key): Promise<LicenseState> {
+      await whenReady();
+      if (key === 'fundador') {
+        // Versión web: fundador por su correo (`FUNDADOR` en cuentaWeb.ts)
+        await save({ v: 1, kind: 'fundador', activatedAt: record?.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true });
+      } else if (key) {
+        const now = new Date().toISOString();
+        await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true });
+      } else if (record?.cuenta) {
+        await save(null);
+      }
+      return state();
     },
 
     async deactivate(): Promise<LicenseResult> {

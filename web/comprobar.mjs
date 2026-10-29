@@ -32,6 +32,8 @@ function destino(base, ref) {
   let r = ref.trim().split('#')[0].split('?')[0];
   if (!r || SALTAR.test(ref.trim())) return null;
   if (r === './' || r === '/') return 'index.html';
+  // La app (/app/) se compila y se copia después de esta comprobación (web.yml, netlify.toml)
+  if (/^\/?app\//.test(r)) return null;
   if (r.startsWith('/')) r = r.slice(1); else r = normalize(join(base, r)).replace(/\\/g, '/');
   if (!/\.[a-z0-9]{2,5}$/i.test(r)) r += '.html';   // /ca, /demo: Cloudflare y GitHub las sirven sin la extensión
   return r;

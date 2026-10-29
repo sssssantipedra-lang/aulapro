@@ -9,7 +9,7 @@ import type { ClassroomActivity, ClassroomSnapshot } from '../types/electron';
 import { SessionQR } from '../components/live/SessionQR';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
-import { isAndroidApp } from '../lib/platform';
+import { isAndroidApp, isWebApp } from '../lib/platform';
 import { compararAlumnos } from '../lib/alumnado';
 
 interface Props {
@@ -219,8 +219,13 @@ export function ClassroomLive({ classes, students, rubrics, dianas: todasDianas,
           <div className="sala-web-hd">
             <Monitor size={22} aria-hidden="true" />
             <div>
-              <h2>{t('Se usa desde la aplicación instalada')}</h2>
-              <p>{t('Para que el alumnado se conecte, AulaPro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre AulaPro en Windows o en Android.')}</p>
+              {isWebApp() ? <>
+                <h2>{t('Próximamente en la versión web')}</h2>
+                <p>{t('Para que el alumnado conteste desde el móvil, esta herramienta se está adaptando a la versión web. Mientras tanto, el resto de AulaPro funciona con normalidad.')}</p>
+              </> : <>
+                <h2>{t('Se usa desde la aplicación instalada')}</h2>
+                <p>{t('Para que el alumnado se conecte, AulaPro abre una sala en tu propio dispositivo y la conexión se queda en la wifi del aula. La versión de navegador no puede hacerlo: abre AulaPro en Windows o en Android.')}</p>
+              </>}
             </div>
           </div>
           <ol className="sala-web-pasos">

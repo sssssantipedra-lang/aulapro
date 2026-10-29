@@ -11,10 +11,17 @@ import { restaurarTamanoLetra } from './lib/tamanoLetra'
 applyAppearance(getAppearance())
 
 /**
- * En Android, lo primero es montar el puente con la parte nativa (el mismo
- * contrato que Electron en el escritorio): guardado, PDF y la clave cifrada.
+ * En Android y en la versión web, lo primero es montar el puente con la parte
+ * nativa (el mismo contrato que Electron en el escritorio): guardado, PDF y la
+ * clave cifrada.
  */
 async function nativeBridge() {
+  // La versión web (aulapro.app/app/): solo en su compilación, `vite build --mode web`
+  if (import.meta.env.MODE === 'web') {
+    const { installWebBridge } = await import('./platform/web')
+    await installWebBridge()
+    return
+  }
   // Capacitor inyecta `window.Capacitor` antes de cargar la página: así se sabe
   // sin cargar su código en el escritorio, donde no hace falta.
   const cap = (window as { Capacitor?: { getPlatform?: () => string } }).Capacitor

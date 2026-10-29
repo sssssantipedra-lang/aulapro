@@ -10,8 +10,9 @@ Copia de los registros del dominio, leída del panel de Cloudflare el 18-10-2026
 
 | Nombre | Tipo | Contenido | Proxy | Para qué |
 |---|---|---|---|---|
-| `aulapro.app` | CNAME | `aulapro-app.pages.dev` | sí (naranja) | La web (Cloudflare Pages, proyecto `aulapro-app`) |
-| `www.aulapro.app` | CNAME | `aulapro-app.pages.dev` | sí | La web con `www` |
+| `aulapro.app` | A | `75.2.60.5` | **no (gris)** | La web y la app, en Netlify desde el 29-10-2026 (proyecto `aulapro-respaldo`; `docs/APP_WEB.md`). Antes, CNAME a `aulapro-app.pages.dev` con proxy: con proxy, los bloqueos de LaLiga la tumbaban |
+| `www.aulapro.app` | CNAME | `aulapro-respaldo.netlify.app` | **no (gris)** | La web con `www` |
+| `subdomain-owner-verification` | TXT | (lo da Netlify) | no | Verificación del dominio en Netlify |
 | `descargas.aulapro.app` | R2 | bucket `aulapro-descargas` | sí | Instaladores y `version.json` (docs/DESCARGAS.md) |
 | `aulapro.app` | MX | `route1.mx.cloudflare.net` (prioridad 47) | no | Correo entrante: Cloudflare Email Routing (`contacto@aulapro.app`) |
 | `aulapro.app` | MX | `route2.mx.cloudflare.net` (93) | no | idem |

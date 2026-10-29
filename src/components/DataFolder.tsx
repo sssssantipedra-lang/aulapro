@@ -3,7 +3,8 @@ import { HardDrive, FolderOpen, Archive, RotateCcw, Trash2, CalendarX } from 'lu
 import * as store from '../services/storage';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
-import { isAndroidApp } from '../lib/platform';
+import { isAndroidApp, isWebApp } from '../lib/platform';
+import { CarpetaWebPanel, CuentaWebPanel } from './CarpetaWeb';
 
 interface Props {
   profileId: string | null;
@@ -32,6 +33,8 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
   const desktop = store.isDesktop();
   /** En Android la carpeta es privada de la app: ni ruta que enseñar ni explorador que abrir. */
   const android = isAndroidApp();
+  /** En la versión web, igual: los datos están dentro del navegador. */
+  const web = isWebApp();
 
   async function makeBackup() {
     if (!profileId) return;
@@ -67,14 +70,18 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
       </div>
 
       <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-        {t(android
+        {t(web
+          ? 'Todo tu trabajo se guarda en este dispositivo, dentro del navegador, solo para este perfil, y no se sube a ningún servidor de AulaPro. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
+          : android
           ? 'Todo tu trabajo se guarda dentro de AulaPro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
           : desktop
           ? 'Todo tu trabajo se guarda en una carpeta de este equipo, solo para este perfil. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.'
           : 'En el navegador los datos se guardan dentro del propio navegador. Para que se guarden en carpetas de tu ordenador, con copias automáticas, usa la aplicación de escritorio (AulaPro.exe).')}
       </p>
 
-      {desktop && !android && info && (
+      {web && <><CuentaWebPanel /><CarpetaWebPanel /></>}
+
+      {desktop && !android && !web && info && (
         <div style={{
           fontSize: 11.5, color: 'var(--text-2)', background: 'var(--surface)',
           borderRadius: 9, padding: '10px 13px', marginBottom: 14,
@@ -86,7 +93,7 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
 
       {desktop && (
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
-          {!android && (
+          {!android && !web && (
             <button className="btn-ghost" onClick={() => profileId && store.openFolder(profileId)}>
               <FolderOpen size={14} />{t('Abrir carpeta')}
             </button>
