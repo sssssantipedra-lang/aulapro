@@ -361,10 +361,18 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
         </div>
       )}
 
-      <button className="btn-primary" onClick={() => { setCreating(true); setName(''); setSchool(''); setSubject(''); setTipo('aula'); setEspecialidades([]); setTutor(false); setError(''); }}>
-        <Plus size={16} style={{ display: 'inline', verticalAlign: -3, marginRight: 6 }} />
-        {t('Añadir otro perfil')}
-      </button>
+      {/* Versión web: un solo perfil por cuenta, el del propio docente (decisión del dueño, 29-10-2026).
+          Para empezar de cero (por ejemplo, tras probar los datos de ejemplo), se borra el perfil y se crea otro. */}
+      {isWebApp() ? (
+        <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', lineHeight: 1.5 }}>
+          {t('Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.')}
+        </p>
+      ) : (
+        <button className="btn-primary" onClick={() => { setCreating(true); setName(''); setSchool(''); setSubject(''); setTipo('aula'); setEspecialidades([]); setTutor(false); setError(''); }}>
+          <Plus size={16} style={{ display: 'inline', verticalAlign: -3, marginRight: 6 }} />
+          {t('Añadir otro perfil')}
+        </button>
+      )}
 
       {isDesktop() && (
         <p style={{ fontSize: 11.5, color: 'var(--text-3)', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
