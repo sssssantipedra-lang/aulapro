@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyRound, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../services/license';
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
 import { isAndroidApp, isWebApp } from '../lib/platform';
+import { cerrarSesion, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from '../platform/cuentaWeb';
 
 interface Props {
   state: LicenseState;
@@ -21,6 +22,23 @@ export function LicenseGate({ state, onChange }: Props) {
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<LicenseError | null>(null);
+
+  // Versión web: comprar desde aquí con el correo de la cuenta y activarse sola al pagar
+  const [cuenta, setCuenta] = useState<Cuenta | undefined>();
+  const [esperando, setEsperando] = useState(false);
+  useEffect(() => { if (isWebApp()) leerCuenta().then(setCuenta); }, []);
+  useEffect(() => {
+    if (!esperando) return;
+    let vivo = true;
+    const mirar = async () => {
+      const k = await licenciaDeLaCuenta();
+      const r = k && vivo ? await licenseBridge()?.activate(k) : null;
+      if (vivo && r?.ok) onChange(r.state);
+    };
+    const id = setInterval(mirar, 6000);
+    window.addEventListener('focus', mirar);
+    return () => { vivo = false; clearInterval(id); window.removeEventListener('focus', mirar); };
+  }, [esperando, onChange]);
 
   async function activate(e: React.FormEvent) {
     e.preventDefault();
@@ -48,7 +66,20 @@ export function LicenseGate({ state, onChange }: Props) {
           </div>
         </div>
 
-        <p className="lic-text">{t(LICENSE_STATUS_TEXT[state.status] ?? LICENSE_STATUS_TEXT['sin-licencia']!)}</p>
+        {cuenta ? (
+          <div className="lic-compra">
+            <p className="lic-text">{t('Con la cuenta {email} todavía no hay una licencia. Cómprala aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })}</p>
+            <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
+              {t('Comprar AulaPro · 6,99 €')} <ExternalLink size={14} />
+            </a>
+            {esperando && (hayToken()
+              ? <p className="lic-espera"><span className="spin" />{t('Cuando termines el pago, vuelve aquí: AulaPro se activará sola.')}</p>
+              : <button type="button" className="btn-ghost" style={{ marginTop: 12 }} onClick={async () => { await cerrarSesion(); window.location.reload(); }}>{t('Ya he pagado: volver a entrar con Google')}</button>)}
+            <p className="lic-sub" style={{ marginTop: 14 }}>{t('¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:')}</p>
+          </div>
+        ) : (
+          <p className="lic-text">{t(LICENSE_STATUS_TEXT[state.status] ?? LICENSE_STATUS_TEXT['sin-licencia']!)}</p>
+        )}
 
         {error && <div className="lic-err" role="alert">{t(LICENSE_ERROR_TEXT[error])}</div>}
 
@@ -68,7 +99,7 @@ export function LicenseGate({ state, onChange }: Props) {
         </form>
 
         {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace. En la web, la misma regla (CLAUDE.md, regla 3) */}
-        {isAndroidApp() || isWebApp() ? (
+        {cuenta ? null : isAndroidApp() || isWebApp() ? (
           <p className="lic-buy">{t('Consigue tu licencia en aulapro.app')}</p>
         ) : state.buyUrl && (
           <a className="lic-buy" href={state.buyUrl} target="_blank" rel="noreferrer">

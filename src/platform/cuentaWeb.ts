@@ -61,6 +61,9 @@ let ultimoToken = '';
  * `web/funciones/api/licencia/cuenta.js`), o `null`. Solo justo después de
  * entrar con Google, cuando hay token.
  */
+/** Hay token de Google en esta sesión (se ha entrado hace poco). */
+export const hayToken = () => !!ultimoToken;
+
 export async function licenciaDeLaCuenta(): Promise<string | null> {
   if (!ultimoToken) return null;
   try {
@@ -124,3 +127,12 @@ export async function botonGoogle(el: HTMLElement, idioma: string, alEntrar: (c:
     logo_alignment: 'left', width: 300, locale: idioma,
   });
 }
+
+/**
+ * Enlace de pago de la oferta de lanzamiento (Lemon Squeezy, docs/TIENDAS.md,
+ * apartado 6), con el correo de la cuenta ya puesto: así la compra queda unida a
+ * la cuenta y `licenciaDeLaCuenta` la encuentra sin escribir la clave.
+ */
+export const CHECKOUT = 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832';
+
+export const enlaceDePago = (email: string) => `${CHECKOUT}&checkout%5Bemail%5D=${encodeURIComponent(email)}`;

@@ -46,6 +46,11 @@ export const WEB_EN: Record<string, string> = {
   "Tu cuenta": "Your account",
   "Has entrado con la cuenta de Google {email}.": "You are signed in with the Google account {email}.",
   "Salir de la cuenta": "Sign out",
+  "Con la cuenta {email} todavía no hay una licencia. Cómprala aquí y se activará sola en todos tus dispositivos.": "There is no licence for {email} yet. Buy it here and it will activate by itself on all your devices.",
+  "Comprar AulaPro · 6,99 €": "Buy AulaPro · €6.99",
+  "Cuando termines el pago, vuelve aquí: AulaPro se activará sola.": "When you finish paying, come back here: AulaPro will activate by itself.",
+  "¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:": "Already have a key (from another email or a pack)? Type it here:",
+  "Ya he pagado: volver a entrar con Google": "I have paid: sign in with Google again",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -90,4 +95,9 @@ export const WEB_CA: Record<string, string> = {
   "Tu cuenta": "El teu compte",
   "Has entrado con la cuenta de Google {email}.": "Has entrat amb el compte de Google {email}.",
   "Salir de la cuenta": "Sortir del compte",
+  "Con la cuenta {email} todavía no hay una licencia. Cómprala aquí y se activará sola en todos tus dispositivos.": "Amb el compte {email} encara no hi ha cap llicència. Compra-la aquí i s’activarà sola en tots els teus dispositius.",
+  "Comprar AulaPro · 6,99 €": "Comprar AulaPro · 6,99 €",
+  "Cuando termines el pago, vuelve aquí: AulaPro se activará sola.": "Quan acabis el pagament, torna aquí: AulaPro s’activarà sola.",
+  "¿Ya tienes una clave (de otro correo o de un pack)? Escríbela aquí:": "Ja tens una clau (d’un altre correu o d’un pack)? Escriu-la aquí:",
+  "Ya he pagado: volver a entrar con Google": "Ja he pagat: tornar a entrar amb Google",
 };

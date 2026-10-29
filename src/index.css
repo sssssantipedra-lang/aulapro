@@ -1246,6 +1246,9 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .lic-title { font-weight:800; font-size:19px; color:var(--text); letter-spacing:-0.4px; }
 .lic-sub { font-size:12.5px; color:var(--text-2); }
 .lic-text { font-size:13.5px; color:var(--text-2); line-height:1.6; margin:0 0 18px; }
+.lic-compra { width:100%; }
+.lic-compra-btn { display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; width:100%; }
+.lic-espera { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); margin:12px 0 0; }
 .lic-input { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .lic-err { background:rgba(239,68,68,0.08); border:0.5px solid rgba(239,68,68,0.3); border-radius:8px; padding:10px 14px; font-size:13px; color:#dc2626; line-height:1.5; margin-bottom:16px; }
 .lic-buy { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:14px; font-size:13px; font-weight:700; color:var(--accent-d); text-decoration:none; }
