@@ -8,6 +8,9 @@
 import { carpetaFs, idbKv } from './webFs';
 import type { Conexion, Espejo } from './espejo';
 
+/** Lo lanza `platform/web.ts` justo antes de abrir el diálogo de imprimir (aquí para no cargar web.ts en las pantallas). */
+export const EVENTO_PDF = 'aulapro:pdf';
+
 interface CarpetaGuardada { handle: FileSystemDirectoryHandle; nombre: string }
 type Permisos = FileSystemDirectoryHandle & {
   queryPermission: (o: { mode: 'readwrite' }) => Promise<PermissionState>;

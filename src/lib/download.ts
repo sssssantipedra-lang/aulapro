@@ -17,3 +17,28 @@ export async function downloadFile(blob: Blob, filename: string, carpeta?: strin
   // Un momento de margen: algunos navegadores leen la URL después del clic
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/**
+ * El menú de compartir del sistema con un archivo (Android, iPhone e iPad, y
+ * algunos navegadores de ordenador): desde él se guarda en Google Drive,
+ * OneDrive o iCloud. Lo usa la versión web para «Guardar en mi nube».
+ */
+export function puedeCompartirArchivos(): boolean {
+  try {
+    return typeof navigator !== 'undefined' && !!navigator.canShare?.({ files: [new File([''], 'x.json', { type: 'application/json' })] });
+  } catch {
+    return false;
+  }
+}
+
+/** `false` si no se puede compartir o el docente cerró el menú. */
+export async function compartirArchivo(blob: Blob, filename: string): Promise<boolean> {
+  const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+  if (!navigator.canShare?.({ files: [file] })) return false;
+  try {
+    await navigator.share({ files: [file], title: filename });
+    return true;
+  } catch {
+    return false;
+  }
+}

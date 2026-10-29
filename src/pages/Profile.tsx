@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles, ArrowLeft, ChevronRight, KeyRound } from 'lucide-react';
+import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles, ArrowLeft, ChevronRight, KeyRound, CloudUpload } from 'lucide-react';
 import { getApiKey } from '../services/gemini';
 import { takeSettingsPanel, type SettingsPanel } from '../lib/settingsNav';
 import { Avatar } from '../components/ui/Avatar';
@@ -16,7 +16,8 @@ import type { TeacherProfile } from '../services/storage';
 import { createPasswordFields, verifyPassword } from '../lib/password';
 import { useToast } from '../components/ui/Toast';
 import { useI18n, LANGS } from '../i18n';
-import { downloadFile } from '../lib/download';
+import { compartirArchivo, downloadFile, puedeCompartirArchivos } from '../lib/download';
+import { isWebApp } from '../lib/platform';
 import { CommunitySelect } from '../components/CommunitySelect';
 import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Especialidad } from '../types/apoyo';
@@ -159,12 +160,18 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     setCurrentTheme(key);
   }
 
+  const copiaDeDatos = () => new Blob([JSON.stringify(onExportData(), null, 2)], { type: 'application/json' });
+
   function handleExport() {
-    const data = onExportData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    void downloadFile(blob, `aulapro-copia-${isoDate()}.json`, CARPETAS.copias);
+    void downloadFile(copiaDeDatos(), `aulapro-copia-${isoDate()}.json`, CARPETAS.copias);
     toast('✅ Copia de seguridad descargada');
   }
+
+  /** Versión web en el móvil o la tableta: la copia, por el menú de compartir, a su Drive, OneDrive o iCloud. */
+  async function handleNube() {
+    if (await compartirArchivo(copiaDeDatos(), `aulapro-copia-${isoDate()}.json`)) toast(t('✅ Copia enviada'));
+  }
+  const conNube = isWebApp() && puedeCompartirArchivos();
 
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -516,11 +523,17 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
         </div>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
           {t('Descarga un archivo con todo tu trabajo para pasarlo a otro ordenador o guardarlo aparte.')}
+          {conNube && <> {t('Con «Guardar en mi nube», el archivo va a tu Google Drive, OneDrive o iCloud desde el menú de compartir.')}</>}
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn-accent" onClick={handleExport}>
             <Download size={14} />{t('Descargar mis datos')}
           </button>
+          {conNube && (
+            <button className="btn-accent" onClick={handleNube} title={t('Envía el archivo a Google Drive, OneDrive o iCloud desde el menú de compartir.')}>
+              <CloudUpload size={14} />{t('Guardar en mi nube')}
+            </button>
+          )}
           <button className="btn-ghost" onClick={() => importRef.current?.click()}>
             <Upload size={14} />{t('Cargar desde archivo')}
           </button>

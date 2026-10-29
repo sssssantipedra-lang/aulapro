@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
-import { CarpetaWebAviso } from './components/CarpetaWeb';
+import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
 import { Welcome } from './pages/Welcome';
@@ -864,7 +864,7 @@ export default function App() {
     <ToastProvider>
       <LicenseCheck><AppInner /></LicenseCheck>
       <UpdateBanner />
-      {isWebApp() && <CarpetaWebAviso />}
+      {isWebApp() && <><CarpetaWebAviso /><AvisoPdfWeb /></>}
       {isAndroidApp() && <AvisoGuardadoAndroid />}
     </ToastProvider>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FolderSync, FolderX, AlertTriangle } from 'lucide-react';
-import { carpetaWeb } from '../platform/carpetaWeb';
+import { carpetaWeb, EVENTO_PDF } from '../platform/carpetaWeb';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 
@@ -59,6 +59,18 @@ export function CarpetaWebAviso() {
       </div>
     );
   }
+  return null;
+}
+
+/** Versión web: antes del diálogo de imprimir, cómo sacar el PDF (el diálogo es del navegador). */
+export function AvisoPdfWeb() {
+  const { t } = useI18n();
+  const { toast } = useToast();
+  useEffect(() => {
+    const avisar = () => toast(t('En el diálogo, elige «Guardar como PDF» como destino.'));
+    window.addEventListener(EVENTO_PDF, avisar);
+    return () => window.removeEventListener(EVENTO_PDF, avisar);
+  }, [t, toast]);
   return null;
 }
 

@@ -33,6 +33,10 @@ export const WEB_EN: Record<string, string> = {
   'Cada perfil guarda su propio trabajo en este dispositivo, sin subirlo a ningún servidor. Sin cuentas ni contraseñas.': 'Each profile keeps its own work on this device, without uploading it to any server. No accounts or passwords.',
   'Cada perfil guarda sus datos por separado en este dispositivo.': 'Each profile keeps its data separately on this device.',
   'En el diálogo, elige «Guardar como PDF» como destino.': 'In the dialog, choose “Save as PDF” as the destination.',
+  '✅ Copia enviada': '✅ Copy sent',
+  'Guardar en mi nube': 'Save to my cloud',
+  'Envía el archivo a Google Drive, OneDrive o iCloud desde el menú de compartir.': 'Send the file to Google Drive, OneDrive or iCloud from the share menu.',
+  'Con «Guardar en mi nube», el archivo va a tu Google Drive, OneDrive o iCloud desde el menú de compartir.': 'With “Save to my cloud”, the file goes to your Google Drive, OneDrive or iCloud from the share menu.',
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -64,4 +68,8 @@ export const WEB_CA: Record<string, string> = {
   'Cada perfil guarda su propio trabajo en este dispositivo, sin subirlo a ningún servidor. Sin cuentas ni contraseñas.': 'Cada perfil desa la seva pròpia feina en aquest dispositiu, sense pujar-la a cap servidor. Sense comptes ni contrasenyes.',
   'Cada perfil guarda sus datos por separado en este dispositivo.': 'Cada perfil desa les seves dades per separat en aquest dispositiu.',
   'En el diálogo, elige «Guardar como PDF» como destino.': 'Al diàleg, tria «Desa com a PDF» com a destinació.',
+  '✅ Copia enviada': '✅ Còpia enviada',
+  'Guardar en mi nube': 'Desar al meu núvol',
+  'Envía el archivo a Google Drive, OneDrive o iCloud desde el menú de compartir.': 'Envia el fitxer a Google Drive, OneDrive o iCloud des del menú de compartir.',
+  'Con «Guardar en mi nube», el archivo va a tu Google Drive, OneDrive o iCloud desde el menú de compartir.': 'Amb «Desar al meu núvol», el fitxer va al teu Google Drive, OneDrive o iCloud des del menú de compartir.',
 };

@@ -15,7 +15,7 @@ La app es la misma: lo que cambia es la pieza que habla con el sistema. Como en 
 | Clave de la IA | En el navegador (IndexedDB), sin el cifrado del sistema. | `secretos` en `platform/web.ts` |
 | Sin conexión | Service worker que guarda la app entera (unos 19 MB, 815 archivos) la primera vez. Una versión nueva espera y la app avisa con «Reiniciar y actualizar». | `web/app/sw.js`, `appWeb()` en `vite.config.ts` |
 | Instalar | Manifiesto e iconos (`web/app/`, `node scripts/web/iconos-app.mjs`). | `appWeb()` en `vite.config.ts` |
-| Word, Excel, copias | Descarga del navegador (`lib/download.ts`). | |
+| Word, Excel, copias | Descarga del navegador (`lib/download.ts`). Donde el navegador comparte archivos (Android, iPhone, iPad), «Guardar en mi nube» manda la copia de los datos por el menú de compartir a Google Drive, OneDrive o iCloud. | `compartirArchivo` en `lib/download.ts`, `pages/Profile.tsx` |
 | Actividades con móviles | «Próximamente en la versión web»: un navegador no puede abrir un servidor en la wifi del aula. | `pages/ClassroomLive.tsx` |
 
 Nada del trabajo del docente sale hacia un servidor de AulaPro: la web es estática y la función de la licencia solo ve la clave.
@@ -26,12 +26,12 @@ Nada del trabajo del docente sale hacia un servidor de AulaPro: la web es estát
 
 ## Comprobado (29-10-2026, Chromium sin pantalla)
 
-Pide la licencia y rechaza una clave mala; se activa; crea el perfil; guarda en IndexedDB; el service worker guarda los 815 archivos; recargada sin conexión, la app abre activada y con los datos de ejemplo intactos (10 clases, 60 alumnos, 150 evaluaciones); el PDF llega al `iframe` con su `@page`, su título y sin scripts. La copia en carpeta y sus conflictos, con pruebas (`espejo.test.ts`). **Sin comprobar:** el diálogo de imprimir real (sobre todo en iPhone e iPad, donde `print()` de un `iframe` puede imprimir la página entera), elegir carpeta con un dedo real, la instalación en Android, iPhone e iPad, y la función de la licencia en Cloudflare.
+Pide la licencia y rechaza una clave mala; se activa; crea el perfil; guarda en IndexedDB; el service worker guarda los 815 archivos; recargada sin conexión, la app abre activada y con los datos de ejemplo intactos (10 clases, 60 alumnos, 150 evaluaciones); el PDF llega al `iframe` con su `@page`, su título y sin scripts, y antes sale el aviso «elige Guardar como PDF». La copia en carpeta y sus conflictos, con pruebas (`espejo.test.ts`). **Sin comprobar:** el diálogo de imprimir real (sobre todo en iPhone e iPad, donde `print()` de un `iframe` puede imprimir la página entera), elegir carpeta con un dedo real, la instalación en Android, iPhone e iPad, y la función de la licencia en Cloudflare.
 
 ## Lo que falta para el 15-11-2026
 
 1. Pruebas del dueño en sus dispositivos (1 al 3 de noviembre) en la copia de prueba.
-2. «Copia a mi nube» en Android, iPhone e iPad (el archivo de copia por el menú de compartir) y un recordatorio semanal.
+2. Un recordatorio semanal de «Guardar en mi nube» en Android, iPhone e iPad (el botón ya está).
 3. Pasar los datos desde la app de escritorio o de Android: hoy ya se puede con «Descargar mis datos» y «Cargar» (mismo formato), o eligiendo en la web la carpeta de datos de la app de escritorio.
 4. La web: «Abrir AulaPro» en lugar de las descargas, privacidad y condiciones en los tres idiomas (datos en el navegador, la carpeta, la función de la licencia), `docs/WEB.md`.
 5. Al publicar, `launch.js`.

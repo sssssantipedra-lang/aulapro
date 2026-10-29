@@ -24,7 +24,7 @@
 import { createProfileStore } from './profileStore';
 import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
-import { abrirCarpetaGuardada, iniciarCarpeta } from './carpetaWeb';
+import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost } from './androidLicense';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge, UpdateStatus } from '../types/electron';
 
@@ -98,6 +98,10 @@ async function imprimir(html: string, nombre: string, apaisado: boolean): Promis
     ]),
     espera(5_000),
   ]);
+
+  // Un aviso de cómo guardarlo (components/CarpetaWeb.tsx, `AvisoPdfWeb`), y un momento para leerlo
+  window.dispatchEvent(new Event(EVENTO_PDF));
+  await espera(700);
 
   // Chrome propone como nombre del PDF el título de la página
   const antes = document.title;
