@@ -41,8 +41,11 @@ async function pedirFuncion(accion: 'token' | 'renovar', cuerpo: object) {
  * botón). `email`: la cuenta con la que se entró, para que Google no pregunte cuál.
  */
 export async function pedirPermisoDrive(email: string): Promise<PermisoDrive> {
-  await cargarGoogle();
-  const g = (window as unknown as { google: { accounts: { oauth2: { initCodeClient: (o: object) => { requestCode: () => void } } } } }).google;
+  // Safari (iPhone, iPad) solo deja abrir la ventana de Google en el mismo
+  // instante del toque: si Google ya está cargado, se abre sin esperar a nada.
+  type G = { google?: { accounts: { oauth2: { initCodeClient: (o: object) => { requestCode: () => void } } } } };
+  if (!(window as unknown as G).google?.accounts?.oauth2) await cargarGoogle();
+  const g = (window as unknown as G).google!;
   const code = await new Promise<string>((resolve, reject) => {
     g.accounts.oauth2.initCodeClient({
       client_id: GOOGLE_CLIENT_ID, scope: SCOPE, ux_mode: 'popup', login_hint: email,

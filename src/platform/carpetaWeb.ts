@@ -9,7 +9,7 @@ import { carpetaFs, idbKv } from './webFs';
 import type { Conexion, Espejo } from './espejo';
 import { createDriveFs } from './driveFs';
 import { leerPermisoDrive, pedirPermisoDrive, quitarPermisoDrive, tokenDrive } from './googleDrive';
-import { leerCuenta } from './cuentaWeb';
+import { cuentaActual, leerCuenta } from './cuentaWeb';
 
 /** El nombre con el que sale el Drive del docente como «carpeta» (ver `driveFs.ts`). */
 export const NOMBRE_DRIVE = 'Google Drive';
@@ -86,9 +86,9 @@ export const carpetaWeb = {
 
   /** Guardar en el Google Drive de la cuenta con la que se entró (al pulsar un botón: abre la ventana de Google). */
   async conectarDrive(): Promise<Conexion | null> {
-    const cuenta = await leerCuenta();
-    if (!espejo || !cuenta) return null;
-    await pedirPermisoDrive(cuenta.email);
+    const email = (cuentaActual() ?? await leerCuenta())?.email;
+    if (!espejo || !email) return null;
+    await pedirPermisoDrive(email);
     return conectarDrive();
   },
 
@@ -97,9 +97,9 @@ export const carpetaWeb = {
   /** El navegador (o Google) volvió a pedir permiso: hace falta que el docente pulse. */
   async pedirPermiso(): Promise<number> {
     if (carpetaWeb.usaDrive()) {
-      const cuenta = await leerCuenta();
-      if (!cuenta || !espejo) return 0;
-      await pedirPermisoDrive(cuenta.email);
+      const email = (cuentaActual() ?? await leerCuenta())?.email;
+      if (!email || !espejo) return 0;
+      await pedirPermisoDrive(email);
       return espejo.activar(driveFs(), NOMBRE_DRIVE, { congelar: true });
     }
     const g = await idbKv.get<CarpetaGuardada>('carpeta');

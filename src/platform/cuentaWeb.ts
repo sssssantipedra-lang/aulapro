@@ -32,9 +32,13 @@ export interface Cuenta {
 
 const CLAVE = 'cuenta';
 
-export const leerCuenta = () => idbKv.get<Cuenta>(CLAVE).catch(() => undefined);
+let actual: Cuenta | undefined;
+export const leerCuenta = () => idbKv.get<Cuenta>(CLAVE).then(c => (actual = c)).catch(() => undefined);
+/** La cuenta ya leída, sin esperar (para abrir la ventana de Google en el mismo toque). */
+export const cuentaActual = () => actual;
 
 export async function cerrarSesion() {
+  actual = undefined;
   await idbKv.del(CLAVE);
   try { (window as unknown as GoogleGlobal).google?.accounts.id.disableAutoSelect(); } catch { /* sin Google cargado */ }
 }
@@ -162,6 +166,7 @@ export async function botonGoogle(el: HTMLElement, idioma: string, alEntrar: (c:
       if (!datos) { alFallar(); return; }
       guardarToken(credential);
       const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
+      actual = cuenta;
       await idbKv.set(CLAVE, cuenta);
       alEntrar(cuenta);
     },

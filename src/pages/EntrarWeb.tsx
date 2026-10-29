@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
-import { botonGoogle, type Cuenta } from '../platform/cuentaWeb';
+import { botonGoogle, cargarGoogle, type Cuenta } from '../platform/cuentaWeb';
 import { carpetaWeb } from '../platform/carpetaWeb';
 
 /** Logo de Google (los cuatro colores oficiales). */
@@ -116,6 +116,8 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
   const [ocupado, setOcupado] = useState(false);
   const [elegir, setElegir] = useState(false);
   const [error, setError] = useState('');
+  // Google cargado antes del toque: Safari bloquea la ventana si se abre después de esperar.
+  useEffect(() => { cargarGoogle().catch(() => {}); }, []);
 
   async function correr(fn: () => Promise<{ elegir: boolean; cargados: number } | null>) {
     setOcupado(true); setError('');
