@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } fro
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
-import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
+import { AvisoCopiaWeb, AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { hayVueltaNube, leerPermisoNube } from './platform/carpetaWeb';
@@ -314,6 +314,7 @@ function AppInner() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile'} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
       {(!phone || menuOpen) && <Sidebar
         mini={menuMini}
         overlay={menuOverlay}

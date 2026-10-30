@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle, WifiOff } from 'lucide-react';
+import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle, WifiOff, ShieldAlert } from 'lucide-react';
 import { carpetaWeb, EVENTO_PDF, NOMBRE_ONEDRIVE } from '../platform/carpetaWeb';
 import { DRIVE_LLENO } from '../platform/driveFs';
 import { cerrarSesion, leerCuenta, type Cuenta } from '../platform/cuentaWeb';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
+import { compartirArchivo, downloadFile, puedeCompartirArchivos } from '../lib/download';
+import { CARPETAS } from '../lib/carpetas';
+import { isoDate } from '../lib/utils';
+import { debeAvisar, diasDesdeCopia, leerEstadoCopia, marcarUso, posponerAviso, registrarCopia } from '../lib/avisoCopia';
+import { requestSettingsPanel } from '../lib/settingsNav';
 
 /** El estado de la carpeta, al día. */
 function useCarpeta() {
@@ -72,6 +77,69 @@ export function CarpetaWebAviso() {
     );
   }
   return null;
+}
+
+/** iPhone o iPad con Safari y sin la app en la pantalla de inicio: ahí Safari borra los datos tras siete días sin abrirla. */
+function iosSinInstalar() {
+  try {
+    const ua = navigator.userAgent;
+    const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const instalada = (navigator as unknown as { standalone?: boolean }).standalone === true || window.matchMedia?.('(display-mode: standalone)').matches;
+    return ios && !instalada;
+  } catch { return false; }
+}
+
+/**
+ * Versión web: aviso de copia de seguridad para quien guarda solo en el navegador (sin Drive, OneDrive ni
+ * carpeta). Sale a los 2 días de uso sin ninguna copia y, después, cada semana (`lib/avisoCopia.ts`), con la
+ * copia a un clic, el camino a guardar en la nube o en una carpeta, y «Más tarde». `exportar` es la copia
+ * de todos los datos (`useAppState.exportData`); `onIrADatos` lleva a Configuración › Datos y copias.
+ */
+export function AvisoCopiaWeb({ exportar, onIrADatos, oculto }: { exportar: () => Record<string, unknown>; onIrADatos: () => void; oculto?: boolean }) {
+  const { t } = useI18n();
+  const { toast } = useToast();
+  const { estado } = useCarpeta();
+  const [, refrescar] = useState(0);
+  useEffect(() => { marcarUso(); refrescar(n => n + 1); }, []);
+
+  // Con una nube o una carpeta ya elegidas, eso lo cuidan sus propios avisos
+  if (oculto || estado.tipo !== 'sin-carpeta') return null;
+  const copia = leerEstadoCopia();
+  if (!debeAvisar(copia)) return null;
+  const dias = diasDesdeCopia(copia.ultima);
+  const compartir = puedeCompartirArchivos();
+
+  async function guardarCopia() {
+    const blob = new Blob([JSON.stringify(exportar(), null, 2)], { type: 'application/json' });
+    const nombre = `aulapro-copia-${isoDate()}.json`;
+    if (compartir) {
+      if (!(await compartirArchivo(blob, nombre))) return;
+      toast(t('✅ Copia enviada'));
+    } else {
+      await downloadFile(blob, nombre, CARPETAS.copias);
+      toast(t('✅ Copia de seguridad descargada'));
+    }
+    registrarCopia();
+    refrescar(n => n + 1);
+  }
+
+  return (
+    <div className="update-banner carpeta-aviso aviso-copia" role="status">
+      <ShieldAlert size={18} color="var(--warn, #d97706)" style={{ flexShrink: 0 }} aria-hidden="true" />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <strong className="aviso-copia-ttl">{t('Tu trabajo solo está en este navegador')}</strong>
+        <p>{dias === null
+          ? t('Todavía no has hecho ninguna copia. Si se borran los datos del navegador, cambias de dispositivo o se estropea, lo pierdes todo.')
+          : t('Hace {n} días que no haces una copia. Si se borran los datos del navegador, cambias de dispositivo o se estropea, pierdes lo que hayas hecho desde entonces.', { n: dias })}</p>
+        {iosSinInstalar() && <p>{t('En iPhone y iPad, Safari puede borrarlo todo si pasas siete días sin abrir AulaPro. Evítalo añadiéndola a la pantalla de inicio (Compartir › Añadir a pantalla de inicio).')}</p>}
+      </div>
+      <div className="carpeta-aviso-btns">
+        <button onClick={guardarCopia}>{t(compartir ? 'Guardar una copia' : 'Descargar una copia')}</button>
+        <button onClick={() => { requestSettingsPanel('datos'); onIrADatos(); }}>{t('Guardar en la nube o en una carpeta')}</button>
+        <button className="aviso-copia-luego" onClick={() => { posponerAviso(); refrescar(n => n + 1); }}>{t('Más tarde')}</button>
+      </div>
+    </div>
+  );
 }
 
 /** Versión web: antes del diálogo de imprimir, cómo sacar el PDF (el diálogo es del navegador). */
@@ -188,8 +256,22 @@ export function CarpetaWebPanel() {
     setOcupado(false);
   }
 
+  const sola = estado.tipo === 'sin-carpeta';
+  const dias = diasDesdeCopia(leerEstadoCopia().ultima);
+
   return (
     <div className="carpeta-web">
+      {sola && (
+        <div className="carpeta-web-alerta" role="status">
+          <ShieldAlert size={16} aria-hidden="true" />
+          <div>
+            <strong>{t('Ahora tu trabajo solo está en este navegador')}</strong>
+            <p>{t('Si borras los datos del navegador, cambias de dispositivo o se estropea, lo pierdes todo. Para no perder nada, guárdalo en tu nube o en una carpeta de tu ordenador (abajo), o descarga copias a menudo en «Llevar a otro equipo».')}</p>
+            <p>{dias === null ? t('Todavía no has descargado ninguna copia.') : dias === 0 ? t('Última copia descargada: hoy.') : dias === 1 ? t('Última copia descargada: ayer.') : t('Última copia descargada: hace {n} días.', { n: dias })}</p>
+            {iosSinInstalar() && <p>{t('En iPhone y iPad, Safari puede borrarlo todo si pasas siete días sin abrir AulaPro. Evítalo añadiéndola a la pantalla de inicio (Compartir › Añadir a pantalla de inicio).')}</p>}
+          </div>
+        </div>
+      )}
       <div className="carpeta-web-ttl"><Cloud size={15} color="var(--accent-d)" aria-hidden="true" />{t(drive ? (ms ? 'Tu trabajo, en tu OneDrive' : 'Tu trabajo, en tu Google Drive') : 'Dónde se guarda una copia')}</div>
       <p>{t(drive
         ? (ms ? 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu OneDrive, y lo nuevo de tus otros dispositivos llega en unos segundos.' : 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.')

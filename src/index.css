@@ -264,6 +264,18 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .update-banner button:not(.update-close) { flex-shrink:0; display:flex; align-items:center; gap:6px; padding:8px 14px; background:linear-gradient(135deg,var(--accent-d),var(--accent)); color:#fff; border:none; border-radius:8px; font-family:var(--font); font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; transition:opacity var(--t); }
 .update-banner button:not(.update-close):hover { opacity:0.87; }
 .update-banner.carpeta-aviso { bottom:150px; flex-wrap:wrap; max-width:400px; }
+/* Aviso de copia de seguridad (versión web): más ancho, con texto y tres botones */
+.update-banner.aviso-copia { align-items:flex-start; max-width:440px; bottom:100px; }
+@media (max-width:600px) { .update-banner.aviso-copia { left:12px; right:12px; max-width:none; flex-wrap:wrap; } }
+.aviso-copia-ttl { display:block; font-size:13.5px; color:var(--text); margin-bottom:3px; }
+.aviso-copia p { font-size:12.5px; line-height:1.55; margin:0 0 6px; }
+.update-banner button.aviso-copia-luego { background:none; color:var(--text-2); font-weight:600; text-decoration:underline; padding:8px 6px; }
+.carpeta-web-alerta { display:flex; gap:10px; align-items:flex-start; margin-bottom:14px; padding:12px 13px; background:rgba(217,119,6,0.09); border:0.5px solid rgba(217,119,6,0.35); border-radius:10px; color:var(--text-2); }
+.carpeta-web-alerta > svg { flex-shrink:0; margin-top:2px; color:#d97706; }
+.carpeta-web-alerta strong { display:block; font-size:13px; color:var(--text); margin-bottom:3px; }
+.carpeta-web-alerta p { font-size:12.5px; line-height:1.55; margin:0 0 5px; }
+.entrar-aviso-local { display:flex; gap:8px; align-items:flex-start; width:100%; max-width:440px; margin:12px 0 0; padding:10px 12px; background:rgba(217,119,6,0.09); border:0.5px solid rgba(217,119,6,0.35); border-radius:10px; font-size:12.5px; line-height:1.5; color:var(--text-2); text-align:left; }
+.entrar-aviso-local svg { flex-shrink:0; margin-top:1px; color:#d97706; }
 .carpeta-aviso-btns { display:flex; gap:8px; flex-wrap:wrap; width:100%; justify-content:flex-end; }
 /* Versión web: entrar con la cuenta (pages/EntrarWeb.tsx), con el fondo crema de la app (decisión del dueño, 29-10-2026) */
 .lic-shell.entrar { background:var(--surface); }

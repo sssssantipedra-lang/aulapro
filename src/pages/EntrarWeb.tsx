@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CircleHelp, ShieldCheck } from 'lucide-react';
+import { CircleHelp, FolderSync, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
 import { cargarGoogle, cuentaActual, MICROSOFT_LISTO, type Cuenta } from '../platform/cuentaWeb';
@@ -169,6 +169,8 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
   const ms = useState(() => cuentaActual()?.proveedor === 'microsoft')[0];
   const [ocupado, setOcupado] = useState(false);
   const [elegir, setElegir] = useState(false);
+  /** Lo que se eligió fue una carpeta del ordenador (no la nube): cambia los textos de «¿con cuál te quedas?». */
+  const [conCarpeta, setConCarpeta] = useState(false);
   const [error, setError] = useState('');
   // Google cargado antes del toque: Safari bloquea la ventana si se abre después de esperar.
   useEffect(() => { if (!ms) cargarGoogle().catch(() => {}); }, [ms]);
@@ -207,6 +209,20 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
     setOcupado(false);
   }
 
+  /** Una carpeta del ordenador (Chrome y Edge): cada cambio se copia ahí. Si se cierra el selector, no pasa nada. */
+  async function elegirCarpeta() {
+    setOcupado(true); setError('');
+    try {
+      const r = await carpetaWeb.elegir();
+      if (!r) { setOcupado(false); return; }
+      if (r.elegir) { setConCarpeta(true); setElegir(true); setOcupado(false); return; }
+      onListo();
+    } catch (err) {
+      setError(`${t('No se ha podido guardar en esa carpeta.')} (${(err as Error)?.message || String(err)})`);
+    }
+    setOcupado(false);
+  }
+
   return (
     <div className="lic-shell entrar">
       <div className="auth-orb" style={{ width: 560, height: 560, background: 'rgba(var(--accent-rgb),0.10)', top: -160, right: -120 }} />
@@ -221,14 +237,14 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
 
         {elegir ? (
           <div className="entrar-tarjetas">
-            <p className="entrar-sub" style={{ margin: '0 0 4px' }}>{t(ms ? 'Tu OneDrive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?' : 'Tu Drive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?')}</p>
+            <p className="entrar-sub" style={{ margin: '0 0 4px' }}>{t(conCarpeta ? 'Esa carpeta ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?' : ms ? 'Tu OneDrive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?' : 'Tu Drive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?')}</p>
             <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.confirmar('carpeta'))}>
               <span className="entrar-ico">{ms ? <LogoMicrosoft /> : <LogoDrive />}</span>
-              <span className="entrar-txt"><strong>{t(ms ? 'Usar el de mi OneDrive' : 'Usar el de mi Drive')}</strong><em>{t('Lo que solo esté en este navegador también se conserva.')}</em></span>
+              <span className="entrar-txt"><strong>{t(conCarpeta ? 'Usar el de la carpeta' : ms ? 'Usar el de mi OneDrive' : 'Usar el de mi Drive')}</strong><em>{t('Lo que solo esté en este navegador también se conserva.')}</em></span>
             </button>
             <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.confirmar('local'))}>
               <span className="entrar-ico"><ShieldCheck size={24} aria-hidden="true" /></span>
-              <span className="entrar-txt"><strong>{t('Usar el de este navegador')}</strong><em>{t(ms ? 'Sustituye lo que hay en tu OneDrive.' : 'Sustituye lo que hay en tu Drive.')}</em></span>
+              <span className="entrar-txt"><strong>{t('Usar el de este navegador')}</strong><em>{t(conCarpeta ? 'Sustituye lo que hay en la carpeta.' : ms ? 'Sustituye lo que hay en tu OneDrive.' : 'Sustituye lo que hay en tu Drive.')}</em></span>
             </button>
           </div>
         ) : (
@@ -238,12 +254,22 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
               <span className="entrar-txt"><strong>{t(ms ? 'Guardar en mi OneDrive' : 'Guardar en mi Google Drive')}</strong><em>{t(ms ? 'Recomendado. Un clic y Microsoft te pide permiso.' : 'Recomendado. Un clic y Google te pide permiso.')}</em></span>
               {ocupado && <span className="spin" aria-hidden="true" />}
             </button>
+            {carpetaWeb.soportada() && (
+              <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={elegirCarpeta}>
+                <span className="entrar-ico"><FolderSync size={24} aria-hidden="true" /></span>
+                <span className="entrar-txt"><strong>{t('Guardar en una carpeta de mi ordenador')}</strong><em>{t('Cada cambio se copia ahí. Mejor la de OneDrive o Google Drive de tu ordenador.')}</em></span>
+              </button>
+            )}
           </div>
         )}
 
         <AyudaDondeGuardar ms={ms} />
 
         <button type="button" className="entrar-ahora-no" disabled={ocupado} onClick={onListo}>{t('Ahora no: guardar solo en este dispositivo')}</button>
+        <p className="entrar-aviso-local">
+          <ShieldAlert size={16} aria-hidden="true" />
+          <span>{t('Si guardas solo en este dispositivo, tu trabajo se puede perder: si se borran los datos del navegador, si cambias de dispositivo o si se estropea. AulaPro te lo recordará y te dejará descargar copias.')}</span>
+        </p>
 
         <p className="entrar-nota">
           <ShieldCheck size={15} aria-hidden="true" />
