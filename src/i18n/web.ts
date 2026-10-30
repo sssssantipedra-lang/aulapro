@@ -123,6 +123,8 @@ export const WEB_EN: Record<string, string> = {
   "Guárdalo en tu OneDrive y lo tendrás en todos tus dispositivos.": "Save it to your OneDrive and you will have it on all your devices.",
   "Dejar de guardar en OneDrive": "Stop saving to OneDrive",
   "No hemos podido confirmar tu correo con Microsoft (las cuentas de algunos centros no lo permiten). Si compraste con ese correo, usa «¿Compraste con otro correo o tienes un pack? Escribe tu clave».": "We could not confirm your email with Microsoft (some school accounts do not allow it). If you bought with that email, use “Bought with another email or have a pack? Enter your key”.",
+  "Tu OneDrive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.": "Your OneDrive is full and AulaPro cannot save there. Free up space and try again, or press “Not now” to save only on this device.",
+  "Tu Google Drive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.": "Your Google Drive is full and AulaPro cannot save there. Free up space and try again, or press “Not now” to save only on this device.",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -244,4 +246,6 @@ export const WEB_CA: Record<string, string> = {
   "Guárdalo en tu OneDrive y lo tendrás en todos tus dispositivos.": "Desa-ho al teu OneDrive i ho tindràs en tots els teus dispositius.",
   "Dejar de guardar en OneDrive": "Deixar de desar a OneDrive",
   "No hemos podido confirmar tu correo con Microsoft (las cuentas de algunos centros no lo permiten). Si compraste con ese correo, usa «¿Compraste con otro correo o tienes un pack? Escribe tu clave».": "No hem pogut confirmar el teu correu amb Microsoft (els comptes d’alguns centres no ho permeten). Si vas comprar amb aquest correu, fes servir «Vas comprar amb un altre correu o tens un pack? Escriu la teva clau».",
+  "Tu OneDrive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.": "El teu OneDrive és ple i AulaPro no hi pot desar. Allibera espai i torna-ho a provar, o prem «Ara no» per desar només en aquest dispositiu.",
+  "Tu Google Drive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.": "El teu Google Drive és ple i AulaPro no hi pot desar. Allibera espai i torna-ho a provar, o prem «Ara no» per desar només en aquest dispositiu.",
 };

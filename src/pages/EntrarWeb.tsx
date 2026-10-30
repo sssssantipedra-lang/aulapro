@@ -6,6 +6,7 @@ import { cargarGoogle, cuentaActual, MICROSOFT_LISTO, type Cuenta } from '../pla
 import { entrarConGoogle, hayVueltaEntrada, terminarVueltaEntrada } from '../platform/googleDrive';
 import { entrarConMicrosoft, hayVueltaEntradaMicrosoft, terminarVueltaEntradaMicrosoft } from '../platform/microsoft';
 import { carpetaWeb } from '../platform/carpetaWeb';
+import { DRIVE_LLENO } from '../platform/driveFs';
 
 /** Logo de Google (los cuatro colores oficiales). */
 function LogoGoogle() {
@@ -191,6 +192,14 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
       // La app aún no se ha abierto (este paso va antes): lo traído de Drive se lee al abrirla, sin recargar
       onListo();
     } catch (err) {
+      if ((err as Error)?.message === DRIVE_LLENO) {
+        // El Drive o el OneDrive no tiene sitio: no se arregla dando permiso, y el trabajo puede seguir en este dispositivo
+        setError(t(ms
+          ? 'Tu OneDrive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.'
+          : 'Tu Google Drive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.'));
+        setOcupado(false);
+        return;
+      }
       setError((err as DOMException)?.name === 'NotAllowedError'
         ? t(ms ? 'Microsoft no ha dado el permiso. Vuelve a probar; si tu centro no lo permite, usa «Ahora no» y guarda en este dispositivo.' : 'Google no ha dado el permiso. Vuelve a probar y marca la casilla de Google Drive.')
         : `${t(ms ? 'No se ha podido conectar con OneDrive. Vuelve a probar en un momento.' : 'No se ha podido conectar con Google Drive. Vuelve a probar en un momento.')} (${(err as Error)?.message || String(err)})`);
