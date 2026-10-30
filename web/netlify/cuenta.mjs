@@ -8,7 +8,8 @@
 // solo se usa para la búsqueda: no se guarda ni se registra. Ver src/platform/cuentaWeb.ts.
 import { firmar } from '../funciones/api/_firma.js';
 import { corsPara } from '../funciones/api/_origenes.js';
-import { dentroDelLimite, respuestaLimite } from './_limite.mjs';
+import { verificarTokenMicrosoft } from '../funciones/api/_microsoft.js';
+import { dentroDelLimite, respuestaLimite } from '../lib-netlify/limite.mjs';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -28,14 +29,21 @@ export default async (request, context) => {
   const ip = context.ip || 'desconocida';
   if (!(await dentroDelLimite(`cuenta-ip:${ip}`, 20, 600))) return respuestaLimite(cors);
 
-  const { token } = await request.json().catch(() => ({}));
+  const { token, proveedor } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400, cors);
 
-  const g = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`);
-  if (!g.ok) return json({ error: 'token' }, 401, cors);
-  const info = await g.json();
-  if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401, cors);
-  const email = String(info.email).trim().toLowerCase();
+  let email;
+  if (proveedor === 'microsoft') {
+    // Microsoft no tiene un servicio que compruebe el token: se comprueba aquí (ver _microsoft.js)
+    email = (await verificarTokenMicrosoft(token))?.email;
+    if (!email) return json({ error: 'token' }, 401, cors);
+  } else {
+    const g = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`);
+    if (!g.ok) return json({ error: 'token' }, 401, cors);
+    const info = await g.json();
+    if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401, cors);
+    email = String(info.email).trim().toLowerCase();
+  }
 
   // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
   // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.

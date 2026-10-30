@@ -9,11 +9,40 @@ import { carpetaFs, idbKv } from './webFs';
 import type { Conexion, Espejo } from './espejo';
 import { createDriveFs } from './driveFs';
 import { hayVueltaDrive, leerPermisoDrive, pedirPermisoDrive, quitarPermisoDrive, terminarVueltaDrive, tokenDrive } from './googleDrive';
+import { hayVueltaOneDrive, leerPermisoOneDrive, oneDriveFs, pedirPermisoOneDrive, quitarPermisoOneDrive, terminarVueltaOneDrive } from './microsoft';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
+import type { Fs } from './profileStore';
 
 /** El nombre con el que sale el Drive del docente como «carpeta» (ver `driveFs.ts`). */
 export const NOMBRE_DRIVE = 'Google Drive';
+/** Lo mismo para OneDrive (ver `oneDriveFs.ts`). */
+export const NOMBRE_ONEDRIVE = 'OneDrive';
 const driveFs = () => createDriveFs(tokenDrive);
+
+/** Dónde guarda su trabajo el docente: Google Drive o OneDrive, según con qué cuenta entró. */
+interface Nube {
+  nombre: string;
+  fs: () => Fs;
+  leerPermiso: () => Promise<{ email: string } | undefined>;
+  /** Pide el permiso; con la redirección, la página se va a Microsoft o Google y esto no vuelve. */
+  pedirPermiso: (email: string) => Promise<unknown>;
+  hayVuelta: () => boolean;
+  terminarVuelta: (email: string) => Promise<unknown>;
+  quitarPermiso: () => Promise<void>;
+}
+const GOOGLE: Nube = {
+  nombre: NOMBRE_DRIVE, fs: driveFs, leerPermiso: leerPermisoDrive, pedirPermiso: pedirPermisoDrive,
+  hayVuelta: () => hayVueltaDrive(), terminarVuelta: terminarVueltaDrive, quitarPermiso: quitarPermisoDrive,
+};
+const ONEDRIVE: Nube = {
+  nombre: NOMBRE_ONEDRIVE, fs: oneDriveFs, leerPermiso: leerPermisoOneDrive, pedirPermiso: pedirPermisoOneDrive,
+  hayVuelta: hayVueltaOneDrive, terminarVuelta: terminarVueltaOneDrive, quitarPermiso: quitarPermisoOneDrive,
+};
+/** La nube de una cuenta (por defecto, Google). */
+export const nubeDe = (proveedor?: string): Nube => (proveedor === 'microsoft' ? ONEDRIVE : GOOGLE);
+const nubeActual = async () => nubeDe((cuentaActual() ?? await leerCuenta())?.proveedor);
+/** La nube que está copiando ahora, por el nombre con el que se conectó. */
+const nubeConectada = () => { const e = espejo?.estado(); const n = e && 'nombre' in e ? e.nombre : ''; return n === NOMBRE_ONEDRIVE ? ONEDRIVE : n === NOMBRE_DRIVE ? GOOGLE : null; };
 
 /** Lo lanza `platform/web.ts` justo antes de abrir el diálogo de imprimir (aquí para no cargar web.ts en las pantallas). */
 export const EVENTO_PDF = 'aulapro:pdf';
@@ -32,7 +61,8 @@ export function iniciarCarpeta(e: Espejo) { espejo = e; }
 let porConfirmar: FileSystemDirectoryHandle | 'drive' | null = null;
 
 async function conectarDrive(preferir?: 'carpeta' | 'local'): Promise<Conexion> {
-  const r = await espejo!.conectar(driveFs(), NOMBRE_DRIVE, preferir);
+  const nube = await nubeActual();
+  const r = await espejo!.conectar(nube.fs(), nube.nombre, preferir);
   if (r.elegir) { porConfirmar = 'drive'; return r; }
   porConfirmar = null;
   await idbKv.del('carpeta');
@@ -84,38 +114,41 @@ export const carpetaWeb = {
     return porConfirmar ? conectarCon(porConfirmar, preferir) : null;
   },
 
-  /** Guardar en el Google Drive de la cuenta con la que se entró (al pulsar un botón: abre la ventana de Google). */
+  /** Guardar en el Google Drive o el OneDrive de la cuenta con la que se entró (al pulsar un botón: abre la ventana de Google o va a la página de Microsoft). */
   async conectarDrive(): Promise<Conexion | null> {
     const email = (cuentaActual() ?? await leerCuenta())?.email;
     if (!espejo || !email) return null;
-    await pedirPermisoDrive(email);
+    await (await nubeActual()).pedirPermiso(email);
     return conectarDrive();
   },
 
-  /** Drive ya permitido al entrar (un solo paso): solo falta conectarlo. */
+  /** La nube ya permitida al entrar (un solo paso con Google): solo falta conectarla. */
   async conectarYa(): Promise<Conexion | null> {
-    if (!espejo || !(await leerPermisoDrive())) return null;
+    if (!espejo || !(await (await nubeActual()).leerPermiso())) return null;
     return conectarDrive();
   },
 
-  /** Se vuelve de la página de Google (Safari): termina de conectar Drive. */
-  hayVuelta: hayVueltaDrive,
+  /** Se vuelve de la página de Google (Safari) o de Microsoft: termina de conectar. */
+  hayVuelta: () => hayVueltaNube(),
   async terminarVuelta(): Promise<Conexion | null> {
     const email = (cuentaActual() ?? await leerCuenta())?.email;
     if (!espejo || !email) return null;
-    await terminarVueltaDrive(email);
+    await (await nubeActual()).terminarVuelta(email);
     return conectarDrive();
   },
 
-  usaDrive: () => { const e = espejo?.estado(); return !!e && 'nombre' in e && e.nombre === NOMBRE_DRIVE; },
+  usaDrive: () => nubeConectada() !== null,
+  /** Con qué nube está copiando: «Google Drive» u «OneDrive» (vacío si ninguna). */
+  nombreNube: () => nubeConectada()?.nombre ?? '',
 
-  /** El navegador (o Google) volvió a pedir permiso: hace falta que el docente pulse. */
+  /** El navegador (o Google, o Microsoft) volvió a pedir permiso: hace falta que el docente pulse. */
   async pedirPermiso(): Promise<number> {
-    if (carpetaWeb.usaDrive()) {
+    const nube = nubeConectada();
+    if (nube) {
       const email = (cuentaActual() ?? await leerCuenta())?.email;
       if (!email || !espejo) return 0;
-      await pedirPermisoDrive(email);
-      return espejo.activar(driveFs(), NOMBRE_DRIVE, { congelar: true });
+      await nube.pedirPermiso(email);
+      return espejo.activar(nube.fs(), nube.nombre, { congelar: true });
     }
     const g = await idbKv.get<CarpetaGuardada>('carpeta');
     if (!g || !espejo) return 0;
@@ -124,9 +157,10 @@ export const carpetaWeb = {
   },
 
   async desconectar() {
+    const nube = nubeConectada() ?? await nubeActual();
     espejo?.desconectar();
     await idbKv.del('carpeta');
-    await quitarPermisoDrive();
+    await nube.quitarPermiso();
   },
 
   resolver: (id: string, con: 'carpeta' | 'local') => espejo?.resolver(id, con),
@@ -138,12 +172,13 @@ export const carpetaWeb = {
  * dispositivo, se recarga en cuanto se pueda sin cortar al docente.
  */
 export async function abrirCarpetaGuardada() {
-  const permiso = await leerPermisoDrive();
+  const cuenta = await leerCuenta();
+  const nube = nubeDe(cuenta?.proveedor);
+  const permiso = await nube.leerPermiso();
   if (permiso && espejo) {
-    const cuenta = await leerCuenta();
-    // El Drive es de una cuenta: con otra, no se copia nada en él
-    if (!cuenta || cuenta.email !== permiso.email) { await quitarPermisoDrive(); return; }
-    espejo.activar(driveFs(), NOMBRE_DRIVE, { congelar: true }).then(n => { if (n > 0) recargarCuandoSeAPuedeSinCortar(); });
+    // El Drive (o el OneDrive) es de una cuenta: con otra, no se copia nada en él
+    if (!cuenta || cuenta.email !== permiso.email) { await nube.quitarPermiso(); return; }
+    espejo.activar(nube.fs(), nube.nombre, { congelar: true }).then(n => { if (n > 0) recargarCuandoSeAPuedeSinCortar(); });
     return;
   }
   const g = await idbKv.get<CarpetaGuardada>('carpeta').catch(() => undefined);
@@ -157,4 +192,29 @@ export async function abrirCarpetaGuardada() {
   } catch {
     espejo.sinPermiso(g.nombre);
   }
+}
+
+/** Se vuelve de la página de Google o de Microsoft con el permiso de guardar en la nube (para el paso de Drive). */
+export const hayVueltaNube = () => hayVueltaDrive() || hayVueltaOneDrive();
+/** ¿Ya hay permiso para guardar en la nube de la cuenta con la que se entró? */
+export async function leerPermisoNube() { return (await nubeActual()).leerPermiso(); }
+
+/**
+ * La clave escrita a mano (compra con otro correo o un pack), en la nube de la cuenta: así, en otro
+ * dispositivo con la misma cuenta, se activa sola (petición del dueño, 29-10-2026). Un archivo aparte de la
+ * carpeta «AulaPro», fuera de lo que copia `espejo.ts`.
+ */
+const LICENCIA = 'AulaPro/licencia.json';
+export async function guardarClaveEnNube(key: string) {
+  const nube = await nubeActual();
+  if (!(await nube.leerPermiso())) return;
+  await nube.fs().write(LICENCIA, JSON.stringify({ key }));
+}
+export async function claveDeNube(): Promise<string> {
+  const nube = await nubeActual();
+  if (!(await nube.leerPermiso())) return '';
+  try {
+    const k = JSON.parse((await nube.fs().read(LICENCIA)) ?? '{}').key;
+    return typeof k === 'string' ? k : '';
+  } catch { return ''; }
 }

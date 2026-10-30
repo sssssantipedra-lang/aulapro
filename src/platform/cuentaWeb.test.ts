@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { GOOGLE_CLIENT_ID, leerTokenGoogle, licenciaDeLaCuenta, licenciaMiradaHace } from './cuentaWeb';
+import { GOOGLE_CLIENT_ID, leerTokenGoogle, leerTokenMicrosoft, licenciaDeLaCuenta, licenciaMiradaHace } from './cuentaWeb';
 
 const token = (p: object) => `x.${btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(p)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}.firma`;
 const AHORA = Date.UTC(2026, 9, 29);
@@ -42,5 +42,28 @@ describe('buscar la compra de la cuenta', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({}), { status: 200 })));
     await licenciaDeLaCuenta();
     expect(licenciaMiradaHace(60_000)).toBe(true);
+  });
+});
+
+describe('entrar con Microsoft (versión web)', () => {
+  const CLIENTE = 'cliente-ms';
+  const ms = { aud: CLIENTE, tid: 'tenant-1', iss: 'https://login.microsoftonline.com/tenant-1/v2.0', exp: AHORA / 1000 + 3600, oid: 'oid-1', email: 'Profe@Outlook.com', name: 'Profe' };
+
+  it('lee la cuenta del token: correo en minúsculas e identificador del inquilino y la persona', () => {
+    expect(leerTokenMicrosoft(token(ms), AHORA, CLIENTE)).toEqual({ proveedor: 'microsoft', id: 'tenant-1.oid-1', email: 'profe@outlook.com', nombre: 'Profe' });
+  });
+  it('sin correo, usa el nombre de usuario para enseñarlo', () => {
+    expect(leerTokenMicrosoft(token({ ...ms, email: undefined, preferred_username: 'profe@centro.es' }), AHORA, CLIENTE)?.email).toBe('profe@centro.es');
+  });
+  it('rechaza otra aplicación, otro emisor, caducado, roto, y todo si no hay identificador de cliente configurado', () => {
+    expect(leerTokenMicrosoft(token({ ...ms, aud: 'otra' }), AHORA, CLIENTE)).toBeNull();
+    expect(leerTokenMicrosoft(token({ ...ms, iss: 'https://login.microsoftonline.com/otro/v2.0' }), AHORA, CLIENTE)).toBeNull();
+    expect(leerTokenMicrosoft(token({ ...ms, exp: AHORA / 1000 - 1 }), AHORA, CLIENTE)).toBeNull();
+    expect(leerTokenMicrosoft('basura', AHORA, CLIENTE)).toBeNull();
+    expect(leerTokenMicrosoft(token(ms), AHORA, '')).toBeNull();
+  });
+  it('un token de Google no vale como de Microsoft ni al revés', () => {
+    expect(leerTokenMicrosoft(token(bueno), AHORA, CLIENTE)).toBeNull();
+    expect(leerTokenGoogle(token(ms), AHORA)).toBeNull();
   });
 });

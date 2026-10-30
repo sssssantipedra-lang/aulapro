@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } fro
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
-import { AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
+import { AvisoCopiaWeb, AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
-import { hayVueltaDrive, leerPermisoDrive } from './platform/googleDrive';
+import { hayVueltaNube, leerPermisoNube } from './platform/carpetaWeb';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, licenciaMiradaHace, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
 import { Sidebar } from './components/layout/Sidebar';
@@ -314,6 +314,7 @@ function AppInner() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile'} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
       {(!phone || menuOpen) && <Sidebar
         mini={menuMini}
         overlay={menuOverlay}
@@ -867,8 +868,8 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       }
       // Una clave escrita a mano en otro dispositivo de esta cuenta, guardada en su Drive
       if (isWebApp() && bridge && s?.required) {
-        const { claveDeDrive } = await import('./platform/googleDrive');
-        const k = await claveDeDrive();
+        const { claveDeNube } = await import('./platform/carpetaWeb');
+        const k = await claveDeNube();
         if (k) { const r = await bridge.activate(k); if (r.ok) { setState(r.state); return; } }
       }
       setState(s);
@@ -902,8 +903,8 @@ function CuentaCheck({ children }: { children: React.ReactNode }) {
     try { saltado = sessionStorage.getItem('aulapro_drive_ahora_no') === '1'; } catch { /* sin almacenamiento */ }
     let ya = false;
     try { ya = sessionStorage.getItem(CONECTAR_YA) === '1'; } catch { /* sin almacenamiento */ }
-    const directo = ya || hayVueltaDrive();
-    leerPermisoDrive().then(p => setPasoDrive(directo || (!p && !saltado)));
+    const directo = ya || hayVueltaNube();
+    leerPermisoNube().then(p => setPasoDrive(directo || (!p && !saltado)));
   }, [cuenta, pasoDrive]);
   const listoDrive = useCallback(() => {
     try { sessionStorage.setItem('aulapro_drive_ahora_no', '1'); } catch { /* sin almacenamiento */ }

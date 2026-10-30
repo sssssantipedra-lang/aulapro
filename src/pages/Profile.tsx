@@ -25,6 +25,7 @@ import { TipoDocentePicker, type TipoDocente, type EleccionTipo } from '../compo
 import { especialidadTexto } from '../lib/apoyo';
 import { ATRIBUCION_MULBERRY } from '../lib/atribucionPictos';
 import { CARPETAS } from '../lib/carpetas';
+import { registrarCopia } from '../lib/avisoCopia';
 
 interface Props {
   user: User | null;
@@ -164,12 +165,13 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
 
   function handleExport() {
     void downloadFile(copiaDeDatos(), `aulapro-copia-${isoDate()}.json`, CARPETAS.copias);
+    registrarCopia();
     toast('✅ Copia de seguridad descargada');
   }
 
   /** Versión web en el móvil o la tableta: la copia, por el menú de compartir, a su Drive, OneDrive o iCloud. */
   async function handleNube() {
-    if (await compartirArchivo(copiaDeDatos(), `aulapro-copia-${isoDate()}.json`)) toast(t('✅ Copia enviada'));
+    if (await compartirArchivo(copiaDeDatos(), `aulapro-copia-${isoDate()}.json`)) { registrarCopia(); toast(t('✅ Copia enviada')); }
   }
   const conNube = isWebApp() && puedeCompartirArchivos();
 

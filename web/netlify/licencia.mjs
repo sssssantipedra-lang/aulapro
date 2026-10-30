@@ -4,7 +4,7 @@
 import { clavePublica } from '../funciones/api/_firma.js';
 import { conFirma } from '../funciones/api/licencia/[accion].js';
 import { corsPara } from '../funciones/api/_origenes.js';
-import { dentroDelLimite, respuestaLimite } from './_limite.mjs';
+import { dentroDelLimite, respuestaLimite } from '../lib-netlify/limite.mjs';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];

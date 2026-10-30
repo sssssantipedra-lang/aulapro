@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { CircleHelp, ShieldCheck } from 'lucide-react';
+import { FolderSync, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { DondeGuardar } from '../components/DondeGuardar';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
-import { cargarGoogle, type Cuenta } from '../platform/cuentaWeb';
+import { cargarGoogle, cuentaActual, MICROSOFT_LISTO, type Cuenta } from '../platform/cuentaWeb';
 import { entrarConGoogle, hayVueltaEntrada, terminarVueltaEntrada } from '../platform/googleDrive';
+import { entrarConMicrosoft, hayVueltaEntradaMicrosoft, terminarVueltaEntradaMicrosoft } from '../platform/microsoft';
 import { carpetaWeb } from '../platform/carpetaWeb';
+import { DRIVE_LLENO } from '../platform/driveFs';
 
 /** Logo de Google (los cuatro colores oficiales). */
 function LogoGoogle() {
@@ -64,6 +67,7 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
     cargarGoogle().then(() => setListo(true))
       .catch(() => setError(t('Para entrar la primera vez hace falta internet. Conéctate y vuelve a probar.')));
     if (!vuelta.current && hayVueltaEntrada()) { vuelta.current = true; void entrar(terminarVueltaEntrada); }
+    if (!vuelta.current && hayVueltaEntradaMicrosoft()) { vuelta.current = true; void entrar(terminarVueltaEntradaMicrosoft); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -90,14 +94,24 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
             {(!listo || ocupado) && !error && <span className="spin" aria-hidden="true" />}
           </button>
 
-          <div className="entrar-tarjeta off" aria-disabled="true">
-            <span className="entrar-ico"><LogoMicrosoft /></span>
-            <span className="entrar-txt">
-              <strong>{t('Continuar con Microsoft')}</strong>
-              <em>{t('Outlook, Hotmail o Microsoft 365 de tu centro')}</em>
-            </span>
-            <span className="entrar-pronto">{t('Próximamente')}</span>
-          </div>
+          {MICROSOFT_LISTO ? (
+            <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => entrar(entrarConMicrosoft)}>
+              <span className="entrar-ico"><LogoMicrosoft /></span>
+              <span className="entrar-txt">
+                <strong>{t('Continuar con Microsoft')}</strong>
+                <em>{t('Outlook, Hotmail o Microsoft 365 de tu centro')}</em>
+              </span>
+            </button>
+          ) : (
+            <div className="entrar-tarjeta off" aria-disabled="true">
+              <span className="entrar-ico"><LogoMicrosoft /></span>
+              <span className="entrar-txt">
+                <strong>{t('Continuar con Microsoft')}</strong>
+                <em>{t('Outlook, Hotmail o Microsoft 365 de tu centro')}</em>
+              </span>
+              <span className="entrar-pronto">{t('Próximamente')}</span>
+            </div>
+          )}
         </div>
 
         <p className="entrar-nota">
@@ -123,26 +137,6 @@ function LogoDrive() {
   );
 }
 
-/** El «?» del paso de Drive: qué implica guardar en Drive o solo en el navegador (petición del dueño, 29-10-2026). */
-function AyudaDondeGuardar() {
-  const { t } = useI18n();
-  const [abierta, setAbierta] = useState(false);
-  return (
-    <div className="entrar-ayuda">
-      <button type="button" className="entrar-ayuda-btn" aria-expanded={abierta} onClick={() => setAbierta(a => !a)}>
-        <CircleHelp size={16} aria-hidden="true" /> {t('¿Qué implica cada opción?')}
-      </button>
-      {abierta && (
-        <div className="entrar-ayuda-caja">
-          <p><strong>{t('En tu Google Drive')}</strong>. {t('Tu trabajo queda en una carpeta «AulaPro» de tu Drive y lo tienes en todos tus dispositivos. Si pierdes o cambias de dispositivo, entras con tu cuenta y está todo. Drive guarda también las versiones anteriores de cada archivo.')}</p>
-          <p><strong>{t('Solo en este navegador')}</strong>. {t('Tu trabajo se queda solo en este dispositivo, dentro del navegador. No lo verás en otros dispositivos y se pierde si borras los datos del navegador, si cambias de dispositivo o si se estropea. En iPhone y iPad, Safari puede borrarlo si pasas siete días sin abrir AulaPro, salvo que la hayas añadido a la pantalla de inicio. Descarga copias a menudo (Configuración › Datos y copias).')}</p>
-          <p className="entrar-ayuda-pie">{t('En los dos casos, tus datos no pasan por ningún servidor de AulaPro: AulaPro no los ve, no los guarda y no se hace responsable de su pérdida. Su custodia es tuya (y de Google, si usas Drive). Más detalle en la política de privacidad.')}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /**
  * Versión web, segundo paso al entrar: guardar el trabajo en el Google Drive
  * de la cuenta (`platform/googleDrive.ts`, `driveFs.ts`). Un clic abre la
@@ -150,12 +144,18 @@ function AyudaDondeGuardar() {
  */
 export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
   const { t } = useI18n();
+  // Con una cuenta de Microsoft, la nube es OneDrive (`platform/microsoft.ts`)
+  const ms = useState(() => cuentaActual()?.proveedor === 'microsoft')[0];
   const [ocupado, setOcupado] = useState(false);
   const [elegir, setElegir] = useState(false);
+  /** Lo que se eligió fue una carpeta del ordenador (no la nube): cambia los textos de «¿con cuál te quedas?». */
+  const [conCarpeta, setConCarpeta] = useState(false);
+  /** Pulsó «Ahora no»: antes de dejarle seguir sin nube, se le explica lo que arriesga. */
+  const [confirmandoLocal, setConfirmandoLocal] = useState(false);
   const [error, setError] = useState('');
   // Google cargado antes del toque: Safari bloquea la ventana si se abre después de esperar.
-  useEffect(() => { cargarGoogle().catch(() => {}); }, []);
-  // De vuelta de la página de Google (Safari): se termina solo
+  useEffect(() => { if (!ms) cargarGoogle().catch(() => {}); }, [ms]);
+  // De vuelta de la página de Google (Safari) o de Microsoft: se termina solo
   const vuelta = useRef(false);
   useEffect(() => {
     if (vuelta.current) return;
@@ -175,9 +175,31 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
       // La app aún no se ha abierto (este paso va antes): lo traído de Drive se lee al abrirla, sin recargar
       onListo();
     } catch (err) {
+      if ((err as Error)?.message === DRIVE_LLENO) {
+        // El Drive o el OneDrive no tiene sitio: no se arregla dando permiso, y el trabajo puede seguir en este dispositivo
+        setError(t(ms
+          ? 'Tu OneDrive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.'
+          : 'Tu Google Drive está lleno y AulaPro no puede guardar ahí. Libera espacio y vuelve a probar, o pulsa «Ahora no» para guardar solo en este dispositivo.'));
+        setOcupado(false);
+        return;
+      }
       setError((err as DOMException)?.name === 'NotAllowedError'
-        ? t('Google no ha dado el permiso. Vuelve a probar y marca la casilla de Google Drive.')
-        : `${t('No se ha podido conectar con Google Drive. Vuelve a probar en un momento.')} (${(err as Error)?.message || String(err)})`);
+        ? t(ms ? 'Microsoft no ha dado el permiso. Vuelve a probar; si tu centro no lo permite, usa «Ahora no» y guarda en este dispositivo.' : 'Google no ha dado el permiso. Vuelve a probar y marca la casilla de Google Drive.')
+        : `${t(ms ? 'No se ha podido conectar con OneDrive. Vuelve a probar en un momento.' : 'No se ha podido conectar con Google Drive. Vuelve a probar en un momento.')} (${(err as Error)?.message || String(err)})`);
+    }
+    setOcupado(false);
+  }
+
+  /** Una carpeta del ordenador (Chrome y Edge): cada cambio se copia ahí. Si se cierra el selector, no pasa nada. */
+  async function elegirCarpeta() {
+    setOcupado(true); setError('');
+    try {
+      const r = await carpetaWeb.elegir();
+      if (!r) { setOcupado(false); return; }
+      if (r.elegir) { setConCarpeta(true); setElegir(true); setOcupado(false); return; }
+      onListo();
+    } catch (err) {
+      setError(`${t('No se ha podido guardar en esa carpeta.')} (${(err as Error)?.message || String(err)})`);
     }
     setOcupado(false);
   }
@@ -189,40 +211,67 @@ export function ConectarDriveWeb({ onListo }: { onListo: () => void }) {
       <LangSwitch claro />
       <div className="entrar-caja">
         <img className="entrar-logo" src="./favicon.svg" alt="AulaPro" width={148} height={148} />
-        <h1 className="entrar-titulo">{t('Tu trabajo, en tu Google Drive')}</h1>
-        <p className="entrar-sub">{t('AulaPro guardará todo en una carpeta «AulaPro» de tu Drive. Así lo tienes en todos tus dispositivos y no se pierde nunca. Solo ve los archivos que crea ella.')}</p>
+        <h1 className="entrar-titulo">{t(ms ? 'Tu trabajo, en tu OneDrive' : 'Tu trabajo, en tu Google Drive')}</h1>
+        <p className="entrar-sub">{t(ms ? 'AulaPro guardará todo en una carpeta «AulaPro» de tu OneDrive. Así lo tienes en todos tus dispositivos y no se pierde nunca. Solo ve los archivos que crea ella.' : 'AulaPro guardará todo en una carpeta «AulaPro» de tu Drive. Así lo tienes en todos tus dispositivos y no se pierde nunca. Solo ve los archivos que crea ella.')}</p>
 
         {error && <div className="lic-err entrar-err" role="alert">{error}</div>}
 
         {elegir ? (
           <div className="entrar-tarjetas">
-            <p className="entrar-sub" style={{ margin: '0 0 4px' }}>{t('Tu Drive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?')}</p>
+            <p className="entrar-sub" style={{ margin: '0 0 4px' }}>{t(conCarpeta ? 'Esa carpeta ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?' : ms ? 'Tu OneDrive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?' : 'Tu Drive ya tiene trabajo de AulaPro y este navegador también. ¿Con cuál te quedas?')}</p>
             <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.confirmar('carpeta'))}>
-              <span className="entrar-ico"><LogoDrive /></span>
-              <span className="entrar-txt"><strong>{t('Usar el de mi Drive')}</strong><em>{t('Lo que solo esté en este navegador también se conserva.')}</em></span>
+              <span className="entrar-ico">{ms ? <LogoMicrosoft /> : <LogoDrive />}</span>
+              <span className="entrar-txt"><strong>{t(conCarpeta ? 'Usar el de la carpeta' : ms ? 'Usar el de mi OneDrive' : 'Usar el de mi Drive')}</strong><em>{t('Lo que solo esté en este navegador también se conserva.')}</em></span>
             </button>
             <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.confirmar('local'))}>
               <span className="entrar-ico"><ShieldCheck size={24} aria-hidden="true" /></span>
-              <span className="entrar-txt"><strong>{t('Usar el de este navegador')}</strong><em>{t('Sustituye lo que hay en tu Drive.')}</em></span>
+              <span className="entrar-txt"><strong>{t('Usar el de este navegador')}</strong><em>{t(conCarpeta ? 'Sustituye lo que hay en la carpeta.' : ms ? 'Sustituye lo que hay en tu OneDrive.' : 'Sustituye lo que hay en tu Drive.')}</em></span>
             </button>
           </div>
         ) : (
           <div className="entrar-tarjetas">
             <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => correr(() => carpetaWeb.conectarDrive())}>
-              <span className="entrar-ico"><LogoDrive /></span>
-              <span className="entrar-txt"><strong>{t('Guardar en mi Google Drive')}</strong><em>{t('Recomendado. Un clic y Google te pide permiso.')}</em></span>
+              <span className="entrar-ico">{ms ? <LogoMicrosoft /> : <LogoDrive />}</span>
+              <span className="entrar-txt"><strong>{t(ms ? 'Guardar en mi OneDrive' : 'Guardar en mi Google Drive')} <span className="donde-rec">{t('Recomendado')}</span></strong><em>{t(ms ? 'Un clic y Microsoft te pide permiso. Es lo más seguro.' : 'Un clic y Google te pide permiso. Es lo más seguro.')}</em></span>
               {ocupado && <span className="spin" aria-hidden="true" />}
             </button>
+            {carpetaWeb.soportada() && (
+              <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={elegirCarpeta}>
+                <span className="entrar-ico"><FolderSync size={24} aria-hidden="true" /></span>
+                <span className="entrar-txt"><strong>{t('Guardar en una carpeta de mi ordenador')}</strong><em>{t('Cada cambio se copia ahí. Mejor la de OneDrive o Google Drive de tu ordenador.')}</em></span>
+              </button>
+            )}
           </div>
         )}
 
-        <AyudaDondeGuardar />
+        <DondeGuardar ms={ms} carpeta={carpetaWeb.soportada()} />
 
-        <button type="button" className="entrar-ahora-no" disabled={ocupado} onClick={onListo}>{t('Ahora no: guardar solo en este dispositivo')}</button>
+        {confirmandoLocal ? (
+          <div className="entrar-confirma" role="alertdialog" aria-labelledby="entrar-confirma-ttl">
+            <ShieldAlert size={20} aria-hidden="true" />
+            <strong id="entrar-confirma-ttl">{t('¿Seguro que quieres guardar solo en este navegador?')}</strong>
+            <p>{t(ms
+              ? 'Si se borran los datos del navegador, cambias de dispositivo o se estropea, perderás tu trabajo y AulaPro no podrá recuperarlo. Guardarlo en tu OneDrive son dos clics y después se hace solo.'
+              : 'Si se borran los datos del navegador, cambias de dispositivo o se estropea, perderás tu trabajo y AulaPro no podrá recuperarlo. Guardarlo en tu Google Drive son dos clics y después se hace solo.')}</p>
+            <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => { setConfirmandoLocal(false); void correr(() => carpetaWeb.conectarDrive()); }}>
+              <span className="entrar-ico">{ms ? <LogoMicrosoft /> : <LogoDrive />}</span>
+              <span className="entrar-txt"><strong>{t(ms ? 'Guardar en mi OneDrive' : 'Guardar en mi Google Drive')}</strong><em>{t('Recomendado')}</em></span>
+            </button>
+            <button type="button" className="entrar-ahora-no" disabled={ocupado} onClick={onListo}>{t('Entiendo el riesgo: seguir sin guardar en la nube')}</button>
+          </div>
+        ) : (
+          <>
+            <button type="button" className="entrar-ahora-no" disabled={ocupado} onClick={() => setConfirmandoLocal(true)}>{t('Ahora no: guardar solo en este dispositivo')}</button>
+            <p className="entrar-aviso-local">
+              <ShieldAlert size={16} aria-hidden="true" />
+              <span>{t('Si guardas solo en este dispositivo, tu trabajo se puede perder: si se borran los datos del navegador, si cambias de dispositivo o si se estropea. AulaPro te lo recordará y te dejará descargar copias.')}</span>
+            </p>
+          </>
+        )}
 
         <p className="entrar-nota">
           <ShieldCheck size={15} aria-hidden="true" />
-          <span>{t('Tu trabajo va de este dispositivo a tu Drive directamente. Nunca pasa por un servidor de AulaPro.')}</span>
+          <span>{t(ms ? 'Tu trabajo va de este dispositivo a tu OneDrive directamente. Nunca pasa por un servidor de AulaPro.' : 'Tu trabajo va de este dispositivo a tu Drive directamente. Nunca pasa por un servidor de AulaPro.')}</span>
         </p>
       </div>
     </div>
