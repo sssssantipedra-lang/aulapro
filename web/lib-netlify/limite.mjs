@@ -5,6 +5,8 @@
 // para cualquier función del sitio.
 import { getStore } from '@netlify/blobs';
 
+export { LIMITES } from '../funciones/api/_limite.js';
+
 export async function dentroDelLimite(clave, maximo, ventanaSeg) {
   try {
     const store = getStore({ name: 'limite-licencia', consistency: 'strong' });

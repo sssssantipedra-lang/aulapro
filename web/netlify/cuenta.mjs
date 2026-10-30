@@ -9,7 +9,7 @@
 import { firmar } from '../funciones/api/_firma.js';
 import { corsPara } from '../funciones/api/_origenes.js';
 import { verificarTokenMicrosoft } from '../funciones/api/_microsoft.js';
-import { dentroDelLimite, respuestaLimite } from '../lib-netlify/limite.mjs';
+import { dentroDelLimite, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -24,10 +24,9 @@ export default async (request, context) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   const env = { LEMONSQUEEZY_API_KEY: Netlify.env.get('LEMONSQUEEZY_API_KEY'), FUNDADORES: Netlify.env.get('FUNDADORES'), GOOGLE_CLIENT_SECRET: Netlify.env.get('GOOGLE_CLIENT_SECRET') };
 
-  // 20 por IP cada 10 minutos: de sobra para entrar en varios dispositivos de un mismo centro, poco
-  // para aporrear la búsqueda en Lemon Squeezy.
+  // Tope por IP generoso: un centro entero entra desde la misma wifi (ver LIMITES en funciones/api/_limite.js).
   const ip = context.ip || 'desconocida';
-  if (!(await dentroDelLimite(`cuenta-ip:${ip}`, 20, 600))) return respuestaLimite(cors);
+  if (!(await dentroDelLimite(`cuenta-ip:${ip}`, LIMITES.ip, LIMITES.ventana))) return respuestaLimite(cors);
 
   const { token, proveedor } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400, cors);

@@ -8,6 +8,16 @@
 // Hace falta un espacio de nombres KV enlazado como `LIMITE` (en el proyecto de Cloudflare Pages:
 // Settings → Functions → KV namespace bindings → LIMITE). Sin él, `dentroDelLimite` no bloquea nada
 // (mejor no limitar que tumbar la licencia de todo el mundo por un enlace olvidado).
+
+/**
+ * Las cifras (por ventana de 10 minutos). Son generosas a propósito: un colegio entero comparte la misma
+ * dirección de internet, y un claustro de 30 docentes puede entrar a la vez en una jornada de formación
+ * (cada entrada son 2 o 3 llamadas) o activar la misma clave de un pack. Frenan a un programa que llama sin
+ * parar, no a un centro. OJO: no impiden agotar el cupo de dispositivos de una clave filtrada (bastan 2
+ * llamadas); eso solo lo arregla quien administra la clave en Lemon Squeezy.
+ */
+export const LIMITES = { ventana: 600, clave: 60, ip: 150, microsoft: 250 };
+
 export async function dentroDelLimite(kv, clave, maximo, ventanaSeg) {
   if (!kv) return true;
   const ventana = Math.floor(Date.now() / 1000 / ventanaSeg);
