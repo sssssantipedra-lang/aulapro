@@ -269,6 +269,7 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 @media (max-width:600px) { .update-banner.aviso-copia { left:12px; right:12px; max-width:none; flex-wrap:wrap; } }
 .aviso-copia-ttl { display:block; font-size:13.5px; color:var(--text); margin-bottom:3px; }
 .aviso-copia p { font-size:12.5px; line-height:1.55; margin:0 0 6px; }
+.update-banner button.aviso-copia-sec { background:var(--surface); color:var(--text); border:0.5px solid var(--border); }
 .update-banner button.aviso-copia-luego { background:none; color:var(--text-2); font-weight:600; text-decoration:underline; padding:8px 6px; }
 .carpeta-web-alerta { display:flex; gap:10px; align-items:flex-start; margin-bottom:14px; padding:12px 13px; background:rgba(217,119,6,0.09); border:0.5px solid rgba(217,119,6,0.35); border-radius:10px; color:var(--text-2); }
 .carpeta-web-alerta > svg { flex-shrink:0; margin-top:2px; color:#d97706; }
@@ -2577,3 +2578,26 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .ses-orden-asa:active { cursor:grabbing; }
 .ef-sesion-fila.arrastrando { opacity:.4; }
 .ef-sesion-fila.encima { box-shadow:0 -3px 0 var(--accent); }
+
+/* Dónde guardar el trabajo (versión web): la nube, a la vista y recomendada; solo en el navegador, con su riesgo */
+.donde-guardar { width:100%; max-width:440px; margin-top:16px; text-align:left; }
+.donde-ttl { font-size:13px; font-weight:800; color:var(--text); margin-bottom:8px; }
+.donde-fila { display:flex; gap:11px; align-items:flex-start; padding:11px 13px; margin-bottom:8px; border-radius:var(--r-lg); border:0.5px solid var(--border); background:var(--card); }
+.donde-fila > svg { flex-shrink:0; margin-top:2px; }
+.donde-fila strong { display:block; font-size:13px; color:var(--text); margin-bottom:2px; }
+.donde-fila p { margin:0; font-size:12.5px; line-height:1.5; color:var(--text-2); }
+.donde-ok { border-color:rgba(22,163,74,0.5); background:rgba(22,163,74,0.07); }
+.donde-ok > svg { color:#16a34a; }
+.donde-med > svg { color:var(--accent-d); }
+.donde-mal { border-color:rgba(217,119,6,0.45); background:rgba(217,119,6,0.07); }
+.donde-mal > svg { color:#d97706; }
+.donde-rec, .donde-riesgo { display:inline-block; margin-left:6px; padding:1px 8px; border-radius:99px; font-size:10.5px; font-weight:800; letter-spacing:0.03em; text-transform:uppercase; vertical-align:middle; }
+.donde-rec { background:#16a34a; color:#fff; }
+.donde-riesgo { background:#d97706; color:#fff; }
+.donde-pie { display:flex; gap:7px; align-items:flex-start; margin:4px 0 0; font-size:11.5px; line-height:1.5; color:var(--text-3); }
+.donde-pie svg { flex-shrink:0; margin-top:1px; color:#16a34a; }
+.entrar-confirma { display:flex; flex-direction:column; gap:10px; align-items:stretch; width:100%; max-width:440px; margin-top:14px; padding:14px; border-radius:var(--r-lg); border:1px solid rgba(217,119,6,0.55); background:rgba(217,119,6,0.08); text-align:left; }
+.entrar-confirma > svg { color:#d97706; }
+.entrar-confirma strong { font-size:14px; color:var(--text); }
+.entrar-confirma p { margin:0; font-size:12.5px; line-height:1.55; color:var(--text-2); }
+.entrar-confirma .entrar-ahora-no { align-self:center; margin-top:2px; }
