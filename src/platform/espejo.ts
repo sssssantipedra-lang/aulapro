@@ -44,8 +44,16 @@ const PERFILES = `${RAIZ}/perfiles.json`;
 const datosDe = (id: string) => `${RAIZ}/perfiles/${id}/datos.json`;
 const marcaDe = (id: string) => `${RAIZ}/perfiles/${id}/guardado.json`;
 const DATOS = /^AulaPro\/perfiles\/([^/]+)\/datos\.json$/;
-/** Pausa antes de copiar: la app guarda cada pocos cientos de milisegundos y la nube no necesita cada uno. */
+/** Pausa antes de copiar a una carpeta del ordenador: la app guarda cada pocos cientos de milisegundos y no hace falta cada uno. */
 export const PAUSA_COPIA = 4000;
+/**
+ * Con Google Drive u OneDrive (decisión del dueño, 30-10-2026: «no quiero subir tantos archivos»): el trabajo
+ * ya está a salvo en el navegador, así que a la nube sube como mucho cada media hora (el primer cambio arranca la
+ * cuenta y los demás no la reinician) y al salir de la aplicación, pero no más de una vez cada cinco minutos.
+ * Lo que no llegó a subir queda marcado y se sube al abrir la app la próxima vez.
+ */
+export const PAUSA_NUBE = 30 * 60_000;
+export const MINIMO_ENTRE_SUBIDAS = 5 * 60_000;
 
 interface Perfil { id: string }
 
@@ -64,12 +72,23 @@ export function createEspejo(opts: {
   dispositivo: string;
   ahora?: () => string;
   pausa?: number;
+  pausaNube?: number;
+  minimoNube?: number;
+  /** El reloj en milisegundos, para las pruebas. */
+  reloj?: () => number;
 }) {
   const { local, kv, dispositivo } = opts;
   const ahora = opts.ahora ?? (() => new Date().toISOString());
   const pausa = opts.pausa ?? PAUSA_COPIA;
+  const pausaNube = opts.pausaNube ?? PAUSA_NUBE;
+  const minimoNube = opts.minimoNube ?? MINIMO_ENTRE_SUBIDAS;
+  const reloj = opts.reloj ?? Date.now;
 
   let carpeta: Fs | null = null;
+  /** La carpeta es Google Drive u OneDrive: se sube más espaciado (`PAUSA_NUBE`). */
+  let enNube = false;
+  /** Cuándo se subió cada archivo la última vez (ms). */
+  const subidoEn = new Map<string, number>();
   /**
    * Tras traer datos de otro dispositivo con la app ya abierta: lo que tiene en
    * memoria es viejo y lo volvería a guardar encima. Hasta que se recarga, no
@@ -114,6 +133,7 @@ export function createEspejo(opts: {
     const data = await local.read(datosDe(id));
     if (data == null) return;
     await c.write(datosDe(id), data);
+    subidoEn.set(datosDe(id), reloj());
     const en = ahora();
     await c.write(marcaDe(id), JSON.stringify({ dispositivo, en } satisfies Marca));
     await kv.set(`visto:${id}`, en);
@@ -133,22 +153,29 @@ export function createEspejo(opts: {
   const esperando = new Map<string, ReturnType<typeof setTimeout>>();
   function programar(path: string) {
     if (!activa()) return;
+    // A la nube, la cuenta atrás no se reinicia con cada cambio: si no, quien trabaja sin parar no subiría nunca
+    if (enNube && esperando.has(path)) return;
     clearTimeout(esperando.get(path));
     esperando.set(path, setTimeout(() => {
       esperando.delete(path);
       const c = activa();
       if (c) enCola(() => copiar(c, path));
-    }, pausa));
+    }, enNube ? pausaNube : pausa));
   }
 
-  /** Copia ya lo que estaba esperando (al ocultar la página o antes de cerrar). */
-  function vaciar() {
+  /**
+   * Copia ya lo que estaba esperando. Con `alSalir` (al ocultar la página o cerrarla), a la nube no sube lo que
+   * se subió hace menos de cinco minutos: cambiar de pestaña no debe gastar una subida cada vez, y lo que quede se
+   * sube con su cuenta atrás o, si ya no hay página, al abrir la app otra vez.
+   */
+  function vaciar(opts: { alSalir?: boolean } = {}) {
     const c = activa();
     for (const [path, t] of esperando) {
+      if (opts.alSalir && enNube && reloj() - (subidoEn.get(path) ?? 0) < minimoNube) continue;
       clearTimeout(t);
+      esperando.delete(path);
       if (c) enCola(() => copiar(c, path));
     }
-    esperando.clear();
     return cola;
   }
 
@@ -252,7 +279,8 @@ export function createEspejo(opts: {
       // Con lo que acaba de leerse: no se vuelve a bajar `perfiles.json` para ver si hay algo que subir
       enCola(() => copiarPerfiles(c, leido));
       for (const { id } of leerLista(await local.read(PERFILES))) {
-        if (!conflictos.has(id) && (await kv.get<boolean>(`pendiente:${id}`))) enCola(() => copiarDatos(c, id));
+        // Lo que ya tiene su cuenta atrás no se sube antes: esta comprobación se repite cada 30 s
+        if (!conflictos.has(id) && !esperando.has(datosDe(id)) && (await kv.get<boolean>(`pendiente:${id}`))) enCola(() => copiarDatos(c, id));
       }
     } catch (err) {
       estado = esPermiso(err) ? { tipo: 'sin-permiso', nombre: nombre() } : { tipo: 'error', nombre: nombre(), mensaje: String(err) };
@@ -270,8 +298,9 @@ export function createEspejo(opts: {
     onCambio(fn: () => void) { oyentes.add(fn); return () => { oyentes.delete(fn); }; },
 
     /** La carpeta guardada de otra vez, ya con permiso. */
-    async activar(c: Fs, nombreCarpeta: string, opts: { congelar?: boolean } = {}) {
+    async activar(c: Fs, nombreCarpeta: string, opts: { congelar?: boolean; nube?: boolean } = {}) {
       carpeta = c;
+      enNube = !!opts.nube;
       estado = { tipo: 'activa', nombre: nombreCarpeta };
       return comprobar(opts);
     },
@@ -292,7 +321,7 @@ export function createEspejo(opts: {
      * solo están aquí se conservan); con `local`, los de aquí sustituyen a los
      * de la carpeta.
      */
-    async conectar(c: Fs, nombreCarpeta: string, preferir?: 'carpeta' | 'local'): Promise<Conexion> {
+    async conectar(c: Fs, nombreCarpeta: string, preferir?: 'carpeta' | 'local', nube = false): Promise<Conexion> {
       const leido = await leerPerfilesDeCarpeta(c);
       const alli = leido.perfiles;
       const aqui = leerLista(await local.read(PERFILES));
@@ -310,6 +339,7 @@ export function createEspejo(opts: {
         }
       }
       carpeta = c;
+      enNube = nube;
       estado = { tipo: 'activa', nombre: nombreCarpeta };
       await enCola(() => copiarPerfiles(c, leido));
       // Lo que se acaba de traer ya está en la carpeta: copiarlo otra vez lo firmaría como de este dispositivo
@@ -324,6 +354,7 @@ export function createEspejo(opts: {
       for (const t of esperando.values()) clearTimeout(t);
       esperando.clear();
       carpeta = null;
+      enNube = false;
       conflictos.clear();
       estado = { tipo: 'sin-carpeta' };
       avisar();

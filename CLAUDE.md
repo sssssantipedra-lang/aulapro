@@ -192,6 +192,10 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Día del lanzamiento: rellenar `checkout` (enlace de pago de Lemon Squeezy) en `web/sitio/assets/launch.js`: el botón de la portada («Ordenador, tableta y móvil») pasa de «Próximamente» a llevar a `app/`, donde se entra con Google o con Microsoft (esta, apagada hasta rellenar `MICROSOFT_CLIENT_ID`: `docs/APP_WEB.md`) y se compra con el correo ya puesto. `play` y `store` ya no se usan. `descargar.html` explica que no hay nada que descargar y `gracias.html` lleva a la app.
 - 15 de abril de 2027: termina la oferta de lanzamiento. Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta anunciada con fecha hay que cumplirla.
 
+## Copia a la nube (30-10-2026)
+
+- Petición del dueño: no subir tantos archivos a Drive u OneDrive. El trabajo vive en el navegador y a la nube sube **cada 30 minutos (la cuenta no se reinicia con cada cambio) y al salir de la app, con 5 minutos como mínimo entre subidas**; cada subida **borra las versiones antiguas** del archivo. Una carpeta del ordenador sigue copiando a los 4 s. Código en `src/platform/espejo.ts` (`PAUSA_NUBE`), `driveFs.ts` y `oneDriveFs.ts` (`podarVersiones`); detalle y lo no comprobado en `docs/APP_WEB.md` (Seguridad). Los contadores del límite de peticiones del servidor guardan una huella, no la IP ni la clave, y los de Netlify se purgan solos.
+
 ## Reglas que no se rompen
 
 1. Lo que la web promete es lo que hace la app (`docs/WEB.md`, sección 3). Si cambia cómo la app trata datos, licencias, IA, copias o actualizaciones, actualiza en el mismo cambio `web/sitio/privacidad.html` y `web/sitio/condiciones.html`, en los tres idiomas.

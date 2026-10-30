@@ -18,10 +18,23 @@
  */
 export const LIMITES = { ventana: 600, clave: 60, ip: 150, microsoft: 250 };
 
+/**
+ * La huella de un identificador (IP o clave de licencia): el contador no guarda ni la IP ni la clave en claro
+ * (30-10-2026; antes, el nombre de cada contador las llevaba escritas). Sigue siendo un dato personal, sin
+ * secreto: la privacidad lo describe como contador temporal.
+ */
+export async function huella(texto) {
+  const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto)));
+  return [...h.slice(0, 16)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** De una lista de contadores (`huella:ventana`), los de ventanas ya pasadas: hay que borrarlos. */
+export const caducados = (claves, ventanaActual) => claves.filter(k => Number(k.slice(k.lastIndexOf(':') + 1)) < ventanaActual - 1);
+
 export async function dentroDelLimite(kv, clave, maximo, ventanaSeg) {
   if (!kv) return true;
   const ventana = Math.floor(Date.now() / 1000 / ventanaSeg);
-  const k = `${clave}:${ventana}`;
+  const k = `${await huella(clave)}:${ventana}`;
   const actual = Number((await kv.get(k).catch(() => null)) ?? '0');
   if (actual >= maximo) return false;
   await kv.put(k, String(actual + 1), { expirationTtl: ventanaSeg * 2 }).catch(() => {});

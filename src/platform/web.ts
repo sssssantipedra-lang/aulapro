@@ -200,7 +200,7 @@ export async function installWebBridge() {
   iniciarCarpeta(espejo);
   // Antes de pintar: si otro ordenador dejó algo más nuevo en la carpeta, se trae ya
   await abrirCarpetaGuardada();
-  const vaciar = () => { espejo.vaciar(); };
+  const vaciar = () => { espejo.vaciar({ alSalir: true }); };
   // Lo de otro dispositivo llega solo: cada 30 s con la app a la vista y al volver a ella
   const revisar = async () => {
     if (document.visibilityState !== 'visible' || espejo.estado().tipo !== 'activa' || espejo.congelado()) return;
