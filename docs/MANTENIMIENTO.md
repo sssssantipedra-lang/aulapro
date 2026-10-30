@@ -95,7 +95,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 - **Netlify construye solo `master`** y gasta créditos en cada publicación y en cada llamada a las funciones. Mirar el uso cada mes. Si se agotan los del plan, el sitio puede pausarse y la app usa entonces el respaldo (Cloudflare Pages), pero la licencia por cuenta y el acceso a Drive dependen de las funciones del que responda. **(comprobar el plan y el uso)**
 - **Los certificados HTTPS** los renueva Netlify solo; la vigilancia avisa 14 días antes de que caduquen.
 - **El dominio** (Cloudflare Registrar): renovación automática el 31-8-2027. Si la tarjeta falla, avisa por correo, pero el correo de Cloudflare llega a la cuenta del dueño: que esa bandeja se mire.
-- **Las tareas programadas de GitHub** (`web-vigilancia.yml` cada 30 minutos y `calendario.yml`) **se desactivan solas tras 60 días sin actividad en el repositorio** si este es público **(comprobar)**. Un commit o activarlas a mano en la pestaña Actions las vuelve a encender. Sin la vigilancia no hay aviso de caída.
+- **Minutos de GitHub Actions.** El repositorio es **privado** (confirmado por el dueño el 30-10-2026), así que sus tareas consumen la cuota mensual de minutos del plan. La vigilancia (`web-vigilancia.yml`) corre cada 30 minutos, unas 1.440 veces al mes, y cada ejecución cuenta como mínimo un minuto, además de `ci.yml`, `web.yml`, `web-pages.yml` y `calendario.yml`. Con el plan gratuito (2.000 minutos al mes) hay poco margen **(comprobar el plan y el uso en Settings › Billing)**. Si se agota la cuota, las tareas dejan de ejecutarse: **sin la vigilancia no hay aviso de caída y sin `web.yml` no se publican las ramas de prueba**. Se arregla subiendo de plan o espaciando la vigilancia (por ejemplo, cada hora). En un repositorio público, además, GitHub desactivaría las tareas programadas tras 60 días sin actividad; en uno privado no ocurre.
 - **Los avisos de la vigilancia** abren una incidencia con la etiqueta `vigilancia`; GitHub la manda al correo del dueño. Que ese correo no se filtre como spam.
 - **Los contadores del límite de peticiones**: en Cloudflare KV se borran solos (20 minutos); en Netlify Blobs se purgan desde la función (`lib-netlify/limite.mjs`). Si el almacén crece sin parar, el purgado no corre: mirar el tamaño del almacén de Blobs de vez en cuando.
 
@@ -141,7 +141,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 
 - [ ] Uso y créditos de Netlify.
 - [ ] Incidencias abiertas con la etiqueta `vigilancia`.
-- [ ] Que la pestaña Actions de GitHub no tenga las tareas programadas desactivadas.
+- [ ] Minutos de GitHub Actions gastados este mes (Settings › Billing) y que la pestaña Actions no tenga tareas desactivadas.
 - [ ] Ventas, reembolsos y mensajes de «he pagado y no entra» (señal del fallo de `LEMONSQUEEZY_API_KEY`).
 
 ### Cada trimestre
@@ -169,7 +169,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 | La web no abre en una zona de España durante un partido | Bloqueo a Cloudflare por LaLiga | La web ya va por Netlify sin proxy; mirar que el DNS siga en nube gris (`docs/DNS.md`) |
 | La IA falla a todo el mundo | Modelo retirado por Google | `src/services/gemini.ts` |
 | No llega correo a contacto@aulapro.app | Destino de Email Routing | Cloudflare › Email › Email Routing |
-| La vigilancia no abre incidencias | Tarea programada desactivada | Actions › «Vigilancia» |
+| La vigilancia no abre incidencias | Tarea desactivada o cuota de minutos de Actions agotada | Actions › «Vigilancia» y Settings › Billing |
 
 ## 7. Para quien revise este documento (agentes)
 
@@ -193,7 +193,7 @@ Este documento se revisa periódicamente y se responde al dueño con lo que haya
    Conocidos y que no son secretos: `LIMITE` (almacén de contadores de Cloudflare KV, no una clave) y `VIGILAR_BASE` y `VIGILAR_ESPERA_MS` (opciones de la vigilancia). Al 30-10-2026 la salida es exactamente la tabla más esas tres.
 3. **Servicios nuevos.** Busca dependencias externas añadidas desde la última revisión (nuevas direcciones en `connect-src` de `netlify.toml`, nuevos flujos en `.github/workflows/`, nuevas funciones en `web/funciones/api/`). Si hay una cuenta o un servicio que no está en este documento, propón dónde anotarlo.
 4. **Copias de las funciones.** `web/funciones/` y `web/netlify/` deben decir lo mismo (CLAUDE.md y `docs/APP_WEB.md`): si una cambia y la otra no, un servidor se comporta distinto del otro.
-5. **Estado de la vigilancia.** Incidencias con la etiqueta `vigilancia` abiertas o recientes, y que las tareas programadas de GitHub sigan activas (apartado 3).
+5. **Estado de la vigilancia.** Incidencias con la etiqueta `vigilancia` abiertas o recientes, y que las tareas programadas de GitHub sigan activas y con minutos disponibles (apartado 3).
 6. **Modelos de Gemini.** Compara los de `src/services/gemini.ts` con la lista de modelos y de retiradas que publique Google, y avisa de cualquiera retirado o con fecha de retirada.
 7. **Lo marcado «(comprobar)».** Dilo claramente si no puedes verlo desde donde estás: no lo des por bueno.
 
