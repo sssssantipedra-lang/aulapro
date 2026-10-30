@@ -97,7 +97,7 @@ describe('canjear el código y renovar el permiso', () => {
     const f = con({ error: 'invalid_grant' }, 400);
     const r = await pedirAMicrosoft('renovar', { refresh_token: 'R' }, 'S', cors, f.fetcher, CLIENTE);
     expect(r.status).toBe(401);
-    expect(await r.json()).toEqual({ error: 'caducado' });
+    expect(await r.json()).toEqual({ error: 'caducado', motivo: 'invalid_grant' });
     expect((await pedirAMicrosoft('renovar', { refresh_token: 'R' }, '', cors, f.fetcher, CLIENTE)).status).toBe(503);
   });
 
