@@ -19,6 +19,13 @@ import { idbKv } from './webFs';
 import { pedirApi } from './servidores';
 
 export const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
+/**
+ * «Id. de aplicación (cliente)» del registro de AulaPro en entra.microsoft.com (es público, como el de
+ * Google). Mientras esté vacío, «Continuar con Microsoft» sigue apagado. La misma constante, en el
+ * servidor: `web/funciones/api/_microsoft.js`.
+ */
+export const MICROSOFT_CLIENT_ID = '';
+export const MICROSOFT_LISTO = MICROSOFT_CLIENT_ID !== '';
 
 export interface Cuenta {
   proveedor: 'google' | 'microsoft';
@@ -40,6 +47,9 @@ export const cuentaActual = () => actual;
 export async function cerrarSesion() {
   actual = undefined;
   await idbKv.del(CLAVE);
+  // El permiso de Microsoft (identidad y OneDrive) es de la cuenta: se va con ella (el de Google Drive lo comprueba `abrirCarpetaGuardada`)
+  await idbKv.del('microsoft');
+  try { sessionStorage.removeItem('aulapro_acceso_onedrive'); } catch { /* sin almacenamiento */ }
   try { (window as unknown as GoogleGlobal).google?.accounts.id.disableAutoSelect(); } catch { /* sin Google cargado */ }
 }
 
@@ -87,7 +97,12 @@ function guardarToken(t: string) {
 function tokenVigente(): string {
   let t = ultimoToken;
   if (!t) { try { t = sessionStorage.getItem(TOKEN) ?? ''; } catch { t = ''; } }
-  return t && leerTokenGoogle(t, Date.now() + 60_000) ? t : '';
+  return t && leerTokenCuenta(t, Date.now() + 60_000) ? t : '';
+}
+
+/** Lo que trae el token de identidad, sea de Google o de Microsoft. */
+export function leerTokenCuenta(token: string, ahora = Date.now()) {
+  return leerTokenGoogle(token, ahora) ?? leerTokenMicrosoft(token, ahora);
 }
 
 /**
@@ -95,6 +110,13 @@ function tokenVigente(): string {
  * este navegador (Google lo da solo con `auto_select`). Vacío si no hay manera.
  */
 async function tokenNuevo(): Promise<string> {
+  // Cuenta de Microsoft: la identidad se renueva con su permiso duradero, sin ventanas (`platform/microsoft.ts`)
+  if ((actual ?? await leerCuenta())?.proveedor === 'microsoft') {
+    const { tokenDeIdentidadMicrosoft } = await import('./microsoft');
+    const t = await tokenDeIdentidadMicrosoft();
+    if (t && leerTokenMicrosoft(t)) { guardarToken(t); return t; }
+    return '';
+  }
   // Con el permiso de Drive (entrada con un solo paso), Google lo da al renovar, también en Safari
   const { tokenDeIdentidad } = await import('./googleDrive');
   const conDrive = await tokenDeIdentidad();
@@ -145,7 +167,7 @@ async function buscarLicencia(): Promise<BusquedaLicencia> {
   if (!token) return { key: null, error: 'sin-cuenta' };
   try {
     const r = await pedirApi('/api/licencia/cuenta', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, proveedor: leerTokenCuenta(token)?.proveedor }),
     });
     const j = await r.json().catch(() => ({}));
     const firma = typeof j.firma === 'string' && j.firma ? { firma: j.firma as string } : {};
@@ -173,6 +195,41 @@ export function leerTokenGoogle(token: string, ahora = Date.now()): Omit<Cuenta,
   } catch {
     return null;
   }
+}
+
+/**
+ * Lo que trae el token de identidad de Microsoft, sin comprobar la firma (como con Google: la comprueba el
+ * servidor al buscar la licencia, `web/funciones/api/_microsoft.js`). El correo es el de `email`; si falta,
+ * el nombre de usuario, que sirve para enseñarlo pero no para buscar compras.
+ */
+export function leerTokenMicrosoft(token: string, ahora = Date.now(), clientId = MICROSOFT_CLIENT_ID): Omit<Cuenta, 'desde'> | null {
+  try {
+    if (!clientId) return null;
+    const parte = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const bytes = Uint8Array.from(atob(parte.padEnd(Math.ceil(parte.length / 4) * 4, '=')), c => c.charCodeAt(0));
+    const p = JSON.parse(new TextDecoder().decode(bytes));
+    if (p.aud !== clientId || typeof p.tid !== 'string') return null;
+    if (p.iss !== `https://login.microsoftonline.com/${p.tid}/v2.0`) return null;
+    if (typeof p.exp !== 'number' || p.exp * 1000 < ahora) return null;
+    const email = String(p.email || p.preferred_username || '').trim().toLowerCase();
+    const id = p.oid || p.sub;
+    if (!id || !email) return null;
+    return { proveedor: 'microsoft', id: `${p.tid}.${id}`, email, nombre: String(p.name || email) };
+  } catch {
+    return null;
+  }
+}
+
+/** Guarda la cuenta de un token de Microsoft ya recibido (`platform/microsoft.ts`). */
+export async function entrarConTokenMicrosoft(token: string): Promise<Cuenta | null> {
+  const datos = leerTokenMicrosoft(token);
+  if (!datos) return null;
+  guardarToken(token);
+  const cuenta: Cuenta = { ...datos, desde: new Date().toISOString() };
+  actual = cuenta;
+  await idbKv.set(CLAVE, cuenta);
+  adelantarLicencia();
+  return cuenta;
 }
 
 /** Guarda la cuenta de un token de Google ya recibido (entrada con un solo paso, `googleDrive.ts`). */

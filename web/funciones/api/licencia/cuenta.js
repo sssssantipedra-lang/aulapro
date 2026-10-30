@@ -7,6 +7,7 @@
 // solo se usa para la búsqueda: no se guarda ni se registra. Ver src/platform/cuentaWeb.ts.
 import { firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
+import { verificarTokenMicrosoft } from '../_microsoft.js';
 import { dentroDelLimite, respuestaLimite } from '../_limite.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
@@ -27,14 +28,21 @@ export async function onRequestPost({ request, env }) {
   // para aporrear la búsqueda en Lemon Squeezy (su cuota es compartida por toda la tienda).
   if (!(await dentroDelLimite(env.LIMITE, `cuenta-ip:${ip}`, 20, 600))) return respuestaLimite(cors);
 
-  const { token } = await request.json().catch(() => ({}));
+  const { token, proveedor } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400, cors);
 
-  const g = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`);
-  if (!g.ok) return json({ error: 'token' }, 401, cors);
-  const info = await g.json();
-  if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401, cors);
-  const email = String(info.email).trim().toLowerCase();
+  let email;
+  if (proveedor === 'microsoft') {
+    // Microsoft no tiene un servicio que compruebe el token: se comprueba aquí (ver _microsoft.js)
+    email = (await verificarTokenMicrosoft(token))?.email;
+    if (!email) return json({ error: 'token' }, 401, cors);
+  } else {
+    const g = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`);
+    if (!g.ok) return json({ error: 'token' }, 401, cors);
+    const info = await g.json();
+    if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401, cors);
+    email = String(info.email).trim().toLowerCase();
+  }
 
   // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
   // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.

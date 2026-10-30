@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Cloud, FolderSync, FolderX, AlertTriangle, LogOut, UserCircle, WifiOff } from 'lucide-react';
-import { carpetaWeb, EVENTO_PDF } from '../platform/carpetaWeb';
+import { carpetaWeb, EVENTO_PDF, NOMBRE_ONEDRIVE } from '../platform/carpetaWeb';
 import { DRIVE_LLENO } from '../platform/driveFs';
 import { cerrarSesion, leerCuenta, type Cuenta } from '../platform/cuentaWeb';
 import { useToast } from './ui/Toast';
@@ -25,6 +25,7 @@ export function CarpetaWebAviso() {
   const { toast } = useToast();
   const { estado, conflictos } = useCarpeta();
   const [ocupado, setOcupado] = useState(false);
+  const ms = carpetaWeb.nombreNube() === NOMBRE_ONEDRIVE;
 
   async function permitir() {
     setOcupado(true);
@@ -56,8 +57,8 @@ export function CarpetaWebAviso() {
     return (
       <div className="update-banner carpeta-aviso" role="alert">
         <AlertTriangle size={18} color="var(--warn, #d97706)" style={{ flexShrink: 0 }} aria-hidden="true" />
-        <span style={{ flex: 1 }}>{t('Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.')}</span>
-        <a className="carpeta-aviso-enlace" href="https://drive.google.com/drive/quota" target="_blank" rel="noreferrer">{t('Ver mi espacio en Drive')}</a>
+        <span style={{ flex: 1 }}>{t(ms ? 'Tu OneDrive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en OneDrive y AulaPro seguirá copiando sola.' : 'Tu Google Drive está lleno y AulaPro no puede copiar ahí. Tu trabajo sigue guardado en este dispositivo. Libera espacio en Drive y AulaPro seguirá copiando sola.')}</span>
+        <a className="carpeta-aviso-enlace" href={ms ? 'https://onedrive.live.com/' : 'https://drive.google.com/drive/quota'} target="_blank" rel="noreferrer">{t(ms ? 'Ver mi espacio en OneDrive' : 'Ver mi espacio en Drive')}</a>
       </div>
     );
   }
@@ -158,12 +159,15 @@ export function SinConexionPanel() {
 /** Versión web: la carpeta del ordenador en Configuración › Datos y copias. */
 export function CarpetaWebPanel() {
   const { t, locale } = useI18n();
+  const [cuenta, setCuenta] = useState<Cuenta | undefined>();
+  useEffect(() => { leerCuenta().then(setCuenta); }, []);
   const { toast } = useToast();
   const { estado } = useCarpeta();
   const [ocupado, setOcupado] = useState(false);
   const [elegir, setElegir] = useState(false);
 
   const drive = carpetaWeb.usaDrive();
+  const ms = carpetaWeb.nombreNube() === NOMBRE_ONEDRIVE || (!drive && cuenta?.proveedor === 'microsoft');
 
   function terminar(r: { elegir: boolean; cargados: number } | null) {
     if (!r) return;
@@ -186,10 +190,10 @@ export function CarpetaWebPanel() {
 
   return (
     <div className="carpeta-web">
-      <div className="carpeta-web-ttl"><Cloud size={15} color="var(--accent-d)" aria-hidden="true" />{t(drive ? 'Tu trabajo, en tu Google Drive' : 'Dónde se guarda una copia')}</div>
+      <div className="carpeta-web-ttl"><Cloud size={15} color="var(--accent-d)" aria-hidden="true" />{t(drive ? (ms ? 'Tu trabajo, en tu OneDrive' : 'Tu trabajo, en tu Google Drive') : 'Dónde se guarda una copia')}</div>
       <p>{t(drive
-        ? 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.'
-        : 'Guárdalo en tu Google Drive y lo tendrás en todos tus dispositivos. En un ordenador, también puedes elegir una carpeta.')}</p>
+        ? (ms ? 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu OneDrive, y lo nuevo de tus otros dispositivos llega en unos segundos.' : 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.')
+        : (ms ? 'Guárdalo en tu OneDrive y lo tendrás en todos tus dispositivos.' : 'Guárdalo en tu Google Drive y lo tendrás en todos tus dispositivos. En un ordenador, también puedes elegir una carpeta.'))}</p>
 
       {estado.tipo === 'activa' && (
         <div className="carpeta-web-estado">
@@ -198,7 +202,7 @@ export function CarpetaWebPanel() {
         </div>
       )}
       {estado.tipo === 'error' && (
-        <div className="carpeta-web-estado error">{t('No se pudo copiar en «{nombre}»: {mensaje}', { nombre: estado.nombre, mensaje: estado.mensaje === DRIVE_LLENO ? t('Tu Google Drive está lleno.') : estado.mensaje })}</div>
+        <div className="carpeta-web-estado error">{t('No se pudo copiar en «{nombre}»: {mensaje}', { nombre: estado.nombre, mensaje: estado.mensaje === DRIVE_LLENO ? t(ms ? 'Tu OneDrive está lleno.' : 'Tu Google Drive está lleno.') : estado.mensaje })}</div>
       )}
 
       {elegir ? (
@@ -220,17 +224,17 @@ export function CarpetaWebPanel() {
         <div className="carpeta-web-btns">
           {!drive && (
             <button className="btn-accent" disabled={ocupado} onClick={() => correr(() => carpetaWeb.conectarDrive())}>
-              <Cloud size={14} />{t('Guardar en mi Google Drive')}
+              <Cloud size={14} />{t(ms ? 'Guardar en mi OneDrive' : 'Guardar en mi Google Drive')}
             </button>
           )}
-          {!drive && carpetaWeb.soportada() && (
+          {!drive && !ms && carpetaWeb.soportada() && (
             <button className="btn-ghost" disabled={ocupado} onClick={() => correr(() => carpetaWeb.elegir())}>
               <FolderSync size={14} />{t(estado.tipo === 'sin-carpeta' ? 'Elegir carpeta' : 'Cambiar carpeta')}
             </button>
           )}
           {estado.tipo !== 'sin-carpeta' && (
             <button className="btn-ghost" disabled={ocupado} onClick={() => carpetaWeb.desconectar()}>
-              <FolderX size={14} />{t(drive ? 'Dejar de guardar en Drive' : 'Dejar de copiar')}
+              <FolderX size={14} />{t(drive ? (ms ? 'Dejar de guardar en OneDrive' : 'Dejar de guardar en Drive') : 'Dejar de copiar')}
             </button>
           )}
         </div>

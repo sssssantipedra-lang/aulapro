@@ -15,6 +15,9 @@ const AVISO_BUSQUEDA: Record<string, string> = {
   'tienda': 'La tienda no responde ahora mismo. Vuelve a probar en un rato o escribe tu clave abajo.',
   'sin-conexion': 'Para buscar tu compra hace falta internet. Conéctate y vuelve a probar.',
 };
+/** Con una cuenta de Microsoft: algunas cuentas de centros no dejan comprobar el correo, y entonces se escribe la clave. */
+const AVISO_MICROSOFT = 'No hemos podido confirmar tu correo con Microsoft (las cuentas de algunos centros no lo permiten). Si compraste con ese correo, usa «¿Compraste con otro correo o tienes un pack? Escribe tu clave».';
+const avisoDe = (proveedor: string | undefined, error: string) => (proveedor === 'microsoft' && ['sin-cuenta', 'token'].includes(error) ? AVISO_MICROSOFT : AVISO_BUSQUEDA[error]);
 
 interface Props {
   state: LicenseState;
@@ -49,7 +52,7 @@ export function LicenseGate({ state, onChange }: Props) {
     if (b.key && bridge?.porCuenta) { onChange(await bridge.porCuenta(b.key, b.firma)); return; }
     if (!manual) return;
     if (!('error' in b) || !b.error) setAviso(t('Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.', { email: cuenta?.email ?? '' }));
-    else setAviso(t(AVISO_BUSQUEDA[b.error]));
+    else setAviso(t(avisoDe(cuenta?.proveedor, b.error)));
   }
   useEffect(() => { if (isWebApp()) leerCuenta().then(setCuenta); }, []);
 
@@ -60,7 +63,7 @@ export function LicenseGate({ state, onChange }: Props) {
   const buscar = useRef(comprobarCompra);
   useEffect(() => { buscar.current = comprobarCompra; });
   useEffect(() => {
-    if (!cuenta || conToken || !botonReal.current) return;
+    if (!cuenta || cuenta.proveedor === 'microsoft' || conToken || !botonReal.current) return;
     const el = botonReal.current;
     el.innerHTML = '';
     botonGoogle(el, lang, () => { setConToken(true); void buscar.current(true); }, () => setAviso(t(AVISO_BUSQUEDA['token'])))
@@ -89,7 +92,7 @@ export function LicenseGate({ state, onChange }: Props) {
     setBusy(false);
     if (r.ok) {
       // Versión web: la clave a mano queda en el Drive de la cuenta, para los demás dispositivos
-      if (isWebApp()) import('../platform/googleDrive').then(m => m.guardarClaveEnDrive(key.trim())).catch(() => {});
+      if (isWebApp()) import('../platform/carpetaWeb').then(m => m.guardarClaveEnNube(key.trim())).catch(() => {});
       onChange(r.state);
     }
     else setError(r.error ?? 'error-tienda');
@@ -120,7 +123,7 @@ export function LicenseGate({ state, onChange }: Props) {
               <button type="button" className="btn-ghost" style={{ width: '100%', justifyContent: 'center' }} disabled={mirando} onClick={() => comprobarCompra(true)}>
                 {mirando ? <><span className="spin" />&nbsp;{t('Comprobando…')}</> : t('Ya he pagado: comprobar mi compra')}
               </button>
-              {!conToken && <div ref={botonReal} className="entrar-google-real" aria-label={t('Ya he pagado: comprobar mi compra')} />}
+              {!conToken && cuenta.proveedor !== 'microsoft' && <div ref={botonReal} className="entrar-google-real" aria-label={t('Ya he pagado: comprobar mi compra')} />}
             </div>
             {aviso && <div className="lic-err" role="status" style={{ marginTop: 10 }}>{aviso}</div>}
             {!conClave && (
