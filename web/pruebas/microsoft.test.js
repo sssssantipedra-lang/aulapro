@@ -99,6 +99,15 @@ describe('canjear el código y renovar el permiso', () => {
     expect(r.status).toBe(401);
     expect(await r.json()).toEqual({ error: 'caducado' });
     expect((await pedirAMicrosoft('renovar', { refresh_token: 'R' }, '', cors, f.fetcher, CLIENTE)).status).toBe(503);
+  });
+
+  it('cuando Microsoft rechaza al cliente, dice el motivo (sin secretos) para poder arreglarlo', async () => {
+    const f = con({ error: 'invalid_client', error_description: 'AADSTS7000215: Invalid client secret provided.\r\nTrace ID: abc\r\nTimestamp: 2026' }, 401);
+    const r = await pedirAMicrosoft('token', { code: 'C', code_verifier: verifier, redirect_uri: 'https://aulapro.app/app/' }, 'SECRETO-MALO', cors, f.fetcher, CLIENTE);
+    expect(r.status).toBe(502);
+    const d = await r.json();
+    expect(d).toEqual({ error: 'microsoft', motivo: 'invalid_client', detalle: 'AADSTS7000215: Invalid client secret provided.' });
+    expect(JSON.stringify(d)).not.toContain('SECRETO-MALO');
     expect((await pedirAMicrosoft('renovar', { refresh_token: 'R' }, 'S', cors, f.fetcher, '')).status).toBe(503);
   });
 });

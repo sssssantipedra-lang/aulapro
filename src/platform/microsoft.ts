@@ -51,7 +51,7 @@ async function pedirFuncion(accion: 'token' | 'renovar', cuerpo: object): Promis
   const d = await r.json().catch(() => ({}));
   if (!r.ok) {
     if (d.error === 'caducado' || r.status === 401) throw sinPermiso();
-    throw new Error(d.error === 'sin-configurar' ? 'Falta configurar Microsoft en el servidor' : `Microsoft no responde (${r.status} ${d.error ?? ''})`);
+    throw new Error(d.error === 'sin-configurar' ? 'Falta configurar Microsoft en el servidor' : `Microsoft no responde (${r.status} ${d.error ?? ''}${d.motivo ? ` ${d.motivo}` : ''}${d.detalle ? `: ${d.detalle}` : ''})`);
   }
   return d as Respuesta;
 }

@@ -101,7 +101,11 @@ export async function pedirAMicrosoft(accion, cuerpo, secreto, cors, fetcher = f
   }
   const r = await fetcher(`${AUTORIDAD}/oauth2/v2.0/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok || !d.access_token) return json({ error: d.error === 'invalid_grant' || d.error === 'interaction_required' ? 'caducado' : 'microsoft' }, r.status === 400 ? 401 : 502, cors);
+  if (!r.ok || !d.access_token) {
+    // El motivo que da Microsoft (código AADSTS y primera frase) para poder saber qué falla; no lleva ni el secreto ni el código del docente
+    const detalle = String(d.error_description ?? '').split(/\r?\n/)[0].slice(0, 220);
+    return json({ error: d.error === 'invalid_grant' || d.error === 'interaction_required' ? 'caducado' : 'microsoft', ...(d.error ? { motivo: String(d.error).slice(0, 60) } : {}), ...(detalle ? { detalle } : {}) }, r.status === 400 ? 401 : 502, cors);
+  }
   // Microsoft da un permiso duradero nuevo en cada renovación: la app guarda el último para que no caduque
   return json({ access_token: d.access_token, expires_in: d.expires_in, ...(d.refresh_token ? { refresh_token: d.refresh_token } : {}), scope: d.scope, ...(d.id_token ? { id_token: d.id_token } : {}) }, 200, cors);
 }
