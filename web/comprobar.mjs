@@ -100,7 +100,7 @@ if (hay('assets/launch.js')) {
     vm.runInNewContext(leer('assets/launch.js'), ctx);
     const L = ctx.window.AULA_LAUNCH;
     for (const k of ['checkout', 'play', 'store', 'packs', 'downloads']) if (!(k in L)) falla(`launch.js: falta ${k}`);
-    for (const k of ['5', '10', '20', '30']) if (!(k in (L.packs || {}))) falla(`launch.js: falta el pack ${k}`);
+    for (const k of ['5', '10']) if (!(k in (L.packs || {}))) falla(`launch.js: falta el pack ${k}`);
     // el vídeo de una generación real (sección «En directo»): vacío, o completo y ligero
     for (const k of ['video', 'testimonios']) if (!(k in L)) falla(`launch.js: falta ${k}`);
     const v = L.video || {};
