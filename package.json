@@ -122,6 +122,7 @@
     }
   },
   "dependencies": {
+    "@netlify/blobs": "^11.1.7",
     "electron-updater": "^6.8.9"
   },
   "devDependencies": {
