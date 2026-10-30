@@ -170,3 +170,40 @@ Esto no es del dueño, pero explica las quejas más probables:
 | La IA falla a todo el mundo | Modelo retirado por Google | `src/services/gemini.ts` |
 | No llega correo a contacto@aulapro.app | Destino de Email Routing | Cloudflare › Email › Email Routing |
 | La vigilancia no abre incidencias | Tarea programada desactivada | Actions › «Vigilancia» |
+
+## 7. Para quien revise este documento (agentes)
+
+Este documento se revisa periódicamente y se responde al dueño con lo que haya cambiado o falte. Reglas:
+
+- **Solo lectura.** No cambies claves, variables, cuentas ni código. Informa; el dueño decide. Si propones un cambio del propio documento, hazlo como texto o como pull request, nunca a `master` directamente.
+- **No pidas ni escribas nunca un valor secreto** (claves, secretos de cliente, contraseñas, tokens, el contenido de `FUNDADORES`). Basta con el nombre, la fecha de caducidad y si está puesto o no. Si ves uno publicado en algún sitio, avisa al dueño de inmediato y sin copiarlo.
+- **Contrasta con el código, no con la memoria.** Lo que dice el documento puede haberse quedado atrás.
+
+### Qué comprobar en cada revisión
+
+1. **Fechas.** Recorre el calendario del apartado 1. Marca las que caen en los próximos 60 días y las que ya pasaron sin hacerse (por ejemplo, un secreto con fecha vencida o «(comprobar)» sin resolver desde hace más de un mes).
+2. **Que la tabla del apartado 2 coincide con el código.** Esta orden saca todos los nombres de secretos y variables que el repositorio usa; cualquiera que no esté en la tabla es un hueco del documento:
+
+   ```bash
+   { grep -rhoE 'secrets\.[A-Z_0-9]+' .github | sed 's/secrets\.//'
+     grep -rhoE "env\.(get\(')?[A-Z][A-Z_0-9]{3,}" web --include=*.js --include=*.mjs | sed -E "s/env\.(get\(')?//"
+   } | sort -u
+   ```
+
+   Conocidos y que no son secretos: `LIMITE` (almacén de contadores de Cloudflare KV, no una clave) y `VIGILAR_BASE` y `VIGILAR_ESPERA_MS` (opciones de la vigilancia). Al 30-10-2026 la salida es exactamente la tabla más esas tres.
+3. **Servicios nuevos.** Busca dependencias externas añadidas desde la última revisión (nuevas direcciones en `connect-src` de `netlify.toml`, nuevos flujos en `.github/workflows/`, nuevas funciones en `web/funciones/api/`). Si hay una cuenta o un servicio que no está en este documento, propón dónde anotarlo.
+4. **Copias de las funciones.** `web/funciones/` y `web/netlify/` deben decir lo mismo (CLAUDE.md y `docs/APP_WEB.md`): si una cambia y la otra no, un servidor se comporta distinto del otro.
+5. **Estado de la vigilancia.** Incidencias con la etiqueta `vigilancia` abiertas o recientes, y que las tareas programadas de GitHub sigan activas (apartado 3).
+6. **Modelos de Gemini.** Compara los de `src/services/gemini.ts` con la lista de modelos y de retiradas que publique Google, y avisa de cualquiera retirado o con fecha de retirada.
+7. **Lo marcado «(comprobar)».** Dilo claramente si no puedes verlo desde donde estás: no lo des por bueno.
+
+### Qué contestar
+
+Una lista corta, por urgencia, con este formato para cada punto:
+
+- **Qué:** una frase.
+- **Dónde:** archivo y apartado de este documento, o el panel al que hay que ir.
+- **Cuándo:** fecha límite, o «ya».
+- **Qué haría falta:** la acción concreta para el dueño.
+
+Cierra con una línea que diga lo que **has podido comprobar** y lo que **no**. Si no hay nada nuevo, dilo en una línea: no hace falta repetir el documento.
