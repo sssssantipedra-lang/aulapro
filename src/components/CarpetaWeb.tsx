@@ -277,7 +277,7 @@ export function CarpetaWebPanel() {
       {sola && <DondeGuardar ms={ms} carpeta={carpetaWeb.soportada()} />}
       <div className="carpeta-web-ttl"><Cloud size={15} color="var(--accent-d)" aria-hidden="true" />{t(drive ? (ms ? 'Tu trabajo, en tu OneDrive' : 'Tu trabajo, en tu Google Drive') : 'Dónde se guarda una copia')}</div>
       <p>{t(drive
-        ? (ms ? 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu OneDrive, y lo nuevo de tus otros dispositivos llega en unos segundos.' : 'Cada cambio se guarda solo en la carpeta «AulaPro» de tu Google Drive, y lo nuevo de tus otros dispositivos llega en unos segundos.')
+        ? (ms ? 'Tu trabajo se copia solo en la carpeta «AulaPro» de tu OneDrive, cada media hora y al salir de la aplicación. Cada copia sustituye a la anterior, y lo que copien tus otros dispositivos te llega en unos segundos.' : 'Tu trabajo se copia solo en la carpeta «AulaPro» de tu Google Drive, cada media hora y al salir de la aplicación. Cada copia sustituye a la anterior, y lo que copien tus otros dispositivos te llega en unos segundos.')
         : (ms ? 'Guárdalo en tu OneDrive y lo tendrás en todos tus dispositivos.' : 'Guárdalo en tu Google Drive y lo tendrás en todos tus dispositivos. En un ordenador, también puedes elegir una carpeta.'))}</p>
 
       {estado.tipo === 'activa' && (

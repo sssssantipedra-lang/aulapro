@@ -21,7 +21,7 @@ export function DondeGuardar({ ms, carpeta }: { ms: boolean; carpeta: boolean })
         <Cloud size={18} aria-hidden="true" />
         <div>
           <strong>{t(ms ? 'En tu OneDrive' : 'En tu Google Drive')} <span className="donde-rec">{t('Recomendado')}</span></strong>
-          <p>{t('Lo más seguro. Se guarda solo, lo tienes en todos tus dispositivos y no se pierde aunque borres los datos del navegador, cambies de móvil u ordenador o se estropee. Funciona en cualquier navegador, también en el móvil.')}</p>
+          <p>{t('Lo más seguro. Se copia solo, cada media hora y al salir de la aplicación; lo tienes en todos tus dispositivos y no se pierde aunque borres los datos del navegador, cambies de móvil u ordenador o se estropee. Funciona en cualquier navegador, también en el móvil.')}</p>
         </div>
       </div>
 

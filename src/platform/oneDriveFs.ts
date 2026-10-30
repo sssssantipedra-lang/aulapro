@@ -4,7 +4,8 @@
  * el permiso `Files.ReadWrite.AppFolder`: AulaPro solo ve lo que ella misma crea, nada más de su OneDrive.
  * Como en Drive, no hay carpetas dentro de carpetas: cada ruta de `profileStore` es un archivo con la ruta en
  * el nombre (`AulaPro/perfiles/p1/datos.json` → `perfiles~p1~datos.json`), las copias con fecha no se suben
- * (salvo la de antes de vaciar el curso) y borrar manda el archivo a la papelera de OneDrive.
+ * (salvo la de antes de vaciar el curso), cada subida borra las versiones antiguas del archivo (decisión del
+ * dueño, 30-10-2026: todas gastan espacio del docente) y borrar manda el archivo a la papelera de OneDrive.
  *
  * El navegador habla con Microsoft Graph directamente (admite CORS). Para bajar un archivo, Graph da una
  * dirección temporal que ya lleva el permiso dentro: se pide sin `Authorization`.
@@ -72,6 +73,23 @@ export function createOneDriveFs(token: () => Promise<string>, fetcher: typeof f
 
   const papelera = (id: string) => pedir(`${GRAPH}/items/${id}`, { method: 'DELETE' });
 
+  /** Si OneDrive no deja podar versiones (falta permiso o no lo admite), no se vuelve a intentar en esta sesión. */
+  let sinPoda = false;
+  /** Borra todas las versiones del archivo menos la actual. Es un extra: si falla, la subida ya está hecha. */
+  async function podarVersiones(id: string) {
+    if (sinPoda) return;
+    try {
+      const r = await (await pedir(`${GRAPH}/items/${id}/versions?$select=id,lastModifiedDateTime`)).json();
+      const todas = ((r.value ?? []) as { id: string; lastModifiedDateTime?: string }[])
+        .sort((a, b) => (b.lastModifiedDateTime ?? '').localeCompare(a.lastModifiedDateTime ?? ''));
+      // La primera (la más reciente) es la actual: OneDrive no deja borrarla
+      for (const v of todas.slice(1)) await pedir(`${GRAPH}/items/${id}/versions/${encodeURIComponent(v.id)}`, { method: 'DELETE' });
+    } catch (err) {
+      const s = (err as ErrorDrive)?.status;
+      if (s === 401 || s === 403 || s === 400 || s === 405) sinPoda = true;
+    }
+  }
+
   /** Un archivo de menos de 4 MB, en una petición; más grande, por trozos con una sesión de subida. */
   async function subir(nombre: string, data: string): Promise<ArchivoOneDrive> {
     const bytes = new TextEncoder().encode(data);
@@ -110,9 +128,11 @@ export function createOneDriveFs(token: () => Promise<string>, fetcher: typeof f
     async write(ruta, data) {
       if (!vaADrive(ruta)) return;
       const nombre = nombreDe(ruta);
+      const existia = indice?.has(nombre) ?? false;
       const f = await subir(nombre, data);
       // Sin la dirección de bajada: la de antes ya no vale, y se vuelve a pedir en el siguiente listado
       indice?.set(nombre, { ...f, '@microsoft.graph.downloadUrl': undefined });
+      if (existia) await podarVersiones(f.id);
     },
     async rename(from, to) {
       const data = await fs.read(from);

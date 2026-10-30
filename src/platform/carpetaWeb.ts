@@ -62,7 +62,7 @@ let porConfirmar: FileSystemDirectoryHandle | 'drive' | null = null;
 
 async function conectarDrive(preferir?: 'carpeta' | 'local'): Promise<Conexion> {
   const nube = await nubeActual();
-  const r = await espejo!.conectar(nube.fs(), nube.nombre, preferir);
+  const r = await espejo!.conectar(nube.fs(), nube.nombre, preferir, true);
   if (r.elegir) { porConfirmar = 'drive'; return r; }
   porConfirmar = null;
   await idbKv.del('carpeta');
@@ -148,7 +148,7 @@ export const carpetaWeb = {
       const email = (cuentaActual() ?? await leerCuenta())?.email;
       if (!email || !espejo) return 0;
       await nube.pedirPermiso(email);
-      return espejo.activar(nube.fs(), nube.nombre, { congelar: true });
+      return espejo.activar(nube.fs(), nube.nombre, { congelar: true, nube: true });
     }
     const g = await idbKv.get<CarpetaGuardada>('carpeta');
     if (!g || !espejo) return 0;
@@ -178,7 +178,7 @@ export async function abrirCarpetaGuardada() {
   if (permiso && espejo) {
     // El Drive (o el OneDrive) es de una cuenta: con otra, no se copia nada en él
     if (!cuenta || cuenta.email !== permiso.email) { await nube.quitarPermiso(); return; }
-    espejo.activar(nube.fs(), nube.nombre, { congelar: true }).then(n => { if (n > 0) recargarCuandoSeAPuedeSinCortar(); });
+    espejo.activar(nube.fs(), nube.nombre, { congelar: true, nube: true }).then(n => { if (n > 0) recargarCuandoSeAPuedeSinCortar(); });
     return;
   }
   const g = await idbKv.get<CarpetaGuardada>('carpeta').catch(() => undefined);

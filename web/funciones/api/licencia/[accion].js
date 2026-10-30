@@ -10,7 +10,7 @@
 // copia esta carpeta ahí antes de publicar (ver .github/workflows/web.yml).
 import { clavePublica, firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
-import { dentroDelLimite, respuestaLimite } from '../_limite.js';
+import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -37,14 +37,13 @@ export async function onRequestPost({ request, params, env }) {
     if (v) salida.set(c, v.slice(0, 200));
   }
 
-  // «activate» agota el cupo de dispositivos de una clave si se llama muchas veces: 5 por clave y
-  // 20 por IP cada 10 minutos (de sobra para activar un dispositivo de verdad, poco para vaciar el
-  // cupo de una clave ajena). Las demás acciones solo se limitan por IP.
+  // Un tope por clave y otro por IP, generosos (un claustro activa a la vez la misma clave de un pack desde
+  // la misma wifi): solo frenan a un programa que llama sin parar. Ver LIMITES en _limite.js.
   const ip = request.headers.get('CF-Connecting-IP') || 'desconocida';
   const key = salida.get('license_key') || '';
   const limites = params.accion === 'activate' && key
-    ? [dentroDelLimite(env.LIMITE, `activar-clave:${key}`, 5, 600), dentroDelLimite(env.LIMITE, `${params.accion}-ip:${ip}`, 20, 600)]
-    : [dentroDelLimite(env.LIMITE, `${params.accion}-ip:${ip}`, 20, 600)];
+    ? [dentroDelLimite(env.LIMITE, `activar-clave:${key}`, LIMITES.clave, LIMITES.ventana), dentroDelLimite(env.LIMITE, `${params.accion}-ip:${ip}`, LIMITES.ip, LIMITES.ventana)]
+    : [dentroDelLimite(env.LIMITE, `${params.accion}-ip:${ip}`, LIMITES.ip, LIMITES.ventana)];
   if ((await Promise.all(limites)).some(ok => !ok)) return respuestaLimite(cors);
 
   const res = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${params.accion}`, {

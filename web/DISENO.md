@@ -446,3 +446,7 @@ El texto definitivo de esta ronda vive en `aulapro/index.html` (castellano) y `a
 ## 48. Portada para la versión web (29-10-2026)
 
 Petición del dueño: como la app pasa a ser web y se entra desde la propia página, una portada más sencilla. Arriba, «Iniciar sesión» (lleva a `/app/`) junto a «Quiero AulaPro»; en pantallas de menos de 440 px solo cabe «Iniciar sesión», porque «Quiero AulaPro» está en grande justo debajo. Fuera del menú «Privacidad» y «Descargar». Fuera de la página la lista del domingo (`#lista`) y la franja de la clave de IA y los idiomas (`.strips`), y de las preguntas las de compartir y packs (ya están en Precio). Los textos dicen «el ordenador, la tableta y el móvil» en vez de «Windows y Android», y las preguntas de la cuenta, los datos y los dispositivos cuentan la versión web. Pendiente: la página de descargas, la privacidad y las condiciones completas.
+
+## Packs de 5 y 10 docentes (30-10-2026)
+
+- Decisión del dueño: solo packs de 5 y 10 docentes (24,99 € y 44,99 €), con una clave única por pack; quien compra entra con su cuenta y la licencia se activa sola, y el resto escribe la clave. Los de 20 y 30 se quitan; para más de 10 docentes se escribe a contacto@aulapro.app. La portada enseña dos tarjetas (no cuatro), y `launch.js` y `web/comprobar.mjs` solo piden los enlaces del 5 y del 10. Las condiciones y `/gracias` (tres idiomas) lo dicen igual.

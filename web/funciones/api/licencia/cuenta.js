@@ -8,7 +8,7 @@
 import { firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
 import { verificarTokenMicrosoft } from '../_microsoft.js';
-import { dentroDelLimite, respuestaLimite } from '../_limite.js';
+import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -24,9 +24,8 @@ export const onRequestOptions = ({ request }) => new Response(null, { status: 20
 export async function onRequestPost({ request, env }) {
   const cors = corsPara(request.headers.get('Origin'));
   const ip = request.headers.get('CF-Connecting-IP') || 'desconocida';
-  // 20 por IP cada 10 minutos: de sobra para entrar en varios dispositivos de un mismo centro, poco
-  // para aporrear la búsqueda en Lemon Squeezy (su cuota es compartida por toda la tienda).
-  if (!(await dentroDelLimite(env.LIMITE, `cuenta-ip:${ip}`, 20, 600))) return respuestaLimite(cors);
+  // Tope por IP generoso: un centro entero entra desde la misma wifi (ver LIMITES en _limite.js).
+  if (!(await dentroDelLimite(env.LIMITE, `cuenta-ip:${ip}`, LIMITES.ip, LIMITES.ventana))) return respuestaLimite(cors);
 
   const { token, proveedor } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400, cors);

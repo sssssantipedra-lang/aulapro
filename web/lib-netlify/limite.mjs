@@ -5,11 +5,26 @@
 // para cualquier función del sitio.
 import { getStore } from '@netlify/blobs';
 
+import { huella, caducados } from '../funciones/api/_limite.js';
+
+export { LIMITES } from '../funciones/api/_limite.js';
+
+let purgado = false;
+/**
+ * Netlify Blobs no caduca nada solo (Cloudflare KV, sí): se borran los contadores de ventanas ya pasadas, una
+ * vez al arrancar la función y, de vez en cuando, después. Sin esto, los contadores se acumularían para siempre.
+ */
+async function purgar(store, ventana) {
+  const { blobs } = await store.list();
+  for (const k of caducados(blobs.map(b => b.key), ventana)) await store.delete(k);
+}
+
 export async function dentroDelLimite(clave, maximo, ventanaSeg) {
   try {
     const store = getStore({ name: 'limite-licencia', consistency: 'strong' });
     const ventana = Math.floor(Date.now() / 1000 / ventanaSeg);
-    const k = `${clave}:${ventana}`;
+    if (!purgado || Math.random() < 0.02) { purgado = true; purgar(store, ventana).catch(() => {}); }
+    const k = `${await huella(clave)}:${ventana}`;
     const actual = (await store.get(k, { type: 'json' })) ?? 0;
     if (actual >= maximo) return false;
     await store.setJSON(k, actual + 1);

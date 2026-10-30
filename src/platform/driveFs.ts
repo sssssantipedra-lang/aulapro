@@ -9,9 +9,12 @@
  * de su Drive. Drive no tiene carpetas dentro de carpetas aquí: cada ruta de
  * `profileStore` es un archivo de esa carpeta con la ruta en el nombre
  * (`AulaPro/perfiles/p1/datos.json` → `perfiles~p1~datos.json`). Las copias
- * con fecha no se suben (Drive ya guarda versiones anteriores de cada archivo),
- * salvo la de antes de vaciar el curso. Borrar manda a la papelera de Drive:
- * se puede recuperar durante 30 días.
+ * con fecha no se suben, salvo la de antes de vaciar el curso. Cada subida
+ * sustituye a la anterior y borra las versiones antiguas del archivo (decisión
+ * del dueño, 30-10-2026: Drive guarda hasta 100 versiones de cada archivo y
+ * todas gastan espacio del docente; el trabajo anterior sigue en las copias del
+ * navegador). Borrar manda a la papelera de Drive: se puede recuperar durante
+ * 30 días.
  *
  * El navegador habla con Drive directamente (googleapis.com admite CORS).
  */
@@ -109,6 +112,30 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
 
   const buscar = async (nombre: string) => (indice ?? await listar()).get(nombre) ?? (await listar()).get(nombre);
 
+  /** Si Drive no deja podar versiones (falta permiso), no se vuelve a intentar en esta sesión. */
+  let sinPoda = false;
+  /**
+   * Borra todas las versiones del archivo menos la última. Es un extra: si falla, la subida ya está hecha y
+   * no se avisa de nada.
+   */
+  async function podarVersiones(id: string) {
+    if (sinPoda) return;
+    try {
+      const todas: { id: string; modifiedTime?: string }[] = [];
+      let pagina = '';
+      do {
+        const r = await (await pedir(`${API}/${id}/revisions?fields=nextPageToken,revisions(id,modifiedTime)&pageSize=200${pagina ? `&pageToken=${pagina}` : ''}`)).json();
+        todas.push(...(r.revisions ?? []));
+        pagina = r.nextPageToken ?? '';
+      } while (pagina);
+      // La más reciente es la que vale; Drive no deja borrarla
+      todas.sort((a, b) => (a.modifiedTime ?? '').localeCompare(b.modifiedTime ?? ''));
+      for (const v of todas.slice(0, -1)) await pedir(`${API}/${id}/revisions/${v.id}`, { method: 'DELETE' });
+    } catch (err) {
+      if ((err as ErrorDrive)?.status === 401 || (err as ErrorDrive)?.status === 403) sinPoda = true;
+    }
+  }
+
   const papelera = (id: string) => pedir(`${API}/${id}`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }),
   });
@@ -130,6 +157,7 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
         });
         if (r.status === 404) { indice?.delete(nombre); return fs.write(ruta, data); }
         indice?.set(nombre, await r.json());
+        await podarVersiones(f.id);
         return;
       }
       const limite = 'aulapro' + Math.random().toString(36).slice(2);

@@ -4,7 +4,7 @@
 import { clavePublica } from '../funciones/api/_firma.js';
 import { conFirma } from '../funciones/api/licencia/[accion].js';
 import { corsPara } from '../funciones/api/_origenes.js';
-import { dentroDelLimite, respuestaLimite } from '../lib-netlify/limite.mjs';
+import { dentroDelLimite, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -27,13 +27,13 @@ export default async (request, context) => {
     if (v) salida.set(c, v.slice(0, 200));
   }
 
-  // «activate» agota el cupo de dispositivos de una clave si se llama muchas veces: 5 por clave y
-  // 20 por IP cada 10 minutos. Las demás acciones solo se limitan por IP.
+  // Un tope por clave y otro por IP, generosos (un claustro activa a la vez la misma clave de un pack desde
+  // la misma wifi): solo frenan a un programa que llama sin parar. Ver LIMITES en funciones/api/_limite.js.
   const ip = context.ip || 'desconocida';
   const key = salida.get('license_key') || '';
   const limites = accion === 'activate' && key
-    ? [dentroDelLimite(`activar-clave:${key}`, 5, 600), dentroDelLimite(`${accion}-ip:${ip}`, 20, 600)]
-    : [dentroDelLimite(`${accion}-ip:${ip}`, 20, 600)];
+    ? [dentroDelLimite(`activar-clave:${key}`, LIMITES.clave, LIMITES.ventana), dentroDelLimite(`${accion}-ip:${ip}`, LIMITES.ip, LIMITES.ventana)]
+    : [dentroDelLimite(`${accion}-ip:${ip}`, LIMITES.ip, LIMITES.ventana)];
   if ((await Promise.all(limites)).some(ok => !ok)) return respuestaLimite(cors);
 
   const res = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${accion}`, {
