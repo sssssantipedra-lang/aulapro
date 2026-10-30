@@ -13,7 +13,7 @@
 // comprueba que es del titular) o si el token dice que el dominio del correo está verificado (`xms_edov`,
 // notificación opcional «ID» en el registro de la aplicación). Si no, no hay licencia automática y el
 // docente escribe su clave.
-export const MICROSOFT_CLIENT_ID = ''; // «Id. de aplicación (cliente)» del registro en entra.microsoft.com
+export const MICROSOFT_CLIENT_ID = 'aaf98623-576d-4fed-903f-3a0812385435'; // «Id. de aplicación (cliente)» del registro en entra.microsoft.com
 const AUTORIDAD = 'https://login.microsoftonline.com/common';
 const INQUILINO_PERSONAL = '9188040d-6c67-4c5b-b112-36a304b66dad';
 const SCOPE_IDENTIDAD = 'openid email profile offline_access';

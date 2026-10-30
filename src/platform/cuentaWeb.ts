@@ -24,8 +24,8 @@ export const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.a
  * Google). Mientras esté vacío, «Continuar con Microsoft» sigue apagado. La misma constante, en el
  * servidor: `web/funciones/api/_microsoft.js`.
  */
-export const MICROSOFT_CLIENT_ID = '';
-export const MICROSOFT_LISTO = MICROSOFT_CLIENT_ID !== '';
+export const MICROSOFT_CLIENT_ID = 'aaf98623-576d-4fed-903f-3a0812385435';
+export const MICROSOFT_LISTO: boolean = MICROSOFT_CLIENT_ID.length > 0;
 
 export interface Cuenta {
   proveedor: 'google' | 'microsoft';
