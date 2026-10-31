@@ -65,7 +65,7 @@ describe('callGemini y la privacidad del alumnado', () => {
     for (let i = 0; i < 4; i++) {
       await callGemini('sistema', 'Lucía Pérez Navarro ha faltado tres días.');
       const [c] = codigos(enviado);
-      expect(c).toMatch(/^\[ALU-\d{3,4}\]$/);
+      expect(c).toMatch(/^\[ALU-\d{5}\]$/);
       vistos.add(c);
     }
     expect(vistos.size).toBeGreaterThan(1);

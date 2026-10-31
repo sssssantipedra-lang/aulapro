@@ -103,7 +103,7 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
  * Con un código fijo por alumno («[ALU-7]» siempre es la misma persona), quien
  * reciba muchas peticiones podría ir juntando lo que sabe de cada código: sus
  * notas, sus avisos, su apoyo. Para que eso no se pueda hacer, cada petición
- * a la IA usa una numeración nueva al azar: el mismo alumno es [ALU-4821] en
+ * a la IA usa una numeración nueva al azar: el mismo alumno es [ALU-48213] en
  * una petición y [ALU-305] en la siguiente. Dentro de una misma petición (con
  * su historial) un alumno conserva su código, para que la IA pueda razonar.
  *
@@ -112,19 +112,40 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
  * en el nombre de otro alumno.
  */
 
-/** Los números de los códigos de una petición: de 100 a 9999, distintos entre sí y sin orden. */
-const MIN_CODIGO = 100;
+/**
+ * El dígito de control de Damm: detecta cualquier cifra cambiada y cualquier par de cifras vecinas
+ * intercambiadas. Un número con su dígito al final da 0 (`codigoValido`).
+ */
+const DAMM = [
+  [0, 3, 1, 7, 5, 9, 8, 6, 4, 2], [7, 0, 9, 2, 1, 5, 4, 8, 6, 3], [4, 2, 0, 6, 8, 7, 1, 3, 5, 9], [1, 7, 5, 0, 9, 8, 3, 4, 2, 6],
+  [6, 1, 2, 3, 0, 4, 5, 9, 7, 8], [3, 6, 7, 4, 2, 0, 9, 5, 8, 1], [5, 8, 6, 9, 7, 2, 0, 1, 3, 4], [8, 9, 4, 5, 3, 6, 2, 0, 1, 7],
+  [9, 4, 3, 8, 6, 1, 7, 2, 0, 5], [2, 5, 8, 1, 4, 3, 6, 7, 9, 0],
+];
+export function digitoDamm(cifras: string): number {
+  let i = 0;
+  for (const c of cifras) i = DAMM[i][c.charCodeAt(0) - 48];
+  return i;
+}
+
+/**
+ * Los códigos de una petición tienen siempre cinco cifras: cuatro al azar (de 1000 a 9999) y el dígito de control.
+ * Si la IA copia mal un código (una cifra cambiada, dos vecinas al revés, una de más o de menos), deja de ser
+ * válido y no se convierte en ningún alumno: se queda a la vista. Ver `codigoValido`.
+ */
+const MIN_CODIGO = 1000;
 const MAX_CODIGO = 9999;
+export const codigoValido = (cifras: string) => /^\d{5}$/.test(cifras) && digitoDamm(cifras) === 0;
+const conControl = (n: number) => n * 10 + digitoDamm(String(n));
 
 function numeroAlAzar(usados: Set<number>, azar: () => number): number {
   for (let intento = 0; intento < 50; intento++) {
-    const n = MIN_CODIGO + Math.floor(azar() * (MAX_CODIGO - MIN_CODIGO + 1));
+    const n = conControl(MIN_CODIGO + Math.floor(azar() * (MAX_CODIGO - MIN_CODIGO + 1)));
     if (!usados.has(n)) return n;
   }
   // Muy improbable con el azar de verdad: el primero libre, para no quedarse dando vueltas
   let n = MIN_CODIGO;
-  while (usados.has(n)) n++;
-  return n;
+  while (usados.has(conControl(n))) n++;
+  return conControl(n);
 }
 
 /** Un número al azar entre 0 y 1, del generador criptográfico del navegador. */
@@ -162,7 +183,8 @@ export function codigosDePeticion(base: Pseudonymizer, azar: () => number = azar
     unmask(text) {
       if (!text) return text;
       return text.replace(CODE_RE, (m, num: string) => {
-        const fijo = vuelta.get(Number(num));
+        // Un código mal copiado no pasa el dígito de control: no es nadie
+        const fijo = codigoValido(num) ? vuelta.get(Number(num)) : undefined;
         return fijo === undefined ? m : base.unmask(code(fijo));
       });
     },

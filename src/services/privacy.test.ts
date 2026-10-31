@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPseudonymizer, codigosDePeticion } from './privacy';
+import { buildPseudonymizer, codigoValido, codigosDePeticion, digitoDamm } from './privacy';
 
 const roster = [
   { id: 'a', name: 'Lucía Pérez Navarro' },
@@ -77,7 +77,8 @@ describe('codigosDePeticion (códigos nuevos al azar en cada petición)', () => 
     expect(t).not.toMatch(/Lucía|Marco/);
     expect(lucia).not.toBe(marco);
     expect(t.split(lucia)).toHaveLength(3);
-    expect(Number(lucia.slice(5, -1))).toBeGreaterThanOrEqual(100);
+    expect(lucia).toMatch(/^\[ALU-\d{5}\]$/);
+    expect(codigoValido(lucia.slice(5, -1))).toBe(true);
   });
 
   it('dos peticiones dan códigos distintos al mismo alumno, y cada una deshace solo los suyos', () => {
@@ -107,5 +108,33 @@ describe('codigosDePeticion (códigos nuevos al azar en cada petición)', () => 
     const p = codigosDePeticion(muchos, secuencia(0.3));
     const t = p.mask(Array.from({ length: 30 }, (_, i) => `Nombre${i} Apellido${i}`).join(', '));
     expect(new Set(t.match(/\[ALU-\d+\]/g)).size).toBe(30);
+  });
+});
+
+describe('dígito de control de los códigos (Damm)', () => {
+  it('es el de Damm: 572 lleva un 4', () => {
+    expect(digitoDamm('572')).toBe(4);
+    expect(codigoValido('57244')).toBe(false);
+    expect(digitoDamm('5724')).toBe(0);
+  });
+
+  it('un código mal copiado por la IA no se convierte en ningún alumno: cifra cambiada, dos vecinas al revés, una de más o de menos', () => {
+    const base = buildPseudonymizer(Array.from({ length: 30 }, (_, i) => ({ id: String(i), name: `Nombre${i} Apellido${i}` })));
+    for (let vuelta = 0; vuelta < 20; vuelta++) {
+      const p = codigosDePeticion(base);
+      const enviados = p.mask(Array.from({ length: 30 }, (_, i) => `Nombre${i} Apellido${i}`).join(', ')).match(/\d{5}/g)!;
+      expect(enviados).toHaveLength(30);
+      for (const c of enviados) {
+        expect(p.unmask(`[ALU-${c}]`)).toMatch(/^Nombre\d+ Apellido\d+$/);
+        const erratas = new Set<string>();
+        for (let i = 0; i < 5; i++) {
+          for (let d = 0; d < 10; d++) if (String(d) !== c[i]) erratas.add(c.slice(0, i) + d + c.slice(i + 1));
+          if (i < 4 && c[i] !== c[i + 1]) erratas.add(c.slice(0, i) + c[i + 1] + c[i] + c.slice(i + 2));
+          erratas.add(c.slice(0, i) + c.slice(i + 1));
+        }
+        erratas.add(c + '0');
+        for (const e of erratas) expect(p.unmask(`[ALU-${e}]`)).toBe(`[ALU-${e}]`);
+      }
+    }
   });
 });
