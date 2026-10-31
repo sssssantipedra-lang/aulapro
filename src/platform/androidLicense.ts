@@ -116,9 +116,9 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   /** Comprobación en segundo plano: sin conexión no pasa nada. */
   async function check() {
-    // La de la cuenta la vuelve a comprobar la app al entrar con Google (App.tsx)
-    if (record?.kind !== 'licencia' || !record.key || !record.instanceId || record.cuenta) return;
-    const r = await call('validate', { license_key: record.key, instance_id: record.instanceId });
+    // Suscripción anual: si no se renueva, la clave caduca y se bloquea la cuenta. La de la cuenta no ocupa activación: se valida solo con la clave
+    if (record?.kind !== 'licencia' || !record.key || (!record.instanceId && !record.cuenta)) return;
+    const r = await call('validate', record.cuenta ? { license_key: record.key } : { license_key: record.key, instance_id: record.instanceId ?? '' });
     if (!r) return;
     const st = r.body.license_key?.status;
     if (r.body.valid && st !== 'disabled' && st !== 'expired') await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
@@ -179,7 +179,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     async deactivate(): Promise<LicenseResult> {
       await whenReady();
       if (record?.kind !== 'licencia' || !record.key || !record.instanceId) return { ok: false, error: 'sin-licencia', state: state() };
-      const r = await call('deactivate', { license_key: record.key, instance_id: record.instanceId });
+      const r = await call('deactivate', { license_key: record.key, instance_id: record.instanceId ?? '' });
       if (!r) return { ok: false, error: 'sin-conexion', state: state() };
       await save(null);
       return { ok: true, state: state() };

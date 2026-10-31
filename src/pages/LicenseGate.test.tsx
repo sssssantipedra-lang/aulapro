@@ -33,7 +33,7 @@ describe('pantalla de licencia con la venta cerrada', () => {
     expect(VENTA_ABIERTA).toBe(false);
     pintar();
     expect(await screen.findByText(/sale a la venta el 10 de noviembre de 2026/)).toBeTruthy();
-    expect(screen.queryByRole('link', { name: /Comprar AulaPro/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Suscribirme/ })).toBeNull();
     expect(document.querySelector('a[href*="lemonsqueezy"]')).toBeNull();
   });
 

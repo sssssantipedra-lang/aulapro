@@ -13,8 +13,8 @@ Las filas marcadas con **(comprobar)** son cosas que esta lista no ha podido ver
 | **10-11-2026** | Salida a la venta (el mismo día que el corte de fundadores). **Hasta entonces la venta está cerrada** (31-10-2026) | Antes: lista del apartado 5 («Antes de abrir ventas»). Abrir **los dos interruptores a la vez**: `checkout` en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` |
 | **31-12-2026** | Caduca la clave de revisión de Lemon Squeezy para Google Play (`docs/TIENDAS.md`) | Solo importa si algún día se vuelve a las tiendas. Hoy no se usa |
 | **Hacia el 30-4-2027** | Microsoft: si el secreto del registro se creó con 6 meses (30-10-2026 + 6 meses) | **(comprobar)** la fecha de caducidad elegida al crearlo. Renovar un mes antes (apartado 2) |
-| **15-4-2027** | Termina la oferta de lanzamiento (9,99 € de por vida) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
-| **16-4-2027** | Empiezan las licencias anuales (11,99 € al año) | Antes de esa fecha, tiene que estar hecha la gestión de la anual (`docs/WEB.md`, apartado 5, punto 13) |
+| **15-4-2027** | Termina la oferta de lanzamiento (9,99 € el primer año) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
+| **Cada renovación** | Las suscripciones anuales se renuevan a 14,99 € | En Lemon Squeezy, activar el correo de aviso antes de cada renovación (las condiciones lo prometen). Si no se paga, la clave caduca y la app bloquea la cuenta |
 | **31-8-2027** | Renovación automática del dominio (14,20 $) | Tarjeta válida en Cloudflare. La vigilancia avisa 30 días antes de que caduque |
 | **30-9-2027** | Caduca el dominio `aulapro.app` si no se renovó | Si la renovación falla, la web, la app y el correo caen a la vez |
 | **Hacia el 16-4-2028** | Primeras anuales a renovar | Comprobar qué ve quien no renueva (decisión pendiente: los datos nunca se bloquean) |
