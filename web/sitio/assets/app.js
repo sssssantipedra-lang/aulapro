@@ -211,7 +211,7 @@
     if (playing) { rafId = null; lastTick = 0; return; }   // the playing glide draws its own frames
     const dt = Math.min(100, now - (lastTick || now));
     lastTick = now;
-    shown += (target - shown) * (1 - Math.pow(1 - 0.35, dt / 16.667));
+    shown += (target - shown) * (1 - Math.pow(1 - 0.1, dt / 16.667));
     if (loadK < 1) {
       const x = clamp((now - loadStart - 250) / 1300, 0, 1);
       loadK = 1 - Math.pow(1 - x, 3);
