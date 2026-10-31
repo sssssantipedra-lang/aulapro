@@ -27,7 +27,7 @@ La idea central es que **el trabajo del docente vive en su dispositivo**. AulaPr
         │
         ├──► Google / Microsoft ......... entrar con la cuenta (y el permiso para su Drive u OneDrive)
         ├──► Drive / OneDrive del docente  copia de su trabajo (cada 30 minutos y al salir)
-        ├──► Gemini (Google) ............ la IA, con la clave del docente
+        ├──► Gemini (Google) ............ la IA, con la clave del docente (también la gratuita)
         └──► Funciones de AulaPro ....... licencia y tokens de Google y Microsoft (no ven el trabajo)
                 ├─ Netlify (principal, sirve aulapro.app)
                 └─ Cloudflare Pages (respaldo, aulapro-app.pages.dev; y la copia de pruebas)
@@ -127,7 +127,7 @@ Reglas de cálculo que comparten todas las pantallas:
 
 ## 7. La IA
 
-**Clave.** Hoy la IA usa la clave de Google del propio docente (Gemini), guardada en su navegador. Sin clave, la app funciona entera menos lo que redacta la IA. La decisión sobre una clave central está pendiente (`docs/REVISAR.md`, punto 1).
+**Clave.** La IA usa la clave de Google del propio docente (Gemini), también la gratuita, guardada en su navegador. AulaPro no tiene clave ni servidor de IA: las peticiones van del navegador del docente a Google. Sin clave, la app funciona entera menos lo que redacta la IA. Desde el Espacio Económico Europeo, Google aplica a la clave gratuita las reglas de uso de datos de la de pago. Decisión del dueño del 31-10-2026, tras estudiar una clave central; el riesgo y su revisión trimestral están en `CLAUDE.md` y `docs/MANTENIMIENTO.md`.
 
 **Un único punto de salida.** Todas las peticiones (más de 60 en la app) pasan por `callGemini` (`src/services/gemini.ts`). Cada pantalla prepara su prompt, a menudo con un esquema JSON de lo que tiene que devolver, y `callGemini` hace siempre lo mismo:
 

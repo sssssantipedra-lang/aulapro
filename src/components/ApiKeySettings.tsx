@@ -180,7 +180,7 @@ export function ApiKeySettings() {
 
       <p className="ak-privacy">
         <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
-        <span>{t('Los nombres de tu alumnado nunca salen de este equipo: antes de enviar nada a Google se cambian por códigos, y al recibir la respuesta se vuelven a poner. Solo se envían tal cual los archivos que adjuntes tú.')}</span>
+        <span>{t('Los nombres de tu alumnado nunca salen de este equipo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner. Los documentos de tu alumnado van solo como texto y en sus fotos tapas el nombre. Desde la Unión Europea, Google no usa lo que envías para mejorar sus productos, tampoco con la clave gratuita.')}</span>
       </p>
     </div>
   );

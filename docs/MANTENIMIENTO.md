@@ -110,6 +110,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 - La IA va con la clave de cada docente. La app **no paga nada** y no tiene clave propia.
 - Los modelos tienen fecha de retirada. El principal es `gemini-3.8-flash`, con `gemini-3.5-flash-lite` y `gemini-3.1-flash-lite` de apoyo y `gemini-2.5-flash` y `gemini-2.0-flash` como último recurso (`src/services/gemini.ts`, `MAIN_MODEL`, `LITE_MODELS`, `LEGACY_MODELS`). **Cuando Google retire uno, la app cae al siguiente sin avisar, y cuando retire todos, la IA deja de funcionar a todo el mundo.** Cada trimestre, mirar la página de modelos y de retiradas de Google AI y actualizar las listas y sus pruebas (`gemini.models.test.ts`, `gemini.thinking.test.ts`).
 - La cuota gratuita de Google AI Studio y sus límites los cambia Google. Si una versión de la cuota rompe el uso normal de un docente, se oirá por el correo de contacto.
+- **Las condiciones de la API de Gemini sostienen la decisión de usar la clave gratuita del docente** (31-10-2026, `CLAUDE.md`). Cada trimestre, leer en https://ai.google.dev/gemini-api/terms las dos cláusulas del Espacio Económico Europeo: que la cuota gratuita se trata con las reglas de datos del servicio de pago, y la de «solo servicios de pago al ofrecer clientes de la API a usuarios del EEE». Si cambian, o si Google aclara que una app con la clave de cada usuario tiene que usar claves de pago, hay que avisar al dueño y cambiar la privacidad y la guía de la clave.
 
 ## 4. Datos del docente: lo que caduca en su dispositivo
 
@@ -151,6 +152,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 ### Cada trimestre
 
 - [ ] Retiradas de modelos de Gemini (apartado 3).
+- [ ] Las dos cláusulas del EEE en las condiciones de la API de Gemini siguen igual (apartado 3, «Modelos de Gemini»).
 - [ ] Fechas de este documento al día.
 - [ ] Una entrada completa con Google y con Microsoft desde un navegador sin sesión.
 - [ ] Entre marzo y septiembre, que la tarea «Vigilar el calendario escolar» (`calendario.yml`, lunes y jueves) no tenga un pull request sin revisar.
@@ -198,7 +200,7 @@ Este documento se revisa periódicamente y se responde al dueño con lo que haya
 3. **Servicios nuevos.** Busca dependencias externas añadidas desde la última revisión (nuevas direcciones en `connect-src` de `netlify.toml`, nuevos flujos en `.github/workflows/`, nuevas funciones en `web/funciones/api/`). Si hay una cuenta o un servicio que no está en este documento, propón dónde anotarlo.
 4. **Copias de las funciones.** `web/funciones/` y `web/netlify/` deben decir lo mismo (CLAUDE.md y `docs/APP_WEB.md`): si una cambia y la otra no, un servidor se comporta distinto del otro.
 5. **Estado de la vigilancia.** Incidencias con la etiqueta `vigilancia` abiertas o recientes, y que las tareas programadas de GitHub sigan activas y con minutos disponibles (apartado 3).
-6. **Modelos de Gemini.** Compara los de `src/services/gemini.ts` con la lista de modelos y de retiradas que publique Google, y avisa de cualquiera retirado o con fecha de retirada.
+6. **Modelos de Gemini.** Compara los de `src/services/gemini.ts` con la lista de modelos y de retiradas que publique Google, y avisa de cualquiera retirado o con fecha de retirada. Lee además las cláusulas del Espacio Económico Europeo de https://ai.google.dev/gemini-api/terms (uso de datos de la cuota gratuita y «solo servicios de pago» para clientes de la API) y avisa si han cambiado: la clave gratuita del docente depende de ellas.
 7. **Lo marcado «(comprobar)».** Dilo claramente si no puedes verlo desde donde estás: no lo des por bueno.
 
 ### Qué contestar

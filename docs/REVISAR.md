@@ -12,21 +12,13 @@ Estado de la rama `ccr-3f4014f5-llwckk`: lleva cambios que **todavía no están 
 - Los códigos de alumno son nuevos y al azar en cada petición, con dígito de control.
 - Un nombre de pila compartido también se tapa.
 - No se pueden guardar dos alumnos con el mismo nombre en la misma clase.
+- La privacidad y la nota de Configuración › IA explican que, desde Europa, Google trata la clave gratuita con las reglas de datos de la de pago.
 
 ## 1. Decisiones del dueño
 
-Condicionan el resto. La primera es urgente.
-
-1. **La clave de la IA.** Hay dos caminos:
-   - **Clave central** (AulaPro paga la IA). Para salir así el 10-11 hace falta un proyecto de Google Cloud con facturación, el servidor en Cloud Run en una región de la UE con Vertex AI y Firestore para los créditos, la consulta con un abogado y reescribir la promesa «nada pasa por un servidor de AulaPro», que aparece en unos quince sitios.
-   - **Clave propia del docente, de pago** (con la facturación activada en su proyecto de Google). La clave central puede llegar unas semanas después.
-   - En los dos casos, la clave del docente se queda como opción avanzada.
-   - Por qué la clave gratuita no sirve: las condiciones de Google dicen que una app para usuarios del Espacio Económico Europeo solo puede usar servicios de pago. Hay que comprobarlo en la página vigente, https://ai.google.dev/gemini-api/terms.
-2. **Si la clave es central:**
-   - Qué recibe quien compra la licencia de por vida: créditos el primer año y después un bono, o créditos que se renuevan siempre.
-   - El tope de gasto por licencia y año: se propuso 1,80 € de coste real.
-   - Qué reciben los fundadores y los packs.
-3. **El párrafo de la privacidad sobre el uso gratuito de Google** (`web/sitio/privacidad.html`, en los tres idiomas) dice que Google puede usar los contenidos para mejorar sus servicios. Desde Europa ya no es así. Se reescribe según lo que se decida en el punto 1.
+1. ~~**La clave de la IA.**~~ **Decidido el 31-10-2026: se sigue con la clave de Google de cada docente, también la gratuita.** Se estudió una clave central de AulaPro con créditos y se descartó. La privacidad (en los tres idiomas) y la nota de Configuración › IA ya dicen que, desde el Espacio Económico Europeo, Google trata la clave gratuita con las reglas de uso de datos de la de pago. Queda un riesgo: que Google interprete de otro modo la cláusula «solo servicios de pago al ofrecer clientes de la API a usuarios del EEE». Por eso las condiciones se revisan cada trimestre (`docs/MANTENIMIENTO.md`), y conviene mirar si Google contesta en su foro la pregunta sobre apps con la clave de cada usuario (https://discuss.ai.google.dev/t/eea-paid-services-requirement-android-app-using-each-end-users-own-free-gemini-api-project/195065).
+2. ~~Si la clave es central: tope de gasto y qué reciben licencias de por vida, fundadores y packs.~~ Ya no aplica.
+3. ~~El párrafo de la privacidad sobre el uso gratuito de Google.~~ Corregido el 31-10-2026.
 4. **Los packs.** Con la licencia individual a 9,99 €, los packs (24,99 € para 5 docentes y 44,99 € para 10) salen a 5,00 € y 4,50 € por docente: un 50 % y un 55 % de descuento. Antes eran un 28 % y un 36 %. Si se quiere el mismo descuento, rondarían 34,99 € y 62,99 €.
 5. **Qué ve quien no renueva una licencia anual** (las primeras vencen hacia el 16-4-2028). Los datos nunca se bloquean; falta decidir qué deja de funcionar (`docs/MANTENIMIENTO.md`).
 
@@ -61,9 +53,6 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
   - La prueba `src/pages/LicenseGate.test.tsx`.
   - Los enlaces de los packs.
 - [ ] El recordatorio semanal de «Guardar en mi nube» en Android, iPhone e iPad (`docs/APP_WEB.md`, «Lo que falta»).
-- [ ] Según la decisión del punto 1.1:
-  - Con la clave propia de pago: la guía para activar la facturación y fijar un tope de gasto, y la casilla «mi clave es de pago».
-  - Con la clave central: el servidor, los créditos y los textos nuevos.
 
 ## 4. Probar en dispositivos reales
 
@@ -85,20 +74,18 @@ Lo que solo importa si algún día se vuelve a las apps nativas: el PDF de Andro
 
 ## 5. Legal y cuentas
 
-- **Abogado de protección de datos**, imprescindible si la clave es central:
-  - El contrato de encargo del tratamiento: AulaPro sería encargado de los centros.
-  - El argumento de que lo que llega a la IA no son datos personales para AulaPro ni para Google: seudonimización con códigos al azar por petición, según la sentencia del TJUE C-413/23 P, EDPS contra SRB, de 4-9-2025.
+- **Abogado de protección de datos** (ya no imprescindible: con la clave del docente, AulaPro no es encargado del tratamiento de lo que va a la IA). Sigue siendo recomendable una consulta corta sobre:
   - «Evaluar por foto» y la Ley de IA de la UE: la IA que evalúa resultados de aprendizaje está en la lista de alto riesgo del ámbito educativo. Comprobar también el calendario de obligaciones vigente.
+  - La lectura de la cláusula «solo servicios de pago» de Google para una app en la que cada docente pone su propia clave.
 - **Verificación de Google** de la aplicación OAuth (Drive): pendiente (`docs/APP_WEB.md`).
 - **Editor verificado de Microsoft** (Microsoft Cloud Partner Program): sin él, las cuentas de centros pueden necesitar la aprobación de su administrador para OneDrive.
-- **Condiciones de Google para Gemini**: confirmar en la página vigente las dos cláusulas sobre el Espacio Económico Europeo (uso de datos en la cuota gratuita y «solo servicios de pago» para apps). Desde la sesión de Claude no se pudo abrir la página oficial.
+- **Condiciones de Google para Gemini**: confirmar en la página vigente las dos cláusulas sobre el Espacio Económico Europeo (uso de datos en la cuota gratuita y «solo servicios de pago» para apps), en las que se apoya la decisión de usar la clave gratuita del docente. Desde la sesión de Claude no se pudo abrir la página oficial; el dueño las tiene citadas tal cual (31-10-2026).
 
 ## 6. Calidad de la IA sin probar con datos reales
 
 - Comprensión lectora y lectura fácil: sin puntuar con una IA real (`docs/FICHAS.md`, punto 2 quater).
 - Informe del orientador: probar con un informe real anonimizado, en PDF y en Word (`docs/PTAL.md`).
 - Lectura de PDF en el navegador: probar con informes y programaciones reales. Hay que ver que el texto sale en orden y que los escaneados se detectan.
-- Si la clave es central: una prueba ciega de calidad con unas 20 peticiones reales (situaciones de aprendizaje y rúbricas en JSON) entre los modelos candidatos, antes de fijar qué modelo va a cada tarea.
 
 ## 7. Pendientes conocidos que no impiden vender
 
