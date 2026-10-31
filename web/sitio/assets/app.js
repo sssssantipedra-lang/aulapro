@@ -242,6 +242,7 @@
   let lastY = 0, dir = 0, glideId = null, idleTimer = 0;
   function trackDir() {
     const y = scrollY;
+    if (glideId !== null) lastGlideTs = performance.now();
     if (glideId === null && performance.now() - lastWheel < GESTURE_GAP) {
       // the rest of a wheel gesture the browser would not let us cancel (it began below the film) cannot move the page
       if (gestureUsed && restY !== null && Math.abs(y - restY) > 2) { scrollTo(0, restY); return; }
@@ -402,6 +403,7 @@
   // has been quiet for almost half a second; a wheel that keeps turning through the glide is still the same
   // gesture. At the last stop, going down leaves the film as usual.
   const GESTURE_GAP = 450;
+  let lastGlideTs = 0, lastAbs = 0;
   let lastWheel = 0, gestureUsed = false, restY = null, touchY = null, touchInHero = false;
   function heroP() { return (scrollY - heroTop) / heroRange; }
   function inFilm(d, p) { return d > 0 ? p >= -0.001 && p < 0.998 : p > 0.002 && p <= 1.002; }
@@ -418,8 +420,12 @@
     if (e.ctrlKey || !e.deltaY) return;                       // ctrl + wheel is the browser's zoom
     const d = e.deltaY > 0 ? 1 : -1;
     const now = performance.now();
+    const abs = Math.abs(e.deltaY);
     if (now - lastWheel > GESTURE_GAP) gestureUsed = false;
+    // a wheel still turning once the glide has finished (constant or growing strokes, not a fading flick) is a new step
+    else if (gestureUsed && glideId === null && now - lastGlideTs > 120 && abs >= lastAbs) { gestureUsed = false; restY = null; }
     lastWheel = now;
+    lastAbs = abs;
     // mid-glide, or the tail of a gesture that already moved one step: nothing moves
     if (glideId !== null || gestureUsed) { gestureUsed = true; e.preventDefault(); return; }
     if (!inFilm(d, heroP())) return;                          // outside the film the page scrolls as usual
