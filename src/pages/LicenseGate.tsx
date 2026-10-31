@@ -5,7 +5,7 @@ import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../servi
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
 import { isAndroidApp, isWebApp } from '../lib/platform';
-import { botonGoogle, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, type Cuenta } from '../platform/cuentaWeb';
+import { botonGoogle, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, VENTA_ABIERTA, type Cuenta } from '../platform/cuentaWeb';
 
 /** Por qué no se ha podido buscar la compra (`licenciaDeLaCuenta`). */
 const AVISO_BUSQUEDA: Record<string, string> = {
@@ -41,7 +41,8 @@ export function LicenseGate({ state, onChange }: Props) {
   const [mirando, setMirando] = useState(false);
   const [aviso, setAviso] = useState('');
   // Con la cuenta, la clave escrita a mano es lo raro: queda detrás de un enlace pequeño
-  const [conClave, setConClave] = useState(false);
+  // Con la venta cerrada no hay nada que comprar: la clave a mano sale ya a la vista
+  const [conClave, setConClave] = useState(!VENTA_ABIERTA);
 
   /** Busca la compra de esta cuenta y, si la hay, activa la licencia. */
   async function comprobarCompra(manual: boolean) {
@@ -114,10 +115,14 @@ export function LicenseGate({ state, onChange }: Props) {
 
         {cuenta ? (
           <div className="lic-compra">
-            <p className="lic-text">{t('Con la cuenta {email} todavía no hay una licencia. Cómprala aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })}</p>
-            <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
-              {t('Comprar AulaPro · 6,99 €')} <ExternalLink size={14} />
-            </a>
+            <p className="lic-text">{VENTA_ABIERTA
+              ? t('Con la cuenta {email} todavía no hay una licencia. Cómprala aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })
+              : t('Con la cuenta {email} todavía no hay una licencia. AulaPro sale a la venta el 15 de noviembre de 2026. Si ya tienes una clave, escríbela abajo.', { email: cuenta.email })}</p>
+            {VENTA_ABIERTA && (
+              <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
+                {t('Comprar AulaPro · 6,99 €')} <ExternalLink size={14} />
+              </a>
+            )}
             {esperando && <p className="lic-espera"><span className="spin" />{t('Cuando termines el pago, vuelve aquí: AulaPro se activará sola.')}</p>}
             <div style={{ position: 'relative', marginTop: 10, overflow: 'hidden', borderRadius: 'var(--r)' }}>
               <button type="button" className="btn-ghost" style={{ width: '100%', justifyContent: 'center' }} disabled={mirando} onClick={() => comprobarCompra(true)}>
