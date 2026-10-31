@@ -95,7 +95,7 @@ export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidade
               </div>
             </details>
           </div>
-          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe también lo que escribes aquí, incluido el diagnóstico, con el nombre cambiado por un código. El diagnóstico es un dato de salud: si no quieres que llegue a Google, déjalo en blanco.')}</p>
+          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe sus necesidades y tus notas con el nombre cambiado por un código, pero nunca el diagnóstico, que es un dato de salud. En las notas, no escribas el diagnóstico ni datos que lo identifiquen.')}</p>
           <div className="ap-acciones">
             <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
             <button className="btn-ghost" onClick={cerrar}>{t('Cancelar')}</button>

@@ -123,7 +123,8 @@
   },
   "dependencies": {
     "@netlify/blobs": "^11.1.7",
-    "electron-updater": "^6.8.9"
+    "electron-updater": "^6.8.9",
+    "pdfjs-dist": "6.4.299"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",

@@ -7,7 +7,7 @@ import { GradeTargetsPicker } from '../components/GradeTargetPicker';
 import { buildRubricaHtml, guardarInstrumentoPdf, nombresDeClases } from '../services/exportInstrumento';
 import type { InlineFile } from '../services/gemini';
 import { callGemini, parseGeminiJson } from '../services/gemini';
-import { competenciasClaveValidas, fileToBase64, isoDate, newId } from '../lib/utils';
+import { competenciasClaveValidas, isoDate, newId } from '../lib/utils';
 import { levelsOf, levelColor, gradeFromLevels, defaultLevels, competencyScoresFor, type AchievementLevel } from '../types';
 import { officialCriteriaScoresFor } from '../lib/curriculum/evaluacionPorCriterios';
 import { useToast } from '../components/ui/Toast';
@@ -25,6 +25,7 @@ import { listaCompetenciasClave, marcarCompetenciasConIA } from '../services/com
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useBorradorVentana } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
+import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
 
 /* ─── Props ─── */
 interface Props {
@@ -94,7 +95,6 @@ function criterionFromRubric(c: RubricCriterion): CriterionDraft {
   return { id: c.id, name: c.name, descs: { ...c.descriptors }, competencies: c.competencies, officialCriteria: c.officialCriteria };
 }
 
-const MAX_FILE_BYTES = 19 * 1024 * 1024; // 19 MB
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RUBRIC MODAL (create / edit)
@@ -636,8 +636,10 @@ export function EvalModal({
 
   /* AI work evaluation */
   const [workDesc, setWorkDesc] = useState('');
-  const [workFile, setWorkFile] = useState<InlineFile | null>(null);
   const [workFileErr, setWorkFileErr] = useState('');
+  // El trabajo adjunto: un documento va como texto y una foto, con el nombre tapado (ver useAdjuntoParaIA)
+  const trabajo = useAdjuntoParaIA(m => setWorkFileErr(t(m)));
+  const workFile = trabajo.adjunto;
   const [evalGenerating, setEvalGenerating] = useState(false);
   const [obsGenerating, setObsGenerating] = useState(false);
 
@@ -649,7 +651,7 @@ export function EvalModal({
     setScores({});
     setNotes('');
     setWorkDesc('');
-    setWorkFile(null);
+    trabajo.quitar();
     setWorkFileErr('');
     // La rúbrica ya sabe a qué clase va: no hacer elegir lo que no tiene opción.
     setClassId(defaultClassId ?? rubric.class_id ?? '');
@@ -681,15 +683,10 @@ export function EvalModal({
   /* ── File attach ── */
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_FILE_BYTES) {
-      setWorkFileErr(t('El archivo supera el límite de 19 MB.'));
-      return;
-    }
-    setWorkFileErr('');
-    const b64 = await fileToBase64(file);
-    setWorkFile(b64);
     e.target.value = '';
+    if (!file) return;
+    setWorkFileErr('');
+    await trabajo.elegir(file);
   }
 
   /* ── AI evaluate work ── */
@@ -711,17 +708,17 @@ export function EvalModal({
       ? `Assess the following student work using this rubric.\n\n` +
         `CRITERIA:\n${criteriaText}\n\n` +
         `WORK DESCRIPTION:\n${workDesc || '(no description)'}\n\n` +
-        (workFile ? 'The work file is attached.\n\n' : '') +
+        (workFile?.texto ? `TEXT OF THE WORK:\n${workFile.texto.slice(0, 30000)}\n\n` : workFile?.imagen ? 'A photo of the work is attached.\n\n' : '') +
         `Return a JSON with this exact format:\n` +
         `{"scores":{"<criterion_id>": <number_1_to_4>, ...},"observation":"<general observation text, in English>"}`
       : `Evalúa el siguiente trabajo de un alumno usando esta rúbrica.\n\n` +
         `CRITERIOS:\n${criteriaText}\n\n` +
         `DESCRIPCIÓN DEL TRABAJO:\n${workDesc || '(sin descripción)'}\n\n` +
-        (workFile ? 'Se adjunta el archivo del trabajo.\n\n' : '') +
+        (workFile?.texto ? `TEXTO DEL TRABAJO:\n${workFile.texto.slice(0, 30000)}\n\n` : workFile?.imagen ? 'Se adjunta una foto del trabajo.\n\n' : '') +
         `Devuelve un JSON con este formato exacto:\n` +
         `{"scores":{"<id_criterio>": <número_1_a_4>, ...},"observation":"<texto de observación general>"}`;
 
-    const files: InlineFile[] = [workFile, lawDocument].filter((f): f is InlineFile => f !== null);
+    const files: InlineFile[] = [...trabajo.archivos, lawDocument].filter((f): f is InlineFile => f !== null);
 
     const raw = await callGemini(systemPrompt, userPrompt, files, {
       onStart: () => setEvalGenerating(true),
@@ -918,7 +915,7 @@ export function EvalModal({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.pdf,.doc,.docx,.txt"
+              accept={ACEPTA_ADJUNTO}
               style={{ display: 'none' }}
               onChange={handleFileChange}
             />
@@ -928,10 +925,10 @@ export function EvalModal({
                 color: 'var(--accent-d)', borderRadius: 99, padding: '4px 10px', fontSize: 12, fontWeight: 600,
               }}>
                 <Paperclip size={11} />
-                {workFile.name}
+                {workFile.nombre}
                 <button
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'inherit' }}
-                  onClick={() => setWorkFile(null)}
+                  onClick={() => trabajo.quitar()}
                 >
                   <X size={12} />
                 </button>
@@ -939,6 +936,8 @@ export function EvalModal({
             )}
             {workFileErr && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{workFileErr}</span>}
           </div>
+          {trabajo.ventana}
+          <p className="ap-sub" style={{ margin: '0 0 10px', fontSize: 12 }}>{t('Un documento se lee aquí y la IA recibe solo su texto, sin nombres; en una foto, tapas antes el nombre del alumno.')}</p>
 
           <button
             className="btn-ia"

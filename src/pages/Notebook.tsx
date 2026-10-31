@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
+import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
 import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -917,7 +918,9 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const [question, setQuestion] = useState('');
-  const [attachedFile, setAttachedFile] = useState<InlineFile | null>(null);
+  // Lo adjunto a una pregunta: un documento va como texto y una foto, con el nombre tapado (ver useAdjuntoParaIA)
+  const adjunto = useAdjuntoParaIA(m => toast(t(m)));
+  const attachedFile = adjunto.adjunto;
   const [loading, setLoading] = useState(false);
   const [useData, setUseData] = useState(true);
   const [classId, setClassId] = useState<string>('');
@@ -937,11 +940,11 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    if (!forLaw) { await adjunto.elegir(file); return; }
     if (file.size > MAX_FILE_BYTES) { toast(t('El archivo supera el límite de 19 MB')); return; }
     try {
-      const inlineFile = await fileToBase64(file);
-      if (forLaw) { onLawDocumentChange(inlineFile); toast(t('✅ Normativa adjuntada')); }
-      else setAttachedFile(inlineFile);
+      onLawDocumentChange(await fileToBase64(file));
+      toast(t('✅ Normativa adjuntada'));
     } catch {
       toast(t('No se pudo leer el archivo'));
     }
@@ -952,25 +955,26 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
     if (!text) { toast(t('Escribe una pregunta antes de consultar')); return; }
     if (loading) return;
 
-    const files: InlineFile[] = [];
-    if (attachedFile) files.push(attachedFile);
+    const files: InlineFile[] = [...adjunto.archivos];
     if (lawDocument) files.push(lawDocument);
+    // Un documento adjunto va como texto dentro de la pregunta (los nombres del alumnado los cambia callGemini)
+    const documento = attachedFile?.texto ? `\n\n=== DOCUMENTO ADJUNTO: ${attachedFile.nombre} ===\n${attachedFile.texto.slice(0, 30000)}` : '';
 
     // El historial guarda la pregunta limpia; la ficha de datos se añade solo
     // al mensaje que se manda ahora. Si se guardara dentro, cada turno
     // arrastraría una copia del cuaderno entero.
     const history: ChatTurn[] = chat.slice(-MEMORY_TURNS).map(m => ({ role: m.role, text: m.text }));
     const context = useData ? buildTeacherContext(data, { classId: classId || undefined, locale }) : '';
-    const prompt = context
+    const prompt = (context
       ? `${context}\n\n=== PREGUNTA DEL DOCENTE ===\n${text}`
-      : text;
+      : text) + documento;
 
     const afterUser: ChatMessage[] = [...chat, {
       id: crypto.randomUUID(), role: 'user', text, at: new Date().toISOString(),
     }];
     onChatChange(afterUser);
     setQuestion('');
-    setAttachedFile(null);
+    adjunto.quitar();
 
     const result = await callGemini(
       chatSystemPrompt(lang, useData),
@@ -1122,8 +1126,8 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
                   padding: '3px 10px 3px 8px', fontSize: 12, color: 'var(--accent-d)', fontWeight: 600, maxWidth: 220, overflow: 'hidden',
                 }}>
                   <FileText size={12} style={{ flexShrink: 0 }} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedFile.name}</span>
-                  <button type="button" onClick={() => setAttachedFile(null)} aria-label={t('Quitar archivo adjunto')}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attachedFile.nombre}</span>
+                  <button type="button" onClick={() => adjunto.quitar()} aria-label={t('Quitar archivo adjunto')}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0, marginLeft: 2, color: 'var(--accent-d)' }}>
                     <X size={12} />
                   </button>
@@ -1134,7 +1138,8 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
                 {loading ? <><span className="spin" />{t('Consultando…')}</> : <><Send size={14} />{t('Enviar')}</>}
               </button>
             </div>
-            <input ref={attachRef} type="file" style={{ display: 'none' }} onChange={e => handleAttach(e, false)} accept="*/*" />
+            <input ref={attachRef} type="file" style={{ display: 'none' }} onChange={e => handleAttach(e, false)} accept={ACEPTA_ADJUNTO} />
+            {adjunto.ventana}
           </div>
         </div>
       </div>

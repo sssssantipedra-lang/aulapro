@@ -18,10 +18,15 @@ vi.mock('../services/gemini', async importOriginal => {
   const real = await importOriginal<typeof import('../services/gemini')>();
   return { ...real, callGemini, hasApiKey: () => true };
 });
-// En jsdom no hay lienzo para reducir la foto
+// En jsdom no hay lienzo para reducir la foto ni para pintar lo tapado
 vi.mock('../lib/fotos', async importOriginal => {
   const real = await importOriginal<typeof import('../lib/fotos')>();
   return { ...real, fotoParaIA: async () => ({ name: 'foto.jpg', mimeType: 'image/jpeg', base64: 'QUJD' }) };
+});
+const taparFoto = vi.hoisted(() => vi.fn());
+vi.mock('../lib/tapar', async importOriginal => {
+  const real = await importOriginal<typeof import('../lib/tapar')>();
+  return { ...real, taparFoto };
 });
 
 const clase = { id: 'c1', name: '5º A', subject: 'Matemáticas', subjects: ['Matemáticas'], etapa: 'primaria', curso: 5 } as Class;
@@ -49,12 +54,24 @@ function pintar(items: GradeItem[] = []) {
   return { añadidos, notas };
 }
 
-async function conFoto() {
+function anadirFoto() {
   fireEvent.change(screen.getByLabelText('Fotos del examen o del trabajo'), { target: { files: [new File(['x'], 'p1.jpg', { type: 'image/jpeg' })] } });
-  await screen.findByAltText('Página 1');
 }
 
-beforeEach(() => { localStorage.clear(); callGemini.mockReset(); window.scrollTo = () => {}; });
+/** Una foto, y en la ventana de tapar se marca que la hoja no lleva nombre. */
+async function conFoto() {
+  anadirFoto();
+  await screen.findByAltText('Página 1');
+  fireEvent.click(await screen.findByLabelText('Esta foto no muestra el nombre ni ningún dato del alumno'));
+  fireEvent.click(screen.getByRole('button', { name: 'Listo' }));
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Listo' })).toBeNull());
+}
+
+beforeEach(() => {
+  localStorage.clear(); callGemini.mockReset(); window.scrollTo = () => {};
+  taparFoto.mockReset();
+  taparFoto.mockImplementation(async (f: { base64: string }, zonas: unknown[]) => (zonas.length ? { ...f, base64: 'TAPADA' } : f));
+});
 afterEach(() => cleanup());
 
 describe('Evaluar por foto · autoguardado', () => {
@@ -156,6 +173,38 @@ describe('Evaluar por foto', () => {
     expect(screen.queryByText('Examen de fracciones', { selector: '.home-card-ttl' })).toBeNull();
     expect((screen.getByLabelText('Nombre en el cuaderno') as HTMLInputElement).value).toBe('Examen de fracciones');
     expect(within(screen.getByLabelText('Alumno')).getByRole('option', { name: '✓ Alumno 1' })).toBeTruthy();
+  });
+
+  it('sin tapar el nombre (o decir que no lo lleva) no se envía nada; lo tapado va pintado y se propone para el siguiente', async () => {
+    const user = userEvent.setup();
+    pintar();
+    await user.selectOptions(screen.getByLabelText('Alumno'), 's1');
+    anadirFoto();
+    // La ventana de tapar se abre sola; sin tapar nada no se puede seguir
+    const listo = await screen.findByRole('button', { name: 'Listo' });
+    expect((listo as HTMLButtonElement).disabled).toBe(true);
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.getByText('Falta tapar el nombre en 1 página.')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /Corregir con IA/ }));
+    expect(callGemini).not.toHaveBeenCalled();
+
+    // Se vuelve a abrir: se tapa la franja de arriba y ya se puede corregir
+    await user.click(await screen.findByRole('button', { name: /Tapar la franja de arriba/ }));
+    await user.click(screen.getByRole('button', { name: 'Listo' }));
+    expect(screen.getByRole('button', { name: /Tapada/ })).toBeTruthy();
+    callGemini.mockResolvedValue(respuesta);
+    await user.click(screen.getByRole('button', { name: /Corregir con IA/ }));
+    await screen.findByText('Examen de fracciones');
+    // A la IA le llega la foto con lo tapado pintado, no la original
+    expect(taparFoto).toHaveBeenCalledWith(expect.objectContaining({ base64: 'QUJD' }), [{ x: 0, y: 0, w: 1, h: 0.12 }]);
+    expect(callGemini.mock.calls[0][2][0].base64).toBe('TAPADA');
+
+    // Siguiente alumno: en su página 1 se propone lo mismo, y basta con «Listo»
+    await user.click(screen.getByRole('button', { name: /Guardar la nota en el cuaderno/ }));
+    await user.click(screen.getByRole('button', { name: /Siguiente alumno/ }));
+    anadirFoto();
+    const otra = await screen.findByRole('button', { name: 'Listo' });
+    expect((otra as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('si la IA no devuelve nada utilizable, lo dice y no inventa una nota', async () => {

@@ -13,6 +13,7 @@ import { nivelDe, nuevoIdApoyo } from '../lib/apoyo';
 import { translate, type Lang } from '../i18n';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { FuenteInforme } from './informeOrientacion';
+import { quitarIdentificadores } from '../lib/documentoParaIA';
 import type { AlumnoApoyo, ApartadoDocumento, ApoyoData, CursoDe, DocumentoApoyo, Trimestre } from '../types/apoyo';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
@@ -44,7 +45,7 @@ export interface AdaptacionArgs {
   /** El área, con el currículo del curso de su nivel. */
   materia: MateriaDeClase;
   trimestre: Trimestre;
-  /** La programación de aula del tutor: texto o archivo. Sin ella, se adapta lo que dice el currículo. */
+  /** La programación de aula del tutor, en texto (un PDF se lee en el navegador). Sin ella, se adapta lo que dice el currículo. */
   programacion?: FuenteInforme;
   data: ApoyoData;
   comunidad: ComunidadId | undefined;
@@ -82,15 +83,15 @@ export async function generarAdaptacion(
   const bloques = materia.entry.saberes[materia.grupo] ?? [];
   const anterior = adaptacionExistente(data, alumno.id, area, trimestre);
   const nivel = nivelDe(alumno);
+  const programacionTexto = quitarIdentificadores(programacion?.texto ?? '').trim();
 
   const userPrompt =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
     `Área: ${area}. Trimestre: ${trimestre}º.\n` +
     `Sus programas y objetivos individuales:\n${objetivosTexto(data, alumno.id, args.materias, t, lang)}\n\n` +
-    (programacion?.texto?.trim()
-      ? `PROGRAMACIÓN DE AULA DEL TUTOR PARA ESTA ÁREA:\n${programacion.texto.trim().slice(0, 30000)}\n\n`
-      : programacion?.archivo ? 'La programación de aula del tutor para esta área va en el archivo adjunto.\n\n'
-        : 'No hay programación de aula del tutor: adapta lo que dice el currículo del curso de su nivel para esta área.\n\n') +
+    (programacionTexto
+      ? `PROGRAMACIÓN DE AULA DEL TUTOR PARA ESTA ÁREA:\n${programacionTexto.slice(0, 30000)}\n\n`
+      : 'No hay programación de aula del tutor: adapta lo que dice el currículo del curso de su nivel para esta área.\n\n') +
     `Redacta la adaptación de la programación de aula de esta área para este alumno${nivel ? `, con el currículo del curso de su nivel (${nombreCurso(nivel)})` : ''}:\n` +
     APARTADOS_ADAPTACION.filter(a => a.ia).map(a => `- ${a.id} («${a.titulo}»): ${a.ia}`).join('\n') +
     (disponibles.length ? `\n- criterios: de 3 a 8 criterios de evaluación de esta lista cerrada, los que se trabajan con sus objetivos adaptados, escritos tal cual:\n${catalogo}` : '') +
@@ -98,7 +99,7 @@ export async function generarAdaptacion(
     '\n\nRedacta SOLO a partir de estos datos; no inventes diagnósticos, pruebas ni datos del alumno. Usa el nombre del alumno tal como aparece. ' +
     'Sin títulos ni negritas dentro de los textos.';
   const textos = APARTADOS_ADAPTACION.filter(a => a.ia).map(a => a.id);
-  const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, programacion?.archivo ? [programacion.archivo] : [], callbacks, {
+  const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [], callbacks, {
     responseSchema: {
       type: 'OBJECT',
       properties: {

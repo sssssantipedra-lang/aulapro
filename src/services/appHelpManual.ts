@@ -51,8 +51,13 @@ Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
 petición a la IA se cambian por códigos y, al llegar la respuesta, la aplicación
-vuelve a poner los nombres reales; el docente ve siempre los nombres. Lo único
-que se envía tal cual son los archivos que el propio docente adjunta. En la
+vuelve a poner los nombres reales; el docente ve siempre los nombres. Los
+documentos del alumnado (el informe del orientador, la programación del tutor,
+un trabajo adjunto a una rúbrica o al asistente) se leen en el dispositivo y
+solo se envía su texto, sin nombres ni otros datos que identifiquen; en las
+fotos del trabajo de un alumno se tapa el nombre antes de enviarlas. Los
+documentos de normativa, los manuales y las fotos de actividades se envían tal
+cual: no deben llevar datos del alumnado. En la
 aplicación de escritorio la clave de Google se guarda cifrada por el sistema.
 
 Las notas van sobre 10 y el aprobado está en 5. La aplicación está en español,
@@ -397,9 +402,12 @@ cada pregunta y la nota sobre 10 se recalcula sola: la suma la hace la
 aplicación, no la IA. «Guardar la nota en el cuaderno» la pone en la columna con
 ese nombre (se crea si no existe), y «Siguiente alumno» deja las mismas
 opciones para el siguiente de la lista, con las fotos vacías. A la IA no le llega
-el nombre del alumno, y se le pide que no lea ningún nombre de la hoja; las
-fotos van a Google reducidas y sin su ubicación y no se guardan en AulaPro. Es
-bueno tapar el nombre del alumno en la foto. La IA se equivoca a veces, sobre
+el nombre del alumno, y se le pide que no lea ningún nombre de la hoja. Antes de
+enviar, cada página pasa por «Tapa el nombre»: se arrastra el dedo o el ratón
+sobre el nombre (o «Tapar la franja de arriba») o se marca que la hoja no lo
+lleva; lo tapado se pinta de negro en la foto, en el dispositivo, y para el
+siguiente alumno se propone lo mismo en cada página. Las fotos van a Google
+reducidas y sin su ubicación y no se guardan en AulaPro. La IA se equivoca a veces, sobre
 todo con letra difícil: hay que repasar antes de guardar.
 
 [diana] DIANA COMPETENCIAL
@@ -1121,8 +1129,8 @@ y enlazados con criterios de su nivel (de Lengua en lectoescritura y lenguaje,
 de Matemáticas en matemáticas, de todas en una ACIS, ninguno en atención o
 conducta), apoyándose en la normativa de inclusión de la comunidad y en los
 autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
-del alumno, también el diagnóstico, con el nombre cambiado por un código: si no
-se quiere enviar el diagnóstico, se deja en blanco. Necesita la clave de la IA.
+del alumno con el nombre cambiado por un código, pero nunca el diagnóstico (es
+un dato de salud y no le hace falta). Necesita la clave de la IA.
 Debajo de cada objetivo con registros, su GRÁFICA sesión a sesión: un punto por
 sesión a tres alturas (✓ conseguido arriba, – en proceso, ✗ no conseguido
 abajo), con la fecha al pasar por encima; se ven las 24 últimas. Para una
@@ -1261,8 +1269,9 @@ tarjeta «Clave de la IA».
   al pulsar «Reiniciar y actualizar» o al cerrar la aplicación. En Mac hay que
   descargarla a mano.
 - «¿La IA ve los nombres de mis alumnos?»: no. Se cambian por códigos antes de
-  enviar nada a Google y se vuelven a poner al recibir la respuesta. Solo
-  viajan tal cual los archivos que el docente adjunte.
+  enviar nada a Google y se vuelven a poner al recibir la respuesta. Un
+  documento del alumnado se lee en el dispositivo y viaja solo su texto, sin
+  nombres; en una foto de un trabajo, se tapa antes el nombre.
 - «¿Hay modo oscuro?»: sí, en Configuración → Apariencia (Automática, Clara u
   Oscura).
 - «Se me cerró la reunión sin guardar»: al volver a Reuniones (o Formaciones)

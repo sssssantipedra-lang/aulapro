@@ -65,8 +65,8 @@ function appWeb(): Plugin {
       // La página va como './': Cloudflare redirige index.html a la carpeta (ver web/app/sw.js)
       const todo = todos.filter(f => !['sw.js', 'version.json'].includes(f) && !f.endsWith('.map'))
         .map(f => (f === 'index.html' ? './' : f)).sort()
-      // Lo imprescindible se instala antes de activar; los dibujos y pictogramas, después (ver web/app/sw.js)
-      const esExtra = (f: string) => f.startsWith('ilustraciones/') || f.startsWith('pictos/')
+      // Lo imprescindible se instala antes de activar; los dibujos, los pictogramas y el lector de PDF, después (ver web/app/sw.js)
+      const esExtra = (f: string) => f.startsWith('ilustraciones/') || f.startsWith('pictos/') || /pdf\.worker/.test(f)
       const lista = todo.filter(f => !esExtra(f))
       const extra = todo.filter(esExtra)
       // El nombre de la caché cambia con cualquier cambio de contenido: una versión no se mezcla con otra

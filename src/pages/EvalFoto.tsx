@@ -8,7 +8,9 @@
 import { useMemo, useRef, useState } from 'react';
 import { useBorrador } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
-import { Camera, ImagePlus, Sparkles, Trash2, Check, AlertTriangle, ClipboardCopy, UserRoundCheck, Lightbulb } from 'lucide-react';
+import { Camera, ImagePlus, Sparkles, Trash2, Check, AlertTriangle, ClipboardCopy, UserRoundCheck, Lightbulb, EyeOff } from 'lucide-react';
+import { TaparNombre } from '../components/TaparNombre';
+import { estiloZona, taparFoto, type Zona } from '../lib/tapar';
 import { useToast } from '../components/ui/Toast';
 import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { useI18n } from '../i18n';
@@ -34,6 +36,12 @@ interface Props {
 
 const vista = (f: InlineFile) => `data:${f.mimeType};base64,${f.base64}`;
 
+/**
+ * Una página del trabajo del alumno: la foto tal como se hizo y lo que el docente ha tapado. Lo tapado se pinta en la
+ * imagen al enviarla (`taparFoto`). `revisada`: el docente la ha mirado (ha tapado algo o ha dicho que no hay nombre).
+ */
+interface Pagina { foto: InlineFile; zonas: Zona[]; revisada: boolean }
+
 /** Lo que se autoguarda de una corrección a medias. Las fotos no: pesan demasiado y la corrección ya las ha leído. */
 interface BorradorEvalFoto {
   claseId: string; asignatura: string; alumnoId: string; tipo: TipoTrabajo; total: string; nombre: string;
@@ -53,7 +61,11 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
   const [nombre, setNombre] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [criterios, setCriterios] = useState('');
-  const [fotos, setFotos] = useState<InlineFile[]>([]);
+  const [fotos, setFotos] = useState<Pagina[]>([]);
+  /** La página que se está tapando, si la ventana está abierta. */
+  const [tapando, setTapando] = useState<number | null>(null);
+  /** Lo tapado en cada página del alumno anterior: se propone igual para el siguiente (mismo examen, misma hoja). */
+  const [zonasPorPagina, setZonasPorPagina] = useState<Zona[][]>([]);
   const [soluciones, setSoluciones] = useState<InlineFile[]>([]);
   const [pensando, setPensando] = useState(false);
   const [correccion, setCorreccion] = useState<CorreccionFoto | null>(null);
@@ -90,21 +102,42 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
     if (actuales.length + lista.length > tope) toast(t('Como mucho {n} fotos. Se añaden las primeras.', { n: tope }));
     try {
       const nuevas = await Promise.all(lista.slice(0, Math.max(0, tope - actuales.length)).map(f => fotoParaIA(f, LADO_FOTO_EXAMEN)));
-      (aQuien === 'trabajo' ? setFotos : setSoluciones)(x => [...x, ...nuevas].slice(0, tope));
+      if (aQuien === 'trabajo') {
+        // Cada página nueva se tapa antes de nada; se propone lo tapado en esa misma página del alumno anterior
+        const desde = fotos.length;
+        setFotos(x => [...x, ...nuevas.map((foto, i) => ({ foto, zonas: zonasPorPagina[desde + i] ?? [], revisada: false }))].slice(0, tope));
+        setTapando(desde);
+      } else setSoluciones(x => [...x, ...nuevas].slice(0, tope));
       setCorreccion(null);
     } catch {
       toast(t('Alguno de esos archivos no es una imagen que se pueda usar.'));
     }
   }
 
+  /** Lo tapado en la página `i`: se guarda y se pasa a la siguiente que falte por revisar. */
+  function tapada(i: number, zonas: Zona[]) {
+    const lista = fotos.map((p, j) => (j === i ? { ...p, zonas, revisada: true } : p));
+    setFotos(lista);
+    setZonasPorPagina(x => { const y = [...x]; y[i] = zonas; return y; });
+    setCorreccion(null);
+    const sig = lista.findIndex(p => !p.revisada);
+    setTapando(sig >= 0 ? sig : null);
+  }
+
+  const sinRevisar = fotos.filter(p => !p.revisada).length;
+
   async function corregir() {
     if (!fotos.length) { toast(t('Añade al menos una foto del examen o del trabajo.')); return; }
+    if (sinRevisar) { toast(t('Antes de corregir, tapa el nombre en cada página o marca que no lo lleva.')); setTapando(fotos.findIndex(p => !p.revisada)); return; }
     setPensando(true);
+    let paginas: InlineFile[];
+    try { paginas = await Promise.all(fotos.map(p => taparFoto(p.foto, p.zonas))); }
+    catch { setPensando(false); toast(t('Alguno de esos archivos no es una imagen que se pueda usar.')); return; }
     const r = await corregirPorFoto({
       tipo, total: totalNum,
       contexto: [asig, clase?.etapa && clase.curso ? nombreCurso({ etapa: clase.etapa, curso: clase.curso }) : ''].filter(Boolean).join(', '),
       criterios,
-    }, fotos, soluciones, { onError: m => toast(t(m)) });
+    }, paginas, soluciones, { onError: m => toast(t(m)) });
     setPensando(false);
     if (!r) return;
     setCorreccion(r);
@@ -133,6 +166,7 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
     const sig = alumnos.slice(i + 1).find(a => !hechos.includes(a.id)) ?? alumnos.find(a => !hechos.includes(a.id) && a.id !== alumnoId);
     setAlumnoId(sig?.id ?? '');
     setFotos([]);
+    setTapando(null);
     setCorreccion(null);
     setPuntos([]);
     setComentario('');
@@ -163,7 +197,7 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
     setAsignatura(b.asignatura); setAlumnoId(b.alumnoId); setTipo(b.tipo); setTotal(b.total); setNombre(b.nombre);
     setCategoriaId(b.categoriaId); setCriterios(b.criterios);
     setCorreccion(b.correccion); setPuntos(b.puntos); setComentario(b.comentario); setHechos(b.hechos);
-    setFotos([]); setSoluciones([]);
+    setFotos([]); setSoluciones([]); setTapando(null);
   }
 
   if (!classes.length) {
@@ -260,9 +294,22 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
 
       <div className="card">
         <div className="home-card-ttl">{t('2. Las fotos')}</div>
-        <p className="ap-sub" style={{ margin: '4px 0 10px' }}>{t('Una por página, de cerca, con buena luz y sin sombras. Mejor tapar el nombre del alumno: a la IA no le hace falta.')}</p>
+        <p className="ap-sub" style={{ margin: '4px 0 10px' }}>{t('Una por página, de cerca, con buena luz y sin sombras. En cada página tapas el nombre del alumno antes de enviarla: a la IA no le hace falta.')}</p>
         <input ref={archivoTrabajo} type="file" accept="image/*" multiple hidden aria-label={t('Fotos del examen o del trabajo')} onChange={e => void anadir(e.target.files, 'trabajo')} />
-        {miniaturas(fotos, i => setFotos(x => x.filter((_, j) => j !== i)), t('Página'))}
+        <ul className="evf-fotos">
+          {fotos.map((p, i) => (
+            <li key={i} className="evf-foto">
+              <span className="evf-marco">
+                <img src={vista(p.foto)} alt={t('{etiqueta} {n}', { etiqueta: t('Página'), n: i + 1 })} />
+                {p.zonas.map((z, k) => <span key={k} className="tapar-zona" style={estiloZona(z)} />)}
+              </span>
+              <button type="button" className={`evf-tapar${p.revisada ? '' : ' pendiente'}`} onClick={() => setTapando(i)}>
+                <EyeOff size={11} aria-hidden="true" />{p.revisada ? (p.zonas.length ? t('Tapada') : t('Sin nombre')) : t('Tapar')}
+              </button>
+              <button type="button" className="ico-btn" aria-label={t('Quitar la foto {n}', { n: i + 1 })} onClick={() => { setFotos(x => x.filter((_, j) => j !== i)); setCorreccion(null); }}><Trash2 size={14} /></button>
+            </li>
+          ))}
+        </ul>
         <button type="button" className="btn-ghost" onClick={() => archivoTrabajo.current?.click()} disabled={fotos.length >= MAX_FOTOS_TRABAJO}>
           <Camera size={15} />{fotos.length ? t('Añadir otra página') : t('Hacer o elegir fotos')}
         </button>
@@ -282,12 +329,23 @@ export function EvalFoto({ classes, students, gradeCategories, gradeItems, onAdd
         </div>
       </div>
 
-      <p className="ap-aviso">{t('Las fotos se envían a Google para que la IA las lea, reducidas y sin su ubicación, y AulaPro no las guarda. A la IA no le llega el nombre del alumno: elígelo aquí, en la app.')}</p>
+      <p className="ap-aviso">{t('Las fotos se envían a Google para que la IA las lea, reducidas, sin su ubicación y con lo que hayas tapado pintado de negro, y AulaPro no las guarda. A la IA no le llega el nombre del alumno: elígelo aquí, en la app.')}</p>
       <div className="ap-acciones" style={{ marginBottom: 16 }}>
         <button className="btn-accent" onClick={corregir} disabled={pensando || sinClave || !fotos.length}>
           {pensando ? <span className="spin" /> : <Sparkles size={15} />}{pensando ? t('Corrigiendo…') : t('Corregir con IA')}
         </button>
       </div>
+
+      {sinRevisar > 0 && <p className="ap-aviso">{t(sinRevisar === 1 ? 'Falta tapar el nombre en 1 página.' : 'Falta tapar el nombre en {n} páginas.', { n: sinRevisar })}</p>}
+
+      <TaparNombre
+        key={tapando ?? 'cerrado'}
+        foto={tapando !== null ? fotos[tapando]?.foto ?? null : null}
+        zonasIniciales={tapando !== null ? fotos[tapando]?.zonas : undefined}
+        titulo={tapando !== null ? t('Tapa el nombre: página {n}', { n: tapando + 1 }) : undefined}
+        onListo={zonas => tapando !== null && tapada(tapando, zonas)}
+        onCancelar={() => setTapando(null)}
+      />
 
       {correccion && (
         <div className="card evf-res" aria-live="polite">

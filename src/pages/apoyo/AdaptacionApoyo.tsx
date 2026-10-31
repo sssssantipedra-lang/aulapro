@@ -11,7 +11,8 @@ import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { hasApiKey } from '../../services/gemini';
 import { adaptacionExistente, generarAdaptacion } from '../../services/apoyoAdaptacion';
-import { EXTENSIONES_INFORME, leerArchivoInforme, type FuenteInforme } from '../../services/informeOrientacion';
+import { EXTENSIONES_INFORME, leerArchivoInforme } from '../../services/informeOrientacion';
+import { avisoDeLectura } from '../../lib/documentoParaIA';
 import { isoDate } from '../../lib/utils';
 import { nivelDe, trimestreDe } from '../../lib/apoyo';
 import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
@@ -39,7 +40,8 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
   const nivel = nivelDe(alumno);
   const [area, setArea] = useState('');
   const [trimestre, setTrimestre] = useState<Trimestre>(trimestreDe(isoDate()));
-  const [fuente, setFuente] = useState<FuenteInforme>({});
+  /** El nombre del archivo leído, si lo hay: su texto ya está en `pegado`, a la vista. El archivo nunca se envía. */
+  const [archivo, setArchivo] = useState<string>();
   const [pegado, setPegado] = useState('');
   const [generando, setGenerando] = useState(false);
   const materia = materias.find(m => m.entry.nombre === area) ?? materias[0];
@@ -47,8 +49,11 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
 
   async function elegirArchivo(file: File | undefined) {
     if (!file) return;
-    try { setFuente(await leerArchivoInforme(file)); setPegado(''); }
-    catch (e) { toast((e as Error).message === 'grande' ? t('El archivo pesa demasiado (19 MB como máximo).') : t('Formato no válido. Usa un PDF, un Word (.docx) o un texto.')); }
+    try {
+      const f = await leerArchivoInforme(file);
+      setPegado(f.texto ?? '');
+      setArchivo(f.nombre);
+    } catch (e) { toast(t(avisoDeLectura(e))); }
   }
 
   async function preparar() {
@@ -56,7 +61,7 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
     const previa = adaptacionExistente(data, alumno.id, materia.entry.nombre, trimestre);
     if (previa && !window.confirm(t('Ya hay un documento «{name}». ¿Lo sustituyes por uno nuevo?', { name: previa.titulo }))) return;
     const doc = await generarAdaptacion(
-      { alumno, materia, trimestre, programacion: pegado.trim() ? { texto: pegado } : fuente, data, comunidad, lang, nombreCurso, materias, hoy: isoDate() },
+      { alumno, materia, trimestre, programacion: { texto: pegado }, data, comunidad, lang, nombreCurso, materias, hoy: isoDate() },
       { onStart: () => setGenerando(true), onEnd: () => setGenerando(false), onError: m => toast(t(m)) },
     );
     if (!doc) return;
@@ -97,11 +102,11 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
             <input ref={entrada} type="file" accept={EXTENSIONES_INFORME} hidden onChange={e => { void elegirArchivo(e.target.files?.[0]); e.target.value = ''; }} />
             <div>
               <button type="button" className="btn-ghost" disabled={generando} onClick={() => entrada.current?.click()}><Upload size={14} />{t('Elegir un PDF, un Word o un texto')}</button>
-              {fuente.nombre && <span className="ap-sub" style={{ marginLeft: 10 }}>{fuente.nombre}</span>}
+              {archivo && <span className="ap-sub" style={{ marginLeft: 10 }}>{archivo}</span>}
             </div>
-            <textarea className="finput" rows={4} value={pegado} aria-label={t('O pega aquí su texto')} placeholder={t('O pega aquí su texto')} disabled={generando}
-              onChange={e => { setPegado(e.target.value); if (e.target.value) setFuente({}); }} style={{ marginTop: 8 }} />
-            <span className="ap-aviso">{t('Con un Word o un texto pegado, la IA recibe el texto con los nombres de alumnado cambiados por un código. Un PDF se envía tal cual. Sin programación del tutor, se adapta lo que dice el currículo.')}</span>
+            <textarea className="finput" rows={archivo ? 8 : 4} value={pegado} aria-label={archivo ? t('Lo que recibirá la IA: revísalo y quita lo que sobre') : t('O pega aquí su texto')} placeholder={t('O pega aquí su texto')} disabled={generando}
+              onChange={e => setPegado(e.target.value)} style={{ marginTop: 8 }} />
+            <span className="ap-aviso">{t('La IA recibe solo el texto, nunca el archivo: se lee aquí, en tu dispositivo, con los nombres del alumnado cambiados por un código. Sin programación del tutor, se adapta lo que dice el currículo.')}</span>
           </div>
           <button className="btn-ia" type="button" disabled={generando || sinClave} onClick={preparar}>
             {generando ? <span className="spin" /> : <Sparkles size={15} />}{generando ? t('Preparando…') : t('Preparar la adaptación con IA')}
