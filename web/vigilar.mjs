@@ -120,11 +120,11 @@ const tareas = [
     const j = JSON.parse(t); if (!j || typeof j !== 'object') throw new Error('JSON vacío');
   }),
   comprobar('vídeo de la portada', async () => {
-    const { r } = await pedir(BASE + '/assets/hero-frames/f001.webp', { range: 'bytes=0-1023' });
+    const { r } = await pedir(BASE + '/assets/hero-scrub-60.mp4', { range: 'bytes=0-1023' });
     if (r.status === 403 && r.headers.get('cf-mitigated'))
       throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
     if (![200, 206].includes(r.status)) throw new Error(`responde ${r.status}`);
-    if (!/image/.test(r.headers.get('content-type') || '')) throw new Error('no devuelve una imagen');
+    if (!/video/.test(r.headers.get('content-type') || '')) throw new Error('no devuelve un vídeo');
     await r.arrayBuffer();
   }),
   comprobar(`certificado de ${HOST}`, () => certificado(HOST)),
