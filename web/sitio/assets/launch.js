@@ -20,6 +20,9 @@ window.AULA_LAUNCH = {
   // Lemon Squeezy checkout links of the group packs for 5 and 10 teachers: one key for the whole group,
   // 2 devices per teacher (activation limit 10 and 20). Larger groups write to contacto@aulapro.app.
   // An empty pack says "Próximamente".
+  // Para abrir la venta (10-11-2026), con el código de descuento del primer año ya puesto (se quita el 15-4-2027):
+  //   5:  'https://aulapro.lemonsqueezy.com/checkout/buy/61f76d20-1ea7-48f7-86a5-e2a0b24dad68?enabled=2308833&checkout%5Bdiscount_code%5D=LANZAMIENTO5'
+  //   10: 'https://aulapro.lemonsqueezy.com/checkout/buy/72657643-da0a-4803-9868-7762162ee184?enabled=2308835&checkout%5Bdiscount_code%5D=LANZAMIENTO10'
   packs: { 5: '', 10: '' },
   // Vídeo corto de una generación real de AulaPro (sección «En directo»). Vacío = la sección no sale.
   // src: ruta de un .mp4 sin sonido, de unos 15 a 20 segundos y 1280x720; poster: una imagen del primer

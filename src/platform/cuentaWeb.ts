@@ -296,4 +296,6 @@ export const CHECKOUT = 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-
  */
 export const VENTA_ABIERTA = false;
 
-export const enlaceDePago = (email: string) => `${CHECKOUT}&checkout%5Bemail%5D=${encodeURIComponent(email)}`;
+/** Descuento del primer año (34 %, una sola vez en Lemon Squeezy). Se quita del enlace al acabar la oferta, el 15-4-2027. */
+export const CODIGO_LANZAMIENTO = 'LANZAMIENTO';
+export const enlaceDePago = (email: string) => `${CHECKOUT}&checkout%5Bemail%5D=${encodeURIComponent(email)}&checkout%5Bdiscount_code%5D=${CODIGO_LANZAMIENTO}`;
