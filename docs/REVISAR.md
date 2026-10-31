@@ -4,7 +4,7 @@ Lista de todo lo que está pendiente de decidir, hacer o comprobar, reunida de `
 
 Estado de la rama `ccr-3f4014f5-llwckk`: lleva cambios que **todavía no están en la web real** (aulapro.app). Se pueden probar en https://prueba.aulapro-app.pages.dev/app/ y pasan a la web cuando el dueño dice «adelante». Son estos:
 
-- El precio de lanzamiento sube de 6,99 € a 9,99 €.
+- Pasa a suscripción anual: 9,99 € el primer año (hasta el 15-4-2027) y 14,99 € al renovar; packs 39,99 € y 69,99 € (luego 59,99 € y 99,99 €). Si no se renueva, se bloquea la cuenta.
 - La fecha de salida a la venta pasa a ser el 10-11-2026.
 - Los documentos del alumnado van a la IA solo como texto.
 - En las fotos del trabajo de un alumno, el nombre se tapa antes de enviarlas.
@@ -28,10 +28,10 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 
 - [ ] Probar la copia de pruebas en sus dispositivos (ordenador, tableta, móvil) y decir «adelante» para publicar la rama.
 - [ ] **Lemon Squeezy:**
-  - Variante individual a **9,99 €**, con los precios con impuestos incluidos.
+  - Variante individual como **suscripción anual** con clave de licencia: 9,99 € el primer año y 14,99 € al renovar, con impuestos incluidos. Activar el correo de aviso antes de cada renovación.
   - Cambiar en la descripción del producto el precio que aparezca.
   - Dejar el producto cerrado (borrador) hasta el 10-11 y abrirlo ese día.
-- [ ] **Packs** de 5 y 10 docentes creados en Lemon Squeezy, con 10 y 20 activaciones. Pasar sus enlaces de compra para `web/sitio/assets/launch.js`.
+- [ ] **Packs** anuales de 5 y 10 docentes (39,99 € y 69,99 €, luego 59,99 € y 99,99 €) creados en Lemon Squeezy, con 10 y 20 activaciones. Pasar sus enlaces de compra para `web/sitio/assets/launch.js`.
 - [ ] `LEMONSQUEEZY_API_KEY` en **modo real**, en Netlify y en Cloudflare. Anotar su caducidad.
 - [ ] `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_SECRET` y `FUNDADORES` en Netlify y en Cloudflare (Production y Preview), con el mismo valor en los dos. Anotar cuándo caduca el secreto de Microsoft.
 - [ ] Espacio KV `LIMITE` enlazado en el proyecto de Cloudflare Pages. Sin él, Cloudflare no limita las peticiones; Netlify sí (`docs/APP_WEB.md`).
