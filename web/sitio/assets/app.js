@@ -17,7 +17,6 @@
 
   // the film at 60 frames per second (interpolated from the 24 of the original), and the same film reversed,
   // scrubbed by the scroll.
-  const VIDEO_URL = 'assets/hero-scrub-60.mp4';
   const FILM_FPS = 60;
   const POSTER_URL = 'assets/hero-poster.jpg';
   const ENDING_URL = 'assets/hero-ending.jpg';
@@ -185,26 +184,26 @@
     if (c !== cueOp) { cue.style.opacity = c; cueOp = c; }
   }
 
-  // seeks never overlap: coalesce to the newest target, one follow-up, never deadlock
-  // (while a forward glide plays the film, nothing seeks: playback owns the video)
-  let seekBusy = false, pendingTime = null, playing = false;
+  // the film is a sequence of WebP frames drawn on a canvas: any frame shows instantly, so the scroll is the playhead
+  const FRAMES = 308;
+  const frames = new Array(FRAMES);
+  let drawn = -1, playing = false;
+  const ctx2d = video.getContext('2d');
   function requestSeek(time) {
-    if (!videoReady || !video.duration || playing) return;
-    const tt = clamp(time, 0, video.duration - 0.001);
-    if (seekBusy) { pendingTime = tt; return; }
-    if (Math.abs(video.currentTime - tt) < 0.001) return;      // a frame lasts 17 ms at 60 fps
-    seekBusy = true;
-    video.currentTime = tt;
+    if (!videoReady) return;
+    const want = clamp(Math.round(time * (FRAMES - 1)), 0, FRAMES - 1);
+    if (want === drawn) return;
+    let i = want;                                           // nearest frame already loaded
+    for (let d = 0; d < FRAMES; d++) {
+      if (frames[want - d]) { i = want - d; break; }
+      if (frames[want + d]) { i = want + d; break; }
+    }
+    const bmp = frames[i];
+    if (!bmp || i === drawn) return;
+    drawn = i;
+    if (video.width !== bmp.width) { video.width = bmp.width; video.height = bmp.height; }
+    ctx2d.drawImage(bmp, 0, 0);
   }
-  video.addEventListener('seeked', () => {
-    seekBusy = false;
-    if (pendingTime !== null) { const tt = pendingTime; pendingTime = null; requestSeek(tt); }
-  });
-  video.addEventListener('error', () => {
-    seekBusy = false;
-    pendingTime = null;
-    if (!videoReady) failVideo();
-  });
 
   // displayed progress eases toward the scroll target; the loop rests when converged
   let target = 0, shown = 0, rafId = null, lastTick = 0, heroOnScreen = true;
@@ -224,7 +223,7 @@
     } else {
       rafId = requestAnimationFrame(tick);
     }
-    requestSeek(shown * (video.duration || 0));
+    requestSeek(shown);
     updateCaptions(shown);
   }
   function wake() {
@@ -254,19 +253,27 @@
     loadHeroBlob().catch(failVideo);
   }
   async function loadHeroBlob() {
-    const ctrl = new AbortController();
-    const watchdog = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(VIDEO_URL, { priority: 'low', signal: ctrl.signal });
-    if (!res.ok) throw new Error('video ' + res.status);
-    const blob = await res.blob();
-    clearTimeout(watchdog);
-    video.addEventListener('loadeddata', () => {
-      videoReady = true;
-      stage.classList.add('video-ready');
-      requestSeek(shown * video.duration);
-    }, { once: true });
-    video.src = URL.createObjectURL(blob);
-    video.load();
+    const url = i => `assets/hero-frames/f${String(i + 1).padStart(3, '0')}.webp`;
+    // frames load in a spread order (every 8th first), so the film works at once and sharpens as the rest arrive
+    const order = [];
+    for (let off = 0; off < 8; off++) for (let i = off; i < FRAMES; i += 8) order.push(i);
+    let next = 0, failures = 0;
+    const worker = async () => {
+      while (next < order.length && !videoFailed) {
+        const i = order[next++];
+        try {
+          const res = await fetch(url(i), { priority: 'low' });
+          if (!res.ok) throw new Error('frame ' + res.status);
+          frames[i] = await createImageBitmap(await res.blob());
+          if (!videoReady && i === 0) { videoReady = true; stage.classList.add('video-ready'); }
+          if (videoReady && i % 8 === 0) { drawn = -1; requestSeek(shown); }
+        } catch (e) {
+          if (i === 0 || ++failures > 20) { failVideo(); return; }
+        }
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker(), worker(), worker()]);
+    drawn = -1; requestSeek(shown);
   }
   function failVideo() {
     if (videoFailed) return;

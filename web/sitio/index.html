@@ -167,10 +167,10 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .stage .poster,.stage .poster-end,.stage .static-bg{position:absolute;inset:0;background-size:cover;background-position:center}
 .stage .poster-end{opacity:0}
 .stage .static-bg{display:none}
-.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateZ(0);will-change:transform;transition:opacity .9s var(--ease-out)}
-.stage.video-ready video{opacity:1}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateZ(0);will-change:transform;transition:opacity .9s var(--ease-out)}
+.stage.video-ready canvas{opacity:1}
 /* the reversed film covers the forward one only while a glide plays it, with no fade either way */
-.stage.video-failed video{display:none}
+.stage.video-failed canvas{display:none}
 .scrim{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(180deg,rgba(20,14,9,.55) 0,rgba(20,14,9,0) 150px),
   linear-gradient(90deg,rgba(20,14,9,.42) 0%,rgba(20,14,9,.16) 36%,rgba(20,14,9,0) 56%),
@@ -257,7 +257,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
   .hero{height:auto}
   .dusk{display:block}
   .stage{position:relative;height:auto;min-height:100svh;display:flex;align-items:flex-end}
-  .stage video,.stage .poster,.stage .poster-end,.bands,.cue{display:none}
+  .stage canvas,.stage .poster,.stage .poster-end,.bands,.cue{display:none}
   .stage .static-bg{display:block;background-image:url("assets/escritorio.jpg");background-position:40% 30%}
   .stage .scrim{background:linear-gradient(180deg,rgba(20,14,9,.45) 0%,rgba(20,14,9,0) 20%,rgba(20,14,9,0) 50%,rgba(20,14,9,.7) 64%,rgba(20,14,9,.9) 80%,rgba(30,22,17,1) 100%)}
   @media (min-aspect-ratio:1/1){
@@ -745,7 +745,7 @@ html.zoom-open{overflow:hidden}
       <div class="static-bg" aria-hidden="true"></div>
       <div class="poster" aria-hidden="true"></div>
       <div class="poster-end" aria-hidden="true"></div>
-      <video id="hero-video" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+      <canvas id="hero-video" aria-hidden="true"></canvas>
       <div class="scrim" aria-hidden="true"></div>
 
       <div class="bands">

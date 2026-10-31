@@ -453,4 +453,4 @@ Petición del dueño: como la app pasa a ser web y se entra desde la propia pág
 
 ## Portada: scroll natural (31-10-2026)
 
-Se quitaron las paradas por subtítulo y los deslizamientos automáticos (también el vídeo «atrás»). El vídeo sigue el scroll a saltos de `currentTime`; para que cada salto sea instantáneo se codificó con todos los fotogramas clave (`-g 1 -bf 0`, 60 fps, 9,6 MB). Con pocos fotogramas clave (13 en 615) cada salto decodificaba hasta 50 fotogramas y se notaba el retraso. Si se vuelve a codificar, mantener `-g 1`.
+Se quitaron las paradas por subtítulo y los deslizamientos automáticos. Un `<video>` con `currentTime` iba a tirones aunque tuviera todos los fotogramas clave, así que la portada es ahora una secuencia de 308 fotogramas WebP (30 fps, 1280x720, 7,8 MB) en `assets/hero-frames/f001..f308.webp`, dibujados en un `<canvas id="hero-video">`: el scroll es la posición de reproducción y cada fotograma sale al instante. Se cargan en orden repartido (1 de cada 8 primero) para que funcione enseguida y se afine al llegar el resto. Salieron de `ffmpeg -vf fps=30 -c:v libwebp -quality 62`. Para más fluidez, subir a 60 fps (unos 15 MB).
