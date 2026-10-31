@@ -102,7 +102,7 @@ export function AvisoCopiaWeb({ exportar, onIrADatos, oculto }: { exportar: () =
   const { estado } = useCarpeta();
   const [, refrescar] = useState(0);
   const [cuenta, setCuenta] = useState<Cuenta | undefined>();
-  useEffect(() => { marcarUso(); refrescar(n => n + 1); leerCuenta().then(setCuenta); }, []);
+  useEffect(() => { marcarUso(); leerCuenta().then(c => { setCuenta(c); refrescar(n => n + 1); }); }, []);
 
   // Con una nube o una carpeta ya elegidas, eso lo cuidan sus propios avisos
   if (oculto || estado.tipo !== 'sin-carpeta') return null;

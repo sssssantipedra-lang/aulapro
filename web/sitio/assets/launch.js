@@ -7,8 +7,11 @@
    With `checkout` filled in, every buy button opens the checkout, the waitlist disappears,
    and the "Descargar" link and the download page go live. */
 window.AULA_LAUNCH = {
-  // Lemon Squeezy checkout link of the AulaPro product: one licence for Windows, Mac and Android
-  checkout: 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832',
+  // Lemon Squeezy checkout link of the AulaPro product: one licence for Windows, Mac and Android.
+  // CERRADO el 31-10-2026 por decisión del dueño (la venta se abre el 15-11-2026): vacío = «Próximamente».
+  // Para abrir la venta, pon aquí 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832'
+  // y pon también VENTA_ABIERTA = true en src/platform/cuentaWeb.ts (los dos interruptores: docs/MANTENIMIENTO.md).
+  checkout: '',
   // Google Play listing of the free Android app (it is activated with the licence)
   play: '',
   // Microsoft Store listing of the free Windows app (Microsoft signs it, so Windows shows no warning).
