@@ -10,7 +10,7 @@ Las filas marcadas con **(comprobar)** son cosas que esta lista no ha podido ver
 |---|---|---|
 | **Cada mes** | Revisión de 10 minutos (apartado 6) | Mirar el uso de Netlify, las incidencias `vigilancia` y las fechas de este documento |
 | **10-11-2026** | Corte de fundadores (`FOUNDER_CUTOFF`) | Revisar que la lista `FUNDADORES` está completa antes de esa fecha; después, solo cambios con motivo |
-| **15-11-2026** | Salida a la venta. **Hasta entonces la venta está cerrada** (31-10-2026) | Antes: lista del apartado 5 («Antes de abrir ventas»). Abrir **los dos interruptores a la vez**: `checkout` en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` |
+| **10-11-2026** | Salida a la venta (el mismo día que el corte de fundadores). **Hasta entonces la venta está cerrada** (31-10-2026) | Antes: lista del apartado 5 («Antes de abrir ventas»). Abrir **los dos interruptores a la vez**: `checkout` en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` |
 | **31-12-2026** | Caduca la clave de revisión de Lemon Squeezy para Google Play (`docs/TIENDAS.md`) | Solo importa si algún día se vuelve a las tiendas. Hoy no se usa |
 | **Hacia el 30-4-2027** | Microsoft: si el secreto del registro se creó con 6 meses (30-10-2026 + 6 meses) | **(comprobar)** la fecha de caducidad elegida al crearlo. Renovar un mes antes (apartado 2) |
 | **15-4-2027** | Termina la oferta de lanzamiento (9,99 € de por vida) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
@@ -123,7 +123,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 
 ## 5. Listas de comprobación
 
-### Antes de abrir ventas (15-11-2026)
+### Antes de abrir ventas (10-11-2026)
 
 **Estado de la venta (31-10-2026): cerrada.** La web y la app no enseñan ningún botón de compra, pero **el enlace de pago de Lemon Squeezy sigue siendo válido** para quien lo tenga (estuvo publicado en el código desde el 29-10-2026 y sigue en el historial). Para que de verdad nadie pueda pagar antes de tiempo, hay que cerrarlo también en Lemon Squeezy (pasar el producto a borrador o desactivar su enlace de compra); es algo que solo se hace desde su panel. Al abrir la venta, hacer lo contrario en los tres sitios.
 

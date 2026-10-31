@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
  * Pantalla de licencia de la versión web con la venta cerrada (decisión del dueño, 31-10-2026: se abre el
- * 15-11-2026): no enseña ningún botón ni enlace de compra, dice cuándo sale a la venta y deja la clave a mano
+ * 10-11-2026): no enseña ningún botón ni enlace de compra, dice cuándo sale a la venta y deja la clave a mano
  * a la vista. Con la venta abierta, vuelve el botón con el correo de la cuenta puesto.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
@@ -32,7 +32,7 @@ describe('pantalla de licencia con la venta cerrada', () => {
     const { VENTA_ABIERTA } = await import('../platform/cuentaWeb');
     expect(VENTA_ABIERTA).toBe(false);
     pintar();
-    expect(await screen.findByText(/sale a la venta el 15 de noviembre de 2026/)).toBeTruthy();
+    expect(await screen.findByText(/sale a la venta el 10 de noviembre de 2026/)).toBeTruthy();
     expect(screen.queryByRole('link', { name: /Comprar AulaPro/ })).toBeNull();
     expect(document.querySelector('a[href*="lemonsqueezy"]')).toBeNull();
   });
