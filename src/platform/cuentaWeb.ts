@@ -15,6 +15,7 @@
  * «AulaPro web»; orígenes aulapro.app, prueba.aulapro-app.pages.dev y
  * localhost:5173).
  */
+import { marcarLicenciaVencida } from '../lib/licenciaVencida';
 import { idbKv } from './webFs';
 import { pedirApi } from './servidores';
 
@@ -139,7 +140,7 @@ async function tokenNuevo(): Promise<string> {
 /** La «clave» de un fundador de la versión web: su correo está en la lista (`FUNDADORES` de la función de la licencia). */
 export const FUNDADOR = 'fundador';
 
-export type BusquedaLicencia = { key: string; firma?: string } | { key: null; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
+export type BusquedaLicencia = { key: string; firma?: string } | { key: null; vencida?: boolean; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
 
 /**
  * La clave de la licencia comprada con el correo de esta cuenta (función
@@ -171,7 +172,13 @@ async function buscarLicencia(): Promise<BusquedaLicencia> {
     });
     const j = await r.json().catch(() => ({}));
     const firma = typeof j.firma === 'string' && j.firma ? { firma: j.firma as string } : {};
-    if (r.ok) return j.fundador ? { key: FUNDADOR, ...firma } : j.key ? { key: String(j.key), ...firma } : { key: null };
+    if (r.ok) {
+      if (j.fundador) return { key: FUNDADOR, ...firma };
+      if (j.key) return { key: String(j.key), ...firma };
+      // La suscripción de este correo terminó: se recuerda en el dispositivo para decirlo en la pantalla de licencia
+      if (j.vencida) { marcarLicenciaVencida(); return { key: null, vencida: true }; }
+      return { key: null };
+    }
     return { key: null, error: ['sin-configurar', 'token', 'tienda'].includes(j.error) ? j.error : 'tienda' };
   } catch {
     return { key: null, error: 'sin-conexion' };

@@ -84,3 +84,7 @@ Al imprimir, Chrome añade por defecto la fecha y la dirección arriba y abajo (
 5. Al publicar, `launch.js`.
 
 Después: sincronización con Google Drive y OneDrive con inicio de sesión (diciembre o enero; pedir ya la verificación a Google y a Microsoft) y Actividades con móviles para el navegador.
+
+## Suscripción terminada, por el correo (31-10-2026)
+
+`licencia/cuenta` (Cloudflare y Netlify) devuelve `vencida: true` cuando el correo tiene un pedido pagado cuya clave ya no vale (caducada por no renovar, o anulada). La app lo recuerda en el dispositivo (`lib/licenciaVencida.ts`) y la pantalla de licencia dice «Tu suscripción ha terminado» y ofrece «Renovar · 14,99 € al año» (sin el código de lanzamiento). Así funciona también en un navegador o dispositivo nuevo, no solo donde caducó. Un pedido devuelto (`refunded`) no cuenta como vencido.
