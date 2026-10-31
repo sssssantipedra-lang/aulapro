@@ -18,8 +18,6 @@
   // the film at 60 frames per second (interpolated from the 24 of the original), and the same film reversed,
   // which the glides play when going up. Every stop is a keyframe in both, so swapping films there is instant.
   const VIDEO_URL = 'assets/hero-scrub-60.mp4';
-  const VIDEO_BACK_URL = 'assets/hero-scrub-60-atras.mp4';
-  const FILM_FPS = 60;
   const POSTER_URL = 'assets/hero-poster.jpg';
   const ENDING_URL = 'assets/hero-ending.jpg';
 
@@ -122,7 +120,6 @@
   const hero = $('#inicio');
   const stage = $('.stage', hero);
   const video = $('#hero-video');
-  const videoBack = $('#hero-video-atras');
   const poster = $('.poster', hero);
   const posterEnd = $('.poster-end', hero);
   const cue = $('.cue', hero);
@@ -147,7 +144,7 @@
   // band 1 opens settled: a one-time assembly on load that then hands over to scroll
   let loadStart = 0, loadK = 0;
   let cueOp = -1, endOp = -1;
-  let videoReady = false, videoFailed = false, backReady = false;
+  let videoReady = false, videoFailed = false;
 
   function updateCaptions(p) {
     for (const bd of bands) {
@@ -214,7 +211,7 @@
     if (playing) { rafId = null; lastTick = 0; return; }   // the playing glide draws its own frames
     const dt = Math.min(100, now - (lastTick || now));
     lastTick = now;
-    shown += (target - shown) * (1 - Math.pow(1 - 0.14, dt / 16.667));
+    shown += (target - shown) * (1 - Math.pow(1 - 0.22, dt / 16.667));
     if (loadK < 1) {
       const x = clamp((now - loadStart - 250) / 1300, 0, 1);
       loadK = 1 - Math.pow(1 - x, 3);
@@ -319,7 +316,7 @@
     glideTarget = y;
     document.documentElement.style.scrollBehavior = 'auto';
     const rate = stretchRate((from - heroTop) / heroRange, (y - heroTop) / heroRange);
-    if (!bySeeking && (dist > 0 ? playTo : playBackTo)((y - heroTop) / heroRange, rate)) return;
+    if (!bySeeking && dist > 0 && playTo((y - heroTop) / heroRange, rate)) return;
     const secs = video.duration || 10.25;
     const D = (Math.abs(dist) / heroRange) * secs;
     const prof = glideProfile(D, rate);
@@ -383,72 +380,6 @@
     glideId = requestAnimationFrame(step);
     return true;
   }
-  // backward glide: the reversed film plays from the picture on screen to the stop, and the forward film then
-  // takes the picture back. Forward frame i and reversed frame N-1-i are the same picture; with times at
-  // frame middles, forward time t and reversed time (duration - t) show it.
-  let playingBack = false;
-  function backTime(t, secs) {
-    const i = Math.min(Math.round(secs * FILM_FPS) - 1, Math.floor(t * FILM_FPS + 1e-6));
-    return secs - (i + 0.5) / FILM_FPS;
-  }
-  function playBackTo(toP, glideRate) {
-    if (!backReady || !videoReady || videoFailed || !video.duration) return false;
-    const secs = video.duration;
-    const fromT = video.currentTime, toT = clamp(toP, 0, 1) * secs;
-    if (fromT - toT < 0.08) return false;
-    playing = playingBack = true;
-    pendingTime = null;
-    const t0 = performance.now();
-    let rolling = 0, lastRt = 0, lastMove = 0;
-    const bail = () => {
-      glideId = null;
-      endPlay();
-      glideTo(heroTop + (toT / secs) * heroRange, true);
-    };
-    const roll = () => {                                   // the reversed film is on the picture: show it, play it
-      if (!playingBack) return;
-      stage.classList.add('atras-on');
-      rolling = lastMove = performance.now();
-      lastRt = videoBack.currentTime;
-      videoBack.playbackRate = glideRate * 0.15;
-      const started = videoBack.play();
-      if (started && started.catch) started.catch(() => { if (playingBack) bail(); });
-    };
-    videoBack.pause();
-    const rt0 = backTime(fromT, secs);
-    if (Math.abs(videoBack.currentTime - rt0) < 0.5 / FILM_FPS) roll();
-    else { videoBack.addEventListener('seeked', roll, { once: true }); videoBack.currentTime = rt0; }
-    const step = now => {
-      if (!playingBack) return;
-      if (!rolling) {                                      // still finding the picture in the reversed film
-        if (now - t0 > STALL_START_MS) { bail(); return; }
-        glideId = requestAnimationFrame(step);
-        return;
-      }
-      const rt = videoBack.currentTime;
-      if (rt > lastRt + 0.001) { lastRt = rt; lastMove = now; }
-      else if (now - lastMove > (now - rolling < STALL_START_MS ? STALL_START_MS : STALL_MS)) { bail(); return; }
-      const remaining = (secs - rt) - toT;
-      const reached = remaining <= 0.01 || videoBack.ended;
-      const p = (reached ? toT : secs - rt) / secs;
-      scrollTo(0, heroTop + p * heroRange);
-      target = shown = p;
-      updateCaptions(p);
-      if (reached) {
-        glideId = null;
-        endPlay(toT);
-        document.documentElement.style.scrollBehavior = '';
-        return;
-      }
-      const el = (now - rolling) / 1000;
-      const k = clamp(Math.min(0.15 + el / GLIDE_RAMP, remaining / (glideRate * GLIDE_RAMP * 0.5)), 0.15, 1);
-      const rate = Math.round(glideRate * k * 100) / 100;
-      if (Math.abs(videoBack.playbackRate - rate) >= 0.02) videoBack.playbackRate = rate;
-      glideId = requestAnimationFrame(step);
-    };
-    glideId = requestAnimationFrame(step);
-    return true;
-  }
   const STALL_START_MS = 900, STALL_MS = 450;
   // a hidden tab freezes frames and the film: the glide jumps straight to its stop
   document.addEventListener('visibilitychange', () => {
@@ -460,20 +391,8 @@
   function endPlay(atT) {
     if (!playing) return;
     playing = false;
-    if (playingBack) {
-      playingBack = false;
-      videoBack.pause();
-      videoBack.playbackRate = 1;
-      // the forward film finds the same picture, then the reversed one steps aside
-      const t = clamp(atT !== undefined ? atT : heroProgress() * video.duration, 0, video.duration - 0.001);
-      let done = false;
-      const back = () => { if (!done) { done = true; stage.classList.remove('atras-on'); } };
-      if (Math.abs(video.currentTime - t) < 0.001) back();
-      else { video.addEventListener('seeked', back, { once: true }); setTimeout(back, 600); requestSeek(t); }
-    } else {
-      video.pause();
-      video.playbackRate = 1;
-    }
+    video.pause();
+    video.playbackRate = 1;
     target = shown = heroProgress();
   }
   // Inside the film the page moves stop by stop: any wheel, swipe or scroll key, however long, becomes one
@@ -570,18 +489,9 @@
       videoReady = true;
       stage.classList.add('video-ready');
       requestSeek(shown * video.duration);
-      loadBackBlob().catch(() => { /* going up seeks frame by frame instead */ });
     }, { once: true });
     video.src = URL.createObjectURL(blob);
     video.load();
-  }
-  async function loadBackBlob() {
-    const res = await fetch(VIDEO_BACK_URL, { priority: 'low' });
-    if (!res.ok) throw new Error('video ' + res.status);
-    const blob = await res.blob();
-    videoBack.addEventListener('loadeddata', () => { backReady = true; }, { once: true });
-    videoBack.src = URL.createObjectURL(blob);
-    videoBack.load();
   }
   function failVideo() {
     if (videoFailed) return;
