@@ -298,4 +298,5 @@ export const VENTA_ABIERTA = false;
 
 /** Descuento del primer año (34 %, una sola vez en Lemon Squeezy). Se quita del enlace al acabar la oferta, el 15-4-2027. */
 export const CODIGO_LANZAMIENTO = 'LANZAMIENTO';
-export const enlaceDePago = (email: string) => `${CHECKOUT}&checkout%5Bemail%5D=${encodeURIComponent(email)}&checkout%5Bdiscount_code%5D=${CODIGO_LANZAMIENTO}`;
+/** Con `renovar` no lleva el código: el primer año a precio de lanzamiento es para quien se suscribe por primera vez. */
+export const enlaceDePago = (email: string, renovar = false) => `${CHECKOUT}&checkout%5Bemail%5D=${encodeURIComponent(email)}${renovar ? '' : `&checkout%5Bdiscount_code%5D=${CODIGO_LANZAMIENTO}`}`;

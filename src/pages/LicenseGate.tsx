@@ -5,6 +5,7 @@ import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../servi
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
 import { isAndroidApp, isWebApp } from '../lib/platform';
+import { licenciaVencida } from '../lib/licenciaVencida';
 import { botonGoogle, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, VENTA_ABIERTA, type Cuenta } from '../platform/cuentaWeb';
 
 /** Por qué no se ha podido buscar la compra (`licenciaDeLaCuenta`). */
@@ -43,6 +44,8 @@ export function LicenseGate({ state, onChange }: Props) {
   // Con la cuenta, la clave escrita a mano es lo raro: queda detrás de un enlace pequeño
   // Con la venta cerrada no hay nada que comprar: la clave a mano sale ya a la vista
   const [conClave, setConClave] = useState(!VENTA_ABIERTA);
+  // La suscripción terminó en este dispositivo: se dice y se ofrece la renovación, no el precio de lanzamiento
+  const [vencida] = useState(licenciaVencida);
 
   /** Busca la compra de esta cuenta y, si la hay, activa la licencia. */
   async function comprobarCompra(manual: boolean) {
@@ -115,12 +118,14 @@ export function LicenseGate({ state, onChange }: Props) {
 
         {cuenta ? (
           <div className="lic-compra">
-            <p className="lic-text">{VENTA_ABIERTA
+            <p className="lic-text">{vencida
+              ? t('Tu suscripción a AulaPro ha terminado. Tu trabajo sigue guardado y no se ha borrado nada: renueva con la cuenta {email} y vuelves a entrar al instante.', { email: cuenta.email })
+              : VENTA_ABIERTA
               ? t('Con la cuenta {email} todavía no hay una licencia. Suscríbete aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })
               : t('Con la cuenta {email} todavía no hay una licencia. AulaPro sale a la venta el 10 de noviembre de 2026. Si ya tienes una clave, escríbela abajo.', { email: cuenta.email })}</p>
             {VENTA_ABIERTA && (
-              <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
-                {t('Suscribirme · 9,90 € el primer año')} <ExternalLink size={14} />
+              <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email, vencida)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
+                {t(vencida ? 'Renovar · 14,99 € al año' : 'Suscribirme · 9,90 € el primer año')} <ExternalLink size={14} />
               </a>
             )}
             {esperando && <p className="lic-espera"><span className="spin" />{t('Cuando termines el pago, vuelve aquí: AulaPro se activará sola.')}</p>}
