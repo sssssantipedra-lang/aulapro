@@ -28,7 +28,7 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 
 - [ ] Probar la copia de pruebas en sus dispositivos (ordenador, tableta, móvil) y decir «adelante» para publicar la rama.
 - [ ] **Lemon Squeezy:**
-  - Variante individual como **suscripción anual** con clave de licencia: 9,90 € el primer año y 14,99 € al renovar, con impuestos incluidos. Activar el correo de aviso antes de cada renovación.
+  - Variante individual como **suscripción anual** con clave de licencia: 9,90 € el primer año y 14,99 € al renovar, con impuestos incluidos.
   - Cambiar en la descripción del producto el precio que aparezca.
   - Dejar el producto cerrado (borrador) hasta el 10-11 y abrirlo ese día.
 - [ ] **Packs** anuales de 5 y 10 docentes (39,59 € y 68,99 €, luego 59,99 € y 99,99 €) creados en Lemon Squeezy, con 10 y 20 activaciones. Pasar sus enlaces de compra para `web/sitio/assets/launch.js`.
