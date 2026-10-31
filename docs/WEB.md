@@ -17,10 +17,10 @@ Contexto compartido entre la app y la web. Revisado el 25 de octubre de 2026 (ca
 ## 2. Modelo de venta
 
 - Una sola licencia para Windows y Android, vendida en la web con Lemon Squeezy, que actúa como vendedor registrado (cobra, gestiona el IVA y factura).
-- Suscripción anual (decisión del dueño, 31-10-2026): oferta de lanzamiento de 9,99 € el primer año para quien se suscriba hasta el 15 de abril de 2027 incluido; después, y en cada renovación, 14,99 € al año, con impuestos incluidos. Los pagos únicos de por vida vendidos antes del 1-11-2026 se respetan siempre.
+- Suscripción anual (decisión del dueño, 31-10-2026): oferta de lanzamiento de 9,90 € el primer año para quien se suscriba hasta el 15 de abril de 2027 incluido; después, y en cada renovación, 14,99 € al año, con impuestos incluidos. Los pagos únicos de por vida vendidos antes del 1-11-2026 se respetan siempre.
 - Si no se renueva, la clave caduca y se bloquea la cuenta; los datos se conservan. La web y las condiciones lo dicen (apartado 2 y 5).
 - Hasta 2 dispositivos activados a la vez.
-- Packs anuales para grupos: 5 y 10 docentes por 39,99 € y 69,99 € el primer año con la oferta, y 59,99 € y 99,99 € en la renovación y desde el 16 de abril de 2027. Cada pack es UNA sola clave para todo el grupo, con 2 dispositivos por docente (límite de activaciones 10 y 20); quien compra entra con su cuenta y su licencia se activa sola. Más de 10 docentes: contacto@aulapro.app. (Con `?quantity=` Lemon Squeezy entrega una sola clave de 2 activaciones: no usarlo.)
+- Packs anuales para grupos: 5 y 10 docentes por 39,59 € y 68,99 € el primer año con la oferta, y 59,99 € y 99,99 € en la renovación y desde el 16 de abril de 2027. Cada pack es UNA sola clave para todo el grupo, con 2 dispositivos por docente (límite de activaciones 10 y 20); quien compra entra con su cuenta y su licencia se activa sola. Más de 10 docentes: contacto@aulapro.app. (Con `?quantity=` Lemon Squeezy entrega una sola clave de 2 activaciones: no usarlo.)
 - Devolución en 14 días, sin preguntas. Al devolver, la licencia se desactiva.
 - Android: la app se descarga gratis en Google Play y se activa con la misma licencia. Se daba por hecho que Google Play lo permite como app «solo de uso»; **no está comprobado** (ver el punto 6 del apartado 3).
 
@@ -121,15 +121,15 @@ Tres piezas de la tarjeta de precio y de la venta, a petición del dueño:
 
 ## 5. Lemon Squeezy: ajustes del producto
 
-1. Precios con impuestos incluidos, para que el cliente pague exactamente 9,99 € el primer año.
-2. Producto "AulaPro", variante de **suscripción anual** con clave de licencia: precio inicial 9,99 € el primer año y 14,99 € en cada renovación (en Lemon Squeezy, precio de renovación distinto del inicial), límite de activaciones 2.
+1. Precios con impuestos incluidos, para que el cliente pague exactamente 9,90 € el primer año.
+2. Producto "AulaPro", variante de **suscripción anual** con clave de licencia: precio inicial 9,90 € el primer año y 14,99 € en cada renovación (en Lemon Squeezy, precio de renovación distinto del inicial), límite de activaciones 2.
 3. Claves de licencia activadas, límite de 2 activaciones, sin caducidad.
 4. Tras el pago, redirigir a https://aulapro.app/gracias
 5. Botón del recibo por correo: https://aulapro.app/descargar
-6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria, en cualquier ordenador, tableta o móvil. Suscripción anual: 9,99 € el primer año si te suscribes hasta el 15 de abril de 2027, después 14,99 € al año. Cancelas cuando quieras. Devolución en 14 días sin preguntas."
+6. Descripción: "AulaPro, la app con IA para docentes de Primaria y Secundaria, en cualquier ordenador, tableta o móvil. Suscripción anual: 9,90 € el primer año si te suscribes hasta el 15 de abril de 2027, después 14,99 € al año. Cancelas cuando quieras. Devolución en 14 días sin preguntas."
 Ojo, 1-10-2026: al crear la cuenta, Lemon Squeezy recomienda "Managed Payments" de Stripe (su dueño desde 2024). No se eligió porque Stripe no genera ni valida claves de licencia, y la venta depende de ellas; se siguió con "Continue with Lemon Squeezy". Lemon Squeezy sigue funcionando sin fecha de cierre, pero su plan es pasar a sus usuarios a Managed Payments. Si algún día hay que migrar, la web solo cambia sus enlaces de pago; la app necesitaría otro sistema de licencias (por ejemplo Polar, que también es vendedor registrado y genera claves).
 
-7. Packs: en el mismo producto, una variante de suscripción anual por pack, con clave de licencia: "Pack 5 docentes" 39,99 € el primer año y 59,99 € al renovar (límite 10 activaciones), "Pack 10 docentes" 69,99 € y 99,99 € (20). La individual, "Licencia individual", 9,99 € y 14,99 €, límite 2. No usar `?quantity=`. Los enlaces de pago de los packs van en `packs` de `web/sitio/assets/launch.js`.
+7. Packs: en el mismo producto, una variante de suscripción anual por pack, con clave de licencia: "Pack 5 docentes" 39,59 € el primer año y 59,99 € al renovar (límite 10 activaciones), "Pack 10 docentes" 68,99 € y 99,99 € (20). La individual, "Licencia individual", 9,90 € y 14,99 €, límite 2. No usar `?quantity=`. Los enlaces de pago de los packs van en `packs` de `web/sitio/assets/launch.js`.
 8. Probar primero en modo prueba. Hecho el 2-10-2026: tienda https://aulapro.lemonsqueezy.com (Store ID 487841). En modo prueba, producto 1404415, variante 2192238 a 6,99 €; la compra de prueba llega con la clave en el correo, y la API de licencias responde `activation_limit` 2, sin caducidad. Al pasar al modo real, el producto se copia y su enlace de pago cambia: el de prueba no se publica nunca en la web.
 9. Fin de la oferta, al acabar el 15 de abril de 2027: crear variantes nuevas a 14,99 €, 59,99 € y 99,99 € (primer año ya sin oferta), poner sus enlaces en `checkout` y `packs` de `web/sitio/assets/launch.js`, archivar las de oferta y cambiar los textos de precio de la web y las condiciones en los tres idiomas, y la ficha para Google (`application/ld+json` en `index.html`: precio 14.99 y sin `priceValidUntil`). Quien ya está suscrito conserva su precio de renovación.
 

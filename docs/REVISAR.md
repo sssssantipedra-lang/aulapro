@@ -4,7 +4,7 @@ Lista de todo lo que está pendiente de decidir, hacer o comprobar, reunida de `
 
 Estado de la rama `ccr-3f4014f5-llwckk`: lleva cambios que **todavía no están en la web real** (aulapro.app). Se pueden probar en https://prueba.aulapro-app.pages.dev/app/ y pasan a la web cuando el dueño dice «adelante». Son estos:
 
-- Pasa a suscripción anual: 9,99 € el primer año (hasta el 15-4-2027) y 14,99 € al renovar; packs 39,99 € y 69,99 € (luego 59,99 € y 99,99 €). Si no se renueva, se bloquea la cuenta.
+- Pasa a suscripción anual: 9,90 € el primer año (hasta el 15-4-2027) y 14,99 € al renovar; packs 39,59 € y 68,99 € (luego 59,99 € y 99,99 €). Si no se renueva, se bloquea la cuenta.
 - La fecha de salida a la venta pasa a ser el 10-11-2026.
 - Los documentos del alumnado van a la IA solo como texto.
 - En las fotos del trabajo de un alumno, el nombre se tapa antes de enviarlas.
@@ -19,7 +19,7 @@ Estado de la rama `ccr-3f4014f5-llwckk`: lleva cambios que **todavía no están 
 1. ~~**La clave de la IA.**~~ **Decidido el 31-10-2026: se sigue con la clave de Google de cada docente, también la gratuita.** Se estudió una clave central de AulaPro con créditos y se descartó. La privacidad (en los tres idiomas) y la nota de Configuración › IA ya dicen que, desde el Espacio Económico Europeo, Google trata la clave gratuita con las reglas de uso de datos de la de pago. Queda un riesgo: que Google interprete de otro modo la cláusula «solo servicios de pago al ofrecer clientes de la API a usuarios del EEE». Por eso las condiciones se revisan cada trimestre (`docs/MANTENIMIENTO.md`), y conviene mirar si Google contesta en su foro la pregunta sobre apps con la clave de cada usuario (https://discuss.ai.google.dev/t/eea-paid-services-requirement-android-app-using-each-end-users-own-free-gemini-api-project/195065).
 2. ~~Si la clave es central: tope de gasto y qué reciben licencias de por vida, fundadores y packs.~~ Ya no aplica.
 3. ~~El párrafo de la privacidad sobre el uso gratuito de Google.~~ Corregido el 31-10-2026.
-4. **Los packs.** Con la licencia individual a 9,99 €, los packs (24,99 € para 5 docentes y 44,99 € para 10) salen a 5,00 € y 4,50 € por docente: un 50 % y un 55 % de descuento. Antes eran un 28 % y un 36 %. Si se quiere el mismo descuento, rondarían 34,99 € y 62,99 €.
+4. **Los packs.** Con la licencia individual a 9,90 €, los packs (24,99 € para 5 docentes y 44,99 € para 10) salen a 5,00 € y 4,50 € por docente: un 50 % y un 55 % de descuento. Antes eran un 28 % y un 36 %. Si se quiere el mismo descuento, rondarían 34,99 € y 62,99 €.
 5. **Qué ve quien no renueva una licencia anual** (las primeras vencen hacia el 16-4-2028). Los datos nunca se bloquean; falta decidir qué deja de funcionar (`docs/MANTENIMIENTO.md`).
 
 ## 2. Antes del 10-11: lo que solo puede hacer el dueño
@@ -28,15 +28,15 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 
 - [ ] Probar la copia de pruebas en sus dispositivos (ordenador, tableta, móvil) y decir «adelante» para publicar la rama.
 - [ ] **Lemon Squeezy:**
-  - Variante individual como **suscripción anual** con clave de licencia: 9,99 € el primer año y 14,99 € al renovar, con impuestos incluidos. Activar el correo de aviso antes de cada renovación.
+  - Variante individual como **suscripción anual** con clave de licencia: 9,90 € el primer año y 14,99 € al renovar, con impuestos incluidos. Activar el correo de aviso antes de cada renovación.
   - Cambiar en la descripción del producto el precio que aparezca.
   - Dejar el producto cerrado (borrador) hasta el 10-11 y abrirlo ese día.
-- [ ] **Packs** anuales de 5 y 10 docentes (39,99 € y 69,99 €, luego 59,99 € y 99,99 €) creados en Lemon Squeezy, con 10 y 20 activaciones. Pasar sus enlaces de compra para `web/sitio/assets/launch.js`.
+- [ ] **Packs** anuales de 5 y 10 docentes (39,59 € y 68,99 €, luego 59,99 € y 99,99 €) creados en Lemon Squeezy, con 10 y 20 activaciones. Pasar sus enlaces de compra para `web/sitio/assets/launch.js`.
 - [ ] `LEMONSQUEEZY_API_KEY` en **modo real**, en Netlify y en Cloudflare. Anotar su caducidad.
 - [ ] `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_SECRET` y `FUNDADORES` en Netlify y en Cloudflare (Production y Preview), con el mismo valor en los dos. Anotar cuándo caduca el secreto de Microsoft.
 - [ ] Espacio KV `LIMITE` enlazado en el proyecto de Cloudflare Pages. Sin él, Cloudflare no limita las peticiones; Netlify sí (`docs/APP_WEB.md`).
 - [ ] Pantalla de consentimiento de Google en «En producción» y sin verificaciones pendientes.
-- [ ] Prueba completa con dinero real: una compra de 9,99 € a un correo propio y su reembolso.
+- [ ] Prueba completa con dinero real: una compra de 9,90 € a un correo propio y su reembolso.
 - [ ] Prueba completa con una cuenta personal de Microsoft: entrar, guardar en OneDrive, recargar.
 - [ ] La gestora: el límite de ingresos para el alta de autónomo y qué debe poner el aviso legal (con el NIF).
 - [ ] DMARC creado en Cloudflare, empezando con `p=none` (`docs/DNS.md`).

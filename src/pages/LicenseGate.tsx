@@ -120,7 +120,7 @@ export function LicenseGate({ state, onChange }: Props) {
               : t('Con la cuenta {email} todavía no hay una licencia. AulaPro sale a la venta el 10 de noviembre de 2026. Si ya tienes una clave, escríbela abajo.', { email: cuenta.email })}</p>
             {VENTA_ABIERTA && (
               <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
-                {t('Suscribirme · 9,99 € el primer año')} <ExternalLink size={14} />
+                {t('Suscribirme · 9,90 € el primer año')} <ExternalLink size={14} />
               </a>
             )}
             {esperando && <p className="lic-espera"><span className="spin" />{t('Cuando termines el pago, vuelve aquí: AulaPro se activará sola.')}</p>}

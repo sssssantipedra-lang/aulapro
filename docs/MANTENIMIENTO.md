@@ -13,7 +13,7 @@ Las filas marcadas con **(comprobar)** son cosas que esta lista no ha podido ver
 | **10-11-2026** | Salida a la venta (el mismo día que el corte de fundadores). **Hasta entonces la venta está cerrada** (31-10-2026) | Antes: lista del apartado 5 («Antes de abrir ventas»). Abrir **los dos interruptores a la vez**: `checkout` en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` |
 | **31-12-2026** | Caduca la clave de revisión de Lemon Squeezy para Google Play (`docs/TIENDAS.md`) | Solo importa si algún día se vuelve a las tiendas. Hoy no se usa |
 | **Hacia el 30-4-2027** | Microsoft: si el secreto del registro se creó con 6 meses (30-10-2026 + 6 meses) | **(comprobar)** la fecha de caducidad elegida al crearlo. Renovar un mes antes (apartado 2) |
-| **15-4-2027** | Termina la oferta de lanzamiento (9,99 € el primer año) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
+| **15-4-2027** | Termina la oferta de lanzamiento (9,90 € el primer año) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
 | **Cada renovación** | Las suscripciones anuales se renuevan a 14,99 € | En Lemon Squeezy, activar el correo de aviso antes de cada renovación (las condiciones lo prometen). Si no se paga, la clave caduca y la app bloquea la cuenta |
 | **31-8-2027** | Renovación automática del dominio (14,20 $) | Tarjeta válida en Cloudflare. La vigilancia avisa 30 días antes de que caduque |
 | **30-9-2027** | Caduca el dominio `aulapro.app` si no se renovó | Si la renovación falla, la web, la app y el correo caen a la vez |
@@ -74,7 +74,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 - **Reembolsos**: dentro de los 14 días, sin preguntas. Una licencia de cuenta devuelta se quita sola al volver a comprobar. Una clave escrita a mano devuelta debe desactivarse en Lemon Squeezy.
 - **Los packs son una sola clave con activaciones limitadas** (10 para el de 5 docentes, 20 para el de 10). Quien filtre la clave agota las activaciones, y **solo se arregla desde el panel de Lemon Squeezy** (subir el límite o dar otra clave). El límite de peticiones del servidor no lo impide.
 - **Modo prueba y modo real son tiendas aparte**: el producto de prueba (1404415) y su enlace de pago no se publican nunca. Al pasar a real, el enlace cambia y se pega en `web/sitio/assets/launch.js` (`checkout` y `packs`).
-- **Cobro, impuestos y pagos**: los cobros llegan a la cuenta bancaria que se dio de alta en Lemon Squeezy. Si el banco o el IBAN cambian, hay que cambiarlo allí. Los 9,99 € ya incluyen impuestos.
+- **Cobro, impuestos y pagos**: los cobros llegan a la cuenta bancaria que se dio de alta en Lemon Squeezy. Si el banco o el IBAN cambian, hay que cambiarlo allí. Los 9,90 € ya incluyen impuestos.
 
 ### Google Cloud (proyecto «AulaPro»)
 
@@ -134,7 +134,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 - [ ] `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_SECRET` y `FUNDADORES` están en Netlify y Cloudflare (Production y Preview), con el mismo valor en los dos.
 - [ ] Fecha de caducidad de `MICROSOFT_CLIENT_SECRET` anotada en el calendario.
 - [ ] Pantalla de consentimiento de Google en «En producción» y sin avisos de verificación pendientes.
-- [ ] Prueba completa con dinero real (una compra de 9,99 € a un correo propio) y reembolso, y una cuenta de Microsoft personal entera (entrar, OneDrive, recargar).
+- [ ] Prueba completa con dinero real (una compra de 9,90 € a un correo propio) y reembolso, y una cuenta de Microsoft personal entera (entrar, OneDrive, recargar).
 - [ ] Los dos packs (5 y 10) creados en Lemon Squeezy con 10 y 20 activaciones, y sus enlaces en `web/sitio/assets/launch.js` (`packs`) y en `checkout`.
 - [ ] Se quitaron las menciones a la «lista de espera» de `web/sitio/privacidad.html` (versión web, apartados 2 a 5) y de `aviso-legal.html` (apartado 2).
 - [ ] La gestora aclaró el límite de ingresos para darse de alta como autónomo, y qué debe poner el aviso legal (incluido el NIF).
