@@ -167,12 +167,10 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .stage .poster,.stage .poster-end,.stage .static-bg{position:absolute;inset:0;background-size:cover;background-position:center}
 .stage .poster-end{opacity:0}
 .stage .static-bg{display:none}
-.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateZ(0);will-change:transform;transition:opacity .9s var(--ease-out)}
-.stage.video-ready video{opacity:1}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateZ(0);will-change:transform;transition:opacity .9s var(--ease-out)}
+.stage.video-ready canvas{opacity:1}
 /* the reversed film covers the forward one only while a glide plays it, with no fade either way */
-.stage video.atras{opacity:0!important;transition:none}
-.stage.atras-on video.atras{opacity:1!important}
-.stage.video-failed video{display:none}
+.stage.video-failed canvas{display:none}
 .scrim{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(180deg,rgba(20,14,9,.55) 0,rgba(20,14,9,0) 150px),
   linear-gradient(90deg,rgba(20,14,9,.42) 0%,rgba(20,14,9,.16) 36%,rgba(20,14,9,0) 56%),
@@ -259,7 +257,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
   .hero{height:auto}
   .dusk{display:block}
   .stage{position:relative;height:auto;min-height:100svh;display:flex;align-items:flex-end}
-  .stage video,.stage .poster,.stage .poster-end,.bands,.cue{display:none}
+  .stage canvas,.stage .poster,.stage .poster-end,.bands,.cue{display:none}
   .stage .static-bg{display:block;background-image:url("assets/escritorio.jpg");background-position:40% 30%}
   .stage .scrim{background:linear-gradient(180deg,rgba(20,14,9,.45) 0%,rgba(20,14,9,0) 20%,rgba(20,14,9,0) 50%,rgba(20,14,9,.7) 64%,rgba(20,14,9,.9) 80%,rgba(30,22,17,1) 100%)}
   @media (min-aspect-ratio:1/1){
@@ -747,8 +745,7 @@ html.zoom-open{overflow:hidden}
       <div class="static-bg" aria-hidden="true"></div>
       <div class="poster" aria-hidden="true"></div>
       <div class="poster-end" aria-hidden="true"></div>
-      <video id="hero-video" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
-      <video id="hero-video-atras" class="atras" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+      <canvas id="hero-video" aria-hidden="true"></canvas>
       <div class="scrim" aria-hidden="true"></div>
 
       <div class="bands">
@@ -1033,7 +1030,7 @@ html.zoom-open{overflow:hidden}
       <p class="once" aria-hidden="true"><span data-i18n="s7.once">Al año.</span><svg class="wipe" style="--d:500" viewBox="0 0 200 16" preserveAspectRatio="none"><path pathLength="1" d="M3 10c30-5 62-7 96-5s70 3 98 0"/></svg></p>
       <p class="save" data-i18n="s7.save">Ahorras 5,09&nbsp;€ el primer año</p>
       <p class="save-code mono" data-i18n="s7.code">Código LANZAMIENTO</p>
-      <p class="lede" data-i18n="s7.lede">Oferta de lanzamiento: si te suscribes hasta el 15 de abril de 2027, tu primer año cuesta 9,90&nbsp;€. Después, 14,99&nbsp;€ al año. Te avisamos antes de cada renovación y cancelas cuando quieras.</p>
+      <p class="lede" data-i18n="s7.lede">Oferta de lanzamiento: si te suscribes hasta el 15 de abril de 2027, tu primer año cuesta 9,90&nbsp;€. Después, 14,99&nbsp;€ al año. Cancelas cuando quieras.</p>
       <ul class="ticklist">
         <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s7.i1">Ordenador, tableta y móvil</span></li>
         <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s7.i2">Todas las funciones</span></li>
@@ -1074,8 +1071,8 @@ html.zoom-open{overflow:hidden}
         <details><summary><span data-i18n="q3">¿La IA tiene coste?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a3">Con el plan gratuito de Google, no. Tienes unas 20 peticiones al día con el modelo Flash para las tareas grandes. Si se agotan, la aplicación continúa con Flash-Lite hasta las 9:00.</p></details>
         <details><summary><span data-i18n="q4">¿La IA ve los nombres de mis alumnos?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a4">No. Antes de enviar nada, AulaPro sustituye los nombres por códigos.</p></details>
         <details><summary><span data-i18n="q5">¿Tengo que crear una cuenta?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a5">Sí, en un clic: entras con tu cuenta de Google o de Microsoft. Así tienes AulaPro en todos tus dispositivos y, si compras con ese correo, la licencia se activa sola.</p></details>
-        <details><summary><span data-i18n="q6">¿Dónde se guardan los datos de mi alumnado?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a6">En tu propio dispositivo, dentro del navegador, y nunca en servidores de AulaPro.</p></details>
-        <details><summary><span data-i18n="q7">¿Es una suscripción?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a7">Sí, una suscripción anual. Si te suscribes hasta el 15 de abril de 2027, el primer año cuesta 9,90&nbsp;€; después, 14,99&nbsp;€ al año. Te avisamos antes de cada renovación y la puedes cancelar cuando quieras: sigues usando AulaPro hasta el final del año pagado. Si no renuevas, tu cuenta se bloquea hasta que renueves, pero tu trabajo no se borra.</p></details>
+        <details><summary><span data-i18n="q6">¿Dónde se guardan los datos de mi alumnado?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a6">Se guardan en tu propia cuenta de Google Drive o de OneDrive, a tu elección, y también puedes guardarlos solo en una carpeta de tu ordenador. Nunca en servidores de AulaPro.</p></details>
+        <details><summary><span data-i18n="q7">¿Es una suscripción?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a7">Sí, una suscripción anual. Si te suscribes hasta el 15 de abril de 2027, el primer año cuesta 9,90&nbsp;€; después, 14,99&nbsp;€ al año. La puedes cancelar cuando quieras: sigues usando AulaPro hasta el final del año pagado. Si no renuevas, tu cuenta se bloquea hasta que renueves, pero tu trabajo no se borra.</p></details>
         <details><summary><span data-i18n="q8">¿En qué dispositivos funciona?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a8">En cualquiera con un navegador moderno: ordenadores con Windows o Mac, tabletas y móviles Android, iPad e iPhone. No hay que instalar nada, aunque puedes añadirla a la pantalla de inicio como una app.</p></details>
         <details><summary><span data-i18n="q10">¿Y si no me convence?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a10">Tienes 14 días desde la compra para pedir la devolución, sin preguntas. Todos los detalles están en las <a href="condiciones.html" data-lang-link="condiciones.html">condiciones de venta</a>.</p></details>
       </div>
