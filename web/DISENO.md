@@ -450,3 +450,7 @@ Petición del dueño: como la app pasa a ser web y se entra desde la propia pág
 ## Packs de 5 y 10 docentes (30-10-2026)
 
 - Decisión del dueño: solo packs de 5 y 10 docentes (24,99 € y 44,99 €), con una clave única por pack; quien compra entra con su cuenta y la licencia se activa sola, y el resto escribe la clave. Los de 20 y 30 se quitan; para más de 10 docentes se escribe a contacto@aulapro.app. La portada enseña dos tarjetas (no cuatro), y `launch.js` y `web/comprobar.mjs` solo piden los enlaces del 5 y del 10. Las condiciones y `/gracias` (tres idiomas) lo dicen igual.
+
+## Portada: scroll natural (31-10-2026)
+
+Se quitaron las paradas por subtítulo y los deslizamientos automáticos (también el vídeo «atrás»). El vídeo sigue el scroll a saltos de `currentTime`; para que cada salto sea instantáneo se codificó con todos los fotogramas clave (`-g 1 -bf 0`, 60 fps, 9,6 MB). Con pocos fotogramas clave (13 en 615) cada salto decodificaba hasta 50 fotogramas y se notaba el retraso. Si se vuelve a codificar, mantener `-g 1`.

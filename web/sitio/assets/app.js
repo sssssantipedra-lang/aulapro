@@ -121,7 +121,6 @@
   const hero = $('#inicio');
   const stage = $('.stage', hero);
   const video = $('#hero-video');
-  const videoBack = $('#hero-video-atras');
   const poster = $('.poster', hero);
   const posterEnd = $('.poster-end', hero);
   const cue = $('.cue', hero);
@@ -146,7 +145,7 @@
   // band 1 opens settled: a one-time assembly on load that then hands over to scroll
   let loadStart = 0, loadK = 0;
   let cueOp = -1, endOp = -1;
-  let videoReady = false, videoFailed = false, backReady = false;
+  let videoReady = false, videoFailed = false;
 
   function updateCaptions(p) {
     for (const bd of bands) {
