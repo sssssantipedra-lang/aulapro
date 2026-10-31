@@ -36,3 +36,22 @@ export function idsEnOrdenDeLista(ids: readonly string[], alumnado: readonly { n
   const conocidos = ids.filter(id => por.has(id)).sort((x, y) => compararAlumnos(por.get(x)!, por.get(y)!));
   return [...conocidos, ...ids.filter(id => !por.has(id))];
 }
+
+/**
+ * El nombre para saber si dos alumnos se llaman igual: sin mayúsculas, sin tildes y sin espacios de más
+ * («Lucía  Pérez» y «lucia pérez» son el mismo).
+ */
+export const claveDeNombre = (nombre: string) =>
+  nombre.trim().replace(/\s+/g, ' ').normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('es');
+
+/**
+ * Otro alumno de la misma clase que se llama igual, si lo hay. Decisión del dueño (31-10-2026): no se pueden
+ * guardar dos alumnos con el mismo nombre en la misma clase; para la IA serían el mismo código y se mezclarían
+ * sus datos, y para el docente, dos filas que no se distinguen. Se pide añadir el segundo apellido o una inicial.
+ */
+export function mismoNombreEnClase<T extends { id: string; name: string; class_id: string }>(
+  nombre: string, claseId: string, alumnado: readonly T[], salvoId?: string,
+): T | undefined {
+  const clave = claveDeNombre(nombre);
+  return alumnado.find(a => a.class_id === claseId && a.id !== salvoId && claveDeNombre(a.name) === clave);
+}

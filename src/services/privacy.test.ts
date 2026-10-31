@@ -29,9 +29,16 @@ describe('buildPseudonymizer', () => {
     expect(p.mask('Rosa ha mejorado.')).toBe('[ALU-3] ha mejorado.');
   });
 
-  it('no tapa un nombre de pila compartido por dos alumnas (sería ambiguo)', () => {
-    expect(p.mask('Ana ha faltado.')).toBe('Ana ha faltado.');
-    expect(p.mask('Ana López ha faltado.')).toBe('[ALU-4] ha faltado.');
+  it('un nombre de pila que comparten dos alumnas también se tapa, con su propio código, y vuelve como estaba', () => {
+    const t = p.mask('Ana ha faltado y Ana López también.');
+    expect(t).not.toContain('Ana');
+    expect(t).toContain('[ALU-4] también');
+    const [suelto] = t.match(/\[ALU-\d+\]/)!;
+    expect(suelto).not.toBe('[ALU-4]');
+    expect(suelto).not.toBe('[ALU-5]');
+    expect(p.unmask(t)).toBe('Ana ha faltado y Ana López también.');
+    // En minúscula no es un nombre: «ana» se queda
+    expect(p.mask('la palabra ana')).toBe('la palabra ana');
   });
 
   it('respeta los límites de palabra con acentos', () => {

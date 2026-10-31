@@ -1,3 +1,4 @@
+import { mismoNombreEnClase } from '../lib/alumnado';
 import { useState, useId } from 'react';
 import {
   Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check, ChevronLeft,
@@ -197,7 +198,10 @@ export function ClassesManager({
   function saveStudent() {
     if (!editStudent) return;
     if (!editStudent.name.trim()) { notify(t('El nombre es obligatorio')); return; }
-    if (studentModal?.id === '__new__') {
+    const esNuevo = studentModal?.id === '__new__';
+    const igual = mismoNombreEnClase(editStudent.name, editStudent.class_id, students, esNuevo ? undefined : editStudent.id);
+    if (igual) { notify(t('Ya hay un alumno que se llama «{name}» en esta clase. Añade el segundo apellido o una inicial para diferenciarlos.', { name: igual.name.trim() })); return; }
+    if (esNuevo) {
       onAddStudent({ ...editStudent, id: newId() });
       notify(t('Alumno añadido'));
     } else {
@@ -324,6 +328,8 @@ export function ClassesManager({
   function importCsv() {
     const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean);
     const parsed: Student[] = [];
+    // Un nombre que ya está en la clase (o repetido en lo pegado) no entra: ver mismoNombreEnClase
+    const repetidos: string[] = [];
     for (const line of lines) {
       const parts = line.split(/[,;]/);
       const name = parts[0]?.trim();
@@ -331,16 +337,20 @@ export function ClassesManager({
       if (!name) continue;
       // Salta la fila de cabecera («Nombre,Email» o «Name,Email»)
       if (/^(nombre|name)$/i.test(name) || /^email$/i.test(name) || /^correo$/i.test(name)) continue;
+      if (mismoNombreEnClase(name, activeClassId, [...students, ...parsed])) { repetidos.push(name); continue; }
       parsed.push({
         id: newId(), class_id: activeClassId,
         name, email, photo: null, alerts: [], notes: '',
       });
     }
-    if (parsed.length === 0) { notify(t('No se encontraron filas válidas')); return; }
+    const avisoRepetidos = repetidos.length
+      ? ' ' + t('No se han añadido porque ya hay alguien con ese nombre en la clase: {names}. Añade el segundo apellido o una inicial y vuelve a importarlos.', { names: repetidos.join(', ') })
+      : '';
+    if (parsed.length === 0) { notify(repetidos.length ? avisoRepetidos.trim() : t('No se encontraron filas válidas')); return; }
     onAddStudents(parsed);
     setCsvModal(false);
     setCsvText('');
-    notify(t(parsed.length === 1 ? '{n} alumno importado' : '{n} alumnos importados', { n: parsed.length }));
+    notify(t(parsed.length === 1 ? '{n} alumno importado' : '{n} alumnos importados', { n: parsed.length }) + avisoRepetidos);
   }
 
   // ─── student evaluations ─────────────────────────────────────────────────────

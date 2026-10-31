@@ -558,6 +558,8 @@ export const APOYO_EN: Record<string, string> = {
   'No se pudo leer el documento. Usa un PDF, un Word (.docx) o un texto.': 'The document could not be read. Use a PDF, a Word file (.docx) or a text file.',
   'Adjunta una foto, un PDF, un Word (.docx) o un texto.': 'Attach a photo, a PDF, a Word file (.docx) or a text file.',
   'El documento no tiene texto que leer.': 'The document has no text to read.',
+  'Ya hay un alumno que se llama «{name}» en esta clase. Añade el segundo apellido o una inicial para diferenciarlos.': 'There is already a student called “{name}” in this class. Add a second surname or an initial to tell them apart.',
+  'No se han añadido porque ya hay alguien con ese nombre en la clase: {names}. Añade el segundo apellido o una inicial y vuelve a importarlos.': 'These were not added because someone with that name is already in the class: {names}. Add a second surname or an initial and import them again.',
 };
 
 export const APOYO_CA: Record<string, string> = {
@@ -1110,4 +1112,6 @@ export const APOYO_CA: Record<string, string> = {
   'No se pudo leer el documento. Usa un PDF, un Word (.docx) o un texto.': 'No s’ha pogut llegir el document. Fes servir un PDF, un Word (.docx) o un text.',
   'Adjunta una foto, un PDF, un Word (.docx) o un texto.': 'Adjunta una foto, un PDF, un Word (.docx) o un text.',
   'El documento no tiene texto que leer.': 'El document no té text per llegir.',
+  'Ya hay un alumno que se llama «{name}» en esta clase. Añade el segundo apellido o una inicial para diferenciarlos.': 'Ja hi ha un alumne que es diu «{name}» en aquesta classe. Afegeix el segon cognom o una inicial per diferenciar-los.',
+  'No se han añadido porque ya hay alguien con ese nombre en la clase: {names}. Añade el segundo apellido o una inicial y vuelve a importarlos.': 'No s’han afegit perquè ja hi ha algú amb aquest nom a la classe: {names}. Afegeix el segon cognom o una inicial i torna a importar-los.',
 };

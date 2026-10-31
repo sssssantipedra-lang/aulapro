@@ -48,7 +48,7 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
   const byCode = new Map<number, string>();
   /** Formas completas («Lucía Pérez Navarro», «Lucía Pérez»): sin distinguir mayúsculas. */
   const full: { form: string; n: number }[] = [];
-  /** Nombre de pila suelto («Lucía»): solo si nadie más lo comparte y escrito con mayúscula. */
+  /** Nombre de pila suelto («Lucía»), escrito con mayúscula: el de su alumno o, si lo comparten varios, uno propio. */
   const firsts: { form: string; n: number }[] = [];
 
   const firstCount = new Map<string, number>();
@@ -57,6 +57,14 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     firstCount.set(first, (firstCount.get(first) ?? 0) + 1);
   }
 
+  /**
+   * Nombre de pila que comparten dos o más alumnos («Ana» con Ana López y Ana Ruiz; 31-10-2026): no se sabe a
+   * cuál se refiere, pero tampoco puede salir tal cual. Lleva su propio código, que al volver es otra vez «Ana».
+   * Antes se dejaba sin tapar. Van detrás de los códigos de las personas.
+   */
+  const compartidos = new Map<string, number>();
+  let siguiente = people.length;
+
   people.forEach((p, i) => {
     const n = i + 1;
     byCode.set(n, p.name);
@@ -64,11 +72,13 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     full.push({ form: p.name, n });
     if (words.length > 2) full.push({ form: `${words[0]} ${words[1]}`, n });
     const first = words[0];
-    // Un nombre de pila de dos letras («Al») o repetido en el perfil taparía
-    // palabras corrientes o a otra persona: mejor dejarlo.
-    if (words.length > 1 && first.length >= 3 && firstCount.get(first.toLocaleLowerCase('es')) === 1) {
-      firsts.push({ form: first, n });
-    }
+    // Un nombre de pila de dos letras («Al») taparía palabras corrientes: mejor dejarlo.
+    if (words.length < 2 || first.length < 3) return;
+    const clave = first.toLocaleLowerCase('es');
+    if (firstCount.get(clave) === 1) { firsts.push({ form: first, n }); return; }
+    let c = compartidos.get(clave);
+    if (c === undefined) { c = ++siguiente; compartidos.set(clave, c); byCode.set(c, first); }
+    if (!firsts.some(f => f.form === first)) firsts.push({ form: first, n: c });
   });
 
   // Las formas más largas primero: «Lucía Pérez Navarro» antes que «Lucía Pérez».

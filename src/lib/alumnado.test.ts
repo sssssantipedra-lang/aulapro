@@ -37,3 +37,18 @@ describe('orden de lista', () => {
     expect(idsEnOrdenDeLista(['1', 'x', '2', '3', 'y'], alumnado)).toEqual(['3', '2', '1', 'x', 'y']);
   });
 });
+
+describe('nombres repetidos', () => {
+  it('claveDeNombre no distingue mayúsculas, tildes ni espacios de más', async () => {
+    const { claveDeNombre } = await import('./alumnado');
+    expect(claveDeNombre('  Lucía   Pérez ')).toBe(claveDeNombre('lucia perez'));
+    expect(claveDeNombre('Lucía Pérez')).not.toBe(claveDeNombre('Lucía Pérez G.'));
+  });
+  it('mismoNombreEnClase busca solo en la misma clase y puede saltarse al propio alumno', async () => {
+    const { mismoNombreEnClase } = await import('./alumnado');
+    const alumnado = [{ id: 'a', name: 'Ana López', class_id: 'c1' }, { id: 'b', name: 'Ana López', class_id: 'c2' }];
+    expect(mismoNombreEnClase('ana lopez', 'c1', alumnado)?.id).toBe('a');
+    expect(mismoNombreEnClase('Ana López', 'c1', alumnado, 'a')).toBeUndefined();
+    expect(mismoNombreEnClase('Ana López', 'c3', alumnado)).toBeUndefined();
+  });
+});
