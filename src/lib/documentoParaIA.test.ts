@@ -3,7 +3,8 @@
  * identifica a una persona aunque no esté en la lista del alumnado. Ver `lib/documentoParaIA.ts`.
  */
 import { describe, it, expect } from 'vitest';
-import { avisoDeLectura, leerDocumento, quitarDatosDeContacto, quitarIdentificadores, textoDePdf } from './documentoParaIA';
+import { avisoDeLectura, leerDocumento, quitarDatosDeContacto, quitarIdentificadores, textoDePdf, textoDeDocumento } from './documentoParaIA';
+import { buildPseudonymizer } from '../services/privacy';
 
 /** Un PDF mínimo con Helvetica: una lista de páginas, cada una con sus líneas (solo ASCII). */
 function pdf(paginas: string[][]): Uint8Array<ArrayBuffer> {
@@ -112,5 +113,48 @@ describe('quitarDatosDeContacto (textos libres: avisos, anotaciones, notas de un
     const r = quitarDatosDeContacto('Madre: se compromete a revisar la agenda. Llamar al 612 345 678 o escribir a casa@correo.es.');
     expect(r).toContain('Madre: se compromete a revisar la agenda.');
     expect(r).not.toMatch(/612|casa@correo/);
+  });
+});
+
+describe('un informe de derivación de verdad (prueba del dueño, 31-10-2026, con los nombres cambiados)', () => {
+  // Así sale del PDF: pdf.js junta en una línea lo que en la hoja va en dos columnas
+  const informe = [
+    'Nombre y apellidos: Lucas Martínez Gómez Fecha de nacimiento: 14/05/2016',
+    'Nivel / Curso: 4º de Educación Primaria Tutor/a: D. Andrés Ferrer Soler',
+    'Fecha de emisión: 31 de octubre de 2026',
+    '2. Observaciones del Alumno en el Contexto Escolar',
+    'Lucas muestra una actitud colaborativa, respetuosa y buena disposición.',
+    'Informe de Derivación - PT y AL (Lucas Martínez Gómez) Page 1 of 2',
+  ].join('\n');
+  const fuera = ['Lucas', 'Martínez', 'Gómez', '14/05/2016', 'Andrés', 'Ferrer', 'Soler'];
+
+  it('con un alumno que la app no conoce: ni su nombre, ni sus apellidos, ni su fecha de nacimiento, ni el tutor', () => {
+    // Los alumnos de ejemplo se llaman «Alumno 1», «Alumno 2»: la palabra «Alumno» no es un nombre
+    const ejemplo = buildPseudonymizer([{ id: 'a', name: 'Alumno 1' }, { id: 'b', name: 'Alumno 2' }]);
+    const r = textoDeDocumento(informe, t => ejemplo.mask(t));
+    for (const f of fuera) expect(r).not.toContain(f);
+    expect(r).toContain('Observaciones del Alumno en el Contexto Escolar');
+    expect(r).toContain('Nivel / Curso: 4º de Educación Primaria');
+    expect(r).toContain('Fecha de emisión: 31 de octubre de 2026');
+    expect(r).toContain('[nombre] muestra una actitud');
+    expect(r).toContain('Tutor/a: [dato quitado]');
+  });
+
+  it('con el alumno en la app con otros apellidos: lleva su código y los apellidos del documento desaparecen', () => {
+    const lista = buildPseudonymizer([{ id: 'a', name: 'Lucas Pérez' }, { id: 'b', name: 'Marta Gil' }]);
+    const r = textoDeDocumento(informe, t => lista.mask(t));
+    for (const f of fuera) expect(r).not.toContain(f);
+    expect(r).toContain('[ALU-1] muestra una actitud');
+    expect(r).toContain('PT y AL ([ALU-1]) Page 1 of 2');
+  });
+
+  it('un tratamiento delante de un nombre lo tapa aunque no lleve etiqueta', () => {
+    expect(quitarIdentificadores('Reunión con Dña. Marta Gil y el Sr. Pau Ferrer.')).toBe('Reunión con Dña. [nombre] y el Sr. [nombre].');
+  });
+
+  it('no confunde una conjunción ni una frase nueva con apellidos', () => {
+    const lista = buildPseudonymizer([{ id: 'a', name: 'Lucas Pérez' }, { id: 'b', name: 'Marta Gil' }]);
+    expect(textoDeDocumento('Lucas Pérez y Marta Gil trabajan juntos. Lucas Pérez. Después, Marta Gil.', t => lista.mask(t)))
+      .toBe('[ALU-1] y [ALU-2] trabajan juntos. [ALU-1]. Después, [ALU-2].');
   });
 });

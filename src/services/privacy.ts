@@ -40,6 +40,9 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordRe = (inner: string, flags: string) =>
   new RegExp(`(?<![\\p{L}\\p{N}])(?:${inner})(?![\\p{L}\\p{N}])`, flags);
 
+/** Primeras palabras que no son un nombre de pila: los alumnos de ejemplo se llaman «Alumno 1», «Student 1»… */
+const GENERICOS = new Set(['alumno', 'alumna', 'alumne', 'student', 'estudiante', 'estudiant', 'pupil']);
+
 export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymizer {
   const people = roster
     .map(r => ({ ...r, name: r.name.trim().replace(/\s+/g, ' ') }))
@@ -72,8 +75,9 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     full.push({ form: p.name, n });
     if (words.length > 2) full.push({ form: `${words[0]} ${words[1]}`, n });
     const first = words[0];
-    // Un nombre de pila de dos letras («Al») taparía palabras corrientes: mejor dejarlo.
-    if (words.length < 2 || first.length < 3) return;
+    // Un nombre de pila de dos letras («Al») taparía palabras corrientes, y «Alumno» (de «Alumno 1», los datos de
+    // ejemplo) es una palabra corriente de cualquier informe: mejor dejarlos.
+    if (words.length < 2 || first.length < 3 || GENERICOS.has(first.toLocaleLowerCase('es'))) return;
     const clave = first.toLocaleLowerCase('es');
     if (firstCount.get(clave) === 1) { firsts.push({ form: first, n }); return; }
     let c = compartidos.get(clave);

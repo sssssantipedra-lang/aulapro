@@ -86,14 +86,96 @@ export function avisoDeLectura(e: unknown): string {
 const R = (s: string) => `[${s}]`;
 
 /**
- * Tapa lo que identifica a una persona y que la lista del alumnado no cubre. No es perfecto (un nombre suelto que no
- * esté en la lista no se puede reconocer), por eso el texto se enseña al docente antes de enviarlo cuando hay dónde.
- * Las etiquetas van en castellano, catalán e inglés.
+ * Etiquetas de un documento cuyo valor es una persona (el alumno, su familia, su tutor u orientador, quien firma) o
+ * un lugar que la identifica (domicilio, centro). En castellano, catalán e inglés. Detrás va «:».
+ */
+const PERSONA = [
+  'nombre(?:\\s+y\\s+apellidos)?', 'apellidos', 'nom(?:\\s+i\\s+cognoms)?', 'cognoms', '(?:full\\s+)?name', 'surnames?',
+  'alumn[oa](?:\\/a)?', 'alumne', 'student', 'padre', 'madre', 'pare', 'mare', 'father', 'mother',
+  'progenitor(?:[ae]s?)?', 'tutor(?:[ae])?(?:\\/a)?(?:\\s+legal(?:es)?)?', 'legal\\s+guardian', 'orientador(?:[ae])?(?:\\/a)?',
+  'psic[oó]log[oa](?:\\/a)?', 'maestr[oa](?:\\/a)?', 'profesor(?:[ae])?(?:\\/a)?', 'professor(?:[ae])?', 'teacher', 'especialista',
+  'director(?:[ae])?(?:\\/a)?', 'fdo\\.?', 'firmado(?:\\s+por)?', 'signat', 'signed(?:\\s+by)?',
+];
+const LUGAR = [
+  'domicilio', 'direcci[oó]n', 'adre[cç]a', 'address', 'centro(?:\\s+educativo)?', 'centre(?:\\s+educatiu)?', 'colegio', 'school',
+  'localidad', 'municipio', 'poblaci[oó]n', 'localitat',
+];
+/** Otras etiquetas habituales: no se tapan, pero marcan dónde acaba el valor de la anterior en la misma línea. */
+const OTRAS = [
+  'fecha(?:\\s+de\\s+\\p{L}+)?', 'data(?:\\s+de\\s+\\p{L}+)?', 'date(?:\\s+of\\s+\\p{L}+)?', 'nivel(?:\\s*\\/\\s*curso)?', 'curso', 'etapa',
+  'grupo', 'edad', 'nia', 'sip', 'dni', 'nie', 'tel[eé]fono', 'm[oó]vil', 'correo(?:\\s+electr[oó]nico)?', 'e-?mail', 'nacionalidad',
+  'sexo', 'g[eé]nero', 'level', 'year', 'class', 'age', 'curs', 'edat',
+];
+const etiquetas = (lista: string[]) => new RegExp(`(?<=^|[\\s(;,|])(?:${lista.join('|')})[ \\t]*:`, 'gimu');
+const ETIQUETA_TAPAR = etiquetas([...PERSONA, ...LUGAR]);
+const ETIQUETA_PERSONA = new RegExp(`^(?:${PERSONA.join('|')})[ \\t]*:$`, 'iu');
+const ETIQUETA_CUALQUIERA = etiquetas([...PERSONA, ...LUGAR, ...OTRAS]);
+
+/** Tratamientos delante de un nombre: «D. Andrés Ferrer», «Dña. Marta Gil». */
+const TRATAMIENTO = /(?<![\p{L}])(D\.|Dª\.?|Dña\.|Don|Doña|Sr\.|Sra\.|Srta\.)(\s+)\p{Lu}[\p{L}'-]+(?:\s+(?:(?:de|del|de la|i)\s+)?\p{Lu}[\p{L}'-]+){0,3}/gu;
+const PARTICULAS = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'i', 'van', 'von', 'da', 'do', 'dos']);
+const escapar = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Tapa lo que identifica a una persona en un documento y que la lista del alumnado no cubre. No es perfecto (un
+ * nombre suelto que no esté en la lista ni detrás de una etiqueta no se puede reconocer), por eso el texto se enseña
+ * al docente antes de enviarlo cuando hay dónde.
+ *
+ * 1. Datos de contacto (`quitarDatosDeContacto`).
+ * 2. El valor de cada etiqueta de persona o de lugar, esté al principio o en mitad de la línea (un PDF junta en una
+ *    línea «Nivel / Curso: 4º … Tutor/a: D. Andrés Ferrer»), hasta la siguiente etiqueta o el final de la línea.
+ * 3. Los nombres que había detrás de esas etiquetas, también donde vuelvan a salir en el documento: el informe dice
+ *    arriba cómo se llama el alumno y luego lo nombra en el texto y en el pie de página (revisión del 31-10-2026,
+ *    con un informe de prueba del dueño).
+ * 4. Un nombre detrás de un tratamiento («D.», «Dña.», «Sr.»…).
  */
 export function quitarIdentificadores(texto: string): string {
-  return quitarDatosDeContacto(texto)
-    // Lo que sigue a una etiqueta de nombre, familiar, domicilio o centro, hasta el final de la línea
-    .replace(/^([ \t]*(?:nombre(?:\s+y\s+apellidos)?|apellidos|nom(?:\s+i\s+cognoms)?|cognoms|(?:full\s+)?name|surnames?|alumn[oa](?:\/a)?|alumne|student|padre|madre|pare|mare|father|mother|progenitor(?:[ae]s?)?|tutor(?:[ae])?(?:\/a)?\s+legal(?:es)?|legal\s+guardian|domicilio|direcci[oó]n|adre[cç]a|address|centro(?:\s+educativo)?|centre(?:\s+educatiu)?|colegio|school)[ \t]*:)[^\n]*/gimu, `$1 ${R('dato quitado')}`);
+  let t = quitarDatosDeContacto(texto);
+
+  // 2. Valores de las etiquetas, de la última a la primera para no mover las posiciones
+  const cortes = [...t.matchAll(ETIQUETA_CUALQUIERA)].map(m => m.index!);
+  const nombres: string[] = [];
+  const tapar = [...t.matchAll(ETIQUETA_TAPAR)];
+  for (const m of tapar.reverse()) {
+    const desde = m.index! + m[0].length;
+    const finLinea = t.indexOf('\n', desde) === -1 ? t.length : t.indexOf('\n', desde);
+    const siguiente = cortes.find(c => c > m.index! && c < finLinea) ?? finLinea;
+    let hasta = siguiente;
+    while (hasta > desde && /\s/.test(t[hasta - 1])) hasta--;
+    const valor = t.slice(desde, hasta).trim();
+    if (!valor || valor === R('dato quitado')) continue;
+    if (ETIQUETA_PERSONA.test(m[0].trim())) nombres.push(valor);
+    t = `${t.slice(0, desde)} ${R('dato quitado')}${t.slice(hasta)}`;
+  }
+
+  // 3. Esos nombres, donde vuelvan a salir: entero y cada palabra (con mayúscula, de 3 letras o más)
+  const palabras = new Set<string>();
+  for (const v of nombres) {
+    for (const w of v.replace(/^(D\.|Dª\.?|Dña\.|Don|Doña|Sr\.|Sra\.|Srta\.)\s+/u, '').split(/[\s,]+/)) {
+      const p = w.replace(/[.,;:()]+$/, '');
+      if (p.length >= 3 && /^\p{Lu}/u.test(p) && !PARTICULAS.has(p.toLocaleLowerCase('es'))) palabras.add(p);
+    }
+  }
+  if (palabras.size) {
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:${[...palabras].sort((a, b) => b.length - a.length).map(escapar).join('|')})(?![\\p{L}\\p{N}])`, 'gu');
+    t = t.replace(re, R('nombre')).replace(/\[nombre\](?:\s+(?:(?:de|del|de la|i|y)\s+)?\[nombre\])+/g, R('nombre'));
+  }
+
+  // 4. Tratamientos
+  return t.replace(TRATAMIENTO, (_, tr: string, esp: string) => `${tr}${esp}${R('nombre')}`);
+}
+
+/** Apellidos detrás del código de un alumno («[ALU-7] Martínez Gómez»): el documento lo nombra con apellidos que en la app no tiene. */
+const APELLIDOS_TRAS_CODIGO = /(\[ALU-\d+\])(?:\s+(?:(?:de|del|de la)\s+)?\p{Lu}[\p{Ll}'-]+){1,3}/gu;
+
+/**
+ * El texto de un documento del alumnado tal como va a la IA (y como se enseña al docente para revisarlo): primero los
+ * nombres del alumnado de la app pasan a su código (`enmascarar`, de `services/privacy.ts`), después se quita lo que
+ * identifica y la app no conoce (`quitarIdentificadores`) y, por último, los apellidos que hayan quedado detrás de un
+ * código. En este orden, el alumno conserva su código y lo demás sale como «[nombre]» o «[dato quitado]».
+ */
+export function textoDeDocumento(texto: string, enmascarar: (t: string) => string): string {
+  return quitarIdentificadores(enmascarar(texto)).replace(APELLIDOS_TRAS_CODIGO, '$1').replace(/(\[ALU-\d+\])(?:\s+\[nombre\])+/g, '$1').trim();
 }
 
 /**

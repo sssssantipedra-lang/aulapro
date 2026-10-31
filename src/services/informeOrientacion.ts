@@ -8,7 +8,7 @@ import { callGemini, parseGeminiJson } from './gemini';
 import { marcoApoyo } from './apoyoIA';
 import { currentPseudonymizer } from './privacy';
 import { CATEGORIAS_NEAE, conObjetivosOrientacion, nuevoIdApoyo } from '../lib/apoyo';
-import { EXTENSIONES_DOCUMENTO, leerDocumento, quitarIdentificadores } from '../lib/documentoParaIA';
+import { EXTENSIONES_DOCUMENTO, leerDocumento, textoDeDocumento } from '../lib/documentoParaIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { AlumnoApoyo, CursoDe, InformeOrientacion, ObjetivoOrientacion, Trimestre } from '../types/apoyo';
 
@@ -23,7 +23,7 @@ export interface FuenteInforme { texto?: string; nombre?: string }
  * que identifican (`quitarIdentificadores`) y con los nombres del alumnado cambiados por su código. `callGemini`
  * vuelve a enmascarar al enviar, así que lo pegado a mano también sale sin nombres.
  */
-export const textoParaRevisar = (texto: string) => currentPseudonymizer().mask(quitarIdentificadores(texto)).trim();
+export const textoParaRevisar = (texto: string) => textoDeDocumento(texto, t => currentPseudonymizer().mask(t));
 
 /**
  * Abre el archivo del informe (o de la programación) y lo convierte en texto en el navegador, también un PDF: desde el
@@ -90,7 +90,7 @@ export async function analizarInforme(
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<PropuestaInforme | null> {
   const { fuente, ambitos, comunidad, lang } = args;
-  const texto = quitarIdentificadores(fuente.texto ?? '').trim();
+  const texto = textoParaRevisar(fuente.texto ?? '');
   if (!texto) { callbacks.onError?.('Pega el texto del informe o sube un archivo.'); return null; }
   const userPrompt =
     'Lee el informe sociopsicopedagógico de un alumno y extrae SOLO lo que dice. Si algo no aparece, déjalo vacío: ' +

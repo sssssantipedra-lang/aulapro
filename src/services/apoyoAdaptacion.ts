@@ -13,7 +13,8 @@ import { nivelDe, nuevoIdApoyo } from '../lib/apoyo';
 import { translate, type Lang } from '../i18n';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { FuenteInforme } from './informeOrientacion';
-import { quitarIdentificadores } from '../lib/documentoParaIA';
+import { textoDeDocumento } from '../lib/documentoParaIA';
+import { currentPseudonymizer } from './privacy';
 import type { AlumnoApoyo, ApartadoDocumento, ApoyoData, CursoDe, DocumentoApoyo, Trimestre } from '../types/apoyo';
 
 type T = (k: string, vars?: Record<string, string | number>) => string;
@@ -83,7 +84,7 @@ export async function generarAdaptacion(
   const bloques = materia.entry.saberes[materia.grupo] ?? [];
   const anterior = adaptacionExistente(data, alumno.id, area, trimestre);
   const nivel = nivelDe(alumno);
-  const programacionTexto = quitarIdentificadores(programacion?.texto ?? '').trim();
+  const programacionTexto = textoDeDocumento(programacion?.texto ?? '', t => currentPseudonymizer().mask(t));
 
   const userPrompt =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +

@@ -6,7 +6,8 @@
  */
 import { useState } from 'react';
 import { TaparNombre } from '../components/TaparNombre';
-import { avisoDeLectura, esDocumento, leerDocumento, quitarIdentificadores } from '../lib/documentoParaIA';
+import { avisoDeLectura, esDocumento, leerDocumento, textoDeDocumento } from '../lib/documentoParaIA';
+import { currentPseudonymizer } from '../services/privacy';
 import { fotoParaIA, LADO_FOTO_EXAMEN } from '../lib/fotos';
 import { taparFoto } from '../lib/tapar';
 import type { InlineFile } from '../services/gemini';
@@ -33,7 +34,7 @@ export function useAdjuntoParaIA(onError: (mensaje: string) => void) {
     try {
       if (file.type.startsWith('image/')) { setPorTapar({ nombre: file.name, foto: await fotoParaIA(file, LADO_FOTO_EXAMEN) }); return; }
       if (!esDocumento(file)) { onError('Adjunta una foto, un PDF, un Word (.docx) o un texto.'); return; }
-      const texto = quitarIdentificadores(await leerDocumento(file)).trim();
+      const texto = textoDeDocumento(await leerDocumento(file), t => currentPseudonymizer().mask(t));
       if (!texto) { onError('El documento no tiene texto que leer.'); return; }
       setAdjunto({ nombre: file.name, texto });
     } catch (e) {
