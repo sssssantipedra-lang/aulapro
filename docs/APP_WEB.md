@@ -78,7 +78,7 @@ Al imprimir, Chrome añade por defecto la fecha y la dirección arriba y abajo (
 ## Lo que falta para el 10-11-2026
 
 1. Pruebas del dueño en sus dispositivos (1 al 3 de noviembre) en la copia de prueba.
-2. Un recordatorio semanal de «Guardar en mi nube» en Android, iPhone e iPad (el botón ya está).
+2. ~~Un recordatorio semanal de la copia~~ Ya existe (`AvisoCopiaWeb`, `lib/avisoCopia.ts`): a los 2 días de uso sin copia y cada 7 días después, con «Guardar una copia» (en móvil, por el menú de compartir a Drive, OneDrive o iCloud) y «Más tarde» (3 días). Sin comprobar en un iPhone ni en un Android reales.
 3. Pasar los datos desde la app de escritorio o de Android: hoy ya se puede con «Descargar mis datos» y «Cargar» (mismo formato), o eligiendo en la web la carpeta de datos de la app de escritorio.
 4. La web: «Abrir AulaPro» en lugar de las descargas, privacidad y condiciones en los tres idiomas (datos en el navegador, la carpeta, la función de la licencia), `docs/WEB.md`.
 5. Al publicar, `launch.js`.

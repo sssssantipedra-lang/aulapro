@@ -52,7 +52,7 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
   - Los dos interruptores: `checkout` en `launch.js` y `VENTA_ABIERTA` en `src/platform/cuentaWeb.ts`.
   - La prueba `src/pages/LicenseGate.test.tsx`.
   - Los enlaces de los packs.
-- [ ] El recordatorio semanal de «Guardar en mi nube» en Android, iPhone e iPad (`docs/APP_WEB.md`, «Lo que falta»).
+- [x] El recordatorio semanal de la copia ya existía (`AvisoCopiaWeb`); falta solo probarlo en un iPhone y en un Android reales.
 
 ## 4. Probar en dispositivos reales
 
