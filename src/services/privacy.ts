@@ -40,6 +40,9 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordRe = (inner: string, flags: string) =>
   new RegExp(`(?<![\\p{L}\\p{N}])(?:${inner})(?![\\p{L}\\p{N}])`, flags);
 
+/** Primeras palabras que no son un nombre de pila: los alumnos de ejemplo se llaman «Alumno 1», «Student 1»… */
+const GENERICOS = new Set(['alumno', 'alumna', 'alumne', 'student', 'estudiante', 'estudiant', 'pupil']);
+
 export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymizer {
   const people = roster
     .map(r => ({ ...r, name: r.name.trim().replace(/\s+/g, ' ') }))
@@ -48,7 +51,7 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
   const byCode = new Map<number, string>();
   /** Formas completas («Lucía Pérez Navarro», «Lucía Pérez»): sin distinguir mayúsculas. */
   const full: { form: string; n: number }[] = [];
-  /** Nombre de pila suelto («Lucía»): solo si nadie más lo comparte y escrito con mayúscula. */
+  /** Nombre de pila suelto («Lucía»), escrito con mayúscula: el de su alumno o, si lo comparten varios, uno propio. */
   const firsts: { form: string; n: number }[] = [];
 
   const firstCount = new Map<string, number>();
@@ -57,6 +60,14 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     firstCount.set(first, (firstCount.get(first) ?? 0) + 1);
   }
 
+  /**
+   * Nombre de pila que comparten dos o más alumnos («Ana» con Ana López y Ana Ruiz; 31-10-2026): no se sabe a
+   * cuál se refiere, pero tampoco puede salir tal cual. Lleva su propio código, que al volver es otra vez «Ana».
+   * Antes se dejaba sin tapar. Van detrás de los códigos de las personas.
+   */
+  const compartidos = new Map<string, number>();
+  let siguiente = people.length;
+
   people.forEach((p, i) => {
     const n = i + 1;
     byCode.set(n, p.name);
@@ -64,11 +75,14 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     full.push({ form: p.name, n });
     if (words.length > 2) full.push({ form: `${words[0]} ${words[1]}`, n });
     const first = words[0];
-    // Un nombre de pila de dos letras («Al») o repetido en el perfil taparía
-    // palabras corrientes o a otra persona: mejor dejarlo.
-    if (words.length > 1 && first.length >= 3 && firstCount.get(first.toLocaleLowerCase('es')) === 1) {
-      firsts.push({ form: first, n });
-    }
+    // Un nombre de pila de dos letras («Al») taparía palabras corrientes, y «Alumno» (de «Alumno 1», los datos de
+    // ejemplo) es una palabra corriente de cualquier informe: mejor dejarlos.
+    if (words.length < 2 || first.length < 3 || GENERICOS.has(first.toLocaleLowerCase('es'))) return;
+    const clave = first.toLocaleLowerCase('es');
+    if (firstCount.get(clave) === 1) { firsts.push({ form: first, n }); return; }
+    let c = compartidos.get(clave);
+    if (c === undefined) { c = ++siguiente; compartidos.set(clave, c); byCode.set(c, first); }
+    if (!firsts.some(f => f.form === first)) firsts.push({ form: first, n: c });
   });
 
   // Las formas más largas primero: «Lucía Pérez Navarro» antes que «Lucía Pérez».
@@ -95,6 +109,100 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     hasCodes(text) {
       return /\[ALU-\d+\]/.test(text);
     },
+  };
+}
+
+/* ── Códigos nuevos en cada petición (31-10-2026) ────────────────────────
+ *
+ * Con un código fijo por alumno («[ALU-7]» siempre es la misma persona), quien
+ * reciba muchas peticiones podría ir juntando lo que sabe de cada código: sus
+ * notas, sus avisos, su apoyo. Para que eso no se pueda hacer, cada petición
+ * a la IA usa una numeración nueva al azar: el mismo alumno es [ALU-48213] en
+ * una petición y [ALU-305] en la siguiente. Dentro de una misma petición (con
+ * su historial) un alumno conserva su código, para que la IA pueda razonar.
+ *
+ * Además, al volver, solo se cambian por nombres los códigos de esta
+ * petición: si la IA se inventa uno, se queda como está, en vez de convertirse
+ * en el nombre de otro alumno.
+ */
+
+/**
+ * El dígito de control de Damm: detecta cualquier cifra cambiada y cualquier par de cifras vecinas
+ * intercambiadas. Un número con su dígito al final da 0 (`codigoValido`).
+ */
+const DAMM = [
+  [0, 3, 1, 7, 5, 9, 8, 6, 4, 2], [7, 0, 9, 2, 1, 5, 4, 8, 6, 3], [4, 2, 0, 6, 8, 7, 1, 3, 5, 9], [1, 7, 5, 0, 9, 8, 3, 4, 2, 6],
+  [6, 1, 2, 3, 0, 4, 5, 9, 7, 8], [3, 6, 7, 4, 2, 0, 9, 5, 8, 1], [5, 8, 6, 9, 7, 2, 0, 1, 3, 4], [8, 9, 4, 5, 3, 6, 2, 0, 1, 7],
+  [9, 4, 3, 8, 6, 1, 7, 2, 0, 5], [2, 5, 8, 1, 4, 3, 6, 7, 9, 0],
+];
+export function digitoDamm(cifras: string): number {
+  let i = 0;
+  for (const c of cifras) i = DAMM[i][c.charCodeAt(0) - 48];
+  return i;
+}
+
+/**
+ * Los códigos de una petición tienen siempre cinco cifras: cuatro al azar (de 1000 a 9999) y el dígito de control.
+ * Si la IA copia mal un código (una cifra cambiada, dos vecinas al revés, una de más o de menos), deja de ser
+ * válido y no se convierte en ningún alumno: se queda a la vista. Ver `codigoValido`.
+ */
+const MIN_CODIGO = 1000;
+const MAX_CODIGO = 9999;
+export const codigoValido = (cifras: string) => /^\d{5}$/.test(cifras) && digitoDamm(cifras) === 0;
+const conControl = (n: number) => n * 10 + digitoDamm(String(n));
+
+function numeroAlAzar(usados: Set<number>, azar: () => number): number {
+  for (let intento = 0; intento < 50; intento++) {
+    const n = conControl(MIN_CODIGO + Math.floor(azar() * (MAX_CODIGO - MIN_CODIGO + 1)));
+    if (!usados.has(n)) return n;
+  }
+  // Muy improbable con el azar de verdad: el primero libre, para no quedarse dando vueltas
+  let n = MIN_CODIGO;
+  while (usados.has(conControl(n))) n++;
+  return conControl(n);
+}
+
+/** Un número al azar entre 0 y 1, del generador criptográfico del navegador. */
+function azarSeguro(): number {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] / 2 ** 32;
+}
+
+/**
+ * Un enmascarador para una sola petición: los mismos nombres que `base`, con
+ * códigos nuevos al azar. Los códigos que ya trae el texto (el informe que el
+ * docente revisó, con los códigos fijos de `base`) se cambian también.
+ */
+export function codigosDePeticion(base: Pseudonymizer, azar: () => number = azarSeguro): Pseudonymizer {
+  /** Código fijo de `base` → código de esta petición, y al revés. */
+  const ida = new Map<number, number>();
+  const vuelta = new Map<number, number>();
+  const usados = new Set<number>();
+  const deEstaPeticion = (fijo: number) => {
+    let n = ida.get(fijo);
+    if (n === undefined) {
+      n = numeroAlAzar(usados, azar);
+      usados.add(n);
+      ida.set(fijo, n);
+      vuelta.set(n, fijo);
+    }
+    return n;
+  };
+  return {
+    mask(text) {
+      if (!text) return text;
+      return base.mask(text).replace(/\[ALU-(\d+)\]/g, (_, fijo: string) => code(deEstaPeticion(Number(fijo))));
+    },
+    unmask(text) {
+      if (!text) return text;
+      return text.replace(CODE_RE, (m, num: string) => {
+        // Un código mal copiado no pasa el dígito de control: no es nadie
+        const fijo = codigoValido(num) ? vuelta.get(Number(num)) : undefined;
+        return fijo === undefined ? m : base.unmask(code(fijo));
+      });
+    },
+    hasCodes: base.hasCodes,
   };
 }
 

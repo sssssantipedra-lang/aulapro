@@ -52,10 +52,11 @@ describe('marco de la IA', () => {
     expect(marcoApoyo('madrid', 'en')).toContain('in English');
   });
 
-  it('la ficha del alumno incluye el diagnóstico y su nivel', () => {
+  it('la ficha del alumno incluye su nivel, pero no su diagnóstico (revisión de privacidad del 31-10-2026)', () => {
     const f = alumnoParaIA(marta, nombreCurso);
     expect(f).toContain('Marta Gil');
-    expect(f).toContain('Diagnóstico: Discapacidad intelectual leve');
+    expect(f).not.toContain('Diagnóstico');
+    expect(f).not.toContain('Discapacidad intelectual leve');
     expect(f).toContain('Nivel de competencia curricular: 2º Primaria');
     expect(f).toContain('Matriculado en 4º Primaria (4º B)');
   });
@@ -101,7 +102,7 @@ describe('proponerObjetivos', () => {
 
     const [sistema, usuario, , , opciones] = callGemini.mock.calls[0];
     expect(sistema).toContain('Decreto 23/2023');
-    expect(usuario).toContain('Diagnóstico: Discapacidad intelectual leve');
+    expect(usuario).not.toContain('Discapacidad intelectual leve');
     expect(usuario).toContain('no los repitas');
     expect(usuario).toContain('Reconocer las vocales');
     expect(usuario).toContain('Criterios oficiales de 2º Primaria');

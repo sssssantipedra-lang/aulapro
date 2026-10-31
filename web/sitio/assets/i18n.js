@@ -4,7 +4,7 @@ window.AULA_I18N = {
   es: {
     'meta.title': 'AulaPro · La app con IA para docentes de Educación Primaria y Secundaria',
     'f.needok': 'Marca la casilla de privacidad para apuntarte.',
-    'meta.desc': 'AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Oferta de lanzamiento: 6,99 €, de por vida.',
+    'meta.desc': 'AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Oferta de lanzamiento: 9,99 €, de por vida.',
     's2.count': '{n} de 6 tachadas',
     'f.ok': 'Gracias. Te avisaremos por correo electrónico en cuanto AulaPro esté a la venta.',
     'f.err': 'No se ha podido enviar. Inténtalo de nuevo en unos minutos.',
@@ -16,7 +16,7 @@ window.AULA_I18N = {
 
   ca: {
     'meta.title': "AulaPro · L'app amb IA per a docents d'Educació Primària i Secundària",
-    'meta.desc': "AulaPro prepara amb IA situacions d'aprenentatge, rúbriques, dianes, informes i fitxes per a Educació Primària i Secundària, i reuneix el quadern, l'assistència i l'avaluació LOMLOE en una sola app per a l’ordinador, la tauleta i el mòbil. Oferta de llançament: 6,99 €, per sempre.",
+    'meta.desc': "AulaPro prepara amb IA situacions d'aprenentatge, rúbriques, dianes, informes i fitxes per a Educació Primària i Secundària, i reuneix el quadern, l'assistència i l'avaluació LOMLOE en una sola app per a l’ordinador, la tauleta i el mòbil. Oferta de llançament: 9,99 €, per sempre.",
     'skip': 'Salta al contingut',
     'nav.label': 'Seccions',
     'nav.features': 'Funcions',
@@ -57,10 +57,10 @@ window.AULA_I18N = {
     'b4.title': 'Cada cosa al seu <em>lloc</em>.',
     'b5.chip': 'Així és AulaPro per dins.',
     'b5.more': 'Continua descobrint AulaPro',
-    'b4.sub': 'AulaPro a l’ordinador, la tauleta i el mòbil. Oferta de llançament: 6,99 € una sola vegada, i és teva per sempre.',
+    'b4.sub': 'AulaPro a l’ordinador, la tauleta i el mòbil. Oferta de llançament: 9,99 € una sola vegada, i és teva per sempre.',
     'cue': "Desplaça't cap avall",
     'static.sub': "Situacions d'aprenentatge, rúbriques, informes i avaluació d'Educació Primària i Secundària, preparats amb IA en una sola app per a l’ordinador, la tauleta i el mòbil. Les dades del teu alumnat no surten cap a cap servidor d’AulaPro.",
-    'static.price': 'Oferta de llançament: 6,99 €, per sempre.',
+    'static.price': 'Oferta de llançament: 9,99 €, per sempre.',
 
     's1.kicker': 'El teu dia a dia',
     's1.title': 'En obrir AulaPro, la teva jornada ja està organitzada.',
@@ -173,8 +173,8 @@ window.AULA_I18N = {
     'strip.cap': 'Quadern de notes, en castellà.',
 
     's7.kicker': 'Preu de llançament',
-    's7.title': '6,99 €. Una vegada, i per sempre.',
-    's7.price': '6,99 €',
+    's7.title': '9,99 €. Una vegada, i per sempre.',
+    's7.price': '9,99 €',
     's7.once': 'Una vegada.',
     's7.lede': 'Oferta de llançament fins al 15 d’abril de 2027: pagues una vegada i AulaPro és teva per sempre. Després costarà 11,99 € l’any.',
     's7.was': '11,99&nbsp;€ l’any',
@@ -211,7 +211,7 @@ window.AULA_I18N = {
     'q6': 'On es desen les dades del meu alumnat?',
     'a6': "Al teu propi dispositiu, dins del navegador, i mai en servidors d’AulaPro.",
     'q7': 'És una subscripció?',
-    'a7': 'Si la compres durant el llançament, no: pagues 6,99 € una vegada i la teva llicència no caduca mai. A partir del 16 d’abril de 2027, les llicències noves costaran 11,99 € l’any.',
+    'a7': 'Si la compres durant el llançament, no: pagues 9,99 € una vegada i la teva llicència no caduca mai. A partir del 16 d’abril de 2027, les llicències noves costaran 11,99 € l’any.',
     'q8': 'En quins dispositius funciona?',
     'a8': "En qualsevol amb un navegador modern: ordinadors amb Windows o Mac, tauletes i mòbils Android, iPad i iPhone. No cal instal·lar res, tot i que la pots afegir a la pantalla d’inici com una app.",
     'pk.title': 'Sou diversos docents?',
@@ -232,7 +232,7 @@ window.AULA_I18N = {
     'a9': 'Sí. Tries què comparteixes i AulaPro crea un arxiu xifrat amb contrasenya, que envies pel mitjà que vulguis. Qui el rep l\'obre amb la contrasenya, veu què porta i decideix si l\'importa.',
 
     's9.title': 'Posa el teu curs al seu lloc.',
-    's9.lede': 'Al navegador de qualsevol dispositiu. Oferta de llançament: 6,99\u00a0€, per sempre.',
+    's9.lede': 'Al navegador de qualsevol dispositiu. Oferta de llançament: 9,99\u00a0€, per sempre.',
     's9.or': "Mentrestant, deixa'ns el teu correu electrònic i t'avisarem quan estigui a la venda.",
     'buy.soon': 'Aviat',
     'buy.for': 'Compra per a',
@@ -258,7 +258,7 @@ window.AULA_I18N = {
 
   en: {
     'meta.title': 'AulaPro · The AI app for primary and secondary school teachers',
-    'meta.desc': 'AulaPro uses AI to prepare learning situations, rubrics, assessment targets, reports and worksheets for primary and secondary school, and brings the gradebook, attendance and LOMLOE assessment into one app for your computer, tablet and phone. Launch offer: €6.99, yours for good.',
+    'meta.desc': 'AulaPro uses AI to prepare learning situations, rubrics, assessment targets, reports and worksheets for primary and secondary school, and brings the gradebook, attendance and LOMLOE assessment into one app for your computer, tablet and phone. Launch offer: €9.99, yours for good.',
     'skip': 'Skip to content',
     'nav.label': 'Sections',
     'nav.features': 'Features',
@@ -299,10 +299,10 @@ window.AULA_I18N = {
     'b4.title': 'Everything in its <em>place</em>.',
     'b5.chip': 'This is AulaPro on the inside.',
     'b5.more': 'Keep exploring AulaPro',
-    'b4.sub': "AulaPro on your computer, tablet and phone. Launch offer: €6.99 once, and it's yours for good.",
+    'b4.sub': "AulaPro on your computer, tablet and phone. Launch offer: €9.99 once, and it's yours for good.",
     'cue': 'Scroll down',
     'static.sub': "Learning situations, rubrics, reports and assessment for primary and secondary school, prepared with AI in one app for your computer, tablet and phone. Your students' data never goes to any AulaPro server.",
-    'static.price': 'Launch offer: €6.99, yours for good.',
+    'static.price': 'Launch offer: €9.99, yours for good.',
 
     's1.kicker': 'Your day',
     's1.title': 'Open AulaPro and your day is already organised.',
@@ -415,8 +415,8 @@ window.AULA_I18N = {
     'strip.cap': 'Gradebook, in Spanish.',
 
     's7.kicker': 'Launch price',
-    's7.title': '€6.99. Once, and for good.',
-    's7.price': '€6.99',
+    's7.title': '€9.99. Once, and for good.',
+    's7.price': '€9.99',
     's7.once': 'Once.',
     's7.lede': 'Launch offer until 15 April 2027: pay once and AulaPro is yours for good. After that it will cost €11.99 a year.',
     's7.was': '€11.99 a year',
@@ -453,7 +453,7 @@ window.AULA_I18N = {
     'q6': "Where is my students' data stored?",
     'a6': "On your own device, inside the browser, and never on AulaPro servers.",
     'q7': 'Is it a subscription?',
-    'a7': 'Not if you buy it during the launch: you pay €6.99 once and your licence never expires. From 16 April 2027, new licences will cost €11.99 a year.',
+    'a7': 'Not if you buy it during the launch: you pay €9.99 once and your licence never expires. From 16 April 2027, new licences will cost €11.99 a year.',
     'q8': 'Which devices does it run on?',
     'a8': "On any device with a modern browser: Windows or Mac computers, Android tablets and phones, iPad and iPhone. Nothing to install, although you can add it to your home screen like an app.",
     'pk.title': 'Buying for several teachers?',
@@ -474,7 +474,7 @@ window.AULA_I18N = {
     'a9': 'Yes. You choose what to share and AulaPro creates a password-protected encrypted file, which you send by whatever means you like. The recipient opens it with the password, sees what it contains and decides whether to import it.',
 
     's9.title': 'Put your school year in its place.',
-    's9.lede': 'In the browser on any device. Launch offer: €6.99, yours for good.',
+    's9.lede': 'In the browser on any device. Launch offer: €9.99, yours for good.',
     's9.or': 'In the meantime, leave your email address and we will let you know as soon as it is on sale.',
     'buy.soon': 'Coming soon',
     'buy.for': 'Buy for',

@@ -16,8 +16,9 @@ import { useMateriasDeNivel } from '../../hooks/useMateriasDeNivel';
 import { hasApiKey } from '../../services/gemini';
 import { proponerObjetivos } from '../../services/apoyoIA';
 import {
-  analizarInforme, conInforme, EXTENSIONES_INFORME, leerArchivoInforme, type FuenteInforme, type PropuestaInforme,
+  analizarInforme, conInforme, EXTENSIONES_INFORME, leerArchivoInforme, type PropuestaInforme,
 } from '../../services/informeOrientacion';
+import { avisoDeLectura } from '../../lib/documentoParaIA';
 import { isoDate } from '../../lib/utils';
 import { ambitosDe, CATEGORIAS_NEAE, nivelDe, nuevoIdApoyo, objetivosPendientes, pasarAProgramas, yaEstaEnPrograma } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
@@ -46,7 +47,8 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
   const nombres = visibles.map(a => nombreAmbito(a.nombre));
 
   const [abierto, setAbierto] = useState(false);
-  const [fuente, setFuente] = useState<FuenteInforme>({});
+  /** El nombre del archivo leído, si lo hay: su texto ya está en `pegado`, a la vista, que es lo que recibe la IA. */
+  const [archivo, setArchivo] = useState<string>();
   const [pegado, setPegado] = useState('');
   const [leyendo, setLeyendo] = useState(false);
   const [propuesta, setPropuesta] = useState<PropuestaInforme | null>(null);
@@ -70,27 +72,29 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
     toast(t('✅ {n} objetivos pasados a sus programas. Revísalos en la pestaña «Programa».', { n: r.pasados }));
   }
 
-  function abrir() { setFuente({}); setPegado(''); setPropuesta(null); setAbierto(true); }
+  function abrir() { setArchivo(undefined); setPegado(''); setPropuesta(null); setAbierto(true); }
 
+  /** El archivo se lee aquí, en el navegador, y su texto queda a la vista para revisarlo: el archivo nunca se envía. */
   async function elegirArchivo(file: File | undefined) {
     if (!file) return;
-    try { setFuente(await leerArchivoInforme(file)); setPegado(''); }
-    catch (e) { toast((e as Error).message === 'grande' ? t('El archivo pesa demasiado (19 MB como máximo).') : t('Formato no válido. Usa un PDF, un Word (.docx) o un texto.')); }
+    try {
+      const f = await leerArchivoInforme(file);
+      setPegado(f.texto ?? '');
+      setArchivo(f.nombre);
+    } catch (e) { toast(t(avisoDeLectura(e))); }
   }
 
   async function leer() {
-    const f: FuenteInforme = pegado.trim() ? { texto: pegado } : fuente;
-    const p = await analizarInforme({ fuente: f, alumno, ambitos: nombres, comunidad, lang }, {
+    const p = await analizarInforme({ fuente: { texto: pegado }, alumno, ambitos: nombres, comunidad, lang }, {
       onStart: () => setLeyendo(true), onEnd: () => setLeyendo(false), onError: m => toast(t(m)),
     });
     if (!p) return;
-    if (!fuente.nombre || pegado.trim()) setFuente({ texto: pegado, nombre: undefined });
     setPropuesta(p);
   }
 
   function guardar() {
     if (!propuesta) return;
-    const nuevo = conInforme(alumno, propuesta, fuente.nombre, isoDate());
+    const nuevo = conInforme(alumno, propuesta, archivo, isoDate());
     onChange(d => ({ ...d, alumnos: d.alumnos.map(a => (a.id === alumno.id ? nuevo : a)) }));
     setAbierto(false);
     setElegidos(propuesta.ambitos.filter(a => !yaTiene.has(a)));
@@ -136,7 +140,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
 
   const edit = (c: Partial<PropuestaInforme>) => setPropuesta(p => (p ? { ...p, ...c } : p));
   const sinClave = !hasApiKey();
-  const hayTexto = !!(pegado.trim() || fuente.texto?.trim() || fuente.archivo);
+  const hayTexto = !!pegado.trim();
 
   return (
     <div className="card">
@@ -188,14 +192,14 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <input ref={entrada} type="file" accept={EXTENSIONES_INFORME} hidden onChange={e => { void elegirArchivo(e.target.files?.[0]); e.target.value = ''; }} />
               <button type="button" className="btn-ghost" onClick={() => entrada.current?.click()}><Upload size={14} />{t('Elegir un PDF, un Word o un texto')}</button>
-              {fuente.nombre && <span className="ap-sub" style={{ marginLeft: 10 }}>{fuente.nombre}</span>}
+              {archivo && <span className="ap-sub" style={{ marginLeft: 10 }}>{archivo}</span>}
             </div>
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
-              <label className="flabel" htmlFor="ap-inf-txt">{t('O pega aquí su texto')}</label>
-              <textarea id="ap-inf-txt" className="finput" rows={8} value={pegado} onChange={e => { setPegado(e.target.value); if (e.target.value) setFuente({}); }} />
+              <label className="flabel" htmlFor="ap-inf-txt">{archivo ? t('Lo que recibirá la IA: revísalo y quita lo que sobre') : t('O pega aquí su texto')}</label>
+              <textarea id="ap-inf-txt" className="finput" rows={archivo ? 12 : 8} value={pegado} onChange={e => setPegado(e.target.value)} />
             </div>
             <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
-              {t('Es un dato muy sensible. Con un Word o un texto pegado, la IA recibe el texto con el nombre del alumno cambiado por un código. Un PDF se envía tal cual, con el nombre que lleve: si prefieres evitarlo, pega su texto. El informe no se guarda en la aplicación: solo lo que revises y aceptes.')}
+              {t('Es un dato muy sensible. La IA recibe solo el texto, nunca el archivo: se lee aquí, en tu dispositivo, con el nombre del alumnado cambiado por un código y sin correos, teléfonos, DNI, fechas de nacimiento, familiares ni domicilio. Revisa el texto antes de enviarlo y quita lo que no haga falta. El informe no se guarda en la aplicación: solo lo que revises y aceptes.')}
             </p>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-ia" disabled={leyendo || sinClave || !hayTexto} onClick={leer}>

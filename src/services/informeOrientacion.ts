@@ -4,28 +4,34 @@
  * lo revisa antes de guardarlo. El informe no se guarda: solo esas conclusiones. Ver `docs/PTAL.md`, «El informe
  * del orientador».
  */
-import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
+import { callGemini, parseGeminiJson } from './gemini';
 import { marcoApoyo } from './apoyoIA';
+import { currentPseudonymizer } from './privacy';
 import { CATEGORIAS_NEAE, conObjetivosOrientacion, nuevoIdApoyo } from '../lib/apoyo';
-import { fileToBase64 } from '../lib/utils';
-import { textoDeDocx } from '../lib/leerMaterial';
+import { EXTENSIONES_DOCUMENTO, leerDocumento, textoDeDocumento } from '../lib/documentoParaIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { AlumnoApoyo, CursoDe, InformeOrientacion, ObjetivoOrientacion, Trimestre } from '../types/apoyo';
 
 export const MAX_BYTES_INFORME = 19 * 1024 * 1024;
-export const EXTENSIONES_INFORME = '.pdf,.docx,.txt';
+export const EXTENSIONES_INFORME = EXTENSIONES_DOCUMENTO;
 
-/** Lo que se le da a la IA del informe: su texto (Word, texto, pegado) o el propio archivo (PDF). */
-export interface FuenteInforme { texto?: string; archivo?: InlineFile; nombre?: string }
+/** Lo que se le da a la IA del informe: siempre su texto (pegado o leído del archivo en el navegador). */
+export interface FuenteInforme { texto?: string; nombre?: string }
 
-/** Abre el archivo del informe. Word y texto se leen en el equipo; un PDF se envía tal cual. */
+/**
+ * Lo que la IA recibe de un documento del alumnado, tal como se enseña al docente para que lo revise: sin los datos
+ * que identifican (`quitarIdentificadores`) y con los nombres del alumnado cambiados por su código. `callGemini`
+ * vuelve a enmascarar al enviar, así que lo pegado a mano también sale sin nombres.
+ */
+export const textoParaRevisar = (texto: string) => textoDeDocumento(texto, t => currentPseudonymizer().mask(t));
+
+/**
+ * Abre el archivo del informe (o de la programación) y lo convierte en texto en el navegador, también un PDF: desde el
+ * 31-10-2026 el archivo nunca se envía (`docs/PTAL.md`). Errores: «grande», «escaneado», «doc» y «formato».
+ */
 export async function leerArchivoInforme(file: File): Promise<FuenteInforme> {
-  const n = file.name.toLowerCase();
   if (file.size > MAX_BYTES_INFORME) throw new Error('grande');
-  if (n.endsWith('.docx')) return { texto: await textoDeDocx(file), nombre: file.name };
-  if (n.endsWith('.txt')) return { texto: await file.text(), nombre: file.name };
-  if (n.endsWith('.pdf')) return { archivo: await fileToBase64(file), nombre: file.name };
-  throw new Error('formato');
+  return { texto: textoParaRevisar(await leerDocumento(file)), nombre: file.name };
 }
 
 export interface PropuestaInforme {
@@ -84,7 +90,8 @@ export async function analizarInforme(
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<PropuestaInforme | null> {
   const { fuente, ambitos, comunidad, lang } = args;
-  if (!fuente.texto?.trim() && !fuente.archivo) { callbacks.onError?.('Pega el texto del informe o sube un archivo.'); return null; }
+  const texto = textoParaRevisar(fuente.texto ?? '');
+  if (!texto) { callbacks.onError?.('Pega el texto del informe o sube un archivo.'); return null; }
   const userPrompt =
     'Lee el informe sociopsicopedagógico de un alumno y extrae SOLO lo que dice. Si algo no aparece, déjalo vacío: ' +
     'no inventes diagnósticos, cursos ni medidas.\n\n' +
@@ -99,8 +106,8 @@ export async function analizarInforme(
     'palabras del informe (una frase corta, mejor si empieza por un verbo en infinitivo). En "ambito", el programa de la ' +
     'lista cerrada al que pertenece, o "ninguno" si no encaja; en "trimestres", en cuáles se trabaja si el informe lo dice ' +
     '(si no, los tres). Si el informe no trae objetivos, déjalos vacíos: no los inventes.' +
-    (fuente.texto?.trim() ? `\n\nINFORME:\n${fuente.texto.trim().slice(0, 60000)}` : '\n\nEl informe va en el archivo adjunto.');
-  const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, fuente.archivo ? [fuente.archivo] : [], callbacks, {
+    `\n\nINFORME:\n${texto.slice(0, 60000)}`;
+  const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [], callbacks, {
     responseSchema: {
       type: 'OBJECT',
       properties: {

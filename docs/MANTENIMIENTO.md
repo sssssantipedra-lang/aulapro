@@ -10,10 +10,10 @@ Las filas marcadas con **(comprobar)** son cosas que esta lista no ha podido ver
 |---|---|---|
 | **Cada mes** | Revisión de 10 minutos (apartado 6) | Mirar el uso de Netlify, las incidencias `vigilancia` y las fechas de este documento |
 | **10-11-2026** | Corte de fundadores (`FOUNDER_CUTOFF`) | Revisar que la lista `FUNDADORES` está completa antes de esa fecha; después, solo cambios con motivo |
-| **15-11-2026** | Salida a la venta. **Hasta entonces la venta está cerrada** (31-10-2026) | Antes: lista del apartado 5 («Antes de abrir ventas»). Abrir **los dos interruptores a la vez**: `checkout` en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` |
+| **10-11-2026** | Salida a la venta (el mismo día que el corte de fundadores). **Hasta entonces la venta está cerrada** (31-10-2026) | Antes: lista del apartado 5 («Antes de abrir ventas»). Abrir **los dos interruptores a la vez**: `checkout` en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` |
 | **31-12-2026** | Caduca la clave de revisión de Lemon Squeezy para Google Play (`docs/TIENDAS.md`) | Solo importa si algún día se vuelve a las tiendas. Hoy no se usa |
 | **Hacia el 30-4-2027** | Microsoft: si el secreto del registro se creó con 6 meses (30-10-2026 + 6 meses) | **(comprobar)** la fecha de caducidad elegida al crearlo. Renovar un mes antes (apartado 2) |
-| **15-4-2027** | Termina la oferta de lanzamiento (6,99 € de por vida) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
+| **15-4-2027** | Termina la oferta de lanzamiento (9,99 € de por vida) | Pasos en `docs/WEB.md`, apartado 5, punto 9. Una oferta con fecha se cumple |
 | **16-4-2027** | Empiezan las licencias anuales (11,99 € al año) | Antes de esa fecha, tiene que estar hecha la gestión de la anual (`docs/WEB.md`, apartado 5, punto 13) |
 | **31-8-2027** | Renovación automática del dominio (14,20 $) | Tarjeta válida en Cloudflare. La vigilancia avisa 30 días antes de que caduque |
 | **30-9-2027** | Caduca el dominio `aulapro.app` si no se renovó | Si la renovación falla, la web, la app y el correo caen a la vez |
@@ -74,7 +74,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 - **Reembolsos**: dentro de los 14 días, sin preguntas. Una licencia de cuenta devuelta se quita sola al volver a comprobar. Una clave escrita a mano devuelta debe desactivarse en Lemon Squeezy.
 - **Los packs son una sola clave con activaciones limitadas** (10 para el de 5 docentes, 20 para el de 10). Quien filtre la clave agota las activaciones, y **solo se arregla desde el panel de Lemon Squeezy** (subir el límite o dar otra clave). El límite de peticiones del servidor no lo impide.
 - **Modo prueba y modo real son tiendas aparte**: el producto de prueba (1404415) y su enlace de pago no se publican nunca. Al pasar a real, el enlace cambia y se pega en `web/sitio/assets/launch.js` (`checkout` y `packs`).
-- **Cobro, impuestos y pagos**: los cobros llegan a la cuenta bancaria que se dio de alta en Lemon Squeezy. Si el banco o el IBAN cambian, hay que cambiarlo allí. Los 6,99 € ya incluyen impuestos.
+- **Cobro, impuestos y pagos**: los cobros llegan a la cuenta bancaria que se dio de alta en Lemon Squeezy. Si el banco o el IBAN cambian, hay que cambiarlo allí. Los 9,99 € ya incluyen impuestos.
 
 ### Google Cloud (proyecto «AulaPro»)
 
@@ -110,6 +110,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 - La IA va con la clave de cada docente. La app **no paga nada** y no tiene clave propia.
 - Los modelos tienen fecha de retirada. El principal es `gemini-3.8-flash`, con `gemini-3.5-flash-lite` y `gemini-3.1-flash-lite` de apoyo y `gemini-2.5-flash` y `gemini-2.0-flash` como último recurso (`src/services/gemini.ts`, `MAIN_MODEL`, `LITE_MODELS`, `LEGACY_MODELS`). **Cuando Google retire uno, la app cae al siguiente sin avisar, y cuando retire todos, la IA deja de funcionar a todo el mundo.** Cada trimestre, mirar la página de modelos y de retiradas de Google AI y actualizar las listas y sus pruebas (`gemini.models.test.ts`, `gemini.thinking.test.ts`).
 - La cuota gratuita de Google AI Studio y sus límites los cambia Google. Si una versión de la cuota rompe el uso normal de un docente, se oirá por el correo de contacto.
+- **Las condiciones de la API de Gemini sostienen la decisión de usar la clave gratuita del docente** (31-10-2026, `CLAUDE.md`). Cada trimestre, leer en https://ai.google.dev/gemini-api/terms las dos cláusulas del Espacio Económico Europeo: que la cuota gratuita se trata con las reglas de datos del servicio de pago, y la de «solo servicios de pago al ofrecer clientes de la API a usuarios del EEE». Si cambian, o si Google aclara que una app con la clave de cada usuario tiene que usar claves de pago, hay que avisar al dueño y cambiar la privacidad y la guía de la clave.
 
 ## 4. Datos del docente: lo que caduca en su dispositivo
 
@@ -123,7 +124,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 
 ## 5. Listas de comprobación
 
-### Antes de abrir ventas (15-11-2026)
+### Antes de abrir ventas (10-11-2026)
 
 **Estado de la venta (31-10-2026): cerrada.** La web y la app no enseñan ningún botón de compra, pero **el enlace de pago de Lemon Squeezy sigue siendo válido** para quien lo tenga (estuvo publicado en el código desde el 29-10-2026 y sigue en el historial). Para que de verdad nadie pueda pagar antes de tiempo, hay que cerrarlo también en Lemon Squeezy (pasar el producto a borrador o desactivar su enlace de compra); es algo que solo se hace desde su panel. Al abrir la venta, hacer lo contrario en los tres sitios.
 
@@ -133,7 +134,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 - [ ] `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_SECRET` y `FUNDADORES` están en Netlify y Cloudflare (Production y Preview), con el mismo valor en los dos.
 - [ ] Fecha de caducidad de `MICROSOFT_CLIENT_SECRET` anotada en el calendario.
 - [ ] Pantalla de consentimiento de Google en «En producción» y sin avisos de verificación pendientes.
-- [ ] Prueba completa con dinero real (una compra de 6,99 € a un correo propio) y reembolso, y una cuenta de Microsoft personal entera (entrar, OneDrive, recargar).
+- [ ] Prueba completa con dinero real (una compra de 9,99 € a un correo propio) y reembolso, y una cuenta de Microsoft personal entera (entrar, OneDrive, recargar).
 - [ ] Los dos packs (5 y 10) creados en Lemon Squeezy con 10 y 20 activaciones, y sus enlaces en `web/sitio/assets/launch.js` (`packs`) y en `checkout`.
 - [ ] Se quitaron las menciones a la «lista de espera» de `web/sitio/privacidad.html` (versión web, apartados 2 a 5) y de `aviso-legal.html` (apartado 2).
 - [ ] La gestora aclaró el límite de ingresos para darse de alta como autónomo, y qué debe poner el aviso legal (incluido el NIF).
@@ -151,6 +152,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 ### Cada trimestre
 
 - [ ] Retiradas de modelos de Gemini (apartado 3).
+- [ ] Las dos cláusulas del EEE en las condiciones de la API de Gemini siguen igual (apartado 3, «Modelos de Gemini»).
 - [ ] Fechas de este documento al día.
 - [ ] Una entrada completa con Google y con Microsoft desde un navegador sin sesión.
 - [ ] Entre marzo y septiembre, que la tarea «Vigilar el calendario escolar» (`calendario.yml`, lunes y jueves) no tenga un pull request sin revisar.
@@ -198,7 +200,7 @@ Este documento se revisa periódicamente y se responde al dueño con lo que haya
 3. **Servicios nuevos.** Busca dependencias externas añadidas desde la última revisión (nuevas direcciones en `connect-src` de `netlify.toml`, nuevos flujos en `.github/workflows/`, nuevas funciones en `web/funciones/api/`). Si hay una cuenta o un servicio que no está en este documento, propón dónde anotarlo.
 4. **Copias de las funciones.** `web/funciones/` y `web/netlify/` deben decir lo mismo (CLAUDE.md y `docs/APP_WEB.md`): si una cambia y la otra no, un servidor se comporta distinto del otro.
 5. **Estado de la vigilancia.** Incidencias con la etiqueta `vigilancia` abiertas o recientes, y que las tareas programadas de GitHub sigan activas y con minutos disponibles (apartado 3).
-6. **Modelos de Gemini.** Compara los de `src/services/gemini.ts` con la lista de modelos y de retiradas que publique Google, y avisa de cualquiera retirado o con fecha de retirada.
+6. **Modelos de Gemini.** Compara los de `src/services/gemini.ts` con la lista de modelos y de retiradas que publique Google, y avisa de cualquiera retirado o con fecha de retirada. Lee además las cláusulas del Espacio Económico Europeo de https://ai.google.dev/gemini-api/terms (uso de datos de la cuota gratuita y «solo servicios de pago» para clientes de la API) y avisa si han cambiado: la clave gratuita del docente depende de ellas.
 7. **Lo marcado «(comprobar)».** Dilo claramente si no puedes verlo desde donde estás: no lo des por bueno.
 
 ### Qué contestar

@@ -7,6 +7,7 @@
  * dueño, 18-10-2026). Ver `docs/PTAL.md`.
  */
 import { useState } from 'react';
+import { claveDeNombre } from '../../lib/alumnado';
 import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
@@ -35,6 +36,9 @@ export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidade
     if (!edicion) return;
     const a = { ...edicion.alumno, nombre: edicion.alumno.nombre.trim(), claseOrigen: edicion.alumno.claseOrigen.trim() };
     if (!a.nombre) { toast(t('Escribe el nombre del alumno o la alumna')); return; }
+    // Dos alumnos de apoyo de la misma clase con el mismo nombre no se distinguirían (tampoco para la IA)
+    const igual = data.alumnos.find(x => x.id !== a.id && claveDeNombre(x.claseOrigen) === claveDeNombre(a.claseOrigen) && claveDeNombre(x.nombre) === claveDeNombre(a.nombre));
+    if (igual) { toast(t('Ya hay un alumno que se llama «{name}» en esta clase. Añade el segundo apellido o una inicial para diferenciarlos.', { name: igual.nombre })); return; }
     // El grupo nuevo solo se crea si tiene nombre; entonces el alumno entra en él
     const nuevo = edicion.grupoNuevo && edicion.grupoNuevo.nombre.trim()
       ? { ...edicion.grupoNuevo, nombre: edicion.grupoNuevo.nombre.trim(), horario: horarioLimpio(edicion.grupoNuevo.horario), alumnos: [a.id] }
@@ -95,7 +99,7 @@ export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidade
               </div>
             </details>
           </div>
-          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe también lo que escribes aquí, incluido el diagnóstico, con el nombre cambiado por un código. El diagnóstico es un dato de salud: si no quieres que llegue a Google, déjalo en blanco.')}</p>
+          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe sus necesidades y tus notas con el nombre cambiado por un código, pero nunca el diagnóstico, que es un dato de salud. En las notas, no escribas el diagnóstico ni datos que lo identifiquen.')}</p>
           <div className="ap-acciones">
             <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
             <button className="btn-ghost" onClick={cerrar}>{t('Cancelar')}</button>

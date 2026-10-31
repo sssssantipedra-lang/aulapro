@@ -8,7 +8,7 @@
    and the "Descargar" link and the download page go live. */
 window.AULA_LAUNCH = {
   // Lemon Squeezy checkout link of the AulaPro product: one licence for Windows, Mac and Android.
-  // CERRADO el 31-10-2026 por decisión del dueño (la venta se abre el 15-11-2026): vacío = «Próximamente».
+  // CERRADO el 31-10-2026 por decisión del dueño (la venta se abre el 10-11-2026): vacío = «Próximamente».
   // Para abrir la venta, pon aquí 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832'
   // y pon también VENTA_ABIERTA = true en src/platform/cuentaWeb.ts (los dos interruptores: docs/MANTENIMIENTO.md).
   checkout: '',

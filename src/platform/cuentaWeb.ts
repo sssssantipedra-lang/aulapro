@@ -289,7 +289,7 @@ export async function botonGoogle(el: HTMLElement, idioma: string, alEntrar: (c:
 export const CHECKOUT = 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-4f9d-4563-86e3-c798fb243781?enabled=2308832';
 
 /**
- * Interruptor de la venta dentro de la app (decisión del dueño, 31-10-2026: cerrada hasta el 15-11-2026).
+ * Interruptor de la venta dentro de la app (decisión del dueño, 31-10-2026: cerrada hasta el 10-11-2026).
  * Con `false`, la pantalla de licencia no enseña el botón de compra y avisa de cuándo se abre; la clave a
  * mano y la licencia ya comprada o de fundador siguen funcionando. El otro interruptor es `checkout` en
  * `web/sitio/assets/launch.js`: se abren los dos a la vez (docs/MANTENIMIENTO.md).

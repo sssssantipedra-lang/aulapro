@@ -5,13 +5,17 @@
  * del docente y en los autores de referencia que revisó el dueño
  * (4-10-2026), para que hable el idioma de los documentos oficiales.
  *
- * Datos (decisión del dueño, 4-10-2026): la IA recibe también el
- * diagnóstico y la categoría de NEAE del alumno. El nombre, como siempre, se
- * cambia por un código en `callGemini` (ver `services/privacy.ts`).
+ * Datos: la IA recibe la categoría de NEAE del alumno y sus necesidades en
+ * términos educativos, no su diagnóstico (revisión de privacidad del
+ * 31-10-2026; del 4-10-2026 a esa fecha también lo recibía). El diagnóstico es
+ * un dato de salud y la IA no lo necesita para proponer objetivos ni redactar:
+ * le basta con lo que el alumno necesita. El nombre, como siempre, se cambia
+ * por un código en `callGemini` (ver `services/privacy.ts`).
  */
 import { callGemini, parseGeminiJson } from './gemini';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { nivelDe } from '../lib/apoyo';
+import { quitarDatosDeContacto } from '../lib/documentoParaIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { AlumnoApoyo, CursoDe, ObjetivoApoyo, ProgramaApoyo, Trimestre } from '../types/apoyo';
 import type { OfficialCriterionRef } from '../types';
@@ -62,7 +66,7 @@ export function marcoApoyo(comunidad: ComunidadId | undefined, lang: 'es' | 'en'
     (lang === 'en' ? '\nWrite every human-readable text in English.' : '');
 }
 
-/** Lo que la IA sabe del alumno: todo lo de su ficha, también el diagnóstico. */
+/** Lo que la IA sabe del alumno: lo de su ficha menos el diagnóstico (ver arriba). */
 export function alumnoParaIA(a: AlumnoApoyo, nombreCurso: (c: CursoDe) => string): string {
   const nivel = nivelDe(a);
   return [
@@ -70,9 +74,8 @@ export function alumnoParaIA(a: AlumnoApoyo, nombreCurso: (c: CursoDe) => string
     a.matricula ? `Matriculado en ${nombreCurso(a.matricula)}${a.claseOrigen ? ` (${a.claseOrigen})` : ''}` : (a.claseOrigen ? `Clase: ${a.claseOrigen}` : ''),
     nivel ? `Nivel de competencia curricular: ${nombreCurso(nivel)}` : '',
     a.categorias.length ? `Necesidades específicas de apoyo educativo: ${a.categorias.join('; ')}` : '',
-    a.diagnostico ? `Diagnóstico: ${a.diagnostico}` : '',
-    a.necesidades ? `Necesidades educativas: ${a.necesidades}` : '',
-    a.notas ? `Notas del especialista: ${a.notas}` : '',
+    a.necesidades ? `Necesidades educativas: ${quitarDatosDeContacto(a.necesidades)}` : '',
+    a.notas ? `Notas del especialista: ${quitarDatosDeContacto(a.notas)}` : '',
     a.informe?.fortalezas ? `Fortalezas (informe del orientador): ${a.informe.fortalezas}` : '',
     a.informe?.orientaciones ? `Orientaciones del informe del orientador: ${a.informe.orientaciones}` : '',
   ].filter(Boolean).join('\n');
