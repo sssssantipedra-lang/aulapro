@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPseudonymizer } from './privacy';
+import { buildPseudonymizer, codigosDePeticion } from './privacy';
 
 const roster = [
   { id: 'a', name: 'Lucía Pérez Navarro' },
@@ -59,5 +59,53 @@ describe('buildPseudonymizer', () => {
 
   it('un código desconocido se deja como está', () => {
     expect(p.unmask('[ALU-99]')).toBe('[ALU-99]');
+  });
+});
+
+describe('codigosDePeticion (códigos nuevos al azar en cada petición)', () => {
+  const base = buildPseudonymizer([
+    { id: '1', name: 'Lucía Pérez Navarro' },
+    { id: '2', name: 'Marco Rodríguez Gil' },
+  ]);
+  /** Un «azar» que se repite, para que la prueba sea siempre igual. */
+  const secuencia = (...xs: number[]) => { let i = 0; return () => xs[i++ % xs.length]; };
+
+  it('cambia los nombres por códigos de esta petición, el mismo código para el mismo alumno', () => {
+    const p = codigosDePeticion(base, secuencia(0.5, 0.1));
+    const t = p.mask('Lucía Pérez Navarro y Marco Rodríguez Gil. Lucía Pérez lee bien.');
+    const [lucia, marco] = t.match(/\[ALU-\d+\]/g)!;
+    expect(t).not.toMatch(/Lucía|Marco/);
+    expect(lucia).not.toBe(marco);
+    expect(t.split(lucia)).toHaveLength(3);
+    expect(Number(lucia.slice(5, -1))).toBeGreaterThanOrEqual(100);
+  });
+
+  it('dos peticiones dan códigos distintos al mismo alumno, y cada una deshace solo los suyos', () => {
+    const a = codigosDePeticion(base, secuencia(0.2));
+    const b = codigosDePeticion(base, secuencia(0.7));
+    const ca = a.mask('Marco Rodríguez Gil');
+    const cb = b.mask('Marco Rodríguez Gil');
+    expect(ca).not.toBe(cb);
+    expect(a.unmask(ca)).toBe('Marco Rodríguez Gil');
+    expect(b.unmask(cb)).toBe('Marco Rodríguez Gil');
+    // El código de otra petición, o uno inventado, no es nadie aquí
+    expect(a.unmask(cb)).toBe(cb);
+    expect(a.unmask('[ALU-1] y [ALU-2]')).toBe('[ALU-1] y [ALU-2]');
+  });
+
+  it('el texto que el docente revisó (con los códigos fijos) también sale con los de la petición', () => {
+    const revisado = base.mask('Informe de Lucía Pérez Navarro');
+    expect(revisado).toBe('Informe de [ALU-1]');
+    const p = codigosDePeticion(base, secuencia(0.9));
+    const enviado = p.mask(revisado);
+    expect(enviado).not.toContain('[ALU-1]');
+    expect(p.unmask(enviado)).toBe('Informe de Lucía Pérez Navarro');
+  });
+
+  it('nunca repite número dentro de una petición, aunque el azar se repita', () => {
+    const muchos = buildPseudonymizer(Array.from({ length: 30 }, (_, i) => ({ id: String(i), name: `Nombre${i} Apellido${i}` })));
+    const p = codigosDePeticion(muchos, secuencia(0.3));
+    const t = p.mask(Array.from({ length: 30 }, (_, i) => `Nombre${i} Apellido${i}`).join(', '));
+    expect(new Set(t.match(/\[ALU-\d+\]/g)).size).toBe(30);
   });
 });

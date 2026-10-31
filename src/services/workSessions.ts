@@ -14,6 +14,7 @@
  */
 
 import { callGemini, parseGeminiJson } from './gemini';
+import { quitarDatosDeContacto } from '../lib/documentoParaIA';
 import type { WorkSession, WorkSessionDoc, WorkSessionKind } from '../types';
 import type { Lang } from '../i18n';
 
@@ -114,7 +115,7 @@ export async function generateWorkSessionDoc(
 ): Promise<WorkSessionDoc | null> {
   const userPrompt =
     `DATOS DE LA SESIÓN:\n${datosDe(session)}\n\n` +
-    `ANOTACIONES EN BRUTO DEL DOCENTE (única fuente de información):\n"""\n${session.notes.trim()}\n"""\n\n` +
+    `ANOTACIONES EN BRUTO DEL DOCENTE (única fuente de información):\n"""\n${quitarDatosDeContacto(session.notes.trim())}\n"""\n\n` +
     `Redacta el documento rellenando todos los campos del JSON de salida.`;
 
   const raw = await callGemini(systemPromptFor(session.kind, lang), userPrompt, [], callbacks, {

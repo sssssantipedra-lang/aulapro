@@ -7,7 +7,11 @@
  * se prueba automáticamente con el siguiente de la lista.
  */
 
-import { currentPseudonymizer, privacyInstruction } from './privacy';
+import { codigosDePeticion, currentPseudonymizer, privacyInstruction, type Pseudonymizer } from './privacy';
+
+/** Los correos electrónicos nunca le hacen falta a la IA: se quitan de todo lo que se envía. */
+const CORREO = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
+const sinCorreos = (p: Pseudonymizer): Pseudonymizer => ({ ...p, mask: t => p.mask(t)?.replace(CORREO, '[correo]') });
 
 const KEY_STORAGE = 'aulapro_gemini_key';
 
@@ -466,8 +470,9 @@ export async function callGemini(
       return null;
     }
 
-    // Ningún nombre del alumnado sale del equipo: ver services/privacy.ts.
-    const privacy = currentPseudonymizer();
+    // Ningún nombre del alumnado sale del equipo, y cada petición lleva códigos nuevos al azar
+    // (no se puede juntar lo de un mismo alumno de una petición a otra): ver services/privacy.ts.
+    const privacy = sinCorreos(codigosDePeticion(currentPseudonymizer()));
     const maskedUser = privacy.mask(userPrompt);
     const maskedHistory = options.history?.map(turn => ({ ...turn, text: privacy.mask(turn.text) }));
     let maskedSystem = privacy.mask(systemPrompt);

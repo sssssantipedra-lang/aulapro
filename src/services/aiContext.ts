@@ -19,6 +19,7 @@
  *    rellenar el hueco por su cuenta.
  */
 
+import { quitarDatosDeContacto } from '../lib/documentoParaIA';
 import type {
   Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation,
   AttendanceMap, AttendanceStatus, CompetencyReport, CalEvent, ScheduleBlock,
@@ -211,8 +212,9 @@ export function buildTeacherContext(
     for (const s of mostrados) {
       const media = weightedAverage(s.id, cats, items, d.grades);
       const asis = attendanceRate(cls.id, s.id, d.attendance);
-      const avisos = s.alerts?.length ? ` · avisos: ${s.alerts.map(a => a.text).join('; ')}` : '';
-      const notas = s.notes?.trim() ? ` · anotación del docente: ${s.notes.trim()}` : '';
+      // Textos libres del docente: sin correos, teléfonos ni documentos de identidad (los nombres los tapa callGemini)
+      const avisos = s.alerts?.length ? ` · avisos: ${quitarDatosDeContacto(s.alerts.map(a => a.text).join('; '))}` : '';
+      const notas = s.notes?.trim() ? ` · anotación del docente: ${quitarDatosDeContacto(s.notes.trim())}` : '';
       const asisTxt = asis
         ? `asistencia ${asis.pct}% (${asis.absences} faltas de ${asis.days} sesiones)`
         : 'sin datos de asistencia';
@@ -251,7 +253,7 @@ export function buildTeacherContext(
     for (const e of evs) {
       L.push(`· ${e.date} · ${e.student_name} · «${e.rubric_name}»` +
         `${typeof e.grade === 'number' ? ` · nota ${n(e.grade)}` : ''}` +
-        `${e.notes ? ` · observaciones: ${e.notes}` : ''}`);
+        `${e.notes ? ` · observaciones: ${quitarDatosDeContacto(e.notes)}` : ''}`);
     }
   }
 

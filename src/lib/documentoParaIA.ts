@@ -91,6 +91,18 @@ const R = (s: string) => `[${s}]`;
  * Las etiquetas van en castellano, catalán e inglés.
  */
 export function quitarIdentificadores(texto: string): string {
+  return quitarDatosDeContacto(texto)
+    // Lo que sigue a una etiqueta de nombre, familiar, domicilio o centro, hasta el final de la línea
+    .replace(/^([ \t]*(?:nombre(?:\s+y\s+apellidos)?|apellidos|nom(?:\s+i\s+cognoms)?|cognoms|(?:full\s+)?name|surnames?|alumn[oa](?:\/a)?|alumne|student|padre|madre|pare|mare|father|mother|progenitor(?:[ae]s?)?|tutor(?:[ae])?(?:\/a)?\s+legal(?:es)?|legal\s+guardian|domicilio|direcci[oó]n|adre[cç]a|address|centro(?:\s+educativo)?|centre(?:\s+educatiu)?|colegio|school)[ \t]*:)[^\n]*/gimu, `$1 ${R('dato quitado')}`);
+}
+
+/**
+ * Lo que identifica a alguien sin ser su nombre: correos, teléfonos, DNI y NIE, fechas de nacimiento y números
+ * largos (expediente, NIA, SIP, tarjeta sanitaria). Sirve para los textos libres que el docente escribe sobre su
+ * alumnado (avisos, anotaciones, observaciones, notas de una reunión): a diferencia de `quitarIdentificadores`, no
+ * quita líneas enteras, así que «Madre: se compromete a revisar la agenda» se queda como está.
+ */
+export function quitarDatosDeContacto(texto: string): string {
   return texto
     // Correos y teléfonos (España, con o sin +34)
     .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, R('correo'))
@@ -99,8 +111,6 @@ export function quitarIdentificadores(texto: string): string {
     .replace(/(?<![\p{L}\d])[XYZ]?\d{7,8}[\s-]?[A-Z](?![\p{L}\d])/gu, R('DNI'))
     // Fechas de nacimiento, con su etiqueta
     .replace(/((?:fecha\s+de\s+)?nacimiento|data\s+de\s+naixement|naixement|date\s+of\s+birth|birth\s*date|nacid[oa]\s+el|nascu[dt]a?\s+el|born\s+on|f\.?\s?nac\.?|d\.?\s?o\.?\s?b\.?)(\s*[:.-]?\s*)(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{1,2}\s+de\s+\p{L}+\s+(?:de|del)\s+\d{4})/giu, `$1$2${R('fecha')}`)
-    // Lo que sigue a una etiqueta de nombre, familiar, domicilio o centro, hasta el final de la línea
-    .replace(/^([ \t]*(?:nombre(?:\s+y\s+apellidos)?|apellidos|nom(?:\s+i\s+cognoms)?|cognoms|(?:full\s+)?name|surnames?|alumn[oa](?:\/a)?|alumne|student|padre|madre|pare|mare|father|mother|progenitor(?:[ae]s?)?|tutor(?:[ae])?(?:\/a)?\s+legal(?:es)?|legal\s+guardian|domicilio|direcci[oó]n|adre[cç]a|address|centro(?:\s+educativo)?|centre(?:\s+educatiu)?|colegio|school)[ \t]*:)[^\n]*/gimu, `$1 ${R('dato quitado')}`)
     // Números largos: expediente, NIA, SIP, tarjeta sanitaria, seguridad social
     .replace(/(?<![\d.,/-])\d{7,}(?![\d.,/-])/g, R('número'));
 }

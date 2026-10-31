@@ -3,7 +3,7 @@
  * identifica a una persona aunque no esté en la lista del alumnado. Ver `lib/documentoParaIA.ts`.
  */
 import { describe, it, expect } from 'vitest';
-import { avisoDeLectura, leerDocumento, quitarIdentificadores, textoDePdf } from './documentoParaIA';
+import { avisoDeLectura, leerDocumento, quitarDatosDeContacto, quitarIdentificadores, textoDePdf } from './documentoParaIA';
 
 /** Un PDF mínimo con Helvetica: una lista de páginas, cada una con sus líneas (solo ASCII). */
 function pdf(paginas: string[][]): Uint8Array<ArrayBuffer> {
@@ -104,5 +104,13 @@ describe('quitarIdentificadores', () => {
   it('no toca un texto sin datos personales', () => {
     const t = 'Objetivos: 1. Leer textos de 100 palabras. 2. Sumar con llevadas hasta 1.000. Sesiones 6, 7 y 8.';
     expect(quitarIdentificadores(t)).toBe(t);
+  });
+});
+
+describe('quitarDatosDeContacto (textos libres: avisos, anotaciones, notas de una reunión)', () => {
+  it('quita correos, teléfonos y DNI, pero deja las líneas con etiqueta, que aquí son contenido', () => {
+    const r = quitarDatosDeContacto('Madre: se compromete a revisar la agenda. Llamar al 612 345 678 o escribir a casa@correo.es.');
+    expect(r).toContain('Madre: se compromete a revisar la agenda.');
+    expect(r).not.toMatch(/612|casa@correo/);
   });
 });

@@ -98,6 +98,78 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
   };
 }
 
+/* ── Códigos nuevos en cada petición (31-10-2026) ────────────────────────
+ *
+ * Con un código fijo por alumno («[ALU-7]» siempre es la misma persona), quien
+ * reciba muchas peticiones podría ir juntando lo que sabe de cada código: sus
+ * notas, sus avisos, su apoyo. Para que eso no se pueda hacer, cada petición
+ * a la IA usa una numeración nueva al azar: el mismo alumno es [ALU-4821] en
+ * una petición y [ALU-305] en la siguiente. Dentro de una misma petición (con
+ * su historial) un alumno conserva su código, para que la IA pueda razonar.
+ *
+ * Además, al volver, solo se cambian por nombres los códigos de esta
+ * petición: si la IA se inventa uno, se queda como está, en vez de convertirse
+ * en el nombre de otro alumno.
+ */
+
+/** Los números de los códigos de una petición: de 100 a 9999, distintos entre sí y sin orden. */
+const MIN_CODIGO = 100;
+const MAX_CODIGO = 9999;
+
+function numeroAlAzar(usados: Set<number>, azar: () => number): number {
+  for (let intento = 0; intento < 50; intento++) {
+    const n = MIN_CODIGO + Math.floor(azar() * (MAX_CODIGO - MIN_CODIGO + 1));
+    if (!usados.has(n)) return n;
+  }
+  // Muy improbable con el azar de verdad: el primero libre, para no quedarse dando vueltas
+  let n = MIN_CODIGO;
+  while (usados.has(n)) n++;
+  return n;
+}
+
+/** Un número al azar entre 0 y 1, del generador criptográfico del navegador. */
+function azarSeguro(): number {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] / 2 ** 32;
+}
+
+/**
+ * Un enmascarador para una sola petición: los mismos nombres que `base`, con
+ * códigos nuevos al azar. Los códigos que ya trae el texto (el informe que el
+ * docente revisó, con los códigos fijos de `base`) se cambian también.
+ */
+export function codigosDePeticion(base: Pseudonymizer, azar: () => number = azarSeguro): Pseudonymizer {
+  /** Código fijo de `base` → código de esta petición, y al revés. */
+  const ida = new Map<number, number>();
+  const vuelta = new Map<number, number>();
+  const usados = new Set<number>();
+  const deEstaPeticion = (fijo: number) => {
+    let n = ida.get(fijo);
+    if (n === undefined) {
+      n = numeroAlAzar(usados, azar);
+      usados.add(n);
+      ida.set(fijo, n);
+      vuelta.set(n, fijo);
+    }
+    return n;
+  };
+  return {
+    mask(text) {
+      if (!text) return text;
+      return base.mask(text).replace(/\[ALU-(\d+)\]/g, (_, fijo: string) => code(deEstaPeticion(Number(fijo))));
+    },
+    unmask(text) {
+      if (!text) return text;
+      return text.replace(CODE_RE, (m, num: string) => {
+        const fijo = vuelta.get(Number(num));
+        return fijo === undefined ? m : base.unmask(code(fijo));
+      });
+    },
+    hasCodes: base.hasCodes,
+  };
+}
+
 /* ── Alumnado del perfil abierto ──────────────────────────────────────────
  *
  * Lo registra la aplicación cada vez que cambia la lista de alumnos, y lo usa

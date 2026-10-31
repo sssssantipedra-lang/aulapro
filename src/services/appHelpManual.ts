@@ -50,7 +50,10 @@ Computación, Cultura Clásica y Filosofía). Las dos, modificadas por el Decret
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
 PRIVACIDAD: los nombres del alumnado NUNCA se envían a Google. Antes de cada
-petición a la IA se cambian por códigos y, al llegar la respuesta, la aplicación
+petición a la IA se cambian por códigos, nuevos y al azar en cada petición (un
+mismo alumno no lleva el mismo código dos veces), se quitan los correos y, de lo
+que el docente escribe sobre su alumnado, los teléfonos y los documentos de
+identidad; al llegar la respuesta, la aplicación
 vuelve a poner los nombres reales; el docente ve siempre los nombres. Los
 documentos del alumnado (el informe del orientador, la programación del tutor,
 un trabajo adjunto a una rúbrica o al asistente) se leen en el dispositivo y
