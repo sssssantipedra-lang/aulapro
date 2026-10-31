@@ -10,6 +10,7 @@
  *
  * Mantener ENFORCED y STORE_ID iguales que en electron/license.cjs.
  */
+import { limpiarLicenciaVencida, marcarLicenciaVencida } from '../lib/licenciaVencida';
 import { CapacitorHttp } from '@capacitor/core';
 import type { LicenseBridge, LicenseError, LicenseResult, LicenseState } from '../types/electron';
 
@@ -101,6 +102,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   const save = async (r: LicenseRecord | null) => {
     record = r;
+    if (r) limpiarLicenciaVencida();
     await secrets.set('licencia', r ? JSON.stringify(r) : '').catch(() => false);
   };
 
@@ -122,7 +124,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     if (!r) return;
     const st = r.body.license_key?.status;
     if (r.body.valid && st !== 'disabled' && st !== 'expired') await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
-    else if (r.status < 500) await save(null); // devuelta o anulada
+    else if (r.status < 500) { marcarLicenciaVencida(); await save(null); } // terminada, devuelta o anulada
   }
 
   async function init() {
@@ -171,6 +173,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
         const now = new Date().toISOString();
         await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true, ...f });
       } else if (record?.cuenta) {
+        if (record.kind === 'licencia') marcarLicenciaVencida();
         await save(null);
       }
       return state();
