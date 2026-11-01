@@ -129,6 +129,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     // En Android no hay enlace de compra (normas de Google Play)
     buyUrl: '',
     ...(record?.firma ? { firmaHasta: caducidadDeFirma(record.firma) } : {}),
+    ...(record ? { origen: record.cuenta ? 'cuenta' as const : 'clave' as const, comprobada: record.lastOkAt ?? record.activatedAt } : {}),
   });
 
   /** Comprobación en segundo plano: sin conexión no pasa nada. */

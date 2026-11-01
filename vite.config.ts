@@ -116,6 +116,8 @@ export default defineConfig(({ mode }) => ({
   // Electron: así funciona igual empaquetada, en `npm run dev` y en web.
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    // Cuándo se compiló: Configuración › Licencia lo enseña para saber qué versión abre el navegador (la nueva entra a la segunda apertura)
+    __APP_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')),
   },
   plugins: [
     react(),

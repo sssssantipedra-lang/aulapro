@@ -116,6 +116,10 @@ export interface LicenseState {
   buyUrl: string;
   /** Versión web: hasta cuándo vale la firma de la licencia (ms). Para renovarla a tiempo, no para fiarse. */
   firmaHasta?: number;
+  /** Versión web: de dónde viene la licencia: la compra de la cuenta o una clave escrita a mano. */
+  origen?: 'cuenta' | 'clave';
+  /** Última vez que la tienda la dio por buena (ISO). */
+  comprobada?: string;
 }
 
 export interface LicenseResult { ok: boolean; error?: LicenseError; state: LicenseState }
