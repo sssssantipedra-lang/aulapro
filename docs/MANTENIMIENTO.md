@@ -103,6 +103,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 
 ### Correo y DNS
 
+- **`ventas@aulapro.app`** (1-11-2026), también Cloudflare Email Routing al mismo Gmail: packs de más de 10 docentes, devoluciones, la página de gracias y el correo de soporte de Lemon Squeezy (las respuestas de los clientes a recibos y avisos de cobro).
 - **`contacto@aulapro.app`** es Cloudflare Email Routing: reenvía al Gmail del dueño. Si ese Gmail se cierra o cambia, hay que cambiar el destino. Es el contacto público de la web, de las condiciones y de los packs de más de 10 docentes.
 - **DMARC**: pendiente (`docs/DNS.md`). Empezar con `p=none` y mirar quién envía como `@aulapro.app` antes de endurecerlo.
 - **No borrar** el TXT `google-site-verification` ni el de verificación de Netlify.
