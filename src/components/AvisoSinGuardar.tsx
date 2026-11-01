@@ -32,7 +32,8 @@ export function AvisoSinGuardar({ motivo, exportar }: { motivo: ErrorGuardado | 
   }
 
   return (
-    <div className="update-banner carpeta-aviso" role="alert">
+    // Con la clase del recordatorio de copia (que no sale mientras dure el fallo): en el móvil ocupa el ancho de la pantalla
+    <div className="update-banner aviso-copia" role="alert">
       <AlertTriangle size={18} color="var(--danger, #dc2626)" style={{ flexShrink: 0 }} aria-hidden="true" />
       <span style={{ flex: 1 }}>
         {t(motivo === 'espacio'
