@@ -12,6 +12,7 @@ import { clavePublica, firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../_limite.js';
 import { secretosDeLicencia } from '../_secretos.js';
+import { almacenKv, anotarComprobacion, cortarAlTope, responderInforme } from '../_vigilancia.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -22,6 +23,8 @@ export const onRequestOptions = ({ request }) => new Response(null, { status: 20
 /** La llave pública con la que la app comprueba las licencias firmadas (`_firma.js`). */
 export async function onRequestGet({ request, params, env }) {
   const cors = corsPara(request.headers.get('Origin'), 'GET, OPTIONS');
+  // El informe de claves compartidas (_vigilancia.js): solo con el secreto CLAVES_INFORME_SECRETO
+  if (params.accion === 'sospechosas') return responderInforme(request, env.CLAVES_INFORME_SECRETO, almacenKv(env.LIMITE), cors);
   if (params.accion !== 'clave') return new Response('Not found', { status: 404, headers: cors });
   return new Response(JSON.stringify({ x: await clavePublica(secretosDeLicencia(env)) }), {
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
@@ -50,14 +53,19 @@ export async function onRequestPost({ request, params, env }) {
     headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
     body: salida,
   });
-  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env)), {
+  const vigilar = () => anotarComprobacion(almacenKv(env.LIMITE), key, ip).then(r => r.pasada && cortarAlTope(env.CLAVES_CORTAR_AL_TOPE));
+  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env), vigilar), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
 
-/** Una clave activada o comprobada sale con la firma de AulaPro (`_firma.js`). */
-export async function conFirma(accion, salida, res, secretos) {
+/**
+ * Una clave activada o comprobada sale con la firma de AulaPro (`_firma.js`). Una comprobación sin número de activación
+ * (la renovación de la licencia de la cuenta) se apunta antes con `vigilar` (claves compartidas, `_vigilancia.js`), que
+ * devuelve `true` si esa clave no debe recibir la firma.
+ */
+export async function conFirma(accion, salida, res, secretos, vigilar) {
   const texto = await res.text();
   if (accion === 'deactivate' || !res.ok) return texto;
   try {
@@ -65,6 +73,7 @@ export async function conFirma(accion, salida, res, secretos) {
     const st = d.license_key?.status;
     if (!(d.activated || d.valid) || st === 'disabled' || st === 'expired') return texto;
     const instance = d.instance?.id ?? salida.get('instance_id') ?? '';
+    if (accion === 'validate' && !instance && vigilar && (await vigilar())) return texto;
     d.aulapro_firma = await firmar({ t: 'clave', key: salida.get('license_key'), instance }, secretos);
     return JSON.stringify(d);
   } catch { return texto; }

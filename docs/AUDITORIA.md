@@ -18,7 +18,7 @@ Revisión pedida por el dueño a nueve días de abrir la venta (10-11-2026): seg
 | MEDIO | M1. La llave de las licencias dependía del secreto de Google: cambiarlo cortaba la app hasta un día | Corregido (hay que activarlo, ver abajo) |
 | MEDIO | M2. `/api/google/*` aceptaba cualquier origen y no tenía límite de peticiones | Corregido |
 | MEDIO | M3. La puerta de aulapro.app (Netlify) no se comprobaba nunca tras publicar | Corregido (vigilancia) |
-| MEDIO | M4. Una clave compartida se puede usar en más de 2 dispositivos sin activarla | **Pendiente de tu decisión** |
+| MEDIO | M4. Una clave compartida se puede usar en más de 2 dispositivos sin activarla | Medido (decisión del dueño): se anota y, si se quiere, se corta |
 | MEDIO | M5. Faltaban en los textos legales la base legal y el plazo de los datos de compra, el papel de cada uno ante el RGPD y unas condiciones de uso | Corregido |
 | MEDIO | M6. La privacidad decía que el diagnóstico no va a la IA, pero sí van categorías como «TEA» o «TDAH» | Texto corregido |
 | MEDIO | M7. Ley de IA de la UE y «Evaluar por foto» | Para el abogado |
@@ -88,11 +88,12 @@ Pruebas: antes, 211 archivos y 1.957 pruebas; después, 215 y 2.000, todas en ve
 - **Dónde:** `web/app/comprobar-publicada.mjs:53` solo se lanza contra la copia de Cloudflare al publicar; en Netlify la puerta es otra pieza (`web/netlify-edge/puerta.js:14`, que no corre en direcciones terminadas en `.css`, `.png`…), y `docs/APP_WEB.md` la daba como «sin comprobar». Si la función de borde no ve el secreto, deja pasar a todo el mundo sin avisar.
 - **Arreglo:** `web/vigilar.mjs` comprueba cada 30 minutos en aulapro.app que el código de las pantallas no sale sin sesión, también con variantes terminadas en `.css` o `.png`, y abre una incidencia si sale. La comprobación de publicación cuenta ahora como fallo cualquier respuesta que sea código, salga con el tipo que salga.
 
-### M4. Claves compartidas en más de 2 dispositivos (pendiente)
+### M4. Claves compartidas en más de 2 dispositivos (medido)
 
 - **Dónde:** `web/funciones/api/licencia/[accion].js:61` (`conFirma` firma también un `validate` sin número de activación) y `src/platform/androidLicense.ts:171` (la licencia de la cuenta se renueva así, sin activación).
 - **Riesgo:** quien tenga una clave ajena y sepa programar puede pedir esa firma, conseguir la sesión y usar la app en más dispositivos de los que permite la clave, sin activarla. Es pérdida de ingresos, no un riesgo para los datos de nadie.
 - **Por qué no se ha cambiado:** cerrarlo obliga a que la licencia de la cuenta se renueve siempre con el token de Google o Microsoft. Hecho a días de abrir la venta, podría dejar fuera a compradores legítimos que entraron sin dar permiso de Drive. Propuesta: cerrarlo después del lanzamiento, con pruebas en dispositivos (`docs/REVISAR.md`, apartado 1, punto 6).
+- **Decisión del dueño (1-11-2026): medir antes de cerrar.** No se ve en Lemon Squeezy (una comprobación sin activación no crea ninguna), así que lo cuenta el servidor (`web/funciones/api/_vigilancia.js`): por clave y semana, desde cuántas conexiones distintas llega la comprobación sin activación, con huellas y no la IP ni la clave en claro. Más de 15 en una semana anota la clave recortada («ABCD1234…WXYZ») durante 8 semanas. El informe está en `GET /api/licencia/sospechosas` con `CLAVES_INFORME_SECRETO`, y lo leerá un agente de la oficina. Por defecto solo se anota; con `CLAVES_CORTAR_AL_TOPE=si`, pasado el tope no hay firma esa semana. Cerrarlo del todo (la cuenta se renueva solo con el token de Google o Microsoft) queda para cuando los números lo pidan.
 
 ### M5. Textos legales incompletos
 

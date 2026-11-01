@@ -7,6 +7,8 @@ import { conFirma } from '../funciones/api/licencia/[accion].js';
 import { corsPara } from '../funciones/api/_origenes.js';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
+import { anotarComprobacion, cortarAlTope, responderInforme } from '../funciones/api/_vigilancia.js';
+import { almacenBlobs } from '../lib-netlify/vigilancia.mjs';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -18,6 +20,8 @@ export default async (request, context) => {
   const secretos = secretosDeNetlify(k => Netlify.env.get(k));
   // /api/licencia/sesion coincide también con esta ruta, y gana: se atiende aquí (1-11-2026, daba 404 en aulapro.app)
   if (accion === 'sesion') return responderSesion(request, secretos);
+  // El informe de claves compartidas (_vigilancia.js): solo con el secreto CLAVES_INFORME_SECRETO
+  if (request.method === 'GET' && accion === 'sospechosas') return responderInforme(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), almacenBlobs(), cors);
   if (request.method === 'GET' && accion === 'clave') {
     return new Response(JSON.stringify({ x: await clavePublica(secretos) }), {
       headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
@@ -43,7 +47,8 @@ export default async (request, context) => {
     headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
     body: salida,
   });
-  return new Response(await conFirma(accion, salida, res, secretos), {
+  const vigilar = () => anotarComprobacion(almacenBlobs(), key, ip).then(r => r.pasada && cortarAlTope(Netlify.env.get('CLAVES_CORTAR_AL_TOPE')));
+  return new Response(await conFirma(accion, salida, res, secretos, vigilar), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });

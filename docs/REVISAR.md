@@ -46,6 +46,7 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 - [ ] Mirar los minutos gastados de GitHub Actions. El repositorio es privado y la vigilancia cada 30 minutos consume unos 1.440 trabajos al mes.
 - [ ] Las fechas marcadas «(comprobar)» en `docs/MANTENIMIENTO.md`.
 - [ ] (Recomendado, auditoría del 1-11-2026) `LICENCIA_SECRETO` y `LICENCIA_SECRETO_ANTERIOR` con los pasos de `docs/MANTENIMIENTO.md`, «La llave de las licencias».
+- [ ] (Claves compartidas) Poner `CLAVES_INFORME_SECRETO` (una contraseña larga y al azar) en Netlify y Cloudflare, y dársela al agente de la oficina que lea `GET /api/licencia/sospechosas`. Decidir más adelante si se pone `CLAVES_CORTAR_AL_TOPE=si`.
 - [ ] Tras publicar en `master`: la vigilancia marca «✔ el código de la app no sale sin suscripción» en aulapro.app. Desde la sesión de la auditoría no se pudo abrir aulapro.app para comprobarlo.
 
 ## 3. Antes del 10-11: lo que puede hacer Claude cuando se le pida
