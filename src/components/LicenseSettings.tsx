@@ -3,6 +3,7 @@ import { BadgeCheck, KeyRound, Heart } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { licenseBridge, LICENSE_ERROR_TEXT } from '../services/license';
 import { useToast } from './ui/Toast';
+import { isWebApp } from '../lib/platform';
 import type { LicenseState } from '../types/electron';
 
 /** Estado de la licencia de este equipo en Configuración › Licencia. */
@@ -18,6 +19,8 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
     if (!bridge) return;
     setBusy(true);
     const r = await bridge.deactivate();
+    // Versión web: la copia de la clave en Drive u OneDrive la volvería a activar sola al abrir
+    if (r.ok && isWebApp()) await import('../platform/carpetaWeb').then(m => m.olvidarClaveDeNube(state.keyHint)).catch(() => {});
     setBusy(false);
     setConfirm(false);
     if (r.ok) { toast(t('Licencia desactivada en este equipo')); onChange(r.state); }

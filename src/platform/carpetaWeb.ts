@@ -218,3 +218,12 @@ export async function claveDeNube(): Promise<string> {
     return typeof k === 'string' ? k : '';
   } catch { return ''; }
 }
+/**
+ * «Desactivar en este equipo»: la clave sale también de la nube. Si no, la siguiente vez que se abre la app la
+ * vuelve a activar sola desde ahí y desactivar no sirve de nada (1-11-2026). Solo si es la misma que se desactiva.
+ */
+export async function olvidarClaveDeNube(hint: string) {
+  const k = await claveDeNube();
+  if (!k || hint !== `••••${k.trim().slice(-4)}`) return; // como `keyHint` de androidLicense.ts, sin importarlo (iría al bloque de arranque)
+  await (await nubeActual()).fs().write(LICENCIA, '{}');
+}
