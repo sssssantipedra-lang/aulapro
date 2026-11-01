@@ -850,12 +850,16 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       const bridge = licenseBridge();
       if (isWebApp() && bridge?.porCuenta && !s?.required && hayToken()) {
         // Ya hay licencia guardada y con firma válida: la app abre sin esperar a la red (eran de 1 a 4 s en cada recarga)
-        // y la compra se vuelve a mirar en segundo plano. Si se devolvió, se nota al abrir la próxima vez.
+        // y la compra se vuelve a mirar en segundo plano. Si se devolvió o terminó, se bloquea en cuanto contesta la función (unos segundos después de abrir).
         setState(s);
         if (!licenciaMiradaHace(10 * 60_000)) {
           void licenciaDeLaCuenta().then(async b => {
             if (b.key) await bridge.porCuenta?.(b.key, b.firma);
-            else if (!('error' in b && b.error)) await bridge.porCuenta?.(null);
+            else if (!('error' in b && b.error)) {
+              // La suscripción terminó: se bloquea ya, al abrir, y no en la próxima apertura (el trabajo queda en el navegador)
+              const n = await bridge.porCuenta?.(null);
+              if (n?.required) setState(n);
+            }
           }).catch(() => {});
         }
         return;
