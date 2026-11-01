@@ -31,7 +31,7 @@ Se cambian en tres sitios, y **Netlify y Cloudflare llevan los mismos valores** 
 
 | Nombre | Dónde | Para qué | Caduca | Si falla |
 |---|---|---|---|---|
-| `GOOGLE_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Google, permiso de Drive (`/api/google/*`) y **llave que firma las licencias** | No caduca solo. Solo cambia si se rota a mano | Sin él, no hay entrada con Google ni Drive. Ver «La llave de las licencias» |
+| `GOOGLE_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Google, permiso de Drive (`/api/google/*`), **llave que firma las licencias** y **la de la sesión que abre el código de la app** (`_sesion.js`, la puerta de `/app/assets/`, desde el 1-11-2026) | No caduca solo. Solo cambia si se rota a mano | Sin él, no hay entrada con Google ni Drive. Ver «La llave de las licencias» |
 | `MICROSOFT_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Microsoft y OneDrive (`/api/microsoft/*`) | **Sí.** Microsoft admite como máximo 24 meses; la fecha se elige al crearlo (creado el 30-10-2026) **(comprobar)** | Falla Microsoft y OneDrive. Google y las claves siguen bien |
 | `LEMONSQUEEZY_API_KEY` | Netlify y Cloudflare | Buscar la compra de una cuenta y activar la licencia sola (`/api/licencia/cuenta`) | **Puede caducar** (las claves de la API de Lemon Squeezy llevan fecha) **(comprobar)** | Ver «Lemon Squeezy» abajo: es el fallo más caro |
 | `FUNDADORES` | Netlify y Cloudflare, Production y Preview | Correos que entran gratis | No caduca. Se mantiene a mano | Un correo que falta pierde su acceso gratis al volver a comprobar |
@@ -67,6 +67,7 @@ Las licencias se firman con una llave que **sale del secreto de Google** (`web/f
 - Si Netlify y Cloudflare **no tienen exactamente el mismo valor**, las licencias firmadas por uno no las acepta la app cuando le toca el otro, y el docente verá la licencia pedirse de nuevo o fallar de forma intermitente.
 - Si se **rota el secreto**, cambia la llave. Las licencias de cuenta se vuelven a firmar solas en la siguiente comprobación con conexión; **las claves escritas a mano también se vuelven a comprobar**. Quien esté sin conexión en ese momento no podrá entrar hasta tener red. Hacerlo fuera de horas de clase y de cualquier fecha de venta.
 - Cuando se cambie el secreto: tocar los dos sitios, publicar los dos y probar con una cuenta con licencia y con una clave escrita a mano.
+- **Desde el 1-11-2026 de este secreto sale también la sesión que abre el código de la app** (`_sesion.js`, «sin pagar, no hay app»: `docs/APP_WEB.md`). Si se rota, las sesiones dejan de valer y la app pide una nueva al abrir (con conexión, sola); si Netlify y Cloudflare tienen valores distintos, la cookie que da uno no la acepta la puerta del otro. **En Netlify, la variable tiene que estar disponible también para las funciones de borde** (la puerta, `web/netlify-edge/puerta.js`); si la puerta no la ve, deja pasar a todo el mundo sin avisar. Las firmas caducan a los 7 días: quien pase más de 7 días sin conexión tiene que conectarse para seguir.
 
 ### Lemon Squeezy
 

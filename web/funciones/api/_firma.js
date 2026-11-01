@@ -23,11 +23,18 @@ async function llave(secreto) {
   return cache;
 }
 
-/** `datos` firmados: «base64url(json).base64url(firma)». Sin secreto, cadena vacía. */
-export async function firmar(datos, secreto) {
+/**
+ * Días que vale una firma (1-11-2026, decisión del dueño: «sin pagar, no hay app»). La app la renueva sola
+ * cada día con conexión; si alguien bloquea las comprobaciones, a los 7 días la licencia deja de valer.
+ */
+export const DIAS_FIRMA = 7;
+
+/** `datos` firmados: «base64url(json).base64url(firma)», con su caducidad (`exp`, en segundos). Sin secreto, cadena vacía. */
+export async function firmar(datos, secreto, ahora = Date.now()) {
   if (!secreto) return '';
   const { privada } = await llave(secreto);
-  const cuerpo = b64url(enc.encode(JSON.stringify(datos)));
+  const conCaducidad = { ...datos, exp: datos.exp ?? Math.floor(ahora / 1000) + DIAS_FIRMA * 86400 };
+  const cuerpo = b64url(enc.encode(JSON.stringify(conCaducidad)));
   const firma = await crypto.subtle.sign({ name: 'Ed25519' }, privada, enc.encode(cuerpo));
   return `${cuerpo}.${b64url(firma)}`;
 }
@@ -35,4 +42,23 @@ export async function firmar(datos, secreto) {
 /** La llave pública (x de la JWK, base64url), para que la app compruebe las firmas. */
 export async function clavePublica(secreto) {
   return secreto ? (await llave(secreto)).publica : '';
+}
+
+const desdeB64url = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (s.length % 4)) % 4)), c => c.charCodeAt(0));
+
+/** Lo que dice una firma de estas funciones, si es auténtica y no ha caducado; si no, `null`. */
+export async function leerFirmaValida(firma, secreto, ahora = Date.now()) {
+  if (!secreto || typeof firma !== 'string' || firma.length > 4000) return null;
+  const [cuerpo, sello] = firma.split('.');
+  if (!cuerpo || !sello) return null;
+  try {
+    const { publica } = await llave(secreto);
+    const pub = await crypto.subtle.importKey('jwk', { kty: 'OKP', crv: 'Ed25519', x: publica }, { name: 'Ed25519' }, false, ['verify']);
+    if (!(await crypto.subtle.verify({ name: 'Ed25519' }, pub, desdeB64url(sello), enc.encode(cuerpo)))) return null;
+    const datos = JSON.parse(new TextDecoder().decode(desdeB64url(cuerpo)));
+    if (typeof datos.exp !== 'number' || datos.exp * 1000 <= ahora) return null;
+    return datos;
+  } catch {
+    return null;
+  }
 }

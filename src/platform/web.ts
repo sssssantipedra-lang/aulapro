@@ -28,6 +28,7 @@ import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta, recargarCuandoSeAPuedeSinCortar } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost, type LicenseRecord } from './androidLicense';
 import { crearVerificador } from './firmaLicencia';
+import { pedirSesion, vigilarSesion } from './sesionWeb';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
@@ -55,7 +56,9 @@ const verificarFirma = crearVerificador(idbKv, async () => {
 async function verificarLicencia(r: LicenseRecord): Promise<boolean> {
   if (r.cuenta) {
     const email = (cuentaActual() ?? await leerCuenta())?.email;
-    return verificarFirma(r.firma, { t: 'cuenta', email, ...(r.kind === 'fundador' ? { fundador: true } : { key: r.key }) });
+    if (await verificarFirma(r.firma, { t: 'cuenta', email, ...(r.kind === 'fundador' ? { fundador: true } : { key: r.key }) })) return true;
+    // La comprobación diaria de la clave (`check`) la vuelve a firmar como clave: vale igual
+    return r.kind === 'licencia' && !!r.key && verificarFirma(r.firma, { t: 'clave', key: r.key });
   }
   if (r.kind === 'licencia') return verificarFirma(r.firma, { t: 'clave', key: r.key });
   // Fundador sin cuenta: en la web no existe (los fundadores van por su correo)
@@ -167,8 +170,7 @@ function createUpdate(): UpdateBridge {
       // Quien deja la app abierta días enteros también la descarga
       setInterval(() => { r.update().catch(() => {}); }, 60 * 60 * 1000);
     }).catch(() => { /* sin service worker la app funciona igual, solo que no sin conexión */ });
-    // Dibujos y pictogramas para usar sin conexión: se bajan aparte, y si quedaron a medias se retoman al abrir
-    navigator.serviceWorker.ready.then(r => r.active?.postMessage('resto')).catch(() => {});
+    // El código de las pantallas, los dibujos y los pictogramas se guardan cuando hay licencia y sesión (`sesionWeb.ts`)
   }
 
   return {
@@ -195,6 +197,7 @@ async function idDeDispositivo(): Promise<string> {
 export async function installWebBridge() {
   // Que el navegador no borre los datos por falta de espacio (en Chrome, sobre todo si la app está instalada)
   navigator.storage?.persist?.().catch(() => false);
+  vigilarSesion();
 
   const espejo = createEspejo({ local: idbFs, kv: idbKv, dispositivo: await idDeDispositivo() });
   iniciarCarpeta(espejo);
@@ -218,7 +221,12 @@ export async function installWebBridge() {
     store: createProfileStore(espejo.fs) as unknown as StoreBridge,
     docs,
     update: createUpdate(),
-    license: createAndroidLicense(secretos, { post: postLicencia, instanceName: 'AulaPro · Navegador', verificar: verificarLicencia }),
+    license: createAndroidLicense(secretos, {
+      post: postLicencia, instanceName: 'AulaPro · Navegador', verificar: verificarLicencia,
+      // La firma dura 7 días: se renueva cada día con conexión, y con ella la sesión que abre el código de la app
+      comprobarCada: 24 * 60 * 60 * 1000,
+      alValer: async r => { await verificarFirma.precargar(); await pedirSesion(r.firma); },
+    }),
     secrets: secretos,
   };
 }

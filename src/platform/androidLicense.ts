@@ -11,6 +11,7 @@
  * Mantener ENFORCED y STORE_ID iguales que en electron/license.cjs.
  */
 import { limpiarLicenciaVencida, marcarLicenciaVencida } from '../lib/licenciaVencida';
+import { caducidadDeFirma } from './firmaLicencia';
 import { CapacitorHttp } from '@capacitor/core';
 import type { LicenseBridge, LicenseError, LicenseResult, LicenseState } from '../types/electron';
 
@@ -92,13 +93,24 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   enforced?: boolean; storeId?: string; post?: LicensePost; instanceName?: string;
   /** Versión web: si el registro guardado lleva una firma válida (`platform/firmaLicencia.ts`). */
   verificar?: (r: LicenseRecord) => Promise<boolean>;
+  /**
+   * Versión web: se llama cada vez que hay una licencia válida (al abrir, al activar, al renovar la firma),
+   * antes de dar paso a la app. Ahí se pide la sesión que abre el código de la app (`platform/sesionWeb.ts`).
+   */
+  alValer?: (r: LicenseRecord) => Promise<void>;
+  /** Cada cuánto se vuelve a comprobar la clave con conexión (por defecto, una semana; la web, cada día). */
+  comprobarCada?: number;
 } = {}): LicenseBridge {
   const enforced = opts.enforced ?? ENFORCED;
   const storeId = opts.storeId ?? STORE_ID;
   const call = opts.post ?? postNativo;
   const instanceName = opts.instanceName ?? INSTANCE_NAME;
+  const comprobarCada = opts.comprobarCada ?? CHECK_EVERY;
   let record: LicenseRecord | null = null;
   let ready: Promise<void> | null = null;
+
+  const valida = async (r: LicenseRecord) => !opts.verificar || (await opts.verificar(r).catch(() => false));
+  const avisar = async () => { if (record && opts.alValer) await opts.alValer(record).catch(() => {}); };
 
   const save = async (r: LicenseRecord | null) => {
     record = r;
@@ -114,6 +126,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     since: record?.activatedAt ?? '',
     // En Android no hay enlace de compra (normas de Google Play)
     buyUrl: '',
+    ...(record?.firma ? { firmaHasta: caducidadDeFirma(record.firma) } : {}),
   });
 
   /** Comprobación en segundo plano: sin conexión no pasa nada. */
@@ -123,24 +136,30 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     const r = await call('validate', record.cuenta ? { license_key: record.key } : { license_key: record.key, instance_id: record.instanceId ?? '' });
     if (!r) return;
     const st = r.body.license_key?.status;
-    if (r.body.valid && st !== 'disabled' && st !== 'expired') await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
-    else if (r.status < 500) { marcarLicenciaVencida(); await save(null); } // terminada, devuelta o anulada
+    if (r.body.valid && st !== 'disabled' && st !== 'expired') {
+      // Con la firma nueva (otros 7 días) llega también una sesión nueva
+      await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
+      await avisar();
+    } else if (r.status < 500) { marcarLicenciaVencida(); await save(null); } // terminada, devuelta o anulada
   }
 
   async function init() {
     try { record = JSON.parse((await secrets.get('licencia')) || 'null'); } catch { record = null; }
-    // Versión web: sin firma válida, la de la cuenta se vuelve a pedir (App.tsx) y la clave se comprueba ya
-    if (record && opts.verificar && !(await opts.verificar(record).catch(() => false))) {
-      if (record.kind === 'licencia' && record.key && !record.cuenta) { await check(); if (record && !record.firma) record = null; }
-      else record = null;
-      return;
+    // Versión web: la firma caduca a los 7 días. Una clave se renueva aquí mismo si hay conexión; la de un
+    // fundador, con su cuenta (App.tsx). Si no se puede, no hay licencia hasta que se renueve, pero el registro
+    // se queda guardado para volver a probar la próxima vez (no hay que escribir la clave otra vez).
+    if (record && !(await valida(record))) {
+      if (record.kind === 'licencia' && record.key) await check();
+      if (record && !(await valida(record))) record = null;
+      if (!record) return;
     }
     if (!record && !enforced) {
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
     } else if (record?.kind === 'licencia') {
       const last = Date.parse(record.lastOkAt ?? record.activatedAt);
-      if (!Number.isFinite(last) || Date.now() - last > CHECK_EVERY) check().catch(() => {});
+      if (!Number.isFinite(last) || Date.now() - last > comprobarCada) check().catch(() => {});
     }
+    await avisar();
   }
   const whenReady = () => (ready ??= init());
 
@@ -160,6 +179,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       }
       const now = new Date().toISOString();
       await save({ v: 1, kind: 'licencia', key: k, instanceId: r.body.instance?.id, activatedAt: now, lastOkAt: now, ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
+      await avisar();
       return { ok: true, state: state() };
     },
 
@@ -176,6 +196,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
         if (record.kind === 'licencia') marcarLicenciaVencida();
         await save(null);
       }
+      await avisar();
       return state();
     },
 

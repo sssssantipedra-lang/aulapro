@@ -46,6 +46,8 @@ export function LicenseGate({ state, onChange }: Props) {
   const [conClave, setConClave] = useState(!VENTA_ABIERTA);
   // La suscripción terminó en este dispositivo: se dice y se ofrece la renovación, no el precio de lanzamiento
   const [vencida, setVencida] = useState(licenciaVencida);
+  // La firma caduca a los 7 días sin conexión (`platform/firmaLicencia.ts`): sin red, lo que falta es comprobarla
+  const [sinConexion] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
 
   /** Busca la compra de esta cuenta y, si la hay, activa la licencia. */
   async function comprobarCompra(manual: boolean) {
@@ -120,7 +122,9 @@ export function LicenseGate({ state, onChange }: Props) {
 
         {cuenta ? (
           <div className="lic-compra">
-            <p className="lic-text">{vencida
+            <p className="lic-text">{sinConexion
+              ? t('No hay conexión. AulaPro necesita comprobar tu suscripción al menos una vez cada 7 días: conéctate a internet y vuelve a abrir la app. Tu trabajo sigue guardado.')
+              : vencida
               ? t('Tu suscripción a AulaPro ha terminado. Tu trabajo sigue guardado y no se ha borrado nada: renueva con la cuenta {email} y vuelves a entrar al instante.', { email: cuenta.email })
               : VENTA_ABIERTA
               ? t('Con la cuenta {email} todavía no hay una licencia. Suscríbete aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })

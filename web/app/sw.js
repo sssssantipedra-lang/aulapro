@@ -16,6 +16,12 @@
  */
 const CACHE = '__CACHE__';
 const PRECARGA = __PRECARGA__;
+/**
+ * El código de las pantallas, que solo se entrega con una sesión («sin pagar, no hay app», 1-11-2026:
+ * web/funciones/api/_puerta.js). Quien aún no tiene suscripción instala solo lo de entrar y comprar; al
+ * entrar con licencia, la app manda «privado» y se guarda el resto.
+ */
+const PRIVADO = __PRIVADO__;
 const EXTRA = __EXTRA__;
 /** Se guarda en la caché cuando ya están todos los de EXTRA: la app lo mira para decir «Lista». */
 const MARCA = './.todo-guardado';
@@ -26,6 +32,23 @@ async function guardar(cache, url) {
   try { await pedir(); } catch {
     await new Promise(r => setTimeout(r, 600));
     await pedir();
+  }
+}
+
+/**
+ * Guarda el código que pide sesión. Sin sesión la puerta contesta 401 y no se guarda nada (no es un fallo:
+ * se guardará al entrar con licencia). Cualquier otro fallo sí lo es, y en la instalación la para, como antes.
+ */
+async function guardarPrivado(cache) {
+  const faltan = [];
+  for (const url of PRIVADO) if (!(await cache.match(url))) faltan.push(url);
+  if (!faltan.length) return;
+  const primera = await fetch(new Request(faltan[0], { cache: 'reload' }));
+  if (primera.status === 401) return;
+  if (!primera.ok) throw new Error(`${faltan[0]}: ${primera.status}`);
+  await cache.put(faltan[0], primera);
+  for (let i = 1; i < faltan.length; i += 40) {
+    await Promise.all(faltan.slice(i, i + 40).map(url => guardar(cache, url)));
   }
 }
 
@@ -75,6 +98,7 @@ self.addEventListener('install', event => {
     for (let i = 0; i < PRECARGA.length; i += 40) {
       await Promise.all(PRECARGA.slice(i, i + 40).map(url => guardar(cache, url)));
     }
+    await guardarPrivado(cache);
     if (await hayVersionRota()) await self.skipWaiting();
   })());
 });
@@ -92,6 +116,8 @@ self.addEventListener('message', event => {
   if (event.data === 'activar') self.skipWaiting();
   // La app lo manda al abrirse: así lo que quedó a medias se retoma
   if (event.data === 'resto') event.waitUntil(bajarExtra());
+  // Con licencia y sesión: el código de las pantallas, si aún no estaba (se instaló antes de tener suscripción)
+  if (event.data === 'privado') event.waitUntil(caches.open(CACHE).then(guardarPrivado).catch(() => {}));
 });
 
 self.addEventListener('fetch', event => {

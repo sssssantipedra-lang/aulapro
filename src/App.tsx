@@ -13,6 +13,8 @@ import { Welcome } from './pages/Welcome';
 import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
+import { licenciaVencida } from './lib/licenciaVencida';
+import { olvidarApp } from './platform/sesionWeb';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
@@ -848,7 +850,10 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
       // Sin límite de dispositivos: la licencia es de la cuenta (decisión del dueño, 29-10-2026)
       const bridge = licenseBridge();
-      if (isWebApp() && bridge?.porCuenta && !s?.required && hayToken()) {
+      // Sin token de esta sesión, la compra también se mira cuando la firma está a punto de caducar (un fundador no
+      // tiene clave que renovar cada día: su firma se renueva con su cuenta)
+      const casiCaducada = !!s?.firmaHasta && s.firmaHasta - Date.now() < 2 * 24 * 60 * 60 * 1000;
+      if (isWebApp() && bridge?.porCuenta && !s?.required && (hayToken() || casiCaducada)) {
         // Ya hay licencia guardada y con firma válida: la app abre sin esperar a la red (eran de 1 a 4 s en cada recarga)
         // y la compra se vuelve a mirar en segundo plano. Si se devolvió o terminó, se bloquea en cuanto contesta la función (unos segundos después de abrir).
         setState(s);
@@ -879,6 +884,11 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       setState(s);
     });
   }, [state]);
+
+  // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el
+  // dispositivo; el trabajo se queda. Al renovar se vuelve a descargar.
+  const bloqueada = !!state?.required && isWebApp() && licenciaVencida();
+  useEffect(() => { if (bloqueada) void olvidarApp(); }, [bloqueada]);
 
   if (state === undefined) {
     return (

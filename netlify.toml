@@ -8,9 +8,11 @@
   # Solo se construye `master` (decisión del dueño, 29-10-2026: cada rama y cada vista previa gastaban créditos).
   # Netlify se salta la construcción cuando esto sale con 0. La prueba de las demás ramas va a Cloudflare (web.yml).
   ignore = '[ "$BRANCH" != "master" ]'
-  command = "npm ci && npm run build:web && node web/idiomas.mjs web/sitio && node web/comprobar.mjs web/sitio && node web/versionar.mjs web/sitio && cp -r dist-web web/sitio/app"
+  command = "npm ci && npm run build:web && node web/app/publico.mjs dist-web && node web/idiomas.mjs web/sitio && node web/comprobar.mjs web/sitio && node web/versionar.mjs web/sitio && cp -r dist-web web/sitio/app"
   publish = "web/sitio"
   functions = "web/netlify"
+  # La puerta de /app/assets/: sin sesión no sale el código de la app (web/funciones/api/_puerta.js, 1-11-2026)
+  edge_functions = "web/netlify-edge"
 
 [build.environment]
   NODE_VERSION = "22"

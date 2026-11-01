@@ -92,4 +92,46 @@ describe('licencia firmada al abrir (versión web)', () => {
     expect((await ok.porCuenta!('CLAVE-ABCD', 'buena')).required).toBe(false);
     expect((await createAndroidLicense(s, { enforced: true, verificar: async r => r.firma === 'buena' }).state()).required).toBe(false);
   });
+
+  it('con la firma caducada (7 días): con conexión se renueva sola; sin conexión no abre, pero la clave no se pierde', async () => {
+    const s = secrets();
+    s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'CLAVE-1', instanceId: 'i1', activatedAt: '2026-11-01', firma: 'caducada' }));
+    const verificar = async (r: { firma?: string }) => r.firma === 'nueva';
+    // Sin conexión (o con las comprobaciones bloqueadas en el navegador): no hay licencia
+    const sinRed = createAndroidLicense(s, { enforced: true, verificar, post: async () => null });
+    expect((await sinRed.state()).required).toBe(true);
+    expect(JSON.parse(s.mem.get('licencia')!).key).toBe('CLAVE-1');
+    // Con conexión, la clave sigue valiendo en la tienda: firma nueva y adentro
+    const alValer = vi.fn(async () => {});
+    const conRed = createAndroidLicense(s, {
+      enforced: true, verificar, alValer,
+      post: async () => ({ status: 200, body: { valid: true, license_key: { status: 'active' }, aulapro_firma: 'nueva' } }),
+    });
+    expect((await conRed.state()).required).toBe(false);
+    expect(alValer).toHaveBeenCalled();
+  });
+
+  it('con la firma caducada y la suscripción terminada, se bloquea y se avisa', async () => {
+    const s = secrets();
+    s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'CLAVE-1', cuenta: true, activatedAt: '2026-11-01', firma: 'caducada' }));
+    const lic = createAndroidLicense(s, {
+      enforced: true, verificar: async () => false,
+      post: async () => ({ status: 200, body: { valid: false, license_key: { status: 'expired' } } }),
+    });
+    expect((await lic.state()).required).toBe(true);
+    expect(s.mem.get('licencia')).toBeUndefined();
+  });
+
+  it('pide la sesión de la app cada vez que hay una licencia válida (al abrir y al activar), y no sin ella', async () => {
+    const s = secrets();
+    const alValer = vi.fn(async () => {});
+    const post = async () => ({ status: 200, body: { activated: true, instance: { id: 'i' }, aulapro_firma: 'f' } });
+    const lic = createAndroidLicense(s, { enforced: true, storeId: '', verificar: async r => r.firma === 'f', alValer, post });
+    expect((await lic.state()).required).toBe(true);
+    expect(alValer).not.toHaveBeenCalled();
+    await lic.activate('CLAVE-2');
+    expect(alValer).toHaveBeenCalledTimes(1);
+    await createAndroidLicense(s, { enforced: true, verificar: async r => r.firma === 'f', alValer, post }).state();
+    expect(alValer).toHaveBeenCalledTimes(2);
+  });
 });

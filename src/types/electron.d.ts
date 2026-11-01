@@ -114,6 +114,8 @@ export interface LicenseState {
   since: string;
   /** Página donde se compra; vacía mientras no haya tienda. */
   buyUrl: string;
+  /** Versión web: hasta cuándo vale la firma de la licencia (ms). Para renovarla a tiempo, no para fiarse. */
+  firmaHasta?: number;
 }
 
 export interface LicenseResult { ok: boolean; error?: LicenseError; state: LicenseState }
