@@ -110,8 +110,8 @@
 
 
   /* ================= the hero: the app on three screens, moved by the scroll =================
-     Like a product page: the laptop comes forward, its screen tells the story (the list is crossed off as
-     each screen appears), and the three devices settle together at the end. Everything is a sharp capture
+     Like a product page: the laptop comes forward, its screen tells the story (each caption says what
+     the screen shows), and the three devices settle together at the end. Everything is a sharp capture
      moved with transforms, so it stays crisp at any size. On small or touch screens in portrait and with
      reduced motion, the hero is the still composition (same gates as the CSS of .hero.scrub). */
   const hero = $('#inicio');
@@ -121,7 +121,6 @@
   const devs = ['.dv-laptop', '.dv-tablet', '.dv-phone'].map(s => $(s, hero));
   const shots = $$('.dv-laptop img.later', hero).map(el => ({ el, t: +el.dataset.t }));
   const caps = $$('.beat', hero).map(el => ({ el, a: +el.dataset.a, b: +el.dataset.b, k: -1 }));
-  const lns = $$('.beat .ln', hero).map(el => ({ el, t: +el.dataset.t, s: -1 }));
   const cue = $('.cue', hero);
   const ease = t => t * t * (3 - 2 * t);
   const ramp = (p, a, d) => clamp((p - a) / d, 0, 1);
@@ -187,15 +186,11 @@
       c.el.style.setProperty('--dy', ((1 - k) * 18).toFixed(1) + 'px');
       c.el.classList.toggle('on', k > 0.5);
     });
-    lns.forEach(l => {
-      const s = ramp(p, l.t, 0.04);
-      if (s !== l.s) { l.s = s; l.el.style.setProperty('--s', s.toFixed(3)); }
-    });
     shots.forEach(s => { s.el.style.opacity = ramp(p, s.t, 0.025).toFixed(3); });
     cue.style.opacity = (1 - ramp(p, 0, 0.03)).toFixed(3);
   }
   const queue = () => { if (raf === null) raf = requestAnimationFrame(render); };
-  const refresh = () => { measure(); caps.forEach(c => { c.k = -1; }); lns.forEach(l => { l.s = -1; }); render(); };
+  const refresh = () => { measure(); caps.forEach(c => { c.k = -1; }); render(); };
 
   function setScrub(on) {
     if (on === scrubOn) return;
