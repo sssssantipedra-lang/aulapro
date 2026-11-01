@@ -7,9 +7,9 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode: fine */ } }
   };
   const UI = {
-    es: { back: 'Volver a la web', terms: 'Condiciones de venta', legal: 'Aviso legal', privacy: 'Política de privacidad', skip: 'Saltar al contenido', label: 'Idioma' },
-    ca: { back: 'Torna al web', terms: 'Condicions de venda', legal: 'Avís legal', privacy: 'Política de privacitat', skip: 'Salta al contingut', label: 'Idioma' },
-    en: { back: 'Back to the website', terms: 'Terms of sale', legal: 'Legal notice', privacy: 'Privacy policy', skip: 'Skip to content', label: 'Language' }
+    es: { back: 'Volver a la web', terms: 'Condiciones de venta y de uso', legal: 'Aviso legal', privacy: 'Política de privacidad', skip: 'Saltar al contenido', label: 'Idioma' },
+    ca: { back: 'Torna al web', terms: 'Condicions de venda i d’ús', legal: 'Avís legal', privacy: 'Política de privacitat', skip: 'Salta al contingut', label: 'Idioma' },
+    en: { back: 'Back to the website', terms: 'Terms of sale and use', legal: 'Legal notice', privacy: 'Privacy policy', skip: 'Skip to content', label: 'Language' }
   };
   function apply(lang, save) {
     document.documentElement.lang = lang;

@@ -79,7 +79,7 @@ export function ApiKeySettings() {
     },
     {
       title: 'Crea y copia la clave',
-      body: 'Pulsa el botón azul «Create API key» (o «Crear clave de API»). Si te pregunta por un proyecto, acepta el que propone. Después pulsa el icono de copiar junto a la clave,.',
+      body: 'Pulsa el botón azul «Create API key» (o «Crear clave de API»). Si te pregunta por un proyecto, acepta el que propone. Después pulsa el icono de copiar junto a la clave.',
     },
     {
       title: 'Vuelve aquí y pégala',
@@ -180,7 +180,7 @@ export function ApiKeySettings() {
 
       <p className="ak-privacy">
         <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
-        <span>{t('Los nombres de tu alumnado nunca salen de este equipo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner. Los documentos de tu alumnado van solo como texto y en sus fotos tapas el nombre. Desde la Unión Europea, Google no usa lo que envías para mejorar sus productos, tampoco con la clave gratuita.')}</span>
+        <span>{t('Los nombres de tu alumnado no salen de este dispositivo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner. Con los documentos y las fotos, igual: de un documento solo se envía su texto, sin nombres, correos, teléfonos ni DNI, y en una foto tapas el nombre antes de enviarla; las dos cosas se hacen aquí, en tu dispositivo. Un nombre que no esté en tus listas (un apodo, un familiar) no se puede tapar solo: evita escribirlo. Desde el Espacio Económico Europeo, según las condiciones de la API de Gemini, Google aplica también a la clave gratuita las reglas de la de pago: no usa lo que envías para entrenar sus modelos ni para mejorar sus productos.')}</span>
       </p>
     </div>
   );

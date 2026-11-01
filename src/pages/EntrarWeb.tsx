@@ -118,6 +118,13 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
           <ShieldCheck size={15} aria-hidden="true" />
           <span>{t('AulaPro solo guarda tu nombre y tu correo en este dispositivo. Tu trabajo no sale hacia ningún servidor de AulaPro.')}</span>
         </p>
+        {/* Auditoría del 1-11-2026: quien entra sin comprar (los fundadores) también acepta las condiciones de uso */}
+        <p className="entrar-legal" style={{ fontSize: 12, color: 'var(--text-3)', margin: '10px 0 0', textAlign: 'center' }}>
+          {t('Al entrar aceptas las')}{' '}
+          <a href="../condiciones.html" target="_blank" rel="noopener noreferrer">{t('condiciones de venta y de uso')}</a>{' '}
+          {t('y la')}{' '}
+          <a href="../privacidad.html" target="_blank" rel="noopener noreferrer">{t('política de privacidad')}</a>.
+        </p>
       </div>
     </div>
   );
