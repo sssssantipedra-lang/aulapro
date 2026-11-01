@@ -45,7 +45,9 @@ export function LicenseGate({ state, onChange }: Props) {
   // Con la venta cerrada no hay nada que comprar: la clave a mano sale ya a la vista
   const [conClave, setConClave] = useState(!VENTA_ABIERTA);
   // La suscripción terminó en este dispositivo: se dice y se ofrece la renovación, no el precio de lanzamiento
-  const [vencida] = useState(licenciaVencida);
+  const [vencida, setVencida] = useState(licenciaVencida);
+  // La firma caduca a los 7 días sin conexión (`platform/firmaLicencia.ts`): sin red, lo que falta es comprobarla
+  const [sinConexion] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
 
   /** Busca la compra de esta cuenta y, si la hay, activa la licencia. */
   async function comprobarCompra(manual: boolean) {
@@ -54,7 +56,9 @@ export function LicenseGate({ state, onChange }: Props) {
     const bridge = licenseBridge();
     if (manual) setMirando(false);
     if (b.key && bridge?.porCuenta) { onChange(await bridge.porCuenta(b.key, b.firma)); return; }
+    if ('vencida' in b && b.vencida) setVencida(true);
     if (!manual) return;
+    if ('vencida' in b && b.vencida) return;   // la pantalla ya dice que la suscripción terminó
     if (!('error' in b) || !b.error) setAviso(t('Todavía no aparece ninguna compra con {email}. Si acabas de pagar, espera un minuto y vuelve a comprobar.', { email: cuenta?.email ?? '' }));
     else setAviso(t(avisoDe(cuenta?.proveedor, b.error)));
   }
@@ -118,7 +122,9 @@ export function LicenseGate({ state, onChange }: Props) {
 
         {cuenta ? (
           <div className="lic-compra">
-            <p className="lic-text">{vencida
+            <p className="lic-text">{sinConexion
+              ? t('No hay conexión. AulaPro necesita comprobar tu suscripción al menos una vez cada 7 días: conéctate a internet y vuelve a abrir la app. Tu trabajo sigue guardado.')
+              : vencida
               ? t('Tu suscripción a AulaPro ha terminado. Tu trabajo sigue guardado y no se ha borrado nada: renueva con la cuenta {email} y vuelves a entrar al instante.', { email: cuenta.email })
               : VENTA_ABIERTA
               ? t('Con la cuenta {email} todavía no hay una licencia. Suscríbete aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })

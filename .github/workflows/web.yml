@@ -66,6 +66,11 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm run build:web
 
+      # La lista de lo que /app/assets/ da sin sesión, para la puerta (web/funciones/api/_puerta.js)
+      - name: Puerta de la app (sin pagar, no hay app)
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: node web/app/publico.mjs dist-web
+
       - name: Portada en català e inglés (/ca y /en)
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: node web/idiomas.mjs web/sitio

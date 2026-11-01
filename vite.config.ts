@@ -15,12 +15,34 @@ const WEB_APP = fileURLToPath(new URL('./web/app/', import.meta.url))
  * iconos, y al terminar escribe el service worker (`web/app/sw.js`) con la
  * lista de todo lo compilado, para guardarlo entero en el dispositivo.
  */
+/**
+ * Lo que necesita la pantalla de entrada antes de tener licencia, además de lo que carga la página: el puente
+ * web (`main.tsx` lo importa aparte) y lo que este importa al entrar con Google o Microsoft. Lo demás del
+ * código solo sale de /app/assets/ con sesión (`web/funciones/api/_puerta.js`).
+ */
+const ANTES_DE_LA_LICENCIA = /src[\\/]platform[\\/](web|carpetaWeb|cuentaWeb|googleDrive|microsoft)\.ts$/
+
 function appWeb(): Plugin {
   let salida = ''
+  let publicos: string[] = []
   return {
     name: 'aulapro-app-web',
     apply: 'build',
     configResolved(c) { salida = c.build.outDir },
+    generateBundle(_opts, bundle) {
+      // Los bloques que carga la página al abrir (sus importaciones fijas) y los que se piden antes de la licencia
+      const chunks = Object.values(bundle).filter(b => b.type === 'chunk')
+      const porNombre = new Map(chunks.map(c => [c.fileName, c]))
+      const vistos = new Set<string>()
+      const pendientes = chunks.filter(c => c.isEntry || (c.facadeModuleId && ANTES_DE_LA_LICENCIA.test(c.facadeModuleId))).map(c => c.fileName)
+      while (pendientes.length) {
+        const f = pendientes.pop()!
+        if (vistos.has(f)) continue
+        vistos.add(f)
+        for (const i of porNombre.get(f)?.imports ?? []) pendientes.push(i)
+      }
+      publicos = [...vistos].filter(f => /\.m?js$/.test(f)).sort()
+    },
     transformIndexHtml(html) {
       return html.replace('</head>', [
         '<link rel="manifest" href="./manifest.webmanifest" />',
@@ -52,6 +74,8 @@ function appWeb(): Plugin {
         ],
       }, null, 2))
       writeFileSync(join(salida, 'version.json'), JSON.stringify({ version: pkg.version }))
+      // Para la puerta de /app/assets/ (web/app/publico.mjs la copia a web/funciones/_publico.js al publicar)
+      writeFileSync(join(salida, 'publico.json'), JSON.stringify(publicos))
 
       const todos: string[] = []
       const recorrer = (dir: string) => {
@@ -63,11 +87,14 @@ function appWeb(): Plugin {
       }
       recorrer(salida)
       // La página va como './': Cloudflare redirige index.html a la carpeta (ver web/app/sw.js)
-      const todo = todos.filter(f => !['sw.js', 'version.json'].includes(f) && !f.endsWith('.map'))
+      const todo = todos.filter(f => !['sw.js', 'version.json', 'publico.json'].includes(f) && !f.endsWith('.map'))
         .map(f => (f === 'index.html' ? './' : f)).sort()
       // Lo imprescindible se instala antes de activar; los dibujos, los pictogramas y el lector de PDF, después (ver web/app/sw.js)
       const esExtra = (f: string) => f.startsWith('ilustraciones/') || f.startsWith('pictos/') || /pdf\.worker/.test(f)
-      const lista = todo.filter(f => !esExtra(f))
+      // El código que pide sesión va aparte: sin suscripción no se guarda en el dispositivo (ver web/app/sw.js)
+      const conSesion = (f: string) => /^assets\/.+\.m?js$/.test(f) && !publicos.includes(f)
+      const lista = todo.filter(f => !esExtra(f) && !conSesion(f))
+      const privado = todo.filter(f => !esExtra(f) && conSesion(f))
       const extra = todo.filter(esExtra)
       // El nombre de la caché cambia con cualquier cambio de contenido: una versión no se mezcla con otra
       const huella = createHash('sha256')
@@ -75,6 +102,7 @@ function appWeb(): Plugin {
       const sw = readFileSync(join(WEB_APP, 'sw.js'), 'utf8')
         .replace("'__CACHE__'", `'aulapro-${pkg.version}-${huella.digest('hex').slice(0, 10)}'`)
         .replace('= __PRECARGA__;', `= ${JSON.stringify(lista)};`)
+        .replace('= __PRIVADO__;', `= ${JSON.stringify(privado)};`)
         .replace('= __EXTRA__;', `= ${JSON.stringify(extra)};`)
       writeFileSync(join(salida, 'sw.js'), sw)
     },
@@ -88,6 +116,8 @@ export default defineConfig(({ mode }) => ({
   // Electron: así funciona igual empaquetada, en `npm run dev` y en web.
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    // Cuándo se compiló: Configuración › Licencia lo enseña para saber qué versión abre el navegador (la nueva entra a la segunda apertura)
+    __APP_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')),
   },
   plugins: [
     react(),

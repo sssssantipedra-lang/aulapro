@@ -52,15 +52,17 @@ export async function onRequestPost({ request, env }) {
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
   const pedidos = await fetch(`${LS}/orders?filter[store_id]=${STORE_ID}&filter[user_email]=${encodeURIComponent(email)}`, { headers: cab });
   if (!pedidos.ok) return json({ error: 'tienda' }, 502, cors);
+  // Si hay un pedido pagado cuya clave ya no vale (la suscripción terminó), se avisa: así la app lo sabe en cualquier dispositivo, por el correo
+  let vencida = false;
   for (const p of (await pedidos.json()).data ?? []) {
     if (p.attributes?.status !== 'paid') continue;
     const claves = await fetch(`${LS}/license-keys?filter[order_id]=${p.id}`, { headers: cab });
     if (!claves.ok) continue;
     for (const k of (await claves.json()).data ?? []) {
       const a = k.attributes ?? {};
-      if (a.disabled || ['disabled', 'expired'].includes(a.status)) continue;
+      if (a.disabled || ['disabled', 'expired'].includes(a.status)) { vencida = true; continue; }
       if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, env.GOOGLE_CLIENT_SECRET) }, 200, cors);
     }
   }
-  return json({ key: null }, 200, cors);
+  return json(vencida ? { key: null, vencida: true } : { key: null }, 200, cors);
 }

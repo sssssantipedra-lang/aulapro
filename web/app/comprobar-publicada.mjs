@@ -36,6 +36,15 @@ const guardados = await page.evaluate(async () => {
 }).catch(e => ({ error: e.message }));
 console.log('  Guardado para usar sin conexión:', JSON.stringify(guardados));
 if (!guardados.archivos) mal++;
+// «Sin pagar, no hay app» (1-11-2026): sin sesión, el código de las pantallas no sale (web/funciones/api/_puerta.js)
+const puerta = await page.evaluate(async () => {
+  const sw = await (await fetch('sw.js', { cache: 'no-store' })).text();
+  const privado = JSON.parse(sw.match(/const PRIVADO = (\[.*?\]);/s)?.[1] ?? '[]');
+  if (!privado.length) return { error: 'el service worker no trae la lista PRIVADO' };
+  return { bloque: privado[0], estado: (await fetch(privado[0], { cache: 'no-store' })).status };
+}).catch(e => ({ error: e.message }));
+console.log('  Código de las pantallas sin sesión:', JSON.stringify(puerta));
+if (puerta.estado !== 401) { mal++; console.log('✘ La puerta de /app/assets/ está abierta sin sesión'); } else console.log('✔ La puerta está cerrada sin sesión');
 await abrir('Segunda visita, ya guardada');
 await abrir('Tercera visita');
 await ctx.setOffline(true);

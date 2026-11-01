@@ -13,6 +13,8 @@ import { Welcome } from './pages/Welcome';
 import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
+import { licenciaVencida, marcarLicenciaVencida } from './lib/licenciaVencida';
+import { LICENCIA_PERDIDA, olvidarApp } from './platform/sesionWeb';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
@@ -848,14 +850,21 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       // Versión web: si la cuenta con la que acaba de entrar compró AulaPro, se activa sola
       // Sin límite de dispositivos: la licencia es de la cuenta (decisión del dueño, 29-10-2026)
       const bridge = licenseBridge();
-      if (isWebApp() && bridge?.porCuenta && !s?.required && hayToken()) {
+      // Sin token de esta sesión, la compra también se mira cuando la firma está a punto de caducar (un fundador no
+      // tiene clave que renovar cada día: su firma se renueva con su cuenta)
+      const casiCaducada = !!s?.firmaHasta && s.firmaHasta - Date.now() < 2 * 24 * 60 * 60 * 1000;
+      if (isWebApp() && bridge?.porCuenta && !s?.required && (hayToken() || casiCaducada)) {
         // Ya hay licencia guardada y con firma válida: la app abre sin esperar a la red (eran de 1 a 4 s en cada recarga)
-        // y la compra se vuelve a mirar en segundo plano. Si se devolvió, se nota al abrir la próxima vez.
+        // y la compra se vuelve a mirar en segundo plano. Si se devolvió o terminó, se bloquea en cuanto contesta la función (unos segundos después de abrir).
         setState(s);
         if (!licenciaMiradaHace(10 * 60_000)) {
           void licenciaDeLaCuenta().then(async b => {
             if (b.key) await bridge.porCuenta?.(b.key, b.firma);
-            else if (!('error' in b && b.error)) await bridge.porCuenta?.(null);
+            else if (!('error' in b && b.error)) {
+              // La suscripción terminó: se bloquea ya, al abrir, y no en la próxima apertura (el trabajo queda en el navegador)
+              const n = await bridge.porCuenta?.(null);
+              if (n?.required) setState(n);
+            }
           }).catch(() => {});
         }
         return;
@@ -870,11 +879,38 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       if (isWebApp() && bridge && s?.required) {
         const { claveDeNube } = await import('./platform/carpetaWeb');
         const k = await claveDeNube();
-        if (k) { const r = await bridge.activate(k); if (r.ok) { setState(r.state); return; } }
+        if (k) {
+          const r = await bridge.activate(k);
+          if (r.ok) { setState(r.state); return; }
+          // La clave de la nube ha caducado: la pantalla dice que la suscripción terminó, no que no hay licencia
+          if (r.error === 'desactivada') marcarLicenciaVencida();
+        }
       }
       setState(s);
     });
   }, [state]);
+
+  // La licencia se ha perdido con la app abierta (la comprobación de la clave contestó tarde): a la pantalla de licencia ya
+  useEffect(() => {
+    const perdida = () => { void getLicenseState().then(n => { if (n?.required) setState(n); }); };
+    window.addEventListener(LICENCIA_PERDIDA, perdida);
+    return () => window.removeEventListener(LICENCIA_PERDIDA, perdida);
+  }, []);
+
+  // Con la pestaña abierta días seguidos, la comprobación diaria se hace igual: cada hora y al volver a la pestaña
+  // (solo llama a la tienda si hace más de un día de la última). Si la licencia se pierde, avisa `LICENCIA_PERDIDA`.
+  useEffect(() => {
+    if (!isWebApp()) return;
+    const revisar = () => { if (document.visibilityState === 'visible') void licenseBridge()?.revisar?.().catch(() => {}); };
+    const id = setInterval(revisar, 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', revisar);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', revisar); };
+  }, []);
+
+  // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el
+  // dispositivo; el trabajo se queda. Al renovar se vuelve a descargar.
+  const bloqueada = !!state?.required && isWebApp() && licenciaVencida();
+  useEffect(() => { if (bloqueada) void olvidarApp(); }, [bloqueada]);
 
   if (state === undefined) {
     return (

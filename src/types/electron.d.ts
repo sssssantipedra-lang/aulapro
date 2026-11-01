@@ -114,6 +114,12 @@ export interface LicenseState {
   since: string;
   /** Página donde se compra; vacía mientras no haya tienda. */
   buyUrl: string;
+  /** Versión web: hasta cuándo vale la firma de la licencia (ms). Para renovarla a tiempo, no para fiarse. */
+  firmaHasta?: number;
+  /** Versión web: de dónde viene la licencia: la compra de la cuenta o una clave escrita a mano. */
+  origen?: 'cuenta' | 'clave';
+  /** Última vez que la tienda la dio por buena (ISO). */
+  comprobada?: string;
 }
 
 export interface LicenseResult { ok: boolean; error?: LicenseError; state: LicenseState }
@@ -130,6 +136,8 @@ export interface LicenseBridge {
    * 29-10-2026). `null` la quita (se devolvió o se anuló).
    */
   porCuenta?: (key: string | null, firma?: string) => Promise<LicenseState>;
+  /** Solo en la versión web: la comprobación diaria con la app abierta (pestaña que no se cierra en días). */
+  revisar?: () => Promise<LicenseState>;
 }
 
 export interface StoreBridge {
