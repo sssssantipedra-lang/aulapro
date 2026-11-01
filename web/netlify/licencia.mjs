@@ -2,6 +2,7 @@
 // Squeezy la activación, la comprobación o la desactivación de una clave. Admite CORS porque la app
 // de aulapro.app la llama cuando Cloudflare no responde.
 import { clavePublica } from '../funciones/api/_firma.js';
+import { responderSesion } from '../funciones/api/_sesion.js';
 import { conFirma } from '../funciones/api/licencia/[accion].js';
 import { corsPara } from '../funciones/api/_origenes.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
@@ -14,6 +15,8 @@ export default async (request, context) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   const accion = context.params.accion;
   const secreto = Netlify.env.get('GOOGLE_CLIENT_SECRET');
+  // /api/licencia/sesion coincide también con esta ruta, y gana: se atiende aquí (1-11-2026, daba 404 en aulapro.app)
+  if (accion === 'sesion') return responderSesion(request, secreto);
   if (request.method === 'GET' && accion === 'clave') {
     return new Response(JSON.stringify({ x: await clavePublica(secreto) }), {
       headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
