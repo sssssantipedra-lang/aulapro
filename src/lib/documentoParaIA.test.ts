@@ -158,3 +158,35 @@ describe('un informe de derivación de verdad (prueba del dueño, 31-10-2026, co
       .toBe('[ALU-1] y [ALU-2] trabajan juntos. [ALU-1]. Después, [ALU-2].');
   });
 });
+
+/** Auditoría del 1-11-2026: formatos de España que antes se quedaban. */
+describe('lo que antes se escapaba', () => {
+  it('teléfonos fijos de dos en dos tras el prefijo de provincia y con 0034 delante', () => {
+    const r = quitarDatosDeContacto('Casa: 96 123 45 67. Madrid: 91-234-56-78. Abuela: 0034 612 345 678. Otro: 963 12 34 56.');
+    expect(r).not.toMatch(/123 45 67|234-56-78|612 345 678|963 12 34 56/);
+    expect(r.match(/\[teléfono\]/g)).toHaveLength(4);
+  });
+
+  it('DNI con puntos y guion, NIE con guiones y DNI antiguos de 7 cifras', () => {
+    const r = quitarDatosDeContacto('DNI 12.345.678-Z, NIE X-1234567-L, antiguo 1234567-B.');
+    expect(r).not.toMatch(/345\.678|1234567/);
+    expect(r.match(/\[DNI\]/g)).toHaveLength(3);
+  });
+
+  it('no confunde cantidades ni notas con teléfonos o DNI', () => {
+    const t = 'Nota media 7,5. Presupuesto 1.500 €. Curso 2026-2027. Página 12 de 40. 30 alumnos en 3 grupos.';
+    expect(quitarDatosDeContacto(t)).toBe(t);
+  });
+
+  it('la etiqueta sola en su línea y el nombre debajo (tablas de un PDF)', () => {
+    const r = quitarIdentificadores('Nombre y apellidos:\nCarlota Benítez Soler\nCurso:\n3º de Primaria\nCarlota trabaja bien.');
+    expect(r).not.toMatch(/Carlota|Benítez|Soler/);
+    expect(r).toContain('3º de Primaria');
+    expect(r).toContain('[nombre] trabaja bien.');
+  });
+
+  it('tratamientos en mayúsculas, sin punto o de doctor, y en inglés', () => {
+    expect(quitarIdentificadores('Firma: (ilegible). Atendido por la Dra. Elena Prats y DÑA. MARTA GIL; también la Sra Gil y Mrs. Smith.'))
+      .not.toMatch(/Elena|Prats|MARTA|Smith|Sra Gil/);
+  });
+});

@@ -642,7 +642,8 @@ export async function analyzeDocument(
     `aprendizaje LOMLOE. Devuelve un resumen muy conciso en forma de lista, solo con lo relevante. ` +
     `El idioma de salida DEBE SER ${idioma(lang)}.`;
 
-  return callGemini(systemPrompt, `Analiza este documento: ${file.name}`, [file], callbacks);
+  // Sin el nombre del archivo: a la IA no le hace falta y puede llevar el de una persona (auditoría del 1-11-2026)
+  return callGemini(systemPrompt, 'Analiza el documento adjunto.', [file], callbacks);
 }
 
 /* ── Importar una SdA desde un PDF (petición del dueño, 22-10-2026) ── */
@@ -734,7 +735,7 @@ export async function extraerSdaDePdf(
 
   const raw = await callGemini(
     systemPrompt,
-    `Extrae de este documento los elementos de la situación de aprendizaje y sus sesiones en orden: ${file.name}`,
+    'Extrae del documento adjunto los elementos de la situación de aprendizaje y sus sesiones en orden.',
     [file],
     callbacks,
     { responseSchema: SDA_PDF_SCHEMA, maxOutputTokens: 8192, thinkingLevel: 'low' },

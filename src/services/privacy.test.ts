@@ -145,3 +145,43 @@ describe('dígito de control de los códigos (Damm)', () => {
     }
   });
 });
+
+/**
+ * Auditoría del 1-11-2026: un nombre se tapa aunque se escriba deprisa (sin tildes, sin eñe), en mayúsculas, partido
+ * en dos líneas o en el nombre de un archivo. Antes solo se tapaba escrito igual que en la lista del alumnado.
+ */
+describe('nombres escritos de otra forma', () => {
+  const p = buildPseudonymizer([...roster, { id: 'f', name: 'Íñigo Núñez Çanet' }]);
+
+  it('sin tildes ni eñe, el nombre completo y el de pila se tapan igual', () => {
+    expect(p.mask('Lucia Perez no ha traído el material.')).toBe('[ALU-1] no ha traído el material.');
+    expect(p.mask('lucia perez navarro')).toBe('[ALU-1]');
+    expect(p.mask('Inigo Nunez Canet ha mejorado.')).toBe('[ALU-6] ha mejorado.');
+    expect(p.mask('¿Y Lucia?')).toBe('¿Y [ALU-1]?');
+  });
+
+  it('en mayúsculas, con o sin tildes (un encabezado, un informe en mayúsculas)', () => {
+    expect(p.mask('LUCÍA PÉREZ NAVARRO')).toBe('[ALU-1]');
+    expect(p.mask('ALUMNA: LUCIA')).toBe('ALUMNA: [ALU-1]');
+    expect(p.mask('MARCO RODRIGUEZ')).toBe('[ALU-2]');
+  });
+
+  it('partido en dos líneas, con guion o en el nombre de un archivo', () => {
+    expect(p.mask('Lucía\nPérez')).toBe('[ALU-1]');
+    expect(p.mask('Informe_Lucia_Perez_Navarro.pdf')).toBe('Informe_[ALU-1].pdf');
+    expect(p.mask('Marco-Rodríguez')).toBe('[ALU-2]');
+  });
+
+  it('sigue sin confundir palabras corrientes en minúscula, y vuelve el nombre tal como está en la lista', () => {
+    expect(p.mask('una falda rosa')).toBe('una falda rosa');
+    expect(p.unmask(p.mask('Lucia Perez'))).toBe('Lucía Pérez Navarro');
+    expect(p.unmask(p.mask('Inigo'))).toBe('Íñigo Núñez Çanet');
+  });
+
+  it('dos nombres de pila que solo se distinguen por la tilde cuentan como compartidos', () => {
+    const q = buildPseudonymizer([{ id: '1', name: 'Ángel Ruiz' }, { id: '2', name: 'Angel Soto' }]);
+    const t = q.mask('Angel y Ángel');
+    expect(t).not.toMatch(/ngel/);
+    expect(q.unmask(t)).toBe('Ángel y Ángel');
+  });
+});

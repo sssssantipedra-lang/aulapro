@@ -13,8 +13,11 @@
  * nombres que el docente escribe a mano en el chat, en unas notas o en un
  * aviso, y cualquier función nueva que llame a la IA en el futuro.
  *
- * Lo que no se puede tapar son los archivos adjuntos (fotos o PDF que el
- * propio docente sube): se envían tal cual.
+ * Los documentos del alumnado no se envían como archivo: se leen en el
+ * dispositivo y solo va su texto, que pasa por aquí (`lib/documentoParaIA.ts`);
+ * en sus fotos, el docente tapa el nombre antes (`components/TaparNombre.tsx`).
+ * Lo que no se puede tapar solo es un nombre que no esté en la lista del
+ * alumnado (un familiar, un apodo) escrito a mano.
  */
 
 export interface RosterEntry {
@@ -43,20 +46,47 @@ const wordRe = (inner: string, flags: string) =>
 /** Primeras palabras que no son un nombre de pila: los alumnos de ejemplo se llaman «Alumno 1», «Student 1»… */
 const GENERICOS = new Set(['alumno', 'alumna', 'alumne', 'student', 'estudiante', 'estudiant', 'pupil']);
 
+/**
+ * Un nombre se reconoce aunque se escriba sin tildes, sin eñe o sin ce trencada («Lucia», «Nunez», «Lluis» por
+ * «Lucía», «Núñez», «Lluís»; auditoría del 1-11-2026): es como se escribe deprisa en una anotación, en el chat o en
+ * el nombre de un archivo. Antes solo se tapaba escrito exactamente igual que en la lista.
+ */
+const sinTildes = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const VARIANTES: Record<string, string> = { a: 'aáàâäã', e: 'eéèêë', i: 'iíìîï', o: 'oóòôöõ', u: 'uúùûü', n: 'nñ', c: 'cç' };
+/** La clave de un nombre para buscarlo: sin tildes, en minúscula y con un solo espacio entre palabras. */
+const claveDe = (s: string) => sinTildes(s).toLocaleLowerCase('es').replace(/[\s_-]+/g, ' ').trim();
+
+/**
+ * El patrón de un nombre que admite cada letra con o sin tilde, en la misma caja que la original (los nombres de pila
+ * se buscan con mayúscula: «Rosa» es la alumna, «rosa» el color), y entre palabras cualquier espacio, salto de línea,
+ * guion o guion bajo («Ana-María», «Lucía\nPérez» en un PDF, «Informe_Lucia_Perez.pdf»).
+ */
+function patronFlexible(forma: string): string {
+  let out = '';
+  for (const ch of forma.normalize('NFC')) {
+    if (/[\s_-]/.test(ch)) { if (!out.endsWith('[\\s_-]+')) out += '[\\s_-]+'; continue; }
+    const base = sinTildes(ch);
+    const grupo = VARIANTES[base.toLocaleLowerCase('es')];
+    if (!grupo) { out += escapeRe(ch); continue; }
+    out += `[${base === base.toLocaleUpperCase('es') && base !== base.toLocaleLowerCase('es') ? grupo.toLocaleUpperCase('es') : grupo}]`;
+  }
+  return out;
+}
+
 export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymizer {
   const people = roster
     .map(r => ({ ...r, name: r.name.trim().replace(/\s+/g, ' ') }))
     .filter(r => r.name.length > 0);
 
   const byCode = new Map<number, string>();
-  /** Formas completas («Lucía Pérez Navarro», «Lucía Pérez»): sin distinguir mayúsculas. */
+  /** Formas completas («Lucía Pérez Navarro», «Lucía Pérez»): sin distinguir mayúsculas ni tildes. */
   const full: { form: string; n: number }[] = [];
   /** Nombre de pila suelto («Lucía»), escrito con mayúscula: el de su alumno o, si lo comparten varios, uno propio. */
   const firsts: { form: string; n: number }[] = [];
 
   const firstCount = new Map<string, number>();
   for (const p of people) {
-    const first = p.name.split(' ')[0].toLocaleLowerCase('es');
+    const first = claveDe(p.name.split(' ')[0]);
     firstCount.set(first, (firstCount.get(first) ?? 0) + 1);
   }
 
@@ -77,29 +107,33 @@ export function buildPseudonymizer(roster: readonly RosterEntry[]): Pseudonymize
     const first = words[0];
     // Un nombre de pila de dos letras («Al») taparía palabras corrientes, y «Alumno» (de «Alumno 1», los datos de
     // ejemplo) es una palabra corriente de cualquier informe: mejor dejarlos.
-    if (words.length < 2 || first.length < 3 || GENERICOS.has(first.toLocaleLowerCase('es'))) return;
-    const clave = first.toLocaleLowerCase('es');
+    if (words.length < 2 || first.length < 3 || GENERICOS.has(claveDe(first))) return;
+    const clave = claveDe(first);
     if (firstCount.get(clave) === 1) { firsts.push({ form: first, n }); return; }
     let c = compartidos.get(clave);
     if (c === undefined) { c = ++siguiente; compartidos.set(clave, c); byCode.set(c, first); }
-    if (!firsts.some(f => f.form === first)) firsts.push({ form: first, n: c });
+    if (!firsts.some(f => claveDe(f.form) === clave)) firsts.push({ form: first, n: c });
   });
 
   // Las formas más largas primero: «Lucía Pérez Navarro» antes que «Lucía Pérez».
   full.sort((a, b) => b.form.length - a.form.length);
-  const fullIndex = new Map(full.map(f => [f.form.toLocaleLowerCase('es'), f.n]));
-  const firstIndex = new Map(firsts.map(f => [f.form, f.n]));
+  // Si dos alumnos se llaman igual (en clases distintas), manda el primero: el nombre que vuelve es el mismo
+  const fullIndex = new Map<string, number>();
+  for (const f of full) if (!fullIndex.has(claveDe(f.form))) fullIndex.set(claveDe(f.form), f.n);
+  const firstIndex = new Map(firsts.map(f => [claveDe(f.form), f.n]));
 
-  const fullRe = full.length ? wordRe(full.map(f => escapeRe(f.form)).join('|'), 'giu') : null;
-  // Con mayúscula inicial tal cual: «rosa» (el color) no es «Rosa» (la alumna).
-  const firstRe = firsts.length ? wordRe(firsts.map(f => escapeRe(f.form)).join('|'), 'gu') : null;
+  const fullRe = full.length ? wordRe(full.map(f => patronFlexible(f.form)).join('|'), 'giu') : null;
+  // Con mayúscula inicial tal cual («rosa», el color, no es «Rosa», la alumna) o todo en mayúsculas («LUCÍA»)
+  const firstRe = firsts.length
+    ? wordRe(firsts.flatMap(f => [patronFlexible(f.form), patronFlexible(f.form.toLocaleUpperCase('es'))]).join('|'), 'gu')
+    : null;
 
   return {
     mask(text) {
       if (!text) return text;
       let out = text;
-      if (fullRe) out = out.replace(fullRe, m => code(fullIndex.get(m.toLocaleLowerCase('es')) ?? 0));
-      if (firstRe) out = out.replace(firstRe, m => code(firstIndex.get(m) ?? 0));
+      if (fullRe) out = out.replace(fullRe, m => code(fullIndex.get(claveDe(m)) ?? 0));
+      if (firstRe) out = out.replace(firstRe, m => code(firstIndex.get(claveDe(m)) ?? 0));
       return out;
     },
     unmask(text) {

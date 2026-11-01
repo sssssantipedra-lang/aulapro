@@ -111,8 +111,13 @@ const ETIQUETA_TAPAR = etiquetas([...PERSONA, ...LUGAR]);
 const ETIQUETA_PERSONA = new RegExp(`^(?:${PERSONA.join('|')})[ \\t]*:$`, 'iu');
 const ETIQUETA_CUALQUIERA = etiquetas([...PERSONA, ...LUGAR, ...OTRAS]);
 
-/** Tratamientos delante de un nombre: «D. Andrés Ferrer», «Dña. Marta Gil». */
-const TRATAMIENTO = /(?<![\p{L}])(D\.|Dª\.?|Dña\.|Don|Doña|Sr\.|Sra\.|Srta\.)(\s+)\p{Lu}[\p{L}'-]+(?:\s+(?:(?:de|del|de la|i)\s+)?\p{Lu}[\p{L}'-]+){0,3}/gu;
+/**
+ * Tratamientos delante de un nombre: «D. Andrés Ferrer», «Dña. Marta Gil», «Dra. López», «Mrs. Smith», también en
+ * mayúsculas o sin el punto («DÑA. MARTA GIL», «Sra Gil»; auditoría del 1-11-2026).
+ */
+const TRATAMIENTOS = 'D\\.|Dª\\.?|D[ñÑ]a\\.?|DÑA\\.?|Don|DON|Doña|DOÑA|Sr\\.?|SR\\.?|Sra\\.?|SRA\\.?|Srta\\.?|SRTA\\.?|Dr\\.|DR\\.|Dra\\.|DRA\\.|Mr\\.|Mrs\\.|Ms\\.';
+const TRATAMIENTO = new RegExp(`(?<![\\p{L}])(${TRATAMIENTOS})(\\s+)\\p{Lu}[\\p{L}'-]+(?:\\s+(?:(?:de|del|de la|i)\\s+)?\\p{Lu}[\\p{L}'-]+){0,3}`, 'gu');
+const TRATAMIENTO_INICIAL = new RegExp(`^(?:${TRATAMIENTOS})\\s+`, 'u');
 const PARTICULAS = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'i', 'van', 'von', 'da', 'do', 'dos']);
 const escapar = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -143,6 +148,18 @@ export function quitarIdentificadores(texto: string): string {
     let hasta = siguiente;
     while (hasta > desde && /\s/.test(t[hasta - 1])) hasta--;
     const valor = t.slice(desde, hasta).trim();
+    // La etiqueta sola al final de su línea («Nombre y apellidos:» y el nombre debajo, como sale de muchas tablas en
+    // PDF; auditoría del 1-11-2026): el valor es la línea siguiente, si es corta y no es otra etiqueta
+    if (!valor && hasta === desde) {
+      const inicio = finLinea + 1;
+      const fin = t.indexOf('\n', inicio) === -1 ? t.length : t.indexOf('\n', inicio);
+      const debajo = inicio <= t.length ? t.slice(inicio, fin).trim() : '';
+      if (debajo && debajo.length <= 80 && !cortes.some(c => c >= inicio && c < fin) && debajo !== R('dato quitado')) {
+        if (ETIQUETA_PERSONA.test(m[0].trim())) nombres.push(debajo);
+        t = `${t.slice(0, inicio)}${R('dato quitado')}${t.slice(fin)}`;
+        continue;
+      }
+    }
     if (!valor || valor === R('dato quitado')) continue;
     if (ETIQUETA_PERSONA.test(m[0].trim())) nombres.push(valor);
     t = `${t.slice(0, desde)} ${R('dato quitado')}${t.slice(hasta)}`;
@@ -151,7 +168,7 @@ export function quitarIdentificadores(texto: string): string {
   // 3. Esos nombres, donde vuelvan a salir: entero y cada palabra (con mayúscula, de 3 letras o más)
   const palabras = new Set<string>();
   for (const v of nombres) {
-    for (const w of v.replace(/^(D\.|Dª\.?|Dña\.|Don|Doña|Sr\.|Sra\.|Srta\.)\s+/u, '').split(/[\s,]+/)) {
+    for (const w of v.replace(TRATAMIENTO_INICIAL, '').split(/[\s,]+/)) {
       const p = w.replace(/[.,;:()]+$/, '');
       if (p.length >= 3 && /^\p{Lu}/u.test(p) && !PARTICULAS.has(p.toLocaleLowerCase('es'))) palabras.add(p);
     }
@@ -186,11 +203,12 @@ export function textoDeDocumento(texto: string, enmascarar: (t: string) => strin
  */
 export function quitarDatosDeContacto(texto: string): string {
   return texto
-    // Correos y teléfonos (España, con o sin +34)
+    // Correos y teléfonos (España, con o sin +34 o 0034). Los fijos se escriben a menudo de dos en dos tras el prefijo
+    // de provincia («96 123 45 67», «91 234 56 78»; auditoría del 1-11-2026: antes se quedaban)
     .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, R('correo'))
-    .replace(/(?<![\w+])(?:\+34[\s.-]?)?[6789]\d{2}(?:(?:[\s.-]?\d{3}){2}|(?:[\s.-]?\d{2}){3})(?!\d)/g, R('teléfono'))
-    // DNI y NIE
-    .replace(/(?<![\p{L}\d])[XYZ]?\d{7,8}[\s-]?[A-Z](?![\p{L}\d])/gu, R('DNI'))
+    .replace(/(?<![\w+])(?:(?:\+|00)34[\s.-]?)?(?:[6789]\d{2}(?:(?:[\s.-]?\d{3}){2}|(?:[\s.-]?\d{2}){3})|[89]\d[\s.-]?\d{3}(?:[\s.-]?\d{2}){2})(?!\d)/g, R('teléfono'))
+    // DNI y NIE, también con puntos o guiones («12.345.678-Z», «X-1234567-L»)
+    .replace(/(?<![\p{L}\d.])(?:[XYZ][\s-]?\d{7}|\d{7,8}|\d{1,2}\.\d{3}\.\d{3})[\s-]?[A-Z](?![\p{L}\d])/gu, R('DNI'))
     // Fechas de nacimiento, con su etiqueta
     .replace(/((?:fecha\s+de\s+)?nacimiento|data\s+de\s+naixement|naixement|date\s+of\s+birth|birth\s*date|nacid[oa]\s+el|nascu[dt]a?\s+el|born\s+on|f\.?\s?nac\.?|d\.?\s?o\.?\s?b\.?)(\s*[:.-]?\s*)(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{1,2}\s+de\s+\p{L}+\s+(?:de|del)\s+\d{4})/giu, `$1$2${R('fecha')}`)
     // Números largos: expediente, NIA, SIP, tarjeta sanitaria, seguridad social
