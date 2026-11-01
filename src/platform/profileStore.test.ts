@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createProfileStore, MAX_BACKUPS, type Fs } from './profileStore';
+import { createProfileStore, DatosIlegibles, MAX_BACKUPS, type Fs } from './profileStore';
+import { contenidoDe, perfilVacio, textoDePerfilVacio } from '../lib/contenidoPerfil';
 
 /** Sistema de archivos en memoria, con la misma forma que el de Capacitor. */
 function memoryFs() {
@@ -101,5 +102,90 @@ describe('guardado por perfiles en Android', () => {
     const p = await store.createProfile({ name: 'Ana' });
     await fs.write('AulaPro/perfiles.json.bak', '{"robado":true}');
     expect(await store.restoreBackup(p.id, '../../perfiles.json.bak')).toBe(false);
+  });
+});
+
+/**
+ * Auditoría del 1-11-2026: si los datos no se pueden leer, nunca se abre un perfil vacío (el guardado automático lo
+ * escribiría encima de los buenos y la copia lo subiría al Drive), y una copia vacía no sustituye a las buenas.
+ */
+describe('datos que no se pueden leer', () => {
+  it('un fallo al leer datos.json lanza DatosIlegibles en vez de devolver un perfil vacío', async () => {
+    const { fs } = memoryFs();
+    const store = createProfileStore(fs);
+    const p = await store.createProfile({ name: 'Ana' });
+    await store.saveData(p.id, { classes: [{ id: 'c1' }] });
+    const leer = fs.read;
+    fs.read = async ruta => { if (ruta.endsWith('datos.json')) throw new DOMException('Connection lost', 'UnknownError'); return leer(ruta); };
+    await expect(store.loadData(p.id)).rejects.toBeInstanceOf(DatosIlegibles);
+    await expect(store.loadData(p.id)).rejects.toMatchObject({ causa: 'lectura' });
+  });
+
+  it('un datos.json dañado lanza DatosIlegibles («formato»); sin archivo, el perfil está vacío', async () => {
+    const { fs } = memoryFs();
+    const store = createProfileStore(fs);
+    const p = await store.createProfile({ name: 'Ana' });
+    await fs.write(`AulaPro/perfiles/${p.id}/datos.json`, '{"classes": [');
+    await expect(store.loadData(p.id)).rejects.toMatchObject({ causa: 'formato' });
+    await fs.write(`AulaPro/perfiles/${p.id}/datos.json`, '[1, 2]');
+    await expect(store.loadData(p.id)).rejects.toMatchObject({ causa: 'formato' });
+    await fs.remove(`AulaPro/perfiles/${p.id}/datos.json`);
+    expect(await store.loadData(p.id)).toEqual({});
+  });
+
+  it('un fallo al leer la lista de perfiles no la da por vacía, y una lista dañada se rehace con las carpetas', async () => {
+    const { fs } = memoryFs();
+    const store = createProfileStore(fs);
+    const a = await store.createProfile({ name: 'Ana' });
+    await fs.write('AulaPro/perfiles.json', '[{"id":');
+    expect((await store.listProfiles()).map(p => p.id)).toEqual([a.id]);
+    const leer = fs.read;
+    fs.read = async ruta => { if (ruta.endsWith('perfiles.json')) throw new DOMException('closed', 'InvalidStateError'); return leer(ruta); };
+    await expect(store.listProfiles()).rejects.toBeInstanceOf(DatosIlegibles);
+  });
+
+  it('un perfil vacío no se copia: no va sustituyendo a las copias buenas', async () => {
+    const { fs } = memoryFs();
+    const store = createProfileStore(fs);
+    const p = await store.createProfile({ name: 'Ana' });
+    await store.saveData(p.id, { classes: [], students: [], grades: {}, apoyo: { alumnos: [] }, auditLog: [{ id: 'x' }] });
+    expect(await store.backup(p.id)).toBeNull();
+    await store.saveData(p.id, { classes: [{ id: 'c1' }], auditLog: [] });
+    expect(await store.backup(p.id)).not.toBeNull();
+  });
+
+  it('restaurar una copia guarda antes lo de ahora, para poder deshacerlo', async () => {
+    const { fs } = memoryFs();
+    const store = createProfileStore(fs);
+    const p = await store.createProfile({ name: 'Ana' });
+    await store.saveData(p.id, { classes: [{ id: 'vieja' }] });
+    const copia = (await store.backup(p.id))!.split('/').pop()!;
+    await store.saveData(p.id, { classes: [{ id: 'nueva' }] });
+    expect(await store.restoreBackup(p.id, copia)).toBe(true);
+    expect(await store.loadData(p.id)).toEqual({ classes: [{ id: 'vieja' }] });
+    const antes = (await store.listBackups(p.id)).find(b => b.file.endsWith('-antes-de-restaurar.json'));
+    expect(antes).toBeTruthy();
+  });
+});
+
+describe('contenido de un perfil', () => {
+  it('el perfil vacío de la app no tiene contenido; con una clase, una nota o un alumno de apoyo, sí', () => {
+    const vacio = {
+      tasks: [], classes: [], students: [], grades: {}, attendance: {}, seatingPlans: {},
+      apoyo: { alumnos: [], grupos: [] }, ef: { exentos: [], niveles: {}, sesiones: [] }, auditLog: [{ id: 'a' }],
+    };
+    expect(perfilVacio(vacio)).toBe(true);
+    expect(contenidoDe({ ...vacio, classes: [{ id: 'c' }] })).toBe(1);
+    expect(perfilVacio({ ...vacio, grades: { alu1: { item1: 7 } } })).toBe(false);
+    expect(perfilVacio({ ...vacio, apoyo: { alumnos: [{ id: 'x' }] } })).toBe(false);
+    expect(perfilVacio({ ...vacio, ef: { niveles: { alu1: 2 } } })).toBe(false);
+  });
+
+  it('a partir del texto: sin archivo o vacío cuenta como vacío; un texto ilegible, no', () => {
+    expect(textoDePerfilVacio(null)).toBe(true);
+    expect(textoDePerfilVacio('{"classes":[],"auditLog":[{"id":1}]}')).toBe(true);
+    expect(textoDePerfilVacio('{"classes":[{"id":1}]}')).toBe(false);
+    expect(textoDePerfilVacio('{"classes": [')).toBe(false);
+    expect(contenidoDe([1, 2])).toBe(-1);
   });
 });

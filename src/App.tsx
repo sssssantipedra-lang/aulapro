@@ -4,6 +4,8 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoCopiaWeb, AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
 import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
+import { DatosIlegiblesPantalla } from './components/DatosIlegibles';
+import { AvisoSinGuardar } from './components/AvisoSinGuardar';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
 import { hayVueltaNube, leerPermisoNube } from './platform/carpetaWeb';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, licenciaMiradaHace, type Cuenta } from './platform/cuentaWeb';
@@ -278,6 +280,9 @@ function AppInner() {
     return () => window.removeEventListener('keydown', h);
   }, []);
 
+  // Los datos están pero no se han podido leer: no se abre vacía (el guardado automático los pisaría)
+  if (st.loadError) return <DatosIlegiblesPantalla profileId={st.profileId} causa={st.loadError} />;
+
   if (!st.ready) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--sb-bg)', color: 'rgba(255,255,255,0.6)', fontSize: 14, gap: 10 }}>
@@ -316,7 +321,8 @@ function AppInner() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile'} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
+      <AvisoSinGuardar motivo={st.errorGuardado} exportar={st.exportData} />
+      {isWebApp() && <AvisoCopiaWeb exportar={st.exportData} oculto={section === 'profile' || !!st.errorGuardado} onIrADatos={() => { setSection('profile'); setMenuOpen(false); }} />}
       {(!phone || menuOpen) && <Sidebar
         mini={menuMini}
         overlay={menuOverlay}

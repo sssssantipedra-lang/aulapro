@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createDriveFs } from './driveFs';
+import { createDriveFs, vaADrive, VERSIONES_GUARDADAS } from './driveFs';
 import { createOneDriveFs } from './oneDriveFs';
 import { createEspejo } from './espejo';
 import { createProfileStore, type Fs } from './profileStore';
@@ -46,13 +46,21 @@ function driveConVersiones(opts: { sinPermisoDeVersiones?: boolean } = {}) {
   return { fetcher, versiones, llamadas };
 }
 
-describe('Google Drive: cada subida borra las versiones anteriores del archivo', () => {
-  it('tras varias subidas solo queda la última versión', async () => {
+describe('Google Drive: cada subida borra las versiones antiguas del archivo menos las tres últimas', () => {
+  it('tras varias subidas quedan la actual y las dos anteriores (auditoría del 1-11-2026: antes, solo la última)', async () => {
     const d = driveConVersiones();
     const fs = createDriveFs(async () => 'T', d.fetcher);
-    for (let i = 0; i < 4; i++) await fs.write('AulaPro/perfiles/p1/datos.json', `{"v":${i}}`);
-    expect(d.versiones.get('perfiles~p1~datos.json')).toHaveLength(1);
-    expect(d.llamadas.filter(l => l.startsWith('DELETE'))).toHaveLength(3);
+    for (let i = 0; i < 6; i++) await fs.write('AulaPro/perfiles/p1/datos.json', `{"v":${i}}`);
+    expect(d.versiones.get('perfiles~p1~datos.json')).toHaveLength(VERSIONES_GUARDADAS);
+    expect(d.llamadas.filter(l => l.startsWith('DELETE'))).toHaveLength(6 - VERSIONES_GUARDADAS);
+  });
+
+  it('las copias de antes de vaciar, cargar o restaurar van a Drive; las automáticas, no', () => {
+    expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-11-01T10-00-00-antes-de-cargar.json')).toBe(true);
+    expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-11-01T10-00-00-antes-de-restaurar.json')).toBe(true);
+    expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-11-01T10-00-00-antes-de-vaciar.json')).toBe(true);
+    expect(vaADrive('AulaPro/perfiles/p1/copias/copia-2026-11-01T10-00-00.json')).toBe(false);
+    expect(vaADrive('AulaPro/perfiles/p1/datos.json.tmp')).toBe(false);
   });
 
   it('si Drive no deja podar, la subida sale igual y no se vuelve a intentar', async () => {
@@ -95,13 +103,13 @@ function oneDriveConVersiones() {
   return { fetcher, versiones, llamadas };
 }
 
-describe('OneDrive: cada subida borra las versiones anteriores del archivo', () => {
-  it('tras varias subidas solo queda la versión actual', async () => {
+describe('OneDrive: cada subida borra las versiones antiguas del archivo menos las tres últimas', () => {
+  it('tras varias subidas quedan la actual y las dos anteriores', async () => {
     const g = oneDriveConVersiones();
     const fs = createOneDriveFs(async () => 'T', g.fetcher);
     await fs.list('AulaPro'); // como al abrir: así se sabe qué archivos ya existen
-    for (let i = 0; i < 4; i++) await fs.write('AulaPro/perfiles/p1/datos.json', `{"v":${i}}`);
-    expect(g.versiones.get('perfiles~p1~datos.json')).toHaveLength(1);
+    for (let i = 0; i < 6; i++) await fs.write('AulaPro/perfiles/p1/datos.json', `{"v":${i}}`);
+    expect(g.versiones.get('perfiles~p1~datos.json')).toHaveLength(VERSIONES_GUARDADAS);
   });
 });
 

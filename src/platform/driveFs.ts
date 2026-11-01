@@ -9,12 +9,13 @@
  * de su Drive. Drive no tiene carpetas dentro de carpetas aquí: cada ruta de
  * `profileStore` es un archivo de esa carpeta con la ruta en el nombre
  * (`AulaPro/perfiles/p1/datos.json` → `perfiles~p1~datos.json`). Las copias
- * con fecha no se suben, salvo la de antes de vaciar el curso. Cada subida
- * sustituye a la anterior y borra las versiones antiguas del archivo (decisión
- * del dueño, 30-10-2026: Drive guarda hasta 100 versiones de cada archivo y
- * todas gastan espacio del docente; el trabajo anterior sigue en las copias del
- * navegador). Borrar manda a la papelera de Drive: se puede recuperar durante
- * 30 días.
+ * con fecha no se suben, salvo las de antes de vaciar el curso, de cargar una
+ * copia o de restaurar otra. Cada subida sustituye a la anterior y borra las
+ * versiones antiguas del archivo menos las más recientes (`VERSIONES_GUARDADAS`;
+ * decisión del dueño, 30-10-2026: Drive guarda hasta 100 versiones de cada
+ * archivo y todas gastan espacio del docente). Hasta el 1-11-2026 se quedaba solo
+ * la última: si alguna vez subía algo malo, no había vuelta atrás. Borrar manda a
+ * la papelera de Drive: se puede recuperar durante 30 días.
  *
  * El navegador habla con Drive directamente (googleapis.com admite CORS).
  */
@@ -31,8 +32,15 @@ const RAIZ = 'AulaPro/';
 export const nombreDe = (ruta: string) => (ruta.startsWith(RAIZ) ? ruta.slice(RAIZ.length) : ruta).split('/').join('~');
 export const rutaDe = (nombre: string) => RAIZ + nombre.split('~').join('/');
 
-/** Lo que no va a Drive: las copias con fecha (salvo la de antes de vaciar el curso) y los temporales. */
-export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || ruta.endsWith('-antes-de-vaciar.json')) && !ruta.endsWith('.tmp');
+/** Lo que no va a Drive: las copias con fecha (salvo las de antes de vaciar, cargar o restaurar) y los temporales. */
+export const vaADrive = (ruta: string) => (!/\/copias\//.test(ruta) || /-antes-de-(vaciar|cargar|restaurar)\.json$/.test(ruta)) && !ruta.endsWith('.tmp');
+
+/**
+ * Las versiones de cada archivo que se conservan en Drive y en OneDrive (auditoría del 1-11-2026): la actual y las dos
+ * anteriores. Si alguna vez se sube algo malo (un perfil que el navegador no pudo leer, una copia antigua cargada por
+ * error), el docente puede volver a la anterior desde el historial de versiones de su nube.
+ */
+export const VERSIONES_GUARDADAS = 3;
 
 /** Cuánto vale un listado de la carpeta sin volver a pedirlo (ms). */
 const VIGENCIA_LISTADO = 5000;
@@ -115,8 +123,8 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
   /** Si Drive no deja podar versiones (falta permiso), no se vuelve a intentar en esta sesión. */
   let sinPoda = false;
   /**
-   * Borra todas las versiones del archivo menos la última. Es un extra: si falla, la subida ya está hecha y
-   * no se avisa de nada.
+   * Borra las versiones del archivo menos las más recientes (`VERSIONES_GUARDADAS`). Es un extra: si falla, la subida
+   * ya está hecha y no se avisa de nada.
    */
   async function podarVersiones(id: string) {
     if (sinPoda) return;
@@ -128,9 +136,9 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
         todas.push(...(r.revisions ?? []));
         pagina = r.nextPageToken ?? '';
       } while (pagina);
-      // La más reciente es la que vale; Drive no deja borrarla
+      // La más reciente es la que vale (Drive no deja borrarla); las dos anteriores se quedan de reserva
       todas.sort((a, b) => (a.modifiedTime ?? '').localeCompare(b.modifiedTime ?? ''));
-      for (const v of todas.slice(0, -1)) await pedir(`${API}/${id}/revisions/${v.id}`, { method: 'DELETE' });
+      for (const v of todas.slice(0, -VERSIONES_GUARDADAS)) await pedir(`${API}/${id}/revisions/${v.id}`, { method: 'DELETE' });
     } catch (err) {
       if ((err as ErrorDrive)?.status === 401 || (err as ErrorDrive)?.status === 403) sinPoda = true;
     }

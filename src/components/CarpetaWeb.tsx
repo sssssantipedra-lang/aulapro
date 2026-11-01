@@ -16,7 +16,7 @@ import { DondeGuardar } from './DondeGuardar';
 function useCarpeta() {
   const [, setN] = useState(0);
   useEffect(() => carpetaWeb.onCambio(() => setN(n => n + 1)), []);
-  return { estado: carpetaWeb.estado(), conflictos: carpetaWeb.conflictos() };
+  return { estado: carpetaWeb.estado(), conflictos: carpetaWeb.conflictos(), vacios: carpetaWeb.vacios() };
 }
 
 const recargar = () => setTimeout(() => window.location.reload(), 900);
@@ -29,9 +29,10 @@ const recargar = () => setTimeout(() => window.location.reload(), 900);
 export function CarpetaWebAviso() {
   const { t } = useI18n();
   const { toast } = useToast();
-  const { estado, conflictos } = useCarpeta();
+  const { estado, conflictos, vacios } = useCarpeta();
   const [ocupado, setOcupado] = useState(false);
   const ms = carpetaWeb.nombreNube() === NOMBRE_ONEDRIVE;
+  const nombreCopia = 'nombre' in estado ? estado.nombre : '';
 
   async function permitir() {
     setOcupado(true);
@@ -48,10 +49,17 @@ export function CarpetaWebAviso() {
   }
 
   if (conflictos.length) {
+    // Una de las dos copias está vacía (auditoría del 1-11-2026): AulaPro no la ha usado para sustituir a la otra
+    const vacia = conflictos.map(id => vacios[id]).find(Boolean);
+    const texto = vacia === 'aqui'
+      ? t('En este navegador tu trabajo aparece vacío, pero en «{nombre}» hay una copia con datos. Para no perderla, AulaPro no la ha sustituido. ¿Con cuál te quedas?', { nombre: nombreCopia })
+      : vacia === 'alli'
+        ? t('La copia de «{nombre}» está vacía y la de este navegador tiene datos. Para no perder nada, AulaPro no la ha cargado. ¿Con cuál te quedas?', { nombre: nombreCopia })
+        : t('Tu trabajo ha cambiado en otro dispositivo y también en este. ¿Con cuál te quedas?');
     return (
       <div className="update-banner carpeta-aviso" role="alert">
         <AlertTriangle size={18} color="var(--warn, #d97706)" style={{ flexShrink: 0 }} aria-hidden="true" />
-        <span style={{ flex: 1 }}>{t('Tu trabajo ha cambiado en otro dispositivo y también en este. ¿Con cuál te quedas?')}</span>
+        <span style={{ flex: 1 }}>{texto}</span>
         <div className="carpeta-aviso-btns">
           <button disabled={ocupado} onClick={() => resolver('carpeta')}>{t('Usar el de la carpeta')}</button>
           <button disabled={ocupado} onClick={() => resolver('local')}>{t('Quedarme con el de aquí')}</button>

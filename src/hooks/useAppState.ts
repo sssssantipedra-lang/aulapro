@@ -17,6 +17,7 @@ import { comunidadDePerfil } from '../lib/curriculum/comunidades';
 import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
 import { useGuardadoAutomatico } from './useGuardadoAutomatico';
+import { leerCopiaDeDatos } from '../lib/copiaDeDatos';
 import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF, sinClaseEF } from '../lib/ef';
 import { buildDemoEF } from '../lib/demoEF';
 import type { Lang } from '../i18n/core';
@@ -146,6 +147,12 @@ export function useAppState() {
   const [profile, setProfile]     = useState<TeacherProfile | null>(null);
   // Sin perfil activo no hay nada que cargar: la app está lista desde el principio.
   const [ready, setReady]         = useState(() => store.getActiveProfileId() === null);
+  /**
+   * Los datos del perfil están, pero no se han podido leer (auditoría del 1-11-2026): la app no se abre (`ready` sigue
+   * en falso, así que el guardado automático no escribe nada) y la pantalla lo dice. Antes se abría el perfil vacío y
+   * el guardado automático lo escribía encima de los datos buenos.
+   */
+  const [loadError, setLoadError] = useState<'lectura' | 'formato' | null>(null);
 
   const [tasks, setTasks]                     = useState<Task[]>([]);
   const [classes, setClasses]                 = useState<Class[]>([]);
@@ -222,7 +229,14 @@ export function useAppState() {
     if (!profileId) return;
     let cancelled = false;
     (async () => {
-      const [list, data] = await Promise.all([store.listProfiles(), store.loadData(profileId)]);
+      let list: TeacherProfile[], data: unknown;
+      try {
+        [list, data] = await Promise.all([store.listProfiles(), store.loadData(profileId)]);
+      } catch (err) {
+        // Nunca se abre vacío: se queda sin abrir y la pantalla ofrece volver a intentarlo o restaurar una copia
+        if (!cancelled) setLoadError((err as { causa?: string })?.causa === 'formato' ? 'formato' : 'lectura');
+        return;
+      }
       if (cancelled) return;
 
       const found = list.find(p => p.id === profileId) ?? null;
@@ -255,7 +269,7 @@ export function useAppState() {
       attendance, reports, selfAssessments, learningSituations, fichas,
       workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, auditLog]);
 
-  const { saving } = useGuardadoAutomatico({
+  const { saving, errorGuardado } = useGuardadoAutomatico({
     ready, profileId, snapshot, retardo: SAVE_DELAY_MS,
     guardar: (id, datos) => store.saveData(id, datos as unknown as store.ProfileData),
   });
@@ -272,6 +286,7 @@ export function useAppState() {
     store.setActiveProfileId(id);
     if (id === profileId) return;
     setReady(false);
+    setLoadError(null);
     setProfileId(id);
   }, [profileId]);
 
@@ -888,29 +903,19 @@ export function useAppState() {
     data: snapshot,
   }), [snapshot, profile]);
 
-  const importData = useCallback((raw: string): string | null => {
-    let parsed: { _app?: string; data?: unknown } & Record<string, unknown>;
-    try { parsed = JSON.parse(raw); } catch { return 'El archivo no es una copia de seguridad válida.'; }
-    if (parsed._app !== 'AulaPro') return 'El archivo no parece una copia de seguridad de AulaPro.';
-    // Un archivo para compartir con otro docente no es una copia de seguridad: se abre en «Trabajo compartido»
-    if (parsed._cifrada === true) return 'Este archivo es una copia cifrada para compartir con otro docente. Ábrela en «Trabajo compartido».';
-
-    // La versión 2 anida los datos; la 1 los tenía sueltos con otros nombres
-    if (parsed.data) {
-      hydrate(parsed.data as Partial<ProfileSnapshot>);
-    } else {
-      hydrate({
-        tasks: parsed.tasks as Task[], classes: parsed.classes as Class[],
-        students: parsed.students as Student[], blocks: parsed.blocks as ScheduleBlock[],
-        events: parsed.events as CalEvent[], rubrics: parsed.rubrics as Rubric[],
-        dianas: parsed.dianas as EvalDiana[], evaluations: parsed.evaluations as Evaluation[],
-        gradeCategories: parsed.grade_categories as GradeCategory[],
-        gradeItems: parsed.grade_items as GradeItem[], grades: parsed.grades as GradeMap,
-        dianaProfiles: parsed.diana_profiles as Record<string, DianaProfile>,
-      });
-    }
+  /**
+   * Carga una copia descargada (sustituye todo el trabajo del perfil). La lee y valida `leerCopiaDeDatos` (una copia
+   * dañada o vacía no se carga) y, antes de cargarla, lo de ahora se guarda en una copia «antes-de-cargar», que va
+   * también al Drive u OneDrive (auditoría del 1-11-2026: antes no quedaba nada de lo anterior). La confirmación la pide
+   * la pantalla (`pages/Profile.tsx`).
+   */
+  const importData = useCallback(async (raw: string): Promise<string | null> => {
+    const copia = leerCopiaDeDatos(raw);
+    if (!copia.ok) return copia.error;
+    if (profileId) await store.backup(profileId, 'antes-de-cargar').catch(() => null);
+    hydrate(copia.datos as Partial<ProfileSnapshot>);
     return null;
-  }, [hydrate]);
+  }, [hydrate, profileId]);
 
   /**
    * Vaciado de fin de curso: se borra el trabajo del año (clases, alumnos,
@@ -959,7 +964,7 @@ export function useAppState() {
   const alumnadoEnOrden = useMemo(() => ordenarAlumnado(students), [students]);
 
   return {
-    ready, saving, profile, currentUser, profileId,
+    ready, saving, errorGuardado, loadError, profile, currentUser, profileId,
     openProfile, createAndOpenProfile, logout, updateUser,
 
     tasks, classes, students: alumnadoEnOrden,

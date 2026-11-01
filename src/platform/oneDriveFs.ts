@@ -12,7 +12,7 @@
  */
 import { hijosDe } from './webFs';
 import type { Fs, FsEntry } from './profileStore';
-import { ErrorDrive, nombreDe, rutaDe, vaADrive } from './driveFs';
+import { ErrorDrive, nombreDe, rutaDe, vaADrive, VERSIONES_GUARDADAS } from './driveFs';
 
 const GRAPH = 'https://graph.microsoft.com/v1.0/me/drive';
 const CARPETA = `${GRAPH}/special/approot`;
@@ -75,15 +75,15 @@ export function createOneDriveFs(token: () => Promise<string>, fetcher: typeof f
 
   /** Si OneDrive no deja podar versiones (falta permiso o no lo admite), no se vuelve a intentar en esta sesión. */
   let sinPoda = false;
-  /** Borra todas las versiones del archivo menos la actual. Es un extra: si falla, la subida ya está hecha. */
+  /** Borra las versiones del archivo menos las más recientes (`VERSIONES_GUARDADAS`). Es un extra: si falla, la subida ya está hecha. */
   async function podarVersiones(id: string) {
     if (sinPoda) return;
     try {
       const r = await (await pedir(`${GRAPH}/items/${id}/versions?$select=id,lastModifiedDateTime`)).json();
       const todas = ((r.value ?? []) as { id: string; lastModifiedDateTime?: string }[])
         .sort((a, b) => (b.lastModifiedDateTime ?? '').localeCompare(a.lastModifiedDateTime ?? ''));
-      // La primera (la más reciente) es la actual: OneDrive no deja borrarla
-      for (const v of todas.slice(1)) await pedir(`${GRAPH}/items/${id}/versions/${encodeURIComponent(v.id)}`, { method: 'DELETE' });
+      // La primera (la más reciente) es la actual: OneDrive no deja borrarla; las dos anteriores se quedan de reserva
+      for (const v of todas.slice(VERSIONES_GUARDADAS)) await pedir(`${GRAPH}/items/${id}/versions/${encodeURIComponent(v.id)}`, { method: 'DELETE' });
     } catch (err) {
       const s = (err as ErrorDrive)?.status;
       if (s === 401 || s === 403 || s === 400 || s === 405) sinPoda = true;

@@ -22,7 +22,7 @@ function setup() {
         <Profile
           user={{ id: 'u', full_name: 'Ana García', school: 'IES Ejemplo', subject: 'Matemáticas' } as never}
           profile={null} profileId="p1" course="2026-2027"
-          onUpdateUser={() => {}} onUpdateSecurity={() => {}} onExportData={() => ({})} onImportData={() => null} onClearSchoolYear={async () => {}}
+          onUpdateUser={() => {}} onUpdateSecurity={() => {}} onExportData={() => ({})} onImportData={async () => null} onClearSchoolYear={async () => {}}
         />
       </ToastProvider>
     </I18nProvider>,

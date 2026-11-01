@@ -4,6 +4,7 @@ import * as store from '../services/storage';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { isAndroidApp, isWebApp } from '../lib/platform';
+import { bloquearGuardado } from '../lib/guardadoBloqueado';
 import { CarpetaWebPanel, CuentaWebPanel, SinConexionPanel } from './CarpetaWeb';
 
 interface Props {
@@ -47,15 +48,15 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
 
   async function restore(file: string) {
     if (!profileId) return;
+    if (!window.confirm(t('¿Restaurar esta copia? Sustituye tu trabajo actual. Antes se guarda lo que tienes ahora en otra copia, por si quieres volver atrás.'))) return;
     setBusy(true);
+    // Desde aquí, lo que hay en memoria no se vuelve a guardar: escribiría encima de la copia restaurada antes de recargar
+    bloquearGuardado();
     const ok = await store.restoreBackup(profileId, file);
     setBusy(false);
-    if (ok) {
-      toast(t('✅ Copia restaurada. Se recarga la aplicación…'));
-      setTimeout(() => window.location.reload(), 900);
-    } else {
-      toast(t('No se pudo restaurar esa copia'));
-    }
+    toast(t(ok ? '✅ Copia restaurada. Se recarga la aplicación…' : 'No se pudo restaurar esa copia'));
+    // Se recarga también si falla: con el guardado parado, seguir aquí perdería lo que se hiciera después
+    setTimeout(() => window.location.reload(), ok ? 900 : 2000);
   }
 
   return (

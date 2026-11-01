@@ -8,6 +8,17 @@
  * al ocultarse o cerrarse la página y al salir del perfil.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { guardadoBloqueado } from '../lib/guardadoBloqueado';
+
+/** Tras un fallo al guardar, cada cuánto se vuelve a intentar aunque no haya cambios nuevos. */
+export const REINTENTO_GUARDADO_MS = 30_000;
+
+/**
+ * Por qué no se ha podido guardar: el navegador no tiene sitio (`espacio`) o ha fallado al escribir (`otro`). Lo
+ * enseña `components/AvisoSinGuardar.tsx`.
+ */
+export type ErrorGuardado = 'espacio' | 'otro';
+const motivoDe = (err: unknown): ErrorGuardado => ((err as DOMException)?.name === 'QuotaExceededError' ? 'espacio' : 'otro');
 
 /**
  * Huella de lo último guardado, para no volver a escribir lo mismo. Antes se
@@ -36,8 +47,15 @@ interface Opciones<T> {
   retardo: number;
 }
 
-export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, retardo }: Opciones<T>): { saving: boolean } {
+export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, retardo }: Opciones<T>): { saving: boolean; errorGuardado: ErrorGuardado | null } {
   const [saving, setSaving] = useState(false);
+  /**
+   * El último intento de guardar falló (auditoría del 1-11-2026: antes el error se perdía y el docente seguía
+   * trabajando sin saber que nada se guardaba). Se vuelve a intentar con cada cambio y cada `REINTENTO_GUARDADO_MS`.
+   */
+  const [errorGuardado, setErrorGuardado] = useState<ErrorGuardado | null>(null);
+  const [reintento, setReintento] = useState(0);
+  const relojReintento = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ultimaHuella = useRef('');
   /** Lo que hay por escribir: el perfil y sus datos, juntos, para no mezclar uno con otro al cambiar de perfil. */
   const pendiente = useRef<{ id: string; datos: T } | null>(null);
@@ -55,6 +73,7 @@ export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, 
     // escritura y no en cada tecla; hacerlo fuera ponía todo el cuaderno en el
     // camino de cada pulsación y se notaba al escribir.
     const timer = setTimeout(async () => {
+      if (guardadoBloqueado()) return;
       if (escrito.current === snapshot) return;
       const huella = await huellaDe(JSON.stringify(snapshot));
       if (huella === ultimaHuella.current) {
@@ -63,21 +82,35 @@ export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, 
       }
       setSaving(true);
       escrito.current = snapshot;
-      await guardarRef.current(profileId, snapshot);
-      ultimaHuella.current = huella;
-      if (pendiente.current?.datos === snapshot) pendiente.current = null;
-      setSaving(false);
+      try {
+        await guardarRef.current(profileId, snapshot);
+        ultimaHuella.current = huella;
+        if (pendiente.current?.datos === snapshot) pendiente.current = null;
+        setErrorGuardado(null);
+      } catch (err) {
+        // No se ha guardado: se avisa en pantalla y se vuelve a intentar dentro de un rato, aunque no haya más cambios
+        escrito.current = null;
+        setErrorGuardado(motivoDe(err));
+        if (relojReintento.current) clearTimeout(relojReintento.current);
+        relojReintento.current = setTimeout(() => setReintento(n => n + 1), REINTENTO_GUARDADO_MS);
+      } finally {
+        setSaving(false);
+      }
     }, retardo);
     return () => clearTimeout(timer);
-  }, [snapshot, ready, profileId, retardo]);
+  }, [snapshot, ready, profileId, retardo, reintento]);
+
+  useEffect(() => () => { if (relojReintento.current) clearTimeout(relojReintento.current); }, []);
 
   /** Escribe ya lo que esté esperando la pausa. */
   const volcar = useCallback(() => {
     const p = pendiente.current;
-    if (!p) return;
+    if (!p || guardadoBloqueado()) return;
     pendiente.current = null;
     escrito.current = p.datos;
-    void guardarRef.current(p.id, p.datos);
+    const fallo = (err: unknown) => { escrito.current = null; pendiente.current ??= p; setErrorGuardado(motivoDe(err)); };
+    // La escritura empieza ya, en el mismo instante (al cerrar la página no hay tiempo para más)
+    try { Promise.resolve(guardarRef.current(p.id, p.datos)).catch(fallo); } catch (err) { fallo(err); }
   }, []);
 
   // Al cerrar la ventana, al pasar a segundo plano (en el móvil, la forma de «cerrar») y al salir de la pantalla
@@ -97,5 +130,5 @@ export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, 
   // Al cambiar de perfil, lo que quedaba sin escribir del anterior se escribe antes
   useEffect(() => () => volcar(), [profileId, volcar]);
 
-  return { saving };
+  return { saving, errorGuardado };
 }

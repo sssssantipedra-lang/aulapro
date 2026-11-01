@@ -12,6 +12,28 @@
  * Así una copia hecha en el ordenador se puede cargar en la tableta y al revés.
  */
 import type { BackupInfo, FolderInfo, TeacherProfile } from '../services/storage';
+import { perfilVacio } from '../lib/contenidoPerfil';
+
+/**
+ * Por qué se hace una copia con nombre (además de las automáticas): antes de vaciar el curso, de cargar una copia
+ * desde un archivo o de restaurar una copia anterior. Las tres van también al Drive u OneDrive de la versión web
+ * (`vaADrive` en `driveFs.ts`), para poder deshacer el paso aunque se pierda el navegador.
+ */
+export type MotivoCopia = 'antes-de-vaciar' | 'antes-de-cargar' | 'antes-de-restaurar';
+
+/**
+ * `datos.json` existe pero no se ha podido leer (el navegador falló al leerlo o el archivo está dañado). Nunca se
+ * toma por un perfil vacío: la app lo abriría vacío y el guardado automático lo escribiría encima de los datos buenos
+ * (auditoría del 1-11-2026). Ver `useAppState`.
+ */
+export class DatosIlegibles extends Error {
+  readonly causa: 'lectura' | 'formato';
+  constructor(causa: 'lectura' | 'formato', mensaje = '') {
+    super(mensaje || `datos-ilegibles:${causa}`);
+    this.name = 'DatosIlegibles';
+    this.causa = causa;
+  }
+}
 
 export interface FsEntry { name: string; type: 'file' | 'directory'; size: number; mtime: number }
 
@@ -64,9 +86,26 @@ export function createProfileStore(fs: Fs) {
     }
   }
 
+  /**
+   * La lista de perfiles. Si el navegador no la puede leer, lanza `DatosIlegibles`: una lista vacía haría creer que no
+   * hay ningún perfil y el docente crearía otro, dejando el suyo fuera de la lista. Si está dañada, se rehace con las
+   * carpetas de los perfiles que hay (auditoría del 1-11-2026).
+   */
   async function listProfiles(): Promise<TeacherProfile[]> {
-    const list = await readJson<unknown>(PROFILES_FILE, []);
-    return Array.isArray(list) ? list : [];
+    let raw: string | null;
+    try {
+      raw = await fs.read(PROFILES_FILE);
+    } catch (err) {
+      throw new DatosIlegibles('lectura', err instanceof Error ? err.message : String(err));
+    }
+    if (raw == null || raw.trim() === '') return [];
+    try {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) return list;
+    } catch { /* dañada: se rehace abajo */ }
+    const carpetas = (await fs.list(`${ROOT}/perfiles`)).filter(e => e.type === 'directory');
+    const ahora = new Date().toISOString();
+    return carpetas.map(c => ({ id: c.name, name: 'Docente', school: '', subject: '', course: '', createdAt: ahora, lastOpenedAt: ahora }) as TeacherProfile);
   }
 
   async function updateProfile(id: string, patch: Partial<TeacherProfile>) {
@@ -78,7 +117,23 @@ export function createProfileStore(fs: Fs) {
     return list[idx];
   }
 
-  const loadData = (id: string) => readJson<Record<string, unknown>>(dataFile(id), {});
+  /**
+   * El trabajo del perfil. Sin archivo (perfil recién creado), vacío. Si el archivo está pero no se puede leer, lanza
+   * `DatosIlegibles` en vez de devolver un perfil vacío (antes, `readJson` se tragaba el error y devolvía `{}`).
+   */
+  async function loadData(id: string): Promise<Record<string, unknown>> {
+    let raw: string | null;
+    try {
+      raw = await fs.read(dataFile(id));
+    } catch (err) {
+      throw new DatosIlegibles('lectura', err instanceof Error ? err.message : String(err));
+    }
+    if (raw == null || raw.trim() === '') return {};
+    let datos: unknown;
+    try { datos = JSON.parse(raw); } catch { throw new DatosIlegibles('formato'); }
+    if (!datos || typeof datos !== 'object' || Array.isArray(datos)) throw new DatosIlegibles('formato');
+    return datos as Record<string, unknown>;
+  }
 
   async function listBackups(id: string): Promise<BackupInfo[]> {
     const files = (await fs.list(backupsDir(id))).filter(f => f.type === 'file' && f.name.startsWith('copia-') && f.name.endsWith('.json'));
@@ -93,6 +148,25 @@ export function createProfileStore(fs: Fs) {
       bytes += e.type === 'directory' ? await dirBytes(`${dir}/${e.name}`) : e.size;
     }
     return bytes;
+  }
+
+  /**
+   * `motivo`: las copias con nombre van también al Drive u OneDrive de la versión web (`vaADrive` en `driveFs.ts`).
+   * Un perfil vacío no se copia: si los datos no se han podido leer, una copia vacía iría sustituyendo a las buenas,
+   * que solo se conservan las 12 más recientes (dos horas de copias automáticas).
+   */
+  async function backup(id: string, motivo?: MotivoCopia) {
+    const data = await loadData(id);
+    if (!data || perfilVacio(data)) return null;
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const file = `${backupsDir(id)}/copia-${stamp}${motivo ? '-' + motivo : ''}.json`;
+    await writeJson(file, data);
+    // Solo se conservan las más recientes
+    const names = (await fs.list(backupsDir(id))).map(f => f.name).filter(n => n.startsWith('copia-') && n.endsWith('.json')).sort();
+    for (const old of names.slice(0, Math.max(0, names.length - MAX_BACKUPS))) {
+      await fs.remove(`${backupsDir(id)}/${old}`).catch(() => {});
+    }
+    return file;
   }
 
   return {
@@ -138,27 +212,16 @@ export function createProfileStore(fs: Fs) {
       return true;
     },
 
-    /** `motivo`: «antes-de-vaciar» va también al Drive de la versión web (`vaADrive` en `driveFs.ts`). */
-    async backup(id: string, motivo?: 'antes-de-vaciar') {
-      const data = await loadData(id);
-      if (!data || Object.keys(data).length === 0) return null;
-      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const file = `${backupsDir(id)}/copia-${stamp}${motivo ? '-' + motivo : ''}.json`;
-      await writeJson(file, data);
-      // Solo se conservan las más recientes
-      const names = (await fs.list(backupsDir(id))).map(f => f.name).filter(n => n.startsWith('copia-') && n.endsWith('.json')).sort();
-      for (const old of names.slice(0, Math.max(0, names.length - MAX_BACKUPS))) {
-        await fs.remove(`${backupsDir(id)}/${old}`).catch(() => {});
-      }
-      return file;
-    },
+    backup,
 
     listBackups,
 
     async restoreBackup(id: string, file: string) {
       const safe = String(file).split('/').pop() ?? '';
       const data = await readJson<unknown>(`${backupsDir(id)}/${safe}`, null);
-      if (!data) return false;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+      // Lo de ahora se guarda antes, para poder deshacer la restauración (también en el Drive u OneDrive)
+      await backup(id, 'antes-de-restaurar').catch(() => null);
       await writeJson(dataFile(id), data);
       return true;
     },

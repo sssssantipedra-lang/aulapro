@@ -26,6 +26,7 @@ import { especialidadTexto } from '../lib/apoyo';
 import { ATRIBUCION_MULBERRY } from '../lib/atribucionPictos';
 import { CARPETAS } from '../lib/carpetas';
 import { registrarCopia } from '../lib/avisoCopia';
+import { leerCopiaDeDatos } from '../lib/copiaDeDatos';
 
 interface Props {
   user: User | null;
@@ -38,7 +39,7 @@ interface Props {
   }) => void;
   onUpdateSecurity: (patch: { passwordHash?: string; passwordSalt?: string }) => void;
   onExportData: () => Record<string, unknown>;
-  onImportData: (raw: string) => string | null;
+  onImportData: (raw: string) => Promise<string | null>;
   onClearSchoolYear: () => Promise<void>;
 }
 
@@ -180,8 +181,12 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     e.target.value = '';
     if (!file) return;
     const raw = await file.text();
-    const err = onImportData(raw);
-    toast(err ?? '✅ Datos cargados');
+    // Antes de preguntar, que sea una copia que se pueda cargar (ni dañada ni vacía)
+    const copia = leerCopiaDeDatos(raw);
+    if (!copia.ok) { toast(t(copia.error)); return; }
+    if (!window.confirm(t('Cargar esta copia sustituye todo tu trabajo actual por el del archivo. Antes se guarda lo que tienes ahora en una copia (en «Mis datos»), por si quieres volver atrás. ¿Continuar?'))) return;
+    const err = await onImportData(raw);
+    toast(err ? t(err) : '✅ Datos cargados');
   }
 
   const themeLabel = THEMES[currentTheme]?.label ?? '';

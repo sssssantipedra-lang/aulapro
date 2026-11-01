@@ -207,3 +207,82 @@ describe('copia en una carpeta del ordenador (versión web)', () => {
     expect(await leer(carpeta.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ v: 2 });
   });
 });
+
+/**
+ * Auditoría del 1-11-2026: lo que se ve cuando el navegador no ha podido leer el trabajo es un perfil vacío. Ese perfil
+ * no puede subir encima del bueno de la carpeta o de la nube (con las versiones antiguas borradas, no habría vuelta
+ * atrás), ni uno vacío de la carpeta sustituir al de aquí, sin que el docente lo elija.
+ */
+describe('una copia vacía nunca sustituye a una con datos sin preguntar', () => {
+  const VACIO = { classes: [], students: [], grades: {}, apoyo: { alumnos: [] }, auditLog: [{ id: 'x' }] };
+
+  it('un perfil vacío aquí no se sube encima del de la carpeta: queda como conflicto «aquí vacío»', async () => {
+    const carpeta = memoryFs();
+    const a = dispositivo('A');
+    await a.espejo.conectar(carpeta.fs, 'Google Drive');
+    const p = await a.store.createProfile({ name: 'Profesor' });
+    await a.store.saveData(p.id, { classes: [{ id: 'c1' }] });
+    await a.espejo.vaciar();
+    // El navegador «pierde» los datos y la app guarda un perfil vacío
+    await a.store.saveData(p.id, VACIO);
+    await a.espejo.vaciar();
+    expect(await leer(carpeta.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ classes: [{ id: 'c1' }] });
+    expect(a.espejo.conflictos()).toEqual([p.id]);
+    expect(a.espejo.vacios()).toEqual({ [p.id]: 'aqui' });
+    // Si el docente elige la de la carpeta, vuelve su trabajo
+    await a.espejo.resolver(p.id, 'carpeta');
+    expect(await leer(a.local.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ classes: [{ id: 'c1' }] });
+    expect(a.espejo.conflictos()).toEqual([]);
+    expect(a.espejo.vacios()).toEqual({});
+  });
+
+  it('si el docente elige quedarse con el vacío, se sube (lo ha decidido él)', async () => {
+    const carpeta = memoryFs();
+    const a = dispositivo('A');
+    await a.espejo.conectar(carpeta.fs, 'Google Drive');
+    const p = await a.store.createProfile({ name: 'Profesor' });
+    await a.store.saveData(p.id, { classes: [{ id: 'c1' }] });
+    await a.espejo.vaciar();
+    await a.store.saveData(p.id, VACIO);
+    await a.espejo.vaciar();
+    await a.espejo.resolver(p.id, 'local');
+    expect(await leer(carpeta.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual(VACIO);
+  });
+
+  it('un perfil vacío en la carpeta (de otro dispositivo) no sustituye al de aquí: conflicto «allí vacío»', async () => {
+    const carpeta = memoryFs();
+    const a = dispositivo('A');
+    await a.espejo.conectar(carpeta.fs, 'OneDrive');
+    const p = await a.store.createProfile({ name: 'Profesor' });
+    await a.store.saveData(p.id, { classes: [{ id: 'c1' }] });
+    await a.espejo.vaciar();
+
+    const b = dispositivo('B');
+    await b.espejo.conectar(carpeta.fs, 'OneDrive');
+    // B escribe un perfil vacío en la carpeta (como si su navegador hubiera fallado), firmado como suyo
+    await carpeta.fs.write(`AulaPro/perfiles/${p.id}/datos.json`, JSON.stringify(VACIO));
+    await carpeta.fs.write(`AulaPro/perfiles/${p.id}/guardado.json`, JSON.stringify({ dispositivo: 'B', en: ahora() }));
+
+    expect(await a.espejo.comprobar({ congelar: true })).toBe(0);
+    expect(await leer(a.local.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ classes: [{ id: 'c1' }] });
+    expect(a.espejo.vacios()).toEqual({ [p.id]: 'alli' });
+    // No se ha quedado congelado: aquí se sigue guardando
+    expect(a.espejo.congelado()).toBe(false);
+    await a.espejo.resolver(p.id, 'local');
+    expect(await leer(carpeta.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ classes: [{ id: 'c1' }] });
+  });
+
+  it('detener: la pestaña que ha perdido la app deja de copiar y de guardar los perfiles', async () => {
+    const carpeta = memoryFs();
+    const a = dispositivo('A');
+    await a.espejo.conectar(carpeta.fs, 'OneDrive');
+    const p = await a.store.createProfile({ name: 'Profesor' });
+    await a.store.saveData(p.id, { classes: [{ id: 'c1' }] });
+    await a.espejo.vaciar();
+    a.espejo.detener();
+    await a.store.saveData(p.id, { classes: [{ id: 'viejo' }] });
+    await a.espejo.vaciar();
+    expect(await leer(a.local.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ classes: [{ id: 'c1' }] });
+    expect(await leer(carpeta.fs, `AulaPro/perfiles/${p.id}/datos.json`)).toEqual({ classes: [{ id: 'c1' }] });
+  });
+});

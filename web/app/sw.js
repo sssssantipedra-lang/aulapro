@@ -25,6 +25,8 @@ const PRIVADO = __PRIVADO__;
 const EXTRA = __EXTRA__;
 /** Se guarda en la caché cuando ya están todos los de EXTRA: la app lo mira para decir «Lista». */
 const MARCA = './.todo-guardado';
+/** Se guarda cuando ya está todo el código de PRIVADO: esta versión abre entera sin conexión. */
+const MARCA_PRIVADO = './.privado-guardado';
 
 /** Guarda un archivo sin la caché HTTP del navegador (que no se mezcle una versión con otra), con un reintento por si la red del móvil falla. */
 async function guardar(cache, url) {
@@ -38,18 +40,31 @@ async function guardar(cache, url) {
 /**
  * Guarda el código que pide sesión. Sin sesión la puerta contesta 401 y no se guarda nada (no es un fallo:
  * se guardará al entrar con licencia). Cualquier otro fallo sí lo es, y en la instalación la para, como antes.
+ * Devuelve si el código está entero en la caché (y entonces deja la marca `MARCA_PRIVADO`).
  */
 async function guardarPrivado(cache) {
   const faltan = [];
   for (const url of PRIVADO) if (!(await cache.match(url))) faltan.push(url);
-  if (!faltan.length) return;
-  const primera = await fetch(new Request(faltan[0], { cache: 'reload' }));
-  if (primera.status === 401) return;
-  if (!primera.ok) throw new Error(`${faltan[0]}: ${primera.status}`);
-  await cache.put(faltan[0], primera);
-  for (let i = 1; i < faltan.length; i += 40) {
-    await Promise.all(faltan.slice(i, i + 40).map(url => guardar(cache, url)));
+  if (faltan.length) {
+    const primera = await fetch(new Request(faltan[0], { cache: 'reload' }));
+    if (primera.status === 401) return false;
+    if (!primera.ok) throw new Error(`${faltan[0]}: ${primera.status}`);
+    await cache.put(faltan[0], primera);
+    for (let i = 1; i < faltan.length; i += 40) {
+      await Promise.all(faltan.slice(i, i + 40).map(url => guardar(cache, url)));
+    }
   }
+  if (PRIVADO.length) await cache.put(MARCA_PRIVADO, new Response('1'));
+  return true;
+}
+
+/** ¿Alguna versión anterior guardada tenía todo el código de las pantallas? */
+async function habiaVersionEntera() {
+  for (const nombre of await caches.keys()) {
+    if (!nombre.startsWith('aulapro-') || nombre === CACHE) continue;
+    if (await (await caches.open(nombre)).match(MARCA_PRIVADO)) return true;
+  }
+  return false;
 }
 
 let bajando = null;
@@ -98,7 +113,11 @@ self.addEventListener('install', event => {
     for (let i = 0; i < PRECARGA.length; i += 40) {
       await Promise.all(PRECARGA.slice(i, i + 40).map(url => guardar(cache, url)));
     }
-    await guardarPrivado(cache);
+    // Sin sesión (quien paga y lleva días sin abrir la app: la cookie caducó) el código de las pantallas no se puede
+    // guardar. Si la versión de antes lo tenía entero, esta no se instala a medias (auditoría del 1-11-2026): puesta
+    // sin conexión, en el aula, las pantallas no abrirían. El navegador lo vuelve a intentar en la siguiente
+    // comprobación (al abrir, y cada hora con la app abierta), cuando la app ya ha renovado la sesión.
+    if (!(await guardarPrivado(cache)) && (await habiaVersionEntera())) throw new Error('sin sesión: se espera a tenerla');
     if (await hayVersionRota()) await self.skipWaiting();
   })());
 });

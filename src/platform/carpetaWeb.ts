@@ -93,6 +93,8 @@ export const carpetaWeb = {
   soportada: () => typeof window !== 'undefined' && SELECTOR in window,
   estado: () => espejo?.estado() ?? { tipo: 'sin-carpeta' as const },
   conflictos: () => espejo?.conflictos() ?? [],
+  /** De los conflictos, los que lo son porque una de las dos copias está vacía (ver `espejo.ts`). */
+  vacios: () => espejo?.vacios() ?? {},
   onCambio: (fn: () => void) => espejo?.onCambio(fn) ?? (() => {}),
 
   /** Abre el selector de carpetas (tiene que ser al pulsar un botón). `null` si el docente lo cierra. */

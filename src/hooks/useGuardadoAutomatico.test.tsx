@@ -6,7 +6,8 @@
  */
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useGuardadoAutomatico } from './useGuardadoAutomatico';
+import { REINTENTO_GUARDADO_MS, useGuardadoAutomatico } from './useGuardadoAutomatico';
+import { bloquearGuardado } from '../lib/guardadoBloqueado';
 
 const guardar = vi.fn(async () => {});
 
@@ -98,5 +99,34 @@ describe('guardado automático', () => {
     rerender({ ready: true, profileId: 'p1', snapshot: { n: 9 } });
     unmount();
     expect(guardar).toHaveBeenCalledWith('p1', { n: 9 });
+  });
+});
+
+/**
+ * Auditoría del 1-11-2026: si el navegador no deja guardar (sin espacio, o falla), se avisa en pantalla y se vuelve a
+ * intentar solo; antes el error se perdía y el docente seguía trabajando sin que se guardara nada.
+ */
+describe('cuando no se puede guardar', () => {
+  it('avisa del motivo, vuelve a intentarlo solo y quita el aviso al conseguirlo', async () => {
+    let falla = true;
+    const guardarQueFalla = vi.fn(async () => { if (falla) throw new DOMException('lleno', 'QuotaExceededError'); });
+    const { result } = renderHook(() => useGuardadoAutomatico({ ready: true, profileId: 'p1', snapshot: { n: 1 }, guardar: guardarQueFalla, retardo: 700 }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(800); });
+    expect(result.current.errorGuardado).toBe('espacio');
+    expect(result.current.saving).toBe(false);
+    falla = false;
+    await act(async () => { await vi.advanceTimersByTimeAsync(REINTENTO_GUARDADO_MS + 800); });
+    expect(guardarQueFalla).toHaveBeenCalledTimes(2);
+    expect(result.current.errorGuardado).toBeNull();
+  });
+
+  it('con el guardado bloqueado (otra pestaña tiene la app) no escribe nada, ni al cerrar', async () => {
+    const { rerender } = montar({ ready: true, profileId: 'p1', snapshot: { n: 1 } });
+    await primeraEscritura();
+    bloquearGuardado();
+    rerender({ ready: true, profileId: 'p1', snapshot: { n: 2 } });
+    await pasar(800);
+    window.dispatchEvent(new Event('pagehide'));
+    expect(guardar).not.toHaveBeenCalled();
   });
 });

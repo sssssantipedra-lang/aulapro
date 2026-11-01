@@ -22,6 +22,7 @@
  */
 import type { Fs } from './profileStore';
 import type { Kv } from './webFs';
+import { textoDePerfilVacio } from '../lib/contenidoPerfil';
 
 export type EstadoCarpeta =
   | { tipo: 'sin-carpeta' }
@@ -98,6 +99,12 @@ export function createEspejo(opts: {
   const deLosPerfiles = (p: string) => DATOS.test(p) || p === PERFILES;
   let estado: EstadoCarpeta = { tipo: 'sin-carpeta' };
   const conflictos = new Set<string>();
+  /**
+   * Conflictos en los que una de las dos copias está vacía y la otra no (auditoría del 1-11-2026): `aqui`, la de este
+   * navegador (lo que se ve si no se ha podido leer el trabajo); `alli`, la de la carpeta o la nube. Nunca se sustituye
+   * una copia con datos por una vacía sin preguntar: con las versiones antiguas borradas, no habría vuelta atrás.
+   */
+  const vacios = new Map<string, 'aqui' | 'alli'>();
   const oyentes = new Set<() => void>();
   const avisar = () => oyentes.forEach(fn => fn());
   const nombre = () => ('nombre' in estado ? estado.nombre : '');
@@ -122,16 +129,28 @@ export function createEspejo(opts: {
     } catch { return null; }
   }
 
-  /** datos.json de un perfil a la carpeta, salvo que otro dispositivo la haya cambiado sin que este lo sepa. */
-  async function copiarDatos(c: Fs, id: string) {
+  /**
+   * datos.json de un perfil a la carpeta, salvo que otro dispositivo la haya cambiado sin que este lo sepa, o que lo de
+   * aquí esté vacío y lo de allí no. `forzar`: el docente ha elegido quedarse con lo de aquí.
+   */
+  async function copiarDatos(c: Fs, id: string, forzar = false) {
     const m = await leerMarca(c, id);
-    if (m && m.dispositivo !== dispositivo && m.en !== (await kv.get<string>(`visto:${id}`))) {
+    if (!forzar && m && m.dispositivo !== dispositivo && m.en !== (await kv.get<string>(`visto:${id}`))) {
       conflictos.add(id);
       avisar();
       return;
     }
     const data = await local.read(datosDe(id));
     if (data == null) return;
+    if (!forzar && textoDePerfilVacio(data)) {
+      const alli = await c.read(datosDe(id));
+      if (alli != null && !textoDePerfilVacio(alli)) {
+        vacios.set(id, 'aqui');
+        conflictos.add(id);
+        avisar();
+        return;
+      }
+    }
     await c.write(datosDe(id), data);
     subidoEn.set(datosDe(id), reloj());
     const en = ahora();
@@ -243,9 +262,20 @@ export function createEspejo(opts: {
     return alli;
   }
 
-  async function traer(c: Fs, id: string, m: Marca | null) {
+  /** datos.json de la carpeta a este navegador. Uno vacío no sustituye a uno con datos sin preguntar (salvo `forzar`). */
+  async function traer(c: Fs, id: string, m: Marca | null, forzar = false, congelar = false) {
     const data = await c.read(datosDe(id));
     if (data == null) return false;
+    if (!forzar && textoDePerfilVacio(data)) {
+      const aqui = await local.read(datosDe(id));
+      if (aqui != null && !textoDePerfilVacio(aqui)) {
+        vacios.set(id, 'alli');
+        conflictos.add(id);
+        return false;
+      }
+    }
+    // Con la app abierta, desde ya no se guarda nada de los perfiles hasta recargar (ver `congelado`)
+    if (congelar) congelado = true;
     await local.write(datosDe(id), data);
     if (m) await kv.set(`visto:${id}`, m.en);
     await kv.del(`pendiente:${id}`);
@@ -270,8 +300,7 @@ export function createEspejo(opts: {
         if (m.dispositivo === dispositivo) { await kv.set(`visto:${id}`, m.en); continue; }
         const pendiente = await kv.get<boolean>(`pendiente:${id}`);
         if (!pendiente || (await local.read(datosDe(id))) == null) {
-          if (opts.congelar) congelado = true;
-          if (await traer(c, id, m)) cargados++;
+          if (await traer(c, id, m, false, opts.congelar)) cargados++;
         } else {
           conflictos.add(id);
         }
@@ -295,6 +324,8 @@ export function createEspejo(opts: {
     comprobar,
     estado: () => estado,
     conflictos: () => [...conflictos],
+    /** De los conflictos, los que lo son porque una copia está vacía: dónde está la vacía. */
+    vacios: () => Object.fromEntries(vacios) as Record<string, 'aqui' | 'alli'>,
     onCambio(fn: () => void) { oyentes.add(fn); return () => { oyentes.delete(fn); }; },
 
     /** La carpeta guardada de otra vez, ya con permiso. */
@@ -330,7 +361,7 @@ export function createEspejo(opts: {
       const traidos = new Set<string>();
       if (alli.length && preferir !== 'local') {
         await unirPerfiles(alli);
-        for (const { id } of alli) if (await traer(c, id, await leerMarca(c, id))) traidos.add(id);
+        for (const { id } of alli) if (await traer(c, id, await leerMarca(c, id), preferir === 'carpeta')) traidos.add(id);
       } else {
         // Los de aquí mandan: se da por vista la marca de la carpeta para poder sustituirla
         for (const { id } of aqui) {
@@ -344,7 +375,7 @@ export function createEspejo(opts: {
       await enCola(() => copiarPerfiles(c, leido));
       // Lo que se acaba de traer ya está en la carpeta: copiarlo otra vez lo firmaría como de este dispositivo
       for (const { id } of leerLista(await local.read(PERFILES))) {
-        if (!traidos.has(id)) await enCola(() => copiarDatos(c, id));
+        if (!traidos.has(id)) await enCola(() => copiarDatos(c, id, preferir === 'local'));
       }
       avisar();
       return { elegir: false, cargados: traidos.size };
@@ -356,6 +387,7 @@ export function createEspejo(opts: {
       carpeta = null;
       enNube = false;
       conflictos.clear();
+      vacios.clear();
       estado = { tipo: 'sin-carpeta' };
       avisar();
     },
@@ -368,13 +400,27 @@ export function createEspejo(opts: {
       const c = activa();
       if (!c) return;
       const m = await leerMarca(c, id);
-      if (con === 'carpeta') await traer(c, id, m);
+      // Lo ha elegido el docente: se hace aunque una de las dos copias esté vacía
+      vacios.delete(id);
+      if (con === 'carpeta') await traer(c, id, m, true);
       else {
         if (m) await kv.set(`visto:${id}`, m.en);
         conflictos.delete(id);
-        await enCola(() => copiarDatos(c, id));
+        await enCola(() => copiarDatos(c, id, true));
       }
       conflictos.delete(id);
+      avisar();
+    },
+
+    /**
+     * Esta pestaña deja de copiar y de traer nada (otra pestaña se ha quedado con la app: `platform/unaPestana.ts`).
+     * Lo que tiene en memoria ya no es lo último; lo guardado en el navegador lo copia la otra.
+     */
+    detener() {
+      for (const t of esperando.values()) clearTimeout(t);
+      esperando.clear();
+      congelado = true;
+      carpeta = null;
       avisar();
     },
   };

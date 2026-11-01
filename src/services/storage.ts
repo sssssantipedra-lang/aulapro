@@ -7,6 +7,7 @@
  */
 
 import type { ComunidadId } from '../lib/curriculum/comunidades';
+import type { MotivoCopia } from '../platform/profileStore';
 
 export interface TeacherProfile {
   id: string;
@@ -185,7 +186,7 @@ export async function saveData(profileId: string, data: ProfileData): Promise<vo
   try { localStorage.setItem(WEB_DATA_PREFIX + profileId, JSON.stringify(data)); } catch { /* lleno */ }
 }
 
-export async function backup(profileId: string, motivo?: 'antes-de-vaciar'): Promise<string | null> {
+export async function backup(profileId: string, motivo?: MotivoCopia): Promise<string | null> {
   const b = bridge();
   if (!b) return null;
   return (await b.backup(profileId, motivo)) as string | null;

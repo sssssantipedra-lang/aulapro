@@ -22,30 +22,65 @@ interface Archivo { data: string; mtime: number }
 
 let abierta: Promise<IDBDatabase> | null = null;
 
+/**
+ * La conexión se abre una vez y se reutiliza. Safari la corta a veces (sobre todo con la app instalada y en segundo
+ * plano: «Connection to Indexed Database server lost»), y otra pestaña puede pedir una versión nueva de la base: en
+ * los dos casos se olvida y la próxima operación abre otra (auditoría del 1-11-2026). Antes se quedaba la conexión
+ * muerta para siempre y todo lo que se leía o guardaba después fallaba hasta recargar.
+ */
 function abrir(): Promise<IDBDatabase> {
-  return (abierta ??= new Promise((resolve, reject) => {
+  if (abierta) return abierta;
+  const p = new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open(DB, 1);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(ARCHIVOS)) db.createObjectStore(ARCHIVOS);
       if (!db.objectStoreNames.contains(AJUSTES)) db.createObjectStore(AJUSTES);
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => { abierta = null; reject(req.error); };
-  }));
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onclose = () => olvidarConexion(p);
+      db.onversionchange = () => { db.close(); olvidarConexion(p); };
+      resolve(db);
+    };
+    req.onerror = () => { olvidarConexion(p); reject(req.error); };
+  });
+  abierta = p;
+  return p;
+}
+
+function olvidarConexion(p: Promise<IDBDatabase>) {
+  if (abierta === p) abierta = null;
+}
+
+/** Errores que quieren decir «la conexión ya no vale»: se abre otra y se repite una vez. */
+const conexionPerdida = (err: unknown) => ['InvalidStateError', 'UnknownError'].includes((err as DOMException)?.name);
+
+/**
+ * Repite una vez `op` con una conexión nueva si la de antes se había perdido. Una transacción de IndexedDB es atómica:
+ * si falla, no se ha aplicado nada, así que repetirla no duplica ni deja nada a medias.
+ */
+async function conReintento<T>(op: (db: IDBDatabase) => Promise<T>): Promise<T> {
+  const p = abrir();
+  try {
+    return await op(await p);
+  } catch (err) {
+    if (!conexionPerdida(err)) throw err;
+    olvidarConexion(p);
+    return op(await abrir());
+  }
 }
 
 /** Una transacción: `fn` pide lo que quiera y se resuelve cuando la transacción se completa. */
-async function tx<T>(store: string, modo: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T> | void): Promise<T> {
-  const db = await abrir();
-  return new Promise((resolve, reject) => {
+function tx<T>(store: string, modo: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T> | void): Promise<T> {
+  return conReintento(db => new Promise<T>((resolve, reject) => {
     const t = db.transaction(store, modo);
     const s = t.objectStore(store);
     const req = fn(s);
     t.oncomplete = () => resolve(req ? req.result : (undefined as T));
     t.onerror = () => reject(t.error);
     t.onabort = () => reject(t.error);
-  });
+  }));
 }
 
 const rango = (dir: string) => IDBKeyRange.bound(`${dir}/`, `${dir}/￿`);
@@ -89,8 +124,7 @@ export const idbFs: Fs = {
     await tx(ARCHIVOS, 'readwrite', s => { s.delete(rango(path)); });
   },
   async list(path) {
-    const db = await abrir();
-    const rutas = await new Promise<[string, Archivo][]>((resolve, reject) => {
+    const rutas = await conReintento(db => new Promise<[string, Archivo][]>((resolve, reject) => {
       const out: [string, Archivo][] = [];
       const req = db.transaction(ARCHIVOS, 'readonly').objectStore(ARCHIVOS).openCursor(rango(path));
       req.onsuccess = () => {
@@ -100,7 +134,7 @@ export const idbFs: Fs = {
         c.continue();
       };
       req.onerror = () => reject(req.error);
-    });
+    }));
     return hijosDe(path, rutas);
   },
 };

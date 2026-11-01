@@ -31,6 +31,8 @@ import { crearVerificador } from './firmaLicencia';
 import { LICENCIA_PERDIDA, pedirSesion, vigilarSesion } from './sesionWeb';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
+import { PESTANA_PERDIDA, reservarPestana } from './unaPestana';
+import { bloquearGuardado } from '../lib/guardadoBloqueado';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
 
 /* ── Licencia ── */
@@ -194,12 +196,19 @@ async function idDeDispositivo(): Promise<string> {
   return nuevo;
 }
 
-export async function installWebBridge() {
+/**
+ * Monta la versión web. Devuelve `false` sin montar nada si AulaPro ya está abierta en otra pestaña o ventana
+ * (`platform/unaPestana.ts`): dos pestañas guardando a la vez se borraban el trabajo la una a la otra.
+ */
+export async function installWebBridge(opts: { pestanaReservada?: boolean } = {}): Promise<boolean> {
+  if (!opts.pestanaReservada && !(await reservarPestana())) return false;
   // Que el navegador no borre los datos por falta de espacio (en Chrome, sobre todo si la app está instalada)
   navigator.storage?.persist?.().catch(() => false);
   vigilarSesion();
 
   const espejo = createEspejo({ local: idbFs, kv: idbKv, dispositivo: await idDeDispositivo() });
+  // Otra pestaña se ha quedado con la app («Usar aquí»): esta deja de guardar y de copiar en el acto
+  window.addEventListener(PESTANA_PERDIDA, () => { bloquearGuardado(); espejo.detener(); });
   iniciarCarpeta(espejo);
   // Antes de pintar: si otro ordenador dejó algo más nuevo en la carpeta, se trae ya
   await abrirCarpetaGuardada();
@@ -231,4 +240,5 @@ export async function installWebBridge() {
     }),
     secrets: secretos,
   };
+  return true;
 }
