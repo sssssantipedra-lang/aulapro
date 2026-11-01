@@ -6,6 +6,7 @@ import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
 import { isAndroidApp, isWebApp } from '../lib/platform';
 import { licenciaVencida } from '../lib/licenciaVencida';
+import { DescargarMisDatos } from '../components/DescargarMisDatos';
 import { botonGoogle, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, VENTA_ABIERTA, type Cuenta } from '../platform/cuentaWeb';
 
 /** Por qué no se ha podido buscar la compra (`licenciaDeLaCuenta`). */
@@ -168,6 +169,8 @@ export function LicenseGate({ state, onChange }: Props) {
             {busy ? <><span className="spin" />&nbsp;{t('Activando…')}</> : t('Activar')}
           </button>
         </form>}
+
+        {isWebApp() && <DescargarMisDatos />}
 
         {/* En Android, Google Play no deja enlazar a un pago: solo el texto, sin enlace. En la web, la misma regla (CLAUDE.md, regla 3) */}
         {cuenta ? null : isAndroidApp() || isWebApp() ? (

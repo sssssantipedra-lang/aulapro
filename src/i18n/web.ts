@@ -5,6 +5,9 @@
  * a `EN` en `core.ts` y a `CA` en `ca.ts`.
  */
 export const WEB_EN: Record<string, string> = {
+  "Descargar mis datos": "Download my data",
+  "Copia descargada. Para volver a cargarla, en AulaPro: Configuración › Datos y copias › Cargar desde archivo.": "Copy downloaded. To load it again, in AulaPro: Settings › Data and backups › Load from file.",
+  "Tu trabajo está en este navegador. Descarga una copia y es tuya, aunque no renueves. El archivo no va cifrado y lleva los datos de tu alumnado: guárdalo con cuidado.": "Your work is in this browser. Download a copy and it is yours, even if you do not renew. The file is not encrypted and contains your students’ data: keep it safe.",
   '¿Compraste con otro correo o tienes un pack? Escribe tu clave': 'Bought with another email or have a pack? Enter your key',
   'Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.': 'Your account has one profile. To start from scratch, delete it with the bin and create yours.',
   'Tu cuaderno docente, en todos tus dispositivos': 'Your teaching notebook, on all your devices',
@@ -204,6 +207,9 @@ export const WEB_EN: Record<string, string> = {
 };
 
 export const WEB_CA: Record<string, string> = {
+  "Descargar mis datos": "Descarrega les meves dades",
+  "Copia descargada. Para volver a cargarla, en AulaPro: Configuración › Datos y copias › Cargar desde archivo.": "Còpia descarregada. Per tornar-la a carregar, a AulaPro: Configuració › Dades i còpies › Carregar des d’un fitxer.",
+  "Tu trabajo está en este navegador. Descarga una copia y es tuya, aunque no renueves. El archivo no va cifrado y lleva los datos de tu alumnado: guárdalo con cuidado.": "La teva feina és en aquest navegador. Descarrega’n una còpia i és teva, encara que no renovis. El fitxer no va xifrat i porta les dades del teu alumnat: guarda’l amb cura.",
   '¿Compraste con otro correo o tienes un pack? Escribe tu clave': 'Vas comprar amb un altre correu o tens un pack? Escriu la teva clau',
   'Tu cuenta tiene un perfil. Para empezar de cero, bórralo con la papelera y crea el tuyo.': 'El teu compte té un perfil. Per començar de zero, esborra’l amb la paperera i crea el teu.',
   'Tu cuaderno docente, en todos tus dispositivos': 'El teu quadern docent, a tots els teus dispositius',
