@@ -21,6 +21,7 @@ Estado de la rama `ccr-3f4014f5-llwckk`: lleva cambios que **todavía no están 
 3. ~~El párrafo de la privacidad sobre el uso gratuito de Google.~~ Corregido el 31-10-2026.
 4. **Los packs.** Con la licencia individual a 9,90 €, los packs (24,99 € para 5 docentes y 44,99 € para 10) salen a 5,00 € y 4,50 € por docente: un 50 % y un 55 % de descuento. Antes eran un 28 % y un 36 %. Si se quiere el mismo descuento, rondarían 34,99 € y 62,99 €.
 5. **Qué ve quien no renueva una licencia anual** (las primeras vencen hacia el 16-4-2028). Los datos nunca se bloquean; falta decidir qué deja de funcionar (`docs/MANTENIMIENTO.md`).
+6. **Claves compartidas (auditoría del 1-11-2026).** `/api/licencia/validate` sin número de activación devuelve una licencia firmada (lo usa la licencia de la cuenta para renovarse sin token de Google). Con eso, quien tenga una clave ajena y sepa programar puede usarla en más de 2 dispositivos sin activarla. Cerrarlo obliga a cambiar cómo se renueva la licencia de la cuenta (con el token de Google o de Microsoft), y no se ha tocado a días de abrir la venta. Decidir si se cierra después del lanzamiento.
 
 ## 2. Antes del 10-11: lo que solo puede hacer el dueño
 
@@ -44,6 +45,8 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 - [ ] Una incidencia `vigilancia` de prueba llega al correo.
 - [ ] Mirar los minutos gastados de GitHub Actions. El repositorio es privado y la vigilancia cada 30 minutos consume unos 1.440 trabajos al mes.
 - [ ] Las fechas marcadas «(comprobar)» en `docs/MANTENIMIENTO.md`.
+- [ ] (Recomendado, auditoría del 1-11-2026) `LICENCIA_SECRETO` y `LICENCIA_SECRETO_ANTERIOR` con los pasos de `docs/MANTENIMIENTO.md`, «La llave de las licencias».
+- [ ] Tras publicar en `master`: la vigilancia marca «✔ el código de la app no sale sin suscripción» en aulapro.app. Desde la sesión de la auditoría no se pudo abrir aulapro.app para comprobarlo.
 
 ## 3. Antes del 10-11: lo que puede hacer Claude cuando se le pida
 
@@ -69,6 +72,8 @@ Probado con pruebas automáticas y en Chromium con ratón, pero **nunca con un d
   - El tiempo de cifrado en un móvil lento (600.000 vueltas).
 - **Entrar con Microsoft** con una cuenta real y la copia en OneDrive. Con cuentas de centros, Microsoft puede pedir la aprobación del administrador mientras AulaPro no tenga editor verificado.
 - **Safari** (iPhone, iPad, Mac): entrar con Google por redirección y volver a la app.
+- **Una sola pestaña** (auditoría del 1-11-2026): abrir AulaPro en dos pestañas del ordenador, y la app instalada más una pestaña en Android y en iPhone o iPad. La segunda debe decir «AulaPro ya está abierta en otra pestaña» y, con «Usar AulaPro aquí», la primera dejar de guardar. Volver de la página de Google o de Microsoft no debe dar ese aviso.
+- **Aviso de guardado fallido** con el almacenamiento del navegador lleno (en Chrome se puede simular desde las herramientas de desarrollo, «Application › Storage»).
 
 Lo que solo importa si algún día se vuelve a las apps nativas: el PDF de Android (`PdfPrint`), «Ver carpeta» y el micrófono. Ver la sección de Android en `CLAUDE.md`.
 
@@ -78,6 +83,8 @@ Lo que solo importa si algún día se vuelve a las apps nativas: el PDF de Andro
   - «Evaluar por foto» y la Ley de IA de la UE: la IA que evalúa resultados de aprendizaje está en la lista de alto riesgo del ámbito educativo. Comprobar también el calendario de obligaciones vigente.
   - La lectura de la cláusula «solo servicios de pago» de Google para una app en la que cada docente pone su propia clave.
 - **Verificación de Google** de la aplicación OAuth (Drive): pendiente (`docs/APP_WEB.md`).
+- **Las cláusulas nuevas del 1-11-2026** (condiciones de venta y de uso: datos y alumnado, IA, servicios de terceros y limitación de responsabilidad; privacidad: papel de cada uno ante el RGPD, base legal y plazo de los datos de compra): las redactó Claude a partir del código y no sustituyen a un abogado. Ninguna cláusula puede excluir la responsabilidad que la ley no permite excluir (dolo, culpa grave, derechos de consumidores), y así lo dicen.
+- **Ley de IA de la UE y «Evaluar por foto»** (además de lo de arriba): si se considera que no es de alto riesgo porque solo prepara una evaluación que decide el docente (artículo 6.3), la ley pide documentar esa valoración y registrar el sistema en la base de datos de la UE (artículos 6.4 y 49.2). Y el artículo 50 (transparencia de lo que genera una IA) puede aplicarse a las fichas y los documentos generados. Confirmar con el abogado qué obliga y desde cuándo.
 - **Editor verificado de Microsoft** (Microsoft Cloud Partner Program): sin él, las cuentas de centros pueden necesitar la aprobación de su administrador para OneDrive.
 - **Condiciones de Google para Gemini**: confirmar en la página vigente las dos cláusulas sobre el Espacio Económico Europeo (uso de datos en la cuota gratuita y «solo servicios de pago» para apps), en las que se apoya la decisión de usar la clave gratuita del docente. Desde la sesión de Claude no se pudo abrir la página oficial; el dueño las tiene citadas tal cual (31-10-2026).
 

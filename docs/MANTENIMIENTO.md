@@ -31,7 +31,9 @@ Se cambian en tres sitios, y **Netlify y Cloudflare llevan los mismos valores** 
 
 | Nombre | Dónde | Para qué | Caduca | Si falla |
 |---|---|---|---|---|
-| `GOOGLE_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Google, permiso de Drive (`/api/google/*`), **llave que firma las licencias** y **la de la sesión que abre el código de la app** (`_sesion.js`, la puerta de `/app/assets/`, desde el 1-11-2026) | No caduca solo. Solo cambia si se rota a mano | Sin él, no hay entrada con Google ni Drive. Ver «La llave de las licencias» |
+| `GOOGLE_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Google, permiso de Drive (`/api/google/*`) y, **mientras no exista `LICENCIA_SECRETO`**, llave que firma las licencias y la de la sesión que abre el código de la app (`_sesion.js`, la puerta de `/app/assets/`) | No caduca solo. Solo cambia si se rota a mano | Sin él, no hay entrada con Google ni Drive. Ver «La llave de las licencias» |
+| `LICENCIA_SECRETO` (opcional, desde el 1-11-2026) | Netlify y Cloudflare, Production y Preview | Llave propia de las licencias firmadas y de la sesión (`web/funciones/api/_secretos.js`). Si está, el secreto de Google se puede cambiar sin tocar las licencias | No caduca. Un texto largo al azar (por ejemplo, 64 caracteres de un generador de contraseñas) | Ponerlo o cambiarlo sin seguir los pasos de «La llave de las licencias» deja sin sesión a quien tenga la app abierta (hasta un día) |
+| `LICENCIA_SECRETO_ANTERIOR` (opcional) | Netlify y Cloudflare, Production y Preview | Solo durante un cambio de llave: se siguen aceptando las firmas y las sesiones hechas con él | Quitarlo 8 días después del cambio | Si se olvida, no pasa nada grave: se sigue aceptando la llave vieja |
 | `MICROSOFT_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Microsoft y OneDrive (`/api/microsoft/*`) | **Sí.** Microsoft admite como máximo 24 meses; la fecha se elige al crearlo (creado el 30-10-2026) **(comprobar)** | Falla Microsoft y OneDrive. Google y las claves siguen bien |
 | `LEMONSQUEEZY_API_KEY` | Netlify y Cloudflare | Buscar la compra de una cuenta y activar la licencia sola (`/api/licencia/cuenta`) | **Puede caducar** (las claves de la API de Lemon Squeezy llevan fecha) **(comprobar)** | Ver «Lemon Squeezy» abajo: es el fallo más caro |
 | `FUNDADORES` | Netlify y Cloudflare, Production y Preview | Correos que entran gratis | No caduca. Se mantiene a mano | Un correo que falta pierde su acceso gratis al volver a comprobar |
@@ -54,15 +56,24 @@ Están en el código y no caducan, pero hay que mantenerlas a la vez que su regi
 1. **Microsoft (`MICROSOFT_CLIENT_SECRET`)**: entra.microsoft.com › Registros de aplicaciones › AulaPro › Certificados y secretos. Se pueden tener **dos secretos a la vez**: crear el nuevo, ponerlo en Netlify y Cloudflare (Production y Preview), volver a publicar, probar la entrada con Microsoft y solo entonces borrar el viejo. Apuntar la nueva fecha de caducidad en este documento. El valor solo se ve al crearlo.
 2. **Lemon Squeezy (`LEMONSQUEEZY_API_KEY`)**: Settings › API. Crear la nueva, ponerla en Netlify y Cloudflare, publicar, probar «entrar con Google con una cuenta que ya compró», y después borrar la vieja. **Tiene que ser una clave del modo real**, no del modo de prueba (Lemon Squeezy separa las dos).
 3. **Cloudflare (`CLOUDFLARE_API_TOKEN`)**: panel de Cloudflare › Mi perfil › API Tokens. Mismos permisos que el anterior (editar Cloudflare Pages del proyecto `aulapro-app`). Cambiarlo en GitHub y lanzar `web.yml` a mano para comprobar.
-4. **Google (`GOOGLE_CLIENT_SECRET`)**: solo si se filtra. Ver «La llave de las licencias» antes de tocarlo.
+4. **Google (`GOOGLE_CLIENT_SECRET`)**: solo si se filtra. Ver «La llave de las licencias» antes de tocarlo. Con `LICENCIA_SECRETO` puesto, cambiarlo ya no afecta a las licencias ni a las sesiones.
 
 ## 3. Lo que se rompe en silencio
 
 Estos son los fallos que no avisan, en el orden en que más duelen.
 
-### La llave de las licencias (`GOOGLE_CLIENT_SECRET`)
+### La llave de las licencias (`LICENCIA_SECRETO` o, si no está, `GOOGLE_CLIENT_SECRET`)
 
-Las licencias se firman con una llave que **sale del secreto de Google** (`web/funciones/api/_firma.js`). Netlify y Cloudflare firman igual porque tienen el mismo secreto. Consecuencias:
+Las licencias se firman con una llave que sale de `LICENCIA_SECRETO` si existe y, si no, **del secreto de Google** (`web/funciones/api/_secretos.js` y `_firma.js`). Netlify y Cloudflare firman igual porque tienen el mismo secreto.
+
+**Pasar a una llave propia o cambiarla sin dejar a nadie fuera (auditoría del 1-11-2026, recomendado antes del 10-11-2026):**
+
+1. Crear un texto largo al azar (64 caracteres de un generador de contraseñas).
+2. En Netlify y en Cloudflare (Production y Preview): `LICENCIA_SECRETO` = el texto nuevo, y `LICENCIA_SECRETO_ANTERIOR` = la llave que se usaba hasta ahora (la primera vez, **el mismo valor que `GOOGLE_CLIENT_SECRET`**; en los cambios siguientes, el `LICENCIA_SECRETO` de antes).
+3. Publicar los dos sitios y probar: abrir la app con una licencia ya activa (debe abrir sin pedir nada) y activar una clave nueva.
+4. Pasados 8 días (las firmas caducan a los 7), quitar `LICENCIA_SECRETO_ANTERIOR` y volver a publicar.
+
+Sin el paso 2 completo, las sesiones de todo el mundo dejan de valer a la vez y la app no puede cargar sus pantallas hasta que cada navegador renueva su licencia (hasta un día). Consecuencias de la llave en general:
 
 - Si Netlify y Cloudflare **no tienen exactamente el mismo valor**, las licencias firmadas por uno no las acepta la app cuando le toca el otro, y el docente verá la licencia pedirse de nuevo o fallar de forma intermitente.
 - Si se **rota el secreto**, cambia la llave. Las licencias de cuenta se vuelven a firmar solas en la siguiente comprobación con conexión; **las claves escritas a mano también se vuelven a comprobar**. Quien esté sin conexión en ese momento no podrá entrar hasta tener red. Hacerlo fuera de horas de clase y de cualquier fecha de venta.
@@ -136,6 +147,8 @@ Esto no es del dueño, pero explica las quejas más probables:
 - [ ] `LEMONSQUEEZY_API_KEY` es de **modo real**, está en Netlify y Cloudflare, y se anotó su caducidad en la tabla.
 - [ ] `GOOGLE_CLIENT_SECRET`, `MICROSOFT_CLIENT_SECRET` y `FUNDADORES` están en Netlify y Cloudflare (Production y Preview), con el mismo valor en los dos.
 - [ ] Fecha de caducidad de `MICROSOFT_CLIENT_SECRET` anotada en el calendario.
+- [ ] (Recomendado, auditoría del 1-11-2026) `LICENCIA_SECRETO` puesto con los pasos de «La llave de las licencias», para que cambiar algún día el secreto de Google no corte las licencias.
+- [ ] La vigilancia (`web-vigilancia.yml`) dice «✔ el código de la app no sale sin suscripción» para aulapro.app. Si falla, la función de borde de Netlify no ve el secreto y la app se entrega a cualquiera.
 - [ ] Pantalla de consentimiento de Google en «En producción» y sin avisos de verificación pendientes.
 - [ ] Prueba completa con dinero real (una compra de 9,90 € a un correo propio) y reembolso, y una cuenta de Microsoft personal entera (entrar, OneDrive, recargar).
 - [ ] Los dos packs (5 y 10) creados en Lemon Squeezy con 10 y 20 activaciones, y sus enlaces en `web/sitio/assets/launch.js` (`packs`) y en `checkout`.
