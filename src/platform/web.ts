@@ -28,7 +28,7 @@ import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta, recargarCuandoSeAPuedeSinCortar } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost, type LicenseRecord } from './androidLicense';
 import { crearVerificador } from './firmaLicencia';
-import { pedirSesion, vigilarSesion } from './sesionWeb';
+import { LICENCIA_PERDIDA, pedirSesion, vigilarSesion } from './sesionWeb';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
@@ -226,6 +226,8 @@ export async function installWebBridge() {
       // La firma dura 7 días: se renueva cada día con conexión, y con ella la sesión que abre el código de la app
       comprobarCada: 24 * 60 * 60 * 1000,
       alValer: async r => { await verificarFirma.precargar(); await pedirSesion(r.firma); },
+      // App.tsx (LicenseCheck) lo escucha y enseña la pantalla de licencia sin esperar a la próxima apertura
+      alPerder: () => window.dispatchEvent(new Event(LICENCIA_PERDIDA)),
     }),
     secrets: secretos,
   };

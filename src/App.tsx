@@ -14,7 +14,7 @@ import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
 import { licenciaVencida } from './lib/licenciaVencida';
-import { olvidarApp } from './platform/sesionWeb';
+import { LICENCIA_PERDIDA, olvidarApp } from './platform/sesionWeb';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
 import { Dashboard } from './pages/Dashboard';
@@ -884,6 +884,13 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       setState(s);
     });
   }, [state]);
+
+  // La licencia se ha perdido con la app abierta (la comprobación de la clave contestó tarde): a la pantalla de licencia ya
+  useEffect(() => {
+    const perdida = () => { void getLicenseState().then(n => { if (n?.required) setState(n); }); };
+    window.addEventListener(LICENCIA_PERDIDA, perdida);
+    return () => window.removeEventListener(LICENCIA_PERDIDA, perdida);
+  }, []);
 
   // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el
   // dispositivo; el trabajo se queda. Al renovar se vuelve a descargar.

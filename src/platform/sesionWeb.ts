@@ -7,6 +7,9 @@
  * Siempre al mismo sitio desde el que se abrió la app (la cookie es de ese sitio), sin el paso al servidor
  * de respaldo de `servidores.ts`.
  */
+/** Evento de `window` cuando la licencia se pierde con la app abierta (`platform/web.ts`, `App.tsx`). */
+export const LICENCIA_PERDIDA = 'aulapro-licencia-perdida';
+
 const HASTA = 'aulapro_sesion_hasta';
 const HUELLA = 'aulapro_sesion_huella';
 /** Se renueva cuando le quedan menos de 2 días (la firma, y con ella la sesión, dura 7). */

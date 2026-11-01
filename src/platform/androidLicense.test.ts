@@ -122,6 +122,31 @@ describe('licencia firmada al abrir (versión web)', () => {
     expect(s.mem.get('licencia')).toBeUndefined();
   });
 
+  it('una clave escrita a mano y caducada no se salva porque la cuenta no tenga compra: se comprueba la clave ya', async () => {
+    const s = secrets();
+    s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'CLAVE-MANO', instanceId: 'i1', activatedAt: '2026-10-29', lastOkAt: new Date().toISOString(), firma: 'f' }));
+    const alPerder = vi.fn();
+    const lic = createAndroidLicense(s, {
+      enforced: true, verificar: async () => true, alPerder,
+      post: async () => ({ status: 200, body: { valid: false, license_key: { status: 'expired' } } }),
+    });
+    expect((await lic.state()).required).toBe(false);
+    // La búsqueda por el correo no encuentra compra: antes no hacía nada con una clave a mano
+    expect((await lic.porCuenta!(null)).required).toBe(true);
+    expect(alPerder).toHaveBeenCalled();
+  });
+
+  it('la comprobación diaria se hace al abrir: una clave caducada no llega a abrir la app', async () => {
+    const s = secrets();
+    const ayer = new Date(Date.now() - 2 * 86400_000).toISOString();
+    s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'CLAVE-MANO', instanceId: 'i1', activatedAt: ayer, lastOkAt: ayer, firma: 'f' }));
+    const lic = createAndroidLicense(s, {
+      enforced: true, verificar: async () => true, comprobarCada: 86400_000,
+      post: async () => ({ status: 200, body: { valid: false, license_key: { status: 'expired' } } }),
+    });
+    expect((await lic.state()).required).toBe(true);
+  });
+
   it('pide la sesión de la app cada vez que hay una licencia válida (al abrir y al activar), y no sin ella', async () => {
     const s = secrets();
     const alValer = vi.fn(async () => {});

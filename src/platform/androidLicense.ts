@@ -100,6 +100,8 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   alValer?: (r: LicenseRecord) => Promise<void>;
   /** Cada cuánto se vuelve a comprobar la clave con conexión (por defecto, una semana; la web, cada día). */
   comprobarCada?: number;
+  /** Versión web: la licencia se ha perdido con la app abierta (terminada, devuelta o anulada). La pantalla se bloquea ya. */
+  alPerder?: () => void;
 } = {}): LicenseBridge {
   const enforced = opts.enforced ?? ENFORCED;
   const storeId = opts.storeId ?? STORE_ID;
@@ -140,7 +142,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       // Con la firma nueva (otros 7 días) llega también una sesión nueva
       await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
       await avisar();
-    } else if (r.status < 500) { marcarLicenciaVencida(); await save(null); } // terminada, devuelta o anulada
+    } else if (r.status < 500) { marcarLicenciaVencida(); await save(null); opts.alPerder?.(); } // terminada, devuelta o anulada
   }
 
   async function init() {
@@ -156,8 +158,13 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     if (!record && !enforced) {
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
     } else if (record?.kind === 'licencia') {
+      // La comprobación que toca (cada día en la web) se espera al abrir, como mucho 3 s: una suscripción que ha
+      // terminado no llega a abrir la app. Si la red tarda más, sigue en segundo plano y bloquea al contestar.
       const last = Date.parse(record.lastOkAt ?? record.activatedAt);
-      if (!Number.isFinite(last) || Date.now() - last > comprobarCada) check().catch(() => {});
+      if (!Number.isFinite(last) || Date.now() - last > comprobarCada) {
+        await Promise.race([check().catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
+        if (!record) return;
+      }
     }
     await avisar();
   }
@@ -195,6 +202,11 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       } else if (record?.cuenta) {
         if (record.kind === 'licencia') marcarLicenciaVencida();
         await save(null);
+      } else if (record?.kind === 'licencia' && record.key) {
+        // Una clave escrita a mano (un pack, otro correo): que el correo no tenga compra no dice nada de ella, así
+        // que se comprueba la propia clave ya, sin esperar a la comprobación diaria (1-11-2026: una clave caducada
+        // seguía entrando hasta el día siguiente)
+        await check();
       }
       await avisar();
       return state();
