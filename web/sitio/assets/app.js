@@ -1,4 +1,4 @@
-/* AulaPro · page engine: language, entrances, the list and the form. */
+/* AulaPro · page engine: language, the hero moved by the scroll, entrances, the list and the form. */
 (() => {
   'use strict';
 
@@ -108,6 +108,114 @@
     if (save) store.set('aula-lang', lang);
   }
 
+
+  /* ================= the hero: the app on three screens, moved by the scroll =================
+     Like a product page: the laptop comes forward, its screen tells the story (the list is crossed off as
+     each screen appears), and the three devices settle together at the end. Everything is a sharp capture
+     moved with transforms, so it stays crisp at any size. On small or touch screens in portrait and with
+     reduced motion, the hero is the still composition (same gates as the CSS of .hero.scrub). */
+  const hero = $('#inicio');
+  const stage = $('.stage', hero);
+  const copyA = $('.hero-copy', hero);
+  const box = $('.devices', hero);
+  const devs = ['.dv-laptop', '.dv-tablet', '.dv-phone'].map(s => $(s, hero));
+  const shots = $$('.dv-laptop img.later', hero).map(el => ({ el, t: +el.dataset.t }));
+  const caps = $$('.beat', hero).map(el => ({ el, a: +el.dataset.a, b: +el.dataset.b, k: -1 }));
+  const lns = $$('.beat .ln', hero).map(el => ({ el, t: +el.dataset.t, s: -1 }));
+  const cue = $('.cue', hero);
+  const ease = t => t * t * (3 - 2 * t);
+  const ramp = (p, a, d) => clamp((p - a) / d, 0, 1);
+  const GATES = [
+    '(max-width: 720px)',
+    '(orientation: portrait) and (max-width: 1024px)',
+    '(orientation: portrait) and (pointer: coarse)',
+    '(orientation: landscape) and (pointer: coarse) and (max-height: 560px)',
+    '(prefers-reduced-motion: reduce)'
+  ];
+  const T = { aOut: [0.07, 0.2], sOut: [0.78, 0.9] };   // still → story, story → together
+  let scrubOn = false, geo = null, heroTop = 0, heroRange = 1, raf = null;
+
+  function measure() {
+    if (!scrubOn) return;
+    devs.forEach(d => { d.style.transform = ''; d.style.opacity = ''; });
+    copyA.style.transform = '';
+    const st = stage.getBoundingClientRect();
+    const rel = el => { const r = el.getBoundingClientRect(); return { x: r.left - st.left, y: r.top - st.top, w: r.width, h: r.height }; };
+    const W = st.width, H = st.height;
+    const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+    const gut = parseFloat(getComputedStyle(cue.parentElement.querySelector('.beat')).left) || 48;
+    const A = devs.map(rel), D = rel(box);
+    // the story: the caption on the left, the laptop as large as it fits on the right (it may bleed a little)
+    const capW = clamp(W * 0.3, 300, 460);
+    stage.style.setProperty('--capw', capW + 'px');
+    const x0 = gut + capW + clamp(W * 0.04, 32, 72);
+    const lw = Math.min((W - x0) * 1.1, (H - nav - 70) * (A[0].w / A[0].h));
+    const L = { x: x0, y: nav + (H - nav - lw * A[0].h / A[0].w) / 2 - 8, w: lw };
+    const S = [L, { x: A[1].x - W * 0.2, y: A[1].y + H * 0.45, w: A[1].w }, { x: A[2].x + W * 0.15, y: A[2].y + H * 0.45, w: A[2].w }];
+    // the end: the three together, centred under the closing line and above the strip
+    const top = nav + clamp(H * 0.2, 150, 210), bottom = clamp(H * 0.16, 110, 150);
+    const k = Math.min(W * 0.8 / D.w, (H - top - bottom) / D.h);
+    const ex = (W - D.w * k) / 2;
+    const E = A.map(a => ({ x: ex + (a.x - D.x) * k, y: top + (a.y - D.y) * k, w: a.w * k }));
+    geo = { A, S, E };
+    heroTop = hero.getBoundingClientRect().top + scrollY;
+    heroRange = Math.max(1, hero.offsetHeight - innerHeight);
+  }
+
+  const mix = (r1, r2, t) => ({ x: r1.x + (r2.x - r1.x) * t, y: r1.y + (r2.y - r1.y) * t, w: r1.w + (r2.w - r1.w) * t });
+  function render() {
+    raf = null;
+    if (!scrubOn || !geo) return;
+    const p = clamp((scrollY - heroTop) / heroRange, 0, 1);
+    const tA = ease(ramp(p, T.aOut[0], T.aOut[1] - T.aOut[0]));
+    const tE = ease(ramp(p, T.sOut[0], T.sOut[1] - T.sOut[0]));
+    devs.forEach((d, i) => {
+      const a = geo.A[i];
+      const r = tE > 0 ? mix(geo.S[i], geo.E[i], tE) : mix(a, geo.S[i], tA);
+      d.style.transform = `translate(${(r.x - a.x).toFixed(2)}px,${(r.y - a.y).toFixed(2)}px) scale(${(r.w / a.w).toFixed(4)})`;
+      if (i) d.style.opacity = (tE > 0 ? tE : 1 - tA).toFixed(3);
+    });
+    const oA = 1 - ramp(p, 0.06, 0.06);
+    copyA.style.opacity = oA.toFixed(3);
+    copyA.style.transform = `translateY(${(-(1 - oA) * 28).toFixed(1)}px)`;
+    copyA.style.pointerEvents = oA > 0.5 ? '' : 'none';
+    caps.forEach(c => {
+      const k = Math.min(ramp(p, c.a, 0.035), c.b >= 1 ? 1 : 1 - ramp(p, c.b - 0.035, 0.035));
+      if (k === c.k) return;
+      c.k = k;
+      c.el.style.opacity = k.toFixed(3);
+      c.el.style.setProperty('--dy', ((1 - k) * 18).toFixed(1) + 'px');
+      c.el.classList.toggle('on', k > 0.5);
+    });
+    lns.forEach(l => {
+      const s = ramp(p, l.t, 0.04);
+      if (s !== l.s) { l.s = s; l.el.style.setProperty('--s', s.toFixed(3)); }
+    });
+    shots.forEach(s => { s.el.style.opacity = ramp(p, s.t, 0.025).toFixed(3); });
+    cue.style.opacity = (1 - ramp(p, 0, 0.03)).toFixed(3);
+  }
+  const queue = () => { if (raf === null) raf = requestAnimationFrame(render); };
+  const refresh = () => { measure(); caps.forEach(c => { c.k = -1; }); lns.forEach(l => { l.s = -1; }); render(); };
+
+  function setScrub(on) {
+    if (on === scrubOn) return;
+    scrubOn = on;
+    hero.classList.toggle('scrub', on);
+    if (on) {
+      addEventListener('scroll', queue, { passive: true });
+      refresh();
+    } else {
+      removeEventListener('scroll', queue);
+      if (raf !== null) { cancelAnimationFrame(raf); raf = null; }
+      [...devs, copyA, ...shots.map(s => s.el)].forEach(el => { el.style.transform = ''; el.style.opacity = ''; el.style.pointerEvents = ''; });
+    }
+  }
+  const MQLS = GATES.map(q => matchMedia(q));
+  const applyHeroMode = () => setScrub(!MQLS.some(m => m.matches));
+  MQLS.forEach(m => m.addEventListener ? m.addEventListener('change', applyHeroMode) : m.addListener(applyHeroMode));
+  addEventListener('resize', () => { if (scrubOn) refresh(); }, { passive: true });
+  addEventListener('load', () => { if (scrubOn) refresh(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (scrubOn) refresh(); });
 
   /* ================= nav + room ================= */
   const nav = $('#nav');
@@ -286,4 +394,5 @@
   const fromUrl = new URLSearchParams(location.search).get('lang');
   if (fromUrl && DICT[fromUrl] && fromUrl !== PAGE) location.replace(PAGE_URL[fromUrl] + location.hash);
   applyLang(PAGE, false);
+  applyHeroMode();
 })();
