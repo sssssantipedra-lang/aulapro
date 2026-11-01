@@ -467,3 +467,13 @@ Se quitaron las paradas por subtítulo y los deslizamientos automáticos. Un `<v
 - `.btn.ghost` pasa a blanco translúcido, porque ya no va sobre fondo oscuro. El menú ya no tiene variante clara sobre el vídeo.
 - `escritorio.jpg` (Privacidad) y `og.jpg` se conservan: salen del vídeo, pero no enseñan la pantalla de cerca.
 - Ojo con los nombres de clase: `.cap` ya existe (pies de las capturas), por eso los textos de la historia son `.beat`.
+
+## 50. El gancho de la portada: menos papeleo (1-11-2026)
+
+- Petición del dueño: «me falta algo de enganche al principio, algo que llame mucho la atención y que se base en las necesidades de los profesores».
+- El titular de arriba pasa a ser la necesidad: «Menos papeleo. Más tiempo para enseñar.», con «Para docentes de Primaria y Secundaria» encima y «AulaPro prepara con IA el trabajo que te quita las tardes. Tú lo revisas y listo.» debajo. «Cada cosa en su sitio» queda para el final de la historia.
+- Debajo, la tarjeta «Pendiente esta semana» (`.semana`): situación de aprendizaje de 5.º, rúbrica de la exposición oral, 25 informes competenciales y actas de la 1.ª evaluación. Al abrir la página se tachan solas, una cada 0,7 s, y sale «Todo listo para revisar». Es lo que más pesa al profesorado y lo que la historia enseña justo después (situación de aprendizaje, rúbrica, informes); las actas también las saca la app. Solo CSS (`hk-*`); con «reducir movimiento» sale ya tachada. También en el móvil.
+- Sin cifras de tiempo ahorrado: no tenemos un dato medido que las respalde.
+- «Desplázate hacia abajo» solo sale en pantallas de 860 px de alto o más; en las más bajas tapaba la tableta.
+- Textos en `hk.*` (`index.html` y `assets/i18n.js`). Se quitaron `b3.title` y `static.sub`, que ya no usa nadie.
+
