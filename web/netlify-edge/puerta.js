@@ -5,9 +5,10 @@
 // mismo archivo se puede pedir con muchas formas de escribir su dirección (//app/, /APP/, %61pp…), así que
 // limitarla a /app/assets/* dejaba pasar las demás (1-11-2026).
 import { puerta } from '../funciones/api/_puerta.js';
+import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import publico from '../funciones/_publico.js';
 
-export default (request, context) => puerta(request, Netlify.env.get('GOOGLE_CLIENT_SECRET'), publico, () => context.next());
+export default (request, context) => puerta(request, secretosDeNetlify(k => Netlify.env.get(k)), publico, () => context.next());
 
 export const config = {
   path: '/*',

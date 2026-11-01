@@ -9,6 +9,7 @@ import { firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
 import { verificarTokenMicrosoft } from '../_microsoft.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
+import { secretosDeLicencia } from '../_secretos.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -42,11 +43,14 @@ export async function onRequestPost({ request, env }) {
     if (info.aud !== GOOGLE_CLIENT_ID || String(info.email_verified) !== 'true' || !info.email) return json({ error: 'token' }, 401, cors);
     email = String(info.email).trim().toLowerCase();
   }
+  // Y un tope por cuenta (auditoría del 1-11-2026): una misma cuenta llamando sin parar desde muchas IP no agota la tienda
+  if (!(await dentroDelLimite(env.LIMITE, `cuenta-correo:${email}`, LIMITES.correo, LIMITES.ventana))) return respuestaLimite(cors);
+  const secretos = secretosDeLicencia(env);
 
   // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
   // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.
   const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, env.GOOGLE_CLIENT_SECRET) }, 200, cors);
+  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos) }, 200, cors);
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503, cors);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
@@ -61,7 +65,7 @@ export async function onRequestPost({ request, env }) {
     for (const k of (await claves.json()).data ?? []) {
       const a = k.attributes ?? {};
       if (a.disabled || ['disabled', 'expired'].includes(a.status)) { vencida = true; continue; }
-      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, env.GOOGLE_CLIENT_SECRET) }, 200, cors);
+      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos) }, 200, cors);
     }
   }
   return json(vencida ? { key: null, vencida: true } : { key: null }, 200, cors);

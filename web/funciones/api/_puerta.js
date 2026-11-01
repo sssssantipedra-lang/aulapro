@@ -9,6 +9,7 @@
 // exactamente por su dirección: la de la web (assets/*.js), el service worker y los bloques de entrar.
 // La lista la escribe web/app/publico.mjs al publicar en `funciones/_publico.js`.
 import { leerSesion } from './_sesion.js';
+import { comoSecretos } from './_secretos.js';
 
 /** Lo que el servidor sirve como código (el tipo sale de la extensión del archivo de verdad, no de la dirección). */
 const ES_CODIGO = /javascript|ecmascript|wasm/i;
@@ -17,11 +18,12 @@ const ES_CODIGO = /javascript|ecmascript|wasm/i;
  * Pide la respuesta (`siguiente`) y decide si sale. Sin lista (no se generó) o sin secreto (el servidor sin
  * configurar) deja pasar: mejor la app abierta que la de todo el mundo rota por un olvido.
  */
-export async function puerta(request, secreto, publico, siguiente, ahora = Date.now()) {
+export async function puerta(request, secretos, publico, siguiente, ahora = Date.now()) {
   const res = await siguiente();
-  if (!publico || !secreto || !ES_CODIGO.test(res.headers.get('Content-Type') ?? '')) return res;
+  const { aceptar } = comoSecretos(secretos);
+  if (!publico || !aceptar.length || !ES_CODIGO.test(res.headers.get('Content-Type') ?? '')) return res;
   if (publico.includes(new URL(request.url).pathname)) return res;
-  if (res.ok && (await leerSesion(request.headers.get('Cookie'), secreto, ahora))) {
+  if (res.ok && (await leerSesion(request.headers.get('Cookie'), aceptar, ahora))) {
     // Lo que pasó por la puerta no se guarda en cachés compartidas (proxies): solo en el navegador de quien lo pidió
     const copia = new Response(res.body, res);
     copia.headers.set('Cache-Control', 'private, max-age=31536000, immutable');

@@ -50,12 +50,16 @@ if (puerta.estado !== 401) { mal++; console.log('✘ La puerta de /app/assets/ e
 if (puerta.bloque) {
   const { origin } = new URL(url);
   const f = puerta.bloque.replace(/^assets\//, '');
+  // Las terminadas en .css o .png (1-11-2026, auditoría): en Netlify la puerta no corre en esas extensiones; si el
+  // alojamiento sirviera el bloque con una de ellas, saldría sin sesión. Cuenta cualquier respuesta que sea código,
+  // salga con el tipo que salga (antes solo contaba si decía «javascript»).
   const variantes = [`//app/assets/${f}`, `/APP/assets/${f}`, `/app/ASSETS/${f}`, `/%61pp/assets/${f}`, `/app%2Fassets/${f}`,
-    `/app/assets/${f.replace(/\.js$/, '.JS')}`, `/app/assets/${f}%20`, `/app/assets/${f}/`, `/app//assets/${f}`, `/app/%61ssets/${f}`, `/app/assets%2F${f}`];
+    `/app/assets/${f.replace(/\.js$/, '.JS')}`, `/app/assets/${f}%20`, `/app/assets/${f}/`, `/app//assets/${f}`, `/app/%61ssets/${f}`, `/app/assets%2F${f}`,
+    `/app/assets/${f}%2F.css`, `/app/assets/${f}/.css`, `/app/assets/${f};.css`, `/app/assets/${f}%3F.css`, `/app/assets/${f}%23.png`];
   for (const v of variantes) {
     const r = await fetch(origin + v, { cache: 'no-store' }).catch(() => null);
     const cuerpo = r ? await r.text() : '';
-    if (r?.ok && /javascript/i.test(r.headers.get('Content-Type') ?? '') && cuerpo.length > 200) { mal++; console.log(`✘ La puerta se salta con ${v}`); }
+    if (r?.ok && cuerpo.length > 200 && !/^\s*</.test(cuerpo)) { mal++; console.log(`✘ La puerta se salta con ${v}`); }
   }
   console.log(`✔ Comprobadas ${variantes.length} formas de saltarse la puerta`);
 }

@@ -16,7 +16,7 @@
  * parar, no a un centro. OJO: no impiden agotar el cupo de dispositivos de una clave filtrada (bastan 2
  * llamadas); eso solo lo arregla quien administra la clave en Lemon Squeezy.
  */
-export const LIMITES = { ventana: 600, clave: 60, ip: 150, microsoft: 250 };
+export const LIMITES = { ventana: 600, clave: 60, ip: 150, microsoft: 250, google: 250, correo: 150 };
 
 /**
  * La huella de un identificador (IP o clave de licencia): el contador no guarda ni la IP ni la clave en claro
@@ -38,6 +38,15 @@ export async function dentroDelLimite(kv, clave, maximo, ventanaSeg) {
   const actual = Number((await kv.get(k).catch(() => null)) ?? '0');
   if (actual >= maximo) return false;
   await kv.put(k, String(actual + 1), { expirationTtl: ventanaSeg * 2 }).catch(() => {});
+  return true;
+}
+
+/**
+ * Primero el tope por IP y, solo si se cumple, el de la clave o la cuenta (auditoría del 1-11-2026). Antes se contaban
+ * los dos a la vez y cada petición con una clave inventada creaba un contador nuevo aunque la IP ya estuviera frenada.
+ */
+export async function dentroDeLimites(kv, topes) {
+  for (const [clave, maximo] of topes) if (!(await dentroDelLimite(kv, clave, maximo, LIMITES.ventana))) return false;
   return true;
 }
 

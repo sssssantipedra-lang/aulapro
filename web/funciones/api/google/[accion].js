@@ -1,8 +1,12 @@
 // Cloudflare Pages (respaldo de aulapro.app): ver _comun.js.
-import { CORS, pedirAGoogle } from './_comun.js';
+import { corsDe, pedirAGoogle } from './_comun.js';
+import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
 
-export const onRequestOptions = () => new Response(null, { status: 204, headers: CORS });
+export const onRequestOptions = ({ request }) => new Response(null, { status: 204, headers: corsDe(request) });
 
 export async function onRequestPost({ request, params, env }) {
-  return pedirAGoogle(params.accion, await request.json().catch(() => ({})), env.GOOGLE_CLIENT_SECRET);
+  const cors = corsDe(request);
+  const ip = request.headers.get('CF-Connecting-IP') || 'desconocida';
+  if (!(await dentroDelLimite(env.LIMITE, `google-ip:${ip}`, LIMITES.google, LIMITES.ventana))) return respuestaLimite(cors);
+  return pedirAGoogle(params.accion, await request.json().catch(() => ({})), env.GOOGLE_CLIENT_SECRET, cors);
 }

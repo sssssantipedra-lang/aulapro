@@ -5,7 +5,9 @@
 // para cualquier función del sitio.
 import { getStore } from '@netlify/blobs';
 
-import { huella, caducados } from '../funciones/api/_limite.js';
+import { huella, caducados, LIMITES as CIFRAS } from '../funciones/api/_limite.js';
+
+const LIMITES_VENTANA = CIFRAS.ventana;
 
 export { LIMITES } from '../funciones/api/_limite.js';
 
@@ -34,6 +36,12 @@ export async function dentroDelLimite(clave, maximo, ventanaSeg) {
     // que tumbar la licencia de todo el mundo por un fallo de infraestructura ajeno a la licencia.
     return true;
   }
+}
+
+/** Primero el tope por IP y, solo si se cumple, el de la clave o la cuenta (ver `dentroDeLimites` en _limite.js). */
+export async function dentroDeLimites(topes) {
+  for (const [clave, maximo] of topes) if (!(await dentroDelLimite(clave, maximo, LIMITES_VENTANA))) return false;
+  return true;
 }
 
 export const respuestaLimite = headers => new Response(JSON.stringify({ error: 'limite' }), {

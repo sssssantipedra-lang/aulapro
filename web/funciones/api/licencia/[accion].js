@@ -10,7 +10,8 @@
 // copia esta carpeta ahí antes de publicar (ver .github/workflows/web.yml).
 import { clavePublica, firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
-import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
+import { dentroDeLimites, respuestaLimite, LIMITES } from '../_limite.js';
+import { secretosDeLicencia } from '../_secretos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -22,7 +23,7 @@ export const onRequestOptions = ({ request }) => new Response(null, { status: 20
 export async function onRequestGet({ request, params, env }) {
   const cors = corsPara(request.headers.get('Origin'), 'GET, OPTIONS');
   if (params.accion !== 'clave') return new Response('Not found', { status: 404, headers: cors });
-  return new Response(JSON.stringify({ x: await clavePublica(env.GOOGLE_CLIENT_SECRET) }), {
+  return new Response(JSON.stringify({ x: await clavePublica(secretosDeLicencia(env)) }), {
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
   });
 }
@@ -41,24 +42,22 @@ export async function onRequestPost({ request, params, env }) {
   // la misma wifi): solo frenan a un programa que llama sin parar. Ver LIMITES en _limite.js.
   const ip = request.headers.get('CF-Connecting-IP') || 'desconocida';
   const key = salida.get('license_key') || '';
-  const limites = params.accion === 'activate' && key
-    ? [dentroDelLimite(env.LIMITE, `activar-clave:${key}`, LIMITES.clave, LIMITES.ventana), dentroDelLimite(env.LIMITE, `${params.accion}-ip:${ip}`, LIMITES.ip, LIMITES.ventana)]
-    : [dentroDelLimite(env.LIMITE, `${params.accion}-ip:${ip}`, LIMITES.ip, LIMITES.ventana)];
-  if ((await Promise.all(limites)).some(ok => !ok)) return respuestaLimite(cors);
+  const topes = [[`${params.accion}-ip:${ip}`, LIMITES.ip], ...(params.accion === 'activate' && key ? [[`activar-clave:${key}`, LIMITES.clave]] : [])];
+  if (!(await dentroDeLimites(env.LIMITE, topes))) return respuestaLimite(cors);
 
   const res = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${params.accion}`, {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
     body: salida,
   });
-  return new Response(await conFirma(params.accion, salida, res, env.GOOGLE_CLIENT_SECRET), {
+  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env)), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
 
 /** Una clave activada o comprobada sale con la firma de AulaPro (`_firma.js`). */
-export async function conFirma(accion, salida, res, secreto) {
+export async function conFirma(accion, salida, res, secretos) {
   const texto = await res.text();
   if (accion === 'deactivate' || !res.ok) return texto;
   try {
@@ -66,7 +65,7 @@ export async function conFirma(accion, salida, res, secreto) {
     const st = d.license_key?.status;
     if (!(d.activated || d.valid) || st === 'disabled' || st === 'expired') return texto;
     const instance = d.instance?.id ?? salida.get('instance_id') ?? '';
-    d.aulapro_firma = await firmar({ t: 'clave', key: salida.get('license_key'), instance }, secreto);
+    d.aulapro_firma = await firmar({ t: 'clave', key: salida.get('license_key'), instance }, secretos);
     return JSON.stringify(d);
   } catch { return texto; }
 }

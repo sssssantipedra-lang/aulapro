@@ -127,11 +127,40 @@ const tareas = [
     if (!/image/.test(r.headers.get('content-type') || '')) throw new Error('no devuelve una imagen');
     await r.arrayBuffer();
   }),
+  // «Sin pagar, no hay app» (auditoría del 1-11-2026): la puerta de aulapro.app (Netlify, función de borde) solo se
+  // comprobaba en la copia de Cloudflare tras publicar. Aquí, cada 30 minutos y en la web de verdad, que sin sesión el
+  // código de las pantallas no sale, tampoco pidiéndolo con otra forma de escribir la dirección. Si Netlify dejara de
+  // darle el secreto a la función de borde, la puerta se abriría sin avisar: esto lo detecta.
+  comprobar('el código de la app no sale sin suscripción', puertaCerrada),
   comprobar(`certificado de ${HOST}`, () => certificado(HOST)),
   comprobar(`certificado de ${WWW}`, () => certificado(WWW)),
   comprobar('caducidad del dominio', dominio, { grave: false, veces: 2 }),
   ...RESPALDOS.map(u => comprobar(`copia de respaldo ${new URL(u).hostname}`, pagina2(u))),
 ];
+/** Variantes de la dirección de un bloque que el alojamiento podría servir igual (ver web/app/comprobar-publicada.mjs). */
+const variantesDeBloque = f => [`/app/assets/${f}`, `//app/assets/${f}`, `/APP/assets/${f}`, `/%61pp/assets/${f}`,
+  `/app/assets/${f.replace(/\.js$/, '.JS')}`, `/app/assets/${f}/`, `/app/assets/${f}%2F.css`, `/app/assets/${f}/.css`,
+  `/app/assets/${f};.css`, `/app/assets/${f}%3F.css`, `/app/assets/${f}%23.png`];
+
+/** Un cuerpo que es código de la app (no la página de un error ni un 404 en HTML). */
+const pareceCodigo = (r, cuerpo) => r.ok && cuerpo.length > 200 && !/^\s*</.test(cuerpo);
+
+async function puertaCerrada() {
+  const { t: sw } = await texto(BASE + '/app/sw.js', { 'cache-control': 'no-cache' });
+  const privado = JSON.parse(sw.match(/const PRIVADO = (\[.*?\]);/s)?.[1] ?? '[]');
+  if (!privado.length) return 'sin lista de código con sesión';
+  const f = privado[0].replace(/^assets\//, '');
+  const abiertas = [];
+  for (const v of variantesDeBloque(f)) {
+    const { r } = await pedir(BASE + v, { 'cache-control': 'no-cache' });
+    const cuerpo = await r.text().catch(() => '');
+    if (r.status === 403 && r.headers.get('cf-mitigated')) throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
+    if (pareceCodigo(r, cuerpo)) abiertas.push(v);
+  }
+  if (abiertas.length) throw new Error(`la puerta está abierta sin sesión con: ${abiertas.join(', ')}. Mirar la función de borde de Netlify y la variable GOOGLE_CLIENT_SECRET (docs/APP_WEB.md, «Sin pagar, no hay app»)`);
+  return `cerrada en ${variantesDeBloque(f).length} formas de pedir el código`;
+}
+
 function pagina2(u) {
   return async () => { const { t, ms } = await texto(u); if (!t.includes('AulaPro') || t.length < 40000) throw new Error('la copia no es la de AulaPro'); return `${(ms / 1000).toFixed(1)} s`; };
 }
