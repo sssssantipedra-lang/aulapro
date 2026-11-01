@@ -136,6 +136,8 @@ export interface LicenseBridge {
    * 29-10-2026). `null` la quita (se devolvió o se anuló).
    */
   porCuenta?: (key: string | null, firma?: string) => Promise<LicenseState>;
+  /** Solo en la versión web: la comprobación diaria con la app abierta (pestaña que no se cierra en días). */
+  revisar?: () => Promise<LicenseState>;
 }
 
 export interface StoreBridge {

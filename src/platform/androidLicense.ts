@@ -21,6 +21,12 @@ const ENFORCED = true;
 const STORE_ID = '487841';
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
 const CHECK_EVERY = 7 * 24 * 60 * 60 * 1000;
+/**
+ * Una clave escrita a mano que ha caducado deja aquí su número de activación. Si vuelve a valer (la tarjeta falló
+ * y se cobró después, o se reanudó la suscripción), se recupera con ese mismo número: activarla otra vez ocuparía
+ * otro de sus dispositivos y, con los 2 gastados, no dejaría entrar (1-11-2026).
+ */
+const DORMIDA = 'licencia-dormida';
 /** Nombre neutro: solo la clave y esto salen hacia la tienda (docs/WEB.md, apartado 3, punto 3). */
 const INSTANCE_NAME = 'AulaPro · Android';
 
@@ -116,9 +122,35 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   const save = async (r: LicenseRecord | null) => {
     record = r;
-    if (r) limpiarLicenciaVencida();
+    if (r) { limpiarLicenciaVencida(); await secrets.set(DORMIDA, '').catch(() => false); }
     await secrets.set('licencia', r ? JSON.stringify(r) : '').catch(() => false);
   };
+
+  const leerDormida = async (): Promise<LicenseRecord | null> => {
+    try {
+      const d = JSON.parse((await secrets.get(DORMIDA)) || 'null') as LicenseRecord | null;
+      return d?.key && d.instanceId ? d : null;
+    } catch { return null; }
+  };
+
+  /** La clave caducada de este dispositivo vuelve a valer: se recupera con su misma activación. */
+  async function despertar(key?: string): Promise<boolean> {
+    const d = await leerDormida();
+    if (!d || (key && d.key !== key)) return false;
+    const r = await call('validate', { license_key: d.key!, instance_id: d.instanceId! });
+    if (!r) return false;
+    const st = r.body.license_key?.status;
+    if (r.body.valid && st !== 'disabled' && st !== 'expired') {
+      const nuevo: LicenseRecord = { ...d, lastOkAt: new Date().toISOString() };
+      delete nuevo.firma;   // la de antes ya no vale
+      if (r.body.aulapro_firma) nuevo.firma = r.body.aulapro_firma;
+      await save(nuevo);
+      return true;
+    }
+    // Sigue caducada: se espera. Si la activación ya no existe en la tienda, no hay nada que recuperar
+    if (r.status === 404) await secrets.set(DORMIDA, '').catch(() => false);
+    return false;
+  }
 
   const state = (): LicenseState => ({
     required: enforced && !record,
@@ -143,7 +175,11 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       // Con la firma nueva (otros 7 días) llega también una sesión nueva
       await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
       await avisar();
-    } else if (r.status < 500) { marcarLicenciaVencida(); await save(null); opts.alPerder?.(); } // terminada, devuelta o anulada
+    } else if (r.status < 500) {
+      // Terminada, devuelta o anulada. Una clave a mano guarda su activación por si vuelve a valer (`DORMIDA`)
+      if (!record.cuenta && record.instanceId) await secrets.set(DORMIDA, JSON.stringify(record)).catch(() => false);
+      marcarLicenciaVencida(); await save(null); opts.alPerder?.();
+    }
   }
 
   async function init() {
@@ -155,6 +191,10 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       if (record.kind === 'licencia' && record.key) await check();
       if (record && !(await valida(record))) record = null;
       if (!record) return;
+    }
+    if (!record && enforced) {
+      // Sin licencia: si este dispositivo tenía una clave que caducó, se mira si ha vuelto a valer (5 s como mucho)
+      await Promise.race([despertar().catch(() => false), new Promise(r => setTimeout(r, 5000))]);
     }
     if (!record && !enforced) {
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
@@ -178,6 +218,8 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       await whenReady();
       const k = key.trim();
       if (!k) return { ok: false, error: 'clave-no-valida', state: state() };
+      // La misma clave que caducó aquí: con su activación de antes, sin gastar otra
+      if (await despertar(k)) { await avisar(); return { ok: true, state: state() }; }
       const r = await call('activate', { license_key: k, instance_name: instanceName });
       if (!r) return { ok: false, error: 'sin-conexion', state: state() };
       const error = activationError(r.body, r.status, storeId);
@@ -210,6 +252,14 @@ export function createAndroidLicense(secrets: Secrets, opts: {
         await check();
       }
       await avisar();
+      return state();
+    },
+
+    async revisar(): Promise<LicenseState> {
+      // Con la app abierta días seguidos (la pestaña no se cierra): la comprobación diaria se hace igual
+      await whenReady();
+      const last = Date.parse(record?.lastOkAt ?? record?.activatedAt ?? '');
+      if (record?.kind === 'licencia' && (!Number.isFinite(last) || Date.now() - last > comprobarCada)) await check().catch(() => {});
       return state();
     },
 

@@ -13,7 +13,7 @@ import { Welcome } from './pages/Welcome';
 import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
-import { licenciaVencida } from './lib/licenciaVencida';
+import { licenciaVencida, marcarLicenciaVencida } from './lib/licenciaVencida';
 import { LICENCIA_PERDIDA, olvidarApp } from './platform/sesionWeb';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
@@ -879,7 +879,12 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       if (isWebApp() && bridge && s?.required) {
         const { claveDeNube } = await import('./platform/carpetaWeb');
         const k = await claveDeNube();
-        if (k) { const r = await bridge.activate(k); if (r.ok) { setState(r.state); return; } }
+        if (k) {
+          const r = await bridge.activate(k);
+          if (r.ok) { setState(r.state); return; }
+          // La clave de la nube ha caducado: la pantalla dice que la suscripción terminó, no que no hay licencia
+          if (r.error === 'desactivada') marcarLicenciaVencida();
+        }
       }
       setState(s);
     });
@@ -890,6 +895,16 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     const perdida = () => { void getLicenseState().then(n => { if (n?.required) setState(n); }); };
     window.addEventListener(LICENCIA_PERDIDA, perdida);
     return () => window.removeEventListener(LICENCIA_PERDIDA, perdida);
+  }, []);
+
+  // Con la pestaña abierta días seguidos, la comprobación diaria se hace igual: cada hora y al volver a la pestaña
+  // (solo llama a la tienda si hace más de un día de la última). Si la licencia se pierde, avisa `LICENCIA_PERDIDA`.
+  useEffect(() => {
+    if (!isWebApp()) return;
+    const revisar = () => { if (document.visibilityState === 'visible') void licenseBridge()?.revisar?.().catch(() => {}); };
+    const id = setInterval(revisar, 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', revisar);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', revisar); };
   }, []);
 
   // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el
