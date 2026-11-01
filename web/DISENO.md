@@ -454,3 +454,13 @@ Petición del dueño: como la app pasa a ser web y se entra desde la propia pág
 ## Portada: scroll natural (31-10-2026)
 
 Se quitaron las paradas por subtítulo y los deslizamientos automáticos. Un `<video>` con `currentTime` iba a tirones aunque tuviera todos los fotogramas clave, así que la portada es ahora una secuencia de 308 fotogramas WebP (30 fps, 1280x720, 7,8 MB) en `assets/hero-frames/f001..f308.webp`, dibujados en un `<canvas id="hero-video">`: el scroll es la posición de reproducción y cada fotograma sale al instante. Se cargan en orden de película, seis a la vez, y entre dos fotogramas vecinos se mezcla según la fracción intermedia, para que 30 fotogramas parezcan una película continua. El scroll es el normal del navegador, sin paradas ni gestos; el vídeo persigue la posición con un suavizado de 0,12 por cuadro. Salieron de `ffmpeg -vf fps=30 -c:v libwebp -quality 62`. Para más fluidez, subir a 60 fps (unos 15 MB).
+
+## 49. Portada sin vídeo: la app en tres pantallas (1-11-2026)
+
+- Petición del dueño: el vídeo de la portada se veía en baja calidad. Era una secuencia de 308 fotogramas WebP a 1280x720 (calidad 62) estirada a toda la pantalla, y además enseñaba la 2.8.0 en el portátil. Se quita (`assets/hero-frames/`, `hero-poster.jpg`, `hero-ending.jpg` y su código en `assets/app.js`).
+- En su lugar, una portada fija en crema: a la izquierda el titular («Cada cosa en su sitio»), el texto, el precio y los dos botones; a la derecha, la app de verdad en un portátil (Inicio), una tableta (Evaluar) y un móvil (Anotar actitud), dibujados con CSS. En pantallas estrechas, las pantallas van debajo del texto.
+- Las capturas (`assets/portada/`) salen de la app con `scripts/web/capturar-portada.mjs` (datos de ejemplo, miércoles 9:45) a doble o triple densidad, así que se ven nítidas también en pantallas de alta resolución. Si cambian esas pantallas, se vuelve a ejecutar.
+- `.btn.ghost` pasa a blanco translúcido, porque ya no va sobre fondo oscuro. El menú ya no tiene variante clara sobre el vídeo.
+- `escritorio.jpg` (Privacidad) y `og.jpg` se conservan: salen del vídeo, pero no enseñan la pantalla de cerca.
+- Pendiente (fase 2, a decidir con el dueño): clips cortos sin sonido de funciones concretas, grabados de la app con Playwright, en sus secciones.
+

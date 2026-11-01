@@ -122,13 +122,11 @@ main:focus{outline:none}
 .env .dust{display:none}
 .env .dust i{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:rgba(246,236,222,.55);opacity:0;animation:mote var(--t) linear var(--d) infinite}
 @keyframes mote{0%{opacity:0;transform:translate3d(0,0,0)}18%{opacity:var(--o)}82%{opacity:var(--o)}100%{opacity:0;transform:translate3d(var(--dx),-70px,0)}}
-body.in-hero .env *{animation-play-state:paused}
 body.paused *,body.paused *::before,body.paused *::after{animation-play-state:paused!important}
 
 /* ---------- nav ---------- */
 .nav{position:fixed;inset:0 0 auto 0;z-index:50;height:var(--nav-h);display:flex;align-items:center;gap:clamp(12px,2.4vw,32px);padding:0 var(--gutter);border-bottom:1px solid transparent;transition:background-color .5s var(--ease-out),border-color .5s var(--ease-out),backdrop-filter .5s}
 .nav{color:var(--text)}
-.nav:not(.solid){--text:#f1e4cf;--text-2:#e6d3b8;--line-strong:rgba(241,228,207,.5);--canvas:#1e1611}
 .nav.solid{background:rgba(251,248,243,.88);border-color:var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}
 .brand svg{width:32px;height:32px;flex:none}
@@ -153,137 +151,44 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.55em;padding:.95em 1.5em;border:0;border-radius:999px;background:var(--accent-deep);color:#fff6ea;font:500 1rem/1 var(--f-body);text-decoration:none;text-shadow:none;cursor:pointer;isolation:isolate;transition:background-color .35s var(--ease-out),transform .35s var(--ease-out)}
 .btn:hover{background:var(--accent-hover);transform:translateY(-2px)}
 .btn:active{transform:translateY(0)}
-.btn.ghost{background:rgba(30,22,17,.35);color:var(--text);box-shadow:inset 0 0 0 1.5px var(--line-strong)}
-.btn.ghost:hover{background:rgba(241,228,207,.1)}
+.btn.ghost{background:rgba(255,255,255,.7);color:var(--text);box-shadow:inset 0 0 0 1.5px var(--line-strong)}
+.btn.ghost:hover{background:#fff}
 .btn .arr{transition:transform .35s var(--ease-out)}
 .btn:hover .arr{transform:translateX(3px)}
 @media (pointer:coarse){.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}.lang button{min-height:40px;min-width:38px}}
 
-/* ---------- hero: the sheet that settles ---------- */
-.hero{position:relative;z-index:1;height:700vh;--text:#f1e4cf;--text-2:#d9c4a5;--line:rgba(216,201,182,.16);--line-strong:rgba(216,201,182,.55);--canvas:#1e1611;color:var(--text)}
-/* del vídeo (la tarde del papeleo) al resto de la web, en crema */
-.dusk{display:none;position:relative;z-index:1;height:clamp(90px,13vh,170px);background:linear-gradient(180deg,#1e1611 0%,#4a3628 30%,#b89878 64%,#efe2d1 88%,#fbf8f3 100%);pointer-events:none}
-.stage{position:sticky;top:0;height:100vh;overflow:hidden;background:#2a1f17}
-.stage .poster,.stage .poster-end,.stage .static-bg{position:absolute;inset:0;background-size:cover;background-position:center}
-.stage .poster-end{opacity:0}
-.stage .static-bg{display:none}
-.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateZ(0);will-change:transform;transition:opacity .9s var(--ease-out)}
-.stage.video-ready canvas{opacity:1}
-/* the reversed film covers the forward one only while a glide plays it, with no fade either way */
-.stage.video-failed canvas{display:none}
-.scrim{position:absolute;inset:0;pointer-events:none;background:
-  linear-gradient(180deg,rgba(20,14,9,.55) 0,rgba(20,14,9,0) 150px),
-  linear-gradient(90deg,rgba(20,14,9,.42) 0%,rgba(20,14,9,.16) 36%,rgba(20,14,9,0) 56%),
-  radial-gradient(ellipse 120% 90% at 58% 45%,rgba(20,14,9,0) 40%,rgba(20,14,9,.55) 100%)}
-.bands{position:absolute;inset:0;pointer-events:none}
-.band{position:absolute;left:var(--gutter);top:50%;width:min(38vw,600px);transform:translateY(-46%);opacity:0;color:var(--text);text-shadow:var(--tshadow)}
-.band.live{pointer-events:auto}
-/* first half: over the dark chalkboard, top right, while the sheet falls on the left */
-.band.pos-tr{left:auto;right:calc(var(--gutter) + 7vw);top:calc(var(--nav-h) + 2.5vh);transform:none;width:min(33vw,600px)}
-.pos-tr .hl{font-size:clamp(1.7rem,2.6vw,2.9rem);max-width:19ch;text-wrap:pretty}
-.pos-tr .hl-sm{font-size:clamp(1.5rem,2.4vw,2.5rem)}
-.pos-tr .lines{margin-top:.9rem;gap:.55rem}
-.pos-tr .ln{font-size:clamp(.95rem,1.12vw,1.15rem)}
-.pos-tr .chip{margin-bottom:.8rem}
-.pos-tr .hl-xl{font-size:clamp(2rem,3.4vw,3.7rem);max-width:12ch}
-.band.pos-tr .sub{font-size:clamp(.92rem,1.05vw,1.08rem);max-width:none}
-.band.pos-tr::before{inset:-26% -18% -62% -26%;background:radial-gradient(ellipse 72% 66% at 46% 40%,rgba(18,12,8,var(--pk,.64)) 0%,rgba(18,12,8,calc(var(--pk,.64)*.7)) 50%,rgba(18,12,8,0) 80%)}
-.pos-tr .cta-row{margin-top:1.1rem}
-/* the close-up of the real screen keeps only a small label, top left over the dark bezel */
-.band.pos-tl{top:calc(var(--nav-h) + 1.5vh);transform:none;width:auto}
-.band.pos-tl::before{display:none}
-.pos-tl .chip{margin:0}
-/* the last stop: a strip along the bottom invites the visitor on into the page; it slides up as it appears */
-.band.band-strip{left:0;right:0;top:auto;bottom:0;width:auto;transform:translateY(calc((1 - var(--k,1))*100%));text-shadow:none;--text:#3b2a1f;--line-strong:rgba(120,100,80,.38)}
-.band-strip .btn.ghost{background:rgba(255,255,255,.7)}
-.band-strip .btn.ghost:hover{background:#fff}
-.band.band-strip::before{display:none}
-.strip-in{position:relative;isolation:isolate;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px clamp(20px,2.6vw,40px);padding:clamp(70px,13vh,140px) var(--gutter) clamp(18px,3vh,30px);background:linear-gradient(180deg,rgba(251,248,243,0) 0%,rgba(251,248,243,.18) 22%,rgba(251,248,243,.62) 46%,rgba(251,248,243,.9) 64%,#fbf8f3 82%)}
-.strip-in::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 60%);mask-image:linear-gradient(180deg,transparent 0%,#000 60%)}
-.strip-t{color:var(--text);font:600 clamp(1rem,1.3vw,1.22rem)/1.2 var(--f-display);letter-spacing:.005em}
-.band-strip .cta-row{margin:0}
-.band-strip .arr{display:inline-block;animation:strip-arr 1.8s var(--ease-io) infinite}
-@keyframes strip-arr{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
-@media (prefers-reduced-motion:reduce){.band-strip .arr{animation:none}}
-/* second half: the sheet has landed, the left wall is calm */
-.band.pos-l{left:clamp(16px,11vw,210px);top:45%;transform:translateY(-50%);width:min(37vw,580px)}
-.band::before{content:"";position:absolute;inset:-34% -30% -34% -46%;z-index:-1;pointer-events:none;opacity:calc(.25 + .75*var(--k,1));background:radial-gradient(ellipse 62% 58% at 46% 50%,rgba(18,12,8,var(--pk,.64)) 0%,rgba(18,12,8,calc(var(--pk,.64)*.66)) 46%,rgba(18,12,8,0) 76%)}
-.band[data-pk="72"]{--pk:.72}
-.band[data-pk="66"]{--pk:.66}
-.band[data-pk="78"]{--pk:.78}
-.band[data-pk="86"]{--pk:.86}
+/* ---------- hero: the app itself, sharp, on a laptop, a tablet and a phone (web/DISENO.md, 48) ---------- */
+.hero{position:relative;z-index:1;overflow:hidden;padding:calc(var(--nav-h) + clamp(28px,6vh,80px)) var(--gutter) clamp(64px,10vh,120px);background:radial-gradient(ellipse 60% 70% at 78% 40%,rgba(214,178,134,.32),rgba(214,178,134,0) 70%),#fbf8f3}
+.hero-in{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,8fr);gap:clamp(28px,4vw,72px);align-items:center}
+.hero-copy .eyebrow{display:inline-block;margin-bottom:1.1rem;font-size:.78rem;letter-spacing:.1em;color:var(--accent)}
+.hero-copy .sub{margin-top:1.2rem;max-width:40ch;font-size:clamp(1.02rem,1.2vw,1.16rem);line-height:1.55;color:var(--text-2)}
+.hero-copy .price-line{margin-top:1.1rem;font-size:.82rem;letter-spacing:.08em;color:var(--text)}
+.hero-copy .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:1.6rem}
 .hl{font:800 clamp(2.3rem,4.3vw,4.6rem)/1.03 var(--f-display);letter-spacing:-.024em;max-width:12ch;text-wrap:balance}
-.hl-sm{font-size:clamp(1.9rem,3.1vw,3.2rem);max-width:16ch}
-.hl-xl{font-size:clamp(2.6rem,5vw,5.4rem);max-width:11ch}
-.hl .w{display:inline-block;will-change:transform,opacity}
+.hl-xl{font-size:clamp(2.5rem,4.8vw,5.2rem);max-width:11ch}
 .hl em{position:relative;display:inline-block;font-style:normal}
-.hl em::after{content:"";position:absolute;left:-3%;right:-3%;bottom:-.1em;height:.24em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none'%3E%3Cpath d='M3 10c30-5 62-7 96-5s70 3 98 0' fill='none' stroke='%23c8693a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/100% 100%;transform-origin:left center}
-.chip{display:inline-block;margin-bottom:1.1rem;padding:.5em .8em;font-size:.78rem;letter-spacing:.08em;color:var(--text);background:rgba(18,12,8,.55);border:1px solid rgba(216,201,182,.3);border-radius:10px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);text-shadow:0 1px 3px rgba(16,10,6,.85)}
-.band .sub{margin-top:1.2rem;max-width:40ch;font-size:clamp(1.02rem,1.25vw,1.18rem);font-weight:400;line-height:1.55;color:#ecdcc4}
-
-/* band 1: words drift down like the sheet */
-.fx-drift .w{--kc:clamp(0,(var(--k,0) - var(--th,0))*2.8,1);opacity:var(--kc);transform:translateY(calc((1 - var(--kc))*-26px))}
-.fx-drift .chip{opacity:clamp(0,var(--k,0)*2.2,1)}
-/* band 2: the list, then the hand that crosses it off */
-.fx-strike .hl .w{--kc:clamp(0,(var(--k,0) - var(--th,0))*3.2,1);opacity:var(--kc);transform:translateY(calc((1 - var(--kc))*-16px))}
-.lines{margin-top:1.4rem;display:grid;gap:.95rem}
-.ln{--kc:clamp(0,(var(--k,0) - var(--th,0))*3,1);display:flex;align-items:flex-start;gap:.75em;font-size:clamp(1.05rem,1.35vw,1.3rem);font-weight:400;line-height:1.35;opacity:var(--kc);transform:translateX(calc((1 - var(--kc))*-18px))}
-.ln .box{position:relative;flex:none;width:1.05em;height:1.05em;margin-top:.14em;border:1.5px solid rgba(241,228,207,.62);border-radius:5px;background:rgba(18,12,8,.35)}
-.ln .box svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--accent);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
-.ln-t{position:relative;opacity:calc(1 - .38*var(--s,0))}
-/* the hand-drawn strike rides each line fragment, so wrapped lines get crossed off line by line */
-.ln-t>span,.task .tt>span{background-repeat:no-repeat;background-position:0 58%;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-.ln-t>span{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath d='M3 12.5C38 7 66 15.5 104 10.8S176 6.8 214 11.2 272 9.2 297 7.6' fill='none' stroke='%23c8693a' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");background-size:calc(var(--s,0)*100%) .62em}
-/* band 3: focus arrives */
-.blur-pair{position:relative}
-.fx-blur .soft{position:absolute;inset:0;filter:blur(10px);opacity:calc((1 - var(--k,0))*.9)}
-.fx-blur .sharp{opacity:var(--k,0)}
-.fx-blur .sub{--ks:clamp(0,(var(--k,0) - .45)*2.2,1);opacity:var(--ks);transform:translateY(calc((1 - var(--ks))*12px))}
-/* band 4: the settle, in three arrivals */
-.fx-rise .w{--kc:clamp(0,(var(--k,0) - var(--th,0))*3,1);opacity:var(--kc);transform:translateY(calc((1 - var(--kc))*.55em))}
-.fx-rise .hl em::after{transform:scaleX(clamp(0,(var(--k,0) - .6)*3,1))}
-.fx-rise .sub{--ks:clamp(0,(var(--k,0) - .62)*4,1);opacity:var(--ks);transform:translateY(calc((1 - var(--ks))*14px))}
-.fx-rise .cta-row{--kb:clamp(0,(var(--k,0) - .78)*5,1);opacity:var(--kb);transform:translateY(calc((1 - var(--kb))*14px))}
-.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:1.6rem}
-.cue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px;font:500 .72rem/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--text);text-shadow:var(--tshadow);opacity:1}
-.cue i{position:relative;width:1.5px;height:44px;background:rgba(241,228,207,.25);overflow:hidden}
-.cue i::after{content:"";position:absolute;left:0;top:0;width:100%;height:40%;background:var(--text);animation:cue 2.4s var(--ease-io) -.4s infinite}
-@keyframes cue{from{transform:translateY(-100%)}to{transform:translateY(260%)}}
-.static-copy{display:none}
-@media (max-height:560px){.cue{display:none}}
-
-/* the five static-hero gates: identical to GATES in assets/app.js */
-@media (max-width: 720px), (orientation: portrait) and (max-width: 1024px), (orientation: portrait) and (pointer: coarse), (orientation: landscape) and (pointer: coarse) and (max-height: 560px), (prefers-reduced-motion: reduce){
-  .hero{height:auto}
-  .dusk{display:block}
-  .stage{position:relative;height:auto;min-height:100svh;display:flex;align-items:flex-end}
-  .stage canvas,.stage .poster,.stage .poster-end,.bands,.cue{display:none}
-  .stage .static-bg{display:block;background-image:url("assets/escritorio.jpg");background-position:40% 30%}
-  .stage .scrim{background:linear-gradient(180deg,rgba(20,14,9,.45) 0%,rgba(20,14,9,0) 20%,rgba(20,14,9,0) 50%,rgba(20,14,9,.7) 64%,rgba(20,14,9,.9) 80%,rgba(30,22,17,1) 100%)}
-  @media (min-aspect-ratio:1/1){
-    .stage .static-bg{background-position:60% 40%}
-    .stage .scrim{background:linear-gradient(90deg,rgba(20,14,9,.82) 0%,rgba(20,14,9,.5) 38%,rgba(20,14,9,0) 62%),linear-gradient(180deg,rgba(20,14,9,.4) 0%,rgba(20,14,9,0) 22%,rgba(20,14,9,0) 78%,rgba(30,22,17,.95) 100%)}
-    .static-copy{padding-top:30vh;padding-bottom:12vh}
-  }
-  .static-copy{display:block;position:relative;z-index:2;padding:48vh var(--gutter) 7vh;text-shadow:var(--tshadow)}
-  .static-copy .hl{font-size:clamp(2.5rem,10.5vw,4.4rem)}
-  .static-copy .sub{margin-top:1.1rem;max-width:34ch;font-weight:400;color:#ecdcc4}
-  .static-copy .price-line{margin:1.2rem 0 1.6rem;font-size:.82rem;letter-spacing:.08em;color:var(--text)}
-  /* upright screens: the whole photo (the teacher and her laptop) in a band under the bar, the copy below it.
-     At 3:2 the cover crop keeps 84% of the width; 27% puts the window from the teacher's shoulder to the
-     laptop's right edge in view. */
-  @media (max-aspect-ratio:1/1){
-    .stage{display:block;min-height:0;padding-top:var(--nav-h)}
-    .stage .static-bg{position:relative;inset:auto;width:100%;aspect-ratio:3/2;background-position:27% 50%;-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent);mask-image:linear-gradient(180deg,#000 70%,transparent)}
-    .stage .scrim{display:none}
-    .static-copy{padding:4px var(--gutter) 9vh}
-    .hero,.nav:not(.solid){--text:#3b2a1f;--text-2:#6e5644;--line:rgba(120,100,80,.16);--line-strong:rgba(120,100,80,.38);--canvas:#fbf8f3}
-    .stage{background:#fbf8f3}
-    .static-copy{text-shadow:none}
-    .static-copy .sub{color:var(--text-2)}
-    .dusk{display:none}
-  }
+.hl em::after{content:"";position:absolute;left:-3%;right:-3%;bottom:-.1em;height:.24em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none'%3E%3Cpath d='M3 10c30-5 62-7 96-5s70 3 98 0' fill='none' stroke='%23c8693a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/100% 100%}
+.devices{position:relative;aspect-ratio:100/72;margin-right:calc(var(--gutter) * -.5)}
+.dv{position:absolute;background:#241b15;box-shadow:0 30px 60px -24px rgba(60,36,18,.45),0 10px 22px -10px rgba(60,36,18,.3)}
+.dv img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left;background:#f6f1e8}
+.dv-laptop{left:9%;top:0;width:91%;padding:1.4% 1.4% 1.9%;border-radius:14px 14px 4px 4px}
+.dv-laptop img{aspect-ratio:16/10;border-radius:3px}
+.dv-laptop::after{content:"";position:absolute;left:-7%;right:-7%;top:100%;height:3.2%;min-height:9px;background:linear-gradient(180deg,#d9cfc2,#b7aa99);border-radius:0 0 14px 14px/0 0 60% 60%;box-shadow:0 18px 30px -14px rgba(60,36,18,.5)}
+.dv-tablet{left:0;bottom:2%;width:41%;padding:2.2%;border-radius:20px}
+.dv-tablet img{aspect-ratio:1180/820;border-radius:6px}
+.dv-phone{right:3%;bottom:-1%;width:17.5%;padding:1.6%;border-radius:24px}
+.dv-phone img{aspect-ratio:390/780;border-radius:16px}
+@media (max-width:900px){
+  .hero-in{grid-template-columns:1fr}
+  .devices{margin:8px 0 0}
 }
+@media (max-width:520px){
+  .dv-laptop{left:6%;width:94%}
+  .dv-tablet{width:46%;border-radius:12px}
+  .dv-phone{width:22%;border-radius:14px}
+  .dv-phone img{border-radius:9px}
+}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:1.6rem}
 
 /* ---------- shared section furniture ---------- */
 .sec{position:relative;padding:clamp(96px,15vh,168px) var(--gutter)}
@@ -364,6 +269,7 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 .live-on .task:nth-child(2n) .box{animation-delay:-2.1s}
 @keyframes breathe{50%{border-color:rgba(180,83,42,.7)}}
 .task .box svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--accent-ink);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .5s var(--ease-out) .25s}
+.task .tt>span{background-repeat:no-repeat;background-position:0 58%;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .task .tt{position:relative;justify-self:start;font-size:clamp(1.06rem,1.5vw,1.3rem);font-weight:400;line-height:1.4;transition:opacity .5s var(--ease-out)}
 .task .tt>span{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath d='M3 12.5C38 7 66 15.5 104 10.8S176 6.8 214 11.2 272 9.2 297 7.6' fill='none' stroke='%23c8693a' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");background-size:0% .62em;transition:background-size .55s var(--ease-io)}
 .task .ans{grid-column:2;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .55s var(--ease-out),opacity .45s var(--ease-out)}
@@ -741,61 +647,25 @@ html.zoom-open{overflow:hidden}
 
   <section class="hero" id="inicio" aria-labelledby="hero-title">
     <h1 class="sr" id="hero-title" data-i18n="hero.h1">AulaPro. La app con IA para docentes de Educación Primaria y Secundaria.</h1>
-    <div class="stage">
-      <div class="static-bg" aria-hidden="true"></div>
-      <div class="poster" aria-hidden="true"></div>
-      <div class="poster-end" aria-hidden="true"></div>
-      <canvas id="hero-video" aria-hidden="true"></canvas>
-      <div class="scrim" aria-hidden="true"></div>
-
-      <div class="bands">
-        <div class="band fx-drift pos-tr" data-a="0" data-b="0.17" data-pk="66">
-          <p class="hl" data-split data-i18n="b1.title">Son las diez de la noche.<br>Y el papeleo sigue ahí.</p>
-        </div>
-        <div class="band fx-strike pos-tr" data-a="0.2" data-b="0.38" data-ramp="0.04" data-pk="66">
-          <p class="hl hl-sm" data-split data-spread=".25" data-i18n="b2.title">Pendiente para mañana:</p>
-          <ul class="lines">
-            <li class="ln" style="--th:.3"><span class="box"><svg aria-hidden="true"><use href="#tick"/></svg></span><span class="ln-t"><span data-i18n="b2.l1">Diseñar la situación de aprendizaje.</span></span></li>
-            <li class="ln" style="--th:.45"><span class="box"><svg aria-hidden="true"><use href="#tick"/></svg></span><span class="ln-t"><span data-i18n="b2.l2">Elaborar la rúbrica de evaluación.</span></span></li>
-            <li class="ln" style="--th:.6"><span class="box"><svg aria-hidden="true"><use href="#tick"/></svg></span><span class="ln-t"><span data-i18n="b2.l3">Redactar veinticinco informes.</span></span></li>
-          </ul>
-        </div>
-        <div class="band fx-blur pos-tr" data-a="0.41" data-b="0.56" data-ramp="0.035" data-pk="78">
-          <div class="blur-pair">
-            <p class="hl soft" aria-hidden="true" data-i18n="b3.title">AulaPro lo prepara con IA.</p>
-            <p class="hl sharp" data-i18n="b3.title">AulaPro lo prepara con IA.</p>
-          </div>
-          <p class="sub" data-i18n="b3.sub">Situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, listos para revisar. Los datos de tu alumnado no salen hacia ningún servidor de AulaPro.</p>
-        </div>
-        <div class="band fx-rise pos-tr" data-a="0.59" data-b="0.745" data-ramp="0.045" data-pk="86">
-          <p class="hl hl-xl" data-split data-i18n="b4.title">Cada cosa en su <em>sitio</em>.</p>
-          <p class="sub" data-i18n="b4.sub">AulaPro en el ordenador, la tableta y el móvil. Oferta de lanzamiento: 9,90&nbsp;€ el primer año.</p>
-        </div>
-        <div class="band fx-drift pos-tl" data-a="0.8" data-b="1" data-ramp="0.03" data-pk="0">
-          <p class="chip mono" data-i18n="b5.chip">Así se ve AulaPro por dentro.</p>
-        </div>
-        <div class="band band-strip" data-a="0.9" data-b="1" data-ramp="0.06">
-          <div class="strip-in">
-            <p class="strip-t" data-i18n="b5.more">Sigue descubriendo AulaPro</p>
-            <div class="cta-row">
-              <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
-              <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span class="arr" aria-hidden="true">↓</span></a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="cue" aria-hidden="true"><span data-i18n="cue">Desplázate hacia abajo</span><i></i></div>
-
-      <div class="static-copy">
+    <div class="hero-in">
+      <div class="hero-copy">
+        <p class="eyebrow mono" data-i18n="b3.title">AulaPro lo prepara con IA.</p>
         <p class="hl hl-xl" data-i18n="b4.title">Cada cosa en su <em>sitio</em>.</p>
         <p class="sub" data-i18n="static.sub">Situaciones de aprendizaje, rúbricas, informes y evaluación de Educación Primaria y Secundaria, preparados con IA en una sola app para el ordenador, la tableta y el móvil. Los datos de tu alumnado no salen hacia ningún servidor de AulaPro.</p>
         <p class="price-line mono" data-i18n="static.price">Oferta de lanzamiento: 9,90&nbsp;€ el primer año.</p>
-        <a class="btn" href="#precio" data-i18n="cta.want">Quiero AulaPro</a>
+        <div class="cta-row">
+          <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+          <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+      <!-- capturas de la app real: scripts/web/capturar-portada.mjs -->
+      <div class="devices" role="img" aria-label="Así se ve AulaPro por dentro." data-i18n-attr="aria-label:b5.chip">
+        <div class="dv dv-laptop"><img src="assets/portada/portatil.webp" width="2000" height="1250" alt="" fetchpriority="high" decoding="async"></div>
+        <div class="dv dv-tablet"><img src="assets/portada/tableta.webp" width="1400" height="973" alt="" decoding="async"></div>
+        <div class="dv dv-phone"><img src="assets/portada/movil.webp" width="780" height="1688" alt="" decoding="async"></div>
       </div>
     </div>
   </section>
-  <div class="dusk" aria-hidden="true"></div>
 
   <!-- S1 · your day -->
   <section class="sec" id="funciones" data-live>

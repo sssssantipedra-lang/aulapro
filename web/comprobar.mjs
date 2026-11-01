@@ -60,9 +60,9 @@ for (const f of archivos) {
   }
 }
 
-// ---- lo que el vídeo y la portada necesitan para funcionar
-for (const [f, min] of [['assets/hero-frames/f001.webp', 5e3], ['assets/hero-frames/f308.webp', 5e3], ['assets/hero-poster.jpg', 2e4],
-  ['assets/hero-ending.jpg', 2e4], ['assets/escritorio.jpg', 5e4], ['assets/og.jpg', 2e4], ['assets/app.js', 2e4], ['assets/i18n.js', 2e4]]) {
+// ---- lo que la portada necesitan para funcionar
+for (const [f, min] of [['assets/portada/portatil.webp', 3e4], ['assets/portada/tableta.webp', 2e4], ['assets/portada/movil.webp', 1e4],
+  ['assets/escritorio.jpg', 5e4], ['assets/og.jpg', 2e4], ['assets/app.js', 1e4], ['assets/i18n.js', 2e4]]) {
   if (!hay(f)) falla(`falta ${f}`);
   else if (statSync(join(root, f)).size < min) falla(`${f} pesa demasiado poco (${statSync(join(root, f)).size} bytes)`);
 }

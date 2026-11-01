@@ -119,8 +119,8 @@ const tareas = [
     const { t } = await texto(BASE + '/calendario-escolar.json');
     const j = JSON.parse(t); if (!j || typeof j !== 'object') throw new Error('JSON vacío');
   }),
-  comprobar('vídeo de la portada', async () => {
-    const { r } = await pedir(BASE + '/assets/hero-frames/f001.webp', { range: 'bytes=0-1023' });
+  comprobar('capturas de la portada', async () => {
+    const { r } = await pedir(BASE + '/assets/portada/portatil.webp', { range: 'bytes=0-1023' });
     if (r.status === 403 && r.headers.get('cf-mitigated'))
       throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
     if (![200, 206].includes(r.status)) throw new Error(`responde ${r.status}`);
