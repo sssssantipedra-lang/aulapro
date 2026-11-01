@@ -45,6 +45,20 @@ const puerta = await page.evaluate(async () => {
 }).catch(e => ({ error: e.message }));
 console.log('  Código de las pantallas sin sesión:', JSON.stringify(puerta));
 if (puerta.estado !== 401) { mal++; console.log('✘ La puerta de /app/assets/ está abierta sin sesión'); } else console.log('✔ La puerta está cerrada sin sesión');
+// El mismo bloque con otras formas de escribir la dirección, que el alojamiento sirve igual (las 7 que se
+// saltaban la puerta en aulapro.app el 1-11-2026). Desde Node: el navegador las normaliza antes de pedirlas.
+if (puerta.bloque) {
+  const { origin } = new URL(url);
+  const f = puerta.bloque.replace(/^assets\//, '');
+  const variantes = [`//app/assets/${f}`, `/APP/assets/${f}`, `/app/ASSETS/${f}`, `/%61pp/assets/${f}`, `/app%2Fassets/${f}`,
+    `/app/assets/${f.replace(/\.js$/, '.JS')}`, `/app/assets/${f}%20`, `/app/assets/${f}/`, `/app//assets/${f}`, `/app/%61ssets/${f}`, `/app/assets%2F${f}`];
+  for (const v of variantes) {
+    const r = await fetch(origin + v, { cache: 'no-store' }).catch(() => null);
+    const cuerpo = r ? await r.text() : '';
+    if (r?.ok && /javascript/i.test(r.headers.get('Content-Type') ?? '') && cuerpo.length > 200) { mal++; console.log(`✘ La puerta se salta con ${v}`); }
+  }
+  console.log(`✔ Comprobadas ${variantes.length} formas de saltarse la puerta`);
+}
 await abrir('Segunda visita, ya guardada');
 await abrir('Tercera visita');
 await ctx.setOffline(true);
