@@ -1,40 +1,40 @@
 # La web de AulaPro y lo que promete
 
-Contexto compartido entre la app y la web. Revisado el 25 de octubre de 2026 (cambios marcados con esa fecha).
+Contexto compartido entre la app y la web. Revisado el 1 de noviembre de 2026: AulaPro es solo web (aulapro.app/app, decisión del dueño del 29-10-2026) y este documento ya no recoge las aplicaciones de Windows, Mac y Android ni sus tiendas.
 
 ## 1. La web
 
 - Dirección: https://aulapro.app (también www.aulapro.app y aulapro-app.pages.dev). Dominio comprado en Cloudflare.
 - Código: `web/sitio/`. HTML, CSS y JavaScript sin compilar; se puede abrir con cualquier servidor local (`python -m http.server --directory web/sitio`).
-- Publicación: `.github/workflows/web.yml`, al llegar a `master` un cambio en `web/sitio/`. Proyecto de Cloudflare Pages `aulapro-app`.
-- Páginas: inicio, `/demo` (demo interactiva hecha con capturas reales), `/descargar`, `/gracias` (tras la compra; oculta a Google), `/condiciones`, `/privacidad` y `/aviso-legal`. Todo en castellano, català e inglés.
-- Textos en castellano: en el propio HTML. Català e inglés: `assets/i18n.js` (web) y `assets/demo-i18n.js` (demo). Las páginas legales y de descargas llevan los tres idiomas en el mismo archivo.
+- Publicación: `.github/workflows/web.yml` (Cloudflare Pages, proyecto `aulapro-app`) y Netlify, que sirve aulapro.app desde el 29-10-2026 (`docs/APP_WEB.md`), al llegar a `master` un cambio en `web/sitio/` o en la app.
+- Páginas: inicio, `/demo` (demo interactiva hecha con capturas reales), `/descargar` (explica que no hay nada que descargar y lleva a la app), `/gracias` (tras la compra; oculta a Google), `/condiciones`, `/privacidad` y `/aviso-legal`. Todo en castellano, català e inglés.
+- Textos en castellano: en el propio HTML. Català e inglés: `assets/i18n.js` (web) y `assets/demo-i18n.js` (demo). Las páginas legales llevan los tres idiomas en el mismo archivo.
 - Correo público: contacto@aulapro.app (reenvío de Cloudflare al correo del dueño).
 - Lista de espera: formulario de Formspree. Ningún formulario envía nada sin la casilla de privacidad marcada.
-- Interruptor de lanzamiento: `assets/launch.js`. Con `checkout` vacío la web dice "Próximamente", muestra la lista de espera y la página de descargas invita a apuntarse. Al rellenar `checkout` y `play`, los botones pasan a "Comprar", desaparece la lista de espera y se abren las descargas.
+- Interruptor de lanzamiento: `assets/launch.js`. Con `checkout` vacío la web dice "Próximamente" y muestra la lista de espera. Al rellenar `checkout` (y poner `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts`), los botones pasan a "Comprar" y llevan a la app.
 - Diseño y decisiones de contenido: `web/DISENO.md`.
 
 ## 2. Modelo de venta
 
-- Una sola licencia para Windows y Android, vendida en la web con Lemon Squeezy, que actúa como vendedor registrado (cobra, gestiona el IVA y factura).
+- Una sola licencia, para la versión web (aulapro.app/app), vendida en la web con Lemon Squeezy, que actúa como vendedor registrado (cobra, gestiona el IVA y factura).
 - Suscripción anual (decisión del dueño, 31-10-2026): oferta de lanzamiento de 9,90 € el primer año para quien se suscriba hasta el 15 de abril de 2027 incluido; después, y en cada renovación, 14,99 € al año, con impuestos incluidos. Los pagos únicos de por vida vendidos antes del 1-11-2026 se respetan siempre.
 - Si no se renueva, la clave caduca y se bloquea la cuenta; los datos se conservan. La web y las condiciones lo dicen (apartado 2 y 5).
-- Hasta 2 dispositivos activados a la vez.
+- La licencia comprada con el correo de la cuenta de Google o de Microsoft vale en todos los dispositivos de esa cuenta, sin límite. Las claves escritas a mano (otro correo, packs) valen en 2 navegadores a la vez.
 - Packs anuales para grupos: 5 y 10 docentes por 39,59 € y 68,99 € el primer año con la oferta, y 59,99 € y 99,99 € en la renovación y desde el 16 de abril de 2027. Cada pack es UNA sola clave para todo el grupo, con 2 dispositivos por docente (límite de activaciones 10 y 20); quien compra entra con su cuenta y su licencia se activa sola. Más de 10 docentes: contacto@aulapro.app. (Con `?quantity=` Lemon Squeezy entrega una sola clave de 2 activaciones: no usarlo.)
 - Devolución en 14 días, sin preguntas. Al devolver, la licencia se desactiva.
-- Android: la app se descarga gratis en Google Play y se activa con la misma licencia. Se daba por hecho que Google Play lo permite como app «solo de uso»; **no está comprobado** (ver el punto 6 del apartado 3).
+- Los fundadores (quienes usaban las apps anteriores antes del 10-11-2026) entran gratis en la web por su correo; la lista no se escribe en el repositorio (`docs/APP_WEB.md`).
 
 ## 3. Lo que la web promete y la app tiene que cumplir
 
 Estas frases están publicadas en las condiciones de venta y en la política de privacidad. Si la app hace algo distinto, cambia la web en el mismo cambio.
 
-1. Pantalla de licencia en Windows, Mac y Android, donde se introduce la clave recibida por correo.
-2. Activación con la API de licencias de Lemon Squeezy (activar y validar). El límite lo pone Lemon Squeezy en cada clave: 2 en la licencia individual, 10 o 20 en los packs. La app no supone que son 2: desde la 1.9.0 sus textos no dan número ("Esta clave ya está activada en todos los dispositivos que permite").
-3. Al activar, la app envía a Lemon Squeezy solo la clave y un identificador del dispositivo. Nunca datos del alumnado. El nombre del dispositivo es neutro ("AulaPro · Windows", "· Mac" o "· Android"), nunca el nombre del equipo. (App 1.8.0.)
-4. Hace falta internet solo para activar la primera vez. Después funciona sin conexión, salvo las funciones de IA. Cuando hay conexión, la app comprueba la clave en segundo plano una vez por semana (así una devolución desactiva la licencia), pero sin conexión nunca se bloquea. (App 1.8.0; la privacidad y las condiciones lo dicen así: «sin límite de tiempo».)
-   - Estado en la 1.8.0: escritorio (`electron/license.cjs`) y Android (`src/platform/androidLicense.ts`) hechos, con `ENFORCED = false` (aún no se pide clave; quien abre la app queda como fundador), `STORE_ID = '487841'` (desde el 2-10-2026) y `FOUNDER_CUTOFF` sin fecha. `BUY_URL` en escritorio: https://aulapro.app. `STORE_ID` es el número de la tienda de Lemon Squeezy, para que no valgan claves de otras tiendas; va igual en los dos archivos. **Sigue igual en la 2.19.2 (25-10-2026), publicada en descargas.aulapro.app: quien instale esa versión no necesita clave y queda como fundador gratis para siempre (`LICENSE`, apartado 1e). El 27-10-2026 `ENFORCED` pasó a `true` en los dos archivos, con `FOUNDER_CUTOFF = '2026-11-10'`** (versión 2.21.0 en adelante), y tener una clave de revisión para Google y Microsoft (`docs/TIENDAS.md`, apartado 1).
-5. Cambio de dispositivo: el propio docente lo hace en la app, Configuración › Licencia › «Desactivar en este equipo», y activa la clave en el nuevo. Si ya no tiene el antiguo, escribe a contacto@aulapro.app. (App 1.8.0.)
-6. Android y Google Play: dentro de la app no puede haber ningún botón ni enlace que lleve a pagar. Sí se puede escribir "Consigue tu licencia en aulapro.app", como texto sin enlace. Hecho en la app 1.8.0: en Android la pantalla de licencia solo muestra ese texto; en Windows y Mac, enlace a aulapro.app. Pendiente para el lanzamiento: sin licencia, un modo de prueba con datos de ejemplo en vez de una pantalla vacía. **(25-10-2026) Que Google Play acepte este modelo (licencia comprada en la web y activada en la app) no está comprobado**: su política de pagos exige su sistema de pago para las funciones que se cobran dentro de una app, y no se ha encontrado una excepción escrita para este caso. Ver `docs/TIENDAS.md`, apartado 5, y qué hacer si la rechazan.
+1. Pantalla de entrada y de licencia en la web, donde se entra con la cuenta (Google o Microsoft) o se introduce la clave recibida por correo.
+2. Activación con la API de licencias de Lemon Squeezy (activar y validar). El límite lo pone Lemon Squeezy en cada clave: 2 en la licencia individual, 10 o 20 en los packs. Los textos de la app no dan número ("Esta clave ya está activada en todos los dispositivos que permite").
+3. Al activar, la app envía a Lemon Squeezy solo la clave y un identificador del dispositivo. Nunca datos del alumnado. El nombre del dispositivo es neutro, nunca el nombre del equipo.
+4. Con licencia, la app comprueba la clave cada día con conexión (al abrir, con 3 segundos de espera como mucho, y cada hora si sigue abierta) y la firma que da el servidor dura 7 días: sin conexión funciona hasta 7 días (`docs/APP_WEB.md`). Para la IA hace falta conexión. La privacidad y las condiciones lo dicen así.
+   - Los fundadores entran por su correo (`FUNDADORES`, variable secreta de la función de la licencia). `STORE_ID = '487841'` es el número de la tienda de Lemon Squeezy, para que no valgan claves de otras tiendas.
+5. Cambio de dispositivo: con la cuenta no hace falta nada, porque la licencia vale en todos sus dispositivos. Con una clave escrita a mano, el docente la desactiva en un navegador (Configuración › Licencia) y la activa en el nuevo; si ya no tiene el antiguo, escribe a contacto@aulapro.app.
+6. Sin tiendas: la versión web lleva el botón de compra, con el correo de la cuenta ya puesto, y al pagar la licencia se activa sola (`docs/APP_WEB.md`).
 7. Datos del alumnado solo en el equipo. Sin cuentas ni servidores propios.
    - Calendario escolar (11-10-2026): con un perfil de la Comunitat Valenciana, Cataluña o Madrid, la app descarga al abrirse https://aulapro.app/calendario-escolar.json, una vez por sesión, sin enviar nada (ver `docs/COMUNIDADES.md`, «Calendario escolar»). La privacidad lo dice en los tres idiomas, en el apartado 5 de la app.
    - Al abrirse, la app no pide nada a terceros: desde el 6-10-2026 la tipografía (Outfit, licencia OFL) va dentro de la app. Antes se pedía a Google Fonts en cada arranque, lo que pasaba a Google la IP del docente sin que la privacidad lo dijera, y sin conexión la letra cambiaba.
@@ -47,47 +47,26 @@ Estas frases están publicadas en las condiciones de venta y en la política de 
      - Desde el 6-10-2026, del alumnado con medidas de nivel II o III (Decreto 104/2018 de la Comunitat Valenciana) que marca el docente, la IA recibe ese nivel y lo que necesita, sin nombre ni diagnóstico. La privacidad lo dice en los tres idiomas.
      - Desde el 6-10-2026, «Desde una foto» en Actividades: la foto que adjunta el docente va a Google reducida (1280 px) y sin metadatos, porque se vuelve a hacer en JPEG (`fotoParaIA`), y no se guarda. La privacidad lo dice en los tres idiomas y pide no usar fotos en las que se reconozca al alumnado; la pantalla también.
      - Desde el 17-10-2026, «Desde un manual (PDF)» en Actividades: el PDF que adjunta el docente (hasta 19 MB) va a Google y no se guarda; y en la pizarra de circuitos, la IA recibe una imagen del croquis, solo con los trazos, sola desde la segunda forma dibujada o al pulsar «Reconocer con IA» (y solo con clave de IA). La privacidad lo dice en los tres idiomas y pide no usar documentos con datos del alumnado.
-     - Desde el 18-10-2026, en Android los documentos que se guardan quedan en Documentos › AulaPro del dispositivo (público, no en el almacenamiento privado de la app), una carpeta por tipo. La privacidad lo dice en los tres idiomas.
      - Desde el 18-10-2026, «Evaluar por foto»: las fotos del examen o del trabajo de un alumno, y las de la hoja de soluciones si se ponen, van a Google reducidas y sin metadatos, sin el nombre del alumno, y no se guardan. La privacidad lo dice en los tres idiomas. Desde el 31-10-2026 el nombre se tapa en cada página antes de enviarla (`docs/EVALUAR_FOTO.md`).
      - Desde el 18-10-2026, el autoguardado de lo que se genera (`services/borradores.ts`): mientras hay una ficha, una SdA, una rúbrica, una diana, una sesión de EF o una corrección por foto sin guardar, la app deja un borrador en `localStorage` (uno por tipo y por perfil, aparte de los datos del perfil; se borra al guardar; caduca a los 30 días; sin las fotos). No sale del equipo. La privacidad lo dice en los tres idiomas (apartado 5 de «La aplicación»), y la portada, en el punto s5.p6.
    - Las condiciones dicen que los pictogramas de la agenda visual (Mulberry Symbols, CC BY-SA 4.0) se rigen por su propia licencia, no por la de AulaPro.
    - Desde el 6-10-2026 tampoco se envía el nombre del docente: ni en el asistente (antes iba «Docente: nombre · Centro: …») ni en la situación de aprendizaje («para el grupo de nombre»). No hacía falta para responder. El centro, la asignatura y el curso escolar siguen yendo al asistente.
-9. Actividades con móviles (la sala de alumnos; hasta el 11-10-2026 se llamaba «Sala de alumnos»): servidor local; el alumnado entra por la wifi del aula con un código QR. No pasa por internet.
+9. Actividades con móviles: no está en la versión web ("Próximamente en la versión web"): un navegador no puede abrir un servidor en la wifi del aula. No hay que prometerla en la web hasta que exista.
 10. Trabajo compartido entre docentes: **un archivo cifrado con contraseña**, sin conexión entre equipos ni servidor de AulaPro (2.20.0, 25-10-2026; antes era una conexión por QR y código con PeerJS, que se quitó: ver `docs/COMPARTIR.md`). Quien envía elige qué comparte; el archivo va cifrado con AES-256 y una clave derivada de la contraseña (PBKDF2); quien recibe lo abre con la contraseña, ve qué trae y decide si lo importa; nunca se borra nada de lo que ya tenía. La contraseña no se guarda ni se envía. **La web no promete que «solo la app» pueda leerlo**, porque no se puede garantizar: la seguridad está en la contraseña (la privacidad, apartado 4 de la app, lo cuenta así en los tres idiomas). El perfil y la clave de la IA nunca van en el archivo.
-11. Copia de seguridad automática cada 10 minutos, en el propio equipo.
-12. Actualizaciones: la app comprueba si hay versión nueva sin enviar datos del alumnado. En Windows se actualiza sola; en Mac, a mano.
-13. Licencia anual: hecho el 31-10-2026. `check()` en `androidLicense.ts` valida cada semana la clave (también la de cuenta, solo con `license_key`) y, si Lemon Squeezy la da por caducada o anulada, vacía la licencia y la app vuelve a pedirla. Los datos del navegador no se borran. Lemon Squeezy no tiene aviso previo a la renovación (comprobado el 31-10-2026 en Settings › Email y Webhooks: solo hay correos de marketing y eventos), así que la web y las condiciones no prometen ningún aviso (decisión del dueño, 31-10-2026).
+11. Copia de seguridad: el trabajo vive en el navegador y se copia a la carpeta del ordenador, a Google Drive o a OneDrive si el docente lo elige (cada 30 minutos y al salir en la nube; `docs/APP_WEB.md`). No pasa por servidores de AulaPro.
+12. Actualizaciones: la web se actualiza sola; una versión nueva se descarga y se pone la próxima vez que se abre la app, sin enviar datos del alumnado.
+13. Licencia anual: hecho el 31-10-2026. `check()` en `androidLicense.ts` valida la clave cada día (también la de cuenta, solo con `license_key`) y, si Lemon Squeezy la da por caducada o anulada, vacía la licencia y la app vuelve a pedirla. Los datos del navegador no se borran. Lemon Squeezy no tiene aviso previo a la renovación (comprobado el 31-10-2026 en Settings › Email y Webhooks: solo hay correos de marketing y eventos), así que la web y las condiciones no prometen ningún aviso (decisión del dueño, 31-10-2026).
 
 ## 4. Descargas
 
-Publicación en Google Play y Microsoft Store (fichas, notas para quien revisa y formularios): `docs/TIENDAS.md`. Cada versión hay que subirla a mano a las dos tiendas; el workflow «Publicar versión» solo deja los archivos en GitHub y en descargas.aulapro.app.
+Ya no hay descargas: desde el 29-10-2026 AulaPro es solo web y no se publican instaladores ni versiones en tiendas. Las apps antiguas dejaron de recibir versiones y su código sigue en el repositorio (`CLAUDE.md`). `docs/TIENDAS.md` y `docs/DESCARGAS.md` se conservan solo por si un día se vuelve a las apps nativas.
 
-- Decisión del 1-10-2026: el usuario no quiere pagar firmas de código. Por eso:
-  - **Windows: Microsoft Store, gratis.** Se sube como paquete MSIX (en electron-builder, el objetivo `appx`) y Microsoft lo firma gratis tras certificarlo; un .exe o .msi en la Store tendría que ir firmado por nosotros, así que no. La cuenta de desarrollador individual es gratuita (storedeveloper.microsoft.com, verificación con documento de identidad y selfie). La app es gratuita en la Store y se activa con la licencia de la web: Microsoft no cobra comisión a las apps que no son juegos y usan su propio sistema de pago, y en Windows sí se permite un enlace de compra dentro de la app. Las actualizaciones las hace la Store, así que la versión de la Store no usa el actualizador propio. En la ficha, política de privacidad: https://aulapro.app/privacidad. Cuando la ficha exista, su enlace va en `store` de `assets/launch.js` y los botones de Windows de /descargar y /gracias pasan a la Store (y desaparece el aviso de SmartScreen).
-  - **Android: Google Play, gratis** (25 $ de alta, una vez), activada con la misma licencia.
-  - **Ficha de Microsoft Store creada el 1-10-2026** (cuenta de desarrollador individual del usuario, nombre reservado "AulaPro"). Datos de identidad para el paquete MSIX (son públicos, van en el manifiesto):
-    - Package/Identity/Name: `EdTechLabs.AulaPro`
-    - Package/Identity/Publisher: `CN=9A7A9138-5354-4236-8D7F-D57E49D851CB`
-    - Package/Properties/PublisherDisplayName: `EdTech Labs`
-    - Package Family Name: `EdTechLabs.AulaPro_qwnmvyvzyp38g`
-    - Store ID: `9N9WJW9C24DN`, ficha: https://apps.microsoft.com/detail/9N9WJW9C24DN (no funciona hasta que la app esté publicada; entonces va en `store` de `web/sitio/assets/launch.js`).
-  - Para la app: en `package.json` → `build`, añadir el objetivo `appx` (x64) a `win.target` y un bloque `appx` con `identityName: "EdTechLabs.AulaPro"`, `publisher: "CN=9A7A9138-5354-4236-8D7F-D57E49D851CB"`, `publisherDisplayName: "EdTech Labs"`, `applicationId: "AulaPro"` y `displayName: "AulaPro"` (debe coincidir con el nombre reservado, sin espacio, aunque `productName` sea "AulaPro"). Poner los iconos de mosaico propios en `build/appx/` (StoreLogo, Square44x44Logo, Square150x150Logo, Wide310x150Logo); si faltan, electron-builder usa unos genéricos. En `electron/updater.cjs`, no buscar actualizaciones cuando `process.windowsStore` sea `true`: en la versión de la Store actualiza la Store. El .msix/.appx se sube a la Store sin firmar; Microsoft lo firma.
-  - **Hecho en la app 1.8.0:** objetivo `appx` con esos datos, mosaicos generados por `npm run icons` en `build/appx/` y el actualizador apagado con `process.windowsStore`. Cada versión adjunta `AulaPro-<versión>-microsoft-store.appx` al release de GitHub (no se sube a descargas.aulapro.app); `store.yml` también lo compila en los pull request y a mano desde Actions.
-  - **Mac: pospuesto (2-10-2026).** El usuario no quiere vender una app sin firmar, porque instalarla genera desconfianza, ni pagar Apple Developer (99 $ al año) hasta que haya ganancias. La web no ofrece Mac: la portada lo muestra como «Próximamente» (una ficha que no es enlace), /descargar tiene la tarjeta de Mac en «Próximamente» y sin botón, /gracias no tiene acceso directo a Mac, y las condiciones y la privacidad hablan solo de Windows y Android ("Por ahora no hay versión para Mac"). El .dmg sigue en descargas.aulapro.app y en GitHub para quien ya lo usa. Cuando haya firma: recuperar la tarjeta y el botón, quitar "Por ahora no hay versión para Mac" y volver a "Windows, Mac y Android" en los tres idiomas.
-- Enlaces estables que usa la web (`assets/launch.js`):
-  - https://descargas.aulapro.app/AulaPro-instalador-windows.exe
-  - https://descargas.aulapro.app/AulaPro-mac.dmg
-- Android para el público: Google Play. El APK directo queda para personas de prueba.
-- Caché: ver `docs/DESCARGAS.md`, apartado "Caché de Cloudflare". El 1 de octubre los instaladores de nombre fijo todavía respondían con `max-age=14400`: falta crear la Cache Rule que se describe allí.
-- Pendiente para mostrar la versión en `/descargar`: que `version.json` responda con `Access-Control-Allow-Origin: https://aulapro.app` (regla CORS del bucket de R2). Cuando esté, poner `version: 'https://descargas.aulapro.app/version.json'` en `assets/launch.js`.
-- El instalador .exe directo (sin firma) sigue en descargas.aulapro.app para pruebas y como alternativa mientras no exista la ficha de la Store.
 
 ## 4b. Bloqueos de los operadores en España (18-10-2026)
 
 Durante los partidos de LaLiga, los operadores españoles bloquean por orden judicial bloques de direcciones de Cloudflare, y con ellos webs legítimas. El 18-10-2026 el dueño no podía abrir aulapro.app ni www.aulapro.app desde la tablet, el iPhone ni un segundo PC (errores `ERR_QUIC_PROTOCOL_ERROR`, tiempo agotado y `ERR_CONNECTION_ABORTED`), con la misma wifi y sin VPN; solo abría en el PC con VPN. Desde fuera de España la web respondía bien (12 de 12 puntos de comprobación). Consecuencias para la web y la app:
 
-- La web, `descargas.aulapro.app` (R2) y lo que la app pide a `aulapro.app` (`calendario-escolar.json`, `version.json`) no se pueden abrir desde España mientras dura un bloqueo. La app tiene que seguir funcionando sin esas respuestas.
-- Las descargas van por Microsoft Store y Google Play (no por Cloudflare); los instaladores directos son secundarios.
+- La web y lo que la app pide a `aulapro.app` (`calendario-escolar.json`) no se pueden abrir desde España mientras dura un bloqueo. La app tiene que seguir funcionando sin esas respuestas. Por este bloqueo aulapro.app se sirve desde Netlify desde el 29-10-2026 (`docs/DNS.md`).
 - Resultado de la prueba: la copia de GitHub Pages (https://sssssantipedra-lang.github.io/aulapro/) abrió en el iPhone y la tablet del dueño, sin VPN. Pero el bloqueo NO está confirmado: a la vez, 8 de 8 sondas en España (dos de Orange) abrían `aulapro.app`, y no se repitió la prueba de `aulapro.app` en esos dispositivos. Antes de mover el dominio hay que comprobar que `aulapro.app` sigue sin abrir en un dispositivo sin VPN mientras la copia sí abre. Mientras tanto las dos copias se mantienen al día (apartado 4c).
 - HTTP/3 (QUIC) está desactivado en Cloudflare (Speed > Settings > Protocol Optimization) desde esa fecha; es indiferente para el bloqueo.
 
@@ -103,7 +82,7 @@ Decisión del dueño: proteger la web de las caídas «de todas las maneras posi
    - *De vuelta a Cloudflare Pages*: en Workers y Pages, `aulapro-app`, Custom domains, añadir `aulapro.app` y `www.aulapro.app` (Cloudflare crea los registros con proxy) y quitar el dominio personalizado en GitHub.
 5. **Deshacer un cambio malo**: `git revert` del cambio y merge (las dos copias se vuelven a publicar). En Cloudflare Pages también se puede volver a un despliegue anterior desde el panel.
 6. **Dominio y cuentas**: comprobado el 18-10-2026 que el dominio está activo, caduca el 30-9-2027 y tiene la renovación automática programada para el 31-8-2027 (hace falta una tarjeta válida en Cloudflare en esa fecha). A cargo del dueño: verificación en dos pasos en Cloudflare, GitHub, Google y Lemon Squeezy.
-7. **Conocido**: las normas de GitHub Pages no lo permiten para negocios ni para webs cuyo fin principal sea vender; una página de presentación con enlace a una tienda externa suele tolerarse, pero es zona gris. Por eso GitHub Pages es copia de respaldo y no la copia principal, y antes de lanzar la venta se revisa. `descargas.aulapro.app` (R2, Cloudflare) y lo que la app pide a `aulapro.app` no tienen respaldo; las descargas van por las tiendas.
+7. **Conocido**: las normas de GitHub Pages no lo permiten para negocios ni para webs cuyo fin principal sea vender; una página de presentación con enlace a una tienda externa suele tolerarse, pero es zona gris. Por eso GitHub Pages es copia de respaldo y no la copia principal. Lo que la app pide a `aulapro.app` no tiene más respaldo que estas copias.
 
 ### Decisión sobre el alojamiento (19-10-2026)
 
@@ -135,7 +114,7 @@ Ojo, 1-10-2026: al crear la cuenta, Lemon Squeezy recomienda "Managed Payments" 
 
 ## 6. Páginas legales
 
-- Política de privacidad, web y app: https://aulapro.app/privacidad. Es la dirección que hay que dar a Google Play.
+- Política de privacidad, web y app: https://aulapro.app/privacidad.
 - Condiciones de venta: https://aulapro.app/condiciones (devoluciones en `#devoluciones`).
 - Aviso legal: https://aulapro.app/aviso-legal. Publica nombre, dirección y correo de contacto; el DNI no. Al darse de alta como autónomo, hay que añadir el NIF.
 - Las páginas legales y `/gracias` están ocultas a los buscadores (`noindex`).

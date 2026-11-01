@@ -3,7 +3,7 @@ name: Microsoft Store
 # Compila solo el paquete de Microsoft Store (.appx, sin firmar: lo firma
 # Microsoft al certificarlo) cuando un pull request toca lo que lo forma, y
 # lo deja como artefacto descargable. El de cada versión va en el release
-# (ver release.yml). Datos de la ficha: docs/WEB.md, apartado 4.
+# (ver release.yml). Datos de la ficha: historial de docs/WEB.md (retirados el 1-11-2026) o Partner Center.
 on:
   pull_request:
     paths:
