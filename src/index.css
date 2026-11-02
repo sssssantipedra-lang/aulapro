@@ -704,8 +704,8 @@ button.entrar-tarjeta:disabled { cursor:progress; }
 .home-alert-dot.danger { background:var(--danger); }
 .home-class-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 @media (max-width: 900px) {
-  .home-now { grid-template-columns:1fr; }
-  .home-grid { grid-template-columns:1fr; }
+  .home-now { grid-template-columns:minmax(0,1fr); }
+  .home-grid { grid-template-columns:minmax(0,1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .home-dot { animation:none; } }
 
@@ -1967,7 +1967,7 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .home-cls-sub.warn { color:var(--grade-bad); font-weight:700; }
 @media (max-width: 1100px) { .home-grid.tres { grid-template-columns:repeat(2, minmax(0,1fr)); } }
 @media (max-width: 700px) {
-  .home-grid.tres { grid-template-columns:1fr; }
+  .home-grid.tres { grid-template-columns:minmax(0,1fr); }
   .home-j-week { margin-left:0; }
   .home-q { flex:1 1 calc(50% - 8px); }
   .home-j-item { flex-basis:130px; }
