@@ -67,7 +67,7 @@ Probado con pruebas automáticas y en Chromium con ratón, pero **nunca con un d
 - **Entrar con Microsoft** con una cuenta real y la copia en OneDrive. Con cuentas de centros, Microsoft puede pedir la aprobación del administrador mientras AulaPro no tenga editor verificado.
 - **Safari** (iPhone, iPad, Mac): entrar con Google por redirección y volver a la app.
 - **Una sola pestaña** (auditoría del 1-11-2026): abrir AulaPro en dos pestañas del ordenador, y la app instalada más una pestaña en Android y en iPhone o iPad. La segunda debe decir «AulaPro ya está abierta en otra pestaña» y, con «Usar AulaPro aquí», la primera dejar de guardar. Volver de la página de Google o de Microsoft no debe dar ese aviso.
-- **La app instalada en el iPhone** (2-11-2026): en Evaluar, Documentos y En clase, que la app ocupa toda la pantalla (sin franja gris a la derecha) y que el menú abierto llega abajo con la tarjeta del perfil entera (`docs/APP_WEB.md`).
+- ~~**La app instalada en el iPhone** (2-11-2026): que ocupa toda la pantalla, que el menú llega abajo con la tarjeta del perfil entera y que no se aleja con los dedos.~~ Comprobado por el dueño en su iPhone el 2-11-2026 (`docs/APP_WEB.md`).
 - **Aviso de guardado fallido** con el almacenamiento del navegador lleno (en Chrome se puede simular desde las herramientas de desarrollo, «Application › Storage»).
 
 Lo que solo importa si algún día se vuelve a las apps nativas: el PDF de Android (`PdfPrint`), «Ver carpeta» y el micrófono. Ver la sección de Android en `CLAUDE.md`.
