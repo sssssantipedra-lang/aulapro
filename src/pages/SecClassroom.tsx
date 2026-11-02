@@ -1745,9 +1745,10 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   return (
     <div
       ref={rootRef}
-      className="relative w-full overflow-hidden"
+      className="pz-raiz relative w-full overflow-hidden"
       style={{
-        height: pantallaCompleta ? '100vh' : 'calc(100vh - var(--hub-h, 0px))', background: fondo.css,
+        // Sin pantalla completa, el alto lo pone `.pz-raiz` (index.css): lo que queda bajo las barras de arriba
+        ...(pantallaCompleta ? { height: '100vh' } : {}), background: fondo.css,
         // Tinta de las herramientas: blanca sobre fondos oscuros y azul pizarra sobre claros
         ['--pz-rgb' as string]: light ? '15,23,42' : '255,255,255',
       }}
@@ -1780,7 +1781,7 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {menu && <div className="absolute inset-0" style={{ zIndex: 54 }} onClick={() => setMenu(null)} aria-hidden="true" />}
 
       {/* Barra superior: solo iconos */}
-      <div className="absolute flex items-center gap-0.5 rounded-2xl p-1" style={{ top: 14, left: 14, zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}>
+      <div className="pz-top absolute flex items-center gap-0.5 rounded-2xl p-1" style={{ top: 14, left: 14, zIndex: 56, maxWidth: 'calc(100% - 28px)', ...SUPERFICIE }}>
         {clases.length > 0 && (
           <>
             <label className="cl-clase" title={t('La ruleta usa los nombres de esta clase')}>
@@ -1966,8 +1967,9 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {!barrasOcultas && (
         <>
       {/* Barra inferior: solo iconos, en cuatro grupos. Cada pulsación abre otra ventana de esa herramienta. */}
-      <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 16, zIndex: 60, maxWidth: 'calc(100% - 140px)' }}>
-        <div className="flex items-center rounded-2xl p-1 overflow-x-auto" style={{ ...SUPERFICIE, scrollbarWidth: 'none' }}>
+      {/* En el móvil (index.css, .pz-dock) va a todo lo ancho, en varias filas y por encima del botón de ayuda */}
+      <div className="pz-dock absolute left-1/2 -translate-x-1/2" style={{ bottom: 16, zIndex: 60, maxWidth: 'calc(100% - 140px)' }}>
+        <div className="pz-dock-in flex items-center rounded-2xl p-1 overflow-x-auto" style={{ ...SUPERFICIE, scrollbarWidth: 'none' }}>
           {DOCK_GRUPOS.map((grupo, gi) => (
             <div key={gi} className="flex items-center flex-shrink-0">
               {gi > 0 && <Separador />}

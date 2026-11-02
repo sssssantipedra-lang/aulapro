@@ -60,6 +60,13 @@ la interfaz pública que se conocía, no de una comparación pantalla a pantalla
 - Los menús de fondo y de escena son una cuadrícula de muestras y una lista, sin textos explicativos salvo cuando aún
   no hay ninguna escena.
 
+## En el móvil y la tableta (2-11-2026, petición del dueño tras probarla en el iPhone)
+
+- La pizarra mide justo lo que queda bajo la barra del móvil y las pestañas (`.pz-raiz` en `src/index.css`, con `--m-top-h` y `--hub-h`, en `dvh`): la página no se desplaza. Antes le sobraban los 52 px de la barra del móvil, la página se podía desplazar y sus barras quedaban encima de las pestañas.
+- La barra de herramientas de abajo (`.pz-dock`) va a todo lo ancho hasta 1024 px, en las filas que hagan falta (tres en un móvil, una en una tableta) y por encima del botón de ayuda. Antes dejaba sitio para ese botón y solo cabían unas seis herramientas; las demás quedaban cortadas.
+- La barra de arriba (`.pz-top`) cabe en una línea desde 360 px: botones de 36 px, sin el icono de la clase por debajo de 400 px y, si aun así no cupiera, baja a otra línea en vez de cortarse.
+- Comprobado en Chromium a 360, 375, 390, 820, 1024, 1180 y 1280 px de ancho.
+
 ## Decisiones
 
 - Las ventanas se pintan siempre en el mismo orden del DOM (por identificador) y el apilado va por `z-index`:

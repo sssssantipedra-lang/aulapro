@@ -1332,6 +1332,28 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .wl-brand { position:relative; z-index:1; margin:0 0 22px; font-family:var(--font); font-size:clamp(34px, 6vw, 52px); font-weight:900; letter-spacing:.14em; color:#fff; line-height:1; text-shadow:0 6px 30px rgba(var(--accent-rgb),0.45); }
 
 /* ── Móvil (≤640px): barra superior en lugar del menú lateral ── */
+:root { --m-top-h: 0px; }
+@media (max-width: 640px) { :root { --m-top-h: 52px; } }
+/* Pizarra y herramientas (SecClassroom): ocupa justo lo que queda bajo la barra del móvil y las pestañas, sin
+   desplazar la página; si la desplazara, sus barras quedarían encima de las pestañas (2-11-2026, en el iPhone). */
+.pz-raiz { height:calc(100vh - var(--hub-h, 0px) - var(--m-top-h)); height:calc(100dvh - var(--hub-h, 0px) - var(--m-top-h)); }
+/* En el móvil y la tableta la barra de herramientas no cabe entera junto al botón de ayuda: a todo lo ancho, en las
+   filas que hagan falta (una en la tableta, tres en el móvil), y encima del botón */
+@media (max-width: 1024px) {
+  .pz-dock { left:8px !important; right:8px; transform:none !important; translate:none !important; max-width:none !important; bottom:84px !important; display:flex; justify-content:center; pointer-events:none; }
+  .pz-dock-in { flex-wrap:wrap; justify-content:center; overflow:visible !important; pointer-events:auto; }
+}
+/* En el móvil, la barra de arriba cabe entera: más pegada a los bordes, botones de 36 px y el nombre de la clase recortado */
+@media (max-width: 640px) {
+  .pz-top { left:8px !important; max-width:calc(100% - 16px) !important; }
+  .pz-top > button { width:36px !important; }
+  .pz-top .cl-clase select { max-width:96px; text-overflow:ellipsis; }
+  .pz-top { flex-wrap:wrap; }
+}
+@media (max-width: 400px) {
+  .pz-top .cl-clase { padding-left:6px; }
+  .pz-top .cl-clase > svg { display:none; }
+}
 .m-top { position:sticky; top:0; z-index:45; height:52px; display:flex; align-items:center; gap:10px; padding:0 10px; background:var(--nav-bg); color:var(--nav-strong); border-bottom:1px solid var(--nav-border); }
 .m-top-btn { width:40px; height:40px; display:flex; align-items:center; justify-content:center; border:none; border-radius:10px; background:transparent; color:var(--nav-strong); cursor:pointer; }
 .m-top-btn:active { background:var(--nav-hover); }
