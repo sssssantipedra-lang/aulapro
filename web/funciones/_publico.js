@@ -1,26 +1,4 @@
-// Generado por web/app/publico.mjs al publicar: no editar.
-export default [
-  "/app/assets/androidLicense-DUlDEb7z.js",
-  "/app/assets/cuentaWeb-Bqs8UPqI.js",
-  "/app/assets/dist-7YBRGGey.js",
-  "/app/assets/googleDrive-ClkUEo-y.js",
-  "/app/assets/iconos-DL9XYi-o.js",
-  "/app/assets/index-BfuD5Ntu.js",
-  "/app/assets/licenciaVencida-CfjT7njd.js",
-  "/app/assets/microsoft-B9Rn_njR.js",
-  "/app/assets/preload-helper-BhnKi1jd.js",
-  "/app/assets/react-VH5ZyJQf.js",
-  "/app/assets/rolldown-runtime-BM3Ffeng.js",
-  "/app/assets/utils-Trv53gTV.js",
-  "/app/assets/web-2FTYWaZe.js",
-  "/app/sw.js",
-  "/assets/app.js",
-  "/assets/demo-i18n.js",
-  "/assets/demo-pantallas.js",
-  "/assets/demo.js",
-  "/assets/download.js",
-  "/assets/i18n.js",
-  "/assets/launch.js",
-  "/assets/legal.js",
-  "/assets/zoom.js"
-];
+// Lo que /app/assets/ entrega sin sesión (ver api/_puerta.js). Este archivo es un marcador: al publicar,
+// web/app/publico.mjs lo sustituye por la lista que saca la compilación (dist-web/publico.json).
+// Con `null` la puerta deja pasar todo (así funciona `npm run dev` y nada se rompe si falta la lista).
+export default null;
