@@ -32,6 +32,7 @@ export const PIZARRA_EN: Record<string, string> = {
   'Restaurar todas las ventanas': 'Restore all windows',
   'Ocultar las barras': 'Hide the toolbars',
   'Mostrar las barras': 'Show the toolbars',
+  'Plegar las herramientas': 'Collapse the tools',
   // Herramientas
   'Reloj y fecha': 'Clock and date',
   'Cronómetro': 'Stopwatch',
@@ -124,6 +125,8 @@ export const PIZARRA_CA: Record<string, string> = {
   'Restaurar todas las ventanas': 'Restaurar totes les finestres',
   'Ocultar las barras': 'Amagar les barres',
   'Mostrar las barras': 'Mostrar les barres',
+  'Plegar las herramientas': 'Plegar les eines',
+  'Herramientas': 'Eines',
   'Reloj y fecha': 'Rellotge i data',
   'Cronómetro': 'Cronòmetre',
   'Semáforo': 'Semàfor',

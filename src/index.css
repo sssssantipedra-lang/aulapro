@@ -1337,12 +1337,18 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 /* Pizarra y herramientas (SecClassroom): ocupa justo lo que queda bajo la barra del móvil y las pestañas, sin
    desplazar la página; si la desplazara, sus barras quedarían encima de las pestañas (2-11-2026, en el iPhone). */
 .pz-raiz { height:calc(100vh - var(--hub-h, 0px) - var(--m-top-h)); height:calc(100dvh - var(--hub-h, 0px) - var(--m-top-h)); }
-/* En el móvil y la tableta la barra de herramientas no cabe entera junto al botón de ayuda: a todo lo ancho, en las
-   filas que hagan falta (una en la tableta, tres en el móvil), y encima del botón */
+/* La barra de herramientas de abajo. Se coloca solo aquí, sin clases de Tailwind: en el iPhone, `translate:none` no
+   anulaba el `-translate-x-1/2` de Tailwind y la barra salía corrida a la izquierda (2-11-2026). En el ordenador,
+   centrada y con sitio para el botón de ayuda; en el móvil y la tableta no cabría entera así: a todo lo ancho, en las
+   filas que hagan falta (una en la tableta, tres en el móvil) y encima del botón. */
+.pz-dock { position:absolute; left:50%; bottom:16px; z-index:60; max-width:calc(100% - 140px); transform:translateX(-50%); }
 @media (max-width: 1024px) {
-  .pz-dock { left:8px !important; right:8px; transform:none !important; translate:none !important; max-width:none !important; bottom:84px !important; display:flex; justify-content:center; pointer-events:none; }
+  .pz-dock { left:8px; right:8px; bottom:84px; max-width:none; transform:none; display:flex; justify-content:center; pointer-events:none; }
   .pz-dock-in { flex-wrap:wrap; justify-content:center; overflow:visible !important; pointer-events:auto; }
 }
+/* Plegada (solo en el móvil): un botón abajo a la izquierda, a la altura del de ayuda y sin tocarlo */
+.pz-dock.plegada { left:12px; right:auto; bottom:20px; pointer-events:auto; }
+.pz-dock-boton { display:flex; align-items:center; gap:8px; height:48px; padding:0 16px; border-radius:16px; border:none; color:#fff; font:700 14px var(--font); cursor:pointer; }
 /* En el móvil, la barra de arriba cabe entera: más pegada a los bordes, botones de 36 px y el nombre de la clase recortado */
 @media (max-width: 640px) {
   .pz-top { left:8px !important; max-width:calc(100% - 16px) !important; }

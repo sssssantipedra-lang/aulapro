@@ -7,9 +7,11 @@ import {
   Timer as TimerIcon, Dices, Car, Hand, StickyNote, Medal, QrCode, ListChecks, Image as ImageIcon,
   Maximize, Minimize, LayoutTemplate, Save, Trash2, GripHorizontal,
   Highlighter, PenTool, Pencil, Undo2, Redo2, Minus as MinusIcon, ChevronsDownUp, ChevronsUpDown, PanelTopClose, PanelTop,
+  ChevronDown, LayoutGrid,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { usePhoneScreen } from '../hooks/useNarrowScreen';
 import { useResetOnChange } from '../lib/useResetOnChange';
 import { guardarSalidos, leerSalidos, marcarSalido, sinSalir } from '../lib/ruleta';
 import type { Ficha } from '../types';
@@ -70,6 +72,12 @@ const DOCK_GRUPOS: WidgetType[][] = [
   ['wheel', 'groups', 'dice', 'score'],
   ['calc', 'noise', 'embed', 'qr'],
 ];
+
+/** En el móvil (hasta 640 px) las ventanas se dibujan a esta escala: la ruleta, el temporizador… caben sin taparlo todo. */
+const ESCALA_MOVIL = 0.7;
+
+/** En el móvil, si la barra de herramientas está plegada (preferencia del dispositivo). */
+const CLAVE_HERRAMIENTAS_PLEGADAS = 'aulapro_pizarra_herramientas_plegadas';
 
 /** Nombres de relleno cuando aún no hay alumnos creados. */
 const DEFAULT_NAMES = ['Alumno 1', 'Alumno 2', 'Alumno 3', 'Alumno 4', 'Alumno 5', 'Alumno 6'];
@@ -154,11 +162,13 @@ function beep(times = 3) {
    ════════════════════════════════════════════════════════════ */
 
 function WidgetShell({
-  title, accent, icono, minimizada, onMinimizar, onClose, children,
+  title, accent, icono, escala = 1, minimizada, onMinimizar, onClose, children,
 }: {
   title: string;
   accent: string;
   icono: React.ReactNode;
+  /** En el móvil, lo de dentro se dibuja más pequeño (`zoom`), como en el ordenador pero a esta escala. */
+  escala?: number;
   minimizada: boolean;
   onMinimizar: () => void;
   onClose: () => void;
@@ -183,7 +193,7 @@ function WidgetShell({
     >
       {/* Sin tarjeta: la herramienta va directamente sobre la pizarra. Se arrastra desde cualquier parte que no sea un
           control. Minimizada se oculta pero sigue montada, para que un temporizador siga contando. */}
-      <div className="h-full w-full min-h-0" style={minimizada ? { display: 'none' } : undefined}>{children}</div>
+      <div className="h-full w-full min-h-0" style={minimizada ? { display: 'none' } : escala !== 1 ? { zoom: escala } : undefined}>{children}</div>
       {minimizada ? (
         <button
           type="button"
@@ -1559,6 +1569,16 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [menu, setMenu] = useState<null | 'fondos' | 'escenas'>(null);
   /** Barras ocultas: solo queda un botón diminuto para volver a verlas, y la pizarra aprovecha toda la pantalla. */
   const [barrasOcultas, setBarrasOcultas] = useState(false);
+  /** En el móvil, la barra de herramientas se pliega a un botón para dejar sitio (se recuerda en el dispositivo). */
+  const telefono = usePhoneScreen();
+  const [herramientasPlegadas, setHerramientasPlegadas] = useState(() => {
+    try { return localStorage.getItem(CLAVE_HERRAMIENTAS_PLEGADAS) === '1'; } catch { return false; }
+  });
+  const plegarHerramientas = (si: boolean) => {
+    setHerramientasPlegadas(si);
+    try { localStorage.setItem(CLAVE_HERRAMIENTAS_PLEGADAS, si ? '1' : '0'); } catch { /* sin almacenamiento */ }
+  };
+  const plegadas = telefono && herramientasPlegadas;
 
   /** Cambia el fondo; si cambia entre claro y oscuro, lo ya dibujado y el color del lápiz pasan a su equivalente. */
   function elegirFondo(id: FondoId) {
@@ -1584,10 +1604,12 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const [ventanas, setVentanas] = useState<Ventana[]>(() =>
     leerActual() ?? (['timer', 'wheel'] as WidgetType[]).map(tipo => ({ id: tipo, tipo, rect: DEFAULTS[tipo] })));
 
+  // El área en las medidas de las ventanas (las del ordenador): en el móvil se dibujan a `ESCALA_MOVIL`
   const areaPizarra = useCallback(() => {
     const r = rootRef.current?.getBoundingClientRect();
-    return r && r.width > 0 && r.height > 0 ? { width: r.width, height: r.height } : { width: 1110, height: 700 };
-  }, []);
+    const e = telefono ? ESCALA_MOVIL : 1;
+    return r && r.width > 0 && r.height > 0 ? { width: r.width / e, height: r.height / e } : { width: 1110, height: 700 };
+  }, [telefono]);
 
   // Lo guardado en otro monitor (o una ventana que se encoge) puede no caber: se mete todo en el área visible
   useEffect(() => {
@@ -1619,16 +1641,37 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
    * Abre otra ventana de la herramienta, aunque ya haya una: cada una funciona por su cuenta. Va en un hueco libre
    * de la pizarra y, si no queda ninguno, en cascada sobre las demás.
    */
+  /**
+   * Las franjas que dejan libres las barras de arriba y de abajo, en las medidas de las ventanas. Se miden en la
+   * pantalla: en el móvil la barra de abajo ocupa varias filas y todo va a `ESCALA_MOVIL`, así que las de siempre
+   * (70 y 84, pensadas para el ordenador) se quedaban cortas y la ventana nueva salía encima de las barras.
+   */
+  const margenesLibres = () => {
+    const raiz = rootRef.current?.getBoundingClientRect();
+    const e = telefono ? ESCALA_MOVIL : 1;
+    const base = { arriba: 70, abajo: 84, lados: 16 };
+    if (!raiz) return base;
+    const arriba = rootRef.current?.querySelector('.pz-top')?.getBoundingClientRect();
+    const abajo = rootRef.current?.querySelector('.pz-dock-in, .pz-dock-boton')?.getBoundingClientRect();
+    return {
+      arriba: Math.max(base.arriba, arriba ? (arriba.bottom - raiz.top + 10) / e : 0),
+      abajo: Math.max(base.abajo, abajo ? (raiz.bottom - abajo.top + 10) / e : 0),
+      lados: base.lados,
+    };
+  };
   const anadir = (tipo: WidgetType) => setVentanas(prev => {
     if (prev.length >= MAX_VENTANAS) return prev;
     const area = areaPizarra();
     const base = ajustarRect(DEFAULTS[tipo], area, minDe(tipo));
-    const libre = huecoLibre(base, prev.map(rectVisible), area);
+    const margenes = margenesLibres();
+    const libre = huecoLibre(base, prev.map(rectVisible), area, margenes);
     const mismas = prev.filter(v => v.tipo === tipo).length;
+    // Sin hueco, en cascada, pero nunca encima de la barra de arriba
+    const cascada = enCascada(base, mismas);
     return [...prev, {
       id: siguienteId(tipo, prev.map(v => v.id)),
       tipo,
-      rect: libre ?? ajustarRect(enCascada(base, mismas), area, minDe(tipo)),
+      rect: libre ?? ajustarRect({ ...cascada, y: Math.max(cascada.y, margenes.arriba) }, area, minDe(tipo)),
     }];
   });
   const cerrar = (id: string) => {
@@ -1713,13 +1756,17 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const cfg = APPS.find(a => a.id === v.tipo);
     if (!cfg) return null;
     const { rect } = v;
-    const min = v.min ? { width: LADO_MINIMIZADA, height: LADO_MINIMIZADA } : minDe(v.tipo);
+    // En el móvil, la ventana y lo que lleva dentro se dibujan a `ESCALA_MOVIL`; lo guardado sigue en las medidas del
+    // ordenador (una escena guardada allí sale igual, más pequeña). Minimizada, el icono conserva su tamaño de toque.
+    const e = telefono ? ESCALA_MOVIL : 1;
+    const minimo = minDe(v.tipo);
+    const min = v.min ? { width: LADO_MINIMIZADA, height: LADO_MINIMIZADA } : { width: minimo.width * e, height: minimo.height * e };
 
     return (
       <Rnd
         key={v.id}
-        position={{ x: rect.x, y: rect.y }}
-        size={v.min ? min : { width: rect.width, height: rect.height }}
+        position={{ x: rect.x * e, y: rect.y * e }}
+        size={v.min ? min : { width: rect.width * e, height: rect.height * e }}
         minWidth={min.width}
         minHeight={min.height}
         enableResizing={!v.min}
@@ -1728,11 +1775,11 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
         // contenido incrustado empezarían un arrastre en vez de recibir el clic (y, en el móvil, la X nunca cerraría)
         cancel=".widget-cerrar, button, input, textarea, select, a, label, iframe, canvas, [role=checkbox]"
         onMouseDown={() => alFrente(v.id)}
-        onDragStop={(_e, d) => ponerRect(v.id, { x: d.x, y: d.y })}
-        onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(v.id, { x: p.x, y: p.y, width: ref.offsetWidth, height: ref.offsetHeight })}
+        onDragStop={(_e, d) => ponerRect(v.id, { x: d.x / e, y: d.y / e })}
+        onResizeStop={(_e, _dir, ref, _delta, p) => ponerRect(v.id, { x: p.x / e, y: p.y / e, width: ref.offsetWidth / e, height: ref.offsetHeight / e })}
         style={{ zIndex: 30 + apilado }}
       >
-        <WidgetShell title={t(cfg.title)} accent={cfg.accent} icono={cfg.icon} minimizada={!!v.min} onMinimizar={() => alternarMin(v.id)} onClose={() => cerrar(v.id)}>
+        <WidgetShell title={t(cfg.title)} accent={cfg.accent} icono={cfg.icon} escala={e} minimizada={!!v.min} onMinimizar={() => alternarMin(v.id)} onClose={() => cerrar(v.id)}>
           {cuerpo(v)}
         </WidgetShell>
       </Rnd>
@@ -1967,8 +2014,16 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
       {!barrasOcultas && (
         <>
       {/* Barra inferior: solo iconos, en cuatro grupos. Cada pulsación abre otra ventana de esa herramienta. */}
-      {/* En el móvil (index.css, .pz-dock) va a todo lo ancho, en varias filas y por encima del botón de ayuda */}
-      <div className="pz-dock absolute left-1/2 -translate-x-1/2" style={{ bottom: 16, zIndex: 60, maxWidth: 'calc(100% - 140px)' }}>
+      {/* Dónde va lo pone `.pz-dock` (index.css): centrada en el ordenador; en el móvil y la tableta, a todo lo ancho,
+          en varias filas y por encima del botón de ayuda. En el móvil se pliega a un botón. */}
+      {plegadas ? (
+        <div className="pz-dock plegada">
+          <button type="button" className="pz-dock-boton" style={SUPERFICIE} onClick={() => plegarHerramientas(false)} aria-expanded={false}>
+            <LayoutGrid size={18} aria-hidden="true" />{t('Herramientas')}
+          </button>
+        </div>
+      ) : (
+      <div className="pz-dock">
         <div className="pz-dock-in flex items-center rounded-2xl p-1 overflow-x-auto" style={{ ...SUPERFICIE, scrollbarWidth: 'none' }}>
           {DOCK_GRUPOS.map((grupo, gi) => (
             <div key={gi} className="flex items-center flex-shrink-0">
@@ -1992,8 +2047,10 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
           ))}
           <Separador />
           <BotonBarra icono={<Flag size={19} />} nombre={t('Proyectar una ficha, un escape room o unas tarjetas')} color="#fb923c" onClick={() => setPicking(true)} />
+          {telefono && <BotonBarra icono={<ChevronDown size={19} />} nombre={t('Plegar las herramientas')} onClick={() => plegarHerramientas(true)} />}
         </div>
       </div>
+      )}
         </>
       )}
 
