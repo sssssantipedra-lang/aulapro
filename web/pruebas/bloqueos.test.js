@@ -85,3 +85,22 @@ describe('bloqueo al momento con el aviso de Lemon Squeezy', () => {
     expect((await llamar(env, 'aviso', cuerpo, { 'X-Signature': await firmar(cuerpo) })).status).toBe(502);
   });
 });
+
+describe('registro de los avisos', () => {
+  it('apunta el nombre y el resultado, nunca la clave', async () => {
+    const lineas = [];
+    const original = console.log;
+    console.log = t => lineas.push(String(t));
+    try {
+      estadoTienda = 'disabled';
+      const env = { LIMITE: kvFalso(), LEMONSQUEEZY_WEBHOOK_SECRET: SECRETO, LEMONSQUEEZY_API_KEY: 'k' };
+      const cuerpo = avisoDeClave('disabled');
+      await llamar(env, 'aviso', cuerpo, { 'X-Signature': await firmar(cuerpo) });
+      await llamar(env, 'aviso', cuerpo, { 'X-Signature': 'mala' });
+    } finally { console.log = original; }
+    expect(lineas[0]).toBe('[aviso Lemon Squeezy] license_key_updated · 1 clave bloqueada, 0 desbloqueadas');
+    expect(lineas[1]).toContain('rechazado');
+    expect(lineas.join(' ')).not.toContain(CLAVE);
+    expect(lineas.join(' ')).not.toContain('77');
+  });
+});

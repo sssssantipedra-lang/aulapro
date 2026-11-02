@@ -26,11 +26,12 @@ export async function estaBloqueada(almacen, key) {
 /** Cómo está una clave según los datos de la tienda (`attributes` de un license-key). */
 export const claveTerminada = a => !!a && (a.disabled === true || ['disabled', 'expired'].includes(String(a.status ?? '')));
 
-async function anotar(almacen, key, terminada) {
+async function anotar(almacen, key, terminada, cuenta) {
   if (!key) return;
   const k = await claveDe(key);
   if (terminada) await almacen.put(k, { desde: new Date().toISOString() }, UN_ANIO);
   else await almacen.del(k);
+  if (cuenta) cuenta[terminada ? 'bloqueadas' : 'desbloqueadas'].add(k);
 }
 
 /** HMAC-SHA256 en hexadecimal del cuerpo tal cual llega, comparado sin atajos de tiempo. */
@@ -56,19 +57,31 @@ export function pedidoDelAviso(evento) {
 /**
  * Pone al día la lista con un aviso de Lemon Squeezy. Si el aviso es de una clave, se aplica su estado al momento; después,
  * con el número de pedido, se copia el estado de todas sus claves según la tienda. Lanza si la tienda no contesta, para
- * que el aviso se devuelva con error y Lemon Squeezy lo reintente.
+ * que el aviso se devuelva con error y Lemon Squeezy lo reintente. Devuelve cuántas claves han quedado bloqueadas y
+ * cuántas libres (para el registro de la función).
  */
 export async function procesarAviso(evento, { almacen, apiKey, pedir = fetch }) {
+  const cuenta = { bloqueadas: new Set(), desbloqueadas: new Set() };
+  const resumen = () => ({ bloqueadas: cuenta.bloqueadas.size, desbloqueadas: cuenta.desbloqueadas.size });
   const a = evento?.data?.attributes ?? {};
-  if (evento?.data?.type === 'license-keys' && a.key) await anotar(almacen, a.key, claveTerminada(a));
+  if (evento?.data?.type === 'license-keys' && a.key) await anotar(almacen, a.key, claveTerminada(a), cuenta);
   const pedido = pedidoDelAviso(evento);
-  if (!pedido || !apiKey) return;
+  if (!pedido || !apiKey) return resumen();
   const r = await pedir(`${LS}/license-keys?filter[order_id]=${encodeURIComponent(pedido)}`, {
     headers: { Accept: 'application/vnd.api+json', Authorization: `Bearer ${apiKey}` },
   });
   if (!r.ok) throw new Error(`tienda ${r.status}`);
-  for (const k of (await r.json()).data ?? []) await anotar(almacen, k.attributes?.key, claveTerminada(k.attributes));
+  // La tienda manda: lo que diga ahora de cada clave sustituye a lo que traía el aviso
+  cuenta.bloqueadas.clear(); cuenta.desbloqueadas.clear();
+  for (const k of (await r.json()).data ?? []) await anotar(almacen, k.attributes?.key, claveTerminada(k.attributes), cuenta);
+  return resumen();
 }
+
+/**
+ * Una línea en el registro de la función (Netlify › Logs › Functions › licencia) por cada aviso: su nombre y el resultado.
+ * Nunca la clave, el correo ni el número de pedido. Petición del dueño, 2-11-2026, para poder comprobar que llegan.
+ */
+const registrar = texto => { try { console.log(`[aviso Lemon Squeezy] ${texto}`); } catch { /* sin consola */ } };
 
 const json = (cuerpo, status, headers = {}) => new Response(JSON.stringify(cuerpo), {
   status, headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
@@ -79,11 +92,21 @@ export async function responderAviso(request, { secreto, apiKey, almacen }) {
   if (!secreto) return new Response('Not found', { status: 404 });
   if (request.method !== 'POST') return json({ error: 'metodo' }, 405);
   const cuerpo = await request.text();
-  if (cuerpo.length > 200_000 || !(await firmaDeAvisoValida(cuerpo, request.headers.get('X-Signature'), secreto))) return json({ error: 'firma' }, 401);
+  if (cuerpo.length > 200_000 || !(await firmaDeAvisoValida(cuerpo, request.headers.get('X-Signature'), secreto))) {
+    registrar('rechazado: la firma no coincide con LEMONSQUEEZY_WEBHOOK_SECRET');
+    return json({ error: 'firma' }, 401);
+  }
   let evento;
-  try { evento = JSON.parse(cuerpo); } catch { return json({ error: 'cuerpo' }, 400); }
-  if (!almacen) return json({ error: 'sin-almacen' }, 503);
-  try { await procesarAviso(evento, { almacen, apiKey }); } catch { return json({ error: 'tienda' }, 502); }
+  try { evento = JSON.parse(cuerpo); } catch { registrar('rechazado: no es JSON'); return json({ error: 'cuerpo' }, 400); }
+  const nombre = String(evento?.meta?.event_name ?? '').replace(/[^a-z_]/gi, '').slice(0, 60) || 'sin nombre';
+  if (!almacen) { registrar(`${nombre} · error: sin almacén`); return json({ error: 'sin-almacen' }, 503); }
+  let r;
+  try { r = await procesarAviso(evento, { almacen, apiKey }); } catch {
+    registrar(`${nombre} · error: Lemon Squeezy no contestó (lo volverá a enviar)`);
+    return json({ error: 'tienda' }, 502);
+  }
+  const n = (x, uno, varios) => `${x} ${x === 1 ? uno : varios}`;
+  registrar(`${nombre} · ${n(r.bloqueadas, 'clave bloqueada', 'claves bloqueadas')}, ${n(r.desbloqueadas, 'desbloqueada', 'desbloqueadas')}${apiKey ? '' : ' (sin LEMONSQUEEZY_API_KEY: solo lo que trae el aviso)'}`);
   return json({ ok: true }, 200);
 }
 

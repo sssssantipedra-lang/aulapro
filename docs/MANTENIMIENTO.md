@@ -73,7 +73,7 @@ Desde el 2-11-2026. Sin esto todo funciona, pero una licencia desactivada o devu
 2. En Lemon Squeezy, **Settings › Webhooks › +**: URL `https://aulapro.app/api/licencia/aviso`, **Signing secret** el secreto del paso 1, y marcar estos avisos: `order_refunded`, `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_resumed`, `subscription_expired`, `subscription_paused`, `subscription_unpaused`, `subscription_payment_success`, `subscription_payment_recovered`, `subscription_payment_refunded`, `license_key_created` y `license_key_updated`. Hacerlo en modo real (y, si se quiere probar antes, otro igual en modo prueba).
 3. En Netlify y en Cloudflare (Production): `LEMONSQUEEZY_WEBHOOK_SECRET` = el mismo secreto. `LEMONSQUEEZY_API_KEY` ya tiene que estar (la usa también la búsqueda por correo). Volver a publicar.
 4. (Opcional) Un segundo aviso igual a `https://aulapro-app.pages.dev/api/licencia/aviso`, para que la copia de respaldo de Cloudflare tenga también la lista.
-5. Probar: desactivar una clave de prueba en Lemon Squeezy, mirar en **Webhooks** que el aviso salió con respuesta 200, y comprobar que la app con esa clave se bloquea en 15 minutos como mucho. Reactivarla y ver que vuelve a entrar.
+5. Probar: desactivar una clave de prueba en Lemon Squeezy, mirar en Netlify (**Logs › Functions › licencia**) la línea «[aviso Lemon Squeezy] license_key_updated · 1 clave bloqueada, 0 desbloqueadas» (si dice «rechazado», el secreto no coincide; nunca lleva la clave, el correo ni el pedido), y comprobar que la app con esa clave se bloquea en 15 minutos como mucho. Reactivarla y ver que vuelve a entrar.
 
 ### La llave de las licencias (`LICENCIA_SECRETO` o, si no está, `GOOGLE_CLIENT_SECRET`)
 
