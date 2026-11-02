@@ -36,7 +36,7 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 - [ ] Verificación en dos pasos en Cloudflare, GitHub, Google, Microsoft, Netlify y Lemon Squeezy.
 - [ ] Una incidencia `vigilancia` de prueba llega al correo.
 - [ ] Mirar los minutos gastados de GitHub Actions a final de noviembre (Settings › Billing). Desde el 2-11-2026 la vigilancia va cada hora (unos 720 trabajos al mes) y los flujos de las apps nativas no están en `master`.
-- [x] ~~Borrar los artefactos antiguos de Actions (unos 14 GB; el plan gratuito incluye 500 MB) y bajar la retención~~ (2-11-2026: retención en 2 días, puesta por el dueño; artefactos borrados con `borrar-artefactos.yml`, de un solo uso). Comprobar en Settings › Billing que el espacio baja en los días siguientes.
+- [x] ~~Borrar los artefactos antiguos de Actions (unos 14 GB; el plan gratuito incluye 500 MB) y bajar la retención~~ (2-11-2026: retención en 2 días, puesta por el dueño; 155 artefactos, 15,2 GB, borrados con `borrar-artefactos.yml`, de un solo uso y ya retirado; quedan 0). Comprobar en Settings › Billing que el espacio baja en los días siguientes.
 - [ ] Las fechas marcadas «(comprobar)» en `docs/MANTENIMIENTO.md`.
 - [ ] (Recomendado, auditoría del 1-11-2026) `LICENCIA_SECRETO` y `LICENCIA_SECRETO_ANTERIOR` con los pasos de `docs/MANTENIMIENTO.md`, «La llave de las licencias».
 - [ ] **Aviso de Lemon Squeezy** (bloqueo en minutos, 2-11-2026): seguir «El aviso de Lemon Squeezy» de `docs/MANTENIMIENTO.md` y hacer la prueba del paso 5.
