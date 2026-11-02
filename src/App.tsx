@@ -903,14 +903,21 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(LICENCIA_PERDIDA, perdida);
   }, []);
 
-  // Con la pestaña abierta días seguidos, la comprobación diaria se hace igual: cada hora y al volver a la pestaña
-  // (solo llama a la tienda si hace más de un día de la última). Si la licencia se pierde, avisa `LICENCIA_PERDIDA`.
+  // Con la pestaña abierta, cada 5 minutos y al volver a ella: se mira si la licencia está bloqueada en el servidor
+  // (Lemon Squeezy avisó de que terminó) y, si hace más de una hora de la última, se comprueba con la tienda
+  // (`revisar`, platform/androidLicense.ts). Si la licencia se pierde, avisa `LICENCIA_PERDIDA`.
   useEffect(() => {
     if (!isWebApp()) return;
-    const revisar = () => { if (document.visibilityState === 'visible') void licenseBridge()?.revisar?.().catch(() => {}); };
-    const id = setInterval(revisar, 60 * 60 * 1000);
+    // Con lo que devuelve: si la licencia se perdió antes de que esta pantalla escuchara `LICENCIA_PERDIDA` (la comprobación
+    // en segundo plano al abrir puede contestar muy deprisa), aquí se bloquea igual
+    const revisar = () => {
+      if (document.visibilityState !== 'visible') return;
+      void licenseBridge()?.revisar?.().then(n => { if (n?.required) setState(n); }).catch(() => {});
+    };
+    const id = setInterval(revisar, 5 * 60 * 1000);
+    const primera = setTimeout(revisar, 15_000);
     document.addEventListener('visibilitychange', revisar);
-    return () => { clearInterval(id); document.removeEventListener('visibilitychange', revisar); };
+    return () => { clearInterval(id); clearTimeout(primera); document.removeEventListener('visibilitychange', revisar); };
   }, []);
 
   // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el

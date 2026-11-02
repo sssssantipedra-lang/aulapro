@@ -11,6 +11,8 @@ import { corsPara } from '../funciones/api/_origenes.js';
 import { verificarTokenMicrosoft } from '../funciones/api/_microsoft.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
+import { estaBloqueada } from '../funciones/api/_bloqueos.js';
+import { bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -65,7 +67,8 @@ export default async (request, context) => {
     if (!claves.ok) continue;
     for (const k of (await claves.json()).data ?? []) {
       const a = k.attributes ?? {};
-      if (a.disabled || ['disabled', 'expired'].includes(a.status)) { vencida = true; continue; }
+      // También la que Lemon Squeezy avisó que terminó, aunque su API aún no lo diga (_bloqueos.js)
+      if (a.disabled || ['disabled', 'expired'].includes(a.status) || (await estaBloqueada(bloqueosBlobs(), a.key))) { vencida = true; continue; }
       if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos) }, 200, cors);
     }
   }

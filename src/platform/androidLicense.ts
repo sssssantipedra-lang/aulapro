@@ -108,6 +108,13 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   comprobarCada?: number;
   /** Versión web: la licencia se ha perdido con la app abierta (terminada, devuelta o anulada). La pantalla se bloquea ya. */
   alPerder?: () => void;
+  /**
+   * Versión web (2-11-2026): al abrir, la comprobación que toca se hace en segundo plano, sin esperar (la app abre al
+   * instante y se bloquea en cuanto contesta), y `revisar` pregunta además a la lista de licencias bloqueadas del servidor
+   * (`estado`, web/funciones/api/_bloqueos.js), como mucho cada `consultarBloqueoCada` ms.
+   */
+  comprobarSinEsperar?: boolean;
+  consultarBloqueoCada?: number;
 } = {}): LicenseBridge {
   const enforced = opts.enforced ?? ENFORCED;
   const storeId = opts.storeId ?? STORE_ID;
@@ -116,6 +123,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   const comprobarCada = opts.comprobarCada ?? CHECK_EVERY;
   let record: LicenseRecord | null = null;
   let ready: Promise<void> | null = null;
+  let bloqueoMiradoEn = 0;
 
   const valida = async (r: LicenseRecord) => !opts.verificar || (await opts.verificar(r).catch(() => false));
   const avisar = async () => { if (record && opts.alValer) await opts.alValer(record).catch(() => {}); };
@@ -176,10 +184,28 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
       await avisar();
     } else if (r.status < 500) {
-      // Terminada, devuelta o anulada. Una clave a mano guarda su activación por si vuelve a valer (`DORMIDA`)
-      if (!record.cuenta && record.instanceId) await secrets.set(DORMIDA, JSON.stringify(record)).catch(() => false);
-      marcarLicenciaVencida(); await save(null); opts.alPerder?.();
+      await perder();
     }
+  }
+
+  /** Terminada, devuelta o anulada. Una clave a mano guarda su activación por si vuelve a valer (`DORMIDA`). */
+  async function perder() {
+    if (!record) return;
+    if (!record.cuenta && record.instanceId) await secrets.set(DORMIDA, JSON.stringify(record)).catch(() => false);
+    marcarLicenciaVencida(); await save(null); opts.alPerder?.();
+  }
+
+  /**
+   * Versión web: pregunta al servidor si la clave está en la lista de bloqueadas (Lemon Squeezy avisó de que terminó).
+   * No llama a la tienda: es barato y se hace cada pocos minutos. Sin conexión o sin respuesta clara, no pasa nada.
+   */
+  async function mirarBloqueo() {
+    const cada = opts.consultarBloqueoCada;
+    if (cada == null || record?.kind !== 'licencia' || !record.key) return;
+    if (Date.now() - bloqueoMiradoEn < cada) return;
+    bloqueoMiradoEn = Date.now();
+    const r = await call('estado', { license_key: record.key });
+    if (r?.status === 200 && (r.body as { bloqueada?: boolean }).bloqueada === true) await perder();
   }
 
   async function init() {
@@ -203,9 +229,15 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       // terminado no llega a abrir la app. Si la red tarda más, sigue en segundo plano y bloquea al contestar.
       const last = Date.parse(record.lastOkAt ?? record.activatedAt);
       if (!Number.isFinite(last) || Date.now() - last > comprobarCada) {
-        await Promise.race([check().catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
-        if (!record) return;
+        if (opts.comprobarSinEsperar) {
+          // La firma es válida: la app abre ya y, si la tienda dice que terminó, se bloquea al contestar (`alPerder`)
+          void check().catch(() => {});
+        } else {
+          await Promise.race([check().catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
+          if (!record) return;
+        }
       }
+      if (opts.comprobarSinEsperar) void mirarBloqueo().catch(() => {});
     }
     await avisar();
   }
@@ -258,6 +290,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     async revisar(): Promise<LicenseState> {
       // Con la app abierta días seguidos (la pestaña no se cierra): la comprobación diaria se hace igual
       await whenReady();
+      await mirarBloqueo().catch(() => {});
       const last = Date.parse(record?.lastOkAt ?? record?.activatedAt ?? '');
       if (record?.kind === 'licencia' && (!Number.isFinite(last) || Date.now() - last > comprobarCada)) await check().catch(() => {});
       return state();

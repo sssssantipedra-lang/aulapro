@@ -206,6 +206,37 @@ describe('licencia firmada al abrir (versión web)', () => {
     } finally { vi.useRealTimers(); }
   });
 
+  it('versión web: una licencia bloqueada en el servidor (Lemon Squeezy avisó) se pierde en minutos, sin esperar a la hora', async () => {
+    const s = secrets();
+    s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'CLAVE-CUENTA', cuenta: true, activatedAt: '2026-10-29', lastOkAt: new Date().toISOString() }));
+    const alPerder = vi.fn();
+    let bloqueada = false;
+    const post = vi.fn(async (accion: string) => (accion === 'estado' ? { status: 200, body: { bloqueada } } : { status: 200, body: { valid: true, license_key: { status: 'active' } } }));
+    const lic = createAndroidLicense(s, { enforced: true, comprobarCada: 3600_000, comprobarSinEsperar: true, consultarBloqueoCada: 0, alPerder, post });
+    expect((await lic.state()).required).toBe(false);
+    expect((await lic.revisar!()).required).toBe(false);
+    expect(post.mock.calls.every(c => c[0] === 'estado')).toBe(true);   // dentro de la hora: no llama a la tienda
+    bloqueada = true;
+    expect((await lic.revisar!()).required).toBe(true);
+    expect(alPerder).toHaveBeenCalled();
+    expect(s.mem.get('licencia')).toBeUndefined();
+  });
+
+  it('versión web: al abrir, la comprobación que toca no hace esperar y bloquea al contestar', async () => {
+    const s = secrets();
+    s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'CLAVE-MANO', instanceId: 'i1', activatedAt: '2026-10-29', lastOkAt: '2026-10-30T00:00:00Z' }));
+    const alPerder = vi.fn();
+    let contestar: (v: unknown) => void = () => {};
+    const post = vi.fn((accion: string) => (accion === 'estado'
+      ? Promise.resolve({ status: 200, body: { bloqueada: false } })
+      : new Promise(r => { contestar = r; })));
+    const lic = createAndroidLicense(s, { enforced: true, comprobarCada: 3600_000, comprobarSinEsperar: true, consultarBloqueoCada: 0, alPerder, post: post as never });
+    expect((await lic.state()).required).toBe(false);   // abre ya, aunque la tienda no haya contestado
+    contestar({ status: 200, body: { valid: false, license_key: { status: 'disabled' } } });
+    await vi.waitFor(() => expect(alPerder).toHaveBeenCalled());
+    expect((await lic.state()).required).toBe(true);
+  });
+
   it('pide la sesión de la app cada vez que hay una licencia válida (al abrir y al activar), y no sin ella', async () => {
     const s = secrets();
     const alValer = vi.fn(async () => {});

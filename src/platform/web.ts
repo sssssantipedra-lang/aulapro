@@ -37,6 +37,11 @@ import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types
 
 /* ── Licencia ── */
 
+/** Cada cuánto se comprueba la clave con Lemon Squeezy (y se renueva la firma de 7 días). */
+export const COMPROBAR_CLAVE_CADA = 60 * 60 * 1000;
+/** Como mucho cada cuánto se pregunta al servidor si la clave está bloqueada (sin llamar a la tienda). */
+export const CONSULTAR_BLOQUEO_CADA = 4 * 60 * 1000;
+
 const postLicencia: LicensePost = async (action, data) => {
   try {
     const res = await pedirApi(`/api/licencia/${action}`, {
@@ -232,8 +237,12 @@ export async function installWebBridge(opts: { pestanaReservada?: boolean } = {}
     update: createUpdate(),
     license: createAndroidLicense(secretos, {
       post: postLicencia, instanceName: 'AulaPro · Navegador', verificar: verificarLicencia,
-      // La firma dura 7 días: se renueva cada día con conexión, y con ella la sesión que abre el código de la app
-      comprobarCada: 24 * 60 * 60 * 1000,
+      // La firma dura 7 días. Desde el 2-11-2026 (petición del dueño: desactivar una licencia tardaba hasta un día en
+      // notarse) la clave se comprueba con la tienda cada hora, en segundo plano al abrir, y cada pocos minutos se mira
+      // la lista de bloqueadas del servidor, que Lemon Squeezy pone al día con su aviso (web/funciones/api/_bloqueos.js)
+      comprobarCada: COMPROBAR_CLAVE_CADA,
+      comprobarSinEsperar: true,
+      consultarBloqueoCada: CONSULTAR_BLOQUEO_CADA,
       alValer: async r => { await verificarFirma.precargar(); await pedirSesion(r.firma); },
       // App.tsx (LicenseCheck) lo escucha y enseña la pantalla de licencia sin esperar a la próxima apertura
       alPerder: () => window.dispatchEvent(new Event(LICENCIA_PERDIDA)),

@@ -34,6 +34,7 @@ Se cambian en tres sitios, y **Netlify y Cloudflare llevan los mismos valores** 
 | `GOOGLE_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Google, permiso de Drive (`/api/google/*`) y, **mientras no exista `LICENCIA_SECRETO`**, llave que firma las licencias y la de la sesión que abre el código de la app (`_sesion.js`, la puerta de `/app/assets/`) | No caduca solo. Solo cambia si se rota a mano | Sin él, no hay entrada con Google ni Drive. Ver «La llave de las licencias» |
 | `LICENCIA_SECRETO` (opcional, desde el 1-11-2026) | Netlify y Cloudflare, Production y Preview | Llave propia de las licencias firmadas y de la sesión (`web/funciones/api/_secretos.js`). Si está, el secreto de Google se puede cambiar sin tocar las licencias | No caduca. Un texto largo al azar (por ejemplo, 64 caracteres de un generador de contraseñas) | Ponerlo o cambiarlo sin seguir los pasos de «La llave de las licencias» deja sin sesión a quien tenga la app abierta (hasta un día) |
 | `LICENCIA_SECRETO_ANTERIOR` (opcional) | Netlify y Cloudflare, Production y Preview | Solo durante un cambio de llave: se siguen aceptando las firmas y las sesiones hechas con él | Quitarlo 8 días después del cambio | Si se olvida, no pasa nada grave: se sigue aceptando la llave vieja |
+| `LEMONSQUEEZY_WEBHOOK_SECRET` (desde el 2-11-2026) | Netlify y Cloudflare, Production | El secreto de firma del aviso (webhook) de Lemon Squeezy a `https://aulapro.app/api/licencia/aviso` (`web/funciones/api/_bloqueos.js`). Con él, una licencia desactivada, devuelta o caducada se bloquea en minutos. Pasos abajo, en «El aviso de Lemon Squeezy» | No | Sin él, la dirección no existe y el bloqueo llega con la comprobación de cada hora |
 | `CLAVES_INFORME_SECRETO` (opcional, desde el 1-11-2026) | Netlify y Cloudflare, Production | Contraseña larga para leer el informe de claves compartidas: `GET /api/licencia/sospechosas` con la cabecera `Authorization: Bearer <valor>` (`web/funciones/api/_vigilancia.js`). Lo lee el agente de la oficina que se encargue. Sin ella, esa dirección no existe | No | Sin ella no hay informe; las claves se siguen anotando igual |
 | `CLAVES_CORTAR_AL_TOPE` (opcional) | Netlify y Cloudflare, Production | Con el valor `si`, una clave que pasa de 15 conexiones distintas en una semana deja de recibir la firma esa semana. Sin ella (por defecto), solo se anota | No | Nada: solo se anota |
 | `MICROSOFT_CLIENT_SECRET` | Netlify y Cloudflare | Entrar con Microsoft y OneDrive (`/api/microsoft/*`) | **Sí.** Microsoft admite como máximo 24 meses; la fecha se elige al crearlo (creado el 30-10-2026) **(comprobar)** | Falla Microsoft y OneDrive. Google y las claves siguen bien |
@@ -63,6 +64,16 @@ Están en el código y no caducan, pero hay que mantenerlas a la vez que su regi
 ## 3. Lo que se rompe en silencio
 
 Estos son los fallos que no avisan, en el orden en que más duelen.
+
+### El aviso de Lemon Squeezy (bloqueo en minutos)
+
+Desde el 2-11-2026. Sin esto todo funciona, pero una licencia desactivada o devuelta tarda hasta una hora en cerrarse.
+
+1. Inventar un secreto largo y al azar (por ejemplo, 40 letras y números).
+2. En Lemon Squeezy, **Settings › Webhooks › +**: URL `https://aulapro.app/api/licencia/aviso`, **Signing secret** el secreto del paso 1, y marcar estos avisos: `order_refunded`, `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_resumed`, `subscription_expired`, `subscription_paused`, `subscription_unpaused`, `subscription_payment_success`, `subscription_payment_refunded`, `license_key_created` y `license_key_updated`. Hacerlo en modo real (y, si se quiere probar antes, otro igual en modo prueba).
+3. En Netlify y en Cloudflare (Production): `LEMONSQUEEZY_WEBHOOK_SECRET` = el mismo secreto. `LEMONSQUEEZY_API_KEY` ya tiene que estar (la usa también la búsqueda por correo). Volver a publicar.
+4. (Opcional) Un segundo aviso igual a `https://aulapro-app.pages.dev/api/licencia/aviso`, para que la copia de respaldo de Cloudflare tenga también la lista.
+5. Probar: desactivar una clave de prueba en Lemon Squeezy, mirar en **Webhooks** que el aviso salió con respuesta 200, y comprobar que la app con esa clave se bloquea en unos minutos. Reactivarla y ver que vuelve a entrar.
 
 ### La llave de las licencias (`LICENCIA_SECRETO` o, si no está, `GOOGLE_CLIENT_SECRET`)
 

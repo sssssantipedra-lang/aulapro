@@ -13,6 +13,7 @@ import { corsPara } from '../_origenes.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../_limite.js';
 import { secretosDeLicencia } from '../_secretos.js';
 import { almacenKv, anotarComprobacion, cortarAlTope, responderInforme } from '../_vigilancia.js';
+import { bloqueosKv, estaBloqueada, responderAviso, responderEstado } from '../_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -33,7 +34,9 @@ export async function onRequestGet({ request, params, env }) {
 
 export async function onRequestPost({ request, params, env }) {
   const cors = corsPara(request.headers.get('Origin'));
-  if (!ACCIONES.has(params.accion)) return new Response('Not found', { status: 404, headers: cors });
+  // El aviso de Lemon Squeezy (webhook): pone al día la lista de licencias bloqueadas (_bloqueos.js)
+  if (params.accion === 'aviso') return responderAviso(request, { secreto: env.LEMONSQUEEZY_WEBHOOK_SECRET, apiKey: env.LEMONSQUEEZY_API_KEY, almacen: bloqueosKv(env.LIMITE) });
+  if (!ACCIONES.has(params.accion) && params.accion !== 'estado') return new Response('Not found', { status: 404, headers: cors });
   const entrada = new URLSearchParams(await request.text());
   const salida = new URLSearchParams();
   for (const c of CAMPOS) {
@@ -47,6 +50,8 @@ export async function onRequestPost({ request, params, env }) {
   const key = salida.get('license_key') || '';
   const topes = [[`${params.accion}-ip:${ip}`, LIMITES.ip], ...(params.accion === 'activate' && key ? [[`activar-clave:${key}`, LIMITES.clave]] : [])];
   if (!(await dentroDeLimites(env.LIMITE, topes))) return respuestaLimite(cors);
+  // ¿Está bloqueada la clave? Solo lee la lista, sin llamar a la tienda: la app lo pregunta cada pocos minutos
+  if (params.accion === 'estado') return responderEstado(salida, bloqueosKv(env.LIMITE), cors);
 
   const res = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${params.accion}`, {
     method: 'POST',
@@ -54,7 +59,8 @@ export async function onRequestPost({ request, params, env }) {
     body: salida,
   });
   const vigilar = () => anotarComprobacion(almacenKv(env.LIMITE), key, ip).then(r => r.pasada && cortarAlTope(env.CLAVES_CORTAR_AL_TOPE));
-  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env), vigilar), {
+  const bloqueada = () => estaBloqueada(bloqueosKv(env.LIMITE), key);
+  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env), vigilar, bloqueada), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
@@ -63,15 +69,19 @@ export async function onRequestPost({ request, params, env }) {
 /**
  * Una clave activada o comprobada sale con la firma de AulaPro (`_firma.js`). Una comprobación sin número de activación
  * (la renovación de la licencia de la cuenta) se apunta antes con `vigilar` (claves compartidas, `_vigilancia.js`), que
- * devuelve `true` si esa clave no debe recibir la firma.
+ * devuelve `true` si esa clave no debe recibir la firma. Una clave en la lista de bloqueadas (`bloqueada`, ver _bloqueos.js:
+ * Lemon Squeezy avisó de que terminó) sale como anulada aunque la tienda aún no lo diga.
  */
-export async function conFirma(accion, salida, res, secretos, vigilar) {
+export async function conFirma(accion, salida, res, secretos, vigilar, bloqueada) {
   const texto = await res.text();
   if (accion === 'deactivate' || !res.ok) return texto;
   try {
     const d = JSON.parse(texto);
     const st = d.license_key?.status;
     if (!(d.activated || d.valid) || st === 'disabled' || st === 'expired') return texto;
+    if (bloqueada && (await bloqueada())) {
+      return JSON.stringify({ ...d, valid: false, activated: false, error: 'license_key_disabled', license_key: { ...(d.license_key ?? {}), status: 'disabled' } });
+    }
     const instance = d.instance?.id ?? salida.get('instance_id') ?? '';
     if (accion === 'validate' && !instance && vigilar && (await vigilar())) return texto;
     d.aulapro_firma = await firmar({ t: 'clave', key: salida.get('license_key'), instance }, secretos);

@@ -107,6 +107,16 @@ Decisión del dueño, como Canva o Classroomscreen pero con los datos donde esta
 - **Lo que sigue sin poder evitarse:** quien ya pagó tiene el código en su dispositivo; alguien con conocimientos podría copiarlo, quitar las comprobaciones y servirlo aparte. Lo que desaparece es el «F12 y entro gratis».
 - **Sin comprobar todavía:** la función de borde de Netlify (solo se publica en `master`; Cloudflare lo prueba en la copia de prueba antes) y que lea `GOOGLE_CLIENT_SECRET` (las variables de Netlify han de estar disponibles para las funciones). Probar en aulapro.app, justo después de pasar a `master`, que la app abre con licencia y que un bloque privado da 401 en una ventana privada.
 
+## Cuánto tarda en cerrarse una licencia que termina (2-11-2026)
+
+El dueño desactivó su licencia en Lemon Squeezy y siguió entrando: la app solo preguntaba a la tienda una vez al día. Ahora:
+
+- **Cada hora** se comprueba la clave con la tienda (`COMPROBAR_CLAVE_CADA` en `platform/web.ts`). Al abrir, en segundo plano: la app abre al instante con la firma guardada y se bloquea en cuanto la tienda contesta que la clave terminó.
+- **Cada pocos minutos** (`CONSULTAR_BLOQUEO_CADA`, y al volver a la pestaña) pregunta a `POST /api/licencia/estado` si la clave está en la lista de bloqueadas. Esa lista la pone al día el aviso (webhook) de Lemon Squeezy a `/api/licencia/aviso` (`web/funciones/api/_bloqueos.js`): con el número de pedido del aviso se pregunta a la tienda cómo están sus claves y se copia (no se fía del nombre del aviso: una suscripción cancelada sigue pagada hasta fin de periodo). Una clave bloqueada tampoco recibe la firma en `validate` ni en la búsqueda por correo, aunque la tienda tarde en decirlo. Se guarda la huella de la clave.
+- Sin conexión no cambia nada: hasta 7 días con la última firma. Quien bloquee a propósito esas llamadas puede seguir, como mucho, esos 7 días.
+- Configurarlo: `docs/MANTENIMIENTO.md`, «El aviso de Lemon Squeezy». Sin el aviso, el bloqueo llega con la comprobación de cada hora.
+- Coste: una llamada pequeña a una función cada 4-5 minutos por cada app abierta (solo lee la lista, sin llamar a Lemon Squeezy).
+
 ## Auditoría del 1-11-2026: que el docente no pierda su trabajo
 
 Revisión pedida por el dueño antes de abrir la venta. Lo que se añadió para que un fallo del navegador, una segunda pestaña o una copia equivocada no borren el cuaderno (todo con pruebas):

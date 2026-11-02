@@ -10,6 +10,7 @@ import { corsPara } from '../_origenes.js';
 import { verificarTokenMicrosoft } from '../_microsoft.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
 import { secretosDeLicencia } from '../_secretos.js';
+import { bloqueosKv, estaBloqueada } from '../_bloqueos.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -64,7 +65,8 @@ export async function onRequestPost({ request, env }) {
     if (!claves.ok) continue;
     for (const k of (await claves.json()).data ?? []) {
       const a = k.attributes ?? {};
-      if (a.disabled || ['disabled', 'expired'].includes(a.status)) { vencida = true; continue; }
+      // También la que Lemon Squeezy avisó que terminó, aunque su API aún no lo diga (_bloqueos.js)
+      if (a.disabled || ['disabled', 'expired'].includes(a.status) || (await estaBloqueada(bloqueosKv(env.LIMITE), a.key))) { vencida = true; continue; }
       if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos) }, 200, cors);
     }
   }

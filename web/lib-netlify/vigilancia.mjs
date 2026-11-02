@@ -27,3 +27,13 @@ export function almacenBlobs() {
     return null;
   }
 }
+
+/** La lista de licencias bloqueadas (web/funciones/api/_bloqueos.js) sobre Netlify Blobs. */
+export function bloqueosBlobs() {
+  try {
+    const store = getStore({ name: 'bloqueos-licencia', consistency: 'strong' });
+    return { get: k => store.get(k, { type: 'json' }), put: (k, v) => store.setJSON(k, v), del: k => store.delete(k) };
+  } catch {
+    return null;
+  }
+}

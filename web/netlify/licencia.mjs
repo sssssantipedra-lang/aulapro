@@ -8,7 +8,8 @@ import { corsPara } from '../funciones/api/_origenes.js';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { anotarComprobacion, cortarAlTope, responderInforme } from '../funciones/api/_vigilancia.js';
-import { almacenBlobs } from '../lib-netlify/vigilancia.mjs';
+import { almacenBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { estaBloqueada, responderAviso, responderEstado } from '../funciones/api/_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
@@ -27,7 +28,9 @@ export default async (request, context) => {
       headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
     });
   }
-  if (request.method !== 'POST' || !ACCIONES.has(accion)) return new Response('Not found', { status: 404, headers: cors });
+  // El aviso de Lemon Squeezy (webhook): pone al día la lista de licencias bloqueadas (_bloqueos.js)
+  if (accion === 'aviso') return responderAviso(request, { secreto: Netlify.env.get('LEMONSQUEEZY_WEBHOOK_SECRET'), apiKey: Netlify.env.get('LEMONSQUEEZY_API_KEY'), almacen: bloqueosBlobs() });
+  if (request.method !== 'POST' || (!ACCIONES.has(accion) && accion !== 'estado')) return new Response('Not found', { status: 404, headers: cors });
   const entrada = new URLSearchParams(await request.text());
   const salida = new URLSearchParams();
   for (const c of CAMPOS) {
@@ -41,6 +44,8 @@ export default async (request, context) => {
   const key = salida.get('license_key') || '';
   const topes = [[`${accion}-ip:${ip}`, LIMITES.ip], ...(accion === 'activate' && key ? [[`activar-clave:${key}`, LIMITES.clave]] : [])];
   if (!(await dentroDeLimites(topes))) return respuestaLimite(cors);
+  // ¿Está bloqueada la clave? Solo lee la lista, sin llamar a la tienda: la app lo pregunta cada pocos minutos
+  if (accion === 'estado') return responderEstado(salida, bloqueosBlobs(), cors);
 
   const res = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${accion}`, {
     method: 'POST',
@@ -48,7 +53,8 @@ export default async (request, context) => {
     body: salida,
   });
   const vigilar = () => anotarComprobacion(almacenBlobs(), key, ip).then(r => r.pasada && cortarAlTope(Netlify.env.get('CLAVES_CORTAR_AL_TOPE')));
-  return new Response(await conFirma(accion, salida, res, secretos, vigilar), {
+  const bloqueada = () => estaBloqueada(bloqueosBlobs(), key);
+  return new Response(await conFirma(accion, salida, res, secretos, vigilar, bloqueada), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
