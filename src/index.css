@@ -131,6 +131,10 @@
 }
 
 html, body, #root { height: 100%; font-family: var(--font); background: var(--surface); color: var(--text); -webkit-font-smoothing: antialiased; }
+/* Nada ensancha la página (2-11-2026): en la app instalada del iPhone, lo que asomaba por la derecha (las pestañas de
+   Evaluar, ~800 px, aunque se desplazan dentro de su barra) hacía que iOS alejara la vista y la app ocupara media
+   pantalla. `clip` no crea zona de desplazamiento: la ventana sigue siendo la que se desplaza (sticky, scrollTo). */
+@media screen { html, body { overflow-x: clip; } }
 
 .finput { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--r); font-family:var(--font); font-size:14px; color:var(--text); outline:none; transition:border-color var(--t),box-shadow var(--t); background:var(--card); }
 .finput:focus { border-color:var(--accent-d); box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.1); }
@@ -172,7 +176,7 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
    Claro y cálido, con cada entrada en un cuadradito de su color: se reconoce
    de un vistazo (decisión del 11-10-2026). Sin grupos plegables: todo a la
    vista, y lo de la cuenta abajo. */
-.sidebar { width:var(--sb-w); min-height:100vh; background:var(--nav-bg); border-right:1px solid var(--nav-border); display:flex; flex-direction:column; flex-shrink:0; transition:width var(--t); overflow:hidden; position:sticky; top:0; height:100vh; }
+.sidebar { width:var(--sb-w); min-height:100vh; min-height:100dvh; background:var(--nav-bg); border-right:1px solid var(--nav-border); display:flex; flex-direction:column; flex-shrink:0; transition:width var(--t); overflow:hidden; position:sticky; top:0; height:100vh; height:100dvh; }
 .sidebar.mini { width:var(--sb-w-min); }
 /* Pantallas estrechas: el menú abierto flota sobre el contenido */
 .sidebar.overlay { position:fixed; left:0; top:0; z-index:60; box-shadow:8px 0 32px rgba(0,0,0,0.25); }
@@ -186,14 +190,14 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
 .sb-toggle { margin-left:auto; color:var(--nav-faint); }
 .sidebar.mini .sb-toggle { margin-left:0; }
 .sb-toggle:hover { background:var(--nav-hover); color:var(--nav-text); }
-.sb-teacher { margin:0 10px 10px; padding:10px 11px; background:var(--nav-active); border:1px solid var(--nav-border); border-radius:12px; display:flex; align-items:center; gap:9px; cursor:pointer; transition:box-shadow var(--t); overflow:hidden; font-family:var(--font); text-align:left; }
+.sb-teacher { flex-shrink:0; margin:0 10px 10px; padding:10px 11px; background:var(--nav-active); border:1px solid var(--nav-border); border-radius:12px; display:flex; align-items:center; gap:9px; cursor:pointer; transition:box-shadow var(--t); overflow:hidden; font-family:var(--font); text-align:left; }
 .sb-teacher:hover { box-shadow:0 2px 8px rgba(120,100,70,0.1); }
 .sb-teacher-info { min-width:0; transition:opacity var(--t); }
 .sb-teacher-name { font-size:12.5px; font-weight:700; color:var(--nav-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:148px; }
 .sb-teacher-sub { font-size:11px; color:var(--nav-muted); }
 .sidebar.mini .sb-teacher-info { opacity:0; }
 /* Comunidad autónoma del perfil, justo debajo del nombre del docente. Sin ella, un recordatorio discreto. */
-.sb-community { margin:-4px 10px 6px; padding:6px 11px; width:calc(100% - 20px); display:flex; align-items:center; gap:7px; background:none; border:0.5px solid transparent; border-radius:8px; color:var(--nav-muted); font-family:var(--font); font-size:11.5px; font-weight:600; text-align:left; cursor:pointer; overflow:hidden; transition:background var(--t),color var(--t); }
+.sb-community { flex-shrink:0; margin:-4px 10px 6px; padding:6px 11px; width:calc(100% - 20px); display:flex; align-items:center; gap:7px; background:none; border:0.5px solid transparent; border-radius:8px; color:var(--nav-muted); font-family:var(--font); font-size:11.5px; font-weight:600; text-align:left; cursor:pointer; overflow:hidden; transition:background var(--t),color var(--t); }
 .sb-community:hover { background:var(--nav-hover); color:var(--nav-text); }
 .sb-community svg { flex-shrink:0; }
 .sb-community-name { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
