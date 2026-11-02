@@ -135,6 +135,9 @@ html, body, #root { height: 100%; font-family: var(--font); background: var(--su
    Evaluar, ~800 px, aunque se desplazan dentro de su barra) hacía que iOS alejara la vista y la app ocupara media
    pantalla. `clip` no crea zona de desplazamiento: la ventana sigue siendo la que se desplaza (sticky, scrollTo). */
 @media screen { html, body { overflow-x: clip; } }
+/* Como una app del teléfono (2-11-2026): sin ampliar ni alejar con los dedos ni con dos toques, y sin el rebote al
+   llegar arriba o abajo. Se sigue desplazando todo lo que se desplaza. Ver lib/sinZoom.ts. */
+@media screen { html { touch-action: pan-x pan-y; overscroll-behavior: none; } body { overscroll-behavior: none; } }
 
 .finput { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--r); font-family:var(--font); font-size:14px; color:var(--text); outline:none; transition:border-color var(--t),box-shadow var(--t); background:var(--card); }
 .finput:focus { border-color:var(--accent-d); box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.1); }

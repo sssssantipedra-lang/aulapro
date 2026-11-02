@@ -8,9 +8,12 @@ import { applyAppearance, getAppearance } from './lib/utils'
 import { restaurarTamanoLetra } from './lib/tamanoLetra'
 import { AvisoPestanaPerdida, PestanaOcupada } from './components/PestanaOcupada'
 import { tomarPestana } from './platform/unaPestana'
+import { sinZoomConLosDedos } from './lib/sinZoom'
 
 // Antes de pintar nada, para que el modo oscuro no parpadee en blanco al abrir
 applyAppearance(getAppearance())
+// La app no se amplía ni se aleja con los dedos (ver lib/sinZoom.ts)
+sinZoomConLosDedos()
 
 /**
  * En Android y en la versión web, lo primero es montar el puente con la parte
