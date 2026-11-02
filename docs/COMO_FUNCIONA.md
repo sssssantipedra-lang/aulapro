@@ -210,8 +210,8 @@ Las funciones están en `web/funciones/api/` (formato de Cloudflare) y su copia 
   3. `web/comprobar.mjs` impide publicar una copia rota: páginas, enlaces, idiomas, tamaños.
   4. `web/versionar.mjs` pone la huella de cada archivo de `assets/` (`?v=…`) para que los navegadores no usen versiones viejas.
   5. La app se copia en `web/sitio/app`.
-- **Otra copia** se publica en GitHub Pages (`web-pages.yml`).
-- **Vigilancia.** `web-vigilancia.yml` vigila cada 30 minutos las portadas, los certificados y el calendario, y abre una incidencia si algo falla.
+- **Otra copia** se publica en Cloudflare Pages (`web.yml`, `aulapro-app.pages.dev`). La de GitHub Pages se retiró el 2-11-2026.
+- **Vigilancia.** `web-vigilancia.yml` vigila cada hora las portadas, los certificados y el calendario, y abre una incidencia si algo falla.
 - **Calendario escolar.** `calendario.yml` busca el de cada curso nuevo en los boletines y propone un cambio para revisar.
 
 ## 13. Pruebas y calidad

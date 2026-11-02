@@ -25,7 +25,7 @@ El registro DKIM y los MX los gestiona Cloudflare al activar Email Routing: si f
 
 ## Cómo cambiar de copia de la web
 
-Está en `docs/WEB.md`, apartado 4c (GitHub Pages y vuelta a Cloudflare Pages). Solo cambian los registros `aulapro.app` y `www`; el correo, la verificación de Google y `descargas` no se tocan.
+Está en `docs/WEB.md`, apartado 4c (vuelta a Cloudflare Pages; la copia de GitHub Pages se retiró el 2-11-2026). Solo cambian los registros `aulapro.app` y `www`; el correo, la verificación de Google y `descargas` no se tocan.
 
 ## Pendiente
 

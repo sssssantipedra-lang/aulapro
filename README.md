@@ -71,7 +71,7 @@ npm run dist:mac     # genera el .dmg y el .zip de Mac (solo funciona en macOS)
 
 `electron-builder` no puede firmar ni empaquetar un `.dmg` real desde Windows,
 así que la build de Mac se genera en un runner de macOS mediante el workflow
-[`.github/workflows/build-mac.yml`](.github/workflows/build-mac.yml): en la
+`.github/workflows/build-mac.yml` (desde el 2-11-2026, solo en la rama `respaldo-apps-nativas-2.23.0`): en la
 pestaña **Actions** de GitHub, «Build macOS» → **Run workflow**. Al terminar,
 el `.dmg` y el `.zip` (build universal, Intel + Apple Silicon) quedan como
 artefacto descargable de esa ejecución.

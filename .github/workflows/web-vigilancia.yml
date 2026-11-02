@@ -1,13 +1,13 @@
 name: Vigilancia de la web
 
-# Cada 30 minutos comprueba la web desde fuera, como un visitante (web/vigilar.mjs): las tres portadas,
+# Cada hora comprueba la web desde fuera, como un visitante (web/vigilar.mjs): las tres portadas,
 # el mapa del sitio, el calendario de la app, el vídeo, el certificado de seguridad, la caducidad del
-# dominio, las dos copias de respaldo y la web vista desde sondas en España.
+# dominio, la copia de respaldo y la web vista desde sondas en España.
 # Si algo falla abre una incidencia en GitHub (con la etiqueta "vigilancia") y GitHub avisa por correo;
 # cuando vuelve a funcionar, la cierra sola. Qué hacer entonces: docs/WEB.md, apartado 4c.
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '7 * * * *'   # cada hora desde el 2-11-2026 (antes, cada 30 minutos): el repositorio es privado y los minutos cuentan
   workflow_dispatch: {}
 
 permissions:
@@ -57,8 +57,8 @@ jobs:
             } > aviso.md
             if [ -z "$abierta" ]; then
               gh issue create --label vigilancia --title "La web tiene un problema (vigilancia automática)" --body-file aviso.md
-            elif [ $((GITHUB_RUN_NUMBER % 12)) -eq 0 ]; then
-              gh issue comment "$abierta" --body-file aviso.md      # un recordatorio cada 6 horas, no cada 30 minutos
+            elif [ $((GITHUB_RUN_NUMBER % 6)) -eq 0 ]; then
+              gh issue comment "$abierta" --body-file aviso.md      # un recordatorio cada 6 horas (6 vueltas de una hora), no cada hora
             fi
             exit 1
           elif [ -n "$abierta" ]; then

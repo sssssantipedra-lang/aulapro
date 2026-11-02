@@ -35,7 +35,8 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 - [ ] DMARC creado en Cloudflare, empezando con `p=none` (`docs/DNS.md`).
 - [ ] Verificación en dos pasos en Cloudflare, GitHub, Google, Microsoft, Netlify y Lemon Squeezy.
 - [ ] Una incidencia `vigilancia` de prueba llega al correo.
-- [ ] Mirar los minutos gastados de GitHub Actions. El repositorio es privado y la vigilancia cada 30 minutos consume unos 1.440 trabajos al mes.
+- [ ] Mirar los minutos gastados de GitHub Actions a final de noviembre (Settings › Billing). Desde el 2-11-2026 la vigilancia va cada hora (unos 720 trabajos al mes) y los flujos de las apps nativas no están en `master`.
+- [ ] Dueño: borrar los artefactos antiguos de Actions (unos 14 GB; el plan gratuito incluye 500 MB) y poner a 1 día la retención en Settings › Actions › General, «Artifact and log retention». Desde la sesión no se puede: la conexión con GitHub no tiene permiso para borrar artefactos ni cambiar ajustes.
 - [ ] Las fechas marcadas «(comprobar)» en `docs/MANTENIMIENTO.md`.
 - [ ] (Recomendado, auditoría del 1-11-2026) `LICENCIA_SECRETO` y `LICENCIA_SECRETO_ANTERIOR` con los pasos de `docs/MANTENIMIENTO.md`, «La llave de las licencias».
 - [ ] **Aviso de Lemon Squeezy** (bloqueo en minutos, 2-11-2026): seguir «El aviso de Lemon Squeezy» de `docs/MANTENIMIENTO.md` y hacer la prueba del paso 5.

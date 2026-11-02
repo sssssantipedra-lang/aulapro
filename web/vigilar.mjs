@@ -1,18 +1,19 @@
 // Vigilancia de la web: la comprueba desde fuera, como un visitante, y termina con error si algo falla.
-// La lanza web-vigilancia.yml cada 30 minutos; si falla, abre una incidencia en GitHub (y GitHub avisa por
+// La lanza web-vigilancia.yml cada hora; si falla, abre una incidencia en GitHub (y GitHub avisa por
 // correo) y la cierra sola cuando todo vuelve a funcionar.
 //   node web/vigilar.mjs                      (comprueba https://aulapro.app)
 //   VIGILAR_BASE=https://otra.web node web/vigilar.mjs
 // Qué mira: la portada en sus tres idiomas, el mapa del sitio, el calendario que descarga la app y el
 // vídeo; el certificado de seguridad (aviso 14 días antes de que caduque); que el dominio no esté a punto
-// de caducar; las dos copias de respaldo; y, desde sondas situadas en España, que la web abra (los
+// de caducar; la copia de respaldo de Cloudflare Pages; y, desde sondas situadas en España, que la web abra (los
 // operadores bloquean direcciones de Cloudflare en los partidos de LaLiga: docs/WEB.md, apartado 4b).
 import tls from 'node:tls';
 
 const BASE = (process.env.VIGILAR_BASE || 'https://aulapro.app').replace(/\/$/, '');
 const HOST = new URL(BASE).hostname;
 const WWW = HOST.startsWith('www.') ? HOST : 'www.' + HOST;
-const RESPALDOS = ['https://aulapro-app.pages.dev/', 'https://sssssantipedra-lang.github.io/aulapro/'];
+// La copia de GitHub Pages se retiró el 2-11-2026: con el repositorio privado y el plan gratuito, GitHub no la publica (daba 404).
+const RESPALDOS = ['https://aulapro-app.pages.dev/'];
 const ESPERA = Number(process.env.VIGILAR_ESPERA_MS ?? 15000);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -128,7 +129,7 @@ const tareas = [
     await r.arrayBuffer();
   }),
   // «Sin pagar, no hay app» (auditoría del 1-11-2026): la puerta de aulapro.app (Netlify, función de borde) solo se
-  // comprobaba en la copia de Cloudflare tras publicar. Aquí, cada 30 minutos y en la web de verdad, que sin sesión el
+  // comprobaba en la copia de Cloudflare tras publicar. Aquí, cada hora y en la web de verdad, que sin sesión el
   // código de las pantallas no sale, tampoco pidiéndolo con otra forma de escribir la dirección. Si Netlify dejara de
   // darle el secreto a la función de borde, la puerta se abriría sin avisar: esto lo detecta.
   comprobar('el código de la app no sale sin suscripción', puertaCerrada),

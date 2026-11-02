@@ -6,7 +6,7 @@ almacén de archivos de Cloudflare) con el dominio `descargas.aulapro.app`.
 Cloudflare Pages no sirve: no admite archivos de más de 25 MB y los
 instaladores pesan entre 100 y 220 MB.
 
-`release.yml` compila cada versión, la publica en GitHub (archivo privado) y
+`release.yml` (desde el 2-11-2026, solo en la rama `respaldo-apps-nativas-2.23.0`) compilaba cada versión, la publica en GitHub (archivo privado) y
 en el último paso, `descargas`, la sube a R2.
 
 ## Qué hay en descargas.aulapro.app
