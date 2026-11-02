@@ -2,17 +2,9 @@
 
 Lista de todo lo que está pendiente de decidir, hacer o comprobar, reunida de `CLAUDE.md` y del resto de `docs/` el 31-10-2026, a diez días de la salida a la venta (10-11-2026). Cada punto dice quién lo tiene que hacer y dónde está el detalle. Cuando algo se cierre, se tacha aquí y se anota en su documento.
 
-Estado de la rama `ccr-3f4014f5-llwckk`: lleva cambios que **todavía no están en la web real** (aulapro.app). Se pueden probar en https://prueba.aulapro-app.pages.dev/app/ y pasan a la web cuando el dueño dice «adelante». Son estos:
+Estado de la rama `ccr-3f4014f5-llwckk` (2-11-2026): igual que `master`. Todo lo hecho hasta hoy está publicado en aulapro.app (suscripción anual, salida a la venta el 10-11-2026, documentos del alumnado a la IA solo como texto, nombres tapados en las fotos, códigos de alumno al azar, sin dos alumnos con el mismo nombre en una clase, puerta de pago, «Descargar mis datos» y bloqueo de licencias en minutos).
 
-- Pasa a suscripción anual: 9,90 € el primer año (hasta el 15-4-2027) y 14,99 € al renovar; packs 39,59 € y 68,99 € (luego 59,99 € y 99,99 €). Si no se renueva, se bloquea la cuenta.
-- La fecha de salida a la venta pasa a ser el 10-11-2026.
-- Los documentos del alumnado van a la IA solo como texto.
-- En las fotos del trabajo de un alumno, el nombre se tapa antes de enviarlas.
-- El diagnóstico de PT y AL deja de ir a la IA.
-- Los códigos de alumno son nuevos y al azar en cada petición, con dígito de control.
-- Un nombre de pila compartido también se tapa.
-- No se pueden guardar dos alumnos con el mismo nombre en la misma clase.
-- La privacidad y la nota de Configuración › IA explican que, desde Europa, Google trata la clave gratuita con las reglas de datos de la de pago.
+El 2-11-2026 la vigilancia vio que la puerta de pago de aulapro.app dejaba salir el código sin sesión con `…js%3F.css` y `…js%23.png` (la función de borde de Netlify se saltaba toda dirección acabada en `.css` o `.png`). Corregido ese mismo día en `web/netlify-edge/puerta.js` (`docs/APP_WEB.md`, «La puerta»).
 
 ## 1. Decisiones del dueño
 
@@ -48,7 +40,7 @@ De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha
 - [ ] (Recomendado, auditoría del 1-11-2026) `LICENCIA_SECRETO` y `LICENCIA_SECRETO_ANTERIOR` con los pasos de `docs/MANTENIMIENTO.md`, «La llave de las licencias».
 - [ ] **Aviso de Lemon Squeezy** (bloqueo en minutos, 2-11-2026): seguir «El aviso de Lemon Squeezy» de `docs/MANTENIMIENTO.md` y hacer la prueba del paso 5.
 - [ ] (Claves compartidas) Poner `CLAVES_INFORME_SECRETO` (una contraseña larga y al azar) en Netlify y Cloudflare, y dársela al agente de la oficina que lea `GET /api/licencia/sospechosas`. Decidir más adelante si se pone `CLAVES_CORTAR_AL_TOPE=si`.
-- [ ] Tras publicar en `master`: la vigilancia marca «✔ el código de la app no sale sin suscripción» en aulapro.app. Desde la sesión de la auditoría no se pudo abrir aulapro.app para comprobarlo.
+- [ ] Tras publicar en `master` (y tras el arreglo del 2-11-2026): la vigilancia marca «✔ el código de la app no sale sin suscripción» en aulapro.app. Desde la sesión de la auditoría no se pudo abrir aulapro.app para comprobarlo.
 
 ## 3. Antes del 10-11: lo que puede hacer Claude cuando se le pida
 
