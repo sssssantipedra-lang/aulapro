@@ -7,7 +7,7 @@
 // caducada queda en la lista de bloqueadas; si vuelve a valer (se renueva, se reactiva), sale de ella.
 //
 // La lista se usa en tres sitios: la comprobación de la clave (`conFirma`) y la búsqueda por correo (`cuenta`) no dan la
-// firma a una clave bloqueada, y la app pregunta cada pocos minutos a `POST /api/licencia/estado`, que solo lee esta
+// firma a una clave bloqueada, y la app pregunta cada 15 minutos a `POST /api/licencia/estado`, que solo lee esta
 // lista (sin llamar a Lemon Squeezy), y se bloquea al momento si la suya está. Se guarda una huella de la clave, no la
 // clave.
 import { huella } from './_limite.js';

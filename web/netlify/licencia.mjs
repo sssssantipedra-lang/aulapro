@@ -44,7 +44,7 @@ export default async (request, context) => {
   const key = salida.get('license_key') || '';
   const topes = [[`${accion}-ip:${ip}`, LIMITES.ip], ...(accion === 'activate' && key ? [[`activar-clave:${key}`, LIMITES.clave]] : [])];
   if (!(await dentroDeLimites(topes))) return respuestaLimite(cors);
-  // ¿Está bloqueada la clave? Solo lee la lista, sin llamar a la tienda: la app lo pregunta cada pocos minutos
+  // ¿Está bloqueada la clave? Solo lee la lista, sin llamar a la tienda: la app lo pregunta cada 15 minutos
   if (accion === 'estado') return responderEstado(salida, bloqueosBlobs(), cors);
 
   const res = await fetch(`https://api.lemonsqueezy.com/v1/licenses/${accion}`, {

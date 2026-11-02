@@ -903,7 +903,7 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(LICENCIA_PERDIDA, perdida);
   }, []);
 
-  // Con la pestaña abierta, cada 5 minutos y al volver a ella: se mira si la licencia está bloqueada en el servidor
+  // Con la pestaña abierta, cada 15 minutos y al volver a ella: se mira si la licencia está bloqueada en el servidor
   // (Lemon Squeezy avisó de que terminó) y, si hace más de una hora de la última, se comprueba con la tienda
   // (`revisar`, platform/androidLicense.ts). Si la licencia se pierde, avisa `LICENCIA_PERDIDA`.
   useEffect(() => {
@@ -914,7 +914,7 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
       if (document.visibilityState !== 'visible') return;
       void licenseBridge()?.revisar?.().then(n => { if (n?.required) setState(n); }).catch(() => {});
     };
-    const id = setInterval(revisar, 5 * 60 * 1000);
+    const id = setInterval(revisar, 15 * 60 * 1000);
     const primera = setTimeout(revisar, 15_000);
     document.addEventListener('visibilitychange', revisar);
     return () => { clearInterval(id); clearTimeout(primera); document.removeEventListener('visibilitychange', revisar); };

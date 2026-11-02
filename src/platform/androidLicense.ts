@@ -197,7 +197,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   /**
    * Versión web: pregunta al servidor si la clave está en la lista de bloqueadas (Lemon Squeezy avisó de que terminó).
-   * No llama a la tienda: es barato y se hace cada pocos minutos. Sin conexión o sin respuesta clara, no pasa nada.
+   * No llama a la tienda: es barato y se hace cada 15 minutos. Sin conexión o sin respuesta clara, no pasa nada.
    */
   async function mirarBloqueo() {
     const cada = opts.consultarBloqueoCada;
