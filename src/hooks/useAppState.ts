@@ -14,6 +14,7 @@ import { mergeBundle, type SharedBundle, type MergeMode } from '../services/paqu
 import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
+import { provinciaDePerfil } from '../lib/provincias';
 import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
 import { useGuardadoAutomatico } from './useGuardadoAutomatico';
@@ -336,6 +337,7 @@ export function useAppState() {
     school: profile.school,
     subject: profile.subject,
     community: comunidadDePerfil(profile.community) ?? undefined,
+    provincia: provinciaDePerfil(comunidadDePerfil(profile.community), profile.provincia) ?? undefined,
     especialidades: especialidadesDePerfil(profile.especialidades),
     tipo: tipoDePerfil(profile),
     tutor: tipoDePerfil(profile) === 'ef' && profile.tutor === true,

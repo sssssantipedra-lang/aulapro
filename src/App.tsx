@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
-import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
+import { actualizarCalendarios, calendarios, faltaProvincia, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
 import { AvisoCopiaWeb, AvisoPdfWeb, CarpetaWebAviso } from './components/CarpetaWeb';
@@ -103,9 +103,11 @@ function AppInner() {
   useEffect(() => { rememberTab(section); }, [section]);
   // El calendario escolar publicado, al abrir un perfil de una comunidad que lo tiene (solo descarga)
   const comunidadPerfil = st.currentUser?.community;
+  const provinciaPerfil = st.currentUser?.provincia;
   useEffect(() => {
-    if (comunidadPerfil && tieneCalendario(calendarios(), comunidadPerfil)) void actualizarCalendarios();
-  }, [comunidadPerfil]);
+    if (comunidadPerfil && (tieneCalendario(calendarios(), comunidadPerfil, provinciaPerfil)
+      || faltaProvincia(calendarios(), comunidadPerfil, provinciaPerfil))) void actualizarCalendarios();
+  }, [comunidadPerfil, provinciaPerfil]);
   const [sidebarMini, setSidebarMini] = useState(false);
   // En pantallas estrechas el menú va plegado a iconos y se abre por encima
   const narrow = useNarrowScreen();
@@ -436,6 +438,7 @@ function AppInner() {
                 onDeleteCalEvent={(id: string) => { st.deleteCalEvent(id); toast(t('Evento eliminado')); }}
                 onNav={s => setSection(s as Section)}
                 comunidad={st.currentUser.community}
+                provincia={st.currentUser.provincia}
               />
             )}
             {section === 'evaluar' && (
@@ -604,6 +607,7 @@ function AppInner() {
                 classMarks={st.classMarks}
                 seatingPlans={st.seatingPlans}
                 comunidad={st.currentUser?.community}
+                provincia={st.currentUser?.provincia}
                 onNav={setSection}
               />
             )}
@@ -782,6 +786,7 @@ function AppInner() {
                     name: u.full_name, school: u.school,
                     subject: u.subject, course: u.course,
                     ...(u.community ? { community: u.community } : {}),
+                    ...(u.provincia !== undefined ? { provincia: u.provincia ?? undefined } : {}),
                     ...(u.especialidades ? { especialidades: u.especialidades } : {}),
                     ...(u.tipoDocente ? { tipoDocente: u.tipoDocente } : {}),
                     ...(u.tutor !== undefined ? { tutor: u.tutor } : {}),

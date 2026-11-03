@@ -21,10 +21,11 @@ interface Props {
   seatingPlans: Record<string, SeatingPlan>;
   /** Comunidad del perfil: de ella sale el calendario escolar (festivos y vacaciones). */
   comunidad?: ComunidadId;
+  provincia?: import('../lib/provincias').ProvinciaId;
   onNav: (s: Section) => void;
 }
 
-export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, comunidad, onNav }: Props) {
+export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlans, comunidad, provincia, onNav }: Props) {
   const { t } = useI18n();
   // La hora se renueva cada medio minuto: sin esto, la clase de «ahora» se quedaba la de cuando se abrió la pantalla
   const [ahoraMs, setAhoraMs] = useState(() => Date.now());
@@ -42,7 +43,7 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
     const e = new Set(classes.map(c => c.etapa).filter((x): x is EtapaCalendario => x === 'primaria' || x === 'eso'));
     return e.size ? [...e] : ['primaria', 'eso'];
   }, [classes]);
-  const lectivo = esLectivo(archivoCal, comunidad, ahoraD, etapas);
+  const lectivo = esLectivo(archivoCal, comunidad, ahoraD, etapas, provincia);
   const bloque = bloqueQueToca(classes, scheduleBlocks, ahoraD, lectivo);
   const clase = bloque && classes.find(c => c.id === bloque.class_id);
   // bloqueQueToca da el que está en marcha o, si no, el siguiente

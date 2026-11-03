@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Sparkles, Plus, ArrowRight, Trash2, HardDrive, Lock } from 'lucide-react';
 import { listProfiles, deleteProfile, isDesktop, type TeacherProfile, type NewProfileInput } from '../services/storage';
 import { CommunitySelect } from '../components/CommunitySelect';
+import { ProvinciaSelect } from '../components/ProvinciaSelect';
+import { provinciaDePerfil, type ProvinciaId } from '../lib/provincias';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { DEMO_COMMUNITY, DEMO_USER } from '../lib/demoData';
 import { DEMO_APOYO_USER } from '../lib/demoApoyo';
@@ -113,6 +115,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
   const [subject, setSubject] = useState('');
   const [course, setCourse]   = useState(currentCourse());
   const [community, setCommunity] = useState<ComunidadId | ''>('');
+  const [provincia, setProvincia] = useState<ProvinciaId | ''>('');
   const [tipo, setTipo] = useState<TipoDocente>('aula');
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [tutor, setTutor] = useState(false);
@@ -138,6 +141,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
     await onCreateProfile(
       {
         name: name.trim(), school: school.trim(), course: course.trim(), community,
+        ...(provinciaDePerfil(community, provincia) ? { provincia: provincia as ProvinciaId } : {}),
         ...(tipo === 'apoyo'
           ? { subject: t(especialidadTexto(especialidades)), especialidades }
           : tipo === 'ef'
@@ -241,6 +245,7 @@ export function Welcome({ onOpenProfile, onCreateProfile, onExploreDemo }: Props
               <CommunitySelect id="welcome-f5" value={community} onChange={c => { setCommunity(c); if (error) setError(''); }} />
             </div>
           </div>
+          <ProvinciaSelect id="welcome-provincia" comunidad={community} value={provincia} onChange={setProvincia} />
 
           {legacy && profiles.length === 0 && (
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 10, background: 'var(--surface)', cursor: 'pointer', marginBottom: 16 }}>

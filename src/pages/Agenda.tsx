@@ -10,10 +10,11 @@ import { requestGrupos } from '../lib/apoyoNav';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useI18n, monthLabel, weekdayLabel, eventTypeLabel, urgencyLabel } from '../i18n';
+import type { ProvinciaId } from '../lib/provincias';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import {
-  calendarioDe, citarCalendario, cursoDe, diaEscolar, marcasDelDia, tieneCalendario, type EtapaCalendario,
+  calendarioDe, citarCalendario, cursoDe, diaEscolar, faltaProvincia, marcasDelDia, tieneCalendario, type EtapaCalendario,
 } from '../lib/calendarioEscolar';
 
 // --------------- helpers ---------------
@@ -96,6 +97,8 @@ interface Props {
   onNav: (s: string) => void;
   /** Del perfil: de ella sale el calendario escolar (vacaciones y días no lectivos). */
   comunidad?: ComunidadId;
+  /** Donde el calendario escolar es de cada provincia (Andalucía), la del perfil. */
+  provincia?: ProvinciaId;
 }
 
 // ==================== Agenda ====================
@@ -113,6 +116,7 @@ export function Agenda({
   onDeleteCalEvent,
   onNav,
   comunidad,
+  provincia,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -151,9 +155,10 @@ export function Agenda({
 
   // ---- calendario escolar de la comunidad (el curso del mes que se ve) ----
   const archivoCal = useCalendarioEscolar();
-  const conCalendario = tieneCalendario(archivoCal, comunidad);
+  const conCalendario = tieneCalendario(archivoCal, comunidad, provincia);
+  const sinProvincia = faltaProvincia(archivoCal, comunidad, provincia);
   const cursoVisto = cursoDe(new Date(calYear, calMonth, 15));
-  const calEscolar = calendarioDe(archivoCal, comunidad, cursoVisto);
+  const calEscolar = calendarioDe(archivoCal, comunidad, cursoVisto, provincia);
   /** Las etapas de las clases del docente, para marcar su primer y su último día; sin clases con etapa, las dos. */
   const etapasDocente = useMemo<EtapaCalendario[]>(() => {
     const e = new Set(classes.map(c => c.etapa).filter((x): x is EtapaCalendario => x === 'primaria' || x === 'eso'));
@@ -443,6 +448,11 @@ export function Agenda({
                 ) : t('El calendario de este curso aún no está disponible.')}
               </p>
             )}
+            {sinProvincia && (
+              <p className="cal-escolar-fuente">
+                {t('En Andalucía el calendario escolar es de cada provincia. Elige la tuya en Configuración › Perfil y la Agenda marcará tus vacaciones y días no lectivos.')}
+              </p>
+            )}
           </div>
 
           {/* Selected day events panel */}
@@ -463,7 +473,7 @@ export function Agenda({
             </div>
 
             {(() => {
-              const cal = calendarioDe(archivoCal, comunidad, cursoDe(fromIsoDate(selectedDate)));
+              const cal = calendarioDe(archivoCal, comunidad, cursoDe(fromIsoDate(selectedDate)), provincia);
               const escolar = diaEscolar(cal, selectedDate);
               const marcas = marcasDelDia(cal, selectedDate, etapasDocente);
               if (!escolar && marcas.length === 0) return null;

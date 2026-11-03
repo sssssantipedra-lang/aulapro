@@ -10,15 +10,16 @@ import { Agenda } from './Agenda';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from '../components/ui/Toast';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
+import type { ProvinciaId } from '../lib/provincias';
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(2026, 11, 10)); });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
-function pinta(comunidad?: ComunidadId) {
+function pinta(comunidad?: ComunidadId, provincia?: ProvinciaId) {
   const r = render(
     <I18nProvider><ToastProvider>
       <Agenda
-        classes={[]} scheduleBlocks={[]} calEvents={[]} comunidad={comunidad}
+        classes={[]} scheduleBlocks={[]} calEvents={[]} comunidad={comunidad} provincia={provincia}
         onAddBlock={() => {}} onUpdateBlock={() => {}} onDeleteBlock={() => {}} onReplaceBlocks={() => {}}
         onAddCalEvent={() => {}} onUpdateCalEvent={() => {}} onDeleteCalEvent={() => {}} onNav={() => {}}
       />
@@ -51,8 +52,20 @@ describe('Agenda · calendario escolar', () => {
   });
 
   it('una comunidad sin calendario, como hasta ahora', () => {
-    pinta('andalucia');
+    pinta('aragon');
     expect(document.querySelector('.no-lectivo, .vacaciones')).toBeNull();
     expect(document.querySelector('.cal-escolar-fuente')).toBeNull();
+  });
+
+  it('Andalucía sin provincia: no pinta calendario y pide la provincia', () => {
+    pinta('andalucia');
+    expect(document.querySelector('.no-lectivo, .vacaciones')).toBeNull();
+    expect(document.querySelector('.cal-escolar-fuente')?.textContent).toMatch(/Elige la tuya en Configuración › Perfil/);
+  });
+
+  it('Andalucía con provincia: el calendario de esa provincia, con su resolución', () => {
+    pinta('andalucia', 'malaga');
+    expect(document.querySelector('.cal-escolar-fuente')?.textContent).toMatch(/Málaga/);
+    expect(document.querySelector('.cal-escolar-fuente')?.textContent).not.toMatch(/Elige la tuya/);
   });
 });

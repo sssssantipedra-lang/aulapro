@@ -18,6 +18,7 @@
  */
 import deSerie from '../../web/sitio/calendario-escolar.json';
 import { textoNorma, type ComunidadId, type IdiomaApp, type Textos } from './curriculum/comunidades';
+import { PROVINCIAS_ANDALUCIA, type ProvinciaId } from './provincias';
 import { fromIsoDate, isoDate } from './utils';
 
 export const URL_CALENDARIO = 'https://aulapro.app/calendario-escolar.json';
@@ -28,6 +29,11 @@ const ETAPAS: EtapaCalendario[] = ['primaria', 'eso'];
 
 export interface CalendarioCurso {
   comunidad: ComunidadId;
+  /**
+   * Solo donde el calendario es de cada provincia (Andalucía: lo aprueba cada
+   * delegación territorial). Allí es obligatoria y el perfil guarda la suya.
+   */
+  provincia?: ProvinciaId;
   /** «2026-2027». */
   curso: string;
   /** La norma que lo fija, en el idioma en que se publicó. */
@@ -52,7 +58,9 @@ export interface ArchivoCalendarios {
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const esFecha = (v: unknown): v is string => typeof v === 'string' && ISO.test(v) && isoDate(fromIsoDate(v)) === v;
 const esTexto = (v: unknown, max = 200): v is string => typeof v === 'string' && v.trim().length > 0 && v.length <= max;
-const COMUNIDADES_CON_CALENDARIO = new Set<string>(['comunitat-valenciana', 'cataluna', 'madrid']);
+const COMUNIDADES_CON_CALENDARIO = new Set<string>(['comunitat-valenciana', 'cataluna', 'madrid', 'andalucia']);
+/** Las comunidades cuyo calendario va por provincias, con las provincias válidas. */
+const POR_PROVINCIAS: Partial<Record<string, readonly string[]>> = { andalucia: PROVINCIAS_ANDALUCIA };
 
 /** Del 1 de septiembre del primer año al 31 de agosto del segundo. */
 function limitesDelCurso(curso: string): [string, string] | null {
@@ -65,6 +73,9 @@ function calendarioValido(c: unknown): c is CalendarioCurso {
   if (!c || typeof c !== 'object') return false;
   const x = c as Record<string, unknown>;
   if (typeof x.comunidad !== 'string' || !COMUNIDADES_CON_CALENDARIO.has(x.comunidad)) return false;
+  // Por provincias, con una provincia de esa comunidad; si no, sin provincia
+  const provincias = POR_PROVINCIAS[x.comunidad];
+  if (provincias ? !provincias.includes(x.provincia as string) : x.provincia !== undefined) return false;
   const lim = typeof x.curso === 'string' ? limitesDelCurso(x.curso) : null;
   if (!lim) return false;
   const dentro = (f: unknown) => esFecha(f) && f >= lim[0] && f <= lim[1];
@@ -100,7 +111,7 @@ export function validarArchivo(raw: unknown): ArchivoCalendarios | null {
   if (x.calendarios.length > 60 || !x.calendarios.every(calendarioValido)) return null;
   const vistos = new Set<string>();
   for (const c of x.calendarios as CalendarioCurso[]) {
-    const k = `${c.comunidad}|${c.curso}`;
+    const k = `${c.comunidad}|${c.provincia ?? ''}|${c.curso}`;
     if (vistos.has(k)) return null;
     vistos.add(k);
   }
@@ -121,13 +132,21 @@ export function sinCursosPasados(archivo: ArchivoCalendarios, hoy: Date): Archiv
   return { ...archivo, calendarios: archivo.calendarios.filter(c => c.curso >= actual) };
 }
 
-export function calendarioDe(archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined, curso: string): CalendarioCurso | null {
-  return archivo.calendarios.find(c => c.comunidad === comunidad && c.curso === curso) ?? null;
+/** El calendario de ese curso; donde va por provincias, el de la provincia del perfil (sin ella, ninguno). */
+export function calendarioDe(
+  archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined, curso: string, provincia?: ProvinciaId | null,
+): CalendarioCurso | null {
+  return archivo.calendarios.find(c => c.comunidad === comunidad && c.curso === curso && (c.provincia === undefined || c.provincia === provincia)) ?? null;
 }
 
-/** Si la comunidad tiene algún calendario: para las demás, la Agenda no dice nada. */
-export function tieneCalendario(archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined): boolean {
-  return archivo.calendarios.some(c => c.comunidad === comunidad);
+/** Si la comunidad (o su provincia) tiene algún calendario: para las demás, la Agenda no dice nada. */
+export function tieneCalendario(archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined, provincia?: ProvinciaId | null): boolean {
+  return archivo.calendarios.some(c => c.comunidad === comunidad && (c.provincia === undefined || c.provincia === provincia));
+}
+
+/** La comunidad tiene calendarios por provincias y el perfil aún no dice la suya: la Agenda se la pide. */
+export function faltaProvincia(archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined, provincia?: ProvinciaId | null): boolean {
+  return !provincia && archivo.calendarios.some(c => c.comunidad === comunidad && c.provincia !== undefined);
 }
 
 export type DiaEscolar =
@@ -150,8 +169,9 @@ export function diaEscolar(cal: CalendarioCurso | null, iso: string): DiaEscolar
  */
 export function esLectivo(
   archivo: ArchivoCalendarios, comunidad: ComunidadId | undefined, fecha: Date, etapas: EtapaCalendario[],
+  provincia?: ProvinciaId | null,
 ): boolean {
-  const cal = calendarioDe(archivo, comunidad, cursoDe(fecha));
+  const cal = calendarioDe(archivo, comunidad, cursoDe(fecha), provincia);
   if (!cal) return true;
   const iso = isoDate(fecha);
   if (diaEscolar(cal, iso)) return false;

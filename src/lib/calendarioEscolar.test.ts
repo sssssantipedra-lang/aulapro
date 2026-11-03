@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import deSerie from '../../web/sitio/calendario-escolar.json';
 import {
-  validarArchivo, cursoDe, esLectivo, calendarioDe, diaEscolar, marcasDelDia, sinCursosPasados, tieneCalendario,
+  validarArchivo, cursoDe, esLectivo, calendarioDe, diaEscolar, faltaProvincia, marcasDelDia, sinCursosPasados, tieneCalendario,
   type ArchivoCalendarios, type CalendarioCurso,
 } from './calendarioEscolar';
 import { fromIsoDate } from './utils';
@@ -15,12 +15,56 @@ const serie = validarArchivo(deSerie)!;
 const copia = (): ArchivoCalendarios => JSON.parse(JSON.stringify(deSerie));
 
 describe('calendario de serie', () => {
-  it('pasa las comprobaciones y trae el curso 2026-2027 de las tres comunidades', () => {
+  it('pasa las comprobaciones y trae el curso 2026-2027 de las tres comunidades y de siete provincias andaluzas', () => {
     expect(serie).not.toBeNull();
     for (const c of ['comunitat-valenciana', 'cataluna', 'madrid'] as const) {
       expect(calendarioDe(serie, c, '2026-2027')).not.toBeNull();
     }
+    for (const p of ['almeria', 'cadiz', 'cordoba', 'granada', 'huelva', 'malaga', 'sevilla'] as const) {
+      expect(calendarioDe(serie, 'andalucia', '2026-2027', p), p).not.toBeNull();
+    }
+    expect(tieneCalendario(serie, 'aragon')).toBe(false);
+  });
+
+  it('Andalucía: el calendario es de cada provincia; sin provincia no hay ninguno y la Agenda la pide', () => {
+    expect(calendarioDe(serie, 'andalucia', '2026-2027')).toBeNull();
     expect(tieneCalendario(serie, 'andalucia')).toBe(false);
+    expect(faltaProvincia(serie, 'andalucia', undefined)).toBe(true);
+    expect(faltaProvincia(serie, 'andalucia', 'sevilla')).toBe(false);
+    expect(faltaProvincia(serie, 'madrid', undefined)).toBe(false);
+    // Jaén: su resolución aún no está; ni calendario ni aviso
+    expect(tieneCalendario(serie, 'andalucia', 'jaen')).toBe(false);
+    expect(calendarioDe(serie, 'andalucia', '2026-2027', 'jaen')).toBeNull();
+    // Cada provincia, con su resolución
+    const sevilla = calendarioDe(serie, 'andalucia', '2026-2027', 'sevilla')!;
+    expect(sevilla.clases).toEqual({ primaria: { inicio: '2026-09-10', fin: '2027-06-23' }, eso: { inicio: '2026-09-15', fin: '2027-06-23' } });
+    expect(diaEscolar(sevilla, '2027-01-08')).toEqual({ tipo: 'no-lectivo', nombre: 'Día no lectivo provincial' });
+    expect(diaEscolar(sevilla, '2027-03-01')).toEqual({ tipo: 'no-lectivo', nombre: 'Día de Andalucía' });
+    const malaga = calendarioDe(serie, 'andalucia', '2026-2027', 'malaga')!;
+    expect(diaEscolar(malaga, '2027-02-23')).toEqual({ tipo: 'vacaciones', nombre: 'Semana Blanca' });
+    expect(esLectivo(serie, 'andalucia', fromIsoDate('2027-02-23'), ['primaria'], 'malaga')).toBe(false);
+    expect(esLectivo(serie, 'andalucia', fromIsoDate('2027-02-23'), ['primaria'], 'sevilla')).toBe(true);
+    // Los festivos de la Junta (2 de noviembre, 7 de diciembre, por caer en domingo el 1 y el 6) en todas
+    for (const c of serie.calendarios.filter(c => c.comunidad === 'andalucia')) {
+      for (const f of ['2026-10-12', '2026-11-02', '2026-12-07', '2026-12-08', '2027-03-01']) {
+        expect(diaEscolar(c, f), `${c.provincia} ${f}`).not.toBeNull();
+      }
+    }
+  });
+
+  it('la provincia es obligatoria en Andalucía y no se admite en las demás', () => {
+    const sin = copia();
+    delete (sin.calendarios.find(c => c.comunidad === 'andalucia') as Partial<CalendarioCurso>).provincia;
+    expect(validarArchivo(sin)).toBeNull();
+    const rara = copia();
+    (rara.calendarios.find(c => c.comunidad === 'andalucia') as unknown as Record<string, unknown>).provincia = 'toledo';
+    expect(validarArchivo(rara)).toBeNull();
+    const conProvincia = copia();
+    (conProvincia.calendarios.find(c => c.comunidad === 'madrid') as unknown as Record<string, unknown>).provincia = 'sevilla';
+    expect(validarArchivo(conProvincia)).toBeNull();
+    const repetida = copia();
+    repetida.calendarios.push(JSON.parse(JSON.stringify(repetida.calendarios.find(c => c.provincia === 'cadiz'))));
+    expect(validarArchivo(repetida)).toBeNull();
   });
 
   it('ningún día no lectivo cae en fin de semana ni dentro de unas vacaciones', () => {
@@ -86,7 +130,7 @@ describe('cursos', () => {
     // Cataluña ya lleva los tres cursos de su orden: en septiembre de 2027 quedan los dos últimos
     expect(sinCursosPasados(serie, new Date(2027, 8, 10)).calendarios.map(c => `${c.comunidad} ${c.curso}`)).toEqual(['cataluna 2027-2028', 'cataluna 2028-2029']);
     expect(sinCursosPasados(serie, new Date(2029, 8, 10)).calendarios).toEqual([]);
-    expect(sinCursosPasados(serie, new Date(2026, 9, 10)).calendarios).toHaveLength(5);
+    expect(sinCursosPasados(serie, new Date(2026, 9, 10)).calendarios).toHaveLength(12);   // 5 de las tres comunidades y 7 provincias andaluzas
   });
 });
 

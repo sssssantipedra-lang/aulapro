@@ -7,6 +7,8 @@ export interface User {
   initials?: string;
   /** Comunidad autónoma del perfil; ausente si todavía no la ha elegido. */
   community?: import('../lib/curriculum/comunidades').ComunidadId;
+  /** Provincia del perfil, donde el calendario escolar es de cada provincia (Andalucía). */
+  provincia?: import('../lib/provincias').ProvinciaId;
   /** Especialidades de PT y AL del perfil; vacía si no es especialista. */
   especialidades?: import('./apoyo').Especialidad[];
   /** De aula, de PT y AL o de EF (ver `lib/tipoDocente.ts`). */

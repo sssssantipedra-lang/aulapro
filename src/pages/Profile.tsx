@@ -19,6 +19,8 @@ import { useI18n, LANGS } from '../i18n';
 import { compartirArchivo, downloadFile, puedeCompartirArchivos } from '../lib/download';
 import { isWebApp } from '../lib/platform';
 import { CommunitySelect } from '../components/CommunitySelect';
+import { ProvinciaSelect } from '../components/ProvinciaSelect';
+import { provinciaDePerfil, type ProvinciaId } from '../lib/provincias';
 import { nombreComunidad, type ComunidadId } from '../lib/curriculum/comunidades';
 import type { Especialidad } from '../types/apoyo';
 import { TipoDocentePicker, type TipoDocente, type EleccionTipo } from '../components/TipoDocente';
@@ -34,7 +36,7 @@ interface Props {
   profileId: string | null;
   course: string;
   onUpdateUser: (u: {
-    full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId;
+    full_name?: string; school?: string; subject?: string; course?: string; community?: ComunidadId; provincia?: ProvinciaId | null;
     especialidades?: Especialidad[]; tipoDocente?: 'aula' | 'ef'; tutor?: boolean;
   }) => void;
   onUpdateSecurity: (patch: { passwordHash?: string; passwordSalt?: string }) => void;
@@ -52,6 +54,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
   const [espec,  setEspec]  = useState(user?.subject ?? '');
   const [curso,  setCurso]  = useState(course ?? '');
   const [comunidad, setComunidad] = useState<ComunidadId | ''>(user?.community ?? '');
+  const [provincia, setProvincia] = useState<ProvinciaId | ''>(user?.provincia ?? '');
   const [especialidades, setEspecialidades] = useState<Especialidad[]>(user?.especialidades ?? []);
   const [tipo, setTipo] = useState<TipoDocente>(user?.tipo ?? (user?.especialidades?.length ? 'apoyo' : 'aula'));
   const [tutor, setTutor] = useState(!!user?.tutor);
@@ -135,6 +138,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     onUpdateUser({
       full_name: `${nombre} ${apell}`.trim(), school: centro, subject: espec, course: curso,
       ...(comunidad ? { community: comunidad } : {}),
+      // Solo la de su comunidad: al cambiar de comunidad, la provincia de antes se quita
+      provincia: provinciaDePerfil(comunidad || null, provincia) ?? null,
       especialidades: tipo === 'apoyo' ? especialidades : [],
       tipoDocente: tipo === 'ef' ? 'ef' : 'aula',
       tutor: tipo === 'ef' && tutor,
@@ -277,6 +282,9 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <label className="flabel" htmlFor="profile-f6">{t('Comunidad autónoma')}</label>
               <CommunitySelect id="profile-f6" value={comunidad} onChange={setComunidad} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <ProvinciaSelect id="profile-provincia" comunidad={comunidad} value={provincia} onChange={setProvincia} />
             </div>
             {/* Con PT y AL cambian el menú y el Inicio (ver docs/PTAL.md) */}
             <div style={{ gridColumn: '1 / -1' }}>

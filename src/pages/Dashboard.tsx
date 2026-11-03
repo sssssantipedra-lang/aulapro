@@ -95,7 +95,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
     const e = new Set(classes.map(c => c.etapa).filter((x): x is EtapaCalendario => x === 'primaria' || x === 'eso'));
     return e.size ? [...e] : ['primaria', 'eso'];
   }, [classes]);
-  const lectivo = (d: Date) => esLectivo(archivoCal, user?.community, d, etapas);
+  const lectivo = (d: Date) => esLectivo(archivoCal, user?.community, d, etapas, user?.provincia);
   const hoyLectivo = lectivo(now);
 
   const todayBlocks = useMemo(

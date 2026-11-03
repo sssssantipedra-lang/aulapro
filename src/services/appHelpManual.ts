@@ -188,16 +188,21 @@ sumarse. Consejo: una foto recta y nítida, o mejor el Excel del centro, da el
 mejor resultado.
 Para empezar de cero, «Borrar horario» (en el menú «Horario») quita todas las sesiones del horario semanal tras pedir
 confirmación; los eventos del calendario no se tocan.
-CALENDARIO ESCOLAR: con un perfil de la Comunitat Valenciana, Cataluña o
-Madrid, la vista mensual sombrea los días no lectivos de la comunidad y pinta
+CALENDARIO ESCOLAR: con un perfil de la Comunitat Valenciana, Cataluña,
+Madrid o Andalucía, la vista mensual sombrea los días no lectivos de la comunidad y pinta
 las vacaciones (Navidad, Semana Santa o Pascua) como una franja. Al pulsar un
 día se ve su nombre, y también el primer y el último día de clase de Primaria y
 de la ESO. Debajo del mes sale de qué norma sale. Los festivos locales dependen
 del municipio: se añaden como un evento. No se guarda entre los eventos del
 docente, así que no se puede borrar ni se mezcla con ellos. La app lo descarga
 de aulapro.app al abrirse (solo descarga, sin enviar datos) y sin conexión usa
-el último guardado. Si aún no está el del curso que se mira, lo dice. Para el
-resto de comunidades todavía no hay calendario.
+el último guardado. Si aún no está el del curso que se mira, lo dice. En
+Andalucía el calendario lo aprueba cada provincia: se elige la provincia en
+Configuración › Perfil (o al crear el perfil) y la Agenda pinta el de esa
+provincia, con su Día de la Comunidad Educativa, sus días no lectivos
+provinciales y, en Málaga, la Semana Blanca; sin provincia, la Agenda la pide.
+El de Jaén todavía no está. Para el resto de comunidades todavía no hay
+calendario.
 
 [notebook] CUADERNO DE NOTAS
 Tiene TRES PESTAÑAS arriba:

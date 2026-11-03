@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "actualizado": "2026-10-18",
+  "actualizado": "2026-11-03",
   "calendarios": [
     {
       "comunidad": "comunitat-valenciana",
@@ -277,6 +277,445 @@
         {
           "fecha": "2027-03-29",
           "nombre": "Día no lectivo"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "almeria",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución de la Delegación Territorial de Desarrollo Educativo y Formación Profesional y de Universidad, Investigación e Innovación en Almería, firmada el 28 de mayo de 2026"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/1183913/3343033/Resoluci%C3%B3n_calendario_escolar_26_27_Almer%C3%ADa%28F%29.pdf/fb0a8b29-7d79-13a6-dd6d-caf9340047ef?t=1780046260347",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-22"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-22"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-24",
+          "hasta": "2027-01-06"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-21",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-09",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-10-30",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2026-12-23",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-02-26",
+          "nombre": "Día de la Comunidad Educativa"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
+        },
+        {
+          "fecha": "2027-03-29",
+          "nombre": "Día no lectivo"
+        },
+        {
+          "fecha": "2027-04-30",
+          "nombre": "Día no lectivo"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "cadiz",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución de la Delegación Territorial de Desarrollo Educativo y Formación Profesional y de Universidad, Investigación e Innovación en Cádiz, firmada el 29 de mayo de 2026"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/1197071/0/Resoluci%C3%B3n%20calendario%20escolar%202026_2027.pdf/5c97e0d2-d79a-e80a-9433-d3f1e305f8fd?version=1.0",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-23"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-23"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-23",
+          "hasta": "2027-01-08"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-22",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
+        },
+        {
+          "fecha": "2027-04-30",
+          "nombre": "Día de la Comunidad Educativa"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "cordoba",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución de la Delegación Territorial de Desarrollo Educativo y Formación Profesional y de Universidad, Investigación e Innovación en Córdoba, firmada el 21 de mayo de 2026"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/1197067/4486666/Resoluci%C3%B3n%20Calendario%20Escolar%202026_2027%28F%29.pdf/92aee8f6-6e23-e2c8-0f0e-a118ecf2e271?version=1.0",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-22"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-22"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-23",
+          "hasta": "2027-01-06"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-22",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-01-07",
+          "nombre": "Día no lectivo provincial"
+        },
+        {
+          "fecha": "2027-02-26",
+          "nombre": "Día de la Comunidad Educativa"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "granada",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución de 27 de mayo de 2026 de la Delegación Territorial de la Consejería de Desarrollo Educativo y Formación Profesional de la Junta de Andalucía en Granada"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/1197087/4286700/Resoluci%C3%B3n%2027%20mayo%202026%20calendario%20escolar%20curso%202026-2027%20Granada%20-%20con%20anexos.pdf/f7a1efc3-e16c-b891-4179-8c29ab1288cf?version=1.0",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-22"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-22"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-23",
+          "hasta": "2027-01-06"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-22",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-02-26",
+          "nombre": "Día de la Comunidad Educativa"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
+        },
+        {
+          "fecha": "2027-05-28",
+          "nombre": "Día no lectivo provincial"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "huelva",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución de 29 de mayo de 2026 de la Delegación Territorial de Educación y Deporte en Huelva"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/1197074/4609198/Resoluci%C3%B3n%20calendario%20Huelva%2026-27.pdf/4338f98f-b951-7f3a-7921-052dcc0a1ffb?version=1.0",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-22"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-22"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-23",
+          "hasta": "2027-01-07"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-22",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-02-26",
+          "nombre": "Día de la Comunidad Educativa"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "malaga",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución de 20 de mayo de 2026 de la Delegación Territorial de la Consejería de Desarrollo Educativo y Formación Profesional de la Junta de Andalucía en Málaga"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/2854624/4501041/RESOLUCION%20CALENDARIO%20ESCOLAR%202026_27%20MALAGA.pdf/6f0af8f4-b17b-3b67-2797-e53eb85376e9?version=1.0",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-24"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-24"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-23",
+          "hasta": "2027-01-06"
+        },
+        {
+          "nombre": "Semana Blanca",
+          "desde": "2027-02-22",
+          "hasta": "2027-02-26"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-22",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
+        }
+      ]
+    },
+    {
+      "comunidad": "andalucia",
+      "provincia": "sevilla",
+      "curso": "2026-2027",
+      "norma": {
+        "es": "Resolución del Delegado Territorial de Desarrollo Educativo y Formación Profesional y de Universidad, Investigación e Innovación en Sevilla, firmada el 28 de mayo de 2026"
+      },
+      "url": "https://www.juntadeandalucia.es/educacion/portales/documents/1176698/3340178/RESOL%20CALEND%2026_27%28F%29.pdf/8c2fd440-3e04-a1c5-d497-2170af36e265?version=1.0",
+      "verificado": true,
+      "clases": {
+        "primaria": {
+          "inicio": "2026-09-10",
+          "fin": "2027-06-23"
+        },
+        "eso": {
+          "inicio": "2026-09-15",
+          "fin": "2027-06-23"
+        }
+      },
+      "vacaciones": [
+        {
+          "nombre": "Vacaciones de Navidad",
+          "desde": "2026-12-24",
+          "hasta": "2027-01-07"
+        },
+        {
+          "nombre": "Vacaciones de Semana Santa",
+          "desde": "2027-03-22",
+          "hasta": "2027-03-28"
+        }
+      ],
+      "noLectivos": [
+        {
+          "fecha": "2026-10-12",
+          "nombre": "Fiesta Nacional de España"
+        },
+        {
+          "fecha": "2026-11-02",
+          "nombre": "Todos los Santos"
+        },
+        {
+          "fecha": "2026-12-07",
+          "nombre": "Día de la Constitución"
+        },
+        {
+          "fecha": "2026-12-08",
+          "nombre": "Inmaculada Concepción"
+        },
+        {
+          "fecha": "2027-01-08",
+          "nombre": "Día no lectivo provincial"
+        },
+        {
+          "fecha": "2027-02-26",
+          "nombre": "Día de la Comunidad Educativa"
+        },
+        {
+          "fecha": "2027-03-01",
+          "nombre": "Día de Andalucía"
         }
       ]
     }
