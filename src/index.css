@@ -1296,6 +1296,8 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* ── Licencia: pantalla de activación y Configuración › Licencia ── */
 .lic-shell { background:var(--surface); min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:24px; position:relative; overflow:hidden; }
+/* En el móvil la tarjeta llega casi al borde de arriba y el selector de idioma (absoluto, arriba a la derecha) la pisaba: se le deja su franja */
+@media (max-width: 760px), (max-height: 640px) { .lic-shell { padding-top:78px; } }
 .lic-hd { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
 .lic-logo { width:46px; height:46px; border-radius:13px; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--accent-d),var(--accent)); box-shadow:0 8px 24px rgba(var(--accent-rgb),0.4); }
 .lic-title { font-weight:800; font-size:19px; color:var(--text); letter-spacing:-0.4px; }
