@@ -37,7 +37,7 @@ const inicial: ApoyoData = {
   sesiones: [],
   documentos: [],
   coordinaciones: [],
-  evaluaciones: [],
+  evaluaciones: [], acs: [],
   agendas: [],
   fotos: [],
 };

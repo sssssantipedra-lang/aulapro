@@ -1188,6 +1188,25 @@ normativa de la comunidad y los autores de referencia, y no inventa logros. Un
 informe trimestral nuevo del mismo trimestre sustituye al anterior (lo
 pregunta). La lista «Sus documentos» abre cada uno para retocarlo (se guarda
 solo), lo exporta a PDF (en la app de escritorio) o a Word, o lo elimina.
+ADAPTACIÓN CURRICULAR SIGNIFICATIVA (ACS), solo en Andalucía: una por área y
+para todo el curso, con los cuatro bloques de Séneca. Se elige el área y
+«Nueva ACS». 1) Datos generales y dictamen: fecha del informe de evaluación
+psicopedagógica, curso de referencia (al que se rebaja el área; la app dice el
+desfase con el curso en que está matriculado), justificación del desfase y el
+profesorado responsable (tutor o tutora, especialista y profesorado de la
+materia; sus nombres nunca van a la IA). 2) Selección curricular: las
+competencias específicas, los criterios de evaluación y los bloques de saberes
+básicos del currículo andaluz de ese curso, marcados de la lista oficial
+(marcar un criterio marca su competencia); «Proponer la selección con IA» los
+elige de esa lista con las estrategias y redacta la calificación. 3)
+Metodología y calificación: estrategias metodológicas y organizativas para
+marcar, otras escritas a mano, los instrumentos de evaluación adaptados con su
+peso (deben sumar 100 %) y los criterios de calificación. 4) Seguimiento: por
+trimestre, cada criterio y cada bloque elegido con su grado (No iniciado, En
+proceso, Conseguido), observaciones y las medidas de ajuste. La app avisa, sin
+impedir guardar, si el alumno no tiene marcada ninguna necesidad educativa
+especial, si el desfase es de menos de dos cursos, si falta la fecha del
+informe o si los pesos no suman 100. Sale en PDF y en Word con las firmas.
 
 [apoyo-agenda-visual] AGENDA VISUAL
 Secuencias con pictogramas o con fotos del propio docente para anticipar una

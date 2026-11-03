@@ -39,7 +39,8 @@ export function Modal({ open, onClose, title, wide, children, stickyHeader }: Pr
         {title !== undefined && (
           <div
             className="modal-hd"
-            style={stickyHeader ? { position: 'sticky', top: 0, background: 'var(--card)', zIndex: 1, paddingBottom: 14, borderBottom: '0.5px solid var(--border)', marginBottom: 14 } : undefined}
+            // Pegada al borde de la ventana, no a su relleno (22 px, `.modal`): si no, al desplazar asoma el contenido por encima
+            style={stickyHeader ? { position: 'sticky', top: -22, marginTop: -22, paddingTop: 22, background: 'var(--card)', zIndex: 1, paddingBottom: 14, borderBottom: '0.5px solid var(--border)', marginBottom: 14 } : undefined}
           >
             <div className="modal-title" id={titleId}>{title}</div>
             <button className="ico-btn" onClick={onClose} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={17} /></button>

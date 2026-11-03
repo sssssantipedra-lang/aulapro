@@ -1,0 +1,363 @@
+/**
+ * PT y AL, pestaña «Documentos» de un alumno, solo en Andalucía: sus adaptaciones curriculares significativas (ACS),
+ * una por área, con los cuatro bloques en que la recoge Séneca: datos generales y dictamen, selección curricular del
+ * curso de referencia, metodología y calificación, y seguimiento trimestral. La lógica está en `lib/acs.ts`, el
+ * documento en `services/acsDocumento.ts` y la propuesta de la IA en `services/acsIA.ts`. Ver `docs/PTAL.md`.
+ */
+import { useEffect, useMemo, useState } from 'react';
+import { BookMarked, Download, FileText, Pencil, Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-react';
+import { Modal } from '../../components/ui/Modal';
+import { useToast } from '../../components/ui/Toast';
+import { useI18n } from '../../i18n';
+import { useNombreCurso } from '../../hooks/useNombreCurso';
+import { useMateriasDeNivel } from '../../hooks/useMateriasDeNivel';
+import { hasApiKey } from '../../services/gemini';
+import {
+  ESTRATEGIAS_ACS, GRADOS_ACS, alternarCompetencia, alternarCriterio, alternarSaber, avisosAcs, conFila, desfaseCursos,
+  filasSeguimiento, nuevaAcs, progresoTrimestre, seleccionValida,
+} from '../../lib/acs';
+import {
+  contenidoAcs, firmasAcs, guardarAcsDocx, guardarAcsPdf, nombreArchivoAcs, nombreFila, tituloAcs, type DocenteAcs,
+} from '../../services/acsDocumento';
+import { proponerAcs } from '../../services/acsIA';
+import { competenciasDe } from '../../lib/curriculum';
+import { nivelDe, nuevoIdApoyo, trimestreDe } from '../../lib/apoyo';
+import { isoDate } from '../../lib/utils';
+import type { ComunidadId } from '../../lib/curriculum/comunidades';
+import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
+import type { AcsApoyo as Acs, AlumnoApoyo, ApoyoData, CursoDe, GradoAcs, Trimestre } from '../../types/apoyo';
+
+interface Props {
+  alumno: AlumnoApoyo;
+  data: ApoyoData;
+  onChange: (f: (d: ApoyoData) => ApoyoData) => void;
+  /** Las materias del curso del nivel del alumno: con ellas se elige el área de una ACS nueva. */
+  materias: MateriaDeClase[];
+  comunidad: ComunidadId | undefined;
+  docente: DocenteAcs;
+}
+
+const CURSOS: CursoDe[] = [
+  ...[1, 2, 3, 4, 5, 6].map(curso => ({ etapa: 'primaria' as const, curso })),
+  ...[1, 2, 3, 4].map(curso => ({ etapa: 'eso' as const, curso })),
+];
+const claveCurso = (c: CursoDe) => `${c.etapa}-${c.curso}`;
+
+export function AcsApoyo({ alumno, data, onChange, materias, comunidad, docente }: Props) {
+  const { t, lang } = useI18n();
+  const nombreCurso = useNombreCurso();
+  const nivel = nivelDe(alumno);
+  const [area, setArea] = useState('');
+  const [abiertaId, setAbiertaId] = useState<string | null>(null);
+  const suyas = data.acs.filter(a => a.alumnoId === alumno.id);
+  const abierta = suyas.find(a => a.id === abiertaId) ?? null;
+  const trimestre = trimestreDe(isoDate());
+  const elegida = materias.find(m => m.entry.nombre === area) ?? materias[0];
+
+  function crear() {
+    if (!nivel || !elegida) return;
+    const ya = suyas.find(a => a.area === elegida.entry.nombre);
+    if (ya) { setAbiertaId(ya.id); return; }
+    const acs = nuevaAcs(alumno, elegida.entry.nombre, nivel, isoDate(), k => t(k));
+    acs.responsables.especialista = docente.nombre;
+    onChange(d => ({ ...d, acs: [...d.acs, acs] }));
+    setAbiertaId(acs.id);
+  }
+
+  function borrar(acs: Acs) {
+    if (!window.confirm(t('¿Eliminar «{name}»?', { name: tituloAcs(acs, t) }))) return;
+    onChange(d => ({ ...d, acs: d.acs.filter(x => x.id !== acs.id) }));
+    if (abiertaId === acs.id) setAbiertaId(null);
+  }
+
+  return (
+    <div className="card">
+      <div className="card-hd"><div className="card-ttl"><BookMarked size={14} color="var(--accent-d)" />{t('Adaptación curricular significativa (ACS)')}</div></div>
+      <p className="ap-sub" style={{ margin: '0 0 12px' }}>
+        {t('Como en Séneca: datos generales y dictamen, selección del currículo del curso de referencia, metodología y calificación, y seguimiento de cada trimestre. Una por área, para todo el curso.')}
+      </p>
+      {suyas.length > 0 && (
+        <ul className="ap-lista" style={{ marginBottom: 12 }}>
+          {suyas.map(a => {
+            const p = progresoTrimestre(a, trimestre);
+            return (
+              <li key={a.id}>
+                <div className="ap-lista-txt">
+                  <strong>{tituloAcs(a, t)}</strong>
+                  <span className="ap-sub">
+                    {t('Con el currículo de {curso}.', { curso: nombreCurso(a.nivel) })}{' '}
+                    {p.total > 0 && t('{n}º trimestre: {hechas} de {total} valorados.', { n: trimestre, hechas: p.hechas, total: p.total })}
+                  </span>
+                </div>
+                <button className="ico-btn" onClick={() => setAbiertaId(a.id)} aria-label={t('Abrir «{name}»', { name: tituloAcs(a, t) })} title={t('Abrir y retocar')}><Pencil size={15} /></button>
+                <button className="ico-btn" onClick={() => borrar(a)} aria-label={t('Eliminar «{name}»', { name: tituloAcs(a, t) })} title={t('Eliminar')}><Trash2 size={15} /></button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {!nivel || materias.length === 0 ? (
+        <p className="ap-aviso">{t('Para adaptar con el currículo de su nivel, indica antes su nivel de competencia en la pestaña «Datos».')}</p>
+      ) : (
+        <div className="acs-nueva">
+          <div className="fgroup" style={{ margin: 0 }}>
+            <label className="flabel" htmlFor="acs-area">{t('Área')}</label>
+            <select id="acs-area" className="finput" value={elegida?.entry.nombre ?? ''} onChange={e => setArea(e.target.value)}>
+              {materias.map(m => <option key={m.entry.id} value={m.entry.nombre}>{m.entry.nombre}</option>)}
+            </select>
+          </div>
+          <button type="button" className="btn-accent" onClick={crear}>
+            <Plus size={15} />{suyas.some(a => a.area === elegida?.entry.nombre) ? t('Abrir la de esta área') : t('Nueva ACS')}
+          </button>
+        </div>
+      )}
+      <Modal open={!!abierta} onClose={() => setAbiertaId(null)} wide stickyHeader title={abierta ? tituloAcs(abierta, t) : ''}>
+        {abierta && (
+          <EditorAcs
+            key={abierta.id} acs={abierta} alumno={alumno} data={data} comunidad={comunidad} docente={docente} lang={lang}
+            onCambio={f => onChange(d => ({ ...d, acs: d.acs.map(x => (x.id === abierta.id ? { ...f(x), fecha: isoDate() } : x)) }))}
+            onCerrar={() => setAbiertaId(null)} onBorrar={() => borrar(abierta)}
+          />
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+interface EditorProps {
+  acs: Acs;
+  alumno: AlumnoApoyo;
+  data: ApoyoData;
+  comunidad: ComunidadId | undefined;
+  docente: DocenteAcs;
+  lang: 'es' | 'en' | 'ca';
+  onCambio: (f: (a: Acs) => Acs) => void;
+  onCerrar: () => void;
+  onBorrar: () => void;
+}
+
+function EditorAcs({ acs, alumno, data, comunidad, docente, lang, onCambio, onCerrar, onBorrar }: EditorProps) {
+  const { t } = useI18n();
+  const { toast } = useToast();
+  const nombreCurso = useNombreCurso();
+  const { estado, materias } = useMateriasDeNivel(comunidad, acs.nivel);
+  const materia = materias.find(m => m.entry.nombre === acs.area);
+  const [trimestre, setTrimestre] = useState<Trimestre>(trimestreDe(isoDate()));
+  const [proponiendo, setProponiendo] = useState(false);
+  const avisos = avisosAcs(acs, alumno);
+  const desfase = desfaseCursos(alumno.matricula, acs.nivel);
+  const conPdf = typeof window !== 'undefined' && !!window.electronAPI?.docs;
+  const suma = acs.instrumentos.reduce((s, i) => s + i.peso, 0);
+  const set = <K extends keyof Acs>(k: K, v: Acs[K]) => onCambio(a => ({ ...a, [k]: v }));
+
+  // Al cambiar el curso de referencia o el área, lo elegido que no existe en el currículo nuevo se cae
+  const valida = useMemo(() => (materia ? seleccionValida(acs, materia.entry, materia.grupo) : null), [acs, materia]);
+  useEffect(() => {
+    if (!valida) return;
+    const igual = (x: unknown[], y: unknown[]) => x.length === y.length && x.every((v, i) => v === y[i]);
+    if (!igual(valida.criterios, acs.criterios) || !igual(valida.competencias, acs.competencias) || !igual(valida.saberes, acs.saberes)) {
+      onCambio(a => ({ ...a, competencias: valida.competencias, criterios: valida.criterios, saberes: valida.saberes }));
+    }
+  }, [valida, acs.criterios, acs.competencias, acs.saberes, onCambio]);
+
+  async function proponer() {
+    if (!materia) return;
+    if (acs.criterios.length && !window.confirm(t('La IA sustituirá los criterios, los saberes y las estrategias marcados. ¿Sigues?'))) return;
+    const r = await proponerAcs({ acs, alumno, materia, data, lang, nombreCurso, comunidad },
+      { onStart: () => setProponiendo(true), onEnd: () => setProponiendo(false), onError: m => toast(t(m)) });
+    if (r) onCambio(() => r);
+  }
+
+  async function exportar(formato: 'pdf' | 'docx') {
+    const c = contenidoAcs(acs, alumno, materia, docente, nombreCurso, lang);
+    const nombre = nombreArchivoAcs(c, alumno, acs.fecha);
+    if (formato === 'docx') { await guardarAcsDocx(c, lang, firmasAcs(lang), nombre); return; }
+    const r = await guardarAcsPdf(c, lang, firmasAcs(lang), nombre);
+    if ('error' in r && r.error === 'not-desktop') toast(t('El PDF solo está disponible en la aplicación de escritorio. Puedes exportar a Word.'));
+    else if ('error' in r && r.error) toast(t('No se pudo guardar el PDF.'));
+  }
+
+  const comps = materia ? competenciasDe(materia.entry, materia.grupo) : [];
+  const crits = materia?.entry.criterios[materia.grupo] ?? [];
+  const bloques = materia?.entry.saberes[materia.grupo] ?? [];
+
+  return (
+    <div className="acs">
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+        {conPdf && <button className="btn-accent" onClick={() => exportar('pdf')}><Download size={15} />{t('Exportar PDF')}</button>}
+        <button className="btn-ghost" onClick={() => exportar('docx')}><FileText size={15} />{t('Exportar Word')}</button>
+      </div>
+
+      {avisos.length > 0 && (
+        <div className="acs-avisos" role="status">
+          <TriangleAlert size={15} />
+          <ul>{avisos.map(a => <li key={a.texto}>{t(a.texto, a.vars)}</li>)}</ul>
+        </div>
+      )}
+
+      <h3 className="ap-doc-h">1. {t('Datos generales y dictamen')}</h3>
+      <div className="acs-rejilla">
+        <div className="fgroup">
+          <label className="flabel" htmlFor="acs-informe">{t('Fecha del informe de evaluación psicopedagógica')}</label>
+          <input id="acs-informe" type="date" className="finput" value={acs.fechaInforme} onChange={e => set('fechaInforme', e.target.value)} />
+        </div>
+        <div className="fgroup">
+          <label className="flabel" htmlFor="acs-nivel">{t('Curso de referencia de la ACS')}</label>
+          <select id="acs-nivel" className="finput" value={claveCurso(acs.nivel)}
+            onChange={e => { const c = CURSOS.find(x => claveCurso(x) === e.target.value); if (c) set('nivel', c); }}>
+            {CURSOS.map(c => <option key={claveCurso(c)} value={claveCurso(c)}>{nombreCurso(c)}</option>)}
+          </select>
+          {desfase !== null && <span className="ap-sub">{t('Cursos de desfase respecto a {curso}: {n}.', { n: desfase, curso: nombreCurso(alumno.matricula!) })}</span>}
+        </div>
+      </div>
+      <div className="fgroup">
+        <label className="flabel" htmlFor="acs-just">{t('Justificación del desfase')}</label>
+        <textarea id="acs-just" className="finput" rows={2} value={acs.justificacion} onChange={e => set('justificacion', e.target.value)}
+          placeholder={t('Su nivel de competencia curricular en el área y cómo se valoró.')} />
+      </div>
+      <div className="acs-rejilla acs-tres">
+        {(['tutor', 'especialista', 'materia'] as const).map(k => (
+          <div className="fgroup" key={k}>
+            <label className="flabel" htmlFor={`acs-r-${k}`}>{t(k === 'tutor' ? 'Tutor o tutora' : k === 'especialista' ? 'Especialista de PT o AL' : 'Profesorado de la materia')}</label>
+            <input id={`acs-r-${k}`} className="finput" value={acs.responsables[k]} onChange={e => set('responsables', { ...acs.responsables, [k]: e.target.value })} />
+          </div>
+        ))}
+      </div>
+      <p className="ap-aviso">{t('Los nombres del profesorado salen en el documento y nunca se envían a la IA.')}</p>
+
+      <h3 className="ap-doc-h">2. {t('Selección curricular')}</h3>
+      <div className="acs-rejilla">
+        <div className="fgroup">
+          <label className="flabel" htmlFor="acs-area-ed">{t('Área o materia del curso de referencia')}</label>
+          <select id="acs-area-ed" className="finput" value={materia ? acs.area : ''} onChange={e => set('area', e.target.value)} disabled={estado !== 'listo'}>
+            {!materia && <option value="">{estado === 'listo' ? t('Elige un área') : t('Cargando…')}</option>}
+            {materias.map(m => <option key={m.entry.id} value={m.entry.nombre}>{m.entry.nombre}</option>)}
+          </select>
+        </div>
+        <div className="fgroup">
+          <label className="flabel" htmlFor="acs-aula">{t('Materia en su clase, si se llama de otra forma')}</label>
+          <input id="acs-aula" className="finput" value={acs.materiaAula} placeholder={acs.area} onChange={e => set('materiaAula', e.target.value)} />
+        </div>
+      </div>
+      {estado === 'listo' && !materia && <p className="ap-aviso">{t('«{area}» no está en el currículo de {curso}: elige otra área.', { area: acs.area, curso: nombreCurso(acs.nivel) })}</p>}
+      {materia && (
+        <>
+          <button className="btn-ia" type="button" disabled={proponiendo || !hasApiKey()} onClick={proponer} style={{ marginBottom: 12 }}>
+            {proponiendo ? <span className="spin" /> : <Sparkles size={15} />}{proponiendo ? t('Preparando…') : t('Proponer la selección con IA')}
+          </button>
+          <p className="flabel">{t('Competencias específicas y criterios de evaluación')} <span className="ap-sub">({t('{a} criterios de {b}', { a: acs.criterios.length, b: crits.length })})</span></p>
+          <div className="acs-comps">
+            {comps.map(c => {
+              const suyos = crits.filter(cr => cr.competencia === c.n);
+              return (
+                <div key={c.n} className="acs-comp">
+                  <label className="acs-chk">
+                    <input type="checkbox" checked={acs.competencias.includes(c.n)} onChange={() => onCambio(a => alternarCompetencia(a, materia.entry, materia.grupo, c.n))} />
+                    <span><strong>CE{c.n}.</strong> {c.texto}</span>
+                  </label>
+                  {suyos.map(cr => (
+                    <label key={cr.codigo} className="acs-chk acs-crit">
+                      <input type="checkbox" checked={acs.criterios.includes(cr.codigo)} onChange={() => onCambio(a => alternarCriterio(a, materia.entry, materia.grupo, cr.codigo))} />
+                      <span><strong>{cr.codigo}.</strong> {cr.texto}</span>
+                    </label>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+          <p className="flabel" style={{ marginTop: 12 }}>{t('Saberes básicos mínimos imprescindibles')}</p>
+          <div className="acs-comps">
+            {bloques.map(b => (
+              <label key={b.bloque} className="acs-chk">
+                <input type="checkbox" checked={acs.saberes.includes(b.bloque)} onChange={() => onCambio(a => alternarSaber(a, materia.entry, materia.grupo, b.bloque))} />
+                <span><strong>{b.bloque}.</strong> {b.tituloBloque}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+
+      <h3 className="ap-doc-h">3. {t('Adaptaciones metodológicas y criterios de calificación')}</h3>
+      {(['metodologica', 'organizativa'] as const).map(g => (
+        <fieldset key={g} className="fgroup ap-fs">
+          <legend className="flabel">{t(g === 'metodologica' ? 'Estrategias metodológicas' : 'Estrategias organizativas')}</legend>
+          <div className="acs-estr">
+            {ESTRATEGIAS_ACS.filter(e => e.grupo === g).map(e => (
+              <label key={e.id} className="acs-chk">
+                <input type="checkbox" checked={acs.estrategias.includes(e.id)}
+                  onChange={() => set('estrategias', acs.estrategias.includes(e.id) ? acs.estrategias.filter(x => x !== e.id) : [...acs.estrategias, e.id])} />
+                <span>{t(e.texto)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+      <div className="fgroup">
+        <label className="flabel" htmlFor="acs-otras">{t('Otras estrategias')}</label>
+        <textarea id="acs-otras" className="finput" rows={2} value={acs.otrasEstrategias} onChange={e => set('otrasEstrategias', e.target.value)} />
+      </div>
+      <fieldset className="fgroup ap-fs">
+        <legend className="flabel">{t('Instrumentos de evaluación adaptados')} <span className="ap-sub">({t('suman {n} %', { n: suma })})</span></legend>
+        {acs.instrumentos.map(i => (
+          <div key={i.id} className="acs-instr">
+            <input className="finput" aria-label={t('Instrumento')} value={i.nombre}
+              onChange={e => set('instrumentos', acs.instrumentos.map(x => (x.id === i.id ? { ...x, nombre: e.target.value } : x)))} />
+            <span className="acs-peso">
+              <input type="number" min={0} max={100} step={5} className="finput" aria-label={t('Peso en la calificación')} value={i.peso}
+                onChange={e => set('instrumentos', acs.instrumentos.map(x => (x.id === i.id ? { ...x, peso: Math.min(100, Math.max(0, Math.round(Number(e.target.value) || 0))) } : x)))} />
+              %
+            </span>
+            <button type="button" className="ico-btn" aria-label={t('Quitar «{name}»', { name: i.nombre })} onClick={() => set('instrumentos', acs.instrumentos.filter(x => x.id !== i.id))}><Trash2 size={15} /></button>
+          </div>
+        ))}
+        <button type="button" className="btn-ghost" onClick={() => set('instrumentos', [...acs.instrumentos, { id: nuevoIdApoyo('ins'), nombre: '', peso: 0 }])}>
+          <Plus size={14} />{t('Añadir instrumento')}
+        </button>
+      </fieldset>
+      <div className="fgroup">
+        <label className="flabel" htmlFor="acs-cal">{t('Criterios de calificación')}</label>
+        <textarea id="acs-cal" className="finput" rows={3} value={acs.calificacion} onChange={e => set('calificacion', e.target.value)} />
+      </div>
+
+      <h3 className="ap-doc-h">4. {t('Seguimiento y valoración trimestral')}</h3>
+      <div className="chip-row" style={{ marginBottom: 10 }}>
+        {([1, 2, 3] as const).map(n => (
+          <button key={n} type="button" className={`chip sm accent${trimestre === n ? ' on' : ''}`} aria-pressed={trimestre === n} onClick={() => setTrimestre(n)}>
+            {t('{n}º trimestre', { n })}
+          </button>
+        ))}
+      </div>
+      {filasSeguimiento(acs, trimestre).length === 0 ? (
+        <p className="ap-vacio">{t('Elige antes los criterios y los saberes: cada uno tendrá aquí su fila.')}</p>
+      ) : (
+        <ul className="acs-seg">
+          {filasSeguimiento(acs, trimestre).map(f => (
+            <li key={`${f.tipo}-${f.clave}`}>
+              <span className="acs-seg-txt">{nombreFila(f, materia, t)}</span>
+              <div className="chip-row" role="group" aria-label={t('Grado de consecución')}>
+                {GRADOS_ACS.map(g => (
+                  <button key={g.id} type="button" className={`chip sm accent${f.grado === g.id ? ' on' : ''}`} aria-pressed={f.grado === g.id}
+                    onClick={() => onCambio(a => conFila(a, { ...f, grado: f.grado === g.id ? undefined : g.id as GradoAcs }))}>
+                    {t(g.texto)}
+                  </button>
+                ))}
+              </div>
+              <textarea className="finput" rows={1} aria-label={t('Observaciones')} placeholder={t('Observaciones')} value={f.observaciones}
+                onChange={e => onCambio(a => conFila(a, { ...f, observaciones: e.target.value }))} />
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="fgroup">
+        <label className="flabel" htmlFor="acs-ajuste">{t('Medidas de ajuste del {n}º trimestre', { n: trimestre })}</label>
+        <textarea id="acs-ajuste" className="finput" rows={2} value={acs.ajustes[trimestre] ?? ''}
+          onChange={e => set('ajustes', { ...acs.ajustes, [trimestre]: e.target.value })} />
+      </div>
+
+      <div className="ap-acciones">
+        <button className="btn-accent" onClick={onCerrar}>{t('Hecho')}</button>
+        <button className="btn-ghost ap-borrar" onClick={onBorrar}><Trash2 size={15} />{t('Eliminar')}</button>
+      </div>
+    </div>
+  );
+}

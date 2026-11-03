@@ -350,8 +350,8 @@ function proximos(d: ApoyoData, alumnoId: string, trimestre: Trimestre): string[
 
 /* ── Exportar ── */
 
-const esc = (x: string) => (x ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
-const nl2br = (x: string) => esc(x).replace(/\n/g, '<br>');
+export const esc = (x: string) => (x ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+export const nl2br = (x: string) => esc(x).replace(/\n/g, '<br>');
 
 function nombreArchivo(doc: DocumentoApoyo): string {
   const slug = (x: string) => x.trim().replace(/\s+/g, '-').replace(/[^\p{L}\p{N}-]/gu, '');
@@ -379,7 +379,7 @@ export function buildDocumentoHtml(doc: DocumentoApoyo, filas: [string, string][
     `<p class="pie">${esc(t('Documento generado con AulaPro'))}</p></article></body></html>`;
 }
 
-const ESTILO = `
+export const ESTILO = `
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #fff; }
 .ap-doc { max-width: 175mm; margin: 0 auto; padding: 4mm 2mm; color: #1e293b; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 12px; line-height: 1.6; }
@@ -408,9 +408,9 @@ export async function guardarDocumentoPdf(doc: DocumentoApoyo, filas: [string, s
 }
 
 const BORDE = { style: BorderStyle.SINGLE, size: 2, color: '8FAADC' };
-const BORDES = { top: BORDE, bottom: BORDE, left: BORDE, right: BORDE, insideHorizontal: BORDE, insideVertical: BORDE };
+export const BORDES = { top: BORDE, bottom: BORDE, left: BORDE, right: BORDE, insideHorizontal: BORDE, insideVertical: BORDE };
 
-function celda(text: string, opts: { label?: boolean; width?: number; size?: number } = {}) {
+export function celda(text: string, opts: { label?: boolean; width?: number; size?: number } = {}) {
   return new TableCell({
     width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
     shading: opts.label ? { fill: 'DCE6F1' } : undefined,
@@ -419,7 +419,7 @@ function celda(text: string, opts: { label?: boolean; width?: number; size?: num
   });
 }
 
-const titulo2 = (text: string) => new Paragraph({
+export const titulo2 = (text: string) => new Paragraph({
   spacing: { before: 260, after: 100 },
   children: [new TextRun({ text, bold: true, size: 22, color: '1F4E79' })],
 });

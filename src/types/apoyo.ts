@@ -211,6 +211,71 @@ export interface DocumentoApoyo {
   tabla?: string[][];
 }
 
+/**
+ * Adaptación curricular significativa (ACS) de Andalucía: una por alumno y área, para todo el curso. Se construye
+ * eligiendo elementos del currículo oficial del curso de referencia (al que se rebaja el área), como en Séneca, y se
+ * sigue trimestre a trimestre criterio a criterio. Ver `docs/PTAL.md`, «Adaptación curricular significativa
+ * (Andalucía)», y la lógica en `lib/acs.ts`.
+ */
+export interface AcsApoyo {
+  id: string;
+  alumnoId: string;
+  /* 1. Datos generales y dictamen */
+  /** Fecha del informe de evaluación psicopedagógica que propone la medida, YYYY-MM-DD. */
+  fechaInforme: string;
+  /** El curso de referencia: el que se toma del currículo (con el desfase justificado). */
+  nivel: CursoDe;
+  /** Por qué ese curso: el desfase curricular, de al menos dos cursos (artículos 36 y 50 de las órdenes). */
+  justificacion: string;
+  /** El profesorado responsable: nombres o cargos, como los escriba el docente. Nunca van a la IA. */
+  responsables: { tutor: string; especialista: string; materia: string };
+  /* 2. Selección curricular */
+  /** El área o materia en el currículo del curso de referencia (`CurriculumEntry.nombre`). */
+  area: string;
+  /** Cómo se llama la materia en su clase, si no es la misma (un alumno de ESO con el área de Primaria). */
+  materiaAula: string;
+  /** Las competencias específicas elegidas, por su número. */
+  competencias: number[];
+  /** Los criterios de evaluación elegidos, por su código («1.1»). */
+  criterios: string[];
+  /** Los bloques de saberes básicos elegidos, por su letra. */
+  saberes: string[];
+  /* 3. Metodología y calificación */
+  /** Las estrategias metodológicas y organizativas marcadas, por su id (`ESTRATEGIAS_ACS`). */
+  estrategias: string[];
+  /** Otras estrategias, escritas a mano. */
+  otrasEstrategias: string;
+  /** Los instrumentos de evaluación adaptados y su peso en la calificación, en %. */
+  instrumentos: InstrumentoAcs[];
+  /** Los criterios de calificación, en texto. */
+  calificacion: string;
+  /* 4. Seguimiento */
+  seguimiento: SeguimientoAcs[];
+  /** Las medidas de ajuste de cada trimestre. */
+  ajustes: Partial<Record<Trimestre, string>>;
+  /** Cuándo se cambió por última vez, YYYY-MM-DD. */
+  fecha: string;
+}
+
+export interface InstrumentoAcs {
+  id: string;
+  nombre: string;
+  peso: number;
+}
+
+/** Grado de consecución de un criterio o de un bloque de saberes en un trimestre. */
+export type GradoAcs = 'no-iniciado' | 'proceso' | 'conseguido';
+
+export interface SeguimientoAcs {
+  trimestre: Trimestre;
+  /** Qué se valora: un criterio de evaluación o un bloque de saberes. */
+  tipo: 'criterio' | 'saber';
+  /** El código del criterio o la letra del bloque. */
+  clave: string;
+  grado?: GradoAcs;
+  observaciones: string;
+}
+
 /** Con quién se coordina el especialista sobre un alumno. */
 export type ConQuien = 'tutoria' | 'familia' | 'orientacion' | 'equipo' | 'otros';
 
@@ -268,6 +333,8 @@ export interface ApoyoData {
   coordinaciones: CoordinacionApoyo[];
   /** Cierre de cada trimestre: la valoración del especialista de cada objetivo. */
   evaluaciones: EvaluacionObjetivo[];
+  /** Las adaptaciones curriculares significativas (Andalucía). */
+  acs: AcsApoyo[];
   agendas: AgendaVisual[];
   fotos: FotoApoyo[];
 }

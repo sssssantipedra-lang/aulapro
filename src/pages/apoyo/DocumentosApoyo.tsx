@@ -20,6 +20,7 @@ import {
 import { isoDate } from '../../lib/utils';
 import { requestFichaPara } from '../../lib/apoyoNav';
 import { AdaptacionApoyo } from './AdaptacionApoyo';
+import { AcsApoyo } from './AcsApoyo';
 import { nivelDe, trimestreCerrado, trimestreDe } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoGenerable, Trimestre } from '../../types/apoyo';
@@ -154,6 +155,8 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
           {generando ? t('Preparando…') : existente(tipo) && tipo === 'pap' ? t('Rellenar el {n}º trimestre', { n: trimestre }) : t('Preparar con IA')}
         </button>
       </div>
+
+      {comunidad === 'andalucia' && <AcsApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} docente={docente} />}
 
       <AdaptacionApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} onAbrir={setAbiertoId} onNav={onNav} />
 

@@ -2,6 +2,7 @@
  * Lógica del módulo de PT y AL, sin React. Ver `docs/PTAL.md`.
  */
 import type { ComunidadId } from './curriculum/comunidades';
+import { normalizarAcs } from './acs';
 import type { ScheduleBlock } from '../types';
 import type {
   AgendaVisual, AlumnoApoyo, ApoyoData, AspectoRespuesta, Cara, ConQuien, CoordinacionApoyo, CursoDe, DocumentoApoyo, EvaluacionObjetivo,
@@ -9,7 +10,7 @@ import type {
 } from '../types/apoyo';
 
 export const APOYO_VACIO: ApoyoData = {
-  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], evaluaciones: [], agendas: [], fotos: [],
+  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], evaluaciones: [], acs: [], agendas: [], fotos: [],
 };
 
 export function nuevoIdApoyo(prefijo: string): string {
@@ -691,6 +692,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       comentario: esTexto(x.comentario) ? x.comentario : '', fecha: esTexto(x.fecha) ? x.fecha : '',
     };
   });
+  const acs = lista(o.acs, v => normalizarAcs(v, ids, curso));
   const fotos = lista<FotoApoyo>(o.fotos, v => {
     const x = obj(v);
     return x && esTexto(x.id) && esTexto(x.datos) && x.datos.startsWith('data:image/')
@@ -717,7 +719,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       }),
     };
   });
-  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, evaluaciones, agendas, fotos };
+  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, evaluaciones, acs, agendas, fotos };
 }
 
 /**
@@ -742,6 +744,7 @@ export function sinAlumno(d: ApoyoData, alumnoId: string): ApoyoData {
     documentos: d.documentos.filter(x => x.alumnoId !== alumnoId),
     coordinaciones: d.coordinaciones.filter(x => x.alumnoId !== alumnoId),
     evaluaciones: d.evaluaciones.filter(x => x.alumnoId !== alumnoId),
+    acs: d.acs.filter(x => x.alumnoId !== alumnoId),
     agendas: d.agendas.filter(a => a.alumnoId !== alumnoId),
     // Las fotos son la biblioteca del docente: se quitan una a una
     fotos: d.fotos,
