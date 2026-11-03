@@ -1,4 +1,4 @@
-# Comunidades autónomas: Comunitat Valenciana, Cataluña y Madrid
+# Comunidades autónomas: Comunitat Valenciana, Cataluña, Madrid y Andalucía
 
 Decisiones tomadas el 2-10-2026 con el dueño.
 
@@ -12,6 +12,7 @@ Estado (2-10-2026):
 - Cataluña, Primaria y ESO: hechas (4-10-2026), en catalán (el decreto solo se publica en catalán). Las 10 áreas del annex 2 y las 25 materias del annex 3 del Decret 175/2022, con competencias, criterios y saberes por ciclo o curso, extraídas del PDF y comprobadas (ver «Cataluña» más abajo). Está en `CARGADORES`.
 - Cuaderno e informes (7-10-2026): la pestaña «Por competencias» del cuaderno y las competencias específicas en los informes que redacta la IA (ver «Evaluación por competencias específicas» en «Estructura técnica»).
 - Calendario escolar (11-10-2026): hecho para el curso 2026-2027 de las tres comunidades, en la Agenda, y la tarea que vigila los boletines y propone el curso siguiente (ver «Calendario escolar»).
+- Andalucía, Primaria y ESO: hechas (3-11-2026, rama `curriculo-andalucia`, pendiente de fusionar después de la salida a la venta), en castellano. Las 7 áreas de Primaria con Educación en Valores y Segunda Lengua Extranjera, con los criterios de cada curso, y las 30 materias de la ESO de los anexos II y III de sus órdenes de 30 de mayo de 2023 (ver «Andalucía» más abajo). Está en `CARGADORES`. El calendario, pendiente (lo fija cada provincia).
 - El resto de comunidades usan el estatal, avisando.
 
 Hoy la app lleva solo las enseñanzas mínimas estatales (RD 157/2022 de Primaria y RD 217/2022 de la ESO), copiadas al pie de la letra en `src/lib/curriculum/data/`. Este documento recoge cómo pasa a llevar el decreto de cada comunidad.
@@ -125,7 +126,7 @@ Hecho:
 
 - `TeacherProfile.community` y `communityPromptAt` en `src/services/storage.ts`. El escritorio (`electron/storage.cjs`) guarda `community` al crear el perfil. Se lee siempre con `comunidadDePerfil`, que descarta cualquier valor que no sea de la lista.
 - `src/lib/curriculum/comunidades.ts`: las 20 opciones (17 comunidades, Ceuta, Melilla y «Fuera de España»), sus decretos por etapa con matriz y modificaciones, y las funciones para citarlos en el idioma de la app sin traducir.
-- `src/lib/curriculum/cargar.ts`: `CARGADORES` (Primaria y ESO de la Comunitat Valenciana, Cataluña y Madrid), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia (con `saberesPorGrupo`, los grupos que traen los suyos: la adenda de cuarto de la ESO valenciana).
+- `src/lib/curriculum/cargar.ts`: `CARGADORES` (Primaria y ESO de la Comunitat Valenciana, Cataluña, Madrid y Andalucía), `cargarCurriculo`, que nunca falla y vuelve al estatal avisando con `origen`, y `usaEstatalPorFaltaDeDecreto`. Cada cargador devuelve también el idioma que ha servido de verdad (`idioma`), por si falta el archivo del idioma pedido. `conLosMismosSaberesEnCadaCiclo` abre los datos de un decreto que trae una sola lista de saberes por materia (con `saberesPorGrupo`, los grupos que traen los suyos: la adenda de cuarto de la ESO valenciana).
 - `src/components/CommunitySelect.tsx` (selector en dos grupos y una nota con el decreto de cada etapa), `CommunityPrompt.tsx` (el aviso único) e insignia en `Sidebar.tsx`.
 - `Class.etapa`, `curso`, `opcionMatematicas` y `materiasOficiales` (asignatura → materia oficial, `null` para modo libre). `src/lib/curriculum/materiasDeClase.ts` decide si una asignatura ya tiene materia (elegida o por alias seguro), está en modo libre o hay que preguntar, y con qué opciones. Una elección que ya no existe en el currículo (por cambiar de comunidad) se ignora y se vuelve a preguntar.
 - `src/hooks/useCurriculo.ts` y `src/components/curriculum/CurriculumFields.tsx`: lo que comparten el formulario de la clase y el de la SdA.
@@ -163,6 +164,7 @@ Pendiente:
   - Cataluña, Primaria y ESO en uno: Decret 175/2022, de 27 de setembre, d'ordenació dels ensenyaments de l'educació bàsica (DOGC núm. 8762, de 29 de setembre de 2022). Verificado con su PDF.
   - Madrid, Primaria: Decreto 61/2022, de 13 de julio (BOCM núm. 169, de 18 de julio de 2022), modificado por el Decreto 59/2024, de 12 de junio (BOCM núm. 140, de 13 de junio de 2024). Verificados con sus PDF.
   - Madrid, ESO: Decreto 65/2022, de 20 de julio (BOCM núm. 176, de 26 de julio de 2022; el dueño lo había dado como núm. 175, de 25 de julio, y el PDF lo desmiente), modificado por el mismo Decreto 59/2024. Verificados con sus PDF.
+  - Andalucía, Primaria y ESO: Decretos 101/2023 y 102/2023, de 9 de mayo (BOJA núm. 90, de 15 de mayo de 2023), desarrollados por sus órdenes de 30 de mayo de 2023 (BOJA núm. 104, de 2 de junio de 2023). Verificados con sus PDF (3-11-2026).
 - En la Comunitat Valenciana el DOGV publica la modificación sin el texto consolidado. El currículo vigente hay que construirlo aplicando la modificación a la matriz, dejar anotado qué se cambió y comprobarlo contra los dos documentos. La cita de la SdA nombra los dos decretos («modificado por»).
 - Los títulos del 66/2024 y del 96/2026 están completos en las dos lenguas, comprobados con sus PDF.
 
@@ -388,6 +390,67 @@ En `docs/Normativa Cataluña/`, subido por el dueño:
 - Identificadores: los mismos que en las otras comunidades cuando es la misma materia (`lengua-castellana`, `matematicas`…), más `catalan`, `aranes`, `economia-basica`, `emprendimiento` y `robotica-y-programacion`.
 - Alias: «Català», «Aranès», «Economia Bàsica», «Emprenedoria», «Robòtica i Programació» y las formas en catalán de las demás.
 - Cita: «Decret 175/2022, de 27 de setembre (DOGC núm. 8762, de 29 de setembre de 2022)».
+
+## Andalucía
+
+Hecho el 3-11-2026 en la rama `curriculo-andalucia`, a petición del dueño, para publicarlo como actualización después de la salida a la venta (regla de «Cómo se trabaja»). El dueño eligió que se procesaran los PDF enteros y no un resumen hecho por otra IA: la app copia el texto oficial al pie de la letra.
+
+### Fuentes
+
+En `docs/Normativa Andalucía/`, descargados del BOJA el 3-11-2026 y comprobados (título, número y boletín) con los propios PDF:
+
+- Decreto 101/2023, de 9 de mayo, por el que se establece la ordenación y el currículo de la etapa de Educación Primaria en la Comunidad Autónoma de Andalucía (BOJA núm. 90, de 15 de mayo de 2023).
+- Decreto 102/2023, de 9 de mayo, por el que se establece la ordenación y el currículo de la etapa de Educación Secundaria Obligatoria en la Comunidad Autónoma de Andalucía (BOJA núm. 90, de 15 de mayo de 2023).
+- Las dos órdenes de 30 de mayo de 2023 que desarrollan el currículo de cada etapa (BOJA núm. 104, de 2 de junio de 2023). La de Primaria, un PDF de 208 páginas; la de la ESO, publicada en dos PDF (289 y 246 páginas, «Hoja N de 540»). **El currículo (competencias, criterios y saberes) está en los anexos de las órdenes, no en los decretos**: el registro lleva el decreto como matriz y la orden como norma de tipo `desarrollo`, y la cita dice «Decreto 101/2023, de 9 de mayo (BOJA núm. 90, …), desarrollado por la Orden de 30 de mayo de 2023 (BOJA núm. 104, …)».
+- Correcciones y modificaciones: no se encontró ninguna de las dos órdenes (búsqueda del 3-11-2026). **Pendiente** de confirmar en el buscador del BOJA antes de fusionar.
+
+### Qué dice cada orden
+
+- **Primaria** (artículo 6 y anexo II, «Desarrollos curriculares de las diferentes áreas»): Conocimiento del Medio Natural, Social y Cultural, Educación Artística, Educación Física, Lengua Castellana y Literatura, Primera Lengua Extranjera, Matemáticas, Segunda Lengua Extranjera en el tercer ciclo y Educación en Valores Cívicos y Éticos en sexto. Cada área trae sus competencias específicas (enunciado en negrita, explicación y «Esta competencia específica se conecta con los siguientes descriptores del Perfil de salida: …»), los saberes básicos de los tres ciclos en tres columnas, con código («MAT.1.A.1.1.»: área, ciclo, bloque, epígrafe, saber) y una tabla por ciclo con las competencias y **los criterios de cada curso del ciclo**: «1.1.a» en el primero, «1.1.b» en el segundo (Educación en Valores, de un solo curso, «1.1»). Cada fila de la tabla dice además con qué saberes se relaciona (no se copia todavía). Segunda Lengua Extranjera no tiene tabla: «partirá de los mismos elementos curriculares que se desarrollan en el Primer ciclo del área de Primera Lengua Extranjera» (los centros plurilingües, de cada ciclo). El Área Lingüística de carácter transversal y los proyectos interdisciplinares no tienen currículo en el anexo.
+- **ESO** (anexo II, materias comunes obligatorias y optativas; anexo III, optativas propias de la Comunidad Andaluza): lo mismo, curso a curso. Cada materia trae sus competencias, «Saberes básicos de primer y tercer curso» (una columna por curso, o «Saberes básicos.» si es de un curso) y una tabla con, por cada curso, los criterios («1.1.») y los saberes de cada fila; una materia puede traer dos tandas (Educación Física: primero y segundo; tercero y cuarto). Matemáticas A y Matemáticas B van como materias aparte, sin apartado de competencias propio. Hay una sola Lengua Extranjera, sin distinguir primera y segunda. Anexo III: Ampliación de Cultura Clásica, Aprendizaje Social y Emocional, Artes Escénicas y Danza, Computación y Robótica, Cultura Científica, Cultura Clásica, Cultura del Flamenco, Dibujo Técnico, Filosofía, Filosofía y Argumentación, Iniciación a la Actividad Emprendedora y Empresarial, Oratoria y Debate y Proyecto de Educación Plástica y Audiovisual. Los ámbitos de los Programas de Diversificación Curricular (anexo IV) y de los Ciclos Formativos de Grado Básico (anexo V) **no se copian todavía**.
+
+### Cómo se extrajo
+
+`scripts/curriculo/andalucia_primaria.py` y `andalucia_eso.py` (este usa las piezas del primero):
+
+- Palabras con su posición (pdfplumber), sin la cabecera ni el pie del BOJA (por altura y, como una página los trae más abajo, también por su texto).
+- Columnas: cada palabra va a la columna en que cae su centro, entre las líneas verticales de la tabla **que cubren ese trozo de página** (en una misma página pueden acabar los saberes, a dos columnas, y empezar la tabla de criterios, a cinco). Los primeros intentos, por el borde izquierdo de cada columna, fallaban: las palabras cortas que cierran una línea justificada («la», «el») se alinean a la derecha y forman un borde falso, y se perdían palabras (21 criterios de sexto de Lengua Castellana). Una línea doble cuenta como una.
+- Palabras partidas a final de línea: con guion, se juntan salvo que la compuesta aparezca entera en el anexo («físico-deportivas»); sin guion (las columnas de siete de Matemáticas de la ESO: «comprendien» + «do»), se juntan si la palabra entera aparece en el anexo y el trozo no es una palabra corta del castellano. Todas quedan anotadas en `scripts/curriculo/andalucia/*.json`.
+- Competencias: del apartado «Competencias Específicas.», por la negrita (sin contar los signos sueltos en otra fuente, que cortaban un enunciado de Economía y Emprendimiento). Criterios y saberes: por sus códigos.
+- Saberes: bloque («A. Sentido numérico»), epígrafe con su número y su título sin el código («Conteo») y saberes con su código delante, como en el BOJA (es como los ven los docentes andaluces en Séneca y como los cita la tabla de criterios). Un epígrafe sin saberes debajo, junto a otros que sí los tienen, es un saber suelto y va entero.
+
+### Comprobaciones
+
+- `scripts/curriculo/comprobar_celdas.py`, por otro camino: cada criterio y cada saber tiene que estar letra a letra en la columna de su tabla leída celda a celda (`extract_tables`, que usa las líneas de la tabla) o, lo que no va en tabla, en el texto seguido del PDF (`pdftotext -raw`), y **detrás tiene que venir el código del siguiente**, para que tampoco pueda faltar el final. Primaria: 1.302 textos, 1.299 así y los otros 3, últimos de su tabla. ESO: 2.800 textos, 2.777 así, 19 últimos de su tabla y 4 revisados a mano (los corta una cabecera de página distinta o un bloque sin punto).
+- Además, en los scripts: numeración seguida de competencias y criterios, cada criterio con su competencia, cada competencia con criterios en cada curso, ningún saber con el código de otro dentro, competencias que terminan en punto y con descriptores, y las competencias de cada tabla contra las del apartado.
+- Vistos contra la imagen de la página: los criterios que no cuadraban en las primeras pasadas, la tabla de siete columnas de Matemáticas de primero y saberes de Conocimiento del Medio.
+- Lo que encontraron y se corrigió: las palabras perdidas en el borde de las columnas, la cabecera de página dentro de un saber de Iniciación a la Actividad Emprendedora, el título del anexo III pegado al último criterio de Tecnología y Digitalización, un saber sin el punto final («DIG.4.A.4 Dispositivos…») pegado al anterior y el enunciado cortado de Economía y Emprendimiento.
+- Pruebas: `src/lib/curriculum/andalucia.test.ts` (totales de cada área y materia, criterios por curso, grupos, cita, alias y las erratas que se conservan).
+
+### Literalidad y erratas del BOJA que se conservan
+
+- Las competencias de las tablas no siempre dicen lo mismo que el apartado de competencias (una coma, «de»/«para», «de las hablas andaluzas»/«como el andaluz» en Lengua Castellana de la ESO, un inciso que las tablas de Educación Artística omiten): la app usa el apartado, que es donde la orden las define. Están todas en `scripts/curriculo/andalucia/*.json` (`competencias_distintas_en_las_tablas`).
+- Primaria: Matemáticas no tiene criterio 2.3.a en tercero (cuarto sí tiene el 2.3.b); palabras repetidas («tanto para las las personas», «Expresar de manera manera», «cultura andaluza andaluza»); códigos sin el punto tras la letra («CMN.1.C4.», «CMN.2.A3.»).
+- ESO: en tercero de Geografía e Historia dos saberes llevan el código de cuarto (GEH.4.B.2 y B.3); «CL.4.B.1.» por «LCL.4.B.1.» en Lengua Castellana de cuarto; el bloque E de primero de Computación y Robótica, con los códigos de tercero (CYR.3.E.1 a E.4); un criterio «1..1.» en Lengua Castellana de primero (se lee como 1.1); bloques sin punto tras la letra («B Geometría plana», Dibujo Técnico); el epígrafe «MAA.4.E.2. Inferencia» de Matemáticas A, con sus saberes E.3.1 a E.3.3 (van con él, con el número 3). Se conserva todo como está.
+- Una errata se corrige porque no es texto que se enseñe, sino la conexión con las competencias clave: «CPSSAA» en los descriptores de Filosofía y de Filosofía y Argumentación, que no existe, por CPSAA.
+- En la tabla de segundo de Computación y Robótica, la columna de competencias trae texto superpuesto en el PDF; no se usa (las competencias salen del apartado) y sus criterios están bien.
+
+### Cómo queda en la app
+
+- Solo en castellano: con la app en catalán o en inglés también se sirve el castellano.
+- Primaria (`porCursoDePrimaria` en `src/lib/curriculum/propios.ts`): los criterios van por curso («1º Primaria»… «6º Primaria») y `resolverGrupo` usa el del curso de la clase cuando el decreto lo trae; los saberes se guardan por ciclo («1», «2», «3») y cada curso toma los de su ciclo. Educación en Valores, solo en sexto; Segunda Lengua Extranjera, en quinto y sexto, con los criterios «a» y «b» del primer ciclo de Primera Lengua Extranjera y sus saberes.
+- ESO: curso a curso («1º ESO»…, como Madrid), con «Matemáticas A» y «Matemáticas B» en cuarto. 30 materias.
+- Identificadores: los de Madrid cuando es la misma materia; los de las optativas propias, nuevos (`computacion-y-robotica`, `oratoria-y-debate`, `cultura-del-flamenco`…). Alias nuevos para ellas. «Segunda Lengua Extranjera» no se empareja sola (en Madrid son dos materias): la app pregunta.
+- Descriptores: los escribe el propio script (todas las competencias los traen); `descriptores.py` no toca Andalucía.
+- Tamaño: 61 KB comprimido la Primaria y 129 KB la ESO, que solo se descargan con un perfil de Andalucía.
+
+### Pendiente
+
+- El calendario escolar: en Andalucía lo aprueba cada delegación territorial (ocho provincias, Decreto 301/2009), así que hace falta la provincia en el perfil (ver «Calendario escolar»).
+- Los ámbitos de los Programas de Diversificación Curricular (anexo IV de la orden de la ESO).
+- La relación de cada criterio con sus saberes (la última columna de las tablas), por si se quiere usar al preparar una SdA.
+- PT y AL: la normativa y los modelos de inclusión de Andalucía (`docs/PTAL.md`).
+- Confirmar en el buscador del BOJA que las órdenes no tienen correcciones ni modificaciones.
 
 ## Pendiente de decidir
 

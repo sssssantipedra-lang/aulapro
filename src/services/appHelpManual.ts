@@ -45,7 +45,15 @@ Madrid, en castellano: en Primaria, el Decreto 61/2022, con sus áreas propias
 Extranjera y Tecnología y Robótica, y Educación en Valores solo en quinto); en la
 ESO, el Decreto 65/2022, curso a curso, con sus materias propias (Ciencias de la
 Computación, Cultura Clásica y Filosofía). Las dos, modificadas por el Decreto
-59/2024. El resto de comunidades siguen el estatal.
+59/2024. Y Andalucía, en castellano: el Decreto 101/2023 en Primaria y el
+Decreto 102/2023 en la ESO, con el currículo de sus órdenes de 30 de mayo de 2023.
+En Primaria, los criterios de evaluación son de cada curso (1.1.a en el primer
+curso del ciclo y 1.1.b en el segundo) y los saberes, del ciclo, con su código
+(MAT.1.A.1.1.); Educación en Valores solo en sexto y Segunda Lengua Extranjera en
+quinto y sexto. En la ESO, curso a curso, con sus materias optativas propias
+(Computación y Robótica, Oratoria y Debate, Cultura del Flamenco, Cultura
+Clásica, Filosofía y Argumentación…) y una sola Lengua Extranjera para la
+primera y la segunda. El resto de comunidades siguen el estatal.
 
 Las funciones de IA usan una clave gratuita de Google Gemini que el docente pega
 en Configuración. Sin clave, la aplicación funciona entera menos lo que redacta la IA.
@@ -431,8 +439,8 @@ conecta el decreto («Competencias clave: STEM, CD, CPSAA»). Por esa conexión,
 la media de las competencias clave marcadas en las rúbricas y dianas (de 1 a 4)
 y de las competencias específicas conectadas con él (su nota sobre 10 pasa a la
 escala de 1 a 4: un 7,5 es un 3). El descriptor de cada sector dice de dónde
-sale («Matemáticas CE2 10/10»). La conexión la dice el decreto: en el estatal y
-en Madrid, con los descriptores del perfil de salida; en la Comunitat
+sale («Matemáticas CE2 10/10»). La conexión la dice el decreto: en el estatal,
+en Madrid y en Andalucía, con los descriptores del perfil de salida; en la Comunitat
 Valenciana, con su tabla de conexiones. Cataluña no la publica, y en Madrid
 Primaria solo está en parte de las áreas: esas competencias no llegan a la
 Diana por este camino.
