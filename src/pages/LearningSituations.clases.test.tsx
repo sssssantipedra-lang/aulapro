@@ -94,7 +94,7 @@ describe('Situaciones de aprendizaje · varias clases y barreras', () => {
     // Se ve lo que se enviará
     expect(screen.getByText('el alumno necesita más tiempo')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /Generar situación de aprendizaje/ }));
-    expect((generateSda.mock.calls[0] as unknown[])[0]).toMatchObject({ barreras: ['Dislexia', 'el alumno necesita más tiempo'] });
+    expect((generateSda.mock.calls[0] as unknown[])[0]).toMatchObject({ barreras: ['el alumno necesita más tiempo'] });
   });
 
   it('sin clase no hay casilla, y con una clase con avisos sí', async () => {

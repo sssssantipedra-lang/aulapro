@@ -199,7 +199,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
               <textarea id="ap-inf-txt" className="finput" rows={archivo ? 12 : 8} value={pegado} onChange={e => setPegado(e.target.value)} />
             </div>
             <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
-              {t('Es un dato muy sensible. La IA recibe solo el texto, nunca el archivo: se lee aquí, en tu dispositivo, con el nombre del alumnado cambiado por un código y sin correos, teléfonos, DNI, fechas de nacimiento, familiares ni domicilio. Revisa el texto antes de enviarlo y quita lo que no haga falta. El informe no se guarda en la aplicación: solo lo que revises y aceptes.')}
+              {t('Es un dato muy sensible. La IA recibe solo el texto, nunca el archivo: se lee aquí, en tu dispositivo, con el nombre del alumnado cambiado por un código y sin correos, teléfonos, DNI, fechas de nacimiento, familiares ni domicilio, ni diagnósticos, trastornos, discapacidades o medicación, que salen como [dato de salud]. Revisa el texto antes de enviarlo y borra el apartado del diagnóstico o la valoración clínica si queda algo: a la IA le basta con lo que necesita en el aula. El informe no se guarda en la aplicación: solo lo que revises y aceptes.')}
             </p>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-ia" disabled={leyendo || sinClave || !hayTexto} onClick={leer}>

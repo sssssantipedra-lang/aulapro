@@ -14,6 +14,7 @@ import {
   Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType,
 } from 'docx';
 import { callGemini, parseGeminiJson } from './gemini';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { marcoApoyo, alumnoParaIA } from './apoyoIA';
 import { CON_QUIEN, coordinacionesDe, datosDelTrimestre, nivelDe, nuevoIdApoyo, type DatosTrimestre } from '../lib/apoyo';
 import { describirCriterio, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
@@ -169,7 +170,8 @@ export function datosParaIA(datos: DatosTrimestre, trimestre: Trimestre): string
   if (datos.notas.length) lineas.push('Notas del especialista:', ...datos.notas.slice(-15).map(n => `- ${n.fecha}: ${n.texto}`));
   if (datos.temas.length) lineas.push('Lo que trabajaba su clase:', ...datos.temas.slice(-10).map(n => `- ${n.fecha}: ${n.texto}`));
   if (datos.coordinaciones.length) lineas.push('Coordinaciones de este trimestre:', ...coordinacionesTexto(datos.coordinaciones));
-  return lineas.join('\n');
+  // Sin datos de contacto ni de salud: notas, comentarios y acuerdos son texto libre del docente
+  return lineas.map(textoLibreParaIA).join('\n');
 }
 
 /**

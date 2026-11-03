@@ -18,7 +18,7 @@ describe('barreras de aprendizaje', () => {
 
   it('una línea por alumno, juntando las iguales y sin tocar las clases no elegidas', () => {
     expect(barrerasDeClases(alumnado, ['a', 'b'])).toEqual([
-      '2 alumnos: Dislexia; Necesita más tiempo',
+      '2 alumnos: Necesita más tiempo',
       'el alumno se distrae con facilidad',
     ]);
   });

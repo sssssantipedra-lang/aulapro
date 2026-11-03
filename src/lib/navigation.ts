@@ -37,6 +37,7 @@
  * Las pantallas no cambian ni de identificador: todo lo que ya navegaba a
  * «rubrics» o «records» sigue funcionando; el apartado solo agrupa.
  */
+import { CORRECCION_CON_IA } from './correccionIA';
 import type { Section } from '../types';
 import type { TipoDocente } from './tipoDocente';
 
@@ -74,7 +75,9 @@ export type NavEntry = ({ kind: 'link' } & NavLink) | ({ kind: 'hub' } & NavHub)
 export const HUBS: readonly NavHub[] = [
   {
     id: 'evaluate', label: 'Evaluar', icon: 'evaluate',
-    hint: 'Evalúa con rúbricas, con dianas, con escalas de registro o corrigiendo un examen o un trabajo por foto, recoge autoevaluaciones y consulta todo lo evaluado.',
+    hint: CORRECCION_CON_IA
+      ? 'Evalúa con rúbricas, con dianas, con escalas de registro o corrigiendo un examen o un trabajo por foto, recoge autoevaluaciones y consulta todo lo evaluado.'
+      : 'Evalúa con rúbricas, con dianas o con escalas de registro, recoge autoevaluaciones y consulta todo lo evaluado.',
     // Al entrar, dos tarjetas grandes (rúbricas o dianas) y cómo va cada clase
     // (decisión del dueño, 11-10-2026). Rúbricas y Dianas eran una sola
     // pantalla con sus propias pestañas, repetidas con las de arriba.
@@ -84,7 +87,7 @@ export const HUBS: readonly NavHub[] = [
       { id: 'rubrics',    label: 'Rúbricas' },
       { id: 'dianas',     label: 'Dianas' },
       { id: 'registros',  label: 'Escalas de registro' },
-      { id: 'evalfoto',   label: 'Por foto' },
+      ...(CORRECCION_CON_IA ? [{ id: 'evalfoto' as const, label: 'Por foto' }] : []),
       { id: 'diana',      label: 'Diana competencial' },
       { id: 'selfassess', label: 'Autoevaluaciones' },
       { id: 'history',    label: 'Historial' },

@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { ArrowRight, Camera, ClipboardCheck, History, Radar, Target, ThumbsUp, TrendingUp, UserCheck } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, Rubric, Section } from '../types';
 import { esRegistro } from '../lib/registro';
+import { CORRECCION_CON_IA } from '../lib/correccionIA';
 import { rendimientoPorClase } from '../lib/rendimiento';
 import { RendimientoCarrusel } from '../components/evaluar/RendimientoCarrusel';
 import { useI18n } from '../i18n';
@@ -83,7 +84,7 @@ export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, onNa
       </div>
 
       <div className="ev-cards cuatro">
-        {tarjetas.map(c => (
+        {tarjetas.filter(c => CORRECCION_CON_IA || c.id !== 'evalfoto').map(c => (
           <button key={c.id} type="button" className="ev-card" style={{ '--ev-c': c.color } as React.CSSProperties} onClick={() => onNav(c.id)}>
             <span className="ev-card-ico">{c.icono}</span>
             <span className="ev-card-ttl">{t(c.titulo)}</span>

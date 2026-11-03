@@ -15,7 +15,7 @@
 import { callGemini, parseGeminiJson } from './gemini';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { nivelDe } from '../lib/apoyo';
-import { quitarDatosDeContacto } from '../lib/documentoParaIA';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { AlumnoApoyo, CursoDe, ObjetivoApoyo, ProgramaApoyo, Trimestre } from '../types/apoyo';
 import type { OfficialCriterionRef } from '../types';
@@ -66,18 +66,17 @@ export function marcoApoyo(comunidad: ComunidadId | undefined, lang: 'es' | 'en'
     (lang === 'en' ? '\nWrite every human-readable text in English.' : '');
 }
 
-/** Lo que la IA sabe del alumno: lo de su ficha menos el diagnóstico (ver arriba). */
+/** Lo que la IA sabe del alumno: su nivel y lo que necesita en el aula, sin diagnóstico, categorías NEAE ni otros datos de salud (`textoLibreParaIA`; revisión del abogado del dueño, 3-11-2026). */
 export function alumnoParaIA(a: AlumnoApoyo, nombreCurso: (c: CursoDe) => string): string {
   const nivel = nivelDe(a);
   return [
     `Alumno: ${a.nombre}`,
     a.matricula ? `Matriculado en ${nombreCurso(a.matricula)}${a.claseOrigen ? ` (${a.claseOrigen})` : ''}` : (a.claseOrigen ? `Clase: ${a.claseOrigen}` : ''),
     nivel ? `Nivel de competencia curricular: ${nombreCurso(nivel)}` : '',
-    a.categorias.length ? `Necesidades específicas de apoyo educativo: ${a.categorias.join('; ')}` : '',
-    a.necesidades ? `Necesidades educativas: ${quitarDatosDeContacto(a.necesidades)}` : '',
-    a.notas ? `Notas del especialista: ${quitarDatosDeContacto(a.notas)}` : '',
-    a.informe?.fortalezas ? `Fortalezas (informe del orientador): ${a.informe.fortalezas}` : '',
-    a.informe?.orientaciones ? `Orientaciones del informe del orientador: ${a.informe.orientaciones}` : '',
+    a.necesidades ? `Necesidades educativas: ${textoLibreParaIA(a.necesidades)}` : '',
+    a.notas ? `Notas del especialista: ${textoLibreParaIA(a.notas)}` : '',
+    a.informe?.fortalezas ? `Fortalezas (informe del orientador): ${textoLibreParaIA(a.informe.fortalezas)}` : '',
+    a.informe?.orientaciones ? `Orientaciones del informe del orientador: ${textoLibreParaIA(a.informe.orientaciones)}` : '',
   ].filter(Boolean).join('\n');
 }
 

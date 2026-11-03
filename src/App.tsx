@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
+import { CORRECCION_CON_IA } from './lib/correccionIA';
 import { actualizarCalendarios, calendarios, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { UpdateBanner } from './components/UpdateBanner';
@@ -447,7 +448,7 @@ function AppInner() {
                 onNav={setSection}
               />
             )}
-            {section === 'evalfoto' && (
+            {CORRECCION_CON_IA && section === 'evalfoto' && (
               <EvalFoto
                 classes={st.classes} students={st.students} gradeCategories={st.gradeCategories} gradeItems={st.gradeItems}
                 onAddGradeItem={st.addGradeItem} onSetGrade={st.setGrade} onNav={setSection}

@@ -75,6 +75,26 @@ Lo que solo importa si algún día se vuelve a las apps nativas: el PDF de Andro
 
 ## 5. Legal y cuentas
 
+### Revisión del abogado (3-11-2026)
+
+El abogado del dueño revisó lo que hace la app con los datos y la venta. Hecho el mismo día (rama `ccr-3f4014f5-llwckk`):
+
+- ~~**Corregir con IA.**~~ Apagado: ni «Evaluar por foto» ni «Evaluar trabajo con IA» (`src/lib/correccionIA.ts`, `docs/EVALUAR_FOTO.md`). Para volver a encenderlo, antes hay que cerrar con el abogado lo de la Ley de IA (abajo).
+- ~~**Datos de salud a la IA.**~~ Ya no salen ni la categoría NEAE ni diagnósticos, trastornos, discapacidades o medicación escritos en los textos (`quitarDatosDeSalud`, `CLAUDE.md`, «Lo que va a la IA»).
+- ~~**Ampliar con los dedos.**~~ Se amplía y no se aleja (`docs/APP_WEB.md`). Sin comprobar en un iPhone real.
+
+Pendiente:
+
+- [ ] **Aviso legal** (dueño, con la gestoría): nombre, NIF, domicilio y contacto, antes de vender. Choca con la regla de no publicar el DNI del dueño (el NIF de un autónomo es el DNI): decidir si se publica o se hace de otra forma (sociedad). Preguntar a la gestoría si vale su domicilio o una oficina virtual.
+- [ ] **Alta de autónomo** (dueño, con la gestoría) antes del primer cobro; tarifa plana.
+- [ ] **Condiciones** (Claude, cuando se le pida, y revisión del abogado): que AulaPro no garantiza que la cuota gratuita de Gemini siga existiendo ni en las condiciones de hoy; que el docente hace sus copias, sin excluir la responsabilidad cuando el fallo es de la app; los días de margen cuando falla el cobro de la renovación (mirar cuántos reintenta Lemon Squeezy); que Lemon Squeezy cobre no quita las obligaciones del titular. Cancelar la renovación ya deja usar la app hasta el final del año pagado (texto y servidor coinciden).
+- [ ] **Casilla de aceptación expresa** (Claude, cuando se le pida): sin marcar, para quien paga y para los fundadores, y que el servidor anote la prueba (huella de la cuenta, versión de las condiciones y fecha). Es un dato nuevo: la privacidad lo tiene que decir.
+- [ ] **Licencias compartidas** (Claude): escribir en la privacidad el interés legítimo, qué se guarda y cuánto tiempo; no guardar para siempre las licencias canceladas (la lista de bloqueadas guarda una huella 400 días).
+- [ ] **Transferencias a EE. UU.** (Claude, y el abogado lo revisa): Google, Microsoft, Cloudflare, Netlify y Lemon Squeezy, una a una: qué datos tratan y con qué garantía (Data Privacy Framework u otra).
+- [ ] **Pictogramas**: son Mulberry Symbols (CC BY-SA 4.0); comprobar que el autor y la licencia se ven en la app y en la web.
+- [ ] **Capturas de la web**: la demo interactiva (`web/sitio/assets/demo-pantallas.js` y sus imágenes) aún enseña la tarjeta y la pestaña de «Evaluar por foto» (ya no lleva a ninguna parte). Volver a ejecutar `scripts/web/capturar.mjs` y `capturar-portada.mjs`.
+- [ ] **La ACS de la rama `curriculo-andalucia`**: al llevarla a `master`, su contexto para la IA (`acsParaIA`) tiene que pasar sus textos por `textoLibreParaIA` y no enviar `categorias`.
+
 - **Abogado de protección de datos** (ya no imprescindible: con la clave del docente, AulaPro no es encargado del tratamiento de lo que va a la IA). Sigue siendo recomendable una consulta corta sobre:
   - «Evaluar por foto» y la Ley de IA de la UE: la IA que evalúa resultados de aprendizaje está en la lista de alto riesgo del ámbito educativo. Comprobar también el calendario de obligaciones vigente.
   - La lectura de la cláusula «solo servicios de pago» de Google para una app en la que cada docente pone su propia clave.
