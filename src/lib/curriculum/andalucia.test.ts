@@ -1,7 +1,8 @@
 /**
- * El currículo de Primaria de Andalucía que lleva la app: el anexo II de la
- * Orden de 30 de mayo de 2023, generado por `scripts/curriculo/andalucia_primaria.py`
- * y comprobado celda a celda contra el PDF (`scripts/curriculo/comprobar_celdas.py`).
+ * El currículo de Andalucía que lleva la app: Primaria, el anexo II de su Orden
+ * de 30 de mayo de 2023 (`scripts/curriculo/andalucia_primaria.py`), y ESO, los
+ * anexos II y III de la suya (`scripts/curriculo/andalucia_eso.py`), comprobados
+ * celda a celda contra los PDF (`scripts/curriculo/comprobar_celdas.py`).
  * Los totales son los del texto oficial; si cambian, es que la extracción o los
  * datos han cambiado y hay que volver a comprobarlos (`docs/COMUNIDADES.md`).
  */
@@ -9,6 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { cargarCurriculo } from './cargar';
 import { citarNormas, normasDe } from './comunidades';
 import { competenciasDe, resolverGrupo, type CurriculumEntry } from './index';
+import { emparejarMateria } from './mapeoMaterias';
 import { materiasDelCurso } from './materiasDeClase';
 
 const abrir = () => cargarCurriculo('andalucia', 'primaria', 'es');
@@ -42,10 +44,6 @@ describe('Primaria de Andalucía', () => {
       + 'desarrollado por la Orden de 30 de mayo de 2023 (BOJA núm. 104, de 2 de junio de 2023)',
     );
     expect((await cargarCurriculo('andalucia', 'primaria', 'ca')).idioma).toBe('es');
-  });
-
-  it('la ESO sigue con el estatal mientras no esté copiada', async () => {
-    expect((await cargarCurriculo('andalucia', 'eso', 'es')).origen).toBe('estatal');
   });
 
   it('tiene las áreas del artículo 6 de la orden, en el orden del anexo II', async () => {
@@ -137,5 +135,118 @@ describe('Primaria de Andalucía', () => {
     // «CMN.1.C4.», sin el punto tras la letra
     const medio = materia(materias, 'conocimiento-del-medio');
     expect(medio.saberes['1º Primaria'][2].epigrafes.map(e => e.titulo)).toContain('Conciencia ecosocial');
+  });
+});
+
+// id, nombre, competencias, criterios y saberes de cada grupo (cursos, y Matemáticas A y B en cuarto)
+const MATERIAS_ESO: [string, string, number, Record<string, number>, Record<string, number>][] = [
+  ['biologia-y-geologia', 'Biología y Geología', 6, {'1º ESO': 19, '3º ESO': 19, '4º ESO': 16}, {'1º ESO': 34, '3º ESO': 29, '4º ESO': 33}],
+  ['digitalizacion', 'Digitalización', 4, {'4º ESO': 14}, {'4º ESO': 17}],
+  ['economia-y-emprendimiento', 'Economía y Emprendimiento', 7, {'4º ESO': 21}, {'4º ESO': 21}],
+  ['educacion-fisica', 'Educación Física', 5, {'1º ESO': 17, '2º ESO': 17, '3º ESO': 17, '4º ESO': 17}, {'1º ESO': 43, '2º ESO': 44, '3º ESO': 43, '4º ESO': 49}],
+  ['educacion-plastica-visual-y-audiovisual', 'Educación Plástica, Visual y Audiovisual', 8, {'1º ESO': 20, '3º ESO': 22}, {'1º ESO': 13, '3º ESO': 15}],
+  ['educacion-en-valores', 'Educación en Valores Cívicos y Éticos', 4, {'2º ESO': 13}, {'2º ESO': 23}],
+  ['expresion-artistica', 'Expresión Artística', 4, {'4º ESO': 9}, {'4º ESO': 21}],
+  ['fisica-y-quimica', 'Física y Química', 6, {'2º ESO': 15, '3º ESO': 14, '4º ESO': 15}, {'2º ESO': 16, '3º ESO': 18, '4º ESO': 27}],
+  ['formacion-y-orientacion', 'Formación y Orientación Personal y Profesional', 5, {'4º ESO': 14}, {'4º ESO': 20}],
+  ['geografia-e-historia', 'Geografía e Historia', 9, {'1º ESO': 30, '2º ESO': 30, '3º ESO': 21, '4º ESO': 21}, {'1º ESO': 30, '2º ESO': 38, '3º ESO': 31, '4º ESO': 33}],
+  ['latin', 'Latín', 5, {'4º ESO': 21}, {'4º ESO': 39}],
+  ['lengua-castellana', 'Lengua Castellana y Literatura', 10, {'1º ESO': 23, '2º ESO': 23, '3º ESO': 23, '4º ESO': 23}, {'1º ESO': 33, '2º ESO': 46, '3º ESO': 44, '4º ESO': 48}],
+  ['lengua-extranjera', 'Lengua Extranjera', 6, {'1º ESO': 16, '2º ESO': 16, '3º ESO': 16, '4º ESO': 16}, {'1º ESO': 23, '2º ESO': 23, '3º ESO': 23, '4º ESO': 23}],
+  ['matematicas', 'Matemáticas', 10, {'1º ESO': 23, '2º ESO': 23, '3º ESO': 22, 'Matemáticas A': 23, 'Matemáticas B': 22}, {'1º ESO': 41, '2º ESO': 52, '3º ESO': 71, 'Matemáticas A': 51, 'Matemáticas B': 51}],
+  ['musica', 'Música', 4, {'1º ESO': 9, '2º ESO': 10, '4º ESO': 9}, {'1º ESO': 21, '2º ESO': 20, '4º ESO': 24}],
+  ['tecnologia', 'Tecnología', 6, {'4º ESO': 13}, {'4º ESO': 22}],
+  ['tecnologia-y-digitalizacion', 'Tecnología y Digitalización', 7, {'2º ESO': 15, '3º ESO': 15}, {'2º ESO': 21, '3º ESO': 17}],
+  ['ampliacion-de-cultura-clasica', 'Ampliación de Cultura Clásica', 7, {'4º ESO': 28}, {'4º ESO': 35}],
+  ['aprendizaje-social-y-emocional', 'Aprendizaje Social y Emocional', 5, {'4º ESO': 22}, {'4º ESO': 26}],
+  ['artes-escenicas-y-danza', 'Artes Escénicas y Danza', 7, {'4º ESO': 17}, {'4º ESO': 21}],
+  ['computacion-y-robotica', 'Computación y Robótica', 6, {'1º ESO': 15, '2º ESO': 16, '3º ESO': 17}, {'1º ESO': 41, '2º ESO': 41, '3º ESO': 41}],
+  ['cultura-cientifica', 'Cultura Científica', 5, {'4º ESO': 22}, {'4º ESO': 24}],
+  ['cultura-clasica', 'Cultura Clásica', 6, {'3º ESO': 26}, {'3º ESO': 35}],
+  ['cultura-del-flamenco', 'Cultura del Flamenco', 4, {'3º ESO': 9}, {'3º ESO': 18}],
+  ['dibujo-tecnico', 'Dibujo Técnico', 5, {'4º ESO': 15}, {'4º ESO': 23}],
+  ['filosofia', 'Filosofía', 9, {'4º ESO': 24}, {'4º ESO': 27}],
+  ['filosofia-y-argumentacion', 'Filosofía y Argumentación', 8, {'3º ESO': 21}, {'3º ESO': 10}],
+  ['iniciacion-actividad-emprendedora', 'Iniciación a la Actividad Emprendedora y Empresarial', 6, {'3º ESO': 20}, {'3º ESO': 17}],
+  ['oratoria-y-debate', 'Oratoria y Debate', 5, {'1º ESO': 20, '2º ESO': 20, '3º ESO': 20}, {'1º ESO': 21, '2º ESO': 21, '3º ESO': 21}],
+  ['proyecto-educacion-plastica', 'Proyecto de Educación Plástica y Audiovisual', 4, {'2º ESO': 9}, {'2º ESO': 24}],
+];
+
+const abrirEso = () => cargarCurriculo('andalucia', 'eso', 'es');
+
+describe('ESO de Andalucía', () => {
+  it('se abre como currículo autonómico, citando el Decreto 102/2023 y la orden que lo desarrolla', async () => {
+    const c = await abrirEso();
+    expect(c.origen).toBe('autonomico');
+    expect(c.idioma).toBe('es');
+    expect(citarNormas(c.normas, 'es')).toBe(
+      'Decreto 102/2023, de 9 de mayo (BOJA núm. 90, de 15 de mayo de 2023), '
+      + 'desarrollado por la Orden de 30 de mayo de 2023 (BOJA núm. 104, de 2 de junio de 2023)',
+    );
+  });
+
+  it('tiene las materias de los anexos II y III, en su orden', async () => {
+    const { materias } = await abrirEso();
+    expect(materias.map(m => [m.id, m.nombre])).toEqual(MATERIAS_ESO.map(([id, nombre]) => [id, nombre]));
+  });
+
+  it('cada materia tiene sus competencias, criterios y saberes de cada curso, con los totales del texto oficial', async () => {
+    const { materias } = await abrirEso();
+    for (const [id, , competencias, criterios, nSaberes] of MATERIAS_ESO) {
+      const m = materia(materias, id);
+      expect(m.competencias.map(c => c.n), id).toEqual(Array.from({ length: competencias }, (_, i) => i + 1));
+      expect(Object.fromEntries(Object.entries(m.criterios).map(([g, l]) => [g, l.length])), id).toEqual(criterios);
+      expect(Object.fromEntries(Object.keys(m.saberes).map(g => [g, saberes(m, g).length])), id).toEqual(nSaberes);
+      for (const c of m.competencias) expect(c.descriptores?.length, `${id} CE${c.n}`).toBeGreaterThan(0);
+    }
+    const total = materias.reduce((s, m) => s + Object.values(m.criterios).flat().length, 0);
+    expect(total).toBe(1063);
+  });
+
+  it('cada criterio pertenece a una competencia de la materia, sin repetirse en su curso', async () => {
+    const { materias } = await abrirEso();
+    for (const m of materias) {
+      for (const [grupo, lista] of Object.entries(m.criterios)) {
+        const ns = new Set(competenciasDe(m, grupo).map(c => c.n));
+        expect(new Set(lista.map(c => c.codigo)).size, `${m.id} ${grupo}`).toBe(lista.length);
+        for (const c of lista) {
+          expect(ns.has(c.competencia), `${m.id} ${grupo} ${c.codigo}`).toBe(true);
+          expect(c.codigo).toMatch(new RegExp(`^${c.competencia}\\.\\d+$`));
+        }
+      }
+    }
+  });
+
+  it('una clase de un curso ve los criterios y saberes de su curso; en cuarto, Matemáticas A o B', async () => {
+    const { materias } = await abrirEso();
+    const r = resolverGrupo('eso', 'Biología y Geología', 3, undefined, materias)!;
+    expect(r.grupo).toBe('3º ESO');
+    expect(r.entry.saberes[r.grupo][0].epigrafes[0].items[0]).toMatch(/^BYG\.3\.A\.1\./);
+    expect(resolverGrupo('eso', 'Matemáticas', 4, undefined, materias)).toBeNull();
+    expect(resolverGrupo('eso', 'Matemáticas', 4, 'B', materias)!.grupo).toBe('Matemáticas B');
+    // Matemáticas A y B no tienen apartado de competencias propio: las de Matemáticas
+    const mates = materia(materias, 'matematicas');
+    expect(competenciasDe(mates, 'Matemáticas A')).toEqual(competenciasDe(mates, '1º ESO'));
+  });
+
+  it('una sola Lengua Extranjera, para la primera y la segunda', async () => {
+    const { materias } = await abrirEso();
+    expect(materias.filter(m => /Lengua Extranjera/.test(m.nombre)).map(m => m.id)).toEqual(['lengua-extranjera']);
+    // «Segunda Lengua Extranjera» no se adivina (en Madrid son dos materias): la app pregunta
+    expect(emparejarMateria('Segunda Lengua Extranjera', 'eso', materias)).toBeNull();
+    expect(emparejarMateria('Inglés', 'eso', materias)).toBe('Lengua Extranjera');
+    expect(emparejarMateria('Flamenco', 'eso', materias)).toBe('Cultura del Flamenco');
+  });
+
+  it('lo que el BOJA trae así se copia tal cual, y las palabras partidas por la maquetación se juntan', async () => {
+    const { materias } = await abrirEso();
+    // Geografía e Historia, tercero: un saber con el código de cuarto
+    expect(saberes(materia(materias, 'geografia-e-historia'), '3º ESO').some(s => s.startsWith('GEH.4.B.2. Tiempo histórico'))).toBe(true);
+    // Matemáticas de primero, a siete columnas: «comprendien» + «do»
+    const mates = materia(materias, 'matematicas');
+    expect(mates.criterios['1º ESO'][0].texto).toContain('comprendiendo las preguntas formuladas');
+    // Lo de los anexos III y siguientes no se cuela en la última materia del anexo II
+    const tyd = materia(materias, 'tecnologia-y-digitalizacion');
+    expect(tyd.criterios['2º ESO'].at(-1)!.texto).toMatch(/en el entorno más cercano\.$/);
   });
 });

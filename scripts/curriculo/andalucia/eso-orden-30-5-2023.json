@@ -1,0 +1,480 @@
+{
+ "resumen": {
+  "biologia-y-geologia": {
+   "competencias": 6,
+   "criterios": {
+    "1º ESO": 19,
+    "3º ESO": 19,
+    "4º ESO": 16
+   },
+   "saberes": {
+    "1º ESO": 34,
+    "3º ESO": 29,
+    "4º ESO": 33
+   },
+   "prefijo": "BYG"
+  },
+  "digitalizacion": {
+   "competencias": 4,
+   "criterios": {
+    "4º ESO": 14
+   },
+   "saberes": {
+    "4º ESO": 17
+   },
+   "prefijo": "DIG"
+  },
+  "economia-y-emprendimiento": {
+   "competencias": 7,
+   "criterios": {
+    "4º ESO": 21
+   },
+   "saberes": {
+    "4º ESO": 21
+   },
+   "prefijo": "ECE"
+  },
+  "educacion-fisica": {
+   "competencias": 5,
+   "criterios": {
+    "1º ESO": 17,
+    "2º ESO": 17,
+    "3º ESO": 17,
+    "4º ESO": 17
+   },
+   "saberes": {
+    "1º ESO": 43,
+    "2º ESO": 44,
+    "3º ESO": 43,
+    "4º ESO": 49
+   },
+   "prefijo": "EFI"
+  },
+  "educacion-plastica-visual-y-audiovisual": {
+   "competencias": 8,
+   "criterios": {
+    "1º ESO": 20,
+    "3º ESO": 22
+   },
+   "saberes": {
+    "1º ESO": 13,
+    "3º ESO": 15
+   },
+   "prefijo": "EPV"
+  },
+  "educacion-en-valores": {
+   "competencias": 4,
+   "criterios": {
+    "2º ESO": 13
+   },
+   "saberes": {
+    "2º ESO": 23
+   },
+   "prefijo": "VCE"
+  },
+  "expresion-artistica": {
+   "competencias": 4,
+   "criterios": {
+    "4º ESO": 9
+   },
+   "saberes": {
+    "4º ESO": 21
+   },
+   "prefijo": "EAR"
+  },
+  "fisica-y-quimica": {
+   "competencias": 6,
+   "criterios": {
+    "2º ESO": 15,
+    "3º ESO": 14,
+    "4º ESO": 15
+   },
+   "saberes": {
+    "2º ESO": 16,
+    "3º ESO": 18,
+    "4º ESO": 27
+   },
+   "prefijo": "FYQ"
+  },
+  "formacion-y-orientacion": {
+   "competencias": 5,
+   "criterios": {
+    "4º ESO": 14
+   },
+   "saberes": {
+    "4º ESO": 20
+   },
+   "prefijo": "FOP"
+  },
+  "geografia-e-historia": {
+   "competencias": 9,
+   "criterios": {
+    "1º ESO": 30,
+    "2º ESO": 30,
+    "3º ESO": 21,
+    "4º ESO": 21
+   },
+   "saberes": {
+    "1º ESO": 30,
+    "2º ESO": 38,
+    "3º ESO": 31,
+    "4º ESO": 33
+   },
+   "prefijo": "GEH"
+  },
+  "latin": {
+   "competencias": 5,
+   "criterios": {
+    "4º ESO": 21
+   },
+   "saberes": {
+    "4º ESO": 39
+   },
+   "prefijo": "LAT"
+  },
+  "lengua-castellana": {
+   "competencias": 10,
+   "criterios": {
+    "1º ESO": 23,
+    "2º ESO": 23,
+    "3º ESO": 23,
+    "4º ESO": 23
+   },
+   "saberes": {
+    "1º ESO": 33,
+    "2º ESO": 46,
+    "3º ESO": 44,
+    "4º ESO": 48
+   },
+   "prefijo": "LCL"
+  },
+  "lengua-extranjera": {
+   "competencias": 6,
+   "criterios": {
+    "1º ESO": 16,
+    "2º ESO": 16,
+    "3º ESO": 16,
+    "4º ESO": 16
+   },
+   "saberes": {
+    "1º ESO": 23,
+    "2º ESO": 23,
+    "3º ESO": 23,
+    "4º ESO": 23
+   },
+   "prefijo": "LEX"
+  },
+  "matematicas": {
+   "competencias": 10,
+   "criterios": {
+    "1º ESO": 23,
+    "2º ESO": 23,
+    "3º ESO": 22,
+    "Matemáticas A": 23,
+    "Matemáticas B": 22
+   },
+   "saberes": {
+    "1º ESO": 41,
+    "2º ESO": 52,
+    "3º ESO": 71
+   },
+   "prefijo": "MAT"
+  },
+  "musica": {
+   "competencias": 4,
+   "criterios": {
+    "1º ESO": 9,
+    "2º ESO": 10,
+    "4º ESO": 9
+   },
+   "saberes": {
+    "1º ESO": 21,
+    "2º ESO": 20,
+    "4º ESO": 24
+   },
+   "prefijo": "MUS"
+  },
+  "tecnologia": {
+   "competencias": 6,
+   "criterios": {
+    "4º ESO": 13
+   },
+   "saberes": {
+    "4º ESO": 22
+   },
+   "prefijo": "TEC"
+  },
+  "tecnologia-y-digitalizacion": {
+   "competencias": 7,
+   "criterios": {
+    "2º ESO": 15,
+    "3º ESO": 15
+   },
+   "saberes": {
+    "2º ESO": 21,
+    "3º ESO": 17
+   },
+   "prefijo": "TYD"
+  },
+  "ampliacion-de-cultura-clasica": {
+   "competencias": 7,
+   "criterios": {
+    "4º ESO": 28
+   },
+   "saberes": {
+    "4º ESO": 35
+   },
+   "prefijo": "ACC"
+  },
+  "aprendizaje-social-y-emocional": {
+   "competencias": 5,
+   "criterios": {
+    "4º ESO": 22
+   },
+   "saberes": {
+    "4º ESO": 26
+   },
+   "prefijo": "ASE"
+  },
+  "artes-escenicas-y-danza": {
+   "competencias": 7,
+   "criterios": {
+    "4º ESO": 17
+   },
+   "saberes": {
+    "4º ESO": 21
+   },
+   "prefijo": "AED"
+  },
+  "computacion-y-robotica": {
+   "competencias": 6,
+   "criterios": {
+    "1º ESO": 15,
+    "2º ESO": 16,
+    "3º ESO": 17
+   },
+   "saberes": {
+    "1º ESO": 41,
+    "2º ESO": 41,
+    "3º ESO": 41
+   },
+   "prefijo": "CYR"
+  },
+  "cultura-cientifica": {
+   "competencias": 5,
+   "criterios": {
+    "4º ESO": 22
+   },
+   "saberes": {
+    "4º ESO": 24
+   },
+   "prefijo": "CCI"
+  },
+  "cultura-clasica": {
+   "competencias": 6,
+   "criterios": {
+    "3º ESO": 26
+   },
+   "saberes": {
+    "3º ESO": 35
+   },
+   "prefijo": "CCL"
+  },
+  "cultura-del-flamenco": {
+   "competencias": 4,
+   "criterios": {
+    "3º ESO": 9
+   },
+   "saberes": {
+    "3º ESO": 18
+   },
+   "prefijo": "CF"
+  },
+  "dibujo-tecnico": {
+   "competencias": 5,
+   "criterios": {
+    "4º ESO": 15
+   },
+   "saberes": {
+    "4º ESO": 23
+   },
+   "prefijo": "DBT"
+  },
+  "filosofia": {
+   "competencias": 9,
+   "criterios": {
+    "4º ESO": 24
+   },
+   "saberes": {
+    "4º ESO": 27
+   },
+   "prefijo": "FIL"
+  },
+  "filosofia-y-argumentacion": {
+   "competencias": 8,
+   "criterios": {
+    "3º ESO": 21
+   },
+   "saberes": {
+    "3º ESO": 10
+   },
+   "prefijo": "FYA"
+  },
+  "iniciacion-actividad-emprendedora": {
+   "competencias": 6,
+   "criterios": {
+    "3º ESO": 20
+   },
+   "saberes": {
+    "3º ESO": 17
+   },
+   "prefijo": "IAE"
+  },
+  "oratoria-y-debate": {
+   "competencias": 5,
+   "criterios": {
+    "1º ESO": 20,
+    "2º ESO": 20,
+    "3º ESO": 20
+   },
+   "saberes": {
+    "1º ESO": 21,
+    "2º ESO": 21,
+    "3º ESO": 21
+   },
+   "prefijo": "OYD"
+  },
+  "proyecto-educacion-plastica": {
+   "competencias": 4,
+   "criterios": {
+    "2º ESO": 9
+   },
+   "saberes": {
+    "2º ESO": 24
+   },
+   "prefijo": "PEPA"
+  }
+ },
+ "guiones_compuestos": [
+  "afectivo-sexual (compuesta)",
+  "argumentaci|ón (partida sin guion)",
+  "artístico-musicales (compuesta)",
+  "atómico-molecular (compuesta)",
+  "comprendien|do (partida sin guion)",
+  "computaciona|l (partida sin guion)",
+  "conocimiento|s (partida sin guion)",
+  "descomponie|ndo (partida sin guion)",
+  "descomposici|ón (partida sin guion)",
+  "dibujo-tecnico 4º: bloque sin punto tras la letra: «B Geometría plana.»",
+  "dibujo-tecnico 4º: bloque sin punto tras la letra: «C Geometría descriptiva.»",
+  "discriminació|n (partida sin guion)",
+  "económico-políticos (compuesta)",
+  "enseñanza-aprendizaje (compuesta)",
+  "filosofia CE4: CPSSAA3 → CPSAA3",
+  "filosofia CE7: CPSSAA2 → CPSAA2",
+  "filosofia CE8: CPSSAA3 → CPSAA3",
+  "filosofia CE9: CPSSAA1 → CPSAA1",
+  "filosofia-y-argumentacion CE4: CPSSAA3 → CPSAA3",
+  "filosofia-y-argumentacion CE6: CPSSAA2 → CPSAA2",
+  "filosofia-y-argumentacion CE7: CPSSAA2 → CPSAA2",
+  "filosofia-y-argumentacion CE8: CPSSAA1 → CPSAA1",
+  "físico-deportivas (compuesta)",
+  "físico-deportivo (compuesta)",
+  "interconecta|ndo (partida sin guion)",
+  "interrelacion|ando (partida sin guion)",
+  "lógico-matemático (compuesta)",
+  "representacio|nes (partida sin guion)",
+  "representació|n (partida sin guion)",
+  "responsabilizánd|ose (partida sin guion)",
+  "responsabilizá|ndose (partida sin guion)"
+ ],
+ "avisos": [
+  "geografia-e-historia 3º: código de otra materia o curso: GEH.4.B.2. Tiempo histórico: construcción e interpretación d",
+  "geografia-e-historia 3º: código de otra materia o curso: GEH.4.B.3. Conciencia histórica. Elaboración de juicios prop",
+  "lengua-castellana 4º: código de otra materia o curso: CL.4.B.1.Contexto: componentes del hecho comunicativo. Compo",
+  "matematicas-a 4º: epígrafe con el número cambiado: MAA.4.E.2. Inferencia. y debajo MAA.4.E.3.1. Dif",
+  "computacion-y-robotica 1º: código de otra materia o curso: CYR.3.E.1. Introducción a las páginas web.",
+  "computacion-y-robotica 1º: código de otra materia o curso: CYR.3.E.2. Introducción a los servidores web.",
+  "computacion-y-robotica 1º: código de otra materia o curso: CYR.3.E.3. Tipos de lenguajes para la edición de páginas web",
+  "computacion-y-robotica 1º: código de otra materia o curso: CYR.3.E.4. Introducción a la animación web.",
+  "computacion-y-robotica (Computación y Robótica 2º): la tabla no trae la CE5",
+  "computacion-y-robotica (Computación y Robótica 2º): la tabla no trae la CE6"
+ ],
+ "competencias_distintas_en_las_tablas": [
+  "biologia-y-geologia (Biología y Geología 1º Biología y Geología 3º) CE1: «formatos,» → «formatos»",
+  "biologia-y-geologia (Biología y Geología 1º Biología y Geología 3º) CE6: «geología» → «Geología»; «ciencias» → «Ciencias»; «Tierra,» → «Tierra»",
+  "biologia-y-geologia (Biología y Geología 4º) CE1: «formatos,» → «formatos»; «ciencias biológicas» → «Ciencias Biológicas»; «geológicas.» → «Geológicas.»",
+  "biologia-y-geologia (Biología y Geología 4º) CE3: «cooperando,» → «cooperando»; «geológicas» → «biológicas»; «biológicas.» → «geológicas.»",
+  "biologia-y-geologia (Biología y Geología 4º) CE4: «las» → «la»",
+  "biologia-y-geologia (Biología y Geología 4º) CE6: «valorándolo» → «valorándose»; «Tierra,» → «Tierra»",
+  "economia-y-emprendimiento (Economía y Emprendimiento) CE5: «contexto» → «contexto,»",
+  "educacion-fisica (Educación Física 1º Educación Física 2º) CE4: «particular,» → «particular»",
+  "educacion-fisica (Educación Física 3º Educación Física 4º) CE4: «motriz,» → «motriz»; «actuales y,» → «actuales, y»; «particular,» → «particular»",
+  "expresion-artistica (Expresión Artística) CE1: «» → «CCL2, CCL3, CP3, CD1, CD2, CPSAA3, CC1, CCEC1 y»",
+  "expresion-artistica (Expresión Artística) CE1: descriptores de la tabla ['CCEC2'], del apartado ['CCL2', 'CCL3', 'CP3', 'CD1', 'CD2', 'CPSAA3', 'CC1', 'CCEC1', 'CCEC2']",
+  "fisica-y-quimica (Física y Química 2º Física y Química 3º) CE3: «símbolos),» → «símbolos, etc.),»",
+  "fisica-y-quimica (Física y Química 4º) CE1: «adecuadas,» → «adecuadas»",
+  "fisica-y-quimica (Física y Química 4º) CE3: «símbolos),» → «símbolos, etc.),»",
+  "geografia-e-historia (Geografía e Historia 3º Geografía e Historia 4º) CE5: «geográficos,» → «geográficos»",
+  "geografia-e-historia (Geografía e Historia 3º Geografía e Historia 4º) CE9: «sociales» → «sociales,»",
+  "latin (Latín) CE3: «textos» → «textos,»",
+  "latin (Latín) CE5: «su» → «la»",
+  "lengua-castellana (Lengua Castellana y Literatura 1º Lengua Castellana y Literatura 2º) CE1: «de las hablas andaluzas,» → «como el andaluz,»; «para» → «»; «para» → «»; «dicha» → «esta»; «cultural.» → «cultural»",
+  "lengua-castellana (Lengua Castellana y Literatura 1º Lengua Castellana y Literatura 2º) CE2: «para» → «»; «una» → «»; «para» → «»",
+  "lengua-castellana (Lengua Castellana y Literatura 1º Lengua Castellana y Literatura 2º) CE5: «para» → «»",
+  "lengua-castellana (Lengua Castellana y Literatura 1º Lengua Castellana y Literatura 2º) CE6: «conocimiento,» → «conocimiento»; «comunicarla desde» → «comunicarla, adoptando»",
+  "lengua-castellana (Lengua Castellana y Literatura 1º Lengua Castellana y Literatura 2º) CE7: «evolucione» → «se enriquezca»",
+  "lengua-castellana (Lengua Castellana y Literatura 1º Lengua Castellana y Literatura 2º) CE10: «palabra,» → «palabra»",
+  "lengua-castellana (Lengua Castellana y Literatura 3º Lengua Castellana y Literatura 4º) CE1: «de las hablas andaluzas,» → «como el andaluz,»; «para» → «»; «para» → «»; «dicha» → «esta»",
+  "lengua-castellana (Lengua Castellana y Literatura 3º Lengua Castellana y Literatura 4º) CE2: «para» → «»; «una» → «»; «para» → «»",
+  "lengua-castellana (Lengua Castellana y Literatura 3º Lengua Castellana y Literatura 4º) CE5: «para» → «»",
+  "lengua-castellana (Lengua Castellana y Literatura 3º Lengua Castellana y Literatura 4º) CE6: «conocimiento,» → «conocimiento»; «comunicarla desde» → «comunicarla, adoptando»",
+  "lengua-castellana (Lengua Castellana y Literatura 3º Lengua Castellana y Literatura 4º) CE7: «evolucione» → «se enriquezca»",
+  "lengua-castellana (Lengua Castellana y Literatura 3º Lengua Castellana y Literatura 4º) CE10: «palabra,» → «palabra»",
+  "lengua-extranjera (Lengua Extranjera 3º Lengua Extranjera 4º) CE2: «para» → «»",
+  "musica (Música) CE1: «» → «CCL2, CCL3, CP3, CD1, CD2, CPSAA3, CC1, CCEC1 y»",
+  "musica (Música) CE1: descriptores de la tabla ['CCEC2'], del apartado ['CCL2', 'CCL3', 'CD1', 'CD2', 'CPSAA3', 'CC1', 'CCEC1', 'CCEC2']",
+  "musica (Música cuarto curso) CE1: «» → «CCL2, CCL3, CP3, CD1, CD2, CPSAA3, CC1, CCEC1 y»",
+  "musica (Música cuarto curso) CE1: descriptores de la tabla ['CCEC2'], del apartado ['CCL2', 'CCL3', 'CD1', 'CD2', 'CPSAA3', 'CC1', 'CCEC1', 'CCEC2']",
+  "tecnologia (Tecnología) CE3: «efectiva, usando» → «efectiva con»; «necesarias,» → «necesarias»",
+  "tecnologia (Tecnología) CE4: «planteados,» → «planteados»; «emergentes,» → «emergentes»",
+  "tecnologia-y-digitalizacion (Tecnología y Digitalización 2º Tecnología y Digitalización 3º) CE3: «» → «STEM2, STEM3, STEM5, CD5, CPSAA1, CE3 y»",
+  "tecnologia-y-digitalizacion (Tecnología y Digitalización 2º Tecnología y Digitalización 3º) CE3: descriptores de la tabla ['CCEC3'], del apartado ['STEM2', 'STEM3', 'STEM5', 'CD5', 'CPSAA1', 'CE3', 'CCEC3']",
+  "aprendizaje-social-y-emocional (Aprendizaje Social y Emocional) CE1: «autonomía,» → «autonomía»",
+  "aprendizaje-social-y-emocional (Aprendizaje Social y Emocional) CE2: «responsabilidades y» → «responsabilidades,»",
+  "aprendizaje-social-y-emocional (Aprendizaje Social y Emocional) CE3: «andaluza,» → «»",
+  "aprendizaje-social-y-emocional (Aprendizaje Social y Emocional) CE4: «actual y de la sociedad andaluza,» → «actual,»; «entorno,» → «entorno»; «adaptabilidad,» → «adaptabilidad y»",
+  "artes-escenicas-y-danza (Artes Escénicas y Danza) CE6: «andaluz,» → «andaluz»",
+  "artes-escenicas-y-danza (Artes Escénicas y Danza) CE7: «proyección,» → «proyección»",
+  "computacion-y-robotica (Computación y Robótica 1º) CE1: «» → «CL3, STEM2, STEM3, CD1, CD4, CPSAA1, CC4 y»",
+  "computacion-y-robotica (Computación y Robótica 1º) CE1: descriptores de la tabla ['CE1'], del apartado ['CCL3', 'STEM2', 'STEM3', 'CD1', 'CD4', 'CPSAA1', 'CC4', 'CE1']",
+  "computacion-y-robotica (Computación y Robótica 2º) CE1: «» → «CL3, STEM2, STEM3, CD1, CD4, CPSAA1, CC4 y»",
+  "computacion-y-robotica (Computación y Robótica 2º) CE1: descriptores de la tabla ['CE1'], del apartado ['CCL3', 'STEM2', 'STEM3', 'CD1', 'CD4', 'CPSAA1', 'CC4', 'CE1']",
+  "computacion-y-robotica (Computación y Robótica 2º) CE4: «» → «S5.TE MU5t,i ClizDa1r, C Dy4, CcPrSeAaAr5, CaCp3li.caciones informáticas y web sencillas, entendiendo su funcionamiento interno, de forma segura, responsable y respetuosa, protegiendo la identidad online y la privacidad. STEM1, STEM3, CD5, CPSAA3, CPSAA4, CPSAA5, CC3, CE3. 6. Conocer y aplicar los principios de la ciberseguridad, adoptando hábitos y conductas de seguridad, para permitir la protección del individuo en su interacción en la red.»",
+  "computacion-y-robotica (Computación y Robótica 2º) CE4: descriptores de la tabla ['STEM1', 'STEM3', 'CD1', 'CD4', 'CD5', 'CPSAA3', 'CC3', 'CCEC4'], del apartado ['STEM5', 'CD1', 'CD4', 'CPSAA5', 'CC3']",
+  "computacion-y-robotica (Computación y Robótica 3º) CE1: «» → «CL3, STEM2, STEM3, CD1, CD4, CPSAA1, CC4 y»",
+  "computacion-y-robotica (Computación y Robótica 3º) CE1: descriptores de la tabla ['CE1'], del apartado ['CCL3', 'STEM2', 'STEM3', 'CD1', 'CD4', 'CPSAA1', 'CC4', 'CE1']",
+  "cultura-cientifica (Cultura Científica) CE5: «materiales,» → «materiales»",
+  "cultura-del-flamenco (Cultura del Flamenco) CE1: «» → «CCL2, CCL3, CP3, CD1, CD2, CC1, CCEC1 y»",
+  "cultura-del-flamenco (Cultura del Flamenco) CE1: descriptores de la tabla ['CCEC2'], del apartado ['CCL2', 'CCL3', 'CP3', 'CD1', 'CD2', 'CC1', 'CCEC1', 'CCEC2']",
+  "filosofia (Filosofía) CE3: descriptores de la tabla ['CCL3', 'CD1', 'CD2', 'CC1', 'CC3'], del apartado ['CCL1', 'CCL5', 'STEM4', 'CD3', 'CC3']",
+  "filosofia (Filosofía) CE4: «» → «CCL1, CCL5, CD3, CPSSAA3,»",
+  "filosofia (Filosofía) CE4: descriptores de la tabla ['CC1', 'CC2', 'CC3'], del apartado ['CCL1', 'CCL5', 'CD3', 'CPSAA3', 'CC1', 'CC2', 'CC3']",
+  "filosofia (Filosofía) CE5: «a» → «»",
+  "filosofia (Filosofía) CE7: «» → «CCL5, STEM1, STEM2, CD3, CPSSAA2,»",
+  "filosofia (Filosofía) CE7: descriptores de la tabla ['CC1', 'CC2', 'CC3', 'CC4', 'CE1'], del apartado ['CCL5', 'STEM1', 'STEM2', 'CD3', 'CPSAA2', 'CC1', 'CC2', 'CC3', 'CC4', 'CE1']",
+  "filosofia (Filosofía) CE8: «» → «CCL5, CD3, CPSSAA3,»",
+  "filosofia (Filosofía) CE8: descriptores de la tabla ['CC1', 'CC3'], del apartado ['CCL5', 'CD3', 'CPSAA3', 'CC1', 'CC3']",
+  "filosofia (Filosofía) CE9: «» → «CPSSAA1,»",
+  "filosofia (Filosofía) CE9: descriptores de la tabla ['CCEC1', 'CCEC2', 'CCEC3', 'CCEC4'], del apartado ['CPSAA1', 'CCEC1', 'CCEC2', 'CCEC3', 'CCEC4']",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE4: «» → «CCL1, CCL5, CD3, CPSSAA3,»",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE4: descriptores de la tabla ['CC1', 'CC2', 'CC3'], del apartado ['CCL1', 'CCL5', 'CD3', 'CPSAA3', 'CC1', 'CC2', 'CC3']",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE5: descriptores de la tabla [], del apartado ['CCL2', 'CCL3', 'CCL5', 'CC1', 'CC3']",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE6: «» → «CCL5, STEM1, STEM2, CD3, CPSSAA2,»",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE6: descriptores de la tabla ['CC1', 'CC2', 'CC3', 'CC4', 'CE1'], del apartado ['CCL5', 'STEM1', 'STEM2', 'CD3', 'CPSAA2', 'CC1', 'CC2', 'CC3', 'CC4', 'CE1']",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE7: «» → «CCL5, STEM1, STEM2, CD3, CPSSAA2,»",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE7: descriptores de la tabla ['CC1', 'CC2', 'CC3', 'CC4', 'CE1'], del apartado ['CCL5', 'STEM1', 'STEM2', 'CD3', 'CPSAA2', 'CC1', 'CC2', 'CC3', 'CC4', 'CE1']",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE8: «» → «CPSSAA1,»",
+  "filosofia-y-argumentacion (Filosofía y Argumentación) CE8: descriptores de la tabla ['CCEC1', 'CCEC2', 'CCEC3', 'CCEC4'], del apartado ['CPSAA1', 'CCEC1', 'CCEC2', 'CCEC3', 'CCEC4']"
+ ]
+}

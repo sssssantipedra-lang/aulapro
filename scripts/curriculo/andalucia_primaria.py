@@ -84,10 +84,21 @@ BLOQUE = re.compile(r'^([A-H])\. (.+?)\.?$')
 ARRIBA, ABAJO = 108, 788  # la cabecera y el pie del BOJA quedan fuera
 
 
+# Las líneas de la cabecera y el pie del BOJA, por si una página las trae más abajo de lo normal
+# (ESO, parte 2, pág. 100: «CONSEJERÍA, ENTIDAD, EMPRESA…» a 111 puntos)
+CABECERA_BOJA = re.compile(r'^(CONSEJERÍA, ENTIDAD, EMPRESA:|ORGANISMO:|Número 104 - |página \d+/\d+|Boletín Oficial de la Junta|'
+                           r'Secretaría General Técnica|SIMPLIFICACIÓN ADMINISTRATIVA|Depósito Legal)')
+
+
 def palabras_de(p):
     """Las palabras del cuerpo de la página, sin cabecera, pie ni el sello vertical."""
-    return [w for w in p.extract_words(extra_attrs=['fontname', 'size'], x_tolerance=1.5, y_tolerance=2, keep_blank_chars=False)
-            if ARRIBA < w['top'] < ABAJO and w['size'] > 6 and w['upright']]
+    ws = [w for w in p.extract_words(extra_attrs=['fontname', 'size'], x_tolerance=1.5, y_tolerance=2, keep_blank_chars=False)
+          if ARRIBA < w['top'] < ABAJO and w['size'] > 6 and w['upright']]
+    fuera = set()
+    for l in lineas(ws):
+        if l[0]['top'] < 140 and CABECERA_BOJA.match(' '.join(w['text'] for w in l)):
+            fuera.update(id(w) for w in l)
+    return [w for w in ws if id(w) not in fuera]
 
 
 def lineas(ws, tolerancia=2.5):
@@ -162,7 +173,8 @@ def texto(linea):
 
 
 def negrita(linea):
-    return all('Bold' in w['fontname'] for w in linea)
+    # Un signo suelto en otra fuente («emprendedoras .», con el punto en redonda) no cuenta
+    return all('Bold' in w['fontname'] for w in linea if re.search(r'\w', w['text']))
 
 
 def vocabulario(pdf):
@@ -173,6 +185,12 @@ def vocabulario(pdf):
                 for t in re.findall(r'[\wáéíóúüñÁÉÍÓÚÜÑ-]+', w['text']):
                     vocab[t.lower()] += 1
     return vocab
+
+
+# Palabras de tres letras o menos que pueden empezar una línea por sí mismas
+PALABRAS_CORTAS = set('a e o u y de el la lo los las en un una uno se su sus al del es ya no ni si sí tu mi yo os le les me te nos '
+                      'por con sin que qué más mas sea son han ha fue muy hoy vez dos tres seis mil ser ir ver dar uso fin '
+                      'eso esa ese así ley red mar sol paz pie luz voz tal cual otro otra tan bien mal ideas'.split())
 
 
 def juntar(lineas_texto, vocab, decisiones):
@@ -196,6 +214,20 @@ def juntar(lineas_texto, vocab, decisiones):
                 else:
                     out = out[:-1] + l
                 continue
+        # Una palabra partida sin guion (columnas estrechas de la ESO: «comprendien» + «do»): se junta si
+        # las dos partes forman una palabra que el anexo trae entera y la segunda no es una palabra
+        # (los trozos sueltos también salen como palabras en el PDF, así que la segunda parte se mira
+        # contra las palabras cortas que sí existen)
+        ant = re.findall(r'[\wáéíóúüñÁÉÍÓÚÜÑ]+$', out)
+        sig = re.match(r'([a-záéíóúüñ]+)(?=[\s.,;:)]|$)', l)
+        junta = (ant[0] + sig.group(1)).lower() if ant and sig else ''
+        if junta and vocab[junta] >= 2 and (
+                (len(sig.group(1)) <= 3 and sig.group(1) not in PALABRAS_CORTAS)
+                # una cola más larga («responsabilizá» + «ndose»), si ninguna de las dos partes es una palabra habitual
+                or (len(sig.group(1)) <= 6 and vocab[sig.group(1).lower()] <= 2 and vocab[ant[0].lower()] <= 3)):
+            decisiones.append(f'{ant[0]}|{sig.group(0)} (partida sin guion)')
+            out += l
+            continue
         out = f'{out} {l}' if out else l
     return re.sub(r'\s+', ' ', out).strip()
 
@@ -556,6 +588,13 @@ def comprobar(salida, avisos):
             sin = [n for n in ns if not any(c['competencia'] == n for c in cs)]
             if sin:
                 avisos.append(f'{e["id"]} {grupo}: competencias sin criterios {sin}')
+        for grupo, bs in e['saberes'].items():
+            for b in bs:
+                for ep in b['epigrafes']:
+                    for it in ep['items']:
+                        dentro = re.search(r'\s[A-Z]{3}\.[1-3]\.[A-Z]\.?\d{1,2}\.?(?:\d{1,2}\.)?\s', it[6:])
+                        if dentro:
+                            avisos.append(f'{e["id"]} {grupo}: un saber lleva dentro otro código ({dentro.group(0).strip()}): {it[:50]}')
         # Los dos cursos de un ciclo tienen los mismos números de criterio
         cursos = sorted(int(g.split('º')[0]) for g in e['criterios'])
         for c1 in cursos:

@@ -23,6 +23,12 @@ for ruta in pdfs:
                 for j in range(n):
                     corrientes[(n, j)].append(''.join(norm(f[j]) for f in t if j < len(f)))
 todo = {k: ''.join(v) for k, v in corrientes.items()}
+# Lo que no va en tabla (los saberes de una materia de un solo curso): el texto seguido del PDF
+import subprocess
+seguido = norm(''.join(subprocess.run(['pdftotext', '-raw', r, '-'], capture_output=True, text=True).stdout for r in pdfs))
+# Sin la cabecera ni el pie de cada página del BOJA (del sello de la disposición a «…EVALUACIÓN EDUCATIVA»),
+# que cortan un texto que sigue en la página siguiente
+seguido = re.sub(r'002847\d\dNúmero104.*?EVALUACIÓNEDUCATIVA', '', seguido)
 d = json.load(open(datos))
 textos = []
 for e in d:
@@ -33,8 +39,10 @@ for e in d:
         for b in bs:
             for ep in b['epigrafes']:
                 for it in ep['items']: textos.append(('saber', f"{e['id']} {g}", it, ''))
-SIGUE = re.compile(r'(\d{1,2}\.\d{1,2}\.(?:[ab]\.?)?\D|[A-Z]{3}\.\d\.[A-Z]\.?\d|[A-H]\.[A-ZÁÉÍÓÚ]|Criterios|Saberes|Competencias|PRIMER|SEGUNDO|TERCER|$)')
-bien = 0; malos = []; cortos = []
+SIGUE = re.compile(r'(\d{1,2}\.\d{1,2}\.(?:[ab]\.?)?\D|[A-Z]{2,4}\.\d\.[A-Z]\.?\d|[A-H]\.[A-ZÁÉÍÓÚ]|Criterios|Saberes|Competencias|PRIMER|SEGUNDO|TERCER|$)')
+TITULOS = [norm(e.get('materia') or e.get('area') or '').lower() for e in d]
+def sigue_titulo(t): return any(t.lower().startswith(x[:12]) for x in TITULOS if x)
+bien = 0; en_texto = 0; malos = []; cortos = []
 for clase, donde, t, cod in textos:
     x = norm((cod + '.' if cod else '') + t)
     y = norm(t)
@@ -48,6 +56,15 @@ for clase, donde, t, cod in textos:
                 i = s.find(pat, i + 1)
             if entero: break
         if entero: break
+    if not entero:
+        for pat in (x, y):
+            i = seguido.find(pat)
+            while i >= 0:
+                if SIGUE.match(seguido[i + len(pat):i + len(pat) + 14]) or sigue_titulo(seguido[i + len(pat):i + len(pat) + 14]): entero = True; break
+                i = seguido.find(pat, i + 1)
+            if entero:
+                en_texto += 1
+                break
     if entero: bien += 1
     elif hallado:
         s0 = next(s for s in todo.values() if y in s); i = s0.find(y)
@@ -55,5 +72,5 @@ for clase, donde, t, cod in textos:
     else: malos.append((clase, donde, t))
 print('detrás de', len(cortos), 'no viene el código siguiente:')
 for m in cortos[:20]: print(' ~', m[0], m[1], '|', m[2][-120:])
-print(len(textos), 'textos;', bien, 'están enteros en su columna;', len(malos), 'no')
+print(len(textos), 'textos;', bien, 'enteros (', bien - en_texto, 'en su columna de tabla y', en_texto, 'en el texto seguido);', len(malos), 'no')
 for m in malos[:40]: print(' ·', m[0], m[1], '|', m[2][:200])

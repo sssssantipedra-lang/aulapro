@@ -144,6 +144,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
       ['valenciana ca', await valenciana('ca')],
       ['Madrid', await madrid()],
       ['Cataluña', (await cargarCurriculo('cataluna', 'primaria')).materias],
+      ['Andalucía', (await cargarCurriculo('andalucia', 'primaria')).materias],
     ];
     for (const [nombre, materias] of curriculos) {
       for (const [alias, ids] of tablaDeAlias('primaria')) {
@@ -157,6 +158,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
     const todos = [
       ...materiasDe('primaria'), ...await valenciana('es'), ...await madrid(),
       ...(await cargarCurriculo('cataluna', 'primaria')).materias,
+      ...(await cargarCurriculo('andalucia', 'primaria')).materias,
     ].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('primaria')) {
       for (const id of ids) expect(todos, `«${alias}» → ${id}`).toContain(id);
@@ -165,6 +167,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
       ...materiasDe('eso'), ...(await cargarCurriculo('madrid', 'eso')).materias,
       ...(await cargarCurriculo('comunitat-valenciana', 'eso')).materias,
       ...(await cargarCurriculo('cataluna', 'eso')).materias,
+      ...(await cargarCurriculo('andalucia', 'eso')).materias,
     ].map(m => m.id);
     for (const [alias, ids] of tablaDeAlias('eso')) {
       for (const id of ids) expect(eso, `«${alias}» → ${id}`).toContain(id);
@@ -197,6 +200,7 @@ describe('emparejarMateria — con el currículo de una comunidad', () => {
       ['estatal', materiasDe('eso')], ['Madrid', await madridEso()],
       ['Comunitat Valenciana', (await cargarCurriculo('comunitat-valenciana', 'eso')).materias],
       ['Cataluña', (await cargarCurriculo('cataluna', 'eso')).materias],
+      ['Andalucía', (await cargarCurriculo('andalucia', 'eso')).materias],
     ] as const) {
       for (const [alias, ids] of tablaDeAlias('eso')) {
         const existen = ids.filter(id => materias.some(m => m.id === id));

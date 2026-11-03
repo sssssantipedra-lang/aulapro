@@ -100,13 +100,19 @@ export const CARGADORES: Cargadores = {
   // Decretos 61/2022 y 65/2022 con el 59/2024 aplicado (`scripts/curriculo/madrid_primaria.py`
   // y `madrid_eso.py`), solo en castellano. Sus contenidos cambian de un ciclo o
   // curso a otro: cada grupo lleva los suyos.
-  // Orden de 30 de mayo de 2023, que desarrolla el Decreto 101/2023
-  // (`scripts/curriculo/andalucia_primaria.py`), solo en castellano. Criterios de
-  // cada curso y saberes de cada ciclo.
+  // Andalucía, solo en castellano. Primaria: Orden de 30 de mayo de 2023, que
+  // desarrolla el Decreto 101/2023 (`scripts/curriculo/andalucia_primaria.py`),
+  // con criterios de cada curso y saberes de cada ciclo.
   andalucia: {
     primaria: async () => ({
       idioma: 'es',
       materias: porCursoDePrimaria((await import('./data/andalucia/primaria.es.json')).default as unknown as RawEntry[]),
+    }),
+    // Orden de 30 de mayo de 2023, que desarrolla el Decreto 102/2023 (`scripts/curriculo/andalucia_eso.py`):
+    // anexos II y III, curso a curso, como Madrid
+    eso: async () => ({
+      idioma: 'es',
+      materias: normalizarEntradas((await import('./data/andalucia/eso.es.json')).default as unknown as RawEntry[]),
     }),
   },
   madrid: {

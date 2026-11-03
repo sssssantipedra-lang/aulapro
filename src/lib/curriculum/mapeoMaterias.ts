@@ -115,6 +115,8 @@ const ALIAS_ESO = tabla([
     ['aranes']],
   [['ingles', 'inglés', 'lengua extranjera', 'primera lengua extranjera', 'anglès', 'llengua estrangera'],
     ['Lengua Extranjera', 'lengua-extranjera']],
+  // En Andalucía el anexo trae una sola Lengua Extranjera, que vale para la primera y la segunda: aquí no
+  // puede ir, porque en Madrid caería en dos materias, así que allí la app pregunta
   [['segunda lengua extranjera', 'frances (2a lengua)', 'francés (2ª lengua)', 'segona llengua estrangera'],
     ['Segunda Lengua Extranjera', 'segunda-lengua-extranjera']],
   [['matematicas', 'mates', 'matemática', 'matemàtiques', 'matemàtica'], ['Matemáticas', 'matematicas']],
@@ -140,22 +142,22 @@ const ALIAS_ESO = tabla([
   [['valores', 'educacion en valores', 'educación en valores cívicos y éticos', 'valores civicos y eticos',
     'valors', 'educació en valors', 'educació en valors cívics i ètics'],
     ['Educación en Valores Cívicos y Éticos', 'educacion-en-valores']],
-  // Materias propias de Madrid
+  // Materias propias de Madrid (Ciencias de la Computación) y de Andalucía (Computación y Robótica)
   [['computacion', 'computación', 'ciencias de la computacion', 'informatica', 'informática'],
-    ['ciencias-de-la-computacion']],
+    ['ciencias-de-la-computacion', 'computacion-y-robotica']],
   // De Madrid y de la Comunitat Valenciana
   [['cultura clasica', 'cultura clásica', 'clasica', 'clásica', 'cultura clàssica'], ['cultura-clasica']],
   [['filosofia', 'filosofía'], ['filosofia']],
   // Materias propias de la Comunitat Valenciana y de Cataluña
   [['artes escenicas', 'artes escénicas', 'arts escèniques', 'arts escèniques i dansa', 'artes escénicas y danza'],
-    ['artes-escenicas']],
+    ['artes-escenicas', 'artes-escenicas-y-danza']],
   [['creatividad musical', 'creativitat musical'], ['creatividad-musical']],
   [['emprendimiento social', 'emprendimiento social y sostenible', 'emprenedoria social',
     'emprenedoria social i sostenible'], ['emprendimiento-social-y-sostenible']],
   [['programacion', 'programación', 'robotica', 'robótica', 'inteligencia artificial', 'programació', 'robòtica',
     'intel·ligència artificial', 'inteligencia artificial programacion y robotica',
     'intel·ligència artificial programació i robòtica', 'robòtica i programació', 'robotica y programacion'],
-    ['programacion-ia-y-robotica', 'robotica-y-programacion']],
+    ['programacion-ia-y-robotica', 'robotica-y-programacion', 'computacion-y-robotica']],
   [['laboratorio de artes escenicas', 'laboratorio de artes escénicas', "laboratori d'arts escèniques",
     'laboratori d’arts escèniques'], ['laboratorio-de-artes-escenicas']],
   [['laboratorio de creacion audiovisual', 'laboratorio de creación audiovisual', 'creacion audiovisual',
@@ -166,6 +168,14 @@ const ALIAS_ESO = tabla([
     ['taller-de-relaciones-digitales']],
   [['finanzas', 'finanzas y consumo responsables', 'finances', 'finances i consum responsables'],
     ['finanzas-y-consumo-responsables']],
+  // Materias optativas propias de Andalucía
+  [['flamenco', 'cultura del flamenco'], ['cultura-del-flamenco']],
+  [['oratoria', 'oratoria y debate', 'debate'], ['oratoria-y-debate']],
+  [['ampliacion de cultura clasica', 'ampliación de cultura clásica'], ['ampliacion-de-cultura-clasica']],
+  [['aprendizaje social y emocional', 'educacion emocional', 'educación emocional'], ['aprendizaje-social-y-emocional']],
+  [['dibujo tecnico', 'dibujo técnico'], ['dibujo-tecnico']],
+  [['iniciacion a la actividad emprendedora', 'iniciación a la actividad emprendedora y empresarial',
+    'actividad emprendedora'], ['iniciacion-actividad-emprendedora']],
 ]);
 
 /**
