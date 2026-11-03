@@ -8,6 +8,8 @@ import { AvisoPasarAWeb } from './components/AvisoPasarAWeb';
 import { DatosIlegiblesPantalla } from './components/DatosIlegibles';
 import { AvisoSinGuardar } from './components/AvisoSinGuardar';
 import { CONECTAR_YA, ConectarDriveWeb, EntrarWeb } from './pages/EntrarWeb';
+import { AceptarCondiciones } from './components/AceptarCondiciones';
+import { condicionesAceptadas } from './lib/condiciones';
 import { hayVueltaNube, leerPermisoNube } from './platform/carpetaWeb';
 import { cerrarSesion, hayToken, leerCuenta, licenciaDeLaCuenta, licenciaMiradaHace, type Cuenta } from './platform/cuentaWeb';
 import { HelpChat } from './components/HelpChat';
@@ -940,6 +942,7 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
 /** Versión web: antes de la licencia, entrar con la cuenta (ver `platform/cuentaWeb.ts`). */
 function CuentaCheck({ children }: { children: React.ReactNode }) {
   const [cuenta, setCuenta] = useState<Cuenta | null | undefined>(isWebApp() ? undefined : null);
+  const [aceptadas, setAceptadas] = useState(condicionesAceptadas);
   useEffect(() => {
     if (cuenta !== undefined) return;
     leerCuenta().then(c => setCuenta(c ?? null));
@@ -963,6 +966,8 @@ function CuentaCheck({ children }: { children: React.ReactNode }) {
   if (!isWebApp()) return <>{children}</>;
   if (cuenta === undefined) return null;
   if (!cuenta) return <EntrarWeb onEntrar={entrar} />;
+  // Quien ya había entrado antes de la casilla de las condiciones, o cuando cambia su versión, la marca una vez (lib/condiciones.ts)
+  if (!aceptadas) return <AceptarCondiciones onAceptar={() => setAceptadas(true)} />;
   if (pasoDrive === undefined) return null;
   if (pasoDrive) return <ConectarDriveWeb onListo={listoDrive} />;
   return <>{children}</>;

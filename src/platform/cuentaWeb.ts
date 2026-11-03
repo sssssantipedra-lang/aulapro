@@ -15,6 +15,7 @@
  * «AulaPro web»; orígenes aulapro.app, prueba.aulapro-app.pages.dev y
  * localhost:5173).
  */
+import { aceptacionRegistrada, aceptacionSinRegistrar } from '../lib/condiciones';
 import { marcarLicenciaVencida } from '../lib/licenciaVencida';
 import { idbKv } from './webFs';
 import { pedirApi } from './servidores';
@@ -168,10 +169,13 @@ async function buscarLicencia(): Promise<BusquedaLicencia> {
   if (!token) return { key: null, error: 'sin-cuenta' };
   try {
     const r = await pedirApi('/api/licencia/cuenta', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, proveedor: leerTokenCuenta(token)?.proveedor }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, proveedor: leerTokenCuenta(token)?.proveedor, acepta: aceptacionSinRegistrar() }),
     });
     const j = await r.json().catch(() => ({}));
     const firma = typeof j.firma === 'string' && j.firma ? { firma: j.firma as string } : {};
+    // El servidor anotó la aceptación de las condiciones (lib/condiciones.ts): no se vuelve a mandar
+    const acepta = aceptacionSinRegistrar();
+    if (r.ok && j.aceptacion === true && acepta) aceptacionRegistrada(acepta);
     if (r.ok) {
       if (j.fundador) return { key: FUNDADOR, ...firma };
       if (j.key) return { key: String(j.key), ...firma };

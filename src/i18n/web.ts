@@ -201,6 +201,11 @@ export const WEB_EN: Record<string, string> = {
   "¿Restaurar esta copia? Sustituye tu trabajo actual. Antes se guarda lo que tienes ahora en otra copia, por si quieres volver atrás.": "Restore this backup? It replaces your current work. What you have now is saved first in another backup, in case you want to go back.",
   // Entrada: aceptar las condiciones y la privacidad
   "Al entrar aceptas las": "By signing in you accept the",
+  "He leído y acepto las": "I have read and accept the",
+  "Marca la casilla para poder entrar.": "Tick the box to sign in.",
+  "Condiciones de AulaPro": "AulaPro terms",
+  "Para seguir usando AulaPro, lee y acepta las condiciones de venta y de uso y la política de privacidad. Tu trabajo no cambia.": "To keep using AulaPro, read and accept the terms of sale and use and the privacy policy. Your work does not change.",
+  "Continuar": "Continue",
   "condiciones de venta y de uso": "terms of sale and use",
   "y la": "and the",
   "política de privacidad": "privacy policy",
@@ -403,6 +408,11 @@ export const WEB_CA: Record<string, string> = {
   "¿Restaurar esta copia? Sustituye tu trabajo actual. Antes se guarda lo que tienes ahora en otra copia, por si quieres volver atrás.": "Vols restaurar aquesta còpia? Substitueix la teva feina actual. Abans es desa el que tens ara en una altra còpia, per si hi vols tornar.",
   // Entrada: aceptar las condiciones y la privacidad
   "Al entrar aceptas las": "En entrar acceptes les",
+  "He leído y acepto las": "He llegit i accepto les",
+  "Marca la casilla para poder entrar.": "Marca la casella per poder entrar.",
+  "Condiciones de AulaPro": "Condicions d’AulaPro",
+  "Para seguir usando AulaPro, lee y acepta las condiciones de venta y de uso y la política de privacidad. Tu trabajo no cambia.": "Per continuar fent servir AulaPro, llegeix i accepta les condicions de venda i d’ús i la política de privacitat. La teva feina no canvia.",
+  "Continuar": "Continua",
   "condiciones de venta y de uso": "condicions de venda i d’ús",
   "y la": "i la",
   "política de privacidad": "política de privacitat",
