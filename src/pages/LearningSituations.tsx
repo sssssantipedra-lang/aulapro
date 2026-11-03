@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users, Eye,
@@ -42,7 +42,10 @@ import { AiKeyNotice } from '../components/ui/AiKeyNotice';
 import { isDesktop } from '../services/storage';
 import { groupSituations, filterSituations, sdaAreas, type SdaGroupBy } from '../lib/sdaLibrary';
 import { requestSettingsPanel } from '../lib/settingsNav';
-import { alumnosConBarreras, barrerasDeClases } from '../lib/barreras';
+import { alumnosConBarreras, barrerasDeClases, palabrasDeNombres } from '../lib/barreras';
+import { CasillaAcs } from '../components/apoyo/CasillaAcs';
+import { useAcsParaIA } from '../hooks/useAcsParaIA';
+import type { AcsApoyo } from '../types/apoyo';
 import { MODELOS_EF, modeloEF } from '../lib/modelosEF';
 import { MODALIDADES_EF } from '../lib/ef';
 import { MomentosDeSesion } from '../components/MomentosDeSesion';
@@ -61,6 +64,8 @@ interface Props {
   classes: Class[];
   /** Para las barreras de aprendizaje del alumnado de la clase, si el docente quiere tenerlas en cuenta. */
   students?: Student[];
+  /** Las adaptaciones curriculares significativas del alumnado de «Mis clases» (`ApoyoData.acsAula`). */
+  acsAula?: AcsApoyo[];
   gradeCategories: GradeCategory[];
   learningSituations: LearningSituation[];
   /** Comunidad del perfil: de ella sale el currículo oficial. */
@@ -208,7 +213,7 @@ interface BorradorSda {
 
 export function LearningSituations({
   classes, students = [], gradeCategories, learningSituations, comunidad, onUpdateClass,
-  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones,
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, acsAula,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -332,6 +337,18 @@ export function LearningSituations({
   const limitacionesClase = ef ? clasesElegidas.flatMap(id => ef.limitacionesDe(id)) : [];
   const barrerasClases = useMemo(() => barrerasDeClases(students, clasesElegidas), [students, clasesElegidas]);
   const nBarreras = alumnosConBarreras(students, clasesElegidas);
+  // Las adaptaciones del alumnado de las clases elegidas, sin nombres: «Alumno con ACS 1», «Alumno con ACS 2»…
+  const acsClases = useMemo(() => {
+    const ids = new Set(students.filter(s => clasesElegidas.includes(s.class_id)).map(s => s.id));
+    return (acsAula ?? []).filter(a => ids.has(a.alumnoId));
+  }, [acsAula, students, clasesElegidas]);
+  const nombresAlumnado = useMemo(() => palabrasDeNombres(students.filter(s => clasesElegidas.includes(s.class_id)).map(s => s.name)), [students, clasesElegidas]);
+  const etiquetaAcs = useCallback((a: AcsApoyo) => {
+    const orden = [...new Set(acsClases.map(x => x.alumnoId))];
+    return t('Alumno con adaptación {n}', { n: orden.indexOf(a.alumnoId) + 1 });
+  }, [acsClases, t]);
+  const textoAcs = useAcsParaIA(acsClases, comunidad, nombresAlumnado, etiquetaAcs);
+  const [conAcs, setConAcs] = useState(false);
 
   /* ── Autoguardado: una SdA generada o editada y sin guardar queda como borrador ── */
   const guardada = editingId ? learningSituations.find(x => x.id === editingId) : undefined;
@@ -542,6 +559,7 @@ export function LearningSituations({
       materiasOficiales: materias,
       contextoClase, metodologia,
       barreras: conBarreras && barrerasClases.length ? barrerasClases : undefined,
+      acs: conAcs && textoAcs ? textoAcs : undefined,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
       sesionesBase: sesionesBase ?? undefined,
       ef: esEF && ef ? {
@@ -1066,6 +1084,9 @@ export function LearningSituations({
             )}
           </div>
         )}
+
+        <CasillaAcs texto={textoAcs} checked={conAcs} onChange={setConAcs}
+          etiqueta={t('Tener en cuenta las adaptaciones curriculares significativas del alumnado ({n})', { n: new Set(acsClases.map(a => a.alumnoId)).size })} />
 
         {/*
           Etapa y curso: además de alimentar el texto libre de arriba, es lo

@@ -144,7 +144,7 @@ describe('carga y borrado', () => {
     documentos: [{ id: 'd', alumnoId: 'a', tipo: 'familia', trimestre: 1, fecha: '2026-12-15', titulo: 'Informe',
       apartados: [{ id: 'trabajado', titulo: 'Lo trabajado', texto: 'Texto' }] }],
     coordinaciones: [{ id: 'c', alumnoId: 'a', fecha: '2026-10-20', con: 'familia', asistentes: 'Madre', temas: 'Lectura en casa', acuerdos: 'Leer 10 minutos al día' }],
-    evaluaciones: [], acs: [],
+    evaluaciones: [], acs: [], acsAula: [],
     agendas: [
       { id: 'ag1', alumnoId: 'a', titulo: 'Sesión de lectura', pasos: [{ id: 'p1', picto: 'hello', texto: 'Hola' }, { id: 'p2', fotoId: 'f1', texto: 'Mi mesa' }] },
       { id: 'ag2', titulo: 'Rutina de entrada', pasos: [{ id: 'p3', picto: 'hang-coat', texto: 'Colgar el abrigo' }, { id: 'p4', fotoId: 'f2', texto: 'La clase' }] },

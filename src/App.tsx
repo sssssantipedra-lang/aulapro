@@ -45,6 +45,7 @@ import { isAndroidApp, isWebApp } from './lib/platform';
 import { compararAlumnos } from './lib/alumnado';
 import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
+const AcsDeAlumno = lazy(() => import('./components/clases/AcsDeAlumno').then(m => ({ default: m.AcsDeAlumno })));
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
 const Rubrics        = lazy(() => import('./pages/Rubrics').then(m => ({ default: m.Rubrics })));
@@ -421,6 +422,13 @@ function AppInner() {
                 gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
+                acsDeAlumno={s => (
+                  <Suspense fallback={null}>
+                    <AcsDeAlumno student={s} cls={st.classes.find(c => c.id === s.class_id)} apoyo={st.apoyo} onApoyo={st.setApoyo}
+                      comunidad={st.currentUser?.community}
+                      docente={{ nombre: st.profile?.name ?? '', centro: st.profile?.school ?? '', curso: st.profile?.course ?? '' }} />
+                  </Suspense>
+                )}
               />
             )}
             {section === 'agenda' && (
@@ -536,6 +544,7 @@ function AppInner() {
               <Notebook
                 classes={st.classes}
                 students={st.students}
+                acsAula={st.apoyo.acsAula}
                 gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
@@ -678,6 +687,7 @@ function AppInner() {
                 onPasarSesiones={sesiones => st.setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] }))}
                 classes={st.classes}
                 students={st.students}
+                acsAula={st.apoyo.acsAula}
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}
                 comunidad={st.currentUser?.community}
@@ -699,6 +709,7 @@ function AppInner() {
                 onProject={f => { setLiveFicha(f); setSection('sec-classroom'); }}
                 onNav={s => setSection(s as Section)}
                 apoyo={especialista ? st.apoyo : undefined}
+                students={st.students} acsAula={st.apoyo.acsAula} comunidad={st.currentUser?.community}
               />
             )}
             {(section === 'meetings' || section === 'trainings') && (
@@ -764,7 +775,7 @@ function AppInner() {
             {(section === 'sesiones' || section === 'ef-sesiones') && (
               <Sesiones
                 perfil={tipo === 'ef' ? 'ef' : 'aula'}
-                classes={st.classes} students={st.students} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf}
+                classes={st.classes} students={st.students} acsAula={st.apoyo.acsAula} scheduleBlocks={st.scheduleBlocks} ef={st.ef} onChangeEf={st.setEf}
                 comunidad={st.currentUser?.community} rubrics={st.rubrics} dianas={st.dianas} onAddDiana={st.addDiana}
                 onNav={s => setSection(s)} evaluations={st.evaluations} lawDocument={st.lawDocument} onAddEvaluation={st.addEvaluation}
                 learningSituations={st.learningSituations} onSaveSda={st.saveLearningSituation}

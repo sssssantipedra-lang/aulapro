@@ -56,7 +56,7 @@ export interface AlumnoApoyo {
 }
 
 /** De dónde viene un objetivo: del informe del orientador, de lo que dice la orientadora, o lo propuso la IA. */
-export type OrigenObjetivo = 'informe' | 'orientacion' | 'ia';
+export type OrigenObjetivo = 'informe' | 'orientacion' | 'ia' | 'acs';
 
 /** Un objetivo que viene de la orientación, antes o después de pasarlo a un programa. */
 export interface ObjetivoOrientacion {
@@ -65,7 +65,7 @@ export interface ObjetivoOrientacion {
   /** El programa (ámbito) al que va, por su nombre en la lengua de la app; sin él no se puede pasar. */
   ambito?: string;
   trimestres: Trimestre[];
-  origen: Exclude<OrigenObjetivo, 'ia'>;
+  origen: Exclude<OrigenObjetivo, 'ia' | 'acs'>;
 }
 
 /** Las conclusiones del informe sociopsicopedagógico de un alumno, ya revisadas por el docente. */
@@ -254,6 +254,16 @@ export interface AcsApoyo {
   notas?: Partial<Record<Trimestre, string>>;
   /** Comunitat Valenciana: la decisión de promoción al final del curso o del ciclo. */
   promocion?: string;
+  /**
+   * Los objetivos concretos que salen de la adaptación: frases cortas y evaluables, por trimestre, cada una ligada a un
+   * criterio elegido. El especialista los puede pasar a sus programas; el docente de aula los sigue aquí.
+   */
+  objetivos?: ObjetivoAcs[];
+  /**
+   * Solo la de un docente de aula o de EF (`ApoyoData.acsAula`): sus necesidades específicas de apoyo educativo, porque
+   * su alumnado de «Mis clases» no las tiene. En PT y AL salen de la ficha del alumno.
+   */
+  categorias?: string[];
   /* 2. Selección curricular */
   /** El área o materia en el currículo del curso de referencia (`CurriculumEntry.nombre`). */
   area: string;
@@ -280,6 +290,15 @@ export interface AcsApoyo {
   ajustes: Partial<Record<Trimestre, string>>;
   /** Cuándo se cambió por última vez, YYYY-MM-DD. */
   fecha: string;
+}
+
+export interface ObjetivoAcs {
+  id: string;
+  texto: string;
+  /** Nunca vacío. */
+  trimestres: Trimestre[];
+  /** El código del criterio de la adaptación con el que se evalúa, si lo tiene. */
+  criterio?: string;
 }
 
 export type FechaAcs = 'resolucion' | 'dictamen' | 'inicio' | 'vigencia' | 'cad';
@@ -372,6 +391,11 @@ export interface ApoyoData {
   evaluaciones: EvaluacionObjetivo[];
   /** Las adaptaciones curriculares significativas (Andalucía). */
   acs: AcsApoyo[];
+  /**
+   * Las adaptaciones que hace o recibe un docente de aula o de EF para el alumnado de «Mis clases»: `alumnoId` es el
+   * id del `Student`. Ver `docs/PTAL.md`, «La adaptación en el aula».
+   */
+  acsAula: AcsApoyo[];
   agendas: AgendaVisual[];
   fotos: FotoApoyo[];
 }

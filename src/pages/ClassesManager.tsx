@@ -73,6 +73,8 @@ interface Props {
   gradeCategories?: GradeCategory[];
   gradeItems?: GradeItem[];
   grades?: GradeMap;
+  /** La adaptación curricular significativa del alumno (`components/clases/AcsDeAlumno.tsx`), en su ficha. */
+  acsDeAlumno?: (s: Student) => React.ReactNode;
 }
 
 /** Parte aleatoria de los ids nuevos. Fuera del componente: solo se llama al guardar, nunca al pintar. */
@@ -100,7 +102,7 @@ export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades,
+  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
@@ -658,6 +660,9 @@ export function ClassesManager({
                 </button>
               </div>
             </div>
+
+            {/* adaptación curricular significativa */}
+            {editStudent.id !== '__new__' && acsDeAlumno?.(editStudent)}
 
             {/* evaluations */}
             {editStudent.id !== '__new__' && (

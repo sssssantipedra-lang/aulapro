@@ -409,6 +409,8 @@ export interface PeticionSesion {
   banco: Pick<ActividadEF, 'titulo' | 'tipo'>[];
   /** La modalidad del juego o deporte que se trabaja, si es uno. */
   modalidad?: ModalidadEF;
+  /** Las adaptaciones curriculares significativas del alumnado de la clase, sin nombres; solo si el docente lo marca. */
+  acs?: string;
 }
 
 export type SesionPropuesta = Omit<SesionEF, 'id' | 'claseId' | 'fecha' | 'instalacionId'> & { criterios: OfficialCriterionRef[] };
@@ -434,6 +436,7 @@ export async function prepararSesion(
     (p.limitaciones.length
       ? `Hoy hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n`
       : 'Hoy no hay nadie exento ni lesionado ni con medidas de nivel II o III.\n') +
+    (p.acs?.trim() ? `Adaptaciones curriculares significativas del alumnado (sin nombres): adapta para cada una las actividades y lo que se observa a sus criterios y objetivos, en las medidas de inclusión.\n${p.acs.trim()}\n` : '') +
     (p.banco.length ? `Actividades de su banco que puedes usar si encajan: ${p.banco.slice(0, 40).map(a => a.titulo).join('; ')}\n` : '') +
     '\nPrepara la sesión. "titulo": corto. "objetivo": una o dos frases, qué aprenderá el alumnado. ' +
     '"calentamiento", "principal" y "calma": cada actividad en su párrafo, separados por un salto de línea, que ' +

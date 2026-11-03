@@ -74,6 +74,10 @@ export const AUTORES_REFERENCIA =
   'aumentativa y TEA: Basil y Soro-Camats, Rivière, modelo TEACCH.';
 
 /** El marco que va en el mensaje de sistema de toda la IA del módulo. */
+/** El bloque de la ACS que se añade a una petición, vacío si no se pidió. */
+export const bloqueAcs = (texto?: string) =>
+  texto?.trim() ? `\nADAPTACIÓN CURRICULAR SIGNIFICATIVA DEL ALUMNO (tenla en cuenta: sus criterios, objetivos y estrategias mandan en lo que propongas para las áreas que adapta):\n${texto.trim()}\n` : '';
+
 export function marcoApoyo(comunidad: ComunidadId | undefined, lang: 'es' | 'en' | 'ca'): string {
   return (lang === 'en'
     ? 'You are an expert specialist teacher in Learning Support (Pedagogía Terapéutica) and Speech and Language ' +
@@ -139,6 +143,8 @@ export async function proponerObjetivos(
     comunidad: ComunidadId | undefined;
     lang: 'es' | 'en' | 'ca';
     nombreCurso: (c: CursoDe) => string;
+    /** Su ACS, solo si el docente marca «Tener en cuenta su ACS» (`lib/acsContexto.ts`). */
+    contextoAcs?: string;
   },
   callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
 ): Promise<ObjetivoPropuesto[] | null> {
@@ -152,6 +158,7 @@ export async function proponerObjetivos(
     `Especialidad: ${programa.especialidad === 'AL' ? 'Audición y Lenguaje' : 'Pedagogía Terapéutica'}\n` +
     `Programa o ámbito: ${programa.ambito}\n` +
     (programa.intensidad ? `Intensidad del apoyo: ${programa.intensidad}\n` : '') +
+    bloqueAcs(args.contextoAcs) +
     (actuales.length ? `Objetivos que ya tiene (no los repitas):\n${actuales.map(o => `- ${o.texto}`).join('\n')}\n` : '') +
     (actuales.length
       ? `\nYa tiene objetivos (los que vienen del informe de orientación o de la orientadora son los importantes): no los cambies ni los repitas. Propón de 2 a 4 objetivos MÁS para este programa, complementarios a ellos, durante el curso.`

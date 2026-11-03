@@ -8,9 +8,10 @@ import {
   Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, WidthType, AlignmentType,
 } from 'docx';
 import { BORDES, ESTILO, celda, esc, nl2br, titulo2 } from './apoyoDocumentos';
-import { ESTRATEGIAS_ACS, GRADOS_ACS, desfaseCursos, filasSeguimiento } from '../lib/acs';
+import { ESTRATEGIAS_ACS, GRADOS_ACS, desfaseCursos, filasSeguimiento, textosElegidos } from '../lib/acs';
+
+export { textosElegidos };
 import { MODELOS_ACS, etiquetaFirma, etiquetaResponsable, notaConMarca, type ModeloAcs, type PiezaAcs } from '../lib/acsModelos';
-import { competenciasDe } from '../lib/curriculum';
 import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
 import { CARPETAS } from '../lib/carpetas';
@@ -37,29 +38,6 @@ const fecha = (iso: string) => (iso ? iso.split('-').reverse().join('/') : '');
 
 export function tituloAcs(acs: AcsApoyo, t: T, modelo: ModeloAcs = MODELOS_ACS.andalucia): string {
   return `${t(modelo.nombre)} · ${acs.materiaAula.trim() || acs.area}`;
-}
-
-/** El texto oficial de cada cosa elegida; sin currículo cargado, solo el código. */
-export function textosElegidos(acs: AcsApoyo, materia: MateriaDeClase | undefined) {
-  const entry = materia?.entry;
-  const grupo = materia?.grupo ?? '';
-  const comps = entry ? competenciasDe(entry, grupo) : [];
-  const crits = entry?.criterios[grupo] ?? [];
-  const bloques = entry?.saberes[grupo] ?? [];
-  return {
-    competencias: acs.competencias.map(n => {
-      const c = comps.find(x => x.n === n);
-      return c ? `CE${n}. ${c.texto}` : `CE${n}`;
-    }),
-    criterios: acs.criterios.map(cod => {
-      const c = crits.find(x => x.codigo === cod);
-      return c ? `${cod}. ${c.texto}` : cod;
-    }),
-    saberes: acs.saberes.map(b => {
-      const x = bloques.find(y => y.bloque === b);
-      return x ? `${b}. ${x.tituloBloque}` : b;
-    }),
-  };
 }
 
 /** Cómo se nombra una fila del seguimiento: el criterio con su texto o el bloque con su título. */
@@ -138,6 +116,12 @@ export function contenidoAcs(
         { tipo: 'lista', titulo: t('Criterios de evaluación'), items: elegidos.criterios },
         { tipo: 'lista', titulo: t('Saberes básicos'), items: elegidos.saberes },
       ];
+      case 'objetivos': return [{
+        tipo: 'tabla', titulo: t('Objetivos concretos'),
+        columnas: [t('Objetivo'), t('Criterio'), t('Trimestres')],
+        filas: (acs.objetivos ?? []).map(o => [o.texto, o.criterio ?? '', o.trimestres.join(', ')]),
+        anchos: [64, 14, 22],
+      }];
       case 'ajusteCriterios': return [{
         tipo: 'tabla', titulo: t('Los criterios respecto a su grupo de edad'),
         columnas: [t('Criterio de evaluación'), t('Priorizado o modificado'), t('Qué hace en relación con la actividad del aula')],

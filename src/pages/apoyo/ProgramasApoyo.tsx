@@ -5,7 +5,7 @@
  * curso de su nivel de competencia. La IA los propone y el docente los
  * cambia. Ver `docs/PTAL.md`.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, Sparkles, Target, Link2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
@@ -21,6 +21,8 @@ import { claveCriterioOficial } from '../../lib/curriculum/evaluacionPorCriterio
 import { ambitosDe, nivelDe, nuevoIdApoyo } from '../../lib/apoyo';
 import { puntosDe } from '../../lib/inicioApoyo';
 import { GraficaObjetivo } from '../../components/apoyo/GraficaObjetivo';
+import { CasillaAcs } from '../../components/apoyo/CasillaAcs';
+import { useAcsParaIA } from '../../hooks/useAcsParaIA';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
 import type { EstadoCurriculoClase } from '../../hooks/useNotasPorCompetencias';
@@ -40,7 +42,7 @@ const TRIMESTRES: Trimestre[] = [1, 2, 3];
 const INTENSIDADES = ['baja', 'media', 'alta'] as const;
 const OTRO = '__otro__';
 /** De dónde viene un objetivo: claves del diccionario. */
-const ORIGEN = { informe: 'Informe', orientacion: 'Orientación', ia: 'IA' } as const;
+const ORIGEN = { informe: 'Informe', orientacion: 'Orientación', ia: 'IA', acs: 'ACS' } as const;
 
 export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunidad, onNav }: Props) {
   const { t, lang } = useI18n();
@@ -50,6 +52,9 @@ export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunid
   const { estado, materias } = useMateriasDeNivel(comunidad, nivel);
   const programas = data.programas.filter(p => p.alumnoId === alumno.id);
   const [generando, setGenerando] = useState<string | null>(null);
+  const [conAcs, setConAcs] = useState(false);
+  const suyasAcs = useMemo(() => data.acs.filter(a => a.alumnoId === alumno.id), [data.acs, alumno.id]);
+  const textoAcs = useAcsParaIA(suyasAcs, comunidad);
 
   /** Programa que se está creando o cambiando de ámbito. */
   const [editando, setEditando] = useState<ProgramaApoyo | null>(null);
@@ -103,7 +108,7 @@ export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunid
   async function proponer(p: ProgramaApoyo) {
     setGenerando(p.id);
     const propuestos = await proponerObjetivos(
-      { alumno, programa: p, actuales: p.objetivos, materias, comunidad, lang, nombreCurso },
+      { alumno, programa: p, actuales: p.objetivos, materias, comunidad, lang, nombreCurso, contextoAcs: conAcs ? textoAcs : undefined },
       { onError: m => toast(t(m)) },
     );
     setGenerando(null);
@@ -129,6 +134,9 @@ export function ProgramasApoyo({ alumno, data, onChange, especialidades, comunid
       {!hasApiKey() && (
         <AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />
       )}
+
+      <CasillaAcs texto={textoAcs} checked={conAcs} onChange={setConAcs}
+        etiqueta={t('Tener en cuenta su adaptación curricular significativa al proponer objetivos')} />
 
       {programas.length === 0 && (
         <div className="card"><p className="ap-vacio">{t('Todavía no tiene programas. Crea uno por cada ámbito que trabajas con este alumno.')}</p></div>

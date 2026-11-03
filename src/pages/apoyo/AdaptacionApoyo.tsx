@@ -3,7 +3,9 @@
  * trimestre, se da la programación del tutor (pegada o en un archivo; es opcional) y la IA prepara la adaptación con el
  * nivel del alumno, sus objetivos y su informe. Es un documento, no materiales. Ver `docs/PTAL.md`.
  */
-import { useRef, useState } from 'react';
+import { CasillaAcs } from '../../components/apoyo/CasillaAcs';
+import { useAcsParaIA } from '../../hooks/useAcsParaIA';
+import { useMemo, useRef, useState } from 'react';
 import { Sparkles, Upload, ClipboardCheck } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { AiKeyNotice } from '../../components/ui/AiKeyNotice';
@@ -44,6 +46,9 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
   const [archivo, setArchivo] = useState<string>();
   const [pegado, setPegado] = useState('');
   const [generando, setGenerando] = useState(false);
+  const [conAcs, setConAcs] = useState(false);
+  const suyasAcs = useMemo(() => data.acs.filter(a => a.alumnoId === alumno.id), [data.acs, alumno.id]);
+  const textoAcs = useAcsParaIA(suyasAcs, comunidad);
   const materia = materias.find(m => m.entry.nombre === area) ?? materias[0];
   const sinClave = !hasApiKey();
 
@@ -61,7 +66,7 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
     const previa = adaptacionExistente(data, alumno.id, materia.entry.nombre, trimestre);
     if (previa && !window.confirm(t('Ya hay un documento «{name}». ¿Lo sustituyes por uno nuevo?', { name: previa.titulo }))) return;
     const doc = await generarAdaptacion(
-      { alumno, materia, trimestre, programacion: { texto: pegado }, data, comunidad, lang, nombreCurso, materias, hoy: isoDate() },
+      { alumno, materia, trimestre, programacion: { texto: pegado }, data, comunidad, lang, nombreCurso, materias, hoy: isoDate(), contextoAcs: conAcs ? textoAcs : undefined },
       { onStart: () => setGenerando(true), onEnd: () => setGenerando(false), onError: m => toast(t(m)) },
     );
     if (!doc) return;
@@ -108,6 +113,7 @@ export function AdaptacionApoyo({ alumno, data, onChange, materias, comunidad, o
               onChange={e => setPegado(e.target.value)} style={{ marginTop: 8 }} />
             <span className="ap-aviso">{t('La IA recibe solo el texto, nunca el archivo: se lee aquí, en tu dispositivo, con los nombres del alumnado cambiados por un código. Sin programación del tutor, se adapta lo que dice el currículo.')}</span>
           </div>
+          <CasillaAcs texto={textoAcs} checked={conAcs} onChange={setConAcs} etiqueta={t('Tener en cuenta su adaptación curricular significativa')} />
           <button className="btn-ia" type="button" disabled={generando || sinClave} onClick={preparar}>
             {generando ? <span className="spin" /> : <Sparkles size={15} />}{generando ? t('Preparando…') : t('Preparar la adaptación con IA')}
           </button>

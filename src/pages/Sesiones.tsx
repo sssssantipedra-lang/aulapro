@@ -11,6 +11,10 @@
  * agrupadas por su situación de aprendizaje y se pueden elegir varias para
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
+import { CasillaAcs } from '../components/apoyo/CasillaAcs';
+import { useAcsParaIA } from '../hooks/useAcsParaIA';
+import { palabrasDeNombres } from '../lib/barreras';
+import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Sparkles, Trash2, FileDown, CalendarDays, MapPin, Bandage, Copy, Circle, CheckCircle2, Eye, Check, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
@@ -58,6 +62,8 @@ const sinImagenes = (s: SesionEF): SesionEF => (s.imagenes ? (({ imagenes: _i, .
 interface Props {
   classes: Class[];
   students: Student[];
+  /** Las adaptaciones curriculares significativas del alumnado de «Mis clases» (`ApoyoData.acsAula`). */
+  acsAula?: AcsApoyo[];
   scheduleBlocks: ScheduleBlock[];
   ef: EfData;
   onChangeEf: (f: (d: EfData) => EfData) => void;
@@ -110,7 +116,7 @@ function minutosDeClase(blocks: ScheduleBlock[], claseId: string, fecha: string)
 
 export function Sesiones({
   classes, students, scheduleBlocks, ef, onChangeEf, comunidad, rubrics = [], dianas = [], onAddDiana, onNav, evaluations = [], lawDocument = null,
-  onAddEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda,
+  onAddEvaluation, perfil = 'ef', learningSituations = [], onSaveSda, onAbrirSda, acsAula = [],
 }: Props) {
   const { t, lang, locale } = useI18n();
   const { toast } = useToast();
@@ -170,6 +176,18 @@ export function Sesiones({
 
   // El currículo de la clase que toca: la de la IA o la de la sesión abierta
   const claseIa = classes.find(c => c.id === ia?.claseId) ?? null;
+  const claseAcs = ia?.claseId ?? '';
+  const [conAcs, setConAcs] = useState(false);
+  const acsDeClase = useMemo(() => {
+    const ids = new Set(students.filter(s => s.class_id === claseAcs).map(s => s.id));
+    return acsAula.filter(a => ids.has(a.alumnoId));
+  }, [acsAula, students, claseAcs]);
+  const nombresDeClase = useMemo(() => palabrasDeNombres(students.filter(s => s.class_id === claseAcs).map(s => s.name)), [students, claseAcs]);
+  const etiquetaAcs = useCallback((a: AcsApoyo) => {
+    const orden = [...new Set(acsDeClase.map(x => x.alumnoId))];
+    return t('Alumno con adaptación {n}', { n: orden.indexOf(a.alumnoId) + 1 });
+  }, [acsDeClase, t]);
+  const textoAcs = useAcsParaIA(acsDeClase, comunidad, nombresDeClase, etiquetaAcs);
   const claseEd = classes.find(c => c.id === editando?.claseId) ?? null;
   const { materias: materiasIa } = useMateriasOficiales(claseIa, comunidad);
   const { materias: materiasEd } = useMateriasOficiales(claseEd, comunidad);
@@ -244,6 +262,7 @@ export function Sesiones({
       materias: deEF(materiasIa),
       // Con modalidad, del banco solo las suyas: así la sesión aprovecha juegos de la misma lógica
       banco: ia.banco ? [...ef.actividades, ...bancoEF(lang)].filter(a => !ia.modalidad || a.modalidad === ia.modalidad) : [],
+      acs: conAcs && textoAcs ? textoAcs : undefined,
     }, ef, comunidad, lang, { onError: m => toast(t(m)) });
     setPensando(false);
     if (!r) return;
@@ -545,6 +564,10 @@ export function Sesiones({
                 : t('Ese día hay {n} alumnos con alguna limitación o con medidas de nivel II o III en esta clase: la sesión llevará medidas para que participen.', { n: limsIa.length })}
               {' '}{t('A la IA solo le llega lo que no puede hacer cada alumno y su nivel de apoyo con lo que necesita, sin nombres, motivos ni diagnósticos.')}
             </p>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <CasillaAcs texto={textoAcs} checked={conAcs} onChange={setConAcs}
+                etiqueta={t('Tener en cuenta las adaptaciones curriculares significativas del alumnado ({n})', { n: new Set(acsDeClase.map(a => a.alumnoId)).size })} />
+            </div>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={preparar} disabled={pensando}>
                 {pensando ? <span className="spin" /> : <Sparkles size={15} />}{pensando ? t('Preparando…') : t('Preparar la sesión')}

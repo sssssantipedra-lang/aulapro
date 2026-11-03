@@ -12,12 +12,15 @@ import { quitarDatosDeContacto } from './documentoParaIA';
 
 const sinTildes = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-/** Las palabras de los nombres del alumnado (de 3 letras o más), para no enviarlas. */
-function nombresPropios(alumnado: readonly Student[]): string[] {
+/** Las palabras de unos nombres (de 3 letras o más), en minúscula y sin tildes, como las pide `sinNombres`. */
+export function palabrasDeNombres(nombres: readonly string[]): string[] {
   const set = new Set<string>();
-  for (const s of alumnado) for (const p of sinTildes(s.name).split(/\s+/)) if (p.length >= 3) set.add(p);
+  for (const n of nombres) for (const p of sinTildes(n).split(/\s+/)) if (p.length >= 3) set.add(p);
   return [...set];
 }
+
+/** Las palabras de los nombres del alumnado, para no enviarlas. */
+const nombresPropios = (alumnado: readonly Student[]): string[] => palabrasDeNombres(alumnado.map(s => s.name));
 
 /** Cambia por «el alumno» cada nombre propio del alumnado que aparezca en el texto. */
 export function sinNombres(texto: string, nombres: readonly string[]): string {

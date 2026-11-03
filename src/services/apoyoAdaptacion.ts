@@ -6,7 +6,7 @@
  * resto. Ver `docs/PTAL.md`, «Adaptación de la programación de aula».
  */
 import { callGemini, parseGeminiJson } from './gemini';
-import { alumnoParaIA, marcoApoyo } from './apoyoIA';
+import { alumnoParaIA, marcoApoyo, bloqueAcs } from './apoyoIA';
 import { NOMBRE_TIPO, objetivosTexto } from './apoyoDocumentos';
 import { catalogoCriterios, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { nivelDe, nuevoIdApoyo } from '../lib/apoyo';
@@ -55,6 +55,8 @@ export interface AdaptacionArgs {
   /** Todas las materias del nivel, para escribir los objetivos de sus programas con sus criterios. */
   materias: MateriaDeClase[];
   hoy: string;
+  /** Su ACS, solo si el docente marca «Tener en cuenta su ACS» (`lib/acsContexto.ts`). */
+  contextoAcs?: string;
 }
 
 /** Los criterios elegidos, con su texto oficial: lo escribe el código, no la IA. */
@@ -90,6 +92,7 @@ export async function generarAdaptacion(
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
     `Área: ${area}. Trimestre: ${trimestre}º.\n` +
     `Sus programas y objetivos individuales:\n${objetivosTexto(data, alumno.id, args.materias, t, lang)}\n\n` +
+    bloqueAcs(args.contextoAcs) +
     (programacionTexto
       ? `PROGRAMACIÓN DE AULA DEL TUTOR PARA ESTA ÁREA:\n${programacionTexto.slice(0, 30000)}\n\n`
       : 'No hay programación de aula del tutor: adapta lo que dice el currículo del curso de su nivel para esta área.\n\n') +

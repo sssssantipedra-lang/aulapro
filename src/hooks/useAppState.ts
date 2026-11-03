@@ -15,7 +15,7 @@ import type { ChatMessage } from '../services/aiContext';
 import * as store from '../services/storage';
 import { comunidadDePerfil } from '../lib/curriculum/comunidades';
 import { provinciaDePerfil } from '../lib/provincias';
-import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso } from '../lib/apoyo';
+import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso, sinAcsDeAula } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
 import { useGuardadoAutomatico } from './useGuardadoAutomatico';
 import { leerCopiaDeDatos } from '../lib/copiaDeDatos';
@@ -414,6 +414,7 @@ export function useAppState() {
 
     setClasses(prev => prev.filter(c => c.id !== id));
     setStudents(prev => prev.filter(s => s.class_id !== id));
+    setApoyo(prev => sinAcsDeAula(prev, new Set(cascadeStudentIds)));
     setGradeCategories(prev => prev.filter(g => g.class_id !== id));
     setGradeItems(prev => prev.filter(i => i.class_id !== id));
     setEvaluations(prev => prev.filter(e => e.class_id !== id));
@@ -454,6 +455,7 @@ export function useAppState() {
     setStudents(prev => prev.filter(s => s.id !== id));
     setClassMarks(prev => prev.filter(m => m.student_id !== id));
     setEf(prev => sinAlumnoEF(prev, id));
+    setApoyo(prev => sinAcsDeAula(prev, new Set([id])));
     log('delete', 'student', id, `Alumno ${goneName}`);
   }, [log, studentName]);
 

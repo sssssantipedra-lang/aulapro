@@ -62,6 +62,11 @@ export interface ContenidoCompartido {
   /** Cuándo se creó, en ISO. */
   creado: string;
   paquete: SharedBundle;
+  /**
+   * Adaptaciones curriculares significativas que un especialista de PT y AL envía al docente de aula o de EF de un
+   * alumno (`services/acsCompartir.ts`), sin el id del alumno: quien recibe elige a cuál se las pone. El paquete va vacío.
+   */
+  acs?: unknown[];
 }
 
 export type CodigoError =

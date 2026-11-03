@@ -22,7 +22,7 @@ const alumno: AlumnoApoyo = {
 const docente = { nombre: 'Profesor', centro: 'Centro de prueba', curso: '2026-2027' };
 const nivel: CursoDe = { etapa: 'primaria', curso: 3 };
 
-async function preparar(id: Exclude<ModeloAcsId, 'andalucia'>) {
+async function preparar(id: Exclude<ModeloAcsId, 'andalucia' | 'general'>) {
   const modelo = MODELOS_ACS[id];
   const materias = materiasDeCurriculo(await cargarCurriculo(id, 'primaria'), nivel);
   const m = materias.find(x => /matem/i.test(x.entry.nombre));
@@ -35,13 +35,13 @@ async function preparar(id: Exclude<ModeloAcsId, 'andalucia'>) {
 }
 
 describe('el modelo de cada comunidad', () => {
-  it('solo las cuatro comunidades tienen modelo propio', () => {
+  it('cuatro comunidades tienen modelo propio y el resto, el general', () => {
     expect(modeloAcs('andalucia')?.sigla).toBe('ACS');
     expect(modeloAcs('comunitat-valenciana')?.sigla).toBe('ACIS');
     expect(modeloAcs('cataluna')?.sigla).toBe('PI');
     expect(modeloAcs('madrid')?.sigla).toBe('ACS');
-    expect(modeloAcs('galicia')).toBeNull();
-    expect(modeloAcs(undefined)).toBeNull();
+    expect(modeloAcs('galicia').id).toBe('general');
+    expect(modeloAcs(undefined).id).toBe('general');
   });
 
   it('cada apartado y cada etiqueta está en los tres idiomas', () => {

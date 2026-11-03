@@ -2644,6 +2644,11 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .ap-origen-informe { background:color-mix(in srgb, var(--accent) 16%, var(--card)); color:var(--accent-d); }
 .ap-origen-orientacion { background:color-mix(in srgb, #8b5cf6 16%, var(--card)); color:#6d28d9; }
 .ap-origen-ia { background:var(--surface-2); color:var(--text-2); }
+.ap-origen-acs { background:var(--accent-l, #e0f2fe); color:var(--accent-d); }
+.acs-obj-fila { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:6px; }
+.acs-obj-crit { width:auto; max-width:160px; }
+.acs-obj-acciones { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.acs-extra { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
 
 /* Cambiar el orden de las sesiones: botones y asa para arrastrar */
 .ses-orden { flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:2px; }
@@ -2677,3 +2682,8 @@ ol.ses-sda-lista { list-style:decimal; padding-left:20px; gap:4px; font-size:13.
 .entrar-confirma strong { font-size:14px; color:var(--text); }
 .entrar-confirma p { margin:0; font-size:12.5px; line-height:1.55; color:var(--text-2); }
 .entrar-confirma .entrar-ahora-no { align-self:center; margin-top:2px; }
+.casilla-acs-ver { margin: 4px 0 0 24px; font-size: 12.5px; color: var(--text-2); }
+.casilla-acs-ver summary { cursor: pointer; }
+.casilla-acs-ver pre { white-space: pre-wrap; font: inherit; margin: 6px 0; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; max-height: 220px; overflow: auto; }
+.acs-clave { display:inline-block; font-size:18px; letter-spacing:1px; padding:6px 10px; border-radius:8px; background:var(--surface); border:1px solid var(--border); margin:4px 0; user-select:all; }
+.gb-acs { margin-left:6px; font-size:10.5px; padding:1px 6px; vertical-align:middle; }

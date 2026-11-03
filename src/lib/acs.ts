@@ -9,6 +9,7 @@
  * otro, pero sí la aprobación de la CAD y la conformidad de la familia.
  */
 import { competenciasDe, type CurriculumEntry } from './curriculum';
+import type { MateriaDeClase } from './curriculum/criteriosParaIA';
 import { GRUPOS_NEAE, nuevoIdApoyo } from './apoyo';
 import { MODELOS_ACS, llevaPieza, type ModeloAcs } from './acsModelos';
 import type {
@@ -182,6 +183,29 @@ export function seleccionValida(acs: AcsApoyo, entry: CurriculumEntry | undefine
   };
 }
 
+/** El texto oficial de cada cosa elegida; sin currículo cargado, solo el código. */
+export function textosElegidos(acs: AcsApoyo, materia: MateriaDeClase | undefined) {
+  const entry = materia?.entry;
+  const grupo = materia?.grupo ?? '';
+  const comps = entry ? competenciasDe(entry, grupo) : [];
+  const crits = entry?.criterios[grupo] ?? [];
+  const bloques = entry?.saberes[grupo] ?? [];
+  return {
+    competencias: acs.competencias.map(n => {
+      const c = comps.find(x => x.n === n);
+      return c ? `CE${n}. ${c.texto}` : `CE${n}`;
+    }),
+    criterios: acs.criterios.map(cod => {
+      const c = crits.find(x => x.codigo === cod);
+      return c ? `${cod}. ${c.texto}` : cod;
+    }),
+    saberes: acs.saberes.map(b => {
+      const x = bloques.find(y => y.bloque === b);
+      return x ? `${b}. ${x.tituloBloque}` : b;
+    }),
+  };
+}
+
 /* ── Seguimiento ── */
 
 /** Las filas de un trimestre: cada criterio elegido y, después, cada bloque de saberes, con lo ya anotado. */
@@ -261,13 +285,25 @@ function extrasDelModelo(x: Record<string, unknown>): Partial<AcsApoyo> {
     });
     if (Object.keys(ajusteCriterios).length) r.ajusteCriterios = ajusteCriterios;
   }
+  if (Array.isArray(x.objetivos)) {
+    const objetivos = x.objetivos.flatMap(o => {
+      const y = obj(o);
+      if (!y || !esTexto(y.id) || !esTexto(y.texto) || !y.texto.trim()) return [];
+      const ts = (Array.isArray(y.trimestres) ? y.trimestres : []).map(trimestre).filter((t): t is Trimestre => t !== null);
+      return [{ id: y.id, texto: y.texto, trimestres: ts.length ? [...new Set(ts)].sort() : [1, 2, 3] as Trimestre[],
+        ...(esTexto(y.criterio) && y.criterio.trim() ? { criterio: y.criterio } : {}) }];
+    });
+    if (objetivos.length) r.objetivos = objetivos;
+  }
+  const categorias = textos(x.categorias);
+  if (categorias.length) r.categorias = categorias;
   const notas = porTrimestre(x.notas);
   if (Object.keys(notas).length) r.notas = notas;
   return r;
 }
 
 /** Una ACS tal como llega del disco o de una copia; `null` si no se entiende o su alumno no existe. */
-export function normalizarAcs(v: unknown, alumnos: ReadonlySet<string>, curso: (v: unknown) => CursoDe | undefined): AcsApoyo | null {
+export function normalizarAcs(v: unknown, alumnos: { has(id: string): boolean }, curso: (v: unknown) => CursoDe | undefined): AcsApoyo | null {
   const x = obj(v);
   if (!x || !esTexto(x.id) || !esTexto(x.alumnoId) || !alumnos.has(x.alumnoId) || !esTexto(x.area) || !x.area.trim()) return null;
   const nivel = curso(x.nivel);

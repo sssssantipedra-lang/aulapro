@@ -6,8 +6,9 @@
  * `services/acsDocumento.ts` y la propuesta de la IA en `services/acsIA.ts`. Ver `docs/PTAL.md`.
  */
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { BookMarked, Download, FileText, Pencil, Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-react';
+import { ArrowRightLeft, BookMarked, Download, FileText, Pencil, Plus, Sparkles, Trash2, TriangleAlert } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { EnviarAcs } from '../../components/apoyo/EnviarAcs';
 import { useToast } from '../../components/ui/Toast';
 import { useI18n } from '../../i18n';
 import { useNombreCurso } from '../../hooks/useNombreCurso';
@@ -17,17 +18,19 @@ import {
   APOYOS_VACIOS, ESTRATEGIAS_ACS, GRADOS_ACS, alternarCompetencia, alternarCriterio, alternarSaber, avisosAcs, conCamposDelModelo,
   conFila, desfaseCursos, filasSeguimiento, nuevaAcs, progresoTrimestre, seleccionValida, textoAviso,
 } from '../../lib/acs';
-import { MODELOS_ACS, etiquetaResponsable, modeloAcs, type ModeloAcs, type PiezaAcs } from '../../lib/acsModelos';
+import { etiquetaResponsable, modeloAcs, type ModeloAcs, type PiezaAcs } from '../../lib/acsModelos';
 import {
   contenidoAcs, firmasAcs, guardarAcsDocx, guardarAcsPdf, nombreArchivoAcs, nombreFila, tituloAcs, type DocenteAcs,
 } from '../../services/acsDocumento';
-import { proponerAcs } from '../../services/acsIA';
+import { proponerAcs, proponerObjetivosAcs } from '../../services/acsIA';
+import { alumnoParaIA } from '../../services/apoyoIA';
+import { ambitoDeAcs, objetivosAcsAProgramas } from '../../lib/acsProgramas';
 import { competenciasDe } from '../../lib/curriculum';
-import { nivelDe, nuevoIdApoyo, trimestreDe } from '../../lib/apoyo';
+import { GRUPOS_NEAE, nivelDe, nuevoIdApoyo, trimestreDe } from '../../lib/apoyo';
 import { isoDate } from '../../lib/utils';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
-import type { AcsApoyo as Acs, AlumnoApoyo, ApoyoData, CursoDe, GradoAcs, Trimestre } from '../../types/apoyo';
+import type { AcsApoyo as Acs, AlumnoApoyo, ApoyoData, CursoDe, GradoAcs, ObjetivoAcs, Trimestre } from '../../types/apoyo';
 
 interface Props {
   alumno: AlumnoApoyo;
@@ -37,7 +40,17 @@ interface Props {
   materias: MateriaDeClase[];
   comunidad: ComunidadId | undefined;
   docente: DocenteAcs;
+  /**
+   * `apoyo` (por defecto): la del especialista de PT y AL, en `data.acs`, con el paso a sus programas. `aula`: la de un
+   * docente de aula o de EF para un alumno de «Mis clases», en `data.acsAula`; sus necesidades se marcan en la propia
+   * adaptación, y quien la firma es el profesorado de la materia.
+   */
+  modo?: 'apoyo' | 'aula';
+  /** Un botón más en la tarjeta (en el aula, «Recibir del especialista»). */
+  extra?: React.ReactNode;
 }
+
+type Clave = 'acs' | 'acsAula';
 
 const CURSOS: CursoDe[] = [
   ...[1, 2, 3, 4, 5, 6].map(curso => ({ etapa: 'primaria' as const, curso })),
@@ -45,31 +58,33 @@ const CURSOS: CursoDe[] = [
 ];
 const claveCurso = (c: CursoDe) => `${c.etapa}-${c.curso}`;
 
-export function AcsApoyo({ alumno, data, onChange, materias, comunidad, docente }: Props) {
+export function AcsApoyo({ alumno, data, onChange, materias, comunidad, docente, modo = 'apoyo', extra }: Props) {
+  const clave: Clave = modo === 'aula' ? 'acsAula' : 'acs';
   const { t, lang } = useI18n();
   const nombreCurso = useNombreCurso();
   const nivel = nivelDe(alumno);
   const [area, setArea] = useState('');
   const [abiertaId, setAbiertaId] = useState<string | null>(null);
-  const suyas = data.acs.filter(a => a.alumnoId === alumno.id);
+  const suyas = data[clave].filter(a => a.alumnoId === alumno.id);
   const abierta = suyas.find(a => a.id === abiertaId) ?? null;
   const trimestre = trimestreDe(isoDate());
   const elegida = materias.find(m => m.entry.nombre === area) ?? materias[0];
-  const modelo = modeloAcs(comunidad) ?? MODELOS_ACS.andalucia;
+  const modelo = modeloAcs(comunidad);
 
   function crear() {
     if (!nivel || !elegida) return;
     const ya = suyas.find(a => a.area === elegida.entry.nombre);
     if (ya) { setAbiertaId(ya.id); return; }
     const acs = conCamposDelModelo(nuevaAcs(alumno, elegida.entry.nombre, nivel, isoDate(), k => t(k)), modelo, alumno);
-    acs.responsables.especialista = docente.nombre;
-    onChange(d => ({ ...d, acs: [...d.acs, acs] }));
+    if (modo === 'aula') acs.responsables.materia = docente.nombre;
+    else acs.responsables.especialista = docente.nombre;
+    onChange(d => ({ ...d, [clave]: [...d[clave], acs] }));
     setAbiertaId(acs.id);
   }
 
   function borrar(acs: Acs) {
     if (!window.confirm(t('¿Eliminar «{name}»?', { name: tituloAcs(acs, t, modelo) }))) return;
-    onChange(d => ({ ...d, acs: d.acs.filter(x => x.id !== acs.id) }));
+    onChange(d => ({ ...d, [clave]: d[clave].filter(x => x.id !== acs.id) }));
     if (abiertaId === acs.id) setAbiertaId(null);
   }
 
@@ -112,11 +127,13 @@ export function AcsApoyo({ alumno, data, onChange, materias, comunidad, docente 
           </button>
         </div>
       )}
+      {extra && <div className="acs-extra">{extra}</div>}
       <Modal open={!!abierta} onClose={() => setAbiertaId(null)} wide stickyHeader title={abierta ? tituloAcs(abierta, t, modelo) : ''}>
         {abierta && (
           <EditorAcs
             key={abierta.id} acs={abierta} alumno={alumno} data={data} comunidad={comunidad} modelo={modelo} docente={docente} lang={lang}
-            onCambio={f => onChange(d => ({ ...d, acs: d.acs.map(x => (x.id === abierta.id ? { ...f(x), fecha: isoDate() } : x)) }))}
+            modo={modo} onData={onChange}
+            onCambio={f => onChange(d => ({ ...d, [clave]: d[clave].map(x => (x.id === abierta.id ? { ...f(x), fecha: isoDate() } : x)) }))}
             onCerrar={() => setAbiertaId(null)} onBorrar={() => borrar(abierta)}
           />
         )}
@@ -133,12 +150,17 @@ interface EditorProps {
   modelo: ModeloAcs;
   docente: DocenteAcs;
   lang: 'es' | 'en' | 'ca';
+  modo: 'apoyo' | 'aula';
+  /** Para pasar los objetivos a sus programas (solo PT y AL). */
+  onData: (f: (d: ApoyoData) => ApoyoData) => void;
   onCambio: (f: (a: Acs) => Acs) => void;
   onCerrar: () => void;
   onBorrar: () => void;
 }
 
-function EditorAcs({ acs, alumno, data, comunidad, modelo, docente, lang, onCambio, onCerrar, onBorrar }: EditorProps) {
+function EditorAcs({ acs, alumno: alumnoFicha, data, comunidad, modelo, docente, lang, modo, onData, onCambio, onCerrar, onBorrar }: EditorProps) {
+  // En el aula, las necesidades del alumno van en la propia adaptación
+  const alumno = modo === 'aula' ? { ...alumnoFicha, categorias: acs.categorias ?? [] } : alumnoFicha;
   const { t } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -146,6 +168,7 @@ function EditorAcs({ acs, alumno, data, comunidad, modelo, docente, lang, onCamb
   const materia = materias.find(m => m.entry.nombre === acs.area);
   const [trimestre, setTrimestre] = useState<Trimestre>(trimestreDe(isoDate()));
   const [proponiendo, setProponiendo] = useState(false);
+  const [objetivando, setObjetivando] = useState(false);
   const avisos = avisosAcs(acs, alumno, modelo);
   const desfase = desfaseCursos(alumno.matricula, acs.nivel);
   const conPdf = typeof window !== 'undefined' && !!window.electronAPI?.docs;
@@ -169,6 +192,25 @@ function EditorAcs({ acs, alumno, data, comunidad, modelo, docente, lang, onCamb
       { onStart: () => setProponiendo(true), onEnd: () => setProponiendo(false), onError: m => toast(t(m)) });
     if (r) onCambio(() => r);
   }
+
+  async function proponerObjetivos() {
+    if (!materia) return;
+    const nuevos = await proponerObjetivosAcs({
+      acs, materia, alumnoTexto: alumnoParaIA(alumno, nombreCurso), nombreCurso, modelo, comunidad, lang, idNuevo: nuevoIdApoyo,
+    }, { onStart: () => setObjetivando(true), onEnd: () => setObjetivando(false), onError: m => toast(t(m)) });
+    if (nuevos?.length) onCambio(a => ({ ...a, objetivos: [...(a.objetivos ?? []), ...nuevos] }));
+  }
+
+  function pasarAProgramas() {
+    const ambito = ambitoDeAcs(acs, modelo, comunidad, lang, t);
+    let pasados = 0;
+    onData(d => { const r = objetivosAcsAProgramas(d, acs, ambito, materia?.entry.nombre ?? acs.area, nuevoIdApoyo); pasados = r.pasados; return r.data; });
+    // `onData` se aplica al momento; si no, el aviso dice cero
+    setTimeout(() => toast(pasados ? t('Objetivos pasados al programa «{name}»: {n}.', { name: ambito, n: pasados }) : t('Ya estaban todos en sus programas.')), 0);
+  }
+
+  const setObjetivo = (id: string, cambio: Partial<ObjetivoAcs>) =>
+    set('objetivos', (acs.objetivos ?? []).map(o => (o.id === id ? { ...o, ...cambio } : o)));
 
   async function exportar(formato: 'pdf' | 'docx') {
     const c = contenidoAcs(acs, alumno, materia, docente, nombreCurso, lang, modelo);
@@ -206,6 +248,25 @@ function EditorAcs({ acs, alumno, data, comunidad, modelo, docente, lang, onCamb
               <input id={`acs-f-${f.id}`} type="date" className="finput" value={acs.fechas?.[f.id] ?? ''} onChange={e => setFecha(f.id, e.target.value)} />
             </div>
           ))}
+          {modo === 'aula' && (
+            <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
+              <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
+              {GRUPOS_NEAE.map(g => (
+                <div key={g.titulo} className="ap-neae">
+                  <div className="ap-neae-ttl">{t(g.titulo)}</div>
+                  <div className="chip-row">
+                    {g.categorias.map(c => {
+                      const on = (acs.categorias ?? []).includes(c);
+                      return (
+                        <button key={c} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}
+                          onClick={() => set('categorias', on ? (acs.categorias ?? []).filter(x => x !== c) : [...(acs.categorias ?? []), c])}>{t(c)}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </fieldset>
+          )}
           {modelo.id === 'madrid' && (
             <div className="fgroup">
               <label className="flabel" htmlFor="acs-organismo">{t('Evaluación y dictamen de')}</label>
@@ -316,6 +377,50 @@ function EditorAcs({ acs, alumno, data, comunidad, modelo, docente, lang, onCamb
             ))}
           </div>
         </>
+      );
+      case 'objetivos': return materia && (
+        <fieldset className="fgroup ap-fs" style={{ marginTop: 12 }}>
+          <legend className="flabel">{t('Objetivos concretos')} <span className="ap-sub">({t('de los criterios elegidos, por trimestre')})</span></legend>
+          {(acs.objetivos ?? []).length === 0 && <p className="ap-vacio">{t('Todavía no hay ninguno. La IA los propone a partir de los criterios elegidos, o escríbelos tú.')}</p>}
+          <ul className="acs-seg">
+            {(acs.objetivos ?? []).map(o => (
+              <li key={o.id}>
+                <textarea className="finput" rows={1} aria-label={t('Objetivo')} value={o.texto} onChange={e => setObjetivo(o.id, { texto: e.target.value })} />
+                <div className="acs-obj-fila">
+                  <div className="chip-row" role="group" aria-label={t('Trimestres')}>
+                    {([1, 2, 3] as const).map(n => {
+                      const on = o.trimestres.includes(n);
+                      return (
+                        <button key={n} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}
+                          onClick={() => { const ts = on ? o.trimestres.filter(x => x !== n) : [...o.trimestres, n].sort(); if (ts.length) setObjetivo(o.id, { trimestres: ts }); }}>
+                          {t('{n}º trimestre', { n })}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <select className="finput acs-obj-crit" aria-label={t('Criterio')} value={o.criterio ?? ''} onChange={e => setObjetivo(o.id, { criterio: e.target.value || undefined })}>
+                    <option value="">{t('Sin criterio')}</option>
+                    {acs.criterios.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <button type="button" className="ico-btn" aria-label={t('Quitar «{name}»', { name: o.texto })}
+                    onClick={() => set('objetivos', (acs.objetivos ?? []).filter(x => x.id !== o.id))}><Trash2 size={15} /></button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="acs-obj-acciones">
+            <button className="btn-ia" type="button" disabled={objetivando || !hasApiKey() || acs.criterios.length === 0} onClick={proponerObjetivos}>
+              {objetivando ? <span className="spin" /> : <Sparkles size={15} />}{objetivando ? t('Preparando…') : t('Proponer objetivos con IA')}
+            </button>
+            <button type="button" className="btn-ghost"
+              onClick={() => set('objetivos', [...(acs.objetivos ?? []), { id: nuevoIdApoyo('obj'), texto: '', trimestres: [trimestre], ...(acs.criterios[0] ? { criterio: acs.criterios[0] } : {}) }])}>
+              <Plus size={14} />{t('Añadir objetivo')}
+            </button>
+            {modo === 'apoyo' && (acs.objetivos ?? []).some(o => o.texto.trim()) && (
+              <button type="button" className="btn-ghost" onClick={pasarAProgramas}><ArrowRightLeft size={14} />{t('Pasar a sus programas')}</button>
+            )}
+          </div>
+        </fieldset>
       );
       case 'ajusteCriterios': return acs.criterios.length > 0 && (
         <fieldset className="fgroup ap-fs" style={{ marginTop: 12 }}>
@@ -496,6 +601,7 @@ function EditorAcs({ acs, alumno, data, comunidad, modelo, docente, lang, onCamb
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
         {conPdf && <button className="btn-accent" onClick={() => exportar('pdf')}><Download size={15} />{t('Exportar PDF')}</button>}
         <button className="btn-ghost" onClick={() => exportar('docx')}><FileText size={15} />{t('Exportar Word')}</button>
+        {modo === 'apoyo' && <EnviarAcs acs={acs} alumno={alumno} de={docente.nombre} />}
       </div>
 
       {avisos.length > 0 && (

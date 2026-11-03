@@ -256,6 +256,11 @@ export interface SdaRequest {
    */
   barreras?: string[];
   /**
+   * Las adaptaciones curriculares significativas del alumnado de las clases elegidas (`lib/acsContexto.ts`), sin
+   * nombres: una por alumno y área. Solo si el docente lo marca.
+   */
+  acs?: string;
+  /**
    * Sesiones que el docente ya tiene preparadas y de las que sale la SdA
    * (decisión del dueño, 21-10-2026: «generar una SdA a partir de las sesiones
    * seleccionadas»). La SdA se estructura en torno a ellas, en este orden.
@@ -897,6 +902,11 @@ export async function generateSda(
       ? 'BARRERAS DE APRENDIZAJE DEL ALUMNADO (una línea por alumno, sin nombres): tenlas en cuenta al diseñar las actividades y ' +
         'concreta en "inclusionUniversal", "inclusionAdicional" e "inclusionIndividualizada" una medida para cada barrera, ' +
         'con el DUA. No cites diagnósticos ni nombres.\n' + req.barreras.map(b => `- ${b}`).join('\n') + '\n\n'
+      : '') +
+    (req.acs?.trim()
+      ? 'ADAPTACIONES CURRICULARES SIGNIFICATIVAS DEL ALUMNADO (sin nombres): para cada una, diseña dentro de la misma SdA ' +
+        'una versión de las actividades y de la evaluación con sus criterios y objetivos, y concrétala en ' +
+        '"inclusionIndividualizada". No cites diagnósticos ni nombres.\n' + req.acs.trim() + '\n\n'
       : '') +
     curriculoReal +
     `\nRellena todos los campos del JSON de salida.`;

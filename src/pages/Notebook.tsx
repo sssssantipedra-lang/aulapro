@@ -1,3 +1,5 @@
+import { esDeAsignatura, modeloAcs } from '../lib/acsModelos';
+import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
@@ -30,6 +32,8 @@ const CompetenciasDeLaClase = lazy(() => import('../components/curriculum/Compet
 interface Props {
   classes: Class[];
   students: Student[];
+  /** Las adaptaciones curriculares significativas del alumnado (`ApoyoData.acsAula`): marca en el nombre. */
+  acsAula?: AcsApoyo[];
   /**
    * Incluyen el bloque «Trabajo diario y actitud» de las anotaciones del aula
    * (categoría y columna virtuales, de solo lectura; ver services/classMarks.ts).
@@ -176,7 +180,7 @@ const EF_CATEGORIES_EN: { name: string; weight: number }[] = [
 function GradesTab({
   classes, students, gradeCategories, gradeItems, grades, classMarks, marksConfigs, onSaveMarksConfig,
   onAddCategory, onUpdateCategory, onDeleteCategory,
-  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav,
+  onAddItem, onUpdateItem, onDeleteItem, onSetGrade, onNav, acsAula = [], comunidad,
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
@@ -622,7 +626,14 @@ function GradesTab({
                       const avg = weightedAverage(s.id, myCategories, myItems, grades);
                       return (
                         <tr key={s.id}>
-                          <td className="gb-sticky gb-student">{s.name}</td>
+                          <td className="gb-sticky gb-student">
+                            {s.name}
+                            {acsAula.some(a => a.alumnoId === s.id && esDeAsignatura(a, activeSubject)) && (
+                              <span className="sda-chip gb-acs" title={t('Tiene una adaptación curricular significativa en esta materia: califícalo con sus criterios.')}>
+                                {modeloAcs(comunidad).sigla}
+                              </span>
+                            )}
+                          </td>
                           {grouped.map(({ cat, items }) => {
                             const sb = isMarksCategory(cat.id) ? block?.perStudent.get(s.id) : undefined;
                             if (sb) {

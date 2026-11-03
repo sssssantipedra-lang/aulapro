@@ -14,7 +14,7 @@ import {
   Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType,
 } from 'docx';
 import { callGemini, parseGeminiJson } from './gemini';
-import { marcoApoyo, alumnoParaIA } from './apoyoIA';
+import { marcoApoyo, alumnoParaIA, bloqueAcs } from './apoyoIA';
 import { CON_QUIEN, coordinacionesDe, datosDelTrimestre, nivelDe, nuevoIdApoyo, type DatosTrimestre } from '../lib/apoyo';
 import { describirCriterio, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { translate, priorityLabel, weekdayLabel, LOCALES, type Lang } from '../i18n';
@@ -230,6 +230,8 @@ export interface GenerarArgs {
   /** El documento que ya había (el PAP se va rellenando trimestre a trimestre). */
   anterior?: DocumentoApoyo;
   hoy: string;
+  /** Su ACS, solo si el docente marca «Tener en cuenta su ACS» (`lib/acsContexto.ts`). */
+  contextoAcs?: string;
 }
 
 type Callbacks = { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void };
@@ -248,6 +250,7 @@ export async function generarDocumento(args: GenerarArgs, callbacks: Callbacks =
   const contexto =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
     `Programas y objetivos (por trimestre):\n${objetivosTexto(data, alumno.id, materias, t, lang)}\n\n` +
+    bloqueAcs(args.contextoAcs) +
     (tipo === 'programacion' ? '' : `${datosParaIA(datos, trimestre)}\n`) +
     // La programación es del curso: todas las coordinaciones hasta hoy
     (tipo === 'programacion' && coordinacionesDe(data, alumno.id).length

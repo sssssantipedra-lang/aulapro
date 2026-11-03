@@ -8,11 +8,16 @@
  * la hoja A4 tal cual se imprimirá, en vivo. El tema visual se cambia con un
  * clic sin volver a generar nada.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { CasillaAcs } from '../components/apoyo/CasillaAcs';
+import { useAcsParaIA } from '../hooks/useAcsParaIA';
+import { palabrasDeNombres } from '../lib/barreras';
+import type { AcsApoyo } from '../types/apoyo';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Sparkles, Plus, Trash2, Check, FileDown, FileType2, ArrowLeft, ArrowUp, ArrowDown, Wand2, Layers, Eye, ChevronDown, MonitorPlay, NotebookPen, BookOpen, KeyRound, Scissors, FlipHorizontal2, Image as ImageIcon, Pencil, Grid2x2,
 } from 'lucide-react';
-import type { Class, Ficha } from '../types';
+import type { Class, Ficha, Student } from '../types';
 import {
   generateFicha, regenerateExercise, rewriteStory, adaptFicha, cleanCode, addExercise, moreCards, moreCardsInteractivas, conHilo, tiposDisponibles,
   type FichaContent, type FichaExercise, type FichaExerciseType, type FichaThemeChoice, type FichaRequest,
@@ -61,6 +66,10 @@ interface Props {
   onProject?: (f: Ficha) => void;
   /** PT y AL: su alumnado de apoyo, para hacer una ficha adaptada a uno. */
   apoyo?: ApoyoData;
+  /** Docente de aula o de EF: su alumnado y sus adaptaciones curriculares significativas, para tenerlas en cuenta. */
+  students?: Student[];
+  acsAula?: AcsApoyo[];
+  comunidad?: ComunidadId;
 }
 
 function newId() {
@@ -150,7 +159,7 @@ interface BorradorFicha {
   modoTarjeta: 'recortables' | 'interactivas';
 }
 
-export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject, apoyo }: Props) {
+export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject, apoyo, students = [], acsAula = [], comunidad }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
   const nombreCurso = useNombreCurso();
@@ -172,6 +181,20 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
 
   /* ── Formulario ── */
   const [classId, setClassId] = useState('');
+  /** Las adaptaciones del alumno de PT elegido, o las del alumnado de la clase elegida; solo si el docente las marca. */
+  const acsFicha = useMemo(() => {
+    if (alumnoApoyo) return (apoyo?.acs ?? []).filter(a => a.alumnoId === alumnoApoyo);
+    const ids = new Set(students.filter(x => x.class_id === classId).map(x => x.id));
+    return acsAula.filter(a => ids.has(a.alumnoId));
+  }, [alumnoApoyo, apoyo, students, acsAula, classId]);
+  const nombresFicha = useMemo(() => palabrasDeNombres([...students.filter(x => x.class_id === classId).map(x => x.name), ...(apoyo?.alumnos ?? []).map(x => x.nombre)]), [students, classId, apoyo]);
+  const etiquetaFicha = useCallback((a: AcsApoyo) => {
+    if (alumnoApoyo) return '';
+    const orden = [...new Set(acsFicha.map(x => x.alumnoId))];
+    return t('Alumno con adaptación {n}', { n: orden.indexOf(a.alumnoId) + 1 });
+  }, [acsFicha, alumnoApoyo, t]);
+  const textoAcsFicha = useAcsParaIA(acsFicha, comunidad, nombresFicha, alumnoApoyo ? undefined : etiquetaFicha);
+  const bloqueAcsFicha = textoAcsFicha ? `${t('Adaptación curricular significativa (tenla en cuenta):')}\n${textoAcsFicha}` : '';
   const [tema, setTema] = useState('');
   const [area, setArea] = useState('');
   const [nivel, setNivel] = useState(inicial?.nivel ?? '');
@@ -971,6 +994,10 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
             <input id="resources-f4" className="finput" value={nivel} onChange={e => setNivel(e.target.value)} placeholder={t('Ej: 5º de Primaria')} />
           </div>
         </div>
+
+        <CasillaAcs texto={bloqueAcsFicha} checked={!!bloqueAcsFicha && contextoClase.includes(bloqueAcsFicha)}
+          onChange={v => setContextoClase(c => (v ? `${c.trim()}\n\n${bloqueAcsFicha}`.trim() : c.replace(bloqueAcsFicha, '').trim()))}
+          etiqueta={alumnoApoyo ? t('Tener en cuenta su adaptación curricular significativa') : t('Tener en cuenta las adaptaciones curriculares significativas del alumnado ({n})', { n: new Set(acsFicha.map(a => a.alumnoId)).size })} />
 
         {alumnoApoyo && (
           <p className="fe-hint" style={{ margin: '-4px 0 12px' }}>

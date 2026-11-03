@@ -5,7 +5,9 @@
  * IA a partir de su programa y del registro diario; el docente los retoca y
  * los exporta a PDF o a Word. Ver `docs/PTAL.md`, «Documentos».
  */
-import { useState } from 'react';
+import { CasillaAcs } from '../../components/apoyo/CasillaAcs';
+import { useAcsParaIA } from '../../hooks/useAcsParaIA';
+import { useMemo, useState } from 'react';
 import { Sparkles, FileText, Download, Trash2, Pencil, ImagePlus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
@@ -21,7 +23,6 @@ import { isoDate } from '../../lib/utils';
 import { requestFichaPara } from '../../lib/apoyoNav';
 import { AdaptacionApoyo } from './AdaptacionApoyo';
 import { AcsApoyo } from './AcsApoyo';
-import { modeloAcs } from '../../lib/acsModelos';
 import { nivelDe, trimestreCerrado, trimestreDe } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoGenerable, Trimestre } from '../../types/apoyo';
@@ -50,6 +51,9 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
   const [tipo, setTipo] = useState<TipoDocumentoGenerable>('familia');
   const [trimestre, setTrimestre] = useState<Trimestre>(trimestreInicial ?? trimestreDe(isoDate()));
   const [generando, setGenerando] = useState(false);
+  const [conAcs, setConAcs] = useState(false);
+  const suyasAcs = useMemo(() => data.acs.filter(a => a.alumnoId === alumno.id), [data.acs, alumno.id]);
+  const textoAcs = useAcsParaIA(suyasAcs, comunidad);
   const [abiertoId, setAbiertoId] = useState<string | null>(null);
   const abierto = data.documentos.find(d => d.id === abiertoId) ?? null;
   const conPdf = typeof window !== 'undefined' && !!window.electronAPI?.docs;
@@ -68,7 +72,7 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
     if (!data.programas.some(p => p.alumnoId === alumno.id)) { toast(t('Este alumno todavía no tiene programas: créalos primero en la pestaña «Programa».')); return; }
     setGenerando(true);
     const doc = await generarDocumento(
-      { tipo, alumno, trimestre, data, materias, comunidad, lang, nombreCurso, anterior, hoy: isoDate() },
+      { tipo, alumno, trimestre, data, materias, comunidad, lang, nombreCurso, anterior, hoy: isoDate(), contextoAcs: conAcs ? textoAcs : undefined },
       { onError: m => toast(t(m)) },
     );
     setGenerando(false);
@@ -151,13 +155,14 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
               ? t('Los objetivos salen tal cual de sus programas; la IA redacta el resto.')
               : t('Los recuentos salen del registro diario de ese trimestre; la IA los redacta.')}
         </p>
+        <CasillaAcs texto={textoAcs} checked={conAcs} onChange={setConAcs} etiqueta={t('Tener en cuenta su adaptación curricular significativa')} />
         <button className="btn-ia" type="button" disabled={generando || !hasApiKey()} onClick={generar}>
           {generando ? <span className="spin" /> : <Sparkles size={15} />}
           {generando ? t('Preparando…') : existente(tipo) && tipo === 'pap' ? t('Rellenar el {n}º trimestre', { n: trimestre }) : t('Preparar con IA')}
         </button>
       </div>
 
-      {modeloAcs(comunidad) && <AcsApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} docente={docente} />}
+      <AcsApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} docente={docente} />
 
       <AdaptacionApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} onAbrir={setAbiertoId} onNav={onNav} />
 

@@ -10,7 +10,7 @@ import type {
 } from '../types/apoyo';
 
 export const APOYO_VACIO: ApoyoData = {
-  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], evaluaciones: [], acs: [], agendas: [], fotos: [],
+  alumnos: [], grupos: [], programas: [], sesiones: [], documentos: [], coordinaciones: [], evaluaciones: [], acs: [], acsAula: [], agendas: [], fotos: [],
 };
 
 export function nuevoIdApoyo(prefijo: string): string {
@@ -526,7 +526,7 @@ const lista = <T,>(v: unknown, f: (x: unknown) => T | null): T[] =>
 const obj = (v: unknown): Record<string, unknown> | null =>
   v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 
-function curso(v: unknown): CursoDe | undefined {
+export function curso(v: unknown): CursoDe | undefined {
   const o = obj(v);
   if (!o || (o.etapa !== 'primaria' && o.etapa !== 'eso')) return undefined;
   const n = Number(o.curso);
@@ -609,7 +609,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
         const trimestres = lista<Trimestre>(x.trimestres, t => (t === 1 || t === 2 || t === 3 ? t : null));
         return {
           id: x.id, texto: x.texto,
-          ...(x.origen === 'informe' || x.origen === 'orientacion' || x.origen === 'ia' ? { origen: x.origen } : {}),
+          ...(x.origen === 'informe' || x.origen === 'orientacion' || x.origen === 'ia' || x.origen === 'acs' ? { origen: x.origen } : {}),
           trimestres: trimestres.length ? [...new Set(trimestres)].sort() : [1, 2, 3],
           criterios: lista(x.criterios, c => {
             const r = obj(c);
@@ -693,6 +693,8 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
     };
   });
   const acs = lista(o.acs, v => normalizarAcs(v, ids, curso));
+  // La del aula es de un alumno de «Mis clases», que este módulo no conoce: se quita al borrar al alumno (`sinAcsDeAula`)
+  const acsAula = lista(o.acsAula, v => normalizarAcs(v, { has: id => id.trim() !== '' }, curso));
   const fotos = lista<FotoApoyo>(o.fotos, v => {
     const x = obj(v);
     return x && esTexto(x.id) && esTexto(x.datos) && x.datos.startsWith('data:image/')
@@ -719,7 +721,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       }),
     };
   });
-  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, evaluaciones, acs, agendas, fotos };
+  return { alumnos, grupos, programas, sesiones, documentos, coordinaciones, evaluaciones, acs, acsAula, agendas, fotos };
 }
 
 /**
@@ -745,6 +747,7 @@ export function sinAlumno(d: ApoyoData, alumnoId: string): ApoyoData {
     coordinaciones: d.coordinaciones.filter(x => x.alumnoId !== alumnoId),
     evaluaciones: d.evaluaciones.filter(x => x.alumnoId !== alumnoId),
     acs: d.acs.filter(x => x.alumnoId !== alumnoId),
+    acsAula: d.acsAula,
     agendas: d.agendas.filter(a => a.alumnoId !== alumnoId),
     // Las fotos son la biblioteca del docente: se quitan una a una
     fotos: d.fotos,
@@ -759,3 +762,7 @@ export function sinGrupo(d: ApoyoData, grupoId: string): ApoyoData {
     sesiones: d.sesiones.filter(s => s.grupoId !== grupoId),
   };
 }
+
+/** Quita las adaptaciones de aula de un alumno de «Mis clases» que se borra. */
+export const sinAcsDeAula = (d: ApoyoData, studentIds: ReadonlySet<string>): ApoyoData =>
+  d.acsAula.some(a => studentIds.has(a.alumnoId)) ? { ...d, acsAula: d.acsAula.filter(a => !studentIds.has(a.alumnoId)) } : d;
