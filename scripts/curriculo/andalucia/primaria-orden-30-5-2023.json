@@ -1,0 +1,138 @@
+{
+ "resumen": {
+  "conocimiento-del-medio": {
+   "competencias": 9,
+   "criterios": {
+    "1º Primaria": 22,
+    "2º Primaria": 22,
+    "3º Primaria": 22,
+    "4º Primaria": 22,
+    "5º Primaria": 23,
+    "6º Primaria": 23
+   },
+   "saberes": {
+    "1": 44,
+    "2": 48,
+    "3": 49
+   }
+  },
+  "educacion-artistica": {
+   "competencias": 4,
+   "criterios": {
+    "1º Primaria": 10,
+    "2º Primaria": 10,
+    "3º Primaria": 10,
+    "4º Primaria": 10,
+    "5º Primaria": 11,
+    "6º Primaria": 11
+   },
+   "saberes": {
+    "1": 27,
+    "2": 34,
+    "3": 36
+   }
+  },
+  "educacion-fisica": {
+   "competencias": 5,
+   "criterios": {
+    "1º Primaria": 14,
+    "2º Primaria": 14,
+    "3º Primaria": 14,
+    "4º Primaria": 14,
+    "5º Primaria": 14,
+    "6º Primaria": 14
+   },
+   "saberes": {
+    "1": 26,
+    "2": 27,
+    "3": 29
+   }
+  },
+  "educacion-en-valores": {
+   "competencias": 4,
+   "criterios": {
+    "6º Primaria": 13
+   },
+   "saberes": {
+    "3": 25
+   }
+  },
+  "lengua-castellana": {
+   "competencias": 10,
+   "criterios": {
+    "1º Primaria": 22,
+    "2º Primaria": 22,
+    "3º Primaria": 22,
+    "4º Primaria": 22,
+    "5º Primaria": 22,
+    "6º Primaria": 22
+   },
+   "saberes": {
+    "1": 28,
+    "2": 30,
+    "3": 32
+   }
+  },
+  "lengua-extranjera": {
+   "competencias": 6,
+   "criterios": {
+    "1º Primaria": 13,
+    "2º Primaria": 13,
+    "3º Primaria": 15,
+    "4º Primaria": 15,
+    "5º Primaria": 15,
+    "6º Primaria": 15
+   },
+   "saberes": {
+    "1": 16,
+    "2": 22,
+    "3": 24
+   }
+  },
+  "matematicas": {
+   "competencias": 8,
+   "criterios": {
+    "1º Primaria": 17,
+    "2º Primaria": 17,
+    "3º Primaria": 16,
+    "4º Primaria": 17,
+    "5º Primaria": 17,
+    "6º Primaria": 17
+   },
+   "saberes": {
+    "1": 56,
+    "2": 68,
+    "3": 69
+   }
+  },
+  "segunda-lengua-extranjera": "los del primer ciclo de Primera Lengua Extranjera, en quinto y sexto"
+ },
+ "guiones_compuestos": [
+  "científico-tecnológico (compuesta)",
+  "colaboración-oposición (compuesta)",
+  "físico-deportivas (compuesta)",
+  "lúdico-recreativos (compuesta)",
+  "perceptivo-motrices (compuesta)",
+  "rítmico-melódicas (compuesta)",
+  "rítmico-musicales (compuesta)"
+ ],
+ "avisos": [
+  "matematicas: 3º y 4º no tienen los mismos criterios: ['2.3']"
+ ],
+ "competencias_distintas_en_las_tablas": [
+  "conocimiento-del-medio ciclo 1 CE5: «natural,» → «natural»",
+  "conocimiento-del-medio ciclo 1 CE6: «» → «los»; «de» → «para»",
+  "conocimiento-del-medio ciclo 1 CE9: «» → «de»",
+  "conocimiento-del-medio ciclo 2 CE5: «natural,» → «natural»",
+  "conocimiento-del-medio ciclo 2 CE6: «» → «los»; «de» → «para»",
+  "conocimiento-del-medio ciclo 2 CE9: «» → «de»",
+  "conocimiento-del-medio ciclo 3 CE5: «natural,» → «natural»",
+  "conocimiento-del-medio ciclo 3 CE6: «» → «los»; «de» → «para»",
+  "conocimiento-del-medio ciclo 3 CE9: «» → «de»",
+  "educacion-artistica ciclo 1 CE1: «a través de la recepción activa,» → «»",
+  "educacion-artistica ciclo 2 CE1: «a través de la recepción activa,» → «»",
+  "educacion-artistica ciclo 3 CE1: «a través de la recepción activa,» → «»",
+  "lengua-castellana ciclo 2 CE10: «democrática,» → «democrática»",
+  "lengua-castellana ciclo 3 CE10: «democrática,» → «democrática»"
+ ]
+}
