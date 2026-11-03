@@ -91,7 +91,7 @@ describe('decretos registrados', () => {
   });
 
   it('una comunidad sin decreto registrado devuelve null, no una lista vacía', () => {
-    expect(normasDe('andalucia', 'primaria')).toBeNull();
+    expect(normasDe('aragon', 'primaria')).toBeNull();
     expect(normasDe('fuera', 'eso')).toBeNull();
   });
 

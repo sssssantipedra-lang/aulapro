@@ -72,8 +72,9 @@ export interface CurriculumBloqueSaberes {
 
 /**
  * Una materia (o área, en Primaria) con sus tres piezas. `criterios` y
- * `saberes` van indexados por grupo de cursos: en Primaria son siempre "1",
- * "2" y "3" (los tres ciclos); en la ESO son literales del propio decreto
+ * `saberes` van indexados por grupo de cursos: en Primaria son "1", "2" y "3"
+ * (los tres ciclos), salvo en un decreto con criterios de cada curso, que van
+ * por curso («1º Primaria»…, Andalucía); en la ESO son literales del propio decreto
  * («Cursos de primero a tercero», «Cuarto curso», «Matemáticas A»…), porque
  * la ESO no reparte todas las materias en los mismos bloques de cursos.
  */
@@ -223,6 +224,9 @@ export function resolverGrupo(
   if (entry.cursos && !entry.cursos.includes(curso)) return null;
 
   if (etapa === 'primaria') {
+    // Un decreto con criterios de cada curso (Andalucía, ver `porCursoDePrimaria`) los trae por curso
+    const delCurso = `${curso}º Primaria`;
+    if (entry.criterios[delCurso]) return entry.criterios[delCurso].length ? { entry, grupo: delCurso } : null;
     const grupo = String(cicloDePrimaria(curso));
     // Una materia puede figurar en un ciclo sin nada dentro (Educación en
     // Valores solo se imparte en el tercero): eso es «no hay currículo», no un

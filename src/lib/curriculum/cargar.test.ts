@@ -17,13 +17,13 @@ const sirve = (materias: CurriculumEntry[]): Cargador => async idioma => ({ idio
 
 describe('sin decreto propio', () => {
   it('con los cargadores reales, una comunidad sin su decreto copiado usa el estatal', async () => {
-    for (const id of ['galicia', 'andalucia', 'fuera'] as const) {
+    for (const id of ['galicia', 'aragon', 'fuera'] as const) {
       const c = await cargarCurriculo(id, 'primaria');
       expect(c.origen).toBe('estatal');
       expect(c.materias).toBe(materiasDe('primaria'));
       expect(c.normas).toBe(NORMAS_ESTATALES.primaria);
     }
-    const eso = await cargarCurriculo('andalucia', 'eso');
+    const eso = await cargarCurriculo('aragon', 'eso');
     expect(eso.origen).toBe('estatal');
     expect(eso.normas).toBe(NORMAS_ESTATALES.eso);
   });
@@ -91,8 +91,8 @@ describe('con decreto propio', () => {
 
   it('un cargador de una comunidad sin normas registradas no se usa: no habría nada que citar', async () => {
     const abrir = vi.fn<Cargador>(sirve([MATERIA]));
-    const cargadores: Cargadores = { andalucia: { primaria: abrir } };
-    expect((await cargarCurriculo('andalucia', 'primaria', 'es', cargadores)).origen).toBe('estatal');
+    const cargadores: Cargadores = { aragon: { primaria: abrir } };
+    expect((await cargarCurriculo('aragon', 'primaria', 'es', cargadores)).origen).toBe('estatal');
     expect(abrir).not.toHaveBeenCalled();
   });
 

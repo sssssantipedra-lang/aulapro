@@ -45,6 +45,22 @@ export function conLosMismosSaberesEnCadaCiclo(raw: RawEntrySaberesComunes[]): C
 }
 
 /**
+ * Datos de un decreto de Primaria con criterios de cada curso (Andalucía: «1.1.a»
+ * en el primer curso del ciclo y «1.1.b» en el segundo). Los criterios van ya por
+ * curso («1º Primaria»…, lo que busca `resolverGrupo`) y los saberes, por ciclo
+ * («1», «2», «3»), como en el decreto: cada curso toma los de su ciclo.
+ */
+export function porCursoDePrimaria(raw: RawEntry[]): CurriculumEntry[] {
+  return normalizarEntradas(raw.map(r => ({
+    ...r,
+    saberes: Object.fromEntries(Object.keys(r.criterios).map(grupo => {
+      const curso = Number(/^(\d)º Primaria$/.exec(grupo)?.[1]);
+      return [grupo, r.saberes[String(Math.ceil(curso / 2))] ?? []];
+    })),
+  })));
+}
+
+/**
  * Los currículos autonómicos que AulaPro ya lleva copiados. Cada entrada abre
  * su archivo de datos bajo demanda. Una comunidad entra aquí solo cuando su
  * decreto está copiado, comprobado con los totales oficiales y con sus normas
@@ -84,6 +100,15 @@ export const CARGADORES: Cargadores = {
   // Decretos 61/2022 y 65/2022 con el 59/2024 aplicado (`scripts/curriculo/madrid_primaria.py`
   // y `madrid_eso.py`), solo en castellano. Sus contenidos cambian de un ciclo o
   // curso a otro: cada grupo lleva los suyos.
+  // Orden de 30 de mayo de 2023, que desarrolla el Decreto 101/2023
+  // (`scripts/curriculo/andalucia_primaria.py`), solo en castellano. Criterios de
+  // cada curso y saberes de cada ciclo.
+  andalucia: {
+    primaria: async () => ({
+      idioma: 'es',
+      materias: porCursoDePrimaria((await import('./data/andalucia/primaria.es.json')).default as unknown as RawEntry[]),
+    }),
+  },
   madrid: {
     primaria: async () => ({
       idioma: 'es',

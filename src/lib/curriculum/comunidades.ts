@@ -31,8 +31,12 @@ export type IdiomaApp = 'es' | 'ca' | 'en';
 export type Textos = Partial<Record<IdiomaOficial, string>>;
 
 export interface Norma {
-  /** `matriz` es el decreto base; `modificacion` lo cambia, y se aplica encima. */
-  tipo: 'matriz' | 'modificacion';
+  /**
+   * `matriz` es el decreto base; `modificacion` lo cambia, y se aplica encima;
+   * `desarrollo` es la orden que desarrolla el decreto y trae su currículo
+   * (Andalucía: el decreto ordena la etapa y la orden lleva los anexos).
+   */
+  tipo: 'matriz' | 'modificacion' | 'desarrollo';
   /** Título completo, literal. */
   titulo: Textos;
   /** «Decreto 61/2022, de 13 de julio», para citar en una línea. */
@@ -204,13 +208,57 @@ const MD_ESO: Norma[] = [
   MD_59_2024,
 ];
 
+/* ── Andalucía ── */
+
+// Comprobados con los PDF del BOJA (docs/Normativa Andalucía/). El decreto ordena
+// la etapa y la orden del 30-5-2023 trae el currículo (sus anexos), que es lo que
+// copia la app.
+const AN_PRIMARIA: Norma[] = [
+  {
+    tipo: 'matriz',
+    titulo: { es: 'Decreto 101/2023, de 9 de mayo, por el que se establece la ordenación y el currículo de la etapa de Educación Primaria en la Comunidad Autónoma de Andalucía.' },
+    corto: { es: 'Decreto 101/2023, de 9 de mayo' },
+    boletin: { es: 'BOJA núm. 90, de 15 de mayo de 2023' },
+    verificada: true,
+  },
+  {
+    tipo: 'desarrollo',
+    titulo: { es: 'Orden de 30 de mayo de 2023, por la que se desarrolla el currículo correspondiente a la etapa de Educación Primaria en la Comunidad Autónoma de Andalucía, se regulan determinados aspectos de la atención a la diversidad y a las diferencias individuales, se establece la ordenación de la evaluación del proceso de aprendizaje del alumnado y se determina el proceso de tránsito entre las diferentes etapas educativas.' },
+    corto: { es: 'Orden de 30 de mayo de 2023' },
+    boletin: { es: 'BOJA núm. 104, de 2 de junio de 2023' },
+    verificada: true,
+  },
+];
+
+const AN_ESO: Norma[] = [
+  {
+    tipo: 'matriz',
+    titulo: { es: 'Decreto 102/2023, de 9 de mayo, por el que se establece la ordenación y el currículo de la etapa de Educación Secundaria Obligatoria en la Comunidad Autónoma de Andalucía.' },
+    corto: { es: 'Decreto 102/2023, de 9 de mayo' },
+    boletin: { es: 'BOJA núm. 90, de 15 de mayo de 2023' },
+    verificada: true,
+  },
+  {
+    tipo: 'desarrollo',
+    titulo: { es: 'Orden de 30 de mayo de 2023, por la que se desarrolla el currículo correspondiente a la etapa de Educación Secundaria Obligatoria en la Comunidad Autónoma de Andalucía, se regulan determinados aspectos de la atención a la diversidad y a las diferencias individuales, se establece la ordenación de la evaluación del proceso de aprendizaje del alumnado y se determina el proceso de tránsito entre las diferentes etapas educativas.' },
+    corto: { es: 'Orden de 30 de mayo de 2023' },
+    boletin: { es: 'BOJA núm. 104, de 2 de junio de 2023' },
+    verificada: true,
+  },
+];
+
 /** Sin decreto registrado todavía: solo el nombre. */
 const sinNormas = (id: ComunidadId, es: string, ca: string, en: string): Comunidad => (
   { id, nombre: { es, ca, en }, idiomas: [], normas: {} }
 );
 
 export const COMUNIDADES: Comunidad[] = [
-  sinNormas('andalucia', 'Andalucía', 'Andalusia', 'Andalusia'),
+  {
+    id: 'andalucia',
+    nombre: { es: 'Andalucía', ca: 'Andalusia', en: 'Andalusia' },
+    idiomas: ['es'],
+    normas: { primaria: AN_PRIMARIA, eso: AN_ESO },
+  },
   sinNormas('aragon', 'Aragón', 'Aragó', 'Aragon'),
   sinNormas('asturias', 'Asturias', 'Astúries', 'Asturias'),
   sinNormas('baleares', 'Islas Baleares', 'Illes Balears', 'Balearic Islands'),
@@ -311,15 +359,21 @@ export function textoNorma(textos: Textos, idioma: IdiomaApp): string {
 
 /**
  * La cita de una serie de normas en una línea: la matriz y, si la tiene, lo
- * que la modifica. «Decreto 106/2022, de 5 de agosto (DOGV núm. 9402, …),
- * modificado por el Decreto 96/2026, de 19 de junio (DOGV núm. 10391, …)».
+ * que la modifica y lo que la desarrolla. «Decreto 106/2022, de 5 de agosto
+ * (DOGV núm. 9402, …), modificado por el Decreto 96/2026, de 19 de junio
+ * (DOGV núm. 10391, …)»; «Decreto 101/2023, de 9 de mayo (BOJA núm. 90, …),
+ * desarrollado por la Orden de 30 de mayo de 2023 (BOJA núm. 104, …)».
  * Sin `boletin`, la versión corta, para el selector de comunidad.
  */
 export function citarNormas(normas: Norma[], idioma: IdiomaApp, { boletin = true }: { boletin?: boolean } = {}): string {
   const una = (n: Norma) => (boletin ? `${textoNorma(n.corto, idioma)} (${textoNorma(n.boletin, idioma)})` : textoNorma(n.corto, idioma));
-  const [matriz, ...cambios] = normas;
+  const [matriz, ...resto] = normas;
   if (!matriz) return '';
-  if (cambios.length === 0) return una(matriz);
-  const modificado = idioma === 'ca' ? 'modificat per' : 'modificado por';
-  return `${una(matriz)}, ${modificado} ${cambios.map(una).join(idioma === 'ca' ? ' i ' : ' y ')}`;
+  const y = idioma === 'ca' ? ' i ' : ' y ';
+  const cambios = resto.filter(n => n.tipo !== 'desarrollo');
+  const desarrollo = resto.filter(n => n.tipo === 'desarrollo');
+  let cita = una(matriz);
+  if (cambios.length) cita += `, ${idioma === 'ca' ? 'modificat per' : 'modificado por'} ${cambios.map(una).join(y)}`;
+  if (desarrollo.length) cita += `, ${idioma === 'ca' ? 'desenvolupat per la' : 'desarrollado por la'} ${desarrollo.map(una).join(y)}`;
+  return cita;
 }
