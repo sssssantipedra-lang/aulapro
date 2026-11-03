@@ -94,9 +94,7 @@ export async function analizarInforme(
   if (!texto) { callbacks.onError?.('Pega el texto del informe o sube un archivo.'); return null; }
   const userPrompt =
     'Lee el informe sociopsicopedagógico de un alumno y extrae SOLO lo que dice. Si algo no aparece, déjalo vacío: ' +
-    'no inventes diagnósticos, cursos ni medidas.\n\n' +
-    '- categorias: sus necesidades específicas de apoyo educativo, de la lista cerrada.\n' +
-    '- diagnostico: el diagnóstico o la valoración clínica que consta, tal como lo dice el informe.\n' +
+    'no inventes cursos ni medidas. No escribas diagnósticos, trastornos, discapacidades ni datos médicos: describe lo que necesita en el aula.\n\n' +
     '- necesidades: sus necesidades en términos educativos (barreras, cómo aprende, qué le ayuda), en 3 a 6 frases.\n' +
     '- nivelEtapa y nivelCurso: el nivel de competencia curricular si el informe lo dice (por ejemplo, «nivel de 2.º de Primaria»); si no, "ninguna" y "0".\n' +
     '- fortalezas: sus puntos fuertes e intereses, en 1 a 3 frases.\n' +
@@ -111,8 +109,6 @@ export async function analizarInforme(
     responseSchema: {
       type: 'OBJECT',
       properties: {
-        categorias: { type: 'ARRAY', items: { type: 'STRING', enum: [...CATEGORIAS_NEAE] } },
-        diagnostico: { type: 'STRING' },
         necesidades: { type: 'STRING' },
         nivelEtapa: { type: 'STRING', enum: ['primaria', 'eso', 'ninguna'] },
         nivelCurso: { type: 'STRING', enum: ['0', '1', '2', '3', '4', '5', '6'] },
@@ -125,7 +121,7 @@ export async function analizarInforme(
           trimestres: { type: 'ARRAY', items: { type: 'STRING', enum: ['1', '2', '3'] } },
         }, required: ['texto', 'ambito', 'trimestres'] } },
       },
-      required: ['categorias', 'diagnostico', 'necesidades', 'nivelEtapa', 'nivelCurso', 'fortalezas', 'orientaciones', 'ambitos', 'objetivos'],
+      required: ['necesidades', 'nivelEtapa', 'nivelCurso', 'fortalezas', 'orientaciones', 'ambitos', 'objetivos'],
     },
     thinkingLevel: 'high',
     maxOutputTokens: 8192,

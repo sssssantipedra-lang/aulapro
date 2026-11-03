@@ -8,7 +8,7 @@
  * escribe, se sustituye. Quien genera la SdA ve en pantalla lo que se envía.
  */
 import type { Student } from '../types';
-import { quitarDatosDeContacto } from './documentoParaIA';
+import { soloDatosDeSalud, textoLibreParaIA } from './documentoParaIA';
 
 const sinTildes = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -43,7 +43,8 @@ export function barrerasDeClases(students: readonly Student[], classIds: readonl
   const nombres = nombresPropios(alumnado);
   const cuenta = new Map<string, number>();
   for (const s of alumnado) {
-    const texto = s.alerts.map(a => quitarDatosDeContacto(sinNombres(a.text.trim(), nombres))).filter(Boolean).join('; ');
+    // Sin datos de salud (3-11-2026): un aviso que solo decía el diagnóstico no llega a la IA
+    const texto = s.alerts.map(a => textoLibreParaIA(sinNombres(a.text.trim(), nombres))).filter(x => x && !soloDatosDeSalud(x)).join('; ');
     if (texto) cuenta.set(texto, (cuenta.get(texto) ?? 0) + 1);
   }
   return [...cuenta].map(([texto, n]) => (n > 1 ? `${n} alumnos: ${texto}` : texto));

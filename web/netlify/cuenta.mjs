@@ -5,14 +5,15 @@
 //
 // Respaldo en Netlify (ver netlify.toml), con CORS: la app la llama cuando Cloudflare no responde.
 // Necesita la variable LEMONSQUEEZY_API_KEY en el sitio de Netlify. El correo
-// solo se usa para la búsqueda: no se guarda ni se registra. Ver src/platform/cuentaWeb.ts.
+// solo se usa para la búsqueda y, en huella, para anotar la aceptación de las condiciones (_aceptacion.js). Ver src/platform/cuentaWeb.ts.
 import { firmar } from '../funciones/api/_firma.js';
 import { corsPara } from '../funciones/api/_origenes.js';
 import { verificarTokenMicrosoft } from '../funciones/api/_microsoft.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { estaBloqueada } from '../funciones/api/_bloqueos.js';
-import { bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { aceptacionBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { anotarAceptacion, versionValida } from '../funciones/api/_aceptacion.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -32,7 +33,7 @@ export default async (request, context) => {
   const ip = context.ip || 'desconocida';
   if (!(await dentroDelLimite(`cuenta-ip:${ip}`, LIMITES.ip, LIMITES.ventana))) return respuestaLimite(cors);
 
-  const { token, proveedor } = await request.json().catch(() => ({}));
+  const { token, proveedor, acepta } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400, cors);
 
   let email;
@@ -52,8 +53,11 @@ export default async (request, context) => {
 
   // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
   // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.
+  // La aceptación de las condiciones (casilla de la entrada), con la cuenta ya comprobada: ver _aceptacion.js
+  const aceptacion = versionValida(acepta) ? { aceptacion: await anotarAceptacion(aceptacionBlobs(), email, acepta) } : {};
+
   const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos) }, 200, cors);
+  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503, cors);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
@@ -69,10 +73,10 @@ export default async (request, context) => {
       const a = k.attributes ?? {};
       // También la que Lemon Squeezy avisó que terminó, aunque su API aún no lo diga (_bloqueos.js)
       if (a.disabled || ['disabled', 'expired'].includes(a.status) || (await estaBloqueada(bloqueosBlobs(), a.key))) { vencida = true; continue; }
-      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos) }, 200, cors);
+      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos), ...aceptacion }, 200, cors);
     }
   }
-  return json(vencida ? { key: null, vencida: true } : { key: null }, 200, cors);
+  return json(vencida ? { key: null, vencida: true, ...aceptacion } : { key: null, ...aceptacion }, 200, cors);
 }
 
 export const config = { path: '/api/licencia/cuenta' };

@@ -135,7 +135,7 @@ const escapar = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  * 4. Un nombre detrás de un tratamiento («D.», «Dña.», «Sr.»…).
  */
 export function quitarIdentificadores(texto: string): string {
-  let t = quitarDatosDeContacto(texto);
+  let t = textoLibreParaIA(texto);
 
   // 2. Valores de las etiquetas, de la última a la primera para no mover las posiciones
   const cortes = [...t.matchAll(ETIQUETA_CUALQUIERA)].map(m => m.index!);
@@ -214,3 +214,88 @@ export function quitarDatosDeContacto(texto: string): string {
     // Números largos: expediente, NIA, SIP, tarjeta sanitaria, seguridad social
     .replace(/(?<![\d.,/-])\d{7,}(?![\d.,/-])/g, R('número'));
 }
+
+/*
+ * Datos de salud (revisión del abogado del dueño, 3-11-2026): un diagnóstico (TEA, TDAH, dislexia…), una discapacidad,
+ * un trastorno o una medicación son datos especialmente protegidos (artículo 9 del RGPD) aunque el nombre vaya
+ * cambiado por un código, así que no se envían a la IA. Lo que sí sale es lo que el alumno necesita en el aula («le
+ * ayudan las instrucciones cortas», «necesita apoyo visual»): eso es lo que la IA usa para adaptar.
+ */
+
+// Siglas: se distinguen las mayúsculas («toc» es una palabra catalana; «TOC», un trastorno)
+const SIGLAS_SALUD = /(?<![\p{L}\d])(?:TEA|TGD|TDAH|TDA-?H?|TEL|TDL|TOC|TND|TANV|TEPT|ASD|ADHD|ADD|OCD|ODD|PTSD|SLI|DLD)(?![\p{L}\d])/gu;
+
+// Palabras que arrastran lo que las sigue hasta la puntuación (como mucho seis palabras): «trastorno del espectro del
+// autismo», «discapacidad intelectual leve», «síndrome de Down», «diagnóstico de dislexia»
+const CON_COLA = String.raw`trastorn\p{L}*|disorders?|s[íi]ndromes?|syndromes?|discapacidad(?:es)?|discapacitat(?:s)?|disabilit(?:y|ies)|diagn[oòó]s\p{L}*|diagnos\p{L}*|d[ée]ficit\s+de\s+atenci[oó]n|d[èe]ficit\s+d['’]atenci[oó]|attention\s+deficit|par[áà]lisis?\s+cerebral|cerebral\s+palsy|cociente\s+intelectual|coeficient\s+intel·lectual|\bCI\b|\bIQ\b`;
+
+// Palabras sueltas (por su raíz, sin distinguir mayúsculas)
+const SUELTAS = [
+  String.raw`autis\p{L}*`, String.raw`asperger\p{L}*`, String.raw`disl[eéè]x\p{L}*`, String.raw`dyslex\p{L}*`, String.raw`discalc\p{L}*`, String.raw`dyscalc\p{L}*`,
+  String.raw`disgraf\p{L}*`, String.raw`dysgraph\p{L}*`, String.raw`disortograf\p{L}*`, String.raw`dispr[àa]xi\p{L}*`, String.raw`dyspraxi\p{L}*`,
+  String.raw`disfasi\p{L}*`, String.raw`dysphasi\p{L}*`, String.raw`disfem\p{L}*`, String.raw`hiperactiv\p{L}*`, String.raw`hyperactiv\p{L}*`,
+  String.raw`hipoac[úu]si\p{L}*`, String.raw`sorder\p{L}*`, String.raw`sordesa`, String.raw`deafness`, String.raw`ceguer\p{L}*`, String.raw`ceguesa`, String.raw`blindness`,
+  String.raw`baja\s+visi[oó]n`, String.raw`baixa\s+visi[oó]`, String.raw`low\s+vision`, String.raw`epil[eè]p\p{L}*`, String.raw`diabet\p{L}*`,
+  String.raw`esquizofr\p{L}*`, String.raw`schizophr\p{L}*`, String.raw`bipolar\p{L}*`, String.raw`depresi\p{L}*`, String.raw`depressi\p{L}*`,
+  String.raw`espina\s+b[íi]fida`, String.raw`spina\s+bifida`, String.raw`distrofi\p{L}*`, String.raw`dystroph\p{L}*`, String.raw`hemipar\p{L}*`,
+  String.raw`hemipl[eè]j\p{L}*`, String.raw`hemipleg\p{L}*`, String.raw`tetrapl\p{L}*`, String.raw`parapl\p{L}*`, String.raw`x\s+fr[áà]gil`, String.raw`fragile\s+x`,
+  String.raw`medicaci\p{L}*`, String.raw`medicad[oa]s?`, String.raw`medicat\p{L}*`, String.raw`medication\p{L}*`, String.raw`metilfenidat\p{L}*`,
+  String.raw`methylphenidat\p{L}*`, String.raw`concerta`, String.raw`rubifen`, String.raw`elvanse`, String.raw`risperidon\p{L}*`, String.raw`neuropediatr\p{L}*`,
+  String.raw`psiquiatr\p{L}*`, String.raw`psychiatr\p{L}*`, String.raw`salud\s+mental`, String.raw`salut\s+mental`, String.raw`mental\s+health`,
+  String.raw`implante\s+coclear`, String.raw`implant\s+coclear`, String.raw`cochlear\s+implant`, String.raw`aud[íi]fonos?`, String.raw`hearing\s+aids?`,
+  String.raw`cardiopat\p{L}*`, String.raw`cel[íi]ac\p{L}*`, String.raw`coeliac\p{L}*`, String.raw`celiac\p{L}*`, String.raw`asma`, String.raw`asthma`,
+];
+
+const RE_CON_COLA = new RegExp(`(?<![\\p{L}\\d])(?:${CON_COLA})(?![\\p{L}\\d])`, 'giu');
+// Donde se corta la cola: una palabra que empieza otra idea («desde», «que», «necesita», «pero»…)
+const CORTE_COLA = new Set(('desde que porque pero aunque y e i o u and or but since because with con amb sin sense without ' +
+  'le la lo les los se li el en a al por per para for to que necesita necessita needs presenta present shows tiene té has ' +
+  'muestra mostra trabaja treballa works').split(' '));
+
+/** El final de la cola de una palabra con cola: hasta seis palabras, sin pasar de la puntuación ni de una palabra de corte. */
+function finDeCola(t: string, desde: number): number {
+  let fin = desde;
+  const re = /^[ \t]+(\(?[\p{L}\d·'’-]+\)?)/u;
+  for (let n = 0; n < 6; n++) {
+    const m = re.exec(t.slice(fin));
+    if (!m) break;
+    const palabra = m[1].replace(/[()]/g, '').toLocaleLowerCase('es');
+    if (CORTE_COLA.has(palabra) && !['de', 'del'].includes(palabra)) break;
+    fin += m[0].length;
+  }
+  return fin;
+}
+
+const GRADO = String.raw`(?:[ \t]+(?:leve|lleu|moderad[oa]|moderat|grave|greu|sever[oa]?|profund[oa]?|mild|moderate|severe|profound))?`;
+const RE_SUELTAS = new RegExp(`(?<![\\p{L}\\d])(?:${SUELTAS.join('|')})${GRADO}(?![\\p{L}\\d])`, 'giu');
+const SALUD = R('dato de salud');
+const escSalud = escapar(SALUD);
+
+/**
+ * Quita de un texto libre lo que habla de la salud del alumno: diagnósticos, trastornos, discapacidades, síndromes,
+ * medicación y especialistas médicos. No puede reconocer una descripción sin esas palabras («le cuesta relacionarse»),
+ * pero esa es justo la que sirve para adaptar. Se usa con todo lo que el docente escribe sobre su alumnado y con los
+ * documentos del alumnado (`quitarIdentificadores`).
+ */
+export function quitarDatosDeSalud(texto: string): string {
+  if (!texto) return texto;
+  let t = '';
+  let desde = 0;
+  for (const m of texto.matchAll(RE_CON_COLA)) {
+    if (m.index! < desde) continue;
+    t += texto.slice(desde, m.index) + SALUD;
+    desde = finDeCola(texto, m.index! + m[0].length);
+  }
+  t += texto.slice(desde);
+  t = t.replace(RE_SUELTAS, SALUD).replace(SIGLAS_SALUD, SALUD);
+  // «[dato de salud] y [dato de salud] ([dato de salud])» → uno solo
+  const juntos = new RegExp(`${escSalud}(?:\\s*(?:,|;|/|\\+|y|e|i|and|o|or|\\(|\\))\\s*${escSalud}\\)?)+`, 'giu');
+  t = t.replace(juntos, SALUD).replace(new RegExp(`\\(\\s*${escSalud}\\s*\\)`, 'g'), '').replace(/[ \t]{2,}/g, ' ');
+  return t;
+}
+
+/** `true` si a un texto ya filtrado solo le quedan datos de salud quitados (un aviso que decía solo «Dislexia»). */
+export const soloDatosDeSalud = (texto: string) => texto.includes(SALUD) && !texto.split(SALUD).join('').replace(/[\s.,;:()/+-]|\b(?:y|e|i|and)\b/gu, '');
+
+/** Un texto libre sobre el alumnado tal como va a la IA: sin datos de contacto ni datos de salud. */
+export const textoLibreParaIA = (texto: string) => quitarDatosDeSalud(quitarDatosDeContacto(texto));

@@ -1,3 +1,4 @@
+import { CORRECCION_CON_IA } from '../lib/correccionIA';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search, FileDown,
@@ -885,8 +886,8 @@ export function EvalModal({
           </table>
         </div>
 
-        {/* AI work evaluation section */}
-        <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '14px 16px', marginBottom: 14, border: '0.5px solid var(--border)' }}>
+        {/* AI work evaluation section (apagada en la salida a la venta: lib/correccionIA.ts) */}
+        {CORRECCION_CON_IA && <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '14px 16px', marginBottom: 14, border: '0.5px solid var(--border)' }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Sparkles size={14} color="var(--accent-d)" />{t('✨ Evaluar trabajo con IA')}
           </div>
@@ -949,7 +950,7 @@ export function EvalModal({
               ? <><span className="spin" />{t('Evaluando...')}</>
               : <><Sparkles size={13} />{t('✨ Evaluar con IA')}</>}
           </button>
-        </div>
+        </div>}
 
         {/* Observations */}
         <div className="fgroup">

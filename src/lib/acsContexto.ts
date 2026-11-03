@@ -7,16 +7,18 @@
  * Lo que sale: el área, el curso de referencia, los criterios y los saberes elegidos (con su texto oficial), los
  * objetivos, las estrategias y los criterios de calificación. Lo que nunca sale: el profesorado, las fechas, la
  * justificación, las barreras, los acuerdos con la familia, las observaciones del seguimiento ni el nombre del
- * alumno. Los textos libres pasan por `quitarDatosDeContacto`, y en el aula, además, por `sinNombres`.
+ * alumno. Los textos libres pasan por `textoLibreParaIA` (sin datos de contacto ni de salud: diagnósticos, trastornos,
+ * discapacidades, medicación; revisión del abogado del dueño, 3-11-2026), y en el aula, además, por `sinNombres`. Nunca van
+ * las categorías NEAE del alumno.
  */
 import { ESTRATEGIAS_ACS, textosElegidos } from './acs';
-import { quitarDatosDeContacto } from './documentoParaIA';
+import { textoLibreParaIA } from './documentoParaIA';
 import { sinNombres } from './barreras';
 import type { ModeloAcs } from './acsModelos';
 import type { MateriaDeClase } from './curriculum/criteriosParaIA';
 import type { AcsApoyo, CursoDe } from '../types/apoyo';
 
-const limpio = (x: string, nombres: readonly string[]) => quitarDatosDeContacto(sinNombres(x.trim(), nombres)).trim();
+const limpio = (x: string, nombres: readonly string[]) => textoLibreParaIA(sinNombres(x.trim(), nombres)).trim();
 
 /**
  * Una adaptación en texto para la IA. `materia` es el área en el currículo del curso de referencia, para poner el

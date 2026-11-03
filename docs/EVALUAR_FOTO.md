@@ -1,5 +1,7 @@
 # Evaluar por foto
 
+**Apagada desde el 3-11-2026** (decisión del dueño tras la revisión de su abogado): el Reglamento europeo de IA (anexo III, punto 3) trata como de alto riesgo los sistemas que evalúan resultados de aprendizaje, y al integrar Gemini AulaPro sería su proveedor. Hasta revisarlo no se ofrece nada en lo que la IA proponga una nota: ni esta pantalla ni «Evaluar trabajo con IA» de las rúbricas. El código sigue; se enciende con `CORRECCION_CON_IA` en `src/lib/correccionIA.ts`, y entonces hay que volver a poner su texto en la web (`s3.p6`), la privacidad, las condiciones y el manual de la ayuda (`[evalfoto]`). El asistente del cuaderno tiene en su prompt que no califique trabajos de alumnos.
+
 Petición del dueño (18-10-2026): «incluir evaluación por foto para exámenes y trabajos, enfocado al profesorado de aula». Es la tercera tarjeta de la portada de Evaluar («Evaluar por foto», pestaña «Por foto»; `evalfoto`, `src/pages/EvalFoto.tsx`).
 
 ## Cómo funciona

@@ -4,6 +4,8 @@ import { DondeGuardar } from '../components/DondeGuardar';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
 import { cargarGoogle, cuentaActual, MICROSOFT_LISTO, type Cuenta } from '../platform/cuentaWeb';
+import { CasillaCondiciones } from '../components/AceptarCondiciones';
+import { aceptarCondiciones, condicionesAceptadas } from '../lib/condiciones';
 import { entrarConGoogle, hayVueltaEntrada, terminarVueltaEntrada } from '../platform/googleDrive';
 import { entrarConMicrosoft, hayVueltaEntradaMicrosoft, terminarVueltaEntradaMicrosoft } from '../platform/microsoft';
 import { carpetaWeb } from '../platform/carpetaWeb';
@@ -46,8 +48,12 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
   const [error, setError] = useState('');
   const [listo, setListo] = useState(false);
   const [ocupado, setOcupado] = useState(false);
+  // La casilla de las condiciones (3-11-2026): sin marcar no se entra. Si ya se aceptó en este dispositivo, sale marcada
+  const [acepto, setAcepto] = useState(condicionesAceptadas);
 
   async function entrar(fn: () => Promise<{ cuenta: Cuenta; drive: boolean }>) {
+    // Se guarda antes de ir a Google o Microsoft: en Safari se vuelve de su página y esto se monta de nuevo
+    aceptarCondiciones();
     setOcupado(true); setError('');
     try {
       const { cuenta, drive } = await fn();
@@ -84,8 +90,10 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
 
         {error && <div className="lic-err entrar-err" role="alert">{error}</div>}
 
+        <CasillaCondiciones marcada={acepto} onCambio={setAcepto} />
+
         <div className="entrar-tarjetas">
-          <button type="button" className={`entrar-tarjeta${listo ? '' : ' cargando'}`} disabled={!listo || ocupado} onClick={() => entrar(entrarConGoogle)}>
+          <button type="button" className={`entrar-tarjeta${listo ? '' : ' cargando'}`} disabled={!listo || ocupado || !acepto} onClick={() => entrar(entrarConGoogle)}>
             <span className="entrar-ico"><LogoGoogle /></span>
             <span className="entrar-txt">
               <strong>{t('Continuar con Google')}</strong>
@@ -95,7 +103,7 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
           </button>
 
           {MICROSOFT_LISTO ? (
-            <button type="button" className="entrar-tarjeta" disabled={ocupado} onClick={() => entrar(entrarConMicrosoft)}>
+            <button type="button" className="entrar-tarjeta" disabled={ocupado || !acepto} onClick={() => entrar(entrarConMicrosoft)}>
               <span className="entrar-ico"><LogoMicrosoft /></span>
               <span className="entrar-txt">
                 <strong>{t('Continuar con Microsoft')}</strong>
@@ -118,13 +126,7 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
           <ShieldCheck size={15} aria-hidden="true" />
           <span>{t('AulaPro solo guarda tu nombre y tu correo en este dispositivo. Tu trabajo no sale hacia ningún servidor de AulaPro.')}</span>
         </p>
-        {/* Auditoría del 1-11-2026: quien entra sin comprar (los fundadores) también acepta las condiciones de uso */}
-        <p className="entrar-legal" style={{ fontSize: 12, color: 'var(--text-3)', margin: '10px 0 0', textAlign: 'center' }}>
-          {t('Al entrar aceptas las')}{' '}
-          <a href="../condiciones.html" target="_blank" rel="noopener noreferrer">{t('condiciones de venta y de uso')}</a>{' '}
-          {t('y la')}{' '}
-          <a href="../privacidad.html" target="_blank" rel="noopener noreferrer">{t('política de privacidad')}</a>.
-        </p>
+        {!acepto && <p className="entrar-legal" style={{ fontSize: 12, color: 'var(--text-3)', margin: '10px 0 0', textAlign: 'center' }}>{t('Marca la casilla para poder entrar.')}</p>}
       </div>
     </div>
   );

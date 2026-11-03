@@ -340,9 +340,10 @@ guarda (en Android) o propone guardar (en Windows y Mac) los PDF, Word y copias 
 seguridad, cada uno en la carpeta de su tipo (Fichas, Actas, Informes…).
 
 [evaluar] EVALUAR (RESUMEN)
-La portada del apartado Evaluar. Cuatro tarjetas grandes: «Evaluar por rúbricas»
+La portada del apartado Evaluar. Tarjetas grandes: «Evaluar por rúbricas»
 (lleva a Rúbricas), «Evaluar por dianas» (lleva a Dianas), «Escalas de registro»
-(pulgar arriba o abajo por concepto) y «Evaluar por foto». Debajo, «Cómo va
+(pulgar arriba o abajo por concepto), «Diana competencial», «Autoevaluaciones» e
+«Historial». Debajo, «Cómo va
 cada clase»: un gráfico de barras con la nota media de cada rúbrica en una
 clase, sobre 10, con una raya en el 5. Pasa solo de una clase a otra cada
 pocos segundos, como un carrusel; se para al poner el ratón encima, y se
@@ -404,27 +405,11 @@ blanco si no tiene clase) y los dos pulgares por concepto, para valorar en papel
 adjuntar desde una sesión de Educación Física.
 
 [evalfoto] EVALUAR POR FOTO
-Para corregir un examen o un trabajo a partir de su foto (profesorado de aula).
-Se elige la clase, la asignatura si hay varias, el alumno, si es un examen o un
-trabajo, los puntos en total (opcional), el nombre de la columna del cuaderno y
-su categoría (Exámenes, Trabajos…). Se añaden las fotos, una por página, hasta
-8 (desde el móvil se hacen con la cámara), y, si se quiere, las soluciones o los
-criterios, escritos o en foto de la hoja de soluciones (hasta 3): con ellos la IA
-corrige como el docente; sin ellos, con su propio criterio. «Corregir con IA»
-devuelve, pregunta por pregunta, lo que ha escrito el alumno, los puntos y un
-comentario, con las dudosas marcadas («Revísala»), más un comentario para el
-alumno o su familia (se puede editar y copiar). El docente cambia los puntos de
-cada pregunta y la nota sobre 10 se recalcula sola: la suma la hace la
-aplicación, no la IA. «Guardar la nota en el cuaderno» la pone en la columna con
-ese nombre (se crea si no existe), y «Siguiente alumno» deja las mismas
-opciones para el siguiente de la lista, con las fotos vacías. A la IA no le llega
-el nombre del alumno, y se le pide que no lea ningún nombre de la hoja. Antes de
-enviar, cada página pasa por «Tapa el nombre»: se arrastra el dedo o el ratón
-sobre el nombre (o «Tapar la franja de arriba») o se marca que la hoja no lo
-lleva; lo tapado se pinta de negro en la foto, en el dispositivo, y para el
-siguiente alumno se propone lo mismo en cada página. Las fotos van a Google
-reducidas y sin su ubicación y no se guardan en AulaPro. La IA se equivoca a veces, sobre
-todo con letra difícil: hay que repasar antes de guardar.
+No está disponible por ahora. AulaPro no ofrece ninguna función en la que la IA
+proponga la nota de un alumno (ni corregir por foto ni «Evaluar trabajo con IA»
+en las rúbricas) mientras se revisa cómo le afecta el Reglamento europeo de
+inteligencia artificial. Para evaluar están las rúbricas, las dianas y las
+escalas de registro, y la nota la pone siempre el docente.
 
 [diana] DIANA COMPETENCIAL
 Perfil visual de competencias clave de un alumno, en forma de diana. Se elige
@@ -658,8 +643,7 @@ Si se cierra a medias, al volver a esa pantalla sale un aviso («Te quedó una
 ficha sin guardar…») con «Continuar» (reabre lo que había) y «Descartar». Hay
 un solo borrador por tipo y por perfil, se borra al guardar y caduca a los 30
 días. En las rúbricas, dianas y sesiones, cerrar la ventana con la X no lo
-pierde; «Cancelar» sí lo descarta. En la corrección por foto no se guardan las
-fotos. Reuniones y Formaciones tienen el suyo, el siguiente.
+pierde; «Cancelar» sí lo descarta. Reuniones y Formaciones tienen el suyo, el siguiente.
 AUTOGUARDADO DE REUNIONES Y FORMACIONES: mientras el formulario de anotaciones está abierto, se guarda una
 copia sola cada minuto (y también al cerrar la ventana); cada copia sustituye a
 la anterior y se ve «Autoguardado a las HH:MM» bajo las anotaciones. Si la

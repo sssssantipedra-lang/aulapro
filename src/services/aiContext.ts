@@ -19,7 +19,7 @@
  *    rellenar el hueco por su cuenta.
  */
 
-import { quitarDatosDeContacto } from '../lib/documentoParaIA';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import type {
   Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation,
   AttendanceMap, AttendanceStatus, CompetencyReport, CalEvent, ScheduleBlock,
@@ -213,8 +213,8 @@ export function buildTeacherContext(
       const media = weightedAverage(s.id, cats, items, d.grades);
       const asis = attendanceRate(cls.id, s.id, d.attendance);
       // Textos libres del docente: sin correos, teléfonos ni documentos de identidad (los nombres los tapa callGemini)
-      const avisos = s.alerts?.length ? ` · avisos: ${quitarDatosDeContacto(s.alerts.map(a => a.text).join('; '))}` : '';
-      const notas = s.notes?.trim() ? ` · anotación del docente: ${quitarDatosDeContacto(s.notes.trim())}` : '';
+      const avisos = s.alerts?.length ? ` · avisos: ${textoLibreParaIA(s.alerts.map(a => a.text).join('; '))}` : '';
+      const notas = s.notes?.trim() ? ` · anotación del docente: ${textoLibreParaIA(s.notes.trim())}` : '';
       const asisTxt = asis
         ? `asistencia ${asis.pct}% (${asis.absences} faltas de ${asis.days} sesiones)`
         : 'sin datos de asistencia';
@@ -253,7 +253,7 @@ export function buildTeacherContext(
     for (const e of evs) {
       L.push(`· ${e.date} · ${e.student_name} · «${e.rubric_name}»` +
         `${typeof e.grade === 'number' ? ` · nota ${n(e.grade)}` : ''}` +
-        `${e.notes ? ` · observaciones: ${quitarDatosDeContacto(e.notes)}` : ''}`);
+        `${e.notes ? ` · observaciones: ${textoLibreParaIA(e.notes)}` : ''}`);
     }
   }
 
@@ -333,6 +333,7 @@ export function chatSystemPrompt(lang: Lang, hasContext: boolean): string {
             '4. Do not dump the whole dataset back at the user: answer the question that was asked.',
           ].join('\n')
         : 'You have NOT been given the teacher\'s data in this conversation, so do not pretend to know their students, classes or marks: answer in general terms and say that they can switch on "use my data" for specific answers.',
+      'If you are given a student\'s exam or piece of work (attached or pasted), do NOT grade it: do not propose a mark, a score or a level for that student. You may explain the content, point out what to look at or suggest feedback, and remind the teacher that the mark is theirs to set.',
       'When a question is genuinely ambiguous, ask one short clarifying question instead of guessing.',
       'The curriculum framework is the Spanish LOMLOE unless the teacher says otherwise.',
     ].join('\n\n');
@@ -351,6 +352,7 @@ export function chatSystemPrompt(lang: Lang, hasContext: boolean): string {
           '5. Si te piden un cálculo (medias, comparaciones, quién aprueba), hazlo con los datos que tienes y di sobre cuántos alumnos lo has hecho.',
         ].join('\n')
       : 'En esta conversación NO tienes los datos del docente, así que no simules conocer a sus alumnos, sus clases ni sus notas: responde en general y avísale de que puede activar «usar mis datos» para respuestas concretas sobre su cuaderno.',
+    'Si te pasan un examen o un trabajo de un alumno (adjunto o pegado), NO lo califiques: no propongas una nota, una puntuación ni un nivel para ese alumno. Puedes explicar el contenido, señalar en qué fijarse o sugerir comentarios, y recuerda que la nota la pone el docente.',
     'Si una pregunta es de verdad ambigua, haz UNA pregunta breve de aclaración en vez de adivinar.',
     'El marco curricular de referencia es la LOMLOE española, salvo que el docente diga otra cosa.',
   ].join('\n\n');

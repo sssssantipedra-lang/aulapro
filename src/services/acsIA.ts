@@ -8,6 +8,7 @@
  */
 import { callGemini, parseGeminiJson } from './gemini';
 import { alumnoParaIA, marcoApoyo } from './apoyoIA';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { objetivosTexto } from './apoyoDocumentos';
 import { ESTRATEGIAS_ACS, desfaseCursos, seleccionValida } from '../lib/acs';
 import { MODELOS_ACS, type ModeloAcs } from '../lib/acsModelos';
@@ -42,7 +43,7 @@ export function promptAcs({ acs, alumno, materia, data, lang, nombreCurso, model
   }).join('\n');
   const prompt =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
-    `Sus programas y objetivos individuales:\n${objetivosTexto(data, alumno.id, [materia], t, lang)}\n\n` +
+    `Sus programas y objetivos individuales:\n${textoLibreParaIA(objetivosTexto(data, alumno.id, [materia], t, lang))}\n\n` +
     `${translate('es', modelo.nombre)} (${modelo.sigla}) del área «${entry.nombre}» con el currículo de ${nombreCurso(acs.nivel)}` +
     (desfase !== null ? `, ${desfase} cursos por debajo del curso en que está matriculado` : '') + '.\n\n' +
     `COMPETENCIAS ESPECÍFICAS Y CRITERIOS DE EVALUACIÓN DE ${nombreCurso(acs.nivel).toUpperCase()} (lista cerrada):\n${catalogo}\n\n` +
@@ -122,11 +123,11 @@ export function promptObjetivosAcs({ acs, materia, alumnoTexto, nombreCurso, mod
   const crits = (materia.entry.criterios[materia.grupo] ?? []).filter(c => acs.criterios.includes(c.codigo));
   const estrategias = ESTRATEGIAS_ACS.filter(e => acs.estrategias.includes(e.id)).map(e => e.texto);
   const prompt =
-    `${alumnoTexto}\n\n` +
+    `${textoLibreParaIA(alumnoTexto)}\n\n` +
     `${translate('es', modelo.nombre)} (${modelo.sigla}) del área «${materia.entry.nombre}» con el currículo de ${nombreCurso(acs.nivel)}.\n` +
     `CRITERIOS DE EVALUACIÓN ELEGIDOS (lista cerrada):\n${crits.map(c => `- ${c.codigo}: ${c.texto}`).join('\n')}\n` +
     (estrategias.length ? `Estrategias que le ayudan: ${estrategias.join('; ')}.\n` : '') +
-    ((acs.objetivos ?? []).length ? `Objetivos que ya tiene (no los repitas):\n${acs.objetivos!.map(o => `- ${o.texto}`).join('\n')}\n` : '') +
+    ((acs.objetivos ?? []).length ? `Objetivos que ya tiene (no los repitas):\n${acs.objetivos!.map(o => `- ${textoLibreParaIA(o.texto)}`).join('\n')}\n` : '') +
     '\nPropón de 1 a 2 objetivos concretos por cada criterio elegido, para trabajarlo con este alumno durante el curso. ' +
     'Cada objetivo: una frase corta (máximo 14 palabras) que empiece por un verbo en infinitivo, observable y evaluable ' +
     'en una sesión, con el material o la ayuda que necesita si hace falta, de lo más sencillo a lo más complejo. ' +

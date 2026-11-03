@@ -600,6 +600,7 @@ export const CA: Record<string, string> = {
   "Documentos": "Documents",
   "En clase": "A classe",
   "Diana competencial": "Diana competencial",
+  "Evalúa con rúbricas, con dianas o con escalas de registro, recoge autoevaluaciones y consulta todo lo evaluado.": "Avalua amb rúbriques, amb dianes o amb escales de registre, recull autoavaluacions i consulta tot el que s'ha avaluat.",
   "Evalúa con rúbricas o con la diana competencial, recoge autoevaluaciones y consulta todo lo evaluado.": "Avalua amb rúbriques o amb la diana competencial, recull autoavaluacions i consulta tot el que s'ha avaluat.",
   "Todo lo que acaba en papel: informes para las familias, actas de calificaciones, situaciones de aprendizaje, sesiones y fichas.": "Tot el que acaba en paper: informes per a les famílies, actes de qualificacions, situacions d'aprenentatge, sessions i fitxes.",
   "Lo que usas con el alumnado delante: cómo se sientan, la pizarra y herramientas para proyectar, y las actividades desde sus móviles.": "El que fas servir amb l'alumnat davant: com seuen, la pissarra i eines per projectar, i les activitats des dels seus mòbils.",

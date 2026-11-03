@@ -1,3 +1,4 @@
+import { CORRECCION_CON_IA } from './correccionIA';
 import { describe, it, expect } from 'vitest';
 import { HUBS, hubTarget, reachableSections, hubOf, hubEnMenu, isCurrent, NAV_GROUPS, NAV_APOYO, NAV_EF, navGroupsFor } from './navigation';
 import type { Section } from '../types';
@@ -13,7 +14,7 @@ describe('menú', () => {
   it('no se pierde ninguna pantalla y ninguna sale dos veces', () => {
     const r = reachableSections();
     expect(new Set(r).size).toBe(r.length);
-    expect([...r].sort()).toEqual([...ALL].sort());
+    expect([...r].sort()).toEqual(ALL.filter(s => CORRECCION_CON_IA || s !== 'evalfoto').sort());
     // Las de PT y AL, en su menú
     expect(reachableSections('apoyo')).toEqual(expect.arrayContaining(APOYO));
   });

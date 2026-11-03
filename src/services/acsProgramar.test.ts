@@ -50,6 +50,20 @@ describe('la ACS como contexto de la IA', () => {
     expect(bloqueAcs(texto)).toContain('ADAPTACIÓN CURRICULAR SIGNIFICATIVA');
     expect(bloqueAcs('  ')).toBe('');
   });
+
+  it('sin datos de salud: ni la categoría NEAE ni un diagnóstico escrito en sus textos (3-11-2026)', async () => {
+    const { m, acs } = await ejemplo();
+    const conSalud = {
+      ...acs, otrasEstrategias: 'Por su TDAH, instrucciones de una en una', calificacion: 'Toma metilfenidato; se califica con observación',
+      objetivos: [{ id: 'o2', texto: 'Contar hasta 20 pese a su discapacidad intelectual', trimestres: [1] as (1 | 2 | 3)[], criterio: '' }],
+    };
+    const texto = acsParaIA(conSalud, MODELOS_ACS.andalucia, m, nombreCurso, palabrasDeNombres([alumno.nombre]));
+    expect(texto).not.toMatch(/TDAH|metilfenidato|discapacidad|Discapacidad/);
+    expect(texto).toContain('instrucciones de una en una');
+    const { prompt } = promptObjetivosAcs({ acs: conSalud, materia: m, alumnoTexto: 'Necesidades educativas: TEA. Necesita apoyo visual', nombreCurso });
+    expect(prompt).not.toMatch(/TEA|discapacidad/);
+    expect(prompt).toContain('Necesita apoyo visual');
+  });
 });
 
 describe('objetivos concretos', () => {

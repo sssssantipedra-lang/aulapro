@@ -4,13 +4,14 @@
 // la tienda de AulaPro y su clave. La app la activa como si el docente la hubiera escrito.
 //
 // Necesita el secreto LEMONSQUEEZY_API_KEY en el proyecto aulapro-app de Cloudflare Pages. El correo
-// solo se usa para la búsqueda: no se guarda ni se registra. Ver src/platform/cuentaWeb.ts.
+// solo se usa para la búsqueda y, en huella, para anotar la aceptación de las condiciones (_aceptacion.js). Ver src/platform/cuentaWeb.ts.
 import { firmar } from '../_firma.js';
 import { corsPara } from '../_origenes.js';
 import { verificarTokenMicrosoft } from '../_microsoft.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
 import { secretosDeLicencia } from '../_secretos.js';
 import { bloqueosKv, estaBloqueada } from '../_bloqueos.js';
+import { aceptacionKv, anotarAceptacion, versionValida } from '../_aceptacion.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -29,7 +30,7 @@ export async function onRequestPost({ request, env }) {
   // Tope por IP generoso: un centro entero entra desde la misma wifi (ver LIMITES en _limite.js).
   if (!(await dentroDelLimite(env.LIMITE, `cuenta-ip:${ip}`, LIMITES.ip, LIMITES.ventana))) return respuestaLimite(cors);
 
-  const { token, proveedor } = await request.json().catch(() => ({}));
+  const { token, proveedor, acepta } = await request.json().catch(() => ({}));
   if (typeof token !== 'string' || token.length > 5000) return json({ error: 'token' }, 400, cors);
 
   let email;
@@ -50,8 +51,11 @@ export async function onRequestPost({ request, env }) {
 
   // Fundadores (quien usaba la app de Windows o Android antes del 10-11-2026): gratis para siempre.
   // Sus correos van en la variable secreta FUNDADORES (separados por comas o saltos de línea), nunca en el repositorio.
+  // La aceptación de las condiciones (casilla de la entrada), con la cuenta ya comprobada: ver _aceptacion.js
+  const aceptacion = versionValida(acepta) ? { aceptacion: await anotarAceptacion(aceptacionKv(env.LIMITE), email, acepta) } : {};
+
   const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos) }, 200, cors);
+  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503, cors);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
@@ -67,8 +71,8 @@ export async function onRequestPost({ request, env }) {
       const a = k.attributes ?? {};
       // También la que Lemon Squeezy avisó que terminó, aunque su API aún no lo diga (_bloqueos.js)
       if (a.disabled || ['disabled', 'expired'].includes(a.status) || (await estaBloqueada(bloqueosKv(env.LIMITE), a.key))) { vencida = true; continue; }
-      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos) }, 200, cors);
+      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos), ...aceptacion }, 200, cors);
     }
   }
-  return json(vencida ? { key: null, vencida: true } : { key: null }, 200, cors);
+  return json(vencida ? { key: null, vencida: true, ...aceptacion } : { key: null, ...aceptacion }, 200, cors);
 }
