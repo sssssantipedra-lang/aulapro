@@ -38,6 +38,26 @@ export function normativaInclusion(comunidad: ComunidadId | undefined): string {
         'diferencias individuales del alumnado. Medidas ordinarias y específicas; para el alumnado con necesidades ' +
         'educativas especiales, adaptaciones curriculares por área (significativas si van a cursos anteriores) y el apoyo ' +
         'del profesorado de Pedagogía Terapéutica y Audición y Lenguaje según el dictamen de escolarización.';
+    case 'andalucia':
+      // Andalucía no tiene un decreto único de inclusión: el marco son estas
+      // normas (ver «Andalucía» en docs/PTAL.md). Los nombres de las medidas,
+      // copiados de los artículos 27 a 37 de la orden de Primaria y 31 a 51 de
+      // la de ESO, con los cambios de la Orden de 31 de agosto de 2026.
+      return 'Andalucía: Ley 17/2007, de 10 de diciembre, de Educación de Andalucía (título III, equidad en la ' +
+        'educación); Decreto 147/2002, de 14 de mayo, de atención educativa al alumnado con necesidades educativas ' +
+        'especiales asociadas a sus capacidades personales (evaluación psicopedagógica y dictamen de escolarización); ' +
+        'Decreto 103/2026, de 17 de junio, del alumnado en situación o riesgo de vulnerabilidad; y la atención a la ' +
+        'diversidad y a las diferencias individuales del capítulo IV de las Órdenes de 30 de mayo de 2023 de Educación ' +
+        'Primaria y de ESO, modificadas por la Orden de 31 de agosto de 2026, con los principios del DUA. Medidas ' +
+        'generales (apoyo en grupos ordinarios mediante un segundo profesor o profesora, desdoblamientos, agrupamientos ' +
+        'flexibles, acción tutorial); programas de atención a la diversidad: programas de refuerzo del aprendizaje (un ' +
+        'único programa por alumno o alumna) y programas de profundización; y medidas específicas, propuestas en el ' +
+        'informe de evaluación psicopedagógica: apoyo dentro del aula por profesorado especialista de Pedagogía ' +
+        'Terapéutica o Audición y Lenguaje (fuera del aula, solo de forma excepcional y justificada), adaptaciones de ' +
+        'acceso al currículo, adaptaciones curriculares significativas para el alumnado con necesidades educativas ' +
+        'especiales (con un desfase de al menos dos cursos; su evaluación toma como referencia lo fijado en ellas), ' +
+        'programas específicos para el tratamiento personalizado del alumnado con necesidades específicas de apoyo ' +
+        'educativo y adaptaciones curriculares para el alumnado con altas capacidades intelectuales.';
     default:
       return 'Normativa estatal: Ley Orgánica 2/2006, de Educación, modificada por la LOMLOE (título II, capítulo I, ' +
         'alumnado con necesidad específica de apoyo educativo); Real Decreto 157/2022 (artículo 16) y Real Decreto ' +

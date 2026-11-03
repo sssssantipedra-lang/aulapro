@@ -454,8 +454,8 @@ En `docs/Normativa Andalucía/`, descargados del BOJA el 3-11-2026 y comprobados
 - El calendario escolar de Jaén (las otras siete provincias ya están: ver «Calendario escolar»).
 - Los ámbitos de los Programas de Diversificación Curricular (anexo IV de la orden de la ESO).
 - La relación de cada criterio con sus saberes (la última columna de las tablas), por si se quiere usar al preparar una SdA.
-- PT y AL: la normativa y los modelos de inclusión de Andalucía (`docs/PTAL.md`).
-- Confirmar en el buscador del BOJA que las órdenes no tienen correcciones ni modificaciones.
+- PT y AL: el modelo andaluz de adaptación curricular significativa (se registra en Séneca) y confirmar las Instrucciones de 8 de marzo de 2017. La normativa de inclusión ya está (3-11-2026, `docs/PTAL.md`).
+- Confirmar en el buscador del BOJA que las órdenes no tienen correcciones. Modificaciones: la Orden de 31 de agosto de 2026 cambia su articulado (evaluación, promoción, programas de refuerzo y medidas específicas), no los anexos del currículo; está en `docs/Normativa Andalucía/Inclusión/`.
 
 ## Pendiente de decidir
 

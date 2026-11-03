@@ -40,6 +40,9 @@ describe('marco de la IA', () => {
     expect(normativaInclusion('comunitat-valenciana')).toContain('PAP');
     expect(normativaInclusion('cataluna')).toContain('Decret 150/2017');
     expect(normativaInclusion('madrid')).toContain('Decreto 23/2023');
+    expect(normativaInclusion('andalucia')).toContain('Decreto 147/2002');
+    expect(normativaInclusion('andalucia')).toContain('Orden de 31 de agosto de 2026');
+    expect(normativaInclusion('andalucia')).toContain('informe de evaluación psicopedagógica');
     expect(normativaInclusion('galicia')).toContain('Real Decreto 157/2022');
     expect(normativaInclusion(undefined)).toContain('LOMLOE');
   });
