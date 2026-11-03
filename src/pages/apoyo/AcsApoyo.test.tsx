@@ -24,12 +24,12 @@ const alumno: AlumnoApoyo = {
 };
 
 let ultimo: ApoyoData;
-function Harness({ materias }: { materias: MateriaDeClase[] }) {
+function Harness({ materias, comunidad = 'andalucia' }: { materias: MateriaDeClase[]; comunidad?: 'andalucia' | 'comunitat-valenciana' | 'cataluna' }) {
   const [data, setData] = useState<ApoyoData>({ ...APOYO_VACIO, alumnos: [alumno] });
   return (
     <I18nProvider><ToastProvider>
       <AcsApoyo alumno={alumno} data={data} onChange={f => setData(d => { ultimo = f(d); return ultimo; })}
-        materias={materias} comunidad="andalucia" docente={{ nombre: 'Profesor', centro: '', curso: '2026-2027' }} />
+        materias={materias} comunidad={comunidad} docente={{ nombre: 'Profesor', centro: '', curso: '2026-2027' }} />
     </ToastProvider></I18nProvider>
   );
 }
@@ -69,5 +69,35 @@ describe('ACS de Andalucía', () => {
     await user.selectOptions(within(dialogo).getByLabelText('Curso de referencia de la ACS'), 'primaria-3');
     expect(ultimo.acs[0].nivel).toEqual({ etapa: 'primaria', curso: 3 });
     expect(within(dialogo).getByRole('status').textContent).not.toMatch(/aquí es de/);
+  });
+
+  it('en la Comunitat Valenciana es la ACIS del PAP, con horas de apoyo y la nota del trimestre', async () => {
+    const user = userEvent.setup();
+    const materias = materiasDeCurriculo(await cargarCurriculo('comunitat-valenciana', 'primaria'), { etapa: 'primaria', curso: 4 });
+    render(<Harness materias={materias} comunidad="comunitat-valenciana" />);
+    expect(screen.getByText('Adaptación curricular individual significativa (ACIS)')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Nueva ACIS' }));
+    const dialogo = screen.getByRole('dialog');
+    expect(within(dialogo).getByRole('heading', { name: '2. Barreras y fortalezas para el aprendizaje y la participación' })).toBeTruthy();
+    expect(within(dialogo).getByLabelText('Orientador u orientadora')).toBeTruthy();
+    const horas = within(dialogo).getByLabelText('Pedagogía terapéutica, Fuera del aula');
+    await user.clear(horas);
+    await user.type(horas, '2');
+    expect(ultimo.acs[0].apoyos?.ptFuera).toBe(2);
+    await user.type(within(dialogo).getByLabelText('Calificación del 1º trimestre'), '6');
+    expect(ultimo.acs[0].notas?.[1]).toBe('6');
+  });
+
+  it('en Cataluña es el PI, sin aviso de desfase, con la conformidad de la familia', async () => {
+    const user = userEvent.setup();
+    const materias = materiasDeCurriculo(await cargarCurriculo('cataluna', 'primaria'), { etapa: 'primaria', curso: 4 });
+    render(<Harness materias={materias} comunidad="cataluna" />);
+    await user.click(screen.getByRole('button', { name: 'Nuevo PI' }));
+    const dialogo = screen.getByRole('dialog');
+    expect(within(dialogo).getByRole('status').textContent).not.toMatch(/desfase/);
+    expect(within(dialogo).getByRole('status').textContent).toMatch(/conformidad de la familia/);
+    await user.click(within(dialogo).getByRole('checkbox', { name: 'La familia está conforme con el PI' }));
+    expect(ultimo.acs[0].familiaConforme).toBe(true);
+    expect(within(dialogo).getByRole('status').textContent).not.toMatch(/conformidad de la familia/);
   });
 });

@@ -1,14 +1,15 @@
 /**
- * La adaptación curricular significativa (ACS) de Andalucía en PDF y en Word, con sus cuatro bloques. El contenido se
- * prepara una vez (`contenidoAcs`) y se pinta en los dos formatos, con el mismo aspecto que el resto de documentos de
- * PT y AL. Los textos de las competencias, los criterios y los saberes son los oficiales del curso de referencia.
- * Ver `docs/PTAL.md`, «Adaptación curricular significativa (Andalucía)».
+ * La adaptación curricular significativa en PDF y en Word, con los apartados del modelo de su comunidad
+ * (`lib/acsModelos.ts`). El contenido se prepara una vez (`contenidoAcs`) y se pinta en los dos formatos, con el mismo
+ * aspecto que el resto de documentos de PT y AL. Los textos de las competencias, los criterios y los saberes son los
+ * oficiales del curso de referencia. Ver `docs/PTAL.md`, «Adaptación curricular significativa».
  */
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, WidthType, AlignmentType,
 } from 'docx';
 import { BORDES, ESTILO, celda, esc, nl2br, titulo2 } from './apoyoDocumentos';
 import { ESTRATEGIAS_ACS, GRADOS_ACS, desfaseCursos, filasSeguimiento } from '../lib/acs';
+import { MODELOS_ACS, etiquetaFirma, etiquetaResponsable, notaConMarca, type ModeloAcs, type PiezaAcs } from '../lib/acsModelos';
 import { competenciasDe } from '../lib/curriculum';
 import { translate, type Lang } from '../i18n';
 import { downloadFile } from '../lib/download';
@@ -34,8 +35,8 @@ export interface DocenteAcs { nombre: string; centro: string; curso: string }
 
 const fecha = (iso: string) => (iso ? iso.split('-').reverse().join('/') : '');
 
-export function tituloAcs(acs: AcsApoyo, t: T): string {
-  return `${t('Adaptación curricular significativa')} · ${acs.materiaAula.trim() || acs.area}`;
+export function tituloAcs(acs: AcsApoyo, t: T, modelo: ModeloAcs = MODELOS_ACS.andalucia): string {
+  return `${t(modelo.nombre)} · ${acs.materiaAula.trim() || acs.area}`;
 }
 
 /** El texto oficial de cada cosa elegida; sin currículo cargado, solo el código. */
@@ -74,7 +75,7 @@ export function nombreFila(f: Pick<SeguimientoAcs, 'tipo' | 'clave'>, materia: M
 
 export function contenidoAcs(
   acs: AcsApoyo, alumno: AlumnoApoyo, materia: MateriaDeClase | undefined, docente: DocenteAcs,
-  nombreCurso: (c: CursoDe) => string, lang: Lang,
+  nombreCurso: (c: CursoDe) => string, lang: Lang, modelo: ModeloAcs = MODELOS_ACS.andalucia,
 ): ContenidoAcs {
   const t: T = (k, vars) => translate(lang, k, vars);
   const desfase = desfaseCursos(alumno.matricula, acs.nivel);
@@ -83,6 +84,7 @@ export function contenidoAcs(
     ESTRATEGIAS_ACS.filter(e => e.grupo === grupo && acs.estrategias.includes(e.id)).map(e => t(e.texto));
   const grado = (g: SeguimientoAcs['grado']) => (g ? t(GRADOS_ACS.find(x => x.id === g)!.texto) : '');
   const limpia = (filas: [string, string][]) => filas.filter(([, v]) => v.trim() !== '');
+  const horas = (n: number) => (n ? t(n === 1 ? '{n} hora' : '{n} horas', { n: String(n).replace('.', lang === 'en' ? '.' : ',') }) : '');
 
   const cabecera = limpia([
     [t('Alumno o alumna'), alumno.nombre],
@@ -93,7 +95,7 @@ export function contenidoAcs(
     [t('Centro'), docente.centro],
   ]);
 
-  const seguimiento = ([1, 2, 3] as const).map(n => {
+  const seguimiento = (): ParteAcs[] => ([1, 2, 3] as const).map(n => {
     const filas = filasSeguimiento(acs, n);
     const partes: ParteAcs[] = [{
       tipo: 'tabla', titulo: t('{n}º trimestre', { n }),
@@ -101,57 +103,98 @@ export function contenidoAcs(
       filas: filas.map(f => [nombreFila(f, materia, t), grado(f.grado), f.observaciones]),
       anchos: [50, 18, 32],
     }];
+    if (modelo.nota && acs.notas?.[n]?.trim()) {
+      partes.push({ tipo: 'filas', filas: [[t('Calificación del {n}º trimestre', { n }), notaConMarca(modelo, acs.notas[n])]] });
+    }
     if (acs.ajustes[n]?.trim()) partes.push({ tipo: 'texto', titulo: t('Medidas de ajuste del {n}º trimestre', { n }), texto: acs.ajustes[n]! });
     return partes;
-  }).flat();
+  }).flat().concat(modelo.promocion ? [{ tipo: 'texto', titulo: t('Decisión de promoción al final del curso o del ciclo'), texto: acs.promocion ?? '' }] : []);
+
+  const pieza = (p: PiezaAcs): ParteAcs[] => {
+    switch (p) {
+      case 'informe': return [{ tipo: 'filas', filas: limpia([
+        [t(modelo.informe), fecha(acs.fechaInforme)],
+        ...modelo.fechas.map(f => [t(f.texto), fecha(acs.fechas?.[f.id] ?? '')] as [string, string]),
+        ...(modelo.id === 'madrid' && acs.organismo
+          ? [[t('Evaluación y dictamen de'), t(acs.organismo === 'eoep' ? 'Equipo de orientación educativa y psicopedagógica (EOEP)' : 'Departamento de orientación')]] as [string, string][]
+          : []),
+      ]) }];
+      case 'nivel': return [{ tipo: 'filas', filas: limpia([
+        [t(modelo.cursoReferencia), nombreCurso(acs.nivel)],
+        [t('Desfase curricular'), desfase === null ? '' : t(desfase === 1 ? '{n} curso' : '{n} cursos', { n: desfase })],
+        [t(modelo.id === 'cataluna' ? 'Por qué se prioriza o se modifica' : 'Justificación del desfase'), acs.justificacion],
+      ]) }];
+      case 'responsables': return [{ tipo: 'filas', filas: limpia(modelo.responsables.map(r => [t(etiquetaResponsable(modelo, r)), acs.responsables[r] ?? ''])) }];
+      case 'barreras': return [
+        { tipo: 'texto', titulo: t('Barreras para el aprendizaje y la participación'), texto: acs.barreras ?? '' },
+        { tipo: 'texto', titulo: t('Fortalezas'), texto: acs.fortalezas ?? '' },
+      ];
+      case 'area': return [{ tipo: 'filas', filas: limpia([
+        [t('Área o materia del curso de referencia'), acs.area],
+        [t('Materia en su clase'), acs.materiaAula.trim() && acs.materiaAula.trim() !== acs.area ? acs.materiaAula : ''],
+      ]) }];
+      case 'curriculo': return [
+        { tipo: 'lista', titulo: t('Competencias específicas'), items: elegidos.competencias },
+        { tipo: 'lista', titulo: t('Criterios de evaluación'), items: elegidos.criterios },
+        { tipo: 'lista', titulo: t('Saberes básicos'), items: elegidos.saberes },
+      ];
+      case 'ajusteCriterios': return [{
+        tipo: 'tabla', titulo: t('Los criterios respecto a su grupo de edad'),
+        columnas: [t('Criterio de evaluación'), t('Priorizado o modificado'), t('Qué hace en relación con la actividad del aula')],
+        filas: acs.criterios.map((cod, i) => {
+          const a = acs.ajusteCriterios?.[cod];
+          return [elegidos.criterios[i], a?.tipo ? t(a.tipo === 'priorizado' ? 'Priorizado' : 'Modificado') : '', a?.aula ?? ''];
+        }).filter(f => f[1] || f[2].trim()),
+        anchos: [44, 18, 38],
+      }];
+      case 'estrategias': return [
+        { tipo: 'lista', titulo: t('Estrategias metodológicas'), items: estrategias('metodologica') },
+        { tipo: 'lista', titulo: t('Estrategias organizativas'), items: estrategias('organizativa') },
+        { tipo: 'texto', titulo: t('Otras estrategias'), texto: acs.otrasEstrategias },
+      ];
+      case 'apoyos': {
+        const a = acs.apoyos;
+        const ap = modelo.apoyos!;
+        if (!a) return [];
+        const filas = ([['pt', ap.pt, a.ptDentro, a.ptFuera], ['al', ap.al, a.alDentro, a.alFuera]] as const)
+          .filter(([, , d, f]) => d || f).map(([, n, d, f]) => [t(n), horas(d), horas(f)]);
+        return [
+          ...(modelo.apoyos?.siei && a.siei ? [{ tipo: 'filas', filas: [[t('Apoyo intensivo'), t('Con el apoyo de una SIEI (apoyo intensivo a la escolarización inclusiva)')]] } as ParteAcs] : []),
+          { tipo: 'tabla', titulo: t('Horas semanales de apoyo'), columnas: [t('Apoyo'), t('Dentro del aula'), t('Fuera del aula')], filas, anchos: [40, 30, 30] },
+          { tipo: 'texto', titulo: t('Organización de los apoyos y horario'), texto: a.organizacion },
+        ];
+      }
+      case 'calificacion': return [
+        {
+          tipo: 'tabla', titulo: t('Instrumentos de evaluación adaptados'),
+          columnas: [t('Instrumento'), t('Peso en la calificación')],
+          filas: acs.instrumentos.map(i => [i.nombre, `${i.peso} %`]), anchos: [75, 25],
+        },
+        { tipo: 'texto', titulo: t('Criterios de calificación'), texto: acs.calificacion },
+      ];
+      case 'seguimiento': return seguimiento();
+      case 'acuerdos': return [
+        { tipo: 'filas', filas: [[t('Conformidad de la familia'), acs.familiaConforme ? t('La familia está conforme con el PI') : '']].filter(([, v]) => v) as [string, string][] },
+        { tipo: 'texto', titulo: t('Acuerdos con la familia y el alumno'), texto: acs.acuerdos ?? '' },
+      ];
+    }
+  };
 
   return {
-    titulo: tituloAcs(acs, t),
+    titulo: tituloAcs(acs, t, modelo),
     cabecera,
-    secciones: [
-      {
-        titulo: `1. ${t('Datos generales y dictamen')}`,
-        partes: [{
-          tipo: 'filas', filas: limpia([
-            [t('Fecha del informe de evaluación psicopedagógica'), fecha(acs.fechaInforme)],
-            [t('Curso de referencia de la ACS'), nombreCurso(acs.nivel)],
-            [t('Desfase curricular'), desfase === null ? '' : t(desfase === 1 ? '{n} curso' : '{n} cursos', { n: desfase })],
-            [t('Justificación del desfase'), acs.justificacion],
-            [t('Tutor o tutora'), acs.responsables.tutor],
-            [t('Especialista de PT o AL'), acs.responsables.especialista],
-            [t('Profesorado de la materia'), acs.responsables.materia],
-          ]),
-        }],
-      },
-      {
-        titulo: `2. ${t('Selección curricular')}`,
-        partes: [
-          { tipo: 'filas', filas: limpia([
-            [t('Área o materia del curso de referencia'), acs.area],
-            [t('Materia en su clase'), acs.materiaAula.trim() && acs.materiaAula.trim() !== acs.area ? acs.materiaAula : ''],
-          ]) },
-          { tipo: 'lista', titulo: t('Competencias específicas'), items: elegidos.competencias },
-          { tipo: 'lista', titulo: t('Criterios de evaluación'), items: elegidos.criterios },
-          { tipo: 'lista', titulo: t('Saberes básicos'), items: elegidos.saberes },
-        ],
-      },
-      {
-        titulo: `3. ${t('Adaptaciones metodológicas y criterios de calificación')}`,
-        partes: [
-          { tipo: 'lista', titulo: t('Estrategias metodológicas'), items: estrategias('metodologica') },
-          { tipo: 'lista', titulo: t('Estrategias organizativas'), items: estrategias('organizativa') },
-          { tipo: 'texto', titulo: t('Otras estrategias'), texto: acs.otrasEstrategias },
-          {
-            tipo: 'tabla', titulo: t('Instrumentos de evaluación adaptados'),
-            columnas: [t('Instrumento'), t('Peso en la calificación')],
-            filas: acs.instrumentos.map(i => [i.nombre, `${i.peso} %`]), anchos: [75, 25],
-          },
-          { tipo: 'texto', titulo: t('Criterios de calificación'), texto: acs.calificacion },
-        ],
-      },
-      { titulo: `4. ${t('Seguimiento y valoración trimestral')}`, partes: seguimiento },
-    ],
+    secciones: modelo.apartados.map((a, i) => ({ titulo: `${i + 1}. ${t(a.titulo)}`, partes: juntarFilas(a.piezas.flatMap(pieza)) })),
   };
+}
+
+/** Las tablas de dos columnas seguidas van en una sola. */
+function juntarFilas(partes: ParteAcs[]): ParteAcs[] {
+  return partes.reduce<ParteAcs[]>((r, p) => {
+    const ult = r[r.length - 1];
+    if (p.tipo === 'filas' && ult?.tipo === 'filas') r[r.length - 1] = { tipo: 'filas', filas: [...ult.filas, ...p.filas] };
+    else r.push(p);
+    return r;
+  }, []);
 }
 
 /** Las partes sin nada que decir no salen; la tabla del seguimiento sí, aunque esté vacía, para rellenarla en papel. */
@@ -253,8 +296,8 @@ export function nombreArchivoAcs(c: ContenidoAcs, alumno: AlumnoApoyo, fechaIso:
   return [c.titulo, alumno.nombre].map(slug).join('-').toLowerCase() + (fechaIso ? `-${fechaIso}` : '');
 }
 
-/** Quién firma: el tutor, el especialista y el profesorado de la materia, como los nombre el documento. */
-export function firmasAcs(lang: Lang): string[] {
+/** Quién firma, según el modelo: en Andalucía, el tutor, el especialista y el profesorado de la materia. */
+export function firmasAcs(lang: Lang, modelo: ModeloAcs = MODELOS_ACS.andalucia): string[] {
   const t: T = (k, vars) => translate(lang, k, vars);
-  return [t('Tutor o tutora'), t('Especialista de PT o AL'), t('Profesorado de la materia')];
+  return modelo.firmas.map(f => t(etiquetaFirma(modelo, f)));
 }

@@ -1,17 +1,18 @@
 /**
- * La adaptación curricular significativa (ACS) de Andalucía, sin React. Ver `docs/PTAL.md`, «Adaptación curricular
- * significativa (Andalucía)».
+ * La adaptación curricular significativa, sin React. Ver `docs/PTAL.md`, «Adaptación curricular significativa».
  *
- * Sigue los cuatro bloques en que la recoge Séneca: datos generales y dictamen, selección curricular del curso de
- * referencia, metodología y calificación, y seguimiento trimestral. Lo que dicen las órdenes de 30 de mayo de 2023
- * (Primaria, artículos 33 y 36; ESO, 47 y 50) se comprueba aquí y se avisa, sin impedir guardar: es para el alumnado
- * con necesidades educativas especiales, con un desfase de al menos dos cursos en el área, y la propone el informe de
- * evaluación psicopedagógica.
+ * Los datos son los mismos en todas las comunidades; cómo se ordenan y qué campos se ven lo dice el modelo de cada
+ * una (`acsModelos.ts`). Lo que pide su normativa se comprueba aquí y se avisa, sin impedir guardar. En Andalucía
+ * (órdenes de 30 de mayo de 2023: Primaria, artículos 33 y 36; ESO, 47 y 50), en la Comunitat Valenciana (ACIS del
+ * PAP) y en Madrid (Decreto 23/2023), es para el alumnado con necesidades educativas especiales, con un desfase de al
+ * menos dos cursos en el área, y la propone la evaluación psicopedagógica. En Cataluña, el PI no pide ni lo uno ni lo
+ * otro, pero sí la aprobación de la CAD y la conformidad de la familia.
  */
 import { competenciasDe, type CurriculumEntry } from './curriculum';
 import { GRUPOS_NEAE, nuevoIdApoyo } from './apoyo';
+import { MODELOS_ACS, llevaPieza, type ModeloAcs } from './acsModelos';
 import type {
-  AcsApoyo, AlumnoApoyo, CursoDe, GradoAcs, InstrumentoAcs, SeguimientoAcs, Trimestre,
+  AcsApoyo, AlumnoApoyo, ApoyosAcs, CursoDe, FechaAcs, GradoAcs, InstrumentoAcs, SeguimientoAcs, Trimestre,
 } from '../types/apoyo';
 
 /** Las estrategias que se marcan en el bloque 3. El texto es la clave del diccionario. */
@@ -80,25 +81,57 @@ export function nuevaAcs(
   };
 }
 
+export const APOYOS_VACIOS: ApoyosAcs = { ptDentro: 0, ptFuera: 0, alDentro: 0, alFuera: 0, organizacion: '' };
+
+/**
+ * Lo que una adaptación nueva lleva de partida según su modelo: las horas de apoyo a cero, las fortalezas del informe
+ * del orientador en la Comunitat Valenciana y, en Madrid, quién hace el dictamen según la etapa (el EOEP en Primaria y
+ * el departamento de orientación en ESO).
+ */
+export function conCamposDelModelo(acs: AcsApoyo, modelo: ModeloAcs, alumno: AlumnoApoyo): AcsApoyo {
+  const r: AcsApoyo = { ...acs };
+  if (llevaPieza(modelo, 'apoyos')) r.apoyos = { ...APOYOS_VACIOS };
+  if (llevaPieza(modelo, 'barreras')) {
+    r.barreras = alumno.necesidades.trim();
+    r.fortalezas = alumno.informe?.fortalezas.trim() ?? '';
+  }
+  if (modelo.id === 'madrid') r.organismo = alumno.matricula?.etapa === 'eso' ? 'orientacion' : 'eoep';
+  return r;
+}
+
 /** Lo que conviene revisar, con su texto (clave del diccionario) y sus variables. No impide guardar. */
 export interface AvisoAcs { texto: string; vars?: Record<string, string | number> }
 
-export function avisosAcs(acs: AcsApoyo, alumno: AlumnoApoyo): AvisoAcs[] {
+export function avisosAcs(acs: AcsApoyo, alumno: AlumnoApoyo, modelo: ModeloAcs = MODELOS_ACS.andalucia): AvisoAcs[] {
   const avisos: AvisoAcs[] = [];
-  if (!tieneNee(alumno)) {
-    avisos.push({ texto: 'La ACS es para el alumnado con necesidades educativas especiales, y este alumno no tiene ninguna marcada en «Datos». Para el resto hay programas de refuerzo del aprendizaje.' });
+  const sigla = modelo.sigla;
+  if (modelo.soloNee && !tieneNee(alumno)) {
+    avisos.push({ texto: 'La {sigla} es para el alumnado con necesidades educativas especiales, y este alumno no tiene ninguna marcada en «Datos». Para el resto hay programas de refuerzo del aprendizaje.', vars: { sigla } });
   }
-  const desfase = desfaseCursos(alumno.matricula, acs.nivel);
-  if (desfase === null) {
-    avisos.push({ texto: 'Indica en «Datos» el curso en que está matriculado, para comprobar el desfase.' });
-  } else if (desfase < 2) {
-    avisos.push({ texto: 'La ACS pide un desfase de al menos dos cursos entre el curso de referencia y el curso en que está matriculado, y aquí es de {n}.', vars: { n: desfase } });
+  if (modelo.desfaseMinimo !== null) {
+    const desfase = desfaseCursos(alumno.matricula, acs.nivel);
+    if (desfase === null) {
+      avisos.push({ texto: 'Indica en «Datos» el curso en que está matriculado, para comprobar el desfase.' });
+    } else if (desfase < modelo.desfaseMinimo) {
+      avisos.push({ texto: 'La {sigla} pide un desfase de al menos dos cursos entre el curso de referencia y el curso en que está matriculado, y aquí es de {n}.', vars: { sigla, n: desfase } });
+    }
   }
-  if (!acs.fechaInforme) avisos.push({ texto: 'Falta la fecha del informe de evaluación psicopedagógica, que es el que propone la medida.' });
+  if (!acs.fechaInforme) avisos.push({ texto: 'Falta la «{dato}». La medida la propone ese informe.', vars: { dato: modelo.informe } });
+  for (const f of modelo.fechas) {
+    if (f.id === 'vigencia') continue;
+    if (!acs.fechas?.[f.id]) avisos.push({ texto: 'Falta la «{dato}».', vars: { dato: f.texto } });
+  }
+  if (modelo.id === 'cataluna' && !acs.familiaConforme) avisos.push({ texto: 'Falta recoger la conformidad de la familia con el PI.' });
   if (acs.criterios.length === 0) avisos.push({ texto: 'Elige al menos un criterio de evaluación: son los que sirven para calificar.' });
   const suma = acs.instrumentos.reduce((s, i) => s + (Number.isFinite(i.peso) ? i.peso : 0), 0);
   if (acs.instrumentos.length && suma !== 100) avisos.push({ texto: 'Los pesos de los instrumentos suman {n} %, no 100 %.', vars: { n: suma } });
   return avisos;
+}
+
+/** El texto de un aviso en el idioma de la app: las variables de texto (la sigla, el nombre de un dato) también se traducen. */
+export function textoAviso(a: AvisoAcs, t: (k: string, v?: Record<string, string | number>) => string): string {
+  const vars = a.vars && Object.fromEntries(Object.entries(a.vars).map(([k, v]) => [k, typeof v === 'string' ? t(v) : v]));
+  return t(a.texto, vars);
 }
 
 /* ── Selección curricular ── */
@@ -180,6 +213,58 @@ const obj = (v: unknown): Record<string, unknown> | null =>
 const textos = (v: unknown): string[] =>
   Array.isArray(v) ? [...new Set(v.filter(esTexto).map(x => x.trim()).filter(Boolean))] : [];
 const trimestre = (v: unknown): Trimestre | null => (v === 1 || v === 2 || v === 3 ? v : null);
+const esFecha = (v: unknown): v is string => esTexto(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const horas = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? Math.min(40, Math.max(0, Math.round(n * 2) / 2)) : 0; };
+const FECHAS: FechaAcs[] = ['resolucion', 'dictamen', 'inicio', 'vigencia', 'cad'];
+
+/** Los textos por trimestre que tengan algo. */
+function porTrimestre(v: unknown): Partial<Record<Trimestre, string>> {
+  const r: Partial<Record<Trimestre, string>> = {};
+  Object.entries(obj(v) ?? {}).forEach(([k, val]) => {
+    const t = trimestre(Number(k));
+    if (t && esTexto(val) && val.trim()) r[t] = val;
+  });
+  return r;
+}
+
+/** Los campos de los modelos de otras comunidades: solo se guardan los que llegan y se entienden. */
+function extrasDelModelo(x: Record<string, unknown>): Partial<AcsApoyo> {
+  const r: Partial<AcsApoyo> = {};
+  const f = obj(x.fechas);
+  if (f) {
+    const fechas: Partial<Record<FechaAcs, string>> = {};
+    FECHAS.forEach(k => { if (esFecha(f[k])) fechas[k] = f[k] as string; });
+    if (Object.keys(fechas).length) r.fechas = fechas;
+  }
+  if (x.organismo === 'eoep' || x.organismo === 'orientacion') r.organismo = x.organismo;
+  if (esTexto(x.barreras)) r.barreras = x.barreras;
+  if (esTexto(x.fortalezas)) r.fortalezas = x.fortalezas;
+  if (esTexto(x.acuerdos)) r.acuerdos = x.acuerdos;
+  if (esTexto(x.promocion)) r.promocion = x.promocion;
+  if (typeof x.familiaConforme === 'boolean') r.familiaConforme = x.familiaConforme;
+  const a = obj(x.apoyos);
+  if (a) {
+    r.apoyos = {
+      ptDentro: horas(a.ptDentro), ptFuera: horas(a.ptFuera), alDentro: horas(a.alDentro), alFuera: horas(a.alFuera),
+      ...(typeof a.siei === 'boolean' ? { siei: a.siei } : {}), organizacion: esTexto(a.organizacion) ? a.organizacion : '',
+    };
+  }
+  const ac = obj(x.ajusteCriterios);
+  if (ac) {
+    const ajusteCriterios: NonNullable<AcsApoyo['ajusteCriterios']> = {};
+    Object.entries(ac).forEach(([cod, val]) => {
+      const y = obj(val);
+      if (!y || !cod.trim()) return;
+      const tipo = y.tipo === 'priorizado' || y.tipo === 'modificado' ? y.tipo : undefined;
+      const aula = esTexto(y.aula) ? y.aula : '';
+      if (tipo || aula.trim()) ajusteCriterios[cod] = { ...(tipo ? { tipo } : {}), aula };
+    });
+    if (Object.keys(ajusteCriterios).length) r.ajusteCriterios = ajusteCriterios;
+  }
+  const notas = porTrimestre(x.notas);
+  if (Object.keys(notas).length) r.notas = notas;
+  return r;
+}
 
 /** Una ACS tal como llega del disco o de una copia; `null` si no se entiende o su alumno no existe. */
 export function normalizarAcs(v: unknown, alumnos: ReadonlySet<string>, curso: (v: unknown) => CursoDe | undefined): AcsApoyo | null {
@@ -189,18 +274,16 @@ export function normalizarAcs(v: unknown, alumnos: ReadonlySet<string>, curso: (
   if (!nivel) return null;
   const r = obj(x.responsables) ?? {};
   const grados = GRADOS_ACS.map(g => g.id);
-  const ajustes: AcsApoyo['ajustes'] = {};
-  Object.entries(obj(x.ajustes) ?? {}).forEach(([k, val]) => {
-    const t = trimestre(Number(k));
-    if (t && esTexto(val) && val.trim()) ajustes[t] = val;
-  });
+  const ajustes = porTrimestre(x.ajustes);
   return {
     id: x.id, alumnoId: x.alumnoId,
-    fechaInforme: esTexto(x.fechaInforme) && /^\d{4}-\d{2}-\d{2}$/.test(x.fechaInforme) ? x.fechaInforme : '',
+    fechaInforme: esFecha(x.fechaInforme) ? x.fechaInforme : '',
     nivel, justificacion: esTexto(x.justificacion) ? x.justificacion : '',
     responsables: {
       tutor: esTexto(r.tutor) ? r.tutor : '', especialista: esTexto(r.especialista) ? r.especialista : '',
       materia: esTexto(r.materia) ? r.materia : '',
+      ...(esTexto(r.orientador) ? { orientador: r.orientador } : {}),
+      ...(esTexto(r.referente) ? { referente: r.referente } : {}),
     },
     area: x.area, materiaAula: esTexto(x.materiaAula) ? x.materiaAula : '',
     competencias: Array.isArray(x.competencias)
@@ -226,5 +309,6 @@ export function normalizarAcs(v: unknown, alumnos: ReadonlySet<string>, curso: (
       return grado || observaciones.trim() ? [{ trimestre: t, tipo: y.tipo, clave: y.clave, ...(grado ? { grado } : {}), observaciones }] : [];
     }),
     ajustes, fecha: esTexto(x.fecha) ? x.fecha : '',
+    ...extrasDelModelo(x),
   };
 }

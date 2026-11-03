@@ -1188,8 +1188,12 @@ normativa de la comunidad y los autores de referencia, y no inventa logros. Un
 informe trimestral nuevo del mismo trimestre sustituye al anterior (lo
 pregunta). La lista «Sus documentos» abre cada uno para retocarlo (se guarda
 solo), lo exporta a PDF (en la app de escritorio) o a Word, o lo elimina.
-ADAPTACIÓN CURRICULAR SIGNIFICATIVA (ACS), solo en Andalucía: una por área y
-para todo el curso, con los cuatro bloques de Séneca. Se elige el área y
+ADAPTACIÓN CURRICULAR SIGNIFICATIVA, en Andalucía, la Comunitat Valenciana,
+Cataluña y Madrid, con el modelo de cada una: la ACS en los cuatro bloques de
+Séneca (Andalucía), la ACIS del PAP de ITACA (Comunitat Valenciana), el PI
+(Cataluña) y la ACS por área de Raíces (Madrid). Lo que sigue es la de
+Andalucía; en las otras cambian los apartados y se añade lo suyo (abajo).
+Una por área y para todo el curso. Se elige el área y
 «Nueva ACS». 1) Datos generales y dictamen: fecha del informe de evaluación
 psicopedagógica, curso de referencia (al que se rebaja el área; la app dice el
 desfase con el curso en que está matriculado), justificación del desfase y el
@@ -1207,6 +1211,20 @@ proceso, Conseguido), observaciones y las medidas de ajuste. La app avisa, sin
 impedir guardar, si el alumno no tiene marcada ninguna necesidad educativa
 especial, si el desfase es de menos de dos cursos, si falta la fecha del
 informe o si los pesos no suman 100. Sale en PDF y en Word con las firmas.
+En la Comunitat Valenciana, la ACIS lleva además el orientador u orientadora,
+la fecha del informe sociopsicopedagógico y de la resolución de la dirección,
+las barreras y fortalezas (empiezan con sus necesidades y las fortalezas del
+informe del orientador), las horas de PT y AL dentro y fuera del aula, la nota
+de cada trimestre con las siglas ACIS y la decisión de promoción en el tercer
+trimestre. En Cataluña, el PI lleva el referente del PI, las fechas del
+informe de reconocimiento de NESE del EAP, de inicio, de vigencia y de
+aprobación en la CAD, los apoyos intensivos (SIEI, educación especial y AL),
+si cada criterio se prioriza o se modifica y qué hace el alumno respecto a la
+actividad del aula, y los acuerdos y la conformidad de la familia; no avisa
+del desfase ni pide necesidades educativas especiales. En Madrid, la ACS lleva
+la fecha de la evaluación psicopedagógica y del dictamen de escolarización
+(del EOEP o del departamento de orientación), el nivel de competencia
+curricular, las horas de apoyo y la nota de cada trimestre con asterisco.
 
 [apoyo-agenda-visual] AGENDA VISUAL
 Secuencias con pictogramas o con fotos del propio docente para anticipar una

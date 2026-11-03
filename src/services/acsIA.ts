@@ -1,14 +1,16 @@
 /**
- * La IA propone la selección curricular y la metodología de una ACS de Andalucía: elige de listas cerradas (las
+ * La IA propone la selección curricular y la metodología de una adaptación curricular significativa (la ACS de
+ * Andalucía y de Madrid, la ACIS valenciana o el PI catalán): elige de listas cerradas (las
  * competencias, los criterios y los bloques de saberes del curso de referencia, y las estrategias de `ESTRATEGIAS_ACS`)
  * y redacta los criterios de calificación. El docente lo revisa todo. A la IA no llegan los nombres del profesorado
  * responsable ni la fecha del informe; del alumno, lo mismo que en el resto de PT y AL (`alumnoParaIA`, con el nombre
- * cambiado por un código en `callGemini`). Ver `docs/PTAL.md`, «Adaptación curricular significativa (Andalucía)».
+ * cambiado por un código en `callGemini`). Ver `docs/PTAL.md`, «Adaptación curricular significativa».
  */
 import { callGemini, parseGeminiJson } from './gemini';
 import { alumnoParaIA, marcoApoyo } from './apoyoIA';
 import { objetivosTexto } from './apoyoDocumentos';
 import { ESTRATEGIAS_ACS, desfaseCursos, seleccionValida } from '../lib/acs';
+import { MODELOS_ACS, type ModeloAcs } from '../lib/acsModelos';
 import { competenciasDe } from '../lib/curriculum';
 import { translate, type Lang } from '../i18n';
 import type { MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
@@ -22,10 +24,12 @@ export interface PropuestaAcsArgs {
   data: ApoyoData;
   lang: Lang;
   nombreCurso: (c: CursoDe) => string;
+  /** El modelo de su comunidad: solo cambia cómo se llama la medida. */
+  modelo?: ModeloAcs;
 }
 
 /** Lo que se le pide a la IA, sin enviarlo: para las pruebas y para revisar qué sale. */
-export function promptAcs({ acs, alumno, materia, data, lang, nombreCurso }: PropuestaAcsArgs): { prompt: string; esquema: object } {
+export function promptAcs({ acs, alumno, materia, data, lang, nombreCurso, modelo = MODELOS_ACS.andalucia }: PropuestaAcsArgs): { prompt: string; esquema: object } {
   const t = (k: string, v?: Record<string, string | number>) => translate(lang, k, v);
   const { entry, grupo } = materia;
   const comps = competenciasDe(entry, grupo);
@@ -39,7 +43,7 @@ export function promptAcs({ acs, alumno, materia, data, lang, nombreCurso }: Pro
   const prompt =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
     `Sus programas y objetivos individuales:\n${objetivosTexto(data, alumno.id, [materia], t, lang)}\n\n` +
-    `Adaptación curricular significativa (ACS) del área «${entry.nombre}» con el currículo de ${nombreCurso(acs.nivel)}` +
+    `${translate('es', modelo.nombre)} (${modelo.sigla}) del área «${entry.nombre}» con el currículo de ${nombreCurso(acs.nivel)}` +
     (desfase !== null ? `, ${desfase} cursos por debajo del curso en que está matriculado` : '') + '.\n\n' +
     `COMPETENCIAS ESPECÍFICAS Y CRITERIOS DE EVALUACIÓN DE ${nombreCurso(acs.nivel).toUpperCase()} (lista cerrada):\n${catalogo}\n\n` +
     `BLOQUES DE SABERES BÁSICOS (lista cerrada): ${bloques.map(b => `${b.bloque} (${b.tituloBloque})`).join('; ')}\n\n` +
@@ -49,7 +53,7 @@ export function promptAcs({ acs, alumno, materia, data, lang, nombreCurso }: Pro
     '- saberes: de 1 a 4 letras de bloques de saberes básicos mínimos imprescindibles;\n' +
     '- estrategias: de 4 a 8 identificadores de estrategias metodológicas y organizativas que le ayuden, según sus necesidades;\n' +
     '- otras: otras estrategias que no estén en la lista, si hacen falta, en una o dos frases (puede ir vacío);\n' +
-    '- calificacion: los criterios de calificación de esta ACS en tres o cuatro frases: cómo se califica con los criterios elegidos y sus instrumentos adaptados (observación directa, tareas, pruebas orales o con menos ejercicios).\n\n' +
+    `- calificacion: los criterios de calificación de esta ${modelo.sigla} en tres o cuatro frases: cómo se califica con los criterios elegidos y sus instrumentos adaptados (observación directa, tareas, pruebas orales o con menos ejercicios).\n\n` +
     'Redacta SOLO a partir de estos datos; no inventes diagnósticos, pruebas ni datos del alumno. Sin títulos ni negritas.';
   const esquema = {
     type: 'OBJECT',

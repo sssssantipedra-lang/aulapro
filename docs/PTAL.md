@@ -108,8 +108,8 @@ Resumen de la revisión (qué hay, qué falta). Ver también «Qué tiene que ha
 | Registro de cada sesión | Está y es cómodo. Alimenta las gráficas, los avisos y los informes. |
 | Evaluación trimestral | **Hecho (2.18.24).** Pestaña «Evaluación» del alumno: el cierre del trimestre. Ver «El cierre del trimestre». |
 | Informe trimestral a tutor y a familia | Están los dos y el seguimiento del PAP (Comunitat Valenciana), en PDF y Word. **Desde la 2.18.24 también de todo el alumnado de una vez** (Mi alumnado › «Documentos del trimestre»). Ver «Documentos de todo el alumnado». |
-| Programación de aula adaptada | **Versión pequeña hecha (2.19.0):** el documento de adaptación (ACI o ACIS en formato general) por área y trimestre. Ver «Adaptación de la programación de aula». Los materiales no: los cubre «Ficha adaptada». Falta el formato oficial de Cataluña y Madrid. |
-| Cataluña y Madrid | Los modelos de documento (PI, adaptación curricular por área) esperan a que el dueño suba los PDF (ver «Normativa»). |
+| Programación de aula adaptada | **Versión pequeña hecha (2.19.0):** el documento de adaptación (ACI o ACIS en formato general) por área y trimestre. Ver «Adaptación de la programación de aula». Los materiales no: los cubre «Ficha adaptada». Desde el 3-11-2026 (rama `curriculo-andalucia`), además, la adaptación curricular significativa con el modelo de Andalucía, la Comunitat Valenciana, Cataluña y Madrid. |
+| Cataluña y Madrid | El PI y la ACS por área tienen su modelo desde el 3-11-2026 (rama `curriculo-andalucia`), hecho con la descripción del dueño: falta cotejarlos con los formularios reales. |
 
 Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió empezar por 1, 2 y 3, hechos en la 2.18.24, y después el 4, hecho también en la 2.18.24**):
 1. **Informe sociopsicopedagógico.** Subirlo (PDF o Word) o pegarlo; la IA lo lee una vez y rellena la ficha del alumno (nivel de competencia, necesidades en términos educativos, fortalezas, orientaciones), que el docente revisa. El informe en sí no se guarda en la IA ni se reenvía a ella en cada documento: se guardan sus conclusiones. Es el dato más sensible del módulo (artículo 9 del RGPD): mismas reglas que el diagnóstico, nombre cambiado por un código, y `privacidad.html` lo dice en los tres idiomas (regla 1 de `CLAUDE.md`).
@@ -148,13 +148,17 @@ Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió
 - **Cómo:** se elige el área (entre las materias del curso de su nivel de competencia), el trimestre y, si se quiere, la programación del tutor (pegada o en un PDF, Word o texto). La IA redacta, con el nivel del alumno, sus objetivos de los programas y el informe del orientador (`alumnoParaIA`): punto de partida, objetivos adaptados, contenidos adaptados, medidas metodológicas y de acceso (DUA), evaluación adaptada y acuerdos con el tutor. **Los criterios de evaluación y los saberes básicos del curso de su nivel los escribe el código** a partir de la lista oficial (la IA solo elige entre ellos). Sin programación del tutor, se adapta lo que dice el currículo.
 - **Se edita y se exporta como el resto** (PDF y Word) y tiene un botón «Hacer una ficha adaptada» que lleva a Recursos con el alumno.
 - **Privacidad:** la programación del tutor llega a la IA como texto con los nombres cambiados por un código (Word o texto pegado) o, un PDF, tal cual; la ventana lo dice y `privacidad.html` también.
-- **Lo que no hace:** no adapta materiales ni fichas; no usa los formatos oficiales de Cataluña (PI) ni Madrid (adaptación curricular por área), que esperan a que el dueño suba los modelos; tampoco se genera en lote ni se rellena el apartado de la ACIS del PAP valenciano. **Sin probar con programaciones reales de tutores.**
+- **Lo que no hace:** no adapta materiales ni fichas; es un documento de formato general: el PI, la ACIS y la ACS con el modelo de cada comunidad están en «Adaptación curricular significativa» (abajo); tampoco se genera en lote. **Sin probar con programaciones reales de tutores.**
 
-### Adaptación curricular significativa (Andalucía, 3-11-2026, rama `curriculo-andalucia`)
+### Adaptación curricular significativa (3-11-2026, rama `curriculo-andalucia`)
+
+Primero se hizo la de Andalucía, y el mismo día, con la descripción del dueño de cada modelo, la de la Comunitat Valenciana, Cataluña y Madrid. Los datos son los mismos (`AcsApoyo`); el modelo de cada comunidad (`src/lib/acsModelos.ts`, `MODELOS_ACS`) dice cómo se llama, en qué apartados se ordena, con qué piezas (`PiezaAcs`: informe, nivel, responsables, barreras, área, currículo, ajuste de los criterios, estrategias, apoyos, calificación, seguimiento y acuerdos), qué fechas y qué responsables lleva, quién firma y qué avisa. La pantalla y el documento se arman con esas piezas. La tarjeta sale con un perfil de esas cuatro comunidades (`modeloAcs`); el resto no tiene modelo. Los campos de otra comunidad se guardan aunque no se vean (`extrasDelModelo` en `normalizarAcs`).
+
+#### Andalucía: la ACS de Séneca
 
 - **Petición del dueño (3-11-2026):** estructurarla como en Séneca, que es una base de datos de formularios, en cuatro bloques: datos generales y dictamen; selección curricular (LOMLOE: se eligen elementos del currículo oficial del curso de referencia); adaptaciones metodológicas y criterios de calificación; seguimiento y valoración trimestral.
 - **Es un registro, no un texto** (`ApoyoData.acs`, `AcsApoyo` en `src/types/apoyo.ts`; lógica en `src/lib/acs.ts`): una por alumno y área, para todo el curso. Las competencias, los criterios y los saberes se guardan por su número, código o letra y el texto sale siempre del currículo andaluz del curso de referencia, que puede ser de otra etapa (un alumno de 1º de ESO con el área de 4º de Primaria). Al cambiar el curso o el área, lo que no existe en el currículo nuevo se quita de la selección (`seleccionValida`) y el seguimiento ya anotado se conserva.
-- **Dónde:** pestaña «Documentos» del alumno, tarjeta «Adaptación curricular significativa (ACS)», solo con un perfil de Andalucía (`src/pages/apoyo/AcsApoyo.tsx`). Encima de la adaptación de la programación de aula, que sigue disponible.
+- **Dónde:** pestaña «Documentos» del alumno, tarjeta «Adaptación curricular significativa (ACS)», con un perfil de Andalucía (y, con su modelo, de las otras tres comunidades) (`src/pages/apoyo/AcsApoyo.tsx`). Encima de la adaptación de la programación de aula, que sigue disponible.
 - **Bloque 1:** fecha del informe de evaluación psicopedagógica (no se rellena con la del informe del orientador de la app, que es cuándo se leyó), curso de referencia con el desfase calculado, justificación y profesorado responsable (tutor o tutora, especialista, profesorado de la materia).
 - **Bloque 2:** competencias específicas con sus criterios debajo (marcar un criterio marca su competencia; quitar la competencia quita sus criterios) y bloques de saberes básicos. Los saberes se eligen por bloque, como pidió el dueño, no por epígrafe.
 - **Bloque 3:** 19 estrategias metodológicas y organizativas para marcar (`ESTRATEGIAS_ACS`, con las tres pautas del DUA), otras a mano, instrumentos con su peso (empiezan con observación directa 40, tareas 30 y pruebas adaptadas 30, en el idioma de la app) y criterios de calificación.
@@ -163,6 +167,35 @@ Lo que se propone construir, por orden de ahorro de trabajo (**el dueño eligió
 - **IA** (`src/services/acsIA.ts`, opcional): «Proponer la selección con IA» elige criterios, bloques y estrategias de listas cerradas (`enum`) y redacta los criterios de calificación; las competencias las pone el código a partir de los criterios. Recibe lo mismo que el resto de PT y AL (`alumnoParaIA`, sin diagnóstico y con el nombre cambiado por un código) y sus objetivos; **nunca los nombres del profesorado ni la fecha del informe** (lo comprueba `acsDocumento.test.ts`).
 - **Documento** (`src/services/acsDocumento.ts`): PDF y Word con la cabecera del alumno, los cuatro bloques con los textos oficiales, los tres trimestres (vacíos si no hay nada, para rellenarlos en papel) y un cuadro de firmas del tutor, el especialista y el profesorado de la materia. No lleva el diagnóstico.
 - **Sin comprobar:** que la estructura coincida campo a campo con el formulario de Séneca, que no se ha visto; se hizo con la descripción del dueño y las órdenes. Los nombres de las estrategias son de la app, no de Séneca. No se vuelca a Séneca: el docente lo copia o adjunta el PDF.
+
+#### Comunitat Valenciana: la ACIS del PAP (ITACA)
+
+- **Marco, según el dueño:** Decreto 104/2018 y Orden 20/2019. La ACIS no es un documento suelto: es una medida de nivel IV dentro del PAP, ligada a un informe sociopsicopedagógico con resolución de la dirección del centro.
+- **Cinco apartados:** datos identificativos y agentes implicados (tutor o tutora, especialista, orientador u orientadora, profesorado de la materia; fecha del informe sociopsicopedagógico y de la resolución de la dirección); barreras y fortalezas para el aprendizaje y la participación (empiezan con sus necesidades y las fortalezas del informe del orientador de la app; no van a la IA); propuesta curricular por área o materia (curso de referencia con el desfase, área, competencias, criterios y saberes, instrumentos y criterios de calificación); medidas de acceso y apoyos personales (horas semanales de PT y AL dentro y fuera del aula, su organización y las estrategias); seguimiento y evaluación trimestral (las filas de cada criterio y bloque, la nota del trimestre, que sale «6 (ACIS)», y en el tercero la decisión de promoción).
+- **Avisos:** los de Andalucía (necesidades educativas especiales, desfase de dos cursos, fecha del informe, criterios, pesos) y la fecha de la resolución de la dirección.
+- **Firmas:** tutor o tutora, especialista, orientador u orientadora y visto bueno de la dirección.
+- **Pendiente:** el PAP de la app (`tipo: 'pap'`) aún no recoge la ACIS en su apartado D; son documentos aparte.
+
+#### Cataluña: el PI (pla individualitzat)
+
+- **Marco, según el dueño:** Decret 150/2017 de l'escola inclusiva y Decret 175/2022. En Cataluña no hay un documento llamado adaptación curricular significativa: todo va en el PI, que abarca adaptaciones metodológicas y modificaciones significativas.
+- **Cinco apartados:** datos del alumno y motivo del PI (fecha del informe de reconocimiento de NESE del EAP, inicio, vigencia y aprobación en la CAD; referente del PI, tutor o tutora y docente de educación especial o de AL); medidas y apoyos intensivos (SIEI, horas de educación especial, MEE, y de AL dentro y fuera del aula, su organización y las estrategias); adaptación curricular por ámbitos o áreas (curso de referencia, área, competencias, criterios y saberes y, de cada criterio elegido, si se prioriza o se modifica respecto a su grupo de edad y qué hace en relación con la actividad del aula, `ajusteCriterios`); criterios de evaluación y calificación del PI (instrumentos, criterios y seguimiento trimestral); acuerdos con la familia y el alumno (conformidad de la familia y acuerdos).
+- **Avisos:** no pide necesidades educativas especiales ni desfase. Sí la fecha del informe, la de inicio, la de aprobación en la CAD y la conformidad de la familia.
+- **Firmas:** referente del PI, tutor o tutora, conformidad de la familia y visto bueno de la dirección.
+- **Diferencia con el real:** en la app hay un PI por área; el PI de verdad es uno por alumno con todas sus áreas. Juntar los de un alumno en un solo documento queda pendiente.
+
+#### Madrid: la ACS por área de Raíces
+
+- **Marco, según el dueño:** Decreto 23/2023 de atención a las diferencias individuales y las órdenes de evaluación de Primaria y ESO. Una por área o materia, solo para alumnado con necesidades educativas especiales (ACNEE), con evaluación psicopedagógica y dictamen del EOEP o del departamento de orientación.
+- **Cinco apartados:** datos del alumno y del dictamen (fecha de la evaluación psicopedagógica y del dictamen de escolarización, y quién los hace: EOEP en Primaria y departamento de orientación en ESO, de partida); área o materia y nivel de competencia curricular (con el desfase); elementos curriculares adaptados (competencias, criterios y saberes); metodología, recursos y organización de los apoyos (estrategias y horas de PT y AL); seguimiento trimestral y calificación (instrumentos, criterios, filas del trimestre y la nota, que sale con asterisco, «5*»).
+- **Avisos:** los de Andalucía y la fecha del dictamen.
+- **Firmas:** tutor o tutora, especialista y profesorado de la materia.
+
+#### Lo que no se ha comprobado en las tres
+
+- Los modelos salen de la descripción del dueño (3-11-2026), no de los formularios de ITACA, Esfera o Raíces ni de la lectura de la normativa: los nombres de los apartados, las siglas ACIS de la nota en ITACA y el asterisco de Raíces hay que cotejarlos con los formularios reales y con el Decreto 104/2018, la Orden 20/2019, el Decret 150/2017 y el Decreto 23/2023 (no están en `docs/Normativa …/Inclusión/`).
+- No se vuelca a ITACA, Esfera ni Raíces: el docente lo copia o adjunta el PDF.
+- La IA (`acsIA.ts`) es la misma en las cuatro; solo cambia el nombre de la medida. No recibe ni las fechas, ni el profesorado, ni las barreras, ni los acuerdos (lo comprueba `acsModelos.test.ts`).
 
 ## Alumnado y grupos de apoyo
 

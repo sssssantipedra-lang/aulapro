@@ -47,7 +47,7 @@ describe('ACS: datos generales y avisos de la orden', () => {
     const acs = { ...nueva(), instrumentos: [{ id: 'i', nombre: 'Observación', peso: 60 }] };
     const textos = avisosAcs(acs, otro).map(a => a.texto);
     expect(textos).toHaveLength(5);
-    expect(avisosAcs(acs, otro).find(a => a.texto.startsWith('La ACS pide un desfase'))?.vars).toEqual({ n: 1 });
+    expect(avisosAcs(acs, otro).find(a => a.texto.startsWith('La {sigla} pide un desfase'))?.vars).toEqual({ sigla: 'ACS', n: 1 });
     expect(avisosAcs(acs, otro).find(a => a.texto.startsWith('Los pesos'))?.vars).toEqual({ n: 60 });
   });
 

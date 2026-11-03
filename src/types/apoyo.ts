@@ -212,10 +212,11 @@ export interface DocumentoApoyo {
 }
 
 /**
- * Adaptación curricular significativa (ACS) de Andalucía: una por alumno y área, para todo el curso. Se construye
- * eligiendo elementos del currículo oficial del curso de referencia (al que se rebaja el área), como en Séneca, y se
- * sigue trimestre a trimestre criterio a criterio. Ver `docs/PTAL.md`, «Adaptación curricular significativa
- * (Andalucía)», y la lógica en `lib/acs.ts`.
+ * Adaptación curricular significativa: una por alumno y área, para todo el curso. Se construye eligiendo elementos del
+ * currículo oficial del curso de referencia (al que se rebaja el área) y se sigue trimestre a trimestre criterio a
+ * criterio. Los apartados y los campos que se ven dependen de la comunidad (`lib/acsModelos.ts`): la ACS de Séneca
+ * en Andalucía, la ACIS del PAP en la Comunitat Valenciana, el PI en Cataluña y la ACS de Raíces en Madrid. Los
+ * campos de otra comunidad se conservan aunque no se vean. Ver `docs/PTAL.md`, «Adaptación curricular significativa».
  */
 export interface AcsApoyo {
   id: string;
@@ -227,8 +228,32 @@ export interface AcsApoyo {
   nivel: CursoDe;
   /** Por qué ese curso: el desfase curricular, de al menos dos cursos (artículos 36 y 50 de las órdenes). */
   justificacion: string;
-  /** El profesorado responsable: nombres o cargos, como los escriba el docente. Nunca van a la IA. */
-  responsables: { tutor: string; especialista: string; materia: string };
+  /**
+   * El profesorado responsable: nombres o cargos, como los escriba el docente. Nunca van a la IA. `orientador`
+   * (Comunitat Valenciana) y `referente` (el referente del PI, Cataluña) solo en esas comunidades.
+   */
+  responsables: { tutor: string; especialista: string; materia: string; orientador?: string; referente?: string };
+  /**
+   * Otras fechas del modelo de cada comunidad, YYYY-MM-DD: la resolución de la dirección (Comunitat Valenciana), el
+   * dictamen de escolarización (Madrid), el inicio y la vigencia del PI y su aprobación en la CAD (Cataluña).
+   */
+  fechas?: Partial<Record<FechaAcs, string>>;
+  /** Madrid: quién hizo la evaluación psicopedagógica y el dictamen. */
+  organismo?: 'eoep' | 'orientacion';
+  /** Comunitat Valenciana: barreras y fortalezas para el aprendizaje y la participación. */
+  barreras?: string;
+  fortalezas?: string;
+  /** Cataluña: cada criterio elegido, priorizado o modificado, y qué hace en relación con la actividad del aula. */
+  ajusteCriterios?: Record<string, { tipo?: 'priorizado' | 'modificado'; aula: string }>;
+  /** Horas semanales de apoyo dentro y fuera del aula, y cómo se organizan (no Andalucía). */
+  apoyos?: ApoyosAcs;
+  /** Cataluña: la familia está conforme y lo que se acuerda con ella y con el alumno. */
+  acuerdos?: string;
+  familiaConforme?: boolean;
+  /** La nota de cada trimestre con los criterios de la adaptación (Comunitat Valenciana y Madrid). */
+  notas?: Partial<Record<Trimestre, string>>;
+  /** Comunitat Valenciana: la decisión de promoción al final del curso o del ciclo. */
+  promocion?: string;
   /* 2. Selección curricular */
   /** El área o materia en el currículo del curso de referencia (`CurriculumEntry.nombre`). */
   area: string;
@@ -255,6 +280,18 @@ export interface AcsApoyo {
   ajustes: Partial<Record<Trimestre, string>>;
   /** Cuándo se cambió por última vez, YYYY-MM-DD. */
   fecha: string;
+}
+
+export type FechaAcs = 'resolucion' | 'dictamen' | 'inicio' | 'vigencia' | 'cad';
+
+export interface ApoyosAcs {
+  ptDentro: number;
+  ptFuera: number;
+  alDentro: number;
+  alFuera: number;
+  /** Cataluña: escolarizado con el apoyo de una SIEI. */
+  siei?: boolean;
+  organizacion: string;
 }
 
 export interface InstrumentoAcs {

@@ -21,6 +21,7 @@ import { isoDate } from '../../lib/utils';
 import { requestFichaPara } from '../../lib/apoyoNav';
 import { AdaptacionApoyo } from './AdaptacionApoyo';
 import { AcsApoyo } from './AcsApoyo';
+import { modeloAcs } from '../../lib/acsModelos';
 import { nivelDe, trimestreCerrado, trimestreDe } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { AlumnoApoyo, ApoyoData, DocumentoApoyo, Especialidad, TipoDocumentoGenerable, Trimestre } from '../../types/apoyo';
@@ -156,7 +157,7 @@ export function DocumentosApoyo({ alumno, data, onChange, especialidades, comuni
         </button>
       </div>
 
-      {comunidad === 'andalucia' && <AcsApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} docente={docente} />}
+      {modeloAcs(comunidad) && <AcsApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} docente={docente} />}
 
       <AdaptacionApoyo alumno={alumno} data={data} onChange={onChange} materias={materias} comunidad={comunidad} onAbrir={setAbiertoId} onNav={onNav} />
 
