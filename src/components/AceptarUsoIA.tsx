@@ -15,12 +15,12 @@ export function PuntosUsoIA() {
   const { t } = useI18n();
   return (
     <ul className="ak-puntos">
-      <li>{conNegrita(t('Los **nombres** de tu alumnado **no salen de este dispositivo**: antes de enviar nada a Google se cambian por **códigos**, distintos en cada petición, y al recibir la respuesta se vuelven a poner.'))}</li>
-      <li>{conNegrita(t('**AulaPro no guarda ni pide diagnósticos.** Describe las barreras de aprendizaje, no el diagnóstico: si escribes un dato de salud en un texto, AulaPro lo quita antes de enviarlo, pero **no puede reconocer todos los casos**.'))}</li>
-      <li>{conNegrita(t('Un **nombre que no esté en tus listas** (un apodo, un familiar) **no se puede tapar solo: evita escribirlo**. De un documento solo se envía su texto, sin correos, teléfonos ni DNI.'))}</li>
-      <li>{conNegrita(t('Lo que envías va a **Google con tu propia clave**. Desde el **Espacio Económico Europeo**, según las condiciones de la API de Gemini, Google aplica también a la clave gratuita las reglas de la de pago: **no usa lo que envías para entrenar sus modelos** ni para mejorar sus productos. Esas condiciones son de Google y pueden cambiar.'))}</li>
-      <li>{conNegrita(t('**La IA no se usa para evaluar ni para poner notas: se usa para dar recomendaciones.** Puede equivocarse, así que revisa siempre lo que genera. **La decisión final sobre cómo hacerlo es siempre del docente.**'))}</li>
-      <li>{conNegrita(t('Tú decides qué escribes y qué envías. **Quien responde de los datos del alumnado es tu centro** o, si los usas por tu cuenta, **tú**.'))}</li>
+      <li>{conNegrita(t('**Nombres.** Los nombres de tu alumnado no salen de este dispositivo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner.'))}</li>
+      <li>{conNegrita(t('**Datos de salud.** AulaPro no guarda ni pide diagnósticos. Describe las barreras de aprendizaje, no el diagnóstico: si escribes un dato de salud en un texto, AulaPro lo quita antes de enviarlo, pero no puede reconocer todos los casos.'))}</li>
+      <li>{conNegrita(t('**Otros nombres y documentos.** Un nombre que no esté en tus listas (un apodo, un familiar) no se puede tapar solo: evita escribirlo. De un documento solo se envía su texto, sin correos, teléfonos ni DNI.'))}</li>
+      <li>{conNegrita(t('**Google.** Lo que envías va a Google con tu propia clave. Desde el Espacio Económico Europeo, según las condiciones de la API de Gemini, Google aplica también a la clave gratuita las reglas de la de pago: no usa lo que envías para entrenar sus modelos ni para mejorar sus productos. Esas condiciones son de Google y pueden cambiar.'))}</li>
+      <li>{conNegrita(t('**Recomendaciones, no notas.** La IA no se usa para evaluar ni para poner notas: se usa para dar recomendaciones. Puede equivocarse, así que revisa siempre lo que genera. La decisión final sobre cómo hacerlo es siempre del docente.'))}</li>
+      <li>{conNegrita(t('**Responsabilidad.** Tú decides qué escribes y qué envías. Quien responde de los datos del alumnado es tu centro o, si los usas por tu cuenta, tú.'))}</li>
     </ul>
   );
 }
