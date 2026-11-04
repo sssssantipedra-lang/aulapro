@@ -84,11 +84,21 @@ const OUT = path.join(RAIZ, 'web/sitio/assets/videos');
 fs.mkdirSync(OUT, { recursive: true });
 const mp4 = path.join(OUT, `${id}.mp4`);
 const entradas = audios.flatMap(a => ['-i', a]);
-const filtros = audios.map((_, i) => `[${i + 1}:a]adelay=${Math.round(inicios[i] * 1000)}|${Math.round(inicios[i] * 1000)},aresample=32000[a${i}]`).join(';')
-  + ';' + audios.map((_, i) => `[a${i}]`).join('') + `amix=inputs=${audios.length}:normalize=0[a]`;
-execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(recorte), '-t', String(total + 0.4), '-i', path.join(tmp, webm), ...entradas,
-  '-filter_complex', filtros, '-map', '0:v', '-map', '[a]',
-  '-vf', 'fps=30,scale=1280:720', '-c:v', 'libx264', '-preset', 'veryslow', '-crf', '33', '-pix_fmt', 'yuv420p', '-g', '300',
+const filtros = audios.map((_, i) => `[${i + 1}:a]adelay=${Math.round(inicios[i] * 1000)}|${Math.round(inicios[i] * 1000)},aresample=32000[a${i}]`);
+// Escenas con una grabación real encima (p. ej. Google AI Studio): se estira o encoge al largo de la escena
+const clips = guion.escenas.flatMap((e, i) => (e.clip ? [{ i, f: path.join(AQUI, 'clips', e.clip) }] : []));
+const entradasClip = clips.flatMap(c => ['-i', c.f]);
+let base = '[0:v]fps=30,scale=1280:720[v0]';
+clips.forEach((c, k) => {
+  const ini = inicios[c.i], fin = c.i + 1 < inicios.length ? inicios[c.i + 1] : total;
+  const k2 = (fin - ini - 0.2) / dur(c.f);
+  base += `;[${audios.length + 1 + k}:v]setpts=(PTS-STARTPTS)*${k2.toFixed(4)}+${ini.toFixed(3)}/TB,fps=30,scale=1280:720[c${k}];[v${k}][c${k}]overlay=eof_action=pass:enable='between(t,${ini.toFixed(3)},${fin.toFixed(3)})'[v${k + 1}]`;
+});
+const salidaV = `[v${clips.length}]`;
+const graf = [base, ...filtros, audios.map((_, i) => `[a${i}]`).join('') + `amix=inputs=${audios.length}:normalize=0[a]`].join(';');
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(recorte), '-t', String(total + 0.4), '-i', path.join(tmp, webm), ...entradas, ...entradasClip,
+  '-filter_complex', graf, '-map', salidaV, '-map', '[a]',
+  '-c:v', 'libx264', '-preset', 'veryslow', '-crf', '33', '-pix_fmt', 'yuv420p', '-g', '300',
   '-c:a', 'aac', '-b:a', '40k', '-ac', '1', '-movflags', '+faststart', '-t', String(total + 0.4), mp4]);
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(Math.min(total * 0.6, total - 1)), '-i', mp4, '-frames:v', '1', '-vf', 'scale=640:-1', '-q:v', '6', path.join(OUT, `${id}.jpg`)]);
 fs.rmSync(tmp, { recursive: true, force: true });

@@ -12,8 +12,9 @@ export default {
       hacer: async p => { await menu(p, 'Inicio'); } },
     { texto: 'En Configuración, abre «Clave de la IA».',
       hacer: async p => { await menu(p, 'Configuración'); await clicar(p, p.getByText('Clave de la IA', { exact: true }).first()); } },
-    { texto: 'Pulsa «Abrir AI Studio», entra con tu cuenta de Google y crea una clave de API. Cópiala.',
-      hacer: async p => { await mover(p, p.getByRole('link', { name: /Abrir AI Studio/ })); await clave(p); await p.waitForTimeout(1200); await mover(p, p.getByText('Crea y copia la clave')); } },
+    // Lo que se ve de Google AI Studio es una grabación real (clips/aistudio.mp4), puesta encima en el montaje
+    { texto: 'Pulsa «Abrir AI Studio», entra con tu cuenta de Google y crea una clave de API. Cópiala.', clip: 'aistudio.mp4',
+      hacer: async p => { await mover(p, p.getByRole('link', { name: /Abrir AI Studio/ })); await clave(p); } },
     { texto: 'Vuelve a AulaPro y pulsa «Pegar mi clave». La aplicación comprueba que funciona.',
       hacer: async p => { await clicar(p, p.getByRole('button', { name: /Pegar mi clave/ })); } },
     { texto: 'Listo. Tu clave se queda en tu equipo y no se comparte.',
