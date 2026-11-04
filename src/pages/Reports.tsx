@@ -21,6 +21,7 @@ import { CARPETAS } from '../lib/carpetas';
 import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA, normalizarValoracion, tablaCompetenciasHtml, NOMBRE } from '../lib/tablaCompetencias';
 import { DocPreview } from '../components/DocPreview';
 import { mediaDeCategoria } from '../lib/ponderacion';
+import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -166,7 +167,7 @@ export function Reports(props: Props) {
         }).join('; ');
         const auto = ev.rubric_id === 'autoeval' ? (en ? ' [student’s own self-assessment]' : ' [autoevaluación del propio alumno]') : '';
         const obsLabel = en ? 'Comment' : 'Observación';
-        lines.push(`- ${ev.rubric_name}${auto} (${ev.date}): ${detail}${ev.notes ? ` | ${obsLabel}: ${ev.notes}` : ''}`);
+        lines.push(`- ${ev.rubric_name}${auto} (${ev.date}): ${detail}${ev.notes ? ` | ${obsLabel}: ${textoLibreParaIA(ev.notes)}` : ''}`);
       });
     }
 
@@ -210,9 +211,10 @@ export function Reports(props: Props) {
       }
     }
 
-    if (student.notes?.trim()) lines.push(`\n${en ? 'TEACHER’S NOTES' : 'OBSERVACIONES DEL DOCENTE'}: ${student.notes.trim()}`);
-    if (student.alerts?.length) {
-      lines.push(`${en ? 'ALERTS' : 'ALERTAS'}: ${student.alerts.map(a => a.text).join('; ')}`);
+    if (student.notes?.trim()) lines.push(`\n${en ? 'TEACHER’S NOTES' : 'OBSERVACIONES DEL DOCENTE'}: ${textoLibreParaIA(student.notes.trim())}`);
+    const avisos = (student.alerts ?? []).map(a => textoLibreParaIA(a.text)).filter(x => x.trim() && !soloDatosDeSalud(x));
+    if (avisos.length) {
+      lines.push(`${en ? 'ALERTS' : 'ALERTAS'}: ${avisos.join('; ')}`);
     }
 
     return { text: lines.join('\n'), hasData: evs.length > 0 || avg !== null, competencias: porCompetencias.length > 0 };

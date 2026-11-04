@@ -8,6 +8,7 @@ import { DIANA_SECTORS, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { CompetenciasEspecificas } from '../components/curriculum/CompetenciasEspecificas';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useNotasPorCompetencias } from '../hooks/useNotasPorCompetencias';
@@ -420,8 +421,8 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
             .join('\n');
           const kind = e.instrument === 'diana' ? (dianas.find(d => d.id === e.rubric_id)?.tipo === 'registro' ? (lang === 'en' ? 'Checklist scale' : 'Escala de registro') : (lang === 'en' ? 'Target' : 'Diana')) : (lang === 'en' ? 'Rubric' : 'Rúbrica');
           return lang === 'en'
-            ? `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notes: ${e.notes}` : ''}`
-            : `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notas: ${e.notes}` : ''}`;
+            ? `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notes: ${textoLibreParaIA(e.notes)}` : ''}`
+            : `${kind} "${e.rubric_name}" (${e.date}):\n${lines}${e.notes ? `\n  Notas: ${textoLibreParaIA(e.notes)}` : ''}`;
         }).join('\n\n');
 
     const systemPrompt = lang === 'en'
@@ -430,14 +431,14 @@ export function Diana({ classes, students, evaluations, rubrics, dianas, lawDocu
 
     const userPrompt = lang === 'en' ? `Student: ${student.name}
 Class: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
-Teacher's notes: ${student.notes || 'None'}
+Teacher's notes: ${textoLibreParaIA(student.notes || '') || 'None'}
 ${objectiveBlock ? `\nREAL data already calculated, per sector:\n${objectiveBlock}\n` : ''}
 Qualitative assessment history:
 ${evalSummary}
 
 ${sectoresSinDatos.length > 0 ? `Infer a score (1=Below expectations, 2=Approaching expectations, 3=Meeting expectations, 4=Exceeding expectations) for these sectors with no real data yet: ${sectoresSinDatos.map(sid => `${sectorLabel(sid)} (${sid})`).join(', ')}.\n\n` : ''}Write a descriptor, in English, for ALL 6 sectors (ds1 Communication, ds2 Mathematics, ds3 Digital, ds4 Social, ds5 Learning to learn, ds6 Enterprise) — for the ones with real data, ground it in that evidence; for the rest, in the qualitative history.` : `Alumno: ${student.name}
 Clase: ${cls?.name ?? 'N/A'} — ${cls?.subject ?? ''}
-Notas del profesor: ${student.notes || 'Ninguna'}
+Notas del profesor: ${textoLibreParaIA(student.notes || '') || 'Ninguna'}
 ${objectiveBlock ? `\nDatos REALES ya calculados, por sector:\n${objectiveBlock}\n` : ''}
 Historial cualitativo de evaluaciones:
 ${evalSummary}
