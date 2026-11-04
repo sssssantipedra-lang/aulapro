@@ -14,6 +14,13 @@ export default {
     await page.evaluate(() => localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: '2026-11-04', fecha: new Date().toISOString() })));
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(4500);
+    // La grabación se hace con la app fuera de la versión web: «Mis datos» enseña, desde el primer momento, el texto de la versión web
+    await page.evaluate(() => {
+      const web = 'Tu trabajo se guarda en este dispositivo, dentro del navegador, solo para este perfil, y no se sube a ningún servidor de AulaPro. AulaPro hace copias automáticas cada diez minutos mientras trabajas, pero están en el mismo navegador: si se borran sus datos, se pierden también. Para no perder nada, guarda tu trabajo en tu Drive u OneDrive, en una carpeta de tu ordenador o descarga copias a menudo.';
+      const cambiar = () => { for (const q of document.querySelectorAll('p')) if (q.textContent.includes('AulaPro.exe')) q.textContent = web; };
+      new MutationObserver(cambiar).observe(document.body, { childList: true, subtree: true });
+      cambiar();
+    });
   },
   escenas: [
     { texto: 'Así protege AulaPro los datos de tu alumnado.',
