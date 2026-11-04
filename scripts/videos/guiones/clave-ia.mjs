@@ -11,7 +11,7 @@ export default {
   escenas: [
     { texto: 'Para usar la IA en AulaPro necesitas una clave gratuita de Google. Te enseño cómo conseguirla.',
       hacer: async p => { await menu(p, 'Inicio'); } },
-    { texto: 'En Configuración, abre «Clave de la IA» y pulsa «Abrir AI Studio». Te recomendamos leer la información y marcar que aceptas el uso de la IA.',
+    { texto: 'En Configuración, abre «Clave de la IA» y pulsa «Abrir AI Studio». Te recomendamos leer la información y marcar que aceptas el uso de la IA. Y recuerda: evita escribir nombres completos de tu alumnado.',
       hacer: async p => {
         // Abrir AI Studio abre otra pestaña: en el vídeo no hace falta
         p.context().on('page', n => { n.close().catch(() => {}); });
@@ -20,7 +20,7 @@ export default {
         await clicar(p, p.getByRole('link', { name: /Abrir AI Studio/ }), rapido);
         // Se recomienda leer la información antes de aceptar: se abre el panel, se enseña y se cierra
         await clicar(p, p.locator('.modal-overlay.open').getByRole('button', { name: 'Leer la información' }), rapido);
-        await esperar(p, 1800);
+        await esperar(p, 3200);
         await clicar(p, p.locator('.modal-overlay.open').getByRole('button', { name: 'Cerrar' }).last(), rapido);
         await clicar(p, p.locator('.modal-overlay.open').getByRole('checkbox'), rapido);
         await clicar(p, p.locator('.modal-overlay.open').getByRole('button', { name: 'Continuar' }), rapido);

@@ -42,11 +42,13 @@ const page = await ctx.newPage();
 page.on('pageerror', e => console.log('Error en la app:', e.message));
 // La comprobación de la clave de Google: en el vídeo siempre sale bien
 await page.route('https://generativelanguage.googleapis.com/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"models":[]}' }));
+await guion.antes?.(page, ctx);
 await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
 await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
 await page.waitForTimeout(2500);
 await page.getByText('Explorar con datos de ejemplo').click();
 await page.waitForTimeout(4500);
+await guion.despues?.(page, ctx);   // preparar lo que ese vídeo necesita (clave de ejemplo, respuesta de la IA…)
 // Cursor visible y subtítulos
 await page.addStyleTag({ content: `
   .help-fab,.toast,.toast-wrap{display:none!important} *{caret-color:transparent!important}
