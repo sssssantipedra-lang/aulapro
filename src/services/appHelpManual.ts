@@ -1116,7 +1116,7 @@ siguiente de hoy; si hoy no tiene, en su primer grupo). Debajo, seis pestañas:
   orientaciones, los programas que sugiere, los objetivos nuevos, las barreras de
   aprendizaje y los apoyos. Con eso, «Crear sus
   programas con IA» crea los programas con los objetivos del informe y la IA
-  propone otros además, sin conocer el diagnóstico.
+  propone otros además.
 
 PROGRAMA (pestaña de la página del alumno)
 Su plan individual. «Nuevo programa» crea uno por ámbito: en la Comunitat Valenciana, los programas del
