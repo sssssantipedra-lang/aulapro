@@ -23,7 +23,9 @@ const id = process.argv[2];
 const BASE = process.argv[3] || 'http://localhost:5173/';
 if (!id) { console.log('Uso: node scripts/videos/grabar.mjs <id> [url]'); process.exit(1); }
 const guion = (await import(`./guiones/${id}.mjs`)).default;
-const W = 1280, H = 720, HUECO = 600;   // ms de pausa entre escenas
+const W = 1280, H = 720, HUECO = 600;
+// HD=1: sale a 1920x1080 (la página se dibuja a 1,5x, sin cambiar la maquetación)
+const HD = process.env.HD === '1', OW = HD ? 1920 : 1280, OH = HD ? 1080 : 720;   // ms de pausa entre escenas
 
 const dur = f => parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 const audios = guion.escenas.map((_, i) => path.join(AQUI, 'audio', id, String(i + 1).padStart(2, '0') + '.mp3'));
@@ -33,8 +35,8 @@ const duraciones = audios.map(dur);
 const tmp = fs.mkdtempSync(path.join(AQUI, '.tmp-'));
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const ctx = await browser.newContext({
-  viewport: { width: W, height: H }, locale: 'es-ES',
-  recordVideo: { dir: tmp, size: { width: W, height: H } },
+  viewport: { width: W, height: H }, deviceScaleFactor: HD ? 1.5 : 1, locale: 'es-ES',
+  recordVideo: { dir: tmp, size: { width: OW, height: OH } },
   permissions: ['clipboard-read', 'clipboard-write'],
 });
 const t0Ctx = Date.now();
@@ -90,11 +92,11 @@ const filtros = audios.map((_, i) => `[${i + 1}:a]adelay=${Math.round(inicios[i]
 // Escenas con una grabación real encima (p. ej. Google AI Studio): se estira o encoge al largo de la escena
 const clips = guion.escenas.flatMap((e, i) => (e.clip ? [{ i, f: path.join(AQUI, 'clips', e.clip) }] : []));
 const entradasClip = clips.flatMap(c => ['-i', c.f]);
-let base = '[0:v]fps=30,scale=1280:720[v0]';
+let base = `[0:v]fps=30,scale=${OW}:${OH}[v0]`;
 clips.forEach((c, k) => {
   const ini = inicios[c.i], fin = c.i + 1 < inicios.length ? inicios[c.i + 1] : total;
   const k2 = (fin - ini - 0.2) / dur(c.f);
-  base += `;[${audios.length + 1 + k}:v]setpts=(PTS-STARTPTS)*${k2.toFixed(4)}+${ini.toFixed(3)}/TB,fps=30,scale=1280:720[c${k}];[v${k}][c${k}]overlay=eof_action=pass:enable='between(t,${ini.toFixed(3)},${fin.toFixed(3)})'[v${k + 1}]`;
+  base += `;[${audios.length + 1 + k}:v]setpts=(PTS-STARTPTS)*${k2.toFixed(4)}+${ini.toFixed(3)}/TB,fps=30,scale=${OW}:${OH}[c${k}];[v${k}][c${k}]overlay=eof_action=pass:enable='between(t,${ini.toFixed(3)},${fin.toFixed(3)})'[v${k + 1}]`;
 });
 const salidaV = `[v${clips.length}]`;
 const graf = [base, ...filtros, audios.map((_, i) => `[a${i}]`).join('') + `amix=inputs=${audios.length}:normalize=0[a]`].join(';');
