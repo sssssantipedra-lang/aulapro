@@ -22,7 +22,13 @@ export default {
       hacer: async p => {
         await menu(p, 'Configuración', rapido);
         await clicar(p, p.getByText('Datos y copias', { exact: true }).first(), rapido);
-        await esperar(p, 1500);
+        await esperar(p, 800);
+        // La grabación se hace con la app fuera de la versión web: el texto de «Mis datos» es el de la versión web
+        await p.evaluate(() => {
+          const web = 'Tu trabajo se guarda en este dispositivo, dentro del navegador, solo para este perfil, y no se sube a ningún servidor de AulaPro. AulaPro hace copias automáticas cada diez minutos mientras trabajas, pero están en el mismo navegador: si se borran sus datos, se pierden también. Para no perder nada, guarda tu trabajo en tu Drive u OneDrive, en una carpeta de tu ordenador o descarga copias a menudo.';
+          for (const q of document.querySelectorAll('p')) if (q.textContent.includes('AulaPro.exe')) q.textContent = web;
+        });
+        await esperar(p, 700);
         await p.mouse.wheel(0, 380); await esperar(p, 1800);
       } },
     { texto: 'Si usas la IA, los nombres se cambian por códigos antes de enviarlos y los datos de salud se quitan. Aun así, evita escribir nombres completos: usa el número de lista y el nombre, o las iniciales.',

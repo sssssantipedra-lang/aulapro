@@ -25,8 +25,9 @@ if (!id) { console.log('Uso: node scripts/videos/grabar.mjs <id> [url]'); proces
 const guion = (await import(`./guiones/${id}.mjs`)).default;
 const SIN_SUBS = process.env.SIN_SUBS === '1';
 const W = 1280, H = 720, HUECO = 600;
-// HD=1: sale a 1920x1080 (la página se dibuja a 1,5x, sin cambiar la maquetación)
-const HD = process.env.HD === '1', OW = HD ? 1920 : 1280, OH = HD ? 1080 : 720;   // ms de pausa entre escenas
+// HD=1: sale a 1920x1080 de verdad: ventana de 1920x1080 con la página ampliada al 150 % (zoom de CSS), así la maquetación
+// es la de 1280x720 pero nítida. (Con deviceScaleFactor Playwright graba 1280x720 y rellena de gris el resto.)
+const HD = process.env.HD === '1', OW = HD ? 1920 : 1280, OH = HD ? 1080 : 720, Z = HD ? 1.5 : 1;   // ms de pausa entre escenas
 
 const dur = f => parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 const audios = guion.escenas.map((_, i) => path.join(AQUI, 'audio', id, String(i + 1).padStart(2, '0') + '.mp3'));
@@ -36,11 +37,17 @@ const duraciones = audios.map(dur);
 const tmp = fs.mkdtempSync(path.join(AQUI, '.tmp-'));
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const ctx = await browser.newContext({
-  viewport: { width: W, height: H }, deviceScaleFactor: HD ? 1.5 : 1, locale: 'es-ES',
+  viewport: { width: OW, height: OH }, locale: 'es-ES',
   recordVideo: { dir: tmp, size: { width: OW, height: OH } },
   permissions: ['clipboard-read', 'clipboard-write'],
 });
 const t0Ctx = Date.now();
+// El zoom se pone en cada documento (también tras recargar la página)
+await ctx.addInitScript(z => {
+  window.__Z = z;
+  const poner = () => { if (document.documentElement) document.documentElement.style.zoom = String(z); else requestAnimationFrame(poner); };
+  if (z !== 1) poner();
+}, Z);
 const page = await ctx.newPage();
 page.on('pageerror', e => console.log('Error en la app:', e.message));
 // La comprobación de la clave de Google: en el vídeo siempre sale bien
@@ -63,11 +70,11 @@ await page.addStyleTag({ content: `
 await page.evaluate(() => {
   const c = document.createElement('div'); c.id = 'v-cursor'; document.documentElement.appendChild(c);
   const s = document.createElement('div'); s.id = 'v-sub'; s.style.display = 'none'; document.documentElement.appendChild(s);
-  addEventListener('mousemove', e => { c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; }, true);
+  addEventListener('mousemove', e => { c.style.left = e.clientX / (window.__Z || 1) + 'px'; c.style.top = e.clientY / (window.__Z || 1) + 'px'; }, true);
   addEventListener('mousedown', () => { c.style.transform = 'scale(.7)'; }, true);
   addEventListener('mouseup', () => { c.style.transform = ''; }, true);
 });
-await page.mouse.move(W / 2, H / 2);
+await page.mouse.move(OW / 2, OH / 2);
 
 const inicios = [];
 const t0 = Date.now();
