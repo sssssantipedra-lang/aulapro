@@ -15,7 +15,7 @@ export function PuntosUsoIA() {
   const { t } = useI18n();
   return (
     <ul className="ak-puntos">
-      <li>{conNegrita(t('**Nombres.** Los nombres de tu alumnado no salen de este dispositivo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner.'))}</li>
+      <li>{conNegrita(t('**Nombres.** Los nombres de tu alumnado no salen de este dispositivo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner. Aun así, te recomendamos no escribir nombres completos: aunque AulaPro use herramientas de seudonimización, es mejor que tú tampoco los pongas. Usa, por ejemplo, el número de lista y solo el nombre («12 Marta») o el número de lista y las iniciales del nombre y del apellido («12 M. P.»).'))}</li>
       <li>{conNegrita(t('**Datos de salud.** AulaPro no guarda ni pide diagnósticos. Describe las barreras de aprendizaje, no el diagnóstico: si escribes un dato de salud en un texto, AulaPro lo quita antes de enviarlo, pero no puede reconocer todos los casos.'))}</li>
       <li>{conNegrita(t('**Otros nombres y documentos.** Un nombre que no esté en tus listas (un apodo, un familiar) no se puede tapar solo: evita escribirlo. De un documento solo se envía su texto, sin correos, teléfonos ni DNI.'))}</li>
       <li>{conNegrita(t('**Google.** Lo que envías va a Google con tu propia clave. Desde el Espacio Económico Europeo, según las condiciones de la API de Gemini, Google aplica también a la clave gratuita las reglas de la de pago: no usa lo que envías para entrenar sus modelos ni para mejorar sus productos. Esas condiciones son de Google y pueden cambiar.'))}</li>
