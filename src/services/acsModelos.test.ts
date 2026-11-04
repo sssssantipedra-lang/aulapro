@@ -16,7 +16,7 @@ import type { AlumnoApoyo, CursoDe } from '../types/apoyo';
 const nombreCurso = (c: CursoDe) => `${c.curso}º ${c.etapa === 'primaria' ? 'Primaria' : 'ESO'}`;
 const alumno: AlumnoApoyo = {
   id: 'a1', nombre: 'Alumno 1', claseOrigen: '6º A', matricula: { etapa: 'primaria', curso: 6 }, nivel: { etapa: 'primaria', curso: 3 },
-  categorias: ['Discapacidad intelectual'], diagnostico: 'Dato de salud', necesidades: 'Le cuesta seguir las explicaciones orales largas.', notas: '',
+  necesidades: 'Le cuesta seguir las explicaciones orales largas.', notas: '',
   informe: { fecha: '2026-09-20', fortalezas: 'Muy constante con el material manipulativo.', orientaciones: '', ambitos: [] },
 };
 const docente = { nombre: 'Profesor', centro: 'Centro de prueba', curso: '2026-2027' };
@@ -98,7 +98,7 @@ describe('Comunitat Valenciana: ACIS del PAP', () => {
 describe('Cataluña: PI', () => {
   it('sin aviso de NEE ni de desfase, con la CAD, la familia y cada criterio priorizado o modificado', async () => {
     const { modelo, m, acs, c1 } = await preparar('cataluna');
-    const otro = { ...alumno, categorias: ['Dificultades específicas de aprendizaje'], matricula: { etapa: 'primaria' as const, curso: 4 } };
+    const otro = { ...alumno, matricula: { etapa: 'primaria' as const, curso: 4 } };
     const textos = avisosAcs({ ...acs, fechaInforme: '2026-09-15' }, otro, modelo).map(a => textoAviso(a, (k, v) => translate('es', k, v)));
     expect(textos).toEqual([
       'Falta la «Fecha de inicio del PI».', 'Falta la «Fecha de aprobación en la CAD».', 'Falta recoger la conformidad de la familia con el PI.',
@@ -125,9 +125,9 @@ describe('Madrid: ACS de Raíces', () => {
   it('pide ACNEE y dictamen, y la nota sale con asterisco', async () => {
     const { modelo, m, acs } = await preparar('madrid');
     expect(acs.organismo).toBe('eoep');
-    const sinNee = { ...alumno, categorias: ['Trastorno por déficit de atención e hiperactividad (TDAH)'] };
+    const sinNee = { ...alumno, };
     const textos = avisosAcs(acs, sinNee, modelo).map(a => textoAviso(a, (k, v) => translate('es', k, v)));
-    expect(textos[0]).toMatch(/^La ACS es para el alumnado con necesidades educativas especiales/);
+    expect(textos.some(x => /^La ACS es para el alumnado con necesidades educativas especiales/.test(x))).toBe(false);   // ya no se sabe la categoría
     expect(textos).toContain('Falta la «Fecha del dictamen de escolarización».');
     const lleno = { ...acs, fechaInforme: '2026-06-10', fechas: { dictamen: '2026-06-20' }, notas: { 1: '5' } };
     const html = htmlAcs(contenidoAcs(lleno, alumno, m, docente, nombreCurso, 'es', modelo), 'es', firmasAcs('es', modelo));

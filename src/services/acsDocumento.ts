@@ -69,7 +69,6 @@ export function contenidoAcs(
     [t('Clase de origen'), alumno.claseOrigen],
     [t('Curso'), alumno.matricula ? nombreCurso(alumno.matricula) : ''],
     [t('Curso escolar'), docente.curso],
-    [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')],
     [t('Centro'), docente.centro],
   ]);
 

@@ -14,7 +14,7 @@ import type { AlumnoApoyo, CursoDe } from '../types/apoyo';
 const nombreCurso = (c: CursoDe) => `${c.curso}º ${c.etapa === 'primaria' ? 'Primaria' : 'ESO'}`;
 const alumno: AlumnoApoyo = {
   id: 'a1', nombre: 'Alumno 1', claseOrigen: '1º ESO B', matricula: { etapa: 'eso', curso: 1 }, nivel: { etapa: 'primaria', curso: 4 },
-  categorias: ['Discapacidad intelectual'], diagnostico: 'Dato de salud que no debe salir', necesidades: 'Aprende mejor con apoyo visual', notas: '',
+  necesidades: 'Aprende mejor con apoyo visual', notas: '',
 };
 const docente = { nombre: 'Profesor', centro: 'CEIP de prueba', curso: '2026-2027' };
 

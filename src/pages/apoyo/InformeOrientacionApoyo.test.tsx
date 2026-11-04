@@ -17,7 +17,7 @@ vi.mock('../../services/apoyoIA', async importOriginal => ({ ...await importOrig
 
 afterEach(() => { cleanup(); proponer.mockReset(); });
 
-const alumno: AlumnoApoyo = { id: 'a', nombre: 'Alumno 1', claseOrigen: '3º B', categorias: [], diagnostico: '', necesidades: '', notas: '' };
+const alumno: AlumnoApoyo = { id: 'a', nombre: 'Alumno 1', claseOrigen: '3º B', necesidades: '', notas: '' };
 
 function montar(inicial: ApoyoData) {
   let datos = inicial;
@@ -42,7 +42,8 @@ describe('Informe del orientador', () => {
     // No hay forma de dar el informe a la IA
     expect(screen.queryByRole('button', { name: /Leer con IA/ })).toBeNull();
     expect(screen.queryByText(/Elegir un PDF/)).toBeNull();
-    await user.type(screen.getByLabelText('Diagnóstico'), 'Dislexia');
+    expect(screen.queryByLabelText('Diagnóstico')).toBeNull();   // la app no pide ni guarda el diagnóstico
+    await user.type(screen.getByLabelText('Barreras de aprendizaje'), 'Le cuesta la lectoescritura');
     await user.type(screen.getByLabelText('Fortalezas'), 'Buena memoria visual');
     await user.type(screen.getByLabelText('Orientaciones del informe'), 'Textos cortos');
     await user.click(screen.getByRole('button', { name: /Apoyo visual/ }));
@@ -50,7 +51,8 @@ describe('Informe del orientador', () => {
     await user.click(screen.getByRole('button', { name: /Guardar en su ficha/ }));
 
     const a = m.actual().alumnos[0];
-    expect(a.diagnostico).toBe('Dislexia');
+    expect(a.necesidades).toContain('Le cuesta la lectoescritura');
+    expect(a).not.toHaveProperty('diagnostico');
     expect(a.apoyos).toEqual(['Apoyo visual (imágenes, pictogramas, esquemas)']);
     expect(a.informe).toMatchObject({ fortalezas: 'Buena memoria visual', orientaciones: 'Textos cortos', ambitos: [lectoescritura] });
     m.actual().alumnos[0] = { ...a, objetivosOrientacion: [{ id: 'oo1', texto: 'Reconocer las letras del abecedario', ambito: lectoescritura, trimestres: [1], origen: 'informe' }] };

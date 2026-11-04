@@ -26,18 +26,18 @@ export function buildDemoApoyo(hoy: Date = new Date(), lang: Lang = 'es'): Apoyo
   const [COM, LEC, MAT, , CON] = pap;
   const T = trimestreDe(isoDate(hoy));
   const sig = (T < 3 ? T + 1 : T) as Trimestre;
-  const al = (id: string, nombre: string, clase: string, mat: number, niv: number, categorias: string[], diagnostico: string, necesidades: string): AlumnoApoyo => ({
+  const al = (id: string, nombre: string, clase: string, mat: number, niv: number, necesidades: string): AlumnoApoyo => ({
     id, nombre, claseOrigen: clase, matricula: { etapa: 'primaria', curso: mat }, nivel: { etapa: 'primaria', curso: niv },
-    categorias, diagnostico, necesidades, notas: '',
+    necesidades, notas: '',
   });
   const alumnos = [
-    al('demo-a1', nombreDeAlumnoDeEjemplo(1, lang), '4º B', 4, 2, ['Discapacidad intelectual'], tr('Discapacidad intelectual leve'),
+    al('demo-a1', nombreDeAlumnoDeEjemplo(1, lang), '4º B', 4, 2,
       tr('Le cuesta mantener la atención más de diez minutos. Aprende mejor con apoyo visual y tareas cortas. Se motiva con los juegos.')),
-    al('demo-a2', nombreDeAlumnoDeEjemplo(2, lang), '3º A', 3, 2, ['Dificultades específicas de aprendizaje (dislexia, discalculia…)', 'Trastorno por déficit de atención e hiperactividad (TDAH)'], tr('Dislexia y TDAH'),
+    al('demo-a2', nombreDeAlumnoDeEjemplo(2, lang), '3º A', 3, 2,
       tr('Lectura lenta, con sustituciones de letras. Buena comprensión oral y mucho interés por los animales.')),
-    al('demo-a3', nombreDeAlumnoDeEjemplo(3, lang), '2º A', 2, 1, ['Trastorno del desarrollo del lenguaje y la comunicación'], tr('Trastorno del desarrollo del lenguaje (TDL)'),
+    al('demo-a3', nombreDeAlumnoDeEjemplo(3, lang), '2º A', 2, 1,
       tr('Frases cortas y vocabulario reducido. Entiende mejor con imágenes y gestos.')),
-    al('demo-a4', nombreDeAlumnoDeEjemplo(4, lang), '5º A', 5, 3, ['Trastorno del espectro del autismo (TEA)', 'Discapacidad motora'], tr('TEA; hemiparesia leve en el lado derecho'),
+    al('demo-a4', nombreDeAlumnoDeEjemplo(4, lang), '5º A', 5, 3,
       tr('Necesita anticipación y agenda visual. Le cuesta la interacción en grupo y la escritura a mano; muy buena memoria visual.')),
   ];
   const f = (dia: number, inicio: string, fin: string) => ({ dia, inicio, fin });

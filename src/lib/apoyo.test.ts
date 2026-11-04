@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   ambitosDe, trimestreDe, diaDeLaSemana, gruposDelDia, tieneDesfase, nivelDe,
   objetivosDelTrimestre, sesionDe, sesionConDatos, resumenObjetivo,
-  normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, CATEGORIAS_NEAE, apoyoParaOtroCurso,
+  normalizarApoyo, sinAlumno, sinGrupo, especialidadesDePerfil, APOYO_VACIO, apoyoParaOtroCurso,
   contextoFichaApoyo, conObjetivosOrientacion, objetivosPendientes, pasarAProgramas, filasDeCierre, trimestreCerrado, cerrarTrimestre, datosDelTrimestre,
 } from './apoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
 const alumno = (id: string, extra: Partial<AlumnoApoyo> = {}): AlumnoApoyo => ({
-  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', categorias: [], diagnostico: '', necesidades: '', notas: '', ...extra,
+  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', necesidades: '', notas: '', ...extra,
 });
 const grupo = (id: string, extra: Partial<GrupoApoyo> = {}): GrupoApoyo => ({
   id, nombre: `Grupo ${id}`, especialidad: 'PT', modalidad: 'fuera', horario: [], alumnos: [], color: '#000', ...extra,
@@ -181,17 +181,13 @@ describe('carga y borrado', () => {
     expect(raro.agendas).toEqual([{ id: 'a', titulo: 'X', pasos: [{ id: 'p', texto: 'T' }] }]);
   });
 
-  it('convierte la necesidad única de la 2.1.0 en una lista, sin repetidas', () => {
-    const viejo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categoria: 'Discapacidad motora' }] });
-    expect(viejo.alumnos[0].categorias).toEqual(['Discapacidad motora']);
-    const nuevo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categorias: ['TDAH', ' TDAH ', 7, 'Discapacidad visual'] }] });
-    expect(nuevo.alumnos[0].categorias).toEqual(['TDAH', 'Discapacidad visual']);
-    expect(normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana' }] }).alumnos[0].categorias).toEqual([]);
-  });
-
-  it('la lista de necesidades incluye las motoras y no repite ninguna', () => {
-    expect(CATEGORIAS_NEAE).toContain('Discapacidad motora');
-    expect(new Set(CATEGORIAS_NEAE).size).toBe(CATEGORIAS_NEAE.length);
+  it('un perfil antiguo pierde la categoría y el diagnóstico al abrirse (3-11-2026)', () => {
+    const viejo = normalizarApoyo({ alumnos: [{ id: 'a', nombre: 'Ana', categoria: 'Discapacidad motora', categorias: ['TDAH'], diagnostico: 'Dislexia', necesidades: 'Le cuesta leer.' }] });
+    expect(viejo.alumnos[0]).not.toHaveProperty('categorias');
+    expect(viejo.alumnos[0]).not.toHaveProperty('categoria');
+    expect(viejo.alumnos[0]).not.toHaveProperty('diagnostico');
+    expect(viejo.alumnos[0].necesidades).toBe('Le cuesta leer.');
+    expect(JSON.stringify(viejo)).not.toMatch(/Dislexia|TDAH|Discapacidad motora/);
   });
 
   it('descarta lo que no entiende en vez de romper', () => {
@@ -236,8 +232,8 @@ describe('carga y borrado', () => {
 describe('ficha adaptada', () => {
   it('cuenta sus apoyos, sus necesidades y sus objetivos, sin su nombre, su diagnóstico ni su categoría (3-11-2026)', () => {
     const a = alumno('a', {
-      nombre: 'Marta Gil', diagnostico: 'Discapacidad intelectual leve',
-      categorias: ['Discapacidad motora', 'TDAH'], necesidades: 'Aprende mejor con apoyo visual.',
+      nombre: 'Marta Gil', 
+      necesidades: 'Aprende mejor con apoyo visual.',
       apoyos: ['Pausas activas', 'Instrucciones cortas, de una en una'],
     });
     const t = (k: string, v?: Record<string, string | number>) => k.replace(/\{(\w+)\}/g, (_, x) => String(v?.[x] ?? ''));
@@ -254,7 +250,7 @@ describe('ficha adaptada', () => {
 describe('cierre de trimestre', () => {
   const base = (): ApoyoData => ({
     ...APOYO_VACIO,
-    alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' }],
+    alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', necesidades: '', notas: '' }],
     programas: [{ id: 'p', alumnoId: 'a', ambito: 'Lectoescritura', especialidad: 'PT', objetivos: [
       { id: 'o1', texto: 'Leer sílabas', trimestres: [1, 2], criterios: [] },
       { id: 'o2', texto: 'Copiar frases', trimestres: [1], criterios: [] },
@@ -291,7 +287,7 @@ describe('cierre de trimestre', () => {
 });
 
 describe('objetivos de la orientación', () => {
-  const a = (): AlumnoApoyo => ({ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' });
+  const a = (): AlumnoApoyo => ({ id: 'a', nombre: 'Alumno 1', claseOrigen: '', necesidades: '', notas: '' });
   const oo = (id: string, texto: string, ambito?: string, origen: 'informe' | 'orientacion' = 'informe') =>
     ({ id, texto, ...(ambito ? { ambito } : {}), trimestres: [1, 2, 3] as (1 | 2 | 3)[], origen });
   const base = (): ApoyoData => ({ ...APOYO_VACIO, alumnos: [a()] });
@@ -335,7 +331,7 @@ describe('documentos de adaptación', () => {
   it('se guardan con su área y se recuperan', () => {
     const d: ApoyoData = {
       ...APOYO_VACIO,
-      alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' }],
+      alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', necesidades: '', notas: '' }],
       documentos: [{ id: 'd', alumnoId: 'a', tipo: 'adaptacion', area: 'Lengua Castellana y Literatura', trimestre: 2, fecha: '2026-11-02', titulo: 'Adaptación', apartados: [{ id: 'objetivos', titulo: 'Objetivos adaptados', texto: 'Leer' }] }],
     };
     expect(normalizarApoyo(JSON.parse(JSON.stringify(d))).documentos).toEqual(d.documentos);

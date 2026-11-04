@@ -24,7 +24,7 @@ export function contenidoAcsCompartido(lista: readonly AcsApoyo[], alumno: Alumn
   const nombres = palabrasDeNombres([alumno.nombre]);
   return {
     de, creado: ahora.toISOString(), paquete: emptyBundle(),
-    acs: lista.map(a => sinSuNombre({ ...a, alumnoId: '', categorias: [...alumno.categorias] }, nombres)),
+    acs: lista.map(a => sinSuNombre({ ...a, alumnoId: '' }, nombres)),
   };
 }
 

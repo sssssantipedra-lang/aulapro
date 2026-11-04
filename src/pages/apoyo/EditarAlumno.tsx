@@ -6,7 +6,6 @@
  * grupo se puede crear aquí mismo, sin salir de la ventana (decisión del
  * dueño, 18-10-2026). Ver `docs/PTAL.md`.
  */
-import { useState } from 'react';
 import { claveDeNombre } from '../../lib/alumnado';
 import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -15,7 +14,7 @@ import { CursoSelect } from '../../components/apoyo/CursoSelect';
 import { ApoyosAula } from '../../components/apoyo/ApoyosAula';
 import { HorarioEditor } from '../../components/apoyo/HorarioEditor';
 import { useI18n } from '../../i18n';
-import { CATEGORIAS_NEAE, GRUPOS_NEAE, grupoVacio, horarioIncorrecto, horarioLimpio, sinAlumno, type AlumnoEnEdicion } from '../../lib/apoyo';
+import { grupoVacio, horarioIncorrecto, horarioLimpio, sinAlumno, type AlumnoEnEdicion } from '../../lib/apoyo';
 import type { AlumnoApoyo, ApoyoData, Especialidad } from '../../types/apoyo';
 
 export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidades }: {
@@ -88,20 +87,17 @@ export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidade
               <CursoSelect id="ap-a-nivel" value={alumno.nivel} vacio={t('El de su curso')} onChange={c => setAlumno({ ...alumno, nivel: c })} /></div>
             <GrupoDelAlumno edicion={edicion} onEdicion={onEdicion} data={data} especialidades={especialidades} />
             <details className="ap-mas" open={!esNuevo} style={{ gridColumn: '1 / -1' }}>
-              <summary><ChevronDown size={15} aria-hidden="true" />{t('Necesidades, diagnóstico y notas')}<span className="ap-sub">{esNuevo ? t('Se pueden completar después') : ''}</span></summary>
+              <summary><ChevronDown size={15} aria-hidden="true" />{t('Barreras de aprendizaje, apoyos y notas')}<span className="ap-sub">{esNuevo ? t('Se pueden completar después') : ''}</span></summary>
               <div className="ap-form" style={{ marginTop: 10 }}>
-                <NecesidadesPicker value={alumno.categorias} onChange={categorias => setAlumno({ ...alumno, categorias })} />
-                <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-diag">{t('Diagnóstico')}</label>
-                  <textarea id="ap-a-diag" className="finput" rows={2} value={alumno.diagnostico} onChange={e => setAlumno({ ...alumno, diagnostico: e.target.value })} /></div>
                 <ApoyosAula value={alumno.apoyos ?? []} onChange={apoyos => setAlumno({ ...alumno, apoyos: apoyos.length ? apoyos : undefined })} />
-                <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-nec">{t('Necesidades educativas')}</label>
-                  <textarea id="ap-a-nec" className="finput" rows={3} value={alumno.necesidades} placeholder={t('Barreras, fortalezas y qué le ayuda: «le cuesta mantener la atención más de 10 minutos; aprende mejor con apoyo visual»')} onChange={e => setAlumno({ ...alumno, necesidades: e.target.value })} /></div>
+                <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-nec">{t('Barreras de aprendizaje')}</label>
+                  <textarea id="ap-a-nec" className="finput" rows={3} value={alumno.necesidades} placeholder={t('Qué le cuesta, qué le ayuda y sus fortalezas: «le cuesta la lectoescritura y mantener la atención más de 10 minutos; aprende mejor con apoyo visual»')} onChange={e => setAlumno({ ...alumno, necesidades: e.target.value })} /></div>
                 <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-notas">{t('Notas')}</label>
                   <textarea id="ap-a-notas" className="finput" rows={2} value={alumno.notas} onChange={e => setAlumno({ ...alumno, notas: e.target.value })} /></div>
               </div>
             </details>
           </div>
-          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe los apoyos que necesita, sus necesidades educativas y tus notas, con el nombre cambiado por un código y sin datos de salud. Su diagnóstico y su categoría nunca se envían. En las necesidades y las notas, describe lo que necesita en el aula, no el diagnóstico.')}</p>
+          <p className="ap-aviso">{t('Todo se guarda en este equipo. AulaPro no guarda el diagnóstico ni la categoría: describe las barreras de aprendizaje (qué le cuesta y qué le ayuda). Si usas la IA, recibe los apoyos que necesita, sus barreras y tus notas, con el nombre cambiado por un código y sin datos de salud.')}</p>
           <div className="ap-acciones">
             <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
             <button className="btn-ghost" onClick={cerrar}>{t('Cancelar')}</button>
@@ -169,55 +165,6 @@ function GrupoDelAlumno({ edicion, onEdicion, data, especialidades }: {
           <button type="button" className="btn-ghost" style={{ fontSize: 12.5 }} onClick={() => setNuevo(undefined)}>{t('No crear este grupo')}</button>
         </div>
       )}
-    </fieldset>
-  );
-}
-
-/**
- * Sus necesidades específicas de apoyo educativo: se marcan las que tenga, en
- * dos grupos, y las que no estén en la lista se añaden a mano.
- */
-function NecesidadesPicker({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
-  const { t } = useI18n();
-  const [otra, setOtra] = useState('');
-  const propias = value.filter(c => !CATEGORIAS_NEAE.includes(c));
-  const alternar = (c: string) => onChange(value.includes(c) ? value.filter(x => x !== c) : [...value, c]);
-  function anadir() {
-    const c = otra.trim();
-    if (c && !value.some(x => x.toLocaleLowerCase() === c.toLocaleLowerCase())) onChange([...value, c]);
-    setOtra('');
-  }
-  return (
-    <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
-      <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
-      <p className="ap-aviso" style={{ margin: '0 0 8px' }}>{t('Marca todas las que tenga.')}</p>
-      {GRUPOS_NEAE.map(g => (
-        <div key={g.titulo} className="ap-neae">
-          <div className="ap-neae-ttl">{t(g.titulo)}</div>
-          <div className="chip-row">
-            {g.categorias.map(c => {
-              const on = value.includes(c);
-              return (
-                <button key={c} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on} onClick={() => alternar(c)}>{t(c)}</button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-      {propias.length > 0 && (
-        <div className="chip-row" style={{ marginTop: 8 }}>
-          {propias.map(c => (
-            <button key={c} type="button" className="chip sm accent on" aria-pressed="true" onClick={() => alternar(c)}
-              aria-label={t('Quitar «{name}»', { name: c })} title={t('Quitar')}>{c} ×</button>
-          ))}
-        </div>
-      )}
-      <div className="ap-neae-otra">
-        <input id="ap-a-otra" className="finput" value={otra} aria-label={t('Otra necesidad')}
-          placeholder={t('Otra que no esté en la lista')} onChange={e => setOtra(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); anadir(); } }} />
-        <button type="button" className="btn-ghost" onClick={anadir} disabled={!otra.trim()}><Plus size={14} />{t('Añadir')}</button>
-      </div>
     </fieldset>
   );
 }

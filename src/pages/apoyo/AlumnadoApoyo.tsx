@@ -163,7 +163,6 @@ export function AlumnadoApoyo({ data, onChange, especialidades, comunidad, onNav
                           {a.nivel && (
                             <span className={`sda-chip${tieneDesfase(a) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(a.nivel) })}</span>
                           )}
-                          {a.categorias.map(c => <span key={c} className="sda-chip">{t(c)}</span>)}
                         </span>
                         {gruposDe(a.id).length > 0 && (
                           <span className="ap-sub">{gruposDe(a.id).map(g => g.nombre).join(' · ')}</span>

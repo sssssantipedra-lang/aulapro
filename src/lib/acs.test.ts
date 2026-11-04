@@ -24,7 +24,7 @@ const G = '3º Primaria';
 
 const alumno: AlumnoApoyo = {
   id: 'a1', nombre: 'Alumno 1', claseOrigen: '5º A', matricula: { etapa: 'primaria', curso: 5 }, nivel: { etapa: 'primaria', curso: 3 },
-  categorias: ['Discapacidad intelectual'], diagnostico: '', necesidades: '', notas: '',
+  necesidades: '', notas: '',
 };
 let n = 0;
 const id = (p: string) => `${p}${++n}`;
@@ -42,11 +42,11 @@ describe('ACS: datos generales y avisos de la orden', () => {
     expect(avisosAcs(acs, alumno)).toEqual([]);
   });
 
-  it('avisa sin NEE, con menos de dos cursos de desfase, sin informe, sin criterios y con pesos que no suman 100', () => {
-    const otro = { ...alumno, categorias: ['Trastorno por déficit de atención e hiperactividad (TDAH)'], matricula: { etapa: 'primaria' as const, curso: 4 } };
+  it('avisa con menos de dos cursos de desfase, sin informe, sin criterios y con pesos que no suman 100', () => {
+    const otro = { ...alumno, matricula: { etapa: 'primaria' as const, curso: 4 } };
     const acs = { ...nueva(), instrumentos: [{ id: 'i', nombre: 'Observación', peso: 60 }] };
     const textos = avisosAcs(acs, otro).map(a => a.texto);
-    expect(textos).toHaveLength(5);
+    expect(textos).toHaveLength(4);
     expect(avisosAcs(acs, otro).find(a => a.texto.startsWith('La {sigla} pide un desfase'))?.vars).toEqual({ sigla: 'ACS', n: 1 });
     expect(avisosAcs(acs, otro).find(a => a.texto.startsWith('Los pesos'))?.vars).toEqual({ n: 60 });
   });

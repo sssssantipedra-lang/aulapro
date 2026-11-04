@@ -44,10 +44,8 @@ describe('ACS en Mis clases', () => {
     expect(ultimo.acsAula[0]).toMatchObject({ alumnoId: 's1', nivel: { etapa: 'primaria', curso: 5 } });
     expect(ultimo.acsAula[0].responsables.materia).toBe('Profesor');
     const dialogo = screen.getByRole('dialog');
-    expect(within(dialogo).getByRole('status').textContent).toMatch(/necesidades educativas especiales/);
-    await user.click(within(dialogo).getByRole('button', { name: 'Discapacidad intelectual' }));
-    expect(ultimo.acsAula[0].categorias).toEqual(['Discapacidad intelectual']);
-    expect(within(dialogo).getByRole('status').textContent).not.toMatch(/necesidades educativas especiales/);
+    expect(ultimo.acsAula[0]).not.toHaveProperty('categorias');   // AulaPro ya no guarda la categoría NEAE
+    expect(within(dialogo).queryByRole('button', { name: 'Discapacidad intelectual' })).toBeNull();
     expect(within(dialogo).queryByRole('button', { name: 'Enviar al docente de aula' })).toBeNull();
   });
 });

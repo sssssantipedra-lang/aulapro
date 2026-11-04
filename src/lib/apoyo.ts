@@ -145,7 +145,7 @@ export function grupoDeBloque(blockId: string): string | undefined {
 export function alumnoVacio(): AlumnoApoyo {
   return {
     id: nuevoIdApoyo('alu'), nombre: '', claseOrigen: '',
-    categorias: [], diagnostico: '', necesidades: '', notas: '',
+    necesidades: '', notas: '',
   };
 }
 
@@ -200,45 +200,6 @@ export function tieneDesfase(a: AlumnoApoyo): boolean {
   return orden(a.nivel) < orden(a.matricula);
 }
 
-/**
- * Necesidades específicas de apoyo educativo para marcar en la ficha (un
- * alumno puede tener varias). Las necesidades educativas especiales, por lo
- * que las origina (discapacidad o trastornos graves de conducta, de la
- * comunicación y del lenguaje, LOE artículo 73), y el resto de las del
- * artículo 71.2, con el TDAH y las dificultades específicas de aprendizaje
- * por separado, que es como se registran en los centros.
- */
-export const GRUPOS_NEAE: readonly { titulo: string; categorias: readonly string[] }[] = [
-  {
-    titulo: 'Necesidades educativas especiales',
-    categorias: [
-      'Discapacidad intelectual',
-      'Discapacidad motora',
-      'Discapacidad auditiva',
-      'Discapacidad visual',
-      'Trastorno del espectro del autismo (TEA)',
-      'Trastorno grave de conducta',
-      'Trastorno grave de la comunicación y del lenguaje',
-      'Pluridiscapacidad',
-    ],
-  },
-  {
-    titulo: 'Otras necesidades específicas de apoyo educativo',
-    categorias: [
-      'Retraso madurativo',
-      'Trastorno del desarrollo del lenguaje y la comunicación',
-      'Trastorno por déficit de atención e hiperactividad (TDAH)',
-      'Dificultades específicas de aprendizaje (dislexia, discalculia…)',
-      'Desconocimiento grave de la lengua de aprendizaje',
-      'Situación de vulnerabilidad socioeducativa',
-      'Altas capacidades intelectuales',
-      'Incorporación tardía al sistema educativo',
-      'Condiciones personales o de historia escolar',
-    ],
-  },
-];
-
-export const CATEGORIAS_NEAE: readonly string[] = GRUPOS_NEAE.flatMap(g => g.categorias);
 
 /* ── Programas y sesiones ── */
 
@@ -598,11 +559,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
       id: a.id, nombre: a.nombre,
       claseOrigen: esTexto(a.claseOrigen) ? a.claseOrigen : '',
       matricula: curso(a.matricula), nivel: curso(a.nivel),
-      // Hasta la 2.1.0 era una sola, en `categoria`
-      categorias: Array.isArray(a.categorias)
-        ? [...new Set(a.categorias.filter(esTexto).map(c => c.trim()).filter(Boolean))]
-        : esTexto(a.categoria) && a.categoria.trim() ? [a.categoria.trim()] : [],
-      diagnostico: esTexto(a.diagnostico) ? a.diagnostico : '',
+      // `categorias` y `diagnostico` ya no existen (3-11-2026): un perfil antiguo los pierde al guardarse
       necesidades: esTexto(a.necesidades) ? a.necesidades : '',
       ...(Array.isArray(a.apoyos) && a.apoyos.some(esTexto) ? { apoyos: [...new Set(a.apoyos.filter(esTexto).map(x => x.trim()).filter(Boolean))] } : {}),
       notas: esTexto(a.notas) ? a.notas : '',

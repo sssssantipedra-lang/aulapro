@@ -20,7 +20,7 @@ afterEach(cleanup);
 
 const alumno: AlumnoApoyo = {
   id: 'a1', nombre: 'Alumno 1', claseOrigen: '5º A', matricula: { etapa: 'primaria', curso: 5 }, nivel: { etapa: 'primaria', curso: 4 },
-  categorias: ['Discapacidad intelectual'], diagnostico: '', necesidades: '', notas: '',
+  necesidades: '', notas: '',
 };
 
 let ultimo: ApoyoData;

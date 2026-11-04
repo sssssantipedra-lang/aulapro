@@ -58,3 +58,4 @@ web/sitio/en.html
 # La versión web de la app y las funciones, copiadas al publicar (web.yml)
 web/sitio/app/
 _pages/
+scripts/videos/.tmp-*

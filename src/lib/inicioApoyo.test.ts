@@ -5,7 +5,7 @@ import { buildDemoApoyo } from './demoApoyo';
 import type { AlumnoApoyo, ApoyoData, GrupoApoyo, Logro, ProgramaApoyo, SesionApoyo } from '../types/apoyo';
 
 const alumno = (id: string): AlumnoApoyo => ({
-  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', categorias: [], diagnostico: '', necesidades: '', notas: '',
+  id, nombre: `Alumno ${id}`, claseOrigen: '2º B', necesidades: '', notas: '',
 });
 // Lunes y miércoles
 const grupo = (id: string, alumnos: string[], extra: Partial<GrupoApoyo> = {}): GrupoApoyo => ({
@@ -152,7 +152,7 @@ describe('perfil de PT y AL', () => {
   it('los datos de ejemplo son válidos y tienen sesiones recientes del trimestre en curso', () => {
     const demo = buildDemoApoyo(new Date(2026, 9, 5));
     expect(normalizarApoyo(JSON.parse(JSON.stringify(demo)))).toEqual(demo);
-    expect(demo.alumnos.some(a => a.categorias.includes('Discapacidad motora'))).toBe(true);
+    expect(JSON.stringify(demo.alumnos)).not.toMatch(/diagnostico|categorias/);
     expect(demo.sesiones.length).toBeGreaterThan(5);
     expect(demo.sesiones.every(s => s.fecha < HOY && s.fecha >= '2026-09-01')).toBe(true);
     const ev = evolucionDelTrimestre(demo, 1);

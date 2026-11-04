@@ -358,6 +358,7 @@ await page.waitForTimeout(900);
   fs.writeFileSync(path.join(SITIO, 'assets/app/rubrica.webp'), await webp(await sharp(buf).extract({ left: mx0, top: my0, width: mx1 - mx0, height: my1 - my0 }).toBuffer()));
   MARCAS.rubrica = { size: [mx1 - mx0, my1 - my0], ia: await page.evaluate(([x0, y0, w, h]) => {
     const t = [...document.querySelectorAll('.modal-overlay.open *')].find(e => e.checkVisibility() && /Evaluar trabajo con IA$/.test(e.textContent.trim()) && e.children.length < 3);
+    if (!t) return null;   // apagado desde el 3-11-2026
     const b = t.getBoundingClientRect();
     return [+((b.left - x0) / w * 100).toFixed(1), +((b.top - y0) / h * 100).toFixed(1), +(b.width / w * 100).toFixed(1), +(b.height / h * 100).toFixed(1)];
   }, [mx0, my0, mx1 - mx0, my1 - my0]) };
@@ -416,10 +417,7 @@ await page.waitForTimeout(900);
   await cerrarModal();
 }
 
-await pestana('Por foto');
-await page.getByRole('button', { name: /^Continuar/ }).first().click();   // el borrador de una corrección: lo que propone la IA
-await page.waitForTimeout(1500);
-await pantalla('evalfoto', 'Evaluar por foto', 'evaluar', { scroll: 900 });
+// «Por foto» está apagada desde el 3-11-2026 (`CORRECCION_CON_IA`): ya no hay pestaña ni captura.
 
 await pestana('Diana competencial');
 {

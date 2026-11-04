@@ -10,7 +10,7 @@
  */
 import { competenciasDe, type CurriculumEntry } from './curriculum';
 import type { MateriaDeClase } from './curriculum/criteriosParaIA';
-import { GRUPOS_NEAE, nuevoIdApoyo } from './apoyo';
+import { nuevoIdApoyo } from './apoyo';
 import { MODELOS_ACS, llevaPieza, type ModeloAcs } from './acsModelos';
 import type {
   AcsApoyo, AlumnoApoyo, ApoyosAcs, CursoDe, FechaAcs, GradoAcs, InstrumentoAcs, SeguimientoAcs, Trimestre,
@@ -60,12 +60,6 @@ export function desfaseCursos(matricula: CursoDe | undefined, nivel: CursoDe): n
   return matricula ? ordinalCurso(matricula) - ordinalCurso(nivel) : null;
 }
 
-/** Si tiene marcada alguna necesidad educativa especial (las del primer grupo de la lista). */
-export function tieneNee(alumno: AlumnoApoyo): boolean {
-  const nee = GRUPOS_NEAE[0].categorias;
-  return alumno.categorias.some(c => nee.includes(c));
-}
-
 /** `t` traduce los instrumentos de partida al idioma de la app: se guardan ya escritos, como los escribiría el docente. */
 export function nuevaAcs(
   alumno: AlumnoApoyo, area: string, nivel: CursoDe, hoy: string, t: (k: string) => string = k => k, idNuevo = nuevoIdApoyo,
@@ -106,9 +100,6 @@ export interface AvisoAcs { texto: string; vars?: Record<string, string | number
 export function avisosAcs(acs: AcsApoyo, alumno: AlumnoApoyo, modelo: ModeloAcs = MODELOS_ACS.andalucia): AvisoAcs[] {
   const avisos: AvisoAcs[] = [];
   const sigla = modelo.sigla;
-  if (modelo.soloNee && !tieneNee(alumno)) {
-    avisos.push({ texto: 'La {sigla} es para el alumnado con necesidades educativas especiales, y este alumno no tiene ninguna marcada en «Datos». Para el resto hay programas de refuerzo del aprendizaje.', vars: { sigla } });
-  }
   if (modelo.desfaseMinimo !== null) {
     const desfase = desfaseCursos(alumno.matricula, acs.nivel);
     if (desfase === null) {
@@ -295,8 +286,6 @@ function extrasDelModelo(x: Record<string, unknown>): Partial<AcsApoyo> {
     });
     if (objetivos.length) r.objetivos = objetivos;
   }
-  const categorias = textos(x.categorias);
-  if (categorias.length) r.categorias = categorias;
   const notas = porTrimestre(x.notas);
   if (Object.keys(notas).length) r.notas = notas;
   return r;

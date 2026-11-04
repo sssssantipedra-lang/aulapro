@@ -15,7 +15,7 @@ afterEach(cleanup);
 
 const base: ApoyoData = {
   ...APOYO_VACIO,
-  alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', categorias: [], diagnostico: '', necesidades: '', notas: '' }],
+  alumnos: [{ id: 'a', nombre: 'Alumno 1', claseOrigen: '', necesidades: '', notas: '' }],
   programas: [{ id: 'p', alumnoId: 'a', ambito: 'Lectoescritura', especialidad: 'PT', objetivos: [
     { id: 'o1', texto: 'Leer sílabas', trimestres: [1], criterios: [] },
   ] }],

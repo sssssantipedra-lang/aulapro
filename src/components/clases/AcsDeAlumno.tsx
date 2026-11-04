@@ -31,7 +31,7 @@ export function cursoDeClase(cls: Class | undefined): CursoDe | undefined {
 export function alumnoDeClase(s: Student, cls: Class | undefined, nivel: CursoDe | undefined): AlumnoApoyo {
   return {
     id: s.id, nombre: s.name, claseOrigen: cls?.name ?? '', matricula: cursoDeClase(cls), nivel,
-    categorias: [], diagnostico: '', necesidades: '', notas: '',
+    necesidades: '', notas: '',
   };
 }
 

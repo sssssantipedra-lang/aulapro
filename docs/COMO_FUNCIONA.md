@@ -151,7 +151,7 @@ Reglas de cálculo que comparten todas las pantallas:
   - En el informe y la programación, el docente ve el texto antes de enviarlo y puede quitar lo que sobre.
   - Un PDF escaneado no se envía: se pide pegar el texto.
 - **Fotos del trabajo de un alumno** («Evaluar por foto», rúbricas, asistente): pasan por «Tapa el nombre» (`components/TaparNombre.tsx`). Lo tapado se pinta de negro en la imagen en el dispositivo, y sin tapar o marcar que no hay nombre no se envía. Las fotos salen reducidas y sin ubicación.
-- **El diagnóstico de PT y AL**: no se envía nunca.
+- **El diagnóstico y la categoría NEAE de PT y AL**: AulaPro ya no los guarda (3-11-2026); el docente describe las barreras de aprendizaje, y eso (sin datos de salud) es lo que la IA recibe.
 - **La nota de «Evaluar por foto»**: la IA propone los puntos de cada pregunta, pero la nota la calcula el código y la revisa el docente.
 
 **El código corrige a la IA.** En fichas, situaciones de aprendizaje, informes y documentos, lo que la IA no puede hacer bien lo hace el código:

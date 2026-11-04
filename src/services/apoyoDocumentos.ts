@@ -199,7 +199,6 @@ export function cabecera(
     [t('Curso escolar'), docente.curso],
     ...(doc.tipo !== 'familia' ? [
       [t('Nivel de competencia curricular'), nivel ? nombreCurso(nivel) : undefined] as [string, string | undefined],
-      [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')] as [string, string | undefined],
     ] : []),
     ...(doc.tipo === 'programacion' ? [[t('Horario de apoyo'), horario] as [string, string | undefined]] : []),
     ...(doc.tipo === 'adaptacion' && doc.area ? [[t('Área'), doc.area] as [string, string]] : []),

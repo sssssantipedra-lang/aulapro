@@ -26,7 +26,7 @@ import { proponerAcs, proponerObjetivosAcs } from '../../services/acsIA';
 import { alumnoParaIA } from '../../services/apoyoIA';
 import { ambitoDeAcs, objetivosAcsAProgramas } from '../../lib/acsProgramas';
 import { competenciasDe } from '../../lib/curriculum';
-import { GRUPOS_NEAE, nivelDe, nuevoIdApoyo, trimestreDe } from '../../lib/apoyo';
+import { nivelDe, nuevoIdApoyo, trimestreDe } from '../../lib/apoyo';
 import { isoDate } from '../../lib/utils';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { MateriaDeClase } from '../../lib/curriculum/criteriosParaIA';
@@ -159,8 +159,7 @@ interface EditorProps {
 }
 
 function EditorAcs({ acs, alumno: alumnoFicha, data, comunidad, modelo, docente, lang, modo, onData, onCambio, onCerrar, onBorrar }: EditorProps) {
-  // En el aula, las necesidades del alumno van en la propia adaptación
-  const alumno = modo === 'aula' ? { ...alumnoFicha, categorias: acs.categorias ?? [] } : alumnoFicha;
+  const alumno = alumnoFicha;
   const { t } = useI18n();
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
@@ -248,25 +247,6 @@ function EditorAcs({ acs, alumno: alumnoFicha, data, comunidad, modelo, docente,
               <input id={`acs-f-${f.id}`} type="date" className="finput" value={acs.fechas?.[f.id] ?? ''} onChange={e => setFecha(f.id, e.target.value)} />
             </div>
           ))}
-          {modo === 'aula' && (
-            <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
-              <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
-              {GRUPOS_NEAE.map(g => (
-                <div key={g.titulo} className="ap-neae">
-                  <div className="ap-neae-ttl">{t(g.titulo)}</div>
-                  <div className="chip-row">
-                    {g.categorias.map(c => {
-                      const on = (acs.categorias ?? []).includes(c);
-                      return (
-                        <button key={c} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}
-                          onClick={() => set('categorias', on ? (acs.categorias ?? []).filter(x => x !== c) : [...(acs.categorias ?? []), c])}>{t(c)}</button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </fieldset>
-          )}
           {modelo.id === 'madrid' && (
             <div className="fgroup">
               <label className="flabel" htmlFor="acs-organismo">{t('Evaluación y dictamen de')}</label>

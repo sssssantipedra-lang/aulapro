@@ -128,3 +128,5 @@ Pendiente:
 - Privacidad: un nombre que no está en la lista del alumnado (un familiar, un compañero) escrito a mano no se puede tapar solo. Se podría avisar en pantalla.
 - La licencia anual tiene que estar lista antes del 16-4-2027, y la oferta de lanzamiento termina el 15-4-2027 (`docs/WEB.md`, apartado 5).
 - Caché de los instaladores y versión en `/descargar`: solo importa si se vuelve a las apps nativas (`docs/WEB.md`).
+
+- [ ] (4-11-2026) Volver a sacar la captura de la portada `web/sitio/assets/portada/rubrica.webp`: aún enseña el bloque «Evaluar trabajo con IA», apagado desde el 3-11-2026. Se hace con `scripts/web/capturar-portada.mjs`. La captura de la sección de IA (`assets/app/rubrica.webp`) ya se recortó sin ese bloque.

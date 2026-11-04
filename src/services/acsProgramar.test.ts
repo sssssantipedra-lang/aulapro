@@ -20,7 +20,7 @@ import type { AlumnoApoyo, CursoDe } from '../types/apoyo';
 const nombreCurso = (c: CursoDe) => `${c.curso}º ${c.etapa === 'primaria' ? 'Primaria' : 'ESO'}`;
 const alumno: AlumnoApoyo = {
   id: 'a1', nombre: 'Lucía Pérez Gómez', claseOrigen: '1º ESO B', matricula: { etapa: 'eso', curso: 1 }, nivel: { etapa: 'primaria', curso: 4 },
-  categorias: ['Discapacidad intelectual'], diagnostico: 'Dato de salud', necesidades: '', notas: '',
+  necesidades: '', notas: '',
 };
 let n = 0;
 const id = (p: string) => `${p}${++n}`;
@@ -115,7 +115,7 @@ describe('del especialista al docente de aula', () => {
     const abierto = await descifrarCopia(await blob.text(), 'CLAVE-DE-PRUEBA-1');
     const recibidas = acsDelArchivo(abierto, 'stu-9', id);
     expect(recibidas).toHaveLength(1);
-    expect(recibidas[0]).toMatchObject({ alumnoId: 'stu-9', area: acs.area, criterios: acs.criterios, categorias: ['Discapacidad intelectual'] });
+    expect(recibidas[0]).toMatchObject({ alumnoId: 'stu-9', area: acs.area, criterios: acs.criterios, });
     expect(recibidas[0].id).not.toBe(acs.id);
     expect(recibidas[0].objetivos?.[0].texto).toBe('Resolver problemas de una operación con material');
   });
