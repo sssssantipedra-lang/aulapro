@@ -7,6 +7,11 @@ export async function mover(p, loc, { pasos = 28, espera = 350 } = {}) {
   await el.scrollIntoViewIfNeeded().catch(() => {});
   const b = await el.boundingBox();
   if (!b) return;
+  // El subtítulo se pasa arriba cuando lo que se va a pulsar queda abajo, para no tapar botones
+  await p.evaluate(y => {
+    const s = document.getElementById('v-sub');
+    if (s) { s.style.top = y > 500 ? '14px' : 'auto'; s.style.bottom = y > 500 ? 'auto' : '26px'; }
+  }, b.y + b.height / 2);
   await p.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: pasos });
   await p.waitForTimeout(espera);
 }
