@@ -48,8 +48,10 @@ await guion.antes?.(page, ctx);
 await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
 await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
 await page.waitForTimeout(2500);
-await page.getByText('Explorar con datos de ejemplo').click();
-await page.waitForTimeout(4500);
+if (!guion.sinDemo) {
+  await page.getByText('Explorar con datos de ejemplo').click();
+  await page.waitForTimeout(4500);
+}
 await guion.despues?.(page, ctx);   // preparar lo que ese vídeo necesita (clave de ejemplo, respuesta de la IA…)
 // Cursor visible y subtítulos
 await page.addStyleTag({ content: `
