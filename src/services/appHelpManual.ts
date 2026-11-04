@@ -1202,7 +1202,11 @@ vuelve con «← Configuración»:
   cambian el menú y el Inicio; no se borra nada.
 - CLAVE DE LA IA: la CLAVE API GRATUITA DE GOOGLE que activa toda la IA, en tres
   pasos: «Abrir AI Studio», crear y copiar la clave («Create API key»), y
-  «Pegar mi clave», que la guarda y comprueba que funciona. También explica el
+  «Pegar mi clave», que la guarda y comprueba que funciona. ANTES de poder
+  pegarla hay que marcar una casilla («He leído esto, lo entiendo y me hago
+  responsable del uso de la IA con los datos de mi alumnado») junto al texto
+  que dice qué se envía a Google y qué no; hasta marcarla, los botones de
+  pegar y guardar están apagados. También explica el
   plan gratuito: las tareas grandes (SdA, fichas, informes, rúbricas, dianas)
   usan Gemini 3.8 Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas
   500 al día. Si se gastan las 20, sigue sola con Flash-Lite hasta las 9:00.

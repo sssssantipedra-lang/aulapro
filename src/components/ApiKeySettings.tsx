@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Sparkles, ExternalLink, ShieldCheck, ClipboardPaste, CheckCircle2, AlertTriangle, Gauge } from 'lucide-react';
+import { Eye, EyeOff, Sparkles, ExternalLink, ClipboardPaste, CheckCircle2, AlertTriangle, Gauge } from 'lucide-react';
 import { getApiKey, setApiKey, mainModelPausedUntil } from '../services/gemini';
 import { looksLikeKey } from '../lib/apiKey';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
+import { usoIaAceptado, aceptarUsoIa } from '../lib/usoIA';
+import { AceptarUsoIA } from './AceptarUsoIA';
 
 const AI_STUDIO_URL = 'https://aistudio.google.com/apikey';
 
@@ -36,6 +38,10 @@ export function ApiKeySettings() {
   const [visible, setVisible] = useState(false);
   const [check, setCheck] = useState<Check>({ state: 'idle' });
   const [showManual, setShowManual] = useState(false);
+  const [aceptado, setAceptado] = useState(usoIaAceptado());
+  const [marcada, setMarcada] = useState(false);
+  const puede = aceptado || marcada;   // sin aceptar cómo se tratan los datos, no se guarda la clave
+  const cambioCasilla = (v: boolean) => { setMarcada(v); if (v) { aceptarUsoIa(); setAceptado(true); } };
 
   const saved = getApiKey();
   const dirty = key.trim() !== saved;
@@ -43,6 +49,7 @@ export function ApiKeySettings() {
 
   async function save(k: string) {
     const v = k.trim();
+    if (v && !puede) { toast(t('Primero marca la casilla de arriba')); return; }
     setKey(v);
     setApiKey(v);
     if (!v) { setCheck({ state: 'idle' }); toast(t('Clave eliminada')); return; }
@@ -53,6 +60,7 @@ export function ApiKeySettings() {
   }
 
   async function pasteKey() {
+    if (!puede) { toast(t('Primero marca la casilla de arriba')); return; }
     try {
       const text = (await navigator.clipboard.readText()).trim();
       if (!looksLikeKey(text)) {
@@ -85,7 +93,7 @@ export function ApiKeySettings() {
       title: 'Vuelve aquí y pégala',
       body: 'Un clic y listo: la aplicación la guarda y comprueba que funciona.',
       action: (
-        <button type="button" className="btn-accent ak-btn" onClick={pasteKey} disabled={check.state === 'checking'}>
+        <button type="button" className="btn-accent ak-btn" onClick={pasteKey} disabled={check.state === 'checking' || !puede}>
           {check.state === 'checking' ? <span className="spin" /> : <ClipboardPaste size={14} />}{t('Pegar mi clave')}
         </button>
       ),
@@ -102,6 +110,8 @@ export function ApiKeySettings() {
       <p className="ak-intro">
         {t('La IA (situaciones de aprendizaje, fichas, rúbricas, informes…) funciona con una clave')} <strong>{t('gratuita')}</strong>{t(' de Google. Se guarda solo en este equipo y nunca se comparte.')}
       </p>
+
+      <AceptarUsoIA aceptado={aceptado} marcada={marcada} onCambio={cambioCasilla} />
 
       {!saved || check.state === 'bad' ? (
         <ol className="ak-steps">
@@ -155,7 +165,7 @@ export function ApiKeySettings() {
               {visible ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          <button className="btn-accent" onClick={() => save(key)} disabled={!dirty || check.state === 'checking'} style={{ height: 44 }}>
+          <button className="btn-accent" onClick={() => save(key)} disabled={!dirty || check.state === 'checking' || (!puede && !!key.trim())} style={{ height: 44 }}>
             {t('Guardar')}
           </button>
         </div>
@@ -178,10 +188,6 @@ export function ApiKeySettings() {
         </div>
       </div>
 
-      <p className="ak-privacy">
-        <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
-        <span>{t('Los nombres de tu alumnado no salen de este dispositivo: antes de enviar nada a Google se cambian por códigos, distintos en cada petición, y al recibir la respuesta se vuelven a poner. Tampoco salen datos de salud: AulaPro no guarda diagnósticos ni categorías, un diagnóstico, un trastorno o una medicación escritos en un texto se cambian por «[dato de salud]», y la IA no lee el informe del orientador. De un documento solo se envía su texto, sin nombres, correos, teléfonos ni DNI, y todo esto se hace aquí, en tu dispositivo. Un nombre que no esté en tus listas (un apodo, un familiar) no se puede tapar solo: evita escribirlo. La IA propone borradores y no pone notas. Desde el Espacio Económico Europeo, según las condiciones de la API de Gemini, Google aplica también a la clave gratuita las reglas de la de pago: no usa lo que envías para entrenar sus modelos ni para mejorar sus productos.')}</span>
-      </p>
     </div>
   );
 }
