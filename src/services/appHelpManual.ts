@@ -519,7 +519,7 @@ recibe su propia copia, que se puede retocar sin cambiar las demás.
 Fichas de trabajo con historia, generadas con la IA a partir de un tema, el
 área y el nivel. Para el profesorado de PT y AL, en vez de «Clase» sale
 «Adaptada a»: al elegir a un alumno de apoyo se rellenan su nivel y, en «Más
-opciones», lo que se le cuenta a la IA (sus necesidades específicas, cómo
+opciones», lo que se le cuenta a la IA (sus apoyos, sus barreras, cómo
 aprende y sus objetivos de este trimestre, sin su nombre ni su diagnóstico),
 que se puede cambiar antes de crearla. Se elige «el mundo de la historia» (Misión espacial, Selva,
 Detectives, Submarina, Superhéroes, La gran final, Jurásico, Piratas, Magia,
@@ -1058,15 +1058,13 @@ alumno» pide lo mínimo: nombre y apellidos, clase de origen («2º B»), curso
 que está matriculado, nivel de competencia curricular (el curso cuyo currículo
 trabaja) y su GRUPO DE APOYO: se marcan los que hay o «Crear un grupo nuevo»
 (nombre, dentro o fuera del aula y su horario, y el alumno entra en él al
-guardar; si no se escribe nombre, no se crea). Plegado en «Necesidades,
-diagnóstico y notas» (abierto al editar a un alumno que ya existe) están las
-necesidades específicas de apoyo educativo (se marcan todas las que tenga, en
-dos grupos: las necesidades educativas especiales, con discapacidad
-intelectual, motora, auditiva o visual, TEA, trastorno grave de conducta o de
-la comunicación y pluridiscapacidad, y las demás, como TDAH, dificultades
-específicas de aprendizaje, TDL o altas capacidades; «Otra que no esté en la
-lista» añade una escrita a mano), el diagnóstico, las necesidades educativas
-(barreras, fortalezas y qué le ayuda) y las notas: se pueden completar después.
+guardar; si no se escribe nombre, no se crea). Plegado en «Barreras de
+aprendizaje, apoyos y notas» (abierto al editar a un alumno que ya existe) están
+los apoyos que necesita en el aula (se marcan), sus barreras de aprendizaje (qué
+le cuesta, qué le ayuda y sus fortalezas, por ejemplo «le cuesta la
+lectoescritura») y las notas: se pueden completar después. AulaPro no guarda el
+diagnóstico ni la categoría de necesidades específicas: lo que sirve para adaptar
+son las barreras.
 GRUPOS («Nuevo grupo»): uno por cada sesión que se da («Lectoescritura, lunes
 9:00»; un alumno que se atiende solo es un grupo de uno), con su nombre, si es
 dentro o fuera del aula, su horario (una o varias sesiones a la semana, con día,
@@ -1102,8 +1100,8 @@ siguiente de hoy; si hoy no tiene, en su primer grupo). Debajo, seis pestañas:
   visual, instrucciones cortas, más tiempo, anticipación…) es lo que la IA
   tiene en cuenta para adaptar. INFORME DEL ORIENTADOR: la IA no lo lee. Con
   «Anotar lo que dice el informe» el docente apunta sus fortalezas, las
-  orientaciones, los programas que sugiere, los objetivos nuevos y los apoyos;
-  el diagnóstico y la categoría se quedan en el dispositivo. Con eso, «Crear sus
+  orientaciones, los programas que sugiere, los objetivos nuevos, las barreras de
+  aprendizaje y los apoyos. Con eso, «Crear sus
   programas con IA» crea los programas con los objetivos del informe y la IA
   propone otros además, sin conocer el diagnóstico.
 
@@ -1123,9 +1121,8 @@ y enlazados con criterios de su nivel (de Lengua en lectoescritura y lenguaje,
 de Matemáticas en matemáticas, de todas en una ACIS, ninguno en atención o
 conducta), apoyándose en la normativa de inclusión de la comunidad y en los
 autores de referencia; se revisan y se cambian a mano. La IA recibe su nivel,
-los apoyos que necesita, sus necesidades educativas y tus notas, con el nombre
-cambiado por un código y sin datos de salud: nunca el diagnóstico ni la
-categoría de necesidades específicas. Necesita la clave de la IA.
+los apoyos que necesita, sus barreras de aprendizaje y tus notas, con el nombre
+cambiado por un código y sin datos de salud. Necesita la clave de la IA.
 Debajo de cada objetivo con registros, su GRÁFICA sesión a sesión: un punto por
 sesión a tres alturas (✓ conseguido arriba, – en proceso, ✗ no conseguido
 abajo), con la fecha al pasar por encima; se ven las 24 últimas. Para una

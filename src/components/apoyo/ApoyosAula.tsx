@@ -14,7 +14,7 @@ export function ApoyosAula({ value, onChange }: { value: readonly string[]; onCh
     <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
       <legend className="flabel">{t('Apoyos que necesita en el aula')}</legend>
       <p className="ap-aviso" style={{ margin: '0 0 8px' }}>
-        {t('Marca lo que le ayuda. Es lo que la IA tiene en cuenta para adaptar: su diagnóstico y su categoría no salen de tu dispositivo.')}
+        {t('Marca lo que le ayuda. Es lo que la IA tiene en cuenta para adaptar, junto con sus barreras de aprendizaje.')}
       </p>
       <div className="chip-row">
         {APOYOS_AULA.map(x => {

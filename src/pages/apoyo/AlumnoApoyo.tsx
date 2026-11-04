@@ -132,7 +132,6 @@ export function AlumnoApoyo({ data, onChange, especialidades, comunidad, docente
             {alumno.nivel && (
               <span className={`sda-chip${tieneDesfase(alumno) ? ' shared' : ''}`}>{t('Nivel de {curso}', { curso: nombreCurso(alumno.nivel) })}</span>
             )}
-            {alumno.categorias.map(c => <span key={c} className="sda-chip">{t(c)}</span>)}
             {conAmbas && especialidadesSuyas.length > 0 && <span className="sda-chip">{especialidadesSuyas.join(' · ')}</span>}
           </div>
         </div>
@@ -446,10 +445,8 @@ function Datos({ alumno, data, onChange, onEditar, onNav, especialidades, comuni
     [t('Clase de origen'), alumno.claseOrigen],
     [t('Curso en que está matriculado'), alumno.matricula ? nombreCurso(alumno.matricula) : ''],
     [t('Nivel de competencia curricular'), alumno.nivel ? nombreCurso(alumno.nivel) : t('El de su curso')],
-    [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')],
-    [t('Diagnóstico'), alumno.diagnostico],
     [t('Apoyos que necesita en el aula'), (alumno.apoyos ?? []).map(x => t(x)).join(', ')],
-    [t('Necesidades educativas'), alumno.necesidades],
+    [t('Barreras de aprendizaje'), alumno.necesidades],
     [t('Notas'), alumno.notas],
   ];
   const alternar = (g: GrupoApoyo) => onChange(d => ({

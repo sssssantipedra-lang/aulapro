@@ -19,7 +19,7 @@ import { proponerObjetivos } from '../../services/apoyoIA';
 import { conInforme, propuestaDesdeFicha, type PropuestaInforme } from '../../services/informeOrientacion';
 import { ApoyosAula } from '../../components/apoyo/ApoyosAula';
 import { isoDate } from '../../lib/utils';
-import { ambitosDe, CATEGORIAS_NEAE, nivelDe, nuevoIdApoyo, objetivosPendientes, pasarAProgramas, yaEstaEnPrograma } from '../../lib/apoyo';
+import { ambitosDe, nivelDe, nuevoIdApoyo, objetivosPendientes, pasarAProgramas, yaEstaEnPrograma } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
 import type { AlumnoApoyo, ApoyoData, Especialidad, ObjetivoOrientacion, ProgramaApoyo } from '../../types/apoyo';
 import type { Section } from '../../types';
@@ -163,24 +163,9 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
       <Modal open={abierto} onClose={() => setAbierto(false)} wide title={t('Informe del orientador')}>
         {propuesta && (
           <div className="ap-form">
-            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Anota lo que dice el informe. La IA no lo lee: su diagnóstico y su categoría se quedan en tu dispositivo, y para adaptar recibe solo los apoyos que necesita, sus necesidades educativas y las orientaciones, sin datos de salud.')}</p>
-            <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
-              <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
-              <div className="chip-row">
-                {[...new Set([...propuesta.categorias, ...CATEGORIAS_NEAE.filter(c => alumno.categorias.includes(c))])].map(c => {
-                  const on = propuesta.categorias.includes(c);
-                  return <button key={c} type="button" className={`chip sm accent${on ? ' on' : ''}`} aria-pressed={on}
-                    onClick={() => edit({ categorias: on ? propuesta.categorias.filter(x => x !== c) : [...propuesta.categorias, c] })}>{on && <Check size={12} />}{t(c)}</button>;
-                })}
-                {propuesta.categorias.length === 0 && alumno.categorias.length === 0 && <span className="ap-sub">{t('El informe no dice ninguna.')}</span>}
-              </div>
-            </fieldset>
+            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Anota lo que dice el informe. La IA no lo lee: para adaptar recibe solo los apoyos que necesita, sus barreras de aprendizaje y las orientaciones, sin datos de salud.')}</p>
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
-              <label className="flabel" htmlFor="ap-inf-diag">{t('Diagnóstico')}</label>
-              <input id="ap-inf-diag" className="finput" value={propuesta.diagnostico} onChange={e => edit({ diagnostico: e.target.value })} />
-            </div>
-            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
-              <label className="flabel" htmlFor="ap-inf-nec">{t('Necesidades educativas')}</label>
+              <label className="flabel" htmlFor="ap-inf-nec">{t('Barreras de aprendizaje')}</label>
               <textarea id="ap-inf-nec" className="finput" rows={4} value={propuesta.necesidades} onChange={e => edit({ necesidades: e.target.value })} />
             </div>
             <ApoyosAula value={propuesta.apoyos} onChange={apoyos => edit({ apoyos })} />

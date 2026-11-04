@@ -33,19 +33,14 @@ export interface AlumnoApoyo {
    */
   nivel?: CursoDe;
   /**
-   * Sus necesidades específicas de apoyo educativo: puede tener varias. Las de
-   * la lista (`GRUPOS_NEAE`) se guardan con su texto en castellano y se
-   * traducen al mostrarlas; las escritas a mano, tal cual.
+   * Las barreras de aprendizaje del alumno: qué le cuesta, qué le ayuda, sus fortalezas (p. ej. «le cuesta la lectoescritura»).
+   * AulaPro no guarda ni pide diagnóstico ni categoría NEAE (3-11-2026, decisión del dueño tras la revisión de su abogado):
+   * lo que importa para adaptar son las barreras, no el origen. Un dato antiguo se descarta al abrir el perfil.
    */
-  categorias: string[];
-  /** Dato de salud: se guarda en el equipo. Ver `docs/PTAL.md`, «Datos y IA». */
-  diagnostico: string;
-  /** Sus necesidades en términos educativos: barreras, fortalezas, qué le ayuda. */
   necesidades: string;
   /**
    * Los apoyos que necesita en el aula, de la lista `APOYOS_AULA` (texto en castellano, se traduce al mostrarlo).
-   * Es lo que se deriva de su diagnóstico sin decirlo, y lo que la IA recibe para adaptar (3-11-2026, revisión del
-   * abogado del dueño): el diagnóstico y la categoría no salen del dispositivo.
+   * Es lo que la IA recibe para adaptar, junto con sus barreras.
    */
   apoyos?: string[];
   notas: string;

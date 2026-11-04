@@ -24,7 +24,7 @@ const reg = (alumnoId: string, objetivos: Record<string, 'si' | 'proceso' | 'no'
 
 const data: ApoyoData = {
   alumnos: [{ id: 'a1', nombre: 'Marta Gil', claseOrigen: '4º B', matricula: { etapa: 'primaria', curso: 4 },
-    nivel: { etapa: 'primaria', curso: 2 }, categorias: ['NEE'], diagnostico: 'Discapacidad intelectual leve', necesidades: '', notas: '' }],
+    nivel: { etapa: 'primaria', curso: 2 }, necesidades: '', notas: '' }],
   grupos: [{ id: 'g1', nombre: 'Lectoescritura', especialidad: 'PT', modalidad: 'fuera', color: '#000', alumnos: ['a1'],
     horario: [{ dia: 0, inicio: '09:00', fin: '09:45' }] }],
   programas: [

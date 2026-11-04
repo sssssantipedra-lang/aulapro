@@ -36,8 +36,7 @@ export async function leerArchivoInforme(file: File): Promise<FuenteInforme> {
 }
 
 export interface PropuestaInforme {
-  categorias: string[];
-  diagnostico: string;
+  /** Sus barreras de aprendizaje (`AlumnoApoyo.necesidades`). */
   necesidades: string;
   /** Los apoyos que necesita en el aula (`APOYOS_AULA`). */
   apoyos: string[];
@@ -52,7 +51,7 @@ export interface PropuestaInforme {
 /** Lo que ya tiene su ficha, para empezar a anotar el informe sobre ello. */
 export function propuestaDesdeFicha(a: AlumnoApoyo): PropuestaInforme {
   return {
-    categorias: [...a.categorias], diagnostico: a.diagnostico, necesidades: a.necesidades, apoyos: [...(a.apoyos ?? [])],
+    necesidades: a.necesidades, apoyos: [...(a.apoyos ?? [])],
     fortalezas: a.informe?.fortalezas ?? '', orientaciones: a.informe?.orientaciones ?? '', ambitos: [...(a.informe?.ambitos ?? [])],
     objetivos: [],
   };
@@ -68,8 +67,6 @@ export function conInforme(a: AlumnoApoyo, p: PropuestaInforme, archivo: string 
   };
   return conObjetivosOrientacion({
     ...a,
-    categorias: [...new Set(p.categorias)],
-    diagnostico: p.diagnostico.trim(),
     necesidades: p.necesidades.trim(),
     ...(p.apoyos.length ? { apoyos: [...new Set(p.apoyos)] } : { apoyos: undefined }),
     ...(p.nivel ? { nivel: p.nivel } : {}),

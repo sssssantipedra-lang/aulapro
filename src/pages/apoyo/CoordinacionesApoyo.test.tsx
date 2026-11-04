@@ -16,8 +16,8 @@ import type { ApoyoData } from '../../types/apoyo';
 const inicial: ApoyoData = {
   ...APOYO_VACIO,
   alumnos: [
-    { id: 'a1', nombre: 'Alumno 1', claseOrigen: '4º B', categorias: [], diagnostico: '', necesidades: '', notas: '' },
-    { id: 'a2', nombre: 'Alumno 2', claseOrigen: '3º A', categorias: [], diagnostico: '', necesidades: '', notas: '' },
+    { id: 'a1', nombre: 'Alumno 1', claseOrigen: '4º B', necesidades: '', notas: '' },
+    { id: 'a2', nombre: 'Alumno 2', claseOrigen: '3º A', necesidades: '', notas: '' },
   ],
   coordinaciones: [{ id: 'c0', alumnoId: 'a2', fecha: '2026-09-30', con: 'tutoria', asistentes: '', temas: 'Lectura en clase', acuerdos: '' }],
 };

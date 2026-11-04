@@ -4,24 +4,24 @@ import { alumnoParaIA } from './apoyoIA';
 import type { AlumnoApoyo } from '../types/apoyo';
 
 const alumno = (extra: Partial<AlumnoApoyo> = {}): AlumnoApoyo => ({
-  id: 'a', nombre: 'Alumno 1', claseOrigen: '3º B', categorias: ['Trastorno del espectro del autismo (TEA)'], diagnostico: 'TEA grado 1', necesidades: 'Necesita anticipación.', notas: '', ...extra,
+  id: 'a', nombre: 'Alumno 1', claseOrigen: '3º B', necesidades: 'Necesita anticipación.', notas: '', ...extra,
 });
 
 describe('anotar el informe (sin IA, 3-11-2026)', () => {
   it('parte de lo que ya tiene su ficha', () => {
     const p = propuestaDesdeFicha(alumno({ apoyos: ['Apoyo visual (imágenes, pictogramas, esquemas)'], informe: { fecha: '2026-10-01', fortalezas: 'f', orientaciones: 'o', ambitos: ['Lectoescritura'] } }));
-    expect(p.categorias).toEqual(['Trastorno del espectro del autismo (TEA)']);
-    expect(p.diagnostico).toBe('TEA grado 1');
+    expect(p).not.toHaveProperty('categorias');
+    expect(p).not.toHaveProperty('diagnostico');
     expect(p.apoyos).toEqual(['Apoyo visual (imágenes, pictogramas, esquemas)']);
     expect(p.ambitos).toEqual(['Lectoescritura']);
     expect(p.objetivos).toEqual([]);
   });
 
   it('guarda lo anotado, también lo que se quita, sin archivo, y suma los objetivos nuevos', () => {
-    const p = { ...propuestaDesdeFicha(alumno()), categorias: ['Discapacidad intelectual'], necesidades: 'Nuevas necesidades.', apoyos: ['Pausas activas'], fortalezas: 'f', orientaciones: 'o',
+    const p = { ...propuestaDesdeFicha(alumno()), necesidades: 'Nuevas necesidades.', apoyos: ['Pausas activas'], fortalezas: 'f', orientaciones: 'o',
       objetivos: [{ id: 'x', texto: 'Reconocer las letras', ambito: 'Lectoescritura', trimestres: [1, 2] as (1 | 2 | 3)[], origen: 'informe' as const }] };
     const a = conInforme(alumno(), p, undefined, '2026-11-03');
-    expect(a.categorias).toEqual(['Discapacidad intelectual']);
+    expect(a).not.toHaveProperty('categorias');
     expect(a.necesidades).toBe('Nuevas necesidades.');
     expect(a.apoyos).toEqual(['Pausas activas']);
     expect(a.informe).toEqual({ fecha: '2026-11-03', fortalezas: 'f', orientaciones: 'o', ambitos: [] });
