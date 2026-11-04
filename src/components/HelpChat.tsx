@@ -20,6 +20,7 @@ import { splitJump, targetLabel } from '../services/appHelp';
 import { RichText } from './ui/RichText';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
+import { usoIaAceptado } from '../lib/usoIA';
 import { requestSettingsPanel } from '../lib/settingsNav';
 
 /**
@@ -174,20 +175,29 @@ export function HelpChat({ section, onNav }: Props) {
                 {t('Conseguir mi clave gratuita')} <ExternalLink size={12} />
               </a>
 
+              {usoIaAceptado() ? (
+                <>
               <input
-                className="finput"
-                type="password"
-                placeholder={t('Pega aquí tu clave')}
-                value={keyDraft}
-                onChange={e => setKeyDraft(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') guardarClave(); }}
-                autoComplete="off"
-                spellCheck={false}
-                style={{ marginBottom: 10 }}
-              />
-              <button className="btn-accent" style={{ justifyContent: 'center' }} onClick={guardarClave} type="button">
-                {t('Guardar y empezar')}
-              </button>
+                  className="finput"
+                  type="password"
+                  placeholder={t('Pega aquí tu clave')}
+                  value={keyDraft}
+                  onChange={e => setKeyDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') guardarClave(); }}
+                  autoComplete="off"
+                  spellCheck={false}
+                  style={{ marginBottom: 10 }}
+                />
+                <button className="btn-accent" style={{ justifyContent: 'center' }} onClick={guardarClave} type="button">
+                  {t('Guardar y empezar')}
+                </button>
+                </>
+              ) : (
+                <button className="btn-accent" style={{ justifyContent: 'center' }} type="button"
+                  onClick={() => { requestSettingsPanel('ia'); onNav('profile'); setOpen(false); }}>
+                  {t('Leer y aceptar cómo se tratan los datos')}
+                </button>
+              )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
