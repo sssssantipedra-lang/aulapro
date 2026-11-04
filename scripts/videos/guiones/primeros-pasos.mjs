@@ -10,13 +10,14 @@ export default {
   escenas: [
     { texto: 'Para empezar, escribe tu nombre, elige tu comunidad y pulsa «Empezar a usar AulaPro».',
       hacer: async p => {
-        await clicar(p, p.locator('input').first(), rapido);
-        await p.keyboard.type('Profesor', { delay: 60 });
+        await esperar(p, 900);
+        await clicar(p, p.locator('input').first(), { pasos: 16, espera: 200, despues: 200 });
+        await p.keyboard.type('Profesor', { delay: 90 });
         const sel = p.locator('select').last();
-        await mover(p, sel, rapido);
+        await mover(p, sel, { pasos: 14, espera: 300 });
         await sel.selectOption({ label: 'Comunitat Valenciana' });
-        await esperar(p, 400);
-        await clicar(p, p.getByText('Empezar a usar AulaPro'), { ...rapido, despues: 2500 });
+        await esperar(p, 700);
+        await clicar(p, p.getByText('Empezar a usar AulaPro'), { pasos: 14, espera: 300, despues: 2000 });
       } },
     { texto: 'En Mis clases, pulsa «Nueva clase», ponle nombre, elige etapa, curso y asignatura, y créala.',
       hacer: async p => {
