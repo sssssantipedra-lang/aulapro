@@ -21,6 +21,7 @@ describe('aceptar el uso de la IA la primera vez que se va a conseguir la clave 
     expect(usoIaAceptado()).toBe(false);
 
     const d = dialogo();
+    expect(within(d).getByRole('link', { name: 'Política de privacidad' }).getAttribute('href')).toBe('../privacidad.html');
     const continuar = within(d).getByRole('button', { name: 'Continuar' }) as HTMLButtonElement;
     expect(continuar.disabled).toBe(true);
     expect(d.textContent).toMatch(/Acepto el uso de la IA en AulaPro y las responsabilidades/);
@@ -30,6 +31,10 @@ describe('aceptar el uso de la IA la primera vez que se va a conseguir la clave 
     expect(panel.textContent).toMatch(/AulaPro no guarda ni pide diagnósticos/);
     expect(panel.textContent).toMatch(/Espacio Económico Europeo/);
     expect(panel.textContent).toMatch(/responde de los datos del alumnado/);
+    expect(panel.textContent).toMatch(/no se usa para evaluar ni para poner notas: se usa para dar recomendaciones/);
+    expect(panel.textContent).toMatch(/decisión final sobre cómo hacerlo es siempre del docente/);
+    expect(panel.querySelectorAll('strong').length).toBeGreaterThan(5);
+    expect(within(panel).getByRole('link', { name: 'Leer la política de privacidad' }).getAttribute('href')).toBe('../privacidad.html');
     await userEvent.click(within(panel).getAllByRole('button', { name: 'Cerrar' }).at(-1)!);
 
     await userEvent.click(within(dialogo()).getByRole('checkbox'));
