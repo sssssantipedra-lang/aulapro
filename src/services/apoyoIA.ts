@@ -97,6 +97,7 @@ export function alumnoParaIA(a: AlumnoApoyo, nombreCurso: (c: CursoDe) => string
     `Alumno: ${a.nombre}`,
     a.matricula ? `Matriculado en ${nombreCurso(a.matricula)}${a.claseOrigen ? ` (${a.claseOrigen})` : ''}` : (a.claseOrigen ? `Clase: ${a.claseOrigen}` : ''),
     nivel ? `Nivel de competencia curricular: ${nombreCurso(nivel)}` : '',
+    a.apoyos?.length ? `Apoyos que necesita en el aula: ${a.apoyos.join('; ')}` : '',
     a.necesidades ? `Necesidades educativas: ${textoLibreParaIA(a.necesidades)}` : '',
     a.notas ? `Notas del especialista: ${textoLibreParaIA(a.notas)}` : '',
     a.informe?.fortalezas ? `Fortalezas (informe del orientador): ${textoLibreParaIA(a.informe.fortalezas)}` : '',

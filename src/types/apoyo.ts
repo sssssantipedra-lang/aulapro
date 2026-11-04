@@ -42,6 +42,12 @@ export interface AlumnoApoyo {
   diagnostico: string;
   /** Sus necesidades en términos educativos: barreras, fortalezas, qué le ayuda. */
   necesidades: string;
+  /**
+   * Los apoyos que necesita en el aula, de la lista `APOYOS_AULA` (texto en castellano, se traduce al mostrarlo).
+   * Es lo que se deriva de su diagnóstico sin decirlo, y lo que la IA recibe para adaptar (3-11-2026, revisión del
+   * abogado del dueño): el diagnóstico y la categoría no salen del dispositivo.
+   */
+  apoyos?: string[];
   notas: string;
   /**
    * Lo que se sacó de su informe sociopsicopedagógico (el del orientador): solo las conclusiones, no el

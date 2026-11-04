@@ -342,3 +342,13 @@ Orientan lo que propone la IA. Lista revisada por el dueño el 4-10-2026.
   - el informe trimestral a la familia, si el centro tiene uno;
   - el PI de Cataluña;
   - el documento de Madrid.
+
+## La IA no lee el informe del orientador (3-11-2026)
+
+Tras la revisión del abogado del dueño («evitaría que se envíen a Google datos de si un crío tiene TEA, TDAH y similares; aunque cambies los nombres por códigos, siguen siendo datos especialmente protegidos»), y a propuesta del dueño («solo las necesidades derivadas de su diagnóstico»):
+
+- **La IA ya no lee el informe sociopsicopedagógico.** «Anotar lo que dice el informe» (`InformeOrientacionApoyo.tsx`) abre la misma ficha de antes, rellena con lo que ya tiene el alumno (`propuestaDesdeFicha`), y el docente apunta las fortalezas, las orientaciones, los programas que sugiere, los objetivos nuevos, la categoría y el diagnóstico (estos dos, solo en el dispositivo). Se fue `analizarInforme`. `leerArchivoInforme` sigue para la programación de aula del tutor.
+- **«Apoyos que necesita en el aula»** (`APOYOS_AULA` en `lib/apoyo.ts`, `AlumnoApoyo.apoyos`, `components/apoyo/ApoyosAula.tsx`): veinte apoyos que se marcan en la ficha (apoyo visual, instrucciones cortas, anticipación, más tiempo…). Es lo que se deriva del diagnóstico sin decirlo y lo que reciben la IA (`alumnoParaIA`) y la ficha adaptada de Recursos (`contextoFichaApoyo`, que hasta este cambio enviaba la categoría NEAE).
+- La categoría y el diagnóstico siguen en la ficha porque los piden los documentos oficiales (PAP, ACS), que se hacen en el dispositivo.
+- **Lo que se pierde:** que la IA rellenara la ficha y los objetivos leyendo el informe. Los objetivos del informe se escriben a mano en «Objetivos nuevos que plantea el informe» o en «Objetivos de la orientación».
+

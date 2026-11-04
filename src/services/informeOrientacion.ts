@@ -1,16 +1,17 @@
 /**
- * El informe sociopsicopedagógico del orientador: la app lo lee una vez con la IA y propone, para la ficha del
- * alumno, lo que dice de él (necesidades, nivel, fortalezas, orientaciones y los programas que sugiere). El docente
- * lo revisa antes de guardarlo. El informe no se guarda: solo esas conclusiones. Ver `docs/PTAL.md`, «El informe
- * del orientador».
+ * El informe sociopsicopedagógico del orientador. Desde el 3-11-2026 (revisión del abogado del dueño: un informe
+ * describe el cuadro clínico con frases que ningún filtro reconoce del todo) **la IA no lo lee**: el docente anota en
+ * la ficha lo que dice (fortalezas, orientaciones, programas, objetivos y los apoyos que necesita en el aula), y la IA
+ * solo recibe eso, sin diagnóstico ni categoría. El informe no se guarda. Ver `docs/PTAL.md`, «El informe del
+ * orientador».
+ *
+ * `leerArchivoInforme` sigue sirviendo para la programación de aula del tutor (`AdaptacionApoyo`), que no lleva datos
+ * de salud del alumno.
  */
-import { callGemini, parseGeminiJson } from './gemini';
-import { marcoApoyo } from './apoyoIA';
 import { currentPseudonymizer } from './privacy';
-import { CATEGORIAS_NEAE, conObjetivosOrientacion, nuevoIdApoyo } from '../lib/apoyo';
+import { conObjetivosOrientacion } from '../lib/apoyo';
 import { EXTENSIONES_DOCUMENTO, leerDocumento, textoDeDocumento } from '../lib/documentoParaIA';
-import type { ComunidadId } from '../lib/curriculum/comunidades';
-import type { AlumnoApoyo, CursoDe, InformeOrientacion, ObjetivoOrientacion, Trimestre } from '../types/apoyo';
+import type { AlumnoApoyo, CursoDe, InformeOrientacion, ObjetivoOrientacion } from '../types/apoyo';
 
 export const MAX_BYTES_INFORME = 19 * 1024 * 1024;
 export const EXTENSIONES_INFORME = EXTENSIONES_DOCUMENTO;
@@ -38,103 +39,28 @@ export interface PropuestaInforme {
   categorias: string[];
   diagnostico: string;
   necesidades: string;
+  /** Los apoyos que necesita en el aula (`APOYOS_AULA`). */
+  apoyos: string[];
   nivel?: CursoDe;
   fortalezas: string;
   orientaciones: string;
   ambitos: string[];
-  /** Los objetivos que el informe plantea, tal como los dice (la IA no inventa otros aquí). */
+  /** Los objetivos nuevos que el informe plantea, tal como los dice. */
   objetivos: ObjetivoOrientacion[];
 }
 
-const cadena = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
-
-/** Lo que devuelve la IA, comprobado: categorías de la lista, ámbitos de los que se ofrecen, un nivel que exista. */
-export function propuestaDeRespuesta(raw: unknown, ambitosValidos: readonly string[]): PropuestaInforme {
-  const o = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
-  const lista = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
-  const etapa = o.nivelEtapa === 'primaria' || o.nivelEtapa === 'eso' ? o.nivelEtapa : undefined;
-  const curso = Number(o.nivelCurso);
-  const max = etapa === 'primaria' ? 6 : 4;
+/** Lo que ya tiene su ficha, para empezar a anotar el informe sobre ello. */
+export function propuestaDesdeFicha(a: AlumnoApoyo): PropuestaInforme {
   return {
-    categorias: [...new Set(lista(o.categorias).filter(c => CATEGORIAS_NEAE.includes(c)))],
-    diagnostico: cadena(o.diagnostico),
-    necesidades: cadena(o.necesidades),
-    ...(etapa && Number.isInteger(curso) && curso >= 1 && curso <= max ? { nivel: { etapa, curso } } : {}),
-    fortalezas: cadena(o.fortalezas),
-    orientaciones: cadena(o.orientaciones),
-    ambitos: [...new Set(lista(o.ambitos).filter(a => ambitosValidos.includes(a)))].slice(0, 5),
-    objetivos: (Array.isArray(o.objetivos) ? o.objetivos : []).flatMap((x): ObjetivoOrientacion[] => {
-      const y = (x && typeof x === 'object' ? x : {}) as Record<string, unknown>;
-      const texto = cadena(y.texto);
-      if (!texto) return [];
-      const trimestres = lista(y.trimestres).map(Number).filter((n): n is Trimestre => n === 1 || n === 2 || n === 3);
-      const ambito = typeof y.ambito === 'string' && ambitosValidos.includes(y.ambito) ? y.ambito : undefined;
-      return [{
-        id: nuevoIdApoyo('oo'), texto, ...(ambito ? { ambito } : {}),
-        trimestres: trimestres.length ? [...new Set(trimestres)].sort() : [1, 2, 3], origen: 'informe',
-      }];
-    }).slice(0, 20),
+    categorias: [...a.categorias], diagnostico: a.diagnostico, necesidades: a.necesidades, apoyos: [...(a.apoyos ?? [])],
+    fortalezas: a.informe?.fortalezas ?? '', orientaciones: a.informe?.orientaciones ?? '', ambitos: [...(a.informe?.ambitos ?? [])],
+    objetivos: [],
   };
 }
 
-/** La IA lee el informe y propone lo que va a la ficha. `null` si no se pudo. */
-export async function analizarInforme(
-  args: {
-    fuente: FuenteInforme;
-    alumno: AlumnoApoyo;
-    /** Los ámbitos de programa que se ofrecen en su comunidad, para que la IA elija entre ellos. */
-    ambitos: readonly string[];
-    comunidad: ComunidadId | undefined;
-    lang: 'es' | 'en' | 'ca';
-  },
-  callbacks: { onStart?: () => void; onEnd?: () => void; onError?: (m: string) => void } = {},
-): Promise<PropuestaInforme | null> {
-  const { fuente, ambitos, comunidad, lang } = args;
-  const texto = textoParaRevisar(fuente.texto ?? '');
-  if (!texto) { callbacks.onError?.('Pega el texto del informe o sube un archivo.'); return null; }
-  const userPrompt =
-    'Lee el informe sociopsicopedagógico de un alumno y extrae SOLO lo que dice. Si algo no aparece, déjalo vacío: ' +
-    'no inventes cursos ni medidas. No escribas diagnósticos, trastornos, discapacidades ni datos médicos: describe lo que necesita en el aula.\n\n' +
-    '- necesidades: sus necesidades en términos educativos (barreras, cómo aprende, qué le ayuda), en 3 a 6 frases.\n' +
-    '- nivelEtapa y nivelCurso: el nivel de competencia curricular si el informe lo dice (por ejemplo, «nivel de 2.º de Primaria»); si no, "ninguna" y "0".\n' +
-    '- fortalezas: sus puntos fuertes e intereses, en 1 a 3 frases.\n' +
-    '- orientaciones: las medidas y orientaciones que propone para el centro, el aula y el apoyo de PT o AL, en 3 a 6 frases.\n' +
-    '- ambitos: los programas de apoyo que el informe hace necesarios, de la lista cerrada (como mucho 4).\n' +
-    '- objetivos: SOLO los objetivos que el informe plantea o recomienda trabajar con el alumno, uno por elemento, con las ' +
-    'palabras del informe (una frase corta, mejor si empieza por un verbo en infinitivo). En "ambito", el programa de la ' +
-    'lista cerrada al que pertenece, o "ninguno" si no encaja; en "trimestres", en cuáles se trabaja si el informe lo dice ' +
-    '(si no, los tres). Si el informe no trae objetivos, déjalos vacíos: no los inventes.' +
-    `\n\nINFORME:\n${texto.slice(0, 60000)}`;
-  const raw = await callGemini(marcoApoyo(comunidad, lang) + '\nResponde SOLO con JSON válido.', userPrompt, [], callbacks, {
-    responseSchema: {
-      type: 'OBJECT',
-      properties: {
-        necesidades: { type: 'STRING' },
-        nivelEtapa: { type: 'STRING', enum: ['primaria', 'eso', 'ninguna'] },
-        nivelCurso: { type: 'STRING', enum: ['0', '1', '2', '3', '4', '5', '6'] },
-        fortalezas: { type: 'STRING' },
-        orientaciones: { type: 'STRING' },
-        ambitos: { type: 'ARRAY', items: { type: 'STRING', enum: [...ambitos] } },
-        objetivos: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
-          texto: { type: 'STRING' },
-          ambito: { type: 'STRING', enum: [...ambitos, 'ninguno'] },
-          trimestres: { type: 'ARRAY', items: { type: 'STRING', enum: ['1', '2', '3'] } },
-        }, required: ['texto', 'ambito', 'trimestres'] } },
-      },
-      required: ['necesidades', 'nivelEtapa', 'nivelCurso', 'fortalezas', 'orientaciones', 'ambitos', 'objetivos'],
-    },
-    thinkingLevel: 'high',
-    maxOutputTokens: 8192,
-  });
-  if (!raw) return null;
-  const r = parseGeminiJson<unknown>(raw);
-  if (!r || typeof r !== 'object') { callbacks.onError?.('La IA no devolvió nada utilizable. Inténtalo de nuevo.'); return null; }
-  return propuestaDeRespuesta(r, ambitos);
-}
-
 /**
- * La ficha del alumno con lo que el docente ha dado por bueno; lo que la propuesta deja vacío no borra lo que había.
- * Los objetivos del informe se suman a los que ya hubiera de la orientación, sin repetir.
+ * La ficha del alumno con lo que el docente ha anotado del informe (la propuesta parte de su ficha, así que lo que
+ * quita, se quita). Los objetivos del informe se suman a los que ya hubiera de la orientación, sin repetir.
  */
 export function conInforme(a: AlumnoApoyo, p: PropuestaInforme, archivo: string | undefined, hoy: string): AlumnoApoyo {
   const informe: InformeOrientacion = {
@@ -142,9 +68,10 @@ export function conInforme(a: AlumnoApoyo, p: PropuestaInforme, archivo: string 
   };
   return conObjetivosOrientacion({
     ...a,
-    categorias: [...new Set([...a.categorias, ...p.categorias])],
-    diagnostico: p.diagnostico.trim() || a.diagnostico,
-    necesidades: p.necesidades.trim() || a.necesidades,
+    categorias: [...new Set(p.categorias)],
+    diagnostico: p.diagnostico.trim(),
+    necesidades: p.necesidades.trim(),
+    ...(p.apoyos.length ? { apoyos: [...new Set(p.apoyos)] } : { apoyos: undefined }),
     ...(p.nivel ? { nivel: p.nivel } : {}),
     informe,
   }, p.objetivos);

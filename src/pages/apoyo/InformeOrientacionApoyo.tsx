@@ -1,11 +1,12 @@
 /**
- * PT y AL, pestaña «Datos» de un alumno: su informe sociopsicopedagógico. Se sube (PDF o Word) o se pega, la IA lo
- * lee una vez y propone lo que va a su ficha (necesidades, nivel, fortalezas, orientaciones y programas); el docente
- * lo revisa y lo guarda. De ahí salen también sus programas con sus objetivos. El informe no se guarda, solo las
- * conclusiones. Ver `docs/PTAL.md`, «El informe del orientador».
+ * PT y AL, pestaña «Datos» de un alumno: lo que dice su informe sociopsicopedagógico. Desde el 3-11-2026 (revisión
+ * del abogado del dueño) la IA no lee el informe: el docente anota en su ficha lo que dice (fortalezas,
+ * orientaciones, programas, objetivos y los apoyos que necesita en el aula). De ahí salen sus programas, y la IA solo
+ * propone objetivos además de los del informe, sin conocer su diagnóstico. Ver `docs/PTAL.md`, «El informe del
+ * orientador».
  */
-import { useRef, useState } from 'react';
-import { FileText, Sparkles, Upload, ListChecks, Check } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, Sparkles, Pencil, ListChecks, Check } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { ObjetivosOrientacion } from '../../components/apoyo/ObjetivosOrientacion';
 import { useToast } from '../../components/ui/Toast';
@@ -15,10 +16,8 @@ import { useNombreCurso } from '../../hooks/useNombreCurso';
 import { useMateriasDeNivel } from '../../hooks/useMateriasDeNivel';
 import { hasApiKey } from '../../services/gemini';
 import { proponerObjetivos } from '../../services/apoyoIA';
-import {
-  analizarInforme, conInforme, EXTENSIONES_INFORME, leerArchivoInforme, type PropuestaInforme,
-} from '../../services/informeOrientacion';
-import { avisoDeLectura } from '../../lib/documentoParaIA';
+import { conInforme, propuestaDesdeFicha, type PropuestaInforme } from '../../services/informeOrientacion';
+import { ApoyosAula } from '../../components/apoyo/ApoyosAula';
 import { isoDate } from '../../lib/utils';
 import { ambitosDe, CATEGORIAS_NEAE, nivelDe, nuevoIdApoyo, objetivosPendientes, pasarAProgramas, yaEstaEnPrograma } from '../../lib/apoyo';
 import type { ComunidadId } from '../../lib/curriculum/comunidades';
@@ -39,7 +38,6 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
   const { toast } = useToast();
   const nombreCurso = useNombreCurso();
   const { materias } = useMateriasDeNivel(comunidad, nivelDe(alumno));
-  const entrada = useRef<HTMLInputElement>(null);
 
   const { oficial, ambitos } = ambitosDe(comunidad, lang);
   const visibles = ambitos.filter(a => especialidades.length === 0 || especialidades.includes(a.especialidad));
@@ -47,10 +45,6 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
   const nombres = visibles.map(a => nombreAmbito(a.nombre));
 
   const [abierto, setAbierto] = useState(false);
-  /** El nombre del archivo leído, si lo hay: su texto ya está en `pegado`, a la vista, que es lo que recibe la IA. */
-  const [archivo, setArchivo] = useState<string>();
-  const [pegado, setPegado] = useState('');
-  const [leyendo, setLeyendo] = useState(false);
   const [propuesta, setPropuesta] = useState<PropuestaInforme | null>(null);
   const [crearAbierto, setCrearAbierto] = useState(false);
   const [elegidos, setElegidos] = useState<string[]>([]);
@@ -72,29 +66,11 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
     toast(t('✅ {n} objetivos pasados a sus programas. Revísalos en la pestaña «Programa».', { n: r.pasados }));
   }
 
-  function abrir() { setArchivo(undefined); setPegado(''); setPropuesta(null); setAbierto(true); }
-
-  /** El archivo se lee aquí, en el navegador, y su texto queda a la vista para revisarlo: el archivo nunca se envía. */
-  async function elegirArchivo(file: File | undefined) {
-    if (!file) return;
-    try {
-      const f = await leerArchivoInforme(file);
-      setPegado(f.texto ?? '');
-      setArchivo(f.nombre);
-    } catch (e) { toast(t(avisoDeLectura(e))); }
-  }
-
-  async function leer() {
-    const p = await analizarInforme({ fuente: { texto: pegado }, alumno, ambitos: nombres, comunidad, lang }, {
-      onStart: () => setLeyendo(true), onEnd: () => setLeyendo(false), onError: m => toast(t(m)),
-    });
-    if (!p) return;
-    setPropuesta(p);
-  }
+  function abrir() { setPropuesta(propuestaDesdeFicha(alumno)); setAbierto(true); }
 
   function guardar() {
     if (!propuesta) return;
-    const nuevo = conInforme(alumno, propuesta, archivo, isoDate());
+    const nuevo = conInforme(alumno, propuesta, undefined, isoDate());
     onChange(d => ({ ...d, alumnos: d.alumnos.map(a => (a.id === alumno.id ? nuevo : a)) }));
     setAbierto(false);
     setElegidos(propuesta.ambitos.filter(a => !yaTiene.has(a)));
@@ -140,21 +116,20 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
 
   const edit = (c: Partial<PropuestaInforme>) => setPropuesta(p => (p ? { ...p, ...c } : p));
   const sinClave = !hasApiKey();
-  const hayTexto = !!pegado.trim();
 
   return (
     <div className="card">
       <div className="card-hd">
         <div className="card-ttl"><FileText size={14} color="var(--accent-d)" />{t('Informe del orientador')}</div>
-        <button className="btn-ghost" onClick={abrir}><Upload size={14} />{informe ? t('Leer otro informe') : t('Subir o pegar el informe')}</button>
+        <button className="btn-ghost" onClick={abrir}><Pencil size={14} />{informe ? t('Editar lo que dice el informe') : t('Anotar lo que dice el informe')}</button>
       </div>
 
       {!informe ? (
-        <p className="ap-vacio">{t('Sube el informe sociopsicopedagógico (PDF o Word) o pega su texto: la IA propone su ficha, sus programas y sus objetivos, y tú lo revisas.')}</p>
+        <p className="ap-vacio">{t('Anota lo que dice el informe sociopsicopedagógico: sus fortalezas, las orientaciones, los programas que sugiere, sus objetivos y los apoyos que necesita en el aula. Con eso, la IA te ayuda a preparar sus programas sin conocer su diagnóstico.')}</p>
       ) : (
         <>
           <p className="ap-aviso" style={{ margin: '0 0 10px' }}>
-            {t('Leído el {fecha}', { fecha: new Date(informe.fecha + 'T00:00:00').toLocaleDateString(locale) })}{informe.archivo ? ` · ${informe.archivo}` : ''}
+            {t('Anotado el {fecha}', { fecha: new Date(informe.fecha + 'T00:00:00').toLocaleDateString(locale) })}{informe.archivo ? ` · ${informe.archivo}` : ''}
           </p>
           <table className="ap-ficha al-datos"><tbody>
             <tr><th>{t('Fortalezas')}</th><td>{informe.fortalezas || <span className="ap-sub">{t('Sin indicar')}</span>}</td></tr>
@@ -186,31 +161,9 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
       </div>
 
       <Modal open={abierto} onClose={() => setAbierto(false)} wide title={t('Informe del orientador')}>
-        {!propuesta ? (
+        {propuesta && (
           <div className="ap-form">
-            {sinClave && <AiKeyNotice message={t('Para que la IA lea el informe necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} />}
-            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
-              <input ref={entrada} type="file" accept={EXTENSIONES_INFORME} hidden onChange={e => { void elegirArchivo(e.target.files?.[0]); e.target.value = ''; }} />
-              <button type="button" className="btn-ghost" onClick={() => entrada.current?.click()}><Upload size={14} />{t('Elegir un PDF, un Word o un texto')}</button>
-              {archivo && <span className="ap-sub" style={{ marginLeft: 10 }}>{archivo}</span>}
-            </div>
-            <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
-              <label className="flabel" htmlFor="ap-inf-txt">{archivo ? t('Lo que recibirá la IA: revísalo y quita lo que sobre') : t('O pega aquí su texto')}</label>
-              <textarea id="ap-inf-txt" className="finput" rows={archivo ? 12 : 8} value={pegado} onChange={e => setPegado(e.target.value)} />
-            </div>
-            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
-              {t('Es un dato muy sensible. La IA recibe solo el texto, nunca el archivo: se lee aquí, en tu dispositivo, con el nombre del alumnado cambiado por un código y sin correos, teléfonos, DNI, fechas de nacimiento, familiares ni domicilio, ni diagnósticos, trastornos, discapacidades o medicación, que salen como [dato de salud]. Revisa el texto antes de enviarlo y borra el apartado del diagnóstico o la valoración clínica si queda algo: a la IA le basta con lo que necesita en el aula. El informe no se guarda en la aplicación: solo lo que revises y aceptes.')}
-            </p>
-            <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
-              <button className="btn-ia" disabled={leyendo || sinClave || !hayTexto} onClick={leer}>
-                {leyendo ? <span className="spin" /> : <Sparkles size={15} />}{leyendo ? t('Leyendo…') : t('Leer con IA')}
-              </button>
-              <button className="btn-ghost" onClick={() => setAbierto(false)}>{t('Cancelar')}</button>
-            </div>
-          </div>
-        ) : (
-          <div className="ap-form">
-            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Esto es lo que ha entendido la IA. Revísalo y cámbialo: al guardar sustituye lo que hubiera en estos campos de su ficha.')}</p>
+            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Anota lo que dice el informe. La IA no lo lee: su diagnóstico y su categoría se quedan en tu dispositivo, y para adaptar recibe solo los apoyos que necesita, sus necesidades educativas y las orientaciones, sin datos de salud.')}</p>
             <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
               <legend className="flabel">{t('Necesidades específicas de apoyo educativo')}</legend>
               <div className="chip-row">
@@ -230,6 +183,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
               <label className="flabel" htmlFor="ap-inf-nec">{t('Necesidades educativas')}</label>
               <textarea id="ap-inf-nec" className="finput" rows={4} value={propuesta.necesidades} onChange={e => edit({ necesidades: e.target.value })} />
             </div>
+            <ApoyosAula value={propuesta.apoyos} onChange={apoyos => edit({ apoyos })} />
             <div className="fgroup" style={{ gridColumn: '1 / -1' }}>
               <label className="flabel" htmlFor="ap-inf-for">{t('Fortalezas')}</label>
               <textarea id="ap-inf-for" className="finput" rows={2} value={propuesta.fortalezas} onChange={e => edit({ fortalezas: e.target.value })} />
@@ -249,15 +203,12 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
               </div>
             </fieldset>
             <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
-              <legend className="flabel">{t('Objetivos que plantea el informe')}</legend>
+              <legend className="flabel">{t('Objetivos nuevos que plantea el informe')}</legend>
               <ObjetivosOrientacion objetivos={propuesta.objetivos} onChange={objetivos => edit({ objetivos })} ambitos={nombres} />
             </fieldset>
-            <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>
-              {propuesta.nivel ? t('Nivel de competencia que dice el informe: {curso}. Se guardará en su ficha.', { curso: nombreCurso(propuesta.nivel) }) : t('El informe no dice su nivel de competencia: se queda el que tenga.')}
-            </p>
             <div className="ap-acciones" style={{ gridColumn: '1 / -1' }}>
               <button className="btn-accent" onClick={guardar}>{t('Guardar en su ficha')}</button>
-              <button className="btn-ghost" onClick={() => setPropuesta(null)}>{t('Volver')}</button>
+              <button className="btn-ghost" onClick={() => setAbierto(false)}>{t('Cancelar')}</button>
             </div>
           </div>
         )}
@@ -265,6 +216,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
 
       <Modal open={crearAbierto} onClose={() => !creando && setCrearAbierto(false)} wide title={t('Sus programas y objetivos')}>
         <div className="ap-form">
+          {sinClave && <div style={{ gridColumn: '1 / -1' }}><AiKeyNotice message={t('Para que la IA proponga objetivos necesitas una clave gratuita de Google (se configura en 2 minutos).')} action={t('Configurar ahora')} onAction={() => onNav('profile')} /></div>}
           <p className="ap-aviso" style={{ gridColumn: '1 / -1' }}>{t('Primero entran los objetivos de la orientación que van a cada programa; después la IA propone otros además, repartidos por trimestres y enlazados con los criterios de su nivel. Los revisas después en la pestaña «Programa».')}</p>
           <fieldset className="fgroup ap-fs" style={{ gridColumn: '1 / -1' }}>
             <legend className="flabel">{t('Programas que se crean')}</legend>

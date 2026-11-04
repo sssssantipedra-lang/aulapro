@@ -234,14 +234,16 @@ describe('carga y borrado', () => {
 });
 
 describe('ficha adaptada', () => {
-  it('cuenta sus necesidades y sus objetivos, sin su nombre ni su diagnóstico', () => {
+  it('cuenta sus apoyos, sus necesidades y sus objetivos, sin su nombre, su diagnóstico ni su categoría (3-11-2026)', () => {
     const a = alumno('a', {
       nombre: 'Marta Gil', diagnostico: 'Discapacidad intelectual leve',
       categorias: ['Discapacidad motora', 'TDAH'], necesidades: 'Aprende mejor con apoyo visual.',
+      apoyos: ['Pausas activas', 'Instrucciones cortas, de una en una'],
     });
     const t = (k: string, v?: Record<string, string | number>) => k.replace(/\{(\w+)\}/g, (_, x) => String(v?.[x] ?? ''));
     const txt = contextoFichaApoyo(a, ['Leer sílabas directas', 'Contar hasta 100'], t);
-    expect(txt).toContain('Necesidades específicas de apoyo educativo: Discapacidad motora, TDAH.');
+    expect(txt).toContain('Apoyos que necesita en el aula: Pausas activas, Instrucciones cortas, de una en una.');
+    expect(txt).not.toMatch(/TDAH|Discapacidad motora|Necesidades específicas/);
     expect(txt).toContain('Cómo aprende: Aprende mejor con apoyo visual.');
     expect(txt).toContain('Objetivos que trabaja este trimestre: Leer sílabas directas; Contar hasta 100.');
     expect(txt).not.toContain('Marta');

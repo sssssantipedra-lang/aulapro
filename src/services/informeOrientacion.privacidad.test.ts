@@ -1,7 +1,7 @@
 /**
- * Revisión de privacidad del 31-10-2026: el informe del orientador (y la programación del tutor) nunca se envía como
- * archivo. Se lee en el navegador, se le quitan los datos que identifican y los nombres del alumnado, y la IA recibe
- * solo ese texto.
+ * Revisión de privacidad del 31-10-2026: un documento del alumnado (hoy, la programación de aula del tutor; el informe
+ * del orientador ya no lo lee la IA desde el 3-11-2026) nunca se envía como archivo. Se lee en el navegador, se le
+ * quitan los datos que identifican, los de salud y los nombres del alumnado, y la IA recibe solo ese texto.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -11,11 +11,9 @@ vi.mock('./gemini', async importOriginal => {
   return { ...real, callGemini };
 });
 
-import { analizarInforme, leerArchivoInforme } from './informeOrientacion';
+import { leerArchivoInforme } from './informeOrientacion';
 import { setPrivacyRoster } from './privacy';
-import type { AlumnoApoyo } from '../types/apoyo';
 
-const alumno: AlumnoApoyo = { id: 'a1', nombre: 'Lucía Pérez Navarro', claseOrigen: '3º B', categorias: [], diagnostico: 'TEA grado 1', necesidades: '', notas: '' };
 const informe = [
   'Nombre y apellidos: Lucía Pérez Navarro',
   'Fecha de nacimiento: 03/05/2016',
@@ -28,7 +26,7 @@ beforeEach(() => {
   setPrivacyRoster([{ id: 'a1', name: 'Lucía Pérez Navarro' }]);
 });
 
-describe('el informe del orientador va a la IA como texto revisado', () => {
+describe('un documento del alumnado va a la IA como texto revisado', () => {
   it('al abrir el archivo, el texto que se enseña ya no lleva nombres, fecha de nacimiento ni familiares', async () => {
     const f = await leerArchivoInforme(new File([informe], 'informe.txt', { type: 'text/plain' }));
     expect(f.nombre).toBe('informe.txt');
@@ -41,13 +39,9 @@ describe('el informe del orientador va a la IA como texto revisado', () => {
     await expect(leerArchivoInforme(new File(['x'], 'foto.jpg', { type: 'image/jpeg' }))).rejects.toThrow('formato');
   });
 
-  it('lo pegado a mano también pierde los datos que identifican, y nunca se adjunta un archivo', async () => {
-    callGemini.mockResolvedValue(JSON.stringify({ categorias: [], diagnostico: '', necesidades: '', nivelEtapa: 'ninguna', nivelCurso: '0', fortalezas: '', orientaciones: '', ambitos: [], objetivos: [] }));
-    await analizarInforme({ fuente: { texto: informe }, alumno, ambitos: [], comunidad: undefined, lang: 'es' });
-    const [, usuario, archivos] = callGemini.mock.calls[0];
-    expect(archivos).toEqual([]);
-    expect(usuario).not.toContain('03/05/2016');
-    expect(usuario).not.toContain('María Navarro');
-    expect(usuario).not.toContain('612 345 678');
+  it('tampoco lleva datos de salud', async () => {
+    const f = await leerArchivoInforme(new File(['Presenta TDAH y toma metilfenidato. Necesita instrucciones cortas.'], 'p.txt', { type: 'text/plain' }));
+    expect(f.texto).not.toMatch(/TDAH|metilfenidato/);
+    expect(f.texto).toContain('Necesita instrucciones cortas');
   });
 });
