@@ -80,7 +80,7 @@ Lo que solo importa si algún día se vuelve a las apps nativas: el PDF de Andro
 El abogado del dueño revisó lo que hace la app con los datos y la venta. Hecho el mismo día (rama `ccr-3f4014f5-llwckk`):
 
 - ~~**Corregir con IA.**~~ Apagado: ni «Evaluar por foto» ni «Evaluar trabajo con IA» (`src/lib/correccionIA.ts`, `docs/EVALUAR_FOTO.md`). Para volver a encenderlo, antes hay que cerrar con el abogado lo de la Ley de IA (abajo).
-- ~~**Datos de salud a la IA.**~~ Ya no salen ni la categoría NEAE ni diagnósticos, trastornos, discapacidades o medicación escritos en los textos (`quitarDatosDeSalud`, `CLAUDE.md`, «Lo que va a la IA»).
+- ~~**Datos de salud a la IA.**~~ Ya no salen ni la categoría NEAE ni diagnósticos, trastornos, discapacidades o medicación escritos en los textos (`quitarDatosDeSalud`, `CLAUDE.md`, «Lo que va a la IA»). Desde el 4-11-2026, además, **la IA no lee el informe del orientador**: el docente anota lo que dice y marca los «Apoyos que necesita en el aula», que es lo único de sus necesidades que recibe la IA (`docs/PTAL.md`).
 - ~~**Ampliar con los dedos.**~~ Se amplía y no se aleja (`docs/APP_WEB.md`). Sin comprobar en un iPhone real.
 
 Pendiente:

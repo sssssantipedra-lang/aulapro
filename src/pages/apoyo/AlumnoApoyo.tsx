@@ -448,6 +448,7 @@ function Datos({ alumno, data, onChange, onEditar, onNav, especialidades, comuni
     [t('Nivel de competencia curricular'), alumno.nivel ? nombreCurso(alumno.nivel) : t('El de su curso')],
     [t('Necesidades específicas de apoyo educativo'), alumno.categorias.map(c => t(c)).join(', ')],
     [t('Diagnóstico'), alumno.diagnostico],
+    [t('Apoyos que necesita en el aula'), (alumno.apoyos ?? []).map(x => t(x)).join(', ')],
     [t('Necesidades educativas'), alumno.necesidades],
     [t('Notas'), alumno.notas],
   ];

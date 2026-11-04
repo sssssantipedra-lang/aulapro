@@ -1,6 +1,7 @@
 /**
  * Lógica del módulo de PT y AL, sin React. Ver `docs/PTAL.md`.
  */
+import { textoLibreParaIA } from './documentoParaIA';
 import type { ComunidadId } from './curriculum/comunidades';
 import type { ScheduleBlock } from '../types';
 import type {
@@ -500,6 +501,34 @@ export function datosDelTrimestre(d: ApoyoData, alumnoId: string, trimestre: Tri
 }
 
 /**
+ * Los apoyos que un alumno puede necesitar en el aula (3-11-2026, revisión del abogado del dueño). Es lo que se deriva
+ * de un diagnóstico sin decirlo, y lo único de sus necesidades, junto con lo que el docente escriba en «Necesidades
+ * educativas» (filtrado), que va a la IA. Se guardan con este texto en castellano y se traducen al mostrarlos.
+ */
+export const APOYOS_AULA: readonly string[] = [
+  'Apoyo visual (imágenes, pictogramas, esquemas)',
+  'Instrucciones cortas, de una en una',
+  'Anticipación de cambios y rutinas',
+  'Agenda u horario visual',
+  'Más tiempo en tareas y pruebas',
+  'Tareas divididas en pasos',
+  'Menos actividades por página',
+  'Letra grande y textos adaptados',
+  'Leerle los enunciados en voz alta',
+  'Sentarse cerca del docente',
+  'Pocas distracciones a su alrededor',
+  'Pausas activas',
+  'Refuerzo positivo inmediato',
+  'Compañero o compañera de apoyo',
+  'Material manipulativo',
+  'Comunicación aumentativa o alternativa',
+  'Ayudas para escribir (adaptadores, ordenador)',
+  'Accesibilidad física del aula',
+  'Hablarle de frente y vocalizando',
+  'Pruebas orales o adaptadas',
+];
+
+/**
  * Lo que se cuenta a la IA de un alumno para hacerle una ficha adaptada, en
  * el campo «Cómo es el grupo» de Recursos, donde el docente lo ve y lo puede
  * cambiar antes de enviarlo. Ni su nombre ni su diagnóstico: para adaptar una
@@ -510,8 +539,9 @@ export function contextoFichaApoyo(
 ): string {
   return [
     t('Ficha para un alumno o una alumna de apoyo.'),
-    a.categorias.length ? t('Necesidades específicas de apoyo educativo: {lista}.', { lista: a.categorias.map(c => t(c)).join(', ') }) : '',
-    a.necesidades.trim() ? t('Cómo aprende: {texto}', { texto: a.necesidades.trim() }) : '',
+    // Sin la categoría NEAE ni datos de salud (3-11-2026): lo que necesita en el aula
+    a.apoyos?.length ? t('Apoyos que necesita en el aula: {lista}.', { lista: a.apoyos.map(x => t(x)).join(', ') }) : '',
+    a.necesidades.trim() && textoLibreParaIA(a.necesidades).trim() ? t('Cómo aprende: {texto}', { texto: textoLibreParaIA(a.necesidades).trim() }) : '',
     objetivos.length ? t('Objetivos que trabaja este trimestre: {lista}.', { lista: objetivos.join('; ') }) : '',
     t('Adáptala: enunciados cortos y claros, pocas actividades por página, apoyo visual y letra grande.'),
   ].filter(Boolean).join(' ');
@@ -573,6 +603,7 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
         : esTexto(a.categoria) && a.categoria.trim() ? [a.categoria.trim()] : [],
       diagnostico: esTexto(a.diagnostico) ? a.diagnostico : '',
       necesidades: esTexto(a.necesidades) ? a.necesidades : '',
+      ...(Array.isArray(a.apoyos) && a.apoyos.some(esTexto) ? { apoyos: [...new Set(a.apoyos.filter(esTexto).map(x => x.trim()).filter(Boolean))] } : {}),
       notas: esTexto(a.notas) ? a.notas : '',
       ...(informe ? { informe } : {}),
       ...(objetivosOrientacion.length ? { objetivosOrientacion } : {}),

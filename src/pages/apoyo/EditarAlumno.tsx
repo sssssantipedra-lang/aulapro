@@ -12,6 +12,7 @@ import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { CursoSelect } from '../../components/apoyo/CursoSelect';
+import { ApoyosAula } from '../../components/apoyo/ApoyosAula';
 import { HorarioEditor } from '../../components/apoyo/HorarioEditor';
 import { useI18n } from '../../i18n';
 import { CATEGORIAS_NEAE, GRUPOS_NEAE, grupoVacio, horarioIncorrecto, horarioLimpio, sinAlumno, type AlumnoEnEdicion } from '../../lib/apoyo';
@@ -92,6 +93,7 @@ export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidade
                 <NecesidadesPicker value={alumno.categorias} onChange={categorias => setAlumno({ ...alumno, categorias })} />
                 <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-diag">{t('Diagnóstico')}</label>
                   <textarea id="ap-a-diag" className="finput" rows={2} value={alumno.diagnostico} onChange={e => setAlumno({ ...alumno, diagnostico: e.target.value })} /></div>
+                <ApoyosAula value={alumno.apoyos ?? []} onChange={apoyos => setAlumno({ ...alumno, apoyos: apoyos.length ? apoyos : undefined })} />
                 <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-nec">{t('Necesidades educativas')}</label>
                   <textarea id="ap-a-nec" className="finput" rows={3} value={alumno.necesidades} placeholder={t('Barreras, fortalezas y qué le ayuda: «le cuesta mantener la atención más de 10 minutos; aprende mejor con apoyo visual»')} onChange={e => setAlumno({ ...alumno, necesidades: e.target.value })} /></div>
                 <div className="fgroup" style={{ gridColumn: '1 / -1' }}><label className="flabel" htmlFor="ap-a-notas">{t('Notas')}</label>
@@ -99,7 +101,7 @@ export function EditarAlumno({ edicion, onEdicion, data, onChange, especialidade
               </div>
             </details>
           </div>
-          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe sus necesidades y tus notas con el nombre cambiado por un código, pero nunca el diagnóstico, que es un dato de salud. En las notas, no escribas el diagnóstico ni datos que lo identifiquen.')}</p>
+          <p className="ap-aviso">{t('Todo se guarda en este equipo. Si usas la IA, recibe los apoyos que necesita, sus necesidades educativas y tus notas, con el nombre cambiado por un código y sin datos de salud. Su diagnóstico y su categoría nunca se envían. En las necesidades y las notas, describe lo que necesita en el aula, no el diagnóstico.')}</p>
           <div className="ap-acciones">
             <button className="btn-accent" onClick={guardar}>{t('Guardar')}</button>
             <button className="btn-ghost" onClick={cerrar}>{t('Cancelar')}</button>

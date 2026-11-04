@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * El informe del orientador: se pega, la IA propone, el docente revisa y guarda en la ficha; de ahí salen los programas.
+ * El informe del orientador: el docente anota lo que dice (la IA no lo lee desde el 3-11-2026) y de ahí salen los programas.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
@@ -11,13 +11,11 @@ import { ToastProvider } from '../../components/ui/Toast';
 import { APOYO_VACIO } from '../../lib/apoyo';
 import type { AlumnoApoyo, ApoyoData } from '../../types/apoyo';
 
-const analizar = vi.hoisted(() => vi.fn());
 const proponer = vi.hoisted(() => vi.fn());
 vi.mock('../../services/gemini', async importOriginal => ({ ...await importOriginal<typeof import('../../services/gemini')>(), hasApiKey: () => true }));
-vi.mock('../../services/informeOrientacion', async importOriginal => ({ ...await importOriginal<typeof import('../../services/informeOrientacion')>(), analizarInforme: analizar }));
 vi.mock('../../services/apoyoIA', async importOriginal => ({ ...await importOriginal<typeof import('../../services/apoyoIA')>(), proponerObjetivos: proponer }));
 
-afterEach(() => { cleanup(); analizar.mockReset(); proponer.mockReset(); });
+afterEach(() => { cleanup(); proponer.mockReset(); });
 
 const alumno: AlumnoApoyo = { id: 'a', nombre: 'Alumno 1', claseOrigen: '3º B', categorias: [], diagnostico: '', necesidades: '', notas: '' };
 
@@ -34,31 +32,28 @@ function montar(inicial: ApoyoData) {
 }
 
 describe('Informe del orientador', () => {
-  it('pega el informe, la IA propone, se guarda en la ficha y se crean los programas con sus objetivos', async () => {
+  it('se anota lo que dice el informe, sin IA, se guarda en la ficha y se crean los programas con sus objetivos', async () => {
     const lectoescritura = 'Programa personalizado para el aprendizaje de la lectura y la escritura';
-    analizar.mockResolvedValue({
-      categorias: [], diagnostico: 'Dislexia', necesidades: 'Necesita lectura adaptada.', fortalezas: 'Buena memoria visual', orientaciones: 'Textos cortos',
-      ambitos: [lectoescritura],
-      objetivos: [{ id: 'oo1', texto: 'Reconocer las letras del abecedario', ambito: lectoescritura, trimestres: [1], origen: 'informe' }],
-    });
     proponer.mockResolvedValue([{ texto: 'Leer sílabas directas', trimestres: [1, 2], criterios: [] }]);
     const m = montar({ ...APOYO_VACIO, alumnos: [alumno] });
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: /Subir o pegar el informe/ }));
-    await user.type(screen.getByLabelText(/O pega aquí su texto/), 'Informe de Alumno 1');
-    await user.click(screen.getByRole('button', { name: /Leer con IA/ }));
-    expect(analizar).toHaveBeenCalledTimes(1);
-    expect((await screen.findByLabelText('Diagnóstico') as HTMLInputElement).value).toBe('Dislexia');
+    await user.click(screen.getByRole('button', { name: /Anotar lo que dice el informe/ }));
+    // No hay forma de dar el informe a la IA
+    expect(screen.queryByRole('button', { name: /Leer con IA/ })).toBeNull();
+    expect(screen.queryByText(/Elegir un PDF/)).toBeNull();
+    await user.type(screen.getByLabelText('Diagnóstico'), 'Dislexia');
+    await user.type(screen.getByLabelText('Fortalezas'), 'Buena memoria visual');
+    await user.type(screen.getByLabelText('Orientaciones del informe'), 'Textos cortos');
+    await user.click(screen.getByRole('button', { name: /Apoyo visual/ }));
+    await user.click(screen.getByRole('button', { name: lectoescritura }));
     await user.click(screen.getByRole('button', { name: /Guardar en su ficha/ }));
 
     const a = m.actual().alumnos[0];
     expect(a.diagnostico).toBe('Dislexia');
+    expect(a.apoyos).toEqual(['Apoyo visual (imágenes, pictogramas, esquemas)']);
     expect(a.informe).toMatchObject({ fortalezas: 'Buena memoria visual', orientaciones: 'Textos cortos', ambitos: [lectoescritura] });
-    // El objetivo que plantea el informe se guarda entre los de la orientación
-    expect(a.objetivosOrientacion).toMatchObject([{ texto: 'Reconocer las letras del abecedario', ambito: lectoescritura, origen: 'informe' }]);
-    // El informe en sí no se guarda en ninguna parte
-    expect(JSON.stringify(m.actual())).not.toContain('Informe de Alumno 1');
+    m.actual().alumnos[0] = { ...a, objetivosOrientacion: [{ id: 'oo1', texto: 'Reconocer las letras del abecedario', ambito: lectoescritura, trimestres: [1], origen: 'informe' }] };
 
     m.repintar();
     await user.click(await screen.findByRole('button', { name: /Crear sus programas con IA/ }));

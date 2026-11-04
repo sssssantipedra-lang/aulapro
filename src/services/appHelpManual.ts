@@ -55,7 +55,7 @@ mismo alumno no lleva el mismo código dos veces), se quitan los correos y, de l
 que el docente escribe sobre su alumnado, los teléfonos y los documentos de
 identidad; al llegar la respuesta, la aplicación
 vuelve a poner los nombres reales; el docente ve siempre los nombres. Los
-documentos del alumnado (el informe del orientador, la programación del tutor,
+documentos del alumnado (la programación del tutor,
 un trabajo adjunto a una rúbrica o al asistente) se leen en el dispositivo y
 solo se envía su texto, sin nombres ni otros datos que identifiquen; en las
 fotos del trabajo de un alumno se tapa el nombre antes de enviarlas. Los
@@ -1098,7 +1098,14 @@ siguiente de hoy; si hoy no tiene, en su primer grupo). Debajo, seis pestañas:
   caras) y la nota. «Abrir en el registro» lleva a esa sesión para cambiarla.
 - DATOS: su ficha («Editar» la cambia; dentro está «Eliminar», que borra
   también sus programas y sus registros) y sus grupos, que se marcan o
-  desmarcan al momento.
+  desmarcan al momento. En la ficha, «Apoyos que necesita en el aula» (apoyo
+  visual, instrucciones cortas, más tiempo, anticipación…) es lo que la IA
+  tiene en cuenta para adaptar. INFORME DEL ORIENTADOR: la IA no lo lee. Con
+  «Anotar lo que dice el informe» el docente apunta sus fortalezas, las
+  orientaciones, los programas que sugiere, los objetivos nuevos y los apoyos;
+  el diagnóstico y la categoría se quedan en el dispositivo. Con eso, «Crear sus
+  programas con IA» crea los programas con los objetivos del informe y la IA
+  propone otros además, sin conocer el diagnóstico.
 
 PROGRAMA (pestaña de la página del alumno)
 Su plan individual. «Nuevo programa» crea uno por ámbito: en la Comunitat Valenciana, los programas del
@@ -1115,9 +1122,10 @@ NIVEL DE COMPETENCIA (no de su matrícula), que se buscan por código o palabra.
 y enlazados con criterios de su nivel (de Lengua en lectoescritura y lenguaje,
 de Matemáticas en matemáticas, de todas en una ACIS, ninguno en atención o
 conducta), apoyándose en la normativa de inclusión de la comunidad y en los
-autores de referencia; se revisan y se cambian a mano. La IA recibe la ficha
-del alumno con el nombre cambiado por un código, pero nunca el diagnóstico (es
-un dato de salud y no le hace falta). Necesita la clave de la IA.
+autores de referencia; se revisan y se cambian a mano. La IA recibe su nivel,
+los apoyos que necesita, sus necesidades educativas y tus notas, con el nombre
+cambiado por un código y sin datos de salud: nunca el diagnóstico ni la
+categoría de necesidades específicas. Necesita la clave de la IA.
 Debajo de cada objetivo con registros, su GRÁFICA sesión a sesión: un punto por
 sesión a tres alturas (✓ conseguido arriba, – en proceso, ✗ no conseguido
 abajo), con la fecha al pasar por encima; se ven las 24 últimas. Para una
