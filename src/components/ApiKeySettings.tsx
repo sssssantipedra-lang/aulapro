@@ -5,7 +5,7 @@ import { looksLikeKey } from '../lib/apiKey';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { usoIaAceptado, aceptarUsoIa } from '../lib/usoIA';
-import { AceptarUsoIA } from './AceptarUsoIA';
+import { AceptarUsoIA, PanelUsoIA } from './AceptarUsoIA';
 
 const AI_STUDIO_URL = 'https://aistudio.google.com/apikey';
 
@@ -39,9 +39,14 @@ export function ApiKeySettings() {
   const [check, setCheck] = useState<Check>({ state: 'idle' });
   const [showManual, setShowManual] = useState(false);
   const [aceptado, setAceptado] = useState(usoIaAceptado());
-  const [marcada, setMarcada] = useState(false);
-  const puede = aceptado || marcada;   // sin aceptar cómo se tratan los datos, no se guarda la clave
-  const cambioCasilla = (v: boolean) => { setMarcada(v); if (v) { aceptarUsoIa(); setAceptado(true); } };
+  const [pregunta, setPregunta] = useState<null | (() => void)>(null);   // el recuadro de aceptar, con lo que se hace al aceptar
+  const [panel, setPanel] = useState(false);
+  // Sin aceptar el uso de la IA no se consigue ni se guarda la clave: sale el recuadro y, al aceptar, sigue lo que se iba a hacer
+  const conAceptacion = (accion: () => void) => {
+    if (aceptado) { accion(); return; }
+    setPregunta(() => accion);
+  };
+  const aceptar = () => { aceptarUsoIa(); setAceptado(true); const seguir = pregunta; setPregunta(null); seguir?.(); };
 
   const saved = getApiKey();
   const dirty = key.trim() !== saved;
@@ -49,7 +54,6 @@ export function ApiKeySettings() {
 
   async function save(k: string) {
     const v = k.trim();
-    if (v && !puede) { toast(t('Primero marca la casilla de arriba')); return; }
     setKey(v);
     setApiKey(v);
     if (!v) { setCheck({ state: 'idle' }); toast(t('Clave eliminada')); return; }
@@ -60,7 +64,6 @@ export function ApiKeySettings() {
   }
 
   async function pasteKey() {
-    if (!puede) { toast(t('Primero marca la casilla de arriba')); return; }
     try {
       const text = (await navigator.clipboard.readText()).trim();
       if (!looksLikeKey(text)) {
@@ -80,7 +83,8 @@ export function ApiKeySettings() {
       title: 'Abre Google AI Studio',
       body: 'Entra con tu cuenta de Google (la del Gmail sirve). Es gratis y no pide tarjeta.',
       action: (
-        <a href={AI_STUDIO_URL} target="_blank" rel="noreferrer" className="btn-accent ak-btn">
+        <a href={AI_STUDIO_URL} target="_blank" rel="noreferrer" className="btn-accent ak-btn"
+          onClick={e => { if (!aceptado) { e.preventDefault(); conAceptacion(() => window.open(AI_STUDIO_URL, '_blank', 'noopener,noreferrer')); } }}>
           {t('Abrir AI Studio')} <ExternalLink size={13} />
         </a>
       ),
@@ -93,7 +97,7 @@ export function ApiKeySettings() {
       title: 'Vuelve aquí y pégala',
       body: 'Un clic y listo: la aplicación la guarda y comprueba que funciona.',
       action: (
-        <button type="button" className="btn-accent ak-btn" onClick={pasteKey} disabled={check.state === 'checking' || !puede}>
+        <button type="button" className="btn-accent ak-btn" onClick={() => conAceptacion(pasteKey)} disabled={check.state === 'checking'}>
           {check.state === 'checking' ? <span className="spin" /> : <ClipboardPaste size={14} />}{t('Pegar mi clave')}
         </button>
       ),
@@ -110,8 +114,6 @@ export function ApiKeySettings() {
       <p className="ak-intro">
         {t('La IA (situaciones de aprendizaje, fichas, rúbricas, informes…) funciona con una clave')} <strong>{t('gratuita')}</strong>{t(' de Google. Se guarda solo en este equipo y nunca se comparte.')}
       </p>
-
-      <AceptarUsoIA aceptado={aceptado} marcada={marcada} onCambio={cambioCasilla} />
 
       {!saved || check.state === 'bad' ? (
         <ol className="ak-steps">
@@ -132,6 +134,12 @@ export function ApiKeySettings() {
           <span>{t('La IA está lista para usar en toda la aplicación.')}</span>
         </div>
       )}
+
+      {aceptado && (
+        <button type="button" className="ak-link" onClick={() => setPanel(true)}>{t('Cómo trata AulaPro lo que envías a la IA')}</button>
+      )}
+      <AceptarUsoIA open={pregunta !== null} onClose={() => setPregunta(null)} onAceptar={aceptar} />
+      <PanelUsoIA open={panel} onClose={() => setPanel(false)} />
 
       {check.state === 'bad' && check.msg && (
         <div className="ak-warn" role="alert"><AlertTriangle size={15} />{t(check.msg)}</div>
@@ -165,7 +173,7 @@ export function ApiKeySettings() {
               {visible ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          <button className="btn-accent" onClick={() => save(key)} disabled={!dirty || check.state === 'checking' || (!puede && !!key.trim())} style={{ height: 44 }}>
+          <button className="btn-accent" onClick={() => conAceptacion(() => save(key))} disabled={!dirty || check.state === 'checking'} style={{ height: 44 }}>
             {t('Guardar')}
           </button>
         </div>
