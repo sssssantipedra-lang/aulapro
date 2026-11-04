@@ -773,6 +773,7 @@ export const APOYO_EN: Record<string, string> = {
   'Política de privacidad': 'Privacy policy',
   // Vídeos de ayuda (4-11-2026)
   'Ver el vídeo: {titulo}': 'Watch the video: {titulo}',
+  'Ver vídeo': 'Watch video',
   'No se ha podido cargar el vídeo. Comprueba tu conexión e inténtalo de nuevo.': 'The video could not be loaded. Check your connection and try again.',
   'El vídeo está en español.': 'The video is in Spanish.',
   'Empezar con AulaPro': 'Getting started with AulaPro',
@@ -1579,6 +1580,7 @@ export const APOYO_CA: Record<string, string> = {
   'Política de privacidad': 'Política de privacitat',
   // Vídeos de ayuda (4-11-2026)
   'Ver el vídeo: {titulo}': 'Veure el vídeo: {titulo}',
+  'Ver vídeo': 'Veure el vídeo',
   'No se ha podido cargar el vídeo. Comprueba tu conexión e inténtalo de nuevo.': 'No s\'ha pogut carregar el vídeo. Comprova la connexió i torna-ho a provar.',
   'El vídeo está en español.': 'El vídeo és en castellà.',
   'Empezar con AulaPro': 'Començar amb AulaPro',
