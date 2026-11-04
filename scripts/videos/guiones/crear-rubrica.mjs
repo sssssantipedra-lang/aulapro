@@ -95,7 +95,7 @@ export default {
         await clicar(p, p.getByText('Por competencias', { exact: true }), rapido);
         await esperar(p, 1000);
         const fila = p.locator('tr', { hasText: /^Alumno 1/ });
-        for (const c of [1, 2, 6]) await mover(p, fila.locator('td').nth(c), { pasos: 25, espera: 1100 });
+        for (const c of [0, 1, 5]) await mover(p, fila.locator('td').nth(c), { pasos: 25, espera: 1100 });
       } },
     { texto: 'Así, con una sola evaluación tienes la nota del cuaderno y la de las competencias. La IA propone, y la nota la pones tú.',
       hacer: async p => { await esperar(p, 1000); } },
