@@ -2,24 +2,27 @@
 export const esperar = (p, ms) => p.waitForTimeout(ms);
 
 /** Mueve el cursor del vídeo hasta un elemento, sin pulsar. */
-export async function mover(p, loc) {
+export async function mover(p, loc, { pasos = 28, espera = 350 } = {}) {
   const el = loc.first();
   await el.scrollIntoViewIfNeeded().catch(() => {});
   const b = await el.boundingBox();
   if (!b) return;
-  await p.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 28 });
-  await p.waitForTimeout(350);
+  await p.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: pasos });
+  await p.waitForTimeout(espera);
 }
 
 /** Mueve el cursor y pulsa. */
-export async function clicar(p, loc) {
-  await mover(p, loc);
+export async function clicar(p, loc, { pasos = 28, espera = 350, despues = 700 } = {}) {
+  await mover(p, loc, { pasos, espera });
   await loc.first().click();
-  await p.waitForTimeout(700);
+  await p.waitForTimeout(despues);
 }
 
+/** Más ágil: para escenas con mucho que hacer en poco tiempo. */
+export const rapido = { pasos: 12, espera: 120, despues: 350 };
+
 /** Entrada del menú lateral. */
-export const menu = (p, nombre) => clicar(p, p.locator('.sidebar .nav-item', { hasText: new RegExp(`^${nombre}$`) }));
+export const menu = (p, nombre, o) => clicar(p, p.locator('.sidebar .nav-item', { hasText: new RegExp(`^${nombre}$`) }), o);
 
 /** Deja en el portapapeles una clave de ejemplo (nunca una real). */
 export const clave = p => p.evaluate(k => navigator.clipboard.writeText(k), 'AIza' + 'Sy' + 'x'.repeat(33));

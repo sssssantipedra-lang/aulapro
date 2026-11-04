@@ -55,7 +55,7 @@ export function AceptarUsoIA({ open, onClose, onAceptar }: { open: boolean; onCl
     <>
       <Modal open={open && !info} onClose={onClose} title={<span className="ak-tit"><ShieldCheck size={18} color="var(--accent-d)" aria-hidden="true" />{t('Antes de usar la IA')}</span>}>
         <p className="ak-intro" style={{ marginBottom: 12 }}>
-          {t('La IA de AulaPro funciona con tu propia clave de Google. Antes de conseguirla, confirma que has entendido qué se envía y qué no.')}
+          {t('La IA en AulaPro funciona con tu propia clave de Google. Antes de conseguirla, confirma que has entendido qué se envía y qué no.')}
         </p>
         <label className="ak-casilla">
           <input type="checkbox" checked={marcada} onChange={e => setMarcada(e.target.checked)} />
