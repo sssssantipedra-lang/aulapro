@@ -2,7 +2,7 @@
  * PT y AL, pestaña «Datos» de un alumno: lo que dice su informe sociopsicopedagógico. Desde el 3-11-2026 (revisión
  * del abogado del dueño) la IA no lee el informe: el docente anota en su ficha lo que dice (fortalezas,
  * orientaciones, programas, objetivos y los apoyos que necesita en el aula). De ahí salen sus programas, y la IA solo
- * propone objetivos además de los del informe, sin conocer su diagnóstico. Ver `docs/PTAL.md`, «El informe del
+ * propone objetivos además de los del informe,. Ver `docs/PTAL.md`, «El informe del
  * orientador».
  */
 import { useState } from 'react';
@@ -125,7 +125,7 @@ export function InformeOrientacionApoyo({ alumno, data, onChange, especialidades
       </div>
 
       {!informe ? (
-        <p className="ap-vacio">{t('Anota lo que dice el informe sociopsicopedagógico: sus fortalezas, las orientaciones, los programas que sugiere, sus objetivos y los apoyos que necesita en el aula. Con eso, la IA te ayuda a preparar sus programas sin conocer su diagnóstico.')}</p>
+        <p className="ap-vacio">{t('Anota lo que dice el informe sociopsicopedagógico: sus fortalezas, las orientaciones, los programas que sugiere, sus objetivos y los apoyos que necesita en el aula. Con eso, la IA te ayuda a preparar sus programas.')}</p>
       ) : (
         <>
           <p className="ap-aviso" style={{ margin: '0 0 10px' }}>
