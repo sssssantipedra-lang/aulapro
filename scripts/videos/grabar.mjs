@@ -1,0 +1,95 @@
+/**
+ * Graba un vídeo explicativo sobre la app de verdad, con los datos de ejemplo.
+ *
+ *   npm run dev                      # la app en http://localhost:5173/
+ *   node scripts/videos/grabar.mjs clave-ia [http://localhost:5173/]
+ *
+ * Cada escena de `guiones/<id>.mjs` tiene una frase y lo que se hace mientras
+ * suena. La voz (`audio/<id>/01.mp3`, 02…) se genera aparte con fal.ai
+ * (ElevenLabs v4, voz «Rachel»); aquí se mide cada frase para que la pantalla
+ * espere a que acabe de hablar. Sale `web/sitio/assets/videos/<id>.mp4`
+ * (720p, 30 imágenes por segundo, lo más ligero posible) y su póster.
+ * Nada de lo que se ve es real: ni datos, ni claves.
+ */
+import { chromium } from 'playwright';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const AQUI = path.dirname(fileURLToPath(import.meta.url));
+const RAIZ = path.resolve(AQUI, '../..');
+const id = process.argv[2];
+const BASE = process.argv[3] || 'http://localhost:5173/';
+if (!id) { console.log('Uso: node scripts/videos/grabar.mjs <id> [url]'); process.exit(1); }
+const guion = (await import(`./guiones/${id}.mjs`)).default;
+const W = 1280, H = 720, HUECO = 600;   // ms de pausa entre escenas
+
+const dur = f => parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
+const audios = guion.escenas.map((_, i) => path.join(AQUI, 'audio', id, String(i + 1).padStart(2, '0') + '.mp3'));
+audios.forEach(a => { if (!fs.existsSync(a)) throw new Error('Falta el audio ' + a); });
+const duraciones = audios.map(dur);
+
+const tmp = fs.mkdtempSync(path.join(AQUI, '.tmp-'));
+const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+const ctx = await browser.newContext({
+  viewport: { width: W, height: H }, locale: 'es-ES',
+  recordVideo: { dir: tmp, size: { width: W, height: H } },
+  permissions: ['clipboard-read', 'clipboard-write'],
+});
+const t0Ctx = Date.now();
+const page = await ctx.newPage();
+page.on('pageerror', e => console.log('Error en la app:', e.message));
+// La comprobación de la clave de Google: en el vídeo siempre sale bien
+await page.route('https://generativelanguage.googleapis.com/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"models":[]}' }));
+await ctx.clock.install({ time: new Date('2026-10-14T09:45:00') });
+await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 90000 });
+await page.waitForTimeout(2500);
+await page.getByText('Explorar con datos de ejemplo').click();
+await page.waitForTimeout(4500);
+// Cursor visible y subtítulos
+await page.addStyleTag({ content: `
+  .help-fab,.toast,.toast-wrap{display:none!important} *{caret-color:transparent!important}
+  #v-cursor{position:fixed;z-index:99999;width:22px;height:22px;margin:-4px 0 0 -4px;border-radius:50%;background:rgba(255,120,60,.55);border:2px solid #d9531e;pointer-events:none;transition:transform .08s}
+  #v-sub{position:fixed;z-index:99998;left:50%;bottom:26px;transform:translateX(-50%);max-width:78%;padding:10px 18px;border-radius:12px;background:rgba(30,24,20,.86);color:#fff;font:600 21px/1.35 system-ui,sans-serif;text-align:center;pointer-events:none}
+` });
+await page.evaluate(() => {
+  const c = document.createElement('div'); c.id = 'v-cursor'; document.documentElement.appendChild(c);
+  const s = document.createElement('div'); s.id = 'v-sub'; s.style.display = 'none'; document.documentElement.appendChild(s);
+  addEventListener('mousemove', e => { c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; }, true);
+  addEventListener('mousedown', () => { c.style.transform = 'scale(.7)'; }, true);
+  addEventListener('mouseup', () => { c.style.transform = ''; }, true);
+});
+await page.mouse.move(W / 2, H / 2);
+
+const inicios = [];
+const t0 = Date.now();
+for (const [i, e] of guion.escenas.entries()) {
+  inicios.push((Date.now() - t0) / 1000);
+  await page.evaluate(t => { const s = document.getElementById('v-sub'); s.textContent = t; s.style.display = 'block'; }, e.texto);
+  const fin = Date.now() + duraciones[i] * 1000 + HUECO;
+  await e.hacer(page);
+  const resto = fin - Date.now();
+  if (resto > 0) await page.waitForTimeout(resto); else console.log(`  escena ${i + 1}: la acción tarda ${(-resto / 1000).toFixed(1)} s más que la voz`);
+}
+const total = (Date.now() - t0) / 1000;
+await page.evaluate(() => { document.getElementById('v-sub').style.display = 'none'; });
+await page.waitForTimeout(500);
+const recorte = (t0 - t0Ctx) / 1000 + 0.15;   // lo que dura la carga antes de la primera escena
+await ctx.close();
+await browser.close();
+
+const webm = fs.readdirSync(tmp).find(f => f.endsWith('.webm'));
+const OUT = path.join(RAIZ, 'web/sitio/assets/videos');
+fs.mkdirSync(OUT, { recursive: true });
+const mp4 = path.join(OUT, `${id}.mp4`);
+const entradas = audios.flatMap(a => ['-i', a]);
+const filtros = audios.map((_, i) => `[${i + 1}:a]adelay=${Math.round(inicios[i] * 1000)}|${Math.round(inicios[i] * 1000)},aresample=32000[a${i}]`).join(';')
+  + ';' + audios.map((_, i) => `[a${i}]`).join('') + `amix=inputs=${audios.length}:normalize=0[a]`;
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(recorte), '-t', String(total + 0.4), '-i', path.join(tmp, webm), ...entradas,
+  '-filter_complex', filtros, '-map', '0:v', '-map', '[a]',
+  '-vf', 'fps=30,scale=1280:720', '-c:v', 'libx264', '-preset', 'veryslow', '-crf', '33', '-pix_fmt', 'yuv420p', '-g', '300',
+  '-c:a', 'aac', '-b:a', '40k', '-ac', '1', '-movflags', '+faststart', '-t', String(total + 0.4), mp4]);
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(Math.min(total * 0.6, total - 1)), '-i', mp4, '-frames:v', '1', '-vf', 'scale=640:-1', '-q:v', '6', path.join(OUT, `${id}.jpg`)]);
+fs.rmSync(tmp, { recursive: true, force: true });
+console.log(`${id}.mp4: ${total.toFixed(1)} s, ${(fs.statSync(mp4).size / 1024).toFixed(0)} KB`);
