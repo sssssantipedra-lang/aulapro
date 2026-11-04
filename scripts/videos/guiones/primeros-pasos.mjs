@@ -32,11 +32,12 @@ export default {
         await clicar(p, modal(p).getByRole('button', { name: 'Crear clase' }), rapido);
         await esperar(p, 500);
       } },
-    { texto: 'Añade a tu alumnado con «Nuevo alumno», o importa toda la lista con un archivo CSV.',
+    { texto: 'Añade a tu alumnado con «Nuevo alumno». Te recomendamos no escribir el nombre completo: usa el número de lista y solo el nombre, o sus iniciales. También puedes importar la lista con un archivo CSV.',
       hacer: async p => {
         await clicar(p, p.getByRole('button', { name: /Nuevo alumno/ }), rapido);
         await clicar(p, modal(p).locator('input').first(), rapido);
-        await p.keyboard.type('Alumno 1', { delay: 70 });
+        await p.keyboard.type('12 Marta', { delay: 110 });
+        await esperar(p, 1500);
         await clicar(p, modal(p).getByRole('button', { name: 'Guardar' }), rapido);
         await esperar(p, 400);
         await mover(p, p.getByRole('button', { name: /Importar CSV/ }), { pasos: 18, espera: 900 });

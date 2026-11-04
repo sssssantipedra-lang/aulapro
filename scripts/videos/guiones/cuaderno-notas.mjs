@@ -51,5 +51,12 @@ export default {
         await mover(p, p.locator('th', { hasText: 'MEDIA' }).first(), { pasos: 20, espera: 1200 });
         await mover(p, p.locator('tbody tr').first().locator('td').last(), { pasos: 14, espera: 1200 });
       } },
+    { texto: 'Y las evaluaciones que hagas con rúbricas, dianas o escalas de registro se guardan solas en el cuaderno.',
+      hacer: async p => {
+        await menu(p, 'Evaluar', rapido);
+        for (const t of [/Evaluar por rúbricas/, /Evaluar por dianas/, /Escalas de registro/]) await mover(p, p.getByText(t).first(), { pasos: 16, espera: 900 });
+        await menu(p, 'Cuaderno de Notas', rapido);
+        await esperar(p, 800);
+      } },
   ],
 };
