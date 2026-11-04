@@ -771,6 +771,16 @@ export const APOYO_EN: Record<string, string> = {
   'Leer la información': 'Read the information',
   'Leer la política de privacidad': 'Read the privacy policy',
   'Política de privacidad': 'Privacy policy',
+  // Vídeos de ayuda (4-11-2026)
+  'Ver el vídeo: {titulo}': 'Watch the video: {titulo}',
+  'No se ha podido cargar el vídeo. Comprueba tu conexión e inténtalo de nuevo.': 'The video could not be loaded. Check your connection and try again.',
+  'El vídeo está en español.': 'The video is in Spanish.',
+  'Empezar con AulaPro': 'Getting started with AulaPro',
+  'El cuaderno de notas': 'The gradebook',
+  'Asistencia y actitud': 'Attendance and attitude',
+  'Crear una rúbrica y evaluar': 'Create a rubric and assess',
+  'Conseguir la clave de la IA': 'Get the AI key',
+  'Tus datos y la privacidad': 'Your data and privacy',
   // Apoyos que necesita en el aula e informe sin IA (3-11-2026)
   'Apoyos que necesita en el aula': 'Support they need in class',
   'Marca lo que le ayuda. Es lo que la IA tiene en cuenta para adaptar, junto con sus barreras de aprendizaje.': 'Tick what helps. This is what the AI takes into account to adapt, along with their learning barriers.',
@@ -1567,6 +1577,16 @@ export const APOYO_CA: Record<string, string> = {
   'Leer la información': 'Llegir la informació',
   'Leer la política de privacidad': 'Llegir la política de privacitat',
   'Política de privacidad': 'Política de privacitat',
+  // Vídeos de ayuda (4-11-2026)
+  'Ver el vídeo: {titulo}': 'Veure el vídeo: {titulo}',
+  'No se ha podido cargar el vídeo. Comprueba tu conexión e inténtalo de nuevo.': 'No s\'ha pogut carregar el vídeo. Comprova la connexió i torna-ho a provar.',
+  'El vídeo está en español.': 'El vídeo és en castellà.',
+  'Empezar con AulaPro': 'Començar amb AulaPro',
+  'El cuaderno de notas': 'El quadern de notes',
+  'Asistencia y actitud': 'Assistència i actitud',
+  'Crear una rúbrica y evaluar': 'Crear una rúbrica i avaluar',
+  'Conseguir la clave de la IA': 'Aconseguir la clau de la IA',
+  'Tus datos y la privacidad': 'Les teves dades i la privadesa',
   // Apoyos que necesita en el aula e informe sin IA (3-11-2026)
   'Apoyos que necesita en el aula': 'Suports que necessita a l’aula',
   'Marca lo que le ayuda. Es lo que la IA tiene en cuenta para adaptar, junto con sus barreras de aprendizaje.': 'Marca el que l’ajuda. És el que la IA té en compte per adaptar, juntament amb les seves barreres d’aprenentatge.',

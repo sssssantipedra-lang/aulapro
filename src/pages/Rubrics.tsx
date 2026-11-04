@@ -1,4 +1,5 @@
 import { CORRECCION_CON_IA } from '../lib/correccionIA';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Plus, Pencil, Trash2, ClipboardCheck, X, Paperclip, Sparkles, ChevronDown, Copy, Search, FileDown,
@@ -1112,7 +1113,7 @@ export function Rubrics({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t(vista === 'dianas' ? 'Dianas' : 'Rúbricas')}</h1>
+          <h1 className="pg-title">{t(vista === 'dianas' ? 'Dianas' : 'Rúbricas')}{vista !== 'dianas' && <AyudaVideo id="crear-rubrica" />}</h1>
           <p className="pg-sub">
             {vista === 'dianas'
               ? t(dianas.filter(d => !esRegistro(d)).length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.filter(d => !esRegistro(d)).length })

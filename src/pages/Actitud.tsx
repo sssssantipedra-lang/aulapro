@@ -9,6 +9,7 @@
  * clase que toca según el horario, o en la que pida el Cuaderno.
  */
 import { useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Flag, Flame, Undo2, Users, Volume2, VolumeX } from 'lucide-react';
 import type { AttendanceMap, Class, ClassMark, ClassMarkType, MarksBlockConfig, ScheduleBlock, Student } from '../types';
 import {
@@ -102,7 +103,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
   if (!cls) {
     return (
       <section className="sec active">
-        <div className="pg-hd"><div><h1 className="pg-title">{t('Anotar actitud')}</h1></div></div>
+        <div className="pg-hd"><div><h1 className="pg-title">{t('Anotar actitud')}<AyudaVideo id="asistencia-actitud" /></h1></div></div>
         <div className="card" style={{ maxWidth: 540, margin: '40px auto', textAlign: 'center', padding: '40px 34px' }}>
           <Users size={36} color="var(--text-3)" style={{ margin: '0 auto 14px' }} />
           <p style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 18 }}>{t('Para anotar, primero crea una clase con sus alumnos.')}</p>
@@ -116,7 +117,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Anotar actitud')}</h1>
+          <h1 className="pg-title">{t('Anotar actitud')}<AyudaVideo id="asistencia-actitud" /></h1>
           <p className="pg-sub">{t('Un toque por anotación. Cuenta en «{name}» del cuaderno.', { name: nombreDelBloque(cfg, t, subject) })}</p>
         </div>
       </div>

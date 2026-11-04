@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { Pencil, Palette, Database, Download, Upload, Languages, UserCircle, Lock, ShieldCheck, ShieldOff, Monitor, Sun, Moon, Sparkles, ArrowLeft, ChevronRight, KeyRound, CloudUpload } from 'lucide-react';
 import { getApiKey } from '../services/gemini';
 import { takeSettingsPanel, type SettingsPanel } from '../lib/settingsNav';
@@ -217,7 +218,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
         {current ? (
           <div className="st-hd">
             <button type="button" className="btn-ghost sm" onClick={() => open(null)}><ArrowLeft size={14} />{t('Configuración')}</button>
-            <h1 className="pg-title"><span className="st-hd-ico">{current.icon}</span>{t(current.title)}</h1>
+            <h1 className="pg-title"><span className="st-hd-ico">{current.icon}</span>{t(current.title)}{current.id === 'ia' && <AyudaVideo id="clave-ia" />}{current.id === 'datos' && <AyudaVideo id="privacidad" />}</h1>
           </div>
         ) : (
           <div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   ClipboardList, Check, X, Clock, FileCheck2, ChevronLeft, ChevronRight,
   Users, ArrowRight, Download, CalendarDays,
@@ -112,7 +113,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Asistencia')}</h1>
+            <h1 className="pg-title">{t('Asistencia')}<AyudaVideo id="asistencia-actitud" /></h1>
             <p className="pg-sub">{t('Pasa lista en unos segundos')}</p>
           </div>
         </div>
@@ -134,7 +135,7 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Asistencia')}</h1>
+          <h1 className="pg-title">{t('Asistencia')}<AyudaVideo id="asistencia-actitud" /></h1>
           <p className="pg-sub">
             {days.length > 0
               ? `${t(days.length === 1 ? '{n} día registrado' : '{n} días registrados', { n: days.length })} ${t('en {name}', { name: cls?.name ?? '' })}`

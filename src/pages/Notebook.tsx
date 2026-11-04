@@ -1,4 +1,5 @@
 import { esDeAsignatura, modeloAcs } from '../lib/acsModelos';
+import { AyudaVideo } from '../components/AyudaVideo';
 import type { AcsApoyo } from '../types/apoyo';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
@@ -1225,7 +1226,7 @@ export function Notebook(props: Props) {
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Cuaderno de Notas')}</h1>
+          <h1 className="pg-title">{t('Cuaderno de Notas')}<AyudaVideo id="cuaderno-notas" /></h1>
           <p className="pg-sub">{t('Calificaciones con media ponderada y asistente pedagógico')}</p>
         </div>
         <div className="tab-bar" style={{ marginBottom: 0, width: 'auto' }}>

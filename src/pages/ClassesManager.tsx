@@ -1,4 +1,5 @@
 import { mismoNombreEnClase } from '../lib/alumnado';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { useState, useId } from 'react';
 import {
   Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check, ChevronLeft,
@@ -369,7 +370,7 @@ export function ClassesManager({
       {/* ── page header ── */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Mis Clases')}</h1>
+          <h1 className="pg-title">{t('Mis Clases')}<AyudaVideo id="primeros-pasos" /></h1>
           <p className="pg-sub">
             {t(classes.length === 1 ? '{n} clase' : '{n} clases', { n: classes.length })}
             {' · '}

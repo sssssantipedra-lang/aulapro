@@ -23,6 +23,7 @@ const id = process.argv[2];
 const BASE = process.argv[3] || 'http://localhost:5173/';
 if (!id) { console.log('Uso: node scripts/videos/grabar.mjs <id> [url]'); process.exit(1); }
 const guion = (await import(`./guiones/${id}.mjs`)).default;
+const SIN_SUBS = process.env.SIN_SUBS === '1';
 const W = 1280, H = 720, HUECO = 600;
 // HD=1: sale a 1920x1080 (la página se dibuja a 1,5x, sin cambiar la maquetación)
 const HD = process.env.HD === '1', OW = HD ? 1920 : 1280, OH = HD ? 1080 : 720;   // ms de pausa entre escenas
@@ -72,7 +73,7 @@ const inicios = [];
 const t0 = Date.now();
 for (const [i, e] of guion.escenas.entries()) {
   inicios.push((Date.now() - t0) / 1000);
-  await page.evaluate(t => { const s = document.getElementById('v-sub'); s.textContent = t; s.style.display = 'block'; }, e.texto);
+  await page.evaluate(t => { const s = document.getElementById('v-sub'); s.textContent = t; s.style.display = t ? 'block' : 'none'; }, SIN_SUBS ? '' : e.texto);
   const fin = Date.now() + duraciones[i] * 1000 + HUECO;
   await e.hacer(page);
   const resto = fin - Date.now();
@@ -86,7 +87,8 @@ await ctx.close();
 await browser.close();
 
 const webm = fs.readdirSync(tmp).find(f => f.endsWith('.webm'));
-const OUT = path.join(RAIZ, 'web/sitio/assets/videos');
+// SIN_SUBS=1: sin subtítulos (para quien quiere ponerlos él); SALIDA=carpeta: dónde dejarlo (por defecto, la web)
+const OUT = process.env.SALIDA ? path.resolve(process.env.SALIDA) : path.join(RAIZ, 'web/sitio/assets/videos');
 fs.mkdirSync(OUT, { recursive: true });
 const mp4 = path.join(OUT, `${id}.mp4`);
 const entradas = audios.flatMap(a => ['-i', a]);
