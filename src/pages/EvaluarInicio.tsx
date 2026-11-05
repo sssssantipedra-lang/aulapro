@@ -63,8 +63,8 @@ export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, onNa
     {
       id: 'selfassess', color: '#6366f1', icono: <UserCheck size={26} />,
       titulo: 'Autoevaluaciones',
-      texto: 'Lo que el alumnado dice de sí mismo en la Sala de alumnos; se guarda aparte y no cuenta en el cuaderno.',
-      dato: t('De la Sala'),
+      texto: 'Lo que el alumnado dice de sí mismo desde el móvil, con Actividades con móviles (próximamente en la versión web); se guarda aparte y no cuenta en el cuaderno.',
+      dato: t('Próximamente'),
     },
     {
       id: 'history', color: '#64748b', icono: <History size={26} />,

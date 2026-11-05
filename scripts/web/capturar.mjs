@@ -646,15 +646,10 @@ await pantalla('config', 'Configuración');
 await menu('Registro de cambios');
 await pantalla('registro', 'Registro de cambios');
 
-/* Actividades con móviles, la última: se hace pasar por la app instalada
-   (sin sala de verdad) para enseñar cómo se prepara la actividad. */
-await page.evaluate(() => {
-  const vacio = { running: false, port: null, code: null, label: '', addresses: [], activity: null, responses: [], connected: 0 };
-  window.electronAPI = { ...(window.electronAPI ?? {}), classroom: {
-    state: async () => vacio, stop: async () => vacio, start: async () => vacio,
-    setActivity: async () => vacio, setRoster: async () => vacio, onUpdate: () => () => {},
-  } };
-});
+/* Actividades con móviles, la última: se hace pasar por la versión web (la única que se publica desde el 29-10-2026), que
+   enseña «Próximamente en la versión web». Hasta el 5-11-2026 se hacía pasar por la app instalada y enseñaba la sala, que en la
+   web no existe: la demo prometía algo que no hay (auditoría de textos del 5-11-2026, `CLAUDE.md`). */
+await page.evaluate(() => { window.electronAPI = { ...(window.electronAPI ?? {}), platform: 'web' }; });
 await menu('En clase');
 await pestana('Actividades con móviles');
 await pantalla('moviles', 'Actividades con móviles', 'enclase', { extra: { 'Abrir sala': 't:room' } });

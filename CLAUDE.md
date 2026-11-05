@@ -105,7 +105,7 @@ Para que la app gaste poco sin cambiar lo que hace, no se cargan al abrirla:
 - Diez herramientas nuevas, ocho fondos, escenas guardadas, varias instancias por herramienta (`Ventana.id` y `tipo`, hasta 24), ventanas sin tarjeta (se arrastran desde cualquier parte salvo los controles) y minimizadas a un icono. Las barras son solo iconos. La lógica sin pantalla está en `src/lib/pizarraAula.ts`, con pruebas.
 - **Hay que conservar el dibujo de la 2.12.0** (lápiz, rotulador, subrayador y borrador, con deshacer y rehacer, y el trazo al instante): lo hace `Lienzo.tsx`. Al integrar la pizarra nueva con la de `master`, se tomó `Lienzo` tal cual y solo se movieron sus controles a una barra propia.
 - Las herramientas escriben con `rgba(var(--pz-rgb), x)` y no con blanco fijo: el color de la tinta sigue al fondo de la pizarra.
-- La demo y todas las capturas de la web son de la 2.13.1 (19-10-2026). La pizarra de la demo se dibuja a mano sobre una captura sin ella (`web/DISENO.md`, sección 41): si cambia la pizarra, cambia también `INIT.pizarra` de `web/sitio/assets/demo.js`.
+- La demo y todas las capturas de la web se rehicieron el 5-11-2026, tras la auditoría de textos (antes, de la 2.13.1, 19-10-2026). La pizarra de la demo se dibuja a mano sobre una captura sin ella (`web/DISENO.md`, sección 41): si cambia la pizarra, cambia también `INIT.pizarra` de `web/sitio/assets/demo.js`.
 
 ## Elegir en tarjetas grandes (19-10-2026)
 
@@ -219,7 +219,7 @@ Petición del dueño: «que acabe todo cuadrado». Se cruzaron la portada, la de
 - **La sección de privacidad de la portada es la de la web**, no la de escritorio: se entra con la cuenta de Google o de Microsoft, el trabajo está en el navegador y, si se elige, en Drive, OneDrive o una carpeta, y la clave de la IA se queda en el navegador (sin cifrado propio: nunca decir «cifrada»).
 - **El manual del asistente (`src/services/appHelpManual.ts`) describe la versión web**: qué es, la licencia (fundador, acceso anticipado, comprada), cuánto cuesta, dónde están los datos, cómo se hace el PDF y que se actualiza sola. Lo que dice del precio y de la beta tiene que coincidir con la portada.
 - Las referencias internas de la privacidad apuntan a «AulaPro (versión web)», apartados 2, 5 y 11, y el aviso legal ya no cita Google Play. Las páginas legales llevan como «última actualización» el 5-11-2026.
-- **Pendiente, que no son textos:** las capturas de la portada y de la demo son de la 2.13.1 y pueden enseñar pantallas que han cambiado (por ejemplo, la tarjeta «Evaluar por foto», apagada): hay que rehacerlas con `scripts/web/capturar.mjs` y `capturar-portada.mjs`.
+- **Capturas rehechas el 5-11-2026** (`scripts/web/capturar.mjs` y `capturar-portada.mjs`), con los textos ya corregidos (la tarjeta «Autoevaluaciones» de Evaluar ya no habla de la «Sala de alumnos»). La pantalla «Actividades con móviles» de la demo se captura **como versión web** («Próximamente en la versión web»): hasta ese día el script se hacía pasar por la app instalada y enseñaba una sala que en la web no existe.
 
 ## Publicar
 
