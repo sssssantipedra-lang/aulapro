@@ -27,7 +27,7 @@ import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta, recargarCuandoSeAPuedeSinCortar } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost, type LicenseRecord } from './androidLicense';
-import { crearVerificador } from './firmaLicencia';
+import { crearVerificador, esperadoDeRegistro } from './firmaLicencia';
 import { LICENCIA_PERDIDA, pedirSesion, vigilarSesion } from './sesionWeb';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
@@ -64,15 +64,12 @@ const verificarFirma = crearVerificador(idbKv, async () => {
   return r.ok ? String((await r.json()).x ?? '') : '';
 });
 async function verificarLicencia(r: LicenseRecord): Promise<boolean> {
-  if (r.cuenta) {
-    const email = (cuentaActual() ?? await leerCuenta())?.email;
-    if (await verificarFirma(r.firma, { t: 'cuenta', email, ...(r.kind === 'fundador' ? { fundador: true } : { key: r.key }) })) return true;
-    // La comprobación diaria de la clave (`check`) la vuelve a firmar como clave: vale igual
-    return r.kind === 'licencia' && !!r.key && verificarFirma(r.firma, { t: 'clave', key: r.key });
-  }
-  if (r.kind === 'licencia') return verificarFirma(r.firma, { t: 'clave', key: r.key });
-  // Fundador sin cuenta: en la web no existe (los fundadores van por su correo)
-  return false;
+  const email = r.cuenta ? (cuentaActual() ?? await leerCuenta())?.email : undefined;
+  const esperado = esperadoDeRegistro(r, email);
+  if (!esperado) return false;
+  if (await verificarFirma(r.firma, esperado)) return true;
+  // La comprobación diaria de la clave (`check`) la vuelve a firmar como clave: vale igual
+  return !!r.cuenta && r.kind === 'licencia' && !!r.key && verificarFirma(r.firma, { t: 'clave', key: r.key });
 }
 
 const secretos = {

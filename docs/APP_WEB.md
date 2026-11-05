@@ -84,6 +84,14 @@ Pide la licencia y rechaza una clave mala; se activa; crea el perfil; guarda en 
 
 Al imprimir, Chrome añade por defecto la fecha y la dirección arriba y abajo («Encabezado y pie de página»): se desmarca una vez y Chrome lo recuerda.
 
+## Acceso anticipado gratuito (5-11-2026)
+
+La app sale el 10-11-2026 sin cobrar: quien entra con su cuenta usa AulaPro gratis hasta que el dueño abra la venta, y ese día queda bloqueado y tiene que suscribirse. Código en `web/funciones/api/_beta.js` (servidor), `platform/androidLicense.ts` (`kind: 'beta'`), `platform/cuentaWeb.ts` (`BETA`, `ACCESO_ANTICIPADO`) y `scripts/abrir-venta.mjs` (los tres interruptores a la vez). Cómo se corta y por qué no se puede alargar, en `CLAUDE.md` («Acceso anticipado gratuito») y los pasos del día de la apertura en `docs/MANTENIMIENTO.md`.
+
+- La firma de beta dura 3 días como mucho (7 la de una compra) y la app la renueva sola cada día. Sin conexión, la beta aguanta 3 días desde la última renovación.
+- El servidor no guarda el correo de quien entra en la beta: solo la huella de la aceptación de las condiciones y los contadores del límite de peticiones, como con cualquier cuenta.
+- Probado con el cliente y el servidor reales en `web/pruebas/beta-dia-de-venta.test.js`. **Sin comprobar con Google y Microsoft reales ni en un navegador real** (la prueba usa un Google falso): hacerlo en la rama de prueba de Cloudflare antes de fusionar (docs/MANTENIMIENTO.md, «Abrir la venta»).
+
 ## Lo que falta para el 10-11-2026
 
 1. Pruebas del dueño en sus dispositivos (1 al 3 de noviembre) en la copia de prueba.

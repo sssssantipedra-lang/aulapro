@@ -157,6 +157,17 @@ Esto no es del dueño, pero explica las quejas más probables:
 
 **Estado de la venta (31-10-2026): cerrada.** La web y la app no enseñan ningún botón de compra, pero **el enlace de pago de Lemon Squeezy sigue siendo válido** para quien lo tenga (estuvo publicado en el código desde el 29-10-2026 y sigue en el historial). Para que de verdad nadie pueda pagar antes de tiempo, hay que cerrarlo también en Lemon Squeezy (pasar el producto a borrador o desactivar su enlace de compra); es algo que solo se hace desde su panel. Al abrir la venta, hacer lo contrario en los tres sitios.
 
+**Acceso anticipado gratuito (beta, desde el 5-11-2026).** La app está abierta a quien entre con su cuenta sin pagar, y la venta, cerrada sin fecha. Mientras dure: los tres productos de Lemon Squeezy (individual y packs) **en borrador**, y nada de pagos, preventas ni donaciones. El servidor lo gobierna `CONFIG_BETA` en `web/funciones/api/_beta.js` (no es una variable del panel: un cambio de variable también exige publicar, y así el cierre va en el mismo despliegue que la apertura de la venta).
+
+**Abrir la venta y bloquear a quien entró gratis (el día que lo decida el dueño):**
+
+1. `node scripts/abrir-venta.mjs` (sin más, enseña qué cambiaría) y después `node scripts/abrir-venta.mjs --aplicar`. Cambia a la vez `CONFIG_BETA.abierta` a `false`, `VENTA_ABIERTA` a `true`, `ACCESO_ANTICIPADO` a `false`, y rellena `checkout`, los packs y `acceso` en `launch.js`.
+2. `npm test` (la prueba `web/pruebas/interruptores.test.js` falla si los tres interruptores no cuadran) y `npx tsc -b`.
+3. Los tres productos de Lemon Squeezy, **activos** (antes de fusionar o a la vez: si se fusiona antes, el botón de compra llevaría a un producto cerrado).
+4. Pull request y fusión a `master`: Netlify publica. A partir de ahí, quien entró gratis queda bloqueado así: lo que vuelve a abrir su app se bloquea al contestar el servidor (segundos); lo que ya estaba abierto, en unos 15 minutos; sin conexión, cuando caduca su firma (3 días como mucho). Les sale «El acceso anticipado gratuito de AulaPro ha terminado», con el botón de suscribirse con su correo puesto. Su trabajo no se borra.
+5. Comprobar con una cuenta de prueba que no es fundadora ni ha pagado: entra, se bloquea y, al pagar, vuelve a entrar. Y que un fundador sigue entrando.
+6. Avisar en la web y a la lista de espera (con aprobación del dueño: es un envío externo).
+
 - [ ] Producto de Lemon Squeezy activo de nuevo (si se cerró allí).
 - [ ] `checkout` rellenado en `web/sitio/assets/launch.js` y `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` (los dos, a la vez), y la prueba `src/pages/LicenseGate.test.tsx` ajustada.
 - [ ] `LEMONSQUEEZY_API_KEY` es de **modo real**, está en Netlify y Cloudflare, y se anotó su caducidad en la tabla.

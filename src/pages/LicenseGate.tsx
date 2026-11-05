@@ -5,7 +5,7 @@ import { licenseBridge, LICENSE_ERROR_TEXT, LICENSE_STATUS_TEXT } from '../servi
 import type { LicenseError, LicenseState } from '../types/electron';
 import { LangSwitch } from './Welcome';
 import { isAndroidApp, isWebApp } from '../lib/platform';
-import { licenciaVencida } from '../lib/licenciaVencida';
+import { betaTerminada, licenciaVencida } from '../lib/licenciaVencida';
 import { DescargarMisDatos } from '../components/DescargarMisDatos';
 import { botonGoogle, enlaceDePago, hayToken, leerCuenta, licenciaDeLaCuenta, VENTA_ABIERTA, type Cuenta } from '../platform/cuentaWeb';
 
@@ -47,6 +47,8 @@ export function LicenseGate({ state, onChange }: Props) {
   const [conClave, setConClave] = useState(!VENTA_ABIERTA);
   // La suscripción terminó en este dispositivo: se dice y se ofrece la renovación, no el precio de lanzamiento
   const [vencida, setVencida] = useState(licenciaVencida);
+  // El acceso anticipado gratuito (beta) se cerró al abrirse la venta: no es una renovación, es la primera suscripción
+  const [betaFin] = useState(betaTerminada);
   // La firma caduca a los 7 días sin conexión (`platform/firmaLicencia.ts`): sin red, lo que falta es comprobarla
   const [sinConexion] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
 
@@ -127,9 +129,11 @@ export function LicenseGate({ state, onChange }: Props) {
               ? t('No hay conexión. AulaPro necesita comprobar tu suscripción al menos una vez cada 7 días: conéctate a internet y vuelve a abrir la app. Tu trabajo sigue guardado.')
               : vencida
               ? t('Tu suscripción a AulaPro ha terminado. Tu trabajo sigue guardado y no se ha borrado nada: renueva con la cuenta {email} y vuelves a entrar al instante.', { email: cuenta.email })
+              : betaFin
+              ? t('El acceso anticipado gratuito de AulaPro ha terminado. Tu trabajo sigue guardado y no se ha borrado nada: suscríbete con la cuenta {email} y vuelves a entrar al instante.', { email: cuenta.email })
               : VENTA_ABIERTA
               ? t('Con la cuenta {email} todavía no hay una licencia. Suscríbete aquí y se activará sola en todos tus dispositivos.', { email: cuenta.email })
-              : t('Con la cuenta {email} todavía no hay una licencia. AulaPro sale a la venta el 10 de noviembre de 2026. Si ya tienes una clave, escríbela abajo.', { email: cuenta.email })}</p>
+              : t('Con la cuenta {email} todavía no hay una licencia y la venta de AulaPro aún no está abierta. Si ya tienes una clave, escríbela abajo.', { email: cuenta.email })}</p>
             {VENTA_ABIERTA && (
               <a className="btn-primary lic-compra-btn" href={enlaceDePago(cuenta.email, vencida)} target="_blank" rel="noreferrer" onClick={() => setEsperando(true)}>
                 {t(vencida ? 'Renovar · 14,99 € al año' : 'Suscribirme · 9,90 € el primer año')} <ExternalLink size={14} />

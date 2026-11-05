@@ -12,7 +12,8 @@
   const LAUNCH = window.AULA_LAUNCH || {};
   // 100% web desde el 29-10-2026: el botón lleva a la app, donde se entra con Google y se compra con el correo ya puesto
   const STORE_LINKS = {
-    web: LAUNCH.checkout ? 'app/' : ''
+    // Con la venta cerrada pero el acceso anticipado abierto (launch.js), también lleva a la app: se entra gratis
+    web: LAUNCH.checkout || LAUNCH.acceso ? 'app/' : ''
   };
 
 
@@ -357,7 +358,8 @@
       if (url) {
         a.href = url;
         a.classList.add('ready');
-        label.dataset.i18n = 'buy.for';
+        label.dataset.i18n = LAUNCH.checkout ? 'buy.for' : 'buy.early';
+        if (!LAUNCH.checkout) allOpen = false;   // acceso anticipado: la tienda sigue cerrada (lista de espera visible)
       } else {
         a.href = '#quiero';
         a.removeAttribute('target');

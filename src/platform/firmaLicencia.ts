@@ -15,7 +15,24 @@
 import type { Kv } from './webFs';
 
 /** Lo que tiene que decir la firma. Solo se comparan los campos que se dan. */
-export interface Esperado { t: 'cuenta' | 'clave'; email?: string; key?: string; fundador?: boolean; instance?: string }
+export interface Esperado { t: 'cuenta' | 'clave'; email?: string; key?: string; fundador?: boolean; beta?: boolean; instance?: string }
+
+/**
+ * Lo que tiene que decir la firma de un registro de licencia guardado, o `null` si ese registro no puede valer nunca. Cada tipo
+ * solo vale con SU firma: la compra, con su clave; el fundador, con la marca de fundador; el acceso anticipado gratuito (beta),
+ * con la marca de beta. Una licencia comprada SIN clave no vale: sin ella la comparación de la clave se saltaría y valdría una
+ * firma de fundador o de beta metida en un registro de «comprada», que además no se bloquearía al cerrarse la beta.
+ */
+export function esperadoDeRegistro(r: { kind: string; key?: string; cuenta?: boolean }, email?: string): Esperado | null {
+  if (r.cuenta) {
+    if (r.kind === 'fundador') return { t: 'cuenta', email, fundador: true };
+    if (r.kind === 'beta') return { t: 'cuenta', email, beta: true };
+    if (r.kind === 'licencia' && r.key) return { t: 'cuenta', email, key: r.key };
+    return null;
+  }
+  // Una clave escrita a mano. El fundador sin cuenta no existe en la web (los fundadores van por su correo), ni la beta
+  return r.kind === 'licencia' && r.key ? { t: 'clave', key: r.key } : null;
+}
 
 const desdeB64url = (s: string) => {
   const b = s.replace(/-/g, '+').replace(/_/g, '/');

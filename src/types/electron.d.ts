@@ -100,7 +100,7 @@ export interface UpdateBridge {
   setLanguage: (lang: 'es' | 'en' | 'ca') => Promise<void>;
 }
 
-export type LicenseStatus = 'fundador' | 'activa' | 'sin-licencia' | 'otro-equipo';
+export type LicenseStatus = 'fundador' | 'beta' | 'activa' | 'sin-licencia' | 'otro-equipo';
 export type LicenseError = 'clave-no-valida' | 'limite' | 'desactivada' | 'otra-tienda' | 'sin-conexion' | 'error-tienda' | 'sin-licencia';
 
 export interface LicenseState {

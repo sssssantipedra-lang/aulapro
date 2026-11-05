@@ -8,7 +8,7 @@
  * `VERSION_CONDICIONES` (la fecha del cambio) y la app vuelve a pedir la casilla a todo el mundo
  * (`components/AceptarCondiciones.tsx`).
  */
-export const VERSION_CONDICIONES = '2026-11-03';
+export const VERSION_CONDICIONES = '2026-11-05';
 
 const CLAVE = 'aulapro_condiciones';
 

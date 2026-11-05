@@ -18,7 +18,7 @@ import { Welcome } from './pages/Welcome';
 import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
-import { licenciaVencida, marcarLicenciaVencida } from './lib/licenciaVencida';
+import { betaTerminada, licenciaVencida, marcarLicenciaVencida } from './lib/licenciaVencida';
 import { LICENCIA_PERDIDA, olvidarApp } from './platform/sesionWeb';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
@@ -941,7 +941,8 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
 
   // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el
   // dispositivo; el trabajo se queda. Al renovar se vuelve a descargar.
-  const bloqueada = !!state?.required && isWebApp() && licenciaVencida();
+  // También al terminar el acceso anticipado gratuito (beta): ya no se puede usar sin suscribirse
+  const bloqueada = !!state?.required && isWebApp() && (licenciaVencida() || betaTerminada());
   useEffect(() => { if (bloqueada) void olvidarApp(); }, [bloqueada]);
 
   if (state === undefined) {

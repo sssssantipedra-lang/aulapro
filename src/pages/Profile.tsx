@@ -206,8 +206,8 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
     { id: 'datos', icon: <Database size={22} />, title: 'Datos y copias', desc: 'Copias de seguridad, llevar a otro equipo y fin de curso.', status: t('En este equipo') },
     ...(license ? [{
       id: 'licencia' as const, icon: <KeyRound size={22} />, title: 'Licencia', desc: 'Tu licencia de AulaPro en este ordenador.',
-      status: t(license.status === 'fundador' ? 'Docente fundador/a' : license.status === 'activa' ? 'Licencia activa' : 'Sin activar'),
-      ok: license.status === 'fundador' || license.status === 'activa',
+      status: t(license.status === 'fundador' ? 'Docente fundador/a' : license.status === 'beta' ? 'Acceso anticipado gratuito' : license.status === 'activa' ? 'Licencia activa' : 'Sin activar'),
+      ok: license.status === 'fundador' || license.status === 'beta' || license.status === 'activa',
     }] : []),
   ];
   const current = TILES.find(x => x.id === panel);

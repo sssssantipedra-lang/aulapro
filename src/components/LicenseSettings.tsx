@@ -31,12 +31,24 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
   // Para saber por qué entra este navegador: de dónde viene la licencia, cuándo se comprobó y qué versión de la app corre
   const detalle = (
     <p className="lic-card-meta" style={{ marginTop: 8 }}>
-      {state.origen && <>{t(state.status === 'fundador' ? 'Fundador/a por tu correo' : state.origen === 'cuenta' ? 'Licencia de tu cuenta' : 'Clave escrita a mano')} · </>}
+      {state.origen && <>{t(state.status === 'fundador' ? 'Fundador/a por tu correo' : state.status === 'beta' ? 'Acceso anticipado gratuito' : state.origen === 'cuenta' ? 'Licencia de tu cuenta' : 'Clave escrita a mano')} · </>}
       {state.comprobada && <>{t('comprobada el {d}', { d: fecha(state.comprobada) })} · </>}
       {state.firmaHasta ? <>{t('sin conexión, vale hasta el {d}', { d: fecha(state.firmaHasta) })} · </> : null}
       {t('versión del {d}', { d: __APP_BUILD__ })}
     </p>
   );
+
+  if (state.status === 'beta') {
+    return (
+      <div className="card lic-card">
+        <div className="lic-badge"><Heart size={15} />{t('Acceso anticipado gratuito')}</div>
+        <p className="lic-card-txt">
+          {t('Estás usando AulaPro gratis durante el acceso anticipado. Termina cuando se abra la venta: entonces tendrás que suscribirte para seguir entrando. Tu trabajo se queda en tu dispositivo y puedes descargarlo cuando quieras, con o sin suscripción.')}
+        </p>
+        {detalle}
+      </div>
+    );
+  }
 
   if (state.status === 'fundador') {
     return (

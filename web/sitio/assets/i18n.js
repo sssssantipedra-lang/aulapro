@@ -11,6 +11,7 @@ window.AULA_I18N = {
     'f.preview': 'Vista previa: el formulario aún no está conectado, así que no se ha enviado nada.',
     'f.invalid': 'Introduce un correo electrónico válido.',
     'buy.for': 'Comprar para',
+    'buy.early': 'Prueba gratis',
     'pk.buy': 'Comprar'
   },
 
@@ -251,6 +252,7 @@ window.AULA_I18N = {
     's9.or': "Mentrestant, deixa'ns el teu correu electrònic i t'avisarem quan estigui a la venda.",
     'buy.soon': 'Aviat',
     'buy.for': 'Compra per a',
+    'buy.early': 'Prova-ho gratis',
     'buy.play': 'Una sola llicència en tots els teus dispositius, des del navegador. Si compres amb el correu del teu compte de Google o de Microsoft, s’activa sola en entrar.',
     'buy.note': "Encara no està a la venda. Deixa'ns el teu correu i t'avisarem.",
     'f.email': 'Correu electrònic',
@@ -508,6 +510,7 @@ window.AULA_I18N = {
     's9.or': 'In the meantime, leave your email address and we will let you know as soon as it is on sale.',
     'buy.soon': 'Coming soon',
     'buy.for': 'Buy for',
+    'buy.early': 'Try it free',
     'buy.play': 'One licence on all your devices, from the browser. If you buy with your Google or Microsoft account email, it activates by itself when you sign in.',
     'buy.note': 'Not on sale yet. Leave your email and we will let you know.',
     'f.email': 'Email address',

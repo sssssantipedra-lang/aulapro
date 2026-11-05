@@ -10,6 +10,7 @@
 // La lista la escribe web/app/publico.mjs al publicar en `funciones/_publico.js`.
 import { leerSesion } from './_sesion.js';
 import { comoSecretos } from './_secretos.js';
+import { betaVigente, CONFIG_BETA } from './_beta.js';
 
 /** Lo que el servidor sirve como código (el tipo sale de la extensión del archivo de verdad, no de la dirección). */
 const ES_CODIGO = /javascript|ecmascript|wasm/i;
@@ -18,12 +19,14 @@ const ES_CODIGO = /javascript|ecmascript|wasm/i;
  * Pide la respuesta (`siguiente`) y decide si sale. Sin lista (no se generó) o sin secreto (el servidor sin
  * configurar) deja pasar: mejor la app abierta que la de todo el mundo rota por un olvido.
  */
-export async function puerta(request, secretos, publico, siguiente, ahora = Date.now()) {
+export async function puerta(request, secretos, publico, siguiente, ahora = Date.now(), cfgBeta = CONFIG_BETA) {
   const res = await siguiente();
   const { aceptar } = comoSecretos(secretos);
   if (!publico || !aceptar.length || !ES_CODIGO.test(res.headers.get('Content-Type') ?? '')) return res;
   if (publico.includes(new URL(request.url).pathname)) return res;
-  if (res.ok && (await leerSesion(request.headers.get('Cookie'), aceptar, ahora))) {
+  const sesion = res.ok ? await leerSesion(request.headers.get('Cookie'), aceptar, ahora) : null;
+  // Una sesión de acceso anticipado (beta) deja de valer en cuanto se cierra la beta, aunque su cookie no haya caducado (_beta.js)
+  if (sesion && !(sesion.beta && !betaVigente(ahora, cfgBeta))) {
     // Lo que pasó por la puerta no se guarda en cachés compartidas (proxies): solo en el navegador de quien lo pidió
     const copia = new Response(res.body, res);
     copia.headers.set('Cache-Control', 'private, max-age=31536000, immutable');
