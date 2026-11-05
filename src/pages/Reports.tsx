@@ -1,3 +1,4 @@
+import { AyudaVideo } from '../components/AyudaVideo';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle, Eye, ListChecks, RefreshCw, PenLine,
@@ -490,7 +491,7 @@ export function Reports(props: Props) {
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Informes')}</h1>
+            <h1 className="pg-title">{t('Informes')}<AyudaVideo id="informes" /></h1>
             <p className="pg-sub">{t(SUBTITULO)}</p>
           </div>
         </div>
@@ -528,7 +529,7 @@ export function Reports(props: Props) {
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Informes')}</h1>
+          <h1 className="pg-title">{t('Informes')}<AyudaVideo id="informes" /></h1>
           <p className="pg-sub">
             {generatedCount > 0
               ? t('{n}/{total} generados · {period}', { n: generatedCount, total: roster.length, period: t(period) })

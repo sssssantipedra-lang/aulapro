@@ -11,6 +11,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   Users, Sparkles, RotateCcw, RotateCw, FileDown, FileType2, Settings2, ArrowRight, CheckCircle2, X, GripVertical, Flag,
   ChevronDown, ChevronUp,
@@ -366,7 +367,7 @@ export function SeatingPlan({
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Distribución de aula')}</h1>
+            <h1 className="pg-title">{t('Distribución de aula')}<AyudaVideo id="distribucion-aula" /></h1>
             <p className="pg-sub">{t('Grupos cooperativos, roles y rotación semanal')}</p>
           </div>
         </div>
@@ -391,7 +392,7 @@ export function SeatingPlan({
     <section className="sec active seat-page">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Distribución de aula')}</h1>
+          <h1 className="pg-title">{t('Distribución de aula')}<AyudaVideo id="distribucion-aula" /></h1>
           <p className="pg-sub">{t('Grupos cooperativos, roles y rotación semanal')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
