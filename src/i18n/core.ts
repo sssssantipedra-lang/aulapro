@@ -2038,7 +2038,6 @@ const EN: Record<string, string> = {
   "La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.": "Activation needs the internet only once; after that AulaPro works offline and your data never leaves this device.",
   "Licencia desactivada en este equipo": "Licence deactivated on this computer",
   "Docente fundador/a": "Founding teacher",
-  "Usas AulaPro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!": "You've been using AulaPro since before it went on sale, so it's free for ever on this computer. Thank you for helping to make it better!",
   "En este equipo desde el {d}": "On this computer since {d}",
   "Licencia activa": "Licence active",
   "activada el {d}": "activated on {d}",
@@ -2047,7 +2046,6 @@ const EN: Record<string, string> = {
   "Sí, desactivar": "Yes, deactivate",
   "Desactivar en este equipo": "Deactivate on this computer",
   "Licencia": "Licence",
-  "Tu licencia de AulaPro en este ordenador.": "Your AulaPro licence on this computer.",
   "Sin activar": "Not activated",
 
   /* ── Android ── */

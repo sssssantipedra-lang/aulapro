@@ -159,7 +159,7 @@ Esto no es del dueño, pero explica las quejas más probables:
 
 **Acceso anticipado gratuito (beta, desde el 5-11-2026).** La app está abierta a quien entre con su cuenta sin pagar, y la venta, cerrada sin fecha. Mientras dure: los tres productos de Lemon Squeezy (individual y packs) **en borrador**, y nada de pagos, preventas ni donaciones. El servidor lo gobierna `CONFIG_BETA` en `web/funciones/api/_beta.js` (no es una variable del panel: un cambio de variable también exige publicar, y así el cierre va en el mismo despliegue que la apertura de la venta).
 
-**Fecha anunciada: la portada dice que el acceso gratuito se cierra «a partir de enero de 2027» y que después son 14,99 € al año.** El servidor no la hace cumplir. Si se acerca y la venta no está abierta, cambiar la fecha en `el.*` (`web/sitio/assets/i18n.js`, tres idiomas) antes de que pase.
+**Fecha anunciada: el acceso gratuito se cierra «a partir de enero de 2027»**, y después se aplica la oferta de lanzamiento (9,90 € el primer año hasta el 15-4-2027; después, 14,99 € al año). El servidor no la hace cumplir. Si se acerca y la venta no está abierta, hay que cambiar la fecha antes de que pase, en todos los sitios donde sale y en los tres idiomas: la portada (`early.*`, `el.*` y la pregunta `a7` en `web/sitio/assets/i18n.js` e `index.html`), la app (`AvisoAccesoAnticipado.tsx`, `LicenseSettings.tsx`, `EntrarWeb.tsx` y sus traducciones de `src/i18n/web.ts`), el manual del asistente (`appHelpManual.ts`), las condiciones (apartado 3) y la privacidad (versión web, apartado 5). Las pruebas `portada-lanzamiento.test.js` y `AvisoAccesoAnticipado.test.tsx` fallan si no cuadran.
 
 **Abrir la venta y bloquear a quien entró gratis (el día que lo decida el dueño):**
 

@@ -17,12 +17,17 @@ afterEach(cleanup);
 describe('el aviso al entrar en el acceso anticipado', () => {
   it('dice las tres cosas: gratis un tiempo, después de pago y el trabajo se puede descargar', () => {
     pintar();
-    expect(screen.getByText('Es gratis durante un periodo de lanzamiento.')).toBeTruthy();
+    expect(screen.getByText('Es gratis durante el lanzamiento.')).toBeTruthy();
     expect(screen.getByText('Después pasará a ser de pago.')).toBeTruthy();
     expect(screen.getByText('Tu trabajo es tuyo.')).toBeTruthy();
     expect(screen.getByText(/«Descargar mis datos»/)).toBeTruthy();
-    // No promete ninguna fecha ni ninguna duración: no están fijadas
-    expect(document.body.textContent).not.toMatch(/\d+ (meses|días)|de (enero|febrero|marzo|noviembre|diciembre) de 2027/i);
+    // Lo mismo que la portada y las condiciones (auditoría del 5-11-2026): cierre previsto en enero de 2027 y la oferta de lanzamiento
+    const texto = document.body.textContent ?? '';
+    expect(texto).toContain('enero de 2027');
+    expect(texto).toMatch(/9,90\s€ el primer año si te suscribes hasta el 15 de abril de 2027/);
+    expect(texto).toMatch(/14,99\s€ al año/);
+    // Ninguna duración suelta («2 meses»)
+    expect(texto).not.toMatch(/\d+ (meses|días)/i);
   });
 
   it('no deja seguir sin marcar la casilla, y al marcarla y continuar se acuerda', () => {

@@ -126,7 +126,7 @@ export function LicenseGate({ state, onChange }: Props) {
         {cuenta ? (
           <div className="lic-compra">
             <p className="lic-text">{sinConexion
-              ? t('No hay conexión. AulaPro necesita comprobar tu suscripción al menos una vez cada 7 días: conéctate a internet y vuelve a abrir la app. Tu trabajo sigue guardado.')
+              ? t('No hay conexión. AulaPro necesita conectarse a internet cada pocos días para comprobar tu licencia: conéctate y vuelve a abrir la app. Tu trabajo sigue guardado.')
               : vencida
               ? t('Tu suscripción a AulaPro ha terminado. Tu trabajo sigue guardado y no se ha borrado nada: renueva con la cuenta {email} y vuelves a entrar al instante.', { email: cuenta.email })
               : betaFin
@@ -187,7 +187,7 @@ export function LicenseGate({ state, onChange }: Props) {
 
         <p className="lic-note">
           <ShieldCheck size={15} color="var(--ok)" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
-          <span>{t(isWebApp() ? 'La licencia va con tu cuenta de Google. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive.' : 'La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
+          <span>{t(isWebApp() ? 'La licencia va con tu cuenta de Google o de Microsoft. Tu trabajo nunca pasa por un servidor de AulaPro: se queda en tu dispositivo y, si lo eliges, en tu Google Drive u OneDrive.' : 'La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.')}</span>
         </p>
       </div>
     </div>

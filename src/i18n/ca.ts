@@ -1829,7 +1829,6 @@ export const CA: Record<string, string> = {
   "La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.": "L'activació només necessita internet una vegada; després AulaPro funciona sense connexió i les teves dades no surten d'aquest dispositiu.",
   "Licencia desactivada en este equipo": "Llicència desactivada en aquest equip",
   "Docente fundador/a": "Docent fundador/a",
-  "Usas AulaPro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!": "Fas servir AulaPro des d'abans que sortís a la venda, així que en aquest ordinador és gratis per sempre. Gràcies per ajudar a millorar-la!",
   "En este equipo desde el {d}": "En aquest equip des del {d}",
   "Licencia activa": "Llicència activa",
   "activada el {d}": "activada el {d}",
@@ -1838,7 +1837,6 @@ export const CA: Record<string, string> = {
   "Sí, desactivar": "Sí, desactiva",
   "Desactivar en este equipo": "Desactiva en aquest equip",
   "Licencia": "Llicència",
-  "Tu licencia de AulaPro en este ordenador.": "La teva llicència d'AulaPro en aquest ordinador.",
   "Sin activar": "Sense activar",
   // Android
   "Todo tu trabajo se guarda dentro de AulaPro en este dispositivo, solo para este perfil, y no se sube a ninguna nube. AulaPro hace una copia de seguridad automática cada diez minutos mientras trabajas.": "Tota la teva feina es desa dins d'AulaPro en aquest dispositiu, només per a aquest perfil, i no es puja a cap núvol. AulaPro fa una còpia de seguretat automàtica cada deu minuts mentre treballes.",

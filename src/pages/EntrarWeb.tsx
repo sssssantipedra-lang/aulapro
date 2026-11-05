@@ -87,7 +87,7 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
         <img className="entrar-logo" src="./favicon.svg" alt="AulaPro" width={148} height={148} />
         <h1 className="entrar-titulo">{t('Tu cuaderno docente')}</h1>
         <p className="entrar-sub">{t('Entra con tu cuenta y tendrás AulaPro en todos tus dispositivos.')}</p>
-        {ACCESO_ANTICIPADO && <p className="entrar-sub" style={{ marginTop: 6, fontWeight: 600 }}>{t('Acceso anticipado gratuito, sin tarjeta. Termina cuando se abra la venta; tu trabajo se queda en tu dispositivo.')}</p>}
+        {ACCESO_ANTICIPADO && <p className="entrar-sub" style={{ marginTop: 6, fontWeight: 600 }}>{t('Acceso anticipado gratuito, sin tarjeta, hasta enero de 2027. Tu trabajo se queda en tu dispositivo.')}</p>}
 
         {error && <div className="lic-err entrar-err" role="alert">{error}</div>}
 
