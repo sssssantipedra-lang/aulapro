@@ -159,6 +159,8 @@ Esto no es del dueño, pero explica las quejas más probables:
 
 **Acceso anticipado gratuito (beta, desde el 5-11-2026).** La app está abierta a quien entre con su cuenta sin pagar, y la venta, cerrada sin fecha. Mientras dure: los tres productos de Lemon Squeezy (individual y packs) **en borrador**, y nada de pagos, preventas ni donaciones. El servidor lo gobierna `CONFIG_BETA` en `web/funciones/api/_beta.js` (no es una variable del panel: un cambio de variable también exige publicar, y así el cierre va en el mismo despliegue que la apertura de la venta).
 
+**Fecha anunciada: la portada dice que el acceso gratuito se cierra «a partir de enero de 2027» y que después son 14,99 € al año.** El servidor no la hace cumplir. Si se acerca y la venta no está abierta, cambiar la fecha en `el.*` (`web/sitio/assets/i18n.js`, tres idiomas) antes de que pase.
+
 **Abrir la venta y bloquear a quien entró gratis (el día que lo decida el dueño):**
 
 1. `node scripts/abrir-venta.mjs` (sin más, enseña qué cambiaría) y después `node scripts/abrir-venta.mjs --aplicar`. Cambia a la vez `CONFIG_BETA.abierta` a `false`, `VENTA_ABIERTA` a `true`, `ACCESO_ANTICIPADO` a `false`, y rellena `checkout`, los packs y `acceso` en `launch.js`.

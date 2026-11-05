@@ -19,7 +19,7 @@ describe('el aviso de versión de lanzamiento gratuita en la portada', () => {
   it('el HTML trae el aviso de arriba y la tarjeta, con todos sus textos', () => {
     expect(html).toContain('class="early-bar"');
     expect(html).toContain('id="lanzamiento"');
-    expect(new Set(clavesDelAviso)).toEqual(new Set(['early.t', 'early.s', 'early.more', 'el.k', 'el.t', 'el.l', 'el.i1', 'el.i2', 'el.i3', 'el.i4']));
+    expect(new Set(clavesDelAviso)).toEqual(new Set(['early.t', 'early.s', 'early.more', 'el.k', 'el.t', 'el.price', 'el.once', 'el.save', 'el.l', 'el.i1', 'el.i2', 'el.i3', 'el.i4', 'el.n']));
   });
 
   it('cada texto existe en castellano, catalán e inglés, y el botón dice «Prueba gratis»', () => {
@@ -28,8 +28,15 @@ describe('el aviso de versión de lanzamiento gratuita en la portada', () => {
       for (const k of [...clavesDelAviso, 'buy.early']) expect(i18n[idioma][k], `${idioma}: ${k}`).toBeTruthy();
     }
     expect(i18n.es['buy.early']).toBe('Prueba gratis');
-    // Los textos del aviso no prometen ninguna fecha ni duración (no están fijadas)
+    // Decisión del dueño (5-11-2026): el acceso gratuito se cierra «a partir de enero de 2027» y después son 14,99 € al año. Si se cambia
+    // la fecha o el precio, se cambian los tres idiomas a la vez (y el aviso de la app, la privacidad y las condiciones).
+    const precio = { es: '14,99', ca: '14,99', en: '14.99' };
     for (const idioma of ['es', 'ca', 'en']) {
+      for (const k of ['el.t', 'el.save', 'el.l']) {
+        expect(i18n[idioma][k], `${idioma}: ${k}`).toContain(precio[idioma]);
+        expect(i18n[idioma][k], `${idioma}: ${k}`).toContain('2027');
+      }
+      // Ninguna duración suelta («2 meses»): lo que se anuncia es una fecha
       for (const k of clavesDelAviso) expect(i18n[idioma][k], `${idioma}: ${k}`).not.toMatch(/\b\d+ (mes|meses|días|dies|months|days)\b/i);
     }
   });

@@ -23,7 +23,8 @@ Decidido por el dueño: la app sale el 10-11-2026 sin cobrar y la venta se abre 
 - [ ] **Probar en la rama de Cloudflare** (`prueba.aulapro-app.pages.dev`) con una cuenta de Google y otra de Microsoft reales: que entra sin pagar y que, con `CONFIG_BETA.abierta: false` en esa rama, se bloquea y sale el botón de compra. La simulación automática usa un Google falso.
 - [ ] **El aviso a la lista de espera** de que ya hay acceso anticipado: es un envío externo, con aprobación del dueño. Revisar con su abogado que la finalidad del formulario («información sobre ese lanzamiento») lo cubre.
 - [ ] **Día de abrir la venta:** `node scripts/abrir-venta.mjs --aplicar`, pasos en `docs/MANTENIMIENTO.md` («Abrir la venta y bloquear a quien entró gratis»).
-- [ ] **Decidir si se quitan los precios de la portada y las condiciones mientras la venta esté cerrada** (9,90 € aparece diez veces en la portada). Hoy se dejan: una oferta anunciada hay que cumplirla.
+- [ ] **Fecha anunciada del fin del acceso gratuito: «a partir de enero de 2027»** (tarjeta de la portada, 5-11-2026). Es prevista y el servidor no la hace cumplir. **Antes de que llegue, abrir la venta o cambiar la fecha** en los tres idiomas (`el.*` en `web/sitio/assets/i18n.js`), o la web diría algo falso.
+- [ ] **Precio: 9,90 € o 14,99 €.** La tarjeta de la beta dice 14,99 € al año desde enero de 2027, pero la portada sigue diciendo en otros sitios que el primer año cuesta 9,90 € (la oferta hasta el 15-4-2027: línea bajo el botón de la portada, final de la escena, preguntas, packs, datos estructurados) y las condiciones también. Decidir si la oferta sigue (y entonces la tarjeta tiene que decirlo) o se retira (y hay que quitarla de todos esos sitios y de las condiciones). Una oferta anunciada con fecha hay que cumplirla.
 
 ## 2. Antes del 10-11: lo que solo puede hacer el dueño
 
