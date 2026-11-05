@@ -222,7 +222,7 @@ export function Profile({ user, profile, profileId, course, onUpdateUser, onUpda
           </div>
         ) : (
           <div>
-            <h1 className="pg-title">{t('Configuración')}</h1>
+            <h1 className="pg-title">{t('Configuración')}<AyudaVideo id="configuracion" /></h1>
             <p className="pg-sub">{t('Elige qué quieres cambiar')}</p>
           </div>
         )}

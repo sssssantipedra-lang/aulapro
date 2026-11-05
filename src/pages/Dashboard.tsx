@@ -15,6 +15,7 @@
  * pide atención, quieto y en listas cortas.
  */
 import { useState, useEffect, useMemo } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
   TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand,
@@ -162,7 +163,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
     return (
       <section className="sec active home">
         <div className="home-hd">
-          <h1 className="pg-title">{greeting}, {firstName}</h1>
+          <h1 className="pg-title">{greeting}, {firstName}<AyudaVideo id="inicio" /></h1>
           <p className="pg-sub">{dateLabel}</p>
         </div>
         <FirstSteps steps={steps} hero profileId={user?.id ?? ''} onNav={nav} onLoadDemo={onLoadDemo} />
@@ -179,7 +180,7 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
   return (
     <section className="sec active home">
       <div className="home-hd">
-        <h1 className="pg-title">{greeting}, {firstName}</h1>
+        <h1 className="pg-title">{greeting}, {firstName}<AyudaVideo id="inicio" /></h1>
         <p className="pg-sub">{dateLabel} · {summary.join(' · ')}</p>
       </div>
 

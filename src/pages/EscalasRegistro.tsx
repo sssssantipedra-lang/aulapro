@@ -7,6 +7,7 @@
  * Ver `lib/registro.ts`.
  */
 import { useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { Plus, Trash2, Pencil, Copy, ThumbsUp, ThumbsDown, FileDown } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, GradeCategory, GradeTarget, Student } from '../types';
 import { GradeTargetsPicker } from '../components/GradeTargetPicker';
@@ -80,7 +81,7 @@ export function EscalasRegistro({
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Escalas de registro')}</h1>
+          <h1 className="pg-title">{t('Escalas de registro')}<AyudaVideo id="dianas-escalas" /></h1>
           <p className="pg-sub">{t('Un concepto concreto y, por cada alumno, un pulgar arriba (bien hecho) o abajo (mejorable)')}</p>
         </div>
         <button className="btn-accent" onClick={nueva}><Plus size={15} />{t('Nueva escala')}</button>

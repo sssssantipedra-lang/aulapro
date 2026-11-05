@@ -9,6 +9,7 @@
  * clic sin volver a generar nada.
  */
 import { CasillaAcs } from '../components/apoyo/CasillaAcs';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { useAcsParaIA } from '../hooks/useAcsParaIA';
 import { palabrasDeNombres } from '../lib/barreras';
 import type { AcsApoyo } from '../types/apoyo';
@@ -896,7 +897,7 @@ export function Resources({ classes, fichas, onSave, onDelete, onNav, onProject,
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Recursos')}</h1>
+          <h1 className="pg-title">{t('Recursos')}<AyudaVideo id="recursos" /></h1>
           <p className="pg-sub">{t('Fichas, lecturas y juegos listos para imprimir: la IA los crea y tú los retocas.')}</p>
         </div>
       </div>

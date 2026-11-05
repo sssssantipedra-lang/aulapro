@@ -5,6 +5,7 @@
  * menú abre siempre esta pantalla (`portada` en lib/navigation.ts).
  */
 import { useEffect, useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { ArrowRight, Flag, LayoutGrid, Presentation, Smartphone, UserCheck } from 'lucide-react';
 import type { Class, ClassMark, ScheduleBlock, SeatingPlan, Section } from '../types';
 import { bloqueQueToca, enMarcha } from '../lib/claseQueToca';
@@ -81,7 +82,7 @@ export function EnClaseInicio({ classes, scheduleBlocks, classMarks, seatingPlan
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('En clase')}</h1>
+          <h1 className="pg-title">{t('En clase')}<AyudaVideo id="pizarra" /></h1>
           <p className="pg-sub">{t('Lo que usas con el alumnado delante')}</p>
         </div>
       </div>

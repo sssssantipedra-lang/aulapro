@@ -12,6 +12,7 @@
  * eliminarlas, archivarlas, asociarlas a una SdA o crear una SdA con ellas.
  */
 import { CasillaAcs } from '../components/apoyo/CasillaAcs';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { useAcsParaIA } from '../hooks/useAcsParaIA';
 import { palabrasDeNombres } from '../lib/barreras';
 import type { AcsApoyo } from '../types/apoyo';
@@ -427,7 +428,7 @@ export function Sesiones({
     <section className="sec active ap-page">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Sesiones')}</h1>
+          <h1 className="pg-title">{t('Sesiones')}<AyudaVideo id="sesiones" /></h1>
           <p className="pg-sub">{t(esEF
             ? 'Calentamiento, parte principal y vuelta a la calma, con medidas para quien tiene una limitación (DUA-A) y un plan B. Una tarjeta por clase y, dentro, agrupadas por situación de aprendizaje.'
             : 'Inicio, desarrollo y cierre de cada clase, con medidas de inclusión y un plan B. Una tarjeta por clase y, dentro, agrupadas por situación de aprendizaje.')}</p>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   BookMarked, Sparkles, Plus, Trash2, Paperclip, X, ClipboardList, Check, ArrowRight, FileText,
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users, Eye,
@@ -1351,7 +1352,7 @@ export function LearningSituations({
     <>
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Situaciones de aprendizaje')}</h1>
+          <h1 className="pg-title">{t('Situaciones de aprendizaje')}<AyudaVideo id="situaciones-aprendizaje" /></h1>
           <p className="pg-sub">{t('Diseña una SdA competencial con ayuda de la IA')}</p>
         </div>
         <button className="btn-accent" onClick={startNew}><Plus size={15} />{t('Nueva situación de aprendizaje')}</button>

@@ -5,6 +5,11 @@
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=3600
 
+# Vídeos de ayuda de la app (assets/videos/, 5-11-2026): no llevan huella en el nombre, así que un día de
+# caché: el navegador no los vuelve a pedir en cada visita y, si se regrabara uno, se renueva en 24 horas.
+/assets/videos/*
+  Cache-Control: public, max-age=86400
+
 # La versión web de la app (aulapro.app/app/). La página, el service worker y
 # la versión se piden siempre de nuevo: así una versión nueva llega en cuanto
 # se publica. Lo de assets/ lleva la huella en el nombre y no cambia nunca.

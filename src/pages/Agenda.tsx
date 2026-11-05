@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, Trash2, ScanLine, CalendarClock, CalendarDays, ArrowRight } from 'lucide-react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import { ScheduleScanner } from '../components/agenda/ScheduleScanner';
 import { HorarioSemana } from '../components/agenda/HorarioSemana';
 import type { ScheduleBlock, CalEvent, Class } from '../types';
@@ -277,7 +278,7 @@ export function Agenda({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Agenda')}</h1>
+          <h1 className="pg-title">{t('Agenda')}<AyudaVideo id="agenda" /></h1>
           <p className="pg-sub">{t('Horario semanal y calendario de eventos')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>

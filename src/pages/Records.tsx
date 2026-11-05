@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'lucide-react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation } from '../types';
 import { PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
 import { isMarksCategory, sumaDePesos } from '../services/classMarks';
@@ -283,7 +284,7 @@ export function Records({
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Actas de calificaciones')}</h1>
+            <h1 className="pg-title">{t('Actas de calificaciones')}<AyudaVideo id="actas" /></h1>
             <p className="pg-sub">{t('Documento oficial listo para imprimir o firmar')}</p>
           </div>
         </div>
@@ -309,7 +310,7 @@ export function Records({
 
       <div className="pg-hd no-print">
         <div>
-          <h1 className="pg-title">{t('Actas de calificaciones')}</h1>
+          <h1 className="pg-title">{t('Actas de calificaciones')}<AyudaVideo id="actas" /></h1>
           <p className="pg-sub">
             {rows.length > 0
               ? `${cls?.name}${activeSubject ? ` · ${activeSubject}` : ''} · ${t(period)} · ${t('{n}/{total} calificados', { n: stats.graded, total: stats.total })}`

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AyudaVideo } from '../components/AyudaVideo';
 import {
   FileText, Sparkles, Download, FileDown, Users, ArrowRight, Check, Trash2, Pencil, AlertTriangle, Eye,
 } from 'lucide-react';
@@ -408,7 +409,7 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
       <section className="sec active">
         <div className="pg-hd">
           <div>
-            <h1 className="pg-title">{t('Informes competenciales')}</h1>
+            <h1 className="pg-title">{t('Informes competenciales')}<AyudaVideo id="informes" /></h1>
             <p className="pg-sub">{t('Redactados por la IA con tus propias evaluaciones')}</p>
           </div>
         </div>
@@ -434,7 +435,7 @@ ${tablaCompetenciasHtml(r.tabla, t, etiquetaCompetencia)}
     <section className="sec active">
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t('Informes competenciales')}</h1>
+          <h1 className="pg-title">{t('Informes competenciales')}<AyudaVideo id="informes" /></h1>
           <p className="pg-sub">
             {generatedCount > 0
               ? t('{n}/{total} generados · {period}', { n: generatedCount, total: roster.length, period: t(period) })

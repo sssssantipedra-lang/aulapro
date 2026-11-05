@@ -1113,7 +1113,7 @@ export function Rubrics({
       {/* Page header */}
       <div className="pg-hd">
         <div>
-          <h1 className="pg-title">{t(vista === 'dianas' ? 'Dianas' : 'Rúbricas')}{vista !== 'dianas' && <AyudaVideo id="crear-rubrica" />}</h1>
+          <h1 className="pg-title">{t(vista === 'dianas' ? 'Dianas' : 'Rúbricas')}<AyudaVideo id={vista === 'dianas' ? 'dianas-escalas' : 'crear-rubrica'} /></h1>
           <p className="pg-sub">
             {vista === 'dianas'
               ? t(dianas.filter(d => !esRegistro(d)).length === 1 ? '{n} diana' : '{n} dianas', { n: dianas.filter(d => !esRegistro(d)).length })
