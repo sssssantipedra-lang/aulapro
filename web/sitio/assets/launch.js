@@ -44,3 +44,8 @@ window.AULA_LAUNCH = {
   // then set it to 'https://descargas.aulapro.app/version.json'.
   version: ''
 };
+
+// Acceso anticipado gratuito: con `acceso` y la venta cerrada, la portada enseña el aviso de arriba y la tarjeta del precio
+// (clase `early` en <html>, estilos en index.html). Con `checkout` relleno (la venta abierta) no se activa.
+// (Con `typeof document`: web/comprobar.mjs lee este archivo sin página, solo para sus enlaces.)
+if (typeof document !== 'undefined' && window.AULA_LAUNCH.acceso && !window.AULA_LAUNCH.checkout) document.documentElement.classList.add('early');

@@ -477,3 +477,13 @@ Se quitaron las paradas por subtítulo y los deslizamientos automáticos. Un `<v
 - «Desplázate hacia abajo» solo sale en pantallas de 860 px de alto o más; en las más bajas tapaba la tableta.
 - Textos en `hk.*` (`index.html` y `assets/i18n.js`). Se quitaron `b3.title` y `static.sub`, que ya no usa nadie.
 
+
+## 51. Versión de lanzamiento gratuita (5-11-2026)
+
+Petición del dueño: que la portada diga lo primero que hay una versión de lanzamiento gratuita, y que más tarde pasará a ser de pago.
+
+- **Barra fija arriba del todo** (`.early-bar`, texto oscuro sobre crema invertido): «Versión de lanzamiento gratuita. Pruébala gratis durante el periodo de lanzamiento. Después pasará a ser de pago. Saber más». El menú baja bajo ella: con la clase `early` en `<html>`, `--nav-h` suma `--bar-h` (42 px; 70 en móvil, donde el enlace «Saber más» se quita porque no cabía) y `.nav` conserva sus 68 px con `top: var(--bar-h)`. Todo lo que cuelga de `--nav-h` (el hero, la escena que se mueve con el scroll) se desplaza solo.
+- **Tarjeta** `.early-card` (`#lanzamiento`) al principio del precio: tres ideas (gratis y sin tarjeta, al terminar hará falta suscribirse, tu trabajo es tuyo y se descarga) más el aviso de que se dirá en la web y en la aplicación. Botón «Prueba gratis».
+- Los botones «Quiero AulaPro» (menú, portada y cierre de la escena, marcados con `data-early-cta`) pasan a decir «Prueba gratis» y llevan a `app/`. La lista de espera se queda: es la única lista (`CLAUDE.md`, «Acceso anticipado gratuito»).
+- **Sin fechas ni cifras de duración**: no están fijadas. Solo se activa con `acceso` relleno y `checkout` vacío en `assets/launch.js`; al abrir la venta (`scripts/abrir-venta.mjs`) todo vuelve a ser la portada de venta sin tocar el HTML.
+- Textos en `early.*` y `el.*` (`index.html` y `assets/i18n.js`). Comprobado en Chromium en escritorio (1280) y móvil (390), en los tres idiomas, sin desbordes.

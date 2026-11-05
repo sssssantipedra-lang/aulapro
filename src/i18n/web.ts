@@ -213,6 +213,16 @@ export const WEB_EN: Record<string, string> = {
   "condiciones de venta y de uso": "terms of sale and use",
   "y la": "and the",
   "política de privacidad": "privacy policy",
+  "Estás en el acceso anticipado gratuito": "You are in the free early access",
+  "Antes de empezar, lee esto. Son tres cosas.": "Before you start, please read this. There are three things.",
+  "Es gratis durante un periodo de lanzamiento.": "It is free during a launch period.",
+  "AulaPro está abierta a todos los docentes, sin tarjeta y sin pagar.": "AulaPro is open to all teachers, with no card and no payment.",
+  "Después pasará a ser de pago.": "After that it will be paid.",
+  "Cuando termine el periodo, AulaPro será una suscripción anual y la aplicación se bloqueará hasta que te suscribas. Nada se cobra solo. Te lo diremos en la web y en la propia aplicación.": "When the period ends, AulaPro will be an annual subscription and the app will be locked until you subscribe. Nothing is charged on its own. We will tell you on the website and in the app itself.",
+  "Tu trabajo es tuyo.": "Your work is yours.",
+  "Se guarda en tu dispositivo (y en tu Drive u OneDrive, si lo elegiste). Puedes descargar una copia cuando quieras, con o sin suscripción, en Configuración › Datos y copias › Llevar a otro equipo › «Descargar mis datos».": "It is saved on your device (and in your Drive or OneDrive, if you chose so). You can download a copy whenever you like, with or without a subscription, in Settings › Data and backups › Take to another computer › “Download my data”.",
+  "He entendido que el acceso gratuito es temporal y que después tendré que suscribirme para seguir usando AulaPro.": "I understand that free access is temporary and that I will then have to subscribe to keep using AulaPro.",
+  "Entrar en AulaPro": "Enter AulaPro",
 };
 
 export const WEB_CA: Record<string, string> = {
@@ -424,4 +434,14 @@ export const WEB_CA: Record<string, string> = {
   "condiciones de venta y de uso": "condicions de venda i d’ús",
   "y la": "i la",
   "política de privacidad": "política de privacitat",
+  "Estás en el acceso anticipado gratuito": "Ets a l’accés anticipat gratuït",
+  "Antes de empezar, lee esto. Son tres cosas.": "Abans de començar, llegeix això. Són tres coses.",
+  "Es gratis durante un periodo de lanzamiento.": "És gratis durant un període de llançament.",
+  "AulaPro está abierta a todos los docentes, sin tarjeta y sin pagar.": "AulaPro està oberta a tots els docents, sense targeta i sense pagar.",
+  "Después pasará a ser de pago.": "Després passarà a ser de pagament.",
+  "Cuando termine el periodo, AulaPro será una suscripción anual y la aplicación se bloqueará hasta que te suscribas. Nada se cobra solo. Te lo diremos en la web y en la propia aplicación.": "Quan acabi el període, AulaPro serà una subscripció anual i l’aplicació es bloquejarà fins que et subscriguis. Res es cobra sol. Ho direm al web i a la mateixa aplicació.",
+  "Tu trabajo es tuyo.": "La teva feina és teva.",
+  "Se guarda en tu dispositivo (y en tu Drive u OneDrive, si lo elegiste). Puedes descargar una copia cuando quieras, con o sin suscripción, en Configuración › Datos y copias › Llevar a otro equipo › «Descargar mis datos».": "Es desa al teu dispositiu (i al teu Drive o OneDrive, si ho vas triar). Pots descarregar-ne una còpia quan vulguis, amb o sense subscripció, a Configuració › Dades i còpies › Portar a un altre equip › «Descarrega les meves dades».",
+  "He entendido que el acceso gratuito es temporal y que después tendré que suscribirme para seguir usando AulaPro.": "He entès que l’accés gratuït és temporal i que després m’hauré de subscriure per continuar fent servir AulaPro.",
+  "Entrar en AulaPro": "Entrar a AulaPro",
 };

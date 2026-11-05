@@ -369,6 +369,14 @@
       }
     });
     document.documentElement.classList.toggle('store-open', allOpen);
+    // acceso anticipado gratuito: «Quiero AulaPro» pasa a «Prueba gratis» y lleva a la app (launch.js, `acceso`)
+    if (LAUNCH.acceso && !LAUNCH.checkout) {
+      $$('a[data-early-cta]').forEach(a => {
+        a.href = 'app/';
+        const l = $('span', a) || a;
+        l.dataset.i18n = 'buy.early';
+      });
+    }
     // group packs: each has its own checkout; they never decide whether the shop is open
     const packs = LAUNCH.packs || {};
     $$('.pack').forEach(a => {

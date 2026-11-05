@@ -517,6 +517,24 @@ html:not(.store-open) .after-launch{display:none!important}
 @media (max-width:1100px){.store-open .links a[href="#privacidad"]{display:none}}
 @media (pointer:coarse){.store{min-height:52px}}
 
+/* ---------- Acceso anticipado gratuito (5-11-2026): lo activa assets/launch.js (`acceso`) poniendo la clase .early en <html> ---------- */
+.early-bar,.early-card{display:none}
+.early{--bar-h:42px;--nav-h:calc(68px + var(--bar-h))}
+.early .early-bar{display:flex;position:fixed;top:0;left:0;right:0;z-index:60;height:var(--bar-h);align-items:center;justify-content:center;gap:.5em .9em;padding:0 var(--gutter);background:var(--ink);color:#fbf8f3;font-size:.86rem;line-height:1.25;text-align:center}
+.early-bar b{font-weight:600;white-space:nowrap}
+.early-bar a{color:#fff;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.early .nav{top:var(--bar-h);height:68px}
+.early .skip:focus{top:calc(var(--bar-h) + 8px)}
+.early .early-card{display:block;position:relative;max-width:560px;margin:0 auto clamp(28px,4vw,44px);padding:clamp(26px,4vw,40px);border-radius:4px;background:var(--paper);color:var(--ink);box-shadow:0 30px 60px -36px rgba(80,60,40,.4),0 0 0 1.5px var(--accent)}
+.early-card .kicker{color:var(--accent-ink)}
+.early-card h3{margin:.9rem 0 0;font:500 clamp(1.45rem,3.2vw,1.9rem)/1.15 var(--f-display);color:var(--ink)}
+.early-card .lede{margin:1rem 0 0;color:var(--ink-2);max-width:none}
+.early-card .ticklist{margin:1.3rem 0 1.6rem}
+.early-card .ticklist li{color:var(--ink);font-weight:400}
+.early-card .ticklist svg{stroke:var(--accent-ink)}
+.early-card .btn{width:100%}
+@media (max-width:760px){.early{--bar-h:70px}.early-bar{flex-direction:column;gap:2px;font-size:.78rem;padding-top:6px;padding-bottom:6px}.early-bar a{display:none}}
+
 /* ---------- S8: questions ---------- */
 .faq{margin-top:.4rem}
 .faq details{border-bottom:1px solid var(--line)}
@@ -660,6 +678,9 @@ html.zoom-open{overflow:hidden}
 <body>
 <a class="skip" href="#main" data-i18n="skip">Saltar al contenido</a>
 
+<!-- Acceso anticipado gratuito: solo se ve con `acceso` en assets/launch.js y la venta cerrada (clase .early) -->
+<div class="early-bar" role="note"><b data-i18n="early.t">Versión de lanzamiento gratuita</b><span data-i18n="early.s">Pruébala gratis durante el periodo de lanzamiento. Después pasará a ser de pago.</span><a href="#lanzamiento" data-i18n="early.more">Saber más</a></div>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
     <linearGradient id="mark-bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#863bff"/><stop offset="1" stop-color="#47bfff"/></linearGradient><linearGradient id="mark-ck" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e14ff"/><stop offset="1" stop-color="#47bfff"/></linearGradient>
@@ -690,7 +711,7 @@ html.zoom-open{overflow:hidden}
     <button type="button" data-lang="en" aria-pressed="false" lang="en">EN</button>
   </div>
   <a class="btn ghost nav-login" href="app/" data-i18n="nav.login">Iniciar sesión</a>
-  <a class="btn" href="#precio" data-i18n="cta.want">Quiero AulaPro</a>
+  <a class="btn" href="#precio" data-early-cta data-i18n="cta.want">Quiero AulaPro</a>
 </header>
 
 <main id="main" tabindex="-1">
@@ -717,7 +738,7 @@ html.zoom-open{overflow:hidden}
             <p class="semana-ok"><span aria-hidden="true">✓</span> <span data-i18n="hk.done">Todo listo para revisar.</span></p>
           </div>
           <div class="cta-row">
-            <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+            <a class="btn" href="#precio" data-early-cta><span data-i18n="cta.want">Quiero AulaPro</span></a>
             <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span aria-hidden="true">↓</span></a>
           </div>
           <p class="price-line mono" data-i18n="static.price">Oferta de lanzamiento: 9,90&nbsp;€ el primer año.</p>
@@ -763,7 +784,7 @@ html.zoom-open{overflow:hidden}
         <div class="beat beat-strip" data-a=".9" data-b="1">
           <p class="strip-t" data-i18n="b5.more">Sigue descubriendo AulaPro</p>
           <div class="cta-row">
-            <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+            <a class="btn" href="#precio" data-early-cta><span data-i18n="cta.want">Quiero AulaPro</span></a>
             <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span aria-hidden="true">↓</span></a>
           </div>
         </div>
@@ -995,6 +1016,18 @@ html.zoom-open{overflow:hidden}
   </section>
 
   <section class="sec" id="precio">
+    <div class="early-card rise" id="lanzamiento">
+      <p class="kicker" data-i18n="el.k">Versión de lanzamiento</p>
+      <h3 data-i18n="el.t">Pruébala gratis durante el lanzamiento</h3>
+      <p class="lede" data-i18n="el.l">Durante un periodo de tiempo, AulaPro está abierta a todos los docentes, sin tarjeta y sin pagar. Cuando termine, pasará a ser una suscripción anual y la aplicación se bloqueará hasta que te suscribas. Nada se cobra solo.</p>
+      <ul class="ticklist">
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i1">Gratis y sin tarjeta mientras dure el lanzamiento</span></li>
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i2">Al terminar, hará falta suscribirse para seguir usándola</span></li>
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i3">Tu trabajo es tuyo: lo descargas cuando quieras, con o sin suscripción</span></li>
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i4">Te avisaremos en esta web y en la propia aplicación</span></li>
+      </ul>
+      <a class="btn" href="app/"><span data-i18n="buy.early">Prueba gratis</span></a>
+    </div>
     <div class="price-sheet rise">
       <p class="kicker" data-i18n="s7.kicker">Precio de lanzamiento</p>
       <h2 class="sr" data-i18n="s7.title">9,90&nbsp;€ el primer año, con la oferta de lanzamiento.</h2>
