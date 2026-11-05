@@ -223,7 +223,8 @@ export async function installWebBridge(opts: { pestanaReservada?: boolean } = {}
   const vaciar = () => { espejo.vaciar({ alSalir: true }); };
   // Lo de otro dispositivo llega solo: cada 30 s con la app a la vista y al volver a ella
   const revisar = async () => {
-    if (document.visibilityState !== 'visible' || espejo.estado().tipo !== 'activa' || espejo.congelado()) return;
+    // Con un error que no es de permiso (un corte de red) se sigue comprobando: si sale bien, vuelve a «activa»
+    if (document.visibilityState !== 'visible' || !['activa', 'error'].includes(espejo.estado().tipo) || espejo.congelado()) return;
     if ((await espejo.comprobar({ congelar: true })) > 0) recargarCuandoSeAPuedeSinCortar();
   };
   setInterval(revisar, 30_000);

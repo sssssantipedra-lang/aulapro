@@ -197,6 +197,7 @@ export const WEB_EN: Record<string, string> = {
   "Este archivo es una copia cifrada para compartir con otro docente. Ábrela en «Trabajo compartido».": "This file is an encrypted copy for sharing with another teacher. Open it in “Shared work”.",
   "La copia está dañada y no se puede cargar.": "The backup is damaged and cannot be loaded.",
   "Esta copia está vacía: si la cargaras, tu cuaderno se quedaría sin nada. No se ha cargado.": "This backup is empty: loading it would leave your notebook with nothing in it. It has not been loaded.",
+  "Esta copia es de una versión más nueva de AulaPro. Cierra AulaPro, vuelve a abrirla para que se actualice y cárgala entonces.": "This backup comes from a newer version of AulaPro. Close AulaPro, open it again so it updates, and then load the backup.",
   "Cargar esta copia sustituye todo tu trabajo actual por el del archivo. Antes se guarda lo que tienes ahora en una copia (en «Mis datos»), por si quieres volver atrás. ¿Continuar?": "Loading this backup replaces all your current work with the one in the file. What you have now is saved first in a backup (under “My data”), in case you want to go back. Continue?",
   "¿Restaurar esta copia? Sustituye tu trabajo actual. Antes se guarda lo que tienes ahora en otra copia, por si quieres volver atrás.": "Restore this backup? It replaces your current work. What you have now is saved first in another backup, in case you want to go back.",
   // Entrada: aceptar las condiciones y la privacidad
@@ -404,6 +405,7 @@ export const WEB_CA: Record<string, string> = {
   "Este archivo es una copia cifrada para compartir con otro docente. Ábrela en «Trabajo compartido».": "Aquest fitxer és una còpia xifrada per compartir amb un altre docent. Obre-la a «Treball compartit».",
   "La copia está dañada y no se puede cargar.": "La còpia està malmesa i no es pot carregar.",
   "Esta copia está vacía: si la cargaras, tu cuaderno se quedaría sin nada. No se ha cargado.": "Aquesta còpia és buida: si la carreguessis, el teu quadern es quedaria sense res. No s’ha carregat.",
+  "Esta copia es de una versión más nueva de AulaPro. Cierra AulaPro, vuelve a abrirla para que se actualice y cárgala entonces.": "Aquesta còpia és d’una versió més nova d’AulaPro. Tanca AulaPro, torna a obrir-la perquè s’actualitzi i carrega-la llavors.",
   "Cargar esta copia sustituye todo tu trabajo actual por el del archivo. Antes se guarda lo que tienes ahora en una copia (en «Mis datos»), por si quieres volver atrás. ¿Continuar?": "Carregar aquesta còpia substitueix tota la teva feina actual per la del fitxer. Abans es desa el que tens ara en una còpia (a «Les meves dades»), per si hi vols tornar. Vols continuar?",
   "¿Restaurar esta copia? Sustituye tu trabajo actual. Antes se guarda lo que tienes ahora en otra copia, por si quieres volver atrás.": "Vols restaurar aquesta còpia? Substitueix la teva feina actual. Abans es desa el que tens ara en una altra còpia, per si hi vols tornar.",
   // Entrada: aceptar las condiciones y la privacidad

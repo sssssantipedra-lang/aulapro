@@ -64,7 +64,29 @@ export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, 
   const guardarRef = useRef(guardar);
   useEffect(() => { guardarRef.current = guardar; }, [guardar]);
 
+  /** Programa un nuevo intento aunque no haya más cambios. */
+  const reintentarLuego = useCallback(() => {
+    if (relojReintento.current) clearTimeout(relojReintento.current);
+    relojReintento.current = setTimeout(() => setReintento(n => n + 1), REINTENTO_GUARDADO_MS);
+  }, []);
+
+  /** Escribe ya lo que esté esperando la pausa. */
+  const volcar = useCallback(() => {
+    const p = pendiente.current;
+    if (!p || guardadoBloqueado()) return;
+    pendiente.current = null;
+    escrito.current = p.datos;
+    // Si falla, se vuelve a intentar dentro de un rato (5-11-2026: antes, un fallo al ocultar la página o al cambiar
+    // de perfil se quedaba sin reintento hasta el siguiente cambio)
+    const fallo = (err: unknown) => { escrito.current = null; pendiente.current ??= p; setErrorGuardado(motivoDe(err)); reintentarLuego(); };
+    // La escritura empieza ya, en el mismo instante (al cerrar la página no hay tiempo para más)
+    try { Promise.resolve(guardarRef.current(p.id, p.datos)).catch(fallo); } catch (err) { fallo(err); }
+  }, [reintentarLuego]);
+
   useEffect(() => {
+    // Lo que quedó sin escribir de un perfil que ya no está en pantalla (un volcado que falló al salir de él o al
+    // cerrarlo) se vuelve a escribir antes de olvidarlo, en cada reintento y al abrir el siguiente perfil
+    if (pendiente.current && (!ready || pendiente.current.id !== profileId)) volcar();
     if (!ready || !profileId) return;
     pendiente.current = { id: profileId, datos: snapshot };
 
@@ -91,27 +113,15 @@ export function useGuardadoAutomatico<T>({ ready, profileId, snapshot, guardar, 
         // No se ha guardado: se avisa en pantalla y se vuelve a intentar dentro de un rato, aunque no haya más cambios
         escrito.current = null;
         setErrorGuardado(motivoDe(err));
-        if (relojReintento.current) clearTimeout(relojReintento.current);
-        relojReintento.current = setTimeout(() => setReintento(n => n + 1), REINTENTO_GUARDADO_MS);
+        reintentarLuego();
       } finally {
         setSaving(false);
       }
     }, retardo);
     return () => clearTimeout(timer);
-  }, [snapshot, ready, profileId, retardo, reintento]);
+  }, [snapshot, ready, profileId, retardo, reintento, reintentarLuego, volcar]);
 
   useEffect(() => () => { if (relojReintento.current) clearTimeout(relojReintento.current); }, []);
-
-  /** Escribe ya lo que esté esperando la pausa. */
-  const volcar = useCallback(() => {
-    const p = pendiente.current;
-    if (!p || guardadoBloqueado()) return;
-    pendiente.current = null;
-    escrito.current = p.datos;
-    const fallo = (err: unknown) => { escrito.current = null; pendiente.current ??= p; setErrorGuardado(motivoDe(err)); };
-    // La escritura empieza ya, en el mismo instante (al cerrar la página no hay tiempo para más)
-    try { Promise.resolve(guardarRef.current(p.id, p.datos)).catch(fallo); } catch (err) { fallo(err); }
-  }, []);
 
   // Al cerrar la ventana, al pasar a segundo plano (en el móvil, la forma de «cerrar») y al salir de la pantalla
   useEffect(() => {

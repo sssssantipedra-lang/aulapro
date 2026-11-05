@@ -31,7 +31,20 @@ export type EstadoCarpeta =
   | { tipo: 'sin-permiso'; nombre: string }
   | { tipo: 'error'; nombre: string; mensaje: string };
 
-export interface Marca { dispositivo: string; en: string }
+/**
+ * Quién y cuándo escribió `datos.json`, y la huella de lo que escribió (desde el 5-11-2026: longitud y resumen del
+ * texto, `huellaDeDatos`). Con la huella, quien lee la marca sabe si el `datos.json` que tiene delante es el que la
+ * marca anuncia: en una carpeta sincronizada por el programa de OneDrive o de Drive los dos archivos llegan por
+ * separado, y en la nube dos subidas a la vez pueden cruzarse (los datos de uno con la marca del otro).
+ */
+export interface Marca { dispositivo: string; en: string; huella?: string }
+
+/** Huella barata y sin dependencias del texto de `datos.json`: su longitud y un resumen (djb2) en hexadecimal. */
+export function huellaDeDatos(texto: string): string {
+  let h = 5381;
+  for (let i = 0; i < texto.length; i++) h = (Math.imul(h, 33) ^ texto.charCodeAt(i)) >>> 0;
+  return `${texto.length}:${h.toString(16)}`;
+}
 
 export interface Conexion {
   /** La carpeta y este navegador tienen datos: hay que preguntar cuáles se usan. */
@@ -45,6 +58,8 @@ const PERFILES = `${RAIZ}/perfiles.json`;
 const datosDe = (id: string) => `${RAIZ}/perfiles/${id}/datos.json`;
 const marcaDe = (id: string) => `${RAIZ}/perfiles/${id}/guardado.json`;
 const DATOS = /^AulaPro\/perfiles\/([^/]+)\/datos\.json$/;
+/** Los archivos que no son de un perfil (las copias con nombre) y aún no se han copiado: se copian al abrir la app. */
+const PENDIENTES = 'pendientes:archivos';
 /** Pausa antes de copiar a una carpeta del ordenador: la app guarda cada pocos cientos de milisegundos y no hace falta cada uno. */
 export const PAUSA_COPIA = 4000;
 /**
@@ -105,6 +120,12 @@ export function createEspejo(opts: {
    * una copia con datos por una vacía sin preguntar: con las versiones antiguas borradas, no habría vuelta atrás.
    */
   const vacios = new Map<string, 'aqui' | 'alli'>();
+  /**
+   * Cuántas veces se ha escrito `datos.json` de cada perfil en esta pestaña. Una subida lee los datos y, al terminar,
+   * solo da el perfil por copiado si nadie ha vuelto a escribirlo mientras tanto (5-11-2026: antes, un cambio hecho
+   * durante la subida se quedaba en el navegador sin marca de pendiente, y el siguiente dispositivo lo pisaba).
+   */
+  const escrituras = new Map<string, number>();
   const oyentes = new Set<() => void>();
   const avisar = () => oyentes.forEach(fn => fn());
   const nombre = () => ('nombre' in estado ? estado.nombre : '');
@@ -120,7 +141,13 @@ export function createEspejo(opts: {
     return cola;
   };
 
-  const activa = () => carpeta && estado.tipo === 'activa' ? carpeta : null;
+  /**
+   * La carpeta con la que se copia. Con un error que no es de permiso (un corte de red, la nube que no responde) se
+   * sigue intentando: la comprobación periódica y la siguiente subida vuelven a probar, y si salen bien el estado
+   * vuelve a «activa» (5-11-2026; antes, un fallo pasajero dejaba la carpeta parada hasta recargar).
+   */
+  const activa = () => carpeta && (estado.tipo === 'activa' || estado.tipo === 'error') ? carpeta : null;
+  const otraVezActiva = () => { if (estado.tipo === 'error') { estado = { tipo: 'activa', nombre: estado.nombre }; avisar(); } };
 
   async function leerMarca(c: Fs, id: string): Promise<Marca | null> {
     try {
@@ -133,13 +160,15 @@ export function createEspejo(opts: {
    * datos.json de un perfil a la carpeta, salvo que otro dispositivo la haya cambiado sin que este lo sepa, o que lo de
    * aquí esté vacío y lo de allí no. `forzar`: el docente ha elegido quedarse con lo de aquí.
    */
+  const deOtro = (m: Marca | null) => !!m && m.dispositivo !== dispositivo;
   async function copiarDatos(c: Fs, id: string, forzar = false) {
     const m = await leerMarca(c, id);
-    if (!forzar && m && m.dispositivo !== dispositivo && m.en !== (await kv.get<string>(`visto:${id}`))) {
+    if (!forzar && deOtro(m) && m!.en !== (await kv.get<string>(`visto:${id}`))) {
       conflictos.add(id);
       avisar();
       return;
     }
+    const n = escrituras.get(id) ?? 0;
     const data = await local.read(datosDe(id));
     if (data == null) return;
     if (!forzar && textoDePerfilVacio(data)) {
@@ -153,10 +182,24 @@ export function createEspejo(opts: {
     }
     await c.write(datosDe(id), data);
     subidoEn.set(datosDe(id), reloj());
+    if (!forzar) {
+      // Dos dispositivos subiendo a la vez: si otro ha dejado su marca mientras se subían los datos, lo que hay en la
+      // carpeta ya no es de este. No se firma como propio: queda como conflicto y lo de aquí sigue pendiente
+      const m2 = await leerMarca(c, id);
+      if (deOtro(m2) && (!m || m2!.en !== m.en || m2!.dispositivo !== m.dispositivo)) {
+        conflictos.add(id);
+        avisar();
+        return;
+      }
+    }
     const en = ahora();
-    await c.write(marcaDe(id), JSON.stringify({ dispositivo, en } satisfies Marca));
+    await c.write(marcaDe(id), JSON.stringify({ dispositivo, en, huella: huellaDeDatos(data) } satisfies Marca));
     await kv.set(`visto:${id}`, en);
-    await kv.del(`pendiente:${id}`);
+    // Si la app ha vuelto a guardar durante la subida, lo nuevo sigue pendiente (su cuenta atrás ya está puesta)
+    if ((escrituras.get(id) ?? 0) === n) await kv.del(`pendiente:${id}`);
+    conflictos.delete(id);
+    vacios.delete(id);
+    otraVezActiva();
     if (estado.tipo === 'activa') { estado = { ...estado, ultima: en }; avisar(); }
   }
 
@@ -167,6 +210,19 @@ export function createEspejo(opts: {
     const data = await local.read(path);
     if (data == null) await c.remove(path);
     else await c.write(path, data);
+    await quitarPendiente(path);
+    otraVezActiva();
+  }
+
+  /** Los archivos que no son de un perfil y esperan copia (las copias «antes de…»), apuntados en el navegador. */
+  const pendientes = async () => (await kv.get<string[]>(PENDIENTES)) ?? [];
+  async function apuntarPendiente(path: string) {
+    const l = await pendientes();
+    if (!l.includes(path)) await kv.set(PENDIENTES, [...l, path]);
+  }
+  async function quitarPendiente(path: string) {
+    const l = await pendientes();
+    if (l.includes(path)) await kv.set(PENDIENTES, l.filter(p => p !== path));
   }
 
   const esperando = new Map<string, ReturnType<typeof setTimeout>>();
@@ -198,10 +254,20 @@ export function createEspejo(opts: {
     return cola;
   }
 
-  async function despues(path: string) {
+  /**
+   * Antes de escribir un archivo en el navegador: el perfil (o la copia) queda apuntado como pendiente de copiar.
+   * Va ANTES de la escritura a propósito (5-11-2026): si la pestaña se cierra entre la escritura y el apunte (al
+   * guardar al cerrar), el navegador tendría datos nuevos que nunca subirían y el siguiente dispositivo los pisaría.
+   * Al revés, un apunte sin escritura solo cuesta una subida de más.
+   */
+  async function antes(path: string) {
     const id = DATOS.exec(path)?.[1];
-    if (id) await kv.set(`pendiente:${id}`, true);
-    programar(path);
+    if (id) {
+      escrituras.set(id, (escrituras.get(id) ?? 0) + 1);
+      await kv.set(`pendiente:${id}`, true);
+    } else if (carpeta && path !== PERFILES && !path.endsWith('.tmp')) {
+      await apuntarPendiente(path);
+    }
   }
 
   /** El `Fs` que usa `profileStore`: lee y escribe en el navegador y copia en la carpeta. */
@@ -210,17 +276,20 @@ export function createEspejo(opts: {
     list: p => local.list(p),
     async write(p, d) {
       if (congelado && (deLosPerfiles(p) || deLosPerfiles(p.replace(/\.tmp$/, '')))) return;
+      await antes(p);
       await local.write(p, d);
       // Los temporales de la escritura segura no salen: se copia el archivo ya renombrado
-      if (!p.endsWith('.tmp')) await despues(p);
+      if (!p.endsWith('.tmp')) programar(p);
     },
     async rename(from, to) {
       if (congelado && deLosPerfiles(to)) return;
+      await antes(to);
       await local.rename(from, to);
-      await despues(to);
+      programar(to);
     },
     async remove(p) {
       await local.remove(p);
+      if (!DATOS.test(p)) await quitarPendiente(p);
       const c = activa();
       if (c) enCola(() => c.remove(p));
     },
@@ -266,10 +335,17 @@ export function createEspejo(opts: {
   async function traer(c: Fs, id: string, m: Marca | null, forzar = false, congelar = false) {
     const data = await c.read(datosDe(id));
     if (data == null) return false;
-    if (!forzar && textoDePerfilVacio(data)) {
+    // La marca anuncia otros datos: aún no han llegado (carpeta sincronizada) o dos subidas se han cruzado. Se espera
+    if (!forzar && m?.huella && huellaDeDatos(data) !== m.huella) return false;
+    if (!forzar) {
       const aqui = await local.read(datosDe(id));
-      if (aqui != null && !textoDePerfilVacio(aqui)) {
+      if (aqui != null && textoDePerfilVacio(data) && !textoDePerfilVacio(aqui)) {
         vacios.set(id, 'alli');
+        conflictos.add(id);
+        return false;
+      }
+      // Mientras se bajaba, la app ha guardado aquí: ahora han cambiado los dos, y lo decide el docente
+      if (aqui != null && (await kv.get<boolean>(`pendiente:${id}`))) {
         conflictos.add(id);
         return false;
       }
@@ -278,7 +354,8 @@ export function createEspejo(opts: {
     if (congelar) congelado = true;
     await local.write(datosDe(id), data);
     if (m) await kv.set(`visto:${id}`, m.en);
-    await kv.del(`pendiente:${id}`);
+    // Solo si lo ha elegido el docente: si no, no había nada pendiente (y si lo hubiera, mejor una subida de más)
+    if (forzar) await kv.del(`pendiente:${id}`);
     return true;
   }
 
@@ -298,6 +375,8 @@ export function createEspejo(opts: {
         const m = await leerMarca(c, id);
         if (!m || m.en === (await kv.get<string>(`visto:${id}`))) continue;
         if (m.dispositivo === dispositivo) { await kv.set(`visto:${id}`, m.en); continue; }
+        // La carpeta ha cambiado: lo que se dijo de ella («allí vacío») ya no vale y se vuelve a mirar
+        if (vacios.get(id) === 'alli') vacios.delete(id);
         const pendiente = await kv.get<boolean>(`pendiente:${id}`);
         if (!pendiente || (await local.read(datosDe(id))) == null) {
           if (await traer(c, id, m, false, opts.congelar)) cargados++;
@@ -308,9 +387,14 @@ export function createEspejo(opts: {
       // Con lo que acaba de leerse: no se vuelve a bajar `perfiles.json` para ver si hay algo que subir
       enCola(() => copiarPerfiles(c, leido));
       for (const { id } of leerLista(await local.read(PERFILES))) {
-        // Lo que ya tiene su cuenta atrás no se sube antes: esta comprobación se repite cada 30 s
-        if (!conflictos.has(id) && !esperando.has(datosDe(id)) && (await kv.get<boolean>(`pendiente:${id}`))) enCola(() => copiarDatos(c, id));
+        // Lo que ya tiene su cuenta atrás no se sube antes: esta comprobación se repite cada 30 s. Un conflicto
+        // «aquí vacío» se vuelve a intentar: si aquí ya hay datos, se sube y el conflicto desaparece solo
+        const otraVez = !conflictos.has(id) || vacios.get(id) === 'aqui';
+        if (otraVez && !esperando.has(datosDe(id)) && (await kv.get<boolean>(`pendiente:${id}`))) enCola(() => copiarDatos(c, id));
       }
+      // Las copias con nombre que no llegaron a copiarse antes de cerrar o recargar
+      for (const path of await pendientes()) if (!esperando.has(path)) enCola(() => copiar(c, path));
+      otraVezActiva();
     } catch (err) {
       estado = esPermiso(err) ? { tipo: 'sin-permiso', nombre: nombre() } : { tipo: 'error', nombre: nombre(), mensaje: String(err) };
     }
@@ -402,7 +486,8 @@ export function createEspejo(opts: {
       const m = await leerMarca(c, id);
       // Lo ha elegido el docente: se hace aunque una de las dos copias esté vacía
       vacios.delete(id);
-      if (con === 'carpeta') await traer(c, id, m, true);
+      // Con lo de la carpeta ya aquí, lo que la app tiene en memoria es viejo: no se vuelve a escribir hasta recargar
+      if (con === 'carpeta') await traer(c, id, m, true, true);
       else {
         if (m) await kv.set(`visto:${id}`, m.en);
         conflictos.delete(id);

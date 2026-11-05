@@ -8,6 +8,9 @@
  */
 import { perfilVacio } from './contenidoPerfil';
 
+/** La versión del archivo de copia que escribe esta app (`exportData` en `hooks/useAppState.ts`). */
+export const VERSION_COPIA = 2;
+
 /** Las partes del perfil que son listas y las que son mapas (`ProfileSnapshot` en `hooks/useAppState.ts`). */
 const LISTAS = ['tasks', 'classes', 'students', 'blocks', 'events', 'rubrics', 'dianas', 'evaluations', 'gradeCategories',
   'gradeItems', 'reports', 'selfAssessments', 'learningSituations', 'fichas', 'workSessions', 'classMarks', 'auditLog'];
@@ -24,6 +27,8 @@ export function leerCopiaDeDatos(raw: string): LecturaCopia {
   if (!esMapa(parsed) || parsed._app !== 'AulaPro') return { ok: false, error: 'El archivo no parece una copia de seguridad de AulaPro.' };
   // Un archivo para compartir con otro docente no es una copia de seguridad: se abre en «Trabajo compartido»
   if (parsed._cifrada === true) return { ok: false, error: 'Este archivo es una copia cifrada para compartir con otro docente. Ábrela en «Trabajo compartido».' };
+  // De una versión de AulaPro más nueva que esta: lo que esta no conoce se perdería al abrir el perfil y al guardarlo
+  if (typeof parsed._version === 'number' && parsed._version > VERSION_COPIA) return { ok: false, error: 'Esta copia es de una versión más nueva de AulaPro. Cierra AulaPro, vuelve a abrirla para que se actualice y cárgala entonces.' };
 
   // La versión 2 anida los datos; la 1 los tenía sueltos con otros nombres
   const datos: Record<string, unknown> = parsed.data !== undefined ? parsed.data as Record<string, unknown> : {

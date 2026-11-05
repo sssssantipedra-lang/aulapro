@@ -158,3 +158,37 @@ describe('OneDrive como carpeta (versión web)', () => {
     expect(await sb.loadData(p.id)).toEqual({ nota: 7 });
   });
 });
+
+/** Auditoría del 5-11-2026: cortes a mitad de una subida por trozos y el acceso que caduca entre los datos y la marca. */
+describe('OneDrive con fallos a mitad de camino', () => {
+  it('si la red se corta en un trozo, la subida falla entera y el siguiente intento la rehace completa', async () => {
+    const g = graphFalso();
+    let cortar = true;
+    const fetcher = (async (url: string, init: RequestInit = {}) => {
+      if (cortar && url.startsWith('https://subida.test') && (new Headers(init.headers).get('Content-Range') ?? '').startsWith('bytes 10485760-')) {
+        cortar = false;
+        throw new TypeError('Failed to fetch');
+      }
+      return g.fetcher(url, init);
+    }) as typeof fetch;
+    const fs = createOneDriveFs(async () => 'T', fetcher);
+    const grande = '{"x":"' + 'a'.repeat(12_000_000) + '"}';
+    await expect(fs.write('AulaPro/perfiles/p1/datos.json', grande)).rejects.toThrow('Failed to fetch');
+    await fs.write('AulaPro/perfiles/p1/datos.json', grande);
+    expect(await fs.read('AulaPro/perfiles/p1/datos.json')).toBe(grande);
+  });
+
+  it('un 401 al subir la marca sale como falta de permiso, con los datos ya subidos', async () => {
+    const g = graphFalso();
+    let caducado = false;
+    const fetcher = (async (url: string, init: RequestInit = {}) => {
+      if (caducado && url.includes('guardado.json')) return new Response('{}', { status: 401 });
+      return g.fetcher(url, init);
+    }) as typeof fetch;
+    const fs = createOneDriveFs(async () => 'T', fetcher);
+    await fs.write('AulaPro/perfiles/p1/datos.json', '{"v":1}');
+    caducado = true;
+    await expect(fs.write('AulaPro/perfiles/p1/guardado.json', '{"dispositivo":"A"}')).rejects.toMatchObject({ name: 'NotAllowedError' });
+    expect(await fs.read('AulaPro/perfiles/p1/datos.json')).toBe('{"v":1}');
+  });
+});

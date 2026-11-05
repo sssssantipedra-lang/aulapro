@@ -103,6 +103,53 @@ describe('guardado automático', () => {
 });
 
 /**
+ * Auditoría del 5-11-2026: lo que se escribe al salir de un perfil (al cambiar a otro o al cerrarlo) puede fallar, y
+ * entonces no quedaba nada que lo reintentara: el temporizador se había cancelado y el siguiente perfil ocupaba su
+ * sitio. Dentro del mismo perfil no hacía falta: el temporizador pendiente ya volvía a intentarlo.
+ */
+describe('cuando falla la escritura al salir de un perfil', () => {
+  it('al cerrar el perfil con un fallo al escribir, se vuelve a intentar solo', async () => {
+    let falla = false;
+    const guardarQueFalla = vi.fn(async () => { if (falla) throw new Error('fallo'); });
+    const { result, rerender } = renderHook((p: { ready: boolean; profileId: string | null; snapshot: object }) => useGuardadoAutomatico({ ...p, guardar: guardarQueFalla, retardo: 700 }), { initialProps: { ready: true, profileId: 'p1' as string | null, snapshot: { n: 1 } } });
+    await pasar(800);
+    await vi.waitFor(() => expect(guardarQueFalla).toHaveBeenCalledTimes(1));
+    rerender({ ready: true, profileId: 'p1', snapshot: { n: 2 } });
+    falla = true;
+    rerender({ ready: true, profileId: null, snapshot: { n: 2 } });
+    expect(guardarQueFalla).toHaveBeenCalledTimes(2);
+    expect(guardarQueFalla).toHaveBeenLastCalledWith('p1', { n: 2 });
+    await vi.waitFor(() => expect(result.current.errorGuardado).toBe('otro'));
+    falla = false;
+    await pasar(REINTENTO_GUARDADO_MS + 10);
+    await vi.waitFor(() => expect(guardarQueFalla).toHaveBeenCalledTimes(3));
+    expect(guardarQueFalla).toHaveBeenLastCalledWith('p1', { n: 2 });
+  });
+
+  it('si al cambiar de perfil falla la escritura del anterior, se escribe al abrir el nuevo, y a su perfil', async () => {
+    let falla = false;
+    const guardarQueFalla = vi.fn<(id: string, datos: object) => Promise<void>>(async () => { if (falla) throw new Error('fallo'); });
+    const { rerender } = renderHook((p: { ready: boolean; profileId: string; snapshot: object }) => useGuardadoAutomatico({ ...p, guardar: guardarQueFalla, retardo: 700 }), { initialProps: { ready: true, profileId: 'p1', snapshot: { n: 1 } as object } });
+    await pasar(800);
+    await vi.waitFor(() => expect(guardarQueFalla).toHaveBeenCalledTimes(1));
+    rerender({ ready: true, profileId: 'p1', snapshot: { n: 2 } });
+    falla = true;
+    rerender({ ready: false, profileId: 'p2', snapshot: { n: 2 } });
+    expect(guardarQueFalla).toHaveBeenCalledTimes(2);
+    expect(guardarQueFalla).toHaveBeenLastCalledWith('p1', { n: 2 });
+    await act(async () => {}); // el fallo llega (es asíncrono)
+    falla = false;
+    // Se abre el perfil nuevo: lo que quedó del anterior se escribe antes, y a su perfil
+    rerender({ ready: true, profileId: 'p2', snapshot: { m: 1 } });
+    expect(guardarQueFalla).toHaveBeenCalledTimes(3);
+    expect(guardarQueFalla).toHaveBeenLastCalledWith('p1', { n: 2 });
+    await pasar(800);
+    await vi.waitFor(() => expect(guardarQueFalla).toHaveBeenLastCalledWith('p2', { m: 1 }));
+    expect(guardarQueFalla.mock.calls.filter(c => c[0] === 'p2' && JSON.stringify(c[1]) === '{"n":2}')).toHaveLength(0);
+  });
+});
+
+/**
  * Auditoría del 1-11-2026: si el navegador no deja guardar (sin espacio, o falla), se avisa en pantalla y se vuelve a
  * intentar solo; antes el error se perdía y el docente seguía trabajando sin que se guardara nada.
  */

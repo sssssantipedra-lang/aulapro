@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createDriveFs, nombreDe, rutaDe, vaADrive } from './driveFs';
-import { createEspejo } from './espejo';
+import { createDriveFs, nombreDe, rutaDe, vaADrive, VERSIONES_GUARDADAS } from './driveFs';
+import { createEspejo, huellaDeDatos } from './espejo';
 import { createProfileStore, type Fs } from './profileStore';
 import type { Kv } from './webFs';
 
@@ -176,5 +176,116 @@ describe('Google Drive como carpeta (versión web)', () => {
     await a.vaciar();
     expect(await b.comprobar()).toBe(1);
     expect(await sb.loadData(p.id)).toEqual({ nota: 9 });
+  });
+});
+
+/**
+ * Auditoría del 5-11-2026: el acceso que caduca a mitad de una subida, una respuesta que se pierde al crear un archivo
+ * y un corte de red mientras se podan las versiones.
+ */
+describe('Drive con fallos a mitad de camino', () => {
+  /** Las versiones de cada archivo, que `driveFalso` no modela: una por subida, y se pueden borrar (o fallar al borrar). */
+  function conVersiones(d: ReturnType<typeof driveFalso>, opts: { fallaBorrado?: () => boolean } = {}) {
+    const versiones = new Map<string, { id: string; modifiedTime: string }[]>();
+    let n = 0;
+    const fetcher = (async (url: string, init: RequestInit = {}) => {
+      const u = new URL(url);
+      const met = init.method ?? 'GET';
+      const rev = /\/files\/([^/]+)\/revisions(?:\/([^/?]+))?/.exec(u.pathname);
+      if (rev && met === 'GET') return new Response(JSON.stringify({ revisions: versiones.get(rev[1]) ?? [] }), { status: 200 });
+      if (rev && met === 'DELETE') {
+        if (opts.fallaBorrado?.()) throw new TypeError('Failed to fetch');
+        versiones.set(rev[1], (versiones.get(rev[1]) ?? []).filter(v => v.id !== rev[2]));
+        return new Response(null, { status: 204 });
+      }
+      const r = await d.fetcher(url, init);
+      if (u.pathname.startsWith('/upload') && r.ok) {
+        const { id } = await r.clone().json();
+        versiones.set(id, [...(versiones.get(id) ?? []), { id: `r${++n}`, modifiedTime: new Date(2026, 10, 1, 0, 0, n).toISOString() }]);
+      }
+      return r;
+    }) as typeof fetch;
+    return { fetcher, versiones };
+  }
+
+  it('si el acceso caduca entre los datos y la marca: queda pendiente, se pide permiso y al volver a darlo se completa', async () => {
+    const d = driveFalso();
+    let caducado = false;
+    // La marca es la segunda subida de cada copia: ahí Google contesta 401
+    const fetcher = (async (url: string, init: RequestInit = {}) => {
+      if (caducado && url.includes('/upload/') && String(init.body).includes('"dispositivo"')) return new Response('', { status: 401 });
+      return d.fetcher(url, init);
+    }) as typeof fetch;
+    const drive = () => createDriveFs(async () => 'T', fetcher);
+    const kv = memoryKv(); const local = memoryFs();
+    const a = createEspejo({ local, kv, dispositivo: 'A', pausa: 10_000 });
+    const s = createProfileStore(a.fs);
+    await a.conectar(drive(), 'Google Drive');
+    const p = await s.createProfile({ name: 'Profesor' });
+    await s.saveData(p.id, { v: 1 });
+    await a.vaciar();
+    caducado = true;
+    await s.saveData(p.id, { v: 2 });
+    await a.vaciar();
+    expect(a.estado()).toMatchObject({ tipo: 'sin-permiso' });
+    expect(await kv.get(`pendiente:${p.id}`)).toBe(true);
+    const datos = () => [...d.archivos.values()].find(f => f.name === `perfiles~${p.id}~datos.json`)!.data;
+    const marca = () => JSON.parse([...d.archivos.values()].find(f => f.name === `perfiles~${p.id}~guardado.json`)!.data);
+    expect(JSON.parse(datos())).toEqual({ v: 2 });
+    // Los datos ya están, pero la marca es la de antes: otro dispositivo no la tomaría por nueva hasta que se complete
+    expect(marca().huella).not.toBe(huellaDeDatos(datos()));
+    caducado = false;
+    await a.activar(drive(), 'Google Drive', { congelar: true });
+    await a.vaciar();
+    expect(marca().huella).toBe(huellaDeDatos(datos()));
+    expect(await kv.get(`pendiente:${p.id}`)).toBeUndefined();
+    expect(a.estado()).toMatchObject({ tipo: 'activa' });
+  });
+
+  it('si se pierde la respuesta al crear un archivo, el siguiente intento no crea otro con el mismo nombre', async () => {
+    const d = driveFalso();
+    let perder = true;
+    const fetcher = (async (url: string, init: RequestInit = {}) => {
+      const r = await d.fetcher(url, init);
+      if (perder && url.includes('uploadType=multipart')) { perder = false; throw new TypeError('Failed to fetch'); }
+      return r;
+    }) as typeof fetch;
+    const fs = createDriveFs(async () => 'T', fetcher);
+    await expect(fs.write('AulaPro/perfiles/p1/datos.json', '{"v":1}')).rejects.toThrow('Failed to fetch');
+    await fs.write('AulaPro/perfiles/p1/datos.json', '{"v":2}');
+    const conEseNombre = [...d.archivos.values()].filter(f => f.name === 'perfiles~p1~datos.json');
+    expect(conEseNombre).toHaveLength(1);
+    expect(conEseNombre[0].data).toBe('{"v":2}');
+    expect(await fs.read('AulaPro/perfiles/p1/datos.json')).toBe('{"v":2}');
+  });
+
+  it('con dos archivos del mismo nombre en la carpeta (de antes de esta corrección), se lee el más reciente', async () => {
+    const d = driveFalso();
+    const fs = createDriveFs(async () => 'T', d.fetcher);
+    await fs.write('AulaPro/perfiles/p1/datos.json', '{"v":"nuevo"}');
+    const [id, nuevo] = [...d.archivos.entries()].find(([, f]) => f.name === 'perfiles~p1~datos.json')!;
+    // El viejo, listado después del nuevo
+    d.archivos.set('viejo', { ...nuevo, data: '{"v":"viejo"}', mtime: nuevo.mtime - 1 });
+    const otro = createDriveFs(async () => 'T', d.fetcher);
+    expect(await otro.read('AulaPro/perfiles/p1/datos.json')).toBe('{"v":"nuevo"}');
+    expect(id).not.toBe('viejo');
+  });
+
+  it('un corte de red mientras se podan las versiones no estropea la subida, y la siguiente poda termina el trabajo', async () => {
+    const d = driveFalso();
+    let cortar = false;
+    const { fetcher, versiones } = conVersiones(d, { fallaBorrado: () => cortar });
+    const fs = createDriveFs(async () => 'T', fetcher);
+    const ruta = 'AulaPro/perfiles/p1/datos.json';
+    for (let i = 1; i <= 5; i++) await fs.write(ruta, `{"v":${i}}`);
+    const id = [...d.archivos.entries()].find(([, f]) => f.name === 'perfiles~p1~datos.json')![0];
+    expect(versiones.get(id)).toHaveLength(VERSIONES_GUARDADAS);
+    cortar = true;
+    await fs.write(ruta, '{"v":6}'); // no lanza
+    expect(versiones.get(id)).toHaveLength(VERSIONES_GUARDADAS + 1);
+    expect(await fs.read(ruta)).toBe('{"v":6}');
+    cortar = false;
+    await fs.write(ruta, '{"v":7}');
+    expect(versiones.get(id)!.map(v => v.id)).toEqual(['r5', 'r6', 'r7']);
   });
 });

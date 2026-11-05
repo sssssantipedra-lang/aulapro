@@ -18,7 +18,7 @@ import { provinciaDePerfil } from '../lib/provincias';
 import { APOYO_VACIO, normalizarApoyo, especialidadesDePerfil, apoyoParaOtroCurso, sinAcsDeAula } from '../lib/apoyo';
 import type { ApoyoData } from '../types/apoyo';
 import { useGuardadoAutomatico } from './useGuardadoAutomatico';
-import { leerCopiaDeDatos } from '../lib/copiaDeDatos';
+import { leerCopiaDeDatos, VERSION_COPIA } from '../lib/copiaDeDatos';
 import { EF_VACIO, normalizarEF, efParaOtroCurso, sinAlumnoEF, sinClaseEF } from '../lib/ef';
 import { buildDemoEF } from '../lib/demoEF';
 import type { Lang } from '../i18n/core';
@@ -71,6 +71,12 @@ interface ProfileSnapshot {
   apoyo: ApoyoData;
   ef: EfData;
   auditLog: AuditEntry[];
+}
+
+/** Las partes del perfil guardado que esta versión no conoce (ver `desconocidas` en `useAppState`). */
+export function clavesDesconocidas(d: Record<string, unknown>): Record<string, unknown> {
+  const conocidas = emptySnapshot();
+  return Object.fromEntries(Object.entries(d).filter(([k, v]) => !(k in conocidas) && v !== undefined));
 }
 
 function emptySnapshot(): ProfileSnapshot {
@@ -188,8 +194,16 @@ export function useAppState() {
   // sección y volver, que es justo lo que se hace mientras se pregunta.
   const [chat, setChat] = useState<ChatMessage[]>([]);
 
+  /**
+   * Lo que trae el perfil guardado y esta versión de la app no conoce (una versión más nueva en otro dispositivo, con
+   * la app de aquí aún sin actualizar). Se conserva tal cual y se vuelve a escribir con el resto (5-11-2026): antes se
+   * perdía al guardar, y de ahí a la nube y al otro dispositivo.
+   */
+  const [desconocidas, setDesconocidas] = useState<Record<string, unknown>>({});
+
   const hydrate = useCallback((d: Partial<ProfileSnapshot>) => {
     const s = { ...emptySnapshot(), ...d };
+    setDesconocidas(clavesDesconocidas(d));
     setTasks(s.tasks);
     // Migración: las clases guardadas antes de que pudieran tener varias
     // asignaturas llegan sin `subjects`. Aquí se les rellena, de modo que el
@@ -261,11 +275,12 @@ export function useAppState() {
 
   /* ── Guardado diferido ── */
   const snapshot = useMemo<ProfileSnapshot>(() => ({
+    ...desconocidas,
     tasks, classes, students, blocks: scheduleBlocks, events: calEvents,
     rubrics, dianas, evaluations, gradeCategories, gradeItems, grades,
     dianaProfiles, attendance, reports, selfAssessments, learningSituations, fichas,
     workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, auditLog,
-  }), [tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
+  }), [desconocidas, tasks, classes, students, scheduleBlocks, calEvents, rubrics, dianas,
       evaluations, gradeCategories, gradeItems, grades, dianaProfiles,
       attendance, reports, selfAssessments, learningSituations, fichas,
       workSessions, seatingPlans, classMarks, marksConfigs, apoyo, ef, auditLog]);
@@ -902,7 +917,7 @@ export function useAppState() {
 
   /** Copia de seguridad descargable como archivo. */
   const exportData = useCallback(() => ({
-    _app: 'AulaPro', _version: 2, _date: new Date().toISOString(),
+    _app: 'AulaPro', _version: VERSION_COPIA, _date: new Date().toISOString(),
     _profile: profile ? { name: profile.name, school: profile.school, subject: profile.subject, course: profile.course } : null,
     data: snapshot,
   }), [snapshot, profile]);
