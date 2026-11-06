@@ -293,6 +293,10 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       await mirarBloqueo().catch(() => {});
       const last = Date.parse(record?.lastOkAt ?? record?.activatedAt ?? '');
       if (record?.kind === 'licencia' && (!Number.isFinite(last) || Date.now() - last > comprobarCada)) await check().catch(() => {});
+      // Versión web, con la pestaña abierta sin conexión: a los 7 días la firma caduca y no se ha podido renovar. La app se
+      // cierra igual que si se abriera entonces (6-11-2026: antes seguía mientras no se recargara). El registro se queda
+      // guardado, sin darlo por terminado: con conexión, la próxima apertura lo renueva sola.
+      if (record && opts.verificar && !(await valida(record))) { record = null; opts.alPerder?.(); }
       return state();
     },
 
