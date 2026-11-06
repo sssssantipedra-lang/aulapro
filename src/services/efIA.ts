@@ -7,9 +7,12 @@
  *
  * Datos (decisión del dueño, 5-10-2026): de quien está exento o lesionado, a
  * la IA solo le llega lo que no puede hacer, sin nombre y sin el motivo, que
- * es un dato de salud y se queda en el equipo (ver `limitacionesParaIA`).
+ * es un dato de salud y se queda en el equipo (ver `limitacionesParaIA`). Lo
+ * que el docente escribe con sus palabras (otra limitación, otra necesidad, el
+ * tema, una nota) pasa por `textoLibreParaIA` (auditoría del 5-11-2026).
  */
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { normativaInclusion } from './apoyoIA';
 import { catalogoCriterios, refsDesdeIA, type MateriaDeClase } from '../lib/curriculum/criteriosParaIA';
 import { citarNormas, normasDe, NORMAS_ESTATALES, type ComunidadId } from '../lib/curriculum/comunidades';
@@ -97,10 +100,10 @@ export async function proponerActividades(
     `Tipo de actividad: ${nombreTipo(p.tipo)}\n` +
     (p.modalidad ? `${modalidadParaIA(p.modalidad)}\nLas tres actividades son de esta modalidad y siguen su preparación.\n` : '') +
     (p.curso ? `Curso: ${p.curso}\n` : '') +
-    (p.tema.trim() ? `Qué se quiere trabajar: ${p.tema.trim()}\n` : '') +
+    (p.tema.trim() ? `Qué se quiere trabajar: ${textoLibreParaIA(p.tema.trim())}\n` : '') +
     (p.conInventario && recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
     (p.conInventario && recursos.instalaciones ? `Instalaciones: ${recursos.instalaciones}\n` : '') +
-    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
+    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${textoLibreParaIA(l)}`).join('\n')}\n` : '') +
     (p.yaTiene.length ? `Actividades que ya tiene (no las repitas): ${p.yaTiene.slice(0, 40).join('; ')}\n` : '') +
     '\nPropón 3 actividades distintas de este tipo, variadas en su lógica interna (Parlebas). Para cada una: ' +
     '"titulo" (corto), "descripcion" (en qué consiste y sus reglas, 2 a 4 frases), "organizacion" (agrupamiento, ' +
@@ -173,10 +176,10 @@ export async function actividadDesdeFoto(
     'La foto adjunta la ha hecho o elegido el docente. Puede ser un deporte, un juego, un ejercicio o un circuito, un ' +
     'dibujo o esquema de una actividad, o la página de un libro o de una ficha.\n' +
     (p.curso ? `Para: ${p.curso}${p.edad ? ` (${p.edad})` : ''}\n` : 'Para: un grupo de Educación Física (curso sin indicar)\n') +
-    (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${p.nota.trim()}\n` : '') +
+    (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${textoLibreParaIA(p.nota.trim())}\n` : '') +
     (p.conInventario && recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
     (p.conInventario && recursos.instalaciones ? `Instalaciones: ${recursos.instalaciones}\n` : '') +
-    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n` : '') +
+    (p.limitaciones.length ? `En el grupo hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${textoLibreParaIA(l)}`).join('\n')}\n` : '') +
     '\n"visto": en una frase, qué deporte o actividad física reconoces en la foto, sin describir ni identificar a las ' +
     'personas que salgan. "esActividad": "si" si la foto muestra o explica una actividad física que se pueda hacer en ' +
     'clase; si no, "no", y deja vacíos los demás campos. Si es "si", redacta esa actividad para que el docente la haga con ' +
@@ -336,7 +339,7 @@ export async function actividadesDesdeManual(
     'El PDF adjunto es un manual con actividades de Educación Física (de un libro, de un departamento o de un curso).\n' +
     (p.curso ? `Para: ${p.curso}${p.edad ? ` (${p.edad})` : ''}. Adapta las reglas, el espacio y la exigencia a esa edad.\n` : '') +
     (p.paginas.trim() ? `Lee solo estas páginas: ${p.paginas.trim()}\n` : '') +
-    (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${p.nota.trim()}\n` : '') +
+    (p.nota.trim() ? `Lo que el docente quiere que tengas en cuenta: ${textoLibreParaIA(p.nota.trim())}\n` : '') +
     (p.yaTiene.length ? `Actividades que ya tiene (sáltatelas): ${p.yaTiene.slice(0, 60).join('; ')}\n` : '') +
     `\nExtrae del manual las actividades que se puedan hacer en una clase, como mucho ${MAX_ACTIVIDADES_MANUAL}, una por juego, ejercicio o ` +
     'tarea distintos (no repitas una variante como si fuera otra). Ignora la teoría, la evaluación, las fichas de ' +
@@ -427,14 +430,14 @@ export async function prepararSesion(
     : '';
   const userPrompt =
     (p.curso ? `Curso: ${p.curso}\n` : '') +
-    `Qué se trabaja: ${p.tema.trim()}\n` +
+    `Qué se trabaja: ${textoLibreParaIA(p.tema.trim())}\n` +
     (p.modalidad ? `${modalidadParaIA(p.modalidad)}\nEl calentamiento es específico de esta modalidad y la sesión sigue su preparación.\n` : '') +
     `Duración de la sesión: ${p.minutos} minutos\n` +
     (lugar ? `Instalación: ${lugar}\n` : '') +
     (recursos.material ? `Material disponible: ${recursos.material}\n` : '') +
     (p.cubiertas.length ? `Espacios cubiertos para el plan B: ${p.cubiertas.map(i => i.nombre).join('; ')}\n` : '') +
     (p.limitaciones.length
-      ? `Hoy hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${l}`).join('\n')}\n`
+      ? `Hoy hay alumnado con estas limitaciones o niveles de respuesta para la inclusión (una línea por alumno, sin nombres):\n${p.limitaciones.map(l => `- ${textoLibreParaIA(l)}`).join('\n')}\n`
       : 'Hoy no hay nadie exento ni lesionado ni con medidas de nivel II o III.\n') +
     (p.acs?.trim() ? `Adaptaciones curriculares significativas del alumnado (sin nombres): adapta para cada una las actividades y lo que se observa a sus criterios y objetivos, en las medidas de inclusión.\n${p.acs.trim()}\n` : '') +
     (p.banco.length ? `Actividades de su banco que puedes usar si encajan: ${p.banco.slice(0, 40).map(a => a.titulo).join('; ')}\n` : '') +

@@ -156,10 +156,10 @@ export async function proponerObjetivos(
   const userPrompt =
     `${alumnoParaIA(alumno, nombreCurso)}\n` +
     `Especialidad: ${programa.especialidad === 'AL' ? 'Audición y Lenguaje' : 'Pedagogía Terapéutica'}\n` +
-    `Programa o ámbito: ${programa.ambito}\n` +
+    `Programa o ámbito: ${textoLibreParaIA(programa.ambito)}\n` +
     (programa.intensidad ? `Intensidad del apoyo: ${programa.intensidad}\n` : '') +
     bloqueAcs(args.contextoAcs) +
-    (actuales.length ? `Objetivos que ya tiene (no los repitas):\n${actuales.map(o => `- ${o.texto}`).join('\n')}\n` : '') +
+    (actuales.length ? `Objetivos que ya tiene (no los repitas):\n${actuales.map(o => `- ${textoLibreParaIA(o.texto)}`).join('\n')}\n` : '') +
     (actuales.length
       ? `\nYa tiene objetivos (los que vienen del informe de orientación o de la orientadora son los importantes): no los cambies ni los repitas. Propón de 2 a 4 objetivos MÁS para este programa, complementarios a ellos, durante el curso.`
       : '\nPropón de 4 a 6 objetivos para este programa durante el curso.') +
@@ -234,11 +234,11 @@ export async function adaptarTema(
   const { tema, especialidad, alumnos, comunidad, lang, nombreCurso } = args;
   if (!alumnos.length) return {};
   const userPrompt =
-    `Hoy su clase de referencia trabaja: ${tema}\n` +
+    `Hoy su clase de referencia trabaja: ${textoLibreParaIA(tema)}\n` +
     `Sesión de ${especialidad === 'AL' ? 'Audición y Lenguaje' : 'Pedagogía Terapéutica'}.\n\n` +
     alumnos.map(({ alumno, objetivos }) =>
       `id ${alumno.id}\n${alumnoParaIA(alumno, nombreCurso)}\nObjetivos de este trimestre:\n` +
-      (objetivos.length ? objetivos.map(o => `- ${o}`).join('\n') : '- (sin objetivos todavía)')).join('\n\n') +
+      (objetivos.length ? objetivos.map(o => `- ${textoLibreParaIA(o)}`).join('\n') : '- (sin objetivos todavía)')).join('\n\n') +
     '\n\nPara cada alumno, en "propuesta" de 2 a 3 frases: cómo trabajar ese mismo tema en la sesión con sus objetivos ' +
     'de este trimestre (una actividad concreta, el apoyo o material y cómo saber si lo ha conseguido), siguiendo los ' +
     'principios del DUA. Que pueda hacerse en una sesión. Sin títulos ni negritas.';

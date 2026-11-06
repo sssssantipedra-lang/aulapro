@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { I18nProvider } from '../i18n';
 import { ToastProvider } from './ui/Toast';
 import { ApiKeySettings } from './ApiKeySettings';
-import { usoIaAceptado, fechaUsoIa } from '../lib/usoIA';
+import { usoIaAceptado, fechaUsoIa, VERSION_USO_IA } from '../lib/usoIA';
 
 afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks(); });
 
@@ -52,7 +52,7 @@ describe('aceptar el uso de la IA la primera vez que se va a conseguir la clave 
   });
 
   it('quien ya aceptó abre Google directamente y puede volver a leer la información', async () => {
-    localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: '2026-11-04', fecha: '2026-11-04T10:00:00.000Z' }));
+    localStorage.setItem('aulapro_uso_ia', JSON.stringify({ v: VERSION_USO_IA, fecha: '2026-11-05T10:00:00.000Z' }));
     const abrir = vi.spyOn(window, 'open').mockReturnValue(null);
     pintar();
     const enlace = screen.getByRole('link', { name: /Abrir AI Studio/ });

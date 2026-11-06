@@ -22,13 +22,13 @@ const CURSOS: CursoDe[] = [
 const ordinal = (c: CursoDe) => (c.etapa === 'primaria' ? c.curso : 6 + c.curso);
 
 /** El curso de su clase, si la clase lo tiene. */
-export function cursoDeClase(cls: Class | undefined): CursoDe | undefined {
+function cursoDeClase(cls: Class | undefined): CursoDe | undefined {
   if (!cls?.etapa || !cls.curso) return undefined;
   return cls.etapa === 'primaria' || cls.etapa === 'eso' ? { etapa: cls.etapa, curso: cls.curso } : undefined;
 }
 
 /** El alumno de la clase, con la forma que espera la pantalla de la adaptación. */
-export function alumnoDeClase(s: Student, cls: Class | undefined, nivel: CursoDe | undefined): AlumnoApoyo {
+function alumnoDeClase(s: Student, cls: Class | undefined, nivel: CursoDe | undefined): AlumnoApoyo {
   return {
     id: s.id, nombre: s.name, claseOrigen: cls?.name ?? '', matricula: cursoDeClase(cls), nivel,
     necesidades: '', notas: '',

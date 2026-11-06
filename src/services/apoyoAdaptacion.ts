@@ -13,7 +13,7 @@ import { nivelDe, nuevoIdApoyo } from '../lib/apoyo';
 import { translate, type Lang } from '../i18n';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { FuenteInforme } from './informeOrientacion';
-import { textoDeDocumento } from '../lib/documentoParaIA';
+import { textoDeDocumento, textoLibreParaIA } from '../lib/documentoParaIA';
 import { currentPseudonymizer } from './privacy';
 import type { AlumnoApoyo, ApartadoDocumento, ApoyoData, CursoDe, DocumentoApoyo, Trimestre } from '../types/apoyo';
 
@@ -91,7 +91,7 @@ export async function generarAdaptacion(
   const userPrompt =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
     `Área: ${area}. Trimestre: ${trimestre}º.\n` +
-    `Sus programas y objetivos individuales:\n${objetivosTexto(data, alumno.id, args.materias, t, lang)}\n\n` +
+    `Sus programas y objetivos individuales:\n${textoLibreParaIA(objetivosTexto(data, alumno.id, args.materias, t, lang))}\n\n` +
     bloqueAcs(args.contextoAcs) +
     (programacionTexto
       ? `PROGRAMACIÓN DE AULA DEL TUTOR PARA ESTA ÁREA:\n${programacionTexto.slice(0, 30000)}\n\n`

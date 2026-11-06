@@ -16,6 +16,7 @@
  */
 
 import { callGemini, parseGeminiJson } from './gemini';
+import { soloDatosDeSalud, textoLibreParaIA } from '../lib/documentoParaIA';
 import type { Lang } from '../i18n';
 
 const idioma = (lang: Lang) => (lang === 'en' ? 'INGLÉS' : lang === 'ca' ? 'CATALÁN (català)' : 'ESPAÑOL');
@@ -105,8 +106,11 @@ function fichaAlumno(s: StudentForGrouping): string {
     `media ${s.media !== null ? s.media.toFixed(1) : 'sin notas'}`,
     `asistencia ${s.asistenciaPct !== null ? `${s.asistenciaPct}%` : 'sin datos'}`,
   ];
-  if (s.avisos.length) partes.push(`avisos: ${s.avisos.join('; ')}`);
-  if (s.notas.trim()) partes.push(`nota del docente: ${s.notas.trim()}`);
+  // Avisos y anotaciones son texto libre del docente: sin datos de contacto ni de salud (auditoría del 5-11-2026)
+  const avisos = s.avisos.map(textoLibreParaIA).filter(a => a.trim() && !soloDatosDeSalud(a));
+  if (avisos.length) partes.push(`avisos: ${avisos.join('; ')}`);
+  const notas = textoLibreParaIA(s.notas.trim());
+  if (notas) partes.push(`nota del docente: ${notas}`);
   return `- ${partes.join(' · ')}`;
 }
 
@@ -168,7 +172,7 @@ export async function generateBalancedGroups(
   const userPrompt =
     `ALUMNADO (id · nombre · media · asistencia · avisos · nota del docente):\n` +
     req.students.map(fichaAlumno).join('\n') +
-    (req.notasDocente?.trim() ? `\n\nASPECTOS A TENER EN CUENTA DEL DOCENTE: ${req.notasDocente.trim()}` : '') +
+    (req.notasDocente?.trim() ? `\n\nASPECTOS A TENER EN CUENTA DEL DOCENTE: ${textoLibreParaIA(req.notasDocente.trim())}` : '') +
     `\n\nGenera las ${req.numGroups} mesas.`;
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {

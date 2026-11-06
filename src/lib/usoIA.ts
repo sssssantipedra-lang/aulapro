@@ -4,7 +4,7 @@
  * no se puede guardar la clave (`components/ApiKeySettings.tsx`). Solo se guarda en el dispositivo: qué versión y cuándo.
  * Si cambia lo que se envía a la IA, se sube `VERSION_USO_IA` y se vuelve a pedir.
  */
-export const VERSION_USO_IA = '2026-11-04';
+export const VERSION_USO_IA = '2026-11-05';
 
 const CLAVE = 'aulapro_uso_ia';
 

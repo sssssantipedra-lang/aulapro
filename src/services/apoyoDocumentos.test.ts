@@ -191,3 +191,23 @@ describe('exportar', () => {
     expect(blob.size).toBeGreaterThan(1000);
   });
 });
+
+describe('privacidad de los documentos de PT y AL (auditoría del 5-11-2026)', () => {
+  beforeEach(() => callGemini.mockReset());
+  const comun = { alumno: data.alumnos[0], data, materias: [], comunidad: 'comunitat-valenciana' as const, lang: 'es' as const, nombreCurso, hoy: '2026-12-15' };
+  it('los objetivos, las coordinaciones y los objetivos del próximo trimestre van sin datos de salud', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ apartados: [] }));
+    const conSalud: ApoyoData = {
+      ...data,
+      programas: [{ id: 'p9', alumnoId: 'a1', ambito: 'Habla', especialidad: 'AL', objetivos: [{ id: 'o9', texto: 'Reducir la disfemia en lectura', trimestres: [1, 2], criterios: [] }] }],
+      coordinaciones: [{ id: 'c1', alumnoId: 'a1', fecha: '2026-10-01', con: 'familia', asistentes: '', temas: 'La madre cuenta que toma Rubifen', acuerdos: 'Revisar la agenda' }],
+    };
+    await generarDocumento({ ...comun, data: conSalud, tipo: 'programacion', trimestre: 1 });
+    const usuario = callGemini.mock.calls[0][1] as string;
+    expect(usuario).not.toMatch(/disfemia|Rubifen/);
+    expect(usuario).toContain('Revisar la agenda');
+    callGemini.mockResolvedValueOnce(JSON.stringify({ apartados: [] }));
+    await generarDocumento({ ...comun, data: conSalud, tipo: 'familia', trimestre: 1 });
+    expect(callGemini.mock.calls[1][1]).not.toContain('disfemia');
+  });
+});
