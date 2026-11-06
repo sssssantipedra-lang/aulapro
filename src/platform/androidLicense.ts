@@ -10,7 +10,7 @@
  *
  * Mantener ENFORCED y STORE_ID iguales que en electron/license.cjs.
  */
-import { limpiarLicenciaVencida, marcarLicenciaVencida } from '../lib/licenciaVencida';
+import { limpiarBetaTerminada, limpiarLicenciaVencida, marcarBetaTerminada, marcarLicenciaVencida } from '../lib/licenciaVencida';
 import { caducidadDeFirma } from './firmaLicencia';
 import { CapacitorHttp } from '@capacitor/core';
 import type { LicenseBridge, LicenseError, LicenseResult, LicenseState } from '../types/electron';
@@ -37,7 +37,8 @@ interface Secrets {
 
 export interface LicenseRecord {
   v: 1;
-  kind: 'fundador' | 'licencia';
+  /** `beta`: acceso anticipado gratuito de la versión web (`web/funciones/api/_beta.js`); se bloquea al abrirse la venta. */
+  kind: 'fundador' | 'licencia' | 'beta';
   key?: string;
   instanceId?: string;
   activatedAt: string;
@@ -130,7 +131,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   const save = async (r: LicenseRecord | null) => {
     record = r;
-    if (r) { limpiarLicenciaVencida(); await secrets.set(DORMIDA, '').catch(() => false); }
+    if (r) { limpiarLicenciaVencida(); limpiarBetaTerminada(); await secrets.set(DORMIDA, '').catch(() => false); }
     await secrets.set('licencia', r ? JSON.stringify(r) : '').catch(() => false);
   };
 
@@ -162,7 +163,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   const state = (): LicenseState => ({
     required: enforced && !record,
-    status: record?.kind === 'fundador' ? 'fundador' : record ? 'activa' : 'sin-licencia',
+    status: record?.kind === 'fundador' ? 'fundador' : record?.kind === 'beta' ? 'beta' : record ? 'activa' : 'sin-licencia',
     enforced,
     keyHint: record?.kind === 'licencia' ? keyHint(record.key) : '',
     since: record?.activatedAt ?? '',
@@ -192,7 +193,9 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   async function perder() {
     if (!record) return;
     if (!record.cuenta && record.instanceId) await secrets.set(DORMIDA, JSON.stringify(record)).catch(() => false);
-    marcarLicenciaVencida(); await save(null); opts.alPerder?.();
+    // La beta no es una suscripción que terminó: la pantalla dice que el acceso anticipado se acabó y ofrece suscribirse
+    if (record.kind === 'beta') marcarBetaTerminada(); else marcarLicenciaVencida();
+    await save(null); opts.alPerder?.();
   }
 
   /**
@@ -201,10 +204,13 @@ export function createAndroidLicense(secrets: Secrets, opts: {
    */
   async function mirarBloqueo() {
     const cada = opts.consultarBloqueoCada;
-    if (cada == null || record?.kind !== 'licencia' || !record.key) return;
+    const esBeta = record?.kind === 'beta';
+    if (cada == null || !record || (!esBeta && (record.kind !== 'licencia' || !record.key))) return;
     if (Date.now() - bloqueoMiradoEn < cada) return;
     bloqueoMiradoEn = Date.now();
-    const r = await call('estado', { license_key: record.key });
+    // Acceso anticipado: el servidor dice si la beta ya se cerró (el día que se abre la venta). Sin respuesta, no pasa nada:
+    // la firma de beta caduca sola a los 3 días como mucho
+    const r = await call('estado', esBeta ? { tipo: 'beta' } : { license_key: record.key! });
     if (r?.status === 200 && (r.body as { bloqueada?: boolean }).bloqueada === true) await perder();
   }
 
@@ -224,6 +230,9 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     }
     if (!record && !enforced) {
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
+    } else if (record?.kind === 'beta') {
+      // Acceso anticipado: al abrir se pregunta ya al servidor si la beta sigue abierta, sin esperar a los 15 minutos
+      if (opts.comprobarSinEsperar) void mirarBloqueo().catch(() => {});
     } else if (record?.kind === 'licencia') {
       // La comprobación que toca (cada día en la web) se espera al abrir, como mucho 3 s: una suscripción que ha
       // terminado no llega a abrir la app. Si la red tarda más, sigue en segundo plano y bloquea al contestar.
@@ -271,11 +280,15 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       if (key === 'fundador') {
         // Versión web: fundador por su correo (`FUNDADOR` en cuentaWeb.ts)
         await save({ v: 1, kind: 'fundador', activatedAt: record?.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true, ...f });
+      } else if (key === 'beta') {
+        // Versión web: acceso anticipado gratuito (`BETA` en cuentaWeb.ts), hasta que se abra la venta
+        await save({ v: 1, kind: 'beta', activatedAt: record?.kind === 'beta' && record.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true, ...f });
       } else if (key) {
         const now = new Date().toISOString();
         await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true, ...f });
       } else if (record?.cuenta) {
         if (record.kind === 'licencia') marcarLicenciaVencida();
+        else if (record.kind === 'beta') marcarBetaTerminada();   // el servidor ya no da acceso anticipado: a suscribirse
         await save(null);
       } else if (record?.kind === 'licencia' && record.key) {
         // Una clave escrita a mano (un pack, otro correo): que el correo no tenga compra no dice nada de ella, así

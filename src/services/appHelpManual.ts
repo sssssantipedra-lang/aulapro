@@ -17,10 +17,12 @@ import type { Lang } from '../i18n';
  */
 export const MANUAL = `
 === QUÉ ES AULA PRO ===
-Aplicación de escritorio para el profesorado español (currículo LOMLOE). Todo se
-guarda en el ordenador del docente: no hay cuentas, ni servidor, ni nube. Cada
-docente tiene su perfil, con su propia carpeta de datos y copia automática cada
-10 minutos. Puede haber varios perfiles en el mismo ordenador.
+Aplicación web para el profesorado español (currículo LOMLOE), en aulapro.app/app,
+desde el navegador de cualquier ordenador, tableta o móvil. Se entra con la cuenta
+de Google o de Microsoft. El trabajo se guarda en el navegador de ese dispositivo y,
+si el docente lo elige, también en su Google Drive u OneDrive o en una carpeta de su
+ordenador: nunca en un servidor de AulaPro. Hay una copia automática cada 10 minutos
+en el dispositivo.
 
 COMUNIDAD AUTÓNOMA: cada perfil tiene la suya (se elige al crearlo y se cambia
 en Configuración → Perfil; aparece bajo el nombre del docente en el menú). De
@@ -68,8 +70,8 @@ un trabajo adjunto a una rúbrica o al asistente) se leen en el dispositivo y
 solo se envía su texto, sin nombres ni otros datos que identifiquen; en las
 fotos del trabajo de un alumno se tapa el nombre antes de enviarlas. Los
 documentos de normativa, los manuales y las fotos de actividades se envían tal
-cual: no deben llevar datos del alumnado. En la
-aplicación de escritorio la clave de Google se guarda cifrada por el sistema.
+cual: no deben llevar datos del alumnado. La clave de la IA se guarda en el
+navegador de ese dispositivo y solo se envía a Google.
 
 Las notas van sobre 10 y el aprobado está en 5. La aplicación está en español,
 inglés y catalán (se cambia en la pantalla de bienvenida y en Configuración →
@@ -335,9 +337,8 @@ La portada del apartado Documentos: cuatro tarjetas grandes, una por pantalla
 (Informes, Actas, Situaciones de aprendizaje y Recursos), con para qué sirve
 cada una y cuánto hay hecho (informes redactados, clases con notas,
 situaciones y recursos guardados). Al pulsar una, se abre. Arriba a la derecha hay un
-botón «Documentos descargados» que abre la carpeta Documentos › AulaPro, donde la app
-guarda (en Android) o propone guardar (en Windows y Mac) los PDF, Word y copias de
-seguridad, cada uno en la carpeta de su tipo (Fichas, Actas, Informes…).
+En la versión web los PDF se crean con el diálogo de imprimir del navegador («Guardar como PDF»)
+y los Word, las hojas de cálculo y las copias se descargan en la carpeta de descargas del navegador.
 
 [evaluar] EVALUAR (RESUMEN)
 La portada del apartado Evaluar. Tarjetas grandes: «Evaluar por rúbricas»
@@ -375,8 +376,7 @@ y su tarjeta enseña en cuáles se usa. Quitar una clase no borra la columna que
 tenía.
 DESCARGAR EN PDF: el icono de PDF de cada tarjeta guarda la rúbrica en blanco, en
 horizontal, con sus niveles y descriptores y las líneas de alumno, clase, fecha y
-nota, para imprimirla y evaluar en papel (en Android, en Documentos › AulaPro ›
-Cuaderno; en el navegador abre la ventana de imprimir).
+nota, para imprimirla y evaluar en papel (abre la ventana de imprimir del navegador).
 
 [dianas] DIANAS
 El otro instrumento de evaluación, en su propia pestaña de Evaluar (antes iba
@@ -453,7 +453,7 @@ la media, lista para imprimir o firmar. Sale en PDF horizontal. Se genera con
 las notas que ya están en el cuaderno.
 
 [selfassess] AUTOEVALUACIONES
-Lo que han respondido los alumnos desde el móvil en la Sala de alumnos. El
+Lo que han respondido los alumnos desde el móvil en Actividades con móviles (en la versión web, próximamente). El
 docente decide si cada sesión pasa al Historial o se descarta: lo que dice un
 alumno de sí mismo no es una calificación suya, así que nunca entra en el
 cuaderno.
@@ -674,8 +674,9 @@ oscuro» / «Fondo blanco» de la barra superior la cambia (se recuerda para la
 próxima vez) y lo ya dibujado cambia de color para seguir viéndose.
 
 [classroom-live] ACTIVIDADES CON MÓVILES (SALA DE ALUMNOS)
-Antes se llamaba «Sala de alumnos». Solo funciona en la aplicación instalada
-(Windows o Android); en la versión de navegador se explica qué hace y cómo.
+Antes se llamaba «Sala de alumnos». En la versión web todavía no funciona: la pantalla dice
+«Próximamente en la versión web» y explica cómo será. Lo que sigue es cómo funcionaba en las antiguas
+apps de Windows y Android, que ya no reciben versiones nuevas.
 Levanta un servidor en el propio ordenador para que los alumnos entren desde el
 móvil escaneando un QR o escribiendo un código, sin instalar nada y sin
 necesidad de internet (misma red wifi). Se elige la clase y la actividad en tres
@@ -698,7 +699,7 @@ la versión 2.20 se quitó el trabajo compartido en directo.
   Después pulsa «Crear archivo cifrado». La app propone una contraseña aleatoria (por
   ejemplo ABCD-EFGH-JKMN-PQRS) que se puede copiar, cambiar o sustituir por una
   propia de al menos 10 caracteres. El archivo se guarda como una copia de
-  seguridad (en Android, en Documentos › AulaPro › Copias de seguridad).
+  seguridad (se descarga en la carpeta de descargas del navegador).
 - El archivo se manda por el medio que se quiera (correo, WhatsApp, Drive…) y la
   contraseña, por OTRO medio (una llamada, por ejemplo). Sin ella no se puede
   leer. La app no guarda la contraseña ni la envía a ningún sitio: si se pierde,
@@ -1176,7 +1177,7 @@ respondido, notas, asistencia) los pone la app; la IA solo los redacta, con la
 normativa de la comunidad y los autores de referencia, y no inventa logros. Un
 informe trimestral nuevo del mismo trimestre sustituye al anterior (lo
 pregunta). La lista «Sus documentos» abre cada uno para retocarlo (se guarda
-solo), lo exporta a PDF (en la app de escritorio) o a Word, o lo elimina.
+solo), lo exporta a PDF o a Word, o lo elimina.
 ADAPTACIÓN CURRICULAR SIGNIFICATIVA, en Andalucía, la Comunitat Valenciana,
 Cataluña y Madrid, con el modelo de cada una: la ACS en los cuatro bloques de
 Séneca (Andalucía), la ACIS del PAP de ITACA (Comunitat Valenciana), el PI
@@ -1273,34 +1274,41 @@ vuelve con «← Configuración»:
   VACIADO DE FIN DE CURSO, que borra clases, alumnos, notas, evaluaciones,
   asistencia, informes y el alumnado de PT y AL y conserva rúbricas, dianas, reuniones y formaciones
   (hace una copia antes).
-- Licencia (solo en la app de escritorio): el estado de AulaPro en este
-  ordenador. «Docente fundador/a» = la usaba antes de que saliera a la venta y
-  en ese ordenador es gratis para siempre. «Licencia activa» = activada con la
-  clave comprada en la web; se ve el final de la clave y el botón «Desactivar
-  en este equipo» para pasarla a otro ordenador.
+- LICENCIA: de dónde viene la licencia de AulaPro, cuándo se comprobó y hasta cuándo vale sin
+  conexión. «Docente fundador/a» = la usaba antes de que saliera a la venta: con su cuenta es gratis
+  para siempre. «Acceso anticipado gratuito» = la versión de lanzamiento: gratis y sin tarjeta hasta
+  que se abra la venta, prevista para enero de 2027; entonces hay que suscribirse (con la oferta de
+  lanzamiento, 9,90 € el primer año si se suscribe hasta el 15 de abril de 2027; después, 14,99 € al
+  año). «Licencia activa» = suscripción comprada: con el correo de la cuenta de Google o de Microsoft
+  se activa sola en todos sus dispositivos; una clave escrita a mano (otro correo o un pack) vale en
+  2 navegadores, y se ve el final de la clave y el botón «Desactivar en este equipo».
 Los avisos de «Configurar la IA» de otras pantallas llevan directos a la
 tarjeta «Clave de la IA».
 
 === PREGUNTAS FRECUENTES ===
-- «¿Hay AulaPro para tableta / móvil / Android?»: sí, en pruebas, para
-  tabletas y móviles Android. En el móvil el menú se abre con el botón ☰ de la
-  barra de arriba (el avatar lleva a Configuración) y las tablas anchas, como
-  el cuaderno, se desplazan de lado con el dedo. Funciona igual que en el
-  ordenador, con tres diferencias: «Guardar en PDF» abre el diálogo de impresión de Android, donde
-  se elige «Guardar como PDF» o una impresora; los Word, CSV y copias se
-  comparten (Archivos, Drive, correo…) en vez de descargarse; y en la Sala de
-  alumnos es la tableta la que abre la sala (misma wifi; con la sala abierta
-  la pantalla no se apaga). Los datos de la tableta y
-  los del ordenador van por separado: para pasarlos, «Descargar mis datos» en
-  uno y «Cargar desde archivo» en el otro, o «Trabajo compartido» (archivo cifrado con contraseña).
-- «Me pide una clave de licencia» / «He cambiado de ordenador»: la clave llega
-  por correo al comprar AulaPro en la web. Se activa con internet una sola vez
-  y después funciona sin conexión. Cada clave vale para un número limitado de
-  ordenadores: para pasarla a otro, en el viejo Configuración → Licencia →
-  «Desactivar en este equipo». Si dice que se ha alcanzado el máximo y el
-  ordenador viejo ya no existe, que escriba a quien le vendió la licencia.
-- «¿Dónde se guardan mis datos?»: en una carpeta de este ordenador, una por
-  perfil. Se ve y se abre desde Configuración → Datos y copias. Nunca salen a ningún servidor.
+- «¿Hay AulaPro para tableta / móvil / Android / iPhone?»: sí. AulaPro es una web y funciona en el
+  navegador de cualquier ordenador, tableta o móvil (Windows, Mac, Android, iPhone, iPad, Chromebook);
+  se puede añadir a la pantalla de inicio como una app. En el móvil el menú se abre con el botón ☰ de la
+  barra de arriba (el avatar lleva a Configuración) y las tablas anchas, como el cuaderno, se desplazan
+  de lado con el dedo. Si guarda en Google Drive u OneDrive, tiene su trabajo en todos sus dispositivos;
+  si lo guarda solo en el navegador, cada dispositivo tiene el suyo: para pasarlo, «Descargar mis datos»
+  en uno y «Cargar desde archivo» en el otro. Las antiguas apps de Windows y Android ya no reciben versiones
+  nuevas: quien las usaba descarga sus datos en ellas y los carga en la web.
+- «¿Cuánto cuesta?» / «¿Es gratis?»: ahora está en acceso anticipado gratuito, sin tarjeta, hasta que se
+  abra la venta, prevista para enero de 2027. Después es una suscripción anual: con la oferta de
+  lanzamiento, 9,90 € el primer año si se suscribe hasta el 15 de abril de 2027; después, 14,99 € al año.
+  Hay packs para 5 y 10 docentes, devolución en 14 días y se cancela cuando quiera. Nada se cobra solo:
+  al cerrarse el acceso gratuito, la app se bloquea hasta que se suscriba, y su trabajo no se borra (lo
+  puede descargar con «Descargar mis datos»). Precios y condiciones, en aulapro.app.
+- «Me pide una clave de licencia» / «He cambiado de dispositivo»: si compró con el correo de su cuenta de
+  Google o de Microsoft, la licencia se activa sola al entrar con esa cuenta, en todos sus dispositivos.
+  Si compró con otro correo o tiene un pack, escribe la clave que recibió por correo; vale en 2
+  navegadores a la vez (para pasarla a otro, en el viejo Configuración → Licencia → «Desactivar en este
+  equipo»). Si dice que se ha alcanzado el máximo y el navegador viejo ya no existe, que escriba a
+  contacto@aulapro.app. Durante el acceso anticipado gratuito no hace falta clave.
+- «¿Dónde se guardan mis datos?»: en el navegador de este dispositivo y, si lo eligió, también en su
+  Google Drive u OneDrive o en una carpeta del ordenador (Configuración → Datos y copias). Nunca en un
+  servidor de AulaPro.
 - «¿Cómo hago copia de seguridad?»: Configuración → Datos y copias → «Descargar mis datos». Da un archivo que se
   guarda donde se quiera y se puede volver a importar.
 - «No me funciona la IA»: casi siempre es la clave API. Revisar en Configuración →
@@ -1308,12 +1316,10 @@ tarjeta «Clave de la IA».
   el error que salga (clave inválida, sin permiso, límite alcanzado…) dice
   qué pasa. Si dice que se ha alcanzado el límite, es la cuota gratuita de
   Google: si es por minuto, esperar un minuto; si es el cupo del día, se renueva a las 9:00.
-- «¿Por qué no puedo guardar en PDF?»: el PDF solo funciona en la aplicación de
-  escritorio. Word funciona siempre.
-- «¿Se actualiza sola?»: en Windows sí. Al arrancar comprueba si hay versión
-  nueva, avisa con una notificación y la descarga en segundo plano; se instala
-  al pulsar «Reiniciar y actualizar» o al cerrar la aplicación. En Mac hay que
-  descargarla a mano.
+- «¿Cómo guardo en PDF?»: el PDF se crea con el diálogo de imprimir del navegador: en «Destino», elegir
+  «Guardar como PDF». Word funciona siempre.
+- «¿Se actualiza sola?»: sí. Es una web: al abrirla, la versión nueva se pone sola. Las antiguas apps de
+  escritorio y de Android ya no reciben versiones nuevas.
 - «¿La IA ve los nombres de mis alumnos?»: no. Se cambian por códigos antes de
   enviar nada a Google y se vuelven a poner al recibir la respuesta. Un
   documento del alumnado se lee en el dispositivo y viaja solo su texto, sin
@@ -1347,8 +1353,8 @@ export function helpSystemPrompt(lang: Lang, section: string): string {
 
   return [
     lang === 'en'
-      ? 'You are the built-in help assistant for AulaPro, a desktop app for teachers. You explain how to USE THE APP.'
-      : 'Eres el asistente de ayuda de AulaPro, una aplicación de escritorio para docentes. Explicas CÓMO SE USA LA APLICACIÓN.',
+      ? 'You are the built-in help assistant for AulaPro, a web app for teachers. You explain how to USE THE APP.'
+      : 'Eres el asistente de ayuda de AulaPro, una aplicación web para docentes. Explicas CÓMO SE USA LA APLICACIÓN.',
     idioma,
     lang === 'en' ? 'RULES:' : 'REGLAS:',
     [

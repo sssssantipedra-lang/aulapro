@@ -15,6 +15,17 @@ El 2-11-2026 la vigilancia vio que la puerta de pago de aulapro.app dejaba salir
 5. **Qué ve quien no renueva una licencia anual** (las primeras vencen hacia el 16-4-2028). Los datos nunca se bloquean; falta decidir qué deja de funcionar (`docs/MANTENIMIENTO.md`).
 6. **Claves compartidas (auditoría del 1-11-2026).** `/api/licencia/validate` sin número de activación devuelve una licencia firmada (lo usa la licencia de la cuenta para renovarse sin token de Google). Con eso, quien tenga una clave ajena y sepa programar puede usarla en más de 2 dispositivos sin activarla. Cerrarlo obliga a cambiar cómo se renueva la licencia de la cuenta (con el token de Google o de Microsoft), y no se ha tocado a días de abrir la venta. Decidir si se cierra después del lanzamiento.
 
+## 1 bis. Acceso anticipado gratuito (5-11-2026)
+
+Decidido por el dueño: la app sale el 10-11-2026 sin cobrar y la venta se abre más adelante, sin fecha. Detalle en `CLAUDE.md` («Acceso anticipado gratuito y apertura de la venta»). Pendiente:
+
+- [ ] **Lemon Squeezy:** los tres productos (individual y packs de 5 y 10) en borrador desde su panel, hasta el día de abrir la venta. Los enlaces de pago estuvieron publicados. Solo el dueño.
+- [ ] **Probar en la rama de Cloudflare** (`prueba.aulapro-app.pages.dev`) con una cuenta de Google y otra de Microsoft reales: que entra sin pagar y que, con `CONFIG_BETA.abierta: false` en esa rama, se bloquea y sale el botón de compra. La simulación automática usa un Google falso.
+- [ ] **El aviso a la lista de espera** de que ya hay acceso anticipado: es un envío externo, con aprobación del dueño. Revisar con su abogado que la finalidad del formulario («información sobre ese lanzamiento») lo cubre.
+- [ ] **Día de abrir la venta:** `node scripts/abrir-venta.mjs --aplicar`, pasos en `docs/MANTENIMIENTO.md` («Abrir la venta y bloquear a quien entró gratis»).
+- [ ] **Fecha anunciada del fin del acceso gratuito: «a partir de enero de 2027»** (tarjeta de la portada, 5-11-2026). Es prevista y el servidor no la hace cumplir. **Antes de que llegue, abrir la venta o cambiar la fecha** en los tres idiomas (`el.*` en `web/sitio/assets/i18n.js`), o la web diría algo falso.
+- [x] ~~**Precio: 9,90 € o 14,99 €.**~~ Decidido por el dueño el 5-11-2026: **se mantiene la oferta de lanzamiento** (9,90 € el primer año hasta el 15-4-2027; después, 14,99 € al año). La tarjeta de la beta, el aviso de la app, las condiciones y la privacidad lo dicen igual desde la auditoría del mismo día.
+
 ## 2. Antes del 10-11: lo que solo puede hacer el dueño
 
 De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha salido después.

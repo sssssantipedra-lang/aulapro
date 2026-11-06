@@ -11,6 +11,7 @@
 // lista (sin llamar a Lemon Squeezy), y se bloquea al momento si la suya está. Se guarda una huella de la clave, no la
 // clave.
 import { huella } from './_limite.js';
+import { CONFIG_BETA, estadoBeta } from './_beta.js';
 
 const LS = 'https://api.lemonsqueezy.com/v1';
 const UN_ANIO = 400 * 24 * 3600;
@@ -110,8 +111,12 @@ export async function responderAviso(request, { secreto, apiKey, almacen }) {
   return json({ ok: true }, 200);
 }
 
-/** `POST /api/licencia/estado` con `license_key`: si está bloqueada. Solo lee la lista. */
-export async function responderEstado(salida, almacen, cors = {}) {
+/**
+ * `POST /api/licencia/estado` con `license_key`: si está bloqueada. Solo lee la lista. Con `tipo=beta` (acceso anticipado
+ * gratuito, `_beta.js`) dice si la beta ya se cerró: la app se bloquea al contestar `bloqueada: true`.
+ */
+export async function responderEstado(salida, almacen, cors = {}, ahora = Date.now(), cfgBeta = CONFIG_BETA) {
+  if (salida.get('tipo') === 'beta') return json(estadoBeta(ahora, cfgBeta), 200, cors);
   return json({ bloqueada: await estaBloqueada(almacen, salida.get('license_key') || '') }, 200, cors);
 }
 

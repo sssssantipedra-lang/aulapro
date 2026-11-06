@@ -16,7 +16,7 @@ import { almacenKv, anotarComprobacion, cortarAlTope, responderInforme } from '.
 import { bloqueosKv, estaBloqueada, responderAviso, responderEstado } from '../_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
-const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
+const CAMPOS = ['license_key', 'instance_name', 'instance_id', 'tipo'];
 
 /** Desde el 29-10-2026 esto es el respaldo de Netlify: la app de aulapro.app lo llama desde otro origen. */
 export const onRequestOptions = ({ request }) => new Response(null, { status: 204, headers: corsPara(request.headers.get('Origin')) });

@@ -12,6 +12,7 @@ import { dentroDelLimite, respuestaLimite, LIMITES } from '../_limite.js';
 import { secretosDeLicencia } from '../_secretos.js';
 import { bloqueosKv, estaBloqueada } from '../_bloqueos.js';
 import { aceptacionKv, anotarAceptacion, versionValida } from '../_aceptacion.js';
+import { licenciaBeta } from '../_beta.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -56,6 +57,10 @@ export async function onRequestPost({ request, env }) {
 
   const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
   if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
+  // Acceso anticipado gratuito (beta, _beta.js): mientras esté abierta, cualquier cuenta verificada entra sin pagar. Sin guardar
+  // el correo. Cerrada la beta (el día de la venta), este paso no da nada y sigue la búsqueda de una compra pagada.
+  const beta = await licenciaBeta(email, secretos);
+  if (beta) return json({ beta: true, firma: beta.firma, hasta: beta.hasta, ...aceptacion }, 200, cors);
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503, cors);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };

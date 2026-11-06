@@ -141,6 +141,9 @@ async function tokenNuevo(): Promise<string> {
 /** La «clave» de un fundador de la versión web: su correo está en la lista (`FUNDADORES` de la función de la licencia). */
 export const FUNDADOR = 'fundador';
 
+/** La «clave» del acceso anticipado gratuito (beta, `web/funciones/api/_beta.js`): se bloquea al abrirse la venta. */
+export const BETA = 'beta';
+
 export type BusquedaLicencia = { key: string; firma?: string } | { key: null; vencida?: boolean; error?: 'sin-cuenta' | 'sin-configurar' | 'token' | 'tienda' | 'sin-conexion' };
 
 /**
@@ -178,6 +181,7 @@ async function buscarLicencia(): Promise<BusquedaLicencia> {
     if (r.ok && j.aceptacion === true && acepta) aceptacionRegistrada(acepta);
     if (r.ok) {
       if (j.fundador) return { key: FUNDADOR, ...firma };
+      if (j.beta) return { key: BETA, ...firma };
       if (j.key) return { key: String(j.key), ...firma };
       // La suscripción de este correo terminó: se recuerda en el dispositivo para decirlo en la pantalla de licencia
       if (j.vencida) { marcarLicenciaVencida(); return { key: null, vencida: true }; }
@@ -306,6 +310,14 @@ export const CHECKOUT = 'https://aulapro.lemonsqueezy.com/checkout/buy/b8296834-
  * `web/sitio/assets/launch.js`: se abren los dos a la vez (docs/MANTENIMIENTO.md).
  */
 export const VENTA_ABIERTA = false;
+
+/**
+ * Acceso anticipado gratuito (beta, 5-11-2026, decisión del dueño): hasta que se abra la venta, quien entra con su cuenta usa
+ * AulaPro sin pagar. Solo cambia lo que dicen las pantallas de la app; quien lo da y lo corta es el servidor
+ * (`web/funciones/api/_beta.js`, `CONFIG_BETA.abierta`). **Es el tercer interruptor de la venta**: se pone en `false` a la vez
+ * que `VENTA_ABIERTA = true`, `checkout` y `abierta: false` (`node scripts/abrir-venta.mjs` los cambia juntos).
+ */
+export const ACCESO_ANTICIPADO = true;
 
 /** Descuento del primer año (34 %, una sola vez en Lemon Squeezy). Se quita del enlace al acabar la oferta, el 15-4-2027. */
 export const CODIGO_LANZAMIENTO = 'LANZAMIENTO';

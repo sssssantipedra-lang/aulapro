@@ -12,6 +12,7 @@
 // otra, y las del secreto anterior mientras se cambia.
 import { DIAS_FIRMA, leerFirmaValida } from './_firma.js';
 import { comoSecretos } from './_secretos.js';
+import { betaVigente, CONFIG_BETA } from './_beta.js';
 
 export const COOKIE = 'aulapro_sesion';
 const enc = new TextEncoder();
@@ -68,7 +69,7 @@ const json = (cuerpo, status, extra = {}) => new Response(JSON.stringify(cuerpo)
  * estas funciones y no ha caducado, deja la cookie hasta que caduque la firma (7 días como mucho).
  * DELETE la borra (la suscripción terminó). Solo desde la propia web: la cookie es de este sitio.
  */
-export async function responderSesion(request, secretos, ahora = Date.now()) {
+export async function responderSesion(request, secretos, ahora = Date.now(), cfgBeta = CONFIG_BETA) {
   if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': cookie('', 0) });
   if (request.method !== 'POST') return json({ error: 'metodo' }, 405);
   const s = comoSecretos(secretos);
@@ -76,7 +77,9 @@ export async function responderSesion(request, secretos, ahora = Date.now()) {
   const { firma } = await request.json().catch(() => ({}));
   const datos = await leerFirmaValida(firma, s, ahora);
   if (!datos || !['clave', 'cuenta'].includes(datos.t)) return json({ error: 'firma' }, 401, { 'Set-Cookie': cookie('', 0) });
+  // Acceso anticipado (beta): con la beta cerrada, ni una firma que aún no ha caducado abre el código (_beta.js)
+  if (datos.beta && !betaVigente(ahora, cfgBeta)) return json({ error: 'beta-cerrada' }, 401, { 'Set-Cookie': cookie('', 0) });
   const exp = Math.min(datos.exp, Math.floor(ahora / 1000) + DIAS_FIRMA * 86400);
-  const valor = await crearSesion({ v: 1, t: datos.t, ...(datos.fundador ? { fundador: true } : {}), exp }, s);
+  const valor = await crearSesion({ v: 1, t: datos.t, ...(datos.fundador ? { fundador: true } : {}), ...(datos.beta ? { beta: true } : {}), exp }, s);
   return json({ hasta: exp * 1000 }, 200, { 'Set-Cookie': cookie(valor, exp - Math.floor(ahora / 1000)) });
 }

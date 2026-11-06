@@ -12,7 +12,7 @@ import { almacenBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
 import { estaBloqueada, responderAviso, responderEstado } from '../funciones/api/_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
-const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
+const CAMPOS = ['license_key', 'instance_name', 'instance_id', 'tipo'];
 
 export default async (request, context) => {
   const cors = corsPara(request.headers.get('Origin'));

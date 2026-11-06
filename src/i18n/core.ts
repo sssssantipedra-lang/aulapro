@@ -1368,9 +1368,8 @@ const EN: Record<string, string> = {
   'sobre {n}': 'out of {n}',
   'Escala de las competencias clave': 'Key competency scale',
   'Por alumno': 'Per student',
-  'De la Sala': 'From the student room',
-  'Las competencias clave de cada alumno en una diana de seis sectores, con lo que sale de tus evaluaciones.': 'Each student’s key competencies on a six-sector target, from your assessments.',
-  'Lo que el alumnado dice de sí mismo en la Sala de alumnos; se guarda aparte y no cuenta en el cuaderno.': 'What students say about themselves in the student room; kept apart and never counted in the gradebook.',
+    'Las competencias clave de cada alumno en una diana de seis sectores, con lo que sale de tus evaluaciones.': 'Each student’s key competencies on a six-sector target, from your assessments.',
+  'Lo que el alumnado dice de sí mismo desde el móvil, con Actividades con móviles (próximamente en la versión web); se guarda aparte y no cuenta en el cuaderno.': 'What students say about themselves from their phones, with Phone activities (coming soon to the web version); kept apart and never counted in the gradebook.',
   'Todo lo evaluado, con su fecha y su instrumento, para consultarlo o pasarlo a otro sitio.': 'Everything assessed, with its date and instrument, to review it or move it elsewhere.',
   'Criterios de evaluación': 'Assessment criteria',
   'Saberes básicos': 'Core content',
@@ -2038,7 +2037,6 @@ const EN: Record<string, string> = {
   "La activación solo necesita internet una vez; después AulaPro funciona sin conexión y tus datos no salen de este dispositivo.": "Activation needs the internet only once; after that AulaPro works offline and your data never leaves this device.",
   "Licencia desactivada en este equipo": "Licence deactivated on this computer",
   "Docente fundador/a": "Founding teacher",
-  "Usas AulaPro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!": "You've been using AulaPro since before it went on sale, so it's free for ever on this computer. Thank you for helping to make it better!",
   "En este equipo desde el {d}": "On this computer since {d}",
   "Licencia activa": "Licence active",
   "activada el {d}": "activated on {d}",
@@ -2047,7 +2045,6 @@ const EN: Record<string, string> = {
   "Sí, desactivar": "Yes, deactivate",
   "Desactivar en este equipo": "Deactivate on this computer",
   "Licencia": "Licence",
-  "Tu licencia de AulaPro en este ordenador.": "Your AulaPro licence on this computer.",
   "Sin activar": "Not activated",
 
   /* ── Android ── */
