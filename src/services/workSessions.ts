@@ -72,9 +72,10 @@ function datosDe(s: WorkSession): string {
     ['Asistentes', s.attendees],
     ['Horas certificadas', s.hours ? String(s.hours) : undefined],
   ];
+  // Título, convocante, lugar y asistentes son texto libre: sin teléfonos, correos ni datos de salud (auditoría del 5-11-2026)
   return campos
     .filter(([, v]) => v && v.trim())
-    .map(([k, v]) => `${k}: ${v}`)
+    .map(([k, v]) => `${k}: ${textoLibreParaIA(v!.trim())}`)
     .join('\n');
 }
 

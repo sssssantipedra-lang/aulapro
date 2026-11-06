@@ -154,10 +154,12 @@ export function buildTeacherContext(
   L.push('=== DATOS REALES DEL CUADERNO DE ESTE DOCENTE ===');
   L.push(`Fecha de hoy: ${hoy}`);
   if (d.profile) {
-    // Sin el nombre del docente: no hace falta para responder y no sale del equipo.
-    L.push(`Centro: ${d.profile.school || '(sin centro)'}` +
-      ` · Asignatura principal: ${d.profile.subject || '(sin asignatura)'} · Curso escolar: ${d.profile.course || '(sin curso)'}`);
+    // Sin el nombre del docente ni su centro (auditoría del 5-11-2026: el centro, con los códigos de treinta alumnos,
+    // acota demasiado y no hace falta para responder): solo la asignatura y el curso escolar.
+    L.push(`Asignatura principal: ${d.profile.subject || '(sin asignatura)'} · Curso escolar: ${d.profile.course || '(sin curso)'}`);
   }
+  /** El nombre de un alumno de la lista; si ya no está (dado de baja), no sale: `callGemini` no lo taparía. */
+  const nombreDe = (id: string | null, guardado: string) => (id && d.students.some(s => s.id === id)) ? guardado : '(alumno que ya no está en la lista)';
 
   if (classes.length === 0) {
     L.push('');
@@ -251,7 +253,7 @@ export function buildTeacherContext(
     L.push('');
     L.push(`EVALUACIONES RECIENTES CON RÚBRICA O DIANA (${evs.length} de ${d.evaluations.length}):`);
     for (const e of evs) {
-      L.push(`· ${e.date} · ${e.student_name} · «${e.rubric_name}»` +
+      L.push(`· ${e.date} · ${nombreDe(e.student_id, e.student_name)} · «${e.rubric_name}»` +
         `${typeof e.grade === 'number' ? ` · nota ${n(e.grade)}` : ''}` +
         `${e.notes ? ` · observaciones: ${textoLibreParaIA(e.notes)}` : ''}`);
     }
@@ -263,7 +265,8 @@ export function buildTeacherContext(
     L.push('');
     L.push(`INFORMES COMPETENCIALES YA REDACTADOS (${informes.length}):`);
     for (const r of informes.slice(0, 20)) {
-      L.push(`· ${r.student_name} · ${r.period} · ${r.text.slice(0, 220)}${r.text.length > 220 ? '…' : ''}`);
+      // El informe es texto libre sobre el alumno: sin datos de contacto ni de salud
+      L.push(`· ${nombreDe(r.student_id, r.student_name)} · ${r.period} · ${textoLibreParaIA(r.text.slice(0, 220))}${r.text.length > 220 ? '…' : ''}`);
     }
   }
 
@@ -296,8 +299,9 @@ export function buildTeacherContext(
     L.push('');
     L.push('PRÓXIMOS EVENTOS DE LA AGENDA:');
     for (const ev of proximos) {
-      L.push(`· ${ev.date}${ev.time ? ` ${ev.time}` : ''} · ${ev.name} (${ev.type}, urgencia ${ev.urgency})` +
-        `${ev.desc ? ` · ${ev.desc}` : ''}`);
+      // Un evento («reunión con la madre de…») y su descripción son texto libre que puede llevar un teléfono o un dato de salud
+      L.push(`· ${ev.date}${ev.time ? ` ${ev.time}` : ''} · ${textoLibreParaIA(ev.name)} (${ev.type}, urgencia ${ev.urgency})` +
+        `${ev.desc ? ` · ${textoLibreParaIA(ev.desc)}` : ''}`);
     }
   }
 
@@ -305,7 +309,7 @@ export function buildTeacherContext(
   if (pendientes.length) {
     L.push('');
     L.push(`TAREAS PENDIENTES DEL DOCENTE (${pendientes.length}):`);
-    for (const t of pendientes.slice(0, 20)) L.push(`· [${t.priority}] ${t.text}`);
+    for (const t of pendientes.slice(0, 20)) L.push(`· [${t.priority}] ${textoLibreParaIA(t.text)}`);
   }
 
   return L.join('\n');

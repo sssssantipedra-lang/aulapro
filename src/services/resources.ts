@@ -22,6 +22,7 @@
  * todo con "problema".
  */
 
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { callGemini, parseGeminiJson } from './gemini';
 import type { Lang } from '../i18n';
 import type { SdaContent } from './learningSituations';
@@ -2193,7 +2194,7 @@ export async function generateFicha(
       `Tema: ${req.tema}\n` +
       `Área o asignatura: ${req.area || '(no indicada)'}\n` +
       `Curso o nivel: ${req.nivel || '(no indicado)'}\n` +
-      (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
+      (req.contextoClase ? `Características del grupo: ${textoLibreParaIA(req.contextoClase)}\n` : '') +
       `\n${askFor(formato, req.numEjercicios, 'sobre este tema', plan)}\n\n${numberVarietyHint(perfil)}`;
 
     const hilo = resolverHilo(req, estilo, formato, visual);
@@ -2636,7 +2637,7 @@ async function generateTarjetasInteractivas(req: FichaRequest, lang: Lang, callb
   const ilustraciones = `${listaIlustracionesParaIA('objeto', lang)}, ${listaIlustracionesParaIA('escena', lang)}`;
   const userPrompt =
     `Tema: ${req.tema}\nÁrea o asignatura: ${req.area || '(no indicada)'}\nCurso o nivel: ${req.nivel || '(no indicado)'}\n` +
-    (req.contextoClase ? `Características del grupo: ${req.contextoClase}\n` : '') +
+    (req.contextoClase ? `Características del grupo: ${textoLibreParaIA(req.contextoClase)}\n` : '') +
     `\nCrea EXACTAMENTE ${req.numEjercicios} tarjetas interactivas sobre este tema, cada una con su imagen y su texto relacionado.`;
   const raw = await callGemini(tarjetasInteractivasSystemPrompt(lang, ilustraciones), userPrompt, [], { onError: callbacks.onError }, {
     maxOutputTokens: 8192, responseSchema: tarjetasInteractivasSchema(), thinkingLevel: 'low', temperature: 1.1,

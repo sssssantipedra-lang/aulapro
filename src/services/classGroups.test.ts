@@ -145,3 +145,16 @@ describe('generateBalancedGroups', () => {
     expect(r).toBeNull();
   });
 });
+
+describe('privacidad de los agrupamientos (auditoría del 5-11-2026)', () => {
+  beforeEach(() => callGemini.mockClear());
+  it('los avisos y las anotaciones van sin datos de contacto ni de salud, y un aviso que solo era un diagnóstico no va', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ grupos: [] }));
+    const s = { ...alumno('s1'), avisos: ['TDAH', 'Se distrae con el móvil; madre 612 345 678'], notas: 'Toma Rubifen a mediodía' };
+    await generateBalancedGroups({ students: [s], numGroups: 1, groupSize: 2, notasDocente: 'No juntar con quien tenga TEA' }, 'es');
+    const userPrompt = callGemini.mock.calls[0][1] as string;
+    expect(userPrompt).not.toMatch(/TDAH|612|Rubifen|TEA/);
+    expect(userPrompt).toContain('avisos: Se distrae con el móvil; madre [teléfono]');
+    expect(userPrompt).toContain('nota del docente: Toma [dato de salud] a mediodía');
+  });
+});
