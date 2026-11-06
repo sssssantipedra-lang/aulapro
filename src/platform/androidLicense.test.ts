@@ -287,4 +287,20 @@ describe('licencia firmada al abrir (versión web)', () => {
     }
     expect(perdidas).toHaveLength(3);
   });
+
+  it('la firma de un fundador se renueva con su cuenta cuando le quedan menos de 2 días, también con la app abierta (5-11-2026)', async () => {
+    const firmaCon = (dias: number) => `${btoa(JSON.stringify({ t: 'cuenta', fundador: true, exp: Math.floor(Date.now() / 1000) + dias * 86400 })).replace(/=+$/, '')}.sello`;
+    const renovaciones: number[] = [];
+    const abrir = (dias: number) => {
+      const s = secrets();
+      s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'fundador', cuenta: true, activatedAt: '2026-11-01T00:00:00Z', firma: firmaCon(dias) }));
+      return createAndroidLicense(s, { enforced: true, verificar: async () => true, post: async () => null, renovarCuenta: async () => { renovaciones.push(1); return { key: 'fundador', firma: firmaCon(7) }; } });
+    };
+    expect((await abrir(5).revisar!()).firmaHasta! - Date.now()).toBeLessThan(5.1 * 86400_000);
+    expect(renovaciones).toEqual([]);
+    const s = await abrir(1).revisar!();
+    expect(renovaciones).toEqual([1]);
+    expect(s).toMatchObject({ required: false, status: 'fundador', origen: 'cuenta' });
+    expect(s.firmaHasta! - Date.now()).toBeGreaterThan(6.9 * 86400_000);
+  });
 });

@@ -14,6 +14,7 @@ import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { estaBloqueada } from '../funciones/api/_bloqueos.js';
 import { aceptacionBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
 import { anotarAceptacion, versionValida } from '../funciones/api/_aceptacion.js';
+import { correoCanonico } from '../funciones/api/_correo.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const STORE_ID = '487841';
@@ -56,8 +57,8 @@ export default async (request, context) => {
   // La aceptación de las condiciones (casilla de la entrada), con la cuenta ya comprobada: ver _aceptacion.js
   const aceptacion = versionValida(acepta) ? { aceptacion: await anotarAceptacion(aceptacionBlobs(), email, acepta) } : {};
 
-  const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
+  const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(correoCanonico).filter(Boolean);
+  if (fundadores.includes(correoCanonico(email))) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
   if (!env.LEMONSQUEEZY_API_KEY) return json({ error: 'sin-configurar' }, 503, cors);
 
   const cab = { Accept: 'application/vnd.api+json', Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}` };
@@ -66,7 +67,8 @@ export default async (request, context) => {
   // Si hay un pedido pagado cuya clave ya no vale (la suscripción terminó), se avisa: así la app lo sabe en cualquier dispositivo, por el correo
   let vencida = false;
   for (const p of (await pedidos.json()).data ?? []) {
-    if (p.attributes?.status !== 'paid') continue;
+    // Un reembolso parcial (un gesto comercial) deja el pedido en `partial_refund` con la clave activa: cuenta como pagado (5-11-2026)
+    if (!['paid', 'partial_refund'].includes(p.attributes?.status)) continue;
     const claves = await fetch(`${LS}/license-keys?filter[order_id]=${p.id}`, { headers: cab });
     // Si la tienda falla aquí, se dice (502) y la app lo reintenta: contestar «sin compra» quitaría la licencia a quien pagó (5-11-2026)
     if (!claves.ok) return json({ error: 'tienda' }, 502, cors);

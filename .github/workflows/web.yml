@@ -62,6 +62,11 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm ci
 
+      # ci.yml no corre con cambios de web/: las pruebas de la puerta, la sesión y los topes se ejecutan aquí (5-11-2026)
+      - name: Pruebas de las funciones de la licencia
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx vitest run web/pruebas src/platform
+
       - name: Compilar la versión web de la app
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm run build:web

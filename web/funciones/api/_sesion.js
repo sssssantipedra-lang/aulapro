@@ -72,7 +72,9 @@ const json = (cuerpo, status, extra = {}) => new Response(JSON.stringify(cuerpo)
  * dio por terminadas (_bloqueos.js), no se abre sesión aunque la firma, de hasta 7 días, aún no haya caducado.
  */
 export async function responderSesion(request, secretos, ahora = Date.now(), bloqueada = null) {
-  if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': cookie('', 0) });
+  // `Clear-Site-Data: "cache"` (5-11-2026): la suscripción terminó y el código guardado en la caché HTTP del navegador (un
+  // año, inmutable) también se va; no toca IndexedDB ni localStorage (el trabajo se queda). Safari no lo aplica.
+  if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': cookie('', 0), 'Clear-Site-Data': '"cache"' });
   if (request.method !== 'POST') return json({ error: 'metodo' }, 405);
   const s = comoSecretos(secretos);
   if (!s.firmar) return json({ error: 'sin-configurar' }, 503);
@@ -80,7 +82,7 @@ export async function responderSesion(request, secretos, ahora = Date.now(), blo
   const datos = await leerFirmaValida(firma, s, ahora);
   if (!datos || !['clave', 'cuenta'].includes(datos.t)) return json({ error: 'firma' }, 401, { 'Set-Cookie': cookie('', 0) });
   if (datos.key && bloqueada && (await Promise.resolve(bloqueada(datos.key)).catch(() => false))) {
-    return json({ error: 'bloqueada' }, 401, { 'Set-Cookie': cookie('', 0) });
+    return json({ error: 'bloqueada' }, 401, { 'Set-Cookie': cookie('', 0), 'Clear-Site-Data': '"cache"' });
   }
   const exp = Math.min(datos.exp, Math.floor(ahora / 1000) + DIAS_FIRMA * 86400);
   const valor = await crearSesion({ v: 1, t: datos.t, ...(datos.fundador ? { fundador: true } : {}), exp }, s);

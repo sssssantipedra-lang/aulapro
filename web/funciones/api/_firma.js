@@ -30,7 +30,7 @@ async function llave(secreto) {
 
 /**
  * Días que vale una firma (1-11-2026, decisión del dueño: «sin pagar, no hay app»). La app la renueva sola
- * cada día con conexión; si alguien bloquea las comprobaciones, a los 7 días la licencia deja de valer.
+ * cada hora con conexión; si alguien bloquea las comprobaciones, a los 7 días la licencia deja de valer.
  */
 export const DIAS_FIRMA = 7;
 

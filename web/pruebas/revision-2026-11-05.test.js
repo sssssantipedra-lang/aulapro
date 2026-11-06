@@ -10,6 +10,8 @@ import { onRequestPost as cuenta } from '../funciones/api/licencia/cuenta.js';
 import { procesarAviso, estaBloqueada } from '../funciones/api/_bloqueos.js';
 import { redDe, anotarComprobacion, TOPE_CONEXIONES } from '../funciones/api/_vigilancia.js';
 import { huella } from '../funciones/api/_limite.js';
+import { correoCanonico } from '../funciones/api/_correo.js';
+import { caducadaVigilancia } from '../lib-netlify/vigilancia.mjs';
 
 const S = 'secreto-de-prueba';
 const CLAVE = 'ABCD1234-0000-1111-2222-3333WXYZ';
@@ -171,5 +173,46 @@ describe('vigilancia de claves compartidas', () => {
     expect((await anotarComprobacion(almacen, CLAVE, '2a02:1234:5678:9abc:ffff::1')).conexiones).toBe(1);
     for (let i = 0; i <= TOPE_CONEXIONES; i++) await anotarComprobacion(almacen, CLAVE, `2a02:${i}:0:0::1`);
     expect((await anotarComprobacion(almacen, CLAVE, '2a02:0:0:0::9')).pasada).toBe(true);
+  });
+});
+
+describe('revisión del 5-11-2026, segunda tanda', () => {
+  it('los correos de Gmail se comparan con FUNDADORES sin puntos, sin etiqueta y con googlemail como gmail', () => {
+    expect(correoCanonico('Nombre.Apellido+aula@GoogleMail.com')).toBe('nombreapellido@gmail.com');
+    expect(correoCanonico('nombreapellido@gmail.com')).toBe('nombreapellido@gmail.com');
+    expect(correoCanonico('Docente+x@centro.edu')).toBe('docente@centro.edu');
+    expect(correoCanonico('docente.uno@centro.edu')).toBe('docente.uno@centro.edu');   // fuera de Gmail los puntos cuentan
+    expect(correoCanonico('sin-arroba')).toBe('');
+  });
+
+  it('un fundador con el correo anotado de otra forma entra, y un pedido con reembolso parcial sigue siendo una compra', async () => {
+    const pedir = (env, status) => {
+      globalThis.fetch = async url => {
+        const u = String(url);
+        if (u.includes('tokeninfo')) return new Response(JSON.stringify({ aud: '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com', email_verified: 'true', email: 'Nombre.Apellido@gmail.com' }), { status: 200 });
+        if (u.includes('/orders?')) return new Response(JSON.stringify({ data: [{ id: '77', attributes: { status } }] }), { status: 200 });
+        if (u.includes('/license-keys?')) return new Response(JSON.stringify({ data: [{ attributes: { key: CLAVE, status: 'active' } }] }), { status: 200 });
+        return new Response('?', { status: 500 });
+      };
+      return cuenta({ request: new Request('https://x/api/licencia/cuenta', { method: 'POST', body: JSON.stringify({ token: 't' }), headers: { Origin: 'https://aulapro.app', 'CF-Connecting-IP': '1.2.3.4' } }), env: { LICENCIA_SECRETO: S, LEMONSQUEEZY_API_KEY: 'k', ...env } });
+    };
+    expect(await (await pedir({ FUNDADORES: 'otro@x.es, nombreapellido+aula@googlemail.com' }, 'paid')).json()).toMatchObject({ fundador: true });
+    expect(await (await pedir({}, 'partial_refund')).json()).toMatchObject({ key: CLAVE });
+    expect(await (await pedir({}, 'refunded')).json()).toEqual({ key: null });
+  });
+
+  it('al borrar la sesión (y al negarla por bloqueo) se pide al navegador que vacíe la caché HTTP del código', async () => {
+    const res = await responderSesion(new Request('https://aulapro.app/api/licencia/sesion', { method: 'DELETE' }), S);
+    expect(res.headers.get('Clear-Site-Data')).toBe('"cache"');
+    const firma = await firmar({ t: 'clave', key: CLAVE }, S);
+    expect((await responderSesion(pedirSesion(firma), S, Date.now(), async () => true)).headers.get('Clear-Site-Data')).toBe('"cache"');
+    expect((await responderSesion(pedirSesion(firma), S)).headers.get('Clear-Site-Data')).toBeNull();
+  });
+
+  it('en Netlify las huellas de uso se borran a las 3 semanas y las sospechosas a las 8, como dice la privacidad', () => {
+    expect(caducadaVigilancia('uso:100:abc', 102)).toBe(false);
+    expect(caducadaVigilancia('uso:100:abc', 103)).toBe(true);
+    expect(caducadaVigilancia('sospechosa:100:abc', 107)).toBe(false);
+    expect(caducadaVigilancia('sospechosa:100:abc', 108)).toBe(true);
   });
 });
