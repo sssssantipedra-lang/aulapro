@@ -189,3 +189,47 @@ describe('contenido de un perfil', () => {
     expect(contenidoDe([1, 2])).toBe(-1);
   });
 });
+
+/** Auditoría del 5-11-2026: el reloj del dispositivo mal puesto no puede dejar las copias automáticas sin efecto. */
+describe('copias automáticas con el reloj desajustado', () => {
+  /** Como `memoryFs`, pero con la fecha de escritura del reloj del sistema, como IndexedDB o una carpeta. */
+  function fsConReloj() {
+    const { fs, files } = memoryFs();
+    const write = fs.write;
+    fs.write = async (p, data) => { await write(p, data); files.set(p, { data, mtime: Date.now() }); };
+    return { fs, files };
+  }
+
+  it('las copias hechas con el reloj en el futuro no impiden guardar ni conservar las nuevas', async () => {
+    vi.useFakeTimers();
+    try {
+      const { fs } = fsConReloj();
+      const store = createProfileStore(fs);
+      const p = await store.createProfile({ name: 'Ana' });
+      await store.saveData(p.id, { v: 1 });
+      // Un año adelantado: doce copias con fecha de 2027
+      for (let i = 0; i < MAX_BACKUPS; i++) {
+        vi.setSystemTime(new Date(Date.UTC(2027, 9, 1, 10, 0, i)));
+        await store.backup(p.id);
+      }
+      // El reloj vuelve a la fecha real
+      vi.setSystemTime(new Date(Date.UTC(2026, 10, 5, 10, 0, 0)));
+      await store.saveData(p.id, { v: 2 });
+      const hoy = await store.backup(p.id);
+      expect(hoy).toContain('copia-2026-11-05');
+      let lista = await store.listBackups(p.id);
+      expect(lista).toHaveLength(MAX_BACKUPS);
+      // La copia de hoy sigue ahí; la que se ha ido es una de las del futuro
+      expect(lista.some(b => b.file.startsWith('copia-2026-11-05'))).toBe(true);
+      expect(lista.filter(b => b.file.startsWith('copia-2027')).length).toBe(MAX_BACKUPS - 1);
+      vi.setSystemTime(new Date(Date.UTC(2026, 10, 5, 10, 10, 0)));
+      await store.saveData(p.id, { v: 3 });
+      await store.backup(p.id);
+      lista = await store.listBackups(p.id);
+      expect(lista.filter(b => b.file.startsWith('copia-2026-11-05')).length).toBe(2);
+      expect(lista.filter(b => b.file.startsWith('copia-2027')).length).toBe(MAX_BACKUPS - 2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

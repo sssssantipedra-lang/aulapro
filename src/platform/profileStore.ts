@@ -161,10 +161,16 @@ export function createProfileStore(fs: Fs) {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const file = `${backupsDir(id)}/copia-${stamp}${motivo ? '-' + motivo : ''}.json`;
     await writeJson(file, data);
-    // Solo se conservan las más recientes
-    const names = (await fs.list(backupsDir(id))).map(f => f.name).filter(n => n.startsWith('copia-') && n.endsWith('.json')).sort();
-    for (const old of names.slice(0, Math.max(0, names.length - MAX_BACKUPS))) {
-      await fs.remove(`${backupsDir(id)}/${old}`).catch(() => {});
+    // Solo se conservan las más recientes, por cuándo se escribieron (no por el nombre: con el reloj del dispositivo
+    // adelantado, las copias con fecha futura se quedaban para siempre y cada copia nueva se borraba al momento).
+    // Las fechadas en el futuro se van las primeras, y la que se acaba de escribir nunca se borra (5-11-2026)
+    const ahora = Date.now();
+    const clave = (f: FsEntry) => (f.mtime > ahora + 3600_000 ? -1 : f.mtime);
+    const copias = (await fs.list(backupsDir(id)))
+      .filter(f => f.type === 'file' && f.name.startsWith('copia-') && f.name.endsWith('.json') && `${backupsDir(id)}/${f.name}` !== file)
+      .sort((a, b) => clave(a) - clave(b) || a.name.localeCompare(b.name));
+    for (const old of copias.slice(0, Math.max(0, copias.length + 1 - MAX_BACKUPS))) {
+      await fs.remove(`${backupsDir(id)}/${old.name}`).catch(() => {});
     }
     return file;
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { leerCopiaDeDatos } from './copiaDeDatos';
+import { leerCopiaDeDatos, VERSION_COPIA } from './copiaDeDatos';
 
 const copia = (data: unknown) => JSON.stringify({ _app: 'AulaPro', _version: 2, _date: '2026-11-01', data });
 
@@ -32,5 +32,21 @@ describe('leer una copia de seguridad antes de cargarla (auditoría del 1-11-202
   it('no carga una copia vacía: dejaría el cuaderno sin nada', () => {
     const r = leerCopiaDeDatos(copia({ classes: [], students: [], grades: {}, auditLog: [{ id: 'a' }] }));
     expect(r.ok === false && r.error).toMatch(/vacía/);
+  });
+});
+
+describe('copias de otra versión de AulaPro (auditoría del 5-11-2026)', () => {
+  it('una copia de una versión más nueva no se carga: lo que esta app no conoce se perdería al guardar', () => {
+    const r = leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', _version: VERSION_COPIA + 1, data: { classes: [{ id: 'c1' }], novedad: [1] } }));
+    expect(r).toMatchObject({ ok: false, error: expect.stringContaining('versión más nueva') });
+  });
+
+  it('las de esta versión y las antiguas sí, y lo que traen de más (una parte nueva) se conserva', () => {
+    const actual = leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', _version: VERSION_COPIA, data: { classes: [{ id: 'c1' }], novedad: [1] } }));
+    expect(actual).toMatchObject({ ok: true, datos: { classes: [{ id: 'c1' }], novedad: [1] } });
+    const antigua = leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', _version: 1, classes: [{ id: 'c1' }] }));
+    expect(antigua).toMatchObject({ ok: true, datos: { classes: [{ id: 'c1' }] } });
+    const sinVersion = leerCopiaDeDatos(JSON.stringify({ _app: 'AulaPro', data: { classes: [{ id: 'c1' }] } }));
+    expect(sinVersion.ok).toBe(true);
   });
 });

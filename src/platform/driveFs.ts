@@ -110,7 +110,11 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
     do {
       const q = encodeURIComponent(`'${padre}' in parents and trashed=false`);
       const r = await (await pedir(`${API}?q=${q}&fields=nextPageToken,files(id,name,size,modifiedTime)&pageSize=1000${pagina ? `&pageToken=${pagina}` : ''}`)).json();
-      for (const f of r.files ?? []) out.set(f.name, f);
+      for (const f of r.files ?? [] as ArchivoDrive[]) {
+        // Dos archivos con el mismo nombre (una subida cuya respuesta se perdió y se repitió): vale el más reciente
+        const otro = out.get(f.name);
+        if (!otro || (f.modifiedTime ?? '') >= (otro.modifiedTime ?? '')) out.set(f.name, f);
+      }
       pagina = r.nextPageToken ?? '';
     } while (pagina);
     indice = out;
@@ -171,9 +175,17 @@ export function createDriveFs(token: () => Promise<string>, fetcher: typeof fetc
       const limite = 'aulapro' + Math.random().toString(36).slice(2);
       const cuerpo = `--${limite}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name: nombre, parents: [await idCarpeta()] })}\r\n`
         + `--${limite}\r\nContent-Type: application/json\r\n\r\n${data}\r\n--${limite}--`;
-      const r = await pedir(`${SUBIR}?uploadType=multipart&fields=id,name,size,modifiedTime`, {
-        method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${limite}` }, body: cuerpo,
-      });
+      let r: Response;
+      try {
+        r = await pedir(`${SUBIR}?uploadType=multipart&fields=id,name,size,modifiedTime`, {
+          method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${limite}` }, body: cuerpo,
+        });
+      } catch (err) {
+        // Drive puede haber creado el archivo aunque la respuesta no llegara (un corte de red): el siguiente intento
+        // vuelve a listar antes de crear otro con el mismo nombre
+        listadoEn = 0;
+        throw err;
+      }
       indice?.set(nombre, await r.json());
     },
     async rename(from, to) {

@@ -7,7 +7,11 @@ import { buildDemoEF } from './demoEF';
 import { tipoDePerfil } from './tipoDocente';
 import { EF_MARK_TYPES, studentBlock, DEFAULT_BLOCK, targetLabel, esAsignaturaEF } from '../services/classMarks';
 import type { ClassMark } from '../types';
-import type { EfData } from '../types/ef';
+import type {
+  ActividadEF, ApoyoEF, BaremoEF, CircuitoEF, EfData, ElementoPizarra, EquiposEF, ExentoEF, InstalacionEF, MarcaPrueba, MaterialEF,
+  PizarraEF, PruebaFisica, SesionEF, TrazoPizarra,
+} from '../types/ef';
+import { COLORES_TRAZO } from './pizarraEF';
 
 describe('normalizarEF conserva el estado de las sesiones', () => {
   it('completada, archivada, SdA, circuito e instrumentos sobreviven a guardar y abrir', () => {
@@ -280,5 +284,43 @@ describe('modalidades de juegos y deportes', () => {
     });
     expect(d.actividades.map(a => a.modalidad)).toEqual(['invasion', undefined]);
     expect(d.sesiones[0].modalidad).toBe('red-pared');
+  });
+});
+
+/**
+ * Auditoría del 5-11-2026: `normalizarEF` reconstruye cada cosa campo a campo, así que un campo nuevo del tipo que no
+ * se añada ahí se pierde al abrir el perfil. Estos objetos llevan TODOS los campos de su tipo (`Required`): si alguien
+ * añade uno al tipo, esto deja de compilar hasta que se añada aquí, y la prueba comprueba que sobrevive.
+ */
+describe('normalizarEF no descarta ningún campo conocido', () => {
+  const sesion: Required<SesionEF> = {
+    id: 's1', titulo: 'Sesión', claseId: 'c1', fecha: '2026-11-05', completada: true, archivada: true, instalacionId: 'i1',
+    objetivo: 'o', calentamiento: 'c', principal: 'p', calma: 'k', material: 'm', inclusion: 'i', planB: 'b',
+    imagenes: [{ id: 'img1', src: 'data:image/png;base64,AAAA', ancho: 10, alto: 20, pie: 'pie' }],
+    criterios: [{ materia: 'EF', codigo: '1.1' }], ia: true, modalidad: 'invasion',
+    instrumentos: [{ tipo: 'rubrica', id: 'r1' }], pizarraId: 'pz1', sdaId: 'sda1', sdaOrden: 2, orden: 3,
+  };
+  const datos: Required<EfData> = {
+    exentos: [{ id: 'e1', alumnoId: 'a1', limitaciones: ['correr'], otra: 'x', desde: '2026-10-01', hasta: '2026-10-10', tarea: 't', justificante: true, motivo: 'm' } satisfies Required<ExentoEF>],
+    apoyos: [{ id: 'ap1', alumnoId: 'a1', nivel: 2, necesidades: ['rutinas'], otra: 'x' } satisfies Required<ApoyoEF>],
+    niveles: { a1: 3 }, sexos: { a1: 'F' }, separar: [{ a: 'a1', b: 'a2' }],
+    equipos: { c1: { fecha: '2026-10-01', grupos: [['a1'], ['a2']] } satisfies Required<EquiposEF> },
+    pruebas: [{ id: 'p1', nombre: 'n', categoria: 'fuerza', unidad: 'cm', mejor: 'menos', descripcion: 'd', propia: true, oculta: true } satisfies Required<PruebaFisica>],
+    marcas: [{ id: 'm1', pruebaId: 'p1', alumnoId: 'a1', fecha: '2026-10-01', valor: 12 } satisfies Required<MarcaPrueba>],
+    baremos: [{ id: 'b1', pruebaId: 'p1', etapa: 'eso', curso: 2, sexo: 'M', tramos: [{ marca: 1, nota: 5 }], fuente: 'propio' } satisfies Required<BaremoEF>],
+    actividades: [{ id: 'ac1', titulo: 't', tipo: 'deporte', descripcion: 'd', organizacion: 'o', material: 'm', variantes: 'v', inclusion: 'i', origen: 'ia', modalidad: 'lucha' } satisfies Required<ActividadEF>],
+    sesiones: [sesion],
+    material: [{ id: 'mt1', nombre: 'Conos', cantidad: 4, estado: 'regular', ubicacion: 'u' } satisfies Required<MaterialEF>],
+    instalaciones: [{ id: 'i1', nombre: 'Pista', cubierta: true, notas: 'n' } satisfies Required<InstalacionEF>],
+    circuitos: [{ id: 'ci1', nombre: 'c', estaciones: ['e1'], trabajo: 30, descanso: 15, rondas: 2, descansoRondas: 60 } satisfies Required<CircuitoEF>],
+    pizarras: [{
+      id: 'pz1', nombre: 'p',
+      elementos: [{ id: 'el1', material: 'cono', x: 10, y: 20, giro: 90, escala: 1.5, texto: 'A' } satisfies Required<ElementoPizarra>],
+      trazos: [{ id: 'tr1', tipo: 'flecha', puntos: [[0, 0], [10, 10]], color: COLORES_TRAZO[0].id } satisfies Required<TrazoPizarra>],
+    } satisfies Required<PizarraEF>],
+  };
+
+  it('todo lo guardado vuelve igual tras guardar y abrir', () => {
+    expect(normalizarEF(JSON.parse(JSON.stringify(datos)))).toEqual(datos);
   });
 });
