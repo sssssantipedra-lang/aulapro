@@ -3,21 +3,25 @@
 import { getStore } from '@netlify/blobs';
 import { semanaDe } from '../funciones/api/_vigilancia.js';
 
-let purgado = false;
+/** Si una entrada «uso:semana:…» o «sospechosa:semana:…» ya ha pasado su plazo (3 u 8 semanas, lo que dice la privacidad). */
+export function caducadaVigilancia(key, actual = semanaDe()) {
+  const [tipo, semana] = String(key).split(':');
+  const vida = tipo === 'sospechosa' ? 8 : 3;
+  return Number(semana) <= actual - vida;
+}
+
+let purgadaEnSemana = -1;
 async function purgar(store) {
   const actual = semanaDe();
   const { blobs } = await store.list();
-  for (const { key } of blobs) {
-    const [tipo, semana] = key.split(':');
-    const vida = tipo === 'sospechosa' ? 8 : 3;
-    if (Number(semana) < actual - vida) await store.delete(key);
-  }
+  for (const { key } of blobs) if (caducadaVigilancia(key, actual)) await store.delete(key);
 }
 
 export function almacenBlobs() {
   try {
     const store = getStore({ name: 'vigilancia-claves', consistency: 'strong' });
-    if (!purgado || Math.random() < 0.02) { purgado = true; purgar(store).catch(() => {}); }
+    // Al arrancar, al cambiar de semana y de vez en cuando (5-11-2026; antes, la semana W vivía hasta la W+4)
+    if (purgadaEnSemana !== semanaDe() || Math.random() < 0.02) { purgadaEnSemana = semanaDe(); purgar(store).catch(() => {}); }
     return {
       get: k => store.get(k, { type: 'json' }),
       put: (k, v) => store.setJSON(k, v),

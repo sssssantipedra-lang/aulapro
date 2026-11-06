@@ -49,9 +49,9 @@ export async function leerSesion(cabeceraCookie, secretos, ahora = Date.now()) {
     try {
       if (!(await crypto.subtle.verify('HMAC', await llave(secreto), desdeB64url(sello), enc.encode(cuerpo)))) continue;
       const datos = JSON.parse(new TextDecoder().decode(desdeB64url(cuerpo)));
-      return typeof datos.exp === 'number' && datos.exp * 1000 > ahora ? datos : null;
+      return Number.isFinite(datos.exp) && datos.exp * 1000 > ahora ? datos : null;
     } catch {
-      return null;
+      continue;   // un fallo con un secreto no descarta los demás (el anterior, durante un cambio de llave)
     }
   }
   return null;
@@ -67,15 +67,23 @@ const json = (cuerpo, status, extra = {}) => new Response(JSON.stringify(cuerpo)
  * /api/licencia/sesion. POST con `{ firma }` (la licencia firmada que la app ya tiene): si la firma es de
  * estas funciones y no ha caducado, deja la cookie hasta que caduque la firma (7 días como mucho).
  * DELETE la borra (la suscripción terminó). Solo desde la propia web: la cookie es de este sitio.
+ *
+ * `bloqueada(key)` (revisión del 5-11-2026): si la clave de la firma está en la lista de licencias que Lemon Squeezy
+ * dio por terminadas (_bloqueos.js), no se abre sesión aunque la firma, de hasta 7 días, aún no haya caducado.
  */
-export async function responderSesion(request, secretos, ahora = Date.now()) {
-  if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': cookie('', 0) });
+export async function responderSesion(request, secretos, ahora = Date.now(), bloqueada = null) {
+  // `Clear-Site-Data: "cache"` (5-11-2026): la suscripción terminó y el código guardado en la caché HTTP del navegador (un
+  // año, inmutable) también se va; no toca IndexedDB ni localStorage (el trabajo se queda). Safari no lo aplica.
+  if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': cookie('', 0), 'Clear-Site-Data': '"cache"' });
   if (request.method !== 'POST') return json({ error: 'metodo' }, 405);
   const s = comoSecretos(secretos);
   if (!s.firmar) return json({ error: 'sin-configurar' }, 503);
   const { firma } = await request.json().catch(() => ({}));
   const datos = await leerFirmaValida(firma, s, ahora);
   if (!datos || !['clave', 'cuenta'].includes(datos.t)) return json({ error: 'firma' }, 401, { 'Set-Cookie': cookie('', 0) });
+  if (datos.key && bloqueada && (await Promise.resolve(bloqueada(datos.key)).catch(() => false))) {
+    return json({ error: 'bloqueada' }, 401, { 'Set-Cookie': cookie('', 0), 'Clear-Site-Data': '"cache"' });
+  }
   const exp = Math.min(datos.exp, Math.floor(ahora / 1000) + DIAS_FIRMA * 86400);
   const valor = await crearSesion({ v: 1, t: datos.t, ...(datos.fundador ? { fundador: true } : {}), exp }, s);
   return json({ hasta: exp * 1000 }, 200, { 'Set-Cookie': cookie(valor, exp - Math.floor(ahora / 1000)) });

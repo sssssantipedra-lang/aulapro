@@ -43,4 +43,14 @@ describe('sesión que abre el código de la app (versión web)', () => {
     expect((f.mock.calls[0] as unknown as [string, RequestInit])[1].method).toBe('DELETE');
     expect(localStorage.length).toBe(0);
   });
+
+  it('con una sesión nueva se olvida el marcador de recarga: si vuelve a faltar un bloque, se podrá recargar otra vez (5-11-2026)', async () => {
+    sessionStorage.setItem('aulapro_sesion_reintento', '1');
+    await pedirSesion('firma-2', respuesta(Date.now() + 7 * 86400_000));
+    expect(sessionStorage.getItem('aulapro_sesion_reintento')).toBeNull();
+    // Sin sesión (el servidor no contesta) el marcador se queda: no se entra en un bucle de recargas
+    sessionStorage.setItem('aulapro_sesion_reintento', '1');
+    await pedirSesion('firma-3', vi.fn(async () => { throw new Error('sin red'); }));
+    expect(sessionStorage.getItem('aulapro_sesion_reintento')).toBe('1');
+  });
 });

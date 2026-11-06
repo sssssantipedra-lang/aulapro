@@ -64,8 +64,11 @@ export async function procesarAviso(evento, { almacen, apiKey, pedir = fetch }) 
   const cuenta = { bloqueadas: new Set(), desbloqueadas: new Set() };
   const resumen = () => ({ bloqueadas: cuenta.bloqueadas.size, desbloqueadas: cuenta.desbloqueadas.size });
   const a = evento?.data?.attributes ?? {};
-  if (evento?.data?.type === 'license-keys' && a.key) await anotar(almacen, a.key, claveTerminada(a), cuenta);
   const pedido = pedidoDelAviso(evento);
+  // Lo que trae el aviso solo se aplica por su cuenta cuando no se puede preguntar a la tienda (5-11-2026): con la clave de la
+  // API, la tienda es la única fuente, y si no contesta no se toca nada (un aviso «activa» repetido tarde desbloqueaba una clave
+  // ya desactivada aunque la tienda fallara después)
+  if ((!apiKey || !pedido) && evento?.data?.type === 'license-keys' && a.key) await anotar(almacen, a.key, claveTerminada(a), cuenta);
   if (!pedido || !apiKey) return resumen();
   const r = await pedir(`${LS}/license-keys?filter[order_id]=${encodeURIComponent(pedido)}`, {
     headers: { Accept: 'application/vnd.api+json', Authorization: `Bearer ${apiKey}` },

@@ -139,7 +139,7 @@ if (hay('calendario-escolar.json')) { try { JSON.parse(leer('calendario-escolar.
 else falla('falta calendario-escolar.json (la app lo descarga)');
 
 // ---- nada de lo que no debe publicarse
-const SECRETOS = /(sk_live_|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|CLOUDFLARE_API_TOKEN\s*[:=]\s*["'][^"']{10,})/;
+const SECRETOS = /(sk_live_|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|GOCSPX-[A-Za-z0-9_-]{20,}|nfp_[A-Za-z0-9]{20,}|eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}|(CLOUDFLARE_API_TOKEN|LICENCIA_SECRETO(_ANTERIOR)?|FUNDADORES|LEMONSQUEEZY_(API_KEY|WEBHOOK_SECRET)|CLAVES_INFORME_SECRETO|GOOGLE_CLIENT_SECRET|MICROSOFT_CLIENT_SECRET)\s*[:=]\s*["'][^"']{8,})/;
 for (const f of archivos) if (SECRETOS.test(leer(f))) falla(`${f} parece contener una clave secreta`);
 
 if (fallos.length) {
