@@ -60,7 +60,8 @@ const postLicencia: LicensePost = async (action, data) => {
 
 /** La licencia guardada solo vale con la firma de las funciones de la licencia (`platform/firmaLicencia.ts`). */
 const verificarFirma = crearVerificador(idbKv, async () => {
-  const r = await pedirApi('/api/licencia/clave', { method: 'GET' });
+  // Siempre la llave de ahora, nunca una copia del navegador: al cambiar la llave del servidor se vuelve a pedir (5-11-2026)
+  const r = await pedirApi('/api/licencia/clave', { method: 'GET', cache: 'no-store' });
   return r.ok ? String((await r.json()).x ?? '') : '';
 });
 async function verificarLicencia(r: LicenseRecord): Promise<boolean> {

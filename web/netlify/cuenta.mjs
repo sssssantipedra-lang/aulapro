@@ -68,7 +68,8 @@ export default async (request, context) => {
   for (const p of (await pedidos.json()).data ?? []) {
     if (p.attributes?.status !== 'paid') continue;
     const claves = await fetch(`${LS}/license-keys?filter[order_id]=${p.id}`, { headers: cab });
-    if (!claves.ok) continue;
+    // Si la tienda falla aquí, se dice (502) y la app lo reintenta: contestar «sin compra» quitaría la licencia a quien pagó (5-11-2026)
+    if (!claves.ok) return json({ error: 'tienda' }, 502, cors);
     for (const k of (await claves.json()).data ?? []) {
       const a = k.attributes ?? {};
       // También la que Lemon Squeezy avisó que terminó, aunque su API aún no lo diga (_bloqueos.js)

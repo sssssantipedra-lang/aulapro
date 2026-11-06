@@ -156,7 +156,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       return true;
     }
     // Sigue caducada: se espera. Si la activación ya no existe en la tienda, no hay nada que recuperar
-    if (r.status === 404) await secrets.set(DORMIDA, '').catch(() => false);
+    if (r.status === 404 && r.body.valid === false) await secrets.set(DORMIDA, '').catch(() => false);
     return false;
   }
 
@@ -183,7 +183,9 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       // Con la firma nueva (otros 7 días) llega también una sesión nueva
       await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
       await avisar();
-    } else if (r.status < 500) {
+    } else if (r.status < 500 && r.body.valid === false) {
+      // Solo con un veredicto de la tienda (o de la lista de bloqueadas del servidor), que siempre trae `valid`. Un 429 del
+      // tope por IP, un 404 del alojamiento o la página de un portal cautivo (5-11-2026) no son «la suscripción terminó».
       await perder();
     }
   }

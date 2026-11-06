@@ -65,10 +65,10 @@ export async function leerFirmaValida(firma, secretos, ahora = Date.now()) {
       const pub = await crypto.subtle.importKey('jwk', { kty: 'OKP', crv: 'Ed25519', x: publica }, { name: 'Ed25519' }, false, ['verify']);
       if (!(await crypto.subtle.verify({ name: 'Ed25519' }, pub, desdeB64url(sello), enc.encode(cuerpo)))) continue;
       const datos = JSON.parse(new TextDecoder().decode(desdeB64url(cuerpo)));
-      if (typeof datos.exp !== 'number' || datos.exp * 1000 <= ahora) return null;
+      if (!Number.isFinite(datos.exp) || datos.exp * 1000 <= ahora) return null;
       return datos;
     } catch {
-      return null;
+      continue;   // un fallo con un secreto no descarta los demás (el anterior, durante un cambio de llave)
     }
   }
   return null;

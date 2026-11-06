@@ -27,9 +27,15 @@ export async function dentroDelLimite(clave, maximo, ventanaSeg) {
     const ventana = Math.floor(Date.now() / 1000 / ventanaSeg);
     if (!purgado || Math.random() < 0.02) { purgado = true; purgar(store, ventana).catch(() => {}); }
     const k = `${await huella(clave)}:${ventana}`;
-    const actual = (await store.get(k, { type: 'json' })) ?? 0;
-    if (actual >= maximo) return false;
-    await store.setJSON(k, actual + 1);
+    // Escritura condicional (5-11-2026): leer y escribir por separado dejaba pasar una ráfaga de cientos de peticiones a la
+    // vez (todas leían 0). Si otra invocación se adelanta, se vuelve a leer, hasta 3 veces.
+    for (let intento = 0; intento < 3; intento++) {
+      const leido = await store.getWithMetadata(k, { type: 'json' });
+      const actual = Number(leido?.data ?? 0);
+      if (actual >= maximo) return false;
+      const r = await store.setJSON(k, actual + 1, leido?.etag ? { onlyIfMatch: leido.etag } : { onlyIfNew: true });
+      if (r?.modified !== false) return true;
+    }
     return true;
   } catch {
     // Si Blobs falla (p. ej. en `netlify dev` sin enlazar el sitio), no se bloquea: mejor no limitar

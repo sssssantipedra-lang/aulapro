@@ -12,7 +12,7 @@ import { leerSesion } from './_sesion.js';
 import { comoSecretos } from './_secretos.js';
 
 /** Lo que el servidor sirve como código (el tipo sale de la extensión del archivo de verdad, no de la dirección). */
-const ES_CODIGO = /javascript|ecmascript|wasm/i;
+const ES_CODIGO = /javascript|ecmascript|wasm|multipart\/byteranges/i;
 
 /**
  * Pide la respuesta (`siguiente`) y decide si sale. Sin lista (no se generó) o sin secreto (el servidor sin
@@ -21,7 +21,9 @@ const ES_CODIGO = /javascript|ecmascript|wasm/i;
 export async function puerta(request, secretos, publico, siguiente, ahora = Date.now()) {
   const res = await siguiente();
   const { aceptar } = comoSecretos(secretos);
-  if (!publico || !aceptar.length || !ES_CODIGO.test(res.headers.get('Content-Type') ?? '')) return res;
+  // Una respuesta sin Content-Type se trata como código (revisión del 5-11-2026): la puerta cierra, no abre, ante lo que no sabe
+  const tipo = res.headers.get('Content-Type');
+  if (!publico || !aceptar.length || (tipo && !ES_CODIGO.test(tipo))) return res;
   if (publico.includes(new URL(request.url).pathname)) return res;
   if (res.ok && (await leerSesion(request.headers.get('Cookie'), aceptar, ahora))) {
     // Lo que pasó por la puerta no se guarda en cachés compartidas (proxies): solo en el navegador de quien lo pidió

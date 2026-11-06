@@ -133,6 +133,10 @@ const tareas = [
   // código de las pantallas no sale, tampoco pidiéndolo con otra forma de escribir la dirección. Si Netlify dejara de
   // darle el secreto a la función de borde, la puerta se abriría sin avisar: esto lo detecta.
   comprobar('el código de la app no sale sin suscripción', puertaCerrada),
+  // Revisión del 5-11-2026: si LICENCIA_SECRETO (o el de Google) no es idéntico en Netlify y en Cloudflare, la firma que da
+  // una copia no la acepta la otra, y la app, que pasa al respaldo cuando el principal no responde, se queda sin sesión
+  // justo cuando más falta hace. Se comparan solo las llaves públicas: ningún secreto sale de ningún sitio.
+  comprobar('Netlify y Cloudflare firman las licencias con la misma llave', mismaLlave),
   comprobar(`certificado de ${HOST}`, () => certificado(HOST)),
   comprobar(`certificado de ${WWW}`, () => certificado(WWW)),
   comprobar('caducidad del dominio', dominio, { grave: false, veces: 2 }),
@@ -160,6 +164,20 @@ async function puertaCerrada() {
   }
   if (abiertas.length) throw new Error(`la puerta está abierta sin sesión con: ${abiertas.join(', ')}. Mirar la función de borde de Netlify y la variable GOOGLE_CLIENT_SECRET (docs/APP_WEB.md, «Sin pagar, no hay app»)`);
   return `cerrada en ${variantesDeBloque(f).length} formas de pedir el código`;
+}
+
+async function mismaLlave() {
+  const llaves = await Promise.all([BASE, ...RESPALDOS.map(u => u.replace(/\/$/, ''))].map(async base => {
+    const { r } = await pedir(`${base}/api/licencia/clave`, { 'cache-control': 'no-cache' });
+    if (r.status === 403 && r.headers.get('cf-mitigated')) throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
+    if (!r.ok) throw new Error(`${new URL(base).hostname} responde ${r.status} a /api/licencia/clave`);
+    const x = String((await r.json().catch(() => ({}))).x ?? '');
+    if (!x) throw new Error(`${new URL(base).hostname} no tiene llave de licencias (sin LICENCIA_SECRETO ni GOOGLE_CLIENT_SECRET: la puerta está abierta)`);
+    return [new URL(base).hostname, x];
+  }));
+  const distintas = llaves.filter(([, x]) => x !== llaves[0][1]).map(([h]) => h);
+  if (distintas.length) throw new Error(`la llave de ${distintas.join(' y ')} no es la de ${llaves[0][0]}: LICENCIA_SECRETO (o GOOGLE_CLIENT_SECRET) distinto entre Netlify y Cloudflare (docs/MANTENIMIENTO.md, «La llave de las licencias»)`);
+  return `la misma en ${llaves.map(([h]) => h).join(' y ')}`;
 }
 
 function pagina2(u) {
