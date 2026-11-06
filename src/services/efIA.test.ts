@@ -264,3 +264,16 @@ describe('reconocer el croquis de la pizarra', () => {
     ]);
   });
 });
+
+describe('privacidad en Educación Física (auditoría del 5-11-2026)', () => {
+  beforeEach(() => callGemini.mockReset());
+
+  it('una limitación o un tema escritos a mano van sin datos de salud', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ actividades: [] }));
+    await proponerActividades({ tipo: 'juego', tema: 'relevos; hay un alumno con asma', limitaciones: ['No puede correr, lesión de rodilla por su artritis'], conInventario: false, yaTiene: [] },
+      demo.ef, undefined, 'es');
+    const user = callGemini.mock.calls[0][1] as string;
+    expect(user).toContain('No puede correr');
+    expect(user).not.toMatch(/asma|artritis/);
+  });
+});

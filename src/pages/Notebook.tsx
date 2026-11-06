@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Paperclip, X, BookOpen, FileText, Brain, Plus, Download, Pencil, Settings2, Users, ArrowRight, Sparkles, Send, Trash2, Database, Flag, Check, Hand } from 'lucide-react';
 import { callGemini, hasApiKey, type InlineFile, type ChatTurn } from '../services/gemini';
 import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
+import { preguntaParaIA } from '../lib/preguntaParaIA';
 import { buildTeacherContext, chatSystemPrompt, type TeacherData, type ChatMessage } from '../services/aiContext';
 import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -975,11 +976,12 @@ function AiTab({ data, chat, onChatChange, lawDocument, onLawDocumentChange, onN
     // El historial guarda la pregunta limpia; la ficha de datos se añade solo
     // al mensaje que se manda ahora. Si se guardara dentro, cada turno
     // arrastraría una copia del cuaderno entero.
-    const history: ChatTurn[] = chat.slice(-MEMORY_TURNS).map(m => ({ role: m.role, text: m.text }));
+    // Lo que escribió el docente, en esta pregunta y en las anteriores: sin datos de contacto ni, si nombra a un alumno, de salud
+    const history: ChatTurn[] = chat.slice(-MEMORY_TURNS).map(m => ({ role: m.role, text: m.role === 'user' ? preguntaParaIA(m.text) : m.text }));
     const context = useData ? buildTeacherContext(data, { classId: classId || undefined, locale }) : '';
     const prompt = (context
-      ? `${context}\n\n=== PREGUNTA DEL DOCENTE ===\n${text}`
-      : text) + documento;
+      ? `${context}\n\n=== PREGUNTA DEL DOCENTE ===\n${preguntaParaIA(text)}`
+      : preguntaParaIA(text)) + documento;
 
     const afterUser: ChatMessage[] = [...chat, {
       id: crypto.randomUUID(), role: 'user', text, at: new Date().toISOString(),

@@ -25,6 +25,8 @@ export async function textoDeDocx(file: File): Promise<string> {
   const xml = await zip.file('word/document.xml')?.async('string');
   if (!xml) throw new Error('docx');
   return xml
+    // Lo borrado con control de cambios (`w:del`) no es parte del documento: sin esto llegaría a la IA (auditoría del 5-11-2026)
+    .replace(/<w:del\b[^>]*>[\s\S]*?<\/w:del>/g, '').replace(/<w:delText\b[^>]*>[\s\S]*?<\/w:delText>/g, '')
     .replace(/<w:tab\/>/g, '\t').replace(/<\/w:p>/g, '\n').replace(/<[^>]+>/g, '')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
 }

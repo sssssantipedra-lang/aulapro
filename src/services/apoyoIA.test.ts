@@ -171,3 +171,25 @@ describe('adaptarTema', () => {
     expect(callGemini).not.toHaveBeenCalled();
   });
 });
+
+describe('privacidad de PT y AL (auditoría del 5-11-2026)', () => {
+  beforeEach(() => callGemini.mockReset());
+
+  it('los objetivos que ya tiene y el ámbito van sin datos de salud', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ objetivos: [] }));
+    await proponerObjetivos({
+      alumno: marta, programa: { ambito: 'Habla (disfemia)', especialidad: 'AL' },
+      actuales: [{ id: 'x', texto: 'Reducir los bloqueos de su tartamudeo', trimestres: [1], criterios: [] }],
+      materias: [], comunidad: undefined, lang: 'es', nombreCurso,
+    });
+    const usuario = callGemini.mock.calls[0][1] as string;
+    expect(usuario).not.toMatch(/disfemia|tartamudeo/);
+    expect(usuario).toContain('[dato de salud]');
+  });
+
+  it('al adaptar el tema de la clase, los objetivos del trimestre van sin datos de salud', async () => {
+    callGemini.mockResolvedValueOnce(JSON.stringify({ alumnos: [] }));
+    await adaptarTema({ tema: 'Fracciones', especialidad: 'PT', alumnos: [{ alumno: marta, objetivos: ['Trabajar la atención (TDAH)'] }], comunidad: undefined, lang: 'es', nombreCurso });
+    expect(callGemini.mock.calls[0][1]).not.toContain('TDAH');
+  });
+});

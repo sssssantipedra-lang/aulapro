@@ -250,13 +250,13 @@ export async function generarDocumento(args: GenerarArgs, callbacks: Callbacks =
 
   const contexto =
     `${alumnoParaIA(alumno, nombreCurso)}\n\n` +
-    `Programas y objetivos (por trimestre):\n${objetivosTexto(data, alumno.id, materias, t, lang)}\n\n` +
+    `Programas y objetivos (por trimestre):\n${textoLibreParaIA(objetivosTexto(data, alumno.id, materias, t, lang))}\n\n` +
     bloqueAcs(args.contextoAcs) +
     (tipo === 'programacion' ? '' : `${datosParaIA(datos, trimestre)}\n`) +
     // La programación es del curso: todas las coordinaciones hasta hoy
     (tipo === 'programacion' && coordinacionesDe(data, alumno.id).length
-      ? `Coordinaciones hasta ahora:\n${coordinacionesTexto(coordinacionesDe(data, alumno.id)).join('\n')}\n` : '') +
-    (tipo === 'familia' ? `\nObjetivos del próximo trimestre:\n${proximos(data, alumno.id, trimestre).join('\n') || '(ninguno todavía)'}\n` : '');
+      ? `Coordinaciones hasta ahora:\n${coordinacionesTexto(coordinacionesDe(data, alumno.id)).map(textoLibreParaIA).join('\n')}\n` : '') +
+    (tipo === 'familia' ? `\nObjetivos del próximo trimestre:\n${proximos(data, alumno.id, trimestre).map(textoLibreParaIA).join('\n') || '(ninguno todavía)'}\n` : '');
   const reglas = '\nRedacta SOLO a partir de estos datos. Si un objetivo no tiene registros, dilo así; no inventes logros, ' +
     'y cuando un objetivo tenga una valoración final del especialista, esa es la que vale aunque el registro diga otra cosa, ' +
     'pruebas, fechas ni datos del alumno. Usa el nombre del alumno tal como aparece. Sin títulos ni negritas dentro de los textos.';
