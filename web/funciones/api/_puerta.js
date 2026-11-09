@@ -13,7 +13,7 @@ import { comoSecretos } from './_secretos.js';
 import { betaVigente, CONFIG_BETA } from './_beta.js';
 
 /** Lo que el servidor sirve como código (el tipo sale de la extensión del archivo de verdad, no de la dirección). */
-const ES_CODIGO = /javascript|ecmascript|wasm/i;
+const ES_CODIGO = /javascript|ecmascript|wasm|multipart\/byteranges/i;
 
 /**
  * Pide la respuesta (`siguiente`) y decide si sale. Sin lista (no se generó) o sin secreto (el servidor sin
@@ -22,7 +22,9 @@ const ES_CODIGO = /javascript|ecmascript|wasm/i;
 export async function puerta(request, secretos, publico, siguiente, ahora = Date.now(), cfgBeta = CONFIG_BETA) {
   const res = await siguiente();
   const { aceptar } = comoSecretos(secretos);
-  if (!publico || !aceptar.length || !ES_CODIGO.test(res.headers.get('Content-Type') ?? '')) return res;
+  // Una respuesta sin Content-Type se trata como código (revisión del 5-11-2026): la puerta cierra, no abre, ante lo que no sabe
+  const tipo = res.headers.get('Content-Type');
+  if (!publico || !aceptar.length || (tipo && !ES_CODIGO.test(tipo))) return res;
   if (publico.includes(new URL(request.url).pathname)) return res;
   const sesion = res.ok ? await leerSesion(request.headers.get('Cookie'), aceptar, ahora) : null;
   // Una sesión de acceso anticipado (beta) deja de valer en cuanto se cierra la beta, aunque su cookie no haya caducado (_beta.js)

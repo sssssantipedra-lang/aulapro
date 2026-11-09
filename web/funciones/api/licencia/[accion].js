@@ -19,6 +19,12 @@ import { registroActivo, responderUso, responderUsuarios, usuariosKv } from '../
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id', 'tipo'];
+/** Devuelve a la tienda el dispositivo que gastó la activación de una clave bloqueada (ver conFirma). */
+export const desactivarEnTienda = (key, instance) => fetch('https://api.lemonsqueezy.com/v1/licenses/deactivate', {
+  method: 'POST',
+  headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({ license_key: key, instance_id: instance }),
+}).catch(() => {});
 
 /** Desde el 29-10-2026 esto es el respaldo de Netlify: la app de aulapro.app lo llama desde otro origen. */
 export const onRequestOptions = ({ request }) => new Response(null, { status: 204, headers: corsPara(request.headers.get('Origin')) });
@@ -34,7 +40,8 @@ export async function onRequestGet({ request, params, env }) {
   if (params.accion === 'usuarios') return responderUsuarios(request, { secreto: env.USUARIOS_INFORME_SECRETO, almacen: usuariosKv(env.LIMITE) }, cors);
   if (params.accion !== 'clave') return new Response('Not found', { status: 404, headers: cors });
   return new Response(JSON.stringify({ x: await clavePublica(secretosDeLicencia(env)) }), {
-    headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+    // Sin caché (5-11-2026): al cambiar la llave, una copia guardada una hora dejaba a la app sin poder comprobar las firmas nuevas
+    headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
 }
 
@@ -74,7 +81,7 @@ export async function onRequestPost({ request, params, env }) {
   });
   const vigilar = () => anotarComprobacion(almacenKv(env.LIMITE), key, ip).then(r => r.pasada && cortarAlTope(env.CLAVES_CORTAR_AL_TOPE));
   const bloqueada = () => estaBloqueada(bloqueosKv(env.LIMITE), key);
-  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env), vigilar, bloqueada), {
+  return new Response(await conFirma(params.accion, salida, res, secretosDeLicencia(env), vigilar, bloqueada, desactivarEnTienda), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
@@ -86,7 +93,7 @@ export async function onRequestPost({ request, params, env }) {
  * devuelve `true` si esa clave no debe recibir la firma. Una clave en la lista de bloqueadas (`bloqueada`, ver _bloqueos.js:
  * Lemon Squeezy avisó de que terminó) sale como anulada aunque la tienda aún no lo diga.
  */
-export async function conFirma(accion, salida, res, secretos, vigilar, bloqueada) {
+export async function conFirma(accion, salida, res, secretos, vigilar, bloqueada, desactivar) {
   const texto = await res.text();
   if (accion === 'deactivate' || !res.ok) return texto;
   try {
@@ -94,6 +101,9 @@ export async function conFirma(accion, salida, res, secretos, vigilar, bloqueada
     const st = d.license_key?.status;
     if (!(d.activated || d.valid) || st === 'disabled' || st === 'expired') return texto;
     if (bloqueada && (await bloqueada())) {
+      // La tienda acaba de gastar un dispositivo de una clave que aquí consta como terminada: se devuelve (5-11-2026), o al
+      // reactivarla (un cobro recuperado) saldría «límite de dispositivos» sin haber entrado nunca
+      if (accion === 'activate' && d.instance?.id && desactivar) await Promise.resolve(desactivar(salida.get('license_key'), d.instance.id)).catch(() => {});
       return JSON.stringify({ ...d, valid: false, activated: false, error: 'license_key_disabled', license_key: { ...(d.license_key ?? {}), status: 'disabled' } });
     }
     const instance = d.instance?.id ?? salida.get('instance_id') ?? '';

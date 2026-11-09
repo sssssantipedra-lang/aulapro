@@ -23,6 +23,20 @@ const GUARDAR_SOSPECHA = 8 * SEMANA;
 const MAX_APUNTADAS = 100;
 
 export const semanaDe = (ahoraMs = Date.now()) => Math.floor(ahoraMs / 1000 / SEMANA);
+
+/**
+ * Lo que cuenta como «una conexión» (5-11-2026): la IPv4 entera y, de una IPv6, su red /64 (las cuatro primeras palabras).
+ * Los sistemas cambian la IPv6 temporal cada día dentro de la misma red: un solo docente en casa sumaba 7 conexiones a la
+ * semana y, con el móvil y el centro, pasaba del tope sin compartir nada.
+ */
+export function redDe(ip) {
+  const s = String(ip ?? '').trim();
+  if (!s.includes(':')) return s || 'desconocida';
+  const [cab, cola = ''] = s.split('::');
+  const a = cab ? cab.split(':') : [], b = cola ? cola.split(':') : [];
+  const grupos = [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill('0'), ...b];
+  return `${grupos.slice(0, 4).map(g => g.toLowerCase().replace(/^0+(?=.)/, '')).join(':')}::/64`;
+}
 export const recortarClave = key => (key.length > 14 ? `${key.slice(0, 8)}…${key.slice(-4)}` : '…');
 export const cortarAlTope = valor => String(valor ?? '').trim().toLowerCase() === 'si';
 
@@ -36,7 +50,7 @@ export async function anotarComprobacion(almacen, key, ip, ahoraMs = Date.now())
   try {
     const semana = semanaDe(ahoraMs);
     const hk = await huella(`clave:${key}`);
-    const hip = (await huella(`ip:${ip || 'desconocida'}`)).slice(0, 12);
+    const hip = (await huella(`ip:${redDe(ip)}`)).slice(0, 12);
     const k = `uso:${semana}:${hk}`;
     const ips = (await almacen.get(k)) ?? [];
     if (!ips.includes(hip) && ips.length < MAX_APUNTADAS) {

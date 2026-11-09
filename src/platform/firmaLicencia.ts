@@ -6,7 +6,7 @@
  * imposible (quien cambie el código se lo salta), solo sube el listón.
  *
  * Desde el 1-11-2026 cada firma caduca a los 7 días (el servidor la renueva
- * cada día con conexión) y sin la llave pública ya no se da nada por bueno:
+ * cada hora con conexión) y sin la llave pública ya no se da nada por bueno:
  * antes bastaba con bloquear su descarga en el navegador. La llave se guarda
  * en el dispositivo en cuanto se activa una licencia (con conexión), así que
  * sin conexión se sigue pudiendo comprobar. Solo se perdona un navegador sin
