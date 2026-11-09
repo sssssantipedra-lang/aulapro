@@ -11,6 +11,7 @@
 // lista (sin llamar a Lemon Squeezy), y se bloquea al momento si la suya está. Se guarda una huella de la clave, no la
 // clave.
 import { huella } from './_limite.js';
+import { CONFIG_BETA, estadoBeta } from './_beta.js';
 
 const LS = 'https://api.lemonsqueezy.com/v1';
 const UN_ANIO = 400 * 24 * 3600;
@@ -64,8 +65,11 @@ export async function procesarAviso(evento, { almacen, apiKey, pedir = fetch }) 
   const cuenta = { bloqueadas: new Set(), desbloqueadas: new Set() };
   const resumen = () => ({ bloqueadas: cuenta.bloqueadas.size, desbloqueadas: cuenta.desbloqueadas.size });
   const a = evento?.data?.attributes ?? {};
-  if (evento?.data?.type === 'license-keys' && a.key) await anotar(almacen, a.key, claveTerminada(a), cuenta);
   const pedido = pedidoDelAviso(evento);
+  // Lo que trae el aviso solo se aplica por su cuenta cuando no se puede preguntar a la tienda (5-11-2026): con la clave de la
+  // API, la tienda es la única fuente, y si no contesta no se toca nada (un aviso «activa» repetido tarde desbloqueaba una clave
+  // ya desactivada aunque la tienda fallara después)
+  if ((!apiKey || !pedido) && evento?.data?.type === 'license-keys' && a.key) await anotar(almacen, a.key, claveTerminada(a), cuenta);
   if (!pedido || !apiKey) return resumen();
   const r = await pedir(`${LS}/license-keys?filter[order_id]=${encodeURIComponent(pedido)}`, {
     headers: { Accept: 'application/vnd.api+json', Authorization: `Bearer ${apiKey}` },
@@ -110,8 +114,12 @@ export async function responderAviso(request, { secreto, apiKey, almacen }) {
   return json({ ok: true }, 200);
 }
 
-/** `POST /api/licencia/estado` con `license_key`: si está bloqueada. Solo lee la lista. */
-export async function responderEstado(salida, almacen, cors = {}) {
+/**
+ * `POST /api/licencia/estado` con `license_key`: si está bloqueada. Solo lee la lista. Con `tipo=beta` (acceso anticipado
+ * gratuito, `_beta.js`) dice si la beta ya se cerró: la app se bloquea al contestar `bloqueada: true`.
+ */
+export async function responderEstado(salida, almacen, cors = {}, ahora = Date.now(), cfgBeta = CONFIG_BETA) {
+  if (salida.get('tipo') === 'beta') return json(estadoBeta(ahora, cfgBeta), 200, cors);
   return json({ bloqueada: await estaBloqueada(almacen, salida.get('license_key') || '') }, 200, cors);
 }
 

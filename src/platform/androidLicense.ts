@@ -10,7 +10,7 @@
  *
  * Mantener ENFORCED y STORE_ID iguales que en electron/license.cjs.
  */
-import { limpiarLicenciaVencida, marcarLicenciaVencida } from '../lib/licenciaVencida';
+import { limpiarBetaTerminada, limpiarLicenciaVencida, marcarBetaTerminada, marcarLicenciaVencida } from '../lib/licenciaVencida';
 import { caducidadDeFirma } from './firmaLicencia';
 import { CapacitorHttp } from '@capacitor/core';
 import type { LicenseBridge, LicenseError, LicenseResult, LicenseState } from '../types/electron';
@@ -27,6 +27,8 @@ const CHECK_EVERY = 7 * 24 * 60 * 60 * 1000;
  * otro de sus dispositivos y, con los 2 gastados, no dejaría entrar (1-11-2026).
  */
 const DORMIDA = 'licencia-dormida';
+/** Con menos de esto por delante, la firma de una licencia de cuenta se renueva (como `MARGEN` en sesionWeb.ts). */
+const MARGEN_FIRMA = 2 * 24 * 60 * 60 * 1000;
 /** Nombre neutro: solo la clave y esto salen hacia la tienda (docs/WEB.md, apartado 3, punto 3). */
 const INSTANCE_NAME = 'AulaPro · Android';
 
@@ -37,7 +39,8 @@ interface Secrets {
 
 export interface LicenseRecord {
   v: 1;
-  kind: 'fundador' | 'licencia';
+  /** `beta`: acceso anticipado gratuito de la versión web (`web/funciones/api/_beta.js`); se bloquea al abrirse la venta. */
+  kind: 'fundador' | 'licencia' | 'beta';
   key?: string;
   instanceId?: string;
   activatedAt: string;
@@ -104,7 +107,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
    * antes de dar paso a la app. Ahí se pide la sesión que abre el código de la app (`platform/sesionWeb.ts`).
    */
   alValer?: (r: LicenseRecord) => Promise<void>;
-  /** Cada cuánto se vuelve a comprobar la clave con conexión (por defecto, una semana; la web, cada día). */
+  /** Cada cuánto se vuelve a comprobar la clave con conexión (por defecto, una semana; la web, cada hora). */
   comprobarCada?: number;
   /** Versión web: la licencia se ha perdido con la app abierta (terminada, devuelta o anulada). La pantalla se bloquea ya. */
   alPerder?: () => void;
@@ -115,6 +118,12 @@ export function createAndroidLicense(secrets: Secrets, opts: {
    */
   comprobarSinEsperar?: boolean;
   consultarBloqueoCada?: number;
+  /**
+   * Versión web (5-11-2026): la licencia de la cuenta de un fundador no tiene clave que comprobar, así que `check()` no la
+   * renueva; con la app abierta días seguidos la firma de 7 días caducaba. `revisar` llama a esto cuando a la firma de una
+   * licencia de cuenta le quedan menos de 2 días: vuelve a buscar la licencia por el correo y devuelve lo que `porCuenta` necesita.
+   */
+  renovarCuenta?: () => Promise<{ key: string | null; firma?: string } | undefined>;
 } = {}): LicenseBridge {
   const enforced = opts.enforced ?? ENFORCED;
   const storeId = opts.storeId ?? STORE_ID;
@@ -130,7 +139,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
 
   const save = async (r: LicenseRecord | null) => {
     record = r;
-    if (r) { limpiarLicenciaVencida(); await secrets.set(DORMIDA, '').catch(() => false); }
+    if (r) { limpiarLicenciaVencida(); limpiarBetaTerminada(); await secrets.set(DORMIDA, '').catch(() => false); }
     await secrets.set('licencia', r ? JSON.stringify(r) : '').catch(() => false);
   };
 
@@ -156,13 +165,13 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       return true;
     }
     // Sigue caducada: se espera. Si la activación ya no existe en la tienda, no hay nada que recuperar
-    if (r.status === 404) await secrets.set(DORMIDA, '').catch(() => false);
+    if (r.status === 404 && r.body.valid === false) await secrets.set(DORMIDA, '').catch(() => false);
     return false;
   }
 
   const state = (): LicenseState => ({
     required: enforced && !record,
-    status: record?.kind === 'fundador' ? 'fundador' : record ? 'activa' : 'sin-licencia',
+    status: record?.kind === 'fundador' ? 'fundador' : record?.kind === 'beta' ? 'beta' : record ? 'activa' : 'sin-licencia',
     enforced,
     keyHint: record?.kind === 'licencia' ? keyHint(record.key) : '',
     since: record?.activatedAt ?? '',
@@ -183,7 +192,9 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       // Con la firma nueva (otros 7 días) llega también una sesión nueva
       await save({ ...record, lastOkAt: new Date().toISOString(), ...(r.body.aulapro_firma ? { firma: r.body.aulapro_firma } : {}) });
       await avisar();
-    } else if (r.status < 500) {
+    } else if (r.status < 500 && r.body.valid === false) {
+      // Solo con un veredicto de la tienda (o de la lista de bloqueadas del servidor), que siempre trae `valid`. Un 429 del
+      // tope por IP, un 404 del alojamiento o la página de un portal cautivo (5-11-2026) no son «la suscripción terminó».
       await perder();
     }
   }
@@ -192,7 +203,9 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   async function perder() {
     if (!record) return;
     if (!record.cuenta && record.instanceId) await secrets.set(DORMIDA, JSON.stringify(record)).catch(() => false);
-    marcarLicenciaVencida(); await save(null); opts.alPerder?.();
+    // La beta no es una suscripción que terminó: la pantalla dice que el acceso anticipado se acabó y ofrece suscribirse
+    if (record.kind === 'beta') marcarBetaTerminada(); else marcarLicenciaVencida();
+    await save(null); opts.alPerder?.();
   }
 
   /**
@@ -201,10 +214,13 @@ export function createAndroidLicense(secrets: Secrets, opts: {
    */
   async function mirarBloqueo() {
     const cada = opts.consultarBloqueoCada;
-    if (cada == null || record?.kind !== 'licencia' || !record.key) return;
+    const esBeta = record?.kind === 'beta';
+    if (cada == null || !record || (!esBeta && (record.kind !== 'licencia' || !record.key))) return;
     if (Date.now() - bloqueoMiradoEn < cada) return;
     bloqueoMiradoEn = Date.now();
-    const r = await call('estado', { license_key: record.key });
+    // Acceso anticipado: el servidor dice si la beta ya se cerró (el día que se abre la venta). Sin respuesta, no pasa nada:
+    // la firma de beta caduca sola a los 3 días como mucho
+    const r = await call('estado', esBeta ? { tipo: 'beta' } : { license_key: record.key! });
     if (r?.status === 200 && (r.body as { bloqueada?: boolean }).bloqueada === true) await perder();
   }
 
@@ -224,8 +240,11 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     }
     if (!record && !enforced) {
       await save({ v: 1, kind: 'fundador', activatedAt: new Date().toISOString() });
+    } else if (record?.kind === 'beta') {
+      // Acceso anticipado: al abrir se pregunta ya al servidor si la beta sigue abierta, sin esperar a los 15 minutos
+      if (opts.comprobarSinEsperar) void mirarBloqueo().catch(() => {});
     } else if (record?.kind === 'licencia') {
-      // La comprobación que toca (cada día en la web) se espera al abrir, como mucho 3 s: una suscripción que ha
+      // La comprobación que toca (cada hora en la web) se espera al abrir, como mucho 3 s: una suscripción que ha
       // terminado no llega a abrir la app. Si la red tarda más, sigue en segundo plano y bloquea al contestar.
       const last = Date.parse(record.lastOkAt ?? record.activatedAt);
       if (!Number.isFinite(last) || Date.now() - last > comprobarCada) {
@@ -243,7 +262,7 @@ export function createAndroidLicense(secrets: Secrets, opts: {
   }
   const whenReady = () => (ready ??= init());
 
-  return {
+  const bridge: LicenseBridge = {
     async state() { await whenReady(); return state(); },
 
     async activate(key): Promise<LicenseResult> {
@@ -271,11 +290,15 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       if (key === 'fundador') {
         // Versión web: fundador por su correo (`FUNDADOR` en cuentaWeb.ts)
         await save({ v: 1, kind: 'fundador', activatedAt: record?.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true, ...f });
+      } else if (key === 'beta') {
+        // Versión web: acceso anticipado gratuito (`BETA` en cuentaWeb.ts), hasta que se abra la venta
+        await save({ v: 1, kind: 'beta', activatedAt: record?.kind === 'beta' && record.cuenta ? record.activatedAt : new Date().toISOString(), cuenta: true, ...f });
       } else if (key) {
         const now = new Date().toISOString();
         await save({ v: 1, kind: 'licencia', key, activatedAt: record?.cuenta ? record.activatedAt : now, lastOkAt: now, cuenta: true, ...f });
       } else if (record?.cuenta) {
         if (record.kind === 'licencia') marcarLicenciaVencida();
+        else if (record.kind === 'beta') marcarBetaTerminada();   // el servidor ya no da acceso anticipado: a suscribirse
         await save(null);
       } else if (record?.kind === 'licencia' && record.key) {
         // Una clave escrita a mano (un pack, otro correo): que el correo no tenga compra no dice nada de ella, así
@@ -288,11 +311,20 @@ export function createAndroidLicense(secrets: Secrets, opts: {
     },
 
     async revisar(): Promise<LicenseState> {
-      // Con la app abierta días seguidos (la pestaña no se cierra): la comprobación diaria se hace igual
+      // Con la app abierta días seguidos (la pestaña no se cierra): la comprobación de cada hora se hace igual
       await whenReady();
       await mirarBloqueo().catch(() => {});
       const last = Date.parse(record?.lastOkAt ?? record?.activatedAt ?? '');
       if (record?.kind === 'licencia' && (!Number.isFinite(last) || Date.now() - last > comprobarCada)) await check().catch(() => {});
+      // La firma de un fundador (sin clave) se renueva con su cuenta cuando le quedan menos de 2 días
+      if (record?.kind === 'fundador' && record.cuenta && opts.renovarCuenta && caducidadDeFirma(record.firma) - Date.now() < MARGEN_FIRMA) {
+        const b = await opts.renovarCuenta().catch(() => undefined);
+        if (b?.key) await bridge.porCuenta?.(b.key, b.firma);
+      }
+      // Versión web, con la pestaña abierta sin conexión: a los 7 días la firma caduca y no se ha podido renovar. La app se
+      // cierra igual que si se abriera entonces (6-11-2026: antes seguía mientras no se recargara). El registro se queda
+      // guardado, sin darlo por terminado: con conexión, la próxima apertura lo renueva sola.
+      if (record && opts.verificar && !(await valida(record))) { record = null; opts.alPerder?.(); }
       return state();
     },
 
@@ -305,4 +337,5 @@ export function createAndroidLicense(secrets: Secrets, opts: {
       return { ok: true, state: state() };
     },
   };
+  return bridge;
 }

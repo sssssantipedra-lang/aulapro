@@ -28,6 +28,7 @@ import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { useBorradorVentana } from '../hooks/useBorrador';
 import { AvisoBorrador } from '../components/AvisoBorrador';
 import { ACEPTA_ADJUNTO, useAdjuntoParaIA } from '../hooks/useAdjuntoParaIA';
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 
 /* ─── Props ─── */
 interface Props {
@@ -709,13 +710,13 @@ export function EvalModal({
     const userPrompt = lang === 'en'
       ? `Assess the following student work using this rubric.\n\n` +
         `CRITERIA:\n${criteriaText}\n\n` +
-        `WORK DESCRIPTION:\n${workDesc || '(no description)'}\n\n` +
+        `WORK DESCRIPTION:\n${textoLibreParaIA(workDesc) || '(no description)'}\n\n` +
         (workFile?.texto ? `TEXT OF THE WORK:\n${workFile.texto.slice(0, 30000)}\n\n` : workFile?.imagen ? 'A photo of the work is attached.\n\n' : '') +
         `Return a JSON with this exact format:\n` +
         `{"scores":{"<criterion_id>": <number_1_to_4>, ...},"observation":"<general observation text, in English>"}`
       : `Evalúa el siguiente trabajo de un alumno usando esta rúbrica.\n\n` +
         `CRITERIOS:\n${criteriaText}\n\n` +
-        `DESCRIPCIÓN DEL TRABAJO:\n${workDesc || '(sin descripción)'}\n\n` +
+        `DESCRIPCIÓN DEL TRABAJO:\n${textoLibreParaIA(workDesc) || '(sin descripción)'}\n\n` +
         (workFile?.texto ? `TEXTO DEL TRABAJO:\n${workFile.texto.slice(0, 30000)}\n\n` : workFile?.imagen ? 'Se adjunta una foto del trabajo.\n\n' : '') +
         `Devuelve un JSON con este formato exacto:\n` +
         `{"scores":{"<id_criterio>": <número_1_a_4>, ...},"observation":"<texto de observación general>"}`;

@@ -646,15 +646,10 @@ await pantalla('config', 'Configuración');
 await menu('Registro de cambios');
 await pantalla('registro', 'Registro de cambios');
 
-/* Actividades con móviles, la última: se hace pasar por la app instalada
-   (sin sala de verdad) para enseñar cómo se prepara la actividad. */
-await page.evaluate(() => {
-  const vacio = { running: false, port: null, code: null, label: '', addresses: [], activity: null, responses: [], connected: 0 };
-  window.electronAPI = { ...(window.electronAPI ?? {}), classroom: {
-    state: async () => vacio, stop: async () => vacio, start: async () => vacio,
-    setActivity: async () => vacio, setRoster: async () => vacio, onUpdate: () => () => {},
-  } };
-});
+/* Actividades con móviles, la última: se hace pasar por la versión web (la única que se publica desde el 29-10-2026), que
+   enseña «Próximamente en la versión web». Hasta el 5-11-2026 se hacía pasar por la app instalada y enseñaba la sala, que en la
+   web no existe: la demo prometía algo que no hay (auditoría de textos del 5-11-2026, `CLAUDE.md`). */
+await page.evaluate(() => { window.electronAPI = { ...(window.electronAPI ?? {}), platform: 'web' }; });
 await menu('En clase');
 await pestana('Actividades con móviles');
 await pantalla('moviles', 'Actividades con móviles', 'enclase', { extra: { 'Abrir sala': 't:room' } });
@@ -769,7 +764,7 @@ const soltarOrden = () => page.evaluate(() => { if (window.__azar) Math.random =
 /* Sesiones: la portada con las clases, una clase con sus sesiones por SdA y el editor con sus imágenes */
 await menu('Documentos');
 await pestana('Sesiones');
-await pantalla('sesiones', 'Sesiones', 'documentos', { rutas: [[/^5º Primaria A/, 'go:sesiones-clase']] });
+await pantalla('sesiones', 'Sesiones', 'documentos', { rutas: [[/^(Abrir las sesiones de )?5º Primaria A/, 'go:sesiones-clase']] });
 await page.getByText('5º Primaria A', { exact: true }).first().click();
 await page.waitForTimeout(1200);
 await pantalla('sesiones-clase', 'Sesiones de una clase', 'documentos', { extra: { 'Sesiones': 'go:sesiones' }, rutas: [[/^Preparamos los puestos/, 'go:sesion'], [/^Ver la SdA/, 'go:sda']] });
@@ -863,7 +858,10 @@ if (process.env.FASES) {
     todas = { ...w.AULA_DEMO_SCREENS, ...PANTALLAS };
   } catch { /* sin archivo previo */ }
 }
-const js = '/* Generado por scripts/web/capturar.mjs: no se edita a mano. Pantallas de la demo,\n'
+// El cuaderno lleva a «Pesos de las notas» aunque se hayan capturado en pasadas distintas (`aula` y `nuevas`): antes solo se
+// enlazaba si estaban las dos en la misma, y la pantalla de los pesos se quedaba sin camino (5-11-2026)
+if (todas.cuaderno && todas.pesos) todas.cuaderno.spots = todas.cuaderno.spots.map(sp => (/^Pruebas/.test(sp[5]) && sp[4] === 'g' ? [sp[0], sp[1], sp[2], sp[3], 'go:pesos', sp[5]] : sp));
+const js ='/* Generado por scripts/web/capturar.mjs: no se edita a mano. Pantallas de la demo,\n'
   + '   con lo que se puede pulsar en cada una ([x0, y0, x1, y1, acción, nombre], en píxeles de la captura). */\n'
   + `window.AULA_DEMO_SCREENS = ${JSON.stringify(todas)};\n`;
 fs.writeFileSync(destino, js);

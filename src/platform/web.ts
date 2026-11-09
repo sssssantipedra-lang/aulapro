@@ -27,10 +27,11 @@ import { idbFs, idbKv } from './webFs';
 import { createEspejo } from './espejo';
 import { abrirCarpetaGuardada, EVENTO_PDF, iniciarCarpeta, recargarCuandoSeAPuedeSinCortar } from './carpetaWeb';
 import { createAndroidLicense, type LicensePost, type LicenseRecord } from './androidLicense';
-import { crearVerificador } from './firmaLicencia';
+import { crearVerificador, esperadoDeRegistro } from './firmaLicencia';
 import { LICENCIA_PERDIDA, pedirSesion, vigilarSesion } from './sesionWeb';
-import { cuentaActual, leerCuenta } from './cuentaWeb';
+import { cuentaActual, leerCuenta, licenciaDeLaCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
+import { usarFirmaParaUso } from './usoWeb';
 import { PESTANA_PERDIDA, reservarPestana } from './unaPestana';
 import { bloquearGuardado } from '../lib/guardadoBloqueado';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
@@ -60,19 +61,17 @@ const postLicencia: LicensePost = async (action, data) => {
 
 /** La licencia guardada solo vale con la firma de las funciones de la licencia (`platform/firmaLicencia.ts`). */
 const verificarFirma = crearVerificador(idbKv, async () => {
-  const r = await pedirApi('/api/licencia/clave', { method: 'GET' });
+  // Siempre la llave de ahora, nunca una copia del navegador: al cambiar la llave del servidor se vuelve a pedir (5-11-2026)
+  const r = await pedirApi('/api/licencia/clave', { method: 'GET', cache: 'no-store' });
   return r.ok ? String((await r.json()).x ?? '') : '';
 });
 async function verificarLicencia(r: LicenseRecord): Promise<boolean> {
-  if (r.cuenta) {
-    const email = (cuentaActual() ?? await leerCuenta())?.email;
-    if (await verificarFirma(r.firma, { t: 'cuenta', email, ...(r.kind === 'fundador' ? { fundador: true } : { key: r.key }) })) return true;
-    // La comprobación diaria de la clave (`check`) la vuelve a firmar como clave: vale igual
-    return r.kind === 'licencia' && !!r.key && verificarFirma(r.firma, { t: 'clave', key: r.key });
-  }
-  if (r.kind === 'licencia') return verificarFirma(r.firma, { t: 'clave', key: r.key });
-  // Fundador sin cuenta: en la web no existe (los fundadores van por su correo)
-  return false;
+  const email = r.cuenta ? (cuentaActual() ?? await leerCuenta())?.email : undefined;
+  const esperado = esperadoDeRegistro(r, email);
+  if (!esperado) return false;
+  if (await verificarFirma(r.firma, esperado)) return true;
+  // La comprobación diaria de la clave (`check`) la vuelve a firmar como clave: vale igual
+  return !!r.cuenta && r.kind === 'licencia' && !!r.key && verificarFirma(r.firma, { t: 'clave', key: r.key });
 }
 
 const secretos = {
@@ -246,9 +245,15 @@ export async function installWebBridge(opts: { pestanaReservada?: boolean } = {}
       comprobarCada: COMPROBAR_CLAVE_CADA,
       comprobarSinEsperar: true,
       consultarBloqueoCada: CONSULTAR_BLOQUEO_CADA,
-      alValer: async r => { await verificarFirma.precargar(); await pedirSesion(r.firma); },
+      alValer: async r => {
+        await verificarFirma.precargar(); await pedirSesion(r.firma);
+        // El uso activo, para el registro de usuarios del servidor (platform/usoWeb.ts): solo licencias de una cuenta
+        usarFirmaParaUso(r.cuenta && r.firma ? r.firma : null);
+      },
       // App.tsx (LicenseCheck) lo escucha y enseña la pantalla de licencia sin esperar a la próxima apertura
-      alPerder: () => window.dispatchEvent(new Event(LICENCIA_PERDIDA)),
+      alPerder: () => { usarFirmaParaUso(null); window.dispatchEvent(new Event(LICENCIA_PERDIDA)); },
+      // La firma de un fundador se renueva con su cuenta (5-11-2026): no tiene clave que comprobar cada hora
+      renovarCuenta: () => licenciaDeLaCuenta().then(b => (b.key ? { key: b.key, firma: b.firma } : undefined)),
     }),
     secrets: secretos,
   };

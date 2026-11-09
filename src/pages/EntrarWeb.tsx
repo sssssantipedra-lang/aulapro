@@ -3,7 +3,7 @@ import { FolderSync, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { DondeGuardar } from '../components/DondeGuardar';
 import { useI18n } from '../i18n';
 import { LangSwitch } from './Welcome';
-import { cargarGoogle, cuentaActual, MICROSOFT_LISTO, type Cuenta } from '../platform/cuentaWeb';
+import { ACCESO_ANTICIPADO, cargarGoogle, cuentaActual, MICROSOFT_LISTO, type Cuenta } from '../platform/cuentaWeb';
 import { CasillaCondiciones } from '../components/AceptarCondiciones';
 import { aceptarCondiciones, condicionesAceptadas } from '../lib/condiciones';
 import { entrarConGoogle, hayVueltaEntrada, terminarVueltaEntrada } from '../platform/googleDrive';
@@ -87,6 +87,7 @@ export function EntrarWeb({ onEntrar }: { onEntrar: (c: Cuenta) => void }) {
         <img className="entrar-logo" src="./favicon.svg" alt="AulaPro" width={148} height={148} />
         <h1 className="entrar-titulo">{t('Tu cuaderno docente')}</h1>
         <p className="entrar-sub">{t('Entra con tu cuenta y tendrás AulaPro en todos tus dispositivos.')}</p>
+        {ACCESO_ANTICIPADO && <p className="entrar-sub" style={{ marginTop: 6, fontWeight: 600 }}>{t('Acceso anticipado gratuito, sin tarjeta, hasta el 1 de enero de 2027. Tu trabajo se queda en tu dispositivo.')}</p>}
 
         {error && <div className="lic-err entrar-err" role="alert">{error}</div>}
 

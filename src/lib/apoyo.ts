@@ -504,7 +504,7 @@ export function contextoFichaApoyo(
     // Sin la categoría NEAE ni datos de salud (3-11-2026): lo que necesita en el aula
     a.apoyos?.length ? t('Apoyos que necesita en el aula: {lista}.', { lista: a.apoyos.map(x => t(x)).join(', ') }) : '',
     a.necesidades.trim() && textoLibreParaIA(a.necesidades).trim() ? t('Cómo aprende: {texto}', { texto: textoLibreParaIA(a.necesidades).trim() }) : '',
-    objetivos.length ? t('Objetivos que trabaja este trimestre: {lista}.', { lista: objetivos.join('; ') }) : '',
+    objetivos.length ? t('Objetivos que trabaja este trimestre: {lista}.', { lista: objetivos.map(textoLibreParaIA).join('; ') }) : '',
     t('Adáptala: enunciados cortos y claros, pocas actividades por página, apoyo visual y letra grande.'),
   ].filter(Boolean).join(' ');
 }

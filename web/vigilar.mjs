@@ -132,7 +132,13 @@ const tareas = [
   // comprobaba en la copia de Cloudflare tras publicar. Aquí, cada hora y en la web de verdad, que sin sesión el
   // código de las pantallas no sale, tampoco pidiéndolo con otra forma de escribir la dirección. Si Netlify dejara de
   // darle el secreto a la función de borde, la puerta se abriría sin avisar: esto lo detecta.
-  comprobar('el código de la app no sale sin suscripción', puertaCerrada),
+  comprobar('el código de la app no sale sin suscripción', () => puertaCerrada(BASE)),
+  // Y en la copia de respaldo (5-11-2026): la puerta abre sin avisar si a esa copia le faltan los secretos
+  ...RESPALDOS.map(u => comprobar(`el código de la app no sale sin suscripción en ${new URL(u).hostname}`, () => puertaCerrada(u.replace(/\/$/, '')))),
+  // Revisión del 5-11-2026: si LICENCIA_SECRETO (o el de Google) no es idéntico en Netlify y en Cloudflare, la firma que da
+  // una copia no la acepta la otra, y la app, que pasa al respaldo cuando el principal no responde, se queda sin sesión
+  // justo cuando más falta hace. Se comparan solo las llaves públicas: ningún secreto sale de ningún sitio.
+  comprobar('Netlify y Cloudflare firman las licencias con la misma llave', mismaLlave),
   comprobar(`certificado de ${HOST}`, () => certificado(HOST)),
   comprobar(`certificado de ${WWW}`, () => certificado(WWW)),
   comprobar('caducidad del dominio', dominio, { grave: false, veces: 2 }),
@@ -146,20 +152,34 @@ const variantesDeBloque = f => [`/app/assets/${f}`, `//app/assets/${f}`, `/APP/a
 /** Un cuerpo que es código de la app (no la página de un error ni un 404 en HTML). */
 const pareceCodigo = (r, cuerpo) => r.ok && cuerpo.length > 200 && !/^\s*</.test(cuerpo);
 
-async function puertaCerrada() {
-  const { t: sw } = await texto(BASE + '/app/sw.js', { 'cache-control': 'no-cache' });
+async function puertaCerrada(base) {
+  const { t: sw } = await texto(base + '/app/sw.js', { 'cache-control': 'no-cache' });
   const privado = JSON.parse(sw.match(/const PRIVADO = (\[.*?\]);/s)?.[1] ?? '[]');
   if (!privado.length) return 'sin lista de código con sesión';
   const f = privado[0].replace(/^assets\//, '');
   const abiertas = [];
   for (const v of variantesDeBloque(f)) {
-    const { r } = await pedir(BASE + v, { 'cache-control': 'no-cache' });
+    const { r } = await pedir(base + v, { 'cache-control': 'no-cache' });
     const cuerpo = await r.text().catch(() => '');
     if (r.status === 403 && r.headers.get('cf-mitigated')) throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
     if (pareceCodigo(r, cuerpo)) abiertas.push(v);
   }
   if (abiertas.length) throw new Error(`la puerta está abierta sin sesión con: ${abiertas.join(', ')}. Mirar la función de borde de Netlify y la variable GOOGLE_CLIENT_SECRET (docs/APP_WEB.md, «Sin pagar, no hay app»)`);
   return `cerrada en ${variantesDeBloque(f).length} formas de pedir el código`;
+}
+
+async function mismaLlave() {
+  const llaves = await Promise.all([BASE, ...RESPALDOS.map(u => u.replace(/\/$/, ''))].map(async base => {
+    const { r } = await pedir(`${base}/api/licencia/clave`, { 'cache-control': 'no-cache' });
+    if (r.status === 403 && r.headers.get('cf-mitigated')) throw Object.assign(new Error('Cloudflare pide una verificación al vigilante (403); no es una caída'), { mitigado: true });
+    if (!r.ok) throw new Error(`${new URL(base).hostname} responde ${r.status} a /api/licencia/clave`);
+    const x = String((await r.json().catch(() => ({}))).x ?? '');
+    if (!x) throw new Error(`${new URL(base).hostname} no tiene llave de licencias (sin LICENCIA_SECRETO ni GOOGLE_CLIENT_SECRET: la puerta está abierta)`);
+    return [new URL(base).hostname, x];
+  }));
+  const distintas = llaves.filter(([, x]) => x !== llaves[0][1]).map(([h]) => h);
+  if (distintas.length) throw new Error(`la llave de ${distintas.join(' y ')} no es la de ${llaves[0][0]}: LICENCIA_SECRETO (o GOOGLE_CLIENT_SECRET) distinto entre Netlify y Cloudflare (docs/MANTENIMIENTO.md, «La llave de las licencias»)`);
+  return `la misma en ${llaves.map(([h]) => h).join(' y ')}`;
 }
 
 function pagina2(u) {

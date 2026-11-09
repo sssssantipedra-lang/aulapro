@@ -18,7 +18,9 @@ import { Welcome } from './pages/Welcome';
 import { CommunityPrompt } from './components/CommunityPrompt';
 import { comunidadDePerfil } from './lib/curriculum/comunidades';
 import { LicenseGate } from './pages/LicenseGate';
-import { licenciaVencida, marcarLicenciaVencida } from './lib/licenciaVencida';
+import { betaTerminada, licenciaVencida, marcarLicenciaVencida } from './lib/licenciaVencida';
+import { avisoBetaVisto, hayQueEnseñarAvisoBeta } from './lib/avisoBeta';
+import { AvisoAccesoAnticipado } from './components/AvisoAccesoAnticipado';
 import { LICENCIA_PERDIDA, olvidarApp } from './platform/sesionWeb';
 import { getLicenseState, licenseBridge } from './services/license';
 import type { LicenseState } from './types/electron';
@@ -869,6 +871,8 @@ function AppInner() {
 function LicenseCheck({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [state, setState] = useState<LicenseState | null | undefined>(licenseBridge() ? undefined : null);
+  // Acceso anticipado gratuito (beta): antes de usar la app hay que leer y confirmar el aviso (lib/avisoBeta.ts)
+  const [avisoVisto, setAvisoVisto] = useState(avisoBetaVisto);
   useEffect(() => {
     if (state !== undefined) return;
     getLicenseState().then(async s => {
@@ -941,7 +945,8 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
 
   // La suscripción terminó (lo ha confirmado el servidor): fuera la sesión y el código de la app guardado en el
   // dispositivo; el trabajo se queda. Al renovar se vuelve a descargar.
-  const bloqueada = !!state?.required && isWebApp() && licenciaVencida();
+  // También al terminar el acceso anticipado gratuito (beta): ya no se puede usar sin suscribirse
+  const bloqueada = !!state?.required && isWebApp() && (licenciaVencida() || betaTerminada());
   useEffect(() => { if (bloqueada) void olvidarApp(); }, [bloqueada]);
 
   if (state === undefined) {
@@ -952,6 +957,7 @@ function LicenseCheck({ children }: { children: React.ReactNode }) {
     );
   }
   if (state?.required) return <LicenseGate state={state} onChange={setState} />;
+  if (isWebApp() && hayQueEnseñarAvisoBeta(state?.status, avisoVisto)) return <AvisoAccesoAnticipado onContinuar={() => setAvisoVisto(true)} />;
   return <>{children}</>;
 }
 

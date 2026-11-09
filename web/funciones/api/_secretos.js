@@ -17,8 +17,11 @@
 
 /** `{ firmar, aceptar }`: el secreto con que se firma ahora y todos los que se aceptan al comprobar. */
 export function secretosDeLicencia(env = {}) {
-  const firmar = env.LICENCIA_SECRETO || env.GOOGLE_CLIENT_SECRET || '';
-  const aceptar = [...new Set([firmar, env.LICENCIA_SECRETO_ANTERIOR].filter(Boolean))];
+  // Sin espacios ni saltos de línea al principio o al final (revisión del 5-11-2026): un secreto pegado con un salto de
+  // línea en un panel y sin él en el otro hacía que Netlify y Cloudflare firmaran con llaves distintas.
+  const limpio = v => String(v ?? '').trim();
+  const firmar = limpio(env.LICENCIA_SECRETO) || limpio(env.GOOGLE_CLIENT_SECRET);
+  const aceptar = [...new Set([firmar, limpio(env.LICENCIA_SECRETO_ANTERIOR)].filter(Boolean))];
   return { firmar, aceptar };
 }
 

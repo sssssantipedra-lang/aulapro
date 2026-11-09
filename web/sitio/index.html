@@ -517,6 +517,18 @@ html:not(.store-open) .after-launch{display:none!important}
 @media (max-width:1100px){.store-open .links a[href="#privacidad"]{display:none}}
 @media (pointer:coarse){.store{min-height:52px}}
 
+/* ---------- Acceso anticipado gratuito (5-11-2026): lo activa assets/launch.js (`acceso`) poniendo la clase .early en <html> ---------- */
+.early-bar,.early-sheet{display:none}
+.early{--bar-h:42px;--nav-h:calc(68px + var(--bar-h))}
+.early .early-bar{display:flex;position:fixed;top:0;left:0;right:0;z-index:60;height:var(--bar-h);align-items:center;justify-content:center;gap:.5em .9em;padding:0 var(--gutter);background:var(--ink);color:#fbf8f3;font-size:.86rem;line-height:1.25;text-align:center}
+.early-bar b{font-weight:600;white-space:nowrap}
+.early-bar a{color:#fff;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.early .nav{top:var(--bar-h);height:68px}
+.early .skip:focus{top:calc(var(--bar-h) + 8px)}
+.early .early-sheet{display:block}
+.early .price-sheet:not(.early-sheet){display:none}
+@media (max-width:760px){.early{--bar-h:70px}.early-bar{flex-direction:column;gap:2px;font-size:.78rem;padding-top:6px;padding-bottom:6px}.early-bar a{display:none}}
+
 /* ---------- S8: questions ---------- */
 .faq{margin-top:.4rem}
 .faq details{border-bottom:1px solid var(--line)}
@@ -660,6 +672,9 @@ html.zoom-open{overflow:hidden}
 <body>
 <a class="skip" href="#main" data-i18n="skip">Saltar al contenido</a>
 
+<!-- Acceso anticipado gratuito: solo se ve con `acceso` en assets/launch.js y la venta cerrada (clase .early) -->
+<div class="early-bar" role="note"><b data-i18n="early.t">Versión de lanzamiento gratuita</b><span data-i18n="early.s">Pruébala gratis y sin tarjeta hasta el 1 de enero de 2027. Después será de pago.</span><a href="#lanzamiento" data-i18n="early.more">Saber más</a></div>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
     <linearGradient id="mark-bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#863bff"/><stop offset="1" stop-color="#47bfff"/></linearGradient><linearGradient id="mark-ck" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e14ff"/><stop offset="1" stop-color="#47bfff"/></linearGradient>
@@ -690,7 +705,7 @@ html.zoom-open{overflow:hidden}
     <button type="button" data-lang="en" aria-pressed="false" lang="en">EN</button>
   </div>
   <a class="btn ghost nav-login" href="app/" data-i18n="nav.login">Iniciar sesión</a>
-  <a class="btn" href="#precio" data-i18n="cta.want">Quiero AulaPro</a>
+  <a class="btn" href="#precio" data-early-cta data-i18n="cta.want">Quiero AulaPro</a>
 </header>
 
 <main id="main" tabindex="-1">
@@ -717,7 +732,7 @@ html.zoom-open{overflow:hidden}
             <p class="semana-ok"><span aria-hidden="true">✓</span> <span data-i18n="hk.done">Todo listo para revisar.</span></p>
           </div>
           <div class="cta-row">
-            <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+            <a class="btn" href="#precio" data-early-cta><span data-i18n="cta.want">Quiero AulaPro</span></a>
             <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span aria-hidden="true">↓</span></a>
           </div>
           <p class="price-line mono" data-i18n="static.price">Oferta de lanzamiento: 9,90&nbsp;€ el primer año.</p>
@@ -763,7 +778,7 @@ html.zoom-open{overflow:hidden}
         <div class="beat beat-strip" data-a=".9" data-b="1">
           <p class="strip-t" data-i18n="b5.more">Sigue descubriendo AulaPro</p>
           <div class="cta-row">
-            <a class="btn" href="#precio"><span data-i18n="cta.want">Quiero AulaPro</span></a>
+            <a class="btn" href="#precio" data-early-cta><span data-i18n="cta.want">Quiero AulaPro</span></a>
             <a class="btn ghost" href="#funciones"><span data-i18n="cta.how">Ver cómo funciona</span> <span aria-hidden="true">↓</span></a>
           </div>
         </div>
@@ -953,7 +968,7 @@ html.zoom-open{overflow:hidden}
         <li class="rise" style="--d:100"><span class="ico" style="--c:#f59e0b" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></span><b data-i18n="s4.t1">Anotar actitud</b><p data-i18n="s4.t1d">Toda la clase en una lista: participa, sin tarea, comportamiento… Un toque y cuenta sola en el cuaderno, con la racha de cada alumno.</p></li>
         <li class="rise" style="--d:180"><span class="ico" style="--c:#10b981" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span><b data-i18n="s4.t2">Distribución de aula</b><p data-i18n="s4.t2d">Mesas cooperativas o cuadradas, grupos, roles y rotación semanal.</p></li>
         <li class="rise" style="--d:260"><span class="ico" style="--c:#0ea5e9" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></span><b data-i18n="s4.t3">Pizarra y herramientas</b><p data-i18n="s4.t3d">Dibuja con lápiz, rotulador, subrayador y borrador y abre hasta 24 ventanas: temporizador, ruleta con memoria, grupos, dados, calculadora… Con fondos, escenas guardadas y retos para proyectar.</p></li>
-        <li class="rise" style="--d:340"><span class="ico" style="--c:#8b5cf6" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></span><b data-i18n="s4.t4">Actividades con móviles</b><p data-i18n="s4.t4d">Tu alumnado se conecta desde un dispositivo escaneando un código QR, a través de la wifi del aula.</p></li>
+        <li class="rise" style="--d:340"><span class="ico" style="--c:#8b5cf6" aria-hidden="true"><svg viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg></span><b data-i18n="s4.t4">Asistencia</b><p data-i18n="s4.t4d">Pasa lista en un toque: AulaPro abre la clase que te toca según tu horario.</p></li>
       </ul>
     </div>
   </section>
@@ -969,11 +984,11 @@ html.zoom-open{overflow:hidden}
       <div>
         <p class="kicker rise" data-i18n="s5.kicker">Privacidad</p>
         <h2 class="h2 rise" style="--d:80" data-i18n="s5.title">Los datos de tu alumnado, en su sitio.</h2>
-        <p class="lede rise" style="--d:160" data-i18n="s5.lede">Su sitio es tu equipo. AulaPro no tiene cuentas ni servidor.</p>
+        <p class="lede rise" style="--d:160" data-i18n="s5.lede">Su sitio es tu dispositivo y, si lo eliges, tu Google Drive u OneDrive. Nunca un servidor de AulaPro.</p>
         <ul class="ticklist">
-          <li class="rise" style="--d:220"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p1">Sin registro ni contraseña.</span></li>
+          <li class="rise" style="--d:220"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p1">Entras con tu cuenta de Google o de Microsoft, sin otra contraseña.</span></li>
           <li class="rise" style="--d:290"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p2">Antes de usar la IA, los nombres se sustituyen por códigos.</span></li>
-          <li class="rise" style="--d:360"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p3">Tu clave de Google se guarda cifrada.</span></li>
+          <li class="rise" style="--d:360"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p3">Tu clave de la IA se queda en tu navegador: AulaPro no la ve.</span></li>
           <li class="rise" style="--d:430"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p4">Copia de seguridad automática cada 10 minutos.</span></li>
           <li class="rise" style="--d:500"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p5">Trabajo compartido con otros docentes mediante un archivo cifrado con contraseña, sin conexión entre equipos.</span></li>
           <li class="rise" style="--d:570"><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="s5.p6">Lo que creas se autoguarda en tu equipo: si se cierra a medias, continúas donde lo dejaste.</span></li>
@@ -995,6 +1010,24 @@ html.zoom-open{overflow:hidden}
   </section>
 
   <section class="sec" id="precio">
+    <div class="price-sheet early-sheet rise" id="lanzamiento">
+      <p class="kicker" data-i18n="el.k">Acceso gratuito de lanzamiento</p>
+      <h2 class="sr" data-i18n="el.t">Prueba AulaPro gratis y sin tarjeta hasta el 1 de enero de 2027. Después, 9,90&nbsp;€ el primer año y luego 14,99&nbsp;€ al año.</h2>
+      <p class="price" aria-hidden="true" data-i18n="el.price">0&nbsp;€</p>
+      <p class="once" aria-hidden="true"><span data-i18n="el.once">Sin tarjeta.</span><svg class="wipe" style="--d:500" viewBox="0 0 200 16" preserveAspectRatio="none"><path pathLength="1" d="M3 10c30-5 62-7 96-5s70 3 98 0"/></svg></p>
+      <p class="save" data-i18n="el.save">Después del 1 de enero de 2027: 9,90&nbsp;€ el primer año</p>
+      <p class="lede" data-i18n="el.l">Sin tarjeta y sin pagar, del 10 de noviembre de 2026 al 1 de enero de 2027. Después se cierra el acceso gratuito y hay que suscribirse: con la oferta de lanzamiento, 9,90&nbsp;€ el primer año si te suscribes hasta el 15 de abril de 2027, y después 14,99&nbsp;€ al año, con el IVA incluido.</p>
+      <ul class="ticklist">
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i1">No hace falta ninguna tarjeta</span></li>
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i2">Ordenador, tableta y móvil, con todas las funciones</span></li>
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i3">Cancelas cuando quieras</span></li>
+        <li><svg class="draw" aria-hidden="true"><use href="#tick"/></svg><span data-i18n="el.i4">Tu trabajo es tuyo: lo descargas cuando quieras</span></li>
+      </ul>
+      <div class="stores">
+        <a class="store store-web" data-store="web" href="#quiero"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-7v2h3v2H7v-2h3v-2H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 2v9h16V6z"/></svg><span><small data-i18n="buy.soon">Próximamente</small><b data-i18n="buy.web">Ordenador, tableta y móvil</b></span></a>
+      </div>
+      <p class="buy-small" data-i18n="el.n">Cuando se cierre el acceso gratuito, la aplicación se bloquea hasta que te suscribas. Nada se cobra solo.</p>
+    </div>
     <div class="price-sheet rise">
       <p class="kicker" data-i18n="s7.kicker">Precio de lanzamiento</p>
       <h2 class="sr" data-i18n="s7.title">9,90&nbsp;€ el primer año, con la oferta de lanzamiento.</h2>
@@ -1038,14 +1071,14 @@ html.zoom-open{overflow:hidden}
       </div>
       <div class="faq rise" style="--d:160">
         <details><summary><span data-i18n="q1">¿Está pensada para Educación Primaria y Secundaria?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a1">Sí. AulaPro está diseñada para maestros y maestras de Educación Primaria, profesorado de Educación Secundaria y estudiantes de Magisterio, sobre el currículo LOMLOE.</p></details>
-        <details><summary><span data-i18n="q2">¿Qué puede crear la IA?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a2">Situaciones de aprendizaje, rúbricas, dianas, informes de competencias clave, fichas, comprensión lectora y escape rooms. También propone evaluaciones a partir de un trabajo o de las fotos de un examen y lee tu horario desde una imagen.</p></details>
+        <details><summary><span data-i18n="q2">¿Qué puede crear la IA?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a2">Situaciones de aprendizaje, rúbricas, dianas, informes de competencias clave, fichas, comprensión lectora y escape rooms. También lee tu horario desde una imagen. La IA no pone notas: lo que propone lo revisas y lo decides tú.</p></details>
         <details><summary><span data-i18n="q12">¿Incluye el currículo de mi comunidad?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a12">Sí, para cuatro comunidades. Con el perfil de Andalucía, la Comunitat Valenciana, Cataluña o Madrid, AulaPro lleva el currículo de Primaria y de la ESO de esa comunidad y su calendario escolar en la Agenda (en Andalucía, el de tu provincia; el de Jaén, en cuanto esté disponible). En las demás comunidades usa el currículo estatal (Reales Decretos 157/2022 y 217/2022).</p></details>
         <details><summary><span data-i18n="q13">¿Sirve para PT y AL o para Educación Física?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a13">Sí. Al crear tu perfil eliges si eres docente de aula, de PT y AL o de Educación Física, con tutoría o sin ella, y AulaPro adapta el menú: registro diario, programas y coordinaciones para el alumnado de apoyo, o la pista, los equipos, las pruebas físicas y los circuitos en Educación Física. En PT y AL, además, anotas lo que dice el informe del orientador y la IA propone los programas del alumno (los objetivos del informe entran tal cual, y AulaPro no guarda ni pide su diagnóstico), cierras cada trimestre y preparas de una vez los documentos de todo el alumnado, incluida la adaptación de la programación de aula de cada área. En Educación Física, además, preparas sesiones y situaciones de aprendizaje con IA, dibujas el circuito en una pizarra con su banco de material, haces equipos equilibrados y registras las pruebas físicas. Tú lo revisas todo.</p></details>
         <details><summary><span data-i18n="q3">¿La IA tiene coste?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a3">Con el plan gratuito de Google, no. Tienes unas 20 peticiones al día con el modelo Flash para las tareas grandes. Si se agotan, la aplicación continúa con Flash-Lite hasta las 9:00.</p></details>
         <details><summary><span data-i18n="q4">¿La IA ve los nombres de mis alumnos?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a4">No. Antes de enviar nada, AulaPro sustituye los nombres por códigos.</p></details>
         <details><summary><span data-i18n="q5">¿Tengo que crear una cuenta?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a5">Sí, en un clic: entras con tu cuenta de Google o de Microsoft. Así tienes AulaPro en todos tus dispositivos y, si compras con ese correo, la licencia se activa sola.</p></details>
-        <details><summary><span data-i18n="q6">¿Dónde se guardan los datos de mi alumnado?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a6">Se guardan en tu propia cuenta de Google Drive o de OneDrive, a tu elección, y también puedes guardarlos solo en una carpeta de tu ordenador. Nunca en servidores de AulaPro.</p></details>
-        <details><summary><span data-i18n="q7">¿Es una suscripción?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a7">Sí, una suscripción anual. Si te suscribes hasta el 15 de abril de 2027, el primer año cuesta 9,90&nbsp;€; después, 14,99&nbsp;€ al año. La puedes cancelar cuando quieras: sigues usando AulaPro hasta el final del año pagado. Si no renuevas, tu cuenta se bloquea hasta que renueves, pero tu trabajo no se borra.</p></details>
+        <details><summary><span data-i18n="q6">¿Dónde se guardan los datos de mi alumnado?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a6">En el navegador de tu dispositivo y, si lo eliges, también en tu propio Google Drive u OneDrive o en una carpeta de tu ordenador. Nunca en servidores de AulaPro.</p></details>
+        <details><summary><span data-i18n="q7">¿Es una suscripción?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a7">Sí, una suscripción anual, y hasta el 1 de enero de 2027 puedes usarla gratis, sin tarjeta. Si te suscribes hasta el 15 de abril de 2027, el primer año cuesta 9,90 €; después, 14,99 € al año. La puedes cancelar cuando quieras: sigues usando AulaPro hasta el final del año pagado. Si no renuevas, tu cuenta se bloquea hasta que renueves, pero tu trabajo no se borra.</p></details>
         <details><summary><span data-i18n="q8">¿En qué dispositivos funciona?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a8">En cualquiera con un navegador moderno: ordenadores con Windows o Mac, tabletas y móviles Android, iPad e iPhone. No hay que instalar nada, aunque puedes añadirla a la pantalla de inicio como una app.</p></details>
         <details><summary><span data-i18n="q10">¿Y si no me convence?</span><i aria-hidden="true"></i></summary><p class="a" data-i18n="a10">Tienes 14 días desde la compra para pedir la devolución, sin preguntas. Todos los detalles están en las <a href="condiciones.html" data-lang-link="condiciones.html">condiciones de venta</a>.</p></details>
       </div>
@@ -1081,7 +1114,7 @@ html.zoom-open{overflow:hidden}
         <input type="hidden" name="idioma" id="f-lang" value="es">
         <label class="consent"><input type="checkbox" id="f-ok" name="acepta_privacidad" value="si"><span data-i18n="f.consent">He leído y acepto la <a href="privacidad.html" data-lang-link="privacidad.html">política de privacidad</a>.</span></label>
         <button class="btn" type="submit"><span data-i18n="cta.want">Quiero AulaPro</span></button>
-        <p class="note legal" data-i18n="f.legal">Responsable: Santiago Pedra Calás. Finalidad: avisarte cuando AulaPro salga a la venta. Tus datos se guardan en Formspree (EE. UU.) y no se ceden a nadie más. Puedes acceder a ellos, corregirlos o borrarlos escribiendo a contacto@aulapro.app.</p>
+        <p class="note legal" data-i18n="f.legal">Responsable: Santiago Pedra Calás. Finalidad: avisarte del lanzamiento de AulaPro y de cuándo sale a la venta. Tus datos se guardan en Formspree (EE. UU.) y no se ceden a nadie más. Puedes acceder a ellos, corregirlos o borrarlos escribiendo a contacto@aulapro.app.</p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </form>
       </div>

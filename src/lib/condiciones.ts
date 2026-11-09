@@ -6,9 +6,9 @@
  * la licencia de la cuenta (`platform/cuentaWeb.ts` y `web/funciones/api/_aceptacion.js`), que la anota con una huella
  * del correo. Si cambian las condiciones o la privacidad de forma que haya que volver a aceptarlas, se sube
  * `VERSION_CONDICIONES` (la fecha del cambio) y la app vuelve a pedir la casilla a todo el mundo
- * (`components/AceptarCondiciones.tsx`).
+ * (`components/AceptarCondiciones.tsx`). La del 10-11-2026 añade el registro de usuarios y de uso (`web/funciones/api/_usuarios.js`).
  */
-export const VERSION_CONDICIONES = '2026-11-03';
+export const VERSION_CONDICIONES = '2026-11-10';
 
 const CLAVE = 'aulapro_condiciones';
 

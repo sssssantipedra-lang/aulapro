@@ -249,4 +249,58 @@ describe('licencia firmada al abrir (versión web)', () => {
     await createAndroidLicense(s, { enforced: true, verificar: async r => r.firma === 'f', alValer, post }).state();
     expect(alValer).toHaveBeenCalledTimes(2);
   });
+
+  it('solo se pierde la licencia con un veredicto de la tienda: un 429 del tope, un 404 del alojamiento o un portal cautivo no la tocan (5-11-2026)', async () => {
+    const perdidas: number[] = [];
+    const abrir = async (s: ReturnType<typeof secrets>, respuesta: { status: number; body: unknown } | null) => {
+      const call = async () => respuesta as never;
+      const lic = createAndroidLicense(s, { enforced: true, post: call, comprobarCada: 0, alPerder: () => { perdidas.push(1); } });
+      return lic.revisar!();
+    };
+    const guardada = () => {
+      const s = secrets();
+      s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'licencia', key: 'K', instanceId: 'ins-1', activatedAt: '2026-11-01T00:00:00Z', lastOkAt: '2026-11-01T00:00:00Z' }));
+      return s;
+    };
+    for (const r of [
+      { status: 429, body: { error: 'limite' } },          // el tope por IP del propio servidor (un claustro entero a la vez)
+      { status: 404, body: {} },                            // la función no está desplegada: página de error del alojamiento
+      { status: 200, body: {} },                            // un portal cautivo que contesta HTML (res.json() falla)
+      { status: 401, body: { error: 'proxy' } },            // un proxy escolar
+      { status: 503, body: {} },
+      null,                                                 // sin conexión
+    ]) {
+      const s = guardada();
+      expect(await abrir(s, r)).toMatchObject({ required: false, status: 'activa' });
+      expect(s.mem.get('licencia')).toBeDefined();
+    }
+    expect(perdidas).toEqual([]);
+    // La tienda (o la lista de bloqueadas del servidor) dice que no vale: se pierde
+    for (const r of [
+      { status: 400, body: { valid: false, error: 'license key expired', license_key: { status: 'expired' } } },
+      { status: 200, body: { valid: false, error: 'license_key_disabled', license_key: { status: 'disabled' } } },
+      { status: 404, body: { valid: false, error: 'license_key_not_found' } },
+    ]) {
+      const s = guardada();
+      expect(await abrir(s, r)).toMatchObject({ required: true });
+      expect(s.mem.get('licencia')).toBeUndefined();
+    }
+    expect(perdidas).toHaveLength(3);
+  });
+
+  it('la firma de un fundador se renueva con su cuenta cuando le quedan menos de 2 días, también con la app abierta (5-11-2026)', async () => {
+    const firmaCon = (dias: number) => `${btoa(JSON.stringify({ t: 'cuenta', fundador: true, exp: Math.floor(Date.now() / 1000) + dias * 86400 })).replace(/=+$/, '')}.sello`;
+    const renovaciones: number[] = [];
+    const abrir = (dias: number) => {
+      const s = secrets();
+      s.mem.set('licencia', JSON.stringify({ v: 1, kind: 'fundador', cuenta: true, activatedAt: '2026-11-01T00:00:00Z', firma: firmaCon(dias) }));
+      return createAndroidLicense(s, { enforced: true, verificar: async () => true, post: async () => null, renovarCuenta: async () => { renovaciones.push(1); return { key: 'fundador', firma: firmaCon(7) }; } });
+    };
+    expect((await abrir(5).revisar!()).firmaHasta! - Date.now()).toBeLessThan(5.1 * 86400_000);
+    expect(renovaciones).toEqual([]);
+    const s = await abrir(1).revisar!();
+    expect(renovaciones).toEqual([1]);
+    expect(s).toMatchObject({ required: false, status: 'fundador', origen: 'cuenta' });
+    expect(s.firmaHasta! - Date.now()).toBeGreaterThan(6.9 * 86400_000);
+  });
 });

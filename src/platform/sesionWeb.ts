@@ -15,6 +15,7 @@ const HUELLA = 'aulapro_sesion_huella';
 /** Se renueva cuando le quedan menos de 2 días (la firma, y con ella la sesión, dura 7). */
 const MARGEN = 2 * 24 * 60 * 60 * 1000;
 const API = '/api/licencia/sesion';
+const REINTENTO = 'aulapro_sesion_reintento';
 
 async function huellaDe(texto: string): Promise<string> {
   const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto)));
@@ -52,6 +53,8 @@ export async function pedirSesion(firma: string | undefined, f: typeof fetch = f
     if (r.ok) {
       const { hasta } = await r.json();
       try { localStorage.setItem(HASTA, String(Number(hasta) || 0)); localStorage.setItem(HUELLA, huella); } catch { /* sin almacenamiento */ }
+      // Con sesión nueva, la próxima vez que falte un bloque se podrá volver a recargar (5-11-2026: el marcador no caducaba nunca)
+      try { sessionStorage.removeItem(REINTENTO); } catch { /* sin almacenamiento */ }
       ok = true;
     }
   } catch { /* sin conexión */ } finally {
@@ -87,8 +90,8 @@ export function vigilarSesion() {
     // Con la suscripción terminada, que falte el código es lo esperado: nada de recargar
     if (bloqueada) return;
     try {
-      if (sessionStorage.getItem('aulapro_sesion_reintento')) return;
-      sessionStorage.setItem('aulapro_sesion_reintento', '1');
+      if (sessionStorage.getItem(REINTENTO)) return;
+      sessionStorage.setItem(REINTENTO, '1');
       localStorage.removeItem(HASTA);
     } catch { return; }
     location.reload();

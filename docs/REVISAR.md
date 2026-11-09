@@ -15,6 +15,28 @@ El 2-11-2026 la vigilancia vio que la puerta de pago de aulapro.app dejaba salir
 5. **Qué ve quien no renueva una licencia anual** (las primeras vencen hacia el 16-4-2028). Los datos nunca se bloquean; falta decidir qué deja de funcionar (`docs/MANTENIMIENTO.md`).
 6. **Claves compartidas (auditoría del 1-11-2026).** `/api/licencia/validate` sin número de activación devuelve una licencia firmada (lo usa la licencia de la cuenta para renovarse sin token de Google). Con eso, quien tenga una clave ajena y sepa programar puede usarla en más de 2 dispositivos sin activarla. Cerrarlo obliga a cambiar cómo se renueva la licencia de la cuenta (con el token de Google o de Microsoft), y no se ha tocado a días de abrir la venta. Decidir si se cierra después del lanzamiento.
 
+## 1 ter. Registro de usuarios y de uso (publicado el 10-11-2026)
+
+Petición del dueño: saber quién usa AulaPro (con su correo) y cuánto. Publicado a las 00:00 del 10-11-2026 con la salida de la app, por decisión del dueño: `CLAUDE.md` («Registro de usuarios y de uso»). Pendiente:
+
+- [ ] **Que el abogado del dueño revise** (ya publicado sin su revisión; si cambia algo, se sube `VERSION_CONDICIONES`) el párrafo nuevo de la privacidad («Registro de usuarios y de uso», versión web, apartado 5, y los cambios de los apartados 1, 2 y 4) y el de las condiciones (apartado 8, «Tu cuenta y tu uso»), en los tres idiomas. Preguntas para él: si el interés legítimo cubre medir el uso y los avisos del servicio; si hace falta una evaluación de ese interés por escrito; si basta con el enlace a la privacidad de la casilla de entrada o conviene una frase en la propia pantalla; y si el plazo de 12 meses es adecuado.
+- [x] ~~Fusionar la rama en `master`~~: 10-11-2026 a las 00:00, con `VERSION_CONDICIONES` y «Última actualización» del 10-11-2026.
+- [ ] **Encender el registro** (`REGISTRO_USUARIOS=si`) y crear `USUARIOS_INFORME_SECRETO` en Netlify y Cloudflare (lo hace el dueño; si se ponen después de la publicación, hace falta volver a publicar para que las funciones las lean). Comprobar con `node scripts/usuarios.mjs` que aparece la cuenta del dueño tras entrar.
+- [ ] **Antes de escribir a los docentes** (p. ej., el aviso de que el acceso gratuito termina el 1-1-2027): elegir un servicio de envío con dirección de aulapro.app (Brevo, Resend o similar), configurar SPF y DKIM (`docs/DNS.md`) y añadirlo a la privacidad («Quién más interviene») antes del primer envío. Nunca desde el Gmail del dueño.
+- [ ] **Quien no entró después de encender el registro no está en él**: los docentes de la beta que entren antes de esa fecha se apuntan la primera vez que vuelvan a abrir AulaPro.
+
+## 1 bis. Acceso anticipado gratuito (5-11-2026)
+
+Decidido por el dueño: la app sale el 10-11-2026 sin cobrar y la venta se abre más adelante, sin fecha. Detalle en `CLAUDE.md` («Acceso anticipado gratuito y apertura de la venta»). Pendiente:
+
+- [ ] **Lemon Squeezy:** los tres productos (individual y packs de 5 y 10) en borrador desde su panel, hasta el día de abrir la venta. Los enlaces de pago estuvieron publicados. Solo el dueño.
+- [ ] **Probar en la rama de Cloudflare** (`prueba.aulapro-app.pages.dev`) con una cuenta de Google y otra de Microsoft reales: que entra sin pagar y que, con `CONFIG_BETA.abierta: false` en esa rama, se bloquea y sale el botón de compra. La simulación automática usa un Google falso.
+- [ ] **El aviso a la lista de espera** de que ya hay acceso anticipado: es un envío externo, con aprobación del dueño. Revisar con su abogado que la finalidad del formulario («información sobre ese lanzamiento») lo cubre.
+- [ ] **Día de abrir la venta:** `node scripts/abrir-venta.mjs --aplicar`, pasos en `docs/MANTENIMIENTO.md` («Abrir la venta y bloquear a quien entró gratis»).
+- [ ] **Fecha anunciada del fin del acceso gratuito: el 1 de enero de 2027** (decisión del dueño, 9-11-2026; antes, «a partir de enero de 2027»). El servidor no la hace cumplir. **Ese día, abrir la venta** (`node scripts/abrir-venta.mjs --aplicar`), **o antes, cambiar la fecha** en la portada y la app en los tres idiomas (`docs/MANTENIMIENTO.md`), o la web diría algo falso.
+- [ ] **Poner `CLAVES_INFORME_SECRETO` en Netlify y Cloudflare** (si aún no está) para leer las altas del acceso anticipado con `node scripts/altas-beta.mjs` (9-11-2026).
+- [x] ~~**Precio: 9,90 € o 14,99 €.**~~ Decidido por el dueño el 5-11-2026: **se mantiene la oferta de lanzamiento** (9,90 € el primer año hasta el 15-4-2027; después, 14,99 € al año). La tarjeta de la beta, el aviso de la app, las condiciones y la privacidad lo dicen igual desde la auditoría del mismo día.
+
 ## 2. Antes del 10-11: lo que solo puede hacer el dueño
 
 De la lista «Antes de abrir ventas» de `docs/MANTENIMIENTO.md`, más lo que ha salido después.

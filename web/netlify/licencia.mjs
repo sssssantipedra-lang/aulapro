@@ -3,16 +3,18 @@
 // de aulapro.app la llama cuando Cloudflare no responde.
 import { clavePublica } from '../funciones/api/_firma.js';
 import { responderSesion } from '../funciones/api/_sesion.js';
-import { conFirma } from '../funciones/api/licencia/[accion].js';
+import { conFirma, desactivarEnTienda } from '../funciones/api/licencia/[accion].js';
 import { corsPara } from '../funciones/api/_origenes.js';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { anotarComprobacion, cortarAlTope, responderInforme } from '../funciones/api/_vigilancia.js';
-import { almacenBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { almacenBlobs, altasBlobs, bloqueosBlobs, usuariosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { responderAltas } from '../funciones/api/_altas.js';
+import { registroActivo, responderUso, responderUsuarios } from '../funciones/api/_usuarios.js';
 import { estaBloqueada, responderAviso, responderEstado } from '../funciones/api/_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
-const CAMPOS = ['license_key', 'instance_name', 'instance_id'];
+const CAMPOS = ['license_key', 'instance_name', 'instance_id', 'tipo'];
 
 export default async (request, context) => {
   const cors = corsPara(request.headers.get('Origin'));
@@ -20,12 +22,22 @@ export default async (request, context) => {
   const accion = context.params.accion;
   const secretos = secretosDeNetlify(k => Netlify.env.get(k));
   // /api/licencia/sesion coincide también con esta ruta, y gana: se atiende aquí (1-11-2026, daba 404 en aulapro.app)
-  if (accion === 'sesion') return responderSesion(request, secretos);
+  if (accion === 'sesion') return responderSesion(request, secretos, Date.now(), key => estaBloqueada(bloqueosBlobs(), key));
   // El informe de claves compartidas (_vigilancia.js): solo con el secreto CLAVES_INFORME_SECRETO
   if (request.method === 'GET' && accion === 'sospechosas') return responderInforme(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), almacenBlobs(), cors);
+  // Las altas del acceso anticipado (_altas.js), con el mismo secreto
+  if (request.method === 'GET' && accion === 'altas') return responderAltas(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), altasBlobs(), cors);
+  // El registro de usuarios (_usuarios.js): el informe y los borrados, solo con USUARIOS_INFORME_SECRETO
+  if (accion === 'usuarios') return responderUsuarios(request, { secreto: Netlify.env.get('USUARIOS_INFORME_SECRETO'), almacen: usuariosBlobs() }, cors);
+  // El aviso de uso de la app (cada 15 minutos con uso activo): solo apunta algo con REGISTRO_USUARIOS=si
+  if (accion === 'uso') {
+    if (!(await dentroDeLimites([[`uso-ip:${context.ip || 'desconocida'}`, LIMITES.ip]]))) return respuestaLimite(cors);
+    return responderUso(request, { secretos, almacen: usuariosBlobs(), activo: registroActivo(Netlify.env.get('REGISTRO_USUARIOS')) }, cors);
+  }
   if (request.method === 'GET' && accion === 'clave') {
     return new Response(JSON.stringify({ x: await clavePublica(secretos) }), {
-      headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+      // Sin caché (5-11-2026): al cambiar la llave, una copia guardada una hora dejaba a la app sin poder comprobar las firmas nuevas
+      headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
     });
   }
   // El aviso de Lemon Squeezy (webhook): pone al día la lista de licencias bloqueadas (_bloqueos.js)
@@ -54,7 +66,7 @@ export default async (request, context) => {
   });
   const vigilar = () => anotarComprobacion(almacenBlobs(), key, ip).then(r => r.pasada && cortarAlTope(Netlify.env.get('CLAVES_CORTAR_AL_TOPE')));
   const bloqueada = () => estaBloqueada(bloqueosBlobs(), key);
-  return new Response(await conFirma(accion, salida, res, secretos, vigilar, bloqueada), {
+  return new Response(await conFirma(accion, salida, res, secretos, vigilar, bloqueada, desactivarEnTienda), {
     status: res.status,
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });

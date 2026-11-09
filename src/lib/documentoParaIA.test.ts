@@ -67,7 +67,7 @@ describe('leerDocumento', () => {
 
 describe('quitarIdentificadores', () => {
   it('quita correos, teléfonos, DNI y NIE', () => {
-    const r = quitarIdentificadores('Contacto: lucia.perez@gmail.com, 612 345 678, +34 963 12 34 56. DNI 12345678Z, NIE X1234567L.');
+    const r = quitarIdentificadores('Datos: lucia.perez@gmail.com, 612 345 678, +34 963 12 34 56. DNI 12345678Z, NIE X1234567L.');
     expect(r).not.toMatch(/gmail|612|963|12345678Z|X1234567L/);
     expect(r).toContain('[correo]');
     expect(r).toContain('[teléfono]');

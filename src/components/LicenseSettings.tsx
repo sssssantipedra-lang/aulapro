@@ -31,19 +31,31 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
   // Para saber por qué entra este navegador: de dónde viene la licencia, cuándo se comprobó y qué versión de la app corre
   const detalle = (
     <p className="lic-card-meta" style={{ marginTop: 8 }}>
-      {state.origen && <>{t(state.status === 'fundador' ? 'Fundador/a por tu correo' : state.origen === 'cuenta' ? 'Licencia de tu cuenta' : 'Clave escrita a mano')} · </>}
+      {state.origen && <>{t(state.status === 'fundador' ? 'Fundador/a por tu correo' : state.status === 'beta' ? 'Acceso anticipado gratuito' : state.origen === 'cuenta' ? 'Licencia de tu cuenta' : 'Clave escrita a mano')} · </>}
       {state.comprobada && <>{t('comprobada el {d}', { d: fecha(state.comprobada) })} · </>}
       {state.firmaHasta ? <>{t('sin conexión, vale hasta el {d}', { d: fecha(state.firmaHasta) })} · </> : null}
       {t('versión del {d}', { d: __APP_BUILD__ })}
     </p>
   );
 
+  if (state.status === 'beta') {
+    return (
+      <div className="card lic-card">
+        <div className="lic-badge"><Heart size={15} />{t('Acceso anticipado gratuito')}</div>
+        <p className="lic-card-txt">
+          {t('Estás usando AulaPro gratis durante el acceso anticipado. Termina el 1 de enero de 2027, cuando se abra la venta: entonces tendrás que suscribirte para seguir entrando (con la oferta de lanzamiento, 9,90 € el primer año si te suscribes hasta el 15 de abril de 2027). Tu trabajo se queda en tu dispositivo y puedes descargarlo cuando quieras, con o sin suscripción.')}
+        </p>
+        {detalle}
+      </div>
+    );
+  }
+
   if (state.status === 'fundador') {
     return (
       <div className="card lic-card">
         <div className="lic-badge"><Heart size={15} />{t('Docente fundador/a')}</div>
         <p className="lic-card-txt">
-          {t('Usas AulaPro desde antes de que saliera a la venta, así que en este ordenador es gratis para siempre. ¡Gracias por ayudar a mejorarla!')}
+          {t('Usas AulaPro desde antes de que saliera a la venta, así que con tu cuenta es gratis para siempre. ¡Gracias por ayudar a mejorarla!')}
         </p>
         {since && <p className="lic-card-meta">{t('En este equipo desde el {d}', { d: since })}</p>}
         {detalle}
