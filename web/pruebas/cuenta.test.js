@@ -1,6 +1,21 @@
 // La licencia por el correo de la cuenta (web/funciones/api/licencia/cuenta.js): fundadores, la compra de la cuenta, la
 // suscripción terminada y la clave bloqueada, con Google y Lemon Squeezy de mentira. 6-11-2026.
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+// Escrita antes del acceso anticipado gratuito (5-11-2026): comprueba las compras, así que corre con la beta cerrada, como
+// tras abrir la venta. Con la beta abierta, cualquier cuenta recibe antes el acceso gratuito (ver beta-dia-de-venta.test.js).
+vi.mock('../funciones/api/_beta.js', async importOriginal => {
+  const real = await importOriginal();
+  const cerrada = { ...real.CONFIG_BETA, abierta: false };
+  return {
+    ...real,
+    CONFIG_BETA: cerrada,
+    betaVigente: (ahora = Date.now(), c = cerrada) => real.betaVigente(ahora, c),
+    caducidadBeta: (ahora = Date.now(), c = cerrada) => real.caducidadBeta(ahora, c),
+    licenciaBeta: (email, secretos, ahora = Date.now(), c = cerrada) => real.licenciaBeta(email, secretos, ahora, c),
+    estadoBeta: (ahora = Date.now(), c = cerrada) => real.estadoBeta(ahora, c),
+  };
+});
+
 import { onRequestPost } from '../funciones/api/licencia/cuenta.js';
 import { leerFirmaValida } from '../funciones/api/_firma.js';
 import { procesarAviso } from '../funciones/api/_bloqueos.js';

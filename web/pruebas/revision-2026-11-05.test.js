@@ -1,5 +1,20 @@
 // Revisión adversarial de la licencia web del 5-11-2026 (antes de abrir la venta): lo que se corrigió, probado.
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+// Escrita antes del acceso anticipado gratuito (5-11-2026): comprueba las compras, así que corre con la beta cerrada, como
+// tras abrir la venta. Con la beta abierta, cualquier cuenta recibe antes el acceso gratuito (ver beta-dia-de-venta.test.js).
+vi.mock('../funciones/api/_beta.js', async importOriginal => {
+  const real = await importOriginal();
+  const cerrada = { ...real.CONFIG_BETA, abierta: false };
+  return {
+    ...real,
+    CONFIG_BETA: cerrada,
+    betaVigente: (ahora = Date.now(), c = cerrada) => real.betaVigente(ahora, c),
+    caducidadBeta: (ahora = Date.now(), c = cerrada) => real.caducidadBeta(ahora, c),
+    licenciaBeta: (email, secretos, ahora = Date.now(), c = cerrada) => real.licenciaBeta(email, secretos, ahora, c),
+    estadoBeta: (ahora = Date.now(), c = cerrada) => real.estadoBeta(ahora, c),
+  };
+});
+
 import { secretosDeLicencia } from '../funciones/api/_secretos.js';
 import { firmar, clavePublica, leerFirmaValida } from '../funciones/api/_firma.js';
 import { responderSesion, leerSesion, COOKIE } from '../funciones/api/_sesion.js';

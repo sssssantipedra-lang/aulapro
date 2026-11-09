@@ -13,6 +13,22 @@
  * caducar se borra del dispositivo el código de la app pero nunca el trabajo.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// Escrita antes del acceso anticipado gratuito (5-11-2026): comprueba las compras, así que corre con la beta cerrada, como
+// tras abrir la venta. Con la beta abierta, cualquier cuenta recibe antes el acceso gratuito (ver beta-dia-de-venta.test.js).
+vi.mock('../../web/funciones/api/_beta.js', async importOriginal => {
+  type F = (...a: unknown[]) => never;
+  const real = await importOriginal<{ CONFIG_BETA: object; betaVigente: F; caducidadBeta: F; licenciaBeta: F; estadoBeta: F }>();
+  const cerrada = { ...real.CONFIG_BETA, abierta: false };
+  return {
+    ...real,
+    CONFIG_BETA: cerrada,
+    betaVigente: (ahora = Date.now(), c = cerrada) => real.betaVigente(ahora, c),
+    caducidadBeta: (ahora = Date.now(), c = cerrada) => real.caducidadBeta(ahora, c),
+    licenciaBeta: (email: string, secretos: unknown, ahora = Date.now(), c = cerrada) => real.licenciaBeta(email, secretos, ahora, c),
+    estadoBeta: (ahora = Date.now(), c = cerrada) => real.estadoBeta(ahora, c),
+  };
+});
+
 import { createAndroidLicense, type LicensePost, type LicenseRecord } from './androidLicense';
 import { crearVerificador } from './firmaLicencia';
 import { olvidarApp, pedirSesion } from './sesionWeb';
