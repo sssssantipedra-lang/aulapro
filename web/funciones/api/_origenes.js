@@ -15,6 +15,6 @@ export const ORIGENES = new Set([
 
 /** Las cabeceras CORS para la petición: el origen, si se reconoce, y nada si no (el navegador la bloquea). */
 export function corsPara(origen, metodos = 'POST, OPTIONS') {
-  const base = { 'Access-Control-Allow-Methods': metodos, 'Access-Control-Allow-Headers': 'Content-Type, Accept', Vary: 'Origin' };
+  const base = { 'Access-Control-Allow-Methods': metodos, 'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization', Vary: 'Origin' };
   return origen && ORIGENES.has(origen) ? { ...base, 'Access-Control-Allow-Origin': origen } : base;
 }
