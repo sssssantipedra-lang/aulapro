@@ -108,7 +108,8 @@ describe('puerta', () => {
     expect((await puerta(pedir('/app/assets/index-abc.js'), S, PUBLICO, servido(null))).status).toBe(200);
     expect((await puerta(pedir('/app/assets/no-existe.js'), S, PUBLICO, servido(null, 404))).status).toBe(404);
     expect((await puerta(pedir('/app/icono-192.png'), S, PUBLICO, servido('image/png'))).status).toBe(200);
-  }
+  });
+
   it('deja pasar lo que no lleva cuerpo (el paso previo de CORS y los 204), y nada más (10-11-2026)', async () => {
     const vacio = status => () => Promise.resolve(new Response(null, { status }));
     const opciones = new Request('https://aulapro-app.pages.dev/api/licencia/usuarios', { method: 'OPTIONS' });
