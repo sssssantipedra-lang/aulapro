@@ -1,0 +1,254 @@
+// Registro de usuarios y de uso (petición del dueño, 9-11-2026: «necesito saber el número de personas que se dan de alta y
+// el correo», «un motor que mida el uso real de cada uno»). Saber quién usa AulaPro y cuánto, para mejorarla y para poder
+// avisar a cada docente de lo que afecta a su servicio (por ejemplo, que termina el acceso gratuito).
+//
+// Qué se guarda de cada docente (y la privacidad lo explica, versión web, apartado 5):
+//   - el correo de la cuenta con la que entra (Google o Microsoft) y de cuál de las dos es;
+//   - el tipo de acceso (acceso anticipado, fundador o suscripción);
+//   - el día de alta, el día de la última vez y, por cada día que la usa, los minutos de uso activo (la app abierta, a la
+//     vista y con el docente tocándola; `src/platform/usoWeb.ts`).
+// Nada del trabajo del docente ni de su alumnado: el servidor no lo ve nunca.
+//
+// Cuándo se apunta: al entrar o al renovar la licencia de la cuenta (`licencia/cuenta`) y con el aviso de uso que manda la
+// app (`licencia/uso`), que lleva la licencia firmada: solo vale para la cuenta de esa firma, no se puede apuntar a otro.
+//
+// Cuánto dura: hasta 12 meses desde la última vez que se usó AulaPro (`PLAZO_USUARIO`); después se borra solo. También se
+// borra a petición (`borrarUsuario`), y quien se opone deja de apuntarse (`excluir`: se guarda solo una huella de su correo).
+//
+// EL INTERRUPTOR: nada de esto se guarda si la variable `REGISTRO_USUARIOS` no vale `si` en Netlify y en Cloudflare. Se
+// enciende el mismo día que se publica la privacidad que lo explica, nunca antes (docs/MANTENIMIENTO.md).
+//
+// Leerlo: `node scripts/usuarios.mjs` con `USUARIOS_INFORME_SECRETO` (GET /api/licencia/usuarios). Netlify y Cloudflare
+// apuntan cada uno lo suyo y el script los junta (`fusionar`).
+import { huella } from './_limite.js';
+import { leerFirmaValida } from './_firma.js';
+import { iguales } from './_vigilancia.js';
+import { diaDe } from './_altas.js';
+
+export const PLAZO_USUARIO = 365 * 24 * 3600;
+/** Lo más que suma un solo aviso de uso: la app manda uno cada 15 minutos; con margen por si se retrasa. */
+export const MAX_MINUTOS_AVISO = 30;
+const MAX_MINUTOS_DIA = 24 * 60;
+const TIPOS = new Set(['beta', 'fundador', 'pago', 'sin-licencia']);
+const CORREO = /^[^\s@]{1,64}@[^\s@]{1,255}$/;
+
+export const registroActivo = valor => String(valor ?? '').trim().toLowerCase() === 'si';
+const normal = email => String(email ?? '').trim().toLowerCase();
+const claveUsuario = email => `usuario:${normal(email)}`;
+const claveExcluido = async email => `no-registrar:${await huella(`correo:${normal(email)}`)}`;
+
+/** El tipo de acceso de una licencia firmada (`_firma.js`). */
+export const tipoDeFirma = datos => (datos?.beta ? 'beta' : datos?.fundador ? 'fundador' : datos?.key ? 'pago' : 'sin-licencia');
+
+async function actualizar(almacen, email, cambiar, ahora) {
+  const e = normal(email);
+  if (!almacen || !CORREO.test(e)) return false;
+  try {
+    if (await almacen.get(await claveExcluido(e))) return false;
+    const dia = diaDe(ahora);
+    const antes = (await almacen.get(claveUsuario(e))) ?? { email: e, alta: dia, dias: {} };
+    const u = { ...antes, dias: { ...(antes.dias ?? {}) } };
+    cambiar(u, dia);
+    u.ultima = ahora.toISOString();
+    u.hasta = new Date(ahora.getTime() + PLAZO_USUARIO * 1000).toISOString();
+    // Los días de hace más de 13 meses ya no sirven para nada
+    const limite = diaDe(new Date(ahora.getTime() - 400 * 86400_000));
+    for (const d of Object.keys(u.dias)) if (d < limite) delete u.dias[d];
+    await almacen.put(claveUsuario(e), u, PLAZO_USUARIO);
+    return true;
+  } catch {
+    return false;   // nunca se deja a nadie sin entrar por un fallo del registro
+  }
+}
+
+/** Al entrar o renovar la licencia de la cuenta: alta (la primera vez), día de uso y tipo de acceso. */
+export function anotarEntrada(almacen, { email, tipo, proveedor }, ahora = new Date()) {
+  return actualizar(almacen, email, (u, dia) => {
+    if (TIPOS.has(tipo)) u.tipo = tipo;
+    if (proveedor === 'google' || proveedor === 'microsoft') u.proveedor = proveedor;
+    u.dias[dia] ??= 0;
+  }, ahora);
+}
+
+/** El aviso de uso de la app: suma los minutos de uso activo de hoy. */
+export function anotarUso(almacen, { email, tipo }, minutos, ahora = new Date()) {
+  const m = Math.round(Number(minutos));
+  if (!Number.isFinite(m) || m < 1) return Promise.resolve(false);
+  return actualizar(almacen, email, (u, dia) => {
+    if (TIPOS.has(tipo)) u.tipo = tipo;
+    u.dias[dia] = Math.min(MAX_MINUTOS_DIA, (u.dias[dia] ?? 0) + Math.min(m, MAX_MINUTOS_AVISO));
+  }, ahora);
+}
+
+/** Borra el registro de un docente. Con `excluir`, además deja de apuntarse (se opone al registro). */
+export async function borrarUsuario(almacen, email, { excluir = false } = {}) {
+  const e = normal(email);
+  if (!almacen || !CORREO.test(e)) return false;
+  await almacen.del(claveUsuario(e));
+  if (excluir) await almacen.put(await claveExcluido(e), { fecha: new Date().toISOString() }, 0);   // «fecha», no «desde»: la purga de Netlify no la borra
+  return true;
+}
+
+export async function listarUsuarios(almacen) {
+  const out = [];
+  for (const k of await almacen.list('usuario:')) {
+    const u = await almacen.get(k);
+    if (u?.email) out.push(u);
+  }
+  return out;
+}
+
+/** Junta lo que apuntaron Netlify y Cloudflare: por correo, sumando los minutos de cada día. */
+export function fusionar(...listas) {
+  const porCorreo = new Map();
+  for (const u of listas.flat()) {
+    const a = porCorreo.get(u.email);
+    if (!a) { porCorreo.set(u.email, { ...u, dias: { ...(u.dias ?? {}) } }); continue; }
+    for (const [d, m] of Object.entries(u.dias ?? {})) a.dias[d] = Math.min(MAX_MINUTOS_DIA, (a.dias[d] ?? 0) + m);
+    if (u.alta < a.alta) a.alta = u.alta;
+    if (u.ultima > a.ultima) { a.ultima = u.ultima; a.tipo = u.tipo ?? a.tipo; a.proveedor = u.proveedor ?? a.proveedor; }
+  }
+  return [...porCorreo.values()];
+}
+
+// ---- El motor: qué dice el uso de cada docente ----
+
+const numDia = d => Date.UTC(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8, 10))) / 86400_000;
+const diaDeNum = n => new Date(n * 86400_000).toISOString().slice(0, 10);
+const lunesDe = d => { const n = numDia(d); return diaDeNum(n - ((new Date(n * 86400_000).getUTCDay() + 6) % 7)); };
+
+/**
+ * Lo que dice el uso de un docente el día `hoy` (AAAA-MM-DD):
+ * - `estado`: «nuevo» (se dio de alta hace menos de 7 días), «activo» (la usó en los últimos 7 días), «en riesgo» (hace
+ *   de 8 a 21 días) o «perdido» (hace más de 21).
+ * - `frecuencia`: días de uso por semana en las últimas 4 (o desde el alta): «habitual» (3 o más), «semanal» (1 o más)
+ *   u «ocasional».
+ * - `racha`: días seguidos de uso que acaban hoy o ayer.
+ */
+export function analizarUsuario(u, hoy) {
+  const h = numDia(hoy);
+  const dias = Object.entries(u.dias ?? {}).filter(([d]) => numDia(d) <= h).sort(([a], [b]) => a.localeCompare(b));
+  const usados = dias.map(([d]) => numDia(d));
+  const ultimoUso = usados.length ? usados[usados.length - 1] : numDia(u.alta);
+  const desdeAlta = h - numDia(u.alta);
+  const sinUsar = h - ultimoUso;
+  const en = n => dias.filter(([d]) => h - numDia(d) < n);
+  const ventana = Math.min(28, desdeAlta + 1);
+  const porSemana = (en(28).length / ventana) * 7;
+  let racha = 0;
+  if (sinUsar <= 1) for (let n = ultimoUso; usados.includes(n); n--) racha++;
+  return {
+    email: u.email,
+    tipo: u.tipo ?? '',
+    proveedor: u.proveedor ?? '',
+    alta: u.alta,
+    ultimoDia: diaDeNum(ultimoUso),
+    diasSinUsar: sinUsar,
+    diasDeUso: dias.length,
+    dias7: en(7).length,
+    dias30: en(30).length,
+    minutosTotales: dias.reduce((s, [, m]) => s + m, 0),
+    minutos7: en(7).reduce((s, [, m]) => s + m, 0),
+    racha,
+    porSemana: Math.round(porSemana * 10) / 10,
+    frecuencia: porSemana >= 3 ? 'habitual' : porSemana >= 1 ? 'semanal' : 'ocasional',
+    estado: desdeAlta < 7 ? 'nuevo' : sinUsar <= 7 ? 'activo' : sinUsar <= 21 ? 'en riesgo' : 'perdido',
+    // Si siguió usándola una semana después de darse de alta (null: aún no ha pasado una semana)
+    sigueTrasUnaSemana: desdeAlta < 7 ? null : usados.some(n => n >= numDia(u.alta) + 7),
+  };
+}
+
+/** El informe completo: cada docente (del alta más antigua a la más reciente, numerado) y el resumen. */
+export function analizar(usuarios, hoy) {
+  const filas = usuarios.map(u => analizarUsuario(u, hoy)).sort((a, b) => a.alta.localeCompare(b.alta) || a.email.localeCompare(b.email))
+    .map((f, i) => ({ n: i + 1, ...f }));
+  const cuenta = pred => filas.filter(pred).length;
+  const porTipo = {};
+  const porEstado = {};
+  for (const f of filas) { porTipo[f.tipo || 'sin dato'] = (porTipo[f.tipo || 'sin dato'] ?? 0) + 1; porEstado[f.estado] = (porEstado[f.estado] ?? 0) + 1; }
+  const semanas = new Map();
+  for (const f of filas) {
+    const s = lunesDe(f.alta);
+    const c = semanas.get(s) ?? { semana: s, altas: 0, conUnaSemana: 0, siguen: 0 };
+    c.altas++;
+    if (f.sigueTrasUnaSemana !== null) { c.conUnaSemana++; if (f.sigueTrasUnaSemana) c.siguen++; }
+    semanas.set(s, c);
+  }
+  return {
+    hoy,
+    resumen: {
+      usuarios: filas.length,
+      porTipo,
+      porEstado,
+      activosHoy: cuenta(f => f.diasSinUsar === 0 && f.diasDeUso > 0),
+      activos7: cuenta(f => f.dias7 > 0),
+      activos30: cuenta(f => f.dias30 > 0),
+      horas7: Math.round(filas.reduce((s, f) => s + f.minutos7, 0) / 6) / 10,
+      // Retención: de los que se dieron de alta cada semana, cuántos la siguieron usando una semana después
+      retencion: [...semanas.values()].sort((a, b) => a.semana.localeCompare(b.semana))
+        .map(c => ({ ...c, porcentaje: c.conUnaSemana ? Math.round((c.siguen / c.conUnaSemana) * 100) : null })),
+    },
+    usuarios: filas,
+  };
+}
+
+const COLUMNAS = ['n', 'email', 'tipo', 'proveedor', 'alta', 'ultimoDia', 'diasSinUsar', 'estado', 'frecuencia', 'porSemana', 'racha', 'diasDeUso', 'dias7', 'dias30', 'minutosTotales', 'minutos7'];
+const celda = v => { const s = String(v ?? ''); return /[",;\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""')}"` : s; };
+/** El informe en CSV (separado por punto y coma, como lo abre Excel en España). */
+export const aCsv = informe => [COLUMNAS.join(';'), ...informe.usuarios.map(f => COLUMNAS.map(c => celda(f[c])).join(';'))].join('\r\n');
+
+// ---- Lo que atienden las funciones ----
+
+const respuesta = (cuerpo, status, cors) => new Response(cuerpo == null ? null : JSON.stringify(cuerpo), {
+  status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+});
+
+/**
+ * `POST /api/licencia/uso` `{ firma, minutos }`: el aviso de uso de la app. Contesta 204 siempre (también con el registro
+ * apagado o una firma que no vale): a la app no le cambia nada y no hay nada que averiguar desde fuera.
+ */
+export async function responderUso(request, { secretos, almacen, activo }, cors = {}, ahora = new Date()) {
+  if (request.method !== 'POST') return respuesta({ error: 'metodo' }, 405, cors);
+  const { firma, minutos } = await request.json().catch(() => ({}));
+  if (activo && typeof firma === 'string' && firma.length < 4000) {
+    const datos = await leerFirmaValida(firma, secretos, ahora.getTime()).catch(() => null);
+    if (datos?.t === 'cuenta' && datos.email) await anotarUso(almacen, { email: datos.email, tipo: tipoDeFirma(datos) }, minutos, ahora);
+  }
+  return respuesta(null, 204, cors);
+}
+
+/**
+ * `GET /api/licencia/usuarios`: los registros, para `scripts/usuarios.mjs`. `POST` `{ accion: 'borrar' | 'excluir', correo }`:
+ * borra a un docente (y con «excluir», deja de apuntarlo). Solo con el secreto `USUARIOS_INFORME_SECRETO`; sin él, no existe.
+ */
+export async function responderUsuarios(request, { secreto, almacen }, cors = {}) {
+  if (!secreto) return new Response('Not found', { status: 404, headers: cors });
+  const dado = (request.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (!dado || !iguales(dado, secreto)) return respuesta({ error: 'no-autorizado' }, 401, cors);
+  if (!almacen) return respuesta({ error: 'almacen' }, 503, cors);
+  if (request.method === 'GET') return respuesta({ hoy: diaDe(), usuarios: await listarUsuarios(almacen) }, 200, cors);
+  if (request.method === 'POST') {
+    const { accion, correo } = await request.json().catch(() => ({}));
+    if (!['borrar', 'excluir'].includes(accion)) return respuesta({ error: 'accion' }, 400, cors);
+    const ok = await borrarUsuario(almacen, correo, { excluir: accion === 'excluir' });
+    return respuesta(ok ? { ok: true } : { error: 'correo' }, ok ? 200 : 400, cors);
+  }
+  return respuesta({ error: 'metodo' }, 405, cors);
+}
+
+/** El almacén sobre Cloudflare KV (el espacio `LIMITE`). `ttl` 0 = sin caducidad (la lista de quien se opuso). */
+export const usuariosKv = kv => (kv ? {
+  get: async k => { const v = await kv.get(k); return v == null ? null : JSON.parse(v); },
+  put: (k, v, ttl) => kv.put(k, JSON.stringify(v), ttl ? { expirationTtl: ttl } : undefined),
+  del: k => kv.delete(k),
+  list: async prefijo => {
+    const out = [];
+    let cursor;
+    do {
+      const r = await kv.list({ prefix: prefijo, cursor });
+      out.push(...r.keys.map(x => x.name));
+      cursor = r.list_complete ? undefined : r.cursor;
+    } while (cursor);
+    return out;
+  },
+} : null);

@@ -12,9 +12,10 @@ import { verificarTokenMicrosoft } from '../funciones/api/_microsoft.js';
 import { dentroDelLimite, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { estaBloqueada } from '../funciones/api/_bloqueos.js';
-import { aceptacionBlobs, altasBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { aceptacionBlobs, altasBlobs, bloqueosBlobs, usuariosBlobs } from '../lib-netlify/vigilancia.mjs';
 import { registrarAceptacion, versionValida } from '../funciones/api/_aceptacion.js';
 import { anotarAlta } from '../funciones/api/_altas.js';
+import { anotarEntrada, registroActivo } from '../funciones/api/_usuarios.js';
 import { licenciaBeta } from '../funciones/api/_beta.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
@@ -28,7 +29,7 @@ const json = (cuerpo, status, cors) => new Response(JSON.stringify(cuerpo), {
 export default async (request, context) => {
   const cors = corsPara(request.headers.get('Origin'));
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  const env = { LEMONSQUEEZY_API_KEY: Netlify.env.get('LEMONSQUEEZY_API_KEY'), FUNDADORES: Netlify.env.get('FUNDADORES') };
+  const env = { LEMONSQUEEZY_API_KEY: Netlify.env.get('LEMONSQUEEZY_API_KEY'), FUNDADORES: Netlify.env.get('FUNDADORES'), REGISTRO_USUARIOS: Netlify.env.get('REGISTRO_USUARIOS') };
   const secretos = secretosDeNetlify(k => Netlify.env.get(k));
 
   // Tope por IP generoso: un centro entero entra desde la misma wifi (ver LIMITES en funciones/api/_limite.js).
@@ -59,12 +60,20 @@ export default async (request, context) => {
   const registro = versionValida(acepta) ? await registrarAceptacion(aceptacionBlobs(), email, acepta) : null;
   const aceptacion = registro === null ? {} : { aceptacion: Boolean(registro) };
 
+  // El registro de usuarios (_usuarios.js), solo con REGISTRO_USUARIOS=si: quién entra, con qué acceso y qué días
+  const registrar = tipo => (registroActivo(env.REGISTRO_USUARIOS)
+    ? anotarEntrada(usuariosBlobs(), { email, tipo, proveedor: proveedor === 'microsoft' ? 'microsoft' : 'google' }) : null);
+
   const fundadores = String(env.FUNDADORES ?? '').split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
-  if (fundadores.includes(email)) return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
+  if (fundadores.includes(email)) {
+    await registrar('fundador');
+    return json({ fundador: true, firma: await firmar({ t: 'cuenta', email, fundador: true }, secretos), ...aceptacion }, 200, cors);
+  }
   // Acceso anticipado gratuito (beta, funciones/api/_beta.js): igual que en Cloudflare
   const beta = await licenciaBeta(email, secretos);
   if (beta) {
     // Una cuenta que entra por primera vez cuenta como alta del acceso anticipado, sin guardar quién es (_altas.js)
+    await registrar('beta');
     if (registro === 'nueva') await anotarAlta(altasBlobs());
     return json({ beta: true, firma: beta.firma, hasta: beta.hasta, ...aceptacion }, 200, cors);
   }
@@ -83,9 +92,13 @@ export default async (request, context) => {
       const a = k.attributes ?? {};
       // También la que Lemon Squeezy avisó que terminó, aunque su API aún no lo diga (_bloqueos.js)
       if (a.disabled || ['disabled', 'expired'].includes(a.status) || (await estaBloqueada(bloqueosBlobs(), a.key))) { vencida = true; continue; }
-      if (a.key) return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos), ...aceptacion }, 200, cors);
+      if (a.key) {
+        await registrar('pago');
+        return json({ key: a.key, firma: await firmar({ t: 'cuenta', email, key: a.key }, secretos), ...aceptacion }, 200, cors);
+      }
     }
   }
+  await registrar('sin-licencia');
   return json(vencida ? { key: null, vencida: true, ...aceptacion } : { key: null, ...aceptacion }, 200, cors);
 }
 

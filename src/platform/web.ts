@@ -31,6 +31,7 @@ import { crearVerificador, esperadoDeRegistro } from './firmaLicencia';
 import { LICENCIA_PERDIDA, pedirSesion, vigilarSesion } from './sesionWeb';
 import { cuentaActual, leerCuenta } from './cuentaWeb';
 import { pedirApi } from './servidores';
+import { usarFirmaParaUso } from './usoWeb';
 import { PESTANA_PERDIDA, reservarPestana } from './unaPestana';
 import { bloquearGuardado } from '../lib/guardadoBloqueado';
 import type { DocsBridge, DocsResult, StoreBridge, UpdateBridge } from '../types/electron';
@@ -243,9 +244,13 @@ export async function installWebBridge(opts: { pestanaReservada?: boolean } = {}
       comprobarCada: COMPROBAR_CLAVE_CADA,
       comprobarSinEsperar: true,
       consultarBloqueoCada: CONSULTAR_BLOQUEO_CADA,
-      alValer: async r => { await verificarFirma.precargar(); await pedirSesion(r.firma); },
+      alValer: async r => {
+        await verificarFirma.precargar(); await pedirSesion(r.firma);
+        // El uso activo, para el registro de usuarios del servidor (platform/usoWeb.ts): solo licencias de una cuenta
+        usarFirmaParaUso(r.cuenta && r.firma ? r.firma : null);
+      },
       // App.tsx (LicenseCheck) lo escucha y enseña la pantalla de licencia sin esperar a la próxima apertura
-      alPerder: () => window.dispatchEvent(new Event(LICENCIA_PERDIDA)),
+      alPerder: () => { usarFirmaParaUso(null); window.dispatchEvent(new Event(LICENCIA_PERDIDA)); },
     }),
     secrets: secretos,
   };

@@ -84,3 +84,21 @@ export function altasBlobs() {
     return null;
   }
 }
+
+/**
+ * El registro de usuarios y de uso (web/funciones/api/_usuarios.js). Cada docente lleva `hasta` (12 meses desde la última
+ * vez) y la purga lo borra al pasar; la lista de quien se opuso no lleva fecha de fin y se queda.
+ */
+export function usuariosBlobs() {
+  try {
+    const store = abrir('usuarios-aulapro', 0);
+    return {
+      get: k => store.get(k, { type: 'json' }),
+      put: (k, v) => store.setJSON(k, v),
+      del: k => store.delete(k),
+      list: async prefijo => (await store.list({ prefix: prefijo })).blobs.map(b => b.key),
+    };
+  } catch {
+    return null;
+  }
+}

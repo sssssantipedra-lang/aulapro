@@ -15,6 +15,7 @@ import { secretosDeLicencia } from '../_secretos.js';
 import { almacenKv, anotarComprobacion, cortarAlTope, responderInforme } from '../_vigilancia.js';
 import { bloqueosKv, estaBloqueada, responderAviso, responderEstado } from '../_bloqueos.js';
 import { altasKv, responderAltas } from '../_altas.js';
+import { registroActivo, responderUso, responderUsuarios, usuariosKv } from '../_usuarios.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id', 'tipo'];
@@ -29,6 +30,8 @@ export async function onRequestGet({ request, params, env }) {
   if (params.accion === 'sospechosas') return responderInforme(request, env.CLAVES_INFORME_SECRETO, almacenKv(env.LIMITE), cors);
   // Las altas del acceso anticipado (_altas.js), con el mismo secreto
   if (params.accion === 'altas') return responderAltas(request, env.CLAVES_INFORME_SECRETO, altasKv(env.LIMITE), cors);
+  // El registro de usuarios (_usuarios.js): el informe, solo con USUARIOS_INFORME_SECRETO
+  if (params.accion === 'usuarios') return responderUsuarios(request, { secreto: env.USUARIOS_INFORME_SECRETO, almacen: usuariosKv(env.LIMITE) }, cors);
   if (params.accion !== 'clave') return new Response('Not found', { status: 404, headers: cors });
   return new Response(JSON.stringify({ x: await clavePublica(secretosDeLicencia(env)) }), {
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
@@ -39,6 +42,14 @@ export async function onRequestPost({ request, params, env }) {
   const cors = corsPara(request.headers.get('Origin'));
   // El aviso de Lemon Squeezy (webhook): pone al día la lista de licencias bloqueadas (_bloqueos.js)
   if (params.accion === 'aviso') return responderAviso(request, { secreto: env.LEMONSQUEEZY_WEBHOOK_SECRET, apiKey: env.LEMONSQUEEZY_API_KEY, almacen: bloqueosKv(env.LIMITE) });
+  // Los borrados del registro de usuarios (_usuarios.js), solo con USUARIOS_INFORME_SECRETO
+  if (params.accion === 'usuarios') return responderUsuarios(request, { secreto: env.USUARIOS_INFORME_SECRETO, almacen: usuariosKv(env.LIMITE) }, cors);
+  // El aviso de uso de la app (cada 15 minutos con uso activo): solo apunta algo con REGISTRO_USUARIOS=si
+  if (params.accion === 'uso') {
+    const ipUso = request.headers.get('CF-Connecting-IP') || 'desconocida';
+    if (!(await dentroDeLimites(env.LIMITE, [[`uso-ip:${ipUso}`, LIMITES.ip]]))) return respuestaLimite(cors);
+    return responderUso(request, { secretos: secretosDeLicencia(env), almacen: usuariosKv(env.LIMITE), activo: registroActivo(env.REGISTRO_USUARIOS) }, cors);
+  }
   if (!ACCIONES.has(params.accion) && params.accion !== 'estado') return new Response('Not found', { status: 404, headers: cors });
   const entrada = new URLSearchParams(await request.text());
   const salida = new URLSearchParams();

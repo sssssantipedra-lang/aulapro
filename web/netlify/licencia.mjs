@@ -8,8 +8,9 @@ import { corsPara } from '../funciones/api/_origenes.js';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { anotarComprobacion, cortarAlTope, responderInforme } from '../funciones/api/_vigilancia.js';
-import { almacenBlobs, altasBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { almacenBlobs, altasBlobs, bloqueosBlobs, usuariosBlobs } from '../lib-netlify/vigilancia.mjs';
 import { responderAltas } from '../funciones/api/_altas.js';
+import { registroActivo, responderUso, responderUsuarios } from '../funciones/api/_usuarios.js';
 import { estaBloqueada, responderAviso, responderEstado } from '../funciones/api/_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
@@ -26,6 +27,13 @@ export default async (request, context) => {
   if (request.method === 'GET' && accion === 'sospechosas') return responderInforme(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), almacenBlobs(), cors);
   // Las altas del acceso anticipado (_altas.js), con el mismo secreto
   if (request.method === 'GET' && accion === 'altas') return responderAltas(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), altasBlobs(), cors);
+  // El registro de usuarios (_usuarios.js): el informe y los borrados, solo con USUARIOS_INFORME_SECRETO
+  if (accion === 'usuarios') return responderUsuarios(request, { secreto: Netlify.env.get('USUARIOS_INFORME_SECRETO'), almacen: usuariosBlobs() }, cors);
+  // El aviso de uso de la app (cada 15 minutos con uso activo): solo apunta algo con REGISTRO_USUARIOS=si
+  if (accion === 'uso') {
+    if (!(await dentroDeLimites([[`uso-ip:${context.ip || 'desconocida'}`, LIMITES.ip]]))) return respuestaLimite(cors);
+    return responderUso(request, { secretos, almacen: usuariosBlobs(), activo: registroActivo(Netlify.env.get('REGISTRO_USUARIOS')) }, cors);
+  }
   if (request.method === 'GET' && accion === 'clave') {
     return new Response(JSON.stringify({ x: await clavePublica(secretos) }), {
       headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
