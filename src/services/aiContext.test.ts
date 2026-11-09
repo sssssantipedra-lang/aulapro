@@ -56,7 +56,8 @@ describe('buildTeacherContext', () => {
   it('no lleva el nombre del docente, que no hace falta para responder', () => {
     const ctx = buildTeacherContext(datos());
     expect(ctx).not.toContain('Ana García');
-    expect(ctx).toContain('Centro: IES Ejemplo');
+    expect(ctx).not.toContain('IES Ejemplo');
+    expect(ctx).toContain('Asignatura principal:');
   });
 
   it('incluye la media ponderada real de cada alumno', () => {
@@ -156,5 +157,28 @@ describe('chatSystemPrompt', () => {
 
   it('en inglés cambia de idioma pero mantiene la regla', () => {
     expect(chatSystemPrompt('en', true)).toContain('NEVER invent');
+  });
+});
+
+describe('privacidad del cuaderno (auditoría del 5-11-2026)', () => {
+  it('la agenda, las tareas y los informes van sin teléfonos ni datos de salud', () => {
+    const d = datos();
+    d.calEvents = [{ id: 'e1', name: 'Reunión con la madre de Carmen (612 345 678)', date: '2099-01-01', time: '', type: 'meeting', urgency: 'alta', color: '', desc: 'Hablar de su TDAH' }];
+    d.tasks = [{ id: 't1', text: 'Pedir el informe del neurólogo de Elena', priority: 'high', done: false }];
+    d.reports = [{ id: 'r1', student_id: 's1', student_name: 'Carmen López', class_id: 'c1', period: '1ª', date: '2026-10-01', text: 'Carmen, con dislexia, avanza en lectura.' }];
+    const ctx = buildTeacherContext(d);
+    expect(ctx).not.toMatch(/612|TDAH|neurólogo|dislexia/);
+    expect(ctx).toContain('[teléfono]');
+    expect(ctx).toContain('[dato de salud]');
+    expect(ctx).toContain('Carmen López · 1ª');
+  });
+
+  it('un alumno dado de baja no sale por su nombre en las evaluaciones ni en los informes: callGemini ya no lo taparía', () => {
+    const d = datos();
+    d.evaluations = [{ id: 'ev1', rubric_id: 'r', rubric_name: 'Oral', student_id: 'baja', student_name: 'Pablo Antiguo', class_id: 'c1', date: '2026-10-01', scores: {}, notes: '' }];
+    d.reports = [{ id: 'r1', student_id: 'baja', student_name: 'Pablo Antiguo', class_id: 'c1', period: '1ª', date: '2026-10-01', text: 'Bien.' }];
+    const ctx = buildTeacherContext(d);
+    expect(ctx).not.toContain('Pablo Antiguo');
+    expect(ctx).toContain('(alumno que ya no está en la lista)');
   });
 });

@@ -61,7 +61,7 @@ describe('la ACS como contexto de la IA', () => {
     expect(texto).not.toMatch(/TDAH|metilfenidato|discapacidad|Discapacidad/);
     expect(texto).toContain('instrucciones de una en una');
     const { prompt } = promptObjetivosAcs({ acs: conSalud, materia: m, alumnoTexto: 'Necesidades educativas: TEA. Necesita apoyo visual', nombreCurso });
-    expect(prompt).not.toMatch(/\bTEA\b|discapacidad/);
+    expect(prompt).not.toMatch(/TEA\b|discapacidad/);
     expect(prompt).toContain('Necesita apoyo visual');
   });
 });

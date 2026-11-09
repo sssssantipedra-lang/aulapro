@@ -21,6 +21,7 @@ import { RichText } from './ui/RichText';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { usoIaAceptado } from '../lib/usoIA';
+import { preguntaParaIA } from '../lib/preguntaParaIA';
 import { requestSettingsPanel } from '../lib/settingsNav';
 
 /**
@@ -80,7 +81,8 @@ export function HelpChat({ section, onNav }: Props) {
     const text = raw.trim();
     if (!text || loading) return;
 
-    const history: ChatTurn[] = messages.slice(-MEMORY_TURNS).map(m => ({ role: m.role, text: m.text }));
+    // Sin datos de contacto ni, si nombra a un alumno, de salud (`lib/preguntaParaIA.ts`)
+    const history: ChatTurn[] = messages.slice(-MEMORY_TURNS).map(m => ({ role: m.role, text: m.role === 'user' ? preguntaParaIA(m.text) : m.text }));
     const afterUser: HelpMessage[] = [...messages, { id: crypto.randomUUID(), role: 'user', text }];
     setMessages(afterUser);
     setQuestion('');
@@ -88,7 +90,7 @@ export function HelpChat({ section, onNav }: Props) {
     const { helpSystemPrompt } = await cargarManual();
     const answer = await callGemini(
       helpSystemPrompt(lang, sectionLabel),
-      text,
+      preguntaParaIA(text),
       [],
       { onStart: () => setLoading(true), onEnd: () => setLoading(false), onError: msg => toast(msg) },
       {

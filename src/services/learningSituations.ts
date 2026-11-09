@@ -25,6 +25,7 @@
  * funcionando exactamente como antes, en texto libre.
  */
 
+import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
@@ -881,7 +882,7 @@ export async function generateSda(
 
   const userPrompt =
     `Nivel: ${req.nivel}\n` +
-    `Características del grupo: ${req.contextoClase || '(sin indicar)'}\n` +
+    `Características del grupo: ${textoLibreParaIA(req.contextoClase) || '(sin indicar)'}\n` +
     `Metodología habitual: ${req.metodologia || '(sin indicar)'}\n\n` +
     docs +
     `Idea de partida: "${req.idea}"\n` +
