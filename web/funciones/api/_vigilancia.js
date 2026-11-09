@@ -67,7 +67,7 @@ export async function clavesSospechosas(almacen, ahoraMs = Date.now()) {
 }
 
 /** Comparación sin atajos de tiempo, para el secreto del informe. */
-function iguales(a, b) {
+export function iguales(a, b) {
   const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
   let d = x.length ^ y.length;
   for (let i = 0; i < Math.max(x.length, y.length); i++) d |= (x[i] ?? 0) ^ (y[i] ?? 0);

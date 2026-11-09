@@ -28,7 +28,7 @@ describe('el aviso de versión de lanzamiento gratuita en la portada', () => {
       for (const k of [...clavesDelAviso, 'buy.early']) expect(i18n[idioma][k], `${idioma}: ${k}`).toBeTruthy();
     }
     expect(i18n.es['buy.early']).toBe('Prueba gratis');
-    // Decisiones del dueño (5-11-2026): el acceso gratuito se cierra «a partir de enero de 2027» y se mantiene la oferta de lanzamiento
+    // Decisiones del dueño: el acceso gratuito va del 10-11-2026 al 1-1-2027 (9-11-2026; antes, «a partir de enero de 2027») y se mantiene la oferta de lanzamiento
     // (9,90 € el primer año hasta el 15-4-2027; después, 14,99 € al año). Si cambia la fecha o el precio, se cambian los tres idiomas a
     // la vez, y también el aviso de la app, la privacidad y las condiciones.
     const oferta = { es: '9,90', ca: '9,90', en: '9.90' };
@@ -40,6 +40,9 @@ describe('el aviso de versión de lanzamiento gratuita en la portada', () => {
       }
       for (const k of ['el.t', 'el.l']) expect(i18n[idioma][k], `${idioma}: ${k}`).toContain(renovacion[idioma]);
       expect(i18n[idioma]['el.l'], `${idioma}: el.l`).toMatch(/15/);   // la fecha límite de la oferta
+      // El final del acceso gratuito, con su día
+      const fin = { es: '1 de enero de 2027', ca: '1 de gener de 2027', en: '1 January 2027' }[idioma];
+      for (const k of ['early.s', 'el.t', 'el.save', 'el.l']) expect(i18n[idioma][k], `${idioma}: ${k}`).toContain(fin);
       // Ninguna duración suelta («2 meses»): lo que se anuncia es una fecha
       for (const k of clavesDelAviso) expect(i18n[idioma][k], `${idioma}: ${k}`).not.toMatch(/\b\d+ (mes|meses|días|dies|months|days)\b/i);
     }

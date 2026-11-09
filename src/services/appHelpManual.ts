@@ -1277,7 +1277,7 @@ vuelve con «← Configuración»:
 - LICENCIA: de dónde viene la licencia de AulaPro, cuándo se comprobó y hasta cuándo vale sin
   conexión. «Docente fundador/a» = la usaba antes de que saliera a la venta: con su cuenta es gratis
   para siempre. «Acceso anticipado gratuito» = la versión de lanzamiento: gratis y sin tarjeta hasta
-  que se abra la venta, prevista para enero de 2027; entonces hay que suscribirse (con la oferta de
+  que se abra la venta, prevista para el 1 de enero de 2027; entonces hay que suscribirse (con la oferta de
   lanzamiento, 9,90 € el primer año si se suscribe hasta el 15 de abril de 2027; después, 14,99 € al
   año). «Licencia activa» = suscripción comprada: con el correo de la cuenta de Google o de Microsoft
   se activa sola en todos sus dispositivos; una clave escrita a mano (otro correo o un pack) vale en
@@ -1295,7 +1295,7 @@ tarjeta «Clave de la IA».
   en uno y «Cargar desde archivo» en el otro. Las antiguas apps de Windows y Android ya no reciben versiones
   nuevas: quien las usaba descarga sus datos en ellas y los carga en la web.
 - «¿Cuánto cuesta?» / «¿Es gratis?»: ahora está en acceso anticipado gratuito, sin tarjeta, hasta que se
-  abra la venta, prevista para enero de 2027. Después es una suscripción anual: con la oferta de
+  abra la venta, prevista para el 1 de enero de 2027. Después es una suscripción anual: con la oferta de
   lanzamiento, 9,90 € el primer año si se suscribe hasta el 15 de abril de 2027; después, 14,99 € al año.
   Hay packs para 5 y 10 docentes, devolución en 14 días y se cancela cuando quiera. Nada se cobra solo:
   al cerrarse el acceso gratuito, la app se bloquea hasta que se suscriba, y su trabajo no se borra (lo

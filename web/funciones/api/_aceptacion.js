@@ -21,23 +21,28 @@ export const versionValida = v => typeof v === 'string' && VERSION.test(v);
 
 /**
  * Anota que la cuenta `email` aceptó la `version`. `almacen` es `{ get(k), put(k, valor, ttlSeg) }`. Si esa versión ya
- * estaba anotada, se conserva su primera fecha. Devuelve `true` si queda anotada; si el almacén falla, `false` (y la app
- * lo volverá a mandar más tarde): nunca se deja a nadie sin entrar por un fallo de esto.
+ * estaba anotada, se conserva su primera fecha. Devuelve 'nueva' si la cuenta no tenía ninguna aceptación anotada (es la
+ * primera vez que entra: así se cuentan las altas del acceso anticipado, `_altas.js`), 'ya' si la tenía, y `false` si no
+ * se pudo anotar (y la app lo volverá a mandar más tarde): nunca se deja a nadie sin entrar por un fallo de esto.
  */
-export async function anotarAceptacion(almacen, email, version, ahora = new Date()) {
+export async function registrarAceptacion(almacen, email, version, ahora = new Date()) {
   if (!almacen || !email || !versionValida(version)) return false;
   try {
     const k = await claveAceptacion(email);
-    const antes = (await almacen.get(k)) ?? {};
+    const previa = await almacen.get(k);
+    const antes = previa ?? {};
     const versiones = { ...(antes.versiones ?? {}) };
     versiones[version] ??= ahora.toISOString();
     const hasta = new Date(ahora.getTime() + PLAZO_ACEPTACION * 1000).toISOString();
     await almacen.put(k, { versiones, hasta }, PLAZO_ACEPTACION);
-    return true;
+    return previa == null ? 'nueva' : 'ya';
   } catch {
     return false;
   }
 }
+
+/** Como `registrarAceptacion`, pero solo dice si quedó anotada (`true` o `false`). */
+export const anotarAceptacion = async (...args) => Boolean(await registrarAceptacion(...args));
 
 /** El almacén sobre Cloudflare KV (el espacio `LIMITE`). */
 export const aceptacionKv = kv => (kv ? {

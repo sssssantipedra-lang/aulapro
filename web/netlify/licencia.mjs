@@ -8,7 +8,8 @@ import { corsPara } from '../funciones/api/_origenes.js';
 import { secretosDeNetlify } from '../funciones/api/_secretos.js';
 import { dentroDeLimites, respuestaLimite, LIMITES } from '../lib-netlify/limite.mjs';
 import { anotarComprobacion, cortarAlTope, responderInforme } from '../funciones/api/_vigilancia.js';
-import { almacenBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { almacenBlobs, altasBlobs, bloqueosBlobs } from '../lib-netlify/vigilancia.mjs';
+import { responderAltas } from '../funciones/api/_altas.js';
 import { estaBloqueada, responderAviso, responderEstado } from '../funciones/api/_bloqueos.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
@@ -23,6 +24,8 @@ export default async (request, context) => {
   if (accion === 'sesion') return responderSesion(request, secretos);
   // El informe de claves compartidas (_vigilancia.js): solo con el secreto CLAVES_INFORME_SECRETO
   if (request.method === 'GET' && accion === 'sospechosas') return responderInforme(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), almacenBlobs(), cors);
+  // Las altas del acceso anticipado (_altas.js), con el mismo secreto
+  if (request.method === 'GET' && accion === 'altas') return responderAltas(request, Netlify.env.get('CLAVES_INFORME_SECRETO'), altasBlobs(), cors);
   if (request.method === 'GET' && accion === 'clave') {
     return new Response(JSON.stringify({ x: await clavePublica(secretos) }), {
       headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },

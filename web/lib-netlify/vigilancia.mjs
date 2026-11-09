@@ -71,3 +71,16 @@ export function aceptacionBlobs() {
     return null;
   }
 }
+
+/** Las altas del acceso anticipado (web/funciones/api/_altas.js): solo el día y un número al azar, sin caducidad. */
+export function altasBlobs() {
+  try {
+    const store = getStore({ name: 'altas-acceso-anticipado', consistency: 'strong' });
+    return {
+      put: (k, v) => store.setJSON(k, v),
+      list: async prefijo => (await store.list({ prefix: prefijo })).blobs.map(b => b.key),
+    };
+  } catch {
+    return null;
+  }
+}

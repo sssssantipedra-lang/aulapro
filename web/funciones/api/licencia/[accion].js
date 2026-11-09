@@ -14,6 +14,7 @@ import { dentroDeLimites, respuestaLimite, LIMITES } from '../_limite.js';
 import { secretosDeLicencia } from '../_secretos.js';
 import { almacenKv, anotarComprobacion, cortarAlTope, responderInforme } from '../_vigilancia.js';
 import { bloqueosKv, estaBloqueada, responderAviso, responderEstado } from '../_bloqueos.js';
+import { altasKv, responderAltas } from '../_altas.js';
 
 const ACCIONES = new Set(['activate', 'validate', 'deactivate']);
 const CAMPOS = ['license_key', 'instance_name', 'instance_id', 'tipo'];
@@ -26,6 +27,8 @@ export async function onRequestGet({ request, params, env }) {
   const cors = corsPara(request.headers.get('Origin'), 'GET, OPTIONS');
   // El informe de claves compartidas (_vigilancia.js): solo con el secreto CLAVES_INFORME_SECRETO
   if (params.accion === 'sospechosas') return responderInforme(request, env.CLAVES_INFORME_SECRETO, almacenKv(env.LIMITE), cors);
+  // Las altas del acceso anticipado (_altas.js), con el mismo secreto
+  if (params.accion === 'altas') return responderAltas(request, env.CLAVES_INFORME_SECRETO, altasKv(env.LIMITE), cors);
   if (params.accion !== 'clave') return new Response('Not found', { status: 404, headers: cors });
   return new Response(JSON.stringify({ x: await clavePublica(secretosDeLicencia(env)) }), {
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },

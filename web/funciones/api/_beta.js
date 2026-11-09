@@ -15,7 +15,7 @@
 //
 // Qué NO se guarda: ningún correo ni lista de la beta. La firma lleva el correo de quien la pidió, pero solo se la queda su
 // navegador. Es lo que dice la privacidad («no tenemos una base de datos de usuarios»). La aceptación de las condiciones se
-// anota como siempre (una huella del correo, `_aceptacion.js`).
+// anota como siempre (una huella del correo, `_aceptacion.js`), y cada alta se cuenta sin saber de quién es (`_altas.js`).
 //
 // EL INTERRUPTOR: `abierta`. Para abrir la venta se pone en `false` en el MISMO cambio que rellena `checkout` en
 // `web/sitio/assets/launch.js` y pone `VENTA_ABIERTA = true` en `src/platform/cuentaWeb.ts` (`node scripts/abrir-venta.mjs`

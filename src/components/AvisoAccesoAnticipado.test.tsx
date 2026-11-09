@@ -21,9 +21,9 @@ describe('el aviso al entrar en el acceso anticipado', () => {
     expect(screen.getByText('Después pasará a ser de pago.')).toBeTruthy();
     expect(screen.getByText('Tu trabajo es tuyo.')).toBeTruthy();
     expect(screen.getByText(/«Descargar mis datos»/)).toBeTruthy();
-    // Lo mismo que la portada y las condiciones (auditoría del 5-11-2026): cierre previsto en enero de 2027 y la oferta de lanzamiento
+    // Lo mismo que la portada (decisión del dueño, 9-11-2026): gratis hasta el 1 de enero de 2027, y después la oferta de lanzamiento
     const texto = document.body.textContent ?? '';
-    expect(texto).toContain('enero de 2027');
+    expect(texto).toContain('hasta el 1 de enero de 2027');
     expect(texto).toMatch(/9,90\s€ el primer año si te suscribes hasta el 15 de abril de 2027/);
     expect(texto).toMatch(/14,99\s€ al año/);
     // Ninguna duración suelta («2 meses»)

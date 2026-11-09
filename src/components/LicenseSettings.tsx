@@ -43,7 +43,7 @@ export function LicenseSettings({ state, onChange }: { state: LicenseState; onCh
       <div className="card lic-card">
         <div className="lic-badge"><Heart size={15} />{t('Acceso anticipado gratuito')}</div>
         <p className="lic-card-txt">
-          {t('Estás usando AulaPro gratis durante el acceso anticipado. Termina cuando se abra la venta, prevista para enero de 2027: entonces tendrás que suscribirte para seguir entrando (con la oferta de lanzamiento, 9,90 € el primer año si te suscribes hasta el 15 de abril de 2027). Tu trabajo se queda en tu dispositivo y puedes descargarlo cuando quieras, con o sin suscripción.')}
+          {t('Estás usando AulaPro gratis durante el acceso anticipado. Termina el 1 de enero de 2027, cuando se abra la venta: entonces tendrás que suscribirte para seguir entrando (con la oferta de lanzamiento, 9,90 € el primer año si te suscribes hasta el 15 de abril de 2027). Tu trabajo se queda en tu dispositivo y puedes descargarlo cuando quieras, con o sin suscripción.')}
         </p>
         {detalle}
       </div>

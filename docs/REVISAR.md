@@ -23,7 +23,8 @@ Decidido por el dueño: la app sale el 10-11-2026 sin cobrar y la venta se abre 
 - [ ] **Probar en la rama de Cloudflare** (`prueba.aulapro-app.pages.dev`) con una cuenta de Google y otra de Microsoft reales: que entra sin pagar y que, con `CONFIG_BETA.abierta: false` en esa rama, se bloquea y sale el botón de compra. La simulación automática usa un Google falso.
 - [ ] **El aviso a la lista de espera** de que ya hay acceso anticipado: es un envío externo, con aprobación del dueño. Revisar con su abogado que la finalidad del formulario («información sobre ese lanzamiento») lo cubre.
 - [ ] **Día de abrir la venta:** `node scripts/abrir-venta.mjs --aplicar`, pasos en `docs/MANTENIMIENTO.md` («Abrir la venta y bloquear a quien entró gratis»).
-- [ ] **Fecha anunciada del fin del acceso gratuito: «a partir de enero de 2027»** (tarjeta de la portada, 5-11-2026). Es prevista y el servidor no la hace cumplir. **Antes de que llegue, abrir la venta o cambiar la fecha** en los tres idiomas (`el.*` en `web/sitio/assets/i18n.js`), o la web diría algo falso.
+- [ ] **Fecha anunciada del fin del acceso gratuito: el 1 de enero de 2027** (decisión del dueño, 9-11-2026; antes, «a partir de enero de 2027»). El servidor no la hace cumplir. **Ese día, abrir la venta** (`node scripts/abrir-venta.mjs --aplicar`), **o antes, cambiar la fecha** en la portada y la app en los tres idiomas (`docs/MANTENIMIENTO.md`), o la web diría algo falso.
+- [ ] **Poner `CLAVES_INFORME_SECRETO` en Netlify y Cloudflare** (si aún no está) para leer las altas del acceso anticipado con `node scripts/altas-beta.mjs` (9-11-2026).
 - [x] ~~**Precio: 9,90 € o 14,99 €.**~~ Decidido por el dueño el 5-11-2026: **se mantiene la oferta de lanzamiento** (9,90 € el primer año hasta el 15-4-2027; después, 14,99 € al año). La tarjeta de la beta, el aviso de la app, las condiciones y la privacidad lo dicen igual desde la auditoría del mismo día.
 
 ## 2. Antes del 10-11: lo que solo puede hacer el dueño
