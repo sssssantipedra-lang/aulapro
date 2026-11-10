@@ -24,7 +24,7 @@ let informe = null;
 function avisar(texto) { $('aviso').textContent = texto; $('aviso').hidden = !texto; }
 
 function motivo(status) {
-  if (status === 401) return 'la contraseña no coincide con la que tiene este servidor';
+  if (status === 401) return 'la contraseña no coincide con la que tiene este servidor (si acabas de cambiarla en el panel, hay que volver a publicar la web para que la lea)';
   if (status === 404) return 'este servidor no tiene puesta la contraseña del informe (USUARIOS_INFORME_SECRETO)';
   if (status === 429) return 'demasiadas peticiones; espera un minuto';
   return `no responde (${status})`;

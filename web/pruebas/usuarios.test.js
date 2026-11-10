@@ -112,6 +112,12 @@ describe('con el registro encendido (REGISTRO_USUARIOS=si)', () => {
     expect([...datos.keys()].filter(k => k.startsWith('no-registrar:')).join()).not.toMatch(/ejemplo/);
   });
 
+  it('un secreto pegado en el panel con un espacio o un salto de línea detrás sigue valiendo', async () => {
+    env = { ...encendido, USUARIOS_INFORME_SECRETO: `  ${INFORME}\n` };
+    expect((await informe()).status).toBe(200);
+    expect((await informe('otra-cosa')).status).toBe(401);
+  });
+
   it('sin el secreto en el servidor, el informe no existe', async () => {
     env = { ...encendido, USUARIOS_INFORME_SECRETO: '' };
     expect((await informe()).status).toBe(404);

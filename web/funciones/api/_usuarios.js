@@ -127,9 +127,12 @@ export async function responderUso(request, { secretos, almacen, activo }, cors 
  * borra a un docente (y con «excluir», deja de apuntarlo). Solo con el secreto `USUARIOS_INFORME_SECRETO`; sin él, no existe.
  */
 export async function responderUsuarios(request, { secreto, almacen }, cors = {}) {
-  if (!secreto) return new Response('Not found', { status: 404, headers: cors });
-  const dado = (request.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!dado || !iguales(dado, secreto)) return respuesta({ error: 'no-autorizado' }, 401, cors);
+  // Sin espacios ni saltos de línea al principio o al final (10-11-2026): la página recorta lo que se escribe, y un
+  // secreto pegado en el panel de Netlify con un espacio o un salto de línea detrás no coincidía nunca
+  const limpio = String(secreto ?? '').trim();
+  if (!limpio) return new Response('Not found', { status: 404, headers: cors });
+  const dado = (request.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '').trim();
+  if (!dado || !iguales(dado, limpio)) return respuesta({ error: 'no-autorizado' }, 401, cors);
   if (!almacen) return respuesta({ error: 'almacen' }, 503, cors);
   if (request.method === 'GET') return respuesta({ hoy: diaDe(), usuarios: await listarUsuarios(almacen) }, 200, cors);
   if (request.method === 'POST') {

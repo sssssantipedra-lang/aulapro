@@ -93,9 +93,10 @@ export function iguales(a, b) {
  * servidor, la dirección no existe (404); con un secreto equivocado, 401.
  */
 export async function responderInforme(request, secreto, almacen, cors = {}) {
-  if (!secreto) return new Response('Not found', { status: 404, headers: cors });
-  const dado = (request.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!dado || !iguales(dado, secreto)) return new Response('{"error":"no-autorizado"}', { status: 401, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
+  const limpio = String(secreto ?? '').trim();   // como en _usuarios.js: sin espacios ni saltos de línea en los bordes
+  if (!limpio) return new Response('Not found', { status: 404, headers: cors });
+  const dado = (request.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '').trim();
+  if (!dado || !iguales(dado, limpio)) return new Response('{"error":"no-autorizado"}', { status: 401, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
   const claves = await clavesSospechosas(almacen).catch(() => []);
   return new Response(JSON.stringify({ tope: TOPE_CONEXIONES, semana: semanaDe(), claves }), {
     headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
