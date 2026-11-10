@@ -3,7 +3,9 @@
 // con el mismo cálculo (assets/informe-usuarios.js). La contraseña vive solo en la memoria de la página: no se guarda en
 // el navegador ni va a ningún sitio que no sea /api/licencia/usuarios. Todo lo que llega se escribe como texto, nunca
 // como HTML.
-const { aCsv, analizar, fusionar } = await import(new URL('assets/informe-usuarios.js', document.baseURI).href);
+// Se pide sin esperar: los botones tienen que responder desde el primer instante (con `await` arriba, un clic
+// temprano enviaba el formulario sin pasar por aquí)
+const calculo = import(new URL('assets/informe-usuarios.js', document.baseURI).href);
 
 const PRODUCCION = /^(www\.)?aulapro\.app$/.test(location.hostname);
 const SERVIDORES = PRODUCCION
@@ -65,6 +67,7 @@ async function cargar() {
     return;
   }
   const hoy = buenas.map(r => r.datos.hoy).sort().pop();
+  const { analizar, fusionar } = await calculo;
   informe = analizar(fusionar(...buenas.map(r => r.datos.usuarios)), hoy);
   avisar('');
   $('entrar').hidden = true;
@@ -153,8 +156,9 @@ $('salir').addEventListener('click', () => {
 });
 for (const id of ['buscar', 'f-estado', 'f-tipo', 'orden']) $(id).addEventListener('input', pintarDocentes);
 
-$('csv').addEventListener('click', () => {
+$('csv').addEventListener('click', async () => {
   if (!informe) return;
+  const { aCsv } = await calculo;
   const blob = new Blob(['﻿' + aCsv(informe) + '\r\n'], { type: 'text/csv;charset=utf-8' });   // con BOM: Excel lee bien las tildes
   const a = el('a');
   a.href = URL.createObjectURL(blob);
