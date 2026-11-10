@@ -8,7 +8,7 @@ import { onRequestGet as licenciaGet, onRequestPost as licenciaPost } from '../f
 import { firmar } from '../funciones/api/_firma.js';
 import { secretosDeLicencia } from '../funciones/api/_secretos.js';
 import { diaDe } from '../funciones/api/_altas.js';
-import { anotarUso } from '../funciones/api/_usuarios.js';
+import { anotarUso, registroActivo } from '../funciones/api/_usuarios.js';
 import { aCsv, analizar, analizarUsuario, fusionar } from '../sitio/assets/informe-usuarios.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
@@ -121,6 +121,13 @@ describe('con el registro encendido (REGISTRO_USUARIOS=si)', () => {
   it('sin el secreto en el servidor, el informe no existe', async () => {
     env = { ...encendido, USUARIOS_INFORME_SECRETO: '' };
     expect((await informe()).status).toBe(404);
+  });
+});
+
+describe('el interruptor REGISTRO_USUARIOS', () => {
+  it('vale «si» con o sin tilde, en mayúsculas o con espacios, y nada más', () => {
+    for (const v of ['si', 'sí', 'Sí', ' SI\n', 'true', '1', 'yes']) expect(registroActivo(v)).toBe(true);
+    for (const v of [undefined, null, '', 'no', 'off', '0', 'sin']) expect(registroActivo(v)).toBe(false);
   });
 });
 

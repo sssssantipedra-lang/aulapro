@@ -33,7 +33,9 @@ const MAX_MINUTOS_DIA = 24 * 60;
 const TIPOS = new Set(['beta', 'fundador', 'pago', 'sin-licencia']);
 const CORREO = /^[^\s@]{1,64}@[^\s@]{1,255}$/;
 
-export const registroActivo = valor => String(valor ?? '').trim().toLowerCase() === 'si';
+// «si», también escrito «sí», «Sí», «true», «1» o «yes» (10-11-2026: con la tilde, como se escribe en castellano, el registro
+// se quedaba apagado sin avisar)
+export const registroActivo = valor => ['si', 'true', '1', 'yes'].includes(String(valor ?? '').trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''));
 const normal = email => String(email ?? '').trim().toLowerCase();
 const claveUsuario = email => `usuario:${normal(email)}`;
 const claveExcluido = async email => `no-registrar:${await huella(`correo:${normal(email)}`)}`;
