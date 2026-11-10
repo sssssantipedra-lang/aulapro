@@ -21,6 +21,10 @@ const ES_CODIGO = /javascript|ecmascript|wasm|multipart\/byteranges/i;
  */
 export async function puerta(request, secretos, publico, siguiente, ahora = Date.now(), cfgBeta = CONFIG_BETA) {
   const res = await siguiente();
+  // Una respuesta sin cuerpo no lleva código: el paso previo de CORS (OPTIONS) y los 204 de las funciones (10-11-2026). Sin
+  // esto, en Cloudflare, cuya puerta cubre también /api/, salían 401 por no llevar Content-Type, y el navegador no podía
+  // llamar al respaldo desde aulapro.app (el informe de uso, y la app cuando Netlify no contesta)
+  if (res.body === null && (request.method === 'OPTIONS' || res.status === 204)) return res;
   const { aceptar } = comoSecretos(secretos);
   // Una respuesta sin Content-Type se trata como código (revisión del 5-11-2026): la puerta cierra, no abre, ante lo que no sabe
   const tipo = res.headers.get('Content-Type');

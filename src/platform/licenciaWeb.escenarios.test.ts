@@ -234,6 +234,10 @@ function crearMundo() {
 
 /** Deja terminar lo que la app hace en segundo plano (la comprobación que no espera al abrir). */
 const respirar = () => new Promise(r => setTimeout(r, 25));
+/** Espera a que se cumpla algo que la app hace en segundo plano (hasta 2 s): en una máquina lenta, 25 ms no bastan. */
+async function hasta(cond: () => Promise<boolean>, ms = 2000) {
+  for (const fin = performance.now() + ms; !(await cond()) && performance.now() < fin;) await respirar();
+}
 const adelantar = (ms: number) => vi.setSystemTime(Date.now() + ms);
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(T0); });
@@ -439,7 +443,7 @@ describe('caducidad de la suscripción', () => {
     adelantar(2 * HORA);
     const lic = nav.abrir();
     expect((await lic.state()).required).toBe(false);
-    await respirar();
+    await hasta(async () => nav.perdidas.length > 0);
     expect((await lic.state()).required).toBe(true);
     expect(nav.perdidas.length).toBe(1);
     // La activación se guarda dormida por si vuelve a valer (no gasta otro dispositivo)

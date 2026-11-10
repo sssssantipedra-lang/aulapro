@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informe de uso · AulaPro</title>
+<!-- Página privada del dueño (10-11-2026): el informe del registro de usuarios (web/funciones/api/_usuarios.js). Sin la
+     contraseña USUARIOS_INFORME_SECRETO no enseña nada: los datos los da el servidor solo con ella. Fuera del mapa del sitio. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#fbf8f3">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="assets/icono.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/lexend-latin-45b4c6.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/legal.css">
+<link rel="stylesheet" href="assets/informe.css">
+<script type="module" src="assets/informe.js"></script>
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="./" aria-label="AulaPro"><img src="assets/icono.svg" width="32" height="32" alt=""><b>AulaPro</b></a>
+  <button type="button" class="btn ghost" id="salir" hidden>Salir</button>
+</header>
+
+<main id="main" class="informe">
+  <p class="kicker">Solo para el titular</p>
+  <h1>Informe de uso</h1>
+  <p class="lede">Quién usa AulaPro y cuánto. Los datos los guardan aulapro.app y su respaldo, y solo se ven con la contraseña del informe.</p>
+
+  <form id="entrar" class="tarjeta" method="post" action="#" autocomplete="on">
+    <input type="text" name="username" value="informe-aulapro" autocomplete="username" hidden>
+    <label for="clave">Contraseña del informe (<code>USUARIOS_INFORME_SECRETO</code>)</label>
+    <div class="fila">
+      <input id="clave" name="password" type="password" autocomplete="current-password" required spellcheck="false">
+      <button type="submit" class="btn">Ver informe</button>
+    </div>
+    <p class="nota">La contraseña solo viaja a los servidores de AulaPro y no se guarda en esta página: al cerrarla, se olvida.</p>
+  </form>
+
+  <p id="aviso" class="aviso" role="status" hidden></p>
+  <ul id="servidores" class="servidores" hidden></ul>
+
+  <section id="informe" hidden>
+    <p class="fecha" id="fecha"></p>
+    <div class="cifras" id="cifras"></div>
+
+    <h2>Estado de los docentes</h2>
+    <div class="chips" id="estados"></div>
+    <p class="nota">Nuevo: se dio de alta hace menos de 7 días. Activo: la usó en los últimos 7. En riesgo: hace de 8 a 21 días. Perdido: más de 21.</p>
+
+    <h2>Siguen una semana después de darse de alta</h2>
+    <div class="tabla-caja"><table id="retencion"><thead><tr><th>Semana del</th><th>Altas</th><th>Siguen</th></tr></thead><tbody></tbody></table></div>
+
+    <h2>Docentes</h2>
+    <div class="filtros">
+      <input id="buscar" type="search" placeholder="Buscar por correo" aria-label="Buscar por correo">
+      <select id="f-estado" aria-label="Estado"><option value="">Todos los estados</option></select>
+      <select id="f-tipo" aria-label="Tipo de acceso"><option value="">Todos los accesos</option></select>
+      <select id="orden" aria-label="Ordenar por">
+        <option value="n">Por fecha de alta</option>
+        <option value="ultimo">Último día de uso</option>
+        <option value="uso7">Más uso en 7 días</option>
+        <option value="total">Más uso en total</option>
+      </select>
+      <button type="button" class="btn ghost" id="csv">Descargar CSV para Excel</button>
+    </div>
+    <p class="nota" id="cuantos"></p>
+    <div class="tabla-caja"><table id="docentes"><thead><tr>
+      <th>#</th><th>Correo</th><th>Acceso</th><th>Alta</th><th>Último día</th><th>Estado</th><th>Frecuencia</th>
+      <th class="num">Días</th><th class="num">Racha</th><th class="num">Uso 7 días</th><th class="num">Uso total</th>
+    </tr></thead><tbody></tbody></table></div>
+    <p class="nota">Frecuencia: días de uso por semana en las últimas 4. Habitual, 3 o más; semanal, 1 o más; ocasional, menos.</p>
+
+    <h2>Borrar a un docente</h2>
+    <form id="borrar" class="tarjeta" method="post" action="#">
+      <label for="correo-borrar">Si un docente pide que se borren sus datos o se opone al registro (privacidad, apartado 5)</label>
+      <div class="fila">
+        <input id="correo-borrar" type="email" required placeholder="correo@ejemplo.es" spellcheck="false">
+        <button type="submit" class="btn ghost" value="borrar">Borrar sus datos</button>
+        <button type="submit" class="btn ghost" value="excluir">Borrar y no volver a registrarlo</button>
+      </div>
+      <p class="nota" id="borrar-resultado" role="status"></p>
+    </form>
+  </section>
+</main>
+</body>
+</html>

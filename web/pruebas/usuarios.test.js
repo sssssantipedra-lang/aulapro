@@ -8,7 +8,8 @@ import { onRequestGet as licenciaGet, onRequestPost as licenciaPost } from '../f
 import { firmar } from '../funciones/api/_firma.js';
 import { secretosDeLicencia } from '../funciones/api/_secretos.js';
 import { diaDe } from '../funciones/api/_altas.js';
-import { aCsv, analizar, analizarUsuario, anotarUso, fusionar } from '../funciones/api/_usuarios.js';
+import { anotarUso } from '../funciones/api/_usuarios.js';
+import { aCsv, analizar, analizarUsuario, fusionar } from '../sitio/assets/informe-usuarios.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const INFORME = 'secreto-del-informe-de-usuarios';
@@ -166,5 +167,28 @@ describe('el motor', () => {
     expect(await anotarUso(a, { email: 'x@ejemplo.org' }, 'mucho')).toBe(false);
     expect(await anotarUso(a, { email: 'no es un correo' }, 10)).toBe(false);
     expect(m.size).toBe(0);
+  });
+});
+
+describe('la página del informe (aulapro.app/informe, 10-11-2026)', () => {
+  it('no la indexan los buscadores, lleva su CSP estricta en Netlify y en Cloudflare y la contraseña no puede acabar en la dirección', async () => {
+    const { readFileSync } = await import('node:fs');
+    const html = readFileSync(new URL('../sitio/informe.html', import.meta.url), 'utf8');
+    expect(html).toContain('<meta name="robots" content="noindex, nofollow">');
+    expect(html).toMatch(/<form id="entrar"[^>]*method="post"/);
+    expect(readFileSync(new URL('../sitio/sitemap.xml', import.meta.url), 'utf8')).not.toContain('informe');
+    const cf = readFileSync(new URL('../sitio/_headers', import.meta.url), 'utf8').match(/\n\/informe\n  Content-Security-Policy: (.*)/)?.[1];
+    const nf = readFileSync(new URL('../../netlify.toml', import.meta.url), 'utf8').match(/for = "\/informe"\n  \[headers\.values\]\n    Content-Security-Policy = "(.*)"/)?.[1];
+    expect(cf).toBeTruthy();
+    expect(nf).toBe(cf);
+    expect(cf).toContain("script-src 'self';");
+    expect(cf).toContain("form-action 'none'");
+    expect(cf).toContain("frame-ancestors 'none'");
+  });
+
+  it('el respaldo acepta la contraseña desde aulapro.app (CORS con Authorization) y sin ella sigue cerrado', async () => {
+    const { corsPara } = await import('../funciones/api/_origenes.js');
+    expect(corsPara('https://aulapro.app', 'GET, OPTIONS')['Access-Control-Allow-Headers']).toContain('Authorization');
+    expect(corsPara('https://otra-web.example')['Access-Control-Allow-Origin']).toBeUndefined();
   });
 });

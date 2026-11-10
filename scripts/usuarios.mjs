@@ -11,7 +11,7 @@
 //
 // Pregunta a aulapro.app (Netlify) y al respaldo de Cloudflare y junta lo de los dos. Los correos salen en pantalla: no
 // guardes el CSV en carpetas compartidas ni lo subas al repositorio.
-import { aCsv, analizar, fusionar } from '../web/funciones/api/_usuarios.js';
+import { aCsv, analizar, fusionar } from '../web/sitio/assets/informe-usuarios.js';
 
 const SERVIDORES = [
   ['aulapro.app (Netlify)', 'https://aulapro.app/api/licencia/usuarios'],
