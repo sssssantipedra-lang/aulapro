@@ -6,6 +6,8 @@
 // Se pide sin esperar: los botones tienen que responder desde el primer instante (con `await` arriba, un clic
 // temprano enviaba el formulario sin pasar por aquí)
 const calculo = import(new URL('assets/informe-usuarios.js', document.baseURI).href);
+// El panel de gráficas (assets/informe-panel.js, 11-11-2026): periodo, actualización automática, cifras y gráficas
+const modPanel = import(new URL('assets/informe-panel.js', document.baseURI).href);
 
 const PRODUCCION = /^(www\.)?aulapro\.app$/.test(location.hostname);
 const SERVIDORES = PRODUCCION
@@ -20,6 +22,7 @@ const tipo = t => NOMBRE_TIPO[t] ?? t;
 
 let clave = '';
 let informe = null;
+let panel = null;
 
 function avisar(texto) { $('aviso').textContent = texto; $('aviso').hidden = !texto; }
 
@@ -55,51 +58,39 @@ function pintarServidores(respuestas) {
   ul.hidden = false;
 }
 
-async function cargar() {
-  avisar('Consultando…');
+/** Pide los datos y lo pinta todo. `deFondo`: una actualización (automática o con el botón), que no tapa lo que hay. */
+async function cargar(deFondo = false) {
+  if (!clave) return;
+  if (deFondo && informe) panel?.cargando(true); else avisar('Consultando…');
   const respuestas = await pedir('GET');
   pintarServidores(respuestas);
   const buenas = respuestas.filter(r => r.ok);
   if (!buenas.length) {
+    if (deFondo && informe) {
+      // Lo de antes se queda: solo se avisa
+      panel?.cargando(false);
+      avisar(`No se ha podido actualizar (${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}). Se ve lo último que llegó.`);
+      return;
+    }
     informe = null;
     $('informe').hidden = true;
     avisar(respuestas.some(r => r.status === 401) ? 'La contraseña no es correcta.' : 'No se ha podido leer el informe.');
     return;
   }
   const hoy = buenas.map(r => r.datos.hoy).sort().pop();
-  const { analizar, fusionar } = await calculo;
-  informe = analizar(fusionar(...buenas.map(r => r.datos.usuarios)), hoy);
+  const [{ analizar, fusionar }, { crearPanel }] = await Promise.all([calculo, modPanel]);
+  const usuarios = fusionar(...buenas.map(r => r.datos.usuarios));
+  informe = analizar(usuarios, hoy);
   avisar('');
   $('entrar').hidden = true;
   $('salir').hidden = false;
   pintar();
-}
-
-function cifra(valor, texto) {
-  const d = el('div', null, 'cifra');
-  d.append(el('b', valor), el('span', texto));
-  return d;
+  panel ??= crearPanel($('panel'), { actualizar: () => cargar(true) });
+  panel.pintar(usuarios, hoy);
 }
 
 function pintar() {
   const r = informe.resumen;
-  $('fecha').textContent = `Datos a ${informe.hoy}`;
-  $('cifras').replaceChildren(
-    cifra(r.usuarios, 'docentes registrados'),
-    cifra(r.activosHoy, 'han entrado hoy'),
-    cifra(r.activos7, 'en los últimos 7 días'),
-    cifra(r.activos30, 'en los últimos 30 días'),
-    cifra(`${String(r.horas7).replace('.', ',')} h`, 'de uso en 7 días'),
-  );
-  const chips = [...Object.entries(r.porEstado).map(([e, n]) => [`estado-${e.replace(' ', '-')}`, `${e}: ${n}`]),
-    ...Object.entries(r.porTipo).map(([t, n]) => ['tipo', `${tipo(t)}: ${n}`])];
-  $('estados').replaceChildren(...chips.map(([c, t]) => el('span', t, `chip ${c}`)));
-
-  $('retencion').tBodies[0].replaceChildren(...r.retencion.map(c => {
-    const tr = el('tr');
-    tr.append(el('td', c.semana), el('td', c.altas), el('td', c.porcentaje == null ? 'aún no ha pasado una semana' : `${c.siguen} de ${c.conUnaSemana} (${c.porcentaje} %)`));
-    return tr;
-  }));
 
   const opciones = (sel, valores, nombre) => {
     const actual = sel.value;
@@ -147,6 +138,9 @@ $('entrar').addEventListener('submit', e => {
 $('salir').addEventListener('click', () => {
   clave = '';
   informe = null;
+  panel?.parar();
+  panel = null;
+  $('panel').replaceChildren();
   $('clave').value = '';
   $('informe').hidden = true;
   $('servidores').hidden = true;
@@ -184,5 +178,5 @@ $('borrar').addEventListener('submit', async e => {
     ? `No se pudo en: ${mal.map(r => `${r.nombre} (${r.status ? motivo(r.status) : 'no responde'})`).join('; ')}. Vuelve a intentarlo cuando respondan.`
     : 'Hecho en todos los servidores.';
   if (!mal.length) $('correo-borrar').value = '';
-  cargar();
+  cargar(true);
 });

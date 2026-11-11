@@ -26,7 +26,7 @@
 <main id="main" class="informe">
   <p class="kicker">Solo para el titular</p>
   <h1>Informe de uso</h1>
-  <p class="lede">Quién usa AulaPro y cuánto. Los datos los guardan aulapro.app y su respaldo, y solo se ven con la contraseña del informe.</p>
+  <p class="lede">Quién usa AulaPro, cuánto y si vuelve. Los datos los guardan aulapro.app y su respaldo, y solo se ven con la contraseña del informe. Pasa el puntero (o el dedo) por las gráficas para ver cada día.</p>
 
   <form id="entrar" class="tarjeta" method="post" action="#" autocomplete="on">
     <input type="text" name="username" value="informe-aulapro" autocomplete="username" hidden>
@@ -42,15 +42,7 @@
   <ul id="servidores" class="servidores" hidden></ul>
 
   <section id="informe" hidden>
-    <p class="fecha" id="fecha"></p>
-    <div class="cifras" id="cifras"></div>
-
-    <h2>Estado de los docentes</h2>
-    <div class="chips" id="estados"></div>
-    <p class="nota">Nuevo: se dio de alta hace menos de 7 días. Activo: la usó en los últimos 7. En riesgo: hace de 8 a 21 días. Perdido: más de 21.</p>
-
-    <h2>Siguen una semana después de darse de alta</h2>
-    <div class="tabla-caja"><table id="retencion"><thead><tr><th>Semana del</th><th>Altas</th><th>Siguen</th></tr></thead><tbody></tbody></table></div>
+    <div id="panel" class="panel"></div>
 
     <h2>Docentes</h2>
     <div class="filtros">
