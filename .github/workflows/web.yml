@@ -16,6 +16,8 @@ name: Publicar la web
 # y no publica nada.
 on:
   push:
+    # La rama apk-android-personal es solo para compilar el APK del dueño: no publica nada
+    branches-ignore: [apk-android-personal]
     paths:
       - 'web/sitio/**'
       - 'web/versionar.mjs'

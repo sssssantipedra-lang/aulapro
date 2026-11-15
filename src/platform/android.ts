@@ -236,10 +236,11 @@ export function installAndroidBridge() {
       setTextScale: factor => AulaNative.setTextZoom({ percent: Math.round(factor * 100) }),
     },
     classroom: createClassroom(),
+    // Rama apk-android-personal (15-11-2026): APK solo para el dueño, sin pedir licencia. La web no pasa por aquí
     license: createAndroidLicense({
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,
-    }),
+    }, { enforced: false }),
     secrets: {
       get: async name => (await AulaNative.secretGet({ name })).value ?? '',
       set: async (name, value) => (await AulaNative.secretSet({ name, value })).ok,

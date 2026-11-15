@@ -1,0 +1,43 @@
+name: APK personal
+
+# Solo en la rama apk-android-personal (15-11-2026, petición del dueño): un APK de Android para él, «AulaPro personal»
+# (es.aulapro.app.personal), sin pedir licencia y firmado con la llave de pruebas del repositorio. No publica nada:
+# deja el APK como artefacto descargable del run durante 2 días. La web no cambia (web.yml no corre en esta rama).
+on:
+  push:
+    branches: [apk-android-personal]
+
+concurrency:
+  group: apk-personal
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - run: npm ci
+      - name: Compilar la app (versión de Android, no la web)
+        run: npx vite build
+      - run: npx cap sync android
+      - name: Compilar el APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+      - run: |
+          mkdir -p release
+          cp android/app/build/outputs/apk/release/app-release.apk "release/AulaPro-personal-$(node -p "require('./package.json').version").apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaPro-personal-android
+          path: release/*.apk
+          retention-days: 2
+          if-no-files-found: error

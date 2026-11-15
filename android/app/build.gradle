@@ -21,7 +21,8 @@ android {
     namespace = "es.aulapro.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "es.aulapro.app"
+        // Rama apk-android-personal: otra app, para instalarse junto a cualquier AulaPro anterior sin tocar sus datos
+        applicationId "es.aulapro.app.personal"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode vMajor * 10000 + vMinor * 100 + vPatch
