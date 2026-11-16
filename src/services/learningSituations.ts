@@ -26,7 +26,7 @@
  */
 
 import { textoLibreParaIA } from '../lib/documentoParaIA';
-import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
+import { callGemini, parseGeminiJson, SDA_MODELS, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
 import { competenciasDe, resolverGrupo, type CurriculumBloqueSaberes, type CurriculumEntry, type Etapa } from '../lib/curriculum';
@@ -951,6 +951,8 @@ export async function generateSda(
     maxOutputTokens: req.ef ? 32768 : 24576,
     responseSchema: conObjetivosOficiales(req.ef ? SDA_SCHEMA_EF : SDA_SCHEMA, oficialesOE),
     thinkingLevel: 'medium',
+    // Gemini 4 Hydrogen y, si se acaba su cupo, 3.8 Flash y 3.5 Flash-Lite (ver `SDA_MODELS`)
+    models: SDA_MODELS,
   });
   if (!raw) return null;
 

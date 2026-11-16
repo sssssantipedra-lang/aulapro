@@ -29,6 +29,15 @@ export const MAIN_MODEL = 'gemini-3.8-flash';
  */
 const LITE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'] as const;
 
+/**
+ * Las situaciones de aprendizaje (16-11-2026, decisión del dueño): Gemini 4 Hydrogen, el más capaz con la cuenta
+ * gratuita (estable desde el 12-11-2026, en el plan gratuito y en `generateContent`; rechaza `thinkingLevel: 'minimal'`).
+ * Si se queda sin cupo o no responde, Gemini 3.8 Flash y, en último lugar, Gemini 3.5 Flash-Lite. El resto de la app
+ * (rúbricas, fichas, informes…) sigue con `modelsFor`.
+ */
+export const SDA_MODEL = 'gemini-4-hydrogen';
+export const SDA_MODELS = [SDA_MODEL, MAIN_MODEL, 'gemini-3.5-flash-lite'] as const;
+
 /** Red de seguridad para que la IA nunca deje de funcionar. */
 const LEGACY_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'] as const;
 
@@ -232,8 +241,8 @@ function friendlyError(status: number, apiMessage: string): string {
 }
 
 /**
- * Cuánto razona el modelo antes de responder. Solo lo entiende la familia
- * Gemini 3; en los modelos 2.x del respaldo no se manda (ver `callModel`).
+ * Cuánto razona el modelo antes de responder. Solo lo entienden las familias
+ * Gemini 3 y 4; en los modelos 2.x del respaldo no se manda (ver `callModel`).
  */
 export type ThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
 
@@ -244,9 +253,12 @@ export type ThinkingLevel = 'minimal' | 'low' | 'medium' | 'high';
  */
 const DEFAULT_THINKING: ThinkingLevel = 'low';
 
-/** `thinking_level` es de la familia Gemini 3; los 2.x usan otro mecanismo. */
-function supportsThinkingLevel(model: string): boolean {
-  return /^gemini-3/.test(model);
+/**
+ * `thinking_level` es de las familias Gemini 3 y 4; los 2.x usan otro mecanismo. Sin él, Gemini 4 Hydrogen razonaría
+ * en `high`, su nivel por defecto: más lento y con más gasto de cupo que el `medium` que pide la SdA.
+ */
+export function supportsThinkingLevel(model: string): boolean {
+  return /^gemini-[34]/.test(model);
 }
 
 /** Ajustes opcionales de una llamada. Sin ellos, todo sigue como siempre. */
@@ -362,7 +374,8 @@ async function callModel(
   // 3.5 Flash-Lite) y cada llamada acababa en el reintento sin razonamiento.
   // `minimal` solo lo aceptan los Flash-Lite; a los demás se les pide `low`.
   if (!omitirRazonamiento && supportsThinkingLevel(model)) {
-    const nivel = options.thinkingLevel ?? DEFAULT_THINKING;
+    // Hydrogen, en `medium` si no se pide otro (decisión del dueño, 16-11-2026): su nivel de fábrica es `high`
+    const nivel = options.thinkingLevel ?? (model === SDA_MODEL ? 'medium' : DEFAULT_THINKING);
     generationConfig.thinkingConfig = { thinkingLevel: nivel === 'minimal' && !/lite/.test(model) ? 'low' : nivel };
   }
   if (options.responseSchema) {

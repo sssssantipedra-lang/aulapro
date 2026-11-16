@@ -1258,9 +1258,11 @@ vuelve con «← Configuración»:
   casilla («Acepto el uso de la IA en AulaPro y las responsabilidades que
   conlleva») y el enlace «Leer la información», que abre un panel con lo que se
   envía a Google y lo que no; sin marcarla no se sigue. También explica el
-  plan gratuito: las tareas grandes (SdA, fichas, informes, rúbricas, dianas)
-  usan Gemini 3.8 Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas
-  500 al día. Si se gastan las 20, sigue sola con Flash-Lite hasta las 9:00.
+  plan gratuito: las situaciones de aprendizaje usan Gemini 4 Hydrogen y, si
+  se acaba su cupo del día, Gemini 3.8 Flash y después Gemini 3.5 Flash-Lite; las
+  demás tareas grandes (fichas, informes, rúbricas, dianas) usan Gemini 3.8
+  Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas 500 al día. Si se
+  gastan las 20, sigue sola con Flash-Lite hasta las 9:00.
   Si el modelo grande no empieza a responder en 30 segundos (a veces Google
   va saturado), la app pasa sola a Flash-Lite y no vuelve a probar el grande
   hasta pasados 10 minutos: nunca se queda en «Creando…» para siempre.
