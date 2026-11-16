@@ -9,7 +9,7 @@ import { firmar } from '../funciones/api/_firma.js';
 import { secretosDeLicencia } from '../funciones/api/_secretos.js';
 import { diaDe } from '../funciones/api/_altas.js';
 import { anotarUso } from '../funciones/api/_usuarios.js';
-import { aCsv, analizar, analizarUsuario, fusionar } from '../sitio/assets/informe-usuarios.js';
+import { aCsv, analizar, analizarUsuario, fusionar, horaDeEspana } from '../sitio/assets/informe-usuarios.js';
 
 const GOOGLE_CLIENT_ID = '617666474619-nkre1e8divbf9orspfjv8cpcl7meuoo0.apps.googleusercontent.com';
 const INFORME = 'secreto-del-informe-de-usuarios';
@@ -153,6 +153,20 @@ describe('el motor', () => {
       [{ email: 'a@ejemplo.org', alta: '2026-11-10', ultima: '2026-11-21T10:00:00Z', tipo: 'pago', dias: { '2026-11-20': 15, '2026-11-21': 30 } }],
     );
     expect(f).toMatchObject({ alta: '2026-11-10', tipo: 'pago', dias: { '2026-11-12': 10, '2026-11-20': 20, '2026-11-21': 30 } });
+  });
+
+  it('la última conexión: la hora de la última vez, en la de España, también en el CSV (16-11-2026)', () => {
+    const [f] = fusionar(
+      [{ email: 'a@ejemplo.org', alta: '2026-11-12', ultima: '2026-11-20T10:00:00Z', dias: { '2026-11-20': 5 } }],
+      [{ email: 'a@ejemplo.org', alta: '2026-11-12', ultima: '2026-11-21T17:42:00Z', dias: { '2026-11-21': 15 } }],
+    );
+    expect(analizarUsuario(f, '2026-11-21').ultimaConexion).toBe('2026-11-21T17:42:00Z');
+    expect(horaDeEspana('2026-11-21T17:42:00Z')).toBe('2026-11-21 18:42');   // invierno: UTC+1
+    expect(horaDeEspana('2026-07-01T17:42:00Z')).toBe('2026-07-01 19:42');   // verano: UTC+2
+    expect(horaDeEspana(undefined)).toBe('');
+    const csv = aCsv(analizar([f], '2026-11-21')).split('\r\n');
+    expect(csv[0]).toContain(';ultimaConexion;');
+    expect(csv[1]).toContain(';2026-11-21 18:42;');
   });
 
   it('el CSV no deja que un correo se convierta en una fórmula de Excel', () => {
