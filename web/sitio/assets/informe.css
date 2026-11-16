@@ -103,3 +103,4 @@ details.datos .tabla-caja{max-height:320px;overflow:auto}
 @media (min-width:980px){.graf.ancha{grid-column:1/-1}}
 .cohortes th,.cohortes td{padding:.5em .55em}
 .cohortes td.celda{min-width:3.6em}
+td.conexion small{display:block;font-size:.78rem;color:var(--text-2)}

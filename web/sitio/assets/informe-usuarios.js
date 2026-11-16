@@ -50,6 +50,8 @@ export function analizarUsuario(u, hoy) {
     proveedor: u.proveedor ?? '',
     alta: u.alta,
     ultimoDia: diaDeNum(ultimoUso),
+    // La última vez que se le apuntó algo (entrar, renovar la licencia o un aviso de uso, cada 15 minutos de uso): fecha y hora ISO
+    ultimaConexion: u.ultima ?? '',
     diasSinUsar: sinUsar,
     diasDeUso: dias.length,
     dias7: en(7).length,
@@ -99,7 +101,14 @@ export function analizar(usuarios, hoy) {
   };
 }
 
-const COLUMNAS = ['n', 'email', 'tipo', 'proveedor', 'alta', 'ultimoDia', 'diasSinUsar', 'estado', 'frecuencia', 'porSemana', 'racha', 'diasDeUso', 'dias7', 'dias30', 'minutosTotales', 'minutos7'];
+/** Fecha y hora de España (AAAA-MM-DD HH:MM) de un instante ISO; vacío si no lo hay. */
+export const horaDeEspana = iso => {
+  const t = Date.parse(iso ?? '');
+  if (!Number.isFinite(t)) return '';
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(t);
+};
+
+const COLUMNAS = ['n', 'email', 'tipo', 'proveedor', 'alta', 'ultimoDia', 'ultimaConexion', 'diasSinUsar', 'estado', 'frecuencia', 'porSemana', 'racha', 'diasDeUso', 'dias7', 'dias30', 'minutosTotales', 'minutos7'];
 const celda = v => { const s = String(v ?? ''); return /[",;\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""')}"` : s; };
 /** El informe en CSV (separado por punto y coma, como lo abre Excel en España). */
-export const aCsv = informe => [COLUMNAS.join(';'), ...informe.usuarios.map(f => COLUMNAS.map(c => celda(f[c])).join(';'))].join('\r\n');
+export const aCsv = informe => [COLUMNAS.join(';'), ...informe.usuarios.map(f => COLUMNAS.map(c => celda(c === 'ultimaConexion' ? horaDeEspana(f[c]) : f[c])).join(';'))].join('\r\n');

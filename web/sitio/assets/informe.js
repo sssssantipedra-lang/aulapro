@@ -103,9 +103,31 @@ function pintar() {
   $('informe').hidden = false;
 }
 
+/** «16 nov, 18:42» en la hora de España, y «hace 12 min» debajo (se actualiza con cada recarga del informe). */
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function hace(ms) {
+  const m = Math.max(0, Math.round(ms / 60_000));
+  if (m < 1) return 'ahora mismo';
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'hace 1 día' : `hace ${d} días`;
+}
+function conexion(f) {
+  const td = el('td', null, 'conexion');
+  const t = Date.parse(f.ultimaConexion || '');
+  if (!Number.isFinite(t)) { td.textContent = f.ultimoDia; return td; }
+  const p = Object.fromEntries(new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(t).map(x => [x.type, x.value]));
+  td.append(el('span', `${p.day} ${MESES[Number(p.month) - 1]}, ${p.hour}:${p.minute}`), el('small', hace(Date.now() - t)));
+  td.title = new Date(t).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', dateStyle: 'full', timeStyle: 'short' });
+  return td;
+}
+
 const ORDEN = {
   n: (a, b) => a.n - b.n,
-  ultimo: (a, b) => b.ultimoDia.localeCompare(a.ultimoDia) || a.n - b.n,
+  ultimo: (a, b) => (b.ultimaConexion || b.ultimoDia).localeCompare(a.ultimaConexion || a.ultimoDia) || a.n - b.n,
   uso7: (a, b) => b.minutos7 - a.minutos7 || a.n - b.n,
   total: (a, b) => b.minutosTotales - a.minutosTotales || a.n - b.n,
 };
@@ -123,7 +145,7 @@ function pintarDocentes() {
     const tr = el('tr');
     const estadoTd = el('td');
     estadoTd.append(el('span', f.estado, `chip estado-${f.estado.replace(' ', '-')}`));
-    tr.append(el('td', f.n), el('td', f.email, 'correo'), el('td', tipo(f.tipo || 'sin dato')), el('td', f.alta), el('td', f.ultimoDia),
+    tr.append(el('td', f.n), el('td', f.email, 'correo'), el('td', tipo(f.tipo || 'sin dato')), el('td', f.alta), conexion(f),
       estadoTd, el('td', f.frecuencia), el('td', f.diasDeUso, 'num'), el('td', f.racha, 'num'), el('td', horas(f.minutos7), 'num'),
       el('td', horas(f.minutosTotales), 'num'));
     return tr;

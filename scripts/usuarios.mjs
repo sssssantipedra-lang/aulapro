@@ -11,7 +11,7 @@
 //
 // Pregunta a aulapro.app (Netlify) y al respaldo de Cloudflare y junta lo de los dos. Los correos salen en pantalla: no
 // guardes el CSV en carpetas compartidas ni lo subas al repositorio.
-import { aCsv, analizar, fusionar } from '../web/sitio/assets/informe-usuarios.js';
+import { aCsv, analizar, fusionar, horaDeEspana } from '../web/sitio/assets/informe-usuarios.js';
 
 const SERVIDORES = [
   ['aulapro.app (Netlify)', 'https://aulapro.app/api/licencia/usuarios'],
@@ -73,9 +73,9 @@ console.log(`  Horas de uso en los últimos 7 días: ${r.horas7}`);
 console.log(`  Estado: ${Object.entries(r.porEstado).map(([e, n]) => `${e}: ${n}`).join(', ')}`);
 console.log('\n  Siguen una semana después de darse de alta:');
 for (const c of r.retencion) console.log(`    semana del ${c.semana}: ${c.altas} altas, ${c.porcentaje == null ? 'aún no ha pasado una semana' : `${c.siguen} de ${c.conUnaSemana} (${c.porcentaje} %)`}`);
-console.log('\n  #    Correo                               Tipo          Alta        Último día  Estado     Frecuencia  Días  Racha  Uso 7 días');
+console.log('\n  #    Correo                               Tipo          Alta        Última conexión   Estado     Frecuencia  Días  Racha  Uso 7 días');
 for (const f of informe.usuarios) {
-  console.log(`  ${String(f.n).padEnd(4)} ${f.email.padEnd(36).slice(0, 36)} ${f.tipo.padEnd(13)} ${f.alta}  ${f.ultimoDia}  ${f.estado.padEnd(10)} ${f.frecuencia.padEnd(11)} ${String(f.diasDeUso).padStart(4)}  ${String(f.racha).padStart(5)}  ${horas(f.minutos7)}`);
+  console.log(`  ${String(f.n).padEnd(4)} ${f.email.padEnd(36).slice(0, 36)} ${f.tipo.padEnd(13)} ${f.alta}  ${(horaDeEspana(f.ultimaConexion) || f.ultimoDia).padEnd(16)}  ${f.estado.padEnd(10)} ${f.frecuencia.padEnd(11)} ${String(f.diasDeUso).padStart(4)}  ${String(f.racha).padStart(5)}  ${horas(f.minutos7)}`);
 }
 console.log('\nEstados: nuevo (alta hace menos de 7 días), activo (la usó en los últimos 7), en riesgo (hace 8 a 21 días), perdido (más de 21).');
 console.log('Frecuencia: días de uso por semana en las últimas 4: habitual (3 o más), semanal (1 o más), ocasional.');
