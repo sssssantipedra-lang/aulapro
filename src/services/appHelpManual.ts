@@ -1264,7 +1264,13 @@ vuelve con «← Configuración»:
   «Creada con…» el modelo que la redactó); las
   demás tareas grandes (fichas, informes, rúbricas, dianas) usan Gemini 3.8
   Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas 500 al día. Si se
-  gastan las 20, sigue sola con Flash-Lite hasta las 9:00.
+  gastan las 20, sigue sola con Flash-Lite hasta las 9:00. Debajo, «Cupo de hoy
+  de cada modelo» dice de Gemini 4 Hydrogen, 3.8 Flash y 3.5 Flash-Lite si están
+  disponibles o «Agotado hasta las 9:00» (lo mismo marca el selector «Modelo de
+  IA» de la SdA, que dice con cuál empezará la app). Cuánto queda exactamente no
+  lo puede saber la app: Google no lo dice, solo avisa cuando se acaba, y lo
+  gastado con la misma clave en otro dispositivo no se ve. La cifra exacta está
+  en Google AI Studio, en el enlace «Ver mi uso exacto en Google AI Studio».
   Si el modelo grande no empieza a responder en 30 segundos (a veces Google
   va saturado), la app pasa sola a Flash-Lite y no vuelve a probar el grande
   hasta pasados 10 minutos: nunca se queda en «Creando…» para siempre.

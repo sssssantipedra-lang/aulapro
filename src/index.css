@@ -763,6 +763,7 @@ button.entrar-tarjeta:disabled { cursor:progress; }
 .sda-modelo { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; font-size:13px; font-weight:500; }
 .sda-modelo .finput { width:auto; min-width:0; max-width:100%; }
 .sda-form-ft > .sda-note:first-of-type { margin:0 0 12px; }
+.sda-note.sda-cupo-agotado { color:var(--warn-fg); font-weight:600; }
 
 /* Documento */
 .sda-doc-hd { margin-bottom:18px; }
@@ -1285,7 +1286,13 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ak-plan { display:flex; gap:10px; padding:12px 14px; border-radius:12px; background:var(--accent-l); margin:6px 0 12px; }
 .ak-plan > div { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--text-2); line-height:1.55; }
 .ak-plan strong { color:var(--text); font-size:13px; }
-.ak-paused { font-weight:700; color:var(--warn-fg); }
+.ak-cupo { display:flex; flex-direction:column; gap:6px; margin-top:8px; padding-top:10px; border-top:1px solid var(--border); }
+.ak-cupo ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.ak-cupo li { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.ak-cupo li > span:first-child { color:var(--text); font-weight:600; }
+.ak-cupo li.libre > span:last-child { color:var(--ok-fg); font-weight:600; }
+.ak-cupo li.agotado > span:last-child { color:var(--warn-fg); font-weight:700; }
+.ak-cupo .ak-link { display:inline-flex; align-items:center; gap:4px; margin:2px 0 0; text-decoration:none; align-self:flex-start; }
 .ak-privacy { font-size:12.5px; color:var(--text-2); line-height:1.6; display:flex; gap:8px; align-items:flex-start; margin:0; }
 
 /* Configuración */
