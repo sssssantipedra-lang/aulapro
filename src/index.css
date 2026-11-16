@@ -760,6 +760,9 @@ button.entrar-tarjeta:disabled { cursor:progress; }
 .sda-doc { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; background:var(--surface); border:0.5px solid var(--border); }
 .sda-doc span { flex:1; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .sda-form-ft { padding-top:16px; border-top:0.5px solid var(--border); }
+.sda-modelo { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; font-size:13px; font-weight:500; }
+.sda-modelo .finput { width:auto; min-width:0; max-width:100%; }
+.sda-form-ft > .sda-note:first-of-type { margin:0 0 12px; }
 
 /* Documento */
 .sda-doc-hd { margin-bottom:18px; }

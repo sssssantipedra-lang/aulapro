@@ -26,7 +26,7 @@
  */
 
 import { textoLibreParaIA } from '../lib/documentoParaIA';
-import { callGemini, parseGeminiJson, SDA_MODELS, type InlineFile } from './gemini';
+import { callGemini, modelosParaSda, parseGeminiJson, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
 import { competenciasDe, resolverGrupo, type CurriculumBloqueSaberes, type CurriculumEntry, type Etapa } from '../lib/curriculum';
@@ -138,6 +138,8 @@ export interface SdaContent {
   evaluacionInstrumentos: string;
   /** Ausente si ninguna área usó currículo oficial, y en las SdA anteriores a esto. */
   normativa?: SdaNormativa;
+  /** El modelo de Gemini que la creó (16-11-2026); ausente en las anteriores. Solo se enseña en la pantalla, no en el PDF ni en el Word. */
+  modeloIA?: string;
   /**
    * Solo en las SdA de Educación Física (ver `docs/EF.md`): los modelos
    * pedagógicos con los que se diseñó (ids de `lib/modelosEF`) y sus
@@ -249,6 +251,8 @@ export interface SdaRequest {
   materiasOficiales?: Record<string, string | null>;
   /** Cómo es el grupo: ritmos, apoyos, lo que convenga tener en cuenta. */
   contextoClase: string;
+  /** El modelo que elige el docente para empezar (`modelosParaSda`); sin él, Gemini 4 Hydrogen. */
+  modelo?: string;
   metodologia: string;
   /** Resúmenes de los documentos que haya subido (normativa, programación…). */
   documentos: { nombre: string; resumen: string }[];
@@ -943,7 +947,8 @@ export async function generateSda(
       : '') +
     `\nRellena todos los campos del JSON de salida.`;
 
-  const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
+  let modeloQueContesto = '';
+  const raw = await callGemini(systemPrompt, userPrompt, [], { ...callbacks, onModel: m => { modeloQueContesto = m; } }, {
     // Una SdA entera no cabe en el tope de siempre: se cortaría a media frase
     // y el JSON llegaría roto. Con sesiones más desarrolladas (de 5 a 8
     // frases cada una, no 2 o 3) hace falta más margen que antes, sobre todo
@@ -951,8 +956,8 @@ export async function generateSda(
     maxOutputTokens: req.ef ? 32768 : 24576,
     responseSchema: conObjetivosOficiales(req.ef ? SDA_SCHEMA_EF : SDA_SCHEMA, oficialesOE),
     thinkingLevel: 'medium',
-    // Gemini 4 Hydrogen y, si se acaba su cupo, 3.8 Flash y 3.5 Flash-Lite (ver `SDA_MODELS`)
-    models: SDA_MODELS,
+    // Gemini 4 Hydrogen y, si se acaba su cupo, 3.8 Flash y 3.5 Flash-Lite; o el que elija el docente primero (ver `SDA_MODELS`)
+    models: modelosParaSda(req.modelo),
   });
   if (!raw) return null;
 
@@ -980,6 +985,7 @@ export async function generateSda(
       ? ajustarSesionesABase(sesionesDeLaRespuesta(parsed.sesiones, !!req.ef), req.sesionesBase)
       : sesionesDeLaRespuesta(parsed.sesiones, !!req.ef),
     normativa,
+    ...(modeloQueContesto ? { modeloIA: modeloQueContesto } : {}),
     ...(req.ef ? { ef: efDeLaRespuesta(req.ef, modelosPedagogicos, modalidadDeportiva, secuenciaDeportes) } : {}),
   };
 }
