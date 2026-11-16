@@ -26,13 +26,14 @@
  */
 
 import { textoLibreParaIA } from '../lib/documentoParaIA';
-import { callGemini, parseGeminiJson, type InlineFile } from './gemini';
+import { callGemini, parseGeminiJson, SDA_MODELS, type InlineFile } from './gemini';
 import type { Lang } from '../i18n';
 import { LOMLOE_COMPETENCES } from '../lib/utils';
 import { competenciasDe, resolverGrupo, type CurriculumBloqueSaberes, type CurriculumEntry, type Etapa } from '../lib/curriculum';
 import { estadoDeMateria } from '../lib/curriculum/materiasDeClase';
 import { cargarCurriculo, type CurriculoActivo } from '../lib/curriculum/cargar';
 import { citarNormas, type ComunidadId } from '../lib/curriculum/comunidades';
+import { lineaObjetivo, objetivosDeEtapa, objetivosElegidos, type ObjetivosEtapa } from '../lib/curriculum/objetivosEtapa';
 import { IDS_MODELOS_EF, modeloEF, modelosParaIA, referenciasDeModelos } from '../lib/modelosEF';
 import { IDS_MODALIDADES, MODALIDADES_EF, NIVELES_PARA_IA } from '../lib/ef';
 import type { ModalidadEF } from '../types/ef';
@@ -524,6 +525,26 @@ const SDA_SCHEMA = {
   propertyOrdering: SDA_FIELDS,
 } as const;
 
+/**
+ * Con la etapa conocida, los objetivos de etapa son una lista cerrada (los de la norma, `lib/curriculum/objetivosEtapa`):
+ * la IA devuelve sus números o letras y el texto lo pone la app (16-11-2026: los escribía ella y salían resumidos o
+ * inventados).
+ */
+function conObjetivosOficiales<T extends { properties: Record<string, unknown> }>(esquema: T, oficiales: ObjetivosEtapa | null): T {
+  if (!oficiales) return esquema;
+  return {
+    ...esquema,
+    properties: {
+      ...esquema.properties,
+      objetivosEtapa: {
+        type: 'ARRAY',
+        description: `De 2 a 5 objetivos de etapa de la lista oficial, por su ${oficiales.numerado ? 'número' : 'letra'}`,
+        items: { type: 'STRING', enum: oficiales.objetivos.map(o => o.id) },
+      },
+    },
+  };
+}
+
 /** El mismo esquema con los modelos pedagógicos de EF, lo primero: el resto se escribe ya con el modelo decidido. */
 const SDA_SCHEMA_EF = {
   ...SDA_SCHEMA,
@@ -844,6 +865,8 @@ export async function generateSda(
   const curriculo = req.etapa ? await cargarCurriculo(req.comunidad ?? 'fuera', req.etapa, lang) : null;
   const resoluciones = resolverAreas(req, curriculo);
   const cita = curriculo ? citarNormas(curriculo.normas, lang) : '';
+  // Los objetivos de etapa de la norma (sin etapa no se sabe cuáles, y siguen en texto libre)
+  const oficialesOE = req.etapa ? objetivosDeEtapa(req.comunidad ?? 'fuera', req.etapa, lang) : null;
 
   const systemPrompt =
     `Eres un experto en educación y en la legislación educativa LOMLOE, y evalúas con el rigor ` +
@@ -860,6 +883,11 @@ export async function generateSda(
     `"saberesBasicos" por tu cuenta para esa área: se ignorará lo que escribas ahí y se sustituirá ` +
     `por el texto oficial de lo que elijas. Para las áreas SIN esa lista, sigue como siempre, ` +
     `redactando esos dos campos en texto libre.\n` +
+    (oficialesOE
+      ? `OBJETIVOS DE ETAPA: elige en "objetivosEtapa" de 2 a 5 de la lista oficial que trae el prompt, por su ` +
+        `${oficialesOE.numerado ? 'número' : 'letra'}, los que la situación trabaja de verdad. No los redactes ni los resumas: ` +
+        `el texto oficial lo pone la aplicación.\n`
+      : '') +
     `EXPLICACIÓN CURRICULAR: el campo "explicacionCurricular" se dirige EXCLUSIVAMENTE AL DOCENTE ` +
     `y debe ser una lista enumerada que justifique cada elemento elegido, un punto por línea.\n` +
     `SESIONES: crea EXACTAMENTE ${req.numSesiones} sesiones en "sesiones", ni una más ni una menos. ` +
@@ -910,6 +938,9 @@ export async function generateSda(
         '"inclusionIndividualizada". No cites diagnósticos ni nombres.\n' + req.acs.trim() + '\n\n'
       : '') +
     curriculoReal +
+    (oficialesOE
+      ? `\nOBJETIVOS DE ETAPA OFICIALES (${oficialesOE.cita}):\n` + oficialesOE.objetivos.map(o => lineaObjetivo(o, oficialesOE.numerado)).join('\n') + '\n'
+      : '') +
     `\nRellena todos los campos del JSON de salida.`;
 
   const raw = await callGemini(systemPrompt, userPrompt, [], callbacks, {
@@ -918,8 +949,10 @@ export async function generateSda(
     // frases cada una, no 2 o 3) hace falta más margen que antes, sobre todo
     // con muchas sesiones pedidas.
     maxOutputTokens: req.ef ? 32768 : 24576,
-    responseSchema: req.ef ? SDA_SCHEMA_EF : SDA_SCHEMA,
+    responseSchema: conObjetivosOficiales(req.ef ? SDA_SCHEMA_EF : SDA_SCHEMA, oficialesOE),
     thinkingLevel: 'medium',
+    // Gemini 4 Hydrogen y, si se acaba su cupo, 3.8 Flash y 3.5 Flash-Lite (ver `SDA_MODELS`)
+    models: SDA_MODELS,
   });
   if (!raw) return null;
 
@@ -939,6 +972,7 @@ export async function generateSda(
     SDA_FIELDS.filter(k => k !== 'areas' && k !== 'sesiones')
       .map(k => [k, typeof parsed[k] === 'string' ? listaEnLineas(parsed[k]) : '']),
   ) as Omit<SdaContent, 'areas' | 'sesiones' | 'normativa' | 'ef'>;
+  if (oficialesOE) textos.objetivosEtapa = textoDeObjetivos(objetivosElegidos(parsed.objetivosEtapa, oficialesOE), oficialesOE);
   return {
     ...textos,
     areas: finales.map(f => (f.oficial ? { ...f.area, oficial: true } : f.area)),
@@ -1016,6 +1050,12 @@ export function ajustarSesionesABase(
  * empieza tras un punto, un punto y coma o dos puntos pasa a su línea. Si el
  * texto ya trae saltos de línea, no se toca.
  */
+/** Los objetivos elegidos, uno por línea con su número o letra, y la norma de la que salen. Vacío si no eligió ninguno válido. */
+export function textoDeObjetivos(elegidos: { id: string; texto: string }[], oficiales: ObjetivosEtapa): string {
+  if (!elegidos.length) return '';
+  return [...elegidos.map(o => lineaObjetivo(o, oficiales.numerado)), `(${oficiales.cita})`].join('\n');
+}
+
 export function listaEnLineas(texto: string): string {
   if (texto.includes('\n')) return texto;
   return texto.replace(/([.;:])\s+(?=(\d{1,2}\.|[-•])\s)/g, '$1\n');

@@ -115,3 +115,20 @@ describe('nivel de razonamiento', () => {
     expect(errores[0]).toMatch(/clave API no es válida/i);
   });
 });
+
+describe('Gemini 4 Hydrogen (16-11-2026)', () => {
+  it('va en medium si no se pide otro nivel (el suyo de fábrica es high), y respeta el que se pida', async () => {
+    await callGemini('sistema', 'pregunta', [], {}, { models: ['gemini-4-hydrogen'] });
+    expect(enviados[0].model).toBe('gemini-4-hydrogen');
+    expect(nivel(0)).toBe('medium');
+    await callGemini('sistema', 'pregunta', [], {}, { models: ['gemini-4-hydrogen'], thinkingLevel: 'high' });
+    expect(nivel(1)).toBe('high');
+  });
+
+  it('la SdA le manda medium', async () => {
+    const { SDA_MODELS } = await import('./gemini');
+    await callGemini('sistema', 'pregunta', [], {}, { models: SDA_MODELS, thinkingLevel: 'medium' });
+    expect(enviados[0].model).toBe('gemini-4-hydrogen');
+    expect(nivel(0)).toBe('medium');
+  });
+});

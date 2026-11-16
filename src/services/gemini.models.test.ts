@@ -69,3 +69,25 @@ describe('reparto de modelos', () => {
     expect(new Date(nextDailyReset(new Date('2026-12-01T12:00:00Z'))).toISOString()).toBe('2026-12-02T08:00:00.000Z');
   });
 });
+
+describe('situaciones de aprendizaje (16-11-2026)', () => {
+  it('Gemini 4 Hydrogen primero; si se le acaba el cupo, 3.8 Flash; y 3.5 Flash-Lite en último lugar', async () => {
+    const { SDA_MODELS } = await import('./gemini');
+    expect([...SDA_MODELS]).toEqual(['gemini-4-hydrogen', 'gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+    responder = m => (m === 'gemini-4-hydrogen' ? { ok: false, status: 429, message: 'Quota exceeded per day' } : { ok: true });
+    expect(await callGemini('s', 'u', [], {}, { models: SDA_MODELS, thinkingLevel: 'medium' })).toBe('listo');
+    expect(pedidos).toEqual(['gemini-4-hydrogen', 'gemini-3.8-flash']);
+    // Al día siguiente de agotarlo, hasta que se renueva, ya no se le llama
+    pedidos = [];
+    responder = m => (m === 'gemini-3.8-flash' ? { ok: false, status: 429, message: 'Quota exceeded per day' } : { ok: true });
+    expect(await callGemini('s', 'u', [], {}, { models: SDA_MODELS, thinkingLevel: 'medium' })).toBe('listo');
+    expect(pedidos).toEqual(['gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+  });
+
+  it('a Gemini 4 se le manda el nivel de razonamiento (sin él, Hydrogen iría en «high»)', async () => {
+    const { supportsThinkingLevel } = await import('./gemini');
+    expect(supportsThinkingLevel('gemini-4-hydrogen')).toBe(true);
+    expect(supportsThinkingLevel('gemini-3.8-flash')).toBe(true);
+    expect(supportsThinkingLevel('gemini-2.5-flash')).toBe(false);
+  });
+});
