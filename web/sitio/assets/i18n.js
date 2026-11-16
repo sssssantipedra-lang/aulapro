@@ -4,7 +4,7 @@ window.AULA_I18N = {
   es: {
     'meta.title': 'AulaPro · La app con IA para docentes de Educación Primaria y Secundaria',
     'f.needok': 'Marca la casilla de privacidad para apuntarte.',
-    'meta.desc': 'AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Oferta de lanzamiento: 9,90 € el primer año.',
+    'meta.desc': 'AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Funciona en el navegador, sin instalar nada.',
     's2.count': '{n} de 6 tachadas',
     'f.ok': 'Gracias. Te avisaremos por correo electrónico en cuanto AulaPro esté a la venta.',
     'f.err': 'No se ha podido enviar. Inténtalo de nuevo en unos minutos.',
@@ -31,7 +31,7 @@ window.AULA_I18N = {
 
   ca: {
     'meta.title': "AulaPro · L'app amb IA per a docents d'Educació Primària i Secundària",
-    'meta.desc': "AulaPro prepara amb IA situacions d'aprenentatge, rúbriques, dianes, informes i fitxes per a Educació Primària i Secundària, i reuneix el quadern, l'assistència i l'avaluació LOMLOE en una sola app per a l’ordinador, la tauleta i el mòbil. Oferta de llançament: 9,90 € el primer any.",
+    'meta.desc': "AulaPro prepara amb IA situacions d'aprenentatge, rúbriques, dianes, informes i fitxes per a Educació Primària i Secundària, i reuneix el quadern, l'assistència i l'avaluació LOMLOE en una sola app per a l’ordinador, la tauleta i el mòbil. Funciona al navegador, sense instal·lar res.",
     'skip': 'Salta al contingut',
     'nav.label': 'Seccions',
     'nav.features': 'Funcions',
@@ -61,8 +61,7 @@ window.AULA_I18N = {
     'lang.label': 'Idioma',
     'cta.want': 'Vull AulaPro',
     'cta.how': 'Mira com funciona',
-    'hero.h1': "AulaPro. L'app amb IA per a docents d'Educació Primària i Secundària.",
-    'hk.k': "Per a docents de Primària i Secundària",
+    'hk.k': "AulaPro, l'app amb IA per a docents de Primària i Secundària",
     'hk.t': "Menys paperassa.<br>Més temps per <em>ensenyar</em>.",
     'hk.s': "AulaPro prepara amb IA la feina que et pren les tardes. Tu la revises i llestos.",
     'hk.list': "Pendent aquesta setmana",
@@ -303,7 +302,7 @@ window.AULA_I18N = {
 
   en: {
     'meta.title': 'AulaPro · The AI app for primary and secondary school teachers',
-    'meta.desc': 'AulaPro uses AI to prepare learning situations, rubrics, assessment targets, reports and worksheets for primary and secondary school, and brings the gradebook, attendance and LOMLOE assessment into one app for your computer, tablet and phone. Launch offer: €9.90 for the first year.',
+    'meta.desc': 'AulaPro uses AI to prepare learning situations, rubrics, assessment targets, reports and worksheets for primary and secondary school, and brings the gradebook, attendance and LOMLOE assessment into one app for your computer, tablet and phone. It runs in the browser, with nothing to install.',
     'skip': 'Skip to content',
     'nav.label': 'Sections',
     'nav.features': 'Features',
@@ -333,8 +332,7 @@ window.AULA_I18N = {
     'lang.label': 'Language',
     'cta.want': 'I want AulaPro',
     'cta.how': 'See how it works',
-    'hero.h1': 'AulaPro. The AI app for primary and secondary school teachers.',
-    'hk.k': "For primary and secondary school teachers",
+    'hk.k': "AulaPro, the AI app for primary and secondary school teachers",
     'hk.t': "Less paperwork.<br>More time to <em>teach</em>.",
     'hk.s': "AulaPro uses AI to prepare the work that eats up your evenings. You review it and you're done.",
     'hk.list': "Still to do this week",
