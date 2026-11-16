@@ -30,7 +30,7 @@ import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../s
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
-import { hasApiKey, nombreModelo, SDA_MODELS, type InlineFile } from '../services/gemini';
+import { cupoAgotadoHasta, hasApiKey, horaCorta, modelosParaSda, nombreModelo, SDA_MODELS, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -1280,10 +1280,14 @@ export function LearningSituations({
           <label className="sda-modelo">
             <span>{t('Modelo de IA')}</span>
             <select id="learningsituations-modelo" className="finput" value={modeloSda} onChange={e => elegirModeloSda(e.target.value)} disabled={generating}>
-              {SDA_MODELS.map(m => <option key={m} value={m}>{nombreModelo(m)}{m === SDA_MODELS[0] ? ` (${t('recomendado')})` : ''}</option>)}
+              {SDA_MODELS.map(m => (
+                <option key={m} value={m}>
+                  {nombreModelo(m)}{m === SDA_MODELS[0] ? ` (${t('recomendado')})` : ''}{cupoAgotadoHasta(m) ? ` · ${t('cupo de hoy agotado')}` : ''}
+                </option>
+              ))}
             </select>
           </label>
-          <p className="sda-note">{t('Si se acaba su cupo gratuito del día, la app sigue sola con el siguiente.')}</p>
+          <AvisoCupoSda modelo={modeloSda} />
           <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
               ? <><span className="spin" />{t('Redactando la situación de aprendizaje…')}</>
@@ -1976,5 +1980,23 @@ export function LearningSituations({
 
       <DocPreview open={!!preview} onClose={() => setPreview(null)} title={preview?.title ?? ''} html={preview?.html ?? ''} />
     </section>
+  );
+}
+
+/**
+ * Debajo del selector de modelo de la SdA: lo que es cierto del cupo de hoy (16-11-2026). Google no dice cuánto
+ * queda, solo cuándo se acaba (`cupoAgotadoHasta`): si el elegido ya lo gastó, con qué modelo empezará la app.
+ */
+function AvisoCupoSda({ modelo }: { modelo: string }) {
+  const { t } = useI18n();
+  const hasta = cupoAgotadoHasta(modelo);
+  if (!hasta) return <p className="sda-note">{t('Si se acaba su cupo gratuito del día, la app sigue sola con el siguiente.')}</p>;
+  const siguiente = modelosParaSda(modelo).find(m => !cupoAgotadoHasta(m));
+  return (
+    <p className="sda-note sda-cupo-agotado" role="status">
+      {siguiente
+        ? t('Hoy ya se ha gastado el cupo de {modelo}: hasta las {h}, la app empezará por {siguiente}.', { modelo: nombreModelo(modelo), h: horaCorta(hasta), siguiente: nombreModelo(siguiente) })
+        : t('Hoy se ha gastado el cupo de los tres modelos. Se renueva a las {h}.', { h: horaCorta(hasta) })}
+    </p>
   );
 }

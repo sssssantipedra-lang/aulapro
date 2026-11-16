@@ -147,11 +147,30 @@ function isCoolingDown(model: string, now = Date.now()): boolean {
   return until > now;
 }
 
+/**
+ * Si un modelo ya gastó su cupo de hoy, hasta cuándo (16-11-2026, petición del dueño: saber cuánto le queda a cada
+ * modelo). Google no dice cuántas peticiones quedan: solo avisa con un 429 cuando se acaban, y el cupo es del
+ * proyecto de la clave, no de este equipo. Así que esto es lo único cierto que se sabe aquí: «agotado hasta las 9:00»
+ * desde que Google lo dijo en este dispositivo. Una pausa de un minuto (demasiadas por minuto) no cuenta.
+ */
+export function cupoAgotadoHasta(model: string, now = Date.now()): number | null {
+  const until = readCooldowns()[model];
+  return until && until > now + 60_000 ? until : null;
+}
+
+/** «09:00», en la hora del dispositivo: hasta cuándo está agotado un modelo. */
+export const horaCorta = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
 /** Para Configuración: si el modelo bueno ya gastó su cupo de hoy, hasta cuándo. */
 export function mainModelPausedUntil(): number | null {
-  const until = readCooldowns()[MAIN_MODEL];
-  return until && until > Date.now() + 60_000 ? until : null;
+  return cupoAgotadoHasta(MAIN_MODEL);
 }
+
+/** Los modelos cuyo cupo de hoy se enseña al docente: los de la SdA (Hydrogen, 3.8 Flash y 3.5 Flash-Lite). */
+export const MODELOS_CON_CUPO = SDA_MODELS;
+
+/** Dónde ve el docente su uso y sus límites exactos (enlace de la documentación de Google, comprobado el 16-11-2026). */
+export const AI_STUDIO_USO_URL = 'https://aistudio.google.com/rate-limit?timeRange=last-28-days';
 
 /**
  * La clave, ya descifrada, en memoria. En la aplicación de escritorio vive

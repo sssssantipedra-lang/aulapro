@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Sparkles, ExternalLink, ClipboardPaste, CheckCircle2, AlertTriangle, Gauge } from 'lucide-react';
-import { getApiKey, setApiKey, mainModelPausedUntil } from '../services/gemini';
+import { getApiKey, setApiKey } from '../services/gemini';
 import { looksLikeKey } from '../lib/apiKey';
 import { useToast } from './ui/Toast';
 import { useI18n } from '../i18n';
 import { usoIaAceptado, aceptarUsoIa } from '../lib/usoIA';
 import { AceptarUsoIA, PanelUsoIA } from './AceptarUsoIA';
+import { CupoModelos } from './CupoModelos';
 
 const AI_STUDIO_URL = 'https://aistudio.google.com/apikey';
 
@@ -50,7 +51,6 @@ export function ApiKeySettings() {
 
   const saved = getApiKey();
   const dirty = key.trim() !== saved;
-  const paused = mainModelPausedUntil();
 
   async function save(k: string) {
     const v = k.trim();
@@ -184,15 +184,9 @@ export function ApiKeySettings() {
         <div>
           <strong>{t('¿Cuánto da de sí el plan gratuito?')}</strong>
           <span>
-            {t('Las tareas grandes (situaciones de aprendizaje, fichas, informes, rúbricas y dianas) usan Gemini 3.8 Flash, el mejor, que da para unas 20 al día. Todo lo demás usa Gemini 3.5 Flash-Lite, con unas 500 al día. Si un día se gastan las 20, la aplicación sigue sola con Flash-Lite. El cupo se renueva cada día a las 9:00.')}
+            {t('Las situaciones de aprendizaje usan Gemini 4 Hydrogen y, si se acaba su cupo, Gemini 3.8 Flash. Las demás tareas grandes (fichas, informes, rúbricas y dianas) usan Gemini 3.8 Flash, que da para unas 20 al día, y todo lo demás, Gemini 3.5 Flash-Lite, con unas 500 al día. Si un modelo gasta su cupo, la aplicación sigue sola con el siguiente. El cupo se renueva cada día a las 9:00.')}
           </span>
-          {paused && (
-            <span className="ak-paused">
-              {t('Hoy ya se han gastado las del modelo grande: hasta las {h} las tareas grandes usan Flash-Lite.', {
-                h: new Date(paused).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              })}
-            </span>
-          )}
+          {saved && <CupoModelos />}
         </div>
       </div>
 
