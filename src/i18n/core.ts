@@ -1353,6 +1353,11 @@ const EN: Record<string, string> = {
   'Redactando la situación de aprendizaje…': 'Writing the learning situation…',
   'Es la petición más larga de la aplicación: puede tardar cerca de un minuto.':
     'This is the longest request in the app: it can take up to a minute.',
+  'Modelo de IA': 'AI model',
+  'recomendado': 'recommended',
+  'Si se acaba su cupo gratuito del día, la app sigue sola con el siguiente.': 'If its free daily quota runs out, the app carries on with the next one.',
+  'El modelo de Gemini que la redactó': 'The Gemini model that wrote it',
+  'Creada con {modelo}': 'Created with {modelo}',
   'Escribe la idea de la situación de aprendizaje': 'Write the idea for the learning situation',
   'Elige al menos un área': 'Choose at least one subject',
   'La IA no devolvió una situación de aprendizaje válida. Vuelve a intentarlo.':

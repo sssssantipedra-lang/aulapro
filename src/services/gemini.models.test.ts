@@ -91,3 +91,26 @@ describe('situaciones de aprendizaje (16-11-2026)', () => {
     expect(supportsThinkingLevel('gemini-2.5-flash')).toBe(false);
   });
 });
+
+describe('elegir el modelo de la SdA y saber cuál contestó (16-11-2026)', () => {
+  it('el elegido va primero y, si se le acaba el cupo, los demás en su orden; uno que no está en la lista no cuenta', async () => {
+    const { modelosParaSda } = await import('./gemini');
+    expect(modelosParaSda()).toEqual(['gemini-4-hydrogen', 'gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+    expect(modelosParaSda('gemini-3.8-flash')).toEqual(['gemini-3.8-flash', 'gemini-4-hydrogen', 'gemini-3.5-flash-lite']);
+    expect(modelosParaSda('gemini-99-ultra')).toEqual(['gemini-4-hydrogen', 'gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+  });
+
+  it('el nombre que ve el docente', async () => {
+    const { nombreModelo } = await import('./gemini');
+    expect(nombreModelo('gemini-4-hydrogen')).toBe('Gemini 4 Hydrogen');
+    expect(nombreModelo('gemini-3.8-flash')).toBe('Gemini 3.8 Flash');
+    expect(nombreModelo('gemini-3.5-flash-lite')).toBe('Gemini 3.5 Flash-Lite');
+  });
+
+  it('avisa del modelo que contestó, también cuando fue el de reserva', async () => {
+    const vistos: string[] = [];
+    responder = m => (m === 'gemini-4-hydrogen' ? { ok: false, status: 429, message: 'per minute' } : { ok: true });
+    await callGemini('s', 'u', [], { onModel: m => vistos.push(m) }, { models: ['gemini-4-hydrogen', 'gemini-3.8-flash'] });
+    expect(vistos).toEqual(['gemini-3.8-flash']);
+  });
+});

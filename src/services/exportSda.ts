@@ -83,7 +83,8 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang, anexo?: string)
       : '';
   const rowDouble = (l1: string, v1: string, l2: string, v2: string) =>
     (v1 || v2)
-      ? `<tr><th class="lbl">${esc(l1)}</th><td>${nl2br(v1 || DASH)}</td><th class="lbl">${esc(l2)}</th><td colspan="3">${nl2br(v2 || DASH)}</td></tr>`
+      // Los objetivos de etapa son textos largos de la norma; las competencias clave, unas siglas (16-11-2026, petición del dueño)
+      ? `<tr><th class="lbl">${esc(l1)}</th><td colspan="3">${nl2br(v1 || DASH)}</td><th class="lbl">${esc(l2)}</th><td>${nl2br(v2 || DASH)}</td></tr>`
       : '';
 
   const areaVal = [req.areas.join(', '), req.nivel].filter(Boolean).join(' · ');
@@ -254,7 +255,7 @@ const gRowTriple = (l1: string, v1: string, l2: string, v2: string, l3: string, 
     : [];
 const gRowDouble = (l1: string, v1: string, l2: string, v2: string): TableRow[] =>
   (v1 || v2)
-    ? [new TableRow({ children: [gcell(l1, { style: 'label' }), gcell(v1), gcell(l2, { style: 'label' }), gcell(v2, { colSpan: 3 })] })]
+    ? [new TableRow({ children: [gcell(l1, { style: 'label' }), gcell(v1, { colSpan: 3 }), gcell(l2, { style: 'label' }), gcell(v2)] })]
     : [];
 
 /** Lo más ancho que sale una imagen de una sesión en el Word, en píxeles (unos 8 cm). */

@@ -1259,7 +1259,9 @@ vuelve con «← Configuración»:
   conlleva») y el enlace «Leer la información», que abre un panel con lo que se
   envía a Google y lo que no; sin marcarla no se sigue. También explica el
   plan gratuito: las situaciones de aprendizaje usan Gemini 4 Hydrogen y, si
-  se acaba su cupo del día, Gemini 3.8 Flash y después Gemini 3.5 Flash-Lite; las
+  se acaba su cupo del día, Gemini 3.8 Flash y después Gemini 3.5 Flash-Lite (al
+  crearla, «Modelo de IA» deja empezar por otro de los tres; la SdA dice arriba
+  «Creada con…» el modelo que la redactó); las
   demás tareas grandes (fichas, informes, rúbricas, dianas) usan Gemini 3.8
   Flash, unas 20 al día; el resto, Gemini 3.5 Flash-Lite, unas 500 al día. Si se
   gastan las 20, sigue sola con Flash-Lite hasta las 9:00.

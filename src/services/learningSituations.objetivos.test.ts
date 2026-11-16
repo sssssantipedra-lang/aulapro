@@ -95,3 +95,23 @@ describe('generateSda con los objetivos de etapa', () => {
     expect(sda!.objetivosEtapa).toBe('Texto libre');
   });
 });
+
+describe('el modelo de la SdA (16-11-2026)', () => {
+  it('va primero el que elige el docente y la SdA guarda el que la redactó', async () => {
+    callGemini.mockImplementationOnce(async (_s: string, _u: string, _f: unknown, cb: { onModel?: (m: string) => void }) => {
+      cb.onModel?.('gemini-3.8-flash');
+      return respuesta(['1']);
+    });
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'comunitat-valenciana', modelo: 'gemini-3.8-flash' }, 'es');
+    expect(callGemini.mock.calls[0][4].models).toEqual(['gemini-3.8-flash', 'gemini-4-hydrogen', 'gemini-3.5-flash-lite']);
+    expect(sda!.modeloIA).toBe('gemini-3.8-flash');
+  });
+
+  it('sin elegir, Gemini 4 Hydrogen primero', async () => {
+    callGemini.mockResolvedValueOnce(respuesta(['1']));
+    const sda = await generateSda({ ...BASE, etapa: 'primaria', curso: 5, comunidad: 'comunitat-valenciana' }, 'es');
+    expect(callGemini.mock.calls[0][4].models[0]).toBe('gemini-4-hydrogen');
+    expect(sda!.modeloIA).toBeUndefined();   // el simulacro no dijo quién contestó
+  });
+});
+

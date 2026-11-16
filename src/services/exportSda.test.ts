@@ -149,3 +149,19 @@ describe('imágenes en las sesiones', () => {
     expect(Object.keys(zip.files).filter(f => f.startsWith('word/media/') && !zip.files[f].dir)).toHaveLength(0);
   });
 });
+
+describe('objetivos de etapa y competencias clave (16-11-2026)', () => {
+  const sda: LearningSituation = {
+    ...base,
+    content: { ...base.content, objetivosEtapa: '1. Conocer y apreciar los valores…\n(Decreto 106/2022, de 5 de agosto, artículo 7)', competenciasClave: 'CPSAA, CC', modeloIA: 'gemini-4-hydrogen' },
+  };
+  it('los objetivos ocupan tres columnas y las competencias clave, una', () => {
+    const html = buildSdaHtml(sda, 'es');
+    expect(html).toMatch(/Objetivos de etapa<\/th><td colspan="3">1\. Conocer/);
+    expect(html).toMatch(/Competencias clave<\/th><td>CPSAA, CC<\/td>/);
+  });
+  it('el modelo de la IA no sale en el documento', async () => {
+    expect(buildSdaHtml(sda, 'es')).not.toMatch(/Gemini|hydrogen/i);
+    expect(await textoDelWord(sda)).not.toMatch(/Gemini|hydrogen/i);
+  });
+});

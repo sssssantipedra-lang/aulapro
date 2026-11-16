@@ -38,6 +38,22 @@ const LITE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'] as const;
 export const SDA_MODEL = 'gemini-4-hydrogen';
 export const SDA_MODELS = [SDA_MODEL, MAIN_MODEL, 'gemini-3.5-flash-lite'] as const;
 
+/**
+ * El orden para una SdA si el docente elige modelo (16-11-2026, petición del dueño): el elegido primero y, si se le
+ * acaba el cupo, los demás de `SDA_MODELS` en su orden. Uno que no esté en la lista no cuenta.
+ */
+export function modelosParaSda(elegido?: string | null): string[] {
+  return elegido && (SDA_MODELS as readonly string[]).includes(elegido)
+    ? [elegido, ...SDA_MODELS.filter(m => m !== elegido)]
+    : [...SDA_MODELS];
+}
+
+/** «gemini-3.5-flash-lite» → «Gemini 3.5 Flash-Lite», para enseñarlo al docente. */
+export function nombreModelo(id: string): string {
+  return id.replace(/^gemini-/, 'Gemini ').replace(/-flash-lite$/, ' Flash-Lite')
+    .replace(/-([a-z])/g, (_, c: string) => ` ${c.toUpperCase()}`);
+}
+
 /** Red de seguridad para que la IA nunca deje de funcionar. */
 const LEGACY_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'] as const;
 
@@ -223,6 +239,8 @@ interface GeminiCallbacks {
   onEnd?: () => void;
   /** Recibe un mensaje de error legible para mostrar al usuario. */
   onError?: (message: string) => void;
+  /** El modelo que ha contestado (16-11-2026: el docente ve con cuál se creó una SdA). */
+  onModel?: (model: string) => void;
 }
 
 /** El estado que devuelve `callModel` cuando el modelo no ha respondido a tiempo (ver `ESPERA_RESPUESTA_MS`). */
@@ -530,7 +548,7 @@ export async function callGemini(
           if ('text' in otra && !pareceSinTildes(otra.text)) result = otra;
         }
 
-        if ('text' in result) return privacy.unmask(result.text);
+        if ('text' in result) { callbacks.onModel?.(model); return privacy.unmask(result.text); }
 
         lastError = friendlyError(result.status, result.message);
         if (result.status === 429) markExhausted(model, result.message);

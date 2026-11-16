@@ -30,7 +30,7 @@ import { buildSdaPosterHtml, saveSdaPosterPdf, type AudienciaCartel } from '../s
 import { useThemeArt } from '../lib/themeArtDoc';
 import { FICHA_THEMES, type FichaThemeId } from '../lib/fichaThemes';
 import { ThemeArt } from '../components/fichas/ThemeArt';
-import { hasApiKey, type InlineFile } from '../services/gemini';
+import { hasApiKey, nombreModelo, SDA_MODELS, type InlineFile } from '../services/gemini';
 import { fileToBase64, isoDate } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
@@ -292,6 +292,11 @@ export function LearningSituations({
 
   /* ── Resultado ── */
   const [generating, setGenerating] = useState(false);
+  // El modelo de la IA para empezar (16-11-2026, petición del dueño); se recuerda en el dispositivo
+  const [modeloSda, setModeloSda] = useState<string>(() => {
+    try { const m = localStorage.getItem('aulapro_modelo_sda'); return m && (SDA_MODELS as readonly string[]).includes(m) ? m : SDA_MODELS[0]; } catch { return SDA_MODELS[0]; }
+  });
+  const elegirModeloSda = (m: string) => { setModeloSda(m); try { localStorage.setItem('aulapro_modelo_sda', m); } catch { /* sin almacenamiento */ } };
   const [content, setContent] = useState<SdaContent | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   /** La situación que se está copiando a otras clases, si se está. */
@@ -558,6 +563,7 @@ export function LearningSituations({
       comunidad,
       materiasOficiales: materias,
       contextoClase, metodologia,
+      modelo: modeloSda,
       barreras: conBarreras && barrerasClases.length ? barrerasClases : undefined,
       acs: conAcs && textoAcs ? textoAcs : undefined,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
@@ -1271,6 +1277,13 @@ export function LearningSituations({
         )}
 
         <div className="sda-form-ft">
+          <label className="sda-modelo">
+            <span>{t('Modelo de IA')}</span>
+            <select id="learningsituations-modelo" className="finput" value={modeloSda} onChange={e => elegirModeloSda(e.target.value)} disabled={generating}>
+              {SDA_MODELS.map(m => <option key={m} value={m}>{nombreModelo(m)}{m === SDA_MODELS[0] ? ` (${t('recomendado')})` : ''}</option>)}
+            </select>
+          </label>
+          <p className="sda-note">{t('Si se acaba su cupo gratuito del día, la app sigue sola con el siguiente.')}</p>
           <button className="btn-accent" disabled={generating || sinClave} onClick={handleGenerate}>
             {generating
               ? <><span className="spin" />{t('Redactando la situación de aprendizaje…')}</>
@@ -1501,6 +1514,7 @@ export function LearningSituations({
               <span><CalendarRange size={13} />{t('{n} sesiones', { n: content.sesiones.length })}{temporalizacion ? ` · ${temporalizacion}` : ''}{meses ? ` (${meses})` : ''}</span>
               {areas.length > 0 && <span><BookMarked size={13} />{areas.join(' · ')}</span>}
               {activeClass && <span><Users size={13} />{activeClass.name}</span>}
+              {content.modeloIA && <span title={t('El modelo de Gemini que la redactó')}><Sparkles size={13} />{t('Creada con {modelo}', { modelo: nombreModelo(content.modeloIA) })}</span>}
             </div>
           </div>
           <div className="sda-doc-actions">
