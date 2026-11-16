@@ -88,7 +88,7 @@ for (const [lang, locale] of Object.entries(LANGS)) {
     const data = JSON.parse(json);
     data.url = url;
     data.description = d['meta.desc'];
-    data.offers.url = url + '#precio';
+    if (data.offers) data.offers.url = url + '#precio';
     return a + '\n' + JSON.stringify(data, null, 2) + '\n' + b;
   });
   if (missing.length) console.log(`${lang}: sin traducir, se queda en castellano: ${[...new Set(missing)].join(', ')}`);

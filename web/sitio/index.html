@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AulaPro · La app con IA para docentes de Educación Primaria y Secundaria</title>
-<meta name="description" content="AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Oferta de lanzamiento: 9,90 € el primer año.">
+<meta name="description" content="AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Funciona en el navegador, sin instalar nada.">
 <meta name="theme-color" content="#fbf8f3" media="(max-aspect-ratio: 1/1)">
 <meta name="theme-color" content="#1e1611">
 <meta name="color-scheme" content="light">
@@ -20,7 +20,7 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_ES">
 <meta property="og:title" content="AulaPro · La app con IA para docentes de Educación Primaria y Secundaria">
-<meta property="og:description" content="Situaciones de aprendizaje, rúbricas, informes y evaluación LOMLOE con IA, en el ordenador, la tableta y el móvil. Oferta de lanzamiento: 9,90 € el primer año.">
+<meta property="og:description" content="Situaciones de aprendizaje, rúbricas, informes y evaluación LOMLOE con IA, en el ordenador, la tableta y el móvil, sin instalar nada.">
 <meta property="og:image" content="https://aulapro.app/assets/og.jpg">
 <meta property="og:url" content="https://aulapro.app/">
 <meta name="twitter:card" content="summary_large_image">
@@ -33,8 +33,9 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "AulaPro",
+  "alternateName": "Aula Pro",
   "url": "https://aulapro.app/",
-  "description": "AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Oferta de lanzamiento: 9,90 € el primer año.",
+  "description": "AulaPro prepara con IA situaciones de aprendizaje, rúbricas, dianas, informes y fichas para Educación Primaria y Secundaria, y reúne el cuaderno, la asistencia y la evaluación LOMLOE en una sola app para el ordenador, la tableta y el móvil. Funciona en el navegador, sin instalar nada.",
   "applicationCategory": "EducationalApplication",
   "operatingSystem": "Web (Windows, macOS, Android, iOS, iPadOS, ChromeOS)",
   "inLanguage": [
@@ -42,20 +43,18 @@
     "ca",
     "en"
   ],
-  "image": "https://aulapro.app/assets/og.jpg",
-  "offers": {
-    "@type": "Offer",
-    "price": "9.90",
-    "priceCurrency": "EUR",
-    "priceValidUntil": "2027-04-15",
-    "priceSpecification": {
-      "@type": "UnitPriceSpecification",
-      "price": "9.90",
-      "priceCurrency": "EUR",
-      "referenceQuantity": { "@type": "QuantitativeValue", "value": 1, "unitCode": "ANN" }
-    },
-    "url": "https://aulapro.app/#precio"
-  }
+  "image": "https://aulapro.app/assets/og.jpg"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AulaPro",
+  "alternateName": "Aula Pro",
+  "url": "https://aulapro.app/",
+  "logo": "https://aulapro.app/assets/icono-180.png",
+  "email": "contacto@aulapro.app"
 }
 </script>
 <link rel="preload" href="assets/fonts/lexend-latin-45b4c6.woff2" as="font" type="font/woff2" crossorigin>
@@ -160,6 +159,8 @@ body.paused *,body.paused *::before,body.paused *::after{animation-play-state:pa
 /* ---------- hero: the app itself, sharp, on a laptop, a tablet and a phone (web/DISENO.md, 48) ---------- */
 .hero{position:relative;z-index:1;overflow:hidden;padding:calc(var(--nav-h) + clamp(28px,6vh,80px)) var(--gutter) clamp(64px,10vh,120px);background:radial-gradient(ellipse 60% 70% at 78% 40%,rgba(214,178,134,.32),rgba(214,178,134,0) 70%),#fbf8f3}
 .hero-in{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,8fr);gap:clamp(28px,4vw,72px);align-items:center}
+.hero-copy h1{font:inherit}
+.hero-copy h1 .hl{display:block}
 .hero-copy .eyebrow{display:inline-block;margin-bottom:1.1rem;font-size:.78rem;letter-spacing:.1em;color:var(--accent)}
 .hero-copy .sub{margin-top:1.2rem;max-width:40ch;font-size:clamp(1.02rem,1.2vw,1.16rem);line-height:1.55;color:var(--text-2)}
 .hero-copy .price-line{margin-top:1.1rem;font-size:.82rem;letter-spacing:.08em;color:var(--text)}
@@ -711,14 +712,14 @@ html.zoom-open{overflow:hidden}
 <main id="main" tabindex="-1">
 
   <section class="hero" id="inicio" aria-labelledby="hero-title">
-    <h1 class="sr" id="hero-title" data-i18n="hero.h1">AulaPro. La app con IA para docentes de Educación Primaria y Secundaria.</h1>
     <!-- Al estilo de las páginas de producto: con el scroll, el portátil se acerca y su pantalla cuenta la historia
          (web/DISENO.md, sección 49). Las capturas salen de la app con scripts/web/capturar-portada.mjs. -->
     <div class="stage">
       <div class="hero-in">
         <div class="hero-copy">
-          <p class="eyebrow mono" data-i18n="hk.k">Para docentes de Primaria y Secundaria</p>
-          <p class="hl hl-xl" data-i18n="hk.t">Menos papeleo.<br>Más tiempo para <em>enseñar</em>.</p>
+          <!-- El encabezado principal de la página, visible (16-11-2026, para Google): el antetítulo con la marca y el titular -->
+          <h1 id="hero-title"><span class="eyebrow mono" data-i18n="hk.k">AulaPro, la app con IA para docentes de Primaria y Secundaria</span>
+            <span class="hl hl-xl" data-i18n="hk.t">Menos papeleo.<br>Más tiempo para <em>enseñar</em>.</span></h1>
           <p class="sub" data-i18n="hk.s">AulaPro prepara con IA el trabajo que te quita las tardes. Tú lo revisas y listo.</p>
           <!-- El gancho: la semana de un docente, tachada sola al abrir la página (web/DISENO.md, sección 50) -->
           <div class="semana">

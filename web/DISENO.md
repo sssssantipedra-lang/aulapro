@@ -487,3 +487,12 @@ Petición del dueño: que la portada diga lo primero que hay una versión de lan
 - Los botones «Quiero AulaPro» (menú, portada y cierre de la escena, marcados con `data-early-cta`) pasan a decir «Prueba gratis» y llevan a `app/`. La lista de espera se queda: es la única lista (`CLAUDE.md`, «Acceso anticipado gratuito»).
 - **Sin duraciones sueltas («2 meses»)**: lo que se anuncia es una fecha, el 1 de enero de 2027. Solo se activa con `acceso` relleno y `checkout` vacío en `assets/launch.js`; al abrir la venta (`scripts/abrir-venta.mjs`) todo vuelve a ser la portada de venta sin tocar el HTML.
 - Textos en `early.*` y `el.*` (`index.html` y `assets/i18n.js`). Comprobado en Chromium en escritorio (1280) y móvil (390), en los tres idiomas, sin desbordes.
+
+## 52. Buscadores: encabezado visible y datos para Google (16-11-2026)
+
+Petición del dueño: AulaPro salía en la segunda página de resultados. Lo que se cambió en la portada:
+
+- **El encabezado principal (`h1`) es visible.** Antes era un texto solo para lectores de pantalla («AulaPro. La app con IA…»). Ahora el `h1` reúne el antetítulo, que lleva la marca («AulaPro, la app con IA para docentes de Primaria y Secundaria», `hk.k`), y el titular de siempre («Menos papeleo. Más tiempo para enseñar.», `hk.t`). El aspecto no cambia: `.hero-copy h1{font:inherit}` y el titular en bloque.
+- **La descripción para buscadores no lleva precio** (`meta.desc`, la del `<head>`, `og:description` y la de los datos estructurados): el precio cambia con la beta y con la venta, y la descripción no la cambia `scripts/abrir-venta.mjs`. Acaba con «Funciona en el navegador, sin instalar nada», que es cierto antes y después.
+- **Datos estructurados:** la app (`SoftwareApplication`) sin `offers`, porque Google no da ficha de app sin valoraciones y el precio se quedaba viejo; con `alternateName: "Aula Pro"`, para quien lo busca separado. Y una ficha de la organización (`Organization`: logo `assets/icono-180.png` y `contacto@aulapro.app`), para el panel de la marca. Cuando haya perfiles en redes, se añaden en `sameAs`. En el texto de la página la marca sigue siendo «AulaPro», todo junto.
+- Lo que más pesa y no está en el código: Google Search Console (dominio verificado, mapa del sitio enviado) y enlaces de otros sitios.
