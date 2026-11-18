@@ -1403,6 +1403,15 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   .stack-sm { grid-template-columns:minmax(0,1fr) !important; }
 }
 
+/* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
+   tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+.diana-grid { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:16px; align-items:start; }
+.diana-lado { display:flex; flex-direction:column; gap:14px; position:sticky; top:20px; min-width:0; }
+@media (max-width: 1100px) {
+  .diana-grid { grid-template-columns:minmax(0,1fr); }
+  .diana-lado { position:static; }
+}
+
 /* ── PT y AL (ver docs/PTAL.md) ── */
 .ap-page .card + .card { margin-top:16px; }
 .ap-vacio { font-size:13px; color:var(--text-2); line-height:1.55; margin:0; }
