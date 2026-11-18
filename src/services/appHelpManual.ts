@@ -102,6 +102,15 @@ icono en un cuadradito de color. Todo está a la vista, en tres grupos:
 Abajo del todo, sin color: Configuración, Registro de cambios y Cerrar sesión.
 A Configuración también se llega pulsando el nombre del docente, arriba del
 todo.
+BUSCADOR GENERAL: bajo el nombre del docente está «Buscar» (en el móvil, la
+lupa de la barra de arriba; con teclado, Ctrl+K o ⌘K). Abre una caja, «¿Qué
+quieres hacer?», para ir a cualquier pantalla, clase, alumno, rúbrica, diana,
+escala de registro, situación de aprendizaje o ficha escribiendo unas letras,
+sin tildes ni mayúsculas. Flechas para moverse, Intro para ir y Esc para
+cerrar. Un alumno abre su ficha; una clase, su alumnado; una rúbrica o una
+situación de aprendizaje llevan a su pantalla con el título ya escrito en su
+buscador; lo demás, a su pantalla. Sin escribir nada salen las pantallas del
+menú. No sale nada del dispositivo.
 En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
 Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
 más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
@@ -126,8 +135,23 @@ lectivo»). «Ver la semana» lleva a la Agenda. En la misma tarjeta, cuatro
 ATAJOS: «Pasar lista» (Asistencia), «Añadir nota» (Cuaderno), «Evaluar» (la
 portada de Evaluar) y «Nueva tarea»; en Educación Física, también «Observar en
 la pista». Más abajo, tres columnas: Tareas (se marcan y se añaden desde
-aquí), Próximos eventos y «Necesitan atención» (alumnos con avisos); en EF,
-además, Exentos y lesiones, Próximas sesiones y Pruebas físicas. Al final,
+aquí), Próximos eventos y «Necesitan atención»; en EF,
+además, Exentos y lesiones, Próximas sesiones y Pruebas físicas.
+«NECESITAN ATENCIÓN» es el RADAR del alumnado: quien, en las últimas 4 semanas,
+tiene una media por debajo de 5, ha bajado un punto o más, lleva dos faltas sin
+justificar o más, cuatro anotaciones negativas, va dos puntos por debajo de su
+clase o tiene una competencia en nivel 1, con el motivo escrito y lo más grave
+arriba; después, quien tiene un aviso escrito a mano en su ficha. Al pulsar un
+alumno se abre su ficha. Debajo, en una línea, quién va especialmente bien
+(media de 8, subida de un punto o racha de buena actitud). Lo calcula la
+aplicación con reglas, sin IA. El mismo radar sale en Mis clases: cada tarjeta
+de clase dice cuántos necesitan atención y cuántos van especialmente bien, y
+dentro de una clase, «Radar de la clase» los lista encima del alumnado.
+«TU SEMANA» (entre «Tu jornada» y las columnas, si hay algo que enseñar): las
+sesiones con fecha de esta semana, las entregas, reuniones y eventos, y las
+sesiones de la semana anterior que no se marcaron como completadas. El lunes
+y el fin de semana sale abierta (el sábado y el domingo enseña la semana que
+viene); el resto de días, en una línea que se abre al pulsarla. Al final,
 «Cómo van tus clases»: una minitarjeta por clase con su media, que solo
 avisa si hay alumnos por debajo de 5 o si aún no tiene notas.
 PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
@@ -261,6 +285,14 @@ suman 100%. Cuenta también en informes, actas (donde cada columna aparece
 con lo que pesa de verdad en la nota), el inicio y la IA.
 
 [attendance] ASISTENCIA
+SUGERENCIAS EN EL MOMENTO: en algunas pantallas sale, justo después de hacer
+algo, un recuadro azul con una bombilla que dice qué pasa y por qué, propone
+una sola cosa y se cierra con la X; cerrado o atendido, no vuelve a salir. Hay
+tres: aquí, en Asistencia, si un alumno lleva tres faltas seguidas sin
+justificar («Añadir aviso a su ficha» deja el aviso en su ficha de Mis clases);
+en el Cuaderno, si a una actividad que casi toda la clase tiene calificada le
+falta la nota de alguien (dice de quién); y al guardar una situación de
+aprendizaje, pasar sus sesiones a Sesiones.
 Pasar lista por clase y día. Al entrar se abre la clase que toca según el
 horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
 arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
@@ -363,6 +395,15 @@ clase, sobre 10, con una raya en el 5. Pasa solo de una clase a otra cada
 pocos segundos, como un carrusel; se para al poner el ratón encima, y se
 cambia a mano con las flechas o los puntos. Solo cuenta las evaluaciones con
 rúbrica. Si el sistema tiene «reducir movimiento», no pasa solo.
+Al final, «COBERTURA DEL CURRÍCULO»: una fila por clase y asignatura con materia
+oficial, con una barra y «12 de 20»: cuántos criterios de evaluación oficiales
+tienen ya nota de alguna rúbrica o diana que los lleve marcados. Al pulsar la
+fila salen los que faltan, con su texto. Solo salen las clases con etapa y
+curso. Al crear una situación de aprendizaje para una clase que ya tiene
+criterios evaluados y otros sin evaluar, sale la casilla «Dar prioridad a lo
+que aún no has evaluado en esta clase» (marcada): a la IA le llegan solo los
+números de las competencias específicas pendientes, y las elige si encajan con
+la idea.
 
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y

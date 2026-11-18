@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { radar, radarDeClase, UMBRAL_RADAR } from './radarClase';
+import { radar, radarDeClase, UMBRAL_ATENCION } from './radarClase';
 import type { Class, GradeItem, Student } from '../types';
 
 const HOY = '2026-11-18';
@@ -25,7 +25,7 @@ describe('el radar de la clase', () => {
     expect(r.atencion.map(x => x.student.id)).toEqual(['a', 'c']);
     expect(r.atencion[0].dato.clave).toBe('Media de {nota} en {asignatura}, por debajo del 5');
     expect(r.atencion[1].dato).toMatchObject({ clave: '{n} faltas sin justificar', vars: { n: 3 } });
-    expect(r.atencion.every(x => x.dato.peso >= UMBRAL_RADAR)).toBe(true);
+    expect(r.atencion.every(x => x.dato.peso >= UMBRAL_ATENCION)).toBe(true);
   });
 
   it('quien va especialmente bien; una anotación suelta no basta para salir en ninguna lista', () => {

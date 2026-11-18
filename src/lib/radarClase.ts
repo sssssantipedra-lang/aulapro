@@ -4,15 +4,20 @@
  * un vistazo quién necesita atención y quién va especialmente bien, sin abrir
  * ficha a ficha. Mira siempre las últimas 4 semanas: es «cómo van ahora».
  *
- * Solo entra lo que de verdad pesa (`UMBRAL_RADAR`): una anotación suelta o una
+ * Solo entra lo que de verdad pesa: una anotación suelta, una falta o una
  * actividad sin nota se ven en la ficha, pero no bastan para salir aquí; si no,
- * media clase estaría siempre en la lista.
+ * media clase estaría siempre en la lista (con los datos de ejemplo y un umbral
+ * de 65 salían 34 de 60). Con `UMBRAL_ATENCION` entran una media por debajo de
+ * 5, una bajada de un punto, dos faltas sin justificar, cuatro anotaciones
+ * negativas, dos puntos por debajo de la clase o una competencia en nivel 1; con
+ * `UMBRAL_DESTACA`, una media de 8, una subida de un punto o una racha.
  */
 import type { AttendanceMap, Class, ClassMark, Evaluation, GradeCategory, GradeItem, GradeMap, Student } from '../types';
 import { resumenAlumno, type DatoResumen } from './resumenAlumno';
 
-/** Peso mínimo de un dato para que su alumno salga en el radar. */
-export const UMBRAL_RADAR = 65;
+/** Peso mínimo de un dato para que su alumno salga en «Necesitan atención» y en «Van especialmente bien». */
+export const UMBRAL_ATENCION = 80;
+export const UMBRAL_DESTACA = 70;
 
 export interface AlumnoEnRadar {
   student: Student;
@@ -50,8 +55,8 @@ export function radar(d: DatosParaRadar): Radar {
     const companeros = suyos.map(s => s.id);
     for (const student of suyos) {
       const r = resumenAlumno({ ...d, student, cls, companeros, periodo: 'semanas' });
-      const malos = r.atencion.filter(x => x.peso >= UMBRAL_RADAR);
-      const buenos = r.positivos.filter(x => x.peso >= UMBRAL_RADAR);
+      const malos = r.atencion.filter(x => x.peso >= UMBRAL_ATENCION);
+      const buenos = r.positivos.filter(x => x.peso >= UMBRAL_DESTACA);
       if (malos.length) atencion.push({ student, cls, dato: malos[0], cuantos: malos.length });
       // Quien necesita atención no sale además como que va bien: un mensaje por alumno
       else if (buenos.length) destacan.push({ student, cls, dato: buenos[0], cuantos: buenos.length });
