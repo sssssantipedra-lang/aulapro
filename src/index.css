@@ -1405,6 +1405,16 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
    tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* «Tu semana», en el Inicio (`lib/semana.ts`, 18-11-2026) */
+.home-semana { padding:0; }
+.home-semana summary { display:flex; align-items:center; justify-content:space-between; gap:8px 14px; flex-wrap:wrap; padding:14px 18px; cursor:pointer; list-style:none; }
+.home-semana summary::-webkit-details-marker { display:none; }
+.home-semana-res { font-size:12.5px; color:var(--text-2); }
+.home-semana-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap:16px 22px; padding:0 18px 16px; }
+.home-semana-cols h4 { margin:0 0 9px; font-size:11.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--text-3); }
+.home-semana-cols .home-link { margin-top:10px; }
+.home-semana .home-event.hecha .home-event-name { color:var(--text-3); text-decoration:line-through; }
+
 /* El buscador general (`components/Buscador.tsx`, 18-11-2026) y su botón en el menú */
 .sb-buscar { flex-shrink:0; margin:0 10px 6px; padding:8px 11px; width:calc(100% - 20px); display:flex; align-items:center; gap:8px; background:var(--nav-hover); border:1px solid var(--nav-border); border-radius:10px; color:var(--nav-muted); font-family:var(--font); font-size:12.5px; font-weight:600; text-align:left; cursor:pointer; }
 .sb-buscar:hover { color:var(--nav-strong); }

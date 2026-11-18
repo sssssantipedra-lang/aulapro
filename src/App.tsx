@@ -33,6 +33,7 @@ import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { radar } from './lib/radarClase';
 import type { Resultado } from './lib/buscador';
+import { semanaDe } from './lib/semana';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
@@ -231,6 +232,12 @@ function AppInner() {
     classes: st.classes, students: st.students, gradeCategories: st.gradeCategories,
     gradeItems: st.gradeItems, grades: st.grades, classMarks: st.classMarks, marksConfigs: st.marksConfigs,
   }), [st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades, st.classMarks, st.marksConfigs]);
+
+  /** «Tu semana», para el Inicio: sesiones, eventos y lo pendiente de la anterior. */
+  const semana = useMemo(
+    () => (section === 'dashboard' ? semanaDe({ sesiones: st.ef.sesiones, calEvents: st.calEvents, classes: st.classes, hoy: isoDate() }) : undefined),
+    [section, st.ef.sesiones, st.calEvents, st.classes],
+  );
 
   /** El radar del alumnado, para el Inicio y Mis clases: solo se calcula en esas dos pantallas. */
   const conRadar = section === 'dashboard' || section === 'classes';
@@ -459,6 +466,8 @@ function AppInner() {
                 onLoadDemo={() => { st.loadDemoData(lang); toast(t('✅ Datos de ejemplo cargados')); }}
                 radar={radarAlumnado}
                 onOpenStudent={abrirAlumno}
+                semana={semana}
+                onVerSesiones={() => setSection(tipo === 'ef' ? 'ef-sesiones' : 'sesiones')}
                 ef={efInicio}
               />
             )}

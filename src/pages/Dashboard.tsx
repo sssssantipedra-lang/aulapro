@@ -17,7 +17,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand, Sparkles,
+  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand, Sparkles, CalendarRange,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -34,6 +34,7 @@ import { aMinutos, enMarcha } from '../lib/claseQueToca';
 import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
 import { textoDeDato } from '../lib/resumenAlumno';
 import type { Radar } from '../lib/radarClase';
+import { semanaConAlgo, type Semana } from '../lib/semana';
 
 interface Props {
   user: User | null;
@@ -55,6 +56,10 @@ interface Props {
   radar?: Radar;
   /** Abre la ficha de un alumno en Mis clases. */
   onOpenStudent?: (id: string) => void;
+  /** «Tu semana» (`lib/semana.ts`): sesiones, eventos y lo pendiente de la anterior. */
+  semana?: Semana;
+  /** Lleva a Sesiones (la de EF o la de Documentos). */
+  onVerSesiones?: () => void;
   /**
    * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
    * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
@@ -75,7 +80,7 @@ function gradeColor(n: number | null): string {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes,
-  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, ef }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, semana, onVerSesiones, ef }: Props) {
   const { t, locale, lang } = useI18n();
 
   // La hora manda en «ahora / siguiente»: se refresca cada medio minuto
@@ -277,6 +282,78 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
           )}
         </div>
       </div>
+
+      {/* ── Tu semana: sesiones, entregas y reuniones, y lo que quedó de la anterior. Abierta el lunes y el fin de semana ── */}
+      {semana && semanaConAlgo(semana) && (
+        <details className="card home-semana" open={now.getDay() === 1 || semana.proxima}>
+          <summary>
+            <span className="home-card-ttl"><CalendarRange size={15} />{t(semana.proxima ? 'La semana que viene' : 'Tu semana')}</span>
+            <span className="home-semana-res">
+              {[
+                semana.sesiones.length ? t(semana.sesiones.length === 1 ? '1 sesión' : '{n} sesiones', { n: semana.sesiones.length }) : '',
+                semana.eventos.length ? t(semana.eventos.length === 1 ? '1 evento' : '{n} eventos', { n: semana.eventos.length }) : '',
+                semana.pendientes.length ? t(semana.pendientes.length === 1 ? '1 sesión pendiente de la anterior' : '{n} sesiones pendientes de la anterior', { n: semana.pendientes.length }) : '',
+              ].filter(Boolean).join(' · ')}
+            </span>
+          </summary>
+          <div className="home-semana-cols">
+            {semana.sesiones.length > 0 && (
+              <div>
+                <h4>{t('Sesiones que tocan')}</h4>
+                <ul className="home-list">
+                  {semana.sesiones.slice(0, 6).map(s => (
+                    <li key={s.id} className={`home-event${s.completada ? ' hecha' : ''}`}>
+                      <span className="home-class-dot" style={{ background: s.color }} />
+                      <span className="home-event-txt">
+                        <span className="home-event-name">{s.titulo}</span>
+                        <span className="home-tl-room">{[fromIsoDate(s.fecha).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' }), s.clase, s.completada ? t('completada') : ''].filter(Boolean).join(' · ')}</span>
+                      </span>
+                    </li>
+                  ))}
+                  {semana.sesiones.length > 6 && <li className="home-muted">{t('y {n} más', { n: semana.sesiones.length - 6 })}</li>}
+                </ul>
+                {onVerSesiones && <button type="button" className="home-link" onClick={onVerSesiones}>{t('Ver sesiones')}</button>}
+              </div>
+            )}
+            {semana.eventos.length > 0 && (
+              <div>
+                <h4>{t('Entregas, reuniones y eventos')}</h4>
+                <ul className="home-list">
+                  {semana.eventos.slice(0, 6).map(ev => (
+                    <li key={ev.id} className="home-event">
+                      <span className={`home-alert-dot ${ev.urgency === 'alta' ? 'danger' : ev.type === 'deadline' ? 'warn' : 'info'}`} />
+                      <span className="home-event-txt">
+                        <span className="home-event-name">{ev.name}</span>
+                        <span className="home-tl-room">{[fromIsoDate(ev.date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric' }), ev.time].filter(Boolean).join(' · ')}</span>
+                      </span>
+                    </li>
+                  ))}
+                  {semana.eventos.length > 6 && <li className="home-muted">{t('y {n} más', { n: semana.eventos.length - 6 })}</li>}
+                </ul>
+                <button type="button" className="home-link" onClick={() => nav('agenda')}>{t('Ver la agenda')}</button>
+              </div>
+            )}
+            {semana.pendientes.length > 0 && (
+              <div>
+                <h4>{t('Quedó pendiente de la semana anterior')}</h4>
+                <ul className="home-list">
+                  {semana.pendientes.slice(0, 6).map(s => (
+                    <li key={s.id} className="home-event">
+                      <span className="home-class-dot" style={{ background: s.color }} />
+                      <span className="home-event-txt">
+                        <span className="home-event-name">{s.titulo}</span>
+                        <span className="home-tl-room">{[s.clase, t('sin marcar como completada')].filter(Boolean).join(' · ')}</span>
+                      </span>
+                    </li>
+                  ))}
+                  {semana.pendientes.length > 6 && <li className="home-muted">{t('y {n} más', { n: semana.pendientes.length - 6 })}</li>}
+                </ul>
+                {onVerSesiones && <button type="button" className="home-link" onClick={onVerSesiones}>{t('Ver sesiones')}</button>}
+              </div>
+            )}
+          </div>
+        </details>
+      )}
 
       {/* ── Lo demás, quieto y en listas cortas: tres columnas ── */}
       <div className="home-grid tres">

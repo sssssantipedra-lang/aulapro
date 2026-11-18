@@ -316,6 +316,21 @@ export const MEJORAS_EN: Record<string, string> = {
   'Resultados': 'Results',
   'Flechas para moverte, Intro para ir y Esc para cerrar.': 'Arrow keys to move, Enter to go and Esc to close.',
   'Pantallas': 'Screens',
+  // Tu semana, en el Inicio (lib/semana.ts, 18-11-2026)
+  'Tu semana': 'Your week',
+  'La semana que viene': 'Next week',
+  '1 sesión': '1 lesson',
+  '1 evento': '1 event',
+  '{n} eventos': '{n} events',
+  '1 sesión pendiente de la anterior': '1 lesson left over from last week',
+  '{n} sesiones pendientes de la anterior': '{n} lessons left over from last week',
+  'Sesiones que tocan': 'Lessons this week',
+  'completada': 'done',
+  'Ver sesiones': 'See lessons',
+  'Entregas, reuniones y eventos': 'Deadlines, meetings and events',
+  'Ver la agenda': 'See the calendar',
+  'Quedó pendiente de la semana anterior': 'Left over from last week',
+  'sin marcar como completada': 'not marked as done',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -629,4 +644,19 @@ export const MEJORAS_CA: Record<string, string> = {
   'Resultados': 'Resultats',
   'Flechas para moverte, Intro para ir y Esc para cerrar.': 'Fletxes per moure\'t, Retorn per anar-hi i Esc per tancar.',
   'Pantallas': 'Pantalles',
+  // Tu semana, en el Inicio (lib/semana.ts, 18-11-2026)
+  'Tu semana': 'La teva setmana',
+  'La semana que viene': 'La setmana que ve',
+  '1 sesión': '1 sessió',
+  '1 evento': '1 esdeveniment',
+  '{n} eventos': '{n} esdeveniments',
+  '1 sesión pendiente de la anterior': '1 sessió pendent de l\'anterior',
+  '{n} sesiones pendientes de la anterior': '{n} sessions pendents de l\'anterior',
+  'Sesiones que tocan': 'Sessions que toquen',
+  'completada': 'completada',
+  'Ver sesiones': 'Veure sessions',
+  'Entregas, reuniones y eventos': 'Lliuraments, reunions i esdeveniments',
+  'Ver la agenda': 'Veure l\'agenda',
+  'Quedó pendiente de la semana anterior': 'Va quedar pendent de la setmana anterior',
+  'sin marcar como completada': 'sense marcar com a completada',
 };
