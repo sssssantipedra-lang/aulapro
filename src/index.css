@@ -1405,6 +1405,33 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
    tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* El radar de la clase (`lib/radarClase.ts`, 18-11-2026): en Mis clases, en las tarjetas de clase y en el Inicio */
+.rc { margin:0 0 16px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--border); }
+.rc-hd { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.rc-hd strong { display:inline-flex; align-items:center; gap:7px; font-size:13.5px; color:var(--text); }
+.rc-hd > span { font-size:11.5px; color:var(--text-3); }
+.rc-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap:10px 18px; }
+.rc-fila h4 { display:flex; align-items:center; gap:6px; margin:0 0 6px; font-size:12px; font-weight:800; color:var(--warn-fg); }
+.rc-fila.pos h4 { color:var(--ok-fg); }
+.rc-fila h4 span { font-weight:700; color:var(--text-3); }
+.rc-fila ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.rc-fila button { display:flex; flex-direction:column; align-items:flex-start; gap:1px; width:100%; text-align:left; font-family:var(--font); background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--warn-fg); border-radius:9px; padding:7px 10px; cursor:pointer; min-width:0; }
+.rc-fila.pos button { border-left-color:var(--ok); }
+.rc-fila button:hover { background:var(--accent-l); }
+.rc-fila button b { font-size:12.5px; color:var(--text); }
+.rc-fila button small { font-size:11.5px; color:var(--text-2); line-height:1.4; overflow-wrap:anywhere; }
+.rc-mas { margin-top:8px; background:none; border:none; padding:0; font-family:var(--font); font-size:12px; font-weight:700; color:var(--accent-d); cursor:pointer; }
+.cls-card-radar { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:11.5px; font-weight:700; }
+.cls-card-radar > span { display:inline-flex; align-items:center; gap:4px; }
+.cls-card-radar .neg { color:var(--warn-fg); }
+.cls-card-radar .pos { color:var(--ok-fg); }
+.home-alert-btn { width:100%; text-align:left; font-family:var(--font); background:none; border:none; padding:0; cursor:pointer; color:inherit; }
+.home-alert-btn:hover .home-event-name { color:var(--accent-d); }
+.home-event-name small { font-size:11px; font-weight:600; color:var(--text-3); }
+.home-destacan { display:flex; align-items:flex-start; gap:7px; margin:12px 0 0; padding-top:10px; border-top:1px solid var(--border); font-size:12px; color:var(--text-2); line-height:1.5; }
+.home-destacan > svg { flex-shrink:0; margin-top:3px; color:var(--ok); }
+.home-destacan button { font-family:var(--font); font-size:12px; font-weight:700; color:var(--text); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline; text-decoration-color:var(--border-strong); text-underline-offset:2px; }
+
 /* Lo más relevante de un alumno, arriba de su ficha de «Mis clases» (`components/clases/ResumenDeAlumno.tsx`, 18-11-2026) */
 .ra { margin:0 0 16px; padding:14px; border-radius:14px; background:var(--surface); border:1px solid var(--border); }
 .ra-hd { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 12px; margin-bottom:10px; }

@@ -276,6 +276,15 @@ export const MEJORAS_EN: Record<string, string> = {
   'Racha de {n} días de clase seguidos con buena actitud': 'Streak of {n} class days in a row with a good attitude',
   'Destaca en la competencia {competencia} (nivel {nivel} de 4)': 'Stands out in the competence {competencia} (level {nivel} of 4)',
   'Tiene que mejorar la competencia {competencia} (nivel {nivel} de 4)': 'Needs to improve the competence {competencia} (level {nivel} of 4)',
+  // El radar de la clase (lib/radarClase.ts, 18-11-2026)
+  'Radar de la clase': 'Class radar',
+  'Van especialmente bien': 'Doing especially well',
+  'Ver todos ({n} más)': 'Show all ({n} more)',
+  '1 necesita atención': '1 needs attention',
+  '{n} necesitan atención': '{n} need attention',
+  '1 va especialmente bien': '1 is doing especially well',
+  '{n} van especialmente bien': '{n} are doing especially well',
+  'Ningún alumno necesita atención ahora mismo.': 'No student needs attention right now.',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -549,4 +558,13 @@ export const MEJORAS_CA: Record<string, string> = {
   'Racha de {n} días de clase seguidos con buena actitud': 'Ratxa de {n} dies de classe seguits amb bona actitud',
   'Destaca en la competencia {competencia} (nivel {nivel} de 4)': 'Destaca en la competència {competencia} (nivell {nivel} de 4)',
   'Tiene que mejorar la competencia {competencia} (nivel {nivel} de 4)': 'Ha de millorar la competència {competencia} (nivell {nivel} de 4)',
+  // El radar de la clase (lib/radarClase.ts, 18-11-2026)
+  'Radar de la clase': 'Radar de la classe',
+  'Van especialmente bien': 'Van especialment bé',
+  'Ver todos ({n} más)': 'Veure\'ls tots ({n} més)',
+  '1 necesita atención': '1 necessita atenció',
+  '{n} necesitan atención': '{n} necessiten atenció',
+  '1 va especialmente bien': '1 va especialment bé',
+  '{n} van especialmente bien': '{n} van especialment bé',
+  'Ningún alumno necesita atención ahora mismo.': 'Cap alumne necessita atenció ara mateix.',
 };

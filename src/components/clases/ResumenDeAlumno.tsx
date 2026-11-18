@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { BookOpen, CalendarCheck, Sparkles, Target, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { isoDate } from '../../lib/utils';
-import { PERIODOS, resumenAlumno, type DatoResumen, type DatosParaResumen, type PeriodoResumen, type TipoDato } from '../../lib/resumenAlumno';
+import { PERIODOS, resumenAlumno, textoDeDato, type DatoResumen, type DatosParaResumen, type PeriodoResumen, type TipoDato } from '../../lib/resumenAlumno';
 
 const CLAVE_PERIODO = 'aulapro_resumen_periodo';
 const ICONO: Record<TipoDato, typeof BookOpen> = { notas: BookOpen, asistencia: CalendarCheck, actitud: ThumbsUp, competencias: Target };
@@ -34,14 +34,7 @@ export function ResumenDeAlumno(props: Props) {
     [student, cls, companeros, gradeCategories, gradeItems, grades, attendance, classMarks, evaluations, hoy, periodo],
   );
 
-  /** El texto de un dato: traducido, con los decimales como se escriben en el idioma y el desglose detrás. */
-  const texto = (d: DatoResumen) => {
-    const vars = Object.fromEntries(Object.entries(d.vars ?? {}).map(([k, v]) => [
-      k, typeof v === 'number' ? v.toLocaleString(locale, { maximumFractionDigits: 1 }) : d.traducir?.includes(k) ? t(v) : v,
-    ]));
-    const detalle = d.detalle?.length ? `: ${d.detalle.map(x => (x.n > 1 ? `${t(x.etiqueta)} ×${x.n}` : t(x.etiqueta))).join(', ')}` : '';
-    return t(d.clave, vars) + detalle;
-  };
+  const texto = (d: DatoResumen) => textoDeDato(d, t, locale);
 
   const lista = (datos: DatoResumen[], vacio: string) => (
     datos.length === 0

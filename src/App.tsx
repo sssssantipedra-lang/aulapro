@@ -31,6 +31,7 @@ import { useNarrowScreen, usePhoneScreen } from './hooks/useNarrowScreen';
 import { applyTheme, type ThemeKey } from './lib/utils';
 import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
+import { radar } from './lib/radarClase';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
@@ -104,6 +105,9 @@ function AppInner() {
   const st = useAppState();
 
   const [section, setSection]         = useState<Section>('dashboard');
+  /** El alumno cuya ficha hay que abrir al llegar a Mis clases (desde el radar del Inicio o el buscador). */
+  const [fichaPedida, setFichaPedida] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
+  const abrirAlumno = (id: string) => { setFichaPedida(p => ({ id, n: p.n + 1 })); setSection('classes'); };
   /** Ficha que Recursos manda proyectar en Aula Live. */
   const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
@@ -203,6 +207,13 @@ function AppInner() {
     classes: st.classes, students: st.students, gradeCategories: st.gradeCategories,
     gradeItems: st.gradeItems, grades: st.grades, classMarks: st.classMarks, marksConfigs: st.marksConfigs,
   }), [st.classes, st.students, st.gradeCategories, st.gradeItems, st.grades, st.classMarks, st.marksConfigs]);
+
+  /** El radar del alumnado, para el Inicio y Mis clases: solo se calcula en esas dos pantallas. */
+  const conRadar = section === 'dashboard' || section === 'classes';
+  const radarAlumnado = useMemo(() => (conRadar ? radar({
+    classes: st.classes, students: st.students, gradeCategories: gradeView.gradeCategories, gradeItems: gradeView.gradeItems,
+    grades: gradeView.grades, attendance: st.attendance, classMarks: st.classMarks, evaluations: st.evaluations, hoy: isoDate(),
+  }) : undefined), [conRadar, st.classes, st.students, gradeView, st.attendance, st.classMarks, st.evaluations]);
 
   /**
    * Lo que el asistente del cuaderno puede consultar. Se arma aquí, donde
@@ -406,6 +417,8 @@ function AppInner() {
                 onAddTask={() => setShowAddTask(true)}
                 onToggleTask={st.toggleTask}
                 onLoadDemo={() => { st.loadDemoData(lang); toast(t('✅ Datos de ejemplo cargados')); }}
+                radar={radarAlumnado}
+                onOpenStudent={abrirAlumno}
                 ef={efInicio}
               />
             )}
@@ -428,6 +441,10 @@ function AppInner() {
                 gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
+                radar={radarAlumnado}
+                key={fichaPedida.n}
+                alumnoInicial={fichaPedida.id}
+                onAlumnoAbierto={() => setFichaPedida(p => ({ ...p, id: null }))}
                 resumenDeAlumno={s => {
                   const cls = st.classes.find(c => c.id === s.class_id);
                   return cls && (

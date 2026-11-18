@@ -277,3 +277,12 @@ export function resumenAlumno(d: DatosParaResumen): ResumenAlumno {
     hayDatos: partes.some(p => p.hay),
   };
 }
+
+/** El texto de un dato: traducido, con los decimales como se escriben en el idioma y el desglose detrás. */
+export function textoDeDato(d: DatoResumen, t: (clave: string, vars?: Record<string, string | number>) => string, locale: string): string {
+  const vars = Object.fromEntries(Object.entries(d.vars ?? {}).map(([k, v]) => [
+    k, typeof v === 'number' ? v.toLocaleString(locale, { maximumFractionDigits: 1 }) : d.traducir?.includes(k) ? t(v) : v,
+  ]));
+  const detalle = d.detalle?.length ? `: ${d.detalle.map(x => (x.n > 1 ? `${t(x.etiqueta)} ×${x.n}` : t(x.etiqueta))).join(', ')}` : '';
+  return t(d.clave, vars) + detalle;
+}

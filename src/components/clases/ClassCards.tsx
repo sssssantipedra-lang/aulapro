@@ -4,11 +4,12 @@
  * cuántos alumnos tiene, su media y cuántos alumnos tienen avisos. Al pulsar
  * una se entra en su alumnado.
  */
-import { AlertTriangle, ChevronRight, Users } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Sparkles, Users } from 'lucide-react';
 import type { Class, GradeCategory, GradeItem, GradeMap, Student } from '../../types';
 import { weightedAverage } from '../../services/aiContext';
 import { agruparPorEtapa } from '../../lib/etapas';
 import { useI18n } from '../../i18n';
+import { radarDeClase, type Radar } from '../../lib/radarClase';
 
 interface Props {
   classes: Class[];
@@ -16,12 +17,14 @@ interface Props {
   gradeCategories?: GradeCategory[];
   gradeItems?: GradeItem[];
   grades?: GradeMap;
+  /** El radar del alumnado: cuántos necesitan atención y cuántos destacan en cada clase (`lib/radarClase.ts`). */
+  radar?: Radar;
   onOpen: (id: string) => void;
 }
 
 const notaColor = (v: number) => (v < 5 ? 'var(--grade-bad)' : v < 7 ? 'var(--grade-mid)' : 'var(--grade-good)');
 
-export function ClassCards({ classes, students, gradeCategories = [], gradeItems = [], grades = {}, onOpen }: Props) {
+export function ClassCards({ classes, students, gradeCategories = [], gradeItems = [], grades = {}, radar, onOpen }: Props) {
   const { t, locale } = useI18n();
 
   const resumen = (c: Class) => {
@@ -32,6 +35,8 @@ export function ClassCards({ classes, students, gradeCategories = [], gradeItems
     return {
       alumnos: suyos.length,
       avisos: suyos.filter(s => s.alerts.length > 0).length,
+      atencion: radar ? radarDeClase(radar, c.id).atencion.length : 0,
+      destacan: radar ? radarDeClase(radar, c.id).destacan.length : 0,
       media: medias.length ? medias.reduce((a, b) => a + b, 0) / medias.length : null,
     };
   };
@@ -64,6 +69,13 @@ export function ClassCards({ classes, students, gradeCategories = [], gradeItems
                       </span>
                     )}
                   </span>
+                  {/* El radar de las últimas 4 semanas: solo si hay algo que decir */}
+                  {(r.atencion > 0 || r.destacan > 0) && (
+                    <span className="cls-card-radar">
+                      {r.atencion > 0 && <span className="neg"><AlertTriangle size={12} aria-hidden="true" />{t(r.atencion === 1 ? '1 necesita atención' : '{n} necesitan atención', { n: r.atencion })}</span>}
+                      {r.destacan > 0 && <span className="pos"><Sparkles size={12} aria-hidden="true" />{t(r.destacan === 1 ? '1 va especialmente bien' : '{n} van especialmente bien', { n: r.destacan })}</span>}
+                    </span>
+                  )}
                 </button>
               );
             })}

@@ -17,7 +17,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   CalendarDays, AlertTriangle, CheckSquare2, Plus, ArrowRight, UserCheck, Flag, BookOpen,
-  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand,
+  TrendingUp, Clock, Bandage, Timer, ClipboardList, ClipboardCheck, ListPlus, Hand, Sparkles,
 } from 'lucide-react';
 import type { User, Task, ScheduleBlock, CalEvent, Student, Class, Evaluation,
   GradeCategory, GradeItem, GradeMap, AttendanceMap, Section } from '../types';
@@ -32,6 +32,8 @@ import { agruparPorEtapa } from '../lib/etapas';
 import { esLectivo, type EtapaCalendario } from '../lib/calendarioEscolar';
 import { aMinutos, enMarcha } from '../lib/claseQueToca';
 import { useCalendarioEscolar } from '../hooks/useCalendarioEscolar';
+import { textoDeDato } from '../lib/resumenAlumno';
+import type { Radar } from '../lib/radarClase';
 
 interface Props {
   user: User | null;
@@ -49,6 +51,10 @@ interface Props {
   onAddTask: () => void;
   onToggleTask: (id: string) => void;
   onLoadDemo: () => void;
+  /** El radar del alumnado (`lib/radarClase.ts`): quién necesita atención y quién destaca en las últimas 4 semanas. */
+  radar?: Radar;
+  /** Abre la ficha de un alumno en Mis clases. */
+  onOpenStudent?: (id: string) => void;
   /**
    * Educación Física sin tutoría: el mismo Inicio, con lo de EF (decisión del
    * dueño, 5-10-2026). Con tutoría no se pasa y queda el de tutoría tal cual.
@@ -69,7 +75,7 @@ function gradeColor(n: number | null): string {
 }
 
 export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, classes,
-  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, ef }: Props) {
+  gradeCategories, gradeItems, grades, attendance, onNav, onAddTask, onToggleTask, onLoadDemo, radar, onOpenStudent, ef }: Props) {
   const { t, locale, lang } = useI18n();
 
   // La hora manda en «ahora / siguiente»: se refresca cada medio minuto
@@ -135,6 +141,23 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
 
   const pendingTasks = tasks.filter(tk => !tk.done);
   const alerts = students.filter(s => s.alerts.length > 0);
+  /**
+   * «Necesitan atención» (18-11-2026): primero quien sale en el radar, con su motivo (lo más grave arriba), y después
+   * quien tiene un aviso escrito a mano en su ficha y no está ya en la lista.
+   */
+  const atencion = useMemo(() => {
+    const delRadar = (radar?.atencion ?? []).map(x => ({
+      id: x.student.id, nombre: x.student.name, clase: x.cls.name, nivel: x.dato.peso >= 85 ? 'danger' : 'warn',
+      texto: textoDeDato(x.dato, t, locale) + (x.cuantos > 1 ? ` · ${t('y {n} más', { n: x.cuantos - 1 })}` : ''),
+    }));
+    const ya = new Set(delRadar.map(x => x.id));
+    const conAviso = alerts.filter(s => !ya.has(s.id)).map(s => ({
+      id: s.id, nombre: s.name, clase: classes.find(c => c.id === s.class_id)?.name ?? '', nivel: s.alerts[0]?.level ?? 'info', texto: s.alerts[0]?.text ?? '',
+    }));
+    return [...delRadar, ...conAviso];
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `alerts` sale de `students`
+  }, [radar, students, classes, t, locale]);
+  const destacan = radar?.destacan ?? [];
   const upcomingEvents = [...calEvents]
     .filter(ev => ev.date >= isoDate(now))
     .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
@@ -312,21 +335,39 @@ export function Dashboard({ user, tasks, scheduleBlocks, calEvents, students, cl
             <div className="home-card-ttl"><AlertTriangle size={15} />{t('Necesitan atención')}</div>
             <button className="home-link" onClick={() => nav('classes')}>{t('Ver alumnado')}</button>
           </div>
-          {alerts.length === 0 ? (
-            <p className="home-muted">{t('Ningún alumno tiene avisos activos.')}</p>
+          {atencion.length === 0 ? (
+            <p className="home-muted">{t('Ningún alumno necesita atención ahora mismo.')}</p>
           ) : (
             <ul className="home-list">
-              {alerts.slice(0, 4).map(s => (
-                <li key={s.id} className="home-alert">
-                  <span className={`home-alert-dot ${s.alerts[0]?.level ?? 'info'}`} />
-                  <span className="home-event-txt">
-                    <span className="home-event-name">{s.name}</span>
-                    <span className="home-tl-room">{s.alerts[0]?.text}</span>
-                  </span>
+              {atencion.slice(0, 5).map(a => (
+                <li key={a.id}>
+                  <button type="button" className="home-alert home-alert-btn" onClick={() => (onOpenStudent ? onOpenStudent(a.id) : nav('classes'))}>
+                    <span className={`home-alert-dot ${a.nivel}`} />
+                    <span className="home-event-txt">
+                      <span className="home-event-name">{a.nombre}{classes.length > 1 && a.clase ? <small> · {a.clase}</small> : null}</span>
+                      <span className="home-tl-room">{a.texto}</span>
+                    </span>
+                  </button>
                 </li>
               ))}
-              {alerts.length > 4 && <li className="home-muted">{t('y {n} más', { n: alerts.length - 4 })}</li>}
+              {atencion.length > 5 && <li className="home-muted">{t('y {n} más', { n: atencion.length - 5 })}</li>}
             </ul>
+          )}
+          {/* Y lo bueno, en una línea: quién va especialmente bien */}
+          {destacan.length > 0 && (
+            <p className="home-destacan">
+              <Sparkles size={13} aria-hidden="true" />
+              <span>
+                {t(destacan.length === 1 ? '1 va especialmente bien' : '{n} van especialmente bien', { n: destacan.length })}{': '}
+                {destacan.slice(0, 3).map((x, i) => (
+                  <span key={x.student.id}>
+                    {i > 0 && ', '}
+                    <button type="button" title={textoDeDato(x.dato, t, locale)} onClick={() => (onOpenStudent ? onOpenStudent(x.student.id) : nav('classes'))}>{x.student.name}</button>
+                  </span>
+                ))}
+                {destacan.length > 3 && ` ${t('y {n} más', { n: destacan.length - 3 })}`}
+              </span>
+            </p>
           )}
         </div>
 
