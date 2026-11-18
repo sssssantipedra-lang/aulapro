@@ -51,6 +51,7 @@ import { compararAlumnos } from './lib/alumnado';
 import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
 const AcsDeAlumno = lazy(() => import('./components/clases/AcsDeAlumno').then(m => ({ default: m.AcsDeAlumno })));
+const ResumenDeAlumno = lazy(() => import('./components/clases/ResumenDeAlumno').then(m => ({ default: m.ResumenDeAlumno })));
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
 const Rubrics        = lazy(() => import('./pages/Rubrics').then(m => ({ default: m.Rubrics })));
@@ -427,6 +428,16 @@ function AppInner() {
                 gradeCategories={gradeView.gradeCategories}
                 gradeItems={gradeView.gradeItems}
                 grades={gradeView.grades}
+                resumenDeAlumno={s => {
+                  const cls = st.classes.find(c => c.id === s.class_id);
+                  return cls && (
+                    <Suspense fallback={null}>
+                      <ResumenDeAlumno student={s} cls={cls} companeros={st.students.filter(x => x.class_id === s.class_id).map(x => x.id)}
+                        gradeCategories={gradeView.gradeCategories} gradeItems={gradeView.gradeItems} grades={gradeView.grades}
+                        attendance={st.attendance} classMarks={st.classMarks} evaluations={st.evaluations} />
+                    </Suspense>
+                  );
+                }}
                 acsDeAlumno={s => (
                   <Suspense fallback={null}>
                     <AcsDeAlumno student={s} cls={st.classes.find(c => c.id === s.class_id)} apoyo={st.apoyo} onApoyo={st.setApoyo}

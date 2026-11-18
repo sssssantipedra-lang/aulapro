@@ -1405,6 +1405,29 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
    tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* Lo más relevante de un alumno, arriba de su ficha de «Mis clases» (`components/clases/ResumenDeAlumno.tsx`, 18-11-2026) */
+.ra { margin:0 0 16px; padding:14px; border-radius:14px; background:var(--surface); border:1px solid var(--border); }
+.ra-hd { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 12px; margin-bottom:10px; }
+.ra-hd > strong { font-size:13.5px; color:var(--text); }
+.ra-periodos { display:inline-flex; gap:2px; padding:3px; border-radius:12px; background:var(--card); box-shadow:0 0 0 1px var(--border); }
+.ra-periodos button { font-family:var(--font); font-size:12px; font-weight:700; color:var(--text-2); background:transparent; border:none; border-radius:9px; padding:6px 11px; min-height:32px; cursor:pointer; }
+.ra-periodos button[aria-pressed="true"] { background:var(--accent-d); color:#fff; }
+.ra-cols { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+.ra-col { padding:11px 12px; border-radius:11px; background:var(--card); border:1px solid var(--border); border-top:3px solid var(--ok); min-width:0; }
+.ra-col.neg { border-top-color:var(--warn-fg); }
+.ra-col h4 { display:flex; align-items:center; gap:6px; margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.02em; color:var(--ok-fg); }
+.ra-col.neg h4 { color:var(--warn-fg); }
+.ra-col ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+.ra-col li { display:flex; align-items:flex-start; gap:8px; font-size:12.5px; line-height:1.45; color:var(--text); overflow-wrap:anywhere; }
+.ra-col li > svg { flex-shrink:0; margin-top:2px; color:var(--text-3); }
+.ra-vacio { margin:0; font-size:12.5px; color:var(--text-3); line-height:1.5; }
+@media (max-width: 640px) {
+  .ra-cols { grid-template-columns:minmax(0,1fr); }
+  /* Los tres periodos, en una fila a todo lo ancho */
+  .ra-periodos { display:flex; width:100%; }
+  .ra-periodos button { flex:1 1 0; min-width:0; padding:6px 4px; font-size:11.5px; line-height:1.2; }
+}
+
 .diana-grid { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:16px; align-items:start; }
 .diana-lado { display:flex; flex-direction:column; gap:14px; position:sticky; top:20px; min-width:0; }
 @media (max-width: 1100px) {

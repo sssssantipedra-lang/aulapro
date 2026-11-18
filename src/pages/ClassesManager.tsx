@@ -76,6 +76,8 @@ interface Props {
   grades?: GradeMap;
   /** La adaptación curricular significativa del alumno (`components/clases/AcsDeAlumno.tsx`), en su ficha. */
   acsDeAlumno?: (s: Student) => React.ReactNode;
+  /** Lo más relevante del alumno, arriba de su ficha (`components/clases/ResumenDeAlumno.tsx`, 18-11-2026). */
+  resumenDeAlumno?: (s: Student) => React.ReactNode;
 }
 
 /** Parte aleatoria de los ids nuevos. Fuera del componente: solo se llama al guardar, nunca al pintar. */
@@ -103,7 +105,7 @@ export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno,
+  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno, resumenDeAlumno,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
@@ -594,6 +596,10 @@ export function ClassesManager({
               </div>
               <button className="ico-btn" onClick={closeStudentModal} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
             </div>
+
+            {/* Lo primero que se ve al abrir la ficha: lo más relevante, en positivo y en negativo. Con el alumno
+                guardado (`studentModal`), no con lo que se está escribiendo. */}
+            {studentModal && studentModal.id !== '__new__' && resumenDeAlumno?.(studentModal)}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {/* name */}

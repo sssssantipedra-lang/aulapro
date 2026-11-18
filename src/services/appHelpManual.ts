@@ -159,6 +159,19 @@ las filas en formato «Nombre,Email», una por línea (la primera puede ser la
 cabecera). De cada alumno se guardan
 avisos (por ejemplo «faltas reiteradas») y anotaciones del docente, que luego
 aparecen en los informes y en el asistente del cuaderno.
+FICHA DEL ALUMNO: al pulsar un alumno se abre su ficha, que empieza por «LO MÁS
+RELEVANTE»: a un lado «Lo positivo» y al otro «Necesita atención», con lo más
+importante de sus notas del cuaderno (media por asignatura, si sube o baja, si
+va por encima o por debajo de la clase, la mejor nota, las notas por debajo de
+5 y lo que la clase ya tiene calificado y él no), de su asistencia (faltas sin
+justificar, retrasos, asistencia completa), de sus anotaciones de actitud y
+trabajo diario (las que suman y las que restan, también las de «En la pista»
+de EF, y su racha) y de las competencias clave de sus evaluaciones con rúbricas
+y dianas (en cuáles destaca y cuáles tiene que mejorar). Arriba se elige el
+periodo: «Últimas 4 semanas» (de entrada), «Este trimestre» o «Todo el curso».
+Lo calcula la aplicación con reglas fijas: no usa la IA, no necesita la clave y
+nada sale del dispositivo. Como mucho salen cinco cosas a cada lado, las más
+importantes primero. Debajo sigue la ficha de siempre para editar.
 SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes.
 
 [agenda] AGENDA
