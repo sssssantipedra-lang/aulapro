@@ -296,6 +296,18 @@ export const MEJORAS_EN: Record<string, string> = {
   'La IA las tendrá en cuenta al elegir las competencias, solo si encajan con tu idea. Sale de tus evaluaciones con rúbricas y dianas.': 'The AI will take them into account when choosing the competences, only if they fit your idea. It comes from your assessments with rubrics and assessment targets.',
   '{area}: competencias específicas {lista} (1 criterio sin evaluar)': '{area}: specific competences {lista} (1 criterion not assessed)',
   '{area}: competencias específicas {lista} ({n} criterios sin evaluar)': '{area}: specific competences {lista} ({n} criteria not assessed)',
+  // Sugerencias en el momento (lib/sugerencias.ts, 18-11-2026)
+  'Descartar la sugerencia': 'Dismiss the suggestion',
+  '{nombre} lleva {n} faltas seguidas sin justificar': '{nombre} has {n} unexcused absences in a row',
+  'Desde el {fecha}, cada día que has pasado lista. Puedes dejarlo anotado en su ficha para tenerlo presente.': 'Since {fecha}, every day you have taken attendance. You can note it on their record to keep it in mind.',
+  'Añadir aviso a su ficha': 'Add an alert to their record',
+  '{n} faltas seguidas sin justificar desde el {fecha}': '{n} unexcused absences in a row since {fecha}',
+  'Aviso añadido a la ficha de {nombre}': 'Alert added to {nombre}\'s record',
+  'En «{actividad}» falta 1 alumno por calificar': '1 student still has no grade in “{actividad}”',
+  'En «{actividad}» faltan {n} alumnos por calificar': '{n} students still have no grade in “{actividad}”',
+  'El resto de la clase ya tiene nota: {nombres}.': 'The rest of the class already has a grade: {nombres}.',
+  '¿Pasas sus {n} sesiones a Sesiones?': 'Send its {n} lessons to Lessons?',
+  'La situación ya está guardada. En Sesiones puedes ponerle fecha a cada una, verlas en el calendario e ir marcando las que das.': 'The learning situation is saved. In Lessons you can give each one a date, see them on the calendar and tick them off as you teach them.',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -589,4 +601,16 @@ export const MEJORAS_CA: Record<string, string> = {
   'La IA las tendrá en cuenta al elegir las competencias, solo si encajan con tu idea. Sale de tus evaluaciones con rúbricas y dianas.': 'La IA les tindrà en compte en triar les competències, només si encaixen amb la teva idea. Surt de les teves avaluacions amb rúbriques i dianes.',
   '{area}: competencias específicas {lista} (1 criterio sin evaluar)': '{area}: competències específiques {lista} (1 criteri sense avaluar)',
   '{area}: competencias específicas {lista} ({n} criterios sin evaluar)': '{area}: competències específiques {lista} ({n} criteris sense avaluar)',
+  // Sugerencias en el momento (lib/sugerencias.ts, 18-11-2026)
+  'Descartar la sugerencia': 'Descartar el suggeriment',
+  '{nombre} lleva {n} faltas seguidas sin justificar': '{nombre} porta {n} faltes seguides sense justificar',
+  'Desde el {fecha}, cada día que has pasado lista. Puedes dejarlo anotado en su ficha para tenerlo presente.': 'Des del {fecha}, cada dia que has passat llista. Pots deixar-ho anotat a la seva fitxa per tenir-ho present.',
+  'Añadir aviso a su ficha': 'Afegir avís a la seva fitxa',
+  '{n} faltas seguidas sin justificar desde el {fecha}': '{n} faltes seguides sense justificar des del {fecha}',
+  'Aviso añadido a la ficha de {nombre}': 'Avís afegit a la fitxa de {nombre}',
+  'En «{actividad}» falta 1 alumno por calificar': 'A «{actividad}» falta 1 alumne per qualificar',
+  'En «{actividad}» faltan {n} alumnos por calificar': 'A «{actividad}» falten {n} alumnes per qualificar',
+  'El resto de la clase ya tiene nota: {nombres}.': 'La resta de la classe ja té nota: {nombres}.',
+  '¿Pasas sus {n} sesiones a Sesiones?': 'Passes les seves {n} sessions a Sessions?',
+  'La situación ya está guardada. En Sesiones puedes ponerle fecha a cada una, verlas en el calendario e ir marcando las que das.': 'La situació ja està desada. A Sessions pots posar data a cadascuna, veure-les al calendari i anar marcant les que fas.',
 };

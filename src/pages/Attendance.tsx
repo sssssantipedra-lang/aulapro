@@ -6,7 +6,10 @@ import {
 } from 'lucide-react';
 import type { Class, Student, AttendanceMap, AttendanceStatus, ScheduleBlock } from '../types';
 import { claseQueToca } from '../lib/claseQueToca';
-import { isoDate, prettyDate, shiftDate } from '../lib/utils';
+import { fromIsoDate, isoDate, prettyDate, shiftDate } from '../lib/utils';
+import { faltasSeguidas } from '../lib/sugerencias';
+import { Sugerencia } from '../components/ui/Sugerencia';
+import { useSugerencias } from '../hooks/useSugerencias';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { useI18n } from '../i18n';
@@ -23,6 +26,8 @@ interface Props {
   onNav: (s: string) => void;
   /** El horario: al entrar se abre la clase que toca ahora, o la siguiente de hoy. */
   scheduleBlocks?: ScheduleBlock[];
+  /** Para la sugerencia de anotar un aviso en la ficha de quien encadena faltas (18-11-2026). */
+  onUpdateStudent?: (s: Student) => void;
 }
 
 
@@ -40,7 +45,7 @@ const NEXT: Record<AttendanceStatus, AttendanceStatus> = {
   present: 'absent', absent: 'late', late: 'justified', justified: 'present',
 };
 
-export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav, scheduleBlocks = [] }: Props) {
+export function Attendance({ classes, students, attendance, onSet, onSetDay, onNav, scheduleBlocks = [], onUpdateStudent }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const STATUS = useMemo(() => statusList(t), [t]);
@@ -62,6 +67,24 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
 
   const today = attendance[clsId]?.[date] ?? {};
   const marked = roster.filter(s => today[s.id]).length;
+
+  /**
+   * Sugerencia en el momento: quien lleva tres faltas seguidas sin justificar hasta el día que se está viendo. Una a
+   * la vez, la racha más larga primero; cerrada o atendida, no vuelve a salir mientras sea la misma racha.
+   */
+  const sugerencias = useSugerencias();
+  const racha = useMemo(
+    () => faltasSeguidas(attendance[clsId], roster, date).find(r => !sugerencias.vista(r.clave)) ?? null,
+    [attendance, clsId, roster, date, sugerencias],
+  );
+  const fechaCorta = (iso: string) => fromIsoDate(iso).toLocaleDateString(locale, { day: 'numeric', month: 'long' });
+  function anotarAviso() {
+    if (!racha || !onUpdateStudent) return;
+    const texto = t('{n} faltas seguidas sin justificar desde el {fecha}', { n: racha.n, fecha: fechaCorta(racha.desde) });
+    onUpdateStudent({ ...racha.student, alerts: [...racha.student.alerts, { id: `al-${Date.now().toString(36)}`, text: texto, level: 'warn' }] });
+    sugerencias.marcar(racha.clave);
+    toast(t('Aviso añadido a la ficha de {nombre}', { nombre: racha.student.name }));
+  }
 
   /** Días con registro, del más reciente al más antiguo. */
   const days = useMemo(
@@ -179,6 +202,15 @@ export function Attendance({ classes, students, attendance, onSet, onSetDay, onN
         </div>
       ) : tab === 'day' ? (
         <>
+          {racha && (
+            <Sugerencia
+              titulo={t('{nombre} lleva {n} faltas seguidas sin justificar', { nombre: racha.student.name, n: racha.n })}
+              porque={t('Desde el {fecha}, cada día que has pasado lista. Puedes dejarlo anotado en su ficha para tenerlo presente.', { fecha: fechaCorta(racha.desde) })}
+              accion={onUpdateStudent ? t('Añadir aviso a su ficha') : undefined}
+              onAccion={anotarAviso}
+              onCerrar={() => sugerencias.marcar(racha.clave)}
+            />
+          )}
           {/* Lista, con la fecha como cabecera */}
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div className="card-bar">

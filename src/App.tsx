@@ -641,6 +641,7 @@ function AppInner() {
                 onSetDay={st.setAttendanceDay}
                 onNav={s => setSection(s as Section)}
                 scheduleBlocks={st.scheduleBlocks}
+                onUpdateStudent={st.updateStudent}
               />
             )}
             {section === 'enclase' && (

@@ -1405,6 +1405,14 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
    tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* Sugerencias en el momento (`components/ui/Sugerencia.tsx`, 18-11-2026) */
+.sug { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 14px; padding:11px 14px; border-radius:12px; background:var(--accent-l); border:1px solid var(--border); }
+.sug > svg { flex-shrink:0; color:var(--accent-d); }
+.sug-txt { flex:1 1 220px; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.sug-txt strong { font-size:13px; color:var(--text); }
+.sug-txt span { font-size:12.5px; color:var(--text-2); line-height:1.45; }
+.sug-btn { font-size:12.5px; padding:7px 13px; }
+
 /* Cobertura del currículo, en la portada de Evaluar (`components/curriculum/CoberturaCurriculo.tsx`, 18-11-2026) */
 .cob { margin-top:16px; }
 .cob-sub { margin:0 0 12px; font-size:12.5px; color:var(--text-2); line-height:1.5; }

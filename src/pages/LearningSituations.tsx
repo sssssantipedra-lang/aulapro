@@ -16,6 +16,8 @@ import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
 import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
 import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { Sugerencia } from '../components/ui/Sugerencia';
+import { useSugerencias } from '../hooks/useSugerencias';
 import { coberturaDeMateria } from '../lib/curriculum/cobertura';
 import {
   EtapaCursoFields, MateriaOficialSelect, OpcionMatematicas, CurriculoNota, AvisoEstatal,
@@ -679,7 +681,19 @@ export function LearningSituations({
     onSave(sda);
     setEditingId(sda.id);
     toast(t('Situación de aprendizaje guardada'));
+    // Sugerencia en el momento: recién guardada, lo siguiente suele ser pasarla a sesiones
+    setRecienGuardada(sda.id);
   }
+
+  /**
+   * Sugerencia en el momento (18-11-2026): al guardar una SdA con sesiones, pasarlas a Sesiones para repartirlas en
+   * el calendario. Solo justo después de guardar, y una vez por situación: pasarlas o cerrarla la quita.
+   */
+  const sugerencias = useSugerencias();
+  const [recienGuardada, setRecienGuardada] = useState<string | null>(null);
+  const claveSesiones = recienGuardada ? `sesiones:${recienGuardada}` : '';
+  const puedePasar = (ef ? !!content?.ef : !!onPasarSesiones) && (content?.sesiones.length ?? 0) > 0;
+  const sugerirSesiones = !!recienGuardada && recienGuardada === editingId && puedePasar && !sugerencias.vista(claveSesiones);
 
   /** Copia la situación de aprendizaje a las clases elegidas: cada una la tiene suya, y editar una no cambia las otras. */
   function copiarA(ids: string[]) {
@@ -812,6 +826,7 @@ export function LearningSituations({
     setEditingId(sda.id);
     const lista = sesionesDeSda({ id: sda.id, content }, { claseId: classId || undefined, nuevoId: sesionId, t });
     pasar(lista);
+    sugerencias.marcar(`sesiones:${sda.id}`);
     toast(ef
       ? t('Las {n} sesiones están ahora en Educación Física → Sesiones, sin fecha.', { n: lista.length })
       : t('Las {n} sesiones están ahora en Documentos → Sesiones, sin fecha.', { n: lista.length }));
@@ -1549,6 +1564,15 @@ export function LearningSituations({
         <button type="button" className="sda-back" onClick={resetAll}>
           <ArrowLeft size={14} />{t('Mis situaciones de aprendizaje')}
         </button>
+        {sugerirSesiones && (
+          <Sugerencia
+            titulo={t('¿Pasas sus {n} sesiones a Sesiones?', { n: content.sesiones.length })}
+            porque={t('La situación ya está guardada. En Sesiones puedes ponerle fecha a cada una, verlas en el calendario e ir marcando las que das.')}
+            accion={t(ef ? 'Pasar a Sesiones de EF' : 'Pasar a Sesiones')}
+            onAccion={pasarSesiones}
+            onCerrar={() => sugerencias.marcar(claveSesiones)}
+          />
+        )}
         <div className="sda-doc-top">
           <div className="sda-doc-hero">
             <span className="sda-card-kicker">
