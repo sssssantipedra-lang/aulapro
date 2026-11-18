@@ -1637,7 +1637,7 @@ export function LearningSituations({
                       <ImagenesDeSesionSda imagenes={ses.imagenes} numero={n} onChange={f => cambiarImagenesSesion(n - 1, f)}>
                         <div className="sda-session-ttl">{ses.titulo}</div>
                         <p className="sda-p">{ses.descripcion}</p>
-                        {ses.momentos && <MomentosDeSesion momentos={ses.momentos} />}
+                        {ses.momentos && <MomentosDeSesion momentos={ses.momentos} ef={!!content.ef} />}
                       </ImagenesDeSesionSda>
                       <button
                         type="button" className="sda-session-check" aria-pressed={!!ses.completada} onClick={() => alternarSesion(n - 1)}

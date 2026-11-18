@@ -101,7 +101,13 @@ export function ejemplosAula({ clases, alumnos }) {
       inclusionAdicional: 'Las tarjetas de precios llevan los números en un tamaño grande y se dispone de calculadora para quien lo necesite en las sesiones de cálculo.',
       inclusionIndividualizada: 'Para el alumnado con necesidades específicas de apoyo educativo se adapta la cantidad de productos y se asigna un puesto con compañeros de referencia.',
       sesiones: [
-        { fase: 'Activación', titulo: '¿Qué compramos y qué tiramos?', descripcion: 'Se revisan en grupo los envases de una semana de compra y se anotan los residuos generados. Se plantea el reto: abrir un mercado sostenible en el patio.' },
+        { fase: 'Activación', titulo: '¿Qué compramos y qué tiramos?', descripcion: 'Se revisan en grupo los envases de una semana de compra y se anotan los residuos generados. Se plantea el reto: abrir un mercado sostenible en el patio.',
+          // Inicio, desarrollo y conclusión, como las SdA desde el 18-11-2026
+          momentos: {
+            preimpacto: { texto: 'Se conecta con lo que ya saben sobre el reciclaje.', actividades: [{ nombre: 'La bolsa misteriosa', minutos: 8, descripcion: 'El docente saca uno a uno los envases de una bolsa y el alumnado dice a qué contenedor va cada uno y por qué.', organizacion: 'Toda la clase', material: 'Una bolsa con envases limpios' }] },
+            impacto: { texto: 'Por equipos, analizan la compra de una semana.', actividades: [{ nombre: 'Detectives de residuos', minutos: 30, descripcion: 'Cada equipo clasifica los envases de una compra en una tabla (plástico, papel, vidrio, orgánico), cuenta cuántos hay de cada tipo y señala cuáles se podrían evitar.', organizacion: 'Equipos de cuatro con roles: portavoz, secretario, contador y responsable del material', material: 'Envases, tabla de registro y lápices de colores' }] },
+            postimpacto: { texto: 'Se comparten los resultados y se plantea el reto del mercado.', actividades: [{ nombre: 'Semáforo de ideas', minutos: 7, descripcion: 'Cada portavoz dice una idea para reducir residuos y la clase la valora con tarjetas verde, amarilla o roja. Se anota en el mural del reto.', organizacion: 'Toda la clase', material: 'Tarjetas de colores y mural' }] },
+          } },
         { fase: 'Exploración', titulo: 'Productos de proximidad', descripcion: 'Se investiga qué alimentos se producen cerca del colegio y se elabora una lista con sus precios aproximados.' },
         { fase: 'Desarrollo', titulo: 'Precios, cambios y cuentas', descripcion: 'Se ponen precios con decimales y se practican las compras y los cambios con monedas y billetes de juguete.' },
         { fase: 'Desarrollo', titulo: 'Carteles y folletos', descripcion: 'Cada equipo redacta un cartel persuasivo y un folleto para invitar a las familias al mercado.' },

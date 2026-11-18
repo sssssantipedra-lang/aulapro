@@ -504,6 +504,14 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   una con un círculo para marcarla como COMPLETADA según se va dando (se guarda
   en el acto si la SdA ya está guardada; arriba sale «X de Y completadas» y la
   tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles.
+  CADA SESIÓN EN TRES MOMENTOS: un resumen y, debajo, INICIO (activar lo que
+  saben y presentar el reto), DESARROLLO (las actividades principales, de menos a
+  más) y CONCLUSIÓN (puesta en común, comprobación y cierre), cada uno con sus
+  actividades: nombre, minutos, qué hacen el docente y el alumnado, cómo se
+  agrupan y con qué recursos. En EF se llaman ACTIVACIÓN, DESARROLLO y VUELTA A
+  LA CALMA. Salen también en el PDF y en el Word, y «Pasar a sesiones» pone cada
+  momento en su parte de la sesión (inicio, desarrollo y cierre). Las SdA hechas
+  antes del 18-11-2026 que no los traen siguen con su descripción.
   IMÁGENES EN LAS SESIONES: cada sesión puede llevar hasta 12 imágenes. Se
   ARRASTRA una imagen (un archivo o una imagen de una web) sobre la sesión; o se
   pulsa «Añadir imagen» en la sesión y se pega con Ctrl+V en la zona que se
@@ -841,13 +849,14 @@ compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
 abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia
 cada sesión a la pestaña Sesiones, sin fecha. Las SdA se guardan con las
 demás y salen también en Documentos.
-SESIONES: cada sesión se explica en tres momentos, PREIMPACTO (antes de la
-práctica: objetivo, organización del espacio, el material y los grupos, normas
-de seguridad, cómo se presenta la tarea y la activación o calentamiento),
-IMPACTO (la práctica principal, de lo fácil a lo difícil, con el feedback del
-docente y las adaptaciones para que participe todo el grupo) y POSTIMPACTO
-(vuelta a la calma, puesta en común con preguntas, autoevaluación o coevaluación
-y cierre). En cada momento salen actividades reales con nombre: cómo se hace,
+SESIONES: cada sesión se explica en tres momentos, ACTIVACIÓN (objetivo,
+organización del espacio, el material y los grupos, normas de seguridad, cómo se
+presenta la tarea y el calentamiento general y específico), DESARROLLO (las
+tareas principales, de lo fácil a lo difícil, con el feedback del docente y las
+adaptaciones para que participe todo el grupo) y VUELTA A LA CALMA (actividad de
+baja intensidad o estiramientos, puesta en común con preguntas, autoevaluación o
+coevaluación y cierre). Hasta el 17-11-2026 se llamaban preimpacto, impacto y
+postimpacto: las SdA de entonces se ven con los nombres nuevos. En cada momento salen actividades reales con nombre: cómo se hace,
 cuántos minutos, la organización y el material. En el formulario de EF se
 indica «Duración de cada sesión» (50 minutos de partida). Se ven en la SdA, en
 el PDF y en el Word, y «Pasar a Sesiones de EF» pone cada momento en su parte.

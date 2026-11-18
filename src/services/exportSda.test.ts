@@ -57,11 +57,11 @@ describe('normativa en el Word', () => {
   });
 });
 
-describe('sesiones de EF con preimpacto, impacto y postimpacto', () => {
+describe('sesiones con sus tres momentos', () => {
   const act = (nombre: string) => ({ nombre, minutos: 10, descripcion: 'Se juega por parejas.', organizacion: 'Parejas', material: '1 balón' });
   const conMomentos: LearningSituation = {
     ...base, content: {
-      ...base.content,
+      ...base.content, ef: { modelos: [], referencias: [] },
       sesiones: [{
         fase: 'Desarrollo', titulo: 'Pases', descripcion: 'Resumen de la sesión.',
         momentos: {
@@ -73,22 +73,28 @@ describe('sesiones de EF con preimpacto, impacto y postimpacto', () => {
     },
   };
 
-  it('el PDF lleva los tres momentos con sus actividades', () => {
+  it('en EF, el PDF lleva la activación, el desarrollo y la vuelta a la calma con sus actividades', () => {
     const html = buildSdaHtml(conMomentos, 'es');
-    for (const x of ['PREIMPACTO', 'IMPACTO', 'POSTIMPACTO', 'Pilla-pilla de cadenas (10 min).', 'Rondo de 4 contra 1', 'Estiramientos en círculo']) expect(html).toContain(x);
+    for (const x of ['ACTIVACIÓN', 'DESARROLLO', 'VUELTA A LA CALMA', 'Pilla-pilla de cadenas (10 min).', 'Rondo de 4 contra 1', 'Estiramientos en círculo']) expect(html).toContain(x);
+  });
+
+  it('en las demás áreas, inicio, desarrollo y conclusión', () => {
+    const html = buildSdaHtml({ ...conMomentos, content: { ...conMomentos.content, ef: undefined } }, 'es');
+    for (const x of ['INICIO', 'DESARROLLO', 'CONCLUSIÓN']) expect(html).toContain(x);
+    expect(html).not.toContain('VUELTA A LA CALMA');
   });
 
   it('el Word también, cada línea en su párrafo', async () => {
     const xml = await textoDelWord(conMomentos);
-    for (const x of ['PREIMPACTO', 'Rondo de 4 contra 1 (10 min).', 'POSTIMPACTO']) expect(xml).toContain(x);
-    // «PREIMPACTO» y la actividad no comparten párrafo
-    expect(xml).not.toMatch(/PREIMPACTO\nSe colocan/);
+    for (const x of ['ACTIVACIÓN', 'Rondo de 4 contra 1 (10 min).', 'VUELTA A LA CALMA']) expect(xml).toContain(x);
+    // «ACTIVACIÓN» y la actividad no comparten párrafo
+    expect(xml).not.toMatch(/ACTIVACIÓN\nSe colocan/);
   });
 
   it('una SdA de antes, con solo la descripción, sigue igual', () => {
     const html = buildSdaHtml({ ...base, content: { ...base.content, sesiones: [{ fase: 'Activación', titulo: 'Hola', descripcion: 'Solo la descripción.' }] } }, 'es');
     expect(html).toContain('Solo la descripción.');
-    expect(html).not.toContain('PREIMPACTO');
+    expect(html).not.toContain('INICIO');
   });
 });
 

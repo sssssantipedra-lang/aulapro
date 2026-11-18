@@ -132,32 +132,56 @@ const act = (nombre: string, minutos = 10) => ({
   nombre, minutos, descripcion: 'Se juega por parejas: cada una pasa y se desmarca; punto si recibe en el área.',
   organizacion: 'Parejas en media pista', material: '1 balón por pareja',
 });
+// Lo que devuelve la IA: los momentos con su nombre de verdad (activación, desarrollo y vuelta a la calma)
 const sesionEF = {
   fase: 'Desarrollo', titulo: 'El pase y el desmarque', descripcion: 'Se trabaja el pase en movimiento.',
-  preimpacto: { texto: 'Se colocan cuatro zonas con conos y se presenta el reto.', actividades: [act('Pilla-pilla de cadenas', 8)] },
-  impacto: { texto: 'Progresión de 2 contra 1 a 3 contra 2.', actividades: [act('Pase y desmarque 2 contra 1', 15), act('Rondo de 4 contra 1', 12)] },
-  postimpacto: { texto: 'Puesta en común con semáforo.', actividades: [act('Estiramientos en círculo', 5)] },
+  activacion: { texto: 'Se colocan cuatro zonas con conos y se presenta el reto.', actividades: [act('Pilla-pilla de cadenas', 8)] },
+  desarrollo: { texto: 'Progresión de 2 contra 1 a 3 contra 2.', actividades: [act('Pase y desmarque 2 contra 1', 15), act('Rondo de 4 contra 1', 12)] },
+  vueltaCalma: { texto: 'Puesta en común con semáforo.', actividades: [act('Estiramientos en círculo', 5)] },
+};
+// Y en las demás áreas: inicio, desarrollo y conclusión
+const sesionAula = {
+  fase: 'Desarrollo', titulo: 'Medimos el huerto', descripcion: 'Se calcula el perímetro del huerto.',
+  inicio: { texto: 'Se recuerda qué es el perímetro.', actividades: [act('Lluvia de ideas', 5)] },
+  desarrollo: { texto: 'Por equipos, miden y calculan.', actividades: [act('Medimos con la cinta', 25)] },
+  conclusion: { texto: 'Cada equipo comparte su resultado.', actividades: [act('Semáforo de lo aprendido', 5)] },
 };
 
-describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
+describe('sesiones de EF en activación, desarrollo y vuelta a la calma', () => {
   it('pide actividades reales con nombre en cada momento y la duración de la sesión', async () => {
     callGemini.mockResolvedValue(respuesta({ sesiones: [sesionEF] }));
     await generateSda({ ...PETICION, ef: { ...PETICION.ef!, minutos: 55 } }, 'es');
     const [system, user, , , opciones] = callGemini.mock.calls[0];
-    expect(system).toContain('PREIMPACTO');
-    expect(system).toContain('IMPACTO');
-    expect(system).toContain('POSTIMPACTO');
+    expect(system).toContain('ACTIVACIÓN');
+    expect(system).toContain('DESARROLLO');
+    expect(system).toContain('VUELTA A LA CALMA');
+    expect(system).not.toContain('IMPACTO');
     expect(system).toMatch(/ACTIVIDADES REALES/);
     expect(system).toContain('Prohibido escribir «se realizará un juego de calentamiento»');
     expect(user).toContain('Duración de cada sesión: 55 minutos');
     const sesion = opciones.responseSchema.properties.sesiones.items;
-    expect(sesion.required).toEqual(expect.arrayContaining(['preimpacto', 'impacto', 'postimpacto']));
-    expect(sesion.properties.impacto.properties.actividades.items.required).toEqual(['nombre', 'minutos', 'descripcion', 'organizacion', 'material']);
-    // Sin EF, la sesión sigue siendo la de siempre
+    expect(sesion.required).toEqual(expect.arrayContaining(['activacion', 'desarrollo', 'vueltaCalma']));
+    expect(sesion.properties.desarrollo.properties.actividades.items.required).toEqual(['nombre', 'minutos', 'descripcion', 'organizacion', 'material']);
+    // Sin EF, inicio, desarrollo y conclusión (18-11-2026)
     callGemini.mockClear();
     callGemini.mockResolvedValue(respuesta());
     await generateSda({ ...PETICION, ef: undefined }, 'es');
-    expect(callGemini.mock.calls[0][4].responseSchema.properties.sesiones.items.properties.preimpacto).toBeUndefined();
+    const [systemAula, , , , opcionesAula] = callGemini.mock.calls[0];
+    const sesionAulaSchema = opcionesAula.responseSchema.properties.sesiones.items;
+    expect(sesionAulaSchema.required).toEqual(expect.arrayContaining(['inicio', 'desarrollo', 'conclusion']));
+    expect(sesionAulaSchema.properties.activacion).toBeUndefined();
+    expect(sesionAulaSchema.properties.inicio.properties.actividades.items.required).toEqual(['nombre', 'minutos', 'descripcion', 'organizacion', 'material']);
+    expect(systemAula).toMatch(/INICIO \("inicio"/);
+    expect(systemAula).toMatch(/CONCLUSIÓN \("conclusion"/);
+  });
+
+  it('fuera de EF, la SdA guarda el inicio, el desarrollo y la conclusión con sus actividades', async () => {
+    callGemini.mockResolvedValue(respuesta({ sesiones: [sesionAula] }));
+    const sda = await generateSda({ ...PETICION, ef: undefined }, 'es');
+    const m = sda!.sesiones[0].momentos!;
+    expect(m.preimpacto.actividades.map(a => a.nombre)).toEqual(['Lluvia de ideas']);
+    expect(m.impacto.texto).toBe('Por equipos, miden y calculan.');
+    expect(m.postimpacto.actividades.map(a => a.nombre)).toEqual(['Semáforo de lo aprendido']);
   });
 
   it('la SdA guarda los tres momentos con sus actividades', async () => {
@@ -173,17 +197,19 @@ describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
   it('sanea lo que devuelve la IA: sin nombre o sin explicación no hay actividad, minutos razonables y como mucho cuatro', () => {
     const [s] = sesionesDeLaRespuesta([{
       ...sesionEF,
-      impacto: { texto: 'x', actividades: [
+      desarrollo: { texto: 'x', actividades: [
         act('Uno', 15), { ...act('Sin cómo'), descripcion: '' }, { ...act(''), nombre: '' }, act('Dos', 500), act('Tres', -3), act('Cuatro'), act('Cinco'),
       ] },
     }], true);
     expect(s.momentos!.impacto.actividades.map(a => [a.nombre, a.minutos])).toEqual([['Uno', 15], ['Dos', 0], ['Tres', 0], ['Cuatro', 10]]);
   });
 
-  it('una sesión sin ninguna actividad se queda como sesión de solo descripción, y fuera de EF no lleva momentos', () => {
-    const vacia = { fase: 'Activación', titulo: 'Hola', descripcion: 'Resumen', preimpacto: { texto: 'a', actividades: [] }, impacto: { texto: '', actividades: [] }, postimpacto: { texto: '', actividades: [] } };
+  it('una sesión sin ninguna actividad se queda como sesión de solo descripción, y cada tipo lee sus propios momentos', () => {
+    const vacia = { fase: 'Activación', titulo: 'Hola', descripcion: 'Resumen', activacion: { texto: 'a', actividades: [] }, desarrollo: { texto: '', actividades: [] }, vueltaCalma: { texto: '', actividades: [] } };
     expect(sesionesDeLaRespuesta([vacia], true)).toEqual([{ fase: 'Activación', titulo: 'Hola', descripcion: 'Resumen' }]);
-    expect(sesionesDeLaRespuesta([sesionEF], false)[0].momentos).toBeUndefined();
+    // Una sesión de EF leída como de aula solo encuentra su desarrollo (la clave común)
+    expect(Object.keys(sesionesDeLaRespuesta([sesionEF], false)[0].momentos!.impacto)).toEqual(['texto', 'actividades']);
+    expect(sesionesDeLaRespuesta([sesionEF], false)[0].momentos!.preimpacto.actividades).toEqual([]);
     expect(sesionesDeLaRespuesta('no es una lista', true)).toEqual([]);
   });
 
