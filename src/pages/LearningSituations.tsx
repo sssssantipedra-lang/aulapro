@@ -4,7 +4,7 @@ import {
   FileDown, FileType2, Target, Layers, ArrowLeft, Pencil, ChevronDown, CalendarRange, Users, Eye,
   RefreshCw, Lightbulb, Search, Frame, Copy, Circle, CheckCircle2,
 } from 'lucide-react';
-import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef, Student } from '../types';
+import type { Class, LearningSituation, Rubric, EvalDiana, Ficha, GradeCategory, OfficialCriterionRef, Student, Evaluation } from '../types';
 import { DEFAULT_LEVELS } from '../types';
 import {
   analyzeDocument, generateSda, generateSdaRubric, generateSdaDiana, extraerSdaDePdf,
@@ -15,6 +15,8 @@ import { resolverGrupo, separaMatematicasAB, type Etapa } from '../lib/curriculu
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import { estadoDeMateria, materiasDelCurso, type ContextoClase } from '../lib/curriculum/materiasDeClase';
 import { useCurriculo, useNivelTexto } from '../hooks/useCurriculo';
+import { useMateriasOficiales } from '../hooks/useNotasPorCompetencias';
+import { coberturaDeMateria } from '../lib/curriculum/cobertura';
 import {
   EtapaCursoFields, MateriaOficialSelect, OpcionMatematicas, CurriculoNota, AvisoEstatal,
 } from '../components/curriculum/CurriculumFields';
@@ -94,6 +96,8 @@ interface Props {
     /** Crea en Sesiones de EF una sesión por cada sesión de la SdA. */
     onPasarSesiones: (sesiones: SesionEF[]) => void;
   };
+  /** Las evaluaciones, para la cobertura del currículo: qué queda por evaluar en la clase (18-11-2026). */
+  evaluations?: Evaluation[];
 }
 
 /** Documento de apoyo ya resumido por la IA. */
@@ -213,7 +217,7 @@ interface BorradorSda {
 
 export function LearningSituations({
   classes, students = [], gradeCategories, learningSituations, comunidad, onUpdateClass,
-  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, acsAula,
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, acsAula, evaluations = [],
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -224,6 +228,8 @@ export function LearningSituations({
   const [otrasClases, setOtrasClases] = useState<string[]>([]);
   /** Tener en cuenta las barreras de aprendizaje del alumnado de las clases elegidas. */
   const [conBarreras, setConBarreras] = useState(false);
+  /** Dar prioridad en la SdA a lo que la clase aún no tiene evaluado (cobertura del currículo, 18-11-2026). */
+  const [conPendientes, setConPendientes] = useState(true);
   const [idea, setIdea] = useState('');
   const [numero, setNumero] = useState('1');
   const [temporalizacion, setTemporalizacion] = useState('');
@@ -445,6 +451,21 @@ export function LearningSituations({
 
   /* ── Currículo oficial ── */
   const curriculo = useCurriculo(comunidad, etapa);
+  /**
+   * Cobertura del currículo (18-11-2026): de las áreas elegidas, las competencias específicas con criterios que la
+   * clase principal aún no tiene evaluados. Solo cuando ya hay algo evaluado: si falta todo, no hay nada que priorizar.
+   */
+  const { materias: materiasDeLaClase } = useMateriasOficiales(activeClass, comunidad);
+  const pendientesSda = useMemo(() => {
+    if (!activeClass) return [];
+    const deLaClase = evaluations.filter(e => e.class_id === activeClass.id);
+    return materiasDeLaClase
+      .filter(m => areas.includes(m.asignatura))
+      .map(m => ({ area: m.asignatura, c: coberturaDeMateria(m.entry, m.grupo, deLaClase) }))
+      .filter(x => x.c.evaluados > 0 && x.c.pendientes.length > 0)
+      .map(x => ({ area: x.area, competencias: x.c.competenciasPendientes, criterios: x.c.pendientes.length }));
+  }, [activeClass, evaluations, materiasDeLaClase, areas]);
+
   /** La clase ya sabe su etapa y su curso: no se vuelven a preguntar aquí. */
   const claseConNivel = !!(activeClass?.etapa && activeClass.curso);
   const ctxCurriculo: ContextoClase | null = etapa && curso !== ''
@@ -565,6 +586,9 @@ export function LearningSituations({
       contextoClase, metodologia,
       modelo: modeloSda,
       barreras: conBarreras && barrerasClases.length ? barrerasClases : undefined,
+      competenciasPendientes: conPendientes && pendientesSda.length
+        ? Object.fromEntries(pendientesSda.map(x => [x.area, x.competencias]))
+        : undefined,
       acs: conAcs && textoAcs ? textoAcs : undefined,
       documentos: docs.map(d => ({ nombre: d.nombre, resumen: d.resumen })),
       sesionesBase: sesionesBase ?? undefined,
@@ -1069,6 +1093,30 @@ export function LearningSituations({
             />
           </div>
         </div>
+
+        {pendientesSda.length > 0 && (
+          <div className="fgroup sda-barreras">
+            <label className="td-chk">
+              <input type="checkbox" checked={conPendientes} onChange={e => setConPendientes(e.target.checked)} />
+              {t('Dar prioridad a lo que aún no has evaluado en esta clase')}
+            </label>
+            {conPendientes && (
+              <>
+                <p className="sda-note" style={{ margin: '4px 0 6px' }}>
+                  {t('La IA las tendrá en cuenta al elegir las competencias, solo si encajan con tu idea. Sale de tus evaluaciones con rúbricas y dianas.')}
+                </p>
+                <ul className="sda-barreras-lista">
+                  {pendientesSda.map(x => (
+                    <li key={x.area}>
+                      {t(x.criterios === 1 ? '{area}: competencias específicas {lista} (1 criterio sin evaluar)' : '{area}: competencias específicas {lista} ({n} criterios sin evaluar)',
+                        { area: x.area, lista: x.competencias.join(', '), n: x.criterios })}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
 
         {nBarreras > 0 && (
           <div className="fgroup sda-barreras">

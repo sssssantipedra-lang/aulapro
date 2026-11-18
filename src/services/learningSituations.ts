@@ -264,6 +264,11 @@ export interface SdaRequest {
    */
   barreras?: string[];
   /**
+   * Cobertura del currículo (18-11-2026): por área, las competencias específicas con criterios que la clase aún no
+   * tiene evaluados (`lib/curriculum/cobertura.ts`). La IA les da prioridad si encajan con la idea. Solo números.
+   */
+  competenciasPendientes?: Record<string, number[]>;
+  /**
    * Las adaptaciones curriculares significativas del alumnado de las clases elegidas (`lib/acsContexto.ts`), sin
    * nombres: una por alumno y área. Solo si el docente lo marca.
    */
@@ -819,7 +824,7 @@ function tituloDeBloque(b: CurriculumBloqueSaberes): string {
  * decenas por bloque en algunas materias—, que es información de sobra para
  * elegir cuál encaja con la idea de partida.
  */
-function bloqueCurriculoReal(area: string, r: AreaResuelta, cita: string): string {
+function bloqueCurriculoReal(area: string, r: AreaResuelta, cita: string, pendientes: number[] = []): string {
   const competencias = competenciasDe(r.entry, r.grupo).map(c => `${c.n}. ${c.texto}`).join('\n');
   const saberes = r.entry.saberes[r.grupo].map(b => `${b.bloque}. ${tituloDeBloque(b)}`).join('\n');
   return (
@@ -827,8 +832,19 @@ function bloqueCurriculoReal(area: string, r: AreaResuelta, cita: string): strin
     `NO redactes competencias ni saberes por tu cuenta para esta área: ELIGE de estas listas, ` +
     `por su número o letra, en "competenciasSeleccionadas" y "saberesSeleccionados".\n` +
     `Competencias específicas disponibles:\n${competencias}\n` +
+    // Cobertura del currículo (18-11-2026): lo que la clase aún no tiene evaluado, para que la SdA lo aproveche si encaja
+    (pendientes.length
+      ? `De ellas, en esta clase aún quedan criterios sin evaluar de las competencias específicas ${pendientes.join(', ')}: ` +
+        `dales prioridad al elegir si encajan de verdad con la idea de partida; si no encajan, no las fuerces.\n`
+      : '') +
     `Saberes básicos disponibles:\n${saberes}\n`
   );
+}
+
+/** De las competencias pendientes que llegan, solo las que existen en esa área y sin repetir. */
+function pendientesValidas(pendientes: number[] | undefined, r: AreaResuelta): number[] {
+  const validas = new Set(competenciasDe(r.entry, r.grupo).map(c => c.n));
+  return [...new Set(pendientes ?? [])].filter(n => validas.has(n)).sort((a, b) => a - b);
 }
 
 /** `SdaArea` tal y como lo devuelve la IA, con los dos campos de selección. */
@@ -940,7 +956,7 @@ export async function generateSda(
 
   // Una por cada área que sí empareja con el currículo; para las demás, nada.
   const curriculoReal = req.areas
-    .map((area, i) => (resoluciones[i] ? bloqueCurriculoReal(area, resoluciones[i]!, cita) : ''))
+    .map((area, i) => (resoluciones[i] ? bloqueCurriculoReal(area, resoluciones[i]!, cita, pendientesValidas(req.competenciasPendientes?.[area], resoluciones[i]!)) : ''))
     .join('');
 
   const userPrompt =

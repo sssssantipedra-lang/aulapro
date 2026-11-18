@@ -1405,6 +1405,25 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
    tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* Cobertura del currículo, en la portada de Evaluar (`components/curriculum/CoberturaCurriculo.tsx`, 18-11-2026) */
+.cob { margin-top:16px; }
+.cob-sub { margin:0 0 12px; font-size:12.5px; color:var(--text-2); line-height:1.5; }
+.cob-lista { display:flex; flex-direction:column; gap:6px; }
+.cob-fila { border:1px solid var(--border); border-left:3px solid var(--cob-c, var(--accent-d)); border-radius:10px; background:var(--surface); }
+.cob-fila summary { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(60px,1fr) auto; align-items:center; gap:12px; padding:9px 12px; cursor:pointer; list-style:none; }
+.cob-fila summary::-webkit-details-marker { display:none; }
+.cob-nombre { display:flex; flex-direction:column; min-width:0; }
+.cob-nombre b { font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cob-nombre small { font-size:11.5px; color:var(--text-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cob-barra { display:block; height:8px; border-radius:99px; background:var(--border); overflow:hidden; }
+.cob-barra i { display:block; height:100%; border-radius:99px; background:var(--ok); }
+.cob-cuenta { font-size:12px; font-weight:800; color:var(--text-2); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.cob-fila > p, .cob-fila > ul { margin:0; padding:0 12px 10px; font-size:12.5px; color:var(--text-2); line-height:1.5; }
+.cob-fila > ul { list-style:none; display:flex; flex-direction:column; gap:4px; }
+.cob-fila li b { color:var(--text); margin-right:4px; }
+.cob-faltan { font-weight:700; color:var(--text) !important; padding-bottom:4px !important; }
+.cob-ok { color:var(--ok-fg) !important; font-weight:600; }
+
 /* El radar de la clase (`lib/radarClase.ts`, 18-11-2026): en Mis clases, en las tarjetas de clase y en el Inicio */
 .rc { margin:0 0 16px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--border); }
 .rc-hd { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }

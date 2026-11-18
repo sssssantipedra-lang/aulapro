@@ -488,6 +488,7 @@ function AppInner() {
                 rubrics={st.rubrics}
                 dianas={st.dianas}
                 evaluations={st.evaluations}
+                comunidad={st.currentUser?.community}
                 onNav={setSection}
               />
             )}
@@ -720,6 +721,7 @@ function AppInner() {
                 onPasarSesiones={sesiones => st.setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] }))}
                 classes={st.classes}
                 students={st.students}
+                evaluations={st.evaluations}
                 acsAula={st.apoyo.acsAula}
                 gradeCategories={st.gradeCategories}
                 learningSituations={st.learningSituations}

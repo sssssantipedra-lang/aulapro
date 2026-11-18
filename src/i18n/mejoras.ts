@@ -285,6 +285,17 @@ export const MEJORAS_EN: Record<string, string> = {
   '1 va especialmente bien': '1 is doing especially well',
   '{n} van especialmente bien': '{n} are doing especially well',
   'Ningún alumno necesita atención ahora mismo.': 'No student needs attention right now.',
+  // Cobertura del currículo (lib/curriculum/cobertura.ts, 18-11-2026)
+  'Cobertura del currículo': 'Curriculum coverage',
+  'Cuántos criterios de evaluación oficiales llevas evaluados en cada clase con rúbricas y dianas que los tienen marcados. Pulsa una fila para ver los que faltan.': 'How many official assessment criteria you have assessed in each class, using rubrics and assessment targets that have them marked. Tap a row to see the ones still missing.',
+  '{n} de {total} criterios evaluados': '{n} of {total} criteria assessed',
+  'Todos los criterios de esta materia tienen ya alguna evaluación.': 'Every criterion in this subject already has at least one assessment.',
+  'Falta 1 criterio por evaluar:': '1 criterion still to assess:',
+  'Faltan {n} criterios por evaluar:': '{n} criteria still to assess:',
+  'Dar prioridad a lo que aún no has evaluado en esta clase': 'Prioritise what you have not assessed yet in this class',
+  'La IA las tendrá en cuenta al elegir las competencias, solo si encajan con tu idea. Sale de tus evaluaciones con rúbricas y dianas.': 'The AI will take them into account when choosing the competences, only if they fit your idea. It comes from your assessments with rubrics and assessment targets.',
+  '{area}: competencias específicas {lista} (1 criterio sin evaluar)': '{area}: specific competences {lista} (1 criterion not assessed)',
+  '{area}: competencias específicas {lista} ({n} criterios sin evaluar)': '{area}: specific competences {lista} ({n} criteria not assessed)',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -567,4 +578,15 @@ export const MEJORAS_CA: Record<string, string> = {
   '1 va especialmente bien': '1 va especialment bé',
   '{n} van especialmente bien': '{n} van especialment bé',
   'Ningún alumno necesita atención ahora mismo.': 'Cap alumne necessita atenció ara mateix.',
+  // Cobertura del currículo (lib/curriculum/cobertura.ts, 18-11-2026)
+  'Cobertura del currículo': 'Cobertura del currículum',
+  'Cuántos criterios de evaluación oficiales llevas evaluados en cada clase con rúbricas y dianas que los tienen marcados. Pulsa una fila para ver los que faltan.': 'Quants criteris d\'avaluació oficials portes avaluats a cada classe amb rúbriques i dianes que els tenen marcats. Prem una fila per veure els que falten.',
+  '{n} de {total} criterios evaluados': '{n} de {total} criteris avaluats',
+  'Todos los criterios de esta materia tienen ya alguna evaluación.': 'Tots els criteris d\'aquesta matèria ja tenen alguna avaluació.',
+  'Falta 1 criterio por evaluar:': 'Falta 1 criteri per avaluar:',
+  'Faltan {n} criterios por evaluar:': 'Falten {n} criteris per avaluar:',
+  'Dar prioridad a lo que aún no has evaluado en esta clase': 'Donar prioritat al que encara no has avaluat en aquesta classe',
+  'La IA las tendrá en cuenta al elegir las competencias, solo si encajan con tu idea. Sale de tus evaluaciones con rúbricas y dianas.': 'La IA les tindrà en compte en triar les competències, només si encaixen amb la teva idea. Surt de les teves avaluacions amb rúbriques i dianes.',
+  '{area}: competencias específicas {lista} (1 criterio sin evaluar)': '{area}: competències específiques {lista} (1 criteri sense avaluar)',
+  '{area}: competencias específicas {lista} ({n} criterios sin evaluar)': '{area}: competències específiques {lista} ({n} criteris sense avaluar)',
 };
