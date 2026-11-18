@@ -1,6 +1,6 @@
 import { mismoNombreEnClase } from '../lib/alumnado';
 import { AyudaVideo } from '../components/AyudaVideo';
-import { useState, useId } from 'react';
+import { useState, useId, useEffect } from 'react';
 import {
   Users, Plus, Search, X, Trash2, Upload, AlertTriangle, Info, Pencil, Check, ChevronLeft,
 } from 'lucide-react';
@@ -16,6 +16,8 @@ import { initials } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
 import { ClassCards } from '../components/clases/ClassCards';
+import { RadarDeClase } from '../components/clases/RadarDeClase';
+import { radarDeClase, type Radar } from '../lib/radarClase';
 import { useI18n } from '../i18n';
 
 // ─── palette ─────────────────────────────────────────────────────────────────
@@ -76,6 +78,15 @@ interface Props {
   grades?: GradeMap;
   /** La adaptación curricular significativa del alumno (`components/clases/AcsDeAlumno.tsx`), en su ficha. */
   acsDeAlumno?: (s: Student) => React.ReactNode;
+  /** Lo más relevante del alumno, arriba de su ficha (`components/clases/ResumenDeAlumno.tsx`, 18-11-2026). */
+  resumenDeAlumno?: (s: Student) => React.ReactNode;
+  /** El radar de todo el alumnado (`lib/radarClase.ts`): quién necesita atención y quién destaca. */
+  radar?: Radar;
+  /** Un alumno cuya ficha hay que abrir al entrar (desde el Inicio o el buscador); después se avisa con `onAlumnoAbierto`. Solo se mira al montar: quien lo pasa cambia la `key`. */
+  alumnoInicial?: string | null;
+  /** O solo su clase (desde el buscador). */
+  claseInicial?: string | null;
+  onAlumnoAbierto?: () => void;
 }
 
 /** Parte aleatoria de los ids nuevos. Fuera del componente: solo se llama al guardar, nunca al pintar. */
@@ -103,7 +114,7 @@ export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno,
+  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno, resumenDeAlumno, radar, alumnoInicial, claseInicial, onAlumnoAbierto,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
@@ -115,15 +126,21 @@ export function ClassesManager({
   // ── tabs ──
   // Con varias clases se entra por la portada de tarjetas (11-10-2026); con
   // una sola, directamente en ella.
-  const [activeClassId, setActiveClassId] = useState<string>(classes.length === 1 ? classes[0].id : '');
+  // Si se llega con un alumno ya elegido (desde el radar del Inicio o el buscador), se entra en su clase con su ficha abierta
+  const [inicial] = useState(() => (alumnoInicial ? students.find(x => x.id === alumnoInicial) ?? null : null));
+  useEffect(() => {
+    if (alumnoInicial || claseInicial) onAlumnoAbierto?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
+  }, []);
+  const [activeClassId, setActiveClassId] = useState<string>(inicial?.class_id ?? (claseInicial && classes.some(c => c.id === claseInicial) ? claseInicial : classes.length === 1 ? classes[0].id : ''));
   const activeClass = classes.find(c => c.id === activeClassId) ?? null;
 
   // ── search ──
   const [search, setSearch] = useState('');
 
   // ── student modal ──
-  const [studentModal, setStudentModal] = useState<Student | null>(null);
-  const [editStudent, setEditStudent] = useState<Student | null>(null);
+  const [studentModal, setStudentModal] = useState<Student | null>(inicial);
+  const [editStudent, setEditStudent] = useState<Student | null>(() => (inicial ? { ...inicial, alerts: inicial.alerts.map(a => ({ ...a })) } : null));
 
   // ── class modal ──
   const [classModal, setClassModal] = useState(false);
@@ -414,6 +431,7 @@ export function ClassesManager({
           gradeCategories={gradeCategories}
           gradeItems={gradeItems}
           grades={grades}
+          radar={radar}
           onOpen={id => { setActiveClassId(id); setSearch(''); window.scrollTo(0, 0); }}
         />
       ) : activeClass ? (
@@ -497,6 +515,8 @@ export function ClassesManager({
               <Trash2 size={15} color="var(--danger)" />
             </button>
           </div>
+
+          {radar && !search && <RadarDeClase radar={radarDeClase(radar, activeClass.id)} onAbrir={openStudent} />}
 
           {/* student grid */}
           {visible.length === 0 ? (
@@ -594,6 +614,10 @@ export function ClassesManager({
               </div>
               <button className="ico-btn" onClick={closeStudentModal} aria-label={t('Cerrar')} title={t('Cerrar')}><X size={18} /></button>
             </div>
+
+            {/* Lo primero que se ve al abrir la ficha: lo más relevante, en positivo y en negativo. Con el alumno
+                guardado (`studentModal`), no con lo que se está escribiendo. */}
+            {studentModal && studentModal.id !== '__new__' && resumenDeAlumno?.(studentModal)}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {/* name */}

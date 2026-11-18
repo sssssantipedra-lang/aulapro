@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardCheck, BookOpen, Settings, ChevronLeft, ChevronRight,
   Presentation, Users2, UserCheck, FileText, LogOut, Check, ScrollText, GraduationCap, Share2, MapPin,
-  NotebookPen, Contact, Shapes, MonitorPlay, Images, Volleyball,
+  NotebookPen, Contact, Shapes, MonitorPlay, Images, Volleyball, Search,
 } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { useI18n } from '../../i18n';
@@ -70,9 +70,11 @@ interface Props {
   /** Se está escribiendo en disco ahora mismo. */
   saving?: boolean;
   onLogout: () => void;
+  /** Abre el buscador general (`components/Buscador.tsx`). */
+  onBuscar?: () => void;
 }
 
-export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving, onLogout }: Props) {
+export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving, onLogout, onBuscar }: Props) {
   const { t, lang } = useI18n();
 
   const groups = navGroupsFor(user?.tipo ?? 'aula');
@@ -139,6 +141,15 @@ export function Sidebar({ mini, overlay, onToggle, current, onNav, user, saving,
           <span className="sb-community-name">
             {user.community ? nombreComunidad(user.community, lang) : t('Elige tu comunidad')}
           </span>
+        </button>
+      )}
+
+      {/* El buscador general: ir a cualquier pantalla, clase o alumno escribiendo unas letras */}
+      {user && onBuscar && (
+        <button type="button" className="sb-buscar" onClick={onBuscar} title={t('Buscar en AulaPro (Ctrl+K)')} aria-label={t('Buscar en AulaPro')}>
+          <Search size={14} />
+          <span className="sb-buscar-txt">{t('Buscar')}</span>
+          <kbd>Ctrl K</kbd>
         </button>
       )}
 

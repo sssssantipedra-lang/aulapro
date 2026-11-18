@@ -4,7 +4,7 @@
  * (decisión del dueño, 11-10-2026). Entrar en Evaluar desde el menú abre
  * siempre esta pantalla (`portada` en lib/navigation.ts).
  */
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { ArrowRight, Camera, ClipboardCheck, History, Radar, Target, ThumbsUp, TrendingUp, UserCheck } from 'lucide-react';
 import type { Class, EvalDiana, Evaluation, Rubric, Section } from '../types';
 import { esRegistro } from '../lib/registro';
@@ -12,16 +12,22 @@ import { CORRECCION_CON_IA } from '../lib/correccionIA';
 import { rendimientoPorClase } from '../lib/rendimiento';
 import { RendimientoCarrusel } from '../components/evaluar/RendimientoCarrusel';
 import { useI18n } from '../i18n';
+import type { ComunidadId } from '../lib/curriculum/comunidades';
+
+// Aparte: necesita el currículo de la comunidad, que no se carga hasta que hace falta
+const CoberturaCurriculo = lazy(() => import('../components/curriculum/CoberturaCurriculo').then(m => ({ default: m.CoberturaCurriculo })));
 
 interface Props {
   classes: Class[];
   rubrics: Rubric[];
   dianas?: EvalDiana[];
   evaluations: Evaluation[];
+  /** Comunidad del perfil, para la cobertura del currículo. */
+  comunidad?: ComunidadId;
   onNav: (s: Section) => void;
 }
 
-export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, onNav }: Props) {
+export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, comunidad, onNav }: Props) {
   const { t } = useI18n();
   const clases = useMemo(() => rendimientoPorClase(classes, rubrics, evaluations), [classes, rubrics, evaluations]);
   const idsRegistro = new Set(dianas.filter(esRegistro).map(d => d.id));
@@ -109,6 +115,9 @@ export function EvaluarInicio({ classes, rubrics, dianas = [], evaluations, onNa
             </p>
           )}
       </div>
+      <Suspense fallback={null}>
+        <CoberturaCurriculo classes={classes} evaluations={evaluations} comunidad={comunidad} />
+      </Suspense>
     </section>
   );
 }

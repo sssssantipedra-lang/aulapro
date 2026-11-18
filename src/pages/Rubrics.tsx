@@ -57,6 +57,9 @@ interface Props {
    * (11-10-2026); antes esta pantalla llevaba las suyas propias, repetidas.
    */
   vista?: 'rubrics' | 'dianas';
+  /** Lo escrito en el buscador general, para llegar con la lista ya filtrada (18-11-2026). Solo se mira al montar. */
+  busquedaInicial?: string;
+  onBusquedaUsada?: () => void;
 }
 
 /* ─── Internal types ─── */
@@ -1009,11 +1012,15 @@ export function Rubrics({
   onAddRubric, onUpdateRubric, onDeleteRubric,
   onAddDiana, onUpdateDiana, onDeleteDiana, onAddEvaluation,
   defaultOpenEvalRubricId, defaultOpenEvalStudentId, defaultOpenEvalClassId,
-  onEvalOpened, comunidad, vista = 'rubrics',
+  onEvalOpened, comunidad, vista = 'rubrics', busquedaInicial = '', onBusquedaUsada,
 }: Props) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(busquedaInicial);
+  useEffect(() => {
+    if (busquedaInicial) onBusquedaUsada?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
+  }, []);
   const q = query.trim().toLocaleLowerCase('es');
   const visibleRubrics = q
     ? rubrics.filter(r => `${r.name} ${r.context ?? ''} ${r.criteria.map(c => c.name).join(' ')}`.toLocaleLowerCase('es').includes(q))

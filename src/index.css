@@ -1403,6 +1403,129 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
   .stack-sm { grid-template-columns:minmax(0,1fr) !important; }
 }
 
+/* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
+   tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* «Tu semana», en el Inicio (`lib/semana.ts`, 18-11-2026) */
+.home-semana { padding:0; }
+.home-semana summary { display:flex; align-items:center; justify-content:space-between; gap:8px 14px; flex-wrap:wrap; padding:14px 18px; cursor:pointer; list-style:none; }
+.home-semana summary::-webkit-details-marker { display:none; }
+.home-semana-res { font-size:12.5px; color:var(--text-2); }
+.home-semana-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap:16px 22px; padding:0 18px 16px; }
+.home-semana-cols h4 { margin:0 0 9px; font-size:11.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--text-3); }
+.home-semana-cols .home-link { margin-top:10px; }
+.home-semana .home-event.hecha .home-event-name { color:var(--text-3); text-decoration:line-through; }
+
+/* El buscador general (`components/Buscador.tsx`, 18-11-2026) y su botón en el menú */
+.sb-buscar { flex-shrink:0; margin:0 10px 6px; padding:8px 11px; width:calc(100% - 20px); display:flex; align-items:center; gap:8px; background:var(--nav-hover); border:1px solid var(--nav-border); border-radius:10px; color:var(--nav-muted); font-family:var(--font); font-size:12.5px; font-weight:600; text-align:left; cursor:pointer; }
+.sb-buscar:hover { color:var(--nav-strong); }
+.sb-buscar svg { flex-shrink:0; }
+.sb-buscar-txt { flex:1; min-width:0; }
+.sb-buscar kbd { font-family:var(--font); font-size:10.5px; font-weight:700; padding:2px 6px; border-radius:6px; border:1px solid var(--nav-border); color:var(--nav-muted); }
+.sidebar.mini .sb-buscar { justify-content:center; padding:8px 0; }
+.sidebar.mini .sb-buscar-txt, .sidebar.mini .sb-buscar kbd { display:none; }
+.bq-fondo { position:fixed; inset:0; z-index:300; background:rgba(15,23,42,.45); display:flex; align-items:flex-start; justify-content:center; padding:10vh 16px 16px; }
+.bq { width:min(620px, 100%); max-height:76vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(15,23,42,.28); overflow:hidden; }
+.bq-caja { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); color:var(--text-3); }
+.bq-caja input { flex:1; min-width:0; border:none; outline:none; background:transparent; font-family:var(--font); font-size:16px; color:var(--text); }
+.bq-caja input::-webkit-search-cancel-button { display:none; }
+.bq-esc { font-family:var(--font); font-size:11.5px; font-weight:700; color:var(--text-2); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:5px 9px; cursor:pointer; }
+.bq-lista { list-style:none; margin:0; padding:6px 8px 8px; overflow-y:auto; }
+.bq-tipo { display:block; padding:10px 8px 4px; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); }
+.bq-res { display:flex; align-items:center; gap:11px; width:100%; padding:9px 10px; border:none; border-radius:10px; background:transparent; font-family:var(--font); text-align:left; cursor:pointer; color:var(--text-2); }
+.bq-res.on { background:var(--accent-l); color:var(--accent-d); }
+.bq-res svg { flex-shrink:0; }
+.bq-res-txt { flex:1; min-width:0; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.bq-res-txt b { font-size:14px; color:var(--text); overflow-wrap:anywhere; }
+.bq-res-txt small { font-size:12px; color:var(--text-3); }
+.bq-intro { opacity:.7; }
+.bq-vacio { margin:0; padding:22px 18px; font-size:13.5px; color:var(--text-2); }
+.bq-pie { margin:0; padding:9px 16px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-3); }
+@media (max-width: 640px) { .bq-fondo { padding-top:64px; } .bq-pie { display:none; } }
+
+/* Sugerencias en el momento (`components/ui/Sugerencia.tsx`, 18-11-2026) */
+.sug { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 14px; padding:11px 14px; border-radius:12px; background:var(--accent-l); border:1px solid var(--border); }
+.sug > svg { flex-shrink:0; color:var(--accent-d); }
+.sug-txt { flex:1 1 220px; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.sug-txt strong { font-size:13px; color:var(--text); }
+.sug-txt span { font-size:12.5px; color:var(--text-2); line-height:1.45; }
+.sug-btn { font-size:12.5px; padding:7px 13px; }
+
+/* Cobertura del currículo, en la portada de Evaluar (`components/curriculum/CoberturaCurriculo.tsx`, 18-11-2026) */
+.cob { margin-top:16px; }
+.cob-sub { margin:0 0 12px; font-size:12.5px; color:var(--text-2); line-height:1.5; }
+.cob-lista { display:flex; flex-direction:column; gap:6px; }
+.cob-fila { border:1px solid var(--border); border-left:3px solid var(--cob-c, var(--accent-d)); border-radius:10px; background:var(--surface); }
+.cob-fila summary { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(60px,1fr) auto; align-items:center; gap:12px; padding:9px 12px; cursor:pointer; list-style:none; }
+.cob-fila summary::-webkit-details-marker { display:none; }
+.cob-nombre { display:flex; flex-direction:column; min-width:0; }
+.cob-nombre b { font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cob-nombre small { font-size:11.5px; color:var(--text-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cob-barra { display:block; height:8px; border-radius:99px; background:var(--border); overflow:hidden; }
+.cob-barra i { display:block; height:100%; border-radius:99px; background:var(--ok); }
+.cob-cuenta { font-size:12px; font-weight:800; color:var(--text-2); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.cob-fila > p, .cob-fila > ul { margin:0; padding:0 12px 10px; font-size:12.5px; color:var(--text-2); line-height:1.5; }
+.cob-fila > ul { list-style:none; display:flex; flex-direction:column; gap:4px; }
+.cob-fila li b { color:var(--text); margin-right:4px; }
+.cob-faltan { font-weight:700; color:var(--text) !important; padding-bottom:4px !important; }
+.cob-ok { color:var(--ok-fg) !important; font-weight:600; }
+
+/* El radar de la clase (`lib/radarClase.ts`, 18-11-2026): en Mis clases, en las tarjetas de clase y en el Inicio */
+.rc { margin:0 0 16px; padding:12px 14px; border-radius:14px; background:var(--card); border:1px solid var(--border); }
+.rc-hd { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.rc-hd strong { display:inline-flex; align-items:center; gap:7px; font-size:13.5px; color:var(--text); }
+.rc-hd > span { font-size:11.5px; color:var(--text-3); }
+.rc-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap:10px 18px; }
+.rc-fila h4 { display:flex; align-items:center; gap:6px; margin:0 0 6px; font-size:12px; font-weight:800; color:var(--warn-fg); }
+.rc-fila.pos h4 { color:var(--ok-fg); }
+.rc-fila h4 span { font-weight:700; color:var(--text-3); }
+.rc-fila ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.rc-fila button { display:flex; flex-direction:column; align-items:flex-start; gap:1px; width:100%; text-align:left; font-family:var(--font); background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--warn-fg); border-radius:9px; padding:7px 10px; cursor:pointer; min-width:0; }
+.rc-fila.pos button { border-left-color:var(--ok); }
+.rc-fila button:hover { background:var(--accent-l); }
+.rc-fila button b { font-size:12.5px; color:var(--text); }
+.rc-fila button small { font-size:11.5px; color:var(--text-2); line-height:1.4; overflow-wrap:anywhere; }
+.rc-mas { margin-top:8px; background:none; border:none; padding:0; font-family:var(--font); font-size:12px; font-weight:700; color:var(--accent-d); cursor:pointer; }
+.cls-card-radar { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:11.5px; font-weight:700; }
+.cls-card-radar > span { display:inline-flex; align-items:center; gap:4px; }
+.cls-card-radar .neg { color:var(--warn-fg); }
+.cls-card-radar .pos { color:var(--ok-fg); }
+.home-alert-btn { width:100%; text-align:left; font-family:var(--font); background:none; border:none; padding:0; cursor:pointer; color:inherit; }
+.home-alert-btn:hover .home-event-name { color:var(--accent-d); }
+.home-event-name small { font-size:11px; font-weight:600; color:var(--text-3); }
+.home-destacan { display:flex; align-items:flex-start; gap:7px; margin:12px 0 0; padding-top:10px; border-top:1px solid var(--border); font-size:12px; color:var(--text-2); line-height:1.5; }
+.home-destacan > svg { flex-shrink:0; margin-top:3px; color:var(--ok); }
+.home-destacan button { font-family:var(--font); font-size:12px; font-weight:700; color:var(--text); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline; text-decoration-color:var(--border-strong); text-underline-offset:2px; }
+
+/* Lo más relevante de un alumno, arriba de su ficha de «Mis clases» (`components/clases/ResumenDeAlumno.tsx`, 18-11-2026) */
+.ra { margin:0 0 16px; padding:14px; border-radius:14px; background:var(--surface); border:1px solid var(--border); }
+.ra-hd { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 12px; margin-bottom:10px; }
+.ra-hd > strong { font-size:13.5px; color:var(--text); }
+.ra-periodos { display:inline-flex; gap:2px; padding:3px; border-radius:12px; background:var(--card); box-shadow:0 0 0 1px var(--border); }
+.ra-periodos button { font-family:var(--font); font-size:12px; font-weight:700; color:var(--text-2); background:transparent; border:none; border-radius:9px; padding:6px 11px; min-height:32px; cursor:pointer; }
+.ra-periodos button[aria-pressed="true"] { background:var(--accent-d); color:#fff; }
+.ra-cols { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+.ra-col { padding:11px 12px; border-radius:11px; background:var(--card); border:1px solid var(--border); border-top:3px solid var(--ok); min-width:0; }
+.ra-col.neg { border-top-color:var(--warn-fg); }
+.ra-col h4 { display:flex; align-items:center; gap:6px; margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.02em; color:var(--ok-fg); }
+.ra-col.neg h4 { color:var(--warn-fg); }
+.ra-col ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+.ra-col li { display:flex; align-items:flex-start; gap:8px; font-size:12.5px; line-height:1.45; color:var(--text); overflow-wrap:anywhere; }
+.ra-col li > svg { flex-shrink:0; margin-top:2px; color:var(--text-3); }
+.ra-vacio { margin:0; font-size:12.5px; color:var(--text-3); line-height:1.5; }
+@media (max-width: 640px) {
+  .ra-cols { grid-template-columns:minmax(0,1fr); }
+  /* Los tres periodos, en una fila a todo lo ancho */
+  .ra-periodos { display:flex; width:100%; }
+  .ra-periodos button { flex:1 1 0; min-width:0; padding:6px 4px; font-size:11.5px; line-height:1.2; }
+}
+
+.diana-grid { display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:16px; align-items:start; }
+.diana-lado { display:flex; flex-direction:column; gap:14px; position:sticky; top:20px; min-width:0; }
+@media (max-width: 1100px) {
+  .diana-grid { grid-template-columns:minmax(0,1fr); }
+  .diana-lado { position:static; }
+}
+
 /* ── PT y AL (ver docs/PTAL.md) ── */
 .ap-page .card + .card { margin-top:16px; }
 .ap-vacio { font-size:13px; color:var(--text-2); line-height:1.55; margin:0; }

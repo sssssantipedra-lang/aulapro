@@ -179,7 +179,7 @@ describe('Situaciones de aprendizaje', () => {
   });
 });
 
-describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
+describe('sesiones de EF en activación, desarrollo y vuelta a la calma', () => {
   const act = (nombre: string, material = '1 balón por pareja') => ({ nombre, minutos: 10, descripcion: 'Se juega por parejas: punto si recibe en el área.', organizacion: 'Parejas en media pista', material });
   const ef: LearningSituation = {
     ...sda, id: 'ef9', title: 'Liga de voleibol', class_id: 'c1', class_name: '4º A',
@@ -210,9 +210,10 @@ describe('sesiones de EF en preimpacto, impacto y postimpacto', () => {
       </ToastProvider></I18nProvider>,
     );
     await user.click(screen.getByRole('button', { name: /Liga de voleibol/ }));
-    for (const m of ['Preimpacto', 'Impacto', 'Postimpacto']) expect(screen.getByRole('region', { name: m })).toBeTruthy();
-    expect(within(screen.getByRole('region', { name: 'Impacto' })).getByText('Toque y desmarque')).toBeTruthy();
-    expect(within(screen.getByRole('region', { name: 'Preimpacto' })).getByText('Pilla-pilla de cadenas')).toBeTruthy();
+    expect(screen.getByText('Activación, desarrollo y vuelta a la calma')).toBeTruthy();
+    for (const m of ['Activación', 'Desarrollo', 'Vuelta a la calma']) expect(screen.getByRole('region', { name: m })).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Desarrollo' })).getByText('Toque y desmarque')).toBeTruthy();
+    expect(within(screen.getByRole('region', { name: 'Activación' })).getByText('Pilla-pilla de cadenas')).toBeTruthy();
     expect(screen.getByText('Progresión de 2 contra 1 a 3 contra 2.')).toBeTruthy();
     expect(screen.getByText('40 min')).toBeTruthy();
 

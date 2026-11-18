@@ -102,6 +102,15 @@ icono en un cuadradito de color. Todo está a la vista, en tres grupos:
 Abajo del todo, sin color: Configuración, Registro de cambios y Cerrar sesión.
 A Configuración también se llega pulsando el nombre del docente, arriba del
 todo.
+BUSCADOR GENERAL: bajo el nombre del docente está «Buscar» (en el móvil, la
+lupa de la barra de arriba; con teclado, Ctrl+K o ⌘K). Abre una caja, «¿Qué
+quieres hacer?», para ir a cualquier pantalla, clase, alumno, rúbrica, diana,
+escala de registro, situación de aprendizaje o ficha escribiendo unas letras,
+sin tildes ni mayúsculas. Flechas para moverse, Intro para ir y Esc para
+cerrar. Un alumno abre su ficha; una clase, su alumnado; una rúbrica o una
+situación de aprendizaje llevan a su pantalla con el título ya escrito en su
+buscador; lo demás, a su pantalla. Sin escribir nada salen las pantallas del
+menú. No sale nada del dispositivo.
 En las pantallas que trabajan clase a clase (Cuaderno, Asistencia, Informes,
 Actas…) la clase se elige arriba: con pocas clases, botones con su color; con
 más de seis, un desplegable agrupado en Primaria, ESO y otras clases, con
@@ -126,8 +135,23 @@ lectivo»). «Ver la semana» lleva a la Agenda. En la misma tarjeta, cuatro
 ATAJOS: «Pasar lista» (Asistencia), «Añadir nota» (Cuaderno), «Evaluar» (la
 portada de Evaluar) y «Nueva tarea»; en Educación Física, también «Observar en
 la pista». Más abajo, tres columnas: Tareas (se marcan y se añaden desde
-aquí), Próximos eventos y «Necesitan atención» (alumnos con avisos); en EF,
-además, Exentos y lesiones, Próximas sesiones y Pruebas físicas. Al final,
+aquí), Próximos eventos y «Necesitan atención»; en EF,
+además, Exentos y lesiones, Próximas sesiones y Pruebas físicas.
+«NECESITAN ATENCIÓN» es el RADAR del alumnado: quien, en las últimas 4 semanas,
+tiene una media por debajo de 5, ha bajado un punto o más, lleva dos faltas sin
+justificar o más, cuatro anotaciones negativas, va dos puntos por debajo de su
+clase o tiene una competencia en nivel 1, con el motivo escrito y lo más grave
+arriba; después, quien tiene un aviso escrito a mano en su ficha. Al pulsar un
+alumno se abre su ficha. Debajo, en una línea, quién va especialmente bien
+(media de 8, subida de un punto o racha de buena actitud). Lo calcula la
+aplicación con reglas, sin IA. El mismo radar sale en Mis clases: cada tarjeta
+de clase dice cuántos necesitan atención y cuántos van especialmente bien, y
+dentro de una clase, «Radar de la clase» los lista encima del alumnado.
+«TU SEMANA» (entre «Tu jornada» y las columnas, si hay algo que enseñar): las
+sesiones con fecha de esta semana, las entregas, reuniones y eventos, y las
+sesiones de la semana anterior que no se marcaron como completadas. El lunes
+y el fin de semana sale abierta (el sábado y el domingo enseña la semana que
+viene); el resto de días, en una línea que se abre al pulsarla. Al final,
 «Cómo van tus clases»: una minitarjeta por clase con su media, que solo
 avisa si hay alumnos por debajo de 5 o si aún no tiene notas.
 PRIMEROS PASOS: arriba del Inicio hay una guía con 5 pasos que se marcan solos
@@ -159,6 +183,19 @@ las filas en formato «Nombre,Email», una por línea (la primera puede ser la
 cabecera). De cada alumno se guardan
 avisos (por ejemplo «faltas reiteradas») y anotaciones del docente, que luego
 aparecen en los informes y en el asistente del cuaderno.
+FICHA DEL ALUMNO: al pulsar un alumno se abre su ficha, que empieza por «LO MÁS
+RELEVANTE»: a un lado «Lo positivo» y al otro «Necesita atención», con lo más
+importante de sus notas del cuaderno (media por asignatura, si sube o baja, si
+va por encima o por debajo de la clase, la mejor nota, las notas por debajo de
+5 y lo que la clase ya tiene calificado y él no), de su asistencia (faltas sin
+justificar, retrasos, asistencia completa), de sus anotaciones de actitud y
+trabajo diario (las que suman y las que restan, también las de «En la pista»
+de EF, y su racha) y de las competencias clave de sus evaluaciones con rúbricas
+y dianas (en cuáles destaca y cuáles tiene que mejorar). Arriba se elige el
+periodo: «Últimas 4 semanas» (de entrada), «Este trimestre» o «Todo el curso».
+Lo calcula la aplicación con reglas fijas: no usa la IA, no necesita la clave y
+nada sale del dispositivo. Como mucho salen cinco cosas a cada lado, las más
+importantes primero. Debajo sigue la ficha de siempre para editar.
 SIN CLASES NO FUNCIONA CASI NADA: ni notas, ni asistencia, ni actas, ni informes.
 
 [agenda] AGENDA
@@ -248,6 +285,14 @@ suman 100%. Cuenta también en informes, actas (donde cada columna aparece
 con lo que pesa de verdad en la nota), el inicio y la IA.
 
 [attendance] ASISTENCIA
+SUGERENCIAS EN EL MOMENTO: en algunas pantallas sale, justo después de hacer
+algo, un recuadro azul con una bombilla que dice qué pasa y por qué, propone
+una sola cosa y se cierra con la X; cerrado o atendido, no vuelve a salir. Hay
+tres: aquí, en Asistencia, si un alumno lleva tres faltas seguidas sin
+justificar («Añadir aviso a su ficha» deja el aviso en su ficha de Mis clases);
+en el Cuaderno, si a una actividad que casi toda la clase tiene calificada le
+falta la nota de alguien (dice de quién); y al guardar una situación de
+aprendizaje, pasar sus sesiones a Sesiones.
 Pasar lista por clase y día. Al entrar se abre la clase que toca según el
 horario (la que está en marcha o, si no, la siguiente de hoy); se cambia
 arriba. Cuatro botones con su nombre escrito: Presente, Falta, Retraso y
@@ -350,6 +395,15 @@ clase, sobre 10, con una raya en el 5. Pasa solo de una clase a otra cada
 pocos segundos, como un carrusel; se para al poner el ratón encima, y se
 cambia a mano con las flechas o los puntos. Solo cuenta las evaluaciones con
 rúbrica. Si el sistema tiene «reducir movimiento», no pasa solo.
+Al final, «COBERTURA DEL CURRÍCULO»: una fila por clase y asignatura con materia
+oficial, con una barra y «12 de 20»: cuántos criterios de evaluación oficiales
+tienen ya nota de alguna rúbrica o diana que los lleve marcados. Al pulsar la
+fila salen los que faltan, con su texto. Solo salen las clases con etapa y
+curso. Al crear una situación de aprendizaje para una clase que ya tiene
+criterios evaluados y otros sin evaluar, sale la casilla «Dar prioridad a lo
+que aún no has evaluado en esta clase» (marcada): a la IA le llegan solo los
+números de las competencias específicas pendientes, y las elige si encajan con
+la idea.
 
 [rubrics] RÚBRICAS
 Rúbricas con criterios y niveles de logro (el nivel más alto equivale a un 10 y
@@ -504,6 +558,14 @@ Está en «Documentos → Situaciones de aprendizaje». Tiene tres vistas:
   una con un círculo para marcarla como COMPLETADA según se va dando (se guarda
   en el acto si la SdA ya está guardada; arriba sale «X de Y completadas» y la
   tarjeta de la biblioteca cuenta las completadas); la inclusión, en tres niveles.
+  CADA SESIÓN EN TRES MOMENTOS: un resumen y, debajo, INICIO (activar lo que
+  saben y presentar el reto), DESARROLLO (las actividades principales, de menos a
+  más) y CONCLUSIÓN (puesta en común, comprobación y cierre), cada uno con sus
+  actividades: nombre, minutos, qué hacen el docente y el alumnado, cómo se
+  agrupan y con qué recursos. En EF se llaman ACTIVACIÓN, DESARROLLO y VUELTA A
+  LA CALMA. Salen también en el PDF y en el Word, y «Pasar a sesiones» pone cada
+  momento en su parte de la sesión (inicio, desarrollo y cierre). Las SdA hechas
+  antes del 18-11-2026 que no los traen siguen con su descripción.
   IMÁGENES EN LAS SESIONES: cada sesión puede llevar hasta 12 imágenes. Se
   ARRASTRA una imagen (un archivo o una imagen de una web) sobre la sesión; o se
   pulsa «Añadir imagen» en la sesión y se pega con Ctrl+V en la zona que se
@@ -841,13 +903,14 @@ compartida. La SdA lleva el modelo y sus REFERENCIAS: estudios de acceso
 abierto que pone la aplicación, nunca la IA. «Pasar a Sesiones de EF» copia
 cada sesión a la pestaña Sesiones, sin fecha. Las SdA se guardan con las
 demás y salen también en Documentos.
-SESIONES: cada sesión se explica en tres momentos, PREIMPACTO (antes de la
-práctica: objetivo, organización del espacio, el material y los grupos, normas
-de seguridad, cómo se presenta la tarea y la activación o calentamiento),
-IMPACTO (la práctica principal, de lo fácil a lo difícil, con el feedback del
-docente y las adaptaciones para que participe todo el grupo) y POSTIMPACTO
-(vuelta a la calma, puesta en común con preguntas, autoevaluación o coevaluación
-y cierre). En cada momento salen actividades reales con nombre: cómo se hace,
+SESIONES: cada sesión se explica en tres momentos, ACTIVACIÓN (objetivo,
+organización del espacio, el material y los grupos, normas de seguridad, cómo se
+presenta la tarea y el calentamiento general y específico), DESARROLLO (las
+tareas principales, de lo fácil a lo difícil, con el feedback del docente y las
+adaptaciones para que participe todo el grupo) y VUELTA A LA CALMA (actividad de
+baja intensidad o estiramientos, puesta en común con preguntas, autoevaluación o
+coevaluación y cierre). Hasta el 17-11-2026 se llamaban preimpacto, impacto y
+postimpacto: las SdA de entonces se ven con los nombres nuevos. En cada momento salen actividades reales con nombre: cómo se hace,
 cuántos minutos, la organización y el material. En el formulario de EF se
 indica «Duración de cada sesión» (50 minutos de partida). Se ven en la SdA, en
 el PDF y en el Word, y «Pasar a Sesiones de EF» pone cada momento en su parte.

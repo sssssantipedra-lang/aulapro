@@ -8,6 +8,7 @@ import { DIANA_SECTORS, isoDate } from '../lib/utils';
 import { callGemini, parseGeminiJson } from '../services/gemini';
 import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n';
+import { usePhoneScreen } from '../hooks/useNarrowScreen';
 import { textoLibreParaIA } from '../lib/documentoParaIA';
 import { CompetenciasEspecificas } from '../components/curriculum/CompetenciasEspecificas';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
@@ -60,6 +61,20 @@ function polarToCart(angle: number, r: number): [number, number] {
   return [CENTER + r * Math.cos(angle), CENTER + r * Math.sin(angle)];
 }
 
+/** En el móvil, la diana es más pequeña para que quepan los nombres de los lados sin encoger la letra (18-11-2026). */
+const RADIO_MOVIL = 82;
+/** Lo que ocupa a lo ancho el nombre más largo de un lado («Emprendimiento»), a 10 px. */
+const ANCHO_ETIQUETA = 80;
+
+/** «Aprender a aprender» → «Aprender a» / «aprender»: los nombres largos, en dos líneas por el espacio más centrado. */
+function lineasEtiqueta(texto: string): string[] {
+  if (texto.length <= 11 || !texto.includes(' ')) return [texto];
+  const mitad = texto.length / 2;
+  let corte = -1;
+  for (let i = 0; i < texto.length; i++) if (texto[i] === ' ' && (corte < 0 || Math.abs(i - mitad) < Math.abs(corte - mitad))) corte = i;
+  return [texto.slice(0, corte), texto.slice(corte + 1)];
+}
+
 function hexagonPoints(radius: number): string {
   return DIANA_SECTORS.map((_, i) => {
     const [x, y] = polarToCart(angleForIndex(i), radius);
@@ -67,10 +82,10 @@ function hexagonPoints(radius: number): string {
   }).join(' ');
 }
 
-function scorePolygonPoints(scores: ScoreMap): string {
+function scorePolygonPoints(scores: ScoreMap, maxRadius: number): string {
   return SECTOR_IDS.map((id, i) => {
     const val = scores[id] ?? 0;
-    const r = (val / RINGS) * MAX_RADIUS;
+    const r = (val / RINGS) * maxRadius;
     const [x, y] = polarToCart(angleForIndex(i), r);
     return `${x},${y}`;
   }).join(' ');
@@ -108,7 +123,12 @@ interface DianaChartProps {
 
 function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: DianaChartProps) {
   const { t } = useI18n();
-  const ringRadii = Array.from({ length: RINGS }, (_, i) => ((i + 1) / RINGS) * MAX_RADIUS);
+  const movil = usePhoneScreen();
+  const RADIO = movil ? RADIO_MOVIL : MAX_RADIUS;
+  // El dibujo incluye los nombres de los lados: antes se salían del gráfico y, en el iPhone, de la pantalla
+  const medioAncho = Math.ceil(RADIO * Math.cos(Math.PI / 6) + 14 + ANCHO_ETIQUETA);
+  const medioAlto = RADIO + 50;
+  const ringRadii = Array.from({ length: RINGS }, (_, i) => ((i + 1) / RINGS) * RADIO);
   const filled = SECTOR_IDS.filter(id => scores[id] > 0);
 
   /** El color de la figura lo marca el nivel medio, para que se lea de un vistazo. */
@@ -119,10 +139,11 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
 
   return (
     <svg
-      width={SVG_SIZE}
-      height={SVG_SIZE}
-      viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-      style={{ overflow: 'visible', userSelect: 'none' }}
+      width={medioAncho * 2}
+      height={medioAlto * 2}
+      viewBox={`${CENTER - medioAncho} ${CENTER - medioAlto} ${medioAncho * 2} ${medioAlto * 2}`}
+      // En una pantalla estrecha se encoge con la tarjeta en vez de salirse
+      style={{ overflow: 'visible', userSelect: 'none', maxWidth: '100%', height: 'auto' }}
     >
       <defs>
         <radialGradient id="diana-fill" cx="50%" cy="50%" r="50%">
@@ -132,7 +153,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
       </defs>
 
       {/* Fondo: da cuerpo al gráfico sin competir con los datos */}
-      <polygon points={hexagonPoints(MAX_RADIUS)} fill="var(--surface)" fillOpacity={0.55} />
+      <polygon points={hexagonPoints(RADIO)} fill="var(--surface)" fillOpacity={0.55} />
 
       {/* Anillos, muy tenues: son referencia, no protagonistas */}
       {ringRadii.map((r, ri) => (
@@ -148,7 +169,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
 
       {/* Ejes */}
       {DIANA_SECTORS.map((s, i) => {
-        const [x, y] = polarToCart(angleForIndex(i), MAX_RADIUS);
+        const [x, y] = polarToCart(angleForIndex(i), RADIO);
         return (
           <line
             key={`axis-${s.id}`}
@@ -163,7 +184,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
       {/* La figura */}
       {filled.length > 0 && (
         <polygon
-          points={scorePolygonPoints(scores)}
+          points={scorePolygonPoints(scores, RADIO)}
           fill="url(#diana-fill)"
           stroke={shade.text}
           strokeWidth={2.5}
@@ -206,7 +227,7 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
       {DIANA_SECTORS.map((s, i) => {
         const val = scores[s.id as SectorId] ?? 0;
         if (val === 0) return null;
-        const [cx, cy] = polarToCart(angleForIndex(i), (val / RINGS) * MAX_RADIUS);
+        const [cx, cy] = polarToCart(angleForIndex(i), (val / RINGS) * RADIO);
         const c = LEVEL_COLORS[val];
         return (
           <circle
@@ -224,9 +245,10 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
       {/* Sector labels */}
       {DIANA_SECTORS.map((s, i) => {
         const angle = angleForIndex(i);
-        const labelR = MAX_RADIUS + 32;
+        const labelR = RADIO + 32;
         const [lx, ly] = polarToCart(angle, labelR);
         const isSelected = selectedSector === s.id;
+        const lineas = lineasEtiqueta(t(s.label));
 
         // Determine text anchor based on position
         let anchor: 'start' | 'middle' | 'end' = 'middle';
@@ -260,12 +282,12 @@ function DianaChart({ scores, onSetScore, selectedSector, onSelectSector }: Dian
               fontWeight={isSelected ? 800 : 600}
               fontFamily="var(--font)"
             >
-              {t(s.label)}
+              {lineas.map((l, li) => <tspan key={li} x={lx} dy={li === 0 ? 0 : 12}>{l}</tspan>)}
             </text>
             {scores[s.id as SectorId] > 0 && (
               <text
                 x={lx}
-                y={ly + 21}
+                y={ly + 21 + (lineas.length - 1) * 12}
                 textAnchor={anchor}
                 fontSize={10}
                 fill="var(--accent-d)"
@@ -588,13 +610,14 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
           <div style={{ fontSize: 13 }}>{t('Elige una clase y un alumno para ver su Diana Competencial')}</div>
         </div>
       ) : (
-        <div className="stack-sm" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, alignItems: 'start' }}>
+        // Dos columnas en el ordenador; en el iPhone (vertical y horizontal) y en la tableta, una debajo de otra (`.diana-grid`, 18-11-2026)
+        <div className="diana-grid">
           {/* Left: chart + sector buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
             {/* Student header */}
             <div className="card" style={{ padding: '14px 18px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                   <div style={{
                     width: 42, height: 42, borderRadius: '50%',
                     background: 'var(--accent-l)', display: 'flex', alignItems: 'center',
@@ -614,7 +637,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
                   <button
                     className="btn-ghost"
                     onClick={handleFillFromEvaluations}
@@ -694,7 +717,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                     <div
                       key={sid}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
+                        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
                         padding: '10px 12px', borderRadius: 10,
                         background: isActive ? 'var(--accent-l)' : 'var(--surface)',
                         border: `1.5px solid ${isActive ? 'var(--accent-d)' : 'var(--border)'}`,
@@ -703,7 +726,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
                       onClick={() => setSelectedSector(isActive ? null : sid)}
                     >
                       <span style={{ fontSize: 18, flexShrink: 0 }}>{s.icon}</span>
-                      <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--text)', minWidth: 0 }}>
+                      <span style={{ flex: '1 1 110px', fontSize: 13, fontWeight: 700, color: 'var(--text)', minWidth: 0 }}>
                         {t(s.label)}
                       </span>
                       <div style={{ display: 'flex', gap: 4 }}>
@@ -744,7 +767,7 @@ ${sectoresSinDatos.length > 0 ? `Infiere una puntuación (1=Insuficiente, 2=Sufi
           </div>
 
           {/* Right: descriptors panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
+          <div className="diana-lado">
             <div className="card">
               <div className="card-hd">
                 <div className="card-ttl">{t('Descriptores')}</div>

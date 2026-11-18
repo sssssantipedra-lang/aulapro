@@ -128,7 +128,7 @@ export function buildSdaHtml(sda: LearningSituation, lang: Lang, anexo?: string)
       ? band(t('Sesiones')) +
         c.sesiones.map((s, i) => rowFull(
           `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
-          sesionEnTexto(s, t),
+          sesionEnTexto(s, t, !!c.ef),
         ) + rowImagenes(imagenesDeSesionSda(s))).join('')
       : '') +
     (c.evaluacionTecnicas || c.evaluacionInstrumentos
@@ -387,7 +387,7 @@ export async function buildSdaDocxBlob(sda: LearningSituation, lang: Lang, mater
     filasSesiones.push(
       ...gRowFull(
         `${s.fase ? `${s.fase} — ` : ''}${t('Sesión')} ${i + 1}${s.titulo ? `: ${s.titulo}` : ''}`,
-        sesionEnTexto(s, t),
+        sesionEnTexto(s, t, !!c.ef),
       ),
       ...gRowImagenes(t('Imágenes'), imagenesDeSesionSda(s)),
     );

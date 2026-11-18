@@ -1,25 +1,25 @@
 /**
- * Una sesión de EF de la situación de aprendizaje, explicada en sus tres
- * momentos (preimpacto, impacto y postimpacto), cada uno con sus actividades
- * reales: cómo se hacen, cómo se organizan y con qué material. Ver
- * `lib/sesionSda.ts` y `docs/EF.md`.
+ * Una sesión de la situación de aprendizaje explicada en sus tres momentos, cada
+ * uno con sus actividades: cómo se hacen, cómo se organizan y con qué material.
+ * En EF, activación, desarrollo y vuelta a la calma; en las demás áreas, inicio,
+ * desarrollo y conclusión. Ver `lib/sesionSda.ts` y `docs/EF.md`.
  */
 import { Clock } from 'lucide-react';
-import { MOMENTOS, minutosDeSesion } from '../lib/sesionSda';
+import { minutosDeSesion, momentosDe, tituloMomentos } from '../lib/sesionSda';
 import type { MomentosSesionEF } from '../services/learningSituations';
 import { useI18n } from '../i18n';
 
-export function MomentosDeSesion({ momentos }: { momentos: MomentosSesionEF }) {
+export function MomentosDeSesion({ momentos, ef = false }: { momentos: MomentosSesionEF; ef?: boolean }) {
   const { t } = useI18n();
   const total = minutosDeSesion(momentos);
   return (
     <details className="sda-momentos" open>
       <summary>
-        {t('Preimpacto, impacto y postimpacto')}
+        {t(tituloMomentos(ef))}
         {total > 0 && <span className="sda-momentos-min"><Clock size={12} aria-hidden="true" />{t('{n} min', { n: total })}</span>}
       </summary>
       <div className="sda-momentos-cols">
-        {MOMENTOS.map(m => {
+        {momentosDe(ef).map(m => {
           const x = momentos[m.id];
           const min = x.actividades.reduce((s, a) => s + a.minutos, 0);
           return (

@@ -298,3 +298,20 @@ describe('rúbrica y diana de la SdA: criterios oficiales ya marcados', () => {
     expect(opciones.responseSchema.properties.rubrica.items.properties.criteriosOficiales).toBeUndefined();
   });
 });
+
+describe('cobertura del currículo en la SdA (18-11-2026)', () => {
+  it('le dice a la IA qué competencias específicas tienen criterios sin evaluar en la clase, solo las que existen', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    await generateSda({ ...BASE, etapa: 'primaria', curso: 5, competenciasPendientes: { Matemáticas: [4, 2, 2, 99], Lengua: [1] } }, 'es');
+    const user = callGemini.mock.calls.at(-1)![1] as string;
+    expect(user).toContain('aún quedan criterios sin evaluar de las competencias específicas 2, 4:');
+    expect(user).toContain('si no encajan, no las fuerces');
+    expect(user).not.toContain('99');
+  });
+
+  it('sin pendientes, el prompt no dice nada de ello', async () => {
+    callGemini.mockResolvedValueOnce(respuestaSimulada());
+    await generateSda({ ...BASE, etapa: 'primaria', curso: 5 }, 'es');
+    expect(callGemini.mock.calls.at(-1)![1]).not.toContain('criterios sin evaluar');
+  });
+});

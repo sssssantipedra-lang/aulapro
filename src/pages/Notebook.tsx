@@ -11,6 +11,9 @@ import { fileToBase64, isoDate, nombreDePila } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
+import { columnasACompletar } from '../lib/sugerencias';
+import { Sugerencia } from '../components/ui/Sugerencia';
+import { useSugerencias } from '../hooks/useSugerencias';
 import { useI18n } from '../i18n';
 import { ClassChips } from '../components/ui/ClassChips';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, ClassMark, MarksBlockConfig, Evaluation } from '../types';
@@ -240,6 +243,21 @@ function GradesTab({
    * final (ver `blockCategoryWeight`).
    */
   const ownCategories = useMemo(() => myCategories.filter(c => !isMarksCategory(c.id)), [myCategories]);
+
+  /**
+   * Sugerencia en el momento (18-11-2026): la actividad más reciente que casi toda la clase tiene calificada y a la
+   * que le falta la nota de alguien. Solo informa; al cerrarla no vuelve a salir para esa actividad.
+   */
+  const sugerencias = useSugerencias();
+  const aCompletar = useMemo(() => {
+    const propias = new Set(ownCategories.map(c => c.id));
+    return columnasACompletar(myItems.filter(i => propias.has(i.category_id)), grades, myStudents.map(s => s.id))
+      .find(c => !sugerencias.vista(c.clave)) ?? null;
+  }, [ownCategories, myItems, grades, myStudents, sugerencias]);
+  const nombresDe = (ids: string[]) => {
+    const nombres = ids.map(id => myStudents.find(s => s.id === id)?.name ?? '').filter(Boolean);
+    return nombres.length > 4 ? `${nombres.slice(0, 4).join(', ')} ${t('y {n} más', { n: nombres.length - 4 })}` : nombres.join(', ');
+  };
   // El peso suma 100% por asignatura, no por clase
   const weightSum = ownCategories.reduce((a, c) => a + c.weight, 0);
 
@@ -549,6 +567,16 @@ function GradesTab({
               <Plus size={15} />{t('Añadir nota')}
             </button>
           </div>
+
+          {aCompletar && (
+            <Sugerencia
+              titulo={aCompletar.faltan.length === 1
+                ? t('En «{actividad}» falta 1 alumno por calificar', { actividad: aCompletar.item.name })
+                : t('En «{actividad}» faltan {n} alumnos por calificar', { actividad: aCompletar.item.name, n: aCompletar.faltan.length })}
+              porque={t('El resto de la clase ya tiene nota: {nombres}.', { nombres: nombresDe(aCompletar.faltan) })}
+              onCerrar={() => sugerencias.marcar(aCompletar.clave)}
+            />
+          )}
 
           {/* Tabla de notas */}
           {myItems.length === 0 ? (
