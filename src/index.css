@@ -1405,6 +1405,33 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 
 /* Diana competencial: la diana y, al lado, los descriptores. Por debajo de 1100 px (iPhone en vertical y en horizontal,
    tableta, portátil pequeño con el menú abierto) van una debajo de otra: la columna de 380 px no cabía (18-11-2026). */
+/* El buscador general (`components/Buscador.tsx`, 18-11-2026) y su botón en el menú */
+.sb-buscar { flex-shrink:0; margin:0 10px 6px; padding:8px 11px; width:calc(100% - 20px); display:flex; align-items:center; gap:8px; background:var(--nav-hover); border:1px solid var(--nav-border); border-radius:10px; color:var(--nav-muted); font-family:var(--font); font-size:12.5px; font-weight:600; text-align:left; cursor:pointer; }
+.sb-buscar:hover { color:var(--nav-strong); }
+.sb-buscar svg { flex-shrink:0; }
+.sb-buscar-txt { flex:1; min-width:0; }
+.sb-buscar kbd { font-family:var(--font); font-size:10.5px; font-weight:700; padding:2px 6px; border-radius:6px; border:1px solid var(--nav-border); color:var(--nav-muted); }
+.sidebar.mini .sb-buscar { justify-content:center; padding:8px 0; }
+.sidebar.mini .sb-buscar-txt, .sidebar.mini .sb-buscar kbd { display:none; }
+.bq-fondo { position:fixed; inset:0; z-index:300; background:rgba(15,23,42,.45); display:flex; align-items:flex-start; justify-content:center; padding:10vh 16px 16px; }
+.bq { width:min(620px, 100%); max-height:76vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(15,23,42,.28); overflow:hidden; }
+.bq-caja { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); color:var(--text-3); }
+.bq-caja input { flex:1; min-width:0; border:none; outline:none; background:transparent; font-family:var(--font); font-size:16px; color:var(--text); }
+.bq-caja input::-webkit-search-cancel-button { display:none; }
+.bq-esc { font-family:var(--font); font-size:11.5px; font-weight:700; color:var(--text-2); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:5px 9px; cursor:pointer; }
+.bq-lista { list-style:none; margin:0; padding:6px 8px 8px; overflow-y:auto; }
+.bq-tipo { display:block; padding:10px 8px 4px; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); }
+.bq-res { display:flex; align-items:center; gap:11px; width:100%; padding:9px 10px; border:none; border-radius:10px; background:transparent; font-family:var(--font); text-align:left; cursor:pointer; color:var(--text-2); }
+.bq-res.on { background:var(--accent-l); color:var(--accent-d); }
+.bq-res svg { flex-shrink:0; }
+.bq-res-txt { flex:1; min-width:0; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.bq-res-txt b { font-size:14px; color:var(--text); overflow-wrap:anywhere; }
+.bq-res-txt small { font-size:12px; color:var(--text-3); }
+.bq-intro { opacity:.7; }
+.bq-vacio { margin:0; padding:22px 18px; font-size:13.5px; color:var(--text-2); }
+.bq-pie { margin:0; padding:9px 16px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-3); }
+@media (max-width: 640px) { .bq-fondo { padding-top:64px; } .bq-pie { display:none; } }
+
 /* Sugerencias en el momento (`components/ui/Sugerencia.tsx`, 18-11-2026) */
 .sug { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 14px; padding:11px 14px; border-radius:12px; background:var(--accent-l); border:1px solid var(--border); }
 .sug > svg { flex-shrink:0; color:var(--accent-d); }

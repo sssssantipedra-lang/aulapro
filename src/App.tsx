@@ -32,19 +32,20 @@ import { applyTheme, type ThemeKey } from './lib/utils';
 import { setPrivacyRoster } from './services/privacy';
 import { applyClassMarks } from './services/classMarks';
 import { radar } from './lib/radarClase';
+import type { Resultado } from './lib/buscador';
 import { HubTabs } from './components/layout/HubTabs';
 import { EvaluarInicio } from './pages/EvaluarInicio';
 import { EnClaseInicio } from './pages/EnClaseInicio';
 import { claseQueToca } from './lib/claseQueToca';
 import { DocumentosInicio } from './pages/DocumentosInicio';
-import { hubEnMenu, rememberTab } from './lib/navigation';
+import { hubEnMenu, navGroupsFor, rememberTab } from './lib/navigation';
 import { bloquesDeApoyo } from './lib/apoyo';
 import { alumnadoParaIA, exentosDelDia, LIMITACIONES, pruebasDe, recursosParaIA } from './lib/ef';
 import type { SesionEF } from './types/ef';
 import { isoDate, nombresCortos } from './lib/utils';
 import { buildDemoApoyo } from './lib/demoApoyo';
 import type { Section, Ficha } from './types';
-import { X, Menu } from 'lucide-react';
+import { X, Menu, Search } from 'lucide-react';
 import { DEMO_USER, DEMO_COMMUNITY } from './lib/demoData';
 import { useI18n, priorityLabel } from './i18n';
 import { isAndroidApp, isWebApp } from './lib/platform';
@@ -52,6 +53,7 @@ import { compararAlumnos } from './lib/alumnado';
 import { AvisoGuardado, type AccionesGuardado } from './components/AvisoGuardado';
 
 const AcsDeAlumno = lazy(() => import('./components/clases/AcsDeAlumno').then(m => ({ default: m.AcsDeAlumno })));
+const Buscador = lazy(() => import('./components/Buscador').then(m => ({ default: m.Buscador })));
 const ResumenDeAlumno = lazy(() => import('./components/clases/ResumenDeAlumno').then(m => ({ default: m.ResumenDeAlumno })));
 const ClassesManager = lazy(() => import('./pages/ClassesManager').then(m => ({ default: m.ClassesManager })));
 const Agenda         = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
@@ -106,8 +108,30 @@ function AppInner() {
 
   const [section, setSection]         = useState<Section>('dashboard');
   /** El alumno cuya ficha hay que abrir al llegar a Mis clases (desde el radar del Inicio o el buscador). */
-  const [fichaPedida, setFichaPedida] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
-  const abrirAlumno = (id: string) => { setFichaPedida(p => ({ id, n: p.n + 1 })); setSection('classes'); };
+  const [fichaPedida, setFichaPedida] = useState<{ id: string | null; clase: string | null; n: number }>({ id: null, clase: null, n: 0 });
+  const abrirAlumno = (id: string) => { setFichaPedida(p => ({ id, clase: null, n: p.n + 1 })); setSection('classes'); };
+  /**
+   * El buscador general (18-11-2026): se abre con el botón «Buscar» o con Ctrl+K (⌘K). Un alumno abre su ficha, una
+   * clase su alumnado, y una rúbrica o una situación de aprendizaje llevan a su pantalla con lo buscado ya escrito.
+   */
+  const [buscando, setBuscando] = useState(false);
+  const [busquedaPedida, setBusquedaPedida] = useState<{ section: Section | null; texto: string; n: number }>({ section: null, texto: '', n: 0 });
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); setBuscando(v => !v); }
+    };
+    window.addEventListener('keydown', tecla);
+    return () => window.removeEventListener('keydown', tecla);
+  }, []);
+  const irAResultado = (r: Resultado) => {
+    setBuscando(false);
+    setMenuOpen(false);
+    if (r.tipo === 'alumno') { abrirAlumno(r.id); return; }
+    if (r.tipo === 'clase') { setFichaPedida(p => ({ id: null, clase: r.id, n: p.n + 1 })); setSection('classes'); return; }
+    // Las pantallas con buscador propio empiezan con el título del resultado ya escrito
+    if (r.tipo === 'rubrica' || r.tipo === 'sda') setBusquedaPedida(p => ({ section: r.section, texto: r.titulo, n: p.n + 1 }));
+    setSection(r.section);
+  };
   /** Ficha que Recursos manda proyectar en Aula Live. */
   const [liveFicha, setLiveFicha]     = useState<Ficha | null>(null);
   // Volver a un apartado del menú abre la pestaña en la que se estaba
@@ -357,6 +381,7 @@ function AppInner() {
           if (isWebApp()) { await cerrarSesion(); window.location.reload(); return; }
           toast(t('Sesión cerrada'));
         }}
+        onBuscar={() => setBuscando(true)}
       />}
 
       {menuOverlay && (
@@ -365,6 +390,18 @@ function AppInner() {
           {!phone && <div style={{ width: 'var(--sb-w-min)', flexShrink: 0 }} />}
           <div className="sb-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
         </>
+      )}
+
+      {buscando && (
+        <Suspense fallback={null}>
+          <Buscador
+            datos={{
+              menu: navGroupsFor(tipo), classes: st.classes, students: st.students, rubrics: st.rubrics, dianas: st.dianas,
+              learningSituations: st.learningSituations, fichas: st.fichas, conAula: tipo !== 'apoyo', ef: tipo === 'ef',
+            }}
+            onElegir={irAResultado} onCerrar={() => setBuscando(false)}
+          />
+        </Suspense>
       )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -376,6 +413,9 @@ function AppInner() {
             <button type="button" className="m-top-brand" onClick={() => setSection('dashboard')}>
               <img src={`${import.meta.env.BASE_URL}favicon-mini.svg`} width={28} height={28} alt="" />
               AULAPRO
+            </button>
+            <button type="button" className="m-top-btn" onClick={() => setBuscando(true)} aria-label={t('Buscar en AulaPro')}>
+              <Search size={20} />
             </button>
             <button type="button" className="m-top-avatar" onClick={() => setSection('profile')} aria-label={t('Configuración')}>
               {st.currentUser.full_name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
@@ -444,7 +484,8 @@ function AppInner() {
                 radar={radarAlumnado}
                 key={fichaPedida.n}
                 alumnoInicial={fichaPedida.id}
-                onAlumnoAbierto={() => setFichaPedida(p => ({ ...p, id: null }))}
+                claseInicial={fichaPedida.clase}
+                onAlumnoAbierto={() => setFichaPedida(p => ({ ...p, id: null, clase: null }))}
                 resumenDeAlumno={s => {
                   const cls = st.classes.find(c => c.id === s.class_id);
                   return cls && (
@@ -500,6 +541,9 @@ function AppInner() {
             )}
             {(section === 'rubrics' || section === 'dianas') && (
               <Rubrics
+                key={busquedaPedida.n}
+                busquedaInicial={busquedaPedida.section === section ? busquedaPedida.texto : ''}
+                onBusquedaUsada={() => setBusquedaPedida(p => ({ ...p, section: null, texto: '' }))}
                 vista={section}
                 rubrics={st.rubrics}
                 dianas={st.dianas}
@@ -717,7 +761,9 @@ function AppInner() {
             )}
             {(section === 'learning-situations' || section === 'ef-sda') && (
               <LearningSituations
-                key={section}
+                key={`${section}-${busquedaPedida.n}`}
+                busquedaInicial={busquedaPedida.section === section ? busquedaPedida.texto : ''}
+                onBusquedaUsada={() => setBusquedaPedida(p => ({ ...p, section: null, texto: '' }))}
                 ef={efSda}
                 onPasarSesiones={sesiones => st.setEf(d => ({ ...d, sesiones: [...d.sesiones, ...sesiones] }))}
                 classes={st.classes}

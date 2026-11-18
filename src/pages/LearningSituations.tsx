@@ -100,6 +100,9 @@ interface Props {
   };
   /** Las evaluaciones, para la cobertura del currículo: qué queda por evaluar en la clase (18-11-2026). */
   evaluations?: Evaluation[];
+  /** Lo escrito en el buscador general, para llegar con la biblioteca ya filtrada (18-11-2026). Solo se mira al montar. */
+  busquedaInicial?: string;
+  onBusquedaUsada?: () => void;
 }
 
 /** Documento de apoyo ya resumido por la IA. */
@@ -219,7 +222,7 @@ interface BorradorSda {
 
 export function LearningSituations({
   classes, students = [], gradeCategories, learningSituations, comunidad, onUpdateClass,
-  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, acsAula, evaluations = [],
+  onSave, onDelete, onAddRubric, onAddDiana, onAddFicha, onNav, ef, onPasarSesiones, acsAula, evaluations = [], busquedaInicial = '', onBusquedaUsada,
 }: Props) {
   const { toast } = useToast();
   const { t, lang, locale } = useI18n();
@@ -281,7 +284,11 @@ export function LearningSituations({
     try { const v = localStorage.getItem(LIB_GROUP_KEY); return v === 'area' || v === 'none' ? v : 'class'; } catch { return 'class'; }
   });
   const [areaFilter, setAreaFilter] = useState('');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(busquedaInicial);
+  useEffect(() => {
+    if (busquedaInicial) onBusquedaUsada?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
+  }, []);
   const [folded, setFolded] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem(LIB_FOLD_KEY) ?? '[]') as string[]); } catch { return new Set(); }
   });

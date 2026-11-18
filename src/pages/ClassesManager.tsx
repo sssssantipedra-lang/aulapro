@@ -84,6 +84,8 @@ interface Props {
   radar?: Radar;
   /** Un alumno cuya ficha hay que abrir al entrar (desde el Inicio o el buscador); después se avisa con `onAlumnoAbierto`. Solo se mira al montar: quien lo pasa cambia la `key`. */
   alumnoInicial?: string | null;
+  /** O solo su clase (desde el buscador). */
+  claseInicial?: string | null;
   onAlumnoAbierto?: () => void;
 }
 
@@ -112,7 +114,7 @@ export function ClassesManager({
   classes, students, evaluations, rubrics,
   onAddClass, onUpdateClass, onDeleteClass,
   onAddStudent, onUpdateStudent, onDeleteStudent,
-  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno, resumenDeAlumno, radar, alumnoInicial, onAlumnoAbierto,
+  onAddStudents, onOpenEval, profileId, comunidad, gradeCategories, gradeItems, grades, acsDeAlumno, resumenDeAlumno, radar, alumnoInicial, claseInicial, onAlumnoAbierto,
 }: Props) {
   const { toast: notify } = useToast();
   const { t } = useI18n();
@@ -127,10 +129,10 @@ export function ClassesManager({
   // Si se llega con un alumno ya elegido (desde el radar del Inicio o el buscador), se entra en su clase con su ficha abierta
   const [inicial] = useState(() => (alumnoInicial ? students.find(x => x.id === alumnoInicial) ?? null : null));
   useEffect(() => {
-    if (alumnoInicial) onAlumnoAbierto?.();
+    if (alumnoInicial || claseInicial) onAlumnoAbierto?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- una vez, al entrar
   }, []);
-  const [activeClassId, setActiveClassId] = useState<string>(inicial?.class_id ?? (classes.length === 1 ? classes[0].id : ''));
+  const [activeClassId, setActiveClassId] = useState<string>(inicial?.class_id ?? (claseInicial && classes.some(c => c.id === claseInicial) ? claseInicial : classes.length === 1 ? classes[0].id : ''));
   const activeClass = classes.find(c => c.id === activeClassId) ?? null;
 
   // ── search ──

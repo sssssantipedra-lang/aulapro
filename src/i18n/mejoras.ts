@@ -308,6 +308,14 @@ export const MEJORAS_EN: Record<string, string> = {
   'El resto de la clase ya tiene nota: {nombres}.': 'The rest of the class already has a grade: {nombres}.',
   '¿Pasas sus {n} sesiones a Sesiones?': 'Send its {n} lessons to Lessons?',
   'La situación ya está guardada. En Sesiones puedes ponerle fecha a cada una, verlas en el calendario e ir marcando las que das.': 'The learning situation is saved. In Lessons you can give each one a date, see them on the calendar and tick them off as you teach them.',
+  // El buscador general (lib/buscador.ts, 18-11-2026)
+  'Buscar en AulaPro': 'Search AulaPro',
+  'Buscar en AulaPro (Ctrl+K)': 'Search AulaPro (Ctrl+K)',
+  '¿Qué quieres hacer? Escribe una pantalla, una clase, un alumno…': 'What do you want to do? Type a screen, a class, a student…',
+  'No hay nada con «{texto}». Prueba con menos letras o con otra palabra.': 'Nothing matches “{texto}”. Try fewer letters or another word.',
+  'Resultados': 'Results',
+  'Flechas para moverte, Intro para ir y Esc para cerrar.': 'Arrow keys to move, Enter to go and Esc to close.',
+  'Pantallas': 'Screens',
 };
 
 export const MEJORAS_CA: Record<string, string> = {
@@ -613,4 +621,12 @@ export const MEJORAS_CA: Record<string, string> = {
   'El resto de la clase ya tiene nota: {nombres}.': 'La resta de la classe ja té nota: {nombres}.',
   '¿Pasas sus {n} sesiones a Sesiones?': 'Passes les seves {n} sessions a Sessions?',
   'La situación ya está guardada. En Sesiones puedes ponerle fecha a cada una, verlas en el calendario e ir marcando las que das.': 'La situació ja està desada. A Sessions pots posar data a cadascuna, veure-les al calendari i anar marcant les que fas.',
+  // El buscador general (lib/buscador.ts, 18-11-2026)
+  'Buscar en AulaPro': 'Cercar a AulaPro',
+  'Buscar en AulaPro (Ctrl+K)': 'Cercar a AulaPro (Ctrl+K)',
+  '¿Qué quieres hacer? Escribe una pantalla, una clase, un alumno…': 'Què vols fer? Escriu una pantalla, una classe, un alumne…',
+  'No hay nada con «{texto}». Prueba con menos letras o con otra palabra.': 'No hi ha res amb «{texto}». Prova-ho amb menys lletres o amb una altra paraula.',
+  'Resultados': 'Resultats',
+  'Flechas para moverte, Intro para ir y Esc para cerrar.': 'Fletxes per moure\'t, Retorn per anar-hi i Esc per tancar.',
+  'Pantallas': 'Pantalles',
 };
