@@ -515,10 +515,14 @@ export function DianaEvalModal({ open, defaultClassId, diana, classes, students,
   const scale = levelsOf(diana);
   const grade = dianaGrade(diana.items, scores, diana.levels);
   const done = diana.items.filter(i => scores[i.id]).length;
+  const sinMarcar = diana.items.length - done;
 
   function handleSave() {
     if (!studentId) { toast(t('Elige el alumno al que evalúas')); return; }
     if (done === 0) { toast(t('Marca al menos un ítem en la diana')); return; }
+    if (sinMarcar > 0 && !window.confirm(t(sinMarcar === 1
+      ? 'Queda {n} ítem sin marcar y contará como 0 en la nota. ¿Guardar así?'
+      : 'Quedan {n} ítems sin marcar y contarán como 0 en la nota. ¿Guardar así?', { n: sinMarcar }))) return;
     const student = students.find(s => s.id === studentId);
     onSave({
       id: newId('ev'),

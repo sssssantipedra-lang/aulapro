@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, memo, Suspense } from 'react';
 import { CORRECCION_CON_IA } from './lib/correccionIA';
 import { actualizarCalendarios, calendarios, faltaProvincia, tieneCalendario } from './lib/calendarioEscolar';
 import { ToastProvider, useToast } from './components/ui/Toast';
@@ -67,6 +67,10 @@ const AuditLog       = lazy(() => import('./pages/AuditLog').then(m => ({ defaul
 const Records        = lazy(() => import('./pages/Records').then(m => ({ default: m.Records })));
 const Notebook       = lazy(() => import('./pages/Notebook').then(m => ({ default: m.Notebook })));
 const ClassRoom      = lazy(() => import('./pages/SecClassroom'));
+// Montada y oculta no se repinta con cada cambio del resto de la app
+const PizarraViva    = memo(ClassRoom);
+/** Cuánto aguanta la pizarra montada sin que se vuelva a ella. */
+const PIZARRA_EN_ESPERA = 20 * 60_000;
 const Share          = lazy(() => import('./pages/Share').then(m => ({ default: m.Share })));
 const ClassroomLive  = lazy(() => import('./pages/ClassroomLive').then(m => ({ default: m.ClassroomLive })));
 const Attendance     = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
@@ -282,10 +286,26 @@ function AppInner() {
   // «reiniciar estado cuando cambia un valor»), no en un efecto: así no se
   // pinta ni un instante la sección del perfil anterior.
   const [sectionOwner, setSectionOwner] = useState(st.profileId);
+  /**
+   * La pizarra sigue viva al cambiar de pantalla (19-11-2026): pasar lista o anotar actitud a mitad de
+   * clase le costaba el temporizador en marcha, los grupos formados y lo dibujado, porque se desmontaba.
+   * Ahora, una vez abierta, se queda montada y oculta, y se suelta sola si pasan veinte minutos sin volver
+   * a ella (para no dejar abiertos el micrófono del medidor de ruido ni un vídeo) o al cambiar de perfil.
+   */
+  const [pizarraViva, setPizarraViva] = useState(false);
+  if (section === 'sec-classroom' && !pizarraViva) setPizarraViva(true);
   if (sectionOwner !== st.profileId) {
     setSectionOwner(st.profileId);
     setSection('dashboard');
+    setPizarraViva(false);
   }
+  useEffect(() => {
+    if (section === 'sec-classroom' || !pizarraViva) return;
+    const id = window.setTimeout(() => setPizarraViva(false), PIZARRA_EN_ESPERA);
+    return () => window.clearTimeout(id);
+  }, [section, pizarraViva]);
+  const clasePizarra = useMemo(() => claseQueToca(st.classes, st.scheduleBlocks), [st.classes, st.scheduleBlocks]);
+  const alTerminarDeProyectar = useCallback(() => setLiveFicha(null), [setLiveFicha]);
 
   // Los nombres del alumnado nunca viajan a la IA: ver services/privacy.ts.
   // Tampoco los del alumnado de apoyo de PT y AL, que no está en las clases.
@@ -625,6 +645,7 @@ function AppInner() {
                 rubrics={st.rubrics}
                 dianas={st.dianas}
                 onOpenEval={() => setSection('rubrics')}
+                onDeleteEval={st.deleteEvaluation}
               />
             )}
             {section === 'notebook' && (
@@ -655,15 +676,17 @@ function AppInner() {
                 onChatChange={st.setChat}
               />
             )}
-            {section === 'sec-classroom' && (
-              <ClassRoom
-                studentNames={studentFirstNames}
-                clases={ruletaClases}
-                claseInicial={claseQueToca(st.classes, st.scheduleBlocks)}
-                fichas={st.fichas}
-                projectFicha={liveFicha}
-                onProjectDone={() => setLiveFicha(null)}
-              />
+            {(section === 'sec-classroom' || pizarraViva) && (
+              <div style={{ display: section === 'sec-classroom' ? 'contents' : 'none' }}>
+                <PizarraViva
+                  studentNames={studentFirstNames}
+                  clases={ruletaClases}
+                  claseInicial={clasePizarra}
+                  fichas={st.fichas}
+                  projectFicha={liveFicha}
+                  onProjectDone={alTerminarDeProyectar}
+                />
+              </div>
             )}
             {section === 'classroom-live' && (
               <ClassroomLive

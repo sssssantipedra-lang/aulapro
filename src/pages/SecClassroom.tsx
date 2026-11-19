@@ -267,20 +267,23 @@ function TimerWidget() {
   const [draftSec, setDraftSec] = useState('00');
   const minRef = useRef<HTMLInputElement>(null);
 
+  // La cuenta atrás va por el reloj y no contando impulsos (19-11-2026): con la pestaña oculta o la tableta
+  // bloqueada el navegador frena los temporizadores, y restar un segundo por impulso la dejaba retrasada.
+  const quedan = useRef(seconds);
+  useEffect(() => { quedan.current = seconds; }, [seconds]);
   useEffect(() => {
     if (!running) return;
+    const fin = Date.now() + quedan.current * 1000;
     const id = setInterval(() => {
-      setSeconds(prev => {
-        if (prev <= 1) {
-          setRunning(false);
-          setFinished(true);
-          beep();
-          confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+      const resto = Math.max(0, Math.ceil((fin - Date.now()) / 1000));
+      setSeconds(resto);
+      if (resto > 0) return;
+      clearInterval(id);
+      setRunning(false);
+      setFinished(true);
+      beep();
+      confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+    }, 250);
     return () => clearInterval(id);
   }, [running]);
 
@@ -1552,6 +1555,13 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
   const clase = clases.find(c => c.id === claseId) ?? clases[0];
   const [picking, setPicking] = useState(false);
   const [presenting, setPresenting] = useState<Ficha | null>(projectFicha);
+  // La pizarra sigue montada al cambiar de pantalla, así que una ficha mandada a proyectar después llega
+  // como cambio de la propiedad: se atiende durante el pintado, como recomienda React, y no en un efecto
+  const [fichaPedida, setFichaPedida] = useState<Ficha | null>(projectFicha);
+  if (projectFicha !== fichaPedida) {
+    setFichaPedida(projectFicha);
+    if (projectFicha) setPresenting(projectFicha);
+  }
   const closePresenter = () => { setPresenting(null); onProjectDone?.(); };
   const rootRef = useRef<HTMLDivElement | null>(null);
   const lienzo = useRef<LienzoHandle | null>(null);
@@ -1616,6 +1626,9 @@ export default function SecClassroom({ studentNames = [], clases = [], claseInic
     const el = rootRef.current;
     if (!el) return;
     const ajustar = () => {
+      // Oculta (otra pantalla de la app) mide cero: no es un cambio de tamaño y las ventanas no se mueven
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
       const area = areaPizarra();
       setVentanas(prev => {
         const next = prev.map(v => ({ ...v, rect: ajustarRect(v.rect, area, minDe(v.tipo)) }));

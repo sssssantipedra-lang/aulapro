@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronUp, Search, ClipboardList, X } from 'lucide-react';
+import { Fragment, useState, useMemo } from 'react';
+import { Plus, ChevronDown, ChevronUp, Search, ClipboardList, Trash2, X } from 'lucide-react';
 import type { Evaluation, Class, Student, Rubric, EvalDiana } from '../types';
 import { useI18n } from '../i18n';
 import { compararNombres } from '../lib/alumnado';
@@ -11,6 +11,8 @@ interface Props {
   rubrics: Rubric[];
   dianas: EvalDiana[];
   onOpenEval: (rubricId: string, studentId: string, classId: string) => void;
+  /** Quitar una evaluación equivocada: sale del Historial, de las medias y, si llevó nota, del cuaderno. */
+  onDeleteEval?: (id: string) => void;
 }
 
 function formatDate(iso: string): string {
@@ -38,8 +40,8 @@ function ScoreBar({ score, max }: { score: number; max: number }) {
   );
 }
 
-function ExpandedRow({ evaluation, rubric, diana }: {
-  evaluation: Evaluation; rubric: Rubric | undefined; diana: EvalDiana | undefined;
+function ExpandedRow({ evaluation, rubric, diana, onDelete }: {
+  evaluation: Evaluation; rubric: Rubric | undefined; diana: EvalDiana | undefined; onDelete?: () => void;
 }) {
   const { t } = useI18n();
   // Los ítems de una diana cumplen aquí el papel de los criterios: los dos
@@ -102,13 +104,23 @@ function ExpandedRow({ evaluation, rubric, diana }: {
               <strong style={{ fontWeight: 700 }}>{t('Notas:')} </strong>{evaluation.notes}
             </div>
           )}
+          {onDelete && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-ghost" style={{ color: 'var(--danger)' }}
+                onClick={() => {
+                  if (window.confirm(t('¿Eliminar esta evaluación de {name}? Deja de contar en las medias y en las competencias. En el cuaderno, su nota pasa a ser la de la evaluación anterior con este instrumento o, si no hay otra, la casilla se queda vacía.', { name: evaluation.student_name }))) onDelete();
+                }}>
+                <Trash2 size={14} />{t('Eliminar esta evaluación')}
+              </button>
+            </div>
+          )}
         </div>
       </td>
     </tr>
   );
 }
 
-export function History({ evaluations, classes, students, rubrics, dianas, onOpenEval }: Props) {
+export function History({ evaluations, classes, students, rubrics, dianas, onOpenEval, onDeleteEval }: Props) {
   const { t, locale } = useI18n();
   const [filterClassId, setFilterClassId] = useState('');
   const [filterStudentId, setFilterStudentId] = useState('');
@@ -334,7 +346,7 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                   const scoreColor = pct >= 75 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--danger)';
 
                   return (
-                    <>
+                    <Fragment key={ev.id}>
                       <tr
                         key={ev.id}
                         style={{
@@ -412,9 +424,10 @@ export function History({ evaluations, classes, students, rubrics, dianas, onOpe
                         </td>
                       </tr>
                       {isExpanded && (
-                        <ExpandedRow key={`exp-${ev.id}`} evaluation={ev} rubric={rubric} diana={diana} />
+                        <ExpandedRow key={`exp-${ev.id}`} evaluation={ev} rubric={rubric} diana={diana}
+                          onDelete={onDeleteEval ? () => { setExpandedId(null); onDeleteEval(ev.id); } : undefined} />
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>

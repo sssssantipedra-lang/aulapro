@@ -713,13 +713,14 @@ export function normalizarApoyo(raw: unknown): ApoyoData {
 }
 
 /**
- * Lo que queda al vaciar el curso: las agendas visuales sin alumno, que son
- * plantillas, y las fotos que usan. Todo lo demás es de este curso.
+ * Lo que queda al vaciar el curso (19-11-2026): el alumnado de apoyo suele seguir con el especialista al
+ * curso siguiente, así que se conservan sus fichas, sus grupos, sus programas con los objetivos, sus
+ * adaptaciones y las agendas visuales. Se va lo que es del curso que termina: los registros de las
+ * sesiones, las coordinaciones, los cierres de trimestre, los documentos y las ACS del alumnado de aula
+ * (que se borra con sus clases). Antes se borraba todo menos las agendas sin alumno.
  */
 export function apoyoParaOtroCurso(d: ApoyoData): ApoyoData {
-  const agendas = d.agendas.filter(a => !a.alumnoId);
-  const usadas = new Set(agendas.flatMap(a => a.pasos.map(p => p.fotoId).filter(Boolean)));
-  return { ...APOYO_VACIO, agendas, fotos: d.fotos.filter(f => usadas.has(f.id)) };
+  return { ...APOYO_VACIO, alumnos: d.alumnos, grupos: d.grupos, programas: d.programas, acs: d.acs, agendas: d.agendas, fotos: d.fotos };
 }
 
 /** Quita un alumno de todo el módulo: grupos, programas y registros. */

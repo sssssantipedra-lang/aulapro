@@ -722,7 +722,7 @@ const EN: Record<string, string> = {
   'Elige una clase y un alumno para ver su Diana Competencial': 'Choose a class and a student to see their Learner Profile',
   '{n}/{total} competencias evaluadas': '{n}/{total} competencies assessed',
   '{n}/{max} pts': '{n}/{max} pts',
-  'Sugerir perfil con IA': 'Suggest profile with AI',
+  'Redactar descriptores con IA': 'Write descriptors with AI',
   '{n} evaluación disponible': '{n} assessment available',
   '{n} evaluaciones disponibles': '{n} assessments available',
   'para análisis': 'for analysis',
@@ -736,7 +736,7 @@ const EN: Record<string, string> = {
   '{n} competencia pendiente': '{n} competency left',
   '{n} competencias pendientes': '{n} competencies left',
   '✅ Diana guardada': '✅ Learner profile saved',
-  'La IA no devolvió un perfil válido. Vuelve a intentarlo.': 'The AI didn’t return a valid profile. Try again.',
+  'La IA no devolvió unos descriptores válidos. Vuelve a intentarlo.': 'The AI didn’t return valid descriptors. Try again.',
   'Diana de evaluación': 'Assessment target',
 
   /* ── Dianas de evaluación ── */

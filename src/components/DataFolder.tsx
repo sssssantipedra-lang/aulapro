@@ -11,13 +11,15 @@ interface Props {
   profileId: string | null;
   courseLabel: string;
   onClearSchoolYear: () => Promise<void>;
+  /** Perfil de PT y AL: al vaciar el curso se conserva su alumnado de apoyo, y se dice. */
+  apoyo?: boolean;
 }
 
 /**
  * Panel de la carpeta de datos: dónde está, cuánto ocupa, copias de
  * seguridad y el vaciado de fin de curso.
  */
-export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props) {
+export function DataFolder({ profileId, courseLabel, onClearSchoolYear, apoyo = false }: Props) {
   const { toast } = useToast();
   const { t, locale } = useI18n();
   const [info, setInfo] = useState<store.FolderInfo | null>(null);
@@ -154,6 +156,7 @@ export function DataFolder({ profileId, courseLabel, onClearSchoolYear }: Props)
         </div>
         <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 14 }}>
           {t('Cuando termine la tercera evaluación puedes vaciar el curso: se borran clases, alumnos, notas, evaluaciones, asistencia e informes.')} <strong>{t('Se conservan tus rúbricas y dianas')}</strong>{t(', que te servirán el año que viene.')}
+          {apoyo && <> {t('De PT y AL se conserva tu alumnado de apoyo con sus grupos, sus programas, sus adaptaciones y sus agendas visuales; se borran los registros de las sesiones, las coordinaciones, los cierres de trimestre y los documentos.')}</>}
           {desktop && t(' Antes de borrar se guarda una copia de seguridad.')}
         </p>
 

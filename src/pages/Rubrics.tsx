@@ -775,6 +775,11 @@ export function EvalModal({
   /* ── Save ── */
   function handleSave() {
     if (!rubric || !studentId) return;
+    // Lo que no se marca cuenta como 0 en la nota: se dice antes de guardar (19-11-2026; antes se guardaba sin avisar)
+    const sinMarcar = rubric.criteria.filter(c => scores[c.id] === undefined).length;
+    if (sinMarcar > 0 && !window.confirm(t(sinMarcar === 1
+      ? 'Queda {n} criterio sin marcar y contará como 0 en la nota. ¿Guardar así?'
+      : 'Quedan {n} criterios sin marcar y contarán como 0 en la nota. ¿Guardar así?', { n: sinMarcar }))) return;
     const student = students.find(s => s.id === studentId);
     const ev: Evaluation = {
       id: newId('ev'),

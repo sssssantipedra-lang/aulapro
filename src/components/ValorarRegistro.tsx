@@ -75,13 +75,18 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
 
   function guardarEvaluacion() {
     const hoy = isoDate();
-    let n = 0;
+    // Lo que ya estaba guardado: quien no cambia no vuelve a guardarse (19-11-2026; antes cada «Guardar»
+    // creaba otra evaluación por alumno aunque no se hubiera tocado nada, y el Historial se llenaba de copias)
+    const antes = previas(alumnado);
+    let n = 0, iguales = 0;
     for (const s of alumnado) {
       const scores = marcas[s.id] ?? {};
       const valorados = escala.items.filter(i => scores[i.id] === BIEN || scores[i.id] === MEJORABLE);
       if (valorados.length === 0) continue;
       const lim: Record<string, number> = {};
       valorados.forEach(i => { lim[i.id] = scores[i.id]; });
+      const previo = antes[s.id];
+      if (previo && Object.keys(previo).length === valorados.length && valorados.every(i => previo[i.id] === lim[i.id])) { iguales++; continue; }
       onAddEvaluation({
         id: 'ev' + uid(), rubric_id: escala.id, rubric_name: escala.name,
         student_id: s.id, student_name: s.name, class_id: claseId, date: hoy,
@@ -90,6 +95,7 @@ export function ValorarRegistro({ escala, classes, students, evaluations, claseI
       });
       n++;
     }
+    if (n === 0 && iguales > 0) { toast(t('No has cambiado ninguna valoración')); onClose(); return; }
     if (n === 0) { toast(t('Marca algún pulgar antes de guardar')); return; }
     toast(t(n === 1 ? '✅ Guardada la valoración de {n} alumno' : '✅ Guardada la valoración de {n} alumnos', { n }));
     onClose();

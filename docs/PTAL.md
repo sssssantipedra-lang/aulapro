@@ -66,7 +66,7 @@ Quien es de PT o de AL normalmente no es tutor, así que tiene su propia disposi
   - Fotos del propio docente, reducidas a 480 px y guardadas en el perfil.
   - Se muestra a pantalla completa, tachando cada paso, y se guarda en PDF para imprimir y recortar.
   - La atribución va en Configuración (pie de la cuadrícula) y al pie del PDF si lleva algún pictograma.
-  - Al vaciar el curso se quedan las agendas sin alumno, que son plantillas, y sus fotos.
+  - Al vaciar el curso se conserva el alumnado de apoyo con sus grupos, sus programas y objetivos, sus adaptaciones y sus agendas con sus fotos; se van los registros de las sesiones, las coordinaciones, los cierres de trimestre y los documentos (19-11-2026, `apoyoParaOtroCurso`; antes solo quedaban las agendas sin alumno, y quien seguía con su alumnado tenía que darlo de alta otra vez).
   - La lista se cambia en `scripts/pictos/lista.py` y se regenera con `scripts/pictos/generar.py`. Fuera los que llevan palabras en inglés dibujadas.
   - ARASAAC, Sclera y Soy Visual no se pueden usar: su licencia no permite el uso comercial.
 - **Aula Live**: para el perfil de PT y AL, la ruleta y los grupos salen de su alumnado de apoyo.

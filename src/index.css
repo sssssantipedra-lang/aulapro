@@ -1755,6 +1755,17 @@ button.cc-chip:hover { border-color:var(--accent-d); color:var(--accent-d); }
 .ef-tabla thead th { border-top:none; font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-3); }
 .ef-tabla tbody th { font-weight:700; color:var(--text); }
 .ef-marca-in { width:96px; padding:6px 10px; text-align:right; }
+/* En el móvil la tabla de marcas no cabe: la columna donde se escribe se queda pegada a la derecha, a la
+   vista, y el resto pasa por debajo al deslizar (19-11-2026; antes quedaba fuera de la pantalla). */
+@media (max-width:640px) {
+  .ef-tabla th, .ef-tabla td { padding:8px 6px; }
+  .ef-tabla .ef-col-marca { position:sticky; right:0; z-index:1; background:var(--card); box-shadow:-6px 0 8px -6px rgba(0,0,0,0.18); }
+  .ef-marca-in { width:82px; height:40px; font-size:16px; }
+}
+/* Las fechas de la evaluación, en la barra del acta */
+.acta-fechas { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px; color:var(--text-2); }
+.acta-fechas label { display:inline-flex; align-items:center; gap:6px; }
+.acta-fechas input.tb-select { min-width:0; padding:0 8px; }
 .ef-mejora { display:inline-flex; align-items:center; gap:3px; font-weight:800; font-variant-numeric:tabular-nums; }
 .ef-mejora.sube { color:var(--ok-fg); }
 .ef-mejora.baja { color:var(--danger); }

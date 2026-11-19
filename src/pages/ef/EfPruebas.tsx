@@ -153,7 +153,7 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
                 <th>{t('Última')}</th>
                 <th>{t('Mejora')}</th>
                 {hayBaremo && <th>{t('Nota')}</th>}
-                <th>{t('Nueva marca')}</th>
+                <th className="ef-col-marca">{t('Nueva marca')}</th>
               </tr>
             </thead>
             <tbody>
@@ -175,7 +175,7 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
                       )}
                     </td>
                     {hayBaremo && <td>{nota === null ? '—' : fmt(nota)}</td>}
-                    <td>
+                    <td className="ef-col-marca">
                       <input className="finput ef-marca-in" inputMode="decimal" value={valores[s.id] ?? ''}
                         aria-label={t('Nueva marca de {nombre}', { nombre: s.name })}
                         onChange={e => setValores(v => ({ ...v, [s.id]: e.target.value }))} />
@@ -204,7 +204,8 @@ export function EfPruebas({ classes, students, ef, onChangeEf, gradeCategories, 
         open={alCuaderno} onClose={() => setAlCuaderno(false)} clase={clase} prueba={prueba}
         categorias={gradeCategories.filter(c => c.class_id === clase.id && (c.subject ?? clase.subjects[0]) === asignaturaEF(clase))}
         onConfirmar={categoriaId => {
-          const itemId = nuevoIdEF('gi');
+          // Un id fijo por prueba y clase: pasar las notas otra vez actualiza la columna en vez de crear otra (19-11-2026)
+          const itemId = `gi-ef-${prueba.id}-${clase.id}`;
           onAddGradeItem({ id: itemId, class_id: clase.id, category_id: categoriaId, name: t(prueba.nombre), date: hoy });
           let n = 0;
           alumnos.forEach(s => {

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Printer, FileSpreadsheet, FileDown, ArrowRight, Users, Eye } from 'lucide-react';
 import type { Class, Student, GradeCategory, GradeItem, GradeMap, Evaluation } from '../types';
-import { PERIODS, LOMLOE_COMPETENCES } from '../lib/utils';
+import { PERIODS, LOMLOE_COMPETENCES, isoDate, fromIsoDate } from '../lib/utils';
+import { enRango, guardarRango, rangoDe, rangosGuardados, type RangoDeFechas } from '../lib/periodos';
 import { isMarksCategory, sumaDePesos } from '../services/classMarks';
 import { useToast } from '../components/ui/Toast';
 import { ClassChips } from '../components/ui/ClassChips';
@@ -65,6 +66,17 @@ export function Records({
   const { t, lang, locale } = useI18n();
   const [classId, setClassId] = useState(classes[0]?.id ?? '');
   const [period, setPeriod]   = useState<string>(PERIODS[0]);
+  // Cada evaluación cuenta las notas de sus fechas (lib/periodos.ts); «Final de curso», todas
+  const [hoy] = useState(() => isoDate());
+  const [rangos, setRangos] = useState(() => rangosGuardados(hoy));
+  const rango = useMemo(() => rangoDe(period, hoy, rangos), [period, hoy, rangos]);
+  const cambiarRango = (r: RangoDeFechas) => {
+    if (!r.desde || !r.hasta || r.desde > r.hasta) return;
+    guardarRango(period, r, hoy);
+    setRangos(prev => ({ ...prev, [period]: r }));
+  };
+  const diaCorto = (f: string) => fromIsoDate(f).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  const textoPeriodo = rango ? t('{periodo} (del {desde} al {hasta})', { periodo: t(period), desde: diaCorto(rango.desde), hasta: diaCorto(rango.hasta) }) : t(period);
   const [showCategories, setShowCategories] = useState(true);
   const [showLabel, setShowLabel]           = useState(true);
   const [showSignature, setShowSignature]   = useState(true);
@@ -95,8 +107,13 @@ export function Records({
     [materiasOficiales, activeSubject],
   );
   const evsDeClase = useMemo(
-    () => evaluations.filter(e => e.class_id === clsId),
-    [evaluations, clsId],
+    () => evaluations.filter(e => e.class_id === clsId && enRango(e.date, rango)),
+    [evaluations, clsId, rango],
+  );
+  /** Las actividades del cuaderno que caen en la evaluación elegida. */
+  const itemsDelPeriodo = useMemo(
+    () => gradeItems.filter(i => enRango(i.date, rango)),
+    [gradeItems, rango],
   );
   const columnasEspecificas = useMemo(
     () => (materiaDeLaClase ? notasDeMateria(materiaDeLaClase.entry, materiaDeLaClase.grupo, []).competencias : []),
@@ -118,7 +135,7 @@ export function Records({
 
   /** Media de un alumno dentro de una categoría (con el peso de cada prueba). */
   function categoryAverage(studentId: string, categoryId: string): number | null {
-    return mediaDeCategoria(gradeItems.filter(i => i.category_id === categoryId), grades, studentId);
+    return mediaDeCategoria(itemsDelPeriodo.filter(i => i.category_id === categoryId), grades, studentId);
   }
 
   /** Nota final: media de las categorías ponderada por su peso. */
@@ -177,7 +194,7 @@ export function Records({
       label: rounded === null ? null : gradeLabel(rounded, lang),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [roster, cats, gradeItems, grades, lang]);
+  }), [roster, cats, itemsDelPeriodo, grades, lang]);
 
   const stats = useMemo(() => {
     const graded = rows.filter(r => r.final !== null).map(r => r.final as number);
@@ -372,6 +389,14 @@ export function Records({
           <select className="tb-select" value={period} onChange={e => setPeriod(e.target.value)} aria-label={t('Evaluación')}>
             {PERIODS.map(p => <option key={p} value={p}>{t(p)}</option>)}
           </select>
+          {rango && (
+            <span className="acta-fechas" title={t('El acta cuenta las notas y las evaluaciones de estas fechas. Cámbialas si tu centro cierra la evaluación otro día: se recuerdan en este dispositivo.')}>
+              <label>{t('Del')} <input type="date" className="tb-select" value={rango.desde} max={rango.hasta} aria-label={t('Primer día de la evaluación')}
+                onChange={e => cambiarRango({ desde: e.target.value, hasta: rango.hasta })} /></label>
+              <label>{t('al')} <input type="date" className="tb-select" value={rango.hasta} min={rango.desde} aria-label={t('Último día de la evaluación')}
+                onChange={e => cambiarRango({ desde: rango.desde, hasta: e.target.value })} /></label>
+            </span>
+          )}
         </div>
 
         <div className="toolbar-row" style={{ gap: 18 }}>
@@ -418,7 +443,7 @@ export function Records({
             <dl className="acta-meta">
               <div><dt>{t('Grupo')}</dt><dd>{cls?.name}</dd></div>
               <div><dt>{t('Materia')}</dt><dd>{activeSubject || '—'}</dd></div>
-              <div><dt>{t('Periodo')}</dt><dd>{t(period)}</dd></div>
+              <div><dt>{t('Periodo')}</dt><dd>{textoPeriodo}</dd></div>
               <div><dt>{t('Docente')}</dt><dd>{teacherName || '—'}</dd></div>
             </dl>
 

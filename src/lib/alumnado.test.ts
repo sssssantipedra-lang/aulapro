@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compararAlumnos, compararNombres, idsEnOrdenDeLista, ordenarAlumnado } from './alumnado';
+import { compararAlumnos, compararNombres, idsEnOrdenDeLista, leerListado, ordenarAlumnado } from './alumnado';
 
 const a = (id: string, name: string) => ({ id, name });
 
@@ -50,5 +50,32 @@ describe('nombres repetidos', () => {
     expect(mismoNombreEnClase('ana lopez', 'c1', alumnado)?.id).toBe('a');
     expect(mismoNombreEnClase('Ana López', 'c1', alumnado, 'a')).toBeUndefined();
     expect(mismoNombreEnClase('Ana López', 'c3', alumnado)).toBeUndefined();
+  });
+});
+
+
+describe('leerListado', () => {
+  it('lee una columna de nombres y salta la cabecera', () => {
+    expect(leerListado('Nombre\nAlumno 1\n\nAlumno 2\n')).toEqual([{ name: 'Alumno 1', email: '' }, { name: 'Alumno 2', email: '' }]);
+  });
+  it('sigue leyendo «Nombre,Email»', () => {
+    expect(leerListado('Nombre,Email\nAlumno 1,alumno1@ejemplo.com\nAlumno 2;alumno2@ejemplo.com'))
+      .toEqual([{ name: 'Alumno 1', email: 'alumno1@ejemplo.com' }, { name: 'Alumno 2', email: 'alumno2@ejemplo.com' }]);
+  });
+  it('«Apellidos, Nombre», como en los listados oficiales, entra como «Nombre Apellidos» y sin correo', () => {
+    expect(leerListado('Apellidos, Nombre\nPrimero Segundo, Alumno\n"Tercero Cuarto, Alumna"'))
+      .toEqual([{ name: 'Alumno Primero Segundo', email: '' }, { name: 'Alumna Tercero Cuarto', email: '' }]);
+  });
+  it('columnas pegadas de una hoja de cálculo: número de lista, nombre y correo', () => {
+    expect(leerListado('1\tAlumno 1\talumno1@ejemplo.com\n2\tPrimero Segundo, Alumno\t'))
+      .toEqual([{ name: 'Alumno 1', email: 'alumno1@ejemplo.com' }, { name: 'Alumno Primero Segundo', email: '' }]);
+  });
+  it('una cabecera «Apellidos, Nombre» no descoloca las filas que vienen con otras columnas', () => {
+    expect(leerListado('Apellidos, Nombre\nPrimero Segundo, Alumno 90\n2\tAlumno 91\talumno91@ejemplo.com\nAlumno 92'))
+      .toEqual([{ name: 'Alumno 90 Primero Segundo', email: '' }, { name: 'Alumno 91', email: 'alumno91@ejemplo.com' }, { name: 'Alumno 92', email: '' }]);
+  });
+  it('con cabecera de nombre y apellidos en columnas, los une en ese orden', () => {
+    expect(leerListado('Apellidos\tNombre\nPrimero Segundo\tAlumno')).toEqual([{ name: 'Alumno Primero Segundo', email: '' }]);
+    expect(leerListado('Nombre;Apellidos\nAlumno;Primero Segundo')).toEqual([{ name: 'Alumno Primero Segundo', email: '' }]);
   });
 });

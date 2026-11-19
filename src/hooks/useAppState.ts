@@ -143,6 +143,16 @@ function readLegacyData(): Partial<ProfileSnapshot> | null {
   };
 }
 
+/** Un mapa «cosa → alumno → valor» sin las entradas de un alumno (las notas de cada columna, la lista de cada día). */
+function sinAlumno<V>(mapa: Record<string, Record<string, V>>, alumnoId: string): Record<string, Record<string, V>> {
+  let cambia = false;
+  const out: Record<string, Record<string, V>> = {};
+  for (const [k, fila] of Object.entries(mapa)) {
+    if (fila && alumnoId in fila) { cambia = true; const f = { ...fila }; delete f[alumnoId]; out[k] = f; } else out[k] = fila;
+  }
+  return cambia ? out : mapa;
+}
+
 export function useAppState() {
   const [profileId, setProfileId] = useState<string | null>(() => store.getActiveProfileId());
   const [profile, setProfile]     = useState<TeacherProfile | null>(null);
@@ -350,10 +360,10 @@ export function useAppState() {
    * cada línea del registro sin que las mutaciones dependan de medio hook: si
    * `setGrade` dependiera de `grades`, se recrearía en cada tecla.
    */
-  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks });
+  const mirrorRef = useRef({ students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks, evaluations });
   useEffect(() => {
-    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks };
-  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks]);
+    mirrorRef.current = { students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks, evaluations };
+  }, [students, gradeItems, gradeCategories, classes, grades, attendance, rubrics, dianas, reports, selfAssessments, learningSituations, fichas, workSessions, seatingPlans, classMarks, evaluations]);
 
   const whoRef = useRef('');
   useEffect(() => { whoRef.current = profile?.name ?? ''; }, [profile]);
@@ -456,7 +466,17 @@ export function useAppState() {
     setClassMarks(prev => prev.filter(m => m.student_id !== id));
     setEf(prev => sinAlumnoEF(prev, id));
     setApoyo(prev => sinAcsDeAula(prev, new Set([id])));
-    log('delete', 'student', id, `Alumno ${goneName}`);
+    // Con el alumno se va todo lo suyo (19-11-2026; antes se quedaban sus notas, evaluaciones, faltas e
+    // informes, que seguían contando en las medias y guardados en el perfil sin que nadie los viera)
+    setGrades(prev => sinAlumno(prev, id));
+    setEvaluations(prev => (prev.some(e => e.student_id === id) ? prev.filter(e => e.student_id !== id) : prev));
+    setReports(prev => (prev.some(r => r.student_id === id) ? prev.filter(r => r.student_id !== id) : prev));
+    setAttendance(prev => Object.fromEntries(Object.entries(prev).map(([clase, dias]) => [clase, sinAlumno(dias, id)])));
+    setDianaProfiles(prev => { if (!(id in prev)) return prev; const n = { ...prev }; delete n[id]; return n; });
+    setSeatingPlans(prev => Object.fromEntries(Object.entries(prev).map(([clase, plan]) => [clase, plan.groups.some(g => g.studentIds.includes(id))
+      ? { ...plan, groups: plan.groups.map(g => ({ ...g, studentIds: g.studentIds.filter(x => x !== id) })) }
+      : plan])));
+    log('delete', 'student', id, `Alumno ${goneName}`, 'con sus notas, evaluaciones, asistencia e informes');
   }, [log, studentName]);
 
   /* ── Horario y calendario ── */
@@ -555,11 +575,51 @@ export function useAppState() {
     }
   }, [log]);
 
+  /**
+   * Volver a evaluar a un alumno con el mismo instrumento el mismo día es corregir: la evaluación nueva
+   * sustituye a la de ese día (19-11-2026). Antes se quedaban las dos y las medias por competencias
+   * contaban también la equivocada. En otro día es otra evaluación, y cuentan las dos.
+   */
   const addEvaluation = useCallback((ev: Evaluation) => {
-    setEvaluations(prev => [ev, ...prev]);
-    log('create', 'evaluation', ev.id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
-      typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : undefined);
+    const esLaMisma = (e: Evaluation) => ev.rubric_id !== 'autoeval' && !!ev.student_id
+      && e.rubric_id === ev.rubric_id && e.student_id === ev.student_id && e.class_id === ev.class_id
+      && e.date === ev.date && (e.instrument ?? 'rubric') === (ev.instrument ?? 'rubric');
+    const corrige = mirrorRef.current.evaluations.some(esLaMisma);
+    setEvaluations(prev => [ev, ...prev.filter(e => !esLaMisma(e))]);
+    log(corrige ? 'update' : 'create', 'evaluation', ev.id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
+      (typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : '') + (corrige ? ' · sustituye a la de ese mismo día' : '') || undefined);
     routeToNotebook(ev);
+  }, [log, routeToNotebook]);
+
+  /**
+   * Quita una evaluación (19-11-2026: antes no había forma de borrar una equivocada). La nota que llevó al
+   * cuaderno pasa a ser la de la evaluación anterior de ese alumno con ese instrumento, si la hay; si no,
+   * la casilla se queda vacía.
+   */
+  const deleteEvaluation = useCallback((id: string) => {
+    const m = mirrorRef.current;
+    const ev = m.evaluations.find(e => e.id === id);
+    if (!ev) return;
+    setEvaluations(prev => prev.filter(e => e.id !== id));
+    log('delete', 'evaluation', id, `Evaluación de ${ev.student_name} con «${ev.rubric_name}»`,
+      typeof ev.grade === 'number' ? `nota ${formatGrade(ev.grade)}` : undefined);
+    if (!ev.student_id) return;
+    // La lista va de la más nueva a la más antigua: la primera que quede es la vigente
+    const vigente = m.evaluations.find(e => e.id !== id && e.rubric_id === ev.rubric_id
+      && e.student_id === ev.student_id && e.class_id === ev.class_id && typeof e.grade === 'number');
+    if (vigente) { routeToNotebook(vigente); return; }
+    const inst = m.rubrics.find(r => r.id === ev.rubric_id) ?? m.dianas.find(d => d.id === ev.rubric_id);
+    if (!inst) return;
+    const destinos = objetivoPara(inst, ev.class_id)
+      ? destinosDe(inst, ev.class_id)
+      : ev.class_id ? [] : destinosDe(inst, objetivosDe(inst)[0]?.class_id ?? '');
+    const columnas = destinos.map(d => d.id).filter(c => m.grades[c]?.[ev.student_id] !== undefined);
+    if (!columnas.length) return;
+    setGrades(prev => {
+      const next = { ...prev };
+      for (const c of columnas) { const fila = { ...(next[c] ?? {}) }; delete fila[ev.student_id]; next[c] = fila; }
+      return next;
+    });
   }, [log, routeToNotebook]);
 
   /* ── Cuaderno ── */
@@ -589,7 +649,8 @@ export function useAppState() {
   }, [gradeItems, gradeCategories, log]);
 
   const addGradeItem = useCallback((i: GradeItem) => {
-    setGradeItems(prev => [...prev, i]);
+    // Con un id que ya existe (las pruebas físicas de EF usan uno fijo por prueba y clase), la columna se actualiza y no se repite
+    setGradeItems(prev => (prev.some(x => x.id === i.id) ? prev.map(x => (x.id === i.id ? { ...x, ...i } : x)) : [...prev, i]));
     log('create', 'gradeItem', i.id, `Prueba «${i.name}» en ${className(i.class_id)}`);
   }, [log, className]);
   const updateGradeItem = useCallback((i: GradeItem) => {
@@ -952,8 +1013,8 @@ export function useAppState() {
     setSeatingPlans({});
     setClassMarks([]);
     setMarksConfigs({});
-    // El alumnado de apoyo, sus programas y sus registros son de este curso;
-    // las agendas visuales sin alumno son plantillas y se quedan
+    // El alumnado de apoyo sigue con el especialista: se queda con sus programas y agendas;
+    // se van los registros, las coordinaciones, los cierres y los documentos del curso
     setApoyo(apoyoParaOtroCurso);
     // De EF se queda el material del docente: pruebas, baremos, actividades…
     setEf(efParaOtroCurso);
@@ -986,7 +1047,7 @@ export function useAppState() {
     addCalEvent, updateCalEvent, deleteCalEvent,
     addRubric, updateRubric, deleteRubric,
     addDiana, updateDiana, deleteDiana,
-    addEvaluation,
+    addEvaluation, deleteEvaluation,
     addGradeCategory, updateGradeCategory, deleteGradeCategory,
     addGradeItem, updateGradeItem, deleteGradeItem,
     setGrade,
