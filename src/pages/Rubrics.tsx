@@ -871,7 +871,10 @@ export function EvalModal({
                           }}
                         >
                           <div style={{ fontWeight: 700, fontSize: 13, color }}>{lv.value}</div>
-                          {desc && <div className="level-cell-desc">{desc}</div>}
+                          {desc
+                            ? <div className="level-cell-desc">{desc}</div>
+                            // En el móvil no hay fila de cabecera: sin descriptor, la casilla dice su nivel
+                            : <div className="level-cell-desc evc-solo-movil">{t(lv.label)}</div>}
                         </div>
                       </td>
                     );

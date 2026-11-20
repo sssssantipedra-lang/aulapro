@@ -88,11 +88,40 @@
   .evc-todos-a { flex-basis:100%; margin:0; }
   .evc-todos .evc-enlace { margin:0; }
 }
+/* Móvil: todo lo que no es la rúbrica, en lo mínimo. La cuenta y la barra en una línea, «Poner a todos» plegado
+   y el pie en una sola fila de botones (para cerrar ya está la X de arriba). */
 @media (max-width: 640px) {
   .evc-diana-zona { grid-template-columns:minmax(0,1fr); }
-  .evc-clase { flex-wrap:wrap; gap:4px 10px; }
+  .evc-clase { margin-bottom:10px; }
   .evc-clase .finput { flex:1; min-width:0; }
-  .evc-pie-btns { width:100%; }
+  .evc-lista { gap:7px; padding:8px; }
+  .evc-alumnos { padding-bottom:2px; }
+  .evc-todos { padding-top:4px; }
+  .evc-todos-plegar { width:100%; min-height:36px; padding:0 2px; border:none; background:none; font-family:var(--font); cursor:pointer; }
+  .evc-todos-plegar svg:last-child { margin-left:auto; transition:transform 0.15s; }
+  .evc-quien { margin-bottom:8px; }
+  .evc-pie { gap:6px 10px; padding-top:8px; padding-bottom:12px; }
+  .evc-pie-dato { min-height:0; flex-basis:100%; }
+  .evc-pie-dato:empty { display:none; }
+  .evc-pie-btns { width:100%; flex-wrap:nowrap; gap:8px; }
+  .evc-pie-btns .btn-ghost:first-child { display:none; }
+  .evc-pie-btns .btn-ghost, .evc-pie-btns .btn-accent { padding-left:12px; padding-right:12px; white-space:nowrap; }
   .evc-pie-btns .btn-accent { flex:1; justify-content:center; }
+  /* El botón flotante de la ayuda (`.help-fab`, 52 px a 20 px del borde) cae encima de la esquina del pie: se le deja sitio
+     para que «Guardar y siguiente» no abra la ayuda por error */
+  .evc-pie { padding-right:60px; }
+
+  /* La rúbrica, sin desplazamiento lateral: cada criterio en su línea y debajo sus niveles repartidos a lo ancho.
+     La fila de nombres de nivel se quita (cada casilla lleva su número, su color y su descriptor). */
+  .evc-ficha .rtable, .evc-ficha .rtable tbody { display:block; }
+  .evc-ficha .rtable thead { display:none; }
+  .evc-ficha .rtable tr { display:flex; flex-wrap:wrap; gap:4px; padding:10px 0; border-top:0.5px solid var(--border); }
+  .evc-ficha .rtable tr:first-child { border-top:none; padding-top:2px; }
+  .evc-ficha .rtable td { flex:1 1 0; min-width:0; padding:0; border-top:none; }
+  .evc-ficha .rtable td:first-child { flex:0 0 100%; padding:0 2px 4px !important; }
+  .evc-ficha .level-cell { height:100%; min-height:44px; padding:8px 3px; overflow-wrap:anywhere; }
+  .evc-ficha .level-cell:not(.selected) { border:1.5px solid var(--border); }
 }
+.evc-solo-movil { display:none; }
+@media (max-width: 640px) { .evc-solo-movil { display:block; } }
 @media (prefers-reduced-motion: reduce) { .evc-barra span, .evc-nivel, .evc-al { transition:none; } .evc-nivel:hover { transform:none; } }

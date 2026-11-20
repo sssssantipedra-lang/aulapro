@@ -4,13 +4,14 @@
  * una vez, o la evaluación que se corrige), el aviso de qué pasará al guardar y el pie con «Guardar y
  * siguiente». El estado lo lleva `hooks/useEvaluarClase.ts`.
  */
-import { useEffect, useRef, type ReactNode } from 'react';
-import { Check, ChevronRight, ClipboardCheck, Users } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Check, ChevronDown, ChevronRight, ClipboardCheck, Users } from 'lucide-react';
 import type { AchievementLevel } from '../../types';
 import { levelColor } from '../../types';
 import { useI18n } from '../../i18n';
 import { fromIsoDate } from '../../lib/utils';
 import type { EvaluarClase } from '../../hooks/useEvaluarClase';
+import { usePhoneScreen } from '../../hooks/useNarrowScreen';
 
 function useFechaCorta() {
   const { locale } = useI18n();
@@ -23,6 +24,10 @@ export function ListaDeClase({ clase, niveles }: { clase: EvaluarClase; niveles:
   const fecha = useFechaCorta();
   const lista = useRef<HTMLOListElement>(null);
   const { filas, studentId, hechos, sinGuardar } = clase;
+  // En el móvil «Poner a todos este nivel» va plegado en una línea: la pantalla es para la rúbrica
+  const movil = usePhoneScreen();
+  const [desplegado, setDesplegado] = useState(false);
+  const todosAbierto = !movil || desplegado || clase.nivelDeTodos !== null;
 
   // El alumno elegido, a la vista: al pasar al siguiente la lista lo sigue
   useEffect(() => {
@@ -68,7 +73,15 @@ export function ListaDeClase({ clase, niveles }: { clase: EvaluarClase; niveles:
 
       {(clase.paraTodos > 0 || clase.nivelDeTodos !== null) && (
         <div className="evc-todos">
-          <div className="evc-todos-t"><Users size={13} aria-hidden="true" /> {t('Poner a todos este nivel')}</div>
+          {movil ? (
+            <button type="button" className="evc-todos-t evc-todos-plegar" aria-expanded={todosAbierto} onClick={() => setDesplegado(d => !d)}>
+              <Users size={13} aria-hidden="true" /> {t('Poner a todos este nivel')}
+              <ChevronDown size={14} aria-hidden="true" style={{ transform: todosAbierto ? 'rotate(180deg)' : undefined }} />
+            </button>
+          ) : (
+            <div className="evc-todos-t"><Users size={13} aria-hidden="true" /> {t('Poner a todos este nivel')}</div>
+          )}
+          {todosAbierto && <>
           <div className="evc-niveles" role="group" aria-label={t('Poner a todos este nivel')}>
             {niveles.map(lv => {
               const puesto = clase.nivelDeTodos === lv.value;
@@ -91,6 +104,7 @@ export function ListaDeClase({ clase, niveles }: { clase: EvaluarClase; niveles:
               : t('Puesto como punto de partida. Toca a quien sea una excepción, cambia lo suyo y pulsa «Guardar todo».')}
           </p>
           {clase.nivelDeTodos !== null && <button type="button" className="evc-enlace" onClick={clase.quitarDeTodos}>{t('Quitar el nivel puesto a todos')}</button>}
+          </>}
         </div>
       )}
     </aside>
@@ -205,7 +219,7 @@ export function PieDeEvaluarClase({ clase, alGuardar, children }: {
           </button>
         ) : hayQueGuardar ? (
           <button type="button" className="btn-accent" onClick={seguir}>
-            <ClipboardCheck size={14} />{t(siguienteId ? 'Guardar y siguiente' : 'Guardar evaluación')}
+            <ClipboardCheck size={14} />{siguienteId ? t('Guardar y siguiente') : t(clase.corrige ? 'Guardar cambios' : 'Guardar evaluación')}
           </button>
         ) : (
           <button type="button" className="btn-accent" disabled={!siguienteId || !studentId} onClick={seguir}>
