@@ -39,7 +39,7 @@ export function EfPista({ classes, students, classMarks, ef, onAddMark, onDelete
     [classes],
   );
   // La clase de ahora, la última con la que se trabajó o la primera: la misma regla que el resto de la app
-  const [claseId, setClaseId] = useClaseActiva(ordenadas);
+  const [claseId, setClaseId, llevarClase] = useClaseActiva(ordenadas);
   const clase = ordenadas.find(c => c.id === claseId) ?? ordenadas[0] ?? null;
   const [aspecto, setAspecto] = useState<ClassMarkType>('participation');
 
@@ -79,7 +79,7 @@ export function EfPista({ classes, students, classMarks, ef, onAddMark, onDelete
           <h1 className="pg-title">{t('En la pista')}</h1>
           <p className="pg-sub">{t('Elige qué observas y toca a cada alumno; otro toque lo quita. Cuenta en el cuaderno, en el bloque «Trabajo diario y actitud».')}</p>
         </div>
-        <button className="btn-ghost" onClick={() => onNav('notebook')}><BookOpen size={15} />{t('Cuaderno')}</button>
+        <button className="btn-ghost" onClick={() => { llevarClase(); onNav('notebook'); }}><BookOpen size={15} />{t('Cuaderno')}</button>
       </div>
 
       <div className="ap-alumnos"><ClassChips classes={ordenadas} value={clase.id} onChange={setClaseId} /></div>

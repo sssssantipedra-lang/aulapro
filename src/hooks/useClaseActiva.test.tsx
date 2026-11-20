@@ -106,6 +106,21 @@ describe('una pantalla con selector de clase', () => {
     expect(elegida()).toEqual([expect.stringContaining('2º B')]);
   });
 
+  it('un enlace de una pantalla a otra lleva la clase que se estaba viendo', async () => {
+    const user = userEvent.setup();
+    function ConEnlace() {
+      const [id, setId, llevarClase] = useClaseActiva(clases);
+      return <><ClassChips classes={clases} value={id} onChange={setId} /><button type="button" onClick={llevarClase}>Ir al Cuaderno</button></>;
+    }
+    aLas(9, 0);
+    const actitud = montar(<ConEnlace />);
+    await user.click(screen.getByRole('button', { name: '3º C' }));
+    await user.click(screen.getByRole('button', { name: 'Ir al Cuaderno' }));
+    actitud.unmount();
+    montar(<Pantalla />);
+    expect(elegida()).toEqual(['3º C']); // y no «2º B», que es la que está en marcha
+  });
+
   it('la clase que pide la propia pantalla manda sobre el horario', () => {
     aLas(9, 0);
     montar(<Pantalla pedida="c" />);
@@ -148,10 +163,12 @@ describe('el selector con muchas clases (desplegable)', () => {
     montarMuchas();
     const sel = screen.getByRole('combobox') as HTMLSelectElement;
     expect(sel.value).toBe('b');
-    expect([...sel.options].find(o => o.value === 'b')?.textContent).toBe('● 2º B');
+    expect([...sel.options].find(o => o.value === 'b')?.textContent).toBe('2º B'); // elegida, la marca va al lado
     expect(screen.queryByRole('button', { name: /Ir a la clase de ahora/ })).toBeNull();
+    expect(screen.getByText('Ahora, según tu horario')).toBeTruthy();
     await user.selectOptions(sel, 'a');
     expect(sel.value).toBe('a');
+    expect([...sel.options].find(o => o.value === 'b')?.textContent).toBe('● 2º B'); // en la lista, con su punto
     await user.click(screen.getByRole('button', { name: /Ir a la clase de ahora:.*2º B/ }));
     expect(sel.value).toBe('b');
   });

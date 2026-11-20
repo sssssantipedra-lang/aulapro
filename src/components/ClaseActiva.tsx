@@ -3,7 +3,7 @@
  * calendario escolar, perfil) y la clase de ahora, que se vuelve a mirar cada medio minuto y al volver
  * a la app. Ver `lib/claseActiva.ts` y `hooks/useClaseActiva.ts`.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Class, ScheduleBlock } from '../types';
 import type { ComunidadId } from '../lib/curriculum/comunidades';
 import type { ProvinciaId } from '../lib/provincias';
@@ -22,13 +22,13 @@ interface Props {
 
 export function ClaseActiva({ perfil, classes, blocks, comunidad, provincia, children }: Props) {
   const [ahoraMs, setAhoraMs] = useState(() => Date.now());
+  const mirar = useCallback(() => setAhoraMs(Date.now()), []);
   useEffect(() => {
-    const mirar = () => setAhoraMs(Date.now());
     const alVolver = () => { if (!document.hidden) mirar(); };
     const id = window.setInterval(mirar, 30_000);
     document.addEventListener('visibilitychange', alVolver);
     return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', alVolver); };
-  }, []);
+  }, [mirar]);
   const archivo = useCalendarioEscolar();
   const ahora = useMemo(() => {
     const now = new Date(ahoraMs);
@@ -39,6 +39,7 @@ export function ClaseActiva({ perfil, classes, blocks, comunidad, provincia, chi
   const valor = useMemo<ContextoDeClaseActiva>(() => ({
     perfil, classes, blocks, comunidad, provincia,
     ahora: id ? { id, enMarcha, desde, hasta } : null,
-  }), [perfil, classes, blocks, comunidad, provincia, id, enMarcha, desde, hasta]);
+    mirar,
+  }), [perfil, classes, blocks, comunidad, provincia, id, enMarcha, desde, hasta, mirar]);
   return <ClaseActivaContexto.Provider value={valor}>{children}</ClaseActivaContexto.Provider>;
 }

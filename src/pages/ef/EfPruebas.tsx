@@ -20,7 +20,7 @@ import type { Class, GradeCategory, GradeItem, Section, Student } from '../../ty
 import type { BaremoEF, CategoriaPrueba, EfData, MarcaPrueba, PruebaFisica, SexoEF } from '../../types/ef';
 import { compararAlumnos } from '../../lib/alumnado';
 import { ClassChips } from '../../components/ui/ClassChips';
-import { useClaseActiva } from '../../hooks/useClaseActiva';
+import { useClaseActiva, useFijarClase } from '../../hooks/useClaseActiva';
 
 interface Props {
   classes: Class[];
@@ -451,6 +451,7 @@ function AlCuaderno({ open, onClose, clase, prueba, categorias, onConfirmar, onN
   onConfirmar: (categoriaId: string) => void; onNav: (s: Section) => void;
 }) {
   const { t } = useI18n();
+  const fijarClase = useFijarClase();
   const [cat, setCat] = useState('');
   const elegida = categorias.find(c => c.id === cat) ?? categorias[0];
   return (
@@ -458,7 +459,7 @@ function AlCuaderno({ open, onClose, clase, prueba, categorias, onConfirmar, onN
       {categorias.length === 0 ? (
         <>
           <p className="ap-vacio">{t('{clase} todavía no tiene categorías en el cuaderno. Crea una (por ejemplo, «Condición física y salud») y vuelve.', { clase: clase.name })}</p>
-          <div className="ap-acciones"><button className="btn-accent" onClick={() => onNav('notebook')}>{t('Ir al Cuaderno')}</button></div>
+          <div className="ap-acciones"><button className="btn-accent" onClick={() => { fijarClase(clase.id); onNav('notebook'); }}>{t('Ir al Cuaderno')}</button></div>
         </>
       ) : (
         <>

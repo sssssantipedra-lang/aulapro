@@ -57,7 +57,7 @@ export function ClassChips({ classes, value, onChange, counts }: Props) {
           <select value={value} onChange={e => onChange(e.target.value)}>
             {grupos.map(g => (
               <optgroup key={g.id} label={t(g.label)}>
-                {g.clases.map(c => <option key={c.id} value={c.id}>{c.id === ahora?.id ? `● ${texto(c)}` : texto(c)}</option>)}
+                {g.clases.map(c => <option key={c.id} value={c.id}>{c.id === ahora?.id && c.id !== value ? `● ${texto(c)}` : texto(c)}</option>)}
               </optgroup>
             ))}
           </select>

@@ -215,7 +215,7 @@ function GradesTab({
 }: Omit<Props, 'lawDocument' | 'onLawDocumentChange'>) {
   const { toast } = useToast();
   const { t, locale, lang } = useI18n();
-  const [classId, setClassId] = useClaseActiva(classes);
+  const [classId, setClassId, llevarClase] = useClaseActiva(classes);
   const [catModal, setCatModal]   = useState<GradeCategory | 'new' | null>(null);
   const [itemModal, setItemModal] = useState<GradeItem | 'new' | null>(null);
 
@@ -563,7 +563,7 @@ function GradesTab({
                   <button
                     type="button" className="gb-formula-go"
                     onClick={() => {
-                      if (esAsignaturaEF(activeSubject)) { onNav('ef-pista'); return; }
+                      if (esAsignaturaEF(activeSubject)) { llevarClase(); onNav('ef-pista'); return; }
                       requestActitud({ classId: cls!.id, subject: activeSubject });
                       onNav('actitud');
                     }}

@@ -52,7 +52,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
   const { t, locale } = useI18n();
   const pedido = useActitudPedido();
   // Desde el cuaderno llega pedida la clase que se estaba viendo; si no, la regla común
-  const [classId, setClassId] = useClaseActiva(classes, pedido?.classId);
+  const [classId, setClassId, llevarClase] = useClaseActiva(classes, pedido?.classId);
   const [subjectPick, setSubject] = useState(pedido?.subject ?? '');
   const [date, setDate] = useState(isoDate());
   const [sonido, setSonido] = useState(sonidoActivo);
@@ -152,7 +152,7 @@ export function Actitud({ classes, students, classMarks, marksConfigs, attendanc
             ? t('En esta asignatura el bloque «{name}» está desactivado: las anotaciones se guardan, pero no cuentan en la nota.', { name: nombreDelBloque(cfg, t, subject) })
             : t('Pesa un {n}% de la nota final. Cada anotación suma o resta {step} en su parte.', { n: pct, step: cfg.step.toLocaleString(locale) })}
         </span>
-        <button type="button" className="mk-link" onClick={() => onNav('notebook')}>
+        <button type="button" className="mk-link" onClick={() => { llevarClase(); onNav('notebook'); }}>
           {t('Ajustar en el cuaderno')} <ArrowRight size={12} />
         </button>
       </p>

@@ -22,7 +22,7 @@ import { separarInforme, aplicarNotas, lineasDeClave, notasPorClave, MARCA_TABLA
 import { DocPreview } from '../components/DocPreview';
 import { mediaDeCategoria } from '../lib/ponderacion';
 import { textoLibreParaIA, soloDatosDeSalud } from '../lib/documentoParaIA';
-import { useClaseActiva } from '../hooks/useClaseActiva';
+import { useClaseActiva, useFijarClase } from '../hooks/useClaseActiva';
 
 /** Las 8 competencias clave LOMLOE, en inglés, para los informes en ese idioma. */
 const LOMLOE_COMPETENCES_EN = [
@@ -653,6 +653,7 @@ function EmptyReport({
   onNav: (s: string) => void;
 }) {
   const { t } = useI18n();
+  const fijarClase = useFijarClase();
   if (!evidence.hasData) {
     return (
       <div style={{ textAlign: 'center', padding: '34px 24px' }}>
@@ -665,7 +666,7 @@ function EmptyReport({
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button className="btn-ghost" onClick={() => onNav('rubrics')}>{t('Ir a Evaluación')}</button>
-          <button className="btn-ghost" onClick={() => onNav('notebook')}>{t('Ir al Cuaderno')}</button>
+          <button className="btn-ghost" onClick={() => { fijarClase(student.class_id); onNav('notebook'); }}>{t('Ir al Cuaderno')}</button>
         </div>
       </div>
     );
